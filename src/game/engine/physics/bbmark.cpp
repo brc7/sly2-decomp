@@ -64,7 +64,7 @@ struct C { int a[4]; };
 extern "C" {
 void InitDl__FP2DLi(DL *, int);
 void AppendDlEntry__FP2DLPv(DL *, void *);
-int FFindDlEntry__FP2DLPv(DL *, void *);
+int IsEntryInDl__FP2DLPv(DL *, void *);
 void RemoveDlEntry__FP2DLPv(DL *, void *);
 L *AddSwObjectPair(SW *, X *, X *);
 L *RemoveSwObjectPair(SW *, X *, X *);
@@ -100,7 +100,7 @@ extern "C" X *AddSwAaobrObject(SW *world, LO *object) {
     InitDl__FP2DLi(&aaobr->unknown34List, 0x60);
     aaobr->object = object;
     AppendDlEntry__FP2DLPv(&world->aaobrList, aaobr);
-    if (FFindDlEntry__FP2DLPv(&world->unknown2CList, object->parent)) AppendDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
+    if (IsEntryInDl__FP2DLPv(&world->unknown2CList, object->parent)) AppendDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
     for (axis = 0; axis < 3; axis++) {
         E *endpoint = &world->axisEndpoints[axis][world->numEndpoints];
         endpoint->isMax = 0;
@@ -158,7 +158,7 @@ extern "C" void RemoveSwAaobrObject(SW *world, X *aaobr)
     __asm__ __volatile__("");
     FreeSwXpList__FP2SWP2XP(world, aaobr->contactList6C);
     RemoveDlEntry__FP2DLPv(&world->aaobrList, aaobr);
-    if (FFindDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr))
+    if (IsEntryInDl__FP2DLPv(&world->unknown3D1CList, aaobr))
         RemoveDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
     if ((aaobr->flags & 1) == 1)
         RemoveDlEntry__FP2DLPv(&world->boundsUpdateList, aaobr);

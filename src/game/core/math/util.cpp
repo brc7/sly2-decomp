@@ -1,6 +1,6 @@
 // util.cpp -- math utilities (Sly 1 util.c): angle normalisation and limits, smoothing (SMP/SMPA), random numbers,
 // quadratics and CLQ curves, sine/cosine, truncation, range minimisation, colour conversions.
-// The smoothing functions (GSmooth and kin) are the engine's standard way to ease a value toward a target with an
+// The smoothing functions (SmoothValue and kin) are the engine's standard way to ease a value toward a target with an
 // SMP {spring, speed and acceleration limits} parameter block; LM is a {min, max} range and CLQ a quadratic
 // g2 u^2 + g1 u + g0. Many names keep Sly 1's Hungarian return-type prefixes (G float, N int, F bool, C count, Rad
 // angle); they are C++ symbols and wait for a C++ rename pass. TU 0x11CF60..0x11E198 (28 functions, address order).
@@ -20,24 +20,24 @@ float fmodf(float x, float y);
 float func_00244F18(float g) __asm__("floorf");
 void ConvertUserRgbToUserHsv(VECTOR *phsv, VECTOR *prgb);
 }
-float GModPositive(float gDividend, float gDivisor);
-int CSolveQuadratic(float a, float b, float c, float *ax);
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
-float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext);
+float ModPositive(float gDividend, float gDivisor);
+int SolveQuadratic(float a, float b, float c, float *ax);
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float SmoothValueWithAccel(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext);
 extern "C" int GetRandomInt();
 
 /** @sly2-annot addr=0x11CF60
- * Purpose: Wraps an angle into [-pi, pi) using GModPositive
- * Info: proposed name RadNormalize (T1); TU util
+ * Purpose: Wraps an angle into [-pi, pi) using ModPositive
+ * Info: proposed name NormalizeAngle (T1); TU util
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_A1
  * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Wraps an angle into [-pi, pi).
-float RadNormalize(float rad)
+float NormalizeAngle(float rad)
 {
     if (rad < -3.14159265359f || 3.14159265359f < rad) {
-        float modpos = GModPositive(rad + 3.14159265359f, 2 * 3.14159265359f);
+        float modpos = ModPositive(rad + 3.14159265359f, 2 * 3.14159265359f);
         rad = modpos - 3.14159265359f;
     }
     return rad;
@@ -49,7 +49,7 @@ float RadNormalize(float rad)
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Clamps value to [-limit, limit].
-float GLimitAbs(float value, float limit)
+float ClampAbs(float value, float limit)
 {
     if (value > limit) {
         value = limit;
@@ -59,11 +59,11 @@ float GLimitAbs(float value, float limit)
     return value;
 }
 
-/* GSmooth (Sly 1 util.c). Code-identical except ONE toolchain nop: target has `sub.s; nop; div.s` at 0x11D0B8
+/* SmoothValue (Sly 1 util.c). Code-identical except ONE toolchain nop: target has `sub.s; nop; div.s` at 0x11D0B8
    (div.s is the 2nd insn of a basic block -> original assembler pads it to position 2 with 1 nop; asfix only pads position 0). */
 /** @sly2-annot addr=0x11D018
  * Purpose: Critically-damped style smoothing of a scalar toward a target with SMP limits
- * Info: proposed name GSmooth (T1); TU util
+ * Info: proposed name SmoothValue (T1); TU util
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
  * See: docs/engine/core-library.md#7-key-functions, docs/MATCHING_NOTES.md#gsmooth-prototype-2026-10-16,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
@@ -71,7 +71,7 @@ float GLimitAbs(float value, float limit)
 // Moves `current` toward `target` over dt: at params->svFast while far away, then decelerating linearly to
 // params->svSlow over the final stretch (the distance covered while slowing for params->dtFast seconds), never
 // overshooting. Returns the new value and optionally its rate of change. The engine's standard easing.
-float GSmooth(float current, float target, float dt, SMP *params, float *outRate)
+float SmoothValue(float current, float target, float dt, SMP *params, float *outRate)
 {
     float distance;
     float newDistance;
@@ -103,7 +103,7 @@ float GSmooth(float current, float target, float dt, SMP *params, float *outRate
         dt -= fastTime;
         distance = slowdownDistance;
     }
-    rootCount = CSolveQuadratic((params->svFast - params->svSlow) / (params->dtFast + params->dtFast), params->svSlow, -distance, roots);
+    rootCount = SolveQuadratic((params->svFast - params->svSlow) / (params->dtFast + params->dtFast), params->svSlow, -distance, roots);
     timeLeft = roots[rootCount - 1] - dt;
     if (0.0f < timeLeft) {
         float b = params->svSlow;
@@ -131,12 +131,12 @@ LDone:
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-// GSmooth with an acceleration limit: the new rate may differ from currentRate by at most smoothParams->sdvMax
+// SmoothValue with an acceleration limit: the new rate may differ from currentRate by at most smoothParams->sdvMax
 // * dt, and the value follows the constant-acceleration path when the limit applies.
-float GSmoothA(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
+float SmoothValueWithAccel(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float nextRate;
-    float g = GSmooth(current, target, dt, (SMP *)params, &nextRate);
+    float g = SmoothValue(current, target, dt, (SMP *)params, &nextRate);
     if (params->sdvMax > 0.0f) {
         float maxRateChange = params->sdvMax * dt;
         float maxRate = currentRate + maxRateChange;
@@ -162,13 +162,13 @@ SLY2_SCRAP("addiu $sp, $sp, 0x40");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-// GSmooth for angles: eases along the shorter way round and keeps the result normalised.
-float RadSmooth(float current, float target, float dt, SMP *params, float *outRate)
+// SmoothValue for angles: eases along the shorter way round and keeps the result normalised.
+float SmoothAngle(float current, float target, float dt, SMP *params, float *outRate)
 {
     float rad;
-    rad = RadNormalize(target - current);
-    rad = GSmooth(0.0f, rad, dt, params, outRate);
-    rad = RadNormalize(current + rad);
+    rad = NormalizeAngle(target - current);
+    rad = SmoothValue(0.0f, rad, dt, params, outRate);
+    rad = NormalizeAngle(current + rad);
     return rad;
 }
 
@@ -177,13 +177,13 @@ float RadSmooth(float current, float target, float dt, SMP *params, float *outRa
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-// GSmoothA for angles (shorter way round, normalised result).
-float RadSmoothA(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
+// SmoothValueWithAccel for angles (shorter way round, normalised result).
+float SmoothAngleWithAccel(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float rad;
-    rad = RadNormalize(target - current);
-    rad = GSmoothA(0.0f, currentRate, rad, dt, params, outRate);
-    rad = RadNormalize(current + rad);
+    rad = NormalizeAngle(target - current);
+    rad = SmoothValueWithAccel(0.0f, currentRate, rad, dt, params, outRate);
+    rad = NormalizeAngle(current + rad);
     return rad;
 }
 
@@ -201,13 +201,13 @@ int GetRandomInt()
 
 /** @sly2-annot addr=0x11D3F8
  * Purpose: Uniform int in [nLow, nHi]
- * Info: proposed name NRandInRange (T1); TU util
+ * Info: proposed name RandomIntInRange (T1); TU util
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Returns a uniform random int in [low, high].
-int NRandInRange(int low, int high)
+int RandomIntInRange(int low, int high)
 {
     int nRand = GetRandomInt();
     int nBase = low - 1;
@@ -216,13 +216,13 @@ int NRandInRange(int low, int high)
 
 /** @sly2-annot addr=0x11D448
  * Purpose: Uniform float in [gMin, gMax]
- * Info: proposed name GRandInRange (T1); TU util
+ * Info: proposed name RandomFloatInRange (T1); TU util
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918+verdicts_A1
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Returns a uniform random float in [min, max].
-float GRandInRange(float min, float max)
+float RandomFloatInRange(float min, float max)
 {
     if (min == max)
         return min;
@@ -235,7 +235,7 @@ float GRandInRange(float min, float max)
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Returns whether a and b are equal within a relative tolerance: |a - b| / max(|a|, 1) < epsilon.
-int FFloatsNear(float a, float b, float epsilon)
+int AreFloatsNear(float a, float b, float epsilon)
 {
     b = a - b;
     a = a > 0.0f ? a : -a;
@@ -248,14 +248,14 @@ int FFloatsNear(float a, float b, float epsilon)
 static inline float SqrtS(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /** @sly2-annot addr=0x11D508
  * Purpose: Real roots of a x^2 + b x + c (count returned, roots written)
- * Info: proposed name CSolveQuadratic (T1); TU util
+ * Info: proposed name SolveQuadratic (T1); TU util
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
  *   r1_116918+verdicts_tu_r1r2+verdicts_A1+names_v2-signature(verified)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Solves a x^2 + b x + c = 0 for real roots; writes them to roots[] and returns how many (0, 1 or 2).
-int CSolveQuadratic(float a, float b, float c, float *roots)
+int SolveQuadratic(float a, float b, float c, float *roots)
 {
     float alpha;
     float beta;
@@ -397,13 +397,13 @@ float GTrunc(float g)
 
 /** @sly2-annot addr=0x11D898
  * Purpose: fmod returning a non-negative result
- * Info: proposed name GModPositive (T1); TU util
+ * Info: proposed name ModPositive (T1); TU util
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Returns dividend mod divisor in [0, divisor) (fmod made non-negative).
-float GModPositive(float dividend, float divisor)
+float ModPositive(float dividend, float divisor)
 {
     float result = fmodf(dividend, divisor);
     if (result < 0.0f) {
@@ -454,7 +454,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Clamps value into the range [min, max].
-float GLimitLm(LM *range, float value)
+float ClampToLimits(LM *range, float value)
 {
     if (value < range->gMin) {
         return range->gMin;
@@ -477,7 +477,7 @@ extern "C" float ClampAngleToRange(LM *range, float rad)
 {
     float radMid = (range->gMax + range->gMin) * 0.5f;
     float radHalf = (range->gMax - range->gMin) * 0.5f;
-    return RadNormalize(radMid + GLimitAbs(RadNormalize(rad - radMid), radHalf));
+    return NormalizeAngle(radMid + ClampAbs(NormalizeAngle(rad - radMid), radHalf));
 }
 
 /** @sly2-annot addr=0x11D9D8

@@ -153,7 +153,7 @@ extern void *D_002DAA10[] __asm__("_vt$4LEAP");
 extern void *D_002DA9D0[] __asm__("_vt$6CID146");
 
 void RecalculateAsegBlend(ASEGBL *);
-float GModPositive__Fff(float a, float b);
+float ModPositive__Fff(float a, float b);
 void *PsndStartSound(int h);
 void SetSndSourceLo(void *p, void *source);
 qword GetLoWorldPos(void *p);
@@ -397,7 +397,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
     for (i = 0; i < 2; i++) {
         ASEGBL *y = gait->pasegbl;
         MRSG *z = y->amrsgc[i].amrsg;
-        int f = z->dt <= GModPositive__Fff(g - z->t, y->tMax);
+        int f = z->dt <= ModPositive__Fff(g - z->t, y->tMax);
         if (f == gait->afFootDown[i])
             continue;
         if (!f) {

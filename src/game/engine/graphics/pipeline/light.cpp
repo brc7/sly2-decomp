@@ -153,7 +153,7 @@ struct RESULT;
 void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results);
 int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
 }
-int FFloatsNear(float a, float b, float eps) __asm__("FFloatsNear__Ffff");
+int AreFloatsNear(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 float cosf(float) __asm__("cosf");
 void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru);
 void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu, float *pru);
@@ -317,7 +317,7 @@ extern "C" void SetLightDynamic(LIGHTV *light, int isDynamic) {
 // into the linear terms the VU1 lighting code evaluates.
 void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru)
 {
-    if (FFloatsNear(x0, x1, 0.0001f))
+    if (AreFloatsNear(x0, x1, 0.0001f))
     {
         *pru = 0.0f;
         *pdu = y0;
@@ -333,7 +333,7 @@ void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float
 void FitRecipFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru)
 {
     float gEpsilon = 0.0001f;
-    if (FFloatsNear(x0, x1, gEpsilon) || __builtin_fabsf(x0) < gEpsilon || __builtin_fabsf(x1) < gEpsilon)
+    if (AreFloatsNear(x0, x1, gEpsilon) || __builtin_fabsf(x0) < gEpsilon || __builtin_fabsf(x1) < gEpsilon)
     {
         *pru = 0.0f;
         *pdu = y0;

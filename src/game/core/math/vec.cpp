@@ -26,7 +26,7 @@ extern qwordi D_002A2DC0;
 extern qwordi D_002A2DD0;
 extern qwordi D_002A2DF0;
 extern qwordi D_002A2E00;
-float RadNormalize__Ff(float g);
+float NormalizeAngle__Ff(float g);
 float acosf(float g);
 float atan2f(float y, float x);
 float fabsf(float);
@@ -34,7 +34,7 @@ qwordi GetNormalVector(qwordi v);
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 void FindClosestPointBetweenLines(qwordi a, qwordi b, qwordi c, qwordi pos, float *puv, float *pdist, qwordi *pnormal);
 }
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 //////// 0x11E1A0 SetVectorCylind
 namespace V_SetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
@@ -482,9 +482,9 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
     if (outPan)
-        *outPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
     if (outTilt)
-        *outTilt = RadNormalize__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
+        *outTilt = NormalizeAngle__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
 }
 }
 
@@ -836,7 +836,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
     if (outAngle)
-        *outAngle = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+        *outAngle = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
     if (outRadius) {
         qword d, l;
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v));
@@ -870,7 +870,7 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r
 extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *outLength)
 {
     if (outPan) {
-        *outPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
     }
     if (outTilt) {
         qword d, l;
@@ -878,7 +878,7 @@ extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *o
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v), "j"(v)); /* 2nd "j"(v) unused: allocation only (keeps v in memory) */
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         g = GetZ(v);
-        *outTilt = RadNormalize__Ff(atan2f(g, GetX(l)));
+        *outTilt = NormalizeAngle__Ff(atan2f(g, GetX(l)));
     }
     if (outLength) {
         qword d, one, l, t;
@@ -899,14 +899,14 @@ namespace V_PosSmooth {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DD0 (g_qwZero)
 // 0x0011F088 PosSmooth__FUxUxfP3SMPP6VECTOR  (T1258)
-// GSmooth for a position (a 128-bit qword): the distance from posCur to posTarget is what GSmooth eases to zero (psmp's pace, dt seconds), the direction stays.
+// SmoothValue for a position (a 128-bit qword): the distance from posCur to posTarget is what SmoothValue eases to zero (psmp's pace, dt seconds), the direction stays.
 // Returns the new position (posCur + dpos * (the distance moved / the distance)); *pv (optional) gets the velocity it arrives with, in the same direction
-// (dpos * (GSmooth's speed / the distance)). Closer than 0.0001: the position is posTarget and *pv is all zero (g_qwZero).
+// (dpos * (SmoothValue's speed / the distance)). Closer than 0.0001: the position is posTarget and *pv is all zero (g_qwZero).
 // Callers: STEPPLAYER::GetCpdefi 0x141640 (the focus offset at JT+0x1070 eases back to zero), UpdateJtAirInput (dposUnk1010).
 // What decided the match (T1258, search over spellings; the first draft, a plain qword dpos, was 4%): dpos is a VU_VECTOR4 VALUE returned by SubPos (a memory
 // temp) and qwDpos is a qword copy of it that every later use reads; the length is the dot product with the vector passed twice (QwLengthDot - with QwLength
 // it is 51%): that gives the pseudo enough references for the register allocator to keep it in vf3 with a caller-save (sqc2 / lqc2 sp+0x40) around the
-// GSmooth call, while the temp stays in memory (sp+0x30) for the reloads. Using dpos.qw again after the call, or without the copy, is 7%.
+// SmoothValue call, while the temp stays in memory (sp+0x30) for the reloads. Using dpos.qw again after the call, or without the copy, is 7%.
 #include "sly2/basic.h"
 struct VU_VECTOR4
 {
@@ -962,7 +962,7 @@ static inline VU_VECTOR4 SubPos(qword a, qword b)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-// Moves posCur toward posTarget along the line between them by one GSmooth step (smoothParams over dt);
+// Moves posCur toward posTarget along the line between them by one SmoothValue step (smoothParams over dt);
 // optionally returns the resulting velocity. Returns the target (velocity 0) when within 1e-4 of it.
 extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothParams, VECTOR *outVelocity)
 {
@@ -972,7 +972,7 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
     if (sDist > 0.0001f)
     {
         float svNext;
-        float sNext = GSmooth(0.0f, sDist, dt, smoothParams, &svNext);
+        float sNext = SmoothValue(0.0f, sDist, dt, smoothParams, &svNext);
         if (outVelocity != 0)
         {
             *(qword *)outVelocity = QwMulX(qwDpos, VuFloat(svNext / sDist));

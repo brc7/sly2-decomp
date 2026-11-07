@@ -149,7 +149,7 @@ void SetLoXfFromMat(BOOTYV *p, void *pv);
 void FadeSoIn(BOOTYV *p, float g);
 MATCH *PripNewRipg(SW *psw, int n, int m);
 void SubscribeRipObject(MATCH *pe, BOOTYV *p);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 void InitTriggerGrabspot(CID37V *);
 void PostTriggerGrabspotLoad(CID37V *);
 void func_00183FB8(CID37V *);
@@ -634,9 +634,9 @@ void SetBootyState(BOOTYV *booty, int st)
             v.q = vq;
             ((PFNQ)pvt->a[35].pfn)((char *)booty + pvt->a[35].d, v.q);
         }
-        a = GRandInRange__Fff(lo, hi);
-        b = GRandInRange__Fff(lo, hi);
-        c = GRandInRange__Fff(lo, hi);
+        a = RandomFloatInRange__Fff(lo, hi);
+        b = RandomFloatInRange__Fff(lo, hi);
+        c = RandomFloatInRange__Fff(lo, hi);
         u.f[0] = a;
         u.f[1] = b;
         u.f[2] = c;

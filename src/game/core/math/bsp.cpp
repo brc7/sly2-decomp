@@ -632,7 +632,7 @@ SLY2_SCRAP("swc1 $f0, 0x4($4)");
 // readback is an mtc1 asm taking the qword (gcc emits the qmfc2 itself). Together they fix every VF number.
 struct VECTORQ;
 extern "C" VECTORQ *func_002564C0(VECTORQ *);
-inline qword *func_002564A8(qword *p, qword v);   /* inline, defined after its caller (end of file) */
+inline qword *AssignQword(qword *p, qword v);   /* inline, defined after its caller (end of file) */
 /* A VECTOR held in a qword with its out-of-line empty constructor (func_002564C0). */
 struct VECTORQ { qword q; VECTORQ() { (void)func_002564C0(this); } };
 struct MAT { qword r[4]; };
@@ -652,7 +652,7 @@ extern "C" qword TransformPlane(MAT *matrix, qword plane)
     v.q = plane;
     n = VuMulMatrix3(matrix->r[0], matrix->r[1], matrix->r[2], v.q);
     t = matrix->r[3];
-    func_002564A8(&u.q, plane);
+    AssignQword(&u.q, plane);
     float d = u.f[3];
     qword pos, p2;
     qword s;
@@ -678,7 +678,7 @@ extern "C" qword TransformPlane(MAT *matrix, qword plane)
  * @end-sly2-annot */
 // Stores a quadword through a pointer and returns the pointer (an inline assignment kept out of line in the
 // linkonce area).
-inline qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
+inline qword *AssignQword(qword *p, qword v) { *p = v; return p; }
 
 /** @sly2-annot addr=0x2564B8
  * Purpose: return arg0 (out-of-line inline accessor/cast in the linkonce block)

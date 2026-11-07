@@ -123,7 +123,7 @@ float D_002C1F20 = 640.0f;   /* render's .data (address order) */
 LM D_002C1F28 = {0.4f, 1.5f};
 int D_002C1F30 = 8, D_002C1F34 = 8;   /* screen margins x, y */
 extern "C" qword ConvertCmWorldToScreen(CM *, qword);
-extern "C" float GLimitLm__FP2LMf(LM *, float);
+extern "C" float ClampToLimits__FP2LMf(LM *, float);
 extern "C" RT *CRichText_ctor(RT *, const char *, float);
 extern "C" void CRichText_GetExtents(RT *, float *, float *);
 extern "C" void DrawRichText2(RT *, CONFIG *, int);
@@ -151,7 +151,7 @@ extern "C" void DrawWorldLabel(qword position, const char *text, const RGBA *unu
     float depth = Z(screen);
     if (depth < camera->nearDepth)
         return;
-    float scale = GLimitLm__FP2LMf(&D_002C1F28, height * (D_002C1F20 / (camera->sx * depth)));
+    float scale = ClampToLimits__FP2LMf(&D_002C1F28, height * (D_002C1F20 / (camera->sx * depth)));
     RT rt;
     CRichText_ctor(&rt, text, scale);
     CONFIG config;

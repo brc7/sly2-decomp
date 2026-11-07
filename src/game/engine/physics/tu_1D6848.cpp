@@ -244,9 +244,9 @@ void SetSoPosXfVelocityLocal(SOV *, qwordV);
 qwordV GetSoGravity(SOV *);
 qwordV CalculateBallisticLaunchVelocity(float, qwordV, qwordV, qwordV);                 // CalculateLaunchVelocity
 void LoadLookAtMatrix(MATRIX3V *, qwordV);
-float GRandInRange__Fff(float, float);                               // GRandInRange
+float RandomFloatInRange__Fff(float, float);                               // RandomFloatInRange
 }
-static inline float GRandInRange(const LMV &lm) { return GRandInRange__Fff(lm.gMin, lm.gMax); }
+static inline float RandomFloatInRange(const LMV &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
 struct VV { qwordV q; VV() {} VV(const qwordV &v) { q = v; } operator qwordV() const { return q; } };
 struct VU_FLOAT {
     qwordV q;
@@ -403,10 +403,10 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         pso->SetVelocity(v);
     }
     if (plaunch->lmSpin.gMax > 0.0f) {
-        float g = GRandInRange(plaunch->lmSpin);
-        float x = GRandInRange__Fff(-1.0f, 1.0f);
-        float y = GRandInRange__Fff(-1.0f, 1.0f);
-        float z = GRandInRange__Fff(-1.0f, 1.0f);
+        float g = RandomFloatInRange(plaunch->lmSpin);
+        float x = RandomFloatInRange__Fff(-1.0f, 1.0f);
+        float y = RandomFloatInRange__Fff(-1.0f, 1.0f);
+        float z = RandomFloatInRange__Fff(-1.0f, 1.0f);
         qwordV w = NormalizeTo(QwToVf(VECTORV(x, y, z).q)) * VU_FLOAT(g);
         pso->SetAngularVelocity(w);
     }

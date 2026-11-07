@@ -123,7 +123,7 @@ extern "C" {
 qword GetLoWorldPos(void *);
 qword ConvertAloPos(void *, void *, qword);
 float atan2f(float, float);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 void UpdateJtHands(void *);
 int IsWithinLimits__FP2LMf(void *, float);
 struct BHV { char pad[0x50]; int kind; char pad54[8]; void *subject; };
@@ -716,7 +716,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
     if (jt->jtbs == 5) {
         float *pa = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
         float *pb = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
-        float d = RadNormalize__Ff(jt->pt->stickAngle - atan2f(pa[1], pb[0]));
+        float d = NormalizeAngle__Ff(jt->pt->stickAngle - atan2f(pa[1], pb[0]));
         float ad = __builtin_fabsf(d);
         if (ad < 0.7853982f)
             n = 0xE;
@@ -840,7 +840,7 @@ extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 extern "C" int PloFindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
-extern "C" float RadNormalize__Ff(float);
+extern "C" float NormalizeAngle__Ff(float);
 struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"(v.qw):"f"(g));return v;} static inline qword QwFromF(float g){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(g):"memory");return q;}
 static inline float AngleOf(U v){return atan2f(v.f[1],v.f[0]);}
@@ -899,7 +899,7 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
             qword other = candidate.q;
             U scratch;
             scratch.q = VuSubRef(other, GetLoWorldPos(jt));
-            float angle = AbsF(RadNormalize__Ff(atan2f(scratch.f[1], scratch.f[0]) - heading));
+            float angle = AbsF(NormalizeAngle__Ff(atan2f(scratch.f[1], scratch.f[0]) - heading));
             if (cone < angle)
                 continue;
             best = node;

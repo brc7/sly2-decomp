@@ -1231,7 +1231,7 @@ struct SGG
 };
 
 extern SW D_003DD490;           /* g_sw */
-int FFindDlEntry(DL *pdl, void *pv);
+int IsEntryInDl(DL *pdl, void *pv);
 extern "C" {
 LO *GetHeroPo(SW *psw);
 void FireRelay(RELAYV *relay, LO *ploFirer);
@@ -4000,8 +4000,8 @@ inline int GrfUpdateLo(LO *plo)
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
 OID GetSmaCur(SMA *psma) __asm__("GetSmaCurrentState");
-int FFloatsNear(float g1, float g2, float gEpsilon) __asm__("FFloatsNear__Ffff");
-float GLimitLm(LM *plm, float g) __asm__("GLimitLm__FP2LMf");
+int AreFloatsNear(float g1, float g2, float gEpsilon) __asm__("AreFloatsNear__Ffff");
+float ClampToLimits(LM *plm, float g) __asm__("ClampToLimits__FP2LMf");
 
 
 extern "C" { extern CLOCK D_002DDED0; }
@@ -4195,7 +4195,7 @@ int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         {
             VECTOR4 vLimits;
             GetJtPipeLimits(&((STEPPLAYER *)script->pjt)->jtpipe, (float *)&vLimits);
-            float s = GLimitLm((LM *)&vLimits, script->sPipe);
+            float s = ClampToLimits((LM *)&vLimits, script->sPipe);
             fComplete = fabsf(((STEPPLAYER *)script->pjt)->jtpipe.s - s) < prelaycmd->pipeTo.gTolerance;
         }
         else
@@ -4633,8 +4633,8 @@ int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
                 qword qwNew = pmurray->moverec.qwPosNew;
                 qword qwOld = pmurray->moverec.qwPosOld;
                 float gEps = D_002C3628;
-                fComplete = FFloatsNear(GXOfQwAct(qwNew), GXOfQwAct(qwOld), gEps) && FFloatsNear(GYOfQw(qwNew), GYOfQw(qwOld), gEps) &&
-                            FFloatsNear(GZOfQw(qwNew), GZOfQw(qwOld), gEps);
+                fComplete = AreFloatsNear(GXOfQwAct(qwNew), GXOfQwAct(qwOld), gEps) && AreFloatsNear(GYOfQw(qwNew), GYOfQw(qwOld), gEps) &&
+                            AreFloatsNear(GZOfQw(qwNew), GZOfQw(qwOld), gEps);
             }
         }
         else
@@ -4765,7 +4765,7 @@ void EvaluateShapeS(PATH*,qword*,qword*,float);
 qword GetPoctlLateralVector(OUTPUT*,qword);
 float atan2f(float,float);
 float SMaxShape(PATH*),UMaxShape(PATH*);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 ACTOR *FindJsgObject(P*,int);
 void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
 void SetStepTargetHeading(ACTOR*,float);
@@ -4773,7 +4773,7 @@ void EvaluateShapeU(PATH*,float,qword*,qword*);
 qword GetLoWorldPos(ACTOR*);
 qword ConvertAloVec(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
-int FFloatsNear__Ffff(float,float,float);
+int AreFloatsNear__Ffff(float,float,float);
 }
 // Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -4834,7 +4834,7 @@ static inline int NearYInputs(qword previous,qword current,float tolerance){
  __asm__("prot3w %0,%1":"=r"(previousWord):"r"(previous));
  __asm__("mtc1 %1,%0":"=f"(currentInput):"r"(currentWord));
  __asm__("mtc1 %1,%0":"=f"(previousInput):"r"(previousWord));
- return FFloatsNear__Ffff(currentInput,previousInput,tolerance);
+ return AreFloatsNear__Ffff(currentInput,previousInput,tolerance);
 }
 // Whether the z lanes of two input vectors are within tolerance.
 static inline int NearZInputs(qword previous,qword current,float tolerance){
@@ -4844,7 +4844,7 @@ static inline int NearZInputs(qword previous,qword current,float tolerance){
  __asm__("pextuw %0,$zero,%1":"=r"(previousWord):"r"(previous));
  __asm__("mtc1 %1,%0":"=f"(currentInput):"r"(currentWord));
  __asm__("mtc1 %1,%0":"=f"(previousInput):"r"(previousWord));
- return FFloatsNear__Ffff(currentInput,previousInput,tolerance);
+ return AreFloatsNear__Ffff(currentInput,previousInput,tolerance);
 }
 // Per-frame steering of a script-controlled player character: follow a path/curve or head to a target and write
 // stick/heading/speed into the step's control output. (inferred)
@@ -4869,7 +4869,7 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
    else {backward=script->previousCurve-actor->curveTime;forward=SMaxShape(actor->curve)+actor->curveTime-script->previousCurve;}
    if(forward<backward)reverse=1;
   }else if(script->previousCurve<actor->curveTime)reverse=1;
-  if(reverse){out->heading=RadNormalize__Ff(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
+  if(reverse){out->heading=NormalizeAngle__Ff(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
   out->speed=1.0f;break;
  }
  case 0x1D:case 0x1E:case 0x1F:case 0x20:case 0x21:case 0x22:
@@ -4899,7 +4899,7 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
     else {backward=script->previousMotion-actor->motionTime;forward=UMaxShape(motion)+actor->motionTime-script->previousMotion;}
     if(forward<backward)reverse=1;
    }else if(script->previousMotion<actor->motionTime)reverse=1;
-   if(reverse)out->heading=RadNormalize__Ff(out->heading+3.1415927f);
+   if(reverse)out->heading=NormalizeAngle__Ff(out->heading+3.1415927f);
   }else{
    GetJsgTargetPosHeading(script,target,&work.from.q,0);
    work.first=work.from.q;
@@ -4952,7 +4952,7 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
   register float previousX __asm__("$f13"),currentX __asm__("$f12");
   __asm__("mtc1 %1,%0":"=f"(previousX):"r"(oldPosition));
   __asm__("mtc1 %1,%0":"=f"(currentX):"r"(position));
-  if(FFloatsNear__Ffff(currentX,previousX,tolerance)&&NearYInputs(oldPosition,position,tolerance))near=NearZInputs(oldPosition,position,tolerance)!=0;
+  if(AreFloatsNear__Ffff(currentX,previousX,tolerance)&&NearYInputs(oldPosition,position,tolerance))near=NearZInputs(oldPosition,position,tolerance)!=0;
   if(near)out->flags|=0x40;
   out->speed=0.0f;UpdatePoctlPressed(out);break;
  }
@@ -5434,7 +5434,7 @@ void RemoveJsg(P *script)
 // True if the JSG is no longer in its relay's dlJsg. (inferred)
 extern "C" int IsJsgRemoved(JSGV *script)
 {
-    return FFindDlEntry(&script->relay->dlJsg, script) == 0;
+    return IsEntryInDl(&script->relay->dlJsg, script) == 0;
 }
 
 // 0x1E57A0 StartRelayScriptCamBlend
@@ -5451,8 +5451,8 @@ extern qword D_002A2DD0;
 extern float D_002A8124;
 extern struct { float t; float dt; } D_002DDED0;
 extern struct G D_002DDF40;
-int FFloatsNear__Ffff(float, float, float);
-float RadNormalize__Ff(float);
+int AreFloatsNear__Ffff(float, float, float);
+float NormalizeAngle__Ff(float);
 qword DecomposeRotationMatrixToEuler(void *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
@@ -5464,7 +5464,7 @@ static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) 
 // Whether two points are equal within 0.0001 per axis.
 static inline int FNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(X(b), X(a), 0.0001f) && FFloatsNear__Ffff(Y(b), Y(a), 0.0001f) && FFloatsNear__Ffff(Z(b), Z(a), 0.0001f);
+    return AreFloatsNear__Ffff(X(b), X(a), 0.0001f) && AreFloatsNear__Ffff(Y(b), Y(a), 0.0001f) && AreFloatsNear__Ffff(Z(b), Z(a), 0.0001f);
 }
 // Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
 // and push it into the camera's blend slot. (inferred)
@@ -5489,7 +5489,7 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
     pga = (float *)&pa->t.v10;
     pgb = (float *)&pb->t.v10;
     for (i = 2; i >= 0; i--) {
-        *pgb = *pga + RadNormalize__Ff(*pgb - *pga);
+        *pgb = *pga + NormalizeAngle__Ff(*pgb - *pga);
         pga++;
         pgb++;
     }

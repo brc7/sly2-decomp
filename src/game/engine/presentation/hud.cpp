@@ -82,7 +82,7 @@ extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) 
 extern "C" char D_000000C0[];         /* VU1 microprogram entry at 0xC0 */
 char *PchzFindSwLangstr(SW *psw, int id);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-int FFindDlEntry(DL *pdl, void *pv);
+int IsEntryInDl(DL *pdl, void *pv);
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
 extern "C" {
@@ -2237,10 +2237,10 @@ extern "C" void SetWidgetExclusive(WIDGETV *widget, int isNonExclusive)
     int wasNonExclusive = widget->isNonExclusive;
     if (wasNonExclusive == isNonExclusive)
         return;
-    if (!wasNonExclusive && FFindDlEntry(&g_sw.dlWidgetExclusive, widget))
+    if (!wasNonExclusive && IsEntryInDl(&g_sw.dlWidgetExclusive, widget))
         RemoveDlEntry(&g_sw.dlWidgetExclusive, widget);
     widget->isNonExclusive = isNonExclusive;
-    if (!isNonExclusive && !FFindDlEntry(&g_sw.dlWidgetExclusive, widget))
+    if (!isNonExclusive && !IsEntryInDl(&g_sw.dlWidgetExclusive, widget))
         AppendDlEntry(&g_sw.dlWidgetExclusive, widget);
 }
 
@@ -2249,7 +2249,7 @@ namespace M_LoadSpriteTable { extern "C" {
 struct S { char pad[0xC4]; void *spriteHeap; };
 extern int D_002C40A4;
 int U16Read__18CBinaryInputStream(void *a);
-int PvAllocClear__FP4HEAPii(void *heap, int cb, int k);
+int AllocZeroedFromHeap__FP4HEAPii(void *heap, int cb, int k);
 void LoadSpriteDescriptor(struct S *p, void *a, void *b, int n, int m);
 /** @sly2-annot addr=0x214398
  * Purpose: read sprite count, alloc (n+1)*0x40, read each descriptor
@@ -2266,7 +2266,7 @@ void LoadSpriteTable(struct S *p, void *a, void *b, int *pn, int *pm)
 {
     int i;
     *pn = U16Read__18CBinaryInputStream(a);
-    *pm = PvAllocClear__FP4HEAPii(p->spriteHeap, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
+    *pm = AllocZeroedFromHeap__FP4HEAPii(p->spriteHeap, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
     for (i = 1; i <= *pn; i++)
         LoadSpriteDescriptor(p, a, b, *pn, *pm);
 }
@@ -2305,7 +2305,7 @@ int S16Read__18CBinaryInputStream(BIS *);
 int S32Read__18CBinaryInputStream(BIS *);
 float F32Read__18CBinaryInputStream(BIS *);
 void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
-void *PvAllocClear__FP4HEAPii(HEAP *,int,int);
+void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
 void InitSpriteItem(FRAME *);
 }
 static inline void CopyXY(M23 *dst,const M3 &src){
@@ -2326,24 +2326,24 @@ static inline void CopyXY(M23 *dst,const M3 &src){
 extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
  int i,j,k,m;
  root->groupCount=U16Read__18CBinaryInputStream(stream);
- root->groups=(GROUP *)PvAllocClear__FP4HEAPii(owner->heap,(int)root->groupCount*0x30,0x12);
+ root->groups=(GROUP *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)root->groupCount*0x30,0x12);
  for(i=0;i<root->groupCount;i++){
   GROUP *group=&root->groups[i];
   group->first=(i==0);group->owner=root;
   group->reuseCount=U16Read__18CBinaryInputStream(stream);
-  group->reuse=(REUSE *)PvAllocClear__FP4HEAPii(owner->heap,(int)group->reuseCount*0x18,0x12);
+  group->reuse=(REUSE *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)group->reuseCount*0x18,0x12);
   int count=U16Read__18CBinaryInputStream(stream);
   for(j=0;j<group->reuseCount;){
    int next=j+1;
    REUSE *reuse=&group->reuse[j];
    reuse->previous=0;reuse->index=-1;reuse->phase=0;reuse->elapsed=0.0f;
    reuse->count=count;
-   reuse->frames=(FRAME *)PvAllocClear__FP4HEAPii(owner->heap,count*0x70,0x10);
+   reuse->frames=(FRAME *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,count*0x70,0x10);
    for(m=0;m<reuse->count;m++)InitSpriteItem(&reuse->frames[m]);
    j=next;
   }
   group->animCount=U16Read__18CBinaryInputStream(stream);
-  group->animations=(ANIM *)PvAllocClear__FP4HEAPii(owner->heap,(int)group->animCount*0x18,0x12);
+  group->animations=(ANIM *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)group->animCount*0x18,0x12);
   group->index=-1;
   for(j=0;j<group->animCount;j++){
    ANIM *animation=&group->animations[j];
@@ -2351,12 +2351,12 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
    animation->duration=F32Read__18CBinaryInputStream(stream);
    animation->id=S32Read__18CBinaryInputStream(stream);
    animation->count=U16Read__18CBinaryInputStream(stream);
-   animation->keys=(KEY *)PvAllocClear__FP4HEAPii(owner->heap,(int)animation->count*0x20,0x12);
+   animation->keys=(KEY *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)animation->count*0x20,0x12);
    for(k=0;k<animation->count;k++){
     KEY *key=&animation->keys[k];
     key->time=F32Read__18CBinaryInputStream(stream);
     key->itemCount=U8Read__18CBinaryInputStream(stream);
-    key->items=(ITEM *)PvAllocClear__FP4HEAPii(owner->heap,(int)key->itemCount*0x40,0x12);
+    key->items=(ITEM *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->itemCount*0x40,0x12);
     for(m=0;m<key->itemCount;m++){
      ITEM *item=&key->items[m];
      item->a0=U16Read__18CBinaryInputStream(stream);item->a2=U16Read__18CBinaryInputStream(stream);item->a4=U16Read__18CBinaryInputStream(stream);item->a6=S16Read__18CBinaryInputStream(stream);
@@ -2364,22 +2364,22 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
      M3 raw;ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);M3 matrix=raw;CopyXY(&item->matrix,matrix);
     }
     key->colorCount=U8Read__18CBinaryInputStream(stream);
-    key->colors=(COLORS *)PvAllocClear__FP4HEAPii(owner->heap,(int)key->colorCount*8,0x12);
+    key->colors=(COLORS *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->colorCount*8,0x12);
     for(m=0;m<key->colorCount;m++){
      COLORS *colors=&key->colors[m];
      RGBA second(U32Read__18CBinaryInputStream(stream));RGBA first(U32Read__18CBinaryInputStream(stream));
      colors->second=*(RGBA_RAW *)&second;colors->first=*(RGBA_RAW *)&first;
     }
     key->shortCount=U8Read__18CBinaryInputStream(stream);
-    key->shorts=(ushort *)PvAllocClear__FP4HEAPii(owner->heap,(int)key->shortCount*2,0x12);
+    key->shorts=(ushort *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->shortCount*2,0x12);
     for(m=0;m<key->shortCount;m++){
      ushort *dst=&key->shorts[m];*dst=U16Read__18CBinaryInputStream(stream);
     }
     key->byteCount=U8Read__18CBinaryInputStream(stream);
-    key->bytes=(uchar *)PvAllocClear__FP4HEAPii(owner->heap,(int)key->byteCount,0x12);
+    key->bytes=(uchar *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->byteCount,0x12);
     for(int byteIndex=0;byteIndex<key->byteCount;byteIndex++)key->bytes[byteIndex]=U8Read__18CBinaryInputStream(stream);
     key->tagCount=U8Read__18CBinaryInputStream(stream);
-    key->tags=(TAG *)PvAllocClear__FP4HEAPii(owner->heap,(int)key->tagCount*8,0x12);
+    key->tags=(TAG *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->tagCount*8,0x12);
     for(m=0;m<key->tagCount;m++){
      key->tags[m].kind=U8Read__18CBinaryInputStream(stream);
      if(key->tags[m].kind<2)key->tags[m].value.signedBits=S32Read__18CBinaryInputStream(stream);
@@ -2441,7 +2441,7 @@ int S32Read__18CBinaryInputStream(BIS *);
 float F32Read__18CBinaryInputStream(BIS *);
 void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
 void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
-void *PvAllocClear__FP4HEAPii(HEAP *,int,int);
+void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
 void *AllocClearedFromStack(ALLOCREQ *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
@@ -2478,12 +2478,12 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   D_002C40A4=1;
   LoadSpriteTable(owner,stream,root,&sprite->data.nested.count,&sprite->data.nested.children);
   sprite->data.nested.wordCount=U32Read__18CBinaryInputStream(stream);
-  sprite->data.nested.words=(uint *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.nested.wordCount*4,0x13);
+  sprite->data.nested.words=(uint *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,sprite->data.nested.wordCount*4,0x13);
   int i;
   for(i=0;i<sprite->data.nested.wordCount;i++)sprite->data.nested.words[i]=U32Read__18CBinaryInputStream(stream);
   sprite->data.nested.floatCount=U32Read__18CBinaryInputStream(stream);
   int j;
-  sprite->data.nested.floats=(float *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.nested.floatCount*4,0x13);
+  sprite->data.nested.floats=(float *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,sprite->data.nested.floatCount*4,0x13);
   for(j=0;j<sprite->data.nested.floatCount;j++)sprite->data.nested.floats[j]=F32Read__18CBinaryInputStream(stream);
   D_002C40A4=0;break;
  case SPRITE_KIND_TEXT:{
@@ -2498,7 +2498,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
  case SPRITE_KIND_POLYGON:{
   ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);M3 matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
   sprite->data.polygon.count=U16Read__18CBinaryInputStream(stream);
-  sprite->data.polygon.vertices=(VERTEX *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
+  sprite->data.polygon.vertices=(VERTEX *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
   Read__18CBinaryInputStreamiPv(stream,sprite->data.polygon.count*sizeof(VERTEX),sprite->data.polygon.vertices);break;
  }
  case SPRITE_KIND_EFFECT:case SPRITE_KIND_PICTURE:{
@@ -3622,7 +3622,7 @@ extern "C" void ResetRichText2(RT *,char *);
 extern "C" int GetRichText2NextChar(RT *);
 extern "C" void SetRichText2BaseColor(RT *,RGBA *);
 extern "C" float CRichText_Dx(RT *);
-extern "C" float GModPositive__Fff(float,float);
+extern "C" float ModPositive__Fff(float,float);
 extern "C" void SetNoticeState(SCROLL *,int);
 extern "C" void DrawRichText2AtXf(RT *,T *,DATA *);
 static inline float Max(float a,float b){return a<b?b:a;}
@@ -3692,7 +3692,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         }else{
             elapsed-=D_002C40B8;
             period=textWidth*0.01f;
-            position=GModPositive__Fff(elapsed,period);
+            position=ModPositive__Fff(elapsed,period);
             if(D_003DA0C0.finish>=0.0f){
                 float finish=Max(D_003DA0C0.finish,(textWidth+Max(0.0f,textWidth-p->width*scale)+paddingWidth)*0.01f);
                 if(elapsed>=finish)SetNoticeState(&D_003DA0C0,3);
@@ -4721,7 +4721,7 @@ namespace M_ApplySpriteKeyPoses {
 // ApplySpriteKeyPoses: apply one animation key's poses to the reuse slot's items (sprite animation, see AdvanceSpriteAnim).
 // For every pose of key `phase`: reset the item's "previous" state (colours default to additive 0x7F7F7F7F / multiply
 // 0xFFFFFFFF unless the pose has a COLORS entry), look in the following keys for the same item to find its "next"
-// pose, then interpolate matrix and colours between them at the clamped time (GLimitLm), combine with the parent
+// pose, then interpolate matrix and colours between them at the clamped time (ClampToLimits), combine with the parent
 // matrix/colours (CombineSpriteColors) and draw through UpdateSpriteItem (same sprite) or replace the sprite (ReleaseSpriteItem +
 // SetSpriteItemSource). Finally the item's matrix/colours/pose bytes are saved and the link kinds are set (1 for the
 // linking pose, 4 for the item it links to).
@@ -4857,7 +4857,7 @@ struct LM {
     LM(Uninitialized) {}
     LM() {}
 };
-float GLimitLm(LM *, float) __asm__("GLimitLm__FP2LMf");
+float ClampToLimits(LM *, float) __asm__("ClampToLimits__FP2LMf");
 
 /** @sly2-annot addr=0x219400
  * Purpose: apply one animation key poses to items
@@ -4939,7 +4939,7 @@ extern "C" void ApplySpriteKeyPoses(float time, float duration, ANIM *animation,
                 bounds.lo = item->previousTime;
                 bounds.hi = item->nextTime;
                 copy = bounds;
-                limited = GLimitLm(&copy, duration);
+                limited = ClampToLimits(&copy, duration);
             }
             float fraction = (limited - item->previousTime) / (item->nextTime - item->previousTime);
             matrix = BlendMatrix(fraction, *item->previousMatrix, *item->nextMatrix);

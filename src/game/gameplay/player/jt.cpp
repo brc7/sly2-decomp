@@ -1233,7 +1233,7 @@ namespace M_UpdateJtLean__FP2JT {
 //    (re/notes/hero-movement-matched.md, T1448, has the whole reading with the constants.)
 //    The first actuator (19E4) gets that; the other two (19E8 / 19EC) half of it while no animation state is set (jtas -1), else zero;
 //  - holding a SHAPE the curve also bends under him: his speed along the curve's tangent (ahead = the tangent 0.1 s later) gives a sideways acceleration; the part of it across the
-//    tangent and the vertical (SProjectVector) drives the three-clip lean blend of the grab record (ablC, weights +0x7B0 / +0x7BC / +0x7C8, pasegblC +0x7D4), smoothed with GSmoothA
+//    tangent and the vertical (SProjectVector) drives the three-clip lean blend of the grab record (ablC, weights +0x7B0 / +0x7BC / +0x7C8, pasegblC +0x7D4), smoothed with SmoothValueWithAccel
 //    (+0x7D8 the value, +0x7DC its rate), flipped when the record's flip (+0x4E4) is set.
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 static inline float GEvaluateClq(CLQ *clq, float x)
@@ -1241,8 +1241,8 @@ static inline float GEvaluateClq(CLQ *clq, float x)
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
 extern "C" { extern LM D_002BBB60; }
-float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext) __asm__("GSmoothA__FffffP4SMPAPf");
-float GModPositive(float gDividend, float gDivisor) __asm__("GModPositive__Fff");
+float SmoothValueWithAccel(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext) __asm__("SmoothValueWithAccel__FffffP4SMPAPf");
+float ModPositive(float gDividend, float gDivisor) __asm__("ModPositive__Fff");
 
 
 
@@ -1458,7 +1458,7 @@ void UpdateJtLean(JT *jt)
                     float sAhead = jt->jtgrab.sParam + gSpeed * D_002BF2D0;
                     float sMax = SMaxShape((SHAPE *)lo);
                     if (((SHAPE *)lo)->fClosed) {
-                        sAhead = GModPositive(sAhead, sMax);
+                        sAhead = ModPositive(sAhead, sMax);
                     } else {
                         float sMin = SMinShape((SHAPE *)lo);
                         if (sAhead < sMin)
@@ -1476,7 +1476,7 @@ void UpdateJtLean(JT *jt)
                         float g = GLimitG(gAcross / D_002BF2D4, -1.0f, 1.0f);
                         if (jt->jtgrab.fFlip)
                             g = -g;
-                        float gLean = GSmoothA(jt->jtgrab.gLean, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)),
+                        float gLean = SmoothValueWithAccel(jt->jtgrab.gLean, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)),
                                                D_002DDED0.dt, &D_002BF320, &jt->jtgrab.dgLean);
                         jt->jtgrab.gLean = gLean;
                         float gZero = 0.0f;
@@ -1760,7 +1760,7 @@ struct S {
 extern struct CLOCK D_002DDED0;
 int GetStepplayerLeanFlags(struct S *p);
 void SetSmaMask(void *p, int n);
-float GLimitAbs__Fff(float g, float h);
+float ClampAbs__Fff(float g, float h);
 void SetStepTargetHeading(struct S *p, float g);
 void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
 int TryMatchJtXmg(struct S *p, void *pv, int n);
@@ -1784,7 +1784,7 @@ void UpdateJtStand(struct S *jt)
         UV u;
         e = &o->vt[34];
         u.q = ((qword (*)(void *))e->pfn)((char *)o + e->d);
-        u.v.z = GLimitAbs__Fff(u.v.z, 10.0f);
+        u.v.z = ClampAbs__Fff(u.v.z, 10.0f);
         SetStepTargetHeading(jt, jt->g1a8 + u.v.z * D_002DDED0.dt);
     }
     if (!jt->x19f0)
@@ -1968,7 +1968,7 @@ extern "C" float SMinShape(B *p);
 extern "C" void EvaluateShapeS(B *p, qword *pv, qword *direction, float g);
 extern "C" qword GetLoWorldPos(A *p);
 extern "C" M *GetLoWorldMatrix(A *p);
-extern "C" float GSmooth__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
+extern "C" float SmoothValue__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
 
 static __inline__ float GMin(float a,float b){return a<b?a:b;}
 static __inline__ float GMax(float a,float b){return a>b?a:b;}
@@ -1990,7 +1990,7 @@ static __inline__ qword OffsetSub(const M *m, const VU *scalar, const VU *base)
     return value;
 }
 /** @sly2-annot addr=0x18A4E8
- * Purpose: VU-heavy helper called by STEPPLAYER 0x141640: smoothed curve target (GSmooth, SMaxCrv)
+ * Purpose: VU-heavy helper called by STEPPLAYER 0x141640: smoothed curve target (SmoothValue, SMaxCrv)
  * Info: TU jt
  * Notes: descriptive only: (JT curve/rail helper) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
@@ -2129,7 +2129,7 @@ tail:
         } else {
             k = 0.0f;
         }
-        ps->p68->p114->g10 = GSmooth__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.dt, 0);
+        ps->p68->p114->g10 = SmoothValue__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.dt, 0);
     }
     switch (ps->x8) {
     case 0:
@@ -2697,7 +2697,7 @@ extern float D_002BF3BC;
 extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLOCK D_002DDED0;
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
 qword TransformXfPos(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
-float atan2f(float,float);float GLimitLm__FP2LMf(struct LM*,float);
+float atan2f(float,float);float ClampToLimits__FP2LMf(struct LM*,float);
 struct M3 *LoadRotateMatrixEuler(struct M3 *, qword);
 qword *VECTOR_opAssign(qword *, qword);
 void SetActRotationGoal(struct DV *, qword);
@@ -2816,7 +2816,7 @@ void UpdateJtAttachCorrection(struct P *jt)
                     heading = atan2f(-z, coefficient * x);
                 }
             }
-            heading = GLimitLm__FP2LMf(&D_002BF3A8, heading);
+            heading = ClampToLimits__FP2LMf(&D_002BF3A8, heading);
             tilt = Pack(zero, heading, zero);
             w.axis.q = tilt;
             LoadRotateMatrixEuler(&w.rotation, Add(jt->euler, w.axis.q));
@@ -2858,7 +2858,7 @@ void UpdateJtAttachCorrection(struct P *jt)
                 }
             }
             heading = X(ConvertXfVec(jt->space, relativeDestination, w.relative.q));
-            heading = GLimitLm__FP2LMf(&D_002BF3B0, heading);
+            heading = ClampToLimits__FP2LMf(&D_002BF3B0, heading);
             axis = Pack(heading, zero, zero);
             w.axis.q = axis;
             {
@@ -3090,7 +3090,7 @@ extern float D_002BF3C8;
 extern float D_002BF3CC;
 extern float D_002BF35C;
 float GetStepHeading(struct P *);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *, struct P *, unsigned int);
 void UpdateJtModeInput(struct P *);
 void ChooseJtGroundState(struct P *);
@@ -3113,7 +3113,7 @@ void SetAsegaSpeed__FP5ASEGAf(struct MODEL *, float);
 void SetStepTargetHeading(struct P *, float);
 void DrainStepplayerMp(struct P *, float);
 void SetJtState__FP2JT3JTS4JTBS(struct P *, int, int);
-float GLimitAbs__Fff(float, float);
+float ClampAbs__Fff(float, float);
 void RecalculateAsegBlend(void *);
 void UpdateJtActiveZap(void *);
 void UpdateJtPlaces(struct P *);
@@ -3230,7 +3230,7 @@ void UpdateJtPre(struct P *jt)
     U scalar;
     float initialHeading;
     initialHeading = GetStepHeading(jt);
-    (void)RadNormalize__Ff(jt->state->heading - initialHeading);
+    (void)NormalizeAngle__Ff(jt->state->heading - initialHeading);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490, jt, 0xFFFF);
     UpdateJtModeInput(jt);
     ChooseJtGroundState(jt);
@@ -3313,7 +3313,7 @@ void UpdateJtPre(struct P *jt)
         struct VTE *entry;
         DrainStepplayerMp(jt, D_002BF3C4);
         if (jt->submode == 12) {
-            float angle = RadNormalize__Ff(GetStepHeading(jt) - jt->heading);
+            float angle = NormalizeAngle__Ff(GetStepHeading(jt) - jt->heading);
             if (__builtin_fabsf(angle) < D_002BF3C8)
                 SetJtState__FP2JT3JTS4JTBS(jt, 24, 13);
         } else
@@ -3321,7 +3321,7 @@ void UpdateJtPre(struct P *jt)
         one = 1.0f;
         entry = &jt->vt[34];
         velocity = ((qword(*)(void *))entry->fn)((char *)jt + entry->delta);
-        weight = D_002BF3CC * GLimitAbs__Fff(Z(velocity) / (jt->factor * D_002BF35C), one);
+        weight = D_002BF3CC * ClampAbs__Fff(Z(velocity) / (jt->factor * D_002BF35C), one);
         {
             register float zero __asm__("$f2") = 0.0f;
             register float magnitude __asm__("$f3");
@@ -3646,7 +3646,7 @@ qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("PsmaApplySmEx");
 int IsmsFindSmOptional(SM *psm, OID oid) __asm__("IsmsFindSmOptional__FP2SM3OID");
 void RetractSma(SMA *psma) __asm__("RetractSma");
-float RadNormalize(float rad) __asm__("RadNormalize__Ff");
+float NormalizeAngle(float rad) __asm__("NormalizeAngle__Ff");
 
 
 
@@ -4115,7 +4115,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SubscribeLoObject(jt->phndHang, jt);
                 float radFrame;
                 JtHangFrame(jt, &radFrame);
-                float radBack = RadNormalize(radFrame + 3.1415927f);
+                float radBack = NormalizeAngle(radFrame + 3.1415927f);
                 int kind = 1;
                 if (jt->phndHang != 0)
                     kind = jt->phndHang->nHangKind;
@@ -4130,7 +4130,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                         jt->janim.fHangBack = 1;
                         break;
                     case 0:
-                        if (fabsf(RadNormalize(radFrame - jt->pctl->radLeft)) < 1.5707964f)
+                        if (fabsf(NormalizeAngle(radFrame - jt->pctl->radLeft)) < 1.5707964f)
                         {
                             SetStepRadTarget(jt, radFrame);
                             jt->janim.fHangBack = 0;
@@ -5229,7 +5229,7 @@ typedef struct { qword r[3]; } M3;
 struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *interactTarget; };
 extern qword GetLoWorldPos(void *p);
 extern void SetStepTargetHeadingFromVector(struct O *p, qword v);
-extern float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
+extern float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
 extern M3 *InvertMatrix3Cofactor(M3 *pmOut, M3 *pm);
 extern struct CLOCK D_002DDED0;
 extern float D_002BF414;
@@ -5244,7 +5244,7 @@ static __inline__ qword VLen(qword c)
     return l;
 }
 /** @sly2-annot addr=0x18E1E0
- * Purpose: Turn Sly toward object x10DC with GSmooth
+ * Purpose: Turn Sly toward object x10DC with SmoothValue
  * Info: proposed name UpdateJtFaceTarget (T2); TU jt
  * Notes: names_v2 C proposed UpdateRop__FP3ROPf (0.438)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
@@ -5273,7 +5273,7 @@ void UpdateJtFaceTarget(struct O *jt)
     }
     __asm__("qmfc2.ni %0, %1" : "=r"(gLen) : "j"(l));
     SetStepTargetHeadingFromVector(jt, n.q);
-    GSmooth__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.dt * 0.5f, D_002BF418, &g);
+    SmoothValue__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.dt * 0.5f, D_002BF418, &g);
     InvertMatrix3Cofactor(&m, &jt->m1B0);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&g));
     u.q = s;

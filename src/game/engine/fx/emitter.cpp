@@ -145,7 +145,7 @@ SFX *NewSfx();
 void CloneXfm(XFM *pxfm, XFM *pxfmBase);
 }
 void SetRipgEmitb(RIPG *pripg, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
-float GRandInRange(float gMin, float gMax);
+float RandomFloatInRange(float gMin, float gMax);
 
 namespace M_InitEmitBlock { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -222,7 +222,7 @@ void *AllocClearedFromWorldHeap(AL *pal);
 }
 extern "C" { extern qword D_002A2DC0; }
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
-static inline void *PvAllocClear(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocClearedFromWorldHeap(&al); }
+static inline void *AllocZeroedFromHeap(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocClearedFromWorldHeap(&al); }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Cross(qword a, qword b)
@@ -264,7 +264,7 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
     int i;
     pemitmesh->cpos = U16Read__18CBinaryInputStream(pbis);
     pemitmesh->apos = (qword *)PvAlloc(pemitmesh->cpos * 16, 16);
-    pemitmesh->anormal = (qword *)PvAllocClear(pemitmesh->cpos * 16, 16);
+    pemitmesh->anormal = (qword *)AllocZeroedFromHeap(pemitmesh->cpos * 16, 16);
     for (i = 0; i < pemitmesh->cpos; i++)
         ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->apos[i]);
     pemitmesh->ctri = U16Read__18CBinaryInputStream(pbis);
@@ -343,7 +343,7 @@ struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5140;
 extern float D_002A5148;
 void PostSwCallback(void *pg, struct EMITTERV *p, long k, int n);
-float GRandInRange__Fff(float gMin, float gMax);
+float RandomFloatInRange__Fff(float gMin, float gMax);
 void PauseEmitterIndefinite__FP7EMITTER(struct EMITTERV *p);
 void PauseEmitter__FP7EMITTERf(struct EMITTERV *p, float g);
 struct EMITTERV *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
@@ -353,7 +353,7 @@ void SetLoBusyk(struct EMITTERV *p, int n);
 void *GetLoWorldMatrix(struct EMITTERV *p);
 void AppendDlEntry__FP2DLPv(void *pv, struct EMITTERV *p);
 
-static __inline__ void *PvAllocCopy(int cb, void *pv)
+static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
 {
     struct ALLOCREQ req;
     req.cb = cb;
@@ -384,24 +384,24 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
     switch (pemitter->emitMode) {
     case EMIT_MODE_BURST:
         pemitter->rateRedrawTime = D_002A5148;
-        pemitter->currentRate = GRandInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
         if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
-        else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
-            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
+        else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
+            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
         break;
     case EMIT_MODE_INTERMITTENT:
         pemitter->rateRedrawTime = D_002A5148;
-        pemitter->currentRate = GRandInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax) * 60.0f;
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax) * 60.0f;
         if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
-        else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
-            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
+        else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
+            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
         break;
     case EMIT_MODE_CONTINUOUS:
     case EMIT_MODE_CONSTANT_COUNT:
         pemitter->rateRedrawInterval = pemitter->rateRedrawTime = 1.0f;
-        pemitter->currentRate = GRandInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
         break;
     }
     pemitter->density = 1.0f;
@@ -433,10 +433,10 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
             struct VTE *pvte;
             void *pthis;
             group = PloNew__F3CIDP2SO3OIDi(0x1D /* CID_EMITTER */, 0, pemitter->groupOid, -1);
-            group->pemitb = (__typeof__(group->pemitb))PvAllocCopy(0x100, pemitter->pemitb);
+            group->pemitb = (__typeof__(group->pemitb))AllocCopyFromHeap(0x100, pemitter->pemitb);
             group->pemitb->cref = 1;
             if (pemitter->pemitb->pemito->palo) {
-                group->pemitb->pemito = (__typeof__(group->pemitb->pemito))PvAllocCopy(0x14, pemitter->pemitb->pemito);
+                group->pemitb->pemito = (__typeof__(group->pemitb->pemito))AllocCopyFromHeap(0x14, pemitter->pemitb->pemito);
                 group->pemitb->originOid = -1;
                 group->pemitb->pemito->palo = 0;
             }
@@ -515,14 +515,14 @@ struct EMITBV { int pad0; int particleKind; EMITO *pemito; };
 struct EMITTERV { char pad[0xE4]; EMITBV *pemitb; char pad1[0x140 - 0xE8]; float boxRadius; char pad2[0x150 - 0x144]; BLIPG *pblipg; };
 extern "C" {
 qword GetLoWorldPos(ALO *referenceObject);
-float GModPositive__Fff(float g, float gMod);
+float ModPositive__Fff(float g, float gMod);
 }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float *pdg)
 {
     if (*pg < gMin || gMax < *pg) {
-        *pdg = gMin + GModPositive__Fff(*pg - gMin, gBox) - *pg;
+        *pdg = gMin + ModPositive__Fff(*pg - gMin, gBox) - *pg;
         *pg += *pdg;
     }
 }
@@ -614,8 +614,8 @@ void UpdateLo(EMITTERV *p);
 int IsDlEmpty__FP2DL(int *pdl);
 int IsLoInWorld(EMITTERV *p);
 qword GetLoWorldPos(void *p);
-float GRandInRange__Fff(float gMin, float gMax);
-int CPvDl__FP2DL(int *pdl);
+float RandomFloatInRange__Fff(float gMin, float gMax);
+int CountDlEntries__FP2DL(int *pdl);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pemitb, EMITX *px);
 }
@@ -687,10 +687,10 @@ LActive:   /* near the camera (or not tied to a parent) */
             }
             if (emitter->autoPause) {
                 PauseEmitterIndefinite(emitter);
-                emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
-            } else if (GRandInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance) {
-                PauseEmitter(emitter, GRandInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
-                emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
+                emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
+            } else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance) {
+                PauseEmitter(emitter, RandomFloatInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
+                emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
             }
         }
         break;
@@ -705,9 +705,9 @@ LActive:   /* near the camera (or not tied to a parent) */
         }
         if (emitter->autoPause)
             PauseEmitterIndefinite(emitter);
-        else if (GRandInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance)
-            PauseEmitter(emitter, GRandInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
-        emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax);
+        else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance)
+            PauseEmitter(emitter, RandomFloatInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
+        emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax);
         break;
     }
     case EMIT_MODE_CONTINUOUS: {
@@ -730,7 +730,7 @@ LActive:   /* near the camera (or not tied to a parent) */
         if (!emitter->pemitb->particleKind)
             numAlive = emitter->pblipg ? emitter->pblipg->numBlips : 0;
         else
-            numAlive = emitter->pripg ? CPvDl__FP2DL(&emitter->pripg->ripList) : 0;
+            numAlive = emitter->pripg ? CountDlEntries__FP2DL(&emitter->pripg->ripList) : 0;
         int shortfall = numWanted - numAlive;
         numToEmit = 0;
         int hasShortfall = 0 < shortfall;   /* a flag temp: `if (shortfall > 0)` compiles differently */
@@ -756,7 +756,7 @@ LActive:   /* near the camera (or not tied to a parent) */
     }
 
     if (D_002DDED0.t >= emitter->rateRedrawTime) {
-        emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax);
+        emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax);
         emitter->rateRedrawTime = D_002DDED0.t + emitter->rateRedrawInterval;
     }
     ModifyEmitterParticles(emitter);
@@ -816,9 +816,9 @@ void OnEmitterValuesChanged(EMITTERV *pemitter)
         SetRipgEmitb(pemitter->pripg, pemitter->pemitb);
     }
     if (pemitter->k == 3) {
-        pemitter->tNext = GRandInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax) * 60.0f;
+        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax) * 60.0f;
     } else {
-        pemitter->tNext = GRandInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax);
+        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax);
     }
 }
 
@@ -926,8 +926,8 @@ extern CLOCK D_002DDED0;
 extern int D_002BDEB0[];
 extern qword D_002A2DC0;
 extern char D_003DD490[];
-float GRandInRange__Fff(float lo, float hi);
-int NRandInRange__Fii(int lo, int hi);
+float RandomFloatInRange__Fff(float lo, float hi);
+int RandomIntInRange__Fii(int lo, int hi);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
 void SetSndVolume(void *p, float g);
 void StopSnd(void *p, float g);
@@ -977,7 +977,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
     float volume = 0.0f;    /* 0 until the sound is set: also the clamp floor and StopSnd's argument */
     VTE *pvte = &so->pvt->a[33];
     float distance = GetX(Length(Sub(pos, pvte->pfn((char *)so + pvte->d))));
-    int shouldWake = GRandInRange__Fff(volume, 3.0f) < dt;
+    int shouldWake = RandomFloatInRange__Fff(volume, 3.0f) < dt;
     SND *soundObject;
     float strength, interval;
     soundObject = 0;
@@ -992,7 +992,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
             if (soundObject->wakeSound) {
                 SetSndVolume(soundObject->wakeSound, volume);
             } else {
-                void *sound = PsndStartSound(D_002BDEB0[NRandInRange__Fii(0, 3)]);
+                void *sound = PsndStartSound(D_002BDEB0[RandomIntInRange__Fii(0, 3)]);
                 SetSndSourceLo(sound, (SO *)soundObject);
                 SetSndRange(sound, 100.0f, 1000.0f);
                 SetSndVolume(sound, volume);
@@ -1032,7 +1032,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                     emitg.renderObject = water->splashObject;
                     emitg.nextRenderObject = water->rippleObject;
                     emitg.touchObject = water;
-                    EmitParticlesAt(posSplash.q, D_002A2DC0, NRandInRange__Fii(4, 6), emitp, emitv, &emitg, 0, 0);
+                    EmitParticlesAt(posSplash.q, D_002A2DC0, RandomIntInRange__Fii(4, 6), emitp, emitv, &emitg, 0, 0);
                 }
             }
         }
@@ -1082,7 +1082,7 @@ struct EMITBV {
     struct EP ep;
 };
 extern "C" {
-float GRandInRange__Fff(float gMin, float gMax);
+float RandomFloatInRange__Fff(float gMin, float gMax);
 void EvaluateShapeS(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
 MATRIX3 *GetLoWorldMatrix(void *palo);
 }
@@ -1163,9 +1163,9 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         { VU_VECTOR avUnused[3]; } // unused 48-byte local: frees the slot an[] reuses in case 3
         BOXE *box = (BOXE *)origin->data;
         float *pf = (float *)ppos;
-        pf[0] = GRandInRange__Fff(box->xMin, box->xMax);
-        pf[1] = GRandInRange__Fff(box->yMin, box->yMax);
-        pf[2] = GRandInRange__Fff(box->zMin, box->zMax);
+        pf[0] = RandomFloatInRange__Fff(box->xMin, box->xMax);
+        pf[1] = RandomFloatInRange__Fff(box->yMin, box->yMax);
+        pf[2] = RandomFloatInRange__Fff(box->zMin, box->zMax);
         break;
     }
     case EMIT_ORIGIN_CURVE: {
@@ -1179,7 +1179,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         }
         float segment = curve->cumulativeLength[curve->numLengths - 1] / (float)count;
         float s = (float)index * segment;
-        float g = GRandInRange__Fff(s, s + segment);
+        float g = RandomFloatInRange__Fff(s, s + segment);
         switch (origin->normalKind) {
         default:
             EvaluateShapeS(curve, g, ppos, 0);
@@ -1197,7 +1197,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
     }
     case EMIT_ORIGIN_MESH: {
         EMITMESH *mesh = (EMITMESH *)origin->data;
-        float s = GRandInRange__Fff(0.0f, 1.0f) * mesh->sArea;
+        float s = RandomFloatInRange__Fff(0.0f, 1.0f) * mesh->sArea;
         TRI *ptri;
         int itri;
         for (itri = 0; itri < mesh->ctri; itri++) {
@@ -1209,8 +1209,8 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         av[0].q = mesh->apos[ptri->aipos[0]];
         av[1].q = mesh->apos[ptri->aipos[1]];
         av[2].q = mesh->apos[ptri->aipos[2]];
-        float u = GRandInRange__Fff(0.0f, 1.0f);
-        float v = GRandInRange__Fff(0.0f, 1.0f - u);
+        float u = RandomFloatInRange__Fff(0.0f, 1.0f);
+        float v = RandomFloatInRange__Fff(0.0f, 1.0f - u);
         float w = 1.0f - u - v;
         *ppos = Combo3(u, av[0], v, av[1], w, av[2]);
         if (origin->normalKind == EMIT_NORMAL_MESH_NORMAL) {
@@ -1254,7 +1254,7 @@ normalize:
         VU_VECTOR dir = Normalize(*pdir);
         *pdir = dir.q;
         qword pos = *ppos;
-        *ppos = Add(pos, Scale(VU_FLOAT(GRandInRange__Fff(origin->offset.gMin, offset->gMax)), dir));
+        *ppos = Add(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.gMin, offset->gMax)), dir));
     }
 }
 } // namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3
@@ -1298,8 +1298,8 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
 namespace M_CalculateEmitvx__FiP2LMiP6EMITVX {
 struct LM { float gMin; float gMax; };
 struct EMITVX { int c; float dg; float drad; float g; float rad; };
-float RadNormalize(float rad) asm("RadNormalize__Ff");
-float GRandInRange(float gMin, float gMax) asm("GRandInRange__Fff");
+float NormalizeAngle(float rad) asm("NormalizeAngle__Ff");
+float RandomFloatInRange(float gMin, float gMax) asm("RandomFloatInRange__Fff");
 // Sets up an even distribution of emission directions: c directions around the circle (capped at cMax) times enough
 // tilt steps to cover the LM tilt range, starting at a random pan angle.
 extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITVX *pemitvx)
@@ -1311,11 +1311,11 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
     else
         pemitvx->c = cMax;
     n = (cMax + (pemitvx->c - 1)) / pemitvx->c;
-    dg = RadNormalize(plm->gMax - plm->gMin);
+    dg = NormalizeAngle(plm->gMax - plm->gMin);
     pemitvx->drad = 6.2831855f / pemitvx->c;
     pemitvx->dg = dg / n;
     pemitvx->g = plm->gMin + pemitvx->dg * 0.5f;
-    pemitvx->rad = GRandInRange(0.0f, 6.2831855f);
+    pemitvx->rad = RandomFloatInRange(0.0f, 6.2831855f);
 }
 } // namespace M_CalculateEmitvx__FiP2LMiP6EMITVX
 
@@ -1327,8 +1327,8 @@ struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; }
 struct LM { float gMin; float gMax; };
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
-float GRandInRange__Fff(float a, float b);
-float RadNormalize__Ff(float g);
+float RandomFloatInRange__Fff(float a, float b);
+float NormalizeAngle__Ff(float g);
 qword SetVectorSphere(float pan, float tilt, float r);
 void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
 
@@ -1346,12 +1346,12 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, floa
     M3 m;
     qword r;
     if (gRand != 0.0f) {
-        tilt += gRand * GRandInRange__Fff(-0.5f, 0.5f) * pemitvx->dTilt;
-        pan += gRand * GRandInRange__Fff(-0.5f, 0.5f) * pemitvx->dPan;
+        tilt += gRand * RandomFloatInRange__Fff(-0.5f, 0.5f) * pemitvx->dTilt;
+        pan += gRand * RandomFloatInRange__Fff(-0.5f, 0.5f) * pemitvx->dPan;
     }
-    tilt = RadNormalize__Ff(tilt + 1.5707964f);
-    pan = RadNormalize__Ff(pan);
-    v.q = SetVectorSphere(pan, tilt, GRandInRange__Fff(plm->gMin, plm->gMax));
+    tilt = NormalizeAngle__Ff(tilt + 1.5707964f);
+    pan = NormalizeAngle__Ff(pan);
+    v.q = SetVectorSphere(pan, tilt, RandomFloatInRange__Fff(plm->gMin, plm->gMax));
     v.f[2] *= sv;
     m.r[2] = *pnormal;
     GetNormalVectors(*pnormal, D_002A2DA0, D_002A2DB0, &m);
@@ -1377,7 +1377,7 @@ struct P {
 };
 extern struct CLOCK D_002DDED0;
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, struct P *plm, qword *pv, int n, qword *pvOut);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 
 // Chooses particle `index`'s velocity (ChooseEmitVelocity over the speed range) and its birth / death times; a
 // nonzero skip moves the position along the velocity, as if the particle had already been flying that long.
@@ -1386,10 +1386,10 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(struct P *e
     float birthTime, skip;
     ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(pemitvx, emitv->randomRadius, emitv->zSpeedRatio, emitv, pv, index, pvel);
     birthTime = D_002DDED0.t;
-    birthTime = birthTime - GRandInRange__Fff(emitv->birthMin, emitv->birthMax);
+    birthTime = birthTime - RandomFloatInRange__Fff(emitv->birthMin, emitv->birthMax);
     *ptBirth = birthTime;
     *ptDeath = birthTime + emitv->lifetime;
-    skip = GRandInRange__Fff(emitv->skipMin, emitv->skipMax);
+    skip = RandomFloatInRange__Fff(emitv->skipMin, emitv->skipMax);
     if (skip != 0.0f) {
         U u;
         qword r;
@@ -1461,7 +1461,7 @@ SO *PripgNew(void *p, int n);
 void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITBV *pemit);
 void SubscribeLoObject(SO *pso, void *p);
 RIPV *PripNewRipg(void *p, int n, SO *pso);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITBV *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
 int IsDlEmpty__FP2DL(void *p);
@@ -1489,7 +1489,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *e
     if (!ripGroup)
         return;
     for (i = 0; i < count && (rip = PripNewRipg(D_003DD490, emitb->ripKind, ripGroup)) != 0; i++) {
-        rip->Set(positions[i], GRandInRange__Fff(emitb->scaleMin, emitb->scaleMax), emitb->pshd->touch);
+        rip->Set(positions[i], RandomFloatInRange__Fff(emitb->scaleMin, emitb->scaleMax), emitb->pshd->touch);
         if (emitb->scaleSlope != 0.0f || emitb->scaleCurve != 0.0f) {
             rip->scaleSlope = emitb->scaleSlope;
             rip->scaleCurve = emitb->scaleCurve;
@@ -1559,8 +1559,8 @@ PRG *PblipgNew(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
 BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-int NRandInRange__Fii(int nMin, int nMax);
-float GRandInRange__Fff(float gMin, float gMax);
+int RandomIntInRange__Fii(int nMin, int nMax);
+float RandomFloatInRange__Fff(float gMin, float gMax);
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
 }
 
@@ -1573,7 +1573,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 
-static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gMax); }
+static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->gMin, plm->gMax); }
 
 // Spawns `c` blips into the emitter's BLIPG (creating it and handing it the subscriber on first use), filling the
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
@@ -1608,18 +1608,18 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px,
             ((float *)&pfr->av[i])[3] = ag2[k];
 #define pd ((PD *)&pfr->apd[i])
             func_002333B4(pd, 0, sizeof(PD));
-            pd->color = NRandInRange__Fii(0, pprg->numColors - 1);
+            pd->color = RandomIntInRange__Fii(0, pprg->numColors - 1);
             if (pprg->hasColorRanges)
                 pd->color &= ~1u;
             if (emitter->hasRandomFrame)
-                pd->frame = NRandInRange__Fii(0, pprg->numFrames - 1);
+                pd->frame = RandomIntInRange__Fii(0, pprg->numFrames - 1);
             if (pprg->renderKind == 2) {
                 float g = GRand(&emitter->rollSpeed);
                 pd->rollSpeed = g;
                 if (!emitter->rollKind && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
                     pd->rollSpeed = -g;
                 if (emitter->hasRandomRoll)
-                    pd->rollAngle = GRandInRange__Fff(-3.14159265f, 3.14159265f);
+                    pd->rollAngle = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
             }
             if (pprg->motionKind == 2) {
                 PAIR *ppair = &pblk->apair[i];
@@ -1722,7 +1722,7 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITBV *pemitb, BUF *pb);
-int FFloatsNear__Ffff(float g1, float g2, float gEps);
+int AreFloatsNear__Ffff(float g1, float g2, float gEps);
 void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
 void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb);
@@ -1773,7 +1773,7 @@ void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *ge
         float tNow = D_002DDED0.t;
         float t = ptimes->atDeath[i] - tNow;
         int velocityKind = target->pemitb->velocityKind;
-        if (!FFloatsNear__Ffff(t, tPrev, 0.0001f)) {
+        if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
             M4 mT;
             tPrev = t;
             LoadIdentityMatrix4(pv, 0, &m, t, 0);
@@ -2229,8 +2229,8 @@ typedef struct EMITO { int grf; int reference; float scale; float radius; qword 
 typedef struct EMITR { int *ppblipg; int *ppripg; EMITTERV *subscriber; } EMITR;   /* EMITG */
 
 extern char D_002BDEC0[];
-extern float GRandInRange__Fff(float lo, float hi);
-extern float GLimitLm__FP2LMf(void *p, float g);
+extern float RandomFloatInRange__Fff(float lo, float hi);
+extern float ClampToLimits__FP2LMf(void *p, float g);
 typedef union V4 { qword q; float a[4]; } V4;
 extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
 extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
@@ -2265,7 +2265,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
     if (explso->grf & EXPLSO_HAS_COUNT)
         count = explso->count;
     else
-        count = (int)GRandInRange__Fff(expls->countMin, expls->countMax);
+        count = (int)RandomFloatInRange__Fff(expls->countMin, expls->countMax);
     if (explso->grf & EXPLSO_HAS_REFERENCE)
         emitp.reference = explso->reference;
     if (explso->grf & EXPLSO_HAS_VECTOR)
@@ -2291,7 +2291,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
         maxCount = (int)expls->countMax / 2;
         if (!(maxCount < count))
             count = maxCount;
-        speedScale = GLimitLm__FP2LMf(D_002BDEC0, scale);
+        speedScale = ClampToLimits__FP2LMf(D_002BDEC0, scale);
         emitb.speedMin *= speedScale;
         emitb.speedMax *= speedScale;
         { float h = 0.5f; scale = (h < scale) ? scale : h; }

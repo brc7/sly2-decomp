@@ -57,7 +57,7 @@ float SMinShape(PIPEV *);           // low distance bound
 float SMaxShape(PIPEV *);           // high distance bound
 float UMinShape(PIPEV *);           // start distance
 void EvaluateShapeU(PIPEV *, float, qword *, qword *);
-float GModPositive__Fff(float, float);     // wrap into range
+float ModPositive__Fff(float, float);     // wrap into range
 float SClampShape(PIPEV *, float);
 void EvaluateShapeS(PIPEV *, float, qword *, qword *);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
@@ -67,7 +67,7 @@ qword GetLoWorldPos(void *q);
 void FindShapeClosestPoint(PIPEV *p, qword q, int a, void *pv, int b, int c, float *pf);
 void GetPipeGoalMatrix(PIPEV *p, float distance, int forward, M3 *out);
 float SRandomShapeRange(PIPEV *,float,float);
-float GRandInRange__Fff(float,float);
+float RandomFloatInRange__Fff(float,float);
 qword SetVectorCylind(float,float,float);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
@@ -241,7 +241,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
                 if (sample < low || high < distance)
                     continue;
             } else
-                sample = low + GModPositive__Fff(sample - low, high - low);
+                sample = low + ModPositive__Fff(sample - low, high - low);
             float r = 50.0f;
             EvaluateShapeS(pipe, SClampShape(pipe, sample + r), &fwd.q, 0);
             EvaluateShapeS(pipe, SClampShape(pipe, sample - r), &back.q, 0);
@@ -354,14 +354,14 @@ extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut
     t = SRandomShapeRange(pipe, t, D_002C0D10);
     GetPipeGoalMatrix(pipe, t, 1, &m);
     EvaluateShapeS(pipe, t, &vp.q, 0);
-    n = GRandInRange__Fff(-1.0f, 1.0f);
+    n = RandomFloatInRange__Fff(-1.0f, 1.0f);
     mag = __builtin_fabsf(n);
     dir = SetVectorCylind((n * mag) * D_002C0D08, -1.0f, 0.0f);
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z"
             : "+j"(dir)
             : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     pos2 = vp.q;
-    mag = mag * GRandInRange__Fff(0.0f, D_002C0D0C);
+    mag = mag * RandomFloatInRange__Fff(0.0f, D_002C0D0C);
     s = Bc(mag);
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos2), "j"(dir), "j"(s));
     *posOut = r;

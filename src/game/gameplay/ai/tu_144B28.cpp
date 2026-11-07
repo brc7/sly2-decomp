@@ -792,7 +792,7 @@ extern struct CLOCK D_002DDED0;
 void PopBhv(void *slot);
 struct O *PushStepBehavior(void *guard, int cid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 void UpdateBhvfollowPosition(struct P *behavior);
 void ReturnJtToPosition(void *guard, qword pos);
 int GetBasicCid(void *object);
@@ -819,7 +819,7 @@ void SetBhvfollowState(struct P *behavior, int state)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_PO)) {
             child->mirrorPoctl = behavior->leader->poctl;   /* copy the leader's button 8 after 0.1..0.3 s */
             child->mirrorButtonMask = 8;
-            child->mirrorDelay = GRandInRange__Fff(0.1f, 0.3f);
+            child->mirrorDelay = RandomFloatInRange__Fff(0.1f, 0.3f);
         }
         UpdateBhvfollowPosition(behavior);
         child->vt[8].pfn((char *)child + child->vt[8].d);
@@ -1289,7 +1289,7 @@ int IsLoInWorld(struct TARGET *object);
 qword GetLoWorldPos(void *p);
 struct M3 *GetLoWorldMatrix(void *p);
 void SetBhvInteract3State(struct P *behavior, int state);
-float GRandInRange__Fff(float gMin, float gMax);
+float RandomFloatInRange__Fff(float gMin, float gMax);
 
 // VU0 helper: dot product.
 static __inline__ float Dot(qword a, qword b)
@@ -1354,7 +1354,7 @@ void UpdateBhvInteract3(struct P *behavior)
             if (distance < D_002BD360) {
                 struct M3 *orientation = GetLoWorldMatrix(behavior->owner);
                 if (0.8f < Dot(orientation->r[0], toTarget.q)) {   /* facing the target */
-                    if (GRandInRange__Fff(0.0f, 1.0f) < 0.3f)
+                    if (RandomFloatInRange__Fff(0.0f, 1.0f) < 0.3f)
                         SetBhvInteract3State(behavior, 3);
                     else
                         SetBhvInteract3State(behavior, 2);
@@ -1395,7 +1395,7 @@ void UpdateBhvInteract3(struct P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146B18 { extern "C" {
 // MATCH (Claude agent for Lilly, T1657 2026-10-25). Case 3 builds CLQ clq = {-0.25, 0.0015625} and LM lm = {0.1, 1.0} on the
-// stack: poctl->speed = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
+// stack: poctl->speed = ClampToLimits(&lm, GFromClq(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 typedef int qword __attribute__((mode(TI)));
 struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
@@ -1423,7 +1423,7 @@ static __inline__ float SqrtQ(qword t)
 // Evaluates a CLQ quadratic at g.
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
 // Clamps g to an LM range.
-static __inline__ float GLimitLm(struct LM *plm, float g)
+static __inline__ float ClampToLimits(struct LM *plm, float g)
 {
     float gMin = plm->gMin, gMax = plm->gMax;
     if (g < gMin)
@@ -1490,7 +1490,7 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(t) : "j"(d));
         {
         struct LM lm = {0.1f, 1.0f};
-        s = GLimitLm(&lm, GFromClq(SqrtQ(t), &clq));
+        s = ClampToLimits(&lm, GFromClq(SqrtQ(t), &clq));
         }
         }
         poctl->speed = s;
@@ -1575,9 +1575,9 @@ void UpdateBhv(struct P *behavior);
 qword GetLoWorldPos(void *object);
 void SetStepTargetHeadingFromVector(struct MURRAYV *step, qword direction);
 float atan2f(float y, float x);
-float RadNormalize__Ff(float g);
+float NormalizeAngle__Ff(float g);
 float GetStepHeading(struct MURRAYV *step);
-float GLimitAbs__Fff(float g, float dg);
+float ClampAbs__Fff(float g, float dg);
 void SetStepTargetHeading(struct MURRAYV *step, float heading);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -1608,13 +1608,13 @@ void UpdateBhvMurray(struct P *behavior)
             murrayPos = GetLoWorldPos(behavior->murray);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(toPlayer) : "j"(playerPos), "j"(murrayPos));
             headingToPlayer = atan2f(GetY(toPlayer), GetX(toPlayer));
-            if (__builtin_fabsf(RadNormalize__Ff(headingToPlayer - behavior->startHeading)) < D_002BD374) {
+            if (__builtin_fabsf(NormalizeAngle__Ff(headingToPlayer - behavior->startHeading)) < D_002BD374) {
                 heading = GetStepHeading(behavior->murray);
                 {
-                    float turn = RadNormalize__Ff(headingToPlayer - heading);
+                    float turn = NormalizeAngle__Ff(headingToPlayer - heading);
                     float dt = D_002DDED0.dt;
                     float turnRate = D_002BD378;
-                    SetStepTargetHeading(behavior->murray, heading + GLimitAbs__Fff(turn, turnRate * dt));
+                    SetStepTargetHeading(behavior->murray, heading + ClampAbs__Fff(turn, turnRate * dt));
                 }
             }
         }

@@ -134,9 +134,9 @@ int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
 qword SetVectorCylind(float,float,float);
 }
-float GRandInRange(float gMin, float gMax);
+float RandomFloatInRange(float gMin, float gMax);
 int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
-float RadNormalize(float rad);
+float NormalizeAngle(float rad);
 int FIsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 
 // VU0 helper: x component of a vector.
@@ -345,7 +345,7 @@ extern "C" int IsBhvSearchIdle(BHV171V *behavior)
 // (give-up) timer only for guards with +0xE78 == 1.
 extern "C" void SetBhvSearchLookTimers(BHV171V *behavior) {
     float t = D_002DDED0.t;
-    behavior->lookEndTime = t + GRandInRange(behavior->guard->lookTimeMin, behavior->guard->lookTimeMax);
+    behavior->lookEndTime = t + RandomFloatInRange(behavior->guard->lookTimeMin, behavior->guard->lookTimeMax);
     if (behavior->guard->searchMode == 1) behavior->nextTime = D_002DDED0.t + D_002BE5A0;
     else behavior->nextTime = 3.40282346638528859812e+38f;
 }
@@ -408,7 +408,7 @@ extern "C" int TryAddSearchCandidate(QUERY *query) {
     if (query->count >= 0x40) return 0;
     row = &query->row[query->count++];
     row->point.q = query->candidate.q;
-    f = RadNormalize(a - query->heading);
+    f = NormalizeAngle(a - query->heading);
     row->angle = f;
     if (f < 0.0f) row->angle = 6.28318530718f - f;
     return 1;
@@ -618,9 +618,9 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
     while (accepted < 4) {
         float angle, length;
         qword point;
-        lastAngle += GRandInRange(D_002BE5A8.low, D_002BE5A8.high);
+        lastAngle += RandomFloatInRange(D_002BE5A8.low, D_002BE5A8.high);
         angle = lastAngle + w.query.heading;
-        length = GRandInRange(D_002BE5B0.low, D_002BE5B0.high);
+        length = RandomFloatInRange(D_002BE5B0.low, D_002BE5B0.high);
         point = QwAdd(anchor, SetVectorCylind(angle, length, 0.0f));
         {
             PAIR *pair = &behavior->searchPoints[accepted];

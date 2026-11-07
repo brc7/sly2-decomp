@@ -193,7 +193,7 @@ void strcpy1(char *pchDst, const char *pchSrc);
    (memcard.cpp FormatSavePageTextB). */
 char *StrcpyCall(char *pchDst, const char *pchSrc) __asm__("strcpy");
 void InitDl(DL *pdl, int ibDle);
-int FFindDlEntry(DL *pdl, void *pv);
+int IsEntryInDl(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
 void PrependDlEntry(DL *pdl, void *pv);
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *plo);
@@ -462,7 +462,7 @@ extern "C" void DrawScreen()
 /** @sly2-annot addr=0x1D9880
  * Purpose: Return whether the screen is in the shown-screen list D_003D9E70
  * Info: proposed name FScreenShown (T1); TU screen
- * Notes: top50_round (0.65): Body FFindDlEntry(&D_003D9E70,p) (m2c drops the return). ShowScreen 0x1D98B0 /
+ * Notes: top50_round (0.65): Body IsEntryInDl(&D_003D9E70,p) (m2c drops the return). ShowScreen 0x1D98B0 /
  *   HideScreen 0x1D9910 (SCREENV slots 10/11) add/remove from the same list. Callers: pause-menu page tests,
  *   memcard dialog flow
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r6b_rest+top50_round
@@ -471,7 +471,7 @@ extern "C" void DrawScreen()
 // True when the screen is on the shown-screen list.
 extern "C" void FScreenShown(SCREENV *screen)
 {
-    FFindDlEntry((DL *)&D_003D9E70, screen);
+    IsEntryInDl((DL *)&D_003D9E70, screen);
 }
 
 /** @sly2-annot addr=0x1D98A8
@@ -499,7 +499,7 @@ extern "C" void ScreenSlot9Default()
 // Shows a screen (slot 10): moves or appends it to the shown list, so it gets focus when it is on top. (inferred)
 extern "C" void ShowScreen(SCREENV *screen)
 {
-    if (FFindDlEntry((DL *)&D_003D9E70, screen) != 0) {
+    if (IsEntryInDl((DL *)&D_003D9E70, screen) != 0) {
         RemoveDlEntry((DL *)&D_003D9E70, screen);
     }
     PrependDlEntry((DL *)&D_003D9E70, screen);
@@ -517,7 +517,7 @@ extern "C" void ShowScreen(SCREENV *screen)
 // Hides a screen (slot 11): removes it from the shown list and refocuses. (inferred)
 extern "C" void HideScreen(SCREENV *screen)
 {
-    if (FFindDlEntry((DL *)&D_003D9E70, screen) != 0) {
+    if (IsEntryInDl((DL *)&D_003D9E70, screen) != 0) {
         RemoveDlEntry((DL *)&D_003D9E70, screen);
         UpdateScreenFocus((DL *)&D_003D9E70);
     }
@@ -767,13 +767,13 @@ Q *GetHeroPo(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetHudMeterState(OBJ *, int);
 int GetStepplayerMp(Q *);
-int FFloatsNear__Ffff(float, float, float);
-float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
+int AreFloatsNear__Ffff(float, float, float);
+float SmoothValue__FfffP3SMPPf(void *, int, float, float, float);
 int FWidgetAnimPlaying(SUB *, int);
 void SetWidgetAnimPhase(SUB *, int, float);
 /** @sly2-annot addr=0x1D9DF8
  * Purpose: Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and
- *   power change (state 4) with GSmooth, damage flash (2), special anims when +0x10EC==4 or +0x10C8!=-1,
+ *   power change (state 4) with SmoothValue, damage flash (2), special anims when +0x10EC==4 or +0x10C8!=-1,
  *   empty at 0 hp
  * Info: proposed name UpdateHudMeter (T1); TU screen
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
@@ -831,7 +831,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_DAMAGE);
         } else if (p->shownHealth < p->health) {
             SetHudMeterState(p, HUDMETER_HEALTH_FILL);
-        } else if (!FFloatsNear__Ffff(p->shownPower, p->power, 0.0001f)) {
+        } else if (!AreFloatsNear__Ffff(p->shownPower, p->power, 0.0001f)) {
             SetHudMeterState(p, HUDMETER_POWER_CHANGE);
         } else if (p->hero->unknown10EC == 4) {
             SetHudMeterState(p, HUDMETER_STATE7);
@@ -865,9 +865,9 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         if (p->shownHealth < p->health)
             p->shownHealth = p->health;
         else
-            p->shownHealth = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->shownHealth, p->health, D_002DDED0.dt);
+            p->shownHealth = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownHealth, p->health, D_002DDED0.dt);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
-        if (FFloatsNear__Ffff(p->shownHealth, p->health, 0.0001f))
+        if (AreFloatsNear__Ffff(p->shownHealth, p->health, 0.0001f))
             SetHudMeterState(p, HUDMETER_STEADY);
         break;
     case HUDMETER_POWER_CHANGE:
@@ -875,9 +875,9 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         if (p->shownPower < p->power)
             p->shownPower = p->power;
         else
-            p->shownPower = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->shownPower, p->power, D_002DDED0.dt);
+            p->shownPower = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownPower, p->power, D_002DDED0.dt);
         SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
-        if (FFloatsNear__Ffff(p->shownPower, p->power, 0.0001f))
+        if (AreFloatsNear__Ffff(p->shownPower, p->power, 0.0001f))
             SetHudMeterState(p, HUDMETER_STEADY);
         break;
     }

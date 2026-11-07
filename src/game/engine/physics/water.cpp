@@ -152,7 +152,7 @@ void SetSndRange(void *, float, float);
 void SetSndVolume(void *, float);
 void UpdateSwXaList(SOW *, N **);
 qwordV GetLoWorldPos(void *p);
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 qwordV ApplyConstr(CONSTRAINT *, NODE *, qwordV);
 void AddSoAcceleration(SOW *, qwordV);
 void CalculateWaterCurrent(SOW *, qwordV, qwordV *, qwordV *);
@@ -461,9 +461,9 @@ static inline float Epsilon(){register float f __asm__("$f14");__asm__ __volatil
 static inline int WordY(qwordV q){int r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return r;}
 static inline int WordZ(qwordV q){int r;__asm__("pextuw %0,$0,%1":"=r"(r):"r"(q));return r;}
 static inline float FloatWord(int word){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
-static inline int NearX(qwordV d,qwordV n,float e){return FFloatsNear__Ffff(GetX(d),GetX(n),e);}
-static inline int NearY(qwordV d,qwordV n){int y=WordY(d);float e=Epsilon();return FFloatsNear__Ffff(FloatWord(y),GetY(n),e);}
-static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();return FFloatsNear__Ffff(FloatWord(z),GetZ(n),e);}
+static inline int NearX(qwordV d,qwordV n,float e){return AreFloatsNear__Ffff(GetX(d),GetX(n),e);}
+static inline int NearY(qwordV d,qwordV n){int y=WordY(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(y),GetY(n),e);}
+static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(z),GetZ(n),e);}
 /** @sly2-annot addr=0x229468
  * Purpose: vertical hit span and optional surface point/normal
  * Info: proposed name UGetWaterSubmerged (T2); TU water
@@ -631,7 +631,7 @@ extern "C" void AddSoExternalAccelerations()
 static inline float X(qwordV q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qwordV q){qwordV v;float f;__asm__("prot3w %0,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Z(qwordV q){qwordV v;float f;__asm__("pextuw %0,$zero,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
-static inline bool Near(qwordV a,qwordV b,float epsilon){return FFloatsNear__Ffff(X(a),X(b),epsilon)&&FFloatsNear__Ffff(Y(a),Y(b),epsilon)&&FFloatsNear__Ffff(Z(a),Z(b),epsilon);}
+static inline bool Near(qwordV a,qwordV b,float epsilon){return AreFloatsNear__Ffff(X(a),X(b),epsilon)&&AreFloatsNear__Ffff(Y(a),Y(b),epsilon)&&AreFloatsNear__Ffff(Z(a),Z(b),epsilon);}
 static inline qwordV Scale(qwordV v,qwordV k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
 static inline qwordV Get(SOW *o,int slot){VE *v=o->vt;return v[slot].f.get((char *)o+v[slot].delta);}
 static inline qwordV AddNormal(qwordV motion,const V &projection){qwordV r;asm("vadd.xyzw %0,%1,%2":"=j"(r):"0"(motion),"j"(projection.q));return r;}

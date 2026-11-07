@@ -4,7 +4,7 @@
  * GLimit, GClampR, FPtr...). Only spellings that compile to the same code at every folded site live here; see
  * docs/guides/tu-merging.md "Shared inline helpers" for which private spellings were folded and which stay private.
  * Names follow the Sly 1 prefix convention (G float, N int, F flag); they are placeholders (HYPOTHESIS: Sly 1's util.h
- * has GLimitAbs/GLimitLm-style helpers, none of these exact ones). */
+ * has ClampAbs/ClampToLimits-style helpers, none of these exact ones). */
 #ifndef SLY2_UTIL_H
 #define SLY2_UTIL_H
 

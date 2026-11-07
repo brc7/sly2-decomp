@@ -82,10 +82,10 @@ qword GetLoWorldPos(void *);
 M3 *GetLoWorldMatrix(void *);
 M3 LoadLookAtMatrix(qword);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(const M3 *,float *,float *);
-float GLimitAbs__Fff(float,float);
-float GSmooth__FfffP3SMPPf(float,float,float,const float *,float *);
-float GLimitLm__FP2LMf(const LMV *,float);
-float GSmoothA__FffffP4SMPAPf(float,float,float,float,SMPV *,float *);
+float ClampAbs__Fff(float,float);
+float SmoothValue__FfffP3SMPPf(float,float,float,const float *,float *);
+float ClampToLimits__FP2LMf(const LMV *,float);
+float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPV *,float *);
 void SetActPositionGoal(void *,qword);
 CRef RefGetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
@@ -179,8 +179,8 @@ extern "C" void UpdateTurretAim(TURRETV *turret)
     } else {
         if (turret->control) {
             /* stick input, cubed for fine aim, scaled by the zoom strength */
-            float x = GLimitAbs__Fff(turret->control->x + turret->control->z, 1.0f);
-            float y = GLimitAbs__Fff(turret->control->y, 1.0f);
+            float x = ClampAbs__Fff(turret->control->x + turret->control->z, 1.0f);
+            float y = ClampAbs__Fff(turret->control->y, 1.0f);
             float strength = turret->strength;
             float gain = (1.0f - strength) * 0.5f + strength;
             float cubic = -x * x;
@@ -196,16 +196,16 @@ extern "C" void UpdateTurretAim(TURRETV *turret)
             if (ay * turret->vyaw <= 0.0f) turret->vyaw = 0.0f;
             CLOCK *clock = &D_002DDED0;
             const float *damping = D_002C4408;
-            turret->vpitch = GSmooth__FfffP3SMPPf(turret->vpitch, 0.0f, clock->dt, damping, 0);
-            turret->vyaw = GSmooth__FfffP3SMPPf(turret->vyaw, 0.0f, clock->dt, damping, 0);
-            turret->vpitch = GLimitAbs__Fff(turret->vpitch + ax * clock->dt, limit * 0.9f);
-            turret->vyaw = GLimitAbs__Fff(turret->vyaw + ay * clock->dt, limit * 0.8f);
+            turret->vpitch = SmoothValue__FfffP3SMPPf(turret->vpitch, 0.0f, clock->dt, damping, 0);
+            turret->vyaw = SmoothValue__FfffP3SMPPf(turret->vyaw, 0.0f, clock->dt, damping, 0);
+            turret->vpitch = ClampAbs__Fff(turret->vpitch + ax * clock->dt, limit * 0.9f);
+            turret->vyaw = ClampAbs__Fff(turret->vyaw + ay * clock->dt, limit * 0.8f);
             turret->pitch += turret->vpitch * clock->dt;
             turret->yaw += turret->vyaw * clock->dt;
         }
     }
-    turret->pitch = GLimitLm__FP2LMf(&turret->pitchRange, turret->pitch);
-    turret->yaw = GLimitLm__FP2LMf(&turret->yawRange, turret->yaw);
+    turret->pitch = ClampToLimits__FP2LMf(&turret->pitchRange, turret->pitch);
+    turret->yaw = ClampToLimits__FP2LMf(&turret->yawRange, turret->yaw);
     if (turret->isActRunning) {
         V v;
         v.q = Make(0.0f, -turret->yaw, turret->pitch);
@@ -268,19 +268,19 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         } else desired = turret->range.hi;
         desired = GMax(desired, angle);
         /* spring the blend toward it, faster for bigger changes (D_002C4418) */
-        float target = GLimitLm__FP2LMf(&D_002BBB60, 1.0f - Fraction(&turret->range, desired));
+        float target = ClampToLimits__FP2LMf(&D_002BBB60, 1.0f - Fraction(&turret->range, desired));
         float delta = GAbs(target - turret->blend);
         spring = D_002A97B0;
         float rate = (1.0f - delta) * D_002C4418[0] + delta * D_002C4418[1];
         spring.d *= rate;
         spring.a *= rate;
         spring.b *= rate;
-        turret->blend = GSmoothA__FffffP4SMPAPf(turret->blend, turret->velocity, target, D_002DDED0.dt, &spring, &turret->velocity);
+        turret->blend = SmoothValueWithAccel__FffffP4SMPAPf(turret->blend, turret->velocity, target, D_002DDED0.dt, &spring, &turret->velocity);
     } else {
         if (turret->control) {
             float blend = turret->blend, zoom = turret->control->zoom;
             turret->velocity = (D_002C4420[0] + blend * (D_002C4420[1] + blend * D_002C4420[2])) * zoom * GAbs(zoom);
-            turret->blend = GLimitLm__FP2LMf(&D_002BBB60, blend + turret->velocity * D_002DDED0.dt);
+            turret->blend = ClampToLimits__FP2LMf(&D_002BBB60, blend + turret->velocity * D_002DDED0.dt);
         }
     }
     turret->strength = Blend(&turret->range, 1.0f - turret->blend);

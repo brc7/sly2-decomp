@@ -100,11 +100,11 @@ qword GetLoWorldPos(void *);
 int FPowerupAcquired(int);
 qword SetVectorCylind(float,float,float);
 void GetVectorCylind(qword,float *,float *,float *);
-float GLimitLm__FP2LMf(RANGE *,float);
+float ClampToLimits__FP2LMf(RANGE *,float);
 void UpdateJtThrowArc(JTTHROW *,int);
 float atan2f(float,float);
 float GetStepHeading(O *);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 void SetJtThrowState(JTTHROW *,int);
 void RecalculateAsegBlend(ASEG *);
 int FAsegaRetracted(ASEGAV *);
@@ -118,7 +118,7 @@ qword CalculateBallisticLaunchVelocity(qword,qword,qword,float); // CalculateLau
 void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SOPAIR *),void *,int *,SO ***); // FindSwObjectsInBox
 int FilterJtThrowArcObject(void *,SOPAIR *);
 SO *FindFirstObjectHitByLine(int,qword,qword,int,SO **,HIT *);
-int CSolveQuadratic__FfffPf(float,float,float,float *);
+int SolveQuadratic__FfffPf(float,float,float,float *);
 M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
 V *VECTOR_opAssign(V *,qword);
 void SetTrailMeshPositions(EFFECT *,qword);
@@ -363,7 +363,7 @@ static inline void CopyRange(RANGE &destination, const RANGE &source)
     asm("ldl %0,7+%2\n\tldr %0,%2\n\tsdl %0,7+%1\n\tsdr %0,%1" : "=&r"(value), "=m"(destination) : "m"(source));
 }
 /** @sly2-annot addr=0x21F418
- * Purpose: per-frame carry/aim controller: target selection, aim angles (atan2f, GLimitLm), arc (0x21FB70),
+ * Purpose: per-frame carry/aim controller: target selection, aim angles (atan2f, ClampToLimits), arc (0x21FB70),
  *   state transitions (0x2206C8)
  * Info: proposed name UpdateJtThrow (T1); TU throw
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
@@ -424,7 +424,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
                 qword sum = PolarOperands(w.vector, movement, &w.angle, &w.radius, angleArgument, radiusArgument);
                 w.delta.q = sum;
                 GetVectorCylind(sum, angleArgument, radiusArgument, 0);
-                w.radius = GLimitLm__FP2LMf(&w.scratch.range, w.radius);
+                w.radius = ClampToLimits__FP2LMf(&w.scratch.range, w.radius);
                 qword polar = SetVectorCylind(w.angle, w.radius, elevation);
                 StoreTarget(s->targetWorld, w.delta, w.ownerPosition, polar);
             }
@@ -438,7 +438,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
         case 0: {
             w.scratch.vector.q = IdleDifference(GetLoWorldPos(s->selected), w.ownerPosition);
             float heading = atan2f(w.scratch.vector.f[1], w.scratch.vector.f[0]);
-            float angle = RadNormalize__Ff(heading - GetStepHeading(s->owner));
+            float angle = NormalizeAngle__Ff(heading - GetStepHeading(s->owner));
             float threshold = s->idleThreshold;
             if (threshold < angle)
                 SetJtThrowState(s, 2);
@@ -511,7 +511,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
             else if (s->state == 4) {
                 w.scratch.vector.q = ActiveDifference(s->targetWorld, w.ownerPosition);
                 float heading = atan2f(w.scratch.vector.f[1], w.scratch.vector.f[0]);
-                float angle = RadNormalize__Ff(heading - GetStepHeading(s->owner));
+                float angle = NormalizeAngle__Ff(heading - GetStepHeading(s->owner));
                 float threshold = s->activeThreshold;
                 if (threshold < angle)
                     SetJtThrowState(s, 6);
@@ -567,7 +567,7 @@ extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 // carried object's gravity give CalculateLaunchVelocity (CalculateBallisticLaunchVelocity) a velocity whose elevation follows lmAim; the
 // apex and the end point after tPredict seconds bound a box for FindSwObjectsInBox (IntersectSwBoundingBox). 28 samples along the
 // arc are line-tested (PsoHitTestLineObjects); at the first hit the flight time is the closest non-negative root of the vertical
-// motion (CSolveQuadratic). The flight time may change by at most 3 * dt per frame; up to 30 points of the arc are written
+// motion (SolveQuadratic). The flight time may change by at most 3 * dt per frame; up to 30 points of the arc are written
 // back to front into the marker's ring of frames (matrix along the arc, BuildOrthonormalMatrixZ), and the four-clip / two-clip
 // blends get the distance (lmAim) and heading-error (radTurnAim) weights, rate limited by 2 * dt when fUpdateBlends.
 // How it matched (Lilly's agent, T1604): fresh8's stack layout plus
@@ -679,7 +679,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
         if (FindFirstObjectHitByLine(1, posPrev, pos, cso, apso, &hit)) {
             V at;
             int ct =
-                CSolveQuadratic__FfffPf(GZOfQw(vAccel) * 0.5f, GZOfQw(vLaunch), GZOfQw(posLaunch) - hit.pos.f[2], at.f);
+                SolveQuadratic__FfffPf(GZOfQw(vAccel) * 0.5f, GZOfQw(vLaunch), GZOfQw(posLaunch) - hit.pos.f[2], at.f);
             float tBest = 0.0f, sBest = D_002A96A0;
             for (int it = 0; it < ct; it++) {
                 float tRoot = at.f[it];
@@ -747,7 +747,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     dpos.q = QwSub(posAim, posHeroNow);
     float rad = atan2f(dpos.f[1], dpos.f[0]);
     float radHero = GetStepHeading(thrower->owner);
-    rad = RadNormalize__Ff(rad - radHero);
+    rad = NormalizeAngle__Ff(rad - radHero);
     float uTurn = GClamp(rad / thrower->activeThreshold, -1.0f, 1.0f) * 0.5f + 0.5f;
     if (fUpdateBlends) {
         float uFarOld = thrower->ablC[1].gWeight, uTurnOld;

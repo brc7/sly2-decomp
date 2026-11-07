@@ -424,15 +424,15 @@ int HasRobottankWeaponAmmo(ATTACH *);
 void SetSmaGoal(void *,int);
 void ReadRobottankInput(P *);
 void UpdateRobottankAi(P *);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 qword SetVectorCylind(float,float,float);
 qword ConvertXfVec(FRAME *,FRAME *,qword);
-float GLimitLm__FP2LMf(const LIMITS *,float);
+float ClampToLimits__FP2LMf(const LIMITS *,float);
 void SetActPositionGoal(void *,qword);
-float RadSmooth__FfffP3SMPPf(float,float,float,void *,float *);
+float SmoothAngle__FfffP3SMPPf(float,float,float,void *,float *);
 qword GetLoWorldPos(P *);
-int FFloatsNear__Ffff(float,float,float);
-float GSmooth__FfffP3SMPPf(float,float,float,void *,float *);
+int AreFloatsNear__Ffff(float,float,float);
+float SmoothValue__FfffP3SMPPf(float,float,float,void *,float *);
 void SetSndVolume(SOUND *,float);
 void SetSndPitch(SOUND *,float);
 void ResumeSnd(SOUND *);
@@ -485,11 +485,11 @@ extern "C" void UpdateRobottank(P *tank)
     case 2:ReadRobottankInput(tank);break;
     case 1:UpdateRobottankAi(tank);break;
     }
-    register float angle __asm__("$f0")=RadNormalize__Ff(tank->goalHeading-tank->heading);
+    register float angle __asm__("$f0")=NormalizeAngle__Ff(tank->goalHeading-tank->heading);
     tank->steering=Clamp(Evaluate(D_002C2040,angle),D_002C2050.low,D_002C2050.high);
-    angle=Abs(RadNormalize__Ff(tank->goalHeading-tank->heading));
+    angle=Abs(NormalizeAngle__Ff(tank->goalHeading-tank->heading));
     tank->acceleration=Clamp(Evaluate(D_002C2060,angle),D_002C2070.low,D_002C2070.high);
-    angle=RadNormalize__Ff(tank->goalHeading-tank->heading);
+    angle=NormalizeAngle__Ff(tank->goalHeading-tank->heading);
     struct LOWER_PAGE {char before[0x2090];LIMITS limits;};
     typedef char lower_page_low_offset[((unsigned)&((LOWER_PAGE*)0)->limits.low==0x2090)?1:-1];
     typedef char lower_page_view_size[(sizeof(LOWER_PAGE)==0x2098)?1:-1];
@@ -519,7 +519,7 @@ extern "C" void UpdateRobottank(P *tank)
             qword direction=SetVectorCylind(tank->wheelAngle,1.0f,0.0f);
             direction=ConvertXfVec(0,side->reference->parent,direction);
             float orientation=atan2f(Y(direction),X(direction));
-            scalar.q=Pack(0.0f,0.0f,GLimitLm__FP2LMf(limits,orientation));
+            scalar.q=Pack(0.0f,0.0f,ClampToLimits__FP2LMf(limits,orientation));
             limits=(LIMITS*)((char*)limits+sizeof(SIDE));
             SetActPositionGoal(side->binding,scalar.q);
             ++side;
@@ -529,7 +529,7 @@ extern "C" void UpdateRobottank(P *tank)
         ENTRY *entry=&tank->entries[k];
         float desired;
         if(tank->drive!=0.0f)desired=entry->steering*tank->steering;else desired=0.0f;
-        entry->tilt=RadSmooth__FfffP3SMPPf(entry->tilt,desired,D_002DDED0.dt,D_002C2098,0);
+        entry->tilt=SmoothAngle__FfffP3SMPPf(entry->tilt,desired,D_002DDED0.dt,D_002C2098,0);
     }
     i=0;
     qword currentPosition=GetLoWorldPos(tank);
@@ -583,9 +583,9 @@ extern "C" void UpdateRobottank(P *tank)
                 scalar.q=gravityScalar;
                 float pitch=atan2f(pitchZ,planarLength);
                 float speed=ShotLength(shot.q);
-                attach->angle=GLimitLm__FP2LMf(&attach->angleLimits,pitch);
-                attach->speed=GLimitLm__FP2LMf(&attach->speedLimits,speed);
-                int active=FFloatsNear__Ffff(attach->angle,pitch,0.01f) && FFloatsNear__Ffff(attach->speed,speed,0.01f);
+                attach->angle=ClampToLimits__FP2LMf(&attach->angleLimits,pitch);
+                attach->speed=ClampToLimits__FP2LMf(&attach->speedLimits,speed);
+                int active=AreFloatsNear__Ffff(attach->angle,pitch,0.01f) && AreFloatsNear__Ffff(attach->speed,speed,0.01f);
                 attach->active=active;
                 if(!active){attach->angle=0.0f;attach->speed=attach->speedLimits.low;}
             }
@@ -598,7 +598,7 @@ extern "C" void UpdateRobottank(P *tank)
         }while(i<tank->attachCount);
     }
     if(tank->sound){
-        tank->soundRate=GSmooth__FfffP3SMPPf(tank->soundRate,tank->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
+        tank->soundRate=SmoothValue__FfffP3SMPPf(tank->soundRate,tank->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
         float rate=Clamp(tank->soundRate,0.2f,1.0f);
         SetSndVolume(tank->sound,rate);
         SetSndPitch(tank->sound,rate*0.2f);
@@ -937,7 +937,7 @@ namespace M_UpdateRobottankAi {
 // UpdateRobottank): pick a ready attachment (FindReadyRobottankWeapon) or a target object (FindNearestRobottankPickup), run the state machine
 // (0 approach/orbit the target, 1 attack in place, 2 pursue the object, 3 back away) until the state is stable, steer
 // for the current state, then let every ready attachment fire once its aim error is small enough.
-// Callees: acosf acosf, atan2f atan2f, 0x11D910 FCheckLm, 0x11CF60 RadNormalize, 0x11D448 GRandInRange,
+// Callees: acosf acosf, atan2f atan2f, 0x11D910 FCheckLm, 0x11CF60 NormalizeAngle, 0x11D448 RandomFloatInRange,
 // 0x11B500 rotation matrix about an axis.
 // How it matches (fresh rewrite; notes in build/lane_notes/w4lane7.md):
 // - position/target/delta/goal/offset are VU-class pseudos that live across calls, so reload spills them to
@@ -990,9 +990,9 @@ void FindPathzonePathCurve(void *, qword, qword, PATH *);
 float atan2f(float, float);
 M3 *GetLoWorldMatrix(P *);
 qword GetXfValueFromMatrix(void *, void *);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 void SetSmaGoal(void *, int);
-float GRandInRange__Fff(float, float);
+float RandomFloatInRange__Fff(float, float);
 void SteerRobottankAlongPath(P *);
 int HasRobottankWeaponAmmo(ATTACH *);
 int IsPointInVol(void *, qword);
@@ -1146,7 +1146,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                     M3 m = *GetLoWorldMatrix(attach->anchor);
                     float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                     qword packed = GetXfValueFromMatrix(attach->mesh, attach->mesh);
-                    float error = Abs(RadNormalize__Ff(aim - tank->wheelAngle));
+                    float error = Abs(NormalizeAngle__Ff(aim - tank->wheelAngle));
                     float pitch = GetZ(packed) - attach->meshBinding->pitch;
                     if (error < D_002C20EC && Abs(pitch) < D_002C20F0)
                         goto fire;
@@ -1155,7 +1155,7 @@ extern "C" void UpdateRobottankAi(P *tank)
             fire:
                 SetSmaGoal(attach->binding, 0x68);
                 float t = D_002DDED0.t;
-                tank->nextAttack = t + GRandInRange__Fff(1.0f, 1.5f);
+                tank->nextAttack = t + RandomFloatInRange__Fff(1.0f, 1.5f);
             }
         }
         break;
@@ -1190,14 +1190,14 @@ extern "C" void UpdateRobottankAi(P *tank)
                 M3 m = *GetLoWorldMatrix(attach->anchor);
                 float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                 qword packed = GetXfValueFromMatrix(attach->mesh, attach->mesh);
-                float error = Abs(RadNormalize__Ff(aim - tank->wheelAngle));
+                float error = Abs(NormalizeAngle__Ff(aim - tank->wheelAngle));
                 float pitch = GetZ(packed) - attach->meshBinding->pitch;
                 if (D_002C20F4 < error || D_002C20F8 < Abs(pitch))
                     continue;
             }
             SetSmaGoal(attach->binding, 0x68);
             float t = D_002DDED0.t;
-            tank->nextAttack = t + GRandInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
+            tank->nextAttack = t + RandomFloatInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
         }
     }
 }
@@ -1282,7 +1282,7 @@ CONTACT *FindDeepestRobottankWheelXp(P *, ENTRY *);
 qword GetXfVelocity(MOTION *, MOTION *, qword);
 void ApplySoImpulse(P *, qword, qword);
 qword ConvertXfVec(MOTION *, MOTION *, qword);
-float GLimitAbs__Fff(float, float);
+float ClampAbs__Fff(float, float);
 void AddSoAngularAcceleration(P *, qword);
 M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float);
 qword LimitVectorLength(float, qword);
@@ -1383,7 +1383,7 @@ extern "C" void PresetRobottankAccel(P *tank)
     localVelocity.q = InverseRotate(tank->secondary->local.basis, tank->secondary->velocity.q);
     float acceleration = D_002C2144 * tank->physics->mass * tank->width / tank->physics->inertia;
     torque.f[0] = torque.f[1] = 0.0f;
-    float turnImpulse = GLimitAbs__Fff((tank->turn - localVelocity.f[2]) / clock->dt, acceleration * budget);
+    float turnImpulse = ClampAbs__Fff((tank->turn - localVelocity.f[2]) / clock->dt, acceleration * budget);
     torque.f[2] = turnImpulse;
     worldTorque.q = Rotate(tank->secondary->world.basis, torque.q);
     budget -= Abs(D_002C2148 * turnImpulse / acceleration);
@@ -1937,8 +1937,8 @@ extern "C" {
 qword ConvertAloVec(P*,P*,qword);
 qword TransformXfPos(P*,NODE*,qword);
 CONTACT*FindDeepestRobottankWheelXp(P*,ENTRY*);
-float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
-float RadNormalize__Ff(float);
+float SmoothValue__FfffP3SMPPf(float,float,float,void*,float*);
+float NormalizeAngle__Ff(float);
 M3*BuildAxisAngleRotationMatrix(M3*,qword,float);
 qword*VECTOR_opAssign(qword*,qword);
 void UpdateSoXfWorldMatrices(P*);
@@ -1969,7 +1969,7 @@ extern "C" void RenderRobottankSelf(P*tank){
    float height;
    if(hit){float limit=e->height+hit->height;if(point.f[2]<limit){point.f[2]=limit;goto heightDone;}height=limit;}
    else height=e->height;
-   (void)GSmooth__FfffP3SMPPf(point.f[2],height,D_002DDED0.dt,D_002C21A0,0);point.f[2]=height;
+   (void)SmoothValue__FfffP3SMPPf(point.f[2],height,D_002DDED0.dt,D_002C21A0,0);point.f[2]=height;
   }
   heightDone:;
   point.q=TransformXfPos(tank->space,e->node->parent,point.q);
@@ -1977,16 +1977,16 @@ extern "C" void RenderRobottankSelf(P*tank){
   if(hit){
    float current=velocity.f[0]/e->radius;
    if((0.0f<desired&&current<D_002C21CC*desired)||(desired<0.0f&&D_002C21CC*desired<current))
-    e->speed=GSmooth__FfffP3SMPPf(e->speed,D_002C21CC*desired,D_002DDED0.dt,D_002C21B0,0);
+    e->speed=SmoothValue__FfffP3SMPPf(e->speed,D_002C21CC*desired,D_002DDED0.dt,D_002C21B0,0);
    else e->speed=current;
   }else{
    float dt=D_002DDED0.dt;
    void*table;
    if(Abs(e->speed)<Abs(desired))table=D_002C21B0;else table=D_002C21C0;
-   e->speed=GSmooth__FfffP3SMPPf(e->speed,desired,dt,table,0);
+   e->speed=SmoothValue__FfffP3SMPPf(e->speed,desired,dt,table,0);
   }
   float dt=D_002DDED0.dt;
-  e->angle=RadNormalize__Ff(e->angle+e->speed*dt);
+  e->angle=NormalizeAngle__Ff(e->angle+e->speed*dt);
   basis=Mul(Rotation(D_002A2DC0,e->tilt),Rotation(D_002A2DB0,e->angle));
   NODE*node=e->node;
   VECTOR_opAssign(&node->matrix.position.q,point.q);
@@ -2040,7 +2040,7 @@ extern "C" {
 int CanSoTakeDamage(P *, EVENT *);
 void UpdateRobottankHealthMeter(P *);
 void SetRobottankState(P *, int);
-float GRandInRange__Fff(float, float);
+float RandomFloatInRange__Fff(float, float);
 qword SetVectorCylind(float, float, float);
 qword GetLoWorldPos(P *);
 int TakeRobottankDamage(P *, EVENT *);
@@ -2086,7 +2086,7 @@ static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
     return r;
 }
 // Random float in a [min, max] pair.
-static inline float Random(const float *range) { return GRandInRange__Fff(range[0], range[1]); }
+static inline float Random(const float *range) { return RandomFloatInRange__Fff(range[0], range[1]); }
 /* object vector (virtual get) += delta (virtual set) */
 static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
 {
@@ -2117,7 +2117,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
     {
     case 0x100:
     {
-        float angle = GRandInRange__Fff(-3.14159274f, 3.14159274f);
+        float angle = RandomFloatInRange__Fff(-3.14159274f, 3.14159274f);
         float horizontal = Random(D_002C21D0);
         float vertical = Random(D_002C21D8);
         linear.q = SetVectorCylind(angle, horizontal, vertical);

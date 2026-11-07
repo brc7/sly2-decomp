@@ -105,7 +105,7 @@ void AddLoHierarchy(CID14V *p);
 void RemoveLoHierarchy(CID14V *p);
 void AppendDlEntry__FP2DLPv(DLV *pdl, void *pv);
 void RemoveDlEntry__FP2DLPv(DLV *pdl, void *pv);
-int FFindDlEntry__FP2DLPv(DLV *pdl, void *pv);
+int IsEntryInDl__FP2DLPv(DLV *pdl, void *pv);
 int IsDlEmpty__FP2DL(DLV *pdl);
 void PostLoLoad(CID14V *p);
 float UMaxShape(CID14V *p);
@@ -256,7 +256,7 @@ extern "C" void RemoveCid14Hierarchy(CID14V *polygon)
     if (polygon->owner) DetachCid14FromOwner(polygon->owner);
     UnregisterCid14Obstacle(polygon);
     pdl = (DLV *)&g_sw.dlCid14Pending;
-    if (FFindDlEntry__FP2DLPv(pdl, polygon)) RemoveDlEntry__FP2DLPv(pdl, polygon);
+    if (IsEntryInDl__FP2DLPv(pdl, polygon)) RemoveDlEntry__FP2DLPv(pdl, polygon);
 }
 
 /** @sly2-annot addr=0x1BC208
@@ -750,7 +750,7 @@ void DetachCid14FromOwner(CID14V *polygon)
     while ((pv = (CID14V *)PvNextDli(&dli)) != 0) {
         RemoveDlEntry__FP2DLPv(&polygon->members, pv);
         pv->owner = 0;
-        if (!FFindDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, pv)) AppendDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, pv);
+        if (!IsEntryInDl__FP2DLPv((DLV *)&g_sw.dlCid14Pending, pv)) AppendDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, pv);
     }
     ((void (*)(void *))polygon->vt[9].pfn)((char *)polygon + polygon->vt[9].d);
     AppendDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Free, polygon);
@@ -1069,7 +1069,7 @@ void AddCid14ToMerged(CID14V *polygon, CID14V *owner)
     AppendDlEntry__FP2DLPv(&owner->members, polygon);
     UnregisterCid14Obstacle(polygon);
     pdl = (DLV *)&g_sw.dlCid14Pending;
-    if (FFindDlEntry__FP2DLPv(pdl, polygon)) RemoveDlEntry__FP2DLPv(pdl, polygon);
+    if (IsEntryInDl__FP2DLPv(pdl, polygon)) RemoveDlEntry__FP2DLPv(pdl, polygon);
 }
 
 /* MergeCid14Obstacles: merge a set of convex polygons into one new polygon (hull of all their transformed points), re-centre

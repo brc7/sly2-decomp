@@ -632,7 +632,7 @@ struct VT { struct VTE a[63]; };
 struct Q { char pad[0x34]; char parts[1]; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct Q *tree; };
 void EnsureSoTree(struct P *);
-int FFindDlEntry__FP2DLPv(void *, void *);
+int IsEntryInDl__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
 void InvalidateSoAaox(struct P *);
 void UpdateSoPartGeom(struct E *);
@@ -650,7 +650,7 @@ void AddSoPartToTree(struct P *so, struct E *pe)
 {
     struct O *po;
     EnsureSoTree(so);
-    if (FFindDlEntry__FP2DLPv(so->tree->parts, pe)) return;
+    if (IsEntryInDl__FP2DLPv(so->tree->parts, pe)) return;
     AppendDlEntry__FP2DLPv(so->tree->parts, pe);
     po = pe->transform;
     pe->geomStamp = -1;
@@ -674,7 +674,7 @@ struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE0 - 0x10]; int numParts;
 struct Q2 { char pad[0xEC]; struct Q *tree; };
 struct G;
 extern struct G D_003DD490;
-int FFindDlEntry__FP2DLPv(void *, void *);
+int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 int IsDlEmpty__FP2DL(void *);
 void RemoveSwPlacesOf(struct G *, int, struct E *);
@@ -694,7 +694,7 @@ void RemoveSoPartFromTree(struct P *so, struct E *pe)
 {
     int i;
     if (!so->tree) return;
-    if (!FFindDlEntry__FP2DLPv(so->tree->parts, pe)) return;
+    if (!IsEntryInDl__FP2DLPv(so->tree->parts, pe)) return;
     RemoveDlEntry__FP2DLPv(so->tree->parts, pe);
     if (pe->flags & (1L << 51)) RemoveSwPlacesOf(&D_003DD490, 0, pe);
     FreeSoContacts(so);
@@ -706,7 +706,7 @@ void RemoveSoPartFromTree(struct P *so, struct E *pe)
     } else if (so->tree->rootSo != so) {
         i = so->numParts;
         while (--i >= 0) {
-            if (FFindDlEntry__FP2DLPv(so->tree->parts, (struct E *)(i * 0xB0 + (int)so->parts))) break;
+            if (IsEntryInDl__FP2DLPv(so->tree->parts, (struct E *)(i * 0xB0 + (int)so->parts))) break;
         }
         if (i < 0) so->tree = 0;
     }
@@ -1329,7 +1329,7 @@ struct Q { char pad[0x118]; char dl[1]; };
 struct O { char pad[0x10]; struct Q *pathzone; char pad2[0x20 - 0x14]; char unknown20[1]; };
 struct E { char pad[0xDC]; struct O *region; };
 struct P { char pad[0xE8]; struct E *physics; };
-int FFindDlEntry__FP2DLPv(void *, void *);
+int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
 void InitObstacleQueryCursor(struct Q *, void *);
@@ -1346,10 +1346,10 @@ void SetSoPhysRegion(struct P *so, struct Q *q)
     struct Q *old = o->pathzone;
     if (old == q) return;
     if (old) {
-        if (FFindDlEntry__FP2DLPv(old->dl, o)) RemoveDlEntry__FP2DLPv(old->dl, o);
+        if (IsEntryInDl__FP2DLPv(old->dl, o)) RemoveDlEntry__FP2DLPv(old->dl, o);
     }
     if (q) {
-        if (!FFindDlEntry__FP2DLPv(q->dl, o)) {
+        if (!IsEntryInDl__FP2DLPv(q->dl, o)) {
             AppendDlEntry__FP2DLPv(q->dl, o);
             InitObstacleQueryCursor(q, o->unknown20);
         }
@@ -1698,7 +1698,7 @@ struct E { char pad[0x60]; struct L *rootSo; };
 struct DL;
 void OnLoAdd(struct L *);
 void AddLoToRenderTree(struct L *);
-int FFindDlEntry__FP2DLPv(struct DL *, void *);
+int IsEntryInDl__FP2DLPv(struct DL *, void *);
 void AppendDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 /** @sly2-annot addr=0x1F3EA8
@@ -1724,7 +1724,7 @@ void OnSoAdd(struct L *so)
     }
     for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) VF(q, 23);
     if (so->tree && so->tree->rootSo == so) {
-        if (!FFindDlEntry__FP2DLPv((DL *)&g_sw.dlSoTree, so->tree)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->tree);
+        if (!IsEntryInDl__FP2DLPv((DL *)&g_sw.dlSoTree, so->tree)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->tree);
         VF(so, 49);
     }
 }
@@ -3322,7 +3322,7 @@ static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {Co
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void MulMatrix3Matrix3(M3 *,const M3 *,const M3 *);
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
-extern "C" float GLimitAbs__Fff(float,float);
+extern "C" float ClampAbs__Fff(float,float);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Add(qword a,qword b){__asm__("vadd.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 // volatile store: the game's later loads (dt, velocity, the epilogue) wait for these sqc2s
@@ -3371,12 +3371,12 @@ extern "C" void AccelSoTowardMatBounded(P *so,const M3 *orientation,const COEF *
     NormalizeRotateMatrix3__FP7MATRIX3(&frame);
     {M3 out;MulMatrix3Matrix3(&out,&owner->matrix,&frame);relative=out;}
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&relative,&angle,&axis.q);
-    desired=GLimitAbs__Fff((angle/stopAngle)*maximum,maximum);
+    desired=ClampAbs__Fff((angle/stopAngle)*maximum,maximum);
     speed=GetX(DotQ(owner->velocity,axis.q));
     clock=&D_002DDED0;
     float half=clock->dt*0.5f;
     remaining=angle-(speed+desired)*half;
-    if(remaining<stopAngle)desired=GLimitAbs__Fff((remaining/stopAngle)*maximum,maximum);
+    if(remaining<stopAngle)desired=ClampAbs__Fff((remaining/stopAngle)*maximum,maximum);
     U scalar;
     qword w;
     {qword k=Scalar(desired,&scalar);w=Scale(axis.q,k);StoreQ(w,&wanted);}

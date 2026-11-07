@@ -2,7 +2,7 @@
 // fixed buffer). TU 0x116918..0x116CA0 (12 functions, address order).
 // HEAP is the allocator interface containers take (PvAlloc / PvRealloc / Free). Both implementations here are bump
 // allocators that never free, and their PvRealloc allocates a fresh block WITHOUT copying the old contents.
-// Entry points: PvAllocClear, PvAllocCopy, PchzAllocCopy, the CSwHeap object D_002DD590, CLinearHeap.
+// Entry points: AllocZeroedFromHeap, AllocCopyFromHeap, PchzAllocCopy, the CSwHeap object D_002DD590, CLinearHeap.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_heap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00116C80
 #include "heap.h"
@@ -36,13 +36,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /** @sly2-annot addr=0x116918
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name PvAllocClear__FP4HEAPii (EXISTING); TU heap
+ * Info: proposed name AllocZeroedFromHeap__FP4HEAPii (EXISTING); TU heap
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/engine/core-library.md#core-library-memory-containers-math-streams-cd-threads-text,
  *   docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files
  * @end-sly2-annot */
 // Allocates `size` bytes from `heap` at `alignment` and zero-fills them.
-void *PvAllocClear(HEAP *heap, int size, int alignment)
+void *AllocZeroedFromHeap(HEAP *heap, int size, int alignment)
 {
     void *block = heap->PvAlloc(size, alignment);
     memset(block, 0, size);
@@ -55,7 +55,7 @@ void *PvAllocClear(HEAP *heap, int size, int alignment)
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
 // Allocates `size` bytes from `heap` at `alignment` and copies `source` into them.
-void *PvAllocCopy(HEAP *heap, int size, void *source, int alignment)
+void *AllocCopyFromHeap(HEAP *heap, int size, void *source, int alignment)
 {
     void *block = heap->PvAlloc(size, alignment);
     CopyAb(block, source, size);
@@ -70,7 +70,7 @@ void *PvAllocCopy(HEAP *heap, int size, void *source, int alignment)
 // Duplicates a NUL-terminated string into `heap`.
 char *PchzAllocCopy(HEAP *heap, char *str, int alignment)
 {
-    return (char *)PvAllocCopy(heap, strlen(str) + 1, str, alignment);
+    return (char *)AllocCopyFromHeap(heap, strlen(str) + 1, str, alignment);
 }
 
 /** @sly2-annot addr=0x116A30

@@ -1338,15 +1338,15 @@ CRef RefOpIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 namespace M_RefOpAreNear__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
-int FFloatsNear__Ffff(float a, float b, float c);
+int AreFloatsNear__Ffff(float a, float b, float c);
 /** @sly2-annot addr=0x120A58
- * Purpose: Splice builtin "near?": FFloatsNear(a,b,eps)
+ * Purpose: Splice builtin "near?": AreFloatsNear(a,b,eps)
  * Info: proposed name RefOpAreNear (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "near?": FFloatsNear(a,b,eps).
+// Splice builtin "near?": AreFloatsNear(a,b,eps).
 CRef *RefOpAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     float ag[3];
@@ -1356,7 +1356,7 @@ CRef *RefOpAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
         CRef *p = &args[i];
         if (p->m_tagk == TAGK_S32) ag[i] = p->u.n; else ag[i] = p->u.g;
     }
-    f = FFloatsNear__Ffff(ag[0], ag[1], ag[2]) != 0;
+    f = AreFloatsNear__Ffff(ag[0], ag[1], ag[2]) != 0;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = f;
     return ret;
@@ -1662,7 +1662,7 @@ extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
-int NRandInRange__Fii(int nLo, int nHi);
+int RandomIntInRange__Fii(int nLo, int nHi);
 }
 struct SPN {
     CPair *p;
@@ -1676,17 +1676,17 @@ extern "C" CRef RefOpShuffle(void *pbasic, CRef *args);
 static inline void SetSpn(SPN *psp, CPair *pn) { *psp = pn; }
 static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->next = psp->p; *psp = sp.p; }
 /** @sly2-annot addr=0x120FB0
- * Purpose: Random permutation of a list (Fisher-Yates via NRandInRange 0x11D3F8), guarantees first element
+ * Purpose: Random permutation of a list (Fisher-Yates via RandomIntInRange 0x11D3F8), guarantees first element
  *   changes; Nil entry pins tail
  * Info: proposed name RefOpShuffle (T1); TU bif
  * Notes: splice builtin 41 shuffle~ -> shuffle~ (0.75): Body: Fisher-Yates over list elements with
- *   NRandInRange, forces a different first element, keeps a nil marker position. Scripts reshuffle dialog
+ *   RandomIntInRange, forces a different first element, keeps a nil marker position. Scripts reshuffle dialog
  *   line lists befo
  * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r1_116918+top50_round(splice
  *   builtin 41)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Random permutation of a list (Fisher-Yates via NRandInRange 0x11D3F8), guarantees first element changes; Nil entry
+// Random permutation of a list (Fisher-Yates via RandomIntInRange 0x11D3F8), guarantees first element changes; Nil entry
 // pins tail.
 CRef RefOpShuffle(void *pbasic, CRef *args)
 {
@@ -1707,7 +1707,7 @@ CRef RefOpShuffle(void *pbasic, CRef *args)
         CRef *prefFirst = apref[0];
         int i;
         for (i = 0; i < c; i++) {
-            int j = NRandInRange__Fii(0, c - 1);
+            int j = RandomIntInRange__Fii(0, c - 1);
             CRef *pref = apref[j];
             apref[j] = apref[i];
             apref[i] = pref;
@@ -2399,26 +2399,26 @@ struct CRef {
 };
 extern "C" {
 CRef CRef_RefCoerceF32(CRef *pref);
-int NRandInRange__Fii(int a, int b);
-float GRandInRange__Fff(float a, float b);
+int RandomIntInRange__Fii(int a, int b);
+float RandomFloatInRange__Fff(float a, float b);
 CRef RefOpRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1223C0
- * Purpose: Splice builtin "random": NRandInRange for ints else GRandInRange
+ * Purpose: Splice builtin "random": RandomIntInRange for ints else RandomFloatInRange
  * Info: proposed name RefOpRandom (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "random": NRandInRange for ints else GRandInRange.
+// Splice builtin "random": RandomIntInRange for ints else RandomFloatInRange.
 CRef RefOpRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     if (args[0].m_tagk == TAGK_S32 && args[1].m_tagk == args[0].m_tagk) {
-        ref = NRandInRange__Fii(args[0].u.n, args[1].u.n);
+        ref = RandomIntInRange__Fii(args[0].u.n, args[1].u.n);
     } else {
         float g0 = CRef_RefCoerceF32(&args[0]).u.g;
         float g1 = CRef_RefCoerceF32(&args[1]).u.g;
-        ref = GRandInRange__Fff(g0, g1);
+        ref = RandomFloatInRange__Fff(g0, g1);
     }
     return ref;
 }
@@ -3496,21 +3496,21 @@ struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
-float GLimitLm__FP2LMf(int n, float g);
+float ClampToLimits__FP2LMf(int n, float g);
 /** @sly2-annot addr=0x1235A8
- * Purpose: Splice builtin "lm-limit": GLimitLm
+ * Purpose: Splice builtin "lm-limit": ClampToLimits
  * Info: proposed name RefOpLmLimit (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "lm-limit": GLimitLm.
+// Splice builtin "lm-limit": ClampToLimits.
 CRef *RefOpLmLimit__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     int n = args[0].u.n;
     CRef ref;
     float g;
     CRef_RefCoerceF32(&ref, &args[1]);
-    g = GLimitLm__FP2LMf(n, ref.u.g);
+    g = ClampToLimits__FP2LMf(n, ref.u.g);
     ret->u.g = g;
     ret->m_tagk = TAGK_F32;
     Decref__4CRef(&ref);
@@ -5673,7 +5673,7 @@ void RefOpStub168() __asm__("RefOpStub168");
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_bif {
-void p_RadNormalize__Ff() __asm__("RadNormalize__Ff");
+void p_RadNormalize__Ff() __asm__("NormalizeAngle__Ff");
 void p_acosf() __asm__("acosf");
 void p_asinf() __asm__("asinf");
 void p_atanf() __asm__("atanf");

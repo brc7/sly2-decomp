@@ -408,7 +408,7 @@ void SetHackshipState(struct S *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void SetActPositionGoal(void *p, qword q);
 void SetSmaGoal(void *p, int n);
-float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
+float SmoothValue__FfffP3SMPPf(void *, int, float, float, float);
 void SetSndVolume(struct M *p, float g);
 void ResumeSnd(struct M *p);
 void PauseSnd(struct M *p);
@@ -454,7 +454,7 @@ void UpdateHackship(struct S *ship) {
     }
     if (ship->engineSound) {
         float g = (ship->state == 1) ? ship->params->speed : 0.0f;
-        ship->engineVolume = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, ship->engineVolume, g, D_002DDED0.dt);
+        ship->engineVolume = SmoothValue__FfffP3SMPPf(D_002BE7F0, 0, ship->engineVolume, g, D_002DDED0.dt);
         SetSndVolume(ship->engineSound, ship->engineVolume);
         if (0.0f < ship->engineVolume) {
             if (ship->engineSound->pauseCount > 0) ResumeSnd(ship->engineSound);
@@ -716,8 +716,8 @@ extern "C" qword D_002A2DC0;
 extern "C" void UpdateSo(P*);
 extern "C" qword GetLoWorldPos(P*);
 extern "C" float atan2f(float,float);
-extern "C" float RadNormalize__Ff(float);
-extern "C" float GLimitAbs__Fff(float,float);
+extern "C" float NormalizeAngle__Ff(float);
+extern "C" float ClampAbs__Fff(float,float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 // Helpers Sub, X, Y, Transform (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -744,7 +744,7 @@ extern "C" void UpdateHackbullet(P*bullet){
  float desired=atan2f(Y(displacement),X(displacement));
  qword direction=((qword(*)(void*))bullet->vt[33].fn)((char*)bullet+bullet->vt[33].delta);
  float current=atan2f(Y(direction),X(direction));
- float angle=GLimitAbs__Fff(RadNormalize__Ff(desired-current),bullet->turnRate*D_002DDED0.dt);
+ float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->turnRate*D_002DDED0.dt);
  rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
  ((void(*)(void*,qword))bullet->vt[35].fn)((char*)bullet+bullet->vt[35].delta,Transform(rotation,direction));
  // The original reads this local matrix before initialization.
@@ -887,7 +887,7 @@ qword GetLoWorldPos(void*);
 qword ConvertAloVec(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
 float atan2f(float,float);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 int IsWithinLimits__FP2LMf(LM*,float);
 void FindPathzonePathCurve(void*,qword,qword,void*);
 void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
@@ -953,7 +953,7 @@ extern "C" void UpdateHackenemy(P*enemy){
   qword target=GetLoWorldPos(enemy->target);
   qword delta=QwSub(target,GetLoWorldPos(enemy));
   float distance=Length(delta);
-  float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,enemy,delta)));
+  float heading=NormalizeAngle__Ff(Heading(ConvertAloVec(0,enemy,delta)));
   int accept;
   if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=IsWithinLimits__FP2LMf(&rule->stayDistance,distance);
   if(accept){
@@ -980,7 +980,7 @@ dispatch:
   FRAME*frame=enemy->node.frame;
   qword target=GetLoWorldPos(enemy->target);
   qword self=GetLoWorldPos(enemy);
-  float heading=RadNormalize__Ff(Heading(ConvertXfVec(0,frame->space,QwSub(target,self))));
+  float heading=NormalizeAngle__Ff(Heading(ConvertXfVec(0,frame->space,QwSub(target,self))));
   enemy->heading=Clamp(Evaluate(&enemy->simpleAngle,heading),&enemy->simpleClamp);
   break;
  }
@@ -1698,9 +1698,9 @@ float SMaxShape(int oid);
 qword GetLoWorldPos(void *p);
 void FindShapeClosestPoint(int oid, qword q, int a, int b, struct V *pv, int c, float *pg);
 void FindShapeClosestPointFromS(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
-float GRandInRange__Fff(float lo, float hi);
+float RandomFloatInRange__Fff(float lo, float hi);
 void UpdateHackwallPieces(struct S *p, struct E *pe);
-float GSmoothA__FffffP4SMPAPf(void *pv, float *pg, float a, float b, float c, float dt);
+float SmoothValueWithAccel__FffffP4SMPAPf(void *pv, float *pg, float a, float b, float c, float dt);
 void EvaluateShapeS(int oid, struct Q *q, void *pv, float g);
 void UpdateHackwallSegments(struct S *p, struct Q *q);
 // One step of constant-acceleration motion: updates velocity *pv by a*dt and position *px by the average velocity.
@@ -1731,14 +1731,14 @@ void UpdateHackwall(struct S *wall)
             float t;
             FindShapeClosestPoint(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS);
             t = D_002DDED0.t;
-            pe->retargetTime = t + GRandInRange__Fff(0.5f, 0.75f);
+            pe->retargetTime = t + RandomFloatInRange__Fff(0.5f, 0.75f);
         } else {
             FindShapeClosestPointFromS(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS, pe->closestS);
         }
         UpdateHackwallPieces(wall, pe);
         for (q = pe->pqFirst; q; q = q->next) {
             float a, b;
-            q->g3c = GSmoothA__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.dt);
+            q->g3c = SmoothValueWithAccel__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.dt);
             EvaluateShapeS(oid, q, q->x10, q->g3c);
             a = D_002BE898 * q->g50 + D_002BE89C * q->g58;
             b = D_002BE8A0 * q->g54 + D_002BE8A4 * q->g5c;
@@ -2061,7 +2061,7 @@ struct Q { qword pos; qword v10; char pad[0x4C - 0x20]; int n4C; char pad2[0x58 
 struct M { char pad[0x10]; int n10; char pad1[0x20 - 0x14]; qword v20; qword v30; char pad2[0x44 - 0x40]; int n44; };
 struct O { char pad[0x190]; void *p190; };
 extern struct Q *FindNearestHackwallSegment(struct O *po, qword pos);
-extern float GRandInRange__Fff(float a, float b);
+extern float RandomFloatInRange__Fff(float a, float b);
 extern void SetHackwallSegmentState(struct O *po, struct Q *pq, int n);
 extern void ExplodeExplParams(void *p, int k, int n, qword a, qword b, float g, float h);
 extern float D_002BE8A8;
@@ -2084,7 +2084,7 @@ int TakeHackwallDamage(struct O *po, struct M *pm)
             __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(pm->v30), "j"(c));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
             pq->g58 = g * D_002BE8A8;
-            pq->g5C = GRandInRange__Fff(-15.0f, 15.0f);
+            pq->g5C = RandomFloatInRange__Fff(-15.0f, 15.0f);
             SetHackwallSegmentState(po, pq, 1);
         } else {
             if (po->p190)

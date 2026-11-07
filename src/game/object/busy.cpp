@@ -47,7 +47,7 @@ void UnlinkSwBusyEntry(SWBUSY *p, void *pv);
 void MoveSwBusyEntryToEnd(SWBUSY *p, void *pv);
 void RemoveFromSwBusyList(SWBUSY *p, ITEM *entry);
 }
-int FFindDlEntry(DL *pdl, void *pv);                        /* FFindDlEntry__FP2DLPv */
+int IsEntryInDl(DL *pdl, void *pv);                        /* IsEntryInDl__FP2DLPv */
 void AppendDlEntry(DL *pdl, void *pv);                      /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);                      /* RemoveDlEntry__FP2DLPv */
 void InsertDlEntryBefore(DL *pdl, void *pvBefore, void *pv);  /* InsertDlEntryBefore__FP2DLPvT1 */
@@ -63,7 +63,7 @@ void InsertDlEntryBefore(DL *pdl, void *pvBefore, void *pv);  /* InsertDlEntryBe
 // Removes a root record from the world's busy list, moving the incremental-pass cursor past it first.
 extern "C" void RemoveFromSwBusyList(SWBUSY *world, ITEM *entry)
 {
-    if (FFindDlEntry(&world->busyList, entry)) {
+    if (IsEntryInDl(&world->busyList, entry)) {
         if (world->cursor == entry)
             world->cursor = entry->next;
         RemoveDlEntry(&world->busyList, entry);
@@ -214,7 +214,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *world)
             }
             break;
         }
-        if (isInZone != FFindDlEntry(&world->inZoneList, entry)) {
+        if (isInZone != IsEntryInDl(&world->inZoneList, entry)) {
             if (isInZone) {
                 AppendDlEntry(&world->inZoneList, entry);
                 ((void (*)(void *))object->vtable[23].pfn)((char *)object + object->vtable[23].d);
@@ -290,7 +290,7 @@ extern "C" void UpdateSoBusy(SWBUSY *world, SO *object)
         }
         break;
     }
-    if (isInZone == FFindDlEntry(&world->inZoneList, (void *)entry)) return;
+    if (isInZone == IsEntryInDl(&world->inZoneList, (void *)entry)) return;
     if (isInZone) {
         AppendDlEntry(&world->inZoneList, (void *)entry);
         ((void (*)(void *))object->vtable[23].pfn)((char *)object + object->vtable[23].d);

@@ -78,13 +78,13 @@ qword PosSmooth(qword,qword,float,SMPV*,U*);
 void SetJtAirJump(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
-void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
+void GetJtPipeDistanceRange(JTPIPE*,LMV*);float SmoothValue__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float ModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword GetLoWorldPos(void*);
 void AddJtPlaceOnCurve(void *pplaces, void *pso, float g);
 void SubscribeLoObject(PATH*,JT*);void UnsubscribeLoObject(PATH*,JT*);
 void LinkStepAttachment(JT*,PATH*,int);
-float GLimitLm__FP2LMf(LMV*,float);
+float ClampToLimits__FP2LMf(LMV*,float);
 void SetStepplayerTnOverride(JT*,void*);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 void SetJtCaneState__FP2JTi(JT*,int);void ReleaseSma(COMPONENT**);
@@ -390,8 +390,8 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
     pipe->reset = nextMemory;
     if (!path->cyclic) {
         GetJtPipeDistanceRange(pipe, &w.limit);
-        (void)GSmooth__FfffP3SMPPf(pipe->distance, w.limit.low, clock->dt, &w.reuse.smooth, &lowSpeed);
-        (void)GSmooth__FfffP3SMPPf(pipe->distance, w.limit.high, clock->dt, &w.reuse.smooth, &highSpeed);
+        (void)SmoothValue__FfffP3SMPPf(pipe->distance, w.limit.low, clock->dt, &w.reuse.smooth, &lowSpeed);
+        (void)SmoothValue__FfffP3SMPPf(pipe->distance, w.limit.high, clock->dt, &w.reuse.smooth, &highSpeed);
         float low = -highSpeed, high = -lowSpeed;
         if (speed < low)
             speed = low;
@@ -405,7 +405,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
         InvalidateSoAaox(pipe->actor);
     }
     if (pipe->path->cyclic)
-        pipe->distance = GModPositive__Fff(pipe->distance, SMaxShape(pipe->path));
+        pipe->distance = ModPositive__Fff(pipe->distance, SMaxShape(pipe->path));
     register float magnitude __asm__("$f2") = fabsf(speed);
     if (magnitude < 0.01f)
         mode = 1;
@@ -596,7 +596,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         qword direction = DirectionB(&w.ahead, &w.behind, axis);
         pipe->descending = Z(NormalB(direction, axis)) < -0.5f;
         GetJtPipeDistanceRange(pipe, &w.limit);
-        pipe->distance = GLimitLm__FP2LMf(&w.limit, pipe->distance);
+        pipe->distance = ClampToLimits__FP2LMf(&w.limit, pipe->distance);
         EvaluateShapeS(pipe->path, pipe->distance, &w.point, 0);
         qword offset = Vector(ConvertAloPos(pipe->actor, 0, pipe->offset.q));
         JT *owner;

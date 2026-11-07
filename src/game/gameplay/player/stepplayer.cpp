@@ -1148,7 +1148,7 @@ extern struct { float lo, hi; } D_002BBB60;
 extern qword D_002A2DD0;
 void GetSoCpdefi(struct JT *, struct XP *);
 qword GetLoWorldPos(void *);
-float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 qword PosSmooth(qword a, qword b, float dt, void *pv, int n);
 void AddJtAirCpdefiFlags(void *, struct XP *);
 void SmoothJtCameraCurveTarget(void *, struct XP *);
@@ -1206,7 +1206,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
             xp->pos.f[2] = g;
         } else {
             void *pv = jt->x434 ? D_002BCCC8 : D_002BCCB8;
-            xp->pos.f[2] = GSmooth__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.dt, pv, 0);
+            xp->pos.f[2] = SmoothValue__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.dt, pv, 0);
             xp->pos.f[2] = GClamp(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
         }
         xp->pos.f[0] = v.f[0];
@@ -1951,7 +1951,7 @@ extern struct P *D_002E1E40;
 extern float D_002BD268, D_002BD26C;
 extern char D_002BD270[];
 void RefreshSoBoundsRecord(struct P *p);
-float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 void RenderSoGlobset(void *p, int n, int m, float a, float b);
 /** @sly2-annot addr=0x1425B0
  * Purpose: vt19: if visible (grfvis & (*(int *)&g_cm.grfvis)) render via 0x1F3C10; smooth two scale factors
@@ -1975,8 +1975,8 @@ void RenderStepplayerSelf(struct P *player)
         g1 = 1.0f;
         g0 = g1;
     }
-    player->g10D4 = GSmooth__FfffP3SMPPf(player->g10D4, g0, D_002DDED0.dt, D_002BD270, 0);
-    player->g10D8 = GSmooth__FfffP3SMPPf(player->g10D8, g1, D_002DDED0.dt, D_002BD270, 0);
+    player->g10D4 = SmoothValue__FfffP3SMPPf(player->g10D4, g0, D_002DDED0.dt, D_002BD270, 0);
+    player->g10D8 = SmoothValue__FfffP3SMPPf(player->g10D8, g1, D_002DDED0.dt, D_002BD270, 0);
     if (player == D_002E1E40) {
         player->py0->g = player->g10D4;
         player->py1->g = player->g10D4;
@@ -2110,10 +2110,10 @@ void InitIdleTimer(struct S *p, int a)
 
 namespace M_func_00142880 { extern "C" {
 extern struct CLOCK D_002DDED0;
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 struct X { char pad[0x1138]; float a0, b0, a1, b1; int f; float tNext; };
 /** @sly2-annot addr=0x142880
- * Purpose: tNext = now + GRandInRange(min,max) choosing range set by flag
+ * Purpose: tNext = now + RandomFloatInRange(min,max) choosing range set by flag
  * Info: proposed name ScheduleIdleTimer (T2); TU stepplayer
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
@@ -2124,11 +2124,11 @@ void ScheduleIdleTimer(struct X *p)
     float t;
     if (p->f) {
         t = D_002DDED0.t;
-        t += GRandInRange__Fff(p->a0, p->b0);
+        t += RandomFloatInRange__Fff(p->a0, p->b0);
         p->tNext = t;
     } else {
         t = D_002DDED0.t;
-        t += GRandInRange__Fff(p->a1, p->b1);
+        t += RandomFloatInRange__Fff(p->a1, p->b1);
         p->tNext = t;
     }
 }

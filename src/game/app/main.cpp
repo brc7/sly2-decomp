@@ -40,10 +40,10 @@ void UpdateCd();
 void SetupCm(CM *pcm);
 void OpenFrame();
 void CloseFrame();
-int FValidCdMmode();
+int IsPs2DvdInDrive();
 void SetCdMmode();
 void CdPath(char *pchzDst, char *pchzSrc, int f);
-int FCdCompleted(int f);
+int IsCdCommandComplete(int f);
 void SetPhase(PHASE phase);
 void StartupGs();
 
@@ -139,7 +139,7 @@ void StartupSif()
     func_00236A60(0);
     sceSifLoadFileReset();
     sceCdInit(0);
-    if (!FValidCdMmode())
+    if (!IsPs2DvdInDrive())
         while (1)
             ;
     SetCdMmode();
@@ -153,14 +153,14 @@ void StartupSif()
         func_00236A60(0);
         sceSifLoadFileReset();
         sceCdInit(0);
-        if (!FValidCdMmode())
+        if (!IsPs2DvdInDrive())
             while (1)
                 ;
         SetCdMmode();
         sceFsReset();
     }
     sceCdDiskReady_2425F0(0);
-    (void)FCdCompleted(1);
+    (void)IsCdCommandComplete(1);
     sceSifInitIopHeap();
     maxModuleSize = 0;
     {

@@ -105,7 +105,7 @@ void FramePtr_Assign(ASEG *px, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame"
 void RecalculateAsegBlend(ASEG *px);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *elements, int n, int *pa, int *pb, ASEG **ppx);
 float GetAsegLabelTime(ASEG *paseg, OID oid);
-float GModPositive__Fff(float, float);
+float ModPositive__Fff(float, float);
 int IsActCurrent(CHNE *);
 void SetAsegblDominantBl(ASEG *p, int n);
 void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *syncTable, float *pf);
@@ -331,7 +331,7 @@ extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *blend, int tableOffse
                 }
             }
         }
-        syncTable[0].t = GModPositive__Fff(gAvg, 1.0f) * sum;
+        syncTable[0].t = ModPositive__Fff(gAvg, 1.0f) * sum;
     }
     for (i = 1; i < count; i++) {
         float g = syncTable[i - 1].t + syncTable[i - 1].dt;

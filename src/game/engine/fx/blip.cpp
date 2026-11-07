@@ -213,10 +213,10 @@ void AppendDlEntry(DLV *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");       
 void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");                          /* RemoveDlEntry__FP2DLPv */
 void InitDl(DLV *pdl, int ibDle) __asm__("InitDl__FP2DLi");                                /* InitDl__FP2DLi */
 int IsDlEmpty(DLV *pdl) __asm__("IsDlEmpty__FP2DL");                                        /* IsDlEmpty__FP2DL */
-int CPvDl(DLV *pdl) __asm__("CPvDl__FP2DL");                                             /* CPvDl__FP2DL */
+int CountDlEntries(DLV *pdl) __asm__("CountDlEntries__FP2DL");                                             /* CountDlEntries__FP2DL */
 int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");                /* FIsBasicDerivedFrom__FP5BASIC3CID */
-int FFloatsNear(float a, float b, float eps);                   /* FFloatsNear__Ffff */
-float RadNormalize(float g);                                    /* RadNormalize__Ff */
+int AreFloatsNear(float a, float b, float eps);                   /* AreFloatsNear__Ffff */
+float NormalizeAngle(float g);                                    /* NormalizeAngle__Ff */
 void PrescaleClq(CLQ *pclq, float g, float h, CLQ *pclqDst);    /* PrescaleClq__FP3CLQffT0 */
 void SetEmitdvEmitb(EMITDV *pemitdv, EMITBV *pemitb) __asm__("SetEmitdvEmitb__FP6EMITDVP5EMITB");            /* SetEmitdvEmitb__FP6EMITDVP5EMITB */
 void LoadSprBuf(int cb, ...);                                   /* LoadSprBuf__Fie */
@@ -381,8 +381,8 @@ static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ int FVecsNear(qwordV a, qwordV b)
 {
-    return FFloatsNear(GetX(a), GetX(b), 1e-4f) && FFloatsNear(GetY(a), GetY(b), 1e-4f) &&
-           FFloatsNear(GetZ(a), GetZ(b), 1e-4f);
+    return AreFloatsNear(GetX(a), GetX(b), 1e-4f) && AreFloatsNear(GetY(a), GetY(b), 1e-4f) &&
+           AreFloatsNear(GetZ(a), GetZ(b), 1e-4f);
 }
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 static __inline__ void InitS(float g, S150 *ps) { register float r asm("$f1") = 1.0f; /* register pin (Claude agent): f0/f1 tie */ ps->unknown0 = 0; ps->unknown8 = 0; ps->inverseLifetime = r / g; }
@@ -495,7 +495,7 @@ static __inline__ void MoveExtra(qwordV *pc, int i, int j, int k, qwordV dt)
     pc[j] = pc[i];
     if (k == 2) {
         float g = FloatFromQw(dt);
-        ((VEC *)&pc[j])->v.w = RadNormalize(((VEC *)&pc[i])->v.w + ((VEC *)&pc[i])->v.z * g);
+        ((VEC *)&pc[j])->v.w = NormalizeAngle(((VEC *)&pc[i])->v.w + ((VEC *)&pc[i])->v.z * g);
     }
 }
 static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k,
@@ -646,7 +646,7 @@ struct VU_FLOATT { qwordV q; VU_FLOATT(float f) { __asm__("qmtc2.ni %1, %0" : "=
 // ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->motionKind != 0 or D_002BC9C0 is set). For every particle
 // batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
 // velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; renderKind == 2 updates c.w through
-// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->boundsCenter = centre, p->boundsRadius = radius + p->maxSize (or calls
+// NormalizeAngle. It accumulates the bounding box in vMin/vMax and sets p->boundsCenter = centre, p->boundsRadius = radius + p->maxSize (or calls
 // virtual slot 9 when p->numLiveParticles drops to 0).
 // MATCH (Claude agent for Lilly, T1677, 2026-10-25): lilly5 (T1673) + the T1675 ProjectBlipgTransformAccel prologue fix: VECTOR is a
 // struct with an anonymous union, so store_constructor emits a sched1-only CLOBBER after the clear, which gives both pool
@@ -736,7 +736,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
             CB(pcd)[0].v.w = CB(pcs)[0].v.w;
             *pcd = *pcs;
             if (blipGroup->renderKind == 2)
-                pcd->v.w = RadNormalize(pcs->v.w + pcs->v.z * pclock->dt);
+                pcd->v.w = NormalizeAngle(pcs->v.w + pcs->v.z * pclock->dt);
             *(qwordV *)&vMin = Min(*(qwordV *)&vMin, CA(pcd)[0].q);
             *(qwordV *)&vMax = Max(*(qwordV *)&vMax, CA(pcd)[0].q);
             }
@@ -823,7 +823,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
     LIGHTM *aLight;
     if (blipGroup->plo != 0 && IsDlEmpty((DLV *)&blipGroup->plo->groupList) == 0) {
         cLight = 0;
-        aLight = (LIGHTM *)PvAllocStack(CPvDl((DLV *)&blipGroup->plo->groupList) << 6);
+        aLight = (LIGHTM *)PvAllocStack(CountDlEntries((DLV *)&blipGroup->plo->groupList) << 6);
         LIGHTM *pl = aLight;
         LOV *plo = blipGroup->plo->groupList;
         M3 *pmId;

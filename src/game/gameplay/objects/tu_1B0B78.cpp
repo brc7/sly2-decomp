@@ -116,7 +116,7 @@ void UpdateSoXfWorld(CID96V *p);
 void SetXfRole(CID96V *, XFV *, int);
 void WakeXfOwner(CID96V *, XFV *);
 void ResetXfValueRef(CID96V *, XFV *);
-float GRandInRange__Fff(float, float);
+float RandomFloatInRange__Fff(float, float);
 void GetVectorSphere(qwordV, float *, float *, float *);
 qwordV GetLoWorldPos(void *p);
 void FindShapeClosestPoint(SHAPE *, qwordV, void *, U *, U *, float *, float *);
@@ -149,7 +149,7 @@ ASEG *FindCritterLinkObject(CID96V *p, OID oid);
 void ResolveCritterLinks(CID96V *p);
 }
 void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA */
-float RadNormalize(float r);                                                                  /* RadNormalize__Ff */
+float NormalizeAngle(float r);                                                                  /* NormalizeAngle__Ff */
 LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
 
@@ -463,14 +463,14 @@ void SetCritterState(CID96V *critter, int next)
         ResetXfValueRef(critter, critter->rotationXf);
         {
             float now = D_002DDED0.t;
-            critter->nextStateTime = now + GRandInRange__Fff(critter->idleWaitMin, critter->idleWaitMax);
+            critter->nextStateTime = now + RandomFloatInRange__Fff(critter->idleWaitMin, critter->idleWaitMax);
         }
         break;
     case CRITTER_WALK:
         SetMode(critter);
         {
             float now = D_002DDED0.t;
-            critter->nextStateTime = now + GRandInRange__Fff(critter->walkWaitMin, critter->walkWaitMax);
+            critter->nextStateTime = now + RandomFloatInRange__Fff(critter->walkWaitMin, critter->walkWaitMax);
         }
         break;
     case CRITTER_TURN: {
@@ -576,7 +576,7 @@ int IsCritterFacingHeading(CID96V *critter)
 {
     float *a = ((float *(*)(void *))critter->pvt[31].pfn)((char *)critter + critter->pvt[31].d);
     float *b = ((float *(*)(void *))critter->pvt[31].pfn)((char *)critter + critter->pvt[31].d);
-    float error = RadNormalize(critter->heading - atan2f(a[1], b[0]));
+    float error = NormalizeAngle(critter->heading - atan2f(a[1], b[0]));
     if (__builtin_fabsf(error) < 0.017453294f)   /* 1 degree */
         return 1;
     return 0;

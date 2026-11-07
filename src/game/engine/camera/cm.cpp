@@ -105,9 +105,9 @@ extern char D_002BD810[];
 void ResetCmAdjust(struct CM *p, void *pv);
 void AdjustCmCpdefi(struct CM *p, struct O *po, void *pv);
 void SetCmFov__FP2CMf(struct CM *p, float g);
-float GSmoothA__FffffP4SMPAPf(float g, float h, float i, float dt, float *pa, float *pb);
+float SmoothValueWithAccel__FffffP4SMPAPf(float g, float h, float i, float dt, float *pa, float *pb);
 void RecalcCmFrustrum__FP2CM(struct CM *p);
-float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 // Per-frame camera update: runs the top policy of the stack (vtable slot 6 Update, with the focus object's CPDEFI
 // from its vtable slot 50 and the current joypad), again whenever the update replaced the top policy; then the fov:
 // snapped on a cut, else smoothed toward the target; clears the cut and, in stereo mode, smooths the eye offset.
@@ -150,12 +150,12 @@ void UpdateCmLast__FP2CM(struct CM *cm)
     if (cm->cutCount) {
         SetCmFov__FP2CMf(cm, cm->targetFov);
     } else if (cm->targetFov != cm->fov) {
-        cm->fov = GSmoothA__FffffP4SMPAPf(cm->fov, cm->fovSpeed, cm->targetFov, D_002DDED0.dt, &cm->fovSmoothing, &cm->fovSpeed);
+        cm->fov = SmoothValueWithAccel__FffffP4SMPAPf(cm->fov, cm->fovSpeed, cm->targetFov, D_002DDED0.dt, &cm->fovSmoothing, &cm->fovSpeed);
         RecalcCmFrustrum__FP2CM(cm);
     }
     cm->cutCount = 0;
     if (D_003DD490.unknown3E38)   /* stereo mode (draw.cpp) */
-        cm->stereoEyeOffset = GSmooth__FfffP3SMPPf(cm->stereoEyeOffset, cm->stereoFocusDistance, g_clock.cameraDeltaTime, D_002BD810, 0);
+        cm->stereoEyeOffset = SmoothValue__FfffP3SMPPf(cm->stereoEyeOffset, cm->stereoFocusDistance, g_clock.cameraDeltaTime, D_002BD810, 0);
 }
 } } // namespace M_UpdateCmLast__FP2CM
 
@@ -1137,7 +1137,7 @@ struct P { char pad[0x48]; float nearCorner; };
 extern float D_002BD8D8;
 extern char D_002BD8E0[];
 void *InitVuTemp(void *p);
-void GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
+void SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 static __inline__ float GDistPlane(qword plane, qword pos)
 {
     U d, one;
@@ -1163,13 +1163,13 @@ static __inline__ float GDot(const qword *pa, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
-// Constraint for SquishCmEye: GSmooth(dist-to-plane, sNearCorner(+0x48) - k) ; return dot(vEye, normal) - smoothed.
+// Constraint for SquishCmEye: SmoothValue(dist-to-plane, sNearCorner(+0x48) - k) ; return dot(vEye, normal) - smoothed.
 float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
 {
     float r;
     qword plane = pl->plane;
     qword pos = pl->pos;
-    GSmooth__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.cameraDeltaTime, D_002BD8E0, &r);
+    SmoothValue__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.cameraDeltaTime, D_002BD8E0, &r);
     return GDot(&vIn, pl->plane) - r;
 }
 } } // namespace M_SvSquishCmEyeConstraint

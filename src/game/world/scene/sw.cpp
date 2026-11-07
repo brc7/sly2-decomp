@@ -1131,7 +1131,7 @@ extern char D_002BBB60[];
 struct S { char pad[0x3D5C]; int illumChangeCount; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float midtone; float shadow; V3 rgb; float shadowScale; int isShadowLimited; };
 void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
 void ColorCorrectVector(UV *pv);
-float GLimitLm__FP2LMf(void *p, float g);
+float ClampToLimits__FP2LMf(void *p, float g);
 /** @sly2-annot addr=0x20F1C8
  * Purpose: Recompute ambient light colour from HSV (+0x3E10) scaled by midtone (+0x3E20/255) and shadow level
  *   (+0x3E24/255); bump illum change counter
@@ -1164,7 +1164,7 @@ void UpdateSwIllum(struct S *world)
     world->rgb = out.v;
     world->shadowScale = world->shadow * k;
     if (world->isShadowLimited)
-        world->shadowScale = GLimitLm__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
+        world->shadowScale = ClampToLimits__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
     world->illumChangeCount++;
 }
 } } // namespace M_UpdateSwIllum
@@ -1449,7 +1449,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
 int FWidgetVisible(struct O *po);
-float GSmoothA__FffffP4SMPAPf(float a, float b, float c, void *p, float *pv, float dt);
+float SmoothValueWithAccel__FffffP4SMPAPf(float a, float b, float c, void *p, float *pv, float dt);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, void *source);
 
@@ -1482,7 +1482,7 @@ void UpdateSwTimerHud(struct S *world)
             e->velocity = 0.0f;
             e->isHidden = 0;
         } else {
-            o->anim->value = GSmoothA__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.dt);
+            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.dt);
         }
         t += D_002C3E80;
         if (i == 3) {

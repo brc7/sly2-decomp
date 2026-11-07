@@ -97,7 +97,7 @@ void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *
 qword SolveMeshConstraints(void *unused, LIST *p, qword v);
 }
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);
-float GSmooth(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNext) __asm__("GSmooth__FfffP3SMPPf");   /* SMPV: this file's view of SMP */
+float SmoothValue(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");   /* SMPV: this file's view of SMP */
 void AppendDlEntry(DLV *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 
@@ -304,7 +304,7 @@ static inline void ClosestPoint(const qword &point, const qword &start, const qw
 }
 static inline void Evaluate(const float &r, const float &d, const float &dt, SMPV *params, float *out)
 {
-    GSmooth(r, d, dt, params, out);
+    SmoothValue(r, d, dt, params, out);
 }
 static inline void BuildPlane(qword *plane, const qword &normal, const float &g)
 {

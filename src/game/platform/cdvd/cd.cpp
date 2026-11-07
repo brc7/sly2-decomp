@@ -3,7 +3,7 @@
 // UpdateCd runs every frame: when the sound manager is up and the tray no longer reports a PS2 DVD, it pauses the
 // game's disc users and polls by reading one known sector and comparing its CRC-32 until the right disc is back.
 // Entry points: StartupCd, UpdateCd, CdPath (host path -> "cdrom0:\PATH\FILE.EXT;1"), ReadCdDirect,
-// FCdCompleted, FValidCdMmode / SetCdMmode.
+// IsCdCommandComplete, IsPs2DvdInDrive / SetCdMmode.
 // TU 0x14B7F8..0x14BEA8 (10 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cd
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014BE88
@@ -43,8 +43,8 @@ void ShowScreen52D(void *p);
 int IsScreen52DShown(void *p);
 void HideScreen52D(void *p);
 }
-int FValidCdMmode();
-int FCdCompleted(int wait);
+int IsPs2DvdInDrive();
+int IsCdCommandComplete(int wait);
 
 /** @sly2-annot addr=0x14B7F8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -122,13 +122,13 @@ SLY2_SCRAP("addiu $2, $2, 0xb8");
 
 /** @sly2-annot addr=0x14B9C0
  * Purpose: sceCdGetDiskType cached into global, returns ==0x14 (PS2DVD); identical to Sly1 decomp source
- * Info: proposed name FValidCdMmode (T1); TU cd
+ * Info: proposed name IsPs2DvdInDrive (T1); TU cd
  * Confidence: high [T1 1.00] - evidence: static naming pass; sources: names_v2:A+verdicts_A1
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
 // Returns whether the drive holds a PS2 DVD (disk type 0x14), caching the last disk type seen in D_002BD4C4.
-int FValidCdMmode()
+int IsPs2DvdInDrive()
 {
     int diskType = sceCdGetDiskType();
     if (D_002BD4C4 != diskType) {
@@ -190,7 +190,7 @@ void UpdateCd(void)
     int pollState = D_002BD4C0;
     switch (pollState) {
     case 3:
-        if (D_003DD0E4 && !FValidCdMmode()) {
+        if (D_003DD0E4 && !IsPs2DvdInDrive()) {
             ShowScreen52D(D_003DA4F0);
             D_002BD4C0 = 1;
         }
@@ -199,12 +199,12 @@ void UpdateCd(void)
         if (IsScreen52DShown(D_003DA4F0)) {
             int sector = D_002A2E5C;
             sector += 0xCA0;
-            if (FValidCdMmode() && sceCdRead(sector, 1, D_002DD680, (void *)D_002A2E50) == pollState)
+            if (IsPs2DvdInDrive() && sceCdRead(sector, 1, D_002DD680, (void *)D_002A2E50) == pollState)
                 D_002BD4C0 = 2;
         }
         break;
     case 2:
-        if (FCdCompleted(0)) {
+        if (IsCdCommandComplete(0)) {
             if (UCrc(D_002DD680, 0x800) != D_002A2E60) {
                 D_002BD4C0 = 1;
             } else {
@@ -285,7 +285,7 @@ extern "C" void ReadCdDirect(unsigned int sector, unsigned int sectorCount, void
  * See: docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
 // Returns whether the pending CD command has completed (wait != 0 blocks until it has).
-int FCdCompleted(int wait)
+int IsCdCommandComplete(int wait)
 {
     return sceCdSync(wait == 0) == 0;
 }

@@ -1463,7 +1463,7 @@ struct H { struct LO *plo; };
 struct S { char pad[0x14]; struct H *root; char pad2[0xE8 - 0x18]; void *firstSpare; };
 struct SL;
 void ReleasePspare__FP5PROXYP10PROXYSPARE(struct S *p, void *q);
-int FFindDlEntry__FP2DLPv(struct SL *pl, void *pv);
+int IsEntryInDl__FP2DLPv(struct SL *pl, void *pv);
 void RemoveDlEntry__FP2DLPv(struct SL *pl, void *pv);
 /** @sly2-annot addr=0x1CB6D8
  * Purpose: PROXY vt24: release all held spares; unregister from SW list (*(struct SL *)&g_sw.dlBusy) and Freeze
@@ -1478,7 +1478,7 @@ void PROXY_ReleaseSpares(struct S *proxy)
 {
     struct LO *plo;
     while (proxy->firstSpare) ReleasePspare__FP5PROXYP10PROXYSPARE(proxy, proxy->firstSpare);
-    if (FFindDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->root)) {
+    if (IsEntryInDl__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->root)) {
         plo = proxy->root->plo;
         ((void (*)(void *))plo->vt[22].pf)((char *)plo + plo->vt[22].d);
         RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->root);

@@ -118,7 +118,7 @@ void SetLoParent(void *p, int n, int m);
 void AppendSlEntry(SL *psl, void *pv);
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 float atan2f(float y, float x);
-float RadNormalize__Ff(float g);
+float NormalizeAngle__Ff(float g);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pv, float *pa, float *pb);
 EMB *AllocCopyFromWorldHeap(MSG *, EMB *);
 void *AllocClearedFromWorldHeap(MSG *pmsg);
@@ -480,7 +480,7 @@ void ConvertPoctlStick(POCTLV *poctl, float cameraAngle, float *dxInOut, float *
         *dxInOut = *lengthOut * cosine;
         *dyInOut = *lengthOut * sine;
     } else {
-        *angleInOut = RadNormalize__Ff(atan2f(*dyInOut, *dxInOut) + cameraAngle - 1.5707964f);
+        *angleInOut = NormalizeAngle__Ff(atan2f(*dyInOut, *dxInOut) + cameraAngle - 1.5707964f);
         *holdRadiusInOut = *lengthOut;
     }
 }

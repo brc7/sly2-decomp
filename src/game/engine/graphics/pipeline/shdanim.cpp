@@ -74,11 +74,11 @@ void PrependSlEntry(SLV *psl, void *pv);
 int IsSlEmpty(SLV *psl);
 void UnpackHelper__4VIFS3UPKiiPiPPUi(void *a, int b, int c, void *d, SAIE *pe, int *pb);
 void ApplyCopyRecord(SAIE *pe);
-float GRandInRange__Fff(float gLow, float gHigh);
-float GModPositive__Fff(float g, float gMod);
-int NRandInRange__Fii(int nLow, int nHigh);
+float RandomFloatInRange__Fff(float gLow, float gHigh);
+float ModPositive__Fff(float g, float gMod);
+int RandomIntInRange__Fii(int nLow, int nHigh);
 float fmodf(float x, float y);
-float RadNormalize__Ff(float rad);
+float NormalizeAngle__Ff(float rad);
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);
 
 void func_001ED8E0(SAAV *p, SAAF *psaaf);
@@ -218,8 +218,8 @@ void LOOP::VSlot7(SAAF *psaa)
     { float a = psaa->lm1.min; float b = psaa->lm1.max; p->loopTimeRange.min = a; plm1->max = b; }
     { float a = psaa->lm2.min; float b = psaa->lm2.max; p->pauseTimeRange.min = a; plm2->max = b; }
     p->frame = psaa->cLoop;
-    p->frameRate = p->numFrames / GRandInRange__Fff(p->loopTimeRange.min, plm1->max);
-    g = GRandInRange__Fff(p->pauseTimeRange.min, plm2->max);
+    p->frameRate = p->numFrames / RandomFloatInRange__Fff(p->loopTimeRange.min, plm1->max);
+    g = RandomFloatInRange__Fff(p->pauseTimeRange.min, plm2->max);
     p->pauseRemaining = p->pauseTime = g;
 }
 
@@ -241,13 +241,13 @@ void UpdateLoop(LOOPV *ploop, float dt)
     ploop->frame += ploop->frameRate * D_002DDED0.dt;
     if (ploop->frame >= (float)ploop->numFrames)
     {
-        float rand1 = GRandInRange__Fff(ploop->loopTimeRange.min, ploop->loopTimeRange.max);
+        float rand1 = RandomFloatInRange__Fff(ploop->loopTimeRange.min, ploop->loopTimeRange.max);
         ploop->frameRate = (float)ploop->numFrames / rand1;
-        float rand2 = GRandInRange__Fff(ploop->pauseTimeRange.min, ploop->pauseTimeRange.max);
+        float rand2 = RandomFloatInRange__Fff(ploop->pauseTimeRange.min, ploop->pauseTimeRange.max);
         ploop->pauseTime = rand2;
         ploop->pauseRemaining = rand2;
     }
-    ploop->frame = GModPositive__Fff(ploop->frame, (float)ploop->numFrames);
+    ploop->frame = ModPositive__Fff(ploop->frame, (float)ploop->numFrames);
     SetSaiIframe(ploop, (int)ploop->frame);
 }
 
@@ -270,8 +270,8 @@ void PINGPONG::VSlot7(SAAF *psaa)
     { float a = psaa->lm1.min; float b = psaa->lm1.max; p->loopTimeRange.min = a; plm1->max = b; }
     { float a = psaa->lm2.min; float b = psaa->lm2.max; p->pauseTimeRange.min = a; plm2->max = b; }
     p->frame = psaa->cLoop;
-    p->frameRate = (p->numFrames * 2) / GRandInRange__Fff(p->loopTimeRange.min, plm1->max);
-    g = GRandInRange__Fff(p->pauseTimeRange.min, plm2->max);
+    p->frameRate = (p->numFrames * 2) / RandomFloatInRange__Fff(p->loopTimeRange.min, plm1->max);
+    g = RandomFloatInRange__Fff(p->pauseTimeRange.min, plm2->max);
     p->pauseRemaining = p->pauseTime = g;
 }
 
@@ -297,9 +297,9 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
     if (ppingpong->frame < 0.0f)
     {
         ppingpong->frame = 0.0f;
-        float rand1 = GRandInRange__Fff(ppingpong->loopTimeRange.min, ppingpong->loopTimeRange.max);
+        float rand1 = RandomFloatInRange__Fff(ppingpong->loopTimeRange.min, ppingpong->loopTimeRange.max);
         ppingpong->frameRate = (float)(ppingpong->numFrames * 2) / rand1;
-        float rand2 = GRandInRange__Fff(ppingpong->pauseTimeRange.min, ppingpong->pauseTimeRange.max);
+        float rand2 = RandomFloatInRange__Fff(ppingpong->pauseTimeRange.min, ppingpong->pauseTimeRange.max);
         ppingpong->pauseTime = rand2;
         ppingpong->pauseRemaining = rand2;
     }
@@ -348,10 +348,10 @@ void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
         pshuffle->pauseTime -= D_002DDED0.dt;
         return;
     }
-    int randFrame = NRandInRange__Fii(1, pshuffle->numFrames - 1);
+    int randFrame = RandomIntInRange__Fii(1, pshuffle->numFrames - 1);
     int newIframe = (pshuffle->frame + randFrame) % pshuffle->numFrames;
     SetSaiIframe(pshuffle, newIframe);
-    pshuffle->pauseTime = GRandInRange__Fff(pshuffle->pauseMin, pshuffle->pauseMax);
+    pshuffle->pauseTime = RandomFloatInRange__Fff(pshuffle->pauseMin, pshuffle->pauseMax);
 }
 
 // EYES vt7 Init. (inferred)
@@ -377,10 +377,10 @@ void SetEyesEyess(EYESV *peyes, EYESS eyess)
     case EYESS_Open:
         peyes->frameRate = (peyes->numFrames * 2) * (1.0f - peyes->openFraction) / peyes->blinkTime;
         peyes->frame = (peyes->numFrames - 1) * peyes->openFraction;
-        if (GRandInRange__Fff(0.0f, 1.0f) < peyes->doubleBlinkChance)
+        if (RandomFloatInRange__Fff(0.0f, 1.0f) < peyes->doubleBlinkChance)
             peyes->openTime = 0.0f;
         else
-            peyes->openTime = GRandInRange__Fff(peyes->openTimeMin, peyes->openTimeMax);
+            peyes->openTime = RandomFloatInRange__Fff(peyes->openTimeMin, peyes->openTimeMax);
         break;
     case EYESS_Closing:
         break;
@@ -517,7 +517,7 @@ void UpdateCircler(CIRCLERV *pcircler, float dt)
 {
     if (IsSlEmpty(&pcircler->instances))
         return;
-    float angle = RadNormalize__Ff(D_002DDED0.t * pcircler->angularSpeed);
+    float angle = NormalizeAngle__Ff(D_002DDED0.t * pcircler->angularSpeed);
     float sinOut;
     float cosOut;
     CalculateSinCos__FfPfT1(angle, &sinOut, &cosOut);
@@ -531,7 +531,7 @@ float UCompleteCircler(CIRCLERV *pcircler) __asm__("GetCirclerCompletion__FP7CIR
 float UCompleteCircler(CIRCLERV *pcircler)
 {
     float angle = D_002DDED0.t * pcircler->angularSpeed;
-    return GModPositive__Fff(angle, 6.28318530718f) * 0.159154943092f;
+    return ModPositive__Fff(angle, 6.28318530718f) * 0.159154943092f;
 }
 
 // For every dirty SAA in g_sw.slSaa apply its copy records and clear dirty. (inferred)

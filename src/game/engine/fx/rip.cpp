@@ -1819,7 +1819,7 @@ extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
 extern "C" {
 O *PripNewRipg(void*,void*,void*);
 qword TransformXfPos(void*,LO*,qword);
-float GRandInRange__Fff(float,float);
+float RandomFloatInRange__Fff(float,float);
 void GetNormalVectors(qword,qword,qword,qword*);
 M3 LoadRotateMatrixEuler(qword);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
@@ -1878,7 +1878,7 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
             U local;
             local.q = TransformXfPos(0, space, position);
             float size = Polynomial(&p->size, (D_002DDED0.t - p->start) / p->duration);
-            size *= GRandInRange__Fff(0.8f, 1.4f);
+            size *= RandomFloatInRange__Fff(0.8f, 1.4f);
             object->vt[1].fn((char *)object + object->vt[1].delta, local.q, 0, size);
             object->visual = visual;
             object->duration = 5.0f;
@@ -1890,7 +1890,7 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
             U angles;
             angles.f[1] = zero;
             angles.f[0] = zero;
-            angles.f[2] = GRandInRange__Fff(zero, 6.28318548f);
+            angles.f[2] = RandomFloatInRange__Fff(zero, 6.28318548f);
             M3 rotation;
             rotation = LoadRotateMatrixEuler(angles.q);
             {
@@ -1981,7 +1981,7 @@ extern "C" {
 extern LM D_002C1F78;
 extern float D_002C1F80[3];
 extern LM D_002BBB60;
-float GRandInRange__Fff(float gMin, float gMax);
+float RandomFloatInRange__Fff(float gMin, float gMax);
 void PostRipEmit(SHRAPNEL *psh, EMITBV *pemitb);
 }
 static inline float GClamp(float g, float lo, float hi)
@@ -2026,7 +2026,7 @@ extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemi
     float len, g;
     int i;
     PostRipEmit(psh, pemitb);
-    float gain = GRandInRange__Fff(D_002C1F78.gMin, D_002C1F78.gMax);
+    float gain = RandomFloatInRange__Fff(D_002C1F78.gMin, D_002C1F78.gMax);
     float life = psh->duration * gain;
     qword lengthValue = VLen(psh->v);
     char *page;
@@ -2035,7 +2035,7 @@ extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemi
     CopyDirection(psh, pemitb);
     g = GClamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->gMax) * 10.0f;
     for (i = 0; i < 3; i++)
-        psh->ag[i] = GRandInRange__Fff(-g, g);
+        psh->ag[i] = RandomFloatInRange__Fff(-g, g);
 }
 
 #define OFF(t,m) ((unsigned)&((t*)0)->m)
@@ -2519,7 +2519,7 @@ extern float D_002C2000;
 extern qword D_002BBB50;
 void InitRip(OBJ *, qword);
 qword ConvertCmWorldToScreen(void *, qword);
-float GRandInRange__Fff(float, float);
+float RandomFloatInRange__Fff(float, float);
 // SMACK (RIPT 9) Init: base init, its position converted to screen space, a random velocity between the
 // definition's bounds, fixed duration, default alpha and the definition's scale curve.
 void InitSmack(OBJ *object, qword q)
@@ -2529,10 +2529,10 @@ void InitSmack(OBJ *object, qword q)
     InitRip(object, q);
     d = object->def;
     object->screenPos = ConvertCmWorldToScreen(D_002DDF40, q);
-    x = GRandInRange__Fff(d->spinMin[0], d->spinMax[0]);
-    y = GRandInRange__Fff(d->spinMin[1], d->spinMax[1]);
+    x = RandomFloatInRange__Fff(d->spinMin[0], d->spinMax[0]);
+    y = RandomFloatInRange__Fff(d->spinMin[1], d->spinMax[1]);
     {
-        float z = GRandInRange__Fff(d->spinMin[2], d->spinMax[2]);
+        float z = RandomFloatInRange__Fff(d->spinMin[2], d->spinMax[2]);
         V3 *v = &object->velocity;
         v->x = x;
         v->y = y;
@@ -2669,7 +2669,7 @@ typedef struct {
     MATRIX3 orientation;
 } OBJ;
 extern "C" void PostRipEmit(OBJ *);
-extern "C" float GRandInRange__Fff(float, float);
+extern "C" float RandomFloatInRange__Fff(float, float);
 extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword);
 static inline MATRIX3 MakeBasis(qword vector) return r
 {
@@ -2686,9 +2686,9 @@ void LEAF::PostEmit(void *pv) /* key function (the namespace's views) */
     register float lo __asm__("$f20") = -1.0f;
     PostRipEmit(p);
     register float hi __asm__("$f21") = 1.0f;
-    x = GRandInRange__Fff(lo, hi);
-    y = GRandInRange__Fff(lo, hi);
-    z = GRandInRange__Fff(0.1f, 0.9f);
+    x = RandomFloatInRange__Fff(lo, hi);
+    y = RandomFloatInRange__Fff(lo, hi);
+    z = RandomFloatInRange__Fff(0.1f, 0.9f);
     v.x = x;
     v.y = y;
     v.z = z + 0.1f;
@@ -2964,8 +2964,8 @@ struct CLOCK {
     union FLOATWORD dt;
 };
 void ProjectRipTransform(struct S*);
-float GRandInRange__Fff(float,float);
-int FFloatsNear__Ffff(float,float,float);
+float RandomFloatInRange__Fff(float,float);
+int AreFloatsNear__Ffff(float,float,float);
 void GetNormalVectors(qword,qword,qword,struct B*);
 void CalculateSinCos__FfPfT1(float,float*,float*);
 static inline const void *ClockHigh(void)
@@ -2993,9 +2993,9 @@ static inline float Y(qword q) {float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(
 static inline float Z(qword q) {float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f;}
 static inline void FNear(int *pf, qword a, qword b)
 {
-    if (FFloatsNear__Ffff(X(b), X(a), 0.0001f))
-        if (FFloatsNear__Ffff(Y(b), Y(a), 0.0001f))
-            *pf = FFloatsNear__Ffff(Z(b), Z(a), 0.0001f) != 0;
+    if (AreFloatsNear__Ffff(X(b), X(a), 0.0001f))
+        if (AreFloatsNear__Ffff(Y(b), Y(a), 0.0001f))
+            *pf = AreFloatsNear__Ffff(Z(b), Z(a), 0.0001f) != 0;
 }
 static inline qword BcX(float f)
 {
@@ -3054,7 +3054,7 @@ void ProjectBubletTransform(struct S *p)
     int near = 0, choose = 0;
     float roll;
     ProjectRipTransform(p);
-    roll = GRandInRange__Fff(0.0f, 1.0f);
+    roll = RandomFloatInRange__Fff(0.0f, 1.0f);
     FNear(&near, p->vel, D_002A2DD0);
     if (!near && roll < 0.3f)
         choose = 1;
@@ -3069,8 +3069,8 @@ void ProjectBubletTransform(struct S *p)
         norm.q = NormalizeAndAxes(p, (qword *)0x002A0000, &xAxis, &upAxis);
         BasisArguments(norm.q, &basis, &normalArgument, &basisOutput);
         GetNormalVectors(normalArgument, xAxis, upAxis, basisOutput);
-        speed = GRandInRange__Fff(100.0f, 100.0f + (1.0f - roll * 3.33333325386f) * 300.0f);
-        angle = GRandInRange__Fff(0.0f, 6.28318548203f);
+        speed = RandomFloatInRange__Fff(100.0f, 100.0f + (1.0f - roll * 3.33333325386f) * 300.0f);
+        angle = RandomFloatInRange__Fff(0.0f, 6.28318548203f);
         CalculateSinCos__FfPfT1(angle, &cs[0], &cs[1]);
         kt = Factors(cs, speed, &cx, &cy);
         kx = BcX(cx);
