@@ -157,6 +157,7 @@ void CID105::AddHierarchy()
         ResetTrailHistory(p);
 }
 
+// Ring-buffer index wrap: index modulo count.
 static inline int Wrap(int index, int count)
 {
     return index % count;
@@ -189,6 +190,7 @@ static inline float Dot(qwordV a, qwordV b)
     f = VuToFloat(a);
     return f;
 }
+// Dot product of a and b as a float.
 static inline float DotCopy(qwordV a, qwordV b)
 {
     qwordV r;
@@ -197,6 +199,8 @@ static inline float DotCopy(qwordV a, qwordV b)
     f = VuToFloat(r);
     return f;
 }
+// Load the trail record operands (node record span, 1/5 magic divisor 0xCCCCCCCD, 40-byte stride, metadata) in one
+// asm block for matching.
 static inline void RecordOperands(TRAIL *owner, N *node, int &bytes, unsigned &divisor, int &stride, Meta *&metadata)
 {
     register Record *rb asm("$4") = owner->model.records;
@@ -213,30 +217,35 @@ static inline void RecordOperands(TRAIL *owner, N *node, int &bytes, unsigned &d
     stride = st;
     metadata = mt;
 }
+// Signed multiply value * scale (low word), used with the magic divisor above.
 static inline int Product(int value, unsigned scale)
 {
     int result;
     asm("mult %0,%1,%2" : "=r"(result) : "r"(value), "r"(scale) : "hi", "lo");
     return result;
 }
+// Copy the request pointer through a register move (keeps the original daddu).
 static inline REQUEST *AllocationInput(REQUEST *request)
 {
     REQUEST *value;
     __asm__("daddu %0,%1,$zero" : "=r"(value) : "r"(request));
     return value;
 }
+// Address of the sample buffer.
 static inline qwordV *BufferStart(qwordV *buffer)
 {
     qwordV *value;
     __asm__("la %0,%a1" : "=r"(value) : "p"(buffer));
     return value;
 }
+// Allocate count zeroed samples, 16-byte aligned, from the world heap.
 static inline Sample *AllocateSamples(REQUEST *request, int count)
 {
     request->alloc.bytes = count * sizeof(Sample);
     request->alloc.align = 16;
     return (Sample *)AllocClearedFromWorldHeap(&AllocationInput(request)->alloc);
 }
+// Compute the sample range (maximum - minimum), the constant 1.0 and the buffer cursor in one asm block.
 static inline void SampleInputs(qwordV *buffer, float maximum, float minimum, qwordV *&cursor, float &range, float &one)
 {
     register qwordV *v asm("$6");
@@ -367,6 +376,7 @@ extern "C" void UpdateTrail(TRAIL *trail, float dt)
         ((void (*)(void *))trail->vt[9].pfn)((char *)trail + trail->vt[9].d);
 }
 
+// Square root of the x lane of d as a float.
 static inline float Sqrt(qwordV d)
 {
     float f;
@@ -410,18 +420,21 @@ extern "C" void ProjectTrailTransform(TRAIL *trail)
     }
 }
 
+// Transform point p by the 4x4 matrix m.
 static inline qwordV Transform(const M4 *m, qwordV p)
 {
     qwordV r;
     r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], p);
     return r;
 }
+// Return a*beta + b*alpha.
 static inline qwordV Blend(qwordV a, qwordV b, qwordV beta, qwordV alpha)
 {
     register qwordV r __asm__("vf1");
     __asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=&j"(r) : "j"(a), "j"(beta), "j"(b), "j"(alpha));
     return r;
 }
+// Store the xyz lanes of v into dst.
 static inline void StoreXYZ(U *dst, qwordV v)
 {
     qwordV q;

@@ -245,6 +245,8 @@ void RemoveSlEntry(void *pl, RIPGV *p);
 void FreeLoroot(RIPGV *p);
 void FreeSlotheapSlot(void *pool, void *pv);
 }
+// Start iterating display list pdl with iterator pdli: point it at the list head and push it on the global iterator
+// stack (D_002DD2FC) so removals during the walk can fix it up.
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -253,6 +255,8 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field (at the list's ibDle
+// offset).
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
@@ -301,6 +305,7 @@ extern DLI *D_002DD2FC;
 extern struct { float t; } D_002DDED0;
 extern const float D_002A77D0, D_002A77D4;
 void MarkSoTreeBoundsDirty(S *);
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -309,6 +314,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->ppv;
@@ -394,6 +400,7 @@ void ReleaseRip__FP3RIP(struct RIP *prip);
 int IsLoInWorld(struct RIPGV *p);
 int IsDlEmpty__FP2DL(DL *pdl);
 void BounceRipgRips__FP4RIPG(struct RIPGV *p);
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -402,6 +409,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
@@ -473,9 +481,13 @@ void BounceRipgRips__FP4RIPG(P *);
 }
 /* the scratch request and the rip iterator share one stack slot */
 union PHASE { REQ request; DLI rip; };
+// Start walking list with iterator it and push it on the global iterator stack (D_002DD2FC).
 static inline void Init(DLI *it, DL *list) { it->list = list; it->next = (void **)list; it->offset = list->offset; it->outer = D_002DD2FC; D_002DD2FC = it; }
+// Return the iterator's current element and advance along its link field.
 static inline void *Next(DLI *it) { void *p = *it->next; it->next = (void **)((char *)p + it->offset); return p; }
+// Set an allocation request's alignment.
 static inline void SetAlign(REQ *r, int a) { r->align = a; }
+// The state's origin vector.
 static inline const qword &Origin(STATE *s) { return s->origin; }
 // Same idiom as sly2/util.h MinInt; kept local because the shared helper changes BounceRipgRips (139/199 instructions off).
 static inline int MinIntLocal(int a, int b) { return a <= b ? a : b; }
@@ -544,6 +556,7 @@ struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; VTE *vt; };
 struct RIPGV { char pad[0x15C]; DL dl; };
 struct CM;
 struct RO;
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -552,6 +565,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
@@ -836,6 +850,7 @@ void ForceRipFade__FP3RIPf(RIP*,float);
 void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
 int HandleRipBounce(RIP*,SHAPE*,qw,qw);
 }
+// Evaluate the quadratic a + b*t + c*t^2 (Horner form) at t.
 static inline float Evaluate(POLY *p, float t)
 {
     return p->a + t * (p->b + t * p->c);
@@ -848,12 +863,16 @@ struct SPECIAL_PAGE {
     char before[0x1F60];
     SPECIAL_WORD duration, blend;
 };
+// Load the shape's owner into $4 while storing the contact normal into the work record (one asm block to keep the
+// original instruction order).
 static inline void *OwnerAndNormal(SHAPE *shape, WORK &w, qw normal)
 {
     register void *owner __asm__("$4");
     __asm__("lw %0,%2\n\tsqc2 %3,%1" : "=&r"(owner), "=m"(w.normal.q) : "m"(shape->owner), "j"(normal));
     return owner;
 }
+// Load the shape's owner, the work record's scratch address and the contact point in one asm block (register-pinned
+// for matching); returns the owner and fills output/point.
 static inline void *SampleOwner(SHAPE *shape, WORK &w, qw *&output, qw &point)
 {
     register void *owner __asm__("$4");
@@ -866,12 +885,14 @@ static inline void *SampleOwner(SHAPE *shape, WORK &w, qw *&output, qw &point)
     point = sample;
     return owner;
 }
+// Move the x lane of a VU0 vector to an FPU float (the computed normal length).
 static inline float NormalLength(qw value)
 {
     register float length __asm__("$f0");
     __asm__("qmfc2.ni $3,%1\n\tmtc1 $3,%0" : "=f"(length) : "j"(value) : "$3");
     return length;
 }
+// Broadcast a float into VU0 register vf1 (distance term).
 static inline qw DistanceValue(float value)
 {
     register float bits __asm__("$3") = value;
@@ -879,6 +900,7 @@ static inline qw DistanceValue(float value)
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
     return scalar;
 }
+// Broadcast a float into VU0 register vf3 (impulse term).
 static inline qw ImpulseValue(float value)
 {
     register float bits __asm__("$2") = value;
@@ -886,24 +908,28 @@ static inline qw ImpulseValue(float value)
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
     return scalar;
 }
+// High half of the address of the fallback vector D_002A2DA0 (lui), split out for scheduling.
 static inline unsigned FallbackPage()
 {
     register unsigned page __asm__("$2");
     __asm__("lui %0,%%hi(D_002A2DA0)" : "=r"(page));
     return page;
 }
+// Low half: complete the address of D_002A2DA0 from its high page.
 static inline qw *FallbackAddress(unsigned page)
 {
     register qw *address __asm__("$2");
     __asm__("addiu %0,%1,%%lo(D_002A2DA0)" : "=r"(address) : "r"(page));
     return address;
 }
+// Move the x lane of a VU0 vector into a GPR as float bits.
 static inline float SecondProjection(qw value)
 {
     register float bits __asm__("$3");
     __asm__("qmfc2.ni %0,%1" : "=r"(bits) : "j"(value));
     return bits;
 }
+// Broadcast a float into vf3 and also spill it to the home slot (the original keeps a stack copy).
 static inline qw ImpulseScalar(U &home, float value)
 {
     register float bits __asm__("$2") = value;
@@ -912,12 +938,15 @@ static inline qw ImpulseScalar(U &home, float value)
     home.q = scalar;
     return home.q;
 }
+// Velocity of the point relative to another: point - other in vf9.
 static inline qw RelativeVelocity(qw point, qw other)
 {
     register qw v __asm__("vf9");
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(v) : "j"(point), "j"(other));
     return v;
 }
+// Scale the normal by amount, store it and the cross-product torque term (normal x offset) into the work record;
+// returns the scaled normal.
 static inline qw PrepareOffsetTorque(qw normal, float amount, WORK &w)
 {
     register qw torque __asm__("vf1");
@@ -928,6 +957,7 @@ static inline qw PrepareOffsetTorque(qw normal, float amount, WORK &w)
             : "vf10", "$3");
     return torque;
 }
+// Copy the incoming shape pointer into callee-saved $17 (matches the original register choice).
 static inline SHAPE *CaptureShape(SHAPE *incoming)
 {
     register SHAPE *saved __asm__("$17");
@@ -1348,6 +1378,7 @@ union U {
 };
 struct M3 {
     U r[3];
+    // Trivial constructor: leaves the matrix rows uninitialised.
     M3() {}
     M3(const M3 &m)
     {
@@ -1355,6 +1386,7 @@ struct M3 {
         r[1] = m.r[1];
         r[2] = m.r[2];
     }
+    // Copy the three rows of a 3x3 matrix.
     M3 &operator=(const M3 &m)
     {
         r[0] = m.r[0];
@@ -1392,6 +1424,7 @@ int IsVectorNearlyZero(qword);int IsVectorShorterThan2(qword);int IsVectorShorte
 M3*BuildAxisAngleRotationMatrix(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
 void ProjectRipTransform(S*);
 }
+// Squared length of the xyz part of a (x lane of the result).
 static inline qword Sq(qword a)
 {
     qword r, one;
@@ -1400,6 +1433,7 @@ static inline qword Sq(qword a)
             : "j"(a));
     return r;
 }
+// Square root of the x lane via the VU0 Q register.
 static inline qword Sqrt(qword a)
 {
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
@@ -1418,6 +1452,7 @@ struct WORK {
     SHARED shared;
     R3 rotation, product;
 };
+// Broadcast a float into a VU0 register and keep a copy in storage.
 static inline qword Broadcast(U *storage, float f)
 {
     qword r;
@@ -1425,6 +1460,7 @@ static inline qword Broadcast(U *storage, float f)
     storage->q = r;
     return storage->q;
 }
+// Broadcast raw integer bits into a VU0 register and keep a copy in storage.
 static inline qword BroadcastBits(U *storage, int f)
 {
     qword r;
@@ -1432,12 +1468,14 @@ static inline qword BroadcastBits(U *storage, int f)
     storage->q = r;
     return storage->q;
 }
+// Divide vector a by the scalar f (broadcast via storage), i.e. normalize when f is its length.
 static inline qword Normalize(qword a, float f, U *storage)
 {
     qword r, l = Broadcast(storage, f);
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(l), "j"(a));
     return r;
 }
+// Multiply the 3x3 matrix a by b row by row, writing each row through the scratch copy into out.
 static inline void Multiply(R3 *scratch, R3 *out, const R3 *a, const M3 &b)
 {
     register qword row0 __asm__("vf4") = b.r[0].q;
@@ -1460,6 +1498,7 @@ static inline void Multiply(R3 *scratch, R3 *out, const R3 *a, const M3 &b)
     out->r[2].q = row2;
     scratch->r[2] = out->r[2];
 }
+// Transform point a by the 4x4 matrix m (rotation plus translation row d).
 static inline qword Point(const M4 &m, qword a)
 {
     register qword r __asm__("vf3") = m.a;
@@ -1468,24 +1507,28 @@ static inline qword Point(const M4 &m, qword a)
             : "j"(m.a), "j"(m.b), "j"(m.c), "j"(m.d), "j"(a));
     return r;
 }
+// Return a + b * s.x.
 static inline qword AddScaled(qword a, qword b, qword s)
 {
     qword r;
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(s));
     return r;
 }
+// Read the frame clock's delta-time word (D_002DDED0) given its high address page.
 static inline int ClockWord(char *page)
 {
     int word;
     __asm__("lw %0,%%lo(%2)(%1)" : "=r"(word) : "r"(page), "i"(&D_002DDED0.dtbits), "m"(*(const int *)(page - 0x212C)));
     return word;
 }
+// High address page (lui) of the frame clock D_002DDED0.
 static inline char *ClockPage()
 {
     register char *page __asm__("$2");
     __asm__("lui %0,%%hi(%1)" : "=r"(page) : "i"(&D_002DDED0.dtbits));
     return page;
 }
+// Store the first two basis rows into the record's matrix at +0x40/+0x50.
 static inline void PublishBasisStart(S *p, qword first, qword second)
 {
     __asm__("sqc2 %3,0x40(%2)\n\tsqc2 %4,0x50(%2)"
@@ -1621,10 +1664,12 @@ M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
 void RenderLoAtMatrix(LO*,const M4&,float,float);
 int RenderRipAtPose(S*,qword,const M3&);
 }
+// Evaluate the quadratic a + b*t + c*t^2 at t.
 static inline float Poly(POLY *p, float t)
 {
     return p->a + t * (p->b + t * p->c);
 }
+// Move a float's bits into a 128-bit GPR value (mfc1) for later VU0 use.
 static inline qword BcG(float f)
 {
     U u;
@@ -1802,10 +1847,12 @@ M3 LoadRotateMatrixEuler(qword);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 O *CreateStuck(EMIT*,LO*,LO*,qword,qword);
 }
+// Evaluate the quadratic a + b*t + c*t^2 at t.
 static inline float Polynomial(POLY *p, float t)
 {
     return p->a + t * (p->b + t * p->c);
 }
+// Dot product of the xyz parts of a and b, returned as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d, one;
@@ -1816,6 +1863,7 @@ static inline float Dot(qword a, qword b)
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(d));
     return f;
 }
+// Scale vector a by f (broadcast through the home slot).
 static inline qword Scale(qword a, float f, U &home)
 {
     qword k;
@@ -1824,6 +1872,7 @@ static inline qword Scale(qword a, float f, U &home)
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(a) : "j"(a), "j"(k));
     return a;
 }
+// Transform vector a by the 3x3 matrix m.
 static inline qword Transform(M3 &m, qword a)
 {
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z"
@@ -1831,6 +1880,7 @@ static inline qword Transform(M3 &m, qword a)
             : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     return a;
 }
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
     qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
@@ -1961,16 +2011,20 @@ extern LM D_002BBB60;
 float RandomFloatInRange__Fff(float gMin, float gMax);
 void PostRipEmit(SHRAPNEL *psh, EMITBV *pemitb);
 }
+// Length of the xyz part of v (x lane), via VU0 sqrt.
 static inline qword VLen(qword v)
 {
     qword t, one;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(t), "=&j"(one) : "j"(v));
     return t;
 }
+// Read the lower lifetime limit float relative to the D_002BBB60 page.
 static inline float LowerLimit(char *page)
 {
     return *(const float *)(page - 0x44A0);
 }
+// Store the rip's life into *duration and compute the D_002BBB60 limits address and the length as a float, in one asm
+// block for matching.
 static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, float *duration, float life)
 {
     register char *page __asm__("$2");
@@ -1983,6 +2037,7 @@ static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, 
     *limits = address;
     return scalar;
 }
+// Copy the emitter's direction vector into the shrapnel record.
 static inline void CopyDirection(SHRAPNEL *dest, const EMITBV *source)
 {
     register float xz __asm__("$f0");
@@ -2060,29 +2115,34 @@ struct SHRAPNEL {
 struct CM;
 extern "C" { extern qword D_002A2DC0; }
 extern "C" int RenderRipAtPose(SHRAPNEL *,qword,const M3 &);
+// Return p + a * k.x.
 static inline qword AddScaled(qword p, qword a, qword k)
 {
     __asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(p) : "j"(a), "j"(k));
     return p;
 }
+// Copy the shrapnel pointer into $3 (register-pinned for matching).
 static inline SHRAPNEL *Receiver(SHRAPNEL *input)
 {
     register SHRAPNEL *p __asm__("$3");
     __asm__("daddu %0,%1,$zero" : "=r"(p) : "r"(input));
     return p;
 }
+// Address of the constant axis vector D_002A2DC0.
 static inline const qword *AxisAddress(void)
 {
     register const qword *p __asm__("$2");
     __asm__("lui %0,%%hi(%1)\n\taddiu %0,%0,%%lo(%1)" : "=r"(p) : "i"(&D_002A2DC0));
     return p;
 }
+// Load the axis vector from p into vf3.
 static inline qword Axis(const qword *p)
 {
     register qword v __asm__("vf3");
     __asm__("lqc2 %0,0(%1)" : "=j"(v) : "r"(p), "m"(*p));
     return v;
 }
+// Address of the shrapnel's matrix (+64), pinned to $6.
 static inline const M3 *MatrixAddress(SHRAPNEL *shrapnel)
 {
     register SHRAPNEL *receiver __asm__("$4") = shrapnel;
@@ -2090,6 +2150,7 @@ static inline const M3 *MatrixAddress(SHRAPNEL *shrapnel)
     __asm__("addiu %0,%1,64" : "=r"(matrix) : "r"(receiver));
     return matrix;
 }
+// Broadcast the shrapnel's depth word (+0xF0) into vf2.
 static inline qword Depth(SHRAPNEL *shrapnel)
 {
     register qword k __asm__("vf2");
@@ -2163,6 +2224,7 @@ MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MAT3 *pm, float *pg, qword *pv);
 void LaunchMatch__FP5MATCH(S *p);
 }
+// Broadcast a float into a VU0 register (with a stack home copy).
 static inline qword Bc(float g)
 {
     U u;
@@ -2220,6 +2282,7 @@ void ProjectMatchTransform(S *);
 static inline M3 Rotation(qword axis, float angle) return result { BuildAxisAngleRotationMatrix(&result, axis, angle); }
 // broadcast a float into a VU register; the union local is the dead scratch store the original left on the stack
 static inline qword Splat(float f) { U u; qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); u.q = q; return q; }
+// Scale vector a by s.x.
 static inline qword Scale(qword a, qword s) { __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(a) : "j"(s)); return a; }
 // d*s1.x + v*s2.x + a*s3.x
 static inline qword Blend(qword d, qword v, qword a, qword s1, qword s2, qword s3)
@@ -2367,13 +2430,16 @@ M3 BuildAxisAngleRotationMatrix(qword,float);
 M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
 void RenderLoAtMatrix(void *,const M4 &,float,float);
 }
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Return a scaled by s.
 static inline qword Scale(qword a, VU_FLOAT s)
 {
     qword r;
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s.q));
     return r;
 }
+// Move a float's bits into a 128-bit GPR value (mfc1).
 static inline qword BcG(float f)
 {
     union {
@@ -2385,6 +2451,7 @@ static inline qword BcG(float f)
     u.q = r;
     return r;
 }
+// Length of the xyz part of v as a float.
 static inline float Length(qword v)
 {
     qword d, one, l;
@@ -2396,6 +2463,7 @@ static inline float Length(qword v)
     __asm__("mtc1 %1, %0" : "=f"(f) : "r"(l));
     return f;
 }
+// Evaluate the quadratic a + b*t + c*t^2 at t.
 static inline float Evaluate(const POLY &p, float t)
 {
     return p.a + t * (p.b + t * p.c);
@@ -2554,6 +2622,7 @@ M3 BuildAxisAngleRotationMatrix(qword,float);
 int RenderRipAtPose(S*,qword,const M3&);
 void RenderSmack(S*);
 }
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
     __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
@@ -2624,6 +2693,7 @@ typedef struct {
 extern "C" void PostRipEmit(OBJ *);
 extern "C" float RandomFloatInRange__Fff(float, float);
 extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword);
+// Build a look-at basis matrix whose forward axis is vector.
 static inline MATRIX3 MakeBasis(qword vector) return r
 {
     LoadLookAtMatrix(&r, vector);
@@ -2676,7 +2746,9 @@ M3 BuildAxisAngleRotationMatrix(qword, float);
 float SplitVectorAlongAxis(qword, qword, qword *, qword *);
 void ProjectRipTransform(P *);
 }
+// VU_FLOAT broadcasts a float into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// VU_VECTOR wraps a qword so overloads can tell vectors from scalars.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 /* f1*v1 + f2*v2 */
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
@@ -2685,6 +2757,7 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return r;
 }
+// Clamp g to the range [lim[0], lim[1]].
 static inline float GClamp(float g, const float *lim)
 {
     float gMin = lim[0], gMax = lim[1];
@@ -2692,6 +2765,7 @@ static inline float GClamp(float g, const float *lim)
     if (gMax < g) return gMax;
     return g;
 }
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d, one;
@@ -2724,6 +2798,7 @@ static inline qword Length(qword v)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(d));
     return l;
 }
+// Divide v by the x lane of l (normalize when l holds v's length).
 static inline qword Divide(qword v, qword l)
 {
     qword r;
@@ -2920,12 +2995,14 @@ float RandomFloatInRange__Fff(float,float);
 int AreFloatsNear__Ffff(float,float,float);
 void GetNormalVectors(qword,qword,qword,struct B*);
 void CalculateSinCos__FfPfT1(float,float*,float*);
+// High address page of the frame clock's dt word (D_002DDED0+4).
 static inline const void *ClockHigh(void)
 {
     register const void *page __asm__("$2");
     __asm__("lui %0,%%hi(D_002DDED0+4)" : "=r"(page));
     return page;
 }
+// Scale the two speed coefficients cs[0..1] by speed into *first/*second and broadcast the frame dt into vf5.
 static inline qword Factors(const float *cs, float speed, float *first, float *second)
 {
     register float a __asm__("$f1") = cs[0], b __asm__("$f0");
@@ -2940,24 +3017,28 @@ static inline qword Factors(const float *cs, float speed, float *first, float *s
     *second = b;
     return dt;
 }
+// Set *pf when a and b are equal within 0.0001 on x, y and z (leaves it untouched otherwise).
 static inline void FNear(int *pf, qword a, qword b)
 {
     if (AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f))
         if (AreFloatsNear__Ffff(QwordY(b), QwordY(a), 0.0001f))
             *pf = AreFloatsNear__Ffff(QwordZ(b), QwordZ(a), 0.0001f) != 0;
 }
+// Broadcast a float into vf3.
 static inline qword BcX(float f)
 {
     register qword value __asm__("vf3");
     __asm__("qmtc2.ni %1,%0" : "=j"(value) : "r"(f));
     return value;
 }
+// Store x to the home slot and broadcast f into vf4.
 static inline qword BcYAndPublishX(float f, qword x, union U *home)
 {
     register qword value __asm__("vf4");
     __asm__("sqc2 %2,%1\n\tmfc1 $2,%3\n\tqmtc2.ni $2,%0" : "=j"(value), "=m"(home->q) : "j"(x), "f"(f) : "$2");
     return value;
 }
+// Advance the owner's position by the basis mixed with the coefficients times dt, saving the mix state.
 static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct MIX_STATE *state, qword sx, qword sy,
                                  qword dt)
 {
@@ -2969,6 +3050,7 @@ static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct 
             : "+&j"(x), "+&j"(y), "+m"(owner->pos), "=m"(*state)
             : "j"(coefficientX), "j"(coefficientY), "j"(time));
 }
+// Compute the owner velocity's squared length and the addresses of the up and x reference axes in one asm block.
 static inline qword NormalizeAndAxes(const struct S *owner, qword *rawPage, qword *xAxis, qword *upAxis)
 {
     register qword velocity __asm__("vf1"), length __asm__("vf2");
@@ -2989,6 +3071,7 @@ static inline qword NormalizeAndAxes(const struct S *owner, qword *rawPage, qwor
     *upAxis = upValue;
     return length;
 }
+// Move the normal into a GPR argument and the destination basis address into $7 for the following call.
 static inline void BasisArguments(qword normal, struct B *destination, qword *argument, struct B **receiver)
 {
     register qword value __asm__("$4");

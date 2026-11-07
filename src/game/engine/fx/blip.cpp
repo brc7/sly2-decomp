@@ -27,6 +27,7 @@ struct DLEV { void *next; void *prev; };
 struct DLI { DLV *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" DLI *D_002DD2FC;     /* g_pdliFirst */
 
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DLV *pdl)
 {
     pdli->m_pdl = pdl;
@@ -36,6 +37,7 @@ static inline void InitDli(DLI *pdli, DLV *pdl)
     D_002DD2FC = pdli;
 }
 
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
@@ -381,8 +383,11 @@ static __inline__ int FVecsNear(qwordV a, qwordV b)
     return AreFloatsNear(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear(QwordZ(a), QwordZ(b), 1e-4f);
 }
+// Evaluate the quadratic a + b*t + c*t^2 at t.
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
+// Reset a blip's per-instance state and store 1/g (its inverse lifetime).
 static __inline__ void InitS(float g, S150 *ps) { register float r asm("$f1") = 1.0f; /* register pin (Claude agent): f0/f1 tie */ ps->unknown0 = 0; ps->unknown8 = 0; ps->inverseLifetime = r / g; }
+// Largest of three floats.
 static __inline__ float Max3(float a, float b, float c) { if (b < a && c < a) return a; if (c < b) return b; return c; }
 // Sets a blip group up from an EMITB: render kind (and flying scale), colours, shader (PropagateBlipgShader),
 // frame rate, the alpha and size curves rescaled to a 0..1 life and the largest size, 1 / lifetime, and the motion
@@ -489,6 +494,8 @@ static __inline__ void MoveExtra(qwordV *pc, int i, int j, int k, qwordV dt)
         ((VEC *)&pc[j])->v.w = NormalizeAngle(((VEC *)&pc[i])->v.w + ((VEC *)&pc[i])->v.z * g);
     }
 }
+// Advance c blips by dt on VU0 (velocity integration through matrix pm) and grow the bounds *pvMin/*pvMax;
+// register-pinned to the original vf allocation.
 static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k,
                                  qwordV *pvMin, qwordV *pvMax)
 {
@@ -548,28 +555,34 @@ extern "C" SPRBUF D_003DD2C0[2];
 struct VU_FLOATM { qwordV qw; };
 extern "C" int CblipeProjectBlipTransformAccelM(M4 *pm, VU_FLOATM dt, char *a, char *b, char *c, int n, int d,
                                                 VECTORV *pvMin, VECTORV *pvMax) __asm__("ProjectBlipTransformAccel");
+// Float broadcast into a VU0 register (default constructor leaves it unset).
 struct VU_FLOATA { qwordV qw; VU_FLOATA(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(f)); } VU_FLOATA() {} };
+// Load the frame clock's dt word (D_002DDED0.dt) into a VU float.
 static inline VU_FLOATM VuFloatDt()
 {
     VU_FLOATM v;
     __asm__("lw %0, %1" : "=r"(v.qw) : "m"(D_002DDED0.dt));
     return v;
 }
+// Address of scratchpad buffer i of the current double-buffer set.
 static inline char *GetScratchpadBuffer(int i)
 {
     return D_003DD2C0[D_002C3C5C].a[i].pv;
 }
+// Start the scratchpad DMA load of the queue's current buffer (pq->c 16-byte quads).
 static inline void Kick(BLIPV *pq)
 {
     BUF *pb = &pq->abuf[pq->i];
     LoadSprBuf(pq->c * 16, pb, pq->c * 16, pb->b, pq->c * 16, pb->c, 0, 0);
 }
+// Return a*g.x + b*g.x (sum of two vectors scaled by one factor).
 static inline qwordV ScaleSum(const qwordV &a, const qwordV &b, const VU_FLOATA &g)
 {
     qwordV qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(a), "j"(b), "j"(g.qw));
     return qw;
 }
+// Length of the xyz part of v, in the x lane.
 static inline qwordV QwLength(const qwordV &v)
 {
     qwordV qw;
@@ -579,6 +592,7 @@ static inline qwordV QwLength(const qwordV &v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// Move the x lane of a qword into an FPU float.
 static inline float GFromQw(const qwordV &qw)
 {
     float g;
@@ -633,6 +647,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
     }
 }
 
+// Float broadcast into a VU0 register (alternative constraint picks register or memory source).
 struct VU_FLOATT { qwordV q; VU_FLOATT(float f) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,m"(f), "i,r"(0)); } };
 // ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->motionKind != 0 or D_002BC9C0 is set). For every particle
 // batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
@@ -648,8 +663,11 @@ static inline qwordV AddScaled(qwordV a, qwordV b, VU_FLOATT s)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(b), "j"(s.q));
     return r;
 }
+// Per-lane minimum of the xyz parts.
 static inline qwordV Min(qwordV a, qwordV b) { qwordV r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Per-lane maximum of the xyz parts.
 static inline qwordV Max(qwordV a, qwordV b) { qwordV r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Return a*h + b*h (the midpoint when h is 0.5).
 static inline qwordV Mid(qwordV a, qwordV b, VU_FLOATT h)
 {
     qwordV c;
@@ -658,6 +676,7 @@ static inline qwordV Mid(qwordV a, qwordV b, VU_FLOATT h)
 }
 #define CA(p) ((VEC *)((int)(p) - 0x560))
 #define CB(p) ((VEC *)((int)(p) - 0x2B0))
+// Transform point v by the 4x4 matrix pm.
 static __inline__ qwordV MulPoint(M4 *pm, qwordV v)
 {
     qwordV r;
@@ -774,6 +793,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
 struct LIGHTM { qwordV r[3]; float x30, y30, z30, w30; };   /* one place to draw the blips at: rotation rows, then position (x30..w30) */
 extern "C" LIGHTM D_002A2D30;
 struct FRAME { int a[4]; };
+// Allocation request: byte count and alignment.
 struct AL { int cb; int align; AL(int c, int a) { cb = c; align = a; } };
 struct VU_FLOATR {
     qwordV q;
@@ -793,11 +813,13 @@ int IsInCameraFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int IsWithinCameraRenderDistance(CMV *pcm, qwordV d, float g, float *pg);
 DMA *AllocRenderListEntry(void);
 }
+// Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *PvAllocStack(int cb) { return AllocFromStack(AL(cb, 0x10)); }
 /* earlyclobber output (else branch: vsub vf3 distinct from its inputs); the 2nd "j"(b) is allocation-only */
 static inline qwordV SubE(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=&j"(r) : "j"(a), "j"(b), "j"(b)); return r; }
 /* "r"(z) inputs below are allocation-only: they only add scheduler dependences (see the comment in the gather loop) */
 static inline qwordV AddZ(qwordV a, qwordV b, int z) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b), "r"(z)); return r; }
+// Rotate v by the 3x3 matrix m; k and z are unused inputs that only keep the original scheduling.
 static inline qwordV RotKZ(const M3 &m, qwordV v, qwordV k, int z)
 {
     qwordV r;
