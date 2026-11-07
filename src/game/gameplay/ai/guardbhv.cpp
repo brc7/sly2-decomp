@@ -1433,40 +1433,32 @@ typedef char P_PrefixSize[sizeof(P)==0xFC8?1:-1];
 namespace RO_ORDER { extern const float r_D_002A5408 __asm__("D_002A5408") = 3.40282347e+38f; }
 // 0x176458 SetBhvcombatState
 namespace M_SetBhvcombatState { extern "C" {
-struct CLOCK; struct VTE; struct X; struct O; struct A; struct P; struct S;
+struct CLOCK; 
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002A5408;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct X { qword a; qword v; };
-/* The pushed child; its fields depend on its class (BHVATTACK, BHVSHOOT, BHVGOTO, BHVANIM/BHVIDLE). */
-struct O {
-    char pad[0xC]; struct VTE *vt; char pad2[0x20]; int attackTarget; int pad3; union { int shootTarget; int gotoSgf; };
-    union { int attackEntry; int sgf; }; char pad4[0xA8 - 0x40]; int gotoLookAt; int gotoUnknownAC; char pad5[0x10]; int gotoAllowPartialRoute;
-};
-struct A { char pad[0x3CC]; void *engagement; char pad2[0xF04 - 0x3D0]; float attackCooldownEnd; char pad3[0xF64 - 0xF08]; void *detector; };
-struct P { char pad[0x60]; float cooldownMin; float cooldownMax; };
-struct S { char pad[0x10]; struct A *guard; int pad2; char childSlot[0x18]; int target; int state; float stateTime; struct P *attack; int pad4; int region; char pad5[8]; qword cachedPosition; };
 void PopBhv(void *p);
 float RandomFloatInRange__Fff(float a, float b);
-struct O *PushStepBehavior(void *p, int n);
+BHV *PushStepBehavior(void *p, int n);
+/* A PATHLINKEND built by hand: declared at the block start and cleared by an explicit ClearPointerPair call (the
+   PATHLINKEND constructor at the point of use schedules the call differently: 2 instructions swapped). */
+struct PATHLINKENDRAW { qword pv; qword pos; };
+void ClearPointerPair(struct PATHLINKENDRAW *x);
 void SetTargetRecordState(void *p, int n);
-qword GetLoWorldPos(int p);
-void ClearPointerPair(struct X *x);
-void SetBhvgotoGoal(void *p, struct X *x);
+qword GetLoWorldPos(LO *p);
+void SetBhvgotoGoal(BHVGOTO *p, PATHLINKEND *x);
 int FindPathzoneAtPos(qword v, int n);
-void SetDetectorTargetStateById(void *p, int a, int b);
-void SetStepguardTarget(void *p, int n);
+void SetDetectorTargetStateById(void *p, LO *a, int b);
 // 0x176458: BHVCOMBAT state switch: 0 circle (BHVCIRCLE), 1 attack (BHVATTACK), 2 shoot (BHVSHOOT), 3 run toward
 // the target (BHVGOTO with flag 0x1C), 4 lost-him animation (flag 0xD) and drop the target, 5 hands-off idle.
-void SetBhvcombatState(struct S *behavior, int n) {
+void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
     if (n == behavior->state) return;
-    PopBhv(behavior->childSlot);
+    PopBhv((&behavior->pbhvNext));
     if (behavior->state == 1) {
         float t = D_002DDED0.time;
         t += RandomFloatInRange__Fff(behavior->attack->cooldownMin, behavior->attack->cooldownMax);
-        behavior->guard->attackCooldownEnd = t;
+        ((STEPGUARD *)behavior->owner)->nextAttackTime = t;
         behavior->attack = 0;
     }
     behavior->state = n;
@@ -1474,61 +1466,61 @@ void SetBhvcombatState(struct S *behavior, int n) {
     switch (n) {
     case 0:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV179);
-            StartPushedBhv(o);
+            BHV *o = PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV179);
+            o->Start();
         }
         break;
     case 1:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVATTACK);
-            o->attackTarget = behavior->target;
-            o->attackEntry = (int)behavior->attack;
-            behavior->guard->attackCooldownEnd = D_002A5408;
-            StartPushedBhv(o);
+            BHVATTACK *o = (BHVATTACK *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVATTACK);
+            o->victim = behavior->target;
+            o->attack = behavior->attack;
+            ((STEPGUARD *)behavior->owner)->nextAttackTime = D_002A5408;
+            o->Start();
         }
-        SetTargetRecordState(behavior->guard->engagement, 3);
+        SetTargetRecordState(((STEPGUARD *)behavior->owner)->pvEngage, 3);
         break;
     case 2:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV173);
-            o->shootTarget = behavior->target;
-            StartPushedBhv(o);
+            BHVSHOOT *o = (BHVSHOOT *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV173);
+            o->target = behavior->target;
+            o->Start();
         }
-        SetTargetRecordState(behavior->guard->engagement, 4);
+        SetTargetRecordState(((STEPGUARD *)behavior->owner)->pvEngage, 4);
         break;
     case 3:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
+            BHVGOTO *o = (BHVGOTO *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVGOTO);
             qword v1, v2;
-            struct X x;
-            o->gotoAllowPartialRoute = 1;
-            o->gotoSgf = 0x1C;
+            struct PATHLINKENDRAW x;
+            o->allowPartialRoute = 1;
+            o->sgf = 0x1C;
             v1 = GetLoWorldPos(behavior->target);
             v2 = GetLoWorldPos(behavior->target);
             ClearPointerPair(&x);
-            x.v = v2;
-            SetBhvgotoGoal(o, &x);
-            o->gotoLookAt = behavior->target;
-            o->gotoUnknownAC = 1;
-            StartPushedBhv(o);
+            x.pos = v2;
+            SetBhvgotoGoal(o, (PATHLINKEND *)&x);
+            o->lookAtTarget = behavior->target;
+            o->unknownAC = 1;
+            o->Start();
             behavior->cachedPosition = v1;
             behavior->region = FindPathzoneAtPos(v1, 1);
         }
         break;
     case 4:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+            BHVANIM *o = (BHVANIM *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVANIM);
             o->sgf = 0xD;
-            StartPushedBhv(o);
+            o->Start();
         }
-        SetDetectorTargetStateById(behavior->guard->detector, behavior->target, 0);
-        SetStepguardTarget(behavior->guard, 0);
+        SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->target, 0);
+        SetStepguardTarget(((STEPGUARD *)behavior->owner), 0);
         break;
     case 5:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
+            BHVANIM *o = (BHVANIM *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVIDLE);
             o->sgf = 1;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }
