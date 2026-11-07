@@ -264,13 +264,10 @@ void ActivateCplook(CPLOOK *p)
 namespace M_UpdateCplook { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
-struct CM { char pad[0x20]; float fieldOfView; };
-extern struct CM D_002DDF40;
 struct G { char pad[0x3B4C]; void *saveVars; char pad2[0x4750 - 0x3B50]; float tLookLast; };   /* SW: the global save variables (inferred), sw.h's tLookLast */
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 struct POLY { float c0, c1, c2; };
-struct LM { float minValue, maxValue; };
 extern struct POLY D_002BD980;
 extern float D_002BD990, D_002BD994, D_002BD998, D_002BD99C;
 extern char D_002BD9A0[];
@@ -279,25 +276,20 @@ extern char D_002BBB60[], D_002BBB68[];
 struct CRef { int m_tagk; int m_n; };
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
 struct JOY { char pad[0x103C]; float leftStickX; float leftStickY; char pad2[0x1074 - 0x1044]; float dyRight; }; /* sticks (joy.h's JOY) */
-struct X {
-    char pad0[0x10]; float panAngle; float tiltAngle; float panSpeed; float tiltSpeed; float zoom; float zoomSpeed; int pad28; float zoomFov; float wideFov;
-    struct SND *zoomSound; int pad38; float panMin; float panMax; float tiltMin; float tiltMax;
-};
-void UpdateCplcy(struct X *p, void *pv, struct JOY *pjoy);
+void UpdateCplcy(CPLOOK *p, void *pv, struct JOY *pjoy);
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext);
 float ClampToLimits__FP2LMf(void *p, float g);
 void SetSndPitch(struct SND *p, float g);
 void SetSndVolume(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
-void SetCmFov__FP2CMf(struct CM *p, float g);
 void GetGlobalSaveVar(struct CRef *, void *, void *);
 void Decref__4CRef(struct CRef *);
 float ClampAbs__Fff(float g, float gMax);
 float NormalizeAngle__Ff(float g);
-qword PosCplookEye(struct X *p);
-qword PosCplookAnchor(struct X *p);
-void SetCameraLookAt(struct CM *p, qword a, qword b, float c, float d);
+qword PosCplookEye(CPLOOK *p);
+qword PosCplookAnchor(CPLOOK *p);
+void SetCameraLookAt(CM *p, qword a, qword b, float c, float d);
 
 
 // Same idiom as sly2/util.h Clamp; kept local because the shared helper changes UpdateCplook (243/286 instructions off).
@@ -310,29 +302,29 @@ static __inline__ float ClampLocal(float g, float gMin, float gMax)
 
 // Look-mode update: zoom from joy (+0x1074) with sound pitch/volume, fov lerp, pan/tilt from sticks (invert option via
 // splice 0x3D4A60), limits, SetCmLookAt(eye, anchor)
-void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
+void UpdateCplook(CPLOOK *p, void *pv, struct JOY *pjoy)
 {
     float x, u, gPan, gTilt, dt;
     int f;
     struct CRef ref;
     UpdateCplcy(p, pv, pjoy);
     x = p->zoom;
-    p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
-    x += p->zoomSpeed * D_002DDED0.deltaTime;
+    p->svuZoom = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
+    x += p->svuZoom * D_002DDED0.deltaTime;
     p->zoom = x = ClampLocal(x, 0.0f, 1.0f);
-    if (p->zoomSpeed != 0.0f && 0.0f < x && x < 1.0f) {
-        struct SND *ps = p->zoomSound;
-        SetSndPitch(ps, ClampToLimits__FP2LMf(D_002BBB68, __builtin_fabsf(p->zoomSpeed)));
-        ps = p->zoomSound;
-        SetSndVolume(ps, ClampToLimits__FP2LMf(D_002BBB60, __builtin_fabsf(p->zoomSpeed) * 0.5f + 0.5f));
-        if (p->zoomSound->pauseCount > 0)
-            ResumeSnd(p->zoomSound);
+    if (p->svuZoom != 0.0f && 0.0f < x && x < 1.0f) {
+        struct SND *ps = (struct SND *)p->psndZoom.m_p;
+        SetSndPitch(ps, ClampToLimits__FP2LMf(D_002BBB68, __builtin_fabsf(p->svuZoom)));
+        ps = (struct SND *)p->psndZoom.m_p;
+        SetSndVolume(ps, ClampToLimits__FP2LMf(D_002BBB60, __builtin_fabsf(p->svuZoom) * 0.5f + 0.5f));
+        if (((struct SND *)p->psndZoom.m_p)->pauseCount > 0)
+            ResumeSnd((struct SND *)p->psndZoom.m_p);
     } else {
-        if (p->zoomSound->pauseCount <= 0)
-            PauseSnd(p->zoomSound);
+        if (((struct SND *)p->psndZoom.m_p)->pauseCount <= 0)
+            PauseSnd((struct SND *)p->psndZoom.m_p);
     }
     u = 1.0f - p->zoom;
-    SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
+    SetCmFov(&g_cm, (1.0f - u) * p->zoomedFieldOfView + u * p->wideFieldOfView);
     gPan = -__builtin_fabsf(pjoy->leftStickX) * pjoy->leftStickX * D_002BD990;
     gTilt = -__builtin_fabsf(pjoy->leftStickY) * pjoy->leftStickY * D_002BD994;
     GetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
@@ -340,26 +332,26 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     Decref__4CRef(&ref);
     if (f)
         gTilt = -gTilt;
-    gPan = p->panSpeed + ClampAbs__Fff(gPan - p->panSpeed, D_002BD998 * D_002DDED0.deltaTime);
-    gTilt = p->tiltSpeed + ClampAbs__Fff(gTilt - p->tiltSpeed, D_002BD99C * D_002DDED0.deltaTime);
+    gPan = p->swPan + ClampAbs__Fff(gPan - p->swPan, D_002BD998 * D_002DDED0.deltaTime);
+    gTilt = p->swTilt + ClampAbs__Fff(gTilt - p->swTilt, D_002BD99C * D_002DDED0.deltaTime);
     dt = D_002DDED0.deltaTime * 0.5f;
     {
         float gMin, gMax;
-        SmoothValue__FfffP3SMPPf(p->panAngle, p->panMin, dt, D_002BD9A0, &gMin);
-        SmoothValue__FfffP3SMPPf(p->panAngle, p->panMax, dt, D_002BD9A0, &gMax);
-        p->panSpeed = Clamp(gPan, gMin, gMax);
-        SmoothValue__FfffP3SMPPf(p->tiltAngle, p->tiltMin, dt, D_002BD9A0, &gMin);
-        SmoothValue__FfffP3SMPPf(p->tiltAngle, p->tiltMax, dt, D_002BD9A0, &gMax);
-        p->tiltSpeed = Clamp(gTilt, gMin, gMax);
+        SmoothValue__FfffP3SMPPf(p->panAngle, p->lmPan.minValue, dt, D_002BD9A0, &gMin);
+        SmoothValue__FfffP3SMPPf(p->panAngle, p->lmPan.maxValue, dt, D_002BD9A0, &gMax);
+        p->swPan = Clamp(gPan, gMin, gMax);
+        SmoothValue__FfffP3SMPPf(p->tiltAngle, p->lmTilt.minValue, dt, D_002BD9A0, &gMin);
+        SmoothValue__FfffP3SMPPf(p->tiltAngle, p->lmTilt.maxValue, dt, D_002BD9A0, &gMax);
+        p->swTilt = Clamp(gTilt, gMin, gMax);
     }
     {
-        float k = (1.0f - D_002DDF40.fieldOfView) * D_002BD9B0.minValue + D_002DDF40.fieldOfView * D_002BD9B0.maxValue;
-        p->panAngle += k * p->panSpeed * D_002DDED0.deltaTime;
-        p->tiltAngle += k * p->tiltSpeed * D_002DDED0.deltaTime;
+        float k = (1.0f - g_cm.fieldOfView) * D_002BD9B0.minValue + g_cm.fieldOfView * D_002BD9B0.maxValue;
+        p->panAngle += k * p->swPan * D_002DDED0.deltaTime;
+        p->tiltAngle += k * p->swTilt * D_002DDED0.deltaTime;
     }
-    if (6.2831855f <= p->panMax - p->panMin)
+    if (6.2831855f <= p->lmPan.maxValue - p->lmPan.minValue)
         p->panAngle = NormalizeAngle__Ff(p->panAngle);
-    SetCameraLookAt(&D_002DDF40, PosCplookEye(p), PosCplookAnchor(p), 0.0f, 0.0f);
+    SetCameraLookAt(&g_cm, PosCplookEye(p), PosCplookAnchor(p), 0.0f, 0.0f);
     D_003DD490.tLookLast = D_002DDED0.time;
 }
 } } // namespace M_UpdateCplook
