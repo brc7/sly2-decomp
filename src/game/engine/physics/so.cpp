@@ -3239,32 +3239,27 @@ extern "C" void CloneSoPartGeomInserting(P *source,LO *space,int inserted,P *des
 
 // 0x1F72F8 IsPosInSo
 namespace M_func_001F72F8 { extern "C" {
-struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
-typedef unsigned long ulong;
-struct O { char pad[0x70]; qword pos; };
-struct E { struct O *transform; int pad; float radius; int pad2; ulong flags; char pad3[0x74 - 0x18]; void *bsp; char pad4[0xB0 - 0x78]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
 int FindBspLeafContainingPointFast(void *, int, qword);
 // Slot 73: returns 1 when pos is inside any visible sphere part or part BSP of the object.
-int IsPosInSo(struct P *so, qword pos)
+int IsPosInSo(SO *so, qword pos)
 {
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (pe->flags & (1L << 50)) continue;
-        if (pe->flags & (1L << 49)) {
+        SOPART *pe = &so->parts[i];
+        if (pe->isHidden) continue;
+        if (pe->unknownFlag10B) {
             qword d, one;
             float r2, d2;
             int t;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(pe->transform->pos));
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(*(qword *)pe->transform->worldMatrix.mat[3]));
             r2 = pe->radius * pe->radius;
             __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "0"(d));
             __asm__("qmfc2.ni %0, %1" : "=r"(t) : "j"(d));
             __asm__("mtc1 %1, %0" : "=f"(d2) : "r"(t));
             { int f = d2 < r2; if (f) return 1; }
         }
-        if (pe->bsp && FindBspLeafContainingPointFast(pe->bsp, 0x7FFFFFFF, pos)) return 1;
+        if (pe->bspc.nodes && FindBspLeafContainingPointFast(pe->bspc.nodes, 0x7FFFFFFF, pos)) return 1;
     }
     return 0;
 }
