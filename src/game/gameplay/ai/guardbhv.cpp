@@ -6260,49 +6260,40 @@ void UpdateBhvStalk(BHV189 *behavior) {
 
 // 0x17E0E0 RegoalBhvStalk
 namespace M_func_0017E0E0 {
-struct X; struct T; struct D; struct C; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct X;
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002BE76C;
 extern float D_002BE770[16];
-struct X { qword a; qword v; X(); };
-struct T { char pad[0x40]; struct X goal; };
-struct D { char pad[0x10]; void *pathzone; };
-struct C { char pad[0xDC]; struct D *unknownDC; };
-struct S { char pad[0x10]; STEPGUARD *guard; int pad2; struct T *child; char pad3[0x1C]; void *target; float lastRegoalTime; };
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-qword GetPathlinkEndpointPos(struct X *s, qword v);
+qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v);
 qword SetVectorCylind(float a, float b, float c);
 int FindPathzoneClosestFreePoint(void *q, qword v, qword *out);
-void ClearPointerPair(struct X *x);
-void SetBhvgotoGoal(void *p, struct X *x);
+struct PATHLINKENDIsland;
+void ClearPointerPair(PATHLINKENDIsland *x);
 }
-// Default constructor: both pointers cleared (ClearPointerPair).
-inline X::X() { ClearPointerPair(this); }
-extern "C" {
-}
+/* PATHLINKEND with an inline constructor around ClearPointerPair: PATHLINKEND's own (out-of-line) constructor keeps &x
+   in a saved register instead of rematerializing it (1 instruction). */
+struct PATHLINKENDIsland { qword a; qword v; PATHLINKENDIsland() { ClearPointerPair(this); } };
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
 // 0x17E0E0: Picks the farthest free point among 16 directions around the target and sends the goto child there.
-extern "C" void RegoalBhvStalk(struct S *behavior) {
+extern "C" void RegoalBhvStalk(BHV189 *behavior) {
     union { qword q; } hit;
     qword a, b, d, r;
-    struct T *t;
-    struct C *c;
-    struct D *dd;
+    BHVGOTO *t;
+    SOPHYS *c;
+    REGENT *dd;
     void *q;
     float ang, best;
     unsigned int i;
     behavior->lastRegoalTime = D_002DDED0.time;
-    t = behavior->child;
+    t = (BHVGOTO *)behavior->pbhvNext;
     a = GetLoWorldPos(behavior->target);
-    b = GetLoWorldPos(behavior->guard);
+    b = GetLoWorldPos(behavior->owner);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(b), "j"(a));
-    c = ((struct C *)behavior->guard->physics);
-    dd = c ? c->unknownDC : 0;
+    c = behavior->owner->physics;
+    dd = c ? c->pregent : 0;
     q = dd ? dd->pathzone : 0;
     best = 0.0f;
     ang = atan2f(QwordY(d), QwordX(d));
@@ -6324,48 +6315,43 @@ extern "C" void RegoalBhvStalk(struct S *behavior) {
             }
         }
     }
-    struct X x;
+    PATHLINKENDIsland x;
     x.v = r;
-    SetBhvgotoGoal(t, &x);
+    SetBhvgotoGoal(t, (PATHLINKEND *)&x);
 }
 } // namespace M_func_0017E0E0
 
 // 0x17E278 SetBhvStalkState
 namespace M_func_0017E278 { extern "C" {
-struct VTE; struct O; struct S;
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-/* The pushed child: a BHVANIM/BHVIDLE or a BHVGOTO. */
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; union { int lookAt; int gotoSgf; }; int sgf; char pad3[0xC0 - 0x40]; int gotoAllowPartialRoute; };
-struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int target; };
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
-void RegoalBhvStalk(struct S *p);
+BHV *PushStepBehavior(void *p, int n);
+void RegoalBhvStalk(BHV189 *p);
 // 0x17E278: Stalk behaviour state change: 0 alert animation (flag 0xB) at the target, 1 run (BHVGOTO with flag
 // 0x1C), 2 hands-off idle.
-void SetBhvStalkState(struct S *behavior, int n)
+void SetBhvStalkState(BHV189 *behavior, int n)
 {
     if (n == behavior->state)
         return;
-    PopBhv(behavior->childSlot);
+    PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+        BHVANIM *o = (BHVANIM *)PushStepBehavior(behavior->owner, CID_BHVANIM);
         o->sgf = 0xB;
         o->lookAt = behavior->target;
         StartPushedBhv(o);
     } break;
     case 1: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
-        o->gotoAllowPartialRoute = 1;
-        o->gotoSgf = 0x1C;
+        BHVGOTO *o = (BHVGOTO *)PushStepBehavior(behavior->owner, CID_BHVGOTO);
+        o->allowPartialRoute = 1;
+        o->sgf = 0x1C;
         RegoalBhvStalk(behavior);
         StartPushedBhv(o);
     } break;
     case 2: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
+        BHVIDLE *o = (BHVIDLE *)PushStepBehavior(behavior->owner, CID_BHVIDLE);
         o->sgf = 1;
         StartPushedBhv(o);
     } break;
@@ -6404,11 +6390,7 @@ extern "C" void CloseBhvpathlink(BHVPATHLINK *behavior)
 
 // 0x17E458 UpdateBhvpathlink
 namespace M_UpdateBhvpathlink { extern "C" {
-struct D; struct C; struct T; 
 extern CLOCK D_002DDED0;
-struct D { char pad[0x10]; int pathzone; };
-struct C { char pad[0xDC]; struct D *unknownDC; };
-struct T { char pad[0x120]; int kind; int pad2; int endZone; };
 void UpdateBhv(BHVPATHLINK *p);
 int IsBhvpathlinkDone(BHVPATHLINK *p);
 int IsBhvRelocateDone(void *p);
@@ -6425,7 +6407,7 @@ void UpdateBhvpathlink(BHVPATHLINK *behavior) {
         if (IsBhvRelocateDone(behavior->pbhvNext)) AdvanceBhvpathlink(behavior);
         break;
     case 0: {
-        struct T *t = ((struct T *)behavior->pathlink);
+        PATHLINK *t = behavior->pathlink;
         switch (t->kind) {
         case 1:
             if (IsBhvanimDone(behavior->pbhvNext)) {
@@ -6437,9 +6419,9 @@ void UpdateBhvpathlink(BHVPATHLINK *behavior) {
             if (behavior->segmentTimeout < D_002DDED0.time) {
                 SetBhvpathlinkState(behavior, 1);
             } else {
-                struct C *c = ((struct C *)((STEPGUARD *)behavior->owner)->physics);
-                struct D *d = c ? c->unknownDC : 0;
-                int n = d ? d->pathzone : 0;
+                SOPHYS *c = behavior->owner->physics;
+                REGENT *d = c ? c->pregent : 0;
+                CID17 *n = d ? d->pathzone : 0;
                 if (n == t->endZone && IsBhvpathAtEnd(behavior->pbhvNext)) AdvanceBhvpathlink(behavior);
             }
             break;
@@ -6475,23 +6457,17 @@ extern "C" void AdvanceBhvpathlink(BHVPATHLINK *behavior)
 
 // 0x17E5F0 IsBhvpathlinkAtSegmentEnd
 namespace M_FBhvpathlinkAtSegmentEnd { extern "C" {
-struct E; 
-struct E { int a[8]; };
-struct P { char pad[0x60]; struct E segments[6]; };
 int IsNearPathlinkEndpoint(void *pe, void *p, float g);
 // 0x17E5F0: True if the guard is within 25 of the current segment's end point.
 int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *behavior)
 {
-    return IsNearPathlinkEndpoint(&((struct P *)behavior->pathlink)->segments[behavior->segmentIndex], behavior->owner, 25.0f);
+    return IsNearPathlinkEndpoint(&behavior->pathlink->aend[behavior->segmentIndex], behavior->owner, 25.0f);
 }
 } } // namespace M_FBhvpathlinkAtSegmentEnd
 
 // 0x17E628 PushBhvpathlinkLeap
 namespace M_PushBhvpathlinkLeap { extern "C" {
 
-typedef int qword __attribute__((mode(TI)));
-struct SEG { qword a; qword b; };
-struct P { char pad[0x60]; struct SEG segments[6]; };
 BHVLEAP *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
 qword GetPathlinkEndpointPos(void *pe, qword q);
@@ -6499,7 +6475,7 @@ qword GetPathlinkEndpointPos(void *pe, qword q);
 void PushBhvpathlinkLeap(BHVPATHLINK *behavior) {
     BHVLEAP *o = PushStepBehavior(behavior->owner, CID_BHVLEAP);
     o->extra = 1;
-    o->landingPoint = GetPathlinkEndpointPos(&((struct P *)behavior->pathlink)->segments[behavior->segmentIndex], GetLoWorldPos(behavior->owner));
+    o->landingPoint = GetPathlinkEndpointPos(&behavior->pathlink->aend[behavior->segmentIndex], GetLoWorldPos(behavior->owner));
     StartPushedBhv(o);
 }
 } } // namespace M_PushBhvpathlinkLeap

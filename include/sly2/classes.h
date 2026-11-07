@@ -1219,7 +1219,7 @@ typedef char assert_BHVPATROLPATH_size[sizeof(BHVPATROLPATH) == 0x60 ? 1 : -1];
 struct BHV189 : BHV
 {
     int state;              /* +0x30 */
-    int unknown34;
+    float stateTime;        /* +0x34 */
     LO *target;             /* +0x38 */
     float lastRegoalTime;   /* +0x3C */
     float forcedDelay;      /* +0x40 */
