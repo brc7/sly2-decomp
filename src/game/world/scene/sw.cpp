@@ -1454,17 +1454,15 @@ struct XB { char pad[0xC];
   virtual void v21(); virtual void v22(); virtual void v23(); virtual void v24();
 };
 struct X : XB { char pad10[0x10]; X *next; };
-struct B { X *first; int a, b; };
-struct S { char pad[0x3038]; B ab[199]; };
-extern "C" void SetSwPoOverride(S *p, int k);
+extern "C" void SetSwPoOverride(SW *p, int k);
 // Calls vtable slot 24 on every object of the 199 class lists, after 0x1C4A60(world, 0). (inferred: the slot's
 // meaning is not known; PROXY uses it to release its spares)
-extern "C" void CallSlot24OnSwObjects(S *world)
+extern "C" void CallSlot24OnSwObjects(SW *world)
 {
     int i;
     SetSwPoOverride(world, 0);
     for (i = 0; i < 199; i++) {
-        X *x = ((struct B *)((char *)world + 0x3038))[i].first;
+        X *x = (X *)((SL *)((char *)world + SLY2_OFFSETOF(SW, objectsByClass)))[i].head;   /* the list base computed once, as the code does */
         for (; x; x = x->next)
             x->v24();
     }
