@@ -791,7 +791,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct VTE { short d; short pad; int (*pfn)(void *, void *); };
 struct Q { char pad[0xC]; struct VTE *vt; };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; struct Q *lookAt; int sgf; int anim; };
+struct O : BHV { char pad2[0x38 - 0x30]; struct Q *lookAt; int sgf; int anim; };
 struct P { char pad[0xA0]; int hasAim; char pad2[0x1C]; int anim; };
 struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; struct Q *victim; int state; float stateTime; struct P *attack; };
 void UnsubscribeLoObject(struct Q *q, void *p);
@@ -816,7 +816,6 @@ void SetBhvattackState(struct S *behavior, int n) {
     case 0:
         {
             struct O *o;
-            struct VTE *entry;
             SubscribeLoObject(behavior->victim, behavior->guard);
             o = PushStepBehavior(behavior->guard, CID_BHVSTRIKE);
             o->lookAt = behavior->victim;
@@ -827,16 +826,15 @@ void SetBhvattackState(struct S *behavior, int n) {
                 struct VTE *f = &q->vt[0x20];
                 SetStepguardAimAct(behavior->guard, behavior->attack, f->pfn((char *)q + f->d, &b), b.v);
             }
-            entry = &o->vt[8]; ((void (*)(void *))entry->pfn)((char *)o + entry->d);
+            o->Start();
         }
         break;
     case 1:
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
-            struct VTE *entry;
             o->sgf = 4;
             o->lookAt = behavior->victim;
-            entry = &o->vt[8]; ((void (*)(void *))entry->pfn)((char *)o + entry->d);
+            o->Start();
         }
         break;
     case -1:
@@ -3616,11 +3614,10 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
 
 // 0x1791C8 SetBhvwalkpathState
 namespace M_SetBhvwalkpathState { extern "C" {
-struct VTE; struct O; struct S;
+ struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern float D_002BE694;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; int sgf; };
+struct O : BHV { char pad2[0x38 - 0x30]; int lookAt; int sgf; };
 struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x34]; int state; char pad3[0xC0 - 0x50]; int animSgf; int pad4; int lookAtTarget; int pad5; qword stuckCheckPos; float stuckTimer; };
 void SetBhvpathState(struct S *p, int n);
 void PopBhv(void *p);
@@ -3640,7 +3637,7 @@ void SetBhvwalkpathState(struct S *behavior, int n) {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
             o->sgf = behavior->animSgf;
             if (behavior->animSgf == 8) o->lookAt = behavior->lookAtTarget;
-            StartPushedBhv(o);
+            o->Start();
         }
         behavior->stuckCheckPos = GetLoWorldPos(behavior->guard);
         behavior->stuckTimer = D_002BE694;
@@ -3651,7 +3648,7 @@ void SetBhvwalkpathState(struct S *behavior, int n) {
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
             o->lookAt = behavior->lookAtTarget;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }
@@ -3858,11 +3855,10 @@ void BHV162::OnPush()
 
 // 0x179780 StartBhvKnockdown
 namespace M_func_00179780 { extern "C" {
-struct E; struct T; struct VTE; struct O; struct T2; struct S;
+struct E; struct T; struct O; struct T2; struct S;
 struct E { int kind; int a, b, c; };
 struct T : STEP { char pad[0x8D0 - 0x2C0]; struct E knockdownReactions[1]; };
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
+struct O : BHV { };
 struct T2 : STEP { char pad[0xF64 - 0x2C0]; void *detector; char pad2[0xFEC - 0xF68]; struct O *knockdownHelper; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct E *binding; char pad3[0xC]; int attacker; char pad4[8]; void *zapKind; };
 extern char D_002DEB30[];
@@ -3878,15 +3874,14 @@ void StartBhvKnockdown(struct S *behavior) {
     StartBhvhit(behavior);
     BroadcastGameEvent(D_002DEB30, 0x15, behavior->guard);
     SetDetectorTargetStateById(((struct T2 *)behavior->guard)->detector, behavior->attacker, 2);
-    { struct O *o = ((struct T2 *)behavior->guard)->knockdownHelper; if (o) StartPushedBhv(o); }
+    { struct O *o = ((struct T2 *)behavior->guard)->knockdownHelper; if (o) o->Start(); }
 }
 } } // namespace M_func_00179780
 
 // 0x179820 CloseBhvKnockdown
 namespace M_func_00179820 { extern "C" {
-struct VTE; struct O; struct T; struct S;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
+ struct O; struct T; struct S;
+struct O : BHV { };
 struct T : STEP { char pad[0xFEC - 0x2C0]; struct O *knockdownHelper; };
 struct S { char pad[0x10]; struct T *guard; };
 void CloseBhvhit(struct S *p);
@@ -3897,8 +3892,7 @@ void CloseBhvKnockdown(struct S *behavior)
     CloseBhvhit(behavior);
     o = behavior->guard->knockdownHelper;
     if (o) {
-        struct VTE *entry = &o->vt[9];
-        entry->pfn((char *)o + entry->d);
+        o->Close();
     }
 }
 } } // namespace M_func_00179820
@@ -4117,11 +4111,10 @@ void UpdateBhvpatrol(struct S *behavior) {
 
 // 0x179D30 SetBhvpatrolState
 namespace M_SetBhvpatrolState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct O; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
+struct O : BHV { char pad2[0x3C - 0x30]; int sgf; };
 struct T : STEP { char pad[0x2DC - 0x2C0]; char scriptResumePoint[4]; };
 struct S { char pad[0x10]; struct T *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; float stateTime; void *script; };
 void PopBhv(void *p);
@@ -4142,7 +4135,7 @@ void SetBhvpatrolState(struct S *behavior, int n) {
     case 1: case 2:
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-            StartPushedBhv(o);
+            o->Start();
         }
         ArmBhvpatrolPauseTimer(behavior);
         behavior->walkEndTime = 3.40282346638528859812e+38f;
@@ -4151,7 +4144,7 @@ void SetBhvpatrolState(struct S *behavior, int n) {
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHV169);
             SetBhvScriptScript(o, behavior->script, 0, behavior->guard->scriptResumePoint);
-            StartPushedBhv(o);
+            o->Start();
         }
         ArmBhvpatrolWalkTimer(behavior);
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
@@ -4160,7 +4153,7 @@ void SetBhvpatrolState(struct S *behavior, int n) {
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
             o->sgf = 1;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }
@@ -4686,11 +4679,10 @@ void UpdateBhvThrown(struct S *behavior) {
 
 // 0x17A8C8 SetBhvThrownState
 namespace M_func_0017A8C8 { extern "C" {
-struct CLOCK; struct VTE; struct O; struct T; struct S;
+struct CLOCK; struct O; struct T; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
+struct O : BHV { char pad2[0x3C - 0x30]; int sgf; };
 struct T : STEP { char pad[0x32C - 0x2C0]; int isInvulnerable32C; };
 struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
 void PopBhv(void *p);
@@ -4709,7 +4701,7 @@ void SetBhvThrownState(struct S *behavior, int n) {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
             int a[5] = { 18, 19, 20, 21, 19 };
             o->sgf = a[behavior->state];
-            StartPushedBhv(o);
+            o->Start();
         }
         behavior->guard->isInvulnerable32C = (unsigned)behavior->state < 2;
         break;
@@ -5460,11 +5452,10 @@ int HandleBhvshootMessage(struct S *behavior, int msg, struct M *pm) {
 
 // 0x17B750 SetBhvshootState
 namespace M_SetBhvshootState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct T; struct S;
+struct CLOCK; struct O; struct T; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; int sgf; };
+struct O : BHV { char pad2[0x38 - 0x30]; int lookAt; int sgf; };
 struct T : STEP { char pad[0xF60 - 0x2C0]; int firingWindow; };
 struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int target; };
 void PopBhv(void *p);
@@ -5482,7 +5473,7 @@ void SetBhvshootState(struct S *behavior, int n) {
     struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
     o->sgf = 0x11;
     o->lookAt = behavior->target;
-    StartPushedBhv(o);
+    o->Start();
     behavior->guard->firingWindow = 1;
 }
 } } // namespace M_SetBhvshootState
@@ -5529,11 +5520,10 @@ extern "C" void CloseBhvTargets(BHVSTATE *behavior)
 
 // 0x17B8B0 SetBhvTargetsState
 namespace M_func_0017B8B0 { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct O; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; int target; char pad3[8]; int sgf; int unknown40; };
+struct O : BHV { int target; char pad3[8]; int sgf; int unknown40; };
 struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; char pad3[8]; int chosenTarget; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
@@ -5550,7 +5540,7 @@ void SetBhvTargetsState(struct S *behavior, int n)
     switch (n) {
     case 0: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-        StartPushedBhv(o);
+        o->Start();
     }
         SetStepguardTarget(behavior->guard, 0);
         break;
@@ -5558,12 +5548,12 @@ void SetBhvTargetsState(struct S *behavior, int n)
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVCOMBAT);
         o->target = behavior->chosenTarget;
         o->unknown40 = 1;
-        StartPushedBhv(o);
+        o->Start();
     } break;
     case 2: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
         o->sgf = 1;
-        StartPushedBhv(o);
+        o->Start();
     } break;
     }
 }
@@ -6059,9 +6049,8 @@ repath:
 
 // 0x17C550 SetBhvCircleState
 namespace M_func_0017C550 { extern "C" {
-struct VTE; struct O; struct X; struct T; struct S;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; char pad3[0xC0 - 0x3C]; int animSgf; int pad4; int lookAtTarget; };
+ struct O; struct X; struct T; struct S;
+struct O : BHV { char pad2[0x38 - 0x30]; int lookAt; char pad3[0xC0 - 0x3C]; int animSgf; int pad4; int lookAtTarget; };
 struct X { char pad[0xC]; int target; };
 struct T : PO { char pad[0x294 - 0x180]; int pathShape; char pad2[0x3CC - 0x298]; struct X *engagement; };
 struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; };
@@ -6079,14 +6068,14 @@ void SetBhvCircleState(struct S *behavior, int n)
     case 0: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
         o->lookAt = behavior->guard->engagement->target;
-        StartPushedBhv(o);
+        o->Start();
     } break;
     case 1: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVWALKPATH);
         SetBhvpathShape(o, behavior->guard->pathShape, 0);
         o->animSgf = 8;
         o->lookAtTarget = behavior->guard->engagement->target;
-        StartPushedBhv(o);
+        o->Start();
     } break;
     }
 }
@@ -6380,11 +6369,10 @@ void UpdateBhvrail(struct S *behavior) {
 
 // 0x17CD00 SetBhvrailState
 namespace M_SetBhvrailState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct O; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
+struct O : BHV { char pad2[0x3C - 0x30]; int sgf; };
 struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
@@ -6399,14 +6387,14 @@ void SetBhvrailState(struct S *behavior, int n) {
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
             o->sgf = 2;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     case 0:
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
             o->sgf = 9;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }
@@ -6522,11 +6510,10 @@ void UpdateBhvpipe(struct S *behavior) {
 
 // 0x17D058 SetBhvpipeState
 namespace M_SetBhvpipeState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct O; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
+struct O : BHV { char pad2[0x3C - 0x30]; int sgf; };
 struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int pad3; int smoothedSpeed; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
@@ -6538,13 +6525,13 @@ void SetBhvpipeState(struct S *behavior, int n) {
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1:
-        { struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM); o->sgf = 2; StartPushedBhv(o); } behavior->smoothedSpeed = 0;
+        { struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM); o->sgf = 2; o->Start(); } behavior->smoothedSpeed = 0;
         break;
     case 0:
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
             o->sgf = 9;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }
@@ -6592,11 +6579,10 @@ void BHV187::OnPush()
 
 // 0x17D1F0 StartBhvAttachCid19
 namespace M_func_0017D1F0 { extern "C" {
-struct M3; struct VTE; struct O; struct T; struct S;
+struct M3; struct O; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a, b, c; };
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
+struct O : BHV { char pad2[0x3C - 0x30]; int sgf; };
 struct T : PO { char pad[0x1B0 - 0x180]; struct M3 orientation; char pad2[0xF84 - 0x1E0]; void *attachObject; };
 struct S { char pad[0x10]; struct T *guard; };
 extern qword D_002A2DC0;
@@ -6613,7 +6599,7 @@ void StartBhvAttachCid19(struct S *behavior)
     StartBhv(behavior);
     o = PushStepBehavior(behavior->guard, CID_BHVANIM);
     o->sgf = 2;
-    StartPushedBhv(o);
+    o->Start();
     t = behavior->guard;
     t->orientation = BuildOrthonormalMatrixZ(*GetLoWorldMatrix(t->attachObject), D_002A2DC0);
 }
@@ -6638,9 +6624,8 @@ void BHV188::OnPush()
 
 // 0x17D2E0 StartBhvAttachCid39
 namespace M_func_0017D2E0 { extern "C" {
-struct VTE; struct O; struct S;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
+ struct O; struct S;
+struct O : BHV { char pad2[0x3C - 0x30]; int sgf; };
 struct S { char pad[0x10]; void *guard; };
 void StartBhv(struct S *p);
 struct O *PushStepBehavior(void *p, int n);
@@ -6651,7 +6636,7 @@ void StartBhvAttachCid39(struct S *behavior)
     StartBhv(behavior);
     o = PushStepBehavior(behavior->guard, CID_BHVANIM);
     o->sgf = 2;
-    StartPushedBhv(o);
+    o->Start();
 }
 } } // namespace M_func_0017D2E0
 
@@ -6715,12 +6700,11 @@ void BHVGOTO::Close()
 
 // 0x17D450 SetBhvgotoState
 namespace M_SetBhvgotoState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct A; struct S;
+struct CLOCK; struct O; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int pad[2]; int lookAt; } idle; }; union { int ignoresBlockers; qword goalPos; }; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
+struct O : BHV { union { int pathlink; qword goalRef; struct { int pad[2]; int lookAt; } idle; }; union { int ignoresBlockers; qword goalPos; }; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
 struct A : PO { char pad[0x294 - 0x180]; int pathShape; char pad2[0xFE8 - 0x298]; int capabilities; };
 struct S {
     char pad[0x10]; struct A *guard; int pad2; struct O *child; char pad3[0x14]; int state; float stateTime;
@@ -6741,14 +6725,14 @@ void SetBhvgotoState(struct S *behavior, int n) {
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
             o->idle.lookAt = behavior->lookAtTarget;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     case 3:
         {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVPATHLINK);
             o->pathlink = behavior->firstLink;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     case 1:
@@ -6761,7 +6745,7 @@ void SetBhvgotoState(struct S *behavior, int n) {
                 o->ignoresBlockers = behavior->isDirect;
                 if (!behavior->lookAtTarget || behavior->unknownAC || !(behavior->guard->capabilities & 4)) o->animSgf = 9; else o->animSgf = 8;
                 SetBhvpathShape(o, behavior->guard->pathShape, 0);
-                StartPushedBhv(o);
+                o->Start();
             } else {
                 SetBhvpathShape(o, behavior->guard->pathShape, 0);
             }
@@ -6775,7 +6759,7 @@ void SetBhvgotoState(struct S *behavior, int n) {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHV191);
             o->goalRef = behavior->relocateGoalRef;
             o->goalPos = behavior->relocatePos;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }
@@ -7365,12 +7349,11 @@ extern "C" void RegoalBhvStalk(struct S *behavior) {
 
 // 0x17E278 SetBhvStalkState
 namespace M_func_0017E278 { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct O; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
 /* The pushed child: a BHVANIM/BHVIDLE or a BHVGOTO. */
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; union { int lookAt; int gotoSgf; }; int sgf; char pad3[0xC0 - 0x40]; int gotoAllowPartialRoute; };
+struct O : BHV { char pad2[0x38 - 0x30]; union { int lookAt; int gotoSgf; }; int sgf; char pad3[0xC0 - 0x40]; int gotoAllowPartialRoute; };
 struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int target; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
@@ -7389,19 +7372,19 @@ void SetBhvStalkState(struct S *behavior, int n)
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
         o->sgf = 0xB;
         o->lookAt = behavior->target;
-        StartPushedBhv(o);
+        o->Start();
     } break;
     case 1: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
         o->gotoAllowPartialRoute = 1;
         o->gotoSgf = 0x1C;
         RegoalBhvStalk(behavior);
-        StartPushedBhv(o);
+        o->Start();
     } break;
     case 2: {
         struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
         o->sgf = 1;
-        StartPushedBhv(o);
+        o->Start();
     } break;
     }
 }
@@ -7528,10 +7511,9 @@ int IsBhvpathlinkAtSegmentEnd(struct S *behavior)
 
 // 0x17E628 PushBhvpathlinkLeap
 namespace M_PushBhvpathlinkLeap { extern "C" {
-struct VTE; struct O; struct S;
+ struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword landingPoint; char pad3[8]; int unknown68; };
+struct O : BHV { char pad2[0x50 - 0x30]; qword landingPoint; char pad3[8]; int unknown68; };
 struct SEG { qword a; qword b; };
 struct P : LO { char pad[0x60 - 0x50]; struct SEG segments[6]; };
 struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct P *pathlink; int segmentIndex; };
@@ -7543,20 +7525,19 @@ void PushBhvpathlinkLeap(struct S *behavior) {
     struct O *o = PushStepBehavior(behavior->guard, CID_BHVLEAP);
     o->unknown68 = 1;
     o->landingPoint = GetPathlinkEndpointPos(&behavior->pathlink->segments[behavior->segmentIndex], GetLoWorldPos(behavior->guard));
-    StartPushedBhv(o);
+    o->Start();
 }
 } } // namespace M_PushBhvpathlinkLeap
 
 // 0x17E6B0 SetBhvpathlinkState
 namespace M_SetBhvpathlinkState { extern "C" {
-struct CLOCK; struct VTE; struct SEG; struct O; struct B; struct A; struct P; struct S;
+struct CLOCK; struct SEG; struct O; struct B; struct A; struct P; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE7B0, D_002BE7B4;
-struct VTE { short d; short pad; void (*pfn)(void *); };
 struct SEG { qword a; qword b; };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; qword goalRef; union { qword goalPos; int ignoresBlockers; }; char pad3[0x14]; float arrivalRadius; };
+struct O : BHV { qword goalRef; union { qword goalPos; int ignoresBlockers; }; char pad3[0x14]; float arrivalRadius; };
 struct B : XFM { char pad[0xE8 - 0xE0]; int numPoints; char pad2[8]; qword *points; };
 struct A : PO { char pad[0x294 - 0x180]; struct B *pathShape; };
 struct P : LO { char pad[0x60 - 0x50]; struct SEG segments[(0x120 - 0x60) / 32]; int kind; };
@@ -7601,7 +7582,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
                 o->ignoresBlockers = 1;
                 o->arrivalRadius = 10.0f;
                 SetBhvpathShape(o, b, 0);
-                StartPushedBhv(o);
+                o->Start();
             }
             break;
         case 1:
@@ -7616,7 +7597,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
             struct SEG *sg = (struct SEG *)(behavior->segmentIndex * 32 + (int)behavior->pathlink);
             o->goalRef = sg[3].a;
             o->goalPos = sg[3].b;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }
@@ -7735,12 +7716,11 @@ extern "C" void InitBhvpatrolpath(BHVPATROLPATHV *behavior)
 
 // 0x17EB88 StartBhvpatrolpath
 namespace M_StartBhvpatrolpath { extern "C" {
-struct VTE; struct O; struct S;
+ struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0xA8 - 0x10]; int lookAtTarget; int unknownAC; char pad3[0xC]; int isDirect; };
+struct O : BHV { char pad2[0xA8 - 0x30]; int lookAtTarget; int unknownAC; char pad3[0xC]; int isDirect; };
 struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int shape; int pad3; float pathParam; int pad4; char goal[0x10]; int lookAtTarget; int unknownAC; int isDirect; };
 void StartBhv(struct S *p);
 qword GetLoWorldPos(void *p);
@@ -7762,7 +7742,7 @@ void StartBhvpatrolpath(struct S *behavior) {
     o->unknownAC = behavior->unknownAC;
     o->isDirect = behavior->isDirect;
     AdvanceBhvpatrolpathGoal(behavior, 1);
-    o->vt[8].pfn((char *)o + o->vt[8].d);
+    o->Start();
 }
 } } // namespace M_StartBhvpatrolpath
 
