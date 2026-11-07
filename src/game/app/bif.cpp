@@ -3445,12 +3445,11 @@ CRef BuildListFromObjects__FiPP2LO(int c, O **apo)
 
 // 0x124150 BuiltinFindObject__FiP4CRefP6CFrame
 namespace M_BuiltinFindObject__FiP4CRefP6CFrame { extern "C" {
-struct CRef; struct LO; struct G;
+struct CRef; struct LO;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
-typedef struct G { char pad[0x3F0C]; void *pv; } G;
-extern G D_003DD490;
-void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
+extern SW D_003DD490;
+void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
@@ -3469,10 +3468,10 @@ CRef *BuiltinFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
         plo = b;
     }
     {
-        G *pg = &D_003DD490;
+        SW *pg = &D_003DD490;
         int k = b ? 1 : 5;
         int a = args[0].m_tag;
-        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, k, a, b, plo ? plo->pv : pg->pv));
+        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, k, a, b, plo ? plo->pv : (void *)pg->ppxrRoot));
     }
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
@@ -3527,7 +3526,7 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x1242B8 BuiltinFindObjectsFromOids
 namespace M_BuiltinFindObjectsFromOids {
-struct SPN; struct SW; struct OW; struct G;
+struct SPN; struct LOV; struct OW;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
@@ -3543,11 +3542,10 @@ struct SPN {
     int pad[3];
 };
 struct LO;
-struct SW { char pad[0x3C]; int n3C; };
-struct OW { char pad[0xC]; SW *psw; };
-struct G { char pad[0x3F0C]; int n3F0C; };
-extern "C" { extern G D_003DD490; }
-extern "C" LO *FindSwObjectInProxyScope(G *pg, int kind, int n, void *pv, int n2);
+struct LOV { char pad[0x3C]; int n3C; };   /* the search root's proxy context (+0x3C) */
+struct OW { char pad[0xC]; LOV *psw; };
+extern "C" { extern SW D_003DD490; }
+extern "C" LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, int n2);
 extern "C" CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args);
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
 CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
@@ -3556,11 +3554,11 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
     if (args[0].m_tagk == 0)
         return args[0];
     void *root = args[1].u.pv;
-    SW *context;
+    LOV *context;
     if (args[2].m_tagk != 0)
         context = ((OW *)args[2].u.pv)->psw;
     else
-        context = (SW *)root;
+        context = (LOV *)root;
     SPN list;
     CPair *head = PtNew__t6CGcObj1Z5CPair();
     list.Set(head);
@@ -3572,7 +3570,7 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
         newPair.Set(pair);
         int oid = oidPair->ref.u.n;
         newPair->ref.SetBasic((BASIC *)FindSwObjectInProxyScope(&D_003DD490, root ? 1 : 5, oid, root,
-                                                              context ? context->n3C : D_003DD490.n3F0C));
+                                                              context ? context->n3C : (int)D_003DD490.ppxrRoot));
         if (list->ref.m_tagk != TAGK_PAIR)
             list->ref = newPair.p;
         else
@@ -3589,12 +3587,11 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
 
 // 0x1244E8 BuiltinFindNearestObject__FiP4CRefP6CFrame
 namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame { extern "C" {
-struct CRef; struct LO; struct G;
+struct CRef; struct LO;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
-typedef struct G { char pad[0x3F0C]; void *pv; } G;
-extern G D_003DD490;
-void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
+extern SW D_003DD490;
+void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
@@ -3613,9 +3610,9 @@ CRef *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
         plo = b;
     }
     {
-        G *pg = &D_003DD490;
+        SW *pg = &D_003DD490;
         int a = args[0].m_tag;
-        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, 4, a, b, plo ? plo->pv : pg->pv));
+        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, 4, a, b, plo ? plo->pv : (void *)pg->ppxrRoot));
     }
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
