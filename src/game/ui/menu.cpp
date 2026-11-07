@@ -13,6 +13,7 @@
 #include "sly2/sndmgr.h"
 #include "sly2/util.h"
 #include "sly2/cref.h"
+#include "sly2/save.h"
 extern "C" void Decref__4CRef(void *);
 
 /* The pause menu (DRAFT name PAUSEMENU, after its functions' annotations): an 11-slot screen (sly2/screen.h's
@@ -66,7 +67,6 @@ typedef char GROUP_Size[sizeof(PAGE)==28?1:-1];
 struct DISPU { unsigned int dx : 12; unsigned int dy : 11; unsigned int r0 : 9; unsigned int r1; } __attribute__((aligned(8)));
 struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
 struct MCDLG { char pad[0x4C]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
-struct GSAVE { char pad[0xFD50]; int currentSlot; };   /* the save manager (memcard.cpp) */
 struct OPT;
 struct CONTEXT { char bytes[0x5464]; };
 struct BANK { char pad[0x24]; CONTEXT contexts[3]; char padFD50[8]; CONTEXT *current; };
@@ -82,7 +82,6 @@ extern SNDMGR D_003DD040;
 extern char D_002BBB60[];
 extern CONTEXT D_002E6604[] __asm__("D_002E65E0+0x24");   /* the save manager's contexts (+0x24) */
 extern MCDLG D_002E6550;
-extern GSAVE D_002E65E0;
 extern int D_002C2D8C;
 extern char D_003D4A60[];
 extern char D_002BFDA8[], D_002BFE08[], D_002BFE68[];
@@ -140,7 +139,7 @@ int AreWidgetLoadsIdle(void);
 int GetCurrentWorld(void);
 int GetBasicCid(void *p);
 void SetJobListPage(void *p, int f);
-void StartSaveSlotJob(GSAVE *p);
+void StartSaveSlotJob(SAVE *p);
 void ResetGameSequence(void);
 void FailJob(void *p);
 void WipeToWorldWarp(SW *pg, void *s, int a, int b, int c, int d);
@@ -860,7 +859,7 @@ extern "C" void OnPauseItemJobList(void)
 // Item text callback for the quit item: string 0x47 or 0x46 by a flag.
 extern "C" void GetPauseQuitItemText(int *menu)
 {
-    if (D_002E65E0.currentSlot) { *menu = 0x47; return; }
+    if (g_save.currentSlot) { *menu = 0x47; return; }
     *menu = 0x46;
 }
 
@@ -870,7 +869,7 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
 {
     BroadcastGameEvent(D_002DEB30, 0x2D, 0);
     BroadcastGameEvent(D_002DEB30, 0x2E, 0);
-    if (D_002E65E0.currentSlot) {
+    if (g_save.currentSlot) {
         CRefData r;
         int v;
         D_002E6550.followUpAction = 1;
@@ -881,7 +880,7 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
             SetMcDialogState(&D_002E6550, 0x22);
         } else {
             SetMcDialogState(&D_002E6550, 0x1A);
-            StartSaveSlotJob(&D_002E65E0);
+            StartSaveSlotJob(&g_save);
         }
     } else {
         ResetGameSequence();

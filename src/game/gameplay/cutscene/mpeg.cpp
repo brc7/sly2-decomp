@@ -8,10 +8,10 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
+#include "sly2/save.h"
 #include "gifs.h"
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-struct LM { float low, high; };
 /* A movie (0x40): its file key words (xor-scrambled offset / length / id). */
 struct K { uint offsetScrambled, lengthScrambled, idScrambled; char pad[0x34 - 0xC]; uint offsetKey, idKey, lengthKey; };   /* each value = scrambled ^ key */
 /* The subtitle shown over a movie: its text id and the time window. */
@@ -101,8 +101,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct DMA;
 struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned attr; unsigned option; int waitType; int waitId; int wakeupCount; };
-struct SLOT;
-struct GSAVE { char pad[0xFD50]; SLOT *pendingSlot; };   /* +0xFD50: the save slot being written (inferred; UpdateSave runs while it is null) */
 struct JOY;
 
 extern "C" {
@@ -123,7 +121,6 @@ extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 
     0xC4B8B404, 0x45003150, 0xE477A414, 0xF7052120, 0x48EE9B13, 0xCCED18FA, 0x7141672D, 0x26D34691, 0x8943016C};
 int D_002C0268 = 0;   /* mpeg's .data */
 extern int D_002BD4C0;
-extern GSAVE D_002E65E0;
 extern JOY D_002DFC00;
 
 int func_00234A60(int n) __asm__("WaitSema");
@@ -170,7 +167,7 @@ int OpenBasFromFileKey(CBinaryAsyncStream *ps, void *px);
 int sceMpegIsEnd(MPEG *p);
 void MarkClockTick(CLOCK *p, int k);
 void UpdateJoy__FP3JOY(JOY *p);
-void UpdateSave__FP4SAVE(GSAVE *g);
+void UpdateSave__FP4SAVE(SAVE *g);
 uint HandleJoyButtons(JOY *p, uint k);
 void UpdateCd__Fv(void);
 void Close__18CBinaryAsyncStream(CBinaryAsyncStream *ps);
@@ -599,14 +596,14 @@ void BuildMpegGifs(CMPEG *player)
 }
 
 struct RGBA_RAW { uchar r, g, b, a; };
-struct RGBA {
+struct RGBAV {
     union { RGBA_RAW bytes; uint word; };
     // Uninitialised color.
-    RGBA() {}
+    RGBAV() {}
     // Color from a packed word.
-    RGBA(uint value) { word = value; }
+    RGBAV(uint value) { word = value; }
     // Copy a color.
-    RGBA(const RGBA &c) { bytes = c.bytes; }
+    RGBAV(const RGBAV &c) { bytes = c.bytes; }
 };
 struct CFont { char opaque[0x140]; } __attribute__((aligned(16)));
 struct CRichText {
@@ -614,24 +611,24 @@ struct CRichText {
     CFont *current, *base;
     CFont font;
     int dirty;
-    RGBA color, setColor, baseColor, fontColor;
+    RGBAV color, setColor, baseColor, fontColor;
     CRichText(char *str, CFont *pf);
 };
 struct TB {
     float x, y, dx, dy;
-    RGBA color;
+    RGBAV color;
     int jh;
     int jv;
     void SetPos(float x, float y) __asm__("CTextBox_SetPos");
     void SetSize(float dx, float dy) __asm__("CTextBox_SetSize");
-    void SetColor(RGBA *prgba) __asm__("CTextBox_SetTextColor");
+    void SetColor(RGBAV *prgba) __asm__("CTextBox_SetTextColor");
     void SetHorizontalJust(int j) __asm__("CTextBox_SetHorizontalJust");
     void SetVerticalJust(int j) __asm__("CTextBox_SetVerticalJust");
     // Text box at (x, y) of size (dx, dy) with color word `word` (default light grey).
     TB(float x, float y, float dx, float dy, uint word = 0xFFC0C0C0) {
         SetPos(x, y);
         SetSize(dx, dy);
-        RGBA rgba(word);
+        RGBAV rgba(word);
         SetColor(&rgba);
         SetHorizontalJust(0);
         SetVerticalJust(0);
@@ -645,7 +642,7 @@ extern TEXT_TABLE D_003E1C20;
 char *FindKeyedTableValue(TEXT_TABLE *p, int k);
 float GetRichTextWrappedHeight(CRichText *pfont, float dx) __asm__("GetRichTextWrappedHeight");
 float GetMaxLineWidth__9CRichText(CRichText *pfont);
-void FillScreenRect(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
+void FillScreenRect(RGBAV rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
 void Draw__9CRichTextP8CTextBoxT1P4GIFS(CRichText *pfont, TB *ptb, TB *clip, GIFS *pgifs);
 }
 typedef char CRichText_Size[sizeof(CRichText)==368?1:-1];
@@ -681,7 +678,7 @@ void DrawMpegSubtitles(CMPEG *player)
         float dy = GetRichTextWrappedHeight(&font, 320.0f);
         float dx = GetMaxLineWidth__9CRichText(&font);
         TB tb(320.0f - dx * 0.5f, 476.8000183f - dy, dx, dy);
-        RGBA rgba;
+        RGBAV rgba;
         TB *ptb = &tb;
         ptb->jh = 1;
         rgba.word = 0x80000000;
@@ -754,7 +751,6 @@ typedef char X_PrefixSize[sizeof(X)==272?1:-1];
 typedef char K_PrefixSize[sizeof(K)==64?1:-1];
 typedef char STRM_PrefixSize[sizeof(CBinaryAsyncStream)==48?1:-1];
 typedef char MPEG_PrefixSize[sizeof(MPEG)==68?1:-1];
-typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,pendingSlot)==64848?1:-1];
 // Movie loop: open async stream, Start, per frame MarkClockTick(paused)/UpdateJoy/UpdateCd, decode, Finish.
 void Execute__5CMpegPv(CMPEG *player, K *k)
 {
@@ -769,7 +765,7 @@ void Execute__5CMpegPv(CMPEG *player, K *k)
             int f;
             MarkClockTick(&D_002DDED0, 1);
             UpdateJoy__FP3JOY(&D_002DFC00);
-            if (!D_002E65E0.pendingSlot) UpdateSave__FP4SAVE(&D_002E65E0);
+            if (!g_save.currentSlot) UpdateSave__FP4SAVE(&g_save);
             f = 0;
             if (FMatch(k, (K *)D_002A3968) || FMatch(k, (K *)D_002A39A8)) f = D_002F68F8 != 0;
             if (D_002C0268) f = 1;
