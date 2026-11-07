@@ -1954,10 +1954,8 @@ typedef struct MSG { int cb; int nKind; } MSG;
 void *AllocClearedFromWorldHeap(MSG *pmsg);
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 struct C { int a[4]; };
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; int pad[6]; unsigned long fl; };
-struct DA { int n0; int cMax; int c; struct O **a; };
-struct S { char pad[0xE0]; int numChildren; struct O **children; };   /* EXPLG */
+struct DA { int n0; int cMax; int c; LO **a; };
+struct S : XFM { int numChildren; LO **children; };   /* EXPLG (its fields past XFM) */
 void STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void LoadXfmFromBrx(struct S *p, void *q);
@@ -1978,11 +1976,10 @@ void LoadExplgFromBrx(struct S *p, void *q)
     LoadXfmChildObjectsFromBrx(p, q, &da);
     p->children = (__typeof__(p->children))PvAllocMsg(&msg, da.c * 4, 0x10);
     for (i = 0; i < da.c; i++) {
-        struct O *o = da.a[i];
-        o->fl |= 0x200000000000000L;
+        LO *o = da.a[i];
+        o->unknownFlag28A = 1;
         if (!IsBasicDerivedFrom__FP5BASIC3CID(o, 0x1E)) {
-            struct VTE *e = &o->vt[9];
-            e->pfn((char *)o + e->d);
+            o->Remove();
         } else {
             p->children[p->numChildren++] = o;
         }
