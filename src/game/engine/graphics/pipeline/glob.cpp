@@ -2898,7 +2898,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     else
     {
         vifsAux.AllocStack(0x800);
-        if (FIsBasicDerivedFrom((BASIC *)pglobset->pso, (CID)0x31) && !(psubglob->bUnk02 & 4) && (uchar)(psubglob->bUnk00 - 7) >= 2 &&
+        if (FIsBasicDerivedFrom((BASIC *)pglobset->pso, (CID)0x31) && !(psubglob->bUnk02 & 4) && (uchar)(psubglob->bUnk00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
             psubglob->gUnk04 == D_002A52A0 && g_sw.fUnk3e40 == 0)
         {
             QW qwOne;
