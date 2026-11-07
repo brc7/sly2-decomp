@@ -174,16 +174,6 @@ struct LOREF
       undefined4 unk_0x04;
 };
 
-struct STUNHOLD
-{
-      int fValid;
-      float gSide;
-      float gUp;
-      undefined4 unk_0x0c;
-      qword qwPos;
-      qword qwVel;
-};
-
 void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
 extern "C" int GetStepplayerMp(STEPPLAYER *pstepplayer);

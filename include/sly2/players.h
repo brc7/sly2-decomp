@@ -32,7 +32,7 @@ struct MURRAY : public STEPPLAYER
       GAIT gaitA;   /* +0x1320 locomotion gaits (PostMurrayLoad's PostJtLoadGait: A, B, D, C in that order) */
       int state;    /* Murray's state */
       undefined4 unknown13D4;
-      int unknown13D8;
+      int unknown13D8;   /* 1: no ground probe (GetMurrayGroundProbeFlags) */
       undefined4 unk_0x13dc[(0x13e8 - 0x13dc) / 4];
       int unknown13E8;
       undefined4 unknown13EC;
@@ -42,8 +42,8 @@ struct MURRAY : public STEPPLAYER
       float unknown1414;
       undefined4 unk_0x1418[(0x1420 - 0x1418) / 4];
       qword throwGoal;   /* +0x1420 where a throw aims (ThrowMurrayCarried; ThrowMurrayCarriedAt sets it to an object's position) */
-      LO *unknown1430;
-      float unknown1434;
+      LO *ploReleased;   /* +0x1430 the object last released from a carry (DetachMurrayCarried); ignored in collisions */
+      float releaseTime;   /* +0x1434 clock.time of that release */
       undefined4 unknown1438;
       int unknown143C;
       undefined4 unk_0x1440[(0x144c - 0x1440) / 4];
@@ -71,9 +71,15 @@ struct MURRAY : public STEPPLAYER
       BLDIR unknown16F0[8];     /* directional animation blends */
       ASEGBL *unknown17F0;
       int strafeSubstate;   /* +0x17F4 sub-state while strafing (MURRAY_STRAFE; nonzero: noisy movement) */
-      undefined4 unk_0x17f8[(0x1810 - 0x17f8) / 4];
-      int unknown1810;
-      undefined4 unk_0x1814[(0x1830 - 0x1814) / 4];
+      undefined4 unk_0x17f8;
+      ASEG *apasegAttack[5];   /* +0x17FC attack clips by attack kind (SetMurrayAttack): 0/1 square (the two hands), 2/3 triangle
+                                  (StartMurrayPunch/AltAttack), 4 (OID 0xC4) */
+      int attackSubstate;   /* +0x1810 current attack kind, -1 none (SetMurrayAttack) */
+      float attackStartTime;   /* +0x1814 clock.time attackSubstate was set */
+      int unknown1818;   /* +0x1818 cleared when an attack starts */
+      int unknown181C;   /* +0x181C cleared when an attack starts */
+      int comboWindow;   /* +0x1820 a new attack may start while one runs (CanMurrayAttack); cleared when an attack starts */
+      undefined4 unk_0x1824[(0x1830 - 0x1824) / 4];
       qword unknown1830;
       int subState;   /* +0x1840 sub-state of Murray's behaviour (BHV198's Update, ai/tu_144B28.cpp: 0 face the player, 1 keep turning) */
       undefined4 unk_0x1844[(0x1850 - 0x1844) / 4];

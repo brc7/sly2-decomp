@@ -33,6 +33,18 @@ struct ZPR
       undefined4 unknown58[2];
 };
 
+/* STUNHOLD: where and how a character holds a stunned target (filled by the GetStunHold virtual of STEPPLAYER and its
+   heroes). Lilly names; was copied in jt.cpp and air.cpp. */
+struct STUNHOLD
+{
+      int fValid;     /* the hold is valid */
+      float gSide;    /* side distance (Murray: 200) */
+      float gUp;      /* height */
+      undefined4 unk_0x0c;
+      qword qwPos;    /* hold position (Murray attacking: the predicted attack end, MURRAY +0x1830) */
+      qword qwVel;    /* hold velocity */
+};
+
 /* MRSG: a time window (start and duration) in an animation, used for foot-contact ranges (inferred).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct MRSG
