@@ -49,6 +49,9 @@ struct SPRITESLOT
     void *sound;                 /* +0x14 */
 };
 
+/* A 2-D transform override (a 2x3 matrix, 0x20 bytes: WIDGET::xform, SPRITEGRP::xform, the sprite items' poses). */
+struct SPRITEXF { float a[6]; } __attribute__((aligned(16)));
+
 /* A sprite group (0x30 bytes; WIDGET::spriteGroups, group 0 the main sprite) [WIDGETCLIP]. */
 struct SPRITEGRP
 {

@@ -1334,19 +1334,17 @@ void S::StopMainAnim()
 
 // 0x213928 StopWidgetAnim
 namespace M_StopWidgetAnim { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct C *slots; char padc[0x14]; int currentAnim; char pad24[0xC]; };
-struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
+void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z);
+} } // namespace M_StopWidgetAnim
 // Returns the sprite that plays an animation id to its rest animation.
-void StopWidgetAnim(struct S *widget, int animId)
+extern "C" void StopWidgetAnim(WIDGET *widget, int animId)
 {
+    using namespace M_StopWidgetAnim;
     int groupIndex, animIndex, i;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id) {
                 int isAnySlotPlaying = 0;
                 for (i = 0; i < group->numSlots; i++) {
@@ -1362,46 +1360,41 @@ void StopWidgetAnim(struct S *widget, int animId)
         }
     }
 }
-} } // namespace M_StopWidgetAnim
 
 // 0x213A08 PlayWidgetAnimsWithArg
 namespace M_func_00213A08 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };
-struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSpriteWithArg(struct S *widget, int groupIndex, int animIndex, int x, int y, int z);
+void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z);
+} } // namespace M_func_00213A08
 // Starts every sprite that has the animation id, with an argument. (inferred)
-void PlayWidgetAnimsWithArg(struct S *widget, int animId, int arg)
+extern "C" void PlayWidgetAnimsWithArg(WIDGET *widget, int animId, int arg)
 {
+    using namespace M_func_00213A08;
     int groupIndex, animIndex;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id)
                 RestartNestedSpriteWithArg(widget, groupIndex, 0, arg, 0, 0);
         }
     }
 }
-} } // namespace M_func_00213A08
 
 // 0x213B00 PlayWidgetAnim
 namespace M_PlayWidgetAnim { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct C *slots; char padc[0x14]; int currentAnim; char pad24[0xC]; };
-struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
+void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z);
+} } // namespace M_PlayWidgetAnim
 // Starts the animation id on the sprite that owns it (restarting in place if it is instanced).
-void PlayWidgetAnim(struct S *widget, int animId)
+extern "C" void PlayWidgetAnim(WIDGET *widget, int animId)
 {
+    using namespace M_PlayWidgetAnim;
     int groupIndex, animIndex, i;
     if (animId == -1)
         return;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id) {
                 int isAnySlotPlaying = 0;
                 for (i = 0; i < group->numSlots; i++) {
@@ -1417,22 +1410,20 @@ void PlayWidgetAnim(struct S *widget, int animId)
         }
     }
 }
-} } // namespace M_PlayWidgetAnim
 
 // 0x213BD8 PlayWidgetAnimWithArg
 namespace M_func_00213BD8 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };
-struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSpriteWithArg(struct S *widget, int groupIndex, int animIndex, int x, int y, int z);
+void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z);
+} } // namespace M_func_00213BD8
 // Starts the first sprite that has the animation id, with an argument. (inferred)
-void PlayWidgetAnimWithArg(struct S *widget, int animId, int arg)
+extern "C" void PlayWidgetAnimWithArg(WIDGET *widget, int animId, int arg)
 {
+    using namespace M_func_00213BD8;
     int groupIndex, animIndex;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id) {
                 RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, 0, 0);
                 return;
@@ -1440,7 +1431,6 @@ void PlayWidgetAnimWithArg(struct S *widget, int animId, int arg)
         }
     }
 }
-} } // namespace M_func_00213BD8
 
 // 0x213C68 SetWidgetXf
 namespace M_SetWidgetXf { extern "C" {
