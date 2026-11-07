@@ -1982,25 +1982,10 @@ typedef struct EMITP { int reference; int shape; int render; int nextRender; int
 typedef struct XF4 { qword v; } XF4;
 typedef struct X4 { char pad[0xF4]; XF4 *p; } X4;   /* the curve shape object: its centre at ->p->v (inferred) */
 typedef struct FRM { qword pos; qword m[3]; } FRM;
-typedef struct EMITBV {
-    int cref; int particleKind; EMITP *pemitp; int padC;
-    int originKind;             /* +0x10 EMIT_ORIGIN */
-    int normalKind;             /* +0x14 */
-    int velocityKind;           /* +0x18 */
-    FRM *pfrm;                  /* +0x1C the origin's local transform */
-    int pad20[4];
-    /* +0x30 the origin data: point, box corners, or an EMITMESH (its centre at +0x20) */
-    union { qword v; qword *pm; EMITP *pemitp; struct { char pad[0x20]; qword v; } *pq; } origin;
-    qword vector;               /* +0x40 */
-    float speedMin, speedMax;   /* +0x50 */
-    char pad58[0xD8 - 0x58];
-    float ripScaleMin, ripScaleMax;   /* +0xD8 */
-    qword blipScale[2];         /* +0xE0 (scaled with the explosion, at least half size) */
-} EMITBV;
 typedef struct SND { int id; float rangeMin, rangeMax, volume, pitch; } SND;   /* the EXPLS's SFX */
 /* EXPLS */
 typedef struct EMITTERV {
-    char pad[0xE4]; EMITBV *pemitb; int padE8, padEC; SND *psnd;
+    char pad[0xE4]; EMITB *pemitb; int padE8, padEC; SND *psnd;
     float countMin, countMax;   /* +0xF4 particles per explosion */
     int keepsGroups;            /* +0xFC emit into the EXPLS's own rip / blip groups (and subscribe it) */
     int pripg; int pblipg;      /* +0x100 */
@@ -2016,7 +2001,7 @@ extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
 extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
 extern void VECTOR_opAssign(qword *pv, qword a);
-extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pb, EMITR *pr);
+extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITR *pr);
 extern qword ConvertPosBetweenLos(int x, int y, qword v);
 extern void *CreateSfxSound(int id);
 extern void SetSndSourceLo(void *p, void *pso);
@@ -2032,16 +2017,16 @@ extern void SetSndPitch(void *p, float g);
 void FireExplsExplso(EMITTERV *expls, EMITO *explso)
 {
     EMITP emitp;
-    EMITBV emitb;
+    EMITB emitb;
     EMITR emitg;
     EMITR *pemitg;
     int count;
     V4 pos;
     V4 h;
 
-    emitp = *expls->pemitb->pemitp;
+    emitp = *(EMITP *)expls->pemitb->aploRef;
     emitb = *expls->pemitb;
-    emitb.pemitp = &emitp;
+    emitb.aploRef = (LO **)&emitp;
     if (explso->grf & EXPLSO_HAS_COUNT)
         count = explso->count;
     else
@@ -2049,12 +2034,12 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
     if (explso->grf & EXPLSO_HAS_REFERENCE)
         emitp.reference = explso->reference;
     if (explso->grf & EXPLSO_HAS_VECTOR)
-        emitb.vector = explso->vector;
+        emitb.emito.direction = explso->vector;
     if (explso->grf & EXPLSO_HAS_ORIGIN) {
-        emitb.origin.v = explso->origin;
-        emitb.originKind = EMIT_ORIGIN_POINT;
+        emitb.emito.posPoint = explso->origin;
+        emitb.emito.originKind = EMIT_ORIGIN_POINT;
     } else if (explso->grf & EXPLSO_HAS_XF) {
-        emitb.pfrm = (FRM *)explso->pxf;
+        emitb.emito.pxfOrigin = (XF *)explso->pxf;
     }
     if ((explso->grf & EXPLSO_HAS_SCALE) && emitb.particleKind == 0)   /* blips */ {
         float scale;
@@ -2072,16 +2057,16 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
         if (!(maxCount < count))
             count = maxCount;
         speedScale = ClampToLimits__FP2LMf(D_002BDEC0, scale);
-        emitb.speedMin *= speedScale;
-        emitb.speedMax *= speedScale;
+        emitb.lmSpeed.minValue *= speedScale;
+        emitb.lmSpeed.maxValue *= speedScale;
         { float h = 0.5f; scale = (h < scale) ? scale : h; }
-        VECTOR_opAssign(emitb.blipScale, __ml__FG8VU_FLOATG9VU_VECTOR(func_00256CE8(scale).q, __9VU_VECTORRC6VECTOR(emitb.blipScale).q));
+        VECTOR_opAssign((qword *)&emitb.v.scale, __ml__FG8VU_FLOATG9VU_VECTOR(func_00256CE8(scale).q, __9VU_VECTORRC6VECTOR((qword *)&emitb.v.scale).q));
     }
     if (emitb.particleKind == 1) {   /* rips */
         if (explso->grf & EXPLSO_HAS_RIP_SCALE)
-            emitb.ripScaleMax = emitb.ripScaleMin = explso->scale;
+            emitb.v.lmScale.maxValue = emitb.v.lmScale.minValue = explso->scale;
         if (explso->grf & EXPLSO_HAS_TOUCH)
-            emitb.pemitp->touch = explso->touch;
+            ((EMITP *)emitb.aploRef)->touch = explso->touch;
     }
     if (expls->keepsGroups) {
         emitg.ppblipg = &expls->pblipg;
@@ -2091,14 +2076,14 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
     } else {
         pemitg = 0;
     }
-    if (emitp.reference == 0 && emitb.originKind != EMIT_ORIGIN_CURVE && !(explso->grf & (EXPLSO_HAS_SCALE | EXPLSO_HAS_XF)))
+    if (emitp.reference == 0 && emitb.emito.originKind != EMIT_ORIGIN_CURVE && !(explso->grf & (EXPLSO_HAS_SCALE | EXPLSO_HAS_XF)))
         emitp.reference = (int)expls;
     EmitParticles__FiP5EMITBP5EMITG(count, &emitb, pemitg);
     if (expls->psnd) {
         void *sound;
-        switch (emitb.originKind) {
+        switch (emitb.emito.originKind) {
         case EMIT_ORIGIN_POINT:
-            pos.q = emitb.origin.v;
+            pos.q = emitb.emito.posPoint;
             break;
         case EMIT_ORIGIN_BOX: {     /* the box centre */
             float half = 0.5f;
@@ -2107,7 +2092,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
                 __asm__("qmtc2.ni %1, %0" : "=j"(hv) : "r"(half));
                 h.q = hv;
                 {
-                    qword *pm = emitb.origin.pm;
+                    qword *pm = (qword *)emitb.emito.pvEmito;   /* the box corners */
                     register qword m1 __asm__("vf2") = pm[1];
                     register qword m0 __asm__("vf3") = pm[0];
                     register qword centre __asm__("vf1");
@@ -2118,14 +2103,14 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
             break;
         }
         case EMIT_ORIGIN_CURVE:
-            pos.q = ((X4 *)emitb.pemitp->shape)->p->v;
+            pos.q = ((X4 *)((EMITP *)emitb.aploRef)->shape)->p->v;
             break;
         case EMIT_ORIGIN_MESH:
-            pos.q = emitb.origin.pq->v;
+            pos.q = ((qword *)emitb.emito.pvEmito)[2];   /* the EMITMESH's centre (+0x20) */
             break;
         }
-        if (emitb.pfrm) {
-            FRM *pf = emitb.pfrm;
+        if (emitb.emito.pxfOrigin) {
+            FRM *pf = (FRM *)emitb.emito.pxfOrigin;
             qword *pm = pf->m;
             register qword v __asm__("vf3") = pos.q;
             register qword m0 __asm__("vf4") = pm[0];

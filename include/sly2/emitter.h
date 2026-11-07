@@ -108,9 +108,11 @@ struct EMITO
     int originOid;          /* +0x10 the origin's reference object (-1: none) */
     LM lmOffset;            /* +0x14 random distance moved along the chosen direction */
     char pad1C[4];
-    int pvEmito;            /* +0x20 origin data by originKind (point: the position; box: its BOX; curve: -1, then
-                               an OID; mesh: its EMITMESH) */
-    char pad24[0x30 - 0x24];
+    union                   /* +0x20 origin data, selected by originKind */
+    {
+        qword posPoint;     /* point: the position itself */
+        int pvEmito;        /* box: its BOX; curve: -1, then an OID; mesh: its EMITMESH (allocated per kind) */
+    };
     qword direction;        /* +0x30 emission direction, centre or tangent partner (by normalKind) */
 };
 typedef char assert_EMITO_size[sizeof(EMITO) == 0x40 ? 1 : -1];
