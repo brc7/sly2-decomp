@@ -81,7 +81,7 @@ struct SURFLOC
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JT : public STEPPLAYER
 {
-      undefined4 gait[0xb0 / 4];
+      GAIT gait;   /* +0x1320 Sly's walk/run gait (InitJt) */
       undefined4 unknown13D0[0x100 / 4];
       ASEGBL *unknown14D0;
       ASEG *unknown14D4;
@@ -168,7 +168,7 @@ struct JT : public STEPPLAYER
       qword posPickpocket19C0;   /* +0x1C00 wristXf (+0x19C0)'s position at that label */
       qword eulerPickpocket19C0;   /* +0x1C10 wristXf (+0x19C0)'s rotation (Euler angles) at that label */
       qword posPickpocketHandLocal;   /* +0x1C20 posPickpocketHand in wristXf (+0x19C0)'s frame */
-      undefined4 unk_0x1c30[(0x1ce0 - 0x1c30) / 4];
+      GAIT gaitB;   /* +0x1C30 his second gait (InitJt; the state with gait clips at jt.cpp 3620) */
       ASEG *apasegSwing[13];   /* cane swing animations */
       ASEG *pasegAttackA;   /* first attack animation */
       ASEG *pasegAttackB;   /* second attack animation */

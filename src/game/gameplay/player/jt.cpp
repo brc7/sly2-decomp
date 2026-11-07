@@ -276,33 +276,25 @@ struct CID12 : public SHAPE, public GRABSPOT
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitJt { extern "C" {
-struct LM4 { float g0; int n; float g8; float gc; };
-struct S {
-    char pad[0x264]; int x264;
-    char p0[0xD98]; int x1000; char p1[0x1C]; float x1020;
-    char p2[0x74]; float x1098; float x109c; float x10a0; float x10a4; struct LM4 lm;
-    char p3[0x268]; char x1320[0x4B0]; char x17d0[0xF8]; int state; int p4; int x18d0; int p5; int caneState;
-    char p6[0xD0]; float x19ac; char p7[0x280]; char x1c30[0x380]; int x1fb0; int p8[2]; int x1fbc; int p9[2]; int x1fc8; int p10[2]; int x1fd4; int p11[6]; char x1ff0[4];
-};
-extern struct S *D_002E1E40;
-void InitStepplayer(struct S *p);
-void InitGait(void *pv, struct S *p, int n);
-void ScaleStepSpinSpeed(struct S *p, float g);
-void InitBentleyHelper(void *pv, struct S *p);
-void ResetJtHands(void *pv);
+extern JT *D_002E1E40;
+void InitStepplayer(JT *p);
+void InitGait(GAIT *pv, JT *p, int n);
+void ScaleStepSpinSpeed(JT *p, float g);
+void InitBentleyHelper(JTREC *pv, JT *p);
+void ResetJtHands(JTHANDS *pv);
 // Initialise a limit record from its two float fields and clear its int field.
-static __inline__ void InitLm(struct LM4 *range, float g8, float gc) { range->g8 = g8; range->gc = gc; range->n = 0; }
+static __inline__ void InitLm(SMPA *range, float g8, float gc) { range->fastDuration = g8; range->maxSpeedChange = gc; range->slowSpeed = 0; }
 // JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
 // records, helpers).
-void InitJt(struct S *jt)
+void InitJt(JT *jt)
 {
     InitStepplayer(jt);
-    jt->x19ac = 15.0f;
-    jt->state = -1;
-    jt->caneState = -1;
-    jt->x18d0 = -1;
-    InitGait(jt->x1320, jt, 0x6F);
-    InitGait(jt->x1c30, jt, 0x6F);
+    jt->rBounds = 15.0f;
+    *(int *)&jt->state = -1;   /* JTS has no negative enumerator (an unsigned enum): stored as the int -1 */
+    jt->animState = -1;
+    jt->bodyState = JTBS_Nil;
+    InitGait(&jt->gait, jt, 0x6F);
+    InitGait(&jt->gaitB, jt, 0x6F);
     {
     register float a __asm__("$f5")=-100.0f;
     register float b __asm__("$f1")=100.0f;
@@ -311,18 +303,18 @@ void InitJt(struct S *jt)
     register float e __asm__("$f4")=250.0f;
     register float f __asm__("$f6")=1.0f;
     register float g __asm__("$f0")=4500.0f;
-    jt->x1098=a; jt->x109c=b; jt->x10a0=c; jt->x10a4=d; jt->lm.g0=e; InitLm(&jt->lm,f,g);
+    jt->waterProbe[0]=a; jt->waterProbe[1]=b; jt->waterProbe[2]=c; jt->waterProbe[3]=d; jt->unknown10A8.fastSpeed=e; InitLm(&jt->unknown10A8,f,g);
     }
     ScaleStepSpinSpeed(jt, 1.6f);
-    jt->x1fb0 = 0x1A;
-    jt->x1fbc = 0x25;
-    jt->x1fc8 = 0x26;
-    jt->x1fd4 = 0x29;
-    InitBentleyHelper(jt->x1ff0, jt);
-    jt->x1000 = 1;
-    jt->x1020 = 200.0f;
-    jt->x264 = 0xC7;
-    ResetJtHands(jt->x17d0);
+    jt->gadgetPockets[0].idGadget = 0x1A;
+    jt->gadgetPockets[1].idGadget = 0x25;
+    jt->gadgetPockets[2].idGadget = 0x26;
+    jt->gadgetPockets[3].idGadget = 0x29;
+    InitBentleyHelper(&jt->jtrec, jt);
+    jt->grfGrabTarget = 1;
+    jt->unknown1020 = 200.0f;
+    jt->unknown264 = 0xC7;
+    ResetJtHands(&jt->hands);
     D_002E1E40 = jt;
 }
 } } // namespace M_InitJt
@@ -3509,10 +3501,10 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             }
             break;
             case JTS_Run:
-                aseg = ((GAIT *)jt->gait)->blendedAnimation;
+                aseg = jt->gait.blendedAnimation;
                 grfapl = 9;
                 tStart = jt->gaitBlend * aseg->duration;
-                ClearGaitFootDown((GAIT *)jt->gait);
+                ClearGaitFootDown(&jt->gait);
                 break;
             case JTS_Interact:
                 fKeep = 1;
@@ -3617,10 +3609,10 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->unknown1BD4 = 0;
                 break;
             case JTS_Gait2:
-                aseg = ((GAIT *)jt->unk_0x1c30)->blendedAnimation;
+                aseg = jt->gaitB.blendedAnimation;
                 grfapl = 9;
                 tStart = jt->gaitBlend * aseg->duration;
-                ClearGaitFootDown((GAIT *)jt->unk_0x1c30);
+                ClearGaitFootDown(&jt->gaitB);
                 break;
             case JTS_Pounce:
                 jt->interactBlockFlags |= 4;
