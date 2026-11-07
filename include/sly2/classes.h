@@ -164,7 +164,22 @@ typedef char assert_WIDGET_size[sizeof(WIDGET) == 0x110 ? 1 : -1];
 struct SAAF;   /* the shader-animation parameters (Sly 1 symbols InitShuffle__FP7SHUFFLEP4SAAF...) */
 struct SAA : BASIC
 {
-    char pad10[0x50 - 0x10];
+    float updateTime;       /* +0x10 [S] (shdanim.cpp SAAV) */
+    int id;                 /* +0x14 [S] */
+    int unknown18;
+    int numFrames;          /* +0x1C [S] */
+    uint grf;               /* +0x20 [S] flags (glob.cpp SAAFIELDS) */
+    short uOffset;          /* +0x24 [S] uv offset (1/4096) */
+    short vOffset;          /* +0x26 [S] */
+    unsigned short frame;   /* +0x28 [S] */
+    short unknown2A;
+    int isDirty;            /* +0x2C [S] */
+    void *owner;            /* +0x30 [S] */
+    SL instances;           /* +0x34 [S] the instances (shdanim.cpp SAIE) */
+    SAA *next;              /* +0x40 [S] next in g_sw.slSaa */
+    int cqwMain;            /* +0x44 [S] (glob.cpp SAAFIELDS) */
+    void *pvMain;           /* +0x48 [S] */
+    int unknown4C;
     virtual void Init(SAAF *psaaf) __asm__("InitSaa");   /* slot 7 (its first new virtual); key function (shdanim.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSaaClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateSaa");   /* slot 8 */
@@ -172,6 +187,9 @@ struct SAA : BASIC
     virtual void DoesMatchOid() __asm__("DoesSaaMatchOid");   /* slot 10 */
 };
 typedef char assert_SAA_size[sizeof(SAA) == 0x50 ? 1 : -1];
+typedef char assert_SAA_grf[SLY2_OFFSETOF(SAA, grf) == 0x20 ? 1 : -1];
+typedef char assert_SAA_instances[SLY2_OFFSETOF(SAA, instances) == 0x34 ? 1 : -1];
+typedef char assert_SAA_pvMain[SLY2_OFFSETOF(SAA, pvMain) == 0x48 ? 1 : -1];
 
 /* 151 CID151 (0x60): SND (sound instance) and its kinds BANKSND / STREAMSND; vtable 0x2D9D00, 16 slots (sly2/snd.h,
    key TU sound.cpp) */
@@ -1476,7 +1494,35 @@ typedef char assert_CID40_size[sizeof(CID40) == 0xF0 ? 1 : -1];
 /* 4 LIGHT (0x170): relight inputs: 3 qw from +0x120; vtable 0x2D33A0, 50 slots */
 struct LIGHT : XFM
 {
-    char padE0[0x170 - 0xE0];
+    int kind;               /* +0xE0 [S] 0 directional, 1 point (light.cpp LIGHTV) */
+    int parentStamp;        /* +0xE4 [S] the parent transform stamp the light was last rebuilt for */
+    int unknownE8[2];
+    qword highlightHsv;     /* +0xF0 [S] */
+    qword position;         /* +0x100 [S] bounding sphere centre */
+    float bias;             /* +0x110 [S] rank = bias + weight * distance */
+    float weight;           /* +0x114 [S] */
+    int slot;               /* +0x118 [S] world slot, < 0 until assigned */
+    int unknown11C;
+    union {                 /* +0x120 [S] the 48-byte shader payload (RebuildLight fills it; the packets copy it) */
+        uint payload[12];
+        struct {
+            int kindPayload;    /* +0x120 */
+            float duAngle;      /* +0x124 */
+            float ruAngle;      /* +0x128 */
+            float duFall;       /* +0x12C */
+            float agRgba[4];    /* +0x130 */
+            VECTOR vec;         /* +0x140 */
+            float ruFall;       /* +0x14C */
+        };
+    };
+    float midtoneStrength;  /* +0x150 [S] */
+    float midtoneAngle;     /* +0x154 [S] degrees */
+    int enabled;            /* +0x158 [S] */
+    int isStatic;           /* +0x15C [S] exclusive with isDynamic (SetLightStatic / SetLightDynamic) */
+    int isDynamic;          /* +0x160 [S] */
+    float sNear;            /* +0x164 [S] (light.cpp also copies the pair as two ints) */
+    float sFar;             /* +0x168 [S] */
+    int unknown16C;
     virtual void Init() __asm__("InitLight");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetLightClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddLightHierarchy");   /* slot 11 */
@@ -1489,6 +1535,9 @@ struct LIGHT : XFM
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateLightToMat");   /* slot 30 */
 };
 typedef char assert_LIGHT_size[sizeof(LIGHT) == 0x170 ? 1 : -1];
+typedef char assert_LIGHT_position[SLY2_OFFSETOF(LIGHT, position) == 0x100 ? 1 : -1];
+typedef char assert_LIGHT_payload[SLY2_OFFSETOF(LIGHT, payload) == 0x120 ? 1 : -1];
+typedef char assert_LIGHT_sNear[SLY2_OFFSETOF(LIGHT, sNear) == 0x164 ? 1 : -1];
 
 /* 96 CID96 (0x250): mini pigeon/rat critter; vtable 0x2D3838, 75 slots */
 struct CID96 : SO
