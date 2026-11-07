@@ -368,17 +368,15 @@ namespace M_func_001450E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct CLQ { float g0, g1, g2, gPad; };
-struct SO { char pad[0x2C0]; ulong grfsg; };   /* a guard */
-struct TARGETREC { char pad[0x28]; int guardCount; struct SO *guards[1]; };   /* stepguard.cpp's engagement record */
+struct TARGETREC { char pad[0x28]; int guardCount; STEPGUARD *guards[1]; };   /* stepguard.cpp's engagement record */
 struct PO { char pad[0x1088]; struct TARGETREC *engagement; };
-struct P { char pad[0x10]; struct PO *follower; char pad2[0x30 - 0x14]; void *leader; char pad3[0x90 - 0x34]; struct SO *threat; };
 extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
 struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f};
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword GetLoWorldPos(void *p);
 ulong GetSgfMask(int n);
-int StepguardHasSgf(struct SO *guard, int sgf);
+int StepguardHasSgf(STEPGUARD *guard, int sgf);
 struct TARGETREC *FindTargetRecordById(void *object);
 
 // VU0 helper: distance between two points.
@@ -403,26 +401,26 @@ static __inline__ float EvaluateQuadratic(float distance, struct CLQ *clq) { ret
 // 0x1450E0: Picks the follow behaviour's threat: the guard nearest the leader among those engaged with the follower
 // or (distance re-weighted) with the leader, skipping KO'd/juggled/thrown ones; the current threat and striking
 // guards get their own distance weights (inferred: who the partner should fight).
-struct SO *PickBhvfollowTarget(struct P *behavior)
+STEPGUARD *PickBhvfollowTarget(BHVFOLLOW *behavior)
 {
-    struct SO *best = 0;
+    STEPGUARD *best = 0;
     float bestDistance = D_002A4E30;
     qword pos;
     ulong ignoreMask;
     struct TARGETREC *record;
     int i;
-    GetLoWorldPos(behavior->follower);
+    GetLoWorldPos(((struct PO *)behavior->owner));
     pos = GetLoWorldPos(behavior->leader);
     ignoreMask = GetSgfMask(SGF_KO) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(SGF_JUGGLED) |
           GetSgfMask(0x2A) | GetSgfMask(0x2B);
-    record = behavior->follower->engagement;
+    record = ((struct PO *)behavior->owner)->engagement;
     for (i = 0; i < record->guardCount; i++) {
-        struct SO *guard = record->guards[i];
+        STEPGUARD *guard = record->guards[i];
         float distance;
         if (ignoreMask & guard->grfsg)
             continue;
         distance = Distance(pos, GetLoWorldPos(guard));
-        if (guard == behavior->threat)
+        if (guard == ((STEPGUARD *)behavior->threat))
             distance = EvaluateQuadratic(distance, &D_002BD300);
         if (StepguardHasSgf(guard, SGF_STRIKE))
             distance = EvaluateQuadratic(distance, &D_002BD320);
@@ -434,13 +432,13 @@ struct SO *PickBhvfollowTarget(struct P *behavior)
     record = FindTargetRecordById(behavior->leader);
     if (record) {
         for (i = 0; i < record->guardCount; i++) {
-            struct SO *guard = record->guards[i];
+            STEPGUARD *guard = record->guards[i];
             float distance;
             if (ignoreMask & guard->grfsg)
                 continue;
             distance = Distance(pos, GetLoWorldPos(guard));
             distance = EvaluateQuadratic(distance, &D_002BD310);
-            if (guard == behavior->threat)
+            if (guard == ((STEPGUARD *)behavior->threat))
                 distance = EvaluateQuadratic(distance, &D_002BD300);
             if (StepguardHasSgf(guard, SGF_STRIKE))
                 distance = EvaluateQuadratic(distance, &D_002BD320);
