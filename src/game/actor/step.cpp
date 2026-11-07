@@ -449,7 +449,7 @@ typedef union { qword q; float f; } U;
 typedef struct { float x,y,z; } VECTOR3;
 typedef struct { qword row[3]; } M3;
 union FLOATWORD { float value; int bits; };
-extern struct { float t; union FLOATWORD delta; } D_002DDED0;
+extern struct { float t; union FLOATWORD delta; } D_002DDED0;   /* CLOCK island: deltaTime as int bits through a hand-scheduled asm load */
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
 struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
 void PresetSoAccel(struct S *p);
