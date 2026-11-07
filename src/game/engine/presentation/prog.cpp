@@ -12,6 +12,7 @@
 
 struct RGBA { unsigned char r, g, b, a; };
 struct TRI { int ai[3]; };
+// Set the four color channels.
 static inline void SetRgba(RGBA *pc, int r, int g, int b, int a) { pc->r = r; pc->g = g; pc->b = b; pc->a = a; }
 /* One triangle list of the loading-screen logo: count, triangles (vertex indices into D_002C10D0), colour. */
 struct E { int n; TRI *p; RGBA c; };
@@ -201,6 +202,7 @@ void CProg::Draw()
     BlastAqwGifsBothFrames(buf);
 }
 
+// Copy p through pinned registers ($4 -> $5).
 static inline float *Receiver(float *p)
 {
     register float *source __asm__("$4") = p;
@@ -259,7 +261,9 @@ extern "C" void StartupLoadingScreen(void)
 // pre-header to hoist the `lui`s of D_003D3A3C/D_002DEDBC into (they stay local, which gives the $v1 after the
 // WaitSema call), and the inner loop keeps enough insns for loop.c to leave the `m_fCheckCnt = 1` constant alone.
 inline void M2::Identity(){func_002333B4(this,0,sizeof(*this));a[0]=a[3]=1.0f;}
+// Clamp *value to [bounds[0], bounds[1]].
 static inline void Clamp(float *value,const float *bounds){float low=bounds[0],high=bounds[1];if(*value<low)*value=low;else if(high<*value)*value=high;}
+// Start a loading-screen frame: tick the clock and open the frame.
 static inline void BeginFrame()
 {
     MarkClockTick(&D_002DDED0,1);
