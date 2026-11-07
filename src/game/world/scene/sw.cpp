@@ -1565,25 +1565,24 @@ namespace M_func_00210140 { extern "C" {
 struct E;
 struct O { char pad[0x40]; struct E *e; };
 struct E { unsigned int grf; struct O *o; };
-struct G { char pad[0x3F14]; int count; int dead; int *index; struct E *array; };
 // Adds an object to the world's per-object update array (back-pointer kept in its +0x40 word), compacting the array
 // when it is full or more than 10% holes.
-void AddLoToSwUpdateList(struct G *g, struct O *o)
+void AddLoToSwUpdateList(SW *g, struct O *o)
 {
     struct E *e;
     if ((unsigned int)o->e & 0x40)
         return;
-    if (g->count >= 0x1000 || (float)g->dead / (float)g->count > 0.1f) {
-        struct E *end = g->array + g->count;
+    if (g->cloupd >= 0x1000 || (float)g->cloupdHole / (float)g->cloupd > 0.1f) {
+        struct E *end = ((struct E *)g->aloupd) + g->cloupd;
         struct E *tracked;
         struct E *write;
         struct E *read;
-        if (g->index)
-            tracked = g->array + *g->index;
+        if (g->piloupdCur)
+            tracked = ((struct E *)g->aloupd) + *((int *)g->piloupdCur);
         else
             tracked = 0;
-        write = g->array;
-        for (read = g->array; read < end; read++) {
+        write = ((struct E *)g->aloupd);
+        for (read = ((struct E *)g->aloupd); read < end; read++) {
             if (read == tracked)
                 tracked = write;
             if (read->o) {
@@ -1591,12 +1590,12 @@ void AddLoToSwUpdateList(struct G *g, struct O *o)
                 *write++ = *read;
             }
         }
-        g->dead = 0;
-        g->count = write - g->array;
-        if (g->index)
-            *g->index = tracked - g->array;
+        g->cloupdHole = 0;
+        g->cloupd = write - ((struct E *)g->aloupd);
+        if (g->piloupdCur)
+            *((int *)g->piloupdCur) = tracked - ((struct E *)g->aloupd);
     }
-    e = &g->array[g->count++];
+    e = &((struct E *)g->aloupd)[g->cloupd++];
     e->o = o;
     e->grf = (unsigned int)o->e;
     o->e = e;
@@ -1800,10 +1799,9 @@ struct VT { char pad[0x40]; short d; short pd; int (*kind)(void *); };
 struct M { char pad[0xC]; struct VT *vt; };
 struct C { char pad[0x20]; float value; };
 struct O { char pad[0xFC4]; struct C *curve; };
-struct G { char pad[0x475C]; float offset; };
 extern float D_002C3EA0[3];
 extern float D_002C3EB0[2];
-struct O *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, void *);
+struct O *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, void *);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
 struct M *CreateSfxSound(int);
 void SetSndSourceLo(struct M *, struct O *);
@@ -1815,7 +1813,7 @@ void RcPtr_Assign(struct M **, struct M *);
 static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;}
 // Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
 // looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
-void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
+void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
 {
     struct O *o;
     struct M *m;
@@ -1830,7 +1828,7 @@ void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id
         Clamp(&f, D_002C3EB0);
         offset += f;
     }
-    offset += p->offset;
+    offset += p->unknown475C;
     m = CreateSfxSound(id);
     SetSndSourceLo(m, o);
     SetSndRange(m, (float)x, (float)y);
