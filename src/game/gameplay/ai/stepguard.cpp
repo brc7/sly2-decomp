@@ -2988,35 +2988,35 @@ extern "C" void StunStepguardThrownOp1(STEPGUARD *guard)
 
 // 0x209EE0 StunStepguardThrownOp2
 namespace M_func_00209EE0 { extern "C" {
-struct O; struct S;
+struct BHVJUGGLED; struct S;
 typedef int qword __attribute__((mode(TI)));
 typedef struct { short d; short pad; void *pfn; } VTE;
 extern float D_002C3DA8;
-struct O { char pad[0x50]; int k; };
+struct BHVJUGGLED { char pad[0x50]; int state; };
 struct S { char pad[0xC]; VTE *vt; };
 int StepguardHasSgf(struct S *p, int n);
-struct O *FindStepBhv(struct S *p, int n);
-void SetBhvThrownState(struct O *o, int n);
-void SetBhvjuggledState(struct O *o, int n);
+struct BHVJUGGLED *FindStepBhv(struct S *p, int n);
+void SetBhvThrownState(struct BHVJUGGLED *o, int n);
+void SetBhvjuggledState(struct BHVJUGGLED *o, int n);
 qword LimitVectorLength(qword v, float g);
 // 0x209EE0: Thrown-behaviour operation 2 (flags 0x12/0x13), or juggled-behaviour operation 2 while stunned; then
-// scales the velocity (inferred).
+// clamps the velocity's length (inferred).
 void StunStepguardThrownOp2(struct S *guard)
 {
     if (StepguardHasSgf(guard, 0x12) || StepguardHasSgf(guard, 0x13)) {
         SetBhvThrownState(FindStepBhv(guard, CID_BHV176), 2);
     } else {
-        struct O *o;
+        struct BHVJUGGLED *juggled;
         if (!StepguardHasSgf(guard, SGF_JUGGLED))
             return;
-        o = FindStepBhv(guard, CID_BHVJUGGLED);
-        if (o->k != 3 && o->k != 6)
-            SetBhvjuggledState(o, 2);
+        juggled = FindStepBhv(guard, CID_BHVJUGGLED);
+        if (juggled->state != 3 && juggled->state != 6)
+            SetBhvjuggledState(juggled, 2);
     }
     {
-        qword v = ((qword (*)(void *))guard->vt[33].pfn)((char *)guard + guard->vt[33].d);
-        v = LimitVectorLength(v, D_002C3DA8);
-        ((void (*)(void *, qword))guard->vt[35].pfn)((char *)guard + guard->vt[35].d, v);
+        qword velocity = ((qword (*)(void *))guard->vt[33].pfn)((char *)guard + guard->vt[33].d);   /* get velocity */
+        velocity = LimitVectorLength(velocity, D_002C3DA8);
+        ((void (*)(void *, qword))guard->vt[35].pfn)((char *)guard + guard->vt[35].d, velocity);   /* set velocity */
     }
 }
 } } // namespace M_func_00209EE0
@@ -3032,14 +3032,15 @@ extern "C" void StunStepguardThrownOp3(STEPGUARD *guard)
 
 // 0x20A010 GetStepguardJuggledValue
 namespace M_func_0020A010 { extern "C" {
-struct O;
-struct O { char pad[0x58]; int n; };
+struct BHVJUGGLED;
+struct BHVJUGGLED { char pad[0x58]; int unknown58; };
 int StepguardHasSgf(void *p, int n);
-struct O *FindStepBhv(void *p, int oid);
+struct BHVJUGGLED *FindStepBhv(void *p, int oid);
 // 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
-int GetStepguardJuggledValue(void *p)
+int GetStepguardJuggledValue(void *guard)
 {
-    if (StepguardHasSgf(p, SGF_JUGGLED)) return FindStepBhv(p, CID_BHVJUGGLED)->n;
+    if (StepguardHasSgf(guard, SGF_JUGGLED))
+        return FindStepBhv(guard, CID_BHVJUGGLED)->unknown58;
     return 0;
 }
 } } // namespace M_func_0020A010
@@ -3048,23 +3049,23 @@ int GetStepguardJuggledValue(void *p)
 namespace M_func_0020A058 { extern "C" {
 struct S;
 typedef struct { int tagk; int tag; } CRef;
-void func_002013D8(CRef *pr, int a, int b, int c, void *d, void *e);
+void func_002013D8(CRef *ref, int list, int type, int capacity, void *count, void *values);
 void func_00129658(CRef *pd, CRef *ps) __asm__("__as__4CRefRC4CRef");
-void Decref__4CRef(CRef *pr);
-struct S { char pad[0xF94]; int a; int b; char pad2[0xFA8 - 0xF9C]; int c; int d; };
+void Decref__4CRef(CRef *ref);
+struct S { char pad[0xF94]; int designatedTargetCount; int designatedTargets; char pad2[0xFA8 - 0xF9C]; int avoidObjectCount; int avoidObjects; };
 // 0x20A058: Splice option: sets the designated target list and the avoid-object list (two typed reference lists).
-void SetStepguardTargetLists(struct S *guard, int x, int y)
+void SetStepguardTargetLists(struct S *guard, int targetList, int avoidList)
 {
-    CRef r;
-    CRef t;
-    r.tagk = -1;
-    func_002013D8(&t, x, 0x2002, 4, &guard->a, &guard->b);
-    func_00129658(&r, &t);
-    Decref__4CRef(&t);
-    func_002013D8(&t, y, 0x2002, 4, &guard->c, &guard->d);
-    func_00129658(&r, &t);
-    Decref__4CRef(&t);
-    Decref__4CRef(&r);
+    CRef result;
+    CRef list;
+    result.tagk = -1;
+    func_002013D8(&list, targetList, 0x2002, 4, &guard->designatedTargetCount, &guard->designatedTargets);
+    func_00129658(&result, &list);
+    Decref__4CRef(&list);
+    func_002013D8(&list, avoidList, 0x2002, 4, &guard->avoidObjectCount, &guard->avoidObjects);
+    func_00129658(&result, &list);
+    Decref__4CRef(&list);
+    Decref__4CRef(&result);
 }
 } } // namespace M_func_0020A058
 
@@ -3091,44 +3092,44 @@ extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, int n, qword qw)
 
 // 0x20A168 CompareStepguardStimuli
 namespace M_func_0020A168 { extern "C" {
-struct K; struct E; struct E2;
+struct STIMTEMPLATE; struct STIMULUS;
 typedef int qword __attribute__((mode(TI)));
-struct K { char pad[0x50]; int n50; };
-struct E { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; int n54x; };
-struct E2 { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; char pad4[4]; int n54; char pad5[0x60 - 0x58]; };
+struct STIMTEMPLATE { char pad[0x50]; int kind; };
+struct STIMULUS { char pad[0x14]; struct STIMTEMPLATE *stimTemplate; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float time; char pad4[4]; int level; char pad5[0x60 - 0x58]; };
 qword func_001A62E8(void *p);
 
 // VU0 helper: squared distance from an object's position to a point.
-static inline float DistSq(void *p, qword *pq)
+static inline float DistSq(void *object, qword *point)
 {
-    qword a = func_001A62E8(p), d, r, t;
+    qword a = func_001A62E8(object), d, r, t;
     float f;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(*pq));
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(*point));
     __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(r), "=&j"(t) : "0"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(r));
     return f;
 }
 
-// 0x20A168: Compares two stimuli for priority: type priority, loudness, time, then distance.
-int CompareStepguardStimuli(void *p, struct E2 *a, struct E2 *b)
+// 0x20A168: Compares two stimuli for priority: template kind (lower first), level (higher first),
+// time (later first), then distance (nearer first); finally address order.
+int CompareStepguardStimuli(void *guard, struct STIMULUS *a, struct STIMULUS *b)
 {
-    int n;
-    float d, d2;
-    n = a->pk->n50 - b->pk->n50;
-    if (n)
-        return n;
-    n = b->n54 - a->n54;
-    if (n)
-        return n;
-    if (a->f4C > b->f4C)
+    int diff;
+    float distA, distB;
+    diff = a->stimTemplate->kind - b->stimTemplate->kind;
+    if (diff)
+        return diff;
+    diff = b->level - a->level;
+    if (diff)
+        return diff;
+    if (a->time > b->time)
         return -1;
-    if (a->f4C < b->f4C)
+    if (a->time < b->time)
         return 1;
-    d = DistSq(p, &a->pos);
-    d2 = DistSq(p, &b->pos);
-    if (d < d2)
+    distA = DistSq(guard, &a->pos);
+    distB = DistSq(guard, &b->pos);
+    if (distA < distB)
         return -1;
-    if (d2 > d)
+    if (distB > distA)
         return 1;
     return a - b;
 }
@@ -3136,30 +3137,30 @@ int CompareStepguardStimuli(void *p, struct E2 *a, struct E2 *b)
 
 // 0x20A298 IsStepguardTargetValid
 namespace M_func_0020A298 { extern "C" {
-struct X; struct S;
+struct ENTRY; struct S;
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DAC;
-struct X { int pad; int n4; int pad2; float tC; };
-struct S { char pad[0x2C0]; long fl; char pad2[0x3D0 - 0x2C8]; int n3D0; char pad3[0xF64 - 0x3D4]; void *detector; };
+struct ENTRY { void *object; int state; float stateTime; float lastSeenTime; /* (inferred) */ };
+struct S { char pad[0x2C0]; long grfsg; char pad2[0x3D0 - 0x2C8]; int unknown3D0; char pad3[0xF64 - 0x3D4]; void *detector; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 long GetSgfMask(int n);
-struct X *FindDetectorTarget(void *p, void *q);
+struct ENTRY *FindDetectorTarget(void *detector, void *object);
 // 0x20A298: True if a target is still valid for this guard (Murray special case, detector entry age and mask)
 // (inferred).
-int IsStepguardTargetValid(struct S *guard, void *q, long mask)
+int IsStepguardTargetValid(struct S *guard, void *target, long mask)
 {
-    struct X *x;
+    struct ENTRY *entry;
     // (Shared return labels: direct returns reorder the blocks and do not match.)
-    if (guard->n3D0)
+    if (guard->unknown3D0)
         goto ret0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(q, CID_MURRAY) && !FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD) && !(guard->fl & GetSgfMask(6)))
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_MURRAY) && !FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD) && !(guard->grfsg & GetSgfMask(6)))
         goto ret1;
-    x = FindDetectorTarget(guard->detector, q);
-    if (!x)
+    entry = FindDetectorTarget(guard->detector, target);
+    if (!entry)
         goto ret1;
-    if (!x->n4 || D_002DDED0.t - x->tC < D_002C3DAC)
+    if (!entry->state || D_002DDED0.t - entry->lastSeenTime < D_002C3DAC)
         goto ret1;
-    if (!(guard->fl & mask))
+    if (!(guard->grfsg & mask))
         goto ret0;
 ret1:
     return 1;
@@ -3181,44 +3182,44 @@ extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 
 // 0x20A408 ChooseStepguardStimulus
 namespace M_func_0020A408 { extern "C" {
-struct O; struct S; struct VE; struct VT; struct X;
-struct O { char pad[0x44]; int n44; char pad2[0x54 - 0x48]; int k54; struct O *next; };
+struct STIMULUS; struct S; struct VE; struct VT; struct ENTRY;
+struct STIMULUS { char pad[0x44]; int subject; char pad2[0x54 - 0x48]; int level; struct STIMULUS *next; };
 struct VT;
-struct S { char pad[0xC]; struct VT *vt; char pad2[0xF04 - 0x10]; float tF04; char pad3[0xF64 - 0xF08]; void *pF64; };
-struct VE { short d; short pad; int (*pf)(void *, struct O *); };
+struct S { char pad[0xC]; struct VT *vt; char pad2[0xF04 - 0x10]; float tAttackNext; char pad3[0xF64 - 0xF08]; void *detector; };
+struct VE { short d; short pad; int (*pf)(void *, struct STIMULUS *); };
 struct VT { struct VE e[90]; };
-struct X { int a; int b; };
-struct STIMLIST_VIEW { char pad[0x148C]; struct O *first; };   /* first at g_sw+0x3FFC */
+struct ENTRY { int object; int state; };
+struct STIMLIST_VIEW { char pad[0x148C]; struct STIMULUS *first; };   /* first at g_sw+0x3FFC */
 extern float D_002DDED0;
 extern float D_002C3DB0;
-int AreStepguardSensesEnabled(struct S *p);
-int CompareStepguardStimuli(struct S *p, struct O *a, struct O *b);
-struct X *FindDetectorTarget(void *p, int n);
-void SetDetectorTargetState(void *p, struct X *x, int n);
+int AreStepguardSensesEnabled(struct S *guard);
+int CompareStepguardStimuli(struct S *guard, struct STIMULUS *a, struct STIMULUS *b);
+struct ENTRY *FindDetectorTarget(void *detector, int object);
+void SetDetectorTargetState(void *detector, struct ENTRY *entry, int state);
 
 // 0x20A408: Chooses the most important stimulus this guard can sense from the world's stimulus list; a stimulus
 // already tracked re-marks the detector entry lost.
-struct O *ChooseStepguardStimulus(struct S *p, struct O *def)
+struct STIMULUS *ChooseStepguardStimulus(struct S *guard, struct STIMULUS *fallback)
 {
-    struct O *o, *best;
+    struct STIMULUS *stimulus, *best;
     int unused[4];
-    if (!AreStepguardSensesEnabled(p))
-        return def;
-    best = def;
-    for (o = (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]).first; o; o = o->next) {
-        if (p->vt->e[89].pf((char *)p + p->vt->e[89].d, o)) {
-            if (!best || CompareStepguardStimuli(p, o, best) < 0)
-                best = o;
+    if (!AreStepguardSensesEnabled(guard))
+        return fallback;
+    best = fallback;
+    for (stimulus = (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]).first; stimulus; stimulus = stimulus->next) {
+        if (guard->vt->e[89].pf((char *)guard + guard->vt->e[89].d, stimulus)) {   /* CanStepguardSenseStimulus */
+            if (!best || CompareStepguardStimuli(guard, stimulus, best) < 0)
+                best = stimulus;
         }
     }
-    if (best && best->k54 == 4) {
-        struct X *x = FindDetectorTarget(p->pF64, best->n44);
-        if (x) {
-            if (!x->b) {
-                SetDetectorTargetState(p->pF64, x, 2);
-                p->tF04 = D_002DDED0 + D_002C3DB0;
+    if (best && best->level == 4) {
+        struct ENTRY *entry = FindDetectorTarget(guard->detector, best->subject);
+        if (entry) {
+            if (!entry->state) {
+                SetDetectorTargetState(guard->detector, entry, 2);
+                guard->tAttackNext = D_002DDED0 + D_002C3DB0;
             }
-            return def;
+            return fallback;
         }
     }
     return best;
@@ -3228,9 +3229,13 @@ struct O *ChooseStepguardStimulus(struct S *p, struct O *def)
 // 0x20A518 AddStepguardClassE94
 namespace M_func_0020A518 { extern "C" {
 struct S;
-struct S { char pad[0xE94]; unsigned int c; int a[8]; };
+struct S { char pad[0xE94]; unsigned int count; int classes[8]; };
 // 0x20A518: Adds a class to the +0xE94 list (at most 8; meaning unknown).
-void AddStepguardClassE94(struct S *guard, int n) { if (guard->c < 8) guard->a[guard->c++] = n; }
+void AddStepguardClassE94(struct S *guard, int cid)
+{
+    if (guard->count < 8)
+        guard->classes[guard->count++] = cid;
+}
 } } // namespace M_func_0020A518
 
 // 0x20A540 SetStepguardPatrolScript
