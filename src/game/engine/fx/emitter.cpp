@@ -1449,16 +1449,14 @@ struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
-/* EMITB: the origin's local transform, and EMITV's ring count and tilt range */
-struct EMITTERV { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int particlesPerRing; char pad2[0x90 - 0x88]; char tilt[1]; };
 struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
 extern "C" {
 void *AllocFromStack(AL *pal);
 void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx);
-void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITTERV *pemit, int i, int c, qword *ppos, qword *pnormal);
+void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *pemit, int i, int c, qword *ppos, qword *pnormal);
 void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EMITVX *pvx, void *q, int n, qword *ppos, qword *pnormal, qword *pvel, float *ptBirth, float *ptDeath);
-void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITTERV *pemit, qword *ppos, qword *pvel);
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *pemit, BUF *pb);
+void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *pemit, qword *ppos, qword *pvel);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemit, BUF *pb);
 }
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(&al); }
 static inline qword MulRow(const MATRIX3 &m, qword v)
@@ -1470,19 +1468,19 @@ static inline qword MulRow(const MATRIX3 &m, qword v)
 // Fills an EMITGEN with `c` new particles' positions, velocities and birth / death times: an even direction grid
 // (CalculateEmitvx), each particle's origin (ChooseEmitoPos) and velocity / age (ChooseEmitvVelocityAge), moved by
 // the origin's local transform (position, rotation, linear and angular velocity) and, when asked, into world space.
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *emitb, BUF *gen)
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
 {
     gen->apos = (qword *)PvAlloc(c * 16, 16);
     gen->av = (qword *)PvAlloc(c * 16, 16);
     gen->atBirth = (float *)PvAlloc(c * 4, 16);
     gen->atDeath = (float *)PvAlloc(c * 4, 16);
     EMITVX vx;
-    CalculateEmitvx__FiP2LMiP6EMITVX(emitb->particlesPerRing, emitb->tilt, c, &vx);
+    CalculateEmitvx__FiP2LMiP6EMITVX(emitb->particlesPerRing, &emitb->lmTilt, c, &vx);
     for (int i = 0; i < c; i++) {
         union { qword q; float f[4]; } normal;
         ChooseEmitoPos__FP5EMITOiiP6VECTORT3(emitb, i, c, &gen->apos[i], &normal.q);
-        ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7((char *)emitb + 0x50, &vx, (char *)emitb + 0x10, i, &gen->apos[i], &normal.q, &gen->av[i], &gen->atBirth[i], &gen->atDeath[i]);
-        XF *pxf = emitb->pxf;
+        ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(&emitb->lmSpeed /* the velocity record */, &vx, &emitb->emito, i, &gen->apos[i], &normal.q, &gen->av[i], &gen->atBirth[i], &gen->atDeath[i]);
+        XF *pxf = (XF *)emitb->emito.pxfOrigin;   /* this TU's XF view */
         if (pxf) {
             {
                 register qword *ppos __asm__("$2"); // register pin (target loads gen->apos into v0 and forms &apos[i] there)
