@@ -19,6 +19,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/emitter.h"
+#include "sly2/rip.h"
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -1209,23 +1210,6 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
 
 namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5 {
 struct MATRIX3 { float mat[3][4]; } __attribute__((aligned(16)));
-/* a RIP as it is filled at emission (rip.cpp's RIP) */
-class RIPV {
-public:
-    char pad0[0x14];
-    float birthTime, duration;  /* +0x14 */
-    int renderObject;           /* +0x1C */
-    char pad20[4];              /* +0x20 scale.g0, set by Set */
-    float scaleSlope, scaleCurve;   /* +0x24 */
-    char pad2C[4];
-    qword alpha;                /* +0x30 */
-    MATRIX3 orientation;        /* +0x40 */
-    char pad70[0x20];
-    qword velocity;             /* +0x90 */
-    char emitdv[0xEC - 0xA0];   /* +0xA0 EMITDV (SetEmitdvEmitb) */
-    virtual void Set(qword pos, float g, int n);
-    virtual void Init(EMITB *pemit);
-};
 class SO {
 public:
     char pad[0xC];
@@ -1245,7 +1229,7 @@ extern char D_003DD490[];
 SO *NewRipGroup(void *p, int n);
 void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITB *pemit);
 void SubscribeLoObject(SO *pso, void *p);
-RIPV *NewRipInGroup(void *p, int n, SO *pso);
+RIP *NewRipInGroup(void *p, int n, SO *pso);
 float RandomFloatInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITB *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
@@ -1258,7 +1242,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *em
 {
     SO *ripGroup = 0;
     int i;
-    RIPV *rip;
+    RIP *rip;
     if (emitg && emitg->ppripg)
         ripGroup = *emitg->ppripg;
     if (!ripGroup) {
@@ -1274,20 +1258,20 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *em
     if (!ripGroup)
         return;
     for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->v.k, ripGroup)) != 0; i++) {
-        rip->Set(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (int)emitb->aploRef[EMITREF_Touch]);
+        rip->Init(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (::SO *)emitb->aploRef[EMITREF_Touch]);
         if (emitb->v.scaleSlope != 0.0f || emitb->v.scaleCurve != 0.0f) {
             rip->scaleSlope = emitb->v.scaleSlope;
             rip->scaleCurve = emitb->v.scaleCurve;
         }
         rip->velocity = velocities[i];
-        rip->birthTime = birthTimes[i];
+        rip->startTime = birthTimes[i];
         rip->duration = deathTimes[i] - birthTimes[i];
         rip->alpha = emitb->vel.alpha;
-        SetEmitdvEmitb__FP6EMITDVP5EMITB(rip->emitdv, emitb);
-        rip->renderObject = (int)emitb->aploRef[EMITREF_Render];
+        SetEmitdvEmitb__FP6EMITDVP5EMITB(&rip->acceleration /* its EMITDV motion record */, emitb);
+        rip->renderObject = emitb->aploRef[EMITREF_Render];
         if (emitb->aploRef[EMITREF_Reference])
-            rip->orientation = *GetLoWorldMatrix(emitb->aploRef[EMITREF_Reference]);
-        rip->Init(emitb);
+            rip->orientation = *(RIPM3 *)GetLoWorldMatrix(emitb->aploRef[EMITREF_Reference]);
+        rip->PostEmit(emitb);
     }
     if (IsDlEmpty__FP2DL((char *)ripGroup + 0x15C /* RIPG rip list */))
         ripGroup->V9();

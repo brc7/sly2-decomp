@@ -30,7 +30,12 @@ struct RIP
     union
     {
         qword scale;           /* +0x20 the scale curve as one quadword */
-        float scaleStart;      /* +0x20 its first coefficient (the initial scale) */
+        struct
+        {
+            float scaleStart;  /* +0x20 its coefficients: the initial scale, */
+            float scaleSlope;  /* +0x24 slope */
+            float scaleCurve;  /* +0x28 and curvature (EmitRips: the emitter's, when set) */
+        };
     };
     qword alpha;            /* +0x30 */
     RIPM3 orientation;      /* +0x40 */
@@ -44,7 +49,7 @@ struct RIP
     LO *touchObject;           /* +0xE0 */
     char padE4[4];
     RIPSUB *firstSubscription;      /* +0xE8 */
-    virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
+    virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitRip");   /* slot 1; key function (parameter order from Sly 1's InitMatch symbol) */
     virtual void PostEmit(void *pv) __asm__("PostRipEmit");   /* slot 2 */
     virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
     virtual void Project() __asm__("ProjectRipTransform");   /* slot 4 */
@@ -87,33 +92,33 @@ struct SHRAPNEL : RIP   /* RIPT 8 */
 struct MATCH : RIP   /* RIPT 6 */
 {
     virtual void Update(float dt) __asm__("UpdateMatch");   /* key function */
-    virtual void Init(qword pos, int n, float g) __asm__("InitMatch__FP5MATCHP6VECTORfP2SO");
+    virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitMatch__FP5MATCHP6VECTORfP2SO");
     virtual void Project() __asm__("ProjectMatchTransform");
     virtual void Render(CM *pcm) __asm__("RenderMatch");
 };
 struct GLINT : RIP   /* RIPT 4 */
 {
-    virtual void Init(qword pos, int n, float g) __asm__("InitGlint");   /* key function */
+    virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitGlint");   /* key function */
     virtual void Project() __asm__("ProjectGlint");
     virtual void Render(CM *pcm) __asm__("RenderGlint");
 };
 struct SMACK : RIP   /* RIPT 9 */
 {
     virtual void Update(float dt) __asm__("UpdateSmack");   /* key function */
-    virtual void Init(qword pos, int n, float g) __asm__("InitSmack");
+    virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitSmack");
     virtual void Project() __asm__("ProjectSmackTransform");
     virtual void Render(CM *pcm) __asm__("RenderSmack");
 };
 struct RIPT1 : RIP   /* RIPT 1 */
 {
-    virtual void Init(qword pos, int n, float g) __asm__("InitRipt1");   /* key function */
+    virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitRipt1");   /* key function */
     virtual void PostEmit(void *pv) __asm__("PostRipt1Emit");
     virtual void Touch(int fRemove) __asm__("UpdateRipt1");
 };
 struct RIPT0 : RIP   /* RIPT 0 */
 {
     virtual void Touch(int fRemove) __asm__("TouchBublet");   /* key function */
-    virtual void Init(qword pos, int n, float g) __asm__("InitBublet");
+    virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitBublet");
     virtual void Project() __asm__("ProjectBubletTransform");
 };
 struct LEAF : RIP   /* RIPT 5 */

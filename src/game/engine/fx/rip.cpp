@@ -587,12 +587,12 @@ extern RIPM3 D_002A2D00;
 } } // namespace M_InitRip
 // RIP default Init (vt entry 1): touch object, 1 s life starting now, initial scale, default alpha curve, both
 // positions at `pos`, identity orientation.
-void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here */
+void RIP::Init(qword pos, float scale, SO *psoTouch)   /* key function: RIP's vtable comes out here */
 {
-    /*B*/touchObject = (LO *)n;
+    /*B*/touchObject = psoTouch;
     duration = 1.0f;
     startTime = M_InitRip::D_002DDED0;
-    scaleStart = g;
+    scaleStart = scale;
     alpha = M_InitRip::D_002C1F50;
     previousPosition = pos;
     currentPosition = pos;
@@ -2171,7 +2171,7 @@ void RenderMatch(struct S *p) {
 
 // RIPT 4 Init: InitRip + extra fields. (inferred)
 /* RIPT 4 (glint) Init. */
-void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable comes out here */
+void GLINT::Init(qword pos, float scale, SO *psoTouch)   /* key function: GLINT's vtable comes out here */
 {
     RIP *prip = this;
     InitRip(prip);
@@ -2665,7 +2665,7 @@ int StickLeafOnBounce(OBJ *object, S *s, qword a, qword b)
 
 // RIPT 1 Init: InitRip + params. (inferred)
 /* RIPT 1 Init. */
-void RIPT1::Init(qword pos, int n, float g)   /* key function: RIPT1's vtable comes out here */
+void RIPT1::Init(qword pos, float scale, SO *psoTouch)   /* key function: RIPT1's vtable comes out here */
 {
     RIP *prip = this;
     InitRip(prip);
