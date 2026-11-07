@@ -8,10 +8,9 @@
 // Types: the functions on named fields use stepplayer.h's JTHURT/ZPR/STEPPLAYER, jt.h's JT and so.h's SO. The others
 // keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp
 // do): the hand-tuned ones (SetJtHurtState, PresetJtAccelZap, UpdateJtActiveZap, StartJtKnockback, TakeJtDamage,
-// UpdateStepplayerWater, ProbeStepplayerSurface, ResolveStepplayerWaterContact: register pins, by-value helper shapes, unions whose stores the match
-// needs), and the ones that read JTHURT bytes stepplayer.h leaves unnamed (PostLoadJtHurt +0x14/+0x18,
-// SetJtHurtCallback and RunJtHurtCallback the 8-byte callback at +0x1C where the header has an empty HURTEND,
-// GetJtHurtAdjustRecord the table at +0xD4) or a record not identified yet (AddJtHurtCpdefiFlags).
+// UpdateStepplayerWater, ResolveStepplayerWaterContact: register pins, by-value helper shapes, unions whose stores the match
+// needs), and a record not identified yet (AddJtHurtCpdefiFlags). PostLoadJtHurt, SetJtHurtCallback,
+// RunJtHurtCallback, GetJtHurtAdjustRecord and ProbeStepplayerSurface are on the header types.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hurt
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A2BB0
 #include "sly2/jt.h"          /* JT; stepplayer.h JTHURT, ZPR, STEPPLAYER */
@@ -331,25 +330,22 @@ extern "C" void SetJtHurtState(C *hurt, int next)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A1098 { extern "C" {
-struct E { int x0; int x4; int x8; };
-struct S { int x0; int pad[4]; int x14; struct E *x18; };
 struct D { int a; int b; };
-struct HURTZ { int n; float g; int x; };   /* (zap kind, duration, 0) records */
 extern HURTZ D_002BFA30[7];
-struct E *AllocCopyFromWorldHeap(struct D *d, void *p);
-int FindSoXf(int a, int b, int c);
+HURTZ *AllocCopyFromWorldHeap(struct D *d, void *p);
+XF *FindSoXf(STEPPLAYER *a, int b, int c);
 // Post-load: allocates the 7-entry hurt table and looks up the hurt-related child transforms.
-void PostLoadJtHurt(struct S *s)
+void PostLoadJtHurt(JTHURT *s)
 {
     struct D d;
     int i;
-    s->x14 = 7;
+    s->churtz = 7;
     d.a = 0x54;
     d.b = 0x10;
-    s->x18 = AllocCopyFromWorldHeap(&d, D_002BFA30);
-    for (i = 0; i < s->x14; i++) {
-        struct E *e = &s->x18[i];
-        e->x8 = FindSoXf(s->x0, e->x0, 6);
+    s->ahurtz = AllocCopyFromWorldHeap(&d, D_002BFA30);
+    for (i = 0; i < s->churtz; i++) {
+        HURTZ *e = &s->ahurtz[i];
+        e->pxf = FindSoXf(s->player, e->id, 6);
     }
 }
 } } // namespace M_func_001A1098
@@ -476,38 +472,27 @@ done:
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A15B0 { extern "C" {
-struct K { int a, b; };
-struct S { char pad[0x1C]; struct K k; };
 // Stores a pointer-to-member callback to run when the hurt animation ends.
-void SetJtHurtCallback(struct S *hurt, struct K k) { hurt->k = k; }
+void SetJtHurtCallback(JTHURT *hurt, HURTEND k) { hurt->hurtend = k; }
 } } // namespace M_func_001A15B0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_RunJtHurtCallback { extern "C" {
-struct PMF { short delta; unsigned short idx; void (*pfn)(void *); };
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int x0, x4, x8; struct VTE *vt; };
-struct B { char pad[0x148]; unsigned long x148; };
-struct S { struct O *x0; int x4; char pad[0x14]; struct PMF pmf; char pad2[0xC]; struct B *x30; };
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
-void ReturnJtToSafePlaceCallback(struct S *p);
-void SetJtAirJump(void *p, int a, int b, int c);
 // Takes and clears the pending callback and calls it; with none, the death states return to a safe place and the
 // others start a fall (SetJtAirJump).
-void RunJtHurtCallback(struct S *s)
+void RunJtHurtCallback(JTHURT *s)
 {
-    struct PMF pmf = s->pmf;
-    func_002333B4(&s->pmf, 0, sizeof(s->pmf));
-    if (pmf.idx) {
+    HURTEND pmf = s->hurtend;
+    func_002333B4(&s->hurtend, 0, sizeof(s->hurtend));
+    if (pmf.index) {
         pmf.pfn((char *)s + pmf.delta);
-    } else if ((unsigned int)(s->x4 - 8) < 5) {
-        struct O *o = s->x0;
-        struct VTE *e = &o->vt[0x2E8 / 8];
-        e->pfn((char *)o + e->d);
-    } else if (s->x30 && (s->x30->x148 & 0x200000000UL)) {
+    } else if ((unsigned int)(s->state - 8) < 5) {
+        s->player->OnHeroDied();
+    } else if (s->zpr.ploSource && ((SO *)s->zpr.ploSource)->hurtRespawnsHero) {
         ReturnJtToSafePlaceCallback(s);
     } else {
-        SetJtAirJump(&AsStepplayer(s->x0)->jtair, 11, 0, 0);
+        SetJtAirJump(&s->player->jtair, 11, 0, 0);
     }
 }
 } } // namespace M_RunJtHurtCallback
@@ -1081,11 +1066,10 @@ namespace M_func_001A23F8 { extern "C" {
 extern float D_002BFB20;
 extern float D_002BFB24;   /* hurt's contact friction and elasticity */
 extern int D_002BFB28[14];   /* parent state, -1: none */
-struct S { int x0; int x4; char pad[0xCC]; void *a[1]; };
 // The adjust record for the current hurt state, falling back through the parent-state table D_002BFB28.
-void *GetJtHurtAdjustRecord(struct S *hurt, int *pout)
+SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
 {
-    int i; void *r = 0; for (i = hurt->x4; i != -1 && (r = hurt->a[i]) == 0; i = D_002BFB28[i]) ; *pout = 0; return r;
+    int i; SOPART *r = 0; for (i = hurt->state; i != -1 && (r = hurt->aprecHurt[i]) == 0; i = D_002BFB28[i]) ; *pout = 0; return r;
 }
 } } // namespace M_func_001A23F8
 

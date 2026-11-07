@@ -368,10 +368,24 @@ struct JTAIR
       undefined4 unk_0x1f4[(0x200 - 0x1f4) / 4];
 };
 
-/* HURTEND: end-of-hurt record (no fields recovered).
+/* HURTEND: the callback to run when the hurt animation ends (SetJtHurtCallback stores it, RunJtHurtCallback takes and
+   clears it): a g++ 2.95 pointer to member function ({this delta, vtable index or nonzero for a plain function,
+   function}).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct HURTEND
 {
+      short delta;            /* added to the JTHURT pointer to get the object the callback runs on */
+      unsigned short index;   /* nonzero: a callback is set */
+      void (*pfn)(void *);    /* the callback */
+};
+
+/* HURTZ: one of the hurt component's seven transform records (PostLoadJtHurt copies the table D_002BFA30 and looks
+   up each transform on the hero). Placeholder name; the first word is the transform id given to FindSoXf. */
+struct HURTZ
+{
+      int id;          /* transform id (0xD, 0xC, 0x13, 0x12, 0x16, 0xF7, 0x13D) */
+      float duration;  /* 30 or 60 */
+      struct XF *pxf;  /* the hero's transform (PostLoadJtHurt) */
 };
 
 /* JTHURT: the damage/health subsystem: hurt state, hit points and the last zap received.
@@ -383,14 +397,16 @@ struct JTHURT
       undefined4 unknown08;
       int maxHitPoints; /* maximum hit points */
       int *hitPoints; /* current hit points (points at the save variable) */
-      undefined4 unk_0x014[(0x1c - 0x14) / 4];
-      HURTEND hurtend;
+      int churtz;   /* +0x14 number of transform records (7) */
+      HURTZ *ahurtz;   /* +0x18 the transform records (PostLoadJtHurt) */
+      HURTEND hurtend;   /* +0x1C pending callback for the end of the hurt animation */
       undefined4 unk_0x024[(0x30 - 0x24) / 4];
       ZPR zpr;   /* the last zap received */
       int postHitMode;      /* +0x90 [R] post-hit mode: 1 = damage forced to 0 (ram_inspector) */
       undefined4 unknown94[2];
       float unknown9C;
-      undefined4 unk_0x0a0[(0x10c - 0xa0) / 4];
+      undefined4 unk_0x0a0[(0xd4 - 0xa0) / 4];
+      SOPART *aprecHurt[14];   /* +0xD4 STEP parameter records by hurt state (GetJtHurtAdjustRecord falls back through a parent table) */
       struct ASEGA *unknown10C;
 };
 
@@ -593,6 +609,7 @@ typedef char assert_STEPPLAYER_jtair_fCanDoubleJump[SLY2_OFFSETOF(STEPPLAYER, jt
 typedef char assert_STEPPLAYER_jtgrab_nState[SLY2_OFFSETOF(STEPPLAYER, jtgrab.state) == 0x4C8 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtgrab_plo[SLY2_OFFSETOF(STEPPLAYER, jtgrab.grabbedObject) == 0x4D4 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtplaces_cplace[SLY2_OFFSETOF(STEPPLAYER, jtplaces.cplace) == 0x9E4 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_JTHURT_unknown10C[SLY2_OFFSETOF(JTHURT, unknown10C) == 0x10C ? 1 : -1];
 typedef char assert_STEPPLAYER_jthurt_nState[SLY2_OFFSETOF(STEPPLAYER, jthurt.state) == 0xDF4 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jthurt_zpr_zpk[SLY2_OFFSETOF(STEPPLAYER, jthurt.zpr.zpk) == 0xE2C ? 1 : -1];   /* last zap kind, CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtmode_nKind[SLY2_OFFSETOF(STEPPLAYER, jtmode.kind) == 0xF20 ? 1 : -1];    /* CONFIRMED runtime */
