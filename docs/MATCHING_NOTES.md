@@ -532,3 +532,9 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
   `&base[i]` (scheduling; RestartNestedSprite). A global enum constant passed as a call argument makes g++'s
   argument-dependent lookup see the file-scope declaration next to a per-function `extern "C"` redeclaration
   (ambiguous overload): use a macro for constants passed to such calls (sound.cpp SUKR_*).
+- **Readability pass (names r4, sound):** macros for flag bits, volume channels and virtual slots, `sizeof(field)` for
+  memset sizes, splitting a `char sNN[]` view field into named fields, and an array for three consecutive same-typed
+  fields never changed codegen. Compiler-imposed: a reference alias to a member (`S &stack = p->musicStack;`) changes
+  the code in PushMusic / FindMusic (spell the member each time); UpdateMusicMix keeps its `goto smooth` / `goto
+  normalize` (if/else in either order moves the smoothing call before the jump and 36-76% of the function differs);
+  the top-of-stack read there stays `((REF **)&count)[count]` (`musicStack[count - 1]` differs).
