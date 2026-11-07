@@ -109,7 +109,10 @@ the original mechanism is known; the names themselves are ours and easy to chang
 
 **3.3 Palette `.rodata` attribute.** The two startup palettes (`tu_1147D8.cpp`, `tu_114AE0.cpp`) carry
 `__attribute__((section(".rodata")))`: the original compiler put a const object with a dynamic initializer in
-`.rodata`, ours puts it in `.bss`. *Status:* permanent (compiler difference).
+`.rodata`, ours puts it in `.bss`. The attribute is on the palette arrays only (TU-private `RGBA` with a four-byte
+constructor); the CLUT/BMP pair each TU builds next to them is `sly2/shd.h`'s CLUT/BMP, whose constructor from a header
+(`CLUT(void *pvHeader)` calling CopyClutHeader, likewise BMP) sits in the header and lands in `.bss` as in the ELF, so
+it needs no attribute. *Status:* permanent (compiler difference).
 
 **3.4 SLY2_SCRAP units.** Dead-code scraps (`config/junk.csv` rows ending "emitted by its TU source") are one
 instruction left of a removed function plus alignment; the TU emits each in place as `SLY2_SCRAP("addiu $sp, $sp,

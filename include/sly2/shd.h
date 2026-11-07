@@ -16,6 +16,12 @@ union TEX0
     };
 };
 
+struct CLUT; struct BMP;
+extern "C" {
+CLUT *CopyClutHeader(CLUT *pclut, void *pvHeader);  /* shd.cpp: copies the 0x10-byte header, colour-corrects, sets cqwPal */
+BMP *CopyBitmapHeader(BMP *pbmp, void *pvHeader);   /* shd.cpp: copies the 0x18-byte header, sets cqw */
+}
+
 /* a colour table entry */
 struct SHDRGBA { unsigned char r, g, b, a; };
 
@@ -31,6 +37,10 @@ struct CLUT
     int cqwPal;             /* +0x10 their size in quadwords */
     int unknown14;
     TEX0 tex2;              /* +0x18 its TEX2 word (BuildClutTex2) */
+
+    /* built from a header at startup (tu_1147D8/tu_114AE0's built-in tables); no default constructor: every other
+       CLUT is loaded in place (LoadClutFromBrx) */
+    CLUT(void *pvHeader) { CopyClutHeader(this, pvHeader); }
 };
 typedef char assert_CLUT_size[sizeof(CLUT) == 0x20 ? 1 : -1];
 
@@ -45,11 +55,14 @@ struct BMP
     unsigned char psm;      /* +0x0C GS pixel format */
     unsigned char cbw;      /* +0x0D buffer width (64-pixel units) */
     unsigned short gsBlocks; /* +0x0E GS blocks it needs */
-    char pad10[0x14 - 0x10];
+    unsigned int cb;        /* +0x10 pixel bytes */
     void *pv;               /* +0x14 pixels */
     int cqw;                /* +0x18 their size in quadwords */
     int unknown1C;
     TEX0 tex0;              /* +0x20 its TEX0 word (BuildBmpTex0) */
+
+    /* built from a header at startup, as CLUT */
+    BMP(void *pvHeader) { CopyBitmapHeader(this, pvHeader); }
 };
 typedef char assert_BMP_size[sizeof(BMP) == 0x28 ? 1 : -1];
 
