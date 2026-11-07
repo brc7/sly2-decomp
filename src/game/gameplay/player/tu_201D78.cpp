@@ -376,6 +376,7 @@ void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
     }
 }
 
+// Load the plane test inputs (eye, threshold, point) from the camera (register-pinned).
 static inline void PlaneArguments(qword *eye,qword *threshold,qword *point,qword scalar,const qword *camera,const qword *position) {
     register qword view __asm__("vf1");
     register qword value __asm__("$6");
@@ -384,12 +385,15 @@ static inline void PlaneArguments(qword *eye,qword *threshold,qword *point,qword
             : "=j"(view),"=&r"(value),"=j"(local) : "m"(*camera),"m"(*position),"r"(scalar));
     *eye=view;*threshold=value;*point=local;
 }
+// position - camera (register-pinned).
 static inline qword PlaneDelta(qword position,qword camera) {
     register qword eye __asm__("vf1")=camera;
     register qword point __asm__("vf2")=position;
     __asm__("vsub.xyzw %0,%0,%1" : "+j"(point) : "j"(eye));return point;
 }
+// Return a - b, computed in b's register.
 static inline qword SubSecond(qword a,qword b){__asm__("vsub.xyzw %0,%1,%2":"=j"(b):"j"(a),"0"(b));return b;}
+// XY length of a as a float.
 static inline float LengthXY(qword a)
 {
     float g;
@@ -398,7 +402,9 @@ static inline float LengthXY(qword a)
     __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(a));
     return g;
 }
+// Store a 128-bit GPR value to *p.
 static inline void Store(qword*p,qword q){__asm__("sq %1,%0":"=m"(*p):"r"(q));}
+// Load a float's bits into a GPR qword.
 static inline qword ScalarBits(const float*p){qword q;__asm__("lw %0,%1":"=r"(q):"m"(*p));return q;}
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -455,20 +461,25 @@ extern "C" const char *GetReconPendingText(RECONSEL *reconSel) { if (reconSel->p
 // The localized string of the selected-target label (+0xBC).
 extern "C" const char *GetReconSelectedText(RECONSEL *reconSel) { if (reconSel->selected == -1) return 0; return FindSwLocalizedString(&D_003DD490, reconSel->selected); }
 
+// Call the widget's virtual at slot 49 with n.
 static inline void Post(WIDGETV *x,int n){VTE *entry=&x->pvt[49];((void (*)(void *,int))entry->pfn)((char *)x+entry->d,n);}
+// Call the widget's virtual at slot 50.
 static inline void Clear(WIDGETV *x){VTE *entry=&x->pvt[50];((void (*)(void *))entry->pfn)((char *)x+entry->d);}
+// Clear bit 0 of a flag word (the pointer-or-inline tag).
 static inline int Untag(int word)
 {
     register int result __asm__("v0");
     __asm__("and %0,%1,%2" : "=r"(result) : "r"(word),"r"(~1));
     return result;
 }
+// 1 when bit 0 of word is clear (the word is a pointer to the flags).
 static inline int IndirectWord(int word)
 {
     register int result __asm__("v1");
     __asm__("xori %0,%1,1\n\tandi %0,%0,1" : "=r"(result) : "r"(word));
     return result;
 }
+// Restore the object's flags to mask, keeping bit 0 (writes through the pointer when bit 0 is clear).
 static inline void Restore(LOV *x,uint mask){uint f=x->grf40;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->grf40=mask|(f&1);}
 // Selector state machine (-1..10); 8 = snapshot (clock and sound paused, player flags 0x102), 9 = photo taken
 // (dialog, game event 10, target marked done).
@@ -635,6 +646,7 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
 // Case 9 flag is `!link || link->state == 1` (the game's `beqz link` jumps TO the `li a0,1`); the label before that set
 // keeps jump.c from turning it into movn.
 struct VU_FLOAT {qword qw;};
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1,%0":"=j"(v.qw):"rV"(n));return v;}
 // camera up row; the pointer parameter gives the game's &cm+0x60 base register (lqc2 0x10(s1), then s1-0x60 for the calls)
 static inline qword GetMatrixUp(const M4 *m){return m->r[1];}
@@ -649,6 +661,7 @@ static inline VU_FLOAT ScreenFromProjected(qword q)
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(v.qw),"=&r"(t):"f"(x),"f"(y),"f"(z));
     return v;
 }
+// Clamp g to [minValue, maxValue].
 static inline float ClampF(float g,float minValue,float maxValue){return StdMax(minValue,Min(g,maxValue));}
 // Per frame: projects the target's head to the screen, scores proximity to the centre and size, drives the states and
 // takes the photo on button 10 (250 when locked).

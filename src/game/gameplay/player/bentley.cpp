@@ -391,7 +391,9 @@ float ClampAbs__Fff(float g, float dg);
 void UpdateBentleyPlaces(struct P *p);
 void UpdateJtActiveZap(void *pv);
 
+// Evaluate the quadratic a + b*t + c*t^2.
 static __inline__ float EvaluatePoly(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
+// Clamp g to the range [gMin, gMax].
 static __inline__ float ClampF(float g, struct LM *range)
 {
     float lo = range->gMin;
@@ -400,6 +402,7 @@ static __inline__ float ClampF(float g, struct LM *range)
     if (hi < g) return hi;
     return g;
 }
+// XY length of v as a float.
 static __inline__ float LenXY(qword v)
 {
     qword l;
@@ -409,6 +412,7 @@ static __inline__ float LenXY(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
     return g;
 }
+// XY length of v as a float (pa and pb only influence register allocation).
 static __inline__ float LenXY5(qword v, struct S150 *pa, struct S1030 *pb)
 {
     qword l;
@@ -418,6 +422,7 @@ static __inline__ float LenXY5(qword v, struct S150 *pa, struct S1030 *pb)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l), "r"(pb), "r"(pb));  /* allocation-only "r"(pb) x2: raises p1030's local-alloc priority above p150 (p1030 $v0, p150 $v1) */
     return g;
 }
+// Rotate v by the transpose of the 3x3 matrix pm (result pinned to vf3).
 static __inline__ qword MulT(struct M3 *pm, qword v)
 {
     register qword r __asm__("vf3");  /* register pin: VF allocation tie, target keeps the result in vf3 */
@@ -427,6 +432,7 @@ static __inline__ qword MulT(struct M3 *pm, qword v)
             : "+j"(r), "=&j"(one), "=&j"(t0), "=&j"(t1), "=&j"(t2) : "j"(v), "j"(pm->r[1]), "j"(pm->r[2]));
     return r;
 }
+// Set the actor's v190 velocity to v rotated by its m1B0 basis, reset x1038 and update the directional blend.
 static __inline__ void SetVel(struct P *p, qword v, void *pv, int n)
 {
     p->v190 = v;
@@ -434,6 +440,7 @@ static __inline__ void SetVel(struct P *p, qword v, void *pv, int n)
     p->x1038 = -1;
     UpdateDirectionalBlend(p, pv, n);
 }
+// Set v190 to the negated step-animation translation of the current action.
 static __inline__ void Pull(struct P *p)
 {
     VUF u;
@@ -445,6 +452,7 @@ static __inline__ void Pull(struct P *p)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(u.q));
     p->v190 = r;
 }
+// Set v190 to the negated step-animation translation of the current action (volatile stores keep the original order).
 static __inline__ void PullB(struct P *p)
 {
     VUF u;
@@ -455,6 +463,7 @@ static __inline__ void PullB(struct P *p)
     *(volatile qword *)&p->v190 = r;
     *(volatile qword *)&u.q = t;
 }
+// Update the gait blend by g and then the footsteps.
 static __inline__ void Kick(void *pv, float g)
 {
     UpdateGaitBlend(pv, g);
@@ -1809,12 +1818,15 @@ struct M3 { qword r[3]; };
 union UQ { qword q; };
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
 };
 struct VU_FLOATM {
     qword q;
+    // Broadcast the float f (read from memory) into a VU0 register.
     VU_FLOATM(const float &f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "rV"(*(int *)&f)); }
 };
+// Dot product of the xyz parts of a and b (x lane).
 static inline qword Dot(qword a, qword b)
 {
     qword r, one;
@@ -1822,6 +1834,7 @@ static inline qword Dot(qword a, qword b)
         : "=j"(r), "=&j"(one) : "j"(a), "j"(b));
     return r;
 }
+// Length of the xyz part of a (x lane).
 static inline qword Length(qword a)
 {
     qword r, t, one;
@@ -1830,24 +1843,28 @@ static inline qword Length(qword a)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(t));
     return r;
 }
+// Return v scaled by f.x.
 static inline qword Scale(qword v, qword f)
 {
     qword r;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f), "j"(v));
     return r;
 }
+// Divide v by f.
 static inline qword DivF(qword v, VU_FLOATM f)
 {
     qword r;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f.q));
     return r;
 }
+// Return a + v * f.
 static inline qword AddScaled(qword a, qword v, VU_FLOAT f)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(v), "j"(f.q));
     return r;
 }
+// Rotate v by the 3x3 matrix m.
 static inline qword MulM3(const M3 &m, qword v)
 {
     qword r;
@@ -1856,6 +1873,7 @@ static inline qword MulM3(const M3 &m, qword v)
     return r;
 }
 
+// Divide v by len, or set it to vDef when len is below 1e-4.
 static inline void SafeDiv(UQ &v, qword len, const qword &vDef)
 {
     if (VuToFloat(len) < 0.0001f)
@@ -1964,16 +1982,20 @@ namespace M_func_001375D0 {
 typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
 };
 struct VU_VECTOR {
     qword q;
+    // Wrap a qword as a VU_VECTOR.
     VU_VECTOR(const qword &v) { q = v; }
 };
 struct VU_FLOATM {
     qword q;
+    // Load a float's bits into a GPR qword (lw).
     VU_FLOATM(const float &f) { __asm__("lw %0, %1" : "=r"(q) : "m"(f)); }
 };
+// Return v scaled by f.
 static inline qword operator*(VU_VECTOR v, VU_FLOATM f)
 {
     qword r;
@@ -1981,6 +2003,7 @@ static inline qword operator*(VU_VECTOR v, VU_FLOATM f)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(vv), "j"(f.q), "jm"(f.q));
     return r;
 }
+// Return v scaled by f.
 static inline qword operator*(VU_VECTOR v, VU_FLOAT f)
 {
     qword r;
@@ -1988,6 +2011,7 @@ static inline qword operator*(VU_VECTOR v, VU_FLOAT f)
     return r;
 }
 struct MATRIX3 { qword r[3]; };
+// Rotate v by the 3x3 matrix m.
 static inline qword operator*(const MATRIX3 &m, VU_VECTOR v)
 {
     qword r;

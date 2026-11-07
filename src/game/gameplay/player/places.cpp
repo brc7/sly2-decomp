@@ -189,6 +189,7 @@ extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
     SetJtAirJump(jt->air, 0xA, 0, 0);
 }
 
+// Evaluate the quadratic g + gFirst*x + gSecond*x^2.
 static inline float EvaluateClq(CLQ *clq, float g) { return clq->g + g * (clq->gFirst + g * clq->gSecond); }
 // Scores a recorded place: distance from nearby STEP objects (guards) and a line-of-sight / bounding-sphere test
 // against them; lower is better. (inferred)
@@ -335,6 +336,7 @@ extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
     places->entries[0].lo->fl |= 1L << 59;
 }
 
+// Distance between a and b as a float.
 static __inline__ float Dist(qword a, qword b)
 {
     qword r, t;

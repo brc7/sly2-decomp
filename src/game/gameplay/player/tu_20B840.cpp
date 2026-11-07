@@ -35,6 +35,7 @@ void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 struct KEYV
 {
     virtual void Load(CBinaryInputStream *pbis);
+    // Allocate the object zeroed, 16-byte aligned, from the world heap.
     static void *operator new(uint cb)
     {
         SWALLOC swalloc;
@@ -77,6 +78,7 @@ struct VKBLEND : public VECKEY
       MRSGC *amrsgc;
       KEYV **apkey;
       qword qwRest;
+    // Key type 5.
     virtual int GetKeyType() { return 5; }
 };
 struct SKBLEND : public SCALARKEY
@@ -306,12 +308,14 @@ ASEGA *GetGaitBlendValue(GAIT *gait) {
     return (ASEGA *)gait->pasegbl->dlAsega.head;
 }
 
+// Broadcast the int bits into vf2 and store them to *value.
 static inline void InitScalar(U *value,int bits) {
     register int word __asm__("$2")=bits;
     register qword r __asm__("vf2");
     __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(word));
     value->q=r;
 }
+// Return -v (scaled by the broadcast in *value), register-pinned.
 static inline qword Negate(qword v,U *value) {
     register qword scalar __asm__("vf1");
     register qword result __asm__("vf3");
@@ -510,8 +514,11 @@ struct MSGL { int a, b, n8; };
 void LEAP::HandleMessage(MSGID msg_m, void *pm_m)   /* key function: LEAP's vtable comes out here */
 { LEAPV *p = (LEAPV *)this; int msg = (int)msg_m; MSGL *pm = (MSGL *)pm_m; if (msg == 9 && pm->n8 == 0x22) SetLeapState(p, 1); HandleBasicMessage(p, msg, pm); }
 
+// Broadcast a float into a VU0 register.
 static inline qword Scalar(float f){qword r;__asm__("qmtc2 %1,%0":"=j"(r):"r"(f));return r;}
+// Return a*x + b*y.
 static inline qword Combine(qword a,qword x,qword b,qword y){qword r;__asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(a),"j"(x),"j"(b),"j"(y));return r;}
+// Store a VU0 register to home.
 static inline void Store(U *home,qword value){__asm__("sqc2 %1,%0":"=m"(home->q):"j"(value));}
 // Leap states: 0 start animation; 1 launch (ballistic time or the given flight time) with a constraint; 2/3 seek the
 // target; 4 land.
@@ -767,6 +774,7 @@ static inline qword Dot(qword a, qword b)
             : "j"(a), "j"(b));
     return r;
 }
+// Dot product of a and b (x lane), reusing a's register.
 static inline qword DotReuse(qword a, qword b)
 {
     qword one;
@@ -775,7 +783,9 @@ static inline qword DotReuse(qword a, qword b)
             : "j"(a), "0"(b));
     return b;
 }
+// Square root of the x lane of q.
 static inline qword Sqrt(qword q){__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(q):"0"(q));return q;}
+// Store the unit vector along v into dst.
 static inline void Normalize(U *dst, qword v)
 {
     qword length = Sqrt(Dot(v, v));
@@ -783,13 +793,16 @@ static inline void Normalize(U *dst, qword v)
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=&j"(result) : "j"(length), "j"(v));
     dst->q = result;
 }
+// Unit vector along v.
 static inline qword NormalizeEntry(qword v)
 {
     qword length = Sqrt(Dot(v, v));
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(length) : "0"(length), "j"(v));
     return length;
 }
+// Broadcast the float word p->bits into vf1.
 static inline qword ScalarFW(const FLOATWORD*p){register qword v __asm__("vf1");register int w __asm__("$2")=p->bits;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(w));return v;}
+// Return v scaled by s.x (vf2).
 static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF

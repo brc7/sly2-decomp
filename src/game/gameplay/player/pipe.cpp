@@ -122,10 +122,14 @@ extern "C" void ClonePipe(PIPEV *pipe)
 // ~25 degrees of the tangent, rotates the path axis by the tangent->direction rotation, and builds the basis
 // (side, up) from that.  Optionally flips side/up (forward == 0) and copies the basis to *out.
 union U { qword q; float f[4]; };
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Return v scaled by f.
 static inline qword operator*(VU_FLOAT f, VU_VECTOR v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
 
+// Length of the xyz part of v (x lane).
 static inline qword Length(qword v)
 {
     qword d, len;
@@ -133,6 +137,7 @@ static inline qword Length(qword v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(d));
     return len;
 }
+// Unit vector along v, or fallback when its length is too small.
 static inline qword Normalize(qword v, qword fallback)
 {
     qword len = Length(v);
@@ -140,6 +145,7 @@ static inline qword Normalize(qword v, qword fallback)
         return fallback;
     return VuDivByX(v, len);
 }
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -224,6 +230,7 @@ extern "C" void GetPipeClosestParam(PIPEV *pipe, void *q, float *pf)
 }
 
 enum { SCALE_WORD_ADDRESS = 0x002C0D04 };
+// Load the scale word (raw bits) from SCALE_WORD_ADDRESS.
 static inline int ScaleBits(void) {
     register int *page __asm__("$2") = (int *)(SCALE_WORD_ADDRESS & ~0xFFFF);
     register int bits __asm__("$2");
@@ -253,6 +260,7 @@ extern "C" void GetPipeGrabPosition(PIPEV *pipe, int unused, qword *pvec, float 
     *pvec = r;
 }
 
+// Broadcast a float into a VU0 register (with a stack home copy).
 static inline qword Bc(float g) {
     union { qword q; float f; } u;
     qword q;
