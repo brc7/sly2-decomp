@@ -249,10 +249,9 @@ typedef char G_EpisodeCount[sizeof(((G*)0)->episodePlayTimeVars)/sizeof(OPT*)==9
 namespace M_NEpisodePercentComplete {
 struct ALLOCREQ { int cb; int nKind; };
 struct X { char pad[0x54]; int state; char pad2[0xA0 - 0x58]; int numFollowers; };
-struct G { char pad[0x3AFC]; int numTasks; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
+extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -269,9 +268,9 @@ extern "C" int GetEpisodePercentComplete()
     int numComplete = 0;
     STACKSCOPE fr;
     ALLOCREQ req;
-    G *pg = &D_003DD490;
-    X **tasks = (X **)PvAllocReq(&req, pg->numTasks * 4, 0x10);
-    int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->numTasks, (void **)tasks);
+    SW *pg = &D_003DD490;
+    X **tasks = (X **)PvAllocReq(&req, pg->ctask * 4, 0x10);
+    int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->ctask, (void **)tasks);
     for (int i = 0; i < numFound; i++) {
         X *task = tasks[i];
         if (task->numFollowers) {
@@ -403,8 +402,7 @@ void HideCountdownHud(struct SW *world)
 
 namespace M_BroadcastGameEvent { extern "C" {
 struct X { char pad[0x7C]; void *job; char pad2[0x88 - 0x80]; struct X *nextActive; };
-struct G { char pad[0x3B0C]; void *currentJob; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern char D_002DE578[];
 void HandleGameEvent(void *pv, int n, void *p);
 void HandleDifficultyMessage(void *pv, int n, void *p);
@@ -1549,8 +1547,7 @@ extern "C" void UpdateJobSaveVars(S *job)
 
 namespace M_InitTask { extern "C" {
 struct S { char pad[0x54]; int state; float stateChangeTime; int objectiveTextId; char p2[0xB8-0x60]; int warpOid; int level; int playerOid; char p3[0xF0-0xC4]; int pendingCascadeState; int stateSource; };
-struct G { char pad[0x3AFC]; int numTasks; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 void InitLo(struct S *p);
 // TASK initialization (slot 7): LO init, no ids, counted in the world's task count.
 } } // namespace M_InitTask
@@ -1563,7 +1560,7 @@ void TASK::Init() { using namespace M_InitTask; using M_InitTask::D_003DD490; M_
     p->level = -1;
     p->playerOid = -1;
     p->stateSource = 0;
-    D_003DD490.numTasks++;
+    D_003DD490.ctask++;
 }
 
 namespace M_LoadTaskFromBrx {
@@ -2697,7 +2694,6 @@ struct P {
 };
 struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
-struct G{char pad[0x3B7C];void*episodePercentVars[9];};
 struct CRef;
 
 extern "C"{
@@ -2706,7 +2702,7 @@ extern int D_002DEB28;
 extern char D_002DEB30[], D_003D4A60[];
 extern char D_002E65E0[];
 
-extern G D_003DD490;
+extern SW D_003DD490;
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
 void*AllocClearedFromStack(const REQUEST&);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
@@ -2778,7 +2774,7 @@ extern "C" void SetTaskStateCascade(P *task, int state)
     D_002DEB28 = 0;
     int episode = GetCurrentWorld();
     if ((unsigned)episode < 9) {
-        void *percentVar = D_003DD490.episodePercentVars[episode];
+        void *percentVar = D_003DD490.apsvpEpisodePercent[episode];
         if (percentVar)
             SetValue(percentVar, GetEpisodePercentComplete(D_002DEB30));
     }
@@ -3308,25 +3304,24 @@ int CompareTasks(struct X **ppx1, struct X **ppx2)
 namespace M_SortTasksTopologically {
 struct ALLOCREQ { int cb; int nKind; };
 struct X { char pad[0x94]; int numPrerequisites; char pad2[0xFC - 0x98]; int visitCount; };
-struct G { char pad[0x3AFC]; int numTasks; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
+extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void VisitTaskTopo(X *px, int *count, void *pv, int a, int b);
 // Returns all tasks in prerequisite order (VisitTaskTopo from every root).
 extern "C" void SortTasksTopologically(int *count, void **order)
 {
     ALLOCREQ req;
-    G *pg = &D_003DD490;
+    SW *pg = &D_003DD490;
     *count = 0;
-    req.cb = pg->numTasks * 4;
+    req.cb = pg->ctask * 4;
     req.nKind = 0x10;
     *order = AllocClearedFromStack(&req);
     STACKSCOPE fr;
-    req.cb = pg->numTasks * 4;
+    req.cb = pg->ctask * 4;
     req.nKind = 0x10;
     X **tasks = (X **)AllocClearedFromStack(&req);
-    int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->numTasks, (void **)tasks);
+    int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->ctask, (void **)tasks);
     int i;
     for (i = 0; i < numFound; i++)
         tasks[i]->visitCount = 0;
