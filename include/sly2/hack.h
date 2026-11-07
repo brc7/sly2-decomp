@@ -225,10 +225,9 @@ struct HACKWALLPIECE
     HACKWALLSEG *pseg;      /* +0x20 */
     int state;              /* +0x24 0 intact, 1 hit (wobbling), 2 broken */
     float stateTime;        /* +0x28 */
-    float sStart;           /* +0x2C layout band along the shape (LayoutHackwallPieces) */
-    float sEnd;             /* +0x30 */
-    float sMin;             /* +0x34 */
-    float sMax;             /* +0x38 */
+    LM lmS;                 /* +0x2C where it sits along the shape for the ship's closest point at either end of
+                               lmSClosest (LayoutHackwallPieces; UpdateHackwallPieces interpolates) */
+    LM lmSClosest;          /* +0x34 */
     float s;                /* +0x3C position along the shape, smoothed toward sGoal */
     float ds;               /* +0x40 its speed */
     float sGoal;            /* +0x44 */

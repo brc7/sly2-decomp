@@ -1236,196 +1236,174 @@ void TriggerHacklockRsmg(HACKLOCK *lock)
 } } // namespace M_func_00181780
 
 namespace M_InitHackwall { extern "C" {
-struct S { char pad[0x40]; int fl; char p2[0x248]; char dl[0xC]; };
-void InitHack(struct S *p);
-void InitDl__FP2DLi(void *pdl, int ib);
-// HACKWALL (cid 0x4C) vtable slot 7: InitCid47, grf. (inferred)
+void InitDl__FP2DLi(DL *pdl, int ib);
 } } // namespace M_InitHackwall
-// HACKWALL::Init: hack-object init, set flag 8 and initialise its list.
+// HACKWALL (cid 0x4C) vtable slot 7: hack-object init, set bit 8 of the LO word +0x40 (as InitHack sets 2) and
+// initialise its broken list. (inferred)
 void HACKWALL::Init()
 {
     using namespace M_InitHackwall;
-    M_InitHackwall::S *p = (M_InitHackwall::S *)this;
     int v;
-    InitHack(p);
-    v = p->fl;
+    InitHack(this);
+    v = unknown40;
     if ((v ^ 1) & 1) *(int *)v |= 8;
-    else p->fl = v | 8;
-    InitDl__FP2DLi(p->dl, 0x60);
+    else unknown40 = v | 8;
+    InitDl__FP2DLi(&dlBroken, 0x60);
 }
 
 namespace M_func_00181840 { extern "C" {
 struct MSG { int cb; int nKind; };
-struct Q { char pad[0x20]; struct E *pr; int n; };
-struct E { int oid; int pieceCount; int unknown8; int unknownC; char dl[0xC]; int pieceParam; float g; void *shape; int unknown28; float h; };
-struct R { int a; void *p; int unknown8; int n; unsigned long fl; char pad[0x98]; };
-struct S { char pad[0x28]; unsigned long fl; char p0[0x30]; int unknown60; char p1[0x7C]; int partCount; struct R *parts; char p2[0xE0]; int segmentCount; struct E segments[4]; };
-extern char D_003DD490[];
-void *FindSwObject__FP2SWi3OIDP2LO(void *g, int n, int oid, struct S *p);
-void InitDl__FP2DLi(void *pdl, int ib);
+/* A SOPART read with its flag word as one 64-bit value (matching-only: so.h's SOPART has a pointer there). */
+struct R { XF *pxf; SO *pso; int unknown8; int n; unsigned long fl; char pad[0x98]; };
+/* LO's flag word as one 64-bit value: lo.h's isInWorld bit-field compiles to a different test (matching-only). */
+struct LOIsland { char pad[0x28]; unsigned long fl; };
+void InitDl__FP2DLi(DL *pdl, int ib);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
-void AppendDlEntry__FP2DLPv(void *pdl, void *shape);
-void PostHackLoad(struct S *p);
-void AddSoParts(struct S *p);
-// vtable slot 15: resolve segment objects, allocate segment records, AddSoPart, PostCid47Load. (inferred)
-void PostHackwallLoad(struct S *wall)
+void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
+void AddSoParts(SO *pso);
+// vtable slot 15: resolve the segments' shapes (dropping missing ones), allocate their pieces, PostHackLoad, then one
+// extra part for the pieces (GetHackwallExtraPartCount). (inferred)
+void PostHackwallLoad(HACKWALL *wall)
 {
     int i, j;
-    struct E *pe;
+    HACKWALLSEG *pseg;
     struct R *pr;
-    for (i = 0; i < wall->segmentCount; i++) {
-        pe = &wall->segments[i];
-        pe->shape = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, wall);
-        if (!pe->shape) {
+    for (i = 0; i < wall->cseg; i++) {
+        pseg = &wall->aseg[i];
+        pseg->pshape = (SHAPE *)FindSwObject(&D_003DD490, 4, pseg->oid, wall);
+        if (!pseg->pshape) {
             i--;
-            wall->segmentCount--;
+            wall->cseg--;
             continue;
         }
-        InitDl__FP2DLi(pe->dl, 0x60);
-        for (j = 0; j < pe->pieceCount; j++) {
+        InitDl__FP2DLi(&pseg->dlPiece, 0x60);
+        for (j = 0; j < pseg->cpiece; j++) {
             struct MSG msg;
-            struct Q *q;
+            HACKWALLPIECE *ppiece;
             msg.cb = 0x70;
             msg.nKind = 0x10;
-            q = (struct Q *)AllocClearedFromWorldHeap(&msg);
-            q->pr = pe;
-            q->n = -1;
-            AppendDlEntry__FP2DLPv(pe->dl, q);
+            ppiece = (HACKWALLPIECE *)AllocClearedFromWorldHeap(&msg);
+            ppiece->pseg = pseg;
+            ppiece->state = -1;
+            AppendDlEntry__FP2DLPv(&pseg->dlPiece, ppiece);
         }
     }
     PostHackLoad(wall);
-    pr = &wall->parts[wall->partCount++];
-    pr->a = wall->unknown60;
+    pr = &((struct R *)wall->parts)[wall->numParts++];
+    pr->pxf = wall->rootTransform;
     pr->n = -1;
-    pr->p = wall;
+    pr->pso = wall;
     pr->fl |= 1UL << 48;
     pr->fl |= 1UL << 49;
-    if ((int)(wall->fl >> 60) & 1) AddSoParts(wall);
+    if ((int)(((struct LOIsland *)wall)->fl >> 60) & 1) AddSoParts(wall);
 }
 } } // namespace M_func_00181840
 
 namespace M_func_001819E0 { extern "C" {
-struct R { char pad[0x10]; char dl[0xC]; };
-struct Q { char pad[0x20]; struct R *pr; char p1[0x3C]; struct DLE dle; };
-struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; char p[0xC]; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
-struct S : PO { char pad180[0x1C8 - 0x180]; int c; struct E ae[4]; struct Q *pqFirst; };
-void ResetHack(struct S *p);
-void ClearDle__FP3DLE(struct DLE *pdle);
-void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
-void ClearDl__FP2DL(void *pdl);
-void ResetHackwallSegment(struct S *p, struct E *pe);
-// Reset all segments. (inferred)
-void ResetHackwall(struct S *wall)
+void ClearDle__FP3DLE(DLE *pdle);
+void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
+void ClearDl__FP2DL(DL *pdl);
+void ResetHackwallSegment(HACKWALL *wall, HACKWALLSEG *pseg);
+// Reset: the broken pieces go back to their segments, then every segment is laid out again. (inferred)
+void ResetHackwall(HACKWALL *wall)
 {
-    struct Q *q;
+    HACKWALLPIECE *ppiece;
     int i;
     ResetHack(wall);
-    q = wall->pqFirst;
-    while (q) {
-        struct Q *qNext = (struct Q *)q->dle.next;
-        ClearDle__FP3DLE(&q->dle);
-        AppendDlEntry__FP2DLPv(q->pr->dl, q);
-        q = qNext;
+    ppiece = (HACKWALLPIECE *)wall->dlBroken.head;
+    while (ppiece) {
+        HACKWALLPIECE *ppieceNext = (HACKWALLPIECE *)ppiece->dle.next;
+        ClearDle__FP3DLE(&ppiece->dle);
+        AppendDlEntry__FP2DLPv(&ppiece->pseg->dlPiece, ppiece);
+        ppiece = ppieceNext;
     }
-    ClearDl__FP2DL(&wall->pqFirst);
-    for (i = 0; i < wall->c; i++) {
-        struct E *pe = &wall->ae[i];
-        pe->activePieceCount = pe->pieceCount;
-        ResetHackwallSegment(wall, pe);
+    ClearDl__FP2DL(&wall->dlBroken);
+    for (i = 0; i < wall->cseg; i++) {
+        HACKWALLSEG *pseg = &wall->aseg[i];
+        pseg->cpieceActive = pseg->cpiece;
+        ResetHackwallSegment(wall, pseg);
     }
 }
 } } // namespace M_func_001819E0
 
 namespace M_func_00181A90 { extern "C" {
-struct Q { char pad[0x24]; int state; char p1[0x14]; float shapeS; int unknown40; char p2[8]; int unknown4C; char p3[0x10]; struct Q *next; };
-struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
-struct S;
-void LayoutHackwallPieces(struct S *p, struct E *pe);
-float GetShapeMaxDistance(int state);
-void SetHackwallSegmentState(struct S *p, struct Q *q, int state);
-// Reset one segment's pieces along its shape. (inferred)
-void ResetHackwallSegment(struct S *wall, struct E *pe)
+void LayoutHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg);
+float GetShapeMaxDistance(SHAPE *pshape);
+// Reset one segment's pieces, spread evenly along its shape. (inferred)
+void ResetHackwallSegment(HACKWALL *wall, HACKWALLSEG *pseg)
 {
     int i = 0;
     float g;
-    struct Q *q;
-    LayoutHackwallPieces(wall, pe);
-    g = GetShapeMaxDistance(pe->shape);
-    for (q = pe->pqFirst; q; q = q->next) {
-        q->state = -1;
-        SetHackwallSegmentState(wall, q, 0);
-        q->shapeS = g * ((float)i + 0.5f) / (float)pe->activePieceCount;
-        q->unknown40 = 0;
-        q->unknown4C = pe->pieceParam;
+    HACKWALLPIECE *ppiece;
+    LayoutHackwallPieces(wall, pseg);
+    g = GetShapeMaxDistance(pseg->pshape);
+    for (ppiece = (HACKWALLPIECE *)pseg->dlPiece.head; ppiece; ppiece = (HACKWALLPIECE *)ppiece->dle.next) {
+        ppiece->state = -1;
+        SetHackwallSegmentState(wall, ppiece, 0);
+        ppiece->s = g * ((float)i + 0.5f) / (float)pseg->cpieceActive;
+        ppiece->ds = 0;
+        ppiece->cHealth = pseg->cPieceHealth;
         i++;
     }
 }
 } } // namespace M_func_00181A90
 
 namespace M_func_00181B60 { extern "C" {
-struct K { float a; float b; };
-struct Q { char pad[0x2C]; struct K k1; struct K k2; char p1[0x24]; struct Q *next; };
-struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
-struct S;
-float GetShapeMaxDistance(int n);
-// Distribute pieces along the segment shape length (GetShapeMaxDistance). (inferred)
-void LayoutHackwallPieces(struct S *wall, struct E *pe)
+float GetShapeMaxDistance(SHAPE *pshape);
+// Distribute the pieces along the segment shape's length (GetShapeMaxDistance). (inferred)
+void LayoutHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg)
 {
-    float g = GetShapeMaxDistance(pe->shape);
-    int c = pe->activePieceCount;
+    float g = GetShapeMaxDistance(pseg->pshape);
+    int c = pseg->cpieceActive;
     float r = g * 0.5f / (float)c;
     int m;
     float fm, gap, step;
-    struct K k1, k2;
-    struct Q *q;
-    r = pe->maxSpacing < r ? pe->maxSpacing : r;
-    m = pe->maxPieces < c ? pe->maxPieces : c;
+    LM lmS, lmSClosest;
+    HACKWALLPIECE *ppiece;
+    r = pseg->sRadius < r ? pseg->sRadius : r;
+    m = pseg->cpieceMax < c ? pseg->cpieceMax : c;
     fm = (float)m;
     gap = (g - 2.0f * (float)c * r) / (float)(c - m + 1);
     step = gap + 2.0f * r;
-    k1.a = (2.0f * fm - 1.0f) * r - step * (float)(m - 1);
-    k1.b = (2.0f * fm - 1.0f) * r + fm * gap - step * (float)(m - 1);
-    k2.a = k1.a - fm * r;
-    k2.b = k1.b + fm * r;
-    for (q = pe->pqFirst; q; q = q->next) {
-        q->k1 = k1;
-        q->k2 = k2;
-        k1.a += step;
-        k1.b += step;
-        k2.a += step;
-        k2.b += step;
+    lmS.minValue = (2.0f * fm - 1.0f) * r - step * (float)(m - 1);
+    lmS.maxValue = (2.0f * fm - 1.0f) * r + fm * gap - step * (float)(m - 1);
+    lmSClosest.minValue = lmS.minValue - fm * r;
+    lmSClosest.maxValue = lmS.maxValue + fm * r;
+    for (ppiece = (HACKWALLPIECE *)pseg->dlPiece.head; ppiece; ppiece = (HACKWALLPIECE *)ppiece->dle.next) {
+        ppiece->lmS = lmS;
+        ppiece->lmSClosest = lmSClosest;
+        lmS.minValue += step;
+        lmS.maxValue += step;
+        lmSClosest.minValue += step;
+        lmSClosest.maxValue += step;
     }
 }
 } } // namespace M_func_00181B60
 
 namespace M_func_00181CB0 { extern "C" {
-struct Q { char pad[0x2C]; float sStart; float sEnd; float sMin; float sMax; char p1[8]; float sCurrent; float negDistanceToShip; char p2[0x14]; struct Q *next; };
-struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; float closestS; float retargetTime; };
-struct S;
-float GetShapeMaxDistance(int n);
-// Clamps g to [lo, hi].
-// Per-frame piece placement along shape. (inferred)
-void UpdateHackwallPieces(struct S *wall, struct E *pe)
+float GetShapeMaxDistance(SHAPE *pshape);
+// Per-frame piece goals along the shape: each piece follows the ship's closest point within its band. (inferred)
+void UpdateHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg)
 {
-    float g = GetShapeMaxDistance(pe->shape);
-    float r0 = g * 0.5f / (float)pe->activePieceCount;
-    struct Q *q;
+    float g = GetShapeMaxDistance(pseg->pshape);
+    float r0 = g * 0.5f / (float)pseg->cpieceActive;
+    HACKWALLPIECE *ppiece;
     int i;
-    float r = pe->maxSpacing < r0 ? pe->maxSpacing : r0;
-    for (i = 0, q = pe->pqFirst; q; q = q->next, i++) {
-        int j = pe->activePieceCount - i - 1;
+    float r = pseg->sRadius < r0 ? pseg->sRadius : r0;
+    for (i = 0, ppiece = (HACKWALLPIECE *)pseg->dlPiece.head; ppiece; ppiece = (HACKWALLPIECE *)ppiece->dle.next, i++) {
+        int j = pseg->cpieceActive - i - 1;
         float lo, hi, x;
-        float t = (pe->closestS - q->sMin) / (q->sMax - q->sMin);
+        float t = (pseg->sClosest - ppiece->lmSClosest.minValue) / (ppiece->lmSClosest.maxValue - ppiece->lmSClosest.minValue);
         if (t < 0.0f) t = 0.0f;
         else if (t > 1.0f) t = 1.0f;
         lo = (2.0f * (float)i + 1.0f) * r;
         hi = g - (2.0f * (float)j + 1.0f) * r;
-        x = (1.0f - t) * q->sStart + t * q->sEnd;
+        x = (1.0f - t) * ppiece->lmS.minValue + t * ppiece->lmS.maxValue;
         if (x < lo) x = lo;
         else if (hi < x) x = hi;
-        q->sCurrent = x;
-        x = (q->sStart + q->sEnd) * 0.5f;
-        q->negDistanceToShip = -__builtin_fabsf(x - pe->closestS);
+        ppiece->sGoal = x;
+        x = (ppiece->lmS.minValue + ppiece->lmS.maxValue) * 0.5f;
+        ppiece->negDistanceToShip = -__builtin_fabsf(x - pseg->sClosest);
     }
 }
 } } // namespace M_func_00181CB0
@@ -1444,29 +1422,24 @@ extern "C" void UpdateHackwallSegments(HACKWALL *wall, HACKWALLPIECE *ppiece)
 }
 
 namespace M_func_00181EB0 { extern "C" {
-struct R { char pad[0xC]; int c; char dl[0xC]; };
-struct Q { char pad[0x20]; struct R *pr; int n; float t; };
-struct S : PO { char pad180[0x28C - 0x180]; char dl[0xC]; };
-extern struct CLOCK D_002DDED0;
-extern char D_002DEB30[];
-void RemoveDlEntry__FP2DLPv(void *pdl, void *pv);
-void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
-void BroadcastGameEvent(void *g, int n, struct S *p);
-void LayoutHackwallPieces(struct S *p, struct R *r);
-// Segment state switch: move between DLs, game event, relayout. (inferred)
-void SetHackwallSegmentState(struct S *wall, struct Q *q, int n)
+void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
+void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
+void LayoutHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg);
+// Piece state switch; a broken piece (2) moves to the wall's broken list (game event 0x3A when its segment has none
+// left) and the segment is laid out again. (inferred)
+void SetHackwallSegmentState(HACKWALL *wall, HACKWALLPIECE *ppiece, int n)
 {
-    struct R *r;
-    if (n == q->n) return;
-    q->n = n;
-    q->t = D_002DDED0.time;
+    HACKWALLSEG *pseg;
+    if (n == ppiece->state) return;
+    ppiece->state = n;
+    ppiece->stateTime = D_002DDED0.time;
     if (n != 2) return;
-    r = q->pr;
-    r->c--;
-    RemoveDlEntry__FP2DLPv(r->dl, q);
-    AppendDlEntry__FP2DLPv(wall->dl, q);
-    if (!r->c) BroadcastGameEvent(D_002DEB30, 0x3A, wall);
-    LayoutHackwallPieces(wall, r);
+    pseg = ppiece->pseg;
+    pseg->cpieceActive--;
+    RemoveDlEntry__FP2DLPv(&pseg->dlPiece, ppiece);
+    AppendDlEntry__FP2DLPv(&wall->dlBroken, ppiece);
+    if (!pseg->cpieceActive) BroadcastGameEvent(D_002DEB30, 0x3A, wall);
+    LayoutHackwallPieces(wall, pseg);
 }
 } } // namespace M_func_00181EB0
 
