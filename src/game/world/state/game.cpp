@@ -1682,7 +1682,6 @@ namespace M_PostTaskLoad { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct E16 {int object,context,stateMask,level;};
 struct E24 {int state,root,stateMachine,goal,restoreOnly,level;};
-struct SL {void*first;void*last;int nextOffset;};
 struct BF { unsigned long pad:52; long busyk:4; unsigned long pad2:8; };
 struct S {
     char pad[0x28]; struct BF bf;
@@ -1762,7 +1761,7 @@ void PostTaskLoad(struct S *task)
         Decref__4CRef(&ref);
         task->completionCount = n;
     }
-    if (task->timeLimit != 0.0f || task->children.first) {
+    if (task->timeLimit != 0.0f || task->children.head) {
         if ((int)task->bf.busyk == 2)
             SetLoBusyKind(task, 0);
         SetLoFlagsInline(task, 2);
@@ -1797,9 +1796,6 @@ typedef char layout_S_fb0[(((unsigned)&((struct S*)0)->numRsmgs==0xb0))?1:-1];
 typedef char layout_S_fb4[(((unsigned)&((struct S*)0)->rsmgs==0xb4))?1:-1];
 typedef char layout_S_fc8[(((unsigned)&((struct S*)0)->startCountKey==0xc8))?1:-1];
 typedef char layout_S_fd0[(((unsigned)&((struct S*)0)->completionCountKey==0xd0))?1:-1];
-typedef char layout_SL_first[(((unsigned)&((struct SL*)0)->first==0))?1:-1];
-typedef char layout_SL_last[(((unsigned)&((struct SL*)0)->last==4))?1:-1];
-typedef char layout_SL_nextOffset[(((unsigned)&((struct SL*)0)->nextOffset==8))?1:-1];
 } } // namespace M_PostTaskLoad
 
 namespace M_UpdateTask { extern "C" {

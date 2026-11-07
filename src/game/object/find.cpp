@@ -39,7 +39,6 @@ typedef char assert_LO_proxyChain[SLY2_OFFSETOF(LO, proxyChain) == 0x3C ? 1 : -1
 typedef char assert_LO_childEnd[SLY2_OFFSETOF(LO, childEnd) == 0x70 ? 1 : -1];
 
 /* One bucket of the SW hash tables (an SL: head, tail, link offset). */
-struct SLV { void *first; void *last; int linkOffset; };
 /* A proxy-root entry in the pxr hash. */
 struct PXRENT { int unknown0; void *proxyChain; int oid; PXRENT *next; LO *object; };
 /* A proxy chain link. */
@@ -50,9 +49,9 @@ struct CLASSDESC { CLASSDESC *base; int cid; int pad[3]; };
 extern CLASSDESC D_002BAAE8[];
 
 extern "C" {
-SLV *GetSwOidBucket(char *world, int oid);
-SLV *GetSwClassList(char *world, int cid);
-SLV *GetSwProxyRefBucket(char *world, int oid);
+SL *GetSwOidBucket(char *world, int oid);
+SL *GetSwClassList(char *world, int cid);
+SL *GetSwProxyRefBucket(char *world, int oid);
 void MatchSwObject(void *world, LO *candidate, CH *candidateChain, unsigned int flags, LO *context, CH *contextChain, int maxCount, int *count, LO **results,
                    int *bestDepth);
 int FindSwObjectsInProxyScope(void *world, int flags, int oid, LO *context, void *contextChain, int maxCount, LO **results);
@@ -64,21 +63,21 @@ int GetSourceIndexFromProxyId(int id);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 // Returns the world's hash bucket for an oid (512 buckets, hash (oid * 0x95675) & 0x1FF).
-extern "C" SLV *GetSwOidBucket(char *world, int oid)
+extern "C" SL *GetSwOidBucket(char *world, int oid)
 {
-    return &((SLV *)(world + 0x38))[(oid * 0x95675) & 0x1FF];
+    return &((SL *)(world + 0x38))[(oid * 0x95675) & 0x1FF];
 }
 
 // Returns the world's list of objects of a class. The class lists are 12 bytes apart from SW+0x3038.
-extern "C" SLV *GetSwClassList(char *world, int cid)
+extern "C" SL *GetSwClassList(char *world, int cid)
 {
-    return &((SLV *)(world + 0x3038))[cid];
+    return &((SL *)(world + 0x3038))[cid];
 }
 
 // Returns the bucket for an oid in the world's second hash table (proxy references, same hash).
-extern "C" SLV *GetSwProxyRefBucket(char *world, int oid)
+extern "C" SL *GetSwProxyRefBucket(char *world, int oid)
 {
-    return &((SLV *)(world + 0x1838))[(oid * 0x95675) & 0x1FF];
+    return &((SL *)(world + 0x1838))[(oid * 0x95675) & 0x1FF];
 }
 
 // Tests one candidate object against the search flags, the context object and the context's proxy chain, and records
@@ -202,12 +201,12 @@ extern "C" int FindSwObjectsInProxyScope(void *world, int flags, int oid, LO *co
         break;
     }
     GetSwOidBucket((char *)world, oid);
-    for (p = (LO *)GetSwOidBucket((char *)world, oid)->first; p; p = p->nextInOidBucket) {
+    for (p = (LO *)GetSwOidBucket((char *)world, oid)->head; p; p = p->nextInOidBucket) {
         if (p->oid == oid)
             MatchSwObject(world, p, (CH *)p->proxyChain, flags, context, (CH *)contextChain, maxCount, &count, results, &bestDepth);
     }
     GetSwProxyRefBucket((char *)world, oid);
-    for (proxyRef = (PXRENT *)GetSwProxyRefBucket((char *)world, oid)->first; proxyRef; proxyRef = proxyRef->next) {
+    for (proxyRef = (PXRENT *)GetSwProxyRefBucket((char *)world, oid)->head; proxyRef; proxyRef = proxyRef->next) {
         LO *proxyObject;
         if (proxyRef->oid != oid)
             continue;
@@ -301,7 +300,7 @@ extern "C" int FindSwObjectsByClass(void *world, int flags, int cid, LO *context
         f = flags & 0x200;
         for (; k < 199 && IsCidDerivedFrom(k, cid); k++) {
             GetSwClassList((char *)world, k);
-            for (p = (LO *)GetSwClassList((char *)world, k)->first; p; p = p->nextInClass) {
+            for (p = (LO *)GetSwClassList((char *)world, k)->head; p; p = p->nextInClass) {
                 if ((flags & 0x100) && (int)p->isInWorld == 0)
                     continue;
                 if (count < maxCount)
@@ -333,7 +332,7 @@ extern "C" int FindSwObjectsByClass(void *world, int flags, int cid, LO *context
         }
         for (k = cid; k < 199 && IsCidDerivedFrom(k, cid); k++) {
             GetSwClassList((char *)world, k);
-            for (p = (LO *)GetSwClassList((char *)world, k)->first; p; p = p->nextInClass)
+            for (p = (LO *)GetSwClassList((char *)world, k)->head; p; p = p->nextInClass)
                 MatchSwObject(world, p, 0, flags | 0x400, context, 0, maxCount, &count, results, &bestDepth);
         }
         for (p = scopeStart; p; p = p->parent)
