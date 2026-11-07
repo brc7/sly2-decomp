@@ -499,53 +499,18 @@ extern "C" { extern CLOCK D_002DDED0; }
 struct CM { char pad[0x1C]; float lodScale; char pad2[0x90 - 0x20]; qword pos; };   /* lodScale (inferred): scales
                                                                                         an object's busy radius */
 extern "C" { extern CM D_002DDF40; }   /* g_cm, the main camera */
-struct EMITO { void *referenceObject; void *shapeObject; };   /* the EMITB's resolved objects */
-struct EMITBV { int pad0; int particleKind; EMITO *pemito; };   /* particleKind: 0 blips, 1 rips */
 struct RIPG { char pad[0x15C]; int ripList; };
 struct BLIPG { char pad[0x444]; int numBlips; };
-/* EMITTER (see PostEmitterLoad's view) */
-struct EMITTERV {
-    char pad0[0x10];
-    int psoParent;              /* +0x10 LO */
-    char pad1[0x38 - 0x14];
-    float sBusy;                /* +0x38 LO: the radius within which the object counts as near the camera */
-    char pad2[0xE0 - 0x3C];
-    int isDirty;                /* +0xE0 */
-    EMITBV *pemitb;             /* +0xE4 */
-    char padE8[8];
-    int emitMode;               /* +0xF0 */
-    int particleCount;          /* +0xF4 */
-    float rateMin, rateMax;     /* +0xF8 */
-    char pad3[0x104 - 0x100];
-    float pauseChance;          /* +0x104 */
-    float pauseTimeMin, pauseTimeMax;   /* +0x108 */
-    float constantCount;        /* +0x110 */
-    int autoPause;              /* +0x114 */
-    int groupOid;               /* +0x118 */
-    int groupList;              /* +0x11C DL head: the first slaved emitter */
-    char pad4[0x128 - 0x120];
-    EMITTERV *nextInGroup;      /* +0x128 */
-    char pad5[0x130 - 0x12C];
-    float currentRate;          /* +0x130 */
-    float rateRedrawInterval;   /* +0x134 */
-    float rateRedrawTime;       /* +0x138 */
-    float density;              /* +0x13C */
-    char pad6[0x144 - 0x140];
-    float particleFraction;     /* +0x144 fractional particle carried to the next frame */
-    char pad7[0x14C - 0x148];
-    RIPG *pripg;                /* +0x14C */
-    BLIPG *pblipg;              /* +0x150 */
-};
 struct EMITX { BLIPG **ppblipg; RIPG **ppripg; EMITTERV *pemitter; };   /* EMITG */
 extern "C" {
 void UpdateLo(EMITTERV *p);
-int IsDlEmpty__FP2DL(int *pdl);
+int IsDlEmpty__FP2DL(DL *pdl);
 int IsLoInWorld(EMITTERV *p);
 qword GetLoWorldPos(void *p);
 float RandomFloatInRange__Fff(float gMin, float gMax);
 int CountDlEntries__FP2DL(int *pdl);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pemitb, EMITX *px);
+void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 int IsEmitterPaused(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
@@ -570,27 +535,27 @@ static inline int FLess(float a, float b) { return a < b; }
 // emitter as the fallback origin. Finally it redraws the rate when due and wraps particles into the box modifier.
 extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *emitter, float dt)
 {
-    if (emitter->isDirty)
+    if (emitter->fDirty)
         OnEmitterValuesChanged(emitter);
     UpdateLo(emitter);
     if (emitter->groupOid != -1)
         return;
     if (!IsDlEmpty__FP2DL(&emitter->groupList)) {
         EMITTERV *member;
-        for (member = (EMITTERV *)emitter->groupList; member; member = member->nextInGroup) {
+        for (member = (EMITTERV *)emitter->groupList.head; member; member = (EMITTERV *)member->groupLink.next) {
             if (!IsLoInWorld(member))
                 continue;
-            if (!member->psoParent)
+            if (!member->parent)
                 goto LActive;
-            float radius = member->sBusy * D_002DDF40.lodScale;
+            float radius = member->busyRadius * D_002DDF40.lodScale;
             qword pos = GetLoWorldPos(member);
             radius = radius * radius;
             if (FLess(Dist2(pos, D_002DDF40.pos), radius))
                 goto LActive;
         }
         return;
-    } else if (emitter->psoParent) {
-        float radius = emitter->sBusy * D_002DDF40.lodScale;
+    } else if (emitter->parent) {
+        float radius = emitter->busyRadius * D_002DDF40.lodScale;
         qword pos = GetLoWorldPos(emitter);
         radius = radius * radius;
         if (FLess(radius, Dist2(pos, D_002DDF40.pos)))
@@ -615,10 +580,10 @@ LActive:   /* near the camera (or not tied to a parent) */
             }
             if (emitter->autoPause) {
                 PauseEmitterIndefinite(emitter);
-                emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
+                emitter->currentRate = RandomFloatInRange__Fff(emitter->rate.minValue, emitter->rate.maxValue) * 60.0f;
             } else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance) {
-                PauseEmitter(emitter, RandomFloatInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
-                emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
+                PauseEmitter(emitter, RandomFloatInRange__Fff(emitter->pauseTime.minValue, emitter->pauseTime.maxValue));
+                emitter->currentRate = RandomFloatInRange__Fff(emitter->rate.minValue, emitter->rate.maxValue) * 60.0f;
             }
         }
         break;
@@ -634,8 +599,8 @@ LActive:   /* near the camera (or not tied to a parent) */
         if (emitter->autoPause)
             PauseEmitterIndefinite(emitter);
         else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance)
-            PauseEmitter(emitter, RandomFloatInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
-        emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax);
+            PauseEmitter(emitter, RandomFloatInRange__Fff(emitter->pauseTime.minValue, emitter->pauseTime.maxValue));
+        emitter->currentRate = RandomFloatInRange__Fff(emitter->rate.minValue, emitter->rate.maxValue);
         break;
     }
     case EMIT_MODE_CONTINUOUS: {
@@ -656,9 +621,9 @@ LActive:   /* near the camera (or not tied to a parent) */
         int numWanted = (int)(emitter->constantCount * emitter->density);
         int numAlive;
         if (!emitter->pemitb->particleKind)
-            numAlive = emitter->pblipg ? emitter->pblipg->numBlips : 0;
+            numAlive = emitter->pblipg ? ((BLIPG *)emitter->pblipg)->numBlips : 0;
         else
-            numAlive = emitter->pripg ? CountDlEntries__FP2DL(&emitter->pripg->ripList) : 0;
+            numAlive = emitter->pripg ? CountDlEntries__FP2DL(&((RIPG *)emitter->pripg)->ripList) : 0;
         int shortfall = numWanted - numAlive;
         numToEmit = 0;
         int hasShortfall = 0 < shortfall;   /* a flag temp: `if (shortfall > 0)` compiles differently */
@@ -673,18 +638,18 @@ LActive:   /* near the camera (or not tied to a parent) */
         EMITX emitg;
         func_002333B4(&emitg, 0, sizeof(emitg));
         emitg.pemitter = emitter;
-        emitg.ppblipg = &emitter->pblipg;
-        emitg.ppripg = &emitter->pripg;
-        EMITO *pemito = emitter->pemitb->pemito;
-        void *savedReference = pemito->referenceObject;
-        if (!savedReference && !pemito->shapeObject)
-            pemito->referenceObject = emitter;
+        emitg.ppblipg = (BLIPG **)&emitter->pblipg;
+        emitg.ppripg = (RIPG **)&emitter->pripg;
+        LO **aploRef = emitter->pemitb->aploRef;
+        LO *savedReference = aploRef[EMITREF_Reference];
+        if (!savedReference && !aploRef[EMITREF_Shape])
+            aploRef[EMITREF_Reference] = emitter;
         EmitParticles__FiP5EMITBP5EMITG(numToEmit, emitter->pemitb, &emitg);
-        emitter->pemitb->pemito->referenceObject = savedReference;
+        emitter->pemitb->aploRef[EMITREF_Reference] = savedReference;
     }
 
     if (D_002DDED0.time >= emitter->rateRedrawTime) {
-        emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax);
+        emitter->currentRate = RandomFloatInRange__Fff(emitter->rate.minValue, emitter->rate.maxValue);
         emitter->rateRedrawTime = D_002DDED0.time + emitter->rateRedrawInterval;
     }
     ModifyEmitterParticles(emitter);
