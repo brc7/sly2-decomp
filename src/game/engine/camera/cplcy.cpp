@@ -208,7 +208,7 @@ namespace M_ActivateCplook { extern "C" {
 typedef struct { float a, b; } F2;
 struct G { char pad[0x24]; float targetFov; char pad2[0x60 - 0x28]; int matrix; };
 extern struct G D_002DDF40;
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern F2 D_002BD950, D_002BD958, D_002BD960, D_002BD968, D_002BD970;
 struct X {
     int hero; char pad[0xC]; float panAngle; float tiltAngle; int panSpeed; int tiltSpeed; int zoom; int zoomSpeed; float maxZoom; float zoomFov; float wideFov;
@@ -270,7 +270,7 @@ void ActivateCplook(struct X *p)
     p->wideFov = D_002DDF40.targetFov;
     SetCmNearClip__FP2CMf(&D_002DDF40, 49.0f);
     p->enterCount++;
-    g_sw.tLookLast = D_002DDED0.t;
+    g_sw.tLookLast = D_002DDED0.time;
 }
 } } // namespace M_ActivateCplook
 
@@ -515,7 +515,6 @@ qword PosCpzoomEye(struct X *p)
 } } // namespace M_PosCpzoomEye
 
 namespace M_ActivateCpzoom { extern "C" {
-typedef struct CLOCK { float time; float deltaTime; } CLOCK;
 extern CLOCK D_002DDED0;
 struct G { char pad[0x24]; float targetFov; char pad2[0x60 - 0x28]; char matrix[0x4A4 - 0x60]; int lookEnterCount;  /* g_cm.cplook.numActivations */ };
 extern struct G D_002DDF40;
