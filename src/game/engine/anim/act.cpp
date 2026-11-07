@@ -1096,7 +1096,7 @@ void UpdateActLookAt(ACT2 *p)
 
 /* vtable 0x2CA7F0 slot 4. */
 // Look-at act goal (slot 5).
-void ACT2::GetGoal(qword *ppos, VECTOR *pdvec)
+void ACT2::GetGoal(qword *ppos, VECTOR *pdvec, float)
 {
     qword *pv = (qword *)pdvec;
     if (ppos != 0) {
@@ -1148,8 +1148,6 @@ static inline float GetX(qword q)
     return f;
 }
 
-struct VTE { short d; short pad; void (*pfn)(void *, int, qword *, float); };
-struct O { int kind; void *object; int pad[4]; VTE *pvt; };
 struct X {
     M3 localMatrix;
     qword localPosition;
@@ -1157,7 +1155,7 @@ struct X {
     qword worldPosition;
     float segmentStartTime, segmentEndTime;
     float *currentTimePtr, *curveScalePtr;
-    O *activeAct;
+    ACT *activeAct;
     int valueKind;
     unsigned short role;
     short segmentKind;
@@ -1168,7 +1166,7 @@ struct X {
     M3 segment;
     qword segmentLast;
 };
-struct P { int kind; void *object; X *xf; int priority; int pad10[3]; float lookAheadWeight; float lookAheadTime; X *pathXf; };
+#define XFV(p) ((X *)(p)->pxf)
 
 extern "C" {
 extern qword D_002A2DD0, D_002A2DC0, D_002BC380;
@@ -1184,14 +1182,14 @@ static inline void SetMat(X *px, const M3 &m)
     px->segmentKind = 5;
 }
 
-static inline void Fin(P *p, M3 &mT, M3 m)
+static inline void Fin(ACT4 *p, M3 &mT, M3 m)
 {
     mT = m;
-    X *px = p->xf;
+    X *px = XFV(p);
     M3 *pm = &px->segment;
     ConvertXfMat(&m, 0, px->parent, &mT);
     *pm = m;
-    p->xf->segmentKind = 5;
+    XFV(p)->segmentKind = 5;
 }
 
 
@@ -1210,35 +1208,33 @@ void ACT4::Update()
     using M_func_0012D508::GetX;
     using M_func_0012D508::M3;
     using M_func_0012D508::MulM3;
-    using M_func_0012D508::O;
     using M_func_0012D508::VLen;
-    using M_func_0012D508::VTE;
     using M_func_0012D508::VU_FLOAT;
     using M_func_0012D508::X;
     using M_func_0012D508::UpdateXfJobRange;
     using M_func_0012D508::qword;
-    P *p = (P *)this;
+    ACT4 *p = this;
     X *py;
     union { qword q; } vT;
     M3 mT;
-    if (p->pathXf == 0) {
-        X *px = p->xf;
+    if (p->pxfPath == 0) {
+        X *px = XFV(p);
         X *pz;
         for (pz = px->parent; pz != 0 && pz->valueKind != 1; pz = pz->parent)
             ;
         if (pz == 0) {
-            M3 *pm = &p->xf->segment;
-            *pm = p->xf->localMatrix;
-            p->xf->segmentKind = 5;
+            M3 *pm = &XFV(p)->segment;
+            *pm = XFV(p)->localMatrix;
+            XFV(p)->segmentKind = 5;
             return;
         }
-        p->pathXf = pz;
+        p->pxfPath = (XF *)pz;
     }
-    py = p->pathXf;
+    py = (X *)p->pxfPath;
     if (py->activeAct)
-        UpdateXfJobRange(py->activeAct->object, py);
+        UpdateXfJobRange(py->activeAct->palo, py);
     qword v;
-    switch ((short)(p->pathXf->role - 1)) {
+    switch ((short)(((X *)p->pxfPath)->role - 1)) {
     case 0: case 1: case 6: case 7: case 8: case 10: case 16: case 17: case 19: case 20:
         v = py->velocity;
         break;
@@ -1268,13 +1264,11 @@ void ACT4::Update()
     if (py->parent)
         v = MulM3(py->parent->worldMatrix, v);
     if (GetX(VLen(v)) < 100.0f) {
-        Fin(p, mT, BuildOrthonormalMatrixZ(p->xf->worldMatrix.r[0], D_002A2DC0));
+        Fin(p, mT, BuildOrthonormalMatrixZ(XFV(p)->worldMatrix.r[0], D_002A2DC0));
     } else {
         qword u = D_002BC380;
         if (0.0f < p->lookAheadTime && 0.0f < p->lookAheadWeight && py->activeAct) {
-            O *po = py->activeAct;
-            VTE *pe = &po->pvt[5];
-            pe->pfn((char *)po + pe->d, 0, &vT.q, p->lookAheadTime);
+            py->activeAct->GetGoal(0, (VECTOR *)&vT.q, p->lookAheadTime);
             if (py->parent)
                 vT.q = MulM3(py->parent->worldMatrix, vT.q);
             u = AddScaledDiff(u, vT.q, v, VU_FLOAT(p->lookAheadWeight / p->lookAheadTime));
@@ -1282,70 +1276,56 @@ void ACT4::Update()
         Fin(p, mT, BuildOrthonormalMatrixZ(v, u));
     }
 }
+#undef XFV
 
 namespace M_func_0012D858 { extern "C" {
-typedef struct VT { short d; short pad; void (*fn)(void *); } VT;
-typedef struct O { int pad[6]; VT *vt; } O;
-typedef struct T { int pad[4]; O *p; int pad2[2]; O *q; } T;
-
 } } // namespace M_func_0012D858
 // Offset act attach (slot 1): attaches the wrapped act.
 void ACT5::Attach()
 {
-    using namespace M_func_0012D858;
-    using M_func_0012D858::O;
-    T *t = (T *)this;
-    O *p = t->p;
-    t->q = p;
+    ACT *p = pactNext;
+    pactCur = p;
     if (p)
-        p->vt[1].fn((char *)p + p->vt[1].d);
+        p->Attach();
 }
 
 namespace M_func_0012D890 { extern "C" {
-typedef struct VT { short d; short pad; void (*fn)(void *); } VT;
-typedef struct O { int pad[6]; VT *vt; } O;
-typedef struct T { int pad[7]; O *q; } T;
 // Offset act detach (slot 2): detaches the wrapped act and forgets it. (inferred)
-void DetachOffsetAct(T *t)
+void DetachOffsetAct(ACT5 *t)
 {
-    O *p = t->q;
+    ACT *p = t->pactCur;
     if (p) {
-        p->vt[2].fn((char *)p + p->vt[2].d);
-        t->q = 0;
+        p->Detach();
+        t->pactCur = 0;
     }
 }
 } } // namespace M_func_0012D890
 
 namespace M_func_0012D8D8 { extern "C" {
-typedef struct VT { short d; short pad; void (*fn)(void *); } VT;
-typedef struct O { int pad[6]; VT *vt; } O;
-typedef struct T { int pad; void *a; void *b; int pad2; O *p; int pad3[2]; O *q; } T;
 void WakeXfOwner(void *a, void *b);
 // Offset act slot 3: when the act to wrap changed, wakes the transform, detaches the old wrapped act and attaches the
 // new one. (inferred)
-void SwitchOffsetActTarget(T *t)
+void SwitchOffsetActTarget(ACT5 *t)
 {
-    O *p;
-    if (t->q != t->p) {
-        WakeXfOwner(t->a, t->b);
-        p = t->q;
+    ACT *p;
+    if (t->pactCur != t->pactNext) {
+        WakeXfOwner(t->palo, t->pxf);
+        p = t->pactCur;
         if (p)
-            p->vt[2].fn((char *)p + p->vt[2].d);
-        p = t->p;
-        t->q = p;
+            p->Detach();
+        p = t->pactNext;
+        t->pactCur = p;
         if (p)
-            p->vt[1].fn((char *)p + p->vt[1].d);
+            p->Attach();
     }
 }
 } } // namespace M_func_0012D8D8
 
 namespace M_func_0012D958 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct VT { short d; short pad; void (*pfn)(void *); } VT;
-typedef struct O { char pad[0x18]; VT *vt; } O;
+/* The transform's goal value (+0xC0) and its +0xE0 accumulator, as this function adds the offset to them. */
 typedef struct SW { char pad[0xC0]; qword a; char pad2[0x10]; qword b; } SW;
-typedef struct T2 { char pad[8]; SW *psw; char pad1[0x10]; O *po; qword v; } T2;
-void UpdateActDefault(T2 *p);
+void UpdateActDefault(ACT *p);
 static __inline__ void AddV(qword *pd, qword *ps)
 {
     register qword b __asm__("vf2") = *ps;
@@ -1355,13 +1335,13 @@ static __inline__ void AddV(qword *pd, qword *ps)
 }
 // Offset act update (slot 4): updates the wrapped act and adds the offset to the world's accumulators (falls back to
 // the default update when nothing is wrapped). (inferred)
-void UpdateOffsetAct(T2 *p)
+void UpdateOffsetAct(ACT5 *p)
 {
-    O *po = p->po;
+    ACT *po = p->pactCur;
     if (po) {
-        ((void (*)(void *))po->vt[4].pfn)((char *)po + po->vt[4].d);
-        AddV(&p->psw->a, &p->v);
-        AddV(&p->psw->b, &p->v);
+        po->Update();
+        AddV(&((SW *)p->pxf)->a, (qword *)&p->offset);
+        AddV(&((SW *)p->pxf)->b, (qword *)&p->offset);
     } else {
         UpdateActDefault(p);
     }
@@ -1370,16 +1350,13 @@ void UpdateOffsetAct(T2 *p)
 
 namespace M_func_0012D9D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct VT { short d; short pad; void (*pfn)(void *); } VT;
-typedef struct O { char pad[0x18]; VT *vt; } O;
-typedef struct T2 { char pad[0x1C]; O *po; qword v; } T2;
 // Offset act goal (slot 5): the wrapped act's goal plus the offset. (inferred)
-void GetOffsetActGoal(T2 *p, qword *pv, void *x)
+void GetOffsetActGoal(ACT5 *p, qword *pv, VECTOR *pdv, float dt)
 {
-    O *po = p->po;
-    ((void (*)(void *, qword *, void *))po->vt[5].pfn)((char *)po + po->vt[5].d, pv, x);
+    ACT *po = p->pactCur;
+    po->GetGoal((::qword *)pv, pdv, dt);
     if (pv) {
-        register qword b __asm__("vf2") = p->v;
+        register qword b __asm__("vf2") = p->offset;
         register qword a __asm__("vf1") = *pv;
         __asm__ ("vadd.xyzw %0, %0, %1" : "+j"(a) : "j"(b));
         *pv = a;
@@ -1429,16 +1406,14 @@ void SetActRotationGoal(ACT1 *p, qword v)
 } } // namespace M_func_0012DA30
 
 namespace M_func_0012DB50 { extern "C" {
-typedef struct T { int a; int b; int c; int d; int e; int f; } T;
-T *InitActOfKind(void *p);
 // Creates an act of a kind for (object, transform, owner) with its priority / role, not yet attached. (inferred)
-T *NewActOfKind(void *p, int b, int c, int d, int f)
+ACT *NewActOfKind(int ack, ALO *palo, XF *pxf, int nPriority, int nRole)
 {
-    T *t = InitActOfKind(p);
-    t->b = b;
-    t->c = c;
-    t->d = d;
-    t->f = f;
+    ACT *t = InitActOfKind(ack);
+    t->palo = palo;
+    t->pxf = pxf;
+    t->nPriority = nPriority;
+    t->nRole = nRole;
     return t;
 }
 } } // namespace M_func_0012DB50
@@ -1457,46 +1432,42 @@ void *NewOffsetAct(void *a, void *b, void *c)
 
 namespace M_func_0012DC18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct R { char pad[0x1C]; int phase; qword positionGoal; } R;
-R *NewActOfKind(int k, void *a, void *b, void *c, int d);
+ACT1 *NewActOfKind(int k, void *a, void *b, void *c, int d);
 void AddXfAct(void *a, void *b, void *p);
 // Creates a position act (kind 1) with a role and a goal vector and attaches it. (inferred)
-R *NewPositionAct(void *a, void *b, void *c, int d, int e, qword positionGoal)
+ACT1 *NewPositionAct(void *a, void *b, void *c, int d, int e, qword goalValue)
 {
-    R *p = NewActOfKind(1, a, b, c, d);
+    ACT1 *p = NewActOfKind(1, a, b, c, d);
     p->phase = e;
-    p->positionGoal = positionGoal;
+    p->goalValue = goalValue;
     AddXfAct(a, b, p);
     return p;
 }
 } } // namespace M_func_0012DC18
 
 namespace M_func_0012DCA0 { extern "C" {
-typedef struct T { int a[7]; float x; float y; } T;
-T *NewActOfKind(int k, void *a, void *b, void *c, void *d);
-void AddXfAct(void *a, void *b, T *p);
+ACT4 *NewActOfKind(int k, void *a, void *b, void *c, void *d);
+void AddXfAct(void *a, void *b, ACT4 *p);
 // Creates a path act (kind 4) with its two parameters and attaches it. (inferred)
-T *NewPathAct(void *a, void *b, void *c, void *d, float x, float y)
+ACT4 *NewPathAct(void *a, void *b, void *c, void *d, float lookAheadWeight, float lookAheadTime)
 {
-    T *p = NewActOfKind(4, a, b, c, d);
-    p->x = x;
-    p->y = y;
+    ACT4 *p = NewActOfKind(4, a, b, c, d);
+    p->lookAheadWeight = lookAheadWeight;
+    p->lookAheadTime = lookAheadTime;
     AddXfAct(a, b, p);
     return p;
 }
 } } // namespace M_func_0012DCA0
 
 namespace M_func_0012DD28 { extern "C" {
-typedef struct T { int a[7]; void *q; } T;
-typedef struct Q { int pad[2]; void *b; } Q;
-T *NewActOfKind(int k, void *a, void *b, void *c, int d);
-void AddXfAct(void *a, void *b, T *p);
+ACT7 *NewActOfKind(int k, void *a, void *b, void *c, int d);
+void AddXfAct(void *a, void *b, ACT7 *p);
 // Creates an IK act (kind 7) for an IK record and attaches it (its role depends on whether the transform is the
 // record's first bone). (inferred)
-T *NewIkAct(void *a, void *b, void *c, Q *q)
+ACT7 *NewIkAct(void *a, void *b, void *c, IKREC *q)
 {
-    T *p = NewActOfKind(7, a, b, c, b == q->b ? 0xE : 0xD);
-    p->q = q;
+    ACT7 *p = NewActOfKind(7, a, b, c, b == q->pxfLower ? 0xE : 0xD);
+    p->pikrec = q;
     AddXfAct(a, b, p);
     return p;
 }
@@ -1504,15 +1475,14 @@ T *NewIkAct(void *a, void *b, void *c, Q *q)
 
 namespace M_func_0012DDB0 { extern "C" {
 typedef struct M4 { int q[16]; } __attribute__((aligned(16))) M4;
-typedef struct T { int a[7]; int n; M4 mat; } T;
-T *NewActOfKind(int k, void *a, void *b, void *c, void *d);
-void AddXfAct(void *a, void *b, T *p);
+ACT6 *NewActOfKind(int k, void *a, void *b, void *c, void *d);
+void AddXfAct(void *a, void *b, ACT6 *p);
 // Creates a matrix act (kind 6) with a matrix and attaches it. (inferred)
-T *NewMatrixAct(void *a, void *b, void *c, void *d, int n, M4 *pmat)
+ACT6 *NewMatrixAct(void *a, void *b, void *c, void *d, XF *pxfBase, M4 *pmat)
 {
-    T *p = NewActOfKind(6, a, b, c, d);
-    p->n = n;
-    p->mat = *pmat;
+    ACT6 *p = NewActOfKind(6, a, b, c, d);
+    p->pxfBase = pxfBase;
+    *(M4 *)p->mat = *pmat;
     AddXfAct(a, b, p);
     return p;
 }
@@ -1520,16 +1490,15 @@ T *NewMatrixAct(void *a, void *b, void *c, void *d, int n, M4 *pmat)
 
 namespace M_func_0012DE58 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct R { char pad[0x1C]; float g; qword v; qword w; } R;
-R *NewActOfKind(int k, void *a, void *b, void *c, int d);
+ACT8 *NewActOfKind(int k, void *a, void *b, void *c, int d);
 void AddXfAct(void *a, void *b, void *p);
 // Creates a Bezier act (kind 8, role 0x11) with a duration and two vectors and attaches it. (inferred)
-R *NewBezierAct(void *a, void *b, void *c, float g, qword v, qword w)
+ACT8 *NewBezierAct(void *a, void *b, void *c, float arrivalTime, qword pos, qword vel)
 {
-    R *p = NewActOfKind(8, a, b, c, 0x11);
-    p->g = g;
-    p->v = v;
-    p->w = w;
+    ACT8 *p = NewActOfKind(8, a, b, c, 0x11);
+    p->arrivalTime = arrivalTime;
+    p->goalPosition = pos;
+    p->goalVelocity = vel;
     AddXfAct(a, b, p);
     return p;
 }
@@ -1540,31 +1509,32 @@ typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { float mat[4][4]; } __attribute__((aligned(16)));
 struct BONE { char pad[0x40]; MATRIX4 mat; };
 struct Y { char pad[0x9A]; short segmentKind; char pad2[0xA0 - 0x9C]; BONE *parent; char pad3[0xC0 - 0xA4]; qword goalValue; qword goalVelocity; };
-struct XX { char pad[8]; Y *xf; char pad2[0x1C - 0xC]; BONE *bone; MATRIX4 mat; };   /* the act: its transform, a bone and an offset matrix */
+#define XFV(p) ((Y *)(p)->pxf)
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat);
 MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
 qword GetXfValueFromMatrix(Y *xf, MATRIX4 mat);
-void UpdateMatrixAct(XX *x);
+void UpdateMatrixAct(ACT6 *x);
 }
 // Matrix act update: the transform's local matrix from a world matrix relative to its parent. (inferred)
-void UpdateMatrixAct(XX *x)
+void UpdateMatrixAct(ACT6 *x)
 {
     MATRIX4 m;
-    if (x->xf->parent)
-        m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(x->xf->parent->mat), x->bone->mat), x->mat);
+    if (XFV(x)->parent)
+        m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(XFV(x)->parent->mat), ((BONE *)x->pxfBase)->mat), *(MATRIX4 *)x->mat);
     else
-        m = __ml__FRC7MATRIX4T0(x->bone->mat, x->mat);
-    Y *xf = x->xf;
+        m = __ml__FRC7MATRIX4T0(((BONE *)x->pxfBase)->mat, *(MATRIX4 *)x->mat);
+    Y *xf = XFV(x);
     xf->goalValue = GetXfValueFromMatrix(xf, m);
-    x->xf->goalVelocity = D_002A2DD0;
-    x->xf->segmentKind = 3;
+    XFV(x)->goalVelocity = D_002A2DD0;
+    XFV(x)->segmentKind = 3;
 }
+#undef XFV
 } // namespace M_func_0012DEF0
 
 // Matrix act goal (slot 5).
-void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
+void ACT6::GetGoal(qword *ppos, VECTOR *pdvec, float)
 {
     if (ppos != 0) {
         *ppos = pxf->restValue;
@@ -1590,18 +1560,17 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct CLOCK { float time; float deltaTime; } CLOCK;
 extern CLOCK D_002DDED0;
 typedef struct Q { char pad[0x30]; qword startPos; char pad2[0x68]; float endTime; char pad3[4]; qword startVelocity; } Q;
-typedef struct P { char pad[8]; Q *xf; char pad2[0x14]; qword pos; qword vel; } P;
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, int n);
 // Bezier act goal (slot 5): position and velocity on its Bezier. (inferred)
-void GetBezierActGoal(P *p, qword *ppos, qword *pvel, float dt)
+void GetBezierActGoal(ACT8 *p, qword *ppos, qword *pvel, float dt)
 {
     float now = D_002DDED0.time;
-    Q *xf = p->xf;
+    Q *xf = (Q *)p->pxf;
     if (xf->endTime <= now + dt) {
-        if (ppos) *ppos = p->pos;
-        if (pvel) *pvel = p->vel;
+        if (ppos) *ppos = p->goalPosition;
+        if (pvel) *pvel = p->goalVelocity;
     } else {
-        EvaluateBezierPos(xf->endTime - now, dt, 1.0f, xf->startPos, xf->startVelocity, p->pos, p->vel, ppos, pvel, 0);
+        EvaluateBezierPos(xf->endTime - now, dt, 1.0f, xf->startPos, xf->startVelocity, p->goalPosition, p->goalVelocity, ppos, pvel, 0);
     }
 }
 } } // namespace M_func_0012E060
@@ -1622,9 +1591,9 @@ namespace M_func_0012E120 { extern "C" {
 /* VU normalize + length; register vars pin the dead qmfc2 output and the py reloads */
 typedef int qword __attribute__((mode(TI)));
 typedef struct Y { char pad[0xB0]; qword velocity; qword direction; int length; char pad2[0xE0 - 0xD4]; int unknownE0; } Y;
-typedef struct X { char pad[8]; Y *xf; char pad2[0x20 - 0xC]; qword vector; } X;
+#define XFV(p) ((Y *)(p)->pxf)
 extern qword D_002A2DA0;
-void AttachActBase(X *x);
+void AttachActBase(ACT *x);
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -1660,19 +1629,20 @@ void ACT9::Attach()
     using M_func_0012E120::Y;
     using M_func_0012E120::AttachActBase;
     using M_func_0012E120::qword;
-    X *x = (X *)this;
+    ACT9 *x = this;
     qword l;
     AttachActBase(x);
-    x->xf->velocity = x->vector;
-    x->xf->direction = x->vector;
-    l = Normalize1(&x->xf->direction, &D_002A2DA0);
+    XFV(x)->velocity = x->velocity;
+    XFV(x)->direction = x->velocity;
+    l = Normalize1(&XFV(x)->direction, &D_002A2DA0);
     {
         register int n __asm__("$3");
-        register Y *xf __asm__("$2") = x->xf;
+        register Y *xf __asm__("$2") = XFV(x);
         __asm__("qmfc2.ni %0, %2\n\tsw %0, %1" : "=r"(n), "=m"(xf->length) : "j"(l));
     }
-    { register Y *xf __asm__("$3") = x->xf; xf->unknownE0 = 0; }
+    { register Y *xf __asm__("$3") = XFV(x); xf->unknownE0 = 0; }
 }
+#undef XFV
 
 // Allocates an act from the world's act pool, cleared. (inferred)
 extern "C" void *AllocAct()

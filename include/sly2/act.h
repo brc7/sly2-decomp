@@ -105,7 +105,8 @@ struct ACT
     virtual void Detach() __asm__("DetachActBase");   /* slot 2 */
     virtual void SwitchTarget() __asm__("ActSlot3Default");   /* slot 3 */
     virtual void Update() __asm__("UpdateActDefault");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActGoalDefault");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetActGoalDefault");   /* slot 5: the goal value
+                               and velocity dt seconds ahead (UpdatePathAct passes its look-ahead time) */
     virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneAct");   /* slot 6: copy pactSrc's fields onto
                                this act for another object/transform (CloneAct); NewActFromParams passes a parameter record */
 };
@@ -118,7 +119,7 @@ struct ACT1 : ACT
     int phase;              /* +0x1C copied to XF::phase by Update (2 at construction) */
     qword goalValue;        /* +0x20 the rest value Update stores */
     virtual void Update() __asm__("UpdatePositionAct");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetPhaseActGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetPhaseActGoal");   /* slot 5 */
 };
 typedef char assert_ACT1_size[sizeof(ACT1) == 0x30 ? 1 : -1];
 
@@ -140,39 +141,47 @@ struct ACT2 : ACT
     void *ptarget;          /* +0x70 the target object, resolved on first update */
     int hasPreviousAim;     /* +0x74 the aim velocity can be differenced */
     undefined4 unknown78[2];
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetLookAtActGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetLookAtActGoal");   /* slot 5 */
     virtual void Detach() __asm__("DetachLookAtAct");   /* slot 2 */
     virtual void Update() __asm__("UpdateActLookAt");   /* slot 4 */
 };
 typedef char assert_ACT2_size[sizeof(ACT2) == 0x80 ? 1 : -1];
 typedef char assert_ACT2_ptarget[SLY2_OFFSETOF(ACT2, ptarget) == 0x70 ? 1 : -1];
 
-/* ACT4 (0x28; vtable 0x2CA7A0) */
+/* ACT4 (0x28; vtable 0x2CA7A0): orients its transform along the motion of a path transform (UpdatePathAct: the
+   nearest ancestor of value kind 1 unless set), looking ahead along that transform's own act */
 struct ACT4 : ACT
 {
-    char pad1C[0x28 - 0x1C];
+    float lookAheadWeight;  /* +0x1C */
+    float lookAheadTime;    /* +0x20 s; the path act's goal this far ahead (slot 5) */
+    XF *pxfPath;            /* +0x24 */
     virtual void Update() __asm__("UpdatePathAct");   /* slot 4 */
 };
+typedef char assert_ACT4_size[sizeof(ACT4) == 0x28 ? 1 : -1];
 
-/* ACT5 (0x30; vtable 0x2CA760): an act over another act and an offset (jt.cpp's ACT5 view) */
+/* ACT5 (0x30; vtable 0x2CA760): an offset act: runs the act after it on the transform (pactNext) and adds an offset
+   to its goal (NewOffsetAct; jt.cpp's foot and hand offsets) */
 struct ACT5 : ACT
 {
-    char pad1C[0x30 - 0x1C];
+    ACT *pactCur;           /* +0x1C the act it currently wraps (Attach/SwitchTarget follow pactNext) */
+    qword offset;           /* +0x20 added to the wrapped act's goal */
     virtual void Attach() __asm__("AttachOffsetAct");   /* slot 1 */
     virtual void Detach() __asm__("DetachOffsetAct");   /* slot 2 */
     virtual void SwitchTarget() __asm__("SwitchOffsetActTarget");   /* slot 3 */
     virtual void Update() __asm__("UpdateOffsetAct");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetOffsetActGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetOffsetActGoal");   /* slot 5 */
 };
+typedef char assert_ACT5_size[sizeof(ACT5) == 0x30 ? 1 : -1];
 
-/* ACT6 (0x60; vtable 0x2CA720): a matrix (identity at construction) */
+/* ACT6 (0x60; vtable 0x2CA720): holds its transform at a matrix relative to another transform (UpdateMatrixAct) */
 struct ACT6 : ACT
 {
-    int n1C;
-    float mat[4][4];        /* +0x20 the matrix applied */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetMatrixActGoal");   /* slot 5 */
+    XF *pxfBase;            /* +0x1C the transform whose world matrix the matrix is relative to */
+    float mat[4][4];        /* +0x20 the matrix applied (identity at construction) */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetMatrixActGoal");   /* slot 5 */
     virtual void Update() __asm__("UpdateMatrixAct");   /* slot 4 */
 };
+typedef char assert_ACT6_size[sizeof(ACT6) == 0x60 ? 1 : -1];
 
 /* ACT8 (0x40; vtable 0x2CA6E0): moves its transform along a Bezier to a goal pose by an arrival time (UpdateBezierAct,
    SetRestActPose) */
@@ -183,16 +192,18 @@ struct ACT8 : ACT
     qword goalVelocity;     /* +0x30 */
     void SetGoal(qword pos, qword vel) __asm__("SetRestActPose");   /* act.cpp's C definition */
     virtual void Update() __asm__("UpdateBezierAct");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetBezierActGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetBezierActGoal");   /* slot 5 */
 };
 typedef char assert_ACT8_size[sizeof(ACT8) == 0x40 ? 1 : -1];
 
-/* ACT9 (0x30; vtable 0x2CA6A0) */
+/* ACT9 (0x30; vtable 0x2CA6A0): gives its transform a velocity when attached (AttachKind9Act) */
 struct ACT9 : ACT
 {
-    char pad1C[0x30 - 0x1C];
+    undefined4 unknown1C;
+    qword velocity;         /* +0x20 copied to the XF's velocity and (normalized) direction */
     virtual void Attach() __asm__("AttachKind9Act");   /* slot 1 */
 };
+typedef char assert_ACT9_size[sizeof(ACT9) == 0x30 ? 1 : -1];
 
 /* The classes whose slot functions other TUs define (their vtables lie in those TUs' part of the linkonce area;
    act.cpp's factories only construct them). */
@@ -209,7 +220,7 @@ struct ACTSEG : ACT
     virtual void Attach() __asm__("AttachActseg");   /* slot 1 */
     virtual void Detach() __asm__("DetachActseg");   /* slot 2 */
     virtual void Update() __asm__("UpdateActseg");   /* slot 4 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActsegGoal");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec, float dt) __asm__("GetActsegGoal");   /* slot 5 */
 };
 typedef char assert_ACTSEG_size[sizeof(ACTSEG) == 0x2C ? 1 : -1];
 typedef char assert_ACTSEG_pac[SLY2_OFFSETOF(ACTSEG, pac) == 0x1C ? 1 : -1];
