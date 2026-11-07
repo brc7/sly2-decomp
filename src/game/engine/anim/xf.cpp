@@ -94,11 +94,7 @@ struct SVPATH
       short *aid;
 };
 
-struct LOUPD
-{
-      int grf;
-      LO *plo;
-};
+/* LOUPD: sly2/sw.h */
 
 struct VU_FLOAT
 {

@@ -298,11 +298,7 @@ struct SVPATH
       short *aid;
 };
 
-struct LOUPD
-{
-      int grf;
-      LO *plo;
-};
+/* LOUPD: sly2/sw.h */
 
 struct CID34 : public XFM, public GRABSPOT
 {
