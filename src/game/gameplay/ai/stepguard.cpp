@@ -2085,17 +2085,10 @@ extern "C" void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard)
 
 // 0x209130 ResolveAnimBinding
 namespace M_ResolveAnimBinding { extern "C" {
-struct LEAPPAYLOAD; union PAYLOAD; struct E;
+struct LEAPPAYLOAD;
 struct LEAPPAYLOAD { int id; void *aseg; };
 struct DIRANIMPAYLOAD;
 struct MARKER;
-union PAYLOAD {
-    int oid;
-    struct LEAPPAYLOAD *leap;
-    struct DIRANIMPAYLOAD *diranim;
-    void *resource;
-};
-struct E { int kind; union PAYLOAD value; int instance, flags; };
 extern char D_003DD490[];
 void PostAsegArcLoad(struct LEAPPAYLOAD *, void *);
 void InitDirAnims(struct DIRANIMPAYLOAD *, void *);
@@ -2107,19 +2100,19 @@ void InitAsegArc(struct LEAPPAYLOAD *);
 
 // 0x209130: Resolves a binding's oid: an ASEG (cid 0x6D; wrapped in a new leap payload if it has label
 // 0x22) or an SM (cid 0x6F); else empty. Leap and DIRANIM payloads resolve their own oids.
-void ResolveAnimBinding(struct E *binding, void *context)
+void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *context)
 {
     void *resource;
     if (binding->kind != BINDING_LEAP) {
         if (binding->kind == BINDING_DIRANIM) {
-            InitDirAnims(binding->value.diranim, context);
+            InitDirAnims((struct DIRANIMPAYLOAD *)binding->payload4, context);
             return;
         }
     } else {
-        PostAsegArcLoad(binding->value.leap, context);
+        PostAsegArcLoad(((struct LEAPPAYLOAD *)binding->payload4), context);
         return;
     }
-    resource = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, binding->value.oid, context);
+    resource = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, binding->oid, context);
     if (!resource) {
         binding->kind = BINDING_NONE;
         return;
@@ -2128,20 +2121,20 @@ void ResolveAnimBinding(struct E *binding, void *context)
     case 0x6D:
         if (FindAsegLabel(resource, 0x22)) {
             binding->kind = BINDING_LEAP;
-            binding->value.leap = AllocLeap(0x40);
-            InitAsegArc(binding->value.leap);
-            binding->value.leap->aseg = resource;
-            PostAsegArcLoad(binding->value.leap, context);
+            binding->payload4 = AllocLeap(0x40);
+            InitAsegArc(((struct LEAPPAYLOAD *)binding->payload4));
+            ((struct LEAPPAYLOAD *)binding->payload4)->aseg = resource;
+            PostAsegArcLoad(((struct LEAPPAYLOAD *)binding->payload4), context);
             if (binding->flags == -1)
                 binding->flags = 0;
         } else {
-            binding->value.resource = resource;
+            binding->aseg = (ASEG *)resource;
             binding->kind = BINDING_ASEG;
         }
         break;
     case 0x6F:
         binding->kind = BINDING_SM;
-        binding->value.resource = resource;
+        binding->sm = (SM *)resource;
         if (binding->flags == -1)
             binding->flags = 0;
         break;
@@ -2156,91 +2149,84 @@ namespace RO_ORDER { extern const float r_D_002A8868 __asm__("D_002A8868") = 3.4
 namespace RO_ORDER { extern const float r_D_002A886C __asm__("D_002A886C") = 3.40282347e+38f; }
 // 0x209278 StartAnimBinding
 namespace M_StartAnimBinding { extern "C" {
-struct INSTANCE; struct BINDING;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct INSTANCE { char pad[0xC]; VTE *vt; };
-struct BINDING { int kind; int resource; struct INSTANCE *instance; };
-void ApplyAsegCore(int aseg, char *guard, int flags, struct INSTANCE **instance, float start, float speed);
-void ApplySmGetSma(int sm, char *guard, int a, int flags, struct INSTANCE **instance);
-void StartLeap(int leap, char *guard, int flags, struct INSTANCE *instance);
-void StartDirAnim(int diranim, char *guard, int flags, struct INSTANCE *instance);
-#define START_INSTANCE(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
-// 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the leap/DIRANIM payload on the guard's own LEAP / DIRANIM.
-void StartAnimBinding(struct BINDING *binding, char *guard, int flags, float start)
+void ApplyAsegCore(ASEG *aseg, STEPGUARD *guard, int flags, ASEGA **instance, float start, float speed);
+void ApplySmGetSma(SM *sm, STEPGUARD *guard, int a, int flags, SMA **instance);
+void StartLeap(void *leap, STEPGUARD *guard, int flags, LEAP *instance);
+void StartDirAnim(void *diranim, STEPGUARD *guard, int flags, CID146 *instance);
+} }
+// 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the leap/DIRANIM payload
+// on the guard's own LEAP / DIRANIM; the instance is then referenced (slot 1).
+extern "C" void StartAnimBinding(ANIMBINDING *binding, STEPGUARD *guard, int flags, float start)
 {
+    using namespace M_StartAnimBinding;
     switch (binding->kind) {
     case BINDING_NONE:
         break;
     case BINDING_ASEG:
-        ApplyAsegCore(binding->resource, guard, flags, &binding->instance, start, 1.0f);
-        START_INSTANCE(binding->instance);
+        ApplyAsegCore(binding->aseg, guard, flags, &binding->asega, start, 1.0f);
+        binding->pbasic->AddRef();
         break;
     case BINDING_SM:
-        ApplySmGetSma(binding->resource, guard, -1, flags, &binding->instance);
-        START_INSTANCE(binding->instance);
+        ApplySmGetSma(binding->sm, guard, -1, flags, (SMA **)&binding->payload);
+        binding->pbasic->AddRef();
         break;
     case BINDING_LEAP:
-        binding->instance = (struct INSTANCE *)(guard + 0xDB0);   /* STEPGUARD::leap */
-        StartLeap(binding->resource, guard, flags, binding->instance);
-        START_INSTANCE(binding->instance);
+        binding->pbasic = &guard->leap;
+        StartLeap(binding->payload4, guard, flags, (LEAP *)binding->pbasic);
+        binding->pbasic->AddRef();
         break;
     case BINDING_DIRANIM:
-        binding->instance = (struct INSTANCE *)(guard + 0xE20);   /* STEPGUARD::cid146 */
-        StartDirAnim(binding->resource, guard, flags, binding->instance);
-        START_INSTANCE(binding->instance);
+        binding->pbasic = &guard->cid146;
+        StartDirAnim(binding->payload4, guard, flags, (CID146 *)binding->pbasic);
+        binding->pbasic->AddRef();
         break;
     }
 }
-} } // namespace M_StartAnimBinding
 
 // 0x209360 StopAnimBinding
 namespace M_StopAnimBinding { extern "C" {
-struct INSTANCE; struct BINDING;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct INSTANCE { char pad[0xC]; VTE *vt; };
-struct BINDING { int kind; int resource; struct INSTANCE *instance; };
-void RetractAsega(struct INSTANCE *instance);
-void RetractSma(struct INSTANCE *instance);
-void StopLeap(struct INSTANCE *instance);
-void StopDirAnim(struct INSTANCE *instance);
-#define DELETE_INSTANCE(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
-// 0x209360: Stops the running animation instance per kind (retract the ASEGA or SMA, ...) and drops it.
-void StopAnimBinding(struct BINDING *binding)
+void RetractAsega(BASIC *instance);
+void RetractSma(BASIC *instance);
+void StopLeap(BASIC *instance);
+void StopDirAnim(BASIC *instance);
+} }
+// 0x209360: Stops the running animation instance per kind (retract the ASEGA or SMA, ...) and drops it (slot 2).
+extern "C" void StopAnimBinding(ANIMBINDING *binding)
 {
+    using namespace M_StopAnimBinding;
     switch (binding->kind) {
     case BINDING_NONE:
         break;
     case BINDING_ASEG:
-        if (binding->instance) {
-            RetractAsega(binding->instance);
-            DELETE_INSTANCE(binding->instance);
-            binding->instance = 0;
+        if (binding->pbasic) {
+            RetractAsega(binding->pbasic);
+            binding->pbasic->Release();
+            binding->pbasic = 0;
         }
         break;
     case BINDING_SM:
-        if (binding->instance) {
-            RetractSma(binding->instance);
-            DELETE_INSTANCE(binding->instance);
-            binding->instance = 0;
+        if (binding->pbasic) {
+            RetractSma(binding->pbasic);
+            binding->pbasic->Release();
+            binding->pbasic = 0;
         }
         break;
     case BINDING_LEAP:
-        if (binding->instance) {
-            StopLeap(binding->instance);
-            DELETE_INSTANCE(binding->instance);
-            binding->instance = 0;
+        if (binding->pbasic) {
+            StopLeap(binding->pbasic);
+            binding->pbasic->Release();
+            binding->pbasic = 0;
         }
         break;
     case BINDING_DIRANIM:
-        if (binding->instance) {
-            StopDirAnim(binding->instance);
-            DELETE_INSTANCE(binding->instance);
-            binding->instance = 0;
+        if (binding->pbasic) {
+            StopDirAnim(binding->pbasic);
+            binding->pbasic->Release();
+            binding->pbasic = 0;
         }
         break;
     }
 }
-} } // namespace M_StopAnimBinding
 
 // 0x209430 IsAnimBindingDone
 namespace M_FAnimBindingDone { extern "C" {
