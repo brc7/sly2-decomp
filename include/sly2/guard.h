@@ -127,7 +127,7 @@ struct DETECTOR : public XFM
       VOL *pvolFar;         /* +0xEC [S] far volume */
       int unknownF0;        /* +0xF0 [S] cleared by ClearStepguardState */
       int unknownF4;        /* +0xF4 [S] */
-      undefined4 unk_0xf8;
+      int options;          /* +0xF8 [S] option bits (detector.cpp DETECTOR_*; InitNeela sets 3) */
       int ctarget;          /* +0xFC [S] entries used in atarget: the designated targets first, then the guards' generated ones (STEPGUARD::generatedTargetCount, the tail) */
       DETECTORTARGET atarget[8]; /* +0x100 [S] the tracked targets (TryAddStepguardDetectTarget, ChooseStepguardTarget) */
     virtual void Update() __asm__("UpdateDetector");   /* slot 16 */

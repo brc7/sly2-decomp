@@ -1693,9 +1693,10 @@ typedef char assert_MS_size[sizeof(MS) == 0x150 ? 1 : -1];
 /* 174 BHV174 (0x40): NEELA watch/alarm; vtable 0x2D4AF8, 14 slots */
 struct BHV174 : BHV
 {
-    char pad30[0x38 - 0x30];
-    int useChaseBehavior;   /* +0x38 [S] copied from NEELA::useChaseBehavior (SetBhvguardMode) */
-    char pad3C[0x40 - 0x3C];
+    int state;              /* +0x30 0 run the chase script (BHV169), 1 chase the player, 2 give up */
+    float stateTime;        /* +0x34 */
+    CID113 *chaseScript;    /* +0x38 [S] copied from NEELA::chaseScript (SetBhvguardMode) */
+    int unknown3C;
     virtual void Start() __asm__("StartBhvNeelaChase");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv174ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvNeelaChase");   /* slot 7 */
@@ -1705,11 +1706,35 @@ struct BHV174 : BHV
 typedef char assert_BHV174_size[sizeof(BHV174) == 0x40 ? 1 : -1];
 
 /* 60 NEELA (0x10A0); vtable 0x2D4820, 89 slots */
+/* NEELA's chase tuning (+0x1070): the speed factor as a clamped quadratic of the player distance, and the give-up
+   time of her chase behaviour. */
+struct NEELACHASETUNE
+{
+    CLQ speedCurve;         /* +0x00 (InitNeela 1.35, -0.0003, 0) */
+    LM speedRange;          /* +0x10 (0.9..1.2) */
+    float giveUpTime;       /* +0x18 (7 s) */
+};
 struct NEELA : STEPGUARD
 {
-    char pad1010[0x108C - 0x1010];
-    int useChaseBehavior;   /* +0x108C her option: chase (BHV174) instead of combat (ShouldBhvguardUseNeelaBehavior) */
-    char pad1090[0x10A0 - 0x1090];
+    VOL *moveVolume;        /* +0x1010 where she looks for a target while moving (flag 9) */
+    VOL *idleVolume;        /* +0x1014 ... while idle (flag 2) */
+    int state;              /* +0x1018 0 looking, 1 aiming her prop at the target */
+    float stateTime;        /* +0x101C */
+    ASEG *propAnimation;    /* +0x1020 [S] bound oid 0x5D8 (PostNeelaLoad) */
+    ASEGA *propAsega;       /* +0x1024 its playing instance (state 1) */
+    LO *target;             /* +0x1028 */
+    struct ACT *aimAct;     /* +0x102C the act turning the prop part (its angle goal at +0x20) */
+    void *unknown1030;      /* +0x1030 [S] bound oid 0x5D9 */
+    void *propPart;         /* +0x1034 [S] bound oid 0x5DA: the part turned (position +0x30, its space +0xA0) */
+    int unknown1038[2];
+    qword propAxis;         /* +0x1040 the prop's effect offset at label 0x5DB (PostNeelaLoad) */
+    LO *prop;               /* +0x1050 her attached prop (removed by ResetNeelaToHome) */
+    int unknown1054[3];
+    ANIMBINDING giveUpBinding; /* +0x1060 the animation of chase state 2 (PostNeelaLoad: kind 0, flags 1) */
+    NEELACHASETUNE chaseTune; /* +0x1070 */
+    CID113 *chaseScript;    /* +0x108C her option (SendRootBhvMode15): chase (BHV174) with this script instead of combat (ShouldBhvguardUseNeelaBehavior) */
+    SSGRESUME resumeState;  /* +0x1090 where the chase script resumes */
+    int unknown109C;
     virtual void Init() __asm__("InitNeela");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetNeelaClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostNeelaLoad");   /* slot 15 */
@@ -1717,6 +1742,7 @@ struct NEELA : STEPGUARD
     virtual void OnProxyAcquire(LO *plo) __asm__("ResetNeelaToHome");   /* slot 26 */
 };
 typedef char assert_NEELA_size[sizeof(NEELA) == 0x10A0 ? 1 : -1];
+typedef char assert_NEELA_chaseScript[SLY2_OFFSETOF(NEELA, chaseScript) == 0x108C ? 1 : -1];
 
 /* 98 CID98 (0x180): breakable props (chairs, barrels, crates, containers); vtable 0x2D4B78, 75 slots */
 struct CID98 : SO

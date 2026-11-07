@@ -1507,7 +1507,7 @@ extern "C" void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) {
     case GUARD_MODE_NEELA_CHASE:
         {
             BHV174 *o = (BHV174 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV174);
-            o->useChaseBehavior = ((NEELA *)behavior->owner)->useChaseBehavior;
+            o->chaseScript = ((NEELA *)behavior->owner)->chaseScript;
             StartPushedBhv(o);
         }
         break;
@@ -2207,7 +2207,7 @@ extern "C" int ShouldBhvguardUseNeelaBehavior(BHV *behavior)
     int f;
     f = 0;
     if (IsBasicDerivedFrom(behavior->owner, (CID)0x3C) != 0) {
-        f = ((NEELA *)behavior->owner)->useChaseBehavior != 0;
+        f = ((NEELA *)behavior->owner)->chaseScript != 0;
     }
     return f;
 }
