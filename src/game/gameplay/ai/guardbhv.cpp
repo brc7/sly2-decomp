@@ -3171,71 +3171,63 @@ int IsBhvwalkpathStuck(BHVWALKPATH *behavior)
 
 // 0x179328 StartBhvhit
 namespace M_StartBhvhit { extern "C" {
-struct E4; struct E; struct A; struct S;
-typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
-struct G;
-extern struct G D_003DD490;
-extern qword D_002A2DD0;
+struct E4;
 extern float D_002A5584;
-extern void *D_002F7900;
+extern LO *D_002F7900;
 extern char D_002DFC00[];
+/* the kind-2 (leap) binding's handle record (leap.h pads LEAP) */
 struct E4 { char pad[0x1C]; float knockbackDistance; };
-struct E { int kind; struct E4 *anim; void *payload; };
-struct A { char pad[0x1A8]; float targetHeading; char pad2[0x334 - 0x1AC]; int unknown334; char pad3[0x35C - 0x338]; char heldNoise[4]; char pad4[0xF04 - 0x360]; int attackCooldownEnd; char pad5[0xFD0 - 0xF08]; char mover[4]; };
-struct S { char pad[0x10]; struct A *guard; char pad2[0x1C]; int state; char pad3[0xC]; struct E *binding; char pad4[0xC]; int attacker; char pad5[8]; int zapKind; char pad6[0x20]; union { qword v; float f[4]; } hitDirection; char pad7[0x20]; float cameraJoltTime; float zapModeTime; };
-void StartBhvanim(struct S *p);
 float atan2f(float y, float x);
-float *GetLoWorldMatrix(struct A *a);
-void SetStepguardMoverRadTarget(void *p, float f);
+float *GetLoWorldMatrix(LO *plo);
+void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float f);
 float NormalizeAngle__Ff(float f);
 qword SetVectorCylind(float a, float b, float c);
-qword GetLoWorldPos(void *p);
 void SetLeapTarget(void *p, qword v);
-void SetStepguardAttack(struct A *a, int b, int c, qword v);
-void SetBhvBusy(struct S *p);
-void ReplaceHeldSwNoise(struct G *g, int n, qword v, struct A *a, void *q);
-void *GetHeroPo(struct G *g);
-int IsLoSelfOrDescendantOf(int n, void *o);
+void SetStepguardAttack(STEPGUARD *guard, int b, int c, qword v);
+void ReplaceHeldSwNoise(SW *psw, int n, qword v, STEPGUARD *guard, NOISE **ppnoise);
+LO *GetHeroPo(SW *psw);
+int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
+} } // namespace M_StartBhvhit
 // 0x179328: BHVHIT vtable slot 8 (Start): BHVANIM Start, faces away from the hit, knock-back leap, cancels the
 // attack, holds a pain noise, arms the rumble and zap-mode timers.
-void StartBhvhit(struct S *behavior) {
+extern "C" void StartBhvhit(BHVHIT *behavior) {
+    using namespace M_StartBhvhit;
     int f;
     float a;
-    struct E *e;
+    ANIMBINDING *e;
     StartBhvanim(behavior);
     {
         qword d, one, l;
         float g;
-        __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(behavior->hitDirection.v));
+        __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(behavior->zpr.velocity));
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
         f = 0;
         if (g > 1.0e-4f) f = behavior->zapKind != 0x40000;
     }
     if (f) {
-        a = atan2f(-behavior->hitDirection.f[1], -behavior->hitDirection.f[0]);
+        a = atan2f(-((float *)&behavior->zpr.velocity)[1], -((float *)&behavior->zpr.velocity)[0]);
     } else {
-        float *m = GetLoWorldMatrix(behavior->guard);
-        a = atan2f(m[1], GetLoWorldMatrix(behavior->guard)[0]);
+        float *m = GetLoWorldMatrix(((STEPGUARD *)behavior->owner));
+        a = atan2f(m[1], GetLoWorldMatrix(((STEPGUARD *)behavior->owner))[0]);
     }
-    SetStepguardMoverRadTarget(behavior->guard->mover, a);
+    SetStepguardMoverRadTarget(&((STEPGUARD *)behavior->owner)->mover, a);
     e = behavior->binding;
     if (e && e->kind == 2) {
-        qword r = SetVectorCylind(NormalizeAngle__Ff(behavior->guard->targetHeading + 3.14159274101257324219e+00f), behavior->binding->anim->knockbackDistance, 0.0f);
-        qword pos = GetLoWorldPos(behavior->guard);
+        qword r = SetVectorCylind(NormalizeAngle__Ff(((STEPGUARD *)behavior->owner)->targetHeading + 3.14159274101257324219e+00f), ((E4 *)behavior->binding->payload4)->knockbackDistance, 0.0f);
+        qword pos = GetLoWorldPos(((STEPGUARD *)behavior->owner));
         qword s;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(pos), "j"(r));
         SetLeapTarget(behavior->binding->payload, s);
     }
-    SetStepguardAttack(behavior->guard, 0, 0, D_002A2DD0);
+    SetStepguardAttack(((STEPGUARD *)behavior->owner), 0, 0, D_002A2DD0);
     if (behavior->state == 0) SetBhvBusy(behavior);
-    ReplaceHeldSwNoise(&D_003DD490, 1, GetLoWorldPos(behavior->guard), behavior->guard, behavior->guard->heldNoise);
+    ReplaceHeldSwNoise(&D_003DD490, 1, GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner), &((STEPGUARD *)behavior->owner)->heldNoise);
     behavior->cameraJoltTime = behavior->zapModeTime = D_002A5584;
-    behavior->guard->attackCooldownEnd = 0;
-    if (behavior->guard->unknown334) {
-        void *o = GetHeroPo(&D_003DD490);
+    ((STEPGUARD *)behavior->owner)->nextAttackTime = 0;
+    if (((STEPGUARD *)behavior->owner)->unknown334) {
+        LO *o = GetHeroPo(&D_003DD490);
         if (o && IsLoSelfOrDescendantOf(behavior->attacker, o) && (o == D_002F7900 || (behavior->zapKind & 0x40000))) {
             TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f);
             behavior->cameraJoltTime = D_002DDED0.time + 5.00000044703483581543e-02f;
@@ -3243,34 +3235,20 @@ void StartBhvhit(struct S *behavior) {
         behavior->zapModeTime = D_002DDED0.time + 1.33333340287208557129e-01f;
     }
 }
-} } // namespace M_StartBhvhit
 
 // 0x179598 CloseBhvhit
-namespace M_CloseBhvhit { extern "C" {
-struct S;
-typedef int qword __attribute__((mode(TI)));
-extern SW D_003DD490;
-struct S { char pad[0x10]; char *guard; };
-void CloseBhvanim(struct S *p);
-void ReplaceHeldSwNoise(SW *g, int a, qword q, int b, void *pv);
-} } // namespace M_CloseBhvhit
 // 0x179598: BHVHIT vtable slot 9 (Close): BHVANIM Close, releases the held noise.
 void BHVHIT::Close()
 {
-    using namespace M_CloseBhvhit;
-    using M_CloseBhvhit::D_003DD490;
-    M_CloseBhvhit::S *p = (M_CloseBhvhit::S *)this;
-    CloseBhvanim(p);
-    ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, p->guard + 0x35C);
+    CloseBhvanim(this);
+    M_StartBhvhit::ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, &((STEPGUARD *)owner)->heldNoise);
 }
 
 namespace RO_ORDER { extern const float r_D_002A5584 __asm__("D_002A5584") = 3.40282347e+38f; }
 // 0x1795E8 UpdateBhvhit
 namespace M_UpdateBhvhit { extern "C" {
-struct V; 
-typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
-struct V { char pad[0x20]; qword position; };
+struct V;
+struct V { char pad[0x20]; qword position; };   /* the held noise (NOISE has no header yet) */
 void UpdateBhvanim(BHVHIT *p);
 qword GetLoWorldPos(void *p);
 void JoltCamera(void *p, int n);
@@ -3292,24 +3270,15 @@ void UpdateBhvhit(BHVHIT *behavior) {
 } } // namespace M_UpdateBhvhit
 
 // 0x1796A0 InitBhvHurt
-namespace M_func_001796A0 { extern "C" {
-struct S;
-struct S { char pad[0x3C]; int sgf; };
-void InitBhvanim(struct S *p);
-} } // namespace M_func_001796A0
 // 0x1796A0: Hurt behaviour (BHV161) vtable slot 7 (OnPush): BHVHIT OnPush with the hurt flag (5).
 void BHV161::OnPush()
 {
-    using namespace M_func_001796A0;
-    M_func_001796A0::S *p = (M_func_001796A0::S *)this;
-    InitBhvanim(p);
-    p->sgf = 5;
+    InitBhvanim(this);
+    sgf = 5;
 }
 
 // 0x1796D0 StartBhvHurt
 namespace M_func_001796D0 { extern "C" {
-struct T2; 
-struct T2 { char pad[0xF64]; void *detector; };
 extern char D_002DEB30[];
 int GetZapKindIndex(int p);
 void StartBhvhit(BHV161 *p);
@@ -3322,31 +3291,20 @@ void StartBhvHurt(BHV161 *behavior) {
     if (behavior->binding->kind == -1) behavior->binding = 0;
     StartBhvhit(behavior);
     BroadcastGameEvent(D_002DEB30, 0x15, ((STEPGUARD *)behavior->owner));
-    SetDetectorTargetStateById(((struct T2 *)((STEPGUARD *)behavior->owner))->detector, behavior->attacker, 2);
+    SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->attacker, 2);
 }
 } } // namespace M_func_001796D0
 
 // 0x179750 InitBhvKnockdown
-namespace M_func_00179750 { extern "C" {
-struct S;
-struct S { char pad[0x3C]; int sgf; };
-void InitBhvanim(struct S *p);
-} } // namespace M_func_00179750
 // 0x179750: Knockdown behaviour (BHV162) vtable slot 7 (OnPush): BHVHIT OnPush with the knockdown flag (6).
 void BHV162::OnPush()
 {
-    using namespace M_func_00179750;
-    M_func_00179750::S *p = (M_func_00179750::S *)this;
-    InitBhvanim(p);
-    p->sgf = 6;
+    InitBhvanim(this);
+    sgf = 6;
 }
 
 // 0x179780 StartBhvKnockdown
 namespace M_func_00179780 { extern "C" {
-struct VTE; struct O; struct T2; 
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct T2 { char pad[0xF64]; void *detector; char pad2[0xFEC - 0xF68]; struct O *knockdownHelper; };
 extern char D_002DEB30[];
 int GetZapKindIndex(int p);
 void StartBhvhit(BHV162 *p);
@@ -3359,27 +3317,21 @@ void StartBhvKnockdown(BHV162 *behavior) {
     if (behavior->binding->kind == -1) behavior->binding = 0;
     StartBhvhit(behavior);
     BroadcastGameEvent(D_002DEB30, 0x15, ((STEPGUARD *)behavior->owner));
-    SetDetectorTargetStateById(((struct T2 *)((STEPGUARD *)behavior->owner))->detector, behavior->attacker, 2);
-    { struct O *o = ((struct T2 *)((STEPGUARD *)behavior->owner))->knockdownHelper; if (o) StartPushedBhv(o); }
+    SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->attacker, 2);
+    { LO *o = ((STEPGUARD *)behavior->owner)->knockdownHelper; if (o) o->Add(); }
 }
 } } // namespace M_func_00179780
 
 // 0x179820 CloseBhvKnockdown
 namespace M_func_00179820 { extern "C" {
-struct VTE; struct O; 
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
 void CloseBhvhit(BHV162 *p);
-// 0x179820: Knockdown behaviour vtable slot 9 (Close): BHVHIT Close and closes the helper component.
+// 0x179820: Knockdown behaviour vtable slot 9 (Close): BHVHIT Close and takes the helper object out of the world.
 void CloseBhvKnockdown(BHV162 *behavior)
 {
-    struct O *o;
+    LO *o;
     CloseBhvhit(behavior);
-    o = ((struct O *)((STEPGUARD *)behavior->owner)->knockdownHelper);
-    if (o) {
-        struct VTE *entry = &o->vt[9];
-        entry->pfn((char *)o + entry->d);
-    }
+    o = ((STEPGUARD *)behavior->owner)->knockdownHelper;
+    if (o) o->Remove();
 }
 } } // namespace M_func_00179820
 

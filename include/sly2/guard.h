@@ -363,7 +363,7 @@ struct STEPGUARD : public STEP
       GUARDMOVER mover;     /* +0xFD0 [S] movement arbiter */
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
       uint capabilityFlags; /* +0xFE8 [R] capability bits (bit 3 = may shoot) */
-      LO *knockdownHelper;  /* +0xFEC [S] removed from the world on reset (slot 9) */
+      LO *knockdownHelper;  /* +0xFEC [S] an object the knockdown behaviour adds to the world while it runs (StartBhvKnockdown / CloseBhvKnockdown); removed on reset */
       float walkPhase;      /* +0xFF0 [S] walk-cycle phase saved by BHVANIM when its walk animation stops */
       float walkPhaseTime;  /* +0xFF4 [S] the time it was saved */
       float removalTime;    /* +0xFF8 [S] time the guard was removed from the world (OnStepguardRemove) */
