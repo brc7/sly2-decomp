@@ -129,23 +129,15 @@ void InitStepplayer(STEPPLAYER *player)
 
 namespace M_PostLoadStepplayer { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
-typedef int qword __attribute__((mode(TI)));
 struct K { int a; int b; };
 extern const struct LONGU D_002A4D10;
 struct G { char pad[0x3BF4]; int grf; char pad2[0x3D58 - 0x3BF8]; int cid; };
 extern struct G D_003DD490;
-struct VTE { short d; short pad; void *pfn; };
 struct M3 { qword r[3]; };
 struct AREQ { int cb; int cbAlign; };
-struct SO { float m[0x40 / 4]; char pad[0x94 - 0x40]; int x94; char pad2[0xA4 - 0x98]; int id; };
-struct O { void *pad[3]; struct VTE *vt; };
-struct P {
-    int pad[3]; struct VTE *vt; char pad1[0x54 - 0x10]; struct SO *pso;
-    char pad2[0x1088 - 0x58]; int x1088; char pad3[4]; struct O **apo; int cpo;
-};
 extern char D_002BC9F0[];
-void PostStepLoad(struct P *);
-void BindLoOidTable(struct P *, int, void *);
+void PostStepLoad(STEPPLAYER *);
+void BindLoOidTable(STEPPLAYER *, int, void *);
 void PostLoadJtAir(void *);
 void PostLoadJtGrab(void *);
 void PostLoadJtPlaces(void *);
@@ -153,19 +145,19 @@ void PostLoadJtHurt(void *);
 void PostLoadJtMode(void *);
 void PostJtThrowLoad(void *);
 void PostJtLoadPipe(void *);
-int FindSwObjects(struct G *, int, int, struct P *, int, void **);
+int FindSwObjects(struct G *, int, int, STEPPLAYER *, int, void **);
 void *AllocClearedFromWorldHeap(struct AREQ *);
-void LoadStepplayerGadgets(struct P *);
-void BindStepplayerHpMp(struct P *, int);
-int EnsureTargetRecordById(struct P *);
-void SetSoMass(struct P *, float);
-qword GetLoWorldPos(struct P *);
-struct M3 *GetLoWorldMatrix(struct P *);
+void LoadStepplayerGadgets(STEPPLAYER *);
+void BindStepplayerHpMp(STEPPLAYER *, int);
+void *EnsureTargetRecordById(STEPPLAYER *);
+void SetSoMass(STEPPLAYER *, float);
+qword GetLoWorldPos(STEPPLAYER *);
+struct M3 *GetLoWorldMatrix(STEPPLAYER *);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void PostSwCallback(struct G *, struct P *, long, int);
+void PostSwCallback(struct G *, STEPPLAYER *, long, int);
 
 // STEPPLAYER post-load (slot 15): STEP base, then each component's post-load, hp/mp binding and gadget slots.
-void PostLoadStepplayer(struct P *player)
+void PostLoadStepplayer(STEPPLAYER *player)
 {
     void *apv[16];
     int c;
@@ -173,62 +165,45 @@ void PostLoadStepplayer(struct P *player)
 
     PostStepLoad(player);
     BindLoOidTable(player, 0x35, D_002BC9F0);
-    PostLoadJtAir(&AsStepplayer(player)->jtair);
-    PostLoadJtGrab(&AsStepplayer(player)->jtgrab);
-    PostLoadJtPlaces(&AsStepplayer(player)->jtplaces);
-    PostLoadJtHurt(&AsStepplayer(player)->jthurt);
-    PostLoadJtMode(&AsStepplayer(player)->jtmode);
-    PostJtThrowLoad(&AsStepplayer(player)->jtthrow);
-    PostJtLoadPipe(&AsStepplayer(player)->jtpipe);
+    PostLoadJtAir(&player->jtair);
+    PostLoadJtGrab(&player->jtgrab);
+    PostLoadJtPlaces(&player->jtplaces);
+    PostLoadJtHurt(&player->jthurt);
+    PostLoadJtMode(&player->jtmode);
+    PostJtThrowLoad(&player->jtthrow);
+    PostJtLoadPipe(&player->jtpipe);
     c = FindSwObjects(&D_003DD490, 0x401, 0x2AB, player, 0x10, apv);
     if (c) {
         struct AREQ req;
         struct AREQ *preq = &req;
         preq->cb = c * 8;
-        player->cpo = c;
+        player->clorefSplash = c;
         preq->cbAlign = 0x10;
-        player->apo = (__typeof__(player->apo))AllocClearedFromWorldHeap(preq);
+        player->alorefSplash = (LOREF *)AllocClearedFromWorldHeap(preq);
         for (i = 0; i < c; i++) {
-            struct O *object;
-            struct VTE *e;
-            player->apo[i * 2] = (__typeof__(player->apo[i * 2]))apv[i];
-            object = player->apo[i * 2];
-            e = &object->vt[9];
-            ((void (*)(void *))e->pfn)((char *)object + e->d);
+            LO *object;
+            player->alorefSplash[i].plo = (LO *)apv[i];
+            object = player->alorefSplash[i].plo;
+            object->Remove();
         }
     }
-    {
-        struct VTE *e = &player->vt[79];
-        ((void (*)(void *, int))e->pfn)((char *)player + e->d, 0);
-    }
-    {
-        struct VTE *e = &player->vt[104];
-        ((void (*)(void *))e->pfn)((char *)player + e->d);
-    }
+    player->SetCtlState(0);
+    player->SendPowerupEvent();
     LoadStepplayerGadgets(player);
     BindStepplayerHpMp(player, D_003DD490.grf & 4);
-    player->x1088 = EnsureTargetRecordById(player);
+    player->unknown1088 = EnsureTargetRecordById(player);
     SetSoMass(player, 0.25f);
-    if (player->pso->x94 == 0) {
+    if (player->transforms->kind == 0) {
         qword q = GetLoWorldPos(player);
         struct M3 m = *GetLoWorldMatrix(player);
-        struct SO *so = player->pso;
+        XF *so = player->transforms;
         func_002333B4(so, 0, 0x40);
-        so->m[0] = so->m[5] = so->m[10] = so->m[15] = 1.0f;
+        so->localMatrix.mat[0][0] = so->localMatrix.mat[1][1] = so->localMatrix.mat[2][2] = so->localMatrix.mat[3][3] = 1.0f;
         D_003DD490.cid++;
-        player->pso->id = D_003DD490.cid;
-        {
-            struct VTE *e = &player->vt[18];
-            ((void (*)(void *))e->pfn)((char *)player + e->d);
-        }
-        {
-            struct VTE *e = &player->vt[29];
-            ((void (*)(void *, qword))e->pfn)((char *)player + e->d, q);
-        }
-        {
-            struct VTE *e = &player->vt[30];
-            ((void (*)(void *, struct M3 *))e->pfn)((char *)player + e->d, &m);
-        }
+        player->transforms->worldStamp = D_003DD490.cid;
+        player->UpdateXfWorldHierarchy();
+        player->TranslateToPos(q);
+        player->RotateToMat((MATRIX4 *)&m);
     }
     PostSwCallback(&D_003DD490, player, D_002A4D10.l, 0);
 }
