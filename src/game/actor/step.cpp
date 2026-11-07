@@ -62,7 +62,7 @@ enum
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitStep { extern "C" {
-struct S { char pad[0x200]; float unknownRatio200; char p1[0x10]; float stepDownHeight; char p2[8]; float baseRadius; char p3[0x3C]; float gravityRatio; int physPartOid; char p4[4]; char behaviorStack[4]; };
+struct S : PO { char pad[0x200 - 0x180]; float unknownRatio200; char p1[0x10]; float stepDownHeight; char p2[8]; float baseRadius; char p3[0x3C]; float gravityRatio; int physPartOid; char p4[4]; char behaviorStack[4]; };
 void InitPo(struct S *p);
 void ScaleStepSpinSpeed(struct S *p, float g);
 void SetStepTargetHeading(struct S *p, float g);
@@ -103,8 +103,8 @@ extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostStepLoad { extern "C" {
-struct S { char pad[0x58]; int childOid0; int childOid1; char pad2[0x294 - 0x60]; int sampledShape; };
-struct O { char pad[0x264]; int oid; void *ownPart; char behaviorStack[0x28]; int sampledShape; };
+struct S : LO { char pad[0x58 - 0x50]; int childOid0; int childOid1; char pad2[0x294 - 0x60]; int sampledShape; };
+struct O : PO { char pad[0x264 - 0x180]; int oid; void *ownPart; char behaviorStack[0x28]; int sampledShape; };
 void PostSoLoad(struct O *p);
 int NewSampledShape(int a, int b);
 void SetXfRole(struct O *p, int n, int f);
@@ -231,7 +231,7 @@ typedef struct { qword a[4]; } MATRIX4;
 struct X { char pad[0x40]; MATRIX4 m; };
 struct B { qword *p; };
 struct M { struct X *px; char pad[0xC]; struct B *pb; char pad2[0x78 - 0x14]; int c; qword *av; };
-struct S { char pad[0x258]; struct M *pm0; struct M *pm1; };
+struct S : PO { char pad[0x258 - 0x180]; struct M *pm0; struct M *pm1; };
 /* The C file assigned the struct result (hidden pointer = mi); as C++ that adds a temporary, so the result is
    passed by hand. This form exists to reproduce the original codegen. */
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
@@ -277,7 +277,7 @@ union V {qword q;float f[4];};
 struct X {char pad40[0x40];M4 m;};
 struct B {union V *v;};
 struct M {struct X *px;char pad4[0xC];struct B *pb;char pad14[8];int count;char pad20[0x5C];union V *points;};
-struct S {char pad258[0x258];struct M *pm0,*pm1;};
+struct S : PO { char pad258[0x258 - 0x180]; struct M *pm0,*pm1;};
 struct CLK {float time,dt;};
 extern struct CLK D_002DDED0;
 /* step's .data starts here: the contact side signs (medium: tu_223F70 and murray read them too) and the point
@@ -452,7 +452,7 @@ typedef struct { qword row[3]; } M3;
 union FLOATWORD { float value; int bits; };
 extern struct { float t; union FLOATWORD delta; } D_002DDED0;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
-struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
+struct S : LO { char pad[0x5C - 0x50]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
 void PresetSoAccel(struct S *p);
 static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.delta.bits),"m"(*(const int*)(page-0x212C)));return word;}
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.delta.bits));return page;}
@@ -534,7 +534,7 @@ typedef union { qword q; float f[4]; } U;
 struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int pad[4]; };
 struct XP { struct ENDPOINT ae[2]; U normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
 struct STATE { char pad[0xD0]; float mass; };
-struct P { char padE8[0xE8]; struct STATE *state; char padEC[0x258 - 0xEC]; void *mesh; };
+struct P : LO { char padE8[0xE8 - 0x50]; struct STATE *state; char padEC[0x258 - 0xEC]; void *mesh; };
 extern char D_003DD490[];
 extern qword D_002A2DA0;
 extern float D_002C3C60[];
@@ -671,9 +671,8 @@ struct XP
     int xpk;
 };
 
-struct STEP
+struct STEP : PO
 {
-    char pad0[0x180];
     float unknown180;
     char pad184[0xC];
     qword unknown190;
@@ -777,7 +776,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
 extern qword D_002A2DC0;
 MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
-struct S { char pad[0x1A8]; float g; int pad2; MATRIX3 m; };
+struct S : PO { char pad[0x1A8 - 0x180]; float g; int pad2; MATRIX3 m; };
 // Sets the target heading (radians, +0x1A8) and rebuilds the target rotation matrix (+0x1B0) about Z.
 void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(D_002A2DC0, g); }
 } } // namespace M_func_00204660
@@ -824,7 +823,7 @@ struct Endpoint { char pad[8]; struct P *owner,*other; char pad10[0x30]; };
 struct N { struct Endpoint e[2]; qword q80; float value; char pad94[8]; int kind; char padA0[0xC]; struct N *next; };
 struct L { struct N *first; struct L *next; struct N **back; };
 struct G { char pad[0x64]; struct L *groups; struct N *def; };
-struct P { char pad[0xEC]; struct G *g; char padF0[0x118]; struct N *best; float t; char pad210[0x20]; qword position; };
+struct P : LO { char pad[0xEC - 0x50]; struct G *g; char padF0[0x118]; struct N *best; float t; char pad210[0x20]; qword position; };
 extern const float D_002A85F4;   /* defined below where the ELF has it (.rodata order) */
 extern float D_002DDED0;
 struct SW;
@@ -885,7 +884,7 @@ union V {qword q;float f[4];};
 struct E {ushort vertices[2],faces[2];struct E *next0,*next1;};
 struct POLY {float normal[3];int unknown;struct E *head0,*head1;int flags,pad;};
 struct GEOM {char pad94[0x94];qword *positions;int unknown;struct POLY *polygons;};
-struct P {char pad210[0x210];float height;char pad214[0x34];float previous;};
+struct P : PO { char pad210[0x210 - 0x180]; float height;char pad214[0x34];float previous;};
 void FindClosestPointOnLineSegment(qword,qword,qword,qword *,float *,float *);
 // Returns 1 when, starting from a hit mesh polygon, a breadth-first walk over adjacent polygons (max 32) reaches
 // one whose height is inside the step-height window: there is floor nearby to step onto. (inferred)
@@ -936,7 +935,7 @@ namespace M_AddStepCustomXps { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; unsigned int (*pf)(void *); };
 struct EC { char pad[0x60]; void *rootSo; };
-struct X4 { char pad[0xEC]; struct EC *tree; };
+struct X4 : LO { char pad[0xEC - 0x50]; struct EC *tree; };
 struct X { int pad; struct X4 *so; };
 struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
 struct HIT { qword pos; qword unknown10; qword normal; qword unknown30; float t; int unknown44; int unknown48; int tag; char pad[0x10]; };
@@ -1023,7 +1022,7 @@ void FixStepAngularVelocity(struct S *step)
 namespace M_func_00204D48 { extern "C" {
 typedef struct VECTOR { float x, y, z; } VECTOR;
 extern VECTOR D_002C3CB8;   /* the default spin smoothing */
-struct S { char pad[0x1F0]; float g; VECTOR v; };
+struct S : PO { char pad[0x1F0 - 0x180]; float g; VECTOR v; };
 // Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (+0x1F0).
 void ScaleStepSpinSpeed(struct S *step, float g)
 {
@@ -1323,7 +1322,7 @@ extern "C" BHV *FindStepBehavior(STEP *step, CID cid)
 namespace M_func_00205478 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
-struct S { char pad[0x2A0]; int a[6]; };
+struct S : PO { char pad[0x2A0 - 0x180]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
 void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
@@ -1356,7 +1355,7 @@ void AddStepDialogSmRefs(struct S *step, int mask)
 namespace M_func_00205588 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
-struct S { char pad[0x2A0]; int a[6]; };
+struct S : PO { char pad[0x2A0 - 0x180]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
 void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
@@ -1390,7 +1389,7 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
 namespace M_func_00205670 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} V;
-struct P {char pad[0x208];int enabled;};
+struct P : PO { char pad[0x208 - 0x180]; int enabled;};
 extern qword D_002A2DC0;
 void BuildStepFootprint(struct P*,V*);
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
@@ -1435,7 +1434,7 @@ namespace M_func_002057E8 {
 typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M3 { qword r[3]; };
-struct S { char pad[0x218]; qword *origin; int pad21C; float radius; };
+struct S : PO { char pad[0x218 - 0x180]; qword *origin; int pad21C; float radius; };
 extern "C" {
 M3 *GetLoWorldMatrix(S *p);
 qword GetLoWorldPos(S *p);
@@ -1501,7 +1500,7 @@ struct VU_VECTOR4 {qword qw;};
 union U {qword q;float f[4];int i[4];};
 struct VU_FLOAT {qword qw;};
 struct FRAME {FRAME(){}~FRAME(){}};
-struct P {char pad0[0xEC];void *attachment;char padF0[0xB8];float heading;char pad1AC[4];MATRIX3 basis;};
+struct P : LO { char pad0[0xEC - 0x50]; void *attachment;char padF0[0xB8];float heading;char pad1AC[4];MATRIX3 basis;};
 struct HEIGHT {float min,max;};
 struct GAME;
 extern "C" { extern GAME D_003DD490; }
