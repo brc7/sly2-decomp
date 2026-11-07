@@ -243,15 +243,6 @@ struct CID100V : public SO
       undefined4 unk_0x170[16];
 };
 
-struct PARTLINK
-{
-      undefined4 unk_0x00;
-      void *precA;
-      void *precB;
-      void *precC;
-      undefined4 unk_0x10[0xD0 / 4];
-};
-
 extern "C" int IsAsegaRetracted(ASEGA *pasega);
 
 struct VU_FLOAT

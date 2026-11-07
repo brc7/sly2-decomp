@@ -33,6 +33,19 @@ struct MOVEREC
       int hasStarted; /* the move has started */
 };
 
+/* PARTLINK: a three-transform IK chain record (0xE0 bytes, allocated cleared from the world heap and set up by
+   InitIkRecord): Murray keeps one per hand (MURRAY +0x1610/+0x1614; LoadMurrayFromBrx fills precA/precB/precC with
+   his transforms 0x200..0x202 and 0x203..0x205). Was copied in air.cpp and relay.cpp (Lilly names). */
+struct PARTLINK
+{
+      undefined4 unk_0x00;
+      void *precA;   /* first transform of the chain (FindSoXf kind 6) */
+      void *precB;   /* second transform (kind 6) */
+      void *precC;   /* end transform (kind 1) */
+      undefined4 unk_0x10[0xD0 / 4];
+};
+typedef char assert_PARTLINK_size[sizeof(PARTLINK) == 0xE0 ? 1 : -1];
+
 /* MURRAY: Murray, the strong partner: carrying/throwing objects, work animations and an embedded LEAP helper.
    Layout from src/game/gameplay/player/air.cpp (UpdateJtAirInput) (3 copies in Lilly ports) */
 struct MURRAY : public STEPPLAYER
@@ -48,7 +61,8 @@ struct MURRAY : public STEPPLAYER
       undefined4 unk_0x13f4[(0x1410 - 0x13f4) / 4];
       float unknown1410;
       float unknown1414;
-      undefined4 unk_0x1418[(0x1430 - 0x1418) / 4];
+      undefined4 unk_0x1418[(0x1420 - 0x1418) / 4];
+      qword throwGoal;   /* +0x1420 where a throw aims (ThrowMurrayCarried; ThrowMurrayCarriedAt sets it to an object's position) */
       LO *unknown1430;
       float unknown1434;
       undefined4 unknown1438;
@@ -65,19 +79,19 @@ struct MURRAY : public STEPPLAYER
       int workAction; /* current work action */
       undefined4 unk_0x1538[(0x1540 - 0x1538) / 4];
       undefined4 unk_0x1540[(0x15f0 - 0x1540) / 4];
-      void *unknown15F0;
-      void *unknown15F4;
-      void *unknown15F8;
-      void *unknown15FC;
+      void *ikEndA;   /* +0x15F0 ikChainA's end transform */
+      void *unknown15F4;   /* +0x15F4 transform 0x202 (FindSoXf kind 6) */
+      void *ikEndB;   /* +0x15F8 ikChainB's end transform */
+      void *unknown15FC;   /* +0x15FC transform 0x205 (FindSoXf kind 6) */
       undefined4 unknown1600[4];
-      PARTLINK *unknown1610;
-      PARTLINK *unknown1614;
+      PARTLINK *ikChainA;   /* +0x1610 IK chain of transforms 0x200..0x202 (LoadMurrayFromBrx; a hand, inferred) */
+      PARTLINK *ikChainB;   /* +0x1614 IK chain of transforms 0x203..0x205 */
       undefined4 unk_0x1618[(0x1630 - 0x1618) / 4];
       undefined4 unknown1630[0xb0 / 4];
       undefined4 unk_0x16e0[(0x16f0 - 0x16e0) / 4];
       BLDIR unknown16F0[8];     /* directional animation blends */
       ASEGBL *unknown17F0;
-      int unknown17F4;
+      int strafeSubstate;   /* +0x17F4 sub-state while strafing (MURRAY_STRAFE; nonzero: noisy movement) */
       undefined4 unk_0x17f8[(0x1810 - 0x17f8) / 4];
       int unknown1810;
       undefined4 unk_0x1814[(0x1830 - 0x1814) / 4];

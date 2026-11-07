@@ -1014,15 +1014,6 @@ void ResetStepGoal(STEP *pstep, SSG *pssg) __asm__("SetGuardRoutineMode");
 
 void EnsureSggAlarm(SGG *psgg, ALARM *palarm);
 
-struct PARTLINK
-{
-      undefined4 unk_0x00;
-      void *precA;
-      void *precB;
-      void *precC;
-      undefined4 unk_0x10[0xD0 / 4];
-};
-
 JSGV *PjsgStartBlock(RELAYV *relay, RELAYCMD *prelaycmdBegin, JSGV *pjsgParent) __asm__("NewRelayJsg");
 
 JSGV *PjsgFindRelayBlock(RELAYV *relay, OID oidLabel, JSGV *pjsgExcept) __asm__("FindRelayBlockScript");

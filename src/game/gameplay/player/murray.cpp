@@ -194,35 +194,33 @@ typedef char align_5[__alignof__(struct CONTEXT)==4?1:-1];
 
 namespace M_LoadMurrayFromBrx { extern "C" {
 struct REQ { int cb; int align; };
-struct T { int x0; void *x4; void *x8; void *xC; };
-struct P { char pad[0x15F0]; void *x15F0; void *x15F4; void *x15F8; void *x15FC; char pad2[0x1610 - 0x1600]; struct T *x1610; struct T *x1614; };
 extern char D_002C0270[];
-void LoadStepFromBrx(struct P *p);
-void BindLoOidTable(struct P *p, int n, void *q);
-struct T *AllocClearedFromWorldHeap(struct REQ *r);
-void *FindSoXf(struct P *p, int a, int b);
-void InitIkRecord(struct T *t);
-static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return AllocClearedFromWorldHeap(&req); }
+void LoadStepFromBrx(MURRAY *p);
+void BindLoOidTable(MURRAY *p, int n, void *q);
+PARTLINK *AllocClearedFromWorldHeap(struct REQ *r);
+void *FindSoXf(MURRAY *p, int a, int b);
+void InitIkRecord(PARTLINK *t);
+static __inline__ PARTLINK *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return AllocClearedFromWorldHeap(&req); }
 // MURRAY LoadFromBrx (slot 14): STEP base, binds his object table (0x89 entries) and allocates the two hand/grip
 // records. Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadMurrayFromBrx(struct P *murray)
+void LoadMurrayFromBrx(MURRAY *murray)
 {
     LoadStepFromBrx(murray);
     BindLoOidTable(murray, 0x89, D_002C0270);
-    murray->x1610 = NewT();
-    murray->x1610->x4 = FindSoXf(murray, 0x200, 6);
-    murray->x1610->x8 = FindSoXf(murray, 0x201, 6);
-    murray->x1610->xC = FindSoXf(murray, 0x202, 1);
-    InitIkRecord(murray->x1610);
-    murray->x1614 = NewT();
-    murray->x1614->x4 = FindSoXf(murray, 0x203, 6);
-    murray->x1614->x8 = FindSoXf(murray, 0x204, 6);
-    murray->x1614->xC = FindSoXf(murray, 0x205, 1);
-    InitIkRecord(murray->x1614);
-    murray->x15F0 = murray->x1610->xC;
-    murray->x15F4 = FindSoXf(murray, 0x202, 6);
-    murray->x15F8 = murray->x1614->xC;
-    murray->x15FC = FindSoXf(murray, 0x205, 6);
+    murray->ikChainA = NewT();
+    murray->ikChainA->precA = FindSoXf(murray, 0x200, 6);
+    murray->ikChainA->precB = FindSoXf(murray, 0x201, 6);
+    murray->ikChainA->precC = FindSoXf(murray, 0x202, 1);
+    InitIkRecord(murray->ikChainA);
+    murray->ikChainB = NewT();
+    murray->ikChainB->precA = FindSoXf(murray, 0x203, 6);
+    murray->ikChainB->precB = FindSoXf(murray, 0x204, 6);
+    murray->ikChainB->precC = FindSoXf(murray, 0x205, 1);
+    InitIkRecord(murray->ikChainB);
+    murray->ikEndA = murray->ikChainA->precC;
+    murray->unknown15F4 = FindSoXf(murray, 0x202, 6);
+    murray->ikEndB = murray->ikChainB->precC;
+    murray->unknown15FC = FindSoXf(murray, 0x205, 6);
 }
 } } // namespace M_LoadMurrayFromBrx
 
@@ -1532,26 +1530,24 @@ void GetMurrayCpdefi(struct S *murray, int *pf)
 } } // namespace M_GetMurrayCpdefi
 
 namespace M_PresetMurrayAccel { extern "C" {
-struct S { char pad[0x13D0]; int k; };
-void PresetSoAccel(struct S *p);
-void PresetStepAccel(struct S *p);
+void PresetSoAccel(MURRAY *p);
+void PresetStepAccel(MURRAY *p);
 void PresetJtAccelJump(void *p);
 void PresetJtAccelHide(void *p);
 void PresetJtAccelZap(void *p);
-void PresetMurrayFlopAccel(struct S *p);
+void PresetMurrayFlopAccel(MURRAY *p);
 void PresetJtAccelPipe(void *p);
 // MURRAY physics preset (slot 70): the base preset, then the per-state component presets.
-void PresetMurrayAccel(struct S *murray)
+void PresetMurrayAccel(MURRAY *murray)
 {
-    char *b = (char *)murray;
-    if (murray->k == MURRAY_PIPE) PresetSoAccel(murray);
+    if (murray->state == MURRAY_PIPE) PresetSoAccel(murray);
     else PresetStepAccel(murray);
-    switch (murray->k) {
-    case MURRAY_JUMP: PresetJtAccelJump(b + 0x2C0); break;
-    case MURRAY_GRAB: PresetJtAccelHide(b + 0x4C0); break;
-    case MURRAY_HURT: PresetJtAccelZap(b + 0xDF0); break;
+    switch (murray->state) {
+    case MURRAY_JUMP: PresetJtAccelJump(&murray->jtair); break;
+    case MURRAY_GRAB: PresetJtAccelHide(&murray->jtgrab); break;
+    case MURRAY_HURT: PresetJtAccelZap(&murray->jthurt); break;
     case MURRAY_FLOP: PresetMurrayFlopAccel(murray); break;
-    case MURRAY_PIPE: PresetJtAccelPipe(b + 0xF50); break;
+    case MURRAY_PIPE: PresetJtAccelPipe(&murray->jtpipe); break;
     }
 }
 } } // namespace M_PresetMurrayAccel
@@ -2306,19 +2302,18 @@ void ThrowMurrayCarried(struct P *murray)
 
 namespace M_func_001B7A78 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x1420]; qword q1420; };
-void SetMurrayState(struct P *p, int n);
+void SetMurrayState(MURRAY *p, int n);
 qword GetLoWorldPos(void *p);
-void SetStepTargetHeadingFromVector(struct P *p, qword q);
+void SetStepTargetHeadingFromVector(MURRAY *p, qword q);
 // Splice-callable: state 7 with the throw goal overridden by the given object's position, facing it.
-void ThrowMurrayCarriedAt(struct P *murray, void *pv)
+void ThrowMurrayCarriedAt(MURRAY *murray, void *pv)
 {
     qword a, b, d;
     SetMurrayState(murray, MURRAY_THROW);
     if (!pv)
         return;
     a = GetLoWorldPos(pv);
-    murray->q1420 = a;
+    murray->throwGoal = a;
     b = GetLoWorldPos(murray);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     SetStepTargetHeadingFromVector(murray, d);
@@ -2477,11 +2472,10 @@ void SetMurrayPlayerState(struct P *murray, unsigned int k)
 } } // namespace M_SetMurrayPlayerState
 
 namespace M_GetMurrayPlayerState { extern "C" {
-struct S { char pad[0x13D0]; int n; };
 // MURRAY slot 89: Murray state -> generic player state 0..8 or -1.
-int GetMurrayPlayerState(struct S *murray)
+int GetMurrayPlayerState(MURRAY *murray)
 {
-    switch (murray->n) {
+    switch (murray->state) {
     case MURRAY_IDLE: case MURRAY_CARRY: return 0;
     case MURRAY_JUMP: return 1;
     case MURRAY_GRAB: return 2;
@@ -2536,15 +2530,14 @@ extern "C" int TryFaceMurrayAttachedObject()
 }
 
 namespace M_func_001B8100 { extern "C" {
-struct S { char pad[0x13D0]; int n; char pad2[0x17F4 - 0x13D4]; int strafeSubstate; };
-int GetStepplayerMovementNoise(struct S *p);
+int GetStepplayerMovementNoise(MURRAY *p);
 // MURRAY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
 // then 1 (noisy) in MURRAY_RUN/POWER_MOVE or when strafing with a sub-state, else -1.
-int GetMurrayMovementNoise(struct S *murray)
+int GetMurrayMovementNoise(MURRAY *murray)
 {
     int v = GetStepplayerMovementNoise(murray);
     if (v != -1) return v;
-    switch (murray->n) {
+    switch (murray->state) {
     case MURRAY_RUN: case MURRAY_POWER_MOVE:
         return 1;
     case MURRAY_STRAFE:
@@ -2555,12 +2548,10 @@ int GetMurrayMovementNoise(struct S *murray)
 }
 } } // namespace M_func_001B8100
 
-namespace M_func_001B8180 { extern "C" {
-struct S { char pad[0x13D0]; int n; };
 // MURRAY slot 94: 1 for the free-movement states 0/1/9/10. (inferred)
-} } // namespace M_func_001B8180
-int MURRAY::IsFreeMoving() { using namespace M_func_001B8180; M_func_001B8180::S *p = (M_func_001B8180::S *)this;
-    switch (p->n) {
+int MURRAY::IsFreeMoving()
+{
+    switch (state) {
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_STRAFE: case MURRAY_WALK:
         return 1;
     }
@@ -2830,16 +2821,15 @@ void SetMurrayAttack(struct P *murray, int k)
 } } // namespace M_SetMurrayAttack
 
 namespace M_func_001B8938 { extern "C" {
-struct S { char pad[0x1030]; void *p; char pad2[0x190C - 0x1034]; void *q; };
 extern char D_002C09F8[];
-void DetachSoActsMatching(void *a, struct S *p, int n, void *s);
-void SetMurrayState(struct S *p, int n);
+void DetachSoActsMatching(void *a, MURRAY *p, int n, void *s);
+void SetMurrayState(MURRAY *p, int n);
 // Fades the attack overlay, clears it and returns to idle.
-void CancelMurrayAttack(struct S *murray)
+void CancelMurrayAttack(MURRAY *murray)
 {
-    DetachSoActsMatching(murray->p, murray, 5, D_002C09F8);
-    murray->q = murray->p;
-    murray->p = 0;
+    DetachSoActsMatching(murray->activeAnimation, murray, 5, D_002C09F8);
+    murray->unknown190C = murray->activeAnimation;
+    murray->activeAnimation = 0;
     SetMurrayState(murray, MURRAY_IDLE);
 }
 } } // namespace M_func_001B8938
