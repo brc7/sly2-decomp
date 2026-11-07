@@ -150,7 +150,8 @@ struct SW : public BASIC
       HUDSTACK ahudstack[4];   /* the HUD widget stacks */
       DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (IsWidgetObscured, hud.cpp); was _pad_228 */
       SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
-      uint32_t   _pad_228    [ 1 ] ;
+      LO *ploHudFont;       /* +0x3BE8 [S] the HUD font object (oid 0x374; PostWidgetLoad finds it, the rich-text constructors
+                               read its font array at +0x54) (hud.cpp); was _pad_228 */
       int numShownWidgets;
       /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
       int isTransitionPending;  /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
@@ -350,6 +351,7 @@ typedef char assert_SW_numCluesCollected[SLY2_OFFSETOF(SW, numCluesCollected) ==
 /* Fields named from the interior address names (data/interior-fields): offsets as the matched code uses them. */
 typedef char assert_SW_dlTaskActive[SLY2_OFFSETOF(SW, dlTaskActive) == 0x3B00 ? 1 : -1];
 typedef char assert_SW_dlWidgetExclusive[SLY2_OFFSETOF(SW, dlWidgetExclusive) == 0x3BD0 ? 1 : -1];
+typedef char assert_SW_ploHudFont[SLY2_OFFSETOF(SW, ploHudFont) == 0x3BE8 ? 1 : -1];
 typedef char assert_SW_slWidgetDeferred[SLY2_OFFSETOF(SW, slWidgetDeferred) == 0x3BDC ? 1 : -1];
 typedef char assert_SW_relightStamp[SLY2_OFFSETOF(SW, relightStamp) == 0x3D5C ? 1 : -1];
 typedef char assert_SW_pblockRender[SLY2_OFFSETOF(SW, pblockRender) == 0x3E5C ? 1 : -1];

@@ -258,40 +258,34 @@ extern "C" void BuildReconSelectionText(char *text, int which)
 
 // 0x2111F0 BuildReconTargetText
 namespace M_BuildReconTargetText { extern "C" {
-struct G;
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct Z { char pad[0xF8]; int nameTextId; };
 struct Y { char pad[0x74]; int numTargets; struct Z *targets[1]; };
 struct X { char pad[0xF38]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.unknown14 */
-struct X *GetHeroPo(struct G *g);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-char *FindSwLocalizedString__FP2SWi(struct G *g, int id);
 void strcpy(char *dst, char *src);
 // HUD texts 0x2DF-0x2E4: the name of recon target i, if there is one.
 void BuildReconTargetText(char *dst, int i)
 {
-    struct G *sw = &D_003DD490;
-    struct X *hero = GetHeroPo(sw);
+    SW *sw = &D_003DD490;
+    struct X *hero = (struct X *)GetHeroPo(sw);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
         struct Y *selector = hero->reconSelector;
         if (selector && i < selector->numTargets)
-            strcpy(dst, FindSwLocalizedString__FP2SWi(sw, selector->targets[i]->nameTextId));
+            strcpy(dst, FindSwLocalizedString(sw, selector->targets[i]->nameTextId));
     }
 }
 } } // namespace M_BuildReconTargetText
 
 // 0x211298 BuildMenuCarouselText
 namespace M_func_00211298 { extern "C" {
-struct RESOURCE { int id; const char *text; };
-struct G { char gap[0x4640]; int count; struct RESOURCE *resources; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct F { int id; char pad[0x1C]; };
 struct E { int numEntries; struct F *entries; char pad[0xC]; int selection; char pad2[4]; };   /* a menu page */
 #undef D_003D9EDC
 extern struct E D_003D9EDC[] __asm__("D_003D9ED0+0xC");   /* screen's object+0xC, a separate symbol to g++: the base+offset form changes BuildMenuCarouselText (CSE of the base) */
 #undef D_003D9EF4
 extern int D_003D9EF4 __asm__("D_003D9ED0+0x24");   /* screen's object+0x24; see D_003D9EDC */
-const char *FindSwLocalizedString__FP2SWi(struct G *g, int id);
 char *strcpy(char *dst, const char *src);
 // HUD texts 0x2D2-0x2DB: the name of the menu entry k places from the selection on the current menu page (wrapping).
 // (inferred)
@@ -303,7 +297,7 @@ void BuildMenuCarouselText(char *dst, int k)
         int j = k + (long)(page->selection - 3);   /* slot 3 of the carousel is the selection */
         while (j < 0)
             j += n;
-        (void)strcpy(dst, FindSwLocalizedString__FP2SWi(&D_003DD490, page->entries[j % n].id));
+        (void)strcpy(dst, FindSwLocalizedString(&D_003DD490, page->entries[j % n].id));
     }
 }
 } } // namespace M_func_00211298
@@ -313,13 +307,12 @@ void BuildMenuCarouselText(char *dst, int k)
 // 0x211348 BuildWidgetArgText
 namespace M_BuildWidgetArgText { extern "C" {
 struct T { char pad[0xCC]; int argTextIds[1]; };
-extern struct G D_003DD490;
-int FindSwLocalizedString__FP2SWi(struct G *g, int id);
+extern SW D_003DD490;
 void strcpy(void *p, int v);
 // HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
 void BuildWidgetArgText(void *text, int i, struct T *widget)
 {
-    strcpy(text, FindSwLocalizedString__FP2SWi(&D_003DD490, widget->argTextIds[i]));
+    strcpy(text, (int)FindSwLocalizedString(&D_003DD490, widget->argTextIds[i]));
 }
 } } // namespace M_BuildWidgetArgText
 
@@ -506,9 +499,9 @@ WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; a
 // 0x211CA8 ShowModalBoxWidget
 namespace M_func_00211CA8 { extern "C" {
 struct S { char pad[0x7C]; int mainAnimId; char pad2[0x90]; int isOpen; };   /* isOpen: WIDGET127+0x110 (inferred) */
-extern struct G D_003DD490;
+extern SW D_003DD490;
 void ShowWidget(struct S *p, int k);
-void IncrementSwHandsOff(struct G *g, int a);
+void IncrementSwHandsOff(SW *g, int a);
 void PlayWidgetAnim(struct S *p, int a);
 // Shows the modal message box (class 0x7F, slot 49) if it is idle: shows the widget, takes player control and plays its
 // open animation. (inferred)
@@ -611,12 +604,11 @@ void AddItemCounterOidB(struct S *widget, int oid)
 
 // 0x211EC0 PostLoadItemCounterWidget
 namespace M_func_00211EC0 { extern "C" {
-struct G;
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct B { int oid; void *object; };
 struct S { char pad[0x110]; int numEntriesA; struct B entriesA[0x10]; int numEntriesB; struct B entriesB[1]; };
 void PostWidgetLoad(struct S *p);
-void *FindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int z);
 } } // namespace M_func_00211EC0
 // Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
 void WIDGET129::PostLoad() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *widget = (M_func_00211EC0::S *)this;
@@ -818,9 +810,9 @@ struct S {
     int hasFont; char padc0[8]; struct S *ownerWidget;
 };
 /* lowFlags: LO grfUnk40, either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
-extern struct G { char pad[0x3BE8]; void *hudFont; } D_003DD490;
+extern SW D_003DD490;
 void PostLoLoad(struct S *p);
-void *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, struct S *);
+LO *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, struct S *);
 void SetLoBusyKind(struct S *p, int);
 // Widget post-load: finds the font object, centres the widget on screen from its size, shows it if flagged, marks it
 // busy.
@@ -831,9 +823,9 @@ void PostWidgetLoad(struct S *widget)
     int scaledWidth;
     PostLoLoad(widget);
     if (widget->hasFont) {
-        struct G *sw = &D_003DD490;
-        if (!sw->hudFont)
-            sw->hudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, widget);
+        SW *sw = &D_003DD490;
+        if (!sw->ploHudFont)
+            sw->ploHudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, widget);
     }
     widget->ownerWidget = widget;
     widget->isNonExclusive = -1;
@@ -1977,7 +1969,6 @@ typedef int qword __attribute__((mode(TI)));
 struct BIS;
 struct OWNER {char pad[0xC4];HEAP *heap;};
 struct ROOT;
-struct WORLD;
 struct SPRITE;
 struct M3 {qword r[3];};
 struct M23 {float a[6];} __attribute__((aligned(16)));
@@ -2009,11 +2000,11 @@ void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
 void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
 void *AllocClearedFromStack(ALLOCREQ *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
-void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
+void PostSwCallback(SW *,OWNER *,PMF,SPRITE *);
 }
 extern "C" { extern int D_002C40A4; }
 extern "C" { extern PMF D_002A8B08; }
-extern "C" { extern WORLD D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern QW D_002A2E10; }
 extern "C" { extern char D_00000650[],D_00000140[]; }
 static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
@@ -2387,8 +2378,7 @@ namespace M_CRichText_ctor {
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct F { char pad[0x54]; char *fonts; };   /* the HUD font object: 0x40-byte fonts */
-struct G { char pad[0x3BE8]; F *hudFont; };
-extern "C" G D_003DD490;
+extern "C" SW D_003DD490;
 extern "C" Q D_002A2E10;
 extern "C" Q D_002A2E20;
 /* CRichText2 (0x98 bytes; the field names are the same in every view of this file):
@@ -2416,8 +2406,8 @@ extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
     rt->hAlign = 1;
     rt->vAlign = 1;
     rt->priority = 6;
-    rt->font = rt->baseFont = D_003DD490.hudFont->fonts;
-    rt->altFont = D_003DD490.hudFont->fonts + 0x40;
+    rt->font = rt->baseFont = ((F *)D_003DD490.ploHudFont)->fonts;
+    rt->altFont = ((F *)D_003DD490.ploHudFont)->fonts + 0x40;
     rt->baseColor = RGBA(0x80808080);
     rt->baseColor0 = D_002A2E10;
     rt->baseColor1 = D_002A2E20;
@@ -2431,8 +2421,7 @@ namespace M_func_00215BA8 {
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct Q3 { Q a, b, c; };
 struct F { char pad[0x54]; char *fonts; };
-struct G { char pad[0x3BE8]; F *hudFont; };
-extern "C" G D_003DD490;
+extern "C" SW D_003DD490;
 struct C8 { char pad[0x9C]; float screenX; float screenY; };   /* the widget whose screen position text uses */
 struct P8 { char pad[0xA4]; int priority; char padA8[0x20]; C8 *ownerWidget; };   /* the owning widget */
 /* a text sprite descriptor (RenderSpriteText's S) */
@@ -2459,8 +2448,8 @@ extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style
     rt->priority = sprite->owner->priority;
     rt->lineHeight = sprite->scale;
     rt->fontScale = rt->lineHeight * 0.01953125f;   /* 1 / 51.2 */
-    rt->font = rt->baseFont = D_003DD490.hudFont->fonts;
-    rt->altFont = D_003DD490.hudFont->fonts + 0x40;
+    rt->font = rt->baseFont = ((F *)D_003DD490.ploHudFont)->fonts;
+    rt->altFont = ((F *)D_003DD490.ploHudFont)->fonts + 0x40;
     rt->baseColor = sprite->color;
     rt->baseColor0 = styleCopy.b;
     rt->baseColor1 = styleCopy.c;
@@ -2943,11 +2932,10 @@ typedef struct {float a[8];} __attribute__((aligned(16))) T;
 typedef union {qword q[3];struct {RGBA color;int mode;float priority;uint limit;char pad10[0x1C];float fade;};} DATA;
 typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float scale,width,height;int hAlign,vAlign;} S;   /* kind: 0 language string, 1 text table */
 typedef struct {char *text,*cur;void *font,*baseFont,*altFont;RGBA color,baseColor,altColor;char pad20[0x20];qword baseColor0,baseColor1;int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;} RT;
-typedef struct {char pad[0x3BE8];void *font;} WORLD;
 typedef struct {int id;void (*get)(char *,void *,void *);void *context;} STRINGGEN;
 typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} SCROLL;
 typedef struct {float t,dt;} CLOCK;
-extern "C" { extern WORLD D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern STRINGGEN D_003E1C88[]; }
 extern "C" { extern const char D_002A8B80[],D_002A8B88[]; }
 extern "C" { extern char D_004435F0[]; }
@@ -2955,7 +2943,6 @@ extern "C" { extern char D_004435F0[]; }
 extern "C" { extern SCROLL D_003DA0C0; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const float D_002C40B8; }
-extern "C" void *FindSwLocalizedString__FP2SWi(WORLD *,int);
 extern "C" char *strcpy(char *,const char *);
 extern "C" char *strcpy1(char *,const char *);
 extern "C" RT *ConstructRichText2FromSprite(RT *,char *,S *,DATA *);
@@ -2977,7 +2964,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
     RT rt;
     DATA style;
     char marquee[2*sizeof(text)+3*5];
-    if(!D_003DD490.font)return;
+    if(!D_003DD490.ploHudFont)return;
     text[0]=0;
     if(p->kind==TEXT_SOURCE_TABLE){
         uint i;
@@ -2985,7 +2972,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         if(i>=108)*(long *)text=*(const long *)D_002A8B80;
         else D_003E1C88[i].get(text,D_003E1C88[i].context,p->owner);
     }else if(p->kind==TEXT_SOURCE_LANGSTR){
-        strcpy(text,(const char *)FindSwLocalizedString__FP2SWi(&D_003DD490,p->id));
+        strcpy(text,(const char *)FindSwLocalizedString(&D_003DD490,p->id));
     }
     if(p->kind==TEXT_SOURCE_TABLE && p->id==TEXT_ID_SUBTITLE){
         int lines=1,ch,visible;
