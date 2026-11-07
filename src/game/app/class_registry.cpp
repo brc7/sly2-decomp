@@ -39,11 +39,14 @@ struct CRef
 {
     int m_tagk;
     union { int n; float g; void *pv; } u;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference of the given tag kind.
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     void Decref();
     void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(void *pv) __asm__("CRef_SetBasic");
