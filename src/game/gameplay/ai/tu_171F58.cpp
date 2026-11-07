@@ -458,12 +458,6 @@ static inline qword VuDotProduct(qword a, qword b)
 // VU0 helper: vector scaled by the x of g.
 static inline qword VuScaleByX(qword v,qword g){qword qw;__asm__("vmulx.xyzw %0, %1, %2x":"=j"(qw):"j"(v),"0"(g));return qw;}
 // VU0 helper: v divided by g.
-static inline qword VuDivideByX(qword v, qword g)
-{
-    qword qw;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v), "j"(g));
-    return qw;
-}
 // VU0 helper: base + vector * scale.
 static inline qword VuMulAdd(qword base, qword vec, qword g)
 {
@@ -513,7 +507,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
             n = qwFallback;
         } else {
             w.query.scalar.q = g;
-            n = VuDivideByX(w.query.delta.q, len);
+            n = VuDivByX(w.query.delta.q, len);
         }
         w.query.candidate.q = VuMulAdd(posObj, n, g);
         TryAddSearchCandidate(&w.query);
@@ -589,7 +583,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
             if (QwordX(len) < 0.0001f)
                 planar = qwFallback;
             else
-                planar = VuDivideByX(planar, len);
+                planar = VuDivByX(planar, len);
             qword s = VuFloatVolatile(200.0f);
             qword target = VuMulAdd(w.query.point.q, planar, s);
             w.query.delta.q = s;

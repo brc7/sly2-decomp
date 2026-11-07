@@ -2222,14 +2222,13 @@ static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, qword c, VU_FLOAT 
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%3x\n\tvmaddx.xyzw %0,%4,%5x" : "=j"(r) : "j"(a), "j"(b), "j"(g0.q), "j"(c), "j"(g1.q));
     return r;
 }
-static inline qword DivVec(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
 static inline float NormalizeInPlace(U &v, const qword &vDefault)
 {
     qword l = VuSqrtX(VuDot(v.q, v.q));
     if (VuToFloat(l) < 0.0001f)
         v.q = vDefault;
     else
-        v.q = DivVec(v.q, l);
+        v.q = VuDivByX(v.q, l);
     return QwordX(l);
 }
 static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }

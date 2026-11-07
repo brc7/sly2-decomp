@@ -895,7 +895,6 @@ static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword QwSubC(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b):"vf3");return r;} /* clobber of the dead vf3 */
 // Helpers QwSqrt, QwDivide, QwAddScaled, QwScaleX, GXOfQw, GXOfVf (small asm wrappers/accessors shaped for the match).
-static inline qword QwDivide(qword v,qword len){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"j"(len));return r;}
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
 static inline qword QwScaleX(qword v,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(g.qw));return r;}
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
@@ -907,7 +906,7 @@ static inline float Heading(qword v){return atan2f(GYOfQw(v),QwordX(v));}
 static inline qword QwNormalizeSafe(qword v,qword fallback,float eps){
  qword r=VuSqrtX(VuDot(v,v));float x;
  __asm__("mtc1 %1,%0":"=f"(x):"r"(r),"r"(fallback)); /* allocation-only "r"(fallback): the fallback is held in a GPR */
- if(x<eps)r=fallback;else r=QwDivide(v,r);
+ if(x<eps)r=fallback;else r=VuDivByX(v,r);
  return r;}
 // Helpers NormalizeInPlace, RSub, RDot, RAddScaled, REvaluate, RLimit, RGXOfQw, RGXOfVf (small asm wrappers/accessors shaped for the match).
 static inline qword NormalizeInPlace(U*pv,const qword*pfallback,void*own){float eps=0.0001f;qword g=pv->q;qword v;qword d,one;

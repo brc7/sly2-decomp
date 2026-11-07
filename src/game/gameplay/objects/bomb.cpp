@@ -331,12 +331,6 @@ static __inline__ qword VLenA(qword c)
     return l;
 }
 // Vector divided by lane x of f.
-static inline qword DivQ(qword v, qword f)
-{
-    qword r;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f));
-    return r;
-}
 // Lane x of a 128-bit register as a float.
 
 // Unit vector of v, or def for a near-zero vector.
@@ -345,7 +339,7 @@ static inline qword NormalizeSafe(qword v, qword def)
     qword len = Length(v);
     if (QwordX(len) < 0.0001f)
         return def;
-    return DivQ(v, len);
+    return VuDivByX(v, len);
 }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF

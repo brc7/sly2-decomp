@@ -446,19 +446,13 @@ static inline qword QwLength(qword v)
     return len;
 }
 // Vector divided by its length.
-static inline qword QwUnit(qword v, qword len)
-{
-    qword r;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(len));
-    return r;
-}
 // Unit vector (or fallback for a near-zero vector).
 static inline qword QwNormalize(qword v, qword fallback)
 {
     qword len = QwLength(v);
     if (VuToFloat(len) < 0.0001f)
         return fallback;
-    return QwUnit(v, len);
+    return VuDivByX(v, len);
 }
 // Unit vector stored through a pointer.
 static inline qword QwNormalizeInto(qword *pv, const qword &fallback)
@@ -469,7 +463,7 @@ static inline qword QwNormalizeInto(qword *pv, const qword &fallback)
     if (GFromVf(len) < 0.0001f)
         *pv = fallback;
     else
-        *pv = QwUnit(v, len);
+        *pv = VuDivByX(v, len);
     return len;
 }
 // Dot product as a float.
@@ -1504,7 +1498,6 @@ static inline qword LengthXY(qword v)
     return l;
 }
 // v divided by lane x of l.
-static inline qword Div(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
 // Unit vector of v.
 static inline qword Normalize(qword v)
 {
@@ -1513,7 +1506,7 @@ static inline qword Normalize(qword v)
     if (QwordX(l) < 0.0001f)
         l = fallback;
     else
-        l = Div(v, l);
+        l = VuDivByX(v, l);
     return l;
 }
 // v scaled by lane x of g.

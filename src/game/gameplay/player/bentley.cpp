@@ -2131,12 +2131,6 @@ static inline qword Scale(qword v, qword f)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f), "j"(v));
     return r;
 }
-static inline qword DivQ(qword v, qword f)
-{
-    qword r;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(f));
-    return r;
-}
 static inline qword DivF(qword v, VU_FLOATM f)
 {
     qword r;
@@ -2162,7 +2156,7 @@ static inline void SafeDiv(UQ &v, qword len, const qword &vDef)
     if (VuToFloat(len) < 0.0001f)
         v.q = vDef;
     else
-        v.q = DivQ(v.q, len);
+        v.q = VuDivByX(v.q, len);
 }
 
 #define V4(a) virtual void a##0(); virtual void a##1(); virtual void a##2(); virtual void a##3();

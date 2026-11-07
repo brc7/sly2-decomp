@@ -1106,12 +1106,6 @@ static inline qword VuMulXAddMulX(qword qwA, qword qwB, qword qwS)
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
     return qw;
 }
-static inline qword VuDivX(qword qwV, qword qwS)
-{
-    qword qw;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(qwV), "j"(qwS));
-    return qw;
-}
 static inline qword VuZero()
 {
     qword qw;
@@ -1513,7 +1507,7 @@ void UpdateSoSlots(SO *so)
                     float gDist = QwordX(VuLength(qwDir));
                     if (gDist > 0.0001f)
                     {
-                        qwDir = VuDivX(qwDir, VuFloat(gDist).qw);
+                        qwDir = VuDivByX(qwDir, VuFloat(gDist).qw);
                     }
                     else
                     {

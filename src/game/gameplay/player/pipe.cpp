@@ -170,18 +170,12 @@ static inline qword Length(qword v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(d));
     return len;
 }
-static inline qword Unit(qword v, qword len)
-{
-    qword r;
-    __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(v), "j"(len));
-    return r;
-}
 static inline qword Normalize(qword v, qword fallback)
 {
     qword len = Length(v);
     if (QwordX(len) < 0.0001f)
         return fallback;
-    return Unit(v, len);
+    return VuDivByX(v, len);
 }
 static inline float Dot(qword a, qword b)
 {
@@ -252,7 +246,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
         back.q = VuCross(up, fwd.q);
         w.basis.r[1] = back.q;
         qword len = Length(back.q);
-        w.basis.r[1] = Unit(back.q, len);
+        w.basis.r[1] = VuDivByX(back.q, len);
         if (QwordX(len) < 0.0001f)
             w.basis.r[1] = GetNormalVector(up);
         w.basis.r[0] = VuCross(w.basis.r[1], w.basis.r[2]);
