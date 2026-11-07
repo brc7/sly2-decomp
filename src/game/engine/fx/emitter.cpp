@@ -8,9 +8,9 @@
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does);
 // their C++-named definitions are C-linkage definitions of their literal symbols there (the namespace would change
 // the mangling), as in wave 9.
-// The static initializer (func_0015CAD8, stub func_0015CD48) is generated from the two emitter defaults and the six
+// The static initializer (StaticInit_emitter, stub func_0015CD48) is generated from the two emitter defaults and the six
 // slot pools below.
-// SLY2_ALIAS: __static_initialization_and_destruction_0=func_0015CAD8
+// SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_emitter
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0015CD48
 
 #include "sly2/basic.h"
@@ -863,7 +863,7 @@ namespace M_WakeSoWater__FP2SOP5WATERfP6VECTORT3ff {
 // The splash is EmitParticlesAt(pos, dir, cParticle, EMITP, EMITV, &e, 0, 0) with the EMITP (0x40) and EMITV (0x70) blocks
 // passed BY VALUE (EABI: a3 / t0 point at the caller's copies). They are aggregate initializers: g++ builds each one
 // in a memset stack temp and block-copies it, which is the target's memset + stores + lq/sq copy. What matched is the
-// unions in the two types (as in func_0015CAD8): store_constructor emits a (clobber (mem:BLK)) for every union
+// unions in the two types (as in StaticInit_emitter): store_constructor emits a (clobber (mem:BLK)) for every union
 // initializer, and those clobbers are scheduler barriers.
 // - EMITV: G4V at +0x00, a 4-float union at +0x40 and Sly 1's CLQ at +0x60 give the target's FPU numbers for
 //   5.0 / 0.39 / 1.047 / -1 (-1 reuses 0.39's register) and the store order.
@@ -878,7 +878,7 @@ union CLQ {
     float ag[4];
 };
 
-// 16-byte float views; the field names are unknown (same type as in func_0015CAD8).
+// 16-byte float views; the field names are unknown (same type as in StaticInit_emitter).
 union G4V { struct { float g0, g4, g8, gC; }; float ag[4]; };
 
 /* the particle record (EMITB+0xC0, emitter.h's EMITV) as rips use it (Sly 1's EMITRIP, objects as OIDs) */

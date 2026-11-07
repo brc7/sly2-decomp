@@ -1915,6 +1915,7 @@ HandleExplsMessage = 0x15C5C8; // type:func
 ExplodeExplsExplso = 0x15C628; // type:func
 EnsureExplsSfx = 0x15C650; // type:func
 FireExplsExplso = 0x15C690; // type:func
+StaticInit_emitter = 0x15CAD8; // type:func
 InitEpisodeMenu = 0x15CD68; // type:func
 PostEpisodeMenuLoad = 0x15CDA8; // type:func
 UpdateEpisodeMenu = 0x15CF30; // type:func

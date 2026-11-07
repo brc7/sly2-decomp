@@ -2272,7 +2272,7 @@ HandleExplsMessage,0x15C5C8,23,match,src/game/engine/fx/emitter.cpp
 ExplodeExplsExplso,0x15C628,10,match,src/game/engine/fx/emitter.cpp
 EnsureExplsSfx,0x15C650,15,match,src/game/engine/fx/emitter.cpp
 FireExplsExplso,0x15C690,273,match,src/game/engine/fx/emitter.cpp
-func_0015CAD8,0x15CAD8,155,match,src/game/engine/fx/emitter.cpp
+StaticInit_emitter,0x15CAD8,155,match,src/game/engine/fx/emitter.cpp
 func_0015CD48,0x15CD48,8,match,src/game/engine/fx/emitter.cpp
 InitEpisodeMenu,0x15CD68,16,match,src/game/ui/tu_15CD68.cpp
 PostEpisodeMenuLoad,0x15CDA8,98,match,src/game/ui/tu_15CD68.cpp

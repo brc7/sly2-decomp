@@ -2282,7 +2282,7 @@ HandleExplsMessage,0x15C5C8,emitter
 ExplodeExplsExplso,0x15C628,emitter
 EnsureExplsSfx,0x15C650,emitter
 FireExplsExplso,0x15C690,emitter
-func_0015CAD8,0x15CAD8,emitter
+StaticInit_emitter,0x15CAD8,emitter
 func_0015CD48,0x15CD48,emitter
 InitEpisodeMenu,0x15CD68,tu_15CD68
 PostEpisodeMenuLoad,0x15CDA8,tu_15CD68
