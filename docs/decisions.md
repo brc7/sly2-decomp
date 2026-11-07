@@ -44,7 +44,7 @@ mangling), so it becomes a C-linkage definition of its literal mangled symbol
 views move to shared types.
 
 **1.6 V-renamed views.** A private view that clashes by name with a shared header type is removed if the layouts agree,
-otherwise renamed with a `V` suffix (`BASICV`, `LOV`, `ASEGAV`; occasionally `Q`/`A`). A C++ symbol that mentions the
+otherwise renamed with a `V` suffix (`BASICV`, `LOV`, `RGBAV`; occasionally `Q`/`A`). A C++ symbol that mentions the
 view keeps its original mangled name through an asm label on the declaration
 (`IsBasicDerivedFrom(BASICV *, CIDV) __asm__("IsBasicDerivedFrom__FP5BASIC3CID")`). *Why:* cc1plus crashes on a
 redefinition of a polymorphic class, and the mangled name must not change. *Status:* temporary: the V-named views are
@@ -62,7 +62,7 @@ as 128-bit VU0 registers but the headers declare as floats gets a quadword membe
 not a cast at each use. First case: `CM::matq` (`sly2/cm.h` `CMMATQ { qword rot[3]; qword pos; }`), unioned with
 `CM::mat` / `matRot` / `pos`. *Why:* the original reads these rows as members (`lq 0x90(base)` with base `&g_cm`); a
 cast of the float member (`*(qword *)&g_cm.pos`) makes g++ 2.95 fold the offset into the address constant, which forced
-twelve file-local `CMIsland` views in names/vu-f5-camera; with the qword member all twelve went away and every includer
+twelve file-local CM island views in names/vu-f5-camera; with the qword member all twelve went away and every includer
 still matches. Where the original reads a row at base `&g_cm.mat` (offset 0x30 for the position), the code takes a
 local `CMMATQ *` first (sky, relay, tu_201D78). The alternative (CM::pos and the rows themselves as qwords) was not taken:
 about 35 existing uses read `mat`/`matRot`/`pos` as floats or matrices, or through `*(qword *)&...pos` casts that match

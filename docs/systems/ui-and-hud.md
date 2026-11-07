@@ -26,7 +26,7 @@ level data, run by `engine/presentation/hud.cpp`).
 | WIDGET subclasses | modal message box, job-completion banner (pauses the game clock), item/objective counter, episode menu, timer (letterbox) | `hud.cpp`, the episode-menu unit in `src/game/ui/` |
 | sprite group / sprite item / sprite key | the widget's animated 2-D content: items are text, geometry or picture payloads (or nested sprites); keys hold poses (2-D transform, colours) and sound events over time | `hud.cpp` |
 | `STRINGGEN` | the text table: entries `{text id, getter, context}`; a getter builds dynamic text (coin count, timer, subtitle...) | `hud.cpp` (getters `Build*Text`) |
-| `SCREEN` family (`SCREENV` view) | global UI controllers: HUD meter, notice banner, gadget menu (`GADGETMENU`), ThiefNet, job list, title screen, timed screen, pause menu, memory-card dialogs | `screen.cpp`, `src/game/ui/menu.cpp`, `src/game/ui/memcard.cpp` |
+| `SCREEN` family (sly2/screen.h) | global UI controllers: HUD meter, notice banner, gadget menu (`GADGETMENU`), ThiefNet, job list, title screen, timed screen, pause menu, memory-card dialogs | `screen.cpp`, `src/game/ui/menu.cpp`, `src/game/ui/memcard.cpp` |
 | `CFont` / `CFontBrx` | bitmap font: glyph table, texture in GS memory, scaling stack | `engine/font/font.cpp` |
 | `CRichText` | text with inline escapes, wrapping, layout and drawing through `GIFS` | `font.cpp`; a second copy for sprite text in `hud.cpp` |
 | `CProg` | the loading progress bar | `engine/presentation/prog.cpp` |

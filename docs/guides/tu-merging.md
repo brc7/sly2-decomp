@@ -440,300 +440,6 @@ Every choice:
 | the data-phase files | named `.rodata` constants between functions | `namespace RO_ORDER { extern const float r_D_X __asm__("D_X") = ...; }` just before the function the ELF puts after the constant; the file's declarations above stay as they are | g++ emits a named constant at its definition and a function's literals with the function, so each constant is defined where the ELF has it; inside the namespace under its asm label no function sees the definition (no folding into the code) ("Phase 5", `.rodata` rule) | — (the spelling only orders the output) |
 | cd, menu, tu_1A4E08, main (data phases) | section names `.rodata.early`, `.data.buildinfo`; the palettes' `.rodata` | `__attribute__((section(".rodata.early")))` on the named constants of the first part of `.rodata`, `.data.buildinfo` on main's build strings; the palettes D_0029A7C0/D_002A2900 `section(".rodata")` | stylistic names (easy to rename): the original compiler put those objects apart from their TU's literals / `.data`, for a reason not known, and link.py places the sections by name; the palettes: a const object with a dynamic initializer goes to `.rodata` in the original, `.bss` in ours ("Other layout rules found", "Resolved decisions") | the original mechanism known |
 
-### Views unified (types/views-1)
-
-Duplicated private views replaced by one shared type where the layouts agree (code reduction, first slice). Every
-change kept all functions and data of every touched file and every includer MATCHing.
-
-| type | header | views removed | files | link aliases removed | config renames |
-|---|---|---:|---:|---:|---|
-| STACKSCOPE | sly2/stackscope.h | 69 | 44 (+ memory.cpp defines it) | 33 (29 namespace dtors, _$_5FRAME, _$_3CTX, amb _$_3OBJ, then _$_10STACKSCOPE) | 0x1AE4A0 `_$_10STACKSCOPE` |
-| CPair, CPairPtr | sly2/pair.h | 4 files x 2 + 13 bif namespaces x 3 (with their CRef) | 6 | 18 (13 namespace, 5 per-object _$_3SPM) | 0x256D40 `_$_8CPairPtr` |
-| CVarb, CVarbPtr | sly2/varb.h | 3 x 2 | 3 | 3 (per-object _$_3SPM) | 0x257250 `_$_8CVarbPtr` |
-| CFrame/CProc destructors | (config only) | 0 | 7 | 2 | 0x257078 `_$_6CFrame`, 0x257148 `_$_5CProc` |
-| CLOCK | sly2/clock.h | 175 | 47 | 0 | — |
-
-Per-function namespaces emptied: none (every namespace still holds its function). Reverted: the inline-wrapper
-STACKSCOPE form (15 functions off), `CPairPtr &operator=` (1 function), varb.h before the slot pools (2 static
-initializers), CLOCK in six files with asserts on their views. Not attempted: CRef in the remaining per-function
-views (112 definitions), VTE/VT vtable-entry views, VU_FLOAT, M3/M4, the inline-release pointer owners.
-config/link_aliases.txt: 292 -> 234 lines (the view-destructor section is down to brx_sw's `_$_3OBJ`, a different
-function). symcheck: unresolved references 532 -> 463 (the branch start measured 532 with air merged).
-
-### Views unified (types/views-2): the registry classes
-
-Slice 2: the classes whose vtables the alias table carried, made real (no data-table stopgap). Every function and data
-symbol of every touched file MATCHes (class_registry 424/424 and D_002BAAE8, missile with the emitted
-`_vt$7ACCMISS`); the header changes were checked by a full progress run (6,662/6,662).
-
-| family | header | views removed | files | link aliases removed | config |
-|---|---|---:|---:|---:|---|
-| registry classes (BASIC/LO/XFM/SO/PO/STEP/STEPPLAYER/BHV/... all 198 but SW) | sly2/classes.h (164 + 4 helpers), basic.h, lo.h, xfm.h, so.h, po.h, step.h, stepplayer.h, jt.h, players.h, guard.h, aseg.h, task.h, cm.h, emitter.h | 198 (class_registry's `namespace REG`) | 16 | 191 (all `_vt$Q23REG...`, secondary GRABSPOT tables included) | 191 `_vt$` data names in symbol_addrs.txt |
-| header virtual layouts (LO/SO hierarchy, BHV, SM, ...) | the same headers | 0 | 14 | 0 | — |
-| BOMB/MISSILE/ACCMISS virtual layout | missile.cpp (views kept: fields) | 0 | 1 | 0 | `_vt$7ACCMISS` compared (MATCH) |
-
-Labels on the header virtuals also resolve the references of the key-TU extras: jt.cpp and sm.cpp no longer emit
-`_vt$2JT`/`_vt$2SM` (Pclassinfo is now their first virtual), missile.cpp's `_vt$7ACCMISS` names only real functions.
-config/link_aliases.txt: 232 -> 42 lines (vtables 212 -> 21: act.cpp's 19 curve classes, hud's and memcard's local
-classes). symcheck: unresolved references 439 -> 31 (the 191 registry vtables, and 217 placeholder member names the
-key-TU extras of jt/sm/missile referenced); relverify: 26,974 relocations OK, 0 mismatched. LEAP/CID146 live in
-their own sly2/leap.h (guard.h and players.h include it): step.h is included by tu_20B840.cpp, which keeps a
-field-level LEAP view. Reverted: none of the header or registry changes changed code; the only failed forms were build errors
-(a BASIC constructor defined in basic.h, `CRefPtr()` clearing, explicit specializations after the instantiation), see
-Representation decisions. Not attempted: act.cpp's three curve-class factories (21 lines; the classes have no registry
-entry and no header), SW (sw.h on data/interior-fields), folding the per-file views of registry classes that carry
-fields (missile's BOMB/MISSILE/ACCMISS, light.cpp's LIGHT, the GRABSPOT copies in proxy/sw/xf/jt) onto the shared
-classes, emitting the vtables from class_registry (getters as members).
-
-### Views unified (types/views-3): SW, the silent cc1plus exits, the interior macros
-
-Slice 3. Every function and data symbol of every touched file and of every includer of a touched header MATCHes
-(matchtool over the 113 includers of basic.h/sw.h/cm.h; full progress run), and each touched object's nm symbol set is
-unchanged against the branch start except where intended (sw.cpp references `_vt$2SW` instead of `D_002DC018`).
-
-| change | header | views removed | files | interior macros | link aliases |
-|---|---|---:|---:|---:|---:|
-| SW a real class (constructor SW_ctor, vtable `_vt$2SW`, slots 6-9 labelled) | sly2/sw.h | 1 (class_registry's `REG::SW`, the last `namespace REG` view) | 3 (class_registry, sw.cpp, classes.h comment) | 0 | 0 (SW never had one: NewSw calls SW_ctor) |
-| the eight files cc1plus crashed on (basic, booty, find, save, frm, pipe_jt, throw, tu_201D78) | sw.h / cm.h | their private SW, CM, BASIC, DL, CLOCK, OID/CID, qword views (removed or V-renamed, Representation decisions) | 8 | 15 | 0 |
-| CFrame out of basic.h; eval, frame on sw.h | sly2/cframe.h (new) | 0 | 3 (+ proxy includes cframe.h) | 2 | 0 |
-| sensor, tu_1BE398 (private enums), bif (16-byte VECTOR), po (mat.h) | sw.h / cm.h | enums, qword, bif's MATRIX4; po's mat.h include | 4 | 11 | 0 |
-| SW fields: RENDERTGT artgt[2] (was _pad_338); comments carrying the files' names for slEvent/slotheapEvent/cEventWorld (basic's callback list), savevars (save's SVSTORE), the settings and episode keys, ploUnk4638/cCid37 (booty), slotheapUnk4088 (frm), dlSoTreeQueue2 (sensor) | sw.h | — | — | — | — |
-
-**Root cause of the silent exits** (all eight files): cc1plus segfaults on the redefinition of a class with virtual
-functions (two lines reproduce it; without `virtual` g++ prints the ordinary redefinition error). types/views-2 made
-BASIC and the registry classes polymorphic, so a TU-private `struct BASIC`/`SW`/`LO` after a shared header became a
-crash; the eight files had such views (BASIC in basic and find, SW in basic, booty and save, LO in frm and tu_201D78
-once cm.h brings lo.h, CM in tu_201D78, ASEG/ASEGA in throw and pipe_jt once cm.h brings aseg.h). Not a header bug: each file's clashing views had to go. Diagnosis method in the
-mismatch table ("g++ 2.95 exits with status 1 and no message").
-
-Interior macros: 47 -> 19 (the 28 in the 14 files that could not include the headers are converted; what is left has
-no header type: the sound manager, g_game, the screen objects, frm's VIFS, the class-descriptor row, see "Phase 4").
-config/link_aliases.txt: 42 lines (30 alias entries) unchanged; symcheck unresolved 35 (unchanged), relverify 0
-mismatched. Reverted for codegen: none (every conversion matched on its first compile once the clashes were resolved).
-Not attempted: act.cpp's 19 curve-class vtables (namespace-scoped classes of PacNewKind2/PacNewKind22/func_0012E238:
-move them to file scope under real names with `_vt$` names in config, as slice 2 did for the registry classes),
-hud's and memcard's local classes, the 19 macros without a header type, unifying the three CFrame views.
-
-### Views unified (names/vu-f5-camera): the camera family
-
-The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,
-CPCAMERA), CPR, CPDEFI and the camera move records, replaced by sly2/cm.h's types. Every function and data symbol of
-every touched file and of every includer of cm.h MATCHes, and each object's nm symbol set is unchanged.
-
-| change | header | views removed | files |
-|---|---|---:|---:|
-| CAMEVENT, CAMPOSE, CAMMOVE moved into cm.h (five identical copies) | cm.h | 15 | 5 |
-| cplcy.cpp: every policy function on the policy classes (ActivateCplcy, the CPLOOK/CPZOOM/CPHANG/CPCAMBLEND/CPTURRET/CPTWOSHOT functions) | — | 38 (CM/G views, the policy views X/A/S/T, CAMMOVE/CAMPOSE views K/PATH/B, two basic.h LM copies; the CAMEVENT vtable-call helper O kept) | 1 |
-| cm.cpp: every CM function on CM/CPR/CPDEFI; SetCmPolicy, RevokeCmPolicy, UpdateCmLast, ResetCameraPolicies call the CPLCY virtuals for real (they matched on the first compile) | cm.h: CPLCY::Set/Revoke take the entry argument | 39 (CM/P/CMC/CMX/CMR/CMJ, CPR views E, CPLCY views O/VTE, CPDEFI views S/CPDEFIV, InitCm's V3/LM) | 1 |
-| one-off g_cm views in other files (CMV, CMVIEW, CAMERA, Camera, CAM, CM, G/GS, CPDEFIV, CPCAMERAV) | — | 29 | 22 |
-
-cm.h field names taken from the views: `fovSmoothing` (+0x2C, SMPA, was unknown2C..38), `joltKind` (+0x61C),
-`stereoEyeOffset`/`stereoFocusDistance` (+0x620/+0x624), `zoomStopSound` (CPLOOK +0x38 / CPZOOM +0xC4: sfx 0x25, made on
-activation). Struct definitions in src/game .cpp: 121 deleted, 12 CMIsland added (two of them are the renamed views of sky
-and tu_173158).
-
-CMIsland (matching-only, Representation decisions 1.4): the original reads g_cm's position and matrix rows as 128-bit
-members at base `&g_cm` plus the field offset (`lq 0x90(base)`). CM declares them as VECTOR4/MATRIX4 floats; a cast of
-those fields (`*(qword *)&g_cm.pos`) makes g++ fold the offset into the address constant (`lq 0(base+0x90)`, 1-2
-instructions off), and through a pointer the cast also changes scheduling (blip: MEM_IN_STRUCT). Where that happened
-the read goes through a small file-local `CMIsland` (a struct with qword members at the CM offsets) and everything
-else uses CM: sound, light, prize, lo, busy, waypoint, emitter, blip, cplcy, tu_201D78 (one read each or two); sky
-(base `&g_cm.mat`, offset 0x30) and tu_173158 (the old view, renamed: its asm reads the rows from base `&g_cm`).
-Revisited in names/vu-f5-camera-2 (below): CM::matq, a qword-row view in the matrix union, removed all twelve.
-
-Not converted: render.cpp and places.cpp (their private qword/RGBA/LM/VECTOR types clash with basic.h, so they
-cannot include cm.h), tu_12E600's CID44 view (classes.h names no CID44 fields; not this family's header), rip, hud,
-relay (G views at +0x500/+0x510 and the matrix), glob/tu_1D57A8 (VIEW: the frustum planes, g_cm read as a culling
-view), bif's CM, tu_1BE398's RTCAM, and the `char D_002DDF40[]` + offset spellings (exit_warp, turret, relay,
-asega, guardbhv, tu_1BAB50, tu_14A008, bentley). All but tu_12E600's CID44 view and tu_1BE398's RTCAM (an XFM-derived render-target
-camera object, not CM) were converted in names/vu-f5-camera-2.
-
-### Views unified (names/vu-f5-camera-2): the camera family, round 2
-
-Every function and data symbol of every touched file and of every includer of cm.h/classes.h (and every user of
-`D_002DDF40`, 123 files) MATCHes, and each object's nm symbol set is unchanged against the branch start.
-
-| change | header | views removed | files |
-|---|---|---:|---:|
-| CM::matq: the matrix as quadword rows (`CMMATQ { qword rot[3]; qword pos; }`) in CM's matrix union; the CMIsland views go (docs/decisions.md 1.8) | cm.h | 12 CMIsland | 12 |
-| rip, relay, hud, bif, render, places, glob, tu_1D57A8: CM/CAMPOSE/CAMMOVE/g_cm in place of their camera views | — | 15 (rip G x3, CAMERA; relay T, SUB, G, G2; glob VIEW, ENV; tu_1D57A8 VIEW; bif CM; render CM; places D; hud's opaque G) | 8 |
-| `char D_002DDF40[]` + offset and opaque handles (MANAGER/CAMERA in grab) replaced by `&g_cm` and its policy members (cplook, cpzoom, cpcamblend, hangPolicy, turretPolicy, part3a0) | — | 19 declarations | 16 |
-| tu_201D78's `D_002DDFA0 __asm__("D_002DDF40+0x60")` separate-symbol alias | — | 1 | 1 |
-
-How the original's address forms come out with CM's members (all g++ 2.95, checked per function):
-
-| original access | spelling |
-|---|---|
-| `lq 0x90(base)`, base `&g_cm` (position) / `0x60+0x10*i` (rows) | `g_cm.matq.pos`, `g_cm.matq.rot[i]` |
-| `lq 0x30(base)`, base `&g_cm.mat` (sky, relay; tu_201D78's row 1 at `0x10`) | `CMMATQ *pmatq = &g_cm.matq; pmatq->pos` (a local pointer stays the base) |
-| `lq 0(base)`, base `&g_cm + 0x90` (folded: emitter, tn, stepguard...) | `*(qword *)&g_cm.pos` (unchanged) |
-| the frustum's transposed plane normals as three qwords (CullSceneRenderList, glob's StartCull) | `(qword *)g_cm.agFrustumXyz` (a pointer value only; a union member did not change codegen either, but cost nothing to avoid) |
-
-Things learned: (1) an inline helper in cm.h, even unused, shifts g++'s local label numbers in every includer (cm.cpp's
-function-static `s_rgba.87` became `.90`: nm differs, code does not); a template is compiled only where called, but
-the local pointer made the helper unnecessary. (2) Template helpers of sly2/vu0.h deduce one quadword type: where a
-file's signed `qword` meets cm.h's (basic.h's unsigned `qword`), the call names it (`VuSub<qword>(a, g_cm.matq.pos)`).
-
-render.cpp, places.cpp, tu_1D57A8.cpp, bif.cpp, asega.cpp, brx_sw.cpp, update.cpp, sw.cpp now include cm.h. The clashes
-with basic.h were resolved in the files (Representation decisions 1.6): their own `typedef int qword` dropped for
-basic.h's (no codegen change in any of them), render's private RGBA/LO/SW/LM views renamed RGBAV/LOV/SWV/LMV, places'
-LO/JT/CLQ/LM renamed LOV/JTV/CLQV/LMV and vec.h's 16-byte aligned VECTOR kept as a local `VECTORV` (basic.h's VECTOR
-has no alignment). Struct definitions in src/game .cpp: 26 camera views and 19 handle declarations removed (render's
-and places' renamed views are not counted); no island remains in the family.
-
-Left: tu_12E600's CID44 camera-object view (classes.h; not this family), tu_1BE398's RTCAM (render-target camera
-object, an XFM; no header), main.cpp's `extern CM D_002DDF40` (a typed handle; main does not include cm.h), and the
-inventory's false positives in cm.cpp/cplcy.cpp (CMG, the g_cm definition wrapper; SW/ACT/STEPPLAYER views).
-
-### Views unified (names/vu-f1-base): BASIC, LO, XFM, SO, PO and the list types
-
-The base family of the view-unification slices: private views of BASIC, LO, XFM/SHAPE/PROXY/TN, SO/SOPART/SOTREE/XF and
-PO/POCTL, and the DL/DLI/SL lists. Every function and data symbol of every touched file and of every includer of the
-touched headers MATCHes, and each touched object's nm symbol set is unchanged.
-
-| change | where | how |
-|---|---|---|
-| hand vtable calls (`p->vt[n].pfn((char *)p + p->vt[n].d, ...)`) | prize, tu_1471C0, frm, update, tu_1D7238, po, tu_1BE398, button, barrier, bomb, waypoint, busy, lo.cpp, so.cpp, relay, stepguard, xf, rip, shape, cplcy, tu_14A008, tu_173158, tu_17F090, ... | real virtual calls on the shared classes (slot -> member: LO 1..48, SO 49..75, PO 76..81); a derived view that needs a later slot declares it (`virtual void SetState(int)` = DPRIZE slot 76) |
-| object views padded over the base (`char pad[0xC]; VTE *vt; char p[0x150 - 0x10]; ...` or `char pad[0x180]; ...`) | the DPRIZE family (prize), HACK family (tu_17F090: HACK : PO), RELAY (relay), BUTTON/VOLBTN, BARRIER, WAYPT, BOMB, SAFEHOUSE, CID104, RTCAM/RTO, the guard attack, PATHLINK | derived views of the shared class (`struct S : SO { int state; ... }`); the class's own fields stay in the view (their classes have no header with fields) |
-| LO/SO/PO-named and V-named field views | lo.cpp and so.cpp (most of their small functions), po.cpp, busy, proxy, find, callback, game, sound, murray, jt, tu_144B28, bif, ... | the shared type with its field names; bit tests on the +0x28 / +0x148 words become the bit-fields (`(int)p->isInWorld & 1` keeps the original shift/and pair) |
-| DL/DLI/DLE/SL copies, local InitDli/PvNextDli | 20 files | basic.h DL/SL/DLE and dli.h DLI/InitDli/PvNextDli |
-| LM/CLQ/VECTOR/VECTOR4/MATRIX4/RGBA/SMP copies identical to basic.h | 40 files | removed (synonym fields renamed: minValue/maxValue, unused, red/green/blue/alpha, fastSpeed/slowSpeed/fastDuration) |
-| Lilly-port copies of family types | tn, mode, jt, so, glob, relay, grab, mark, proxy, xf, air | moved into the headers: xfm.h EDGE/SURF/BSP, PROXYINIT/PROXYSPARE/PROXYREST/PROXYSRC; so.h SUBGLOBX, XPLIST, SOBOUNDS |
-
-Header changes (names from the views, each with its evidence in the header comment): lo.h LO +0x30 `nextSpliceTime`
-(UpdateLo), bit 58 `keepsOwnVisMask`, bit 59 `clearsPlacesOnRemove`, PXR +0x24 `isCopy`; xfm.h GEOM `positions` is
-`VECTOR4 *` (16-byte vertices), SHAPE `incomingTangents`/`outgoingTangents`/`segmentHint`/`chain`; so.h REGENT +0x10
-`pathzone` (CID17 = PATHZONE), SOPART bit 51 `hasPlaces`, SO `unknownBits148A`/`unknownBits148B` int-typed (so.cpp's
-getters sign-extend them as 32-bit fields), SOBOUNDS/SUBGLOBX/XPLIST defined.
-
-Measured (scratch metrics.py over src/game): struct/class/union definitions 7,220 -> 6,759; family-named views 541 ->
-322; hand-vptr views 495 -> 406; non-derived views padded over a base (>= 0x50) 1,388 -> 1,257; 70 files, +1,739/-2,941.
-
-Matching-only islands kept (scratch islands.csv): frm.cpp's RAII list iterator `DLIIsland` (InitDli + explicit pop is
-4/98 off), lo.cpp InitLo's `LOIsland` (the parent's in-world bit copied through lo.h's bit-field compiles to a mask,
-14/75 off), so.cpp GetSoTreeFlag2 / GetSoIgnoreFixed `SOTREEIsland`/`SOIsland` (sign-extending shift pairs on the
-whole word).
-
-Evidence for header signatures that need classes.h in step (not changed here: the overriders there would stop
-overriding): LO slot 20 RenderAll is called with (int, float, float, SOBOUNDS *) (so.cpp RenderSoAll, lo.cpp
-RenderLoAtMatrix); slot 30 RotateToMat receives a 3x3 MATRIX3 (bomb, tu_173158, lo.cpp); SO slot 73 IsPosInside takes
-a quadword position and returns int (rip UpdateRip, class_registry's thunk); BASIC slot 3's fifth argument is a CRef *
-reply (po.cpp CanPoBeHealed); update.cpp calls LO slot 17 as the paused-object update. SO +0x58/+0x5C are the
-position/rotation XFs (fieldrename refused `positionXf`: the token is used in so.cpp's member bodies).
-
-Not attempted (representation-specific or other families' classes): the qword/union matrix views of the hand-tuned
-so.cpp transform functions (TranslateSoToPos, RotateSoToMat, SetSoAngularVelocity, SetSoXf), sensor.cpp's whole-word
-SO/SOPART/SOTREE views, tu_223F70's qword XF view, glob.cpp's self-contained Lilly namespace, hud's register-passed RGBA
-words, the player/guard/camera classes' padded views (their families' headers), listener objects whose slot 51 is not
-declared (prize's LISTENER views).
-
-### Views unified (names/vu-f8-sound-ui): CRef, the sound types, the screens
-
-The sound / UI / Splice-value family. Every function and data symbol of every touched file and of every includer of
-a touched header MATCHes, and each touched object is identical to the branch start's (every allocated section's
-bytes, every relocation's offset, type and symbol, the symbol table: a stricter check than nm). Private
-struct/class/union definitions in the 30 touched .cpp files: 3,616 -> 3,274; the family's named views (CRef/CREFV/PAIRV,
-SNDMGR*/SNDV/SNDREF/EASND, SCREENV/GADGETMENUV, ...): 253 -> 69.
-
-| type | header | change | views removed |
-|---|---|---|---:|
-| CRef | sly2/cref.h | `CRefData`, the POD base (tag + payload union, `float *ag` added) for the C-style bodies; CRef gains `operator=(int/float)` (SetS32/SetF32 by label), `SetMatrix`, `SetSymid`, `SetBifk`, the inline `CRef(bool)` and `CRef(float)` constructors | 173 (bif 99, game, screen, memcard, prize, stepplayer, sw, menu, rumble, serialize, splicemap, class_registry, booty, hud, cplcy, stepguard, relay, lo, po, basic, guardbhv), plus bif's 10 NODE pair views |
-| SND (CID151), BANKSND, STREAMSND, SNDSOURCE, SNDREF/SNDREFC, EASND | sly2/snd.h | the fields every view agrees on; STREAMSND's record a union by stream kind (FILEREC or SNDSTREAM); `GetKind` returns int, `SetCulled(int)`; STREAMSND's C-named constructor and pool `operator new` | ~60 in sound.cpp, 8 EASND (7 unused Lilly copies) |
-| SNDMGR, SNDSTREAM, SNDFILE, DIALOGEVENT | sly2/sndmgr.h (new; separate from snd.h's 76 includers) | the documented 0x250 layout; `g_sndmgr` declared (D_003DD040) | ~30 SNDMGR views in sound.cpp, menu.cpp's, 5 interior macros (menu, cd, save) |
-| SCREEN, HUDMETER | sly2/screen.h | HUDMETER's fields (0x50) | screen.cpp's SCREENV/GADGETMENUV |
-
-Spellings that matched on the first compile: the hand vtable calls (`p->vtable[n].pfn(p + d)`) as the header's virtual
-calls (AddRef/Release/Start/GetKind/Play/... : same code); the views' tag-first inline constructors `CRef(0x15, n)` as
-cref.h's `CRef(n, 0x15)`; the sound views' counted pointers as SNDREF (no constructors: a default constructor makes
-g++ emit a construction loop for g_sndmgr's music stack, 140/141 off); an expanded pair release as `delete` of the
-CPair (splicemap). Watch for: `ref = pointer` compiles to cref.h's `operator=(bool)` when the view had a pointer
-setter (class_registry's object results, BuildListFromObjects): matchtool masks the call target, the relocation
-comparison catches it; such assignments are spelled `SetBasic(...)`.
-
-Island (scratch islands.csv): stepplayer's UpdateStepplayerBootySave keeps its CRef as `CRefIsland` (its copy
-constructor inline over the void*-returning copy function; cref.h's out-of-line one moves the stack slots, 37/286
-off). Kept views: UpdateSndPositional/UpdateStreamsndPositional read LO's +0x28 word whole (lo.h's isInWorld
-bit-field compiles to a mask test); the C-named constructors store the vptr by hand (SNDOBJ, GADGETMENU_ctor);
-g_sndmgr's definition keeps its construct-and-destruct form (SNDMGRBASE/SNDMGRG: the destructor order puts the
-counted pointers in the derived class). Not attempted: the SP* inline-release owners and the CFrame/CProc/CSidebag
-views of splice/ (tied to gc.cpp's linkonce instances), WIDGET (classes.h, another family), screen.cpp's
-per-function views (~100), CRichText/CFont. For sw.h's owner: FILEREC's key words are aw[0], aw[1], aw[13], aw[15].
-
-### Views unified (names/vu-f6-render): the render family
-
-The private views of the emitter block and its records, the rips, the render list, the model sub-mesh records, the
-colour tables / bitmaps / TEX0 register and the GS block allocator, replaced by shared header types. Every function and
-data symbol of every touched file and of every includer of the changed headers (the 75 classes.h includers for
-emitter.h) MATCHes, and each object's nm symbol set is unchanged.
-
-| change | header | views removed | files |
-|---|---|---:|---:|
-| SUBGLOBX (12 identical copies), SUBGLOBLOAD (2) | new sly2/glob.h | 14 | 11 |
-| RPL, the render-list entry (`pbCall`/`pvCall`: the two DMA CALL targets) | new sly2/render.h (self-contained) | 6 | 4 |
-| EMITTER's fields (mode, count, rate, pause, group list/link, current rate, density, box radius...); EMITB as Sly 1 lays it out: EMITO origin record (+0x10, a union for the point position / data word), EMITVEL velocity record (+0x50; Sly 1's EMITV, renamed because EMITV is in the accessors' mangled names), EMITV particle record (+0xC0) as a union of the rip and blip records selected by particleKind, with EMITROLL/EMITREMIT payloads; EMITREF indices for aploRef; EMITMESH/EMITTRI, EMITVX, EXPLSO and its flags | sly2/emitter.h | emitter.cpp 60 definitions (7 EMITTER views, the EMITB/record views EMITBV/EP/E/S/B/X/P/EMITREFS/EMITO/SAV/EO, EMITMESH/EMITVX copies, EMITDEF::EMITO and their helper types); blip 1, grab 3, po 2 | 4 |
-| RIP and its kind classes moved out of rip.cpp; RIP gains startTime, renderObject, the scale curve, orientation, velocity, angularVelocity, touchObject; FLYING/MATCH/REMIT/SHRAPNEL fields; `RIP::Init(pos, scale, psoTouch)` in Sly 1's parameter order (InitMatch's symbol), `PostEmit(EMITB *)` | new sly2/rip.h | 14 (rip.cpp's per-function RIP/RIPGV/SHRAPNEL/OBJ views, emitter.cpp's RIPV/RIP) | rip, emitter |
-| TEX0 (one word or GS fields), CLUT, BMP | new sly2/shd.h (self-contained) | 9 | shd, font, gs, tu_1BE398 |
-| GSB/GSBB (0x630) | new sly2/gs.h (self-contained) | 4 | gs, font, tu_1BE398 |
-
-Hand-made vtable calls that became real virtual calls and still match: EMITTER group creation (RotateToMat, slot 30),
-ConvertEmitoPosVec and OriginateSplineSinkParticles (GetLocalTransform, slot 32), EmitRips and WakeSoWater (RIP::Init,
-PostEmit). EMITTER::HandleMessage and REMIT::PostEmit became members. EmitRips matched only once RIP::Init took its
-arguments as (position, scale, touch object): with (position, touch, scale) the scale's call moves and the allocation
-shifts. Struct definitions in src/game .cpp: 7290 -> 7162; render-family names (inv.py): 165 -> 82.
-
-Islands (matching-only, recorded in scratch islands.csv): emitter.cpp's two default/splash initializers keep their
-union-shaped views (`EMITDEF::EMITVELIsland`, WakeSoWater's `EMITVIsland`/`EMITVELIsland`): the unions there are
-scheduling barriers the header records do not have, and the header EMITV (anonymous union of the two records) as an
-aggregate initializer makes cc1plus exit silently. RIP::Init reads the clock through a bare-float view of g_clock.time
-(10/23 off through CLOCK).
-
-Not converted: views of RIPG, BLIPG, EXPLG and EXPLS fields (classes.h names none of their fields; not this family's
-header: rip.cpp's RIPGV, emitter.cpp's BLIPG/RIPG/PRG/EXPLGV/EXPLS views, the EMITG views typed on them); RENDERTGT
-views (sly2/sw.h keeps TEX0 as a plain word; shd.h's TEX0 union could replace it); the namespaced Lilly views in
-glob.cpp, shd.cpp, light.cpp, blip.cpp (SHD, DMA/DMAS/VIFS/GIFS packet classes, PACKET, LIGHT, SAA); tu_1147D8 /
-tu_114AE0's constructor-initialized CLUT/BMP (a constructor in shd.h's CLUT would change every includer); the hand
-vtable calls of rip.cpp's hand-tuned functions (BounceRipgRips, UpdateRipg, RenderRipgSelf, HandleRipBounce, the
-Render* bodies).
-
-### Views unified, round 2 (names/vu-f6-render-2): shaders, packet streams, light packets, rip calls
-
-The namespaced Lilly / per-function views of the render family's records in shd, glob, blip, light, tu_1147D8 and
-tu_114AE0 (and so.cpp's views of the light record), and the hand-made vtable calls of rip.cpp, replaced by shared types
-and real calls. Every function and data symbol of each touched file and of every includer of a changed header MATCHes,
-and each object's nm symbol set is unchanged.
-
-| change | header | views removed | files |
-|---|---|---:|---|
-| CLUT/BMP constructors from a header (`CLUT(void *pvHeader)` calls CopyClutHeader; likewise BMP), CLUT/BMP `clevel` (+0x05, the level filter) and BMP `cb` (+0x10) | sly2/shd.h | 4 | tu_1147D8, tu_114AE0 |
-| TEX (0x14: grftex +0x04, cbmp +0x06 = the frame count, cclut +0x07; glob's Lilly TEXF had cibmp/ciclut at +4/+5, the loaders show otherwise), SHDP (upload record), SHD (0x2C), SHDBLIP (the compact record blips use, linked on SW::slShd; our name) | sly2/shd.h | shd 30 (SHDV, the loaders' X/Y/E/Z/E20/E28, LoadShdFromBrx's L/C/ENT, BuildShaderTex0List's Src/S3/Dst, BuildShaderGifPackets' ENTRY/PACKET/RGBA/TEXTURE, the upload functions' E1/E2/T1/T2/BS/X/DMAS/M, the hash functions' S); blip 1 | shd, blip |
-| the frame's VIF1 stream D_002DEA28 as vifs.h's VIFS | (vifs.h) | glob 4 DMA, blip VIFS | glob, blip |
-| render-list entry | sly2/render.h RPL | blip DMA | blip |
-| SOBOUNDS, the per-object light packets (SO::psobounds, only declared by so.h) | new sly2/light.h | light LIGHTQ, glob 2 SHD (the "SHD" of RenderSoGlobset / BuildModelDrawPackets is this record), so.cpp SOBOUNDS/Q/B | light, glob, so |
-
-Real calls that match: blip's VIFS/DMAS members (all but one AddVifUnpack that passes a fifth word: 4 instructions move
-as a member call), GIFS::PackAD in PackTexGifs, VIFS::AddVifUnpack in AddShaderVifUnpack, UploadPermShaders' GIFS/VIFS
-locals with member calls and a STACKSCOPE local (the views were 0x30 bytes; the real 0x28/0x24-byte classes give the
-same frame; `result = 0` must sit between the two constructors), BuildUploadBitmapGifs a C++ function again
-(`BuildUploadBitmapGifs__FiP3GSBP4GIFS` from the real GSB/GIFS types). rip.cpp: RIP::Update and SO::Remove in UpdateRipg,
-RIP::Render in RenderRipgSelf, RIP::HandleBounce in BounceRipgRips, RIP::Project in ProjectRipgTransform, RIP::Init in
-UpdateRipt1 (the hand call's (float, qword, pointer) order is the same register assignment as Init's (qword, float,
-pointer)). For these rip.h's `Update()` and `Render()` lost their parameters: the dispatchers pass none, UpdateRip and
-RenderRip take only the rip, and no override reads a time step or camera (Sly 1's `RenderShrapnel__FP8SHRAPNELP2CM`
-symbol still names a CM). SHDBLIP's colour is a union with a channel array: PropagateBlipgShader indexes it, and only an
-array member keeps the colour's address in a register (9/85 off through a cast).
-
-Inventory (inv.py render-family names in src/game .cpp): 82 -> 60; struct/class/union definitions in src/game .cpp/.inc
-(`grep -E '^\s*(typedef\s+)?(struct|class|union)\s+\w*\s*(:[^{;]*)?\{'`): 6938 -> 6873.
-
-Not converted, and why: LIGHT (light.cpp's LIGHTV) and SAA (shdanim's SAAV/SAAF/SAACLS, glob's SAAVIRT/SAAFIELDS) need
-fields in sly2/classes.h (LIGHT +0xE0..0x170 and SAA +0x10..0x50 are padding there; not this family's header);
-glob's M_LoadSubglobType0FromBrx (a 1450-line Lilly port with its own QW/VECTOR/RGBA/OID/SAA/LO/SO universe) keeps its
-DMAS/VIFS/TEX/SHD/CLUT copies until that universe gives way to the shared headers; glob's relight PACKET/PACKETS and
-light.cpp's PACKET are different records (no shared evidence); shd.cpp's CopyClutHeader/CopyBitmapHeader (file
-headers, not CLUT/BMP objects), BuildWorldBackgroundImage's GIFS view, AddShaderVifUnpackQword, SHDREC; rip.cpp's
-remaining hand calls (BounceRipgRips' slot-9 Remove on the P view, UpdateRip's slots 7/73, ReleaseRip's slots 3/5,
-CreateStuck's Init on its O view, MATCH's slot 8, REMIT's slot 51) sit on views that would need RIPG/SO/STUCK fields.
-
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key
@@ -911,6 +617,307 @@ Rules found on the way:
 - Still not emitted: EMITTER's and EXPLO's template-instance tables (0x2CE680, 0x2CED18; their slot 6 is
   `GetEmitterClassDesc_linkonce<T>`, a second table per class that needs the template class the header comment
   mentions; 848 bytes).
+
+## Views unified
+
+Each view-unification slice replaced private per-file views (structs that re-declare a shared type's layout for one
+function) by the shared header types. Every slice keeps every function and data symbol MATCHing and each object's
+symbol set and relocations unchanged; the subsections record what each slice changed, how the original's code shapes
+were kept, and what was left. The base family (BASIC, LO, SO, lists) comes first; the other families build on it.
+
+### Views unified (types/views-1)
+
+Duplicated private views replaced by one shared type where the layouts agree (code reduction, first slice). Every
+change kept all functions and data of every touched file and every includer MATCHing.
+
+| type | header | views removed | files | link aliases removed | config renames |
+|---|---|---:|---:|---:|---|
+| STACKSCOPE | sly2/stackscope.h | 69 | 44 (+ memory.cpp defines it) | 33 (29 namespace dtors, _$_5FRAME, _$_3CTX, amb _$_3OBJ, then _$_10STACKSCOPE) | 0x1AE4A0 `_$_10STACKSCOPE` |
+| CPair, CPairPtr | sly2/pair.h | 4 files x 2 + 13 bif namespaces x 3 (with their CRef) | 6 | 18 (13 namespace, 5 per-object _$_3SPM) | 0x256D40 `_$_8CPairPtr` |
+| CVarb, CVarbPtr | sly2/varb.h | 3 x 2 | 3 | 3 (per-object _$_3SPM) | 0x257250 `_$_8CVarbPtr` |
+| CFrame/CProc destructors | (config only) | 0 | 7 | 2 | 0x257078 `_$_6CFrame`, 0x257148 `_$_5CProc` |
+| CLOCK | sly2/clock.h | 175 | 47 | 0 | — |
+
+Per-function namespaces emptied: none (every namespace still holds its function). Reverted: the inline-wrapper
+STACKSCOPE form (15 functions off), `CPairPtr &operator=` (1 function), varb.h before the slot pools (2 static
+initializers), CLOCK in six files with asserts on their views. Not attempted: CRef in the remaining per-function
+views (112 definitions), VTE/VT vtable-entry views, VU_FLOAT, M3/M4, the inline-release pointer owners.
+config/link_aliases.txt: 292 -> 234 lines (the view-destructor section is down to brx_sw's `_$_3OBJ`, a different
+function). symcheck: unresolved references 532 -> 463 (the branch start measured 532 with air merged).
+
+### Views unified (types/views-2): the registry classes
+
+Slice 2: the classes whose vtables the alias table carried, made real (no data-table stopgap). Every function and data
+symbol of every touched file MATCHes (class_registry 424/424 and D_002BAAE8, missile with the emitted
+`_vt$7ACCMISS`); the header changes were checked by a full progress run (6,662/6,662).
+
+| family | header | views removed | files | link aliases removed | config |
+|---|---|---:|---:|---:|---|
+| registry classes (BASIC/LO/XFM/SO/PO/STEP/STEPPLAYER/BHV/... all 198 but SW) | sly2/classes.h (164 + 4 helpers), basic.h, lo.h, xfm.h, so.h, po.h, step.h, stepplayer.h, jt.h, players.h, guard.h, aseg.h, task.h, cm.h, emitter.h | 198 (class_registry's `namespace REG`) | 16 | 191 (all `_vt$Q23REG...`, secondary GRABSPOT tables included) | 191 `_vt$` data names in symbol_addrs.txt |
+| header virtual layouts (LO/SO hierarchy, BHV, SM, ...) | the same headers | 0 | 14 | 0 | — |
+| BOMB/MISSILE/ACCMISS virtual layout | missile.cpp (views kept: fields) | 0 | 1 | 0 | `_vt$7ACCMISS` compared (MATCH) |
+
+Labels on the header virtuals also resolve the references of the key-TU extras: jt.cpp and sm.cpp no longer emit
+`_vt$2JT`/`_vt$2SM` (Pclassinfo is now their first virtual), missile.cpp's `_vt$7ACCMISS` names only real functions.
+config/link_aliases.txt: 232 -> 42 lines (vtables 212 -> 21: act.cpp's 19 curve classes, hud's and memcard's local
+classes). symcheck: unresolved references 439 -> 31 (the 191 registry vtables, and 217 placeholder member names the
+key-TU extras of jt/sm/missile referenced); relverify: 26,974 relocations OK, 0 mismatched. LEAP/CID146 live in
+their own sly2/leap.h (guard.h and players.h include it): step.h is included by tu_20B840.cpp, which keeps a
+field-level LEAP view. Reverted: none of the header or registry changes changed code; the only failed forms were build errors
+(a BASIC constructor defined in basic.h, `CRefPtr()` clearing, explicit specializations after the instantiation), see
+Representation decisions. Not attempted: act.cpp's three curve-class factories (21 lines; the classes have no registry
+entry and no header), SW (sw.h on data/interior-fields), folding the per-file views of registry classes that carry
+fields (missile's BOMB/MISSILE/ACCMISS, light.cpp's LIGHT, the GRABSPOT copies in proxy/sw/xf/jt) onto the shared
+classes, emitting the vtables from class_registry (getters as members).
+
+### Views unified (types/views-3): SW, the silent cc1plus exits, the interior macros
+
+Slice 3. Every function and data symbol of every touched file and of every includer of a touched header MATCHes
+(matchtool over the 113 includers of basic.h/sw.h/cm.h; full progress run), and each touched object's nm symbol set is
+unchanged against the branch start except where intended (sw.cpp references `_vt$2SW` instead of `D_002DC018`).
+
+| change | header | views removed | files | interior macros | link aliases |
+|---|---|---:|---:|---:|---:|
+| SW a real class (constructor SW_ctor, vtable `_vt$2SW`, slots 6-9 labelled) | sly2/sw.h | 1 (class_registry's `REG::SW`, the last `namespace REG` view) | 3 (class_registry, sw.cpp, classes.h comment) | 0 | 0 (SW never had one: NewSw calls SW_ctor) |
+| the eight files cc1plus crashed on (basic, booty, find, save, frm, pipe_jt, throw, tu_201D78) | sw.h / cm.h | their private SW, CM, BASIC, DL, CLOCK, OID/CID, qword views (removed or V-renamed, Representation decisions) | 8 | 15 | 0 |
+| CFrame out of basic.h; eval, frame on sw.h | sly2/cframe.h (new) | 0 | 3 (+ proxy includes cframe.h) | 2 | 0 |
+| sensor, tu_1BE398 (private enums), bif (16-byte VECTOR), po (mat.h) | sw.h / cm.h | enums, qword, bif's MATRIX4; po's mat.h include | 4 | 11 | 0 |
+| SW fields: RENDERTGT artgt[2] (was _pad_338); comments carrying the files' names for slEvent/slotheapEvent/cEventWorld (basic's callback list), savevars (save's SVSTORE), the settings and episode keys, ploUnk4638/cCid37 (booty), slotheapUnk4088 (frm), dlSoTreeQueue2 (sensor) | sw.h | — | — | — | — |
+
+**Root cause of the silent exits** (all eight files): cc1plus segfaults on the redefinition of a class with virtual
+functions (two lines reproduce it; without `virtual` g++ prints the ordinary redefinition error). types/views-2 made
+BASIC and the registry classes polymorphic, so a TU-private `struct BASIC`/`SW`/`LO` after a shared header became a
+crash; the eight files had such views (BASIC in basic and find, SW in basic, booty and save, LO in frm and tu_201D78
+once cm.h brings lo.h, CM in tu_201D78, ASEG/ASEGA in throw and pipe_jt once cm.h brings aseg.h). Not a header bug: each file's clashing views had to go. Diagnosis method in the
+mismatch table ("g++ 2.95 exits with status 1 and no message").
+
+Interior macros: 47 -> 19 (the 28 in the 14 files that could not include the headers are converted; what is left has
+no header type: the sound manager, g_game, the screen objects, frm's VIFS, the class-descriptor row, see "Phase 4").
+config/link_aliases.txt: 42 lines (30 alias entries) unchanged; symcheck unresolved 35 (unchanged), relverify 0
+mismatched. Reverted for codegen: none (every conversion matched on its first compile once the clashes were resolved).
+Not attempted: act.cpp's 19 curve-class vtables (namespace-scoped classes of PacNewKind2/PacNewKind22/func_0012E238:
+move them to file scope under real names with `_vt$` names in config, as slice 2 did for the registry classes),
+hud's and memcard's local classes, the 19 macros without a header type, unifying the three CFrame views.
+
+### Views unified (names/vu-f1-base): BASIC, LO, XFM, SO, PO and the list types
+
+The base family of the view-unification slices: private views of BASIC, LO, XFM/SHAPE/PROXY/TN, SO/SOPART/SOTREE/XF and
+PO/POCTL, and the DL/DLI/SL lists. Every function and data symbol of every touched file and of every includer of the
+touched headers MATCHes, and each touched object's nm symbol set is unchanged.
+
+| change | where | how |
+|---|---|---|
+| hand vtable calls (`p->vt[n].pfn((char *)p + p->vt[n].d, ...)`) | prize, tu_1471C0, frm, update, tu_1D7238, po, tu_1BE398, button, barrier, bomb, waypoint, busy, lo.cpp, so.cpp, relay, stepguard, xf, rip, shape, cplcy, tu_14A008, tu_173158, tu_17F090, ... | real virtual calls on the shared classes (slot -> member: LO 1..48, SO 49..75, PO 76..81); a derived view that needs a later slot declares it (`virtual void SetState(int)` = DPRIZE slot 76) |
+| object views padded over the base (`char pad[0xC]; VTE *vt; char p[0x150 - 0x10]; ...` or `char pad[0x180]; ...`) | the DPRIZE family (prize), HACK family (tu_17F090: HACK : PO), RELAY (relay), BUTTON/VOLBTN, BARRIER, WAYPT, BOMB, SAFEHOUSE, CID104, RTCAM/RTO, the guard attack, PATHLINK | derived views of the shared class (`struct S : SO { int state; ... }`); the class's own fields stay in the view (their classes have no header with fields) |
+| LO/SO/PO-named and V-named field views | lo.cpp and so.cpp (most of their small functions), po.cpp, busy, proxy, find, callback, game, sound, murray, jt, tu_144B28, bif, ... | the shared type with its field names; bit tests on the +0x28 / +0x148 words become the bit-fields (`(int)p->isInWorld & 1` keeps the original shift/and pair) |
+| DL/DLI/DLE/SL copies, local InitDli/PvNextDli | 20 files | basic.h DL/SL/DLE and dli.h DLI/InitDli/PvNextDli |
+| LM/CLQ/VECTOR/VECTOR4/MATRIX4/RGBA/SMP copies identical to basic.h | 40 files | removed (synonym fields renamed: minValue/maxValue, unused, red/green/blue/alpha, fastSpeed/slowSpeed/fastDuration) |
+| Lilly-port copies of family types | tn, mode, jt, so, glob, relay, grab, mark, proxy, xf, air | moved into the headers: xfm.h EDGE/SURF/BSP, PROXYINIT/PROXYSPARE/PROXYREST/PROXYSRC; so.h SUBGLOBX, XPLIST, SOBOUNDS |
+
+Header changes (names from the views, each with its evidence in the header comment): lo.h LO +0x30 `nextSpliceTime`
+(UpdateLo), bit 58 `keepsOwnVisMask`, bit 59 `clearsPlacesOnRemove`, PXR +0x24 `isCopy`; xfm.h GEOM `positions` is
+`VECTOR4 *` (16-byte vertices), SHAPE `incomingTangents`/`outgoingTangents`/`segmentHint`/`chain`; so.h REGENT +0x10
+`pathzone` (CID17 = PATHZONE), SOPART bit 51 `hasPlaces`, SO `unknownBits148A`/`unknownBits148B` int-typed (so.cpp's
+getters sign-extend them as 32-bit fields), SOBOUNDS/SUBGLOBX/XPLIST defined.
+
+Measured (scratch metrics.py over src/game): struct/class/union definitions 7,220 -> 6,759; family-named views 541 ->
+322; hand-vptr views 495 -> 406; non-derived views padded over a base (>= 0x50) 1,388 -> 1,257; 70 files, +1,739/-2,941.
+
+Matching-only islands kept (scratch islands.csv): frm.cpp's RAII list iterator `DLIIsland` (InitDli + explicit pop is
+4/98 off), lo.cpp InitLo's `LOIsland` (the parent's in-world bit copied through lo.h's bit-field compiles to a mask,
+14/75 off), so.cpp GetSoTreeFlag2 / GetSoIgnoreFixed `SOTREEIsland`/`SOIsland` (sign-extending shift pairs on the
+whole word).
+
+Evidence for header signatures that need classes.h in step (not changed here: the overriders there would stop
+overriding): LO slot 20 RenderAll is called with (int, float, float, SOBOUNDS *) (so.cpp RenderSoAll, lo.cpp
+RenderLoAtMatrix); slot 30 RotateToMat receives a 3x3 MATRIX3 (bomb, tu_173158, lo.cpp); SO slot 73 IsPosInside takes
+a quadword position and returns int (rip UpdateRip, class_registry's thunk); BASIC slot 3's fifth argument is a CRef *
+reply (po.cpp CanPoBeHealed); update.cpp calls LO slot 17 as the paused-object update. SO +0x58/+0x5C are the
+position/rotation XFs (fieldrename refused `positionXf`: the token is used in so.cpp's member bodies).
+
+Not attempted (representation-specific or other families' classes): the qword/union matrix views of the hand-tuned
+so.cpp transform functions (TranslateSoToPos, RotateSoToMat, SetSoAngularVelocity, SetSoXf), sensor.cpp's whole-word
+SO/SOPART/SOTREE views, tu_223F70's qword XF view, glob.cpp's self-contained Lilly namespace, hud's register-passed RGBA
+words, the player/guard/camera classes' padded views (their families' headers), listener objects whose slot 51 is not
+declared (prize's LISTENER views).
+
+### Views unified (names/vu-f5-camera): the camera family
+
+The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,
+CPCAMERA), CPR, CPDEFI and the camera move records, replaced by sly2/cm.h's types. Every function and data symbol of
+every touched file and of every includer of cm.h MATCHes, and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---:|
+| CAMEVENT, CAMPOSE, CAMMOVE moved into cm.h (five identical copies) | cm.h | 15 | 5 |
+| cplcy.cpp: every policy function on the policy classes (ActivateCplcy, the CPLOOK/CPZOOM/CPHANG/CPCAMBLEND/CPTURRET/CPTWOSHOT functions) | — | 38 (CM/G views, the policy views X/A/S/T, CAMMOVE/CAMPOSE views K/PATH/B, two basic.h LM copies; the CAMEVENT vtable-call helper O kept) | 1 |
+| cm.cpp: every CM function on CM/CPR/CPDEFI; SetCmPolicy, RevokeCmPolicy, UpdateCmLast, ResetCameraPolicies call the CPLCY virtuals for real (they matched on the first compile) | cm.h: CPLCY::Set/Revoke take the entry argument | 39 (CM/P/CMC/CMX/CMR/CMJ, CPR views E, CPLCY views O/VTE, CPDEFI views S/CPDEFIV, InitCm's V3/LM) | 1 |
+| one-off g_cm views in other files (CMV, CMVIEW, CAMERA, Camera, CAM, CM, G/GS, CPDEFIV, CPCAMERAV) | — | 29 | 22 |
+
+cm.h field names taken from the views: `fovSmoothing` (+0x2C, SMPA, was unknown2C..38), `joltKind` (+0x61C),
+`stereoEyeOffset`/`stereoFocusDistance` (+0x620/+0x624), `zoomStopSound` (CPLOOK +0x38 / CPZOOM +0xC4: sfx 0x25, made on
+activation). Struct definitions in src/game .cpp: 121 deleted, 12 CMIsland added (two of them are the renamed views of sky
+and tu_173158).
+
+CMIsland (matching-only, Representation decisions 1.4): the original reads g_cm's position and matrix rows as 128-bit
+members at base `&g_cm` plus the field offset (`lq 0x90(base)`). CM declares them as VECTOR4/MATRIX4 floats; a cast of
+those fields (`*(qword *)&g_cm.pos`) makes g++ fold the offset into the address constant (`lq 0(base+0x90)`, 1-2
+instructions off), and through a pointer the cast also changes scheduling (blip: MEM_IN_STRUCT). Where that happened
+the read goes through a small file-local `CMIsland` (a struct with qword members at the CM offsets) and everything
+else uses CM: sound, light, prize, lo, busy, waypoint, emitter, blip, cplcy, tu_201D78 (one read each or two); sky
+(base `&g_cm.mat`, offset 0x30) and tu_173158 (the old view, renamed: its asm reads the rows from base `&g_cm`).
+Revisited in names/vu-f5-camera-2 (below): CM::matq, a qword-row view in the matrix union, removed all twelve.
+
+Not converted: render.cpp and places.cpp (their private qword/RGBA/LM/VECTOR types clash with basic.h, so they
+cannot include cm.h), tu_12E600's CID44 view (classes.h names no CID44 fields; not this family's header), rip, hud,
+relay (G views at +0x500/+0x510 and the matrix), glob/tu_1D57A8 (VIEW: the frustum planes, g_cm read as a culling
+view), bif's CM, tu_1BE398's RTCAM, and the `char D_002DDF40[]` + offset spellings (exit_warp, turret, relay,
+asega, guardbhv, tu_1BAB50, tu_14A008, bentley). All but tu_12E600's CID44 view and tu_1BE398's RTCAM (an XFM-derived render-target
+camera object, not CM) were converted in names/vu-f5-camera-2.
+
+### Views unified (names/vu-f5-camera-2): the camera family, round 2
+
+Every function and data symbol of every touched file and of every includer of cm.h/classes.h (and every user of
+`D_002DDF40`, 123 files) MATCHes, and each object's nm symbol set is unchanged against the branch start.
+
+| change | header | views removed | files |
+|---|---|---:|---:|
+| CM::matq: the matrix as quadword rows (`CMMATQ { qword rot[3]; qword pos; }`) in CM's matrix union; the CMIsland views go (docs/decisions.md 1.8) | cm.h | 12 CMIsland | 12 |
+| rip, relay, hud, bif, render, places, glob, tu_1D57A8: CM/CAMPOSE/CAMMOVE/g_cm in place of their camera views | — | 15 (rip G x3, CAMERA; relay T, SUB, G, G2; glob VIEW, ENV; tu_1D57A8 VIEW; bif CM; render CM; places D; hud's opaque G) | 8 |
+| `char D_002DDF40[]` + offset and opaque handles (MANAGER/CAMERA in grab) replaced by `&g_cm` and its policy members (cplook, cpzoom, cpcamblend, hangPolicy, turretPolicy, part3a0) | — | 19 declarations | 16 |
+| tu_201D78's `D_002DDFA0 __asm__("D_002DDF40+0x60")` separate-symbol alias | — | 1 | 1 |
+
+How the original's address forms come out with CM's members (all g++ 2.95, checked per function):
+
+| original access | spelling |
+|---|---|
+| `lq 0x90(base)`, base `&g_cm` (position) / `0x60+0x10*i` (rows) | `g_cm.matq.pos`, `g_cm.matq.rot[i]` |
+| `lq 0x30(base)`, base `&g_cm.mat` (sky, relay; tu_201D78's row 1 at `0x10`) | `CMMATQ *pmatq = &g_cm.matq; pmatq->pos` (a local pointer stays the base) |
+| `lq 0(base)`, base `&g_cm + 0x90` (folded: emitter, tn, stepguard...) | `*(qword *)&g_cm.pos` (unchanged) |
+| the frustum's transposed plane normals as three qwords (CullSceneRenderList, glob's StartCull) | `(qword *)g_cm.agFrustumXyz` (a pointer value only; a union member did not change codegen either, but cost nothing to avoid) |
+
+Things learned: (1) an inline helper in cm.h, even unused, shifts g++'s local label numbers in every includer (cm.cpp's
+function-static `s_rgba.87` became `.90`: nm differs, code does not); a template is compiled only where called, but
+the local pointer made the helper unnecessary. (2) Template helpers of sly2/vu0.h deduce one quadword type: where a
+file's signed `qword` meets cm.h's (basic.h's unsigned `qword`), the call names it (`VuSub<qword>(a, g_cm.matq.pos)`).
+
+render.cpp, places.cpp, tu_1D57A8.cpp, bif.cpp, asega.cpp, brx_sw.cpp, update.cpp, sw.cpp now include cm.h. The clashes
+with basic.h were resolved in the files (Representation decisions 1.6): their own `typedef int qword` dropped for
+basic.h's (no codegen change in any of them), render's private RGBA/LO/SW/LM views renamed RGBAV/LOV/SWV/LMV, places'
+LO/JT/CLQ/LM renamed LOV/JTV/CLQV/LMV and vec.h's 16-byte aligned VECTOR kept as a local `VECTORV` (basic.h's VECTOR
+has no alignment). Struct definitions in src/game .cpp: 26 camera views and 19 handle declarations removed (render's
+and places' renamed views are not counted); no island remains in the family.
+
+Left: tu_12E600's CID44 camera-object view (classes.h; not this family), tu_1BE398's RTCAM (render-target camera
+object, an XFM; no header), main.cpp's `extern CM D_002DDF40` (a typed handle; main does not include cm.h), and the
+inventory's false positives in cm.cpp/cplcy.cpp (CMG, the g_cm definition wrapper; SW/ACT/STEPPLAYER views).
+
+### Views unified (names/vu-f6-render): the render family
+
+The private views of the emitter block and its records, the rips, the render list, the model sub-mesh records, the
+colour tables / bitmaps / TEX0 register and the GS block allocator, replaced by shared header types. Every function and
+data symbol of every touched file and of every includer of the changed headers (the 75 classes.h includers for
+emitter.h) MATCHes, and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---:|
+| SUBGLOBX (12 identical copies), SUBGLOBLOAD (2) | new sly2/glob.h | 14 | 11 |
+| RPL, the render-list entry (`pbCall`/`pvCall`: the two DMA CALL targets) | new sly2/render.h (self-contained) | 6 | 4 |
+| EMITTER's fields (mode, count, rate, pause, group list/link, current rate, density, box radius...); EMITB as Sly 1 lays it out: EMITO origin record (+0x10, a union for the point position / data word), EMITVEL velocity record (+0x50; Sly 1's EMITV, renamed because EMITV is in the accessors' mangled names), EMITV particle record (+0xC0) as a union of the rip and blip records selected by particleKind, with EMITROLL/EMITREMIT payloads; EMITREF indices for aploRef; EMITMESH/EMITTRI, EMITVX, EXPLSO and its flags | sly2/emitter.h | emitter.cpp 60 definitions (7 EMITTER views, the EMITB/record views EMITBV/EP/E/S/B/X/P/EMITREFS/EMITO/SAV/EO, EMITMESH/EMITVX copies, EMITDEF::EMITO and their helper types); blip 1, grab 3, po 2 | 4 |
+| RIP and its kind classes moved out of rip.cpp; RIP gains startTime, renderObject, the scale curve, orientation, velocity, angularVelocity, touchObject; FLYING/MATCH/REMIT/SHRAPNEL fields; `RIP::Init(pos, scale, psoTouch)` in Sly 1's parameter order (InitMatch's symbol), `PostEmit(EMITB *)` | new sly2/rip.h | 14 (rip.cpp's per-function RIP/RIPGV/SHRAPNEL/OBJ views, emitter.cpp's RIPV/RIP) | rip, emitter |
+| TEX0 (one word or GS fields), CLUT, BMP | new sly2/shd.h (self-contained) | 9 | shd, font, gs, tu_1BE398 |
+| GSB/GSBB (0x630) | new sly2/gs.h (self-contained) | 4 | gs, font, tu_1BE398 |
+
+Hand-made vtable calls that became real virtual calls and still match: EMITTER group creation (RotateToMat, slot 30),
+ConvertEmitoPosVec and OriginateSplineSinkParticles (GetLocalTransform, slot 32), EmitRips and WakeSoWater (RIP::Init,
+PostEmit). EMITTER::HandleMessage and REMIT::PostEmit became members. EmitRips matched only once RIP::Init took its
+arguments as (position, scale, touch object): with (position, touch, scale) the scale's call moves and the allocation
+shifts. Struct definitions in src/game .cpp: 7290 -> 7162; render-family names (inv.py): 165 -> 82.
+
+Islands (matching-only, recorded in scratch islands.csv): emitter.cpp's two default/splash initializers keep their
+union-shaped views (`EMITDEF::EMITVELIsland`, WakeSoWater's `EMITVIsland`/`EMITVELIsland`): the unions there are
+scheduling barriers the header records do not have, and the header EMITV (anonymous union of the two records) as an
+aggregate initializer makes cc1plus exit silently. RIP::Init reads the clock through a bare-float view of g_clock.time
+(10/23 off through CLOCK).
+
+Not converted: views of RIPG, BLIPG, EXPLG and EXPLS fields (classes.h names none of their fields; not this family's
+header: rip.cpp's RIPGV, emitter.cpp's BLIPG/RIPG/PRG/EXPLGV/EXPLS views, the EMITG views typed on them); RENDERTGT
+views (sly2/sw.h keeps TEX0 as a plain word; shd.h's TEX0 union could replace it); the namespaced Lilly views in
+glob.cpp, shd.cpp, light.cpp, blip.cpp (SHD, DMA/DMAS/VIFS/GIFS packet classes, PACKET, LIGHT, SAA); tu_1147D8 /
+tu_114AE0's constructor-initialized CLUT/BMP (a constructor in shd.h's CLUT would change every includer); the hand
+vtable calls of rip.cpp's hand-tuned functions (BounceRipgRips, UpdateRipg, RenderRipgSelf, HandleRipBounce, the
+Render* bodies).
+
+### Views unified, round 2 (names/vu-f6-render-2): shaders, packet streams, light packets, rip calls
+
+The namespaced Lilly / per-function views of the render family's records in shd, glob, blip, light, tu_1147D8 and
+tu_114AE0 (and so.cpp's views of the light record), and the hand-made vtable calls of rip.cpp, replaced by shared types
+and real calls. Every function and data symbol of each touched file and of every includer of a changed header MATCHes,
+and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---|
+| CLUT/BMP constructors from a header (`CLUT(void *pvHeader)` calls CopyClutHeader; likewise BMP), CLUT/BMP `clevel` (+0x05, the level filter) and BMP `cb` (+0x10) | sly2/shd.h | 4 | tu_1147D8, tu_114AE0 |
+| TEX (0x14: grftex +0x04, cbmp +0x06 = the frame count, cclut +0x07; glob's Lilly TEXF had cibmp/ciclut at +4/+5, the loaders show otherwise), SHDP (upload record), SHD (0x2C), SHDBLIP (the compact record blips use, linked on SW::slShd; our name) | sly2/shd.h | shd 30 (SHDV, the loaders' X/Y/E/Z/E20/E28, LoadShdFromBrx's L/C/ENT, BuildShaderTex0List's Src/S3/Dst, BuildShaderGifPackets' ENTRY/PACKET/RGBA/TEXTURE, the upload functions' E1/E2/T1/T2/BS/X/DMAS/M, the hash functions' S); blip 1 | shd, blip |
+| the frame's VIF1 stream D_002DEA28 as vifs.h's VIFS | (vifs.h) | glob 4 DMA, blip VIFS | glob, blip |
+| render-list entry | sly2/render.h RPL | blip DMA | blip |
+| SOBOUNDS, the per-object light packets (SO::psobounds, only declared by so.h) | new sly2/light.h | light LIGHTQ, glob 2 SHD (the "SHD" of RenderSoGlobset / BuildModelDrawPackets is this record), so.cpp SOBOUNDS/Q/B | light, glob, so |
+
+Real calls that match: blip's VIFS/DMAS members (all but one AddVifUnpack that passes a fifth word: 4 instructions move
+as a member call), GIFS::PackAD in PackTexGifs, VIFS::AddVifUnpack in AddShaderVifUnpack, UploadPermShaders' GIFS/VIFS
+locals with member calls and a STACKSCOPE local (the views were 0x30 bytes; the real 0x28/0x24-byte classes give the
+same frame; `result = 0` must sit between the two constructors), BuildUploadBitmapGifs a C++ function again
+(`BuildUploadBitmapGifs__FiP3GSBP4GIFS` from the real GSB/GIFS types). rip.cpp: RIP::Update and SO::Remove in UpdateRipg,
+RIP::Render in RenderRipgSelf, RIP::HandleBounce in BounceRipgRips, RIP::Project in ProjectRipgTransform, RIP::Init in
+UpdateRipt1 (the hand call's (float, qword, pointer) order is the same register assignment as Init's (qword, float,
+pointer)). For these rip.h's `Update()` and `Render()` lost their parameters: the dispatchers pass none, UpdateRip and
+RenderRip take only the rip, and no override reads a time step or camera (Sly 1's `RenderShrapnel__FP8SHRAPNELP2CM`
+symbol still names a CM). SHDBLIP's colour is a union with a channel array: PropagateBlipgShader indexes it, and only an
+array member keeps the colour's address in a register (9/85 off through a cast).
+
+Inventory (inv.py render-family names in src/game .cpp): 82 -> 60; struct/class/union definitions in src/game .cpp/.inc
+(`grep -E '^\s*(typedef\s+)?(struct|class|union)\s+\w*\s*(:[^{;]*)?\{'`): 6938 -> 6873.
+
+Not converted, and why: LIGHT (light.cpp's LIGHTV) and SAA (shdanim's SAAV/SAAF/SAACLS, glob's SAAVIRT/SAAFIELDS) need
+fields in sly2/classes.h (LIGHT +0xE0..0x170 and SAA +0x10..0x50 are padding there; not this family's header);
+glob's M_LoadSubglobType0FromBrx (a 1450-line Lilly port with its own QW/VECTOR/RGBA/OID/SAA/LO/SO universe) keeps its
+DMAS/VIFS/TEX/SHD/CLUT copies until that universe gives way to the shared headers; glob's relight PACKET/PACKETS and
+light.cpp's PACKET are different records (no shared evidence); shd.cpp's CopyClutHeader/CopyBitmapHeader (file
+headers, not CLUT/BMP objects), BuildWorldBackgroundImage's GIFS view, AddShaderVifUnpackQword, SHDREC; rip.cpp's
+remaining hand calls (BounceRipgRips' slot-9 Remove on the P view, UpdateRip's slots 7/73, ReleaseRip's slots 3/5,
+CreateStuck's Init on its O view, MATCH's slot 8, REMIT's slot 51) sit on views that would need RIPG/SO/STUCK fields.
+
+### Views unified (names/vu-f8-sound-ui): CRef, the sound types, the screens
+
+The sound / UI / Splice-value family. Every function and data symbol of every touched file and of every includer of
+a touched header MATCHes, and each touched object is identical to the branch start's (every allocated section's
+bytes, every relocation's offset, type and symbol, the symbol table: a stricter check than nm). Private
+struct/class/union definitions in the 30 touched .cpp files: 3,616 -> 3,274; the family's named views (CRef/CREFV/PAIRV,
+SNDMGR*/SNDV/SNDREF/EASND, SCREENV/GADGETMENUV, ...): 253 -> 69.
+
+| type | header | change | views removed |
+|---|---|---|---:|
+| CRef | sly2/cref.h | `CRefData`, the POD base (tag + payload union, `float *ag` added) for the C-style bodies; CRef gains `operator=(int/float)` (SetS32/SetF32 by label), `SetMatrix`, `SetSymid`, `SetBifk`, the inline `CRef(bool)` and `CRef(float)` constructors | 173 (bif 99, game, screen, memcard, prize, stepplayer, sw, menu, rumble, serialize, splicemap, class_registry, booty, hud, cplcy, stepguard, relay, lo, po, basic, guardbhv), plus bif's 10 NODE pair views |
+| SND (CID151), BANKSND, STREAMSND, SNDSOURCE, SNDREF/SNDREFC, EASND | sly2/snd.h | the fields every view agrees on; STREAMSND's record a union by stream kind (FILEREC or SNDSTREAM); `GetKind` returns int, `SetCulled(int)`; STREAMSND's C-named constructor and pool `operator new` | ~60 in sound.cpp, 8 EASND (7 unused Lilly copies) |
+| SNDMGR, SNDSTREAM, SNDFILE, DIALOGEVENT | sly2/sndmgr.h (new; separate from snd.h's 76 includers) | the documented 0x250 layout; `g_sndmgr` declared (D_003DD040) | ~30 SNDMGR views in sound.cpp, menu.cpp's, 5 interior macros (menu, cd, save) |
+| SCREEN, HUDMETER | sly2/screen.h | HUDMETER's fields (0x50) | screen.cpp's SCREENV/GADGETMENUV |
+
+Spellings that matched on the first compile: the hand vtable calls (`p->vtable[n].pfn(p + d)`) as the header's virtual
+calls (AddRef/Release/Start/GetKind/Play/... : same code); the views' tag-first inline constructors `CRef(0x15, n)` as
+cref.h's `CRef(n, 0x15)`; the sound views' counted pointers as SNDREF (no constructors: a default constructor makes
+g++ emit a construction loop for g_sndmgr's music stack, 140/141 off); an expanded pair release as `delete` of the
+CPair (splicemap). Watch for: `ref = pointer` compiles to cref.h's `operator=(bool)` when the view had a pointer
+setter (class_registry's object results, BuildListFromObjects): matchtool masks the call target, the relocation
+comparison catches it; such assignments are spelled `SetBasic(...)`.
+
+Island (scratch islands.csv): stepplayer's UpdateStepplayerBootySave keeps its CRef as `CRefIsland` (its copy
+constructor inline over the void*-returning copy function; cref.h's out-of-line one moves the stack slots, 37/286
+off). Kept views: UpdateSndPositional/UpdateStreamsndPositional read LO's +0x28 word whole (lo.h's isInWorld
+bit-field compiles to a mask test); the C-named constructors store the vptr by hand (SNDOBJ, GADGETMENU_ctor);
+g_sndmgr's definition keeps its construct-and-destruct form (SNDMGRBASE/SNDMGRG: the destructor order puts the
+counted pointers in the derived class). Not attempted: the SP* inline-release owners and the CFrame/CProc/CSidebag
+views of splice/ (tied to gc.cpp's linkonce instances), WIDGET (classes.h, another family), screen.cpp's
+per-function views (~100), CRichText/CFont. For sw.h's owner: FILEREC's key words are aw[0], aw[1], aw[13], aw[15].
 
 ## Path-hash quirk (asm functions)
 
