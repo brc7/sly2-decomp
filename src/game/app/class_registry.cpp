@@ -29,9 +29,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // Each unpacks its Splice arguments with RefSetArgsFromSplice and calls the native function; the generated
 // wrappers of the same block do the same in C. 64 are hand-written: the 33 option thunks that were in this file
 // before the merge, and the 31 that had their own files in src/game/app/splice_thunks/, now verbatim in a namespace
-// T_<name> each (for their own prototypes) over sly2/cref.h's CRef (an object result through SetBasic, a vector one through CRef_SetVector_VU_VECTOR). Their per-file CRef declarations named four members
-// differently; the references are now SetTag__4CRef4TAGK, CRef_SetBasic, CRef_SetBool and SetS32__4CRefi (were
-// InitTag__4CRefi, __as__4CRefPv, __as__4CRefb, __as__4CRefi, which no config file names), the same addresses.
+// T_<name> each (for their own prototypes) over sly2/cref.h's CRef (an object result through SetBasic, a vector one
+// through CRef_SetVector_VU_VECTOR). Their per-file CRef declarations named four members differently; the
+// references are now SetTag__4CRef4TAGK, CRef_SetBasic, CRef_SetBool and SetS32__4CRefi (were InitTag__4CRefi,
+// __as__4CRefPv, __as__4CRefb, __as__4CRefi, which no config file names), the same addresses.
 
 /* The thunks use sly2/cref.h's CRef; the vector result goes through the C-named setter. */
 extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);
