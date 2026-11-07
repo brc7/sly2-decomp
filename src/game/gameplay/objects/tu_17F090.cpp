@@ -409,75 +409,61 @@ extern "C" struct CLOCK D_002DDED0;
 extern "C" qword D_002A2DD0;
 extern "C" char D_002DEB30[];
 struct M4 { qword r[4]; };
-struct VTE { short d; short pad; void *pfn; };
-struct O { char pad[0xC]; struct VTE *vt; int unknown10; };
-struct N { char pad[0xA0]; int unknownA0; };
-struct E { void *sma; int pad[5]; };
-struct Q { int a[4]; };
-struct S {
-    char pad[0xC]; struct VTE *vt; char pad2[0x44]; struct N *unknownChannel54; struct N *positionChannel; struct N *rotationChannel;
-    char pad3[0x1C0 - 0x60]; int state; float stateTime; struct Q animEntries[6]; char padq[8]; int partCount;
-    char pad4[0x248 - 0x234]; struct E partSmas[3]; int pade; struct O *lock; int positionActuator; int rotationActuator; struct O *healthWidget; void *engineSound; int engineSoundId;
-};
 extern "C" {
-void PlayWidgetAnim(struct O *o, int n);
-void UpdateHackshipHealthBar(struct S *p);
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
-void RcPtr_Assign(void **pp, void *q);
-void PauseSnd(void *p);
-void ReleaseAct(int *p);
-void SetXfRole(struct S *p, struct N *n, int k);
-void SetLoParent(struct S *p, int a, int b);
-void SetSoCnstrForce(struct S *p, int n);
-void SetSoCnstrTorque(struct S *p, int n);
-void SetSoPartsBit48(struct S *p, int n);
-void SetSmaGoal(void *p, int n);
-void StopSnd(void *p, float f);
-struct M4 GetRelativeXfMatrix(int a, int b, struct M4 *pm);
-int NewPositionAct(struct S *p, struct N *n, int a, int b, int c, qword v);
+void PlayWidgetAnim(WIDGET *pwidget, int n);
+CID151 *CreateSfxSound(int n);
+void SetSndSourceLo(CID151 *psnd, LO *plo);
+void RcPtr_Assign(CID151 **pp, CID151 *psnd);
+void PauseSnd(CID151 *psnd);
+void ReleaseAct(ACT **ppact);
+void SetXfRole(SO *pso, XF *pxf, int k);
+void SetLoParent(SO *pso, int a, int b);
+void SetSoCnstrForce(SO *pso, int n);
+void SetSoCnstrTorque(SO *pso, int n);
+void SetSoPartsBit48(SO *pso, int n);
+void SetSmaGoal(SMA *psma, int n);
+void StopSnd(CID151 *psnd, float f);
+struct M4 GetRelativeXfMatrix(XF *pxfA, XF *pxfB, struct M4 *pm);
+ACT *NewPositionAct(SO *pso, XF *pxf, int a, int b, int c, qword v);
 qword DecomposeRotationMatrixToEuler(struct M4 *pm);
-void BroadcastGameEvent(void *a, int n, struct S *p);
-void StartHackAnim(struct S *p, struct Q *q);
-void SetHackshipState(struct S *p, int n);
 }
-// State switch (leave/enter): widget anim 0x34F, sounds, actuators, states 0..5. (inferred)
-void SetHackshipState(struct S *ship, int n) {
+// State switch (leave/enter): health widget, engine sound, docking actuators, states 0..5. (inferred)
+extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
     int old = ship->state;
     if (n == old) return;
     switch (old) {
     case -1:
         {
-            struct O *q = ship->healthWidget;
-            if (q) {
-                { struct VTE *e = &q->vt[0x31]; ((void (*)(void *, int))e->pfn)((char *)q + e->d, -1); }
-                PlayWidgetAnim(ship->healthWidget, 0x34F);
+            WIDGET *pwidget = ship->pwidgetHealth;
+            if (pwidget) {
+                pwidget->Show(-1);
+                PlayWidgetAnim(ship->pwidgetHealth, 0x34F);
                 UpdateHackshipHealthBar(ship);
-                if (ship->engineSoundId != old) {
-                    void *r = CreateSfxSound(ship->engineSoundId);
-                    SetSndSourceLo(r, 0);
-                    RcPtr_Assign(&ship->engineSound, r);
-                    PauseSnd(ship->engineSound);
+                if (ship->sfxidEngine != old) {
+                    CID151 *psnd = CreateSfxSound(ship->sfxidEngine);
+                    SetSndSourceLo(psnd, 0);
+                    RcPtr_Assign(&ship->psndEngine, psnd);
+                    PauseSnd(ship->psndEngine);
                 }
             }
         }
         break;
     case 3:
-        ReleaseAct(&ship->positionActuator);
-        ReleaseAct(&ship->rotationActuator);
-        SetXfRole(ship, ship->positionChannel, 2);
-        SetXfRole(ship, ship->rotationChannel, 2);
+        ReleaseAct(&ship->pactPos);
+        ReleaseAct(&ship->pactRot);
+        SetXfRole(ship, ship->unknown58, 2);
+        SetXfRole(ship, ship->unknown5C, 2);
         SetLoParent(ship, 0, 0xF);
         SetSoCnstrForce(ship, 5);
         SetSoCnstrTorque(ship, 4);
         SetSoPartsBit48(ship, 0);
-        ship->lock = 0;
+        ship->ploDock = 0;
         break;
     case 1:
         {
             int i;
-            for (i = 0; i < ship->partCount; i++) {
-                if (ship->partSmas[i].sma) SetSmaGoal(ship->partSmas[i].sma, 0x66);
+            for (i = 0; i < ship->cpart; i++) {
+                if (ship->apart[i].psma) SetSmaGoal(ship->apart[i].psma, 0x66);
             }
         }
         break;
@@ -487,27 +473,27 @@ void SetHackshipState(struct S *ship, int n) {
     switch (n) {
     case -1:
         {
-            struct O *q = ship->healthWidget;
-            if (q) { struct VTE *e = &q->vt[0x32]; ((void (*)(void *))e->pfn)((char *)q + e->d); }
-            void **pp = &ship->engineSound;
-            if (*pp) {
-                StopSnd(*pp, 0.0f);
-                RcPtr_Assign(pp, 0);
+            WIDGET *pwidget = ship->pwidgetHealth;
+            if (pwidget) pwidget->Hide();
+            CID151 **ppsnd = &ship->psndEngine;
+            if (*ppsnd) {
+                StopSnd(*ppsnd, 0.0f);
+                RcPtr_Assign(ppsnd, 0);
             }
         }
         break;
     case 3:
         {
             struct M4 m;
-            int r;
+            XF *pxf;
 
-            { struct O *q = ship->lock; struct VTE *e = &q->vt[0x20]; r = ((int (*)(void *, struct M4 *))e->pfn)((char *)q + e->d, &m); }
-            m = GetRelativeXfMatrix(ship->unknownChannel54->unknownA0, ship->positionChannel->unknownA0, &m);
-            { struct VTE *e = &ship->vt[0xA]; ((void (*)(void *, int, int, int))e->pfn)((char *)ship + e->d, ship->lock->unknown10, r, 3); }
-            { struct VTE *e = &ship->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)ship + e->d, D_002A2DD0); }
-            { struct VTE *e = &ship->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)ship + e->d, D_002A2DD0); }
-            ship->positionActuator = NewPositionAct(ship, ship->positionChannel, 1, 7, 2, m.r[3]);
-            ship->rotationActuator = NewPositionAct(ship, ship->rotationChannel, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
+            pxf = ship->ploDock->GetLocalTransform((MATRIX4 *)&m);
+            m = GetRelativeXfMatrix(ship->transforms->parent, ship->unknown58->parent, &m);
+            ship->SetParent(ship->ploDock->parent, pxf, 3);
+            ship->SetVelocity(D_002A2DD0);
+            ship->SetAngularVelocity(D_002A2DD0);
+            ship->pactPos = NewPositionAct(ship, ship->unknown58, 1, 7, 2, m.r[3]);
+            ship->pactRot = NewPositionAct(ship, ship->unknown5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
             SetSoCnstrForce(ship, 1);
             SetSoCnstrTorque(ship, 1);
             SetSoPartsBit48(ship, 1);
@@ -517,7 +503,7 @@ void SetHackshipState(struct S *ship, int n) {
         BroadcastGameEvent(D_002DEB30, 0x10, ship);
         break;
     }
-    StartHackAnim(ship, n == -1 ? 0 : &ship->animEntries[n]);
+    StartHackAnim(ship, n == -1 ? 0 : &ship->ahacke[n]);
 }
 } // namespace M_func_0017FD08
 
@@ -535,32 +521,29 @@ extern "C" void AddHackshipOidPair(HACKSHIP *ship, int n, OID oid)
 }
 
 namespace M_func_001800D8 { extern "C" {
-struct E { int a; int b; int c; int d; };
-struct S : PO { char pad180[0x1C8 - 0x180]; struct E ae[5]; };
-// Set entry i (<5) fields a,d. (inferred)
-void SetHackshipEntry(struct S *ship, unsigned int i, int a, int d)
+// Set entry i (<5): oid and flags. (inferred)
+void SetHackshipEntry(HACKSHIP *ship, unsigned int i, OID oid, int grf)
 {
     if (i < 5) {
-        ship->ae[i].a = a;
-        ship->ae[i].d = d;
+        ship->ahacke[i].oid = oid;
+        ship->ahacke[i].grf = grf;
     }
 }
 } } // namespace M_func_001800D8
 
 namespace M_UpdateHackshipHealthBar { extern "C" {
-struct S : PO { int maxHealth; int health; char p1[0x118]; void *healthWidget; };
-void SetWidgetAnimPhase(void *p, int anim, float phase);
+void SetWidgetAnimPhase(WIDGET *pwidget, int anim, float phase);
 // Set widget anim 0x34F phase = 1 - health/max (clamped). (inferred)
-void UpdateHackshipHealthBar(struct S *ship)
+void UpdateHackshipHealthBar(HACKSHIP *ship)
 {
-    if (ship->healthWidget) {
-        int health = ship->health;
+    if (ship->pwidgetHealth) {
+        int health = ship->cHealth;
         float g;
         if (health <= 0) health = 0;
-        g = 1.0f - (float)health / (float)ship->maxHealth;
+        g = 1.0f - (float)health / (float)ship->cHealthMax;
         if (g < 0.0f) g = 0.0f;
         else if (g > 1.0f) g = 1.0f;
-        SetWidgetAnimPhase(ship->healthWidget, 0x34F, g);
+        SetWidgetAnimPhase(ship->pwidgetHealth, 0x34F, g);
     }
 }
 } } // namespace M_UpdateHackshipHealthBar
