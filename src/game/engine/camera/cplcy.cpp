@@ -1001,24 +1001,18 @@ void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespa
 }
 
 namespace M_DeactivateCpcamblend { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };
-struct B { int pad[3]; int nC; int pad10; struct O *po; };
+struct B { int pad[3]; int nC; int pad10; BASIC *po; };
 struct A { int pad[4]; struct B *pb; };
 extern char D_002DDF40[];
 void DeactivateCplcy(struct A *a, int n, struct B *b);
 void CutCm__FP2CM(void *p);
-// CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent vt2 (end event); pcammove=0. (inferred)
+// CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent->Release() (end event); pcammove=0. (inferred)
 void DeactivateCpcamblend(struct A *a, int n, struct B *b)
 {
-    struct O *o;
-    struct VTE *e;
     DeactivateCplcy(a, n, b);
     if (b->nC)
         CutCm__FP2CM(D_002DDF40);
-    o = a->pb->po;
-    e = &o->vt[2];
-    e->pfn((char *)o + e->d);
+    a->pb->po->Release();
     a->pb = 0;
 }
 } } // namespace M_DeactivateCpcamblend
