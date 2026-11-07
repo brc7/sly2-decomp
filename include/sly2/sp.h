@@ -33,12 +33,15 @@ SLY2_REFPTR_FNS(CSidebag, "8CSidebag")
 
 /* CRefOwner<T>: a counted pointer to a GC node whose release is inline (a reference dropped to zero deletes the node
    here, running T's destructor). The default constructor leaves it unset (the CloneTo functions attach the new node
-   right away); the copy constructor is declared only (returning one by value constructs it in place). */
+   right away); `CRefOwner<T> sp(spNull)` clears it (the evaluator's locals that may stay empty); the copy constructor
+   is declared only (returning one by value constructs it in place). */
+enum SPNULL { spNull };
 template <class T>
 struct CRefOwner
 {
       T *p;
       CRefOwner() {}
+      CRefOwner(SPNULL) { p = 0; }
       CRefOwner(T *pt) { Set(pt); }
       CRefOwner(const CRefOwner &);
       ~CRefOwner()
