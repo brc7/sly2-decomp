@@ -656,32 +656,28 @@ void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
 #undef FIELD_OFFSET
 
 namespace M_OidProxyLo { extern "C" {
-struct Q { int proxyId; struct Q *next; int oid; int unknownC; void *object; };   /* a proxy-ref node (PXR) */
-struct S { char pad[0x3C]; struct Q *proxy; };
-// Returns the oid of the proxy the object was cloned from (the last proxy-ref node owned by it), or -1.
-int GetLoProxyOid(struct S *object)
+// Returns the oid of the proxy the object was cloned from (the last proxy record owned by it), or -1.
+int GetLoProxyOid(LO *object)
 {
     int r = -1;
-    struct Q *node = object->proxy;
+    PXR *node = object->proxyRecord;
     while (node) {
         if (node->object != object) break;
-        r = node->oid;
-        node = node->next;
+        r = node->proxyOid;
+        node = node->parent;
     }
     return r;
 }
 } } // namespace M_OidProxyLo
 
 namespace M_FMatchesLoName { extern "C" {
-struct Q { int proxyId; struct Q *next; int oid; int unknownC; void *object; };   /* a proxy-ref node (PXR) */
-struct S { char pad[0x18]; int oid; char pad2[0x20]; struct Q *proxy; };
-// True when the object's oid, or the oid of one of its proxy-alias nodes, equals oid.
-int HasLoOid(struct S *object, int oid)
+// True when the object's oid, or the oid of one of its proxy records, equals oid.
+int HasLoOid(LO *object, int oid)
 {
-    struct Q *node;
+    PXR *node;
     if (object->oid == oid) return 1;
-    for (node = object->proxy; node && node->object == object; node = node->next)
-        if (node->oid == oid) return 1;
+    for (node = object->proxyRecord; node && node->object == object; node = node->parent)
+        if (node->proxyOid == oid) return 1;
     return 0;
 }
 } } // namespace M_FMatchesLoName
@@ -748,20 +744,16 @@ void SetLoEulerDegrees(struct LO *object, qword v)
 } } // namespace M_func_001A63B0
 
 namespace M_func_001A6450 { extern "C" {
-struct VTE { short d; short pad; void *pfn; };
-struct O { int frame, sidebag, firstRefNode; struct VTE *vt; };
 // LO's ApplyTransform (vtable slot 37: premultiply by a matrix; XFM_ApplyTransform is the XFM version): a plain LO
 // has no transform of its own, so it forwards the matrix to every child returned by slot 28. (inferred)
-void LO_ApplyTransform(struct O *object, void *arg)
+void LO_ApplyTransform(LO *object, MATRIX4 *arg)
 {
-    struct O **list;
+    LO **list;
     int n, i;
-    struct VTE *e = &object->vt[LO_SLOT_GET_CHILDREN];
-    n = ((int (*)(void *, struct O ***))e->pfn)((char *)object + e->d, &list);
+    n = object->GetChildren(&list);
     for (i = 0; i < n; i++) {
-        struct O *p = list[i];
-        struct VTE *f = &p->vt[LO_SLOT_APPLY_TRANSFORM];
-        ((void (*)(void *, void *))f->pfn)((char *)p + f->d, arg);
+        LO *p = list[i];
+        p->ApplyProxy(arg);
     }
 }
 } } // namespace M_func_001A6450
