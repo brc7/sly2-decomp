@@ -79,7 +79,7 @@ struct SOV
 };
 typedef char assert_SOV_isHidden[(unsigned int)&((SOV *)0)->isHidden == 0x11AC ? 1 : -1];
 /* A world volume of the occluder list g_sw.dlCid23 (+0xEC its BSP, +0x130 next). */
-struct WVOL { char pad[0xEC]; void *bsp; char pad1[0x130 - 0xF0]; WVOL *next; };
+struct WVOL : XFM { char pad[0xEC - 0xE0]; void *bsp; char pad1[0x130 - 0xF0]; WVOL *next; };
 struct BUF { char a[0x180]; };
 /* Line-test callback arguments (FilterDetectorLineOfSightHit/FilterDetectorHitClass31). */
 struct EC { char pad[0x70]; unsigned long flags; };
