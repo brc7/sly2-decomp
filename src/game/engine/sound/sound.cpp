@@ -1744,11 +1744,10 @@ struct K { float fastSpeed, slowSpeed, fastTime; };   /* SMP */
 /* SNDMGR (layout: see SNDMGRV); +0x15C is volumes[2][0], the pause-fade category's weight on the ambience channel */
 struct P { char pad[0x4C]; struct Q *firstDirty; char pad1[0x58 - 0x50]; int isPaused; char pad2[0x15C - 0x5C]; float pauseFadeVolume; char pad3[0x1F0 - 0x160];
     long tickNow; long tickLast; struct X *dialogSound; int musicStackCount; struct X *musicStack[8]; struct X *ambienceSound; };
-struct CLOCK { float time; float deltaTime; char pad[0x40 - 8]; float realDeltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern int D_002BD4C0;
 extern struct K D_002A8288;
-long TickNow(struct CLOCK *);
+long TickNow(CLOCK *);
 void UpdateHeadsetMicrophone(struct P *);
 void PollSoundManagerStatus(struct P *);
 void ResumeSnd(struct X *);
