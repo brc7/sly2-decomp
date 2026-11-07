@@ -29,11 +29,8 @@ struct AREQT : AREQV { AREQT(int c, int a) { cb = c; cbAlign = a; } };
    through its offset. */
 #define ACT_VPTR(p) (*(VTE **)((char *)(p) + 0x18))
 
-/* The XF a channel animates, as PredictAsegTransform reads it. */
+/* The VU code's form of a matrix (qword rows); the XF's local matrix is read through it. */
 struct M4 { qword a[4]; };
-struct XFV { M4 m; char pad[0x94 - 0x40]; int valueKind; int pad98[2]; XFV *pxfNext; };
-
-struct R94 { char pad[0x94]; void *pv; };
 
 struct LONGU { long l; } __attribute__((packed));
 
@@ -73,9 +70,9 @@ void EvaluateXfSlotValue(ASEGA *, int);
 void HandleAsegaEventsFastForward(ASEGA *);
 void SyncAsegaEventCursor__FP5ASEGA(ASEGA *);
 M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
-M4 BuildXfValueMatrix(XFV *pxf, qword q);
-M4 BuildEulerDerivativeMatrix(XFV *pxf, M4 *pm, qword q1, qword q2);
-M4 BuildXfValueDerivativeMatrix(XFV *pxf, qword q);
+M4 BuildXfValueMatrix(XF *pxf, qword q);
+M4 BuildEulerDerivativeMatrix(XF *pxf, M4 *pm, qword q1, qword q2);
+M4 BuildXfValueDerivativeMatrix(XF *pxf, qword q);
 void RetractAsega(ASEGA *player);
 void SeekAsega(ASEGA *player, SEEK seek, float t, float svt);          /* SeekAsega */
 void SetAsegaMasterSpeed(ASEGA *player, float svt);
@@ -337,7 +334,7 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
 void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
-        *ppo = FindSwObject(&D_003DD490, 1, (OID)pk->s.oid, (LO *)b);
+        *ppo = FindSwObject(&D_003DD490, 1, (OID)pk->s.oid, b);
     else
         *ppo = FindSwObject(&D_003DD490, 4, (OID)pk->s.oid, a);
     if (!*ppo)
@@ -348,7 +345,7 @@ void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 
 // Finds the segment's channel that animates the given object and transform component; optionally only channels with the
 // "check" bit; skips disabled channels. (inferred) Sly 1: PchnFindAseg (Sly 2 also checks the component kind).
-extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
+extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, int xfk, int fCheck)
 {
     int i;
     for (i = 0; i < t->cchn; i++) {
@@ -359,7 +356,7 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
             continue;
         if (pe->s.isScalar)
             continue;
-        if (((R94 *(*)(LO *, int))PVT(po)[51].pfn)((LO *)((char *)po + PVT(po)[51].d), pe->s.subIndex)->pv == pv)
+        if (((XF *(*)(LO *, int))PVT(po)[51].pfn)((LO *)((char *)po + PVT(po)[51].d), pe->s.subIndex)->kind == xfk)
             return pe;
     }
     return 0;
@@ -368,7 +365,7 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
 // Resolves the object an override (OVR) refers to, relative to the root or in the world. (inferred)
 // Also stores a second result through its last argument (0 when not found).
 void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
-    if (q) *ppo = FindSwObject(&D_003DD490, 1, (OID)pa->oid, (LO *)q);
+    if (q) *ppo = FindSwObject(&D_003DD490, 1, (OID)pa->oid, q);
     else *ppo = FindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
     if (!*ppo) *pn = 0;
     else { LO *po = *ppo; *pn = ((int (*)(void *, int))PVT(po)[43].pfn)((char *)po + PVT(po)[43].d, pa->slot); }
@@ -388,7 +385,7 @@ static inline M4 AddM4(const M4 &a, const M4 &b) return m
 }
 // Predicts the world transform the segment would give an object at a given time (evaluating its channels along the
 // transform chain from pyFirst to pyLast) without playing it; used to line up moves before they start. (inferred)
-extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float f, float g, M4 *pm1, M4 *pm2)
+extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XF *pyFirst, XF *pyLast, float f, float g, M4 *pm1, M4 *pm2)
 {
     M4 mA;
     M4 mB;
@@ -396,9 +393,9 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
     M4 m2;
     STACKSCOPE frame;
     qword aq[2];
-    XFV **apy;
+    XF **apy;
     int i;
-    XFV *py;
+    XF *py;
     CHN *pe;
     ClearM4(&m2);
     {
@@ -406,7 +403,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
         func_002333B4(pg, 0, sizeof(M4));
         pg[15] = 1.0f; pg[10] = 1.0f; pg[5] = 1.0f; pg[0] = 1.0f;
     }
-    apy = (XFV **)AllocFromStack(AREQT(px->cchn * 4, 0x10));
+    apy = (XF **)AllocFromStack(AREQT(px->cchn * 4, 0x10));
     for (i = 0; i < px->cchn; i++) {
         pe = &px->achn[i];
         if (pe->u.isStripped) {
@@ -416,13 +413,13 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
             ResolveAsegChannelTarget(px, p, pe, &n, (void **)&apy[i]);
         }
     }
-    for (py = pyFirst; py != pyLast; py = py->pxfNext) {
+    for (py = pyFirst; py != pyLast; py = py->parent) {
         for (i = 0; i < px->cchn; i++) {
             pe = &px->achn[i];
             if (py == apy[i] && !pe->u.isScalar) {
                 pe->pac->Evaluate(f, g, &aq[0], &aq[1]);
                 mA = BuildXfValueMatrix(py, aq[0]);
-                switch (py->valueKind) {
+                switch (py->kind) {
                 case 6: case 7:
                     mB = BuildEulerDerivativeMatrix(py, &mA, aq[0], aq[1]);
                     break;
@@ -433,7 +430,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
                 goto found;
             }
         }
-        mA = py->m;
+        mA = *(M4 *)&py->localMatrix;
         ClearM4(&mB);
     found:
         {
