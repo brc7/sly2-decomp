@@ -15,6 +15,51 @@
 #define SLY2_ACT_H
 #include "sly2/basic.h"
 
+/* The key records of the keyed curves (act.cpp's loaders, Find*Key, Prepare*Segment, Evaluate*). Times are in
+   seconds (stored as 1/60 s); a tangent is a 16-byte VU vector read from the level as three floats, so it is held as
+   both (one representation, two views: the loaders write the floats, the VU code moves the quadword). */
+union ACVEC
+{
+    VECTOR vec;
+    qword q;
+};
+struct ACKEYV2   /* AC1: a vector key with in and out tangents (0x30) */
+{
+    VECTOR pos;
+    float t;
+    ACVEC dposIn;
+    ACVEC dposOut;
+};
+struct ACKEYV1   /* AC2: a vector key with one tangent (0x20) */
+{
+    VECTOR pos;
+    float t;
+    ACVEC dpos;
+};
+struct ACKEYG2   /* AC3: one component's key with in and out slopes */
+{
+    float g;
+    float dgIn;
+    float dgOut;
+};
+struct ACKEYG1   /* AC4: one component's key with one slope */
+{
+    float g;
+    float dg;
+};
+struct ACKEYF    /* ACG1: a float key */
+{
+    float t;
+    float g;
+    float dgIn;
+    float dgOut;
+};
+union ACVAL      /* AC3/AC4: the components without keys (their constant values) */
+{
+    float af[4];
+    qword q;
+};
+
 /* AC (vtable 0x2CA9C8, 3 slots): an animation curve; vptr at +0x0. Allocated from the level heap (act.cpp's PacNewKind). */
 struct AC
 {
@@ -37,7 +82,8 @@ struct AC0 : AC
 /* AC1 (0xC; vtable 0x2CA978): keyed vector curve */
 struct AC1 : AC
 {
-    int an[2];
+    int ckey;
+    ACKEYV2 *akey;
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecAFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareVecCurveASegment");   /* slot 2 */
     virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateVecCurveA");   /* slot 3 */
@@ -46,7 +92,8 @@ struct AC1 : AC
 /* AC2 (0xC; vtable 0x2CA950): keyed vector curve */
 struct AC2 : AC
 {
-    int an[2];
+    int ckey;
+    ACKEYV1 *akey;
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecBFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareVecCurveBSegment");   /* slot 2 */
     virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateVecCurveB");   /* slot 3 */
@@ -55,7 +102,11 @@ struct AC2 : AC
 /* AC3 (0x30; vtable 0x2CA928): per-component curve */
 struct AC3 : AC
 {
-    int an[11];
+    int ckey;
+    float *at;              /* +0x08 the key times */
+    ACKEYG2 *apkey[3];      /* +0x0C per component (x, y, z): its keys, or 0 for the constant in value */
+    undefined4 unknown18[2];
+    ACVAL value;            /* +0x20 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatAFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareFloatCurveASegment");   /* slot 2 */
     virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateFloatCurveA");   /* slot 3 */
@@ -64,7 +115,11 @@ struct AC3 : AC
 /* AC4 (0x30; vtable 0x2CA900): per-component curve */
 struct AC4 : AC
 {
-    int an[11];
+    int ckey;
+    float *at;
+    ACKEYG1 *apkey[3];
+    undefined4 unknown18[2];
+    ACVAL value;            /* +0x20 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatBFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareFloatCurveBSegment");   /* slot 2 */
     virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("EvaluateFloatCurveB");   /* slot 3 */
@@ -80,7 +135,8 @@ struct ACG
 /* ACG1 (0xC; vtable 0x2CA8C0): keyed float curve */
 struct ACG1 : ACG
 {
-    int an[2];
+    int ckey;
+    ACKEYF *akey;
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatKeysFromBrx");   /* slot 1 */
     virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("EvaluateKeyedFloatCurve");   /* slot 2 */
 };

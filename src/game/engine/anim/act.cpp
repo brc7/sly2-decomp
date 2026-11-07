@@ -140,13 +140,10 @@ extern "C" void EvaluateConstCurve(AC0 *curve, VECTOR *pvec, VECTOR *pdvec)
 }
 
 namespace M_LoadAcVecAFromBrx { extern "C" {
-typedef struct VECTOR3 { float x, y, z; } VECTOR3;
-typedef struct KEY { VECTOR3 pos; float t; VECTOR3 dpos; int pad; VECTOR3 dpos2; int pad2; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *stream);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR3 *pv);
-KEY *AllocClearedFromWorldHeap(AREQ *preq);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR *pv);
+ACKEYV2 *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcVecAFromBrx
 // Loads a keyed vector curve: the key count, then each key's time, value and in / out tangents.
@@ -155,37 +152,33 @@ void AC1::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcVecAFromBrx;
     using M_LoadAcVecAFromBrx::AREQ;
-    using M_LoadAcVecAFromBrx::KEY;
     using M_LoadAcVecAFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcVecAFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcVecAFromBrx::AllocClearedFromWorldHeap;
-    T *t = (T *)this;
     void *stream = streamArg;
     int i;
     int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
-    req.cb = c * sizeof(KEY);
+    req.cb = c * sizeof(ACKEYV2);
     req.cbAlign = 0x10;
-    t->c = c;
-    t->a = AllocClearedFromWorldHeap(&req);
-    for (i = 0; i < t->c; i++) {
-        KEY *pkey = &t->a[i];
+    ckey = c;
+    akey = AllocClearedFromWorldHeap(&req);
+    for (i = 0; i < ckey; i++) {
+        ACKEYV2 *pkey = &akey[i];
         pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->pos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos2);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dposIn.vec);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dposOut.vec);
     }
 }
 
 namespace M_func_0012B6D8 { extern "C" {
-typedef struct KEY { int pad[3]; float t; int pad2[8]; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
 // Index of the first key after time t (the key interval containing t ends there). (inferred)
-int FindVecCurveAKey(T *t, float g)
+int FindVecCurveAKey(AC1 *t, float g)
 {
     int i;
-    for (i = 1; i < t->c - 1; i++) {
-        if (g < t->a[i].t)
+    for (i = 1; i < t->ckey - 1; i++) {
+        if (g < t->akey[i].t)
             break;
     }
     return i;
@@ -201,10 +194,7 @@ static __inline__ int AreVectorsNear(qword a, qword b)
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
-typedef struct VECTOR3 { float x, y, z; } VECTOR3;
-typedef union V3Q { VECTOR3 v; qword q; } V3Q;
-typedef struct KEY { VECTOR3 pos; float t; qword dposIn; qword dposOut; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
+typedef union V3Q { VECTOR v; qword q; } V3Q;
 typedef struct OBJ {
     char pad[0x80];
     float t0;
@@ -218,19 +208,19 @@ typedef struct OBJ {
     V3Q pos1;
     qword dpos1;
 } OBJ;
-int FindVecCurveAKey(T *t, float g);
+int FindVecCurveAKey(AC1 *t, float g);
 // Prepares a transform slot's motion segment (slot 2) from the key interval containing the slot's time: start / end
 // values, tangents and times; marks the segment still when both ends match with zero tangents. (inferred)
-void PrepareVecCurveASegment(T *t, OBJ *po)
+void PrepareVecCurveASegment(AC1 *t, OBJ *po)
 {
     int i = FindVecCurveAKey(t, *po->pt);
     int f;
-    po->t0 = t->a[i - 1].t;
-    po->pos0.v = t->a[i - 1].pos;
-    po->dpos0 = t->a[i - 1].dposOut;
-    po->t1 = t->a[i].t;
-    po->pos1.v = t->a[i].pos;
-    po->dpos1 = t->a[i].dposIn;
+    po->t0 = t->akey[i - 1].t;
+    po->pos0.v = t->akey[i - 1].pos;
+    po->dpos0 = t->akey[i - 1].dposOut.q;
+    po->t1 = t->akey[i].t;
+    po->pos1.v = t->akey[i].pos;
+    po->dpos1 = t->akey[i].dposIn.q;
     f = AreVectorsNear(po->pos0.q, po->pos1.q) && AreVectorsNear(D_002A2DD0, po->dpos0) &&
             AreVectorsNear(D_002A2DD0, po->dpos1);
     po->segmentKind = f ? 2 : 1;
@@ -239,32 +229,26 @@ void PrepareVecCurveASegment(T *t, OBJ *po)
 
 namespace M_func_0012B9D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct VECTOR3 { float x, y, z; } VECTOR3;
-typedef union V3Q { VECTOR3 v; qword q; } V3Q;
-typedef struct KEY { VECTOR3 pos; float t; qword dposIn; qword dposOut; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
-int FindVecCurveAKey(T *t, float g);
+typedef union V3Q { VECTOR v; qword q; } V3Q;
+int FindVecCurveAKey(AC1 *t, float g);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n);
 // Evaluates the keyed vector curve at time t (slot 3): value and derivative from the Bezier of its key interval.
 // (inferred)
-void EvaluateVecCurveA(T *t, void *pv, void *pdv, float g, float dtScale)
+void EvaluateVecCurveA(AC1 *t, void *pv, void *pdv, float g, float dtScale)
 {
     int i = FindVecCurveAKey(t, g);
     V3Q u0, u1;
-    u0.v = t->a[i - 1].pos;
-    u1.v = t->a[i].pos;
-    EvaluateBezierPos(t->a[i].t - t->a[i - 1].t, g - t->a[i - 1].t, dtScale, u0.q, *(qword *)((char *)&t->a[i] - 0x10), u1.q, t->a[i].dposIn, pv, pdv, 0);
+    u0.v = t->akey[i - 1].pos;
+    u1.v = t->akey[i].pos;
+    EvaluateBezierPos(t->akey[i].t - t->akey[i - 1].t, g - t->akey[i - 1].t, dtScale, u0.q, *(qword *)((char *)&t->akey[i] - 0x10), u1.q, t->akey[i].dposIn.q, pv, pdv, 0);   /* the previous key's dposOut */
 }
 } } // namespace M_func_0012B9D0
 
 namespace M_LoadAcVecBFromBrx { extern "C" {
-typedef struct VECTOR3 { float x, y, z; } VECTOR3;
-typedef struct KEY { VECTOR3 pos; float t; VECTOR3 dpos; int pad; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *stream);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR3 *pv);
-KEY *AllocClearedFromWorldHeap(AREQ *preq);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR *pv);
+ACKEYV1 *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcVecBFromBrx
 // Loads the second keyed vector curve kind (keys with a different tangent layout).
@@ -273,36 +257,32 @@ void AC2::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcVecBFromBrx;
     using M_LoadAcVecBFromBrx::AREQ;
-    using M_LoadAcVecBFromBrx::KEY;
     using M_LoadAcVecBFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcVecBFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcVecBFromBrx::AllocClearedFromWorldHeap;
-    T *t = (T *)this;
     void *stream = streamArg;
     int i;
     int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c << 5;
     req.cbAlign = 0x10;
-    t->c = c;
-    t->a = AllocClearedFromWorldHeap(&req);
-    for (i = 0; i < t->c; i++) {
-        KEY *pkey = &t->a[i];
+    ckey = c;
+    akey = AllocClearedFromWorldHeap(&req);
+    for (i = 0; i < ckey; i++) {
+        ACKEYV1 *pkey = &akey[i];
         pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->pos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos.vec);
     }
 }
 
 namespace M_func_0012BB70 { extern "C" {
-typedef struct KEY { int pad[3]; float t; int pad2[4]; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
 // Key search for the second keyed vector curve kind. (inferred)
-int FindVecCurveBKey(T *t, float g)
+int FindVecCurveBKey(AC2 *t, float g)
 {
     int i;
-    for (i = 1; i < t->c - 1; i++) {
-        if (g < t->a[i].t)
+    for (i = 1; i < t->ckey - 1; i++) {
+        if (g < t->akey[i].t)
             break;
     }
     return i;
@@ -318,10 +298,7 @@ static __inline__ int AreVectorsNear(qword a, qword b)
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
-typedef struct VECTOR3 { float x, y, z; } VECTOR3;
-typedef union V3Q { VECTOR3 v; qword q; } V3Q;
-typedef struct KEY { VECTOR3 pos; float t; qword dpos; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
+typedef union V3Q { VECTOR v; qword q; } V3Q;
 typedef struct OBJ {
     char pad[0x80];
     float t0;
@@ -335,18 +312,18 @@ typedef struct OBJ {
     V3Q pos1;
     qword dpos1;
 } OBJ;
-int FindVecCurveBKey(T *t, float g);
+int FindVecCurveBKey(AC2 *t, float g);
 // Prepares a slot's motion segment from the second keyed vector curve kind (slot 2). (inferred)
-void PrepareVecCurveBSegment(T *t, OBJ *po)
+void PrepareVecCurveBSegment(AC2 *t, OBJ *po)
 {
     int i = FindVecCurveBKey(t, *po->pt);
     int f;
-    po->t0 = t->a[i - 1].t;
-    po->pos0.v = t->a[i - 1].pos;
-    po->dpos0 = t->a[i - 1].dpos;
-    po->t1 = t->a[i].t;
-    po->pos1.v = t->a[i].pos;
-    po->dpos1 = t->a[i].dpos;
+    po->t0 = t->akey[i - 1].t;
+    po->pos0.v = t->akey[i - 1].pos;
+    po->dpos0 = t->akey[i - 1].dpos.q;
+    po->t1 = t->akey[i].t;
+    po->pos1.v = t->akey[i].pos;
+    po->dpos1 = t->akey[i].dpos.q;
     f = AreVectorsNear(po->pos0.q, po->pos1.q) && AreVectorsNear(D_002A2DD0, po->dpos0) &&
             AreVectorsNear(D_002A2DD0, po->dpos1);
     po->segmentKind = f ? 2 : 1;
@@ -355,17 +332,14 @@ void PrepareVecCurveBSegment(T *t, OBJ *po)
 
 namespace M_func_0012BE68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct VECTOR3 { float x, y, z; } VECTOR3;
-typedef union V3Q { VECTOR3 v; qword q; } V3Q;
-typedef struct KEY { VECTOR3 pos; float t; qword dpos; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
-int FindVecCurveBKey(T *t, float g);
+typedef union V3Q { VECTOR v; qword q; } V3Q;
+int FindVecCurveBKey(AC2 *t, float g);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n);
 // Evaluates the second keyed vector curve kind at time t (slot 3). (inferred)
-void EvaluateVecCurveB(T *t, void *pv, void *pdv, float g, float dtScale)
+void EvaluateVecCurveB(AC2 *t, void *pv, void *pdv, float g, float dtScale)
 {
     int i = FindVecCurveBKey(t, g);
-    V3Q u0, u1; u0.v = t->a[i - 1].pos; u1.v = t->a[i].pos; EvaluateBezierPos(t->a[i].t - t->a[i - 1].t, g - t->a[i - 1].t, dtScale, u0.q, *(qword *)((char *)&t->a[i] - 0x10), u1.q, t->a[i].dpos, pv, pdv, 0);
+    V3Q u0, u1; u0.v = t->akey[i - 1].pos; u1.v = t->akey[i].pos; EvaluateBezierPos(t->akey[i].t - t->akey[i - 1].t, g - t->akey[i - 1].t, dtScale, u0.q, *(qword *)((char *)&t->akey[i] - 0x10), u1.q, t->akey[i].dpos.q, pv, pdv, 0);
 }
 } } // namespace M_func_0012BE68
 
