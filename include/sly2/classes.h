@@ -113,17 +113,8 @@ struct PATHLINKEND
 
 /* BHVGUARD's mode record (0x70, at +0x30; BHVGUARD.md): the awareness mode and its argument, or for the zap modes the
    zap. SetBhvguardMode copies it whole; IsBhvguardModeSame compares two. Its inline constructor clears it. */
-struct BHVGUARDREC
+struct BHVGUARDREC : BHVGUARDRECDATA
 {
-    int kind;               /* +0x00 the mode (GUARD_MODE_*, guardbhv.cpp) */
-    int unknown4[3];
-    union {
-        struct {
-            void *object;   /* +0x10 what the mode is about: the target, the noise, the hero, the escorted object */
-            float amount;   /* +0x14 a time or amount (stalk delay, watch time) */
-        } arg;
-        qword zap[6];       /* +0x10 hurt/knockdown/KO modes: the zap that caused them */
-    };
     BHVGUARDREC() { memset(this, 0, sizeof(*this)); }
 };
 
@@ -356,7 +347,9 @@ typedef char assert_CID123_size[sizeof(CID123) == 0x60 ? 1 : -1];
 /* 182 BHV182 (0x50): keep pace on route; vtable 0x2CCE90, 14 slots */
 struct BHV182 : BHV
 {
-    char pad30[0x50 - 0x30];
+    char pad30[0x38 - 0x30];
+    LO *target;             /* +0x38 [S] the mode's object (SetBhvguardMode) */
+    char pad3C[0x50 - 0x3C];
     virtual void Start() __asm__("StartBhvRoute");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv182ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvRoute");   /* slot 7 */
@@ -435,7 +428,9 @@ typedef char assert_DIMITRI_size[sizeof(DIMITRI) == 0x1020 ? 1 : -1];
 /* 180 BHV180 (0x40): DIMITRI flee; vtable 0x2CDDC0, 14 slots */
 struct BHV180 : BHV
 {
-    char pad30[0x40 - 0x30];
+    char pad30[0x38 - 0x30];
+    LO *target;             /* +0x38 [S] what Dimitri escapes from (SetBhvguardMode: the mode's object) */
+    char pad3C[0x40 - 0x3C];
     virtual void OnPush() __asm__("InitBhvDimitriEscape");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv180ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvDimitriEscape");   /* slot 8 */
@@ -633,10 +628,15 @@ typedef char assert_BHVIDLE_size[sizeof(BHVIDLE) == 0x50 ? 1 : -1];
 /* 160 BHVHIT (0xC0): hit reaction; vtable 0x2D09B0, 14 slots */
 struct BHVHIT : BHVANIM
 {
-    LO *attacker;           /* +0x50 */
-    int unknown54[2];
-    int zapKind;            /* +0x5C */
-    int unknown60[20];
+    union {
+        ZPR zpr;            /* +0x50 the zap that caused the reaction (SetBhvguardMode copies the mode's zap) */
+        struct {
+            LO *attacker;   /* +0x50 the zap's source */
+            int unknown54[2];
+            int zapKind;    /* +0x5C */
+            int unknown60[20];
+        };
+    };
     float cameraJoltTime;   /* +0xB0 */
     float zapModeTime;      /* +0xB4 */
     int unknownB8[2];
@@ -1556,7 +1556,9 @@ typedef char assert_MS_size[sizeof(MS) == 0x150 ? 1 : -1];
 /* 174 BHV174 (0x40): NEELA watch/alarm; vtable 0x2D4AF8, 14 slots */
 struct BHV174 : BHV
 {
-    char pad30[0x40 - 0x30];
+    char pad30[0x38 - 0x30];
+    int useChaseBehavior;   /* +0x38 [S] copied from NEELA::useChaseBehavior (SetBhvguardMode) */
+    char pad3C[0x40 - 0x3C];
     virtual void Start() __asm__("StartBhvNeelaChase");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv174ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvNeelaChase");   /* slot 7 */

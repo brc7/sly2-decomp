@@ -9,6 +9,7 @@
 #include "sly2/basic.h"
 #include "sly2/step.h"
 #include "sly2/xfm.h"
+#include "sly2/stepplayer.h"   /* ZPR (BHVGUARDRECDATA) */
 
 struct CID113;  /* the guard script class (classes.h) */
 struct NOISE;   /* a noise event heard by the guards' listeners (noise.cpp) */
@@ -431,15 +432,39 @@ inline void func_00259D48(STEPGUARD *pstepguard, VOL *pvol) { pstepguard->pdetec
 inline VOL *func_00259D60(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolNear; }   /* get */
 inline VOL *func_00259D70(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolFar; }    /* get */
 
+/* BHVGUARD's mode record (0x70; BHVGUARD.md): the awareness mode and its argument, or for the zap modes the zap.
+   SetBhvguardMode copies it whole; IsBhvguardModeSame compares two. The data part; classes.h's BHVGUARDREC adds the
+   clearing constructor (a POD base, so BHV156 can overlay it). [S] */
+struct BHVGUARDRECDATA
+{
+      int kind;             /* +0x00 the mode (GUARD_MODE_*, guardbhv.cpp) */
+      int unknown4[3];
+      union {
+            struct {
+                  void *object; /* +0x10 what the mode is about: the target, the noise, the hero, the escorted object */
+                  float amount; /* +0x14 a time or amount (stalk delay, watch time) */
+            } arg;
+            ZPR zap;        /* +0x10 hurt/knockdown/KO modes: the zap that caused them */
+      };
+};
+typedef char assert_BHVGUARDRECDATA_size[sizeof(BHVGUARDRECDATA) == 0x70 ? 1 : -1];
+
 /* BHV156 (CID 0x9C, cb 0xB0): root of every guard's behaviour stack; its mode drives calm/search/combat */
 struct BHV156 : public BHV
 {
-      int mode;             /* +0x30 [R] 0 start, 1 calm, 2 search, 3 alert anim, 4 combat, 5 script, 7 juggled, 11 KO
+      union {
+            BHVGUARDRECDATA modeRec; /* +0x30 [S] the current mode record (SetBhvguardMode) */
+            struct {
+                  int mode; /* +0x30 [R] 0 start, 1 calm, 2 search, 3 alert anim, 4 combat, 5 script, 7 juggled, 11 KO
                                (runtime2/4/7a; ram_inspector ROOT_MODE); 17 also seen (S28, meaning unknown) */
-      undefined4 unknown34[3];
-      LO *modeObject;       /* +0x40 [R] object of the mode (stimulus / target) */
-      float modeAmount;     /* +0x44 [S] the mode's amount (SetStepguardSpecial compares it with FLT_MAX in mode 0x12) */
-      undefined4 unk_0x48[(0xb0 - 0x48) / 4];
+                  undefined4 unknown34[3];
+                  LO *modeObject; /* +0x40 [R] object of the mode (stimulus / target) */
+                  float modeAmount; /* +0x44 [S] the mode's amount (SetStepguardSpecial compares it with FLT_MAX in mode 0x12) */
+            };
+      };
+      float modeTime;       /* +0xA0 [S] when the mode was entered */
+      float watchEndTime;   /* +0xA4 [S] mode 0x1A (watch): when it ends */
+      undefined4 unk_0xa8[2];
 };
 typedef char assert_BHV156_size[sizeof(BHV156) == 0xB0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_BHV156_mode[SLY2_OFFSETOF(BHV156, mode) == 0x30 ? 1 : -1];     /* CONFIRMED runtime */
