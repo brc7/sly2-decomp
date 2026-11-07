@@ -124,6 +124,7 @@ extern "C" void TranslateXfmToPos(XFM *xfm, qword v)
     InvalidateXfm(xfm);
 }
 
+// Store the 3x3 matrix m into *pm.
 static inline void SetM(M3 *pm, M3 m)
 {
     *pm = m;
@@ -168,6 +169,7 @@ MATRIX4 * XFM::GetWorldMatrix()
     return &pxfm->matWorld;
 }
 
+// Transform point v by the 4x4 matrix m.
 static inline qword MulPos(const M4 *m, qword v)
 {
     qword r;

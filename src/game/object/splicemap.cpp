@@ -26,9 +26,12 @@ struct CRef
 {
     int tagk;
     int tag;
+    // Empty (untagged) script reference.
     CRef() { tagk = -1; }
     CRef(const CRef &r);   /* out of line: __4CRefRC4CRef (ref.cpp) */
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
+    // Assign a script reference.
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
 
@@ -59,6 +62,7 @@ struct SPPAIR
 {
     PAIRV *p;
     SPPAIR(const SPPAIR &r);
+    // Drop the held pair's reference, freeing it on the last one.
     ~SPPAIR() {
         PAIRV *q = p;
         if (q && --q->cref == 0) {
@@ -73,6 +77,7 @@ struct SPFRAME
 {
     FRAMEV *p;
     SPFRAME(const SPFRAME &r);
+    // Drop the held frame's reference, freeing it on the last one.
     ~SPFRAME() { FRAMEV *q = p; if (q && --q->cref == 0) func_00257078(q, 3); }
 };
 
@@ -85,6 +90,7 @@ struct SPLCS
     SPLCE *ae;          /* +0x8 */
     SPLCS *psplcsNext;  /* +0xC */
 };
+// Allocation request: byte count and alignment.
 struct SZ { int cb; int cbAlign; SZ(int a, int b) { cb = a; cbAlign = b; } };
 
 extern int D_003E1C34;

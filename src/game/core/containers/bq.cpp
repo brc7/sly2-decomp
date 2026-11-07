@@ -24,6 +24,7 @@ public:
     int size;           /* +0x8 */
     int readOffset;     /* +0xC read position */
     int bytesLeft;      /* +0x10 */
+    // Wrap a memory block of blockSize bytes as an input queue.
     CQueueInputMemory(byte *block, int blockSize) { bytesLeft = blockSize; data = block; size = blockSize; readOffset = 0; }
     int ReadBytes(int byteCount, void *dest);
 };

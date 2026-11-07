@@ -223,6 +223,7 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
     }
 }
 
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -232,6 +233,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     g_pdliFirst = pdli;
 }
 
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *NextDliEntry(DLI *pdli)
 {
     void *pv = *pdli->ppv;
@@ -274,6 +276,7 @@ extern "C" void SolveDzgFilled(DZG *dzg)
     }
 }
 
+// Fill the message and allocate cb bytes (kind nKind) from the frame stack.
 static inline void *AllocStackBlock(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
 
 // Solves `count` inequality constraints with a temporary DZG on the stack: row i of the count x count matrix A

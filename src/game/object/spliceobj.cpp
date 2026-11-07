@@ -27,6 +27,7 @@ public:
     BASIC *m_pbasic;
     PFNTHUNK m_pfnthunk;
     int m_crefReq;
+    // Free the object back to its slot pool.
     void operator delete(void *pv) { FreeSlotheapSlot(&CSlotPool<0x14, 0x100>::s_pool.slotheap, pv); }
 };
 /* The method pool's members are emitted by splice/gc.cpp: declared as specializations here so that this file calls
@@ -371,6 +372,7 @@ class SPPAIR
 {
 public:
     CPair *p;
+    // Empty pair pointer.
     SPPAIR() { p = 0; }
     SPPAIR(CPair *q);
     void Set(CPair *q);
@@ -384,8 +386,11 @@ void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_t7CRefPtr1Z5CPair");
 CPair *PtNew__t6CGcObj1Z5CPair(void);
 void Unlink__t6CGcObj1Z5CPair(CPair *pair);
 }
+// Hold q (attach without an extra reference).
 inline SPPAIR::SPPAIR(CPair *q) { Attach__t7CRefPtr1Z5CPairP5CPair(this, q); }
+// Assign q (reference-counted).
 inline void SPPAIR::Set(CPair *q) { PairPtr_Assign(this, q); }
+// Drop the held pair's reference.
 inline SPPAIR::~SPPAIR()
 {
     CPair *q = p;
@@ -403,6 +408,7 @@ inline SPPAIR::~SPPAIR()
    aotyp[i]; the void reference for none. */
 // Builds a Splice list from count (type, pointer) pairs, converting each value by its type; Void when empty.
 CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
+// Definition of BuildSpliceListFromValues (declared above): a Splice list of c values converted by their types.
 CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv)
 {
     if (c == 0) {
@@ -428,6 +434,7 @@ CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv)
 /* BuildSpliceListFromUniformValues: the same for c consecutive words of one type at pv. */
 // Builds a Splice list from count values that all have the same type.
 CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv) __asm__("BuildSpliceListFromUniformValues");
+// Definition of BuildSpliceListFromUniformValues (declared above): a Splice list of c values of one type.
 CRef BuildSpliceListFromUniformValues(int c, OTYP otyp, void *pv)
 {
     if (c == 0) {
@@ -543,6 +550,7 @@ CRef RefSetArgsFromSplice(int c, CRef *aref, OTYP *aotyp, ...)
 struct SPLLIST { int c; CPair *ppairFirst; };
 // Converts each element of a Splice list into the destination array with one type; returns Void.
 CRef SetValuesFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv) __asm__("SetValuesFromSpliceList");
+// Definition of SetValuesFromSpliceList (declared above): convert the list's elements into apv with one type.
 CRef SetValuesFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv)
 {
     if (plist->c == 0) {

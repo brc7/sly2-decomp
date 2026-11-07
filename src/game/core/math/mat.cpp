@@ -32,8 +32,11 @@ typedef union { qword q; float f[4]; } U4;
 /* A VU0 scalar (x of a qword). */
 struct VU_FLOAT {
     qword q;
+    // Uninitialised value.
     VU_FLOAT() {}
+    // Move a float's bits into a GPR qword (mfc1).
     VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
+    // The value as an FPU float.
     float F() const { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
     /* "r,j": the j alternative is allocation-only (never selected), see BuildRotateVectorsMatrix */
     float H() const { float g; __asm__("mtc1 %1, %0" : "=f,f"(g) : "r,j"(q)); return g; }
@@ -130,6 +133,7 @@ extern "C" M3 InvertMatrix3Cofactor(M3 *matrix)
     return m;
 }
 
+// Unit vector along v.
 static inline qword NormalizeN(qword v)
 {
     qword d, one, l, r;
@@ -191,7 +195,9 @@ M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
     return m;
 }
 
+// Placement new: construct at destination.
 inline void *operator new(unsigned, void *destination) { return destination; }
+// Carry int bits in a 128-bit value (no instruction).
 static inline qword IntToQword(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0"(n)); u.q = q; return u.q; }
 /* c's conversion. "+r"(a) is allocation-only and the "$4" clobber (a dead argument register) is scheduling-only:
    they put the axis copy (a3) and the hidden return pointer (a0) after this asm, as in the target. */
@@ -353,6 +359,7 @@ M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
 
 // (Claude agent) Matched: MulM3q writes rows through an out pointer, copying each row right after storing it (interleaved m/t stores).
 #define ROW(o, a0, a1, a2) __asm__ __volatile__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(o) : "j"(a0), "j"(a1), "j"(a2))
+// Store the 3x3 matrix product (rows a0..a2) * *pb into *pd (register-pinned).
 static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
 {
     M3 m;
@@ -590,6 +597,7 @@ extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix)
     return q;
 }
 
+// Return a scaled by f.x.
 static inline qword Mulx(qword a, qword f) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f), "j"(a)); return r; }
 // 0x0011C128 __ml__FRC7MATRIX4G8VU_FLOAT: matrix * scalar
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) return mat
@@ -644,6 +652,7 @@ static inline qword Q(int g)
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
     return s;
 }
+// Broadcast int bits into a VU0 register (source pinned to $7).
 static inline qword Q7(int g)
 {
     register int r asm("$7") = g; /* the one pin: the target reloads pg[2] into pg's dying a3 */
@@ -651,6 +660,7 @@ static inline qword Q7(int g)
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(r));
     return s;
 }
+// Broadcast int bits into a VU0 register (*pu only orders the instruction).
 static inline qword Q0(int g, qword *pu)
 {
     qword s;
@@ -677,6 +687,7 @@ extern "C" M4F *LoadMatrixFromPosRotScale(M4F *outMatrix, qword pos, M3 *rotatio
     return outMatrix;
 }
 
+// Return a scaled by g.
 static inline qword MulxS(qword a, float g)
 {
     UG s;
@@ -905,7 +916,9 @@ extern "C" void SmoothMatrix(M3 *prev, M3 *goal, SMP *params, float dt, M3 *outN
     }
 }
 
+// Single-precision square root (sqrt.s).
 static inline float SqrtNv(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
+// Squared length of the xyz part of v as a float.
 static inline float DotSq(qword v)
 {
     qword d, one;

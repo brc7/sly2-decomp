@@ -287,6 +287,7 @@ extern float D_002C3C68[3];
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 float SmoothValue__FfffP3SMPPf(float,float,float,float *,float *);
+// Copy a 4x4 matrix through four GPR quadword loads/stores.
 static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
     register qword row0 __asm__("$2");
     register qword row1 __asm__("$3");
@@ -454,9 +455,12 @@ extern struct { float t; union FLOATWORD delta; } D_002DDED0;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
 struct S { char pad[0x5C]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
 void PresetSoAccel(struct S *p);
+// Read the frame clock's delta-time word (D_002DDED0) given its high address page.
 static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.delta.bits),"m"(*(const int*)(page-0x212C)));return word;}
+// High address page (lui) of the frame clock D_002DDED0.
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.delta.bits));return page;}
 void AccelSoTowardMatBounded(struct S *,M3 *,VECTOR3 *);
+// Broadcast int bits into vf4 and store them to *value.
 static inline void InitScalar(U *value,int bits) {
     register qword scalar __asm__("vf4");
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
@@ -550,6 +554,7 @@ static inline qword Sub(const qword *pa, const qword *pb)
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Return a scaled by g.
 static inline qword Scale(qword a, float g)
 {
     qword k;
@@ -559,6 +564,7 @@ static inline qword Scale(qword a, float g)
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(a) : "j"(a), "j"(k));
     return a;
 }
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d, one;
@@ -567,6 +573,7 @@ static inline float Dot(qword a, qword b)
     __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(d));
     return g;
 }
+// Normalize *v in place, or set it to fallback when its length is below 1e-4 (length pinned to vf1).
 static inline void Normal(U *v, qword fallback)
 {
     qword a = v->q;
@@ -582,6 +589,7 @@ static inline void Normal(U *v, qword fallback)
         __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(d) : "j"(d), "j"(a));
     v->q = d;
 }
+// Return *pa + b * g.
 static inline qword AddScaled(const qword *pa, qword b, float g)
 {
     qword a = *pa, k;
@@ -701,6 +709,7 @@ extern "C" { float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt,
 
 
 
+// Rotate v by the 3x3 matrix pmat.
 static inline qword QwRotate(struct M3 *pmat, qword v)
 {
     qword qw;
@@ -710,6 +719,7 @@ static inline qword QwRotate(struct M3 *pmat, qword v)
 }
 
 
+// Broadcast a float into a VU0 register.
 static inline struct VU_FLOAT VuFloat(float g)
 {
     struct VU_FLOAT vu;
@@ -717,6 +727,7 @@ static inline struct VU_FLOAT VuFloat(float g)
     return vu;
 }
 
+// Broadcast the float word n into a VU0 register.
 static inline struct VU_FLOAT VuFloatFromMemWord(int n)
 {
     struct VU_FLOAT vu;
@@ -724,6 +735,7 @@ static inline struct VU_FLOAT VuFloatFromMemWord(int n)
     return vu;
 }
 
+// Return v + a*sa + b*sb.
 static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
 {
     qword qw;
@@ -831,6 +843,7 @@ struct SW;
 extern struct SW D_003DD490;
 void AdjustSoXps(struct P *);
 void FreeSwXpList__FP2SWP2XP(struct SW *,struct N *);
+// The other endpoint of contact n, seen from p.
 static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigned)p^(unsigned)n->e[0].owner;int i=different>0;return ((struct Endpoint *)((char *)n+(i<<6)))->other;}
 // Slot 58: base AdjustSoXps, then keeps only the best floor contact (kind 14, lowest distance) as the cached base
 // contact (+0x208) with its stamp (+0x20C) and position (+0x230).
@@ -1163,6 +1176,7 @@ SO *GetSoFromLo(LO *);                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
 void AddXp(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // AddXp
 }
+// Return a - b.
 static inline qword Sub(const qword &a, const qword &b) {
     qword r;
     __asm__ __volatile__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
@@ -1236,13 +1250,17 @@ typedef struct P {
 extern qword D_002A2DD0, D_002A2DC0;
 extern int IsBasicDerivedFrom__FP5BASIC3CID(B *, int);
 extern void MatchSoXf(P *, B *);
+// Transform v by the matrix rows with `last` as the translation, storing it to *published; returns the result through
+// a GPR.
 static inline qword Transform(const M4*m,qword v,qword last,qword*published){
  register qword result __asm__("vf7"),argument __asm__("$5"),origin __asm__("vf1")=last;
  __asm__ volatile("vmulax.xyz $ACC,%3,%7x\n\tvmadday.xyz $ACC,%4,%7y\n\tvmaddaz.xyz $ACC,%5,%7z\n\tvmaddw.xyz %0,%6,$vf0w\n\tqmfc2.ni %1,%0\n\tsqc2 %6,%2"
   :"=&j"(result),"=&r"(argument),"=m"(*published):"j"(m->row[0]),"j"(m->row[1]),"j"(m->row[2]),"j"(origin),"j"(v));
  return argument;
 }
+// Broadcast a float into vf6.
 static inline qword Broadcast(float f){register qword r __asm__("vf6");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
+// Return v scaled by s.x (vf2).
 static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
 // Slot 38: copies another object's pose (its world matrix, including the base offset +0x240) and resets the
 // velocities; non-STEP sources fall back to MatchSoXf.
@@ -1394,8 +1412,11 @@ struct P {char pad[0x208];int enabled;};
 extern qword D_002A2DC0;
 void BuildStepFootprint(struct P*,V*);
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
+// Return *a - *b (vf3).
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
+// Return a scaled by f (broadcast through k).
 static inline qword Scale(qword a,float f,V *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;}
+// Normalize *v in place (or set it to *fallback when its length is below 1e-4); returns the length.
 static inline float Normal(V*v,const qword*fallback){qword a=v->q;register qword d __asm__("vf1");register qword one __asm__("vf2");float g,r;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(one):"j"(d));
@@ -1433,6 +1454,7 @@ int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_002057E8 {
 typedef int qword __attribute__((mode(TI)));
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M3 { qword r[3]; };
 struct S { char pad[0x218]; qword *origin; int pad21C; float radius; };
@@ -1441,7 +1463,9 @@ M3 *GetLoWorldMatrix(S *p);
 qword GetLoWorldPos(S *p);
 extern int D_002C3CC8[2][3];
 }
+// Return v scaled by g.
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
+// Load a vector into a VU0 register.
 static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) : "m"(*p)); return r; }
 // Builds the two footprint triangles: a diamond of radius +0x220 around the base point (+0x218), oriented by the
 // world matrix.
@@ -1501,6 +1525,7 @@ struct MATRIX4 {float mat[4][4];} __attribute__((aligned(16)));
 struct VU_VECTOR4 {qword qw;};
 union U {qword q;float f[4];int i[4];};
 struct VU_FLOAT {qword qw;};
+// Empty scope object (its constructor and destructor only shape the generated code).
 struct FRAME {FRAME(){}~FRAME(){}};
 struct P {char pad0[0xEC];void *attachment;char padF0[0xB8];float heading;char pad1AC[4];MATRIX3 basis;};
 struct HEIGHT {float min,max;};
@@ -1524,16 +1549,22 @@ int ShouldKeepSoNotSelfSlot62(void *,void *);
 int SnapToGround(qword *,float,float,int,void *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *);
 }
+// Length of v as a float.
 static inline float GLength(qword v){return VuToFloat(VuLength(v));}
+// Length of v (x lane), with the squared length kept in its own register.
 static inline qword QwLengthUntied(qword v){qword qwSq,vfOne,qwLen;__asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z":"=j"(qwSq),"=j"(vfOne):"j"(v));__asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qwSq));return qwLen;}
+// Transform point qwPos by the 4x4 matrix pmat.
 static inline qword QwTransformPos(MATRIX4 *pmat,qword qwPos)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w":"=j"(r):"j"(*(qword *)pmat->mat[0]),"j"(*(qword *)pmat->mat[1]),"j"(*(qword *)pmat->mat[2]),"j"(*(qword *)pmat->mat[3]),"j"(qwPos));
     return r;
 }
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1, %0":"=j"(v.qw):"rV"(n));return v;}
+// Return base + vec * k.
 static inline qword QwAddScaled(qword base,qword vec,VU_FLOAT k){__asm__("vadda.xyzw $ACC, %0, $vf0\n\tvmaddx.xyzw %0, %1, %2x":"+j"(base):"j"(vec),"j"(k.qw));return base;}
+// 3x3 matrix product matL * matR.
 static inline MATRIX3 operator*(const MATRIX3 &matL,const MATRIX3 &matR) return mat
 {
     qword qwL0=*(qword *)matL.mat[0];
@@ -1549,7 +1580,9 @@ static inline MATRIX3 operator*(const MATRIX3 &matL,const MATRIX3 &matR) return 
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z":"=j"(v2.qw):"j"(qwL0),"j"(qwL1),"j"(qwL2),"j"(((VU_VECTOR4 *)matR.mat[2])->qw));
     *(VU_VECTOR4 *)mat.mat[2]=v2;
 }
+// Rotation matrix about axis by angle.
 static inline MATRIX3 Rotation(qword axis,float angle) return r {func_0011B500r(&r,axis,angle);}
+// Build a 4x4 matrix from rotation rot and translation pos.
 static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
 {
     VECTOR_opAssign((qword *)pm->mat[3],pos);

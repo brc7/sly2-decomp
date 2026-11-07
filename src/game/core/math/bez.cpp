@@ -17,6 +17,7 @@ typedef struct { qword r[3]; } M3;
 
 struct VU_FLOAT {
     qword q;
+    // Move a float's bits into a GPR qword (mfc1).
     VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
 };
 extern "C" {
@@ -24,10 +25,12 @@ void BuildRotationMatrixFromVector(M3 *pm, qword v);
 M3 *MulMatrix3Matrix3(M3 *pr, M3 *pa, M3 *pb);
 qword DecomposeRotationMatrixToVector(M3 *pm);
 }
+// Rotation matrix from the rotation vector v.
 static inline M3 Rot(qword v) return m
 {
     BuildRotationMatrixFromVector(&m, v);
 }
+// Broadcast g into a VU0 register.
 static inline qword VF(float g)
 {
     U s;
@@ -36,6 +39,7 @@ static inline qword VF(float g)
     s.q = q;
     return q;
 }
+// Return v scaled by k.x.
 static inline qword ScaleT(qword v, qword k)
 {
     qword r;
@@ -43,6 +47,7 @@ static inline qword ScaleT(qword v, qword k)
     __asm__ volatile("vmulx.xyzw %0, %1, %0x" : "=j"(r) : "j"(v), "0"(k));
     return r;
 }
+// Store the 3x3 matrix product a * *pb into *pm.
 static inline void MulP(M3 *pm, const M3 &a, const M3 *pb)
 {
     M3 t;

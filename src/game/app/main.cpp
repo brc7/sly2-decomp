@@ -102,6 +102,7 @@ int func_00234DE0(struct DMA *p, int n);
 int sceSifLoadModuleBuffer(void *h, int argumentBytes, const char *arguments);
 int sceSifFreeIopHeap(void *h);
 }
+// Copy value through a register move (keeps the original daddu).
 static inline int CopyLimit(int value)
 {
     int copy;

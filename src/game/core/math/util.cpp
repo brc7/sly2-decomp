@@ -188,6 +188,7 @@ int AreFloatsNear(float a, float b, float epsilon)
     return (b / x) < epsilon;
 }
 
+// Single-precision square root (sqrt.s).
 static inline float SqrtS(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 // Solves a x^2 + b x + c = 0 for real roots; writes them to roots[] and returns how many (0, 1 or 2).
 int SolveQuadratic(float a, float b, float c, float *roots)
