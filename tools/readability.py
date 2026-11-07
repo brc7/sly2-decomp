@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Readability metric for the naming / doc-comment effort (docs/guides/naming-workflow.md section 8).
+"""Readability metric for the naming / doc-comment effort (docs/guides/naming-workflow.md section 1).
 
   readability.py [PATH ...] [--csv FILE] [--top N]
 
