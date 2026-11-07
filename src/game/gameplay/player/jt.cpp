@@ -1153,7 +1153,7 @@ int GetStepplayerMovementNoise(struct S *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-// JT slot 98: the STEPPLAYER base result; when 0, 1 for states 1/5/6/9 and -1 otherwise (meaning not identified).
+// JT slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1; then 1 (noisy) in JTS_Run/5/JTS_Interact/9, else -1.
 int GetJtMovementNoise(struct S *jt)
 {
     int r = GetStepplayerMovementNoise(jt);
@@ -4425,7 +4425,7 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-// JT slot 106: 0 if in state 1 or the camera check says so, else 1 (meaning not identified).
+// JT slot 106: 0 while the look mode runs (jtmode.nState == 1) or the camera policy at g_cm+0x3A0 is on top, else 1 (inferred: the free-camera test, cf. CanJtUseGadget case 3).
 int IsJtCameraFree(struct S *jt)
 {
     int r = 1;

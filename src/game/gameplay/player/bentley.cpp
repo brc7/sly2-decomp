@@ -1177,8 +1177,8 @@ int GetStepplayerMovementNoise(struct S *);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-// BENTLEY slot 98: the STEPPLAYER base result; when that is 0, 1 in states 1/5/14 and -1 otherwise (meaning of the
-// slot not identified).
+// BENTLEY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
+// then 1 (noisy) in BENTLEY_RUN/NEAR_TARGET/ADRENALINE, else -1.
 int GetBentleyMovementNoise(struct S *bentley) {
     int r = GetStepplayerMovementNoise(bentley);
     if (r != -1) return r;

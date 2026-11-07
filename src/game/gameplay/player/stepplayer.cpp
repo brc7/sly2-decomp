@@ -3,12 +3,12 @@
 // booty, mode queries, HP / MP. TU 0x13FF70..0x144638 (96 functions, address order).
 // Entry points: InitStepplayer/PostLoadStepplayer, UpdateStepplayer (per frame), HandleStepplayerMessage,
 // the gadget slots (UpdateStepplayerGadgets, SetStepplayerGadget), HP/MP, booty and the Splice-callable helpers.
-// StepplayerVirtualNN names a vtable slot whose meaning is not identified yet (behaviour documented per function).
+// Slot overrides are named from their behaviour (GetStepplayerMovementNoise, AddStepplayerComponentXps...; "(inferred)" in their comments).
 //
 // Types: sly2/stepplayer.h's STEPPLAYER and its sub-records (jtgrab, jthurt, jtmode, jtthrow, agadgetslot...) for
 // the m2c bodies, with real virtual calls (slots 87, 88, 99, 101); three unnamed words through macros (as
-// tu_144B28.cpp does). JthsCurrent, FCanUseGadget and FCanBeHealed are STEPPLAYER members here (their symbols are
-// the members'). The hand-written per-function files keep their views in namespaces named after each function (as
+// tu_144B28.cpp does). The slots JthsCurrent, FCanUseGadget and FCanBeHealed are STEPPLAYER members here (symbols
+// GetStepplayerHealthState__10STEPPLAYER etc.). The hand-written per-function files keep their views in namespaces named after each function (as
 // jt.cpp does), their C++-named definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepplayer
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00144618
@@ -532,7 +532,7 @@ void UpdateStepplayerHideBlend(struct P *player)
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-// Slot 98 base: 0 normally, -1 while the world is hands-off (meaning of the slot not identified).
+// Slot 98 base, movement-noise class (inferred): 0 (silent) while the world is hands-off, else -1 (no opinion: the subclass decides). UpdateStepplayerHideBlend resets its noise meter on 0 and fills it at one of two rates otherwise; a full meter makes noise.
 extern "C" int GetStepplayerMovementNoise()
 {
     return (IsSwHandsOff(&D_003DD490) != 0) ? 0 : -1;

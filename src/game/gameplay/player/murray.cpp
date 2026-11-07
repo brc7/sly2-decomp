@@ -2818,8 +2818,8 @@ int GetStepplayerMovementNoise(struct S *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-// MURRAY slot 98: the STEPPLAYER base result; when 0, 1 for states 1/12 or strafing with a sub-state (meaning of the
-// slot not identified).
+// MURRAY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
+// then 1 (noisy) in MURRAY_RUN/POWER_MOVE or when strafing with a sub-state, else -1.
 int GetMurrayMovementNoise(struct S *murray)
 {
     int v = GetStepplayerMovementNoise(murray);
