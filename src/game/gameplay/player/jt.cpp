@@ -3058,7 +3058,6 @@ typedef int qword __attribute__((mode(TI)));
 #define F(T, o) (*(T *)((char *)p + (o)))
 #define A(o) ((char *)p + (o))
 
-struct LO { char pad[0x28]; int x28; signed char x2C; char x2D; long k:4; long :8; unsigned int f:1; };
 struct X150 { char pad[0x18]; float g18; };
 struct X1854 { char pad[0x124]; int x124; };
 typedef union { qword q; float f[4]; } VU;
@@ -3103,7 +3102,7 @@ void UpdateJt(char *p)
     struct X1854 *object;
 
     UpdateStepplayer(p);
-    if ((uchar)((struct LO *)p)->f == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
+    if ((uchar)((LO *)p)->isInWorld == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
         return;
     if (F(void *, 0x150))
         UpdateJtPre(p);
@@ -3206,10 +3205,6 @@ typedef char layout_long[(sizeof(long)==8)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_VU[(sizeof(VU)==16)?1:-1];
 typedef char layout_VU_alignment[(__alignof__(VU)==16)?1:-1];
-typedef char layout_LO[(sizeof(struct LO)==0x30)?1:-1];
-typedef char layout_LO_word[((unsigned)&((struct LO*)0)->x28==0x28)?1:-1];
-typedef char layout_LO_byte2c[((unsigned)&((struct LO*)0)->x2C==0x2C)?1:-1];
-typedef char layout_LO_byte2d[((unsigned)&((struct LO*)0)->x2D==0x2D)?1:-1];
 typedef char layout_STATE[(sizeof(struct X150)==0x1C)?1:-1];
 typedef char layout_STATE_heading[((unsigned)&((struct X150*)0)->g18==0x18)?1:-1];
 typedef char layout_TARGET[(sizeof(struct X1854)==0x128)?1:-1];

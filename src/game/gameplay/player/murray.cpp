@@ -2262,8 +2262,6 @@ typedef char P_Alignment[__alignof__(struct P)==4?1:-1];
 
 namespace M_ThrowMurrayCarried { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VT { short d; short pad; void *pfn; };
-struct LO { char pad[0xC]; struct VT *vt; char pad2[0x28 - 0x10]; unsigned long x28; };
 struct T { char pad[0x180]; struct LO *po; };
 struct P { char pad[0x13F0]; struct T *carried; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword throwGoal; };
 void DetachMurrayCarried(struct P *p);
@@ -2290,14 +2288,14 @@ void ThrowMurrayCarried(struct P *murray)
     DetachMurrayCarried(murray);
     object = murray->carried->po;
     murray->carried = 0;
-    if ((int)(object->x28 >> 60) & 1) {
+    if ((int)object->isInWorld & 1) {
         float t;
         qword v;
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38))
             StunStepguardThrownOp3(object);
         t = Dist(GetLoWorldPos(object), murray->throwGoal) / murray->g1414;
         v = CalculateVelocityToReachPos(GetLoWorldPos(object), murray->throwGoal, GetSoGravity(object), t);
-        ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, v);
+        object->SetVelocity(v);
         SetSoZapMode(object, 2);
     }
 }
