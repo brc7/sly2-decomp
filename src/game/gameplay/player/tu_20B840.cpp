@@ -231,10 +231,10 @@ void PostJtLoadGait(GAIT *gait)
             CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->player, 1, 1);
             VECTOR4 vStart, vEnd;
             ((VECKEY *)pchn->pkey)->GetValue(0.0f, 1.0f, (qword *)&vStart, 0);
-            ((VECKEY *)pchn->pkey)->GetValue(aseg->tMax, 1.0f, (qword *)&vEnd, 0);
+            ((VECKEY *)pchn->pkey)->GetValue(aseg->duration, 1.0f, (qword *)&vEnd, 0);
             qword qwDiff = VuSub(*(qword *)&vEnd, *(qword *)&vStart);
             VU_FLOAT vuT;
-            __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&aseg->tMax )) ;
+            __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&aseg->duration )) ;
             pblgait->vRoot = DivVec(qwDiff, vuT);
         }
     }
@@ -335,7 +335,7 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
     }
     RecalculateAsegBlend(gait->blendedAnimation);
     pt = gait->player;
-    InitScalar(&a,*(int *)&GetGaitBlendValue(gait)->svt);
+    InitScalar(&a,*(int *)&GetGaitBlendValue(gait)->speed);
     b = a;
     q = GetGaitRootVelocity(gait);
     r1=Negate(q,&b);
@@ -347,12 +347,12 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
 extern "C" void UpdateGaitFootsteps(GAIT *gait)
 {
     ASEGA *x = (ASEGA *)gait->blendedAnimation->dlAsega.head;
-    float g = x->tLocal;
+    float g = x->time;
     int i;
     for (i = 0; i < 2; i++) {
         ASEGBL *y = gait->blendedAnimation;
         MRSG *z = y->amrsgc[i].amrsg;
-        int f = z->dt <= ModPositive__Fff(g - z->t, y->tMax);
+        int f = z->dt <= ModPositive__Fff(g - z->t, y->duration);
         if (f == gait->afFootDown[i])
             continue;
         if (!f) {
@@ -365,7 +365,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
             }
             h = CreateSfxSound(gait->sfxidStep);
             SetSndSourceLo(h, 0);
-            SetSndSourcePos(h, GetLoWorldPos(x->paloRoot));
+            SetSndSourcePos(h, GetLoWorldPos(x->rootObject));
             SetSndRange(h, 500.0f, 2000.0f);
             SetSndVolume(h, t);
         }
@@ -410,9 +410,9 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
     pc = FindAsegLabel(p->paseg, 0x24);
     if (!pc)
         return;
-    p->a = pa->tLocal;
-    p->b = pb->tLocal;
-    p->c = pc->tLocal;
+    p->a = pa->time;
+    p->b = pb->time;
+    p->c = pc->time;
     p->cb = p->c - p->b;
     p->ca = p->c - p->a;
     c = FindAsegChannel(p->paseg, arg, 1, 1);
@@ -534,7 +534,7 @@ void SetLeapState(LEAPV *leap, int state)
             DetachStepguard(subject);
             DisableStuckWatch(subject->control);
         }
-        float playbackRate = leap->job->svt;
+        float playbackRate = leap->job->speed;
         register ALO *motionSubject __asm__("$3") = leap->subject;
         register XF *motionSpace __asm__("$4");
         register LEAPTUNE *motionTuning __asm__("$3");
@@ -686,9 +686,9 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
             continue;
         c = FindAsegChannel(o, arg, 1, 1);
         ((VECKEY *)c->pkey)->GetValue(0.0f, 1.0f, &v0.q, 0);
-        ((VECKEY *)c->pkey)->GetValue(o->tMax, 1.0f, &v1.q, 0);
+        ((VECKEY *)c->pkey)->GetValue(o->duration, 1.0f, &v1.q, 0);
         {
-            register int bits __asm__("$17") = *(int *)&o->tMax;
+            register int bits __asm__("$17") = *(int *)&o->duration;
             __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5"
                     : "=j"(scalar), "=j"(start), "=j"(end)
                     : "r"(bits), "m"(v0.q), "m"(v1.q));
@@ -816,7 +816,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             ASEG *animation = entry->animation;
             if (animation) {
                 float score = VuToFloat(DotReuse(scoringDirection, NormalizeEntry(entry->velocity)));
-                if (animation == dirAnims->active->paseg)
+                if (animation == dirAnims->active->animation)
                     score *= bias;
                 if (maximum < score) {
                     maximum = score;
@@ -840,7 +840,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             }
             tag = FindAsegLabel(animation, id);
             if (tag)
-                time = tag->tLocal;
+                time = tag->time;
             ReplaceCurrentAseg(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
             SubscribeLoObject(dirAnims->active, dirAnims);
             dirAnims->best = best;

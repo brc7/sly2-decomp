@@ -64,7 +64,7 @@ struct ASEG : XB {
     char pad64[0x6C - 0x64];
     int priority;
     int worldHold;
-    float tMax;             /* +0x74 duration */
+    float duration;         /* +0x74 duration */
     float masterSpeed;
     char pad7C[0x98 - 0x7C];
     int startEventCount, startEvents, frameEventCount;      /* +0x98..: start / per-frame / end event tables (EA), +0xA0 the frame event count */
@@ -260,7 +260,7 @@ void FillBlendSyncTables(int elementSize, int elementCount, void *elements, int 
                 float dt = entry->t - previous->t;
                 previous->dt = dt;
                 if (dt < 0.0f)
-                    previous->dt = dt + segment->tMax;
+                    previous->dt = dt + segment->duration;
                 previous = entry;
             }
         }
@@ -279,7 +279,7 @@ extern "C" void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *blend, int tableO
             for (i = 0; i < blend->elementCount; i++) {
                 ELEM *element = (ELEM *)((char *)blend->elements + i * blend->cb);
                 if (element->w != 0.0f)
-                    sum += element->paseg->tMax * element->w;
+                    sum += element->paseg->duration * element->w;
             }
             *totalLength = sum;
         }
@@ -303,10 +303,10 @@ extern "C" void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *blend, int tableO
             if (element->w != 0.0f) {
                 if (fFirst) {
                     fFirst = 0;
-                    gAvg = *(float *)((char *)element + tableOffset) / element->paseg->tMax;
+                    gAvg = *(float *)((char *)element + tableOffset) / element->paseg->duration;
                     gFirst = gAvg;
                 } else {
-                    float d = *(float *)((char *)element + tableOffset) / element->paseg->tMax - gFirst;
+                    float d = *(float *)((char *)element + tableOffset) / element->paseg->duration - gFirst;
                     if (d <= -0.5f)
                         d += 1.0f;
                     else if (0.5f < d)
@@ -388,17 +388,17 @@ extern "C" void RecalculateAsegBlend(ASEG *blend)
         SetBlendDominantSegment(blend, j);
     }
     for (link = blend->links; link; link = link->next)
-        link->relativeTime = link->relativeTime / blend->tMax;
+        link->relativeTime = link->relativeTime / blend->duration;
     for (i = 0; i < blend->n; i++) {
         BLMRSG *syncInfo = &blend->syncTables[i];
-        CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, syncInfo->ib, syncInfo->syncCount, syncInfo->syncTable, &blend->tMax);
+        CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, syncInfo->ib, syncInfo->syncCount, syncInfo->syncTable, &blend->duration);
     }
     if (blend->n == 0)
-        CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, 0, 0, 0, &blend->tMax);
+        CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, 0, 0, 0, &blend->duration);
     for (link = blend->links; link; link = link->next)
-        link->relativeTime = link->relativeTime * blend->tMax;
+        link->relativeTime = link->relativeTime * blend->duration;
     if (blend->linkedBlend) {
-        float ratio = blend->tMax / blend->linkedBlend->tMax;
+        float ratio = blend->duration / blend->linkedBlend->duration;
         int k;
         for (k = 0; k < blend->frameEventCount; k++)
             blend->frameEvents[k].t = ratio * blend->linkedBlend->frameEvents[k].t;
@@ -467,9 +467,9 @@ void AC5::Prepare(CHN *pq)
     {
         float tCur = *pq->currentTimePtr;
         if (!p->pblmrsg) {
-            u = tCur / pa->tMax;
+            u = tCur / pa->duration;
         } else {
-            iSeg = FindSyncInterval(tCur, pa->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &t[0]);
+            iSeg = FindSyncInterval(tCur, pa->duration, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &t[0]);
             u = t[0] / p->pblmrsg->syncTable[iSeg].dt;
         }
     }
@@ -490,12 +490,12 @@ void AC5::Prepare(CHN *pq)
         } else {
             BLMRSG *pb = p->pblmrsg;
             if (!pb) {
-                float g = pe->paseg->tMax;
-                ratio = g / ((BLCHNQ volatile *)p)->paseg->tMax; /* volatile read (Claude agent): the target reloads p->p4 here (no cse with the loop test's load) */
+                float g = pe->paseg->duration;
+                ratio = g / ((BLCHNQ volatile *)p)->paseg->duration; /* volatile read (Claude agent): the target reloads p->p4 here (no cse with the loop test's load) */
                 t[1] = u * g;
             } else {
                 MRSG *ps = (MRSG *)((char *)pe + pb->ib) + iSeg;
-                float gMax = pe->paseg->tMax;
+                float gMax = pe->paseg->duration;
                 float g4 = ps->dt;
                 t[1] = ps->t + u * g4;
                 if (gMax < t[1])
@@ -556,10 +556,10 @@ void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
     int i;
     ASEG *pa;
     if (p->pblmrsg == 0) {
-        u = t / p->paseg->tMax;
+        u = t / p->paseg->duration;
     } else {
         float tLocal;
-        iSeg = FindSyncInterval(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &tLocal);
+        iSeg = FindSyncInterval(t, p->paseg->duration, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &tLocal);
         pseg = &p->pblmrsg->syncTable[iSeg];
         u = tLocal / pseg->dt;
     }
@@ -588,14 +588,14 @@ top:
         } else {
             float g0, g1;
             if (!p->pblmrsg) {
-                g1 = rate * pe->paseg->tMax / pa->tMax;
-                g0 = u * pe->paseg->tMax;
+                g1 = rate * pe->paseg->duration / pa->duration;
+                g0 = u * pe->paseg->duration;
             } else {
                 int is = iSeg;
                 MRSG *ps;
                 float gMax;
                 ps = (MRSG *)((char *)pe + p->pblmrsg->ib) + is;
-                gMax = pe->paseg->tMax;
+                gMax = pe->paseg->duration;
                 g0 = ps->t + u * ps->dt;
                 g1 = rate * ps->dt / pseg->dt;
                 if (gMax < g0)
@@ -642,9 +642,9 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
     int i;
     int idx;
     if (p->pblmrsg == 0) {
-        rate = t / p->paseg->tMax;
+        rate = t / p->paseg->duration;
     } else {
-        idx = FindSyncInterval(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &g0);
+        idx = FindSyncInterval(t, p->paseg->duration, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &g0);
         pe = &p->pblmrsg->syncTable[idx];
         rate = g0 / pe->dt;
     }
@@ -662,12 +662,12 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
         } else {
             float u, s;
             if (p->pblmrsg == 0) {
-                float lim = pw->paseg->tMax;
-                s = r * lim / p->paseg->tMax;
+                float lim = pw->paseg->duration;
+                s = r * lim / p->paseg->duration;
                 u = rate * lim;
             } else {
                 MRSG *pf = &((MRSG *)((char *)pw + p->pblmrsg->ib))[idx];
-                float lim = pw->paseg->tMax;
+                float lim = pw->paseg->duration;
                 u = pf->t + rate * pf->dt;
                 s = r * pf->dt / pe->dt;
                 if (lim < u)

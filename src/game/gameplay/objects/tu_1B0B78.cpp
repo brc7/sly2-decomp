@@ -327,7 +327,7 @@ extern "C" void PresetCritterAccel(CID96V *critter)
     AccelSoTowardMatBounded(critter, &critter->headingBasis, &critter->spinScale);
 }
 
-struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::paseg) */
+struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::animation) */
 // CID96 vtable slot 5 (HandleMessage): the basic handler; when its startled animation ends (message 2 from its
 // ASEGA playing that clip) the critter flees.
 extern "C" void HandleCritterMessage(CID96V *critter, int kind, ASEGA *anim)

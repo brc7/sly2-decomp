@@ -642,14 +642,14 @@ void SetSmaGoalIfReachable(struct P *p, int n)
 // OID of the activation's goal state.
 extern "C" OID GetSmaGoal(SMA *psma)
 {
-    return GetSmStateOid(psma->psm, psma->ismsGoal);
+    return GetSmStateOid(psma->stateMachine, psma->goalState);
 }
 
 /* The oid of the current state. */
 // OID of the activation's current state.
 extern "C" OID GetSmaCurrentState(SMA *psma)
 {
-    return GetSmStateOid(psma->psm, psma->ismsCur);
+    return GetSmStateOid(psma->stateMachine, psma->currentState);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -990,10 +990,10 @@ extern "C" void EndSmaTransition(SMA *psma)
     int ismsNext;
     int ismsPrev;
     psma->pasegaCur = 0;
-    ismsNext = psma->ismsNext;
-    ismsPrev = psma->ismsCur;
-    psma->ismsNext = -1;
-    psma->ismsCur = ismsNext;
+    ismsNext = psma->nextState;
+    ismsPrev = psma->currentState;
+    psma->nextState = -1;
+    psma->currentState = ismsNext;
     NotifySmaSpliceOnEnterState(psma, ismsPrev, ismsNext);
 }
 
@@ -1139,7 +1139,7 @@ float EstimateSmaTimeToState(struct P *p, int k)
 // and re-chooses.
 extern "C" void SetSmaMask(SMA *psma, int grfRoute)
 {
-    psma->grfRoute = grfRoute;
+    psma->routeFlags = grfRoute;
     if ((psma->pasegaCur != 0) && (psma->psmtCur->grfsmtBreak & grfRoute)) {
         AbortSmaTransition(psma);
         ChooseSmaTransition(psma, 0);

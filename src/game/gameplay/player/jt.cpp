@@ -1464,22 +1464,22 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
         else
             asega = jt->activeAnimation;
     }
-    if (asega->paseg == pxmg->paseg)
+    if (asega->animation == pxmg->paseg)
         return;
-    pxmg->paseg = asega->paseg;
+    pxmg->paseg = asega->animation;
     float tLocal = 0.0f;
-    EA *pea = PeaFindAsegLabel(asega->paseg, (OID)0x16A);
+    EA *pea = PeaFindAsegLabel(asega->animation, (OID)0x16A);
     if (pea != 0)
     {
-        tLocal = pea->tLocal;
+        tLocal = pea->time;
     }
     MATRIX4 matExtrem;
-    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->rootTransform, &matExtrem, 0);
+    PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->rootTransform, &matExtrem, 0);
     qword posExtrem = AddScaledVec(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
     MATRIX4 matHip;
-    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->rootTransform, &matHip, 0);
+    PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, (XF *)paloHip, jt->rootTransform, &matHip, 0);
     MATRIX4 matIkh;
-    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->reference) ->pxfGoal, jt->rootTransform, &matIkh, 0);
+    PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->reference) ->pxfGoal, jt->rootTransform, &matIkh, 0);
     qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->qwPosIkh);
     qword posSphereCenter = VuAdd(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
     pxmg->posSphere = posSphereCenter;
@@ -2266,8 +2266,8 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     {
                         float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
                         ASEGA *asega = jt->activeAnimation;
-                        if (asega->tLocal < tLabel)
-                            SeekAsega(asega, SEEK_Start, tLabel, asega->svt);
+                        if (asega->time < tLabel)
+                            SeekAsega(asega, SEEK_Start, tLabel, asega->speed);
                     }
                     break;
                 case JTS_Pounce:
@@ -3620,7 +3620,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Run:
             case JTS_Unk0A:
             case JTS_Gait2:
-                jt->uGait = jt->activeAnimation->tLocal / jt->activeAnimation->paseg->tMax;
+                jt->uGait = jt->activeAnimation->time / jt->activeAnimation->animation->duration;
                 break;
             case JTS_Pounce:
                 if (jt->activeAnimation != 0 && !FAsegaStopped(jt->activeAnimation))
@@ -3711,7 +3711,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Run:
                 aseg = ((GAIT *)jt->unk_0x1320)->blendedAnimation;
                 grfapl = 9;
-                tStart = jt->uGait * aseg->tMax;
+                tStart = jt->uGait * aseg->duration;
                 ClearGaitFootDown((GAIT *)jt->unk_0x1320);
                 break;
             case JTS_Interact:
@@ -3806,7 +3806,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Unk0A:
                 aseg = jt->pasegblUnk1bc0;
                 grfapl = 9;
-                tStart = jt->uGait * aseg->tMax;
+                tStart = jt->uGait * aseg->duration;
                 jt->unknown1038 = -1;
                 break;
             case JTS_Pickpocket:
@@ -3819,7 +3819,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Gait2:
                 aseg = ((GAIT *)jt->unk_0x1c30)->blendedAnimation;
                 grfapl = 9;
-                tStart = jt->uGait * aseg->tMax;
+                tStart = jt->uGait * aseg->duration;
                 ClearGaitFootDown((GAIT *)jt->unk_0x1c30);
                 break;
             case JTS_Pounce:
@@ -3844,7 +3844,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     float tLabel = TFindAsegLabel(aseg, (OID)0x173);
                     MATRIX4 matHand;
                     PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->psoUnk19a4->rootTransform, jt->rootTransform, &matHand, 0);
-                    tLabel /= aseg->svtMaster;
+                    tLabel /= aseg->masterSpeed;
                     qword posHold = PosLoWorld(jt->interactTarget);
                     qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->interactTarget->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
                     *(qword *)&jt->vUnk190 = DivVec(VuSub(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
@@ -3926,7 +3926,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTBS_2:
             {
                 ASEG *pasegHang = jt->pasegHang;
-                if (jt->activeAnimation != 0 && jt->activeAnimation->paseg == pasegHang)
+                if (jt->activeAnimation != 0 && jt->activeAnimation->animation == pasegHang)
                 {
                     fKeep = 1;
                 }
@@ -3934,7 +3934,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 {
                     aseg = pasegHang;
                     svt = 0.0f;
-                    tStart = aseg->tMax * 0.5f;
+                    tStart = aseg->duration * 0.5f;
                 }
             }
             break;

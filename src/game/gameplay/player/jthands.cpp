@@ -273,7 +273,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
         MinimizeRange((float (*)(void *, float))EvaluateJtHandsCurveA, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
         GetClosestPointOnJtHandsCurveA(hands, w.stage.late.context.pos, &w.projection, 0, w.t);
     }
-    SeekAsega(*hands->ppasega, 0, w.t * hands->blendedAnimation->tMax, 0.0f);
+    SeekAsega(*hands->ppasega, 0, w.t * hands->blendedAnimation->duration, 0.0f);
     hands->abl[1].weight = w.projection;
     hands->abl[0].weight = 1.0f - w.projection;
     RecalculateAsegBlend(hands->blendedAnimation);
@@ -376,7 +376,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
             {
                 MATRIX4 matOut;
                 float u = (float)k / (float)(D_002C1ED0 - 1);
-                PredictAsegEffect(u * aseg->tMax, aseg, hands->owner, 0.0f, pxfEffect, hands->owner->rootTransform, &matOut, 0);
+                PredictAsegEffect(u * aseg->duration, aseg, hands->owner, 0.0f, pxfEffect, hands->owner->rootTransform, &matOut, 0);
                 shape->vertexParams[k] = u;
                 qword pos = TransformPos(&matOut, *(qword *)matSample.mat[3]);
                 shape->vertexPositions[k] = *(VECTOR4 *)&pos;
@@ -510,8 +510,8 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
     ReleaseAct(&p->pactHold);
     ReleaseAct(&p->pactTurn);
     ASEGA *anim = ((JTV *)p->owner)->pasegaCur;
-    ASEG *motion = anim->paseg;
-    float time = GetAsegLabelTime(motion, 0x1C7), phase = (time - anim->tLocal) / anim->svt;
+    ASEG *motion = anim->animation;
+    float time = GetAsegLabelTime(motion, 0x1C7), phase = (time - anim->time) / anim->speed;
     XF *space = SourceMatrix(p->ploHand, &work.original);
     register M4 *workingBase __asm__("$19") = &work.sample;
     PredictAsegTransform(motion, time, zero, p->owner, space, p->owner->rootTransform, SampleOutput(workingBase), 0);

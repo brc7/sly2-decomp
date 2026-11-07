@@ -152,7 +152,7 @@ extern "C" void ResetRobottankHealth(ROBOTTANKV *tank)
     UpdateRobottankHealthMeter(tank);
     psma = tank->psma;
     if (psma != 0) {
-        SeekSma(psma, psma->psm->asms->oid);
+        SeekSma(psma, psma->stateMachine->asms->oid);
     }
     SetRobottankState(tank, 0);
 }

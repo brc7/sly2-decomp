@@ -127,7 +127,7 @@ extern "C" void InitAseg(ASEG *segment)
     InitLo(segment);
     InitDl(&segment->dlAsega, 0x2C);
     pclq = &segment->clqMasterSuck;     /* the per-file stores go through this pointer (target: addiu v0, s0, 0x80) */
-    segment->svtMaster = 1.0f;
+    segment->masterSpeed = 1.0f;
     segment->clqMasterSuck.g0 = 1.0f;
     *(int *)&pclq->g1 = 0;
     *(int *)&pclq->g2 = 0;
@@ -140,7 +140,7 @@ extern "C" void InitAseg(ASEG *segment)
 // scale and float values), its labels, and its start, per-frame and end event lists.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
- px->tMax = F32Read__18CBinaryInputStream(stream);
+ px->duration = F32Read__18CBinaryInputStream(stream);
  px->cchn = S16Read__18CBinaryInputStream(stream);
  req.cbAlign = 0x10; req.cb = px->cchn * 8;
  px->achn = (CHN *)AllocFromWorldHeap(&req);
@@ -182,22 +182,22 @@ void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime,
  *pa = aent;
  for (i = 0; i < c; i++) {
    EA *pe = &aent[i];
-   pe->eak = (EAK)S8Read__18CBinaryInputStream(stream);
-   if (fTime) pe->tLocal = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
-   switch (pe->eak) {
+   pe->kind = (EAK)S8Read__18CBinaryInputStream(stream);
+   if (fTime) pe->time = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
+   switch (pe->kind) {
    case 0: { AREQV req; L0 l; l.n = S16Read__18CBinaryInputStream(stream); l.a = S32Read__18CBinaryInputStream(stream); l.b = S32Read__18CBinaryInputStream(stream); l.c = S32Read__18CBinaryInputStream(stream);
        l.z = F32Read__18CBinaryInputStream(stream); l.x = F32Read__18CBinaryInputStream(stream); l.y = F32Read__18CBinaryInputStream(stream);
        req.cb = 0x1C; req.cbAlign = 0x10; pe->pesnd = (EASND *)AllocCopyFromWorldHeap(&req, &l); break; }
-   case 3: pe->gC = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->n8 = S16Read__18CBinaryInputStream(stream); break;
-   case 5: pe->g8 = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->gC = F32Read__18CBinaryInputStream(stream); break;
-   case 7: case 8: pe->n8 = S32Read__18CBinaryInputStream(stream); pe->gC = F32Read__18CBinaryInputStream(stream); break;
-   case 13: case 14: case 15: case 16: pe->n8 = S32Read__18CBinaryInputStream(stream); pe->nC = S32Read__18CBinaryInputStream(stream); break;
+   case 3: pe->floatArg2 = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->intArg = S16Read__18CBinaryInputStream(stream); break;
+   case 5: pe->floatArg = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->floatArg2 = F32Read__18CBinaryInputStream(stream); break;
+   case 7: case 8: pe->intArg = S32Read__18CBinaryInputStream(stream); pe->floatArg2 = F32Read__18CBinaryInputStream(stream); break;
+   case 13: case 14: case 15: case 16: pe->intArg = S32Read__18CBinaryInputStream(stream); pe->intArg2 = S32Read__18CBinaryInputStream(stream); break;
    case 17: { pe->pea17 = (EA17 *)AllocWorldHeapBlock(0x10);
        ((int *)pe->pea17)[0] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[1] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[2] = S32Read__18CBinaryInputStream(stream); ((float *)pe->pea17)[3] = F32Read__18CBinaryInputStream(stream); break; }
    case 20: { L20 t; AREQV req; AREQV *preq; t.a = S32Read__18CBinaryInputStream(stream); t.b = S32Read__18CBinaryInputStream(stream); t.g = F32Read__18CBinaryInputStream(stream);
        preq = &req; req.cb = 0xC; preq->cbAlign = 0x10; pe->pea20 = (EA20 *)AllocCopyFromWorldHeap(preq, &t); break; }
-   case 1: case 2: case 21: pe->n8 = S16Read__18CBinaryInputStream(stream); break;
-   case 4: case 11: case 12: case 22: pe->n8 = S32Read__18CBinaryInputStream(stream); break;
+   case 1: case 2: case 21: pe->intArg = S16Read__18CBinaryInputStream(stream); break;
+   case 4: case 11: case 12: case 22: pe->intArg = S32Read__18CBinaryInputStream(stream); break;
    case 24: { AREQV req; char *p; req.cb = 0x18; req.cbAlign = 0x10; p = (char *)AllocFromWorldHeap(&req);
        ReadCb8__18CBinaryInputStreamPv(stream, p); ReadCb8__18CBinaryInputStreamPv(stream, p + 8); ReadCb8__18CBinaryInputStreamPv(stream, p + 0x10); pe->pea24 = (EA24 *)p; break; }
    }
@@ -207,7 +207,7 @@ void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime,
 // time, speed and flags recorded by SetAsegAutoStart.
 extern "C" void PostAsegLoadCallback(ASEG *segment, ASEGSTART *pasegstart)
 {
-    ApplyAseg(segment, 0, pasegstart->tLocal, pasegstart->svtLocal, pasegstart->grfapl, 0);
+    ApplyAseg(segment, 0, pasegstart->startTime, pasegstart->svtLocal, pasegstart->grfapl, 0);
 }
 
 // After-load hook (slot 15): base PostLoLoad, then, if the segment has an auto-start record, posts PostAsegLoadCallback
@@ -227,7 +227,7 @@ EA *FindAsegLabel(ASEG *segment, int n)
     EA *label;
     for (i = 0; i < segment->ceaFrame; i++) {
         label = &segment->aeaFrame[i];
-        if ((label->eak == 0xB) & (label->n8 == n))
+        if ((label->kind == 0xB) & (label->intArg == n))
             return label;
     }
     return 0;
@@ -241,7 +241,7 @@ extern "C" float GetAsegLabelTime(ASEG *segment, int n)
     label = FindAsegLabel(segment, n);
     g = 0.0f;
     if (label != 0) {
-        g = label->tLocal;
+        g = label->time;
     }
     return g;
 }
@@ -263,12 +263,12 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     p->scriptFrame.m_p = 0;
     p->scriptVariables.m_p = 0;
     PVT(p) = D_002CAF48;
-    p->psnd.m_p = 0;
-    p->paseg = pt;
-    p->paloRoot = x;
-    p->tLocal = g0;
+    p->sound.m_p = 0;
+    p->animation = pt;
+    p->rootObject = x;
+    p->time = g0;
     p->grfapl = grf;
-    p->svtMaster = pt->svtMaster;
+    p->masterSpeed = pt->masterSpeed;
     {
         p->svtSuck = Clamp(EvaluateQuadratic(&pt->clqMasterSuck, GetDifficulty(D_002DE578)), pt->lmMasterSuck.minValue, pt->lmMasterSuck.maxValue);
     }
@@ -297,7 +297,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
                     pn->curve = pe->n4;
                 pn->plo = a;
                 pn->pv = b;
-                pn->priority = pt->nPriority;
+                pn->priority = pt->priority;
                 pn->role = (grf & 1) ? 7 : 5;
                 pn->pasega = p;
                 pn->pactsegNext = p->pactsegFirst;
@@ -324,13 +324,13 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         }
     }
     SetAsegaHandsOff(p, pt->nWorldHold);
-    p->tPrev = g0;
+    p->prevTime = g0;
     for (k = 0; k < pt->ceaStart; k++)
         HandleAsegaEvent(p, &pt->aeaStart[k]);
-    p->tLocal = p->tPrev;
+    p->time = p->prevTime;
     EvaluateXfSlotValue(p, (grf >> 2) & 1);
     if (grf & 2) {
-        if (p->svt < 0.0f)
+        if (p->speed < 0.0f)
             p->iea = pt->ceaFrame;
         HandleAsegaEventsFastForward(p);
     } else {
@@ -348,7 +348,7 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
     req.cbAlign = 0x10;
     p = (ASEGSTART *)AllocFromWorldHeap(&req);
     segment->pasegstart = p;
-    p->tLocal = t;
+    p->startTime = t;
     p->svtLocal = svt;
     p->grfapl = applyFlags;
 }
@@ -473,14 +473,14 @@ extern "C" ASEGA *ApplyAsegToObject(ASEG *segment, ALO *palo, int grf, float t, 
     return player;
 }
 
-// Walks paseg->dlAsega (ASEG+0x50) through ASEGA::dleAseg (+0x2C) looking for the ASEGA bound to palo (ASEGA::paloRoot, +0x18).
+// Walks paseg->dlAsega (ASEG+0x50) through ASEGA::dleAseg (+0x2C) looking for the ASEGA bound to palo (ASEGA::rootObject, +0x18).
 // Returns the segment's player that is bound to the given root object, or 0. (Sly 1-derived name: PasegaFindAseg.)
 ASEGA *FindAsegPlayerForObject(ASEG *segment, ALO *palo)
 {
     DLI dli;            /* unused, but it keeps the 16-byte frame of the target (an inlined iterator's slot) */
     ASEGA *p;
     for (p = (ASEGA *)segment->dlAsega.head; p; p = (ASEGA *)p->dleAseg.next)
-        if (p->paloRoot == palo) return p;
+        if (p->rootObject == palo) return p;
     return 0;
 }
 
@@ -533,7 +533,7 @@ extern "C" void SetAsegMasterSpeed(ASEG *p, float g) {
     DLI dli;            /* unused; keeps the target's frame size */
     ASEGA *pa;
     for (pa = (ASEGA *)p->dlAsega.head; pa; pa = (ASEGA *)pa->dleAseg.next) SetAsegaMasterSpeed(pa, g);
-    p->svtMaster = g;
+    p->masterSpeed = g;
 }
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
