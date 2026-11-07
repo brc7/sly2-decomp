@@ -241,7 +241,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
-static inline void *PvNextDli(DLI *pdli)
+static inline void *NextListEntry(DLI *pdli)
 {
     void *pv = *pdli->ppv;
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
@@ -260,7 +260,7 @@ void ResetScreens(DL *pdl)
     DLI dli;
     LO *plo;
     InitDli(&dli, pdl);
-    while ((plo = (LO *)PvNextDli(&dli)) != 0)
+    while ((plo = (LO *)NextListEntry(&dli)) != 0)
         plo->vt->a[11].pfn((char *)plo + plo->vt->a[11].d);
     D_002DD318 = 0;
     ResetHudMeter(D_003D9E80);
