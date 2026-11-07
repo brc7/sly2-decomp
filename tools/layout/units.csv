@@ -1476,7 +1476,7 @@ StaticInit_empty_131F70,0x131F70,empty_131F70
 func_001320A8,0x1320A8,empty_131F70
 InitBarrier,0x1320C8,barrier
 PostBarrierLoad,0x132100,barrier
-FIgnoreBarrierIntersection,0x132140,barrier
+ShouldBarrierIgnoreIntersection,0x132140,barrier
 NotifyBarrierImpact,0x132238,barrier
 SendBarrierImpactMessages,0x132298,barrier
 AddBarrierObject__FP7BARRIER3OID,0x1323C8,barrier
@@ -1631,7 +1631,7 @@ AddBombCustomXps,0x13ADE8,bomb
 HandleBombContact,0x13AEB0,bomb
 IsBombChainFreeOfExcludedClasses,0x13B1C8,bomb
 ApplyBombThrow,0x13B250,bomb
-FAbsorbBombWkr,0x13B2F0,bomb
+TakeBombDamage,0x13B2F0,bomb
 PrepareBombDetonation,0x13B428,bomb
 PrimeBomb__FP4BOMBf,0x13B5C8,bomb
 CollectBombVictims,0x13B5E8,bomb
@@ -1639,7 +1639,7 @@ CompareBombVictims,0x13B7A0,bomb
 SortUniqueBombVictims,0x13B7B8,bomb
 DetonateBomb,0x13B860,bomb
 ResetBomb,0x13BB80,bomb
-FIgnoreBombIntersection,0x13BBF8,bomb
+ShouldBombIgnoreIntersection,0x13BBF8,bomb
 SetBombOwner,0x13BC60,bomb
 StaticInit_bomb,0x13BC98,bomb
 func_0013BDD0,0x13BDD0,bomb
@@ -1650,12 +1650,12 @@ ClearBootyState,0x13BF30,booty
 UpdateBooty,0x13BF50,booty
 RenderBootySelf,0x13C000,booty
 HandleBootyMessage,0x13C1B8,booty
-FIgnoreBootyIntersection,0x13C278,booty
+ShouldBootyIgnoreIntersection,0x13C278,booty
 AdjustBootyNewXp,0x13C2D8,booty
 TakeBootyDamage,0x13C368,booty
 AddBootyEntry,0x13C3B8,booty
 ClearCurrentBootyEntry,0x13C440,booty
-AddAlarmAlbrk__FP5ALARM3OID,0x13C448,booty
+AddBootyEntryObject__FP5ALARM3OID,0x13C448,booty
 GetCurrentBootyEntryId,0x13C478,booty
 SelectBootyEntry,0x13C490,booty
 GetCurrentBootyEntry,0x13C4D8,booty
@@ -1884,7 +1884,7 @@ LoadButtonFromBrx,0x148C08,button
 PostButtonLoad,0x148C38,button
 CloneButton,0x148C70,button
 UpdateButton,0x148C98,button
-FAbsorbButtonWkr,0x148F20,button
+TakeButtonDamage,0x148F20,button
 UpdateButtonPlayerPush,0x149010,button
 SetButtonButtons,0x1490A0,button
 TriggerButton,0x1490C0,button
@@ -1959,8 +1959,8 @@ FCdCompleted__Fi,0x14BD30,cd
 StaticInit_cd,0x14BD50,cd
 func_0014BE88,0x14BE88,cd
 AddCode,0x14BEA8,cheat
-_ResetCodes,0x14BF18,cheat
-_MatchCodes,0x14BF48,cheat
+ResetCheatCodeProgress,0x14BF18,cheat
+MatchCheatCodePress,0x14BF48,cheat
 UpdateCodes,0x14BFF8,cheat
 CheatWipeToWarp,0x14C140,cheat
 CheatWarpToEpisode,0x14C190,cheat
@@ -2106,8 +2106,8 @@ ApplyDancerAseg,0x1524A0,rhythm
 AddDancerMove,0x1524D8,rhythm
 FindDancerMoveObject,0x152520,rhythm
 BindDancerMoves,0x152578,rhythm
-GradeIndexFromOid,0x152628,rhythm
-OidFromGradeIndex,0x152680,rhythm
+GetGradeIndexForOid,0x152628,rhythm
+GetGradeOidForIndex,0x152680,rhythm
 InitRhythmMgr,0x1526D8,rhythm
 PostRhythmManagerLoad,0x1527C8,rhythm
 BindRhythmManagerGrades,0x152810,rhythm
@@ -2119,7 +2119,7 @@ SetRhythmManagerPrompts,0x1531A8,rhythm
 PushRhythmManagerCue,0x1532D8,rhythm
 JudgeRhythmPress,0x1533B0,rhythm
 GetRhythmTimingScore,0x1535A0,rhythm
-PassThroughFloat,0x153638,rhythm
+AdjustRhythmScore,0x153638,rhythm
 AddRhythmScore,0x153640,rhythm
 GetAverageRhythmScore,0x153760,rhythm
 ResetRhythmScore,0x153800,rhythm
@@ -2847,7 +2847,7 @@ SetHackshipEntry,0x1800D8,tu_17F090
 UpdateHackshipHealthBar,0x180100,tu_17F090
 InitHackbullet,0x180188,tu_17F090
 UpdateHackbullet,0x1801B8,tu_17F090
-FIgnoreHackbulletIntersection,0x1803A8,tu_17F090
+ShouldHackbulletIgnoreIntersection,0x1803A8,tu_17F090
 AdjustHackbulletNewXp,0x1803E0,tu_17F090
 SetHackbulletMode,0x180478,tu_17F090
 InitHackenemy,0x180500,tu_17F090
@@ -2863,7 +2863,7 @@ ResetHackenemy,0x181238,tu_17F090
 SetHackenemyState,0x181268,tu_17F090
 SetHackenemyEntry,0x181308,tu_17F090
 SetHackenemyEntryVectors,0x181330,tu_17F090
-SetHackenemyEntryVectors2,0x181378,tu_17F090
+SetHackenemyEntrySecondVectors,0x181378,tu_17F090
 SetHackenemyScale,0x1813C0,tu_17F090
 SetHackenemyRange,0x1813F0,tu_17F090
 InitHacklock,0x181408,tu_17F090
@@ -3575,7 +3575,7 @@ LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream,0x1B1E00,missile
 OnMissileRemove__FP7MISSILE,0x1B1E38,missile
 FireMissile,0x1B1E88,missile
 ApplyMissileThrow,0x1B1F10,missile
-FIgnoreMissileIntersection__FP7MISSILEP2SO,0x1B1F40,missile
+ShouldMissileIgnoreIntersection__FP7MISSILEP2SO,0x1B1F40,missile
 AddMissileSpecialObject,0x1B2020,missile
 AddMissileSpecialClass,0x1B2048,missile
 InitAccmiss__FP7ACCMISS,0x1B2070,missile
@@ -3905,7 +3905,7 @@ LoadDprizeFromBrx,0x1C4EF8,prize
 PostDprizeLoad,0x1C4F60,prize
 HandleDprizeMessage,0x1C5098,prize
 ProjectDprizeTransform,0x1C5148,prize
-FFilterDprizeObjects,0x1C5570,prize
+IsDprizeCollisionCandidate,0x1C5570,prize
 CheckDprizeBounce,0x1C55E0,prize
 TryCollectDprize,0x1C5B20,prize
 CheckDprizeCollect,0x1C5D18,prize
@@ -4320,7 +4320,7 @@ StaticInit_screen,0x1DE008,screen
 func_001DE260,0x1DE260,screen
 func_001DE280,0x1DE280,screen
 InitSensor,0x1DE2A0,sensor
-FIgnoreSensorIntersection,0x1DE2D8,sensor
+ShouldSensorIgnoreIntersection,0x1DE2D8,sensor
 AddSensorNoTriggerClass,0x1DE3B0,sensor
 AddSensorNoTriggerObject,0x1DE3D8,sensor
 InitLasen,0x1DE400,sensor
@@ -5621,7 +5621,7 @@ UpdateTossable,0x2240B0,tu_223F70
 TakeTossableDamage,0x224190,tu_223F70
 HandleTossableMessage,0x2241D8,tu_223F70
 StickTossable,0x224258,tu_223F70
-FIgnoreTossableIntersection,0x2242E0,tu_223F70
+ShouldTossableIgnoreIntersection,0x2242E0,tu_223F70
 AdjustTossableNewXp,0x224350,tu_223F70
 UpdateTossableContacts,0x224380,tu_223F70
 IsTossableChainFree,0x224508,tu_223F70

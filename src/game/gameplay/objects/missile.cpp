@@ -46,8 +46,8 @@ struct BOMB : public SO
     virtual void VUnk25(LO *plo) __asm__("ResetBomb");   /* slot 26 */
     virtual void VUnk57() __asm__("HandleBombContact");   /* slot 58 */
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBombIntersection");   /* slot 61 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("FAbsorbBombWkr");   /* slot 75 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
     virtual void VSlot76() __asm__("CloneBomb");   /* slot 76 */
     virtual void VSlot77() __asm__("ApplyBombThrow");   /* slot 77 */
 };
@@ -70,7 +70,7 @@ struct MISSILE : public BOMB
     virtual CLASSINFO *Pclassinfo() __asm__("GetMissileClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreMissileIntersection__FP7MISSILEP2SO");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
     virtual void VSlot77() __asm__("ApplyMissileThrow");   /* slot 77 */
     virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
 };
@@ -127,7 +127,7 @@ void RemoveSoHierarchy(SO *pso);
 void ReleaseAct(ACT **ppact);
 ACT *NewPathAct(MISSILE *pmissile, XF *pxf, int a, int b, float g0, float g1);
 void ApplyBombThrow(BOMB *pbomb);
-int FIgnoreBombIntersection(BOMB *pbomb, SO *pso);
+int ShouldBombIgnoreIntersection(BOMB *pbomb, SO *pso);
 int MaxInt(int r, int n);
 void FireMissile(MISSILE *pmissile, LO *targetObject, V *ppos);
 V GetMissileTargetPosition(MISSILE *pmissile, float g);
@@ -195,10 +195,10 @@ extern "C" void ApplyMissileThrow(MISSILE *missile)
 
 // MISSILE vtable slot 61 (FIgnoreIntersection): the BOMB answer, plus bit 1 (func_00134310) for objects in the
 // ignore lists (by oid or class).
-int FIgnoreMissileIntersection(MISSILE *missile, SO *pso)
+int ShouldMissileIgnoreIntersection(MISSILE *missile, SO *pso)
 {
     int i, j;
-    int r = FIgnoreBombIntersection(missile, pso);
+    int r = ShouldBombIgnoreIntersection(missile, pso);
     for (i = 0; i < missile->numIgnoredObjects; i++)
         if (missile->ignoredObjects[i] == pso->oid) r = MaxInt(r, 1);
     for (j = 0; j < missile->numIgnoredClasses; j++)
@@ -206,13 +206,13 @@ int FIgnoreMissileIntersection(MISSILE *missile, SO *pso)
     return r;
 }
 
-// Splice setter: adds an object name to the missile's ignore list (at most four), see FIgnoreMissileIntersection.
+// Splice setter: adds an object name to the missile's ignore list (at most four), see ShouldMissileIgnoreIntersection.
 extern "C" void AddMissileSpecialObject(MISSILE *missile, OID oid)
 {
     if ((unsigned int)missile->numIgnoredObjects < 4) missile->ignoredObjects[missile->numIgnoredObjects++] = oid;
 }
 
-// Splice setter: adds a class to the missile's ignore list (at most four), see FIgnoreMissileIntersection.
+// Splice setter: adds a class to the missile's ignore list (at most four), see ShouldMissileIgnoreIntersection.
 extern "C" void AddMissileSpecialClass(MISSILE *missile, CID cid)
 {
     if ((unsigned int)missile->numIgnoredClasses < 4) missile->ignoredClasses[missile->numIgnoredClasses++] = cid;

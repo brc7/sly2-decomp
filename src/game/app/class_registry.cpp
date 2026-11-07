@@ -2893,7 +2893,7 @@ extern "C" CRef func_0010FF18(void *p, int c, void *aref)
     return ref;
 }
 
-extern "C" void SetHackenemyEntryVectors2(void *p, int, void *, void *);
+extern "C" void SetHackenemyEntrySecondVectors(void *p, int, void *, void *);
 /** @sly2-annot addr=0x10FFE8
  * Purpose: Splice option thunk: optid 1183 on CID73 (g_aeopid[1381] thunkFn/thunkUser, returns Void, crefReq
  *   3); unpacks 3 args (0x105F, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetCid73EntryVectors2
@@ -2916,7 +2916,7 @@ extern "C" CRef func_0010FFE8(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    SetHackenemyEntryVectors2(p, v0, &v1, &v2);
+    SetHackenemyEntrySecondVectors(p, v0, &v1, &v2);
     return ref;
 }
 

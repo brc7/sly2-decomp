@@ -1,7 +1,7 @@
 // booty.cpp -- BOOTY (CID 0x67), the carried booty object (docs/engine/game-progression.md section 5): entry table,
 // states (idle, in container, transfer, carried, dropped and returning, marker), rendering, and its container
 // CID37 (CID 0x25) with the saved container kind. Entry points: the BOOTY and CID37 vtables, the Splice setters
-// (AddBootyEntry, AddAlarmAlbrk, SetBootyContainerKind) and the world callbacks ReturnDroppedBooty /
+// (AddBootyEntry, AddBootyEntryObject, SetBootyContainerKind) and the world callbacks ReturnDroppedBooty /
 // SpawnBootyInContainer. TU 0x13BDF0..0x13D558 (28 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_booty
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013D538
@@ -59,7 +59,7 @@ struct BOOTYV
     float tState;           /* 0x188 time of the last state change */
     MATCH *pmatch;          /* 0x18C */
 };
-/* AddAlarmAlbrk's symbol names the class ALARM (cid_table's old name for BOOTY). */
+/* AddBootyEntryObject's symbol names the class ALARM (cid_table's old name for BOOTY). */
 struct ALARM : BOOTYV { };
 
 /* The container (CID 0x25): a pickup-like object holding at most one booty. */
@@ -301,7 +301,7 @@ extern "C" void HandleBootyMessage(BOOTYV *booty, int msg, MATCH *a) {
 struct XPO { BASIC *pbasic; };
 struct XPM { char pad[0x14]; XPO *pa; };
 // BOOTY (cid 0x67) vtable slot 61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
-extern "C" int FIgnoreBootyIntersection(BOOTYV *booty, XPM *pm) {
+extern "C" int ShouldBootyIgnoreIntersection(BOOTYV *booty, XPM *pm) {
     if (booty->st == 5 && FIsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
     return ShouldSoIgnoreIntersection(booty, pm);
 }
@@ -347,7 +347,7 @@ void ClearCurrentBootyEntry(BOOTYV *booty) {
 
 // Splice setter: adds an object name (at most three) to the current booty entry; the symbol still carries Sly 1's
 // ALARM class name (BOOTY's old label), so it cannot be renamed by rename.py yet.
-void AddAlarmAlbrk(ALARM *booty, OID oid)
+void AddBootyEntryObject(ALARM *booty, OID oid)
 {
     BOOTYE *entry = booty->pbootyeCur;
     if (entry->c1C < 3) entry->aoid[entry->c1C++] = oid;

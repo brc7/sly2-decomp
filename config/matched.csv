@@ -1467,7 +1467,7 @@ StaticInit_empty_131F70,0x131F70,77,match,src/game/engine/anim/empty_131F70.cpp
 func_001320A8,0x1320A8,8,match,src/game/engine/anim/empty_131F70.cpp
 InitBarrier,0x1320C8,14,match,src/game/gameplay/objects/barrier.cpp
 PostBarrierLoad,0x132100,15,match,src/game/gameplay/objects/barrier.cpp
-FIgnoreBarrierIntersection,0x132140,61,match,src/game/gameplay/objects/barrier.cpp
+ShouldBarrierIgnoreIntersection,0x132140,61,match,src/game/gameplay/objects/barrier.cpp
 NotifyBarrierImpact,0x132238,23,match,src/game/gameplay/objects/barrier.cpp
 SendBarrierImpactMessages,0x132298,75,match,src/game/gameplay/objects/barrier.cpp
 AddBarrierObject__FP7BARRIER3OID,0x1323C8,10,match,src/game/gameplay/objects/barrier.cpp
@@ -1622,7 +1622,7 @@ AddBombCustomXps,0x13ADE8,49,match,src/game/gameplay/objects/bomb.cpp
 HandleBombContact,0x13AEB0,197,match,src/game/gameplay/objects/bomb.cpp
 IsBombChainFreeOfExcludedClasses,0x13B1C8,34,match,src/game/gameplay/objects/bomb.cpp
 ApplyBombThrow,0x13B250,40,match,src/game/gameplay/objects/bomb.cpp
-FAbsorbBombWkr,0x13B2F0,77,match,src/game/gameplay/objects/bomb.cpp
+TakeBombDamage,0x13B2F0,77,match,src/game/gameplay/objects/bomb.cpp
 PrepareBombDetonation,0x13B428,103,match,src/game/gameplay/objects/bomb.cpp
 PrimeBomb__FP4BOMBf,0x13B5C8,7,match,src/game/gameplay/objects/bomb.cpp
 CollectBombVictims,0x13B5E8,110,match,src/game/gameplay/objects/bomb.cpp
@@ -1630,7 +1630,7 @@ CompareBombVictims,0x13B7A0,6,match,src/game/gameplay/objects/bomb.cpp
 SortUniqueBombVictims,0x13B7B8,42,match,src/game/gameplay/objects/bomb.cpp
 DetonateBomb,0x13B860,200,match,src/game/gameplay/objects/bomb.cpp
 ResetBomb,0x13BB80,30,match,src/game/gameplay/objects/bomb.cpp
-FIgnoreBombIntersection,0x13BBF8,25,match,src/game/gameplay/objects/bomb.cpp
+ShouldBombIgnoreIntersection,0x13BBF8,25,match,src/game/gameplay/objects/bomb.cpp
 SetBombOwner,0x13BC60,13,match,src/game/gameplay/objects/bomb.cpp
 StaticInit_bomb,0x13BC98,77,match,src/game/gameplay/objects/bomb.cpp
 func_0013BDD0,0x13BDD0,8,match,src/game/gameplay/objects/bomb.cpp
@@ -1641,12 +1641,12 @@ ClearBootyState,0x13BF30,7,match,src/game/gameplay/progression/booty.cpp
 UpdateBooty,0x13BF50,43,match,src/game/gameplay/progression/booty.cpp
 RenderBootySelf,0x13C000,109,match,src/game/gameplay/progression/booty.cpp
 HandleBootyMessage,0x13C1B8,48,match,src/game/gameplay/progression/booty.cpp
-FIgnoreBootyIntersection,0x13C278,23,match,src/game/gameplay/progression/booty.cpp
+ShouldBootyIgnoreIntersection,0x13C278,23,match,src/game/gameplay/progression/booty.cpp
 AdjustBootyNewXp,0x13C2D8,36,match,src/game/gameplay/progression/booty.cpp
 TakeBootyDamage,0x13C368,19,match,src/game/gameplay/progression/booty.cpp
 AddBootyEntry,0x13C3B8,34,match,src/game/gameplay/progression/booty.cpp
 ClearCurrentBootyEntry,0x13C440,2,match,src/game/gameplay/progression/booty.cpp
-AddAlarmAlbrk__FP5ALARM3OID,0x13C448,11,match,src/game/gameplay/progression/booty.cpp
+AddBootyEntryObject__FP5ALARM3OID,0x13C448,11,match,src/game/gameplay/progression/booty.cpp
 GetCurrentBootyEntryId,0x13C478,6,match,src/game/gameplay/progression/booty.cpp
 SelectBootyEntry,0x13C490,17,match,src/game/gameplay/progression/booty.cpp
 GetCurrentBootyEntry,0x13C4D8,2,match,src/game/gameplay/progression/booty.cpp
@@ -1875,7 +1875,7 @@ LoadButtonFromBrx,0x148C08,12,match,src/game/gameplay/objects/button.cpp
 PostButtonLoad,0x148C38,14,match,src/game/gameplay/objects/button.cpp
 CloneButton,0x148C70,10,match,src/game/gameplay/objects/button.cpp
 UpdateButton,0x148C98,161,match,src/game/gameplay/objects/button.cpp
-FAbsorbButtonWkr,0x148F20,60,match,src/game/gameplay/objects/button.cpp
+TakeButtonDamage,0x148F20,60,match,src/game/gameplay/objects/button.cpp
 UpdateButtonPlayerPush,0x149010,36,match,src/game/gameplay/objects/button.cpp
 SetButtonButtons,0x1490A0,7,match,src/game/gameplay/objects/button.cpp
 TriggerButton,0x1490C0,7,match,src/game/gameplay/objects/button.cpp
@@ -1950,8 +1950,8 @@ FCdCompleted__Fi,0x14BD30,8,match,src/game/platform/cdvd/cd.cpp
 StaticInit_cd,0x14BD50,77,match,src/game/platform/cdvd/cd.cpp
 func_0014BE88,0x14BE88,8,match,src/game/platform/cdvd/cd.cpp
 AddCode,0x14BEA8,25,match,src/game/gameplay/progression/cheat.cpp
-_ResetCodes,0x14BF18,12,match,src/game/gameplay/progression/cheat.cpp
-_MatchCodes,0x14BF48,44,match,src/game/gameplay/progression/cheat.cpp
+ResetCheatCodeProgress,0x14BF18,12,match,src/game/gameplay/progression/cheat.cpp
+MatchCheatCodePress,0x14BF48,44,match,src/game/gameplay/progression/cheat.cpp
 UpdateCodes,0x14BFF8,82,match,src/game/gameplay/progression/cheat.cpp
 CheatWipeToWarp,0x14C140,20,match,src/game/gameplay/progression/cheat.cpp
 CheatWarpToEpisode,0x14C190,19,match,src/game/gameplay/progression/cheat.cpp
@@ -2097,8 +2097,8 @@ ApplyDancerAseg,0x1524A0,14,match,src/game/gameplay/objects/rhythm.cpp
 AddDancerMove,0x1524D8,18,match,src/game/gameplay/objects/rhythm.cpp
 FindDancerMoveObject,0x152520,22,match,src/game/gameplay/objects/rhythm.cpp
 BindDancerMoves,0x152578,43,match,src/game/gameplay/objects/rhythm.cpp
-GradeIndexFromOid,0x152628,22,match,src/game/gameplay/objects/rhythm.cpp
-OidFromGradeIndex,0x152680,21,match,src/game/gameplay/objects/rhythm.cpp
+GetGradeIndexForOid,0x152628,22,match,src/game/gameplay/objects/rhythm.cpp
+GetGradeOidForIndex,0x152680,21,match,src/game/gameplay/objects/rhythm.cpp
 InitRhythmMgr,0x1526D8,60,match,src/game/gameplay/objects/rhythm.cpp
 PostRhythmManagerLoad,0x1527C8,17,match,src/game/gameplay/objects/rhythm.cpp
 BindRhythmManagerGrades,0x152810,88,match,src/game/gameplay/objects/rhythm.cpp
@@ -2110,7 +2110,7 @@ SetRhythmManagerPrompts,0x1531A8,76,match,src/game/gameplay/objects/rhythm.cpp
 PushRhythmManagerCue,0x1532D8,53,match,src/game/gameplay/objects/rhythm.cpp
 JudgeRhythmPress,0x1533B0,123,match,src/game/gameplay/objects/rhythm.cpp
 GetRhythmTimingScore,0x1535A0,38,match,src/game/gameplay/objects/rhythm.cpp
-PassThroughFloat,0x153638,2,match,src/game/gameplay/objects/rhythm.cpp
+AdjustRhythmScore,0x153638,2,match,src/game/gameplay/objects/rhythm.cpp
 AddRhythmScore,0x153640,71,match,src/game/gameplay/objects/rhythm.cpp
 GetAverageRhythmScore,0x153760,39,match,src/game/gameplay/objects/rhythm.cpp
 ResetRhythmScore,0x153800,4,match,src/game/gameplay/objects/rhythm.cpp
@@ -2836,7 +2836,7 @@ SetHackshipEntry,0x1800D8,9,match,src/game/gameplay/objects/tu_17F090.cpp
 UpdateHackshipHealthBar,0x180100,34,match,src/game/gameplay/objects/tu_17F090.cpp
 InitHackbullet,0x180188,11,match,src/game/gameplay/objects/tu_17F090.cpp
 UpdateHackbullet,0x1801B8,124,match,src/game/gameplay/objects/tu_17F090.cpp
-FIgnoreHackbulletIntersection,0x1803A8,14,match,src/game/gameplay/objects/tu_17F090.cpp
+ShouldHackbulletIgnoreIntersection,0x1803A8,14,match,src/game/gameplay/objects/tu_17F090.cpp
 AdjustHackbulletNewXp,0x1803E0,37,match,src/game/gameplay/objects/tu_17F090.cpp
 SetHackbulletMode,0x180478,33,match,src/game/gameplay/objects/tu_17F090.cpp
 InitHackenemy,0x180500,37,match,src/game/gameplay/objects/tu_17F090.cpp
@@ -2852,7 +2852,7 @@ ResetHackenemy,0x181238,12,match,src/game/gameplay/objects/tu_17F090.cpp
 SetHackenemyState,0x181268,40,match,src/game/gameplay/objects/tu_17F090.cpp
 SetHackenemyEntry,0x181308,9,match,src/game/gameplay/objects/tu_17F090.cpp
 SetHackenemyEntryVectors,0x181330,18,match,src/game/gameplay/objects/tu_17F090.cpp
-SetHackenemyEntryVectors2,0x181378,18,match,src/game/gameplay/objects/tu_17F090.cpp
+SetHackenemyEntrySecondVectors,0x181378,18,match,src/game/gameplay/objects/tu_17F090.cpp
 SetHackenemyScale,0x1813C0,11,match,src/game/gameplay/objects/tu_17F090.cpp
 SetHackenemyRange,0x1813F0,5,match,src/game/gameplay/objects/tu_17F090.cpp
 InitHacklock,0x181408,13,match,src/game/gameplay/objects/tu_17F090.cpp
@@ -3564,7 +3564,7 @@ LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream,0x1B1E00,14,match,src/game/g
 OnMissileRemove__FP7MISSILE,0x1B1E38,19,match,src/game/gameplay/objects/missile.cpp
 FireMissile,0x1B1E88,33,match,src/game/gameplay/objects/missile.cpp
 ApplyMissileThrow,0x1B1F10,11,match,src/game/gameplay/objects/missile.cpp
-FIgnoreMissileIntersection__FP7MISSILEP2SO,0x1B1F40,56,match,src/game/gameplay/objects/missile.cpp
+ShouldMissileIgnoreIntersection__FP7MISSILEP2SO,0x1B1F40,56,match,src/game/gameplay/objects/missile.cpp
 AddMissileSpecialObject,0x1B2020,10,match,src/game/gameplay/objects/missile.cpp
 AddMissileSpecialClass,0x1B2048,10,match,src/game/gameplay/objects/missile.cpp
 InitAccmiss__FP7ACCMISS,0x1B2070,17,match,src/game/gameplay/objects/missile.cpp
@@ -3894,7 +3894,7 @@ LoadDprizeFromBrx,0x1C4EF8,26,match,src/game/gameplay/progression/prize.cpp
 PostDprizeLoad,0x1C4F60,77,match,src/game/gameplay/progression/prize.cpp
 HandleDprizeMessage,0x1C5098,43,match,src/game/gameplay/progression/prize.cpp
 ProjectDprizeTransform,0x1C5148,265,match,src/game/gameplay/progression/prize.cpp
-FFilterDprizeObjects,0x1C5570,27,match,src/game/gameplay/progression/prize.cpp
+IsDprizeCollisionCandidate,0x1C5570,27,match,src/game/gameplay/progression/prize.cpp
 CheckDprizeBounce,0x1C55E0,336,match,src/game/gameplay/progression/prize.cpp
 TryCollectDprize,0x1C5B20,125,match,src/game/gameplay/progression/prize.cpp
 CheckDprizeCollect,0x1C5D18,54,match,src/game/gameplay/progression/prize.cpp
@@ -4309,7 +4309,7 @@ StaticInit_screen,0x1DE008,150,match,src/game/engine/presentation/screen.cpp
 func_001DE260,0x1DE260,8,match,src/game/engine/presentation/screen.cpp
 func_001DE280,0x1DE280,8,match,src/game/engine/presentation/screen.cpp
 InitSensor,0x1DE2A0,14,match,src/game/gameplay/objects/sensor.cpp
-FIgnoreSensorIntersection,0x1DE2D8,54,match,src/game/gameplay/objects/sensor.cpp
+ShouldSensorIgnoreIntersection,0x1DE2D8,54,match,src/game/gameplay/objects/sensor.cpp
 AddSensorNoTriggerClass,0x1DE3B0,10,match,src/game/gameplay/objects/sensor.cpp
 AddSensorNoTriggerObject,0x1DE3D8,10,match,src/game/gameplay/objects/sensor.cpp
 InitLasen,0x1DE400,29,match,src/game/gameplay/objects/sensor.cpp
@@ -5610,7 +5610,7 @@ UpdateTossable,0x2240B0,55,match,src/game/gameplay/objects/tu_223F70.cpp
 TakeTossableDamage,0x224190,18,match,src/game/gameplay/objects/tu_223F70.cpp
 HandleTossableMessage,0x2241D8,31,match,src/game/gameplay/objects/tu_223F70.cpp
 StickTossable,0x224258,33,match,src/game/gameplay/objects/tu_223F70.cpp
-FIgnoreTossableIntersection,0x2242E0,27,match,src/game/gameplay/objects/tu_223F70.cpp
+ShouldTossableIgnoreIntersection,0x2242E0,27,match,src/game/gameplay/objects/tu_223F70.cpp
 AdjustTossableNewXp,0x224350,12,match,src/game/gameplay/objects/tu_223F70.cpp
 UpdateTossableContacts,0x224380,98,match,src/game/gameplay/objects/tu_223F70.cpp
 IsTossableChainFree,0x224508,34,match,src/game/gameplay/objects/tu_223F70.cpp

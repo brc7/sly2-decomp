@@ -122,7 +122,7 @@ struct SENSOR : SO
     char pad150[0x190 - 0x150];
     virtual void Init() __asm__("InitSensor");   /* slot 7; key function (sensor.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSensorClassDesc");   /* slot 6 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreSensorIntersection");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldSensorIgnoreIntersection");   /* slot 61 */
 };
 typedef char assert_SENSOR_size[sizeof(SENSOR) == 0x190 ? 1 : -1];
 
@@ -218,7 +218,7 @@ struct BARRIER : SO
     virtual CLASSINFO *Pclassinfo() __asm__("GetBarrierClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("PostBarrierLoad");   /* slot 15 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("NotifyBarrierImpact");   /* slot 55 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBarrierIntersection");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrierIgnoreIntersection");   /* slot 61 */
 };
 typedef char assert_BARRIER_size[sizeof(BARRIER) == 0x180 ? 1 : -1];
 
@@ -249,8 +249,8 @@ struct BOMB : SO
     virtual void VUnk25(LO *plo) __asm__("ResetBomb");   /* slot 26 */
     virtual void VUnk57() __asm__("HandleBombContact");   /* slot 58 */
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBombIntersection");   /* slot 61 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("FAbsorbBombWkr");   /* slot 75 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
     virtual void VSlot76() __asm__("CloneBomb");   /* slot 76 */
     virtual void VSlot77() __asm__("ApplyBombThrow");   /* slot 77 */
 };
@@ -269,7 +269,7 @@ struct BOOTY : SO
     virtual void RenderSelf() __asm__("RenderBootySelf");   /* slot 19 */
     virtual void VUnk26(LO *plo) __asm__("ClearBootyState");   /* slot 27 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustBootyNewXp");   /* slot 55 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBootyIntersection");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBootyIgnoreIntersection");   /* slot 61 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeBootyDamage");   /* slot 75 */
 };
 typedef char assert_BOOTY_size[sizeof(BOOTY) == 0x190 ? 1 : -1];
@@ -297,7 +297,7 @@ struct BUTTON : SO
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadButtonFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostButtonLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateButton");   /* slot 16 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("FAbsorbButtonWkr");   /* slot 75 */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeButtonDamage");   /* slot 75 */
 };
 typedef char assert_BUTTON_size[sizeof(BUTTON) == 0x300 ? 1 : -1];
 
@@ -1073,7 +1073,7 @@ struct HACKBULLET : HACK
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackbulletClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("UpdateHackbullet");   /* slot 16 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackbulletNewXp");   /* slot 55 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreHackbulletIntersection");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldHackbulletIgnoreIntersection");   /* slot 61 */
 };
 typedef char assert_HACKBULLET_size[sizeof(HACKBULLET) == 0x1E0 ? 1 : -1];
 
@@ -1338,7 +1338,7 @@ struct MISSILE : BOMB
     virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreMissileIntersection__FP7MISSILEP2SO");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
     virtual void VSlot77() __asm__("ApplyMissileThrow");   /* slot 77 */
     virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
 };
@@ -1892,7 +1892,7 @@ struct CID100 : SO
     virtual void VUnk15() __asm__("UpdateTossable");   /* slot 16 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustTossableNewXp");   /* slot 55 */
     virtual void VUnk57() __asm__("UpdateTossableContacts");   /* slot 58 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreTossableIntersection");   /* slot 61 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldTossableIgnoreIntersection");   /* slot 61 */
     virtual void VUnk69() __asm__("OrientTossableToTarget");   /* slot 70 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeTossableDamage");   /* slot 75 */
     virtual void VSlot76() __asm__("SetTossableState");   /* slot 76 */

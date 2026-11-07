@@ -156,13 +156,13 @@ void ApplyDancerAseg(DANCERV *p, void *paseg, int n);
 void PlayDancerMove(DANCERV *p, int id, int idNew, int j);
 void *FindDancerMoveObject(DANCERV *p, int id);
 void BindDancerMoves(DANCERV *p);
-int GradeIndexFromOid(int k);
-int OidFromGradeIndex(int k);
+int GetGradeIndexForOid(int k);
+int GetGradeOidForIndex(int k);
 void UpdateRhythmManagerGrades(RHYTHMMGR *p);
 void SetRhythmMgrState(RHYTHMMGR *p, int s);
 void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po);
 float GetRhythmTimingScore(RHYTHMMGR *p, CUE *q);
-float PassThroughFloat(RHYTHMMGR *p, float g);
+float AdjustRhythmScore(RHYTHMMGR *p, float g);
 void AddRhythmScore(RHYTHMMGR *p, float g);
 float GetAverageRhythmScore(RHYTHMMGR *p);
 }
@@ -336,7 +336,7 @@ void BindDancerMoves(DANCERV *dancer)
 enum { OID_GRADE_GOOD = 0x626, OID_GRADE_FAIR = 0x627, OID_GRADE_POOR = 0x628, OID_GRADE_SMA = 0x625 };
 
 // Grade goal oid -> grade index 0..2 (-1 for any other oid).
-int GradeIndexFromOid(int oid)
+int GetGradeIndexForOid(int oid)
 {
     switch (oid) {
     case OID_GRADE_GOOD: return 0;
@@ -347,7 +347,7 @@ int GradeIndexFromOid(int oid)
 }
 
 // Grade index 0..2 -> grade goal oid (-1 otherwise).
-int OidFromGradeIndex(int gradeIndex)
+int GetGradeOidForIndex(int gradeIndex)
 {
     switch (gradeIndex) {
     case 0: return OID_GRADE_GOOD;
@@ -421,7 +421,7 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
         if (!sma)
             continue;
         ReplaceSma(sma, object, grade->gradeOid, 0, &grade->sma);
-        grade->gradeIndex = GradeIndexFromOid(grade->gradeOid);
+        grade->gradeIndex = GetGradeIndexForOid(grade->gradeOid);
         boundary = manager->scoreRange.gMax;
         for (j = 0; j < 2; j++) {
             boundary -= third;
@@ -497,7 +497,7 @@ void UpdateRhythmManagerGrades(RHYTHMMGR *manager)
         } else {
             for (j = 0; j < 3; j++) {
                 if (grade->thresholds[j] <= manager->smoothedScore) {
-                    SetSmaGoal(grade->sma, OidFromGradeIndex(j));
+                    SetSmaGoal(grade->sma, GetGradeOidForIndex(j));
                     grade->gradeIndex = j;
                     break;
                 }
@@ -758,7 +758,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
         cue->wasPressed = 1;
         if (POCTL_FConsumePressed(controller, cue->key)) {
             PlayDancerMove(dancer, cue->key, cue->nextKey, MOVE_CLIP_SUCCESS);
-            AddRhythmScore(manager, PassThroughFloat(manager, GetRhythmTimingScore(manager, cue)));
+            AddRhythmScore(manager, AdjustRhythmScore(manager, GetRhythmTimingScore(manager, cue)));
             for (j = 0; j < manager->numNotes; j++) {
                 ENT *note = &manager->notes[j];
                 if (FFloatsNear__Ffff(note->time, cue->time, 0.1f)) {
@@ -791,7 +791,7 @@ float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *cue)
 }
 
 // Returns its float argument (a hook between timing and scoring; inferred).
-float PassThroughFloat(RHYTHMMGR *manager, float score) {
+float AdjustRhythmScore(RHYTHMMGR *manager, float score) {
     return score;
 }
 
