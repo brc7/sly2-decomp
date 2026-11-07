@@ -190,7 +190,7 @@ short when unused functions were removed). Inside a TU's range the source now em
 after the previous function and before any data definition (a top-level asm lands in whatever section gcc is in).
 A unit can be a plain `nop` (8 zero bytes before a function are such a unit, not 16-byte alignment). The junk.csv
 rows emitted this way end with "emitted by its TU source (SLY2_SCRAP)"; they stay out of the function counts. Details
-and evidence: [full-link.md, "Junk scraps and padding"](guides/full-link.md#junk-scraps-and-padding-linkjunk-padding-2026-11-06).
+and evidence: [full-link.md, "Junk scraps and padding"](guides/full-link.md#junk-scraps-and-padding).
 
 ## Callee return types matter (2026-10-16)
 Declare callees with their real return type even when the result is ignored: constructors, copy constructors and

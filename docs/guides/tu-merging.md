@@ -919,7 +919,7 @@ macro); not checked.
 
 The plain-function copies are what keeps 38 objects' `.text` (6 on integrate/round8, after the families done
 below; full-link.md "Status") from linking as one section without `-ffunction-sections`
-([full-link.md, "Code order (link/contiguous-tus)"](full-link.md#code-order-linkcontiguous-tus-2026-11-05)): 127
+([full-link.md, "Linkonce copies"](full-link.md#linkonce-copies)): 127
 functions in the linkonce area 0x254F00..0x259DE4 were plain `.text` functions (none are since link/linkonce-rest,
 after the 58 + 51 of link/linkonce-pools and link/linkonce-misc and its 18). By family (homes in brackets; the template/inline form is a HYPOTHESIS from the address pattern, not matched
 yet):

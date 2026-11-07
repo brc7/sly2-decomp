@@ -8,13 +8,11 @@ and how headers are organised. The violations that remain are couplings
 built into Sucker Punch's design; each is listed below with the reason it
 stays and a header-only remedy.
 
-- Each leaf directory under `src/game/` is one original translation unit
-  (source file). Names like `tu_1D7238` (start address) or `empty_126188`
-  (a unit holding only compiler-generated stubs) are units not yet named.
-  Each leaf will later collapse into a single `.cpp`.
-- Every directory has a `README.md` with its layer and responsibility.
-- How the graph was built, the alternatives tried and the per-unit
-  placement rationale are in the design record
+- Each original translation unit (TU) is one source file. Files are named after the original file where it is known
+  (`sw.cpp`, `relay.cpp`); otherwise `tu_<start address>` (`tu_1D7238.cpp`), or `empty_<address>` for a unit that holds
+  only compiler-generated stubs. `tools/layout/units.csv` maps every function to its unit; the file header gives the
+  unit's address range.
+- How the graph was built, the alternatives tried and the per-unit placement rationale are in the design record
   (`research/layout/LAYOUT.md`, outside the repo).
 
 ## 1. Target architecture and layer rules
@@ -42,89 +40,86 @@ Rules:
 2. Subsystems in the same layer are peers; peer edges are allowed but cycles between peers are reported with a recommended order
    (section 7). Inside a subsystem anything goes (TUs of one subsystem may be mutually dependent).
 3. `src/sdk/<lib>` and `src/generated/splicewrap` keep their draft locations. No `.c/.cpp` outside `src/{game,sdk,generated}`.
-4. Every TU has its own leaf directory (it later collapses into `<tu>.cpp`). File stem = linker symbol. No directory contains two
-   names differing only by case (the old SetPoCtlState/SetPoctlState pair was renamed for this).
-5. A new function goes in its translation unit's directory (`tools/layout/units.csv` maps every function to its unit). A new
+4. Every TU is one file; file stem = the unit's name. No directory contains two names differing only by case.
+5. A new function goes in its translation unit's file (`tools/layout/units.csv` maps every function to its unit). A new
    upward dependency should be avoided; if one is unavoidable, add it to the table in section 3 with the reason.
 6. Naming reflects layering: all children of a directory are in the same layer (the only exception is `src/game/` itself).
-   No two directories share a name except a subsystem and its main TU leaf (`memory/memory`, `sound/sound`, `font/font`,
-   `thread/thread`) and the `game` TU (`world/state/game`) - TU leaf names are the tu-map labels and are kept.
-   Max depth under `src/game` = 4 directories (`engine/graphics/pipeline/<tu>/`); every leaf directory is one TU, with one
-   exception: `platform/memory/heap/` also receives 2 functions of the `dynarray` span because they live in the real file `src/P2/heap.cpp`
-   (suggests the heap/dynarray span boundary is off by those functions - HYPOTHESIS).
+   Max depth under `src/game` = 3 directories (`engine/graphics/pipeline/`). `platform/memory/heap.cpp` also holds 2 functions
+   of the `dynarray` span because they live in the real file `src/P2/heap.cpp` (suggests the heap/dynarray span boundary is
+   off by those functions - HYPOTHESIS).
 
-## 2. The tree (one line per directory; TU leaves with function counts)
+## 2. The tree (one line per directory, then its files)
 
 ```
 src/
   sdk/<lib>/                   L0  Sony / 989 SDK (unchanged from the draft: one dir per library; other compilers; replaced by HLE in a port)
                                    989snd, collect2, libc, libcdvd, libdma, libgcc, libgraph, libipu, libkernel, libm, libmc, libmpeg, libpad, libscf
-  game/platform/boot/          L1  crt0 `_start`
-                                   TU leaves: crt0(1)
+  game/platform/boot/crt0/     L1  crt0 `_start`
+                                   files: _start
   game/platform/cdvd/          L1  CD driver, CD file table (fid -> name/size)
-                                   TU leaves: cd(10), tu_14B660(5)
+                                   files: cd tu_14B660
   game/platform/input/         L1  pad (JOY) and rumble
-                                   TU leaves: joy(19), rumble(11)
+                                   files: joy rumble
   game/platform/memory/        L1  heaps (HEAP/CSwHeap, slot heaps, phase memory, scratchpad buffer), PvAllocClear, malloc/free
-                                   TU leaves: heap(12), memory(21), phasemem(4), slotheap(7), sprbuf(5), tu_1147D8(2), tu_114AE0(2)
+                                   files: heap memory phasemem slotheap sprbuf tu_1147D8 tu_114AE0
   game/platform/runtime/       L1  Sucker Punch's own printf/string runtime (CchOstrmPrintf, vsprintf, strlen) and OSTRM streams
-                                   TU leaves: stream(7), text(24)
+                                   files: stream text
   game/platform/thread/        L1  EE threads / semaphores wrapper
-                                   TU leaves: thread(7)
+                                   files: thread
   game/core/binstream/         L2  CBinaryInputStream (bis), async CD stream (bas), CStreamBis
-                                   TU leaves: bas(13), bis(43), tu_1848A8(10)
+                                   files: bas bis tu_1848A8
   game/core/containers/        L2  intrusive lists (DL/SL), CDynArray, byte queues, hashing, small key/string class
-                                   TU leaves: bq(10), dl(21), dynarray(9), empty_119DA0(2), empty_119EF8(2), empty_11B1A8(2), tu_119BC8(16), tu_11AFE0(3)
+                                   files: bq dl dynarray empty_119DA0 empty_119EF8 empty_11B1A8 tu_119BC8 tu_11AFE0
   game/core/locale/            L2  language / region selection
-                                   TU leaves: language(8)
+                                   files: language
   game/core/math/              L2  vectors, matrices, Bezier, Crout solver, BSP/planes, DZG LCP core, misc util
-                                   TU leaves: bez(5), bsp(14), crout(4), dzgcore(7), mat(33), util(28), vec(22)
+                                   files: bez bsp crout dzgcore mat util vec
   game/core/time/              L2  clock
-                                   TU leaves: clock(8)
+                                   files: clock
   game/splice/                 L3  Splice VM: values/refs, pairs, frames, evaluator, GC, procedures, methods, serialisation
-                                   TU leaves: empty_126188(2), empty_1262E0(2), eval(27), frame(15), gc(19), method(2), pair(3), proc(4), ref(38), serialize(3), sidebag(12), spliceutils(10), varb(4)
+                                   files: empty_126188 empty_1262E0 eval frame gc method pair proc ref serialize sidebag spliceutils varb
   game/object/                 L4  BASIC/LO base classes, XFM transforms, proxies, find-by-OID, BRX object deserialisation, busy list, script peers (spliceobj/splicemap)
-                                   TU leaves: basic(31), brx(16), busy(8), find(13), lo(74), proxy(38), splicemap(10), spliceobj(18), xform(18)
+                                   files: basic brx busy find lo proxy splicemap spliceobj xform
   game/world/scene/            L5  SW: the world container (g_sw, object lists, load queues) and its callback queue
-                                   TU leaves: callback(6), sw(68)
+                                   files: callback sw
   game/world/state/            L5  session state: GAME (world/level/jobs/events), save variables, difficulty
-                                   TU leaves: difficulty(10), game(101), save(24)
+                                   files: difficulty game save
   game/engine/anim/            L6  actuators (ACT), animation segments (ASEG/ASEGA), blends, IK, state machines (SM), chains, WR, XF transform/motion slots
-                                   TU leaves: act(72), aseg(23), asega(27), blend(12), empty_12F0F0(2), empty_131F70(2), ik(8), sm(43), tail(6), tu_1603B8(4), wr(20), xf(44)
+                                   files: act aseg asega blend empty_12F0F0 empty_131F70 ik sm tail tu_1603B8 wr xf
   game/engine/camera/          L6  camera (CM), camera policies (CPLCY), TN camera nodes, CPCAMERA
-                                   TU leaves: cm(55), cplcy(51), tn(31), tu_12E600(13)
+                                   files: cm cplcy tn tu_12E600
   game/engine/font/            L6  font rendering and Shift-JIS
-                                   TU leaves: font(24), sjis(4)
+                                   files: font sjis
   game/engine/fx/              L6  particles and effects: emitters, RIPs, blips, trails
-                                   TU leaves: blip(21), emitter(54), rip(64), trail(13)
+                                   files: blip emitter rip trail
   game/engine/graphics/backend/ L6  GS / DMA / GIF / VIF packet builders and the frame (FRM) system
-                                   TU leaves: dmas(28), empty_1578F8(2), frm(13), gifs(24), gs(26), vifs(21)
+                                   files: dmas empty_1578F8 frm gifs gs vifs
   game/engine/graphics/pipeline/ L6  draw/render passes, globs, shaders (SHD/SHDANIM), lights, sky, visibility zones, culling sphere tree, item render targets
-                                   TU leaves: draw(7), glob(42), light(32), ms(5), render(7), shd(45), shdanim(33), sky(4), tu_1BE398(16), tu_1D57A8(10), vis(6)
+                                   files: draw glob light ms render shd shdanim sky tu_1BE398 tu_1D57A8 vis
   game/engine/physics/         L6  SO solid objects, solver, shapes/geometry, BSP marks/contacts, clipping, paths, volumes, water, launchers, mesh contacts
-                                   TU leaves: bbmark(13), clip(8), dzg(9), empty_1C2920(2), geom(6), mark(22), path(51), shape(56), so(177), solve(24), tu_185130(16), tu_1BC050(31), tu_1D6848(6), vol(7), water(22)
+                                   files: bbmark clip dzg empty_1C2920 geom mark path shape so solve tu_185130 tu_1BC050 tu_1D6848 vol water
   game/engine/presentation/    L6  presentation service: HUD widgets, SCREEN manager/base, letterbox, progress bar + loading screen
-                                   TU leaves: hud(124), letterbox(6), prog(13), screen(98)
+                                   files: hud letterbox prog screen
   game/engine/sound/           L6  sound manager, banks/streams, ambient emitters, speakers
-                                   TU leaves: amb(10), sound(103), tu_2275B8(8)
+                                   files: amb sound tu_2275B8
   game/level/                  L7  per-frame world update, world-file load glue, warps/exits, wipes (level flow)
-                                   TU leaves: brx_sw(5), empty_1FF690(2), empty_226AB8(2), exit_warp(22), update(4), wipe(8)
+                                   files: brx_sw empty_1FF690 empty_226AB8 exit_warp update wipe
   game/actor/                  L8  PO and STEP: the shared bases of the player characters and the guards
-                                   TU leaves: po(38), step(46)
+                                   files: po step
   game/gameplay/ai/            L9  STEPGUARD, guard behaviours (BHV stack, guardbhv), detectors, noise stimuli, pickpocket, named bosses/NPCs, spawners
-                                   TU leaves: bhvstk(25), detector(19), gomer(3), guardbhv(190), noise(23), pickpocket(11), stepguard(158), tu_144B28(43), tu_14A008(21), tu_14FAC8(4), tu_1553F0(19), tu_1709A8(42), tu_171F58(16), tu_173158(21), tu_1B9F80(14), tu_1CBEB0(5), tu_1D7238(10), tu_20CE28(15)
+                                   files: bhvstk detector gomer guardbhv noise pickpocket stepguard tu_144B28 tu_14A008 tu_14FAC8 tu_1553F0 tu_1709A8 tu_171F58 tu_173158 tu_1B9F80 tu_1CBEB0 tu_1D7238 tu_20CE28
   game/gameplay/cutscene/      L9  relays (scripted event sequences), MPEG FMV, framebuffer capture screen
-                                   TU leaves: mpeg(34), relay(141), tu_1471C0(11)
+                                   files: mpeg relay tu_1471C0
   game/gameplay/objects/       L9  interactive world objects and minigames: buttons, barriers, bombs, missiles, sensors, turrets, targets, rhythm, hacking, RC tank...
-                                   TU leaves: barrier(9), bomb(22), button(50), empty_1D7A30(2), missile(16), rhythm(35), sensor(21), target(11), tu_14C548(2), tu_1539A8(2), tu_153B08(3), tu_15DC80(6), tu_17F090(76), tu_1B0B78(25), tu_1BAB50(34), tu_1C2D20(7), tu_1D1370(44), tu_1FF3B8(8), tu_223F70(28), turret(12)
+                                   files: barrier bomb button empty_1D7A30 missile rhythm sensor target tu_14C548 tu_1539A8 tu_153B08 tu_15DC80 tu_17F090 tu_1B0B78 tu_1BAB50 tu_1C2D20 tu_1D1370 tu_1FF3B8 tu_223F70 turret
   game/gameplay/player/        L9  STEPPLAYER, Sly/Bentley/Murray (JT, Bentley, Murray), moves (air, grab, hang, pipe, rail, throw, hurt...), grab spots, recon
-                                   TU leaves: air(44), bentley(48), cane(12), dirblend(5), empty_1344F0(2), empty_1378D8(2), grab(28), grabspot(74), hang(12), hnd(4), hurt(28), jt(51), jtgoal(6), jthands(17), mode(14), murray(66), pipe(14), pipe_jt(15), places(14), rail(12), stepplayer(96), throw(12), tu_19F0A8(6), tu_201D78(26), tu_20B840(31)
+                                   files: air bentley cane dirblend empty_1344F0 empty_1378D8 grab grabspot hang hnd hurt jt jtgoal jthands mode murray pipe pipe_jt places rail stepplayer throw tu_19F0A8 tu_201D78 tu_20B840
   game/gameplay/progression/   L9  prizes/clues, booty, cheats, waypoints
-                                   TU leaves: booty(28), cheat(13), prize(61), waypoint(7)
+                                   files: booty cheat prize waypoint
   game/ui/                     L10 front-end screens: pause menu, episode menu, memory-card flow and dialogs
-                                   TU leaves: empty_1AE7D0(2), memcard(81), menu(38), tu_15CD68(12)
+                                   files: empty_1AE7D0 memcard menu tu_15CD68
   game/app/                    L11 composition root: main loop, boot sequence, class registry (New*/Get*ClassDesc, D_002BAAE8), Splice built-ins (bif, bif2) and binding thunks
-                                   TU leaves: bif(161), bif2(31), class_registry(828: the whole crt0_splicewrap TU, generated wrappers included), main(7), tu_1A4E08(9)
+                                   files: bif bif2 class_registry (the whole crt0_splicewrap TU, generated wrappers included) main tu_1A4E08
                                    class_registry_options.inc (not a TU): crt0_splicewrap's Splice option tables (g_aeopid, the class option
                                    arrays), included by class_registry.cpp (docs/guides/tu-merging.md "The crt0_splicewrap tables"); its
                                    records take the addresses of the inline option accessors of the class headers, so class_registry emits
