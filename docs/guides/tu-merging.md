@@ -741,6 +741,40 @@ SO/SOPART/SOTREE views, tu_223F70's qword XF view, glob.cpp's self-contained Lil
 words, the player/guard/camera classes' padded views (their families' headers), listener objects whose slot 51 is not
 declared (prize's LISTENER views).
 
+### Views unified (names/vu-f1-base-2): base family, round 2
+
+The second base-family pass (same rules and checks; in addition every touched object's relocations, compared by symbol
+name, and its nm symbol set are identical to the branch start, so a wrong overload or virtual slot cannot pass as a
+MATCH because the call targets are masked). All 211 src/game sources MATCH with identical nm and relocations.
+
+| change | where | how |
+|---|---|---|
+| hand vtable calls on LO/SO/PO objects | sw (PostSwLoad, ShouldKeepSoPair, ExecuteSwTransition, TriggerOneRsmg), game (countdown widget, task marker), so.cpp (SetSoParent, DeliverZapToSo), proxy (AddProxyCopy, SetSoIdProxy, InitSwProxySpares, SO_ResetForProxy), xf (WakeXfOwner, SetXfRole), render, sky, emitter, prize, tu_17F090, tu_1C2D20 | real virtual calls; the HACK view declares its own slots 82 (`Die`) and 83, the pouch item view slot 76 |
+| SO/SOPART/SOTREE/XF field views in so.cpp | zap delivery and responses, IsPosInSo, CollectSoParts, SetSoZapMode, the region-record, gravity and SAA-list helpers, AdjustSoXps, ExtendSoTreeBounds, SetSoGravity, GetSoVelocity, the XF handle accessors | the shared types; so.cpp's XFH and STEPREC views became so.h CID148/CID149 and REGENT |
+| views padded over the base | tu_1D1370 (robot tank, RC pickup), path (path zones : XFM, path links : LO), tu_153B08, prize (sprayed prize, clue proxy : PROXY), sky, tu_1C2D20 | derived views of the shared class |
+| LO/SO views in the header-less player files | jtgoal (contacts through SOTREE/XPLIST, the faded object an SO), places (place objects LO, spots SOPART, the ground an SO) | `#include "sly2/so.h"`; the player-type views are left to the player family |
+
+Header changes: lo.h/so.h slot 39 `SetTransformFromXf(XF *pxf)` (SetSoXf(so, pxf) and SetLoTransformFromXf take the
+XF; tu_1C2D20 passes the launch frame); so.h GLOBSET +0x4C `relightStamp` (render.cpp SubmitSwRelightAll compares it
+with the world's relight stamp, glob.cpp BindGlobset sets it), REGENT +0x4/+0x8/+0xC floats (EnsureSoPhysRegionRecord
+defaults 75/150 and 1), CID148 +0x10 `cref`, CID149 +0x20 `pso` / +0x24 `pxf`.
+
+Matching-only islands added (scratch islands.csv): render.cpp `RGBAIsland` (DrawWorldLabel's RGBA with constructors),
+tu_17F090 OnHackshipActive `LOIsland` and so.cpp GetSoZapMode / GetSoNoJtPlace `SOIsland` (whole-word bit tests; the
+bit-fields compile to other shift sequences).
+
+Measured (scratch metrics.py over src/game): struct/class/union definitions 6,759 -> 6,627; family-named views 322 ->
+312; hand-vptr views 406 -> 379; non-derived views padded over a base 1,257 -> 1,189; 19 files, +425/-634.
+
+Left for later, with the reason: classes.h signatures (LO slot 20 RenderAll args: so.cpp RenderSoAll, lo.cpp
+RenderLoAtMatrix; slot 30 RotateToMat MATRIX3: tu_1D6848; SO slot 73 IsPosInside: rip UpdateRip; WIDGET slot 49 Show
+takes an int: game.cpp ShowCountdownHud, SetJobCompletionPhase; EXPL slot 51 takes the EXPLSO: emitter); the
+hand-tuned asm functions that read the vtable pointer themselves (step MatchStepXf, so.cpp SetSoXf, booty case 5);
+the qword-representation views (shape.cpp paths, solve.cpp, tu_1D6848, bbmark's AAOBR = SOTREE); glob.cpp's Lilly
+namespace; the task/job views of game.cpp (sly2/task.h); the header-less player files' remaining LO/SO views (cane
+NODE = LO with Add/Remove/MatchTransform, its ALO target list = TARGET, its POCTL view = po.h POCTL; hang NODE;
+pipe_jt PATH and INPUT = POCTL), left to the player family's pass on those files to keep the merge simple.
+
 ### Views unified (names/vu-f5-camera): the camera family
 
 The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,

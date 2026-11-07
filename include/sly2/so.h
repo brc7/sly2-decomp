@@ -103,7 +103,8 @@ struct GLOBSET
       GLOB *pieces;  /* the GLOBs */
       SUBGLOBX *asubglobx;   /* per-sub-mesh extra data */
       POSESET *aposeset;   /* the pose sets */
-      int unknown4C;
+      int relightStamp;   /* +0x4C world relight stamp (g_sw +0x3D5C) the model was last relit for; -1: never relit (render.cpp
+                             SubmitSwRelightAll, glob.cpp BindGlobset) */
       union
     {
         float unknown50;
@@ -118,7 +119,7 @@ struct GLOBSET
     };
       WRBG *pwrbgFirst;   /* first warp/bend record */
       void *pbatchrecsFirst;   /* first render batch record */
-    /* Out of line at 0x167310 (glob.cpp): stores -1 into unknown4C. Called by every constructor of an SO-derived class
+    /* Out of line at 0x167310 (glob.cpp): stores -1 into relightStamp. Called by every constructor of an SO-derived class
        (the New<Class> factories of class_registry.cpp, rip.cpp's NewRipGroup). */
     GLOBSET();
 };
@@ -154,7 +155,9 @@ struct SOPHYS
 struct REGENT
 {
       SO *pso;   /* the solid object */
-      undefined4 unknown04[3];
+      float unknown04;   /* +0x04 (so.cpp GetSoPhysRecordParam4) */
+      float unknown08;   /* +0x08 default 75, 150 for CID 0x34 objects (EnsureSoPhysRegionRecord) */
+      float unknown0C;   /* +0x0C default 1 */
       struct CID17 *pathzone;   /* +0x10 the path zone (PATHZONE, CID 17) the object is in */
       undefined4 unknown14[3];
       undefined4 unknown20[20];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
@@ -231,7 +234,7 @@ struct SO : public LO
     virtual void SetAngularVelocity(qword qwW) __asm__("SetSoAngularVelocity");   /* slot 36 */
     virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("ApplySoProxy");   /* slot 37 */
     virtual void MatchTransform(LO *plo) __asm__("MatchSoXf");   /* slot 38 */
-    virtual void SetTransformFromXf() __asm__("SetSoXf");   /* slot 39 */
+    virtual void SetTransformFromXf(XF *pxf) __asm__("SetSoXf");   /* slot 39 */
     virtual void CloneHierarchy(LO *ploBase) __asm__("CloneSoHierarchy");   /* slot 40 */
     virtual void SetBusyDistance(float sBusy) __asm__("SetSoBusyDistance");   /* slot 42 */
     virtual void SetVisMask(uint grfvis) __asm__("SetSoVisMask");   /* slot 46 */
@@ -325,7 +328,8 @@ struct SOPART
 /* CID148: a Splice handle object (placeholder name) the script system uses to refer to parts of an SO. */
 struct CID148 : public BASIC
 {
-      undefined4 unknown10[4];
+      int cref;   /* +0x10 reference count (IncrefXfHandle / DecrefXfHandle; the last reference frees it) */
+      undefined4 unknown14[3];
     virtual void AddRef() __asm__("IncrefXfHandle");   /* slot 1; key function (so.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid148ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("DecrefXfHandle");   /* slot 2 */
@@ -336,7 +340,9 @@ typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class des
 /* CID149: the Splice handle of an XF (placeholder name). */
 struct CID149 : CID148
 {
-    char pad20[0x30 - 0x20];
+    SO *pso;   /* +0x20 the object */
+    XF *pxf;   /* +0x24 its XF (NewSoXfHandle, GetXfFromHandle) */
+    undefined4 unknown28[2];
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid149ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID149_size[sizeof(CID149) == 0x30 ? 1 : -1];

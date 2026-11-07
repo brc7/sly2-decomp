@@ -12,18 +12,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
 union V { qword q; float f[4]; };
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short delta; short pad; void (*function)(void *, qword); };
-
-/* SKY : SO (a view of the fields used here). */
-struct SKYV
+/* SKY's own field (classes.h SKY has only padding past SO). */
+struct SKYV : SO
 {
-    char pad0[0xC];
-    VTE *vtable;            /* +0xC */
-    char pad10[0x40 - 0x10];
-    int flagsOrPointer;     /* +0x40 a flags word, or (low bit clear) a pointer to one */
-    char pad44[0x148 - 0x44];
-    unsigned long flags;    /* +0x148 SO flags; bit 35 is SO::unknownFlag148A */
     int followCameraZ;      /* +0x150 nonzero: also follow the camera's height */
 };
 
@@ -45,10 +36,10 @@ void SKY::PostLoad()
     int flagsWord;
     PostSoLoad(sky);
     SetLoBusyKind(sky, 1);
-    flagsWord = sky->flagsOrPointer;
+    flagsWord = sky->unknown40;   /* a flags word, or (low bit clear) a pointer to one */
     if ((flagsWord ^ 1) & 1) *(int *)flagsWord |= 2;
-    else sky->flagsOrPointer = flagsWord | 2;
-    sky->flags &= ~(1UL << 35);
+    else sky->unknown40 = flagsWord | 2;
+    sky->unknownFlag148A = 0;
 }
 
 // Per-frame update (vtable slot 16): SO update, then moves the sky to the camera position (vtable slot 29, translate),
@@ -60,5 +51,5 @@ extern "C" void UpdateSky(SKYV *sky)
     CMMATQ *pmatq = &g_cm.matq;   /* through a pointer: read at base &g_cm.mat, offset 0x30 (g_cm.matq.pos is base &g_cm, offset 0x90) */
     target.q = pmatq->pos;
     if (!sky->followCameraZ) target.f[2] = QwordZ(GetLoWorldPos(sky));
-    sky->vtable[29].function((char *)sky + sky->vtable[29].delta, target.q);
+    sky->TranslateToPos(target.q);
 }

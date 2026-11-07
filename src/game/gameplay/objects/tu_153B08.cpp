@@ -15,7 +15,7 @@ extern "C" void *AllocClearedFromWorldHeap(MSG *pmsg);
 // Allocates cb bytes of kind nKind from the world heap through the message-style allocator AllocClearedFromWorldHeap.
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 struct E { char *name; int byteValue; int value1; int value2; char payload[0x40]; };   /* one record (0x50 bytes) */
-struct S { char pad[0x50]; int numRecords; struct E *records; };                      /* CID122 (an LO) */
+struct S : LO { int numRecords; struct E *records; };                      /* CID122 (an LO) */
 extern char D_002DD590[];
 extern "C" {
 void LoadLoFromBrx(struct S *p, void *pbis);

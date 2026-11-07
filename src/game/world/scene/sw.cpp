@@ -18,6 +18,8 @@
 
 #include "sly2/basic.h"
 #include "sly2/lo.h"
+#include "sly2/so.h"
+#include "sly2/po.h"
 #include "sly2/sw.h"
 #include "sly2/cm.h"
 #include "sly2/save.h"
@@ -486,10 +488,8 @@ void ResolveSwSaveVars(SW *world)
 }
 
 namespace M_PostSwLoad { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; };
 struct S {
-    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
+    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; LO **ppoFirst; LO **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
     char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
     char pad2[0x45CC - 0x408C]; void *regionTree;   /* sw.h pregtree */
 };
@@ -515,7 +515,7 @@ void BroadcastGameEvent(void *p, int a, int b);
 // until the queue is empty, resets the camera and runs game callback 4.
 void PostSwLoad(struct S *world)
 {
-    struct O **ppo;
+    LO **ppo;
     PrimeSlotheap(world->pool403C);
     PrimeSlotheap(world->pool4054);
     PrimeSlotheap(world->pool4070);
@@ -533,7 +533,7 @@ void PostSwLoad(struct S *world)
     PostLoadScreens(D_003D9E70);
     while (ProcessSwCallbacks(world), world->ppoLast != world->ppoFirst) {
         for (ppo = world->ppoFirst; ppo < world->ppoLast; ppo++)
-            (*ppo)->vt[15].pf((char *)*ppo + (*ppo)->vt[15].d);
+            (*ppo)->PostLoad();
         world->ppoLast = world->ppoFirst;
     }
     world->ppoLast = 0;
@@ -552,9 +552,8 @@ typedef unsigned int uint;
 struct HEADER {int words[16];};
 struct REQUEST {int flags;HEADER header;int objectId,objectKey;};
 struct KEY {int name,tag,kind;char data[0x104];};
-struct VT {short delta,unused;void *function;};
 struct WIDGET {char pad0[0x58];int shown;};
-struct ACTOR {char pad0[0xC];VT *vtable;char pad10[8];int tag;char pad1C[0xF10];WIDGET *widget;};
+struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unused3C80,unused3C84,objectId,objectKey;char pad3C90[0x228];int actorCount;ACTOR *actors[1];char pad3EC0[0x8AC];float resumeTime;char pad4770[0x20];};
 struct FRAME;
@@ -614,13 +613,13 @@ static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!
 // it is usable (tag != 0).
 static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
 // Call the actor's activate virtual (slot 8).
-static inline void Activate(ACTOR *actor){VT *entry=&actor->vtable[8];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
+static inline void Activate(ACTOR *actor){actor->Add();}
 // Call the actor's virtual slot 79 with mode.
-static inline void Enable(ACTOR *actor,int mode){VT *entry=&actor->vtable[79];((void (*)(void *,int))entry->function)((char *)actor+entry->delta,mode);}
+static inline void Enable(ACTOR *actor,int mode){actor->SetCtlState(mode);}
 // Attach the actor to the context (virtual slot 38).
-static inline void Attach(ACTOR *actor,CONTEXT *context){VT *entry=&actor->vtable[38];((void (*)(void *,CONTEXT *))entry->function)((char *)actor+entry->delta,context);}
+static inline void Attach(ACTOR *actor,CONTEXT *context){actor->MatchTransform((LO *)context);}   /* the warp object (an LO; CONTEXT views its fields) */
 // Call the actor's deactivate virtual (slot 9).
-static inline void Hide(ACTOR *actor){VT *entry=&actor->vtable[9];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
+static inline void Hide(ACTOR *actor){actor->Remove();}
 // v != 0 (sltu).
 static inline int NonZero(int v){int r; __asm__("sltu %0,$zero,%1":"=r"(r):"r"(v));return r;}
 // Address of the stream record, in $4.
@@ -687,7 +686,7 @@ extern "C" void ExecuteSwTransition(SW *world)
             Enable(selected,1);
             if(context){
                 int i;
-                for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->tag)break;
+                for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->oid)break;
                 if(i>=context->count)Attach(selected,context);
             }
             for(int i=0;i<world->actorCount;i++){
@@ -1119,30 +1118,23 @@ void UpdateSwTimerHud(struct S *world)
 } } // namespace M_func_0020F7E0
 
 namespace M_FFilterSoPair { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { char pad[0x60]; struct O *po; char pad2[0xC]; long fl; };
-struct B { char pad[0xEC]; struct S *ps; };
-struct E { int pad; struct B *pb; int pad2[2]; long fl; };
 int MaxInt(int a, int b);
-#define VC61(o, a) ((int (*)(void *, struct O *))(o)->vt[61].pfn)((char *)(o) + (o)->vt[61].d, a)
 // Intersection filter: rejects the object itself and flagged objects, and pairs whose relationship (0x134310) is 1
 // or 3.
-int ShouldKeepSoPair(struct S *object, struct E *e)
+int ShouldKeepSoPair(SOTREE *object, SOPART *e)
 {
-    struct S *ps = e->pb->ps;
+    SOTREE *ps = e->owner->physicsTree;
     int a, b, r;
-    if (!(e->fl & (1L << 48)) && (ps->fl & 4))
+    if (!e->unknownFlag10A && ps->skipsUpdate)
         return 0;
-    if ((e->fl & (1L << 48)) || ps == object)
+    if (e->unknownFlag10A || ps == object)
         return 0;
-    a = VC61(object->po, ps->po);
-    b = VC61(ps->po, object->po);
+    a = object->root->ShouldIgnoreIntersection(ps->root);
+    b = ps->root->ShouldIgnoreIntersection(object->root);
     r = MaxInt(a, b);
     return r != 1 && r != 3;
 }
 } } // namespace M_FFilterSoPair
-#undef VC61
 
 namespace M_func_0020FA10 { extern "C" {
 struct O { char pad[0x70]; long fl; };
@@ -1160,12 +1152,9 @@ int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
 } } // namespace M_func_0020FA10
 
 namespace M_func_0020FA50 { extern "C" {
-struct VTE { short d; short pad; int (*pfn)(void *); };
-struct O { int a, b, c; struct VTE *vt; };
-struct S { int a; struct O *po; };
-int ShouldKeepSoNotSelf(void *pv, struct S *p);
-// Intersection filter: ShouldKeepSoNotSelf and the object's vtable slot 62 predicate.
-int ShouldKeepSoNotSelfSlot62(void *pv, struct S *p) { struct O *o; struct VTE *e; if (!ShouldKeepSoNotSelf(pv, p)) return 0; o = p->po; e = &o->vt[62]; return e->pfn((char *)o + e->d); }
+int ShouldKeepSoNotSelf(void *pv, SOPART *p);
+// Intersection filter: ShouldKeepSoNotSelf and the owner's IsFixed (slot 62).
+int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepSoNotSelf(pv, p)) return 0; return p->owner->IsFixed(); }
 } } // namespace M_func_0020FA50
 
 namespace M_IntersectSwBoundingBox { extern "C" {
@@ -1351,21 +1340,19 @@ void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
 } } // namespace M_TriggerRsmg
 
 namespace M_func_0020FFF0 { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct Y { char pad[0xC]; VTE *vt; };
 struct D { int a; int b; int c; int d; };
 int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-struct Y *FindLiveSma(void *o, int b);
-void SubscribeLoObject(struct Y *y, int x);
-void SeekSma(struct Y *y, int id);
-void SetSmaGoal(struct Y *y, int id);
+BASIC *FindLiveSma(void *o, int b);
+void SubscribeLoObject(BASIC *y, int x);
+void SeekSma(BASIC *y, int id);
+void SetSmaGoal(BASIC *y, int id);
 // Applies one rsmg record: finds the root object and its state machine by oid, then seeks or sets the trigger or
 // untrigger goal; optionally returns the state machine.
-void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
+void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASIC **ppy)
 {
     void *o;
-    struct Y *y;
+    BASIC *y;
     int id;
     if (ppy)
         *ppy = 0;
@@ -1384,7 +1371,7 @@ void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
         return;
     if (x) {
         *ppy = y;
-        ((void (*)(void *))y->vt[1].pfn)((char *)y + y->vt[1].d);
+        y->AddRef();
         SubscribeLoObject(y, x);
     }
     if (fl & 2)

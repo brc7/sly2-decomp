@@ -117,7 +117,7 @@ struct SWALLOC
 /* GLOBSET's constructor (sly2/so.h; it was kept as a C function under the symbol __4CRef before). */
 GLOBSET::GLOBSET()
 {
-    unknown4C = -1;
+    relightStamp = -1;
 }
 
 // LoadGlobsetFromBrx: ported from Lilly's personal Sly 2 decomp (src/P2/glob.c), reduced to the declarations it needs.
@@ -3168,7 +3168,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
     }
     if (pclutset != 0)
-        pglobset->unknown4C = g_sw.relightStamp;
+        pglobset->relightStamp = g_sw.relightStamp;
     pglob->iUnkEnd = D_003DA790;
     RelocateShaderUploadRecords(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
     if (pglob->pwrbg != 0)

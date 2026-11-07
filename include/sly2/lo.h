@@ -88,7 +88,7 @@ struct LO : public BASIC
       virtual void SetAngularVelocity(qword qwW) __asm__("SetLoAngularVelocity");
       virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("LO_ApplyTransform");
       virtual void MatchTransform(LO *plo) __asm__("MoveLoToObject");   /* slot 38: moves the object to another object's transform (inferred) */
-      virtual void SetTransformFromXf() __asm__("SetLoTransformFromXf");   /* slot 39: rebuilds the transform from the XF record (inferred) */
+      virtual void SetTransformFromXf(XF *pxf) __asm__("SetLoTransformFromXf");   /* slot 39: sets the transform from an XF (so.cpp SetSoXf(so, pxf) and its SetLoTransformFromXf call; tu_1C2D20 passes the launch frame) */
       virtual void CloneHierarchy(LO *ploBase) __asm__("CloneLoHierarchy");
       virtual void Clone(LO *ploBase) __asm__("CloneLo");
       virtual void SetBusyDistance(float sBusy) __asm__("SetLoBusyDistance");

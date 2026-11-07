@@ -109,17 +109,6 @@ struct VU_VECTOR4
 /* SO::psobounds is sly2/light.h's SOBOUNDS. */
 /* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
 struct SOWATCH { char pad0[0x44]; int unknown44; char pad48[0x6C]; int animIndex; };
-/* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
-struct STEPREC { int n0; float g4; float g8; float gC; };
-/* A transform handle (a BASIC with a reference count at +0x10, the object at +0x20 and its XF at +0x24), freed into
-   the slot heap D_003E15CC. */
-struct XFH : public BASIC
-{
-    int cref;               /* +0x10 */
-    int pad14[3];
-    SO *pso;                /* +0x20 */
-    XF *pxf;                /* +0x24 */
-};
 /* Hand-made virtual calls for the slots so.h does not declare with these signatures (g++ 2.95 {delta, pfn}). */
 struct VTE { short d; short pad; void (*pfn)(); };
 #define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
@@ -154,10 +143,10 @@ void FreeSoContacts(SO *pso);
 int FindTargetRecordById(LO *plo);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void InitTargetRecord(void *ptargetrec, LO *plo);
-STEPREC *EnsureSoPhysRegionRecord(STEP *pstep);
+REGENT *EnsureSoPhysRegionRecord(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);
-void UnsubscribeLoAll(XFH *pxfh);
+void UnsubscribeLoAll(CID148 *pxfh);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 }
 
@@ -189,56 +178,38 @@ void InitSo(struct P *so)
 
 // 0x1F21B8 SetSoParent
 namespace M_SetSoParent {
-struct VT; struct MAT; struct E; struct ALO; struct LO10; struct LO;
-typedef int qword __attribute__((mode(TI)));
-typedef unsigned long ulong;
-struct VT { short d; short pad; void *pfn; };
-struct MAT { float m[4][4]; } __attribute__((aligned(16)));
-struct E { char pad[0xA0]; struct E *parent; char pad2[0x100 - 0xA4]; };
-struct LO;
-struct ALO { char pad[0x40]; struct MAT mat; char pad2[0xA0 - 0x80]; struct ALO *parent; };
-struct LO10 { char pad[0x50]; int numTransforms; struct E *transforms; char pad2[0x148 - 0x58]; ulong flags; };
-struct LO {
-    char pad[0xC]; struct VT *pvt; struct LO10 *parent; char pad2[0x28 - 0x14]; ulong bits0 : 60; ulong isInWorld : 1; ulong bits61 : 3;
-    char pad3[0x50 - 0x30]; int numTransforms; struct E *transforms; char pad4[0x60 - 0x58]; struct ALO *rootTransform;
-};
 extern "C" {
-void func_002333B4(void *, int, int) __asm__("memset");
-void __ml__FRC7MATRIX4T0(struct MAT *, struct ALO *, struct MAT *);
-void LO_SetParent(struct LO *, struct LO *, struct LO *, int);
-void UpdateSoXfWorldMatrices(struct LO *);
-void ReleaseSoBoundsHierarchy(struct LO *);
-void EnsureSoBoundsHierarchy(struct LO *);
-void SetSoBit35Hierarchy(struct LO *, int);
+void __ml__FRC7MATRIX4T0(MATRIX4 *, XF *, MATRIX4 *);
+void LO_SetParent(SO *, SO *, XF *, int);
+void ReleaseSoBoundsHierarchy(SO *);
+void EnsureSoBoundsHierarchy(SO *);
 }
-
-#define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
 
 // Slot 10 (SetParent): remembers the world matrix and velocities, re-parents the LO, re-points the XFs into the new
 // parent, then rebinds contacts and bounds so the object keeps its world pose and motion.
-extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int flags)
+extern "C" void SetSoParent(SO *plo, SO *pa, XF *pb, int flags)
 {
-    struct MAT mat;
+    MATRIX4 mat;
     qword q1, q2;
-    struct E *pv;
+    XF *pv;
     int c, i;
-    struct E *aeBase;
+    XF *aeBase;
     if (flags & 3) {
         bool f = plo->isInWorld; if (f) {
-            mat = plo->rootTransform->mat;
+            mat = plo->rootTransform->worldMatrix;
         } else {
-            struct ALO *palo;
+            XF *palo;
             func_002333B4(&mat, 0, 0x40);
-            mat.m[0][0] = mat.m[1][1] = mat.m[2][2] = mat.m[3][3] = 1.0f;
+            mat.mat[0][0] = mat.mat[1][1] = mat.mat[2][2] = mat.mat[3][3] = 1.0f;
             for (palo = plo->rootTransform; palo; palo = palo->parent) {
-                struct MAT t;
+                MATRIX4 t;
                 __ml__FRC7MATRIX4T0(&t, palo, &mat);
                 mat = t;
             }
         }
     }
-    if (flags & 4) q1 = VCALL(plo, 33, qword (*)(void *)));
-    if (flags & 8) q2 = VCALL(plo, 34, qword (*)(void *)));
+    if (flags & 4) q1 = plo->GetVelocity();
+    if (flags & 8) q2 = plo->GetAngularVelocity();
     if (plo->parent) {
         c = plo->parent->numTransforms;
         aeBase = plo->parent->transforms;
@@ -246,21 +217,21 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int fl
         c = 1;
         aeBase = 0;
     }
-    if (pb) pv = (struct E *)pb; else if (pa) pv = (struct E *)pa->rootTransform; else pv = 0;
+    if (pb) pv = pb; else if (pa) pv = pa->rootTransform; else pv = 0;
     for (i = 0; i < plo->numTransforms; i++) {
-        struct E *pe = &plo->transforms[i];
+        XF *pe = &plo->transforms[i];
         int d = pe->parent - aeBase;
         if (d >= 0 && d < c) pe->parent = pv;
     }
     LO_SetParent(plo, pa, pb, flags);
     UpdateSoXfWorldMatrices(plo);
-    if (flags & 1) VCALL(plo, 29, void (*)(void *, qword)), *(qword *)mat.m[3]);
-    if (flags & 2) VCALL(plo, 30, void (*)(void *, struct MAT *)), &mat);
-    if (flags & 4) VCALL(plo, 35, void (*)(void *, qword)), q1);
-    if (flags & 8) VCALL(plo, 36, void (*)(void *, qword)), q2);
+    if (flags & 1) plo->TranslateToPos(*(qword *)mat.mat[3]);
+    if (flags & 2) plo->RotateToMat(&mat);
+    if (flags & 4) plo->SetVelocity(q1);
+    if (flags & 8) plo->SetAngularVelocity(q2);
     ReleaseSoBoundsHierarchy(plo);
     EnsureSoBoundsHierarchy(plo);
-    if (plo->parent && !(plo->parent->flags & (1L << 35))) SetSoBit35Hierarchy(plo, 0);
+    if (plo->parent && !plo->parent->unknownFlag148A) SetSoBit35Hierarchy(plo, 0);
 }
 } // namespace M_SetSoParent
 
@@ -1413,14 +1384,11 @@ extern "C" void RotateSoToMat(P *so,const M3 *basis)
 
 // 0x1F4440 GetSoVelocity
 namespace M_GetSoVelocity { extern "C" {
-struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0x70]; qword position; char pad2[0x14]; int kind; };
-struct S { char pad[0x58]; struct T *positionXf; };
-qword GetXfVelocity(struct T *, int, qword);
+qword GetXfVelocity(XF *, int, qword);
 // Slot 33: world-space velocity of the position XF (when it is dynamic), else zero.
-qword GetSoVelocity(struct S *p) { struct T *pt = p->positionXf; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, pt->position); }
+qword GetSoVelocity(SO *p) { XF *pt = p->unknown58; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, *(qword *)pt->worldMatrix.mat[3]); }
 } } // namespace M_GetSoVelocity
 
 // 0x1F4488 SetSoVelocity
@@ -1915,27 +1883,24 @@ void FreeSoContacts(SO *so)
 
 // 0x1F4F10 AdjustSoXps
 namespace M_func_001F4F10 { extern "C" {
-struct S8; struct N; struct E; struct P;
+struct S8;
 typedef unsigned long ulong;
 struct S8 { long l; } __attribute__((packed));
-struct N { int contacts; struct N *next; };
-struct E { char pad[0x64]; struct N *contactLists; int pad2; int zapContacts; };
-struct P { char pad[0xEC]; struct E *tree; char pad2[0x148 - 0xF0]; ulong flags; };
 struct G;
 extern struct G D_003DD490;
 extern const struct S8 D_002A8278;
-void EnsureSwCallback(struct G *, struct P *, long, int);
+void EnsureSwCallback(struct G *, SO *, long, int);
 // Slot 58 (contact adjustment after marking): when the tree has touch flags, schedules the touch-zap callback
 // (HandleSoTouchZaps). (inferred)
-void AdjustSoXps(struct P *so)
+void AdjustSoXps(SO *so)
 {
-    struct E *pe = so->tree;
-    struct N *pn;
-    if (pe->zapContacts) {
+    SOTREE *pe = so->physicsTree;
+    XPLIST *pn;
+    if (pe->firstZapContact) {
         EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
-    } else if (so->flags & 0x3000000) {
-        for (pn = pe->contactLists; pn; pn = pn->next) {
-            if (pn->contacts) {
+    } else if (so->zapMode) {
+        for (pn = pe->pxplistFirst; pn; pn = pn->pxplistNext) {
+            if (pn->pxpFirst) {
                 EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
                 break;
             }
@@ -2217,28 +2182,25 @@ typedef char layout_tree_first[((unsigned)&((SOTREE*)0)->ppartFirst==0x34)?1:-1]
 
 // 0x1F5480 ExtendSoTreeBounds
 namespace M_ExtendSoTreeBounds { extern "C" {
-struct B; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct B { qword min; qword max; qword center; float radius; };
-struct P { char pad[0xEC]; struct B *tree; };
 // Grows the tree's box and radius to include a sphere (centre c, radius r).
-void ExtendSoTreeBounds(struct P *so, qword c, float r)
+void ExtendSoTreeBounds(SO *so, qword c, float r)
 {
     qword rr, lo, hi, d, t, one;
     float dist;
     __asm__("pextlw %0, %1, %1\n\tpextlw %0, %0, %0" : "=r"(rr) : "r"(r));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(lo) : "j"(c), "j"(rr));
     qword mn;
-    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(so->tree->min), "j"(lo));
-    so->tree->min = mn;
+    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(so->physicsTree->boundsMin), "j"(lo));
+    so->physicsTree->boundsMin = mn;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(hi) : "j"(c), "j"(rr));
     qword mx;
-    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(so->tree->max), "j"(hi));
-    so->tree->max = mx;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(so->tree->center));
+    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(so->physicsTree->boundsMax), "j"(hi));
+    so->physicsTree->boundsMax = mx;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(so->physicsTree->boundsCenter));
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d), "=&j"(one) : "0"(c));
     __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(d));
-    if (so->tree->radius < dist) so->tree->radius = dist;
+    if (so->physicsTree->boundsRadius < dist) so->physicsTree->boundsRadius = dist;
 }
 } } // namespace M_ExtendSoTreeBounds
 
@@ -2367,31 +2329,22 @@ extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
 
 // 0x1F5860 GetSoGravity
 namespace M_GetSoDvGravity { extern "C" {
-struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0x80]; qword gravity; };
-struct S { char pad[0xE8]; struct T *physics; };
 // The object's gravity vector, or zero without a physics record.
-qword GetSoGravity(struct S *p) { if (!p->physics) return D_002A2DD0; return p->physics->gravity; }
+qword GetSoGravity(SO *p) { if (!p->physics) return D_002A2DD0; return *(qword *)&p->physics->gravity; }   /* gravity read as a quadword */
 } } // namespace M_GetSoDvGravity
 
 // 0x1F5880 SetSoGravity
 namespace M_SetSoDvGravity { extern "C" {
-struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x90]; int firstAct; char pad2[4]; short role; };
-struct E { char pad[0x80]; qword gravity; };
-struct P { char pad[0x58]; struct O *positionXf; char pad2[0xE8 - 0x5C]; struct E *physics; };
-void SetXfRole(struct P *, struct O *, int);
-void WakeSo(struct P *);
 // Sets the object's gravity vector (making the position XF dynamic if needed) and invalidates its box.
-void SetSoGravity(struct P *so, qword q)
+void SetSoGravity(SO *so, qword q)
 {
     if (so->physics) {
-        struct O *po = so->positionXf;
-        if (po->firstAct == 0 && po->role != 2) SetXfRole(so, po, 1);
-        so->physics->gravity = q;
+        XF *po = so->unknown58;
+        if (po->firstActuator == 0 && po->role != 2) SetXfRole(so, po, 1);
+        *(qword *)&so->physics->gravity = q;   /* gravity written as a quadword */
         WakeSo(so);
     }
 }
@@ -3280,32 +3233,27 @@ extern "C" void CloneSoPartGeomInserting(P *source,LO *space,int inserted,P *des
 
 // 0x1F72F8 IsPosInSo
 namespace M_func_001F72F8 { extern "C" {
-struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
-typedef unsigned long ulong;
-struct O { char pad[0x70]; qword pos; };
-struct E { struct O *transform; int pad; float radius; int pad2; ulong flags; char pad3[0x74 - 0x18]; void *bsp; char pad4[0xB0 - 0x78]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
 int FindBspLeafContainingPointFast(void *, int, qword);
 // Slot 73: returns 1 when pos is inside any visible sphere part or part BSP of the object.
-int IsPosInSo(struct P *so, qword pos)
+int IsPosInSo(SO *so, qword pos)
 {
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (pe->flags & (1L << 50)) continue;
-        if (pe->flags & (1L << 49)) {
+        SOPART *pe = &so->parts[i];
+        if (pe->isHidden) continue;
+        if (pe->unknownFlag10B) {
             qword d, one;
             float r2, d2;
             int t;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(pe->transform->pos));
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(*(qword *)pe->transform->worldMatrix.mat[3]));
             r2 = pe->radius * pe->radius;
             __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "0"(d));
             __asm__("qmfc2.ni %0, %1" : "=r"(t) : "j"(d));
             __asm__("mtc1 %1, %0" : "=f"(d2) : "r"(t));
             { int f = d2 < r2; if (f) return 1; }
         }
-        if (pe->bsp && FindBspLeafContainingPointFast(pe->bsp, 0x7FFFFFFF, pos)) return 1;
+        if (pe->bspc.nodes && FindBspLeafContainingPointFast(pe->bspc.nodes, 0x7FFFFFFF, pos)) return 1;
     }
     return 0;
 }
@@ -3313,13 +3261,11 @@ int IsPosInSo(struct P *so, qword pos)
 
 // 0x1F7410 InflictSoContactZaps
 namespace M_func_001F7410 { extern "C" {
-struct O; struct H; struct N; struct E; struct P; struct M;
+struct H; struct N; struct M;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x14]; short damage; short pad2; int zapKinds; };
-struct H { struct O *part; int pad; void *so; void *object; qword pos; qword posLocal; qword velocity; };
+/* XP as seen from one side (two of them, 0x40 each) and the contact chain. */
+struct H { SOPART *part; int pad; void *so; void *object; qword pos; qword posLocal; qword velocity; };
 struct N { struct H h[2]; char pad[0xAC - 0x80]; struct N *next; };
-struct E { char pad[0x6C]; struct N *zapContacts; };
-struct P { char pad[0xEC]; struct E *tree; };
 struct M { void *source; void *part; void *so; int zapKinds; int damage; int pad[3]; qword posLocal; qword velocity; char pad2[0x60 - 0x40]; };
 struct G;
 extern struct G D_003DD490;
@@ -3329,33 +3275,33 @@ int DeliverZapToSo(struct M *);
 void FreeSwXpList__FP2SWP2XP(struct G *, void *);
 // Slot 74: for each contact whose other part has zap kinds, builds a zap record and delivers it; frees the list.
 // (inferred)
-void InflictSoContactZaps(struct P *so)
+void InflictSoContactZaps(SO *so)
 {
     struct N *pn;
-    for (pn = so->tree->zapContacts; pn; pn = pn->next) {
+    for (pn = (struct N *)so->physicsTree->firstZapContact; pn; pn = pn->next) {
         int i = pn->h[0].so != so;
         struct H *ph = (struct H *)((char *)pn + (i << 6));
-        if (ph->part->zapKinds) {
+        if (ph->part->zapKindFlags) {
             struct H *pot = (struct H *)((char *)pn + ((1 - i) << 6));
-            void *r = FindZapResponder(pot->object, ph->part->zapKinds);
+            void *r = FindZapResponder(pot->object, ph->part->zapKindFlags);
             if (r) {
                 struct M m;
                 func_002333B4(&m, 0, 0x60);
                 m.source = so;
                 m.part = ph->part;
                 m.so = r;
-                m.zapKinds = ph->part->zapKinds;
+                m.zapKinds = ph->part->zapKindFlags;
                 m.damage = ph->part->damage;
                 m.posLocal = pot->pos;
                 m.velocity = ph->velocity;
                 DeliverZapToSo(&m);
-                if (!so->tree) break;
+                if (!so->physicsTree) break;
             }
         }
     }
-    if (so->tree) {
-        FreeSwXpList__FP2SWP2XP(&D_003DD490, so->tree->zapContacts);
-        so->tree->zapContacts = 0;
+    if (so->physicsTree) {
+        FreeSwXpList__FP2SWP2XP(&D_003DD490, so->physicsTree->firstZapContact);
+        so->physicsTree->firstZapContact = 0;
     }
 }
 } } // namespace M_func_001F7410
@@ -3386,48 +3332,40 @@ extern "C" int CanSoTakeDamage(SO *so, SOWATCH *pwatch)
 
 // 0x1F7598 DeliverZapToSo
 namespace M_func_001F7598 { extern "C" {
-struct VT; struct O; struct K; struct N; struct M; struct M2; struct M3;
+struct K; struct N; struct M; struct M2; struct M3;
 typedef int qword __attribute__((mode(TI)));
-struct O;
-struct VT {
-    short d; short pad;
-    void *pfn;
-};
-struct O { char pad[0xC]; struct VT *pvt; struct O *parent; };
 struct K {
-    struct O *source; int part; void *target; int zapKinds;
+    SO *source; int part; void *target; int zapKinds;
     char pad[0x44 - 0x10];
-    int responseFlags; struct O *responder; float time; char dle[0x10];
+    int responseFlags; SO *responder; float time; char dle[0x10];
 } __attribute__((aligned(16)));
-struct N { int source; int part; int pad8; int zapKinds; char pad[0x48 - 0x10]; struct O *responder; char pad2[0x50 - 0x4C]; struct N *next; };
-struct M { struct O *po; int n; struct K *zpr; };
-struct M2 { struct O **pso; int *zapKinds; };
+struct N { int source; int part; int pad8; int zapKinds; char pad[0x48 - 0x10]; SO *responder; char pad2[0x50 - 0x4C]; struct N *next; };
+struct M { SO *po; int n; struct K *zpr; };
+struct M2 { SO **pso; int *zapKinds; };
 struct M3 { struct K *zpr; };
 extern float D_002DDED0;
-struct O *GetSoFromLo(void *);
-int GetSoZapResponseFlags(struct O *, int);
+SO *GetSoFromLo(void *);
+int GetSoZapResponseFlags(SO *, int);
 struct K *AllocZeroedFromSlotheap(void *);
 void ClearDle__FP3DLE(void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
 
-#define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
-
 // Delivers a zap (damage) record to the first object in the target chain that accepts it: skips zaps already in the
 // recent-zap list, computes the response and calls the object's zap handler.
 // Sly 1 zap.cpp vocabulary (InflictZpdZap, FInflictSoZap).
-struct O *DeliverZapToSo(struct K *pk)
+SO *DeliverZapToSo(struct K *pk)
 {
     int unused[4];
     struct M m;
     struct M2 m2;
-    struct O *po;
+    SO *po;
     for (po = GetSoFromLo(pk->target); po; po = po->parent) {
         struct N *pn;
         for (pn = (*(struct N * *)&g_sw.dlZprHit); pn; pn = pn->next) {
             if (pn->source == (int)pk->source && pn->part == pk->part && pn->zapKinds == pk->zapKinds && pn->responder == po) return 0;
         }
         pk->responseFlags = GetSoZapResponseFlags(po, pk->zapKinds);
-        if (VCALL(po, 75, int (*)(void *, struct K *)), pk)) {
+        if (po->TakeDamage((ZPR *)pk)) {
             struct K *pkNew;
             pk->responder = po;
             pkNew = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapZprHit));
@@ -3438,16 +3376,16 @@ struct O *DeliverZapToSo(struct K *pk)
             if (pk->responseFlags & 0xF8) {
                 {
                     m.po = po; m.n = (int)pk->source; m.zpr = pk;
-                    VCALL(po, 4, void (*)(void *, int, struct M *)), 0xB, &m);
-                    VCALL(pk->source, 4, void (*)(void *, int, struct M *)), 0xB, &m);
+                    po->SendMessage((MSGID)0xB, &m);
+                    pk->source->SendMessage((MSGID)0xB, &m);
                 }
                 {
                     m2.pso = &po; m2.zapKinds = &pk->zapKinds;
-                    VCALL(pk->source, 3, void (*)(void *, int, int, int, void *, int)), 0xA, 1, 2, &m2, 0);
+                    pk->source->HandleSpliceEvent(0xA, 1, 2, (void **)&m2, 0);
                 }
                 {
-                    m2.pso = (struct O **)pk;
-                    VCALL(po, 3, void (*)(void *, int, int, int, void *, int)), 0xB, 1, 2, &m2, 0);
+                    m2.pso = (SO **)pk;
+                    po->HandleSpliceEvent(0xB, 1, 2, (void **)&m2, 0);
                 }
             }
             return po;
@@ -3492,26 +3430,22 @@ int GetZapKindIndex(int x)
 
 // 0x1F78D8 GetSoZapResponseFlags
 namespace M_GrfzpdFromSoGrfzpk { extern "C" {
-struct S;
-struct S { char pad[0x110]; unsigned char ab[26]; };
 // OR of the object's per-kind response bytes (+0x110[26]) for the kinds in grfzpk (Sly 1 GrfzpdFromSoGrfzpk).
-int GetSoZapResponseFlags(struct S *so, int f)
+int GetSoZapResponseFlags(SO *so, int f)
 {
     int r = 0; int i; int m;
-    for (i = 0, m = 1; i < 26; i++) { if (m & f) r |= so->ab[i]; m <<= 1; }
+    for (i = 0, m = 1; i < 26; i++) { if (m & f) r |= so->zapKindFlags[i]; m <<= 1; }
     return r;
 }
 } } // namespace M_GrfzpdFromSoGrfzpk
 
 // 0x1F7918 SetSoZapResponse
 namespace M_func_001F7918 { extern "C" {
-struct S;
-struct S { char pad[0x110]; unsigned char ab[26]; };
 // Sets the object's response byte to b for each zap kind in grfzpk.
-void SetSoZapResponse(struct S *so, int f, int b)
+void SetSoZapResponse(SO *so, int f, int b)
 {
     int i; int m;
-    for (i = 0, m = 1; i < 26; i++) { if (m & f) so->ab[i] = b; m <<= 1; }
+    for (i = 0, m = 1; i < 26; i++) { if (m & f) so->zapKindFlags[i] = b; m <<= 1; }
 }
 } } // namespace M_func_001F7918
 
@@ -3559,39 +3493,35 @@ void HandleSoTouchZaps(struct P *so)
 
 // 0x1F7A68 SetSoZapMode
 namespace M_func_001F7A68 { extern "C" {
-struct E; struct P;
-typedef unsigned long ulong;
-struct E { char pad[0x14]; short damage; short pad2; int zapKinds; char pad3[0xB0 - 0x1C]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; char pad2[0x148 - 0xE8]; union { signed char hitDamage0; struct { ulong lo : 24; ulong zapMode : 2; ulong hi : 38; } f; ulong flags; } u; };
 // Sets the zap mode (+0x148 bits 24-25, 0..3); mode 2 makes the parts with zap kind 0 damaging (0x10000) with the
 // object's hit damage, the other modes make them harmless.
-void SetSoZapMode(struct P *so, int k)
+void SetSoZapMode(SO *so, int k)
 {
     int from, to, s;
     int i;
-    if (k == ((int)(so->u.flags >> 24) & 3)) return;
+    if (k == ((int)(*(ulong *)&so->unknown148 >> 24) & 3)) return;   /* read as the whole +0x148 word (zapMode bits 24-25): the bit-field read compiles differently */
     switch (k) {
     case 0: case 1: case 3:
         from = 0x10000; to = 0; s = -10;
         break;
     case 2:
-        s = so->u.hitDamage0; from = 0; to = 0x10000;
+        s = so->unknown148; from = 0; to = 0x10000;
         break;
     }
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (pe->zapKinds == from) { pe->zapKinds = to; pe->damage = s; }
+        SOPART *pe = &so->parts[i];
+        if (pe->zapKindFlags == from) { pe->zapKindFlags = to; pe->damage = s; }
     }
-    so->u.f.zapMode = (unsigned int)k;
+    so->zapMode = (unsigned int)k;
 }
 } } // namespace M_func_001F7A68
 
 // 0x1F7B40 GetSoZapMode
 namespace M_func_001F7B40 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong flags; };
 // Returns the zap mode.
-int GetSoZapMode(struct S *p) { return (int)((long)(p->flags << 8) >> 32) & 3; }
+/* SO's +0x148 word whole: the getter sign-extends through a shift pair the zapMode bit-field does not give (matching-only). */
+struct SOIsland { char pad[0x148]; ulong flags; };
+int GetSoZapMode(SOIsland *p) { return (int)((long)(p->flags << 8) >> 32) & 3; }
 } } // namespace M_func_001F7B40
 
 // 0x1F7B58 SetSoHitDamage
@@ -3708,16 +3638,13 @@ void SetSoFadeRate(SO *so, float g)
 
 // 0x1F7E08 CollectSoParts
 namespace M_func_001F7E08 { extern "C" {
-struct E; struct P;
-struct E { char pad[0xB0]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
 // Collects the parts that pass an optional predicate into an array; returns the count.
-int CollectSoParts(struct P *so, int (*pfn)(void *, struct E *), void *pv, struct E **ape)
+int CollectSoParts(SO *so, int (*pfn)(void *, SOPART *), void *pv, SOPART **ape)
 {
     int n = 0;
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
+        SOPART *pe = &so->parts[i];
         if (!pfn || pfn(pv, pe)) {
             ape[n++] = pe;
         }
@@ -3740,10 +3667,10 @@ int GetSoUnknownBits16(SO *p) { return p->unknownBits148A; }
 
 // 0x1F7F08 GetSoNoJtPlace
 namespace M_func_001F7F08 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong flags; };
 // Returns the no-JT-place flag (+0x148 bit 29, so.h isNotLandable).
-int GetSoNoJtPlace(struct S *p) { return (int)((long)(p->flags << 3) >> 32) & 1; }
+/* SO's +0x148 word whole (as GetSoZapMode; matching-only). */
+struct SOIsland { char pad[0x148]; ulong flags; };
+int GetSoNoJtPlace(SOIsland *p) { return (int)((long)(p->flags << 3) >> 32) & 1; }
 } } // namespace M_func_001F7F08
 
 // 0x1F7F20 SetSoNoJtPlace
@@ -3766,16 +3693,14 @@ void SetSoTreeRoot(SO *so, long f)
 
 // 0x1F7FA0 SetSoScrollerSpeeds
 namespace M_func_001F7FA0 { extern "C" {
-struct P;
-struct P { char pad[0xA4]; int numSaas; void **saas; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
 // Sets the master speeds of every scroller (CID 0x8F) in the object's animation list.
-void SetSoScrollerSpeeds(struct P *so, float f, float g)
+void SetSoScrollerSpeeds(SO *so, float f, float g)
 {
     int i;
-    for (i = 0; i < so->numSaas; i++) {
-        void *q = so->saas[i];
+    for (i = 0; i < so->model.cpsaa; i++) {
+        void *q = so->model.apsaa[i];
         if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetScrollerMasterSpeeds__FP8SCROLLERff(q, f, g);
     }
 }
@@ -3783,16 +3708,14 @@ void SetSoScrollerSpeeds(struct P *so, float f, float g)
 
 // 0x1F8038 SetSoSaaParams
 namespace M_func_001F8038 { extern "C" {
-struct P;
-struct P { char pad[0xA4]; int numSaas; void **saas; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetSaiDuDv(void *, float, float);
 // Passes two parameters to every CID 0x8F entry of the object's animation list (inferred).
-void SetSoSaaParams(struct P *so, float f, float g)
+void SetSoSaaParams(SO *so, float f, float g)
 {
     int i;
-    for (i = 0; i < so->numSaas; i++) {
-        void *q = so->saas[i];
+    for (i = 0; i < so->model.cpsaa; i++) {
+        void *q = so->model.apsaa[i];
         if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetSaiDuDv(q, f, g);
     }
 }
@@ -3820,14 +3743,13 @@ void SetSoEyesClosed(struct L *so, float f)
 
 // 0x1F8198 FindSoSaa
 namespace M_PsaaFindSoOid { extern "C" {
-struct T; struct S;
-struct T { char pad[0x18]; int oid; };
-struct S { char pad[0xA4]; int numSaas; struct T **saas; };
+struct T;
+struct T { char pad[0x18]; int oid; };   /* an SAA: its oid (+0x18) */
 // Finds an entry of the object's animation list by oid (Sly 1 PsaaFindSoOid).
-struct T *FindSoSaa(struct S *so, int n)
+struct T *FindSoSaa(SO *so, int n)
 {
     int i;
-    for (i = 0; i < so->numSaas; i++) { struct T *pt = so->saas[i]; if (pt->oid == n) return pt; }
+    for (i = 0; i < so->model.cpsaa; i++) { struct T *pt = (struct T *)so->model.apsaa[i]; if (pt->oid == n) return pt; }
     return 0;
 }
 } } // namespace M_PsaaFindSoOid
@@ -3892,10 +3814,7 @@ void SetSoTargetRecordParams(void *p, int x, struct K *pk) { struct T *pt = Ensu
 
 // 0x1F8300 EnsureSoPhysRegionRecord
 namespace M_func_001F8300 { extern "C" {
-struct Q; struct E; struct P; struct CB;
-struct Q { void *so; int pad; float unknown8; float unknownC; };
-struct E { char pad[0xDC]; struct Q *region; };
-struct P { char pad[0xE8]; struct E *physics; };
+struct CB;
 struct CB { int cb; int n; };
 void *AllocClearedFromWorldHeap(struct CB *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -3903,19 +3822,19 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return AllocClearedFromWorldHeap(pcb); }
 // Ensures the physics region record {object, three tuning floats with defaults 75 (150 for class 0x34) and 1}.
 // (inferred)
-struct Q *EnsureSoPhysRegionRecord(struct P *so)
+REGENT *EnsureSoPhysRegionRecord(SO *so)
 {
     if (!so->physics) return 0;
-    if (!so->physics->region) {
+    if (!so->physics->pregent) {
         struct CB cb;
-        struct Q *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
-        q->so = so;
-        if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown8 = 150.0f;
-        else q->unknown8 = 75.0f;
-        q->unknownC = 1.0f;
-        so->physics->region = q;
+        REGENT *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
+        q->pso = so;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown08 = 150.0f;
+        else q->unknown08 = 75.0f;
+        q->unknown0C = 1.0f;
+        so->physics->pregent = q;
     }
-    return so->physics->region;
+    return so->physics->pregent;
 }
 } } // namespace M_func_001F8300
 
@@ -3923,63 +3842,51 @@ struct Q *EnsureSoPhysRegionRecord(struct P *so)
 // Sets the region record's second float. (inferred)
 extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
 {
-    STEPREC *prec;
+    REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->g8 = g;
+        prec->unknown08 = g;
     }
 }
 
 // 0x1F83E0 GetSoPhysRecordParam8
 namespace M_func_001F83E0 { extern "C" {
-struct U; struct T; struct S;
-struct U { char pad[0x8]; float value; };
-struct T { char pad[0xDC]; struct U *region; };
-struct S { char pad[0xE8]; struct T *physics; };
 // Returns the region record's second float (0 without a record). (inferred)
-float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
+float GetSoPhysRecordParam8(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown08; return 0.0f; }
 } } // namespace M_func_001F83E0
 
 // 0x1F8410 SetSoPhysRecordParamC
 // Sets the region record's third float. (inferred)
 extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
 {
-    STEPREC *prec;
+    REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->gC = g;
+        prec->unknown0C = g;
     }
 }
 
 // 0x1F8440 GetSoPhysRecordParamC
 namespace M_func_001F8440 { extern "C" {
-struct U; struct T; struct S;
-struct U { char pad[0xC]; float value; };
-struct T { char pad[0xDC]; struct U *region; };
-struct S { char pad[0xE8]; struct T *physics; };
 // Returns the region record's third float (0 without a record). (inferred)
-float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
+float GetSoPhysRecordParamC(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown0C; return 0.0f; }
 } } // namespace M_func_001F8440
 
 // 0x1F8470 SetSoPhysRecordParam4
 // Sets the region record's first float. (inferred)
 extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
 {
-    STEPREC *prec;
+    REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->g4 = g;
+        prec->unknown04 = g;
     }
 }
 
 // 0x1F84A0 GetSoPhysRecordParam4
 namespace M_func_001F84A0 { extern "C" {
-struct U; struct T; struct S;
-struct U { char pad[0x4]; float value; };
-struct T { char pad[0xDC]; struct U *region; };
-struct S { char pad[0xE8]; struct T *physics; };
 // Returns the region record's first float (0 without a record). (inferred)
-float GetSoPhysRecordParam4(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
+float GetSoPhysRecordParam4(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown04; return 0.0f; }
 } } // namespace M_func_001F84A0
 
 // 0x1F84D0 SetSoIceable__FP2SOi
@@ -4077,14 +3984,13 @@ void SetSoBit35Hierarchy(struct L *so, long f)
 // Handle slot 0: increments the reference count.
 void CID148::AddRef()   /* key function: CID148's vtable comes out here */
 {
-    XFH *pxfh = (XFH *)this;
-    pxfh->cref = pxfh->cref + 1;
+    cref = cref + 1;
 }
 
 // 0x1F8740 DecrefXfHandle
 /* Drops a reference; the last one clears the splice frame and sidebag, unsubscribes and frees the handle. */
 // Decrements the handle's reference count; at 0 destroys it and returns it to the pool.
-extern "C" void DecrefXfHandle(XFH *pxfh)
+extern "C" void DecrefXfHandle(CID148 *pxfh)
 {
     int cref;
     cref = pxfh->cref - 1;
@@ -4099,64 +4005,43 @@ extern "C" void DecrefXfHandle(XFH *pxfh)
 
 // 0x1F87A0 GetXfHandleParamAC
 namespace M_func_001F87A0 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; unsigned short unknownAC; };
-struct S { char pad[0x24]; struct T *transform; };
 // Returns the XF's 16-bit field +0xAC in thousandths (meaning unknown).
-float GetXfHandleParamAC(struct S *p) { return p->transform->unknownAC * 0.001f; }
+float GetXfHandleParamAC(CID149 *p) { return (unsigned short)p->pxf->stiffness * 0.001f; }
 } } // namespace M_func_001F87A0
 
 // 0x1F87C8 SetXfHandleParamAC
 namespace M_func_001F87C8 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; short unknownAC; };
-struct S { char pad[0x20]; void *so; struct T *transform; };
-void UnsettleXfSlot(void *, struct T *);
 // Sets the XF's field +0xAC (value * 1000) and refreshes its mode.
-void SetXfHandleParamAC(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
+void SetXfHandleParamAC(CID149 *p, float g) { p->pxf->stiffness = (int)(g * 1000.0f); UnsettleXfSlot(p->pso, p->pxf); }
 } } // namespace M_func_001F87C8
 
 // 0x1F8808 GetXfHandleParamAE
 namespace M_func_001F8808 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAE]; unsigned short unknownAE; };
-struct S { char pad[0x24]; struct T *transform; };
 // Returns the XF's 16-bit field +0xAE in thousandths.
-float GetXfHandleParamAE(struct S *p) { return p->transform->unknownAE * 0.001f; }
+float GetXfHandleParamAE(CID149 *p) { return (unsigned short)p->pxf->damping * 0.001f; }
 } } // namespace M_func_001F8808
 
 // 0x1F8830 SetXfHandleParamAE
 namespace M_func_001F8830 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAE]; short unknownAE; };
-struct S { char pad[0x20]; void *so; struct T *transform; };
-void UnsettleXfSlot(void *, struct T *);
 // Sets the XF's field +0xAE (value * 1000) and refreshes its mode.
-void SetXfHandleParamAE(struct S *p, float g) { p->transform->unknownAE = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
+void SetXfHandleParamAE(CID149 *p, float g) { p->pxf->damping = (int)(g * 1000.0f); UnsettleXfSlot(p->pso, p->pxf); }
 } } // namespace M_func_001F8830
 
 // 0x1F8870 GetXfHandleParamAC2
 namespace M_func_001F8870 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; unsigned short unknownAC; };
-struct S { char pad[0x24]; struct T *transform; };
 // Same as GetXfHandleParamAC for the other handle class.
-float GetXfHandleParamAC2(struct S *p) { return p->transform->unknownAC * 0.001f; }
+float GetXfHandleParamAC2(CID149 *p) { return (unsigned short)p->pxf->stiffness * 0.001f; }
 } } // namespace M_func_001F8870
 
 // 0x1F8898 SetXfHandleParamAC2
 namespace M_func_001F8898 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xAC]; short unknownAC; };
-struct S { char pad[0x20]; void *so; struct T *transform; };
-void UnsettleXfSlot(void *, struct T *);
 // Same as SetXfHandleParamAC for the other handle class.
-void SetXfHandleParamAC2(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
+void SetXfHandleParamAC2(CID149 *p, float g) { p->pxf->stiffness = (int)(g * 1000.0f); UnsettleXfSlot(p->pso, p->pxf); }
 } } // namespace M_func_001F8898
 
 // 0x1F88D8 GetXfFromHandle
 // Returns the handle's XF, refreshing its mode first when asked.
-extern "C" XF *GetXfFromHandle(XFH *pxfh, int n)
+extern "C" XF *GetXfFromHandle(CID149 *pxfh, int n)
 {
     if (n == 1) {
         UnsettleXfSlot(pxfh->pso, pxfh->pxf);
@@ -4166,33 +4051,29 @@ extern "C" XF *GetXfFromHandle(XFH *pxfh, int n)
 
 // 0x1F8910 FindXfHandleActuator
 namespace M_func_001F8910 { extern "C" {
-struct E; struct Q; struct P;
-struct E { int kind; int pad[2]; int priority; struct E *next; };
-struct Q { char pad[0x90]; struct E *firstAct; };
-struct P { char pad[0x20]; void *so; struct Q *transform; };
-void RemoveXfAct(void *, struct Q *, struct E *);
+struct E;
+struct E { int kind; int pad[2]; int priority; struct E *next; };   /* an ACT (actuator) */
+void RemoveXfAct(SO *, XF *, struct E *);
 void FreeAct(struct E *);
-void SortXfActs(void *, struct Q *);
-void SetXfRole(void *, struct Q *, int);
-void UnsettleXfSlot(void *, struct Q *);
+void SortXfActs(SO *, XF *);
 // Finds the XF's actuator of kind k; n = -1 removes it, otherwise it is updated and re-prioritised.
-struct E *FindXfHandleActuator(struct P *handle, int k, int n, int m)
+struct E *FindXfHandleActuator(CID149 *handle, int k, int n, int m)
 {
     struct E *pe;
-    for (pe = handle->transform->firstAct; pe; pe = pe->next) {
+    for (pe = (struct E *)handle->pxf->firstActuator; pe; pe = pe->next) {
         if (pe->kind != k) continue;
         if (n == -1) {
-            RemoveXfAct(handle->so, handle->transform, pe);
+            RemoveXfAct(handle->pso, handle->pxf, pe);
             FreeAct(pe);
             return 0;
         }
         if (m != pe->priority) {
             pe->priority = m;
-            SortXfActs(handle->so, handle->transform);
+            SortXfActs(handle->pso, handle->pxf);
         }
-        if (pe == handle->transform->firstAct) {
-            SetXfRole(handle->so, handle->transform, n);
-            UnsettleXfSlot(handle->so, handle->transform);
+        if (pe == (struct E *)handle->pxf->firstActuator) {
+            SetXfRole(handle->pso, handle->pxf, n);
+            UnsettleXfSlot(handle->pso, handle->pxf);
         }
         return pe;
     }
@@ -4202,56 +4083,50 @@ struct E *FindXfHandleActuator(struct P *handle, int k, int n, int m)
 
 // 0x1F89E0 SetXfHandleActuator1
 namespace M_func_001F89E0 { extern "C" {
-struct R; struct P;
+struct R;
 typedef int qword __attribute__((mode(TI)));
 struct R { char pad[0x14]; int role; };
-struct P { char pad[0x20]; void *so; void *transform; };
-struct R *FindXfHandleActuator(struct P *, int, int, int);
+struct R *FindXfHandleActuator(CID149 *, int, int, int);
 void SetActPositionGoal(struct R *, qword);
-void NewPositionAct(void *, void *, int, int, int, qword);
+void NewPositionAct(SO *, XF *, int, int, int, qword);
 // Updates or creates the XF's kind-1 actuator (a target vector) with its parameters.
-void SetXfHandleActuator1(struct P *handle, int n, int m, qword q)
+void SetXfHandleActuator1(CID149 *handle, int n, int m, qword q)
 {
     struct R *r = FindXfHandleActuator(handle, 1, n, m);
     if (r) {
         r->role = n;
         SetActPositionGoal(r, q);
     } else if (n != -1) {
-        NewPositionAct(handle->so, handle->transform, m, n, 2, q);
+        NewPositionAct(handle->pso, handle->pxf, m, n, 2, q);
     }
 }
 } } // namespace M_func_001F89E0
 
 // 0x1F8A78 SetXfHandleActuator1World
 namespace M_func_001F8A78 { extern "C" {
-struct B; struct A;
 typedef int qword __attribute__((mode(TI)));
-struct B { char pad[0xA0]; int n; };
-struct A { char pad[0x24]; struct B *pb; };
-qword TransformXfPos(int a, int n, qword q);
-void SetXfHandleActuator1(struct A *p, int a, int b, qword q);
+qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword q);
+void SetXfHandleActuator1(CID149 *p, int a, int b, qword q);
 // SetXfHandleActuator1 with a vector converted from the XF's parent space.
-void SetXfHandleActuator1World(struct A *handle, int a, int b, qword q)
+void SetXfHandleActuator1World(CID149 *handle, int a, int b, qword q)
 {
-    SetXfHandleActuator1(handle, a, b, TransformXfPos(0, handle->pb->n, q));
+    SetXfHandleActuator1(handle, a, b, TransformXfPos(0, handle->pxf->parent, q));
 }
 } } // namespace M_func_001F8A78
 
 // 0x1F8AD8 SetXfHandleActuator1Mat
 namespace M_func_001F8AD8 { extern "C" {
-struct M3; struct O; struct P;
+struct M3;
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a[3]; };
-struct O { char pad[0xA0]; int parent; };
-struct P { char pad[0x24]; struct O *transform; };
-void ConvertXfMat(struct M3 *, int, int);
+void ConvertXfMat(struct M3 *, XF *, XF *);
 qword DecomposeRotationMatrixToEuler(struct M3 *);
-void SetXfHandleActuator1(struct P *, int, int, qword);
+void SetXfHandleActuator1(CID149 *, int, int, qword);
 // SetXfHandleActuator1 with the value taken from a matrix.
-void SetXfHandleActuator1Mat(struct P *handle, int a, int b)
+void SetXfHandleActuator1Mat(CID149 *handle, int a, int b)
 {
     struct M3 c, t;
-    ConvertXfMat(&t, 0, handle->transform->parent);
+    ConvertXfMat(&t, 0, handle->pxf->parent);
     c = t;
     SetXfHandleActuator1(handle, a, b, DecomposeRotationMatrixToEuler(&c));
 }
@@ -4259,13 +4134,12 @@ void SetXfHandleActuator1Mat(struct P *handle, int a, int b)
 
 // 0x1F8B58 SetXfHandleActuator4
 namespace M_func_001F8B58 { extern "C" {
-struct R; struct P;
+struct R;
 struct R { char pad[0x14]; int role; int pad2; float unknown1C; float unknown20; };
-struct P { char pad[0x20]; void *so; void *transform; };
-struct R *FindXfHandleActuator(struct P *, int, int, int);
-void NewPathAct(void *, void *, int, int, float, float);
+struct R *FindXfHandleActuator(CID149 *, int, int, int);
+void NewPathAct(SO *, XF *, int, int, float, float);
 // Updates or creates the XF's kind-4 actuator with two floats.
-void SetXfHandleActuator4(struct P *handle, int n, int m, float f, float g)
+void SetXfHandleActuator4(CID149 *handle, int n, int m, float f, float g)
 {
     struct R *r = FindXfHandleActuator(handle, 4, n, m);
     if (r) {
@@ -4273,7 +4147,7 @@ void SetXfHandleActuator4(struct P *handle, int n, int m, float f, float g)
         r->unknown1C = f;
         r->unknown20 = g;
     } else if (n != -1) {
-        NewPathAct(handle->so, handle->transform, m, n, f, g);
+        NewPathAct(handle->pso, handle->pxf, m, n, f, g);
     }
 }
 } } // namespace M_func_001F8B58

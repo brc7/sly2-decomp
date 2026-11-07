@@ -16,6 +16,7 @@
 #include "sly2/basic.h"
 #include "sly2/scrap.h"
 #include "sly2/xfm.h"
+#include "sly2/so.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/emitter.h"
@@ -778,10 +779,6 @@ struct EMITVELIsland {
 typedef char check_emitp[(sizeof(EMITVIsland) == 0x40) ? 1 : -1];
 typedef char check_emitv[(sizeof(EMITVELIsland) == 0x70) ? 1 : -1];
 
-struct VTE { short d; short pad; qword (*pfn)(void *); };
-struct VT { VTE a[64]; };
-struct XE8 { char pad[0x80]; qword velocity; };   /* SO+0xE8: its motion state */
-struct SO { int pad0[3]; VT *pvt; char pad10[0xE8 - 0x10]; XE8 *motion; };
 struct SND { char pad[0x170]; float lastWakeTime; void *wakeSound; };   /* the SO as a sound-carrying object (CID 0x32) */
 struct EX { char pad[0x18]; int oid; };   /* an LO */
 struct WATER { char pad[0x18]; int oid; char pad1c[0x178 - 0x1C]; EX *splashObject; EX *rippleObject; int hasWakeSound; };
@@ -823,8 +820,7 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
 extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qword pos, qword v, float dt, float minIntervalFrac, float scale)
 {
     float volume = 0.0f;    /* 0 until the sound is set: also the clamp floor and StopSnd's argument */
-    VTE *pvte = &so->pvt->a[33];
-    float distance = QwordX(Length(VuSub(pos, pvte->pfn((char *)so + pvte->d))));
+    float distance = QwordX(Length(VuSub(pos, (qword)so->GetVelocity())));
     int shouldWake = RandomFloatInRange__Fff(volume, 3.0f) < dt;
     SND *soundObject;
     float strength, interval;
@@ -869,7 +865,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                     soundObject->lastWakeTime = D_002DDED0.time;
                 if (500.0f < distance && water->splashObject) {
                     EMITVIsland emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
-                    EMITVELIsland emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, so->motion->velocity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
+                    EMITVELIsland emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, *(qword *)&so->physics->gravity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
                                     {{ 0.39269909f, 1.0471976f }}, { 0 }, {{ 1.0f, 0.0f, -1.0f }} };
                     E emitg;
                     V4 posSplash;
@@ -1748,10 +1744,8 @@ void *AllocClearedFromWorldHeap(MSG *pmsg);
 // Fill the heap message and allocate cb zeroed bytes of kind nKind from the world heap.
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 struct C { int a[4]; };
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; int pad[6]; unsigned long fl; };
-struct DA { int n0; int cMax; int c; struct O **a; };
-struct S { char pad[0xE0]; int numChildren; struct O **children; };   /* EXPLG */
+struct DA { int n0; int cMax; int c; LO **a; };
+struct S : XFM { int numChildren; LO **children; };   /* EXPLG (its fields past XFM) */
 void STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void LoadXfmFromBrx(struct S *p, void *q);
@@ -1772,11 +1766,10 @@ void LoadExplgFromBrx(struct S *p, void *q)
     LoadXfmChildObjectsFromBrx(p, q, &da);
     p->children = (__typeof__(p->children))PvAllocMsg(&msg, da.c * 4, 0x10);
     for (i = 0; i < da.c; i++) {
-        struct O *o = da.a[i];
-        o->fl |= 0x200000000000000L;
+        LO *o = da.a[i];
+        o->unknownFlag28A = 1;
         if (!IsBasicDerivedFrom__FP5BASIC3CID(o, 0x1E)) {
-            struct VTE *e = &o->vt[9];
-            e->pfn((char *)o + e->d);
+            o->Remove();
         } else {
             p->children[p->numChildren++] = o;
         }

@@ -795,12 +795,10 @@ void RenderDprizeSelf(LO *prize)
 namespace RO_ORDER { extern const float r_D_002A773C __asm__("D_002A773C") = 3.40282347e+38f; }
 namespace M_SetDprizeDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
+/* The position XF as quadwords (local translation +0x30, velocity +0xB0). */
 struct O { char pad[0x30]; qword position; char p1[0xB0 - 0x40]; qword velocity; };
-struct S {
-    char pad[0xC]; struct VTE *vt;
-    char p0[0x58 - 0x10]; struct O *positionChannel;
-    char p1[0x150 - 0x5C]; int state; float stateTime; int initialState; int idleAnimOverride; float animSkipTime; void *smaSource; struct LO *sma; struct LO *target;
+struct S : SO {
+    int state; float stateTime; int initialState; int idleAnimOverride; float animSkipTime; void *smaSource; struct LO *sma; struct LO *target;
     qword position; qword velocity; qword acceleration;
     char p2[0x1CC - 0x1A0]; float expireTime;
 };
@@ -824,7 +822,7 @@ void SetDprizeDprizes(struct S *prize, int n)
     if (n != DPRIZE_STATE_IDLE && n != DPRIZE_STATE_VANISHING)
         SetLoParent(prize, 0, 0);
     if (prize->state == DPRIZE_STATE_NONE || prize->state == DPRIZE_STATE_GONE) {
-        struct O *o = prize->positionChannel;
+        struct O *o = (struct O *)prize->unknown58;
         prize->position = o->position;
         prize->velocity = o->velocity;
     }
@@ -840,7 +838,7 @@ void SetDprizeDprizes(struct S *prize, int n)
         break;
     case DPRIZE_STATE_GONE:
         prize->expireTime = D_002A773C;
-        ((void (*)(void *))prize->vt[9].pf)((char *)prize + prize->vt[9].d);
+        prize->Remove();
         {
             struct LO *r = GetProxyCopyValue(prize);
             if (r)
@@ -1234,40 +1232,35 @@ void SetKeyDprizes(struct KEYV *key, int n)
 
 namespace M_LaunchSprayedDprize { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
-struct V3 { float x, y, z; };
-struct X { char pad[0xB0]; struct V3 v; };
 extern struct CLOCK D_002DDED0;
 extern char D_002A2D00[];
 extern const float D_002A7758;
-struct S { char pad[0xC]; struct VTE *vt; char p1[0x58 - 0x10]; struct X *positionChannel; struct X *rotationChannel; char p2[0x160 - 0x60]; float animSkipTime;
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x160 - 0x150]; float animSkipTime;
     char p3[0x180 - 0x164]; qword velocity; char p4[0x1C4 - 0x190]; int hasBoosted; int isCollectable; float expireTime; };
 void SetLoParent(struct S *p, int a, int b);
 // Zeroes a 3-float vector.
-static inline void Zero(struct V3 *pv)
+static inline void Zero(VECTOR4 *pv)
 {
     pv->z = 0.0f;
     pv->y = 0.0f;
     pv->x = 0.0f;
 }
-#define VT(o, n) (o)->vt[n]
 // re-parent spawned prize (SetLoParent) and init motion. (inferred)
 void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2)
 {
-    ((void (*)(void *))VT(prize, 8).pf)((char *)prize + VT(prize, 8).d);
+    prize->Add();
     SetLoParent(prize, 0, 0);
-    ((void (*)(void *, qword))VT(prize, 29).pf)((char *)prize + VT(prize, 29).d, q1);
-    ((void (*)(void *, void *))VT(prize, 30).pf)((char *)prize + VT(prize, 30).d, D_002A2D00);
-    Zero(&prize->positionChannel->v);
-    Zero(&prize->rotationChannel->v);
+    prize->TranslateToPos(q1);
+    prize->RotateToMat((MATRIX4 *)D_002A2D00);   /* the identity */
+    Zero(&prize->unknown58->velocity);
+    Zero(&prize->unknown5C->velocity);
     prize->animSkipTime = f1;
     prize->hasBoosted = 0;
-    ((void (*)(void *, int))VT(prize, 76).pf)((char *)prize + VT(prize, 76).d, 3);
+    prize->SetState(3);
     prize->velocity = q2;
     prize->expireTime = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.time + f2;
 }
 } } // namespace M_LaunchSprayedDprize
-#undef VT
 
 namespace M_PdprizeNewSpray { extern "C" {
 /* A sprayed prize (classes.h DPRIZE : SO): its slot 76, the state setter. */
@@ -1947,10 +1940,13 @@ void ClearClueState(struct O *clue)
 }
 } } // namespace M_func_001C7EA8
 
+/* CLUEPROXY (classes.h, : PROXY) with its first own word: the clue index (+0x100). */
+struct CLUEPROXYV : PROXY { int clueIndex; };
+
 namespace M_SetClueDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
-struct LISTENER { char pad[0xC]; struct VTE *vt; char p1[0x100 - 0x10]; int clueIndex; };
+struct LISTENER { char pad[0xC]; struct VTE *vt; };   /* slot 51 is not declared in a header */
 struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
     char p1[0x210 - 0x154]; struct LISTENER *collectListener;
 };
@@ -1960,17 +1956,17 @@ void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
-struct LISTENER *GetProxyCopyValue(struct S *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct LISTENER *p, int n);
+CLUEPROXYV *GetProxyCopyValue(struct S *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
 void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
 // Does the object's GetProxyCopyValue owner derive from class 7?
-static inline int FTest(struct S *p) { struct LISTENER *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+static inline int FTest(struct S *p) { CLUEPROXYV *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
 void SetClueDprizes(struct S *clue, int n)
 {
-    struct LISTENER *q;
+    CLUEPROXYV *q;
     char *pg;
     qword qv;
     if (n == clue->state) return;
@@ -1991,9 +1987,9 @@ void SetClueDprizes(struct S *clue, int n)
         clue->HandleSpliceEvent(5, 0, 0, 0, 0);
         q = GetProxyCopyValue(clue);
         if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
-            struct LISTENER *plo = GetProxyCopyValue(clue);
+            CLUEPROXYV *plo = GetProxyCopyValue(clue);
             SetClueCollected(plo->clueIndex, 1);
-            ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
+            plo->Remove();
             RestartHudWidget2(pg);
         }
     }
@@ -2002,18 +1998,16 @@ void SetClueDprizes(struct S *clue, int n)
 } } // namespace M_SetClueDprizes
 
 namespace M_func_001C8030 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int a[3]; struct VTE *vt; char pad[0xF0]; int clueIndex; };
 extern SW D_003DD490;
-void PostLoLoad(struct O *p);
+void PostLoLoad(LO *p);
 int IsClueCollected(int n);
 // CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
 } } // namespace M_func_001C8030
 // CLUEPROXY::PostLoad: LO post-load, take the next clue index and hide the proxy when that clue is already collected.
-void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
+void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; CLUEPROXYV *p = (CLUEPROXYV *)this;
     PostLoLoad(p);
     p->clueIndex = D_003DD490.iclueNext++;
-    if (IsClueCollected(p->clueIndex)) { struct VTE *e = &p->vt[9]; e->pfn((char *)p + e->d); }
+    if (IsClueCollected(p->clueIndex)) p->Remove();
 }
 
 namespace RO_ORDER { extern const float r_D_002A7758 __asm__("D_002A7758") = 3.40282347e+38f; }
