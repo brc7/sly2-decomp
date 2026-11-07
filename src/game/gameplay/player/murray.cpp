@@ -3047,7 +3047,6 @@ void UpdateMurrayPowerVelocity(MURRAY *murray)
 } } // namespace M_func_001B90B8
 
 namespace M_AdjustMurrayNewXp {
-typedef int qword __attribute__((mode(TI)));
 typedef struct VTE { short d; short pad; void (*pfn)(...); } VTE;
 typedef union U { int i; float f; } U;
 typedef struct Q { char pad[0xC]; VTE *vt; } Q;
@@ -3059,25 +3058,10 @@ typedef struct X {
     qword x80;
     char pad90[0x88 - 0x90 + 0x10];
 } X;
-typedef struct P {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0xDF0 - 0x10];
-    char hurt[0xF50 - 0xDF0];
-    char pipe[0x13D0 - 0xF50];
-    int state;
-    int pad13D4;
-    int x13D8;
-    char pad13DC[0x13E4 - 0x13DC];
-    char x13E4[0x1840 - 0x13E4];
-    int x1840;
-    char pad1844[0x1908 - 0x1844];
-    int powerContactTrigger;
-} P;
 extern "C" float D_002C3C60[];
 extern "C" float D_002C0A38;
 extern "C" char D_003DD490[];
-extern "C" void AdjustStepNewXp(P *p, X *px, int i);
+extern "C" void AdjustStepNewXp(MURRAY *p, X *px, int i);
 extern "C" void AdjustJtHurtXp(void *p, X *px, int i);
 extern "C" void ResetJtPipeAdjust(void *p, X *px, int i);
 extern "C" qword GetCosineBetweenVectors(qword a, qword b);
@@ -3085,18 +3069,18 @@ extern "C" int CloneXpList(void *g, X *px);
 extern "C" void AppendXpList(void *g, int r, void *p);
 
 // MURRAY contact adjust (slot 55): STEP base, then per-state contact handling (power-move trigger, flop impact).
-extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
+extern "C" void AdjustMurrayNewXp(MURRAY *murray, X *px, int i)
 {
     int n;
     AdjustStepNewXp(murray, px, i);
     switch (murray->state) {
-    case MURRAY_HURT: AdjustJtHurtXp(murray->hurt, px, i); break;
+    case MURRAY_HURT: AdjustJtHurtXp(&murray->jthurt, px, i); break;
     case MURRAY_POWER_MOVE:
-        n = murray->x1840;
+        n = murray->subState;
         if (n == 1) {
             Q *pq = *(Q **)((char *)px + ((n - i) << 6) + 0xC);
             if (((int (*)(void *))pq->vt[62].pfn)((char *)pq + pq->vt[62].d) && *(float *)((char *)px + 0x88) < 0.7f) {
-                qword v = ((qword(*)(void *))murray->vt[33].pfn)((char *)murray + murray->vt[33].d);
+                qword v = murray->GetVelocity();
                 qword r = GetCosineBetweenVectors(v, px->x80);
                 float g;
                 __asm__("mtc1 %1,%0" : "=f"(g) : "r"(r));
@@ -3107,11 +3091,11 @@ extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
         }
         break;
     case MURRAY_FLOP:
-        if (murray->x13D8 == 1 && D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
-            AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), murray->x13E4);
+        if (murray->flopSubstate == 1 && D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
+            AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), &murray->unknown13E4);
         }
         break;
-    case MURRAY_PIPE: ResetJtPipeAdjust(murray->pipe, px, i); break;
+    case MURRAY_PIPE: ResetJtPipeAdjust(&murray->jtpipe, px, i); break;
     }
 }
 } // namespace M_AdjustMurrayNewXp
@@ -3361,34 +3345,32 @@ extern "C" void EnterMurrayThrowAim(MURRAY *murray, int n, void *pv)
 
 namespace M_FCanUseGadget__6MURRAYi { extern "C" {
 /* CanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring IsStepplayerInJtMode with (p, k): it takes only p (as in CanUseGadget), and the extra k use raised k's allocation priority. */
-struct O { char pad[0x180]; void *x180; };
-struct P { char pad[0x2C4]; int x2C4; char pad1[0x12F0 - 0x2C8]; int x12F0; char pad2[0x13D0 - 0x12F4]; int state; char pad3[0x13F0 - 0x13D4]; struct O *carried; };
 extern int D_002DFBC0;
-int IsStepplayerInJtMode(struct P *p);
+int IsStepplayerInJtMode(MURRAY *p);
 int CanJtUseGadgetInAir(void *p, int k);
 int CanJtUseGadgetInGrab(void *p, int k);
 int CanJtUseGadgetOnPipe(void *p, int k);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsCameraPolicyActive__FP5CPLCY(void *p);
 // MURRAY slot 99: whether gadget/power k can be used in the current state (per-state allow lists, components).
-int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
+int CanMurrayUseGadget__6MURRAYi(MURRAY *p, int k)
 {
     if (IsStepplayerInJtMode(p)) return 0;
     switch (p->state) {
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_STRAFE: case MURRAY_WALK:
         break;
     case MURRAY_JUMP:
-        if (!CanJtUseGadgetInAir(&AsStepplayer(p)->jtair, k)) return 0;
+        if (!CanJtUseGadgetInAir(&p->jtair, k)) return 0;
         break;
     case MURRAY_GRAB:
-        if (!CanJtUseGadgetInGrab(&AsStepplayer(p)->jtgrab, k)) return 0;
+        if (!CanJtUseGadgetInGrab(&p->jtgrab, k)) return 0;
         break;
     case MURRAY_PIPE:
-        if (!CanJtUseGadgetOnPipe(&AsStepplayer(p)->jtpipe, k)) return 0;
+        if (!CanJtUseGadgetOnPipe(&p->jtpipe, k)) return 0;
         break;
     case MURRAY_CARRY:
         if (k == 3) return 1;
-        if (k == 19) { if (IsBasicDerivedFrom__FP5BASIC3CID(p->carried->x180, 0x38)) return 1; }
+        if (k == 19) { if (IsBasicDerivedFrom__FP5BASIC3CID(((CARRYSPOTV *)p->ploCarried)->plo, 0x38)) return 1; }
         return 0;
     default:
         return 0;
@@ -3397,13 +3379,13 @@ int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
     case 3:
     {
         int r = 0;
-        if (p->x12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+        if (p->unknown12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
         return r;
     }
     case 22:
     {
         int r = 0;
-        if (p->x2C4 != 0 && p->x2C4 != 11) r = p->x2C4 != -1;
+        if (p->jtair.jumpKind != 0 && p->jtair.jumpKind != 11) r = p->jtair.jumpKind != -1;
         return r;
     }
     case 1: case 2: case 15: case 16: case 20: case 21:
