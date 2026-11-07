@@ -147,55 +147,45 @@ void GetLoChildDl(char *parent, void **childList, void **firstRemovedSlot)
 } } // namespace M_GetLoChildDl
 
 namespace M_AddLo { extern "C" {
-struct VTE { short d; short pad; void *pfn; };
-struct S {
-    int frame, sidebag, firstRefNode; struct VTE *vt; struct S *parent; int root; char pad[0xC]; struct S *nextSibling;
-    union { unsigned long u; struct { unsigned long lowBits : 52; long busyk : 4; unsigned long removedBits : 4; unsigned long isInWorld : 1; unsigned long unknown61 : 3; } b; } bits;
-};
 extern char D_003DD490[];
-void GetLoChildDl(struct S *p, void **a, struct S ***firstRemoved);
-void RemoveDlEntry__FP2DLPv(void *a, struct S *s);
-void InsertDlEntryBefore__FP2DLPvT1(void *a, struct S *firstRemoved, struct S *s);
-void ResortSwBusyEntry(void *g, int n);
-int IsLoInWorld(struct S *s);
-void UpdateSoBusy(void *g, struct S *s);
+void GetLoChildDl(SO *p, void **a, LO ***firstRemoved);
+void RemoveDlEntry__FP2DLPv(void *a, LO *s);
+void InsertDlEntryBefore__FP2DLPvT1(void *a, LO *firstRemoved, LO *s);
+void ResortSwBusyEntry(void *g, LOROOT *n);
+int IsLoInWorld(LO *s);
+void UpdateSoBusy(void *g, LO *s);
 // Adds the object to the world (vtable slot 8): clears the removed bit, moves it into the in-world part of its parent's
 // child list, runs AddHierarchy when the parent is in the world, registers its root in the busy list and adds the
 // children recursively, then calls OnAdd.
-void AddLo(struct S *object)
+void AddLo(LO *object)
 {
     unsigned long isParentInWorld;
     void *childList;
-    struct S **firstRemoved;
-    struct S **list;
-    struct VTE *e;
+    LO **firstRemoved;
+    LO **list;
     int numChildren, i;
-    if (!(object->bits.u & LO_REMOVED_BIT))
+    if (!object->isRemoved)
         return;
-    object->bits.u &= ~LO_REMOVED_BIT;
+    object->isRemoved = 0;
     GetLoChildDl(object->parent, &childList, &firstRemoved);
     if (object == *firstRemoved) {
-        *firstRemoved = object->nextSibling;
+        *firstRemoved = (LO *)object->siblingLink.next;
     } else {
         RemoveDlEntry__FP2DLPv(childList, object);
         InsertDlEntryBefore__FP2DLPvT1(childList, *firstRemoved, object);
     }
-    if (!object->parent || (isParentInWorld = (object->parent->bits.u >> LO_IN_WORLD_SHIFT) & 1) != 0) {
-        e = &object->vt[LO_SLOT_ADD_HIERARCHY];
-        ((void (*)(void *))e->pfn)((char *)object + e->d);
+    if (!object->parent || (isParentInWorld = object->parent->isInWorld & 1) != 0) {
+        object->AddHierarchy();
     }
-    if (!object->parent && (int)object->bits.b.busyk != 2)
+    if (!object->parent && (int)object->busyKind != 2)
         ResortSwBusyEntry(D_003DD490, object->root);
-    e = &object->vt[LO_SLOT_GET_CHILDREN];
-    numChildren = ((int (*)(void *, struct S ***))e->pfn)((char *)object + e->d, &list);
+    numChildren = object->GetChildren(&list);
     for (i = 0; i < numChildren; i++) {
-        struct S *child = list[i];
-        struct VTE *g = &child->vt[LO_SLOT_ADD];
-        ((void (*)(void *))g->pfn)((char *)child + g->d);
+        LO *child = list[i];
+        child->Add();
     }
     if (IsLoInWorld(object)) {
-        e = &object->vt[LO_SLOT_ON_ADD];
-        ((void (*)(void *))e->pfn)((char *)object + e->d);
+        object->OnAdd();
     } else if (!object->parent) {
         UpdateSoBusy(D_003DD490, object);
     }
@@ -203,52 +193,45 @@ void AddLo(struct S *object)
 } } // namespace M_AddLo
 
 namespace M_RemoveLo { extern "C" {
-struct VTE { short d; short pad; void *pfn; };
-struct S { int frame, sidebag, firstRefNode; struct VTE *vt; void *parent; int root; char pad[0x10]; unsigned long bits; };
 extern char D_003DD490[];
 
-int IsLoInWorld(struct S *s);
+int IsLoInWorld(LO *s);
 void RemoveDlEntry__FP2DLPv(void *a, void *firstRemoved);
-void RemoveFromSwBusyList(void *a, int b);
-void GetLoChildDl(void *p, void **a, struct S ***firstRemoved);
-void AppendDlEntry__FP2DLPv(void *a, struct S *s);
+void RemoveFromSwBusyList(void *a, LOROOT *b);
+void GetLoChildDl(void *p, void **a, LO ***firstRemoved);
+void AppendDlEntry__FP2DLPv(void *a, LO *s);
 // Removes the object from the world (vtable slot 9): unregisters it, moves it to the removed tail of its parent's child
 // list, sets the removed bit, removes the children recursively and runs RemoveHierarchy when it was in the world.
-void RemoveLo(struct S *object)
+void RemoveLo(LO *object)
 {
-    struct VTE *e;
     unsigned long wasInWorld;
     void *childList;
-    struct S **firstRemoved;
-    struct S **list;
+    LO **firstRemoved;
+    LO **list;
     int numChildren, i;
-    if (object->bits & LO_REMOVED_BIT)
+    if (object->isRemoved)
         return;
     if (IsLoInWorld(object)) {
-        e = &object->vt[LO_SLOT_ON_REMOVE];
-        ((void (*)(void *))e->pfn)((char *)object + e->d);
+        object->OnRemove();
         if (!object->parent)
-            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.busyRoots), (void *)object->root);
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.busyRoots), object->root);
     }
     if (!object->parent)
         RemoveFromSwBusyList(D_003DD490, object->root);
-    wasInWorld = (object->bits >> LO_IN_WORLD_SHIFT) & 1;
+    wasInWorld = object->isInWorld & 1;
     GetLoChildDl(object->parent, &childList, &firstRemoved);
     RemoveDlEntry__FP2DLPv(childList, object);
     AppendDlEntry__FP2DLPv(childList, object);
     if (!*firstRemoved)
         *firstRemoved = object;
-    object->bits |= LO_REMOVED_BIT;
-    e = &object->vt[LO_SLOT_GET_CHILDREN];
-    numChildren = ((int (*)(void *, struct S ***))e->pfn)((char *)object + e->d, &list);
+    object->isRemoved = 1;
+    numChildren = object->GetChildren(&list);
     for (i = 0; i < numChildren; i++) {
-        struct S *child = list[i];
-        struct VTE *g = &child->vt[LO_SLOT_REMOVE];
-        ((void (*)(void *))g->pfn)((char *)child + g->d);
+        LO *child = list[i];
+        child->Remove();
     }
     if (wasInWorld) {
-        e = &object->vt[LO_SLOT_REMOVE_HIERARCHY];
-        ((void (*)(void *))e->pfn)((char *)object + e->d);
+        object->RemoveHierarchy();
     }
 }
 } } // namespace M_RemoveLo
