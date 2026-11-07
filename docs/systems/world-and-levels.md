@@ -10,20 +10,20 @@ warps, exits and wipes request a level change. The objects inside the world are 
 
 - **`SW`** (`include/sly2/sw.h`, global `g_sw`, defined in `world/scene/sw.cpp`). A `BASIC` child, not an `LO`: it has a
   Splice frame and options but no oid or parent. It is re-initialised in place for every level. Field groups by name:
-  - object structure: `dlChild` (top-level objects), `dlRoot` (all hierarchy roots), `dlBusy` (active roots), the oid
-    hash `aslOid`, the proxy-record hash `aslPxrOid`, one list per class `aslCid`, the per-frame update table
+  - object structure: `dlChild` (top-level objects), `roots` (all hierarchy roots), `busyRoots` (active roots), the oid
+    hash `objectsByOid`, the proxy-record hash `aslPxrOid`, one list per class `objectsByClass`, the per-frame update table
     (`aloupd` and its counts), and many per-class lists (`dlTarget`, `dlStepguard`, `dlStimulus`, ...);
   - pools (`SLOTHEAP` members): root records, callbacks, Splice event callbacks, physics trees and contacts, animation
     applications, state machines, stimuli, relay interpreters, and more;
   - loading state: the world-entry table (`awe`, count `cwe`), the proxy sources (`aproxysrc`), the "new objects" array
     filled by `CreateLo` during a load, the load filter;
   - progression: the save-variable store `savevars`, cached save-variable handles (`psvp...` fields such as the coin
-    count and the settings keys), the current job, task and pending task (`ploJobCur`, `ploTaskCur`,
-    `ploTaskPending`), the active task list;
-  - the transition request: `fTransitionPending`, `grfTransition`, `filerecDest`, `oidWarpDest`, `oidWarpContext`, and
-    the current level's file record `filerecCur`;
-  - players: `apo` (the playable objects of the level), `ppoHero` (the one with control), `ppoOverride`;
-  - control counters: `cHandsOff`, `cNoPause`, letterbox and input-lock counts;
+    count and the settings keys), the current job, task and pending task (`currentJob`, `currentTask`,
+    `pendingTask`), the active task list;
+  - the transition request: `isTransitionPending`, `grfTransition`, `destinationLevel`, `oidWarpDest`, `oidWarpContext`, and
+    the current level's file record `currentLevel`;
+  - players: `playerObjects` (the playable objects of the level), `currentPlayer` (the one with control), `overridePlayer`;
+  - control counters: `handsOffCount`, `noPauseCount`, letterbox and input-lock counts;
   - lighting (illumination HSV, midtone, light scale) and the HUD stacks.
 - **`FILEREC`**: the 64-byte, XOR-obfuscated record that names a world file on the disc
   ([formats/disc-records.md](../formats/disc-records.md)). Levels are identified by their file record; there are no
@@ -85,7 +85,7 @@ same frame, after physics or before it depending on when it was posted.
 ## 3. Level lifecycle overview
 
 ```
-request:   WipeToWorldWarp / SetSwTransition  -> g_sw.fTransitionPending, request fields
+request:   WipeToWorldWarp / SetSwTransition  -> g_sw.isTransitionPending, request fields
 next frame: ExecuteSwTransition
              open file stream (LZSS) -> DeleteSw (old world) -> memset + SW_ctor (fresh g_sw)
              -> InitSwLoadBuffers -> LoadSwFromBrx -> PostSwLoad
@@ -97,7 +97,7 @@ frames:    UpdateSw ... objects activate by distance, scripts run
 ## 4. Requesting a level change
 
 Everything ends in **`SetSwTransition(world, TRANS*)`**, which copies the request into `SW` and sets
-`fTransitionPending`. The request is consumed at the top of the next frame. (In `sw.cpp` the function body still
+`isTransitionPending`. The request is consumed at the top of the next frame. (In `sw.cpp` the function body still
 carries a Sly 1 "checkpoint manager" view name; the symbol and behaviour are `SetSwTransition`. Sly 2 has no checkpoint
 record.)
 

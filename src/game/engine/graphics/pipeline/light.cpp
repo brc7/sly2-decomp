@@ -160,7 +160,7 @@ float cosf(float) __asm__("cosf");
 void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru);
 void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu, float *pru);
 
-// After world load, if no light in the world light list (*(LIGHT * *)&g_sw.aslCid[4]) qualifies (not dynamic), create a
+// After world load, if no light in the world light list (*(LIGHT * *)&g_sw.objectsByClass[4]) qualifies (not dynamic), create a
 // LIGHT (CreateLo CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240. (inferred)
 extern "C" void EnsureSwDefaultLight(void)
 {
@@ -168,7 +168,7 @@ extern "C" void EnsureSwDefaultLight(void)
     M3R c;
     union { qword q; float f; } r;
     M3R m;
-    for (light = (*(LIGHTV * *)&g_sw.aslCid[4]); light; light = light->next) {
+    for (light = (*(LIGHTV * *)&g_sw.objectsByClass[4]); light; light = light->next) {
         if (light->isDynamic == 0) break;
     }
     if (light) return;
@@ -405,11 +405,11 @@ void RebuildLight(LIGHTV *light)
 }
 
 // Records that the light changed: a non-dynamic light bumps the world's relight stamp (RenderSw then resubmits
-// relighting), and a non-static point light marks the world light tree for rebuilding (g_sw.fUnk4554). (inferred)
+// relighting), and a non-static point light marks the world light tree for rebuilding (g_sw.unknown4554). (inferred)
 void InvalidateLight(LIGHTV *light)
 {
     if (!light->isDynamic) D_003DD490.relightStamp++;
-    if (!light->isStatic && light->kind) g_sw.fUnk4554 = 1;
+    if (!light->isStatic && light->kind) g_sw.unknown4554 = 1;
 }
 
 union UF { qword q; float f; };

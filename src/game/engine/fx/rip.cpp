@@ -755,7 +755,7 @@ void ReleaseRip__FP3RIP(struct S *p)
             FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
         }
         p->pn = 0;
-        FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapUnk4054), p);
+        FreeSlotheapSlot((*(char (*)[])&g_sw.unknown4054), p);
     }
 }
 } } // namespace M_ReleaseRip__FP3RIP

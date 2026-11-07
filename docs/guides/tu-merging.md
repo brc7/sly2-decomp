@@ -1369,7 +1369,7 @@ Representation decisions:
   0x3FE4, dlCid23 0x3FF0, slotheapUnk40a0, slotheapJsg 0x40D0, slShd 0x4100, slSaa 0x410C, slotheapXfh 0x413C,
   fUnk4554, dlCid14Free 0x45B0, dlCid14Pending 0x45BC, slotheapLeap 0x4648, slotheapDiract 0x4660, tUnk4758, pepmenu
   0x4774. Lists use DL when the code calls Append/RemoveDlEntry and SL when it calls func_0011A070 (same layout).
-  Interior array elements are spelled as elements (`g_sw.aslCid[49]`, `g_sw.apstimk[3]`, the stimulus view base
+  Interior array elements are spelled as elements (`g_sw.objectsByClass[49]`, `g_sw.apstimk[3]`, the stimulus view base
   `g_sw.aslPxrOid[410]`); act.cpp's view at slotheapAsega+0xC was slotheapAct.cb.
 - **Private views that blocked the header** were replaced by the shared layout where that was the only obstacle
   (all MATCH): the file-scope `typedef int qword __attribute__((mode(TI)))` (signed) in light, sky, vol, tu_1B9F80,

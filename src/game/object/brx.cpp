@@ -752,7 +752,7 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
     }
 }
 
-// True when no load filter is active (GetCurrentLevelIndex() = g_sw.nLoadFilter, D_003E1110, is -1) or it is in the list.
+// True when no load filter is active (GetCurrentLevelIndex() = g_sw.loadFilter, D_003E1110, is -1) or it is in the list.
 int IsCurrentLevelInList(int c, short *aid)
 {
     int ilevel = GetCurrentLevelIndex();

@@ -3,7 +3,7 @@
 // completion phases) and tasks (current / pending, go to task, announce), game events.
 // TU 0x1613A8..0x166270 (101 functions with the linkonce copies at 0x2581xx.., address order).
 //
-// Types: sly2/sw.h's SW (ploJobCur / ploTaskCur / ploTaskPending, ahudstack; the m2c bodies' globals D_003E0F9C /
+// Types: sly2/sw.h's SW (currentJob / currentTask / pendingTask, ahudstack; the m2c bodies' globals D_003E0F9C /
 // D_003E0FA0 / D_003E0FA4 are those SW fields of g_sw) and TU-private JOB / TASK views over lo.h's LO. The
 // hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does),
 // their C++-named definitions as C-linkage definitions of their literal symbols there.
@@ -349,7 +349,7 @@ extern "C" void SetCoinCount(void *pv, int n)
 /* Restarts the HUD widget of ahudstack[1]: Show(-1) (slot 49) and its timer. */
 extern "C" void RestartHudWidget1(SW *world)
 {
-    WIDGETV *widget = (WIDGETV *)world->ahudstack[1].pwidget;
+    WIDGETV *widget = (WIDGETV *)world->ahudstack[1].widget;
     if (widget != 0) {
         VTEW *vtable = widget->vtable;
         vtable[49].pfn((char *)widget + vtable[49].d, -1);
@@ -361,7 +361,7 @@ extern "C" void RestartHudWidget1(SW *world)
 /* Restarts the HUD widget of ahudstack[2]: Show(-1) (slot 49) and its timer. */
 extern "C" void RestartHudWidget2(SW *world)
 {
-    WIDGETV *widget = (WIDGETV *)world->ahudstack[2].pwidget;
+    WIDGETV *widget = (WIDGETV *)world->ahudstack[2].widget;
     if (widget != 0) {
         VTEW *vtable = widget->vtable;
         vtable[49].pfn((char *)widget + vtable[49].d, -1);
@@ -540,7 +540,7 @@ extern "C" void HandleGameEvent(P *game, int action)
 {
     switch (action) {
     case 1: {   /* world teardown: in the hub level, each step player keeps its booty widget */
-        if (Same((CHECK *)&g_sw.filerecDest, &D_002A37E8)) {
+        if (Same((CHECK *)&g_sw.destinationLevel, &D_002A37E8)) {
             P *players[3];
             int found = FindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
             if (found > 0) {
@@ -1002,8 +1002,8 @@ extern "C" void JobOptionNoOp()
 extern "C" void SetCurrentJob(JOBV *job)
 {
     if (IsCurrentJob(job) == 0) {
-        if (D_003DD490.ploJobCur != 0) {
-            EndCurrentJob((JOBV *)D_003DD490.ploJobCur);
+        if (D_003DD490.currentJob != 0) {
+            EndCurrentJob((JOBV *)D_003DD490.currentJob);
         }
         BeginJob(job);
     }
@@ -1226,8 +1226,8 @@ extern "C" void SignalJobComplete(JOBV *job)
 /* Go to the pending task, else to the job's start task. */
 extern "C" void RestartJob(JOBV *job)
 {
-    if (D_003DD490.ploTaskPending != 0) {
-        GoToTask((TASKV *)D_003DD490.ploTaskPending);
+    if (D_003DD490.pendingTask != 0) {
+        GoToTask((TASKV *)D_003DD490.pendingTask);
         return;
     }
     GoToTask(job->ptaskStart);
@@ -1265,7 +1265,7 @@ void AbortJob(struct S *job)
 {
     ResetJobTasks(job);
     SetTaskStateCascade(job->startTask, TASK_STATE_AVAILABLE);
-    struct T *currentTask = (struct T *)g_sw.ploTaskCur;
+    struct T *currentTask = (struct T *)g_sw.currentTask;
     if (currentTask && currentTask->job == job)
         DeactivateTask(currentTask);
     BroadcastGameEvent(D_002DEB30, 0x1F, job);
@@ -1479,7 +1479,7 @@ void SetJobCompletionPhase(struct X *job, int phase)
 // True when the job is the current job.
 extern "C" int IsCurrentJob(JOBV *job)
 {
-    return D_003DD490.ploJobCur == job;
+    return D_003DD490.currentJob == job;
 }
 
 // True when the job's end task is complete.
@@ -1822,7 +1822,7 @@ void UpdateTask(struct S *task)
     marker = task->marker;
     if (marker) {
         int isShown = task->state == TASK_STATE_AVAILABLE;
-        if (g_sw.ploJobCur)
+        if (g_sw.currentJob)
             isShown = 0;
         if (isShown) {
             struct VTE *entry = &marker->vt[8];
@@ -2043,7 +2043,7 @@ extern "C" void EndTask(O *task)
 // True when the task is the current task.
 extern "C" int IsCurrentTask(TASKV *task)
 {
-    return D_003DD490.ploTaskCur == task;
+    return D_003DD490.currentTask == task;
 }
 
 namespace M_FTaskComplete { extern "C" {
@@ -3344,7 +3344,7 @@ extern "C" void SortTasksTopologically(int *count, void **order)
 // Stores the current job in the world and its oid in g_game.
 extern "C" void SetSwJobCur(SW *world, LO *plo)
 {
-    world->ploJobCur = plo;
+    world->currentJob = plo;
     if (plo != 0) {
         D_002DEB40 = plo->oid;
         return;
@@ -3355,7 +3355,7 @@ extern "C" void SetSwJobCur(SW *world, LO *plo)
 // Stores the current task in the world and its oid in g_game.
 extern "C" void SetSwTaskCur(SW *world, LO *plo)
 {
-    world->ploTaskCur = plo;
+    world->currentTask = plo;
     if (plo != 0) {
         D_002DEB44 = plo->oid;
         return;
@@ -3366,7 +3366,7 @@ extern "C" void SetSwTaskCur(SW *world, LO *plo)
 // Stores the pending task in the world and its oid in g_game.
 extern "C" void SetSwTaskPending(SW *world, LO *plo)
 {
-    world->ploTaskPending = plo;
+    world->pendingTask = plo;
     if (plo != 0) {
         D_002DEB48 = plo->oid;
         return;

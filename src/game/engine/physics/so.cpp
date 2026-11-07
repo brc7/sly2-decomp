@@ -1494,7 +1494,7 @@ struct REGION_LINK;
 struct E { char pad[0xDC]; struct REGION_LINK *regionLink; };
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct LO *positionXf; char pad3[0x60 - 0x5C]; struct LO *rootTransform; char pad4[0xE8 - 0x64]; struct E *physics; };
-struct SW { char pad[0x3D58]; int nStampXf; };
+struct SW { char pad[0x3D58]; int transformStamp; };
 extern struct SW D_003DD490;
 qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
@@ -1548,7 +1548,7 @@ void TranslateSoToPos(struct P *so, qword v)
     mC0 = m100;
     VECTOR_opAssign(&plo->position.q, mC0.r[3]);
     plo->position.f[3] = 1.0f;
-    { int stamp=++D_003DD490.nStampXf;so->positionXf->stamp=stamp; }
+    { int stamp=++D_003DD490.transformStamp;so->positionXf->stamp=stamp; }
     so->pvt[18].pfn((char *)so + so->pvt[18].d);
     FreeSoContacts(so);
     UnsettleXfSlot(so, so->positionXf);

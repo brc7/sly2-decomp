@@ -1517,7 +1517,7 @@ void UpdateBhvcombat(C *behavior)
         }
     } while (old != behavior->state);
     if (behavior->guard->emit && old < 4 && old >= 0 && behavior->guard->time <= D_002DDED0.time
-        && g_sw.tUnk4758 <= D_002DDED0.time)
+        && g_sw.unknown4758 <= D_002DDED0.time)
         EmitStepguardStimulus(behavior->guard, behavior->target);
 }
 

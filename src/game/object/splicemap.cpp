@@ -109,7 +109,7 @@ extern "C" CRef EvalExpression__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
 // Creates the world's root Splice frame and keeps a reference to it. Called when a level body is loaded.
 extern "C" void InitSwSpliceFrame(SW *world)
 {
-    world->fUnk3a14 = 1;
+    world->unknown3A14 = 1;
     FramePtr_Assign(world, PtNew__t6CGcObj1Z6CFrame());
     MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)world->scriptFrame.m_p);
 }
@@ -117,7 +117,7 @@ extern "C" void InitSwSpliceFrame(SW *world)
 // Clears the world's Splice table pointer before a level load. (inferred)
 extern "C" void ClearSwSpliceTable(SW *world)
 {
-    world->fUnk3a14 = 0;
+    world->unknown3A14 = 0;
 }
 
 // Releases the world's root Splice frame and shuts the Splice VM down. Called when the world is deleted.

@@ -24,7 +24,7 @@ struct GS
       int episodeCurrent;   /* +0x00 [S] current episode */
       int episodeBest;      /* +0x04 [S] furthest episode reached */
       int widCurrent;       /* +0x08 [S] world id */
-      OID oidPoCurrent;     /* +0x0C [R] oid of the current playable character (== SW::ppoHero's oid in 71/73 states; keeps
+      OID oidPoCurrent;     /* +0x0C [R] oid of the current playable character (== SW::currentPlayer's oid in 71/73 states; keeps
                                the last character while the char-select PO is current) */
       float dt;             /* +0x10 [R] total play time (s); 655.6 -> 843.0 increasing over S02..S12 */
 

@@ -105,7 +105,7 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TAS
         SetG(difficulty->historyKey2, *task->rating);
         break;
     case 37:
-        if ((*(JOBV * *)&g_sw.ploJobCur) == task->job && task->state == 2 && task->completionCount == 1)
+        if ((*(JOBV * *)&g_sw.currentJob) == task->job && task->state == 2 && task->completionCount == 1)
             ChangeDifficulty(difficulty, difficulty->params->jobDoneDelta);
         break;
     case 16:
@@ -119,8 +119,8 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TAS
 extern "C" float GetDifficulty(DIFFICULTY *difficulty)
 {
     float g;
-    if ((*(JOBV * *)&g_sw.ploJobCur))
-        g = *(*(JOBV * *)&g_sw.ploJobCur)->difficulty;
+    if ((*(JOBV * *)&g_sw.currentJob))
+        g = *(*(JOBV * *)&g_sw.currentJob)->difficulty;
     else if (difficulty->historyKey0 && difficulty->historyKey1 && difficulty->historyKey2) {
         float g1 = GGet(difficulty->historyKey0);
         float g2 = GGet(difficulty->historyKey1);
@@ -143,8 +143,8 @@ extern "C" void ChangeDifficulty(DIFFICULTY *difficulty, float delta)
 extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 {
     SW *world = &D_003DD490;
-    if (world->ploJobCur)
-        *((JOBV *)world->ploJobCur)->difficulty = ClampToLimits(&difficulty->params->range, g);
+    if (world->currentJob)
+        *((JOBV *)world->currentJob)->difficulty = ClampToLimits(&difficulty->params->range, g);
 }
 
 

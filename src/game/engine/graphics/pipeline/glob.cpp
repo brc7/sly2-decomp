@@ -446,7 +446,7 @@ extern "C" void AddWrWarpGroup(LO *plo, X *px);
 extern "C" void BindGlobset(S *p)
 {
     if (p->unknown4C != -1)
-        p->unknown4C = g_sw.nUnk3d5c;
+        p->unknown4C = g_sw.unknown3D5C;
     for (int i = 0; i < p->cgrp; i++) {
         HDR *phdr = &p->ahdr[i];
         GRP *pgrp = &p->agrp[i];
@@ -2869,7 +2869,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     {
         vifsAux.AllocStack(0x800);
         if (IsBasicDerivedFrom((BASIC *)pglobset->owner, (CID)0x31) && !(psubglob->unknown02 & 4) && (uchar)(psubglob->unknown00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
-            psubglob->unknown04 == D_002A52A0 && g_sw.fUnk3e40 == 0)
+            psubglob->unknown04 == D_002A52A0 && g_sw.unknown3E40 == 0)
         {
             QW qwOne;
             qwOne.ag[0] = 1.0f;
@@ -3633,7 +3633,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
     }
     if (pclutset != 0)
-        pglobset->unknown4C = g_sw.nUnk3d5c;
+        pglobset->unknown4C = g_sw.unknown3D5C;
     pglob->iUnkEnd = D_003DA790;
     RelocateShaderUploadRecords(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
     if (pglob->pwrbg != 0)
@@ -4290,7 +4290,7 @@ extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
 {
     EnsureVu1Code__FP4VIFSPvT1(pvifs, D_0025C1C0, D_0025E040);
     pvifs->AddDmaCnt();
-    if (n2 != 7 && g_sw.fUnk3e38) {
+    if (n2 != 7 && g_sw.unknown3E38) {
         pvifs->AddVifFlush();
         pvifs->AddDmaCall(D_002DF800);
         pvifs->AddVifBaseOffset(0x32, 0x1E7);

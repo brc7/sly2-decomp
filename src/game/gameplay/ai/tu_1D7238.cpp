@@ -45,7 +45,7 @@ struct SAFEHOUSEV
 };
 
 struct SUBV { char pad[0x74]; int unknown74; };
-struct GS { char pad[0x3B0C]; SUBV *currentJob; };   /* g_sw; +0x3B0C is SW::ploJobCur */
+struct GS { char pad[0x3B0C]; SUBV *currentJob; };   /* g_sw; +0x3B0C is SW::currentJob */
 
 extern void *D_003D4A54;
 extern GS D_003DD490;

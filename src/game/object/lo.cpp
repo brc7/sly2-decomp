@@ -228,7 +228,7 @@ void RemoveLo(struct S *object)
         e = &object->vt[LO_SLOT_ON_REMOVE];
         ((void (*)(void *))e->pfn)((char *)object + e->d);
         if (!object->parent)
-            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), (void *)object->root);
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.busyRoots), (void *)object->root);
     }
     if (!object->parent)
         RemoveFromSwBusyList(D_003DD490, object->root);
@@ -350,7 +350,7 @@ void LO_SetParent(ALO *object, ALO *newParent, int grf, int unknown)
     if (IsLoInWorld(object)) {
         VFN(object, LO_SLOT_ON_REMOVE, void (*)(ALO *))(VTHIS(object, LO_SLOT_ON_REMOVE));
         if (*object->root == object)
-            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), object->root);
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.busyRoots), object->root);
     }
     oldParent = object->parent;
     object->parent = newParent;
@@ -661,7 +661,7 @@ struct S { char pad[0x14]; void *root; char pad2[0x10]; ulong fl; };
 int IsLoInWorld(struct S *object)
 {
     int r = 0;
-    if ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.dlBusy, object->root) != 0;
+    if ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.busyRoots, object->root) != 0;
     return r;
 }
 } } // namespace M_func_001A61A0

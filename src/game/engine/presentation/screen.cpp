@@ -2836,7 +2836,7 @@ void SetJobListPage(OBJ *p, int s)
         if (i >= 0 && i < p->entryCount)
             p->selectedJob = p->entries[i].task;
         else
-            p->selectedJob = (*(int *)&g_sw.ploJobCur);
+            p->selectedJob = (*(int *)&g_sw.currentJob);
         p->openedFromJobs = (old == 0);
         p->maxRows = 4;
         p->widget->pageAnimSecond = 0x4E6;

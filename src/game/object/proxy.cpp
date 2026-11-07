@@ -1238,10 +1238,10 @@ void PROXY_ReleaseSpares(struct S *proxy)
 {
     struct LO *plo;
     while (proxy->firstSpare) ReleaseProxySpare__FP5PROXYP10PROXYSPARE(proxy, proxy->firstSpare);
-    if (IsEntryInDl__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->root)) {
+    if (IsEntryInDl__FP2DLPv(&(*(struct SL *)&g_sw.busyRoots), proxy->root)) {
         plo = proxy->root->plo;
         ((void (*)(void *))plo->vt[22].pf)((char *)plo + plo->vt[22].d);
-        RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->root);
+        RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.busyRoots), proxy->root);
     }
 }
 } } // namespace M_func_001CB6D8

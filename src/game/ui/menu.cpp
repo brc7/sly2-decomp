@@ -63,7 +63,7 @@ typedef char GROUP_Size[sizeof(PAGE)==28?1:-1];
 
 struct DISPU { unsigned int dx : 12; unsigned int dy : 11; unsigned int r0 : 9; unsigned int r1; } __attribute__((aligned(8)));
 struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
-struct SWM { char pad[0x3B0C]; union { int currentJob; void *currentJobPtr; };   /* sw.h ploJobCur */ char pad3B10[0x3B40 - 0x3B10]; struct OPT *first, *second; };
+struct SWM { char pad[0x3B0C]; union { int currentJob; void *currentJobPtr; };   /* sw.h currentJob */ char pad3B10[0x3B40 - 0x3B10]; struct OPT *first, *second; };
 struct SNDMGR { char pad[0x14C]; float soundVolume; float musicVolume; };
 struct MCDLG { char pad[0x4C]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
 struct GSAVE { char pad[0xFD50]; int currentSlot; };   /* the save manager (memcard.cpp) */
@@ -868,7 +868,7 @@ extern "C" void OpenPauseCharacterPage(ITEM *item)
 extern "C" void OnPauseItemJobList(void)
 {
     BroadcastGameEvent(D_002DEB30, 0x2B, 0);
-    SetJobListPage(&D_003DA3C0, (*(void * *)&g_sw.ploJobCur) != 0);
+    SetJobListPage(&D_003DA3C0, (*(void * *)&g_sw.currentJob) != 0);
 }
 
 // Item text callback for the quit item: string 0x47 or 0x46 by a flag.
@@ -907,7 +907,7 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
 extern "C" void OnPauseItemRestartJob(void)
 {
     BroadcastGameEvent(D_002DEB30, 0x2A, 0);
-    FailJob((*(void * *)&g_sw.ploJobCur));
+    FailJob((*(void * *)&g_sw.currentJob));
 }
 
 // "Return to hideout" item: wipes to the hideout warp (0x189) and fails the current job.

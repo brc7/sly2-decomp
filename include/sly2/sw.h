@@ -17,15 +17,15 @@
    Layout from src/game/gameplay/player/grab/AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND.cpp (8 copies in Lilly ports) */
 struct JTGRABCAND
 {
-      LO *plo;   /* object that owns the spot */
-      GRABSPOT *pspot;   /* the grab spot */
-      float sDist;   /* distance from the hero */
-      int nPriority;   /* priority (higher wins, inferred) */
-      LO *ploUnk10;
-      float tUnk14;
-      float sParam;   /* position along the spot (for line/curve spots, inferred) */
+      LO *object; /* object that owns the spot */
+      GRABSPOT *grabSpot; /* the grab spot */
+      float distance; /* distance from the hero */
+      int priority;    /* priority (higher wins, inferred) */
+      LO *unknown10;   /* possibly marker (low-confidence guess: grab marker/sparkle object faded out with FadeSoOut (PloAcquireJtGrabMarker)) */
+      float unknown14;   /* possibly addedTime (low-confidence guess: set to clock.t when the candidate is added) */
+      float spotDistance; /* position along the spot (for line/curve spots, inferred) */
       float dsParam;   /* change of that position (inferred) */
-      qword qwPos;   /* grab position (world) */
+      qword position; /* grab position (world) */
 };
 
 /* SLOTHEAP: moved unchanged to sly2/slotheap.h (layout CONFIRMED by match of the slotheap TU) */
@@ -59,9 +59,9 @@ struct SAVEVARS
    Layout from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct HUDSTACK
 {
-      struct WIDGET *pwidget;   /* top widget */
+      struct WIDGET *widget;    /* top widget */
       float dyVel;   /* vertical slide speed */
-      int fSnap;   /* snap into place instead of sliding */
+      int shouldSnap; /* snap into place instead of sliding */
 };
 
 /* RENDERTGT: one of the two render targets (SW::artgt; types/views-3, from tu_1BE398.cpp's RT view, which reads the
@@ -76,7 +76,7 @@ struct RENDERTGT
       int cqwTex;           /* +0x18 TEX0/TEX1/CLAMP of the target as a texture */
       union QW *aqwTex;
       struct RTCAM *prtcam; /* +0x20 */
-      int unk24;   /* unknown */
+      int unknown24; /* unknown */
 };
 typedef char assert_RENDERTGT_size[sizeof(RENDERTGT) == 0x28 ? 1 : -1];
 
@@ -86,35 +86,35 @@ struct SW : public BASIC
 {
       DL dlChild;   /* top-level objects of the world */
       LO *ploRemovedFirst;   /* first removed top-level object (inferred) */
-      DL dlRoot;   /* all hierarchy roots (LOROOT) */
-      DL dlBusy;   /* busy (active) hierarchy roots */
-      SL aslOid[512];   /* objects hashed by oid (512 chains) */
+      DL roots;    /* all hierarchy roots (LOROOT) */
+      DL busyRoots; /* busy (active) hierarchy roots */
+      SL objectsByOid[512]; /* objects hashed by oid (512 chains) */
       SL aslPxrOid[512];   /* proxy records hashed by oid */
-      SL aslCid[199];   /* objects per class id (199 lists) */
+      SL objectsByClass[199]; /* objects per class id (199 lists) */
       SLOTHEAP slotheapLoroot;   /* LOROOT records */
       LOROOT *plorootSettled;   /* hierarchy root that settled last (inferred) */
       uint grfvisBusy;   /* visibility bits that keep objects busy (inferred) */
       uint32_t   _pad_185    [ 1 ] ;
-      VECTOR4 posCmBusy;   /* camera position used for busy (activation) distance tests */
-      VECTOR4 posHeroBusy;   /* hero position used for busy distance tests */
-      void *aUnk39d0;
-      int cUnk39d4;
-      void *aUnk39d8;
-      int cUnk39dc;
+      VECTOR4 cameraBusyPosition; /* camera position used for busy (activation) distance tests */
+      VECTOR4 heroBusyPosition; /* hero position used for busy distance tests */
+      void *unknown39D0;
+      int unknown39D4;
+      void *unknown39D8;
+      int unknown39DC;
       LO **aploNew;   /* objects created during the current load */
       LO **pploNew;   /* next free entry of aploNew */
       SPLCS *psplcs;   /* Splice call sites (inferred) */
       SPLCS *psplcsHead;
       SL slEvent;           /* +0x39F0 [S] the deferred Splice callbacks, sorted by time (basic.cpp ScheduleSwSpliceCallback: its dlCallback) */
       SLOTHEAP slotheapEvent; /* +0x39FC [S] their records (basic.cpp: slotheapCallback) */
-      int fUnk3a14;
+      int unknown3A14;
       SAVEVARS savevars;    /* +0x3A18 g_svstore: save.cpp's SVSTORE {cent, aent, symtab} is this layout (read through a cast) */
       int ctask;   /* number of tasks */
       DL dlTaskActive;      /* +0x3B00 [S] draft name: the TASKs SetTaskState appends / removes and BroadcastGameEvent walks
                                (game.cpp); was _pad_202 */
-      LO *ploJobCur;        /* +0x3B0C [R] current JOB (CID 0x84); mirrors g_game+0x10 oid (runtime FINDINGS, slygame SW_CURTASK) */
-      LO *ploTaskCur;       /* +0x3B10 [R] current TASK (CID 0x85) */
-      LO *ploTaskPending;   /* +0x3B14 [R] pending TASK */
+      LO *currentJob;       /* +0x3B0C [R] current JOB (CID 0x84); mirrors g_game+0x10 oid (runtime FINDINGS, slygame SW_CURTASK) */
+      LO *currentTask;      /* +0x3B10 [R] current TASK (CID 0x85) */
+      LO *pendingTask;      /* +0x3B14 [R] pending TASK */
       LO *ploJobFailed;   /* the job that failed last */
       SVPATH *psvpDt;   /* save var: total play time (inferred) */
       SVPATH *psvpCcoin;    /* +0x3B20 [R] -> save var loot.ccoin (g_gs+0xA0) (runtime3b FINDINGS) */
@@ -137,21 +137,21 @@ struct SW : public BASIC
       DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (IsWidgetObscured, hud.cpp); was _pad_228 */
       SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
       uint32_t   _pad_228    [ 1 ] ;
-      int fUnk3bec;
+      int unknown3BEC;
       /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
-      int fTransitionPending;   /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
+      int isTransitionPending;  /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
                                    (request already consumed); was fUnk3bf0 */
       uint grfTransition;       /* +0x3BF4 [S] request flags (0x80 return-to-hideout, 2 same level; 0xCD bits -> no resume
                                    timer) (slygame SW_REQ_FLAGS, from code); was grfUnk3bf4 */
-      FILEREC filerecDest;      /* +0x3BF8 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == filerecCur after load */
+      FILEREC destinationLevel; /* +0x3BF8 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == currentLevel after load */
       int oidWarpDest;          /* +0x3C38 [R+S] requested warp oid (0x189 default entrance in 68/73 states; 0x6B29 / 0x18D after
                                    specific warps); was nUnk3c38 */
       int oidWarpContext;       /* +0x3C3C [S] requested warp context oid (-1); was nUnk3c3c */
-      FILEREC filerecCur;       /* +0x3C40 [R] current level FILEREC (equal to filerecDest in every state); was _pad_235[16] */
-      int nLoadFilter;   /* filter applied to objects while loading (inferred) */
-      int fUnk3c84;
-      int nUnk3c88;
-      int nUnk3c8c;
+      FILEREC currentLevel;     /* +0x3C40 [R] current level FILEREC (equal to destinationLevel in every state); was _pad_235[16] */
+      int loadFilter;    /* filter applied to objects while loading (inferred) */
+      int unknown3C84;
+      int unknown3C88;
+      int unknown3C8C;
       SLOTHEAP slotheapCallback;   /* scheduled callback records */
       SL slCallback;   /* scheduled callbacks */
       SLOTHEAP slotheapRefnode;   /* reference node records (BASIC::firstSubscriber) */
@@ -165,18 +165,18 @@ struct SW : public BASIC
       DL dlSoTreeQueue1;   /* physics trees queued for update */
       DL dlSoTreeQueue2;    /* +0x3D34 [S] the dirty SOTREEs (sensor.cpp appends a beam's tree after moving it) */
       SLOTHEAP slotheapXp;   /* contact point records */
-      int nStampXf;   /* frame stamp compared with XF::worldStamp */
-      int nUnk3d5c;
-      int nStampLights;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
+      int transformStamp; /* frame stamp compared with XF::worldStamp */
+      int unknown3D5C;
+      int frameCounter;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
       uint32_t   _pad_256    [ 1 ] ;
-      int nStimulusSerial;   /* serial number of the last stimulus (inferred) */
-      int cEventWorld;      /* +0x3D6C [S] last callback id handed out (basic.cpp pre-increments it: its cCallbackId) */
-      int nUnk3d70;
-      int nUnk3d74;
-      int cHandsOff;        /* +0x3D78 [R] hands-off counter (1 during the safehouse char-select; runtime6 FINDINGS) */
-      int cNoPause;   /* pause-disable counter (pausing is blocked while non-zero) */
-      int cUnk3d80;
-      int cUnk3d84;
+      int stimulusSerial;    /* serial number of the last stimulus (inferred) */
+      int lastEventId;      /* +0x3D6C [S] last callback id handed out (basic.cpp pre-increments it: its cCallbackId) */
+      int unknown3D70;
+      int unknown3D74;
+      int handsOffCount;    /* +0x3D78 [R] hands-off counter (1 during the safehouse char-select; runtime6 FINDINGS) */
+      int noPauseCount; /* pause-disable counter (pausing is blocked while non-zero) */
+      int unknownCount3D80;
+      int unknown3D84;   /* possibly handsOffNesting (low-confidence guess: ++/-- in the hands-off pair (DecrementSwHandsOff)) */
       DL dlAsega;   /* running animation segment applications (ASEGA) */
       SLOTHEAP slotheapAsega;   /* ASEGA records */
       SLOTHEAP slotheapAct;   /* actuator (ACT) records */
@@ -186,15 +186,15 @@ struct SW : public BASIC
       RGBA rgbaClear;   /* frame clear colour */
       uint32_t   _pad_272    [ 3 ] ;
       VECTOR4 hsvLight;   /* global light colour (hue, saturation, value) */
-      float gLightScale;   /* global light intensity scale */
-      float gMidtone;   /* midtone level */
+      float lightScale;    /* global light intensity scale */
+      float midtone;    /* midtone level */
       VECTOR vecLightRgb;   /* global light colour (RGB) */
-      float uMidtone;   /* midtone blend, 0..1 */
-      int fUnk3e38;
+      float midtoneBlend; /* midtone blend, 0..1 */
+      int unknown3E38;
       uint32_t   _pad_279    [ 1 ] ;
-      int fUnk3e40;         /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
+      int unknown3E40;      /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
       SLOTHEAP slotheapSobounds;   /* SO bounds records */
-      void *pvUnk3e5c;
+      void *unknown3E5C;
       CID116 *pcid116Fade;   /* the screen fade object (CID116, inferred) */
       float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp BuildWorldBackgroundImage); was _pad_283 */
       float aclrShdLight[3][4]; /* +0x3E70 [S] draft name: three user HSV colours converted by ConvertUserHsvToUserRgb (same function) */
@@ -204,9 +204,9 @@ struct SW : public BASIC
       uint cpo;             /* +0x3EB8 [R] player-object count (4 in the Paris hub: Bentley, Sly, Murray, char-select PO; 0 in
                                the 3 states with no world loaded) */
 
-      PO *apo[16];          /* +0x3EBC [R] player objects (oids 8 Bentley, 7 Sly(JT), 9 Murray, 0x4357 CID 0x46 char-select) */
-      PO *ppoHero;          /* +0x3EFC [R] CURRENT player (GetCurrentPo): follows character switches; g_pjt stays Sly (runtime3) */
-      PO *ppoOverride;      /* +0x3F00 [R] override player; 0 in all states; current = ppoOverride ? ppoOverride : ppoHero */
+      PO *playerObjects[16]; /* +0x3EBC [R] player objects (oids 8 Bentley, 7 Sly(JT), 9 Murray, 0x4357 CID 0x46 char-select) */
+      PO *currentPlayer;    /* +0x3EFC [R] CURRENT player (GetCurrentPo): follows character switches; g_pjt stays Sly (runtime3) */
+      PO *overridePlayer;   /* +0x3F00 [R] override player; 0 in all states; current = overridePlayer ? overridePlayer : currentPlayer */
       int cproxysrc;   /* number of proxy sources */
       PROXYSRC *aproxysrc;   /* the proxy sources (templates PROXY objects clone) */
       PXR *ppxrRoot;   /* root proxy record */
@@ -236,12 +236,12 @@ struct SW : public BASIC
       DL dlStimulus;   /* live stimuli (noises, sights guards react to) */
       SLOTHEAP slotheapStimulus;   /* stimulus records */
       struct STIMK *apstimk[7];   /* stimulus kinds */
-      SLOTHEAP slotheapUnk403c;
-      SLOTHEAP slotheapUnk4054;
+      SLOTHEAP unknown403C;
+      SLOTHEAP unknown4054;
       uint32_t   _pad_318    [ 1 ] ;
-      SLOTHEAP slotheapUnk4070;
-      SLOTHEAP slotheapUnk4088; /* +0x4088 [S] draft: the frame dl40 records come from it (frm.cpp ClearPendingFrame) */
-      SLOTHEAP slotheapUnk40a0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
+      SLOTHEAP unknown4070;
+      SLOTHEAP unknown4088; /* +0x4088 [S] draft: the frame dl40 records come from it (frm.cpp ClearPendingFrame) */
+      SLOTHEAP unknown40A0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
       SLOTHEAP slotheapSsge;   /* SSGE records */
       SLOTHEAP slotheapJsg; /* +0x40D0 [S] JSG slot heap (relay.cpp allocates / frees JSGs); was _pad_323 */
       SLOTHEAP slotheapXa;   /* XA records */
@@ -251,7 +251,7 @@ struct SW : public BASIC
       DL dlZprHit;   /* zap hits this frame */
       SLOTHEAP slotheapXfh; /* +0x413C [S] XFH slot heap; was _pad_328[263] */
       uint32_t   _pad_328    [ 256 ] ;
-      int fUnk4554;         /* +0x4554 [S] draft: set to 1 by InvalidateLight for some lights (light.cpp) */
+      int unknown4554;      /* +0x4554 [S] draft: set to 1 by InvalidateLight for some lights (light.cpp) */
       int ccell;   /* number of visibility cells */
       CELL *acell;   /* the visibility cells */
       int cleaf;   /* number of leaves */
@@ -264,28 +264,28 @@ struct SW : public BASIC
       CLQ clqGuardScale;   /* guard scaling curve (difficulty, inferred) */
       LM lmGuardScale;   /* guard scaling limits */
       RENDERTGT artgt[2];   /* +0x45E8 [S] the two 128x128 render targets (tu_1BE398.cpp); was _pad_338 */
-      LO *ploUnk4638;       /* +0x4638 [S] the proxy source booties are acquired from / locked on (booty.cpp) */
-      int cCid37;           /* +0x463C [S] next booty-container id (booty.cpp PostBootyContainerLoad post-increments it) */
+      LO *bootyProxySource; /* +0x4638 [S] the proxy source booties are acquired from / locked on (booty.cpp) */
+      int nextBootyContainerId; /* +0x463C [S] next booty-container id (booty.cpp PostBootyContainerLoad post-increments it) */
       int clangstr;   /* number of localised strings */
       LANGSTR *alangstr;   /* the localised strings */
       SLOTHEAP slotheapLeap;   /* +0x4648 [S] LEAP slot heap (tu_20B840.cpp); was _pad_343 */
       SLOTHEAP slotheapDiract; /* +0x4660 [S] DIRACT slot heap (tu_20B840.cpp) */
       int cjtgrabcand;   /* number of grab candidates this frame */
-      undefined4 unk_0x467c;
+      undefined4 unknown467C;
       JTGRABCAND ajtgrabcand[4];   /* the grab candidates */
       int idHintGrab;   /* hint id of the grab prompt (inferred) */
-      LO *ploUnk4744;
-      int fGuardsFrozen;   /* guards are frozen */
-      float tGuardsFrozen;   /* time the guards were frozen */
+      LO *unknown4744;   /* possibly grabMarkerSource (low-confidence guess: passed to PloAcquireJtGrabMarker) */
+      int areGuardsFrozen; /* guards are frozen */
+      float guardsFrozenTime; /* time the guards were frozen */
       float tLookLast;   /* time of the last look-around (inferred) */
       uint32_t   _pad_352    [ 1 ] ;
-      float tUnk4758;       /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.time (guardbhv.cpp) */
-      float gUnk475c;
+      float unknown4758;    /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.time (guardbhv.cpp) */
+      float unknown475C;
       uint32_t   _pad_354    [ 1 ] ;
-      int cClue;            /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
-      int cClueTotal;       /* +0x4768 [R] clue bottles in this level (30 in the Paris hub) */
+      int numCluesCollected; /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
+      int numClues;         /* +0x4768 [R] clue bottles in this level (30 in the Paris hub) */
 
-      float tHudTimerEnd;   /* game time the HUD countdown ends */
+      float hudTimerEndTime; /* game time the HUD countdown ends */
       int csecHudTimerShown;   /* seconds currently shown on the HUD timer */
       struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (InitEpisodeMenu registers itself, tu_15CD68.cpp); was _pad_357 */
       int cpemitTracked;   /* number of tracked emitters */
@@ -303,27 +303,27 @@ struct SW : public BASIC
 };
 typedef char assert_SW_size[sizeof(SW) == 0x4790 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_SW_dlChild[SLY2_OFFSETOF(SW, dlChild) == 0x10 ? 1 : -1];   /* root DL ibDle 0x24 (CONFIRMED runtime; Lilly name dlChild) */
-typedef char assert_SW_aslOid[SLY2_OFFSETOF(SW, aslOid) == 0x38 ? 1 : -1];   /* oid hash, 512 SLs (CONFIRMED runtime) */
-typedef char assert_SW_aslCid[SLY2_OFFSETOF(SW, aslCid) == 0x3038 ? 1 : -1];   /* per-class SL lists, 12-byte stride (CONFIRMED runtime) */
+typedef char assert_SW_objectsByOid[SLY2_OFFSETOF(SW, objectsByOid) == 0x38 ? 1 : -1]; /* oid hash, 512 SLs (CONFIRMED runtime) */
+typedef char assert_SW_objectsByClass[SLY2_OFFSETOF(SW, objectsByClass) == 0x3038 ? 1 : -1]; /* per-class SL lists, 12-byte stride (CONFIRMED runtime) */
 typedef char assert_SW_savevars[SLY2_OFFSETOF(SW, savevars) == 0x3A18 ? 1 : -1];   /* save-var schema (CONFIRMED runtime) */
 typedef char assert_SW_ahudstack[SLY2_OFFSETOF(SW, ahudstack) == 0x3BA0 ? 1 : -1];   /* 4 records of 12 bytes (CONFIRMED runtime) */
-typedef char assert_SW_ploJobCur[SLY2_OFFSETOF(SW, ploJobCur) == 0x3B0C ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_currentJob[SLY2_OFFSETOF(SW, currentJob) == 0x3B0C ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_SW_psvpCcoin[SLY2_OFFSETOF(SW, psvpCcoin) == 0x3B20 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_SW_fTransitionPending[SLY2_OFFSETOF(SW, fTransitionPending) == 0x3BF0 ? 1 : -1];   /* CONFIRMED runtime + code */
-typedef char assert_SW_filerecDest[SLY2_OFFSETOF(SW, filerecDest) == 0x3BF8 ? 1 : -1];   /* CONFIRMED runtime + code */
+typedef char assert_SW_isTransitionPending[SLY2_OFFSETOF(SW, isTransitionPending) == 0x3BF0 ? 1 : -1]; /* CONFIRMED runtime + code */
+typedef char assert_SW_destinationLevel[SLY2_OFFSETOF(SW, destinationLevel) == 0x3BF8 ? 1 : -1]; /* CONFIRMED runtime + code */
 typedef char assert_SW_oidWarpDest[SLY2_OFFSETOF(SW, oidWarpDest) == 0x3C38 ? 1 : -1];   /* CONFIRMED runtime + code */
-typedef char assert_SW_filerecCur[SLY2_OFFSETOF(SW, filerecCur) == 0x3C40 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_SW_nStampLights[SLY2_OFFSETOF(SW, nStampLights) == 0x3D60 ? 1 : -1];   /* CONFIRMED runtime (frame counter) */
-typedef char assert_SW_cHandsOff[SLY2_OFFSETOF(SW, cHandsOff) == 0x3D78 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_currentLevel[SLY2_OFFSETOF(SW, currentLevel) == 0x3C40 ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_SW_frameCounter[SLY2_OFFSETOF(SW, frameCounter) == 0x3D60 ? 1 : -1];   /* CONFIRMED runtime (frame counter) */
+typedef char assert_SW_handsOffCount[SLY2_OFFSETOF(SW, handsOffCount) == 0x3D78 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_SW_cpo[SLY2_OFFSETOF(SW, cpo) == 0x3EB8 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_SW_ppoHero[SLY2_OFFSETOF(SW, ppoHero) == 0x3EFC ? 1 : -1];   /* current player, CONFIRMED runtime */
-typedef char assert_SW_ppoOverride[SLY2_OFFSETOF(SW, ppoOverride) == 0x3F00 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_SW_cClue[SLY2_OFFSETOF(SW, cClue) == 0x4764 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_SW_currentPlayer[SLY2_OFFSETOF(SW, currentPlayer) == 0x3EFC ? 1 : -1]; /* current player, CONFIRMED runtime */
+typedef char assert_SW_overridePlayer[SLY2_OFFSETOF(SW, overridePlayer) == 0x3F00 ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_SW_numCluesCollected[SLY2_OFFSETOF(SW, numCluesCollected) == 0x4764 ? 1 : -1]; /* CONFIRMED runtime */
 /* Fields named from the interior address names (data/interior-fields): offsets as the matched code uses them. */
 typedef char assert_SW_dlTaskActive[SLY2_OFFSETOF(SW, dlTaskActive) == 0x3B00 ? 1 : -1];
 typedef char assert_SW_dlWidgetExclusive[SLY2_OFFSETOF(SW, dlWidgetExclusive) == 0x3BD0 ? 1 : -1];
 typedef char assert_SW_slWidgetDeferred[SLY2_OFFSETOF(SW, slWidgetDeferred) == 0x3BDC ? 1 : -1];
-typedef char assert_SW_fUnk3e40[SLY2_OFFSETOF(SW, fUnk3e40) == 0x3E40 ? 1 : -1];
+typedef char assert_SW_unknown3E40[SLY2_OFFSETOF(SW, unknown3E40) == 0x3E40 ? 1 : -1];
 typedef char assert_SW_agShdLight[SLY2_OFFSETOF(SW, agShdLight) == 0x3E64 ? 1 : -1];
 typedef char assert_SW_aclrShdLight[SLY2_OFFSETOF(SW, aclrShdLight) == 0x3E70 ? 1 : -1];
 typedef char assert_SW_tex2ProjVolume[SLY2_OFFSETOF(SW, tex2ProjVolume) == 0x3EA0 ? 1 : -1];
@@ -333,20 +333,20 @@ typedef char assert_SW_dlTargetrec[SLY2_OFFSETOF(SW, dlTargetrec) == 0x3FCC ? 1 
 typedef char assert_SW_dlCid21[SLY2_OFFSETOF(SW, dlCid21) == 0x3FE4 ? 1 : -1];
 typedef char assert_SW_dlCid23[SLY2_OFFSETOF(SW, dlCid23) == 0x3FF0 ? 1 : -1];
 typedef char assert_SW_dlStimulus[SLY2_OFFSETOF(SW, dlStimulus) == 0x3FFC ? 1 : -1];
-typedef char assert_SW_slotheapUnk40a0[SLY2_OFFSETOF(SW, slotheapUnk40a0) == 0x40A0 ? 1 : -1];
+typedef char assert_SW_unknown40A0[SLY2_OFFSETOF(SW, unknown40A0) == 0x40A0 ? 1 : -1];
 typedef char assert_SW_slotheapJsg[SLY2_OFFSETOF(SW, slotheapJsg) == 0x40D0 ? 1 : -1];
 typedef char assert_SW_slShd[SLY2_OFFSETOF(SW, slShd) == 0x4100 ? 1 : -1];
 typedef char assert_SW_slSaa[SLY2_OFFSETOF(SW, slSaa) == 0x410C ? 1 : -1];
 typedef char assert_SW_slotheapXfh[SLY2_OFFSETOF(SW, slotheapXfh) == 0x413C ? 1 : -1];
-typedef char assert_SW_fUnk4554[SLY2_OFFSETOF(SW, fUnk4554) == 0x4554 ? 1 : -1];
+typedef char assert_SW_unknown4554[SLY2_OFFSETOF(SW, unknown4554) == 0x4554 ? 1 : -1];
 typedef char assert_SW_dlCid14Free[SLY2_OFFSETOF(SW, dlCid14Free) == 0x45B0 ? 1 : -1];
 typedef char assert_SW_dlCid14Pending[SLY2_OFFSETOF(SW, dlCid14Pending) == 0x45BC ? 1 : -1];
 typedef char assert_SW_clqGuardScale[SLY2_OFFSETOF(SW, clqGuardScale) == 0x45D0 ? 1 : -1];
 typedef char assert_SW_slotheapLeap[SLY2_OFFSETOF(SW, slotheapLeap) == 0x4648 ? 1 : -1];
 typedef char assert_SW_slotheapDiract[SLY2_OFFSETOF(SW, slotheapDiract) == 0x4660 ? 1 : -1];
 typedef char assert_SW_artgt[SLY2_OFFSETOF(SW, artgt) == 0x45E8 ? 1 : -1];
-typedef char assert_SW_ploUnk4638[SLY2_OFFSETOF(SW, ploUnk4638) == 0x4638 ? 1 : -1];
-typedef char assert_SW_tUnk4758[SLY2_OFFSETOF(SW, tUnk4758) == 0x4758 ? 1 : -1];
+typedef char assert_SW_bootyProxySource[SLY2_OFFSETOF(SW, bootyProxySource) == 0x4638 ? 1 : -1];
+typedef char assert_SW_unknown4758[SLY2_OFFSETOF(SW, unknown4758) == 0x4758 ? 1 : -1];
 typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
 
 /* g_sw: the one world (sw.cpp defines it under its address name as an SWG). */

@@ -382,6 +382,6 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
     xf->localMatrix.mat[1][3] = 0.0f;
     xf->localMatrix.mat[2][3] = 0.0f;
     xf->localMatrix.mat[0][3] = 0.0f;
-    int stamp = ++D_003DD490.nStampXf;
+    int stamp = ++D_003DD490.transformStamp;
     xf->worldStamp = stamp;
 }

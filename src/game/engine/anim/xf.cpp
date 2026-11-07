@@ -808,7 +808,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002DDED0 (g_clock), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0022DE88 UpdateSoSlots__FP2SO (our name, was FUN_0022DE88; SO::Update 0x1F3980 calls it right after the SO's own update). THE per-frame step of an SO's XF slots:
-// for every XF it runs SlotRefresh and then, by the XF's role (role, see SlotRefresh / SlotSetRole), moves the XF's local matrix `mat` and stamps it (worldStamp = ++g_sw.nStampXf):
+// for every XF it runs SlotRefresh and then, by the XF's role (role, see SlotRefresh / SlotSetRole), moves the XF's local matrix `mat` and stamps it (worldStamp = ++g_sw.transformStamp):
 //   roles 1 2   constant `acceleration` on the `velocity`: xfk 1 moves the position row (trapezoid: pos += (v_old + v_new) * dt / 2), xfk 6 turns the rotation by the
 //               same angular step (LoadRotateMatrix, renormalized); when the new and the old velocity are both ~0 the velocity is cleared and role 1 -> 3 (role 2 stays awake)
 //   role 0x14   xfk 6: continuous rotation, angle in unknownE0.x += rate (rate.x) * dt about the axis restValue
@@ -1128,7 +1128,7 @@ void UpdateSoSlots(SO *so)
                         VECTOR_opAssign(xf->localMatrix.mat[3], qwPos);
                         *(qword *)&xf->velocity = qwVel;
                         xf->localMatrix.mat[3][3] = 1.0f;
-                        xf->worldStamp = ++D_003DD490.nStampXf;
+                        xf->worldStamp = ++D_003DD490.transformStamp;
                     }
                     else
                     {
@@ -1157,7 +1157,7 @@ void UpdateSoSlots(SO *so)
                         qword qwSum = VuAdd(*(qword *)&xf->velocity, qwVel);
                         TurnSlotMat(xf, (MATRIX3 *)&xf->localMatrix, VuScaleByX(qwSum, vfHalf.qw));
                         *(qword *)&xf->velocity = qwVel;
-                        xf->worldStamp = ++D_003DD490.nStampXf;
+                        xf->worldStamp = ++D_003DD490.transformStamp;
                     }
                     else
                     {
@@ -1183,7 +1183,7 @@ void UpdateSoSlots(SO *so)
                     xf->localMatrix.mat[1][3] = 0.0f;
                     xf->localMatrix.mat[2][3] = 0.0f;
                     xf->localMatrix.mat[0][3] = 0.0f;
-                    xf->worldStamp = ++D_003DD490.nStampXf;
+                    xf->worldStamp = ++D_003DD490.transformStamp;
                 }
                 break;
             case 4:
@@ -1208,7 +1208,7 @@ void UpdateSoSlots(SO *so)
                     qword qwVal = GetSlotValue(xf);
                     xf->localMatrix = SlotStoreValue(xf, qwVal);
                 }
-                xf->worldStamp = ++D_003DD490.nStampXf;
+                xf->worldStamp = ++D_003DD490.transformStamp;
                 if (xf->role == 6 && xf->phase == 2)
                     SlotSetRole(so, xf, 10);
             }
@@ -1473,7 +1473,7 @@ void UpdateSoSlots(SO *so)
                 }
             LChaseDone:
                 fIdle = 0;
-                xf->worldStamp = ++D_003DD490.nStampXf;
+                xf->worldStamp = ++D_003DD490.transformStamp;
                 break;
             }
             case 0xd:
@@ -1502,7 +1502,7 @@ void UpdateSoSlots(SO *so)
                 VECTOR_opAssign(xf->localMatrix.mat[3], *(qword *)&vecPos);
                 xf->localMatrix.mat[3][3] = 1.0f;
                 *(qword *)&xf->velocity = *(qword *)&vecVel;
-                xf->worldStamp = ++D_003DD490.nStampXf;
+                xf->worldStamp = ++D_003DD490.transformStamp;
                 break;
             }
             case 0x12:
@@ -1603,7 +1603,7 @@ void UpdateSoSlots(SO *so)
                 }
                 }
                 fIdle = 0;
-                xf->worldStamp = ++D_003DD490.nStampXf;
+                xf->worldStamp = ++D_003DD490.transformStamp;
                 break;
             }
         }

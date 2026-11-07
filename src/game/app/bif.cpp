@@ -3167,7 +3167,7 @@ extern "C" CREFV *BuiltinCurrentWorld(CREFV *pref)
 // CRef(BASIC*) of g_sw slot D_003E0F9C. That slot is the current JOB (null in free roam).
 extern "C" CREFV *BuiltinFindCurrentJob(CREFV *pref)
 {
-    CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploJobCur);
+    CRef_ctor_BASIC(pref, (BASIC *)g_sw.currentJob);
     return pref;
 }
 
@@ -3175,7 +3175,7 @@ extern "C" CREFV *BuiltinFindCurrentJob(CREFV *pref)
 // CRef(BASIC*) of D_003E0FA0. That slot is the current TASK.
 extern "C" CREFV *BuiltinFindCurrentTask(CREFV *pref)
 {
-    CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploTaskCur);
+    CRef_ctor_BASIC(pref, (BASIC *)g_sw.currentTask);
     return pref;
 }
 
@@ -3184,7 +3184,7 @@ extern "C" CREFV *BuiltinFindCurrentTask(CREFV *pref)
 // That slot is the pending TASK (RestartJob prefers it); scripts call RequestTaskState on it.
 extern "C" CREFV *BuiltinFindPendingTask(CREFV *pref)
 {
-    CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploTaskPending);
+    CRef_ctor_BASIC(pref, (BASIC *)g_sw.pendingTask);
     return pref;
 }
 

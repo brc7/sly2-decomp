@@ -307,7 +307,7 @@ extern "C" RT *AcquireRenderTarget(RTCAM *rtcam)
                 ((void (*)(void *))o->vt[8].pfn)((char *)o + o->vt[8].d);
                 if (!IsLoInWorld(o)) {
                     LOV *q;
-                    AppendDlEntry(&g_sw.dlBusy, o->ploroot);
+                    AppendDlEntry(&g_sw.busyRoots, o->ploroot);
                     q = o->ploroot->plo;
                     ((void (*)(void *))q->vt[23].pfn)((char *)q + q->vt[23].d);
                 }

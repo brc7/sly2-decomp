@@ -77,13 +77,13 @@ extern "C" void CollectVisibleMsGlobs(int *countOut, GLOBREF ***globsOut)
       ALLOCREQ req;
       int count = 0, i;
 
-      for (mesh = (*(GLOBOWNER * *)&g_sw.aslCid[49]); mesh; mesh = mesh->nextOwner)
+      for (mesh = (*(GLOBOWNER * *)&g_sw.objectsByClass[49]); mesh; mesh = mesh->nextOwner)
             count += mesh->numGlobs;
       req.cb = count * 4;
       req.cbAlign = 0x10;
       globs = (GLOBREF **)AllocFromStack(&req);   /* dmas.h */
       nextSlot = globs;
-      for (mesh = (*(GLOBOWNER * *)&g_sw.aslCid[49]); mesh; mesh = mesh->nextOwner) {
+      for (mesh = (*(GLOBOWNER * *)&g_sw.objectsByClass[49]); mesh; mesh = mesh->nextOwner) {
             for (i = 0; i < mesh->numGlobs; i++) {
                   GLOBREF *glob = &mesh->globs[i];
                   if (!(glob->flags & (1L << 48)))

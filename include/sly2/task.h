@@ -1,7 +1,7 @@
 /* include/sly2/task.h -- mission graph objects: JOB (CID 0x84, cb 0x100) and TASK (CID 0x85, cb 0x110), both direct LO
  * subclasses with no new virtuals (vtable 48 = LO). Names are the devtools' (ram_inspector / slygame), not Sucker Punch's.
  * Offsets from runtime6 FINDINGS and devtools/pine_toolkit/slygame.py tasks(). Tags: [R] runtime, [S] static, [H] hypothesis.
- * The current JOB/TASK/pending TASK are SW::ploJobCur/ploTaskCur/ploTaskPending (SW+0x3B0C..). */
+ * The current JOB/TASK/pending TASK are SW::currentJob/ploTaskCur/ploTaskPending (SW+0x3B0C..). */
 #ifndef SLY2_TASK_H
 #define SLY2_TASK_H
 #include "sly2/basic.h"

@@ -40,7 +40,7 @@ struct SW
 {
     char pad[0x3EB8];
     unsigned int cpo;       /* +0x3EB8 player objects */
-    LOV *apo[16];
+    LOV *playerObjects[16];
 };
 struct RSMG { int a[4]; };
 struct TASKSTATE { int a[2]; };
@@ -772,7 +772,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
                                                       0x40 - numCandidates, &candidates[numCandidates]);
         if (volumeButton->numPushObjects == 0 && volumeButton->numPushClasses == 0)
         {
-            CopyAb(&candidates[numCandidates], D_003DD490.apo, D_003DD490.cpo * 4);
+            CopyAb(&candidates[numCandidates], D_003DD490.playerObjects, D_003DD490.cpo * 4);
             numCandidates += D_003DD490.cpo;
         }
         volumeButton->btn.relayArg = 0;

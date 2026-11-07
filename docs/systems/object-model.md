@@ -197,7 +197,7 @@ hierarchy: it names the topmost ancestor and links the hierarchy into the world'
 through slot 10 `SetParent` (`LO_SetParent`, wrapped by `SetLoParent`), which keeps the in-world state consistent,
 updates the root record (slot 13) and fires the activation callbacks as needed.
 
-**Lookup.** The world keeps an oid hash and one list per CID (`SW::aslOid`, `SW::aslCid`; hash and bucket helpers in
+**Lookup.** The world keeps an oid hash and one list per CID (`SW::objectsByOid`, `SW::objectsByClass`; hash and bucket helpers in
 `object/find.cpp`).
 
 - `FindSwObject(world, grf, oid, ploContext)` returns the first match; `FindSwObjects` collects several. The low

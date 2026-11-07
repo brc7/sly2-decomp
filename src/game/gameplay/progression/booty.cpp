@@ -228,7 +228,7 @@ extern "C" void UpdateBooty(BOOTYV *booty) {
         }
         return;
     case 4:
-        if ((booty->pbootyeCur->hasTimer != 0) && (D_002DDED0.time >= g_sw.tHudTimerEnd)) {
+        if ((booty->pbootyeCur->hasTimer != 0) && (D_002DDED0.time >= g_sw.hudTimerEndTime)) {
             DropStepplayerBooty(booty->phero);
         }
         break;
@@ -479,14 +479,14 @@ void SetBootyState(BOOTYV *booty, int st)
     HERO *pot4;
     if (booty->st == st)
         return;
-    if (g_sw.ploUnk4638 != 0) {
+    if (g_sw.bootyProxySource != 0) {
         int fOld = booty->st >= 2;
         int fNew = st >= 2;
         if (fOld) {
             if (!fNew)
-                UnlockProxyObject(g_sw.ploUnk4638, booty);
+                UnlockProxyObject(g_sw.bootyProxySource, booty);
         } else if (fNew) {
-            LockProxyObject(g_sw.ploUnk4638, booty);
+            LockProxyObject(g_sw.bootyProxySource, booty);
         }
     }
     stOld = booty->st;
@@ -646,7 +646,7 @@ extern "C" void InitBootyContainer(CID37V *container) {
 }
 
 // cid 0x25 vtable slot 15: base 0x183F50, unique id from a g_sw counter. (inferred)
-void CID37::PostLoad() { CID37V *container = (CID37V *)this; PostTriggerGrabspotLoad(container); container->id = g_sw.cCid37++; }
+void CID37::PostLoad() { CID37V *container = (CID37V *)this; PostTriggerGrabspotLoad(container); container->id = g_sw.nextBootyContainerId++; }
 
 // If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its
 // entry, link and set state 1. (inferred)
@@ -656,10 +656,10 @@ void SpawnBootyInContainer(CID37V *container, int) {
     BOOTYV *pa;
     if (container->pbooty) return;
     pg = &g_sw;
-    if (!pg->ploUnk4638) return;
+    if (!pg->bootyProxySource) return;
     i = GetSavedBootyContainerKind(container);
     if (i == -1) return;
-    pa = AcquireProxyObject(pg->ploUnk4638, 0);
+    pa = AcquireProxyObject(pg->bootyProxySource, 0);
     container->pbooty = pa;
     if (pa) {
         SelectBootyEntry(pa, i);
@@ -683,7 +683,7 @@ extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
     ppa = container->pbooty;
     if (!pqa && !ppa)
         return;
-    if (ppa && g_sw.ploJobCur && !ppa->pbootyeCur->allowedDuringJob) {
+    if (ppa && g_sw.currentJob && !ppa->pbootyeCur->allowedDuringJob) {
         PostNotice(D_003DA0C0, 0x124, 15.0f);
         SetSndSourceLo(CreateSfxSound(0x36), 0);
         return;

@@ -1345,10 +1345,10 @@ static inline U Pack(RGBA c) { U u; u.bf.r = c.r >> 3; u.bf.g = c.g >> 3; u.bf.b
 // 0x1ED1A0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 
-// Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (g_sw.fUnk3e38) (inferred)
+// Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (g_sw.unknown3E38) (inferred)
 void ColorCorrectRgba16(U *pu)
 {
-    if (!g_sw.fUnk3e38) return;
+    if (!g_sw.unknown3E38) return;
     RGBA c(pu->bf.r << 3, pu->bf.g << 3, pu->bf.b << 3, pu->bf.a ? 0xFF : 0);
     ColorCorrectRgba(&c);
     *pu = Pack(c);
@@ -1362,12 +1362,12 @@ struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
 void ConvertRgbaToFloats(struct RGBA *prgba, struct VECTOR *pv);
 void ColorCorrectVector(struct VECTOR *pv);
 void ConvertVectorToRgba(struct VECTOR *pv, int a, struct RGBA *prgba);
-// If color correction enabled (g_sw.fUnk3e38): RGBA -> vector -> ColorCorrectVector -> RGBA. (inferred)
+// If color correction enabled (g_sw.unknown3E38): RGBA -> vector -> ColorCorrectVector -> RGBA. (inferred)
 void ColorCorrectRgba(struct RGBA *prgba)
 {
     struct VECTOR v;
     struct RGBA rgba;
-    if (g_sw.fUnk3e38) {
+    if (g_sw.unknown3E38) {
         rgba = *prgba;
         ConvertRgbaToFloats(&rgba, &v);
         ColorCorrectVector(&v);
@@ -1397,7 +1397,7 @@ void ColorCorrectVector(VEC *p)
     VEC *pw;
     qword d, one;
     float dot;
-    if (!g_sw.fUnk3e38) return;
+    if (!g_sw.unknown3E38) return;
     pw = &w;
     w.x = 0.3f;
     pw->y = 0.6f;

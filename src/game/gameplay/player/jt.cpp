@@ -4320,7 +4320,7 @@ void UseJtGadget(char *p, int n)
         void *pv;
         ChargeGadgetMp(p, n);
         SetClockRate(D_002DDED0, 1, D_002BF3EC);
-        g_sw.gUnk475c = -1.0f;
+        g_sw.unknown475C = -1.0f;
         pv = CreateSfxSound(0x67);
         SetSndSourceLo(pv, 0);
         RcPtr_Assign(A(0x2044), pv);
@@ -4330,7 +4330,7 @@ void UseJtGadget(char *p, int n)
         void *pv;
         ChargeGadgetMp(p, n);
         SetClockRate(D_002DDED0, 1, D_002BF3F0);
-        g_sw.gUnk475c = 0.7f;
+        g_sw.unknown475C = 0.7f;
         pv = CreateSfxSound(0x66);
         SetSndSourceLo(pv, 0);
         RcPtr_Assign(A(0x2044), pv);
@@ -4433,7 +4433,7 @@ void EndJtGadget(struct S *jt, int n)
             StopSnd(*pp, 0.0f);
             RcPtr_Assign(pp, 0);
         }
-        (*(int *)&g_sw.gUnk475c) = 0;
+        (*(int *)&g_sw.unknown475C) = 0;
     } else {
         StopStepplayerGadget(jt, n);
     }

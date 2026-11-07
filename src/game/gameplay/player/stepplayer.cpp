@@ -2151,8 +2151,8 @@ void SpawnStepplayerBootyMarker(char *player, int n)
     if (q && GetCurrentBootyEntryId(q) == n) return;
     DropStepplayerBooty(player);
     if (n == -1) return;
-    if (!(*(void * *)&g_sw.ploUnk4638)) return;
-    o = (__typeof__(o))AcquireProxyObject((*(void * *)&g_sw.ploUnk4638), 1);
+    if (!(*(void * *)&g_sw.bootyProxySource)) return;
+    o = (__typeof__(o))AcquireProxyObject((*(void * *)&g_sw.bootyProxySource), 1);
     SelectBootyEntry(o, n);
     *(void **)(o + 0x160) = player;
     SetBootyState(o, 6);

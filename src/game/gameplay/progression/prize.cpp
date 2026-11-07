@@ -1909,7 +1909,7 @@ void SetClueCollected(int n, int f)
         CRef r(f != 0);
         SetPv(pv, r, D_003D4A60);
     }
-    g_sw.cClue = CountCollectedClues();
+    g_sw.numCluesCollected = CountCollectedClues();
 }
 } // namespace M_func_001C7C30
 

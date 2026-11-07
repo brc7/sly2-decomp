@@ -2450,12 +2450,12 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
                 return;
         }
     }
-    spot->GetClosestParam((JT *)player, &cand.sParam);
-    spot->GetPos(cand.sParam, (JT *)player, (VECTOR *)&cand.qwPos, 0);
-    cand.nPriority = spot->nPriority;
-    cand.sDist = LengthOf(VuSub(qwPosJt, cand.qwPos));
-    spot->AdjustDist(&cand.sDist);
-    if (cand.sDist > D_002BF664)
+    spot->GetClosestParam((JT *)player, &cand.spotDistance);
+    spot->GetPos(cand.spotDistance, (JT *)player, (VECTOR *)&cand.position, 0);
+    cand.priority = spot->nPriority;
+    cand.distance = LengthOf(VuSub(qwPosJt, cand.position));
+    spot->AdjustDist(&cand.distance);
+    if (cand.distance > D_002BF664)
         return;
     int i;
     if (spot->nGroup)
@@ -2463,15 +2463,15 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
         for (i = 0; i < ccandMax; i++)
         {
             JTGRABCAND *candidate = &candidates[i];
-            if (!candidate->pspot)
+            if (!candidate->grabSpot)
                 break;
-            if (candidate->pspot->nGroup == spot->nGroup)
+            if (candidate->grabSpot->nGroup == spot->nGroup)
             {
-                if (cand.sDist < candidates[i].sDist)
+                if (cand.distance < candidates[i].distance)
                 {
                     CopyAb(&candidates[i], &candidates[i + 1], (ccandMax - 1 - i) * sizeof(JTGRABCAND));
                     ZeroJtGrabCand(&candidates[ccandMax] - 1);
-                    candidates[ccandMax - 1].sDist = D_002BF664;
+                    candidates[ccandMax - 1].distance = D_002BF664;
                 }
                 else
                     return;
@@ -2483,7 +2483,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     do
     {
         JTGRABCAND *pcandPrev = &candidates[--i];
-        if (pcandPrev->nPriority > cand.nPriority || (pcandPrev->nPriority == cand.nPriority && pcandPrev->sDist < cand.sDist))
+        if (pcandPrev->priority > cand.priority || (pcandPrev->priority == cand.priority && pcandPrev->distance < cand.distance))
         {
             i++;
             break;
@@ -2492,10 +2492,10 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     if (i == ccandMax)
         return;
     MoveJtGrabCands(&candidates[i + 1], &candidates[i], (ccandMax - i) * sizeof(JTGRABCAND) - sizeof(JTGRABCAND));
-    cand.plo = lo;
-    cand.pspot = spot;
-    cand.tUnk14 = D_002DDED0.time;
-    cand.ploUnk10 = 0;
+    cand.object = lo;
+    cand.grabSpot = spot;
+    cand.unknown14 = D_002DDED0.time;
+    cand.unknown10 = 0;
     cand.dsParam = 0.0f;
     candidates[i] = cand;
 }
@@ -2581,8 +2581,8 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     uint i = 0;
     do
     {
-        candidates[i].nPriority = -1;
-        candidates[i].sDist = D_002BF664;
+        candidates[i].priority = -1;
+        candidates[i].distance = D_002BF664;
         i++;
     } while (i < 4);
     qword qwPosJt = PosLoWorld(player);
@@ -2644,7 +2644,7 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
             AddJtGrabCandidate(world, player, qwPosJt, pcid38, pcid38, 4, candidates);
     }
     int ccand;
-    for (ccand = 4; ccand > 0 && !candidates[ccand - 1].plo; ccand--)
+    for (ccand = 4; ccand > 0 && !candidates[ccand - 1].object; ccand--)
         ;
     SW *pswG = &D_003DD490;
     EmitJtGrabSparkles(pswG, player, ccand, candidates);
@@ -2656,15 +2656,15 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     int fFar;
     if (pswG->cjtgrabcand == 0)
         idHint = -1;
-    else if (fFar = D_002BF660 < LengthOf(VuSub(qwPosJt, pswG->ajtgrabcand[0].qwPos)), fFar)
+    else if (fFar = D_002BF660 < LengthOf(VuSub(qwPosJt, pswG->ajtgrabcand[0].position)), fFar)
         idHint = -1;
     else
     {
-        PROXY *proxy = pswG->ajtgrabcand[0].ploUnk10 ? PproxyFromLo(pswG->ajtgrabcand[0].ploUnk10) : 0;
-        if (proxy && proxy->oid == 0x624 && D_002BF70C < pswG->ajtgrabcand[0].tUnk14)
+        PROXY *proxy = pswG->ajtgrabcand[0].unknown10 ? PproxyFromLo(pswG->ajtgrabcand[0].unknown10) : 0;
+        if (proxy && proxy->oid == 0x624 && D_002BF70C < pswG->ajtgrabcand[0].unknown14)
             idHint = 0x125;
         else
-            idHint = D_003DD490.ajtgrabcand[0].pspot->nUnk14;
+            idHint = D_003DD490.ajtgrabcand[0].grabSpot->nUnk14;
     }
     if (idHint == idHintOld)
         return;
@@ -2678,7 +2678,7 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
 
 /* qsort order of grab candidates: nearer first. */
 // qsort comparator by candidate score.
-extern "C" int CompareJtGrabCandidates(JTGRABCAND *pcand0, JTGRABCAND *pcand1) { if (pcand0->sDist < pcand1->sDist) return -1; return 1; }
+extern "C" int CompareJtGrabCandidates(JTGRABCAND *pcand0, JTGRABCAND *pcand1) { if (pcand0->distance < pcand1->distance) return -1; return 1; }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND {
@@ -2708,15 +2708,15 @@ struct GRABSPOT {
 struct LO { char pad0[0xC]; VTLO *pvt; };
 
 struct JTGRABCAND {
-    LO *plo;
-    GRABSPOT *pspot;
-    float sDist;
-    int nPriority;
-    LO *ploUnk10;
-    float tUnk14;
-    float sParam;
+    LO *object;
+    GRABSPOT *grabSpot;
+    float distance;
+    int priority;
+    LO *unknown10;
+    float unknown14;
+    float spotDistance;
     float dsParam;
-    qword qwPos;
+    qword position;
 };
 struct SW { char pad0[0x4678]; int cjtgrabcand; JTGRABCAND ajtgrabcand[4]; };
 struct STEPPLAYER { char pad0[0x9C4]; int idUnk9C4; };
@@ -2749,8 +2749,8 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
     JTGRABCAND *oldCandidate, *pcand;
     if (ccand > 0) {
         qsort(candidates, ccand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
-        if (candidates->pspot->nUnk14 != -1)
-            candidates->nPriority = 1;
+        if (candidates->grabSpot->nUnk14 != -1)
+            candidates->priority = 1;
     }
     JTGRABCAND *ajtgrabcandOld = world->ajtgrabcand;
     for (i = world->cjtgrabcand; --i >= 0; ) {
@@ -2761,34 +2761,34 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
         for (;;) {
             if (--j < 0) {
                 // Not seen this frame: drop it.
-                if (oldCandidate->ploUnk10)
-                    FadeSoOut(oldCandidate->ploUnk10, 0.5f);
+                if (oldCandidate->unknown10)
+                    FadeSoOut(oldCandidate->unknown10, 0.5f);
                 memmove(oldCandidate, oldCandidate + 1, (3 - i) * (int)sizeof(JTGRABCAND));
                 world->cjtgrabcand--;
                 break;
             }
             pcand = &candidates[j];
-            if (oldCandidate->plo == pcand->plo) {
-                oldCandidate->sDist = pcand->sDist;
-                if (!oldCandidate->ploUnk10) {
-                    oldCandidate->sParam = pcand->sParam;
+            if (oldCandidate->object == pcand->object) {
+                oldCandidate->distance = pcand->distance;
+                if (!oldCandidate->unknown10) {
+                    oldCandidate->spotDistance = pcand->spotDistance;
                     oldCandidate->dsParam = 0.0f;
                 } else {
                     float sRange;
-                    int fWrap = pcand->pspot->pvt[1].v1.pfn((char *)pcand->pspot + pcand->pspot->pvt[1].v1.d, asRange);
+                    int fWrap = pcand->grabSpot->pvt[1].v1.pfn((char *)pcand->grabSpot + pcand->grabSpot->pvt[1].v1.d, asRange);
                     if (fWrap) {
                         float ds;
                         sRange = asRange[1] - asRange[0];
-                        float sNew = pcand->sParam;
-                        float sOld = oldCandidate->sParam;
+                        float sNew = pcand->spotDistance;
+                        float sOld = oldCandidate->spotDistance;
                         ds = sNew - sOld;
                         // Move the new parameter to the wrap of the range closest to the old one.
                         if (sRange * 0.5f < ds) {
                             ds -= sRange;
-                            pcand->sParam = sOld + ds;
+                            pcand->spotDistance = sOld + ds;
                         } else if (ds < sRange * -0.5f) {
                             ds += sRange;
-                            pcand->sParam = sOld + ds;
+                            pcand->spotDistance = sOld + ds;
                         } else {
                             fWrap = 0;
                         }
@@ -2796,23 +2796,23 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                     if (D_002E1E50) {
                         float dt = D_002DDED0.deltaTime;
                         float dsPrev = oldCandidate->dsParam;
-                        float dsNew = dsPrev + dt * ((pcand->sParam - oldCandidate->sParam) * D_002BF710 + (pcand->dsParam - dsPrev) * D_002BF714);
+                        float dsNew = dsPrev + dt * ((pcand->spotDistance - oldCandidate->spotDistance) * D_002BF710 + (pcand->dsParam - dsPrev) * D_002BF714);
                         float dsAvg;
                         oldCandidate->dsParam = dsNew;
                         dsAvg = (dsPrev + dsNew) * 0.5f;
-                        oldCandidate->sParam = oldCandidate->sParam + dt * dsAvg;
+                        oldCandidate->spotDistance = oldCandidate->spotDistance + dt * dsAvg;
                     } else {
-                        oldCandidate->sParam = SmoothValue__FfffP3SMPPf(oldCandidate->sParam, pcand->sParam, D_002DDED0.deltaTime, &D_002BF718, &oldCandidate->dsParam);
+                        oldCandidate->spotDistance = SmoothValue__FfffP3SMPPf(oldCandidate->spotDistance, pcand->spotDistance, D_002DDED0.deltaTime, &D_002BF718, &oldCandidate->dsParam);
                     }
                     if (fWrap) {
-                        if (asRange[1] < oldCandidate->sParam)
-                            oldCandidate->sParam = oldCandidate->sParam - sRange;
-                        else if (oldCandidate->sParam < asRange[0])
-                            oldCandidate->sParam = oldCandidate->sParam + sRange;
+                        if (asRange[1] < oldCandidate->spotDistance)
+                            oldCandidate->spotDistance = oldCandidate->spotDistance - sRange;
+                        else if (oldCandidate->spotDistance < asRange[0])
+                            oldCandidate->spotDistance = oldCandidate->spotDistance + sRange;
                     }
-                    GRABSPOT *spot = oldCandidate->pspot;
-                    spot->pvt[3].v3.pfn((char *)spot + spot->pvt[3].v3.d, player, &pos, 0, oldCandidate->sParam);
-                    oldCandidate->ploUnk10->pvt[29].pfn((char *)oldCandidate->ploUnk10 + oldCandidate->ploUnk10->pvt[29].d, pos);
+                    GRABSPOT *spot = oldCandidate->grabSpot;
+                    spot->pvt[3].v3.pfn((char *)spot + spot->pvt[3].v3.d, player, &pos, 0, oldCandidate->spotDistance);
+                    oldCandidate->unknown10->pvt[29].pfn((char *)oldCandidate->unknown10 + oldCandidate->unknown10->pvt[29].d, pos);
                 }
                 memmove(pcand, pcand + 1, (ccand - j) * (int)sizeof(JTGRABCAND) - (int)sizeof(JTGRABCAND));
                 ccand--;
@@ -2822,15 +2822,15 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
     }
     for (j = 0; j < ccand; j++) {
         pcand = &candidates[j];
-        if (player->idUnk9C4 && pcand->nPriority == 1) {
+        if (player->idUnk9C4 && pcand->priority == 1) {
             register LO *plo asm("$6"); // the one register pin: the original keeps the link result in a2, global-alloc would pick v0
             plo = AcquireJtGrabMarker(world, player->idUnk9C4, pcand);
             if (!plo)
                 break;
-            pcand->ploUnk10 = plo;
+            pcand->unknown10 = plo;
         }
         world->ajtgrabcand[world->cjtgrabcand++] = *pcand;
-        BroadcastGameEvent(D_002DEB30, 0x3D, pcand->plo);
+        BroadcastGameEvent(D_002DEB30, 0x3D, pcand->object);
     }
     qsort(ajtgrabcandOld, world->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
 }
@@ -2876,15 +2876,15 @@ struct GRABSPOT
 struct LO;
 struct JTGRABCAND
 {
-    LO *plo;
-    GRABSPOT *pspot;
-    float sDist;
-    int nPriority;          // -1: no spot to sparkle
-    LO *ploUnk10;
-    float tUnk14;
-    float sParam;
+    LO *object;
+    GRABSPOT *grabSpot;
+    float distance;
+    int priority;           // -1: no spot to sparkle
+    LO *unknown10;
+    float unknown14;
+    float spotDistance;
     float dsParam;
-    qword qwPos;
+    qword position;
 };
 struct EMITP                // particle parameters, at EMITB + 0x50
 {
@@ -2936,7 +2936,7 @@ static inline VU_VECTOR AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT g)
 }
 static inline void GetSparkle(JTGRABCAND *candidate, VECTOR *posOut, VECTOR *pv)
 {
-    candidate->pspot->GetSparkle(posOut, pv, candidate->sParam);
+    candidate->grabSpot->GetSparkle(posOut, pv, candidate->spotDistance);
 }
 
 // For every candidate spawns/refreshes the grab-hint sparkle effect.
@@ -2962,7 +2962,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
         float g, gRand;
         int c;
 
-        if (candidate->nPriority == -1)
+        if (candidate->priority == -1)
             continue;
         g = pemitter->gRate * D_002DDED0.deltaTime;
         gRand = RandomFloatInRange__Fff(0.0f, 1.0f);
@@ -3008,7 +3008,7 @@ LEmit:
 }
 } // namespace M_EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND
 
-/* Moves the world's grab marker (SW::ploUnk4744) onto the candidate for plo: acquires a new marker there and
+/* Moves the world's grab marker (SW::unknown4744) onto the candidate for plo: acquires a new marker there and
    removes the candidate's old one (LO slot 9). */
 // Splice entry: for the candidate with the id, acquires a new marker proxy and replaces the old one.
 extern "C" void SetGrabMarkerProxy(SW *world, LO *lo)
@@ -3016,26 +3016,26 @@ extern "C" void SetGrabMarkerProxy(SW *world, LO *lo)
     JTGRABCAND *candidate;
     LO *ploMarker;
     int i;
-    if (!lo || !world->ploUnk4744)
+    if (!lo || !world->unknown4744)
         return;
     for (i = 0; i < world->cjtgrabcand; i++) {
         JTGRABCAND *pcandI = &world->ajtgrabcand[i];
-        if (lo == pcandI->plo) {
+        if (lo == pcandI->object) {
             candidate = pcandI;
             break;
         }
     }
     if (!candidate)
         return;
-    ploMarker = AcquireJtGrabMarker(world, world->ploUnk4744, candidate);
+    ploMarker = AcquireJtGrabMarker(world, world->unknown4744, candidate);
     if (!ploMarker)
         return;
-    if (candidate->ploUnk10) {
-        LO *ploOld = candidate->ploUnk10;
+    if (candidate->unknown10) {
+        LO *ploOld = candidate->unknown10;
         VTE *entry = &PVT(ploOld)[9];
         ((void (*)(LO *))entry->pfn)((LO *)((char *)ploOld + entry->d));
     }
-    candidate->ploUnk10 = ploMarker;
+    candidate->unknown10 = ploMarker;
 }
 
 /* A grab marker proxy of plo placed at the candidate: unparented, shown (LO slot 9), faded in, moved to the
@@ -3056,7 +3056,7 @@ extern "C" LO *AcquireJtGrabMarker(SW *world, LO *lo, JTGRABCAND *candidate)
         FadeSoIn(ploMarker, 0.25f);
         {
             VTE *entry = &PVT(ploMarker)[29];
-            ((void (*)(void *, qword))entry->pfn)((char *)ploMarker + entry->d, candidate->qwPos);
+            ((void (*)(void *, qword))entry->pfn)((char *)ploMarker + entry->d, candidate->position);
         }
         {
             VTE *entry = &PVT(ploMarker)[30];
@@ -3078,7 +3078,7 @@ extern "C" LO *AcquireJtGrabMarker(SW *world, LO *lo, JTGRABCAND *candidate)
 // World post-load: finds the grab marker template (oid 0x624) into g_sw+0x4744.
 extern "C" void PostLoadGrabMarker(SW *world)
 {
-    world->ploUnk4744 = FindSwObject(world, 0x405, (OID)0x624, 0);
+    world->unknown4744 = FindSwObject(world, 0x405, (OID)0x624, 0);
 }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
