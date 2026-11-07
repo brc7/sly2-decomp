@@ -219,7 +219,7 @@ struct JT : public STEPPLAYER
     virtual int GetMovementNoise() __asm__("GetJtMovementNoise");   /* slot 98 */
     virtual void StartGadget(int idGadget) __asm__("UseJtGadget");   /* slot 100 */
     virtual void StopGadget() __asm__("EndJtGadget");   /* slot 102 */
-    virtual void GetSaveVarRoot() __asm__("GetJtSaveVarRoot");   /* slot 103 */
+    virtual void *GetSaveVarRoot() __asm__("GetJtSaveVarRoot");   /* slot 103 */
     virtual int CanUseGadget(int idGadget) __asm__("CanJtUseGadget__2JTi");   /* override declared in CanJtUseGadget__2JTi.cpp */
     virtual void IsCameraFree() __asm__("IsJtCameraFree");   /* slot 106: named from its overrides (inferred) */
     virtual void AddAttachedObjectAccelerations() __asm__("AddJtExternalAccelerations");   /* slot 107: named from its overrides (inferred) */

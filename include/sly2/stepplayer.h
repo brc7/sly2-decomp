@@ -498,7 +498,8 @@ struct STEPPLAYER : public STEP
       float unknown1098[4];
       SMPA unknown10A8;
       void *unknown10B8;
-      undefined4 unk_0x10bc[(0x10c8 - 0x10bc) / 4];
+      undefined4 unk_0x10bc[(0x10c4 - 0x10bc) / 4];
+      void *hideNoise;   /* +0x10C4 the noise source TestStepplayerHidden spawns (NewNoise) to ask guards whether the hero is seen */
       int unknown10C8;
       undefined4 unk_0x10cc[(0x10d4 - 0x10cc) / 4];
       float unknown10D4;
@@ -516,10 +517,10 @@ struct STEPPLAYER : public STEP
       LO *ploLean;   /* object leaned on */
       int leanKind;    /* lean kind */
       undefined4 unk_0x1100[(0x1120 - 0x1100) / 4];
-      RAW8 araw1120[3];
-      float agdtIdle[4];   /* idle animation durations */
+      LM almIdle[3];   /* +0x1120 three idle time ranges (SetStepplayerIdleParams) */
+      float agdtIdle[4];   /* idle time ranges for the next idle event: {min, max} by idleKind != 0, then by idleKind == 0 (ScheduleIdleTimer) */
       int idleKind;    /* idle kind */
-      float idleStartTime; /* time idle started */
+      float tNextIdle; /* +0x114C clock.time of the next idle event (FLT_MAX: never; ScheduleIdleTimer, InitIdleTimer) */
       undefined4 unk_0x1150[(0x1180 - 0x1150) / 4];
       GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
       undefined4 unk_0x11a4[(0x11b0 - 0x11a4) / 4];
@@ -577,7 +578,7 @@ struct STEPPLAYER : public STEP
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepplayerZapLethal");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void UpdateGadget() __asm__("UpdateStepplayerGadget");   /* slot 101: named from its overrides (inferred) */
     virtual void StopGadget() __asm__("StopStepplayerGadget");   /* slot 102: named from its overrides (inferred) */
-    virtual void GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: named from its overrides (inferred) */
+    virtual void *GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: the character's save-variable root (named from its overrides, inferred) */
     virtual void SendPowerupEvent() __asm__("SendStepplayerPowerupEvent");   /* slot 104: named from its overrides (inferred) */
     virtual void OnGadgetsChanged() __asm__("OnStepplayerGadgetsChanged");   /* slot 105: named from its overrides (inferred) */
 };

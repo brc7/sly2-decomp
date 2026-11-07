@@ -124,7 +124,7 @@ struct MURRAY : public STEPPLAYER
     virtual int GetMovementNoise() __asm__("GetMurrayMovementNoise");   /* slot 98 */
     virtual int CanUseGadget(int idGadget) __asm__("CanMurrayUseGadget__6MURRAYi");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("UseMurrayGadget");   /* slot 100 */
-    virtual void GetSaveVarRoot() __asm__("GetMurraySaveVarRoot");   /* slot 103 */
+    virtual void *GetSaveVarRoot() __asm__("GetMurraySaveVarRoot");   /* slot 103 */
 };
 typedef char assert_MURRAY_size[sizeof(MURRAY) == 0x1B00 ? 1 : -1];
 typedef char assert_MURRAY_jtthrowAim[SLY2_OFFSETOF(MURRAY, jtthrowAim) == 0x1910 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
@@ -211,7 +211,7 @@ struct BENTLEY : public STEPPLAYER
     virtual int GetMovementNoise() __asm__("GetBentleyMovementNoise");   /* slot 98 */
     virtual int CanUseGadget(int idGadget) __asm__("CanBentleyUseGadget");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("StartBentleyGadget");   /* slot 100 */
-    virtual void GetSaveVarRoot() __asm__("GetBentleySaveVarRoot");   /* slot 103 */
+    virtual void *GetSaveVarRoot() __asm__("GetBentleySaveVarRoot");   /* slot 103 */
 };
 typedef char assert_BENTLEY_size[sizeof(BENTLEY) == 0x1880 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 

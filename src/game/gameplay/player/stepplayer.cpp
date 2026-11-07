@@ -372,16 +372,15 @@ void UpdateStepplayerInteractCandidates(struct P *player)
 } } // namespace M_UpdateStepplayerInteractCandidates
 
 namespace M_SetStepplayerPlayerInteractMode { extern "C" {
-struct X { char pad[0x10DC]; int b; int pad2; int a; int d; int c; };
-void ReleaseInteractTargetMark(struct X *p, int a, int b, int c, int d);
+void ReleaseInteractTargetMark(STEPPLAYER *p, int a, LO *b, int c, LO *d);
 // Slot 95: stores the interact kind, target, mode and fight target.
-void SetStepplayerPlayerInteractMode(struct X *player, int a, int b, int c, int d)
+void SetStepplayerPlayerInteractMode(STEPPLAYER *player, int a, LO *b, int c, LO *d)
 {
-    if (b != player->b) ReleaseInteractTargetMark(player, a, b, c, d);
-    player->b = b;
-    player->a = a;
-    player->d = d;
-    player->c = c;
+    if (b != player->interactTarget) ReleaseInteractTargetMark(player, a, b, c, d);
+    player->interactTarget = b;
+    player->nUnk10e4 = a;
+    player->ploFightTarget = d;
+    player->interactMode = c;
 }
 } } // namespace M_SetStepplayerPlayerInteractMode
 
@@ -464,15 +463,14 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; int (*pfn)(void *, void *); };
 struct SO { char pad[0xC]; struct VTE *vt; char pad2[0xFE0 - 0x10]; struct SO *psoNext; };
 struct X { char pad[0x104]; struct X *pxNext; };
-struct P { char pad[0x10C4]; void *hideVolumes; };
-int IsStepplayerInJtMode(struct P *p);
-qword GetLoWorldPos(struct P *p);
-void *NewNoise(void *a, qword pos, struct P *p);
+int IsStepplayerInJtMode(STEPPLAYER *p);
+qword GetLoWorldPos(STEPPLAYER *p);
+void *NewNoise(void *a, qword pos, STEPPLAYER *p);
 int StepguardHasSgf(struct SO *pso, int n);
 int CanListenerHearNoise(struct X *px, void *q);
 void RemoveNoise(void *q);
 // 2 if in a look mode or no hide query is possible; else 1 if any guard can see the player, 0 otherwise. (inferred)
-int TestStepplayerHidden(struct P *player)
+int TestStepplayerHidden(STEPPLAYER *player)
 {
     int unused[4];
     void *q;
@@ -481,7 +479,7 @@ int TestStepplayerHidden(struct P *player)
     struct X *px;
     if (IsStepplayerInJtMode(player)) return 2;
     q = 0;
-    if (player->hideVolumes) q = NewNoise(player->hideVolumes, GetLoWorldPos(player), player);
+    if (player->hideNoise) q = NewNoise(player->hideNoise, GetLoWorldPos(player), player);
     if (!q) return 2;
     r = 0;
     so = (*(struct SO * *)&g_sw.dlStepguard);
@@ -503,20 +501,19 @@ int TestStepplayerHidden(struct P *player)
 namespace M_FStepplayerNearInteractTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct P { char pad[0x10E4]; int interactKind; void *p10E8; int interactMode; };
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
 // True in interact mode 4 (kind != 3) when the target is within reach.
-int IsStepplayerNearInteractTarget(struct P *player, int fX)
+int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
 {
     float gDist, minValue, maxValue;
     qword a, b, t;
     U d;
     float g;
     int f;
-    if (player->interactMode != 4 || player->interactKind == 3) return 0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(player->p10E8, 0x3A)) gDist = D_002BCC7C;
+    if (player->interactMode != 4 || player->nUnk10e4 == 3) return 0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(player->ploFightTarget, 0x3A)) gDist = D_002BCC7C;
     else gDist = D_002BCC80;
     minValue = D_002BCC84;
     maxValue = D_002BCC88;
@@ -525,7 +522,7 @@ int IsStepplayerNearInteractTarget(struct P *player, int fX)
         minValue -= D_002BCC90;
         maxValue += D_002BCC90;
     }
-    a = GetLoWorldPos(player->p10E8);
+    a = GetLoWorldPos(player->ploFightTarget);
     b = GetLoWorldPos(player);
     f = 0;
     {
@@ -544,18 +541,17 @@ int IsStepplayerNearInteractTarget(struct P *player, int fX)
 namespace M_func_00140C30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Y { char pad[0x28]; unsigned long fl; };
-struct X { char pad[0x1010]; qword pos; };
-void SetJtAirJump(void *p, int a, int b, int c);
-void AddStepAxisXps(struct X *p, void *a, struct Y *b, qword d);
+void SetJtAirJump(JTAIR *p, int a, int b, int c);
+void AddStepAxisXps(STEPPLAYER *p, void *a, struct Y *b, qword d);
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
-void AddStepplayerAxisXps(struct X *player, void *a, struct Y *b, qword v)
+void AddStepplayerAxisXps(STEPPLAYER *player, void *a, struct Y *b, qword v)
 {
     qword d;
     if ((((b->fl >> 60) & 1) == 0)) {
-        SetJtAirJump((char *)player + 0x2C0, 0, 0, 0);
+        SetJtAirJump(&player->jtair, 0, 0, 0);
         return;
     }
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(player->pos));
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(player->unknown1010));
     AddStepAxisXps(player, a, b, d);
 }
 } } // namespace M_func_00140C30
@@ -1246,39 +1242,32 @@ extern "C" void OnStepplayerGadgetsChanged()
 }
 
 namespace M_IGadgetSlotFromId { extern "C" {
-struct E { int id; int a, b; };
-struct X { char pad[0x1180]; struct E ae[3]; };
 // Index (0..2) of the gadget slot holding the id, else -1.
-int GetGadgetSlotFromId(struct X *p, int id)
+int GetGadgetSlotFromId(STEPPLAYER *p, int id)
 {
     int i;
     for (i = 0; i < 3; i++) {
-        if (id == p->ae[i].id) return i;
+        if (id == p->gadgetSlots[i].idGadget) return i;
     }
     return -1;
 }
 } } // namespace M_IGadgetSlotFromId
 
 namespace M_GrfbtnGadget { extern "C" {
-struct E { int id; int a, b; };
-struct X { char pad[0x1180]; struct E ae[3]; };
 extern int D_002C3258[];
 // Button mask of every slot holding the gadget id.
-int GetGadgetButtonMask(struct X *p, int id)
+int GetGadgetButtonMask(STEPPLAYER *p, int id)
 {
     int i;
     int m = 0;
     for (i = 0; i < 3; i++) {
-        if (id == p->ae[i].id) m |= D_002C3258[i];
+        if (id == p->gadgetSlots[i].idGadget) m |= D_002C3258[i];
     }
     return m;
 }
 } } // namespace M_GrfbtnGadget
 
 namespace M_LoadStepplayerGadgets { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct E { int id; int a, b; };
-struct P { char pad[0xC]; struct VTE *vt; char pad2[0x1180 - 0x10]; struct E ae[3]; };
 struct CRef { int tagk; int tag; };
 extern char D_002A4D50[];
 extern char D_002A4D58[];
@@ -1289,23 +1278,18 @@ void Decref__4CRef(struct CRef *r);
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
 
 // Reads the three gadget slots from the save variables (root.apukCur[i]), then slot 105.
-void LoadStepplayerGadgets(struct P *player)
+void LoadStepplayerGadgets(STEPPLAYER *player)
 {
     int i;
     for (i = 0; i < 3; i++) {
         char ach[16];
         struct CRef r;
-        struct VTE *e;
         sprintf(ach, D_002A4D50, i);
-        e = &player->vt[103];
-        GetSaveVarByName(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4D58, ach, 0);
-        player->ae[i].id = r.tag;
+        GetSaveVarByName(&r, player->GetSaveVarRoot(), D_002A4D58, ach, 0);
+        player->gadgetSlots[i].idGadget = r.tag;
         Decref__4CRef(&r);
     }
-    {
-        struct VTE *e = &player->vt[105];
-        ((void (*)(void *))e->pfn)((char *)player + e->d);
-    }
+    player->OnGadgetsChanged();
 }
 } } // namespace M_LoadStepplayerGadgets
 
@@ -1317,40 +1301,34 @@ struct CRef {
     CRef(int k, int n) { tagk = k; tag = n; }
     ~CRef() { Decref__4CRef(this); }
 };
-struct VTE { short d; short pad; void *(*pfn)(void *); };
-struct E { int id; int a; float g; };
-struct P { char pad[0xC]; VTE *vt; char pad2[0x1180 - 0x10]; E ae[3]; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern char D_002A4D50[];
 extern char D_002A4D58[];
-void SetGadgetSlotState(P *p, E *pe, int n);
 int sprintf(char *pch, const char *fmt, ...);
 }
 extern "C" { CRef SetSaveVarByName(const CRef &ref, void *o, const char *fmt, ...); }
 // Assigns a gadget id to slot i: stops the old one, clears duplicates in other slots, writes the save variable.
-extern "C" void SetStepplayerGadget(P *player, unsigned int i, int id)
+extern "C" void SetStepplayerGadget(STEPPLAYER *player, unsigned int i, int id)
 {
     if (!(i < 3))
         return;
-    E *pe = &player->ae[i];
+    GADGETSLOT *pe = &player->gadgetSlots[i];
     SetGadgetSlotState(player, pe, -1);
-    pe->id = id;
-    pe->a = 0;
-    pe->g = D_002DDED0.time;
+    pe->idGadget = id;
+    pe->state = 0;
+    pe->stateStartTime = D_002DDED0.time;
     for (int j = 0; j < 3; j++) {
         char ach[16];
-        E *pe2 = &player->ae[j];
-        if (j != i && pe2->id == id) {
+        GADGETSLOT *pe2 = &player->gadgetSlots[j];
+        if (j != i && pe2->idGadget == id) {
             SetGadgetSlotState(player, pe2, -1);
-            pe2->id = -1;
+            pe2->idGadget = -1;
         }
         sprintf(ach, D_002A4D50, j);
-        VTE *e = &player->vt[103];
-        SetSaveVarByName(CRef(0x15, player->ae[j].id), e->pfn((char *)player + e->d), D_002A4D58, ach, 0);
+        SetSaveVarByName(CRef(0x15, player->gadgetSlots[j].idGadget), player->GetSaveVarRoot(), D_002A4D58, ach, 0);
     }
-    VTE *e = &player->vt[105];
-    ((void (*)(void *))e->pfn)((char *)player + e->d);
+    player->OnGadgetsChanged();
 }
 } // namespace M_SetStepplayerGadget
 
@@ -1642,7 +1620,7 @@ extern "C" void SetStepplayerLeanTarget(STEPPLAYER *player, int nLeanKind, LO *p
     player->ploLean = ploLean;
     if (ploLean == 0)
         return;
-    if (player->idleStartTime != D_002A4D60) {
+    if (player->tNextIdle != D_002A4D60) {
         player->idleKind = 1;
         UnlockStepplayerLeanTarget(player);
     }
@@ -1668,31 +1646,29 @@ namespace RO_ORDER { extern const char r_D_002A4D50[] __asm__("D_002A4D50") = "%
 namespace RO_ORDER { extern const char r_D_002A4D58[] __asm__("D_002A4D58") = "apukCur"; }
 namespace RO_ORDER { extern const float r_D_002A4D60 __asm__("D_002A4D60") = 3.40282347e+38f; }
 namespace M_func_00142868 { extern "C" {
-struct S { char pad[0x1148]; int a; float f; };
 // Sets an idle timer's kind and makes it never fire (FLT_MAX).
-void InitIdleTimer(struct S *p, int a)
+void InitIdleTimer(STEPPLAYER *p, int a)
 {
-    p->a = a;
-    p->f = 3.40282346638528859812e+38f;
+    p->idleKind = a;
+    p->tNextIdle = 3.40282346638528859812e+38f;
 }
 } } // namespace M_func_00142868
 
 namespace M_func_00142880 { extern "C" {
 extern struct CLOCK D_002DDED0;
 float RandomFloatInRange__Fff(float a, float b);
-struct X { char pad[0x1138]; float a0, b0, a1, b1; int f; float tNext; };
 // Next idle event = now + a random time in the chosen range.
-void ScheduleIdleTimer(struct X *p)
+void ScheduleIdleTimer(STEPPLAYER *p)
 {
     float t;
-    if (p->f) {
+    if (p->idleKind) {
         t = D_002DDED0.time;
-        t += RandomFloatInRange__Fff(p->a0, p->b0);
-        p->tNext = t;
+        t += RandomFloatInRange__Fff(p->agdtIdle[0], p->agdtIdle[1]);
+        p->tNextIdle = t;
     } else {
         t = D_002DDED0.time;
-        t += RandomFloatInRange__Fff(p->a1, p->b1);
-        p->tNext = t;
+        t += RandomFloatInRange__Fff(p->agdtIdle[2], p->agdtIdle[3]);
+        p->tNextIdle = t;
     }
 }
 } } // namespace M_func_00142880
@@ -2039,33 +2015,30 @@ void PickHeroInteractTarget(P *p)
 } // namespace M_func_00142AF8
 
 namespace M_func_00143090 { extern "C" {
-struct S8 { float a, b; };
-struct X { char pad[0x1120]; struct S8 a, b, c; };
 // Copies three pairs of idle-timer ranges into the record.
-void SetStepplayerIdleParams(struct X *player, struct S8 *a, struct S8 *b, struct S8 *c)
+void SetStepplayerIdleParams(STEPPLAYER *player, LM *a, LM *b, LM *c)
 {
-    player->a = *a;
-    player->b = *b;
-    player->c = *c;
+    player->almIdle[0] = *a;
+    player->almIdle[1] = *b;
+    player->almIdle[2] = *c;
 }
 } } // namespace M_func_00143090
 
 namespace RO_ORDER { extern const float r_D_002A4D68 __asm__("D_002A4D68") = 3.40282347e+38f; }
 namespace M_func_001430C8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x10F8]; void *leanTarget; int x10FC; };
 extern float D_002BD2C0;
 extern float D_002BD2C4;
 qword GetLoWorldPos(void *p);
-qword ConvertPosBetweenLos(void *pm, struct P *p, qword v);
+qword ConvertPosBetweenLos(void *pm, STEPPLAYER *p, qword v);
 float atan2f(float y, float x);
 // Lean flags from the lean target's direction (quadrant in local space) and the lean kind.
-int GetStepplayerLeanFlags(struct P *player)
+int GetStepplayerLeanFlags(STEPPLAYER *player)
 {
     int n;
     int r;
-    if (player->leanTarget) {
-        qword v = ConvertPosBetweenLos(0, player, GetLoWorldPos(player->leanTarget));
+    if (player->ploLean) {
+        qword v = ConvertPosBetweenLos(0, player, GetLoWorldPos(player->ploLean));
         float g = atan2f(QwordY(v), QwordX(v));
         float a = __builtin_fabsf(g);
         if (a < D_002BD2C0) n = 0;
@@ -2074,7 +2047,7 @@ int GetStepplayerLeanFlags(struct P *player)
         else n = 2;
     }
     r = 8;
-    switch (player->x10FC) {
+    switch (player->leanKind) {
     case -1: case 0: break;
     case 1: r = 0x10 << n; break;
     case 2: r = 0x100 << n; break;
@@ -2613,27 +2586,21 @@ int STEPPLAYER::CanBeHealed()
 }
 
 namespace M_BindStepplayerHpMp { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct P { char pad[0xC]; struct VTE *vt; char pad2[0xDFC - 0x10]; int nDFC; int *pnE00; char pad3[0x12FC - 0xE04]; int *pn12FC; int n1300; int pad4; int n1308; };
 extern char D_002A4E18[];
 extern char D_002A4E20[];
 int *GetSaveVarAddressV(void *p, char *name, int n);
-void SetStepplayerHp(struct P *p, int n);
-void SetStepplayerMp(struct P *p, int n);
+void SetStepplayerHp(STEPPLAYER *p, int n);
+void SetStepplayerMp(STEPPLAYER *p, int n);
 // Binds hp/mp to the save variables hpCur/mpCur under the character's root, with defaults when unset.
-void BindStepplayerHpMp(struct P *player, int f)
+void BindStepplayerHpMp(STEPPLAYER *player, int f)
 {
-    struct VTE *e = &player->vt[103];
-    player->pnE00 = GetSaveVarAddressV(((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4E18, 0);
-    {
-        struct VTE *e2 = &player->vt[103];
-        player->pn12FC = GetSaveVarAddressV(((void *(*)(void *))e2->pfn)((char *)player + e2->d), D_002A4E20, 0);
-    }
-    if (!(*player->pnE00 == 0 || f))
+    player->jthurt.hitPoints = GetSaveVarAddressV(player->GetSaveVarRoot(), D_002A4E18, 0);
+    player->gadgetPower = GetSaveVarAddressV(player->GetSaveVarRoot(), D_002A4E20, 0);
+    if (!(*player->jthurt.hitPoints == 0 || f))
         return;
-    SetStepplayerHp(player, player->nDFC);
-    SetStepplayerMp(player, player->n1300);
-    player->n1308 = 0;
+    SetStepplayerHp(player, player->jthurt.maxHitPoints);
+    SetStepplayerMp(player, player->maxGadgetPower);
+    player->gadgetPowerDrainRemainder = 0;
 }
 } } // namespace M_BindStepplayerHpMp
 
@@ -2669,17 +2636,16 @@ namespace M_DrainStepplayerMp { extern "C" {
 extern struct CLOCK D_002DDED0;
 int GetStepplayerMp(void *p);
 void SetStepplayerMp(void *p, int n);
-struct P { char pad[0x1308]; float g; };
 // Accumulates rate * dt and subtracts whole MP units (floored at 0).
-void DrainStepplayerMp(struct P *player, float f)
+void DrainStepplayerMp(STEPPLAYER *player, float f)
 {
     int n;
-    player->g += f * D_002DDED0.deltaTime;
-    n = (int)player->g;
+    player->gadgetPowerDrainRemainder += f * D_002DDED0.deltaTime;
+    n = (int)player->gadgetPowerDrainRemainder;
     if (!n)
         return;
     int x;
-    player->g -= (float)n;
+    player->gadgetPowerDrainRemainder -= (float)n;
     x = GetStepplayerMp(player) - n;
     SetStepplayerMp(player, x > -1 ? x : 0);
 }
@@ -2785,20 +2751,16 @@ int IsStepplayerZapLethal(char *player, struct Q *q)
 } } // namespace M_func_00144418
 
 namespace M_OnStepplayerActive { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x1310 - 0x10]; char sub[4]; int n1314; };
 void OnPoActive(void *p, int a);
 void ReleaseAsega(void *p);
 // Slot 78: PO base, then slot 105; when deactivated stops the current action.
-void OnStepplayerActive(struct O *player, int a)
+void OnStepplayerActive(STEPPLAYER *player, int a)
 {
-    struct VTE *e;
     OnPoActive(player, a);
-    e = &player->vt[105];
-    ((void (*)(void *))e->pfn)((char *)player + e->d);
+    player->OnGadgetsChanged();
     if (!a) {
-        ReleaseAsega(player->sub);
-        player->n1314 = -1;
+        ReleaseAsega(&player->pasegaGadgetOverlay);
+        player->idGadgetOverlay = -1;
     }
 }
 } } // namespace M_OnStepplayerActive
