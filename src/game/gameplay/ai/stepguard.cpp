@@ -1913,31 +1913,25 @@ float GetRandomStepguardDelay(void) { return RandomFloatInRange__Fff(5.0f, 7.0f)
 
 // 0x208BE0 CanStepguardSenseStimulus
 namespace M_FStepguardSenseStimulus {
-struct VOL; struct STIMTEMPLATE; struct DETECTORV; struct STIMULUS;
-typedef int qword __attribute__((mode(TI)));
-struct VOL { char pad[0x28]; unsigned long loFlags; /* bit 60: in the world */ };
-struct STIMTEMPLATE { char pad[0x50]; int kind; };
-struct DETECTORV { char pad[0xE8]; VOL *nearVolume; };
-struct STIMULUS;
-struct STIMULUS { char pad[0x14]; STIMTEMPLATE *stimTemplate; char pad1[0x20 - 0x18]; qword pos; char pad2[0x40 - 0x30]; STEPGUARD *source; void *subject; char pad3[0x54 - 0x48]; int level; };
 extern "C" {
 int AreStepguardSensesEnabled(STEPGUARD *guard);
-void *FindDetectorTarget(DETECTORV *detector, void *object);
-qword GetLoWorldPos(void *p);
+DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, LO *object);
+qword GetLoWorldPos(LO *p);
 int IsPositionInNoise(STIMULUS *stimulus, qword pos);
 int IsPointInVol(VOL *volume, qword pos);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, void *phit);
 void ShouldKeepSoNotSelf();
-extern char D_003DD490[];
-int CanStepguardSenseStimulus(STEPGUARD *guard, STIMULUS *stimulus);
+}
 }
 
 // 0x208BE0: STEPGUARD vtable slot 89 (sense a stimulus): senses enabled, the stimulus loud enough (>= +0xE68) and
 // not its own; kind 0 noises by range test, kind 1 inside the detector's near volume with a clear line, and so on
 // per kind.
-int CanStepguardSenseStimulus(STEPGUARD *guard, STIMULUS *stimulus)
+int STEPGUARD::CanSenseStimulus(STIMULUS *stimulus)
 {
+    using namespace M_FStepguardSenseStimulus;
+    STEPGUARD *guard = this;
     STIMTEMPLATE *stimTemplate;
     qword guardPos, stimulusPos;
     if (!AreStepguardSensesEnabled(guard))
@@ -1947,8 +1941,8 @@ int CanStepguardSenseStimulus(STEPGUARD *guard, STIMULUS *stimulus)
     if (stimulus->source && stimulus->source == guard)
         return 0;
     if (stimulus->level == 4) {
-        void *subject = stimulus->subject;
-        void *entry = FindDetectorTarget(((struct DETECTORV *)guard->pdetector), subject);
+        LO *subject = stimulus->subject;
+        DETECTORTARGET *entry = FindDetectorTarget(guard->pdetector, subject);
         if (subject != guard && !entry)
             return 0;
     }
@@ -1959,8 +1953,8 @@ int CanStepguardSenseStimulus(STEPGUARD *guard, STIMULUS *stimulus)
     case 0:
         return IsPositionInNoise(stimulus, GetLoWorldPos(guard));
     case 1: {
-        VOL *nearVolume = ((struct DETECTORV *)guard->pdetector)->nearVolume;
-        if (!nearVolume || ((nearVolume->loFlags >> 60) & 1) == 0)
+        VOL *nearVolume = guard->pdetector->pvolNear;
+        if (!nearVolume || ((LO_FLAGS28(nearVolume) >> 60) & 1) == 0)
             return 0;
         if (!IsPointInVol(nearVolume, stimulusPos))
             return 0;
@@ -1976,7 +1970,6 @@ int CanStepguardSenseStimulus(STEPGUARD *guard, STIMULUS *stimulus)
     }
     return 0;
 }
-} // namespace M_FStepguardSenseStimulus
 
 // 0x208D70 AreStepguardSensesEnabled
 namespace M_FStepguardSensesEnabled { extern "C" {
@@ -1996,48 +1989,39 @@ int AreStepguardSensesEnabled(STEPGUARD *guard)
 
 // 0x208E70 GuardEvalInteractMode
 namespace M_GuardEvalInteractMode { extern "C" {
-struct VOL; struct BHVHOLD; struct PLAYER; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct VOL { char pad[0x28]; unsigned long loFlags; /* bit 60: in the world */ };
-struct BHVHOLD { char pad[0x50]; void *target; char pad2[0x5C - 0x54]; void *holder; };
+struct PLAYER;
 struct PLAYER { char pad[0x10DC]; void *interactTarget; int pad2; int interactMode; char pad3[0x10F0 - 0x10E8]; int fightEnabled; /* (inferred) */ };
-struct S {
-    char pad0[0x2C0]; unsigned long guardFlags; char pad1[0x364 - 0x2C8]; int unknown364; char closeAngleRangeHeld[8]; char closeAngleRange[8]; float closeRange; int canInteract;
-    char interactAngleRange[8]; float interactRange; void *target; char pad2[0x3F4 - 0x390]; struct VOL *pickpocketIndicator0; struct VOL *pickpocketIndicator1;
-};
 extern float D_002C3D90;
 extern float D_002C3D94;
-void GetHeroInteractDistance(struct PLAYER *player, struct S *guard, void *target, float *distance, float *angle);
+void GetHeroInteractDistance(struct PLAYER *player, STEPGUARD *guard, void *target, float *distance, float *angle);
 unsigned long GetSgfMask(int n);
-int StepguardHasSgf(struct S *p, int n);
-struct BHVHOLD *FindStepBehavior(struct S *p, int n);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
-qword GetLoWorldPos(void *p);
-int IsPointInVol(struct VOL *volume, qword pos);
-int IsWithinLimits__FP2LMf(void *p, float f);
+qword GetLoWorldPos(PLAYER *p);
+int IsPointInVol(VOL *volume, qword pos);
+int IsWithinLimits__FP2LMf(LM *p, float f);
 
 // 0x208E70: Ranks how the hero can interact with this guard: 4 the guard is engaged with (attacking, hurt by,
 // holding) the hero, 3 the hero is inside a pickpocket glint volume, 2 close (distance and angle window), 1 in
 // interaction range, 0 none. Also returns the distance through `distanceOut`.
-int GuardEvalInteractMode(struct S *guard, struct PLAYER *player, float *distanceOut)
+int GuardEvalInteractMode(STEPGUARD *guard, struct PLAYER *player, float *distanceOut)
 {
     float distance, angle;
     void *opponent;
-    struct VOL *indicator;
-    void *angleRange;
+    VOL *indicator;
+    LM *angleRange;
     GetHeroInteractDistance(player, guard, &player->interactTarget, &distance, &angle);
     if (distanceOut)
         *distanceOut = distance;
-    if (!(guard->guardFlags & GetSgfMask(1))) {
+    if (!(guard->grfsg & GetSgfMask(1))) {
         if (guard->unknown364 && player->fightEnabled) {
             if (StepguardHasSgf(guard, SGF_COMBAT))
                 opponent = guard->target;
             else if (StepguardHasSgf(guard, 5))
-                opponent = FindStepBehavior(guard, CID_BHV161)->target;
+                opponent = ((BHVHIT *)FindStepBehavior(guard, CID_BHV161))->attacker;
             else if (StepguardHasSgf(guard, 6))
-                opponent = FindStepBehavior(guard, CID_BHV162)->target;
+                opponent = ((BHVHIT *)FindStepBehavior(guard, CID_BHV162))->attacker;
             else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
-                opponent = FindStepBehavior(guard, CID_BHVJUGGLED)->holder;
+                opponent = ((BHVJUGGLED *)FindStepBehavior(guard, CID_BHVJUGGLED))->holder;
                 if (opponent == player)
                     *distanceOut += D_002C3D90;
             } else
@@ -2053,13 +2037,13 @@ int GuardEvalInteractMode(struct S *guard, struct PLAYER *player, float *distanc
             indicator = guard->pickpocketIndicator1;
         else
             indicator = guard->pickpocketIndicator0;
-        if (indicator && !!((indicator->loFlags >> 60) & 1) /* (`!!` needed for the match) */ && IsPointInVol(indicator, GetLoWorldPos(player)))
+        if (indicator && !!((LO_FLAGS28(indicator) >> 60) & 1) /* (`!!` needed for the match) */ && IsPointInVol(indicator, GetLoWorldPos(player)))
             return 3;
     }
-    angleRange = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
+    angleRange = StepguardHasSgf(guard, SGF_JUGGLED) ? &guard->closeAngleRangeHeld : &guard->closeAngleRange;
     if (distance <= guard->closeRange * D_002C3D94 && IsWithinLimits__FP2LMf(angleRange, angle) && guard->unknown364)
         return 2;
-    if (distance <= guard->interactRange && IsWithinLimits__FP2LMf(guard->interactAngleRange, angle) && guard->canInteract)
+    if (distance <= guard->interactRange && IsWithinLimits__FP2LMf(&guard->interactAngleRange, angle) && guard->canInteract)
         return 1;
     return 0;
 }

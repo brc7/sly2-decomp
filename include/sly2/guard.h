@@ -28,6 +28,32 @@ struct GUARDSCRIPTCMD
       float heading;        /* +0xC [S] */
 };
 
+/* A stimulus template (only the kind CanStepguardSenseStimulus switches on: 0 noise, 1 sight). [S] */
+struct STIMTEMPLATE
+{
+      undefined4 unknown0[0x50 / 4];
+      int kind;             /* +0x50 [S] */
+};
+/* A stimulus a guard may sense (0x60 bytes; stepguard.cpp's stimulus functions, tu_1CBEB0 emitter). [S] */
+struct STIMULUS
+{
+      undefined4 unknown0[5];
+      STIMTEMPLATE *stimTemplate; /* +0x14 [S] what kind of stimulus */
+      undefined4 unknown18[2];
+      qword pos;            /* +0x20 [S] where it happened */
+      qword targetPos;      /* +0x30 [S] */
+      LO *source;           /* +0x40 [S] its emitter (a guard does not sense its own) */
+      LO *subject;          /* +0x44 [S] who it is about (level 4: only a tracked subject is sensed) */
+      undefined4 unknown48;
+      float time;           /* +0x4C [S] */
+      undefined4 unknown50;
+      int level;            /* +0x54 [S] loudness, compared with STEPGUARD::minStimulusLevel */
+      STIMULUS *next;       /* +0x58 [S] */
+      undefined4 unknown5C;
+};
+typedef char assert_STIMULUS_level[SLY2_OFFSETOF(STIMULUS, level) == 0x54 ? 1 : -1];
+typedef char assert_STIMULUS_size[sizeof(STIMULUS) == 0x60 ? 1 : -1];
+
 /* One detector target (16 bytes): the object, its detection state (0 none, 1 seen, 2 close; set by
    UpdateDetectorTargets) and when the state was entered. [S] */
 struct DETECTORTARGET
@@ -90,12 +116,15 @@ struct ANIMBINDING
             OID oid;        /* +0x4 [S] before ResolveAnimBinding: the animation's oid */
             int h;          /* +0x4 [S] kinds 2/3: the LEAP / DIRANIM handle */
             ASEG *aseg;     /* +0x4 [S] kind 0: the animation segment */
+            SM *sm;         /* +0x4 [S] kind 1: the state machine */
             void *payload4; /* +0x4 [S] kinds 2/3 as the Splice options allocate them (AllocLeap / AllocDirAnim) */
       };
       union {
             int instance;   /* +0x8 [S] before ResolveAnimBinding */
             ASEGA *asega;   /* +0x8 [S] kind 0: the playing instance */
             void *payload;  /* +0x8 [S] kinds 1/2: the state machine application (kind 1) or the leap (kind 2) */
+            BASIC *pbasic;  /* +0x8 [S] the running instance as a counted object: the ASEGA, the SMA, or the guard's own
+                               LEAP / DIRANIM (StartAnimBinding takes a reference with slot 1, StopAnimBinding drops it) */
       };
       int flags;            /* +0xC [S] start flags passed to StartAnimBinding */
 };
