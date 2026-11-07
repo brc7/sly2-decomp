@@ -830,17 +830,14 @@ extern "C" void DetachActBase()
 }
 
 namespace M_func_0012CEE0 { extern "C" {
-typedef struct LO { int tagk; int pad[6]; struct LO *pother; } LO;
-typedef struct SW { int pad[0x24]; LO *pfirst; } SW;
-typedef struct T { int pad[2]; SW *psw; } T;
-// True when the act is the one currently in effect on the world's active list (directly, or wrapped by an offset act).
-// (inferred)
-int IsActCurrent(T *p)
+// True when the act is the one in effect on its transform: first in the XF's act list, directly or wrapped by an
+// offset act. (inferred)
+int IsActCurrent(ACT *p)
 {
-    LO *q = p->psw->pfirst;
-    if (q == (LO *)p)
+    ACT *q = p->pxf->firstActuator;
+    if (q == p)
         return 1;
-    if (q && q->tagk == 5 && q->pother == (LO *)p)
+    if (q && q->ack == 5 && ((ACT5 *)q)->pactCur == p)
         return 1;
     return 0;
 }
@@ -871,17 +868,16 @@ extern "C" void GetActGoalDefault(ACT *act, qword *ppos, VECTOR *pdvec)
 }
 
 namespace M_CloneAct { extern "C" {
-typedef struct T { int a; int b; int c; int d; int e; int f; int g; char ab[1]; } T;
 void CopyAb__FPvT0Ui(void *dst, void *src, unsigned int cb);
 // Copies an act onto another object / transform: the header fields, then the class body.
-void CloneAct(T *t, T *src, int b, int c)
+void CloneAct(ACT *t, ACT *src, ALO *palo, XF *pxf)
 {
-    t->a = src->a;
-    t->d = src->d;
-    t->f = src->f;
-    t->b = b;
-    t->c = c;
-    CopyAb__FPvT0Ui(t->ab, src->ab, g_sw.slotheapAct.cb - 0x1C);
+    t->ack = src->ack;
+    t->nPriority = src->nPriority;
+    t->nRole = src->nRole;
+    t->palo = palo;
+    t->pxf = pxf;
+    CopyAb__FPvT0Ui((char *)t + sizeof(ACT), (char *)src + sizeof(ACT), g_sw.slotheapAct.cb - 0x1C);   /* the class body after the vptr */
 }
 } } // namespace M_CloneAct
 
@@ -902,17 +898,14 @@ extern "C" void DetachAct(ACT *act)
 }
 
 namespace M_func_0012D058 { extern "C" {
-typedef struct LO { int pad[4]; struct LO *pnext; } LO;
-typedef struct SW { int pad[0x24]; LO *pfirst; } SW;
-typedef struct T { int pad[2]; SW *psw; } T;
-// True when the act is on the world's act list (inferred: attached).
-int IsActAttached(T *p)
+// True when the act is in its transform's act list (attached).
+int IsActAttached(ACT *p)
 {
-    LO *q = p->psw->pfirst;
+    ACT *q = p->pxf->firstActuator;
     while (q) {
-        if (q == (LO *)p)
+        if (q == p)
             return 1;
-        q = q->pnext;
+        q = q->pactNext;
     }
     return 0;
 }
