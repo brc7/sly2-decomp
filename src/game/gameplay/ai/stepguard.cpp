@@ -3793,111 +3793,111 @@ extern "C" void SetAndResolveGuardAttackBindingKind2(ANIMLO *attack)
 
 // 0x20B090 GetStepguardGroundProbeFlags
 namespace M_func_0020B090 { extern "C" {
-struct O; struct S;
+struct DRIVER; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { char pad[0x2C0]; long fl; char pad2[0xFD0 - 0x2C8]; struct O *po; };
+struct DRIVER { char pad[0xC]; VTE *vt; };
+struct S { char pad[0x2C0]; long grfsg; char pad2[0xFD0 - 0x2C8]; struct DRIVER *moverDriver; };
 long GetSgfMask(int n);
 int func_002040F8(struct S *p);
 // 0x20B090: STEPGUARD vtable slot 85 (ground-probe flags): 1 with flag 0x14, 0 while thrown (flags 0x12/0x13/0x16),
 // else the mover driver's or the step's.
 int GetStepguardGroundProbeFlags(struct S *guard)
 {
-    long m;
-    if (guard->fl & GetSgfMask(0x14))
+    long thrownMask;
+    if (guard->grfsg & GetSgfMask(0x14))
         return 1;
-    m = GetSgfMask(0x12) | GetSgfMask(0x13) | GetSgfMask(0x16);
-    if (guard->fl & m)
+    thrownMask = GetSgfMask(0x12) | GetSgfMask(0x13) | GetSgfMask(0x16);
+    if (guard->grfsg & thrownMask)
         return 0;
-    if (guard->po)
-        return ((int (*)(void *))guard->po->vt[12].pfn)((char *)guard->po + guard->po->vt[12].d);
+    if (guard->moverDriver)
+        return ((int (*)(void *))guard->moverDriver->vt[12].pfn)((char *)guard->moverDriver + guard->moverDriver->vt[12].d);
     return func_002040F8(guard);
 }
 } } // namespace M_func_0020B090
 
 // 0x20B140 EmitStepguardStimulus
 namespace M_func_0020B140 { extern "C" {
-struct X; struct S;
+struct STIMULUS; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DB8;
-extern struct { char pad[0x4030]; int n4030; } D_003DD490;
-struct X { char pad[0x30]; qword v; char pad2[4]; void *p44; char pad3[0xC]; int n54; };
-struct S { char pad[0xE60]; int noiseType; char pad2[0xF44 - 0xE64]; float t; };
+extern struct { char pad[0x4030]; int defaultNoiseType; } D_003DD490;
+struct STIMULUS { char pad[0x30]; qword targetPos; char pad2[4]; void *subject; char pad3[0xC]; int level; };
+struct S { char pad[0xE60]; int noiseType; char pad2[0xF44 - 0xE64]; float alertCooldownEnd; /* (inferred) */ };
 qword func_001A62E8(void *p);
-void CreateNoise(int a, qword v, struct S *p, struct X **ppx);
-struct X *NewNoise(int a, qword v, struct S *p);
+void CreateNoise(int noiseType, qword pos, struct S *source, struct STIMULUS **result);
+struct STIMULUS *NewNoise(int noiseType, qword pos, struct S *source);
 // 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
 // and remembers when (+0xF44).
-void EmitStepguardStimulus(struct S *guard, void *q)
+void EmitStepguardStimulus(struct S *guard, void *target)
 {
-    struct X *px;
-    qword v = func_001A62E8(q);
-    px = 0;
+    struct STIMULUS *stimulus;
+    qword targetPos = func_001A62E8(target);
+    stimulus = 0;
     if (guard->noiseType)
-        CreateNoise(guard->noiseType, func_001A62E8(guard), guard, &px);
+        CreateNoise(guard->noiseType, func_001A62E8(guard), guard, &stimulus);
     else
-        px = NewNoise(D_003DD490.n4030, func_001A62E8(guard), guard);
-    px->v = v;
-    px->p44 = q;
-    px->n54 = 4;
-    guard->t = D_002DDED0.t + D_002C3DB8;
+        stimulus = NewNoise(D_003DD490.defaultNoiseType, func_001A62E8(guard), guard);
+    stimulus->targetPos = targetPos;
+    stimulus->subject = target;
+    stimulus->level = 4;
+    guard->alertCooldownEnd = D_002DDED0.t + D_002C3DB8;
 }
 } } // namespace M_func_0020B140
 
 // 0x20B210 DetachStepguard
 namespace M_func_0020B210 { extern "C" {
 struct S;
-struct S { char pad[0xF80]; int state; int arg; };
-void func_00204F78(struct S *p, int a, int b);
+struct S { char pad[0xF80]; int attachKind; int attachObject; };
+void func_00204F78(struct S *guard, int object, int attach);
 // 0x20B210: Detaches the guard from what it is attached to (no attach kind or object).
 void DetachStepguard(struct S *guard)
 {
-    switch (guard->state) {
+    switch (guard->attachKind) {
     case 0:
-        func_00204F78(guard, guard->arg, 0);
+        func_00204F78(guard, guard->attachObject, 0);
         break;
     case 1:
-        func_00204F78(guard, guard->arg, 0);
+        func_00204F78(guard, guard->attachObject, 0);
         break;
     case 2:
-        func_00204F78(guard, guard->arg, 0);
+        func_00204F78(guard, guard->attachObject, 0);
         break;
     case 3:
-        func_00204F78(guard, guard->arg, 0);
+        func_00204F78(guard, guard->attachObject, 0);
         break;
     }
-    guard->arg = 0;
-    guard->state = -1;
+    guard->attachObject = 0;
+    guard->attachKind = -1;
 }
 } } // namespace M_func_0020B210
 
 // 0x20B2A8 AttachStepguard
 namespace M_func_0020B2A8 { extern "C" {
-struct A; struct S;
+struct ATTACHOBJ; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct A { char pad[0x124]; int k124; };
-struct S { char pad[0xF80]; int attachKind; struct A *attachObject; int attachParam; int nF8C; void *pF90; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
+struct ATTACHOBJ { char pad[0x124]; int unknown124; };
+struct S { char pad[0xF80]; int attachKind; struct ATTACHOBJ *attachObject; int attachParam; int attachArg; void *attachAnchor; };
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct ATTACHOBJ *object, int cid);
 qword func_001A62E8(void *p);
-void FindShapeClosestPoint(struct A *pa, qword q, int a, int b, int c, int d, int *pn);
-void func_00204F78(struct S *p, struct A *pa, int n);
+void FindShapeClosestPoint(struct ATTACHOBJ *shape, qword pos, int a, int b, int c, int d, int *param);
+void func_00204F78(struct S *guard, struct ATTACHOBJ *object, int attach);
 
 // 0x20B2A8: Attaches the guard to an object, choosing the attach kind by class: pipe (cid 0xB), rail (cid 0xD), cid
 // 0x13, cid 0x27 (inferred nouns).
-void AttachStepguard(struct S *guard, struct A *pa, int n)
+void AttachStepguard(struct S *guard, struct ATTACHOBJ *object, int arg)
 {
-    guard->attachObject = pa;
-    guard->nF8C = n;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pa, CID_PIPE)) {
+    guard->attachObject = object;
+    guard->attachArg = arg;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_PIPE)) {
         guard->attachKind = 1;
-        FindShapeClosestPoint(guard->attachObject, func_001A62E8(guard->pF90), 0, 0, 0, 0, &guard->attachParam);
+        FindShapeClosestPoint(guard->attachObject, func_001A62E8(guard->attachAnchor), 0, 0, 0, 0, &guard->attachParam);
         func_00204F78(guard, guard->attachObject, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_RAIL)) {
         guard->attachKind = 0;
         FindShapeClosestPoint(guard->attachObject, func_001A62E8(guard), 0, 0, 0, 0, &guard->attachParam);
         func_00204F78(guard, guard->attachObject, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && guard->attachObject->k124 == 3) {
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && guard->attachObject->unknown124 == 3) {
         guard->attachKind = 2;
         func_00204F78(guard, guard->attachObject, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS39)) {
@@ -3913,13 +3913,13 @@ void AttachStepguard(struct S *guard, struct A *pa, int n)
 namespace M_JthsCurrentStepguard { extern "C" {
 struct S;
 unsigned long GetSgfMask(int n);
-struct S { char pad[0x2C0]; unsigned long m; };
+struct S { char pad[0x2C0]; unsigned long grfsg; };
 // 0x20B3D0: STEPGUARD vtable slot 77 (health state): 2 dead (flag 7), 1 hurt (flags 5/6), else 0.
 int GetStepguardHealthState(struct S *guard)
 {
-    if (guard->m & GetSgfMask(SGF_KO))
+    if (guard->grfsg & GetSgfMask(SGF_KO))
         return 2;
-    if (guard->m & (GetSgfMask(5) | GetSgfMask(6)))
+    if (guard->grfsg & (GetSgfMask(5) | GetSgfMask(6)))
         return 1;
     return 0;
 }
@@ -3930,23 +3930,23 @@ int GetStepguardHealthState(struct S *guard)
 /* Busy count up; the first marks the guard busy. */
 extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 {
-    int c;
+    int count;
     if (guard->cBusy == 0) {
         SetLoBusyk(guard, 1);
     }
-    c = guard->cBusy + 1;
-    guard->cBusy = c;
-    return c;
+    count = guard->cBusy + 1;
+    guard->cBusy = count;
+    return count;
 }
 
 // 0x20B478 DecrementStepguardBusy
 // 0x20B478: Decrements the busy count; at 0 it is no longer busy.
 extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 {
-    int c;
-    c = guard->cBusy - 1;
-    guard->cBusy = c;
-    if (c == 0) {
+    int count;
+    count = guard->cBusy - 1;
+    guard->cBusy = count;
+    if (count == 0) {
         SetLoBusyk(guard, 0);
     }
 }
@@ -3954,20 +3954,20 @@ extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 // 0x20B4A8 func_0020B4A8
 namespace M_func_0020B4A8 { extern "C" {
 struct S;
-struct S { char pad[0x40]; int fl; };
-void InitLo(struct S *p);
-void SetLoBusyk(struct S *p, int n);
+struct S { char pad[0x40]; int flags40; };
+void InitLo(struct S *manager);
+void SetLoBusyk(struct S *manager, int busyk);
 } } // namespace M_func_0020B4A8
 // 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
-void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *p = (M_func_0020B4A8::S *)this;
-    int v;
-    InitLo(p);
-    v = p->fl;
-    if (!(v & 1))
-        *(int *)v |= 2;   // (bit 0 clear: the word points at the real flags)
+void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *manager = (M_func_0020B4A8::S *)this;
+    int flags;
+    InitLo(manager);
+    flags = manager->flags40;
+    if (!(flags & 1))
+        *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else
-        p->fl = v | 2;
-    SetLoBusyk(p, 1);
+        manager->flags40 = flags | 2;
+    SetLoBusyk(manager, 1);
 }
 
 // 0x20B500 PostGuardManagerLoad
@@ -3976,74 +3976,74 @@ struct ALLOCREQ; struct S;
 struct G;
 extern struct G D_003DD490;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
-struct S { char pad[0x50]; int c; void **apv; };
-void PostLoLoad(struct S *p);
-int CploFindSwObjectsByClass(struct G *pg, int a, int b, int c, int cMax, void **apv);
-void *func_001AE1D0(ALLOCREQ *preq);
+struct S { char pad[0x50]; int guardCount; void **guards; };
+void PostLoLoad(struct S *manager);
+int CploFindSwObjectsByClass(struct G *sw, int a, int cid, int c, int maxCount, void **objects);
+void *func_001AE1D0(ALLOCREQ *request);
 // 0x20B500: Guard manager vtable slot 15 (PostLoad): lists every guard (cid 0x38) in the world.
-void PostGuardManagerLoad(struct S *guard)
+void PostGuardManagerLoad(struct S *manager)
 {
-    ALLOCREQ req;
-    PostLoLoad(guard);
-    guard->c = CploFindSwObjectsByClass(&D_003DD490, 0x605, 0x38, 0, 0, 0);
-    req.cb = guard->c * 4;
-    req.nKind = 0x10;
-    guard->apv = (__typeof__(guard->apv))func_001AE1D0(&req);
-    CploFindSwObjectsByClass(&D_003DD490, 0x405, 0x38, 0, guard->c, guard->apv);
+    ALLOCREQ request;
+    PostLoLoad(manager);
+    manager->guardCount = CploFindSwObjectsByClass(&D_003DD490, 0x605, CID_STEPGUARD, 0, 0, 0);
+    request.cb = manager->guardCount * 4;
+    request.nKind = 0x10;
+    manager->guards = (__typeof__(manager->guards))func_001AE1D0(&request);
+    CploFindSwObjectsByClass(&D_003DD490, 0x405, CID_STEPGUARD, 0, manager->guardCount, manager->guards);
 }
 } } // namespace M_func_0020B500
 
 // 0x20B590 UpdateGuardManager
 namespace M_func_0020B590 { extern "C" {
-struct VE; struct O; struct S; struct L;
+struct VE; struct GUARD; struct S; struct MODEREC;
 struct VE { short d; short pad; void (*pf)(void *); };
-struct O {
-    char pad0[0xC]; struct VE *vt; char pad1[0x28 - 0x10]; unsigned long fl28;
-    char pad2[0xF64 - 0x30]; void *pF64; char pad3[0xFF8 - 0xF68]; float tFF8; int pad4; int k1000;
+struct GUARD {
+    char pad0[0xC]; struct VE *vt; char pad1[0x28 - 0x10]; unsigned long loFlags; /* bit 60: in the world */
+    char pad2[0xF64 - 0x30]; void *detector; char pad3[0xFF8 - 0xF68]; float removalTime; int pad4; int removalMode;
 };
-struct S { char pad[0x50]; int c; struct O **apo; };
-struct L { int k; int rest[27]; };
+struct S { char pad[0x50]; int guardCount; struct GUARD **guards; };
+struct MODEREC { int kind; int rest[27]; };
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DBC;
 extern const float D_002A88CC;
-void UpdateLo(struct S *p);
-void *FindStepBhv(struct O *po, int n);
+void UpdateLo(struct S *manager);
+void *FindStepBhv(struct GUARD *guard, int cid);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *p, struct L *pl);
-void ResetDetectorTargets(void *p);
+void SetBhvguardMode(void *bhv, struct MODEREC *mode);
+void ResetDetectorTargets(void *detector);
 
 // 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
 // removes them, mode 2 restarts their root behaviour and resets their detector.
-void UpdateGuardManager(struct S *guard)
+void UpdateGuardManager(struct S *manager)
 {
-    int i, c;
-    struct O **apo;
-    UpdateLo(guard);
-    c = guard->c;
-    apo = guard->apo;
-    for (i = 0; i < c; i++) {
-        struct O *o = apo[i];
-        if (((int)(o->fl28 >> 60) & 1) && D_002DDED0.t - o->tFF8 > D_002C3DBC) {
-            switch (o->k1000) {
+    int i, count;
+    struct GUARD **guards;
+    UpdateLo(manager);
+    count = manager->guardCount;
+    guards = manager->guards;
+    for (i = 0; i < count; i++) {
+        struct GUARD *guard = guards[i];
+        if (((int)(guard->loFlags >> 60) & 1) && D_002DDED0.t - guard->removalTime > D_002C3DBC) {
+            switch (guard->removalMode) {
             case 0:
                 break;
             case 1:
-                o->vt[9].pf((char *)o + o->vt[9].d);
+                guard->vt[9].pf((char *)guard + guard->vt[9].d);
                 break;
             case 2: {
-                void *x = FindStepBhv(o, CID_BHVGUARD);
-                if (x) {
-                    struct L l;
-                    func_002333B4(&l, 0, sizeof(l));
-                    l.k = 1;
-                    SetBhvguardMode(x, &l);
+                void *bhv = FindStepBhv(guard, CID_BHVGUARD);
+                if (bhv) {
+                    struct MODEREC mode;
+                    func_002333B4(&mode, 0, sizeof(mode));
+                    mode.kind = 1;
+                    SetBhvguardMode(bhv, &mode);
                 }
-                if (o->pF64)
-                    ResetDetectorTargets(o->pF64);
+                if (guard->detector)
+                    ResetDetectorTargets(guard->detector);
                 break;
             }
             }
-            o->tFF8 = D_002A88CC;
+            guard->removalTime = D_002A88CC;
         }
     }
 }
