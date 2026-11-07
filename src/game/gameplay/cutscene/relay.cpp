@@ -2570,41 +2570,31 @@ void HandleJsgMessage(S *script, int a, M *m)
 
 // 0x1E1C40 UpdateRelayScript
 namespace M_func_001E1C40 {
-struct VTE; struct E; struct P; class LOCK;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct E { int n0; int n4; };
-struct P { int pad[3]; VTE *vt; char pad2[0x28 - 0x10]; E *peFirst; E *peMax; E *peCur; };
-class LOCK {
-public:
-    P *m_p;
-    LOCK(P *p) : m_p(p) { p->vt[1].pfn((char *)p + p->vt[1].d); }
-    ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
-};
 extern "C" {
-void NextJsgCommand__FP3JSG(P *p);
-int IsJsgRemoved(P *p);
-void ReleaseJsgJtIfComplete(P *p);
-int IsJsgCommandComplete__FP3JSGP8RELAYCMD(P *p, E *pe);
-void RemoveJsg(P *p);
-void UpdateRelayScript(P *p);
+void NextJsgCommand__FP3JSG(JSGV *p);
+int IsJsgRemoved(JSGV *p);
+void ReleaseJsgJtIfComplete(JSGV *p);
+int IsJsgCommandComplete__FP3JSGP8RELAYCMD(JSGV *p, RELAYCMD *pe);
+void RemoveJsg(JSGV *p);
+void UpdateRelayScript(JSGV *p);
 }
 // Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command
 // is fAsync or complete (IsJsgCommandComplete); release JT if done; remove the JSG past the block end.
-void UpdateRelayScript(P *script)
+void UpdateRelayScript(JSGV *script)
 {
-    LOCK lock(script);
-    if (!script->peCur) {
-        script->peCur = script->peFirst;
+    JSGREF hold(script);
+    if (!script->prelaycmdCur) {
+        script->prelaycmdCur = script->prelaycmdFirst;
         NextJsgCommand__FP3JSG(script);
         if (IsJsgRemoved(script)) return;
     }
-    while (script->peCur <= script->peMax && (script->peCur->n4 || IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->peCur))) {
+    while (script->prelaycmdCur <= script->prelaycmdLast && (script->prelaycmdCur->fAsync || IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->prelaycmdCur))) {
         ReleaseJsgJtIfComplete(script);
         NextJsgCommand__FP3JSG(script);
         if (IsJsgRemoved(script)) return;
     }
     ReleaseJsgJtIfComplete(script);
-    if (script->peCur > script->peMax) RemoveJsg(script);
+    if (script->prelaycmdCur > script->prelaycmdLast) RemoveJsg(script);
 }
 } // namespace M_func_001E1C40
 
@@ -5226,46 +5216,34 @@ void AbortJsgMove(struct P *script)
 
 // 0x1E5628 RemoveJsg
 namespace M_RemoveJsg {
-struct VTE; struct Q; struct P; class LOCK; 
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct Q { char pad[0x5C]; int dl; };
-struct P { int pad[3]; VTE *vt; int pad10; Q *pq; char pad2[0x9C - 0x18]; int isCamBlending; char pad3[0xEC - 0xA0]; void *sound; };
-class LOCK {
-public:
-    P *m_p;
-    LOCK(P *p) : m_p(p) { p->vt[1].pfn((char *)p + p->vt[1].d); }
-    ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
-};
 extern "C" {
 extern CLOCK D_002DDED0;
-int IsJsgRemoved(P *p);
-void RemoveDlEntry__FP2DLPv(int *pdl, P *p);
-void ClearJsgAseg(P *p);
-void ClearJsgRelayWait(P *p);
-void ClearJsgSma(P *p);
-void ClearJsgWidget(P *p);
-void ClearJsgJtMode(P *p);
-void ClearJsgStepHolds(P *p);
-void AbortJsgMove(P *p);
+int IsJsgRemoved(JSGV *p);
+void RemoveDlEntry__FP2DLPv(DL *pdl, JSGV *p);
+void ClearJsgAseg(JSGV *p);
+void ClearJsgSma(JSGV *p);
+void ClearJsgWidget(JSGV *p);
+void ClearJsgStepHolds(JSGV *p);
+void AbortJsgMove(JSGV *p);
 void SetClockRate(CLOCK *pclock, int n, float g);
-void SetRelayScriptActor(P *p, int a, int b);
-void SetJsgTunnel(P *p, void *po);
-void SetRelayScriptFocus(P *p, int a);
-void SetRelayScriptHandsOff(P *p, int a, int b);
+void SetRelayScriptActor(JSGV *p, int a, int b);
+void SetJsgTunnel(JSGV *p, void *po);
+void SetRelayScriptFocus(JSGV *p, int a);
+void SetRelayScriptHandsOff(JSGV *p, int a, int b);
 void StopSnd(void *pv, float g);
 void RcPtr_Assign(void **ppv, int n);
-void EndJsgCamBlend(P *p, int n);
-void RemoveJsg(P *p);
+void EndJsgCamBlend(JSGV *p, int n);
+void RemoveJsg(JSGV *p);
 }
 // Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA, widget, JT mode,
 // step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera blend), then drop the relay's
 // reference. (inferred)
-void RemoveJsg(P *script)
+void RemoveJsg(JSGV *script)
 {
     if (IsJsgRemoved(script)) return;
-    LOCK lock(script);
-    void **ppv = &script->sound;
-    RemoveDlEntry__FP2DLPv(&script->pq->dl, script);
+    JSGREF hold(script);
+    void **ppv = (void **)&script->psnd;   /* the counted sound pointer, for the untyped store helper */
+    RemoveDlEntry__FP2DLPv(&script->relay->dlJsg, script);
     ClearJsgAseg(script);
     ClearJsgRelayWait(script);
     ClearJsgSma(script);
@@ -5282,8 +5260,8 @@ void RemoveJsg(P *script)
         StopSnd(*ppv, 0.0f);
         RcPtr_Assign(ppv, 0);
     }
-    if (script->isCamBlending) EndJsgCamBlend(script, 1);
-    script->vt[2].pfn((char *)script + script->vt[2].d);
+    if (script->fUnk9c) EndJsgCamBlend(script, 1);
+    script->Release();
 }
 } // namespace M_RemoveJsg
 
