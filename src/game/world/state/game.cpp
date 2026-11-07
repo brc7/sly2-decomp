@@ -896,8 +896,8 @@ void PostJobLoad(JOB *job)
     }
     job->difficulty = (float *)GetSaveVarAddress(&D_003DD490.savevars, &job->svkDifficulty, D_003D4A60);
     if (job->completionWidgetOid != -1)
-        job->completionWidget = (LO *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
-    job->widgetShared = (LO *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
+        job->completionWidget = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
+    job->widgetShared = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
 }
 } } // namespace M_PostJobLoad
 
@@ -1104,22 +1104,19 @@ void FailJob(int job)
 } } // namespace M_func_00162E38
 
 namespace M_AbortJob { extern "C" {
-struct S { char pad[0x64]; void *startTask; };
-struct T { char pad[0x7C]; struct S *job; };
 extern char D_002DEB30[];
-void ResetJobTasks(struct S *p);
-void SetTaskStateCascade(void *p, int n);
-void DeactivateTask(struct T *p);
-void BroadcastGameEvent(void *p, int n, struct S *job);
-void EndCurrentJob(struct S *p);
+void ResetJobTasks(JOB *p);
+void SetTaskStateCascade(TASK *p, int n);
+void DeactivateTask(TASK *p);
+void BroadcastGameEvent(void *p, int n, JOB *job);
 // Aborts the job: resets its tasks, makes the start task available again, ends the current task when it belongs to
 // the job, event 0x1F, ends the job.
-void AbortJob(struct S *job)
+void AbortJob(JOB *job)
 {
     ResetJobTasks(job);
-    SetTaskStateCascade(job->startTask, TASK_STATE_AVAILABLE);
-    struct T *currentTask = (struct T *)g_sw.currentTask;
-    if (currentTask && currentTask->job == job)
+    SetTaskStateCascade(job->ptaskStart, TASK_STATE_AVAILABLE);
+    TASK *currentTask = (TASK *)g_sw.currentTask;
+    if (currentTask && currentTask->pjob == job)
         DeactivateTask(currentTask);
     BroadcastGameEvent(D_002DEB30, 0x1F, job);
     EndCurrentJob(job);
@@ -1138,76 +1135,69 @@ extern "C" void CompleteJob(JOB *job, TASK *task)
 }
 
 namespace M_FinishJob { extern "C" {
-struct S { char pad[0x68]; void *completeTask; char pad2[0x78 - 0x6C]; int isReplay; };   /* isReplay (inferred): skip completion and autosave */
 extern char D_002DEB30[];
 extern char D_002E65E0[];
-void SetTaskStateCascade(void *p, int n);
-void BroadcastGameEvent(void *p, int n, struct S *ps);
-void EndCurrentJob(struct S *p);
+void SetTaskStateCascade(TASK *p, int n);
+void BroadcastGameEvent(void *p, int n, JOB *job);
 void AutosaveGame(void *p, int n);
 // Finishes the job: marks the end task complete, event 0x20, ends the job and autosaves.
-void FinishJob(struct S *job)
+void FinishJob(JOB *job)
 {
-    if (!job->isReplay)
-        SetTaskStateCascade(job->completeTask, TASK_STATE_COMPLETE);
+    if (!job->fReplay)
+        SetTaskStateCascade(job->ptaskEnd, TASK_STATE_COMPLETE);
     BroadcastGameEvent(D_002DEB30, 0x20, job);
     EndCurrentJob(job);
-    if (!job->isReplay)
+    if (!job->fReplay)
         AutosaveGame(D_002E65E0, 0);
 }
 } } // namespace M_FinishJob
 
 namespace M_func_00162FD0 { extern "C" {
-struct LO { char pad[0x40]; int flags; };
 /* SetLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
-static inline void SetLoFlagsInline(struct LO *plo, int bits)
+static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->flags;
+    int v = plo->grfUnk40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
-        plo->flags = v | bits;
+        plo->grfUnk40 = v | bits;
 }
-struct S { char pad[0xC0]; void *nextTask; char pad2[0xCC - 0xC4]; struct LO *exitObject; };
 extern char D_002E1E88[];
 int HasPendingStartupSteps(void *p);
 void RunNextStartupStep(void *p);
-void RequestTaskState(void *p, int n, struct S *ps);
-void TakeExit(struct LO *plo);
+void RequestTaskState(TASK *p, int n, JOB *ps);
+void TakeExit(LO *plo);
 // After a job: steps the game sequence queue when it is not empty, else activates the next task or takes the exit
 // object.
-void ContinueAfterJob(struct S *job)
+void ContinueAfterJob(JOB *job)
 {
     char *pv = D_002E1E88;
     if (HasPendingStartupSteps(pv)) {
         RunNextStartupStep(pv);
-    } else if (job->nextTask) {
-        RequestTaskState(job->nextTask, TASK_REQUEST_ACTIVATE, job);
-    } else if (job->exitObject) {
-        SetLoFlagsInline(job->exitObject, 0x100);
-        TakeExit(job->exitObject);
+    } else if (job->ptaskNext) {
+        RequestTaskState(job->ptaskNext, TASK_REQUEST_ACTIVATE, job);
+    } else if (job->ploExit) {
+        SetLoFlagsInline(job->ploExit, 0x100);
+        TakeExit(job->ploExit);
     }
 }
 } } // namespace M_func_00162FD0
 
 namespace M_UpdateJob { extern "C" {
-struct S { char pad[0xB0]; int introLabel; int outroLabel; void *completionWidget; void *widget379; void *nextTask; int completionPhase; char pad2[0xCC - 0xC8]; void *exitObject; };
 enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };   /* as SetJobCompletionPhase */
-void UpdateLo(struct S *p);
+void UpdateLo(LO *p);
 int IsWidgetAnimPlaying(void *p, int n);
-void FinishJob(struct S *p);
-void ContinueAfterJob(struct S *p);
-void SetJobCompletionPhase(struct S *p, int n);
+void FinishJob(JOB *p);
 // JOB per-frame update (slot 16): steps the completion sequence (intro label, outro, shared widget, done) as each
 // widget label finishes.
-void UpdateJob(struct S *job)
+void UpdateJob(JOB *job)
 {
     UpdateLo(job);
-    switch (job->completionPhase) {
+    switch (job->nPhase) {
     case PHASE_INTRO:
         if (!IsWidgetAnimPlaying(job->completionWidget, job->introLabel)) {
             FinishJob(job);
-            if (job->nextTask || job->exitObject)
+            if (job->ptaskNext || job->ploExit)
                 SetJobCompletionPhase(job, PHASE_SHARED_WIDGET);
             else
                 SetJobCompletionPhase(job, PHASE_OUTRO);
@@ -1220,7 +1210,7 @@ void UpdateJob(struct S *job)
         }
         break;
     case PHASE_SHARED_WIDGET:
-        if (!IsWidgetAnimPlaying(job->widget379, 0x30F))
+        if (!IsWidgetAnimPlaying(job->widgetShared, 0x30F))
             ContinueAfterJob(job);
         break;
     }
@@ -1230,37 +1220,28 @@ void UpdateJob(struct S *job)
 namespace M_SetJobCompletionPhase { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct X;
 /* Completion sequence phases of a JOB. */
 enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };
-struct X {   /* a JOB or a TASK */
-    char pad[0x40]; int flags;
-    char pad1[0x68 - 0x44]; struct X *completeTask;
-    char pad2[0x94 - 0x6C]; int numPrerequisites; struct X **prerequisites;
-    char pad3[0xA0 - 0x9C]; int numFollowers; struct X **followers;
-    char pad4[0xB0 - 0xA8]; int introLabel; int outroLabel; struct O *completionWidget; struct O *widget379; struct X *nextTask; union { int completionPhase; void *exitObject; /* (a task) */ }; float completionPhaseTime;
-};
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
-static inline void SetLoFlagsInline(struct X *plo, int bits)
+static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->flags;
+    int v = plo->grfUnk40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
-        plo->flags = v | bits;
+        plo->grfUnk40 = v | bits;
 }
-static inline void ClearLoFlagsInline(struct X *plo, int bits)
+static inline void ClearLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->flags;
+    int v = plo->grfUnk40;
     if ((v ^ 1) & 1)
         *(int *)v &= ~bits;
     else
-        plo->flags = v & ~bits;
+        plo->grfUnk40 = v & ~bits;
 }
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
-int IsTaskComplete(struct X *p);
-void SetLoBusyKind(struct X *p, int n);
+void SetLoBusyKind(LO *p, int n);
 void IncrementSwHandsOff(void *pg, int n);
 void DecrementSwHandsOff(void *pg, int n);
 void PlayWidgetAnim(struct O *po, int n);
@@ -1276,26 +1257,26 @@ static __inline__ void ShowWidget(struct O *po, int n)
 }
 // Sets the completion phase (0 none, 1 intro, 2 outro, 3 shared widget): leaving 0 finds the next task and takes
 // control from the player; returning to 0 hides the widgets and gives control back.
-void SetJobCompletionPhase(struct X *job, int phase)
+void SetJobCompletionPhase(JOB *job, int phase)
 {
     int i;
-    if (job->completionPhase == phase) return;
-    if (job->completionPhase == PHASE_NONE) {
+    if (job->nPhase == phase) return;
+    if (job->nPhase == PHASE_NONE) {
         /* The next task: the first follower of the end task with an exit, if its other prerequisites are complete. */
-        job->nextTask = 0;
-        for (i = 0; i < job->completeTask->numFollowers; i++) {
-            struct X *follower = job->completeTask->followers[i];
-            if (follower->exitObject) {
-                job->nextTask = follower;
+        job->ptaskNext = 0;
+        for (i = 0; i < job->ptaskEnd->cptaskSucc; i++) {
+            TASK *follower = job->ptaskEnd->aptaskSucc[i];
+            if (follower->ploExit) {
+                job->ptaskNext = follower;
                 break;
             }
         }
-        if (job->nextTask) {
+        if (job->ptaskNext) {
             int j;
-            for (j = 0; j < job->nextTask->numPrerequisites; j++) {
-                struct X *prerequisite = job->nextTask->prerequisites[j];
-                if (prerequisite != job->completeTask && !IsTaskComplete(prerequisite)) {
-                    job->nextTask = 0;
+            for (j = 0; j < job->ptaskNext->cptaskPrereq; j++) {
+                TASK *prerequisite = job->ptaskNext->aptaskPrereq[j];
+                if (prerequisite != job->ptaskEnd && !IsTaskComplete(prerequisite)) {
+                    job->ptaskNext = 0;
                     break;
                 }
             }
@@ -1304,26 +1285,26 @@ void SetJobCompletionPhase(struct X *job, int phase)
         SetLoFlagsInline(job, 0x102);
         IncrementSwHandsOff(D_003DD490, 2);
     }
-    job->completionPhase = phase;
-    job->completionPhaseTime = D_002DDED0.time;
+    job->nPhase = phase;
+    job->tPhase = D_002DDED0.time;
     switch (phase) {
     case PHASE_NONE: {
-        if (job->widget379) HideWidget(job->widget379);
-        if (job->completionWidget) HideWidget(job->completionWidget);
+        if (job->widgetShared) HideWidget((struct O *)job->widgetShared);
+        if (job->completionWidget) HideWidget((struct O *)job->completionWidget);
         SetLoBusyKind(job, 2);
         ClearLoFlagsInline(job, 0x102);
         DecrementSwHandsOff(D_003DD490, 2);
         break;
     }
     case PHASE_INTRO:
-        ShowWidget(job->completionWidget, -1);
-        PlayWidgetAnim(job->completionWidget, job->introLabel);
+        ShowWidget((struct O *)job->completionWidget, -1);
+        PlayWidgetAnim((struct O *)job->completionWidget, job->introLabel);
         break;
     case PHASE_SHARED_WIDGET:
-        ShowWidget(job->widget379, -1);
+        ShowWidget((struct O *)job->widgetShared, -1);
         break;
     case PHASE_OUTRO:
-        PlayWidgetAnim(job->completionWidget, job->outroLabel);
+        PlayWidgetAnim((struct O *)job->completionWidget, job->outroLabel);
         break;
     }
 }
@@ -1347,15 +1328,13 @@ extern "C" int IsJobComplete(JOB *job)
 }
 
 namespace M_func_00163430 { extern "C" {
-struct X { char pad[0x54]; int state; };   /* a task */
-struct S { char pad[0x64]; struct X *startTask; struct X *completeTask; };
 // Same idiom as sly2/util.h StdMaxInt; kept local because the shared helper changes GetJobState (1/11 instructions off).
 static inline int StdMaxIntLocal(int a, int b) { return a > b ? a : b; }
 // Returns the job's state from its tasks: the start task's state while below 2, else max(end task state, 1).
-int GetJobState(struct S *job)
+int GetJobState(JOB *job)
 {
-    int state = job->startTask->state;
-    return state < TASK_STATE_DONE ? state : StdMaxIntLocal(job->completeTask->state, TASK_STATE_AVAILABLE);
+    int state = job->ptaskStart->nState;
+    return state < TASK_STATE_DONE ? state : StdMaxIntLocal(job->ptaskEnd->nState, TASK_STATE_AVAILABLE);
 }
 } } // namespace M_func_00163430
 
@@ -1370,34 +1349,31 @@ struct CRef{
  CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
  ~CRef(){Decref__4CRef(this);}
 };
-struct OPT{int kind,value;};
-struct S{char pad[0x7C];int startCount;char pad80[0x24];float elapsedTime;char padA8[0x28];OPT startCountVar,completeVar,elapsedTimeVar;};
 extern "C" { extern char D_003D4A60[]; }
-extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
-extern "C" int IsJobComplete(S*);
-static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
-static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
-static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
+extern "C" CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*);
+static inline void SetPv(SVKEY*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
+static inline void SetInt(SVKEY*p,int n){CRef r(n);SetPv(p,r);}
+static inline void SetBool(SVKEY*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
 // Writes the job's count, complete flag and elapsed time into its save variables.
-extern "C" void UpdateJobSaveVars(S *job)
+extern "C" void UpdateJobSaveVars(JOB *job)
 {
     {
-        OPT *var = &job->startCountVar;
-        if (var->kind)
-            SetInt(var, job->startCount);
+        SVKEY *var = &job->svkStart;
+        if (var->c)
+            SetInt(var, job->cStart);
     }
     {
-        OPT *var = &job->completeVar;
-        if (var->kind) {
+        SVKEY *var = &job->svkComplete;
+        if (var->c) {
             void *context = D_003D4A60;
             int isComplete = IsJobComplete(job);
             SetBool(var, isComplete != 0, context);
         }
     }
     {
-        OPT *var = &job->elapsedTimeVar;
-        if (var->kind) {
-            CRef r(job->elapsedTime);
+        SVKEY *var = &job->svkElapsed;
+        if (var->c) {
+            CRef r(job->dtElapsed);
             SetPv(var, r);
         }
     }

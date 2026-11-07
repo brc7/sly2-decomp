@@ -72,8 +72,8 @@ struct JOB : public LO
       int completionWidgetOid; /* +0xAC [S] (SetJobCompletionWidget, game.cpp) */
       int introLabel;       /* +0xB0 [S] */
       int outroLabel;       /* +0xB4 [S] */
-      LO *completionWidget; /* +0xB8 [S] the job has a completion sequence when set */
-      LO *widgetShared;     /* +0xBC [S] the shared completion widget (oid 0x379) */
+      WIDGET *completionWidget; /* +0xB8 [S] the job has a completion sequence when set */
+      WIDGET *widgetShared; /* +0xBC [S] the shared completion widget (oid 0x379) */
       TASK *ptaskNext;      /* +0xC0 [S] the task the completion sequence continues with */
       int nPhase;           /* +0xC4 [R] completion phase (0 none, 1 intro, 2 outro, 3 shared widget) */
       float tPhase;         /* +0xC8 [S] clock.time when nPhase was entered */
