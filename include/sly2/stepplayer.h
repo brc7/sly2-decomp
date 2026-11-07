@@ -155,7 +155,7 @@ struct JTMODE
       struct ASEG *pasegEnd;   /* exit animation */
       struct ASEGA *animationPlayback; /* running animation */
       struct ASEGA *pasegaHold;   /* hold animation */
-      undefined4 unknown1C;
+      LO *ploHidden;   /* +0x1C (Murray) the carried object, hidden (SetFlag8) while Murray is not playable (SetMurrayPlayable) */
       int kind;    /* mode kind (1 = recon) */
       JTMODEHUD hud;   /* the mode HUD */
       STEP *pstepOther;   /* other character involved */

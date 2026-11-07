@@ -46,16 +46,17 @@ struct MURRAY : public STEPPLAYER
       int xfRoleB;
       undefined4 unknown140C;
       float unknown1410;
-      float unknown1414;
+      float throwSpeed;   /* +0x1414 speed a throw flies at (ThrowMurrayCarried: flight time = distance / throwSpeed) */
       undefined4 unk_0x1418[(0x1420 - 0x1418) / 4];
       qword throwGoal;   /* +0x1420 where a throw aims (ThrowMurrayCarried; ThrowMurrayCarriedAt sets it to an object's position) */
       LO *ploReleased;   /* +0x1430 the object last released from a carry (DetachMurrayCarried); ignored in collisions */
       float releaseTime;   /* +0x1434 clock.time of that release */
       undefined4 unknown1438;
       int unknown143C;
-      undefined4 unk_0x1440[(0x144c - 0x1440) / 4];
+      undefined4 unk_0x1440[(0x1448 - 0x1440) / 4];
+      int fLiftGrabbed;   /* +0x1448 the lift animation reached its grab event (UpdateMurrayLift) */
       int liftClip;   /* +0x144C lift animation: 0 grab spot, 1 guard (StartMurrayLiftGrabspot/Guard) */
-      int unknown1450;
+      int liftSubstate;   /* +0x1450 sub-state of MURRAY_LIFT: 0, 1 reaching (aborts if the object left the world), 2 lifting, -1 none */
       undefined4 unknown1454;
       int carryIndex; /* carry slot index */
       undefined4 unknown145C;

@@ -81,11 +81,11 @@ void InitMurray(MURRAY *murray)
     murray->subState = -1;
     murray->state = -1;
     murray->liftClip = -1;
-    murray->unknown1450 = -1;
+    murray->liftSubstate = -1;
     murray->carryIndex = -1;
     murray->strafeSubstate = -1;
     murray->unknown1410 = 1500.0f;
-    murray->unknown1414 = 3500.0f;
+    murray->throwSpeed = 3500.0f;
     murray->grabRadius = 60.0f;
     murray->unknown1048 = 125.0f;
     InitGait(&murray->gaitA, murray, 0x15);
@@ -2187,10 +2187,7 @@ typedef char P_Alignment[__alignof__(struct P)==4?1:-1];
 #undef FIELD_OFFSET
 
 namespace M_ThrowMurrayCarried { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct T { char pad[0x180]; struct LO *po; };
-struct P { char pad[0x13F0]; struct T *carried; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword throwGoal; };
-void DetachMurrayCarried(struct P *p);
+void DetachMurrayCarried(MURRAY *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void StunStepguardThrownOp3(struct LO *p);
 qword GetLoWorldPos(struct LO *p);
@@ -2209,18 +2206,18 @@ static inline float Dist(qword a, qword b) {
 }
 // Release on animation event 0x1EB in state 7: detaches the carried object and gives it the velocity to reach the
 // throw goal.
-void ThrowMurrayCarried(struct P *murray)
+void ThrowMurrayCarried(MURRAY *murray)
 {
     struct LO *object;
     DetachMurrayCarried(murray);
-    object = murray->carried->po;
-    murray->carried = 0;
+    object = ((CARRYSPOTV *)murray->ploCarried)->plo;
+    murray->ploCarried = 0;
     if ((int)object->isInWorld & 1) {
         float t;
         qword v;
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38))
             StunStepguardThrownOp3(object);
-        t = Dist(GetLoWorldPos(object), murray->throwGoal) / murray->g1414;
+        t = Dist(GetLoWorldPos(object), murray->throwGoal) / murray->throwSpeed;
         v = CalculateVelocityToReachPos(GetLoWorldPos(object), murray->throwGoal, GetSoGravity(object), t);
         object->SetVelocity(v);
         SetSoZapMode(object, 2);
@@ -2249,8 +2246,6 @@ void ThrowMurrayCarriedAt(MURRAY *murray, void *pv)
 } } // namespace M_func_001B7A78
 
 namespace M_func_001B7AE8 { extern "C" {
-/* The lifted object as read here: bit 60 of its LO flag word at +0x28 (not named in lo.h). */
-struct O { char pad[0x28]; unsigned long f28; };
 extern qword D_002C09D0, D_002A2DD0;
 void DetachMurrayCarried(MURRAY *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
@@ -2265,7 +2260,7 @@ void TossMurrayCarried(MURRAY *murray)
     DetachMurrayCarried(murray);
     object = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
     murray->ploCarried = 0;
-    if ((int)(((O *)object)->f28 >> 60) & 1) {
+    if ((int)object->isInWorld & 1) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
         q = ConvertVecBetweenLos(murray, 0, D_002C09D0);
         object->SetVelocity(q);
@@ -2295,7 +2290,7 @@ void DropMurrayCarried(MURRAY *murray)
     }
     o = murray->ploCarried;
     if (!o) return;
-    if (murray->state == MURRAY_LIFT && murray->unknown1450 == 0) {
+    if (murray->state == MURRAY_LIFT && murray->liftSubstate == 0) {
         o->HandleSpliceEvent(6, 0, 0, 0, 0);
         murray->ploCarried = 0;
         return;
@@ -2471,56 +2466,50 @@ int MURRAY::IsFreeMoving()
 }
 
 namespace M_func_001B81B8 { extern "C" {
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; };
-struct T { char pad[0x180]; struct O *po; };
-struct P { char pad[0xF1C]; struct O *xF1C; char pad2[0x13F0 - 0xF20]; struct T *carried; };
-void IgnoreStepSlot87(struct P *p, int b);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-#define VCALL(o, n, ...) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, __VA_ARGS__)
+void IgnoreStepSlot87(MURRAY *p, int b);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
 // MURRAY slot 87 (playable flag): STEP base, then propagates to the carried object.
-void SetMurrayPlayable(struct P *p, int b)
+void SetMurrayPlayable(MURRAY *p, int b)
 {
-    struct O *o;
+    LO *o;
     IgnoreStepSlot87(p, b);
     if (b) {
-        if (!p->carried) return;
-        o = p->carried->po;
+        if (!p->ploCarried) return;
+        o = ((CARRYSPOTV *)p->ploCarried)->plo;
         if (!o) return;
-        p->xF1C = o;
-        VCALL(o, 21, 0);
-        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, b);
+        p->jtmode.ploHidden = o;
+        o->SetFlag8(0);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->jtmode.ploHidden, 0x33)) ((STEP *)p->jtmode.ploHidden)->SetPlayable(b);
     } else {
-        o = p->xF1C;
+        o = p->jtmode.ploHidden;
         if (!o) return;
-        VCALL(o, 21, 1);
-        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, 0);
-        p->xF1C = 0;
+        o->SetFlag8(1);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->jtmode.ploHidden, 0x33)) ((STEP *)p->jtmode.ploHidden)->SetPlayable(0);
+        p->jtmode.ploHidden = 0;
     }
 }
 } } // namespace M_func_001B81B8
 #undef VCALL
 
 namespace M_func_001B82A0 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
+/* The floor contact (STEP::floorContact; XP has no shared definition yet) and its surface material flags. */
 struct M { char pad[0x148]; unsigned long f148; };
 struct Q { char pad[0x40]; int x40; char pad2[8]; struct M *pm; char pad3[0x10]; qword q60; char pad4[0x18]; float f88; };
-struct S { char pad[0x208]; struct Q *pq; char pad2[0x108C - 0x20C]; int x108C; char pad3[0x13D0 - 0x1090]; int k; };
 void AddJtPlaceAtPosition(void *p, int a, qword q);
 void RecordJtGrabPlace(void *p);
 void RecordJtPipePlace(void *p);
 // Per frame: on flat ground (normal z > 0.7, material flag clear) records a safe place; component hooks otherwise.
-void UpdateMurrayPlaces(struct S *murray)
+void UpdateMurrayPlaces(MURRAY *murray)
 {
     struct Q *pq;
-    switch (murray->k) {
+    switch (murray->state) {
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_LIFT: case MURRAY_CARRY: case MURRAY_THROW: case MURRAY_TOSS: case MURRAY_STRAFE: case MURRAY_WALK: case MURRAY_SCRIPT_SMA: case MURRAY_TURNBUCKLE:
-        pq = murray->pq;
-        if (pq && pq->f88 > 0.7f && !(pq->pm->f148 & 0x20000000) && !murray->x108C)
-            AddJtPlaceAtPosition(&AsStepplayer(murray)->jtplaces, pq->x40, pq->q60);
+        pq = (Q *)murray->floorContact;
+        if (pq && pq->f88 > 0.7f && !(pq->pm->f148 & 0x20000000) && !murray->pwater)
+            AddJtPlaceAtPosition(&murray->jtplaces, pq->x40, pq->q60);
         break;
-    case MURRAY_GRAB: RecordJtGrabPlace(&AsStepplayer(murray)->jtgrab); break;
-    case MURRAY_PIPE: RecordJtPipePlace(&AsStepplayer(murray)->jtpipe); break;
+    case MURRAY_GRAB: RecordJtGrabPlace(&murray->jtgrab); break;
+    case MURRAY_PIPE: RecordJtPipePlace(&murray->jtpipe); break;
     }
 }
 } } // namespace M_func_001B82A0
@@ -3144,34 +3133,31 @@ extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
 } // namespace M_AdjustMurrayNewXp
 
 namespace M_UpdateMurrayLift { extern "C" {
-struct O { char pad[0x28]; unsigned long f28; };
-struct T { char pad[0x180]; struct O *po; };
-struct P { char pad[0x1030]; int action; char pad1[0x13F0 - 0x1034]; struct T *carried; char pad2[0x1448 - 0x13F4]; int x1448; int x144C; int x1450; };
-void SetMurrayState(struct P *p, int n);
-int IsAsegaRetracted(int n);
-// State 4: waits for the grab event (x1448), aborts if the object is gone; after attaching goes to carry (state 5)
+void SetMurrayState(MURRAY *p, int n);
+int IsAsegaRetracted(ASEGA *pasega);
+// State 4: waits for the grab event (fLiftGrabbed), aborts if the object is gone; after attaching goes to carry (state 5)
 // when the animation ends.
-void UpdateMurrayLift(struct P *murray)
+void UpdateMurrayLift(MURRAY *murray)
 {
     int s;
     for (;;) {
-        s = murray->x1450;
+        s = murray->liftSubstate;
         switch (s) {
         case 0: break;
         case 1:
-            if (murray->x1448) {
-                if (!murray->carried) SetMurrayState(murray, MURRAY_IDLE);
-                else if ((((int)(murray->carried->po->f28 >> 60) & 1) == 0)) {
+            if (murray->fLiftGrabbed) {
+                if (!murray->ploCarried) SetMurrayState(murray, MURRAY_IDLE);
+                else if ((((int)((CARRYSPOTV *)murray->ploCarried)->plo->isInWorld & 1) == 0)) {
                     SetMurrayState(murray, MURRAY_IDLE);
-                    murray->carried = 0;
+                    murray->ploCarried = 0;
                 }
             }
             break;
         case 2:
-            if (IsAsegaRetracted(murray->action)) SetMurrayState(murray, MURRAY_CARRY);
+            if (IsAsegaRetracted(murray->activeAnimation)) SetMurrayState(murray, MURRAY_CARRY);
             break;
         }
-        if (murray->x1450 == s || murray->x1450 == -1) break;
+        if (murray->liftSubstate == s || murray->liftSubstate == -1) break;
     }
 }
 } } // namespace M_UpdateMurrayLift
