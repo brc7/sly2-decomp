@@ -71,57 +71,45 @@ void FaceStepToward(STEP *pstep, LO *plo);
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitBentley { extern "C" {
-struct S10A8 { float g0; int n4; float g8; float gC; };
-struct P {
-    char pad0[0x3D8]; float x3D8;
-    char pad1[0x1000 - 0x3DC]; int x1000;
-    char pad2[0x103C - 0x1004]; float x103C; int x1040; int x1044; float x1048;
-    char pad3[0x1098 - 0x104C]; float x1098; float x109C; float x10A0; float x10A4; struct S10A8 s10A8;
-    char pad4[0x1320 - 0x10B8]; char gaitA[0x13D0 - 0x1320]; int state;
-    char pad5[0x1600 - 0x13D4]; char gaitB[0x16B0 - 0x1600]; int subState; int pad6[2]; int aimState;
-    char pad7[0x1800 - 0x16C0]; int hoverState;
-    char pad8[0x1824 - 0x1804]; int x1824; int pad9[2]; int x1830; int padA[2]; int x183C; int padB[2]; int x1848;
-    int padC[2]; int x1854; int padD[2]; int x1860; int padE[3]; int x1870;
-};
-struct P *D_002DD5BC;   /* the Bentley object (bentley's .bss; medium: by layout) */
-void InitStepplayer(struct P *p);
-void InitGait(void *pv, struct P *p, int n);
+BENTLEY *D_002DD5BC;   /* the Bentley object (bentley's .bss; medium: by layout) */
+void InitStepplayer(BENTLEY *p);
+void InitGait(GAIT *pv, BENTLEY *p, int n);
 // BENTLEY Init (vtable slot 7): STEPPLAYER init, then Bentley's defaults: camera offsets 45/125, the two gait records
 // (+0x1320/+0x1600) and his gadget slot kinds (7/9/11 ...).
-void InitBentley(struct P *bentley)
+void InitBentley(BENTLEY *bentley)
 {
     InitStepplayer(bentley);
 //{
-    bentley->x1040 = 0;
+    bentley->unknown1040 = 0;
     bentley->state = -1;
     bentley->subState = -1;
     bentley->aimState = -1;
     bentley->hoverState = -1;
-    bentley->x103C = 45.0f;
-    bentley->x1048 = 125.0f;
+    bentley->grabRadius = 45.0f;
+    bentley->unknown1048 = 125.0f;
 //}
-    InitGait(bentley->gaitA, bentley, 0x73);
-    InitGait(bentley->gaitB, bentley, 0x73);
-    bentley->x3D8 = -70.0f;
-    bentley->x1098 = -100.0f;
-    bentley->x109C = 100.0f;
-    bentley->x10A0 = 50.0f;
-    bentley->x10A4 = -10.0f;
+    InitGait(&bentley->gaitA, bentley, 0x73);
+    InitGait(&bentley->gaitB, bentley, 0x73);
+    bentley->jtair.unknown118 = -70.0f;
+    bentley->waterProbe[0] = -100.0f;
+    bentley->waterProbe[1] = 100.0f;
+    bentley->waterProbe[2] = 50.0f;
+    bentley->waterProbe[3] = -10.0f;
     {
-        struct S10A8 *ps = &bentley->s10A8;
-        ps->g0 = 250.0f;
-        ps->g8 = 1.0f;
-        ps->n4 = 0;
-        ps->gC = 4500.0f;
+        SMPA *ps = &bentley->unknown10A8;
+        ps->fastSpeed = 250.0f;
+        ps->fastDuration = 1.0f;
+        ps->slowSpeed = 0.0f;
+        ps->maxSpeedChange = 4500.0f;
     }
-    bentley->x1000 = 2;
-    bentley->x1830 = 7;
-    bentley->x183C = 9;
-    bentley->x1848 = 11;
-    bentley->x1854 = 13;
-    bentley->x1860 = 4;
-    bentley->x1824 = 5;
-    bentley->x1870 = 5;
+    bentley->unknown1000 = 2;
+    bentley->apocket[1].idGadget = 7;
+    bentley->apocket[2].idGadget = 9;
+    bentley->apocket[3].idGadget = 11;
+    bentley->apocket[4].idGadget = 13;
+    bentley->apocket[5].idGadget = 4;
+    bentley->apocket[0].idGadget = 5;
+    bentley->unknown1870 = 5;
     D_002DD5BC = bentley;
 }
 } } // namespace M_InitBentley
@@ -1368,7 +1356,7 @@ void SetBentleyState(BENTLEY *, int);
 void UpdateBentleyStateMisc(BENTLEY *bentley) {
     int st;
     do {
-        st = bentley->unknown1800;
+        st = bentley->hoverState;
         switch (st) {
         case 0: break;
         case 1:
@@ -1378,7 +1366,7 @@ void UpdateBentleyStateMisc(BENTLEY *bentley) {
             }
             break;
         }
-    } while (bentley->unknown1800 != st && bentley->unknown1800 != -1);
+    } while (bentley->hoverState != st && bentley->hoverState != -1);
 }
 } } // namespace M_func_001367D8
 

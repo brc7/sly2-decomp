@@ -187,7 +187,7 @@ struct BENTLEY : public STEPPLAYER
       float lastDartTime;   /* +0x1700 clock.time of the last dart (FireBentleyDart) */
       undefined4 unk_0x1704[(0x1710 - 0x1704) / 4];
       BTBLENDS btblends;   /* +0x1710 blend set (the crosshair/aim helper: InitBentleyCrosshair, SetBentleyCrosshairState) */
-      int unknown1800;   /* +0x1800 a small state: 1 waits for floor contact, then Bentley goes idle and takes control (UpdateBentleyStateMisc) */
+      int hoverState;   /* +0x1800 -1 at init; 1 waits for floor contact, then Bentley goes idle and takes control (UpdateBentleyStateMisc) */
       undefined4 unk_0x1804[(0x1818 - 0x1804) / 4];
     union
     {
@@ -228,6 +228,6 @@ struct BENTLEY : public STEPPLAYER
     virtual void *GetSaveVarRoot() __asm__("GetBentleySaveVarRoot");   /* slot 103 */
 };
 typedef char assert_BENTLEY_size[sizeof(BENTLEY) == 0x1880 ? 1 : -1];
-typedef char assert_BENTLEY_unknown1800[SLY2_OFFSETOF(BENTLEY, unknown1800) == 0x1800 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
+typedef char assert_BENTLEY_hoverState[SLY2_OFFSETOF(BENTLEY, hoverState) == 0x1800 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 #endif /* SLY2_PLAYERS_H */
