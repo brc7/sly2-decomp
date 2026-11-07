@@ -315,7 +315,6 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
     return pv;
 }
-static inline qword Min(qword a, qword b) { qword r; __asm__("vmini.xyz %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Max(qword a, qword b) { qword r; __asm__("vmax.xyz %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // (a + b) * k.x.  The second "j"(k) operand is allocation-only: it gives k the register priority the original had.
 static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(r) : "j"(a), "j"(b), "j"(k), "j"(k)); return r; }
@@ -339,7 +338,7 @@ void ProjectRipgTransform(S *p)
     while ((q = (S *)PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t >= q->time)
             q->vt->a[4].pfn((char *)q + q->vt->a[4].d);
-        lo.q = Min(lo.q, Min(q->cornerA, q->cornerB));
+        lo.q = VuMin(lo.q, VuMin(q->cornerA, q->cornerB));
         hi.q = Max(hi.q, Max(q->cornerA, q->cornerB));
     }
     if (p->size != 0) {

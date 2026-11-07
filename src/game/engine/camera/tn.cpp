@@ -1527,12 +1527,6 @@ static inline qword ScaleByInverse(qword v, qword qwLen)
     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v));
     return qw;
 }
-static inline qword MinXyz(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vmini.xyz %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword MaxXyz(qword qw0, qword qw1)
 {
     qword qw;
@@ -1587,7 +1581,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     for (i = 0; i < 5; i++)
     {
         qword pos = VuAdd(GetLoWorldPos(plo), CombineAxes(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
-        aqw[0] = MinXyz(aqw[0], pos);
+        aqw[0] = VuMin(aqw[0], pos);
         aqw[1] = MaxXyz(aqw[0], pos);
         pqw = &aqw[3 + i];
         *pqw = pos;
@@ -1637,7 +1631,6 @@ struct CAMS {void *object;char pad[0x30];int state;};
 struct SCOPEW {SCOPEW(){(void)STACKSCOPE_ctor((MARK *)this);}~SCOPEW(){STACKSCOPE_ctor_1AE4A0((MARK *)this,2);}};
 union V {qword q;float f[4];};
 struct WORK {V minimum,maximum,origin,candidate;SCOPEW mark;V offset,rayEnd,best,scalar;int count;SOPART **objects;float low,high,phase,radius,height;};
-static inline qword Min(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Max(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline qword ToVF(qword q){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(q));return r;}
@@ -1653,7 +1646,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
     qword final;
     float initialAngle=0.0f;
     float one=1.0f;
-    w.minimum.q=Min(begin,Min(end,GetLoWorldPos(object)));
+    w.minimum.q=VuMin(begin,VuMin(end,GetLoWorldPos(object)));
     w.maximum.q=Max(begin,Max(end,GetLoWorldPos(object)));
     IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,HasCameraBsp,0,&w.count,&w.objects);
     int count=w.count; SOPART **objects=w.objects;

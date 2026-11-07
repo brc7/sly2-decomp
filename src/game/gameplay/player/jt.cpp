@@ -1651,7 +1651,6 @@ extern qword D_002A2DC0;
 extern qword D_002A2DD0;
 int TryMatchJtXmg(O *p, M *pm, void *px);
 }
-static inline qword VMin(qword a, qword b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VMax(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x189EC8
  * Purpose: Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target
@@ -1673,7 +1672,7 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
         a = ConvertPosBetweenLos(jt, 0, pm->v30);
         b = ConvertPosBetweenLos(jt, 0, pm->v40);
         c = ConvertPosBetweenLos(jt, 0, pm->v50);
-        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC,
+        IntersectSwBoundingBox(D_003DD490, VuMin(a, VuMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC,
                                &n0, &n1);
         if ((FindFirstObjectHitByLine(0, a, b, n0, n1, &hit) ||
              FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&

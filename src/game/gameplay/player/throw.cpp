@@ -585,7 +585,8 @@ struct VU_FLOAT {qword q;};
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.q):"r"(g));return v;}
 static inline qword SubVec(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline VU_VECTOR VuSub(VU_VECTOR a,VU_VECTOR b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a.q),"j"(b.q));return VU_VECTOR(r);}
-static inline qword MinVec(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Same idiom as sly2/vu0.h VuMin; kept local: this file includes the header below the function that needs it.
+static inline qword VuMin(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword MaxVec(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // Same idiom as sly2/vu0.h VuToFloat; kept local: this file includes the header below the function that needs it.
 static inline float VuToFloat(qword v){float g;__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(v));return g;}
@@ -660,10 +661,10 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
         t = thrower->tPredict;
     qword posEnd = PosOnArc(posLaunch, vAccel, vLaunch, t, 0.5f);
     STACKSCOPE stackscope;
-    qword posMin = MinVec(posApex, posEnd);
+    qword posMin = VuMin(posApex, posEnd);
     qword posMax = MaxVec(posApex, posEnd);
     posMax = MaxVec(posLaunch, posMax);
-    posMin = MinVec(posLaunch, posMin);
+    posMin = VuMin(posLaunch, posMin);
     int cso;
     SO **apso;
     IntersectSwBoundingBox(&D_003DD490, posMin, posMax, FilterJtThrowArcObject, thrower->selected->pvFilter, &cso,

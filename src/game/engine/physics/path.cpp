@@ -1652,7 +1652,6 @@ struct S {char pad[0xFC];int obstacleCapacity,numEvents;void*xEvents,*zEvents;vo
 void InitObstacleQueryCursor(struct S*,struct C*);
 void SweepObstacleRange(void*,int*,int*,qword*,float,float);
 static inline qword Max(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword Min(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
 /** @sly2-annot addr=0x1C1700
  * Purpose: Sweep-and-prune query: obstacles whose x and y intervals overlap the segment box
@@ -1671,7 +1670,7 @@ int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int 
  if(!zone->numEvents)return 0;
  if(!cursor){cursor=&local;cursor->version=-1;}
  if(cursor->version!=zone->version)InitObstacleQueryCursor(zone,cursor);
- lo=Min(from,to);hi=Max(from,to);
+ lo=VuMin(from,to);hi=Max(from,to);
  SweepObstacleRange(zone->xEvents,&cursor->xmin,&cursor->xmax,&cursor->x,QwordX(lo),QwordX(hi));
  SweepObstacleRange(zone->zEvents,&cursor->zmin,&cursor->zmax,&cursor->z,QwordY(lo),QwordY(hi));
  copy.q=And(cursor->x,cursor->z);mask=copy;
