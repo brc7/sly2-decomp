@@ -25,6 +25,7 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/joy.h"
+#include "sly2/save.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -3211,11 +3212,10 @@ struct CRef {
     void Decref() __asm__("Decref__4CRef");
 };
 struct G { char pad[0x3B1C]; void *unknown3B1C; };
-struct I { char pad[0xFD54]; void *foundSave; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern JOY D_002DFC00; }
 extern "C" { 
-extern I D_002E65E0;
+extern SAVE D_002E65E0;
  }
 extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
@@ -3233,7 +3233,7 @@ extern "C" void BuildTitlePromptText(char *pch)
         return;
     }
     g = 0.0f;
-    pv = D_002E65E0.foundSave;
+    pv = D_002E65E0.newestSlot;
     if (pv) {
         CRef ref = GetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
         g = ref.m_g;

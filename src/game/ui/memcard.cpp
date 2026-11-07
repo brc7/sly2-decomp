@@ -1541,8 +1541,7 @@ extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
 }
 
 namespace M_func_001ACC38 { extern "C" {
-struct H { char pad[0xFD50]; int currentSlot; };
-extern struct H D_002E65E0;
+extern SAVE D_002E65E0;
 extern CLOCK D_002DDED0;
 struct S { char pad[0x44]; int phase; float tPhase; };
 // Sets the dialog phase and its start time; phases 2 and 3 forget the current slot.
@@ -1886,19 +1885,18 @@ extern SAVE D_002E65E0;
 
 namespace M_func_001AD3E0 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
-struct G { char pad[0xFD50]; int currentSlot; int newestSlot; int selectedSlot; };
 struct H { char pad[0x4C]; int followUpAction; };
-extern struct G D_002E65E0;
+extern SAVE D_002E65E0;
 extern struct H D_002E6550;
 extern char D_003D4A60[];
 void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
-void StartSaveSlotJob(struct G *g);
+void StartSaveSlotJob(SAVE *g);
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
 void SaveToCurrentSlot(void)
 {
-    struct G *saveManager = &D_002E65E0;
+    SAVE *saveManager = &D_002E65E0;
     struct H *dialog = &D_002E6550;
     struct CRef ref;
     int isWarned;
