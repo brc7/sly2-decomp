@@ -1961,12 +1961,11 @@ void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 SHDBLIP *FindShaderById(int oid);
 }
-struct P { char pad[0xC4]; HEAP *spriteHeap; };
 /* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
 struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; QW *texPacket; };
-extern "C" void BuildSpritePictureTexPacket(P *p, Q *q);
+extern "C" void BuildSpritePictureTexPacket(WIDGET *p, Q *q);
 // Picture-sprite callback: the GIF packet that selects its texture. (inferred)
-void BuildSpritePictureTexPacket(P *owner, Q *sprite)
+void BuildSpritePictureTexPacket(WIDGET *owner, Q *sprite)
 {
     STACKSCOPE frame;
     if (sprite->kind == SPRITE_KIND_PICTURE) {
@@ -2232,10 +2231,8 @@ struct Q { int a[4]; } __attribute__((aligned(16)));
 struct Q3 { Q a, b, c; };
 struct F { char pad[0x54]; char *fonts; };
 extern "C" SW D_003DD490;
-struct C8 { char pad[0x9C]; float screenX; float screenY; };   /* the widget whose screen position text uses */
-struct P8 { char pad[0xA4]; int priority; char padA8[0x20]; C8 *ownerWidget; };   /* the owning widget */
 /* a text sprite descriptor (RenderSpriteText's S) */
-struct R { char pad[8]; P8 *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
+struct R { char pad[8]; WIDGET *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
 struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; int baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
   char pad60[4]; float originX; float originY; int offsetX; int offsetY; float width; float height; float scaleX; float scaleY; float lineHeight; float fontScale;
   int vAlign; int hAlign; int priority; };
