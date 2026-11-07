@@ -352,12 +352,11 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPG *ripGroup, CM *pcm, RO *pro
 }
 } // namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO
 
-// RIPG vtable slot 62: returns ripgState != 1. Slot 62 is the SO predicate whose false result makes
+// RIPG vtable slot 62: returns groupKind != 1. Slot 62 is the SO predicate whose false result makes
 // RemoveSoPartFromTree wake the object, hence the name (inferred).
 int RIPG::IsFixed()
 {
-    RIPG *ripGroup = (RIPG *)this;
-    return ripGroup->groupKind != 1;
+    return groupKind != 1;
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
