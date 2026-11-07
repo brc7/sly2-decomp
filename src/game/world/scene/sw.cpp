@@ -19,6 +19,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/so.h"
+#include "sly2/po.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/joy.h"
@@ -710,9 +711,8 @@ typedef unsigned int uint;
 struct HEADER {int words[16];};
 struct REQUEST {int flags;HEADER header;int objectId,objectKey;};
 struct KEY {int name,tag,kind;char data[0x104];};
-struct VT {short delta,unused;void *function;};
 struct WIDGET {char pad0[0x58];int shown;};
-struct ACTOR {char pad0[0xC];VT *vtable;char pad10[8];int tag;char pad1C[0xF10];WIDGET *widget;};
+struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unused3C80,unused3C84,objectId,objectKey;char pad3C90[0x228];int actorCount;ACTOR *actors[1];char pad3EC0[0x8AC];float resumeTime;char pad4770[0x20];};
 struct FRAME;
@@ -769,10 +769,10 @@ extern "C" REF GetSaveVarByName(const char *,...);
 static inline float Time(){return *(float *)D_002DDED0;}
 static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
 static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
-static inline void Activate(ACTOR *actor){VT *entry=&actor->vtable[8];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
-static inline void Enable(ACTOR *actor,int mode){VT *entry=&actor->vtable[79];((void (*)(void *,int))entry->function)((char *)actor+entry->delta,mode);}
-static inline void Attach(ACTOR *actor,CONTEXT *context){VT *entry=&actor->vtable[38];((void (*)(void *,CONTEXT *))entry->function)((char *)actor+entry->delta,context);}
-static inline void Hide(ACTOR *actor){VT *entry=&actor->vtable[9];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
+static inline void Activate(ACTOR *actor){actor->Add();}
+static inline void Enable(ACTOR *actor,int mode){actor->SetCtlState(mode);}
+static inline void Attach(ACTOR *actor,CONTEXT *context){actor->MatchTransform((LO *)context);}   /* the warp object (an LO; CONTEXT views its fields) */
+static inline void Hide(ACTOR *actor){actor->Remove();}
 static inline int NonZero(int v){int r; __asm__("sltu %0,$zero,%1":"=r"(r):"r"(v));return r;}
 static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("$4");__asm__("la %0,%a1":"=r"(result):"p"(home));return result;}
 // Runs a pending level transition: opens the level file, deletes the old world, constructs a new g_sw, loads it from
@@ -837,7 +837,7 @@ extern "C" void ExecuteSwTransition(SW *world)
             Enable(selected,1);
             if(context){
                 int i;
-                for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->tag)break;
+                for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->oid)break;
                 if(i>=context->count)Attach(selected,context);
             }
             for(int i=0;i<world->actorCount;i++){
@@ -1301,12 +1301,9 @@ int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
 } } // namespace M_func_0020FA10
 
 namespace M_func_0020FA50 { extern "C" {
-struct VTE { short d; short pad; int (*pfn)(void *); };
-struct O { int a, b, c; struct VTE *vt; };
-struct S { int a; struct O *po; };
-int ShouldKeepSoNotSelf(void *pv, struct S *p);
-// Intersection filter: ShouldKeepSoNotSelf and the object's vtable slot 62 predicate.
-int ShouldKeepSoNotSelfSlot62(void *pv, struct S *p) { struct O *o; struct VTE *e; if (!ShouldKeepSoNotSelf(pv, p)) return 0; o = p->po; e = &o->vt[62]; return e->pfn((char *)o + e->d); }
+int ShouldKeepSoNotSelf(void *pv, SOPART *p);
+// Intersection filter: ShouldKeepSoNotSelf and the owner's IsFixed (slot 62).
+int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepSoNotSelf(pv, p)) return 0; return p->owner->IsFixed(); }
 } } // namespace M_func_0020FA50
 
 namespace M_IntersectSwBoundingBox { extern "C" {
@@ -1492,21 +1489,19 @@ void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
 } } // namespace M_TriggerRsmg
 
 namespace M_func_0020FFF0 { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct Y { char pad[0xC]; VTE *vt; };
 struct D { int a; int b; int c; int d; };
 int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-struct Y *FindLiveSma(void *o, int b);
-void SubscribeLoObject(struct Y *y, int x);
-void SeekSma(struct Y *y, int id);
-void SetSmaGoal(struct Y *y, int id);
+BASIC *FindLiveSma(void *o, int b);
+void SubscribeLoObject(BASIC *y, int x);
+void SeekSma(BASIC *y, int id);
+void SetSmaGoal(BASIC *y, int id);
 // Applies one rsmg record: finds the root object and its state machine by oid, then seeks or sets the trigger or
 // untrigger goal; optionally returns the state machine.
-void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
+void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASIC **ppy)
 {
     void *o;
-    struct Y *y;
+    BASIC *y;
     int id;
     if (ppy)
         *ppy = 0;
@@ -1525,7 +1520,7 @@ void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
         return;
     if (x) {
         *ppy = y;
-        ((void (*)(void *))y->vt[1].pfn)((char *)y + y->vt[1].d);
+        y->AddRef();
         SubscribeLoObject(y, x);
     }
     if (fl & 2)
