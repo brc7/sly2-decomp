@@ -58,12 +58,13 @@ struct BHVWALKGOALV : public BHVB
     char pad90[0xD0 - 0x90];
     float speedScale;              /* +0xD0 */
 };
+/* The walk-to behaviour (BHV193): the parameters it hands its walk-goal child. */
 struct BHV144E20 : public BHVB
 {
     char pad14[0x34 - 0x14];
-    float g34;
-    int n38;
-    float g3C;
+    float arrivalRadius;    /* +0x34 */
+    int forcesButton8;      /* +0x38 */
+    float speedScale;       /* +0x3C */
 };
 /* The follow behaviour's followed object (+0x30). */
 struct BHVFOLLOWV : public BHVB
@@ -239,106 +240,109 @@ void BHV193::OnPush()
 {
     BHV144E20 *behavior = (BHV144E20 *)this;
     InitBhv(behavior);
-    behavior->g34 = 40.0f;
-    behavior->n38 = 1;
-    behavior->g3C = 1.0f;
+    behavior->arrivalRadius = 40.0f;
+    behavior->forcesButton8 = 1;
+    behavior->speedScale = 1.0f;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144E68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float speedScale; };
-struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34; int n38; float g3C; qword q40; };
-void StartBhv(void *p);
-struct O *PushStepBhv(void *p, int n);
-void SetBhvWalkToGoal(struct P *p, qword q);
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int usesStraightPath; char pad3[0x64 - 0x44]; float arrivalRadius; char pad4[0xCC - 0x68]; int forcesButton8; float speedScale; };
+struct P { char pad[0x10]; void *guard; char pad2[0x30 - 0x14]; int usesStraightPath; float arrivalRadius; int forcesButton8; float speedScale; qword goal; };
+void StartBhv(void *behavior);
+struct O *PushStepBhv(void *guard, int cid);
+void SetBhvWalkToGoal(struct P *behavior, qword goal);
 // 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
 // goal and starts it.
 void StartBhvWalkTo(struct P *behavior)
 {
-    struct O *o;
+    struct O *child;
     struct VTE *entry;
     StartBhv(behavior);
-    o = PushStepBhv(behavior->o10, CID_BHV168);
-    o->n40 = behavior->n30;
-    o->g64 = behavior->g34;
-    o->nCC = behavior->n38;
-    o->speedScale = behavior->g3C;
-    SetBhvWalkToGoal(behavior, behavior->q40);
-    entry = &o->vt[8];
-    ((void (*)(void *))entry->pfn)((char *)o + entry->d);
+    child = PushStepBhv(behavior->guard, CID_BHV168);
+    child->usesStraightPath = behavior->usesStraightPath;
+    child->arrivalRadius = behavior->arrivalRadius;
+    child->forcesButton8 = behavior->forcesButton8;
+    child->speedScale = behavior->speedScale;
+    SetBhvWalkToGoal(behavior, behavior->goal);
+    entry = &child->vt[8];
+    ((void (*)(void *))entry->pfn)((char *)child + entry->d);   /* Start */
 }
 } } // namespace M_func_00144E68
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144EE8 { extern "C" {
-int IsBhvpathAtEnd(void *p);
+int IsBhvpathAtEnd(void *path);
 // 0x144EE8: True if the walk-to child has reached the end of its path or its state is 2.
-int IsBhvWalkToDone(char *p)
+struct CHILD { char pad[0x4C]; int pathState; };
+struct BHVWALKTO { char pad[0x18]; struct CHILD *child; };
+int IsBhvWalkToDone(struct BHVWALKTO *behavior)
 {
-    char *q = *(char **)(p + 0x18);
-    int r = 0;
-    if (IsBhvpathAtEnd(q) || *(int *)(q + 0x4C) == 2) r = 1;
-    return r;
+    struct CHILD *child = behavior->child;
+    int done = 0;
+    if (IsBhvpathAtEnd(child) || child->pathState == 2)
+        done = 1;
+    return done;
 }
 } } // namespace M_func_00144EE8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144F48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct E;
-struct D { char pad[0x10]; struct E *pe; };
-struct C { char pad[0xDC]; struct D *pd; };
-struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
-struct A { char pad[0xE8]; struct C *pc; char pad2[0x294 - 0xEC]; struct B *pb; };
-struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int f30; char pad3[0x40 - 0x34]; qword v; };
-qword func_001A62E8(struct A *pa);
-void func_001C02D0(struct E *pe, qword r, qword v, struct B *pb);
-void MeasureShape(struct B *pb);
-void SetBhvpathShape(void *p, struct B *pb, int n);
+struct NAVGRAPH;
+struct D { char pad[0x10]; struct NAVGRAPH *navGraph; };
+struct C { char pad[0xDC]; struct D *unknownDC; };
+struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
+struct GUARD { char pad[0xE8]; struct C *unknownE8; char pad2[0x294 - 0xEC]; struct SHAPE *pathShape; };
+struct P { char pad[0x10]; struct GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int usesStraightPath; char pad3[0x40 - 0x34]; qword goal; };
+qword func_001A62E8(struct GUARD *guard);
+void func_001C02D0(struct NAVGRAPH *navGraph, qword start, qword goal, struct SHAPE *path);
+void MeasureShape(struct SHAPE *shape);
+void SetBhvpathShape(void *path, struct SHAPE *shape, int n);
 // 0x144F40: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // 0x144F48: Stores the goal and builds the child's route to it: a straight line, or a path through the navigation
-// graph.
-void SetBhvWalkToGoal(struct P *behavior, qword v)
+// graph (the guard's own path shape is rewritten either way).
+void SetBhvWalkToGoal(struct P *behavior, qword goal)
 {
-    behavior->v = v;
+    behavior->goal = goal;
     if (!behavior->child)
         return;
-    struct A *pa = behavior->pa;
-    struct B *pb = pa->pb;
-    struct D *pd = pa->pc ? pa->pc->pd : 0;
-    struct E *pe = pd ? pd->pe : 0;
-    qword r = func_001A62E8(pa);
-    if (!pe || behavior->f30) {
-        pb->k = 2;
-        pb->pq[0] = r;
-        pb->pq[1] = behavior->v;
-        MeasureShape(pb);
+    struct GUARD *guard = behavior->guard;
+    struct SHAPE *path = guard->pathShape;
+    struct D *d = guard->unknownE8 ? guard->unknownE8->unknownDC : 0;
+    struct NAVGRAPH *navGraph = d ? d->navGraph : 0;
+    qword start = func_001A62E8(guard);
+    if (!navGraph || behavior->usesStraightPath) {
+        path->pointCount = 2;
+        path->points[0] = start;
+        path->points[1] = behavior->goal;
+        MeasureShape(path);
     } else {
-        func_001C02D0(pe, r, behavior->v, pb);
+        func_001C02D0(navGraph, start, behavior->goal, path);
     }
-    SetBhvpathShape(behavior->child, pb, 0);
+    SetBhvpathShape(behavior->child, path, 0);
 }
 } } // namespace M_func_00144F48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitBhvfollow { extern "C" {
 void InitBhv(void *p);
-struct X { char pad[0x60]; int n; int pad2; float a, b, c, d, e; };
+struct X { char pad[0x60]; int state; int pad2; float unknown68, distanceNear, distanceFar, speedNear, speedFar; };
 // 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
 // factors (0.25/250/350/1.0/1.2).
-void InitBhvfollow(struct X *p)
+void InitBhvfollow(struct X *behavior)
 {
-    InitBhv(p);
-    p->n = -1;
-    p->a = 0.25f;
-    p->b = 250.0f;
-    p->c = 350.0f;
-    p->d = 1.0f;
-    p->e = 1.2f;
+    InitBhv(behavior);
+    behavior->state = -1;
+    behavior->unknown68 = 0.25f;
+    behavior->distanceNear = 250.0f;
+    behavior->distanceFar = 350.0f;
+    behavior->speedNear = 1.0f;
+    behavior->speedFar = 1.2f;
 }
 } } // namespace M_InitBhvfollow
 
@@ -366,24 +370,24 @@ namespace M_func_001450E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct CLQ { float g0, g1, g2, gPad; };
-struct SO { char pad[0x2C0]; ulong grf; };
-struct LIST { char pad[0x28]; int c; struct SO *a[1]; };
-struct PO { char pad[0x1088]; struct LIST *plist; };
-struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; void *p30; char pad3[0x90 - 0x34]; struct SO *p90; };
+struct SO { char pad[0x2C0]; ulong grfsg; };   /* a guard */
+struct TARGETREC { char pad[0x28]; int guardCount; struct SO *guards[1]; };   /* stepguard.cpp's engagement record */
+struct PO { char pad[0x1088]; struct TARGETREC *engagement; };
+struct P { char pad[0x10]; struct PO *follower; char pad2[0x30 - 0x14]; void *leader; char pad3[0x90 - 0x34]; struct SO *threat; };
 extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
 struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f};
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword func_001A62E8(void *p);
 ulong GetSgfMask(int n);
-int StepguardHasSgf(struct SO *p, int n);
-struct LIST *func_001F8240(void *p);
+int StepguardHasSgf(struct SO *guard, int sgf);
+struct TARGETREC *func_001F8240(void *object);
 
 // VU0 helper: distance between two points.
 static __inline__ float GDist(qword a, qword b)
 {
     qword d, t;
-    float g;
+    float distance;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     __asm__("vmul.xyz %0, %0, %0\n"
         "vaddw.x %1, $vf0, $vf0w\n"
@@ -392,62 +396,63 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
         "vaddq.x %0, $vf0, Q" : "+j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
-    return g;
+    __asm__("qmfc2.ni %0, %1" : "=r"(distance) : "j"(d));
+    return distance;
 }
-// Evaluates a CLQ quadratic at g.
-static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
+// Evaluates a CLQ quadratic at distance.
+static __inline__ float GFromClq(float distance, struct CLQ *clq) { return clq->g0 + distance * (clq->g1 + distance * clq->g2); }
 
-// 0x1450E0: Picks the nearest object of several guard-state classes around the followed object (its current threat,
-// inferred).
-struct SO *PickBhvfollowTarget(struct P *p)
+// 0x1450E0: Picks the follow behaviour's threat: the guard nearest the leader among those engaged with the follower
+// or (distance re-weighted) with the leader, skipping KO'd/juggled/thrown ones; the current threat and striking
+// guards get their own distance weights (inferred: who the partner should fight).
+struct SO *PickBhvfollowTarget(struct P *behavior)
 {
-    struct SO *psoBest = 0;
-    float gBest = D_002A4E30;
+    struct SO *best = 0;
+    float bestDistance = D_002A4E30;
     qword pos;
-    ulong grf;
-    struct LIST *plist;
+    ulong ignoreMask;
+    struct TARGETREC *record;
     int i;
-    func_001A62E8(p->p10);
-    pos = func_001A62E8(p->p30);
-    grf = GetSgfMask(SGF_KO) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(SGF_JUGGLED) |
+    func_001A62E8(behavior->follower);
+    pos = func_001A62E8(behavior->leader);
+    ignoreMask = GetSgfMask(SGF_KO) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(SGF_JUGGLED) |
           GetSgfMask(0x2A) | GetSgfMask(0x2B);
-    plist = p->p10->plist;
-    for (i = 0; i < plist->c; i++) {
-        struct SO *pso = plist->a[i];
-        float g;
-        if (grf & pso->grf)
+    record = behavior->follower->engagement;
+    for (i = 0; i < record->guardCount; i++) {
+        struct SO *guard = record->guards[i];
+        float distance;
+        if (ignoreMask & guard->grfsg)
             continue;
-        g = GDist(pos, func_001A62E8(pso));
-        if (pso == p->p90)
-            g = GFromClq(g, &D_002BD300);
-        if (StepguardHasSgf(pso, SGF_STRIKE))
-            g = GFromClq(g, &D_002BD320);
-        if (g < gBest) {
-            psoBest = pso;
-            gBest = g;
+        distance = GDist(pos, func_001A62E8(guard));
+        if (guard == behavior->threat)
+            distance = GFromClq(distance, &D_002BD300);
+        if (StepguardHasSgf(guard, SGF_STRIKE))
+            distance = GFromClq(distance, &D_002BD320);
+        if (distance < bestDistance) {
+            best = guard;
+            bestDistance = distance;
         }
     }
-    plist = func_001F8240(p->p30);
-    if (plist) {
-        for (i = 0; i < plist->c; i++) {
-            struct SO *pso = plist->a[i];
-            float g;
-            if (grf & pso->grf)
+    record = func_001F8240(behavior->leader);
+    if (record) {
+        for (i = 0; i < record->guardCount; i++) {
+            struct SO *guard = record->guards[i];
+            float distance;
+            if (ignoreMask & guard->grfsg)
                 continue;
-            g = GDist(pos, func_001A62E8(pso));
-            g = GFromClq(g, &D_002BD310);
-            if (pso == p->p90)
-                g = GFromClq(g, &D_002BD300);
-            if (StepguardHasSgf(pso, SGF_STRIKE))
-                g = GFromClq(g, &D_002BD320);
-            if (g < gBest) {
-                psoBest = pso;
-                gBest = g;
+            distance = GDist(pos, func_001A62E8(guard));
+            distance = GFromClq(distance, &D_002BD310);
+            if (guard == behavior->threat)
+                distance = GFromClq(distance, &D_002BD300);
+            if (StepguardHasSgf(guard, SGF_STRIKE))
+                distance = GFromClq(distance, &D_002BD320);
+            if (distance < bestDistance) {
+                best = guard;
+                bestDistance = distance;
             }
         }
     }
-    return psoBest;
+    return best;
 }
 } } // namespace M_func_001450E0
 
