@@ -37,6 +37,20 @@ struct FILEREC
       uint aw[16];   /* the record words */
 };
 
+/* TRANS: a level-transition request (SW::transition; also the wipe's stored request, wipe.cpp): flags, the level to
+   load and the warp to start at. Moved from wipe.cpp; field comments from sw.h's former SW fields. */
+struct TRANS
+{
+      int flags;                /* +0x0 [S] request flags (0x80 return-to-hideout, 2 TRANS_SAME_LEVEL; 0xCD bits -> no resume
+                                   timer) (slygame SW_REQ_FLAGS, from code); int, not uint: game.cpp RestoreTasksAfterLoad clears
+                                   bit 3 with a sign-extended ~8 */
+      FILEREC destinationLevel; /* +0x4 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == SW::currentLevel after load */
+      int oidWarpDest;          /* +0x44 [R+S] requested warp oid (0x189 default entrance in 68/73 states; 0x6B29 / 0x18D after
+                                   specific warps) */
+      int oidWarpContext;       /* +0x48 [S] requested warp context oid (-1) */
+};
+typedef char assert_TRANS_size[sizeof(TRANS) == 0x4C ? 1 : -1];
+
 /* SVENT: a save-schema entry (10 bytes): a trie node over the key's symbol ids. kind -1 is an inner node; leaves give
    the slot's type (0..2, 9, 10 int; 3 float; 4 bool, bit-packed when fIndexed; 5 vector, 6 clq: 16 bytes; 7 lm; 8 smp),
    the offset in the save blob (GS), and whether one more key element indexes an array (fIndexed). Moved from save.cpp. */
@@ -178,14 +192,9 @@ struct SW : public BASIC
       /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
       int isTransitionPending;  /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
                                    (request already consumed); was fUnk3bf0 */
-      int grfTransition;        /* +0x3BF4 [S] request flags (0x80 return-to-hideout, 2 same level; 0xCD bits -> no resume
-                                   timer) (slygame SW_REQ_FLAGS, from code); was grfUnk3bf4; int, not uint: game.cpp RestoreTasksAfterLoad
-                                   clears bit 3 with a sign-extended ~8 */
-      FILEREC destinationLevel; /* +0x3BF8 [R+S] requested level FILEREC (0x40, XOR-obfuscated); == currentLevel after load */
-      int oidWarpDest;          /* +0x3C38 [R+S] requested warp oid (0x189 default entrance in 68/73 states; 0x6B29 / 0x18D after
-                                   specific warps); was nUnk3c38 */
-      int oidWarpContext;       /* +0x3C3C [S] requested warp context oid (-1); was nUnk3c3c */
-      FILEREC currentLevel;     /* +0x3C40 [R] current level FILEREC (equal to destinationLevel in every state); was _pad_235[16] */
+      TRANS transition;         /* +0x3BF4 [R+S] the request (SetSwTransition copies it in whole, ExecuteSwTransition copies it
+                                   out whole); its flags were grfTransition, destinationLevel/oidWarpDest/oidWarpContext SW fields */
+      FILEREC currentLevel;     /* +0x3C40 [R] current level FILEREC (equal to transition.destinationLevel in every state); was _pad_235[16] */
       int loadFilter;    /* filter applied to objects while loading (inferred) */
       struct EXIT *pexitTaken; /* +0x3C84 [S] the exit being taken (exit_warp.cpp SetExitExits, game.cpp FailJob); was unknown3C84 */
       int returnWarpOid;
@@ -364,8 +373,9 @@ typedef char assert_SW_ahudstack[SLY2_OFFSETOF(SW, ahudstack) == 0x3BA0 ? 1 : -1
 typedef char assert_SW_currentJob[SLY2_OFFSETOF(SW, currentJob) == 0x3B0C ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_SW_psvpCcoin[SLY2_OFFSETOF(SW, psvpCcoin) == 0x3B20 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_SW_isTransitionPending[SLY2_OFFSETOF(SW, isTransitionPending) == 0x3BF0 ? 1 : -1]; /* CONFIRMED runtime + code */
-typedef char assert_SW_destinationLevel[SLY2_OFFSETOF(SW, destinationLevel) == 0x3BF8 ? 1 : -1]; /* CONFIRMED runtime + code */
-typedef char assert_SW_oidWarpDest[SLY2_OFFSETOF(SW, oidWarpDest) == 0x3C38 ? 1 : -1];   /* CONFIRMED runtime + code */
+typedef char assert_SW_transition[SLY2_OFFSETOF(SW, transition) == 0x3BF4 ? 1 : -1];
+typedef char assert_SW_destinationLevel[SLY2_OFFSETOF(SW, transition.destinationLevel) == 0x3BF8 ? 1 : -1]; /* CONFIRMED runtime + code */
+typedef char assert_SW_oidWarpDest[SLY2_OFFSETOF(SW, transition.oidWarpDest) == 0x3C38 ? 1 : -1];   /* CONFIRMED runtime + code */
 typedef char assert_SW_currentLevel[SLY2_OFFSETOF(SW, currentLevel) == 0x3C40 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_SW_frameCounter[SLY2_OFFSETOF(SW, frameCounter) == 0x3D60 ? 1 : -1];   /* CONFIRMED runtime (frame counter) */
 typedef char assert_SW_handsOffCount[SLY2_OFFSETOF(SW, handsOffCount) == 0x3D78 ? 1 : -1]; /* CONFIRMED runtime */

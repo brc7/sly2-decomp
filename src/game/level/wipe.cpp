@@ -11,16 +11,8 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 /* The wipe widget (found as oid 0x405); only its vtable pointer is used here. */
 struct WIDGETV { int unknown0, unknown4, unknown8; VTE *vtable; };   /* slot 49 shows a label, slot 50 hides */
 
-/* A world transition request handed to SetSwTransition. */
-struct TRANS
-{
-    int flags;              /* +0x0 TRANS_SAME_LEVEL, or the caller's request flags (SW grfTransition) */
-    FILEREC fileRecord;     /* +0x4 destination level */
-    int warpOid;            /* +0x44 -> SW oidWarpDest */
-    int warpContextOid;     /* +0x48 -> SW oidWarpContext */
-};
+/* TRANS (the transition request handed to SetSwTransition): sly2/sw.h. */
 enum { TRANS_SAME_LEVEL = 2 };
-typedef char assert_TRANS_size[sizeof(TRANS) == 0x4C ? 1 : -1];
 
 struct WIPE;
 extern "C" WIPE *InitWipe(WIPE *wipe);
@@ -142,7 +134,7 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
     case WIPE_TRANSITION:
         return;
     }
-    if (IsSameFileRecord(&D_003DD490.currentLevel, &transition->fileRecord))
+    if (IsSameFileRecord(&D_003DD490.currentLevel, &transition->destinationLevel))
         transition->flags |= TRANS_SAME_LEVEL;
     else
         transition->flags &= ~TRANS_SAME_LEVEL;
@@ -176,10 +168,10 @@ extern "C" void WipeToWorldWarp(SW *world, FILEREC *fileRecord, int warpOid, int
 {
     TRANS trans;
     FILEREC *currentRecord = &world->currentLevel;
-    FILEREC *targetRecord = &trans.fileRecord;
+    FILEREC *targetRecord = &trans.destinationLevel;
     *targetRecord = *(fileRecord ? fileRecord : currentRecord);
-    trans.warpOid = warpOid;
-    trans.warpContextOid = warpContextOid;
+    trans.oidWarpDest = warpOid;
+    trans.oidWarpContext = warpContextOid;
     trans.flags = flags;
     if (IsSameFileRecord(targetRecord, currentRecord)) trans.flags |= TRANS_SAME_LEVEL;
     if (wipeWidgetOid != -1)

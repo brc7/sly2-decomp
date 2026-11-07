@@ -212,17 +212,12 @@ extern "C" SW *SW_ctor(SW *world)
 }
 } // namespace M_SW_ctor
 
-namespace M_SetSwTransition { extern "C" {
-typedef struct TRANS { int a[0x4C / 4]; } TRANS;   /* the request: flags, destination FILEREC, warp oid, warp context oid */
-typedef struct SWT { char pad[0x3BF0]; int fTransitionPending; TRANS request; } SWT;   /* SW +0x3BF0, +0x3BF4.. */
-void SetSwTransition(SWT *world, TRANS *request) __asm__("SetSwTransition");
-// Posts a level transition: sets isTransitionPending and copies the request to SW +0x3BF4.. for ExecuteSwTransition.
-void SetSwTransition(SWT *world, TRANS *request)
+// Posts a level transition: sets isTransitionPending and copies the request to SW::transition for ExecuteSwTransition.
+extern "C" void SetSwTransition(SW *world, TRANS *request)
 {
-    world->fTransitionPending = 1;
-    world->request = *request;
+    world->isTransitionPending = 1;
+    world->transition = *request;
 }
-} } // namespace M_SetSwTransition
 
 namespace M_func_0020E040 { extern "C" {
 extern int D_00443740;

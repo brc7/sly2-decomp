@@ -208,7 +208,7 @@ void PostLoadStepplayer(struct P *player)
         ((void (*)(void *))e->pfn)((char *)player + e->d);
     }
     LoadStepplayerGadgets(player);
-    BindStepplayerHpMp(player, D_003DD490.grfTransition & 4);
+    BindStepplayerHpMp(player, D_003DD490.transition.flags & 4);
     player->x1088 = EnsureTargetRecordById(player);
     SetSoMass(player, 0.25f);
     if (player->pso->x94 == 0) {
@@ -2434,7 +2434,7 @@ void RestoreStepplayerBooty(struct O *player)
     n = r.tag;
     Decref__4CRef(&r);
     if ((unsigned int)(n + 1) < 2) return;
-    if ((*(int *)&g_sw.grfTransition) & 0x40) ClearStepplayerBootySave(player, n);
+    if (g_sw.transition.flags & 0x40) ClearStepplayerBootySave(player, n);
     else SpawnStepplayerBootyMarker(player, n);
 }
 } } // namespace M_func_00143BD8
