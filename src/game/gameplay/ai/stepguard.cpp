@@ -61,6 +61,18 @@ enum {
     SGF_JUGGLED = 0x17,
     SGF_COMBAT = 0x1D,
 };
+/* Special states (STEPGUARD +0xFBC, -1 none): the values are the ids of the gadgets that cause them
+   (docs/engine/guards-ai.md section 4). */
+enum {
+    SPECIAL_NONE = -1,
+    SPECIAL_SIZE_DESTABILIZER = 0x8,
+    SPECIAL_GADGET_0B = 0xB,            /* not identified; bosses are immune */
+    SPECIAL_REDUCTION_BOMB = 0xD,
+    SPECIAL_TEMPORAL_LOCK = 0xE,
+    SPECIAL_GUTTURAL_ROAR = 0x15,
+    SPECIAL_INSANITY_STRIKE = 0x22,
+    SPECIAL_RAGE_BOMB = 0x25,
+};
 
 /* The guard's mover (at STEPGUARD +0xFD0, which guard.h leaves unnamed; tu_144B28.cpp reads the same bytes as a
    JTGOAL): a lock flag and the owning guard at +0xC. */
@@ -592,7 +604,7 @@ void ClearStepguardState(struct S *guard)
     guard->unknownFF4 = D_002A8610;
     guard->removalMode = D_002C3CF0;
     SetStepguardPickpocketState(guard, -1);
-    SetStepguardSpecial(guard, -1);
+    SetStepguardSpecial(guard, SPECIAL_NONE);
 }
 } } // namespace M_ClearStepguardState
 
@@ -853,7 +865,7 @@ namespace RO_ORDER { extern const float r_D_002A8614 __asm__("D_002A8614") = -3.
 // 0x206EB0 CanSetStepguardSpecial
 namespace M_func_00206EB0 { extern "C" {
 struct X;
-struct X { char pad[0x4C]; int n4C; };
+struct X { char pad[0x4C]; int isScriptBusy; /* (inferred) */ };
 int StepguardHasSgf(void *p, int n);
 struct X *FindStepBhv(void *p, int n);
 int IsStepguardRageImmune(void *p);
@@ -861,30 +873,30 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 
 // 0x206EB0: True if special state `special` may be entered now (rules per state: never while dead or script-busy;
 // some states not for bosses or rage-immune guards).
-int CanSetStepguardSpecial(void *p, int k)
+int CanSetStepguardSpecial(void *guard, int special)
 {
-    struct X *x;
-    if (k == -1)
+    struct X *bhv;
+    if (special == -1)
         return 1;
-    if (StepguardHasSgf(p, SGF_KO))
+    if (StepguardHasSgf(guard, SGF_KO))
         return 0;
-    x = FindStepBhv(p, CID_BHV169);
-    if (x && x->n4C)
+    bhv = FindStepBhv(guard, CID_BHV169);
+    if (bhv && bhv->isScriptBusy)
         return 0;
-    switch (k) {
-    case 8:
-    case 0xD:
-    case 0xE:
+    switch (special) {
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+    case SPECIAL_TEMPORAL_LOCK:
         return 1;
-    case 0x15:
-        return !(FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEARCUB));
-    case 0x22:
-    case 0x25:
-        return !IsStepguardRageImmune(p);
-    case 0xB:
-        return !(FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_DIMITRI) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_RAJAN) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_CONTESSA) ||
-                 FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_ARPEGGIO) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_CARMELITA) ||
-                 FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_NEELA) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BEARCUB));
+    case SPECIAL_GUTTURAL_ROAR:
+        return !(FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
+        return !IsStepguardRageImmune(guard);
+    case SPECIAL_GADGET_0B:
+        return !(FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_DIMITRI) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_RAJAN) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CONTESSA) ||
+                 FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_ARPEGGIO) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CARMELITA) ||
+                 FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_NEELA) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
     }
     return 0;
 }
@@ -893,14 +905,14 @@ int CanSetStepguardSpecial(void *p, int k)
 namespace RO_ORDER { extern const float r_D_002A8698 __asm__("D_002A8698") = 3.40282347e+38f; }
 // 0x207030 SetStepguardSpecial
 namespace M_SetStepguardSpecial { extern "C" {
-struct V3; struct Y14; struct Y; struct X; struct Z; struct S;
+struct V3; struct ASEGDEF; struct ASEGA; struct BHVANIM; struct BHVGUARD; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-struct Y14 { char pad[0x78]; float f78; };
-struct Y { char pad[0x14]; struct Y14 *p14; };
-struct X { char pad[0x40]; void *p40; };
-struct Z { char pad[0x30]; int k30; char pad2[0x40 - 0x34]; int n40; float f44; };
-struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int k; float t; void *unknownFC4; };
+struct ASEGDEF { char pad[0x78]; float defaultSpeed; };
+struct ASEGA { char pad[0x14]; struct ASEGDEF *def; };
+struct BHVANIM { char pad[0x40]; void *binding; };
+struct BHVGUARD { char pad[0x30]; int modeKind; char pad2[0x40 - 0x34]; int modeObject; float modeAmount; };
+struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int special; float specialStartTime; void *scaleAct; };
 extern struct { float t; float dt; } D_002DDED0;
 extern qword D_002A2DE0;
 extern qword D_002C3D30;
@@ -913,83 +925,83 @@ void RemoveStepguardRageIgnoreClasses(struct S *p);
 void AddStepguardPreferClass(struct S *p, int n);
 void AddStepguardRageIgnoreClasses(struct S *p);
 void *FindStepBhv(struct S *p, int n);
-struct Y *GetAnimBindingInstance(void *p);
-void SetAsegaMasterSpeed(struct Y *y, float f);
+struct ASEGA *GetAnimBindingInstance(void *p);
+void SetAsegaMasterSpeed(struct ASEGA *y, float f);
 int PpoHero(void *p);
-void ResumeBhvguard(struct Z *z);
+void ResumeBhvguard(struct BHVGUARD *bhv);
 
 // 0x207030: Sets the gadget/status special state (+0xFBC, time +0xFC0): 8/0xD shrink, 0xE time-frozen, 0x22/0x25
 // rage (attack other guards), 0x15 and 0xB others; leaving a state undoes it.
-void SetStepguardSpecial(struct S *guard, int k)
+void SetStepguardSpecial(struct S *guard, int special)
 {
     int old;
-    if (k == guard->k)
+    if (special == guard->special)
         return;
-    if (!CanSetStepguardSpecial(guard, k))
+    if (!CanSetStepguardSpecial(guard, special))
         return;
-    old = guard->k;
-    guard->k = k;
-    guard->t = D_002DDED0.t;
+    old = guard->special;
+    guard->special = special;
+    guard->specialStartTime = D_002DDED0.t;
     switch (old) {
-    case 8:
-    case 0xD:
-        if (guard->unknownFC4)
-            SetActPositionGoal(guard->unknownFC4, D_002A2DE0);
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+        if (guard->scaleAct)
+            SetActPositionGoal(guard->scaleAct, D_002A2DE0);
         break;
-    case 0x22:
-    case 0x25:
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
         RemoveStepguardPreferClass(guard, CID_STEPGUARD);
         RemoveStepguardRageIgnoreClasses(guard);
         break;
-    case 0xE: {
-        struct X *x = (__typeof__(x))FindStepBhv(guard, CID_BHVANIM);
-        if (x) {
-            struct Y *y = GetAnimBindingInstance(x->p40);
-            if (y)
-                SetAsegaMasterSpeed(y, y->p14->f78);
+    case SPECIAL_TEMPORAL_LOCK: {
+        struct BHVANIM *bhv = (__typeof__(bhv))FindStepBhv(guard, CID_BHVANIM);
+        if (bhv) {
+            struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
+            if (asega)
+                SetAsegaMasterSpeed(asega, asega->def->defaultSpeed);
         }
         break;
     }
-    case 0x15: {
-        struct Z *z = (__typeof__(z))FindStepBhv(guard, CID_BHVGUARD);
-        if (z && z->k30 == 0x12 && z->n40 == PpoHero(D_003DD490) && z->f44 == D_002A8698)
-            ResumeBhvguard(z);
+    case SPECIAL_GUTTURAL_ROAR: {
+        struct BHVGUARD *bhv = (__typeof__(bhv))FindStepBhv(guard, CID_BHVGUARD);
+        if (bhv && bhv->modeKind == 0x12 && bhv->modeObject == PpoHero(D_003DD490) && bhv->modeAmount == D_002A8698)
+            ResumeBhvguard(bhv);
         break;
     }
     }
-    switch (k) {
-    case 8:
-    case 0xD:
-        if (guard->unknownFC4)
-            SetActPositionGoal(guard->unknownFC4, D_002C3D30);
+    switch (special) {
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+        if (guard->scaleAct)
+            SetActPositionGoal(guard->scaleAct, D_002C3D30);
         break;
-    case 0x22:
-    case 0x25:
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
         AddStepguardPreferClass(guard, CID_STEPGUARD);
         AddStepguardRageIgnoreClasses(guard);
         break;
-    case 0xE: {
-        struct X *x = (__typeof__(x))FindStepBhv(guard, CID_BHVANIM);
-        if (x) {
-            struct Y *y = GetAnimBindingInstance(x->p40);
-            if (y)
-                SetAsegaMasterSpeed(y, 0.0f);
+    case SPECIAL_TEMPORAL_LOCK: {
+        struct BHVANIM *bhv = (__typeof__(bhv))FindStepBhv(guard, CID_BHVANIM);
+        if (bhv) {
+            struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
+            if (asega)
+                SetAsegaMasterSpeed(asega, 0.0f);
         }
         {
-            struct V3 *pv = &guard->desiredVelocity;
-            pv->z = 0;
-            pv->y = 0;
-            pv->x = 0;
+            struct V3 *velocity = &guard->desiredVelocity;
+            velocity->z = 0;
+            velocity->y = 0;
+            velocity->x = 0;
         }
         break;
     }
-    case 0x15: {
-        struct Z *z = (__typeof__(z))FindStepBhv(guard, CID_BHVGUARD);
-        if (z) {
-            switch (z->k30) {
+    case SPECIAL_GUTTURAL_ROAR: {
+        struct BHVGUARD *bhv = (__typeof__(bhv))FindStepBhv(guard, CID_BHVGUARD);
+        if (bhv) {
+            switch (bhv->modeKind) {
             case 1: case 2: case 3: case 4:
             case 0xC: case 0x10: case 0x11: case 0x12:
-                ResumeBhvguard(z);
+                ResumeBhvguard(bhv);
                 break;
             }
         }
@@ -1003,26 +1015,26 @@ void SetStepguardSpecial(struct S *guard, int k)
 namespace M_UpdateStepguardSpecial { extern "C" {
 struct S;
 extern struct { float t; float dt; } D_002DDED0;
-extern float D_002C3D40[3];
-struct S { char pad[0xFBC]; int k; float t; };
+extern float D_002C3D40[3];    /* special-state durations: 10 s shrink, 30 s rage, 5 s roar */
+struct S { char pad[0xFBC]; int special; float specialStartTime; };
 void SetStepguardSpecial(struct S *p, int n);
 // 0x207288: Ends the special state after its duration (10 s shrink, 30 s rage, 5 s state 0x15).
 void UpdateStepguardSpecial(struct S *guard)
 {
-    switch (guard->k) {
-    case 8:
-    case 13:
-        if (D_002DDED0.t - guard->t > D_002C3D40[0])
-            SetStepguardSpecial(guard, -1);
+    switch (guard->special) {
+    case SPECIAL_SIZE_DESTABILIZER:
+    case SPECIAL_REDUCTION_BOMB:
+        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[0])
+            SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
-    case 34:
-    case 37:
-        if (D_002DDED0.t - guard->t > D_002C3D40[1])
-            SetStepguardSpecial(guard, -1);
+    case SPECIAL_INSANITY_STRIKE:
+    case SPECIAL_RAGE_BOMB:
+        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[1])
+            SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
-    case 21:
-        if (D_002DDED0.t - guard->t > D_002C3D40[2])
-            SetStepguardSpecial(guard, -1);
+    case SPECIAL_GUTTURAL_ROAR:
+        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[2])
+            SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
     }
 }
@@ -1030,24 +1042,24 @@ void UpdateStepguardSpecial(struct S *guard)
 
 // 0x207350 UpdateStepguard
 namespace M_UpdateStepguard { extern "C" {
-struct O; struct S;
+struct ATTACK; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0xC0]; void *pc; };
+struct ATTACK { char pad[0xC0]; void *activeBinding; };
 struct S {
-    char pad0[0x28]; unsigned long fl28;
-    char pad1[0x208 - 0x30]; int n208; char pad1b[0x218 - 0x20C]; qword *pq218;
+    char pad0[0x28]; unsigned long loFlags; /* bit 60: in the world */
+    char pad1[0x208 - 0x30]; void *groundSurface; char pad1b[0x218 - 0x20C]; qword *groundPosition;
     char pad2[0x26C - 0x21C]; char behaviorStack[0x34C - 0x26C]; int heldAnimation;
     char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *stuckWatch; void *hazardWatch;
-    char pad5[0x4A4 - 0x4A0]; int n4A4; char pad6[0x4B0 - 0x4A8]; qword q4B0;
-    char pad7[0xF00 - 0x4C0]; struct O *po; char pad8[0xF0C - 0xF04]; int hF0C;
-    char pad9[0xFBC - 0xF10]; int kFBC; char padA[0xFD0 - 0xFC0]; char xFD0[0x10];
+    char pad5[0x4A4 - 0x4A0]; int tracksRelocatePoint; char pad6[0x4B0 - 0x4A8]; qword relocatePoint;
+    char pad7[0xF00 - 0x4C0]; struct ATTACK *currentAttack; char pad8[0xF0C - 0xF04]; int aimAct;
+    char pad9[0xFBC - 0xF10]; int special; char padA[0xFD0 - 0xFC0]; char mover[0x10];
 };
 extern qword D_002A2DD0;
 void UpdateStep(struct S *p);
 void UpdateStepguardSpecial(struct S *p);
 void UpdateStepguardDetectTargets(struct S *p);
-int IsAnimBindingDone(void *pc);
-void SetStepguardAttack(struct S *p, struct O *po, int n, qword v);
+int IsAnimBindingDone(void *binding);
+void SetStepguardAttack(struct S *p, struct ATTACK *attack, int aimTarget, qword aimOffset);
 void UpdateStepguardAim(struct S *p);
 void StageStepguardLoot(struct S *p);
 void UpdateStuckWatch(void *p);
@@ -1059,73 +1071,74 @@ void func_001306A8(int *ph);
 
 // 0x207350: STEPGUARD vtable slot 16 (Update): step update; while in the world and not time-frozen: special-state
 // timeouts, target detection, attack animation, aim, pickpocket, components, the behaviour stack, the mover and
-// finished animations.
+// finished animations; guards that track a relocation point (named guards, inferred) record their last grounded
+// position there for the relocate behaviour.
 void UpdateStepguard(struct S *guard)
 {
     UpdateStep(guard);
-    if (((guard->fl28 >> 60) & 1) == 0)
+    if (((guard->loFlags >> 60) & 1) == 0)
         return;
-    if (guard->kFBC == 0xE)
+    if (guard->special == SPECIAL_TEMPORAL_LOCK)
         return;
     UpdateStepguardSpecial(guard);
     UpdateStepguardDetectTargets(guard);
-    if (guard->po && IsAnimBindingDone(guard->po->pc))
+    if (guard->currentAttack && IsAnimBindingDone(guard->currentAttack->activeBinding))
         SetStepguardAttack(guard, 0, 0, D_002A2DD0);
-    if (guard->hF0C)
+    if (guard->aimAct)
         UpdateStepguardAim(guard);
     if (guard->isLootStaged)
         StageStepguardLoot(guard);
     UpdateStuckWatch(guard->stuckWatch);
     UpdateHazardWatch(guard->hazardWatch);
     UpdateBhvstk(guard->behaviorStack);
-    UpdateStepguardMover(guard->xFD0);
+    UpdateStepguardMover(guard->mover);
     if (guard->heldAnimation && FAsegaRetracted(guard->heldAnimation))
         func_001306A8(&guard->heldAnimation);
-    if (guard->n4A4 && guard->n208)
-        guard->q4B0 = *guard->pq218;
+    if (guard->tracksRelocatePoint && guard->groundSurface)
+        guard->relocatePoint = *guard->groundPosition;
 }
 } } // namespace M_UpdateStepguard
 
 // 0x207468 TakeStepguardDamage
 namespace M_FTakeStepguardDamage { extern "C" {
-struct T; struct A; struct Q; struct S;
+struct LOROOTED; struct BOMB; struct ZAP; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct T { char pad[0x14]; int n14; };
-struct A { char pad[0x200]; struct T *pt; };
-struct Q { struct A *pa; int pad[2]; int nC; };
-struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char behaviorStack[4]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
-int func_001F7588(struct S *p, struct Q *q);
-void HandleBhvstkMessage(void *p, int k, struct Q *q);
+struct LOROOTED { char pad[0x14]; void *root; };
+struct BOMB { char pad[0x200]; struct LOROOTED *thrower; };
+struct ZAP { struct BOMB *source; int pad[2]; int kind; };
+struct S { char pad[0xC]; VTE *vt; char pad2[4]; void *root; char pad3[0x26C - 0x18]; char behaviorStack[4]; };
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct BOMB *object, int cid);
+int func_001F7588(struct S *p, struct ZAP *zap);
+void HandleBhvstkMessage(void *stack, int message, struct ZAP *zap);
 // 0x207468: STEPGUARD vtable slot 75 (take damage): unless the zap is lethal, ignores it when invulnerable, from
 // its own team's bomb (cid 0x4F) or rejected by the base; then forwards it to the behaviour stack (message 0xC).
-int TakeStepguardDamage(struct S *guard, struct Q *q)
+int TakeStepguardDamage(struct S *guard, struct ZAP *zap)
 {
     if (!((int (*)(void *))guard->vt[86].pfn)((char *)guard + guard->vt[86].d)) {
-        if (((int (*)(void *, int))guard->vt[76].pfn)((char *)guard + guard->vt[76].d, q->nC))
+        if (((int (*)(void *, int))guard->vt[76].pfn)((char *)guard + guard->vt[76].d, zap->kind))
             return 1;
-        if (q->pa && FIsBasicDerivedFrom__FP5BASIC3CID(q->pa, CID_BOMB) && q->pa->pt->n14 == guard->n14)
+        if (zap->source && FIsBasicDerivedFrom__FP5BASIC3CID(zap->source, CID_BOMB) && zap->source->thrower->root == guard->root)
             return 1;
-        if (!func_001F7588(guard, q))
+        if (!func_001F7588(guard, zap))
             return 0;
     }
-    HandleBhvstkMessage(guard->behaviorStack, 0xC, q);
+    HandleBhvstkMessage(guard->behaviorStack, 0xC, zap);
     return 1;
 }
 } } // namespace M_FTakeStepguardDamage
 
 // 0x207530 IsStepguardZapLethal
 namespace M_func_00207530 { extern "C" {
-struct Q; struct S;
-struct Q { char pad[0xC]; int k; int n; };
-struct S { char pad[0x338]; int n; };
+struct ZAP; struct S;
+struct ZAP { char pad[0xC]; int kind; int hpDelta; };
+struct S { char pad[0x338]; int hpMax; };
 // 0x207530: STEPGUARD vtable slot 86: true if the zap's damage reaches the maximum hit points and its kind is not
 // one of the harmless kinds (0, 1, 0x80000, 0x100000).
-int IsStepguardZapLethal(struct S *guard, struct Q *q)
+int IsStepguardZapLethal(struct S *guard, struct ZAP *zap)
 {
-    if (-q->n < guard->n)
+    if (-zap->hpDelta < guard->hpMax)
         return 0;
-    switch (q->k) {
+    switch (zap->kind) {
     case 0:
     case 1:
     case 0x80000:
@@ -1139,42 +1152,43 @@ int IsStepguardZapLethal(struct S *guard, struct Q *q)
 // 0x207598 IsStepguardInvulnerable
 namespace M_FInvulnerableStepguard { extern "C" {
 struct S;
-struct S { char pad[0x298]; int a; char pad2[0x90]; int b; };
+struct S { char pad[0x298]; int isInvulnerable298; char pad2[0x90]; int isInvulnerable32C; };
 int StepguardHasSgf(struct S *p, int n);
 // 0x207598: STEPGUARD vtable slot 76: true while invulnerable (+0x32C or +0x298 set, or flag 0x2A).
 int IsStepguardInvulnerable(struct S *guard)
 {
-    if (guard->b || guard->a) return 1;
+    if (guard->isInvulnerable32C || guard->isInvulnerable298)
+        return 1;
     return StepguardHasSgf(guard, 0x2A) != 0;
 }
 } } // namespace M_FInvulnerableStepguard
 
 // 0x2075D0 HandleStepguardMessage
 namespace M_HandleStepguardMessage { extern "C" {
-struct A; struct B; struct Q; struct S;
-struct A { char pad[0x184]; int n184; };
-struct B { char pad[0xC]; struct A *pa; };
-struct Q { struct A *pa; void *p; };
-struct S { char pad[0x26C]; char behaviorStack[0x49C - 0x26C]; struct B *pb; };
-void HandlePoMessage(struct S *p, int k, struct Q *q);
-void SetHazardWatchTarget(struct B *pb, struct A *pa);
-void HandleBhvstkMessage(void *p, int k, struct Q *q);
-// 0x2075D0: STEPGUARD vtable slot 5 (HandleMessage): PO handler; messages 4/5 attach/detach an object on component
-// +0x49C; every message is then offered to the behaviour stack.
-void HandleStepguardMessage(struct S *guard, int k, struct Q *q)
+struct OBJ; struct HAZARDWATCH; struct ATTACHMSG; struct S;
+struct OBJ { char pad[0x184]; int isHazard; /* (inferred) */ };
+struct HAZARDWATCH { char pad[0xC]; struct OBJ *target; };
+struct ATTACHMSG { struct OBJ *object; void *attachedTo; };
+struct S { char pad[0x26C]; char behaviorStack[0x49C - 0x26C]; struct HAZARDWATCH *hazardWatch; };
+void HandlePoMessage(struct S *p, int message, struct ATTACHMSG *arg);
+void SetHazardWatchTarget(struct HAZARDWATCH *watch, struct OBJ *target);
+void HandleBhvstkMessage(void *stack, int message, struct ATTACHMSG *arg);
+// 0x2075D0: STEPGUARD vtable slot 5 (HandleMessage): PO handler; messages 4/5 (an object attached to / detached from the
+// guard) point the hazard watch (+0x49C) at an attached hazard or clear it; every message is then offered to the behaviour stack.
+void HandleStepguardMessage(struct S *guard, int message, struct ATTACHMSG *arg)
 {
-    HandlePoMessage(guard, k, q);
-    switch (k) {
+    HandlePoMessage(guard, message, arg);
+    switch (message) {
     case 4:
-        if (q->p == guard && q->pa->n184)
-            SetHazardWatchTarget(guard->pb, q->pa);
+        if (arg->attachedTo == guard && arg->object->isHazard)
+            SetHazardWatchTarget(guard->hazardWatch, arg->object);
         break;
     case 5:
-        if (q->p == guard && q->pa == guard->pb->pa)
-            SetHazardWatchTarget(guard->pb, 0);
+        if (arg->attachedTo == guard && arg->object == guard->hazardWatch->target)
+            SetHazardWatchTarget(guard->hazardWatch, 0);
         break;
     }
-    HandleBhvstkMessage(guard->behaviorStack, k, q);
+    HandleBhvstkMessage(guard->behaviorStack, message, arg);
 }
 } } // namespace M_HandleStepguardMessage
 
@@ -1287,8 +1301,8 @@ extern "C" void RenderStepguardSelf(P *guard)
 namespace M_OnStepguardRemove { extern "C" {
 struct DL; struct S;
 extern struct CLOCK D_002DDED0;
-struct DL { void *a, *b; int c; };
-struct S { char pad[0xFF8]; float t; };
+struct DL { void *head, *tail; int count; };
+struct S { char pad[0xFF8]; float removalTime; };
 void OnSoRemove(struct S *p);
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 // 0x2079A0: STEPGUARD vtable slot 22 (OnRemove): base, unlinks from the world's guard list and stamps the removal
@@ -1297,7 +1311,7 @@ void OnStepguardRemove(struct S *guard)
 {
     OnSoRemove(guard);
     RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlStepguard, guard);
-    guard->t = D_002DDED0.t;
+    guard->removalTime = D_002DDED0.t;
 }
 } } // namespace M_OnStepguardRemove
 
@@ -1305,8 +1319,8 @@ void OnStepguardRemove(struct S *guard)
 namespace M_OnStepguardAdd { extern "C" {
 struct DL; struct S;
 extern float D_002A8868;
-struct DL { void *a, *b; int c; };
-struct S { char pad[0xFF8]; float t; };
+struct DL { void *head, *tail; int count; };
+struct S { char pad[0xFF8]; float removalTime; };
 void OnSoAdd(struct S *p);
 void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 // 0x2079E0: STEPGUARD vtable slot 23 (OnAdd): base, links on the world's guard list, removal time FLT_MAX.
@@ -1314,7 +1328,7 @@ void OnStepguardAdd(struct S *guard)
 {
     OnSoAdd(guard);
     AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard);
-    guard->t = D_002A8868;
+    guard->removalTime = D_002A8868;
 }
 } } // namespace M_OnStepguardAdd
 
@@ -1328,13 +1342,13 @@ unsigned long GetSgfMask(int n) { if (n == -1) return 0; return 1L << n; }
 namespace M_GrfFromSgfArray { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x207A40: Returns the OR of the masks of an array of guard flags.
-unsigned long GetSgfArrayMask(int c, int *a)
+unsigned long GetSgfArrayMask(int count, int *sgfs)
 {
-    unsigned long m = 0;
+    unsigned long mask = 0;
     int i;
-    for (i = 0; i < c; i++)
-        m |= GetSgfMask(a[i]);
-    return m;
+    for (i = 0; i < count; i++)
+        mask |= GetSgfMask(sgfs[i]);
+    return mask;
 }
 } } // namespace M_GrfFromSgfArray
 
@@ -1342,16 +1356,16 @@ unsigned long GetSgfArrayMask(int c, int *a)
 namespace M_CsgfFromGrf { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x207AA0: Lists the guard flags set in a mask (from 46 down to 0) into an array; returns the count.
-int ListSgfsInMask(unsigned long m, int *a)
+int ListSgfsInMask(unsigned long mask, int *sgfs)
 {
-    int c = 0;
-    int i;
-    for (i = 0x2E; i >= 0; i--)
-        if (m & GetSgfMask(i)) {
-            *a++ = i;
-            c++;
+    int count = 0;
+    int sgf;
+    for (sgf = 0x2E; sgf >= 0; sgf--)
+        if (mask & GetSgfMask(sgf)) {
+            *sgfs++ = sgf;
+            count++;
         }
-    return c;
+    return count;
 }
 } } // namespace M_CsgfFromGrf
 
@@ -1359,20 +1373,20 @@ int ListSgfsInMask(unsigned long m, int *a)
 namespace M_func_00207B10 { extern "C" {
 struct CRef;
 struct CRef { int tagk; int tag; };
-void func_002013D8(struct CRef *pref, void *p, int a, int b, int *pn, int *an);
-unsigned long GetSgfArrayMask(int c, int *a);
+void func_002013D8(struct CRef *ref, void *list, int type, int capacity, int *count, int *values);
+unsigned long GetSgfArrayMask(int count, int *sgfs);
 void Decref__4CRef(struct CRef *pref);
 // 0x207B10: Converts a Splice list of guard-flag enums (type 0x1010) to a mask.
-unsigned long GetSgfMaskFromSpliceList(void *p)
+unsigned long GetSgfMaskFromSpliceList(void *list)
 {
-    int an[16];
+    int sgfs[16];
     struct CRef ref;
-    int c;
-    unsigned long m;
-    func_002013D8(&ref, p, 0x1010, 0x10, &c, an);
-    m = GetSgfArrayMask(c, an);
+    int count;
+    unsigned long mask;
+    func_002013D8(&ref, list, 0x1010, 0x10, &count, sgfs);
+    mask = GetSgfArrayMask(count, sgfs);
     Decref__4CRef(&ref);
-    return m;
+    return mask;
 }
 } } // namespace M_func_00207B10
 
