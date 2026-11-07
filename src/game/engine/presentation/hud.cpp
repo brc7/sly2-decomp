@@ -1445,11 +1445,8 @@ extern "C" void SetWidgetAnimXf(WIDGET *widget, int animId, SPRITEXF *xform)
 }
 
 // 0x213DB0 SwitchWidgetAnim
-namespace M_SwitchWidgetAnim { extern "C" {
-void StopWidgetAnim(void *p, int k);
-void PlayWidgetAnim(void *p, int k);
 // Stops the animation in *pk, plays the new one and stores its id.
-void SwitchWidgetAnim(void *widget, int animId, int *currentAnimId)
+extern "C" void SwitchWidgetAnim(WIDGET *widget, int animId, int *currentAnimId)
 {
     if (animId == *currentAnimId)
         return;
@@ -1459,7 +1456,6 @@ void SwitchWidgetAnim(void *widget, int animId, int *currentAnimId)
     if (animId != -1)
         PlayWidgetAnim(widget, animId);
 }
-} } // namespace M_SwitchWidgetAnim
 
 // 0x213E20 FindSpriteItemPose
 namespace M_func_00213E20 { extern "C" {
