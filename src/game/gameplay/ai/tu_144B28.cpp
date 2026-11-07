@@ -29,6 +29,9 @@ enum {
     CID_MURRAY = 0x36,
     CID_BENTLEY = 0x37,
     CID_BHV168 = 0xA8,
+    CID_BHVINTERACT = 0xC3,     /* BHV195 (Murray) */
+    CID_BHVINTERACT2 = 0xC4,    /* BHV196 (Bentley) */
+    CID_BHVINTERACT3 = 0xC5,    /* BHV197 (Sly) */
 };
 /* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
    section 2). Only the identified flags are named. */
@@ -294,14 +297,14 @@ int IsBhvWalkToDone(struct BHVWALKTO *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144F48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct NAVGRAPH;
-struct D { char pad[0x10]; struct NAVGRAPH *navGraph; };
-struct C { char pad[0xDC]; struct D *unknownDC; };
+struct PATHZONE;
+struct D { char pad[0x10]; struct PATHZONE *pathZone; };
+struct C { char pad[0xDC]; struct D *region; };
 struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
-struct GUARD { char pad[0xE8]; struct C *unknownE8; char pad2[0x294 - 0xEC]; struct SHAPE *pathShape; };
+struct GUARD { char pad[0xE8]; struct C *physics; char pad2[0x294 - 0xEC]; struct SHAPE *pathShape; };
 struct P { char pad[0x10]; struct GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int usesStraightPath; char pad3[0x40 - 0x34]; qword goal; };
 qword func_001A62E8(struct GUARD *guard);
-void func_001C02D0(struct NAVGRAPH *navGraph, qword start, qword goal, struct SHAPE *path);
+void func_001C02D0(struct PATHZONE *pathZone, qword start, qword goal, struct SHAPE *path);
 void MeasureShape(struct SHAPE *shape);
 void SetBhvpathShape(void *path, struct SHAPE *shape, int n);
 // 0x144F40: dead-code scrap (sly2/scrap.h)
@@ -316,16 +319,16 @@ void SetBhvWalkToGoal(struct P *behavior, qword goal)
         return;
     struct GUARD *guard = behavior->guard;
     struct SHAPE *path = guard->pathShape;
-    struct D *d = guard->unknownE8 ? guard->unknownE8->unknownDC : 0;
-    struct NAVGRAPH *navGraph = d ? d->navGraph : 0;
+    struct D *d = guard->physics ? guard->physics->region : 0;
+    struct PATHZONE *pathZone = d ? d->pathZone : 0;
     qword start = func_001A62E8(guard);
-    if (!navGraph || behavior->usesStraightPath) {
+    if (!pathZone || behavior->usesStraightPath) {
         path->pointCount = 2;
         path->points[0] = start;
         path->points[1] = behavior->goal;
         MeasureShape(path);
     } else {
-        func_001C02D0(navGraph, start, behavior->goal, path);
+        func_001C02D0(pathZone, start, behavior->goal, path);
     }
     SetBhvpathShape(behavior->child, path, 0);
 }
@@ -334,14 +337,14 @@ void SetBhvWalkToGoal(struct P *behavior, qword goal)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitBhvfollow { extern "C" {
 void InitBhv(void *p);
-struct X { char pad[0x60]; int state; int pad2; float unknown68, distanceNear, distanceFar, speedNear, speedFar; };
+struct X { char pad[0x60]; int state; int pad2; float velocityLeadTime, distanceNear, distanceFar, speedNear, speedFar; };
 // 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
 // factors (0.25/250/350/1.0/1.2).
 void InitBhvfollow(struct X *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
-    behavior->unknown68 = 0.25f;
+    behavior->velocityLeadTime = 0.25f;
     behavior->distanceNear = 250.0f;
     behavior->distanceFar = 350.0f;
     behavior->speedNear = 1.0f;
@@ -465,9 +468,9 @@ namespace M_UpdateBhvfollow { extern "C" {
 // UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline GClamp.
 typedef int qword __attribute__((mode(TI)));
 struct LM { float gMin, gMax; };
-struct D { char pad[0x10]; void *navGraph; };
-struct C { char pad[0xDC]; struct D *unknownDC; };
-struct PO { char pad[0xE8]; struct C *unknownE8; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
+struct D { char pad[0x10]; void *pathZone; };
+struct C { char pad[0xDC]; struct D *region; };
+struct PO { char pad[0xE8]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
 struct X { char pad[0x40]; int usesStraightPath; };
 struct SO;
 struct P {
@@ -590,9 +593,9 @@ void UpdateBhvfollow(struct P *behavior)
             break;
     }
     if (behavior->state == 0) {
-        struct D *d = behavior->guard->unknownE8 ? behavior->guard->unknownE8->unknownDC : 0;
-        void *navGraph = d ? d->navGraph : 0;
-        if (!navGraph)
+        struct D *d = behavior->guard->physics ? behavior->guard->physics->region : 0;
+        void *pathZone = d ? d->pathZone : 0;
+        if (!pathZone)
             behavior->child->usesStraightPath = 1;
         if (FFar(behavior->followPoint, leaderPos))
             UpdateBhvfollowPosition(behavior);
@@ -615,17 +618,17 @@ namespace M_func_001457A8 {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct M4 { qword r[4]; };
-struct E;
-struct D { char pad[0x10]; E *pe; };
-struct C { char pad[0xDC]; D *pd; };
-struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
-struct A { char pad[0xE8]; C *pc; char pad2[0x294 - 0xEC]; B *pb; };
+struct PATHZONE;
+struct D { char pad[0x10]; PATHZONE *pathZone; };
+struct C { char pad[0xDC]; D *region; };
+struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
+struct GUARD { char pad[0xE8]; C *physics; char pad2[0x294 - 0xEC]; SHAPE *pathShape; };
 struct O;
-struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };
-struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword q190; char pad3[0x1A8 - 0x1A0]; float g1A8; };
+struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };   /* slot 33: velocity */
+struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword velocity; char pad3[0x1A8 - 0x1A0]; float heading; };
 struct P {
-    char pad[0x10]; A *pa; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; O *po; char pad3[0x40 - 0x34];
-    qword q40; qword q50; char pad4[0x68 - 0x60]; float g68;
+    char pad[0x10]; GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; O *leader; char pad3[0x40 - 0x34];
+    qword followOffset; qword followPoint; char pad4[0x68 - 0x60]; float velocityLeadTime;
 };
 extern "C" {
 extern qword D_002A2DC0;
@@ -633,10 +636,10 @@ qword func_001A62E8(void *p);
 M3 *func_001A6318(void *p);
 M3 func_0011B500(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-E *GetBhvfollowLeaderGround(P *p);
-int func_001C02D0(E *pe, qword r, qword v, B *pb);
-void MeasureShape(B *pb);
-void SetBhvpathShape(void *p, B *pb, int n);
+PATHZONE *GetBhvfollowLeaderGround(P *behavior);
+int func_001C02D0(PATHZONE *pathZone, qword start, qword goal, SHAPE *path);
+void MeasureShape(SHAPE *shape);
+void SetBhvpathShape(void *path, SHAPE *shape, int n);
 void UpdateBhvfollowPosition(P *p);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
@@ -680,39 +683,41 @@ static inline qword Add(qword a, qword b)
     return r;
 }
 
-// 0x1457A8: Computes the follow position behind the leader (using its facing when it is a step).
+// 0x1457A8: Computes the follow position: the leader's position offset by its velocity (lead time
+// +0x68) and by the follow offset (+0x40) in the leader's frame (its heading for a step, its orientation otherwise),
+// then routes the walk-goal child there through the follower's path zone (or straight when it has none).
 void UpdateBhvfollowPosition(P *behavior)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
-    behavior->q50 = func_001A62E8(behavior->po);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->po, CID_STEP)) {
-        O *po = behavior->po;
-        u.s.m = func_0011B500(D_002A2DC0, po->g1A8);
-        u.s.pos = AddScaled(behavior->q50, VU_FLOAT(-behavior->g68), MulM3(u.s.m, po->q190));
+    behavior->followPoint = func_001A62E8(behavior->leader);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEP)) {
+        O *leader = behavior->leader;
+        u.s.m = func_0011B500(D_002A2DC0, leader->heading);
+        u.s.pos = AddScaled(behavior->followPoint, VU_FLOAT(-behavior->velocityLeadTime), MulM3(u.s.m, leader->velocity));
     } else {
-        O *po;
-        u.s.m = *func_001A6318(behavior->po);
-        po = behavior->po;
-        u.s.pos = AddScaled(behavior->q50, VU_FLOATM(behavior->g68), po->vt->pfn((O *)((char *)po + po->vt->d)));
+        O *leader;
+        u.s.m = *func_001A6318(behavior->leader);
+        leader = behavior->leader;
+        u.s.pos = AddScaled(behavior->followPoint, VU_FLOATM(behavior->velocityLeadTime), leader->vt->pfn((O *)((char *)leader + leader->vt->d)));
     }
-    u.s.pos = Add(u.s.pos, MulM3(u.s.m, behavior->q40));
+    u.s.pos = Add(u.s.pos, MulM3(u.s.m, behavior->followOffset));
     {
-        A *pa = behavior->pa;
-        B *pb = pa->pb;
-        D *pd = pa->pc ? pa->pc->pd : 0;
-        E *pe = pd ? pd->pe : 0;
-        qword r = func_001A62E8(pa);
-        if (!pe) {
-            pb->k = 2;
-            pb->pq[0] = r;
-            pb->pq[1] = u.s.pos;
-            MeasureShape(pb);
-        } else if (GetBhvfollowLeaderGround(behavior) != pe) {
-            func_001C02D0(pe, r, r, pb);
-        } else if (!func_001C02D0(pe, r, u.s.pos, pb)) {
-            func_001C02D0(pe, r, r, pb);
+        GUARD *guard = behavior->guard;
+        SHAPE *path = guard->pathShape;
+        D *d = guard->physics ? guard->physics->region : 0;
+        PATHZONE *pathZone = d ? d->pathZone : 0;
+        qword start = func_001A62E8(guard);
+        if (!pathZone) {
+            path->pointCount = 2;
+            path->points[0] = start;
+            path->points[1] = u.s.pos;
+            MeasureShape(path);
+        } else if (GetBhvfollowLeaderGround(behavior) != pathZone) {
+            func_001C02D0(pathZone, start, start, path);   /* leader in another zone: stay */
+        } else if (!func_001C02D0(pathZone, start, u.s.pos, path)) {
+            func_001C02D0(pathZone, start, start, path);
         }
-        SetBhvpathShape(behavior->child, pb, 0);
+        SetBhvpathShape(behavior->child, path, 0);
     }
 }
 } // namespace M_func_001457A8
@@ -720,35 +725,42 @@ void UpdateBhvfollowPosition(P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001459C0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct E;
-struct D { char pad[0x10]; struct E *pe; };
-struct C { char pad[0xDC]; struct D *pd; };
-struct A { char pad[0xE8]; struct C *pc; };
-struct SO { char pad[0x18]; int k; };
-struct X30 { char pad[0x2DC]; int x2DC; };
-struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *leader; char pad3[0x80 - 0x34]; qword pos; };
-struct SO *GetBhvfollowLeaderGround(struct P *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+struct PATHZONE;
+struct D { char pad[0x10]; struct PATHZONE *pathZone; };
+struct C { char pad[0xDC]; struct D *region; };
+struct GUARD { char pad[0xE8]; struct C *physics; };
+struct SO { char pad[0x18]; int oid; };
+struct LEADER { char pad[0x2DC]; int airState; };
+struct P { char pad[0x10]; struct GUARD *guard; char pad2[0x30 - 0x14]; struct LEADER *leader; char pad3[0x80 - 0x34]; qword landingPoint; };
+struct SO *GetBhvfollowLeaderGround(struct P *behavior);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 qword func_001A62E8(void *p);
-int func_001C09A0(struct SO *object, qword pos, int n);
-int SnapToGround(qword *ppos, float a, float b, int c, int d);
-// 0x1459C0: True if the leader stands on a different ground object than the follower.
+int func_001C09A0(struct SO *ground, qword pos, int n);
+int SnapToGround(qword *pos, float above, float below, int c, int d);
+// 0x1459C0: True if the leader has landed on a different path zone than the follower's (not zone oid
+// 0x2CA); stores the snapped landing point (+0x80) for state 1.
 int IsBhvfollowLeaderOnNewGround(struct P *behavior)
 {
-    struct SO *object = GetBhvfollowLeaderGround(behavior);
-    struct D *pd;
-    struct E *pe;
+    struct SO *ground = GetBhvfollowLeaderGround(behavior);
+    struct D *d;
+    struct PATHZONE *pathZone;
     qword pos;
-    if (!object) return 0;
-    pd = behavior->pa->pc ? behavior->pa->pc->pd : 0;
-    pe = pd ? pd->pe : 0;
-    if ((struct E *)object == pe) return 0;
-    if (object->k == 0x2CA) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEPPLAYER) && behavior->leader->x2DC != -1) return 0;
+    if (!ground)
+        return 0;
+    d = behavior->guard->physics ? behavior->guard->physics->region : 0;
+    pathZone = d ? d->pathZone : 0;
+    if ((struct PATHZONE *)ground == pathZone)
+        return 0;
+    if (ground->oid == 0x2CA)
+        return 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEPPLAYER) && behavior->leader->airState != -1)
+        return 0;   /* still in the air */
     pos = func_001A62E8(behavior->leader);
-    if (!func_001C09A0(object, pos, 0)) return 0;
-    if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0)) return 0;
-    behavior->pos = pos;
+    if (!func_001C09A0(ground, pos, 0))
+        return 0;
+    if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0))
+        return 0;
+    behavior->landingPoint = pos;
     return 1;
 }
 } } // namespace M_func_001459C0
@@ -781,54 +793,57 @@ extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 namespace M_SetBhvfollowState { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad1[0x38 - 0x10]; int x38; char pad2[0xC0 - 0x3C]; int xC0; int xC4; float gC8; };
-struct X30 { char pad[0x150]; int x150; };
+struct O { char pad[0xC]; struct VTE *vt; char pad1[0x38 - 0x10]; int target; /* interact */ char pad2[0xC0 - 0x3C]; int mirrorPoctl; int mirrorButtonMask; float mirrorDelay; /* walk-goal */ };
+struct LEADER { char pad[0x150]; int poctl; };
 struct P {
-    char pad[0x10]; void *guard; char pad1[4]; char m18[0x30 - 0x18]; struct X30 *leader; char pad2[0x60 - 0x34];
-    int state; float stateTime; char pad3[0x80 - 0x68]; qword v80; int x90;
+    char pad[0x10]; void *guard; char pad1[4]; char childSlot[0x30 - 0x18]; struct LEADER *leader; char pad2[0x60 - 0x34];
+    int state; float stateTime; char pad3[0x80 - 0x68]; qword landingPoint; int threat;
 };
 extern struct CLOCK D_002DDED0;
-void PopBhv(void *p);
-struct O *PushStepBhv(void *p, int oid);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+void PopBhv(void *slot);
+struct O *PushStepBhv(void *guard, int cid);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 float GRandInRange__Fff(float a, float b);
-void UpdateBhvfollowPosition(struct P *p);
-void func_0019F540(void *p, qword v);
-int CidBasic(void *p);
-// Matching helper: pushes the behaviour of class `oid` on the owner, hands it the goal at +0x90 and starts it (vtable slot 8).
-static __inline__ void Activate(struct P *p, int oid)
+void UpdateBhvfollowPosition(struct P *behavior);
+void func_0019F540(void *guard, qword pos);
+int CidBasic(void *object);
+// Matching helper: pushes the interact behaviour of class `cid` on the owner, hands it the threat (+0x90) as its target
+// and starts it (vtable slot 8).
+static __inline__ void Activate(struct P *behavior, int cid)
 {
-    struct O *po = PushStepBhv(p->guard, oid);
-    po->x38 = p->x90;
-    po->vt[8].pfn((char *)po + po->vt[8].d);
+    struct O *child = PushStepBhv(behavior->guard, cid);
+    child->target = behavior->threat;
+    child->vt[8].pfn((char *)child + child->vt[8].d);
 }
-// 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position.
+// 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position
+// (mirroring the leader's button 8), 1 moves the follower to the leader's landing point, 2 pushes the partner's
+// interact behaviour (by class) against the threat.
 void SetBhvfollowState(struct P *behavior, int state)
 {
     if (state == behavior->state) return;
-    PopBhv(behavior->m18);
+    PopBhv(behavior->childSlot);
     behavior->state = state;
     behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O *po = PushStepBhv(behavior->guard, CID_BHV168);
+        struct O *child = PushStepBhv(behavior->guard, CID_BHV168);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_PO)) {
-            po->xC0 = behavior->leader->x150;
-            po->xC4 = 8;
-            po->gC8 = GRandInRange__Fff(0.1f, 0.3f);
+            child->mirrorPoctl = behavior->leader->poctl;   /* copy the leader's button 8 after 0.1..0.3 s */
+            child->mirrorButtonMask = 8;
+            child->mirrorDelay = GRandInRange__Fff(0.1f, 0.3f);
         }
         UpdateBhvfollowPosition(behavior);
-        po->vt[8].pfn((char *)po + po->vt[8].d);
+        child->vt[8].pfn((char *)child + child->vt[8].d);
         break;
     }
     case 1:
-        func_0019F540(behavior->guard, behavior->v80);
+        func_0019F540(behavior->guard, behavior->landingPoint);
         break;
     case 2:
         switch (CidBasic(behavior->guard)) {
-        case 0x36: Activate(behavior, 0xC3); break;
-        case 0x37: Activate(behavior, 0xC4); break;
-        case 0x35: Activate(behavior, 0xC5); break;
+        case CID_MURRAY: Activate(behavior, CID_BHVINTERACT); break;
+        case CID_BENTLEY: Activate(behavior, CID_BHVINTERACT2); break;
+        case CID_JT: Activate(behavior, CID_BHVINTERACT3); break;
         }
         break;
     }
