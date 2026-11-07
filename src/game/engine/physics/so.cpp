@@ -995,37 +995,32 @@ extern "C" void PostSoLoad(SO *so)
 
 // 0x1F36E0 UpdateSo
 namespace M_UpdateSo { extern "C" {
-struct VTE; struct VT; struct E; struct P; 
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[10]; };
-struct E { char pad[0xDC]; void *region; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0xE8 - 0x10]; struct E *physics; char pad3[0x12C - 0xEC]; float alpha; float alphaRate; };
 extern struct CLOCK D_002DDED0;
-void UpdateLo(struct P *);
-qword GetLoWorldPos(struct P *);
+void UpdateLo(SO *);
+qword GetLoWorldPos(SO *);
 void *FindPathzoneAtPos(qword, int);
-void SetSoPhysRegion(struct P *, void *);
+void SetSoPhysRegion(SO *, void *);
 // Slot 16 (Update): UpdateLo, refreshes the physics region from the position and advances the fade (alpha +=
 // rate * dt), removing the object when it fades to 0.
-void UpdateSo(struct P *so)
+void UpdateSo(SO *so)
 {
     void *q;
     float d;
     UpdateLo(so);
-    q = so->physics ? so->physics->region : 0;
+    q = so->physics ? so->physics->pregent : 0;
     if (q) SetSoPhysRegion(so, FindPathzoneAtPos(GetLoWorldPos(so), 1));
-    d = so->alphaRate;
+    d = so->opacitySpeed;
     if (d != 0.0f) {
-        float v = so->alpha + D_002DDED0.deltaTime * d;
-        so->alpha = v;
+        float v = so->opacity + D_002DDED0.deltaTime * d;
+        so->opacity = v;
         if (v <= 0.0f) {
-            so->alpha = 0.0f;
-            so->alphaRate = 0.0f;
-            so->pvt->a[9].pfn((char *)so + so->pvt->a[9].d);
+            so->opacity = 0.0f;
+            so->opacitySpeed = 0.0f;
+            so->Remove();
         } else if (1.0f <= v) {
-            so->alpha = 1.0f;
-            so->alphaRate = 0.0f;
+            so->opacity = 1.0f;
+            so->opacitySpeed = 0.0f;
         }
     }
 }
@@ -1293,64 +1288,45 @@ void RenderSoAll(struct P *so, int a, struct B *pb, float f1, float f2)
 
 // 0x1F3E00 OnSoRemove
 namespace M_OnSoRemove { extern "C" {
-struct VTE; struct VT; struct L; struct E;
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[50]; };
-struct E;
-struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xEC - 0x74]; struct E *tree; };
-struct E { char pad[0x60]; struct L *rootSo; };
-struct DL;
-void OnLoRemove(struct L *);
-void RemoveLoFromRenderTree(struct L *);
-void RemoveDlEntry__FP2DLPv(struct DL *, void *);
-#define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
+void OnLoRemove(SO *);
+void RemoveLoFromRenderTree(SO *);
 // Slot 22 (OnRemove): the object leaves the active world: base LO freeze, unregister, children, and if it owns its
 // tree, a final bounds update and removal from g_sw.dlSoTree.
-void OnSoRemove(struct L *so)
+void OnSoRemove(SO *so)
 {
-    struct L *q;
+    LO *q;
     int unused[4];
     OnLoRemove(so);
     RemoveLoFromRenderTree(so);
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) VF(q, 22);
-    if (so->tree && so->tree->rootSo == so) {
-        VF(so, 49);
-        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, so->tree);
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) q->OnRemove();
+    if (so->physicsTree && so->physicsTree->root == so) {
+        so->UpdateBounds();
+        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, so->physicsTree);
     }
 }
 } } // namespace M_OnSoRemove
 
 // 0x1F3EA8 OnSoAdd
 namespace M_OnSoAdd { extern "C" {
-struct VTE; struct VT; struct L; struct E;
-typedef unsigned long ulong;
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[50]; };
-struct E;
-struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int flagWord; char pad2[0x64 - 0x44]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xEC - 0x74]; struct E *tree; char pad5[0x148 - 0xF0]; ulong flags; };
-struct E { char pad[0x60]; struct L *rootSo; };
-struct DL;
-void OnLoAdd(struct L *);
-void AddLoToRenderTree(struct L *);
-int IsEntryInDl__FP2DLPv(struct DL *, void *);
-void AppendDlEntry__FP2DLPv(struct DL *, void *);
-#define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
+void OnLoAdd(SO *);
+void AddLoToRenderTree(SO *);
+int IsEntryInDl__FP2DLPv(DL *, void *);
 // Slot 23 (OnAdd): the object enters the active world: base LO unfreeze, re-register, children, and its tree joins
 // g_sw.dlSoTree with fresh bounds.
-void OnSoAdd(struct L *so)
+void OnSoAdd(SO *so)
 {
-    struct L *q;
+    LO *q;
     int unused[4];
     OnLoAdd(so);
-    if (so->flags & (1L << 35)) {
-        int v = so->flagWord;
+    if (so->unknownFlag148A) {
+        int v = so->unknown40;
         if ((v ^ 1) & 1) v = *(int *)v;
         if (v & 8) AddLoToRenderTree(so);
     }
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) VF(q, 23);
-    if (so->tree && so->tree->rootSo == so) {
-        if (!IsEntryInDl__FP2DLPv((DL *)&g_sw.dlSoTree, so->tree)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->tree);
-        VF(so, 49);
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) q->OnAdd();
+    if (so->physicsTree && so->physicsTree->root == so) {
+        if (!IsEntryInDl__FP2DLPv((DL *)&g_sw.dlSoTree, so->physicsTree)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->physicsTree);
+        so->UpdateBounds();
     }
 }
 } } // namespace M_OnSoAdd
