@@ -18,13 +18,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* One cheat code (0x38 bytes; 15 static codes from D_002BD4E0). */
 struct CODE
 {
-    int *abtn;              /* +0x0 button sequence */
-    int cbtn;               /* +0x4 */
-    void (*pfn)(void *);    /* +0x8 action */
-    void *pv;               /* +0xC its argument */
-    int ibtn;               /* +0x10 buttons matched so far */
-    int fRemove;            /* +0x14 one-shot: unlink after firing */
-    CODE *pcodeNext;        /* +0x18 SL link */
+    int *buttons;              /* +0x0 button sequence */
+    int numButtons;               /* +0x4 */
+    void (*action)(void *); /* +0x8 */
+    void *actionArg;        /* +0xC */
+    int numMatched;               /* +0x10 buttons matched so far */
+    int isOneShot;            /* +0x14 one-shot: unlink after firing */
+    CODE *next;        /* +0x18 SL link */
     char pad[0x38 - 0x1C];
 };
 typedef char assert_CODE_size[sizeof(CODE) == 0x38 ? 1 : -1];
@@ -33,7 +33,7 @@ typedef char assert_CODE_size[sizeof(CODE) == 0x38 ? 1 : -1];
 struct CODES
 {
     SL sl;                  /* +0x0 */
-    float tMatch;           /* +0xC */
+    float checkTime;           /* +0xC */
 };
 
 /* Safe iterator over an SL (the SL counterpart of sly2/dli.h; its own stack at D_002DD2F8). */
@@ -94,8 +94,8 @@ extern "C" int AddCode(CODES *codes, CODE *pcode)
     int r = FFindSlEntry(codes, pcode);
     if (r) return r;
     func_0011A070(codes, pcode);
-    if (*pcode->abtn == (*(int *)&g_joy.grfbtn)) pcode->ibtn = 1;
-    else pcode->ibtn = 0;
+    if (*pcode->buttons == (*(int *)&g_joy.grfbtn)) pcode->numMatched = 1;
+    else pcode->numMatched = 0;
 }
 
 // 0x14BF10: dead-code scrap (sly2/scrap.h)
@@ -104,8 +104,8 @@ SLY2_SCRAP("sw $2, 0x14($5)");
 // Resets every code's match position to the start.
 extern "C" void _ResetCodes(CODES *codes)
 {
-    for (CODE *pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->pcodeNext)
-        pcode->ibtn = 0;
+    for (CODE *pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->next)
+        pcode->numMatched = 0;
 }
 
 // Feeds one new button press of the first pad (g_joy) into every unfinished code while the cheat entry is open: a
@@ -117,14 +117,14 @@ extern "C" void _MatchCodes(CODES *codes, JOYV *pjoy, unsigned short btnPrev)
     if (btnPrev == pjoy->btn) return;
     if (!pjoy->btn) return;
     if (!D_003DA0B8) return;
-    for (pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->pcodeNext) {
-        int fDone = pcode->ibtn >= pcode->cbtn;
+    for (pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->next) {
+        int fDone = pcode->numMatched >= pcode->numButtons;
         if (!fDone) {
-            if (pcode->abtn[pcode->ibtn] == pjoy->btn) pcode->ibtn++;
-            else pcode->ibtn = 0;
+            if (pcode->buttons[pcode->numMatched] == pjoy->btn) pcode->numMatched++;
+            else pcode->numMatched = 0;
         }
     }
-    codes->tMatch = D_002DDED0.tReal + 1.0f;
+    codes->checkTime = D_002DDED0.tReal + 1.0f;
 }
 
 // One second after the last press: removes one-shot codes that already fired, picks the longest completed code,
@@ -133,28 +133,28 @@ extern "C" void UpdateCodes(CODES *codes)
 {
     SLI sli;
     CODE *pcode, *pcodeBest;
-    if (codes->tMatch == 0.0f) return;
-    if (codes->tMatch <= D_002DDED0.tReal) {
+    if (codes->checkTime == 0.0f) return;
+    if (codes->checkTime <= D_002DDED0.tReal) {
         InitSli(&sli, &codes->sl);
         pcodeBest = 0;
         while ((pcode = (CODE *)PvNextSli(&sli)) != 0) {
-            if (pcode->fRemove) {
+            if (pcode->isOneShot) {
                 RemoveSlEntry(codes, pcode);
-                pcode->ibtn = 0;
-                pcode->fRemove = 0;
+                pcode->numMatched = 0;
+                pcode->isOneShot = 0;
             } else {
-                int fReady = pcode->ibtn >= pcode->cbtn;
+                int fReady = pcode->numMatched >= pcode->numButtons;
                 if (fReady) {
-                    if (!pcodeBest || pcodeBest->cbtn < pcode->cbtn) pcodeBest = pcode;
+                    if (!pcodeBest || pcodeBest->numButtons < pcode->numButtons) pcodeBest = pcode;
                 }
             }
         }
         if (pcodeBest) {
             SetSndSourceLo(PsndStartSound(0x34), 0);
-            pcodeBest->pfn(pcodeBest->pv);
+            pcodeBest->action(pcodeBest->actionArg);
         }
         _ResetCodes(codes);
-        codes->tMatch = 0.0f;
+        codes->checkTime = 0.0f;
         D_002DD2F8 = sli.m_psliNext;
     }
 }
@@ -235,11 +235,13 @@ extern "C" void StartupCodes(CODES *codes)
 
 // ---- cheat's .data (tu-merging.md "Data"): the 15 codes StartupCodes adds (0x2BD4C8..0x2BD810, the first .data after
 // cd's in TU order). Each is its 6-button sequence (pad masks) followed by the code record: in .data the record is
-// 0x20 bytes {abtn, cbtn, pfn, pv, ibtn, fRemove, pcodeNext, 0} (CODE above declares 0x38, the size of one sequence
-// plus record), so each is spelled as its own word record. pv: the volume step (0..8), g_sndmgr+0x10, tu_15CD68's
+// 0x20 bytes {buttons, numButtons, action, actionArg, numMatched, isOneShot, next, 0} (CODE above declares 0x38, the size of one sequence
+// plus record), so each is spelled as its own word record. actionArg: the episode (0..8), g_sndmgr+0x10, tu_15CD68's
 // D_002BE26C, gadget numbers. Asm labels: the declarations above stay as the functions see them.
 namespace CHEAT_CODES {
-struct CODEREC { int *abtn; int cbtn; void (*pfn)(void *); void *pv; int ibtn; int fRemove; void *pcodeNext; int x1C; };
+/* PS2 pad button masks used by the sequences (the same masks as rhythm.cpp's prompt keys). */
+enum { PAD_R1 = 0x8, PAD_UP = 0x1000, PAD_RIGHT = 0x2000, PAD_DOWN = 0x4000, PAD_LEFT = 0x8000 };
+struct CODEREC { int *buttons; int numButtons; void (*action)(void *); void *actionArg; int numMatched; int isOneShot; void *next; int unknown1C; };
 void p_func_0014C140(void *) __asm__("CheatWipeToWarp");
 void p_func_0014C190(void *) __asm__("CheatWarpToEpisode");
 void p_CheatSetFlag(void *) __asm__("CheatSetFlag");
@@ -247,35 +249,35 @@ void p_func_0014C200(void *) __asm__("CheatUnlockCompletionReward");
 void p_CheatGiveGadget(void *) __asm__("CheatGiveGadget");
 extern "C" char d_003DD040[] __asm__("D_003DD040");
 extern "C" int k_002BE26C __asm__("D_002BE26C");
-int b_002BD4C8[6] __asm__("D_002BD4C8") = {0x8000, 0x8, 0x1000, 0x4000, 0x1000, 0x8000};
+int b_002BD4C8[6] __asm__("D_002BD4C8") = {PAD_LEFT, PAD_R1, PAD_UP, PAD_DOWN, PAD_UP, PAD_LEFT};
 CODEREC b_002BD4E0 __asm__("D_002BD4E0") = {b_002BD4C8, 6, p_func_0014C140, 0};
-int b_002BD500[6] __asm__("D_002BD500") = {0x2000, 0x8000, 0x1000, 0x1000, 0x1000, 0x8};
+int b_002BD500[6] __asm__("D_002BD500") = {PAD_RIGHT, PAD_LEFT, PAD_UP, PAD_UP, PAD_UP, PAD_R1};
 CODEREC b_002BD518 __asm__("D_002BD518") = {b_002BD500, 6, p_func_0014C190, 0};
-int b_002BD538[6] __asm__("D_002BD538") = {0x4000, 0x8, 0x8000, 0x2000, 0x8, 0x4000};
+int b_002BD538[6] __asm__("D_002BD538") = {PAD_DOWN, PAD_R1, PAD_LEFT, PAD_RIGHT, PAD_R1, PAD_DOWN};
 CODEREC b_002BD550 __asm__("D_002BD550") = {b_002BD538, 6, p_func_0014C190, (void *)1};
-int b_002BD570[6] __asm__("D_002BD570") = {0x8, 0x8000, 0x2000, 0x8, 0x8000, 0x4000};
+int b_002BD570[6] __asm__("D_002BD570") = {PAD_R1, PAD_LEFT, PAD_RIGHT, PAD_R1, PAD_LEFT, PAD_DOWN};
 CODEREC b_002BD588 __asm__("D_002BD588") = {b_002BD570, 6, p_func_0014C190, (void *)2};
-int b_002BD5A8[6] __asm__("D_002BD5A8") = {0x1000, 0x8000, 0x2000, 0x8000, 0x4000, 0x1000};
+int b_002BD5A8[6] __asm__("D_002BD5A8") = {PAD_UP, PAD_LEFT, PAD_RIGHT, PAD_LEFT, PAD_DOWN, PAD_UP};
 CODEREC b_002BD5C0 __asm__("D_002BD5C0") = {b_002BD5A8, 6, p_func_0014C190, (void *)3};
-int b_002BD5E0[6] __asm__("D_002BD5E0") = {0x1000, 0x2000, 0x2000, 0x1000, 0x8000, 0x8000};
+int b_002BD5E0[6] __asm__("D_002BD5E0") = {PAD_UP, PAD_RIGHT, PAD_RIGHT, PAD_UP, PAD_LEFT, PAD_LEFT};
 CODEREC b_002BD5F8 __asm__("D_002BD5F8") = {b_002BD5E0, 6, p_func_0014C190, (void *)4};
-int b_002BD618[6] __asm__("D_002BD618") = {0x8000, 0x8, 0x4000, 0x4000, 0x1000, 0x2000};
+int b_002BD618[6] __asm__("D_002BD618") = {PAD_LEFT, PAD_R1, PAD_DOWN, PAD_DOWN, PAD_UP, PAD_RIGHT};
 CODEREC b_002BD630 __asm__("D_002BD630") = {b_002BD618, 6, p_func_0014C190, (void *)5};
-int b_002BD650[6] __asm__("D_002BD650") = {0x4000, 0x1000, 0x8, 0x8, 0x8000, 0x4000};
+int b_002BD650[6] __asm__("D_002BD650") = {PAD_DOWN, PAD_UP, PAD_R1, PAD_R1, PAD_LEFT, PAD_DOWN};
 CODEREC b_002BD668 __asm__("D_002BD668") = {b_002BD650, 6, p_func_0014C190, (void *)6};
-int b_002BD688[6] __asm__("D_002BD688") = {0x8000, 0x8000, 0x8000, 0x4000, 0x4000, 0x8};
+int b_002BD688[6] __asm__("D_002BD688") = {PAD_LEFT, PAD_LEFT, PAD_LEFT, PAD_DOWN, PAD_DOWN, PAD_R1};
 CODEREC b_002BD6A0 __asm__("D_002BD6A0") = {b_002BD688, 6, p_func_0014C190, (void *)7};
-int b_002BD6C0[6] __asm__("D_002BD6C0") = {0x4000, 0x1000, 0x8000, 0x8000, 0x8, 0x2000};
+int b_002BD6C0[6] __asm__("D_002BD6C0") = {PAD_DOWN, PAD_UP, PAD_LEFT, PAD_LEFT, PAD_R1, PAD_RIGHT};
 CODEREC b_002BD6D8 __asm__("D_002BD6D8") = {b_002BD6C0, 6, p_func_0014C190, (void *)8};
-int b_002BD6F8[6] __asm__("D_002BD6F8") = {0x8000, 0x8, 0x8, 0x4000, 0x4000, 0x8000};
+int b_002BD6F8[6] __asm__("D_002BD6F8") = {PAD_LEFT, PAD_R1, PAD_R1, PAD_DOWN, PAD_DOWN, PAD_LEFT};
 CODEREC b_002BD710 __asm__("D_002BD710") = {b_002BD6F8, 6, p_CheatSetFlag, d_003DD040 + 0x10};
-int b_002BD730[6] __asm__("D_002BD730") = {0x2000, 0x8, 0x4000, 0x8, 0x4000, 0x4000};
+int b_002BD730[6] __asm__("D_002BD730") = {PAD_RIGHT, PAD_R1, PAD_DOWN, PAD_R1, PAD_DOWN, PAD_DOWN};
 CODEREC b_002BD748 __asm__("D_002BD748") = {b_002BD730, 6, p_CheatSetFlag, &k_002BE26C};
-int b_002BD768[6] __asm__("D_002BD768") = {0x2000, 0x8000, 0x2000, 0x8000, 0x8, 0x8000};
+int b_002BD768[6] __asm__("D_002BD768") = {PAD_RIGHT, PAD_LEFT, PAD_RIGHT, PAD_LEFT, PAD_R1, PAD_LEFT};
 CODEREC b_002BD780 __asm__("D_002BD780") = {b_002BD768, 6, p_func_0014C200, 0};
-int b_002BD7A0[6] __asm__("D_002BD7A0") = {0x8000, 0x8000, 0x4000, 0x2000, 0x8000, 0x2000};
+int b_002BD7A0[6] __asm__("D_002BD7A0") = {PAD_LEFT, PAD_LEFT, PAD_DOWN, PAD_RIGHT, PAD_LEFT, PAD_RIGHT};
 CODEREC b_002BD7B8 __asm__("D_002BD7B8") = {b_002BD7A0, 6, p_CheatGiveGadget, (void *)41};
-int b_002BD7D8[6] __asm__("D_002BD7D8") = {0x4000, 0x4000, 0x1000, 0x4000, 0x2000, 0x8000};
+int b_002BD7D8[6] __asm__("D_002BD7D8") = {PAD_DOWN, PAD_DOWN, PAD_UP, PAD_DOWN, PAD_RIGHT, PAD_LEFT};
 CODEREC b_002BD7F0 __asm__("D_002BD7F0") = {b_002BD7D8, 6, p_CheatGiveGadget, (void *)42};
 }
 
