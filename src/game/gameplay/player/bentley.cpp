@@ -1908,7 +1908,6 @@ int IsBentleyHelperTargetBehind(BTBLENDS *bentley)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001375D0 {
 // MATCH (Claude agent, laneB7, 2026-10-23), from fresh3 (2). One commented register pin: vel pinned to vf2 in the VU_FLOATM operator*, and the allocation-only duplicate g operand is "jm" (memory allowed, so it needs no second reload of the spilled g). The VU_FLOATM ctor is asm("lw") from "m"(f).
-typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT {
     qword q;
     // Broadcast a float into a VU0 register.
@@ -1939,9 +1938,10 @@ static inline qword operator*(VU_VECTOR v, VU_FLOAT f)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(f.q));
     return r;
 }
-struct MATRIX3 { qword r[3]; };
+/* The target orientation rows (STEP::aqwTarget) as the rotate operator reads them. */
+struct M3Q { qword r[3]; };
 // Rotate v by the 3x3 matrix m.
-static inline qword operator*(const MATRIX3 &m, VU_VECTOR v)
+static inline qword operator*(const M3Q &m, VU_VECTOR v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
@@ -1949,57 +1949,36 @@ static inline qword operator*(const MATRIX3 &m, VU_VECTOR v)
     return r;
 }
 
-#define V4(a) virtual void a##0(); virtual void a##1(); virtual void a##2(); virtual void a##3();
-struct BASE { int x0, x4, x8; };
-struct P : BASE {
-    V4(a) V4(b) V4(c) V4(d) V4(e) V4(f) V4(g) V4(h)
-    virtual qword GetVel();            /* 33 */
-    virtual void v34();
-    virtual void SetVel(qword v);      /* 35 */
-};
-struct PX {
-    char pad[0x190];
-    qword v190;
-    char pad1A0[0x10];
-    MATRIX3 m1B0;
-    char pad1E0[0x1030 - 0x1E0];
-    int action;
-    int a1034[(0x10DC - 0x1034) / 4];
-    int interactTarget;
-};
 struct Q {
     virtual void v1();
     virtual void v2();
     virtual void Eval(int n, qword *pv, float g0, float g1);
 };
 struct R { int x0; Q *pq; };
-struct X { char pad[0x78]; float g78; };
-struct S { P *p; int k; float t; int kCur; X *px0; X *px1; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002BC9B4;   /* contact friction */
 extern float D_002BC9B8;
-void FaceStepToward(P *p, int n);
-R *FindAsegChannel(X *px, P *p, int a, int b);
-void ReleaseSma(void *pv);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
+void FaceStepToward(STEPPLAYER *p, LO *plo);
+R *FindAsegChannel(ASEG *px, STEPPLAYER *p, int a, int b);
+void ReleaseSma(SMA **ppsma);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *px, STEPPLAYER *p, int n, ASEGA **ppasega, float g0, float g1);
 }
-#define PXOF(p) ((PX *)(p))
 
 // Helper state change: plays the state's clip and, on leaving, scales the velocity. (inferred)
-extern "C" void SetBentleyHelperState(S *s, int k)
+extern "C" void SetBentleyHelperState(JTREC *s, int k)
 {
-    X *px;
-    if (k == s->k)
+    ASEG *px;
+    if (k == s->state)
         return;
-    s->k = k;
+    s->state = k;
     px = 0;
-    s->t = D_002DDED0.time;
+    s->stateStartTime = D_002DDED0.time;
     if (k == -1) {
         VU_FLOATM g(D_002BC9B8);
-        qword vel = s->p->GetVel();
+        qword vel = s->player->GetVelocity();
         qword r = VU_VECTOR(vel) * g;
-        s->p->SetVel(r);
+        s->player->SetVelocity(r);
         return;
     }
     if (k >= -1)
@@ -2008,17 +1987,17 @@ extern "C" void SetBentleyHelperState(S *s, int k)
                 qword q;
             } v;
             if (k == 0)
-                px = s->px0;
+                px = s->apaseg[0];
             else
-                px = s->px1;
-            FaceStepToward(s->p, PXOF(s->p)->interactTarget);
-            FindAsegChannel(px, s->p, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->g78);
-            s->p->SetVel(PXOF(s->p)->m1B0 * VU_VECTOR(v.q));
-            PXOF(s->p)->v190 = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
-            s->kCur = k;
+                px = s->apaseg[1];
+            FaceStepToward(s->player, s->player->interactTarget);
+            FindAsegChannel(px, s->player, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->masterSpeed);
+            s->player->SetVelocity(*(M3Q *)s->player->aqwTarget * VU_VECTOR(v.q));
+            s->player->qwUnknown190 = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
+            s->side = k;
         }
-    ReleaseSma(PXOF(s->p)->a1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(px, s->p, 1, &PXOF(s->p)->action, 0.0f, 1.0f);
+    ReleaseSma(&s->player->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(px, s->player, 1, &s->player->activeAnimation, 0.0f, 1.0f);
 }
 } // namespace M_func_001375D0
 
