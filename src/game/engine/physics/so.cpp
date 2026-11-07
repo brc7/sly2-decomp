@@ -2353,13 +2353,10 @@ extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
 
 // 0x1F5860 GetSoGravity
 namespace M_GetSoDvGravity { extern "C" {
-struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0x80]; qword gravity; };
-struct S { char pad[0xE8]; struct T *physics; };
 // The object's gravity vector, or zero without a physics record.
-qword GetSoGravity(struct S *p) { if (!p->physics) return D_002A2DD0; return p->physics->gravity; }
+qword GetSoGravity(SO *p) { if (!p->physics) return D_002A2DD0; return *(qword *)&p->physics->gravity; }   /* gravity read as a quadword */
 } } // namespace M_GetSoDvGravity
 
 // 0x1F5880 SetSoGravity
@@ -3699,16 +3696,14 @@ void SetSoTreeRoot(SO *so, long f)
 
 // 0x1F7FA0 SetSoScrollerSpeeds
 namespace M_func_001F7FA0 { extern "C" {
-struct P;
-struct P { char pad[0xA4]; int numSaas; void **saas; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
 // Sets the master speeds of every scroller (CID 0x8F) in the object's animation list.
-void SetSoScrollerSpeeds(struct P *so, float f, float g)
+void SetSoScrollerSpeeds(SO *so, float f, float g)
 {
     int i;
-    for (i = 0; i < so->numSaas; i++) {
-        void *q = so->saas[i];
+    for (i = 0; i < so->model.cpsaa; i++) {
+        void *q = so->model.apsaa[i];
         if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetScrollerMasterSpeeds__FP8SCROLLERff(q, f, g);
     }
 }
@@ -3716,16 +3711,14 @@ void SetSoScrollerSpeeds(struct P *so, float f, float g)
 
 // 0x1F8038 SetSoSaaParams
 namespace M_func_001F8038 { extern "C" {
-struct P;
-struct P { char pad[0xA4]; int numSaas; void **saas; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetSaiDuDv(void *, float, float);
 // Passes two parameters to every CID 0x8F entry of the object's animation list (inferred).
-void SetSoSaaParams(struct P *so, float f, float g)
+void SetSoSaaParams(SO *so, float f, float g)
 {
     int i;
-    for (i = 0; i < so->numSaas; i++) {
-        void *q = so->saas[i];
+    for (i = 0; i < so->model.cpsaa; i++) {
+        void *q = so->model.apsaa[i];
         if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetSaiDuDv(q, f, g);
     }
 }
@@ -3753,14 +3746,13 @@ void SetSoEyesClosed(struct L *so, float f)
 
 // 0x1F8198 FindSoSaa
 namespace M_PsaaFindSoOid { extern "C" {
-struct T; struct S;
-struct T { char pad[0x18]; int oid; };
-struct S { char pad[0xA4]; int numSaas; struct T **saas; };
+struct T;
+struct T { char pad[0x18]; int oid; };   /* an SAA: its oid (+0x18) */
 // Finds an entry of the object's animation list by oid (Sly 1 PsaaFindSoOid).
-struct T *FindSoSaa(struct S *so, int n)
+struct T *FindSoSaa(SO *so, int n)
 {
     int i;
-    for (i = 0; i < so->numSaas; i++) { struct T *pt = so->saas[i]; if (pt->oid == n) return pt; }
+    for (i = 0; i < so->model.cpsaa; i++) { struct T *pt = (struct T *)so->model.apsaa[i]; if (pt->oid == n) return pt; }
     return 0;
 }
 } } // namespace M_PsaaFindSoOid
@@ -3825,29 +3817,26 @@ void SetSoTargetRecordParams(void *p, int x, struct K *pk) { struct T *pt = Ensu
 
 // 0x1F8300 EnsureSoPhysRegionRecord
 namespace M_func_001F8300 { extern "C" {
-struct Q; struct E; struct P; struct CB;
-struct Q { void *so; int pad; float unknown8; float unknownC; };
-struct E { char pad[0xDC]; struct Q *region; };
-struct P { char pad[0xE8]; struct E *physics; };
+struct CB;
 struct CB { int cb; int n; };
 void *AllocClearedFromWorldHeap(struct CB *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return AllocClearedFromWorldHeap(pcb); }
 // Ensures the physics region record {object, three tuning floats with defaults 75 (150 for class 0x34) and 1}.
 // (inferred)
-struct Q *EnsureSoPhysRegionRecord(struct P *so)
+REGENT *EnsureSoPhysRegionRecord(SO *so)
 {
     if (!so->physics) return 0;
-    if (!so->physics->region) {
+    if (!so->physics->pregent) {
         struct CB cb;
-        struct Q *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
-        q->so = so;
-        if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown8 = 150.0f;
-        else q->unknown8 = 75.0f;
-        q->unknownC = 1.0f;
-        so->physics->region = q;
+        REGENT *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
+        q->pso = so;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown08 = 150.0f;
+        else q->unknown08 = 75.0f;
+        q->unknown0C = 1.0f;
+        so->physics->pregent = q;
     }
-    return so->physics->region;
+    return so->physics->pregent;
 }
 } } // namespace M_func_001F8300
 
@@ -3864,12 +3853,8 @@ extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
 
 // 0x1F83E0 GetSoPhysRecordParam8
 namespace M_func_001F83E0 { extern "C" {
-struct U; struct T; struct S;
-struct U { char pad[0x8]; float value; };
-struct T { char pad[0xDC]; struct U *region; };
-struct S { char pad[0xE8]; struct T *physics; };
 // Returns the region record's second float (0 without a record). (inferred)
-float GetSoPhysRecordParam8(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
+float GetSoPhysRecordParam8(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown08; return 0.0f; }
 } } // namespace M_func_001F83E0
 
 // 0x1F8410 SetSoPhysRecordParamC
@@ -3885,12 +3870,8 @@ extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
 
 // 0x1F8440 GetSoPhysRecordParamC
 namespace M_func_001F8440 { extern "C" {
-struct U; struct T; struct S;
-struct U { char pad[0xC]; float value; };
-struct T { char pad[0xDC]; struct U *region; };
-struct S { char pad[0xE8]; struct T *physics; };
 // Returns the region record's third float (0 without a record). (inferred)
-float GetSoPhysRecordParamC(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
+float GetSoPhysRecordParamC(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown0C; return 0.0f; }
 } } // namespace M_func_001F8440
 
 // 0x1F8470 SetSoPhysRecordParam4
@@ -3906,12 +3887,8 @@ extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
 
 // 0x1F84A0 GetSoPhysRecordParam4
 namespace M_func_001F84A0 { extern "C" {
-struct U; struct T; struct S;
-struct U { char pad[0x4]; float value; };
-struct T { char pad[0xDC]; struct U *region; };
-struct S { char pad[0xE8]; struct T *physics; };
 // Returns the region record's first float (0 without a record). (inferred)
-float GetSoPhysRecordParam4(struct S *p) { struct U *pu = 0; if (p->physics) pu = p->physics->region; if (pu) return pu->value; return 0.0f; }
+float GetSoPhysRecordParam4(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown04; return 0.0f; }
 } } // namespace M_func_001F84A0
 
 // 0x1F84D0 SetSoIceable__FP2SOi
