@@ -112,13 +112,28 @@ struct EMITB
     char pad2C[4];
     int pvEmito;            /* +0x30 origin data by originKind (point: the position; box: its BOX; curve: -1, then
                                an OID; mesh: its EMITMESH) */
-    char pad34[0x84 - 0x34];
-    int particlesPerRing;   /* +0x84 velocity record +0x34 */
-    char pad88[0xC0 - 0x88];
+    char pad34[0x40 - 0x34];
+    qword direction;        /* +0x40 emission direction, centre or tangent partner (by normalKind) */
+    /* +0x50: the velocity record */
+    LM lmSpeed;             /* +0x50 speed range */
+    float damping;          /* +0x58 velocity damping (default -1) */
+    float zSpeedRatio;      /* +0x5C the emission direction's component is scaled by it (ChooseEmitvVelocityAge) */
+    qword addedVelocity;    /* +0x60 added to every particle's velocity (default 0, 0, -1500: gravity) */
+    qword curlAxis;         /* +0x70 */
+    float curlRate;         /* +0x80 */
+    int particlesPerRing;   /* +0x84 */
+    float randomRadius;     /* +0x88 */
+    float lifetime;         /* +0x8C particle lifetime */
+    LM lmTilt;              /* +0x90 tilt range (radians) */
+    LM lmPush;              /* +0x98 random push along the velocity */
+    LM lmAge;               /* +0xA0 how long ago a particle was born */
+    char padA8[0xB0 - 0xA8];
+    EMITCLQ alpha;          /* +0xB0 alpha over the particle's life */
     EMITV v;                /* +0xC0 the particle record (see EMITV) */
 };
 typedef char assert_EMITB_v[SLY2_OFFSETOF(EMITB, v) == 0xC0 ? 1 : -1];
 typedef char assert_EMITB_pvEmito[SLY2_OFFSETOF(EMITB, pvEmito) == 0x30 ? 1 : -1];
+typedef char assert_EMITB_alpha[SLY2_OFFSETOF(EMITB, alpha) == 0xB0 ? 1 : -1];
 typedef char assert_EMITB_particlesPerRing[SLY2_OFFSETOF(EMITB, particlesPerRing) == 0x84 ? 1 : -1];
 
 /* EMITTER: a particle emitter placed in a level: emits particles (RIPG) or sprites (BLIPG) at a rate, configured

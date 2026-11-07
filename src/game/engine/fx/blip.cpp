@@ -137,23 +137,6 @@ extern "C" SW D_003DD490;
 
 /* The emitter block a group is set from (SetBlipgEmitb). */
 struct CLR { int c; unsigned char ab[1][4]; };
-struct EMITBV {
-    char pad0[0x58]; float damping; int pad5C;      /* EMITV (+0x50) fields: damping, added velocity, curl rate, lifetime */
-    qwordV addedVelocity;
-    char pad70[0x80 - 0x70]; float curlRate; int pad84; int pad88; float lifetime;
-    char pad90[0xB0 - 0x90]; char alpha[0x10];
-    /* the particle record (+0xC0) as blips use it (Sly 1's EMITBLIP) */
-    int renderKind;         /* +0xC0 1: flying, 2: rolling */
-    int motionKind;         /* +0xC4 0: EMITDV motion, 1: straight, 2: spline */
-    int hasRandomFrame;     /* +0xC8 */
-    int hasColorRanges;     /* +0xCC */
-    void *shaderOid;        /* +0xD0 */
-    int padD4;
-    float shaderLoopTime;   /* +0xD8 one pass through the texture frames (0: the lifetime) */
-    CLR *pclrDC;            /* +0xDC */
-    char scale[0x10];       /* +0xE0 scale CLQ */
-    float flyingScale;      /* +0xF0 */
-};
 
 struct BASIC;
 enum CIDV { CID_1C = 0x1C, CID_1D = 0x1D };
@@ -189,7 +172,7 @@ void SnipLo(BLIPGV *p);
 void FreeLoroot(BLIPGV *p);
 void UpdateLo(BLIPGV *p, float dt);
 void SubscribeLoObject(BLIPGV *p, LOV *plo);
-void *FindShdOrDefault(void *pv);
+void *FindShdOrDefault(int oidShader);
 M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
 void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, int);
 void FlushCache(int);
@@ -218,7 +201,7 @@ int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5
 int AreFloatsNear(float a, float b, float eps);                   /* AreFloatsNear__Ffff */
 float NormalizeAngle(float g);                                    /* NormalizeAngle__Ff */
 void PrescaleClq(CLQ *pclq, float g, float h, CLQ *pclqDst);    /* PrescaleClq__FP3CLQffT0 */
-void SetEmitdvEmitb(EMITDV *pemitdv, EMITBV *pemitb) __asm__("SetEmitdvEmitb__FP6EMITDVP5EMITB");            /* SetEmitdvEmitb__FP6EMITDVP5EMITB */
+void SetEmitdvEmitb(EMITDV *pemitdv, EMITB *pemitb) __asm__("SetEmitdvEmitb__FP6EMITDVP5EMITB");            /* SetEmitdvEmitb__FP6EMITDVP5EMITB */
 void LoadSprBuf(int cb, ...);                                   /* LoadSprBuf__Fie */
 void SaveSprBuf(void *pv, ...);                                 /* SaveSprBuf__FPve */
 void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd);    /* EnsureVu1Code__FP4VIFSPvT1 */
@@ -336,9 +319,9 @@ void BLIPG::Release()
 struct SHD { int pad0; int pad4; int flags; unsigned char ab[4]; int c; long *al; };   /* flags bit 0: the second blend packet; ab: colour; c / al: texture frames and their TEX0 words */
 // Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build the texture GIF
 // regs. (inferred)
-extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, void *pv)
+extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, int oidShader)
 {
-    register SHD *px asm("$9") = (SHD *)FindShdOrDefault(pv); /* register pin (Claude agent): px in t1 */
+    register SHD *px asm("$9") = (SHD *)FindShdOrDefault(oidShader); /* register pin (Claude agent): px in t1 */
     int n, v, i, j;
     int cExtra;
     int c;
@@ -387,19 +370,19 @@ static __inline__ float Max3(float a, float b, float c) { if (b < a && c < a) re
 // Sets a blip group up from an EMITB: render kind (and flying scale), colours, shader (PropagateBlipgShader),
 // frame rate, the alpha and size curves rescaled to a 0..1 life and the largest size, 1 / lifetime, and the motion
 // kind (EMITDV motion degenerates to straight lines when the EMITB adds no velocity, curl or damping).
-extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
+extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITB *emitb)
 {
     CLR *pclr;
     float g;
     int f;
     int i, j, k;
-    k = emitb->renderKind;
+    k = emitb->v.k;
     g = 1.0f;
     blipGroup->renderKind = k;
     if (k == 1)
-        g = emitb->flyingScale;
+        g = emitb->v.u.g;
     blipGroup->flyingScale = g;
-    pclr = emitb->pclrDC;
+    pclr = (CLR *)emitb->v.pblipclrs;
     if (pclr) {
         blipGroup->numColors = pclr->c;
         for (i = 0; i < blipGroup->numColors; i++)
@@ -408,19 +391,19 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
             for (j = 0; j < 4; j++)
                 blipGroup->colors[iDst][j] = (pclr->ab[i][j] + 1) >> 1;
         }
-        blipGroup->hasColorRanges = emitb->hasColorRanges;
+        blipGroup->hasColorRanges = emitb->v.hasColorRanges;
     }
-    PropagateBlipgShader(blipGroup, emitb->shaderOid);
+    PropagateBlipgShader(blipGroup, emitb->v.oidShader);
     func_002333B4(blipGroup->unknown140, 0, 0x10);
     if (blipGroup->numFrames >= 2) {
         int n = blipGroup->numFrames;
-        if (emitb->shaderLoopTime != 0.0f)
-            blipGroup->frameRate = (float)n / emitb->shaderLoopTime;
+        if (emitb->v.shaderLoopTime != 0.0f)
+            blipGroup->frameRate = (float)n / emitb->v.shaderLoopTime;
         else
             blipGroup->frameRate = (float)n / emitb->lifetime;
     }
-    PrescaleClq((CLQ *)emitb->alpha, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
-    PrescaleClq((CLQ *)emitb->scale, 1.0f / emitb->lifetime, 0.0f, (CLQ *)&blipGroup->poly);
+    PrescaleClq((CLQ *)&emitb->alpha, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
+    PrescaleClq((CLQ *)&emitb->v.scale, 1.0f / emitb->lifetime, 0.0f, (CLQ *)&blipGroup->poly);
     if (blipGroup->poly.b == 0.0f && blipGroup->poly.c == 0.0f) {
         blipGroup->maxSize = __builtin_fabsf(blipGroup->poly.a);
     } else {
@@ -440,7 +423,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
     g = emitb->lifetime;
     InitS(g, &blipGroup->lifeParams);
     {
-    int kC4 = emitb->motionKind;
+    int kC4 = emitb->v.motionKind;
     blipGroup->motionKind = kC4;
     if (!kC4) {
         int fNear = FVecsNear(D_002A2DD0, emitb->addedVelocity);
