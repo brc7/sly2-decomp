@@ -1095,39 +1095,21 @@ extern "C" void LO_Slot27Default()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB5D0 {
-#define V(n) virtual void v##n();
-struct A { char pad[0xDC]; int f; };
-class BASIC {
-public:
-    int a, b, c;
-    V(1) V(2) V(3) V(4) V(5) V(6) V(7) V(8) V(9) V(10) V(11) V(12) V(13) V(14) V(15) V(16) V(17) V(18) V(19) V(20)
-    V(21) V(22) V(23) V(24) V(25) V(26)
-    virtual void Fn(int n);
-};
-class LO : public BASIC {
-public:
-    char pad[0x24 - 0x10];
-    LO *pNext;
-    char pad2[0x64 - 0x28];
-    LO *pFirst;
-    char pad3[0xE8 - 0x68];
-    A *pa;
-};
 extern "C" {
-void LO_Slot27Default(LO *p, int n);
-void SetSoPhysRegion(LO *p, int n);
-void SO_Slot27(LO *p, int n);
+void LO_Slot27Default(LO *p, LO *plo);
+void SetSoPhysRegion(SO *p, int n);
+void SO_Slot27(SO *p, LO *plo);
 }
-// SO's vtable slot 27: LO's default, then clears the physics region (SetSoPhysRegion(this, 0)) when a flag of its +0xE8
-// record is set, and the same slot on every child. (inferred: the slot's meaning is not known.)
-void SO_Slot27(LO *object, int n)
+// SO's vtable slot 27 (OnProxyRelease): LO's default, then clears the physics region (SetSoPhysRegion(this, 0)) when
+// the physics block has a region record, and the same slot on every child.
+void SO_Slot27(SO *object, LO *plo)
 {
     LO *pc;
     int f;
-    LO_Slot27Default(object, n);
-    f = object->pa ? object->pa->f : 0;
+    LO_Slot27Default(object, plo);
+    f = object->physics ? (int)object->physics->pregent : 0;
     if (f) SetSoPhysRegion(object, 0);
-    for (pc = object->pFirst; pc; pc = pc->pNext) pc->Fn(n);
+    for (pc = (LO *)object->children.head; pc; pc = (LO *)pc->siblingLink.next) pc->OnProxyRelease(plo);
 }
 } // namespace M_func_001CB5D0
 
