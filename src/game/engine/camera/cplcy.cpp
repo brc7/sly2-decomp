@@ -688,37 +688,31 @@ extern "C" void SetCpzoomUZoomTarget(CPZOOM *pcpzoom, float uZoomTarget)
 
 namespace M_SnapCpzoom { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S {
-    int pad[6]; float targetZoom; int pad1c;
-    qword smoothedFocus; qword smoothedEye; qword hasPose; qword posePosition; qword poseAngles; float poseFov; int pad74[3];
-    qword targetPosition; qword targetAngles; float targetFov; int padA4[2]; float zoom;
-};
-qword PosCpzoomCenter(struct S *p);
-qword PosCpzoomEye(struct S *p);
+qword PosCpzoomCenter(CPZOOM *p);
+qword PosCpzoomEye(CPZOOM *p);
 // Reset smoothed center/eye to current targets, zoom=zoomTarget (if >=0), pose = target pose.
-void SnapCpzoom(struct S *p)
+void SnapCpzoom(CPZOOM *p)
 {
-    p->smoothedFocus = PosCpzoomCenter(p);
-    p->smoothedEye = PosCpzoomEye(p);
-    if (0.0f <= p->targetZoom)
-        p->zoom = p->targetZoom;
-    p->posePosition = p->targetPosition;
-    p->poseAngles = p->targetAngles;
-    p->poseFov = p->targetFov;
+    *(qword *)&p->smoothedFocusPosition = PosCpzoomCenter(p);
+    *(qword *)&p->smoothedEyePosition = PosCpzoomEye(p);
+    if (0.0f <= p->zoomTarget)
+        p->zoom = p->zoomTarget;
+    *(qword *)&p->pos = *(qword *)&p->targetEyePosition;
+    *(qword *)&p->eul = *(qword *)&p->eulTarget;
+    p->fieldOfView = p->targetFieldOfView;
 }
 } } // namespace M_SnapCpzoom
 
 namespace M_HasZoomCenterArrived { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { int pad[8]; qword smoothedFocus; qword smoothedEye; };
-qword PosCpzoomCenter(struct S *p);
+qword PosCpzoomCenter(CPZOOM *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
 static __inline__ int FNear(float a, float b) { return AreFloatsNear__Ffff(a, b, 0.0001f); }
 // Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis. (inferred)
-int HasZoomCenterArrived(struct S *p)
+int HasZoomCenterArrived(CPZOOM *p)
 {
     int f = 0;
-    qword a = p->smoothedFocus;
+    qword a = *(qword *)&p->smoothedFocusPosition;
     qword b = PosCpzoomCenter(p);
     if (FNear(QwordX(a), QwordX(b)))
         if (FNear(QwordY(a), QwordY(b)))
@@ -730,15 +724,14 @@ int HasZoomCenterArrived(struct S *p)
 
 namespace M_HasZoomEyeArrived { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { int pad[8]; qword smoothedFocus; qword smoothedEye; };
-qword PosCpzoomEye(struct S *p);
+qword PosCpzoomEye(CPZOOM *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
 static __inline__ int FNear(float a, float b) { return AreFloatsNear__Ffff(a, b, 0.0001f); }
 // Smoothed eye (+0x30) == PosCpzoomEye within 1e-4. (inferred)
-int HasZoomEyeArrived(struct S *p)
+int HasZoomEyeArrived(CPZOOM *p)
 {
     int f = 0;
-    qword a = p->smoothedEye;
+    qword a = *(qword *)&p->smoothedEyePosition;
     qword b = PosCpzoomEye(p);
     if (FNear(QwordX(a), QwordX(b)))
         if (FNear(QwordY(a), QwordY(b)))
@@ -749,42 +742,38 @@ int HasZoomEyeArrived(struct S *p)
 } } // namespace M_HasZoomEyeArrived
 
 namespace M_HasZoomReachedTarget { extern "C" {
-struct S { int pad[6]; float targetZoom; char pad2[0xAC - 0x1C]; float zoom; };
 int AreFloatsNear__Ffff(float a, float b, float eps);
 // UZoomTarget < 0 or zoom ~= zoomTarget (0.01) (inferred)
-int HasZoomReachedTarget(struct S *p)
+int HasZoomReachedTarget(CPZOOM *p)
 {
     int f = 0;
-    if (p->targetZoom < 0.0f || AreFloatsNear__Ffff(p->zoom, p->targetZoom, 0.01f))
+    if (p->zoomTarget < 0.0f || AreFloatsNear__Ffff(p->zoom, p->zoomTarget, 0.01f))
         f = 1;
     return f;
 }
 } } // namespace M_HasZoomReachedTarget
 
 namespace M_DeactivateCpzoom { extern "C" {
-struct A { int pad[4]; int owner; int focus; float targetZoom; char pad2[0x40 - 0x1C]; int hasPose; char pad3[0xC0 - 0x44]; void *zoomSound; void *zoomStopSound; };
-extern char D_002DDF40[];
-void StopSnd(void *p, float g);
-void RcPtr_Assign(void **pp, int n);
-void CutCm__FP2CM(void *p);
-void DeactivateCplcy(struct A *a, int n, void *b);
-static inline void Release(void **pp, float g)
+void StopSnd(SND *p, float g);
+void RcPtr_Assign(CRefPtr<SND> *pp, int n);
+void DeactivateCplcy(CPZOOM *a, int n, void *b);
+static inline void Release(CRefPtr<SND> *pp, float g)
 {
-    if (pp && *pp) {
-        StopSnd(*pp, g);
+    if (pp && pp->m_p) {
+        StopSnd(pp->m_p, g);
         RcPtr_Assign(pp, 0);
     }
 }
 // Release sounds, clear owner/focus/pose, zoomTarget=-1, CutCm, CPLCY::Deactivate.
-void DeactivateCpzoom(struct A *a, int n, void *b)
+void DeactivateCpzoom(CPZOOM *a, int n, void *b)
 {
-    Release(&a->zoomSound, 0.0f);
-    Release(&a->zoomStopSound, 0.5f);
-    a->owner = 0;
-    a->focus = 0;
+    Release(&a->psndZoom, 0.0f);
+    Release(&a->psndZoomStop, 0.5f);
+    a->ploOwner = 0;
+    a->ploFocus = 0;
     a->hasPose = 0;
-    a->targetZoom = -1.0f;
-    CutCm__FP2CM(D_002DDF40);
+    a->zoomTarget = -1.0f;
+    CutCm(&g_cm);
     DeactivateCplcy(a, n, b);
 }
 } } // namespace M_DeactivateCpzoom
