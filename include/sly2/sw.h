@@ -165,7 +165,7 @@ struct SW : public BASIC
       LO *currentJob;       /* +0x3B0C [R] current JOB (CID 0x84); mirrors g_game+0x10 oid (runtime FINDINGS, slygame SW_CURTASK) */
       LO *currentTask;      /* +0x3B10 [R] current TASK (CID 0x85) */
       LO *pendingTask;      /* +0x3B14 [R] pending TASK */
-      LO *ploJobFailed;   /* the job that failed last */
+      LO *ploJobFailed;   /* +0x3B18 the job that failed last (game.cpp FailJob); DeleteSw aborts and clears it */
       SVPATH *psvpDt;   /* save var: total play time (inferred) */
       SVPATH *psvpCcoin;    /* +0x3B20 [R] -> save var loot.ccoin (g_gs+0xA0) (runtime3b FINDINGS) */
       SVPATH *psvpWidCurrent;   /* save var: current world id */

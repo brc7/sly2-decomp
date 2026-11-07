@@ -226,31 +226,30 @@ int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) return 1; retu
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
-struct S { char pad[0x3B18]; int jobHandle; };   /* the level's running job (AbortJob) (inferred) */
 extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[];
 
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
 extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
 void BroadcastGameEvent(void *p, int a, int b);
-void AbortJob(int h);
+void AbortJob(LO *pjob);
 void ResetScreens(void *p);
-void DeleteSwSplice(struct S *p);
+void DeleteSwSplice(SW *psw);
 void ClearGameDifficulty(void *p);
 void ResetCameraPolicies(void *p);
 void ResetSndmgr(void *p);
 void ClearShaderGsState(void);
-void SetRumbleRums__FP6RUMBLE4RUMS(void *p, int n);
+void SetRumbleRums__FP6RUMBLE4RUMS(RUMBLE *prumble, int rums);
 void FreeSw__Fv(void);
 
 // Tears down the current world before a load: game callback 1, frees the view and joystick state, resets the sound
 // manager, clears about 15 global object pointers and frees the world's memory.
-void DeleteSw(struct S *world)
+void DeleteSw(SW *world)
 {
     void *pv = D_002DEB30;
     BroadcastGameEvent(pv, 1, 0);
-    if (world->jobHandle) {
-        AbortJob(world->jobHandle);
-        world->jobHandle = 0;
+    if (world->ploJobFailed) {
+        AbortJob(world->ploJobFailed);
+        world->ploJobFailed = 0;
     }
     ResetScreens(D_003D9E70);
     DeleteSwSplice(world);
@@ -258,7 +257,7 @@ void DeleteSw(struct S *world)
     ResetCameraPolicies(D_002DDF40);
     ResetSndmgr(D_003DD040);
     ClearShaderGsState();
-    SetRumbleRums__FP6RUMBLE4RUMS((*(char (*)[])&g_joy.rumble), 3);
+    SetRumbleRums__FP6RUMBLE4RUMS(&g_joy.rumble, 3);
     D_002E1E40 = 0;
     D_002F7900 = 0;
     D_002DD5BC = 0;
@@ -328,13 +327,12 @@ void InitSwLoadBuffers(struct S *world)
 } } // namespace M_func_0020E180
 
 namespace M_func_0020E2B0 { extern "C" {
-struct O { char pad[0xB8]; int priority; char p2[0xC]; int unknownC8; };   /* an MS object; priority (inferred): the largest wins */
-struct S { char pad[0x3E5C]; int mainMsUnknownC8; };
-int FindSwObjectsByClass(struct S *p, int a, int b, int c, int cMax, struct O **apo);
+struct O { char pad[0xB8]; int priority; char p2[0xC]; struct RENDERBLOCK *pblockRender; };   /* an MS object; priority (inferred): the largest wins */
+int FindSwObjectsByClass(SW *p, int a, int b, int c, int cMax, struct O **apo);
 void SetLoVisMask(struct O *o, int n);
-// Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its +0xC8 and makes
+// Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its render block (+0xC8) as SW::pblockRender and makes
 // it visible to every camera mask. (inferred)
-void SelectSwMainMs(struct S *world)
+void SelectSwMainMs(SW *world)
 {
     struct O *found[16];
     int numFound = FindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
@@ -348,7 +346,7 @@ void SelectSwMainMs(struct S *world)
         }
     }
     if (best) {
-        world->mainMsUnknownC8 = best->unknownC8;
+        world->pblockRender = best->pblockRender;
         SetLoVisMask(best, 0xFF);
     }
 }
