@@ -130,22 +130,9 @@ struct SENSOR : SO
 };
 typedef char assert_SENSOR_size[sizeof(SENSOR) == 0x190 ? 1 : -1];
 
-/* 90 DPRIZE (0x230): abstract; vtable 0x2D6B98, 76 slots */
-struct DPRIZE : SO
-{
-    char pad150[0x230 - 0x150];
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeDprizeDamage");   /* slot 75; key function (prize.cpp) */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetDprizeClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleDprizeMessage");   /* slot 5 */
-    virtual void Init() __asm__("InitDprize");   /* slot 7 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDprizeFromBrx");   /* slot 14 */
-    virtual void PostLoad() __asm__("PostDprizeLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateDprize");   /* slot 16 */
-    virtual void UpdateXfWorld() __asm__("ProjectDprizeTransform");   /* slot 17 */
-    virtual void RenderSelf() __asm__("RenderDprizeSelf");   /* slot 19 */
-    virtual void SetState() __asm__("SetDprizeDprizes");   /* slot 76 */
-};
-typedef char assert_DPRIZE_size[sizeof(DPRIZE) == 0x230 ? 1 : -1];
+/* 90 DPRIZE (0x230) and its classes COIN, MEDICINE, KEY, LOOT, CLUE, with CLUEPROXY and VAULT (key TU prize.cpp):
+   sly2/prize.h */
+#include "sly2/prize.h"
 
 /* 126 WIDGET (0x110); vtable 0x2DAF30, 50 slots */
 struct WIDGET : LO
@@ -1634,80 +1621,6 @@ struct PIPE : SHAPE, GRABSPOT
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
 
-/* 91 COIN (0x240): COIN pool; vtable 0x2D6928, 76 slots */
-struct COIN : DPRIZE
-{
-    char pad230[0x240 - 0x230];
-    virtual void Update() __asm__("UpdateCoin");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetCoinClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitCoin");   /* slot 7 */
-    virtual void SetState() __asm__("SetCoinDprizes");   /* slot 76 */
-};
-typedef char assert_COIN_size[sizeof(COIN) == 0x240 ? 1 : -1];
-
-/* 93 MEDICINE (0x250): health refill; vtable 0x2D66B8, 76 slots */
-struct MEDICINE : DPRIZE
-{
-    char pad230[0x250 - 0x230];
-    virtual void Update() __asm__("UpdateMedicine");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetMedicineClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitMedicine");   /* slot 7 */
-    virtual void SetState() __asm__("SetMedicineDprizes");   /* slot 76 */
-};
-typedef char assert_MEDICINE_size[sizeof(MEDICINE) == 0x250 ? 1 : -1];
-
-/* 92 KEY (0x240); vtable 0x2D6448, 76 slots */
-struct KEY : DPRIZE
-{
-    char pad230[0x240 - 0x230];
-    virtual void Init() __asm__("InitKey");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetKeyClassDesc");   /* slot 6 */
-    virtual void SetState() __asm__("SetKeyDprizes");   /* slot 76 */
-};
-typedef char assert_KEY_size[sizeof(KEY) == 0x240 ? 1 : -1];
-
-/* 94 LOOT (0x250): pickpocket item; vtable 0x2D61D8, 76 slots */
-struct LOOT : DPRIZE
-{
-    char pad230[0x250 - 0x230];
-    virtual void Update() __asm__("UpdateLoot");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetLootClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitLoot");   /* slot 7 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLootFromBrx");   /* slot 14 */
-    virtual void SetState() __asm__("SetLootDprizes");   /* slot 76 */
-};
-typedef char assert_LOOT_size[sizeof(LOOT) == 0x250 ? 1 : -1];
-
-/* 95 CLUE (0x230): clue bottle; vtable 0x2D5F68, 76 slots */
-struct CLUE : DPRIZE
-{
-    virtual void Init() __asm__("InitClue");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetClueClassDesc");   /* slot 6 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetClue");   /* slot 26 */
-    virtual void OnProxyRelease(LO *plo) __asm__("ClearClueState");   /* slot 27 */
-    virtual void SetState() __asm__("SetClueDprizes");   /* slot 76 */
-};
-typedef char assert_CLUE_size[sizeof(CLUE) == 0x230 ? 1 : -1];
-
-/* 7 CLUEPROXY (0x110): PROXY child; clue-bottle proxy (REVIEW, medium); vtable 0x2D5DC8, 50 slots */
-struct CLUEPROXY : PROXY
-{
-    char pad100[0x110 - 0x100];
-    virtual void PostLoad() __asm__("PostClueproxyLoad");   /* slot 15 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetClueproxyClassDesc");   /* slot 6 */
-};
-typedef char assert_CLUEPROXY_size[sizeof(CLUEPROXY) == 0x110 ? 1 : -1];
-
-/* 78 VAULT (0x230): clue-bottle safe; vtable 0x2D5B30, 81 slots */
-struct VAULT : PO
-{
-    char pad180[0x230 - 0x180];
-    virtual void PostLoad() __asm__("PostVaultLoad");   /* slot 15 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetVaultClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitVault");   /* slot 7 */
-    virtual void Update() __asm__("UpdateVault");   /* slot 16 */
-};
-typedef char assert_VAULT_size[sizeof(VAULT) == 0x230 ? 1 : -1];
 
 /* 13 RAIL (0x1D0): wires; vtable 0x2D6FE8, 50 slots */
 struct RAIL : SHAPE, GRABSPOT
