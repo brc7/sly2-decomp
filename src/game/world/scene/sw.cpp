@@ -1154,14 +1154,13 @@ typedef union { qword q; float f[4]; } U;
 struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-struct S { char pad[0x3D1C]; struct G *first; };
 void *AllocFromStack(struct MSG *pmsg);
-void FlushSwBoundsUpdates(struct S *p);
-void UpdateSwAaox(struct S *p);
+void FlushSwBoundsUpdates(SW *p);
+void UpdateSwAaox(SW *p);
 
 // Collects up to 256 SOs whose bounding groups overlap the box spanned by two points, with an optional filter; the
 // result is a slot-allocated array.
-void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     U mn, mx;
     struct MSG msg;
@@ -1186,7 +1185,7 @@ void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, st
     ap = (__typeof__(ap))AllocFromStack(&msg);
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
-    for (g = p->first; g; g = g->next) {
+    for (g = (struct G *)p->dlSoTree.head; g; g = g->next) {
         struct O *o;
         if (g->mn[0] > mx.f[0] || g->mx[0] < mn.f[0] ||
             g->mn[1] > mx.f[1] || g->mx[1] < mn.f[1] ||
@@ -1209,13 +1208,12 @@ typedef int qword __attribute__((mode(TI)));
 struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-struct S { char pad[0x3D1C]; struct G *first; };
 void *AllocFromStack(struct MSG *pmsg);
-void FlushSwBoundsUpdates(struct S *p);
-void UpdateSwAaox(struct S *p);
+void FlushSwBoundsUpdates(SW *p);
+void UpdateSwAaox(SW *p);
 
 // Collects up to 256 SOs whose bounding groups overlap a sphere, with an optional filter.
-void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     struct MSG msg;
     struct O **ap;
@@ -1227,7 +1225,7 @@ void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void 
     c = 0;
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
-    for (g = p->first; g; g = g->next) {
+    for (g = (struct G *)p->dlSoTree.head; g; g = g->next) {
         float rr;
         qword d, e, tmp;
         float f;
