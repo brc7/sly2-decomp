@@ -13,14 +13,15 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/clock.h"
+#include "sly2/sw.h"
 #include "player_input.h"
-typedef int qword __attribute__((mode(TI)));
+typedef int qwordV __attribute__((mode(TI)));
 typedef unsigned int uint;
-union U{qword q;float f[4];int i[4];};
-typedef union { qword q; float f; } UF;
+union U{qwordV q;float f[4];int i[4];};
+typedef union { qwordV q; float f; } UF;
 /* 3x3 matrix with the row copies the hang code relies on (non-POD), and the plain one. */
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
-struct M3P { qword r[3]; };
+struct M3P { qwordV r[3]; };
 struct M4{U r[4];};
 /* g++ 2.95 vtable entry. */
 struct VTE{short delta,pad;void*fn;};
@@ -34,14 +35,13 @@ struct PL{char pad0[0x18];float angle,amount;};
 struct CURVE{char pad0[0x1C];float value;char pad20[0x20];float slope;};
 struct ANIMATION{char pad0[0x74];float gain;};
 /* An IK joint record (+0x19C0, +0x19C4, +0x19CC): position, world matrix, owner frame, stamp, chain. */
-struct IKJ { char pad[0x30]; qword localPos; M4 worldMatrix; char pad80[0x20]; char *parent; int stamp; int ikData; };
-struct CLQ{float g0,g1,g2;};
-struct LM{float minValue,maxValue;};
-struct SMP{float values[3];};
-struct SMPA{float a,b,duration,limit;};
+struct IKJ { char pad[0x30]; qwordV localPos; M4 worldMatrix; char pad80[0x20]; char *parent; int stamp; int ikData; };
+struct CLQV{float g0,g1,g2;};
+struct LMV{float minValue,maxValue;};
+struct SMPV{float values[3];};
+struct SMPAV{float a,b,duration,limit;};
 struct STATE{U direction,position,velocity;M3 rotation;};
 struct WORK{U reference,direction,local;M3 matrix,returned;float heading;U target;};
-struct G { char pad[0x3D58]; int xfStamp; };
 /* View of the player (JT) as the hang code reads it. */
 struct JT{
  char pad0[0xC];VTE*vt;                 /* +0x00C */
@@ -54,7 +54,7 @@ struct JT{
  char pad18C8[8];int state;float changed;      /* +0x18D0 hang state, time it changed */
  char pad18D8[0x1C];float farTime;int previous,flipped;LINK*link;   /* +0x18F4 */
  char pad1904[0xC];DELTA response[2];   /* +0x1910 the accelerations for the JT and the anchor's owner */
- char pad1950[0x10];qword handIkOffset;  /* +0x1960 IK offset */
+ char pad1950[0x10];qwordV handIkOffset;  /* +0x1960 IK offset */
  float combined;char pad1974[8];float activeOnly;char pad1980[8];float idle;char pad198C[8];   /* +0x1970 blend weights */
  ANIMATION*animation;float speedBlend,activeBlend;   /* +0x1994 */
  char pad19A0[4];void*hookChild;        /* +0x19A4 */
@@ -65,45 +65,45 @@ typedef char assert_JT_response[(uint)&((JT *)0)->response == 0x1910 ? 1 : -1];
 typedef char assert_JT_handAct[(uint)&((JT *)0)->handAct == 0x1A00 ? 1 : -1];
 
 extern "C"{
-qword GetLoWorldPos(void*);
+qwordV GetLoWorldPos(void*);
 M4*GetLoWorldMatrix(void*);
-qword GetXfVelocity(void*,void*,qword);
-float SplitVectorAlongAxis(qword,qword,qword*,qword*);
-float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
-M3 BuildRotationMatrixFromVector(qword);
-void AnticipateJtForce(NODE*,NODE*,qword*,float*,DELTA*);
-qword GetSoImpulseLinearDelta(NODE*,qword);
-qword GetSoImpulseAngularDelta(NODE*,qword,qword);
-void AddSoAcceleration(void*,qword);
-void AddSoAngularAcceleration(void*,qword);
+qwordV GetXfVelocity(void*,void*,qwordV);
+float SplitVectorAlongAxis(qwordV,qwordV,qwordV*,qwordV*);
+float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPAV*,float*);
+M3 BuildRotationMatrixFromVector(qwordV);
+void AnticipateJtForce(NODE*,NODE*,qwordV*,float*,DELTA*);
+qwordV GetSoImpulseLinearDelta(NODE*,qwordV);
+qwordV GetSoImpulseAngularDelta(NODE*,qwordV,qwordV);
+void AddSoAcceleration(void*,qwordV);
+void AddSoAngularAcceleration(void*,qwordV);
 void AccelSoTowardMatBounded(JT*,M3P*,float*);
-M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
-M3P BuildAxisAngleRotationMatrix(qword,float);
-qword DecomposeRotationMatrixToEuler(M3P*);
+M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qwordV,qwordV);
+M3P BuildAxisAngleRotationMatrix(qwordV,float);
+qwordV DecomposeRotationMatrixToEuler(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float NormalizeAngle__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GetButtonsPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
-float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ANIMATION*);float ClampAbs__Fff(float,float);
-qword ConvertXfVec(int,void*,qword);
-void VECTOR_opAssign(qword*,qword);
+float SmoothValue__FfffP3SMPPf(float,float,float,SMPV*,float*);void RecalculateAsegBlend(ANIMATION*);float ClampAbs__Fff(float,float);
+qwordV ConvertXfVec(int,void*,qwordV);
+void VECTOR_opAssign(qwordV*,qwordV);
 void __ml__FRC7MATRIX4T0(M4*,void*,IKJ*);
 void SolveIk(JT*,int);
-qword GetJtHangHandlePosition(JT*);
-void SetActPositionGoal(void*,qword);
-qword PosSmooth(qword,qword,float,float*,int);
+qwordV GetJtHangHandlePosition(JT*);
+void SetActPositionGoal(void*,qwordV);
+qwordV PosSmooth(qwordV,qwordV,float,float*,int);
 int EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *q, int c, int d, int e, int *pn);
 extern U D_002A2D00[3];
 extern U D_002A2DC0,D_002A2DA0,D_002A2DB0,D_002A2DD0;
-extern LM D_002BBB60;
+extern LMV D_002BBB60;
 extern CLOCK D_002DDED0;
 /* hang's .data (address order). */
-extern CLQ D_002BF4F0;
-extern LM D_002BF500;
+extern CLQV D_002BF4F0;
+extern LMV D_002BF500;
 extern float D_002BF508;
 extern float D_002BF50C;
 extern float D_002BF510;
 extern float D_002BF514;
-extern CLQ D_002BF520;
-extern SMPA D_002BF530;
+extern CLQV D_002BF520;
+extern SMPAV D_002BF530;
 extern float D_002BF540;
 extern float D_002BF544;
 extern float D_002BF548[3];
@@ -114,16 +114,16 @@ extern float D_002BF560;
 extern float D_002BF564;
 extern float D_002BF568;
 extern float D_002BF56C;
-extern SMP D_002BF570;
-extern SMP D_002BF580;
+extern SMPV D_002BF570;
+extern SMPV D_002BF580;
 extern float D_002BF58C;
 extern float D_002BF590;
 extern float D_002BF594;
 extern float D_002BF598[3];
-extern G D_003DD490;
+extern SW D_003DD490;
 }
 /* BuildAxisAngleRotationMatrix with its hidden result pointer passed by hand (UpdateJtActiveHang loads it in asm). */
-extern "C" M3*func_0011B500_out(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");
+extern "C" M3*func_0011B500_out(M3*,qwordV,float) __asm__("BuildAxisAngleRotationMatrix");
 void CroutDecomp(int,float*,float*);
 void CroutSolve(int,float*,float*,float*);
 
@@ -154,16 +154,16 @@ extern "C" void PostJtLoadSwing(void *jt, void *q, int *pn)
 // No register pins; two commented allocation-only empty asms remain (removing either one costs 1-25 aligned).
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 struct OBJ{NODE*p;};
-struct VU_FLOAT{qword q;VU_FLOAT(){}explicit VU_FLOAT(qword a){q=a;}inline VU_FLOAT(const float&f);};
-struct VU_VECTOR{qword q;VU_VECTOR(){}VU_VECTOR(qword a){q=a;}};
-static inline VU_FLOAT Scalar(float value){qword q;q = VuFromFloat<qword>(value);return VU_FLOAT(q);}
-static inline VU_VECTOR operator*(VU_VECTOR value,VU_FLOAT amount){qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(value.q),"j"(amount.q));return VU_VECTOR(q);}
-static inline qword SubV(VU_VECTOR first,VU_VECTOR second){qword q;q = VuSub(first.q, second.q);return q;}
-static inline void StoreDot(float*out,const qword&a0,const qword&b){qword a=a0;qword one;float bits;__asm__("vmul.xyz %1,%1,%3\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tqmfc2.ni %0,%1":"=&rV"(*out),"+j"(a),"=j"(one):"j"(b),"j"(a));}
-static inline VU_FLOAT VuFloatFromMemWord(int n){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"rV"(n));return VU_FLOAT(q);}
+struct VU_FLOAT{qwordV q;VU_FLOAT(){}explicit VU_FLOAT(qwordV a){q=a;}inline VU_FLOAT(const float&f);};
+struct VU_VECTOR{qwordV q;VU_VECTOR(){}VU_VECTOR(qwordV a){q=a;}};
+static inline VU_FLOAT Scalar(float value){qwordV q;q = VuFromFloat<qwordV>(value);return VU_FLOAT(q);}
+static inline VU_VECTOR operator*(VU_VECTOR value,VU_FLOAT amount){qwordV q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(value.q),"j"(amount.q));return VU_VECTOR(q);}
+static inline qwordV SubV(VU_VECTOR first,VU_VECTOR second){qwordV q;q = VuSub(first.q, second.q);return q;}
+static inline void StoreDot(float*out,const qwordV&a0,const qwordV&b){qwordV a=a0;qwordV one;float bits;__asm__("vmul.xyz %1,%1,%3\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tqmfc2.ni %0,%1":"=&rV"(*out),"+j"(a),"=j"(one):"j"(b),"j"(a));}
+static inline VU_FLOAT VuFloatFromMemWord(int n){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(q):"rV"(n));return VU_FLOAT(q);}
 inline VU_FLOAT::VU_FLOAT(const float&f){*this=VuFloatFromMemWord(*(int*)&f);}
-static inline VU_VECTOR MulAdd3(VU_VECTOR a,VU_VECTOR b,VU_VECTOR c,VU_FLOAT x,VU_FLOAT y,VU_FLOAT z){qword out;__asm__("vmulax.xyzw $ACC,%1,%4x\n\tvmaddax.xyzw $ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(out):"j"(a.q),"j"(b.q),"j"(c.q),"j"(x.q),"j"(y.q),"j"(z.q));return VU_VECTOR(out);}
-static inline VU_VECTOR Sum3(const U*a,const U*b,const U*c,VU_FLOAT x,VU_FLOAT y,VU_FLOAT z,qword*scalar){*scalar=x.q;VU_VECTOR va=a->q;*scalar=y.q;VU_VECTOR vb=b->q;*scalar=z.q;VU_VECTOR vc=c->q;return MulAdd3(va,vb,vc,x,y,z);}
+static inline VU_VECTOR MulAdd3(VU_VECTOR a,VU_VECTOR b,VU_VECTOR c,VU_FLOAT x,VU_FLOAT y,VU_FLOAT z){qwordV out;__asm__("vmulax.xyzw $ACC,%1,%4x\n\tvmaddax.xyzw $ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(out):"j"(a.q),"j"(b.q),"j"(c.q),"j"(x.q),"j"(y.q),"j"(z.q));return VU_VECTOR(out);}
+static inline VU_VECTOR Sum3(const U*a,const U*b,const U*c,VU_FLOAT x,VU_FLOAT y,VU_FLOAT z,qwordV*scalar){*scalar=x.q;VU_VECTOR va=a->q;*scalar=y.q;VU_VECTOR vb=b->q;*scalar=z.q;VU_VECTOR vc=c->q;return MulAdd3(va,vb,vc,x,y,z);}
 static inline void StoreQ(U*d,VU_VECTOR v){d->q=v.q;}
 static inline U*Addr(U*p){return p;}
 typedef char U_Size[sizeof(U)==16?1:-1];
@@ -175,20 +175,20 @@ typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
 typedef char DELTA_first_Offset[FIELD_OFFSET(DELTA,first)==0?1:-1];
 typedef char DELTA_second_Offset[FIELD_OFFSET(DELTA,second)==16?1:-1];
 /* const-ref read: a non-scalar MEM, so the axis load for call 2 waits for the .first store */
-static inline const qword&Ref(const qword&q){return q;}
+static inline const qwordV&Ref(const qwordV&q){return q;}
 // Solves a 3x3 linear system (Crout decomposition) of the per-axis impulse responses of Sly and the hang object to
 // find the force pair that produces the requested relative velocity; stores it for AddJtExternalAccelerations.
-extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *input, DELTA *out)
+extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qwordV *point, float *input, DELTA *out)
 {
     int axisIndex = 0, side;
     OBJ objects[2];
     U points[2]; /* initializer only marks axis addressable at its declaration (keeps slot 0x30) */
-    qword axis = (sizeof(&axis), axis);
+    qwordV axis = (sizeof(&axis), axis);
     DELTA effects[2][3];
     U velocity[2];
     U relative[3];
     float matrix[3][3], decomposed[3][3], rhs[3], weights[3];
-    qword scalar;
+    qwordV scalar;
     objects[0].p = jt;
     objects[1].p = other;
     StoreQ(&points[0], GetLoWorldPos(jt));
@@ -214,7 +214,7 @@ extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *in
                     : "r"(effect), "r"(second));
             second->q = GetSoImpulseAngularDelta(object, Addr(&points[side])->q, Ref(axis));
             VTE *method = &jt->vt[69];
-            ((void (*)(NODE *, DELTA *, qword, U *))method->fn)((NODE *)((char *)jt + method->delta), effect, *point,
+            ((void (*)(NODE *, DELTA *, qwordV, U *))method->fn)((NODE *)((char *)jt + method->delta), effect, *point,
                                                                 &velocity[side]);
         }
         relative[axisIndex].q = SubV(velocity[0].q, velocity[1].q);
@@ -223,7 +223,7 @@ extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *in
         float *row = matrix[axisIndex];
         int column;
         for (column = 0; column < 3; column++) {
-            qword value = D_002A2D00[column].q;
+            qwordV value = D_002A2D00[column].q;
             StoreDot(row, value, relative[axisIndex].q);
             row++;
         }
@@ -254,28 +254,28 @@ extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *in
 // CalculateJtHangAccel laneH10v3 (Claude agent lane H10): laneH10v2 + MinOf/MaxOf written (b<a)?b:a / (b>a)?b:a (min.s/max.s operand order): aligned 47.
 // CalculateJtHangAccel laneH9v1 (Claude agent lane H9): laneH8v1 + const-ref DivVec, QwSub, ProjectOutVec and CombineVec(a) (134 -> 75).
 /* laneH8v1 (Claude agent): fresh Lilly-style rewrite of CalculateJtHangAccel, aligned 134 (old .cpp 162), frame 0x2A0 exact, no pins, VU helper asms only. */
-struct VUF{qword qw;};   /* (VUF in the per-function file; AnticipateJtForce has its own VUF class) */
+struct VUF{qwordV qw;};   /* (VUF in the per-function file; AnticipateJtForce has its own VUF class) */
 static inline VUF VuFloat(float g){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VUF VufFromMemWord(int n){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
-static inline qword ScaleVecX(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
-static inline qword AddScaledVec(qword base,qword vec,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
-static inline qword DivVec(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
-static inline qword DivVecBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
-static inline qword RotateVec(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
-static inline qword CombineVec(const qword&a,const qword&b,VUF ka,VUF kb){qword r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
-static inline qword AddScaledVec2(qword base,qword a,qword b,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
-static inline qword ScaleVecXK(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */
-static inline qword ProjectOutVec(const qword&v,const qword&axis){VUF d;d.qw=VuDot(v,axis);return VuSubRef(v,ScaleVecX(axis,d));}
-static inline float LaneXKeepVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
-static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=VuSqrtX(VuDot(pv->q,pv->q));if(LaneXKeepVf(len)<0.0001f)*pv=*pfallback;else pv->q=DivVec(pv->q,len);return len;}
-static inline float LengthOf(qword v){return QwordX(VuSqrtX(VuDot(v,v)));}
-static inline float EvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
+static inline qwordV ScaleVecX(qwordV a,VUF g){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
+static inline qwordV AddScaledVec(qwordV base,qwordV vec,VUF k){qwordV r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
+static inline qwordV DivVec(const qwordV&a,const qwordV&g){qwordV r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
+static inline qwordV DivVecBy(const qwordV&a,const qwordV&g){qwordV r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
+static inline qwordV RotateVec(const M3*m,qwordV v){qwordV r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
+static inline qwordV CombineVec(const qwordV&a,const qwordV&b,VUF ka,VUF kb){qwordV r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
+static inline qwordV AddScaledVec2(qwordV base,qwordV a,qwordV b,VUF k){qwordV r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
+static inline qwordV ScaleVecXK(qwordV a,VUF g){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */
+static inline qwordV ProjectOutVec(const qwordV&v,const qwordV&axis){VUF d;d.qw=VuDot(v,axis);return VuSubRef(v,ScaleVecX(axis,d));}
+static inline float LaneXKeepVf(qwordV qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
+static inline qwordV NormalizeAt(U*pv,const U*pfallback){qwordV len=VuSqrtX(VuDot(pv->q,pv->q));if(LaneXKeepVf(len)<0.0001f)*pv=*pfallback;else pv->q=DivVec(pv->q,len);return len;}
+static inline float LengthOf(qwordV v){return QwordX(VuSqrtX(VuDot(v,v)));}
+static inline float EvaluateClq(CLQV*p,float x){return p->g0+x*(p->g1+x*p->g2);}
 static inline float MaxOf(float a,float b){return(b>a)?b:a;}
-static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
+static inline qwordV GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qwordV(*)(void*))e->fn)((char*)p+e->delta);}
 static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->fn)((char*)p+e->delta,0);}
-static inline qword NormalizeVec(qword v,qword fallback){qword len=VuSqrtX(VuDot(v,v));qword r;if(QwordX(len)<0.0001f)r=fallback;else r=DivVec(v,len);return r;}
+static inline qwordV NormalizeVec(qwordV v,qwordV fallback){qwordV len=VuSqrtX(VuDot(v,v));qwordV r;if(QwordX(len)<0.0001f)r=fallback;else r=DivVec(v,len);return r;}
 static inline CLOCK*Addr(CLOCK*p){return p;}
-static inline qword AddScaledVec2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
+static inline qwordV AddScaledVec2Q(qwordV base,qwordV a,qwordV b,qwordV k){qwordV r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
 // Swing physics while hanging from a hook: pendulum motion around the hand-hold, smoothed swing angle, then
 // AnticipateJtForce for the resulting acceleration.
 extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
@@ -286,7 +286,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     anchorVelocity.q = GetXfVelocity(Space(jt->target), 0, anchor.q);
     axis.q = VuSubRef(GetLoWorldPos(jt), anchor.q);
     displacement = axis;
-    qword length = NormalizeAt(&axis, &D_002A2DC0);
+    qwordV length = NormalizeAt(&axis, &D_002A2DC0);
     float distance = LaneXKeepVf(length);
     U relative, perpendicular, parallel;
     relative.q = VuSubRef(GetVelocityOf(jt), anchorVelocity.q);
@@ -338,8 +338,8 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     STATE state;
     if (jt->link) {
         NODE *object = jt->link->object;
-        qword base;
-        qword dt;
+        qwordV base;
+        qwordV dt;
         __asm__(
             ""
             : "=r"(dt)
@@ -347,23 +347,23 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
             : "memory"); /* empty asm, see below: the "memory" clobber keeps the point/spin/base loads after the dt store (target order) */
         base =
             anchorVelocity
-                .q; /* empty asm: the dt bits as a GPR qword (target lw; sq, no qmtc2). The "V" alternative is allocation-only (never chosen: the operand is offsettable), it keeps the MEM in the asm so reload loads it straight into the output reg */
-        qword point = anchor.q, spin = D_002A2DD0.q;
+                .q; /* empty asm: the dt bits as a GPR qwordV (target lw; sq, no qmtc2). The "V" alternative is allocation-only (never chosen: the operand is offsettable), it keeps the MEM in the asm so reload loads it straight into the output reg */
+        qwordV point = anchor.q, spin = D_002A2DD0.q;
         state.direction = D_002A2DD0;
         state.position = D_002A2DD0;
         state.velocity.q = dt;
-        qword arm = VuSubRef(point, GetLoWorldPos(object));
+        qwordV arm = VuSubRef(point, GetLoWorldPos(object));
         velocity.q = AddScaledVec2Q(base, spin, VuCross(spin, arm), dt);
     } else
         velocity = anchorVelocity;
     state.rotation = BuildRotationMatrixFromVector(ScaleVecX(VuAdd(angularFirst.q, angular.q), VuFloat(Addr(&D_002DDED0)->deltaTime * 0.5f)));
     state.direction.q = RotateVec(&state.rotation, axis.q);
-    qword radius = ScaleVecXK(state.direction.q, VuFloat(next));
+    qwordV radius = ScaleVecXK(state.direction.q, VuFloat(next));
     state.position.q = VuAdd(anchor.q, radius);
-    qword final = VuAdd(VuAdd(velocity.q, VuCross(angular.q, radius)),
+    qwordV final = VuAdd(VuAdd(velocity.q, VuCross(angular.q, radius)),
                         ScaleVecX(state.direction.q, VufFromMemWord(*(int *)&speedOut)));
     state.velocity.q = final;
-    qword current = GetVelocityOf(jt);
+    qwordV current = GetVelocityOf(jt);
     projected.q = VuSubRef(DivVecBy(VuSubRef(final, current), VufFromMemWord(*(int *)&Addr(&D_002DDED0)->deltaTime).qw),
                            jt->accel->value.q);
     if (jt->link)
@@ -388,7 +388,7 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
     U v, d;
     M3P m1, m2, m;
     AddSoAcceleration(jt, jt->response[0].first.q);
-    qword a;
+    qwordV a;
     __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(GetLoWorldPos(jt->target)));
     v.q = a;
     a = VuSub(a, GetLoWorldPos(jt));
@@ -404,9 +404,9 @@ extern "C" void AddJtExternalAccelerations(JT *s) { AddSoAcceleration(s->link->o
 
 // Update target-facing movement modes and animation weights.
 extern "C" float fabsf(float);
-static inline qword Local(const M3&m,qword v){qword q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
-static inline qword LengthSquared(qword value){qword n;n = VuDot(value, value);return n;}
-static inline qword Velocity(JT*jt){return ((qword(*)(void*))jt->vt[33].fn)((char*)jt+jt->vt[33].delta);}
+static inline qwordV Local(const M3&m,qwordV v){qwordV q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
+static inline qwordV LengthSquared(qwordV value){qwordV n;n = VuDot(value, value);return n;}
+static inline qwordV Velocity(JT*jt){return ((qwordV(*)(void*))jt->vt[33].fn)((char*)jt+jt->vt[33].delta);}
 static inline int Can(JT*jt,int mode){return ((int(*)(void*,int))jt->vt[99].fn)((char*)jt+jt->vt[99].delta,mode);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char U_Size[sizeof(U)==16?1:-1];
@@ -416,7 +416,7 @@ typedef char PL_Size[sizeof(PL)==32?1:-1];
 typedef char CURVE_Size[sizeof(CURVE)==68?1:-1];
 typedef char ANIMATION_Size[sizeof(ANIMATION)==120?1:-1];
 typedef char LINK_Size[sizeof(LINK)==8?1:-1];
-typedef char SMP_Size[sizeof(SMP)==12?1:-1];
+typedef char SMP_Size[sizeof(SMPV)==12?1:-1];
 typedef char WORK_Size[sizeof(WORK)==176?1:-1];
 typedef char JT_vt_Offset[FIELD_OFFSET(JT,vt)==12?1:-1];
 typedef char JT_input_Offset[FIELD_OFFSET(JT,input)==336?1:-1];
@@ -476,22 +476,22 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     w.reference.q = GetLoWorldPos(jt->target);
     register JT *receiver __asm__("$4");
     __asm__("sq %2,%1\n\tdaddu %0,%3,$zero" : "=r"(receiver), "=m"(w.target.q) : "r"(w.reference.q), "r"(jt));
-    register qword positionBits __asm__("$2") = GetLoWorldPos(receiver);
-    register qword position __asm__("vf2"), targetVector __asm__("vf1");
+    register qwordV positionBits __asm__("$2") = GetLoWorldPos(receiver);
+    register qwordV position __asm__("vf2"), targetVector __asm__("vf1");
     register float epsilon __asm__("$f1");
     const uint epsilonBits = 0x38D1B717;
     __asm__(".set noat\n\tqmtc2.ni %3,%0\n\tlui $1,%4\n\tori $1,$1,%5\n\tmtc1 $1,%2\n\tlqc2 %1,%6\n\t.set at"
             : "=j"(position), "=j"(targetVector), "=f"(epsilon)
             : "r"(positionBits), "i"(epsilonBits >> 16), "i"(epsilonBits & 0xFFFF), "m"(w.target.q)
             : "$1");
-    register qword difference __asm__("vf3");
+    register qwordV difference __asm__("vf3");
     register uint high __asm__("$2"), savedPage __asm__("$3");
     __asm__("lui %0,%%hi(%4)\n\tvsub.xyzw %1,%3,%2"
             : "=r"(high), "=j"(difference)
             : "j"(position), "j"(targetVector), "i"(&D_002A2DC0));
-    register qword normalized __asm__("vf1"), one __asm__("vf2");
-    register qword fallbackBits __asm__("$2");
-    register qword *fallbackPointer __asm__("$2");
+    register qwordV normalized __asm__("vf1"), one __asm__("vf2");
+    register qwordV fallbackBits __asm__("$2");
+    register qwordV *fallbackPointer __asm__("$2");
     float length;
     __asm__(
         "daddu %0,%3,$zero\n\tvmul.xyz %1,%4,%4\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z"
@@ -507,9 +507,9 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
         __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q"
                 : "=j"(normalized)
                 : "j"(normalized), "j"(difference));
-    qword normal = normalized;
-    register qword *axisPointer __asm__("$2");
-    register qword axis __asm__("$5");
+    qwordV normal = normalized;
+    register qwordV *axisPointer __asm__("$2");
+    register qwordV axis __asm__("$5");
     register float yaw __asm__("$f12");
     __asm__("addiu %0,%1,%%lo(%2)" : "=r"(axisPointer) : "r"(savedPage), "i"(&D_002A2DC0));
     register M3 *rotationOutput __asm__("$4");
@@ -553,7 +553,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
             next = 2;
             jt->previous = -1;
         } else if (Abs(angle) < D_002BF560) {
-            qword magnitude = LengthSquared(Velocity(jt));
+            qwordV magnitude = LengthSquared(Velocity(jt));
             register float limit __asm__("$f1");
             __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlwc1 %1,%2"
                     : "+j"(magnitude), "=f"(limit)
@@ -571,7 +571,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
             next = 2;
             jt->previous = -1;
         } else if (Abs(angle) > D_002BF564) {
-            qword magnitude = LengthSquared(Velocity(jt));
+            qwordV magnitude = LengthSquared(Velocity(jt));
             register float limit __asm__("$f1");
             __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlwc1 %1,%2"
                     : "+j"(magnitude), "=f"(limit)
@@ -642,26 +642,26 @@ typedef char final_offset_1_2[FIELD_OFFSET(U,i)==0?1:-1];
 typedef char final_offset_2_0[FIELD_OFFSET(M3,r[0])==0?1:-1];
 typedef char final_offset_2_1[FIELD_OFFSET(M3,r[1])==16?1:-1];
 typedef char final_offset_2_2[FIELD_OFFSET(M3,r[2])==32?1:-1];
-typedef char final_offset_3_0[FIELD_OFFSET(SMP,values[0])==0?1:-1];
-typedef char final_offset_3_1[FIELD_OFFSET(SMP,values[1])==4?1:-1];
-typedef char final_offset_3_2[FIELD_OFFSET(SMP,values[2])==8?1:-1];
-typedef char final_size_0[sizeof(qword)==16?1:-1];
+typedef char final_offset_3_0[FIELD_OFFSET(SMPV,values[0])==0?1:-1];
+typedef char final_offset_3_1[FIELD_OFFSET(SMPV,values[1])==4?1:-1];
+typedef char final_offset_3_2[FIELD_OFFSET(SMPV,values[2])==8?1:-1];
+typedef char final_size_0[sizeof(qwordV)==16?1:-1];
 typedef char final_size_1[sizeof(int)==4?1:-1];
 typedef char final_size_2[sizeof(uint)==4?1:-1];
 typedef char final_size_3[sizeof(float)==4?1:-1];
 typedef char final_size_4[sizeof(short)==2?1:-1];
 typedef char final_size_5[sizeof(void*)==4?1:-1];
-typedef char final_alignment_0[__alignof__(qword)==16?1:-1];
+typedef char final_alignment_0[__alignof__(qwordV)==16?1:-1];
 typedef char final_alignment_1[__alignof__(U)==16?1:-1];
 typedef char final_alignment_2[__alignof__(M3)==16?1:-1];
 typedef char final_alignment_3[__alignof__(WORK)==16?1:-1];
-typedef char final_alignment_4[__alignof__(JT)==16?1:-1];   /* 16 in the unified view (qword fields) */
+typedef char final_alignment_4[__alignof__(JT)==16?1:-1];   /* 16 in the unified view (qwordV fields) */
 typedef char final_alignment_5[__alignof__(VTE)==4?1:-1];
 typedef char final_alignment_6[__alignof__(PL)==4?1:-1];
 typedef char final_alignment_7[__alignof__(CURVE)==4?1:-1];
 typedef char final_alignment_8[__alignof__(ANIMATION)==4?1:-1];
 typedef char final_alignment_9[__alignof__(LINK)==4?1:-1];
-typedef char final_alignment_11[__alignof__(SMP)==4?1:-1];
+typedef char final_alignment_11[__alignof__(SMPV)==4?1:-1];
 #undef FIELD_OFFSET
 
 // Writes the heading of the hook object (x18C4): atan2 of its world matrix's first row.
@@ -686,25 +686,25 @@ typedef char IKJ_worldMatrix_r3_Offset[FIELD_OFFSET(IKJ,worldMatrix.r[3])==112?1
 typedef char NODE_property_Offset[FIELD_OFFSET(NODE,propertyBits)==308?1:-1];
 typedef char JT_target_Offset[FIELD_OFFSET(JT,target)==6340?1:-1];
 typedef char JT_handXf_Offset[FIELD_OFFSET(JT,handXf)==6604?1:-1];
-typedef char Size_0[sizeof(qword)==16?1:-1];
+typedef char Size_0[sizeof(qwordV)==16?1:-1];
 typedef char Size_1[sizeof(UF)==16?1:-1];
 typedef char LengthBits_Size[sizeof(int)==4?1:-1];
 typedef char DataPointer_Size[sizeof(NODE*)==4?1:-1];
 // The point on the hook's surface nearest the hand: hook position plus the normalized hook-to-hand direction times
 // the hook radius.
-extern "C" qword GetJtHangHandlePosition(JT *jt)
+extern "C" qwordV GetJtHangHandlePosition(JT *jt)
 {
-    qword q, d, dir, r;
-    register qword fallback __asm__("$2");
-    register qword l __asm__("vf1");
-    register qword t __asm__("vf2");
+    qwordV q, d, dir, r;
+    register qwordV fallback __asm__("$2");
+    register qwordV l __asm__("vf1");
+    register qwordV t __asm__("vf2");
     register int lengthBits __asm__("$3");
     UF s;
     float g;
     q = GetLoWorldPos(jt->target);
     d = VuSub(q, jt->handXf->worldMatrix.r[3].q);
     {
-        register const qword *address __asm__("$2") = &D_002A2DC0.q;
+        register const qwordV *address __asm__("$2") = &D_002A2DC0.q;
         __asm__("lq %0,%1" : "=r"(fallback) : "m"(*address));
     }
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q"
@@ -717,7 +717,7 @@ extern "C" qword GetJtHangHandlePosition(JT *jt)
     {
         register NODE *object __asm__("$2") = jt->target;
         register int bits __asm__("$2") = object->propertyBits;
-        qword sq;
+        qwordV sq;
         __asm__("qmtc2.ni %1,%0" : "=j"(sq) : "r"(bits));   /* C++: asm output into a scalar, then stored (see the mismatch table) */
         s.q = sq;
     }
@@ -731,7 +731,7 @@ extern "C" qword GetJtHangHandlePosition(JT *jt)
 extern "C" void RenderJtHangIk(JT *jt)
 {
     IKJ *t;
-    qword a, b, d;
+    qwordV a, b, d;
     M4 m;
     int n;
 
@@ -742,7 +742,7 @@ extern "C" void RenderJtHangIk(JT *jt)
     t = jt->handChildXf;
     VECTOR_opAssign(&t->localPos, VuAdd(t->localPos, a));
     ((float *)&t->localPos)[3] = 1.0f;
-    n = ++D_003DD490.xfStamp;
+    n = ++D_003DD490.transformStamp;
     jt->handChildXf->stamp = n;
     {
         IKJ *t2 = jt->handChildXf;
@@ -758,8 +758,8 @@ extern "C" void RenderJtHangIk(JT *jt)
 extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
 {
     M3P m;
-    qword d = VuSub(GetLoWorldPos(jt->target), jt->handXf->worldMatrix.r[3].q);
-    qword q = ConvertXfVec(0, jt->wristXf->parent, d);
+    qwordV d = VuSub(GetLoWorldPos(jt->target), jt->handXf->worldMatrix.r[3].q);
+    qwordV q = ConvertXfVec(0, jt->wristXf->parent, d);
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), BuildAxisAngleRotationMatrix(D_002A2DA0.q, D_002BF594));
     SetActPositionGoal(jt->handAct, DecomposeRotationMatrixToEuler(&m));
     jt->handIkOffset = PosSmooth(jt->handIkOffset, D_002A2DD0.q, g_clock.deltaTime, D_002BF598, 0);
@@ -767,14 +767,14 @@ extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
 
 // ---- hang's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 extern "C" {
-CLQ D_002BF4F0={1.5f,-0.35f,0.0f};
-LM D_002BF500={-5.0f,-0.25f};
+CLQV D_002BF4F0={1.5f,-0.35f,0.0f};
+LMV D_002BF500={-5.0f,-0.25f};
 float D_002BF508=-2.5f;
 float D_002BF50C=-1.0f;
 float D_002BF510=0.25f;
 float D_002BF514=5.0f;
-CLQ D_002BF520 __attribute__((aligned(16)))={0.5f,-0.01f,0.0f};
-SMPA D_002BF530={1000.0f,0.0f,0.25f,5000.0f};
+CLQV D_002BF520 __attribute__((aligned(16)))={0.5f,-0.01f,0.0f};
+SMPAV D_002BF530={1000.0f,0.0f,0.25f,5000.0f};
 float D_002BF540=75.0f;
 float D_002BF544=230.0f;
 float D_002BF548[3]={15.0f,0.0f,0.1f};
@@ -785,8 +785,8 @@ float D_002BF560=0.1f;
 float D_002BF564=0.4f;
 float D_002BF568=80.0f;
 float D_002BF56C=120.0f;
-SMP D_002BF570={1.0f,0.0f,0.1f};
-SMP D_002BF580={4.0f,0.0f,0.1f};
+SMPV D_002BF570={1.0f,0.0f,0.1f};
+SMPV D_002BF580={4.0f,0.0f,0.1f};
 float D_002BF58C=1.7f;
 float D_002BF590=3.0f;
 float D_002BF594=1.5f;
