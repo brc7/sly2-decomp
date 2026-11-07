@@ -303,8 +303,6 @@ extern "C" void SetSndDoppler()
 namespace M_UpdateSndPositional { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
-/* LO's flag word at +0x28 read as a whole (sly2/lo.h's isInWorld bit-field compiles to a mask test, not the shift) */
-struct O { char pad[0x28]; ulong fl; };
 qword ConvertPosBetweenLos(LO *, int, qword);
 void CalculateSndVolPan(CID151 *, qword, float *, float *, int *);
 // Positional update (slot 16): volume from the distance to the listener and pan from its direction; switches the
@@ -314,7 +312,7 @@ void UpdateSndPositional(CID151 *sound)
     float fade;
     int panAngle;
     float volume;
-    if (sound->source && ((((O *)sound->source)->fl >> 60) & 1) == 0) {
+    if (sound->source && ((int)sound->source->isInWorld & 1) == 0) {
         StopSnd(sound, 0.0f);
         return;
     }
