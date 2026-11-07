@@ -146,15 +146,16 @@ struct SOPHYS
       struct REGENT *pregent;   /* the object's REGENT record (see func_00259B20) */
 };
 
-/* REGENT: a record that links a physical SO to a CID17 object (meaning not established).
+/* REGENT: the region link of a physical SO: the path zone it is in (CID17 = classes.h PATHZONE), kept in that zone's
+   list (SetSoPhysRegion in so.cpp moves it between zones).
    moved from src/game/engine/physics/so/CloneSo.cpp */
 struct REGENT
 {
       SO *pso;   /* the solid object */
       undefined4 unknown04[3];
-      struct CID17 *pcid17;   /* the linked CID17 object */
+      struct CID17 *pathzone;   /* +0x10 the path zone (PATHZONE, CID 17) the object is in */
       undefined4 unknown14[3];
-      undefined4 unknown20[20];
+      undefined4 unknown20[20];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
 };
 
 /* SO: the solid object: an LO with transforms, a model, collision parts and (optionally) physics.
@@ -273,7 +274,7 @@ typedef char assert_SO_unknown13C[SLY2_OFFSETOF(SO, unknown13C) == 0x13C ? 1 : -
 inline CID17 *func_00259B20(SO *pso)   /* get */
 {
     REGENT *pregent = pso->physics ? pso->physics->pregent : 0;
-    return pregent ? pregent->pcid17 : 0;
+    return pregent ? pregent->pathzone : 0;
 }
 /* ensure: the start of BARREL's own fields (BARREL : SO, CID 0x58, cb 0x1A0); BARREL has no header yet */
 struct BARREL;

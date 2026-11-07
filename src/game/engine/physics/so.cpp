@@ -1028,20 +1028,17 @@ void UpdateSo(SO *so)
 
 // 0x1F37C8 SetSoPhysRegion
 namespace M_func_001F37C8 { extern "C" {
-struct Q; struct O; struct E; struct P;
-struct Q { char pad[0x118]; char dl[1]; };
-struct O { char pad[0x10]; struct Q *pathzone; char pad2[0x20 - 0x14]; char unknown20[1]; };
-struct E { char pad[0xDC]; struct O *region; };
-struct P { char pad[0xE8]; struct E *physics; };
+struct Q;
+struct Q { char pad[0x118]; char dl[1]; };   /* a PATHZONE: its list of region links (+0x118) */
 int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
 void InitObstacleQueryCursor(struct Q *, void *);
 // Moves the object's region link from its current region's list to region q.
-void SetSoPhysRegion(struct P *so, struct Q *q)
+void SetSoPhysRegion(SO *so, struct Q *q)
 {
-    struct O *o = so->physics->region;
-    struct Q *old = o->pathzone;
+    REGENT *o = so->physics->pregent;
+    struct Q *old = (struct Q *)o->pathzone;
     if (old == q) return;
     if (old) {
         if (IsEntryInDl__FP2DLPv(old->dl, o)) RemoveDlEntry__FP2DLPv(old->dl, o);
@@ -1052,7 +1049,7 @@ void SetSoPhysRegion(struct P *so, struct Q *q)
             InitObstacleQueryCursor(q, o->unknown20);
         }
     }
-    o->pathzone = q;
+    o->pathzone = (CID17 *)q;
 }
 } } // namespace M_func_001F37C8
 

@@ -1505,7 +1505,7 @@ static inline REGION *PregionFromLo(SO *plo)
 {
     SOPHYS *physics = plo->physics;
     REGENT *pregent = physics ? physics->pregent : 0;
-    return pregent ? (REGION *)pregent->pcid17 : 0;
+    return pregent ? (REGION *)pregent->pathzone : 0;
 }
 // Is g beyond gMax?
 static inline int FFartherThan(float g, float gMax) { return gMax < g; }
