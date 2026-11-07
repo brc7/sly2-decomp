@@ -502,8 +502,8 @@ void STEPGUARD::OnProxyRelease(LO *plo)
     guard->patrolScript = 0;
     func_002333B4(&guard->scriptResumePoint, 0, 0xC);
     guard->numAllowedZones = 0;
-    guard->pdetector->unknownF0 = 0;
-    guard->pdetector->unknownF4 = 0;
+    guard->pdetector->isForced = 0;
+    guard->pdetector->isDisabled = 0;
     guard->numLoot = 0;
     guard->firstLoot = 0;
     guard->isLootStaged = 0;

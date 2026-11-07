@@ -97,7 +97,7 @@ struct DETECTORTARGET
       LO *object;           /* +0x0 [S] */
       int state;            /* +0x4 [S] */
       float stateTime;      /* +0x8 [S] */
-      int unknownC;
+      float detectTime;     /* +0xC [S] when it last left state 0 (SetDetectorTargetState) */
 };
 
 /* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target), shared by every guard engaging
@@ -125,8 +125,8 @@ struct DETECTOR : public XFM
       SOTREE *ownerPhysicsTree; /* +0xE4 [S] the owner's physics tree (copied from SO::physicsTree) */
       VOL *pvolNear;        /* +0xE8 [S] near volume (tu_1B9F80's view; VOL type [H]) */
       VOL *pvolFar;         /* +0xEC [S] far volume */
-      int unknownF0;        /* +0xF0 [S] cleared by ClearStepguardState */
-      int unknownF4;        /* +0xF4 [S] */
+      int isForced;         /* +0xF0 [S] every live target counts as seen (cleared by ClearStepguardState) */
+      int isDisabled;       /* +0xF4 [S] no target is seen */
       int options;          /* +0xF8 [S] option bits (detector.cpp DETECTOR_*; InitNeela sets 3) */
       int ctarget;          /* +0xFC [S] entries used in atarget: the designated targets first, then the guards' generated ones (STEPGUARD::generatedTargetCount, the tail) */
       DETECTORTARGET atarget[8]; /* +0x100 [S] the tracked targets (TryAddStepguardDetectTarget, ChooseStepguardTarget) */
@@ -138,7 +138,7 @@ typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* clas
 typedef char assert_DETECTOR_ctarget[SLY2_OFFSETOF(DETECTOR, ctarget) == 0xFC ? 1 : -1];
 typedef char assert_DETECTOR_atarget[SLY2_OFFSETOF(DETECTOR, atarget) == 0x100 ? 1 : -1];
 typedef char assert_DETECTOR_owner[SLY2_OFFSETOF(DETECTOR, owner) == 0xE0 ? 1 : -1];
-typedef char assert_DETECTOR_unknownF0[SLY2_OFFSETOF(DETECTOR, unknownF0) == 0xF0 ? 1 : -1];
+typedef char assert_DETECTOR_isForced[SLY2_OFFSETOF(DETECTOR, isForced) == 0xF0 ? 1 : -1];
 typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
 
 /* An animation binding of a guard (16 bytes; stepguard.cpp ResolveAnimBinding/ReleaseAnimBinding): its kind (2 and 3

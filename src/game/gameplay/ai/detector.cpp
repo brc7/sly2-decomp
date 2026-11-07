@@ -21,44 +21,19 @@ typedef union { qword q; float f[4]; } U;
 /* Class ids tested here (docs/systems/object-model.md section 1). */
 enum { CID_MS = 0x31, CID_PO = 0x32, CID_STEP = 0x33, CID_STEPPLAYER = 0x34, CID_STEPGUARD = 0x38, CID_SAFEHOUSE = 0x46,
        CID_COVER_C = 0xC, CID_COVER_22 = 0x22 };
-/* DETECTORV::options bits. */
+/* DETECTOR::options bits. */
 enum {
     DETECTOR_SKIP_CONCEALMENT = 1,   // ignore the target's concealment (cover/sneak) state
     DETECTOR_NEAR_IS_ENOUGH = 2,     // inside the near volume counts as seen, no line test
     DETECTOR_FILTER_MS = 4,          // the line test only counts MS objects (cid 0x31) as blockers
     DETECTOR_RETEST_LINE = 8         // re-test the line of sight every frame
 };
-/* Target detection states (DTE::state). */
+/* Target detection states (DETECTORTARGET::state). */
 enum { TARGET_UNSEEN = 0, TARGET_SEEN = 1, TARGET_LOST = 2 };
-/* g++ 2.95 vtable entry. */
-struct VTE { short d; short pad; void (*pfn)(); };
-
-/* A detector target: the object, its state, when the state was last set and when it left 0. */
-struct DTE { void *object; int state; float stateTime; float detectTime; };
-/* A child link of the object at +0xE4 (an SO's child list: +0x64 the first). */
+/* The detector is guard.h DETECTOR, its targets DETECTORTARGET. */
+/* A child link of the object at +0xE4 (DETECTOR::ownerPhysicsTree read as an SO's child list: +0x64 the first). */
 struct CHNL { int isSeen; CHNL *next; int unknown8; struct SOV *object; };
 struct CHAIN { char pad[0x64]; CHNL *firstChild; };
-/* The detector (sly2/guard.h has the same class with only the volume fields named). */
-struct DETECTORV
-{
-    char pad0[0xC];
-    VTE *vt;
-    void *parent;
-    int root;          /* +0x14 */
-    char pad18[0x40 - 0x18];
-    unsigned int objectFlags;
-    char pad44[0xE0 - 0x44];
-    void *eye;            /* +0xE0 the eye: the owning guard (or an object over it) */
-    CHAIN *eyeChildren;        /* +0xE4 */
-    void *nearVolume;       /* +0xE8 */
-    void *farVolume;
-    int isForced;           /* +0xF0 every live target counts as seen */
-    int isDisabled;
-    int options;              /* +0xF8 DETECTOR_* bits */
-    int targetCount;
-    DTE targets[8];          /* +0x100 */
-};
-typedef char assert_DETECTOR_size[sizeof(DETECTORV) == 0x180 ? 1 : -1];
 /* A target object (an SO; +0x240 an offset added for CID 0x33, +0x4C8.. a hero's state, +0x11AC a flag). */
 struct ZV { char pad[0xE4]; int unknownE4; char pad1[0x194 - 0xE8]; int unknown194; };
 struct SOV
@@ -85,7 +60,7 @@ struct BUF { char a[0x180]; };
 struct EC { char pad[0x70]; unsigned long flags; };
 struct OV { int pad[4]; OV *parent; int root; char pad2[0xEC - 0x18]; EC *collisionEntry; };
 struct HITV { int pad; OV *object; int pad2[2]; unsigned long flags; };
-struct ARGS { DTE *entry; int *oldState; int *newState; };
+struct ARGS { DETECTORTARGET *entry; int *oldState; int *newState; };
 // Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 // Vector with a trivial copy constructor.
@@ -97,9 +72,9 @@ extern qword D_002A2DC0;
 extern char D_003DD490[];
 extern "C" {
 qword D_002BDBF0[1] = {0};   /* detector's .data: the zero position (16 bytes) */
-void InitXfm(DETECTORV *object);
-void SetLoBusyKind(DETECTORV *object, int n);
-void UpdateLo(DETECTORV *object);
+void InitXfm(DETECTOR *object);
+void SetLoBusyKind(DETECTOR *object, int n);
+void UpdateLo(DETECTOR *object);
 qword GetLoWorldPos(void *object);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int state);
 void BroadcastGameEvent(void *object, int n, void *q);
@@ -116,71 +91,71 @@ void *AllocFromStack(AL *request);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, int state);
 VECTORQ *GetLoWorldMatrix(SOV *object);
-void UpdateDetectorTargets(DETECTORV *object);
-qword GetDetectorEyePosition(DETECTORV *object);
-void AddDetectorTarget(DETECTORV *object, void *object);
-void SetDetectorTargetState(DETECTORV *object, DTE *entry, int state);
-DTE *FindDetectorTarget(DETECTORV *object, void *object);
-int CalculateDetectorTargetState(DETECTORV *object, SOV *target, int state);
+void UpdateDetectorTargets(DETECTOR *object);
+qword GetDetectorEyePosition(DETECTOR *object);
+void AddDetectorTarget(DETECTOR *object, void *object);
+void SetDetectorTargetState(DETECTOR *object, DETECTORTARGET *entry, int state);
+DETECTORTARGET *FindDetectorTarget(DETECTOR *object, void *object);
+int CalculateDetectorTargetState(DETECTOR *object, SOV *target, int state);
 int FilterDetectorHitClass31(void *context, HITV *hit);
-int FilterDetectorLineOfSightHit(DETECTORV *object, HITV *hit);
-int IsDetectorLineBlocked(DETECTORV *object, SOV *target);
-int IsDetectorTargetConcealed(DETECTORV *object, SOV *target);
+int FilterDetectorLineOfSightHit(DETECTOR *object, HITV *hit);
+int IsDetectorLineBlocked(DETECTOR *object, SOV *target);
+int IsDetectorTargetConcealed(DETECTOR *object, SOV *target);
 }
 
 // 0x153D58: DETECTOR vtable slot 7 (Init): XFM Init, registered for updates (busy level 1), then sets object flag
 // 2.
-extern "C" void InitDetector(DETECTORV *detector)
+extern "C" void InitDetector(DETECTOR *detector)
 {
     unsigned int flags;
     InitXfm(detector);
     SetLoBusyKind(detector, 1);
-    flags = detector->objectFlags;
+    flags = detector->unknown40;
     if (!(flags & 1)) *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
-    else detector->objectFlags = flags | 2;
+    else detector->unknown40 = flags | 2;
 }
 
 // 0x153DB0: DETECTOR vtable slot 15 (Update): LO update, then re-evaluates the targets.
 void DETECTOR::Update()
 {
-    DETECTORV *detector = (DETECTORV *)this;
+    DETECTOR *detector = this;
     UpdateLo(detector);
     UpdateDetectorTargets(detector);
 }
 
 // 0x153DE0: Re-evaluates every tracked target: its new state comes from CalculateDetectorTargetState(target, old
 // state) and is applied through SetDetectorTargetState (which notifies on change).
-extern "C" void UpdateDetectorTargets(DETECTORV *detector)
+extern "C" void UpdateDetectorTargets(DETECTOR *detector)
 {
     int i;
-    for (i = 0; i < detector->targetCount; i++) {
-        DTE *entry = &detector->targets[i];
+    for (i = 0; i < detector->ctarget; i++) {
+        DETECTORTARGET *entry = &detector->atarget[i];
         SetDetectorTargetState(detector, entry, CalculateDetectorTargetState(detector, (SOV *)entry->object, entry->state));
     }
 }
 
 // 0x153E60: Returns the detector's eye position: its own position when it has no eye object, else the eye object's
 // position, raised 80 units when that object is a guard (STEPGUARD family, cid 0x38).
-extern "C" qword GetDetectorEyePosition(DETECTORV *detector)
+extern "C" qword GetDetectorEyePosition(DETECTOR *detector)
 {
-    if (!detector->eye) return GetLoWorldPos(detector);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(detector->eye, CID_STEPGUARD)) {
+    if (!detector->owner) return GetLoWorldPos(detector);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(detector->owner, CID_STEPGUARD)) {
         U height;
         qword heightVector;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
         qword result;
-        qword eyeObjectPos = GetLoWorldPos(detector->eye);
+        qword eyeObjectPos = GetLoWorldPos(detector->owner);
         float raise = 80.0f;
         heightVector = VuFromFloat<qword>(raise);
         height.q = heightVector;
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(result) : "j"(eyeObjectPos), "j"(D_002A2DC0), "j"(height.q));
         return result;
     }
-    return GetLoWorldPos(detector->eye);
+    return GetLoWorldPos(detector->owner);
 }
 
 // 0x153EF8: When the tracked object changes (`oldObject` != `newObject`), adds the new one as a target (inferred
 // use: target hand-over).
-extern "C" void UpdateDetectorTrackedObject(DETECTORV *detector, void *oldObject, void *newObject)
+extern "C" void UpdateDetectorTrackedObject(DETECTOR *detector, void *oldObject, void *newObject)
 {
     if (oldObject != newObject) {
         AddDetectorTarget(detector, newObject);
@@ -188,47 +163,47 @@ extern "C" void UpdateDetectorTrackedObject(DETECTORV *detector, void *oldObject
 }
 
 // 0x153F18: Adds an object to the target list (at most eight) in state 0, unless it is already tracked.
-extern "C" void AddDetectorTarget(DETECTORV *detector, void *object)
+extern "C" void AddDetectorTarget(DETECTOR *detector, void *object)
 {
     if (FindDetectorTarget(detector, object) != 0)
         return;
-    unsigned int count = detector->targetCount;
+    unsigned int count = detector->ctarget;
     if (count < 8U) {   // at most eight targets
-        DTE *entry;
-        detector->targetCount = count + 1;
-        entry = &detector->targets[count];
-        entry->object = object;
+        DETECTORTARGET *entry;
+        detector->ctarget = count + 1;
+        entry = &detector->atarget[count];
+        entry->object = (LO *)object;
         SetDetectorTargetState(detector, entry, 0);
     }
 }
 
 // 0x153F80: Removes an object from the target list: its state is forced to 0 first (so listeners see the change),
 // then the array is compacted.
-extern "C" void RemoveDetectorTarget(DETECTORV *detector, void *object)
+extern "C" void RemoveDetectorTarget(DETECTOR *detector, void *object)
 {
-    DTE *entry = FindDetectorTarget(detector, object);
+    DETECTORTARGET *entry = FindDetectorTarget(detector, object);
     if (entry) {
         SetDetectorTargetState(detector, entry, 0);
-        detector->targetCount--;
-        memmove(entry, entry + 1, (&detector->targets[detector->targetCount] - entry) * sizeof(DTE));
+        detector->ctarget--;
+        memmove(entry, entry + 1, (&detector->atarget[detector->ctarget] - entry) * sizeof(DETECTORTARGET));
     }
 }
 
 // 0x153FF8: Forgets every target's detection: all states become 0, stamped with the current time (no
 // notifications).
-extern "C" void ResetDetectorTargets(DETECTORV *detector)
+extern "C" void ResetDetectorTargets(DETECTOR *detector)
 {
     int i;
-    for (i = 0; i < detector->targetCount; i++) {
-        detector->targets[i].state = 0;
-        detector->targets[i].stateTime = D_002DDED0.time;
+    for (i = 0; i < detector->ctarget; i++) {
+        detector->atarget[i].state = 0;
+        detector->atarget[i].stateTime = D_002DDED0.time;
     }
 }
 
 // 0x154038: Looks up a target by object and sets its detection state.
-extern "C" void SetDetectorTargetStateById(DETECTORV *detector, void *object, int state)
+extern "C" void SetDetectorTargetStateById(DETECTOR *detector, void *object, int state)
 {
-    DTE *entry = FindDetectorTarget(detector, object);
+    DETECTORTARGET *entry = FindDetectorTarget(detector, object);
     if (entry != 0) {
         SetDetectorTargetState(detector, entry, state);
     }
@@ -237,10 +212,9 @@ extern "C" void SetDetectorTargetStateById(DETECTORV *detector, void *object, in
 // 0x154080: Changes a target's state: records when it left state 0 and when it changed, notifies the detector
 // through vtable slot 3 (HandleSpliceEvent, message 0x1C with {entry, &old, &new}) and, when the detector's parent
 // is a STEP (cid 0x33: a player or a guard) and the new state is TARGET_SEEN, broadcasts game event 0x13.
-extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newState)
+extern "C" void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int newState)
 {
     ARGS args;
-    VTE *vtableEntry;
     if (!entry || newState == entry->state)
         return;
     if (entry->state == TARGET_UNSEEN)
@@ -248,8 +222,7 @@ extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newS
     args.entry = entry;
     args.oldState = &entry->state;
     args.newState = &newState;
-    vtableEntry = &detector->vt[3];
-    ((void (*)(...))vtableEntry->pfn)((char *)detector + vtableEntry->d, 0x1C, 0, 3, &args, 0);
+    detector->HandleSpliceEvent(0x1C, 0, 3, (void **)&args, 0);
     entry->state = newState;
     entry->stateTime = D_002DDED0.time;
     if (newState == TARGET_SEEN) {
@@ -260,22 +233,22 @@ extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newS
 }
 
 // 0x154158: Returns the detection state of an object's target entry, or -1 if it is not tracked.
-extern "C" int GetDetectorTargetStateById(DETECTORV *detector, void *object)
+extern "C" int GetDetectorTargetStateById(DETECTOR *detector, void *object)
 {
-    DTE *entry = FindDetectorTarget(detector, object);
+    DETECTORTARGET *entry = FindDetectorTarget(detector, object);
     if (entry)
         return entry->state;
     return -1;
 }
 
 // 0x154180: Finds the target entry for an object (NULL for a null object or an untracked one).
-extern "C" DTE *FindDetectorTarget(DETECTORV *detector, void *object)
+extern "C" DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, void *object)
 {
     int i;
     if (!object)
         return 0;
-    for (i = 0; i < detector->targetCount; i++) {
-        DTE *entry = &detector->targets[i];
+    for (i = 0; i < detector->ctarget; i++) {
+        DETECTORTARGET *entry = &detector->atarget[i];
         if (entry->object == object)
             return entry;
     }
@@ -289,7 +262,7 @@ extern "C" DTE *FindDetectorTarget(DETECTORV *detector, void *object)
 // seen if inside the near volume (and far volume), not concealed and the line is clear; 1 -> lost when leaving the
 // near volume; 2 -> seen again when back in the near volume with a clear line. Flag 8 re-tests the line every
 // frame.
-extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, int state)
+extern "C" int CalculateDetectorTargetState(DETECTOR *detector, SOV *target, int state)
 {
     BUF hitBuffer;
     qword targetPos;
@@ -316,27 +289,27 @@ extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, in
     }
     switch (state) {
     case TARGET_UNSEEN:
-        if (detector->eyeChildren) {
+        if (detector->ownerPhysicsTree) {
             CHNL *child;
-            for (child = detector->eyeChildren->firstChild; child; child = child->next) {
+            for (child = ((CHAIN *)detector->ownerPhysicsTree)->firstChild; child; child = child->next) {
                 if (child->object == target) {
                     if (child->isSeen) { state = TARGET_SEEN; goto done; }
                     break;
                 }
             }
         }
-        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
-        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
+        if (!IsPointInVol(detector->pvolNear, targetPos)) { state = TARGET_UNSEEN; goto done; }
+        if (detector->pvolFar && !IsPointInVol(detector->pvolFar, targetPos)) { state = TARGET_UNSEEN; goto done; }
         if ((detector->options & DETECTOR_SKIP_CONCEALMENT) == 0 && IsDetectorTargetConcealed(detector, target)) { state = TARGET_UNSEEN; goto done; }
         if (detector->options & DETECTOR_NEAR_IS_ENOUGH) { state = TARGET_SEEN; goto done; }
         { state = !IsDetectorLineBlocked(detector, target); goto done; }
     case TARGET_SEEN:
-        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
-        if (!IsPointInVol(detector->nearVolume, targetPos)) { state = TARGET_LOST; goto done; }
+        if (detector->pvolFar && !IsPointInVol(detector->pvolFar, targetPos)) { state = TARGET_UNSEEN; goto done; }
+        if (!IsPointInVol(detector->pvolNear, targetPos)) { state = TARGET_LOST; goto done; }
         break;
     case TARGET_LOST:
-        if (detector->farVolume && !IsPointInVol(detector->farVolume, targetPos)) { state = TARGET_UNSEEN; goto done; }
-        if (IsPointInVol(detector->nearVolume, targetPos)) {
+        if (detector->pvolFar && !IsPointInVol(detector->pvolFar, targetPos)) { state = TARGET_UNSEEN; goto done; }
+        if (IsPointInVol(detector->pvolNear, targetPos)) {
             if (detector->options & DETECTOR_NEAR_IS_ENOUGH) { state = TARGET_SEEN; goto done; }
             if (IsDetectorLineBlocked(detector, target)) return state;
             state = TARGET_SEEN;
@@ -363,7 +336,7 @@ extern "C" int FilterDetectorHitClass31(void *context, HITV *hit)
 
 // 0x154568: Line-test object filter (default): ignores hits flagged as non-blocking, objects whose collision entry
 // has bit 2, objects in the detector's own hierarchy, and anything below a STEP (cid 0x33: player or guard) ancestor.
-extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
+extern "C" int FilterDetectorLineOfSightHit(DETECTOR *detector, HITV *hit)
 {
     OV *object;
     if (hit->flags & 0x1000000000000L)
@@ -371,7 +344,7 @@ extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
     object = hit->object;
     if (object->collisionEntry->flags & 4)
         return 0;
-    if (object->root == detector->root)
+    if (object->root == (int)detector->root)
         return 0;
     {
         OV *ancestor = object;
@@ -383,7 +356,7 @@ extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
 
 // 0x1545F0: True if the line from the detector's eye to the target is blocked by a world object
 // (FindFirstObjectHitByLine over the objects in the line's bounding box, using one of the filters above).
-extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
+extern "C" int IsDetectorLineBlocked(DETECTOR *detector, SOV *target)
 {
     STACKSCOPE stackScope;
     int i;
@@ -420,7 +393,7 @@ static inline float Dot(qword a, const VECTORQ &b)
 // 0x154770: True if a player target (cid 0x34) is concealed by its current state: hiding in or behind cover objects
 // (cids 0xC and 0x22, facing away from the detector), and certain sneak/hang states (inferred: the state numbers
 // are JT states).
-extern "C" int IsDetectorTargetConcealed(DETECTORV *detector, SOV *target)
+extern "C" int IsDetectorTargetConcealed(DETECTOR *detector, SOV *target)
 {
     if (!IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER)) return 0;
     if (target->jtSubstate == -1) return 0;
