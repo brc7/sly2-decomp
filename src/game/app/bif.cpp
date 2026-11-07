@@ -3482,7 +3482,7 @@ CRef *BuiltinFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 
 // 0x1241E8 BuiltinFindObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindObjects__FiP4CRefP6CFrame {
-struct CRef; struct Q; struct W; struct G;
+struct CRef; struct Q; struct W; 
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
@@ -3494,10 +3494,9 @@ struct CRef {
 };
 struct Q { char pad[0x3C]; void *pv; };
 struct W { char pad[0xC]; Q *pq; };
-struct G { char pad[0x3F0C]; void *pv; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" {
-int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
+int FindSwObjectsInProxyScope(SW *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
@@ -3512,14 +3511,14 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
         pqT = ((W *)args[2].u.pv)->pq;
     else
         pqT = pq;
-    G *pg = &D_003DD490;
+    SW *pg = &D_003DD490;
     int k = pq ? 1 : 5;
     void *p0 = args[0].u.pv;
     void *pv;
     if (pqT)
         pv = pqT->pv;
     else
-        pv = pg->pv;
+        pv = pg->ppxrRoot;
     int c = FindSwObjectsInProxyScope(pg, k, p0, pq, pv, 0x40, ap);
     ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
@@ -3626,7 +3625,7 @@ CRef *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
 
 // 0x124578 BuiltinFindNearestObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindNearestObjects__FiP4CRefP6CFrame {
-struct CRef; struct Q; struct W; struct G;
+struct CRef; struct Q; struct W; 
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
@@ -3638,10 +3637,9 @@ struct CRef {
 };
 struct Q { char pad[0x3C]; void *pv; };
 struct W { char pad[0xC]; Q *pq; };
-struct G { char pad[0x3F0C]; void *pv; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" {
-int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
+int FindSwObjectsInProxyScope(SW *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
@@ -3657,12 +3655,12 @@ CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     else
         pqT = pq;
     void *p0 = args[0].u.pv;
-    G *pg = &D_003DD490;
+    SW *pg = &D_003DD490;
     void *pv;
     if (pqT)
         pv = pqT->pv;
     else
-        pv = pg->pv;
+        pv = pg->ppxrRoot;
     int c = FindSwObjectsInProxyScope(pg, 4, p0, pq, pv, 0x40, ap);
     ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
