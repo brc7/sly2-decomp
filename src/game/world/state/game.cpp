@@ -54,7 +54,7 @@ void BeginStartupSequence(void *pq);
 void ClearDifficulty(void *pdifficulty);
 void ResetWidgetVisibleTime(WIDGETV *widget);
 void InitLo(LO *plo);
-void InitSl(DL *pdl, int ibDle);
+void InitSl(SL *psl, int ibDle);
 void EndCurrentJob(JOB *job);
 void BeginJob(JOB *job);
 int IsCurrentJob(JOB *job);
@@ -754,7 +754,7 @@ void JOB::Init()
     job->completionWidgetOid = -1;
     job->introLabel = -1;
     job->outroLabel = -1;
-    InitSl(&job->tasks, 0x84);
+    InitSl(&job->sltask, 0x84);
 }
 
 namespace M_LoadJobFromBrx {
