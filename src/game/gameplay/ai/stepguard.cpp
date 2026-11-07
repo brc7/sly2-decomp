@@ -89,6 +89,10 @@ enum {
     BINDING_DIRANIM = 3,    /* a four-animation payload, played on the guard's DIRANIM (+0xE20) */
 };
 
+/* LO's flag word read whole (the 8 bytes at +0x28; bit 60 = LO::isInWorld). lo.h declares the bits as bitfields of a
+   long unit sharing bytes with siblingLink, and the bitfield test compiles to a mask test where these functions shift:
+   a matching-only spelling until lo.h's +0x28 layout is settled (other family). */
+#define LO_FLAGS28(plo) (*(ulong *)((char *)(plo) + 0x28))
 #define PMOVER(guard) ((GUARDMOVER *)((char *)(guard) + 0xFD0))
 /* A guard attack (CID120) as its binding functions see it: the owning guard at +0xAC and the attack animation's
    binding at +0xB0 (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
@@ -1586,21 +1590,15 @@ extern "C" void CloneStepguardAnimBindings(STEPGUARD *guard)
 
 // 0x2082D0 ChooseStepguardTarget
 namespace M_PloChooseStepguardTarget {
-union U; struct O; struct ENTRY; struct DETECTORV; struct P;
+union U;
 // Choose an eligible actor using lock state, priority and weighted distance.
-typedef unsigned long ulong;
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
-struct O {char pad28[0x28];ulong flags;};
-struct ENTRY {O *object;int state;float stateTime;int pad;};
-struct DETECTORV {char padFC[0xFC];int count;ENTRY entries[1];};
-struct P {char pad38C[0x38C];O *currentTarget,*forcedTarget;char pad394[0xBD0];DETECTORV *detector;char padF68[0x54];int special;};
 extern "C" { extern float D_002A886C,D_002C3D70[3],D_002C3D80[3]; }
 extern "C" qword GetLoWorldPos(void *);
-extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(O *,int);
-extern "C" int IsStepguardIgnoreClass(P *,O *);
-extern "C" int IsStepguardForceClass(P *,O *);
-extern "C" int IsStepguardPreferClass(P *,O *);
+extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(LO *,int);
+extern "C" int IsStepguardIgnoreClass(STEPGUARD *,LO *);
+extern "C" int IsStepguardForceClass(STEPGUARD *,LO *);
+extern "C" int IsStepguardPreferClass(STEPGUARD *,LO *);
 // VU0 helper: vector difference.
 static inline qword Sub(const qword &a, qword b)
 {
@@ -1625,10 +1623,13 @@ static inline float Weight(float distance,const float *k){return k[0]+distance*(
 // 0x2082D0: STEPGUARD vtable slot 88 (choose target): keeps the forced target while it is in the world; else picks
 // among the detector's targets, forced classes first, skipping ignored classes, preferring preferred classes, with
 // hysteresis for the current target.
-extern "C" O *ChooseStepguardTarget(P *guard)
+} // namespace M_PloChooseStepguardTarget
+LO *STEPGUARD::ChooseTarget()
 {
-    O *best = 0;
-    if (guard->forcedTarget && (((unsigned int)(guard->forcedTarget->flags >> 60)) & 1)) {
+    using namespace M_PloChooseStepguardTarget;
+    STEPGUARD *guard = this;
+    LO *best = 0;
+    if (guard->forcedTarget && (((unsigned int)(LO_FLAGS28(guard->forcedTarget) >> 60)) & 1)) {
         best = guard->forcedTarget;   // keep the forced target while it is in the world
         goto done;               // (single exit: a direct return does not match)
     }
@@ -1636,13 +1637,13 @@ extern "C" O *ChooseStepguardTarget(P *guard)
         float bestDistance = D_002A886C;
         U origin;
         origin.q = GetLoWorldPos(guard);
-        for (int i = 0; i < guard->detector->count; i++) {
-            ENTRY *entry = &guard->detector->entries[i];
-            O *candidate = entry->object;
+        for (int i = 0; i < guard->pdetector->ctarget; i++) {
+            DETECTORTARGET *entry = &guard->pdetector->atarget[i];
+            LO *candidate = entry->object;
             if (!candidate)
                 continue;
             if (!entry->state
-                && (!(guard->special == SPECIAL_INSANITY_STRIKE || guard->special == SPECIAL_RAGE_BOMB)
+                && (!(guard->specialState == SPECIAL_INSANITY_STRIKE || guard->specialState == SPECIAL_RAGE_BOMB)
                     || !IsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD)))
                 continue;
             if (IsStepguardIgnoreClass(guard, candidate))
@@ -1650,11 +1651,11 @@ extern "C" O *ChooseStepguardTarget(P *guard)
             if (IsStepguardForceClass(guard, candidate))
                 return candidate;
             qword delta = Sub(origin.q, GetLoWorldPos(candidate));
-            O *currentTarget = guard->currentTarget;
+            LO *currentTarget = guard->target;
             float distance = Length(delta);
             if (candidate == currentTarget)
                 distance = Weight(distance, D_002C3D70);
-            if ((guard->special == SPECIAL_INSANITY_STRIKE || guard->special == SPECIAL_RAGE_BOMB)
+            if ((guard->specialState == SPECIAL_INSANITY_STRIKE || guard->specialState == SPECIAL_RAGE_BOMB)
                 && IsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD))
                 distance = Weight(distance, D_002C3D80);
             if (IsStepguardPreferClass(guard, candidate)) {
@@ -1675,7 +1676,6 @@ extern "C" O *ChooseStepguardTarget(P *guard)
 done:
     return best;
 }
-} // namespace M_PloChooseStepguardTarget
 
 // 0x208538 SetStepguardForcedTarget
 // 0x208538: Splice setter: sets the forced target (+0x390).
