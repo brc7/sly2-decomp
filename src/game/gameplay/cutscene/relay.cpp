@@ -25,6 +25,7 @@
 #include "sly2/players.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
+#include "sly2/cref.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/classes.h"
@@ -1547,19 +1548,18 @@ extern "C" void AddRelayStopBlock(RELAYV *relay, OID oidLabel)
 
 // 0x1E0310 AddRelayWaitBlocks
 namespace M_AddRelayWaitBlocks { extern "C" {
-struct CRef; struct CMD;
-struct CRef { int tagk; int tag; };
+struct CMD;
 struct CMD { char pad[0x10]; unsigned int c; int a[4]; };
-void SetValuesFromSpliceList(struct CRef *pref, void *x, int a, int b, unsigned int *pc, int *pa);
+void SetValuesFromSpliceList(CRefData *pref, void *x, int a, int b, unsigned int *pc, int *pa);
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
 void CopyAb__FPvT0Ui(void *pdst, void *psrc, int cb);
-void Decref__4CRef(struct CRef *pref);
+void Decref__4CRef(CRefData *pref);
 // Splice builtin: append a RELAYCK 0x3 (WaitBlocks) command to the relay (AddRelayCommand(prelay,0x3,fAsync)) and
 // fill its args. (inferred)
 void AddRelayWaitBlocks(void *pq, void *x)
 {
     int a[8];
-    struct CRef ref;
+    CRefData ref;
     unsigned int c;
     struct CMD *p;
     SetValuesFromSpliceList(&ref, x, 6, 8, &c, a);

@@ -28,6 +28,7 @@
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/cref.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -1237,12 +1238,11 @@ int GetGadgetButtonMask(STEPPLAYER *p, int id)
 } } // namespace M_GrfbtnGadget
 
 namespace M_LoadStepplayerGadgets { extern "C" {
-struct CRef { int tagk; int tag; };
 extern char D_002A4D50[];
 extern char D_002A4D58[];
 int sprintf(char *, const char *, ...);
-void GetSaveVarByName(struct CRef *r, void *a, void *b, char *c, int d);
-void Decref__4CRef(struct CRef *r);
+void GetSaveVarByName(CRefData *r, void *a, void *b, char *c, int d);
+void Decref__4CRef(CRefData *r);
 // 0x141EF0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
 
@@ -1252,10 +1252,10 @@ void LoadStepplayerGadgets(STEPPLAYER *player)
     int i;
     for (i = 0; i < 3; i++) {
         char ach[16];
-        struct CRef r;
+        CRefData r;
         sprintf(ach, D_002A4D50, i);
         GetSaveVarByName(&r, player->GetSaveVarRoot(), D_002A4D58, ach, 0);
-        player->gadgetSlots[i].idGadget = r.tag;
+        player->gadgetSlots[i].idGadget = r.u.n;
         Decref__4CRef(&r);
     }
     player->OnGadgetsChanged();
@@ -1263,15 +1263,8 @@ void LoadStepplayerGadgets(STEPPLAYER *player)
 } } // namespace M_LoadStepplayerGadgets
 
 namespace M_SetStepplayerGadget {
-struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-struct CRef {
-    int tagk; int tag;
-    // Script reference with the given tag and value.
-    CRef(int k, int n) { tagk = k; tag = n; }
-    // Release the reference.
-    ~CRef() { Decref__4CRef(this); }
-};
+
 extern "C" {
 extern CLOCK D_002DDED0;
 extern char D_002A4D50[];
@@ -1297,7 +1290,7 @@ extern "C" void SetStepplayerGadget(STEPPLAYER *player, unsigned int i, int id)
             pe2->idGadget = -1;
         }
         sprintf(ach, D_002A4D50, j);
-        SetSaveVarByName(CRef(0x15, player->gadgetSlots[j].idGadget), player->GetSaveVarRoot(), D_002A4D58, ach, 0);
+        SetSaveVarByName(CRef(player->gadgetSlots[j].idGadget, 0x15), player->GetSaveVarRoot(), D_002A4D58, ach, 0);
     }
     player->OnGadgetsChanged();
 }
@@ -2065,16 +2058,6 @@ extern "C" void DeliverStepplayerBooty(STEPPLAYER *player)
 }
 
 namespace M_PkeyFindBootySaveVar {
-struct CRef {
-    int m_tagk;
-    int m_tag;
-    // Empty (untagged) script reference.
-    CRef() { m_tagk = -1; }
-    // Release the reference.
-    ~CRef() { Decref(); }
-    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
-    void Decref() __asm__("Decref__4CRef");
-};
 struct ENT {
     short ch;
     signed char kind;
@@ -2141,7 +2124,7 @@ extern "C" KEY *FindBootySaveVar(int id)
                     as[6] = i;
                     key.c = 7;
                     ref = Lookup(key);
-                    if (ref.m_tag == id) {
+                    if (ref.u.n == id) {
                         KEY *pk = (KEY *)Alloc(8);
                         CopyAb__FPvT0Ui(pk, &key, 8);
                         pk->a = (unsigned short *)Alloc(key.c * 2);
@@ -2158,25 +2141,27 @@ extern "C" KEY *FindBootySaveVar(int id)
 
 namespace M_UpdateStepplayerBootySave {
 // MATCH (Claude agent, laneC20 2026-10-23): v4 + __4CRefRC4CRef (CRef copy ctor) declared returning void * instead of void.
-struct CRef;
-extern "C" void Decref__4CRef(CRef *);
-extern "C" void *__4CRefRC4CRef(CRef *, const CRef *); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
-extern "C" CRef *func_00129658(CRef *, const CRef *) __asm__("__as__4CRefRC4CRef");
-struct CRef {
+struct CRefIsland;
+extern "C" void Decref__4CRef(CRefIsland *);
+extern "C" void *__4CRefRC4CRef(CRefIsland *, const CRefIsland *); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
+extern "C" CRefIsland *func_00129658(CRefIsland *, const CRefIsland *) __asm__("__as__4CRefRC4CRef");
+/* CRefIsland: CRef with its copy constructor inline over the void*-returning copy function (cref.h's out-of-line
+   copy constructor moves the stack slots: 37/286 off; matching-only form). */
+struct CRefIsland {
     int tagk; int tag;
     // Empty (untagged) script reference.
-    CRef() { tagk = -1; }
+    CRefIsland() { tagk = -1; }
     // Script reference with the given tag and value.
-    CRef(int k, int n) { tagk = k; tag = n; }
+    CRefIsland(int k, int n) { tagk = k; tag = n; }
     // Copy a script reference (adds a reference).
-    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
+    CRefIsland(const CRefIsland &r) { __4CRefRC4CRef(this, &r); }
     // Release the reference.
-    ~CRef() { Decref__4CRef(this); }
+    ~CRefIsland() { Decref__4CRef(this); }
     // Assign a script reference.
-    CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
+    CRefIsland &operator=(const CRefIsland &r) { func_00129658(this, &r); return *this; }
 };
 // Script reference padded to 16 bytes.
-struct CRef16 : CRef { int pad[2]; CRef16(int k, int n) : CRef(k, n) {} };
+struct CRef16 : CRefIsland { int pad[2]; CRef16(int k, int n) : CRefIsland(k, n) {} };
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct Y { int x0; int x4; };
 struct X { char pad[0x158]; Y *p158; void *p15C; };
@@ -2200,20 +2185,19 @@ BL *GetLevelListEntry(int);
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 int FindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
-CRef SetGlobalSaveVar(void *p, const CRef &ref, G *pv);
+CRefIsland SetGlobalSaveVar(void *p, const CRefIsland &ref, G *pv);
 }
-extern "C" { CRef SetSaveVarByName(const CRef &ref, const void *o, ...); }
-extern "C" { CRef GetSaveVarByName(const char *, ...); }
+extern "C" { CRefIsland SetSaveVarByName(const CRefIsland &ref, const void *o, ...); }
+extern "C" { CRefIsland GetSaveVarByName(const char *, ...); }
 // Store ref into the global save variable pv.
-static inline void Send(void *pv, CRef ref) { SetGlobalSaveVar(pv, ref, &D_003D4A60); }
-struct CRefRaw { int tagk; int tag; };
+static inline void Send(void *pv, CRefIsland ref) { SetGlobalSaveVar(pv, ref, &D_003D4A60); }
 // Store the reference r into the save variable pv.
-static inline void SetPv(void *pv, const CRef &r, void *)
+static inline void SetPv(void *pv, const CRefIsland &r, void *)
 {
-    CRefRaw arg;
-    __4CRefRC4CRef((CRef *)&arg, &r);
-    SetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
-    Decref__4CRef((CRef *)&arg);
+    CRefData arg;
+    __4CRefRC4CRef((CRefIsland *)&arg, &r);
+    SetGlobalSaveVar(pv, *(CRefIsland *)&arg, &D_003D4A60);
+    Decref__4CRef((CRefIsland *)&arg);
 }
 // Call the object's virtual at vtable slot 103 and return its pointer.
 static inline void *Vcall103(LO *lo) { VTE *e = &lo->vt[103]; return e->pfn((char *)lo + e->d); }
@@ -2224,7 +2208,7 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
     STACKSCOPE m;
     switch (n) {
     case 0: {
-        CRef ret = SetSaveVarByName(CRef(0x15, q->p194 ? GetCurrentBootyEntryId(q->p194) : -1), Vcall103(lo), D_002A4DB0, 0);
+        CRefIsland ret = SetSaveVarByName(CRefIsland(0x15, q->p194 ? GetCurrentBootyEntryId(q->p194) : -1), Vcall103(lo), D_002A4DB0, 0);
         if (lo->booty) {
             if (!q->p194) {
                 int dummy[2];
@@ -2233,11 +2217,11 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
                 SetPv(pv0, a0, &D_003D4A60);
             }
             void *pv = GetBootyContainerSaveKey(q);
-            CRef a(0x15, GetCurrentBootyEntryId(lo->booty));
+            CRefIsland a(0x15, GetCurrentBootyEntryId(lo->booty));
             SetPv(pv, a, &D_003D4A60);
         } else {
             void *pv = GetBootyContainerSaveKey(q);
-            CRef a(0x15, (int)lo->p18);
+            CRefIsland a(0x15, (int)lo->p18);
             SetPv(pv, a, &D_003D4A60);
         }
         break;
@@ -2245,16 +2229,16 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
     case 1: {
         void *pv = FindBootySaveVar(lo->p18);
         if (pv) {
-            CRef a(0x15, -1);
+            CRefIsland a(0x15, -1);
             Send(pv, a);
         }
-        CRef ret = SetSaveVarByName(CRef(0x15, -1), Vcall103(lo), D_002A4DB0, 0);
+        CRefIsland ret = SetSaveVarByName(CRefIsland(0x15, -1), Vcall103(lo), D_002A4DB0, 0);
         Y *py = lo->booty->p158;
         if (py->x4 != -1) {
             char ach[32];
             sprintf(ach, D_002A4D50, py->x4);
             ret = GetSaveVarByName(D_002A4DC0, D_002A4DC8, ach, 0);
-            ret = SetSaveVarByName(CRef(0x15, ret.tag + 1), D_002A4DC0, D_002A4DC8, ach, 0);
+            ret = SetSaveVarByName(CRefIsland(0x15, ret.tag + 1), D_002A4DC0, D_002A4DC8, ach, 0);
         }
         break;
     }
@@ -2283,23 +2267,8 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
 } // namespace M_UpdateStepplayerBootySave
 
 namespace M_func_00143AF0 {
-struct CRef;
 extern "C" void Decref__4CRef(CRef *);
 extern "C" void __4CRefRC4CRef(CRef *, const CRef *);
-struct CRef {
-    int tagk; int tag;
-    // Empty (untagged) script reference.
-    CRef() { tagk = -1; }
-    // Script reference with value n and tag k.
-    CRef(int n, int k) { tag = n; tagk = k; }
-    // Script reference with tag k and value n.
-    CRef(int k, int n, int) { tagk = k; tag = n; }
-    // Copy a script reference (adds a reference).
-    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
-    // Release the reference.
-    ~CRef() { Decref__4CRef(this); }
-};
-struct CRefRaw { int tagk; int tag; };  /* same layout, no ctor/dtor */
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct LO { char pad[0xC]; VTE *vt; char pad2[0x18 - 0x10]; void *p18; };
 struct G;
@@ -2316,7 +2285,7 @@ CRef SetSaveVarByName(const CRef &ref, void *o, void *pv, int n);
    the second CRef temp at the same stack slot. */
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
-    CRefRaw arg;
+    CRefData arg;
     __4CRefRC4CRef((CRef *)&arg, &r);
     {
         const CRef &ret = SetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
@@ -2332,7 +2301,7 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
         SetPv(pv, a, &D_003D4A60);
     }
     VTE *e = &lo->vt[103];
-    CRef ret = SetSaveVarByName(CRef(0x15, -1, 0), e->pfn((char *)lo + e->d), D_002A4DB0, 0);
+    CRef ret = SetSaveVarByName(CRef(-1, 0x15), e->pfn((char *)lo + e->d), D_002A4DB0, 0);
     return pv;
 }
 } // namespace M_func_00143AF0
@@ -2340,20 +2309,19 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
 namespace M_func_00143BD8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct CRef { int tagk; int tag; };
 extern char D_002A4DB0[];
-void GetSaveVarByName(struct CRef *r, void *a, void *b, int c);
-void Decref__4CRef(struct CRef *r);
+void GetSaveVarByName(CRefData *r, void *a, void *b, int c);
+void Decref__4CRef(CRefData *r);
 void ClearStepplayerBootySave(struct O *p, int n);
 void SpawnStepplayerBootyMarker(struct O *p, int n);
 // On load: restores or clears the carried booty depending on the transition flags.
 void RestoreStepplayerBooty(struct O *player)
 {
-    struct CRef r;
+    CRefData r;
     int n;
     struct VTE *e = &player->vt[103];
     GetSaveVarByName(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4DB0, 0);
-    n = r.tag;
+    n = r.u.n;
     Decref__4CRef(&r);
     if ((unsigned int)(n + 1) < 2) return;
     if ((*(int *)&g_sw.grfTransition) & 0x40) ClearStepplayerBootySave(player, n);

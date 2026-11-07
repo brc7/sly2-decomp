@@ -87,7 +87,9 @@ typedef char assert_OVRA_size[sizeof(OVRA) == 0x14 ? 1 : -1];
 
 /* The EA payloads (EA::pesnd, pea17, pea20, pea24), filled by aseg.cpp's LoadAsegEventsFromBrx and read by
    asega.cpp's HandleAsegaEvent. */
-struct EASND   /* sound event: StartSwAsegSound's arguments (sw.cpp) */
+/* EASND: an animation event's sound (ASEG events, StartSwAsegSound in sw.cpp): the effect, the object it follows, its
+   audible range, pitch, Doppler factor and volume. */
+struct EASND
 {
     int sfxId;
     OID oid;   /* object the sound is attached to */

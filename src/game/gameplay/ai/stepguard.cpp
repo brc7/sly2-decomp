@@ -18,6 +18,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
+#include "sly2/cref.h"
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
@@ -1378,16 +1379,14 @@ int ListSgfsInMask(unsigned long mask, int *sgfs)
 
 // 0x207B10 GetSgfMaskFromSpliceList
 namespace M_func_00207B10 { extern "C" {
-struct CRef;
-struct CRef { int tagk; int tag; };
-void SetValuesFromSpliceList(struct CRef *ref, void *list, int type, int capacity, int *count, int *values);
+void SetValuesFromSpliceList(CRefData *ref, void *list, int type, int capacity, int *count, int *values);
 unsigned long GetSgfArrayMask(int count, int *sgfs);
-void Decref__4CRef(struct CRef *pref);
+void Decref__4CRef(CRefData *pref);
 // 0x207B10: Converts a Splice list of guard-flag enums (type 0x1010) to a mask.
 unsigned long GetSgfMaskFromSpliceList(void *list)
 {
     int sgfs[16];
-    struct CRef ref;
+    CRefData ref;
     int count;
     unsigned long mask;
     SetValuesFromSpliceList(&ref, list, 0x1010, 0x10, &count, sgfs);
@@ -2804,13 +2803,12 @@ extern "C" int StepguardHasSgf(STEPGUARD *guard, int sgf)
 
 // 0x209A88 GetStepguardSgfRefList
 namespace M_func_00209A88 { extern "C" {
-struct CRef; struct S;
-struct CRef { int tagk; int tag; };
+struct S;
 struct S { char pad[0x2C0]; long grfsg; };
 void *ListSgfsInMask(long mask, char *sgfs);
-void BuildSpliceListFromUniformValues(struct CRef *ret, void *count, int type, char *values);
+void BuildSpliceListFromUniformValues(CRefData *ret, void *count, int type, char *values);
 // 0x209A88: Splice getter: the guard's set flags as a list.
-struct CRef *GetStepguardSgfRefList(struct CRef *ret, struct S *guard)
+CRefData *GetStepguardSgfRefList(CRefData *ret, struct S *guard)
 {
     char sgfs[0xC0];
     BuildSpliceListFromUniformValues(ret, ListSgfsInMask(guard->grfsg, sgfs), 0x1010, sgfs);

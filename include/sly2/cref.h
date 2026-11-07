@@ -26,8 +26,10 @@ struct BASIC;
 struct CMethod;
 
 
-/* CRef: a Splice value: a type tag and a one-word payload (a number, or a counted pointer to a heap value). */
-struct CRef
+/* CRefData: a Splice value's data: a type tag and a one-word payload (a number, or a counted pointer to a heap value).
+   A POD: the C-style functions (result passed by hidden pointer by hand, locals set up field by field: bif's former
+   m2c bodies, the save-variable accessors) use it where CRef's inline constructor and destructor would add code. */
+struct CRefData
 {
       int m_tagk;   /* the value's type (TAGK) */
       union
@@ -35,6 +37,7 @@ struct CRef
             int n;   /* 0x15 s32, 0x17 bool, 0x18 symid, 0x19 bifk */
             float g;   /* 0x16 f32 */
             void *pv;   /* any pointer payload */
+            float *ag;  /* the float payloads (vector, matrix, clq, lm, smp) as an array (serialize's reader) */
             /* the payload by tag (spliceobj reads and writes it typed; one word in every case) */
             VECTOR *pvec;           /* 0x1A */
             MATRIX4 *pmat;          /* 0x1B */
@@ -46,7 +49,12 @@ struct CRef
             BASIC *pbasic;          /* 0x21 */
             CMethod *pmethod;       /* 0x22 */
       } u;
+};
+typedef char assert_CRefData_size[sizeof(CRefData) == 8 ? 1 : -1];
 
+/* CRef: a Splice value with its reference counting: the members of splice/ref.cpp. */
+struct CRef : CRefData
+{
       // Empty (untagged) script reference.
       CRef() { m_tagk = -1; }
       // Script reference of the given tag kind.
@@ -54,6 +62,8 @@ struct CRef
       CRef(const CRef &r);
       // Script reference holding word n with tag tagk (no retain).
       CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }            /* a word with its tag, no retain (bif's builtins) */
+      CRef(bool f) { m_tagk = 0x17; u.n = f; }                       /* a boolean, inline (the predicates' results) */
+      CRef(float g) { m_tagk = 0x16; u.g = g; }                      /* a number, inline (the save-variable writes) */
       CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: EvalLambda) */
       CRef(CPair *ppair) __asm__("CRef_ctor_CPair");
       CRef(const VECTOR *pvec) __asm__("CRef_ctor_VECTOR");           /* the payload types own a heap each (CSpliceHeap, sly2/slotheap.h) */
@@ -67,11 +77,16 @@ struct CRef
       CRef &operator=(const CRef &r);
       CRef &operator=(bool f) __asm__("CRef_SetBool");            /* a boolean (tag 0x17) */
       CRef &operator=(CPair *ppair) __asm__("CRef_SetPair");      /* a list (tag 0x1F) */
+      CRef &operator=(int n) __asm__("SetS32__4CRefi");           /* a number (tag 0x15); SetS32 below */
+      CRef &operator=(float g) __asm__("SetF32__4CReff");         /* a number (tag 0x16); SetF32 below */
       /* the other setters of splice/ref.cpp, as named members (operator= overloads would change how includers that
          assign through the converting constructors compile) */
       CRef &SetVector(const VECTOR *pvec) __asm__("CRef_SetVector"); /* tag 0x1A */
+      CRef &SetMatrix(const MATRIX4 *pmat) __asm__("CRef_SetMatrix"); /* tag 0x1B */
       CRef &SetProc(CProc *pproc) __asm__("CRef_SetProc");           /* tag 0x20 */
       CRef &SetBasic(BASIC *pbasic) __asm__("CRef_SetBasic");        /* tag 0x21 */
+      CRef &SetSymid(int symid) __asm__("CRef_SetSymid");            /* tag 0x18 */
+      CRef &SetBifk(int bifk) __asm__("CRef_SetBifk");               /* tag 0x19 */
       bool operator==(const CRef &ref);
       void Incref();
       void Decref();

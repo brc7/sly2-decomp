@@ -22,6 +22,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/screen.h"
+#include "sly2/cref.h"
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
@@ -638,14 +639,7 @@ extern "C" int CompareSaves__FP4SAVET0(SAVEINFO *psi0, SAVEINFO *psi1)
 }
 
 namespace M_SetSaveState {
-struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-struct CRef {
-    int m_tagk; union { int n; float g; void *pv; } u;
-    CRef(const CRef &) __asm__("__4CRefRC4CRef");
-    // Release the reference.
-    ~CRef() { Decref__4CRef(this); }
-};
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct SLOT { char pad[0x5408]; char info[0x5C]; };   /* SAVEINFO at +0x5408 */
 struct THR;
@@ -996,7 +990,6 @@ void StartSaveSlotJob(struct S *saveManager)
 } } // namespace M_func_001ABD40
 
 namespace M_func_001ABD98 { extern "C" {
-struct CRef { int m_tagk; int m_tag; };
 struct G { char pad[0x3B54]; int saveVarAutosaveEnabled; };   /* g_sw: id of the autosave-enabled save variable (inferred) */
 struct H { char pad[0x4C]; int followUpAction; };   /* the memcard dialog */
 struct S { char pad[0xFD50]; void *currentSlot; };
@@ -1006,8 +999,8 @@ extern int D_002DEB4C;
 extern char D_003D4A60[], D_002E65A0[];
 int IsSwTransitionBusy(struct G *g);
 int GetCurrentWorld(void);
-void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void Decref__4CRef(struct CRef *);
+void GetGlobalSaveVar(CRefData *ret, int a, void *b);
+void Decref__4CRef(CRefData *);
 void SetMcDialogState(struct H *h, int n);
 void StartAutosaveJob(struct S *s);
 void ShowMcDialogWidget(void *p);
@@ -1016,7 +1009,7 @@ void ShowMcDialogWidget(void *p);
 void AutosaveGame(struct S *saveManager, int force)
 {
     struct G *world;
-    struct CRef ref;
+    CRefData ref;
     int isEnabled;
     if (!saveManager->currentSlot)
         return;
@@ -1028,7 +1021,7 @@ void AutosaveGame(struct S *saveManager, int force)
     if (!GetCurrentWorld() && !force)
         return;
     GetGlobalSaveVar(&ref, world->saveVarAutosaveEnabled, D_003D4A60);
-    isEnabled = ref.m_tag;
+    isEnabled = ref.u.n;
     Decref__4CRef(&ref);
     if (!isEnabled) {
         D_002E6550.followUpAction = 3;
@@ -1772,20 +1765,8 @@ namespace M_func_001ACFE0 {
 // SetPv receives the context at the call site (evaluated before the CRef copy) but its body names
 // D_003D4A60 again after the copy. That is what puts `lui a3` after the copy ctor yet keeps a3's low half
 // ahead of the a2 setup (the scheduler boosts insns that set a register exactly once in the function).
-class CRef;
 extern "C" void Decref__4CRef(CRef *pref);                       // ~CRef
 extern "C" CRef *__4CRefRC4CRef(CRef *, const CRef *);            // CRef copy ctor, returns this
-class CRef {
-public:
-    int m_tagk;
-    int m_tag;
-    // Script reference holding a bool (tag 0x17).
-    CRef(bool f) { m_tagk = 0x17; m_tag = f; }
-    // Copy a script reference (adds a reference).
-    CRef(const CRef &ref) { __4CRefRC4CRef(this, &ref); }
-    // Release the reference.
-    ~CRef() { Decref__4CRef(this); }
-};
 class O;
 struct S { char pad[0x40]; int state; int phase; float tPhase; int followUpAction; };   // the memcard dialog
 extern "C" {
@@ -1883,13 +1864,12 @@ void ConfirmMcDialog(struct S *dialog)
 } } // namespace M_func_001AD168
 
 namespace M_func_001AD250 { extern "C" {
-struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; int newestSlot; struct B *selectedSlot; };
 struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
 extern struct G D_002E65E0;
-void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void Decref__4CRef(struct CRef *);
+void GetGlobalSaveVar(CRefData *ret, int a, void *b);
+void Decref__4CRef(CRefData *);
 void ResetSaveGs(struct B *b, int n);
 void StartGameFromSave(struct B *b);
 void *CreateSfxSound(int n);
@@ -1898,11 +1878,11 @@ void SetSndSourceLo(void *p, int n);
 // otherwise plays the error sound.
 void StartNewGameInSlot(struct S *item)
 {
-    struct CRef ref;
+    CRefData ref;
     struct B *slot = &D_002E65E0.slots[item->slotIndex];
     float dt;
     GetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), slot);
-    dt = ref.m_tag;
+    dt = ref.u.g;
     Decref__4CRef(&ref);
     if (dt == 0.0f) {
         D_002E65E0.currentSlot = slot;
@@ -1918,23 +1898,22 @@ void StartNewGameInSlot(struct S *item)
 extern SAVE D_002E65E0;
 
 namespace M_func_001AD320 { extern "C" {
-struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; int newestSlot; struct B *selectedSlot; };
 struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
 extern struct G D_002E65E0;
-void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void Decref__4CRef(struct CRef *);
+void GetGlobalSaveVar(CRefData *ret, int a, void *b);
+void Decref__4CRef(CRefData *);
 void ResetSaveGs(struct B *b, int n);
 void StartGameFromSave(struct B *b);
 // Menu action for slot i on the load page: makes it current, resets the GS state and starts the game from it.
 void LoadGameFromSlot(struct S *item)
 {
-    struct CRef ref;
+    CRefData ref;
     struct B *slot = &D_002E65E0.slots[item->slotIndex];
     float dt;
     GetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), slot);
-    dt = ref.m_tag;
+    dt = ref.u.g;
     Decref__4CRef(&ref);
     D_002E65E0.currentSlot = slot;
     if (dt == 0.0f) {
@@ -1950,14 +1929,13 @@ void LoadGameFromSlot(struct S *item)
 extern SAVE D_002E65E0;
 
 namespace M_func_001AD3E0 { extern "C" {
-struct CRef { int m_tagk; int m_tag; };
 struct G { char pad[0xFD50]; int currentSlot; int newestSlot; int selectedSlot; };
 struct H { char pad[0x4C]; int followUpAction; };
 extern struct G D_002E65E0;
 extern struct H D_002E6550;
 extern char D_003D4A60[];
-void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void Decref__4CRef(struct CRef *);
+void GetGlobalSaveVar(CRefData *ret, int a, void *b);
+void Decref__4CRef(CRefData *);
 void SetMcDialogState(struct H *h, int n);
 void StartSaveSlotJob(struct G *g);
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
@@ -1965,12 +1943,12 @@ void SaveToCurrentSlot(void)
 {
     struct G *saveManager = &D_002E65E0;
     struct H *dialog = &D_002E6550;
-    struct CRef ref;
+    CRefData ref;
     int isWarned;
     saveManager->currentSlot = saveManager->selectedSlot;
     dialog->followUpAction = 2;
     GetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
-    isWarned = ref.m_tag;
+    isWarned = ref.u.n;
     Decref__4CRef(&ref);
     if (!isWarned) {
         SetMcDialogState(dialog, 0x22);
@@ -1983,25 +1961,24 @@ void SaveToCurrentSlot(void)
 extern SAVE D_002E65E0;
 
 namespace M_func_001AD480 { extern "C" {
-struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD58 - 0x24 - 3 * 0x5464]; struct B *selectedSlot; };
 struct H { char pad[0x4C]; int followUpAction; };
 struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
 extern struct G D_002E65E0;
 extern struct H D_002E6550;
-void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void Decref__4CRef(struct CRef *);
+void GetGlobalSaveVar(CRefData *ret, int a, void *b);
+void Decref__4CRef(CRefData *);
 void SetMcDialogState(struct H *h, int n);
 void SaveToCurrentSlot(void);
 // Menu action for slot i on the save page: asks to confirm an overwrite, or saves directly to an empty slot.
 void SelectSaveSlotToSave(struct S *item)
 {
-    struct CRef ref;
+    CRefData ref;
     struct B *slot = &D_002E65E0.slots[item->slotIndex];
     float dt;
     GetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), slot);
-    dt = ref.m_tag;
+    dt = ref.u.g;
     Decref__4CRef(&ref);
     D_002E65E0.selectedSlot = slot;
     if (dt == 0.0f)
@@ -2015,10 +1992,7 @@ void SelectSaveSlotToSave(struct S *item)
 extern SAVE D_002E65E0;
 
 namespace M_func_001AD538 {
-struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-// Script reference view: copy constructor adds a reference, destructor releases it.
-struct CRef { int m_tagk; float m_tag; CRef(const CRef &) __asm__("__4CRefRC4CRef"); ~CRef() { Decref__4CRef(this); } };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; };
 struct GD { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw */
@@ -2037,7 +2011,7 @@ int GetPauseMenuTopPageId(void *g);
 }
 CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
 // Evaluate save variable saveVar as a float.
-static inline float EvalSaveVar(int saveVar, void *slot) { return Eval(saveVar, slot).m_tag; }
+static inline float EvalSaveVar(int saveVar, void *slot) { return Eval(saveVar, slot).u.g; }
 // Menu hook: re-evaluates the three slots' Splice values and updates their entries.
 extern "C" void UpdateSaveMenuSlots(void)
 {
@@ -2187,7 +2161,6 @@ void FormatSaveCompletionText(char *buf)
 } } // namespace M_func_001AD980
 
 namespace M_func_001ADA20 { extern "C" {
-struct CRef { int m_tagk; float m_tag; };
 struct E { int unknown0, unknown4, widget, unknownC, unknown10; int selectedIndex; int unknown18; };   /* a pause menu page */
 struct G { int pad[9]; int topPage; };
 struct GD { char pad[0x3B1C]; int saveVarIsUsed; };
@@ -2199,8 +2172,8 @@ extern struct GD D_003DD490;
 extern struct B D_002E6604[] __asm__("D_002E65E0+0x24");
 int IsPauseMenuOnSavePage(struct G *g);
 int GetPauseMenuTopPageId(struct G *g);
-void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
-void Decref__4CRef(struct CRef *);
+void GetGlobalSaveVar(CRefData *ret, int a, void *b);
+void Decref__4CRef(CRefData *);
 char *FindSwLocalizedString__FP2SWi(void *p, int n);
 char *strcpy(char *d, const char *s);
 char *strcpy1(char *d, const char *s);
@@ -2209,7 +2182,7 @@ void FormatSavePageTextB(char *buf)
 {
     struct G *menu = &D_003D9ED0;
     struct GD *world;
-    struct CRef ref;
+    CRefData ref;
     float isUsed;
     if (!IsPauseMenuOnSavePage(menu))
         return;
@@ -2218,7 +2191,7 @@ void FormatSavePageTextB(char *buf)
     struct E *page = &D_003D9EDC[menu->topPage];
     GetGlobalSaveVar(&ref, world->saveVarIsUsed, &D_002E6604[page->selectedIndex]);
     }
-    isUsed = ref.m_tag;
+    isUsed = ref.u.g;
     Decref__4CRef(&ref);
     switch (GetPauseMenuTopPageId(menu)) {
     case 0x1E:
@@ -2267,15 +2240,14 @@ void FormatSaveTimeText(void *s)
 
 namespace M_func_001ADC40 {
 /* (Claude agent, 2026-10-17) frame pointer copy pf used only for the push call reproduces the a0->s5 copy. */
-struct REF{int tag;union{int n;float g;};};
 struct G{char pad[0x3A18];char object[0x104];void*primary;int pad20[2];void*fallback;};
 struct B{char data[0x5464];};
 extern "C" {
  extern G D_003DD490;
  extern B D_002E6604[] __asm__("D_002E65E0+0x24");
  extern char D_003D9ED0[];
- void*GetGlobalSaveVar(REF*,void*,void*);
- void Decref__4CRef(REF*);
+ void*GetGlobalSaveVar(CRefData*,void*,void*);
+ void Decref__4CRef(CRefData*);
  void*STACKSCOPE_ctor(void*);
  void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
  void*AllocSaveKey(void*,...);
@@ -2287,12 +2259,12 @@ extern "C" {
  int GetPauseMenuTopPageId(void*);
 }
 // Read a global save variable as a float (releasing the reference).
-static inline float GetG(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);float g=r.g;Decref__4CRef(&r);return g;}
+static inline float GetG(CRefData&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);float g=r.u.g;Decref__4CRef(&r);return g;}
 // Read a global save variable as an int (releasing the reference).
-static inline int GetN(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);int n=r.n;Decref__4CRef(&r);return n;}
+static inline int GetN(CRefData&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);int n=r.u.n;Decref__4CRef(&r);return n;}
 // Per-slot text (strings 0x5CF..0x5D1): the slot's episode and completion percentage.
 extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
- REF ref;
+ CRefData ref;
  G*pg=&D_003DD490;
  B*pb=&D_002E6604[idx];
  if(GetG(ref,pg->primary,pb)!=0.0f){
