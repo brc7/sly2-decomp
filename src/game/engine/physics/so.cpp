@@ -4081,34 +4081,29 @@ void SetXfHandleActuator1(CID149 *handle, int n, int m, qword q)
 
 // 0x1F8A78 SetXfHandleActuator1World
 namespace M_func_001F8A78 { extern "C" {
-struct B; struct A;
 typedef int qword __attribute__((mode(TI)));
-struct B { char pad[0xA0]; int n; };
-struct A { char pad[0x24]; struct B *pb; };
-qword TransformXfPos(int a, int n, qword q);
-void SetXfHandleActuator1(struct A *p, int a, int b, qword q);
+qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword q);
+void SetXfHandleActuator1(CID149 *p, int a, int b, qword q);
 // SetXfHandleActuator1 with a vector converted from the XF's parent space.
-void SetXfHandleActuator1World(struct A *handle, int a, int b, qword q)
+void SetXfHandleActuator1World(CID149 *handle, int a, int b, qword q)
 {
-    SetXfHandleActuator1(handle, a, b, TransformXfPos(0, handle->pb->n, q));
+    SetXfHandleActuator1(handle, a, b, TransformXfPos(0, handle->pxf->parent, q));
 }
 } } // namespace M_func_001F8A78
 
 // 0x1F8AD8 SetXfHandleActuator1Mat
 namespace M_func_001F8AD8 { extern "C" {
-struct M3; struct O; struct P;
+struct M3;
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a[3]; };
-struct O { char pad[0xA0]; int parent; };
-struct P { char pad[0x24]; struct O *transform; };
-void ConvertXfMat(struct M3 *, int, int);
+void ConvertXfMat(struct M3 *, XF *, XF *);
 qword DecomposeRotationMatrixToEuler(struct M3 *);
-void SetXfHandleActuator1(struct P *, int, int, qword);
+void SetXfHandleActuator1(CID149 *, int, int, qword);
 // SetXfHandleActuator1 with the value taken from a matrix.
-void SetXfHandleActuator1Mat(struct P *handle, int a, int b)
+void SetXfHandleActuator1Mat(CID149 *handle, int a, int b)
 {
     struct M3 c, t;
-    ConvertXfMat(&t, 0, handle->transform->parent);
+    ConvertXfMat(&t, 0, handle->pxf->parent);
     c = t;
     SetXfHandleActuator1(handle, a, b, DecomposeRotationMatrixToEuler(&c));
 }
