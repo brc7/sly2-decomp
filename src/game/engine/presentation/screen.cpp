@@ -950,7 +950,7 @@ SCREEN *ConstructScreen(SCREEN *p) {
 void SCREEN::PostLoad()   /* key function: SCREEN's vtable comes out here */
 {
     SCREEN *screen = (SCREEN *)this;
-    screen->pchild = FindSwObject(&D_003DD490, 5, (OID)screen->idTextQueued, 0);
+    screen->pchild = (WIDGET *)FindSwObject(&D_003DD490, 5, (OID)screen->idTextQueued, 0);
 }
 
 /* screen slot 13. */
@@ -1498,7 +1498,7 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
         SUB *e;
         RefreshGadgetMenuItems(p);
         e = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->idTextQueued, 0);
-        p->pchild = e;
+        p->pchild = (WIDGET *)e;
         if (!e) {
             ::SetGadgetMenuState(p, GADGETMENU_CLOSED);   /* the file-scope declaration (this one is ambiguous with it) */
         } else {

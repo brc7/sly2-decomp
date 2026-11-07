@@ -54,7 +54,7 @@ struct SCREEN : SCREENBASE
     int idText;             /* +0x18 id of the text shown */
     int unknown1C;          /* +0x1C */
     int idTextQueued;       /* +0x20 text to show next; for widget screens the widget oid */
-    void *pchild;           /* +0x24 the widget object (WIDGET; the bodies read it through their WIDGET views) */
+    WIDGET *pchild;         /* +0x24 the widget object (sly2/widget.h) */
     int nMode;              /* +0x28 screen mode (-1 after ResetMode); the stick direction of the menus (slot 14) */
     float modeStartTime;    /* +0x2C time the mode was entered */
     int nPopup;             /* +0x30 the message popup (SetScreenMode): -1 none, 0 a prompt, 1 a timed message */
