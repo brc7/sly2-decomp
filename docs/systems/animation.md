@@ -3,7 +3,7 @@
 How objects move without physics: transform slots (XF), the actions (ACT) that drive them, animation clips (ASEG) and
 their playing instances (ASEGA), blends, state machines (SM/SMA), IK, tails/ropes, transform constraints and space
 warps. For the short summary see [engine.md section 7.5](../engine.md#75-animation-engineanim); for the SO side
-(where XFs live) see [engine.md section 7.6](../engine.md#76-physics-collision-and-navigation-enginephysics).
+(where XFs live) see [physics-and-collision.md](physics-and-collision.md).
 
 ## 1. The model in one paragraph
 
@@ -122,7 +122,7 @@ state-changing events up to the start time (`HandleAsegaEventsFF`) so the world 
 - **Directional blend** (`gameplay/player/dirblend.cpp`): eight directional clips whose weights are solved so the root
   motion matches the requested velocity.
 - **GAIT, LEAP, DIRANIM**: gameplay-side helpers (walk/run weights and footsteps, animation-driven jumps, best of
-  directional clips) built on the above; see [engine.md section 7.5](../engine.md#75-animation-engineanim).
+  directional clips) built on the above; see [player.md](player.md).
 
 ## 7. State machines: SM and SMA
 

@@ -2,7 +2,7 @@
 
 How models are stored inside SO-family object payloads and how a level's objects are placed to rebuild the scene. Exporters:
 `reports/meshes/sly2_mesh.py` (OBJ) and `reports/textured/sly2_export.py` (textured, placed glTF/OBJ), both in the research workspace, not in this repo.
-Render-time behaviour of the same data: [rendering](../engine.md#73-rendering-enginegraphics).
+Render-time behaviour of the same data: [rendering](../systems/rendering.md).
 
 Tags: `[C:static]` = matched loader; `[C:parse]` = consumed exactly by the parsers over all 43 world files (11,244 SOs, 4,326,803 type-0 triangles including
 instances, 0 errors; every filtered sub-glob's skip size equals the bytes parsed); `[C:runtime]` = checked against the S02 RAM dump; `[C:visual]` = verified
@@ -44,11 +44,11 @@ S16 cgroup; per group:
 csub instance records (0x169AC8): S8; [fCompact == 0: U32]; S16 ixf; MATRIX4; S32; S8; CLUTSET
 ```
 - Each batch is one **triangle strip** of cvtx vertices; a set bit = ADC (the triangle ending at that vertex is not drawn; the first two vertices of every strip
-  carry it) `[C:visual]`, matching the VU W-word bit 15 ([rendering](../engine.md#73-rendering-enginegraphics)). Winding alternates.
+  carry it) `[C:visual]`, matching the VU W-word bit 15 ([rendering](../systems/rendering.md)). Winding alternates.
 - UVs are floats; the loader stores `(int)(u*4096 + 0.5)` with no flip `[C:static]` (0x16A000 l.1227-1233). Since texture rows are stored bottom-up, glTF uses
   `(u, 1 - v)` on top-down PNGs and OBJ `(u, v)` `[C:visual]`.
 - Vertex colour is multiplied by the shader colour at load for unlit shaders (`vtx * shd.rgba / 256`, alpha `vA * shdA / 510`, 0x80 = opaque) `[C:static]`; for lit
-  shaders (shdk 1, 7) the relight program produces the final colours ([rendering](../engine.md#73-rendering-enginegraphics)).
+  shaders (shdk 1, 7) the relight program produces the final colours ([rendering](../systems/rendering.md)).
 - Skinned meshes (cbnd > 0) are stored in **bind pose**: Sly, Murray and Bentley render correctly un-skinned `[C:visual]`. Weights: D_002BE558 = {-1, S8, V2_8, V3_8, V4_8}
   bytes per vertex by bone count.
 

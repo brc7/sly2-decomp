@@ -314,4 +314,4 @@ unregister in your structure. Do not do this in `Init` or `Add`: an object can b
 - `src/game/object/proxy.cpp`: proxies, spares and proxy ids.
 - `src/game/app/class_registry.cpp`: factories, descriptor getters, descriptor table.
 - `include/sly2/basic.h`, `lo.h`, `xfm.h`, `so.h`, `classes.h`: layouts and vtables.
-- [engine.md](../engine.md) section 6 for the research view (runtime observations, Sly 1 comparison).
+- [engine.md](../engine.md) section 6 for the summary and section 8 for the Sly 1 comparison.

@@ -30,7 +30,7 @@ The blob is re-read only when the WE's idBlob differs from the previous one; oth
 | +0xC | U32 | blob offset (kind 1) |
 
 Colours are RGBA32 (R,G,B,A bytes) `[C:visual]`. Every loaded colour also goes through `ColorCorrectRgba` 0x1ED278 when D_003E12C8 is set; that flag is the
-anaglyph-stereo flag ([rendering](../engine.md#73-rendering-enginegraphics)), so normal rendering does not correct colours `[C:static]`.
+anaglyph-stereo flag ([rendering](../systems/rendering.md)), so normal rendering does not correct colours `[C:static]`.
 
 ## 3. BMP record (0x18-byte header) `[C:static]`
 
@@ -66,7 +66,7 @@ index and cclut x U16 CLUT index (0xFFFF none).
 ## 6. Runtime notes
 
 After every load the texture-table counts and list heads are reset: `ResetShaders` 0x1EC7A0 is 17 instructions that zero the 8 words 0x3DCFE8-0x3DD004 and memset nothing `[C:static v3.1]` (plus `ClearTexHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
-GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../engine.md#73-rendering-enginegraphics).
+GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../systems/rendering.md).
 
 ## 7. Open
 

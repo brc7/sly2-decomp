@@ -29,6 +29,11 @@ per-type value heaps; pairs, procedures, frames, bindings, sidebags and methods 
 constructor, assignment and destructor maintain reference counts on the payload (`Incref` / `Decref`), so C++ code
 that holds a `CRef` on the stack is safe across allocations.
 
+Tag numbers (`TAGK`; Sly 2 inserted one special form, so they are shifted from Sly 1) `[C:verified]`: 0x15 integer,
+0x16 float, 0x17 boolean, 0x18 symbol id, 0x19 builtin, 0x1A vector, 0x1B matrix, 0x1C CLQ, 0x1D LM, 0x1E SMP, 0x1F pair,
+0x20 procedure, 0x21 object, 0x22 method, 0x24 void, -1 nil; 0x14 marks the rest-parameter dot. Special forms are 1-18
+(1 `set!`, 2 `define`, 5 `assert`, 6 the unknown Sly 2 form, 7 `if` ... 18 `quote`).
+
 Objects appear in scripts as object values: there are no object literals in level data; scripts find objects at run
 time by oid (`find-object` and friends) and pass them around.
 

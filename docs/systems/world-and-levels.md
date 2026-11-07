@@ -249,4 +249,5 @@ in `OnRemove` (slot 22). The list then holds exactly the live instances.
 - `src/game/level/exit_warp.cpp`: EXIT and WARP. `src/game/level/wipe.cpp`: the wipe and `WipeToWorldWarp`.
 - `src/game/object/busy.cpp`: activation by distance.
 - `include/sly2/sw.h`: the `SW` layout.
-- [engine.md](../engine.md) sections 3-5 for the research view (runtime observations, field offsets).
+- [engine.md](../engine.md) sections 3-5 for the summary; the original research pages (runtime tables, field offsets)
+  are in git history (see the top of engine.md).

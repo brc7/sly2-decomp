@@ -136,8 +136,9 @@ STEP (`step.cpp`) is the bridge between gameplay and physics:
 ## 6. Damage: zaps
 
 Damage is delivered as a **zap** record (ZPR): source object, source part, target, a bit set of **zap kinds** (melee,
-projectile, laser, water, crossbow dart, juggle, Murray takedown, ...; observed values are listed in engine.md section
-7.6), and the damage amount.
+projectile, laser, water, crossbow dart, juggle, Murray takedown, ...), and the damage amount. Kind bits observed
+`[C:runtime]`: 0x2 Murray takedown, 0x100 guard projectile, 0x200 guard melee, 0x1000 laser, 0x2000 water, 0x80000
+crossbow dart, 0x200000 juggle (floors hp at 5).
 
 - **Delivery.** `DeliverZapToSo` walks from the target up its parent chain. For each object it skips the zap if an
   identical one (same source, part, kinds and responder) is still in the world's recent-zap history, computes the

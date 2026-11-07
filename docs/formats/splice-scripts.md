@@ -1,7 +1,7 @@
 # Splice scripts in world files
 
 Level scripts ("Splice", a compiled Scheme dialect) are stored per world entry as serialized lists. The tool `reports/splice_scripts/tool/sly2splice.py` (research workspace, not in this repo) walks, decodes,
-re-encodes and pretty-prints them. Runtime side: [splice-scripting](../engine.md#72-splice-scripting-splice-appbifcpp-objectspliceobjcpp).
+re-encodes and pretty-prints them. Runtime side: [splice-scripting](../systems/splice-scripting.md).
 
 Tags: `[C:static]` = matched code; `[C:parse]` = the walk consumes every byte and **re-encodes byte-identically: 10,930/10,930 entries in all 43 world files**
 (2,697,151 bytes); `[C:data]` = holds for every instance; `[C:runtime]` = seen bound in live frames (runtime6); `[H]` = inferred.

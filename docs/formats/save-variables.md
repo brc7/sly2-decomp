@@ -1,7 +1,7 @@
 # Save variables
 
 All persistent progress lives in the 0x5400-byte blob `g_gs` = **0x3D4A60**; a schema loaded from every world file names each variable
-(see [engine.md](../engine.md#713-save-data-and-memory-card-worldstatesavecpp-uimemcardcpp)). This table was generated once (by a since-removed
+(see [progression-and-saves.md](../systems/progression-and-saves.md#5-save-variables)). This table was generated once (by a since-removed
 script) from a runtime decode of the schema on save states S02-S05 (Paris hub), so names, offsets, kinds and the values shown are `[C:runtime]`.
 **Address = 0x3D4A60 + offset.** Kinds: int, float, bool (packed bits; `x3` = bit count for arrays), oid. `x3` > 0 on non-bool kinds = array length.
 Later save states confirmed `bentley.hpCur` (+0x68, max 40) and `murray.hpCur` (+0x80, max 60), `powerUps.mppukfAcquired` (+0x98, bit n = gadget n),

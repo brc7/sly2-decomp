@@ -1,7 +1,7 @@
 # Audio files: 989snd banks, VPK streams, VAGp dialogue
 
 Decoder (research workspace, not in this repo): `reports/audio/sly2_audio.py` (stdlib + numpy; exports WAV with loop points and spectrograms).
-Engine side: [sound](../engine.md#77-sound-enginesound-srcsdk989snd).
+Engine side: [sound](../systems/sound-and-music.md).
 
 Tags: `[C:parse]` = header fields account exactly for the file size or tables; `[C:decode]` = the decoded signal passes plausibility checks (speech formants,
 tonal music, no clipping); `[C:static]` = IOP or EE disassembly; `[H]` = inferred. **Only one sample per kind was decoded**; the other files are presumed to use the

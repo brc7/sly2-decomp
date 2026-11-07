@@ -2,7 +2,7 @@
 
 How a frame gets from live objects to pixels: render lists, globsets (models), shaders and textures, the VU1/GS/DMA
 backend, lighting ("relight"), particles and screen effects, and render targets. For the frame loop as a whole see
-[engine.md section 4](../engine.md#4-the-frame-loop); for the pass table and vertex formats see
+[engine.md section 4](../engine.md#4-the-frame-loop); for the short summary see
 [engine.md section 7.3](../engine.md#73-rendering-enginegraphics); for byte layouts see
 [formats/meshes-scene.md](../formats/meshes-scene.md) and [formats/textures.md](../formats/textures.md). The port plan's
 render section ([guides/port-plan.md](../guides/port-plan.md#6-rendering--metal)) builds on this page.
@@ -107,8 +107,27 @@ frame N. `FlushFrames` drains it (used before a level load). `RenderFrame` is th
 
 A **kind** is what an object asks for (opaque, cutout, translucent, outline, shadow volume A/B, blip, HUD, render
 target slot, foreground...). A **pass** is a VU1 microprogram plus GS state. The kind-to-pass table and the pass hook
-table (begin/end pairs) are data in `draw.cpp`; the kind/pass list is in
-[engine.md section 7.3](../engine.md#73-rendering-enginegraphics).
+table (begin/end pairs) are data in `draw.cpp` `[C:static]`. `DrawSw` counting-sorts the entries into kind buckets
+(`CprplPartitionArpl`; the translucent and background kinds far-to-near, HUD near-to-far by layer), then walks them:
+
+| Kind | Pass | Role |
+|---|---|---|
+| 0 | RELIGHT | compute-only vertex relighting |
+| 1 | BACKGROUND | sky dome and colour fill; no depth test or write |
+| 3 / 4 | GLOB / CUTOUT | opaque world / alpha-tested geometry (marks dest alpha) |
+| 5 / 6 / 10 | GLOB / CUTOUT / GLOB | translucent, translucent cutout (faded 3/4), late translucent (glass, water, decals); far-to-near |
+| 7 / 8 | VOLUME A / B | shadow volumes, two channels |
+| 9 | CEL BORDER | outlines |
+| 11, 13, 14 | GLOB | late opaque; post-blip; screen tint/flash/fade |
+| 12 | BLIP | sprite particles |
+| 15-20 | RENDER TARGET (+GLOB, CEL BORDER) | render-to-texture slots (sampled next frame) |
+| 21 | HUD | widgets, rich text, sprites |
+| 22-25 | FOREGROUND | objects drawn over the HUD with Z cleared |
+
+**Vertex formats.** The A family (static, unskinned) is 4 quadwords per vertex: ST, colour 0, colour 1 (the two relight
+outputs), and position with a **W flag word** (a magic float carrying strip restart, culling marks and the 8-bit fog
+value); it is transformed in place into the GIF stream. The B family adds skinning (4 matrices), billboards, UV scroll,
+morph deltas, view-angle alpha and per-object lights (up to 4). Z is "bigger = nearer".
 
 The begin/end hooks, by name (all in `pipeline/glob.cpp` unless noted):
 
@@ -141,9 +160,15 @@ Lighting is **not** computed per frame per vertex. It is event-driven:
    `FindLightsAffectingPoint` through the light plane tree) are added by the B-family glob program through
    `BuildSoLightPackets`.
 
-The formula and the "light fills the headroom first, ambient the rest" rule are in
-[engine.md section 7.3](../engine.md#73-rendering-enginegraphics). The cel look comes from the art, the light curve, the
-outlines and that fill rule; there is no quantisation step.
+Per light the intensity is `I = clamp(k0 + k1*(d + d^3), 0, 1) * att`; light fills the colour headroom first and ambient
+only the rest. The cel look comes from the art, that steep light curve, the outlines and the fill rule; there is no
+banding or quantisation step in the VU code.
+
+**Outlines.** Per edge record (two endpoints, two opposite vertices) the edge is drawn as one GS line iff its two faces
+face opposite ways on screen (a silhouette), offset by about half a pixel: an antialiased colour pass, then a depth-only
+pass. **Shadow volumes.** With no stencil buffer, faces add or subtract in the framebuffer's green channel by winding
+(Z-fail, wrapping); the count is moved into destination alpha and applied by a small shadow CLUT in full-screen sprites.
+The darkening is proportional to the surface's direct light, so ambient-only surfaces are not darkened.
 
 ## 6. Shaders, textures and shader animation
 

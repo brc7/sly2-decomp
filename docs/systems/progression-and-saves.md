@@ -99,8 +99,9 @@ the end task's, at least 1).
 
 Senders include the level load (events 0..5, see [world-and-levels.md](world-and-levels.md)), job and task state
 changes, the hero's death, guards being damaged or defeated, pause, gadget use, and every LO trigger / untrigger
-(`HandleLoSpliceEvent`). The ids are integers without symbolic names in the code; [engine.md](../engine.md) section
-7.12 lists the known ones.
+(`HandleLoSpliceEvent`). The ids are integers without symbolic names in the code. Known ids: 0/1/2/4/5 startup /
+teardown / load begin / post-load / transition done; 16 hero died (jobs restart); 21 guard damaged; 23/24 guard
+defeated; 0x20 job finished; 0x28/0x2C pause shown/hidden; 0x3C gadget used.
 
 **How tasks and jobs hear about it.** The code comments call these "messages", but `SendTaskGameEvent`,
 `HandleJobGameEvent`, `BeginTask`, `EndTask` and friends call vtable slot 3, `HandleSpliceEvent`: they are **Splice
