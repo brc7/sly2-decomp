@@ -295,7 +295,7 @@ typedef int qword __attribute__((mode(TI)));
 struct PATHZONE;
 struct D { char pad[0x10]; struct PATHZONE *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
-struct GUARD { char pad[0xE8]; struct C *physics; char pad2[0x294 - 0xEC]; struct SHAPE *pathShape; };
+struct GUARD : LO { char pad[0xE8 - 0x50]; struct C *physics; char pad2[0x294 - 0xEC]; struct SHAPE *pathShape; };
 struct P { char pad[0x10]; struct GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int usesStraightPath; char pad3[0x40 - 0x34]; qword goal; };
 qword GetLoWorldPos(struct GUARD *guard);
 void FindPathzonePathCurve(struct PATHZONE *pathZone, qword start, qword goal, struct SHAPE *path);
@@ -331,7 +331,7 @@ void SetBhvWalkToGoal(struct P *behavior, qword goal)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitBhvfollow { extern "C" {
 void InitBhv(void *p);
-struct X { char pad[0x60]; int state; int pad2; float velocityLeadTime, distanceNear, distanceFar, speedNear, speedFar; };
+struct X : BHV { char pad[0x60 - 0x30]; int state; int pad2; float velocityLeadTime, distanceNear, distanceFar, speedNear, speedFar; };
 // 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
 // factors (0.25/250/350/1.0/1.2).
 void InitBhvfollow(struct X *behavior)
@@ -372,7 +372,7 @@ typedef unsigned long ulong;
 struct CLQ { float g0, g1, g2, gPad; };
 struct SO { char pad[0x2C0]; ulong grfsg; };   /* a guard */
 struct TARGETREC { char pad[0x28]; int guardCount; struct SO *guards[1]; };   /* stepguard.cpp's engagement record */
-struct PO { char pad[0x1088]; struct TARGETREC *engagement; };
+struct PO : STEP { char pad[0x1088 - 0x2C0]; struct TARGETREC *engagement; };
 struct P { char pad[0x10]; struct PO *follower; char pad2[0x30 - 0x14]; void *leader; char pad3[0x90 - 0x34]; struct SO *threat; };
 extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
 struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f};
@@ -463,7 +463,7 @@ namespace M_UpdateBhvfollow { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct D { char pad[0x10]; void *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
-struct PO { char pad[0xE8]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
+struct PO : LO { char pad[0xE8 - 0x50]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
 struct X { char pad[0x40]; int usesStraightPath; };
 struct SO;
 struct P {
@@ -613,7 +613,7 @@ struct M4 { qword r[4]; };
 struct PATHZONE;
 struct D { char pad[0x10]; PATHZONE *pathZone; };
 struct C { char pad[0xDC]; D *region; };
-struct GUARD { char pad[0xE8]; C *physics; char pad2[0x294 - 0xEC]; SHAPE *pathShape; };
+struct GUARD : LO { char pad[0xE8 - 0x50]; C *physics; char pad2[0x294 - 0xEC]; SHAPE *pathShape; };
 struct O;
 struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };   /* slot 33: velocity */
 struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword velocity; char pad3[0x1A8 - 0x1A0]; float heading; };
@@ -713,8 +713,8 @@ typedef int qword __attribute__((mode(TI)));
 struct PATHZONE;
 struct D { char pad[0x10]; struct PATHZONE *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
-struct GUARD { char pad[0xE8]; struct C *physics; };
-struct LEADER { char pad[0x2DC]; int airState; };
+struct GUARD : LO { char pad[0xE8 - 0x50]; struct C *physics; };
+struct LEADER : STEP { char pad[0x2DC - 0x2C0]; int airState; };
 struct P { char pad[0x10]; struct GUARD *guard; char pad2[0x30 - 0x14]; struct LEADER *leader; char pad3[0x80 - 0x34]; qword landingPoint; };
 struct SO *GetBhvfollowLeaderGround(struct P *behavior);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
@@ -766,7 +766,7 @@ extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 namespace M_SetBhvfollowState { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O : BHV { char pad1[0x38 - 0x30]; int target; /* interact */ char pad2[0xC0 - 0x3C]; int mirrorPoctl; int mirrorButtonMask; float mirrorDelay; /* walk-goal */ };
-struct LEADER { char pad[0x150]; int poctl; };
+struct LEADER : SO { int poctl; };
 struct P {
     char pad[0x10]; void *guard; char pad1[4]; char childSlot[0x30 - 0x18]; struct LEADER *leader; char pad2[0x60 - 0x34];
     int state; float stateTime; char pad3[0x80 - 0x68]; qword landingPoint; int threat;
@@ -878,7 +878,7 @@ extern struct CLOCK D_002DDED0;
 float D_002BD344 = 300.0f;
 struct { float near; float far; } D_002BD348 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct TARGET : STEP { char pad[0x330 - 0x2C0]; int isKnockedOut; };
 struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1810 - 0xDF8]; int attackState; };
 struct P { char pad[0x10]; struct OWNER *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 void UpdateBhv(struct P *);
@@ -1068,7 +1068,7 @@ extern struct CLOCK D_002DDED0;
 float D_002BD350 = 350.0f;
 struct { float near; float far; } D_002BD358 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
-struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct TARGET : STEP { char pad[0x330 - 0x2C0]; int isKnockedOut; };
 struct OWNER { char pad[0xDF4]; int actionState; char pad2[0x1714 - 0xDF8]; int attackState; };
 struct P { char pad[0x10]; struct OWNER *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 void UpdateBhv(struct P *);
@@ -1252,7 +1252,7 @@ extern "C" int IsBhvInteract3Idle(BHVSTATE *behavior)
 namespace M_func_001467A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct PO { char pad[0x2DC]; int airState; float airStateTime; char pad2[0xDF4 - 0x2E4]; int actionState; char pad3[0x18C8 - 0xDF8]; int jtState; char pad4[0x18D8 - 0x18CC]; int attackState; };
+struct PO : STEP { char pad[0x2DC - 0x2C0]; int airState; float airStateTime; char pad2[0xDF4 - 0x2E4]; int actionState; char pad3[0x18C8 - 0xDF8]; int jtState; char pad4[0x18D8 - 0x18CC]; int attackState; };
 struct TARGET { char pad[0x330]; int isKnockedOut; };
 struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 extern struct CLOCK D_002DDED0;
@@ -1523,7 +1523,7 @@ void BHV198::Start()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146EE0 { extern "C" {
-struct MURRAYV { char pad[0x1AC0]; int unknown1AC0; };
+struct MURRAYV : STEPPLAYER { char pad[0x1AC0 - 0x1320]; int unknown1AC0; };
 struct BHVMURRAYV { char pad[0x10]; struct MURRAYV *owner; };
 void CloseBhv(struct BHVMURRAYV *behavior);
 void SetMurrayState(struct MURRAYV *murray, int state);
@@ -1539,7 +1539,7 @@ void CloseBhvMurray(struct BHVMURRAYV *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146F18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct MURRAYV { char pad[0x1A8]; float targetHeading; char pad2[0x1840 - 0x1AC]; int subState; };
+struct MURRAYV : PO { char pad[0x1A8 - 0x180]; float targetHeading; char pad2[0x1840 - 0x1AC]; int subState; };
 struct P { char pad[0x10]; struct MURRAYV *murray; char pad2[0x30 - 0x14]; float startHeading; };
 extern struct CLOCK D_002DDED0;
 extern void *D_002E1E40;
