@@ -518,7 +518,6 @@ namespace M_GetXfVelocity {
 typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 union V {qword q;float f[4];};
-union SOURCE {void *object;float deadline;};
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 M4 InvertMatrix4Rigid(const M4 *);
@@ -1690,33 +1689,30 @@ namespace M_UpdateSoXfWorldMatrices {
 // Update linked world matrices through the VU matrix microprogram.
 typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
-struct X {M4 local,world;char pad80[0x20];X *parent;int priority;char pada8[0x58];};
-struct S {char pad[0x50];int count;X *array;};
 extern "C" { extern M4 D_002A2D30; }
-extern "C" void RefreshSoAfterSlotUpdate(S *);
 // Recomputes the world matrices of an SO's linked transforms (VU matrix microprogram).
-extern "C" void UpdateSoXfWorldMatrices(S *p) {
-    if(p->count>0) {
-        X *x=p->array,*last=p->array+p->count-1;
+extern "C" void UpdateSoXfWorldMatrices(SO *p) {
+    if(p->numTransforms>0) {
+        XF *x=p->transforms,*last=p->transforms+p->numTransforms-1;
         register qword v1 __asm__("vf1"),v2 __asm__("vf2"),v3 __asm__("vf3"),v4 __asm__("vf4");
         register qword v5 __asm__("vf5"),v6 __asm__("vf6"),v7 __asm__("vf7"),v8 __asm__("vf8");
         qword n0,n1,n2,n3,p0,p1,p2,p3;
-        if(x->parent) {X *parent=x->parent;v1=parent->world.r[0];v2=parent->world.r[1];v3=parent->world.r[2];v4=parent->world.r[3];}
+        if(x->parent) {XF *parent=x->parent;v1=((M4 *)&parent->worldMatrix)->r[0];v2=((M4 *)&parent->worldMatrix)->r[1];v3=((M4 *)&parent->worldMatrix)->r[2];v4=((M4 *)&parent->worldMatrix)->r[3];}
         else {v1=D_002A2D30.r[0];v2=D_002A2D30.r[1];v3=D_002A2D30.r[2];v4=D_002A2D30.r[3];}
-        v5=x->local.r[0];v6=x->local.r[1];v7=x->local.r[2];v8=x->local.r[3];
+        v5=((M4 *)&x->localMatrix)->r[0];v6=((M4 *)&x->localMatrix)->r[1];v7=((M4 *)&x->localMatrix)->r[2];v8=((M4 *)&x->localMatrix)->r[3];
         while(x<=last) {
             int sync;
             __asm__ __volatile__("vcallms 0x60" : "=j"(v5),"=j"(v6),"=j"(v7),"=j"(v8) : "j"(v1),"j"(v2),"0"(v5),"1"(v6),"2"(v7),"3"(v8));
             if(x<last) {
-                X *nx=x[1].parent;
+                XF *nx=x[1].parent;
                 if(nx!=x) {
-                    p0=nx->world.r[0];p1=nx->world.r[1];p2=nx->world.r[2];p3=nx->world.r[3];
+                    p0=((M4 *)&nx->worldMatrix)->r[0];p1=((M4 *)&nx->worldMatrix)->r[1];p2=((M4 *)&nx->worldMatrix)->r[2];p3=((M4 *)&nx->worldMatrix)->r[3];
                 }
-                n0=x[1].local.r[0];n1=x[1].local.r[1];n2=x[1].local.r[2];n3=x[1].local.r[3];
+                n0=((M4 *)&x[1].localMatrix)->r[0];n1=((M4 *)&x[1].localMatrix)->r[1];n2=((M4 *)&x[1].localMatrix)->r[2];n3=((M4 *)&x[1].localMatrix)->r[3];
             }
-            if(x->parent && x->priority<x->parent->priority)x->priority=x->parent->priority;
+            if(x->parent && x->worldStamp<x->parent->worldStamp)x->worldStamp=x->parent->worldStamp;
             __asm__ __volatile__("cfc2.i %0,$vi0":"=r"(sync):"j"(v3),"j"(v4),"j"(v5),"j"(v6),"j"(v7),"j"(v8));
-            x->world.r[0]=v5;x->world.r[1]=v6;x->world.r[2]=v7;x->world.r[3]=v8;
+            ((M4 *)&x->worldMatrix)->r[0]=v5;((M4 *)&x->worldMatrix)->r[1]=v6;((M4 *)&x->worldMatrix)->r[2]=v7;((M4 *)&x->worldMatrix)->r[3]=v8;
             if(x[1].parent!=x) {v1=p0;v2=p1;v3=p2;v4=p3;}
             else {v1=v5;v2=v6;v3=v7;v4=v8;}
             ++x;
@@ -2356,33 +2352,17 @@ namespace M_func_00230CF0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 typedef struct VT { short d; short pad; void (*pfn)(...); } VT;   /* the C file's unprototyped pointer */
-typedef struct P {
-    qword m[4];
-    char pad40[0x80 - 0x40];
-    float segmentStartTime;
-    float segmentEndTime;
-    float *currentTimePtr;
-    float *curveScalePtr;
-    char pad90[0x98 - 0x90];
-    short role;
-    short segmentKind;
-    char pad9C[0xA4 - 0x9C];
-    int worldStamp;
-    char padA8[0xB0 - 0xA8];
-    qword velocity;
-    qword segment[4];
-} P;
-/* The ASEGA's ACTSEG/OVRA lists (aseg.h, act.h); the acts' objects and transforms through the LO/P views above, the
+/* The ASEGA's ACTSEG/OVRA lists (aseg.h, act.h); the acts' objects and transforms as LO/XF, the
    override curves through their vtable (slot 2). */
 #define CURVE_VT(pac) (*(VT **)(pac))
 extern SW D_003DD490;
 extern qword D_002A2DD0;
 int IsAsegaRetracted(ASEGA *);
 int IsActCurrent(ACT *);
-void UpdateXfJobRange(LO *, P *);
-qword GetXfValueFromMatrix(P *, P *);
-qword DecomposeRotationMatrixToEuler(qword *);
-M4 BuildXfValueMatrix(P *, qword);
+void UpdateXfJobRange(LO *, XF *);
+qword GetXfValueFromMatrix(XF *, MATRIX4 *);
+qword DecomposeRotationMatrixToEuler(MATRIX3 *);   /* phase 5: the rotation rows stored at +0xC0 */
+M4 BuildXfValueMatrix(XF *, qword);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int);
 
 // Evaluates a slot's actuator value for the frame (curves, limits) and stores it in the slot. (inferred)
@@ -2398,12 +2378,12 @@ void EvaluateXfSlotValue(ASEGA *a, int flag)
         return;
     n = 0;
     for (c = a->pactsegFirst; c; c = c->pactsegNext) {
-        P *p;
+        XF *p;
         LO *q;
         qword v;
         if (!IsActCurrent(c))
             continue;
-        p = (P *)c->transform;
+        p = (XF *)c->transform;
         q = (LO *)c->animatedObject;
         UpdateXfJobRange(q, p);
         switch (p->role) {
@@ -2419,20 +2399,20 @@ void EvaluateXfSlotValue(ASEGA *a, int flag)
                 break;
         if (i >= n && (unsigned)n < 16)
             list[n++] = q;
-        switch (p->segmentKind) {
+        switch (p->phase) {
         case 0:
-            v = GetXfValueFromMatrix(p, p);
+            v = GetXfValueFromMatrix(p, &p->localMatrix);
             break;
         case 1: {
-            EvaluateBezierPos(p->segmentEndTime - p->segmentStartTime, *p->currentTimePtr - p->segmentStartTime, *p->curveScalePtr, p->segment[0], p->segment[1], p->segment[2], p->segment[3], (qword *)&out, 0, 0);
+            EvaluateBezierPos(p->segmentEndTime - p->segmentStartTime, *p->timeSource - p->segmentStartTime, *p->speedSource, p->restValue, p->rate, p->unknownE0, p->acceleration, (qword *)&out, 0, 0);
             v = *(qword *)&out;
             break;
         }
         case 2: case 3: case 4:
-            v = p->segment[0];
+            v = p->restValue;
             break;
         case 5:
-            v = DecomposeRotationMatrixToEuler(p->segment);
+            v = DecomposeRotationMatrixToEuler((MATRIX3 *)&p->restValue);
             break;
         default:
             v = D_002A2DD0;
@@ -2440,9 +2420,9 @@ void EvaluateXfSlotValue(ASEGA *a, int flag)
         }
         {
             M4 t = BuildXfValueMatrix(p, v);
-            *(M4 *)p->m = t;
+            *(M4 *)&p->localMatrix = t;
         }
-        p->velocity = D_002A2DD0;
+        *(qword *)&p->velocity = D_002A2DD0;
         p->worldStamp = ++D_003DD490.transformStamp;
     }
     for (i = 0; i < n; i++)
