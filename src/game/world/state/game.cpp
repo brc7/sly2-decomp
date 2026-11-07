@@ -1578,35 +1578,29 @@ typedef char layout_CRef[(sizeof(CRef)==8)?1:-1];
 } } // namespace M_PostTaskLoad
 
 namespace M_UpdateTask { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x54]; int state; float stateChangeTime; char pad2[0x78 - 0x5C]; float timeLimit; struct S *job; struct O *marker; };
 extern struct CLOCK D_002DDED0;
-void UpdateLo(struct S *p);
-void SendTaskTimeout(struct S *p, int n);
+void UpdateLo(LO *p);
+void SendTaskTimeout(TASK *p, int n);
 // TASK per-frame update (slot 16): sends the timeout of a timed available task and shows its marker object only while
 // it is available and no job is current.
-void UpdateTask(struct S *task)
+void UpdateTask(TASK *task)
 {
-    struct O *marker;
+    LO *marker;
     UpdateLo(task);
-    if (task->state == TASK_STATE_AVAILABLE && task->timeLimit > 0.0f) {
-        float elapsed = D_002DDED0.time - task->stateChangeTime;
-        if (elapsed < task->timeLimit && task->timeLimit + D_002DDED0.deltaTime <= elapsed)
+    if (task->nState == TASK_STATE_AVAILABLE && task->dtLimit > 0.0f) {
+        float elapsed = D_002DDED0.time - task->tState;
+        if (elapsed < task->dtLimit && task->dtLimit + D_002DDED0.deltaTime <= elapsed)
             SendTaskTimeout(task, 0);
     }
-    marker = task->marker;
+    marker = task->ploMarker;
     if (marker) {
-        int isShown = task->state == TASK_STATE_AVAILABLE;
+        int isShown = task->nState == TASK_STATE_AVAILABLE;
         if (g_sw.currentJob)
             isShown = 0;
-        if (isShown) {
-            struct VTE *entry = &marker->vt[8];
-            entry->pfn((char *)marker + entry->d);
-        } else {
-            struct VTE *entry = &marker->vt[9];
-            entry->pfn((char *)marker + entry->d);
-        }
+        if (isShown)
+            marker->Add();
+        else
+            marker->Remove();
     }
 }
 } } // namespace M_UpdateTask
