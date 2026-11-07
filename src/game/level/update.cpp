@@ -19,20 +19,6 @@ struct ASEGQ { byte pad[0x40]; unsigned int flags; };   /* the animated LO: its 
 struct ASEGA { byte pad[0x14]; ASEGQ *object; };
 
 /* The fields of SW (sly2/sw.h, 0x4790 bytes) that the update touches; not yet named in sw.h. */
-struct SWVIEW
-{
-      byte pad0[0x3D88];
-      DL dlAsega;               /* +0x3D88 active ASEGAs */
-      byte pad1[0x3EAC - 0x3D94];
-      LOPOCTL *firstPoctlObject; /* +0x3EAC */
-      byte pad2[0x3F14 - 0x3EB0];
-      int numEntries;           /* +0x3F14 */
-      int numHoles;             /* +0x3F18 (sw.h cloupdHole) */
-      int *currentIndex;        /* +0x3F1C the loop index while iterating (NULL otherwise) */
-      SWENTRY *entries;         /* +0x3F20 */
-      byte pad3[0x3FFC - 0x3F24];
-      DL dlUnknown3FFC;         /* +0x3FFC its entries go to func_00156728 each frame */
-};
 
 extern CLOCK D_002DDED0;          /* g_clock */
 extern char D_002E65E0[];
@@ -40,21 +26,21 @@ extern char D_003DD040[];
 extern char D_002DDF40[];
 extern char g_gc[];
 extern "C" {
-void ProcessSwCallbacks(SWVIEW *p);
-void UpdateSwBusyList(SWVIEW *p);
-void UpdateSwObjects(SWVIEW *p);
+void ProcessSwCallbacks(SW *p);
+void UpdateSwBusyList(SW *p);
+void UpdateSwObjects(SW *p);
 void UpdatePoctl(LOPOCTL *pl);
-void ExpireSwZapRecords(SWVIEW *p);
-void UpdateSwGuardOverride(SWVIEW *p);
+void ExpireSwZapRecords(SW *p);
+void UpdateSwGuardOverride(SW *p);
 void UpdateAsega(void *pv);   /* takes an ASEGA* */
 void ExpireNoise(void *pv);
-void SolveSw(SWVIEW *p);
+void SolveSw(SW *p);
 void UpdatePendingCid14Obstacles(void);
 void UpdateShaders(void);
 void UpdateSave__FP4SAVE(void *pv);
 void UpdateSndmgr(void *pv);
 void UpdateCmLast__FP2CM(void *pv);
-void UpdateSwTimerHud(SWVIEW *p);
+void UpdateSwTimerHud(SW *p);
 void CGc_UpdateRecyclable(void *pv);
 }
 
@@ -69,7 +55,7 @@ enum { SLOT_UPDATE = 16, SLOT_PAUSED_UPDATE = 17 };
 // and the camera. Called once per game frame by the main loop.
 void SW::Update()
 {
-    SWVIEW *world = (SWVIEW *)this;
+    SW *world = (SW *)this;
     ProcessSwCallbacks(world);
     UpdateSwBusyList(world);
     if (D_002DDED0.deltaTime <= 0.0f) {
@@ -79,23 +65,23 @@ void SW::Update()
         int i;
         DLI dli, dli2;
         void *element;
-        for (lo = world->firstPoctlObject; lo; lo = lo->next)
+        for (lo = ((LOPOCTL *)world->slPoctl.head); lo; lo = lo->next)
             UpdatePoctl(lo);
         ExpireSwZapRecords(world);
-        world->currentIndex = &i;
-        for (i = 0; i < world->numEntries; i++) {
-            SWENTRY *entry = &world->entries[i];
+        world->piloupdCur = &i;
+        for (i = 0; i < world->cloupd; i++) {
+            SWENTRY *entry = &((SWENTRY *)world->aloupd)[i];
             if (entry->flags & ENTRY_UPDATE) {
                 BASICV *object = entry->object;
                 ((void (*)(void *))object->vt[SLOT_UPDATE].pfn)((char *)object + object->vt[SLOT_UPDATE].d);
             }
         }
-        world->currentIndex = 0;
+        world->piloupdCur = 0;
         UpdateSwGuardOverride(world);
         InitDli(&dli, &world->dlAsega);
         while ((element = PvNextDli(&dli)) != 0)
             UpdateAsega(element);
-        InitDli(&dli2, &world->dlUnknown3FFC);
+        InitDli(&dli2, &world->dlStimulus);
         while ((element = PvNextDli(&dli2)) != 0)
             ExpireNoise(element);
         ProcessSwCallbacks(world);
@@ -114,33 +100,33 @@ void SW::Update()
 }
 
 // Walks the world's list of objects that want updates and calls each one's update (and its animation segments).
-extern "C" void UpdateSwObjects(SWVIEW *world)
+extern "C" void UpdateSwObjects(SW *world)
 {
     DLI dli;
     int i;
     ASEGA *asega;
-    world->currentIndex = &i;
-    for (i = 0; i < world->numEntries; i++) {
-        SWENTRY *entry = &world->entries[i];
+    world->piloupdCur = &i;
+    for (i = 0; i < world->cloupd; i++) {
+        SWENTRY *entry = &((SWENTRY *)world->aloupd)[i];
         if ((entry->flags & (ENTRY_UPDATE_WHEN_PAUSED | ENTRY_UPDATE)) == (ENTRY_UPDATE_WHEN_PAUSED | ENTRY_UPDATE)) {
             BASICV *object = entry->object;
             ((void (*)(void *))object->vt[SLOT_UPDATE].pfn)((char *)object + object->vt[SLOT_UPDATE].d);
         }
     }
-    world->currentIndex = 0;
+    world->piloupdCur = 0;
     InitDli(&dli, &world->dlAsega);
     while ((asega = (ASEGA *)PvNextDli(&dli)) != 0) {
         if (GetLoFlags(asega->object) & ENTRY_UPDATE_WHEN_PAUSED)
             UpdateAsega(asega);
     }
-    world->currentIndex = &i;
-    for (i = 0; i < world->numEntries; i++) {
-        SWENTRY *entry = &world->entries[i];
+    world->piloupdCur = &i;
+    for (i = 0; i < world->cloupd; i++) {
+        SWENTRY *entry = &((SWENTRY *)world->aloupd)[i];
         if ((entry->flags & (ENTRY_UPDATE_WHEN_PAUSED | ENTRY_PAUSED_CALL_OFF | ENTRY_PAUSED_CALL)) == (ENTRY_UPDATE_WHEN_PAUSED | ENTRY_PAUSED_CALL)) {
             BASICV *object = entry->object;
             ((void (*)(void *))object->vt[SLOT_PAUSED_UPDATE].pfn)((char *)object + object->vt[SLOT_PAUSED_UPDATE].d);
         }
     }
-    world->currentIndex = 0;
+    world->piloupdCur = 0;
     D_002DD2FC = dli.m_pdliNext;
 }
