@@ -1,6 +1,7 @@
 # Sound and music
 
-How the game plays sound effects, ambience, music and dialogue, and how subtitles follow the voice. For the summary
+How the game plays sound effects, ambience, music and dialogue, how subtitles follow the voice, and how the USB headset
+microphone feeds the guards' hearing. For the summary
 see [engine.md section 7.7](../engine.md#77-sound-enginesound-srcsdk989snd); for file formats (989snd banks, VPK
 streams, VAGp dialogue, the IOP stream module) see [formats/audio.md](../formats/audio.md); for the port's audio plan
 see [guides/port-plan.md section 6.4](../guides/port-plan.md#64-sound--coreaudio-k12).
@@ -54,14 +55,15 @@ volume to 1 and records the start time. `g_sndmgr` itself is a global constructe
 
 `UpdateSndmgr` runs near the end of `UpdateSw` ([engine.md section 4](../engine.md#4-the-frame-loop)):
 
-1. Timing; `UpdateSoundListener` (track the listener while a player exists) and `PollSoundManagerStatus` (one
+1. Timing; `UpdateHeadsetMicrophone` (the headset microphone, section 7) and `PollSoundManagerStatus` (one
    outstanding IOP status query at a time).
-2. **Global pause**: while the game is paused, the top music stream, the ambience stream and the dialogue stream are
-   paused; resumed afterwards.
+2. **Disc pause**: while the CD is not idle (busy or in error, inferred), the top music stream, the ambience stream and
+   the dialogue stream are paused; resumed when it is idle again.
 3. `UpdateMusicMix`: pick the music layer and cross-fade (section 5).
 4. `UpdateDialog`: fire dialogue events as the stream plays (section 6).
-5. Master fade toward silence when the manager is muted (`IsSoundManagerMuted`) and game time is stopped; applied
-   through `SetSndmgrChannelVolume`.
+5. **Time-stopped fade**: when game time is stopped (the pause menu) and the manager's mute-when-stopped flags allow it
+   (`ShouldFadeWhenTimeStops`; a player mode and cutscenes clear one flag each), ambience and music fade out smoothly
+   and dialogue is cut; applied through the pause-fade category of `SetSndmgrChannelVolume`.
 6. **Flush**: `UpdateSnd` on every dirty sound, then `snd_FlushSoundCommands`.
 
 `UpdateSnd` turns request bits into virtual calls, in order: positional update, start (play), stop, status query,
@@ -110,21 +112,40 @@ parameters (volume/pan/pitch), pause, continue. Async results come back through 
   by speaker class. The HUD draws it through text callbacks ([ui-and-hud.md](ui-and-hud.md)). RELAY cutscene commands,
   movies and the letterbox also set subtitles.
 
-## 7. Volumes: channels and categories
+## 7. Volumes, channels and the headset
 
-The manager keeps a matrix of **8 categories x 4 output channels**; a channel's output is the product of its category
-weights, sent with `snd_SetMasterVolume` when it changes by at least 1/1024. `SetSndmgrChannelVolume(mgr, channel,
-category, weight)` sets one cell; `ResetSndmgrVolumes` resets them.
+**Channels and categories.** The manager keeps a matrix of **8 categories x 4 output channels**; a channel's output is
+the product of its category weights, sent with `snd_SetMasterVolume` when it changes by at least 1/1024.
+`SetSndmgrChannelVolume(mgr, channel, volume, category)` sets one cell; `ResetSndmgrVolumes` resets them. The channels
+are named by macros in `sound.cpp` (`VOLUME_CHANNEL_*`):
 
-Observed use (mapping inferred from callers): channel 1 is music (the options' music volume), channels 0 and 3 are
-effects and ambience (the options' effects volume sets both), channel 2 is dialogue. Category 1 holds the user's option
-volumes (applied from the save by the options code and the pause menu), category 2 the manager's own mute/pause fade;
-setting category 2 to or from zero also pauses or resumes the streams on that channel.
+| Channel | Carries | Evidence |
+|---|---|---|
+| 0 ambience | the ambience stream | `GetStreamVolumeChannel`; the options' effects slider sets 0 and 3 |
+| 1 music | the music stack | `GetStreamVolumeChannel` maps music records to 1, applied to the music stack; the options menu's music slider sets 1 |
+| 2 dialogue | dialogue streams (any stream that is not music or ambience) | applied to the dialogue sound |
+| 3 bank effects | 989snd bank sounds | the options' effects slider |
 
-Other global settings: `SetSndmgrPlaybackMode` (mono/stereo option), `SetSndmgrMasterVolume`. The **headset** option is
-a save variable (`flags.fUseHeadset`) that the options code copies into the manager; no headset audio path is
-identified in the decompiled sound code. The IOP image includes USB audio modules (see
-[formats/audio.md](../formats/audio.md)); what the game does with a headset beyond this flag is an open question.
+Categories: 1 the user's option volumes (applied from the save by the options code and the pause menu), 2 the
+manager's pause fade (setting it to or from zero also pauses or resumes the sounds on that channel), 3 a player mode's
+ducking (`gameplay/player/mode.cpp`); the others stay at 1.
+
+**The headset.** The "use headset" option (save variable `flags.fUseHeadset`, copied into SNDMGR by the save code and
+shown by the options menu) drives a **USB headset**, both ways (inferred from the code; not tested on hardware):
+
+- **Dialogue through the headset.** When a stream starts with the option on, a dialogue-channel stream is flagged to
+  play on the headset unless its dialogue record excludes it; the flag goes to the IOP stream module with the start
+  request.
+- **Microphone noise.** Each frame `UpdateHeadsetMicrophone` keeps one microphone-level query in flight to the stream
+  module; `OnMicLevelResult` stores the answer. While the hero is a player character and the level is above one half,
+  the hero holds a **noise** of the world's microphone noise type whose range and height grow with the level (two
+  quadratic curves in SNDMGR), placed at the hero; guards hear it like any other noise
+  ([ai-guards.md](ai-guards.md#5-perception)). Otherwise the noise is released. `ReplaceHeldNoise` (`gameplay/ai/noise.cpp`)
+  swaps the held noise each frame; `ResetSndmgr` releases it at teardown. With the option off the level is forced to
+  0, so no noise is made.
+
+Other global settings: `SetSndmgrPlaybackMode` (mono/stereo option), `SetSndmgrMasterVolume`. The IOP image includes USB
+audio modules (see [formats/audio.md](../formats/audio.md)).
 
 ## 8. Invariants and gotchas
 
@@ -134,8 +155,11 @@ identified in the decompiled sound code. The IOP image includes USB audio module
   a counted slot) if you need a sound after the frame; a sound with no owner is freed once its callbacks return.
 - **Pools are fixed.** `PsndStartSound` / `PstreamsndNew` return null when the pool is exhausted; callers must check.
 - **Effects are per level.** An effect id that is not in this level's table returns null from `PsndFromSfxid`.
-- **Streams are never culled** and the music, ambience and dialogue streams are paused by the manager while the game is
-  paused; bank sounds are not covered by that rule.
+- **Streams are never culled.** The music, ambience and dialogue streams are paused by the manager while the disc is
+  busy and faded or cut while game time is stopped; bank sounds are not covered by those rules.
+- **The headset microphone is gameplay.** A loud microphone makes the hero audible to guards; a port that wires a real
+  microphone must keep the level scale (above one half triggers the noise), and one without a microphone must report
+  level 0.
 - **Stream time drives sync.** Lip-sync, subtitle pacing and the rhythm minigame all read stream play time; a port must
   report accurate positions.
 
@@ -161,15 +185,18 @@ The whole hardware side:
   per-sub-group volume and pan, and reports accurate play positions.
 - **SIF RPC** plumbing and the async callback timing (callbacks arrive on a later frame on the PS2).
 - **Reverb / playback modes** (`snd_SetPlaybackMode`) and movie sound.
-- The headset modules can be stubbed as "not present".
+- The headset: report "not present" (microphone level 0, no headset playback), or map it to a real microphone and a
+  second audio output; the game-side noise logic needs only the level.
 
 Game-side code (`SNDMGR`, the request queue, music stack and layers, dialogue roles, subtitles) is portable as is.
 
 ## 11. Where to look
 
-- `src/game/engine/sound/sound.cpp`: SND, BANKSND, STREAMSND, SNDMGR, music, dialogue, volumes.
+- `src/game/engine/sound/sound.cpp`: SND, BANKSND, STREAMSND, SNDMGR, music, dialogue, volumes, the headset
+  (`UpdateHeadsetMicrophone`, `OnMicLevelResult`); the SNDMGR field comment lists the channels and categories.
 - `src/game/engine/sound/amb.cpp`: AMB ambient emitters.
 - The subtitle unit in `src/game/engine/sound/` (still named by address): subtitle record and helpers.
 - `src/sdk/989snd/`: the 989snd EE client library.
-- Callers: `ui/menu.cpp` and `world/state/save.cpp` (option volumes), `gameplay/cutscene/relay.cpp` (dialogue and music
+- Callers: `ui/menu.cpp` and `world/state/save.cpp` (option volumes and the headset option), `gameplay/ai/noise.cpp`
+  (the microphone noise), `gameplay/cutscene/relay.cpp` (dialogue and music
   commands), `engine/anim/asega.cpp` (clip sound events), `app/bif.cpp` and the Splice thunks.
