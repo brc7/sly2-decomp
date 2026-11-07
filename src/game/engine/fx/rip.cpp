@@ -1397,12 +1397,6 @@ int IsVectorNearlyZero(qword);int IsVectorShorterThan2(qword);int IsVectorShorte
 M3*BuildAxisAngleRotationMatrix(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
 void ProjectRipTransform(S*);
 }
-static inline qword Scale(qword a, qword s)
-{
-    qword r;
-    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s));
-    return r;
-}
 static inline qword Sq(qword a)
 {
     qword r, one;
@@ -1508,7 +1502,7 @@ void ProjectRipTransform(S *p)
 {
     WORK w;
     if (!IsVectorNearlyZero(p->omega)) {
-        qword omega = Scale(p->omega, Broadcast(&w.shared.math.first, p->angularDamping * D_002DDED0.dt + 1.0f));
+        qword omega = VuScaleByX(p->omega, Broadcast(&w.shared.math.first, p->angularDamping * D_002DDED0.dt + 1.0f));
         p->omega = omega;
         float length = QwordX(Sqrt(Sq(omega)));
         if (0.0001f < length) {

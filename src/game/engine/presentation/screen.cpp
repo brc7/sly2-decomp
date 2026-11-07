@@ -22,6 +22,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/screen.h"
+#include "sly2/vu0.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -1702,7 +1703,6 @@ static inline qword Splat(const float &f, U &home)
     home.q = s;
     return home.q;
 }
-static inline qword Scale(qword a, qword s) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s)); return r; }
 // b by const reference: the ray lives in a stack slot, so the two Adds are not CSEd and each
 // reloads it into the register the result goes to.
 static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -1733,7 +1733,7 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
         direction = ToVF(XYZ(sel->input->x, -sel->input->y, 0.0f, home));
     else
         direction = Zero();
-    qword ray = Scale(Normalize(direction), Splat(D_002C3274, home));
+    qword ray = VuScaleByX(Normalize(direction), Splat(D_002C3274, home));
     int bestId = -1;
     float best = D_002A79C8;
     for (int i = 0; i < sel->count; i++) {

@@ -279,12 +279,6 @@ static inline qword VuDivByFloat(qword qwVec, VU_FLOAT g)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qw) : "j"(g.qw), "j"(qwVec));
     return qw;
 }
-static inline qword VuScaleByX(qword qwVec, qword qwScale)
-{
-    qword qw;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(qwScale));
-    return qw;
-}
 static inline qword CombineChainVelocity(qword qwVel, VU_FLOAT gA, qword qwVelRel, VU_FLOAT gB, qword qwPerp, VU_FLOAT gK, qword gravity, VU_FLOAT gDt)
 {
     qword qw;

@@ -382,7 +382,6 @@ int FilterReconOccluder(void *a, RECONTGT *object) { SOF *p = (SOF *)object; int
  * operand twice, and the case-4 constant is a variable set before the switch (the game has it in v1 in the beqz delay slot). */
 struct QUERY {int count;RECONTGT **objects;};
 
-static inline qword Scale(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
 // v / |v|: the dot product names v twice (the side vector's registers only match that way)
 static inline qword Normalize(qword v)
 {
@@ -428,7 +427,7 @@ void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
         points[0].q = origin;
         points[1].q = VuAdd(origin, up);
         points[2].q = VuSub(origin, up);
-        points[3].q = VuAdd(origin, Scale(side, scale.q));
+        points[3].q = VuAdd(origin, VuScaleByX(side, scale.q));
     }
     point = points;
     for (; i < 4; ++i) {
@@ -741,7 +740,6 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
 // keeps jump.c from turning it into movn.
 struct VU_FLOAT {qword qw;};
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1,%0":"=j"(v.qw):"rV"(n));return v;}
-static inline qword ScaleVecX(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
 static inline qword LengthXYInX(qword v){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));return r;}
 // camera up row; the pointer parameter gives the game's &cm+0x60 base register (lqc2 0x10(s1), then s1-0x60 for the calls)
 static inline qword GetMatrixUp(const M4 *m){return m->r[1];}
@@ -791,7 +789,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     if (reconSel->actor) {
         qword world = GetLoWorldPos(reconSel->actor);
         VU_FLOAT offset = VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
-        qword head = VuAdd(world, ScaleVecX(GetMatrixUp(&D_002DDF40.mat), offset.qw));
+        qword head = VuAdd(world, VuScaleByX(GetMatrixUp(&D_002DDF40.mat), offset.qw));
         qword base = ConvertCmWorldToScreen(&D_002DDF40, world);
         qword top = ConvertCmWorldToScreen(&D_002DDF40, head);
         VU_FLOAT screen = ScreenFromProjected(base);

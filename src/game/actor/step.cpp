@@ -844,12 +844,6 @@ static inline qword QwRotate(struct M3 *pmat, qword v)
     return qw;
 }
 
-static inline qword QwScale(qword v, qword s)
-{
-    qword qw;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(v), "j"(s));
-    return qw;
-}
 
 static inline struct VU_FLOAT VuFloat(float g)
 {
@@ -912,7 +906,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     struct M3 *pmat = &step->matTarget;
     qword v = QwRotate(pmat, step->vUnk190);
     qword normal = pxp->normal;
-    qword vT = VuSub(v, QwScale(normal, QwDot(v, normal)));
+    qword vT = VuSub(v, VuScaleByX(normal, QwDot(v, normal)));
     struct VU_FLOAT vuVn = VuFloat(-gVn);
     struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->gUnk180);
     pxpd->v = QwAddScaled2(pxpd->v, normal, vuVn.qw, vT, vuK.qw);

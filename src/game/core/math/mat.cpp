@@ -821,12 +821,6 @@ static inline qword Q0(int g, qword *pu)
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g), "m"(*pu)); /* "m": ordering-only operand */
     return s;
 }
-static inline qword Mul(qword a, qword s)
-{
-    qword r;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s));
-    return r;
-}
 /** @sly2-annot addr=0x11C210
  * Purpose: 4x4 from 3x3 rotation with per-row scale vector plus position
  * Info: proposed name LoadMatrixFromPosRotScale (T1); TU mat
@@ -840,12 +834,12 @@ extern "C" M4F *LoadMatrixFromPosRotScale(M4F *outMatrix, qword pos, M3 *rotatio
     union { qword q; float f[4]; } u;
     qword s0, s1, s2;
     s0 = Q0(scale[0], &u.q);
-    *(qword *)outMatrix->m[0] = Mul(rotation->r[0], s0);
+    *(qword *)outMatrix->m[0] = VuScaleByX(rotation->r[0], s0);
     s1 = Q(scale[1]);
     __asm__("sqc2 %1, %0" : "=m"(u.q) : "j"(s0), "j"(s1)); /* "j"(s1): allocation-only operand */
-    *(qword *)outMatrix->m[1] = Mul(rotation->r[1], s1);
+    *(qword *)outMatrix->m[1] = VuScaleByX(rotation->r[1], s1);
     s2 = Q7(scale[2]);
-    *(qword *)outMatrix->m[2] = Mul(rotation->r[2], s2);
+    *(qword *)outMatrix->m[2] = VuScaleByX(rotation->r[2], s2);
     *(qword *)outMatrix->m[3] = pos;
     __asm__("sqc2 %1, %0" : "=m"(u.q) : "j"(s1), "j"(s2)); /* "j"(s2): allocation-only operand */
     outMatrix->m[0][3] = outMatrix->m[1][3] = outMatrix->m[2][3] = 0.0f;

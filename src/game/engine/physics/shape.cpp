@@ -1885,7 +1885,8 @@ static inline VV Dot(VV a, VV b)
 }
 static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
-static inline VV Scale(VV v, VV g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g)); return r; }
+// Same idiom as sly2/vu0.h VuScaleByX; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuScaleByX(VV v, VV g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g)); return r; }
 /* base + v * g */
 static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
 {
@@ -2024,8 +2025,8 @@ void StepChainRk4(CHAIN *chain)
                 float len2 = NormalizeV(&dir2, D_002A2DA0, len1);
                 float rest1 = chain->distance[i] - chain->distance[i - 1];
                 float rest2 = chain->distance[i + 1] - chain->distance[i];
-                proj1.q = Scale(dir1.q, Dot(SubP(&newV[i - 1], &newV[i]), dir1.q));
-                VV pr2 = Scale(dir2.q, Dot(SubX(newV[i + 1].q, newV[i].q), dir2.q));
+                proj1.q = VuScaleByX(dir1.q, Dot(SubP(&newV[i - 1], &newV[i]), dir1.q));
+                VV pr2 = VuScaleByX(dir2.q, Dot(SubX(newV[i + 1].q, newV[i].q), dir2.q));
                 VU_FLOAT g1(chain->stretch * (len1 - rest1));
                 /* damping built per spring: cse merges the two "r" qmtc2s and reload_cse drops the 2nd home store (same vf, same slot);
                    that dropped store still lengthens the g1 store chain in sched1, so g1 is born before the dir2 reload like the game */
@@ -2041,7 +2042,7 @@ void StepChainRk4(CHAIN *chain)
                 LerpP(&midV, &newV[i - 1], &newV[i + 1], r);
                 dir.q = SubP(&mid, &newP[i]);
                 float len = Normalize(&dir, D_002A2DC0);
-                proj.q = Scale(dir.q, Dot(SubP(&midV, &newV[i]), dir.q));
+                proj.q = VuScaleByX(dir.q, Dot(SubP(&midV, &newV[i]), dir.q));
                 F = VecCombo3(F, VU_FLOAT(chain->bend * len), dir.q, VU_FLOAT(&chain->bendDamping), proj.q);
             }
             if (chain->shape != 0.0f || chain->shapeDamping != 0.0f) {
@@ -2051,7 +2052,7 @@ void StepChainRk4(CHAIN *chain)
                 LerpP(&midV, &newV[0], &newV[count - 1], r);
                 dir.q = SubP(&mid, &newP[i]);
                 float len = Normalize(&dir, D_002A2DC0);
-                proj.q = Scale(dir.q, Dot(SubP(&midV, &newV[i]), dir.q));
+                proj.q = VuScaleByX(dir.q, Dot(SubP(&midV, &newV[i]), dir.q));
                 float r4 = r * 4.0f;
                 F = VecCombo3(F, VU_FLOAT(chain->shape * (len - amplitude * r4 * (1.0f - r))), dir.q, VU_FLOAT(&chain->shapeDamping), proj.q);
             }

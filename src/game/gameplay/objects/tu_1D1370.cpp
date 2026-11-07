@@ -1284,7 +1284,8 @@ static inline VV TimeStep(const CLOCK &c) { qword r; __asm__("qmtc2 %1,%0" : "=j
 static inline VV Scalar(float f) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "r"(f)); return r; }
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline VV Scale(VV a, VV b) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Same idiom as sly2/vu0.h VuScaleByX; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuScaleByX(VV a, VV b) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // origin + axis * amount.x
 static inline VV AddScaled(qword origin, qword axis, qword amount)
 {
@@ -1358,7 +1359,7 @@ extern "C" void PresetRobottankAccel(P *tank)
                 float response = Dot(VuSub(other, previous), normal) * velocityCurve * D_002C2110 + hit->depth * depthCurve * D_002C2114;
                 if (response < 0.0f) goto contactDone;
                 scalar.q = Scalar(response * tank->physics->mass);
-                qword force = Scale(normal, scalar.q);
+                qword force = VuScaleByX(normal, scalar.q);
                 ApplySoImpulse(tank, point, force);
                 total += Dot(force, normal);
             }

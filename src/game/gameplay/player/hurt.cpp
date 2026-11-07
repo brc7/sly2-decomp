@@ -395,8 +395,7 @@ extern "C" struct CLOCK D_002DDED0;
 extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
 static inline qword Broadcast(float g) { qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g));return q; }
 static inline qword BroadcastTo(float g,U *u) { qword q=Broadcast(g); u->q=q;return q; }
-static inline qword Scale(qword a,qword b) { qword q; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(q) : "j"(a),"j"(b));return q; }
-inline void O::Negate(U &u) { qword v=xE8->v80; qword k=Broadcast(-1.0f); u.q=k; Set(Scale(v,k)); }
+inline void O::Negate(U &u) { qword v=xE8->v80; qword k=Broadcast(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
 /** @sly2-annot addr=0x1A1148
  * Purpose: Hurt-state acceleration: in knockback states add velocity / spring toward target velocity
  *   (AccelSoTowardPosSpring)
@@ -1454,7 +1453,6 @@ void AddSoAcceleration(struct P *p,qword v);
 static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
 static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
 static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
-static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v),"j"(k));return r; }
 /** @sly2-annot addr=0x1A28B0
  * Purpose: STEPPLAYER vt72 (shared by JT/Murray): in water/vertical states apply water current
  *   (CalculateWaterCurrent) and buoyancy (SmoothValueWithAccel, AddSoVelocity); else SO slot72 0x2297F8
@@ -1487,7 +1485,7 @@ void ResolveStepplayerWaterContact(struct P *player,void *o)
   v=VuSub(v,dir.q);
   k=Broadcast(*(int *)&player->alpha10A4);
   bcast.q=k;
-  v=Scale(v,k);
+  v=VuScaleByX(v,k);
   accel.q=v;
   origin.q=GetLoWorldPos(player);
   clock=&D_002DDED0;

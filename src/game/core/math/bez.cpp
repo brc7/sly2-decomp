@@ -43,12 +43,6 @@ static inline qword ScaleT(qword v, qword k)
     __asm__ volatile("vmulx.xyzw %0, %1, %0x" : "=j"(r) : "j"(v), "0"(k));
     return r;
 }
-static inline qword Scale(qword v, qword k)
-{
-    qword r;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(k));
-    return r;
-}
 static inline void MulP(M3 *pm, const M3 &a, const M3 *pb)
 {
     M3 t;
@@ -191,15 +185,15 @@ extern "C" void EvaluateBezierMat(float dt, float t, float scale, M3 *mat0, qwor
         float u3 = u2 * u;
         M3 a, b, rel, rot;
         qword w;
-        BuildRotationMatrixFromVector(&rot, Scale(w0, VF(u * v * v * dt)));
+        BuildRotationMatrixFromVector(&rot, VuScaleByX(w0, VF(u * v * v * dt)));
         MulP(&rel, rot, mat0);
         a = rel;
-        BuildRotationMatrixFromVector(&rot, Scale(w1, VF(-h2 * dt)));
+        BuildRotationMatrixFromVector(&rot, VuScaleByX(w1, VF(-h2 * dt)));
         MulP(&rel, rot, mat1);
         b = rel;
         MulMatrix3Matrix3(&rel, &a, &b);
         w = DecomposeRotationMatrixToVector(&rel);
-        BuildRotationMatrixFromVector(&rot, Scale(w, VF(h2 * (3.0f - dt) + u3)));
+        BuildRotationMatrixFromVector(&rot, VuScaleByX(w, VF(h2 * (3.0f - dt) + u3)));
         MulP(&rel, rot, &a);
         *outMatrix = rel;
     }

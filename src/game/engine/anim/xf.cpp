@@ -1146,12 +1146,6 @@ static inline qword VuZero()
     __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(qw));
     return qw;
 }
-static inline qword VuMulX(qword qwA, qword qwS)
-{
-    qword qw;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwA), "j"(qwS));
-    return qw;
-}
 static inline qword VuXMul(qword qwS, qword qwA)
 {
     qword qw;
@@ -1339,7 +1333,7 @@ void UpdateSoSlots(SO *so)
                         fIdle = 0;
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
                         qword qwSum = VuAdd(*(qword *)&xf->vUnkB0, qwVel);
-                        TurnSlotMat(xf, (MATRIX3 *)&xf->mat, VuMulX(qwSum, vfHalf.qw));
+                        TurnSlotMat(xf, (MATRIX3 *)&xf->mat, VuScaleByX(qwSum, vfHalf.qw));
                         *(qword *)&xf->vUnkB0 = qwVel;
                         xf->nStampWorld = ++D_003DD490.nStampXf;
                     }

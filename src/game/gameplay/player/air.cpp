@@ -1334,7 +1334,6 @@ extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;ext
 qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
-static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
 static inline qword Rotate(qword r0,qword r1,qword r2,qword vector,qword seed){__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(seed):"j"(r0),"j"(r1),"j"(r2),"j"(vector));return seed;}
 static inline qword Rotate(M3*m,qword vector,qword seed){return Rotate(m->row[0].q,m->row[1].q,m->row[2].q,vector,seed);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -1629,7 +1628,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
         } else
             gain = p->gain;
         w.move.phase.vectors.scalar.q = Scalar(gain);
-        w.move.phase.vectors.acceleration.q = Scale(w.move.phase.vectors.acceleration.q, w.move.phase.vectors.scalar.q);
+        w.move.phase.vectors.acceleration.q = VuScaleByX(w.move.phase.vectors.acceleration.q, w.move.phase.vectors.scalar.q);
         w.move.phase.vectors.corrected.q =
             Rotate(&w.move.basis, w.move.phase.vectors.acceleration.q, w.move.basis.row[0].q);
         ProjectJtVelocityOnContacts(p, &w.move.phase.vectors.corrected);
@@ -2236,7 +2235,6 @@ static inline qword RotateTranspose(const M3 &m, qword v)
             : "=j"(q), "=&j"(one), "=&j"(a), "=&j"(b), "=&j"(c) : "j"(m.r[1]), "j"(m.r[2]), "j"(v), "0"(m.r[0]));
     return q;
 }
-static inline qword ScaleVecByVec(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g)); return r; }
 static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, qword c, VU_FLOAT g1)
 {
     qword r;
@@ -2522,8 +2520,8 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         qword up = D_002A2DC0;
         qword a = vel.q;
         qword b = p->actor->velocity.q;
-        a = VuSub(a, ScaleVecByVec(up, DotVec(a, up)));
-        b = VuSub(b, ScaleVecByVec(up, DotVec(b, up)));
+        a = VuSub(a, VuScaleByX(up, DotVec(a, up)));
+        b = VuSub(b, VuScaleByX(up, DotVec(b, up)));
         basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, CombineVec(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
@@ -3327,9 +3325,8 @@ void*AllocFromStack(REQUEST*);
 void SolveInequalities(int,float*,float*,float*,float);
 }
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
-static inline qword Scale(qword v,qword k){qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(v),"j"(k));return q;}
 static inline qword Copy(qword v){qword q;__asm__("vmove.xyzw %0,%1":"=j"(q):"j"(v));return q;}
-static inline qword Normal(P*p,CONTACT*c,WORK*work){qword normal=c->normal;if(c->owner!=p){qword minus=Scalar(-1.0f);work->scalar.q=minus;normal=Scale(normal,work->scalar.q);}return normal;}
+static inline qword Normal(P*p,CONTACT*c,WORK*work){qword normal=c->normal;if(c->owner!=p){qword minus=Scalar(-1.0f);work->scalar.q=minus;normal=VuScaleByX(normal,work->scalar.q);}return normal;}
 static inline void StoreDot(float*out,qword a,qword b){register qword product __asm__("vf1"),one __asm__("vf2");int bits;__asm__("vmul.xyz %1,%4,%5\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tqmfc2.ni %0,%1\n\tsw %0,%3":"=&r"(bits),"=&j"(product),"=j"(one),"=m"(*out):"j"(a),"j"(b));}
 static inline qword AddScaled(qword sum,qword normal,float weight,WORK*work){work->scalar.q=Scalar(weight);__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(sum):"j"(sum),"j"(normal),"j"(work->scalar.q));return sum;}
 static inline float Z(qword q){register qword bits __asm__("$2");register float f __asm__("$f0");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("pextuw %1,$zero,%1\n\tmtc1 %1,%0":"=f"(f),"+r"(bits));return f;}

@@ -3086,12 +3086,6 @@ static inline qword SecondNegative(const qword *input, U *out, float g)
     out->q = s;
     return ScaleIn(a, out->q);
 }
-static inline qword Scale(qword a, qword b)
-{
-    qword r;
-    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword NegativeModelNative(struct P *p, U *u)
 {
     qword v = GetStepAsegaTranslation(p, p->model, p->model->base), s;
@@ -3099,7 +3093,7 @@ static inline qword NegativeModelNative(struct P *p, U *u)
     __asm__("mfc1 %0,%1" : "=r"(bits) : "f"(-1.0f));
     __asm__("qmtc2.ni %1,%0" : "=j"(s) : "r"(bits));
     u->q = s;
-    return Scale(v, u->q);
+    return VuScaleByX(v, u->q);
 }
 
 static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut, float *zeroOut)
@@ -3356,7 +3350,6 @@ extern qword GetLoWorldPos(void *p);
 extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction);
 extern void UpdateJtLean__FP2JT(void *p);
 
-static __inline__ qword VMulX(qword a, qword s) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s)); return r; }
 
 /** @sly2-annot addr=0x18BCE0
  * Purpose: JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand,
@@ -3395,7 +3388,7 @@ void UpdateJt(char *p)
             __asm__("lw %0,%%lo(%2)(%0)\n\tqmtc2.ni %0,%1" : "+r"(page), "=j"(s) : "i"(&D_002BF3D4) : "memory");
         }
         u.q = s;
-        F(qword, 0x190) = VMulX(motion, s);
+        F(qword, 0x190) = VuScaleByX(motion, s);
 
         break;
     }
@@ -3411,7 +3404,7 @@ void UpdateJt(char *p)
                         : "memory");
             }
             u.q = s;
-            F(qword, 0x190) = VMulX(motion, s);
+            F(qword, 0x190) = VuScaleByX(motion, s);
 
             F(float, 0x180) = 1.0f;
         }
