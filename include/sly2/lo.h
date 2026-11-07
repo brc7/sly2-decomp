@@ -46,7 +46,7 @@ struct LO : public BASIC
                ulong isRemoved : 1;  /* set once the object has been removed from the world */
                ulong unknownFlag28A : 1;
                ulong unknownFlag28B : 1;
-               ulong unknownFlag28C : 1;
+               ulong clearsPlacesOnRemove : 1;   /* RemoveLoHierarchy then calls RemoveSwPlacesOf on it (inferred) */
                ulong isInWorld : 1;  /* the object is currently in the world (FIsLoInWorld) */
       float unknown30;
       LORUN *firstRunCallback; /* first queued LORUN callback */

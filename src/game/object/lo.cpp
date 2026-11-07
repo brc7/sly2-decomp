@@ -119,20 +119,19 @@ extern "C" void EnsureLoroot(LO *plo)
 
 namespace M_FreeLoroot { extern "C" {
 extern char D_003DD490[];
-struct S { char pad[0x14]; void *pv; };
 int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void RemoveFromSwBusyList(void *, void *);
 void FreeSlotheapSlot(void *, void *);
 // Unlinks the object's root record from the world's root and busy lists, frees it and clears the object's pointer.
-void FreeLoroot(struct S *p)
+void FreeLoroot(LO *p)
 {
     char *pdl = D_003DD490 + 0x2C;
-    if (IsEntryInDl__FP2DLPv(pdl, p->pv))
-        RemoveDlEntry__FP2DLPv(pdl, p->pv);
-    RemoveFromSwBusyList(D_003DD490, p->pv);
-    FreeSlotheapSlot(D_003DD490 + 0x398C, p->pv);
-    p->pv = 0;
+    if (IsEntryInDl__FP2DLPv(pdl, p->root))
+        RemoveDlEntry__FP2DLPv(pdl, p->root);
+    RemoveFromSwBusyList(D_003DD490, p->root);
+    FreeSlotheapSlot(D_003DD490 + 0x398C, p->root);
+    p->root = 0;
 }
 } } // namespace M_FreeLoroot
 
@@ -267,41 +266,31 @@ extern "C" void SnipLo(LO *plo)
 }
 
 namespace M_AddLoHierarchy { extern "C" {
-typedef unsigned long ulong;
-struct VTE { short d; short pad; void (*pfn)(void *, int, void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x18]; ulong fl; };
-// vtable slot 11: sets the in-world bit and sends the "added" notification (vtable slot 4, message 0).
-void AddLoHierarchy(struct O *object)
+// vtable slot 11: sets the in-world bit and sends the "added" notification (SendMessage, message 0).
+void AddLoHierarchy(LO *object)
 {
-    struct VTE *e;
-    object->fl |= (ulong)1 << LO_IN_WORLD_SHIFT;
-    e = &object->vt[LO_SLOT_NOTIFY];
-    e->pfn((char *)object + e->d, 0, object);
+    object->isInWorld = 1;
+    object->SendMessage((MSGID)0, object);
 }
 } } // namespace M_AddLoHierarchy
 
 namespace M_RemoveLoHierarchy { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int, void *); };
-struct VT { struct VTE e[8]; };
-struct S { int frame, sidebag, firstRefNode; struct VT *vt; char pad[0x18]; unsigned long bits; };
 extern char D_003DD490[];
-void RemoveSwPlacesOf(void *g, struct S *s, int n);
+void RemoveSwPlacesOf(void *g, LO *s, int n);
 // vtable slot 12: clears the in-world bit, clears references to the object when it is flagged for that, and sends the
-// "removed" notification (vtable slot 4, message 1).
-void RemoveLoHierarchy(struct S *object)
+// "removed" notification (SendMessage, message 1).
+void RemoveLoHierarchy(LO *object)
 {
-    object->bits &= ~LO_IN_WORLD_BIT;
-    if (object->bits & LO_CLEAR_REFS_BIT)
+    object->isInWorld = 0;
+    if (object->clearsPlacesOnRemove)
         RemoveSwPlacesOf(D_003DD490, object, 0);
-    object->vt->e[LO_SLOT_NOTIFY].pfn((char *)object + object->vt->e[LO_SLOT_NOTIFY].d, 1, object);
+    object->SendMessage((MSGID)1, object);
 }
 } } // namespace M_RemoveLoHierarchy
 
 namespace M_SetLoParent_1A58D0 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int, int, int); };
-struct O { char pad[0xC]; struct VTE *vt; };
 // Reparents an object: calls its SetParent (vtable slot 10) with the new parent and flags.
-void SetLoParent(struct O *object, int a, int b) { struct VTE *e = &object->vt[10]; e->pfn((char *)object + e->d, a, 0, b); }
+void SetLoParent(LO *object, SO *a, int b) { object->SetParent(a, 0, b); }
 } } // namespace M_SetLoParent_1A58D0
 
 namespace M_func_001A5900 { extern "C" {
