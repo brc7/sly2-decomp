@@ -23,14 +23,13 @@ struct GUARDV
 
 /* The Contessa's crawl probes for FitStepToTerrain (step.cpp's terrain fit): three local probe points (16-byte vectors,
  * read as qwords) and the height limits {min, max} of the floor test. tu_14FAC8's .data, address order. */
-struct VECTOR4V { float x, y, z, w; } __attribute__((aligned(16)));
 struct HEIGHT { float min, max; };
-VECTOR4V D_002BD910[3] = {{150.0f, 0.0f, -140.0f, 0.0f}, {-75.0f, 130.0f, -140.0f, 0.0f}, {-75.0f, -130.0f, -140.0f, 0.0f}};
+VECTOR4 D_002BD910[3] = {{150.0f, 0.0f, -140.0f, 0.0f}, {-75.0f, 130.0f, -140.0f, 0.0f}, {-75.0f, -130.0f, -140.0f, 0.0f}};
 HEIGHT D_002BD940 = {-200.0f, 200.0f};
 extern "C" {
 void InitStepguard(GUARDV *contessa);
 void UpdateStepguard(GUARDV *contessa, float dt);
-void FitStepToTerrain(GUARDV *contessa, HEIGHT *heightRange, int probeCount, const VECTOR4V *probes);
+void FitStepToTerrain(GUARDV *contessa, HEIGHT *heightRange, int probeCount, const VECTOR4 *probes);
 }
 
 // 0x14FAC8: CONTESSA vtable slot 7 (Init): STEPGUARD Init, then sets +0x4A4 (also set by other named guards;

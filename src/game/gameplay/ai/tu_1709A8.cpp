@@ -437,15 +437,13 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
 namespace M_func_001710F8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; };
-struct VTE { short d; short pad; float *(*pfn)(void *); };
-struct TARGET { char pad[0xC]; struct VTE *vt; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct TARGET *object, int cid);
-void FindShapeClosestPoint(struct TARGET *shape, qword pos, int a, qword *point, struct VEC *tangent, int b, int c);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid);
+void FindShapeClosestPoint(LO *shape, qword pos, int a, qword *point, struct VEC *tangent, int b, int c);
 float atan2f(float y, float x);
-qword GetLoWorldPos(struct TARGET *object);
+qword GetLoWorldPos(LO *object);
 // 0x1710F8: Position and heading of a target: the closest point and tangent on a SHAPE (cid 0xA), else the object's
 // position and yaw.
-void GetGuardScriptTargetPose(void *script, qword pos, struct TARGET *target, qword *posOut, float *headingOut)
+void GetGuardScriptTargetPose(void *script, qword pos, LO *target, qword *posOut, float *headingOut)
 {
     union { qword q; } u;
 #define q u.q
@@ -458,8 +456,8 @@ void GetGuardScriptTargetPose(void *script, qword pos, struct TARGET *target, qw
         } else {
             float *forwardY, *forwardX;
             q = GetLoWorldPos(target);
-            forwardY = target->vt[31].pfn((char *)target + target->vt[31].d);
-            forwardX = target->vt[31].pfn((char *)target + target->vt[31].d);
+            forwardY = (float *)target->GetWorldMatrix();
+            forwardX = (float *)target->GetWorldMatrix();
             heading = atan2f(forwardY[1], forwardX[0]);
         }
     } else {

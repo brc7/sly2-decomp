@@ -86,28 +86,6 @@ typedef char assert_SW_slotheapXp[FIELD_OFFSET(SW, slotheapXp) == 0x3D40 ? 1 : -
 /* The collision geometry of a part (SOPART::meshWorld, xfm.h GEOM) and its BSP (SOPART::bspc), as in Lilly's
    IntersectSphereBsp port: an edge joins two vertices (aipos) between two surfaces (aisurf); a surface is a plane
    (normal, gDot) with its edge lists and flags; a BSP node splits by its surface. */
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    int grf;                /* signed: the clearing masks are built with addiu (uint: lui/ori) */
-    int ipos;
-};
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 /* A clipped piece of an edge (ClsgClipEdgeToBsp): its two ends with the normals and the edge parameters there, the
    surfaces it enters/leaves through (null where an end lies inside), the source edge, whether the ends were swapped,
    and a list link. */

@@ -77,8 +77,7 @@ struct BHVO { int a[3]; VTE *vt; char pad[0x20]; void *target; int pad34; union 
 typedef char assert_BHVO_walkLookAt[(unsigned int)&((BHVO *)0)->walkLookAt == 0xC8 ? 1 : -1];
 struct BHVY { char pad[0x30]; int unknown30; };
 /* An attack entry chosen by ChooseStepguardAttack (+0x60 the hide time range). */
-struct LMV { float gMin, gMax; };
-struct ATKENTRY { char pad[0x60]; LMV cooldown; };
+struct ATKENTRY { char pad[0x60]; LM cooldown; };
 /* The two behaviours (BHV header: +0x10 the guard, +0x18 the running sub-behaviour / the stack, +0x30 state). */
 struct BHVESC
 {
@@ -436,7 +435,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
     case 3:
         {
             float t = D_002DDED0.t;
-            behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
+            behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.minValue, behavior->attack->cooldown.maxValue);
         }
         behavior->attack = 0;
         break;
@@ -598,7 +597,7 @@ static inline float Len(qwordV a)
     return g;
 }
 // Clamps g into a range.
-static inline float ClampToRange(float g, LMV *plm) { if (g < plm->gMin) return plm->gMin; if (plm->gMax < g) return plm->gMax; return g; }
+static inline float ClampToRange(float g, LM *plm) { if (g < plm->minValue) return plm->minValue; if (plm->maxValue < g) return plm->maxValue; return g; }
 
 // True if a velocity is faster than the .data limit.
 static inline int IsMovingFast(qwordV v) { return D_002BDC98 < Len(v); }
@@ -614,7 +613,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
     qwordV posTarget = AddScaled(GetLoWorldPos(object), g_normalZ, VU_FLOAT(50.0f));
     VUV off;
     VECTORV clq;
-    LMV lm;
+    LM lm;
     VUV sc;
     qwordV vel = object->pvt->pfn((HERO *)((char *)object + object->pvt->d));
     FRAME frame;
@@ -632,8 +631,8 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
         qwordV cq = VecComboQ(func_00256CE8(u1).q, __9VU_VECTORRC6VECTOR(pv0).q, func_00256CE8(u).q, __9VU_VECTORRC6VECTOR(pv1).q);
         VECTOR_opAssign(&clq, cq);
         g = clq.x + dist * (clq.y + dist * clq.z);
-        lm.gMin = u1 * D_002BDC70[0] + u * D_002BDC90[0];
-        lm.gMax = u1 * D_002BDC70[1] + u * D_002BDC90[1];
+        lm.minValue = u1 * D_002BDC70[0] + u * D_002BDC90[0];
+        lm.maxValue = u1 * D_002BDC70[1] + u * D_002BDC90[1];
         {
             qwordV t;
             t = VuFromFloat<qwordV>(ClampToRange(g, &lm));

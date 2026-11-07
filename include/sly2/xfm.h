@@ -11,12 +11,42 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
+/* EDGE: an edge of a GEOM: its two vertices, the two surfaces it bounds and the links of the two surfaces' edge lists.
+   Moved from the identical Lilly-ported copies (tn, mode, jt, so, glob, relay, grab, mark). */
+struct EDGE
+{
+    ushort aipos[2];   /* the two vertex indices */
+    ushort aisurf[2];   /* the two surface indices */
+    EDGE *pedgeNext;   /* next edge of the first surface */
+    EDGE *pedgeOtherNext;   /* next edge of the second surface */
+};
+
+/* SURF: a surface (face) of a GEOM: its plane (normal, distance), its edge lists, flags and a vertex. */
+struct SURF
+{
+    VECTOR normal;
+    float gDot;   /* plane distance */
+    EDGE *pedge;
+    EDGE *pedgeOther;
+    int grf;   /* signed: mark.cpp's clearing masks are built with addiu (uint gives lui/ori) */
+    int ipos;
+};
+
+/* BSP: a node of a BSPC: the two subtrees and the splitting surface. */
+struct BSP
+{
+    BSP *pbspNeg;
+    BSP *pbspPos;
+    SURF *psurf;
+};
+
 /* GEOM: a collision/geometry mesh: vertex positions, surfaces (faces) and edges.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (10 copies in Lilly ports) */
 struct GEOM
 {
       int numPositions; /* number of vertex positions */
-      VECTOR *positions; /* vertex positions */
+      VECTOR4 *positions; /* vertex positions (16 bytes each: so.cpp copies numPositions * 0x10 bytes, mark.cpp reads
+                             them as quadwords) */
       int numSurfaces; /* number of surfaces (faces) */
       SURF *surfaces; /* the surfaces */
       int numEdges; /* number of edges */
@@ -76,12 +106,12 @@ struct SHAPE : public XFM
       VECTOR4 *vertexPositions; /* control vertex positions (local) */
       undefined4 unknownF8[2];
       MATRIX4 matWorldCache;   /* world matrix the cached world positions were computed with (inferred) */
-      VECTOR4 *mpicvposA;   /* per-vertex positions, first cache (inferred) */
-      VECTOR4 *mpicvposB;   /* per-vertex positions, second cache (inferred) */
+      VECTOR4 *incomingTangents;   /* +0x140 per-vertex incoming tangents (shape.cpp's views name them incoming/outgoing) */
+      VECTOR4 *outgoingTangents;   /* +0x144 per-vertex outgoing tangents */
       int unknown148;
       float segmentLengths[11]; /* per-segment lengths (inferred from the name: g = float, s = distance) */
-      int unknown178;
-      void *unknown17C;   /* possibly chain (low-confidence guess: cast to SHAPECHAIN in shape.cpp) */
+      int segmentHint;   /* +0x178 segment index the last parameter search ended in (shape.cpp) */
+      void *chain;   /* +0x17C the chain record (SHAPECHAIN in shape.cpp; its +0x4C is a mode) */
       struct SHAPERANGES *pranges;   /* per-range data (SHAPERANGES) */
       undefined4 unknown184[3];
     virtual void Init() __asm__("InitShape");   /* slot 7 */
@@ -125,6 +155,55 @@ struct VOL : public XFM
     virtual CLASSINFO *GetClassInfo() __asm__("GetVolClassDesc");   /* slot 6 */
 };
 typedef char assert_VOL_size[sizeof(VOL) == 0x130 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
+
+/* PROXYINIT: one record of what a proxy changes about each copy it places (LoadProxyFromBrx reads them): a kind, the
+   class it applies to, a Splice frame, an option block and the object it targets.
+   Moved from object/proxy.cpp and gameplay/player/grab.cpp (identical Lilly-ported copies). */
+struct PROXYINIT
+{
+      int kind;
+      CID cid;
+      CFrame *pframe;   /* Splice frame of the record's script */
+      int cb;   /* size of the option block */
+      void *pvOptions;   /* the option block */
+      LO *plo;   /* the object it applies to */
+};
+
+/* PROXYSPARE: a spare (pre-built, unused) copy of a proxy source: its owner while held, the next spare, a lock and the
+   placement matrix. Moved from object/proxy.cpp and gameplay/player/grab.cpp. */
+struct PROXYSPARE
+{
+      struct PROXY *proxy;   /* the proxy holding it (0 when free) */
+      PROXYSPARE *pspareNext;   /* next spare */
+      int fLocked;   /* locked by its holder */
+      undefined4 unk_0xc;
+      MATRIX4 mat;   /* where it is placed */
+};
+
+/* PROXYREST: the rest pose of one object of a proxy copy. Moved from object/proxy.cpp. */
+struct PROXYREST
+{
+      qword pos;
+      MATRIX3 mat;
+};
+
+/* PROXYSRC: a proxy source (g_sw's table): the template's objects, its copies (in use and spare), the per-object
+   rest poses and the spare array. Moved from object/proxy.cpp. */
+struct PROXYSRC
+{
+      int cplo;   /* objects per copy */
+      LO **aplo;   /* the objects of every copy (ccopy * cplo) */
+      int ccopy;   /* number of copies */
+      int icopyNext;   /* next copy to place (copies from it on are spares) */
+      int id;
+      int nUnk14;
+      OID *aoid;
+      char achzName[0x40];
+      int nUnk5c;
+      int fUnk60;
+      PROXYREST *aposRest;   /* rest pose of each object */
+      PROXYSPARE *aspare;   /* the spares */
+};
 
 /* PROXY: a proxy: a spawner that clones a template hierarchy (its PROXYSRC) into the world on demand, keeping spare
    copies.

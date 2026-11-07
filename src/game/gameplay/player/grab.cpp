@@ -65,30 +65,8 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *pstepplayer, i
 void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(JTHANDS *phands, STEPPLAYER *pstepplayer, ASEGA **ppasega);
 }
 
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
 
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
 
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 
 struct BND
 {
@@ -99,13 +77,6 @@ struct BND
       MATRIX4 matInv;
 };
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct GRABSPOTDATA
 {
@@ -299,24 +270,7 @@ struct CID35 : public XFM, public GRABSPOT
       TASKPAIR ataskpair[4];
 };
 
-struct PROXYSPARE
-{
-      struct PROXY *pproxy;
-      PROXYSPARE *pspareNext;
-      int fLocked;
-      undefined4 unk_0xc;
-      MATRIX4 mat;
-};
 
-struct PROXYINIT
-{
-      int kind;
-      CID cid;
-      CFrame *pframe;
-      int cb;
-      void *pvOptions;
-      LO *plo;
-};
 
 // Initializes the player's grab/action context (STEPPLAYER+0x4C0): owner, state -1, kind -1, and the two directional
 // blend blocks.
@@ -1787,7 +1741,6 @@ struct T {char pad[0x18];float x18,x1C;};
 struct O {char pad[0x150];struct T*controller;char pad154[0x240-0x154];qword pos;};
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
-struct SMP {float g0,g1,g2;};
 struct CLOCK {float time,deltaTime;};
 extern struct CLOCK D_002DDED0;
 extern float D_002BF668;
@@ -1824,9 +1777,9 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     dot = Dot(v, dir.q);
     dead.q = v;
     current = GetShapeDistanceAtParam(curve, t);
-    smp.g1 = p->x260;
-    smp.g0 = p->x2A0;
-    smp.g2 = D_002BF668;
+    smp.slowSpeed = p->x260;
+    smp.fastSpeed = p->x2A0;
+    smp.fastDuration = D_002BF668;
     (void)SmoothValue__FfffP3SMPPf(current, 50.0f, D_002DDED0.deltaTime, &smp, &low);
     (void)SmoothValue__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, D_002DDED0.deltaTime, &smp, &high);
     {
@@ -2837,7 +2790,6 @@ struct VU_VECTOR
     VU_VECTOR(const VECTOR &v) { q = v.q; }
 };
 
-struct LM { float minValue, maxValue; };
 struct GRABSPOT
 {
     char pad0[0x20];

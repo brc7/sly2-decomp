@@ -14,7 +14,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct VTE { short d; short pad; void *pfn; };
-struct LMV { float min; float max; };
 struct SLV { void *pvFirst; int n4, n8; };
 struct SAAV;
 /* A shader animation instance (0x14 bytes): its texture / frame record (unpacked from the VIF data), on its SAA's list. */
@@ -45,11 +44,11 @@ struct SAAF
 {
     int a, b;
     unsigned short c, d;
-    union { struct { LMV lm1, lm2; }; float ag[4]; };   /* 0x0C */
+    union { struct { LM lm1, lm2; }; float ag[4]; };   /* 0x0C */
     union { unsigned short cLoop; int cLoopWord; };    /* 0x1C (also read as a whole word) */
 };
-struct LOOPV : SAAV { LMV loopTimeRange; LMV pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
-struct PINGPONGV : SAAV { LMV loopTimeRange; LMV pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
+struct LOOPV : SAAV { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
+struct PINGPONGV : SAAV { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
 struct SHUFFLEV : SAAV { float pauseMin; float pauseMax; float pauseTime; };
 enum EYESS { EYESS_Nil = -1, EYESS_Open = 0, EYESS_Closing = 1, EYESS_Closed = 2, EYESS_Opening = 3 };
 struct EYESV : SAAV { float blinkTime; float openTimeMin; float openTimeMax; float doubleBlinkChance;
@@ -206,16 +205,16 @@ int DoesSaaMatchOid(SAAV *saa, int *pid) {
 void LOOP::Init(SAAF *psaa)
 {
     LOOPV *p = (LOOPV *)this;
-    LMV *plm2 = &p->pauseTimeRange;
-    LMV *plm1;
+    LM *plm2 = &p->pauseTimeRange;
+    LM *plm1;
     float g;
     InitSaa(p, psaa);
     plm1 = &p->loopTimeRange;
-    { float a = psaa->lm1.min; float b = psaa->lm1.max; p->loopTimeRange.min = a; plm1->max = b; }
-    { float a = psaa->lm2.min; float b = psaa->lm2.max; p->pauseTimeRange.min = a; plm2->max = b; }
+    { float a = psaa->lm1.minValue; float b = psaa->lm1.maxValue; p->loopTimeRange.minValue = a; plm1->maxValue = b; }
+    { float a = psaa->lm2.minValue; float b = psaa->lm2.maxValue; p->pauseTimeRange.minValue = a; plm2->maxValue = b; }
     p->frame = psaa->cLoop;
-    p->frameRate = p->numFrames / RandomFloatInRange__Fff(p->loopTimeRange.min, plm1->max);
-    g = RandomFloatInRange__Fff(p->pauseTimeRange.min, plm2->max);
+    p->frameRate = p->numFrames / RandomFloatInRange__Fff(p->loopTimeRange.minValue, plm1->maxValue);
+    g = RandomFloatInRange__Fff(p->pauseTimeRange.minValue, plm2->maxValue);
     p->pauseRemaining = p->pauseTime = g;
 }
 
@@ -237,9 +236,9 @@ void UpdateLoop(LOOPV *ploop, float dt)
     ploop->frame += ploop->frameRate * D_002DDED0.deltaTime;
     if (ploop->frame >= (float)ploop->numFrames)
     {
-        float rand1 = RandomFloatInRange__Fff(ploop->loopTimeRange.min, ploop->loopTimeRange.max);
+        float rand1 = RandomFloatInRange__Fff(ploop->loopTimeRange.minValue, ploop->loopTimeRange.maxValue);
         ploop->frameRate = (float)ploop->numFrames / rand1;
-        float rand2 = RandomFloatInRange__Fff(ploop->pauseTimeRange.min, ploop->pauseTimeRange.max);
+        float rand2 = RandomFloatInRange__Fff(ploop->pauseTimeRange.minValue, ploop->pauseTimeRange.maxValue);
         ploop->pauseTime = rand2;
         ploop->pauseRemaining = rand2;
     }
@@ -258,16 +257,16 @@ float GetLoopCompletion(LOOPV *loop) {
 void PINGPONG::Init(SAAF *psaa)
 {
     PINGPONGV *p = (PINGPONGV *)this;
-    LMV *plm2 = &p->pauseTimeRange;
-    LMV *plm1;
+    LM *plm2 = &p->pauseTimeRange;
+    LM *plm1;
     float g;
     InitSaa(p, psaa);
     plm1 = &p->loopTimeRange;
-    { float a = psaa->lm1.min; float b = psaa->lm1.max; p->loopTimeRange.min = a; plm1->max = b; }
-    { float a = psaa->lm2.min; float b = psaa->lm2.max; p->pauseTimeRange.min = a; plm2->max = b; }
+    { float a = psaa->lm1.minValue; float b = psaa->lm1.maxValue; p->loopTimeRange.minValue = a; plm1->maxValue = b; }
+    { float a = psaa->lm2.minValue; float b = psaa->lm2.maxValue; p->pauseTimeRange.minValue = a; plm2->maxValue = b; }
     p->frame = psaa->cLoop;
-    p->frameRate = (p->numFrames * 2) / RandomFloatInRange__Fff(p->loopTimeRange.min, plm1->max);
-    g = RandomFloatInRange__Fff(p->pauseTimeRange.min, plm2->max);
+    p->frameRate = (p->numFrames * 2) / RandomFloatInRange__Fff(p->loopTimeRange.minValue, plm1->maxValue);
+    g = RandomFloatInRange__Fff(p->pauseTimeRange.minValue, plm2->maxValue);
     p->pauseRemaining = p->pauseTime = g;
 }
 
@@ -293,9 +292,9 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
     if (ppingpong->frame < 0.0f)
     {
         ppingpong->frame = 0.0f;
-        float rand1 = RandomFloatInRange__Fff(ppingpong->loopTimeRange.min, ppingpong->loopTimeRange.max);
+        float rand1 = RandomFloatInRange__Fff(ppingpong->loopTimeRange.minValue, ppingpong->loopTimeRange.maxValue);
         ppingpong->frameRate = (float)(ppingpong->numFrames * 2) / rand1;
-        float rand2 = RandomFloatInRange__Fff(ppingpong->pauseTimeRange.min, ppingpong->pauseTimeRange.max);
+        float rand2 = RandomFloatInRange__Fff(ppingpong->pauseTimeRange.minValue, ppingpong->pauseTimeRange.maxValue);
         ppingpong->pauseTime = rand2;
         ppingpong->pauseRemaining = rand2;
     }
@@ -327,8 +326,8 @@ void SHUFFLE::Init(SAAF *psaaf)
     SHUFFLEV *pshuffle = (SHUFFLEV *)this;
     float dtMax, dtMin;
     InitSaa(pshuffle, psaaf);
-    dtMin = psaaf->lm1.min;
-    dtMax = psaaf->lm1.max;
+    dtMin = psaaf->lm1.minValue;
+    dtMax = psaaf->lm1.maxValue;
     pshuffle->pauseMax = dtMax;
     pshuffle->pauseMin = dtMin;
 }

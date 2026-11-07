@@ -43,13 +43,6 @@ struct SLOT
       SLOT *pslotNext;
 };
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct GRABSPOTDATA
 {
@@ -2419,7 +2412,6 @@ namespace M_func_00230CF0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 typedef struct VT { short d; short pad; void (*pfn)(...); } VT;   /* the C file's unprototyped pointer */
-typedef struct LO { char pad[0xC]; VT *vt; } LO;
 typedef struct P {
     qword m[4];
     char pad40[0x80 - 0x40];
@@ -2511,7 +2503,7 @@ void EvaluateXfSlotValue(ASEGA *a, int flag)
         p->worldStamp = ++D_003DD490.worldStampCounter;
     }
     for (i = 0; i < n; i++)
-        list[i]->vt[18].pfn((char *)list[i] + list[i]->vt[18].d);
+        list[i]->UpdateXfWorldHierarchy();
     {
         OVRA *e;
         for (e = a->povraFirst; e; e = e->povraNext)

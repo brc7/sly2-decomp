@@ -24,6 +24,7 @@
 #include "sly2/screen.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/dli.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -217,9 +218,6 @@ extern "C" void *InitScreenList(void *pv)
 }
 
 namespace M_func_001D9408 { extern "C" {
-typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
-typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
-extern DLI *D_002DD2FC;
 extern int D_002DD318;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[16]; } VT;
 typedef struct { char pad[0xC]; VT *vt; } LO;
@@ -234,20 +232,11 @@ void ResetNotice(void *);
 void ResetJobList(void *);
 void CMemcardDialog_Slot13(void *);
 void ResetScreen(void *);
-// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
-static inline void InitDli(DLI *pdli, DL *pdl)
-{
-    pdli->pdl = pdl;
-    pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->linkOffset;
-    pdli->pdliNext = D_002DD2FC;
-    D_002DD2FC = pdli;
-}
 // Return the current element of the iterator and advance it along the element's link field.
 static inline void *NextListEntry(DLI *pdli)
 {
-    void *pv = *pdli->ppv;
-    pdli->ppv = (void **)((char *)pv + pdli->ibDle);
+    void *pv = *pdli->m_ppv;
+    pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
 // Resets every HUD screen (each one's slot 13) and the list of shown screens (level teardown). (inferred)
@@ -270,7 +259,7 @@ void ResetScreens(DL *pdl)
     ResetScreen(D_002E65A0);
     ResetScreen(D_003DA4F0);
     ResetScreen(D_003DA530);
-    D_002DD2FC = dli.pdliNext;
+    D_002DD2FC = dli.m_pdliNext;
 }
 } } // namespace M_func_001D9408
 

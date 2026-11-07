@@ -81,6 +81,16 @@ struct POSESET
     POSE apose[4];
 };
 
+/* SUBGLOBX: the per-sub-mesh extra data of a GLOBSET: bounding sphere, render distance and flags. Moved from the
+   identical Lilly-ported copies (names from glob.cpp's). */
+struct SUBGLOBX
+{
+      VECTOR posCenter;
+      float sRadius;
+      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
+      uint flags;
+};
+
 /* GLOBSET: an SO's model: its GLOBs and sub-meshes, poses, shader animations and bounding sphere.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct GLOBSET
@@ -146,16 +156,32 @@ struct SOPHYS
       struct REGENT *pregent;   /* the object's REGENT record (see func_00259B20) */
 };
 
-/* REGENT: a record that links a physical SO to a CID17 object (meaning not established).
+/* REGENT: the region link of a physical SO: the path zone it is in (CID17 = classes.h PATHZONE), kept in that zone's
+   list (SetSoPhysRegion in so.cpp moves it between zones).
    moved from src/game/engine/physics/so/CloneSo.cpp */
 struct REGENT
 {
       SO *pso;   /* the solid object */
       undefined4 unknown04[3];
-      struct CID17 *pcid17;   /* the linked CID17 object */
+      struct CID17 *pathzone;   /* +0x10 the path zone (PATHZONE, CID 17) the object is in */
       undefined4 unknown14[3];
-      undefined4 unknown20[20];
+      undefined4 unknown20[20];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
 };
+
+/* SOBOUNDS: the bounds/lighting record an SO hierarchy shares (pool g_sw.slotheapSobounds, reference counted; 0x30
+   bytes: RenderSoAll copies it). The lighting stamp is compared with the world's light stamp by RefreshSoBoundsRecord
+   (so.cpp) before the light packets are rebuilt. */
+struct SOBOUNDS
+{
+      SO *pso;   /* +0x00 the owner (SetSoBoundsScale keeps scale in step only for it) */
+      undefined4 unknown04;
+      int refCount;   /* +0x08 objects sharing it */
+      int lightStamp;   /* +0x0C world light stamp of the last BuildSoLightPackets */
+      undefined4 unknown10[4];
+      float scale;   /* +0x20 */
+      undefined4 unknown24[3];
+};
+typedef char assert_SOBOUNDS_size[sizeof(SOBOUNDS) == 0x30 ? 1 : -1];
 
 /* SO: the solid object: an LO with transforms, a model, collision parts and (optionally) physics.
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (23 copies in Lilly ports) */
@@ -187,8 +213,8 @@ struct SO : public LO
       undefined4 unknown144;
       char unknown148;
       char unknown149;
-      ulong unknownBits148A : 4;
-                long unknownBits148B : 4;
+      int unknownBits148A : 4;   /* int-typed like the next field (so.cpp's getter sign-extends it) */
+                int unknownBits148B : 4;   /* int-typed (so.cpp's getter sign-extends it as a 32-bit field) */
                 ulong zapMode : 2;    /* how zaps (damage) are delivered */
                 ulong fIgnoreFixed : 1;   /* ignore collisions with fixed objects (inferred) */
                 ulong unknownBits148C : 2;
@@ -273,7 +299,7 @@ typedef char assert_SO_unknown13C[SLY2_OFFSETOF(SO, unknown13C) == 0x13C ? 1 : -
 inline CID17 *func_00259B20(SO *pso)   /* get */
 {
     REGENT *pregent = pso->physics ? pso->physics->pregent : 0;
-    return pregent ? pregent->pcid17 : 0;
+    return pregent ? pregent->pathzone : 0;
 }
 /* ensure: the start of BARREL's own fields (BARREL : SO, CID 0x58, cb 0x1A0); BARREL has no header yet */
 struct BARREL;
@@ -302,7 +328,7 @@ struct SOPART
       ulong unknownFlag10A : 1;   /* possibly collectsZaps (low-confidence guess: mark.cpp: parts with zap kinds (unknownFlag10A / zapKindFlags) collect zap contacts) */
                ulong unknownFlag10B : 1;   /* possibly isSphere (low-confidence guess: so.cpp view: radius applies to unknownFlag10B parts; mark.cpp sphere tests) */
                ulong isHidden : 1;  /* part is hidden */
-               ulong unknownFlag10C : 1;
+               ulong hasPlaces : 1;   /* the part carries hero places (RemoveSoPartFromTree then calls RemoveSwPlacesOf; places.cpp) */
                ulong unknownBits10A : 12;
       uint zapKindFlags; /* zap kinds (damage types) the part delivers or accepts */
       int unknown1C;   /* possibly numSphereVertices (low-confidence guess: compared with meshLocal.cpos in mark.cpp) */
@@ -377,6 +403,16 @@ struct SOTREE
                ulong wasTouched : 1; /* touched this frame */
                ulong isDone : 1;  /* processed this frame */
                ulong unknownBits70A : 59;
+};
+
+/* XPLIST: the contacts between a physics tree and one other object (SOTREE::pxplistFirst chains them). Moved from the
+   identical copies in so.cpp, glob.cpp and jt.cpp. */
+struct XPLIST
+{
+      XP *pxpFirst;
+      XPLIST *pxplistNext;
+      XP **ppxpHead;
+      SO *psoOther;
 };
 
 /* XF: a transform of an SO's hierarchy: local and world matrix, the actuators that animate it and its parent.

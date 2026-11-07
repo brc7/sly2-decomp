@@ -14,27 +14,15 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 enum CIDV { CID_Nil = -1 };
 
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VT { short d; short pad; void *pfn; };
-
 /* Contact graph of a solid object, as SendBarrierImpactMessages walks it (inferred: SO contact lists). */
 struct BARRIERV;
 struct CONTACTEND { int unknown0; int unknown4; BARRIERV *object; char pad[0x34]; };
 struct CONTACT { CONTACTEND ends[2]; char pad[0xAC - 0x80]; CONTACT *next; };
 struct CONTACTL { CONTACT *firstContact; CONTACTL *next; };
-struct SOTREEV { char pad[0x64]; CONTACTL *contactLists; };
 
-/* BARRIER : SO (sizeof(SO) == 0x150). The SO part is a view of the fields used here, not the sly2/so.h class. */
-struct BARRIERV
+/* BARRIER : SO: its own fields. */
+struct BARRIERV : SO
 {
-    void *frame;                        /* +0x0 BASIC::scriptFrame (the Splice frame holding script bindings) */
-    char pad04[0xC - 0x4];
-    VT *vtable;                         /* +0xC */
-    char pad10[0xE8 - 0x10];
-    int hasPhysics;                     /* +0xE8 SO::physics != 0 (inferred) */
-    SOTREEV *tree;                      /* +0xEC */
-    char padF0[0x148 - 0xF0];
-    unsigned long flags;                /* +0x148 SO flag word; bit 34 is SO::isTreeRoot in sly2/so.h */
     int numObjects;                     /* +0x150 objects named by the barrier */
     OID objects[4];                     /* +0x154 */
     int numClasses;                     /* +0x164 classes named by the barrier */
@@ -70,7 +58,7 @@ void BARRIER::Init()
 {
     BARRIERV *barrier = (BARRIERV *)this;
     InitSo(barrier);
-    barrier->flags |= 0x8000L << 19;
+    barrier->isTreeRoot = 1;
 }
 
 // BARRIER vtable slot 15 (PostLoad): finishes the SO load, then, if the barrier has physics, recomputes the world's
@@ -78,7 +66,7 @@ void BARRIER::Init()
 extern "C" void PostBarrierLoad(BARRIERV *barrier)
 {
     PostSoLoad(barrier);
-    if (barrier->hasPhysics)
+    if (barrier->physics)
         RefreshSwObjectCollisionFilter(D_003DD490, barrier);
 }
 
@@ -112,7 +100,7 @@ extern "C" int ShouldBarrierIgnoreIntersection(BARRIERV *barrier, void *other)
 extern "C" void NotifyBarrierImpact(BARRIERV *barrier)
 {
     AdjustSoNewXp(barrier);
-    if (barrier->frame && FindBindingPtr__6CFrameUii(barrier->frame, 5, 1))
+    if (barrier->scriptFrame.m_p && FindBindingPtr__6CFrameUii(barrier->scriptFrame.m_p, 5, 1))
         EnsureSwCallback(D_003DD490, barrier, ((LONGU *)&D_002A4790)->l, 0);
 }
 
@@ -128,7 +116,7 @@ extern "C" void SendBarrierImpactMessages(BARRIERV *barrier)
     int numTouching = 0;
     CONTACTL *contactList;
     int i;
-    for (contactList = barrier->tree->contactLists; contactList; contactList = contactList->next) {
+    for (contactList = (CONTACTL *)barrier->physicsTree->pxplistFirst; contactList; contactList = contactList->next) {
         CONTACT *contact;
         for (contact = contactList->firstContact; contact; contact = contact->next) {
             BARRIERV *other = contact->ends[1 - GetContactEndIndex(contact, barrier)].object;
@@ -145,8 +133,7 @@ extern "C" void SendBarrierImpactMessages(BARRIERV *barrier)
 done:
     for (i = 0; i < numTouching; i++) {
         barrier->impactObject = touching[i];
-        ((void (*)(void *, int, int, int, int, int))barrier->vtable[3].pfn)((char *)barrier + barrier->vtable[3].d,
-                                                                           5, 0, 0, 0, 0);
+        barrier->HandleSpliceEvent(5, 0, 0, 0, 0);
     }
 }
 

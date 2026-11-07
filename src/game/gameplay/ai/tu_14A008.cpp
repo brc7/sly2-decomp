@@ -38,22 +38,17 @@ typedef union { qword q; float f[4]; } U;
 struct VTE { short d; short pad; void *pfn; };
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
-struct LMV { float gMin; float gMax; };
 struct SW;
 struct ALLOCREQ { int cb, cbAlign; };
 struct SCOPE { int a[4]; };
 
-/* A path shape (SHAPE: +0xE8 point count, +0xF0 s per point, +0xF4 positions). */
-struct SHAPEV { char pad[0xE8]; int pointCount; int padEC; float *pointDistances; qword *pointPositions; };
 /* A route station: its kind (0 walk, 1 jump), the oid of its object, the object. */
 struct RTE { int k; int oid; void *object; };
 /* The route (an LO, which ends at +0x50). */
-struct ROUTE { char pad[0x50]; int isReversed; int stationCount; RTE *stations; SHAPEV *shape; };
+struct ROUTE { char pad[0x50]; int isReversed; int stationCount; RTE *stations; SHAPE *shape; };
 typedef char assert_ROUTE_shape[(unsigned int)&((ROUTE *)0)->shape == 0x5C ? 1 : -1];
-/* An LO view: vtable, and the fInWorld bit (ChooseCarmelitaTarget). */
-struct LOV { char pad[0xC]; VTE *vt; char pad10[0x18]; int unknown28; signed char unknown2C; char unknown2D; long k : 4; unsigned long b : 8; unsigned int isInWorld : 1; };
 /* The guard's detector: its targets. */
-struct DTE { LOV *object; int state; int pad[2]; };
+struct DTE { LO *object; int state; int pad[2]; };
 struct DETV { char pad[0xFC]; int targetCount; DTE targets[8]; };
 struct V3 { int x; int y; int z; };
 /* The patrolling guard (a STEPGUARD with a marker object at +0x1010). */
@@ -65,10 +60,10 @@ struct GUARDV
     char pad19C[0x208 - 0x19C];
     int isOnGround;
     char pad20C[0x294 - 0x20C];
-    SHAPEV *path;
+    SHAPE *path;
     char pad298[0x38C - 0x298];
-    LOV *target;
-    LOV *forcedTarget;
+    LO *target;
+    LO *forcedTarget;
     char pad394[0x4A4 - 0x394];
     int unknown4A4;
     char pad4A8[0xF04 - 0x4A8];
@@ -76,11 +71,11 @@ struct GUARDV
     char padF08[0xF64 - 0xF08];
     DETV *detector;
     char padF68[0x1010 - 0xF68];
-    LOV *marker;          /* +0x1010 the position marker the guard targets while patrolling */
+    LO *marker;          /* +0x1010 the position marker the guard targets while patrolling */
 };
 typedef char assert_GUARDV_marker[(unsigned int)&((GUARDV *)0)->marker == 0x1010 ? 1 : -1];
 /* An attack entry (ChooseStepguardAttack; +0x60 the cool-down range). */
-struct ATKENTRY { char pad[0x60]; LMV cooldown; };
+struct ATKENTRY { char pad[0x60]; LM cooldown; };
 /* The behaviour. */
 struct BHVRT
 {
@@ -107,7 +102,7 @@ struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int flags; XEC *hid
 struct O9E { int pad[3]; VTE *vt; char pad1[0x38 - 0x10]; void *lookAt; int unknown3C; };   /* BHVIDLE */
 struct OA7 { int pad[3]; VTE *vt; char pad1[0x40 - 0x10]; int usesStraightPath; char pad2[0x64 - 0x44]; float arrivalRadius; char pad3[0xC0 - 0x68]; int unknownC0; char pad4[4]; void *faceTarget; /* (inferred) */ };   /* BHVWALKPATH */
 struct OAC { int pad[3]; VTE *vt; char padx[0x50 - 0x10]; qword goal; char pad1[0x68 - 0x60]; int unknown68; };   /* BHVLEAP */
-struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LOV *target; char pad2[8]; ATKENTRY *attack; };   /* BHVATTACK */
+struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LO *target; char pad2[8]; ATKENTRY *attack; };   /* BHVATTACK */
 struct MSG { int kind; int pad[3]; int val; char pad2[0x70 - 0x14]; };
 
 extern CLOCK D_002DDED0;
@@ -124,11 +119,11 @@ extern float D_002BD470;
 extern float D_002BD474;
 extern float D_002BD478;
 extern float D_002BD47C;
-extern LMV D_002BD480;
-extern LMV D_002BD488;
-extern LMV D_002BD490;
-extern LMV D_002BD498;
-extern LMV D_002BD4A0;
+extern LM D_002BD480;
+extern LM D_002BD488;
+extern LM D_002BD490;
+extern LM D_002BD498;
+extern LM D_002BD4A0;
 extern float D_002BD4B0[3];
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
@@ -136,10 +131,10 @@ RTE *AllocClearedFromStack(ALLOCREQ *preq);
 RTE *AllocCopyFromWorldHeap(ALLOCREQ *preq, RTE *pv);
 void LoadLoFromBrx(ROUTE *proute, void *pbis);
 void PostLoLoad(ROUTE *proute);
-SHAPEV *NewSampledShape(int oid, int c);
+SHAPE *NewSampledShape(int oid, int c);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *object);
 qword GetLoWorldPos(void *p);
-void MeasureShape(SHAPEV *shape);
+void MeasureShape(SHAPE *shape);
 void InitBhv(BHVRT *p);
 void StartBhv(BHVRT *p);
 void CloseBhv(BHVRT *p);
@@ -166,19 +161,19 @@ qword SetVectorSphere(float a, float b, float c);
 float AngleBetweenVectors(qword a, qword b, void *p);
 float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
-void FindShapeClosestPoint(SHAPEV *, qword, int, int, int, int, float *);
+void FindShapeClosestPoint(SHAPE *, qword, int, int, int, int, float *);
 qword ConvertCmWorldToScreen(void *, qword);
 void SetStepguardAimAct(GUARDV *, int, int, qword);
 void SetSoCnstrForce(GUARDV *, int);
 void SetSoCnstrTorque(GUARDV *, int);
 void *PushStepBehavior(GUARDV *, int);
-void SetBhvpathShape(OA7 *, SHAPEV *, int);
+void SetBhvpathShape(OA7 *, SHAPE *, int);
 void InitStepguard(GUARDV *p);
 void PostStepguardLoad(GUARDV *p);
 void HandleStepguardMessage(GUARDV *p, int msgid, void *pv);
 int StepguardHasSgf(GUARDV *p, int k);
 void SetDetectorTargetStateById(DETV *pdet, void *object, int k);
-LOV *ChooseStepguardTarget(GUARDV *p);
+LO *ChooseStepguardTarget(GUARDV *p);
 void *memset(void *p, int c, unsigned int n);
 void *FindStepBehavior(GUARDV *p, int n);
 void SetBhvguardMode(void *p, MSG *m);
@@ -191,8 +186,8 @@ void SetBhvRouteState(BHVRT *p, int n);
 }
 float RandomFloatInRange(float gMin, float gMax);
 int RandomIntInRange(int nMin, int nMax);
-int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
-LOV *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
+int IsWithinLimits(LM *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LM: this file's view of LM */
+LO *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
 // Fill an allocation request for `a` 12-byte records with alignment b.
 static inline void InitS(ALLOCREQ *ps, int a, int b)
@@ -223,13 +218,13 @@ void CID123::PostLoad()
     int i;
     PostLoLoad(route);
     route->shape = NewSampledShape(0x62C, route->stationCount);
-    route->shape->pointCount = route->stationCount;
+    route->shape->numControlVertices = route->stationCount;
     for (i = 0; i < route->stationCount; i++) {
         RTE *e = &route->stations[i];
         void *o = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, route);
         e->object = o;
         if (o) {
-            qword *pq = (qword *)((i << 4) + (int)route->shape->pointPositions);   // (byte arithmetic: an indexed store does not match)
+            qword *pq = (qword *)((i << 4) + (int)route->shape->vertexPositions);   // (byte arithmetic: an indexed store does not match)
             *pq = GetLoWorldPos(o);
         }
     }
@@ -486,19 +481,18 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     }
 moveMarker:   // (a shared tail: each search above jumps here with its pick)
     {
-        LOV *plo = behavior->guard->marker;
-        VTE *entry = &plo->vt[29];
-        ((void (*)(void *, qword))entry->pfn)((char *)plo + entry->d, pos);
+        LO *plo = behavior->guard->marker;
+        plo->TranslateToPos(pos);
     }
     SetStepguardTarget(behavior->guard, behavior->guard->marker);
 }
 
 // Remaps g through an LM range (inferred: clamped linear mapping).
-static inline float NormalizeToRange(LMV *pr, float g)
+static inline float NormalizeToRange(LM *pr, float g)
 {
-    if (pr->gMin == pr->gMax)
+    if (pr->minValue == pr->maxValue)
         return 0.0f;
-    return (g - pr->gMin) / (pr->gMax - pr->gMin);
+    return (g - pr->minValue) / (pr->maxValue - pr->minValue);
 }
 // 0x14AA30: Returns the index of the route station best placed relative to the hero: each station is scored by its
 // distance along the route from the hero's closest point (weight 0.5), its depth on screen (0.15) and its distance
@@ -517,7 +511,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
         RTE *station = &behavior->route->stations[i];
         if (!station->object)
             continue;
-        g = ag[0] - behavior->route->shape->pointDistances[i];
+        g = ag[0] - behavior->route->shape->vertexArcLengths[i];
         if (behavior->route->isReversed == 1)
             g = -g;
         if (IsWithinLimits(&D_002BD480, g))
@@ -526,7 +520,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
             u1 = 1.0f - NormalizeToRange(&D_002BD488, g);
         else
             u1 = 0.0f;
-        v.q = ConvertCmWorldToScreen(&g_cm, behavior->route->shape->pointPositions[i]);
+        v.q = ConvertCmWorldToScreen(&g_cm, *(qword *)&behavior->route->shape->vertexPositions[i]);
         if (IsWithinLimits(&D_002BD490, v.f[2]))
             u2 = NormalizeToRange(&D_002BD490, v.f[2]);
         else if (IsWithinLimits(&D_002BD498, v.f[2]))
@@ -592,7 +586,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     case 3: {
         float t = D_002DDED0.time;
-        behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
+        behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.minValue, behavior->attack->cooldown.maxValue);
         behavior->attack = 0;
         break;
     }
@@ -622,13 +616,13 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     }
     case 1: {
-        SHAPEV *psp = behavior->guard->path;
+        SHAPE *psp = behavior->guard->path;
         struct OA7 *po;
-        psp->pointCount = 2;
+        psp->numControlVertices = 2;
         {
-            qword *pq = psp->pointPositions;
+            qword *pq = (qword *)psp->vertexPositions;
             *pq = GetLoWorldPos(behavior->guard);
-            pq = psp->pointPositions;
+            pq = (qword *)psp->vertexPositions;
             pq[1] = GetLoWorldPos(GetBhvRouteStationKind(behavior));
         }
         MeasureShape(psp);
@@ -723,10 +717,10 @@ static __inline__ float Distance(qword a, qword b)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.40282347e+38f; }
 // 0x14B290: CARMELITA vtable slot 88 (choose target): picks the best candidate object by kind and distance.
-extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
+extern "C" LO *ChooseCarmelitaTarget(GUARDV *guard)
 {
-    LOV *poBest;
-    LOV *object;
+    LO *poBest;
+    LO *object;
     float gBest;
     int kBest;
     qword pos;
@@ -797,10 +791,10 @@ float D_002BD470 = 200.0f;
 float D_002BD474 = -75.0f;
 float D_002BD478 = 600.0f;
 float D_002BD47C = 10.0f;
-LMV D_002BD480 = {900.0f, 1400.0f};
-LMV D_002BD488 = {1400.0f, 4000.0f};
-LMV D_002BD490 = {600.0f, 1000.0f};
-LMV D_002BD498 = {1000.0f, 4000.0f};
-LMV D_002BD4A0 = {0.0f, 10.0f};
+LM D_002BD480 = {900.0f, 1400.0f};
+LM D_002BD488 = {1400.0f, 4000.0f};
+LM D_002BD490 = {600.0f, 1000.0f};
+LM D_002BD498 = {1000.0f, 4000.0f};
+LM D_002BD4A0 = {0.0f, 10.0f};
 float D_002BD4B0[3] __attribute__((aligned(16))) = {-400.0f, 0.8f, 0.0f};
 }

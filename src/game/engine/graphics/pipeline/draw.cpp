@@ -24,7 +24,6 @@ struct RPL
 };
 typedef char assert_RPL_size[sizeof(RPL) == 0x10 ? 1 : -1];
 
-typedef struct MATRIX4V { float mat[4][4]; } __attribute__((aligned(16))) MATRIX4V;
 struct V3 { float x, y, z; };
 struct V4 { V3 v; float w; };
 
@@ -55,7 +54,7 @@ extern PFNRP D_002BDD88[][2];
 
 extern "C" {
 void qsort(void *, int, int, int (*)(const void *, const void *));
-void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4V *pm0, MATRIX4V *pm1);
+void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4 *pm0, MATRIX4 *pm1);
 void BeginRpGlob(VIFS *pvifs, void *a1, void *a2);
 void BuildWorldBackgroundImage(GAME *pgame, int n);
 }
@@ -124,7 +123,7 @@ int CprplPartitionArpl(int count, RPL *entries, RPL **sorted, int *firstIndex, i
 extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 {
     V4 clipConstants[2];
-    MATRIX4V viewProj, cameraMatrix;
+    MATRIX4 viewProj, cameraMatrix;
     if (D_003DD490.isStereo) {
         if (g_pfrmOpen == &D_002DEA50)
             vifs->AddDmaCall((QW *)D_002DF940);
@@ -155,8 +154,8 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
             else
                 BuildStereoEyeViewProj(camera, 2, 0, &viewProj, &cameraMatrix);
         } else {
-            MATRIX4V *pm1 = (MATRIX4V *)&camera->matViewProj;
-            MATRIX4V *pm2 = (MATRIX4V *)&camera->mat;
+            MATRIX4 *pm1 = (MATRIX4 *)&camera->matViewProj;
+            MATRIX4 *pm2 = (MATRIX4 *)&camera->mat;
             viewProj = *pm1;
             cameraMatrix = *pm2;
         }
@@ -175,8 +174,8 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 // (inferred)
 extern "C" void DrawSw(GAME *world)
 {
-    MATRIX4V mat0;
-    MATRIX4V mat1;
+    MATRIX4 mat0;
+    MATRIX4 mat1;
     RPL *sorted[0x2000];
     int firstIndex[NUM_RPL_KINDS];
     int endIndex[NUM_RPL_KINDS];
@@ -222,8 +221,8 @@ extern "C" void DrawSw(GAME *world)
         else
             BuildStereoEyeViewProj(&g_cm, 2, 0, &mat0, &mat1);
     } else {
-        MATRIX4V *pm0 = (MATRIX4V *)&g_cm.matViewProj;
-        MATRIX4V *pm1 = (MATRIX4V *)&g_cm.mat;
+        MATRIX4 *pm0 = (MATRIX4 *)&g_cm.matViewProj;
+        MATRIX4 *pm1 = (MATRIX4 *)&g_cm.mat;
         mat0 = *pm0;
         mat1 = *pm1;
     }

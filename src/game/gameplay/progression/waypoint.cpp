@@ -17,12 +17,9 @@ typedef int qwordV __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned char uchar;
 typedef unsigned long ulong;
-struct VECTORV { float x, y, z, w; } __attribute__((aligned(16)));
-struct MATRIX3V { VECTORV mat[3]; };
-struct MATRIX4V { VECTORV mat[3]; VECTORV pos; };
+struct MATRIX3V { VECTOR4 mat[3]; };
+struct MATRIX4V { VECTOR4 mat[3]; VECTOR4 pos; };
 struct VU_FLOAT { qwordV qw; };
-struct CLQV { float g0, g1, g2, gUnused; };
-struct LMV { float gMin, gMax; };
 struct RGBAV
 {
     uchar r, g, b, a;
@@ -30,23 +27,11 @@ struct RGBAV
     RGBAV(uint bits) { *(uint *)this = bits; }
 };
 
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short d; short pad; int (*pfn)(); };
-struct LO;
 struct TASKV { char pad[0x6C]; int labelNameId; };    /* the job: its name plate string (-1: none) */
 struct ATTACH { char pad[0x7C]; TASKV *task; };
-/* View of an SO: LO flags word (or a pointer to it, bit 0 clear) at +0x40, bounding radius at +0xA0. */
-struct SOV { char pad[0x40]; int taggedFlags; char pad44[0x5C]; float radius; };
-typedef char assert_SO_radius[(unsigned int)&((SOV *)0)->radius == 0xA0 ? 1 : -1];
 /* The waypoint (an SO). */
-struct WAYPTV
+struct WAYPTV : SO
 {
-    char pad0[0xC];
-    VTE *vt;                /* +0x00C (slot 3: HandleSpliceEvent) */
-    char pad10[0x30];
-    int taggedFlags;        /* +0x040 */
-    char pad44[0x104];
-    ulong soFlags;          /* +0x148 */
     int mode;               /* +0x150 when it shows: 0 unless unknown3B0C, 1 only with unknown3B0C, 2 for a job */
     int triggerClass;       /* +0x154 class of hero that activates it */
     float inactiveRadius;   /* +0x158 activation radius while inactive */
@@ -54,9 +39,9 @@ struct WAYPTV
     ATTACH *attachment;     /* +0x160 the job it marks */
     int isActive;           /* +0x164 */
     LO *source;             /* +0x168 the marked object (the beam stands on it) */
-    SOV *marker;            /* +0x16C the marker at the top */
-    SOV *beam;              /* +0x170 */
-    SOV *base;              /* +0x174 */
+    SO *marker;            /* +0x16C the marker at the top */
+    SO *beam;              /* +0x170 */
+    SO *base;              /* +0x174 */
     int clipFrame;          /* +0x178 camera frame of the last height clip */
     int hasCurtainHit;      /* +0x17C */
     float height;           /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainExtraHeight) */
@@ -87,25 +72,25 @@ extern "C" void InitWaypt(WAYPTV *waypoint)
 {
     int flags;
     InitSo(waypoint);
-    flags = waypoint->taggedFlags;
+    flags = waypoint->unknown40;
     waypoint->triggerClass = 50;
     waypoint->inactiveRadius = 300.0f;
     waypoint->activeRadius = 500.0f;
     waypoint->clipFrame = -1;
     waypoint->requiredPowerup = -1;
     if (IsPointer(flags)) *(int *)flags |= 0xA;
-    else waypoint->taggedFlags = flags | 0xA;
-    waypoint->soFlags &= ~(1L << 35);
+    else waypoint->unknown40 = flags | 0xA;
+    waypoint->unknownFlag148A = 0;
 }
 
 // Clears LO flag 8 (in the tagged flag word) on a child part, so it is not drawn by itself.
-static __inline__ void ClearBit(SOV *part)
+static __inline__ void ClearBit(SO *part)
 {
-    int flags = part->taggedFlags;
+    int flags = part->unknown40;
     if ((flags ^ 1) & 1) {
         *(int *)flags &= ~8;
     } else {
-        part->taggedFlags = flags & ~8;
+        part->unknown40 = flags & ~8;
     }
 }
 // WAYPT vtable slot 15 (PostLoad): SO post-load; the marker, beam and base are drawn by RenderWaypt, not by themselves.
@@ -134,7 +119,7 @@ static __inline__ float GDist(qwordV a, qwordV b)
 // Calls the waypoint's vtable slot 3 (HandleSpliceEvent) with an event and no arguments.
 static inline void SendSpliceEvent(WAYPTV *waypoint, int event)
 {
-    ((void (*)(void *, int, int, int, int, int))waypoint->vt[3].pfn)((char *)waypoint + waypoint->vt[3].d, event, 0, 0, 0, 0);
+    waypoint->HandleSpliceEvent(event, 0, 0, 0, 0);
 }
 enum { SPLICE_EVENT_ACTIVATE = 5, SPLICE_EVENT_DEACTIVATE = 6 };
 // WAYPT vtable slot 16 (Update): the waypoint is active while a hero of triggerClass is within the activation radius
@@ -171,9 +156,8 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
 // camera->source XY distance) as po->height. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
 typedef unsigned short ushort;
 union UQ { qwordV q; float f[4]; };
-/* The BSP of a solid object, as func_00118D08 walks it: edges (two vertex indices and the face on their other side),
-   faces (plane, edge list, a visit flag), nodes, and the tree. */
-struct EDGE { ushort vertexA, vertexB, pad4, faceIndex; EDGE *next; };
+/* The BSP of a solid object, as func_00118D08 walks it: edges (xfm.h EDGE), faces (FACE: xfm.h SURF's layout, the plane read as one
+   quadword and its flags as a visit mark), nodes, and the tree. */
 struct FACE { qwordV plane; EDGE *firstEdge; int unknown14; int flags; int unknown1C; };
 enum { FACE_FLAG_CANDIDATE = 0x4000 };   /* set on the faces func_00118D08 collects; cleared after the edge test */
 struct NODE { NODE *left, *right; FACE *face; };
@@ -390,12 +374,12 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
             int jx = j;
             __asm__("" : "+r"(jx) : "r"(edge));
             int nextJ = jx + 1;
-            for (; edge; edge = edge->next) {
-                FACE *face = &object->faces[edge->faceIndex];
+            for (; edge; edge = edge->pedgeNext) {
+                FACE *face = &object->faces[edge->aisurf[1]];
                 if (!(face->flags & FACE_FLAG_CANDIDATE))
                     continue;
-                int indexA = edge->vertexA;
-                int indexB = edge->vertexB;
+                int indexA = edge->aipos[0];
+                int indexB = edge->aipos[1];
                 P4 *vertices = (P4 *)object->vertices;
                 P4 *vertexPtrA = (P4 *)(((int)indexA << 4) + (int)vertices);   /* integer address sums: &vertices[i] schedules differently */
                 P4 *vertexPtrB = (P4 *)(((int)indexB << 4) + (int)vertices);
@@ -445,10 +429,10 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
 // with a single result variable and by-value limits, `dz = p ? .. : 0.0f` (splits cse so g_normalZ's hi part is
 // copied into s4), the name plate drawn through a by-value RGBA inline (copy addresses in s0/s1), and the
 // float argument of DrawWorldLabel second (invisible in the callee, decides the f12 move's slot).
-extern LMV D_002BBB60;      // g_lmZeroOne
+extern LM D_002BBB60;      // g_lmZeroOne
 float D_002C4494 = 10.0f, D_002C4498 = 10.0f, D_002C449C = 0.1f;   /* waypoint's .data, address order */
-CLQV D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0f}, D_002C44C0 = {0.5f, 0.000285714282f, 0.0f, 0.0f};
-LMV D_002C44D0 = {1.0f, 5.0f};
+CLQ D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0f}, D_002C44C0 = {0.5f, 0.000285714282f, 0.0f, 0.0f};
+LM D_002C44D0 = {1.0f, 5.0f};
 float D_002C44D8 = 300.0f;
 extern "C" {
 void RenderSoSelf(WAYPTV *waypoint);
@@ -456,10 +440,10 @@ int IsPowerupAcquired(int ipuk);
 int IsJobComplete(void *pcond);
 void CalculateWayptCurtainExtraHeight(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
-MATRIX4V *GetLoWorldMatrix(SOV *pso);
-VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
-void RenderLoAtMatrix(SOV *pso, MATRIX4V *pmat, float a, float b);
-void RenderLoAlongSegment(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
+MATRIX4V *GetLoWorldMatrix(SO *pso);
+VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qwordV qw);
+void RenderLoAtMatrix(SO *pso, MATRIX4V *pmat, float a, float b);
+void RenderLoAlongSegment(SO *pso, qwordV pos0, qwordV pos1, float s, float a);
 char *FindSwLocalizedString__FP2SWi(SW *psw, int id);
 void DrawWorldLabel(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
@@ -467,7 +451,7 @@ void DrawWorldLabel(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const 
 static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { DrawWorldLabel(pos, s, FindSwLocalizedString__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
 
 // Evaluates the quadratic g0 + g1 x + g2 x^2.
-static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
+static inline float GEvaluateClq(CLQ *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
 // Clamps g to [gMin, gMax].
 // Same idiom as sly2/util.h Clamp; kept local because the shared helper changes RenderWaypt (312/376 instructions off).
 static inline float ClampLocal(float g, float gMin, float gMax)
@@ -532,9 +516,9 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
 {
     RenderSoSelf(waypoint);
     float fadeStart = Max(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
-    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.time - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
     fadeStart = D_003DD490.unknown4750 + D_002C449C;
-    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.time - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
     switch (waypoint->mode)
     {
     case 0:
@@ -561,7 +545,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
     float distance;
     FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &distance);
-    float scale = ClampLocal(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.gMin, D_002C44D0.gMax);
+    float scale = ClampLocal(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.minValue, D_002C44D0.maxValue);
     qwordV posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(scale * D_002C44D8));
 
     MATRIX4V mat;
@@ -594,7 +578,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
 
     if (0.0f < labelAlpha && waypoint->attachment && waypoint->attachment->task && waypoint->attachment->task->labelNameId != -1)
     {
-        float labelOffset = waypoint->marker ? scale * waypoint->marker->radius : 0.0f;
+        float labelOffset = waypoint->marker ? scale * waypoint->marker->model.boundsRadius : 0.0f;
         qwordV posLabel = QwAddScaledG(posEnd, D_002A2DC0, VuFloat(labelOffset));
         RGBAV backColor(0x80603030);
         RGBAV textColor(0xFFC0C0C0);

@@ -13,9 +13,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+#include "sly2/dli.h"
 
 /* View of the grab spot (an XFM). */
-struct DLEV { void *next, *prev; };   /* a DL link */
 struct GRABXFM
 {
     char pad0[0x38];
@@ -23,7 +23,7 @@ struct GRABXFM
     char pad3C[0xA4];
     char grabspot[0x20];/* +0x0E0 GRABSPOTDATA (0x20) */
     int unknown100;     /* +0x100 */
-    DLEV listLink;      /* +0x104 kept across CloneXfm (the list link, inferred) */
+    DLE listLink;      /* +0x104 kept across CloneXfm (the list link, inferred) */
 };
 typedef char assert_GRABXFM_k[(unsigned int)&((GRABXFM *)0)->listLink == 0x104 ? 1 : -1];
 /* The object a position is measured from (+0x240). */
@@ -76,7 +76,7 @@ extern "C" void OnGrabSpotXfmRemove(GRABXFM *grabSpot)
 // CID39 vtable slot 41 (Clone): copies the source XFM but keeps this object's own list link. (inferred)
 extern "C" void CloneGrabSpotXfm(GRABXFM *grabSpot)
 {
-    DLEV listLink = grabSpot->listLink;
+    DLE listLink = grabSpot->listLink;
     CloneXfm(grabSpot);
     grabSpot->listLink = listLink;
 }

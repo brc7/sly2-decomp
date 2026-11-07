@@ -128,7 +128,6 @@ extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *behavior)
 namespace M_UpdateBhvwalkgoalPoctl { extern "C" {
 // NEAR MISS (Claude agent): 4/150. Hard-reg VF vars in Dot fixed the first block; remaining: 2nd block vsub scheduled before the lui of D_002BD2F0 (target lui first).
 typedef int qword __attribute__((mode(TI)));
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct O;
 struct VT { char pad[0x2C8]; short d; short pad2; int (*pfn)(struct O *); };
 struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int grfbtn; char pad3[0x7C - 0x34]; struct O *po; };   /* a POCTL (+0x30 buttons, +0x7C its PO) or a PO */
@@ -213,8 +212,8 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
         speed = EvaluatePolynomial(D_002BD2E0, LenXY(v));
         clampedSpeed = Clamp(speed, D_002BBB60[0], D_002BBB60[1]);
         if (0.0f < clampedSpeed) {
-            poctl->speed = clampedSpeed * behavior->speedScale;
-            poctl->heading = atan2f(QwordY(v), QwordX(v));
+            poctl->leftStickDeflection = clampedSpeed * behavior->speedScale;
+            poctl->leftStickAngle = atan2f(QwordY(v), QwordX(v));
         }
         if (behavior->forcesButton8)
             poctl->buttonsHeld |= 8;
@@ -298,7 +297,6 @@ typedef int qword __attribute__((mode(TI)));
 struct PATHZONE;
 struct D { char pad[0x10]; struct PATHZONE *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
-struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
 struct GUARD { char pad[0xE8]; struct C *physics; char pad2[0x294 - 0xEC]; struct SHAPE *pathShape; };
 struct P { char pad[0x10]; struct GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int usesStraightPath; char pad3[0x40 - 0x34]; qword goal; };
 qword GetLoWorldPos(struct GUARD *guard);
@@ -321,9 +319,9 @@ void SetBhvWalkToGoal(struct P *behavior, qword goal)
     struct PATHZONE *pathZone = d ? d->pathZone : 0;
     qword start = GetLoWorldPos(guard);
     if (!pathZone || behavior->usesStraightPath) {
-        path->pointCount = 2;
-        path->points[0] = start;
-        path->points[1] = behavior->goal;
+        path->numControlVertices = 2;
+        *(qword *)&path->vertexPositions[0] = start;
+        *(qword *)&path->vertexPositions[1] = behavior->goal;
         MeasureShape(path);
     } else {
         FindPathzonePathCurve(pathZone, start, behavior->goal, path);
@@ -465,7 +463,6 @@ namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.4
 namespace M_UpdateBhvfollow { extern "C" {
 // UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline ClampInPlace.
 typedef int qword __attribute__((mode(TI)));
-struct LM { float minValue, maxValue; };
 struct D { char pad[0x10]; void *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
 struct PO { char pad[0xE8]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
@@ -618,7 +615,6 @@ struct M4 { qword r[4]; };
 struct PATHZONE;
 struct D { char pad[0x10]; PATHZONE *pathZone; };
 struct C { char pad[0xDC]; D *region; };
-struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
 struct GUARD { char pad[0xE8]; C *physics; char pad2[0x294 - 0xEC]; SHAPE *pathShape; };
 struct O;
 struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };   /* slot 33: velocity */
@@ -702,9 +698,9 @@ void UpdateBhvfollowPosition(P *behavior)
         PATHZONE *pathZone = d ? d->pathZone : 0;
         qword start = GetLoWorldPos(guard);
         if (!pathZone) {
-            path->pointCount = 2;
-            path->points[0] = start;
-            path->points[1] = u.s.pos;
+            path->numControlVertices = 2;
+            *(qword *)&path->vertexPositions[0] = start;
+            *(qword *)&path->vertexPositions[1] = u.s.pos;
             MeasureShape(path);
         } else if (GetBhvfollowLeaderGround(behavior) != pathZone) {
             FindPathzonePathCurve(pathZone, start, start, path);   /* leader in another zone: stay */
@@ -723,7 +719,6 @@ struct PATHZONE;
 struct D { char pad[0x10]; struct PATHZONE *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
 struct GUARD { char pad[0xE8]; struct C *physics; };
-struct SO { char pad[0x18]; int oid; };
 struct LEADER { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct GUARD *guard; char pad2[0x30 - 0x14]; struct LEADER *leader; char pad3[0x80 - 0x34]; qword landingPoint; };
 struct SO *GetBhvfollowLeaderGround(struct P *behavior);
@@ -760,14 +755,14 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
 } } // namespace M_func_001459C0
 
 // 0x145AA8: Returns the object the leader is standing on, if any.
-/* The path zone of the followed object: a CID 0x30 object's region (SO::physics->pregent->pcid17), else the zone
+/* The path zone of the followed object: a CID 0x30 object's region (SO::physics->pregent->pathzone), else the zone
    at its position. */
 extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 {
     if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_SO)) {
         SOPHYS *physics = behavior->leader->physics;
         REGENT *region = physics ? physics->pregent : 0;
-        return region ? region->pcid17 : 0;
+        return region ? region->pathzone : 0;
     }
     return FindPathzoneAtPos(GetLoWorldPos(behavior->leader), 1);
 }
@@ -975,7 +970,6 @@ void UpdateBhvInteract(struct P *behavior)
 namespace M_func_00146068 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
@@ -997,8 +991,8 @@ void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
         speed = 1.0f;
         if (behavior->state == 0)
             speed = 0.1f;
-        poctl->speed = speed;
-        poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
+        poctl->leftStickDeflection = speed;
+        poctl->leftStickAngle = atan2f(QwordY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->buttonsHeld |= 0x80; /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
@@ -1164,7 +1158,6 @@ void UpdateBhvInteract2(struct P *behavior)
 namespace M_func_00146560 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
@@ -1186,8 +1179,8 @@ void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
         speed = 1.0f;
         if (behavior->state == 0)
             speed = 0.1f;
-        poctl->speed = speed;
-        poctl->heading = atan2f(QwordY(toTarget), QwordX(toTarget));
+        poctl->leftStickDeflection = speed;
+        poctl->leftStickAngle = atan2f(QwordY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->buttonsHeld |= 0x80; /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
@@ -1385,14 +1378,12 @@ void UpdateBhvInteract3(struct P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146B18 { extern "C" {
 // MATCH (Claude agent for Lilly, T1657 2026-10-25). Case 3 builds CLQ clq = {-0.25, 0.0015625} and LM lm = {0.1, 1.0} on the
-// stack: poctl->speed = ClampToLimits(&lm, EvaluateQuadratic(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(target) - pos(owner).
+// stack: poctl->leftStickDeflection = ClampToLimits(&lm, EvaluateQuadratic(|d.xy|, &clq)), poctl->leftStickAngle = atan2(d.y, d.x) with d = pos(target) - pos(owner).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 typedef int qword __attribute__((mode(TI)));
-struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int buttonsHeld; };
 struct PO { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
-struct LM { float minValue, maxValue; };
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
@@ -1451,14 +1442,14 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
     switch (behavior->state) {
     case 1: {
         qword d = VuSub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
-        poctl->speed = 1.0f;
-        poctl->heading = AngleXY(d);
+        poctl->leftStickDeflection = 1.0f;
+        poctl->leftStickAngle = AngleXY(d);
         break;
     }
     case 2: {
         qword d = VuSub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
-        poctl->speed = 1.0f;
-        poctl->heading = AngleXY(d);
+        poctl->leftStickDeflection = 1.0f;
+        poctl->leftStickAngle = AngleXY(d);
         if (D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->buttonsHeld |= 0x80;
             UpdatePoctlPressed(poctl);
@@ -1481,8 +1472,8 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
         s = ClampToLimits(&lm, EvaluateQuadratic(SqrtQ(t), &clq));
         }
         }
-        poctl->speed = s;
-        poctl->heading = AngleXYKeepAlive(d, b);
+        poctl->leftStickDeflection = s;
+        poctl->leftStickAngle = AngleXYKeepAlive(d, b);
         if (D_002DDED0.time - behavior->stateTime < 0.1f && behavior->owner->airState == -1) {
             poctl->buttonsHeld |= 0x40; /* jump (state 3: the jump attack) */
             UpdatePoctlPressed(poctl);
@@ -1491,8 +1482,8 @@ void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
     }
     case 4: {
         qword d = VuSub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
-        poctl->speed = 1.0f;
-        poctl->heading = AngleXY(d);
+        poctl->leftStickDeflection = 1.0f;
+        poctl->leftStickAngle = AngleXY(d);
         if (D_002DDED0.time - behavior->stateTime < 0.1f) {
             poctl->buttonsHeld |= 0x80;
             UpdatePoctlPressed(poctl);

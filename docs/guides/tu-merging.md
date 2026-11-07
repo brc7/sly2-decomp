@@ -585,6 +585,48 @@ Left: tu_12E600's CID44 camera-object view (classes.h; not this family), tu_1BE3
 object, an XFM; no header), main.cpp's `extern CM D_002DDF40` (a typed handle; main does not include cm.h), and the
 inventory's false positives in cm.cpp/cplcy.cpp (CMG, the g_cm definition wrapper; SW/ACT/STEPPLAYER views).
 
+### Views unified (names/vu-f1-base): BASIC, LO, XFM, SO, PO and the list types
+
+The base family of the view-unification slices: private views of BASIC, LO, XFM/SHAPE/PROXY/TN, SO/SOPART/SOTREE/XF and
+PO/POCTL, and the DL/DLI/SL lists. Every function and data symbol of every touched file and of every includer of the
+touched headers MATCHes, and each touched object's nm symbol set is unchanged.
+
+| change | where | how |
+|---|---|---|
+| hand vtable calls (`p->vt[n].pfn((char *)p + p->vt[n].d, ...)`) | prize, tu_1471C0, frm, update, tu_1D7238, po, tu_1BE398, button, barrier, bomb, waypoint, busy, lo.cpp, so.cpp, relay, stepguard, xf, rip, shape, cplcy, tu_14A008, tu_173158, tu_17F090, ... | real virtual calls on the shared classes (slot -> member: LO 1..48, SO 49..75, PO 76..81); a derived view that needs a later slot declares it (`virtual void SetState(int)` = DPRIZE slot 76) |
+| object views padded over the base (`char pad[0xC]; VTE *vt; char p[0x150 - 0x10]; ...` or `char pad[0x180]; ...`) | the DPRIZE family (prize), HACK family (tu_17F090: HACK : PO), RELAY (relay), BUTTON/VOLBTN, BARRIER, WAYPT, BOMB, SAFEHOUSE, CID104, RTCAM/RTO, the guard attack, PATHLINK | derived views of the shared class (`struct S : SO { int state; ... }`); the class's own fields stay in the view (their classes have no header with fields) |
+| LO/SO/PO-named and V-named field views | lo.cpp and so.cpp (most of their small functions), po.cpp, busy, proxy, find, callback, game, sound, murray, jt, tu_144B28, bif, ... | the shared type with its field names; bit tests on the +0x28 / +0x148 words become the bit-fields (`(int)p->isInWorld & 1` keeps the original shift/and pair) |
+| DL/DLI/DLE/SL copies, local InitDli/PvNextDli | 20 files | basic.h DL/SL/DLE and dli.h DLI/InitDli/PvNextDli |
+| LM/CLQ/VECTOR/VECTOR4/MATRIX4/RGBA/SMP copies identical to basic.h | 40 files | removed (synonym fields renamed: minValue/maxValue, unused, red/green/blue/alpha, fastSpeed/slowSpeed/fastDuration) |
+| Lilly-port copies of family types | tn, mode, jt, so, glob, relay, grab, mark, proxy, xf, air | moved into the headers: xfm.h EDGE/SURF/BSP, PROXYINIT/PROXYSPARE/PROXYREST/PROXYSRC; so.h SUBGLOBX, XPLIST, SOBOUNDS |
+
+Header changes (names from the views, each with its evidence in the header comment): lo.h LO +0x30 `nextSpliceTime`
+(UpdateLo), bit 58 `keepsOwnVisMask`, bit 59 `clearsPlacesOnRemove`, PXR +0x24 `isCopy`; xfm.h GEOM `positions` is
+`VECTOR4 *` (16-byte vertices), SHAPE `incomingTangents`/`outgoingTangents`/`segmentHint`/`chain`; so.h REGENT +0x10
+`pathzone` (CID17 = PATHZONE), SOPART bit 51 `hasPlaces`, SO `unknownBits148A`/`unknownBits148B` int-typed (so.cpp's
+getters sign-extend them as 32-bit fields), SOBOUNDS/SUBGLOBX/XPLIST defined.
+
+Measured (scratch metrics.py over src/game): struct/class/union definitions 7,220 -> 6,759; family-named views 541 ->
+322; hand-vptr views 495 -> 406; non-derived views padded over a base (>= 0x50) 1,388 -> 1,257; 70 files, +1,739/-2,941.
+
+Matching-only islands kept (scratch islands.csv): frm.cpp's RAII list iterator `DLIIsland` (InitDli + explicit pop is
+4/98 off), lo.cpp InitLo's `LOIsland` (the parent's in-world bit copied through lo.h's bit-field compiles to a mask,
+14/75 off), so.cpp GetSoTreeFlag2 / GetSoIgnoreFixed `SOTREEIsland`/`SOIsland` (sign-extending shift pairs on the
+whole word).
+
+Evidence for header signatures that need classes.h in step (not changed here: the overriders there would stop
+overriding): LO slot 20 RenderAll is called with (int, float, float, SOBOUNDS *) (so.cpp RenderSoAll, lo.cpp
+RenderLoAtMatrix); slot 30 RotateToMat receives a 3x3 MATRIX3 (bomb, tu_173158, lo.cpp); SO slot 73 IsPosInside takes
+a quadword position and returns int (rip UpdateRip, class_registry's thunk); BASIC slot 3's fifth argument is a CRef *
+reply (po.cpp CanPoBeHealed); update.cpp calls LO slot 17 as the paused-object update. SO +0x58/+0x5C are the
+position/rotation XFs (fieldrename refused `positionXf`: the token is used in so.cpp's member bodies).
+
+Not attempted (representation-specific or other families' classes): the qword/union matrix views of the hand-tuned
+so.cpp transform functions (TranslateSoToPos, RotateSoToMat, SetSoAngularVelocity, SetSoXf), sensor.cpp's whole-word
+SO/SOPART/SOTREE views, tu_223F70's qword XF view, glob.cpp's self-contained Lilly namespace, hud's register-passed RGBA
+words, the player/guard/camera classes' padded views (their families' headers), listener objects whose slot 51 is not
+declared (prize's LISTENER views).
+
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key

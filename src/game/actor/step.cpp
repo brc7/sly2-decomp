@@ -1520,7 +1520,6 @@ namespace M_func_00205910 {
  * code; I could not find which (all-separate VU asms only add ~20).  Without the pad: 5/254 (only those slot numbers).
  */
 typedef int qword __attribute__((mode(TI)));
-struct MATRIX3 {float mat[3][4];} __attribute__((aligned(16)));
 struct MATRIX4 {float mat[4][4];} __attribute__((aligned(16)));
 struct VU_VECTOR4 {qword qw;};
 union U {qword q;float f[4];int i[4];};

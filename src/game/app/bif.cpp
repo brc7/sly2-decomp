@@ -17,6 +17,7 @@
 #include "sly2/pair.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
+#include "sly2/so.h"
 #include "sly2/util.h"
 #include "sly2/cm.h"
 
@@ -1806,7 +1807,7 @@ CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 
 // 0x121DD8 BuiltinVector__FiP4CRefP6CFrame
 namespace M_BuiltinVector__FiP4CRefP6CFrame {
-struct CRef; struct VECTOR; struct NODE;
+struct CRef; struct NODE;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     // Empty (untagged) script reference.
@@ -1821,7 +1822,6 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
 };
-struct VECTOR { float x, y, z; };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
 extern "C" {
 CRef CRef_CoerceF32(CRef *pref);
@@ -2629,12 +2629,11 @@ CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x122DE0 BuiltinMatrixTranspose__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame { extern "C" {
-struct CRef; struct MATRIX4;
+struct CRef; 
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
-typedef struct MATRIX4 { float m[4][4]; } __attribute__((aligned(16))) MATRIX4;
 void TransposeMatrix4(MATRIX4 *pmat, int n);
 void CRef_ctor_MATRIX4(CRef *pref, MATRIX4 *pmat);
 // Splice builtin "matrix-transpose": 0x11C1D8.
@@ -2812,7 +2811,7 @@ CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *
 
 // 0x123208 BuiltinMatrixLookAt__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixLookAt__FiP4CRefP6CFrame {
-struct CRef; struct VECTOR; struct MATRIX3; struct W;
+struct CRef; struct MATRIX3; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -2827,8 +2826,7 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
-struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
-struct MATRIX3 { VECTOR mat[3]; };
+struct MATRIX3 { VECTOR4 mat[3]; };
 struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DC0; }
 extern "C" {
@@ -2865,7 +2863,7 @@ CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x1232D0 BuiltinMatrixTiltUpright__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixTiltUpright__FiP4CRefP6CFrame {
-struct CRef; struct VECTOR; struct MATRIX3; struct MATRIX4; struct XF;
+struct CRef; struct MATRIX3; struct MATRIX4; struct XF;
 typedef int qword __attribute__((mode(TI)));
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
@@ -2880,13 +2878,12 @@ struct CRef {
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
-struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
-struct MATRIX3 { VECTOR mat[3]; };
-struct MATRIX4 { VECTOR mat[3]; VECTOR pos; };
+struct MATRIX3 { VECTOR4 mat[3]; };
+struct MATRIX4 { VECTOR4 mat[3]; VECTOR4 pos; };
 struct XF { char pad[0x30]; qword pos; };
 extern "C" {
 void TiltMatUpright(XF *pxf, int f, MATRIX3 *pmat);
-VECTOR *VECTOR_opAssign(VECTOR *pv, qword q);
+VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qword q);
 CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 // Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright.
@@ -3981,7 +3978,7 @@ CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *ar
 
 // 0x1249A8 BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame
 namespace M_BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame {
-struct SPN; struct SO; struct LO; struct HIT;
+struct SPN; struct HIT;
 /* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (ClipEdgeToObject) vs every SO of each LO in list aref[0].
    pv==0x7B returns a list of (lo pos normal) for all hits, else (lo normal) of the first hit (the original stores &hit.normal there). */
 typedef int qword __attribute__((mode(TI)));
@@ -4005,22 +4002,12 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad;
 };
-struct SO {
-    char pad[0x10];
-    unsigned long grf;
-    char pad18[0xB0 - 0x18];
-};
-struct LO {
-    char pad[0xE0];
-    int cso;
-    SO *aso;
-};
 struct HIT {
     qword pos;
     qword normal;
     int pad[16];
 };
-extern "C" int ClipEdgeToObject(SO *pso, qword pos0, qword pos1, int f, HIT *phit);
+extern "C" int ClipEdgeToObject(SOPART *pso, qword pos0, qword pos1, int f, HIT *phit);
 
 /* Script builtin: ray-cast segment aref[1]->aref[2] against every SO of each LO in list aref[0].
    pv == 0x7B: return list of (lo pos normal) for all hits; otherwise return (lo normal) of the first hit. */
@@ -4038,15 +4025,15 @@ extern "C" CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, 
 
         for (pn = args[0].u.ppair; pn; pn = pn->next.p) {
             CRef *prefTo = &args[2];
-            LO *plo = (LO *)pn->ref.u.pv;
+            SO *plo = (SO *)pn->ref.u.pv;
             int i;
             if (!plo)
                 continue;
-            for (i = 0; i < plo->cso; i++) {
-                SO *pso = &plo->aso[i];
+            for (i = 0; i < plo->numParts; i++) {
+                SOPART *pso = &plo->parts[i];
                 CRef *prefFrom = &args[1];
                 HIT hit;
-                if (pso->grf & (1UL << 50))
+                if (pso->isHidden)
                     continue;
                 if (ClipEdgeToObject(pso, *(qword *)prefFrom->u.pv, *(qword *)prefTo->u.pv, 1, &hit) <= 0)
                     continue;
@@ -4208,13 +4195,12 @@ CRef *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef
 
 // 0x125168 BuiltinNearClipCenter__FiP4CRefP6CFrame
 namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame { extern "C" {
-struct CRef; struct VECTOR;
+struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-typedef struct VECTOR { float x, y, z, w; } __attribute__((aligned(16))) VECTOR;
 CRef *CRef_ctor(CRef *pref, qword v);
 // Set *pv to (x, y, z) with a packed 128-bit store.
-static __inline__ void SetVector(VECTOR *pv, float x, float y, float z)
+static __inline__ void SetVector(VECTOR4 *pv, float x, float y, float z)
 {
     register qword t __asm__("$6");
     register int ix __asm__("$6"), iy __asm__("$4"), iz __asm__("$4");
@@ -4226,7 +4212,7 @@ static __inline__ void SetVector(VECTOR *pv, float x, float y, float z)
 // Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix.
 CRef *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRef *ret)
 {
-    VECTOR vec;
+    VECTOR4 vec;
     CM *pcm = &g_cm;
     qword *pm = (qword *)&pcm->matq;   /* the four matrix rows */
     SetVector(&vec, pcm->nearClip, 0.0f, 0.0f);

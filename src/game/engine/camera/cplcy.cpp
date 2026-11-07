@@ -10,6 +10,7 @@
 
 #include "sly2/basic.h"
 #include "sly2/cm.h"
+#include "sly2/lo.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
 #include "sly2/vu0.h"
@@ -1085,9 +1086,6 @@ struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
 extern "C" CLOCK D_002DDED0;
 extern "C" char D_002BDAB0[], D_002BDAC0[];
-struct LO;
-struct LOV { char pad[0xF8]; short d31; short p31; M4 *(*pfn31)(LO *); };
-struct LO { int a[3]; LOV *pvt; };
 struct Y { char pad[0x1BC]; float turretFov; char pad1[0x1D0 - 0x1C0]; LO *plo; int isSmoothing; };
 extern "C" {
 void UpdateCplcy(CPTURRET *p);
@@ -1138,7 +1136,7 @@ void UpdateCpturret(CPTURRET *p)
     UpdateCplcy(p);
     Y *py = (Y *)p->pvHero;
     LO *plo = py->plo;
-    M4 m = *plo->pvt->pfn31((LO *)((char *)plo + plo->pvt->d31));
+    M4 m = *(M4 *)plo->GetWorldMatrix();
     if (g_cm.nCut == 0 && py->isSmoothing != 0) {
         M3 mRel;
         M3 mNew;

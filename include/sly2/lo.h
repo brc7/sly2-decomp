@@ -45,10 +45,10 @@ struct LO : public BASIC
                long busyKind : 4; /* busy kind: how the object takes part in the busy list */
                ulong isRemoved : 1;  /* set once the object has been removed from the world */
                ulong unknownFlag28A : 1;
-               ulong unknownFlag28B : 1;
-               ulong unknownFlag28C : 1;
+               ulong keepsOwnVisMask : 1;   /* a parent's SetVisMask skips it (SetLoOwnVisMask) */
+               ulong clearsPlacesOnRemove : 1;   /* RemoveLoHierarchy then calls RemoveSwPlacesOf on it (inferred) */
                ulong isInWorld : 1;  /* the object is currently in the world (FIsLoInWorld) */
-      float unknown30;
+      float nextSpliceTime;   /* when UpdateLo next sends the Splice update event; PostLoLoad sets the default */
       LORUN *firstRunCallback; /* first queued LORUN callback */
       float busyRadius; /* busy distance: activation radius around the camera/hero (Sly 1 sBusy) */
       PXR *proxyRecord; /* proxy record when the object was spawned from a proxy */
@@ -123,7 +123,7 @@ struct PXR
       LO *object; /* the object this record belongs to */
       SLE siblingLink;  /* link in the parent record's child list */
       SL children;  /* list of child records */
-      undefined4 unknown24;
+      int isCopy;   /* +0x24 the record belongs to a copy made from the proxy (inferred: GetProxyCopyValue) */
 };
 
 #endif /* SLY2_LO_H */

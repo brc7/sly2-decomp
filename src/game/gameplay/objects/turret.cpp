@@ -19,7 +19,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 union V {qword q;float f[4];};
 struct M3 {qword r[3];};
 struct M4 {qword r[4];};
-struct LMV {float lo,hi;};
 struct SMPV {float a,b,c,d;};
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short d; short pad; void (*pf)(void *, int, int, int, int, int); };
@@ -28,7 +27,6 @@ struct CONTROL {char pad[0x10];float x,y;char pad18[8];float z;float zoom;};
 struct SHAPEV {char pad[0x30];float radius;};
 /* The aim target. */
 struct O {char pad[0x60];void *component;char pad64[0x88];SHAPEV *shape;};
-struct PROXYSRC {char pad[0x3C];int kind;};
 /* View of the turret (a PO). */
 struct TURRETV
 {
@@ -43,11 +41,11 @@ struct TURRETV
     int aim;            /* +0x184 aim at the target */
     int follow;         /* +0x188 zoom on the target */
     float pitch, yaw, vpitch, vyaw;   /* +0x18C */
-    LMV yawRange;        /* +0x19C */
-    LMV pitchRange;      /* +0x1A4 */
-    LMV range;           /* +0x1AC zoom range */
+    LM yawRange;        /* +0x19C */
+    LM pitchRange;      /* +0x1A4 */
+    LM range;           /* +0x1AC zoom range */
     float blend, velocity, strength;  /* +0x1B4 */
-    PROXYSRC *projectileProxy;   /* +0x1C0 what it fires (AcquireProxyObject) */
+    LO *projectileProxy;   /* +0x1C0 what it fires (AcquireProxyObject) */
     void *launcher;     /* +0x1C4 */
     void *lastLaunched; /* +0x1C8 last object fired */
     int isActRunning;   /* +0x1CC the rotation act is running */
@@ -58,12 +56,12 @@ struct TURRETV
 typedef char assert_TURRET_pact[(unsigned int)&((TURRETV *)0)->rotationAct == 0x1D8 ? 1 : -1];
 
 /* turret's .data (address order). */
-LMV D_002C4400 = {0.1f, 1.0f};
+LM D_002C4400 = {0.1f, 1.0f};
 float D_002C4408[3] = {5.0f, 0.0f, 0.5f};          /* damping */
 float D_002C4418[2] = {1.0f, 4.0f}, D_002C4420[3] = {2.0f, 0.0f, -1.0f};
 extern CLOCK D_002DDED0;
 extern char D_003D4A60[];
-extern LMV D_002BBB60;
+extern LM D_002BBB60;
 extern const SMPV D_002A97B0 = {0.2f, 0.0f, 0.5f, 1.0f};
 extern "C" {
 void InitPo(TURRETV *p);
@@ -83,14 +81,14 @@ M3 LoadLookAtMatrix(qword);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(const M3 *,float *,float *);
 float ClampAbs__Fff(float,float);
 float SmoothValue__FfffP3SMPPf(float,float,float,const float *,float *);
-float ClampToLimits__FP2LMf(const LMV *,float);
+float ClampToLimits__FP2LMf(const LM *,float);
 float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPV *,float *);
 void SetActPositionGoal(void *,qword);
 CRef GetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
 int POCTL_ConsumeAnyPressed(CONTROL *x, int a);
-void *AcquireProxyObject(PROXYSRC *y, int a);
+void *AcquireProxyObject(LO *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
 void *ShouldSoIgnoreIntersection(TURRETV *p);
 void *MaxInt(void *v, int a);
@@ -107,11 +105,11 @@ extern "C" void InitTurret(TURRETV *turret)
     InitPo(turret);
     turret->range = D_002C4400;
     turret->isActRunning = 1;
-    turret->strength = turret->range.hi;
-    turret->pitchRange.lo = -1.5f;
-    turret->pitchRange.hi = 1.5f;
-    turret->yawRange.lo = -0.7f;
-    turret->yawRange.hi = 0.7f;
+    turret->strength = turret->range.maxValue;
+    turret->pitchRange.minValue = -1.5f;
+    turret->pitchRange.maxValue = 1.5f;
+    turret->yawRange.minValue = -0.7f;
+    turret->yawRange.maxValue = 0.7f;
     turret->isActive = 1;
     turret->self = turret;
 }
@@ -228,9 +226,9 @@ static inline float OffsetLength(qword d){qword r;register int bits __asm__("$3"
 static inline qword InverseRotate(const M3 &m,qword v){qword r=m.r[0],one,a,b,c;
     __asm__("vmul.xyzw %2,%0,%7\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%5,%7\n\tvmul.xyzw %4,%6,%7\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"+j"(r),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
 // Fraction of f within the range [lo, hi]; 0 when the range is empty.
-static inline float Fraction(LMV *range,float f){if(range->lo==range->hi)return 0.0f;return (f-range->lo)/(range->hi-range->lo);}
+static inline float Fraction(LM *range,float f){if(range->minValue==range->maxValue)return 0.0f;return (f-range->minValue)/(range->maxValue-range->minValue);}
 // Interpolate within the range at u.
-static inline float Blend(LMV *range,float u){return (1.0f-u)*range->lo+u*range->hi;}
+static inline float Blend(LM *range,float u){return (1.0f-u)*range->minValue+u*range->maxValue;}
 // Zoom: framed on the target's bounds when following one, else driven by the controller's zoom input.
 extern "C" void UpdateTurretZoom(TURRETV *turret)
 {
@@ -247,7 +245,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         float angle = atanf(radius / (Length(VuSub(scratch.q, GetLoWorldPos(turret->target))) * 0.5f));
         angle = angle + angle;
         CLOCK *clock = &D_002DDED0;
-        angle = Max(angle, turret->range.lo);
+        angle = Max(angle, turret->range.minValue);
         LoadIdentityMatrix4(turret->target->component, 0, &m, 0, clock->deltaTime);
         scratch.q = LoadVF(m.r[3]);
         future.q = scratch.q;
@@ -265,8 +263,8 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
             horizontal = horizontal + horizontal;
             float vertical = atanf((Abs(swapped.f[1]) + extent) / swapped.f[2]);
             vertical = vertical + vertical;
-            desired = Min(Max(horizontal, vertical), turret->range.hi);
-        } else desired = turret->range.hi;
+            desired = Min(Max(horizontal, vertical), turret->range.maxValue);
+        } else desired = turret->range.maxValue;
         desired = Max(desired, angle);
         /* spring the blend toward it, faster for bigger changes (D_002C4418) */
         float target = ClampToLimits__FP2LMf(&D_002BBB60, 1.0f - Fraction(&turret->range, desired));
@@ -303,12 +301,12 @@ extern "C" void UpdateTurretFire(TURRETV *turret)
     }
 }
 
-// Proxy-source filter: the SO default, plus an extra flag when the candidate's kind matches the turret's projectile
-// (so the turret ignores its own shots). (inferred)
-extern "C" void *FilterTurretProxySource(TURRETV *turret, PROXYSRC *proxySource)
+// Intersection filter (slot 61): the SO default, plus ignoring objects made from the same proxy as the turret's
+// projectile (so the turret ignores its own shots). (inferred)
+extern "C" void *FilterTurretProxySource(TURRETV *turret, LO *other)
 {
     void *v = ShouldSoIgnoreIntersection(turret);
-    if (turret->projectileProxy && proxySource->kind == turret->projectileProxy->kind) v = MaxInt(v, 1);
+    if (turret->projectileProxy && other->proxyRecord == turret->projectileProxy->proxyRecord) v = MaxInt(v, 1);
     return v;
 }
 

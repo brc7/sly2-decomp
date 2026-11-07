@@ -17,23 +17,17 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short d; short pad; void *pfn; };
-#define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 #define VCALL1(o, n, a1) ((void (*)(void *, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1)
-#define VCALL5(o, n, a1, a2, a3, a4, a5) \
-    ((void (*)(void *, int, int, int, int, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1, a2, a3, a4, a5)
 
-struct SOV { char pad0[0xC]; VTE *vt; };
+struct CID100V { char pad0[0xC]; VTE *vt; };   /* a tossable (classes.h CID100): its slot 76 is not declared there */
 struct SMA;
 
 /* One joystick binding: in state psm-state pvState, button grfBtn fires relay oid (0x378: open the ThiefNet tab). */
 struct SHENTRY { void *state; int buttonMask; int oid; };
 
 /* The safehouse object: a PO (InitPo) with a state machine of selectable characters. */
-struct SAFEHOUSEV
+struct SAFEHOUSEV : PO
 {
-    char pad0[0xC];
-    VTE *vt;                /* +0xC */
-    char pad10[0x180 - 0x10];
     int state;              /* +0x180 0 idle, 1 selecting */
     SM *stateMachine;               /* +0x184 */
     SMA *stateMachineAnim;              /* +0x188 */
@@ -65,9 +59,9 @@ void FireRelay(SAFEHOUSEV *prelay, int n);
 void SetPoCtlState(SAFEHOUSEV *ppo, int n);
 void ReplaceSma(SM *psm, SAFEHOUSEV *object, int isms, int n, SMA **ppsma);
 void FailJob(SUBV *p);
-int FindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
-void DeliverStepplayerBooty(SOV *object);
-void BindStepplayerHpMp(SOV *object, int n);
+int FindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, LO **aplo);
+void DeliverStepplayerBooty(LO *object);
+void BindStepplayerHpMp(LO *object, int n);
 CRef GetSaveVarByName(const char *pchz, ...);
 int GetSmStateOid(SM *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
@@ -92,10 +86,8 @@ void SAFEHOUSE::Init()
 // 0x1D7268: SAFEHOUSE post-load: SO post-load, then calls its vtable slot 79 with 0.
 extern "C" void PostSafehouseLoad(SAFEHOUSEV *safehouse)
 {
-    VTE *entry;
     PostSoLoad(safehouse);
-    entry = &safehouse->vt[79];
-    ((void (*)(void *, int))entry->pfn)((char *)safehouse + entry->d, 0);
+    safehouse->SetCtlState(0);
 }
 
 // 0x1D72A8: SAFEHOUSE update: SO update; while selecting (state 1), reads the joystick selection, steps the
@@ -169,29 +161,29 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
         return;
     if (safehouse->state == 1) {
         ReplaceSma(0, safehouse, -1, 0, &safehouse->stateMachineAnim);
-        VCALL5(safehouse, 3, 6, 0, 0, 0, 0);
+        safehouse->HandleSpliceEvent(6, 0, 0, 0, 0);
     }
     safehouse->state = state;
     if (state == 1) {
-        SOV *players[4];
-        SOV *objects64[32];
-        SOV *objects4F[32];
+        LO *players[4];
+        LO *objects64[32];
+        LO *objects4F[32];
         int count;
         int initialState;
         if (D_003DD490.currentJob && !D_003DD490.currentJob->unknown74)
             FailJob(D_003DD490.currentJob);
         count = FindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
         for (int i0 = 0; i0 < count; i0++) {
-            SOV *player = players[i0];
+            LO *player = players[i0];
             DeliverStepplayerBooty(player);
             BindStepplayerHpMp(player, 1);
         }
         count = FindSwObjectsByClass(&D_003DD490, 0x105, 0x64, 0, 0x20, objects64);
         for (int i1 = 0; i1 < count; i1++)
-            VCALL1(objects64[i1], 76, 4);
+            VCALL1((CID100V *)objects64[i1], 76, 4);
         count = FindSwObjectsByClass(&D_003DD490, 0x105, 0x4F, 0, 0x20, objects4F);
         for (int i2 = 0; i2 < count; i2++)
-            VCALL(objects4F[i2], 9);
+            objects4F[i2]->Remove();
         if (safehouse->stateMachine) {
             int savedOid = GetSaveVarByName(D_002A7878, 0).u.n;
             if (FindSmStateOptional((SM *)safehouse->stateMachine, (OID)savedOid) == -1)
@@ -204,7 +196,7 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
         ReplaceSma(safehouse->stateMachine, safehouse, initialState, 0, &safehouse->stateMachineAnim);
         StepCharSelect(safehouse, 0);
         StartJoySelection__FP3JOY((D_002DFBC0 & 2) ? D_002DFC00 : D_002E0D00);
-        VCALL5(safehouse, 3, 5, 0, 0, 0, 0);
+        safehouse->HandleSpliceEvent(5, 0, 0, 0, 0);
     }
 }
 

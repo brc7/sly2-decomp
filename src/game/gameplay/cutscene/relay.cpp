@@ -30,6 +30,7 @@
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/dli.h"
 
 /* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; NewRelayJsg builds it by hand): a BASIC with its
    own reference count and message handler, vtable 0x2D8C08 (BASIC's class descriptor in slot 6, so not the registry's
@@ -106,38 +107,9 @@ void SetTaskStates(GAME *pgame, int ctaskpair, TASKPAIR *ataskpair, LO *ploConte
 
 void SetClockRate(CLOCK *pclock, CRK crk, float rt) __asm__("SetClockRate");
 
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
 
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
 
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct SWALLOC
 {
@@ -1143,9 +1115,8 @@ void SetStepplayerRide(LO *pjt, JSGV *script);
 
 // 0x1DFAD8 InitRelay
 namespace M_InitRelay { extern "C" {
-struct DL; struct S;
-struct DL { void *a, *b; int ib; };
-struct S { char pad[0x58]; int n58; struct DL dl; };
+struct S;
+struct S : LO { char pad50[0x58 - 0x50]; int n58; struct DL dl; };   /* RELAY's own fields */
 void InitLo(struct S *p);
 void InitDl__FP2DLi(struct DL *pdl, int ib);
 // RELAY vtable slot 7 (Init): LO defaults, no private command limit (-1), and an empty list of running scripts.
@@ -1162,8 +1133,7 @@ namespace M_LoadRelayFromBrx {
 struct MSG; struct ENT; struct OBJ;
 struct MSG { int cb; int nKind; };
 struct ENT { char a[0x50]; };
-struct OBJ {
-    char pad[0x50];
+struct OBJ : LO {   /* RELAY's own fields */
     int c;
     ENT *ae;
     int cMax;
@@ -1205,7 +1175,7 @@ extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
 namespace M_CloneRelay { extern "C" {
 struct MSG; struct S;
 struct MSG { int cb; int nKind; };
-struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
+struct S : LO { char pad50[0x54 - 0x50]; void *pv; int c; char p1[0x80-0x5C]; int f80; };   /* RELAY's own fields */
 void CloneLo(struct S *p);
 void *AllocCopyFromWorldHeap(struct MSG *pmsg, void *pv);
 // Resizes a world-heap block (request size and kind, then reallocate).
@@ -1221,45 +1191,23 @@ void CloneRelay(struct S *relay) {
 
 // 0x1DFC50 UpdateRelay
 namespace M_UpdateRelay { extern "C" {
-struct DL; struct DLI;
-typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
-typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 extern struct CLOCK { float time; float deltaTime; float pad8[14]; float realDeltaTime; float pad44[3]; } D_002DDED0;
-extern DLI *D_002DD2FC;
-typedef struct {
-    char pad[0x40];
-    unsigned int taggedFlags;
-    char pad44[0x5C - 0x44];
+struct OBJ : LO {   /* RELAY's own fields */
+    char pad50[0x5C - 0x50];
     DL scripts;
     char pad68[0x70 - 0x68];
     float firedTime;
     int isFiring;
-} OBJ;
+};
 void UpdateLo(OBJ *);
 void UpdateRelayScript(void *);
 int IsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
-// Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
-static inline void InitDli(DLI *pdli, DL *pdl)
-{
-    pdli->pdl = pdl;
-    pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->linkOffset;
-    pdli->pdliNext = D_002DD2FC;
-    D_002DD2FC = pdli;
-}
-// Returns the current element and advances the iterator.
-static inline void *PvNextDli(DLI *pdli)
-{
-    void *pv = *pdli->ppv;
-    pdli->ppv = (void **)((char *)pv + pdli->ibDle);
-    return pv;
-}
 enum { LO_FLAG_UNPAUSED = 0x100 };   /* runs on real time while the game clock is paused (inferred) */
 // The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
 static inline unsigned int GetLoFlags(OBJ *lo)
 {
-    unsigned int fl = lo->taggedFlags;
+    unsigned int fl = lo->unknown40;
     if ((fl ^ 1) & 1)
         fl = *(unsigned int *)fl;
     return fl;
@@ -1284,22 +1232,16 @@ void UpdateRelay(OBJ *relay)
         UpdateRelayScript(pv);
     if (IsDlEmpty__FP2DL(&relay->scripts))
         StopRelay(relay);
-    D_002DD2FC = dli.pdliNext;
+    D_002DD2FC = dli.m_pdliNext;
 }
 } } // namespace M_UpdateRelay
 
 // 0x1DFD58 FireRelay
 namespace M_FireRelay { extern "C" {
-struct DL; struct VT; struct OBJ;
-typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
+struct OBJ;
 typedef struct OBJ OBJ;
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int, int, int, int, int); } a[8]; } VT;
-struct OBJ {
-    char pad[0xC];
-    VT *vt;
-    char pad10[0x40 - 0x10];
-    int taggedFlags;
-    char pad44[0x54 - 0x44];
+struct OBJ : LO {   /* RELAY's own fields */
+    char pad50[0x54 - 0x50];
     void *topBlock;
     int pad58;
     DL scripts;
@@ -1320,7 +1262,7 @@ enum { LO_FLAG_02 = 2 };   /* set while a relay holds its busy mark (also set by
 // The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
 static inline int GetLoFlags(OBJ *lo)
 {
-    int fl = lo->taggedFlags;
+    int fl = lo->unknown40;
     if ((fl ^ 1) & 1)
         fl = *(int *)fl;
     return fl;
@@ -1328,10 +1270,10 @@ static inline int GetLoFlags(OBJ *lo)
 // Sets bits of the LO flag word wherever it lives.
 static inline void SetLoFlagBits(OBJ *lo, int bits)
 {
-    if ((lo->taggedFlags ^ 1) & 1)
-        *(int *)lo->taggedFlags |= bits;
+    if ((lo->unknown40 ^ 1) & 1)
+        *(int *)lo->unknown40 |= bits;
     else
-        lo->taggedFlags |= bits;
+        lo->unknown40 |= bits;
 }
 // Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
 // list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
@@ -1343,7 +1285,7 @@ void FireRelay(OBJ *relay, int n)
     relay->firer = n;
     relay->isFiring = 1;
     relay->isMarkedBusy = 0;
-    relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 5, 0, 0, 0, 0);
+    relay->HandleSpliceEvent(5, 0, 0, 0, 0);
     if (!relay->isFiring)
         return;
     if (relay->needsBlockEnd) {
@@ -1375,18 +1317,10 @@ extern "C" void FireRelayFromPlayer(RELAYV *relay)
 
 // 0x1DFEB8 StopRelay
 namespace M_StopRelay { extern "C" {
-struct DL; struct DLI; struct VT; struct OBJ;
-typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
-typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
-extern DLI *D_002DD2FC;
+struct OBJ;
 typedef struct OBJ OBJ;
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int, int, int, int, int); } a[8]; } VT;
-struct OBJ {
-    char pad[0xC];
-    VT *vt;
-    char pad10[0x40 - 0x10];
-    int taggedFlags;
-    char pad44[0x5C - 0x44];
+struct OBJ : LO {   /* RELAY's own fields */
+    char pad50[0x5C - 0x50];
     DL scripts;
     char pad68[0x6C - 0x68];
     int firer;
@@ -1401,26 +1335,10 @@ enum { LO_FLAG_02 = 2 };
 // Clears bits of the LO flag word, stored inline or (bit 0 clear) behind a pointer.
 static inline void ClearLoFlagBits(OBJ *lo, int bits)
 {
-    if ((lo->taggedFlags ^ 1) & 1)
-        *(int *)lo->taggedFlags &= ~bits;
+    if ((lo->unknown40 ^ 1) & 1)
+        *(int *)lo->unknown40 &= ~bits;
     else
-        lo->taggedFlags &= ~bits;
-}
-// Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
-static inline void InitDli(DLI *pdli, DL *pdl)
-{
-    pdli->pdl = pdl;
-    pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->linkOffset;
-    pdli->pdliNext = D_002DD2FC;
-    D_002DD2FC = pdli;
-}
-// Returns the current element and advances the iterator.
-static inline void *PvNextDli(DLI *pdli)
-{
-    void *pv = *pdli->ppv;
-    pdli->ppv = (void **)((char *)pv + pdli->ibDle);
-    return pv;
+        lo->unknown40 &= ~bits;
 }
 // Stops a firing relay: forgets the firer, removes every running script (RemoveJsg), clears its alarm list, releases
 // the busy mark and tells itself (message 6). (inferred)
@@ -1441,8 +1359,8 @@ void StopRelay(OBJ *relay)
         SetLoBusyKind(relay, 2);
         ClearLoFlagBits(relay, LO_FLAG_02);
     }
-    relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 6, 0, 0, 0, 0);
-    D_002DD2FC = dli.pdliNext;
+    relay->HandleSpliceEvent(6, 0, 0, 0, 0);
+    D_002DD2FC = dli.m_pdliNext;
 }
 } } // namespace M_StopRelay
 
@@ -5086,18 +5004,16 @@ typedef char layout_P_array[((unsigned)&((struct P*)0)->apo==0xA8)?1:-1];
 
 // 0x1E5370 ClearJsgAseg
 namespace M_ClearJsgAseg { extern "C" {
-struct VTE; struct O; struct S;
-struct VTE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x4C]; struct O *po; int n50; void *pv; };
-void RetractAsega(struct O *po);
+struct S;
+struct S { char pad[0x4C]; BASIC *po; int n50; void *pv; };
+void RetractAsega(BASIC *po);
 void StopStepplayerScriptAnim(void *pv);
 // Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8). (inferred)
 void ClearJsgAseg(struct S *script)
 {
     if (script->po) {
         RetractAsega(script->po);
-        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po->Release();
         script->po = 0;
     }
     if (script->pv) {
@@ -5121,18 +5037,15 @@ extern "C" void ClearJsgRelayWait(JSGV *script)
 
 // 0x1E5410 ClearJsgSma
 namespace M_ClearJsgSma { extern "C" {
-struct VTE; struct O; struct S;
-
-struct VTE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x58]; struct O *po; int n5C; };
-void UnsubscribeLoObject(struct O *po, struct S *p);
+struct S;
+struct S { char pad[0x58]; BASIC *po; int n5C; };
+void UnsubscribeLoObject(BASIC *po, struct S *p);
 // Unregister from and release psmaCur (+0x58), fSmaReached=0. (inferred)
 void ClearJsgSma(struct S *script)
 {
     if (script->po) {
         UnsubscribeLoObject(script->po, script);
-        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po->Release();
         script->po = 0;
         script->n5C = 0;
     }

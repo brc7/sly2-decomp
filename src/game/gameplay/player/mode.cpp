@@ -29,35 +29,6 @@ typedef char assert_WIDGET_tags[SLY2_OFFSETOF(WIDGET, tags) == 0xCC ? 1 : -1];
 struct SELECTOR;
 extern qword D_002A2DD0;
 extern CLOCK D_002DDED0;
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 void CutCm(CM *pcm);
 extern "C" void SetCmPolicy(CM *pcm, int nPriority, void *pvMode, int nUnk, int nUnk2);
 extern "C" void RevokeCmPolicy(CM *pcm, int grf, int nPriority, void *pvMode, void *pvHero, void *pvOwner);

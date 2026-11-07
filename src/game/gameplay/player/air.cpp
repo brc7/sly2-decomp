@@ -47,13 +47,6 @@ void RemoveLoHierarchy(LO *plo);
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("TransformXfPos");
 
@@ -1942,8 +1935,6 @@ struct BASE_E0 { char data[0xE0]; };
 struct BASE_190 { char data[0x190]; };
 struct PATH : BASE_E0, SAMPLER {};
 struct SPLINE : BASE_190, SAMPLER {};
-struct LM { float low, high; };
-struct SMP { float a, b, c; };
 struct VU_FLOAT { qword q; };
 
 extern "C" {
@@ -2076,7 +2067,7 @@ static inline float NormalizeInPlace(U &v, const qword &vDefault)
     return QwordX(l);
 }
 // Interpolate between the range's low and high at u.
-static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }
+static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.minValue + u * lm.maxValue; }
 // True when v's XY speed exceeds the moving threshold D_002BF848.
 static inline int IsMoving(qword v) { return D_002BF848 < LengthXYOf(v); }
 

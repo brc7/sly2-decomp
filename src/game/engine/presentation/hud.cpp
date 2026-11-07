@@ -1673,7 +1673,6 @@ void SwitchWidgetAnim(void *widget, int animId, int *currentAnimId)
 // 0x213E20 FindSpriteItemPose
 namespace M_func_00213E20 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct RGBA { unsigned char r, g, b, a; };
 struct QQ { qword a, b; };
 struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
 struct Y { struct RGBA color0; struct RGBA color1; char pad8[8]; struct QQ matrix; struct Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
@@ -2497,7 +2496,6 @@ extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style
 
 // 0x215CA8 ResetRichText2
 namespace M_func_00215CA8 { extern "C" {
-struct RGBA { unsigned char r, g, b, a; };
 struct S { int text; int cur; int font; int baseFont; int altFont; struct RGBA color; struct RGBA baseColor; unsigned int altColor; };
 void UpdateRichText2Color(struct S *p);
 // Resets the rich-text cursor: optional new text, start of text, base font and colour. (inferred)
@@ -2510,14 +2508,13 @@ void ResetRichText2(struct S *rt, int text)
     rt->font = rt->baseFont;
     rt->color = rt->baseColor;
     rt->altColor = 0x80000000;                         /* black ... */
-    ((unsigned char *)&rt->altColor)[3] = rt->color.a;   /* ... at the current alpha */
+    ((unsigned char *)&rt->altColor)[3] = rt->color.alpha;   /* ... at the current alpha */
     UpdateRichText2Color(rt);
 }
 } } // namespace M_func_00215CA8
 
 // 0x215D00 SetRichText2BaseColor
 namespace M_func_00215D00 { extern "C" {
-struct RGBA { unsigned char r, g, b, a; };
 struct S { char pad[0x14]; struct RGBA color; struct RGBA baseColor; };
 void UpdateRichText2Color(struct S *p);
 // Sets the rich text's base and current colour. (inferred)
@@ -2531,7 +2528,6 @@ void SetRichText2BaseColor(struct S *rt, struct RGBA *color)
 
 // 0x215D40 GetRichText2NextChar
 namespace M_func_00215D40 { extern "C" {
-struct RGBA { unsigned char r, g, b, a; };
 struct S {
     int text; unsigned char *cur; int font; int baseFont; int altFont;
     struct RGBA color; struct RGBA baseColor; struct RGBA altColor;
@@ -2670,7 +2666,6 @@ int WrapRichText2Lines(struct S *p) {
 
 // 0x2160D8 UpdateRichText2Color
 namespace M_func_002160D8 { extern "C" {
-struct RGBA { unsigned char r, g, b, a; };
 struct S {
     char pad[0x14]; struct RGBA color; struct RGBA baseColor;
     char pad1c[4];
@@ -2683,10 +2678,10 @@ void UpdateRichText2Color(struct S *rt)
 {
     float alphaScale = rt->baseColor1A * 0.007874016f;   /* 1 / 127 */
     float alpha;
-    alpha = alphaScale * (float)rt->color.a;
-    rt->color0R = StdMin(rt->baseColor0R + (float)rt->color.r, 255.0f);
-    rt->color0G = StdMin(rt->baseColor0G + (float)rt->color.g, 255.0f);
-    rt->color0B = StdMin(rt->baseColor0B + (float)rt->color.b, 255.0f);
+    alpha = alphaScale * (float)rt->color.alpha;
+    rt->color0R = StdMin(rt->baseColor0R + (float)rt->color.red, 255.0f);
+    rt->color0G = StdMin(rt->baseColor0G + (float)rt->color.green, 255.0f);
+    rt->color0B = StdMin(rt->baseColor0B + (float)rt->color.blue, 255.0f);
     rt->color0W = rt->baseColor0W;
     rt->color1R = rt->baseColor1R;
     rt->color1G = rt->baseColor1G;

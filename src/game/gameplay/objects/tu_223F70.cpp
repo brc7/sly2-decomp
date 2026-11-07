@@ -109,7 +109,6 @@ enum GADGET_KIND
     GADGET_HOMING_29 = 0x29                 /* as 0x1A, and homes on the nearest class-0x38 object */
 };
 
-struct LMV { float gMin, gMax; };
 struct POLY { float a, b, c; };
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -117,7 +116,7 @@ extern SW D_003DD490;
 extern GAME D_002DEB30;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002A2DD0, D_002A2DE0;
 extern float D_002C3C60[];
-extern LMV D_002BBB60;
+extern LM D_002BBB60;
 extern SOV *D_002E1E40;
 extern const float D_002A97A8;   /* defined below where the ELF has it (.rodata order) */
 /* tu_223F70's .data (address order). The two springs' parameters are float[4] (passed as void *). */
@@ -344,8 +343,8 @@ extern "C" float AdjustTossableNewXp(CID100V *gadget, XP *contact, int end) {
 // Update actor contacts and select the neighboring actor.
 /* The contact graph (as in button.cpp): each contact has two ends; an end names its tree's owner and object. */
 struct SIDE { struct { int unknown0; SOV *owner; } *tree; int unknown4; SOV *object; SOV *otherObject; char pad[0x30]; };
-struct EDGE { SIDE as[2]; qwordV normal; char pad[0xC]; int contactKind; char pad2[0xC]; EDGE *next; };
-struct LN { EDGE *firstEdge; LN *next; };
+struct CONTACT { SIDE as[2]; qwordV normal; char pad[0xC]; int contactKind; char pad2[0xC]; CONTACT *next; };
+struct LN { CONTACT *firstEdge; LN *next; };
 struct SCALAR {qwordV q;};
 // Asm accessors of UpdateTossableContacts (each pins one load or address computation the target has): a scalar
 // loaded into a VU register, a vector scaled by it, the other end's object, an end by index, a table entry address.
@@ -355,7 +354,7 @@ static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV
 // Load the side's neighbouring object into $16.
 static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.otherObject));return value;}
 // Address of side `index` of the edge.
-static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
+static inline const SIDE *SideAt(const CONTACT *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 // Address of coefficient `index` in the table.
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
 // CID100 contact update: after the SO update (and not in the first D_002C42E0 seconds after being picked up), each
@@ -365,7 +364,7 @@ static inline const float *CoefficientAt(const float *table,int index){const flo
 extern "C" void UpdateTossableContacts(CID100V *gadget)
 {
     SOV *other;
-    EDGE *pe;
+    CONTACT *pe;
     LN *contactList;
     SOV *ownObject;
     AdjustSoXps(gadget);
@@ -578,7 +577,7 @@ void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qword
     if (!body->physics) return;
     float along = DotP(GetXfVelocity(body->rootXf, 0, hit.point), normal);
     float ratio = along / D_002C4334;
-    float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), D_002BBB60.gMin, D_002BBB60.gMax);
+    float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), D_002BBB60.minValue, D_002BBB60.maxValue);
     float fz = 0.0f;   /* 0, then the fraction of the response applied */
     if (fz < response) {
         bits = BitsOfFloat(response * D_002C4330);
@@ -779,7 +778,7 @@ static inline float LengthL(qwordV d) {
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d)); return f;
 }
 // Clamps *pg to an LM range.
-static inline void ClampLm(float *pg,LMV *plm){float gMax=plm->gMax,gMin=plm->gMin;if(*pg<gMin)*pg=gMin;else if(gMax<*pg)*pg=gMax;}
+static inline void ClampLm(float *pg,LM *plm){float gMax=plm->maxValue,gMin=plm->minValue;if(*pg<gMin)*pg=gMin;else if(gMax<*pg)*pg=gMax;}
 // Broadcasts a float to all four lanes.
 static inline qwordV Splat(float f) {
     int b; qwordV r,t;

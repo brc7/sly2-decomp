@@ -19,6 +19,7 @@
 #include "sly2/basic.h"
 #include "sly2/slotheap.h"
 #include "sly2/cm.h"
+#include "sly2/lo.h"
 #include "sly2/snd.h"
 #include "sly2/vu0.h"
 
@@ -1115,7 +1116,6 @@ extern "C" void SetStreamSoundCulled()
 
 namespace M_UpdateStreamsndPositional { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct LO {char pad28[0x28];unsigned long flags;};
 struct RANGE {float low,high;};
 struct E {struct LO *object;struct RANGE limits;float gain;};
 struct P {char pad1C[0x1C];struct LO *object;qword position;char pad30[0x70];int groupSourceCounts[6];struct E groupSources[6][8];};
@@ -1148,7 +1148,7 @@ void UpdateStreamsndPositional(struct P *sound)
             for (i = 0; i < count; i++) {
                 struct E *entry = &sound->groupSources[group][i];
                 struct LO *object = entry->object;
-                if (object && ((object->flags >> 60) & 1) == 1) {   /* in the world */
+                if (object && (object->isInWorld & 1) == 1) {   /* in the world */
                     numActive++;
                     CalculateSndVolPan(sound, GetLoWorldPos(object), &entry->limits, &fade, panOut);
                     panOut = 0;

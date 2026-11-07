@@ -69,13 +69,6 @@ void FaceStepToward(STEP *pstep, LO *plo);
 }
 void SetJtCaneState(JT *pjt, int jtcs);
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct SWALLOC
 {
@@ -99,14 +92,6 @@ int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("CanJtUseGadgetOn
 
 bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("IsStepplayerInJtMode");
 
-struct PROXYSPARE
-{
-      struct PROXY *pproxy;
-      PROXYSPARE *pspareNext;
-      int fLocked;
-      undefined4 unk_0xc;
-      MATRIX4 mat;
-};
 
 PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("ChooseProxySpare");
 
@@ -214,23 +199,7 @@ struct VU_FLOAT
     qword qw;
 };
 
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
 
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
 
 struct LSG
 {
@@ -258,12 +227,6 @@ void SetSndVolume(SND *psnd, float gVolume) __asm__("SetSndVolume");
 
 extern "C" void SetSndRange(SND *psnd, float sNear, float sFar);
 
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 
 struct EXPL : public XFM
 {
@@ -322,13 +285,6 @@ int FFindInOwnerChain(ACT *pact) __asm__("IsActAttached");
 
 void SetAct1ValueKeepOffset(ACT1 *pact1, qword qwNew) __asm__("SetActRotationGoal");
 
-struct XPLIST
-{
-      XP *pxpFirst;
-      XPLIST *pxplistNext;
-      XP **ppxpHead;
-      SO *psoOther;
-};
 
 extern "C" float GetShapeMinDistance(SHAPE *pshape);
 
@@ -1574,7 +1530,6 @@ typedef struct S {
 } S;
 typedef struct R { unsigned int x0; char pad[0x30 - 4]; float g30; int x34; int pad38; int x3C; } R;
 typedef struct CLOCK { float time; float deltaTime; } CLOCK;
-struct SMP {float a,b,duration;};
 
 extern "C" CLOCK D_002DDED0;
 extern "C" SMP D_002BF348;
@@ -1789,9 +1744,9 @@ typedef char Int_Width[sizeof(int)==4?1:-1];
 typedef char Unsigned_Width[sizeof(unsigned)==4?1:-1];
 typedef char Float_Width[sizeof(float)==4?1:-1];
 typedef char SMP_Size[sizeof(SMP)==12?1:-1];
-typedef char SMP_a_Offset[(unsigned)&((SMP*)0)->a==0?1:-1];
-typedef char SMP_b_Offset[(unsigned)&((SMP*)0)->b==4?1:-1];
-typedef char SMP_duration_Offset[(unsigned)&((SMP*)0)->duration==8?1:-1];
+typedef char SMP_a_Offset[(unsigned)&((SMP*)0)->fastSpeed==0?1:-1];
+typedef char SMP_b_Offset[(unsigned)&((SMP*)0)->slowSpeed==4?1:-1];
+typedef char SMP_duration_Offset[(unsigned)&((SMP*)0)->fastDuration==8?1:-1];
 typedef char VU_Alignment[__alignof__(VU)==16?1:-1];
 typedef char M_Alignment[__alignof__(M)==16?1:-1];
 typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
@@ -2926,7 +2881,6 @@ typedef int qword __attribute__((mode(TI)));
 #define F(T, o) (*(T *)((char *)p + (o)))
 #define A(o) ((char *)p + (o))
 
-struct LO { char pad[0x28]; int x28; signed char x2C; char x2D; long k:4; long :8; unsigned int f:1; };
 struct X150 { char pad[0x18]; float g18; };
 struct X1854 { char pad[0x124]; int x124; };
 typedef union { qword q; float f[4]; } VU;
@@ -2971,7 +2925,7 @@ void UpdateJt(char *p)
     struct X1854 *object;
 
     UpdateStepplayer(p);
-    if ((uchar)((struct LO *)p)->f == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
+    if ((uchar)((LO *)p)->isInWorld == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
         return;
     if (F(void *, 0x150))
         UpdateJtPre(p);
@@ -3074,10 +3028,6 @@ typedef char layout_long[(sizeof(long)==8)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_VU[(sizeof(VU)==16)?1:-1];
 typedef char layout_VU_alignment[(__alignof__(VU)==16)?1:-1];
-typedef char layout_LO[(sizeof(struct LO)==0x30)?1:-1];
-typedef char layout_LO_word[((unsigned)&((struct LO*)0)->x28==0x28)?1:-1];
-typedef char layout_LO_byte2c[((unsigned)&((struct LO*)0)->x2C==0x2C)?1:-1];
-typedef char layout_LO_byte2d[((unsigned)&((struct LO*)0)->x2D==0x2D)?1:-1];
 typedef char layout_STATE[(sizeof(struct X150)==0x1C)?1:-1];
 typedef char layout_STATE_heading[((unsigned)&((struct X150*)0)->g18==0x18)?1:-1];
 typedef char layout_TARGET[(sizeof(struct X1854)==0x128)?1:-1];
