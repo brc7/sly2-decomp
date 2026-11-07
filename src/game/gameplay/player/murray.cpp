@@ -19,6 +19,7 @@
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -1860,7 +1861,6 @@ enum { FACTOR_ADDRESS = 0x002C09A4 };
 extern "C" void AddSoAcceleration(struct P *p, qword v);
 typedef union { qword q; float f[4]; } U;
 static inline qword Scale(qword a, float g) { U u; qword k, r; __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(g)); u.q = k; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(u.q)); return r; }
-static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Factor(qword a,qword k,qword negative,U *pu) {
     U &u=*pu; register qword r __asm__("vf3");
     __asm__("sqc2 %2,%0\n\tvmulx.xyzw %1,%3,%2x\n\tsqc2 %4,%0":"=m"(u.q),"=&j"(r):"j"(k),"j"(a),"j"(negative));
@@ -1909,7 +1909,7 @@ extern "C" void PresetMurrayFlopAccel(struct P *murray)
         __asm__("qmtc2.ni %1,%0":"=j"(kn):"r"(-1.0f));
         __asm__("vmulx.xyzw %0,%1,%2x":"=j"(n):"j"(murray->v190),"j"(kn));
         int bits = ReadFactor();
-        qword d = Sub(n, v);
+        qword d = VuSub(n, v);
         qword up = D_002A2DC0;
         qword projected = Projection(d,up);
         /* Projection has retired vf4; both outputs feed the final scale. */
@@ -2341,7 +2341,6 @@ static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0
 static inline qword FinalLaunchScale(const qword*up,int bits,U*scalar){register qword factor __asm__("vf2"),source __asm__("vf1"),result __asm__("vf3");__asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tvmulx.xyzw %2,%1,%0x\n\tsqc2 %0,%3":"=j"(factor),"=j"(source),"=j"(result),"=m"(scalar->q):"r"(bits),"m"(*up));return result;}
 static inline qword AddScaled(qword a,qword b,qword s,U*u){qword r;u->q=s;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(u->q));return r;}
 static inline qword AddScaledMemory(const U*p,qword b,qword s){qword a,r;__asm__("lqc2 %1,%2\n\tvadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r),"=&j"(a):"m"(p->q),"j"(b),"j"(s));return r;}
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Div(qword v,qword s,U*u){qword r;u->q=s;__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(u->q),"j"(v));return r;}
 static inline void Store(qword*p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
 static inline struct P*CaptureActor(struct P*input){register struct P*output __asm__("$16");__asm__("daddu %0,%1,$zero":"=r"(output):"r"(input));return output;}
@@ -2436,7 +2435,7 @@ void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*du
     __asm__("swc1 %2,%0\n\tqmtc2.ni %3,%1":"=m"(*duration),"=j"(averageScalar):"f"(t),"r"(bits));
     predicted=AddScaled(actualPosition,mean,averageScalar,&u);
   {
-   qword correction=Div(Sub(goal,predicted),qt,&u);
+   qword correction=Div(VuSub(goal,predicted),qt,&u);
    register qword initial __asm__("vf5");register qword final __asm__("vf2");
    __asm__("lqc2 %0,%2\n\tvadd.xyzw %0,%0,%3\n\tvadd.xyzw %1,%4,%3":"=&j"(initial),"=j"(final):"m"(v.q),"j"(correction),"j"(predictedEnd));
    start.q=initial;end=final;
@@ -3022,7 +3021,6 @@ void SetMurrayState(struct P *p, int n);
 qword GetLoWorldPos(void *p);
 qword ConvertVecBetweenLos(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
-static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 /** @sly2-annot addr=0x1B8508
  * Purpose: Square attack: SetMurrayState(11) and SetMurrayAttack kind 0/1 (alternating hand, chosen by side
  *   of target)
@@ -3040,7 +3038,7 @@ void StartMurrayPunch(struct P *murray)
         if (v == murray->x17FC || v == murray->x1804) k = 1;
         else k = 0;
     } else if (murray->interactTarget) {
-        if (GetY(ConvertVecBetweenLos(0, murray, Sub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 0;
+        if (GetY(ConvertVecBetweenLos(0, murray, VuSub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 0;
         else k = 1;
     } else
         k = 1;
@@ -3057,7 +3055,6 @@ void SetMurrayState(struct P *p, int n);
 qword GetLoWorldPos(void *p);
 qword ConvertVecBetweenLos(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
-static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 /** @sly2-annot addr=0x1B85D0
  * Purpose: 0x10-button attack (needs clips x1804/x1808): state 11 with kind 2/3
  * Info: proposed name StartMurrayAltAttack (T1); TU murray
@@ -3077,7 +3074,7 @@ void StartMurrayAltAttack(struct P *murray)
         if (v == murray->x17FC || v == murray->x1804) k = 3;
         else k = 2;
     } else if (murray->interactTarget) {
-        if (GetY(ConvertVecBetweenLos(0, murray, Sub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 2;
+        if (GetY(ConvertVecBetweenLos(0, murray, VuSub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 2;
         else k = 3;
     } else
         k = 3;

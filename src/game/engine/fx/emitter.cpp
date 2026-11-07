@@ -20,6 +20,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/emitter.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
@@ -223,7 +224,6 @@ void *AllocClearedFromWorldHeap(AL *pal);
 extern "C" { extern qword D_002A2DC0; }
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
 static inline void *AllocZeroedFromHeap(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocClearedFromWorldHeap(&al); }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Cross(qword a, qword b)
 {
@@ -278,7 +278,7 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
         pemitmesh->sArea += ptri->sArea;
         qword *apos = pemitmesh->apos;
         qword p0 = apos[ptri->aipos[0]];
-        qword normal = Cross(Sub(apos[ptri->aipos[1]], p0), Sub(apos[ptri->aipos[2]], p0));
+        qword normal = Cross(VuSub(apos[ptri->aipos[1]], p0), VuSub(apos[ptri->aipos[2]], p0));
         for (i = 0; i < 3; i++) {
             qword *pn = &pemitmesh->anormal[ptri->aipos[i]];
             *pn = Add(*pn, normal);
@@ -517,7 +517,6 @@ extern "C" {
 qword GetLoWorldPos(ALO *referenceObject);
 float ModPositive__Fff(float g, float gMod);
 }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float *pdg)
 {
@@ -537,7 +536,7 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
         volatile int unused;
         vecBox.v.z = boxRadius; vecBox.v.y = boxRadius; vecBox.v.x = boxRadius;
         if (pemitter->pemitb->pemito->referenceObject) {
-            posMin.q = Sub(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
+            posMin.q = VuSub(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
             posMax.q = Add(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
         } else {
             qword m, k;
@@ -948,12 +947,6 @@ static inline qword Length(qword a)
         : "=j"(r), "=j"(one) : "j"(a));
     return r;
 }
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline float GClamp(float g, float lo, float hi)
 {
     if (g < lo)
@@ -976,7 +969,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
 {
     float volume = 0.0f;    /* 0 until the sound is set: also the clamp floor and StopSnd's argument */
     VTE *pvte = &so->pvt->a[33];
-    float distance = GetX(Length(Sub(pos, pvte->pfn((char *)so + pvte->d))));
+    float distance = GetX(Length(VuSub(pos, pvte->pfn((char *)so + pvte->d))));
     int shouldWake = RandomFloatInRange__Fff(volume, 3.0f) < dt;
     SND *soundObject;
     float strength, interval;
@@ -1086,7 +1079,6 @@ float RandomFloatInRange__Fff(float gMin, float gMax);
 void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
 MATRIX3 *GetLoWorldMatrix(void *palo);
 }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Cross(qword a, qword b)
 {
@@ -1230,7 +1222,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         *pdir = origin->vector;
         break;
     case EMIT_NORMAL_RADIAL:
-        *pdir = Sub(*ppos, origin->vector);
+        *pdir = VuSub(*ppos, origin->vector);
         break;
     case EMIT_NORMAL_SCREEN: {
         void *reference = emitb->pemito->referenceObject;
@@ -1664,7 +1656,6 @@ static inline qword MulRow(const MATRIX3 &m, qword v)
     return r;
 }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Cross(qword a, qword b)
 {
     qword d;
@@ -1693,7 +1684,7 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *emitb, BUF *gen)
                 ppos = gen->apos;
                 ppos[i] = Add(MulRow(pxf->mat, ppos[i]), pxf->pos);
             }
-            qword d = Sub(gen->apos[i], pxf->pos);
+            qword d = VuSub(gen->apos[i], pxf->pos);
             qword x = Cross(pxf->w, d);
             qword t = Add(MulRow(pxf->mat, gen->av[i]), pxf->v);
             gen->av[i] = Add(t, x);

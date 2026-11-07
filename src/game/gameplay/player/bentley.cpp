@@ -17,6 +17,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/classes.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
 
 // Bentley's state (BENTLEY +0x13D0), switched by SetBentleyState and run by UpdateBentleyStateMachine. Meanings from
 // docs/engine/player.md section 7 except where marked.
@@ -2109,12 +2110,6 @@ struct VU_FLOATM {
     qword q;
     VU_FLOATM(const float &f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "rV"(*(int *)&f)); }
 };
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline qword Dot(qword a, qword b)
 {
     qword r, one;
@@ -2234,10 +2229,10 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     if (py == 0)
         return;
     float maxValue = D_002BC99C * D_002BC99C / D_002BC998 + D_002BC9A0;
-    qword dv = Sub(p->GetVel(), py->GetVel());
+    qword dv = VuSub(p->GetVel(), py->GetVel());
     UQ n;
-    qword d0 = Sub(GetLoWorldPos(s->p), GetLoWorldPos(py));
-    n.q = Sub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
+    qword d0 = VuSub(GetLoWorldPos(s->p), GetLoWorldPos(py));
+    n.q = VuSub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
     qword qlen = Length(n.q);
     SafeDiv(n, qlen, D_002A2DA0);
     qword c = Cross(n.q, dv);
@@ -2252,7 +2247,7 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     M3 mc;
     M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * D_002DDED0.dt);
     mc = m;
-    qword r = DivF(Sub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.dt));
+    qword r = DivF(VuSub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.dt));
     AddSoAcceleration(s->p, LimitVectorLength(r, maxValue));
 }
 } // namespace M_func_00137248

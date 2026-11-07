@@ -21,6 +21,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
+#include "sly2/vu0.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -500,12 +501,6 @@ static inline qword Transform(const struct M4 *m, qword p)
             : "j"(m->r[0]), "j"(m->r[1]), "j"(p), "j"(m->r[2]), "j"(m->r[3]));
     return r;
 }
-static inline qword Sub(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 static inline float Length(qword v)
 {
     qword d, one;
@@ -534,7 +529,7 @@ static inline qword MAdd(qword p, qword v, qword k)
 qword ExpandSphereForProjection(const struct M4 *m, qword p, float *radius)
 {
     U u;
-    qword d = Sub(Transform(m, D_002BE570), p);
+    qword d = VuSub(Transform(m, D_002BE570), p);
     float len = Length(d);
     if (*radius < len) {
         float ratio = (len - *radius) * 0.5f / len;
@@ -1230,12 +1225,6 @@ static inline void CopyMat(MATRIX4 &matDst, const MATRIX4 &matSrc)
 {
     func_0023320C(&matDst, &matSrc, sizeof(MATRIX4));
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
@@ -1269,7 +1258,7 @@ static inline int GetSquaredLengthBits(qword qwV)
 }
 static inline float SqDist(qword qw0, qword qw1)
 {
-    qword qwV = QwSub(qw0, qw1);
+    qword qwV = VuSub(qw0, qw1);
     qword qwSq, qwOne;
     float g;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(qwSq), "=&j"(qwOne) : "j"(qwV));
@@ -1469,7 +1458,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         }
         else
         {
-            dposSub = QwSub(posSub, posCam);
+            dposSub = VuSub(posSub, posCam);
             if (!IsWithinCameraRenderDistance(&D_002DDF40, dposSub, psph->sRange, &gVisSub))
                 continue;
         }
@@ -1746,12 +1735,6 @@ static inline void CopyMat(MATRIX4 &matDst, const MATRIX4 &matSrc)
 {
     func_0023320C(&matDst, &matSrc, sizeof(MATRIX4));
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
@@ -1867,7 +1850,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         if (psub->ppos)
         {
             qword pos = *psub->ppos;
-            dpos = QwSub(pos, GetLoWorldPos(palo));
+            dpos = VuSub(pos, GetLoWorldPos(palo));
         }
         else
         {

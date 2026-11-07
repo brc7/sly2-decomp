@@ -419,7 +419,6 @@ extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->an
 
 struct VU_FLOAT{qword qw;};
 // VU0 helper: vector difference.
-static inline qword VuSubtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: vector sum.
 static inline qword VuSum(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: length of a vector (in x).
@@ -588,9 +587,9 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
             ROW *row = &w.query.row[i];
             qword original = row->point.q;
             qword up = D_002A2DC0;
-            qword delta = VuSubtract(original, w.query.point.q);
+            qword delta = VuSub(original, w.query.point.q);
             qword qwFallback = D_002A2DA0;
-            qword planar = VuSubtract(delta, VuScaleByX(up, VuDotProduct(delta, up)));
+            qword planar = VuSub(delta, VuScaleByX(up, VuDotProduct(delta, up)));
             qword len = VuLength(planar);
             if (VuGetX(len) < 0.0001f)
                 planar = qwFallback;

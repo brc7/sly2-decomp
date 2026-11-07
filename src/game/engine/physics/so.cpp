@@ -25,6 +25,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
+#include "sly2/vu0.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -2837,12 +2838,6 @@ static inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
             : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(*(qword *)pmat->mat[3]), "j"(qwPos));
     return qwResult;
 }
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword QwMin(qword qw0, qword qw1)
 {
     qword qw;
@@ -2868,7 +2863,7 @@ static inline float GLength(qword v)
 }
 static inline float GDistance(const qword &qwA, const qword &qwB)
 {
-    return GLength(QwSub(qwA, qwB));
+    return GLength(VuSub(qwA, qwB));
 }
 // |a - b| with the subtraction inside the dot-product asm (the transformed local points)
 static inline float GDistanceFused(qword qwA, qword qwB)
@@ -3323,7 +3318,6 @@ extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void MulMatrix3Matrix3(M3 *,const M3 *,const M3 *);
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
 extern "C" float ClampAbs__Fff(float,float);
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Add(qword a,qword b){__asm__("vadd.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 // volatile store: the game's later loads (dt, velocity, the epilogue) wait for these sqc2s
 static inline void StoreQ(qword v,U *out){__asm__ __volatile__("sqc2 %1,%0":"=m"(out->q):"j"(v));}
@@ -3381,7 +3375,7 @@ extern "C" void AccelSoTowardMatBounded(P *so,const M3 *orientation,const COEF *
     qword w;
     {qword k=Scalar(desired,&scalar);w=Scale(axis.q,k);StoreQ(w,&wanted);}
     {qword v=owner->velocity;qword k=Scalar(clock->dt,&scalar);predicted.q=AddScaled(v,owner->force,k);}
-    qword cv=Sub(w,predicted.q);
+    qword cv=VuSub(w,predicted.q);
     change.q=cv;
     length=Length(cv);
     if(length<acceleration*clock->dt)gain=1.0f/clock->dt;
@@ -3414,7 +3408,6 @@ extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" M3 MulMatrix3Matrix3(const M3 *,const M3 *);
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
 extern "C" qword ConvertXfVec(OWNER *,OWNER *,qword);
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float Length(qword a){qword d,one;float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"0"(d));
@@ -3450,7 +3443,7 @@ extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qw
     }
     if(d){
         qword transformed=ConvertXfVec(0,owner->parent,velocity);
-        qword direction=Sub(transformed,owner->velocity);
+        qword direction=VuSub(transformed,owner->velocity);
         float length=Length(direction);
         if(0.0001f<length){
             float gain=(d->c*length+d->b)+d->a/length;
@@ -4165,7 +4158,6 @@ static inline qword Step(qword a,qword b,qword s){register qword r __asm__("vf5"
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(s));return r;}
 static inline qword Position(qword p,qword old,qword next,qword half,V *scalar){register qword r __asm__("vf3");
 __asm__("sqc2 %5,%1\n\tvadda.xyzw $ACC,%2,$vf0\n\tvmaddax.xyzw $ACC,%3,%5x\n\tvmaddx.xyzw %0,%4,%5x":"=&j"(r),"=m"(scalar->q):"j"(p),"j"(old),"j"(next),"j"(half));return r;}
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float LengthSquared(qword q){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"j"(q));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
@@ -4206,7 +4198,7 @@ void UpdateSoPartMesh(struct P*so,float dt)
      __asm__("sqc2 %4,%2\n\tlqc2 %0,%3\n\tlw %1,%5":"=j"(force),"=r"(state),"=m"(scalar.q):"m"(*acceleration),"j"(time),"m"(so->state));
      next=Step(old,force,time);
      newpoint=Position(point,old,next,half,&scalar);
-     if(state!=invalid && 1.0f<LengthSquared(Sub(point,newpoint)))so->state=invalid;
+     if(state!=invalid && 1.0f<LengthSquared(VuSub(point,newpoint)))so->state=invalid;
      square=LengthSquared(newpoint);
      *position=newpoint;
      *velocityCursor=next;

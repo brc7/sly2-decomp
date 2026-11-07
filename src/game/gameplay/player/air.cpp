@@ -22,6 +22,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/classes.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -2191,7 +2192,6 @@ static inline VU_FLOAT VuFloatHomed(float g) { union { volatile qword home; } u;
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 
 static inline VU_FLOAT VuFloatMemBits(const float &g) { VU_FLOAT v; __asm__("lw %0,%1" : "=r"(v.q) : "m"(g)); return v; }
-static inline qword SubVec(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword AddScaledVec(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(g.q)); return r; }
 static inline qword AddScaledVec2(qword a, qword b, VU_FLOAT g)
 {
@@ -2328,19 +2328,19 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             if (src->state != 0)
                 continue;
             qword posSrc = GetLoWorldPos(src);
-            if (360000.0f < LengthSqXYOf(SubVec(posSrc, pos.q)))
+            if (360000.0f < LengthSqXYOf(VuSub(posSrc, pos.q)))
                 continue;
             if (GetZ(posSrc) + src->height < pos.f[2])
                 continue;
-            MeasureJtJumpToTarget(p, vel.q, src, SubVec(posSrc, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
+            MeasureJtJumpToTarget(p, vel.q, src, VuSub(posSrc, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
             if (scoreBest < score)
                 continue;
             float alpha, dist;
             U delta;
-            delta.q = SubVec(pos.q, posSrc);
+            delta.q = VuSub(pos.q, posSrc);
             qword v = vel.q;
             U rel;
-            rel.q = SubVec(v, GetVelocity(src));
+            rel.q = VuSub(v, GetVelocity(src));
             U end;
             end.q = AddScaledVec(delta.q, rel.q, VuFloat(MinF(0.25f, t)));
 
@@ -2359,18 +2359,18 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         for (OBJECT *obj = (*(OBJECT * *)&g_sw.dlCid40); obj; obj = obj->next) {
             U posObj;
             posObj.q = GetLoWorldPos(obj);
-            if (D_002BF840 * D_002BF840 < LengthSqXYOfGpr(SubVec(pos.q, posObj.q)))
+            if (D_002BF840 * D_002BF840 < LengthSqXYOfGpr(VuSub(pos.q, posObj.q)))
                 continue;
-            MeasureJtJumpToTarget(p, vel.q, obj, SubVec(posObj.q, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
+            MeasureJtJumpToTarget(p, vel.q, obj, VuSub(posObj.q, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
             if (scoreBest < score)
                 continue;
             float alpha, dist;
             U velObj;
             velObj.q = GetXfVelocity(GetFrame(obj), 0, posObj.q);
             U delta;
-            delta.q = SubVec(pos.q, posObj.q);
+            delta.q = VuSub(pos.q, posObj.q);
             U rel;
-            rel.q = SubVec(vel.q, velObj.q);
+            rel.q = VuSub(vel.q, velObj.q);
             U end;
             end.q = AddScaledVec(delta.q, rel.q, VuFloat(MinF(0.25f, t)));
 
@@ -2409,7 +2409,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
 
     switch (p->mode) {
     case 6: case 8:
-        point.q = SubVec(GetLoWorldPos(p->source), p->actor->offset.q);
+        point.q = VuSub(GetLoWorldPos(p->source), p->actor->offset.q);
     predict: {
         BODY *body = p->actor->body;
         float dt = body->deadline - D_002DDED0.t;
@@ -2519,7 +2519,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             target.q = GetLoWorldPos(p->source);
         if (p->actor != D_002E1E40)
             UpdateJtHands(&AsStepplayer(p->actor)->jtgrab.hands);
-        SetStepTargetHeadingFromVector(p->actor, SubVec(target.q, pos.q));
+        SetStepTargetHeadingFromVector(p->actor, VuSub(target.q, pos.q));
         heading = p->actor->heading;
         break;
     }
@@ -2537,8 +2537,8 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         qword up = D_002A2DC0;
         qword a = vel.q;
         qword b = p->actor->velocity.q;
-        a = SubVec(a, ScaleVecByVec(up, DotVec(a, up)));
-        b = SubVec(b, ScaleVecByVec(up, DotVec(b, up)));
+        a = VuSub(a, ScaleVecByVec(up, DotVec(a, up)));
+        b = VuSub(b, ScaleVecByVec(up, DotVec(b, up)));
         basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, CombineVec(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
@@ -2796,7 +2796,6 @@ struct GEO {int n;VECTOR *points;int k;FACE *faces;};
 struct SO {char pad[0x90];GEO geom;};
 struct EDGE {unsigned short a,b,faceA,faceB;};
 extern "C" { extern qword D_002A2DA0; }
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline void Normal(VECTOR*v,qword fallback){qword a=v->q;register qword d __asm__("vf1");qword one;float g;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));if(g<0.0001f){a=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q":"=j"(a):"j"(d),"0"(a));}v->q=a;}
 static inline float Dot(qword a,qword b){qword d,one;float g;__asm__("vmul.xyz %0,%3,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"0"(b),"j"(a));__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));return g;}
 static inline qword Scale(qword a,float f,VECTOR&k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k.q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(q));return r;}
@@ -2823,7 +2822,7 @@ extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SO *so, ED
         chosen = a;
     else
         return 0;
-    d.q = Sub(geom->points[e->b].q, geom->points[e->a].q);
+    d.q = VuSub(geom->points[e->b].q, geom->points[e->a].q);
     r.n[2] = 0;
     r.f[1] = d.f[0];
     r.f[0] = -d.f[1];
@@ -4361,7 +4360,6 @@ float atan2f(float y, float x);                                 // atan2f
 void SetJtAirState(JTAIR *pjtair, int nKind, void *plo);
 }
 
-static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float LengthSquared(qword v)
 {
@@ -4499,7 +4497,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (phook != forcedTarget) {
                 if (phook->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
-                if (1000000.0f < LengthSquared(Sub(posHook, pos.q)))
+                if (1000000.0f < LengthSquared(VuSub(posHook, pos.q)))
                     continue;
             }
             OBJCTX ctx;
@@ -4531,7 +4529,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (pmesh != forcedTarget) {
                 if (pmesh->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
-                if (1000.0f < Length(Sub(posTarget.q, pos.q)))
+                if (1000.0f < Length(VuSub(posTarget.q, pos.q)))
                     continue;
             }
             TRI triHit;
@@ -4601,7 +4599,7 @@ LPartnerDone:
         if (curve != forcedTarget) {
             if (curve->sHeight < pos.f[2] - posTarget.f[2])
                 continue;
-            if (1000.0f < Length(Sub(posTarget.q, pos.q)))
+            if (1000.0f < Length(VuSub(posTarget.q, pos.q)))
                 continue;
         }
         PAIR pair;
@@ -4646,7 +4644,7 @@ LPartnerDone:
         OBJCTX ctx;
         VECTOR dpos;
         float u;
-        dpos.q = Sub(pos.q, posShape);
+        dpos.q = VuSub(pos.q, posShape);
         ctx.v = v.q;
         ctx.pjtair = air;
         ctx.plo = shape;
@@ -4744,7 +4742,7 @@ LPartnerDone:
         return;
     XF *xf = air->pstepplayer->pxf;
     xf->tGoal = D_002DDED0.t + tBest;
-    xf->posGoal = Sub(posBest.q, air->pstepplayer->qwUnk240);
+    xf->posGoal = VuSub(posBest.q, air->pstepplayer->qwUnk240);
     xf->vGoal = vBest.q;
     air->uTarget = uBest;
     air->sTarget = sBest;

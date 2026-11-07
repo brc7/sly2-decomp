@@ -28,6 +28,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
 
 /* A relay's running job-sequence instance (0xF0, slot heap g_sw.slotheapJsg; NewRelayJsg builds it by hand): a BASIC with its
    own reference count and message handler, vtable 0x2D8C08 (BASIC's class descriptor in slot 6, so not the registry's
@@ -2809,12 +2810,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     return v;
 }
 // Vector difference.
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 // Vector sum.
 static inline qword QwAdd(qword qw0, qword qw1)
 {
@@ -3219,7 +3214,7 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)51))
         {
             STEP *pstep = (STEP *)script->ploActor;
-            pstep->TranslateToPos(QwSub(*(qword *)&pos, pstep->qwUnk240));
+            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->qwUnk240));
             SetStepRadTarget(pstep, rad);
         }
         else
@@ -3376,7 +3371,7 @@ void NextJsgCommand(JSGV *script)
             {
                 CM *pcm = &D_002DDF40;
                 qword qwCm = *(qword *)&pcm->pos;
-                SetStepRadTowardDir(pstep, QwSub(qwCm, PosLoWorld(pstep)));
+                SetStepRadTowardDir(pstep, VuSub(qwCm, PosLoWorld(pstep)));
                 ploDir = 0;
             }
             else
@@ -4041,12 +4036,6 @@ extern "C" { extern SW D_003DD490; }
 
 
 // Vector difference.
-static inline qword QwSub(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 // Lane x of a VU register as a float.
 static inline float GFromVf(qword qw)
 {
@@ -4305,7 +4294,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 qword pos;
                 GetJsgLocation(script, plo, &pos, 0);
-                fComplete = GLengthXY(QwSub(PosLoWorld(pjt), pos)) < prelaycmd->goTo.gArrive;
+                fComplete = GLengthXY(VuSub(PosLoWorld(pjt), pos)) < prelaycmd->goTo.gArrive;
                 SetJtGoalPos(&((STEPPLAYER *)pjt)->jtgoal, pos);
             }
             else
@@ -4381,7 +4370,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 VECTOR4 pos;
                 GetJsgLocation(script, plo, (qword *)&pos, 0);
-                fComplete = GLengthXY(QwSub(PosLoWorld(pstepplayer), *(qword *)&pos)) < prelaycmd->stepCmd29.gArrive;
+                fComplete = GLengthXY(VuSub(PosLoWorld(pstepplayer), *(qword *)&pos)) < prelaycmd->stepCmd29.gArrive;
             }
             else
             {
@@ -4776,7 +4765,6 @@ void UpdatePoctlPressed(OUTPUT*);
 int AreFloatsNear__Ffff(float,float,float);
 }
 // Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 static inline float X(qword a){float r;__asm__("mtc1 %1,%0":"=f"(r):"r"(a));return r;}
 static inline float Y(qword a){float r;__asm__("prot3w %0,%1":"=r"(r):"r"(a));return r;}
@@ -4860,7 +4848,7 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
   EvaluateShapeAtDistance(actor->curve,&work.from.q,0,t);
   t=ClampShapeDistance(actor->curve,actor->curveTime-50.0f);
   EvaluateShapeAtDistance(actor->curve,&work.to.q,0,t);
-  qword direction=GetPoctlLateralVector(out,Sub(work.from.q,work.to.q));
+  qword direction=GetPoctlLateralVector(out,VuSub(work.from.q,work.to.q));
   float x=X(direction),y=Y(direction);
   out->heading=atan2f(y,x);out->x=x;out->y=y;
   if(actor->curve->cyclic){

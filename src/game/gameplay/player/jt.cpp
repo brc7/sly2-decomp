@@ -27,6 +27,7 @@
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
 
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
@@ -699,7 +700,6 @@ struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword AddVec(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword SubVec(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ScaleVecX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword DivVec(qword a,VU_FLOAT g){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline float LaneZ(qword a){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(a));return f;}
@@ -748,7 +748,7 @@ extern "C" void PresetJtAccel(P *jt)
             w.b.f[2] = w.a.f[2];
         AddSoAcceleration(
             jt,
-            LimitVectorLength(DivVec(SubVec(w.b.q, w.a.q), VuFloatFromMemWord(*(int *)&D_002DDED0.dt)), D_002BF288));
+            LimitVectorLength(DivVec(VuSub(w.b.q, w.a.q), VuFloatFromMemWord(*(int *)&D_002DDED0.dt)), D_002BF288));
         break;
     }
     case 24:
@@ -772,7 +772,7 @@ extern "C" void PresetJtAccel(P *jt)
             M3 rotation;
             rotation = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
             qword sum = AddVec(w.a.q, w.b.q);
-            qword moved = SubVec(RotateVecAt(&rotation, &sum), position);
+            qword moved = VuSub(RotateVecAt(&rotation, &sum), position);
             qword velocity = DivVec(moved, VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
             AddSoAcceleration(jt, LimitVectorLength(ProjectOutVec(velocity, D_002A2DC0), D_002BF28C));
         }
@@ -885,7 +885,6 @@ struct PO { char pad[0xC]; struct VT *pvt; };
 struct E { char pad[0xC]; struct PO *po; qword v10; qword v20; qword v30; };
 extern void AdjustStepXpVelocity(void *p, struct E *ae, int i);
 extern qword GetLoWorldPos(void *p);
-static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VCross(qword a, qword b)
 {
     qword r;
@@ -913,7 +912,7 @@ void AdjustJtXpVelocity(void *p, struct E *ae, int i)
     qword v = pe->v30;
     qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
     qword x = pe->v10;
-    pe->v30 = VSub(v, VCross(w, VSub(x, GetLoWorldPos(object))));
+    pe->v30 = VuSub(v, VCross(w, VuSub(x, GetLoWorldPos(object))));
 }
 } } // namespace M_func_00188E78
 
@@ -1287,12 +1286,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline float LaneX(qword qw)
 {
     float g;
@@ -1468,7 +1461,7 @@ void UpdateJtLean(JT *jt)
                     }
                     EvaluateShapeAtDistance(shape, sAhead, 0, (qword *)&vecDir);
                     *(qword *)&vecLocal = ScaleVec(NormalizeVec(*(qword *)&vecDir), VuFloat(gSpeed));
-                    *(qword *)&vecDv = SubVec(*(qword *)&vecLocal, *(qword *)&vecLean);
+                    *(qword *)&vecDv = VuSub(*(qword *)&vecLocal, *(qword *)&vecLean);
                     if (jt->jtgrab.pasegblC) {
                         VECTOR4 vecAcross;
                         *(qword *)&vecAcross = NormalizeVecViaDot(CrossVec(D_002A2DC0, *(qword *)&vecDir));
@@ -1593,12 +1586,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword AddVec(qword qw0, qword qw1)
 {
     qword qw;
@@ -1665,7 +1652,7 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     MATRIX4 matIkh;
     PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
     qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
-    qword posSphereCenter = AddVec(*(qword *)matHip.mat[3], SubVec(posExtrem, posIkh));
+    qword posSphereCenter = AddVec(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
     pxmg->posSphere = posSphereCenter;
     pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sUpper + ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sLower + 10.0f;
     VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
@@ -1701,7 +1688,6 @@ int TryMatchJtXmg(O *p, M *pm, void *px);
 }
 static inline qword VMin(qword a, qword b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VMax(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x189EC8
  * Purpose: Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target
  * Info: proposed name TryMatchJtXmg (T1); TU jt
@@ -1728,10 +1714,10 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
              FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
-            hit.v0 = VSub(hit.v0, D_002A2DC0);
+            hit.v0 = VuSub(hit.v0, D_002A2DC0);
             w = ConvertPosBetweenLos(0, jt, hit.v0);
             u.q = w;
-            SetActRotationGoal(px, VSub(w, pm->v10));
+            SetActRotationGoal(px, VuSub(w, pm->v10));
             return 1;
         } else {
             SetActRotationGoal(px, D_002A2DD0);
@@ -2238,12 +2224,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline qword DotVec(qword a, qword b)
 {
     qword qw;
@@ -2589,7 +2569,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                             mat = LoadRotateMatrixRad(jt->gUnk1f94 * D_002BF364, D_002A2DA0);
                             *(qword *)&vTarget = TransformPos(jt->phndHang->PmatWorld(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
-                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), SubVec(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->psophys->dvGravity);
+                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->psophys->dvGravity);
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->gUnk1f98);
                         jt->SetVelocity(ScaleVecX(velocity, scale));
                         SetJtAirJump(&jt->jtair, 0xC, 0, 0);
@@ -3684,12 +3664,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline float LaneZ(qword qw)
 {
     float z;
@@ -4109,7 +4083,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 tStart = 0.5f;
                 AddXfAct(jt, (XF *)jt->precUnk19c0, (ACT *)jt->nUnk1a00);
                 qword posHand = PosLoWorld(jt->psoUnk19a4);
-                jt->janim.dposHang = SubVec(posHand, GetJtHangHandlePosition(jt));
+                jt->janim.dposHang = VuSub(posHand, GetJtHangHandlePosition(jt));
                 UpdateJtHangPlace(jt);
                 jt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
                 SubscribeLoObject(jt->phndHang, jt);
@@ -4216,7 +4190,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     aseg = jt->pasegUnk1d1c;
                     qword targetPos = PosLoWorld(jt->ploInteract);
                     float gZero = 0.0f;
-                    qword dpos = SubVec(targetPos, PosLoWorld(jt));
+                    qword dpos = VuSub(targetPos, PosLoWorld(jt));
                     SetStepTargetHeadingFromVector(jt, ScaleVec(dpos, VuFloat(-1.0f)));
                     FixStepAngularVelocity(jt);
                     float tLabel = TFindAsegLabel(aseg, (OID)0x173);
@@ -4224,8 +4198,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->psoUnk19a4->pxfRoot, jt->pxfRoot, &matHand, 0);
                     tLabel /= aseg->svtMaster;
                     qword posHold = PosLoWorld(jt->ploInteract);
-                    qword posAim = SubVec(AdvancePos(VuFloatBits(tLabel), posHold, jt->ploInteract->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
-                    *(qword *)&jt->vUnk190 = DivVec(SubVec(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
+                    qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->ploInteract->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
+                    *(qword *)&jt->vUnk190 = DivVec(VuSub(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
                     jt->vUnk190.z = gZero;
                     jt->SetVelocity(*(qword *)&jt->vUnk190);
                 }
@@ -5235,7 +5209,6 @@ extern struct CLOCK D_002DDED0;
 extern float D_002BF414;
 extern char D_002BF418[];
 extern qword D_002A2DA0;
-static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -5260,7 +5233,7 @@ void UpdateJtFaceTarget(struct O *jt)
     qword d, l, s, r;
     float gl, gLen;
     qword *pk;
-    d = VSub(GetLoWorldPos(jt->interactTarget), GetLoWorldPos(jt));
+    d = VuSub(GetLoWorldPos(jt->interactTarget), GetLoWorldPos(jt));
     pk = &D_002A2DA0;
     l = VLen(d);
     n.q = d;

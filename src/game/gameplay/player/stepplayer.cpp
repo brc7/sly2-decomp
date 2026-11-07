@@ -24,6 +24,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -902,12 +903,6 @@ static inline void *NextDliItem(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-static inline qword SubVec(qword a, qword b)
-{
-    qword r;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-    return r;
-}
 
 /** @sly2-annot addr=0x140F90
  * Purpose: STEPPLAYER vt5 message handler (msg 3 reset, msg 9 subkinds
@@ -976,7 +971,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         case 0x162: {
             qword v = F(qword, player, 0x1060);
             F(int, player, 0x1044) = 0;
-            F(qword, player, 0x1070) = SubVec(v, GetLoWorldPos(player));
+            F(qword, player, 0x1070) = VuSub(v, GetLoWorldPos(player));
             F(int, player, 0x1078) = 0;
             break;
         }
@@ -2240,12 +2235,6 @@ struct LOREF
       LO *plo;
       undefined4 unk_0x04;
 };
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline float LaneX(qword qw)
 {
     float g;
@@ -2274,7 +2263,7 @@ extern "C" { extern LM D_002BBB60; }
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
-    r.qw = SubVec(a, b);
+    r.qw = VuSub(a, b);
     return r;
 }
 static inline qword LengthXYInX2(qword v)

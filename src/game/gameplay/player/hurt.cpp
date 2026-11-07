@@ -20,6 +20,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
+#include "sly2/vu0.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -1455,7 +1456,6 @@ void AddSoAcceleration(struct P *p,qword v);
 static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
 static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
 static inline qword Add(qword a,qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
-static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
 static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v),"j"(k));return r; }
 /** @sly2-annot addr=0x1A28B0
@@ -1487,7 +1487,7 @@ void ResolveStepplayerWaterContact(struct P *player,void *o)
   v=GetVel(player);
   vel.q=v;
   v=Add(v,local.q);
-  v=Sub(v,dir.q);
+  v=VuSub(v,dir.q);
   k=Broadcast(*(int *)&player->alpha10A4);
   bcast.q=k;
   v=Scale(v,k);

@@ -27,6 +27,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
 #include "player_input.h"
+#include "sly2/vu0.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -522,7 +523,6 @@ static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" :
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in ClipCameraEye).
 static inline VU_FLOAT VuFloat(const float *pg) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)pg)); return v; }
 static inline qword AddVec(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword SubVec(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 // a * g0 + b * g1
 static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
@@ -540,7 +540,7 @@ static inline float LengthOf(const qword &v)
     return LaneX(qw);
 }
 static inline int Min(int a, int b) { return a < b ? a : b; }
-static inline int IsWithinDistance(qword a, qword b, float s) { return LengthOf(SubVec(a, b)) < s; }
+static inline int IsWithinDistance(qword a, qword b, float s) { return LengthOf(VuSub(a, b)) < s; }
 
 static inline void ProbeGround(CONTEXT *p)
 {
@@ -573,7 +573,7 @@ static inline void ProbeGround(CONTEXT *p)
     cbspMax = Min(cbspMax, 0x1555);
     BSP *absp = (BSP *)AllocStack(cbspMax * sizeof(BSP));
     qword posMid = CombineVec(posMin, posMax, VuFloat(0.5f), VuFloat(0.5f));
-    float sRadius = LengthOf(SubVec(posMid, posMin));
+    float sRadius = LengthOf(VuSub(posMid, posMin));
     for (i = 0; i < cso; i++) {
         SO *so = apso[i];
         XP *xp = 0;
@@ -1462,7 +1462,6 @@ static inline void SetX(float *pg, qword q) { __asm__("sw %1,%0" : "=m"(*pg) : "
 static inline float GetY(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f; }
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
-static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // a + b * g
 static inline qword AddScaled(qword a, qword b, VU_FLOAT g)
 {
@@ -1590,7 +1589,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             SOURCE *source = grab->focus;
             if (source->other) {
                 qword pos = GetLoWorldPos(source->other);
-                SetVector(grab->pactor, 29, Sub(pos, grab->pactor->posOffset));
+                SetVector(grab->pactor, 29, VuSub(pos, grab->pactor->posOffset));
                 grab->pactor->motion = AddScaled(pos, D_002A2DC0, VuFloat(grab->pactor->height));
                 SetStepTargetHeadingFromVector(grab->pactor, GetLoWorldMatrix(source->other)->row[0]);
                 SetPointer(grab->pactor, 30, grab->pactor->local);
@@ -1939,7 +1938,6 @@ qword SetVectorCylind(float,float,float);
 float GetShapeDistanceAtParam(struct CURVE*,float);
 float GetShapeMaxDistance(struct CURVE*);
 float SmoothValue__FfffP3SMPPf(float,float,float,struct SMP*,float*);
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Reject(qword a,qword n){register qword d __asm__("vf2");qword one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"0"(d));return d;}
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");register qword one __asm__("vf4");float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 static inline float Dot(qword a,qword b){qword d=b,one;float f;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a),"0"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
@@ -1977,7 +1975,7 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     (void)SmoothValue__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, D_002DDED0.dt, &smp, &high);
     {
         float hi = high;
-        *outPos = Sub(pos.q, p->o->pos);
+        *outPos = VuSub(pos.q, p->o->pos);
         {
             float g;
             if (dot < low)
@@ -2591,12 +2589,6 @@ extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPv
 
 
 
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline float LaneX(qword qw)
 {
     float g;
@@ -2630,7 +2622,7 @@ extern "C" { extern int D_002E1E4C; }   // C symbol: this view has no extern "C"
 extern "C" { extern float D_002BF664; }
 static inline int IsBeyondBusyRadius(LO *lo, qword pos)
 {
-    qword qwDiff = SubVec(PosLoWorld(lo), pos);
+    qword qwDiff = VuSub(PosLoWorld(lo), pos);
     return lo->sBusy * lo->sBusy < LaneX(DotVec(qwDiff, qwDiff));
 }
 static inline void ZeroJtGrabCand(JTGRABCAND *candidate)
@@ -2691,7 +2683,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     spot->GetClosestParam((JT *)player, &cand.sParam);
     spot->GetPos(cand.sParam, (JT *)player, (VECTOR *)&cand.qwPos, 0);
     cand.nPriority = spot->nPriority;
-    cand.sDist = LengthOf(SubVec(qwPosJt, cand.qwPos));
+    cand.sDist = LengthOf(VuSub(qwPosJt, cand.qwPos));
     spot->AdjustDist(&cand.sDist);
     if (cand.sDist > D_002BF664)
         return;
@@ -2787,12 +2779,6 @@ extern "C" { extern SW D_003DD490; }
 
 
 PROXY *PproxyFromLo(LO *plo) __asm__("GetProxyCopyValue");
-static inline qword SubVec(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 static inline float LaneX(qword qw)
 {
     float g;
@@ -2924,7 +2910,7 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     int fFar;
     if (pswG->cjtgrabcand == 0)
         idHint = -1;
-    else if (fFar = D_002BF660 < LengthOf(SubVec(qwPosJt, pswG->ajtgrabcand[0].qwPos)), fFar)
+    else if (fFar = D_002BF660 < LengthOf(VuSub(qwPosJt, pswG->ajtgrabcand[0].qwPos)), fFar)
         idHint = -1;
     else
     {

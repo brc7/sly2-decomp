@@ -18,6 +18,7 @@
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/vu0.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -1196,7 +1197,6 @@ void HasCameraBsp(void);
 void SvSquishCmEyeConstraint(void);
 qword ClipCameraEye(void *p, qword pos, qword posTarget);
 }
-static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword DivideBy(const qword &v, const VU_FLOAT &g) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 static inline qword AddScaled(qword base, const qword &vec, const VU_FLOAT &s)
@@ -1220,7 +1220,7 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
 {
     CLOCK *pclock = &D_002DDED0;
     int ii, jj;
-    qword dpos = Sub(posTarget, pos);
+    qword dpos = VuSub(posTarget, pos);
     qword v = DivideBy(dpos, VU_FLOAT(&pclock->dtPrev));
     qword posMin = Add(pos, D_002BD8F0);
     qword posMax = Add(pos, D_002BD900);
