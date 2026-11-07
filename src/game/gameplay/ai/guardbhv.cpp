@@ -1741,20 +1741,19 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
 
 // 0x176B80 InflictBhvguardZap
 namespace M_InflictBhvguardZap { extern "C" {
-struct F; struct S;
-struct F { int source; int pad; int target; int kind; int amount; int pad2[0x13]; };
-struct S { char pad[0x10]; int guard; };
+struct F; 
+struct F { int source; int pad; void *target; int kind; int amount; int pad2[0x13]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void DeliverZapToSo(struct F *pf);
 // 0x176B80: Inflicts a zap of kind 0x40000 and `amount` on the guard from `source`.
-void InflictBhvguardZap(struct S *behavior, int amount, int source)
+void InflictBhvguardZap(BHVGUARD *behavior, int amount, int source)
 {
     struct F f;
     func_002333B4(&f, 0, sizeof(f));
     f.source = source;
     f.amount = amount;
     f.kind = 0x40000;
-    f.target = behavior->guard;
+    f.target = behavior->owner;
     DeliverZapToSo(&f);
 }
 } } // namespace M_InflictBhvguardZap
