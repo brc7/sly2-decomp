@@ -1428,21 +1428,12 @@ int RenderRipAtPose(S *p, qword pos, const M3 &mat)
 }
 } // namespace M_RenderRipAtPose
 
-namespace M_RenderRip {
-typedef int qword __attribute__((mode(TI)));
-struct M { qword a, b, c; };
-struct S { char pad[0x40]; M orientation; qword position; };   /* RIP */
-extern "C" {
-int RenderRipAtPose(S *p, qword q, M m);
-void RemoveRip__FP3RIP(S *p);
-void RenderRip(S *p);
-}
+extern "C" int RenderRipAtPose(RIP *p, qword q, RIPM3 m);   /* the matrix by value: a copy (the definition takes a reference) */
 // RIP default Render (vt entry 6): RenderRipAtPose, else RemoveRip.
-void RenderRip(S *p)
+void RIP::Render()
 {
-    if (!RenderRipAtPose(p, p->position, p->orientation)) RemoveRip__FP3RIP(p);
+    if (!RenderRipAtPose(this, currentPosition, orientation)) RemoveRip(this);
 }
-} // namespace M_RenderRip
 
 // RIP default OnRemove (vt entry 3): empty. (inferred)
 extern "C" void OnRipRemove(RIP *prip)
@@ -1467,36 +1458,25 @@ extern "C" int GetMaxRipSize()
     return 0x110;
 }
 
-namespace M_PostFlyingEmit { extern "C" {
-struct B { int reference, shape, render, nextRender; };   /* EMITB+0x08: the resolved objects */
-struct S { int rip[2]; struct B *pb; char pad[0xE4]; int stuckVisual; int facesCamera; };   /* the rip (+0xF0) and the EMITB (+0xF0) */
-void PostRipEmit(struct S *rip, struct S *emitb);
 // FLYING (RIPT 3) PostEmit: base PostRipEmit, then the object it becomes when it sticks (the EMITB's next-render
 // object) and its camera-facing flag.
-void PostFlyingEmit(struct S *rip, struct S *emitb)
+void FLYING::PostEmit(EMITB *pemitb)
 {
-    PostRipEmit(rip, emitb);
-    rip->stuckVisual = emitb->pb->nextRender;
-    rip->facesCamera = emitb->stuckVisual;   /* EMITB+0xF0 */
+    RIP::PostEmit(pemitb);
+    ploStuckRender = pemitb->aploRef[EMITREF_RenderNext];
+    facesCamera = pemitb->v.u.n;   /* EMITB+0xF0 */
 }
-} } // namespace M_PostFlyingEmit
 
-namespace M_RenderFlying {
-typedef int qword __attribute__((mode(TI)));
-struct M { qword a, b, c; };
-struct S { char pad[0x70]; qword position; char p1[0x90 - 0x80]; qword velocity; char p2[0xF4 - 0xA0]; int facesCamera; };
-extern "C" { extern qword D_002A2DC0; }
 extern "C" {
-M BuildOrthonormalMatrixZ(qword a, qword b);
-int RenderRipAtPose(S *p, qword q, M m);
-void RenderFlying(S *p);
+extern qword D_002A2DC0;
+RIPM3 BuildOrthonormalMatrixZ(qword a, qword b);
 }
 // FLYING Render: oriented along its velocity, with "up" toward the camera (facesCamera) or world +z.
-void RenderFlying(S *p)
+void FLYING::Render()
 {
     qword v;
-    M m;
-    if (p->facesCamera) {
+    RIPM3 m;
+    if (facesCamera) {
         union { qword q; float f; } s; qword k;
         __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-1.0f));
         s.q = k;
@@ -1504,10 +1484,9 @@ void RenderFlying(S *p)
     } else {
         v = D_002A2DC0;
     }
-    m = BuildOrthonormalMatrixZ(p->velocity, v);
-    RenderRipAtPose(p, p->position, m);
+    m = BuildOrthonormalMatrixZ(velocity, v);
+    RenderRipAtPose(this, currentPosition, m);
 }
-} // namespace M_RenderFlying
 
 namespace M_CreateStuck {
 // Emit an oriented particle in the supplied parent space.

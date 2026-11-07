@@ -76,6 +76,7 @@ struct RIPF : RIP
 struct FLYING : RIP   /* RIPT 3 */
 {
     LO *ploStuckRender;        /* +0xF0 what it becomes when it sticks (the EMITB's next-render object) */
+    int facesCamera;           /* +0xF4 oriented with "up" toward the camera, not world +z (the EMITB's payload word) */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
     virtual void PostEmit(EMITB *pemitb) __asm__("PostFlyingEmit");
     virtual void Render() __asm__("RenderFlying");
