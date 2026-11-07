@@ -56,7 +56,7 @@ struct JOB : public LO
       TASK *ptaskStart;     /* +0x64 [R] first task of the job */
       TASK *ptaskEnd;       /* +0x68 [R] final task (game.cpp IsJobComplete tests it) */
       int labelNameId;      /* +0x6C [S] name-plate string id, -1 none (waypoint.cpp) */
-      int unknown70;        /* +0x70 [S] (game.cpp) */
+      int descriptionTextId; /* +0x70 [S] description string id, -1 none (screen.cpp BuildJobDescriptionText) */
       int survivesSafehouse; /* +0x74 [S] non-zero: entering the safehouse does not fail the job (tu_1D7238 SetCharSelectState; inferred) */
       int fReplay;          /* +0x78 [S] (inferred) a replay: finishing skips the end task's completion and the autosave */
       int cStart;           /* +0x7C [R] times the job was started (ram_inspector "count") */

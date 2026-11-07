@@ -732,7 +732,7 @@ void JOB::Init()
     job->easeStartTime = 480.0f;
     job->easeEndTime = 720.0f;
     job->labelNameId = -1;
-    job->unknown70 = -1;
+    job->descriptionTextId = -1;
     job->completionWidgetOid = -1;
     job->introLabel = -1;
     job->outroLabel = -1;
