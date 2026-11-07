@@ -737,7 +737,7 @@ extern "C" void CBinaryInputStream_ReadStringSw(CBinaryInputStream *stream, char
         *outString = 0;
         return;
     }
-    pchz = (char *)heap->PvAlloc(cch + 1, alignment);
+    pchz = (char *)heap->Alloc(cch + 1, alignment);
     stream->Read(cch, pchz);
     pchz[cch] = 0;
     *outString = pchz;

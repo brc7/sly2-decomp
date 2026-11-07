@@ -22,14 +22,14 @@ typedef char CByteQueue_Size[sizeof(CByteQueue)==0x20?1:-1];
 /* The byte queues' output (no vtable of its own in the ELF: nothing defines its virtuals). */
 class CQueueOutput {
 public:
-    virtual int CbWrite(int cb, char *pb);   /* slot 1 */
-    virtual int FAsyncDrain();               /* slot 2 */
+    virtual int WriteBytes(int cb, char *pb);   /* slot 1 */
+    virtual int IsAsyncDrain();               /* slot 2 */
 };
 /* The audio output to the IOP (0x30; the vptr at +0). Defined before CQueueOutputIpu, whose vtable comes out first. */
 class CQueueOutputIop : public CQueueOutput {
 public:
-    virtual int FAsyncDrain();   /* key function: CQueueOutputIop's vtable comes out here */
-    virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIop_WriteBytes");
+    virtual int IsAsyncDrain();   /* key function: CQueueOutputIop's vtable comes out here */
+    virtual int WriteBytes(int cb, char *pb) __asm__("CQueueOutputIop_WriteBytes");
     int format;                 /* 0x10: ADPCM (interleaved per channel), else PCM */
     int sampleRate;             /* (inferred: passed on to snd_StartMovieSound) */
     int channelCount;
@@ -45,8 +45,8 @@ typedef char CQueueOutputIop_Size[sizeof(CQueueOutputIop)==0x30?1:-1];
 /* The video output to the IPU (FeedMpegVideoDecoder's local, built by hand). */
 class CQueueOutputIpu : public CQueueOutput {
 public:
-    virtual int FAsyncDrain();   /* key function: CQueueOutputIpu's vtable comes out here */
-    virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIpu_WriteBytes");
+    virtual int IsAsyncDrain();   /* key function: CQueueOutputIpu's vtable comes out here */
+    virtual int WriteBytes(int cb, char *pb) __asm__("CQueueOutputIpu_WriteBytes");
 };
 /* The audio stream header record. */
 struct MPEGAUDIOREC { int a[2]; int format, sampleRate, channelCount, interleave; int pad[4]; };
@@ -410,7 +410,7 @@ void CQueueOutputIop_Update(CQueueOutputIop *queue)
 }
 
 // CQueueOutputIop: no asynchronous drain (returns 0).
-int CQueueOutputIop::FAsyncDrain() {   /* key function */
+int CQueueOutputIop::IsAsyncDrain() {   /* key function */
     return 0;
 }
 
@@ -427,7 +427,7 @@ extern "C" int CQueueOutputIpu_WriteBytes(void *p, unsigned int cb, unsigned int
 }
 
 // CQueueOutputIpu: drains asynchronously (returns 1).
-int CQueueOutputIpu::FAsyncDrain() {   /* key function */
+int CQueueOutputIpu::IsAsyncDrain() {   /* key function */
     return 1;
 }
 
