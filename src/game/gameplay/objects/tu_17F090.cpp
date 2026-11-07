@@ -1103,12 +1103,10 @@ extern "C" void PostHacklockLoad(HACKLOCK *lock)
 
 namespace M_func_00181478 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O : PO { char pad180[0x1C0 - 0x180]; int state; int stateTime; void *ship; void *triggerObject; };
-extern void UpdateSo(struct O *p);
-extern qword GetLoWorldPos(void *p);
-extern int IsHackAnimDone(struct O *p);
-extern void SetHacklockState(struct O *p, int n);
-extern void *D_002DFB80;
+extern void UpdateSo(SO *pso);
+extern qword GetLoWorldPos(LO *plo);
+extern int IsHackAnimDone(HACK *hack);
+extern void SetHacklockState(HACKLOCK *lock, int n);
 extern float D_002BE880;
 // Distance between two points.
 static __inline__ float GDist(qword a, qword b)
@@ -1129,8 +1127,9 @@ static __inline__ int FClose(float g)
     if (g < D_002BE880) {} else f = 0;
     return f;
 }
-// vtable slot 16: UpdateSo; state 0 waits on the CID 0x48 singleton D_002DFB80, then state/anim progression. (inferred)
-void UpdateHacklock(struct O *lock)
+// vtable slot 16: UpdateSo; state 0 waits for the ship singleton D_002DFB80 to come close to the trigger object,
+// then state/anim progression. (inferred)
+void UpdateHacklock(HACKLOCK *lock)
 {
     int s;
     UpdateSo(lock);
@@ -1139,8 +1138,8 @@ void UpdateHacklock(struct O *lock)
         switch (s) {
         case 0:
             if (D_002DFB80) {
-                if (FClose(GDist(GetLoWorldPos(D_002DFB80), GetLoWorldPos(lock->triggerObject)))) {
-                    lock->ship = D_002DFB80;
+                if (FClose(GDist(GetLoWorldPos(D_002DFB80), GetLoWorldPos(lock->ploTrigger)))) {
+                    lock->pship = D_002DFB80;
                     SetHacklockState(lock, 1);
                 }
             }
@@ -1155,17 +1154,14 @@ void UpdateHacklock(struct O *lock)
 } } // namespace M_func_00181478
 
 namespace M_func_00181598 { extern "C" {
-struct S : PO { char pad180[0x200 - 0x180]; int a; int b; };
-extern char D_003DD490[];
-void ResetHack(struct S *p);
-void SetHacklockState(struct S *p, int n);
-void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
-// Reset health + state. (inferred)
-void ResetHacklock(struct S *lock)
+void SetHacklockState(HACKLOCK *lock, int n);
+void TriggerRsmg(SW *g, int crsmg, OID *arsmg, LO *plo, int fOn);
+// Reset health + state, and its state-machine records. (inferred)
+void ResetHacklock(HACKLOCK *lock)
 {
     ResetHack(lock);
     SetHacklockState(lock, 0);
-    TriggerRsmg(D_003DD490, lock->a, &lock->b, lock, 0);
+    TriggerRsmg(&D_003DD490, lock->crsmg, lock->arsmg[0], lock, 0);
 }
 } } // namespace M_func_00181598
 
@@ -1200,49 +1196,41 @@ extern "C" void SetHacklockState(HACKLOCK *lock, int nState)
 }
 
 namespace M_func_001816C0 { extern "C" {
-struct E { int a; int b; int c; int d; };
-struct S : PO { char pad180[0x1D0 - 0x180]; struct E ae[3]; };
-// Set entry i (<3). (inferred)
-void SetHacklockEntry(struct S *lock, unsigned int i, int a, int d)
+// Set entry i (<3): oid and flags. (inferred)
+void SetHacklockEntry(HACKLOCK *lock, unsigned int i, OID oid, int grf)
 {
     if (i < 3) {
-        lock->ae[i].a = a;
-        lock->ae[i].d = d;
+        lock->ahacke[i].oid = oid;
+        lock->ahacke[i].grf = grf;
     }
 }
 } } // namespace M_func_001816C0
 
 namespace M_func_001816E8 { extern "C" {
-struct S : PO { char pad180[0x200 - 0x180]; int a; int b; };
-extern char D_003DD490[];
-void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
+void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(SW *g, OID *arsmg, int crsmgMax, int *pcrsmg, int x, int y, int z, int w);
 // AddOrUpdateRsmg on its RSMG table. (inferred)
-void AddHacklockRsmg(struct S *lock, int x, int y, int z, int w)
+void AddHacklockRsmg(HACKLOCK *lock, int x, int y, int z, int w)
 {
-    AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &lock->b, 4, &lock->a, x, y, z, w);
+    AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(&D_003DD490, lock->arsmg[0], 4, &lock->crsmg, x, y, z, w);
 }
 } } // namespace M_func_001816E8
 
 namespace M_func_00181728 { extern "C" {
-struct S : PO { char pad180[0x1C8 - 0x180]; void *ship; };
-void SetHackshipState(void *p, int n);
-// SetCid48State(singleton x1C8, 1) and own vt call. (inferred)
-void ActivateHackshipFromHacklock(struct S *ship)
+// Release the ship (SetHackshipState 1) and send Splice event 6. (inferred)
+void ActivateHackshipFromHacklock(HACKLOCK *lock)
 {
-    SetHackshipState(ship->ship, 1);
-    ship->ship = 0;
-    ship->HandleSpliceEvent(6, 0, 0, 0, 0);
+    SetHackshipState(lock->pship, 1);
+    lock->pship = 0;
+    lock->HandleSpliceEvent(6, 0, 0, 0, 0);
 }
 } } // namespace M_func_00181728
 
 namespace M_func_00181780 { extern "C" {
-struct S : PO { char pad180[0x200 - 0x180]; int a; int b; };
-extern char D_003DD490[];
-void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
-// TriggerRsmg on its table. (inferred)
-void TriggerHacklockRsmg(struct S *lock)
+void TriggerRsmg(SW *g, int crsmg, OID *arsmg, LO *plo, int fOn);
+// TriggerRsmg on its table, then Splice event 5. (inferred)
+void TriggerHacklockRsmg(HACKLOCK *lock)
 {
-    TriggerRsmg(D_003DD490, lock->a, &lock->b, lock, 1);
+    TriggerRsmg(&D_003DD490, lock->crsmg, lock->arsmg[0], lock, 1);
     lock->HandleSpliceEvent(5, 0, 0, 0, 0);
 }
 } } // namespace M_func_00181780
