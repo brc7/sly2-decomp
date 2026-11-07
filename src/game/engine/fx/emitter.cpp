@@ -806,10 +806,10 @@ void OnEmitterValuesChanged(EMITTERV *pemitter)
     if (pemitter->pripg != 0) {
         SetRipgEmitb(pemitter->pripg, pemitter->pemitb);
     }
-    if (pemitter->k == 3) {
-        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.minValue, pemitter->lmRate.maxValue) * 60.0f;
+    if (pemitter->emitMode == 3) {
+        pemitter->currentRate = RandomFloatInRange(pemitter->rate.minValue, pemitter->rate.maxValue) * 60.0f;
     } else {
-        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.minValue, pemitter->lmRate.maxValue);
+        pemitter->currentRate = RandomFloatInRange(pemitter->rate.minValue, pemitter->rate.maxValue);
     }
 }
 
@@ -842,7 +842,7 @@ void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause) __asm__("SetEmitter
 // out of view).
 void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause)
 {
-    pemitter->fAutoPause = fAutoPause;
+    pemitter->autoPause = fAutoPause;
     pemitter->fDirty = 1;
 }
 
