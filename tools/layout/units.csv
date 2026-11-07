@@ -2562,7 +2562,7 @@ AddGuardScriptTeleport,0x170BE0,tu_1709A8
 AddGuardScriptMessage,0x170C00,tu_1709A8
 AddGuardScriptWait,0x170C20,tu_1709A8
 AddGuardScriptFollowPath,0x170C50,tu_1709A8
-AddGuardScriptLookAt,0x170C90,tu_1709A8
+AddGuardScriptGoto,0x170C90,tu_1709A8
 AddGuardScriptAnim,0x170CD0,tu_1709A8
 AddGuardScriptLabel,0x170CF0,tu_1709A8
 AddGuardScriptJump,0x170D10,tu_1709A8

@@ -357,7 +357,7 @@ void InitStuckWatch(void *pv, struct S *p);
 void InitHazardWatch(void *pv, struct S *p);
 void PostSwCallback(void *g, struct S *p, long k, int n);
 struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
-void AddGuardScriptLookAt(struct O *po, int a, int b, float f);
+void AddGuardScriptGoto(struct O *po, int a, int b, float f);
 void *FindSoXf(struct S *p, int n, int m);
 void *NewPositionAct(struct S *p, void *x, int a, int b, int c, qword q);
 
@@ -380,7 +380,7 @@ void PostStepguardLoad(struct S *guard)
     if (!guard->unknown3C->unknown24)
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
     guard->alternatePatrolScript = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
-    AddGuardScriptLookAt(guard->alternatePatrolScript, -1, -1, 40.0f);
+    AddGuardScriptGoto(guard->alternatePatrolScript, -1, -1, 40.0f);
     guard->unknown2F0 = guard->alternatePatrolScript->unknown50;
     guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
     if (guard->pickpocketIndicator0)

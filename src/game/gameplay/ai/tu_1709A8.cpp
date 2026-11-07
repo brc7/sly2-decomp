@@ -243,7 +243,7 @@ extern "C" void AddGuardScriptFollowPath(SSG *script, int id, int pathArg, int s
 
 // 0x170C90: Appends command kind 7, go to a target (oid; a point when -1) with BHVGOTO, optionally looking at
 // `lookAtOid` (-1 for none); `gotoParam` is copied to BHVGOTO +0xB0 (meaning unknown).
-extern "C" void AddGuardScriptLookAt(SSG *script, int id, int lookAtOid, float gotoParam)
+extern "C" void AddGuardScriptGoto(SSG *script, int id, int lookAtOid, float gotoParam)
 {
     SSGE *command;
     command = PssgeAppend(script, SSGK_GOTO, id);
