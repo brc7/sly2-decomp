@@ -1045,11 +1045,8 @@ extern "C" CPTURRET *CPTURRET_ctor(CPTURRET *pcpturret)
 }
 
 namespace M_ActivateCpturret { extern "C" {
-struct G { char pad[0x24]; float targetFov; };
-extern struct G D_002DDF40;
 struct B { char pad[0x1BC]; float turretFov; };
 void ActivateCplcy(void *a, struct B *b);
-void SetCmNearClip__FP2CMf(struct G *pg, float g);
 } } // namespace M_ActivateCpturret
 // CPLCY::Activate; near clip 49; targetFieldOfView = turret +0x1BC. (inferred)
 void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
@@ -1057,11 +1054,11 @@ void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace
     using namespace M_ActivateCpturret;
     void *a = this;
     struct B *b = (struct B *)pvHero;
-    struct G *pg;
+    CM *pg;
     M_ActivateCpturret::ActivateCplcy(a, b);
-    pg = &M_ActivateCpturret::D_002DDF40;
-    SetCmNearClip__FP2CMf(pg, 49.0f);
-    pg->targetFov = b->turretFov;
+    pg = &g_cm;
+    SetCmNearClip(pg, 49.0f);
+    pg->targetFieldOfView = b->turretFov;
 }
 
 namespace M_UpdateCpturret {
@@ -1069,27 +1066,20 @@ typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
 extern "C" CLOCK D_002DDED0;
-struct CM {
-    char pad0[0x20]; float fieldOfView; float targetFov; char pad1[0x60 - 0x28];
-    M3 mat; qword pos; char pad2[0x300 - 0xA0]; int cutCount;
-};
-extern "C" CM D_002DDF40;
 extern "C" char D_002BDAB0[], D_002BDAC0[];
 struct LO;
 struct LOV { char pad[0xF8]; short d31; short p31; M4 *(*pfn31)(LO *); };
 struct LO { int a[3]; LOV *pvt; };
 struct Y { char pad[0x1BC]; float turretFov; char pad1[0x1D0 - 0x1C0]; LO *plo; int isSmoothing; };
-struct X { Y *py; };
 extern "C" {
-void UpdateCplcy(X *p);
+void UpdateCplcy(CPTURRET *p);
 M3 MulMatrix3Matrix3(M4 *pm, M3 *pm2);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, qword *pv);
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext); /* SmoothValue */
 M3 BuildAxisAngleRotationMatrix(qword v, float g);
 qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(CM *p, M4 *m);
-void SetCmFov__FP2CMf(CM *p, float g);
-void UpdateCpturret(X *p);
+void UpdateCpturret(CPTURRET *p);
 }
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
@@ -1121,18 +1111,18 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT s)
 
 // Camera follows turret object's world matrix (plo->vt31 GetWorldMatrix), smoothing rotation/position unless cut; fov from
 // turret +0x1BC. (inferred)
-void UpdateCpturret(X *p)
+void UpdateCpturret(CPTURRET *p)
 {
     UpdateCplcy(p);
-    Y *py = p->py;
+    Y *py = (Y *)p->pvHero;
     LO *plo = py->plo;
     M4 m = *plo->pvt->pfn31((LO *)((char *)plo + plo->pvt->d31));
-    if (D_002DDF40.cutCount == 0 && py->isSmoothing != 0) {
+    if (g_cm.nCut == 0 && py->isSmoothing != 0) {
         M3 mRel;
         M3 mNew;
         union { qword q; } axis;
         float rad;
-        mRel = MulMatrix3Matrix3(&m, &D_002DDF40.mat);
+        mRel = MulMatrix3Matrix3(&m, (M3 *)&g_cm.mat);
         DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&mRel, &rad, &axis.q);
         if (rad < 0.0001f) {
             mNew = m.m3;
@@ -1140,7 +1130,7 @@ void UpdateCpturret(X *p)
             float g = SmoothValue__FfffP3SMPPf(rad, 0.0f, D_002DDED0.deltaTime, D_002BDAB0, 0);
             mNew = Mul(BuildAxisAngleRotationMatrix(axis.q, g), m.m3);
         }
-        qword d = VuSub(D_002DDF40.pos, m.q.r[3]);
+        qword d = VuSub(((CMIsland *)&g_cm)->pos, m.q.r[3]);
         float dist = Length(d);
         qword pos;
         if (dist < 0.0001f)
@@ -1154,11 +1144,11 @@ void UpdateCpturret(X *p)
         m.af[1][3] = 0.0f;
         m.af[0][3] = 0.0f;
     }
-    SetCmMat4(&D_002DDF40, &m);
-    if (D_002DDF40.targetFov != D_002DDF40.fieldOfView)
-        D_002DDF40.targetFov = py->turretFov;
+    SetCmMat4(&g_cm, &m);
+    if (g_cm.targetFieldOfView != g_cm.fieldOfView)
+        g_cm.targetFieldOfView = py->turretFov;
     else
-        SetCmFov__FP2CMf(&D_002DDF40, py->turretFov);
+        SetCmFov(&g_cm, py->turretFov);
 }
 } // namespace M_UpdateCpturret
 
