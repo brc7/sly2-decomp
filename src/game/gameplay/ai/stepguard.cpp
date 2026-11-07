@@ -789,23 +789,19 @@ namespace RO_ORDER { extern const float r_D_002A8610 __asm__("D_002A8610") = -3.
 namespace RO_ORDER { extern const float r_D_002A8614 __asm__("D_002A8614") = -3.40282347e+38f; }
 // 0x206EB0 CanSetStepguardSpecial
 namespace M_func_00206EB0 { extern "C" {
-struct X;
-struct X { char pad[0x4C]; int isScriptBusy; /* (inferred) */ };
-int StepguardHasSgf(void *p, int n);
-struct X *FindStepBehavior(void *p, int n);
-int IsStepguardRageImmune(void *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsStepguardRageImmune(STEPGUARD *guard);
+int IsBasicDerivedFrom__FP5BASIC3CID(STEPGUARD *guard, int n);
 
 // 0x206EB0: True if special state `special` may be entered now (rules per state: never while dead or script-busy;
 // some states not for bosses or rage-immune guards).
-int CanSetStepguardSpecial(void *guard, int special)
+int CanSetStepguardSpecial(STEPGUARD *guard, int special)
 {
-    struct X *bhv;
+    BHV169 *bhv;
     if (special == -1)
         return 1;
     if (StepguardHasSgf(guard, SGF_KO))
         return 0;
-    bhv = FindStepBehavior(guard, CID_BHV169);
+    bhv = (BHV169 *)FindStepBehavior(guard, CID_BHV169);
     if (bhv && bhv->isScriptBusy)
         return 0;
     switch (special) {
@@ -830,48 +826,39 @@ int CanSetStepguardSpecial(void *guard, int special)
 namespace RO_ORDER { extern const float r_D_002A8698 __asm__("D_002A8698") = 3.40282347e+38f; }
 // 0x207030 SetStepguardSpecial
 namespace M_SetStepguardSpecial { extern "C" {
-struct V3; struct ASEG; struct ASEGA; struct BHVANIM; struct BHVGUARD; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct V3 { float x, y, z; };
-struct ASEG { char pad[0x78]; float defaultSpeed; };
-struct ASEGA { char pad[0x14]; struct ASEG *aseg; };
-struct BHVANIM { char pad[0x40]; void *binding; };
-struct BHVGUARD { char pad[0x30]; int modeKind; char pad2[0x40 - 0x34]; int modeObject; float modeAmount; };
-struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int special; float specialStartTime; void *scaleAct; };
 extern struct { float t; float dt; } D_002DDED0;
 extern qword D_002A2DE0;
 extern qword D_002C3D30;
 extern float D_002A8698;
 extern char D_003DD490[];
-int CanSetStepguardSpecial(struct S *p, int k);
+int CanSetStepguardSpecial(STEPGUARD *p, int k);
 void SetActPositionGoal(void *p, qword q);
-void RemoveStepguardPreferClass(struct S *p, int n);
-void RemoveStepguardRageIgnoreClasses(struct S *p);
-void AddStepguardPreferClass(struct S *p, int n);
-void AddStepguardRageIgnoreClasses(struct S *p);
-void *FindStepBehavior(struct S *p, int n);
-struct ASEGA *GetAnimBindingInstance(void *p);
-void SetAsegaMasterSpeed(struct ASEGA *y, float f);
-int GetHeroPo(void *p);
-void ResumeBhvguard(struct BHVGUARD *bhv);
+void RemoveStepguardPreferClass(STEPGUARD *p, int n);
+void RemoveStepguardRageIgnoreClasses(STEPGUARD *p);
+void AddStepguardPreferClass(STEPGUARD *p, int n);
+void AddStepguardRageIgnoreClasses(STEPGUARD *p);
+ASEGA *GetAnimBindingInstance(void *p);
+void SetAsegaMasterSpeed(ASEGA *y, float f);
+LO *GetHeroPo(void *p);
+void ResumeBhvguard(BHV156 *bhv);
 
 // 0x207030: Sets the gadget/status special state (+0xFBC, time +0xFC0): 8/0xD shrink, 0xE time-frozen, 0x22/0x25
 // rage (attack other guards), 0x15 and 0xB others; leaving a state undoes it.
-void SetStepguardSpecial(struct S *guard, int special)
+void SetStepguardSpecial(STEPGUARD *guard, int special)
 {
     int old;
-    if (special == guard->special)
+    if (special == guard->specialState)
         return;
     if (!CanSetStepguardSpecial(guard, special))
         return;
-    old = guard->special;
-    guard->special = special;
+    old = guard->specialState;
+    guard->specialState = special;
     guard->specialStartTime = D_002DDED0.t;
     switch (old) {
     case SPECIAL_SIZE_DESTABILIZER:
     case SPECIAL_REDUCTION_BOMB:
-        if (guard->scaleAct)
-            SetActPositionGoal(guard->scaleAct, D_002A2DE0);
+        if (guard->scale)
+            SetActPositionGoal(guard->scale, D_002A2DE0);
         break;
     case SPECIAL_INSANITY_STRIKE:
     case SPECIAL_RAGE_BOMB:
@@ -879,17 +866,17 @@ void SetStepguardSpecial(struct S *guard, int special)
         RemoveStepguardRageIgnoreClasses(guard);
         break;
     case SPECIAL_TEMPORAL_LOCK: {
-        struct BHVANIM *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVANIM);
+        BHVANIM *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVANIM);
         if (bhv) {
-            struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
+            ASEGA *asega = GetAnimBindingInstance(bhv->binding);
             if (asega)
-                SetAsegaMasterSpeed(asega, asega->aseg->defaultSpeed);
+                SetAsegaMasterSpeed(asega, asega->animation->masterSpeed);
         }
         break;
     }
     case SPECIAL_GUTTURAL_ROAR: {
-        struct BHVGUARD *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVGUARD);
-        if (bhv && bhv->modeKind == 0x12 && bhv->modeObject == GetHeroPo(D_003DD490) && bhv->modeAmount == D_002A8698)
+        BHV156 *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVGUARD);
+        if (bhv && bhv->mode == 0x12 && bhv->modeObject == GetHeroPo(D_003DD490) && bhv->modeAmount == D_002A8698)
             ResumeBhvguard(bhv);
         break;
     }
@@ -897,8 +884,8 @@ void SetStepguardSpecial(struct S *guard, int special)
     switch (special) {
     case SPECIAL_SIZE_DESTABILIZER:
     case SPECIAL_REDUCTION_BOMB:
-        if (guard->scaleAct)
-            SetActPositionGoal(guard->scaleAct, D_002C3D30);
+        if (guard->scale)
+            SetActPositionGoal(guard->scale, D_002C3D30);
         break;
     case SPECIAL_INSANITY_STRIKE:
     case SPECIAL_RAGE_BOMB:
@@ -906,14 +893,14 @@ void SetStepguardSpecial(struct S *guard, int special)
         AddStepguardRageIgnoreClasses(guard);
         break;
     case SPECIAL_TEMPORAL_LOCK: {
-        struct BHVANIM *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVANIM);
+        BHVANIM *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVANIM);
         if (bhv) {
-            struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
+            ASEGA *asega = GetAnimBindingInstance(bhv->binding);
             if (asega)
                 SetAsegaMasterSpeed(asega, 0.0f);
         }
         {
-            struct V3 *velocity = &guard->desiredVelocity;
+            VECTOR *velocity = &guard->unknown190;
             velocity->z = 0;
             velocity->y = 0;
             velocity->x = 0;
@@ -921,9 +908,9 @@ void SetStepguardSpecial(struct S *guard, int special)
         break;
     }
     case SPECIAL_GUTTURAL_ROAR: {
-        struct BHVGUARD *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVGUARD);
+        BHV156 *bhv = (__typeof__(bhv))FindStepBehavior(guard, CID_BHVGUARD);
         if (bhv) {
-            switch (bhv->modeKind) {
+            switch (bhv->mode) {
             case 1: case 2: case 3: case 4:
             case 0xC: case 0x10: case 0x11: case 0x12:
                 ResumeBhvguard(bhv);

@@ -364,7 +364,8 @@ struct BHV156 : public BHV
                                (runtime2/4/7a; ram_inspector ROOT_MODE); 17 also seen (S28, meaning unknown) */
       undefined4 unknown34[3];
       LO *modeObject;       /* +0x40 [R] object of the mode (stimulus / target) */
-      undefined4 unk_0x44[(0xb0 - 0x44) / 4];
+      float modeAmount;     /* +0x44 [S] the mode's amount (SetStepguardSpecial compares it with FLT_MAX in mode 0x12) */
+      undefined4 unk_0x48[(0xb0 - 0x48) / 4];
 };
 typedef char assert_BHV156_size[sizeof(BHV156) == 0xB0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_BHV156_mode[SLY2_OFFSETOF(BHV156, mode) == 0x30 ? 1 : -1];     /* CONFIRMED runtime */

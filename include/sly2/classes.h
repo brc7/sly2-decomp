@@ -251,7 +251,9 @@ typedef char assert_BLIPG_size[sizeof(BLIPG) == 0x460 ? 1 : -1];
 /* 79 BOMB (0x210): also guard rock ammo; vtable 0x2CB780, 77 slots */
 struct BOMB : SO
 {
-    char pad150[0x210 - 0x150];
+    char pad150[0x200 - 0x150];
+    LO *thrower;            /* +0x200 [S] the object that threw the bomb (a guard ignores its own team's: TakeStepguardDamage) */
+    char pad204[0x210 - 0x204];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBombMessage");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBombClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBomb");   /* slot 7 */
@@ -554,7 +556,9 @@ typedef char assert_CID113_firstCommand[SLY2_OFFSETOF(CID113, firstCommand) == 0
 /* 169 BHV169 (0x60): guard-script runner (flag 0x21); vtable 0x2CF7F8, 15 slots */
 struct BHV169 : BHV
 {
-    char pad30[0x60 - 0x30];
+    char pad30[0x4C - 0x30];
+    int isScriptBusy;       /* +0x4C [S] (inferred) a script command is running: no special state now (CanSetStepguardSpecial) */
+    char pad50[0x60 - 0x50];
     virtual void OnPush() __asm__("InitBhvScript");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv169ClassDesc");   /* slot 6 */
     virtual void Close() __asm__("CloseBhvScript");   /* slot 9 */
