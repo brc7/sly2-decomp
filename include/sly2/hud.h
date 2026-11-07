@@ -24,12 +24,31 @@ enum WIDGET_REQUEST
     WIDGET_REQUEST_SHOW = 2,
 };
 
+/* An animation key (0x20 bytes; LoadSpriteGroups): its time, the poses of its items (0x40-byte records), colour
+   pairs, the items it refers to, its actions (7: a sound event) and tagged values. */
+struct SPRITEKEY
+{
+    float time;                  /* +0x00 */
+    uchar numPoses;              /* +0x04 */
+    uchar numColors;             /* +0x05 */
+    uchar numItemRefs;           /* +0x06 */
+    uchar numActions;            /* +0x07 */
+    uchar *actions;              /* +0x08 */
+    void *poses;                 /* +0x0C */
+    void *colors;                /* +0x10 two RGBA words each */
+    ushort *itemRefs;            /* +0x14 indices into the slot's items */
+    uchar numTags;               /* +0x18 */
+    char pad19[3];
+    void *tags;                  /* +0x1C {kind, value} pairs */
+};
+typedef char assert_SPRITEKEY_size[sizeof(SPRITEKEY) == 0x20 ? 1 : -1];
+
 /* A sprite group's animation (0x18 bytes; LoadSpriteGroups): its keys, length and label id. */
 struct SPRITEANIM
 {
     ushort numKeys;              /* +0x00 */
     ushort pad2;
-    void *keys;                  /* +0x04 the 0x20-byte keys */
+    SPRITEKEY *keys;             /* +0x04 */
     float duration;              /* +0x08 */
     WIDGET *owner;               /* +0x0C */
     SPRITEGRP *group;            /* +0x10 */
@@ -62,7 +81,8 @@ struct SPRITEITEM
     char pad8[8];
     SPRITEXF matrix;             /* +0x10 */
     SPRITEDESC *descriptor;      /* +0x30 */
-    char pad34[0x58 - 0x34];
+    int kind;                    /* +0x34 4: queued as is when it has no descriptor (inferred) */
+    char pad38[0x58 - 0x38];
     int spriteSlot;              /* +0x58 NESTED: the slot of the nested group */
     char pad5C[0x61 - 0x5C];
     uchar drawFlags;             /* +0x61 QueueSpriteItem's flags (RenderWidget's channel) */

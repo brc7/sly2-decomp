@@ -3507,13 +3507,11 @@ extern "C" void InterpolateSpriteSlot(float duration,ANIM *animation,int index,M
 
 // 0x2190F8 FinishSpriteSoundEvents
 namespace M_func_002190F8 { extern "C" {
-struct E { char pad[7]; unsigned char numActions; unsigned char *actions; char padc[0x14]; };   /* an animation key */
-struct S { int numKeys; struct E *keys; char pad8[8]; void *group; };   /* an animation */
 void FinishSpriteSoundEvent(void *p, int k);
 // Finishes every sound event (action 7) of a sprite key. (inferred)
-void FinishSpriteSoundEvents(struct S *anim, int key, int slot)
+void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
 {
-    struct E *keyData = &anim->keys[key];
+    SPRITEKEY *keyData = &anim->keys[key];
     int j;
     for (j = 0; j < keyData->numActions; j++) {
         if (keyData->actions[j] == 7)   /* a sound action */
@@ -3592,21 +3590,16 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
 
 // 0x219348 ResetSpriteKeyItems
 namespace M_ResetSpriteKeyItems { extern "C" {
-struct Y { char pad[0x30]; void *descriptor; char pad2[0x3C]; };   /* a frame item */
-struct F { int numItems; struct Y *items; char pad[0x10]; };   /* a playback slot */
-struct Q { char pad[8]; struct F *slots; };   /* the group */
-struct E { char pad[6]; unsigned char numItemRefs; char pad7[0xD]; unsigned short *itemRefs; char pad18[8]; };   /* an animation key */
-struct S { int numKeys; struct E *keys; char pad8[8]; struct Q *group; };   /* an animation */
-void ReleaseSpriteItem(void *p, struct Y *y);
-void InitSpriteItem(struct Y *y);
+void ReleaseSpriteItem(void *p, SPRITEITEM *y);
+void InitSpriteItem(SPRITEITEM *y);
 // Resets the items a sprite key refers to.
-void ResetSpriteKeyItems(struct S *anim, int key, int slot)
+void ResetSpriteKeyItems(SPRITEANIM *anim, int key, int slot)
 {
-    struct E *keyData = &anim->keys[key];
-    struct Y *items = anim->group->slots[slot].items;
+    SPRITEKEY *keyData = &anim->keys[key];
+    SPRITEITEM *items = anim->group->slots[slot].items;
     int k;
     for (k = 0; k < keyData->numItemRefs; k++) {
-        struct Y *item = &items[keyData->itemRefs[k]];
+        SPRITEITEM *item = &items[keyData->itemRefs[k]];
         if (item->descriptor)
             ReleaseSpriteItem(item->descriptor, item);
         else
@@ -4073,27 +4066,23 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
 
 // 0x21A998 DrawSpriteItems
 namespace M_func_0021A998 { extern "C" {
-struct Y { char pad[0x30]; void *descriptor; int kind; char pad2[0x38]; };   /* a frame item */
-struct F { int numItems; struct Y *items; char pad[0x10]; };   /* a playback slot */
-struct Q { char pad[8]; struct F *slots; };   /* the group */
-struct S { char pad[0xC]; char *owner; struct Q *group; };   /* an animation; owner = the widget */
-void QueueSpriteItem(void *descriptor, struct Y *item, int drawFlags);
-void PrependSlEntry(void *p, struct Y *y);
+void QueueSpriteItem(void *descriptor, SPRITEITEM *item, int drawFlags);
+void PrependSlEntry(SL *psl, SPRITEITEM *y);
 // Queue a sprite's items for drawing, last first: items with a descriptor through QueueSpriteItem, descriptor-less
 // kind-4 items straight onto the widget's render queue.
-static inline void Draw(struct S *anim, int n, struct Y *items, int drawFlags)
+static inline void Draw(SPRITEANIM *anim, int n, SPRITEITEM *items, int drawFlags)
 {
     int k;
     for (k = n - 1; k >= 0; k--) {
-        struct Y *item = &items[k];
+        SPRITEITEM *item = &items[k];
         if (item->descriptor)
             QueueSpriteItem(item->descriptor, item, drawFlags);
         else if (item->kind == 4)   /* no descriptor: queued as is (inferred) */
-            PrependSlEntry(anim->owner + 0xFC, item);   /* the widget's render queue */
+            PrependSlEntry(&anim->owner->renderQueue, item);
     }
 }
 // Queues a sprite's items for drawing in reverse order. (inferred)
-void DrawSpriteItems(struct S *anim, int slot, int drawFlags)
+void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags)
 {
     Draw(anim, anim->group->slots[slot].numItems, anim->group->slots[slot].items, drawFlags);
 }
