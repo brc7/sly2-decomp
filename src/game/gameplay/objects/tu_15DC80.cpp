@@ -18,29 +18,29 @@ struct RGBAV { unsigned char r, g, b, a; RGBAV() {} };   /* the user constructor
 extern CLOCK D_002DDED0;          /* g_clock */
 
 /* The fade object, CID116 (an LO, vtable at +0xC; offsets confirmed by the match). */
-struct X
+struct FADEV
 {
-      int a[3];
-      VTE *vtable;              /* +0x0C */
-      byte pad10[0x28 - 0x10];
-      unsigned long loFlags;    /* +0x28 bit 60: LO::fInWorld (the fade is running) */
-      byte pad30[0x40 - 0x30];
-      unsigned int updateFlags; /* +0x40 flags, or (bit 0 clear) a pointer to them */
-      byte pad44[0x50 - 0x44];
-      RGBAV fadeInFrom, holdColor, fadeOutTo;   /* +0x50 */
-      float fadeInTime, holdTime, fadeOutTime;  /* +0x5C phase durations, seconds */
-      float startTime;          /* +0x68 clock time when the fade started */
-      int renderKind;           /* +0x6C 0: render pass 1, 1: render pass 14 (over the HUD?) */
+    int pad0[3];
+    VTE *vtable;              /* +0x0C */
+    byte pad10[0x28 - 0x10];
+    unsigned long loFlags;    /* +0x28 bit 60: LO::fInWorld (the fade is running) */
+    byte pad30[0x40 - 0x30];
+    unsigned int updateFlags; /* +0x40 flags, or (bit 0 clear) a pointer to them */
+    byte pad44[0x50 - 0x44];
+    RGBAV fadeInFrom, holdColor, fadeOutTo;   /* +0x50 */
+    float fadeInTime, holdTime, fadeOutTime;  /* +0x5C phase durations, seconds */
+    float startTime;          /* +0x68 clock time when the fade started */
+    int renderKind;           /* +0x6C 0: render pass 1, 1: render pass 14 (over the HUD?) */
 };
 
 typedef struct BUF { char ab[0x250]; } __attribute__((aligned(16))) BUF;
-struct Q { int x0; float x4; int x8; };
-struct R { char pad[0xC]; int xC; };
+struct Q { int renderPass; float sortKey; int dmaStart; };   /* a render-list entry (PrplAllocRpl) */
+struct R { char pad[0xC]; int cursor; };                    /* the frame DMA chain (DMAS); cursor: next write offset */
 extern R D_002DEA28;
 extern "C" {
-void InitLo(X *p);
-void SetLoBusyk(X *p, int n);
-void UpdateLo(X *p, float dt);
+void InitLo(FADEV *p);
+void SetLoBusyk(FADEV *p, int n);
+void UpdateLo(FADEV *p, float dt);
 void BuildClearGifs__FP2QWG4RGBAi(BUF *pbuf, RGBAV *prgba, int n);
 void AddDmaCnt__4DMAS(R *);
 void AddVifDirect__4VIFSiP2QWi(R *, int, void *, int);
@@ -53,27 +53,27 @@ Q *PrplAllocRpl(void);
 // tagged with bit 0, or behind a pointer).
 void CID116::Init()
 {
-    X *fade = (X *)this;
-      unsigned int flags;
+    FADEV *fade = (FADEV *)this;
+    unsigned int flags;
 
-      InitLo(fade);
-      SetLoBusyk(fade, 1);
-      flags = fade->updateFlags;
-      if ((flags ^ 1) & 1)
-            *(int *)flags |= 0xA;
-      else
-            fade->updateFlags = flags | 0xA;
+    InitLo(fade);
+    SetLoBusyk(fade, 1);
+    flags = fade->updateFlags;
+    if ((flags ^ 1) & 1)
+        *(int *)flags |= 0xA;
+    else
+        fade->updateFlags = flags | 0xA;
 }
 
 // CID116 vtable slot 16 (Update): once all three phases have elapsed, removes the fade from the world (vtable
 // slot 9, Remove).
-extern "C" void UpdateScreenFade(X *fade, float dt)
+extern "C" void UpdateScreenFade(FADEV *fade, float dt)
 {
-      UpdateLo(fade, dt);
-      if (D_002DDED0.t - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
-            VTE *entry = &fade->vtable[9];
-            ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
-      }
+    UpdateLo(fade, dt);
+    if (D_002DDED0.t - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
+        VTE *entry = &fade->vtable[9];
+        ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
+    }
 }
 
 // Per-channel linear blend of two colours (t in 0..1).
@@ -94,7 +94,7 @@ static inline void BuildClearPacket(BUF *packet, RGBAV color)
 // CID116 vtable slot 19 (RenderSelf): picks the current phase (fade in: from -> hold, hold, fade out: hold -> to),
 // blends the colour, builds a full-screen clear packet into the DMA chain and queues it as a render-list entry in
 // pass 1 or 14 (by renderKind). Past the last phase the blend inputs are left unset (the update removes the fade).
-extern "C" void RenderScreenFade(X *fade)
+extern "C" void RenderScreenFade(FADEV *fade)
 {
     RGBAV color;
     RGBAV from, to;
@@ -110,16 +110,16 @@ extern "C" void RenderScreenFade(X *fade)
     } else {
         elapsed -= fade->fadeInTime;
         if (elapsed < fade->holdTime) {
-            from = fade->holdColor;
-            to = fade->holdColor;
-            phaseTime = fade->holdTime;
+        from = fade->holdColor;
+        to = fade->holdColor;
+        phaseTime = fade->holdTime;
         } else {
-            elapsed -= fade->holdTime;
-            if (elapsed < fade->fadeOutTime) {
+        elapsed -= fade->holdTime;
+        if (elapsed < fade->fadeOutTime) {
                 from = fade->holdColor;
                 phaseTime = fade->fadeOutTime;
                 to = fade->fadeOutTo;
-            }
+        }
         }
     }
     color = RgbaLerp(elapsed / phaseTime, from, to);
@@ -128,32 +128,32 @@ extern "C" void RenderScreenFade(X *fade)
     BuildClearPacket(packet, color);
     {
     dma = &D_002DEA28;
-    dmaStart = dma->xC;
+    dmaStart = dma->cursor;
     AddDmaCnt__4DMAS(dma);
     AddVifDirect__4VIFSiP2QWi(dma, 0x25, packet, 0);
     }
     EndDmaCnt__4DMAS(dma);
     AddDmaRet__4DMAS(dma);
     entry = PrplAllocRpl();
-    entry->x8 = dmaStart;
-    entry->x4 = -1.0f;
+    entry->dmaStart = dmaStart;
+    entry->sortKey = -1.0f;
     switch (fade->renderKind) {
     case 0:
-        entry->x0 = 1;
+        entry->renderPass = 1;
         break;
     case 1:
-        entry->x0 = 0xE;
+        entry->renderPass = 0xE;
         break;
     }
 }
 
 // Starts the fade unless it is already running: stamps the start time and adds the object to the world (vtable
 // slot 8, Add). Called by the Splice thunk func_0010C6A8 and by places.cpp on world entry.
-extern "C" void StartScreenFade(X *fade)
+extern "C" void StartScreenFade(FADEV *fade)
 {
-      if (((int)(fade->loFlags >> 60) & 1) == 0) {
-            VTE *entry = &fade->vtable[8];
-            fade->startTime = D_002DDED0.t;
-            ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
-      }
+    if (((int)(fade->loFlags >> 60) & 1) == 0) {
+        VTE *entry = &fade->vtable[8];
+        fade->startTime = D_002DDED0.t;
+        ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
+    }
 }
