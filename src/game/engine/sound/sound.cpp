@@ -107,14 +107,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    mode's ducking (mode.cpp: 0.6); the rest are 1. */
 #define G_SNDMGR (*(SNDMGR *)&D_003DD040)   /* the field layout of g_sndmgr (sly2/sndmgr.h) */
 #define MUTE_WHEN_STOPPED_ALL 3   /* muteWhenStoppedFlags: both flags set (the default) */
-/* volume channels (GetStreamVolumeChannel, SetSndmgrChannelVolume) and the volume category that pauses a channel's
-   sounds at 0 (SetSndmgrChannelVolume; UpdateSndmgr fades it while game time is stopped). Macros, not enums: an enum
-   constant passed to a function declared per namespace can make the call ambiguous for g++ 2.95. */
-#define VOLUME_CHANNEL_AMBIENCE 0
-#define VOLUME_CHANNEL_MUSIC 1
-#define VOLUME_CHANNEL_DIALOG 2
-#define VOLUME_CHANNEL_EFFECTS 3
-#define VOLUME_CATEGORY_PAUSE_FADE 2
 #define PLAY_TIME_TICKS_PER_SECOND 294912000.0f   /* a stream's play time (+0x68) counts these */
 #define CD_STATE_IDLE 3   /* cd.cpp's disc-poll state D_002BD4C0 (1 read, 2 wait, 3 idle) */
 
@@ -834,10 +826,10 @@ static inline int BuildStreamFileKey(struct K *key, FILEREC *record)
 {
     if (!record) return 0;
     {
-        int k2 = record->key2;
-        int k0 = record->key0;
-        int k3 = record->key3;
-        int k1 = record->key1;
+        int k2 = record->aw[13];   /* the key words at +0x34, +0x0, +0x3C, +0x4 */
+        int k0 = record->aw[0];
+        int k3 = record->aw[15];
+        int k1 = record->aw[1];
         key->kind = 2;
         key->keyHi = k1 ^ k3;
         key->keyLo = (k0 ^ k2) + 0xCA0;
@@ -1436,10 +1428,10 @@ static inline int BuildStreamFileKey(struct K *key, FILEREC *record)
 {
     if (!record) return 0;
     {
-        int k2 = record->key2;
-        int k0 = record->key0;
-        int k3 = record->key3;
-        int k1 = record->key1;
+        int k2 = record->aw[13];   /* the key words at +0x34, +0x0, +0x3C, +0x4 */
+        int k0 = record->aw[0];
+        int k3 = record->aw[15];
+        int k1 = record->aw[1];
         key->kind = 2;
         key->keyHi = k1 ^ k3;
         key->keyLo = (k0 ^ k2) + 0xCA0;

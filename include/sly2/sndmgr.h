@@ -1,31 +1,15 @@
 /* include/sly2/sndmgr.h -- the sound manager (SNDMGR, g_sndmgr at D_003DD040, engine/sound/sound.cpp) and its file
- * lists (FILEREC, SNDSTREAM, SNDFILE). Layout from sound.cpp's per-function views (they agree on every offset) and the
+ * lists (SNDSTREAM, SNDFILE). Layout from sound.cpp's per-function views (they agree on every offset) and the
  * views of menu.cpp (the options menu's volumes). Separate from sly2/snd.h so that its many includers do not get
  * sly2/slotheap.h. DRAFT names (the m2c bodies' and the views' names). */
 #ifndef SLY2_SNDMGR_H
 #define SLY2_SNDMGR_H
 #include "sly2/snd.h"
 #include "sly2/slotheap.h"
+#include "sly2/sw.h"
 
-/* FILEREC: a file's record in the disc's file table (16 words: the lookup key words at +0x0/+0x4/+0x34/+0x3C, the
-   size at +0x38 and the headset flag at +0x4C of the dialog streams' copy; sound.cpp's PostSoundLoad/PlayStreamsnd). */
-struct FILEREC
-{
-    union
-    {
-        uint aw[16];
-        struct
-        {
-            int key0;           /* +0x00 */
-            int key1;           /* +0x04 */
-            int unknown08[11];
-            int key2;           /* +0x34 */
-            int unknown38;      /* +0x38 */
-            int key3;           /* +0x3C */
-        };
-    };
-};
-typedef char assert_FILEREC_size[sizeof(FILEREC) == 0x40 ? 1 : -1];
+/* FILEREC: sly2/sw.h's (a file's record in the disc's file table: 16 words; the lookup key words are aw[0], aw[1],
+   aw[13] and aw[15], see sound.cpp's BuildStreamFileKey). */
 
 /* DIALOGEVENT: a lip-sync / gesture event of a dialog line (frames at 60 per second since the previous event; the role
    it drives and the value: a state for the speaker's state machines or a gesture weight). */
@@ -60,6 +44,17 @@ struct SNDFILE
     int id;                    /* +0x40 */
     SNDFILE *next;             /* +0x44 */
 };
+
+/* SNDMGR::volumes: the channels (GetStreamVolumeChannel, SetSndmgrChannelVolume) and categories (rows: 1 the options
+   menu, 2 the pause fade, which pauses a channel's sounds at 0 and which UpdateSndmgr fades while game time is
+   stopped). Macros, not enums: an enum constant passed to a function declared per namespace can make the call
+   ambiguous for g++ 2.95. */
+#define VOLUME_CHANNEL_AMBIENCE 0
+#define VOLUME_CHANNEL_MUSIC 1
+#define VOLUME_CHANNEL_DIALOG 2
+#define VOLUME_CHANNEL_EFFECTS 3
+#define VOLUME_CATEGORY_MENU 1
+#define VOLUME_CATEGORY_PAUSE_FADE 2
 
 /* SNDMGR: the sound manager (g_sndmgr, D_003DD040, defined by sound.cpp; 0x250 bytes). A BASIC (constructed by
    SNDMGR_ctor; the first 0x10 bytes are BASIC's words and vtable), declared here without the C++ base: the field views
