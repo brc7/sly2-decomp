@@ -22,15 +22,13 @@ struct STIMOWNER { byte pad[0x18]; int id; };
 struct STIMULUS { byte pad[0x14]; STIMSRC *noiseType; byte pad1[0x40 - 0x18]; STIMOWNER *emitter; };
 
 /* Camera manager as seen here (g_cm, 0x2DDF40). */
-struct CMVIEW { byte pad[0x600]; int policy600; };   /* a camera policy record at +0x600 (meaning unknown) */
-extern CMVIEW D_002DDF40;
 extern int D_002F7900;
 
 extern "C" {
 void InitStepguard(STEPGUARD *guard);
 int CanStepguardSenseStimulus(void *p, STIMULUS *pstim);
-void SetCmPolicy(CMVIEW *pcm, int n, void *pv, int m, void *p);
-void RevokeCmPolicy(CMVIEW *pcm, int a, int b, void *c, void *d, int e);
+void SetCmPolicy(CM *pcm, int n, void *pv, int m, void *p);
+void RevokeCmPolicy(CM *pcm, int a, int b, void *c, void *d, int e);
 }
 
 // 0x1CBEB0: RAJAN vtable slot 7 (Init): STEPGUARD Init, then sets +0x4A4 (as other named guards do).
@@ -66,7 +64,7 @@ extern "C" int CanRajanSenseStimulus(void *guard, STIMULUS *stimulus)
       return result;
 }
 
-// 0x1CBF90: Turns on or off camera policy 6 framing Murray and this guard (SetCmPolicy / RevokeCmPolicy),
+// 0x1CBF90: Turns on or off the two-shot camera policy (priority 6) framing Murray and this guard (SetCmPolicy / RevokeCmPolicy),
 // remembering the state at +0x1010.
 extern "C" void SetRajanCameraFocus(RAJANV *rajan, int enable)
 {
@@ -74,7 +72,7 @@ extern "C" void SetRajanCameraFocus(RAJANV *rajan, int enable)
             return;
       rajan->hasCameraPolicy = enable;
       if (enable)
-            SetCmPolicy(&D_002DDF40, 6, &D_002DDF40.policy600, D_002F7900, rajan);
+            SetCmPolicy(&g_cm, 6, &g_cm.twoShotPolicy, D_002F7900, rajan);
       else
-            RevokeCmPolicy(&D_002DDF40, 1, 6, 0, 0, 0);
+            RevokeCmPolicy(&g_cm, 1, 6, 0, 0, 0);
 }

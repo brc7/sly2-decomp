@@ -28,6 +28,31 @@ struct CPDEFI
       VECTOR4 adjustedPosition; /* adjusted position */
 };
 
+/* CAMEVENT: an event a camera move fires (its data words only; the code calls through a vtable pointer at +0x0C, see
+   cplcy.cpp's ActivateCpcamblend/DeactivateCpcamblend). CAMPOSE: one camera pose: eye position, orientation (Euler
+   angles) and FOV. CAMMOVE: a cutscene camera move from one pose to another over dt (CPCAMBLEND plays it).
+   Moved here unchanged from the five identical copies in cm.cpp, tn.cpp, jt.cpp, mode.cpp and relay.cpp. */
+struct CAMEVENT
+{
+      uint32_t   _pad_376    [ 3 ] ;
+};
+struct CAMPOSE
+{
+      VECTOR4 pos;
+      VECTOR4 eul;
+      float radFov;
+};
+struct CAMMOVE
+{
+      CAMPOSE *pposeFrom;
+      CAMPOSE *pposeTo;
+      float dt;
+      int fCutOnLeave;
+      int iCurve;
+      CAMEVENT *pevent;
+      int nUnk18;
+};
+
 /* CPLCYDATA: the data every camera policy has: the hero it follows and the FOV/near clip it saved on activation
    (restored on deactivation).
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
@@ -47,8 +72,8 @@ struct CPLCY : public CPLCYDATA
     virtual void Init() __asm__("InitCplcy");
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplcy");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplcy");
-    virtual void Set() __asm__("SetCplcy");
-    virtual void Revoke() __asm__("CPLCY_Revoke");
+    virtual void Set(void *pv) __asm__("SetCplcy");      /* SetCmPolicy passes the entry's argument */
+    virtual void Revoke(void *pv) __asm__("CPLCY_Revoke");   /* RevokeCmPolicy passes the entry's argument */
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplcy");
     virtual void ResetPolicy() __asm__("ResetCplcy");
     int FIsTop() __asm__("IsCameraPolicyActive__FP5CPLCY");   /* from CanJtUseGadget__2JTi.cpp */
@@ -80,7 +105,7 @@ struct CPLOOK : public CPLCY
       float zoomedFieldOfView; /* FOV fully zoomed */
       float wideFieldOfView; /* FOV fully wide */
       CRefPtr<SND> psndZoom;   /* zoom sound */
-      CRefPtr<SND> unknown38;   /* possibly sound (low-confidence guess: SND reference released on exit) */
+      CRefPtr<SND> zoomStopSound;   /* zoom-stop sound (sfx 0x25, created on activation; released on exit) */
       LM lmPan;   /* pan limits */
       LM lmTilt;   /* tilt limits */
       float panStartAngle; /* pan at activation */
@@ -119,7 +144,7 @@ struct CPZOOM : public CPLCY
       float zoomedFieldOfView; /* FOV fully zoomed */
       float wideFieldOfView; /* FOV fully wide */
       CRefPtr<SND> psndZoom;   /* zoom sound */
-      CRefPtr<SND> unknownC4;   /* possibly sound (low-confidence guess: SND reference released on exit) */
+      CRefPtr<SND> zoomStopSound;   /* zoom-stop sound (sfx 0x25, created on activation; released on exit) */
       uint32_t   _pad_245    [ 2 ] ;
     void Reset() __asm__("SnapCpzoom");
     void SetOwner(LO *plo) __asm__("SetCpzoomOwner");
@@ -252,10 +277,7 @@ struct CM : public CMBASE
       float fieldOfView; /* field of view */
       float targetFieldOfView; /* FOV the camera moves toward */
       float dfov;   /* FOV change speed */
-      float unknown2C;
-      float unknown30;
-      float unknown34;
-      float unknown38;
+      SMPA fovSmoothing;   /* FOV smoothing parameters (SmoothValueWithAccel in UpdateCmLast; InitCm sets 0.5, 0, 0.1, 10) */
       float aspectRatio; /* aspect ratio */
       float tanHalfFovX; /* tan of half the horizontal FOV */
       float tanHalfFovY; /* tan of half the vertical FOV */
@@ -311,9 +333,9 @@ struct CM : public CMBASE
       CPTURRET turretPolicy; /* the turret policy */
       CPTWOSHOT twoShotPolicy; /* the two-shot policy */
       float joltTime; /* time of the last camera jolt (shake) */
-      int unknown61C;
-      float unknown620;
-      float unknown624;
+      int joltKind;   /* kind of the last jolt (InitCm: -1) */
+      float stereoEyeOffset;   /* stereo eye offset along the right axis (BuildStereoEyeViewProj), smoothed in stereo mode */
+      float stereoFocusDistance;   /* its target (ResetCameraPolicies: 10) */
     CM() __asm__("CM_ctor");   /* out of line: camera/cm/CM_ctor.c */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCmClassDesc");   /* slot 6 */
 };

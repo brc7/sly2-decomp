@@ -90,17 +90,18 @@ struct RECONSEL
     int pending;            /* 0xC0 */
 };
 
-struct CMV { char pad0[0x60]; union { M4 mat; struct { qword r0, r1, r2, position; } v; }; };
 struct PLAYER { char pad0[0x150]; void *control; char pad154[0xF24 - 0x154]; char abF24[0x14]; RECONSEL *preconsel; };
 
 extern "C" {
 extern SW D_003DD490;
-extern CMV D_002DDF40;
 extern CLOCK D_002DDED0;
 extern PLAYER *D_002E1E40;
 extern char D_003DD040[], D_002DEB30[];
 
 extern int D_002C3588[];
+/* CMIsland: g_cm's position as a qword member at +0x90; this form exists to reproduce the original codegen
+   (FadeReconTargetMarkers reads it at base &g_cm + 0x90; a cast of CM::pos folds the offset into the base). */
+struct CMIsland { char pad[0x90]; qword pos; };
 #undef D_002DDFA0
 extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");   /* g_cm+0x60, a separate symbol to g++: the base+offset form changes UpdateReconTargetVisibility (offset folding) */
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
@@ -113,8 +114,8 @@ void FadeSoOut(LOV *plo, float f);
 void PlayWidgetAnimWithArg(WIDGETV *pw, int id, int v);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
 RECONTGT *FindFirstObjectHitByLine(int, qword, qword, int, RECONTGT **, LSG *);
-int IsInCameraFrustum(CMV *, qword, qword);
-int IsWithinCameraRenderDistance(CMV *, qword, float, float *);
+int IsInCameraFrustum(CM *, qword, qword);
+int IsWithinCameraRenderDistance(CM *, qword, float, float *);
 void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
 void StopWidgetAnim(WIDGETV *, int);
@@ -133,7 +134,7 @@ void SetWidgetState(WIDGETV *, int);
 void SetWidgetRequest(WIDGETV *, int);
 int IsWidgetAnimPlaying(WIDGETV *, int);
 void EndJtMode(MODEL *);
-qword ConvertCmWorldToScreen(CMV *, qword);
+qword ConvertCmWorldToScreen(CM *, qword);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
 void InitXfm(RECONTGT *p);
 void LoadXfmFromBrx(RECONTGT *p, void *pbis);
@@ -262,7 +263,7 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
         if (!o->plo100)
             continue;
         a = GetLoWorldPos(o);
-        __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(D_002DDF40.v.position));
+        __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(((CMIsland *)&g_cm)->pos));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
         if (o->rFade < f && ((o->plo100->fl28 >> 60) & 1) == 0)
             FadeSoIn(o->plo100, 0.25f);
@@ -426,20 +427,20 @@ void SelectReconTarget(RECONSEL *reconSel)
         slot = reconSel->items;
         do {
             RECONTGT *o = *slot;
-            CMV *camera;
+            CM *camera;
             float distance;
             qword eye, threshold, point;
             if (!IsReconTargetSelectable(o))
                 continue;
             Store(&position.q, GetLoWorldPos(o));
-            camera = &D_002DDF40;
+            camera = &g_cm;
             radius.q = ScalarBits(&o->sRadius);
-            PlaneArguments(&eye, &threshold, &point, radius.q, &camera->v.position, &position.q);
+            PlaneArguments(&eye, &threshold, &point, radius.q, &*(qword *)&camera->pos, &position.q);
             if (!IsInCameraFrustum(camera, PlaneDelta(point, eye), threshold))
                 continue;
             if (!IsWithinCameraRenderDistance(camera, GetLoWorldPos(o), o->height, &screen.f[0]))
                 continue;
-            distance = LengthXY(SubSecond(position.q, camera->v.position));
+            distance = LengthXY(SubSecond(position.q, *(qword *)&camera->pos));
             if (distance < minimum) {
                 UpdateReconTargetVisibility(reconSel, o);
                 if (o->state != 2) {
@@ -687,9 +688,9 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     if (reconSel->actor) {
         qword world = GetLoWorldPos(reconSel->actor);
         VU_FLOAT offset = VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
-        qword head = VuAdd(world, VuScaleByX(GetMatrixUp(&D_002DDF40.mat), offset.qw));
-        qword base = ConvertCmWorldToScreen(&D_002DDF40, world);
-        qword top = ConvertCmWorldToScreen(&D_002DDF40, head);
+        qword head = VuAdd(world, VuScaleByX(GetMatrixUp((M4 *)&g_cm.mat), offset.qw));
+        qword base = ConvertCmWorldToScreen(&g_cm, world);
+        qword top = ConvertCmWorldToScreen(&g_cm, head);
         VU_FLOAT screen = ScreenFromProjected(base);
         float distance = QwordX(VuLengthXY(VuSub(screen.qw, reconSel->origin)));
         VU_FLOAT screenTop = ScreenFromProjected(top);

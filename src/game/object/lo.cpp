@@ -13,6 +13,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
+#include "sly2/cm.h"
 #include "sly2/so.h"
 #include "sly2/slotheap.h"
 #include "sly2/scrap.h"
@@ -63,6 +64,10 @@ void SetLoXfFromMat(LO *plo, MATRIX4 *matrix);
 void RemoveDlEntry(DL *pdl, void *pv);
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 
+/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
+   codegen (reads at base &g_cm + 0x60..0x90; a cast of CM::mat/CM::pos folds the offset into the base). */
+typedef int qwordI __attribute__((mode(TI)));   /* the signed quadword the namespaces below use */
+struct CMIsland { char pad[0x60]; qwordI amatRow[3]; qwordI pos; };
 namespace M_InitLo { extern "C" {
 struct S {
     int frame, sidebag, firstRefNode, xC;
@@ -565,8 +570,6 @@ namespace M_func_001A5FB8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
 struct M4 { U r[4]; };
-struct CAMERA { char pad[0x90]; qword pos; };
-extern struct CAMERA D_002DDF40;
 qword *VECTOR_opAssign(qword *p, qword v);
 void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b);
 // Length of the xyz part of v (x lane).
@@ -583,7 +586,7 @@ void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
  qword d,n,t,k;
  float len;
  d=VuSub(b,a);
- n=VuCross(VuSub(a,D_002DDF40.pos),d);
+ n=VuCross(VuSub(a,((CMIsland *)&g_cm)->pos),d);
  y.q=n;
  len=VuToFloat(LenV(n));
  if(0.01f<len) {

@@ -127,7 +127,7 @@ int IsAsegaRetracted(ASEGAV *pa);
 void SetXfRole(DANCERV *p, void *pv, int n);
 qwordV GetStepAsegaTranslation(DANCERV *p, void *pa, float g);
 void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
-void GetSoCameraDefaults(DANCERV *p, struct CPDEFIV *pc);
+void GetSoCameraDefaults(DANCERV *p, CPDEFI *pc);
 int POCTL_ConsumeAnyPressed(void *p, int a);
 int GetButtonsPressedWithin__5POCTLUif(void *, int, float);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGAV **pp);
@@ -258,11 +258,10 @@ extern "C" void HandleDancerMessage(DANCERV *dancer, int messageKind, MSGD *mess
     }
 }
 
-struct CPDEFIV { char pad[0x30]; float radHome; };
 // DANCER vtable slot 50 (GetCpdefi): the SO camera definition with its home angle swung by -3*PI/4 (135 degrees).
-extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFIV *cameraDef) {
+extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFI *cameraDef) {
     GetSoCameraDefaults(dancer, cameraDef);
-    cameraDef->radHome = cameraDef->radHome - 2.3561945f;   /* 3*PI/4 */
+    cameraDef->homeHeading = cameraDef->homeHeading - 2.3561945f;   /* 3*PI/4 */
 }
 
 // Plays clip clipIndex of a move: the move for key, or (ANY_KEY) the first move whose button the controller reports

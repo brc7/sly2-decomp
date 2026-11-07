@@ -87,14 +87,12 @@ struct SWP
 typedef char SWP_3EFC[FIELD_OFFSET(SWP,currentPo)==0x3EFC?1:-1];
 typedef char SWP_4778[FIELD_OFFSET(SWP,followers)==0x477C?1:-1];
 
-struct CMV { char pad[0x3B0]; int part3b0; };
 struct TNV { char pad[0x128]; int nPriority; };
 struct MSG { int cb; int nKind; };
 struct SL;
 extern SWP D_003DD490;
 extern "C" {
 extern int D_002E1E00;
-extern CMV D_002DDF40;
 extern char D_002CA240[] __asm__("_vt$5POCTL");
 extern float D_002DDED0;
 extern qword D_002A2DB0;
@@ -114,8 +112,8 @@ void RcPtr_Assign(void **pp, int n);
 int IsSwHandsOff(SWP *p);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void SetTnTnsOverride(void *p, int f);
-void SetCmPolicy(CMV *pg, int n, void *pv, void *p, int m);
-void RevokeCmPolicy(CMV *pg, int a, int b, void *c, void *d, int e);
+void SetCmPolicy(CM *pg, int n, void *pv, void *p, int m);
+void RevokeCmPolicy(CM *pg, int a, int b, void *c, void *d, int e);
 void SetLoParent(void *p, int n, int m);
 void AppendSlEntry(SL *psl, void *pv);
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
@@ -230,10 +228,10 @@ extern "C" void OnPoActive(POV *po, int isActive)
 {
     if (isActive) {
         if (po->cameraTunnel) SetTnTnsOverride(po->cameraTunnel, 1);
-        else SetCmPolicy(&D_002DDF40, 1, &D_002DDF40.part3b0, po, 0);
+        else SetCmPolicy(&g_cm, 1, &g_cm.tunnelPolicy, po, 0);
     } else {
         if (po->cameraTunnel) SetTnTnsOverride(po->cameraTunnel, 0);
-        else RevokeCmPolicy(&D_002DDF40, 0xF, 1, &D_002DDF40.part3b0, po, 0);
+        else RevokeCmPolicy(&g_cm, 0xF, 1, &g_cm.tunnelPolicy, po, 0);
     }
 }
 

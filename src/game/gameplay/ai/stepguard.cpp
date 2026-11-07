@@ -1209,7 +1209,7 @@ void HandleStepguardMessage(struct S *guard, int message, struct ATTACHMSG *arg)
 
 // 0x207690 RenderStepguardSelf
 namespace M_RenderStepguardSelf {
-union U; struct M4; struct SPACE; union FLAGS; struct P; struct CAMERA; struct PROFILE; 
+union U; struct M4; struct SPACE; union FLAGS; struct P; struct PROFILE; 
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 // 4x4 matrix of U rows with copy constructor and assignment.
@@ -1217,11 +1217,9 @@ struct M4 {U rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];r
 struct SPACE {char pad0[0x40];M4 matrix;};
 union FLAGS {unsigned long value;unsigned char bytes[8];};
 struct P {char pad0[0x28];FLAGS flags;char pad30[0x30];SPACE *space;char pad64[0xC8];float opacity;int unused130;void *material;char pad138[0x108];float pivot[3];char pad24C[0x114];float start;};
-struct CAMERA {char pad0[0x14];int mask;char pad18[0x78];U position;};
 struct PROFILE {float a,b,c,unused,min,max;};
 struct CLOCK {float time,deltaTime;};
 struct EFFECT;
-extern "C" { extern CAMERA D_002DDF40; }
 extern "C" { 
  }
 extern "C" { extern CLOCK D_002DDED0; }
@@ -1257,8 +1255,8 @@ extern "C" void RenderStepguardSelf(P *guard)
     M4 local;
     U offset;
     M4 basis,matrix,product,inverse;
-    CAMERA *camera=&D_002DDF40;
-    if(guard->flags.bytes[5]&camera->mask){
+    CM *camera=&g_cm;
+    if(guard->flags.bytes[5]&camera->grfvis){
         RefreshSoBoundsRecord(guard);
         if(!IsCameraPolicyActive__FP5CPLCY((char *)camera+0x3B0)){
             RenderSoGlobset((EFFECT *)((char *)guard+0x80),0,guard->material,guard->opacity,guard->opacity);
@@ -1268,7 +1266,7 @@ extern "C" void RenderStepguardSelf(P *guard)
             local.rows[2].f[2]=1.0f;
             local.rows[1].f[1]=1.0f;
             local.rows[0].f[0]=1.0f;
-            float distance=Length(VuSub(GetLoWorldPos(guard),camera->position.q));
+            float distance=Length(VuSub(GetLoWorldPos(guard),*(qword *)&camera->pos));
             PROFILE *profile=&(*(PROFILE *)&g_sw.clqGuardScale);
             float gain=profile->a+distance*(profile->b+distance*profile->c);
             float min=profile->min,max=profile->max;
@@ -3311,12 +3309,10 @@ int FindTargetRecordGuardIndex(struct TARGETREC *record, int guard)
 
 // 0x20A690 GetTargetRecordFacing
 namespace M_func_0020A690 { extern "C" {
-struct LOV; struct TARGETREC; struct CAMERA;
+struct LOV; struct TARGETREC;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct LOV { char pad[0xC]; VTE *vt; };
 struct TARGETREC { char pad[0xC]; struct LOV *target; int facingKind; };
-struct CAMERA { char pad[0x60]; float x; float y; };   /* +0x60: the camera's forward direction (inferred) */
-extern struct CAMERA D_002DDF40;
 float atan2f(float y, float x);
 #define VCALL31(o) ((float *(*)(void *))(o)->vt[31].pfn)((char *)(o) + (o)->vt[31].d)
 // 0x20A690: Heading reference of an engagement record: the camera's (kind 0) or the target's facing (kind 1).
@@ -3325,7 +3321,7 @@ float GetTargetRecordFacing(struct TARGETREC *record)
     float heading = 0.0f;
     switch (record->facingKind) {
     case 0:
-        heading = atan2f(D_002DDF40.y, D_002DDF40.x);
+        heading = atan2f(g_cm.mat.mat[0][1], g_cm.mat.mat[0][0]);   /* the camera's forward direction (row 0) */
         break;
     case 1: {
         float *forwardY = VCALL31(record->target);   /* the target's facing direction (vtable slot 31) */
@@ -3382,16 +3378,14 @@ int IsTargetRecordStale(struct TARGETREC *record) { return D_002DDED0.time - rec
 
 // 0x20A818 DoesTargetRecordAllowGuard
 namespace M_func_0020A818 {
-union U; struct GUARD; struct TARGETREC; struct Camera;
+union U; struct GUARD; struct TARGETREC;
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct GUARD { char pad[0xF30]; int ignoresBusyGuards,ready,padF38,isStriking; /* (inferred) */ };
 struct TARGETREC { char pad[0xC]; GUARD *target; int facingKind; float unknown14,facingTolerance; int isDisabled; char pad20[8]; int guardCount; GUARD *guards[1]; };
-struct Camera { char pad[0x90]; qword position; };
-extern "C" { extern Camera D_002DDF40; }
 extern "C" {
 qword GetLoWorldPos(GUARD *);
-int IsInCameraFrustum(Camera *,qword,qword);
+int IsInCameraFrustum(CM *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
 float GetTargetRecordFacing(TARGETREC *);
 float NormalizeAngle__Ff(float);
@@ -3436,10 +3430,10 @@ extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
             return 1;
         qword returned;
         returned = GetLoWorldPos(guard);
-        register Camera *camera __asm__("$4");
-        __asm__("sq %2,%0\n\tla %1,%3" : "=m"(position0.q), "=r"(camera) : "r"(returned), "i"(&D_002DDF40));
+        register CM *camera __asm__("$4");
+        __asm__("sq %2,%0\n\tla %1,%3" : "=m"(position0.q), "=r"(camera) : "r"(returned), "i"(&g_cm));
         qword threshold, point;
-        PlaneArguments(&threshold, &point, &scalar, 0.0f, &camera->position, &position0.q);
+        PlaneArguments(&threshold, &point, &scalar, 0.0f, (qword *)&camera->pos, &position0.q);
         if (!IsInCameraFrustum(camera, point, threshold))
             goto fail;
         qword other;

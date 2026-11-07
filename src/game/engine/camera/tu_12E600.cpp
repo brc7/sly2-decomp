@@ -35,10 +35,6 @@ struct CAMERA
     float fov;              /* +0x130 field of view set on activation (0: keep) */
 };
 typedef char assert_CAMERA_fov[(unsigned int)&((CAMERA *)0)->fov == 0x130 ? 1 : -1];
-/* CPCAMERA: a camera policy (CPLCY, vtable at +0xC) and the camera it uses. */
-struct CPCAMERAV { char pad[0xC]; void *vtable; CAMERA *camera; };
-
-extern char D_002DDF40[];   /* g_cm */
 extern U D_002A2DA0, D_002A2DC0;
 extern char D_002CAB90[] __asm__("_vt$8CPCAMERA");   /* CPCAMERA's vtable (emitted here) */
 extern "C" {
@@ -46,18 +42,18 @@ void InitXfm(CAMERA *p);
 void PostLoLoad(CAMERA *p);
 void AddLoHierarchy(CAMERA *p);
 void RemoveLoHierarchy(CAMERA *p);
-void SetCmPolicy(void *a, int b, void *c, int d, void *e);
-void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
-void CPLCY_ctor(CPCAMERAV *p);
-void ActivateCplcy(CPCAMERAV *t, void *b, CAMERA *s);
-void DeactivateCplcy(CPCAMERAV *t, int b, CAMERA *s);
-void SetCmFov__FP2CMf(void *a, float g);
-void CutCm__FP2CM(void *pcm);
+void SetCmPolicy(CM *a, int b, void *c, int d, void *e);
+void RevokeCmPolicy(CM *a, int b, int c, void *d, int e, void *f);
+void CPLCY_ctor(CPCAMERA *p);
+void ActivateCplcy(CPCAMERA *t, void *b, CAMERA *s);
+void DeactivateCplcy(CPCAMERA *t, int b, CAMERA *s);
+void SetCmFov__FP2CMf(CM *a, float g);
+void CutCm__FP2CM(CM *pcm);
 qwordV GetLoWorldPos(CAMERA *pso);
 M3 *GetLoWorldMatrix(CAMERA *pso);
-void SetCameraLookAt(void *pcm, qwordV a, qwordV b, float g, float h);
+void SetCameraLookAt(CM *pcm, qwordV a, qwordV b, float g, float h);
 void VECTOR_opAssign(qwordV *p, qwordV v);
-void SetCmMat4(void *pcm, M4 *pm);
+void SetCmMat4(CM *pcm, M4 *pm);
 float atanf(float g);
 }
 
@@ -77,7 +73,7 @@ extern "C" void PostCameraLoad(CAMERA *camera)
     PostLoLoad(camera);
     camera->hasPolicy = 1;
     if ((int)(camera->flags >> 60) & 1)
-        SetCmPolicy(D_002DDF40, 10, D_002DDF40 + 0x4A8, 0, camera);
+        SetCmPolicy(&g_cm, 10, &g_cm.fixedCameraPolicy, 0, camera);
 }
 
 // Added to the world hierarchy (vtable slot 11): pushes the CPCAMERA policy with this camera.
@@ -85,7 +81,7 @@ extern "C" void AddCameraHierarchy(CAMERA *camera)
 {
     AddLoHierarchy(camera);
     if (camera->hasPolicy)
-        SetCmPolicy(D_002DDF40, 10, D_002DDF40 + 0x4A8, 0, camera);
+        SetCmPolicy(&g_cm, 10, &g_cm.fixedCameraPolicy, 0, camera);
 }
 
 // Removed from the world hierarchy (vtable slot 12): revokes the CPCAMERA policy it pushed.
@@ -93,7 +89,7 @@ extern "C" void RemoveCameraHierarchy(CAMERA *camera)
 {
     RemoveLoHierarchy(camera);
     if (camera->hasPolicy)
-        RevokeCmPolicy(D_002DDF40, 15, 10, D_002DDF40 + 0x4A8, 0, camera);
+        RevokeCmPolicy(&g_cm, 15, 10, &g_cm.fixedCameraPolicy, 0, camera);
 }
 
 // Vtable slot 43: returns the address of the focal length (lets the property/animation system drive it) (inferred).
@@ -115,10 +111,10 @@ extern "C" void DecrementCameraFovRequests(CAMERA *camera)
 }
 
 // Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) (inferred)
-extern "C" CPCAMERAV *CPCAMERA_ctor(CPCAMERAV *policy)
+extern "C" CPCAMERA *CPCAMERA_ctor(CPCAMERA *policy)
 {
     CPLCY_ctor(policy);
-    policy->vtable = D_002CAB90;
+    *(void **)((char *)policy + 0xC) = D_002CAB90;   /* the vtable pointer, after CPLCYDATA */
     return policy;
 }
 
@@ -126,23 +122,23 @@ extern "C" CPCAMERAV *CPCAMERA_ctor(CPCAMERAV *policy)
 // it has one.
 void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vtable comes out here */
 {
-    CPCAMERAV *policy = (CPCAMERAV *)this;
+    CPCAMERA *policy = this;
     void *hero = pvHero;
     CAMERA *camera = (CAMERA *)pv;
     ActivateCplcy(policy, hero, camera);
-    policy->camera = camera;
+    policy->pcamera = (CID44 *)camera;
     if (camera->fov != 0.0f)
-        SetCmFov__FP2CMf(D_002DDF40, camera->fov);
+        SetCmFov__FP2CMf(&g_cm, camera->fov);
 }
 
 // Deactivates the policy for a camera object: if it is the active camera, cuts (no blend) when the camera asks for it
 // and forgets it; then base deactivation.
-extern "C" void DeactivateCpcamera(CPCAMERAV *policy, int hero, CAMERA *camera)
+extern "C" void DeactivateCpcamera(CPCAMERA *policy, int hero, CAMERA *camera)
 {
-    if (policy->camera == camera) {
+    if (policy->pcamera == (CID44 *)camera) {
         if (camera->cutOnEnd != 0)
-            CutCm__FP2CM(D_002DDF40);
-        policy->camera = 0;
+            CutCm__FP2CM(&g_cm);
+        policy->pcamera = 0;
     }
     DeactivateCplcy(policy, hero, camera);
 }
@@ -158,13 +154,13 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 // Per-frame update: places the camera at the camera object, looking at its target when it has one, otherwise along
 // the object's own axes (the game's camera space swaps them: forward = -x row, up = row 1). When field-of-view
 // requests are active, sets the fov from the focal length: 2*atan(18/focalLength), clamped to 0.01..3 rad.
-extern "C" void UpdateCpcamera(CPCAMERAV *policy)
+extern "C" void UpdateCpcamera(CPCAMERA *policy)
 {
-    CAMERA *camera = policy->camera;
+    CAMERA *camera = (CAMERA *)policy->pcamera;
     if (camera->lookAtTarget) {
         qwordV eye = GetLoWorldPos(camera);
         qwordV target = GetLoWorldPos(camera->lookAtTarget);
-        SetCameraLookAt(D_002DDF40, eye, target, 0.0f, 0.0f);
+        SetCameraLookAt(&g_cm, eye, target, 0.0f, 0.0f);
     } else {
         M3 m = *GetLoWorldMatrix(camera);
         M3 mT;
@@ -191,11 +187,11 @@ extern "C" void UpdateCpcamera(CPCAMERAV *policy)
         ((int *)&m4.r[1])[3] = 0;
         ((int *)&m4.r[0])[3] = 0;
         ((float *)&pm->r[3])[3] = 1.0f;
-        SetCmMat4(D_002DDF40, pm);
+        SetCmMat4(&g_cm, pm);
     }
     if (camera->fovRequests > 0) {
         float g = atanf(17.995901107788086f / camera->focalLength);
         g = Clamp(g + g, 0.01f, 3.0f);
-        SetCmFov__FP2CMf(D_002DDF40, g);
+        SetCmFov__FP2CMf(&g_cm, g);
     }
 }

@@ -26,8 +26,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct WIDGET { char pad[0xC]; VTE *vt; char pad10[0x48]; int nState; char pad5C[0x70]; int tags[2]; };
 typedef char assert_WIDGET_tags[SLY2_OFFSETOF(WIDGET, tags) == 0xCC ? 1 : -1];
-/* The camera manager's look and recon policy headings and zooms (CM +0x460/+0x470, +0x5C4/+0x5CC). */
-struct CMVIEW { char pad[0x460]; float lookHeading; int p1[3]; float lookZoom; char pad2[0x5C4-0x474]; float reconHeading; int p2; float reconZoom; };
 struct SELECTOR;
 extern qword D_002A2DD0;
 extern CLOCK D_002DDED0;
@@ -60,27 +58,6 @@ struct SUBGLOBX
       float gUnk10;
       uint grfUnk14;
 };
-struct CAMEVENT
-{
-      uint32_t   _pad_376    [ 3 ] ;
-};
-struct CAMPOSE
-{
-      VECTOR4 pos;
-      VECTOR4 eul;
-      float radFov;
-};
-struct CAMMOVE
-{
-      CAMPOSE *pposeFrom;
-      CAMPOSE *pposeTo;
-      float dt;
-      int fCutOnLeave;
-      int iCurve;
-      CAMEVENT *pevent;
-      int nUnk18;
-};
-extern CM D_002DDF40;
 void CutCm(CM *pcm);
 extern "C" void SetCmPolicy(CM *pcm, int nPriority, void *pvMode, int nUnk, int nUnk2);
 extern "C" void RevokeCmPolicy(CM *pcm, int grf, int nPriority, void *pvMode, void *pvHero, void *pvOwner);
@@ -280,10 +257,10 @@ void SetJtModeState(JTMODE *jtMode, int state)
             switch (jtMode->kind)
             {
                 case 0:
-                    RevokeCmPolicy(&D_002DDF40, 0xF, 7, &D_002DDF40.cplook, jtMode->player, 0);
+                    RevokeCmPolicy(&g_cm, 0xF, 7, &g_cm.cplook, jtMode->player, 0);
                     break;
                 case 1:
-                    RevokeCmPolicy(&D_002DDF40, 0xF, 8, &D_002DDF40.cpzoom, jtMode->player, 0);
+                    RevokeCmPolicy(&g_cm, 0xF, 8, &g_cm.cpzoom, jtMode->player, 0);
                     {
                         STEP *step = jtMode->pstepOther;
                         if (step)
@@ -295,10 +272,10 @@ void SetJtModeState(JTMODE *jtMode, int state)
                     jtMode->player->RemoveDialogSmRefs(0x3F, 0);
                     break;
                 case 2:
-                    RevokeCmPolicy(&D_002DDF40, 0xF, 7, &D_002DDF40.cplook, jtMode->pstepOther, 0);
+                    RevokeCmPolicy(&g_cm, 0xF, 7, &g_cm.cplook, jtMode->pstepOther, 0);
                     break;
             }
-            CutCm(&D_002DDF40);
+            CutCm(&g_cm);
             SetSndmgrChannelVolume(&D_003DD040, 0, 1.0f, 3);
             SetSndmgrChannelVolume(&D_003DD040, 1, 1.0f, 3);
             if (jtMode->kind != 2)
@@ -340,13 +317,13 @@ void SetJtModeState(JTMODE *jtMode, int state)
             switch (jtMode->kind)
             {
                 case 0:
-                    SetCmPolicy(&D_002DDF40, 7, &D_002DDF40.cplook, (int)jtMode->player, 0);
-                    SetStepRadTarget(jtMode->player, *(float *)((char *)&D_002DDF40 + 0x460));
+                    SetCmPolicy(&g_cm, 7, &g_cm.cplook, (int)jtMode->player, 0);
+                    SetStepRadTarget(jtMode->player, g_cm.cplook.panAngle);
                     jtMode->hud.SetState(0);
                     break;
                 case 1:
-                    SetCmPolicy(&D_002DDF40, 8, &D_002DDF40.cpzoom, (int)jtMode->player, 0);
-                    SetStepRadTarget(jtMode->player, *(float *)((char *)&D_002DDF40 + 0x5C4));
+                    SetCmPolicy(&g_cm, 8, &g_cm.cpzoom, (int)jtMode->player, 0);
+                    SetStepRadTarget(jtMode->player, g_cm.cpzoom.panAngle);
                     {
                         STEP *step = jtMode->pstepOther;
                         if (step)
@@ -363,14 +340,14 @@ void SetJtModeState(JTMODE *jtMode, int state)
                     jtMode->player->AddDialogSmRefs(0x3F, 0);
                     break;
                 case 2:
-                    SetCmPolicy(&D_002DDF40, 7, &D_002DDF40.cplook, (int)jtMode->pstepOther, 0);
+                    SetCmPolicy(&g_cm, 7, &g_cm.cplook, (int)jtMode->pstepOther, 0);
                     jtMode->hud.SetState(0);
                     break;
             }
             ClearXyz(&jtMode->player->unknown190);
             jtMode->player->SetVelocity(D_002A2DD0);
             jtMode->player->SetAngularVelocity(D_002A2DD0);
-            CutCm(&D_002DDF40);
+            CutCm(&g_cm);
             SetSndmgrChannelVolume(&D_003DD040, 0, 0.6f, 3);
             SetSndmgrChannelVolume(&D_003DD040, 1, 0.6f, 3);
             if (jtMode->kind != 2)
@@ -424,13 +401,13 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             *(qword *)&jtMode->player->unknown190 = D_002A2DD0;
             switch (jtMode->kind) {
             case 0:
-                SetStepTargetHeading(jtMode->player, ((CMVIEW *)&D_002DDF40)->lookHeading);
-                jtMode->hud.zoom = ((CMVIEW *)&D_002DDF40)->lookZoom;
+                SetStepTargetHeading(jtMode->player, g_cm.cplook.panAngle);
+                jtMode->hud.zoom = g_cm.cplook.zoom;
                 UpdateJtModeHud(&jtMode->hud);
                 break;
             case 1:
-                SetStepTargetHeading(jtMode->player, ((CMVIEW *)&D_002DDF40)->reconHeading);
-                jtMode->hud.zoom = ((CMVIEW *)&D_002DDF40)->reconZoom;
+                SetStepTargetHeading(jtMode->player, g_cm.cpzoom.panAngle);
+                jtMode->hud.zoom = g_cm.cpzoom.zoom;
                 UpdateJtModeHud(&jtMode->hud);
                 break;
             }

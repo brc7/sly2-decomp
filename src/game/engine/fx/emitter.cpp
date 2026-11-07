@@ -562,13 +562,16 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
 }
 } // namespace M_ModifyEmitterParticles__FP7EMITTER
 
+/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
+   codegen (EmitBlips reads row 1 at base &g_cm + 0x70; a cast of CM::mat folds the offset into the base).
+   qwordI: the namespaces' signed quadword. */
+typedef int qwordI __attribute__((mode(TI)));
+struct CMIsland { char pad[0x60]; qwordI amatRow[3]; qwordI pos; };
+
 namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
 extern "C" { extern CLOCK D_002DDED0; }
-struct CM { char pad[0x1C]; float lodScale; char pad2[0x90 - 0x20]; qword pos; };   /* lodScale (inferred): scales
-                                                                                        an object's busy radius */
-extern "C" { extern CM D_002DDF40; }   /* g_cm, the main camera */
 struct EMITO { void *referenceObject; void *shapeObject; };   /* the EMITB's resolved objects */
 struct EMITBV { int pad0; int particleKind; EMITO *pemito; };   /* particleKind: 0 blips, 1 rips */
 struct RIPG { char pad[0x15C]; int ripList; };
@@ -654,18 +657,18 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *emitter, float dt)
                 continue;
             if (!member->psoParent)
                 goto LActive;
-            float radius = member->sBusy * D_002DDF40.lodScale;
+            float radius = member->sBusy * g_cm.rCullScale;
             qword pos = GetLoWorldPos(member);
             radius = radius * radius;
-            if (FLess(Dist2(pos, D_002DDF40.pos), radius))
+            if (FLess(Dist2(pos, *(qword *)&g_cm.pos), radius))
                 goto LActive;
         }
         return;
     } else if (emitter->psoParent) {
-        float radius = emitter->sBusy * D_002DDF40.lodScale;
+        float radius = emitter->sBusy * g_cm.rCullScale;
         qword pos = GetLoWorldPos(emitter);
         radius = radius * radius;
-        if (FLess(radius, Dist2(pos, D_002DDF40.pos)))
+        if (FLess(radius, Dist2(pos, *(qword *)&g_cm.pos)))
             return;
     }
 LActive:   /* near the camera (or not tied to a parent) */
@@ -1038,8 +1041,6 @@ struct VU_VECTOR { qword q; };
 // Wrap a qword as a VU_VECTOR.
 static inline VU_VECTOR V(qword q) { VU_VECTOR v; v.q = q; return v; }
 struct MATRIX3 { qword r[3]; };
-struct CM { char pad[0x60]; MATRIX3 mat; };
-extern "C" { extern CM D_002DDF40; }
 extern "C" { extern qword D_002A2DA0; }
 struct TRI { int aipos[3]; float sArea; };
 struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; };
@@ -1095,7 +1096,7 @@ static inline qword MulTMat(const MATRIX3 &m, qword v)
     return d;
 }
 // Rotate v into the camera's orientation.
-static inline qword MulCam(CM *pcm, qword v) { return MulMat(pcm->mat, v); }
+static inline qword MulCam(CM *pcm, qword v) { return MulMat(*(MATRIX3 *)&pcm->mat, v); }   /* the rotation rows as qwords */
 // Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
@@ -1218,9 +1219,9 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *emitb, int index, i
         void *reference = emitb->pemito->referenceObject;
         if (reference) {
             MATRIX3 *pm = GetLoWorldMatrix(reference);
-            *pdir = MulTMat(*pm, MulCam(&D_002DDF40, origin->vector));
+            *pdir = MulTMat(*pm, MulCam(&g_cm, origin->vector));
         } else {
-            *pdir = MulCam(&D_002DDF40, origin->vector);
+            *pdir = MulCam(&g_cm, origin->vector);
         }
         break;
     }
@@ -1532,9 +1533,7 @@ struct EMITTERV {
     LM rollSpeed;               /* +0xF8 */
 };
 struct EMITX { PRG **ppprg; void *ppripg; EMITTERV *pemitter; };   /* EMITG (pemitter: the subscriber) */
-struct CM { char pad[0x70]; qword dir; };
 extern "C" {
-extern CM D_002DDF40;
 extern char D_003DD490[];
 PRG *NewBlipGroup(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
@@ -1599,7 +1598,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px,
             if (pprg->renderKind == 2) {
                 float g = GRand(&emitter->rollSpeed);
                 pd->rollSpeed = g;
-                if (!emitter->rollKind && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
+                if (!emitter->rollKind && 0.0f < Dot(((CMIsland *)&g_cm)->amatRow[1], pfr->av[i]))
                     pd->rollSpeed = -g;
                 if (emitter->hasRandomRoll)
                     pd->rollAngle = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);

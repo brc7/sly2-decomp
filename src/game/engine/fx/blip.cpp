@@ -49,9 +49,10 @@ static inline void *PvNextDli(DLI *pdli)
 struct CLOCKV { float t; float dt; char pad08[0x40 - 0x08]; float dtReal; };
 extern "C" CLOCKV D_002DDED0;
 
-struct CMV { char pad[0x90]; qwordV pos; char padA0[0x100 - 0xA0]; float projScaleX; char pad104[0x114 - 0x104]; float projScaleY; };   /* CM: matProj[0][0], [1][1] */
-extern "C" CMV D_002DDF40;
 
+/* CMIsland: g_cm's position as a qword member (CM::pos is a VECTOR4); this form exists to reproduce the original
+   codegen (through a cast of the VECTOR4, RenderBlipgSelf schedules differently: 169/296 off). */
+struct CMIsland { char pad[0x90]; qwordV pos; };
 struct VIFS { int pad[3]; int writeOffset; };   /* (inferred) where the next packet starts */
 extern "C" VIFS D_002DEA28;
 
@@ -784,11 +785,11 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
 // passes the camera tests IsInCameraFrustum / IsWithinCameraRenderDistance, as LIGHTMs in a stack array (or the single D_002A2D30 when the
 // list check fails), then uploads each light per DMA queue through the VIF helpers.
 // Matching notes (gather loop, the last diffs; found with sched1/sched2/local-alloc dumps):
-//  * The g100 lw must issue after the &D_002DDF40 addiu in sched1 (else lw and lui overlap and the lui gets v1):
+//  * The g100 lw must issue after the &g_cm addiu in sched1 (else lw and lui overlap and the lui gets v1):
 //    the lw is written inside the VU_FLOATR asm with an allocation-only "r"(pcm) input.
 //  * The boundsCenter barrier is an operand-less volatile asm: a "+j"(v) one gives v 2 more refs, and local-alloc then
 //    ranks the boundsCenter chain above mat.r[2] (boundsCenter vf1 instead of vf2).
-//  * Plain VuSub (2 refs on pcm->pos): with SubE's duplicate operand the cm pos qty outranks the boundsCenter chain (vf2/vf3 swap).
+//  * Plain VuSub (2 refs on ((CMIsland *)pcm)->pos): with SubE's duplicate operand the cm pos qty outranks the boundsCenter chain (vf2/vf3 swap).
 //  * The empty "=r"(z) asm only exists for sched2 (see the comment there).
 struct LIGHTM { qwordV r[3]; float x30, y30, z30, w30; };   /* one place to draw the blips at: rotation rows, then position (x30..w30) */
 extern "C" LIGHTM D_002A2D30;
@@ -799,9 +800,9 @@ struct VU_FLOATR {
     qwordV q;
     /* else branch: word move into a 128-bit GPR value; volatile keeps the g100 load before the vsub like the target */
     VU_FLOATR(float f) { __asm__ volatile("" : "=r"(q) : "0"(*(int *)&f)); }
-    /* gather loop: the lw itself, with an allocation-only "r"(pcm) so it can only issue after &D_002DDF40 is built
+    /* gather loop: the lw itself, with an allocation-only "r"(pcm) so it can only issue after &g_cm is built
        (sched1 then keeps the lw and the lui apart, and both get v0 like the target) */
-    VU_FLOATR(const float *pf, CMV *pcm) { __asm__("lw %0, %1" : "=r"(q) : "m"(*pf), "r"(pcm)); }
+    VU_FLOATR(const float *pf, CM *pcm) { __asm__("lw %0, %1" : "=r"(q) : "m"(*pf), "r"(pcm)); }
 };
 struct DMA { int kind; int unknown4; int packetStart; int unknownC; };   /* a render-list entry */
 extern "C" {
@@ -809,8 +810,8 @@ void *AllocFromStack(const AL &al);
 int IsLoInWorld(LOV *plo);
 qwordV GetLoWorldPos(LOV *plo);
 M3 *GetLoWorldMatrix(LOV *plo);
-int IsInCameraFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
-int IsWithinCameraRenderDistance(CMV *pcm, qwordV d, float g, float *pg);
+int IsInCameraFrustum(CM *pcm, qwordV d, VU_FLOATR r);
+int IsWithinCameraRenderDistance(CM *pcm, qwordV d, float g, float *pg);
 DMA *AllocRenderListEntry(void);
 }
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
@@ -861,17 +862,17 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             }
             qwordV v = blipGroup->boundsCenter;
             __asm__ volatile(""); /* barrier: the boundsCenter load issues first (an operand-less one adds no refs to v) */
-            CMV *pcm = &D_002DDF40;
+            CM *pcm = &g_cm;
             VU_FLOATR vf(&blipGroup->boundsRadius, pcm);
             /* empty asm, emits nothing: z depends on pcm and feeds the Rot and the Add, so in sched2 it takes the
                second issue slot next to the lw and the mat.r[1] lqc2 waits a cycle (target order lw, lqc2, por, Rot) */
             int z; __asm__("" : "=r"(z) : "r"(pcm));
-            qwordV d = VuSub(AddZ(RotKZ(mat, v, vf.q, z), pos, z), pcm->pos);
+            qwordV d = VuSub(AddZ(RotKZ(mat, v, vf.q, z), pos, z), ((CMIsland *)pcm)->pos);
             __asm__("" : "+j"(d)); /* empty asm: extra refs so d is caller-saved in vf1 */
-            if (!IsInCameraFrustum(&D_002DDF40, d, vf))
+            if (!IsInCameraFrustum(&g_cm, d, vf))
                 goto next;
             float g;
-            if (!IsWithinCameraRenderDistance(&D_002DDF40, d, plo->sBusy, &g))
+            if (!IsWithinCameraRenderDistance(&g_cm, d, plo->sBusy, &g))
                 goto next;
             VECTOR_opAssign(&pl->x30, pos);
             cLight++;
@@ -889,11 +890,11 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             if (plo) goto top;
     done:;
     } else {
-        register CMV *pcm asm("$4") = &D_002DDF40; /* register pin: the target builds &D_002DDF40 in a0 */
+        register CM *pcm asm("$4") = &g_cm; /* register pin: the target builds &g_cm in a0 */
         qwordV v = blipGroup->boundsCenter;
         __asm__("" : "+j"(v)); /* empty asm: keeps boundsCenter in a pseudo */
         VU_FLOATR vf(blipGroup->boundsRadius);
-        if (!IsInCameraFrustum(pcm, SubE(v, pcm->pos), vf))
+        if (!IsInCameraFrustum(pcm, SubE(v, ((CMIsland *)pcm)->pos), vf))
             goto none;
         cLight = 1;
         aLight = &D_002A2D30;
@@ -953,8 +954,8 @@ extern "C" void AddBlipgVuParams(BLIPGV *blipGroup)
     CLOCKV *pclock;
     UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 5, 0, &pg);
     pclock = &D_002DDED0;
-    pg[0] = D_002DDF40.projScaleX;
-    pg[1] = D_002DDF40.projScaleY;
+    pg[0] = g_cm.matProj.mat[0][0];
+    pg[1] = g_cm.matProj.mat[1][1];
     pg[2] = blipGroup->flyingScale;
     pg[3] = D_002DDED0.t;
     UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 6, 0, &pn);

@@ -514,6 +514,40 @@ Not attempted: act.cpp's 19 curve-class vtables (namespace-scoped classes of Pac
 move them to file scope under real names with `_vt$` names in config, as slice 2 did for the registry classes),
 hud's and memcard's local classes, the 19 macros without a header type, unifying the three CFrame views.
 
+### Views unified (names/vu-f5-camera): the camera family
+
+The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,
+CPCAMERA), CPR, CPDEFI and the camera move records, replaced by sly2/cm.h's types. Every function and data symbol of
+every touched file and of every includer of cm.h MATCHes, and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---:|
+| CAMEVENT, CAMPOSE, CAMMOVE moved into cm.h (five identical copies) | cm.h | 15 | 5 |
+| cplcy.cpp: every policy function on the policy classes (ActivateCplcy, the CPLOOK/CPZOOM/CPHANG/CPCAMBLEND/CPTURRET/CPTWOSHOT functions) | — | 38 (CM/G views, the policy views X/A/S/T, CAMMOVE/CAMPOSE views K/PATH/B, two basic.h LM copies; the CAMEVENT vtable-call helper O kept) | 1 |
+| cm.cpp: every CM function on CM/CPR/CPDEFI; SetCmPolicy, RevokeCmPolicy, UpdateCmLast, ResetCameraPolicies call the CPLCY virtuals for real (they matched on the first compile) | cm.h: CPLCY::Set/Revoke take the entry argument | 39 (CM/P/CMC/CMX/CMR/CMJ, CPR views E, CPLCY views O/VTE, CPDEFI views S/CPDEFIV, InitCm's V3/LM) | 1 |
+| one-off g_cm views in other files (CMV, CMVIEW, CAMERA, Camera, CAM, CM, G/GS, CPDEFIV, CPCAMERAV) | — | 29 | 22 |
+
+cm.h field names taken from the views: `fovSmoothing` (+0x2C, SMPA, was unknown2C..38), `joltKind` (+0x61C),
+`stereoEyeOffset`/`stereoFocusDistance` (+0x620/+0x624), `zoomStopSound` (CPLOOK +0x38 / CPZOOM +0xC4: sfx 0x25, made on
+activation). Struct definitions in src/game .cpp: 121 deleted, 12 CMIsland added (two of them are the renamed views of sky
+and tu_173158).
+
+CMIsland (matching-only, Representation decisions 1.4): the original reads g_cm's position and matrix rows as 128-bit
+members at base `&g_cm` plus the field offset (`lq 0x90(base)`). CM declares them as VECTOR4/MATRIX4 floats; a cast of
+those fields (`*(qword *)&g_cm.pos`) makes g++ fold the offset into the address constant (`lq 0(base+0x90)`, 1-2
+instructions off), and through a pointer the cast also changes scheduling (blip: MEM_IN_STRUCT). Where that happened
+the read goes through a small file-local `CMIsland` (a struct with qword members at the CM offsets) and everything
+else uses CM: sound, light, prize, lo, busy, waypoint, emitter, blip, cplcy, tu_201D78 (one read each or two); sky
+(base `&g_cm.mat`, offset 0x30) and tu_173158 (the old view, renamed: its asm reads the rows from base `&g_cm`).
+Revisit: a qword-typed position/row member in CM (e.g. CM::pos as qword) would remove all twelve; that is a header type
+decision (most other users already cast `*(qword *)&pcm->pos`), not taken here.
+
+Not converted: render.cpp and places.cpp (their private qword/RGBA/LM/VECTOR types clash with basic.h, so they
+cannot include cm.h), tu_12E600's CID44 view (classes.h names no CID44 fields; not this family's header), rip, hud,
+relay (G views at +0x500/+0x510 and the matrix), glob/tu_1D57A8 (VIEW: the frustum planes, g_cm read as a culling
+view), bif's CM, tu_1BE398's RTCAM, and the `char D_002DDF40[]` + offset spellings (exit_warp, turret, relay,
+asega, guardbhv, tu_1BAB50, tu_14A008, bentley).
+
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key
