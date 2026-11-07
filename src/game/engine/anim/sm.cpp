@@ -189,7 +189,7 @@ void LoadOptionsFromBrx(void *pvStruct, CBinaryInputStream *pbis);
 
 
 void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbis, CLoadCollector *pcollector);
-inline void *PvAllocSw(int cb, int cbAlign)
+inline void *AllocWorldHeapBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
     swalloc.cb = cb;
@@ -197,7 +197,7 @@ inline void *PvAllocSw(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwImpl(pswalloc);
 }
-inline void *PvAllocStackClear(int cb, int cbAlign)
+inline void *AllocClearedStackBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
     swalloc.cb = cb;
@@ -205,7 +205,7 @@ inline void *PvAllocStackClear(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocStackClearImpl(pswalloc);
 }
-inline void *PvAllocSwCopy(int cb, int cbAlign, void *pvBase)
+inline void *AllocWorldHeapCopy(int cb, int cbAlign, void *pvBase)
 {
     SWALLOC swalloc;
     swalloc.cb = cb;
@@ -233,7 +233,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
         plo->Remove();
     }
     csms = pbis->U8Read();
-    asms = (SMS *)PvAllocSw(csms * sizeof(SMS), 16);
+    asms = (SMS *)AllocWorldHeapBlock(csms * sizeof(SMS), 16);
     for (i = 0; i < csms; i++)
     {
         SMS *psms = &asms[i];
@@ -258,7 +258,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
     }
     int grfAll = 0;
     csmt = pbis->U8Read();
-    asmt = (SMT *)PvAllocStackClear(csmt * sizeof(SMT), 16);
+    asmt = (SMT *)AllocClearedStackBlock(csmt * sizeof(SMT), 16);
     for (j = 0; j < csmt; j++)
     {
         SMT *psmt = &asmt[j];
@@ -288,7 +288,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
         }
         grfAll |= psmt->grfsmt & 0xfffc;
     }
-    asmt = (SMT *)PvAllocSwCopy(csmt * sizeof(SMT), 16, asmt);
+    asmt = (SMT *)AllocWorldHeapCopy(csmt * sizeof(SMT), 16, asmt);
     LoadOptionsFromBrx(this, pbis);
     int agrf[32];
     int cgrf = 0;
@@ -321,12 +321,12 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
     next:;
     }
     csmrt = cgrf;
-    asmrt = (SMRT *)PvAllocSw(csmrt * sizeof(SMRT), 16);
+    asmrt = (SMRT *)AllocWorldHeapBlock(csmrt * sizeof(SMRT), 16);
     for (int ismrt = 0; ismrt < csmrt; ismrt++)
     {
         SMRT *psmrt = &asmrt[ismrt];
         psmrt->grf = agrf[ismrt];
-        psmrt->ab = (signed char *)PvAllocSw(csms * csms, 16);
+        psmrt->ab = (signed char *)AllocWorldHeapBlock(csms * csms, 16);
         for (int ismsFrom = 0; ismsFrom < csms; ismsFrom++)
         {
             for (int ismsTo = 0; ismsTo < csms; ismsTo++)
