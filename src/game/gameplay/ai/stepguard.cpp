@@ -1622,9 +1622,9 @@ extern "C" void ResolveStepguardAnimBindings(STEPGUARD *guard)
     int i;
     for (i = 0; i < guard->cbindingrec; i++)
         ResolveAnimBinding(&guard->abindingrec[i].binding, guard);
-    ResolveZapReactions(guard, guard->aabindingZap[2]);
-    ResolveZapReactions(guard, guard->aabindingZap[0]);
-    ResolveZapReactions(guard, guard->aabindingZap[1]);
+    ResolveZapReactions(guard, guard->koReactions);
+    ResolveZapReactions(guard, guard->knockdownReactions);
+    ResolveZapReactions(guard, guard->hurtReactions);
 }
 
 // 0x208178 ReleaseZapReactions
@@ -1643,9 +1643,9 @@ extern "C" void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table)
 // 0x2081C8: Releases the guard's three zap-reaction tables.
 extern "C" void ReleaseStepguardZapReactions(STEPGUARD *guard)
 {
-    ReleaseZapReactions(guard, guard->aabindingZap[2]);
-    ReleaseZapReactions(guard, guard->aabindingZap[0]);
-    ReleaseZapReactions(guard, guard->aabindingZap[1]);
+    ReleaseZapReactions(guard, guard->koReactions);
+    ReleaseZapReactions(guard, guard->knockdownReactions);
+    ReleaseZapReactions(guard, guard->hurtReactions);
 }
 
 // 0x208208 CloneZapReactions
@@ -1671,9 +1671,9 @@ extern "C" void CloneStepguardAnimBindings(STEPGUARD *guard)
     int i;
     for (i = 0; i < guard->cbindingrec; i++)
         CloneAnimBinding(&guard->abindingrec[i].binding);
-    CloneZapReactions(guard, guard->aabindingZap[2]);
-    CloneZapReactions(guard, guard->aabindingZap[0]);
-    CloneZapReactions(guard, guard->aabindingZap[1]);
+    CloneZapReactions(guard, guard->koReactions);
+    CloneZapReactions(guard, guard->knockdownReactions);
+    CloneZapReactions(guard, guard->hurtReactions);
 }
 
 // 0x2082D0 ChooseStepguardTarget

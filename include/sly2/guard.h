@@ -10,6 +10,8 @@
 #include "sly2/step.h"
 #include "sly2/xfm.h"
 
+struct NOISE;   /* a noise event heard by the guards' listeners (noise.cpp) */
+
 /* one pickpocket-able loot entry carried by a guard (16 bytes) */
 struct GUARDLOOT
 {
@@ -74,7 +76,17 @@ struct ANIMBINDINGREC
 /* 120 CID120 (0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
 struct CID120 : LO
 {
-    char pad50[0xD0 - 0x50];
+    int unknown50[4];
+    float cooldownMin;      /* +0x60 [S] delay range before the attack can be chosen again */
+    float cooldownMax;      /* +0x64 [S] */
+    int unknown68[10];
+    qword strikeOffset;     /* +0x90 [S] */
+    void *aimObject;        /* +0xA0 [S] */
+    int unknownA4[2];
+    STEPGUARD *guard;       /* +0xAC [S] the guard owning the attack */
+    ANIMBINDING binding;    /* +0xB0 [S] the attack's animation */
+    ANIMBINDING *activeBinding; /* +0xC0 [S] */
+    int unknownC4[3];
     virtual void Init() __asm__("InitGuardAttack");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostGuardAttackLoad");   /* slot 15 */
@@ -106,7 +118,9 @@ struct STEPGUARD : public STEP
       int hitPoints;        /* +0x33C [R] current hp */
       undefined4 unk_0x340[(0x34c - 0x340) / 4];
       ASEGA *heldAnimation; /* +0x34C [S] an animation the guard holds (released with ReleaseAsega(&pasega)) */
-      undefined4 unk_0x350[(0x38c - 0x350) / 4];
+      undefined4 unk_0x350[(0x35c - 0x350) / 4];
+      NOISE *heldNoise;     /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
+      undefined4 unk_0x360[(0x38c - 0x360) / 4];
       LO *target;           /* +0x38C [R] current target (Sly while chasing) */
       int unknown390;       /* +0x390 [S] */
       int unknown394;       /* +0x394 [S] cleared with nUnk3A4 */
@@ -127,7 +141,9 @@ struct STEPGUARD : public STEP
       int cbindingrec;      /* +0x4C0 [S] entries used in abindingrec */
       undefined4 unknown4C4[3];
       ANIMBINDINGREC abindingrec[32];   /* +0x4D0 [S] */
-      ANIMBINDING aabindingZap[3][26];  /* +0x8D0 [S] three zap-reaction binding sets (ResolveZapReactions) */
+      ANIMBINDING knockdownReactions[26]; /* +0x8D0 [S] zap-reaction bindings by zap kind (ResolveZapReactions): knockdown */
+      ANIMBINDING hurtReactions[26];      /* +0xA70 [S] hurt */
+      ANIMBINDING koReactions[26];        /* +0xC10 [S] KO */
       LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (ConstructLeap) */
       CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
       undefined4 unk_0xe60[(0xe7c - 0xe60) / 4];
@@ -203,7 +219,8 @@ typedef char assert_STEPGUARD_target[SLY2_OFFSETOF(STEPGUARD, target) == 0x38C ?
 typedef char assert_STEPGUARD_loot[SLY2_OFFSETOF(STEPGUARD, loot) == 0x404 ? 1 : -1];     /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_numLoot[SLY2_OFFSETOF(STEPGUARD, numLoot) == 0x484 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_abindingrec[SLY2_OFFSETOF(STEPGUARD, abindingrec) == 0x4D0 ? 1 : -1];   /* stepguard.cpp */
-typedef char assert_STEPGUARD_aabindingZap[SLY2_OFFSETOF(STEPGUARD, aabindingZap) == 0x8D0 ? 1 : -1];   /* stepguard.cpp */
+typedef char assert_STEPGUARD_knockdownReactions[SLY2_OFFSETOF(STEPGUARD, knockdownReactions) == 0x8D0 ? 1 : -1];   /* stepguard.cpp */
+typedef char assert_STEPGUARD_koReactions[SLY2_OFFSETOF(STEPGUARD, koReactions) == 0xC10 ? 1 : -1];
 typedef char assert_STEPGUARD_nextAttackTime[SLY2_OFFSETOF(STEPGUARD, nextAttackTime) == 0xF04 ? 1 : -1]; /* guardbhv.cpp */
 typedef char assert_STEPGUARD_unknownFA8[SLY2_OFFSETOF(STEPGUARD, unknownFA8) == 0xFA8 ? 1 : -1]; /* guardbhv.cpp */
 typedef char assert_STEPGUARD_escortPos[SLY2_OFFSETOF(STEPGUARD, escortPos) == 0xF70 ? 1 : -1]; /* stepguard.cpp */

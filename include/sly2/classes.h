@@ -668,7 +668,29 @@ typedef char assert_BHVSTRIKE_size[sizeof(BHVSTRIKE) == 0x60 ? 1 : -1];
 /* 166 BHVPATH (0xC0): path base; vtable 0x2D0728, 15 slots */
 struct BHVPATH : BHV
 {
-    char pad30[0xC0 - 0x30];
+    SHAPE *shape;           /* +0x30 the path shape followed */
+    float pathParam;        /* +0x34 position along it */
+    int isReversed;         /* +0x38 */
+    int hasEnd;             /* +0x3C stops at endParam */
+    int ignoresBlockers;    /* +0x40 */
+    float endParam;         /* +0x44 */
+    float startParamHint;   /* +0x48 */
+    int state;              /* +0x4C (3 finished) */
+    float stateTime;        /* +0x50 */
+    LO *blocker;            /* +0x54 the object blocking the path */
+    int isBlocked;          /* +0x58 */
+    float blockerParam;     /* +0x5C */
+    float blockerRange;     /* +0x60 */
+    float arrivalRadius;    /* +0x64 */
+    float nearRadius;       /* +0x68 */
+    float farRadius;        /* +0x6C */
+    float separation;       /* +0x70 */
+    int unknown74[3];
+    qword startPosition;    /* +0x80 */
+    qword velocity;         /* +0x90 */
+    int isInitialized;      /* +0xA0 */
+    int unknownA4[3];
+    qword endPoint;         /* +0xB0 */
     virtual void OnPush() __asm__("InitBhvpath");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpathClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvpath");   /* slot 8 */
@@ -764,7 +786,13 @@ typedef char assert_BHV198_size[sizeof(BHV198) == 0x40 ? 1 : -1];
 /* 167 BHVWALKPATH (0xF0): path/goal follower; vtable 0x2D06A0, 15 slots */
 struct BHVWALKPATH : BHVPATH
 {
-    char padC0[0xF0 - 0xC0];
+    int animSgf;            /* +0xC0 the guard flag of the walk animation */
+    float rate;             /* +0xC4 */
+    int lookAtTarget;       /* +0xC8 */
+    int unknownCC;
+    qword stuckCheckPos;    /* +0xD0 */
+    float stuckTimer;       /* +0xE0 */
+    int unknownE4[3];
     virtual void OnPush() __asm__("InitBhvwalkpath");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvwalkpathClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateBhvwalkpath");   /* slot 10 */
@@ -878,7 +906,14 @@ typedef char assert_BHVJUGGLED_size[sizeof(BHVJUGGLED) == 0x70 ? 1 : -1];
 /* 172 BHVLEAP (0xA0): leap (flag 0xF); vtable 0x2D0320, 14 slots */
 struct BHVLEAP : BHV
 {
-    char pad30[0xA0 - 0x30];
+    int state;              /* +0x30 */
+    int unknown34[2];
+    int sgf;                /* +0x3C */
+    ANIMBINDING *binding;   /* +0x40 */
+    int unknown44[10];
+    int hasAttachBasis;     /* +0x6C */
+    int attachBasis[4];     /* +0x70 */
+    int unknown80[8];
     virtual void Close() __asm__("CloseBhvleap");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvleapClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvleap");   /* slot 7 */
@@ -1010,11 +1045,21 @@ typedef char assert_BHV188_size[sizeof(BHV188) == 0x30 ? 1 : -1];
 /* 186 BHVGOTO (0xD0): go-to / look-at tracker (flag 0x1C); vtable 0x2CFE20, 14 slots */
 struct BHVGOTO : BHV
 {
-    char pad30[0x40 - 0x30];
+    int state;              /* +0x30 (1 arrived) */
+    float stateTime;        /* +0x34 */
+    int sgf;                /* +0x38 the guard flag it holds (-1 none) */
+    int unknown3C;
     PATHLINKEND end0;
     PATHLINKEND end1;
-    PATHLINKEND end2;
-    char padA0[0xD0 - 0xA0];
+    PATHLINKEND end2;       /* +0x80 the relocate goal (BHVRELOCATE) */
+    float planTime;         /* +0xA0 time of the last route plan */
+    int pathGraphVersion;   /* +0xA4 path graph version the route was planned on */
+    int lookAtTarget;       /* +0xA8 */
+    int unknownAC;
+    int unknownB0[2];
+    int firstLink;          /* +0xB8 */
+    int isDirect;           /* +0xBC goes straight to the goal (no route) */
+    int unknownC0[4];
     virtual void Close() __asm__("CloseBhvgoto");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvgotoClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvgoto");   /* slot 7 */
@@ -1026,7 +1071,15 @@ typedef char assert_BHVGOTO_size[sizeof(BHVGOTO) == 0xD0 ? 1 : -1];
 /* 192 BHVPATROLPATH (0x60): patrol-route walker (flag 0x2E); vtable 0x2CFDA0, 14 slots */
 struct BHVPATROLPATH : BHV
 {
-    char pad30[0x60 - 0x30];
+    SHAPE *shape;           /* +0x30 the patrol path */
+    int isForward;          /* +0x34 */
+    float pathParam;        /* +0x38 */
+    int unknown3C;
+    qword goal;             /* +0x40 */
+    int lookAtTarget;       /* +0x50 */
+    int unknown54;
+    int isDirect;           /* +0x58 */
+    int unknown5C;
     virtual void Close() __asm__("CloseBhvpatrolpath");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpatrolpathClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvpatrolpath");   /* slot 7 */
