@@ -16,10 +16,6 @@ struct RAJANV : public STEPGUARD
 };
 
 /* Stimulus as CanRajanSenseStimulus sees it (HYPOTHESIS: a noise/sense stimulus with a range). */
-struct RANGE { float min, max; };
-struct STIMSRC { byte pad[0x50]; int isMuted; float range; RANGE heightRange; };
-struct STIMOWNER { byte pad[0x18]; int id; };
-struct STIMULUS { byte pad[0x14]; STIMSRC *noiseType; byte pad1[0x40 - 0x18]; STIMOWNER *emitter; };
 
 /* Camera manager as seen here (g_cm, 0x2DDF40). */
 struct CMVIEW { byte pad[0x600]; int policy600; };   /* a camera policy record at +0x600 (meaning unknown) */
@@ -28,7 +24,6 @@ extern int D_002F7900;
 
 extern "C" {
 void InitStepguard(STEPGUARD *guard);
-int CanStepguardSenseStimulus(void *p, STIMULUS *pstim);
 void SetCmPolicy(CMVIEW *pcm, int n, void *pv, int m, void *p);
 void RevokeCmPolicy(CMVIEW *pcm, int a, int b, void *c, void *d, int e);
 }
@@ -44,23 +39,23 @@ void RAJAN::Init()
 // 0x1CBEE0: RAJAN vtable slot 89 (sense a stimulus): for an audible noise whose emitter has id 0x246 at +0x18
 // (inferred: an oid), temporarily doubles its noise type's range and height window (about its centre), asks the
 // STEPGUARD test, then restores them.
-extern "C" int CanRajanSenseStimulus(void *guard, STIMULUS *stimulus)
+int RAJAN::CanSenseStimulus(STIMULUS *stimulus)
 {
-      STIMSRC *noiseType = stimulus->noiseType;
-      RANGE savedHeightRange = noiseType->heightRange;
+      STIMTEMPLATE *noiseType = stimulus->stimTemplate;
+      LM savedHeightRange = noiseType->heightRange;
       float savedRange = noiseType->range;
       int result;
 
-      if (noiseType->isMuted == 0 && stimulus->emitter && stimulus->emitter->id == 0x246) {
+      if (noiseType->kind == 0 && stimulus->source && stimulus->source->oid == 0x246) {
             float halfHeight, centre;
-            halfHeight = (savedHeightRange.max - savedHeightRange.min) * 0.5f;
-            centre = savedHeightRange.min + halfHeight;
+            halfHeight = (savedHeightRange.maxValue - savedHeightRange.minValue) * 0.5f;
+            centre = savedHeightRange.minValue + halfHeight;
             noiseType->range = savedRange + savedRange;
             halfHeight = halfHeight + halfHeight;
-            noiseType->heightRange.max = centre + halfHeight;
-            noiseType->heightRange.min = centre - halfHeight;
+            noiseType->heightRange.maxValue = centre + halfHeight;
+            noiseType->heightRange.minValue = centre - halfHeight;
       }
-      result = CanStepguardSenseStimulus(guard, stimulus);
+      result = STEPGUARD::CanSenseStimulus(stimulus);
       noiseType->heightRange = savedHeightRange;
       noiseType->range = savedRange;
       return result;

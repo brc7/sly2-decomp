@@ -61,11 +61,13 @@ struct SSGRESUME
       float pathParam;      /* +0x8 kind 6: where along the path */
 };
 
-/* A stimulus template (only the kind CanStepguardSenseStimulus switches on: 0 noise, 1 sight). [S] */
+/* A stimulus template (the noise type; only what the guards' sense tests read). [S] */
 struct STIMTEMPLATE
 {
       undefined4 unknown0[0x50 / 4];
-      int kind;             /* +0x50 [S] */
+      int kind;             /* +0x50 [S] 0 noise (audible), 1 sight (CanStepguardSenseStimulus) */
+      float range;          /* +0x54 [S] how far it carries (CanRajanSenseStimulus doubles it) */
+      LM heightRange;       /* +0x58 [S] the height window */
 };
 /* A stimulus a guard may sense (0x60 bytes; stepguard.cpp's stimulus functions, tu_1CBEB0 emitter). [S] */
 struct STIMULUS
