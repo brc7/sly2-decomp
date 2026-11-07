@@ -335,20 +335,18 @@ void SM::PostLoad()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmPendingApply { extern "C" {
-struct T { int a, b, c; };
-struct P { char pad[0x74]; struct T *pt; };
 struct CB { int cb; int n; };
-struct T *AllocFromWorldHeap(struct CB *);
+SMINIT *AllocFromWorldHeap(struct CB *);
 // Records that the machine should start by itself after loading (root OID and initial state/flags), consumed by the
 // after-load hook.
-void SetSmPendingApply(struct P *p, int a, int b, int c)
+void SetSmPendingApply(SM *p, OID a, OID b, GRFAPL c)
 {
     struct CB cb;
-    struct T *pt;
+    SMINIT *pt;
     cb.cb = 0xC; cb.n = 0x10;
     pt = AllocFromWorldHeap(&cb);
-    p->pt = pt;
-    pt->a = a; pt->b = b; pt->c = c;
+    p->psminit = pt;
+    pt->oidRoot = a; pt->oidInitialState = b; pt->grfapl = c;
 }
 } } // namespace M_SetSmPendingApply
 
@@ -461,40 +459,34 @@ extern "C" void FindSmStateRequired(SM *psm, OID oid)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmdFindSm { extern "C" {
-struct E { int fl; int b; };
-struct S { char pad[0x60]; int c; struct E *ae; };
 // Returns the first distance-table record whose mask intersects the given mask, or null.
-struct E *FindSmDistanceTable(struct S *p, int m)
+SMRT *FindSmDistanceTable(SM *p, int m)
 {
     int i;
-    for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->fl & m) return pe; }
+    for (i = 0; i < p->csmrt; i++) { SMRT *pe = &p->asmrt[i]; if (pe->grf & m) return pe; }
     return 0;
 }
 } } // namespace M_PsmdFindSm
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CsmtDistanceSm { extern "C" {
-struct Q { int a; char *ab; };
-struct A { char pad[0x50]; int c; };
-struct Q *FindSmDistanceTable(struct A *p, int n);
+SMRT *FindSmDistanceTable(SM *p, int n);
 // Number of transitions (hops) from one state to another using only transitions allowed by the mask (precomputed
 // table).
-int CountSmTransitionHops(struct A *p, int n, int y, int x)
+int CountSmTransitionHops(SM *p, int n, int y, int x)
 {
-    struct Q *pq = FindSmDistanceTable(p, n);
+    SMRT *pq = FindSmDistanceTable(p, n);
     int r = 0;
     if (pq)
-        r = pq->ab[y * p->c + x];
+        r = pq->ab[y * p->csms + x];
     return r;
 }
 } } // namespace M_CsmtDistanceSm
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_OidFromSmIsms { extern "C" {
-struct E { int a; int b; };
-struct S { char pad[0x50]; int c; struct E *ae; };
 // OID of the state at an index, or -1 when out of range.
-int GetSmStateOid(struct S *p, int n) { if (n < 0 || n >= p->c) return -1; return p->ae[n].a; }
+int GetSmStateOid(SM *p, int n) { if (n < 0 || n >= p->csms) return -1; return p->asms[n].oid; }
 } } // namespace M_OidFromSmIsms
 
 // Adds a reference to the activation (slot 1).
@@ -586,17 +578,15 @@ extern "C" void SetSmaGoal(P *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaGoalIfReachable { extern "C" {
-struct P { char pad[0x24]; void *sm; char pad2[0x30 - 0x28]; int currentAsega; int currentState; int nextState; char pad3[0x48 - 0x3C]; int routeMask; };
-int IsSmaRetracted(struct P *);
 int FindSmStateOptional__FP2SM3OID(void *, int);
 int ChooseSmTransitionTowardGoal(void *, int, int, int, int);
-void SetSmaGoal(struct P *, int);
+void SetSmaGoal(SMA *, int);
 // Sets the goal only if a path to it exists under the current transition mask.
-void SetSmaGoalIfReachable(struct P *p, int n)
+void SetSmaGoalIfReachable(SMA *p, int n)
 {
     if (!IsSmaRetracted(p) && n != -1) {
-        int r = FindSmStateOptional__FP2SM3OID(p->sm, n);
-        if (r != -1 && ChooseSmTransitionTowardGoal(p->sm, p->routeMask, !p->currentAsega ? p->currentState : p->nextState, r, 0))
+        int r = FindSmStateOptional__FP2SM3OID(p->stateMachine, n);
+        if (r != -1 && ChooseSmTransitionTowardGoal(p->stateMachine, p->routeFlags, !p->pasegaCur ? p->currentState : p->nextState, r, 0))
             SetSmaGoal(p, n);
     }
 }
@@ -617,59 +607,50 @@ extern "C" OID GetSmaCurrentState(SMA *psma)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_GetSmaNext { extern "C" {
-struct E { int a; int b; };
-struct T { char pad[0x54]; struct E *ae; };
-struct S { char pad[0x24]; struct T *pt; char pad2[0xC]; int currentState; int nextState; };
 // OID of the state the running transition leads to, else of the current state.
-int GetSmaNext(struct S *p)
+int GetSmaNext(SMA *p)
 {
     int i = p->nextState;
-    if (i >= 0) return p->pt->ae[i].a;
+    if (i >= 0) return p->stateMachine->asms[i].oid;
     i = p->currentState;
-    if (i >= 0) return p->pt->ae[i].a;
+    if (i >= 0) return p->stateMachine->asms[i].oid;
     return -1;
 }
 } } // namespace M_GetSmaNext
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaSvt {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; void *currentAsega; char pad3[0x44 - 0x34]; float g; };
-extern "C" int IsSmaRetracted(P *);
 extern "C" void SetAsegaSpeed__FP5ASEGAf(void *, float);
 struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
-    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
+    SMA *p;
+    Lock(SMA *pp) { p = pp; p->AddRef(); }
+    ~Lock() { p->Release(); }
 };
 // Sets the activation's playback speed and passes it to the running animation.
-extern "C" void SetSmaSvt(P *p, float g)
+extern "C" void SetSmaSvt(SMA *p, float g)
 {
     if (!IsSmaRetracted(p)) {
         Lock l(p);
-        p->g = g;
-        if (p->currentAsega) SetAsegaSpeed__FP5ASEGAf(p->currentAsega, g);
+        p->svtLocal = g;
+        if (p->pasegaCur) SetAsegaSpeed__FP5ASEGAf(p->pasegaCur, g);
     }
 }
 } // namespace M_SetSmaSvt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AbortSmaTransition { extern "C" {
-struct O { char pad[0x40]; float g; };
-struct P { char pad[0x30]; struct O *po; };
-void SeekAsega(struct O *, int, float, float);
-void RetractAsega(struct O *);
-void EndSmaTransition(struct P *);
+void SeekAsega(ASEGA *, int, float, float);
+void RetractAsega(ASEGA *);
+void EndSmaTransition(SMA *);
 // Aborts the running transition: seeks its animation to the start or end (by the sign of the speed), retracts it and
 // ends the transition there.
-void AbortSmaTransition(struct P *p)
+void AbortSmaTransition(SMA *p)
 {
-    struct O *po = p->po;
+    ASEGA *po = p->pasegaCur;
     if (po) {
-        p->po = 0;
-        if (po->g < 0.0f) SeekAsega(po, 0, 0.0f, po->g);
-        else SeekAsega(po, 2, 0.0f, po->g);
+        p->pasegaCur = 0;
+        if (po->speed < 0.0f) SeekAsega(po, 0, 0.0f, po->speed);
+        else SeekAsega(po, 2, 0.0f, po->speed);
         RetractAsega(po);
         EndSmaTransition(p);
     }
@@ -743,18 +724,17 @@ extern "C" void SnapSma(P *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseWeighted { extern "C" {
-struct E { int pad[5]; float weight; };
 float RandomFloatInRange__Fff(float, float);
 // Picks one of n transitions at random in proportion to their weights (a cumulative walk); null if none is picked.
-struct E *ChooseWeightedSmTransition(void *p, int n, struct E **ape)
+SMT *ChooseWeightedSmTransition(void *p, int n, SMT **ape)
 {
     float sum = 0.0f;
 
     int i;
-    for (i = 0; i < n; i++) sum += ape[i]->weight;
+    for (i = 0; i < n; i++) sum += ape[i]->gProbability;
     sum = RandomFloatInRange__Fff(0.0f, sum);
     for (i = 0; i < n; i++) {
-        sum -= ape[i]->weight;
+        sum -= ape[i]->gProbability;
         if (sum <= 0.0f) return ape[i];
     }
     return 0;
@@ -763,29 +743,27 @@ struct E *ChooseWeightedSmTransition(void *p, int n, struct E **ape)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseTowardGoal { extern "C" {
-struct E { int aseg; int fromState; int toState; int flags; int unknown10; int weight; };
-struct P { char pad[0x58]; int transitionCount; struct E *transitions; };
-int CountSmTransitionHops(struct P *, int, int, int);
-int ChooseWeightedSmTransition(struct P *, int, struct E **);
+int CountSmTransitionHops(SM *, int, int, int);
+int ChooseWeightedSmTransition(SM *, int, SMT **);
 // Picks a transition out of the current state (or a reversible one) that brings the machine one hop closer to the goal,
 // weighted at random among the candidates.
-int ChooseSmTransitionTowardGoal(struct P *p, int mask, int a, int b)
+int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
 {
-    struct E *ap[64];
+    SMT *ap[64];
     int c;
     int i;
     int n;
     if (a == b) n = 1;
     else n = CountSmTransitionHops(p, mask, a, b);
     c = 0;
-    for (i = 0; i < p->transitionCount; i++) {
-        struct E *pe = &p->transitions[i];
-        if (!(pe->flags & mask)) continue;
-        if (pe->fromState == a && CountSmTransitionHops(p, mask, pe->toState, b) == n - 1) {
+    for (i = 0; i < p->csmt; i++) {
+        SMT *pe = &p->asmt[i];
+        if (!(pe->grfsmt & mask)) continue;
+        if (pe->ismsFrom == a && CountSmTransitionHops(p, mask, pe->ismsTo, b) == n - 1) {
             ap[c++] = pe;
             continue;
         }
-        if ((pe->flags & 1) && pe->toState == a && CountSmTransitionHops(p, mask, pe->fromState, b) == n - 1)
+        if ((pe->grfsmt & 1) && pe->ismsTo == a && CountSmTransitionHops(p, mask, pe->ismsFrom, b) == n - 1)
             ap[c++] = pe;
     }
     if (c == 0) return 0;
@@ -795,18 +773,16 @@ int ChooseSmTransitionTowardGoal(struct P *p, int mask, int a, int b)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseFrom { extern "C" {
-struct E { int n0; int k4; int k8; int fl; int pad[2]; };
-struct P { char pad[0x58]; int c; struct E *ae; };
-int ChooseWeightedSmTransition(struct P *, int, struct E **);
+int ChooseWeightedSmTransition(SM *, int, SMT **);
 // Picks any allowed transition out of a state, weighted at random (wandering when there is no goal).
-int ChooseRandomSmTransition(struct P *p, int mask, int k)
+int ChooseRandomSmTransition(SM *p, int mask, int k)
 {
-    struct E *ape[64];
+    SMT *ape[64];
     int n = 0;
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
-        if ((pe->fl & mask) && (pe->k4 == k || ((pe->fl & 1) && pe->k8 == k)))
+    for (i = 0; i < p->csmt; i++) {
+        SMT *pe = &p->asmt[i];
+        if ((pe->grfsmt & mask) && (pe->ismsFrom == k || ((pe->grfsmt & 1) && pe->ismsTo == k)))
             ape[n++] = pe;
     }
     if (n == 0) return 0;
@@ -816,26 +792,19 @@ int ChooseRandomSmTransition(struct P *p, int mask, int k)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ChooseSmaTransition { extern "C" {
-struct ANIMATION;
-struct T { char pad[0x74]; float duration; };
-struct A { struct T *aseg; int fromState; int toState; };
-struct E8 { int unknown0; int nextGoal; };   /* SM state (SMS): the goal it moves on to by itself (-1 stay, -2 random) */
-struct G { char pad[0x54]; struct E8 *states; };
-struct P { char pad[0x24]; struct G *pg; int rootObject; int applyFlags; struct ANIMATION *currentAsega; int currentState; int nextState; int goalState; struct A *currentTransition; float speed; int routeMask; };
-int IsSmaRetracted(struct P *);
-struct A *ChooseRandomSmTransition(struct G *, int, int, int);
-struct A *ChooseSmTransitionTowardGoal(struct G *, int, int, int, int);
-void ApplyAsegCore(struct T *, int, float, float, int, struct ANIMATION **);
-void SubscribeLoObject(struct ANIMATION *, struct P *);
-void RetractAsega(struct ANIMATION *);
-void NotifySmaSpliceOnEnterState(struct P *, int, int);
-static inline struct P *Receiver(struct P *p){register struct P *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
+/* SMS::ismsNext here: the goal a state moves on to by itself (-1 stay, -2 random). */
+SMT *ChooseRandomSmTransition(SM *, int, int, int);
+SMT *ChooseSmTransitionTowardGoal(SM *, int, int, int, int);
+void ApplyAsegCore(ASEG *, ALO *, float, float, int, ASEGA **);
+void SubscribeLoObject(ASEGA *, SMA *);
+void RetractAsega(ASEGA *);
+static inline SMA *Receiver(SMA *p){register SMA *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
 static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;}
 // The machine's driver: with no goal (or at the goal) it wanders, otherwise it heads toward the goal; starts the chosen
 // transition's animation segment on the root object, records the next state and notifies.
-void ChooseSmaTransition(struct P *p, int k)
+void ChooseSmaTransition(SMA *p, int k)
 {
-    struct A *pa;
+    SMT *pa;
     int nx;
     register int fl __asm__("$17");
     if (IsSmaRetracted(p)) return;
@@ -846,60 +815,60 @@ void ChooseSmaTransition(struct P *p, int k)
     goto test;
 select:
     if(nx==random){
-        pa=ChooseRandomSmTransition(p->pg,p->routeMask,p->currentState,0);
-        if(pa)p->goalState=(pa->fromState!=p->currentState)?pa->fromState:pa->toState;
+        pa=ChooseRandomSmTransition(p->stateMachine,p->routeFlags,p->currentState,0);
+        if(pa)p->goalState=(pa->ismsFrom!=p->currentState)?pa->ismsFrom:pa->ismsTo;
     }else{
         p->goalState=nx;
-        pa=ChooseSmTransitionTowardGoal(p->pg,p->routeMask,p->currentState,nx,1);
+        pa=ChooseSmTransitionTowardGoal(p->stateMachine,p->routeFlags,p->currentState,nx,1);
     }
     k=0;
 apply:
-        p->currentTransition = pa;
+        p->psmtCur = pa;
         if (!pa) return;
         fl = 0;
-        if (pa->aseg) {
+        if (pa->paseg) {
             float a, b;
             int f;
-            if (pa->fromState == p->currentState) {
-                p->nextState = pa->toState;
+            if (pa->ismsFrom == p->currentState) {
+                p->nextState = pa->ismsTo;
                 a = 0.0f;
-                b = p->speed;
+                b = p->svtLocal;
             } else {
-                p->nextState = pa->fromState;
-                b = -p->speed;
-                a = pa->aseg->duration;
+                p->nextState = pa->ismsFrom;
+                b = -p->svtLocal;
+                a = pa->paseg->duration;
             }
-            f = p->applyFlags;
+            f = p->grfapl;
             if (k == 1) {
                 f |= 2;
                 f &= random;
                 fl = 1;
-                a = pa->aseg->duration - a;
-            } else if (pa->aseg->duration == 0.0f) {
+                a = pa->paseg->duration - a;
+            } else if (pa->paseg->duration == 0.0f) {
                 fl = 1;
             }
-            ApplyAsegCore(pa->aseg, p->rootObject, a, b, f, &p->currentAsega);
+            ApplyAsegCore(pa->paseg, p->paloRoot, a, b, f, &p->pasegaCur);
         }
         {
             int oldArgument,newArgument;
-            struct P *pArgument;
-            if(!p->currentAsega){
+            SMA *pArgument;
+            if(!p->pasegaCur){
                 int old=p->currentState;
-                int nw=pa->fromState;
-                if(nw==old)nw=pa->toState;
+                int nw=pa->ismsFrom;
+                if(nw==old)nw=pa->ismsTo;
                 p->currentState=nw;
                 oldArgument=old;
                 newArgument=nw;
                 pArgument=Receiver(p);
             }else{
                 int old;
-                if(!fl){SubscribeLoObject(p->currentAsega,p);return;}
+                if(!fl){SubscribeLoObject(p->pasegaCur,p);return;}
                 fl=p->nextState;
                 old=p->currentState;
                 p->currentState=fl;
                 p->nextState=finished;
-                RetractAsega(p->currentAsega);
-                p->currentAsega=0;
+                RetractAsega(p->pasegaCur);
+                p->pasegaCur=0;
                 oldArgument=old;
                 newArgument=fl;
                 pArgument=Receiver(p);
@@ -907,13 +876,13 @@ apply:
             NotifySmaSpliceOnEnterState(pArgument,oldArgument,newArgument);
         }
     if(IsSmaRetracted(p))return;
-    if(p->currentAsega)return;
+    if(p->pasegaCur)return;
 test:
     if(p->currentState!=p->goalState){
-        pa=ChooseSmTransitionTowardGoal(p->pg,p->routeMask,p->currentState,p->goalState,1);
+        pa=ChooseSmTransitionTowardGoal(p->stateMachine,p->routeFlags,p->currentState,p->goalState,1);
         goto apply;
     }
-    nx=((struct E8*)((unsigned)p->pg->states+EntryOffset(p->currentState)))->nextGoal;
+    nx=((SMS*)((unsigned)p->stateMachine->asms+EntryOffset(p->currentState)))->ismsNext;
     if(nx!=finished)goto select;
 }
 }
@@ -922,28 +891,6 @@ test:
 typedef char int_Width[sizeof(int)==4?1:-1];
 typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
-typedef char T_Prefix_Size[sizeof(struct T)==0x78?1:-1];
-typedef char A_Prefix_Size[sizeof(struct A)==0xC?1:-1];
-typedef char E8_Size[sizeof(struct E8)==8?1:-1];
-typedef char G_Prefix_Size[sizeof(struct G)==0x58?1:-1];
-typedef char P_Prefix_Size[sizeof(struct P)==0x4C?1:-1];
-typedef char T_f74_Offset[FIELD_OFFSET(T,duration)==0x74?1:-1];
-typedef char A_pt_Offset[FIELD_OFFSET(A,aseg)==0?1:-1];
-typedef char A_n4_Offset[FIELD_OFFSET(A,fromState)==4?1:-1];
-typedef char A_n8_Offset[FIELD_OFFSET(A,toState)==8?1:-1];
-typedef char E8_n0_Offset[FIELD_OFFSET(E8,unknown0)==0?1:-1];
-typedef char E8_n4_Offset[FIELD_OFFSET(E8,nextGoal)==4?1:-1];
-typedef char G_a54_Offset[FIELD_OFFSET(G,states)==0x54?1:-1];
-typedef char P_pg_Offset[FIELD_OFFSET(P,pg)==0x24?1:-1];
-typedef char P_n28_Offset[FIELD_OFFSET(P,rootObject)==0x28?1:-1];
-typedef char P_n2C_Offset[FIELD_OFFSET(P,applyFlags)==0x2C?1:-1];
-typedef char P_n30_Offset[FIELD_OFFSET(P,currentAsega)==0x30?1:-1];
-typedef char P_n34_Offset[FIELD_OFFSET(P,currentState)==0x34?1:-1];
-typedef char P_n38_Offset[FIELD_OFFSET(P,nextState)==0x38?1:-1];
-typedef char P_n3C_Offset[FIELD_OFFSET(P,goalState)==0x3C?1:-1];
-typedef char P_p40_Offset[FIELD_OFFSET(P,currentTransition)==0x40?1:-1];
-typedef char P_f44_Offset[FIELD_OFFSET(P,speed)==0x44?1:-1];
-typedef char P_n48_Offset[FIELD_OFFSET(P,routeMask)==0x48?1:-1];
 } } // namespace M_ChooseSmaTransition
 
 /* The transition is over: the next state becomes current and the splice is told. */
@@ -1009,27 +956,21 @@ extern "C" void HandleSmaMessage(P *p, int k, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SkipSma {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[3]; };
-struct A { char pad[0x74]; float duration; };
-struct Q { char pad[0x14]; A *aseg; int pad2; float localTime; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; Q *asega; };
-extern "C" int IsSmaRetracted(P *);
-extern "C" void RetractAsega(Q *);
-extern "C" void SeekAsega(Q *, int, float, float);
+extern "C" void RetractAsega(ASEGA *);
+extern "C" void SeekAsega(ASEGA *, int, float, float);
 struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
-    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
+    SMA *p;
+    Lock(SMA *pp) { p = pp; p->AddRef(); }
+    ~Lock() { p->Release(); }
 };
 // Skips the activation forward by t seconds, through as many transitions as that covers.
-extern "C" void SkipSma(P *p, float t)
+extern "C" void SkipSma(SMA *p, float t)
 {
     if (!IsSmaRetracted(p)) {
         Lock l(p);
-        Q *q;
-        while ((q = p->asega) != 0) {
-            float d = q->aseg->duration - q->localTime;
+        ASEGA *q;
+        while ((q = p->pasegaCur) != 0) {
+            float d = q->animation->duration - q->time;
             if (t < d) {
                 SeekAsega(q, 1, t, 1.0f);
                 break;
@@ -1043,55 +984,49 @@ extern "C" void SkipSma(P *p, float t)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_DtSmaToState { extern "C" {
-struct V3 { float x, y, z; float w; };
-struct T { char pad[0x74]; float duration; float masterSpeed; char pad2[0x80 - 0x7C]; struct V3 speedCurve; float speedMin; float speedMax; };
-struct A { struct T *aseg; int fromState; int toState; int flags; };
-struct Q { char pad[0x14]; struct T *aseg; char pad2[0x1C - 0x18]; float localTime; char pad3[0x40 - 0x20]; float speed; };
-struct P { char pad[0x24]; void *sm; char pad2[0x30 - 0x28]; struct Q *pq; int currentState; char pad3[0x40 - 0x38]; struct A *pa; char pad4[0x48 - 0x44]; int routeMask; };
 extern char D_002DE578[];
-int IsSmaRetracted(struct P *);
 int FindSmStateRequired(void *, int);
-struct A *ChooseSmTransitionTowardGoal(void *, int, int, int, int);
+SMT *ChooseSmTransitionTowardGoal(void *, int, int, int, int);
 float GetDifficulty(void *);
-static inline float Eval(struct V3 *pv, float t)
+static inline float Eval(CLQ *pclq, float t)
 {
-    return pv->x + t * (pv->y + t * pv->z);
+    return pclq->g0 + t * (pclq->g1 + t * pclq->g2);
 }
 // Estimated time to reach a state: what is left of the running transition plus the durations of the transitions on the
 // path (from fitted per-transition duration curves).
-float EstimateSmaTimeToState(struct P *p, int k)
+float EstimateSmaTimeToState(SMA *p, int k)
 {
     float r = 0.0f;
     int end, cur;
-    struct A *pa;
+    SMT *pa;
     if (IsSmaRetracted(p)) return r;
-    end = FindSmStateRequired(p->sm, k);
-    if (!p->pq) {
+    end = FindSmStateRequired(p->stateMachine, k);
+    if (!p->pasegaCur) {
         cur = p->currentState;
     } else {
-        struct Q *pq = p->pq;
-        if (!(p->pa->flags & 2)) {
+        ASEGA *pq = p->pasegaCur;
+        if (!(p->psmtCur->grfsmt & 2)) {
             float d = pq->speed;
             float x;
-            if (d < 0.0f) x = -pq->localTime;
-            else if (0.0f < d) x = pq->aseg->duration - pq->localTime;
+            if (d < 0.0f) x = -pq->time;
+            else if (0.0f < d) x = pq->animation->duration - pq->time;
             else return r;
             r = x / d;
         }
-        if (p->pa->fromState != p->currentState) cur = p->pa->fromState; else cur = p->pa->toState;
+        if (p->psmtCur->ismsFrom != p->currentState) cur = p->psmtCur->ismsFrom; else cur = p->psmtCur->ismsTo;
     }
-    while (cur != end && (pa = ChooseSmTransitionTowardGoal(p->sm, p->routeMask, cur, end, 1)) != 0) {
-        if (pa->aseg) {
+    while (cur != end && (pa = ChooseSmTransitionTowardGoal(p->stateMachine, p->routeFlags, cur, end, 1)) != 0) {
+        if (pa->paseg) {
             float t = GetDifficulty(D_002DE578);
-            float v = Eval(&pa->aseg->speedCurve, t);
-            float mn = pa->aseg->speedMin;
-            float mx = pa->aseg->speedMax;
+            float v = Eval(&pa->paseg->clqMasterSuck, t);
+            float mn = pa->paseg->lmMasterSuck.minValue;
+            float mx = pa->paseg->lmMasterSuck.maxValue;
             if (v < mn) v = mn;
             else if (mx < v) v = mx;
-            r += pa->aseg->duration / (pa->aseg->masterSpeed * v);
+            r += pa->paseg->duration / (pa->paseg->masterSpeed * v);
         }
-        if (pa->fromState != cur) cur = pa->fromState;
-        else cur = pa->toState;
+        if (pa->ismsFrom != cur) cur = pa->ismsFrom;
+        else cur = pa->ismsTo;
     }
     return r;
 }
