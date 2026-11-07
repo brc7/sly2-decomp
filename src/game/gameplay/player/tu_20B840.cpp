@@ -135,11 +135,10 @@ struct CV { CVE *vt; };
 #define CURVECALL(pcv, pq, pd, t, s) (pcv)->vt[3].pf((char *)(pcv) + (pcv)->vt[3].d, pq, pd, t, s)
 struct BLCURVE { OID oid; ASEG *paseg; float a; float b; float c; float ca; float cb; FLOATWORD dist; V3 v; int pad; int fInit; };
 
-struct CLOCK1 { float time, dt; };
 struct GAME;
 struct SLOTHEAP;
 extern "C" {
-extern CLOCK1 D_002DDED0;
+extern CLOCK D_002DDED0;
 extern GAME D_003DD490;
 extern SW D_003DD490SW __asm__("D_003DD490");
 extern qword D_002A2DD0;
