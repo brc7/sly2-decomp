@@ -336,32 +336,32 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
     InitDzgXp(&group,contactCount,contacts,objectCount,objects);
     for(i=0;i<contactCount;i++){
         contact=contacts[i];
-        row=&group.adz[i];
+        row=&group.rows[i];
         DZX *state=&group.adzx[i];
-        state->pxp=contact;
-        state->qwNormal=contact->normal.q;
+        state->contact=contact;
+        state->normal=contact->normal.q;
         switch(contact->kind){
         case 11:
-            row->nKind=1;
-            row->gMin=-FLT_MAX;
+            row->kind=1;
+            row->minValue=-FLT_MAX;
             // Shares the default's upper limit (the game's code jumps into it; a separate store does not match).
             goto unbounded;
         case 14:
             if(flags&1){
-                row->gMin=contact->start*ClockDt();
-                row->gMax=contact->end*ClockDt();
-                row->nKind=contact->start<0.0f;
+                row->minValue=contact->start*ClockDt();
+                row->maxValue=contact->end*ClockDt();
+                row->kind=contact->start<0.0f;
             }else{
-                row->gMin=0.0f;
-                row->gMax=FLT_MAX;
-                row->nKind=0;
+                row->minValue=0.0f;
+                row->maxValue=FLT_MAX;
+                row->kind=0;
             }
             break;
         default:
-            row->nKind=0;
-            row->gMin=0.0f;
+            row->kind=0;
+            row->minValue=0.0f;
         unbounded:
-            row->gMax=FLT_MAX;
+            row->maxValue=FLT_MAX;
             break;
         }
         AppendDzgDz(&group,row,state);
@@ -371,8 +371,8 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
         maximum=0.0f;
         for(i=0;i<contactCount;i++){
             contact=contacts[i];
-            row=&group.adz[i];
-            if(row->nKind==1)row->g10=contact->value;else row->g10=contact->value+1.0f;
+            row=&group.rows[i];
+            if(row->kind==1)row->residual=contact->value;else row->residual=contact->value+1.0f;
             float magnitude=__builtin_fabsf(contact->value);
             if(maximum<magnitude)maximum=magnitude;
         }
@@ -392,19 +392,19 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
         RecalcSwXpMovement(game,contactCount,contacts);
         int n;for(n=0;n<contactCount;n++){
             contact=contacts[n];
-            row=&group.adz[n];
+            row=&group.rows[n];
             // The game stores the dot product's bits from the GPR (sw): written through an int view of the float
             // target (a float result goes through the FPU, mtc1/swc1). This form exists to reproduce the original codegen.
-            *(int *)&row->g10=DotQ(contact->velocity.q,contact->normal.q);
+            *(int *)&row->residual=DotQ(contact->velocity.q,contact->normal.q);
             float magnitude=LengthSquared(contact->velocity.q);
             if(maximum<magnitude)maximum=magnitude;
         }
     }else{
         for(;j<contactCount;j++){
             contact=contacts[j];
-            row=&group.adz[j];
+            row=&group.rows[j];
             float factor=1.0f+contact->elasticity*RandomFloatInRange__Fff(0.9f,1.1f);
-            row->g10=Dot(contact->velocity.q,contact->normal.q)*factor;
+            row->residual=Dot(contact->velocity.q,contact->normal.q)*factor;
             float magnitude=LengthSquared(contact->velocity.q);
             if(maximum<magnitude)maximum=magnitude;
         }
@@ -513,7 +513,7 @@ static inline void NearVector(int *out,const qword &first,const qword &b){regist
 static inline void AddVector(U *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
 static inline qword*PointAddress(XF*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,0x30\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->pos));*value=point;return address;}
 static inline float HalfAndDelta(float dt,float half,const qword&source,qword*delta){register float product __asm__("$f0");register qword d __asm__("vf3");__asm__("mul.s %0,%2,%3\n\tlqc2 %1,%4":"=f"(product),"=j"(d):"f"(dt),"f"(half),"m"(source));*delta=d;return product;}
-// Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (qwDv/qwDw,
+// Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (SO::contactVelocityChange / contactAngularVelocityChange,
 // accumulated by ApplyDzg) to the position and rotation XFs' velocities and advances the position and rotation by
 // half a step with them, then clears the deltas.
 extern "C" void ApplySoRestingContactVelocity(SO *input)

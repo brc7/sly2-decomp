@@ -89,7 +89,7 @@ extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int nu
     group->cpso = numObjects;
     group->apso = objects;
     request.cbAlign = 0x10;
-    request.cb = sizeof(DZX) * group->cdzMax;
+    request.cb = sizeof(DZX) * group->maxRows;
     group->adzx = (DZX *)AllocClearedFromStack(&request);
     return group;
 }
@@ -100,20 +100,20 @@ extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int nu
 extern "C" void AppendDzgDz(DZGXP *group, DZ *row, DZX *rowContact)
 {
     int i;
-    int contactIndex = rowContact->pxp->groupIndex;
-    for (i = 0; i < group->cdz; i++) {
-        DZ *otherRow = &group->adz[i];
+    int contactIndex = rowContact->contact->groupIndex;
+    for (i = 0; i < group->numRows; i++) {
+        DZ *otherRow = &group->rows[i];
         int *coefficients = (int *)otherRow->ag;
         if (coefficients) {
             __asm__ __volatile__("" : : : "memory");
             {
                 DZX *otherRowContact = &group->adzx[i];
-                coefficients[group->cdz] = Dot(rowContact->qwNormal, otherRowContact->aqwRel[contactIndex]);
+                coefficients[group->numRows] = Dot(rowContact->normal, otherRowContact->aqwRel[contactIndex]);
             }
         }
     }
-    AppendDlEntry(&group->dlD, row);
-    group->cdz++;
+    AppendDlEntry(&group->freeRows, row);
+    group->numRows++;
 }
 
 /* FillDzgDz: each side object adds its impulse response to the row (SO slot 67), then for every contact of the group
@@ -127,7 +127,7 @@ static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return Al
 extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
 {
     int i;
-    XP *contact = rowContact->pxp;
+    XP *contact = rowContact->contact;
     for (i = 0; i < 2; i++) {
         SO *object = contact->sides[i].pso;
         if (object)
@@ -159,11 +159,11 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(difference) : "j"(u.q[0]), "j"(u.q[1]));
         qword *slot = relative; relative = nextRelative; *slot = difference;
     }
-    int *coefficients = (int *)PvAlloc(group->cdz * 4, 16);
+    int *coefficients = (int *)PvAlloc(group->numRows * 4, 16);
     row->ag = (float *)coefficients;
-    for (int rowIndex = 0; rowIndex < group->cdz; rowIndex++) {
+    for (int rowIndex = 0; rowIndex < group->numRows; rowIndex++) {
         DZX *otherRowContact = &group->adzx[rowIndex];
-        *coefficients++ = Dot(otherRowContact->qwNormal, rowContact->aqwRel[otherRowContact->pxp->groupIndex]);
+        *coefficients++ = Dot(otherRowContact->normal, rowContact->aqwRel[otherRowContact->contact->groupIndex]);
     }
 }
 
@@ -171,7 +171,7 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
 // Returns the contact record (DZX) that parallels constraint row pdz: same index, 0x60-byte stride.
 extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
 {
-    return &group->adzx[row - group->adz];
+    return &group->adzx[row - group->rows];
 }
 
 /* SolveDzg: Sly 1's symbol was SolveDzg__FP3DZGiiPP2XPPiPPP2SO (the contacts and objects were arguments there;
@@ -183,14 +183,14 @@ extern "C" void SolveDzg(DZGXP *group, int flags)
     DLI dli;
     DLI dliUnused;          /* unused, but part of the frame */
     DZ *row;
-    InitDli(&dli, &group->dlD);
+    InitDli(&dli, &group->freeRows);
     while ((row = (DZ *)PvNextDli(&dli)) != 0) {
-        if (row->nKind == 1) {
+        if (row->kind == 1) {
             if (!row->ag)
                 FillDzgDz(group, flags, row, GetDzgExtraForDz(group, row));
-            RemoveDlEntry(&group->dlD, row);
-            AppendDlEntry(&group->dlA, row);
-            group->cdzA++;
+            RemoveDlEntry(&group->freeRows, row);
+            AppendDlEntry(&group->activeRows, row);
+            group->numActiveRows++;
         }
     }
     EnforceDzgDz(group, 0);
@@ -198,9 +198,9 @@ extern "C" void SolveDzg(DZGXP *group, int flags)
     for (;;) {
         DZ *worstRow = 0;
         float minResidual = -0.01f;
-        for (DZ *candidate = (DZ *)group->dlD.head; candidate; candidate = (DZ *)candidate->dle.next) {
-            if (candidate->g10 < minResidual) {
-                minResidual = candidate->g10;
+        for (DZ *candidate = (DZ *)group->freeRows.head; candidate; candidate = (DZ *)candidate->dle.next) {
+            if (candidate->residual < minResidual) {
+                minResidual = candidate->residual;
                 worstRow = candidate;
             }
         }
@@ -268,20 +268,20 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
         bestPush.f[1] = 0.0f;
         bestPush.f[0] = 0.0f;
         for (int i = 0; i < group->cpxp; i++) {
-            DZ *row = &group->adz[i];
+            DZ *row = &group->rows[i];
             if (row->pdzOther)
                 continue;
-            if (row->gC < 0.0001f)
+            if (row->solution < 0.0001f)
                 continue;
             XP *contact = group->apxp[i];
             if (contact->friction < 0.0001f)
                 continue;
             VEC4 push;
             push.q = contact->relativeVelocity;
-            for (int j = 0; j < group->cdz; j++) {
-                DZ *otherRow = &group->adz[j];
-                if (otherRow->gC != 0.0f) {
-                    VU_FLOAT scale = VuFloat(otherRow->gC);
+            for (int j = 0; j < group->numRows; j++) {
+                DZ *otherRow = &group->rows[j];
+                if (otherRow->solution != 0.0f) {
+                    VU_FLOAT scale = VuFloat(otherRow->solution);
                     push.q = QwAddScaled(push.q, group->adzx[j].aqwRel[i], scale, otherRow);
                 }
             }
@@ -296,32 +296,32 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
         }
         if (!bestContact)
             break;
-        DZ *row = &group->adz[group->cdz];
-        DZ *pairedRow = &group->adz[bestIndex];
-        DZX *rowContact = &group->adzx[group->cdz];
+        DZ *row = &group->rows[group->numRows];
+        DZ *pairedRow = &group->rows[bestIndex];
+        DZX *rowContact = &group->adzx[group->numRows];
         row->pdzOther = pairedRow;
         pairedRow->pdzOther = row;
-        row->g10 = -SqrtFloat(bestPushSquared);
-        rowContact->pxp = bestContact;
-        rowContact->qwNormal = QwDivX(bestPush.q, VuFloatFromMemWord((const int *)&row->g10));
-        row->nKind = 1;
+        row->residual = -SqrtFloat(bestPushSquared);
+        rowContact->contact = bestContact;
+        rowContact->normal = QwDivX(bestPush.q, VuFloatFromMemWord((const int *)&row->residual));
+        row->kind = 1;
         if (bestContact->nKind == 14) {
             SOPHYS *physics = bestContact->sides[0].pso->physics;
             float limit;
             if (flags & 1) {
                 limit = -physics->gravity.z * physics->m * D_002DDED0.deltaTime;
-                float amount = __builtin_fabsf(row->pdzOther->gC);
-                row->gMax = bestContact->friction * (amount < limit ? limit : amount);
+                float amount = __builtin_fabsf(row->pdzOther->solution);
+                row->maxValue = bestContact->friction * (amount < limit ? limit : amount);
             } else {
                 float mass = physics->m;
                 limit = mass * D_002BDDE8;
-                float amount = bestContact->friction * __builtin_fabsf(row->pdzOther->gC);
-                row->gMax = amount < limit ? amount : limit;
+                float amount = bestContact->friction * __builtin_fabsf(row->pdzOther->solution);
+                row->maxValue = amount < limit ? amount : limit;
             }
         } else {
-            row->gMax = __builtin_fabsf(row->pdzOther->gC) * bestContact->friction;
+            row->maxValue = __builtin_fabsf(row->pdzOther->solution) * bestContact->friction;
         }
-        row->gMin = -row->gMax;
+        row->minValue = -row->maxValue;
         AppendDzgDz(group, row, rowContact);
     }
 }
@@ -346,19 +346,19 @@ extern "C" void ApplyDzg(DZGXP *group, float maxDv, float maxDw)
     SO *object;
     { register int n asm("$3") = group->cpso;  /* register pin: cso in v1 like the target */
       AllocFromStack(AL(n * 32, 0x10)); }
-    for (i = 0; i < group->cdz; i++) {
-        DZ *row = &group->adz[i];
-        if (row->gC == 0.0f) continue;
+    for (i = 0; i < group->numRows; i++) {
+        DZ *row = &group->rows[i];
+        if (row->solution == 0.0f) continue;
         DZX *rowContact = &group->adzx[i];
         for (int j = 0; j < 2; j++) {
-            XPS *side = &rowContact->pxp->sides[j];
+            XPS *side = &rowContact->contact->sides[j];
             object = side->pso;
             if (!object) continue;
-            qword *effect = &rowContact->afx[j].qwDv;   /* qwDv, then qwDw at pv[1] */
-            qword dv = AddScale(object->contactVelocityChange, effect[0], VUF(row->gC));
+            qword *effect = &rowContact->afx[j].velocityPerImpulse; /* velocityPerImpulse, then angularVelocityPerImpulse at pv[1] */
+            qword dv = AddScale(object->contactVelocityChange, effect[0], VUF(row->solution));
             qword dw = object->contactAngularVelocityChange;
             __asm__ __volatile__("sqc2 %1, %0" : "=m"(object->contactVelocityChange) : "j"(dv));
-            object->contactAngularVelocityChange = AddScale(dw, effect[1], VUF(row->gC));
+            object->contactAngularVelocityChange = AddScale(dw, effect[1], VUF(row->solution));
         }
     }
     for (int objectIndex = 0; objectIndex < group->cpso; objectIndex++) {
