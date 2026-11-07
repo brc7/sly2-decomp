@@ -2097,11 +2097,7 @@ namespace M_SetRobottankState { extern "C" {
 extern struct CLOCK { float time; float deltaTime; } D_002DDED0;
 typedef struct VT1 { struct { short d; short pad; void (*pfn)(void *, int); } a[64]; } VT1;
 typedef struct { char pad[0xC]; VT1 *vt; } W;
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int, int, int, int, int); } a[8]; } VT;
-typedef struct OBJ {
-    char pad[0xC];
-    VT *vt;
-    char pad10[0x180 - 0x10];
+struct OBJ : PO {
     int state;
     float t;
     char pad188[0x568 - 0x188];
@@ -2111,7 +2107,7 @@ typedef struct OBJ {
     char pad574[0x598 - 0x574];
     void *engineSound;
     int engineSoundId;
-} OBJ;
+};
 extern int D_002C2208[];
 void PlayWidgetAnim(W *, int);
 void UpdateRobottankHealthMeter(OBJ *);
@@ -2170,7 +2166,7 @@ void SetRobottankState(OBJ *tank, int n)
         SetRobottankTactic(tank, 0);
         break;
     case 3:
-        tank->vt->a[3].pfn((char *)tank + tank->vt->a[3].d, 5, 0, 0, 0, 0);
+        tank->HandleSpliceEvent(5, 0, 0, 0, 0);
         break;
     }
     if (tank->sma && tank->state != -1)
