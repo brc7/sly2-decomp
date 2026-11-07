@@ -2095,9 +2095,8 @@ float GetRandomStepguardDelay(void) { return RandomFloatInRange__Fff(5.0f, 7.0f)
 
 // 0x208BE0 CanStepguardSenseStimulus
 namespace M_FStepguardSenseStimulus {
-struct VOL; struct STIMTEMPLATE; struct DETECTORV; struct GUARD; struct STIMULUS;
+struct STIMTEMPLATE; struct DETECTORV; struct GUARD; struct STIMULUS;
 typedef int qword __attribute__((mode(TI)));
-struct VOL { char pad[0x28]; unsigned long loFlags; /* bit 60: in the world */ };
 struct STIMTEMPLATE { char pad[0x50]; int kind; };
 struct DETECTORV { char pad[0xE8]; VOL *nearVolume; };
 struct STIMULUS;
@@ -2143,7 +2142,7 @@ int CanStepguardSenseStimulus(GUARD *guard, STIMULUS *stimulus)
         return IsPositionInNoise(stimulus, GetLoWorldPos(guard));
     case 1: {
         VOL *nearVolume = guard->detector->nearVolume;
-        if (!nearVolume || ((nearVolume->loFlags >> 60) & 1) == 0)
+        if (!nearVolume || (nearVolume->isInWorld & 1) == 0)
             return 0;
         if (!IsPointInVol(nearVolume, stimulusPos))
             return 0;
@@ -2180,9 +2179,8 @@ int AreStepguardSensesEnabled(struct S *guard)
 
 // 0x208E70 GuardEvalInteractMode
 namespace M_GuardEvalInteractMode { extern "C" {
-struct VOL; struct BHVHOLD; struct PLAYER; struct S;
+struct BHVHOLD; struct PLAYER; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct VOL { char pad[0x28]; unsigned long loFlags; /* bit 60: in the world */ };
 struct BHVHOLD { char pad[0x50]; void *target; char pad2[0x5C - 0x54]; void *holder; };
 struct PLAYER { char pad[0x10DC]; void *interactTarget; int pad2; int interactMode; char pad3[0x10F0 - 0x10E8]; int fightEnabled; /* (inferred) */ };
 struct S {
@@ -2237,7 +2235,7 @@ int GuardEvalInteractMode(struct S *guard, struct PLAYER *player, float *distanc
             indicator = guard->pickpocketIndicator1;
         else
             indicator = guard->pickpocketIndicator0;
-        if (indicator && !!((indicator->loFlags >> 60) & 1) /* (`!!` needed for the match) */ && IsPointInVol(indicator, GetLoWorldPos(player)))
+        if (indicator && !!(indicator->isInWorld & 1) /* (`!!` needed for the match) */ && IsPointInVol(indicator, GetLoWorldPos(player)))
             return 3;
     }
     angleRange = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
