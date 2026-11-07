@@ -1793,13 +1793,12 @@ void UpdateDialog(SNDMGR *soundManager)
 } } // namespace M_func_001FDEC8
 
 namespace M_func_001FE0E8 { extern "C" {
-struct E { short framesAfterPrevious; short role; union { int smState; float gesture; } value; };   /* a dialog event */
 #define DIALOG_ROLE_SPEAKER 3   /* the speaking object itself; the other roles are its state machines */
 void SetSoEyesClosed(void *, float);
 void SetSmaGoal(void *, int);
 // Applies one dialog event: a gesture for role 3, otherwise sets the goal state of the speaker role's state machine
 // (lip sync). (inferred)
-void ApplyDialogEvent(SNDMGR *soundManager, struct E *event)
+void ApplyDialogEvent(SNDMGR *soundManager, DIALOGEVENT *event)
 {
     int role = event->role;
     if (role != -1 && soundManager->dialogRoleObjects[role]) {
@@ -1810,31 +1809,14 @@ void ApplyDialogEvent(SNDMGR *soundManager, struct E *event)
 } } // namespace M_func_001FE0E8
 
 namespace M_PushMusic {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[8]; };
-struct X { char pad[0xC]; VT *vtable; };   /* a STREAMSND */
-struct Ref;
-extern "C" void InitSoundRef(Ref *, X *);
-extern "C" void AssignSoundRef(Ref *, X *);
-struct Ref {
-    X *px;
-    Ref(X *sound) { InitSoundRef(this, sound); }
-    Ref(const Ref &r) { InitSoundRef(this, r.px); }
-    Ref &operator=(const Ref &r) { AssignSoundRef(this, r.px); return *this; }
-    Ref &operator=(X *sound) { AssignSoundRef(this, sound); return *this; }
-    ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
-};
-struct S { int count; Ref entries[8]; };   /* the music stack */
-struct P { char pad[0x204]; S musicStack; };   /* SNDMGR */
 extern "C" { extern int D_002DD5BC; }   /* Bentley */
 extern "C" { extern int D_002F7900; }   /* Murray */
 extern "C" { extern int D_002E1E40; }   /* Sly (g_pjt) */
 extern "C" {
-Ref FindMusic(P *, int);
-void StopSnd(X *, float);
-X *FindMusicStream(P *, int);
-X *PstreamsndNew(X *, int);
-void AddStreamGroupSource(X *, int, int, float, float *);   /* (sound, group, object, gain, range): the float travels in $f12 */
+SNDREFC FindMusic(SNDMGR *, int);
+STREAMSND *PstreamsndNew(FILEREC *, int);
+FILEREC *FindMusicStream(SNDMGR *, int);
+void AddStreamGroupSource(STREAMSND *, int, int, float, float *);   /* (sound, group, object, gain, range): the float travels in $f12 */
 }
 struct RANGE { float near, far; };
 static inline void Set(RANGE *range, float near, float far) { range->near = near; range->far = far; }
@@ -1843,25 +1825,25 @@ static inline void Set(RANGE *range, float near, float far) { range->near = near
 // Starts a music track: stops the current one, then either restarts the track if it is already on the stack (moving it to
 // the top) or creates a looping stream for it whose sub-groups 3 and 4 follow Bentley / Murray and Sly (positional
 // layers, 2000..5000 units), and pushes it on the 8-deep music stack. Returns the stream (0: unknown id or full stack).
-extern "C" X *PushMusic(P *soundManager, int id)
+extern "C" STREAMSND *PushMusic(SNDMGR *soundManager, int id)
 {
-    Ref music = FindMusic(soundManager, id);
-    X *current = soundManager->musicStack.count > 0 ? (soundManager->musicStack.entries + soundManager->musicStack.count - 1)->px : 0;
+    SNDREFC music = FindMusic(soundManager, id);
+    STREAMSND *current = soundManager->musicStackCount > 0 ? (soundManager->musicStack + soundManager->musicStackCount - 1)->p : 0;
     if (current) StopSnd(current, 0.0f);
-    if (music.px) {
-        music.px->vtable->a[7].pfn((char *)music.px + music.px->vtable->a[7].d);   /* Start */
+    if (music.p) {
+        music->Start();
     } else {
-        X *file = FindMusicStream(soundManager, id);
-        if (!file || soundManager->musicStack.count == MUSIC_STACK_DEPTH) return 0;
+        FILEREC *file = FindMusicStream(soundManager, id);
+        if (!file || soundManager->musicStackCount == MUSIC_STACK_DEPTH) return 0;
         float gain = 1.0f;
         music = PstreamsndNew(file, STREAM_KIND_LOOPING);
         RANGE range;
         Set(&range, 2000.0f, 5000.0f);
-        AddStreamGroupSource(music.px, 3, D_002DD5BC, gain, &range.near);
-        AddStreamGroupSource(music.px, 3, D_002F7900, gain, &range.near);
-        AddStreamGroupSource(music.px, 4, D_002E1E40, gain, &range.near);
+        AddStreamGroupSource(music.p, 3, D_002DD5BC, gain, &range.near);
+        AddStreamGroupSource(music.p, 3, D_002F7900, gain, &range.near);
+        AddStreamGroupSource(music.p, 4, D_002E1E40, gain, &range.near);
     }
-    return (soundManager->musicStack.entries[soundManager->musicStack.count++] = music).px;
+    return (soundManager->musicStack[soundManager->musicStackCount++] = music).p;
 }
 } // namespace M_PushMusic
 
@@ -1911,34 +1893,19 @@ float GetMusicTime(SNDMGR *soundManager)
 } } // namespace M_TMusicCur
 
 namespace M_func_001FE478 {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[8]; };
-struct X { char pad[0xC]; VT *vtable; char pad2[0x60 - 0x10]; X *record; };   /* a STREAMSND and its file record */
-struct Ref;
-extern "C" void InitSoundRef(Ref *, X *);
-extern "C" void AssignSoundRef(Ref *, X *);
-struct Ref {
-    X *px;
-    Ref(X *sound) { InitSoundRef(this, sound); }
-    Ref(const Ref &r) { InitSoundRef(this, r.px); }
-    Ref &operator=(const Ref &r) { AssignSoundRef(this, r.px); return *this; }
-    ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
-};
-struct S { int count; Ref entries[8]; };   /* the music stack */
-struct P { char pad[0x204]; S musicStack; };   /* SNDMGR */
-extern "C" X *FindMusicStream(P *, int);
+extern "C" FILEREC *FindMusicStream(SNDMGR *, int);
 // Takes the stream of the music track with the given id off the music stack and returns a reference to it (null when
 // the track is not on the stack); the entries above it move down. (inferred)
-extern "C" Ref FindMusic(P *soundManager, int id)
+extern "C" SNDREFC FindMusic(SNDMGR *soundManager, int id)
 {
-    X *file = FindMusicStream(soundManager, id);
+    FILEREC *file = FindMusicStream(soundManager, id);
     int i;
-    for (i = 0; i < soundManager->musicStack.count; i++)
-        if (soundManager->musicStack.entries[i].px->record == file) break;
-    if (i == soundManager->musicStack.count) return Ref(0);
-    Ref music(soundManager->musicStack.entries[i]);
-    soundManager->musicStack.count--;
-    for (; i < soundManager->musicStack.count; i++) soundManager->musicStack.entries[i] = soundManager->musicStack.entries[i + 1];
+    for (i = 0; i < soundManager->musicStackCount; i++)
+        if (soundManager->musicStack[i]->record.pfilerec == file) break;
+    if (i == soundManager->musicStackCount) return SNDREFC(0);
+    SNDREFC music(soundManager->musicStack[i]);
+    soundManager->musicStackCount--;
+    for (; i < soundManager->musicStackCount; i++) soundManager->musicStack[i] = soundManager->musicStack[i + 1];
     return music;
 }
 } // namespace M_func_001FE478

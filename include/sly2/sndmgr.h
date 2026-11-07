@@ -100,7 +100,7 @@ struct SNDMGR
     int musicStackCount;         /* +0x204 */
     SNDREF musicStack[8];        /* +0x208 */
     SNDREF ambienceSound;        /* +0x228 */
-    void *dialogRoleObjects[6];  /* +0x22C per lip-sync role (3: the speaker object; the others its state machines) */
+    BASIC *dialogRoleObjects[6]; /* +0x22C per lip-sync role (3: the speaker object; the others its state machines) */
     int dialogEventIndex;        /* +0x244 */
     float dialogEventTime;       /* +0x248 */
     float dialogElapsed;         /* +0x24C */

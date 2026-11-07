@@ -119,6 +119,15 @@ struct SNDREF
     STREAMSND *operator->() { return p; }
 };
 
+/* SNDREFC: an SNDREF that attaches its sound when constructed (FindMusic's by-value result, the music stack's copies). */
+struct SNDREFC : SNDREF
+{
+    SNDREFC(STREAMSND *psnd) { InitSoundRef(this, psnd); }
+    SNDREFC(const SNDREF &r) { InitSoundRef(this, r.p); }
+    SNDREFC(const SNDREFC &r) { InitSoundRef(this, r.p); }
+    SNDREFC &operator=(STREAMSND *psnd) { AssignSoundRef(this, psnd); return *this; }
+};
+
 typedef char assert_STREAMSND_kind[(int)&((STREAMSND *)0)->streamKind == 0x3B8 ? 1 : -1];
 typedef char assert_STREAMSND_size[sizeof(STREAMSND) == 0x3C0 ? 1 : -1];
 
