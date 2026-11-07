@@ -1233,40 +1233,35 @@ void SetKeyDprizes(struct KEYV *key, int n)
 
 namespace M_LaunchSprayedDprize { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
-struct V3 { float x, y, z; };
-struct X { char pad[0xB0]; struct V3 v; };
 extern struct CLOCK D_002DDED0;
 extern char D_002A2D00[];
 extern const float D_002A7758;
-struct S { char pad[0xC]; struct VTE *vt; char p1[0x58 - 0x10]; struct X *positionChannel; struct X *rotationChannel; char p2[0x160 - 0x60]; float animSkipTime;
+struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x160 - 0x150]; float animSkipTime;
     char p3[0x180 - 0x164]; qword velocity; char p4[0x1C4 - 0x190]; int hasBoosted; int isCollectable; float expireTime; };
 void SetLoParent(struct S *p, int a, int b);
 // Zeroes a 3-float vector.
-static inline void Zero(struct V3 *pv)
+static inline void Zero(VECTOR4 *pv)
 {
     pv->z = 0.0f;
     pv->y = 0.0f;
     pv->x = 0.0f;
 }
-#define VT(o, n) (o)->vt[n]
 // re-parent spawned prize (SetLoParent) and init motion. (inferred)
 void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2)
 {
-    ((void (*)(void *))VT(prize, 8).pf)((char *)prize + VT(prize, 8).d);
+    prize->Add();
     SetLoParent(prize, 0, 0);
-    ((void (*)(void *, qword))VT(prize, 29).pf)((char *)prize + VT(prize, 29).d, q1);
-    ((void (*)(void *, void *))VT(prize, 30).pf)((char *)prize + VT(prize, 30).d, D_002A2D00);
-    Zero(&prize->positionChannel->v);
-    Zero(&prize->rotationChannel->v);
+    prize->TranslateToPos(q1);
+    prize->RotateToMat((MATRIX4 *)D_002A2D00);   /* the identity */
+    Zero(&prize->unknown58->velocity);
+    Zero(&prize->unknown5C->velocity);
     prize->animSkipTime = f1;
     prize->hasBoosted = 0;
-    ((void (*)(void *, int))VT(prize, 76).pf)((char *)prize + VT(prize, 76).d, 3);
+    prize->SetState(3);
     prize->velocity = q2;
     prize->expireTime = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.time + f2;
 }
 } } // namespace M_LaunchSprayedDprize
-#undef VT
 
 namespace M_PdprizeNewSpray { extern "C" {
 /* A sprayed prize (classes.h DPRIZE : SO): its slot 76, the state setter. */
