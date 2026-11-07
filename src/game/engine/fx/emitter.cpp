@@ -1204,37 +1204,22 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
 
 namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5 {
 struct MATRIX3 { float mat[3][4]; } __attribute__((aligned(16)));
-class SO {
-public:
-    char pad[0xC];
-    virtual void V1();
-    virtual void V2();
-    virtual void V3();
-    virtual void V4();
-    virtual void V5();
-    virtual void V6();
-    virtual void V7();
-    virtual void V8();
-    virtual void V9();
-};
-struct EMITX { void *ppblipg; SO **ppripg; void *subscriber; };   /* EMITG */
 extern "C" {
 extern char D_003DD490[];
-SO *NewRipGroup(void *p, int n);
-void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITB *pemit);
-void SubscribeLoObject(SO *pso, void *p);
-RIP *NewRipInGroup(void *p, int n, SO *pso);
+RIPG *NewRipGroup(void *p, int n);
+void SubscribeLoObject(LO *plo, LO *ploSubscriber);
+RIP *NewRipInGroup(void *p, int n, RIPG *pripg);
 float RandomFloatInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITB *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
-int IsDlEmpty__FP2DL(void *p);
+int IsDlEmpty__FP2DL(DL *pdl);
 }
 // Spawns `count` rips at the originated positions / velocities / times into the emitter's RIPG (creating and
 // subscribing it on first use): each gets a random initial scale, the EMITB's scale curve, alpha curve, motion
-// (SetEmitdvEmitb), render object and the reference object's orientation. A group left empty is told so (slot 9).
-extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *emitg, int count, qword *positions, qword *velocities, float *birthTimes, float *deathTimes)
+// (SetEmitdvEmitb), render object and the reference object's orientation. A group left empty is removed (slot 9).
+extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITG *emitg, int count, qword *positions, qword *velocities, float *birthTimes, float *deathTimes)
 {
-    SO *ripGroup = 0;
+    RIPG *ripGroup = 0;
     int i;
     RIP *rip;
     if (emitg && emitg->ppripg)
@@ -1245,14 +1230,14 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *em
             return;
         if (emitg && emitg->ppripg)
             *emitg->ppripg = ripGroup;
-        SetRipgEmitb__FP4RIPGP5EMITB(ripGroup, emitb);
-        if (emitg && emitg->subscriber)
-            SubscribeLoObject(ripGroup, emitg->subscriber);
+        SetRipgEmitb(ripGroup, emitb);
+        if (emitg && emitg->ploSubscriber)
+            SubscribeLoObject(ripGroup, emitg->ploSubscriber);
     }
     if (!ripGroup)
         return;
     for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->v.k, ripGroup)) != 0; i++) {
-        rip->Init(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (::SO *)emitb->aploRef[EMITREF_Touch]);
+        rip->Init(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (SO *)emitb->aploRef[EMITREF_Touch]);
         if (emitb->v.scaleSlope != 0.0f || emitb->v.scaleCurve != 0.0f) {
             rip->scaleSlope = emitb->v.scaleSlope;
             rip->scaleCurve = emitb->v.scaleCurve;
@@ -1267,8 +1252,8 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *em
             rip->orientation = *(RIPM3 *)GetLoWorldMatrix(emitb->aploRef[EMITREF_Reference]);
         rip->PostEmit(emitb);
     }
-    if (IsDlEmpty__FP2DL((char *)ripGroup + 0x15C /* RIPG rip list */))
-        ripGroup->V9();
+    if (IsDlEmpty__FP2DL(&ripGroup->ripList))
+        ripGroup->Remove();
 }
 } // namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5
 
