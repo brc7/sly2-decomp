@@ -56,6 +56,8 @@ int IsWidgetObscured(WIDGET *widget);
 int IsWidgetIdle(WIDGET *widget);
 int GetSpriteMainState(SPRITEGRP *spriteGroup);
 int IsSpriteAnimActive(SPRITEGRP *spriteGroup);
+void StopSprite(SPRITEGRP *spriteGroup);
+void SetWidgetExclusive(WIDGET *widget, int isNonExclusive);
 void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags);
 void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 /* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
@@ -1273,64 +1275,45 @@ void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here */
 }
 
 // 0x2137F0 IsWidgetObscured
-namespace M_FWidgetObscured { extern "C" {
-struct S { char pad[0xA4]; int priority; char pad2[0xC]; struct S *next; };
 // True when an exclusive widget of higher priority is shown.
-int IsWidgetObscured(struct S *widget)
+extern "C" int IsWidgetObscured(WIDGET *widget)
 {
-    struct S *other;
+    WIDGET *other;
     int unused[4];   /* an unused 16-byte stack frame in the original */
-    for (other = (*(struct S * *)&g_sw.dlWidgetExclusive); other; other = other->next) {
+    for (other = (*(WIDGET * *)&g_sw.dlWidgetExclusive); other; other = (WIDGET *)other->exclusiveLink.next) {
         if (widget->priority < other->priority)
             return 1;
     }
     return 0;
 }
-} } // namespace M_FWidgetObscured
 
 // 0x213830 StartWidgetMainAnim
 namespace M_StartWidgetMainAnim { extern "C" {
-struct S : LO { char pad50[0x7C - 0x50]; int mainAnimId; char pad3[4]; void *spriteGroups; char pad4[0x24]; int isExclusive; };
-void StartSpriteAnimById(void *p);
-void SetWidgetExclusive(struct S *p, int a);
+void StartSpriteAnimById(SPRITEGRP *p);
+} } // namespace M_StartWidgetMainAnim
 // Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
-void StartWidgetMainAnim(struct S *widget, int animId)
+extern "C" void StartWidgetMainAnim(WIDGET *widget, int animId)
 {
+    using namespace M_StartWidgetMainAnim;
     StartSpriteAnimById(widget->spriteGroups);
     widget->SetFlag8(1);
     if (widget->isExclusive)
         SetWidgetExclusive(widget, 0);
     widget->mainAnimId = animId;
 }
-} } // namespace M_StartWidgetMainAnim
 
 // 0x213898 StopWidgetMainAnim
-namespace M_StopWidgetMainAnim {
-extern "C" void StopSprite(void *p);
-struct B { char pad[0xC];
-  virtual void v1(); virtual void v2(); virtual void v3(int, int, int, int, int);
-  virtual void v4(); virtual void v5(); virtual void v6(); virtual void v7(); virtual void v8();
-  virtual void v9(); virtual void v10(); virtual void v11(); virtual void v12(); virtual void v13();
-  virtual void v14(); virtual void v15(); virtual void v16(); virtual void v17(); virtual void v18();
-  virtual void v19(); virtual void v20(); virtual void v21(int);
-};
-struct S : B {
-  char pad10[0x6C]; int mainAnimId; char pad80[4]; void *spriteGroups; int mainAnimTime /* a float, cleared as a word */; char pad8C[0x20]; int isExclusive;
-  void SetExclusive(int) __asm__("SetWidgetExclusive");
-  void StopMainAnim() __asm__("StopWidgetMainAnim");
-};
-// StopWidgetMainAnim: stops the widget's main sprite and leaves the exclusive list.
-void S::StopMainAnim()
+// Stops the widget's main sprite and leaves the exclusive list.
+extern "C" void StopWidgetMainAnim(WIDGET *widget)
 {
-    StopSprite(spriteGroups);
-    if (isExclusive)
-        SetExclusive(-1);
-    v21(0);
-    v3(6, 0, 0, 0, 0);   /* HandleSpliceEvent slot: event 6 (inferred) */
-    mainAnimTime = 0;
-    mainAnimId = -1;
+    StopSprite(widget->spriteGroups);
+    if (widget->isExclusive)
+        SetWidgetExclusive(widget, -1);
+    widget->SetFlag8(0);
+    widget->HandleSpliceEvent(6, 0, 0, 0, 0);   /* Splice event 6 (inferred) */
+    widget->mainAnimTime = 0;
+    widget->mainAnimId = -1;
 }
-} // namespace M_StopWidgetMainAnim
 
 // 0x213928 StopWidgetAnim
 namespace M_StopWidgetAnim { extern "C" {
