@@ -165,7 +165,7 @@ extern "C" void AddXp(SW *psw, SOPART *ppart0, SOPART *ppart1, qword pos, qword 
     int i;
     XPS *pxps;
     XP *pxpNew;
-    pxp = pxpNew = (XP *)PvAllocSlotheapClear(&psw->slotheapXp);
+    pxp = pxpNew = (XP *)AllocZeroedFromSlotheap(&psw->slotheapXp);
     pxpNew->axps[0].pos = pos;
     {
         qword s, r;
@@ -667,7 +667,7 @@ namespace M_MarkSoContactsBspBsp {
 // MarkSoContactsBspBsp: edge/edge and vertex/face contacts between two clipped shapes.
 // ClsgClipSoAllEdges + ClipSoBspEdges clip each shape's edges against the other, CategorizeAlsg sorts each side's LSGs, AddEmbeddedVertexXps adds the
 // vertex contacts of both sides; then every free LSG of side 0 either follows the CplsgFindEdgePath edge path of side 1 (closest points of the
-// two edges via func_0011EA60, kind 3) or, when no side-1 LSG shares a surface with its edge, contacts the nearer endpoint against the
+// two edges via ClosestPointsOfLines, kind 3) or, when no side-1 LSG shares a surface with its edge, contacts the nearer endpoint against the
 // farther plane (kind 1). With no new contact and one side empty, a kind-13 contact at the shape position is added.
 // LSG / EDGE / SURF layouts and names as in Lilly's matched ClsgClipEdgeToBsp port (src/game/core/math/bsp/func_00118668.cpp).
 // How it matched (w4lane4 -> w5lane2):
@@ -699,7 +699,7 @@ int ClipSoBspEdges(SCENE *, SHAPE *, SHAPE *, int, NODE *, int, LSG *);
 void CategorizeAlsg(int, LSG *, int *, int *, LSG **, LSG **) __asm__("CategorizeAlsg__FiP3LSGPiT2PP3LSGT4");
 void AddEmbeddedVertexXps(SCENE *, SHAPE *, SHAPE *, int, int *, LSG **, CONTACT **);
 int CplsgFindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *, int, int, LSG *, LSG **);
-int func_0011EA60(qword, qword, qword, qword, float *, U *);
+int ClosestPointsOfLines(qword, qword, qword, qword, float *, U *);
 void AddXp(SCENE *, SHAPE *, SHAPE *, VV, float, VV, int, void *, void *, CONTACT **);
 }
 
@@ -744,7 +744,7 @@ static inline float PlaneDist(VV point, VV plane)
 }
 static inline void Closest(VV a, VV b, VV c, VV d, float *au, U *normal)
 {
-    (void)func_0011EA60(a, b, c, d, au, normal);
+    (void)ClosestPointsOfLines(a, b, c, d, au, normal);
 }
 
 /** @sly2-annot addr=0x1A8B50
@@ -1585,7 +1585,7 @@ extern "C" XP *CloneXpList(SW *world, XP *list)
     pxpFirst = 0;
     ppxp = &pxpFirst;
     do {
-        XP *pxpNew = (XP *)PvAllocSlotheapClear(&world->slotheapXp);
+        XP *pxpNew = (XP *)AllocZeroedFromSlotheap(&world->slotheapXp);
         *pxpNew = *list;
         *ppxp = pxpNew;
         list = list->pxpNext;
@@ -1615,7 +1615,7 @@ extern "C" void AddZapResponderXps(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, S
     ptree->psoRoot->VUnk59(ppart, cbsp, (int)absp, pbsp, ppart->grfzpk ? &pxpFirst : ppxpFirst);
     if (pxpFirst) { pxp = pxpFirst; do {
         if (FindZapResponder(pxp->axps[IxpsOther(pxp, ppart)].pso, ppart->grfzpk)) {
-            XP *pxpNew = (XP *)PvAllocSlotheapClear(&psw->slotheapXp);
+            XP *pxpNew = (XP *)AllocZeroedFromSlotheap(&psw->slotheapXp);
             *pxpNew = *pxp;
             pxpNew->pxpNext = ptreeOther->pxpZap;
             ptreeOther->pxpZap = pxpNew;

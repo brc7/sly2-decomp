@@ -2180,7 +2180,7 @@ int CanUsePathlink(GRAPH *pgraph, EDGE *pedge, void *pvActor);
 int IsPosInPathzone(NAV *pnav, qword pos, int f);
 }
 
-static inline void *PvAllocClear(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocClearedFromStack(&msg); }
+static inline void *AllocZeroedFromHeap(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocClearedFromStack(&msg); }
 static inline void *PvAlloc(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocFromStack(&msg); }
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword QwLength(qword v)
@@ -2215,7 +2215,7 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
     STACKSCOPE scope;
     NODE *anode;
     int *afAllowed;
-    anode = (NODE *)PvAllocClear(graph->cnav * sizeof(NODE));
+    anode = (NODE *)AllocZeroedFromHeap(graph->cnav * sizeof(NODE));
     afAllowed = (int *)PvAlloc(graph->cedge * sizeof(int));
     func_002333B4(afAllowed, 0xFF, graph->cedge * sizeof(int));
     qword posStart = GetLoWorldPos(actor);

@@ -270,7 +270,7 @@ static inline qword VuCross(qword a, qword b)
     return qw;
 }
 extern "C" qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
-extern "C" float RadBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
+extern "C" float AngleBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 extern qword D_002A2DA0;
 static inline qword VuAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)
@@ -382,7 +382,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 qword velocityAtTip = link->tipVelocity;
                 qword segment = VuSub(tip, basePosition);
                 qword relativeVelocity = VuSub(velocityAtTip, baseVelocity);
-                float bendAngle = RadBetweenVectors(segment, previousSegment, (qword *)&direction);
+                float bendAngle = AngleBetweenVectors(segment, previousSegment, (qword *)&direction);
                 if (chain->maxBendAngle < bendAngle)
                 {
                     mat = LoadRotateMatrixRad(bendAngle - chain->maxBendAngle, *(qword *)&direction);

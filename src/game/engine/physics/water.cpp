@@ -152,11 +152,11 @@ void SetSndRange(void *, float, float);
 void SetSndVolume(void *, float);
 void UpdateSwXaList(SOW *, N **);
 qwordV GetLoWorldPos(void *p);
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 qwordV ApplyConstr(CONSTRAINT *, NODE *, qwordV);
 void AddSoAcceleration(SOW *, qwordV);
 void CalculateWaterCurrent(SOW *, qwordV, qwordV *, qwordV *);
-float func_0011E290(qwordV, qwordV, qwordV *, qwordV *);
+float SplitVectorAlongAxis(qwordV, qwordV, qwordV *, qwordV *);
 void AccelSoTowardPosSpring(SOW *, qwordV, const COEF *, qwordV, const COEF *);
 void AccelSoTowardMatSpring(SOW *, const M3 *, const COEF *, qwordV, const COEF *);
 M4B *GetLoWorldMatrix(SOW *);
@@ -461,9 +461,9 @@ static inline float Epsilon(){register float f __asm__("$f14");__asm__ __volatil
 static inline int WordY(qwordV q){int r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return r;}
 static inline int WordZ(qwordV q){int r;__asm__("pextuw %0,$0,%1":"=r"(r):"r"(q));return r;}
 static inline float FloatWord(int word){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
-static inline int NearX(qwordV d,qwordV n,float e){return FFloatsNear__Ffff(GetX(d),GetX(n),e);}
-static inline int NearY(qwordV d,qwordV n){int y=WordY(d);float e=Epsilon();return FFloatsNear__Ffff(FloatWord(y),GetY(n),e);}
-static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();return FFloatsNear__Ffff(FloatWord(z),GetZ(n),e);}
+static inline int NearX(qwordV d,qwordV n,float e){return AreFloatsNear__Ffff(GetX(d),GetX(n),e);}
+static inline int NearY(qwordV d,qwordV n){int y=WordY(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(y),GetY(n),e);}
+static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(z),GetZ(n),e);}
 /** @sly2-annot addr=0x229468
  * Purpose: vertical hit span and optional surface point/normal
  * Info: proposed name UGetWaterSubmerged (T2); TU water
@@ -544,7 +544,7 @@ extern "C" void UpdateWaterBounds(SOW *water)
 // Allocates a cleared XA node from the world's pool (Sly 1 PxaAllocSw).
 extern "C" N *AllocSwXa(WORLD *world)
 {
-    return (N *)PvAllocSlotheapClear(&world->slotheapN);
+    return (N *)AllocZeroedFromSlotheap(&world->slotheapN);
 }
 
 /** @sly2-annot addr=0x2296C0
@@ -631,7 +631,7 @@ extern "C" void AddSoExternalAccelerations()
 static inline float X(qwordV q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qwordV q){qwordV v;float f;__asm__("prot3w %0,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Z(qwordV q){qwordV v;float f;__asm__("pextuw %0,$zero,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
-static inline bool Near(qwordV a,qwordV b,float epsilon){return FFloatsNear__Ffff(X(a),X(b),epsilon)&&FFloatsNear__Ffff(Y(a),Y(b),epsilon)&&FFloatsNear__Ffff(Z(a),Z(b),epsilon);}
+static inline bool Near(qwordV a,qwordV b,float epsilon){return AreFloatsNear__Ffff(X(a),X(b),epsilon)&&AreFloatsNear__Ffff(Y(a),Y(b),epsilon)&&AreFloatsNear__Ffff(Z(a),Z(b),epsilon);}
 static inline qwordV Scale(qwordV v,qwordV k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
 static inline qwordV Get(SOW *o,int slot){VE *v=o->vt;return v[slot].f.get((char *)o+v[slot].delta);}
 static inline qwordV AddNormal(qwordV motion,const V &projection){qwordV r;asm("vadd.xyzw %0,%1,%2":"=j"(r):"0"(motion),"j"(projection.q));return r;}
@@ -671,7 +671,7 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
  if(friction!=0.0f){
   CalculateWaterCurrent(water,GetLoWorldPos(object),&work.velocity.q,&work.phase.vectors[0].q);
   qwordV linear=Get(object,33);qwordV relative=VuSub(work.velocity.q,linear);
-  float dot=func_0011E290(relative,work.normal.q,&work.phase.vectors[1].q,&work.phase.vectors[2].q);
+  float dot=SplitVectorAlongAxis(relative,work.normal.q,&work.phase.vectors[1].q,&work.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;
   if(IsXfRoleVelocity(object->body->kind)){
    COEF *coefficients=&work.axis.coefficients;
@@ -684,7 +684,7 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
    qwordV angular=Get(object,34);
    qwordV k;
    qwordV negative=NegativeAngular(angular,-1.0f,k);
-   work.scalar.q=k;func_0011E290(negative,work.normal.q,&work.angularNormal.q,&work.angularTangent.q);
+   work.scalar.q=k;SplitVectorAlongAxis(negative,work.normal.q,&work.angularNormal.q,&work.angularTangent.q);
    COEF *coefficients=&work.axis.coefficients;
    GAIN2(D_002C4480,span,friction);
    AccelSoTowardMatSpring(object,&D_002A2D00,0,AddNormal(angular,work.angularNormal),coefficients);

@@ -114,11 +114,11 @@ void DetachXfActById(void *pvId, SO *pso, XF *pxf);
 void AssignSidebagRef(struct R4 **pp, struct R4 *p);
 }
 void SyncAsegaEventCursor(ASEGA *player);
-int FFindDlEntry(DL *pdl, void *pv);                    /* FFindDlEntry__FP2DLPv */
+int IsEntryInDl(DL *pdl, void *pv);                    /* IsEntryInDl__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);                  /* RemoveDlEntry__FP2DLPv */
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);     /* PloFindSwObject__FP2SWi3OIDP2LO */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);        /* FIsBasicDerivedFrom__FP5BASIC3CID */
-float GModPositive(float a, float b);                   /* GModPositive__Fff */
+float ModPositive(float a, float b);                   /* ModPositive__Fff */
 
 /** @sly2-annot addr=0x1308A8
  * Purpose: cref(+0x10)++
@@ -584,7 +584,7 @@ static __inline__ void PingPong(ASEGA *p, float *pt, float *pdt, float tMax, flo
     }
 }
 /** @sly2-annot addr=0x1317D8
- * Purpose: Wraps/ping-pongs the ASEGA time at segment end (fmodf, GModPositive)
+ * Purpose: Wraps/ping-pongs the ASEGA time at segment end (fmodf, ModPositive)
  * Info: proposed name WrapAsegaTime (T1); TU asega
  * Notes: names_v2 v1 proposed RetractAsega__FP5ASEGA (0.171)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
@@ -615,7 +615,7 @@ int WrapAsegaTime(ASEGA *player, float *time, float *deltaTime)
         if (*deltaTime < 0.0f)
             f = 1;
         if (player->grfapl & 8) {
-            *time = GModPositive(t, tMax);
+            *time = ModPositive(t, tMax);
         } else if (player->grfapl & 0x10) {
             float t2 = tMax + tMax;
             *time = fmodf(-t, t2);
@@ -638,7 +638,7 @@ int WrapAsegaTime(ASEGA *player, float *time, float *deltaTime)
 // True when the player is no longer on the world's live player list.
 int IsAsegaRetracted(ASEGA *player)
 {
-    return FFindDlEntry(&g_sw.dlAsega, player) == 0;
+    return IsEntryInDl(&g_sw.dlAsega, player) == 0;
 }
 
 /** @sly2-annot addr=0x131990

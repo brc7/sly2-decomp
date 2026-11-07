@@ -70,11 +70,11 @@ extern "C" inline void *InitVuTemp(void *p);   /* inline, defined after its call
 // from the stack: the game has no register for it). With the oracle's loop.c threshold (1 + n_non_fixed_regs = 95) the 0xAAAAAAAB constant of `plsgOut - alsg`
 // (pointer difference of 0x60-byte elements = x * 0xAAAAAAAB >> 5) is hoisted out of the INNER loop only when that has < 93 real insns: then the multiply
 // is strength-reduced there with a `mult` initialisation. The game's inner loop is bigger because its VU0 weights go through a helper with by-value VU_FLOAT
-// parameters (QwMix: four parameter copies per call that cse2 removes later, 101 insns here): K is then hoisted by the OUTER pass together with the
+// parameters (BlendVectors: four parameter copies per call that cse2 removes later, 101 insns here): K is then hoisted by the OUTER pass together with the
 // matching one of the return, and both counts become registers that step by 0x20 with initial value 0 (s5 / s6; the plsgLast giv s0 = s4 is the inner
 // pass's only reduction). (2) `pceb = aceb;` first and every aceb[0] access through pceb (the game's s1 is both). (3) The third plane case is its own
 // `else if (g1 > 0 && g2 > 0)`; the split case ends in an if / else whose arms are the same assignments again (jump2 merges the tails). (4) The dot
-// products are the non-tied form (`%2w`: the plane is not overwritten); the first reads g1 with a plain qmfc2 (GFromVf: the sqc2 home store lands between
+// products are the non-tied form (`%2w`: the plane is not overwritten); the first reads g1 with a plain qmfc2 (VfToFloat: the sqc2 home store lands between
 // qmfc2 and mtc1), the second is ONE asm with the qmfc2 + mtc1 inside and its outputs listed vfOne first: vfOne2 is then stored (and dies) before
 // the branch and gets vf1, dot2 (stored after it) vf2.
 struct VU_QWORD
@@ -111,13 +111,13 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float GFromVf(qword qw)
+static inline float VfToFloat(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline BSP *PbspBelow(BSP *pbsp, BSP *pbspLimit)
+static inline BSP *BspOrNullPastLimit(BSP *pbsp, BSP *pbspLimit)
 {
     if (pbsp >= pbspLimit)
     {
@@ -125,7 +125,7 @@ static inline BSP *PbspBelow(BSP *pbsp, BSP *pbspLimit)
     }
     return pbsp;
 }
-static inline qword QwMix(VU_FLOAT g1, qword qw1, VU_FLOAT g2, qword qw2)
+static inline qword BlendVectors(VU_FLOAT g1, qword qw1, VU_FLOAT g2, qword qw2)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %4x" : "=j"(qw) : "j"(qw1), "j"(qw2), "j"(g1.qw), "j"(g2.qw));
@@ -153,7 +153,7 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
     plsgOut = alsg;
     memset(&ceb, 0, sizeof(CEB));
     memset(pceb, 0, sizeof(CEB));
-    ceb.pbsp = PbspBelow(pbspRoot, pbspLimit);
+    ceb.pbsp = BspOrNullPastLimit(pbspRoot, pbspLimit);
     pceb->g = 1.0f;
     while (1)
     {
@@ -163,7 +163,7 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
             {
                 if (plsgLast != 0 && ceb.g == plsgLast->au[1])
                 {
-                    plsgLast->apos[1] = QwMix(VuFloat(1.0f - pceb->g), pos1, VuFloat(pceb->g), pos2);
+                    plsgLast->apos[1] = BlendVectors(VuFloat(1.0f - pceb->g), pos1, VuFloat(pceb->g), pos2);
                     plsgLast->anormal[1] = pceb->normal;
                     plsgLast->au[1] = pceb->g;
                     plsgLast->apsurf[1] = pceb->psurf;
@@ -177,8 +177,8 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
                     plsgLast = plsgOut;
                     plsgOut++;
                     memset(plsgLast, 0, sizeof(LSG));
-                    plsgLast->apos[0] = QwMix(VuFloat(1.0f - ceb.g), pos1, VuFloat(ceb.g), pos2);
-                    plsgLast->apos[1] = QwMix(VuFloat(1.0f - pceb->g), pos1, VuFloat(pceb->g), pos2);
+                    plsgLast->apos[0] = BlendVectors(VuFloat(1.0f - ceb.g), pos1, VuFloat(ceb.g), pos2);
+                    plsgLast->apos[1] = BlendVectors(VuFloat(1.0f - pceb->g), pos1, VuFloat(pceb->g), pos2);
                     plsgLast->anormal[0] = ceb.normal;
                     plsgLast->anormal[1] = pceb->normal;
                     plsgLast->au[0] = ceb.g;
@@ -199,7 +199,7 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
         VU_QWORD vfOne1;
         __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddaz.x $ACC, %1, %0z\n\tvmsubw.x %0, %1, %2w"
                 : "=j"(dot1), "=j"(vfOne1) : "j"(plane), "j"(pos1));
-        float g1 = GFromVf(dot1.qw);
+        float g1 = VfToFloat(dot1.qw);
         VU_QWORD dot2;
         VU_QWORD vfOne2;
         float g2;
@@ -209,12 +209,12 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
         if (g1 <= 0.0f && g2 <= 0.0f)
         {
             ceb.pbspNeg = ceb.pbsp;
-            ceb.pbsp = PbspBelow(ceb.pbsp->pbspNeg, pbspLimit);
+            ceb.pbsp = BspOrNullPastLimit(ceb.pbsp->pbspNeg, pbspLimit);
         }
         else if (g1 > 0.0f && g2 > 0.0f)
         {
             ceb.pbspNeg = 0;
-            ceb.pbsp = PbspBelow(ceb.pbsp->pbspPos, pbspLimit);
+            ceb.pbsp = BspOrNullPastLimit(ceb.pbsp->pbspPos, pbspLimit);
         }
         else
         {
@@ -230,23 +230,23 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
                 if (gMid <= 0.0f)
                 {
                     pceb->pbspNeg = 0;
-                    pceb->pbsp = PbspBelow(ceb.pbsp->pbspPos, pbspLimit);
+                    pceb->pbsp = BspOrNullPastLimit(ceb.pbsp->pbspPos, pbspLimit);
                 }
                 else
                 {
                     pceb->pbspNeg = ceb.pbsp;
-                    pceb->pbsp = PbspBelow(ceb.pbsp->pbspNeg, pbspLimit);
+                    pceb->pbsp = BspOrNullPastLimit(ceb.pbsp->pbspNeg, pbspLimit);
                 }
             }
             if (gMid < 0.0f || (gMid == 0.0f && gTop <= 0.0f))
             {
                 ceb.pbspNeg = ceb.pbsp;
-                ceb.pbsp = PbspBelow(ceb.pbsp->pbspNeg, pbspLimit);
+                ceb.pbsp = BspOrNullPastLimit(ceb.pbsp->pbspNeg, pbspLimit);
             }
             else
             {
                 ceb.pbspNeg = 0;
-                ceb.pbsp = PbspBelow(ceb.pbsp->pbspPos, pbspLimit);
+                ceb.pbsp = BspOrNullPastLimit(ceb.pbsp->pbspPos, pbspLimit);
             }
         }
     }
@@ -254,7 +254,7 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
 
 extern BSP D_002BBB10;      /* the "inside" leaf */
 extern BSP D_002BBB20;      /* the "outside" leaf */
-static inline BSP *PnodeCheck(BSP *p, BSP *pnodeMax)
+static inline BSP *NodeOrNullPastLimit(BSP *p, BSP *pnodeMax)
 {
     if (!(p < pnodeMax))
         p = 0;
@@ -287,19 +287,19 @@ extern "C" int PruneBspBySphere(BSP *node, BSP *nodeLimit, qword pos, float eps,
         one.q = oq;
         d.q = dq;
         if (g > eps) {
-            node = PnodeCheck(node->pbspPos, nodeLimit);
+            node = NodeOrNullPastLimit(node->pbspPos, nodeLimit);
         } else if (g < -eps) {
-            node = PnodeCheck(node->pbspNeg, nodeLimit);
+            node = NodeOrNullPastLimit(node->pbspNeg, nodeLimit);
         } else {
             int negResult, posResult;
-            BSP *negChild = PnodeCheck(node->pbspNeg, nodeLimit);
+            BSP *negChild = NodeOrNullPastLimit(node->pbspNeg, nodeLimit);
             if (negChild) {
                 negResult = PruneBspBySphere(negChild, nodeLimit, pos, eps, capacity, outNodes);
                 negChild = *outNodes - 1;
             } else {
                 negResult = 0;
             }
-            BSP *posChild = PnodeCheck(node->pbspPos, nodeLimit);
+            BSP *posChild = NodeOrNullPastLimit(node->pbspPos, nodeLimit);
             if (posChild) {
                 posResult = PruneBspBySphere(posChild, nodeLimit, pos, eps, capacity, outNodes);
                 posChild = *outNodes - 1;
@@ -329,8 +329,8 @@ extern "C" int PruneBspBySphere(BSP *node, BSP *nodeLimit, qword pos, float eps,
     return g > 0.0f;
 }
 
-static inline float GMax(float a, float b) { return a < b ? b : a; }
-static inline float GMin(float a, float b) { return b < a ? b : a; }
+static inline float MaxFloat(float a, float b) { return a < b ? b : a; }
+static inline float MinFloat(float a, float b) { return b < a ? b : a; }
 /** @sly2-annot addr=0x118D08
  * Purpose: Walks a BSP with a polygon (cpos points): computes min/max plane distance over the points,
  *   recurses into straddled children and collects touched surfaces into (pcsurf, pppsurf)
@@ -372,27 +372,27 @@ extern "C" int CollectBspSurfacesTouchingPolygon(BSP *node, BSP *nodeLimit, int 
             int n;
             float g;
             __asm__("qmfc2.ni %0, %2\n\tmtc1 %0, %1" : "=&r"(n), "=f"(g) : "j"(dq));
-            gMin = GMin(gMin, g);
-            gMax = GMax(gMax, g);
+            gMin = MinFloat(gMin, g);
+            gMax = MaxFloat(gMax, g);
             one.q = oq;
             d.q = dq;
         }
         if (gMin > 1.0e-4f) {
-            node = PnodeCheck(node->pbspPos, nodeLimit);
+            node = NodeOrNullPastLimit(node->pbspPos, nodeLimit);
             if (!node)
                 return 1;
         } else if (gMax < -1.0e-4f) {
-            node = PnodeCheck(node->pbspNeg, nodeLimit);
+            node = NodeOrNullPastLimit(node->pbspNeg, nodeLimit);
             if (!node)
                 return 0;
         } else {
             int negResult, posResult;
-            BSP *negChild = PnodeCheck(node->pbspNeg, nodeLimit);
+            BSP *negChild = NodeOrNullPastLimit(node->pbspNeg, nodeLimit);
             if (negChild)
                 negResult = CollectBspSurfacesTouchingPolygon(negChild, nodeLimit, pointCount, points, outCount, outSurfaces);
             else
                 negResult = 0;
-            BSP *posChild = PnodeCheck(node->pbspPos, nodeLimit);
+            BSP *posChild = NodeOrNullPastLimit(node->pbspPos, nodeLimit);
             if (posChild)
                 posResult = CollectBspSurfacesTouchingPolygon(posChild, nodeLimit, pointCount, points, outCount, outSurfaces);
             else
@@ -490,23 +490,23 @@ extern "C" BSP *FindBspLeafContainingPoint(BSP *node, BSP *nodeLimit, qword pos)
         one.q = oq;
         d.q = dq;
         if (g < -1.0e-4f) {
-            BSP *p = PnodeCheck(node->pbspNeg, nodeLimit);
+            BSP *p = NodeOrNullPastLimit(node->pbspNeg, nodeLimit);
             if (!p)
                 return node;
             node = p;
         } else if (g > 1.0e-4f) {
-            BSP *p = PnodeCheck(node->pbspPos, nodeLimit);
+            BSP *p = NodeOrNullPastLimit(node->pbspPos, nodeLimit);
             if (!p)
                 return 0;
             node = p;
         } else {
-            BSP *p = PnodeCheck(node->pbspPos, nodeLimit);
+            BSP *p = NodeOrNullPastLimit(node->pbspPos, nodeLimit);
             if (p) {
                 p = FindBspLeafContainingPoint(p, nodeLimit, pos);
                 if (p)
                     return p;
             }
-            p = PnodeCheck(node->pbspNeg, nodeLimit);
+            p = NodeOrNullPastLimit(node->pbspNeg, nodeLimit);
             if (!p)
                 return node;
             node = p;
@@ -632,7 +632,7 @@ SLY2_SCRAP("swc1 $f0, 0x4($4)");
 // readback is an mtc1 asm taking the qword (gcc emits the qmfc2 itself). Together they fix every VF number.
 struct VECTORQ;
 extern "C" VECTORQ *func_002564C0(VECTORQ *);
-inline qword *func_002564A8(qword *p, qword v);   /* inline, defined after its caller (end of file) */
+inline qword *AssignQword(qword *p, qword v);   /* inline, defined after its caller (end of file) */
 /* A VECTOR held in a qword with its out-of-line empty constructor (func_002564C0). */
 struct VECTORQ { qword q; VECTORQ() { (void)func_002564C0(this); } };
 struct MAT { qword r[4]; };
@@ -652,7 +652,7 @@ extern "C" qword TransformPlane(MAT *matrix, qword plane)
     v.q = plane;
     n = VuMulMatrix3(matrix->r[0], matrix->r[1], matrix->r[2], v.q);
     t = matrix->r[3];
-    func_002564A8(&u.q, plane);
+    AssignQword(&u.q, plane);
     float d = u.f[3];
     qword pos, p2;
     qword s;
@@ -678,7 +678,7 @@ extern "C" qword TransformPlane(MAT *matrix, qword plane)
  * @end-sly2-annot */
 // Stores a quadword through a pointer and returns the pointer (an inline assignment kept out of line in the
 // linkonce area).
-inline qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
+inline qword *AssignQword(qword *p, qword v) { *p = v; return p; }
 
 /** @sly2-annot addr=0x2564B8
  * Purpose: return arg0 (out-of-line inline accessor/cast in the linkonce block)

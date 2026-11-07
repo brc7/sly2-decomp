@@ -181,8 +181,8 @@ void CollectVisibleMsGlobs(int *pc, void **pa);
 qwordV SetVectorSphere(float pan, float tilt, float s);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *pv, qwordV *phit);
 }
-float GRandInRange(float gMin, float gMax);
-float RadNormalize(float rad);
+float RandomFloatInRange(float gMin, float gMax);
+float NormalizeAngle(float rad);
 
 // Fills an allocation request and allocates from the world heap.
 static inline void *AllocWithRequest(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
@@ -446,7 +446,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
     case 3:
         {
             float t = D_002DDED0.t;
-            behavior->guard->attackCooldownEnd = t + GRandInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
+            behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
         }
         behavior->attack = 0;
         break;
@@ -662,7 +662,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
     for (i = 0; i < 11; i++) {
         qwordV test;
         float g;
-        float panT = RadNormalize(pan + D_002BDCA0[i]);
+        float panT = NormalizeAngle(pan + D_002BDCA0[i]);
         test = Add(pos, SetVectorSphere(panT, tilt, s));
         int f = FindFirstObjectHitByLine(0, pos, test, c, av, &hit.q);
         if (f)

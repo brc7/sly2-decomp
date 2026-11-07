@@ -111,7 +111,7 @@ int CanListenerHearNoise(LISTENER *listener, NOISE *object);
 }
 void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 void RemoveDlEntry(void *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
-int FFindDlEntry(void *pdl, void *pv) __asm__("FFindDlEntry__FP2DLPv");
+int IsEntryInDl(void *pdl, void *pv) __asm__("IsEntryInDl__FP2DLPv");
 
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
 
@@ -138,7 +138,7 @@ struct Lock {
 // sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
 extern "C" void CreateNoise(NOISETYPE *type, qword pos, int loudness, NOISE **outNoise)
 {
-    NOISE *noise = (NOISE *)PvAllocSlotheapClear(&D_003DD490.pool);
+    NOISE *noise = (NOISE *)AllocZeroedFromSlotheap(&D_003DD490.pool);
     func_002333B4(noise, 0, 0x60);
     noise->frame = 0;
     noise->sidebag = 0;
@@ -225,7 +225,7 @@ extern "C" void RemoveNoise(NOISE *noise)
 // 0x156870: True if the noise is no longer on the active list g_sw.dlStimulus.
 extern "C" int IsNoiseRemoved(NOISE *noise)
 {
-    return FFindDlEntry((char *)&g_sw.dlStimulus, noise) == 0;
+    return IsEntryInDl((char *)&g_sw.dlStimulus, noise) == 0;
 }
 
 // 0x156898: Current audible radius: the type's range scaled by a quadratic ramp over the first min(1 s, lifetime)

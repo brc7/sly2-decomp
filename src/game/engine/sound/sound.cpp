@@ -167,13 +167,13 @@ void *AllocBanksnd(int cb);
 int *FindSoundForSfxId(SNDMGRV *soundManager, int sfxId);
 void snd_PauseSound(int voiceHandle);
 void snd_ContinueSound(int voiceHandle);
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void func_00233088(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
 STREAMREC *FindDialogStream(int id);
 void snd_SetPlaybackMode(int nMode);
 }
-int FFindDlEntry(DL *pdl, void *pv);
+int IsEntryInDl(DL *pdl, void *pv);
 void AppendDlEntry(DL *pdl, void *pv);
 
 namespace M_NewSfx { extern "C" {
@@ -270,14 +270,14 @@ namespace M_StartSnd { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct P { char pad[0x1C]; void *source; qword position; char pad2[0x40 - 0x30]; int voiceHandle; char pad3[0x4E - 0x44]; short pauseCount; unsigned short flags; unsigned short playState; };
 extern qword D_002A2DD0;
-int FFloatsNear__Ffff(float, float, float);
+int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(X(a), X(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FB0C0
  * Purpose: vt7: if not already playing/starting, request start + all dirty bits (0x1F1, +pause if paused,
@@ -310,10 +310,10 @@ namespace M_func_001FB1F8 { extern "C" {
 struct P { char pad[0x10]; float volume; };
 struct S;
 extern struct S D_002BBB60;
-float GLimitLm__FP2LMf(struct S *, float);
+float ClampToLimits__FP2LMf(struct S *, float);
 void SetSndFlags(struct P *, int, int);
 /** @sly2-annot addr=0x1FB1F8
- * Purpose: Clamp 0..1 (GLimitLm g_lm01) and set vol, dirty 0x10 if changed at 1/1024 resolution
+ * Purpose: Clamp 0..1 (ClampToLimits g_lm01) and set vol, dirty 0x10 if changed at 1/1024 resolution
  * Info: proposed name SetSndVolume (T1); TU sound
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
@@ -321,7 +321,7 @@ void SetSndFlags(struct P *, int, int);
 // Sets a sound's volume (clamped to 0..1); marks it dirty only if it changed by at least 1/1024.
 void SetSndVolume(struct P *sound, float volume)
 {
-    float clamped = GLimitLm__FP2LMf(&D_002BBB60, volume);
+    float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
     if ((int)(clamped * 1024.0f) != (int)(sound->volume * 1024.0f)) {
         sound->volume = clamped;
         SetSndFlags(sound, SND_DIRTY_VOLUME, SND_DIRTY_VOLUME);
@@ -366,14 +366,14 @@ typedef int qword __attribute__((mode(TI)));
 struct SOURCE;
 struct P { char pad[0x1C]; struct SOURCE *source; qword position; };
 extern qword D_002A2DD0;
-int FFloatsNear__Ffff(float, float, float);
+int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, unsigned short, unsigned short);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(X(a), X(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FB2F8
  * Purpose: Attach sound to an ALO (positional), flag 0x200
@@ -396,14 +396,14 @@ namespace M_SetSndSourcePos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct P { char pad[0x1C]; void *source; qword position;   /* SND: the followed object (SetSndSourceLo), the fixed position */ };
 extern qword D_002A2DD0;
-int FFloatsNear__Ffff(float, float, float);
+int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(X(a), X(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FB3F0
  * Purpose: Set world position (positional unless zero vector), flag 0x200
@@ -515,7 +515,7 @@ void SetSndFlags(struct S *sound, unsigned short mask, unsigned short value)
 // Puts a sound on the manager's dirty list (taking a reference) if it is not already there.
 extern "C" void AddSndToDirtyList(SNDV *sound)
 {
-    if (FFindDlEntry(&G_SNDMGR.dirtySounds, sound) == 0) {
+    if (IsEntryInDl(&G_SNDMGR.dirtySounds, sound) == 0) {
         VTESND *vtable = sound->vtable;
         vtable[1].pfn((char *)sound + vtable[1].d);   /* Incref */
         AppendDlEntry(&G_SNDMGR.dirtySounds, sound);
@@ -526,7 +526,7 @@ namespace M_RemoveSndFromDirtyList { extern "C" {
 struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
 struct X { char pad[0xC]; struct VT *vtable; };
 struct DL;
-int FFindDlEntry__FP2DLPv(struct DL *, void *);
+int IsEntryInDl__FP2DLPv(struct DL *, void *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 /** @sly2-annot addr=0x1FB710
  * Purpose: If in pending DL, remove and Decref (vt2)
@@ -537,7 +537,7 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 // Takes a sound off the dirty list and drops the list's reference.
 void RemoveSndFromDirtyList(struct X *sound)
 {
-    if (FFindDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, sound)) {
+    if (IsEntryInDl__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, sound)) {
         RemoveDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, sound);
         sound->vtable->pfn((char *)sound + sound->vtable->d);
     }
@@ -555,7 +555,7 @@ extern struct CAMERA D_002DDF40;
 void *GetCurrentPo(void*);
 qword GetLoWorldPos(void*);
 qword ConvertMatVec(const struct M3*,const struct M3*,qword);
-float GLimitLm__FP2LMf(void*,float);
+float ClampToLimits__FP2LMf(void*,float);
 float atan2f(float,float);
 static inline qword Sub(qword a,qword b){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
 static inline float Length(qword a,V*save){qword d,one;float g;
@@ -590,7 +590,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
  high=limits->high;low=limits->low;
  {register qword input __asm__("vf2")=source.q;
   distance=Length(Sub(input,reference),&delta);}
- value=GLimitLm__FP2LMf(D_002BBB60,(high-distance)/(high-low));
+ value=ClampToLimits__FP2LMf(D_002BBB60,(high-distance)/(high-low));
  difference=delta.q;
  if(outValue)*outValue=value;
  if(outAngle){
@@ -1003,7 +1003,7 @@ void DecrefBanksnd(struct S *sound) { if (--sound->refCount == 0 && sound) { Des
 // Allocates a bank sound from the manager's pool.
 extern "C" void *AllocBanksnd(int cb)
 {
-    return PvAllocSlotheapClear(&G_SNDMGR.bankSoundPool);
+    return AllocZeroedFromSlotheap(&G_SNDMGR.bankSoundPool);
 }
 
 /** @sly2-annot addr=0x1FC110
@@ -1128,7 +1128,7 @@ namespace M_SetStreamsndGroupVolume { extern "C" {
 struct P { char pad[0x70]; float groupVolumes[6]; char pad2[0x3BC - 0x88]; int dirtyGroups; };
 struct S;
 extern struct S D_002BBB60;   /* the volume limits (0..1) */
-float GLimitLm__FP2LMf(struct S *, float);
+float ClampToLimits__FP2LMf(struct S *, float);
 void SetSndFlags(struct P *, int, int);
 /** @sly2-annot addr=0x1FC2E0
  * Purpose: Set volume of sub-group k<6 (clamped), dirty 0x80
@@ -1140,7 +1140,7 @@ void SetSndFlags(struct P *, int, int);
 void SetStreamsndGroupVolume(struct P *sound, unsigned int group, float volume)
 {
     if (group < 6) {
-        float clamped = GLimitLm__FP2LMf(&D_002BBB60, volume);
+        float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
         /* compared at the IOP's 1/1024 resolution */
         if ((int)(clamped * 1024.0f) != (int)(sound->groupVolumes[group] * 1024.0f)) {
             sound->dirtyGroups |= 1 << group;
@@ -1423,7 +1423,7 @@ struct RANGE {float low,high;};
 struct E {struct LO *object;struct RANGE limits;float gain;};
 struct P {char pad1C[0x1C];struct LO *object;qword position;char pad30[0x70];int groupSourceCounts[6];struct E groupSources[6][8];};
 extern qword D_002A2DD0;
-int FFloatsNear__Ffff(float,float,float);
+int AreFloatsNear__Ffff(float,float,float);
 void UpdateSndPositional(struct P *);
 qword GetLoWorldPos(struct LO *);
 void CalculateSndVolPan(struct P *,qword,const struct RANGE *,float *,int *);
@@ -1434,7 +1434,7 @@ static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
+    return AreFloatsNear__Ffff(X(a), X(b), 0.0001f) && AreFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && AreFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
 /** @sly2-annot addr=0x1FC9B0
  * Purpose: vt16: base positional update, then per sub-group: loudest visible source sets group vol/pan
@@ -1573,7 +1573,7 @@ void DecrefStreamsnd(struct S *sound)
 // Allocates a streamed sound from the manager's pool.
 extern "C" void *AllocStreamsnd(int cb)
 {
-    return PvAllocSlotheapClear(&G_SNDMGR.streamSoundPool);
+    return AllocZeroedFromSlotheap(&G_SNDMGR.streamSoundPool);
 }
 
 /** @sly2-annot addr=0x1FCD10
@@ -1589,7 +1589,7 @@ extern "C" void FreeStreamsnd(void *pv)
 }
 
 namespace M_SNDMGR_ctor { extern "C" {
-struct T { float fastSpeed; float slowSpeed; float fastTime; };   /* SMP: GSmooth parameters */
+struct T { float fastSpeed; float slowSpeed; float fastTime; };   /* SMP: SmoothValue parameters */
 struct V2 { float x, y; };
 /* SNDMGR (layout: see SNDMGRV): BASIC's header, the headset option, the bank / stream sound pools, the dirty list, the
    paused flag, the mute-when-stopped flags, the microphone noise curves (CLQ), the playback mode, the music layers'
@@ -2215,7 +2215,7 @@ void UpdateMusicMix(struct P *);
 void UpdateSoundManagerStub(struct P *);
 void UpdateDialog(struct P *);
 int ShouldFadeWhenTimeStops(struct P *);
-float GSmooth__FfffP3SMPPf(float, float, float, struct K *, int);
+float SmoothValue__FfffP3SMPPf(float, float, float, struct K *, int);
 void SetSndmgrChannelVolume(struct P *, int, float, int);   /* (manager, channel, volume, category): the float travels in $f12 */
 void UpdateSnd(struct Q *);
 int snd_FlushSoundCommands(void);
@@ -2261,7 +2261,7 @@ void UpdateSndmgr(struct P *soundManager)
     smoothing = D_002A8288;
     /* game time stopped (inferred: the pause menu): fade the ambience and music out, cut the dialog */
     if (ShouldFadeWhenTimeStops(soundManager) && D_002DDED0.dt == 0.0f) targetVolume = 0.0f;
-    fadeVolume = GSmooth__FfffP3SMPPf(soundManager->pauseFadeVolume, targetVolume, D_002DDED0.realDeltaTime, &smoothing, 0);
+    fadeVolume = SmoothValue__FfffP3SMPPf(soundManager->pauseFadeVolume, targetVolume, D_002DDED0.realDeltaTime, &smoothing, 0);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_AMBIENCE, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_MUSIC, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_DIALOG, targetVolume, VOLUME_CATEGORY_PAUSE_FADE);
@@ -2361,7 +2361,7 @@ struct P {char pad5C[0x5C];int musicLayer2Requests,musicLayer0Requests,selectedM
 extern char D_003DD490[];
 struct PLAYER *GetCurrentPo(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
-float GSmooth__FfffP3SMPPf(float,float,float,struct COEF *,float *);
+float SmoothValue__FfffP3SMPPf(float,float,float,struct COEF *,float *);
 void SetStreamsndGroupVolume(struct REF *,int,float);
 static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
 /** @sly2-annot addr=0x1FDC08
@@ -2402,7 +2402,7 @@ void UpdateMusicMix(struct P *input)
     soundManager->musicLayerWeights[soundManager->selectedMusicLayer] = 1.0f;
     goto normalize;
 smooth:
-    soundManager->musicLayerWeights[soundManager->selectedMusicLayer] = GSmooth__FfffP3SMPPf(soundManager->musicLayerWeights[soundManager->selectedMusicLayer],
+    soundManager->musicLayerWeights[soundManager->selectedMusicLayer] = SmoothValue__FfffP3SMPPf(soundManager->musicLayerWeights[soundManager->selectedMusicLayer],
         1.0f, g_clock.realDeltaTime, &soundManager->musicLayerSmoothing[soundManager->selectedMusicLayer], 0);
 normalize:
     /* scale the other layers so the squares of the weights sum to 1 (constant power) */
@@ -2928,7 +2928,7 @@ namespace M_SetSndmgrMasterVolume { extern "C" {
 struct P { char pad[0x1BC]; float masterVolume; };   /* SNDMGR */
 struct S;
 extern struct S D_002BBB60;   /* the volume limits (0..1) */
-float GLimitLm__FP2LMf(struct S *, float);
+float ClampToLimits__FP2LMf(struct S *, float);
 void snd_SetMasterVolume(int, int);
 #define SND_MASTER_VOLUME_ALL 0x10   /* 989snd: the overall master (0..3 are the per-channel masters) (inferred) */
 /** @sly2-annot addr=0x1FE9F8
@@ -2941,7 +2941,7 @@ void snd_SetMasterVolume(int, int);
 // Sets the master volume (clamped) on the 989snd library.
 void SetSndmgrMasterVolume(struct P *soundManager, float volume)
 {
-    float clamped = GLimitLm__FP2LMf(&D_002BBB60, volume);
+    float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
     int level = (int)(clamped * 1024.0f);   /* 989snd volumes are 0..1024 */
     if ((int)(soundManager->masterVolume * 1024.0f) != level) {
         soundManager->masterVolume = clamped;
@@ -2957,7 +2957,7 @@ struct P {char pad0[0x13C];float volumes[8][4];int pad1BC;float channelVolumes[4
 struct LM {float low,high;};
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern PMF D_002A8298,D_002A82A0; }
-extern "C" float GLimitLm__FP2LMf(LM *,float);
+extern "C" float ClampToLimits__FP2LMf(LM *,float);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 extern "C" void snd_SetMasterVolume(int,int);
 static inline X *ReadReceiver(X **pp)
@@ -2980,7 +2980,7 @@ extern "C" void SetSndmgrChannelVolume(P *soundManager,int channel,int category,
     if((unsigned int)category>=8)return;
     if(channel<0)return;
     if(channel>=4)return;
-    volume=GLimitLm__FP2LMf(&D_002BBB60,volume);
+    volume=ClampToLimits__FP2LMf(&D_002BBB60,volume);
     float (*volumes)[4]=soundManager->volumes;
     if(soundManager->volumes[category][channel]==volume)return;
     if(category==VOLUME_CATEGORY_PAUSE_FADE){
@@ -3112,7 +3112,7 @@ struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad1
 /* SNDMGR (layout: see SNDMGRV) */
 struct P { char pad[0x64]; int selectedMusicLayer; char pad2[0xE8 - 0x68]; int bank; char pad3[0x138 - 0xEC]; int sfxVariationStep; };
 #define SFX_VARIATION 0x28
-int NRandInRange__Fii(int, int);
+int RandomIntInRange__Fii(int, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void *FindSoundForSfxId(struct P *, int);
 short GetSoundIndex(struct P *, void *);
@@ -3144,7 +3144,7 @@ void StepRandomSfxVariation(struct P *soundManager)
     };
     int b[25] = { 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0 };
     struct M params;
-    r = NRandInRange__Fii(0, 5);
+    r = RandomIntInRange__Fii(0, 5);
     soundManager->sfxVariationStep += a[b[soundManager->sfxVariationStep + 12]][r];
     func_002333B4(&params, 0, sizeof(params));
     params.mask = 0x13;   /* bank, sound, pitch */

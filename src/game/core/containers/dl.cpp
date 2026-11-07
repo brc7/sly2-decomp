@@ -2,7 +2,7 @@
 // A list records that offset (SL::ibSle / DL::ibDle), so one element type can sit in several lists through different
 // link fields. Removal patches any live safe iterator (SLI here, DLI in sly2/dli.h) that points at the removed link,
 // which is what lets game code remove objects while it walks a list.
-// Entry points: InitSl/InitDl, Append/Prepend/Insert/Remove{Sl,Dl}Entry, IsEntryInSl, FFindDlEntry, CPvDl.
+// Entry points: InitSl/InitDl, Append/Prepend/Insert/Remove{Sl,Dl}Entry, IsEntryInSl, IsEntryInDl, CountDlEntries.
 // TU 0x11A050..0x11A550 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dl
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011A530
@@ -338,13 +338,13 @@ void RemoveDlEntry(DL *list, void *entry)
 
 /** @sly2-annot addr=0x11A380
  * Purpose: True if pv is linked (next or tail)
- * Info: proposed name FFindDlEntry (T1); TU dl
+ * Info: proposed name IsEntryInDl (T1); TU dl
  * Notes: names_v2 C proposed AdaptAct__FP3ACT (0.438)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
 // Returns whether entry is currently in the list (it has a successor or is the tail).
-int FFindDlEntry(DL *list, void *entry)
+int IsEntryInDl(DL *list, void *entry)
 {
     return PDLE(list, entry)->next || list->tail == entry;
 }
@@ -367,7 +367,7 @@ int IsDlEmpty(DL *list)
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
 // Counts the elements of a doubly linked list (walks it).
-int CPvDl(DL *list)
+int CountDlEntries(DL *list)
 {
     void *entry = list->head;
     int count = 0;

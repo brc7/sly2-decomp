@@ -1452,8 +1452,8 @@ struct REQUEST {uint bytes,alignment;};
 struct X;
 extern "C" void InitFileKey(X *px);
 struct X { uint sector; uint size; int mode; char pad[0x110 - 0xC]; X() { mode = 2; InitFileKey(this); } };   /* a disc file location (FILEKEY) */
-struct Y;extern "C" void func_00184950(Y*,int) __asm__("_$_10CStreamBis");
-struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("CStreamBis_ctor");~Y(){func_00184950(this,2);}};
+struct Y;extern "C" void DestroyCStreamBis(Y*,int) __asm__("_$_10CStreamBis");
+struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("CStreamBis_ctor");~Y(){DestroyCStreamBis(this,2);}};
 struct K {uint sectorKey,sizeKey;char pad[0x34-8];uint sectorXor;int pad2;uint sizeXor;};   /* a disc file entry: obfuscated sector / size */
 extern "C" {
 int sprintf(char *buf, const char *fmt, ...);

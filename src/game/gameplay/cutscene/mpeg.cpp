@@ -158,8 +158,8 @@ void snd_ResetMovieSound(void);
 void Reset__10CByteQueue(CByteQueue *p);
 void snd_CloseMovieSound(void);
 void snd_ContinueAllSoundsInGroup(unsigned int m);
-int CbFill__10CByteQueueiPUc(CByteQueue *p, int cb, void *pb);
-int CbDrain__10CByteQueueiP12CQueueOutput(CByteQueue *p, int cb, void *pout);
+int FillFromMemory__10CByteQueueiPUc(CByteQueue *p, int cb, void *pb);
+int DrainToOutput__10CByteQueueiP12CQueueOutput(CByteQueue *p, int cb, void *pout);
 void FreeDrain__10CByteQueuei(CByteQueue *p, int n);
 void snd_StartMovieSound(int a, int b, int c, int d, int e);
 void PushScaling__5CFontff(void *pf, float sx, float sy);
@@ -474,7 +474,7 @@ void Close__10CMpegAudio(CMpegAudio *audio)
     snd_ContinueAllSoundsInGroup(0xFFFFFFFF);
 }
 
-// accept demuxed audio packet: pick stream id, init queue from header, CbFill.
+// accept demuxed audio packet: pick stream id, init queue from header, FillFromMemory.
 int AcceptPacket__10CMpegAudioiPUc(CMpegAudio *audio, int cb, unsigned char *pb)
 {
     int n;
@@ -486,7 +486,7 @@ int AcceptPacket__10CMpegAudioiPUc(CMpegAudio *audio, int cb, unsigned char *pb)
     cb -= 4;
     pb += 4;
     if (audio->state == 1) {
-        n = CbFill__10CByteQueueiPUc(&audio->qHeader, cb, pb);
+        n = FillFromMemory__10CByteQueueiPUc(&audio->qHeader, cb, pb);
         cb -= n;
         pb += n;
         if (audio->qHeader.cb > 0) return 1;
@@ -494,7 +494,7 @@ int AcceptPacket__10CMpegAudioiPUc(CMpegAudio *audio, int cb, unsigned char *pb)
         else audio->state = 0;
     }
     if (audio->qData.cb >= cb) {
-        CbFill__10CByteQueueiPUc(&audio->qData, cb, pb);
+        FillFromMemory__10CByteQueueiPUc(&audio->qData, cb, pb);
         return 1;
     }
     return 0;
@@ -505,7 +505,7 @@ void Update__10CMpegAudio(CMpegAudio *audio)
 {
     switch (audio->state) {
     case 2:
-        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
+        DrainToOutput__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
         if (audio->out.freeBytes == 0) {
             if (audio->out.format == 0x10) snd_StartMovieSound(audio->out.iopBuffer, 0x1000, 0, audio->out.sampleRate, audio->out.channelCount);
             else snd_StartMovieSound(audio->out.iopBuffer, audio->out.bufferSize, audio->out.iopBuffer, 0, 0);
@@ -514,18 +514,18 @@ void Update__10CMpegAudio(CMpegAudio *audio)
         break;
     case 3:
         CQueueOutputIop_Update(&audio->out);
-        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
+        DrainToOutput__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
         break;
     }
 }
 
 /* libmpeg's stream callback data: the bytes at n8, nC of them. */
 struct MCB { int a, b; int n8; unsigned int nC; };
-// sceMpeg video stream callback: CbFill video queue.
+// sceMpeg video stream callback: FillFromMemory video queue.
 int AcceptMpegVideoData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *player)
 {
     if (player->qVideo.ucb < pm->nC) return 0;
-    CbFill__10CByteQueueiPUc(&player->qVideo, pm->nC, (void *)pm->n8);
+    FillFromMemory__10CByteQueueiPUc(&player->qVideo, pm->nC, (void *)pm->n8);
     return 1;
 }
 
@@ -542,14 +542,14 @@ int FeedMpegVideoDecoder__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG 
         int v = DemuxStream__5CMpegi(player, 1);
         if (v == 2) {
             func_002333B4(buf, 0, 0x40);
-            CbFill__10CByteQueueiPUc(&player->qVideo, 0x40 - player->qVideo.cb14 % 32, buf);
+            FillFromMemory__10CByteQueueiPUc(&player->qVideo, 0x40 - player->qVideo.cb14 % 32, buf);
             break;
         }
         if (v == 1) Update__10CMpegAudio(&player->audio);
     }
     buf[0] = D_002D4220;
     FreeDrain__10CByteQueuei(&player->qVideo, 0);
-    CbDrain__10CByteQueueiP12CQueueOutput(&player->qVideo, 0, buf);
+    DrainToOutput__10CByteQueueiP12CQueueOutput(&player->qVideo, 0, buf);
     return 1;
 }
 

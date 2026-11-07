@@ -497,9 +497,9 @@ extern "C" float SMaxShape(SHAPE *shape)
 
 namespace M_UWrapShape { extern "C" {
 struct S { char pad[0xE4]; int isClosed; int numPoints; float *times; };
-float GModPositive__Fff(float g, float gMax);
+float ModPositive__Fff(float g, float gMax);
 /** @sly2-annot addr=0x1E6660
- * Purpose: If closed, wrap u into [times[0],times[c-1]] (GModPositive)
+ * Purpose: If closed, wrap u into [times[0],times[c-1]] (ModPositive)
  * Info: proposed name UWrapShape (T1); TU shape
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
@@ -512,13 +512,13 @@ float UWrapShape(struct S *shape, float param)
     gMin = shape->times[0];
     gMax = shape->times[shape->numPoints - 1];
     if (gMin <= param && param <= gMax) return param;
-    return gMin + GModPositive__Fff(param - gMin, gMax - gMin);
+    return gMin + ModPositive__Fff(param - gMin, gMax - gMin);
 }
 } } // namespace M_UWrapShape
 
 namespace M_SWrapShape { extern "C" {
 struct S { char pad[0xE4]; int isClosed; int numPoints; int times; float *distances; };
-float GModPositive__Fff(float g, float gMax);
+float ModPositive__Fff(float g, float gMax);
 /** @sly2-annot addr=0x1E66C8
  * Purpose: If closed, wrap s into [0,length]
  * Info: proposed name SWrapShape (T1); TU shape
@@ -532,7 +532,7 @@ float SWrapShape(struct S *shape, float distance)
     if (!shape->isClosed) return distance;
     gMax = shape->distances[shape->numPoints - 1];
     if (0.0f <= distance && distance <= gMax) return distance;
-    return GModPositive__Fff(distance, gMax);
+    return ModPositive__Fff(distance, gMax);
 }
 } } // namespace M_SWrapShape
 
@@ -1696,7 +1696,7 @@ static inline float StoreEndpointAndUpperBits(float *endpoint,float upper,unsign
 struct P { char pad[0xE4]; int isClosed; };
 extern int D_002C3650;
 float SMaxShape(struct P *);
-float GRandInRange__Fff(float, float);
+float RandomFloatInRange__Fff(float, float);
 float SWrapShape(struct P *, float);
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 static inline float GClamp(float x, float lo, float hi)
@@ -1711,7 +1711,7 @@ static inline float GMax(float a, float b) { return a < b ? b : a; }
  * Purpose: Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650
  * Info: proposed name SRandomShapeRange (T1); TU shape
  * Notes: verifier better_name (CORRECT row): Range [a-b, a+b] (wrapped if +0xE4 closed, else clamped into [0,
- *   SMaxShape]); t = GRandInRange(-1,1) shaped by global D_002C3650 (linear, t|t|, smoothstep, sign
+ *   SMaxShape]); t = RandomFloatInRange(-1,1) shaped by global D_002C3650 (linear, t|t|, smoothstep, sign
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
@@ -1734,7 +1734,7 @@ float SRandomShapeRange(struct P *shape, float center, float range)
     minimum=StoreEndpointAndUpperBits(&r[1],upper,0xBF800000u>>16);
     r[0] = lower;
     }
-    t = GRandInRange__Fff(minimum, 1.0f);
+    t = RandomFloatInRange__Fff(minimum, 1.0f);
     switch (D_002C3650) {
     case 0:
         break;

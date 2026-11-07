@@ -1,12 +1,12 @@
 // text.cpp -- the game's printf: format specifier parsing (TFT, including the %m/%v matrix and vector
 // conversions), integer/double/string conversions written to an OSTRM, vprintf/printf/vsprintf/sprintf, and the
 // small string routines (strlen, strcpy, strcat as strcpy1, strchr, upper-casing).
-// The game ships its own printf family instead of the SDK's: CchOstrmPrintf walks the format, CchParsePchzTft parses
+// The game ships its own printf family instead of the SDK's: PrintfToStream walks the format, ParseFormatSpec parses
 // each %-specification into a TFT and WriteTft writes the converted argument to an OSTRM (stream.cpp), which is a
 // memory block (sprintf), the debug console (printf) or a file. Besides the C conversions (%d i u o x b p c s e f g n)
 // it has %m / %M (3x3 / 4x4 float matrix) and %v / %V (3 / 4 float vector) modifiers for e/f/g. Arguments are read
 // as 8-byte slots (the EE ABI passes varargs in 64-bit registers). Entry points: printf, vprintf, sprintf,
-// s1_vsprintf, CchOstrmPrintf, and the string routines. TU 0x21D638..0x21EFD0 (24 functions, address order).
+// s1_vsprintf, PrintfToStream, and the string routines. TU 0x21D638..0x21EFD0 (24 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_text
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021EFB0
 #include "sly2/slotheap.h"
@@ -47,7 +47,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");   /* character class table: 1 upper, 2 lower */
 extern const char D_002A9370[];   /* defined before WriteTftPchz (.rodata order) */
 char D_002C40C8[] = "0123456789abcdef";   /* digits (text's .data, not const) */
-extern const char D_002A94F0[], D_002A94F8[];   /* defined before CchAchFromDouble (.rodata order) */
+extern const char D_002A94F0[], D_002A94F8[];   /* defined before FormatDouble (.rodata order) */
 double log10(double);
 double pow(double, double);
 double dpmul(double, double);
@@ -63,24 +63,24 @@ char *strchr(const char *p, int ch);
 int vprintf(char *fmt, va_list args);
 int s1_vsprintf(char *dest, char *fmt, va_list args);
 }
-double GTrunc(double g);
+double TruncateDouble(double g);
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
-int CchParsePchzInt(char *str, int *outValue);
-int CchParsePchzTft(char *format, TFT *spec, char **args);
+int ParseDecimalInt(char *str, int *outValue);
+int ParseFormatSpec(char *format, TFT *spec, char **args);
 void WriteTftPchz(TFT *, OSTRM *, char *);
-int FNegTftUl(TFT *, UL *);
+int NarrowIntegerArgument(TFT *, UL *);
 int UnRadixFromChConversion(unsigned char) __asm__("UnRadixFromChConversion__Fc");   /* the symbol says char */
-int CchAchFromUl(char *, int, unsigned long, unsigned int);
+int FormatUnsignedDigits(char *, int, unsigned long, unsigned int);
 void WriteTftUl(TFT *, OSTRM *, unsigned long);
 int ExpFirstFromG(double g);
-unsigned char ChDigitFromG(double g, int position, int precision);
-int CchAchFromDouble(char *, int, TFT *, double);
+unsigned char GetDecimalDigitChar(double g, int position, int precision);
+int FormatDouble(char *, int, TFT *, double);
 void WriteTftDouble(TFT *, OSTRM *, double);
 void WriteTft(TFT *, OSTRM *, char **, char *, int);
-int CchOstrmPrintf(OSTRM *out, char *format, char *args);
+int PrintfToStream(OSTRM *out, char *format, char *args);
 void UpperizePchz(char *str);
 
-static inline int FDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
+static inline int IsDecimalDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
 /** @sly2-annot addr=0x21D638
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -88,7 +88,7 @@ static inline int FDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
  *   docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
  * @end-sly2-annot */
 // Parses an optionally negative decimal integer at str into *outValue; returns the characters consumed.
-int CchParsePchzInt(char *str, int *outValue)
+int ParseDecimalInt(char *str, int *outValue)
 {
     unsigned char *p = (unsigned char *)str;
     int sign = (*p == '-') ? -1 : 1;
@@ -98,7 +98,7 @@ int CchParsePchzInt(char *str, int *outValue)
         p++;
         length = 1;
     }
-    for (; FDigit(*p); p++) { value = value * 10 + (*p - '0'); length++; }
+    for (; IsDecimalDigit(*p); p++) { value = value * 10 + (*p - '0'); length++; }
     *outValue = value * sign;
     return length;
 }
@@ -107,7 +107,7 @@ int CchParsePchzInt(char *str, int *outValue)
 static inline int Abs(int n) { return n < 0 ? -n : n; }
 static inline int Upper(unsigned char c) { return D_002AA6A1[c] & 1; }
 static inline int Lower(unsigned char c) { int r = c + 0x20; if (!Upper(c)) r = c; return r; }
-/* CchParsePchzTft's parser states, in the order the parts of a specification appear. */
+/* ParseFormatSpec's parser states, in the order the parts of a specification appear. */
 enum { TFT_START, TFT_FLAGS, TFT_WIDTH, TFT_PRECISION, TFT_LENGTH, TFT_CONVERSION, TFT_DONE };
 /** @sly2-annot addr=0x21D6B0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -117,7 +117,7 @@ enum { TFT_START, TFT_FLAGS, TFT_WIDTH, TFT_PRECISION, TFT_LENGTH, TFT_CONVERSIO
 // Parses one conversion specification starting at '%' (flags, width or '*', '.precision' or '.*', length h/l/ll/
 // L/q, the m/M/v/V matrix-vector modifiers, conversion character) into *spec, taking '*' values from the argument
 // list. "%%" yields conversion '%'. Returns the length of the specification.
-int CchParsePchzTft(char *format, TFT *spec, char **args)
+int ParseFormatSpec(char *format, TFT *spec, char **args)
 {
     int state = TFT_START;
     func_002333B4(spec, 0, 0x34);
@@ -162,7 +162,7 @@ int CchParsePchzTft(char *format, TFT *spec, char **args)
                 }
                 consumed = 1;
             } else {
-                consumed = CchParsePchzInt((char *)p, &spec->width);
+                consumed = ParseDecimalInt((char *)p, &spec->width);
             }
             if (p[consumed] == '.') {
                 next = TFT_PRECISION;
@@ -178,7 +178,7 @@ int CchParsePchzTft(char *format, TFT *spec, char **args)
                 spec->precision = Abs(*(int *)argSlot);
                 consumed = 1;
             } else {
-                consumed = CchParsePchzInt((char *)p, &spec->precision);
+                consumed = ParseDecimalInt((char *)p, &spec->precision);
             }
             spec->precisionIsZero = spec->precision == 0;
             next = TFT_LENGTH;
@@ -284,7 +284,7 @@ void WriteTftPchz(TFT *spec, OSTRM *out, char *str)
  * @end-sly2-annot */
 // Narrows the integer argument to its length modifier (int, short or long) and, for %d/%i, makes it non-negative.
 // Returns whether it was negative.
-int FNegTftUl(TFT *spec, UL *value)
+int NarrowIntegerArgument(TFT *spec, UL *value)
 {
     int isNegative = 0;
     switch (spec->lengthModifier) {
@@ -354,7 +354,7 @@ int UnRadixFromChConversion(unsigned char conversion)
  * @end-sly2-annot */
 // Converts `value` to digits in `radix` (lower-case), right-aligned at the end of buffer[0..capacity) and then
 // moved to its start. Returns the number of digits.
-int CchAchFromUl(char *buffer, int capacity, unsigned long value, unsigned int radix)
+int FormatUnsignedDigits(char *buffer, int capacity, unsigned long value, unsigned int radix)
 {
     char *end = buffer + capacity;
     char *p = end;
@@ -388,7 +388,7 @@ void WriteTftUl(TFT *spec, OSTRM *out, unsigned long value)
         zeroCount = 0;
         digitCount = 0;
     } else {
-        int negative = FNegTftUl(spec, (UL *)&value);
+        int negative = NarrowIntegerArgument(spec, (UL *)&value);
         zeroCount = spec->precision;
         prefix[0] = 0;
         switch (spec->conversion) {
@@ -416,7 +416,7 @@ void WriteTftUl(TFT *spec, OSTRM *out, unsigned long value)
             break;
         }
         prefixLength = strlen(prefix);
-        digitCount = CchAchFromUl(digits, 0x40, value, UnRadixFromChConversion(spec->conversion));
+        digitCount = FormatUnsignedDigits(digits, 0x40, value, UnRadixFromChConversion(spec->conversion));
         zeroCount -= digitCount;
         if (zeroCount < 0)
             zeroCount = 0;
@@ -467,22 +467,22 @@ int ExpFirstFromG(double g)
 /* Digit of g at decimal position a (precision b): 0 outside [b, b+15). */
 /** @sly2-annot addr=0x21E0D8
  * Purpose: digit character of g at decimal position a (precision b)
- * Info: proposed name ChDigitFromG (T1); TU text
+ * Info: proposed name GetDecimalDigitChar (T1); TU text
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8+verdicts_A2
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
  * @end-sly2-annot */
 // Returns the decimal digit character of g at power-of-ten `position`, or '0' outside the ~15 significant
 // digits that start at `precision`.
-unsigned char ChDigitFromG(double g, int position, int precision)
+unsigned char GetDecimalDigitChar(double g, int position, int precision)
 {
     int digit;
     double shifted;
     if (position < precision || position - 15 >= precision)
         digit = 0;
     else {
-        shifted = GTrunc(dpmul(g, pow(10.0, litodp(-precision))));
-        digit = dptoli(dpsub(shifted, dpmul(GTrunc(dpmul(shifted, 0.1)), 10.0)));
+        shifted = TruncateDouble(dpmul(g, pow(10.0, litodp(-precision))));
+        digit = dptoli(dpsub(shifted, dpmul(TruncateDouble(dpmul(shifted, 0.1)), 10.0)));
     }
     return D_002C40C8[digit];
 }
@@ -495,7 +495,7 @@ extern "C" const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)"; /* .rodata
  * @end-sly2-annot */
 // Formats `value` for %e/%f/%g into buffer (at most capacity characters) per the spec's precision and flags,
 // printing "(nan)" / "(inf)" for non-finite values. Returns the length.
-int CchAchFromDouble(char *buffer, int capacity, TFT *spec, double value)
+int FormatDouble(char *buffer, int capacity, TFT *spec, double value)
 {
     union {
         double d;
@@ -532,12 +532,12 @@ int CchAchFromDouble(char *buffer, int capacity, TFT *spec, double value)
         digit = 0;
     }
     while (count-- > 0)
-        *p++ = ChDigitFromG(rounded, exponent, digit--);
+        *p++ = GetDecimalDigitChar(rounded, exponent, digit--);
     if (!spec->precisionIsZero) {
         *p++ = '.';
         count = spec->precision;
         while (count-- > 0)
-            *p++ = ChDigitFromG(rounded, exponent, digit--);
+            *p++ = GetDecimalDigitChar(rounded, exponent, digit--);
         if (spec->conversion == 'g') {
             while (p > buffer && ((unsigned char *)p)[-1] == '0')
                 --p;
@@ -566,7 +566,7 @@ int CchAchFromDouble(char *buffer, int capacity, TFT *spec, double value)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
  * @end-sly2-annot */
-// Writes a floating-point conversion: formats with CchAchFromDouble, then applies sign, width and justification.
+// Writes a floating-point conversion: formats with FormatDouble, then applies sign, width and justification.
 void WriteTftDouble(TFT *spec, OSTRM *out, double value)
 {
     char digits[0x1B6];
@@ -587,7 +587,7 @@ void WriteTftDouble(TFT *spec, OSTRM *out, double value)
     else if (spec->spaceForPlus)
         __builtin_memcpy(prefix, " ", 2);
     int cPrefix = strlen(prefix);
-    int cDigits = CchAchFromDouble(digits, 0x1B5, spec, value);
+    int cDigits = FormatDouble(digits, 0x1B5, spec, value);
     digits[cDigits] = 0;
     if (spec->isUpperCase)
         UpperizePchz(digits);
@@ -730,7 +730,7 @@ void WriteTft(TFT *spec, OSTRM *out, char **args, char *text, int count)
  * @end-sly2-annot */
 // The printf engine: copies literal text up to each '%', parses and writes each conversion, and stops early if
 // the stream refuses bytes. Returns the stream's total bytes written.
-int CchOstrmPrintf(OSTRM *out, char *format, char *args)
+int PrintfToStream(OSTRM *out, char *format, char *args)
 {
     TFT spec;
     if (*(unsigned char *)format)
@@ -747,7 +747,7 @@ int CchOstrmPrintf(OSTRM *out, char *format, char *args)
                 format = nextPercent;
             }
             if (*(unsigned char *)format == '%') {
-                int specLength = CchParsePchzTft(format, &spec, &args);
+                int specLength = ParseFormatSpec(format, &spec, &args);
                 WriteTft(&spec, out, &args, format, specLength);
                 format += specLength;
             }
@@ -766,7 +766,7 @@ extern "C" int vprintf(char *fmt, char *args)
     OSTRM stream;
     int written;
     __5OSTRMi(&stream, -1);
-    written = CchOstrmPrintf(&stream, fmt, args);
+    written = PrintfToStream(&stream, fmt, args);
     _$_5OSTRM(&stream, 2);
     return written;
 }
@@ -795,7 +795,7 @@ extern "C" int s1_vsprintf(char *dest, char *fmt, char *args)
     OSTRM stream;
     int len;
     __5OSTRMPvi(&stream, dest, 0);
-    len = CchOstrmPrintf(&stream, fmt, args);
+    len = PrintfToStream(&stream, fmt, args);
     dest[len] = 0;
     _$_5OSTRM(&stream, 2);
     return len;

@@ -424,8 +424,8 @@ qword SetVectorCylind(float a, float b, float c);
 void UpdateDirectionalBlend(struct P *p, void *pv, int n);
 qword GetStepAsegaTranslation(struct P *p, struct S1030 *px, float g);
 void SetAsegaSpeed__FP5ASEGAf(struct S1030 *px, float g);
-float RadNormalize__Ff(float g);
-float GLimitAbs__Fff(float g, float dg);
+float NormalizeAngle__Ff(float g);
+float ClampAbs__Fff(float g, float dg);
 void UpdateBentleyPlaces(struct P *p);
 void UpdateJtActiveZap(void *pv);
 
@@ -556,8 +556,8 @@ void UpdateBentley(struct P *bentley)
             float g1 = ClampF(EvaluatePoly(&D_002BC950, bentley->controller->g1C), &D_002BBB60);
             float z = 0.0f;
             if (z < bentley->controller->g1C) {
-                float d = RadNormalize__Ff(bentley->controller->g18 - bentley->g1A8);
-                SetStepTargetHeading(bentley, bentley->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
+                float d = NormalizeAngle__Ff(bentley->controller->g18 - bentley->g1A8);
+                SetStepTargetHeading(bentley, bentley->g1A8 + ClampAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
             }
             SetVel(bentley, SetVectorCylind(bentley->controller->g18 + 3.1415927f, g0 * LenXY(bentley->v1520) * bentley->action->g40, z), bentley->x14F0, bentley->x15F0);
         }
@@ -2211,8 +2211,8 @@ extern float D_002BC9A0;
 extern SMP D_002BC9A8;
 extern qword D_002A2DC0, D_002A2DA0;
 qword GetLoWorldPos(P *p);
-float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
-float GLimitAbs__Fff(float g, float gMax);
+float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float ClampAbs__Fff(float g, float gMax);
 M3 BuildAxisAngleRotationMatrix(qword axis, float g);
 qword LimitVectorLength(qword v, float g);
 void AddSoAcceleration(P *p, qword v);
@@ -2246,8 +2246,8 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     float dot = GetX(Dot(dv, n.q));
     float w = cz / len;
     float dgNext;
-    GSmooth__FfffP3SMPPf(len, D_002BC998, D_002DDED0.dt, &D_002BC9A8, &dgNext);
-    float g = GLimitAbs__Fff(dgNext - dot, D_002BC9A0 * D_002DDED0.dt);
+    SmoothValue__FfffP3SMPPf(len, D_002BC998, D_002DDED0.dt, &D_002BC9A8, &dgNext);
+    float g = ClampAbs__Fff(dgNext - dot, D_002BC9A0 * D_002DDED0.dt);
     qword t = AddScaled(dv, n.q, VU_FLOAT(g));
     M3 mc;
     M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * D_002DDED0.dt);

@@ -64,7 +64,7 @@ struct C { int a[4]; };
 extern "C" {
 void InitDl__FP2DLi(DL *, int);
 void AppendDlEntry__FP2DLPv(DL *, void *);
-int FFindDlEntry__FP2DLPv(DL *, void *);
+int IsEntryInDl__FP2DLPv(DL *, void *);
 void RemoveDlEntry__FP2DLPv(DL *, void *);
 L *AddSwObjectPair(SW *, X *, X *);
 L *RemoveSwObjectPair(SW *, X *, X *);
@@ -96,11 +96,11 @@ void InvalidateSoAaox(LO *);
 // inserts its min/max endpoints into all three axis arrays (two more endpoints per axis). Returns the AAOBR.
 extern "C" X *AddSwAaobrObject(SW *world, LO *object) {
     int axis;
-    X *aaobr = (X *)PvAllocSlotheapClear(&world->poolAaobr);
+    X *aaobr = (X *)AllocZeroedFromSlotheap(&world->poolAaobr);
     InitDl__FP2DLi(&aaobr->unknown34List, 0x60);
     aaobr->object = object;
     AppendDlEntry__FP2DLPv(&world->aaobrList, aaobr);
-    if (FFindDlEntry__FP2DLPv(&world->unknown2CList, object->parent)) AppendDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
+    if (IsEntryInDl__FP2DLPv(&world->unknown2CList, object->parent)) AppendDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
     for (axis = 0; axis < 3; axis++) {
         E *endpoint = &world->axisEndpoints[axis][world->numEndpoints];
         endpoint->isMax = 0;
@@ -158,7 +158,7 @@ extern "C" void RemoveSwAaobrObject(SW *world, X *aaobr)
     __asm__ __volatile__("");
     FreeSwXpList__FP2SWP2XP(world, aaobr->contactList6C);
     RemoveDlEntry__FP2DLPv(&world->aaobrList, aaobr);
-    if (FFindDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr))
+    if (IsEntryInDl__FP2DLPv(&world->unknown3D1CList, aaobr))
         RemoveDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
     if ((aaobr->flags & 1) == 1)
         RemoveDlEntry__FP2DLPv(&world->boundsUpdateList, aaobr);
@@ -266,7 +266,7 @@ extern "C" void UpdateSwPox(SW *world, X *aaobrA, X *aaobrB, int mode)
 // Allocates a pair link from the world pool for px1 with px2 as the other side and pushes it on px1's pair list.
 extern "C" L *AddSwObjectPair(SW *world, X *aaobr, X *otherAaobr)
 {
-    L *pair = (L *)PvAllocSlotheapClear(&world->pairPool);
+    L *pair = (L *)AllocZeroedFromSlotheap(&world->pairPool);
     pair->object = otherAaobr->object;
     pair->next = aaobr->pairs;
     aaobr->pairs = pair;

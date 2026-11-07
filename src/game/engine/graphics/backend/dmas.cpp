@@ -124,7 +124,7 @@ void DMAS::DetachCopySw(HEAP *pheap, int *pcqw, QW **paqw, QW **paqwCopy)
     }
     if (paqwCopy)
     {
-        *paqwCopy = (QW *)PvAllocCopy(pheap, cqw << 4, m_ab, 4);
+        *paqwCopy = (QW *)AllocCopyFromHeap(pheap, cqw << 4, m_ab, 4);
     }
     Clear();
 }

@@ -345,7 +345,7 @@ extern float D_002C3C60[2];
 extern float D_002C3C68[3];
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
-float GSmooth__FfffP3SMPPf(float,float,float,float *,float *);
+float SmoothValue__FfffP3SMPPf(float,float,float,float *,float *);
 static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
     register qword row0 __asm__("$2");
     register qword row1 __asm__("$3");
@@ -358,13 +358,13 @@ static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
     destination->a[3]=row3;destination->a[0]=row0;
 }
 /** @sly2-annot addr=0x203E08
- * Purpose: Per point: smooth the body shape toward the phys shape with GSmooth(old,new,dt,s_smpPhys
+ * Purpose: Per point: smooth the body shape toward the phys shape with SmoothValue(old,new,dt,s_smpPhys
  *   D_002C3C68) and store (new-old)/dt as point velocity
  * Info: proposed name UpdateStepPhys (T1); TU step
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-// Per frame: moves each body-part point toward the phys part's point with GSmooth and stores the point's velocity
+// Per frame: moves each body-part point toward the phys part's point with SmoothValue and stores the point's velocity
 // ((new - old) / dt), so shape changes (crouch, stand) blend instead of popping.
 void UpdateStepPhys(struct S *input)
 {
@@ -427,7 +427,7 @@ void UpdateStepPhys(struct S *input)
         pt=pv;ps=old->f;
         j=3;
         while(--j>=0){
-            float next=GSmooth__FfffP3SMPPf(*ps,*pt,clock->dt,D_002C3C68,0);
+            float next=SmoothValue__FfffP3SMPPf(*ps,*pt,clock->dt,D_002C3C68,0);
             *pd=(next-*ps)/clock->dt;
             ++pt;++ps;++pd;
         }
@@ -472,7 +472,7 @@ extern float D_002BBB60[2];
 void UpdateSo(struct S *p);
 void UpdateStepPhys(struct S *p);
 float atan2f(float y, float x);
-float RadNormalize__Ff(float a);
+float NormalizeAngle__Ff(float a);
 
 /** @sly2-annot addr=0x203FC0
  * Purpose: STEP vt16: UpdateSo, UpdateStepPhys, then turn-rate speed factor +0x180 (CLQ D_002C3C80 of
@@ -493,7 +493,7 @@ void UpdateStep(struct S *step)
     case STEERING_HEADING: {
         float *a = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
         float *b = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
-        float d = RadNormalize__Ff(step->targetHeading - atan2f(a[1], b[0]));
+        float d = NormalizeAngle__Ff(step->targetHeading - atan2f(a[1], b[0]));
         float f;
         d = __builtin_fabsf(d);
         f = D_002C3C80[0] + d * (D_002C3C80[1] + d * D_002C3C80[2]);
@@ -764,7 +764,7 @@ void AdjustStepNewXp(struct P *step, struct XP *x, int side)
 namespace M_AdjustStepXpVelocity {
 // AdjustStepXpVelocity: a STEP's contact-velocity adjustment (vtable slot 56; Sly 1 has AdjustStepXpVelocity(STEP *, XP *, int)).
 // After the base version (AdjustSoXpVelocity), for a kind-0xE contact: the closing speed along the contact normal is smoothed
-// with GSmooth (GSmooth) toward two limits (SMPs D_002C3C98 / D_002C3CA8), the change is limited to dt * 9000 up and
+// with SmoothValue (SmoothValue) toward two limits (SMPs D_002C3C98 / D_002C3CA8), the change is limited to dt * 9000 up and
 // dt * -4500 down, and this side's velocity gets normal * -speed plus (matTarget * vUnk190 without its part along the
 // normal) * gUnk180. Finally the contact distance moves by gUnk210 - gUnk248.
 // Matched with one asm statement per VU0 operation, no register pins: the local pmat gives the target's pointer/row registers,
@@ -822,7 +822,7 @@ extern "C" float D_002C3C98[3];   /* the two closing-speed SMPs */
 extern "C" float D_002C3CA8[3];
 
 extern "C" { void AdjustSoXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd); }
-extern "C" { float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
+extern "C" { float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
 
 static inline qword QwSub(qword a, qword b)
 {
@@ -885,14 +885,14 @@ static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
 }
 
 /** @sly2-annot addr=0x2044B0
- * Purpose: STEP vt57: for base contacts (kind 0xE) smooth closing speed (GSmooth D_002C3C98/D_002C3CA8)
+ * Purpose: STEP vt57: for base contacts (kind 0xE) smooth closing speed (SmoothValue D_002C3C98/D_002C3CA8)
  *   limited by dt*9000/-4500 and add the desired tangential velocity matTarget*v190*g180
  * Info: proposed name AdjustStepXpVelocity (T1); class STEP slot57; TU step
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-// Slot 57: for floor contacts (kind 14) smooths the closing speed with GSmooth, limited to dt * 9000, so the step
+// Slot 57: for floor contacts (kind 14) smooths the closing speed with SmoothValue, limited to dt * 9000, so the step
 // settles onto the floor without bouncing.
 extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd)
 {
@@ -903,8 +903,8 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     float gVn = FloatOfVf(QwDot(QwSub(pxp->axpd[0].v, pxp->axpd[1].v), pxp->normal));
     float gVnMin;
     float gVnTarget;
-    GSmooth__FfffP3SMPPf(pxp->gDist, step->gUnk210, D_002DDED0.dt, D_002C3C98, &gVnMin);
-    GSmooth__FfffP3SMPPf(pxp->gDist, 0.0f, D_002DDED0.dt, D_002C3CA8, &gVnTarget);
+    SmoothValue__FfffP3SMPPf(pxp->gDist, step->gUnk210, D_002DDED0.dt, D_002C3C98, &gVnMin);
+    SmoothValue__FfffP3SMPPf(pxp->gDist, 0.0f, D_002DDED0.dt, D_002C3CA8, &gVnTarget);
     gVn = gVn > gVnMin ? gVn : gVnMin;
     if (gVn < gVnTarget)
     {
@@ -1226,14 +1226,14 @@ typedef union { qword q; float f[4]; } U;
 struct B { char pad[0xB0]; qword v; };
 struct S { char pad[0xC]; VTE *vt; char pad2[0x5C - 0x10]; struct B *pb; char pad3[0x1A8 - 0x60]; float g; char pad4[0x1F4 - 0x1AC]; int x; };
 float atan2f(float y, float x);
-void RadSmooth__FfffP3SMPPf(float a, float b, float c, int *p, float *pf);
+void SmoothAngle__FfffP3SMPPf(float a, float b, float c, int *p, float *pf);
 /** @sly2-annot addr=0x204CA8
- * Purpose: RadSmooth(heading, radTarget, 0, &smpSpin, &w.z) then SetAngularVelocity (vt36)
+ * Purpose: SmoothAngle(heading, radTarget, 0, &smpSpin, &w.z) then SetAngularVelocity (vt36)
  * Info: proposed name FixStepAngularVelocity (T1); TU step
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-// Smooths the heading toward the target heading (RadSmooth with the spin parameters) and sets the resulting
+// Smooths the heading toward the target heading (SmoothAngle with the spin parameters) and sets the resulting
 // angular velocity about Z.
 void FixStepAngularVelocity(struct S *step)
 {
@@ -1242,7 +1242,7 @@ void FixStepAngularVelocity(struct S *step)
     v.q = step->pb->v;
     a = ((float *(*)(void *))step->vt[31].pfn)((char *)step + step->vt[31].d);
     b = ((float *(*)(void *))step->vt[31].pfn)((char *)step + step->vt[31].d);
-    RadSmooth__FfffP3SMPPf(atan2f(a[1], b[0]), step->g, 0.0f, &step->x, &v.f[2]);
+    SmoothAngle__FfffP3SMPPf(atan2f(a[1], b[0]), step->g, 0.0f, &step->x, &v.f[2]);
     ((void (*)(void *, qword))step->vt[36].pfn)((char *)step + step->vt[36].d, v.q);
 }
 } } // namespace M_FixStepAngularVelocity
@@ -1700,7 +1700,7 @@ typedef union {qword q;float f[4];int i[4];} V;
 struct P {char pad[0x208];int enabled;};
 extern qword D_002A2DC0;
 void BuildStepFootprint(struct P*,V*);
-int FIntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
+int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Scale(qword a,float f,V *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;}
@@ -1735,7 +1735,7 @@ int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
  length=Normal(&d,&D_002A2DC0);
  distanceOut=&distance;third=&tri[2];t=tri;end=tri+6;
  do{
-   int hit=FIntersectRayTriangle(d.q,from,*(qword*)((int)third-32),*(qword*)((int)third-16),third->q,distanceOut,0);
+   int hit=IntersectRayTriangle(d.q,from,*(qword*)((int)third-32),*(qword*)((int)third-16),third->q,distanceOut,0);
    if(distance<=length && (hit&1)){
       *out=Add(from,Scale(d.q,distance,&k));return 1;
    }

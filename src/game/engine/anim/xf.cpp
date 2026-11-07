@@ -958,7 +958,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //   role 0x14   xfk 6: continuous rotation, angle in qwRestUnkE0.x += rate (qwUnkD0.x) * dt about the axis qwRest
 //   role 4      the position row = minus the position row of the reference XF (pxfRef), same stamp
 //   roles 5 6   the actuator's value (GetSlotValue: phase 0 rest value, 1 Hermite segment, 2 3 4 qwRest, 5 the 3 rows of a rotation in qwRest/D0/E0) is stored (SlotStoreValue); role 6 + phase 2 -> role 10
-//   roles 7 8 9 0xB  CHASE the actuator's value: delta = value - current, the distance is eased with GSmooth under an SMP built from the XF's speed limit nUnkAc (+ the target
+//   roles 7 8 9 0xB  CHASE the actuator's value: delta = value - current, the distance is eased with SmoothValue under an SMP built from the XF's speed limit nUnkAc (+ the target
 //               speed along the direction); role 9 must arrive by the time stored in pxfRef (as a float); role 0xB also limits the change of velocity (nUnkAc * gain per second);
 //               xfk 6 / 7 do the same with rotations (MulMatrix3Matrix3 -> axis + angle, LoadRotateMatrixRad about the axis) and angular velocities (QwRotRateFromEulerRate);
 //               on arrival role 7/9 stay, 0xB phase 2 -> 0xC, phase 1 -> 6, phase 2 -> 10; the velocity becomes the target's rate
@@ -1020,9 +1020,9 @@ void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pnormal);
 qword DecomposeRotateMatrixEuler(MATRIX3 *pmat) __asm__("DecomposeRotationMatrixToEuler");
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
 extern "C" MATRIX3 MulMatrix3Matrix3(MATRIX3 *pmat0, MATRIX3 *pmat1);
-float RadNormalize(float rad);
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
-int FFloatsNear(float g1, float g2, float gEpsilon);
+float NormalizeAngle(float rad);
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+int AreFloatsNear(float g1, float g2, float gEpsilon);
 
 extern CLOCK D_002DDED0;
 
@@ -1101,8 +1101,8 @@ static inline float VuGetY(qword qw)
 }
 static inline int AreVectorsNearXyz(qword qwA, qword qwB)
 {
-    return FFloatsNear(VuGetX(qwA), VuGetX(qwB), 0.0001f) && FFloatsNear(VuGetY(qwA), VuGetY(qwB), 0.0001f) &&
-           FFloatsNear(VuGetZ(qwA), VuGetZ(qwB), 0.0001f);
+    return AreFloatsNear(VuGetX(qwA), VuGetX(qwB), 0.0001f) && AreFloatsNear(VuGetY(qwA), VuGetY(qwB), 0.0001f) &&
+           AreFloatsNear(VuGetZ(qwA), VuGetZ(qwB), 0.0001f);
 }
 extern qword D_002A2DD0;
 extern qword D_002A2DA0;
@@ -1397,7 +1397,7 @@ void UpdateSoSlots(SO *so)
                 if (xf->xfk == 6)
                 {
                     fIdle = 0;
-                    float gAngle = RadNormalize(*(float *)&xf->qwRestUnkE0 + D_002DDED0.dt * *(float *)&xf->qwUnkD0);
+                    float gAngle = NormalizeAngle(*(float *)&xf->qwRestUnkE0 + D_002DDED0.dt * *(float *)&xf->qwUnkD0);
                     *(float *)&xf->qwRestUnkE0 = gAngle;
                     MATRIX3 matRot = LoadRotateMatrixRad(gAngle, xf->qwRest);
                     *(MATRIX3 *)&xf->mat = matRot;
@@ -1495,7 +1495,7 @@ void UpdateSoSlots(SO *so)
                     }
                     else
                     {
-                        gOut = GSmooth(0.0f, gAngle, D_002DDED0.dt, &smp, &dgNext);
+                        gOut = SmoothValue(0.0f, gAngle, D_002DDED0.dt, &smp, &dgNext);
                         switch (xf->nRole)
                         {
                             case 0xb:
@@ -1621,7 +1621,7 @@ void UpdateSoSlots(SO *so)
                     }
                     else
                     {
-                        gOut = GSmooth(0.0f, gDist, D_002DDED0.dt, &smp, &dgNext);
+                        gOut = SmoothValue(0.0f, gDist, D_002DDED0.dt, &smp, &dgNext);
                         switch (xf->nRole)
                         {
                             case 0xb:
@@ -2824,7 +2824,7 @@ typedef int qword __attribute__((mode(TI)));
  * Info: proposed name VECTOR_opAssign (T1); TU game_linkonce
  * Notes: top50_round (0.60): Body *p=v;return p (12 B). Sits between __9VU_VECTORRC6VECTOR (0x256D08) and
  *   __ml__FG8VU_FLOATG9VU_VECTOR (0x256D28) in the linkonce block. Matched callers write it as an assignment
- *   into existing storage: RefOpMult/RefOp
+ *   into existing storage: BuiltinMultiply/RefOp
  * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */

@@ -1,7 +1,7 @@
 // bq.cpp -- CByteQueue, a ring buffer of bytes filled from a CQueueInput and drained into a CQueueOutput.
 // Streaming code uses it to decouple a producer (memory or file reader) from a consumer (decoder/DMA writer).
-// Bytes move free -> filled (CbFill) -> drained (CbDrain) -> free again (FreeDrain, for outputs that hold on to the
-// bytes they were handed). Entry points: CByteQueue::Init, CbFill (from a CQueueInput or a memory block), CbDrain,
+// Bytes move free -> filled (Fill*) -> drained (DrainToOutput) -> free again (FreeDrain, for outputs that hold on to the
+// bytes they were handed). Entry points: CByteQueue::Init, FillFromInput / FillFromMemory, DrainToOutput,
 // FreeDrain. TU 0x13D558..0x13DA18 (10 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bq
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013D9F8
@@ -47,9 +47,9 @@ public:
     int totalFilled;    /* 0x1c bytes ever filled since Reset */
     void Init(int bufferSize, void *bufferMemory);
     void Reset();
-    int CbFill(int byteCount, CQueueInput *input);
-    int CbDrain(int byteCount, CQueueOutput *output);
-    int CbFill(int byteCount, byte *data);
+    int FillFromInput(int byteCount, CQueueInput *input);
+    int DrainToOutput(int byteCount, CQueueOutput *output);
+    int FillFromMemory(int byteCount, byte *data);
     void FreeDrain(int byteCount);
 };
 typedef char assert_CByteQueue_size[sizeof(CByteQueue) == 0x20 ? 1 : -1];
@@ -94,7 +94,7 @@ void CByteQueue::Reset()
 // Fills the queue from `input`, reading into the free part of the ring (wrapping at the end). byteCount <= 0
 // means "one read of whatever fits"; otherwise reads until byteCount bytes arrived, the queue is full or the input
 // returns 0. Returns the number of bytes added.
-int CByteQueue::CbFill(int byteCount, CQueueInput *input)
+int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
 {
     int filled = 0;
     int remaining = byteCount;
@@ -126,7 +126,7 @@ int CByteQueue::CbFill(int byteCount, CQueueInput *input)
 // Drains up to byteCount filled bytes into `output` (byteCount <= 0: a single write). Bytes handed to an output
 // whose FDrain() is true stay reserved (drainedBytes) until FreeDrain releases them; otherwise they are free at once.
 // Returns the number of bytes written.
-int CByteQueue::CbDrain(int byteCount, CQueueOutput *output)
+int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
 {
     int drained = 0;
     int remaining = byteCount;
@@ -158,14 +158,14 @@ int CByteQueue::CbDrain(int byteCount, CQueueOutput *output)
  * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
 // Fills the queue from a memory block (wraps it in a temporary CQueueInputMemory). Returns the bytes added.
-int CByteQueue::CbFill(int byteCount, byte *data)
+int CByteQueue::FillFromMemory(int byteCount, byte *data)
 {
     int result;
     if (byteCount == 0) {
         result = 0;
     } else {
         CQueueInputMemory memoryInput(data, byteCount);
-        result = CbFill(byteCount, &memoryInput);
+        result = FillFromInput(byteCount, &memoryInput);
     }
     return result;
 }

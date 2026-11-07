@@ -65,8 +65,8 @@ void SetDifficulty(DIFFICULTY *difficulty, float g);
 void ChangeDifficulty(DIFFICULTY *difficulty, float delta);
 void SprayDprizes(SW *world, int cid, qword position, void *source, int c);
 }
-float GLimitLm(LM *plm, float g);
-int NRandInRange(int nMin, int nMax);
+float ClampToLimits(LM *plm, float g);
+int RandomIntInRange(int nMin, int nMax);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 static inline void Set(SVKEY *key, CRef ref) { RefSetGlobalSaveVar(key, ref, &D_003D4A60); }
@@ -175,7 +175,7 @@ extern "C" void ChangeDifficulty(DIFFICULTY *difficulty, float delta)
 }
 
 /** @sly2-annot addr=0x154DC8
- * Purpose: Stores the difficulty clamped by the DIFFICULTY LM range (GLimitLm) into the current sample
+ * Purpose: Stores the difficulty clamped by the DIFFICULTY LM range (ClampToLimits) into the current sample
  * Info: proposed name SetDifficulty (T1); TU difficulty
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
@@ -185,7 +185,7 @@ extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 {
     SW *world = &D_003DD490;
     if (world->ploJobCur)
-        *((JOBV *)world->ploJobCur)->difficulty = GLimitLm(&difficulty->params->range, g);
+        *((JOBV *)world->ploJobCur)->difficulty = ClampToLimits(&difficulty->params->range, g);
 }
 
 
@@ -204,12 +204,12 @@ extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, in
     if (difficulty->countdownA <= 0) {
         int nMin = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[0], difficulty->params->countdownRanges[2]);
         int nMax = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[1], difficulty->params->countdownRanges[3]);
-        difficulty->countdownA = NRandInRange(nMin, nMax);
+        difficulty->countdownA = RandomIntInRange(nMin, nMax);
     }
     if (difficulty->countdownB <= 0) {
         int nMin = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[4], difficulty->params->countdownRanges[6]);
         int nMax = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[5], difficulty->params->countdownRanges[7]);
-        difficulty->countdownB = NRandInRange(nMin, nMax);
+        difficulty->countdownB = RandomIntInRange(nMin, nMax);
     }
     {
         int d = FIsBasicDerivedFrom((BASIC *)source, (CID)0x38) ? -2 : -1;
@@ -218,9 +218,9 @@ extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, in
     }
     if (c < 0) {
         if (difficulty->countdownA <= 0)
-            c = NRandInRange(difficulty->params->prizeMinA, difficulty->params->prizeMaxA);
+            c = RandomIntInRange(difficulty->params->prizeMinA, difficulty->params->prizeMaxA);
         else
-            c = NRandInRange(difficulty->params->prizeMinB, difficulty->params->prizeMaxB);
+            c = RandomIntInRange(difficulty->params->prizeMinB, difficulty->params->prizeMaxB);
     }
     if (c > 0)
         SprayDprizes(&D_003DD490, 0x5B, position, source, c);

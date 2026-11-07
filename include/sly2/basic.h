@@ -139,7 +139,7 @@ struct MATRIX3
 } __attribute__((aligned(16)));
 
 /* SMP: smoothing parameters for a value that chases a target: the speed used far from / near the target and the time
-   constant (inferred from Sly 1 GSmooth).
+   constant (inferred from Sly 1 SmoothValue).
    Layout from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (4 copies in Lilly ports) */
 struct SMP
 {

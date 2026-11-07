@@ -56,7 +56,7 @@ LMV D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random range
 extern const float D_002A76E8;   /* defined below where the ELF has it (.rodata order) */
 void *GetHeroPo(GAME *);
 qwordV GetLoWorldPos(void *);
-float GRandInRange__Fff(float, float);
+float RandomFloatInRange__Fff(float, float);
 qwordV SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
 qwordV CalculateVelocityToReachPos(qwordV, qwordV, qwordV, float);
@@ -161,7 +161,7 @@ static inline qwordV Transform(const M3 &m, qwordV q)
     return r;
 }
 // Random float in an LM range.
-static inline float Rand(const LMV &lm) { return GRandInRange__Fff(lm.gMin, lm.gMax); }
+static inline float Rand(const LMV &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
 // vtable slot 76 (SetState).
 static inline void SetState(SOV *object, int state) { VTE *v = object->vt; ((void (*)(void *, int))v[76].fn)((char *)object + v[76].delta, state); }
 // vtable slot 8 (Reset).

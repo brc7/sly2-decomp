@@ -801,11 +801,11 @@ float SMinShape(FOCUS *);
 float SMaxShape(FOCUS *);
 float UMinShape(FOCUS *);
 float UMaxShape(FOCUS *);
-float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
+float SmoothValue__FfffP3SMPPf(float, float, float, SMP *, float *);
 void SetJtHideFacingKind__FP2JT4HFDK(CONTEXT *, int) __asm__("SetJtHideFacingKind__FP2JT4HFDK");
 void SetStepTargetHeading(ACTOR *, float);
 float GetStepHeading(ACTOR *);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 void SetJtGrabKind(CONTEXT *, int);
 void UpdateGaitBlend(PROGRAM *, float);
 void UpdateGaitFootsteps(PROGRAM *);
@@ -948,8 +948,8 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             FOCUS *focus;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
                 float lo, hi;
-                GSmooth__FfffP3SMPPf(ctx->value, SMinShape(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
-                GSmooth__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
+                SmoothValue__FfffP3SMPPf(ctx->value, SMinShape(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
+                SmoothValue__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
                 s = ClampF(lateral, lo, hi);
             } else {
                 s = lateral;
@@ -990,7 +990,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 SetJtHideFacingKind__FP2JT4HFDK(ctx, 3);
         }
         SetStepTargetHeading(ctx->actor, heading);
-        if (ctx->step == 5 && 0.25f < __builtin_fabsf(RadNormalize__Ff(GetStepHeading(ctx->actor) - heading)))
+        if (ctx->step == 5 && 0.25f < __builtin_fabsf(NormalizeAngle__Ff(GetStepHeading(ctx->actor) - heading)))
             step = 5;
         SetJtGrabKind(ctx, step);
         break;
@@ -1081,10 +1081,10 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             if (focus->cyclic) {
                 limit = smp.svFast;
             } else if (ctx->reversed) {
-                GSmooth__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.dt, &smp, &limit);
+                SmoothValue__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.dt, &smp, &limit);
                 limit = -limit;
             } else {
-                GSmooth__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 50.0f, D_002DDED0.dt, &smp, &limit);
+                SmoothValue__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 50.0f, D_002DDED0.dt, &smp, &limit);
             }
             float ratio = (limit - smp.svSlow) / (smp.svFast - smp.svSlow);
             float amount = joy->amount;
@@ -1096,7 +1096,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 g = amount;
         }
         if (ctx->reversed)
-            heading = RadNormalize__Ff(heading + 3.1415927f);
+            heading = NormalizeAngle__Ff(heading + 3.1415927f);
         if (0.0f < g) {
             SetJtGrabKind(ctx, 4);
             UpdateGaitBlend(&ctx->program240, g);
@@ -1938,7 +1938,7 @@ void EvaluateShapeU(struct CURVE*,float,qword*,qword*);
 qword SetVectorCylind(float,float,float);
 float SFromShapeU(struct CURVE*,float);
 float SMaxShape(struct CURVE*);
-float GSmooth__FfffP3SMPPf(float,float,float,struct SMP*,float*);
+float SmoothValue__FfffP3SMPPf(float,float,float,struct SMP*,float*);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Reject(qword a,qword n){register qword d __asm__("vf2");qword one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"0"(d));return d;}
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");register qword one __asm__("vf4");float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
@@ -1946,7 +1946,7 @@ static inline float Dot(qword a,qword b){qword d=b,one;float f;__asm__("vmul.xyz
 static inline qword Scale(qword a,float g){U u;qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(g));u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
 /** @sly2-annot addr=0x193A68
  * Purpose: For a curve (rail) target at param t: landing position offset and a velocity along the curve
- *   tangent clamped by GSmooth limits 50 from the ends
+ *   tangent clamped by SmoothValue limits 50 from the ends
  * Info: proposed name GetJtRailLanding (T1); TU grab
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest+verdicts_A1
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
@@ -1973,8 +1973,8 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     smp.g1 = p->x260;
     smp.g0 = p->x2A0;
     smp.g2 = D_002BF668;
-    (void)GSmooth__FfffP3SMPPf(current, 50.0f, D_002DDED0.dt, &smp, &low);
-    (void)GSmooth__FfffP3SMPPf(current, SMaxShape(curve) - 50.0f, D_002DDED0.dt, &smp, &high);
+    (void)SmoothValue__FfffP3SMPPf(current, 50.0f, D_002DDED0.dt, &smp, &low);
+    (void)SmoothValue__FfffP3SMPPf(current, SMaxShape(curve) - 50.0f, D_002DDED0.dt, &smp, &high);
     {
         float hi = high;
         *outPos = Sub(pos.q, p->o->pos);
@@ -2004,7 +2004,7 @@ extern qword D_002A2DD0;
 void SetActRotationGoal(void *r, qword q);
 float SMinShape(struct O *o);
 float SMaxShape(struct O *o);
-float GModPositive__Fff(float g, float hi);
+float ModPositive__Fff(float g, float hi);
 void EvaluateShapeS(struct O *o, float g, U *pv, int n);
 qword ConvertAloPos(int n, struct P *p, qword q);
 int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
@@ -2017,7 +2017,7 @@ static __inline__ float ClampF(float g, float lo, float hi)
     return g;
 }
 /** @sly2-annot addr=0x193C98
- * Purpose: Advance/clamp the grab param along the held curve object (wrap with GModPositive if closed, else
+ * Purpose: Advance/clamp the grab param along the held curve object (wrap with ModPositive if closed, else
  *   clamp to [sMin,sMax]) and line-test the new point
  * Info: proposed name ClampJtGrabCurveParam (T2); TU grab
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
@@ -2042,7 +2042,7 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
     lo = SMinShape(o);
     hi = SMaxShape(o);
     if (o->xe4)
-        t = GModPositive__Fff(grab->x4e0 + g, hi);
+        t = ModPositive__Fff(grab->x4e0 + g, hi);
     else
         t = ClampF(grab->x4e0 + g, lo, hi);
     EvaluateShapeS(o, t, &v, 0);
@@ -2271,7 +2271,7 @@ extern struct CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700;
 void EvaluateShapeU(struct S *s, U *position, U *direction, float g);
-float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
+float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
 void AddSoAcceleration(struct O *o, qword q);
 static __inline__ float ClampF(float g, float lo, float hi)
 {
@@ -2310,7 +2310,7 @@ typedef char VT_d_Offset[((unsigned int)&(((VT*)0x10000)->d)-0x10000)==0?1:-1];
 typedef char VT_fn_Offset[((unsigned int)&(((VT*)0x10000)->pfn)-0x10000)==4?1:-1];
 /** @sly2-annot addr=0x194170
  * Purpose: If grab state 3 on a curve object: smooth the velocity component along the curve direction
- *   (GSmooth D_002BF700) and AddSoVelocity
+ *   (SmoothValue D_002BF700) and AddSoVelocity
  * Info: proposed name PresetJtAccelHide (T1); TU grab
  * Notes: names_v2 A proposed PresetJtAccelHide__FP2JT (0.988) [verified CORRECT] | CONFLICT: verified tier-A
  *   name differs from TU name; orchestrator: verified name PresetJtAccelHide__FP2JT restored over
@@ -2357,9 +2357,9 @@ void PresetJtAccelHide(struct P *p)
             __asm__ __volatile__("mtc1 %1,%0" : "=f"(d2) : "r"(bits));
         }
     }
-    (void)GSmooth__FfffP3SMPPf(d1, goal, dt, psmp, &a);
+    (void)SmoothValue__FfffP3SMPPf(d1, goal, dt, psmp, &a);
     }
-    (void)GSmooth__FfffP3SMPPf(d1, -s->x1c0, D_002DDED0.dt, psmp, &b);
+    (void)SmoothValue__FfffP3SMPPf(d1, -s->x1c0, D_002DDED0.dt, psmp, &b);
     x = ClampF(s->x1c4 * d2, b, a) - d2;
     qword kq, rq;
     __asm__("qmtc2.ni %1, %0" : "=j"(kq) : "r"(x));
@@ -3007,7 +3007,7 @@ extern char D_002DEB30[];
 int CompareJtGrabCandidates(const void *, const void *);   // JTGRABCAND compare for qsort
 void qsort(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *));   // qsort
 void *memmove(void *dst, const void *src, uint cb);   // memmove
-float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);   // GSmooth
+float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);   // SmoothValue
 void FadeSoOut(LO *plo, float g);
 void BroadcastGameEvent(void *pv, int msg, LO *plo);
 LO *AcquireJtGrabMarker(SW *psw, int id, JTGRABCAND *pcand);
@@ -3082,7 +3082,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                         dsAvg = (dsPrev + dsNew) * 0.5f;
                         oldCandidate->sParam = oldCandidate->sParam + dt * dsAvg;
                     } else {
-                        oldCandidate->sParam = GSmooth__FfffP3SMPPf(oldCandidate->sParam, pcand->sParam, D_002DDED0.dt, &D_002BF718, &oldCandidate->dsParam);
+                        oldCandidate->sParam = SmoothValue__FfffP3SMPPf(oldCandidate->sParam, pcand->sParam, D_002DDED0.dt, &D_002BF718, &oldCandidate->dsParam);
                     }
                     if (fWrap) {
                         if (asRange[1] < oldCandidate->sParam)
@@ -3194,7 +3194,7 @@ struct CLOCK { float t, dt; };
 
 extern "C" {
 extern CLOCK D_002DDED0;    // g_clock
-float GRandInRange__Fff(float gMin, float gMax);                    // GRandInRange
+float RandomFloatInRange__Fff(float gMin, float gMax);                    // RandomFloatInRange
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");          // memset
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITX *pemitx, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
                    void *pv1, void *pv2);
@@ -3202,7 +3202,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *p
 }
 void OnEmitterValuesChanged(EMITTER *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 
-static inline float RandomInRange(LM *range) { return GRandInRange__Fff(range->gMin, range->gMax); }
+static inline float RandomInRange(LM *range) { return RandomFloatInRange__Fff(range->gMin, range->gMax); }
 static inline VU_VECTOR operator*(VU_FLOAT g, VU_VECTOR v)
 {
     __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(v.q) : "j"(g.q));
@@ -3251,7 +3251,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
         if (candidate->nPriority == -1)
             continue;
         g = pemitter->gRate * D_002DDED0.dt;
-        gRand = GRandInRange__Fff(0.0f, 1.0f);
+        gRand = RandomFloatInRange__Fff(0.0f, 1.0f);
         c = (int)g;
         g -= (float)c;
         if (gRand < g)

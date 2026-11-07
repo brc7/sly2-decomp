@@ -181,8 +181,8 @@ ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *object);
 SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped);
 GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *selector, qwordV *position, M3 *rotation, int isFlipped);
 }
-float GRandInRange(float gMin, float gMax);
-int NRandInRange(int nMin, int nMax);
+float RandomFloatInRange(float gMin, float gMax);
+int RandomIntInRange(int nMin, int nMax);
 SCRIPTV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
 
 // 0x173158: Spawner (CID119) vtable slot 7 (Init): LO Init, then the defaults: spawn distance 5500, capacity/counts
@@ -802,7 +802,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
             int numSamples = (int)(SMaxShape(object) / D_002BE5E8);
             for (int k = 0; k < numSamples; k++)
             {
-                float u = D_002BE5E8 * ((float)k + GRandInRange(D_002BBB60.gMin, D_002BBB60.gMax));
+                float u = D_002BE5E8 * ((float)k + RandomFloatInRange(D_002BBB60.gMin, D_002BBB60.gMax));
                 if (FindRangeContaining(object->curveData, u))
                     continue;
                 EvaluateShapeS(object, &curvePosition.q, &curveDirection.q, u);
@@ -862,7 +862,7 @@ extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *selector, qwordV
         // Try the templates in a random order until one yields a free proxy.
         for (l = 0; l < spawner->templateCount; l++) order[l] = l;
         for (j = 0; j < spawner->templateCount; j++) {
-            int other = NRandInRange(0, spawner->templateCount - 1);
+            int other = RandomIntInRange(0, spawner->templateCount - 1);
             int swap = order[j];
             order[j] = *(other + order);   // (index-first addition order needed for the match)
             order[other] = swap;

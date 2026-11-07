@@ -1224,7 +1224,7 @@ qword GetLoWorldPos(void *p);
 int ShouldTriggerGrabspotSkipTarget(void *a, struct O *po);
 float atan2f(float y, float x);
 float GetStepHeading(struct P *p);
-float RadNormalize__Ff(float g);
+float NormalizeAngle__Ff(float g);
 qword SetVectorCylind(float a, float b, float c);
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return GetX(t); }
 static __inline__ float GetY2(qword t) { __asm__("prot3w %0,%0" : "+r"(t)); return GetX(t); }
@@ -1267,7 +1267,7 @@ void ChooseMurrayThrowTarget(struct P *murray)
         if (500.0f < GetZ2(ToGpr(d)))
             continue;
         { qword t = ToGpr(d); float x = GetX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = atan2f(GetX(t), x); }
-        if (D_002C0988 < __builtin_fabsf(RadNormalize__Ff(g - GetStepHeading(murray))))
+        if (D_002C0988 < __builtin_fabsf(NormalizeAngle__Ff(g - GetStepHeading(murray))))
             continue;
         poBest = object;
         maxValue = dist;
@@ -2334,7 +2334,7 @@ struct P{char pad[0x1030];struct ANIM*anim;char pad1034[0x3BC];struct X*x;char p
 extern qword D_002A2DC0;
 extern float D_002C09C8;
 qword ConvertXfVec(struct LO*,struct LO*,qword);
-int CSolveQuadratic__FfffPf(float,float,float,float*);
+int SolveQuadratic__FfffPf(float,float,float,float*);
 void SeekAsega(struct ANIM*,int,float,float);
 static inline float Clamp(float inputValue,float inputLower,const float*upper){register float value __asm__("$f0")=inputValue;register float lower __asm__("$f12")=inputLower;float limit=*upper;if(value<lower)return lower;if(limit<value)return limit;return value;}
 static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
@@ -2369,7 +2369,7 @@ typedef char ANIM_PrefixSize[sizeof(struct ANIM)==68?1:-1];
 typedef char P_PrefixSize[sizeof(struct P)==5200?1:-1];
 /** @sly2-annot addr=0x1B7700
  * Purpose: Compute start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 ballistic solve
- *   (CSolveQuadratic) so the object reaches the hands at the grab event time
+ *   (SolveQuadratic) so the object reaches the hands at the grab event time
  * Info: proposed name CalcMurrayLiftLaunch (T2); TU murray
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
@@ -2418,7 +2418,7 @@ void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*du
    __asm__("pextuw %0,$zero,%2\n\tmtc1 %3,%1":"=&r"(goalWord),"=f"(positionZ):"r"(goal),"r"(positionWord));
    __asm__("mtc1 %2,%0\n\tlq %1,%3":"=f"(goalZ),"=r"(velocityWord):"r"(goalWord),"m"(v.q));
    __asm__("mul.s %0,%0,%2\n\tpextuw %1,$zero,%3":"+f"(accelerationZ),"=r"(velocityZ):"f"(half),"1"(velocityWord));
-   count=CSolveQuadratic__FfffPf(accelerationZ,velocityZ,positionZ-goalZ,outputRoots);
+   count=SolveQuadratic__FfffPf(accelerationZ,velocityZ,positionZ-goalZ,outputRoots);
   }
   if(!count)t=D_002C09C8;
   else t=Clamp(roots.f[count-1],D_002C09C8,duration);
@@ -3108,7 +3108,7 @@ struct P {
 void ReleaseAsega(void *pp);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-float RadNormalize__Ff(float g);
+float NormalizeAngle__Ff(float g);
 void SetStepTargetHeading(struct P *p, float g);
 void FixStepAngularVelocity(struct P *p);
 void ReleaseSma(void *p);
@@ -3153,7 +3153,7 @@ void SetMurrayAttack(struct P *murray, int k)
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(murray->interactTarget)), "j"(GetLoWorldPos(murray)));
         g = atan2f(GetY(d), GetX(d));
-        if (__builtin_fabsf(RadNormalize__Ff(g - murray->g1A8)) < D_002C09F0) {
+        if (__builtin_fabsf(NormalizeAngle__Ff(g - murray->g1A8)) < D_002C09F0) {
             SetStepTargetHeading(murray, g);
             FixStepAngularVelocity(murray);
         }
@@ -3633,7 +3633,7 @@ extern "C" char D_003DD490[];
 extern "C" void AdjustStepNewXp(P *p, X *px, int i);
 extern "C" void AdjustJtHurtXp(void *p, X *px, int i);
 extern "C" void ResetJtPipeAdjust(void *p, X *px, int i);
-extern "C" qword func_0011F198(qword a, qword b);
+extern "C" qword GetCosineBetweenVectors(qword a, qword b);
 extern "C" int CloneXpList(void *g, X *px);
 extern "C" void AppendXpList(void *g, int r, void *p);
 
@@ -3658,7 +3658,7 @@ extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
             Q *pq = *(Q **)((char *)px + ((n - i) << 6) + 0xC);
             if (((int (*)(void *))pq->vt[62].pfn)((char *)pq + pq->vt[62].d) && *(float *)((char *)px + 0x88) < 0.7f) {
                 qword v = ((qword(*)(void *))murray->vt[33].pfn)((char *)murray + murray->vt[33].d);
-                qword r = func_0011F198(v, px->x80);
+                qword r = GetCosineBetweenVectors(v, px->x80);
                 float g;
                 __asm__("mtc1 %1,%0" : "=f"(g) : "r"(r));
                 int f = g < D_002C0A38;

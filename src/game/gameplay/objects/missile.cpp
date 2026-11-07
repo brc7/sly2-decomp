@@ -142,9 +142,9 @@ qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 /* GetMissileTargetPosition as its two callers call it: the hidden result pointer passed by hand. */
 extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) __asm__("GetMissileTargetPosition");
 void ReplaceCurrentAseg(ASEG *segment, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
-int FFloatsNear(float g0, float g1, float gEpsilon);
+int AreFloatsNear(float g0, float g1, float gEpsilon);
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 // MISSILE::Init (vtable slot 7): the BOMB init; runs a flight action (parameter 1); launch speed 800.
@@ -262,7 +262,7 @@ extern "C" {
 qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 // Vector divided by a float.
 static inline qword QwDivFloat(qword qw, float g)
 {
@@ -292,7 +292,7 @@ static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 // ACCMISS vtable slot 70 (PresetAccel): smooths the speed toward cruiseSpeed along the current direction and applies the
 // change as a constrained acceleration (no-op while thrower is set).
 /* 0x1B20B8 PresetAccmissAccel (ACCMISS vtable slot 69): ported from Lilly's personal Sly 2 decomp (src/P2/accmiss.c).
-   Steers the velocity towards cruiseSpeed along the current direction (GSmooth), constrained by the physics. */
+   Steers the velocity towards cruiseSpeed along the current direction (SmoothValue), constrained by the physics. */
 void ACCMISS::VUnk69()
 {
     if (thrower == 0)
@@ -301,7 +301,7 @@ void ACCMISS::VUnk69()
         float sv = GLength(qwVel);
         qword qwDir = QwDivFloat(qwVel, sv);
         SMP smp = { speedChangeRate, 0.0f, 1.0f };
-        float svNew = GSmooth(sv, cruiseSpeed, D_002DDED0.dt, &smp, 0);
+        float svNew = SmoothValue(sv, cruiseSpeed, D_002DDED0.dt, &smp, 0);
         qword qwDv = QwDivBits(VuSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.dt);
         AddSoAcceleration(this, ApplyConstr((CONSTR *)((char *)psophys + 0xB0), pxfUnk58, qwDv));
     }
@@ -391,7 +391,7 @@ static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*dest
  register float targetX __asm__("$f13"),epsilon __asm__("$f14"),zeroX __asm__("$f12");
  __asm__("lq %0,%6\n\tlui %1,%%hi(%8)\n\tlq %2,%7\n\taddiu %1,%1,%%lo(%8)\n\tsq %0,%5\n\tmtc1 %2,%3\n\tli.s %4,%9":"=&r"(copied),"=&r"(origin),"=&r"(target),"=f"(targetX),"=f"(epsilon),"=m"(*destination):"m"(*output),"m"(missile->targetVelocity),"i"(&D_002A2DD0),"F"(0.0001f));
  __asm__("lq %0,%2\n\tmtc1 %0,%1":"=r"(zero),"=f"(zeroX):"m"(*origin));
- return FFloatsNear(zeroX,targetX,epsilon)&&FFloatsNear(Y(zero),Y(target),0.0001f)&&FFloatsNear(Z(zero),Z(target),0.0001f);
+ return AreFloatsNear(zeroX,targetX,epsilon)&&AreFloatsNear(Y(zero),Y(target),0.0001f)&&AreFloatsNear(Z(zero),Z(target),0.0001f);
 }
 // CID82 vtable slot 70 (PresetAccel): steers along a Bezier from where the missile is to the predicted target, to arrive
 // at arrivalTime with targetVelocity (a moving target: the velocity that closes the gap). Hand-scheduled asm. (inferred)

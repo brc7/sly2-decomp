@@ -67,7 +67,7 @@ struct CUE
 };
 /* A crowd grade SMA driven by the score: object oid, grade oid, the bound SMA, current grade, score thresholds. */
 struct SMAE { int oid; int gradeOid; void *sma; int gradeIndex; float thresholds[3]; };
-/* GSmooth parameters (SMP). */
+/* SmoothValue parameters (SMP). */
 struct SMPV { float g; int n; float g8; };
 
 /* Rhythm manager states (inferred). */
@@ -137,20 +137,20 @@ void SetLoBusyk(RHYTHMMGR *p, int n);
 void PostLoLoad(RHYTHMMGR *p);
 void PostSwCallback(SW *psw, RHYTHMMGR *p, long k, int n);
 void ReplaceSma(void *o2, void *o, int k, int n, void **ppo);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 void UpdateLo(RHYTHMMGR *);
 float GetMusicTime(void *);
 void BroadcastGameEvent(void *, int, RHYTHMMGR *);
-float GSmooth__FfffP3SMPPf(void *, float, float, float, int);
+float SmoothValue__FfffP3SMPPf(void *, float, float, float, int);
 int IsSmaRetracted(void *o);
 void SetSmaGoal(void *o, int n);
 void IncrementSwHandsOff(SW *psw, int n);
 void DecrementSwHandsOff(SW *psw, int n);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *memmove(void *dst, void *src, int cb);
-int FFloatsNear__Ffff(float, float, float);
+int AreFloatsNear__Ffff(float, float, float);
 float GetDifficulty(void *p);
-float GLimitLm__FP2LMf(LMV *plm, float g);
+float ClampToLimits__FP2LMf(LMV *plm, float g);
 
 void ApplyDancerAseg(DANCERV *p, void *paseg, int n);
 void PlayDancerMove(DANCERV *p, int id, int idNew, int j);
@@ -425,7 +425,7 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
         boundary = manager->scoreRange.gMax;
         for (j = 0; j < 2; j++) {
             boundary -= third;
-            grade->thresholds[j] = GRandInRange__Fff(boundary - jitter, boundary + jitter);
+            grade->thresholds[j] = RandomFloatInRange__Fff(boundary - jitter, boundary + jitter);
         }
         grade->thresholds[2] = manager->scoreRange.gMin;
     }
@@ -477,7 +477,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
     }
     {
         float dt = D_002DDED0.dt;
-        manager->smoothedScore = GSmooth__FfffP3SMPPf(manager->smoothing, manager->smoothedScore, manager->averageScore, dt, 0);
+        manager->smoothedScore = SmoothValue__FfffP3SMPPf(manager->smoothing, manager->smoothedScore, manager->averageScore, dt, 0);
     }
     UpdateRhythmManagerGrades(manager);
 }
@@ -761,7 +761,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
             AddRhythmScore(manager, AdjustRhythmScore(manager, GetRhythmTimingScore(manager, cue)));
             for (j = 0; j < manager->numNotes; j++) {
                 ENT *note = &manager->notes[j];
-                if (FFloatsNear__Ffff(note->time, cue->time, 0.1f)) {
+                if (AreFloatsNear__Ffff(note->time, cue->time, 0.1f)) {
                     note->isHit = 1;
                     break;
                 }
@@ -810,7 +810,7 @@ void AddRhythmScore(RHYTHMMGR *manager, float score)
     } else {
         slot = &manager->scores[manager->numScores++];
     }
-    *slot = GLimitLm__FP2LMf(&manager->scoreRange, score);
+    *slot = ClampToLimits__FP2LMf(&manager->scoreRange, score);
     manager->averageScore = GetAverageRhythmScore(manager);
     BroadcastGameEvent(D_002DEB30, GAME_EVENT_RHYTHM_SCORE, manager);
 }
@@ -828,7 +828,7 @@ float GetAverageRhythmScore(RHYTHMMGR *manager)
     oldest = Max(manager->numScores - manager->averageWindow, 0);
     for (i = manager->numScores - 1; i >= oldest; i--)
         sum += manager->scores[i];
-    return GLimitLm__FP2LMf(&manager->scoreRange, sum / manager->averageWindow);
+    return ClampToLimits__FP2LMf(&manager->scoreRange, sum / manager->averageWindow);
 }
 
 // Splice: clears the score history, the average and the displayed score.

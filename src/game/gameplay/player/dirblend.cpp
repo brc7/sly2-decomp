@@ -72,7 +72,7 @@ ASEGREF *FindAsegChannel(CLIP *clip, ACTOR *actor, void *keyFlag, int keyMode);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(ACTOR *actor, int entrySize, int entryCount, DIRAXIS *entries, int count, int *keys, int *counts, MULTI **blendOut);
 void RecalculateAsegBlend(void *blend);
 void FaceStepToward(PLAYERV *player, TARGETV *target);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 qword SetVectorCylind(float, float, float);
 M4 *GetLoWorldMatrix(PLAYERV *player);
 }
@@ -328,7 +328,7 @@ extern "C" void UpdateDirectionalAcceleration(PLAYERV *player, DIRAXIS *axes, in
         FaceStepToward(player, target);
     }
     zero = 0.0f;
-    input.q = SetVectorCylind(RadNormalize__Ff(heading - player->heading), magnitude, zero);
+    input.q = SetVectorCylind(NormalizeAngle__Ff(heading - player->heading), magnitude, zero);
     if (D_002BF9F0 < input.f[1]) {
         if (player->side == 0) {
             input.f[1] = zero;

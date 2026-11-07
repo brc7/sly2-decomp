@@ -2090,9 +2090,9 @@ int IsStepguardForceClass(struct S *guard, void *object)
 
 // 0x208BB0 GetRandomStepguardDelay
 namespace M_func_00208BB0 { extern "C" {
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 // 0x208BB0: Returns a random delay of 5..7 seconds.
-float GetRandomStepguardDelay(void) { return GRandInRange__Fff(5.0f, 7.0f); }
+float GetRandomStepguardDelay(void) { return RandomFloatInRange__Fff(5.0f, 7.0f); }
 } } // namespace M_func_00208BB0
 
 // 0x208BE0 CanStepguardSenseStimulus
@@ -3394,7 +3394,7 @@ qword GetLoWorldPos(GUARD *);
 int IsInCameraFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
 float GetTargetRecordFacing(TARGETREC *);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 }
 // Matching helper (register-pinned asm): prepares the plane-test operands (threshold bits, camera-relative point).
 static inline void PlaneArguments(qword *threshold, qword *point, U *scalar, float f, const qword *camera,
@@ -3445,7 +3445,7 @@ extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
         qword other;
         other = GetLoWorldPos(record->target);
         GetVectorCylind(Sub(position0.q, other), &angle[0], 0, 0);
-        if (record->facingTolerance < __builtin_fabsf(RadNormalize__Ff(angle[0] - GetTargetRecordFacing(record)))) {
+        if (record->facingTolerance < __builtin_fabsf(NormalizeAngle__Ff(angle[0] - GetTargetRecordFacing(record)))) {
 fail:
             return 0;
         }
@@ -3456,7 +3456,7 @@ fail:
         qword other;
         other = GetLoWorldPos(record->target);
         GetVectorCylind(Sub(position1.q, other), &angle[1], 0, 0);
-        if (record->facingTolerance < __builtin_fabsf(RadNormalize__Ff(angle[1] - GetTargetRecordFacing(record))))
+        if (record->facingTolerance < __builtin_fabsf(NormalizeAngle__Ff(angle[1] - GetTargetRecordFacing(record))))
             return 0;
         return 1;
     }
@@ -3569,7 +3569,7 @@ struct BINDING { char pad[0xC]; int flags; };
 struct ATTACK { char pad[0x60]; float cooldownMin; float cooldownMax; char pad2[0xC0 - 0x68]; struct BINDING *activeBinding; };
 struct S { char pad[0xF00]; struct ATTACK *currentAttack; float tAttackNext; };
 void StopAnimBinding(struct BINDING *binding);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 void StartAnimBinding(struct BINDING *binding, struct S *guard, int flags, float start);
 void SetStepguardAimAct(struct S *guard, struct ATTACK *attack, int aimTarget, qword aimOffset);
 // 0x20AB68: Switches the current attack: stops the old animation, sets the cooldown (now + random in the attack's
@@ -3580,7 +3580,7 @@ void SetStepguardAttack(struct S *guard, struct ATTACK *attack, int aimTarget, q
         float next;
         StopAnimBinding(guard->currentAttack->activeBinding);
         next = D_002DDED0.t;
-        next += GRandInRange__Fff(guard->currentAttack->cooldownMin, guard->currentAttack->cooldownMax);
+        next += RandomFloatInRange__Fff(guard->currentAttack->cooldownMin, guard->currentAttack->cooldownMax);
         guard->currentAttack = 0;
         guard->tAttackNext = next;
     }

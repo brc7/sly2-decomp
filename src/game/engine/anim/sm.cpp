@@ -37,7 +37,7 @@ void NotifySmaSpliceOnEnterState(SMA *psma, int ismsFrom, int ismsTo);
 void AbortSmaTransition(SMA *psma);
 void ChooseSmaTransition(SMA *psma, int n);
 }
-int FFindDlEntry(DL *pdl, void *pv);
+int IsEntryInDl(DL *pdl, void *pv);
 int FindSmStateOptional(SM *psm, OID oid);
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 extern "C" {
@@ -435,7 +435,7 @@ struct SW { char pad[0x3DDC]; char dl[0xC]; char pool[0x10]; };
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern VT D_002D9768 __asm__("_vt$3SMA"); }
 extern "C" {
-S *PvAllocSlotheapClear(void *);
+S *AllocZeroedFromSlotheap(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void AppendDlEntry__FP2DLPv(void *, S *);
 void FramePtr_Assign(S *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
@@ -461,7 +461,7 @@ struct Lock {
 // transition.
 extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
 {
-    S *ps = PvAllocSlotheapClear(D_003DD490.pool);
+    S *ps = AllocZeroedFromSlotheap(D_003DD490.pool);
     *pps = ps;
     func_002333B4(ps, 0, 0x50);
     ps->vtable = &D_002D9768;
@@ -703,7 +703,7 @@ void RetractSma(struct P *p)
 // True when the activation is no longer on the world's live SMA list.
 extern "C" int IsSmaRetracted(SMA *psma)
 {
-    return FFindDlEntry(&D_003DD490.dlSma, psma) == 0;
+    return IsEntryInDl(&D_003DD490.dlSma, psma) == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -957,9 +957,9 @@ extern "C" void SnapSma(P *p, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseWeighted { extern "C" {
 struct E { int pad[5]; float weight; };
-float GRandInRange__Fff(float, float);
+float RandomFloatInRange__Fff(float, float);
 /** @sly2-annot addr=0x1F0AD0
- * Purpose: Weighted random pick: GRandInRange(0, ? gProbability) then cumulative walk
+ * Purpose: Weighted random pick: RandomFloatInRange(0, ? gProbability) then cumulative walk
  * Info: proposed name ChooseWeightedSmTransition (T1); TU sm
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
@@ -970,7 +970,7 @@ struct E *ChooseWeightedSmTransition(void *p, int n, struct E **ape)
 
     int i;
     for (i = 0; i < n; i++) sum += ape[i]->weight;
-    sum = GRandInRange__Fff(0.0f, sum);
+    sum = RandomFloatInRange__Fff(0.0f, sum);
     for (i = 0; i < n; i++) {
         sum -= ape[i]->weight;
         if (sum <= 0.0f) return ape[i];

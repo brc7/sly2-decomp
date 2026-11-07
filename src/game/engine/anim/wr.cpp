@@ -168,7 +168,7 @@ extern "C"
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                       // memset
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);         // CopyAb
 qwordV ConvertAloPos(SO *psoFrom, SO *psoTo, qwordV pos);              // ConvertLoPos
-float RadNormalize__Ff(float rad);                                      // RadNormalize
+float NormalizeAngle__Ff(float rad);                                      // NormalizeAngle
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);           // CalculateSinCos
 MATRIX4V InvertMatrix4Rigid(const MATRIX4V *pmat);                          // the inverse of a 4x4 matrix
 MATRIX4V __ml__FRC7MATRIX4T0(const MATRIX4V &matL, const MATRIX4V &matR);     // MATRIX4 operator*
@@ -466,7 +466,7 @@ void UpdateWrStateVectors(WRV *warp)
                         VU_FLOAT gDot = VuDot(VU_VECTOR(posWorld), Normalize(VU_VECTOR(entry->vecAxis)));
                         float rScale = entry->data.circle.spatialFrequency * 6.2831855f;
                         float rad = FloatFromVu(gDot) * rScale;
-                        CalculateSinCos__FfPfT1(RadNormalize__Ff(rad), &gSin, &gCos);
+                        CalculateSinCos__FfPfT1(NormalizeAngle__Ff(rad), &gSin, &gCos);
                         pwarpvtx->ag[is] = gCos * *pu;
                         pwarpvtx->ag[is + 1] = gSin * *pu;
                         break;
@@ -614,7 +614,7 @@ void UpdateWrMatrixes(WRV *p){
    V position,uv,temporary;
    float sine,cosine;
    float angle=(D_002DDED0.t*entry->data.circle.frequency+entry->data.circle.phase)*6.2831855f;
-   CalculateSinCos__FfPfT1(RadNormalize__Ff(angle),&sine,&cosine);
+   CalculateSinCos__FfPfT1(NormalizeAngle__Ff(angle),&sine,&cosine);
    int column=entry->data.circle.column,next=column+1;
    V *pos0=&matrix->r[column],*pos1=&matrix->r[next],*uv0=&coordinates->r[column],*uv1=&coordinates->r[next];
    qwordV qn=VuFromFloat<qwordV>(-sine),qc=ScalarLoad(cosine),qs=VuFromFloat<qwordV>(sine);

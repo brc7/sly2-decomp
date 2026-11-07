@@ -1,6 +1,6 @@
 # `src/game/platform/runtime/`
 
-**Layer 1.** Sucker Punch's own printf/string runtime (CchOstrmPrintf, vsprintf, strlen) and OSTRM streams
+**Layer 1.** Sucker Punch's own printf/string runtime (PrintfToStream, vsprintf, strlen) and OSTRM streams
 
 | Directory | Files |
 | --- | --- |

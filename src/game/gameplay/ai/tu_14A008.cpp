@@ -163,7 +163,7 @@ void SetStepguardTarget(GUARDV *pw, void *p);
 int IsBreakableDone(SOV *p);
 int CploFindSwObjectsByClass(SW *pg, int a, int b, void *c, int d, SOV **apso);
 qword SetVectorSphere(float a, float b, float c);
-float RadBetweenVectors(qword a, qword b, void *p);
+float AngleBetweenVectors(qword a, qword b, void *p);
 float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
 void FindShapeClosestPoint(SHAPEV *, qword, int, int, int, int, float *);
@@ -189,8 +189,8 @@ void AdvanceBhvRouteStation(BHVRT *p);
 void *GetBhvRouteStationKind(BHVRT *p);
 void SetBhvRouteState(BHVRT *p, int n);
 }
-float GRandInRange(float gMin, float gMax);
-int NRandInRange(int nMin, int nMax);
+float RandomFloatInRange(float gMin, float gMax);
+int RandomIntInRange(int nMin, int nMax);
 int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
 LOV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
 
@@ -426,7 +426,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     if (IsLess(D_002BD460, Len(v)))
         behavior->lastFastHeroTime = D_002DDED0.t;
     float dt = D_002DDED0.t - behavior->lastFastHeroTime;
-    if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !IsSwHandsOff(pg)) {
+    if (RandomFloatInRange(D_002BD468[0], D_002BD468[1]) < dt && !IsSwHandsOff(pg)) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && hero->state == 0x11) {
             PATH *ppath = hero->path;
             pos = GetLoWorldPos(hero);
@@ -456,22 +456,22 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
                     apso[k++] = apso[i];
             }
             if (k) {
-                SOV *pt = apso[NRandInRange(0, k - 1)];
+                SOV *pt = apso[RandomIntInRange(0, k - 1)];
                 posT = GetLoWorldPos(pt);
                 r = *(float *)&pt->hidingInfo;
             }
             if (!IsLess(D_002BD478 * D_002BD478, LenSq(VuSub(posT, posPlayer)))) {
-                float pan = GRandInRange(-3.1415927f, 3.1415927f);
-                float tilt = GRandInRange(-3.1415927f, 3.1415927f);
+                float pan = RandomFloatInRange(-3.1415927f, 3.1415927f);
+                float tilt = RandomFloatInRange(-3.1415927f, 3.1415927f);
                 register qword q asm("vf3"); /* register pin: the target's vadd writes posT's new value to vf3 */
-                q = Add(posT, SetVectorSphere(pan, tilt, GRandInRange(0.0f, r)));
+                q = Add(posT, SetVectorSphere(pan, tilt, RandomFloatInRange(0.0f, r)));
                 qword entry = SubX(q, posMe);
                 posT = q;
                 if (IsLess(Len2(entry), Len2(d))) {
                     pos = posT;
                     goto moveMarker;
                 }
-                float g = RadBetweenVectors(d, entry, 0);
+                float g = AngleBetweenVectors(d, entry, 0);
                 if (!(__builtin_fabsf(g) * 57.295776f <= D_002BD47C)) {
                     pos = posT;
                     goto moveMarker;
@@ -483,7 +483,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
         qword entry = VuSub(posMe, posPlayer);
         float rad = atan2f(GetY(entry), GetX(entry));
         qword pp = GetLoWorldPos(hero);
-        pos = Add(pp, SetVectorCylind(GRandInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
+        pos = Add(pp, SetVectorCylind(RandomFloatInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {
         pos = AddScaledNorm(posPlayer, v, VU_FLOAT(-D_002BD470));
     }
@@ -595,7 +595,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     case 3: {
         float t = D_002DDED0.t;
-        behavior->guard->attackCooldownEnd = t + GRandInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
+        behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
         behavior->attack = 0;
         break;
     }

@@ -109,7 +109,7 @@ extern char D_002BBAF0[];
 extern char D_002CA5A0[] __asm__("_vt$15CMemInputStream");   /* CMemInputStream vtable */
 }
 
-static inline void *PvAllocGeom(int cb)
+static inline void *AllocGeomBlock(int cb)
 {
     MSG msg;
     msg.alignment = 0x10;
@@ -117,7 +117,7 @@ static inline void *PvAllocGeom(int cb)
     return AllocFromWorldHeap(&msg);
 }
 
-static inline void *PvAllocGeomTemp(int cb)
+static inline void *AllocZeroedGeomBlock(int cb)
 {
     MSG msg;
     msg.alignment = 0x10;
@@ -630,13 +630,13 @@ void CBinaryInputStream::ReadGeom(GEOM *geom)
 {
     int i;
     geom->posCount = U16Read();
-    geom->positions = (qword *)PvAllocGeom(geom->posCount * 16);
+    geom->positions = (qword *)AllocGeomBlock(geom->posCount * 16);
     for (i = 0; i < geom->posCount; i++)
         ReadVector((VECTOR *)&geom->positions[i]);
     geom->faceCount = U16Read();
-    geom->faces = (FACE *)PvAllocGeomTemp(geom->faceCount * 32);
+    geom->faces = (FACE *)AllocZeroedGeomBlock(geom->faceCount * 32);
     geom->edgeCount = U16Read();
-    geom->edges = (EDGE *)PvAllocGeomTemp(geom->edgeCount * 16);
+    geom->edges = (EDGE *)AllocZeroedGeomBlock(geom->edgeCount * 16);
     EDGE *nextEdge = geom->edges;
     for (int faceIndex = 0; faceIndex < geom->faceCount; faceIndex++)
     {

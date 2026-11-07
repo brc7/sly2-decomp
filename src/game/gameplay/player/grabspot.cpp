@@ -189,12 +189,12 @@ struct VT { struct { short d; short pad; void *(*pfn)(void *); } a[8]; };
 struct O { char pad[0x20]; struct VT *vtable; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorSphere(float a, float b, float c);
-extern float GRandInRange__Fff(float a, float b);
+extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8B0;
 extern qword D_002A2DC0;
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x182D78
- * Purpose: Default: random point in a sphere around the owner (GRandInRange pan/tilt/radius), zero dv
+ * Purpose: Default: random point in a sphere around the owner (RandomFloatInRange pan/tilt/radius), zero dv
  * Info: proposed name GetGrabspotSparklePos (T2); class GRABSPOT; TU grabspot
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
@@ -203,10 +203,10 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
 void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
 {
     void *object = grabspot->vtable->a[6].pfn((char *)grabspot + grabspot->vtable->a[6].d);
-    float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
-    float t = GRandInRange__Fff(-1.0f, 1.0f);
+    float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
+    float t = RandomFloatInRange__Fff(-1.0f, 1.0f);
     float gTilt = __builtin_fabsf(t) * t * 1.5707964f;
-    float gR = GRandInRange__Fff(0.0f, D_002BE8B0);
+    float gR = RandomFloatInRange__Fff(0.0f, D_002BE8B0);
     *pv = VAdd(GetLoWorldPos(object), SetVectorSphere(gPan, gTilt, gR));
     *pdv = D_002A2DC0;
 }
@@ -451,7 +451,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 extern float SRandomShapeRange(void *p, float g, float h);
 extern void EvaluateShapeS(void *p, float t, VU *ppos, VU *pdir);
-extern float GRandInRange__Fff(float a, float b);
+extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8B8;
 extern float D_002BE8BC;
 extern qword D_002A2DC0;
@@ -491,7 +491,7 @@ void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
     }
     a = pos.q;
     {
-        float t = GRandInRange__Fff(0.0f, D_002BE8BC);
+        float t = RandomFloatInRange__Fff(0.0f, D_002BE8BC);
         __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(t));
         u.q = s;
         __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(n), "j"(s));
@@ -661,7 +661,7 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x10C]; float radius; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
-extern float GRandInRange__Fff(float a, float b);
+extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8C4;
 extern qword D_002A2DC0;
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -674,8 +674,8 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
 // A random point on a ring around the pole.
 void GetPoleGrabspotSparklePosition(struct O *pole, qword *pv, qword *pdv)
 {
-    float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
-    float gR = GRandInRange__Fff(0.0f, D_002BE8C4) + pole->radius;
+    float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
+    float gR = RandomFloatInRange__Fff(0.0f, D_002BE8C4) + pole->radius;
     *pv = VAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
@@ -1511,7 +1511,7 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x110]; qword pos; };
 extern qword ConvertAloPos(void *p, void *q, qword v);
 extern qword SetVectorCylind(float a, float b, float c);
-extern float GRandInRange__Fff(float a, float b);
+extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE90C;
 extern qword D_002A2DC0;
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -1524,8 +1524,8 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
 // A random point on a disc around its point.
 void GetTableGrabspotSparklePosition(struct O *table, qword *pv, qword *pdv)
 {
-    float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
-    float gR = GRandInRange__Fff(0.0f, D_002BE90C);
+    float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
+    float gR = RandomFloatInRange__Fff(0.0f, D_002BE90C);
     *pv = VAdd(ConvertAloPos(table, 0, table->pos), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }

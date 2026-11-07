@@ -253,7 +253,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     g_pdliFirst = pdli;
 }
 
-static inline void *PvNextDli(DLI *pdli)
+static inline void *NextDliEntry(DLI *pdli)
 {
     void *pv = *pdli->ppv;
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
@@ -281,7 +281,7 @@ extern "C" void SolveDzgFilled(DZG *dzg)
     DZ *pdz;
 
     InitDli(&dli, &dzg->dlD);
-    while ((pdz = (DZ *)PvNextDli(&dli)) != 0) {
+    while ((pdz = (DZ *)NextDliEntry(&dli)) != 0) {
         if (pdz->nKind == 1) {
             RemoveDlEntry(&dzg->dlD, pdz);
             AppendDlEntry(&dzg->dlA, pdz);
@@ -308,7 +308,7 @@ extern "C" void SolveDzgFilled(DZG *dzg)
     }
 }
 
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
+static inline void *AllocStackBlock(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
 
 /** @sly2-annot addr=0x11AD30
  * Purpose: Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln
@@ -331,7 +331,7 @@ extern "C" void SolveInequalities(int count, float *matrix, float *rhs, float *o
     for (i = 0; i < count; i++) {
         DZ *dz = &solver.adz[i];
         dz->gMax = maxValue;
-        dz->ag = (float *)PvAllocMsg(&msg, count * sizeof(float), 0x10);
+        dz->ag = (float *)AllocStackBlock(&msg, count * sizeof(float), 0x10);
         CopyAb(dz->ag, matrix + i * count, count * sizeof(float));
         dz->g10 = rhs[i];
         AppendDlEntry(&solver.dlD, dz);

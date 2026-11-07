@@ -1228,7 +1228,7 @@ qword GetLoWorldPos(void *p);
 float GetStepHeading(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
 int IsWithinLimits__FP2LMf(void *p, float f);
-float RadNormalize__Ff(float f);
+float NormalizeAngle__Ff(float f);
 qword *GetLoWorldMatrix(struct A *a);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
 void STACKSCOPE_ctor(struct X *x);
@@ -1281,12 +1281,12 @@ int CanBhvcombatShoot(struct S *behavior) {
     GetVectorSphere(d, &f[0], &f[1], &f[2]);
     if (!IsWithinLimits__FP2LMf(behavior->guard->shootRange, f[2])) return 0;
     {
-        float h = RadNormalize__Ff(f[0] - g);
+        float h = NormalizeAngle__Ff(f[0] - g);
         if (!IsWithinLimits__FP2LMf(behavior->guard->shootPan, h)) return 0;
     }
     CalculateVectorPanTilt(*GetLoWorldMatrix(behavior->guard), 0, &f[3]);
     {
-        float h = RadNormalize__Ff(f[1] - f[3]);
+        float h = NormalizeAngle__Ff(f[1] - f[3]);
         if (!IsWithinLimits__FP2LMf(behavior->guard->shootTilt, h)) return 0;
     }
     if (!mustShootNow) {
@@ -1589,7 +1589,7 @@ struct A { char pad[0x3CC]; void *engagement; char pad2[0xF04 - 0x3D0]; float at
 struct P { char pad[0x60]; float cooldownMin; float cooldownMax; };
 struct S { char pad[0x10]; struct A *guard; int pad2; char childSlot[0x18]; int target; int state; float stateTime; struct P *attack; int pad4; int region; char pad5[8]; qword cachedPosition; };
 void PopBhv(void *p);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 struct O *PushStepBehavior(void *p, int n);
 void SetTargetRecordState(void *p, int n);
 qword GetLoWorldPos(int p);
@@ -1605,7 +1605,7 @@ void SetBhvcombatState(struct S *behavior, int n) {
     PopBhv(behavior->childSlot);
     if (behavior->state == 1) {
         float t = D_002DDED0.t;
-        t += GRandInRange__Fff(behavior->attack->cooldownMin, behavior->attack->cooldownMax);
+        t += RandomFloatInRange__Fff(behavior->attack->cooldownMin, behavior->attack->cooldownMax);
         behavior->guard->attackCooldownEnd = t;
         behavior->attack = 0;
     }
@@ -1731,7 +1731,7 @@ void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 void SetBhvScriptScript(struct O *o, int a, int b, int c);
 void SetBhvSearchWatched(struct O *o, int n);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 void SetStepguardTarget(void *p, int n);
 // 0x176750: BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the new
 // mode: 1 patrol, 2 search a stimulus, 3 alert animation, 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, and the
@@ -1871,7 +1871,7 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
             o->lookAt = m->u.s.arg;
             StartPushedBhv(o);
         }
-        { float t = D_002DDED0.t; behavior->watchEndTime = t + GRandInRange__Fff(D_002BE618[0], D_002BE618[1]); }
+        { float t = D_002DDED0.t; behavior->watchEndTime = t + RandomFloatInRange__Fff(D_002BE618[0], D_002BE618[1]); }
         break;
     case GUARD_MODE_STALK:
         {
@@ -3830,7 +3830,7 @@ void StartBhvanim(struct S *p);
 float atan2f(float y, float x);
 float *GetLoWorldMatrix(struct A *a);
 void SetStepguardMoverRadTarget(void *p, float f);
-float RadNormalize__Ff(float f);
+float NormalizeAngle__Ff(float f);
 qword SetVectorCylind(float a, float b, float c);
 qword GetLoWorldPos(void *p);
 void SetLeapTarget(void *p, qword v);
@@ -3865,7 +3865,7 @@ void StartBhvhit(struct S *behavior) {
     SetStepguardMoverRadTarget(behavior->guard->mover, a);
     e = behavior->binding;
     if (e && e->kind == 2) {
-        qword r = SetVectorCylind(RadNormalize__Ff(behavior->guard->targetHeading + 3.14159274101257324219e+00f), behavior->binding->anim->knockbackDistance, 0.0f);
+        qword r = SetVectorCylind(NormalizeAngle__Ff(behavior->guard->targetHeading + 3.14159274101257324219e+00f), behavior->binding->anim->knockbackDistance, 0.0f);
         qword pos = GetLoWorldPos(behavior->guard);
         qword s;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(pos), "j"(r));
@@ -4310,7 +4310,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct T { char pad[0x2CC]; float walkTimeMin; float walkTimeMax; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; float walkEndTime; };
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 // 0x179E80: Arms the patrol walk timer from the guard's walk-time range (FLT_MAX = forever).
 void ArmBhvpatrolWalkTimer(struct S *behavior)
 {
@@ -4320,7 +4320,7 @@ void ArmBhvpatrolWalkTimer(struct S *behavior)
         behavior->walkEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.t;
-        behavior->walkEndTime = t + GRandInRange__Fff(behavior->guard->walkTimeMin, behavior->guard->walkTimeMax);
+        behavior->walkEndTime = t + RandomFloatInRange__Fff(behavior->guard->walkTimeMin, behavior->guard->walkTimeMax);
     }
 }
 } } // namespace M_ArmBhvpatrolWalkTimer
@@ -4332,7 +4332,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct T { char pad[0x2D4]; float pauseTimeMin; float pauseTimeMax; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x20]; float pauseEndTime; };
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 // 0x179EF8: Arms the patrol pause timer from the guard's pause-time range.
 void ArmBhvpatrolPauseTimer(struct S *behavior)
 {
@@ -4342,7 +4342,7 @@ void ArmBhvpatrolPauseTimer(struct S *behavior)
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.t;
-        behavior->pauseEndTime = t + GRandInRange__Fff(behavior->guard->pauseTimeMin, behavior->guard->pauseTimeMax);
+        behavior->pauseEndTime = t + RandomFloatInRange__Fff(behavior->guard->pauseTimeMin, behavior->guard->pauseTimeMax);
     }
 }
 } } // namespace M_ArmBhvpatrolPauseTimer
@@ -4386,7 +4386,7 @@ extern "C"{
  M3*GetLoWorldMatrix(P*);
  void FindShapeClosestPoint(P*,qword,void*,qword*,qword*,float*,float*);
  float atan2f(float,float);
- float RadNormalize__Ff(float);
+ float NormalizeAngle__Ff(float);
  void BuildAxisAngleRotationMatrix(M3*,float,qword);
  M3*BuildOrthonormalMatrixZ(M3*,qword,qword);
  void GetPipeGoalMatrix(P*,int,M3*,float);
@@ -4497,7 +4497,7 @@ extern "C" void StartBhvleap(C *behavior)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_RAIL)) {
             active |= GetSgfMask(SGF_ON_RAIL);
             if (!behavior->reverse)
-                heading = RadNormalize__Ff(heading + 3.1415927410125732421875f);
+                heading = NormalizeAngle__Ff(heading + 3.1415927410125732421875f);
             behavior->basisValid = 1;
             BuildAxisAngleRotationMatrix(&work.temp.first.rotation, heading, D_002A2DC0);
             behavior->matrix = work.temp.first.rotation;
@@ -4681,7 +4681,7 @@ struct U { int kind; int pad; void *payload; };
 struct T { char pad[0xE7C]; float sleepTimeMin; float sleepTimeMax; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct U *binding; char pad3[0xC]; int state; float unknown54; float wakeTime; };
 void SetSmaGoal(void *p, int n);
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 // 0x17A5B0: Sleep behaviour sub-state: 0 asleep (state machine goal 0x44, arms the wake timer), 1 waking up (goal
 // 0x43).
 void SetBhvSleepState(struct S *behavior, int n) {
@@ -4691,7 +4691,7 @@ void SetBhvSleepState(struct S *behavior, int n) {
     switch (n) {
     case 0:
         if (behavior->binding->kind == 1) SetSmaGoal(behavior->binding->payload, 0x44);
-        { float t = D_002DDED0.t; behavior->wakeTime = t + GRandInRange__Fff(behavior->guard->sleepTimeMin, behavior->guard->sleepTimeMax); }
+        { float t = D_002DDED0.t; behavior->wakeTime = t + RandomFloatInRange__Fff(behavior->guard->sleepTimeMin, behavior->guard->sleepTimeMax); }
         break;
     case 1:
         if (behavior->binding->kind == n) SetSmaGoal(behavior->binding->payload, 0x43);
@@ -5723,7 +5723,7 @@ extern "C"{
  extern CLOCK D_002DDED0;
  extern RANGE D_002BE740;
  extern POLY D_002BE720,D_002BE730;
- float GRandInRange__Fff(float,float);
+ float RandomFloatInRange__Fff(float,float);
  qword GetLoWorldPos(P*);
  void FindClosestPointOnLine(qword,qword,qword,qword*,float*,float*);
 }
@@ -5811,7 +5811,7 @@ extern "C" void ChooseBhvTargetsTarget(C *behavior)
     __asm__("sqc2 %4,%0\n\tdaddu %2,%z5,$zero\n\tlwc1 %1,-0x18f0(%3)\n\taddiu %3,%3,-0x18f0"
             : "=m"(work.bestPoint.q), "=f"(lower), "=&r"(best), "+r"(randomAddress)
             : "j"(zero), "J"(0), "m"(*(float *)(randomAddress - 0x18f0)));
-    behavior->time = now + GRandInRange__Fff(lower, ((RANGE *)randomAddress)->hi);
+    behavior->time = now + RandomFloatInRange__Fff(lower, ((RANGE *)randomAddress)->hi);
     work.origin.q = GetLoWorldPos(behavior->guard);
     // D_002A55FC supplies the initial selection cost.
     int i;
@@ -6012,7 +6012,7 @@ extern "C"{
 extern float D_002A5600;
 qword GetLoWorldPos(ACTOR*);
 void GetVectorCylind(qword,float*,float*,float*);
-float RadNormalize__Ff(float);float GLimitAbs__Fff(float,float);float GLimitLm__FP2LMf(LM*,float);
+float NormalizeAngle__Ff(float);float ClampAbs__Fff(float,float);float ClampToLimits__FP2LMf(LM*,float);
 qword SetVectorCylind(float,float,float);int IsWithinLimits__FP2LMf(LM*,float);
 int FindPathzoneClosestFreePoint(void*,qword,qword*);
 int FindPathzoneSegmentBlocker(void*,qword,qword,int,SEGMENT*);
@@ -6069,11 +6069,11 @@ extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin
     }
     tuning = behavior->guard->tuning;
     GetVectorCylind(VuSubtract(GetLoWorldPos(behavior->guard), origin), &flow.polarAngle, &flow.polarLength, 0);
-    float angle = heading + GLimitAbs__Fff(RadNormalize__Ff(flow.polarAngle - heading), tuning->narrow);
-    float length = GLimitLm__FP2LMf(&first, flow.polarLength);
+    float angle = heading + ClampAbs__Fff(NormalizeAngle__Ff(flow.polarAngle - heading), tuning->narrow);
+    float length = ClampToLimits__FP2LMf(&first, flow.polarLength);
     if (FindPathzoneClosestFreePoint(region, VuSum(origin, SetVectorCylind(angle, length, 0.0f)), &closest.q)) {
         GetVectorCylind(VuSubtract(closest.q, origin), &flow.candidateAngle, &flow.candidateLength, 0);
-        if (__builtin_fabsf(RadNormalize__Ff(flow.candidateAngle - heading)) < tuning->wide
+        if (__builtin_fabsf(NormalizeAngle__Ff(flow.candidateAngle - heading)) < tuning->wide
             && IsWithinLimits__FP2LMf(&second, flow.candidateLength))
             return closest.q;
     }
@@ -6148,7 +6148,7 @@ void UpdateBhv(struct S *p);
 float GetTargetRecordFacing(struct K *engagement);
 qword GetLoWorldPos(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
-float RadNormalize__Ff(float f);
+float NormalizeAngle__Ff(float f);
 int IsWithinLimits__FP2LMf(void *p, float f);
 qword ChooseBhvCirclePosition(struct S *p, void *pathzone, float f, qword v);
 void FindPathzonePathCurve(void *pathzone, qword a, qword b, struct B *c);
@@ -6187,7 +6187,7 @@ void UpdateBhvCircle(struct S *behavior) {
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(b->points[b->numPoints - 1]), "j"(pos));
         GetVectorCylind(dv, &cylinder[0], &cylinder[1], 0);
     }
-    if (__builtin_fabsf(RadNormalize__Ff(cylinder[0] - targetFacing)) > engagement->facingTolerance) goto repath;
+    if (__builtin_fabsf(NormalizeAngle__Ff(cylinder[0] - targetFacing)) > engagement->facingTolerance) goto repath;
     if (IsWithinLimits__FP2LMf(behavior->guard->circleDistance, cylinder[1])) return;
 repath:
     {
@@ -6623,7 +6623,7 @@ struct L { float a, b, c; };
 void UpdateBhv(struct S *p);
 int HasBhvpipeArrived(struct S *p);
 void SetBhvpipeState(struct S *p, int n);
-float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
+float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
 float SWrapShape(int n, float g);
 void GetPipeGoalMatrix(int a, float g, int b, void *pv);
 // 0x17CF10: BHVPIPE vtable slot 10 (Update): shimmies along the pipe toward the goal with a smoothed speed; keeps
@@ -6647,7 +6647,7 @@ void UpdateBhvpipe(struct S *behavior) {
                     l.b = 0.0f;
                     l.c = 0.1f;
                     l.a = __builtin_fabsf(d);
-                    g = GSmooth__FfffP3SMPPf(behavior->smoothedSpeed, d, D_002DDED0.dt, &l, 0);
+                    g = SmoothValue__FfffP3SMPPf(behavior->smoothedSpeed, d, D_002DDED0.dt, &l, 0);
                 }
                 behavior->smoothedSpeed = g;
                 behavior->guard->attachParam = SWrapShape(behavior->guard->attachObject, behavior->guard->attachParam + g * D_002DDED0.dt);

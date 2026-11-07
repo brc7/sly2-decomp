@@ -117,8 +117,8 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
 OBJECT *PloFindSwObject__FP2SWi3OIDP2LO(G *, int, int, OWNER *);
 int IsTaskComplete(void *);
-float GRandInRange__Fff(float, float);
-int NRandInRange__Fii(int, int);
+float RandomFloatInRange__Fff(float, float);
+int RandomIntInRange__Fii(int, int);
 void BroadcastGameEvent(G *, int, P *);
 void BuildSpliceListFromUniformValues(void *, int, int, int *);
 void IgnoreStepSlot87(P *, int);
@@ -229,7 +229,7 @@ extern "C" void GenerateStepguardLoot(P *guard)
     }
     if (guard->lootCount > 0) {
         reward = guard->loot[0];
-    } else if (GRandInRange__Fff(0.0f, 1.0f) > table->chance) {
+    } else if (RandomFloatInRange__Fff(0.0f, 1.0f) > table->chance) {
         reward.key = -1;
         reward.oid = -1;
     } else {
@@ -237,7 +237,7 @@ extern "C" void GenerateStepguardLoot(P *guard)
         total = 0;
         for (i = 0; i < 6; i++)
             total += table->picks[i].weight;
-        int choice = NRandInRange__Fii(0, total - 1);
+        int choice = RandomIntInRange__Fii(0, total - 1);
         const PICK *pick = &table->picks[0];
         register int weight asm("$3") = pick->weight; /* pin: weight must be v1 (global-alloc gives it v0 and swaps pick/weight otherwise) */
         asm("" : "+r"(weight)); /* empty asm: gives the first weight load a dependent so sched2 issues it before the choice copy, as in the target */
@@ -261,8 +261,8 @@ picked:;
     }
     // Split a random coin total into two or three coin entries, then append the reward.
     guard->lootCount = 0;
-    remaining = NRandInRange__Fii(table->minimum, table->maximum);
-    numCoinEntries = NRandInRange__Fii(2, 3);
+    remaining = RandomIntInRange__Fii(table->minimum, table->maximum);
+    numCoinEntries = RandomIntInRange__Fii(2, 3);
     int j = 0;
     if (numCoinEntries > 0) {
         do {

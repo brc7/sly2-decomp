@@ -1116,7 +1116,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 
 /* quadratic solver: returns the root count, roots written to the float buffer */
-int CSolveQuadratic__FfffPf(float a, float b, float c, float *roots);
+int SolveQuadratic__FfffPf(float a, float b, float c, float *roots);
 
 static inline float Sqrt(float x) { float r; __asm__("sqrt.s %0,%1" : "=&f"(r) : "f"(x)); return r; }
 static inline float Max(float a, float b) { return a < b ? b : a; }
@@ -1150,9 +1150,9 @@ float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slo
     float vz, best = 0.0f, l, t;
     int n;
     vz = Zin(v);
-    n = CSolveQuadratic__FfffPf(naz, -low, vz, r0.f);
+    n = SolveQuadratic__FfffPf(naz, -low, vz, r0.f);
     if (n > 0) best = Max(r0.f[n - 1], best);
-    n = CSolveQuadratic__FfffPf(az, -high, vz, r1.f);
+    n = SolveQuadratic__FfffPf(az, -high, vz, r1.f);
     if (n > 0) best = Max(r1.f[n - 1], best);
     l = LenXY(v);
     t = (slope0 * l - vz) / naz;
@@ -1343,7 +1343,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
+qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -1409,7 +1409,7 @@ typedef char WORK_move_basis_Offset[FIELD_OFFSET(WORK,move.basis)==16?1:-1];
 typedef char WORK_move_phase_Offset[FIELD_OFFSET(WORK,move.phase)==64?1:-1];
 typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
 /** @sly2-annot addr=0x196DF8
- * Purpose: Air acceleration: spin toward target matrix (GSmooth), steer with stick (AccelSoTowardPosSpring),
+ * Purpose: Air acceleration: spin toward target matrix (SmoothValue), steer with stick (AccelSoTowardPosSpring),
  *   limit horizontal speed, contact slide via 0x196AA8
  * Info: proposed name PresetJtAccelJump (T1); TU air
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
@@ -1472,7 +1472,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
                     : "j"(r1), "j"(r2), "m"(matrix->row[2].q), "j"(second)
                     : "vf1");
             w.turn.returned.row[2].q = r0;
-            updatedX = GSmooth__FfffP3SMPPf(current, target, step, parameters, empty);
+            updatedX = SmoothValue__FfffP3SMPPf(current, target, step, parameters, empty);
         }
         {
             register SMP *parameters __asm__("$4");
@@ -1480,7 +1480,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
             __asm__("lwc1 %0,%4\n\tlui %2,%%hi(%6)\n\tlwc1 %1,%5\n\taddiu %2,%2,%%lo(%6)\n\tswc1 %7,%3"
                     : "=f"(current), "=f"(step), "=&r"(parameters), "=m"(w.turn.local.f[0])
                     : "m"(w.turn.local.f[1]), "m"(((CLOCK *)clockWord)->dt), "i"(&D_002BF7B8), "f"(updatedX));
-            updatedY = GSmooth__FfffP3SMPPf(current, zero, step, parameters, 0);
+            updatedY = SmoothValue__FfffP3SMPPf(current, zero, step, parameters, 0);
         }
         {
             register SMP *parameters __asm__("$4");
@@ -1489,7 +1489,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
                     : "=f"(current), "=f"(step), "=&r"(parameters), "=f"(target)
                     : "m"(((CLOCK *)clockWord)->dt), "m"(w.turn.local.f[2]), "m"(p->targetZ), "i"(&D_002BF7C8));
             w.turn.local.f[1] = updatedY;
-            w.turn.local.f[2] = GSmooth__FfffP3SMPPf(current, target, step, parameters, 0);
+            w.turn.local.f[2] = SmoothValue__FfffP3SMPPf(current, target, step, parameters, 0);
         }
         register qword desired __asm__("vf2");
         register float maximum __asm__("$f12");
@@ -1678,12 +1678,12 @@ struct S1030 { char pad[0x1C]; float x1c; char pad2[0x40-0x20]; float x40; };
 struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct S1030 *action; char x1034[4]; };
 struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float atan2f(float y, float x);
-float RadNormalize__Ff(float g);
+float NormalizeAngle__Ff(float g);
 void ReleaseSma(void *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, void *b, float g, float h);
 #define Get(p, i) ((p)->x1c == 2 ? (p)->a134[i] : (p)->a120[i])
 /** @sly2-annot addr=0x197370
- * Purpose: Set x30=1 and start a turn/flip clip chosen from the heading difference (atan2, RadNormalize) via
+ * Purpose: Set x30=1 and start a turn/flip clip chosen from the heading difference (atan2, NormalizeAngle) via
  *   ReplaceCurrentAseg
  * Info: proposed name StartJtAirTurn (T2); TU air
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
@@ -1696,7 +1696,7 @@ void StartJtAirTurn(struct P *p)
     struct S1030 *s;
     void *pv;
     p->x30 = 1;
-    d = RadNormalize__Ff(p->x0->controller->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
+    d = NormalizeAngle__Ff(p->x0->controller->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
     ad = __builtin_fabsf(d);
     if (ad < 1.0995574f)
         p->x8 = 3;
@@ -2164,9 +2164,9 @@ void SetJtAirState(CONTEXT *, int, void *);
 void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 float GetStepHeading(ACTOR *);
-float RadNormalize__Ff(float);
+float NormalizeAngle__Ff(float);
 void CalculateSinCos__FfPfT1(float, float *, float *);
-float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
+float SmoothValue__FfffP3SMPPf(float, float, float, SMP *, float *);
 void RecalculateAsegBlend(CLIP *);
 void EvaluateShapeU(void *, float, qword *, qword *);
 void UpdateJtHands(void *);
@@ -2178,7 +2178,7 @@ M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
 M3 BuildAxisAngleRotationMatrix(qword, float);
 float atan2f(float, float);
 float cosf(float);
-float func_0011E290(qword, qword, qword *, qword *);
+float SplitVectorAlongAxis(qword, qword, qword *, qword *);
 qword LimitVectorLength(qword, float);
 void SetStepplayerTnOverride(ACTOR *, void *);
 }
@@ -2472,13 +2472,13 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
     case 20: {
         float headingOld = GetStepHeading(p->actor);
         float s, c;
-        CalculateSinCos__FfPfT1(RadNormalize__Ff(input->heading - headingOld), &s, &c);
+        CalculateSinCos__FfPfT1(NormalizeAngle__Ff(input->heading - headingOld), &s, &c);
         float lateral = s * input->amount;
         float forward = c * input->amount;
         float mix = (forward + 1.0f) * 0.5f;
         if (p->scriptFocus) {
             DATA *data = p->scriptFocus->data;
-            data->amount = GSmooth__FfffP3SMPPf(data->amount, LerpRange(D_002BF798, mix), D_002DDED0.dt, &D_002BF860, 0);
+            data->amount = SmoothValue__FfffP3SMPPf(data->amount, LerpRange(D_002BF798, mix), D_002DDED0.dt, &D_002BF860, 0);
         }
         float turn = LerpRange(D_002BF870, mix) * lateral * D_002DDED0.dt;
         p->blend0 = LerpRange(D_002BF850, mix);
@@ -2591,7 +2591,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             float g = NormalizeInPlace(dir, D_002A2DA0);
 
             U perp;
-            float proj = func_0011E290(desired.q, dir.q, 0, &perp.q);
+            float proj = SplitVectorAlongAxis(desired.q, dir.q, 0, &perp.q);
             if (proj < g && g * -0.25f < proj) {
                 desired.q = AddScaledVec(perp.q, dir.q, VuFloat(g));
                 desired.q = LimitVectorLength(desired.q, speed);
@@ -3508,9 +3508,9 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "
 struct C { char pad[0x88]; float g88; };
 struct B { char pad[0xE8]; struct C *pc; };
 struct S { struct B *pb; };
-int CSolveQuadratic__FfffPf(float, float, float, float *);
+int SolveQuadratic__FfffPf(float, float, float, float *);
 /** @sly2-annot addr=0x19A400
- * Purpose: Solve 0.5 g t^2 + dvz t + dz = 0 (CSolveQuadratic) for the landing time; fail if no positive root
+ * Purpose: Solve 0.5 g t^2 + dvz t + dz = 0 (SolveQuadratic) for the landing time; fail if no positive root
  * Info: proposed name SolveJtJumpTimeToTarget (T1); TU air
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
@@ -3518,7 +3518,7 @@ int CSolveQuadratic__FfffPf(float, float, float, float *);
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
 int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
-    int n = CSolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, GetZ(b) - GetZ(d), GetZ(a) - GetZ(c), ag);
+    int n = SolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, GetZ(b) - GetZ(d), GetZ(a) - GetZ(c), ag);
     if (n <= 0) return 0;
     {
         float g = ag[n - 1];
@@ -3696,7 +3696,7 @@ namespace M_func_0019A750 {
 //   9, 0xE, 0xD the same with the apex 1200 / 250 / 500
 //   2, 0x12, 3  the constants 700 / 900 / 800 (a launch is never slower than that upwards)
 //   4           700 + 0.5 z limited to 700 (a bounce: a fall is turned into a launch of 700 at the most)
-//   6           the double jump: it aims for the same landing time as a jump followed by a jump from the apex (CSolveQuadratic: the flight from the first
+//   6           the double jump: it aims for the same landing time as a jump followed by a jump from the apex (SolveQuadratic: the flight from the first
 //               apex 215 with the speed that climbs 100 more) and gets the vz that does it from the current height; still rising: the vz that reaches 315
 //   0, 5, 8, 0xA - 0xC, 0x10, 0x11: nothing (z stays)
 // Returns the velocity (the callers SetVelocity it).
@@ -3705,7 +3705,7 @@ static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
-int CSolveQuadratic(float a, float b, float c, float *ax) __asm__("CSolveQuadratic__FfffPf");
+int SolveQuadratic(float a, float b, float c, float *ax) __asm__("SolveQuadratic__FfffPf");
 
 
 
@@ -3766,7 +3766,7 @@ qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 namespace RO_ORDER { extern const float r_D_002A656C __asm__("D_002A656C") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x19A750
  * Purpose: Launch velocity for a flight kind: z raised to the per-kind value (215/1200/250/500 apex,
- *   700/900/800 constants, bounce, double jump solved with CSolveQuadratic)
+ *   700/900/800 constants, bounce, double jump solved with SolveQuadratic)
  * Info: proposed name JtPlanLaunchVz (T1); TU air
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
@@ -3832,7 +3832,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
             float h = tElapsed * (vJump + g * 0.5f * tElapsed);
             float ax[4];
             float bq = SqrtfEarly(g * -2.0f * (D_002BF73C - D_002BF738));
-            CSolveQuadratic(g * 0.5f, bq, D_002BF738, ax);
+            SolveQuadratic(g * 0.5f, bq, D_002BF738, ax);
             float tFall = ax[1] - tApex;
             if (0.0f < vzMin)
                 vzNew = SqrtfEarly(g * -2.0f * (D_002BF73C - h));

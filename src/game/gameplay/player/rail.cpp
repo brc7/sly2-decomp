@@ -223,7 +223,7 @@ struct M3 {
 extern qword D_002A2DC0, D_002A2DA0;
 extern "C" {
 float SRandomShapeRange(RAILV*,float,float);
-float GRandInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
+float RandomFloatInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
 void GetRailSparklePosition(RAILV*,qword*,qword*,float);
 }
 static inline qword CrossKeepSecond(qword a,const qword *pb){qword b;__asm__("lqc2 %0,%1":"=j"(b):"m"(*pb));qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"0"(b));return r;}
@@ -306,7 +306,7 @@ void GetRailSparklePosition(RAILV *rail, qword *posOut, qword *dirOut, float g)
     qword right = NormalizeOr(cross, fallbackAddress, epsilon);
     basis.a = CrossKeepSecond(right, &basis.c);
     basis.b = right;
-    float r = GRandInRange__Fff(-1.0f, 1.0f);
+    float r = RandomFloatInRange__Fff(-1.0f, 1.0f);
     register float zero __asm__("$f22") = 0.0f;
     float ar = __builtin_fabsf(r);
     qword local = SetVectorCylind(r * ar * D_002C1EC8, 1.0f, zero);
@@ -318,7 +318,7 @@ void GetRailSparklePosition(RAILV *rail, qword *posOut, qword *dirOut, float g)
     if (posOut) {
         float low, high;
         START start(pos, zero, &low, &high);
-        float distance = ar * GRandInRange__Fff(low, high);
+        float distance = ar * RandomFloatInRange__Fff(low, high);
         *posOut = DisplacementValue(start.q, moved.q, distance, scalar);
     }
     if (dirOut)

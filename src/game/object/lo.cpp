@@ -49,7 +49,7 @@ extern SW D_003DD490;
 extern "C" {
 extern qword D_002A2DD0;        /* (0, 0, 0) */
 extern MATRIX4 D_002A2D30;      /* identity */
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeLoroot(LO *plo);
 void GetLoChildDl(SO *psoParent, DL **ppdl, LO **pploFirst);
 LORUN *AddLoDeferredCallback(LO *plo);
@@ -127,7 +127,7 @@ void LO::Init()
 extern "C" void EnsureLoroot(LO *plo)
 {
     if (plo->ploroot == 0) {
-        LOROOT *ploroot = (LOROOT *)PvAllocSlotheapClear(&g_sw.slotheapLoroot);
+        LOROOT *ploroot = (LOROOT *)AllocZeroedFromSlotheap(&g_sw.slotheapLoroot);
         plo->ploroot = ploroot;
         ploroot->plo = plo;
     }
@@ -136,7 +136,7 @@ extern "C" void EnsureLoroot(LO *plo)
 namespace M_FreeLoroot { extern "C" {
 extern char D_003DD490[];
 struct S { char pad[0x14]; void *pv; };
-int FFindDlEntry__FP2DLPv(void *, void *);
+int IsEntryInDl__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void RemoveFromSwBusyList(void *, void *);
 void FreeSlotheapSlot(void *, void *);
@@ -152,7 +152,7 @@ void FreeSlotheapSlot(void *, void *);
 void FreeLoroot(struct S *p)
 {
     char *pdl = D_003DD490 + 0x2C;
-    if (FFindDlEntry__FP2DLPv(pdl, p->pv))
+    if (IsEntryInDl__FP2DLPv(pdl, p->pv))
         RemoveDlEntry__FP2DLPv(pdl, p->pv);
     RemoveFromSwBusyList(D_003DD490, p->pv);
     FreeSlotheapSlot(D_003DD490 + 0x398C, p->pv);
@@ -935,7 +935,7 @@ extern "C" void OnLoAdd(LO *plo)
 namespace M_func_001A61A0 { extern "C" {
 typedef unsigned long ulong;
 struct DL { void *a, *b; int c; };
-int FFindDlEntry__FP2DLPv(struct DL *pdl, void *pv);
+int IsEntryInDl__FP2DLPv(struct DL *pdl, void *pv);
 struct S { char pad[0x14]; void *root; char pad2[0x10]; ulong fl; };
 /** @sly2-annot addr=0x1A61A0
  * Purpose: bit60 set and plo->ploroot is in g_sw+0x2C list
@@ -949,7 +949,7 @@ struct S { char pad[0x14]; void *root; char pad2[0x10]; ulong fl; };
 int IsLoInWorld(struct S *object)
 {
     int r = 0;
-    if ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1) r = FFindDlEntry__FP2DLPv((DL *)&g_sw.dlBusy, object->root) != 0;
+    if ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.dlBusy, object->root) != 0;
     return r;
 }
 } } // namespace M_func_001A61A0

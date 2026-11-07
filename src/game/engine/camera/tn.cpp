@@ -32,12 +32,12 @@ static inline float GEvaluateClq(CLQ *pclq, float x)
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
 }
 extern LM D_002BBB60;
-float RadNormalize(float rad);
-float GLimitAbs(float g, float absLimit);
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
-float RadSmooth(float radCur, float radTarget, float dt, SMP *psmp, float *pdradNext);
-float RadSmoothA(float radCur, float dradCur, float radTarget, float dt, SMPA *psmpa, float *pdradNext);
-float GLimitLm(LM *plm, float g);
+float NormalizeAngle(float rad);
+float ClampAbs(float g, float absLimit);
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float SmoothAngle(float radCur, float radTarget, float dt, SMP *psmp, float *pdradNext);
+float SmoothAngleWithAccel(float radCur, float dradCur, float radTarget, float dt, SMPA *psmpa, float *pdradNext);
+float ClampToLimits(LM *plm, float g);
 struct GAME
 {
       float tIdleEvent;
@@ -508,13 +508,13 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A96E0 __asm__("D_002A96E0") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A96E4 __asm__("D_002A96E4") = 3.40282347e+38f; }
-// If both angles are the sentinel, set both to GLimitLm(atan2(h, len)) (inferred)
+// If both angles are the sentinel, set both to ClampToLimits(atan2(h, len)) (inferred)
 void InitTnDefaultAngles(CPD *p)
 {
     if (p->lmTilt.gMin == D_002A96E0 && p->lmTilt.gMax == D_002A96E4) {
         float a = p->dsOffset + p->aclqOffset[0].g0;
         float f = atan2f(p->aclqOffset[2].g0, sqrtf_(a * a + p->aclqOffset[1].g0 * p->aclqOffset[1].g0));
-        f = GLimitLm(&D_002C41B0, f);
+        f = ClampToLimits(&D_002C41B0, f);
         p->lmTilt.gMax = f;
         p->lmTilt.gMin = f;
     }
@@ -974,17 +974,17 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 //     clqPull(distance) limited by lmPull.
 //  6. Player control (grftnm & 4) when the right stick is pushed or still turning or recentering: the stick's x|x| * speed and y|y| * speed become
 //     the turn rates, changing at most damping * dt per frame; a stick within 15 deg of horizontal does not tilt, within 15 deg of vertical does not
-//     pan; game event 6 at most every 5 s (GAME::tCmTurned, 0x2DEB34). fRecenter: RadSmoothA toward radPanRecenter / radTiltRecenter (SMPA 0x2C4250 while the
+//     pan; game event 6 at most every 5 s (GAME::tCmTurned, 0x2DEB34). fRecenter: SmoothAngleWithAccel toward radPanRecenter / radTiltRecenter (SMPA 0x2C4250 while the
 //     player's +0x10E4 is 4, else 0x2C4240) until both arrive. Taking over from a tunnel view plays sound 3. Then nMode = 4, fArrived, tManual = now.
 //  7. Otherwise, in the free mode (4): the hero's movement turns the camera: vFocus dotted with the turn axis (TN::nTurnAxis / CPDEFI::nTurnAxis: 0 = up x
 //     the direction camera -> posHang with its z scaled by 0.3, 1 = that direction; both normalised, (1,0,0) when degenerate), over |that direction|,
 //     limited to 2.5, times uTunnel, times CLQ {1,-2,-2}(left stick y) in 1..2, times the ramp 0..1 of the seconds since the player let go, times dt.
-//     The tilt eases back into CPD::lmTilt (RadSmooth, SMP {0.75,0,2} x speed) once the hero moves faster than 60 u/s (speed / 600 capped at 1 > 0.1).
+//     The tilt eases back into CPD::lmTilt (SmoothAngle, SMP {0.75,0,2} x speed) once the hero moves faster than 60 u/s (speed / 600 capped at 1 > 0.1).
 //     With tunnel views: the view to pull toward is the forward one (plain zones, mode 1; the player's own tunnel +0x528 with blend 3.0), the backward
 //     one (mode 2), else by the hero's facing (PmatLoWorld row 0, z dropped) against the tunnel's direction (ConvertAloVec): blend = g^2 (3 - 2|g|),
 //     backward when the backward view is allowed and g <= 0. The pull strength = (speed / 600, or / 200 while +0x4CC == -1 / +0x4C8, capped at 1)
 //     x CPD::gTurn; fPullIdle raises it to gPullIdle x ramps of (idle 0.75 s, no player turn 10 s) over dtPullIdle; fPullEnter (until fArrived) to
-//     gPullEnter x the ramp since the tunnel was entered (tTns) over dtPullEnter. The pulled pan / tilt = RadSmooth toward the view (SMP {0.5,0,0.5} x
+//     gPullEnter x the ramp since the tunnel was entered (tTns) over dtPullEnter. The pulled pan / tilt = SmoothAngle toward the view (SMP {0.5,0,0.5} x
 //     strength), or the free turn's if that is already nearer; the result blends free -> pulled by the blend. Reaching the view (crossing it, within
 //     90 deg) sets nMode 1 / 2 and fArrived (not on the first frame, nor in a shape tunnel with +0xE0 == 0 and +0xE8 > 2).
 //  8. The output pan / tilt / distance / framing: mode 1 / 2 take the tunnel view and CPD::uFrameX (negated backward); mode 4 the turned pan / tilt with
@@ -1035,7 +1035,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         uTunnelWant = pcpd->uTunnel;
     else
         uTunnelWant = 0.0f;
-    uTunnel = GSmooth(uTunnel, uTunnelWant, D_002DDED0.dt, &D_002C4230, 0);
+    uTunnel = SmoothValue(uTunnel, uTunnelWant, D_002DDED0.dt, &D_002C4230, 0);
     tMoveLast = tMoveLast > pcpdefi->tMoveLast ? tMoveLast : pcpdefi->tMoveLast;
     float radPanFwdNew = 0.0f;
     float radTiltFwdNew = 0.0f;
@@ -1052,7 +1052,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         {
             GetVectorCylind(*(qword *)&dposCrv, &dposCrv.x, &dposCrv.y, &dposCrv.z);
             if (!fEntered)
-                dposCrv.x += GLimitAbs(RadNormalize(radPanCrv - dposCrv.x), ptnCur->radPanLimit);
+                dposCrv.x += ClampAbs(NormalizeAngle(radPanCrv - dposCrv.x), ptnCur->radPanLimit);
             radPanCrv = dposCrv.x;
         }
         if (grftnm & 1)
@@ -1077,7 +1077,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             nMode = 4;
             radPan = D_002DDF40.radCutPan;
             float radTiltCut = D_002DDF40.radCutTilt - atanf(pcpd->uFrameY * D_002DDF40.gTanHalfY);
-            radTilt = GLimitLm(&D_002C41B0, radTiltCut);
+            radTilt = ClampToLimits(&D_002C41B0, radTiltCut);
         }
         else if ((grftnm & 3) == 0)
         {
@@ -1095,8 +1095,8 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         else
         {
-            float dradFwd = RadNormalize(radPanFwdNew - pcpdefi->radHome);
-            float dradRev = RadNormalize(radPanRevNew - pcpdefi->radHome);
+            float dradFwd = NormalizeAngle(radPanFwdNew - pcpdefi->radHome);
+            float dradRev = NormalizeAngle(radPanRevNew - pcpdefi->radHome);
             if (fabsf(dradFwd) < fabsf(dradRev))
                 nMode = 1;
             else
@@ -1152,8 +1152,8 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 psmpa = &D_002C4250;
             else
                 psmpa = &D_002C4240;
-            radPanNew = RadSmoothA(radPanNew, dradPan, radPanRecenter, dt, psmpa, &dradPan);
-            radTiltNew = RadSmoothA(radTiltNew, dradTilt, radTiltRecenter, dt, psmpa, &dradTilt);
+            radPanNew = SmoothAngleWithAccel(radPanNew, dradPan, radPanRecenter, dt, psmpa, &dradPan);
+            radTiltNew = SmoothAngleWithAccel(radTiltNew, dradTilt, radTiltRecenter, dt, psmpa, &dradTilt);
             if (radPanNew == radPanRecenter && radTiltNew == radTiltRecenter)
                 fRecenter = 0;
         }
@@ -1169,9 +1169,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 dradTilt = 0.0f;
             else if (radStick > 1.3089969f)
                 dradPan = 0.0f;
-            radPanNew = RadNormalize(radPanNew + dradPan * dt);
-            radTiltNew = RadNormalize(radTiltNew + dradTilt * dt);
-            radTiltNew = GLimitLm(&D_002C41B0, radTiltNew);
+            radPanNew = NormalizeAngle(radPanNew + dradPan * dt);
+            radTiltNew = NormalizeAngle(radTiltNew + dradTilt * dt);
+            radTiltNew = ClampToLimits(&D_002C41B0, radTiltNew);
             if (D_002DDED0.cameraTime - D_002DEB30.tCmTurned > 5.0f)
             {
                 D_002DEB30.tCmTurned = D_002DDED0.cameraTime;
@@ -1248,11 +1248,11 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwAxis) : "j"(qwAxis));
         }
         *(qword *)&vecAxis = qwAxis;
-        float gTurn = GLimitAbs(GFromVf(QwDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
+        float gTurn = ClampAbs(GFromVf(QwDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
         float dradPanFree = gTurn * uTunnel;
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
         dradPanFree *= GLimitRange(GEvaluateClq(&D_002C4220, D_002DDED0.t - tManual), D_002BBB60.gMin, D_002BBB60.gMax);
-        float radPanFree = RadNormalize(radPanNew + dradPanFree * D_002DDED0.dt);
+        float radPanFree = NormalizeAngle(radPanNew + dradPanFree * D_002DDED0.dt);
         float uSpeed = GMin(GFromVf(QwLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
         float radTiltFree;
         SMP smp;
@@ -1261,7 +1261,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             smp.svFast = D_002C4260.svFast * uSpeed;
             smp.svSlow = D_002C4260.svSlow * uSpeed;
             smp.dtFast = D_002C4260.dtFast;
-            radTiltFree = RadSmooth(radTiltNew, GLimitLm(&pcpd->lmTilt, radTiltNew), D_002DDED0.dt, &smp, 0);
+            radTiltFree = SmoothAngle(radTiltNew, ClampToLimits(&pcpd->lmTilt, radTiltNew), D_002DDED0.dt, &smp, 0);
         }
         else
         {
@@ -1353,7 +1353,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 float dtIdle = D_002DDED0.t - (tMoveLast + D_002C41D8);
                 float dtQuiet = D_002DDED0.t - (tManual + D_002C41DC);
                 if (ptnCur->dtPullIdle > 0.0f)
-                    gRamp = GLimitLm(&D_002BBB60, dtIdle / ptnCur->dtPullIdle) * GLimitLm(&D_002BBB60, dtQuiet / ptnCur->dtPullIdle);
+                    gRamp = ClampToLimits(&D_002BBB60, dtIdle / ptnCur->dtPullIdle) * ClampToLimits(&D_002BBB60, dtQuiet / ptnCur->dtPullIdle);
                 else if (dtIdle > 0.0f && dtQuiet > 0.0f)
                     gRamp = 1.0f;
                 else
@@ -1369,7 +1369,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             {
                 float gRamp;
                 if (ptnCur->dtPullEnter > 0.0f)
-                    gRamp = GLimitLm(&D_002BBB60, (D_002DDED0.t - ptnCur->tTns) / ptnCur->dtPullEnter);
+                    gRamp = ClampToLimits(&D_002BBB60, (D_002DDED0.t - ptnCur->tTns) / ptnCur->dtPullEnter);
                 else
                     gRamp = 1.0f;
                 float gEnter = gRamp * ptnCur->gPullEnter;
@@ -1383,30 +1383,30 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             smpPull.svFast = D_002C4208.svFast * gPull;
             smpPull.svSlow = D_002C4208.svSlow * gPull;
             smpPull.dtFast = D_002C4208.dtFast;
-            float radPanPull = RadSmooth(radPanNew, RadNormalize(radPanNew + RadNormalize(radPanView - radPanNew)), D_002DDED0.dt, &smpPull, 0);
-            float radTiltPull = RadSmooth(radTiltNew, RadNormalize(radTiltNew + RadNormalize(radTiltView - radTiltNew)), D_002DDED0.dt, &smpPull, 0);
-            if (fabsf(RadNormalize(radPanView - radPanPull)) > fabsf(RadNormalize(radPanView - radPanFree)))
+            float radPanPull = SmoothAngle(radPanNew, NormalizeAngle(radPanNew + NormalizeAngle(radPanView - radPanNew)), D_002DDED0.dt, &smpPull, 0);
+            float radTiltPull = SmoothAngle(radTiltNew, NormalizeAngle(radTiltNew + NormalizeAngle(radTiltView - radTiltNew)), D_002DDED0.dt, &smpPull, 0);
+            if (fabsf(NormalizeAngle(radPanView - radPanPull)) > fabsf(NormalizeAngle(radPanView - radPanFree)))
                 radPanPull = radPanFree;
-            if (fabsf(RadNormalize(radTiltView - radTiltPull)) > fabsf(RadNormalize(radTiltView - radTiltFree)))
+            if (fabsf(NormalizeAngle(radTiltView - radTiltPull)) > fabsf(NormalizeAngle(radTiltView - radTiltFree)))
                 radTiltPull = radTiltFree;
-            radPanNew = RadNormalize(radPanNew + (1.0f - gBlend) * RadNormalize(radPanFree - radPanNew) + gBlend * RadNormalize(radPanPull - radPanNew));
-            radTiltNew = RadNormalize(radTiltNew + (1.0f - gBlend) * RadNormalize(radTiltFree - radTiltNew) + gBlend * RadNormalize(radTiltPull - radTiltNew));
+            radPanNew = NormalizeAngle(radPanNew + (1.0f - gBlend) * NormalizeAngle(radPanFree - radPanNew) + gBlend * NormalizeAngle(radPanPull - radPanNew));
+            radTiltNew = NormalizeAngle(radTiltNew + (1.0f - gBlend) * NormalizeAngle(radTiltFree - radTiltNew) + gBlend * NormalizeAngle(radTiltPull - radTiltNew));
             if (!fEntered && !(ptn->pshape != 0 && (*(  int  *)((uint8_t *)( ptn->pshape ) + (  0xE0 )))  == 0 && (*(  int  *)((uint8_t *)( ptn->pshape ) + (  0xE8 )))  > 2))
             {
                 if ((grftnm & 1) != 0 &&
-                    (RadNormalize(radPan - radPanFwd) * RadNormalize(radPanNew - radPanFwdNew) <= 0.0f || fabsf(RadNormalize(radPanNew - radPanFwdNew)) < 0.0001f) &&
-                    fabsf(RadNormalize(radPanNew - radPanFwdNew)) < 1.5707964f &&
-                    (RadNormalize(radTilt - radTiltFwd) * RadNormalize(radTiltNew - radTiltFwdNew) <= 0.0f || fabsf(RadNormalize(radTiltNew - radTiltFwdNew)) < 0.0001f) &&
-                    fabsf(RadNormalize(radTiltNew - radTiltFwdNew)) < 1.5707964f)
+                    (NormalizeAngle(radPan - radPanFwd) * NormalizeAngle(radPanNew - radPanFwdNew) <= 0.0f || fabsf(NormalizeAngle(radPanNew - radPanFwdNew)) < 0.0001f) &&
+                    fabsf(NormalizeAngle(radPanNew - radPanFwdNew)) < 1.5707964f &&
+                    (NormalizeAngle(radTilt - radTiltFwd) * NormalizeAngle(radTiltNew - radTiltFwdNew) <= 0.0f || fabsf(NormalizeAngle(radTiltNew - radTiltFwdNew)) < 0.0001f) &&
+                    fabsf(NormalizeAngle(radTiltNew - radTiltFwdNew)) < 1.5707964f)
                 {
                     nMode = 1;
                     fArrived = 1;
                 }
                 else if ((grftnm & 2) != 0 &&
-                         (RadNormalize(radPan - radPanRev) * RadNormalize(radPanNew - radPanRevNew) <= 0.0f || fabsf(RadNormalize(radPanNew - radPanRevNew)) < 0.0001f) &&
-                         fabsf(RadNormalize(radPanNew - radPanRevNew)) < 1.5707964f &&
-                         (RadNormalize(radTilt - radTiltRev) * RadNormalize(radTiltNew - radTiltRevNew) <= 0.0f || fabsf(RadNormalize(radTiltNew - radTiltRevNew)) < 0.0001f) &&
-                         fabsf(RadNormalize(radTiltNew - radTiltRevNew)) < 1.5707964f)
+                         (NormalizeAngle(radPan - radPanRev) * NormalizeAngle(radPanNew - radPanRevNew) <= 0.0f || fabsf(NormalizeAngle(radPanNew - radPanRevNew)) < 0.0001f) &&
+                         fabsf(NormalizeAngle(radPanNew - radPanRevNew)) < 1.5707964f &&
+                         (NormalizeAngle(radTilt - radTiltRev) * NormalizeAngle(radTiltNew - radTiltRevNew) <= 0.0f || fabsf(NormalizeAngle(radTiltNew - radTiltRevNew)) < 0.0001f) &&
+                         fabsf(NormalizeAngle(radTiltNew - radTiltRevNew)) < 1.5707964f)
                 {
                     nMode = 2;
                     fArrived = 1;
@@ -1525,10 +1525,10 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             float radPanCm;
             float radTiltCm;
             DecomposeRotateMatrixPanTilt(&D_002DDF40.matRot, &radPanCm, &radTiltCm);
-            float radPanView = RadNormalize(radPanOut + 3.1415927f + radLookX);
-            float radTiltView = RadNormalize(atan2f(-z, sXY) + radLookY);
-            radPanLook = RadNormalize(radPanCm - radPanView);
-            radTiltLook = RadNormalize(radTiltCm - radTiltView);
+            float radPanView = NormalizeAngle(radPanOut + 3.1415927f + radLookX);
+            float radTiltView = NormalizeAngle(atan2f(-z, sXY) + radLookY);
+            radPanLook = NormalizeAngle(radPanCm - radPanView);
+            radTiltLook = NormalizeAngle(radTiltCm - radTiltView);
         }
         dradPanLook = dradTiltLook = 0.0f;
     }

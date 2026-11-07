@@ -60,7 +60,7 @@ struct ACOBJ { char pad0[0x18]; VTEAC *pvt; };
 
 extern "C" {
 extern qword D_002A2DD0;    /* (0, 0, 0) */
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* frees into the pool */
 void SetXfRole(ALO *object, XF *xf, int n);
 void WakeXfOwner(ALO *object, XF *xf);
@@ -274,12 +274,12 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
-           FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+    return AreFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && AreFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
+           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
 }
 typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef union V3Q { VECTOR3 v; qword q; } V3Q;
@@ -420,12 +420,12 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
-           FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+    return AreFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && AreFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
+           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
 }
 typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef union V3Q { VECTOR3 v; qword q; } V3Q;
@@ -576,12 +576,12 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
-           FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+    return AreFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && AreFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
+           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
 }
 typedef struct KEY { float g; float dgIn; float dgOut; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; float v[4]; } T;
@@ -772,12 +772,12 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
-           FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+    return AreFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && AreFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
+           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
 }
 typedef struct KEY { float g; float dg; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; float v[4]; } T;
@@ -1033,7 +1033,7 @@ void EvaluateKeyedFloatCurve(T *t, float *pg, float *pdg, float g, float dtScale
 } } // namespace M_func_0012CDA0
 
 /** @sly2-annot addr=0x12CE50
- * Purpose: Allocates an ACT-family object from its slot pool (PvAllocSlotheapClear)
+ * Purpose: Allocates an ACT-family object from its slot pool (AllocZeroedFromSlotheap)
  * Info: proposed name PactAlloc (T2); TU act
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
@@ -1041,7 +1041,7 @@ void EvaluateKeyedFloatCurve(T *t, float *pg, float *pdg, float g, float dtScale
 // Allocates an override application record (OVRA) from the world's pool, cleared. (inferred)
 extern "C" void *AllocOvra()
 {
-    return PvAllocSlotheapClear(&g_sw.slotheapOvra);
+    return AllocZeroedFromSlotheap(&g_sw.slotheapOvra);
 }
 
 /** @sly2-annot addr=0x12CE70
@@ -1264,15 +1264,15 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword positionGoal; };
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
-           FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+    return AreFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && AreFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
+           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
 }
 /** @sly2-annot addr=0x12D108
  * Purpose: Store a new position goal (+0x20); if this act is the XF driver (xf+0x90==act) and the goal moved,
@@ -1793,15 +1793,15 @@ typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-int FFloatsNear__Ffff(float a, float b, float eps);
+int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword rotationGoal; };
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
-    return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
-           FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
+    return AreFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && AreFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
+           AreFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
 }
 /** @sly2-annot addr=0x12DA30
  * Purpose: Stores a rotation goal and pushes it to the ALO (0x230598)
@@ -2174,7 +2174,7 @@ void ACT9::VSlot1()
 // Allocates an act from the world's act pool, cleared. (inferred)
 extern "C" void *AllocAct()
 {
-    return PvAllocSlotheapClear(&g_sw.slotheapAct);
+    return AllocZeroedFromSlotheap(&g_sw.slotheapAct);
 }
 
 /** @sly2-annot addr=0x12E210

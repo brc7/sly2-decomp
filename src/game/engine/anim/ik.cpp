@@ -53,7 +53,7 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
 void *AllocClearedFromWorldHeap(MSG *pmsg);
 void InitIkRecord(IKREC *q);
 void NewIkAct(SOIK *p, void *pv, int n, IKREC *q);
-float RadBetweenVectors(qwordV a, qwordV b, qwordV *pv);
+float AngleBetweenVectors(qwordV a, qwordV b, qwordV *pv);
 qwordV ConvertXfVec(void *space, void *p, qwordV v);
 }
 
@@ -165,14 +165,14 @@ extern "C" void UpdateSoIkBoneLengths(SOIK*so){
 
 // (Claude agent) Matched: volatile point load after the first m10 store and a volatile addiu for the matrix-row pointer pin the scheduling (same idea as UpdateSoIkBoneLengths).
 /** @sly2-annot addr=0x186930
- * Purpose: Initialise an IK chain: rest lengths and bend axis from the two bone matrices (RadBetweenVectors)
+ * Purpose: Initialise an IK chain: rest lengths and bend axis from the two bone matrices (AngleBetweenVectors)
  * Info: proposed name InitIkChain (T2); TU ik
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/animation.md#devtools-findings-v3-2026-11-01, docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#ik-0x186610-0x187030
  * @end-sly2-annot */
 // Measures a freshly loaded IK record: snapshots both bones' local matrices, computes the two bone lengths and the rest
-// angle between the bones (RadBetweenVectors, which also yields the bend axis), and stores the bend axis in the second
+// angle between the bones (AngleBetweenVectors, which also yields the bend axis), and stores the bend axis in the second
 // bone's parent space. (inferred)
 extern "C" void InitIkRecord(IKREC*ikRecord){
  register int bits asm("$2");
@@ -191,7 +191,7 @@ extern "C" void InitIkRecord(IKREC*ikRecord){
  ikRecord->secondLength.bits=bits;
  register qwordV arg0 asm("$4"),arg1 asm("$5");
  asm("qmfc2.ni %0,%3\n\tqmfc2.ni %1,%4\n\tqmfc2.ni %2,%5":"=r"(arg0),"=r"(bits),"=r"(arg1):"j"(right),"j"(left),"j"(a));
- *(volatile int*)&ikRecord->firstLength.bits=bits;ikRecord->referenceAngle=RadBetweenVectors(arg0,arg1,axis);
+ *(volatile int*)&ikRecord->firstLength.bits=bits;ikRecord->referenceAngle=AngleBetweenVectors(arg0,arg1,axis);
  ikRecord->axis=ConvertXfVec(0,ikRecord->output->parent,ikRecord->axis);
 }
 
@@ -277,7 +277,7 @@ extern "C" void SolveIk(void*context,REQUEST*request){
  register qwordV worldDelta __asm__("vf1"),deltaArgument __asm__("$5");
  __asm__("lw $4,%3\n\tlq %1,%4\n\tlw $3,0xA0($4)\n\taddiu $2,$3,0x40\n\tlqc2 $vf4,0x40($3)\n\tlqc2 $vf3,0x30($2)\n\tlqc2 $vf2,0x10($2)\n\tlqc2 $vf1,0x20($2)\n\tvmulax.xyz $ACC,$vf4,%2x\n\tvmadday.xyz $ACC,$vf2,%2y\n\tvmaddaz.xyz $ACC,$vf1,%2z\n\tvmaddw.xyz %2,$vf3,$vf0w\n\tlqc2 %0,%5\n\tvsub.xyzw %0,%2,%0"
   :"=&j"(worldDelta),"=&r"(deltaArgument),"+j"(transported):"m"(q->current),"m"(w.row[22].q),"m"(w.row[21].q):"$2","$3","$4","vf2","vf3","vf4","memory");
- register float angle __asm__("$f20")=RadBetweenVectors(worldDelta,deltaArgument,&axis->q);
+ register float angle __asm__("$f20")=AngleBetweenVectors(worldDelta,deltaArgument,&axis->q);
  register qwordV converted __asm__("$2")=ConvertXfVec(0,q->current->parent,w.row[3].q);
  register M3*destination __asm__("$4");register qwordV normalized __asm__("vf3");register float keptAngle __asm__("$f12");
  __asm__("qmtc2.ni %4,$vf1\n\tdaddu %0,%5,$zero\n\tvmul.xyz $vf2,$vf1,$vf1\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,$vf2,$vf2y\n\tvmaddz.x $vf2,$vf3,$vf2z\n\tmov.s %2,%6\n\tvsqrt Q,$vf2x\n\tvwaitq\n\tvaddq.x $vf2,$vf0,Q\n\tsqc2 $vf1,%3\n\tvdiv Q,$vf0w,$vf2x\n\tvwaitq\n\tvmulq.xyzw %1,$vf1,Q"

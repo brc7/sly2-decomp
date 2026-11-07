@@ -419,7 +419,7 @@ qword GetLoWorldPos(P *);
 int IsDprizeCollisionCandidate(void *, SOPART *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
 int IntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
-float func_0011E290(qword, qword, qword *, qword *);
+float SplitVectorAlongAxis(qword, qword, qword *, qword *);
 }
 
 struct VU_FLOAT {
@@ -542,7 +542,7 @@ extern "C" void CheckDprizeBounce(P *prize)
         {
             U primary;
             if (normal.g[2] > 0.7f && prize->state == 4) {
-                float gNormal = func_0011E290(prize->v, D_002A2DC0, 0, &primary.qw);
+                float gNormal = SplitVectorAlongAxis(prize->v, D_002A2DC0, 0, &primary.qw);
                 float gSpeed = GFromVf(QwNormalizeInto(&primary.qw, D_002A2DD0));
                 float gTangent = GMin(prize->gTangentResponse.g * gSpeed, D_002C0D74);
                 gNormal = GMin(-prize->gNormalResponse * gNormal, D_002C0D78);
@@ -556,7 +556,7 @@ extern "C" void CheckDprizeBounce(P *prize)
                 }
             } else {
                 U secondary;
-                func_0011E290(prize->v, normal.qw, &primary.qw, &secondary.qw);
+                SplitVectorAlongAxis(prize->v, normal.qw, &primary.qw, &secondary.qw);
                 response.qw = QwCombo(VU_FLOAT(-prize->gNormalResponse), primary.qw, VU_FLOAT(prize->gTangentResponse.bits), secondary.qw);
             }
         }
@@ -941,7 +941,7 @@ extern qword D_002C0D80;
 extern float D_002C0D90;
 extern struct G D_003DD490;
 qword ConvertAloVec(struct S *,void *,qword);
-float GRandInRange__Fff(float,float);
+float RandomFloatInRange__Fff(float,float);
 struct Q *NewRipInGroup(struct G *,void *,void *);
 qword GetLoWorldPos(void *);
 // Dot product.
@@ -972,7 +972,7 @@ void EmitDprizeGlint(struct S *prize)
     direction=ConvertAloVec(prize,0,D_002C0D80);
     side=Dot(direction,D_002DDF40.b)<0;
     if(side!=prize->previous) {
-        if(GRandInRange__Fff(0,1)<prize->probability) {
+        if(RandomFloatInRange__Fff(0,1)<prize->probability) {
             if(D_002C0D90<D_002DDED0.t-prize->last) {
                 if(Dot(direction,D_002DDF40.a)<0)emitter=prize->left;
                 else emitter=prize->right;
@@ -1060,7 +1060,7 @@ struct M { int n; struct S *p; int pad[14]; };
 extern char D_003DD490[];
 extern char D_002C0DA0[];
 extern char D_002DEB30[];
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 struct X *NewRipInGroup(void *pg, int a, int b);
 qword GetLoWorldPos(struct S *p);
 struct MAT *GetLoWorldMatrix(struct S *p);
@@ -1076,7 +1076,7 @@ void SetCoinDprizes(struct S *coin, int n)
     if (coin->state == n) return;
     switch (n) {
     case 0:
-        coin->lifetimeLeft = GRandInRange__Fff(coin->lifetimeMin, coin->lifetimeMax);
+        coin->lifetimeLeft = RandomFloatInRange__Fff(coin->lifetimeMin, coin->lifetimeMax);
         break;
     case 1: {
         struct X *px = NewRipInGroup(D_003DD490, 9, 0);
@@ -1174,7 +1174,7 @@ struct M { int n; struct S *p; int pad[14]; };
 extern char D_003DD490[];
 extern char D_002C0E10[];
 extern char D_002DEB30[];
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 struct X *NewRipInGroup(void *pg, int a, int b);
 struct LO *GetHeroPo(void *pg);
 qword GetLoWorldPos(struct S *p);
@@ -1191,7 +1191,7 @@ void SetMedicineDprizes(struct S *medicine, int n)
     if (medicine->state == n) return;
     switch (n) {
     case 0:
-        medicine->lifetimeLeft = GRandInRange__Fff(medicine->lifetimeMin, medicine->lifetimeMax);
+        medicine->lifetimeLeft = RandomFloatInRange__Fff(medicine->lifetimeMin, medicine->lifetimeMax);
         break;
     case 1: {
         struct LO *q = GetHeroPo(D_003DD490);
@@ -1488,8 +1488,8 @@ void *AllocFromStack(ALLOCREQ *);
 int NewSprayedDprize(void *, int, int, LO **);
 int IsDprizeCollisionCandidate(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
-float GRandInRange__Fff(float, float);
-float RadNormalize__Ff(float);
+float RandomFloatInRange__Fff(float, float);
+float NormalizeAngle__Ff(float);
 qword SetVectorCylind(float, float, float);
 float ComputeMaxBallisticTime(qword, qword, float, float, float, float);
 void LaunchSprayedDprize(LO *, qword, qword, float, float);
@@ -1610,7 +1610,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     CANDIDATE **apcand;
     IntersectSwBoundingBox(D_003DD490, posMin.q, posMax.q, IsDprizeCollisionCandidate, 0, &ccand, &apcand);
     int cLaunched = 0;
-    float gAngle = GRandInRange__Fff(-3.1415927f, 3.1415927f);
+    float gAngle = RandomFloatInRange__Fff(-3.1415927f, 3.1415927f);
     float gRadius = D_002C0E8C;
     for (int iAttempt = 0; cLaunched < clo;) {
         float g = GClamp(GFromClq(D_002C0EA0, iAttempt * 0.02f), D_002C0EB0);
@@ -1629,7 +1629,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
             LO *ploLaunch = aplo[cLaunched++];
             LaunchSprayedDprize(ploLaunch, posOrig.q, v, cLaunched * D_002C0D70, D_002A7760);
         }
-        gAngle = RadNormalize__Ff(gAngle + D_002C0E94);
+        gAngle = NormalizeAngle__Ff(gAngle + D_002C0E94);
         gRadius += D_002C0E90;
         if (gRadius > D_002C0E84)
             gRadius -= D_002C0E84 - D_002C0E88;
@@ -1709,7 +1709,7 @@ struct VTE { short d; short pad; void (*pf)(); };
 extern "C" {
 void Decref__4CRef(void *p);
 void func_00129658(void *p, const void *q) __asm__("__as__4CRefRC4CRef");
-float GRandInRange__Fff(float a, float b);
+float RandomFloatInRange__Fff(float a, float b);
 void sprintf(char *buf, const char *fmt, ...);
 void SetDprizeDprizes(void *p, int n);
 }
@@ -1742,7 +1742,7 @@ void SetLootDprizes(S *loot, int n)
     if (loot->state == n) return;
     switch (n) {
     case 0:
-        loot->lifetimeLeft = GRandInRange__Fff(loot->lifetimeMin, loot->lifetimeMax);
+        loot->lifetimeLeft = RandomFloatInRange__Fff(loot->lifetimeMin, loot->lifetimeMax);
         break;
     case 1: {
         CRef ref;

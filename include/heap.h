@@ -56,5 +56,5 @@ public:
 extern "C" void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");   /* memory.cpp's C++ CopyAb */
 extern "C" void *memset(void *pv, int b, uint cb);
 extern "C" int strlen(const char *sz);
-void *PvAllocCopy(HEAP *pheap, int cb, void *pv, int n);
+void *AllocCopyFromHeap(HEAP *pheap, int cb, void *pv, int n);
 #endif

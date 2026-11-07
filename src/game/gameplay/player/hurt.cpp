@@ -105,7 +105,7 @@ extern "C" U D_002BFA10;
 extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rodata order) */
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  float atan2f(float,float);
- float RadNormalize__Ff(float);
+ float NormalizeAngle__Ff(float);
  void SetStepTargetHeading(P*,float);
  void FixStepAngularVelocity(P*);
  void SetStepTargetHeadingFromVector(P*,qword);
@@ -277,7 +277,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
                     : "$3", "$4", "$f0", "$f1", "$f2", "vf1", "memory");
             float blend = ClampKnownLower(fraction, lower, range);
             float angle = atan2f(velocity.f[1], velocity.f[0]) + 3.1415927f;
-            angle = RadNormalize__Ff(angle - hurt->actor->yaw);
+            angle = NormalizeAngle__Ff(angle - hurt->actor->yaw);
             SetStepTargetHeading(hurt->actor, hurt->actor->yaw + angle * blend);
             FixStepAngularVelocity(hurt->actor);
         }
@@ -469,7 +469,7 @@ extern float D_002BBB60[2];
 void InvalidateSoAaox(struct LO *po);
 float cosf(float g);
 float atan2f(float y, float x);
-float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
+float SmoothAngle__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 void SetStepTargetHeading(struct LO *po, float g);
 int IsJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
@@ -482,7 +482,7 @@ static inline float ClampF(float g, float lo, float hi)
     return r;
 }
 /** @sly2-annot addr=0x1A1358
- * Purpose: jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, IsJtStuck
+ * Purpose: jts 4 per-frame update: smooth heading (SmoothAngle), timers, run pending callback, IsJtStuck
  *   escape
  * Info: proposed name UpdateJtActiveZap (T1); TU hurt
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
@@ -521,7 +521,7 @@ done:
         float g;
         v.q = s->po->vt[33].pfn((struct LO *)((char *)s->po + s->po->vt[33].d));
         g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
-        SetStepTargetHeading(s->po, RadSmooth__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
+        SetStepTargetHeading(s->po, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
         if (0.25f < D_002DDED0.t - s->x8 && s->po->x208)
             RunJtHurtCallback(s);
         else if (IsJtStuck(s->po, 0, s->x8))
@@ -1450,7 +1450,7 @@ int ProbeStepplayerSurface(struct P *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
 void AddSoWaterAcceleration(struct P *p,void *o);
 qword GetLoWorldPos(struct P *p);
-float GSmoothA__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
+float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
 void AddSoAcceleration(struct P *p,qword v);
 static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
 static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
@@ -1460,7 +1460,7 @@ static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(
 static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v),"j"(k));return r; }
 /** @sly2-annot addr=0x1A28B0
  * Purpose: STEPPLAYER vt72 (shared by JT/Murray): in water/vertical states apply water current
- *   (CalculateWaterCurrent) and buoyancy (GSmoothA, AddSoVelocity); else SO slot72 0x2297F8
+ *   (CalculateWaterCurrent) and buoyancy (SmoothValueWithAccel, AddSoVelocity); else SO slot72 0x2297F8
  * Info: proposed name ResolveStepplayerXaContact (T2); class STEPPLAYER slot72; TU hurt
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
@@ -1494,7 +1494,7 @@ void ResolveStepplayerWaterContact(struct P *player,void *o)
   accel.q=v;
   origin.q=GetLoWorldPos(player);
   clock=&D_002DDED0;
-  GSmoothA__FffffP4SMPAPf(origin.f[2]+player->height10A0,vel.f[2]-dir.f[2],pos.f[2],clock->dt,&player->smp10A8,&z);
+  SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->height10A0,vel.f[2]-dir.f[2],pos.f[2],clock->dt,&player->smp10A8,&z);
   g=(z-vel.f[2])/clock->dt-player->xE8->v80.f[2];
   accel.f[2]=accel.f[2]>g?accel.f[2]:g;
   AddSoAcceleration(player,accel.q);

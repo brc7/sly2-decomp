@@ -68,8 +68,8 @@ extern "C"{
 qword GetLoWorldPos(void*);
 M4*GetLoWorldMatrix(void*);
 qword GetXfVelocity(void*,void*,qword);
-float func_0011E290(qword,qword,qword*,qword*);
-float GSmoothA__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
+float SplitVectorAlongAxis(qword,qword,qword*,qword*);
+float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
 M3 BuildRotationMatrixFromVector(qword);
 void AnticipateJtForce(NODE*,NODE*,qword*,float*,DELTA*);
 qword GetSoImpulseLinearDelta(NODE*,qword);
@@ -80,9 +80,9 @@ void AccelSoTowardMatBounded(JT*,M3P*,float*);
 M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 M3P BuildAxisAngleRotationMatrix(qword,float);
 qword DecomposeRotationMatrixToEuler(M3P*);
-void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
+void GetJtHangHeading__FP2JTPf(JT*,float*);float NormalizeAngle__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
-float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ANIMATION*);float GLimitAbs__Fff(float,float);
+float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ANIMATION*);float ClampAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
 void VECTOR_opAssign(qword*,qword);
 void __ml__FRC7MATRIX4T0(M4*,void*,IKJ*);
@@ -297,7 +297,7 @@ static inline qword NormalizeVec(qword v,qword fallback){qword len=SqrtVec(VuDot
 static inline CLOCK*Addr(CLOCK*p){return p;}
 static inline qword AddScaledVec2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
 /** @sly2-annot addr=0x18FC60
- * Purpose: Compute swing acceleration while hanging from a hook (pendulum around the HND, GSmoothA on angle,
+ * Purpose: Compute swing acceleration while hanging from a hook (pendulum around the HND, SmoothValueWithAccel on angle,
  *   LoadRotateMatrix) and call AnticipateJtForce
  * Info: proposed name CalculateJtHangAccel (T1); TU hang
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
@@ -317,7 +317,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     float distance = LaneXKeepVf(length);
     U relative, perpendicular, parallel;
     relative.q = VuSubRef(GetVelocityOf(jt), anchorVelocity.q);
-    float radial = func_0011E290(relative.q, axis.q, &parallel.q, &perpendicular.q);
+    float radial = SplitVectorAlongAxis(relative.q, axis.q, &parallel.q, &perpendicular.q);
     U firstAxis, angularFirst;
     firstAxis.q = NormalizeVec(CrossVec(axis.q, perpendicular.q), D_002A2DA0.q);
     float ratio = LengthOf(perpendicular.q) / distance;
@@ -335,7 +335,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         bias = D_002BF50C;
     U angular, parallelAngular, perpendicularAngular;
     angular.q = AddScaledVec(angularFirst.q, angularSecond.q, VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt));
-    func_0011E290(angular.q, anchorBasis.r[1].q, &parallelAngular.q, &perpendicularAngular.q);
+    SplitVectorAlongAxis(angular.q, anchorBasis.r[1].q, &parallelAngular.q, &perpendicularAngular.q);
     angular.q = CombineVec(parallelAngular.q, perpendicularAngular.q, VuFloat(drag * Addr(&D_002DDED0)->dt + 1.0f),
                         VuFloat(bias * Addr(&D_002DDED0)->dt + 1.0f));
     if ((jt->state == 0 || jt->state == 2) && D_002DDED0.t - jt->changed < D_002BF510) {
@@ -358,7 +358,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         angular.q = AddScaledVec(angular.q, anchorBasis.r[1].q, VuFloat(amount));
     }
     float speedOut;
-    float next = GSmoothA__FffffP4SMPAPf(distance, radial, D_002BF544 - jt->target->property, Addr(&D_002DDED0)->dt,
+    float next = SmoothValueWithAccel__FffffP4SMPAPf(distance, radial, D_002BF544 - jt->target->property, Addr(&D_002DDED0)->dt,
                                          &D_002BF530, &speedOut);
     angular.q = ScaleVecX(angular.q, VuFloat(MinOf(D_002BF544, distance) / MaxOf(D_002BF540, next)));
     U velocity;
@@ -510,9 +510,9 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     int near = 0, far = 0;
     GetJtHangHeading__FP2JTPf(jt, &w.heading);
     if (jt->flipped)
-        w.heading = RadNormalize__Ff(w.heading + 3.1415927410125732421875f);
+        w.heading = NormalizeAngle__Ff(w.heading + 3.1415927410125732421875f);
     SetStepTargetHeading(jt, w.heading);
-    float inputDifference = RadNormalize__Ff(jt->input->angle - jt->angle);
+    float inputDifference = NormalizeAngle__Ff(jt->input->angle - jt->angle);
     if (jt->input->amount > 0.3f) {
         float d = Abs(inputDifference);
         if (d < 1.0471975803375244140625f) {
@@ -571,7 +571,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     (void)func_0011B500_out(rotationOutput, axis, yaw);
     w.matrix = w.returned;
     w.local.q = Local(w.matrix, w.direction.q);
-    float angle = RadNormalize__Ff(atan2f(w.local.f[2], w.local.f[0]) - 1.57079637050628662109375f);
+    float angle = NormalizeAngle__Ff(atan2f(w.local.f[2], w.local.f[0]) - 1.57079637050628662109375f);
     int next = jt->state;
     switch (next) {
     case 0:
@@ -668,8 +668,8 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
         break;
     }
     }
-    jt->activeBlend = GSmooth__FfffP3SMPPf(jt->activeBlend, activeTarget, D_002DDED0.dt, &D_002BF570, 0);
-    jt->speedBlend = GSmooth__FfffP3SMPPf(jt->speedBlend, speedTarget, D_002DDED0.dt, &D_002BF580, 0);
+    jt->activeBlend = SmoothValue__FfffP3SMPPf(jt->activeBlend, activeTarget, D_002DDED0.dt, &D_002BF570, 0);
+    jt->speedBlend = SmoothValue__FfffP3SMPPf(jt->speedBlend, speedTarget, D_002DDED0.dt, &D_002BF580, 0);
     float active = jt->activeBlend, speed = jt->speedBlend;
     float idle = 1.0f - active;
     float combined = active * speed;
@@ -681,7 +681,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     float steering = Clamp(angle / D_002BF58C, -1.0f, 1.0f);
     float target = jt->animation->gain * (steering + 1.0f);
     target *= 0.5f;
-    jt->curve->slope = GLimitAbs__Fff((target - jt->curve->value) / D_002DDED0.dt, D_002BF590);
+    jt->curve->slope = ClampAbs__Fff((target - jt->curve->value) / D_002DDED0.dt, D_002BF590);
 }
 
 typedef char final_offset_0_0[FIELD_OFFSET(VTE,delta)==0?1:-1];

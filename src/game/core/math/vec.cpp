@@ -26,7 +26,7 @@ extern qwordi D_002A2DC0;
 extern qwordi D_002A2DD0;
 extern qwordi D_002A2DF0;
 extern qwordi D_002A2E00;
-float RadNormalize__Ff(float g);
+float NormalizeAngle__Ff(float g);
 float acosf(float g);
 float atan2f(float y, float x);
 float fabsf(float);
@@ -34,7 +34,7 @@ qwordi GetNormalVector(qwordi v);
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 void FindClosestPointBetweenLines(qwordi a, qwordi b, qwordi c, qwordi pos, float *puv, float *pdist, qwordi *pnormal);
 }
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 //////// 0x11E1A0 SetVectorCylind
 namespace V_SetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
@@ -88,8 +88,8 @@ extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 }
 }
 
-//////// 0x11E290 func_0011E290
-namespace V_func_0011E290 {
+//////// 0x11E290 SplitVectorAlongAxis
+namespace V_SplitVectorAlongAxis {
 typedef int qword __attribute__((mode(TI)));
 /** @sly2-annot addr=0x11E290
  * Purpose: Scalar projection of a on b; optionally returns parallel and perpendicular components
@@ -99,7 +99,7 @@ typedef int qword __attribute__((mode(TI)));
  * @end-sly2-annot */
 // Splits a along the unit vector b: returns a . b, and optionally the parallel part (a . b) b and the
 // perpendicular part a - (a . b) b.
-extern "C" float func_0011E290(qword a, qword b, qword *outParallel, qword *outPerpendicular)
+extern "C" float SplitVectorAlongAxis(qword a, qword b, qword *outParallel, qword *outPerpendicular)
 {
     qword d, p;
     float g;
@@ -243,9 +243,9 @@ extern "C" qword GetNormalVector(qword v)
 }
 }
 
-//////// 0x11E4B0 RadBetweenVectors
-namespace V_RadBetweenVectors {
-/* RadBetweenVectors (Claude agent): angle between vectors + optional normalized axis. Length's float comes from an mtc1 asm fed by gcc's own qmfc2 ("r"(qword)), and the axis length vector (pinned vf1) is passed as a GPR qword to the qmtc2, so the move is shared like the original. */
+//////// 0x11E4B0 AngleBetweenVectors
+namespace V_AngleBetweenVectors {
+/* AngleBetweenVectors (Claude agent): angle between vectors + optional normalized axis. Length's float comes from an mtc1 asm fed by gcc's own qmfc2 ("r"(qword)), and the axis length vector (pinned vf1) is passed as a GPR qword to the qmtc2, so the move is shared like the original. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 static inline float Length(qword v)
@@ -288,14 +288,14 @@ static inline qword Scale(qword v, qword g)
 }
 /** @sly2-annot addr=0x11E4B0
  * Purpose: Angle between two vectors (acosf) and optional normalised rotation axis
- * Info: proposed name RadBetweenVectors (T1); TU vec
+ * Info: proposed name AngleBetweenVectors (T1); TU vec
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Returns the angle between a and b (acos of the normalised dot product) and optionally the unit rotation axis
 // a x b.
-extern "C" float RadBetweenVectors(qword a, qword b, qword *outAxis)
+extern "C" float AngleBetweenVectors(qword a, qword b, qword *outAxis)
 {
     float la = Length(a);
     float lb = Length(b);
@@ -482,9 +482,9 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
     if (outPan)
-        *outPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
     if (outTilt)
-        *outTilt = RadNormalize__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
+        *outTilt = NormalizeAngle__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
 }
 }
 
@@ -521,9 +521,9 @@ extern "C" qword LimitVectorLength(qword v, float maxLength)
 }
 }
 
-//////// 0x11EA60 func_0011EA60
-namespace V_func_0011EA60 {
-/* func_0011EA60 (Claude agent, lane A28, 2026-10-24): from fresh9 (13). ba via a vsub without the "memory" clobber (qmtc2 b order), and every dot readback via F3, a mtc1 asm with an allocation-only "j"(q) input next to the "r"(q) one, so the dot result stays a VU pseudo and gcc emits the qmfc2 itself. No pins. */
+//////// 0x11EA60 ClosestPointsOfLines
+namespace V_ClosestPointsOfLines {
+/* ClosestPointsOfLines (Claude agent, lane A28, 2026-10-24): from fresh9 (13). ba via a vsub without the "memory" clobber (qmtc2 b order), and every dot readback via F3, a mtc1 asm with an allocation-only "j"(q) input next to the "r"(q) one, so the dot result stays a VU pseudo and gcc emits the qmfc2 itself. No pins. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 static inline qword Sub(qword a, qword b)
@@ -575,7 +575,7 @@ static inline float DotS(qword a, qword b)
 // Closest points of the infinite lines through a, b and c, d: writes the two line parameters to outParams[0..1]
 // and the unit common normal (oriented away from a towards c) to outNormal; returns 0 if the lines are parallel.
 // Used for edge/edge contacts (mark.cpp).
-extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *outParams, qword *outNormal)
+extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *outParams, qword *outNormal)
 {
     qword ca = Sub(c, a);
     qword ba = VuSub(b, a);
@@ -618,8 +618,8 @@ extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *outParam
 }
 }
 
-//////// 0x11EBB0 FIntersectRayTriangle
-namespace V_FIntersectRayTriangle {
+//////// 0x11EBB0 IntersectRayTriangle
+namespace V_IntersectRayTriangle {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
 static inline qword Cross(qword a, qword b)
@@ -653,13 +653,13 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 /** @sly2-annot addr=0x11EBB0
  * Purpose: Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v)
- * Info: proposed name FIntersectRayTriangle (T1); TU vec
+ * Info: proposed name IntersectRayTriangle (T1); TU vec
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
 // Ray/triangle intersection (Moller-Trumbore, determinant epsilon 1e-6): returns whether the ray from orig along
 // dir hits triangle v0 v1 v2, with the ray parameter in *outT and barycentrics in outUv.
-extern "C" int FIntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, qword v2, float *outT, float *outUv)
+extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, qword v2, float *outT, float *outUv)
 {
     V e1, e2, pvec, tvec, qvec;
     float det, inv, u, v, t;
@@ -768,7 +768,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 /* kept private: the shared GClamp (sly2/util.h) changes FindClosestPointOnLineSegment (60/62 off) */
-static inline float GClamp(float g, float lo, float hi)
+static inline float ClampFloat(float g, float lo, float hi)
 {
     if (g < lo) g = lo;
     else if (g > hi) g = hi;
@@ -791,7 +791,7 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
     qword e0 = VuSub(pos, p0);
     qword vd = VuDot(d, d);
     qword vn = VuDot(e0, d);
-    float t = GClamp(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
+    float t = ClampFloat(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
     if (outT)
         *outT = t;
     if (outPos || outDistance) {
@@ -836,7 +836,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
     if (outAngle)
-        *outAngle = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+        *outAngle = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
     if (outRadius) {
         qword d, l;
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v));
@@ -870,7 +870,7 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r
 extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *outLength)
 {
     if (outPan) {
-        *outPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
     }
     if (outTilt) {
         qword d, l;
@@ -878,7 +878,7 @@ extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *o
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v), "j"(v)); /* 2nd "j"(v) unused: allocation only (keeps v in memory) */
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         g = GetZ(v);
-        *outTilt = RadNormalize__Ff(atan2f(g, GetX(l)));
+        *outTilt = NormalizeAngle__Ff(atan2f(g, GetX(l)));
     }
     if (outLength) {
         qword d, one, l, t;
@@ -899,14 +899,14 @@ namespace V_PosSmooth {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DD0 (g_qwZero)
 // 0x0011F088 PosSmooth__FUxUxfP3SMPP6VECTOR  (T1258)
-// GSmooth for a position (a 128-bit qword): the distance from posCur to posTarget is what GSmooth eases to zero (psmp's pace, dt seconds), the direction stays.
+// SmoothValue for a position (a 128-bit qword): the distance from posCur to posTarget is what SmoothValue eases to zero (psmp's pace, dt seconds), the direction stays.
 // Returns the new position (posCur + dpos * (the distance moved / the distance)); *pv (optional) gets the velocity it arrives with, in the same direction
-// (dpos * (GSmooth's speed / the distance)). Closer than 0.0001: the position is posTarget and *pv is all zero (g_qwZero).
+// (dpos * (SmoothValue's speed / the distance)). Closer than 0.0001: the position is posTarget and *pv is all zero (g_qwZero).
 // Callers: STEPPLAYER::GetCpdefi 0x141640 (the focus offset at JT+0x1070 eases back to zero), UpdateJtAirInput (dposUnk1010).
 // What decided the match (T1258, search over spellings; the first draft, a plain qword dpos, was 4%): dpos is a VU_VECTOR4 VALUE returned by SubPos (a memory
-// temp) and qwDpos is a qword copy of it that every later use reads; the length is the dot product with the vector passed twice (QwLengthDot - with QwLength
+// temp) and qwDpos is a qword copy of it that every later use reads; the length is the dot product with the vector passed twice (LengthAsQword - with QwLength
 // it is 51%): that gives the pseudo enough references for the register allocator to keep it in vf3 with a caller-save (sqc2 / lqc2 sp+0x40) around the
-// GSmooth call, while the temp stays in memory (sp+0x30) for the reloads. Using dpos.qw again after the call, or without the copy, is 7%.
+// SmoothValue call, while the temp stays in memory (sp+0x30) for the reloads. Using dpos.qw again after the call, or without the copy, is 7%.
 #include "sly2/basic.h"
 struct VU_VECTOR4
 {
@@ -922,25 +922,25 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float GFromVf(qword qw)
+static inline float VfToFloat(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword QwLengthDot(qword v)
+static inline qword LengthAsQword(qword v)
 {
     qword qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
+static inline qword ScaleVectorByX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwRow), "j"(gScale.qw));
     return qw;
 }
-static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
+static inline qword AddScaledVector(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
@@ -962,22 +962,22 @@ static inline VU_VECTOR4 SubPos(qword a, qword b)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-// Moves posCur toward posTarget along the line between them by one GSmooth step (smoothParams over dt);
+// Moves posCur toward posTarget along the line between them by one SmoothValue step (smoothParams over dt);
 // optionally returns the resulting velocity. Returns the target (velocity 0) when within 1e-4 of it.
 extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothParams, VECTOR *outVelocity)
 {
     VU_VECTOR4 dpos = SubPos(posTarget, posCur);
     qword qwDpos = dpos.qw;
-    float sDist = GFromVf(QwLengthDot(qwDpos));
+    float sDist = VfToFloat(LengthAsQword(qwDpos));
     if (sDist > 0.0001f)
     {
         float svNext;
-        float sNext = GSmooth(0.0f, sDist, dt, smoothParams, &svNext);
+        float sNext = SmoothValue(0.0f, sDist, dt, smoothParams, &svNext);
         if (outVelocity != 0)
         {
-            *(qword *)outVelocity = QwMulX(qwDpos, VuFloat(svNext / sDist));
+            *(qword *)outVelocity = ScaleVectorByX(qwDpos, VuFloat(svNext / sDist));
         }
-        return QwAddScaled(posCur, qwDpos, VuFloat(sNext / sDist));
+        return AddScaledVector(posCur, qwDpos, VuFloat(sNext / sDist));
     }
     if (outVelocity != 0)
     {
@@ -987,8 +987,8 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 }
 }
 
-//////// 0x11F198 func_0011F198
-namespace V_func_0011F198 {
+//////// 0x11F198 GetCosineBetweenVectors
+namespace V_GetCosineBetweenVectors {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 static inline float Len(qword v)
@@ -1017,7 +1017,7 @@ static inline qword QF(float g) { U u; qword u_q; __asm__("mfc1 %0, %1" : "=r"(u
  * @end-sly2-annot */
 // Returns the cosine of the angle between a and b (dot / (|a| |b|)) as a quadword; 0 if either is shorter than
 // 1e-4.
-extern "C" qword func_0011F198(qword a, qword b)
+extern "C" qword GetCosineBetweenVectors(qword a, qword b)
 {
     float cosine, lengthB;
     cosine = Len(a);   /* |a| until the division */
