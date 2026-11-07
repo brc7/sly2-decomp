@@ -276,11 +276,10 @@ struct O *GetStepguardFromLo(struct O *p) {
 
 // 0x174920 InitBhvanim
 namespace M_InitBhvanim { extern "C" {
-struct S;
-struct S { char pad[0x30]; int state; int pad2[2]; int sgf; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHVANIM *p);
 // 0x174920: BHVANIM vtable slot 7 (OnPush): base, state -1, no guard flag (shared by BHV160).
-void InitBhvanim(struct S *behavior)
+void InitBhvanim(BHVANIM *behavior)
 {
     InitBhv(behavior);
     behavior->sgf = 0;
@@ -311,49 +310,44 @@ void StartBhvanim(struct S *behavior) {
 
 // 0x1749C0 SetBhvanimState
 namespace M_SetBhvanimState { extern "C" {
-struct CLOCK; struct A; struct B; struct E; struct O; struct S;
+struct CLOCK; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct A { char pad[0x74]; float duration; };
-struct B { char pad[0x1C]; float time; };
-struct E { int kind; struct A *aseg; struct B *asega; int flags; };
-struct O { char pad[0x1A4]; int animGroundFlag; char pad2[0xFD0 - 0x1A8]; char mover[0x20]; float walkPhase; float walkPhaseTime; };
-struct S { char pad[0x10]; struct O *guard; char pad2[0x1C]; int state; float stateTime; char pad3[8]; struct E *binding; };
-void SetStepguardMoverDriver(void *p, struct S *ps);
-void ResetStepguardMover(void *p, struct S *ps);
-int StepguardHasSgf(struct O *o, int n);
-void StartAnimBinding(struct E *e, struct O *o, int n, float g);
-void StopAnimBinding(struct E *e);
-void ClearBhvBusy(struct S *p);
+void SetStepguardMoverDriver(void *p, BHVANIM *ps);
+void ResetStepguardMover(void *p, BHVANIM *ps);
+int StepguardHasSgf(STEPGUARD *o, int n);
+void StartAnimBinding(ANIMBINDING *e, STEPGUARD *o, int n, float g);
+void StopAnimBinding(ANIMBINDING *e);
+void ClearBhvBusy(BHVANIM *p);
 // 0x1749C0: BHVANIM state switch: 0 becomes the mover's driver and starts the binding (continuing the walk cycle
 // phase for flag 9); 1 clears busy, saves the walk phase, stops the binding and releases the mover.
-void SetBhvanimState(struct S *behavior, int n) {
+void SetBhvanimState(BHVANIM *behavior, int n) {
     if (behavior->state == n) return;
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: {
         float f;
-        SetStepguardMoverDriver(behavior->guard->mover, behavior);
-        if (behavior->binding->kind == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING) && D_002DDED0.time == behavior->guard->walkPhaseTime)
-            f = behavior->binding->aseg->duration * behavior->guard->walkPhase;
+        SetStepguardMoverDriver((&((STEPGUARD *)behavior->owner)->mover), behavior);
+        if (behavior->binding->kind == 0 && StepguardHasSgf(((STEPGUARD *)behavior->owner), SGF_MOVING) && D_002DDED0.time == ((STEPGUARD *)behavior->owner)->walkPhaseTime)
+            f = behavior->binding->aseg->duration * ((STEPGUARD *)behavior->owner)->walkPhase;
         else
             f = 0.0f;
-        StartAnimBinding(behavior->binding, behavior->guard, behavior->binding->flags | 1, f);
+        StartAnimBinding(behavior->binding, ((STEPGUARD *)behavior->owner), behavior->binding->flags | 1, f);
         break;
     }
     case 1:
         ClearBhvBusy(behavior);
         if (behavior->binding) {
-            if (behavior->binding->kind == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
-                behavior->guard->walkPhase = behavior->binding->asega->time / behavior->binding->aseg->duration;
-                behavior->guard->walkPhaseTime = D_002DDED0.time;
+            if (behavior->binding->kind == 0 && StepguardHasSgf(((STEPGUARD *)behavior->owner), SGF_MOVING)) {
+                ((STEPGUARD *)behavior->owner)->walkPhase = behavior->binding->asega->time / behavior->binding->aseg->duration;
+                ((STEPGUARD *)behavior->owner)->walkPhaseTime = D_002DDED0.time;
             }
             StopAnimBinding(behavior->binding);
             behavior->binding = 0;
-            ResetStepguardMover(behavior->guard->mover, behavior);
+            ResetStepguardMover((&((STEPGUARD *)behavior->owner)->mover), behavior);
         }
-        behavior->guard->animGroundFlag = 0;
+        ((STEPGUARD *)behavior->owner)->unknown1A4 = 0;
         break;
     }
 }
@@ -371,13 +365,12 @@ void BHVANIM::Close()
 
 // 0x174B68 UpdateBhvanim
 namespace M_UpdateBhvanim { extern "C" {
-struct S;
-struct S { char pad[0x30]; int state; char pad2[0xC]; void *binding; };
-void UpdateBhv(struct S *p);
+
+void UpdateBhv(BHVANIM *p);
 int IsAnimBindingDone(void *p);
-void SetBhvanimState(struct S *p, int n);
+void SetBhvanimState(BHVANIM *p, int n);
 // 0x174B68: BHVANIM vtable slot 10 (Update): finishes (state 1) when the animation is done.
-void UpdateBhvanim(struct S *behavior) {
+void UpdateBhvanim(BHVANIM *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -659,12 +652,11 @@ int HandleBhvidleMessage(struct S *behavior, int msg, struct M *pm)
 
 // 0x1751C0 InitBhvstrike
 namespace M_InitBhvstrike { extern "C" {
-struct S;
-struct S { char pad[0x3C]; int sgf; };
-void InitBhvanim(struct S *p);
+
+void InitBhvanim(BHVSTRIKE *p);
 // 0x1751C0: BHVSTRIKE vtable slot 7 (OnPush): BHVANIM OnPush with the attacking flag (3, which broadcasts game
 // event 0x14).
-void InitBhvstrike(struct S *behavior)
+void InitBhvstrike(BHVSTRIKE *behavior)
 {
     InitBhvanim(behavior);
     behavior->sgf = 3;
@@ -678,7 +670,7 @@ void BHVSTRIKE::Start()
 {
     BHVANIMV *behavior = (BHVANIMV *)this;
     ANIMREF *panim;
-    ((STEPGUARD *)behavior->owner)->unknownF3C = 1;
+    ((STEPGUARD *)behavior->owner)->isEngagedBusy = 1;
     StartBhvanim(behavior);
     panim = behavior->panim;
     if (panim->kind == 2) {
@@ -690,38 +682,34 @@ void BHVSTRIKE::Start()
 
 // 0x175258 UpdateBhvstrike
 namespace M_UpdateBhvstrike { extern "C" {
-struct T; struct S;
+
 typedef int qword __attribute__((mode(TI)));
-struct T { int a, b; void *payload; };
-struct S { char pad[0x38]; void *lookAt; int pad2; struct T *binding; char pad3[0xC]; int isLeapEnabled; };
-void UpdateBhvanim(struct S *p);
+void UpdateBhvanim(BHVSTRIKE *p);
 qword GetLoWorldPos(void *p);
 void SetLeapTarget(void *p, qword q);
 // 0x175258: BHVSTRIKE vtable slot 10 (Update): BHVANIM update; while the leap is enabled keeps its target on the
 // victim.
-void UpdateBhvstrike(struct S *behavior)
+void UpdateBhvstrike(BHVSTRIKE *behavior)
 {
     UpdateBhvanim(behavior);
-    if (!behavior->binding || !behavior->binding->payload)
+    if (!behavior->binding || !behavior->binding->asega)
         behavior->isLeapEnabled = 0;
     if (behavior->isLeapEnabled) {
-        struct T *t = behavior->binding;
-        SetLeapTarget(t->payload, GetLoWorldPos(behavior->lookAt));
+        ANIMBINDING *t = behavior->binding;
+        SetLeapTarget(t->asega, GetLoWorldPos(behavior->lookAt));
     }
 }
 } } // namespace M_UpdateBhvstrike
 
 // 0x1752C0 CloseBhvstrike
 namespace M_CloseBhvstrike { extern "C" {
-struct T; struct S;
-struct T { char pad[0xF3C]; int isEngagedBusy; };
-struct S { char pad[0x10]; struct T *guard; };
-void CloseBhvanim(struct S *p);
+
+void CloseBhvanim(BHVSTRIKE *p);
 // 0x1752C0: BHVSTRIKE vtable slot 9 (Close): BHVANIM Close and clears engaged-busy.
-void CloseBhvstrike(struct S *behavior)
+void CloseBhvstrike(BHVSTRIKE *behavior)
 {
     CloseBhvanim(behavior);
-    behavior->guard->isEngagedBusy = 0;
+    ((STEPGUARD *)behavior->owner)->isEngagedBusy = 0;
 }
 } } // namespace M_CloseBhvstrike
 
@@ -751,15 +739,14 @@ int HandleBhvstrikeMessage(struct S *behavior, int msg, struct M *pm) {
 
 // 0x1753D8 InitBhvattack
 namespace M_InitBhvattack { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x20]; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHVATTACK *p);
 void AddStepguardSgf(void *p, int n);
 // 0x1753D8: BHVATTACK vtable slot 7 (OnPush): raises flag 0x18 (attack in progress), state -1.
-void InitBhvattack(struct S *behavior)
+void InitBhvattack(BHVATTACK *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, SGF_ATTACK);
+    AddStepguardSgf(behavior->owner, SGF_ATTACK);
     behavior->state = -1;
 }
 } } // namespace M_InitBhvattack
@@ -849,15 +836,14 @@ void SetBhvattackState(struct S *behavior, int n) {
 
 // 0x175600 UpdateBhvattack
 namespace M_UpdateBhvattack { extern "C" {
-struct S;
-struct S { char pad[0x18]; void *child; char pad2[0x18]; int state; char pad3[8]; int isHitConfirmed; };
-void UpdateBhv(struct S *p);
-int IsBhvBusyAbove(struct S *p);
+
+void UpdateBhv(BHVATTACK *p);
+int IsBhvBusyAbove(BHVATTACK *p);
 int IsBhvanimDone(void *p);
-void SetBhvattackState(struct S *p, int n);
+void SetBhvattackState(BHVATTACK *p, int n);
 // 0x175600: BHVATTACK vtable slot 10 (Update): after the strike, goes to the follow-through if the victim confirmed
 // the hit, else finishes.
-void UpdateBhvattack(struct S *behavior) {
+void UpdateBhvattack(BHVATTACK *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -866,10 +852,10 @@ void UpdateBhvattack(struct S *behavior) {
         switch (s) {
         case 0:
             if (behavior->isHitConfirmed) SetBhvattackState(behavior, 1);
-            else if (IsBhvanimDone(behavior->child)) SetBhvattackState(behavior, -1);
+            else if (IsBhvanimDone(behavior->pbhvNext)) SetBhvattackState(behavior, -1);
             break;
         case 1:
-            if (IsBhvanimDone(behavior->child)) SetBhvattackState(behavior, -1);
+            if (IsBhvanimDone(behavior->pbhvNext)) SetBhvattackState(behavior, -1);
             break;
         }
     } while (s != behavior->state);
@@ -903,15 +889,14 @@ extern "C" int IsBhvattackDone(BHVATTACKV *behavior)
 
 // 0x175758 InitBhvcombat
 namespace M_InitBhvcombat { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x20]; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHVCOMBAT *p);
 void AddStepguardSgf(void *p, int n);
 // 0x175758: BHVCOMBAT vtable slot 7 (OnPush): raises flag 0x1D (engaged), state -1.
-void InitBhvcombat(struct S *behavior)
+void InitBhvcombat(BHVCOMBAT *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, SGF_COMBAT);
+    AddStepguardSgf(behavior->owner, SGF_COMBAT);
     behavior->state = -1;
 }
 } } // namespace M_InitBhvcombat
@@ -1294,20 +1279,18 @@ extern "C" int TryBhvcombatChooseAttack(BHVCOMBATV *behavior)
 
 // 0x176060 HasBhvcombatLostTarget
 namespace M_FBhvcombatLostTarget { extern "C" {
-struct T; struct S;
-struct T { char pad[0x3CC]; void *engagement; int pad2; int unknown3D4; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; int isHitConfirmed; };
+
 int IsTargetRecordStale(void *p);
 // 0x176060: True if the target is lost: no hit confirmed and the shared target record is stale.
-int HasBhvcombatLostTarget(struct S *behavior)
+int HasBhvcombatLostTarget(BHVCOMBAT *behavior)
 {
     int f;
     if (behavior->isHitConfirmed)
         f = 0;
-    else if (behavior->guard->unknown3D4)
+    else if (((STEPGUARD *)behavior->owner)->unknown3D4)
         f = 0;
     else
-        f = IsTargetRecordStale(behavior->guard->engagement);
+        f = IsTargetRecordStale(((STEPGUARD *)behavior->owner)->pvEngage);
     return f;
 }
 } } // namespace M_FBhvcombatLostTarget
@@ -3909,11 +3892,10 @@ void CloseBhvKnockdown(struct S *behavior)
 
 // 0x179868 InitBhvko
 namespace M_InitBhvko { extern "C" {
-struct S;
-struct S { char pad[0x3C]; int sgf; };
-void InitBhvanim(struct S *p);
+
+void InitBhvanim(BHVKO *p);
 // 0x179868: BHVKO vtable slot 7 (OnPush): BHVHIT OnPush with the KO flag (7).
-void InitBhvko(struct S *behavior)
+void InitBhvko(BHVKO *behavior)
 {
     InitBhvanim(behavior);
     behavior->sgf = 7;
@@ -4025,42 +4007,39 @@ void BHVKO::Close()
 
 // 0x179A58 InitBhvpatrol
 namespace M_InitBhvpatrol { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; float walkEndTime; float pauseEndTime; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHVPATROL *p);
 void AddStepguardSgf(void *p, int n);
 // 0x179A58: BHVPATROL vtable slot 7 (OnPush): raises flag 0x1E (patrolling), timers off.
-void InitBhvpatrol(struct S *behavior)
+void InitBhvpatrol(BHVPATROL *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
     behavior->walkEndTime = behavior->pauseEndTime = 3.40282346638528859812e+38f;
-    AddStepguardSgf(behavior->guard, SGF_PATROL);
+    AddStepguardSgf(behavior->owner, SGF_PATROL);
 }
 } } // namespace M_InitBhvpatrol
 
 // 0x179AA0 StartBhvpatrol
 namespace M_StartBhvpatrol { extern "C" {
-struct T; struct S;
+
 typedef int qword __attribute__((mode(TI)));
-struct T { char pad[0x2DC]; int scriptResumePoint; char pad2[8]; int patrolScript; int altPatrolScript; char pad3[0xFE8 - 0x2F0]; int grfCapability; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; int script; };
-void StartBhv(struct S *p);
-void SetBhvpatrolState(struct S *p, int n);
+void StartBhv(BHVPATROL *p);
+void SetBhvpatrolState(BHVPATROL *p, int n);
 qword GetLoWorldPos(void *p);
 void ChooseGuardScriptNearestCommand(int n, qword q, void *pv);
-int IsStepguardHandsOff(struct T *t);
+int IsStepguardHandsOff(STEPGUARD *t);
 // 0x179AA0: BHVPATROL vtable slot 8 (Start): takes the patrol script (or the alternate one with capability 2),
 // resumes at the nearest script point, then walks (0), stands (2) or is hands-off (3).
-void StartBhvpatrol(struct S *behavior) {
-    struct T *t;
+void StartBhvpatrol(BHVPATROL *behavior) {
+    STEPGUARD *t;
     StartBhv(behavior);
-    t = behavior->guard;
+    t = ((STEPGUARD *)behavior->owner);
     if (t->patrolScript) behavior->script = t->patrolScript;
-    else if (t->grfCapability & 2) behavior->script = t->altPatrolScript;
+    else if (t->capabilityFlags & 2) behavior->script = t->altPatrolScript;
     else { behavior->script = 0; SetBhvpatrolState(behavior, 2); return; }
-    if (behavior->guard->scriptResumePoint) ChooseGuardScriptNearestCommand(behavior->script, GetLoWorldPos(behavior->guard), &behavior->guard->scriptResumePoint);
-    if (IsStepguardHandsOff(behavior->guard)) SetBhvpatrolState(behavior, 3); else SetBhvpatrolState(behavior, 0);
+    if (((STEPGUARD *)behavior->owner)->scriptResumePoint) ChooseGuardScriptNearestCommand(behavior->script, GetLoWorldPos(((STEPGUARD *)behavior->owner)), &((STEPGUARD *)behavior->owner)->scriptResumePoint);
+    if (IsStepguardHandsOff(((STEPGUARD *)behavior->owner))) SetBhvpatrolState(behavior, 3); else SetBhvpatrolState(behavior, 0);
 }
 } } // namespace M_StartBhvpatrol
 
@@ -4076,21 +4055,20 @@ void BHVPATROL::Close()
 
 // 0x179BA0 UpdateBhvpatrol
 namespace M_UpdateBhvpatrol { extern "C" {
-struct CLOCK; struct S;
+struct CLOCK; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; char pad4[4]; int script; };
-void UpdateBhv(struct S *p);
+void UpdateBhv(BHVPATROL *p);
 int IsStepguardHandsOff(void *p);
-int IsBhvBusyAbove(struct S *p);
-void SetBhvpatrolState(struct S *p, int n);
+int IsBhvBusyAbove(BHVPATROL *p);
+void SetBhvpatrolState(BHVPATROL *p, int n);
 int IsBhvScriptDone(void *p);
 // 0x179BA0: BHVPATROL vtable slot 10 (Update): alternates walking the script for a random time and standing idle
 // for a random time; stands forever when the script ends; pauses while hands-off.
-void UpdateBhvpatrol(struct S *behavior) {
+void UpdateBhvpatrol(BHVPATROL *behavior) {
     int f, s;
     UpdateBhv(behavior);
-    f = IsStepguardHandsOff(behavior->guard);
+    f = IsStepguardHandsOff(behavior->owner);
     while (!IsBhvBusyAbove(behavior)) {
         s = behavior->state;
         switch (s) {
@@ -4104,7 +4082,7 @@ void UpdateBhvpatrol(struct S *behavior) {
         case 0:
             if (f) SetBhvpatrolState(behavior, 3);
             else if (D_002DDED0.time > behavior->walkEndTime) SetBhvpatrolState(behavior, 1);
-            else if (IsBhvScriptDone(behavior->child)) { behavior->script = 0; SetBhvpatrolState(behavior, 2); }
+            else if (IsBhvScriptDone(behavior->pbhvNext)) { behavior->script = 0; SetBhvpatrolState(behavior, 2); }
             break;
         case 3:
             if (!f) {
@@ -4173,44 +4151,40 @@ void SetBhvpatrolState(struct S *behavior, int n) {
 
 // 0x179E80 ArmBhvpatrolWalkTimer
 namespace M_ArmBhvpatrolWalkTimer { extern "C" {
-struct CLOCK; struct T; struct S;
+struct CLOCK; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct T { char pad[0x2CC]; float walkTimeMin; float walkTimeMax; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; float walkEndTime; };
 float RandomFloatInRange__Fff(float a, float b);
 // 0x179E80: Arms the patrol walk timer from the guard's walk-time range (FLT_MAX = forever).
-void ArmBhvpatrolWalkTimer(struct S *behavior)
+void ArmBhvpatrolWalkTimer(BHVPATROL *behavior)
 {
     if (behavior->walkEndTime < 3.40282346638528859812e+38f)
         return;
-    if (behavior->guard->walkTimeMin == 3.40282346638528859812e+38f)
+    if (((STEPGUARD *)behavior->owner)->walkTimeMin == 3.40282346638528859812e+38f)
         behavior->walkEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.time;
-        behavior->walkEndTime = t + RandomFloatInRange__Fff(behavior->guard->walkTimeMin, behavior->guard->walkTimeMax);
+        behavior->walkEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->walkTimeMin, ((STEPGUARD *)behavior->owner)->walkTimeMax);
     }
 }
 } } // namespace M_ArmBhvpatrolWalkTimer
 
 // 0x179EF8 ArmBhvpatrolPauseTimer
 namespace M_ArmBhvpatrolPauseTimer { extern "C" {
-struct CLOCK; struct T; struct S;
+struct CLOCK; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct T { char pad[0x2D4]; float pauseTimeMin; float pauseTimeMax; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x20]; float pauseEndTime; };
 float RandomFloatInRange__Fff(float a, float b);
 // 0x179EF8: Arms the patrol pause timer from the guard's pause-time range.
-void ArmBhvpatrolPauseTimer(struct S *behavior)
+void ArmBhvpatrolPauseTimer(BHVPATROL *behavior)
 {
     if (behavior->pauseEndTime < 3.40282346638528859812e+38f)
         return;
-    if (behavior->guard->pauseTimeMin == 3.40282346638528859812e+38f)
+    if (((STEPGUARD *)behavior->owner)->pauseTimeMin == 3.40282346638528859812e+38f)
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.time;
-        behavior->pauseEndTime = t + RandomFloatInRange__Fff(behavior->guard->pauseTimeMin, behavior->guard->pauseTimeMax);
+        behavior->pauseEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->pauseTimeMin, ((STEPGUARD *)behavior->owner)->pauseTimeMax);
     }
 }
 } } // namespace M_ArmBhvpatrolPauseTimer
@@ -4456,14 +4430,13 @@ void UpdateBhvleap(struct S *behavior)
 
 // 0x17A468 AdjustBhvleapAttachPoint
 namespace M_func_0017A468 { extern "C" {
-struct B; struct C; struct A; struct O;
+struct B; struct C; struct O;
 typedef int qword __attribute__((mode(TI)));
 struct B { char pad[0x90]; qword v; };
 struct C { char pad[0x30]; qword v; };
-struct A { char pad[0x60]; struct C *xfRoot; char pad2[0xF90 - 0x64]; struct B *attachPoint; };
 struct O {
     char pad[0x10];
-    struct A *guard;
+    STEPGUARD *guard;
     char pad2[0x50 - 0x14];
     qword landingPoint;
     char pad3[0x70 - 0x60];
@@ -4472,12 +4445,12 @@ struct O {
 // 0x17A468: Offsets the leap landing point by the guard's attach-point offset in the attach basis.
 void AdjustBhvleapAttachPoint(struct O *behavior)
 {
-    struct A *a = behavior->guard;
+    STEPGUARD *a = behavior->guard;
     qword *attachBasis = behavior->attachBasis;
     qword d, t;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(behavior->landingPoint), "j"(a->xfRoot->v));
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(behavior->landingPoint), "j"(((struct C *)a->rootTransform)->v));
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(t) : "j"(a->attachPoint->v), "j"(attachBasis[0]), "j"(attachBasis[1]), "j"(attachBasis[2]));
+            : "=j"(t) : "j"(((struct B *)a->attachPoint)->v), "j"(attachBasis[0]), "j"(attachBasis[1]), "j"(attachBasis[2]));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(d), "j"(t));
     behavior->landingPoint = d;
 }
@@ -4542,12 +4515,11 @@ void CloseBhvSleep(struct S *behavior)
 
 // 0x17A5B0 SetBhvSleepState
 namespace M_func_0017A5B0 { extern "C" {
-struct CLOCK; struct U; struct T; struct S;
+struct CLOCK; struct U; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct U { int kind; int pad; void *payload; };
-struct T { char pad[0xE7C]; float sleepTimeMin; float sleepTimeMax; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct U *binding; char pad3[0xC]; int state; float unknown54; float wakeTime; };
+struct S { char pad[0x10]; STEPGUARD *guard; char pad2[0x2C]; struct U *binding; char pad3[0xC]; int state; float unknown54; float wakeTime; };
 void SetSmaGoal(void *p, int n);
 float RandomFloatInRange__Fff(float a, float b);
 // 0x17A5B0: Sleep behaviour sub-state: 0 asleep (state machine goal 0x44, arms the wake timer), 1 waking up (goal
@@ -4690,13 +4662,12 @@ void UpdateBhvThrown(struct S *behavior) {
 
 // 0x17A8C8 SetBhvThrownState
 namespace M_func_0017A8C8 { extern "C" {
-struct CLOCK; struct VTE; struct O; struct T; struct S;
+struct CLOCK; struct VTE; struct O; struct S;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
-struct T { char pad[0x32C]; int isInvulnerable32C; };
-struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
+struct S { char pad[0x10]; STEPGUARD *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
 void PopBhv(void *p);
 void ClearBhvBusy(struct S *p);
 struct O *PushStepBehavior(void *p, int n);
@@ -4924,7 +4895,7 @@ void UpdateBhvjuggledHoldAct(struct S *behavior) {
 
 // 0x17AC90 UpdateBhvjuggled
 namespace M_UpdateBhvjuggled { extern "C" {
-struct CLOCK; struct VTE; struct C; struct B; struct A; struct Y; struct X; struct S; struct OUT;
+struct CLOCK; struct VTE; struct C; struct B; struct A; struct Y; struct X; struct OUT;
 // Update the movement-state controller.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
@@ -4937,11 +4908,10 @@ struct B { char pad[0x90]; struct C *currentAct; };
 struct A { char pad[0xC]; struct VTE *vt; char pad2[0x58 - 0x10]; struct B *unknown58; char pad3[0x208 - 0x5C]; int isOnGround; };
 struct Y { char pad[0x60]; void *frame; };
 struct X { char pad[0x19A4]; struct Y *unknown19A4; };
-struct S { char pad[0x10]; struct A *guard; char pad2[0x50 - 0x14]; int state; float stateTime; int pad3; struct X *holder; int pad4; struct C *holdAct; };
 struct OUT { char pad[0x30]; qword v; };
-void UpdateBhvanim(struct S *p);
-void SetBhvjuggledState(struct S *p, int n);
-void UpdateBhvjuggledHoldAct(struct S *p);
+void UpdateBhvanim(BHVJUGGLED *p);
+void SetBhvjuggledState(BHVJUGGLED *p, int n);
+void UpdateBhvjuggledHoldAct(BHVJUGGLED *p);
 qword GetLoWorldPos(struct A *a);
 void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
 // Returns the frame object of the actor's +0x19A4 record.
@@ -4949,12 +4919,12 @@ static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknow
 // VU0 helper: z component of a vector.
 // 0x17AC90: BHVJUGGLED vtable slot 10 (Update): held/carried states 0-1, released/falling states 2-3 (until
 // landed), prediction states 4-5.
-void UpdateBhvjuggled(struct S *behavior) {
+void UpdateBhvjuggled(BHVJUGGLED *behavior) {
     qword v;
     int s;
     UpdateBhvanim(behavior);
     {
-        struct A *a = behavior->guard;
+        struct A *a = ((struct A *)behavior->owner);
         struct VTE *entry = &a->vt[33];
         v = ((qword (*)(void *))entry->pfn)((char *)a + entry->d);
     }
@@ -4963,9 +4933,9 @@ void UpdateBhvjuggled(struct S *behavior) {
         switch (s) {
         case 0:
         case 1:
-            if (behavior->state == 1 && behavior->guard->isOnGround) {
+            if (behavior->state == 1 && ((struct A *)behavior->owner)->isOnGround) {
                 SetBhvjuggledState(behavior, 3);
-            } else if (behavior->guard->unknown58->currentAct != behavior->holdAct || behavior->guard->unknown58->currentAct->endTime < D_002DDED0.time) {
+            } else if (((struct A *)behavior->owner)->unknown58->currentAct != ((struct C *)behavior->holdAct) || ((struct A *)behavior->owner)->unknown58->currentAct->endTime < D_002DDED0.time) {
                 SetBhvjuggledState(behavior, 2);
             } else if (QwordZ(v) < 0.0f && behavior->state == 0) {
                 SetBhvjuggledState(behavior, 1);
@@ -4974,7 +4944,7 @@ void UpdateBhvjuggled(struct S *behavior) {
             }
             break;
         case 2:
-            if (behavior->guard->isOnGround) SetBhvjuggledState(behavior, 3);
+            if (((struct A *)behavior->owner)->isOnGround) SetBhvjuggledState(behavior, 3);
             break;
         case 3:
             break;
@@ -4988,20 +4958,20 @@ void UpdateBhvjuggled(struct S *behavior) {
             register void*nullOutput __asm__("$7");
             register struct X*frameLink __asm__("$3");
             struct CLOCK *clock=&D_002DDED0;
-            a.q = GetLoWorldPos(behavior->guard);
+            a.q = GetLoWorldPos(((struct A *)behavior->owner));
             {
-                struct A *pa = behavior->guard;
+                struct A *pa = ((struct A *)behavior->owner);
                 struct VTE *entry = &pa->vt[33];
                 qword velocity = ((qword (*)(void *))entry->pfn)((char *)pa + entry->d);
                 dt=clock->deltaTime;
                 /* Preserve velocity and prepare the prediction inputs. */
-                __asm__("sq %4,%0\n\tdaddu %1,%z5,$zero\n\tdaddu %2,%z5,$zero\n\tlw %3,%6" : "=m"(b.q),"=&r"(nullOutput),"=&r"(nullSource),"=&r"(frameLink) : "r"(velocity),"J"(0),"m"(behavior->holder));
+                __asm__("sq %4,%0\n\tdaddu %1,%z5,$zero\n\tdaddu %2,%z5,$zero\n\tlw %3,%6" : "=m"(b.q),"=&r"(nullOutput),"=&r"(nullSource),"=&r"(frameLink) : "r"(velocity),"J"(0),"m"(((struct X *)behavior->holder)));
             }
             LoadIdentityMatrix4(Frame(frameLink), nullSource, &out, (struct OUT *)nullOutput, dt);
             t.q = out.v;
             t.f[2] += D_002BE6C8;
             tq = t.q;
-            c = GetLoWorldPos(behavior->guard);
+            c = GetLoWorldPos(((struct A *)behavior->owner));
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(tq), "j"(c));
             clock=(struct CLOCK*)*(int*)&clock->deltaTime;
             { qword ud_q; __asm__("qmtc2.ni %1, %0" : "=j"(ud_q) : "r"(clock)); ud.q = ud_q; }
@@ -5014,14 +4984,14 @@ void UpdateBhvjuggled(struct S *behavior) {
                 vel.f[2] = b.f[2];
             }
             {
-                struct A *pa = behavior->guard;
+                struct A *pa = ((struct A *)behavior->owner);
                 struct VTE *entry = &pa->vt[35];
                 ((void (*)(void *, qword))entry->pfn)((char *)pa + entry->d, vel.q);
             }
             break;
         }
         case 6:
-            if (behavior->guard->isOnGround) SetBhvjuggledState(behavior, -1);
+            if (((struct A *)behavior->owner)->isOnGround) SetBhvjuggledState(behavior, -1);
             break;
         }
     } while (behavior->state != s);
@@ -5037,7 +5007,6 @@ typedef char layout_B[(sizeof(struct B)==0x94)?1:-1];
 typedef char layout_A[(sizeof(struct A)==0x20C)?1:-1];
 typedef char layout_X[(sizeof(struct X)==0x19A8)?1:-1];
 typedef char layout_Y[(sizeof(struct Y)==0x64)?1:-1];
-typedef char layout_S[(sizeof(struct S)==0x68)?1:-1];
 typedef char layout_OUT[(sizeof(struct OUT)==0x40)?1:-1];
 typedef char layout_U_q[((unsigned)&((U*)0)->q==0)?1:-1];
 typedef char layout_U_f[((unsigned)&((U*)0)->f==0)?1:-1];
@@ -5052,17 +5021,12 @@ typedef char layout_A_control[((unsigned)&((struct A*)0)->unknown58==0x58)?1:-1]
 typedef char layout_A_active[((unsigned)&((struct A*)0)->isOnGround==0x208)?1:-1];
 typedef char layout_X_y[((unsigned)&((struct X*)0)->unknown19A4==0x19A4)?1:-1];
 typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->frame==0x60)?1:-1];
-typedef char layout_S_actor[((unsigned)&((struct S*)0)->guard==0x10)?1:-1];
-typedef char layout_S_state[((unsigned)&((struct S*)0)->state==0x50)?1:-1];
-typedef char layout_S_time[((unsigned)&((struct S*)0)->stateTime==0x54)?1:-1];
-typedef char layout_S_target[((unsigned)&((struct S*)0)->holder==0x5C)?1:-1];
-typedef char layout_S_control[((unsigned)&((struct S*)0)->holdAct==0x64)?1:-1];
 typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
 } } // namespace M_UpdateBhvjuggled
 
 // 0x17AF30 HandleBhvjuggledMessage
 namespace M_BHVJUGGLED_FHandleMessage { extern "C" {
-struct G; struct VTE; struct O; struct C; struct A; struct S; struct M; struct X;
+struct G; struct VTE; struct O; struct M; struct X;
 typedef int qword __attribute__((mode(TI)));
 struct G { char pad[0x4028]; void *hitNoise; };
 extern struct G D_003DD490;
@@ -5070,26 +5034,23 @@ extern void *D_002BE6D0[];
 extern int D_002BE6E8[];
 struct VTE { short d; short pad; void *pfn; };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct C { int pad; void *anim; void *payload; int flags; };
-struct A { char pad[0x33C]; int hp; };
-struct S { char pad[0x10]; struct A *guard; char pad2[0x2C]; struct C *binding; char pad3[0xC]; int state; int pad4; int hitCount; };
 struct M { int animation; int pad; int event; int kind; int amount; char pad2[0x30]; int reactFlags; };
 struct X { int a; int pad[7]; qword v; qword pad2; };
-int HandleBhvanimMessage(struct S *p, int msg, struct M *pm);
-int GetAnimBindingInstance(struct C *c);
-int IsAnimBindingDone(struct C *c);
-void StopAnimBinding(struct C *c);
-void StartAnimBinding(struct C *c, struct A *a, int fl, float g);
+int HandleBhvanimMessage(BHVJUGGLED *p, int msg, struct M *pm);
+int GetAnimBindingInstance(ANIMBINDING *c);
+int IsAnimBindingDone(ANIMBINDING *c);
+void StopAnimBinding(ANIMBINDING *c);
+void StartAnimBinding(ANIMBINDING *c, STEPGUARD *a, int fl, float g);
 float *FindAsegLabel(void *p, void *q);
 void SeekAsega(void *p, float a, float b, int n);
-void SetBhvjuggledState(struct S *p, int n);
+void SetBhvjuggledState(BHVJUGGLED *p, int n);
 struct O *FindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-qword GetLoWorldPos(struct A *a);
-void NewNoise(void *p, qword v, struct A *a);
+qword GetLoWorldPos(STEPGUARD *a);
+void NewNoise(void *p, qword v, STEPGUARD *a);
 // 0x17AF30: BHVJUGGLED vtable slot 13 (HandleMessage): BHVANIM events; ASEG event 0x3D resets the hit count; a
 // 0x200000 zap while held is an extra hit (animation seek, effect, hit value, noise).
-int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
+int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, struct M *pm) {
     if (HandleBhvanimMessage(behavior, msg, pm)) return 1;
     switch (msg) {
     case 9:
@@ -5103,23 +5064,23 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
             float g;
             struct G *pg;
             struct O *o;
-            struct A *a;
+            STEPGUARD *a;
             if (pm->kind != 0x200000) return 0;
             if (!(pm->reactFlags & 8)) return 0;
             if (!behavior->state) return 0;
             if (IsAnimBindingDone(behavior->binding)) {
                 StopAnimBinding(behavior->binding);
-                StartAnimBinding(behavior->binding, behavior->guard, behavior->binding->flags | 1, 0.0f);
+                StartAnimBinding(behavior->binding, ((STEPGUARD *)behavior->owner), behavior->binding->flags | 1, 0.0f);
             }
             behavior->hitCount++;
             g = 0.0f;
             i = 4; if (behavior->hitCount <= 3) i = behavior->hitCount;
             while (i > 0) {
-                float *r = FindAsegLabel(behavior->binding->anim, D_002BE6D0[i]);
+                float *r = FindAsegLabel(behavior->binding->aseg, D_002BE6D0[i]);
                 if (r) { g = *r; break; }
                 i--;
             }
-            SeekAsega(behavior->binding->payload, g, 1.0f, 0);
+            SeekAsega(behavior->binding->asega, g, 1.0f, 0);
             SetBhvjuggledState(behavior, 0);
             o = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
             if (o) {
@@ -5127,16 +5088,16 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
                 struct VTE *entry;
                 func_002333B4(&x, 0, sizeof x);
                 x.a = 5;
-                x.v = GetLoWorldPos(behavior->guard);
+                x.v = GetLoWorldPos(((STEPGUARD *)behavior->owner));
                 entry = &o->vt[0x33];
                 ((void (*)(void *, struct X *))entry->pfn)((char *)o + entry->d, &x);
             }
-            a = behavior->guard;
+            a = ((STEPGUARD *)behavior->owner);
             {
-                int m = a->hp + pm->amount;
-                a->hp = m < 5 ? 5 : m;
+                int m = a->hitPoints + pm->amount;
+                a->hitPoints = m < 5 ? 5 : m;
             }
-            NewNoise(D_003DD490.hitNoise, GetLoWorldPos(behavior->guard), behavior->guard);
+            NewNoise(D_003DD490.hitNoise, GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner));
             return 1;
         }
     }
@@ -5388,19 +5349,17 @@ extern "C" void SetBhvjuggledState(C *behavior, int next)
 
 // 0x17B578 GetBhvjuggledGroundProbeFlags
 namespace M_BHVJUGGLED_GrfGroundProbe { extern "C" {
-struct S;
-struct S { char pad[0x50]; int state; };
+
 // 0x17B578: BHVJUGGLED vtable slot 12 (ground-probe flags): 7 once landed (state 3), else 1.
-int GetBhvjuggledGroundProbeFlags(struct S *behavior) { return behavior->state != 3 ? 1 : 7; }
+int GetBhvjuggledGroundProbeFlags(BHVJUGGLED *behavior) { return behavior->state != 3 ? 1 : 7; }
 } } // namespace M_BHVJUGGLED_GrfGroundProbe
 
 // 0x17B590 InitBhvshoot
 namespace M_InitBhvshoot { extern "C" {
-struct S;
-struct S { char pad[0x30]; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHVSHOOT *p);
 // 0x17B590: BHVSHOOT vtable slot 7 (OnPush): state -1.
-void InitBhvshoot(struct S *behavior)
+void InitBhvshoot(BHVSHOOT *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
@@ -5443,19 +5402,17 @@ extern "C" void UpdateBhvshoot(BHVSTATE *behavior)
 
 // 0x17B690 HandleBhvshootMessage
 namespace M_BHVSHOOT_FHandleMessage { extern "C" {
-struct M; struct U; struct T; struct S;
+struct M; struct U; 
 struct M { int animation; int n4; int event; };
 struct U { char pad[0x40]; void *binding; };
-struct T { char pad[0xF60]; int firingWindow; };
-struct S { char pad[0x10]; struct T *guard; int pad2; struct U *child; char pad3[0x14]; int state; };
 int GetAnimBindingInstance(void *p);
-int HandleBhvMessage(struct S *p, int msg, struct M *pm);
+int HandleBhvMessage(BHVSHOOT *p, int msg, struct M *pm);
 // 0x17B690: BHVSHOOT vtable slot 13 (HandleMessage): ASEG events 0x31/0x32 open/close the firing window (+0xF60).
-int HandleBhvshootMessage(struct S *behavior, int msg, struct M *pm) {
-    if (msg == 9 && !behavior->state && behavior->child->binding && GetAnimBindingInstance(behavior->child->binding) == pm->animation) {
+int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, struct M *pm) {
+    if (msg == 9 && !behavior->state && ((struct U *)behavior->pbhvNext)->binding && GetAnimBindingInstance(((struct U *)behavior->pbhvNext)->binding) == pm->animation) {
         switch (pm->event) {
-        case 0x31: behavior->guard->firingWindow = 1; return 1;
-        case 0x32: behavior->guard->firingWindow = 0; return 1;
+        case 0x31: ((STEPGUARD *)behavior->owner)->firingWindow = 1; return 1;
+        case 0x32: ((STEPGUARD *)behavior->owner)->firingWindow = 0; return 1;
         }
     }
     return HandleBhvMessage(behavior, msg, pm);
@@ -6296,17 +6253,16 @@ void SetBhvEscortState(struct S *behavior, int n) {
 
 // 0x17CAC8 InitBhvrail
 namespace M_InitBhvrail { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int state; int pad3; float animSpeed; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHVRAIL *p);
 void AddStepguardSgf(void *p, int n);
 // 0x17CAC8: BHVRAIL vtable slot 7 (OnPush): raises flag 0x1B (on a rail), state -1.
-void InitBhvrail(struct S *behavior)
+void InitBhvrail(BHVRAIL *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
     behavior->animSpeed = 1.0f;
-    AddStepguardSgf(behavior->guard, SGF_ON_RAIL);
+    AddStepguardSgf(behavior->owner, SGF_ON_RAIL);
 }
 } } // namespace M_InitBhvrail
 
@@ -6330,52 +6286,50 @@ extern "C" void CloseBhvrail(BHVSTATE *behavior)
 
 // 0x17CB80 UpdateBhvrail
 namespace M_UpdateBhvrail { extern "C" {
-struct L; struct T; struct A; struct S; union V;
+struct L; struct T; union V;
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 extern float D_002BE74C;
 struct L { int pad[2]; void *asega; };
 struct T { char pad[0x40]; struct L *binding; };
-struct A { char pad[0xF84]; void *attachObject; float attachParam; int isMovingForward; char pad2[0xFD0 - 0xF90]; char mover[4]; };
-struct S { char pad[0x10]; struct A *guard; int pad2; struct T *child; char pad3[0x14]; int state; int pad4; float animSpeed; float goalParam; };
 union V { qword q; float f[4]; };
-void UpdateBhv(struct S *p);
+void UpdateBhv(BHVRAIL *p);
 qword GetLoWorldPos(void *p);
 float WrapShapeDistance(void *p, float f);
 void FindShapeClosestPointFromDistance(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt);
-int HasBhvrailArrived(struct S *p);
-void SetBhvrailState(struct S *p, int n);
+int HasBhvrailArrived(BHVRAIL *p);
+void SetBhvrailState(BHVRAIL *p, int n);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float f);
 // 0x17CB80: BHVRAIL vtable slot 10 (Update): walks along the attached rail shape toward the goal parameter; stands
 // on arrival.
-void UpdateBhvrail(struct S *behavior) {
+void UpdateBhvrail(BHVRAIL *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
         s = behavior->state;
         if (s == 0) {
-            struct A *a = behavior->guard;
+            STEPGUARD *a = ((STEPGUARD *)behavior->owner);
             void *q = a->attachObject;
             float t = a->attachParam;
             qword pos;
             union V v;
             a->isMovingForward = t < behavior->goalParam;
-            pos = GetLoWorldPos(behavior->guard);
-            FindShapeClosestPointFromDistance(q, WrapShapeDistance(q, behavior->guard->isMovingForward ? t + D_002BE74C : t - D_002BE74C), pos, 0, 0, &v, 0, &t);
-            behavior->guard->attachParam = t;
+            pos = GetLoWorldPos(((STEPGUARD *)behavior->owner));
+            FindShapeClosestPointFromDistance(q, WrapShapeDistance(q, ((STEPGUARD *)behavior->owner)->isMovingForward ? t + D_002BE74C : t - D_002BE74C), pos, 0, 0, &v, 0, &t);
+            ((STEPGUARD *)behavior->owner)->attachParam = t;
             if (HasBhvrailArrived(behavior)) {
                 SetBhvrailState(behavior, 1);
             } else {
-                if (behavior->guard->isMovingForward == 0) {
+                if (((STEPGUARD *)behavior->owner)->isMovingForward == 0) {
                     qword w = v.q;
                     U u;
                     { qword u_q; __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(-1.0f)); u.q = u_q; }
                     { qword v_q; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v_q) : "j"(w), "j"(u.q)); v.q = v_q; }
                 }
-                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(v.f[1], v.f[0]));
-                SetAsegaSpeed__FP5ASEGAf(behavior->child->binding->asega, behavior->animSpeed);
+                SetStepguardMoverRadTarget((&((STEPGUARD *)behavior->owner)->mover), atan2f(v.f[1], v.f[0]));
+                SetAsegaSpeed__FP5ASEGAf(((struct T *)behavior->pbhvNext)->binding->asega, behavior->animSpeed);
             }
         }
     } while (behavior->state != s);
@@ -6384,31 +6338,30 @@ void UpdateBhvrail(struct S *behavior) {
 
 // 0x17CD00 SetBhvrailState
 namespace M_SetBhvrailState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct VTE; struct O; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
-struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 // 0x17CD00: BHVRAIL state change: 0 walk animation (flag 9), 1 stand (flag 2).
-void SetBhvrailState(struct S *behavior, int n) {
+void SetBhvrailState(BHVRAIL *behavior, int n) {
     if (n == behavior->state) return;
-    PopBhv(behavior->childSlot);
+    PopBhv((&behavior->pbhvNext));
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+            struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
             o->sgf = 2;
             StartPushedBhv(o);
         }
         break;
     case 0:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+            struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
             o->sgf = 9;
             StartPushedBhv(o);
         }
@@ -6419,32 +6372,28 @@ void SetBhvrailState(struct S *behavior, int n) {
 
 // 0x17CDB8 SetBhvrailGoal
 namespace M_SetBhvrailGoal { extern "C" {
-struct T; struct S;
-struct T { char pad[0xF84]; void *attachObject; float attachParam; int isMovingForward; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x28]; float goalParam; };
+
 float GetShapeMaxDistance(void *p);
 float GetShapeMinDistance(void *p);
-void SetBhvrailState(struct S *p, int n);
+void SetBhvrailState(BHVRAIL *p, int n);
 // 0x17CDB8: Sets the rail goal to the rail's maximum or minimum parameter, the direction, and starts walking.
-void SetBhvrailGoal(struct S *behavior, int f)
+void SetBhvrailGoal(BHVRAIL *behavior, int f)
 {
-    void *pv = behavior->guard->attachObject;
+    void *pv = ((STEPGUARD *)behavior->owner)->attachObject;
     if (f)
         behavior->goalParam = GetShapeMaxDistance(pv);
     else
         behavior->goalParam = GetShapeMinDistance(pv);
-    behavior->guard->isMovingForward = behavior->guard->attachParam < behavior->goalParam;
+    ((STEPGUARD *)behavior->owner)->isMovingForward = ((STEPGUARD *)behavior->owner)->attachParam < behavior->goalParam;
     SetBhvrailState(behavior, 0);
 }
 } } // namespace M_SetBhvrailGoal
 
 // 0x17CE30 HasBhvrailArrived
 namespace M_FBhvrailArrived { extern "C" {
-struct T; struct S;
-struct T { char pad[0xF88]; float attachParam; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x28]; float goalParam; };
+
 // 0x17CE30: True if the rail parameter is within 50 of the goal.
-int HasBhvrailArrived(struct S *behavior) { return __builtin_fabsf(behavior->guard->attachParam - behavior->goalParam) < 50.0f; }
+int HasBhvrailArrived(BHVRAIL *behavior) { return __builtin_fabsf(((STEPGUARD *)behavior->owner)->attachParam - behavior->goalParam) < 50.0f; }
 } } // namespace M_FBhvrailArrived
 
 // 0x17CE68 InitBhvpipe
@@ -6476,22 +6425,21 @@ extern "C" void CloseBhvpipe(BHVSTATE *behavior)
 
 // 0x17CF10 UpdateBhvpipe
 namespace M_UpdateBhvpipe { extern "C" {
-struct CLOCK; struct O; struct S; struct L;
+struct CLOCK; struct O; struct L;
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern float D_002DFB7C;
 struct O { char pad[0x198]; float moveSpeed; char pad2[0x14]; char orientation[0xF84 - 0x1B0]; int attachObject; float attachParam; int isMovingForward; };
-struct S { char pad[0x10]; struct O *guard; char pad2[0x1C]; int state; int pad3; float goalParam; float smoothedSpeed; };
 struct L { float a, b, c; };
-void UpdateBhv(struct S *p);
-int HasBhvpipeArrived(struct S *p);
-void SetBhvpipeState(struct S *p, int n);
+void UpdateBhv(BHVPIPE *p);
+int HasBhvpipeArrived(BHVPIPE *p);
+void SetBhvpipeState(BHVPIPE *p, int n);
 float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
 float WrapShapeDistance(int n, float g);
 void GetPipeGoalMatrix(int a, float g, int b, void *pv);
 // 0x17CF10: BHVPIPE vtable slot 10 (Update): shimmies along the pipe toward the goal with a smoothed speed; keeps
 // the pipe goal matrix.
-void UpdateBhvpipe(struct S *behavior) {
+void UpdateBhvpipe(BHVPIPE *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -6502,9 +6450,9 @@ void UpdateBhvpipe(struct S *behavior) {
             } else {
                 struct L l;
                 float g;
-                behavior->guard->isMovingForward = behavior->guard->attachParam < behavior->goalParam;
-                if (behavior->guard->isMovingForward) D_002DFB7C = -behavior->guard->moveSpeed;
-                else D_002DFB7C = behavior->guard->moveSpeed;
+                ((struct O *)behavior->owner)->isMovingForward = ((struct O *)behavior->owner)->attachParam < behavior->goalParam;
+                if (((struct O *)behavior->owner)->isMovingForward) D_002DFB7C = -((struct O *)behavior->owner)->moveSpeed;
+                else D_002DFB7C = ((struct O *)behavior->owner)->moveSpeed;
                 {
                     float d = D_002DFB7C;
                     l.b = 0.0f;
@@ -6513,12 +6461,12 @@ void UpdateBhvpipe(struct S *behavior) {
                     g = SmoothValue__FfffP3SMPPf(behavior->smoothedSpeed, d, D_002DDED0.deltaTime, &l, 0);
                 }
                 behavior->smoothedSpeed = g;
-                behavior->guard->attachParam = WrapShapeDistance(behavior->guard->attachObject, behavior->guard->attachParam + g * D_002DDED0.deltaTime);
+                ((struct O *)behavior->owner)->attachParam = WrapShapeDistance(((struct O *)behavior->owner)->attachObject, ((struct O *)behavior->owner)->attachParam + g * D_002DDED0.deltaTime);
             }
         }
     } while (behavior->state != s);
     {
-        struct O *o = behavior->guard;
+        struct O *o = ((struct O *)behavior->owner);
         GetPipeGoalMatrix(o->attachObject, o->attachParam, o->isMovingForward, o->orientation);
     }
 }
@@ -6526,27 +6474,26 @@ void UpdateBhvpipe(struct S *behavior) {
 
 // 0x17D058 SetBhvpipeState
 namespace M_SetBhvpipeState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct VTE; struct O; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
-struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int pad3; int smoothedSpeed; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 // 0x17D058: BHVPIPE state change: 0 move animation (flag 9), 1 stand (flag 2).
-void SetBhvpipeState(struct S *behavior, int n) {
+void SetBhvpipeState(BHVPIPE *behavior, int n) {
     if (n == behavior->state) return;
-    PopBhv(behavior->childSlot);
+    PopBhv((&behavior->pbhvNext));
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1:
-        { struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM); o->sgf = 2; StartPushedBhv(o); } behavior->smoothedSpeed = 0;
+        { struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM); o->sgf = 2; StartPushedBhv(o); } behavior->smoothedSpeed = 0;
         break;
     case 0:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+            struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
             o->sgf = 9;
             StartPushedBhv(o);
         }
@@ -6557,32 +6504,28 @@ void SetBhvpipeState(struct S *behavior, int n) {
 
 // 0x17D110 SetBhvpipeGoal
 namespace M_SetBhvpipeGoal { extern "C" {
-struct T; struct S;
-struct T { char pad[0xF84]; void *attachObject; float attachParam; int isMovingForward; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; float goalParam; };
+
 float GetShapeMaxDistance(void *p);
 float GetShapeMinDistance(void *p);
-void SetBhvpipeState(struct S *p, int n);
+void SetBhvpipeState(BHVPIPE *p, int n);
 // 0x17D110: Sets the pipe goal to the pipe's maximum or minimum parameter.
-void SetBhvpipeGoal(struct S *behavior, int f)
+void SetBhvpipeGoal(BHVPIPE *behavior, int f)
 {
-    void *pv = behavior->guard->attachObject;
+    void *pv = ((STEPGUARD *)behavior->owner)->attachObject;
     if (f)
         behavior->goalParam = GetShapeMaxDistance(pv);
     else
         behavior->goalParam = GetShapeMinDistance(pv);
-    behavior->guard->isMovingForward = behavior->guard->attachParam < behavior->goalParam;
+    ((STEPGUARD *)behavior->owner)->isMovingForward = ((STEPGUARD *)behavior->owner)->attachParam < behavior->goalParam;
     SetBhvpipeState(behavior, 0);
 }
 } } // namespace M_SetBhvpipeGoal
 
 // 0x17D188 HasBhvpipeArrived
 namespace M_FBhvpipeArrived { extern "C" {
-struct T; struct S;
-struct T { char pad[0xF88]; float attachParam; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; float goalParam; };
+
 // 0x17D188: True if the pipe parameter is within 50 of the goal.
-int HasBhvpipeArrived(struct S *behavior) { return __builtin_fabsf(behavior->guard->attachParam - behavior->goalParam) < 50.0f; }
+int HasBhvpipeArrived(BHVPIPE *behavior) { return __builtin_fabsf(((STEPGUARD *)behavior->owner)->attachParam - behavior->goalParam) < 50.0f; }
 } } // namespace M_FBhvpipeArrived
 
 // 0x17D1C0 InitBhvAttachCid19
@@ -7442,36 +7385,34 @@ extern "C" void CloseBhvpathlink(BHVPATHLINKV *behavior)
 
 // 0x17E458 UpdateBhvpathlink
 namespace M_UpdateBhvpathlink { extern "C" {
-struct CLOCK; struct D; struct C; struct O; struct T; struct S;
+struct CLOCK; struct D; struct C; struct T; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct D { char pad[0x10]; int pathzone; };
 struct C { char pad[0xDC]; struct D *unknownDC; };
-struct O { char pad[0xE8]; struct C *unknownE8; };
 struct T { char pad[0x120]; int kind; int pad2; int endZone; };
-struct S { char pad[0x10]; struct O *guard; int pad2; void *child; char pad3[0x14]; struct T *pathlink; int pad4; int state; int pad5; float segmentTimeout; };
-void UpdateBhv(struct S *p);
-int IsBhvpathlinkDone(struct S *p);
+void UpdateBhv(BHVPATHLINK *p);
+int IsBhvpathlinkDone(BHVPATHLINK *p);
 int IsBhvRelocateDone(void *p);
 int IsBhvanimDone(void *p);
-int IsBhvpathlinkAtSegmentEnd(struct S *p);
-void AdvanceBhvpathlink(struct S *p);
-void SetBhvpathlinkState(struct S *p, int n);
+int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *p);
+void AdvanceBhvpathlink(BHVPATHLINK *p);
+void SetBhvpathlinkState(BHVPATHLINK *p, int n);
 int IsBhvpathAtEnd(void *p);
 // 0x17E458: BHVPATHLINK vtable slot 10 (Update): per segment, kind 0 walks (with a timeout) and kind 1 leaps;
 // advances at the segment end; a final relocation step.
-void UpdateBhvpathlink(struct S *behavior) {
+void UpdateBhvpathlink(BHVPATHLINK *behavior) {
     UpdateBhv(behavior);
     if (IsBhvpathlinkDone(behavior)) return;
     switch (behavior->state) {
     case 1:
-        if (IsBhvRelocateDone(behavior->child)) AdvanceBhvpathlink(behavior);
+        if (IsBhvRelocateDone(behavior->pbhvNext)) AdvanceBhvpathlink(behavior);
         break;
     case 0: {
-        struct T *t = behavior->pathlink;
+        struct T *t = ((struct T *)behavior->pathlink);
         switch (t->kind) {
         case 1:
-            if (IsBhvanimDone(behavior->child)) {
+            if (IsBhvanimDone(behavior->pbhvNext)) {
                 if (IsBhvpathlinkAtSegmentEnd(behavior)) AdvanceBhvpathlink(behavior);
                 else SetBhvpathlinkState(behavior, 1);
             }
@@ -7480,10 +7421,10 @@ void UpdateBhvpathlink(struct S *behavior) {
             if (behavior->segmentTimeout < D_002DDED0.time) {
                 SetBhvpathlinkState(behavior, 1);
             } else {
-                struct C *c = behavior->guard->unknownE8;
+                struct C *c = ((struct C *)((STEPGUARD *)behavior->owner)->physics);
                 struct D *d = c ? c->unknownDC : 0;
                 int n = d ? d->pathzone : 0;
-                if (n == t->endZone && IsBhvpathAtEnd(behavior->child)) AdvanceBhvpathlink(behavior);
+                if (n == t->endZone && IsBhvpathAtEnd(behavior->pbhvNext)) AdvanceBhvpathlink(behavior);
             }
             break;
         }
@@ -7518,42 +7459,40 @@ extern "C" void AdvanceBhvpathlink(BHVPATHLINKV *behavior)
 
 // 0x17E5F0 IsBhvpathlinkAtSegmentEnd
 namespace M_FBhvpathlinkAtSegmentEnd { extern "C" {
-struct E; struct S;
+struct E; 
 struct E { int a[8]; };
 struct P { char pad[0x60]; struct E segments[6]; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct P *pathlink; int segmentIndex; };
 int IsNearPathlinkEndpoint(void *pe, void *p, float g);
 // 0x17E5F0: True if the guard is within 25 of the current segment's end point.
-int IsBhvpathlinkAtSegmentEnd(struct S *behavior)
+int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *behavior)
 {
-    return IsNearPathlinkEndpoint(&behavior->pathlink->segments[behavior->segmentIndex], behavior->guard, 25.0f);
+    return IsNearPathlinkEndpoint(&((struct P *)behavior->pathlink)->segments[behavior->segmentIndex], behavior->owner, 25.0f);
 }
 } } // namespace M_FBhvpathlinkAtSegmentEnd
 
 // 0x17E628 PushBhvpathlinkLeap
 namespace M_PushBhvpathlinkLeap { extern "C" {
-struct VTE; struct O; struct S;
+struct VTE; struct O; 
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword landingPoint; char pad3[8]; int unknown68; };
 struct SEG { qword a; qword b; };
 struct P { char pad[0x60]; struct SEG segments[6]; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct P *pathlink; int segmentIndex; };
 struct O *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
 qword GetPathlinkEndpointPos(void *pe, qword q);
 // 0x17E628: Pushes a leap (BHVLEAP) to the current segment's end point.
-void PushBhvpathlinkLeap(struct S *behavior) {
-    struct O *o = PushStepBehavior(behavior->guard, CID_BHVLEAP);
+void PushBhvpathlinkLeap(BHVPATHLINK *behavior) {
+    struct O *o = PushStepBehavior(behavior->owner, CID_BHVLEAP);
     o->unknown68 = 1;
-    o->landingPoint = GetPathlinkEndpointPos(&behavior->pathlink->segments[behavior->segmentIndex], GetLoWorldPos(behavior->guard));
+    o->landingPoint = GetPathlinkEndpointPos(&((struct P *)behavior->pathlink)->segments[behavior->segmentIndex], GetLoWorldPos(behavior->owner));
     StartPushedBhv(o);
 }
 } } // namespace M_PushBhvpathlinkLeap
 
 // 0x17E6B0 SetBhvpathlinkState
 namespace M_SetBhvpathlinkState { extern "C" {
-struct CLOCK; struct VTE; struct SEG; struct O; struct B; struct A; struct P; struct S;
+struct CLOCK; struct VTE; struct SEG; struct O; struct B; struct P; 
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
@@ -7562,31 +7501,29 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct SEG { qword a; qword b; };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; qword goalRef; union { qword goalPos; int ignoresBlockers; }; char pad3[0x14]; float arrivalRadius; };
 struct B { char pad[0xE8]; int numPoints; char pad2[8]; qword *points; };
-struct A { char pad[0x294]; struct B *pathShape; };
 struct P { char pad[0x60]; struct SEG segments[(0x120 - 0x60) / 32]; int kind; };
-struct S { char pad[0x10]; struct A *guard; int pad2; char childSlot[0x18]; struct P *pathlink; int segmentIndex; int state; float stateTime; float segmentTimeout; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
 qword GetPathlinkEndpointPos(struct SEG *s, qword v);
 void MeasureShape(struct B *b);
 void SetBhvpathShape(struct O *o, struct B *b, int n);
-void PushBhvpathlinkLeap(struct S *p);
+void PushBhvpathlinkLeap(BHVPATHLINK *p);
 // 0x17E6B0: BHVPATHLINK state change: 0 the segment (a two-point walk with a timeout, or a leap), 1 relocate.
-void SetBhvpathlinkState(struct S *behavior, int n) {
+void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
     if (n == behavior->state) return;
-    PopBhv(behavior->childSlot);
+    PopBhv((&behavior->pbhvNext));
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0:
-        switch (behavior->pathlink->kind) {
+        switch (((struct P *)behavior->pathlink)->kind) {
         case 0:
             {
-                struct O *o = PushStepBehavior(behavior->guard, CID_BHVWALKPATH);
-                struct B *b = behavior->guard->pathShape;
-                qword pos = GetLoWorldPos(behavior->guard);
-                qword q = GetPathlinkEndpointPos(&behavior->pathlink->segments[behavior->segmentIndex], pos);
+                struct O *o = PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVWALKPATH);
+                struct B *b = ((struct B *)((STEPGUARD *)behavior->owner)->unknown294);
+                qword pos = GetLoWorldPos(((STEPGUARD *)behavior->owner));
+                qword q = GetPathlinkEndpointPos(&((struct P *)behavior->pathlink)->segments[behavior->segmentIndex], pos);
                 qword d;
                 float len;
                 float t = D_002DDED0.time;
@@ -7615,9 +7552,9 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
         break;
     case 1:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV191);
+            struct O *o = PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV191);
             /* segments[segmentIndex] (sg[3] == +0x60); the int arithmetic keeps the target's address computation */
-            struct SEG *sg = (struct SEG *)(behavior->segmentIndex * 32 + (int)behavior->pathlink);
+            struct SEG *sg = (struct SEG *)(behavior->segmentIndex * 32 + (int)((struct P *)behavior->pathlink));
             o->goalRef = sg[3].a;
             o->goalPos = sg[3].b;
             StartPushedBhv(o);
@@ -7845,15 +7782,14 @@ void AdvanceBhvpatrolpathGoal(struct S *behavior, int force) {
 
 // 0x17EE78 IsBhvpatrolpathDone
 namespace M_FBhvpatrolpathDone { extern "C" {
-struct S;
-struct S { char pad[0x18]; void *child; };
-int IsBhvpatrolpathAtEnd(struct S *p);
+
+int IsBhvpatrolpathAtEnd(BHVPATROLPATH *p);
 int HasBhvgotoArrived(void *p);
 // 0x17EE78: True if the patrol path reached the end of an open shape and arrived.
-int IsBhvpatrolpathDone(struct S *behavior)
+int IsBhvpatrolpathDone(BHVPATROLPATH *behavior)
 {
     if (!IsBhvpatrolpathAtEnd(behavior)) return 0;
-    return HasBhvgotoArrived(behavior->child);
+    return HasBhvgotoArrived(behavior->pbhvNext);
 }
 } } // namespace M_FBhvpatrolpathDone
 

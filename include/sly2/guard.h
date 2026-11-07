@@ -35,13 +35,32 @@ typedef char assert_DETECTOR_unknownFC[SLY2_OFFSETOF(DETECTOR, unknownFC) == 0xF
 typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
 
 /* An animation binding of a guard (16 bytes; stepguard.cpp ResolveAnimBinding/ReleaseAnimBinding): its kind (2 and 3
-   hold a handle released by FreeLeap / FreeDirAnim; -1 none), the handle, and two words. [S] */
+   hold a handle released by FreeLeap / FreeDirAnim; -1 none), the bound animation and its instance, and the start
+   flags. The second and third words hold the load-time oid/instance until ResolveAnimBinding replaces them, and a
+   handle for kinds 2/3 (union selected by kind and by the resolve phase). [S] */
 struct ANIMBINDING
 {
-      int kind;             /* +0x0 [S] */
-      int h;                /* +0x4 [S] */
-      int unknown08;        /* +0x8 [S] */
-      int unknown0C;        /* +0xC [S] */
+      int kind;             /* +0x0 [S] 0 animation segment, 2 leap, 3 directional animation, -1 none */
+      union {
+            OID oid;        /* +0x4 [S] before ResolveAnimBinding: the animation's oid */
+            int h;          /* +0x4 [S] kinds 2/3: the LEAP / DIRANIM handle */
+            ASEG *aseg;     /* +0x4 [S] kind 0: the animation segment */
+      };
+      union {
+            int instance;   /* +0x8 [S] before ResolveAnimBinding */
+            ASEGA *asega;   /* +0x8 [S] kind 0: the playing instance */
+      };
+      int flags;            /* +0xC [S] start flags passed to StartAnimBinding */
+};
+/* The guard's mover (STEPGUARD +0xFD0, 16 bytes; tu_144B28.cpp reads the same bytes as a JTGOAL): the driver (the
+   behaviour whose motion update moves the guard: SetStepguardMoverDriver / ResetStepguardMover), a heading lock and
+   the owning guard. [S] */
+struct GUARDMOVER
+{
+      int driver;           /* +0x0 [S] the driving behaviour (a BHV *; 0 none) */
+      int isHeadingLocked;  /* +0x4 [S] */
+      int unknown8;         /* +0x8 [S] */
+      STEPGUARD *guard;     /* +0xC [S] the owning guard */
 };
 /* A guard's general animation binding record (32 bytes): the binding and 16 more bytes. [S] */
 struct ANIMBINDINGREC
@@ -70,7 +89,17 @@ struct STEPGUARD : public STEP
 {
       unsigned long grfsg;          /* +0x2C0 [R] guard flag word == union of the flags of the behaviours on bhvstk (all
                                        guards in all states, ram_inspector check). 64-bit: on ee-gcc long = 8 bytes, long long = 16 */
-      undefined4 unk_0x2c8[(0x330 - 0x2c8) / 4];
+      undefined4 unk_0x2c8;
+      float walkTimeMin;    /* +0x2CC [S] patrol walk duration range (BHVPATROL) */
+      float walkTimeMax;    /* +0x2D0 [S] */
+      float pauseTimeMin;   /* +0x2D4 [S] patrol pause duration range (BHVPATROL) */
+      float pauseTimeMax;   /* +0x2D8 [S] */
+      int scriptResumePoint; /* +0x2DC [S] where a patrol script resumes (BHVPATROL) */
+      undefined4 unk_0x2e0[2];
+      int patrolScript;     /* +0x2E8 [S] the patrol script (BHVPATROL) */
+      int altPatrolScript;  /* +0x2EC [S] the alternative patrol script */
+      undefined4 unk_0x2f0[(0x32c - 0x2f0) / 4];
+      int isInvulnerable32C; /* +0x32C [S] */
       int isKnockedOut;     /* +0x330 [R] knocked out */
       undefined4 unknown334;
       int maxHitPoints;     /* +0x338 [R] max hp */
@@ -88,34 +117,59 @@ struct STEPGUARD : public STEP
       int unknown3C0;       /* +0x3C0 [S] */
       undefined4 unk_0x3c4[(0x3cc - 0x3c4) / 4];
       void *pvEngage;       /* +0x3CC [R] engagement record (non-zero while in combat) [H type] */
-      undefined4 unk_0x3d0[(0x404 - 0x3d0) / 4];
+      undefined4 unk_0x3d0;
+      int unknown3D4;       /* +0x3D4 [S] read with pvEngage (FBhvcombatLostTarget) */
+      undefined4 unk_0x3d8[(0x404 - 0x3d8) / 4];
       GUARDLOOT loot[8];    /* +0x404 [R] pickpocket loot list */
       int numLoot;          /* +0x484 [R] entries used in aloot */
-      undefined4 unk_0x488[(0x4c0 - 0x488) / 4];
+      undefined4 unk_0x488[(0x4b0 - 0x488) / 4];
+      qword relocatePoint;  /* +0x4B0 [S] where BHVRELOCATE moves the guard */
       int cbindingrec;      /* +0x4C0 [S] entries used in abindingrec */
       undefined4 unknown4C4[3];
       ANIMBINDINGREC abindingrec[32];   /* +0x4D0 [S] */
       ANIMBINDING aabindingZap[3][26];  /* +0x8D0 [S] three zap-reaction binding sets (ResolveZapReactions) */
       LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (ConstructLeap) */
       CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
-      undefined4 unk_0xe60[(0xf04 - 0xe60) / 4];
+      undefined4 unk_0xe60[(0xe7c - 0xe60) / 4];
+      float sleepTimeMin;   /* +0xE7C [S] sleep duration range (BHVSLEEP) */
+      float sleepTimeMax;   /* +0xE80 [S] */
+      undefined4 unk_0xe84[(0xedc - 0xe84) / 4];
+      CID120 *attacks[8];   /* +0xEDC [S] the guard's attack definitions (ChooseStepguardAttack) */
+      int numAttacks;       /* +0xEFC [S] */
+      CID120 *currentAttack; /* +0xF00 [S] the attack being run */
       float nextAttackTime; /* +0xF04 [S] earliest time of the next attack choice (guardbhv TryBhvcombatChooseAttack) */
       undefined4 unk_0xf08[(0xf3c - 0xf08) / 4];
-      int unknownF3C;       /* +0xF3C [S] set by StartBhvstrike; possibly isStriking (low-confidence guess: [S] set by StartBhvstrike) */
-      undefined4 unk_0xf40[(0xf60 - 0xf40) / 4];
+      int isEngagedBusy;    /* +0xF3C [S] set by StartBhvstrike, cleared by CloseBhvstrike (inferred: a strike is in progress) */
+      undefined4 unk_0xf40[2];
+      LM shootRange;        /* +0xF48 [S] distance range of a shot (FBhvcombatCanShoot) */
+      LM shootPan;          /* +0xF50 [S] pan (yaw) range of a shot */
+      LM shootTilt;         /* +0xF58 [S] tilt (pitch) range of a shot */
       int firingWindow;     /* +0xF60 [R] firing window (shooting guards) */
       DETECTOR *pdetector;  /* +0xF64 [R] vision detector (CID 0x10; its +0xE0 owner == this guard) */
-      int unknownF68;       /* +0xF68 [S] copied with unknownF70 into the root behaviour's sub-behaviour in mode 0x10 */
+      LO *escortObject;     /* +0xF68 [S] escort object, copied with escortPos into the root behaviour's sub-behaviour in mode 0x10 (SetStepguardEscortPoint) */
       undefined4 unknownF6C;
-      qword unknownF70;     /* +0xF70 [S] */
-      undefined4 unk_0xf80[(0xf94 - 0xf80) / 4];
+      qword escortPos;      /* +0xF70 [S] escort point */
+      undefined4 unk_0xf80;
+      LO *attachObject;     /* +0xF84 [S] the object the guard is attached to (rail/pipe behaviours) */
+      float attachParam;    /* +0xF88 [S] position along it */
+      int isMovingForward;  /* +0xF8C [S] */
+      void *attachPoint;    /* +0xF90 [S] */
       int unknownF94;       /* +0xF94 [S] HasBhvguardTargetList: non-zero with unknownFA8 means a target list; possibly numTargetListA (low-confidence guess: [S] FBhvguardHasTargetList) */
       undefined4 unk_0xf98[(0xfa8 - 0xf98) / 4];
       int unknownFA8;       /* +0xFA8 [S]; possibly numTargetListB (low-confidence guess: [S] FBhvguardHasTargetList) */
-      undefined4 unk_0xfac[(0xfe0 - 0xfac) / 4];
+      undefined4 unk_0xfac[(0xfbc - 0xfac) / 4];
+      int specialState;     /* +0xFBC [S] */
+      undefined4 unk_0xfc0;
+      void *scale;          /* +0xFC4 [S] a scale record (value at +0x20) */
+      undefined4 unk_0xfc8;
+      int handsOffLookAt;   /* +0xFCC [S] */
+      GUARDMOVER mover;     /* +0xFD0 [S] movement arbiter */
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
       uint capabilityFlags; /* +0xFE8 [R] capability bits (bit 3 = may shoot) */
-      undefined4 unk_0xfec[(0xffc - 0xfec) / 4];
+      void *knockdownHelper; /* +0xFEC [S] */
+      float walkPhase;      /* +0xFF0 [S] walk-cycle phase saved by BHVANIM when its walk animation stops */
+      float walkPhaseTime;  /* +0xFF4 [S] the time it was saved */
+      undefined4 unk_0xff8;
       int busyCount;        /* +0xFFC [R] busy count */
       undefined4 unknown1000[4];
     STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
@@ -152,7 +206,19 @@ typedef char assert_STEPGUARD_abindingrec[SLY2_OFFSETOF(STEPGUARD, abindingrec) 
 typedef char assert_STEPGUARD_aabindingZap[SLY2_OFFSETOF(STEPGUARD, aabindingZap) == 0x8D0 ? 1 : -1];   /* stepguard.cpp */
 typedef char assert_STEPGUARD_nextAttackTime[SLY2_OFFSETOF(STEPGUARD, nextAttackTime) == 0xF04 ? 1 : -1]; /* guardbhv.cpp */
 typedef char assert_STEPGUARD_unknownFA8[SLY2_OFFSETOF(STEPGUARD, unknownFA8) == 0xFA8 ? 1 : -1]; /* guardbhv.cpp */
-typedef char assert_STEPGUARD_unknownF70[SLY2_OFFSETOF(STEPGUARD, unknownF70) == 0xF70 ? 1 : -1]; /* stepguard.cpp */
+typedef char assert_STEPGUARD_escortPos[SLY2_OFFSETOF(STEPGUARD, escortPos) == 0xF70 ? 1 : -1]; /* stepguard.cpp */
+typedef char assert_STEPGUARD_walkTimeMin[SLY2_OFFSETOF(STEPGUARD, walkTimeMin) == 0x2CC ? 1 : -1];
+typedef char assert_STEPGUARD_isInvulnerable32C[SLY2_OFFSETOF(STEPGUARD, isInvulnerable32C) == 0x32C ? 1 : -1];
+typedef char assert_STEPGUARD_unknown3D4[SLY2_OFFSETOF(STEPGUARD, unknown3D4) == 0x3D4 ? 1 : -1];
+typedef char assert_STEPGUARD_relocatePoint[SLY2_OFFSETOF(STEPGUARD, relocatePoint) == 0x4B0 ? 1 : -1];
+typedef char assert_STEPGUARD_sleepTimeMin[SLY2_OFFSETOF(STEPGUARD, sleepTimeMin) == 0xE7C ? 1 : -1];
+typedef char assert_STEPGUARD_attacks[SLY2_OFFSETOF(STEPGUARD, attacks) == 0xEDC ? 1 : -1];
+typedef char assert_STEPGUARD_isEngagedBusy[SLY2_OFFSETOF(STEPGUARD, isEngagedBusy) == 0xF3C ? 1 : -1];
+typedef char assert_STEPGUARD_shootTilt[SLY2_OFFSETOF(STEPGUARD, shootTilt) == 0xF58 ? 1 : -1];
+typedef char assert_STEPGUARD_attachPoint[SLY2_OFFSETOF(STEPGUARD, attachPoint) == 0xF90 ? 1 : -1];
+typedef char assert_STEPGUARD_specialState[SLY2_OFFSETOF(STEPGUARD, specialState) == 0xFBC ? 1 : -1];
+typedef char assert_STEPGUARD_mover[SLY2_OFFSETOF(STEPGUARD, mover) == 0xFD0 ? 1 : -1];
+typedef char assert_STEPGUARD_walkPhaseTime[SLY2_OFFSETOF(STEPGUARD, walkPhaseTime) == 0xFF4 ? 1 : -1];
 typedef char assert_STEPGUARD_pdetector[SLY2_OFFSETOF(STEPGUARD, pdetector) == 0xF64 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_dleGuard[SLY2_OFFSETOF(STEPGUARD, dleGuard) == 0xFE0 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_busyCount[SLY2_OFFSETOF(STEPGUARD, busyCount) == 0xFFC ? 1 : -1]; /* CONFIRMED runtime */

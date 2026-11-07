@@ -577,7 +577,12 @@ typedef char assert_CID119_size[sizeof(CID119) == 0xB0 ? 1 : -1];
 /* 157 BHVANIM (0x50): animation/locomotion leaf (flag 9); vtable 0x2D0AB0, 14 slots */
 struct BHVANIM : BHV
 {
-    char pad30[0x50 - 0x30];
+    int state;              /* +0x30 0 playing, 1 done (-1 before Start) */
+    float stateTime;        /* +0x34 time of the last state change */
+    LO *lookAt;             /* +0x38 object to face (UpdateBhvanimMotion) */
+    int sgf;                /* +0x3C the guard flag it raises while active */
+    ANIMBINDING *binding;   /* +0x40 the animation it plays (FindCurrentAnimBinding when not preset) */
+    int unknown44[3];
     virtual void Close() __asm__("CloseBhvanim");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvanimClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvanim");   /* slot 7 */
@@ -603,7 +608,13 @@ typedef char assert_BHVIDLE_size[sizeof(BHVIDLE) == 0x50 ? 1 : -1];
 /* 160 BHVHIT (0xC0): hit reaction; vtable 0x2D09B0, 14 slots */
 struct BHVHIT : BHVANIM
 {
-    char pad50[0xC0 - 0x50];
+    LO *attacker;           /* +0x50 */
+    int unknown54[2];
+    int zapKind;            /* +0x5C */
+    int unknown60[20];
+    float cameraJoltTime;   /* +0xB0 */
+    float zapModeTime;      /* +0xB4 */
+    int unknownB8[2];
     virtual void Close() __asm__("CloseBhvhit");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvhitClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvhit");   /* slot 8 */
@@ -643,7 +654,8 @@ typedef char assert_BHV162_size[sizeof(BHV162) == 0xC0 ? 1 : -1];
 /* 159 BHVSTRIKE (0x60): attack-animation leaf (flag 3); vtable 0x2D07B0, 14 slots */
 struct BHVSTRIKE : BHVANIM
 {
-    char pad50[0x60 - 0x50];
+    int isLeapEnabled;      /* +0x50 */
+    int unknown54[3];
     virtual void Start() __asm__("StartBhvstrike");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvstrikeClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvstrike");   /* slot 7 */
@@ -763,7 +775,12 @@ typedef char assert_BHVWALKPATH_size[sizeof(BHVWALKPATH) == 0xF0 ? 1 : -1];
 /* 164 BHVATTACK (0x50): attack execution (flag 0x18); vtable 0x2D0620, 14 slots */
 struct BHVATTACK : BHV
 {
-    char pad30[0x50 - 0x30];
+    LO *victim;             /* +0x30 the attacked object */
+    int state;              /* +0x34 */
+    float stateTime;        /* +0x38 */
+    CID120 *attack;         /* +0x3C the attack definition being run */
+    int isHitConfirmed;     /* +0x40 set by message 0xB from the victim's guard */
+    int unknown44[3];
     virtual void Start() __asm__("StartBhvattack");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvattackClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvattack");   /* slot 7 */
@@ -776,7 +793,14 @@ typedef char assert_BHVATTACK_size[sizeof(BHVATTACK) == 0x50 ? 1 : -1];
 /* 165 BHVCOMBAT (0x60): alert/combat mode (flag 0x1D); vtable 0x2D05A0, 14 slots */
 struct BHVCOMBAT : BHV
 {
-    char pad30[0x60 - 0x30];
+    LO *target;             /* +0x30 */
+    int state;              /* +0x34 */
+    float stateTime;        /* +0x38 */
+    CID120 *attack;         /* +0x3C the chosen attack */
+    int isHitConfirmed;     /* +0x40 */
+    int region;             /* +0x44 */
+    int unknown48[2];
+    qword cachedPosition;   /* +0x50 */
     virtual void Close() __asm__("CloseBhvcombat");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvcombatClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvcombat");   /* slot 7 */
@@ -788,7 +812,12 @@ typedef char assert_BHVCOMBAT_size[sizeof(BHVCOMBAT) == 0x60 ? 1 : -1];
 /* 170 BHVPATROL (0x50): calm/patrol mode (flag 0x1E); vtable 0x2D0520, 14 slots */
 struct BHVPATROL : BHV
 {
-    char pad30[0x50 - 0x30];
+    float walkEndTime;      /* +0x30 */
+    float pauseEndTime;     /* +0x34 */
+    int state;              /* +0x38 */
+    float stateTime;        /* +0x3C */
+    int script;             /* +0x40 the patrol script being run */
+    int unknown44[3];
     virtual void Close() __asm__("CloseBhvpatrol");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpatrolClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvpatrol");   /* slot 7 */
@@ -825,7 +854,16 @@ typedef char assert_BHV176_size[sizeof(BHV176) == 0x40 ? 1 : -1];
 /* 177 BHVJUGGLED (0x70): juggled / carried (flag 0x17); vtable 0x2D03A0, 14 slots */
 struct BHVJUGGLED : BHV
 {
-    char pad30[0x70 - 0x30];
+    int unknown30[4];
+    ANIMBINDING *binding;   /* +0x40 */
+    int unknown44[3];
+    int state;              /* +0x50 */
+    float stateTime;        /* +0x54 */
+    int hitCount;           /* +0x58 */
+    LO *holder;             /* +0x5C the object holding the guard */
+    int unknown60;
+    void *holdAct;          /* +0x64 */
+    int unknown68[2];
     virtual void Close() __asm__("CloseBhvjuggled");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvjuggledClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvjuggled");   /* slot 7 */
@@ -870,7 +908,10 @@ typedef char assert_BHV175_size[sizeof(BHV175) == 0x60 ? 1 : -1];
 /* 173 BHVSHOOT (0x40): SHOOT: ranged attack (BHVSHOOT); vtable 0x2D0220, 14 slots */
 struct BHVSHOOT : BHV
 {
-    char pad30[0x40 - 0x30];
+    int state;              /* +0x30 */
+    float stateTime;        /* +0x34 */
+    LO *target;             /* +0x38 */
+    int unknown3C;
     virtual void Start() __asm__("StartBhvshoot");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvshootClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvshoot");   /* slot 7 */
@@ -919,7 +960,10 @@ typedef char assert_BHV183_size[sizeof(BHV183) == 0x70 ? 1 : -1];
 /* 184 BHVRAIL (0x40): rail traversal; vtable 0x2D0020, 14 slots */
 struct BHVRAIL : BHV
 {
-    char pad30[0x40 - 0x30];
+    int state;              /* +0x30 */
+    float stateTime;        /* +0x34 */
+    float animSpeed;        /* +0x38 */
+    float goalParam;        /* +0x3C position along the rail to reach */
     virtual void Start() __asm__("StartBhvrail");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvrailClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvrail");   /* slot 7 */
@@ -931,7 +975,10 @@ typedef char assert_BHVRAIL_size[sizeof(BHVRAIL) == 0x40 ? 1 : -1];
 /* 185 BHVPIPE (0x40): pipe traversal; vtable 0x2CFFA0, 14 slots */
 struct BHVPIPE : BHV
 {
-    char pad30[0x40 - 0x30];
+    int state;              /* +0x30 */
+    float stateTime;        /* +0x34 */
+    float goalParam;        /* +0x38 position along the pipe to reach */
+    float smoothedSpeed;    /* +0x3C */
     virtual void Start() __asm__("StartBhvpipe");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpipeClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvpipe");   /* slot 7 */
@@ -1000,10 +1047,16 @@ struct BHV189 : BHV
 };
 typedef char assert_BHV189_size[sizeof(BHV189) == 0x50 ? 1 : -1];
 
+struct PATHLINK;
 /* 190 BHVPATHLINK (0x50): pathlink traversal (flag 0x2C); vtable 0x2CFCA0, 14 slots */
 struct BHVPATHLINK : BHV
 {
-    char pad30[0x50 - 0x30];
+    PATHLINK *pathlink;     /* +0x30 the path link being walked */
+    int segmentIndex;       /* +0x34 */
+    int state;              /* +0x38 */
+    float stateTime;        /* +0x3C */
+    float segmentTimeout;   /* +0x40 */
+    int unknown44[3];
     virtual void Start() __asm__("StartBhvpathlink");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpathlinkClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvpathlink");   /* slot 7 */

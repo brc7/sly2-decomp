@@ -89,15 +89,6 @@ enum {
     BINDING_DIRANIM = 3,    /* a four-animation payload, played on the guard's DIRANIM (+0xE20) */
 };
 
-/* The guard's mover (at STEPGUARD +0xFD0, which guard.h leaves unnamed; tu_144B28.cpp reads the same bytes as a
-   JTGOAL): the driver (the behaviour whose motion update moves the guard), a heading lock and the owning guard. */
-struct GUARDMOVER
-{
-    int driver;             /* +0x00 BHV * */
-    int isHeadingLocked;    /* +0x04 */
-    int unknown8;           /* +0x08 */
-    STEPGUARD *guard;       /* +0x0C */
-};
 #define PMOVER(guard) ((GUARDMOVER *)((char *)(guard) + 0xFD0))
 /* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target), shared by every guard engaging
    that target: when the first guard engaged, the record's state and its time, the target, how the engagement token
@@ -127,7 +118,7 @@ struct ANIMLO
 /* The sub-behaviour of the guard's root behaviour in mode 0x10, as SetStepguardEscortPoint fills it. */
 struct BHVARG : public BHV
 {
-    int n;                  /* +0x30 */
+    LO *escortObject;       /* +0x30 */
     int pad34[3];
     qword qw;               /* +0x40 */
 };
@@ -171,7 +162,7 @@ void FreeDirAnim(int h);
 void AddStepguardAttackOid(STEPGUARD *guard);
 void ResolveStepguardAttacks(STEPGUARD *guard);
 void SetGuardAttackBindingKind2(ANIMLO *attack);
-void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags);
+void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, int flags);
 void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void CloneStepguardAnimBindings(STEPGUARD *guard);
@@ -1407,17 +1398,17 @@ unsigned long GetSgfMaskFromSpliceList(void *list)
 // 0x207B70 SetStepguardAnimBinding
 // 0x207B70: Splice option: sets the animation (oid, argument) bound to a guard-flag set, creating the binding if
 // needed.
-extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags)
+extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, int flags)
 {
     ANIMBINDING *binding;
     binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
-    binding->h = oid;
-    binding->unknown0C = flags;
+    binding->oid = oid;
+    binding->flags = flags;
 }
 
 // 0x207BC8 SetAndResolveStepguardAnimBinding
 // 0x207BC8: SetStepguardAnimBinding, then resolves the binding.
-extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags)
+extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, int flags)
 {
     ANIMBINDING *binding;
     binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
@@ -3076,22 +3067,22 @@ void SetStepguardTargetLists(struct S *guard, int targetList, int avoidList)
 
 // 0x20A100 SetStepguardEscortPoint
 // 0x20A100: Stores an escort point/object pair and passes it to the root behaviour when it is in mode 0x10.
-/* Stores n and a point; when the root behaviour (CID 0x9C) is in mode 0x10, also hands them to its sub-behaviour. */
-extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, int n, qword qw)
+/* Stores an escort object and point; when the root behaviour (CID 0x9C) is in mode 0x10, also hands them to its sub-behaviour. */
+extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, LO *object, qword qw)
 {
     BHV156 *behavior;
-    int nCur;
+    LO *escort;
     BHVARG *pbhvSub;
-    guard->unknownF68 = n;
-    guard->unknownF70 = qw;
+    guard->escortObject = object;
+    guard->escortPos = qw;
     behavior = (BHV156 *)FindBhvInBhvstk(&guard->behaviors, CID_BHVGUARD);
     if (behavior == 0)
         return;
-    nCur = guard->unknownF68;
-    if ((nCur != 0) && (behavior->mode == 0x10)) {
+    escort = guard->escortObject;
+    if ((escort != 0) && (behavior->mode == 0x10)) {
         pbhvSub = (BHVARG *)behavior->pbhvNext;
-        pbhvSub->n = nCur;
-        pbhvSub->qw = guard->unknownF70;
+        pbhvSub->escortObject = escort;
+        pbhvSub->qw = guard->escortPos;
     }
 }
 
@@ -3743,22 +3734,22 @@ void SetGuardAttackOids(struct S *attack, int aimObjectOid, int effectorOid, int
 
 // 0x20AF38 SetGuardAttackBinding
 // 0x20AF38: Splice option: sets the attack's animation binding.
-extern "C" void SetGuardAttackBinding(ANIMLO *attack, int oid, int flags)
+extern "C" void SetGuardAttackBinding(ANIMLO *attack, OID oid, int flags)
 {
     ReleaseAnimBinding(&attack->binding, attack->guard);
-    attack->binding.h = oid;
-    attack->binding.unknown0C = flags;
+    attack->binding.oid = oid;
+    attack->binding.flags = flags;
 }
 
 // 0x20AF88 SetAndResolveGuardAttackBinding
 // 0x20AF88: Sets and resolves the attack's animation binding.
-extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *attack, int oid, int flags)
+extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *attack, OID oid, int flags)
 {
     ANIMBINDING *binding;
     binding = &attack->binding;
     ReleaseAnimBinding(binding, attack->guard);
-    attack->binding.h = oid;
-    attack->binding.unknown0C = flags;
+    attack->binding.oid = oid;
+    attack->binding.flags = flags;
     ResolveAnimBinding(binding, attack->guard);
 }
 
