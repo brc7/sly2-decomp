@@ -1500,7 +1500,10 @@ struct LIGHT : XFM
     int kind;               /* +0xE0 [S] 0 directional, 1 point (light.cpp LIGHTV) */
     int parentStamp;        /* +0xE4 [S] the parent transform stamp the light was last rebuilt for */
     int unknownE8[2];
-    qword highlightHsv;     /* +0xF0 [S] */
+    union {                 /* +0xF0 [S] the highlight colour (HSV; RebuildLight reads the value channel) */
+        qword highlightHsv;
+        float highlightHsvComponents[4];
+    };
     qword position;         /* +0x100 [S] bounding sphere centre */
     float bias;             /* +0x110 [S] rank = bias + weight * distance */
     float weight;           /* +0x114 [S] */
@@ -1523,8 +1526,13 @@ struct LIGHT : XFM
     int enabled;            /* +0x158 [S] */
     int isStatic;           /* +0x15C [S] exclusive with isDynamic (SetLightStatic / SetLightDynamic) */
     int isDynamic;          /* +0x160 [S] */
-    float sNear;            /* +0x164 [S] (light.cpp also copies the pair as two ints) */
-    float sFar;             /* +0x168 [S] */
+    union {                 /* +0x164 [S] the point-light falloff range (SetLightFalloff copies it whole: Sly 1's lmFallOff) */
+        struct {
+            float sNear;    /* +0x164 */
+            float sFar;     /* +0x168 */
+        };
+        LM lmFallOff;
+    };
     int unknown16C;
     virtual void Init() __asm__("InitLight");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetLightClassDesc");   /* slot 6 */

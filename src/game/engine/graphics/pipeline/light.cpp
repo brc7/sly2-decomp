@@ -22,8 +22,6 @@ struct VTE {
     short pad;
     void *pfn;
 };
-struct V3 { float x, y, z; };
-struct LMK { int a, b; };
 extern "C" void *InitVuTemp(void *);            /* vector init, returns its receiver */
 /* 16-byte vector whose default constructor is the shared vector initialiser (InitVuTemp). */
 union UV { qword q; float f[4]; UV(); };
@@ -31,48 +29,8 @@ union UV { qword q; float f[4]; UV(); };
 inline UV::UV() { (void)InitVuTemp(this); }
 /* The 48-byte shader payload of a light (RebuildLight fills it; the packets copy it). */
 struct BLOCK { union { uint words[12]; struct { int kind; float coefficients[11]; } values; }; };
-struct LIGHTO { char pad[0xA4]; int transformStamp; };
-
-/* LIGHT (0x170) as this TU reads it. */
-struct LIGHTV
-{
-    int x0, x4, x8;
-    VTE *vt;                    /* 0x0C */
-    char pad10[0x20 - 0x10];
-    LIGHTV *next;                /* 0x20: next in D_003E04F8's list */
-    char pad24[0x40 - 0x24];
-    int flagsOrPointer;         /* 0x40: pointer or tagged flags */
-    char pad44[0x50 - 0x44];
-    LIGHTO *parent;             /* 0x50 */
-    char pad54[0xA0 - 0x54];
-    qword direction;            /* 0xA0 */
-    char padB0[0xE0 - 0xB0];
-    int kind;                   /* 0xE0: 0 directional, 1 point */
-    int parentStamp;            /* 0xE4: parent transform stamp the light was last rebuilt for */
-    char padE8[0xF0 - 0xE8];
-    union { qword highlightHsv; float highlightHsvComponents[4]; };  /* 0xF0 */
-    UV position;                /* 0x100: bounding sphere centre */
-    float bias, weight;         /* 0x110: rank = bias + weight * distance */
-    int slot;                   /* 0x118: world slot, < 0 until assigned */
-    int pad11C;
-    union {
-        BLOCK payload;          /* 0x120 */
-        struct {
-            int kindPayload;
-            float duAngle, ruAngle, duFall;     /* 0x124 */
-            float agRgba[4];                    /* 0x130 */
-            V3 vec;                             /* 0x140 */
-            float ruFall;                       /* 0x14C */
-        };
-    };
-    float midtoneStrength;      /* 0x150 */
-    float midtoneAngle;         /* 0x154 degrees */
-    int enabled;                /* 0x158 */
-    int isStatic, isDynamic;    /* 0x15C: exclusive flags (see SetLightStatic / SetLightDynamic) */
-    union { LMK lmk; struct { float sNear, sFar; }; };   /* 0x164 */
-    int pad16C;
-};
-typedef char assert_LIGHT_size[sizeof(LIGHTV) == 0x170 ? 1 : -1];
+/* The hand-made call through a LIGHT's vtable (slot 30, RotateToMat: its signature is being settled across families). */
+#define VT(p) (*(VTE **)((char *)(p) + 0xC))
 
 /* A node of the world's cell tree (32 bytes; brx_sw.cpp loads it): a plane, then the children or leaf indices. The
    leaves' light masks are sly2/sw.h's LIGHTMASK. */
@@ -90,32 +48,32 @@ extern VIFS D_002DEA28;
 BLOCK D_002BFC60 = {{{0, 0, 0x3F000000, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};   /* word 2 = 0.5f */
 float D_002BFC90 = 1000.0f, D_002BFC94 = 2.5f;
 
-LIGHTV *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+LIGHT *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void BuildOrthonormalMatrixZ(M3R *pm, qword v, qword w);     /* the hidden result pointer passed by hand */
-void InitXfm(LIGHTV *p);
-void SetLoBusyKind(LIGHTV *p, int n);
-void PostLoLoad(LIGHTV *p);
-void AddLoHierarchy(LIGHTV *p);
-void RemoveLoHierarchy(LIGHTV *p);
-void OnLoRemove(LIGHTV *p);
-void OnLoAdd(LIGHTV *p);
-void TranslateXfmToPos(LIGHTV *p);
-void RotateXfmToMat(LIGHTV *p);
-void InheritLoFlag4(LIGHTV *p);
-void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, V3 *pv);
-void ColorCorrectVector(V3 *pv);
-qword GetLoWorldPos(LIGHTV *p);
+void InitXfm(LIGHT *p);
+void SetLoBusyKind(LIGHT *p, int n);
+void PostLoLoad(LIGHT *p);
+void AddLoHierarchy(LIGHT *p);
+void RemoveLoHierarchy(LIGHT *p);
+void OnLoRemove(LIGHT *p);
+void OnLoAdd(LIGHT *p);
+void TranslateXfmToPos(LIGHT *p);
+void RotateXfmToMat(LIGHT *p);
+void InheritLoFlag4(LIGHT *p);
+void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, VECTOR *pv);
+void ColorCorrectVector(VECTOR *pv);
+qword GetLoWorldPos(LIGHT *p);
 void *func_002333B4(void *, int, uint) __asm__("memset");                     /* memset */
 void GetNormalVectors(qword a, qword b, qword c, M3R *pm);
 qword *VECTOR_opAssign(qword *p, qword v);
 
-void RebuildLight(LIGHTV *p);
-void SetLightMidtoneStrength(LIGHTV *p, float f);
-void SetLightMidtoneAngle(LIGHTV *p, float f);
-void InvalidateLight(LIGHTV *p);
+void RebuildLight(LIGHT *p);
+void SetLightMidtoneStrength(LIGHT *p, float f);
+void SetLightMidtoneAngle(LIGHT *p, float f);
+void InvalidateLight(LIGHT *p);
 void InsertLightInTree(SW *s, CELL *n, qword pos, float r, int bit);
-void AddLightToSw(SW *s, LIGHTV *o);
-void RemoveLightFromSw(SW *p, LIGHTV *q);
+void AddLightToSw(SW *s, LIGHT *o);
+void RemoveLightFromSw(SW *p, LIGHT *q);
 struct RESULT;
 void FindLightsAffectingPoint(SW *p, qword pos, int capacity, RESULT *results);
 int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
@@ -129,11 +87,11 @@ void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu
 // LIGHT (CreateLo CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240. (inferred)
 extern "C" void EnsureSwDefaultLight(void)
 {
-    LIGHTV *light;
+    LIGHT *light;
     M3R c;
     union { qword q; float f; } r;
     M3R m;
-    for (light = (*(LIGHTV * *)&g_sw.objectsByClass[4]); light; light = light->next) {
+    for (light = (*(LIGHT * *)&g_sw.objectsByClass[4]); light; light = (LIGHT *)light->classListLink.next) {
         if (light->isDynamic == 0) break;
     }
     if (light) return;
@@ -141,7 +99,7 @@ extern "C" void EnsureSwDefaultLight(void)
     r.q = QwordFromFloats<qword>(-0.2f, 0.3f, -1.0f);
     BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
     c = m;
-    ((void (*)(LIGHTV *, M3R *))light->vt[30].pfn)((LIGHTV *)((char *)light + light->vt[30].d), &c);
+    ((void (*)(LIGHT *, M3R *))VT(light)[30].pfn)((LIGHT *)((char *)light + VT(light)[30].d), &c);
     SetLightMidtoneStrength(light, 255.0f);
     SetLightMidtoneAngle(light, 240.0f);
 }
@@ -149,7 +107,7 @@ extern "C" void EnsureSwDefaultLight(void)
 // LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ...
 void LIGHT::Init()
 {
-    LIGHTV *light = (LIGHTV *)this;
+    LIGHT *light = this;
     int flags;
     InitXfm(light);
     light->kind = 0;
@@ -159,33 +117,33 @@ void LIGHT::Init()
     light->midtoneAngle = 240.0f;
     light->enabled = 1;
     SetLoBusyKind(light, 1);
-    flags = light->flagsOrPointer;
+    flags = light->unknown40;
     if ((flags ^ 1) & 1) *(int *)flags &= ~0x20;
-    else light->flagsOrPointer = flags & ~0x20;
+    else light->unknown40 = flags & ~0x20;
 }
 
 // LIGHT vt15: PostLoLoad then RebuildLight.
-extern "C" void PostLightLoad(LIGHTV *light) {
+extern "C" void PostLightLoad(LIGHT *light) {
     PostLoLoad(light);
     RebuildLight(light);
 }
 
 // LIGHT vt11: AddLoHierarchy then RebuildLight. (inferred)
-extern "C" void AddLightHierarchy(LIGHTV *light) {
+extern "C" void AddLightHierarchy(LIGHT *light) {
     AddLoHierarchy(light);
     RebuildLight(light);
 }
 
 // Transform update (vtable slot 17): LO projection, then rebuilds the light when its parent's transform stamp is newer
 // than the one it was last built for. (inferred)
-extern "C" void ProjectLightTransform(LIGHTV *light) {
+extern "C" void ProjectLightTransform(LIGHT *light) {
     int parentStamp;
-    LIGHTO *parent;
+    XF *parent;
     InheritLoFlag4(light);
-    parent = light->parent;
+    parent = light->parentTransform;
     parentStamp = 0;
     if (parent != 0) {
-        parentStamp = parent->transformStamp;
+        parentStamp = parent->worldStamp;
     }
     if (light->parentStamp < parentStamp) {
         light->parentStamp = parentStamp;
@@ -194,62 +152,62 @@ extern "C" void ProjectLightTransform(LIGHTV *light) {
 }
 
 // LIGHT vt12: RemoveLoHierarchy then InvalidateLight. (inferred)
-extern "C" void RemoveLightHierarchy(LIGHTV *light) {
+extern "C" void RemoveLightHierarchy(LIGHT *light) {
     RemoveLoHierarchy(light);
     InvalidateLight(light);
 }
 
 // LIGHT vt22: LO OnRemove then RemoveLightFromSw (free tree slot)
-extern "C" void OnLightRemove(LIGHTV *light) {
+extern "C" void OnLightRemove(LIGHT *light) {
     OnLoRemove(light);
     RemoveLightFromSw(&D_003DD490, light);
 }
 
 // LIGHT vt23: LO OnAdd then AddLightToSw (alloc slot, insert into light tree)
-extern "C" void OnLightAdd(LIGHTV *light) {
+extern "C" void OnLightAdd(LIGHT *light) {
     OnLoAdd(light);
     AddLightToSw(&D_003DD490, light);
 }
 
 // LIGHT vt29: XFM TranslateToPos then RebuildLight. (inferred)
-extern "C" void TranslateLightToPos(LIGHTV *light) {
+extern "C" void TranslateLightToPos(LIGHT *light) {
     TranslateXfmToPos(light);
     RebuildLight(light);
 }
 
 // LIGHT vt30: XFM RotateToMat then RebuildLight. (inferred)
-extern "C" void RotateLightToMat(LIGHTV *light) {
+extern "C" void RotateLightToMat(LIGHT *light) {
     RotateXfmToMat(light);
     RebuildLight(light);
 }
 
 // Sets the light kind (0 directional, 1 point) and rebuilds it, invalidating the lighting before and after.
-extern "C" void SetLightKind(LIGHTV *light, int kind) { InvalidateLight(light); light->kind = kind; RebuildLight(light); }
+extern "C" void SetLightKind(LIGHT *light, int kind) { InvalidateLight(light); light->kind = kind; RebuildLight(light); }
 
 // Sets the highlight colour (HSV; RebuildLight converts it to RGB and colour-corrects it) and rebuilds.
-extern "C" void SetLightHighlightColor(LIGHTV *light, qword hsv) {
+extern "C" void SetLightHighlightColor(LIGHT *light, qword hsv) {
     light->highlightHsv = hsv;
     RebuildLight(light);
 }
 
 // Sets the midtone strength (0..255) and rebuilds.
-void SetLightMidtoneStrength(LIGHTV *light, float strength) {
+void SetLightMidtoneStrength(LIGHT *light, float strength) {
     light->midtoneStrength = strength;
     RebuildLight(light);
 }
 
 // Sets the midtone spread angle in degrees (RebuildLight clamps it to at least 30) and rebuilds.
-void SetLightMidtoneAngle(LIGHTV *light, float angle) {
+void SetLightMidtoneAngle(LIGHT *light, float angle) {
     light->midtoneAngle = angle;
     RebuildLight(light);
 }
 
 // Sets the point-light falloff range (near/far distances, as an 8-byte LM) and rebuilds.
-extern "C" void SetLightFalloff(LIGHTV *light, LMK *falloff) { light->lmk = *falloff; RebuildLight(light); }
+extern "C" void SetLightFalloff(LIGHT *light, LM *falloff) { light->lmFallOff = *falloff; RebuildLight(light); }
 
 // Sets the static flag (exclusive with dynamic), invalidating the lighting before and after the change. (inferred: static
 // lights stay in the world light tree without forcing it to be rebuilt)
-extern "C" void SetLightStatic(LIGHTV *light, int isStatic) {
+extern "C" void SetLightStatic(LIGHT *light, int isStatic) {
     if (isStatic != light->isStatic) {
         InvalidateLight(light);
         light->isStatic = isStatic;
@@ -262,7 +220,7 @@ extern "C" void SetLightStatic(LIGHTV *light, int isStatic) {
 
 // Sets the dynamic flag (exclusive with static), invalidating the lighting before and after the change. Dynamic lights
 // do not bump the world's relight stamp, so moving them does not resubmit static relighting. (inferred)
-extern "C" void SetLightDynamic(LIGHTV *light, int isDynamic) {
+extern "C" void SetLightDynamic(LIGHT *light, int isDynamic) {
     if (isDynamic != light->isDynamic) {
         InvalidateLight(light);
         light->isDynamic = isDynamic;
@@ -322,9 +280,9 @@ void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu
 
 // Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position;
 // then InvalidateLight. (inferred)
-void RebuildLight(LIGHTV *light)
+void RebuildLight(LIGHT *light)
 {
-    V3 rgb;
+    VECTOR rgb;
     float strength;
     float coneAngle;
     strength = Max(light->midtoneStrength, light->highlightHsvComponents[2]);
@@ -353,11 +311,11 @@ void RebuildLight(LIGHTV *light)
         }
         light->bias = 1.0f;
         light->weight = 0.0f;
-        light->vec = *((V3 *(*)(LIGHTV *))light->vt[31].pfn)((LIGHTV *)((char *)light + light->vt[31].d));
+        light->vec = *(VECTOR *)light->GetWorldMatrix();
         break;
     case 1:
-        light->position.q = GetLoWorldPos(light);
-        light->vec = *(V3 *)&light->position;
+        light->position = GetLoWorldPos(light);
+        light->vec = *(VECTOR *)&light->position;
         FitLinearFunction(light->sNear, 1.0f, light->sFar, 0.0f, &light->duFall, &light->ruFall);
         light->bias = light->duFall;
         light->weight = light->ruFall;
@@ -371,7 +329,7 @@ void RebuildLight(LIGHTV *light)
 
 // Records that the light changed: a non-dynamic light bumps the world's relight stamp (RenderSw then resubmits
 // relighting), and a non-static point light marks the world light tree for rebuilding (g_sw.fLightTreeDirty). (inferred)
-void InvalidateLight(LIGHTV *light)
+void InvalidateLight(LIGHT *light)
 {
     if (!light->isDynamic) D_003DD490.relightStamp++;
     if (!light->isStatic && light->kind) g_sw.fLightTreeDirty = 1;
@@ -416,7 +374,7 @@ static __inline__ void SetBitM(int *a, int bit)
     *pw |= m;
 }
 // Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending. (inferred)
-void AddLightToSw(SW *s, LIGHTV *light)
+void AddLightToSw(SW *s, LIGHT *light)
 {
     if (light->slot < 0) {
         unsigned int i;
@@ -441,7 +399,7 @@ void AddLightToSw(SW *s, LIGHTV *light)
             if (w & 0xFFFF0000U) slot = n + 16; else slot = n;
             break;
         }
-        s->aplight[slot] = (LIGHT *)light;
+        s->aplight[slot] = light;
         light->slot = slot;
     }
     if (s->fLightTreeDirty)
@@ -455,7 +413,7 @@ void AddLightToSw(SW *s, LIGHTV *light)
 }
 
 // Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) (inferred)
-void RemoveLightFromSw(SW *p, LIGHTV *light)
+void RemoveLightFromSw(SW *p, LIGHT *light)
 {
     int n = light->slot;
     p->lightmaskFree.aw[n / 32] |= 1 << (n % 32);
@@ -473,8 +431,8 @@ extern "C" void PrepareSwLights(SW *s)
         func_002333B4(&s->lightmaskPending, 0, 0x20);
         func_002333B4(s->aleaf, 0, s->cleaf << 5);
         for (i = 0; i < 0x100; i++) {
-            if ((LIGHTV *)s->aplight[i])
-                AddLightToSw(s, (LIGHTV *)s->aplight[i]);
+            if (s->aplight[i])
+                AddLightToSw(s, s->aplight[i]);
         }
     }
 }
@@ -505,7 +463,7 @@ struct LSPHERE {                                    /* the bounding sphere at LI
     float bias, weight;
     float Score(const qword &pos);
 };
-struct RESULT { float score; LIGHTV *object; };
+struct RESULT { float score; LIGHT *object; };
 typedef char Size_RESULT[sizeof(RESULT) == 8 ? 1 : -1];
 /* dot(plane.xyz, pos.xyz) - plane.w, via VU0 macro mode */
 static inline float PlaneDistance(HOME *first, HOME *second, qword plane, qword pos)
@@ -576,7 +534,7 @@ void FindLightsAffectingPoint(SW *p, qword pos, int capacity, RESULT *results)
             do {
                 uint remaining = word & (word - 1);
                 uint isolated = word & ~remaining;
-                LIGHTV *o = (LIGHTV *)p->aplight[BitIndex(isolated, i * 32)];
+                LIGHT *o = p->aplight[BitIndex(isolated, i * 32)];
                 score = ((LSPHERE *)&o->position)->Score(pos);
                 int j = capacity;
                 while (j > 0) {
@@ -748,12 +706,12 @@ extern "C" void BuildSoLightPackets(SW *world, M4 *transform, SOBOUNDS *p)
         uint slot;
         p->pbPacket = D_002DEA28.m_pb;
         for (slot = 0; slot < 4; slot++) {
-            LIGHTV *o = results[slot].object;
+            LIGHT *o = results[slot].object;
             if (!o)
                 break;
             {
                 uint *d = Write(&D_002DEA28, 0x6C03C000 | (i * 3 + 0x15));
-                Copy(d, o->payload.words, 12);
+                Copy(d, o->payload, 12);
                 D_002DEA28.m_pb += 48;
             }
             i++;
@@ -775,7 +733,7 @@ extern "C" void BuildSoLightPackets(SW *world, M4 *transform, SOBOUNDS *p)
         qword sum = VuZero<qword>();
         uint slot;
         for (slot = 0; slot < 4; slot++) {
-            LIGHTV *o = results[slot].object;
+            LIGHT *o = results[slot].object;
             if (!o)
                 break;
             if (o->enabled) {
@@ -785,14 +743,14 @@ extern "C" void BuildSoLightPackets(SW *world, M4 *transform, SOBOUNDS *p)
                     VU_FLOAT vw(w);
                     M4 *m;
                     total += w;
-                    m = ((M4 *(*)(void *))o->vt[31].pfn)((char *)o + o->vt[31].d);
+                    m = (M4 *)o->GetWorldMatrix();
                     sum = AddScaledQ(sum, m->row[3].q, vw);
                     break;
                 }
                 case 0: {
                     float w = results[slot].score;
                     total += w;
-                    sum = AddScaledQ(sum, AddScaledQ(point, o->direction, VU_FLOAT(-D_002BFC90)), VU_FLOAT(w));
+                    sum = AddScaledQ(sum, AddScaledQ(point, *(qword *)o->matWorld.mat[0], VU_FLOAT(-D_002BFC90)), VU_FLOAT(w));
                     break;
                 }
                 }
@@ -881,21 +839,20 @@ extern "C" void BuildSoLightPackets(SW *world, M4 *transform, SOBOUNDS *p)
 //    out in the original order (D_002DEA28, D_002BFC60, tag constant).
 typedef char BLOCK_words_Offset[FIELD_OFFSET(BLOCK,words)==0?1:-1];
 typedef char BLOCK_values_Offset[FIELD_OFFSET(BLOCK,values)==0?1:-1];
-typedef char P_payload_Offset[FIELD_OFFSET(LIGHTV,payload)==288?1:-1];
 typedef char VIFS_m_pb_Offset[FIELD_OFFSET(VIFS,m_pb)==12?1:-1];
 typedef char BLOCK_PrefixSize[sizeof(BLOCK)==48?1:-1];
 typedef char VIFS_PrefixSize[sizeof(VIFS)==36?1:-1];
 // Same packet build for an explicit light list (rebuilds each light first) (inferred)
-extern "C" void BuildLightPackets(void *a0, int n, LIGHTV **ap, SOBOUNDS *o)
+extern "C" void BuildLightPackets(void *a0, int n, LIGHT **ap, SOBOUNDS *o)
 {
     int i;
     o->pbPacket = D_002DEA28.m_pb;
     for (i = 0; i < n; i++) {
-        LIGHTV *p = ap[i];
+        LIGHT *p = ap[i];
         RebuildLight(p);
         uint tag = 0x6C03C000 | (i * 3 + 0x15);
         uint *d = Write(&D_002DEA28, tag);
-        Copy(d, p->payload.words, 12);
+        Copy(d, p->payload, 12);
         D_002DEA28.m_pb += 48;
     }
     for (; i < 4; i++) {
