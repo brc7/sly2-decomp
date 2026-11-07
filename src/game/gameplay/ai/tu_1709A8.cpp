@@ -638,9 +638,8 @@ int IsBhvScriptCommandBusy(struct S *behavior) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001715B8 { extern "C" {
 struct S { char pad[0x34]; int context; };
-struct G { int a; };
-extern struct G D_003DD490;
-void *FindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, int context);
+extern SW D_003DD490;
+void *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, int context);
 // 0x1715B8: Finds a world object by oid relative to the script's current context object.
 void *FindBhvScriptTarget(struct S *behavior, int oid)
 {
