@@ -1792,24 +1792,16 @@ int GetTaskStateGoalOid(TASK *task)
 } } // namespace M_OidFromTaskState
 
 namespace M_VisitTaskTopo {
-struct X;
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    inline StateSourceScope(X *follower, int source, int requester);
+    inline StateSourceScope(TASK *follower, int source, int requester);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x68]; X *completeTask;
-    char pad1[0x7C - 0x6C]; X *job;
-    char pad2[0x94 - 0x80]; int numPrerequisites;
-    char pad3[0xA0 - 0x98]; int numFollowers; X **followers;
-    char pad4[0xF0 - 0xA8]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; int visitCount; int depth; int jobDepth;
-};
-inline StateSourceScope::StateSourceScope(X *follower, int source, int requester)
+inline StateSourceScope::StateSourceScope(TASK *follower, int source, int requester)
 {
     job = 0;
     task = follower;
@@ -1823,8 +1815,8 @@ inline StateSourceScope::StateSourceScope(X *follower, int source, int requester
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
-        job->jobStateSource = savedSource;
-        job->jobStateRequester = savedRequester;
+        job->stateSource = savedSource;
+        job->stateRequester = savedRequester;
     }
     if (task) {
         task->stateSource = savedSource;
@@ -1833,18 +1825,18 @@ inline StateSourceScope::~StateSourceScope()
 }
 // Topological visit: records the depth and emits the task once all its prerequisites are visited, then visits the
 // successors.
-extern "C" void VisitTaskTopo(X *task, int *count, X **order, int depth, int jobDepth)
+extern "C" void VisitTaskTopo(TASK *task, int *count, TASK **order, int depth, int jobDepth)
 {
     task->depth = StdMaxInt(depth, task->depth);
     task->jobDepth = StdMaxInt(jobDepth, task->jobDepth);
-    task->visitCount++;
-    if (task->visitCount >= task->numPrerequisites) {
+    task->cVisit++;
+    if (task->cVisit >= task->cptaskPrereq) {
         order[(*count)++] = task;
         depth++;
-        if (task->job && task->job->completeTask == task)
+        if (task->pjob && task->pjob->ptaskEnd == task)
             jobDepth++;
-        for (int i = 0; i < task->numFollowers; i++) {
-            X *follower = task->followers[i];
+        for (int i = 0; i < task->cptaskSucc; i++) {
+            TASK *follower = task->aptaskSucc[i];
             StateSourceScope scope(follower, task->stateSource, task->stateRequester);
             VisitTaskTopo(follower, count, order, depth, jobDepth);
         }
@@ -1854,30 +1846,28 @@ extern "C" void VisitTaskTopo(X *task, int *count, X **order, int depth, int job
 
 namespace M_RestoreTaskState { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-struct Y;
-struct X { char pad[0x54]; int state; char pad1[0x64 - 0x58]; union { struct X *startTask; int startCount; }; char pad2[0x7C - 0x68]; union { struct X *job; int jobStartCount; }; char pad3[0x94 - 0x80]; int numPrerequisites; struct X **prerequisites; char pad4[0xE0 - 0x9C]; int stateKey; int pad5; int interruptedKey; };
 extern char D_003D4A60[];
 void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
-void SetTaskState(struct X *p, int n);
+void SetTaskState(TASK *p, int n);
 // Restores the task's state from its save variables (SetTaskState), with the job start-task cases.
-void RestoreTaskState(struct X *task)
+void RestoreTaskState(TASK *task)
 {
     CRef ref;
-    int *key;
+    SVKEY *key;
     int state = TASK_STATE_LOCKED;
     int wasInterrupted;
-    key = &task->stateKey;
+    key = &task->svkState;
     wasInterrupted = 0;
-    if (*key) {
+    if (key->c) {
         int value;
         GetGlobalSaveVar(&ref, key, D_003D4A60);
         value = ref.m_tag;
         Decref__4CRef(&ref);
         state = value;
     }
-    key = &task->interruptedKey;
-    if (*key) {
+    key = &task->svkInterrupted;
+    if (key->c) {
         int value;
         GetGlobalSaveVar(&ref, key, D_003D4A60);
         value = ref.m_tag;
@@ -1885,22 +1875,22 @@ void RestoreTaskState(struct X *task)
         wasInterrupted = value;
     }
     /* A task of a job saved while in progress restarts as available (locked when a prerequisite is open). */
-    if (wasInterrupted && task->job && state < TASK_STATE_COMPLETE && state > TASK_STATE_LOCKED) {
-        struct X *job = task->job;
+    if (wasInterrupted && task->pjob && state < TASK_STATE_COMPLETE && state > TASK_STATE_LOCKED) {
+        JOB *job = task->pjob;
         int i;
-        task->startCount = 0;
+        task->cStart = 0;
         state = TASK_STATE_AVAILABLE;
-        if (job->startTask == task)
-            job->jobStartCount = 0;
-        for (i = 0; i < task->numPrerequisites; i++) {
-            if (task->prerequisites[i]->state < TASK_STATE_DONE) {
+        if (job->ptaskStart == task)
+            job->cStart = 0;
+        for (i = 0; i < task->cptaskPrereq; i++) {
+            if (task->aptaskPrereq[i]->nState < TASK_STATE_DONE) {
                 state = TASK_STATE_LOCKED;
                 break;
             }
         }
     }
     if (!state)
-        state = task->numPrerequisites == 0;   /* a locked root task is available */
+        state = task->cptaskPrereq == 0;   /* a locked root task is available */
     SetTaskState(task, state);
 }
 } } // namespace M_RestoreTaskState
@@ -1915,32 +1905,29 @@ struct CRef {
  CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
  ~CRef(){Decref__4CRef(this);}
 };
-struct OPT{int kind,value;};
-struct S{char pad[0x54];int state;char pad58[0xC];int startCount,completionCount;char pad6C[0x10];void*job;char pad80[0x48];OPT startCountVar,completionCountVar,completeVar,stateVar,interruptedVar;int pendingCascadeState,stateSource;};
 extern "C" { extern char D_003D4A60[]; }
-extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
-extern "C" int IsTaskComplete(S*);
+extern "C" CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*);
 extern "C" void UpdateJobSaveVars(void*);
-static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
-static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
+static inline void SetPv(SVKEY*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
+static inline void SetInt(SVKEY*p,int n){CRef r(n);SetPv(p,r);}
 // Writes the task's fields into its save variables and refreshes its job's.
-extern "C" void UpdateTaskSaveVars(S *task)
+extern "C" void UpdateTaskSaveVars(TASK *task)
 {
-    if (task->stateSource == STATE_SOURCE_RESTORE || task->state == TASK_STATE_UNSET)
+    if (task->stateSource == STATE_SOURCE_RESTORE || task->nState == TASK_STATE_UNSET)
         return;
     {
-        OPT *var = &task->startCountVar;
-        if (var->kind)
-            SetInt(var, task->startCount);
+        SVKEY *var = &task->svkStart;
+        if (var->c)
+            SetInt(var, task->cStart);
     }
     {
-        OPT *var = &task->completionCountVar;
-        if (var->kind)
+        SVKEY *var = &task->svkCompletionCount;
+        if (var->c)
             SetInt(var, task->completionCount);
     }
     {
-        OPT *var = &task->completeVar;
-        if (var->kind) {
+        SVKEY *var = &task->svkComplete;
+        if (var->c) {
             void *context = D_003D4A60;
             int isComplete = IsTaskComplete(task);
             CRef r(isComplete != 0);
@@ -1948,34 +1935,32 @@ extern "C" void UpdateTaskSaveVars(S *task)
         }
     }
     {
-        OPT *var = &task->stateVar;
-        if (var->kind)
-            SetInt(var, task->state);
+        SVKEY *var = &task->svkState;
+        if (var->c)
+            SetInt(var, task->nState);
     }
     {
-        OPT *var = &task->interruptedVar;
-        if (var->kind) {
+        SVKEY *var = &task->svkInterrupted;
+        if (var->c) {
             CRef r(false);
             SetPv(var, r, D_003D4A60);
         }
     }
-    if (task->job)
-        UpdateJobSaveVars(task->job);
+    if (task->pjob)
+        UpdateJobSaveVars(task->pjob);
 }
 } // namespace M_UpdateTaskSaveVars
 
 namespace M_FTaskPrereqsMet { extern "C" {
-struct X { char pad[0x54]; int state; char pad2[0x6C - 0x58]; int isOptional; };
-struct S { char pad[0x94]; int numPrerequisites; struct X **prerequisites; };
 // True when every prerequisite is complete or optional and available.
-int AreTaskPrereqsMet(struct S *task)
+int AreTaskPrereqsMet(TASK *task)
 {
     int met = 1;
     int i;
-    for (i = 0; met && i < task->numPrerequisites; i++) {
-        struct X *prerequisite = task->prerequisites[i];
+    for (i = 0; met && i < task->cptaskPrereq; i++) {
+        TASK *prerequisite = task->aptaskPrereq[i];
         met = 0;
-        if (prerequisite->state >= TASK_STATE_DONE || (prerequisite->state == TASK_STATE_AVAILABLE && prerequisite->isOptional))
+        if (prerequisite->nState >= TASK_STATE_DONE || (prerequisite->nState == TASK_STATE_AVAILABLE && prerequisite->fOptional))
             met = 1;
     }
     return met;
@@ -1983,23 +1968,17 @@ int AreTaskPrereqsMet(struct S *task)
 } } // namespace M_FTaskPrereqsMet
 
 namespace M_RequestTaskState {
-struct X;
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    inline StateSourceScope(X *px, int source, int requester);
-    inline StateSourceScope(X *px, int source, int requester, int isJob);
+    inline StateSourceScope(TASK *px, int source, int requester);
+    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x54]; int state;
-    char pad1[0x7C - 0x58]; X *job;
-    char pad2[0xF0 - 0x80]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
-};
-inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
+inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
 {
     job = 0;
     task = px;
@@ -2010,42 +1989,41 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
-inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
+inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
 {
     job = owner;
     task = 0;
     if (owner) {
-        savedSource = owner->jobStateSource;
-        owner->jobStateSource = source;
-        savedRequester = job->jobStateRequester;
-        job->jobStateRequester = requester;
+        savedSource = owner->stateSource;
+        owner->stateSource = source;
+        savedRequester = job->stateRequester;
+        job->stateRequester = requester;
     }
 }
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
-        job->jobStateSource = savedSource;
-        job->jobStateRequester = savedRequester;
+        job->stateSource = savedSource;
+        job->stateRequester = savedRequester;
     }
     if (task) {
         task->stateSource = savedSource;
         task->stateRequester = savedRequester;
     }
 }
-extern "C" int AreTaskPrereqsMet(X *p);
-extern "C" void SetTaskStateCascade(X *p, int newState);
-extern "C" void ActivateTask(X *p);
-extern "C" void DeactivateTask(X *p);
-extern "C" void RejectTaskState(X *p, int newState);
+extern "C" int AreTaskPrereqsMet(TASK *p);
+extern "C" void SetTaskStateCascade(TASK *p, int newState);
+extern "C" void ActivateTask(TASK *p);
+extern "C" void RejectTaskState(TASK *p, int newState);
 // Validated state request: 4 activates, 5 deactivates, 0..3 only one step up or when the prerequisites are met;
 // otherwise rejected.
-extern "C" void RequestTaskState(X *task, int newState, int requester)
+extern "C" void RequestTaskState(TASK *task, int newState, int requester)
 {
     StateSourceScope scope(task, task->stateSource, requester);
-    StateSourceScope jobScope(task->job, task->stateSource, requester, 1);
+    StateSourceScope jobScope(task->pjob, task->stateSource, requester, 1);
     if (newState == -1)
         newState = TASK_REQUEST_ACTIVATE;
-    int current = task->state;
+    int current = task->nState;
     if (current != TASK_STATE_UNSET) {
         switch (newState) {
         case TASK_REQUEST_ACTIVATE:
@@ -2097,23 +2075,17 @@ extern "C" void RequestTaskState(X *task, int newState, int requester)
 } // namespace M_RequestTaskState
 
 namespace M_ForceTaskState {
-struct X;
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    inline StateSourceScope(X *px, int source, int requester);
-    inline StateSourceScope(X *px, int source, int requester, int isJob);
+    inline StateSourceScope(TASK *px, int source, int requester);
+    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x54]; int state;
-    char pad1[0x7C - 0x58]; X *job;
-    char pad2[0xF0 - 0x80]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
-};
-inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
+inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
 {
     job = 0;
     task = px;
@@ -2124,43 +2096,42 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
-inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
+inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
 {
     job = owner;
     task = 0;
     if (owner) {
-        savedSource = owner->jobStateSource;
-        owner->jobStateSource = source;
-        savedRequester = job->jobStateRequester;
-        job->jobStateRequester = requester;
+        savedSource = owner->stateSource;
+        owner->stateSource = source;
+        savedRequester = job->stateRequester;
+        job->stateRequester = requester;
     }
 }
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
-        job->jobStateSource = savedSource;
-        job->jobStateRequester = savedRequester;
+        job->stateSource = savedSource;
+        job->stateRequester = savedRequester;
     }
     if (task) {
         task->stateSource = savedSource;
         task->stateRequester = savedRequester;
     }
 }
-extern "C" int AreTaskPrereqsMet(X *p);
-extern "C" void SetTaskStateCascade(X *p, int newState);
-extern "C" void ActivateTask(X *p);
-extern "C" void DeactivateTask(X *p);
+extern "C" int AreTaskPrereqsMet(TASK *p);
+extern "C" void SetTaskStateCascade(TASK *p, int newState);
+extern "C" void ActivateTask(TASK *p);
 // Unvalidated state change (ForceTaskState): like RequestTaskState without the checks.
-extern "C" void ForceTaskState(X *task, int newState, int requester)
+extern "C" void ForceTaskState(TASK *task, int newState, int requester)
 {
     StateSourceScope scope(task, task->stateSource, requester);
-    StateSourceScope jobScope(task->job, task->stateSource, requester, 1);
+    StateSourceScope jobScope(task->pjob, task->stateSource, requester, 1);
     if (newState == -1)
         newState = TASK_REQUEST_ACTIVATE;
-    if (task->state != TASK_STATE_UNSET) {
+    if (task->nState != TASK_STATE_UNSET) {
         switch (newState) {
         case TASK_REQUEST_ACTIVATE:
-            if (task->state == TASK_STATE_LOCKED && AreTaskPrereqsMet(task))
+            if (task->nState == TASK_STATE_LOCKED && AreTaskPrereqsMet(task))
                 SetTaskStateCascade(task, TASK_STATE_AVAILABLE);
             ActivateTask(task);
             break;
@@ -2179,27 +2150,23 @@ extern "C" void ForceTaskState(X *task, int newState, int requester)
 } // namespace M_ForceTaskState
 
 namespace M_UpdateCurrentJob { extern "C" {
-struct X { char pad[0x64]; void *startTask; void *completeTask; };
 extern SW D_003DD490;
 int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
-int IsTaskComplete(void *p);
-void EndCurrentJob(struct X *p);
-void SetCurrentJob(struct X *p);
 // Switches the current job to the one whose start task is complete and whose end task is not.
 void UpdateCurrentJob(void)
 {
-    struct X *jobs[256];
-    struct X *found = 0;
+    JOB *jobs[256];
+    JOB *found = 0;
     int numJobs = FindSwObjectsByClass(&D_003DD490, 5, 0x84, 0, 0x100, (void **)jobs);
     int i;
     for (i = 0; i < numJobs; i++) {
-        struct X *job = jobs[i];
-        if (IsTaskComplete(job->startTask) && !IsTaskComplete(job->completeTask))
+        JOB *job = jobs[i];
+        if (IsTaskComplete(job->ptaskStart) && !IsTaskComplete(job->ptaskEnd))
             found = job;
     }
-    if (found != ((struct X *)D_003DD490.currentJob)) {
+    if (found != ((JOB *)D_003DD490.currentJob)) {
         if (D_003DD490.currentJob)
-            EndCurrentJob(((struct X *)D_003DD490.currentJob));
+            EndCurrentJob(((JOB *)D_003DD490.currentJob));
         if (found)
             SetCurrentJob(found);
     }
@@ -2207,14 +2174,13 @@ void UpdateCurrentJob(void)
 } } // namespace M_UpdateCurrentJob
 
 namespace M_func_00164AA8 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    StateSourceScope(X *px)
+    StateSourceScope(TASK *px)
     {
         job = 0;
         task = px;
@@ -2228,8 +2194,8 @@ public:
     ~StateSourceScope()
     {
         if (job) {
-            job->jobStateSource = savedSource;
-            job->jobStateRequester = savedRequester;
+            job->stateSource = savedSource;
+            job->stateRequester = savedRequester;
         }
         if (task) {
             task->stateSource = savedSource;
@@ -2237,10 +2203,10 @@ public:
         }
     }
 };
-extern "C" void ForceTaskState(X *px, int a, int b);
+extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 0 and updates the current job.
-extern "C" void ForceTaskState0(X *task)
+extern "C" void ForceTaskState0(TASK *task)
 {
     StateSourceScope scope(task);
     ForceTaskState(task, TASK_STATE_LOCKED, 0);
@@ -2249,14 +2215,13 @@ extern "C" void ForceTaskState0(X *task)
 } // namespace M_func_00164AA8
 
 namespace M_func_00164B38 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    StateSourceScope(X *px)
+    StateSourceScope(TASK *px)
     {
         job = 0;
         task = px;
@@ -2270,8 +2235,8 @@ public:
     ~StateSourceScope()
     {
         if (job) {
-            job->jobStateSource = savedSource;
-            job->jobStateRequester = savedRequester;
+            job->stateSource = savedSource;
+            job->stateRequester = savedRequester;
         }
         if (task) {
             task->stateSource = savedSource;
@@ -2279,10 +2244,10 @@ public:
         }
     }
 };
-extern "C" void ForceTaskState(X *px, int a, int b);
+extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 1 and updates the current job.
-extern "C" void ForceTaskState1(X *task)
+extern "C" void ForceTaskState1(TASK *task)
 {
     StateSourceScope scope(task);
     ForceTaskState(task, TASK_STATE_AVAILABLE, 0);
@@ -2291,14 +2256,13 @@ extern "C" void ForceTaskState1(X *task)
 } // namespace M_func_00164B38
 
 namespace M_func_00164BC8 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    StateSourceScope(X *px)
+    StateSourceScope(TASK *px)
     {
         job = 0;
         task = px;
@@ -2312,8 +2276,8 @@ public:
     ~StateSourceScope()
     {
         if (job) {
-            job->jobStateSource = savedSource;
-            job->jobStateRequester = savedRequester;
+            job->stateSource = savedSource;
+            job->stateRequester = savedRequester;
         }
         if (task) {
             task->stateSource = savedSource;
@@ -2321,10 +2285,10 @@ public:
         }
     }
 };
-extern "C" void ForceTaskState(X *px, int a, int b);
+extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 2 and updates the current job.
-extern "C" void ForceTaskState2(X *task)
+extern "C" void ForceTaskState2(TASK *task)
 {
     StateSourceScope scope(task);
     ForceTaskState(task, TASK_STATE_DONE, 0);
@@ -2333,14 +2297,13 @@ extern "C" void ForceTaskState2(X *task)
 } // namespace M_func_00164BC8
 
 namespace M_func_00164C58 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    StateSourceScope(X *px)
+    StateSourceScope(TASK *px)
     {
         job = 0;
         task = px;
@@ -2354,8 +2317,8 @@ public:
     ~StateSourceScope()
     {
         if (job) {
-            job->jobStateSource = savedSource;
-            job->jobStateRequester = savedRequester;
+            job->stateSource = savedSource;
+            job->stateRequester = savedRequester;
         }
         if (task) {
             task->stateSource = savedSource;
@@ -2363,10 +2326,10 @@ public:
         }
     }
 };
-extern "C" void ForceTaskState(X *px, int a, int b);
+extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 3 and updates the current job.
-extern "C" void ForceTaskState3(X *task)
+extern "C" void ForceTaskState3(TASK *task)
 {
     StateSourceScope scope(task);
     ForceTaskState(task, TASK_STATE_COMPLETE, 0);
@@ -2375,26 +2338,25 @@ extern "C" void ForceTaskState3(X *task)
 } // namespace M_func_00164C58
 
 namespace M_CollectTaskCascade { extern "C" {
-struct X;
-struct Y { char pad[0x78]; int isReplay; };
-struct X { char pad[0x54]; int state; char pad2[0x7C - 0x58]; struct Y *job; char pad3[0x94 - 0x80]; int numFollowers; struct X **followers; char pad4[0xF0 - 0x9C]; int pendingCascadeState; };
-// Collects the successors whose state must be raised along with the task (state 2 becomes 3 across jobs).
-void CollectTaskCascade(struct X *task, int newState, int *count, struct X **collected)
+// Collects the prerequisites whose state must be raised along with the task (a task done in its job completes the
+// prerequisites outside it: state 2 becomes 3 across jobs). (The round-4 view named the prerequisite list +0x94/+0x98
+// "followers".)
+void CollectTaskCascade(TASK *task, int newState, int *count, TASK **collected)
 {
     int i;
-    for (i = 0; i < task->numFollowers; i++) {
-        struct X *follower = task->followers[i];
-        int followerState = newState;
-        if (newState == TASK_STATE_DONE) {   /* a follower with no job, or in another (non-replay) job, completes fully */
-            struct Y *job = follower->job;
-            if (!job || (job != task->job && !job->isReplay))
-                followerState = TASK_STATE_COMPLETE;
+    for (i = 0; i < task->cptaskPrereq; i++) {
+        TASK *prerequisite = task->aptaskPrereq[i];
+        int prerequisiteState = newState;
+        if (newState == TASK_STATE_DONE) {   /* a prerequisite with no job, or in another (non-replay) job, completes fully */
+            JOB *job = prerequisite->pjob;
+            if (!job || (job != task->pjob && !job->fReplay))
+                prerequisiteState = TASK_STATE_COMPLETE;
         }
-        CollectTaskCascade(follower, followerState, count, collected);
+        CollectTaskCascade(prerequisite, prerequisiteState, count, collected);
     }
-    if (task->pendingCascadeState == -1 && task->state < newState) {
+    if (task->nStatePending == -1 && task->nState < newState) {
         collected[(*count)++] = task;
-        task->pendingCascadeState = newState;
+        task->nStatePending = newState;
     }
 }
 } } // namespace M_CollectTaskCascade
