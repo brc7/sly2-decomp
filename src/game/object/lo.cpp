@@ -277,41 +277,36 @@ void SetLoParent(LO *object, SO *a, int b) { object->SetParent(a, 0, b); }
 } } // namespace M_SetLoParent_1A58D0
 
 namespace M_func_001A5900 { extern "C" {
-/* (Claude agent) MATCH: parent bit via (int)(x>>60)&1, fNew via if(!(bit56)) fNew=1; else fNew=0; (gives addiu/movn). */
-typedef struct ALO ALO;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct ALO { int frame, sidebag, firstRefNode; VTE *vt; ALO *parent; ALO **root; char pad[0x24 - 0x18]; ALO *nextSibling; union { unsigned long u; struct { unsigned long lowBits : 56; unsigned long isRemoved : 1; unsigned long unknown57 : 3; unsigned long isInWorld : 1; unsigned long unknown61 : 3; } b; } bits; };
-#define VFN(p, n, T) ((T)(p)->vt[n].pfn)
-#define VTHIS(p, n) ((ALO *)((char *)(p) + (p)->vt[n].d))
+/* (Claude agent) MATCH: parent bit via (int)(bit)&1, fNew via if(!removed) fNew=1; else fNew=0; (gives addiu/movn). */
 extern char D_003DD490[];
-void GetLoChildDl(ALO *p, void **ppdl, ALO ***pppalo);
+void GetLoChildDl(SO *p, void **ppdl, LO ***pppalo);
 void RemoveDlEntry__FP2DLPv(void *pdl, void *p);
 void AppendDlEntry__FP2DLPv(void *pdl, void *p);
 void InsertDlEntryBefore__FP2DLPvT1(void *pdl, void *pBefore, void *p);
-int IsLoInWorld(ALO *p);
-void UpdateSoBusy(void *g, ALO *p);
+int IsLoInWorld(LO *p);
+void UpdateSoBusy(void *g, LO *p);
 // LO's SetParent (vtable slot 10): moves the object from the old to the new parent's child list keeping its in-world
 // state, freezes it while in the world, sets the parent pointer, updates the root record (slot 13) and the children,
 // and re-adds or notifies as needed.
-void LO_SetParent(ALO *object, ALO *newParent, int grf, int unknown)
+void LO_SetParent(LO *object, SO *newParent, XF *pxfParent, int grf)
 {
-    unsigned long wasInWorld = object->bits.u >> LO_IN_WORLD_SHIFT & 1;
+    unsigned long wasInWorld = object->isInWorld & 1;
     unsigned long isInWorld = 0;
     void *oldList;
-    ALO **oldFirstRemoved;
+    LO **oldFirstRemoved;
     void *newList;
-    ALO **newFirstRemoved;
-    ALO *oldParent;
-    ALO **children;
+    LO **newFirstRemoved;
+    SO *oldParent;
+    LO **children;
     int numChildren, i;
-    if (!newParent || ((int)(newParent->bits.u >> LO_IN_WORLD_SHIFT) & 1)) {
-        if (!(object->bits.u & LO_REMOVED_BIT)) isInWorld = 1; else isInWorld = 0;
+    if (!newParent || ((int)newParent->isInWorld & 1)) {
+        if (!object->isRemoved) isInWorld = 1; else isInWorld = 0;
     }
     GetLoChildDl(object->parent, &oldList, &oldFirstRemoved);
     GetLoChildDl(newParent, &newList, &newFirstRemoved);
-    if (object->bits.u & LO_REMOVED_BIT) {
+    if (object->isRemoved) {
         if (object == *oldFirstRemoved)
-            *oldFirstRemoved = object->nextSibling;
+            *oldFirstRemoved = (LO *)object->siblingLink.next;
         RemoveDlEntry__FP2DLPv(oldList, object);
         AppendDlEntry__FP2DLPv(newList, object);
         if (!*newFirstRemoved)
@@ -321,32 +316,30 @@ void LO_SetParent(ALO *object, ALO *newParent, int grf, int unknown)
         InsertDlEntryBefore__FP2DLPvT1(newList, *newFirstRemoved, object);
     }
     if (IsLoInWorld(object)) {
-        VFN(object, LO_SLOT_ON_REMOVE, void (*)(ALO *))(VTHIS(object, LO_SLOT_ON_REMOVE));
-        if (*object->root == object)
+        object->OnRemove();
+        if (object->root->topObject == object)
             RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.busyRoots), object->root);
     }
     oldParent = object->parent;
     object->parent = newParent;
-    VFN(object, LO_SLOT_UPDATE_LOROOT, void (*)(ALO *, ALO *, ALO *))(VTHIS(object, LO_SLOT_UPDATE_LOROOT), object, oldParent);
-    numChildren = VFN(object, LO_SLOT_GET_CHILDREN, int (*)(ALO *, ALO ***))(VTHIS(object, LO_SLOT_GET_CHILDREN), &children);
+    object->UpdateLoroot(object, oldParent);
+    numChildren = object->GetChildren(&children);
     for (i = 0; i < numChildren; i++) {
-        ALO *child = children[i];
-        VFN(child, LO_SLOT_SET_PARENT, void (*)(ALO *, ALO *, int, int))(VTHIS(child, LO_SLOT_SET_PARENT), newParent, grf, unknown);
+        LO *child = children[i];
+        child->SetParent(newParent, pxfParent, grf);
     }
     if (isInWorld != wasInWorld) {
         if (isInWorld)
-            VFN(object, LO_SLOT_ADD_HIERARCHY, void (*)(ALO *))(VTHIS(object, LO_SLOT_ADD_HIERARCHY));
+            object->AddHierarchy();
         else
-            VFN(object, LO_SLOT_REMOVE_HIERARCHY, void (*)(ALO *))(VTHIS(object, LO_SLOT_REMOVE_HIERARCHY));
+            object->RemoveHierarchy();
     }
     if (IsLoInWorld(object))
-        VFN(object, LO_SLOT_ON_ADD, void (*)(ALO *))(VTHIS(object, LO_SLOT_ON_ADD));
+        object->OnAdd();
     else if (!object->parent && isInWorld)
         UpdateSoBusy(D_003DD490, object);
 }
 } } // namespace M_func_001A5900
-#undef VFN
-#undef VTHIS
 
 // vtable slot 13: with a parent, shares the parent's root record (freeing its own if it had one); without a parent and
 // when makeRoot is set, makes its own root.
