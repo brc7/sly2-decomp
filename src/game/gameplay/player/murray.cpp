@@ -1934,16 +1934,12 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
 } // namespace M_func_001B72B0
 
 namespace M_func_001B7700 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
-struct LO{char pad[0x30];qword pos;char pad40[0x60];struct LO*parent;char padA4[0xC];qword velocity;};
-struct ACC{char pad[0x80];qword v;};
-struct O{char pad[0x58];struct LO*lo;char pad5C[0x8C];struct ACC*acc;};
-struct X{char pad[0x180];struct O*object;};
-struct P{char pad[0x1030];struct ASEGA*anim;char pad1034[0x3BC];struct X*x;char pad13F4[0x58];int state;};
+/* A transform (XF) as read here: position, parent and velocity. */
+struct XFV{char pad[0x30];qword pos;char pad40[0x60];struct XFV*parent;char padA4[0xC];qword velocity;};
 extern qword D_002A2DC0;
 extern float D_002C09C8;
-qword ConvertXfVec(struct LO*,struct LO*,qword);
+qword ConvertXfVec(struct XFV*,struct XFV*,qword);
 int SolveQuadratic__FfffPf(float,float,float,float*);
 void SeekAsega(struct ASEGA*,int,float,float);
 // Clamp inputValue to [inputLower, *upper] (register-pinned).
@@ -1961,39 +1957,24 @@ static inline qword Div(qword v,qword s,U*u){qword r;u->q=s;__asm__("vdiv Q,$vf0
 // Store a VU0 register to *p.
 static inline void Store(qword*p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
 // Copy the actor pointer into callee-saved $16.
-static inline struct P*CaptureActor(struct P*input){register struct P*output __asm__("$16");__asm__("daddu %0,%1,$zero":"=r"(output):"r"(input));return output;}
+static inline MURRAY*CaptureActor(MURRAY*input){register MURRAY*output __asm__("$16");__asm__("daddu %0,%1,$zero":"=r"(output):"r"(input));return output;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
 typedef char U_f_Offset[FIELD_OFFSET(U,f)==0?1:-1];
-typedef char LO_pos_Offset[FIELD_OFFSET(struct LO,pos)==48?1:-1];
-typedef char LO_parent_Offset[FIELD_OFFSET(struct LO,parent)==160?1:-1];
-typedef char LO_velocity_Offset[FIELD_OFFSET(struct LO,velocity)==176?1:-1];
-typedef char ACC_v_Offset[FIELD_OFFSET(struct ACC,v)==128?1:-1];
-typedef char O_lo_Offset[FIELD_OFFSET(struct O,lo)==88?1:-1];
-typedef char O_acc_Offset[FIELD_OFFSET(struct O,acc)==232?1:-1];
-typedef char X_object_Offset[FIELD_OFFSET(struct X,object)==384?1:-1];
-typedef char P_anim_Offset[FIELD_OFFSET(struct P,anim)==4144?1:-1];
-typedef char P_x_Offset[FIELD_OFFSET(struct P,x)==5104?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(struct P,state)==5196?1:-1];
 typedef char qword_PrefixSize[sizeof(qword)==16?1:-1];
 typedef char U_PrefixSize[sizeof(U)==16?1:-1];
-typedef char LO_PrefixSize[sizeof(struct LO)==192?1:-1];
-typedef char ACC_PrefixSize[sizeof(struct ACC)==144?1:-1];
-typedef char O_PrefixSize[sizeof(struct O)==236?1:-1];
-typedef char X_PrefixSize[sizeof(struct X)==388?1:-1];
-typedef char P_PrefixSize[sizeof(struct P)==5200?1:-1];
 // Start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 a ballistic solve toward the hands.
-void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
- struct P*owner=CaptureActor(murray);
+void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
+ MURRAY*owner=CaptureActor(murray);
  U roots;U u;U start;
  qword end;
- switch(owner->state){
+ switch(owner->liftClip){
  case 0:{
-  struct LO*parent=owner->x->object->lo->parent;
+  struct XFV*parent=((XFV*)((SO*)((CARRYSPOTV*)owner->ploCarried)->plo)->unknown58)->parent;
   qword first=ConvertXfVec(0,parent,Scale(D_002A2DC0,2500.0f,&roots));
   {
-   register struct LO*space __asm__("$4");register int bits __asm__("$2");
-   __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct LO*)0));
+   register struct XFV*space __asm__("$4");register int bits __asm__("$2");
+   __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct XFV*)0));
    end=ConvertXfVec(space,parent,FinalLaunchScale(&D_002A2DC0,bits,&roots));
   }
   break;
@@ -2005,14 +1986,14 @@ void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*du
   float t;
   int count;
   {
-   struct X*x=owner->x;
-   register struct O*object __asm__("$3");
-   __asm__("lw %0,%1":"=r"(object):"m"(x->object));
+   CARRYSPOTV*x=(CARRYSPOTV*)owner->ploCarried;
+   register SO*object __asm__("$3");
+   __asm__("lw %0,%1":"=r"(object):"m"(x->plo));
    {
-    register struct LO*lo __asm__("$2");register struct ACC*source __asm__("$5");
+    register struct XFV*lo __asm__("$2");register SOPHYS*source __asm__("$5");
     register qword velocity __asm__("$3"),argument __asm__("$6");
-    __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->lo),"m"(object->acc));
-    __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velocity),"m"(source->v),"m"(lo->pos));
+    __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->unknown58),"m"(object->physics));
+    __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velocity),"m"(*(qword*)&source->gravity),"m"(lo->pos));
     v.q=velocity;
     acceleration=ConvertXfVec(0,lo->parent,argument);
    }
@@ -2030,7 +2011,7 @@ void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*du
   }
   if(!count)t=D_002C09C8;
   else t=Clamp(roots.f[count-1],D_002C09C8,duration);
-  SeekAsega(owner->anim,0,*animation-t*owner->anim->speed,owner->anim->speed);
+  SeekAsega(owner->activeAnimation,0,*animation-t*owner->activeAnimation->speed,owner->activeAnimation->speed);
   {
    register qword actualAcceleration __asm__("vf3");register qword qt __asm__("vf1");
    register float averageTime __asm__("$f0")=0.5f;register int bits __asm__("$2");
@@ -2062,11 +2043,6 @@ typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
 typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
-typedef char LO_Alignment[__alignof__(struct LO)==16?1:-1];
-typedef char ACC_Alignment[__alignof__(struct ACC)==16?1:-1];
-typedef char O_Alignment[__alignof__(struct O)==4?1:-1];
-typedef char X_Alignment[__alignof__(struct X)==4?1:-1];
-typedef char P_Alignment[__alignof__(struct P)==4?1:-1];
 } } // namespace M_func_001B7700
 #undef FIELD_OFFSET
 
