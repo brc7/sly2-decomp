@@ -91,7 +91,7 @@ struct RECONSEL
 };
 
 struct CMV { char pad0[0x60]; union { M4 mat; struct { qword r0, r1, r2, position; } v; }; };
-struct PLAYER { char pad0[0x150]; void *control; char pad154[0xF24 - 0x154]; char abF24[0x14]; RECONSEL *preconsel; };
+struct PLAYER : SO { void *control; char pad154[0xF24 - 0x154]; char abF24[0x14]; RECONSEL *preconsel; };
 
 extern "C" {
 extern SW D_003DD490;
