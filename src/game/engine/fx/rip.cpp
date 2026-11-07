@@ -1327,8 +1327,8 @@ typedef char layout_cf0a0_34[((unsigned)&((M4*)0)->d==0x30)?1:-1];
 } // namespace M_ProjectRipTransform
 
 // RIP default Update (vt entry 5): removes the rip when its life is over; otherwise (not in a kind-1 group) tests it
-// against its touch object (when that is in the world, through the object's point test, vtable slot 73, by hand:
-// so.h's IsPosInside is settled across families separately) and reports the result to Touch (slot 7).
+// against its touch object (when that is in the world and physical, through the object's point test IsPosInside,
+// slot 73) and reports the result to Touch (slot 7).
 void RIP::Update()
 {
     SO *touch;
@@ -1344,7 +1344,7 @@ void RIP::Update()
     isInside = 0;
     if ((int)(*(unsigned long *)((char *)touch + 0x28) >> 60) & 1)   /* LO::isInWorld through its whole bit-field word: the
                                                                      bit-field test compiles to a mask (6 off) */
-        if (((int (*)(void *, qword))VPTR(touch)[73].pf)((char *)touch + VPTR(touch)[73].d, currentPosition)) isInside = 1;
+        if (touch->IsPosInside(currentPosition)) isInside = 1;
     Touch(isInside);
 }
 

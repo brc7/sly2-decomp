@@ -264,7 +264,7 @@ struct SO : public LO
       virtual void PresetAccel() __asm__("PresetSoAccel");
       virtual void AddExternalAccelerations() __asm__("AddSoExternalAccelerations");
       virtual void AddWaterAcceleration() __asm__("AddSoWaterAcceleration");
-      virtual void IsPosInside() __asm__("IsPosInSo");
+      virtual int IsPosInside(qword pos) __asm__("IsPosInSo");   /* slot 73: whether a world position is inside a visible part (rip.cpp RIP::Update, the POINT_IN_BSP_QUICK thunk) */
       virtual void InflictContactZaps() __asm__("InflictSoContactZaps");
       virtual int TakeDamage(ZPR *pzpr) __asm__("CanSoTakeDamage");
     virtual qword GetAngularVelocity() __asm__("GetSoAngularVelocity");   /* override declared in GetSoAngularVelocity.cpp */

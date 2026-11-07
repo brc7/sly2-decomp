@@ -2344,7 +2344,7 @@ struct WATER : SO
     virtual void UpdateBounds() __asm__("UpdateWaterBounds");   /* slot 49 */
     virtual void InitPhys() __asm__("InitWaterPhysics");   /* slot 64 */
     virtual void AddExternalAccelerations() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
-    virtual void IsPosInside() __asm__("IsPosInWater");   /* slot 73 */
+    virtual int IsPosInside(qword pos) __asm__("IsPosInWater");   /* slot 73 */
 };
 typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 

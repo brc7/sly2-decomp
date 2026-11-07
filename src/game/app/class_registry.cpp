@@ -225,18 +225,15 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkSoPOINT_IN_BSP_QUICK (was src/game/app/splice_thunks/RefThunkSoPOINT_IN_BSP_QUICK.cpp) ----
 namespace T_RefThunkSoPOINT_IN_BSP_QUICK {
 extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an);
-struct VT { short d; short pad; void *pfn; };
-struct LO { char pad[0xC]; VT *pvt; };
-extern "C" CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *p, int c, void *aref);
+extern "C" CRef RefThunkSoPOINT_IN_BSP_QUICK(SO *p, int c, void *aref);
 // Splice binding for option 108 on SO (g_aeopid[43], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls virtual and returns a bool to the script.
-CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *object, int argCount, void *args)
+CRef RefThunkSoPOINT_IN_BSP_QUICK(SO *object, int argCount, void *args)
 {
     union { qword q; } u;
     int argType = 2;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &u);
-    VT *pvt = &object->pvt[73];
-    ref = ((int (*)(void *, qword))pvt->pfn)((char *)object + pvt->d, u.q) != 0;
+    ref = object->IsPosInside(u.q) != 0;
     return ref;
 }
 } // namespace T_RefThunkSoPOINT_IN_BSP_QUICK
