@@ -2967,20 +2967,14 @@ void SO::Clone(LO *ploBase)
 
 // 0x1F66F0 CloneSoHierarchy
 namespace M_CloneSoHierarchy { extern "C" {
-struct VTE; struct VT; struct A; struct L;
-typedef unsigned long ulong;
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[42]; };
-struct A { char pad[0xC]; struct VT *pvt; };
-struct L { char pad[0x24]; struct L *next; ulong flags; char pad2[0x64 - 0x30]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; };
-void CloneLoWithParent__FP2LOP2SO(struct L *, struct A *);
+void CloneLoWithParent__FP2LOP2SO(LO *, SO *);
 // Slot 40: clones the object (slot 41) and then every child that was not removed.
-void CloneSoHierarchy(struct A *pa, struct L *so)
+void CloneSoHierarchy(SO *pa, SO *so)
 {
-    struct L *q;
-    pa->pvt->a[41].pfn((char *)pa + pa->pvt->a[41].d);
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
-        if (!(q->flags & (1L << 57))) CloneLoWithParent__FP2LOP2SO(q, pa);
+    LO *q;
+    pa->Clone(so);
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
+        if (!q->unknownFlag28A) CloneLoWithParent__FP2LOP2SO(q, pa);
 }
 } } // namespace M_CloneSoHierarchy
 
@@ -3780,23 +3774,18 @@ void FadeSoOut(void *so, float f)
 
 // 0x1F7C68 FadeSoIn
 namespace M_FadeSoIn { extern "C" {
-struct VTE; struct VT; struct P;
-typedef unsigned long ulong;
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[9]; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x28 - 0x10]; ulong flags; char pad3[0x12C - 0x30]; float alpha; };
-void SetSoFadeRate(struct P *, float);
-void SetSoAlpha(struct P *, float);
+void SetSoFadeRate(SO *, float);
+void SetSoAlpha(SO *, float);
 // Fades the object in over dur seconds, re-adding it if it was removed; dur <= 0 shows it at once.
-void FadeSoIn(struct P *so, float f)
+void FadeSoIn(SO *so, float f)
 {
     if (f <= 0.0f) {
         SetSoFadeRate(so, 0.0f);
         SetSoAlpha(so, 1.0f);
     } else {
-        if (so->flags & (1L << 56)) {
-            so->pvt->a[8].pfn((char *)so + so->pvt->a[8].d);
-            so->alpha = 0.0f;
+        if (so->isRemoved) {
+            so->Add();
+            so->opacity = 0.0f;
         }
         SetSoFadeRate(so, 1.0f / f);
     }
@@ -3820,21 +3809,17 @@ extern "C" void SetSoAlpha(SO *so, float uAlpha)
 
 // 0x1F7D90 SetSoFadeRate
 namespace M_SetSoFadeRate { extern "C" {
-struct VTE; struct VT; struct P;
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[9]; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x40 - 0x10]; int flagWord; char pad3[0x130 - 0x44]; float alphaRate; };
 // Sets the fade rate; a nonzero rate adds the object and marks it for updates.
-void SetSoFadeRate(struct P *so, float g)
+void SetSoFadeRate(SO *so, float g)
 {
     if (g != 0.0f) {
         int v;
-        so->pvt->a[8].pfn((char *)so + so->pvt->a[8].d);
-        v = so->flagWord;
+        so->Add();
+        v = so->unknown40;
         if ((v ^ 1) & 1) *(int *)v |= 2;
-        else so->flagWord = v | 2;
+        else so->unknown40 = v | 2;
     }
-    so->alphaRate = g;
+    so->opacitySpeed = g;
 }
 } } // namespace M_SetSoFadeRate
 
