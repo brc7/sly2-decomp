@@ -18,6 +18,7 @@
 // SLY2_ALIAS: _GLOBAL_$D$*=func_001DE280
 
 #include "sly2/basic.h"
+#include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
@@ -151,7 +152,7 @@ struct TITLE : SCREEN   /* the title screen */
     virtual void Update() __asm__("UpdateTitleScreen");   /* slot 7 */
 };
 /* The job list's selected job (+0x6C / +0x70 text ids). */
-struct JOBSEL { char pad0[0x6C]; int ids6C; int ids70; };
+struct JOBSEL : LO { char pad0[0x6C - 0x50]; int ids6C; int ids70; };
 
 extern SW D_003DD490;
 extern "C" {
@@ -2593,8 +2594,8 @@ void SelectJobListItem(struct S *p, int i) {
 } } // namespace M_SelectJobListItem
 
 namespace M_RefreshJobListEntries {
-struct SO {
-    char pad0[0x54];
+struct SO : LO {
+    char pad0[0x54 - 0x50];
     int taskState;
     char pad58[0x5C - 0x58];
     int taskTextId;
@@ -2970,7 +2971,7 @@ void HideScreen52D(struct S *p) {
 } } // namespace M_func_001DD728
 
 namespace M_func_001DD780 { extern "C" {
-struct O { char pad[0x58]; int visibility; char p1[8]; int requestedVisibility; };   /* widget: +0x58 shown state (2 = fully shown), +0x64 requested (inferred) */
+struct O : LO { char pad[0x58 - 0x50]; int visibility; char p1[8]; int requestedVisibility; };   /* widget: +0x58 shown state (2 = fully shown), +0x64 requested (inferred) */
 struct S { char pad[0x24]; struct O *po; };
 // True when the screen's widget is fully shown. (inferred)
 int IsScreen52DShown(struct S *p) {
@@ -3285,7 +3286,7 @@ extern "C" void BuildJobNameText(char *pch)
 }
 
 namespace M_BuildJobListRowText { extern "C" {
-struct O { char pad[0x6C]; int n; };
+struct O : LO { char pad[0x6C - 0x50]; int n; };
 struct E { struct O *po; int a, b; };
 struct G2 { char pad[0x48]; int c; struct E ae[1]; };
 extern struct G2 D_003DA3C0;
@@ -3300,7 +3301,7 @@ void BuildJobListRowText(void *p, int i) {
 } } // namespace M_BuildJobListRowText
 
 namespace M_BuildJobListTaskRowText { extern "C" {
-struct O { char pad[0x5C]; int n; };
+struct O : LO { char pad[0x5C - 0x50]; int n; };
 struct E { struct O *po; int a, b; };
 struct G2 { char pad[0x48]; int c; struct E ae[1]; };
 extern struct G2 D_003DA3C0;
