@@ -1034,8 +1034,7 @@ struct P {
 extern char D_003DD490[];
 extern qword D_002A2DD0;
 extern float D_002A45A8;
-struct CLOCK { float time; int deltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
 void *FindClosestSwPo(void *pg, qword pos);
 qword GetLoWorldPos(void *po);
@@ -1628,7 +1627,6 @@ void ACT8::Update()
 
 namespace M_func_0012E060 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct CLOCK { float time; float deltaTime; } CLOCK;
 extern CLOCK D_002DDED0;
 typedef struct Q { char pad[0x30]; qword startPos; char pad2[0x68]; float endTime; char pad3[4]; qword startVelocity; } Q;
 typedef struct P { char pad[8]; Q *xf; char pad2[0x14]; qword pos; qword vel; } P;
