@@ -53,6 +53,8 @@ void SetWidgetRequest(WIDGET *widget, int request);
 void SetWidgetStateW(WIDGET *widget, int state) __asm__("SetWidgetState");
 int IsWidgetObscured(WIDGET *widget);
 int IsWidgetIdle(WIDGET *widget);
+int GetSpriteMainState(SPRITEGRP *spriteGroup);
+int IsSpriteAnimActive(SPRITEGRP *spriteGroup);
 void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags);
 void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 /* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
@@ -635,14 +637,8 @@ extern "C" int IsWidgetIdle(WIDGET *widget)
 }
 
 // 0x2121E8 IsWidgetAnimPlaying
-namespace M_FWidgetAnimPlaying { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };   /* a sprite group */
-struct S { char pad[0x7C]; int mainAnimId; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-int GetSpriteMainState(struct A *a);
-int IsSpriteAnimActive(struct A *a);
 // True while the widget animation with the given id (0x314 = main track) is still running.
-int IsWidgetAnimPlaying(struct S *widget, int animId)
+extern "C" int IsWidgetAnimPlaying(WIDGET *widget, int animId)
 {
     int groupIndex, i;
     if (animId == -1)
@@ -652,7 +648,7 @@ int IsWidgetAnimPlaying(struct S *widget, int animId)
     if (animId == 0x314)   /* the main track */
         return GetSpriteMainState(widget->spriteGroups) == 0;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (i = 0; i < group->numAnims; i++) {
             if (animId == group->anims[i].id)
                 return IsSpriteAnimActive(group);
@@ -660,102 +656,88 @@ int IsWidgetAnimPlaying(struct S *widget, int animId)
     }
     return 0;
 }
-} } // namespace M_FWidgetAnimPlaying
 
 // 0x212298 LoadWidgetFromBrx
 namespace M_LoadWidgetFromBrx { extern "C" {
 typedef struct { int cb; int cbAlign; } AREQ;
-struct O { char pad[0x40]; void *owner; };
-struct S : LO {
-    int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
-    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteHeap;   /* duration: +0x90; the visible timeout UpdateWidget checks is +0x8C (see SetWidgetState's view) */
-};
 extern char D_003E1C70[], D_003E1C80[];
-
-void LoadLoFromBrx(LO *plo, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 int U32Read__18CBinaryInputStream(void *pbis);
-struct O *AllocClearedFromWorldHeap(AREQ *preq);
-void CBinaryInputStream_ReadCb64(void *pbis, struct O *po);
-void AppendSlEntry(void *, struct O *po);
-void LoadSpriteTable(struct S *p, void *pbis, struct S *p2, int *pa, int *pb);
-void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
+WIDGETLOAD *AllocClearedFromWorldHeap(AREQ *preq);
+void CBinaryInputStream_ReadCb64(void *pbis, WIDGETLOAD *po);
+void AppendSlEntry(void *, WIDGETLOAD *po);
+void LoadSpriteTable(WIDGET *p, void *pbis, WIDGET *p2, int *pa, SPRITEDESC **pb);
+void LoadSpriteGroups(WIDGET *p, void *pbis, WIDGET *p2);
+} } // namespace M_LoadWidgetFromBrx
 // Loads a widget: default animation ids, the LO part, whether its sprites are streamed, duration, size and font flag;
 // its sprites load now or later. Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadWidgetFromBrx(struct S *widget, void *pbis)
+void WIDGET::LoadFromBrx(CBinaryInputStream *pbis)
 {
+    using namespace M_LoadWidgetFromBrx;
     int isStreamed;
-    widget->loopAnimId = 0x310;
-    widget->showAnimId = 0x30F;
-    widget->hideAnimId = 0x311;
-    LoadLoFromBrx(widget, pbis);
+    loopAnimId = 0x310;
+    showAnimId = 0x30F;
+    hideAnimId = 0x311;
+    LO::LoadFromBrx(pbis);
     isStreamed = S8Read__18CBinaryInputStream(pbis);
-    widget->duration = F32Read__18CBinaryInputStream(pbis);
-    widget->width = U32Read__18CBinaryInputStream(pbis);
-    widget->height = U32Read__18CBinaryInputStream(pbis);
-    widget->hasFont = U32Read__18CBinaryInputStream(pbis);
+    duration = F32Read__18CBinaryInputStream(pbis);
+    width = U32Read__18CBinaryInputStream(pbis);
+    height = U32Read__18CBinaryInputStream(pbis);
+    hasFont = U32Read__18CBinaryInputStream(pbis);
     if (isStreamed) {
-        AREQ req;
-        widget->state = WIDGET_STATE_UNLOADED;
+        M_LoadWidgetFromBrx::AREQ req;
+        state = WIDGET_STATE_UNLOADED;
         req.cb = 0x50;
         req.cbAlign = 0x10;
-        widget->spriteHeap = D_003E1C70;   /* the streamed-sprite linear heap */
-        widget->deferredLoad = AllocClearedFromWorldHeap(&req);
-        widget->deferredLoad->owner = widget;
-        CBinaryInputStream_ReadCb64(pbis, widget->deferredLoad);
-        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), widget->deferredLoad);
+        spriteHeap = (HEAP *)D_003E1C70;   /* the streamed-sprite linear heap */
+        deferredLoad = AllocClearedFromWorldHeap(&req);
+        deferredLoad->owner = this;
+        CBinaryInputStream_ReadCb64(pbis, deferredLoad);
+        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), deferredLoad);
     } else {
-        widget->state = WIDGET_STATE_HIDDEN;
-        widget->spriteHeap = D_003E1C80;   /* the level heap */
-        LoadSpriteTable(widget, pbis, widget, &widget->spriteCount, &widget->sprites);
-        LoadSpriteGroups(widget, pbis, widget);
+        state = WIDGET_STATE_HIDDEN;
+        spriteHeap = (HEAP *)D_003E1C80;   /* the level heap */
+        LoadSpriteTable(this, pbis, this, &spriteCount, &sprites);
+        LoadSpriteGroups(this, pbis, this);
     }
-    widget->mainAnimId = -1;
+    mainAnimId = -1;
 }
-} } // namespace M_LoadWidgetFromBrx
 
 // 0x2123C8 PostWidgetLoad
 namespace M_PostWidgetLoad { extern "C" {
-struct VT { char pad[0x188]; short d; short pd; void (*pf)(void *, int); };
-struct S {
-    char pad[0xC]; struct VT *pvt; char pad10[0x30]; unsigned int lowFlags; char pad44[0x29]; unsigned char isShownOnLoad;
-    char pad6e[0x26]; int width; int height; float screenX; float screenY; char pada4[4]; int isNonExclusive; char padac[0x10];
-    int hasFont; char padc0[8]; struct S *ownerWidget;
-};
-/* lowFlags: LO grfUnk40, either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
-extern SW D_003DD490;
-void PostLoLoad(struct S *p);
-LO *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, struct S *);
-void SetLoBusyKind(struct S *p, int);
+LO *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, LO *);
+void SetLoBusyKind(LO *p, int);
+} } // namespace M_PostWidgetLoad
 // Widget post-load: finds the font object, centres the widget on screen from its size, shows it if flagged, marks it
 // busy.
-void PostWidgetLoad(struct S *widget)
+void WIDGET::PostLoad()
 {
+    using namespace M_PostWidgetLoad;
     unsigned int flags;
     float scaledHeight;
     int scaledWidth;
-    PostLoLoad(widget);
-    if (widget->hasFont) {
+    LO::PostLoad();
+    if (hasFont) {
         SW *sw = &D_003DD490;
         if (!sw->ploHudFont)
-            sw->ploHudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, widget);
+            sw->ploHudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, this);
     }
-    widget->ownerWidget = widget;
-    widget->isNonExclusive = -1;
+    ownerWidget = this;
+    isNonExclusive = -1;
     /* centre on the GS drawing area (origin 2048,2048): width from 640 to 512 units, height times 1/2.2 */
-    scaledWidth = (widget->width << 9) / 640;
-    scaledHeight = (float)widget->height * 0.45454547f;
-    widget->screenY = 2048.0f - scaledHeight * 0.5f;
-    widget->screenX = 2048.0f - (float)scaledWidth * 0.5f;
-    if (widget->isShownOnLoad)
-        widget->pvt->pf((char *)widget + widget->pvt->d, -1);   /* ShowWidget */
-    SetLoBusyKind(widget, 1);
-    flags = widget->lowFlags;
+    scaledWidth = (width << 9) / 640;
+    scaledHeight = (float)height * 0.45454547f;
+    screenY = 2048.0f - scaledHeight * 0.5f;
+    screenX = 2048.0f - (float)scaledWidth * 0.5f;
+    if (isShownOnLoad)
+        Show(-1);
+    SetLoBusyKind(this, 1);
+    /* LO unknown40: either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
+    flags = unknown40;
     if ((flags ^ 1) & 1) *(int *)flags |= 0x102;
-    else widget->lowFlags = flags | 0x102;
+    else unknown40 = flags | 0x102;
 }
-} } // namespace M_PostWidgetLoad
 
 // 0x2124F0 LoadWidgetSprites
 namespace M_LoadWidgetSprites {

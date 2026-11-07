@@ -166,7 +166,7 @@ struct WIDGET : LO
     int request;                 /* +0x64 WIDGET_REQUEST: 1 hide, 2 show [nStateStamped] */
     float requestTime;           /* +0x68 real time of the last request change [tStateStamped] */
     char unknown6C;              /* +0x6C */
-    char isShownOnLoad;          /* +0x6D PostWidgetLoad shows the widget (a load option, inferred) */
+    uchar isShownOnLoad;         /* +0x6D PostWidgetLoad shows the widget (a load option, inferred) */
     char pad6E[2];
     int loopAnimId;              /* +0x70 label played while visible [idLabelHold] */
     int showAnimId;              /* +0x74 appear label, -1 none [idLabelIn] */
