@@ -1221,13 +1221,10 @@ extern "C" void StopStepplayerGadget()
 }
 
 namespace M_func_00141E30 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; };
 // Slot 104: sends Splice event 0x1A to itself (after a power-up purchase, see RefreshPlayersAfterPowerupChange).
-void SendStepplayerPowerupEvent(struct O *player)
+void SendStepplayerPowerupEvent(STEPPLAYER *player)
 {
-    struct VTE *e = &player->vt[3];
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)player + e->d, 0x1A, 0, 0, 0, 0);
+    player->HandleSpliceEvent(0x1A, 0, 0, 0, 0);
 }
 } } // namespace M_func_00141E30
 
@@ -1437,12 +1434,10 @@ extern "C" void SetStepplayerGrabState9(STEPPLAYER *player, LO *lo)
 namespace M_func_001423A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-struct BUF { char pad[0x30]; qword pos; };
-struct VTE { short d; short pad; void *(*pfn)(void *, struct BUF *); };
-struct O { char pad[0xC]; struct VTE *vt; };
+struct BUF { char pad[0x30]; qword pos; };   /* the local matrix with its translation row read as a quadword */
 struct X994 { char pad[0x1C]; float t; };
 struct P {
-    char pad[0x4C8]; int grabState; char pad1[0x4D4 - 0x4CC]; int x4D4; char pad2[0x934 - 0x4D8]; struct O *po;
+    char pad[0x4C8]; int grabState; char pad1[0x4D4 - 0x4CC]; int x4D4; char pad2[0x934 - 0x4D8]; LO *po;
     char pad3[0x994 - 0x938]; struct X994 *p994; char pad4[0x9A4 - 0x998]; int x9A4;
 };
 extern struct CLOCK D_002DDED0;
@@ -1477,7 +1472,7 @@ int IsStepplayerGrabReady(struct P *player)
     M4 m;
     qword v;
     if (player->grabState != 5 || !player->x4D4) return 1;
-    LoadIdentityMatrix4(player->po->vt[32].pfn((char *)player->po + player->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
+    LoadIdentityMatrix4(player->po->GetLocalTransform((MATRIX4 *)&buf), 0, &m, 0, 0.0f);
     v = Mul(&m, buf.pos);
     if (5.0f < DistanceBetween(GetLoWorldPos(player->po), v)) return 0;
     if (player->x9A4 != 1) return 1;
@@ -2097,18 +2092,15 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 namespace M_GetStepplayerStunHold { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct VTE { short d; short pad; qword (*pfn)(void *); };
-struct O { int pad[3]; struct VTE *vt; };
 struct S { int k; float g4; float g8; int pad; qword pos; qword dir; };
 extern qword D_002A2DC0;
-qword GetLoWorldPos(struct O *p);
+qword GetLoWorldPos(LO *p);
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.
-void GetStepplayerStunHold(struct O *player, struct S *ps, float g)
+void GetStepplayerStunHold(STEPPLAYER *player, struct S *ps, float g)
 {
-    struct VTE *e = &player->vt[33];
     qword v, h, pos, s, r;
     VU u;
-    v = e->pfn((char *)player + e->d);
+    v = player->GetVelocity();
     {
         qword d, one, up = D_002A2DC0;
         __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(d), "=&j"(one) : "j"(v), "j"(up));
