@@ -4065,9 +4065,7 @@ void StartBhvjuggled(BHVJUGGLED *behavior)
 
 // 0x17AA78 CalculateBhvjuggledHoldPoint
 namespace M_func_0017AA78 { extern "C" {
-struct REQUEST;
 typedef union {qword q;float g[4];} U;
-struct REQUEST{int flag;float along,up;int padC;qword point,direction;};
 extern qword D_002A2DC0,D_002A2DA0;
 extern float D_002BE6C4;
 qword GetLoWorldPos(void*);
@@ -4126,7 +4124,7 @@ static inline void PublishPoint(U *home, qword scalar, qword *out, qword point)
 }
 // 0x17AA78: Computes the hold point and direction from the holder's request (its vtable slot 96) relative to the
 // guard.
-void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, struct REQUEST *request, qword *outPoint, qword *outDirection)
+void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, STUNHOLD *request, qword *outPoint, qword *outDirection)
 {
     qword first = ToVU(GetLoWorldPos(behavior->owner));
     qword direction = Normal(Reject(VuSub(first, GetLoWorldPos(behavior->holder)), D_002A2DC0), D_002A2DA0);
@@ -4136,7 +4134,7 @@ void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, struct REQUEST *request,
         register qword along __asm__("vf4"), up __asm__("vf5"), point __asm__("vf2"), height __asm__("vf6");
         __asm__("lw $3,%5\n\tlqc2 %2,0(%0)\n\tqmtc2.ni $3,%1\n\tlw %0,%6\n\tlqc2 %3,%7\n\tqmtc2.ni %0,%4"
                 : "+&r"(addressWord), "=j"(along), "=j"(up), "=j"(point), "=j"(height)
-                : "m"(request->along), "m"(request->up), "m"(request->point)
+                : "m"(request->gSide), "m"(request->gUp), "m"(request->qwPos)
                 : "$3", "memory");
         {
             unsigned int high;
@@ -4145,7 +4143,7 @@ void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, struct REQUEST *request,
             register qword heading __asm__("vf1"), constant __asm__("vf3");
             __asm__("lqc2 %1,%3\n\tlw %0,%%lo(%4)(%0)\n\tqmtc2.ni %0,%2"
                     : "+r"(constantWord), "=j"(heading), "=j"(constant)
-                    : "m"(request->direction), "i"(&D_002BE6C4)
+                    : "m"(request->qwVel), "i"(&D_002BE6C4)
                     : "memory");
             PublishPoint(&scalar, along, outPoint, result);
             heading = NativeHeading(heading, up, constant);
@@ -4157,12 +4155,6 @@ void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, struct REQUEST *request,
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
-typedef char REQUEST_Size[(sizeof(struct REQUEST)==48)?1:-1];
-typedef char REQUEST_flag_Offset[((unsigned)&((struct REQUEST*)0)->flag==0)?1:-1];
-typedef char REQUEST_along_Offset[((unsigned)&((struct REQUEST*)0)->along==4)?1:-1];
-typedef char REQUEST_up_Offset[((unsigned)&((struct REQUEST*)0)->up==8)?1:-1];
-typedef char REQUEST_point_Offset[((unsigned)&((struct REQUEST*)0)->point==0x10)?1:-1];
-typedef char REQUEST_direction_Offset[((unsigned)&((struct REQUEST*)0)->direction==0x20)?1:-1];
 
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
 typedef char word_Width[sizeof(unsigned int)==4?1:-1];
@@ -4170,38 +4162,29 @@ typedef char integer_Width[sizeof(int)==4?1:-1];
 typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
-typedef char REQUEST_Alignment[__alignof__(struct REQUEST)==16?1:-1];
 typedef char U_q_Offset[(unsigned)&((U*)0)->q==0?1:-1];
 typedef char U_scalar_Offset[(unsigned)&((U*)0)->g==0?1:-1];
 } } // namespace M_func_0017AA78
 
 // 0x17ABC8 UpdateBhvjuggledHoldAct
 namespace M_func_0017ABC8 { extern "C" {
-struct VTE; struct O; struct R; struct U; struct W; 
-typedef int qword __attribute__((mode(TI)));
+struct U; struct W;
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void *pfn; };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct R { int isValid; int a[11]; };
 struct U { char pad[0x1C]; float endTime; };
 struct W { char pad[0xA0]; int unknownA0; };
-void CalculateBhvjuggledHoldPoint(BHVJUGGLED *p, struct R *r, qword *a, qword *b);
+void CalculateBhvjuggledHoldPoint(BHVJUGGLED *p, STUNHOLD *r, qword *a, qword *b);
 qword TransformXfPos(int a, int b, qword q);
 qword ConvertXfVec(int a, int b, qword q);
 void SetRestActPose(struct U *u, qword a, qword b);
 // 0x17ABC8: Re-queries the holder and updates the attach act's target.
 void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
-    struct R r;
+    STUNHOLD r;
     qword holdPoint, holdDirection;
     struct W *w;
     qword a;
     if (!behavior->unknown60) return;
-    {
-        struct O *o = ((struct O *)behavior->holder);
-        struct VTE *entry = &o->vt[0x60];
-        ((void (*)(void *, struct R *, float))entry->pfn)((char *)o + entry->d, &r, ((struct U *)behavior->holdAct)->endTime - D_002DDED0.time);
-    }
-    if (!r.isValid) { behavior->unknown60 = 0; return; }
+    ((STEPPLAYER *)behavior->holder)->GetStunHold(&r, ((struct U *)behavior->holdAct)->endTime - D_002DDED0.time);
+    if (!r.fValid) { behavior->unknown60 = 0; return; }
     w = ((struct W *)((STEPGUARD *)behavior->owner)->unknown58);
     CalculateBhvjuggledHoldPoint(behavior, &r, &holdPoint, &holdDirection);
     a = TransformXfPos(0, w->unknownA0, holdPoint);
