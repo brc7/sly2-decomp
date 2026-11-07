@@ -40,6 +40,15 @@ void ChooseSmaTransition(SMA *psma, int n);
 int IsEntryInDl(DL *pdl, void *pv);
 int FindSmStateOptional(SM *psm, OID oid);
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
+
+/* SMAHOLD: holds a reference on an activation for a scope (AddRef now, Release at scope exit): the state changes below
+   run under it, so a listener that releases the activation cannot free it midway. */
+struct SMAHOLD
+{
+      SMA *psma;
+      SMAHOLD(SMA *p) { psma = p; psma->AddRef(); }
+      ~SMAHOLD() { psma->Release(); }
+};
 extern "C" {
 void PostLoLoad(LO *plo);
 void ApplySmToObject(SM *psm, ALO *palo, OID oid, GRFAPL grfapl);   /* PsmaApplySm */
@@ -670,23 +679,14 @@ int GetSmaNext(struct S *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaSvt {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; void *currentAsega; char pad3[0x44 - 0x34]; float g; };
-extern "C" int IsSmaRetracted(P *);
 extern "C" void SetAsegaSpeed__FP5ASEGAf(void *, float);
-struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
-    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
-};
 // Sets the activation's playback speed and passes it to the running animation.
-extern "C" void SetSmaSvt(P *p, float g)
+extern "C" void SetSmaSvt(SMA *p, float g)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
-        p->g = g;
-        if (p->currentAsega) SetAsegaSpeed__FP5ASEGAf(p->currentAsega, g);
+        SMAHOLD hold(p);
+        p->svtLocal = g;
+        if (p->pasegaCur) SetAsegaSpeed__FP5ASEGAf(p->pasegaCur, g);
     }
 }
 } // namespace M_SetSmaSvt
@@ -715,24 +715,13 @@ void AbortSmaTransition(struct P *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SeekSma {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x24 - 0x10]; void *sm; char pad3[0x3C - 0x28]; int goalState; };
-extern "C" int IsSmaRetracted(P *);
 extern "C" int FindSmStateRequired(void *, int);
-extern "C" void AbortSmaTransition(P *);
-extern "C" void ChooseSmaTransition(P *, int);
-struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
-    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
-};
 // Sets a goal and immediately re-chooses (aborting the running transition), so the machine heads for it right away.
-extern "C" void SeekSma(P *p, int n)
+extern "C" void SeekSma(SMA *p, int n)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
-        p->goalState = FindSmStateRequired(p->sm, n);
+        SMAHOLD hold(p);
+        p->goalState = FindSmStateRequired(p->stateMachine, n);
         AbortSmaTransition(p);
         ChooseSmaTransition(p, 1);
     }
@@ -741,32 +730,21 @@ extern "C" void SeekSma(P *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SnapSma {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x24 - 0x10]; void *sm; char pad3[0x30 - 0x28]; void *currentAsega; int currentState; int nextState; int goalState; };
-extern "C" int IsSmaRetracted(P *);
 extern "C" int FindSmStateRequired(void *, int);
 extern "C" void RetractAsega(void *);
-extern "C" void NotifySmaSpliceOnEnterState(P *, int, int);
-extern "C" void ChooseSmaTransition(P *, int);
-struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
-    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
-};
 // Jumps straight to a state without animating: stops the running animation, sets current and goal, notifies the state
 // entry and chooses the next transition.
-extern "C" void SnapSma(P *p, int n)
+extern "C" void SnapSma(SMA *p, int n)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
-        int m = FindSmStateRequired(p->sm, n);
+        SMAHOLD hold(p);
+        int m = FindSmStateRequired(p->stateMachine, n);
         if (p->currentState == m && (p->goalState == m || p->goalState == -1)) return;
         {
-            void *pv = p->currentAsega;
+            void *pv = p->pasegaCur;
             int old;
             if (pv) {
-                p->currentAsega = 0;
+                p->pasegaCur = 0;
                 RetractAsega(pv);
             }
             old = p->currentState;
@@ -1022,22 +1000,12 @@ extern "C" void SendSmaMessage(P *p, int a, int b)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleSmaMessage {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; int currentAsega; };
-extern "C" void EndSmaTransition(P *);
-extern "C" void ChooseSmaTransition(P *, int);
-struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
-    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
-};
 // Reacts to "animation finished" (message 2) from the running transition's player: ends the transition and chooses the
 // next one.
-extern "C" void HandleSmaMessage(P *p, int k, int n)
+extern "C" void HandleSmaMessage(SMA *p, MSGID msgid, void *pv)
 {
-    if (k == 2 && n == p->currentAsega) {
-        Lock l(p);
+    if (msgid == 2 && pv == p->pasegaCur) {
+        SMAHOLD hold(p);
         EndSmaTransition(p);
         ChooseSmaTransition(p, 0);
     }
