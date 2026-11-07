@@ -899,46 +899,43 @@ void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleBentleyMessage { extern "C" {
 struct VT { short d; short pad; void *pfn; };
+/* The spawned tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): its gadget id and slot 76. */
 struct O { char pad[0xC]; struct VT *pvt; char pad2[0x15C - 0x10]; int x15C; };
-struct Q { int x0; void *p4; };
-struct M { int x0; int x4; int x8; };
-struct E { int x0; int x4; struct M *pm; };
-struct P { char pad[0x1030]; int action; char pad1[0x16B4 - 0x1034]; struct Q *pq; char pad2[0x16CC - 0x16B8]; int x16CC;
-    char pad3[0x1710 - 0x16D0]; char crosshair[0x1824 - 0x1710]; struct E ae[6]; char pad4[0x186C - 0x186C]; struct O *po; };
-void HandleStepplayerMessage(struct P *p, int k, struct M *pm);
-struct O *AcquireProxyObject(void *pv, int n);
-void LockProxyObject(void *pv, struct O *po);
-void FireBentleyDart(struct P *p, int n);
-void HandleBentleyCrosshairMessage(void *pv, int k, struct M *pm);
-void SetGadgetRecordObject(struct P *p, struct E *pe, int n);
+struct M { void *x0; int x4; int x8; };
+void HandleStepplayerMessage(BENTLEY *p, int k, struct M *pm);
+LO *AcquireProxyObject(PROXY *pv, int n);
+void LockProxyObject(PROXY *pv, LO *po);
+void FireBentleyDart(BENTLEY *p, int n);
+void HandleBentleyCrosshairMessage(BTBLENDS *pv, int k, struct M *pm);
+void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, int n);
 // BENTLEY message handler (slot 5): HandleStepplayerMessage, then Bentley-specific animation events (message 9 kinds:
 // 0x216 spawns an object from a template, ...).
-void HandleBentleyMessage(struct P *bentley, int k, struct M *pm)
+void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
 {
     HandleStepplayerMessage(bentley, k, pm);
     switch (k) {
     case 9:
-        if (pm->x0 == bentley->action) {
+        if (pm->x0 == bentley->activeAnimation) {
             if (pm->x8 == 0x216) {
                 struct O *object;
-                bentley->po = AcquireProxyObject(bentley->pq->p4, 0);
-                LockProxyObject(bentley->pq->p4, bentley->po);
-                bentley->po->x15C = bentley->pq->x0;
-                object = bentley->po;
+                bentley->ploHeld = AcquireProxyObject(bentley->ppocketCur->proxy, 0);
+                LockProxyObject(bentley->ppocketCur->proxy, bentley->ploHeld);
+                ((struct O *)bentley->ploHeld)->x15C = bentley->ppocketCur->idGadget;
+                object = (struct O *)bentley->ploHeld;
                 ((void (*)(void *, int))object->pvt[76].pfn)((char *)object + object->pvt[76].d, 0);
             }
-        } else if (pm->x0 == bentley->x16CC) {
+        } else if (pm->x0 == bentley->pasegaAim) {
             if (pm->x8 == 0x243)
                 FireBentleyDart(bentley, 0x80000);
         } else {
-            HandleBentleyCrosshairMessage(bentley->crosshair, 9, pm);
+            HandleBentleyCrosshairMessage(&bentley->btblends, 9, pm);
         }
         break;
     case 1: {
-        struct E *pe = bentley->ae;
+        JTPOCKET *pe = bentley->apocket;
         int i;
         for (i = 0; i < 6; i++, pe++) {
-            if (pe->pm == pm)
+            if ((void *)pe->pcid100 == pm)
                 SetGadgetRecordObject(bentley, pe, 0);
         }
         break;
@@ -1038,26 +1035,25 @@ int GetBentleyMovementNoise(BENTLEY *bentley) {
 namespace M_func_00135EB0 { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
 struct Q { char pad[0x148]; unsigned long grf; };
+/* The floor contact (STEP::floorContact; XP has no shared definition yet) and its surface material flags. */
 struct A { char pad[0x40]; int f40; char pad1[8]; struct Q *pq; char pad2[0x60 - 0x50]; ti128 v60; char pad3[0x88 - 0x70]; float f88; };
-struct S { char pad[0x208]; struct A *pa; char pad1[0x4c0 - 0x20c]; int grab; char pad2[0x9e0 - 0x4c4]; int places;
-    char pad3[0xf50 - 0x9e4]; int pipe; char pad4[0x108c - 0xf54]; int f108c; char pad5[0x13d0 - 0x1090]; int st; };
 void AddJtPlaceAtPosition(void *, int, ti128);
 void RecordJtGrabPlace(void *);
 void RecordJtPipePlace(void *);
 // Per state: records standing places when on solid ground (AddJtPlaceAtPosition), or the grab/pipe updates.
-void UpdateBentleyPlaces(struct S *bentley) {
+void UpdateBentleyPlaces(BENTLEY *bentley) {
     struct A *pa;
-    switch (bentley->st) {
+    switch (bentley->state) {
     case BENTLEY_IDLE: case BENTLEY_RUN: case BENTLEY_NEAR_TARGET: case BENTLEY_GADGET: case BENTLEY_WALK: case BENTLEY_SCRIPT_SMA: case BENTLEY_THROW: case BENTLEY_ADRENALINE:
-        pa = bentley->pa;
-        if (pa && 0.7f < pa->f88 && !(pa->pq->grf & 0x20000000) && !bentley->f108c)
-            AddJtPlaceAtPosition(&bentley->places, pa->f40, pa->v60);
+        pa = (struct A *)bentley->floorContact;
+        if (pa && 0.7f < pa->f88 && !(pa->pq->grf & 0x20000000) && !bentley->pwater)
+            AddJtPlaceAtPosition(&bentley->jtplaces, pa->f40, pa->v60);
         break;
     case BENTLEY_GRAB:
-        RecordJtGrabPlace(&bentley->grab);
+        RecordJtGrabPlace(&bentley->jtgrab);
         break;
     case BENTLEY_PIPE:
-        RecordJtPipePlace(&bentley->pipe);
+        RecordJtPipePlace(&bentley->jtpipe);
         break;
     }
 }
@@ -1126,42 +1122,40 @@ void SetBentleySubState(BENTLEY *bentley, int n) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136118 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
+/* The held tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): state, a stick target and slot 76. */
 struct O { char pad[0xC]; struct VTE *vt; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
-struct Q { int x0; };
-struct P { char pad[0x150]; void *controller; char pad0[0x20C - 0x154]; float g20C; char padA[0x2C0 - 0x210]; char air[0x1030 - 0x2C0]; void *action;
-    char pad1[0x13D0 - 0x1034]; int state; char pad2[0x16B0 - 0x13D4]; int subState; struct Q *pq; char pad3[0x186C - 0x16B8]; struct O *po; };
 extern struct CLOCK D_002DDED0;
-int IsAsegaRetracted(void *pv);
-void SetBentleySubState(struct P *p, int n);
+int IsAsegaRetracted(ASEGA *pv);
+void SetBentleySubState(BENTLEY *p, int n);
 void StickTossable(struct O *po, int n);
-int GetGadgetButtonMask(struct P *p, int n);
-int POCTL_IsButtonDown(void *pv, int n);
-void ReleaseBentleyHeldObject(struct P *p);
-void SetJtAirJump(void *pv, int a, int b, int c);
-// The +0x16B0 sub-state machine.
-void UpdateBentleySubState(struct P *bentley)
+int GetGadgetButtonMask(BENTLEY *p, int n);
+int POCTL_IsButtonDown(POCTL *pv, int n);
+void ReleaseBentleyHeldObject(BENTLEY *p);
+void SetJtAirJump(JTAIR *pv, int a, int b, int c);
+// The subState machine.
+void UpdateBentleySubState(BENTLEY *bentley)
 {
     int s;
     for (;;) {
         s = bentley->subState;
         switch (s) {
         case 0:
-            if (IsAsegaRetracted(bentley->action))
+            if (IsAsegaRetracted(bentley->activeAnimation))
                 SetBentleySubState(bentley, 1);
             break;
         case 1:
         case 2: {
-            struct O *object = bentley->po;
+            struct O *object = (struct O *)bentley->ploHeld;
             if (object->x158 == 2) {
                 StickTossable(object, object->x1A0);
                 ReleaseBentleyHeldObject(bentley);
-                SetJtAirJump(bentley->air, 0xB, 0, 0);
-            } else if (object->x158 == 4 || !POCTL_IsButtonDown(bentley->controller, GetGadgetButtonMask(bentley, bentley->pq->x0) | BUTTON_ALT_ATTACK)) {
+                SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
+            } else if (object->x158 == 4 || !POCTL_IsButtonDown(bentley->controller, GetGadgetButtonMask(bentley, bentley->ppocketCur->idGadget) | BUTTON_ALT_ATTACK)) {
                 ((void (*)(void *, int))object->vt[76].pfn)((char *)object + object->vt[76].d, 1);
                 ReleaseBentleyHeldObject(bentley);
-                SetJtAirJump(bentley->air, 0xB, 0, 0);
+                SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
             } else if
- (0.1f < D_002DDED0.time - bentley->g20C) {
+ (0.1f < D_002DDED0.time - bentley->unknown20C) {
                 SetBentleySubState(bentley, 2);
             } else {
                 SetBentleySubState(bentley, 1);
@@ -1728,15 +1722,11 @@ extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001371C8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(); };
-struct O { int pad[3]; struct VTE *vt; char pad2[0x1020]; int action; };
-struct S { struct O *po; };
-int IsAsegaRetracted(int);
-// When the owner's current action (+0x1030) has retracted, returns him to generic player state 0 (slot 88).
-void EndBentleyHelperWhenRetracted(struct S *bentley) {
-    if (IsAsegaRetracted(bentley->po->action)) {
-        struct O *object = bentley->po; struct VTE *vt = object->vt;
-        ((void (*)(void *, int))vt[88].pfn)((char *)object + vt[88].d, 0);
+int IsAsegaRetracted(ASEGA *pasega);
+// When the owner's current action has retracted, returns him to generic player state 0 (SetPlayerState).
+void EndBentleyHelperWhenRetracted(JTREC *prec) {
+    if (IsAsegaRetracted(prec->player->activeAnimation)) {
+        prec->player->SetPlayerState(0);
     }
 }
 } } // namespace M_func_001371C8

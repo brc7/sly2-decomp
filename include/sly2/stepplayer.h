@@ -490,6 +490,18 @@ typedef char assert_JTTHROW_size[sizeof(JTTHROW) == 0x140 ? 1 : -1];
 
 /* STEPPLAYER: the shared base of the three heroes: the movement subsystems, interaction, idle and gadget state.
    Layout from src/game/gameplay/player/air.cpp (UpdateJtAirInput) (15 copies in Lilly ports) */
+/* JTREC: a helper action record (JT+0x1FF0; the BentleyHelper functions in bentley.cpp: SetBentleyHelperState,
+   IsBentleyHelperTargetBehind, EndBentleyHelperWhenRetracted): its owner, state with start time, the side and the
+   two side clips. */
+struct JTREC
+{
+      STEPPLAYER *player;   /* owner */
+      int state;
+      float stateStartTime;
+      int side;   /* IsBentleyHelperTargetBehind */
+      struct ASEG *apaseg[2];   /* by side */
+};
+
 /* LOREF: an object reference with a time stamp (STEPPLAYER::alorefSplash: an object in the hero's water volume and the
    clock time of its last surface-crossing effect, UpdateStepplayerWater in hurt.cpp). */
 struct LOREF

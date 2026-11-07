@@ -200,8 +200,8 @@ struct JT : public STEPPLAYER
       int unknown1FE4;
       ASEG *unknown1FE8;
       undefined4 unknown1FEC;
-      undefined4 unknown1FF0;   /* possibly interactRecord (low-confidence guess: used as a JTREC (JtInteractPre, SetJtRecState): should become a JTREC member) */
-      undefined4 unk_0x1ff4[(0x2010 - 0x1ff4) / 4];
+      JTREC jtrec;   /* +0x1FF0 interaction helper record (JtInteractPre, SetJtRecState, NJtRecSide) */
+      undefined4 unk_0x2008[(0x2010 - 0x2008) / 4];
       PROXY *unknown2010;
       JTAIRBL ablLean[3];   /* lean blends in the air (inferred) */
       ASEGBL *unknown2038;

@@ -121,15 +121,6 @@ struct GRABSPOT : public GRABSPOTDATA
 
 float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
 
-struct JTREC
-{
-      JT *pjt;
-      int nState;
-      float tStart;
-      int nSide;
-      ASEG *apaseg[2];
-};
-
 void JtInteractPre(JTREC *prec) __asm__("EndBentleyHelperWhenRetracted");
 
 void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
@@ -1914,7 +1905,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     UpdateJtThrow(&jt->jtthrow);
                     break;
                 case JTS_Interact:
-                    JtInteractPre((JTREC *)&jt->unknown1FF0);
+                    JtInteractPre(&jt->jtrec);
                     break;
                 case JTS_Unk08:
                     UpdateJtActivePipe(&jt->jtpipe);
@@ -3393,7 +3384,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetJtThrowState(&jt->jtthrow, -1);
                 break;
             case JTS_Interact:
-                SetJtRecState((JTREC *)&jt->unknown1FF0, -1);
+                SetJtRecState(&jt->jtrec, -1);
                 break;
             case JTS_Unk09:
                 jt->attachedTo = 0;
@@ -3527,7 +3518,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Interact:
                 fKeep = 1;
-                SetJtRecState((JTREC *)&jt->unknown1FF0, NJtRecSide((JTREC *)&jt->unknown1FF0));
+                SetJtRecState(&jt->jtrec, NJtRecSide(&jt->jtrec));
                 break;
             case JTS_Hang:
             {

@@ -206,7 +206,9 @@ struct BENTLEY : public STEPPLAYER
       undefined4 unknown16B8;
       int aimState;   /* +0x16BC binocucom dart aim state: -1 outside look mode, 0 ready, 1 cooling down (UpdateBentleyAim) */
       float aimStateTime;   /* +0x16C0 clock.time aimState was set (SetBentleyAimState) */
-      undefined4 unk_0x16c4[(0x16f0 - 0x16c4) / 4];
+      undefined4 unk_0x16c4[(0x16cc - 0x16c4) / 4];
+      struct ASEGA *pasegaAim;   /* +0x16CC the aim animation: its event 0x243 fires a dart (HandleBentleyMessage) */
+      undefined4 unk_0x16d0[(0x16f0 - 0x16d0) / 4];
       qword aimPoint;   /* +0x16F0 where the crosshair ray hits (UpdateBentleyAimPoint); darts fly there */
       float lastDartTime;   /* +0x1700 clock.time of the last dart (FireBentleyDart) */
       undefined4 unk_0x1704[(0x1710 - 0x1704) / 4];
