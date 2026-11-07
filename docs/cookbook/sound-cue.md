@@ -29,7 +29,7 @@ Cueing existing sounds at new moments needs only code or script; new audio conte
 | effect, one-shot or loop | `CreateSfxSound(sfxId)`, then `SetSndSourceLo` / `SetSndSourcePos`, `SetSndVolume`, `SetSndPan`, `SetSndPitch`; `StopSnd(snd, fadeSeconds)` | the `start-sound` builtin (`BuiltinStartSound`: creates the effect and attaches it to an object); sound events on an animation clip |
 | ambience | `AMB` objects (`engine/sound/amb.cpp`) start their loops in `OnAmbAdd` and stop them in `OnAmbRemove` | place an `AMB` with its sound list in the level |
 | music change | `PushMusic(id)` / `StopMusic(id)`; intensity within a track with `AddMusicLayer0Request` / `RemoveMusicLayer0Request` and `AddMusicLayer2Request` / `RemoveMusicLayer2Request` | RELAY music commands (`gameplay/cutscene/relay.cpp`) |
-| voiced line | `StartDialog(id)`, `IsDialogPlaying`, `StopDialog` | RELAY dialogue commands |
+| voiced line | `StartDialog` (sound manager, line id, a flag), `IsDialogPlaying`, `StopDialog` | RELAY dialogue commands |
 | volume rules | `SetSndmgrChannelVolume(mgr, channel, volume, category)` | the options menu |
 
 ## Steps: an effect from native code
@@ -55,7 +55,7 @@ Cueing existing sounds at new moments needs only code or script; new audio conte
 
 ## Steps: a voiced line
 
-1. `StartDialog(id)` stops the current line, starts the stream, sets the subtitle and binds up to six lip-sync roles
+1. `StartDialog` (with the sound manager and the line id) stops the current line, starts the stream, sets the subtitle and binds up to six lip-sync roles
    to the speaker objects' state machines.
 2. The speaker needs a state machine providing the mouth states; a line spoken by an object without one plays audio
    and subtitles but no lip-sync.
