@@ -2146,46 +2146,6 @@ namespace M_LoadSubglobType0FromBrx {
 //    switch: the clear-then-set keeps loop.c from hoisting the constant with the other 1s;
 //  - the lit-batch count is Min(0x27, cvtx - iofs) through an inline Min (no REG_EQUAL on n's first set);
 //  - ppart->iqwVtx is re-read for iqwEnd/iqwOwn; pg[0] = pg[1] = pg[2] = -1.0f.
-typedef unsigned  size_t;
-typedef unsigned char    uint8_t;
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
-typedef unsigned long    uint64_t;
-typedef uint8_t     uchar;
-typedef uint16_t    ushort;
-typedef uint32_t    uint;
-typedef uint64_t    ulong;
-typedef uchar   undefined1;
-typedef uint    undefined4;
-typedef unsigned long long qword __attribute__((mode(TI)));
-typedef uchar byte;
-enum CID
-{
-};
-struct LO;
-struct SO;
-struct SAA;
-struct RGBA {
-    uchar red;
-    uchar green;
-    uchar blue;
-    uchar alpha;
-    inline void operator=(const int rgba)
-    {
-        red = (rgba >> 24) & 0xFF;
-        green = (rgba >> 16) & 0xFF;
-        blue = (rgba >> 8) & 0xFF;
-        alpha = rgba & 0xFF;
-    }
-};
-struct VECTOR
-{
-    float x, y, z;
-};
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
 union QW
 {
     VECTOR vec;
@@ -2248,22 +2208,9 @@ public:
 };
 struct BMP;
 struct CLUT;
-enum OID
-{
-};
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
-struct MATRIX4
-{
-	float mat[4][4];
-} __attribute__((aligned(16)));
-struct SL
-{
-    void *head;
-    void *tail;
-    int linkOffset;
-};
 void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 struct BASIC;
