@@ -1364,50 +1364,47 @@ namespace M_BENTLEY_FCanUseGadget { extern "C" {
 /* MATCH (Claude agent laneB13, 2026-10-23), from v4 (4). One register pin (f in v1) plus commented empty asms that emulate the original toolchain's reorg/cross-jump state: case 12 has its own `return 0` (with an empty asm so it isn't merged with the shared fail), the shared fail has one too, the 1CADE0 path ends in `return 0`, and an empty asm using pe in the pv != 0 block keeps v0 live so reorg annuls the beql slot. */
 /* v4 (Claude agent laneB12, 2026-10-23): aligned 10 -> 4. f pinned to v1 (one commented pin) and used for case 12's x15C and the ChooseProxySpare result; cases 2/3/13 test their call results directly; an empty volatile asm "+r"(f) after the 1CADE0 call keeps the target's `daddu v1,v0; bnez v1` (cse otherwise tests v0). Left: reorg fill choices: case 12 beq slot (target steals li v0,1 from `one`, ours takes li v0,0 from the fallthrough; `if (f != k) goto fail` flips the layout: 4), and the pv == 0 test (target beql, ours beqz). */
 /* v3 (Claude agent, 2026-10-17): aligned 10. Shared function-scope `void *pv` for case 12 pa11C0 and pe->p4 puts pa in a0 like the target. Left: target loads x15C into v1 and copies the 1CADE0 result to v1 (daddu v1,v0; bnez v1). */
+/* The carried tossable (classes.h CID100 has no fields yet): its gadget id. */
 struct A { char pad[0x15C]; int x15C; };
-struct E { int x0; void *p4; void *p8; };
-struct P { char pad[0x2C0]; char air[0x200]; char grab[0xF50 - 0x4C0]; char pipe[0x11B4 - 0xF50]; int x11B4; int pad1[2];
-    struct A *pa11C0; char pad2[0x12F0 - 0x11C4]; int x12F0; char pad3[0x13D0 - 0x12F4]; int state; char pad4[0x1818 - 0x13D4];
-    long x1818; };
 extern int D_002DFBC0;
 int IsStepplayerInJtMode();
 int CanJtUseGadgetInAir(void *pv, int k);
 int CanJtUseGadgetInGrab(void *pv, int k);
 int CanJtUseGadgetOnPipe(void *pv, int k);
-struct E *GetBentleyGadgetFromId(struct P *p, int k);
+JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k);
 int IsTossableActive(void *pv);
 int ChooseProxySpare(void *pv, int n);
 int IsCameraPolicyActive__FP5CPLCY(void *pv);
 // BENTLEY slot 99: per-state checks and the per-gadget record's availability.
-int CanBentleyUseGadget(struct P *bentley, int k)
+int CanBentleyUseGadget(BENTLEY *bentley, int k)
 {
     register int f __asm__("$3");  /* register pin: target keeps x15C and the ChooseProxySpare result in v1 */
     void *pv;
-    if (bentley->x1818 != 0)
+    if (bentley->unknown1818Wide != 0)
         goto fail;
     if (IsStepplayerInJtMode())
         return 0;
     switch (bentley->state) {
     case BENTLEY_AIR:
-        if (CanJtUseGadgetInAir(bentley->air, k))
+        if (CanJtUseGadgetInAir(&bentley->jtair, k))
             goto inner;
         goto fail;
     case BENTLEY_GRAB:
-        if (CanJtUseGadgetInGrab(bentley->grab, k))
+        if (CanJtUseGadgetInGrab(&bentley->jtgrab, k))
             goto inner;
         goto fail;
     case BENTLEY_PIPE:
-        if (CanJtUseGadgetOnPipe(bentley->pipe, k))
+        if (CanJtUseGadgetOnPipe(&bentley->jtpipe, k))
             goto inner;
     default:
     fail:
         __asm__ __volatile__("");  /* keeps the shared return 0 apart from case 12's */
         return 0;
     case BENTLEY_THROW:
-        if ((unsigned int)(bentley->x11B4 - 4) < 3) {
+        if ((unsigned int)(bentley->jtthrow.state - 4) < 3) {
             switch (k) {
             case 4: case 7: case 9: case 11: case 13:
-                pv = bentley->pa11C0;
+                pv = bentley->jtthrow.ploCarried;
                 f = ((struct A *)pv)->x15C;
                 if (f == k)
                     goto one;
@@ -1420,13 +1417,13 @@ int CanBentleyUseGadget(struct P *bentley, int k)
     inner:
         switch (k) {
         case 4: case 5: case 7: case 9: case 11: case 13: {
-            struct E *pe = GetBentleyGadgetFromId(bentley, k);
-            if (pe->p8) {
-                if (IsTossableActive(pe->p8))
+            JTPOCKET *pe = GetBentleyGadgetFromId(bentley, k);
+            if (pe->pcid100) {
+                if (IsTossableActive(pe->pcid100))
                     return 1;
                 goto fail;
             }
-            if ((pv = pe->p4)) {
+            if ((pv = pe->proxy)) {
                 __asm__ __volatile__("" : : "r"(pe));  /* keeps pe (v0) live into this block, so reorg annuls the beql slot */
                 f = ChooseProxySpare(pv, 2);
                 __asm__ __volatile__("" : "+r"(f));  /* keeps the copy in v1 that the target tests */
@@ -1437,7 +1434,7 @@ int CanBentleyUseGadget(struct P *bentley, int k)
         }
         case 3: {
             int r = 0;
-            if (bentley->x12F0 && (D_002DFBC0 & 2))
+            if (bentley->unknown12F0 && (D_002DFBC0 & 2))
                 r = IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0) == 0;
             return r;
         }
