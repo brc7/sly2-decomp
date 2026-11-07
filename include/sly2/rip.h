@@ -30,6 +30,7 @@ struct RIP
     union
     {
         qword scale;           /* +0x20 the scale curve as one quadword */
+        CLQ clqScale;          /* +0x20 the same as a quadratic in the rip's age fraction (CreateStuck evaluates it) */
         struct
         {
             float scaleStart;  /* +0x20 its coefficients: the initial scale, */
@@ -80,9 +81,12 @@ struct FLYING : RIP   /* RIPT 3 */
 };
 struct STUCK : RIP   /* RIPT 10 */
 {
+    LO *ploHost;               /* +0xF0 the object it sticks to: its position and orientation are in that object's space
+                                  (CreateStuck, RenderStuck) */
     virtual void Update() __asm__("UpdateStuck");   /* key function */
     virtual void Render() __asm__("RenderStuck");
 };
+typedef char assert_STUCK_size[sizeof(STUCK) == 0x100 ? 1 : -1];   /* PvtripFromRipt clears 0x100 bytes */
 struct SHRAPNEL : RIP   /* RIPT 8 */
 {
     VECTOR dir;                /* +0xF0 the emitter record's direction (PostShrapnelEmit) */

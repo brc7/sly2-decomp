@@ -16,17 +16,17 @@ union TEX0
     };
 };
 
-struct CLUT; struct BMP;
+struct CLUT; struct BMP; struct CLUTHDR; struct BMPHDR;
 extern "C" {
-CLUT *CopyClutHeader(CLUT *pclut, void *pvHeader);  /* shd.cpp: copies the 0x10-byte header, colour-corrects, sets cqwPal */
-BMP *CopyBitmapHeader(BMP *pbmp, void *pvHeader);   /* shd.cpp: copies the 0x18-byte header, sets cqw */
+CLUT *CopyClutHeader(CLUT *pclut, CLUTHDR *pcluthdr); /* shd.cpp: copies the header, colour-corrects, sets cqwPal */
+BMP *CopyBitmapHeader(BMP *pbmp, BMPHDR *pbmphdr);    /* shd.cpp: copies the header, sets cqw */
 }
 
 /* a colour table entry */
 struct SHDRGBA { unsigned char r, g, b, a; };
 
-/* CLUT: a colour table (0x20) */
-struct CLUT
+/* CLUTHDR: the part of a colour table stored in the file or a built-in header (0x10) */
+struct CLUTHDR
 {
     int n0;
     unsigned char kind;     /* +0x04 1: shared */
@@ -35,18 +35,24 @@ struct CLUT
     unsigned short ccolor;  /* +0x08 entry count */
     unsigned short gsBlocks; /* +0x0A GS blocks it needs (IgsAllocGsb) */
     SHDRGBA *argba;         /* +0x0C the entries */
+};
+typedef char assert_CLUTHDR_size[sizeof(CLUTHDR) == 0x10 ? 1 : -1];
+
+/* CLUT: a colour table (0x20): its header and what is derived from it */
+struct CLUT : CLUTHDR
+{
     int cqwPal;             /* +0x10 their size in quadwords */
     int unknown14;
     TEX0 tex2;              /* +0x18 its TEX2 word (BuildClutTex2) */
 
     /* built from a header at startup (tu_1147D8/tu_114AE0's built-in tables); no default constructor: every other
        CLUT is loaded in place (LoadClutFromBrx) */
-    CLUT(void *pvHeader) { CopyClutHeader(this, pvHeader); }
+    CLUT(void *pvHeader) { CopyClutHeader(this, (CLUTHDR *)pvHeader); }
 };
 typedef char assert_CLUT_size[sizeof(CLUT) == 0x20 ? 1 : -1];
 
-/* BMP: a bitmap (0x28) */
-struct BMP
+/* BMPHDR: the part of a bitmap stored in the file (LoadBmpFromBrx reads it) or a built-in header (0x18) */
+struct BMPHDR
 {
     int n0;
     unsigned char kind;     /* +0x04 1: shared */
@@ -59,12 +65,18 @@ struct BMP
     unsigned short gsBlocks; /* +0x0E GS blocks it needs */
     unsigned int cb;        /* +0x10 pixel bytes */
     void *pv;               /* +0x14 pixels */
+};
+typedef char assert_BMPHDR_size[sizeof(BMPHDR) == 0x18 ? 1 : -1];
+
+/* BMP: a bitmap (0x28): its header and what is derived from it */
+struct BMP : BMPHDR
+{
     int cqw;                /* +0x18 their size in quadwords */
     int unknown1C;
     TEX0 tex0;              /* +0x20 its TEX0 word (BuildBmpTex0) */
 
     /* built from a header at startup, as CLUT */
-    BMP(void *pvHeader) { CopyBitmapHeader(this, pvHeader); }
+    BMP(void *pvHeader) { CopyBitmapHeader(this, (BMPHDR *)pvHeader); }
 };
 typedef char assert_BMP_size[sizeof(BMP) == 0x28 ? 1 : -1];
 
@@ -109,6 +121,19 @@ struct SHD
     SAA *psaa;              /* +0x28 shader animation */
 };
 typedef char assert_SHD_size[sizeof(SHD) == 0x2C ? 1 : -1];
+
+/* COPYREC: a shader-animation copy record (0x14), one of the 0x200 in shd.cpp's table D_003DA798 (D_003DA790 in use):
+   ApplyCopyRecord copies cb bytes from pvSrc (in the animation) to pvDst (in an upload chain; RelocateShaderUploadRecords
+   rebases it when the chain moves); the records of an animation are linked through pcopyrecNext. Name ours. */
+struct COPYREC
+{
+    unsigned int cb;        /* +0x00 */
+    void *pvSrc;            /* +0x04 */
+    void *pvDst;            /* +0x08 */
+    SAA *psaa;              /* +0x0C owning animation */
+    COPYREC *pcopyrecNext;  /* +0x10 its list link */
+};
+typedef char assert_COPYREC_size[sizeof(COPYREC) == 0x14 ? 1 : -1];
 
 /* SHDBLIP: the compact shader record blips use (0x1C; BuildShaderTex0List builds it for shaders flagged grfshd 0x40,
    linked on SW::slShd; FindShdOrDefault finds it). Name ours. */

@@ -26,13 +26,11 @@ typedef unsigned long ulong;
 extern "C" {
 /* The tables (separate globals: one lui per store in ResetShaders). */
 /* shd's .bss (address order; the per-function views below redeclare some with their own types). D_003DA790 and
- * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too). D_003DA798 is the 0x200-entry table of
- * 0x14-byte records between them (RelocateShaderUploadRecords's E, shdanim's SAIE, glob's LINK); defined here with a file-scope
- * record type of that size so the .bss after it keeps the ELF's addresses (g++ 2.95 does not compare the views'
- * namespaced extern "C" declarations with it). */
-struct SHDREC { int a; int b; unsigned int p; int c; int d; };
-int D_003DA790;
-SHDREC D_003DA798[0x200];
+ * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too). D_003DA798 is the table of shd.h's COPYREC
+ * records (shdanim's SAIE and glob's LINK are views of it; g++ 2.95 does not compare their namespaced extern "C"
+ * declarations with this one). */
+int D_003DA790;             /* copy records in use */
+COPYREC D_003DA798[0x200];
 int D_003DCF98, D_003DCF9C;
 int D_003DCFA0;
 char D_003DCFA8[0x40];
@@ -56,6 +54,7 @@ void *FindShaderById();
 int CeilLog2__FUi(int n);
 }
 void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS *pgifs);
+int IgsAllocGsb(GSB *pgsb, int cgsb);
 
 // After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data
 // pointer and color-correct its entries. (inferred)
@@ -164,7 +163,7 @@ void LoadClutFromBrx(void *pbis, CLUT *pclut)
 {
     union { short aw[0x80]; struct AR ar; } u;
     unsigned int cb;
-    Read__18CBinaryInputStreamiPv(pbis, 0x10, pclut);
+    Read__18CBinaryInputStreamiPv(pbis, sizeof(CLUTHDR), pclut);
     cb = pclut->ccolor * sizeof(SHDRGBA);
     if (pclut->clevel > 0) {
         Read__18CBinaryInputStreamiPv(pbis, pclut->clevel * 2, u.aw);
@@ -202,29 +201,12 @@ typedef int qword __attribute__((mode(TI)));
 struct VEC3 { float x, y, z; VEC3() {} };
 // Packed color word with a no-op constructor.
 struct CLR { unsigned int n; CLR() {} };
-struct GIFS {
-    void *max; qword *base,*count,*current; int pad,endPrim; void *vt;
-    qword *tag; int registerCount,vertexCount;
-};
-struct O { char pad[0x3EA0]; ulong tex0; };
 extern "C" {
-struct SRC { float ag[3]; float aclr[3][4]; };
 extern int D_002C3680[3];   /* shd's .data starts here (the zero word after it is alignment) */
 extern int D_002DE598;
 void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *);
-int IgsAllocGsb__FP3GSBi(void *, int);
-void __4GIFS(GIFS *);
-void AllocStatic__4DMASiP2QW(GIFS *, int, void *);
-void AddDmaCnt__4DMAS(GIFS *);
-void BuildImageGifs__FiiiiiiP4GIFS(int, int, int, int, int, int, GIFS *);
-void AddDmaRefs__4DMASiP2QW(GIFS *, int, void *);
-void AddPrimPack__4GIFSiiUl(GIFS *, int, int, ulong);
-void PackAD__4GIFSll(GIFS *, int, ulong);
-void AddPrimEnd__4GIFS(GIFS *);
-void AddDmaEnd__4DMAS(GIFS *);
-void Detach__4DMASPiPP2QW(GIFS *, int *, qword **);
-void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, qword *);
-void BuildWorldBackgroundImage(O *p, void *pbs);
+void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, QW *);
+void BuildWorldBackgroundImage(SW *psw, GSB *pgsb);
 }
 // Clear a packed color to zero.
 static inline void ClearClr(CLR *pc)
@@ -243,11 +225,11 @@ static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,co
     float alpha=*gain*0.003921569f;
     *outAlpha=alpha;outColor->n=rgb;
 }
-// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at
-// g_sw+0x3EA0) (inferred)
-void BuildWorldBackgroundImage(O *p, void *pbs)
+// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (its TEX0 saved in
+// SW::tex2ProjVolume, +0x3EA0) (inferred)
+void BuildWorldBackgroundImage(SW *psw, GSB *pgsb)
 {
-    if (!pbs && !(p->tex0 & (0x3FFFL << 37)))
+    if (!pgsb && !(psw->tex2ProjVolume & (0x3FFFL << 37)))
         return;
     {
     float ag[3];
@@ -256,8 +238,8 @@ void BuildWorldBackgroundImage(O *p, void *pbs)
     int i;
     {
         for (i = 0; i < 3; i++) {
-            ConvertUserHsvToUserRgb__FP6VECTORT0((*(struct SRC *)&g_sw.agShdLight).aclr[i], &v);
-            StoreColor(&argb[i],&ag[i],&(*(struct SRC *)&g_sw.agShdLight).ag[i],v);
+            ConvertUserHsvToUserRgb__FP6VECTORT0(g_sw.aclrShdLight[i], &v);
+            StoreColor(&argb[i],&ag[i],&g_sw.agShdLight[i],v);
         }
     }
     CLR aclr[256];
@@ -296,43 +278,36 @@ void BuildWorldBackgroundImage(O *p, void *pbs)
             }
         }
     }
-    GIFS dmas;
-    qword aqw[0x80];
-    qword *x;
-    if (pbs)
-        p->tex0 = ((ulong)IgsAllocGsb__FP3GSBi(pbs, 4) << 37) | 0x2000000001B00000L;
-    __4GIFS(&dmas);
-    AllocStatic__4DMASiP2QW(&dmas, 0x80, aqw);
-    AddDmaCnt__4DMAS(&dmas);
-    BuildImageGifs__FiiiiiiP4GIFS((int)((p->tex0 >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &dmas);
-    AddDmaRefs__4DMASiP2QW(&dmas, 0x40, aclr);
-    AddPrimPack__4GIFSiiUl(&dmas, 0, 1, 14);
-    PackAD__4GIFSll(&dmas, 0x3F, 0);
-    PackAD__4GIFSll(&dmas, 0x61, 0);
-    AddPrimEnd__4GIFS(&dmas);
-    AddDmaEnd__4DMAS(&dmas);
-    Detach__4DMASPiPP2QW(&dmas, 0, &x);
-    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, x);
+    if (pgsb)
+        psw->tex2ProjVolume = ((ulong)IgsAllocGsb(pgsb, 4) << 37) | 0x2000000001B00000L;
+    GIFS gifs;
+    QW aqw[0x80];
+    QW *aqwSend;
+    gifs.AllocStatic(0x80, aqw);
+    gifs.AddDmaCnt();
+    BuildImageGifs((int)((psw->tex2ProjVolume >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &gifs);
+    gifs.AddDmaRefs(0x40, (QW *)aclr);   /* the 256 colours as 0x40 quadwords */
+    gifs.AddPrimPack(0, 1, 14);
+    gifs.PackAD(0x3F, 0);
+    gifs.PackAD(0x61, 0);
+    gifs.AddPrimEnd();
+    gifs.AddDmaEnd();
+    gifs.Detach(0, &aqwSend);
+    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, aqwSend);
     }
 }
 } // namespace M_BuildWorldBackgroundImage
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_CopyClutHeader { extern "C" {
-struct H { int a; int b; unsigned short c; unsigned short d; int *ap; };
-struct S { struct H h; unsigned int cqw; };
-void ColorCorrectRgba(int *p);
 // Copy a CLUT header, color-correct its colors, compute qword count. (inferred)
-struct S *CopyClutHeader(struct S *p, struct H *ph)
+extern "C" CLUT *CopyClutHeader(CLUT *pclut, CLUTHDR *pcluthdr)
 {
-    int *pn;
-    p->h = *ph;
-    for (pn = p->h.ap; pn < p->h.ap + p->h.c; pn++)
-        ColorCorrectRgba(pn);
-    p->cqw = (p->h.c * sizeof(int) + 15) >> 4;
-    return p;
+    SHDRGBA *prgba;
+    *(CLUTHDR *)pclut = *pcluthdr;
+    for (prgba = pclut->argba; prgba < pclut->argba + pclut->ccolor; prgba++)
+        ColorCorrectRgba(prgba);
+    pclut->cqwPal = (pclut->ccolor * sizeof(SHDRGBA) + 15) >> 4;
+    return pclut;
 }
-} } // namespace M_CopyClutHeader
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
 namespace M_LoadColorTablesFromBrx__FP18CBinaryInputStream { extern "C" {
@@ -370,7 +345,7 @@ void *AllocFromWorldHeap(struct AR *par);
 void LoadBmpFromBrx(void *pbis, BMP *pbmp)
 {
     union { short aw[0x80]; struct AR ar; } u;
-    Read__18CBinaryInputStreamiPv(pbis, 0x18, pbmp);
+    Read__18CBinaryInputStreamiPv(pbis, sizeof(BMPHDR), pbmp);
     if (pbmp->clevel > 0) {
         Read__18CBinaryInputStreamiPv(pbis, pbmp->clevel * 2, u.aw);
         if (!IsCurrentLevelInList__FiPs(pbmp->clevel, u.aw)) {
@@ -398,18 +373,13 @@ void LoadBmpFromBrx(void *pbis, BMP *pbmp)
 }
 } } // namespace M_LoadBmpFromBrx
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_CopyBitmapHeader { extern "C" {
-struct S { int a, b, c, d; unsigned int byteCount; int unknown14; unsigned int qwordCount; };
-struct T { int a, b, c, d; unsigned int byteCount; int unknown14; };
 // Copies a bitmap header and derives its size in qwords (bytes rounded up to 16).
-struct S *CopyBitmapHeader(struct S *p, struct T *q)
+extern "C" BMP *CopyBitmapHeader(BMP *pbmp, BMPHDR *pbmphdr)
 {
-    *(struct T *)p = *q;
-    p->qwordCount = (p->byteCount + 15) >> 4;
-    return p;
+    *(BMPHDR *)pbmp = *pbmphdr;
+    pbmp->cqw = (pbmp->cb + 15) >> 4;
+    return pbmp;
 }
-} } // namespace M_CopyBitmapHeader
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
 namespace M_LoadBitmapsFromBrx__FP18CBinaryInputStream { extern "C" {
@@ -838,46 +808,34 @@ extern "C" int AddShaderVifUnpack(SHD *pshd, int ishdp, int iqw, VIFS *pvifs)
     return pshdp->cqw;
 }
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddShaderVifUnpackQword { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x30]; qword q; };
-struct E { int a; struct O *po; };
-struct S { char pad[0x20]; struct E *ae; };
-void AddVifUnpack__4VIFS3UPKiPvi(int a, int b, int c, qword *d, int e);
-// Variant of 0x1EC688 for a single qword from an object. (inferred)
-int AddShaderVifUnpackQword(struct S *p, int i, int x, int y)
+// Variant of AddShaderVifUnpack for a single qword: quadword 3 of record ishdp. (inferred)
+extern "C" int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvifs)
 {
-    struct E *pe = p->ae + i; qword q = pe->po->q;
-    AddVifUnpack__4VIFS3UPKiPvi(y, 12, 1, &q, x);
+    SHDP *pshdp = &pshd->ashdp[ishdp];
+    QW qw = pshdp->aqw[3];
+    pvifs->AddVifUnpack(UPK_V4_32, 1, &qw, iqw);
     return 1;
 }
-} } // namespace M_AddShaderVifUnpackQword
 
 // CopyAb(dst=+8, src=+4, cb=+0) (inferred)
 /* Copies one upload record's bytes (cb from pvSrc to pvDst). */
-struct COPYREC { unsigned int cb; void *pvSrc; void *pvDst; };
 // Copy a record's cb bytes from its source to its destination.
 extern "C" void ApplyCopyRecord(COPYREC *prec)
 {
     CopyAb__FPvT0Ui(prec->pvDst, prec->pvSrc, prec->cb);
 }
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_RelocateShaderUploadRecords { extern "C" {
-struct E { int a; int b; unsigned int p; int c; int d; };
-extern struct E D_003DA798[];
-// Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew. (inferred)
-void RelocateShaderUploadRecords(int iFirst, int iLast, int cb, unsigned int pOld, unsigned int pNew)
+// Rebase the destinations of copy records [iFirst,iLast) that fall in [pbOld,pbOld+cb) to pbNew. (inferred)
+extern "C" void RelocateShaderUploadRecords(int iFirst, int iLast, int cb, char *pbOld, char *pbNew)
 {
     int i;
-    unsigned int pEnd = pOld + cb;
+    char *pbEnd = pbOld + cb;
     for (i = iFirst; i < iLast; i++) {
-        struct E *pe = &D_003DA798[i];
-        if (pe->p >= pOld && pe->p < pEnd) pe->p = pNew + (pe->p - pOld);
+        COPYREC *pcopyrec = &D_003DA798[i];
+        if ((char *)pcopyrec->pvDst >= pbOld && (char *)pcopyrec->pvDst < pbEnd)
+            pcopyrec->pvDst = pbNew + ((char *)pcopyrec->pvDst - pbOld);
     }
 }
-} } // namespace M_RelocateShaderUploadRecords
 
 // Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) (inferred)
 extern "C" void ResetShaders()

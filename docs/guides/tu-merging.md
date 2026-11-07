@@ -887,6 +887,44 @@ headers, not CLUT/BMP objects), BuildWorldBackgroundImage's GIFS view, AddShader
 remaining hand calls (BounceRipgRips' slot-9 Remove on the P view, UpdateRip's slots 7/73, ReleaseRip's slots 3/5,
 CreateStuck's Init on its O view, MATCH's slot 8, REMIT's slot 51) sit on views that would need RIPG/SO/STUCK fields.
 
+### Views unified, round 3 (names/vu-f6-render-3): the type-0 sub-glob loader, shader headers, rip calls
+
+LoadSubglobType0FromBrx (glob.cpp's 1450-line Lilly port) on the shared headers instead of its own universe, the
+remaining shd.cpp views, and more of rip.cpp's hand-made vtable calls as real calls. Every function and data symbol of
+each touched file and of every includer of a changed header MATCHes; each object's nm symbol set, its relocations by
+symbol name and its symbol table (readelf) are unchanged from the branch start (matchtool masks call targets: the
+relocation diff is what caught a namespace-mangled `IgsAllocGsb` declaration once).
+
+| change | header | views removed | files |
+|---|---|---:|---|
+| LoadSubglobType0FromBrx on basic.h's typedefs/RGBA/VECTOR/VECTOR4/MATRIX4/SL/OID/CID, qw.h's QW, dmas.h/vifs.h's DMAS/VIFS/UPK, shd.h's SHD/TEX, so.h's GLOBSET/GLOB/SUBGLOB/POSE/POSESET/XF and the file's BND and CBinaryInputStream (gains ReadMatrix4) | (shared) | 24 | glob |
+| CLUTSET/CLUTPAL/CLUTCOLOR, a type-0 sub-glob's per-vertex palettes (LoadClutsetFromBrx's T/E8/E6 were the same records) | sly2/glob.h | 6 | glob |
+| BATCH, VERTREC (CompareSortRecs' SORTREC: its int "batch" fields are the BATCH pointers, the `>> 6` their 0x40 stride), WRBG/WEKI/WRBGBATCH completed at file scope (now sly2/wr.h's); LoadSubglobInstancesFromBrx on SUBGLOB/GLOB/SUBGLOBX/BATCH | (glob.cpp file scope) | 4 | glob |
+| CLUTHDR/BMPHDR (the stored 0x10/0x18-byte headers; CLUT and BMP derive from them): CopyClutHeader/CopyBitmapHeader, the loaders read `sizeof` the header | sly2/shd.h | 4 | shd |
+| COPYREC (0x14), the shader-animation copy record of D_003DA798: ApplyCopyRecord, RelocateShaderUploadRecords | sly2/shd.h | 3 (SHDREC, the 12-byte COPYREC, E) | shd |
+| AddShaderVifUnpackQword on SHD/SHDP with a real VIFS::AddVifUnpack; BuildWorldBackgroundImage on a real GIFS local (eleven member calls), sw.h's SW and gs.h's GSB | (shared) | 6 | shd |
+| STUCK::ploHost (+0xF0), RIP::clqScale (the scale curve as basic.h's CLQ, beside the qword and the three floats): RenderStuck, CreateStuck (a real RIP::Init); ReleaseRip a C++ function with real RIP::OnRemove and BASIC::HandleMessage; MATCH::Update's real LO::Add | sly2/rip.h | 14 | rip |
+
+Notes. LoadSubglobType0FromBrx keeps its store-then-advance word append as a local helper (`AddDmaIntStore`):
+vifs.h's AddDmaInt advances first, which reorders 66% of the function; named apart because ADL finds vifs.h's for a
+VIFS argument (the same ADL made the namespace's memset copy ambiguous: removed). The shader colour is read as
+SHDRGBA (shd.h stays self-contained). CreateStuck reads the group's emit scale through the file's RIPGV (RIPG is
+padding in classes.h) and adds to the position's z through a float view of the qword; Polynomial must take the CLQ's
+address (the target forms `&p->clqScale` once and loads through it).
+
+Inventory (inv.py): 60 -> 48; struct/class/union definitions in src/game .cpp/.inc: 6873 -> 6838; `git diff --stat`:
+287 insertions, 657 deletions.
+
+Kept, and why: LoadSubglobType0FromBrx's function-local records (SPECPARAMS, BATCHFILE, BATCHPART0/BATCHGRF/BATCHHDR0,
+BATCHREC/BATCHRECS, UVF, RGBA5551, UVLINK; no other user) and its SWALLOCC allocator wrappers (no shared allocator
+header); SAAVIRT/SAAFIELDS (SAA's fields are being added to sly2/classes.h by the AI family). WRBG/WEKI/WRBGBATCH, completed
+at glob.cpp file scope here, had the same layouts as the anim family's sly2/wr.h; at integration glob.cpp's copies
+were removed and it includes wr.h.
+rip.cpp: REMIT::Update's slot-51 call needs EXPL::ExplodeExplso(EXPLSO *) and classes.h's EXPLG/EXPLS overrides
+changed together (changing only emitter.h's would move the overrides to new slots); UpdateRip's slot 73 (so.h's
+IsPosInside has no parameters) and the touch object's +0xE8; BounceRipgRips' slot 9 and NewRipGroup's slots 7/11/15
+sit on RIPG views whose fields classes.h's RIPG does not have.
+
 ### Views unified (names/vu-f8-sound-ui): CRef, the sound types, the screens
 
 The sound / UI / Splice-value family. Every function and data symbol of every touched file and of every includer of

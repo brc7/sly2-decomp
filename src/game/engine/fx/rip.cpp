@@ -532,28 +532,22 @@ void AddRipRef(RIP *prip)
     prip->refCount++;
 }
 
-namespace M_ReleaseRip__FP3RIP { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
-struct N { LO *plo; int x4; struct N *pnNext; };
-struct S { int x0; int cRef; char p1[0xE8 - 0x8]; struct N *pn; struct VTE *vt; };
-void FreeSlotheapSlot(void *pool, void *pv);
 // Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes, free rip.
-void ReleaseRip__FP3RIP(struct S *p)
+void ReleaseRip(RIP *prip)
 {
-    struct N *pn, *pnNext;
-    if (--p->cRef == 0) {
-        ((void (*)(void *))p->vt[3].pf)((char *)p + p->vt[3].d);
-        for (pn = p->pn; pn; pn = pnNext) {
-            LO *plo = pn->plo;
-            plo->HandleMessage((MSGID)8, p);
-            pnNext = pn->pnNext;
-            FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
+    RIPSUB *psub, *psubNext;
+    if (--prip->refCount == 0) {
+        prip->OnRemove();
+        for (psub = prip->firstSubscription; psub; psub = psubNext) {
+            LO *plo = psub->plo;
+            plo->HandleMessage((MSGID)8, prip);
+            psubNext = psub->pnext;
+            FreeSlotheapSlot(&g_sw.slotheapRefnode, psub);
         }
-        p->pn = 0;
-        FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRip), p);
+        prip->firstSubscription = 0;
+        FreeSlotheapSlot(&g_sw.slotheapRip, prip);
     }
 }
-} } // namespace M_ReleaseRip__FP3RIP
 
 // If fTouching RemoveRip (default vt entry 7)
 void TouchRip(RIP *prip, int fRemove)
@@ -1551,63 +1545,27 @@ void RenderFlying(S *p)
 
 namespace M_CreateStuck {
 // Emit an oriented particle in the supplied parent space.
-typedef int qword __attribute__((mode(TI)));
 union U {
     qword q;
     float f[4];
 };
-struct M3 {qword r[3];};
-struct LO {
-    char pad158[0x158];
-    float height;
-};
-struct POLY {
-    float a, b, c;
-};
-struct EMIT {
-    char pad8[8];
-    LO *owner;
-    char padC[8];
-    float start, duration;
-    char pad1C[4];
-    POLY size;
-};
-struct O;
-struct VE {
-    short delta, pad;
-    void (*fn)(void *, qword, int, float);
-};
-struct O {
-    char pad18[0x18];
-    float duration;
-    LO *visual;
-    char pad20[8];
-    float spin;
-    char pad2C[0x14];
-    M3 matrix;
-    U position;
-    char pad80[0x10];
-    U velocity;
-    char padA0[0x4C];
-    VE *vt;
-    LO *space;
-};
+typedef RIPM3 M3;
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003DD490[]; }
 extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
 extern "C" {
-O *NewRipInGroup(void*,void*,void*);
+STUCK *NewRipInGroup(void*,void*,void*);
 qword TransformXfPos(void*,LO*,qword);
 float RandomFloatInRange__Fff(float,float);
 void GetNormalVectors(qword,qword,qword,qword*);
 M3 LoadRotateMatrixEuler(qword);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
-O *CreateStuck(EMIT*,LO*,LO*,qword,qword);
+STUCK *CreateStuck(FLYING*,LO*,LO*,qword,qword);
 }
 // Evaluate the quadratic a + b*t + c*t^2 at t.
-static inline float Polynomial(POLY *p, float t)
+static inline float Polynomial(CLQ *pclq, float t)
 {
-    return p->a + t * (p->b + t * p->c);
+    return pclq->g0 + t * (pclq->g1 + t * pclq->g2);
 }
 // Dot product of the xyz parts of a and b, returned as a float.
 static inline float Dot(qword a, qword b)
@@ -1652,22 +1610,22 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
             : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
 // Spawn a STUCK rip (NewRipInGroup) attached to the hit object at the contact point/orientation. (inferred)
-O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
+STUCK *CreateStuck(FLYING *p, LO *visual, LO *space, qword position, qword direction)
 {
-    O *object = 0;
+    STUCK *object = 0;
     if (visual) {
         object = NewRipInGroup(D_003DD490, (void *)10, 0);
         if (object) {
             float zero = 0.0f;
             U local;
             local.q = TransformXfPos(0, space, position);
-            float size = Polynomial(&p->size, (D_002DDED0.time - p->start) / p->duration);
+            float size = Polynomial(&p->clqScale, (D_002DDED0.time - p->startTime) / p->duration);
             size *= RandomFloatInRange__Fff(0.8f, 1.4f);
-            object->vt[1].fn((char *)object + object->vt[1].delta, local.q, 0, size);
-            object->visual = visual;
+            object->Init(local.q, size, 0);
+            object->renderObject = visual;
             object->duration = 5.0f;
-            object->spin = -size;
-            object->space = space;
+            object->scaleCurve = -size;
+            object->ploHost = space;
             M3 frame;
             frame.r[2] = direction;
             GetNormalVectors(direction, D_002A2DA0, D_002A2DB0, frame.r);
@@ -1679,7 +1637,7 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
             rotation = LoadRotateMatrixEuler(angles.q);
             {
                 M3 orient = Mul(frame, rotation);
-                object->matrix = orient;
+                object->orientation = orient;
             }
             qword *up = &D_002A2DC0;
             if (__builtin_fabsf(Dot(direction, *up)) < 0.7f) {
@@ -1689,9 +1647,9 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
                 M3 tilt;
                 tilt = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(flat.q, direction);
                 U home;
-                object->velocity.q = Transform(tilt, Scale(*up, -50.0f, home));
+                object->velocity = Transform(tilt, Scale(*up, -50.0f, home));
             }
-            object->position.f[2] += p->owner->height;
+            ((float *)&object->currentPosition)[2] += ((RIPGV *)p->ripGroup)->emitScale;
         }
     }
     return object;
@@ -1729,21 +1687,19 @@ void STUCK::Update()   /* key function: STUCK's vtable comes out here */
 
 namespace M_RenderStuck {
 typedef int qword __attribute__((mode(TI)));
-struct M { qword a, b, c; };
-struct S { char pad[0x40]; M orientation; qword position; char pad2[0xF0 - 0x80]; void *host; };   /* STUCK: position / orientation in its host's space */
 extern "C" {
-qword TransformXfPos(void *p, int n, qword q);
-M ConvertXfMat(void *p, int n, M *pm);
-int RenderRipAtPose(S *p, qword q, M m);
-void RenderStuck(S *p);
+qword TransformXfPos(LO *plo, int n, qword q);
+RIPM3 ConvertXfMat(LO *plo, int n, RIPM3 *pm);
+int RenderRipAtPose(RIP *prip, qword q, RIPM3 m);
+void RenderStuck(STUCK *pstuck);
 }
 // STUCK Render: its position and orientation taken from the host object's space to world, then rendered.
-void RenderStuck(S *p)
+void RenderStuck(STUCK *pstuck)
 {
-    qword q = TransformXfPos(p->host, 0, p->position);
-    M m;
-    m = ConvertXfMat(p->host, 0, &p->orientation);
-    RenderRipAtPose(p, q, m);
+    qword q = TransformXfPos(pstuck->ploHost, 0, pstuck->currentPosition);
+    RIPM3 m;
+    m = ConvertXfMat(pstuck->ploHost, 0, &pstuck->orientation);
+    RenderRipAtPose(pstuck, q, m);
 }
 } // namespace M_RenderStuck
 
@@ -2069,21 +2025,17 @@ void ProjectMatchTransform(S *p)
 #undef OFF
 
 namespace M_UpdateMatch { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; };
 extern CLOCK D_002DDED0;
 void LaunchMatch__FP5MATCH(MATCH *p);
 } } // namespace M_UpdateMatch
 // MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
-// render object (vtable slot 8) and removes itself.
-void MATCH::Update()   /* key function (the namespace's views) */
+// render object (LO::Add, vtable slot 8) and removes itself.
+void MATCH::Update()   /* key function (the namespace's declarations) */
 {
     using namespace M_UpdateMatch;
     if (D_002DDED0.time >= startTime && shouldLaunch) LaunchMatch__FP5MATCH(this);
     if (D_002DDED0.time - startTime > duration) {
-        struct O *po = (struct O *)renderObject;   /* its vtable slot 8 by hand */
-        struct VTE *e = &po->vt[8];
-        ((void (*)(void *))e->pfn)((char *)po + e->d);
+        renderObject->Add();
         RemoveRip(this);
     }
 }

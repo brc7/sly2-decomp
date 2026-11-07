@@ -16,7 +16,9 @@
 #include "sly2/xfm.h"
 #include "sly2/so.h"
 #include "sly2/glob.h"
+#include "sly2/wr.h"
 #include "sly2/render.h"
+#include "sly2/shd.h"
 #include "sly2/light.h"
 #include "sly2/cm.h"
 #include "vifs.h"
@@ -90,6 +92,7 @@ public:
     int S32Read();
     float F32Read();
     void ReadVector(VECTOR *pvec);
+    void ReadMatrix4(MATRIX4 *pmat);
 };
 
 struct BND
@@ -1832,40 +1835,64 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 }
 } // namespace M_BuildModelDrawPackets
 
-struct SORTREC { int fileVertex; int firstBatch; int firstVertex; int batch; int vertex; };
-// qsort comparator for the 0x14-byte vertex records (LoadSubglobType0FromBrx's VERTREC), grouping vertices by batch:
-// by the first batch (+4, a pointer compared in 0x40 units), the first vertex, the batch (+0xC, likewise), then the
-// vertex.
-extern "C" int CompareSortRecs(SORTREC *prec0, SORTREC *prec1)
+// BATCH: one draw batch of a type-0 sub-glob (0x40), built by LoadSubglobType0FromBrx; VERTREC: its 0x14-byte vertex
+// sort record (CompareSortRecs orders them by batch and vertex).
+struct BATCH
 {
-    int d = (prec0->firstBatch - prec1->firstBatch) >> 6;
+      int cvtx;
+      SHD *pshd;
+      int grf;
+      SAA *psaa;
+      int ivtxOwn;
+      int *aivtx;
+      void *pvPos;
+      void *pvUv;
+      void *pvUvLink;
+      int obColorA;
+      int obColorB;
+      uchar *pbAlpha;
+      int obAlpha;
+      uchar *pbRgb;
+      uchar *pbNorm;
+      uchar *pbWeights;
+};
+struct VERTREC
+{
+      int ivtxFile;
+      BATCH *pbatchFirst;
+      int ivtxFirst;
+      BATCH *pbatch;
+      int ivtx;
+};
+// qsort comparator for the vertex records, grouping vertices by batch: by the first batch, the first vertex, the batch,
+// then the vertex.
+extern "C" int CompareSortRecs(VERTREC *prec0, VERTREC *prec1)
+{
+    int d = prec0->pbatchFirst - prec1->pbatchFirst;
     if (d != 0)
         return d;
-    d = prec0->firstVertex - prec1->firstVertex;
+    d = prec0->ivtxFirst - prec1->ivtxFirst;
     if (d != 0)
         return d;
-    d = (prec0->batch - prec1->batch) >> 6;
+    d = prec0->pbatch - prec1->pbatch;
     if (d != 0)
         return d;
-    return prec0->vertex - prec1->vertex;
+    return prec0->ivtx - prec1->ivtx;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobInstancesFromBrx { extern "C" {
-struct A { int a[5]; };
-struct B { int a[10]; };
-struct C { int a[6]; };
-void LoadSubglobInstanceFromBrx(void *p, struct A *pa0, struct B *pb0, struct C *pc0, struct A *pa, struct B *pb, struct C *pc, int x, int y, int z, int w);
+void LoadSubglobInstanceFromBrx(GLOBSET *pglobset, SUBGLOB *psubglobBase, GLOB *pglobBase, SUBGLOBX *psubglobxBase, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis);
 // For each extra instance slot of a sub-glob, copies the base descriptor and reads the instance record (0x169AC8)
 // (inferred)
-void LoadSubglobInstancesFromBrx(void *p, struct A *aa, struct B *ab, struct C *ac, int c, int x, int y, int z, int w)
+void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *asubglob, GLOB *aglob, SUBGLOBX *asubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis)
 {
     int i;
-    for (i = 0; i < c; i++) {
-        struct A *pa = &aa[i + 1];
-        struct B *pb = &ab[i + 1];
-        struct C *pcw = ac ? ac + i + 1 : 0;
-        LoadSubglobInstanceFromBrx(p, aa, ab, ac, pa, pb, pcw, x, y, z, w);
+    for (i = 0; i < cSubExtra; i++) {
+        SUBGLOB *psubglob = &asubglob[i + 1];
+        GLOB *pglob = &aglob[i + 1];
+        SUBGLOBX *psubglobx = asubglobx ? asubglobx + i + 1 : 0;
+        LoadSubglobInstanceFromBrx(pglobset, asubglob, aglob, asubglobx, psubglob, pglob, psubglobx, cbatch, acbatch, apbatch, pbis);
     }
 }
 } } // namespace M_LoadSubglobInstancesFromBrx
@@ -2118,6 +2145,7 @@ void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int f
 } } // namespace M_CopyRelocateDmaChain
 
 // Keeps its per-function views in a namespace of its own (see the file header).
+
 namespace M_LoadSubglobType0FromBrx {
 // LoadSubglobType0FromBrx = LoadSubglobType0FromBrx (name from Lilly's personal decomp, decomp/src/P2/glob.c T1082 draft). MATCH (T1701).
 // Built on lilly4 (T1697) / lilly3 (T1693); see notes/160000.md for the tricks that matched it, the last ones being:
@@ -2125,293 +2153,17 @@ namespace M_LoadSubglobType0FromBrx {
 //    switch: the clear-then-set keeps loop.c from hoisting the constant with the other 1s;
 //  - the lit-batch count is Min(0x27, cvtx - iofs) through an inline Min (no REG_EQUAL on n's first set);
 //  - ppart->iqwVtx is re-read for iqwEnd/iqwOwn; pg[0] = pg[1] = pg[2] = -1.0f.
-typedef unsigned  size_t;
-typedef unsigned char    uint8_t;
-typedef unsigned short   uint16_t;
-typedef unsigned int     uint32_t;
-typedef unsigned long    uint64_t;
-typedef uint8_t     uchar;
-typedef uint16_t    ushort;
-typedef uint32_t    uint;
-typedef uint64_t    ulong;
-typedef uchar   undefined1;
-typedef uint    undefined4;
-typedef unsigned long long qword __attribute__((mode(TI)));
-typedef uchar byte;
-enum CID
-{
-};
-struct LO;
-struct SO;
-struct SAA;
-struct RGBA {
-    uchar red;
-    uchar green;
-    uchar blue;
-    uchar alpha;
-    // Set the color from a packed 0xRRGGBBAA word.
-    inline void operator=(const int rgba)
-    {
-        red = (rgba >> 24) & 0xFF;
-        green = (rgba >> 16) & 0xFF;
-        blue = (rgba >> 8) & 0xFF;
-        alpha = rgba & 0xFF;
-    }
-};
-struct VECTOR
-{
-    float x, y, z;
-};
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-union QW
-{
-    VECTOR vec;
-    VECTOR4 vec4;
-    ulong ull;
-    ulong aul[2];
-    uint aun[4];
-    ushort aus[8];
-    uchar ab[16];
-    long ll;
-    long al[2];
-    int an[4];
-    short as[8];
-    float ag[4];
-};
-class DMAS
-{
-public:
-      uchar* m_pbMax;
-      uchar* m_ab;
-      QW* m_pqwCnt;
-      uchar* m_pb;
-      int m_fPad;
-      int m_fEndPrim;
-    void AllocStack(int cqw) __asm__("AllocSw__4DMASi");
-    void DetachCopySw(int *pcqw, QW **paqw, QW **paqwCopy) __asm__("DetachCopySw__4DMASPiPP2QWT2");
-    void AddDmaCnt() __asm__("AddDmaCnt__4DMAS");
-    void AddDmaRefs(int cqw, QW *aqw) __asm__("AddDmaRefs__4DMASiP2QW");
-    void AddDmaRet() __asm__("AddDmaRet__4DMAS");
-    void EndDmaCnt() __asm__("EndDmaCnt__4DMAS");
-    virtual void EndPrim(int fEOP);
-};
+/* the word-append helper as this function was matched with: store, then advance (vifs.h's AddDmaInt advances first,
+   which reorders the code here; named apart: ADL would find both) */
 // Append one int to the DMA packet.
-inline void AddDmaInt(DMAS *pdmas, int val)
+inline void AddDmaIntStore(DMAS *pdmas, int val)
 {
     *(int *)pdmas->m_pb = val;
     pdmas->m_pb += 4;
 }
-enum UPK
-{
-    UPK_S16 = 1,
-    UPK_S8 = 2,
-    UPK_V3_32 = 8,
-    UPK_V4_32 = 12,
-    UPK_V4_8 = 14,
-    UPK_V4_5 = 15,
-};
-class VIFS : public DMAS
-{
-public:
-      uint m_unMask;
-      int m_fCheckCnt;
-    VIFS() __asm__("__4VIFS");
-    void Align(int iun) __asm__("Align__4VIFSi");
-    void AddVifMscal(void *pv) __asm__("AddVifMscal__4VIFSPv");
-    void AddVifStcycl(int wl, int cl) __asm__("AddVifStcycl__4VIFSii");
-    void AddVifStrow(QW *pqw) __asm__("AddVifStrow__4VIFSP2QW");
-    void AddVifStmask(uint unMask) __asm__("AddVifStmask__4VIFSUi");
-    void UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun) __asm__("UnpackHelper__4VIFS3UPKiiPiPPUi");
-    void AddVifUnpack(UPK upk, int c, void *pvSrc, int iqw) __asm__("AddVifUnpack__4VIFS3UPKiPvi");
-};
-struct BMP;
-struct CLUT;
-enum OID
-{
-};
-extern "C" {
-void* memset(void* ptr, int value, size_t num);
-}
-struct MATRIX4
-{
-	float mat[4][4];
-} __attribute__((aligned(16)));
-struct SL
-{
-    void *head;
-    void *tail;
-    int linkOffset;
-};
 void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
-struct BASIC;
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-struct XF;
-class CBinaryStreamBase
-{
-public:
-    int m_grfbis;
-    byte *m_pb;
-    int m_cb;
-    int m_ibStream;
-    byte *m_pbRaw;
-    int m_cbRaw;
-    int m_grfDecomp;
-    int m_cbSpillOver;
-    int m_unk20;
-    byte *m_abWindow;
-    int m_unk28;
-    int m_unk2c;
-};
-class CBinaryInputStream : public CBinaryStreamBase
-{
-public:
-    int m_cbSpool;
-    byte *m_abSpool;
-    int m_fd;
-    int m_cbDone;
-    int m_cbRequest;
-    int m_cbRemaining;
-    int m_cbRetry;
-    int m_isector;
-    int m_cbuf;
-    int m_cbufFill;
-    int m_icbufRead;
-    int m_icbufWrite;
-    void Read(int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
-    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
-    char S8Read() __asm__("S8Read__18CBinaryInputStream");
-    short S16Read() __asm__("S16Read__18CBinaryInputStream");
-    int S32Read() __asm__("S32Read__18CBinaryInputStream");
-    float F32Read() __asm__("F32Read__18CBinaryInputStream");
-    void ReadVector(VECTOR *pvec) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
-    void ReadMatrix4(MATRIX4 *pmat) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
-};
-typedef struct SHD;
-typedef struct SHDP;
-struct TEXF
-{
-    ushort OID;
-    short grdtex;
-    uchar cibmp;
-    uchar ciclut;
-};
-struct TEX : public TEXF
-{
-    ushort numFrames;          /* +0x06 (low byte: shd.cpp reads the frame count there) */
-    SHD *pshd;
-    BMP **apbmp;
-    CLUT **apclut;
-};
-struct SHDF
-{
-      int oid;
-      uchar shdk;
-      uchar grfshd;
-      uchar unknown06;
-      uchar unknown07;
-      RGBA rgba;
-      RGBA rgbaVolume;
-      RGBA rgba2;
-      ushort OidAltSat;
-      uchar rp;
-      uchar ctex;
-};
-struct SHD : public SHDF
-{
-    TEX *atex;
-    int cshdp;
-    SHDP *ashdp;
-    int cframe;
-    SAA *psaa;
-};
-struct WRBG;
-struct BND
-{
-      OID oid;
-      LO *plo;
-      int ixf;
-      XF *pxf;
-      MATRIX4 matInv;
-};
-struct GLOB
-{
-      OID oid;
-      XF *transform;
-      MATRIX4 *unknown08;
-      union
-    {
-        uint grf;
-        struct
-        {
-            uint grfglobType : 3;
-            uint unknownBits0CA : 5;
-            uint unknownBits0CB : 2;
-            uint fLimit : 1;
-            uint isHidden : 1;
-            uint fBakedMat : 1;
-            uint iUnkFirst : 9;
-            uint iUnkEnd : 9;
-            uint unknownFlag0CA : 1;
-        };
-    };
-      void *unknown10;
-      void *unknown14;
-      BND *abnd;
-      WRBG *pwrbg;
-      struct SAA *psaa;
-      struct POSE *ppose;
-};
-struct SUBGLOB
-{
-      char unknown00;
-      char cbnd;
-      int unknown02 : 8;
-      char type;
-      float unknown04;
-      void *pvLit;
-      int iqwBone;
-      int cqw;
-};
-struct POSE
-{
-      VECTOR pos;
-      float radius;           /* +0x0C (LoadPoseSetsFromBrx: position, radius, then the bitfield word) */
-      float limit;            /* +0x10 */
-      long nKind : 4;
-    ulong count : 8;
-    ulong channel : 6;
-    ulong isHidden : 1;
-    long iglob : 13;
-      void *link;
-      undefined4 pad1C;
-};
-struct POSESET
-{
-    POSE apose[4];
-};
-struct BATCH
-{
-      int cvtx;
-      SHD *pshd;
-      int grf;
-      SAA *psaa;
-      int ivtxOwn;
-      int *aivtx;
-      void *pvPos;
-      void *pvUv;
-      void *pvUvLink;
-      int obColorA;
-      int obColorB;
-      uchar *pbAlpha;
-      int obAlpha;
-      uchar *pbRgb;
-      uchar *pbNorm;
-      uchar *pbWeights;
-};
 struct SPECPARAMS
 {
     float unknown00[3];     /* [1] read as /127, [2] as *6.2e-5 */
@@ -2462,21 +2214,6 @@ struct BATCHHDR0
       ushort aiqwBone[4];
       BATCHPART0 apart[2];
 };
-struct VERTREC
-{
-      int ivtxFile;
-      BATCH *pbatchFirst;
-      int ivtxFirst;
-      BATCH *pbatch;
-      int ivtx;
-};
-struct WRBGBATCH
-{
-    int cvtx;
-    void *pvPos;
-    void *apvWarp[4];
-    WRBGBATCH *pwrbgbatchNext;
-};
 struct BATCHREC
 {
     int cvtx;
@@ -2494,82 +2231,6 @@ struct BATCHRECS
     int cbatch;
     BATCHREC *abatchrec;
     BATCHRECS *pbatchrecsNext;
-};
-struct CLUTCOLOR
-{
-    ushort ucA;
-    ushort ucB;
-    uchar bAlpha;
-};
-struct CLUTPAL
-{
-    int unknown00;
-    CLUTCOLOR *acolor;
-};
-struct CLUTSET
-{
-    int cpal;
-    CLUTPAL *apal;
-    int *aipal;
-};
-struct GLOBSET
-{
-      SO *owner;
-      float unknown04;
-      undefined4 unknown08[2];
-      VECTOR boundsCenter;
-      undefined4 unknown1C;
-      float boundsRadius;
-      int cpsaa;
-      SAA **apsaa;
-      int unknown2C;
-      int *unknown30;
-      int unknown34;
-      int numPieces;
-      SUBGLOB *subMeshes;
-      GLOB *pieces;
-      SUBGLOBX *asubglobx;
-      POSESET *aposeset;
-      int unknown4C;
-      union
-    {
-        float unknown50;
-        struct
-        {
-            ulong unknownBits50A : 32;
-            ulong unknownBoundsFlag50 : 1;
-            ulong unknownBoundsFlag50B : 1;
-            ulong ignoreLocked : 1;
-            ulong unknownBits50B : 29;
-        };
-    };
-      WRBG *pwrbgFirst;
-      void *pbatchrecsFirst;
-};
-struct ACT;
-struct XF
-{
-      MATRIX4 localMatrix;
-      MATRIX4 worldMatrix;
-      float segmentStartTime;
-      float segmentEndTime;
-      float *timeSource;
-      float *speedSource;
-      ACT *firstActuator;
-      int kind;
-      short role;
-      short phase;
-      OID oid;
-      XF *parent;
-      int worldStamp;
-      XF *reference;
-      short stiffness;
-      short damping;
-      VECTOR4 velocity;
-      qword restValue;
-      qword rate;
-      qword unknownE0;
-      qword acceleration;
 };
 void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 struct SWALLOCC
@@ -2590,37 +2251,6 @@ extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPv
 struct UVF
 {
     float u, v;
-};
-struct WR;
-enum WEK
-{
-};
-struct WEKI
-{
-    WEK wek;
-    float sInner;
-    float uInner;
-    float sOuter;
-    float uOuter;
-    undefined1 unknown[12];
-    MATRIX4 dmat;
-};
-struct WRBG
-{
-    SO *pso;
-    GLOB *pglob;
-    OID oid;
-    WR *pwr;
-    int cmat;
-    int fDpos;
-    int fDuv;
-    ushort grf;
-    int iqw;
-    undefined1 unknown[12];
-    WEKI weki;
-    SL slBatch;
-    WRBG *pwrbgNextGlobset;
-    WRBG *pwrbgNextWr;
 };
 extern "C" { extern char D_00000000[]; }
 extern "C" {
@@ -2762,7 +2392,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     STACKSCOPE scopeOuter;
     VIFS vifs;
     VIFS vifsAux;
-    vifs.AllocStack(0x2000);
+    vifs.AllocSw(0x2000);
     QW *pqwChain = (QW *)vifs.m_pb;
     pglob->iUnkFirst = D_003DA790;
     if (psubglob->unknown02 & 1)
@@ -2772,7 +2402,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     }
     else
     {
-        vifsAux.AllocStack(0x800);
+        vifsAux.AllocSw(0x800);
         if (IsBasicDerivedFrom((BASIC *)pglobset->owner, (CID)0x31) && !(psubglob->unknown02 & 4) && (uchar)(psubglob->unknown00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
             psubglob->unknown04 == D_002A52A0 && g_sw.unknown3E40 == 0)
         {
@@ -2858,7 +2488,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     VIFS vifsLit;
     if (!(psubglob->unknown02 & 1))
     {
-        vifsLit.AllocStack(0x2000);
+        vifsLit.AllocSw(0x2000);
         vifsLit.AddDmaCnt();
     }
     int *acbatch = (int *)AllocClearedFromStack16(cbatch * 4);
@@ -3082,7 +2712,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             BATCH *pbatch = &abatch[ib];
             BATCHPART0 *ppart = &phdr->apart[ib];
             ppart->cvtxFlag = pbatch->cvtx | 0x8000;
-            ppart->oidAltSat = pbatch->pshd->OidAltSat;
+            ppart->oidAltSat = pbatch->pshd->oidAltSat;
             ppart->cframe = pbatch->pshd->cframe;
             for (int ishdp = 0; ishdp < 3; ishdp++)
             {
@@ -3247,13 +2877,13 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     for (int iv = 0; iv < pbatch->cvtx; iv++)
                     {
                         RGBA rgbaA = argbaFile[pbVtxCur[iv]];
-                        RGBA rgbaB = pbatch->pshd->rgba;
-                        uchar a = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                        SHDRGBA rgbaB = pbatch->pshd->rgba;
+                        uchar a = (rgbaA.alpha * rgbaB.a + 0xff) / 0x1fe;
                         RGBA5551 *pc = pcol++;
                         RGBA5551 col;
-                        col.g = (uchar)((rgbaA.green * rgbaB.green + 0xff) / 256) >> 3;
-                        col.r = (uchar)((rgbaA.red * rgbaB.red + 0xff) / 256) >> 3;
-                        col.b = (uchar)((rgbaA.blue * rgbaB.blue + 0xff) / 256) >> 3;
+                        col.g = (uchar)((rgbaA.green * rgbaB.g + 0xff) / 256) >> 3;
+                        col.r = (uchar)((rgbaA.red * rgbaB.r + 0xff) / 256) >> 3;
+                        col.b = (uchar)((rgbaA.blue * rgbaB.b + 0xff) / 256) >> 3;
                         col.a = a >> 7;
                         *pc = col;
                         if (pbAlpha != 0)
@@ -3284,7 +2914,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                             else
                                 pun[8] = 0;
                             pun[9] = pbatch->obAlpha + iofs;
-                            *(float *)&pun[7] = (float)pbatch->pshd->OidAltSat * 0.000244140625f;
+                            *(float *)&pun[7] = (float)pbatch->pshd->oidAltSat * 0.000244140625f;
                             apvLit[nLit] = pun;
                             nLit++;
                             vifsLit.AddVifStcycl(1, 3);
@@ -3302,16 +2932,16 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                                     *pvNorm++ = anormFile[ivtxFile];
                                     *pvPos++ = aposFile[ivtxFile];
                                     RGBA rgba = argbaFile[ivtxFile];
-                                    RGBA rgbaB = pbatch->pshd->rgba;
-                                    rgba.red = (rgba.red * rgbaB.red + 0xff) / 256;
-                                    rgba.green = (rgba.green * rgbaB.green + 0xff) / 256;
-                                    rgba.blue = (rgba.blue * rgbaB.blue + 0xff) / 256;
-                                    rgba.alpha = (rgba.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                                    SHDRGBA rgbaB = pbatch->pshd->rgba;
+                                    rgba.red = (rgba.red * rgbaB.r + 0xff) / 256;
+                                    rgba.green = (rgba.green * rgbaB.g + 0xff) / 256;
+                                    rgba.blue = (rgba.blue * rgbaB.b + 0xff) / 256;
+                                    rgba.alpha = (rgba.alpha * rgbaB.a + 0xff) / 0x1fe;
                                     *prgbaCol++ = rgba;
                                 }
                             }
                             vifsLit.AddVifMscal(D_00000000 + 0x10);
-                            AddDmaInt(&vifsLit, 0x90000000);
+                            AddDmaIntStore(&vifsLit, 0x90000000);
                         }
                     }
                 }
@@ -3359,8 +2989,8 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     if (pbatch->pbAlpha != 0)
                     {
                         RGBA rgbaA = argbaFile[ivtxFile];
-                        RGBA rgbaB = pbatch->pshd->rgba;
-                        pbatch->pbAlpha[iv] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                        SHDRGBA rgbaB = pbatch->pshd->rgba;
+                        pbatch->pbAlpha[iv] = (rgbaA.alpha * rgbaB.a + 0xff) / 0x1fe;
                     }
                 }
             }
@@ -3486,12 +3116,12 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 }
                 if (pbatchFirst->pbRgb != 0)
                 {
-                    RGBA rgbaB = pbatchFirst->pshd->rgba;
+                    SHDRGBA rgbaB = pbatchFirst->pshd->rgba;
                     uchar *pbC = pbatchFirst->pbRgb + (ivtxFirst - pbatchFirst->ivtxOwn) * 4;
-                    pbC[0] = (rgbaA.red * rgbaB.red + 0xff) / 512;
-                    pbC[1] = (rgbaA.green * rgbaB.green + 0xff) / 512;
-                    pbC[2] = (rgbaA.blue * rgbaB.blue + 0xff) / 512;
-                    pbC[3] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
+                    pbC[0] = (rgbaA.red * rgbaB.r + 0xff) / 512;
+                    pbC[1] = (rgbaA.green * rgbaB.g + 0xff) / 512;
+                    pbC[2] = (rgbaA.blue * rgbaB.b + 0xff) / 512;
+                    pbC[3] = (rgbaA.alpha * rgbaB.a + 0xff) / 0x1fe;
                 }
                 if (psubglob->cbnd != 0)
                 {
@@ -3593,11 +3223,8 @@ public:
     int U16Read() __asm__("U16Read__18CBinaryInputStream");
     int S16Read() __asm__("S16Read__18CBinaryInputStream");
 };
-struct E6 { short a; short b; char c; char pad; };
-struct E8 { int c; E6 *a; };
-struct T { int c; E8 *a; int *ai; };
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" void ColorCorrectRgba16(short *ps);
+extern "C" void ColorCorrectRgba16(ushort *pus);
 // Fill the request and allocate cb zeroed bytes of kind nKind from the frame stack.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
@@ -3605,34 +3232,34 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
     preq->nKind = nKind;
     return AllocClearedFromStack(preq);
 }
-// Reads a u16-counted table of vertex-binding groups (u16/u16/u8 records) and fixes up indices (0x1ED1A8) (inferred)
-extern "C" T *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
+// Reads a sub-glob's CLUTSET (sly2/glob.h): u16-counted palettes of u16/u16/u8 colours, then the per-batch palette indices (0x1ED1A8)
+extern "C" CLUTSET *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
 {
-    T *pt = 0;
+    CLUTSET *pt = 0;
     int c = pbis->U16Read();
     if (c) {
         ALLOCREQ req;
-        pt = (T *)PvAllocReq(&req, sizeof(T), 0x10);
-        pt->c = c;
-        pt->a = (E8 *)PvAllocReq(&req, c * sizeof(E8), 0x10);
-        for (int i = 0; i < pt->c; i++) {
-            E8 *pe = &pt->a[i];
+        pt = (CLUTSET *)PvAllocReq(&req, sizeof(CLUTSET), 0x10);
+        pt->cpal = c;
+        pt->apal = (CLUTPAL *)PvAllocReq(&req, c * sizeof(CLUTPAL), 0x10);
+        for (int i = 0; i < pt->cpal; i++) {
+            CLUTPAL *pe = &pt->apal[i];
             int n = pbis->U16Read();
-            pe->a = (E6 *)PvAllocReq(&req, n * sizeof(E6), 0x10);
+            pe->acolor = (CLUTCOLOR *)PvAllocReq(&req, n * sizeof(CLUTCOLOR), 0x10);
             for (int j = 0; j < n; j++) {
-                E6 *p6 = &pe->a[j];
-                short *pb = &p6->b;
-                p6->a = pbis->U16Read();
-                p6->b = pbis->U16Read();
-                p6->c = pbis->U8Read();
-                ColorCorrectRgba16(&p6->a);
+                CLUTCOLOR *p6 = &pe->acolor[j];
+                ushort *pb = &p6->ucB;
+                p6->ucA = pbis->U16Read();
+                p6->ucB = pbis->U16Read();
+                p6->bAlpha = pbis->U8Read();
+                ColorCorrectRgba16(&p6->ucA);
                 ColorCorrectRgba16(pb);
             }
         }
         int m = pbis->U16Read();
-        pt->ai = (int *)PvAllocReq(&req, m * 4, 0x10);
+        pt->aipal = (int *)PvAllocReq(&req, m * 4, 0x10);
         for (int k = 0; k < m; k++)
-            pt->ai[k] = pbis->S16Read();
+            pt->aipal[k] = pbis->S16Read();
     }
     return pt;
 }
