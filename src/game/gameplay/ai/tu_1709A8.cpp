@@ -84,9 +84,8 @@ struct SSGE
     SSGE *previous;
 };
 /* The guard script object (an LO): its commands from +0x50. */
-struct SSG
+struct SSG : LO
 {
-    char pad0[0x50];
     DL commands;              /* +0x50 */
 };
 /* Behaviour vtable entries (g++ 2.95 {delta, pfn}). */
@@ -165,7 +164,7 @@ namespace M_func_00170A58 { extern "C" {
 struct G;
 extern struct G D_003DD490;
 struct N { int kind; int id; char pad[0x10]; struct N *next; };
-struct S { char pad[0x50]; struct N *head; };
+struct S : LO { struct N *head; };
 struct S *FindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, struct S *context);
 int GetShapeMoveKind(struct S *object);
 void EnsureShapeVolumeSegments(struct S *shape);
@@ -332,7 +331,7 @@ namespace M_func_00170E90 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct N{int kind,tag;qword*position;char padC[0xC];struct N*next;};
-struct P{char pad[0x50];struct N*head;};
+struct P : LO { struct N*head;};
 struct CHOICE{struct N*node;struct P*object;float value;};
 extern char D_003DD490[];
 extern const float D_002A52B0;   /* defined below where the ELF has it (.rodata order) */
