@@ -764,62 +764,31 @@ extern "C" int IsBhvcombatDone(BHVCOMBAT *behavior)
 
 // 0x175820 FilterAttackLineOfSightHit
 namespace M_func_00175820 { extern "C" {
-struct U; struct O; struct Y; struct X;
-struct U { char pad[0x70]; unsigned long unknownFlags70; };
+struct U; struct O; struct Y;
+struct U { char pad[0x70]; unsigned long unknownFlags70; };   /* the hit object's SOTREE (so.h names it to +0x6C) */
 struct O { char pad[0xEC]; struct U *unknownEC; };
 struct Y { int pad; struct O *hitObject; int pad2[2]; unsigned long hitFlags; };
-struct X { char pad[0x74]; int filter; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 // 0x175820: Line-test filter for attack checks: ignores non-blocking hits, cid 0x62 objects (when the attack asks)
 // and any step.
-int FilterAttackLineOfSightHit(struct X *x, struct Y *p) {
+int FilterAttackLineOfSightHit(CID120 *x, struct Y *p) {
     if (p->hitFlags & (1UL << 48)) return 0;
     if (p->hitObject->unknownEC->unknownFlags70 & 4) return 0;
-    if (x->filter && IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
+    if (x->ignoresClass98 && IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
     return !IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_STEP);
 }
 } } // namespace M_func_00175820
 
 // 0x1758A0 ChooseStepguardAttack
 namespace M_PentryChooseStepguardAttack {
-union U; struct M4; struct VTE; struct NAME; struct SCALE; struct ENTRY; struct P; struct LSG; struct LOS; struct POLY; struct BASIC;
+union U; struct SCALE; struct LSG; struct LOS; struct POLY; struct BASIC;
 // ChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
 // FRAME with out-of-line ctor/dtor (STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2)), CRef(bool) with inline dtor
 // (Decref), and `void *argument = (char *)entry + 0x18;` declared after the CRef.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
-struct M4 { U row[4]; };
-struct VTE { short delta, pad; void *fn; };
-struct NAME { unsigned identity; };
-struct SCALE { char pad[0x20]; float value; };
-struct ENTRY {
-    char pad0[0x50];
-    LM distance, height;
-    char pad60[8];
-    float angle, minHit;
-    int lineOfSight, filter, response;
-    char pad7C[0x2C];
-    int enabled;
-};
-struct P {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0x18];
-    unsigned long flags;
-    char pad30[0xC];
-    NAME *name;
-    char pad40[0xE9C];
-    ENTRY *entries[8];
-    int count;
-    ENTRY *current;
-    float cooldown;
-    char padF08[0xB4];
-    int mode;
-    char padFC0[4];
-    SCALE *scale;
-};
+struct SCALE { char pad[0x20]; float value; };   /* STEPGUARD::scale's record */
 struct LSG { U point; char rest[0x50]; };
 struct LOS { U start, end; LSG hit; };
 extern "C" void Decref__4CRef(void *);
@@ -834,18 +803,15 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern POLY D_002BE600;
 extern LM D_002BBB60;
-extern char D_003DD490[];
-int IsBasicDerivedFrom__FP5BASIC3CID(P *, int);
-int DoesTargetRecordAllowGuard(void *, P *);
-qword GetLoWorldPos(P *);
+int DoesTargetRecordAllowGuard(void *, STEPGUARD *);
 unsigned GetSourceIndexFromProxyId__Fi(unsigned);
 int IsWithinLimits__FP2LMf(LM *, float);
-qword ConvertPosBetweenLos(P *, P *, qword);
+qword ConvertPosBetweenLos(LO *, LO *, qword);
 float atan2f(float, float);
 int FilterAttackLineOfSightHit(void *, void *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
 int FindFirstObjectHitByLine(int, qword, qword, int, void **, LSG *);
-void SetStepguardAttack(P *, ENTRY *, void *, qword);
+void SetStepguardAttack(STEPGUARD *, CID120 *, XF *, qword);
 void SetTargetRecordState(void *, int);
 }
 // VU0 helper: vector difference.
@@ -881,26 +847,25 @@ static inline int Blocked(LOS *line, float limit)
 
 // 0x1758A0: Picks the first enabled attack whose range, height, angle and line of sight accept the target, confirms
 // it with Splice event 0x18, starts it and marks the target record as attacked. Returns the attack, or NULL.
-extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
+extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gate)
 {
     qword from, to;
     float height, distance;
     int i;
 
-    if (guard->current)
+    if (guard->currentAttack)
         return 0;
     if (!target)
         return 0;
     {
-        int enabled = (int)(target->flags >> 60) & 1;
+        int enabled = (int)(*(unsigned long *)((char *)target + 0x28) >> 60) & 1;   /* LO's flag word, bit 60 */
         if (!enabled)
             return 0;
     }
-    if (D_002DDED0.time < guard->cooldown)
+    if (D_002DDED0.time < guard->nextAttackTime)
         return 0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO)) {
-        VTE *e = &target->vt[77];
-        if (((int (*)(void *))e->fn)((char *)target + e->delta))
+    if (IsBasicDerivedFrom(target, (CID)CID_PO)) {
+        if (((PO *)target)->GetHealthState())
             return 0;
     }
     if (gate && !DoesTargetRecordAllowGuard(gate, guard))
@@ -912,17 +877,17 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
         distance = VectorLengthXY(d);
         height = QwordZ(d);
     }
-    if (GetSourceIndexFromProxyId__Fi(target->name->identity) == GetSourceIndexFromProxyId__Fi(guard->name->identity))
+    if (GetSourceIndexFromProxyId__Fi(target->proxyRecord->proxyId) == GetSourceIndexFromProxyId__Fi(guard->proxyRecord->proxyId))
         distance += ((unsigned)target < (unsigned)guard) ? 75.0f : -75.0f;
-    if ((guard->mode == 8 || guard->mode == 13) && guard->scale) {
-        float s = guard->scale->value;
+    if ((guard->specialState == 8 || guard->specialState == 13) && guard->scale) {
+        float s = ((SCALE *)guard->scale)->value;
         distance /= s;
         height /= s;
     }
-    for (i = 0; i < guard->count; i++) {
-        ENTRY *entry = guard->entries[i];
+    for (i = 0; i < guard->numAttacks; i++) {
+        CID120 *entry = guard->attacks[i];
         float angle, gain;
-        if (!entry->enabled)
+        if (!entry->isEnabled)
             continue;
         if (!IsWithinLimits__FP2LMf(&entry->distance, distance))
             continue;
@@ -942,16 +907,16 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
         }
         if (entry->angle < gain * angle)
             continue;
-        if (entry->lineOfSight) {
+        if (entry->needsLineOfSight) {
             STACKSCOPE frame;
             LOS line;
             int count;
             void **objects;
             line.start.q = from;
             line.end.q = to;
-            IntersectSwBoundingBox(D_003DD490, from, to, FilterAttackLineOfSightHit, entry, &count, &objects);
+            IntersectSwBoundingBox(&D_003DD490, from, to, FilterAttackLineOfSightHit, entry, &count, &objects);
             if (FindFirstObjectHitByLine(0, line.start.q, line.end.q, count, objects, &line.hit) &&
-                Blocked(&line, entry->minHit))
+                Blocked(&line, entry->minLineOfSight))
                 continue;
         }
         {
@@ -960,11 +925,10 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
             ((BASIC *)guard)->HandleSpliceEvent(0x18, 0, 1, &argument, &ref);
             if (ref.m_tagk != 0x17 || !ref.u.n)
                 continue;
-            if (entry->response) {
-                M4 frame;
-                VTE *e = &target->vt[32];
-                void *owner = ((void *(*)(void *, M4 *))e->fn)((char *)target + e->delta, &frame);
-                SetStepguardAttack(guard, entry, owner, frame.row[3].q);
+            if (entry->aimsAtTarget) {
+                MATRIX4 frame;
+                XF *owner = ((XFM *)target)->GetLocalTransform(&frame);
+                SetStepguardAttack(guard, entry, owner, *(qword *)frame.mat[3]);
                 entry = 0;
                 if (gate)
                     SetTargetRecordState(gate, 3);

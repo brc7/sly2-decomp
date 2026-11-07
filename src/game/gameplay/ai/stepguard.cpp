@@ -3311,18 +3311,18 @@ void CID120::Init()
 {
     CID120 *attack = this;
     LO::Init();
-    attack->unknown50 = 0;
-    attack->range = 300.0f;
-    attack->heightMin = -5000.0f;
-    attack->heightMax = 5000.0f;
+    attack->distance.minValue = 0;
+    attack->distance.maxValue = 300.0f;
+    attack->height.minValue = -5000.0f;
+    attack->height.maxValue = 5000.0f;
     attack->cooldownMin = 0.2f;
     attack->cooldownMax = 0.5f;
     attack->angle = 0.17453295f;   /* 10 degrees */
-    attack->unknownA8 = 1;
+    attack->isEnabled = 1;
     attack->aimObjectOid = -1;
     attack->effectorOid = -1;
     attack->strikeLabel = -1;
-    attack->unknown6C = M_func_0020AD38::D_002A88C8;
+    attack->minLineOfSight = M_func_0020AD38::D_002A88C8;
     ReleaseAnimBinding(&attack->binding, attack->guard);
 }
 

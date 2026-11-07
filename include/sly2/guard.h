@@ -196,15 +196,15 @@ struct ANIMBINDINGREC
 /* 120 CID120 (0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
 struct CID120 : LO
 {
-    int unknown50;          /* +0x50 [S] (InitGuardAttack 0) */
-    float range;            /* +0x54 [S] reach (InitGuardAttack 300) */
-    float heightMin;        /* +0x58 [S] height window of the target (-5000..5000) */
-    float heightMax;        /* +0x5C [S] */
+    LM distance;            /* +0x50 [S] horizontal distance window of the target (InitGuardAttack 0..300; ChooseStepguardAttack) */
+    LM height;              /* +0x58 [S] height window of the target (-5000..5000) */
     float cooldownMin;      /* +0x60 [S] delay range before the attack can be chosen again */
     float cooldownMax;      /* +0x64 [S] */
     float angle;            /* +0x68 [S] radians (SetGuardAttackAngleDegrees; 10 degrees by default) */
-    float unknown6C;        /* +0x6C [S] */
-    int unknown70[3];
+    float minLineOfSight;   /* +0x6C [S] a line-of-sight hit nearer than this blocks the attack (ChooseStepguardAttack) */
+    int needsLineOfSight;   /* +0x70 [S] */
+    int ignoresClass98;     /* +0x74 [S] the line-of-sight test ignores cid 0x62 objects (FilterAttackLineOfSightHit) */
+    int aimsAtTarget;       /* +0x78 [S] starting it aims at the target's local transform (ChooseStepguardAttack) */
     int aimObjectOid;       /* +0x7C [S] the transform that aims (a gun arm; -1 none) */
     int effectorOid;        /* +0x80 [S] the transform that strikes */
     int strikeLabel;        /* +0x84 [S] label of the attack animation at the strike */
@@ -212,7 +212,7 @@ struct CID120 : LO
     qword strikeOffset;     /* +0x90 [S] where the effector is, relative to the aim object, at the strike (PostGuardAttackLoad) */
     XF *aimObject;          /* +0xA0 [S] FindSoXf(aimObjectOid) */
     XF *effector;           /* +0xA4 [S] FindSoXf(effectorOid) */
-    int unknownA8;          /* +0xA8 [S] (InitGuardAttack 1) */
+    int isEnabled;          /* +0xA8 [S] (InitGuardAttack 1; ChooseStepguardAttack skips disabled attacks) */
     STEPGUARD *guard;       /* +0xAC [S] the guard owning the attack */
     ANIMBINDING binding;    /* +0xB0 [S] the attack's animation */
     ANIMBINDING *activeBinding; /* +0xC0 [S] */
