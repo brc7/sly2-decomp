@@ -1,5 +1,9 @@
 # Writing a translation unit that still matches
 
+> **Current rules: [decisions.md](../decisions.md).** That page lists the design decisions and compromises in force
+> (representation, linkage, data layout, flags, blobs), each with its status. This page is the history and the
+> detailed evidence behind them; prefer decisions.md when the two differ.
+
 Every original translation unit (TU) is one source file under `src/game/` (see [architecture.md](../architecture.md));
 the merge wave that turned the per-function files into these files is complete. This page is the reference for editing
 such a file without breaking the match: the generated static initializer, every mismatch cause met with the fix that
