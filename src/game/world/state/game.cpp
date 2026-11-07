@@ -1606,14 +1606,13 @@ void UpdateTask(TASK *task)
 } } // namespace M_UpdateTask
 
 namespace M_ActivateTask {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    StateSourceScope(X *px, int source, int requester)
+    StateSourceScope(TASK *px, int source, int requester)
     {
         task = px;
         job = 0;
@@ -1625,8 +1624,8 @@ public:
     ~StateSourceScope()
     {
         if (job) {
-            job->jobStateSource = savedSource;
-            job->jobStateRequester = savedRequester;
+            job->stateSource = savedSource;
+            job->stateRequester = savedRequester;
         }
         if (task) {
             task->stateSource = savedSource;
@@ -1635,16 +1634,15 @@ public:
     }
 };
 extern "C" { extern SW D_003DD490; }
-extern "C" int IsCurrentTask(X *px);
-extern "C" void DeactivateTask(X *px);
-extern "C" void BeginTask(X *px);
+extern "C" void DeactivateTask(TASK *px);
+extern "C" void BeginTask(TASK *px);
 // Makes the task current unless it already is, ending the previous one.
-extern "C" void ActivateTask(X *task)
+extern "C" void ActivateTask(TASK *task)
 {
     if (IsCurrentTask(task)) return;
     if (D_003DD490.currentTask) {
-        StateSourceScope scope(((X *)D_003DD490.currentTask), task->stateSource, task->stateRequester);
-        DeactivateTask(((X *)D_003DD490.currentTask));
+        StateSourceScope scope(((TASK *)D_003DD490.currentTask), task->stateSource, task->stateRequester);
+        DeactivateTask(((TASK *)D_003DD490.currentTask));
     }
     BeginTask(task);
 }
@@ -1659,151 +1657,96 @@ extern "C" void DeactivateTask(TASK *task)
 }
 
 namespace M_BeginTask {
-class OBase {
-public:
-    int a, b, c;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-struct LO { char pad[0x40]; int flags; };
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
 static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->flags;
+    int v = plo->grfUnk40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
-        plo->flags = v | bits;
+        plo->grfUnk40 = v | bits;
 }
-class O : public OBase {
-public:
-    char pad[0x5C - 0x10];
-    int objectiveTextId;
-    int showsObjective;
-    int startCount;
-    char pad1[0x7C - 0x68];
-    O *job;
-    char pad2[0xA8 - 0x80];
-    int numVisibility, visibility, numRsmgs, rsmgs, warpOid;
-    char pad3[0xC4 - 0xBC];
-    LO *exitObject;
-    char pad4[0xF4 - 0xC8];
-    int stateSource;
-};
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_002DEB30[]; }
 extern "C" { extern char D_003DA0C0[]; }
-extern "C" void SetSwTaskCur(G *world, O *p);
-extern "C" void SetSwTaskPending(G *world, O *p);
-extern "C" int IsCurrentJob(O *p);
-extern "C" void ActivateJob(O *p);
-extern "C" int IsTaskLive(O *p);
-extern "C" void UpdateTaskSaveVars(O *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
-extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
-extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
+extern "C" void SetSwTaskCur(G *world, TASK *p);
+extern "C" void SetSwTaskPending(G *world, TASK *p);
+extern "C" int IsTaskLive(TASK *p);
+extern "C" void UpdateTaskSaveVars(TASK *p);
+extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
+extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
+extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
 extern "C" void PostNotice(void *pv, int n, float g);
 extern "C" void TakeExit(LO *plo);
 // Makes the task current (and pending when it has a warp) and activates its job; when live: counts the start,
 // game event 0x23, active visuals, starts its music, Splice event 0x13.
-extern "C" void BeginTask(O *task)
+extern "C" void BeginTask(TASK *task)
 {
     G *world = &D_003DD490;
     SetSwTaskCur(world, task);
     if (task->warpOid != -1)
         SetSwTaskPending(world, task);
-    if (task->job && !IsCurrentJob(task->job))
-        ActivateJob(task->job);
+    if (task->pjob && !IsCurrentJob(task->pjob))
+        ActivateJob(task->pjob);
     if (IsTaskLive(task)) {
-        task->startCount++;
+        task->cStart++;
         UpdateTaskSaveVars(task);
         BroadcastGameEvent(D_002DEB30, 0x23, task);
-        ApplyStateLoVisibility(task, 4, task->numVisibility, task->visibility);
-        TriggerStateRsmgs(task, 4, task->numRsmgs, task->rsmgs, task->stateSource);
-        if (task->objectiveTextId != -1 && task->showsObjective)
+        ApplyStateLoVisibility(task, 4, task->cvis, task->avis);
+        TriggerStateRsmgs(task, 4, task->crsmg, task->arsmg, task->stateSource);
+        if (task->objectiveTextId != -1 && task->fShowObjective)
             PostNotice(D_003DA0C0, task->objectiveTextId, -1.0f);
-        task->Msg(0x13, 0, 0, 0, 0);
-        if (task->exitObject) {
-            SetLoFlagsInline(task->exitObject, 0x100);
-            TakeExit(task->exitObject);
+        task->HandleSpliceEvent(0x13, 0, 0, 0, 0);
+        if (task->ploExit) {
+            SetLoFlagsInline(task->ploExit, 0x100);
+            TakeExit(task->ploExit);
         }
     }
 }
 } // namespace M_BeginTask
 
 namespace M_func_00163E88 {
-class OBase {
-public:
-    int a, b, c;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-class O : public OBase {
-public:
-    char pad[0x7C - 0x10];
-    O *job;
-};
 extern "C" { extern GAME D_002DEB30; }
-extern "C" int IsTaskLive(O *p);
-extern "C" int IsJobLive(O *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
+extern "C" int IsTaskLive(TASK *p);
+extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
 // Rejects a state change: game event 0x27 and Splice event 0x12(state) to the task and its job.
-extern "C" void RejectTaskState(O *task, int state)
+extern "C" void RejectTaskState(TASK *task, int state)
 {
     void *apv[1];
     apv[0] = &state;
     if (IsTaskLive(task)) {
         D_002DEB30.nTaskStateDenied = state;
         BroadcastGameEvent(&D_002DEB30, 0x27, task);
-        task->Msg(0x12, 0, 1, apv, 0);
+        task->HandleSpliceEvent(0x12, 0, 1, apv, 0);
     }
-    if (task->job && IsJobLive(task->job))
-        task->job->Msg(0x12, 0, 1, apv, 0);
+    if (task->pjob && IsJobLive(task->pjob))
+        task->pjob->HandleSpliceEvent(0x12, 0, 1, apv, 0);
 }
 } // namespace M_func_00163E88
 
 namespace M_EndTask {
-class OBase {
-public:
-    int a, b, c;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-class O : public OBase {
-public:
-    char pad[0x5C - 0x10];
-    int objectiveTextId;
-    int showsObjective;
-    char pad2[0xA8 - 0x64];
-    int numVisibility, visibility, numRsmgs, rsmgs;
-    char pad3[0xF4 - 0xB8];
-    int stateSource;
-};
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_002DEB30[]; }
 extern "C" { extern char D_003DA0C0[]; }
-extern "C" void SetSwTaskCur(G *pg, O *p);
-extern "C" int IsTaskLive(O *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
-extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
-extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
+extern "C" void SetSwTaskCur(G *pg, TASK *p);
+extern "C" int IsTaskLive(TASK *p);
+extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
+extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
+extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
 extern "C" void CancelNotice(void *pv, int n);
 // Ends the task; when live: game event 0x24, inactive visuals and rsmgs, stops its music, Splice event 0x14.
-extern "C" void EndTask(O *task)
+extern "C" void EndTask(TASK *task)
 {
     SetSwTaskCur(&D_003DD490, 0);
     if (IsTaskLive(task)) {
         BroadcastGameEvent(D_002DEB30, 0x24, task);
-        ApplyStateLoVisibility(task, 5, task->numVisibility, task->visibility);
-        TriggerStateRsmgs(task, 5, task->numRsmgs, task->rsmgs, task->stateSource);
-        if (task->objectiveTextId != -1 && task->showsObjective)
+        ApplyStateLoVisibility(task, 5, task->cvis, task->avis);
+        TriggerStateRsmgs(task, 5, task->crsmg, task->arsmg, task->stateSource);
+        if (task->objectiveTextId != -1 && task->fShowObjective)
             CancelNotice(D_003DA0C0, task->objectiveTextId);
-        task->Msg(0x14, 0, 0, 0, 0);
+        task->HandleSpliceEvent(0x14, 0, 0, 0, 0);
     }
 }
 } // namespace M_EndTask
@@ -1816,31 +1759,29 @@ extern "C" int IsCurrentTask(TASK *task)
 
 namespace M_FTaskComplete { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-struct S { char pad[0x54]; int state; char pad2[0xD8 - 0x58]; int completeKey; };
 extern char D_003D4A60[];
 void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 // True when the task is complete (state >= 2; an unset task uses its saved flag).
-int IsTaskComplete(struct S *task)
+int IsTaskComplete(TASK *task)
 {
-    if (task->state == TASK_STATE_UNSET && task->completeKey) {
+    if (task->nState == TASK_STATE_UNSET && task->svkComplete.c) {
         CRef ref;
         int value;
-        GetGlobalSaveVar(&ref, &task->completeKey, D_003D4A60);
+        GetGlobalSaveVar(&ref, &task->svkComplete, D_003D4A60);
         value = ref.m_tag;
         Decref__4CRef(&ref);
         return value;
     }
-    return task->state >= TASK_STATE_DONE;
+    return task->nState >= TASK_STATE_DONE;
 }
 } } // namespace M_FTaskComplete
 
 namespace M_OidFromTaskState { extern "C" {
-struct S { char pad[0x54]; int state; };
 // Returns the default state-machine goal oid of the task's state (0x612..0x615 for 0..3), else -1.
-int GetTaskStateGoalOid(struct S *task)
+int GetTaskStateGoalOid(TASK *task)
 {
-    switch (task->state) {
+    switch (task->nState) {
     case TASK_STATE_LOCKED: return 0x612;
     case TASK_STATE_AVAILABLE: return 0x613;
     case TASK_STATE_DONE: return 0x614;
