@@ -26,13 +26,11 @@ typedef unsigned long ulong;
 extern "C" {
 /* The tables (separate globals: one lui per store in ResetShaders). */
 /* shd's .bss (address order; the per-function views below redeclare some with their own types). D_003DA790 and
- * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too). D_003DA798 is the 0x200-entry table of
- * 0x14-byte records between them (RelocateShaderUploadRecords's E, shdanim's SAIE, glob's LINK); defined here with a file-scope
- * record type of that size so the .bss after it keeps the ELF's addresses (g++ 2.95 does not compare the views'
- * namespaced extern "C" declarations with it). */
-struct SHDREC { int a; int b; unsigned int p; int c; int d; };
-int D_003DA790;
-SHDREC D_003DA798[0x200];
+ * D_003DCF98..D_003DCFA8 are medium (shdanim, gs and glob read them too). D_003DA798 is the table of shd.h's COPYREC
+ * records (shdanim's SAIE and glob's LINK are views of it; g++ 2.95 does not compare their namespaced extern "C"
+ * declarations with this one). */
+int D_003DA790;             /* copy records in use */
+COPYREC D_003DA798[0x200];
 int D_003DCF98, D_003DCF9C;
 int D_003DCFA0;
 char D_003DCFA8[0x40];
@@ -824,27 +822,22 @@ extern "C" int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvif
 
 // CopyAb(dst=+8, src=+4, cb=+0) (inferred)
 /* Copies one upload record's bytes (cb from pvSrc to pvDst). */
-struct COPYREC { unsigned int cb; void *pvSrc; void *pvDst; };
 extern "C" void ApplyCopyRecord(COPYREC *prec)
 {
     CopyAb__FPvT0Ui(prec->pvDst, prec->pvSrc, prec->cb);
 }
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_RelocateShaderUploadRecords { extern "C" {
-struct E { int a; int b; unsigned int p; int c; int d; };
-extern struct E D_003DA798[];
-// Rebase pointers in D_003DA798 records [iFirst,iLast) that fall in [pOld,pOld+cb) to pNew. (inferred)
-void RelocateShaderUploadRecords(int iFirst, int iLast, int cb, unsigned int pOld, unsigned int pNew)
+// Rebase the destinations of copy records [iFirst,iLast) that fall in [pbOld,pbOld+cb) to pbNew. (inferred)
+extern "C" void RelocateShaderUploadRecords(int iFirst, int iLast, int cb, char *pbOld, char *pbNew)
 {
     int i;
-    unsigned int pEnd = pOld + cb;
+    char *pbEnd = pbOld + cb;
     for (i = iFirst; i < iLast; i++) {
-        struct E *pe = &D_003DA798[i];
-        if (pe->p >= pOld && pe->p < pEnd) pe->p = pNew + (pe->p - pOld);
+        COPYREC *pcopyrec = &D_003DA798[i];
+        if ((char *)pcopyrec->pvDst >= pbOld && (char *)pcopyrec->pvDst < pbEnd)
+            pcopyrec->pvDst = pbNew + ((char *)pcopyrec->pvDst - pbOld);
     }
 }
-} } // namespace M_RelocateShaderUploadRecords
 
 // Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) (inferred)
 extern "C" void ResetShaders()

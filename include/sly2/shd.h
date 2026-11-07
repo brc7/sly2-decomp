@@ -122,6 +122,19 @@ struct SHD
 };
 typedef char assert_SHD_size[sizeof(SHD) == 0x2C ? 1 : -1];
 
+/* COPYREC: a shader-animation copy record (0x14), one of the 0x200 in shd.cpp's table D_003DA798 (D_003DA790 in use):
+   ApplyCopyRecord copies cb bytes from pvSrc (in the animation) to pvDst (in an upload chain; RelocateShaderUploadRecords
+   rebases it when the chain moves); the records of an animation are linked through pcopyrecNext. Name ours. */
+struct COPYREC
+{
+    unsigned int cb;        /* +0x00 */
+    void *pvSrc;            /* +0x04 */
+    void *pvDst;            /* +0x08 */
+    SAA *psaa;              /* +0x0C owning animation */
+    COPYREC *pcopyrecNext;  /* +0x10 its list link */
+};
+typedef char assert_COPYREC_size[sizeof(COPYREC) == 0x14 ? 1 : -1];
+
 /* SHDBLIP: the compact shader record blips use (0x1C; BuildShaderTex0List builds it for shaders flagged grfshd 0x40,
    linked on SW::slShd; FindShdOrDefault finds it). Name ours. */
 struct SHDBLIP
