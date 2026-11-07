@@ -1457,76 +1457,60 @@ extern "C" void SwitchWidgetAnim(WIDGET *widget, int animId, int *currentAnimId)
 }
 
 // 0x213E20 FindSpriteItemPose
-namespace M_func_00213E20 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct QQ { qword a, b; };
-struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
-struct Y { struct RGBA color0; struct RGBA color1; char pad8[8]; struct QQ matrix; struct Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
-struct H { int numItems; struct Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numSlots; void *anims; struct H *slots; char padc[0x24]; };
-struct S { char pad[0x84]; struct A *spriteGroups; };
 // Recursively finds nested sprite k and returns its 2D transform and colours. (inferred)
-int FindSpriteItemPose(struct S *widget, int groupIndex, struct QQ *matrix, struct RGBA *color0, struct RGBA *color1, int numItems, struct Y *items)
+extern "C" int FindSpriteItemPose(WIDGET *widget, int groupIndex, SPRITEXF *matrix, struct RGBA *color0, struct RGBA *color1, int numItems, SPRITEITEM *items)
 {
     int i;
-    struct Y *item;
+    SPRITEITEM *item;
     if (!items) {
-        struct H *slot = widget->spriteGroups->slots;
+        SPRITESLOT *slot = widget->spriteGroups->slots;
         numItems = slot->numItems;
         items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
-        struct Z *descriptor;
+        SPRITEDESC *descriptor;
         item = &items[i];
         descriptor = item->descriptor;
         if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
-        if (groupIndex == descriptor->groupIndex) {
+        if (groupIndex == descriptor->index) {
             *matrix = item->matrix;
             *color0 = item->color0;
             *color1 = item->color1;
             return 1;
         }
-        if (FindSpriteItemPose(widget, groupIndex, matrix, color0, color1, widget->spriteGroups[descriptor->groupIndex].slots[item->spriteSlot].numItems, widget->spriteGroups[descriptor->groupIndex].slots[item->spriteSlot].items))
+        if (FindSpriteItemPose(widget, groupIndex, matrix, color0, color1, widget->spriteGroups[descriptor->index].slots[item->spriteSlot].numItems, widget->spriteGroups[descriptor->index].slots[item->spriteSlot].items))
             return 1;
     }
     return 0;
 }
-} } // namespace M_func_00213E20
 
 // 0x213F70 RestartNestedSprite
 namespace M_func_00213F70 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
-struct QQ { qword a, b; };
-struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
-struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0xC]; int link; int unknown6C; };
-struct H { int numItems; Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numSlots; void *anims; H *slots; char padc[0x24]; };
-struct S { char pad[0x84]; A *spriteGroups; };
-extern "C" void StopSpriteSlot(A *pa, int i);
-extern "C" void ClearSle(int *p);
-extern "C" int FindFreeSpriteSlot(A *pa);
-extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void ClearSle(SLE *p);
+extern "C" int FindFreeSpriteSlot(SPRITEGRP *pa);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 // Recursively finds nested sprite item k and restarts it on animation z. (inferred)
-extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int numItems, Y *items)
+extern "C" int RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int numItems, SPRITEITEM *items)
 {
     int i;
-    Y *item;
+    SPRITEITEM *item;
     if (!items) {
-        H *slot = widget->spriteGroups->slots;
+        SPRITESLOT *slot = widget->spriteGroups->slots;
         numItems = slot->numItems;
         items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
-        Z *descriptor;
+        SPRITEDESC *descriptor;
         item = &items[i];
         descriptor = item->descriptor;
         if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
         int oldSlot=item->spriteSlot;
-        if (descriptor->groupIndex == groupIndex) {
+        if (descriptor->index == groupIndex) {
             StopSpriteSlot(&widget->spriteGroups[groupIndex], oldSlot);
             ClearSle(&item->link);
             item->spriteSlot = FindFreeSpriteSlot(&widget->spriteGroups[groupIndex]);
@@ -1535,7 +1519,7 @@ extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int
         }
         {
             /* &spriteGroups[...].slots[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
-            H *slot = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].slots);
+            SPRITESLOT *slot = (SPRITESLOT *)(oldSlot * sizeof(SPRITESLOT) + (int)widget->spriteGroups[descriptor->index].slots);
             if (RestartNestedSprite(widget, groupIndex, animIndex, slot->numItems, slot->items))
                 return 1;
         }
@@ -1549,34 +1533,27 @@ namespace M_func_00214100 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
-struct QQ { qword a, b; };
-struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
-struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[8]; int arg; int link; int unknown6C; };
-struct H { int numItems; Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numSlots; void *anims; H *slots; char padc[0x24]; };
-struct S { char pad[0x84]; A *spriteGroups; };
-extern "C" void StopSpriteSlot(A *pa, int i);
-extern "C" void ClearSle(int *p);
-extern "C" int FindFreeSpriteSlot(A *pa);
-extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void ClearSle(SLE *p);
+extern "C" int FindFreeSpriteSlot(SPRITEGRP *pa);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 // RestartNestedSprite with an extra argument. (inferred)
-extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animIndex, int arg, int numItems, Y *items)
+extern "C" int RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int arg, int numItems, SPRITEITEM *items)
 {
     int i;
-    Y *item;
+    SPRITEITEM *item;
     if (!items) {
-        H *slot = widget->spriteGroups->slots;
+        SPRITESLOT *slot = widget->spriteGroups->slots;
         numItems = slot->numItems;
         items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
-        Z *descriptor;
+        SPRITEDESC *descriptor;
         item = &items[i];
         descriptor = item->descriptor;
         if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
         int oldSlot=item->spriteSlot;
-        if (descriptor->groupIndex == groupIndex) {
+        if (descriptor->index == groupIndex) {
             if (arg != item->arg)
                 continue;
             StopSpriteSlot(&widget->spriteGroups[groupIndex], oldSlot);
@@ -1587,7 +1564,7 @@ extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animInd
         }
         {
             /* &spriteGroups[...].slots[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
-            H *slot = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].slots);
+            SPRITESLOT *slot = (SPRITESLOT *)(oldSlot * sizeof(SPRITESLOT) + (int)widget->spriteGroups[descriptor->index].slots);
             if (RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, slot->numItems, slot->items))
                 return 1;
         }
