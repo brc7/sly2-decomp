@@ -386,7 +386,7 @@ static __inline__ int FVecsNear(qwordV a, qwordV b)
 }
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 static __inline__ void InitS(float g, S150 *ps) { register float r asm("$f1") = 1.0f; /* register pin (Claude agent): f0/f1 tie */ ps->unknown0 = 0; ps->unknown8 = 0; ps->inverseLifetime = r / g; }
-static __inline__ float GMax3(float a, float b, float c) { if (b < a && c < a) return a; if (c < b) return b; return c; }
+static __inline__ float Max3(float a, float b, float c) { if (b < a && c < a) return a; if (c < b) return b; return c; }
 // Sets a blip group up from an EMITB: render kind (and flying scale), colours, shader (PropagateBlipgShader),
 // frame rate, the alpha and size curves rescaled to a 0..1 life and the largest size, 1 / lifetime, and the motion
 // kind (EMITDV motion degenerates to straight lines when the EMITB adds no velocity, curl or damping).
@@ -437,7 +437,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
             if (ag[1] < tm && tm < t)
                 ag[1] = GEval(&blipGroup->poly, tm);
         }
-        blipGroup->maxSize = GMax3(__builtin_fabsf(ag[0]), __builtin_fabsf(ag[1]), __builtin_fabsf(ag[2]));
+        blipGroup->maxSize = Max3(__builtin_fabsf(ag[0]), __builtin_fabsf(ag[1]), __builtin_fabsf(ag[2]));
     }
     f = 0;
     g = emitb->lifetime;
@@ -564,7 +564,7 @@ static inline VU_FLOATM VuFloatDt()
     __asm__("lw %0, %1" : "=r"(v.qw) : "m"(D_002DDED0.dt));
     return v;
 }
-static inline char *PvSprBuf(int i)
+static inline char *GetScratchpadBuffer(int i)
 {
     return D_003DD2C0[D_002C3C5C].a[i].pv;
 }
@@ -573,7 +573,7 @@ static inline void Kick(BLIPV *pq)
     BUF *pb = &pq->abuf[pq->i];
     LoadSprBuf(pq->c * 16, pb, pq->c * 16, pb->b, pq->c * 16, pb->c, 0, 0);
 }
-static inline qwordV QwMid(const qwordV &a, const qwordV &b, const VU_FLOATA &g)
+static inline qwordV ScaleSum(const qwordV &a, const qwordV &b, const VU_FLOATA &g)
 {
     qwordV qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(a), "j"(b), "j"(g.qw));
@@ -617,7 +617,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
         SwapSprBuffers();
         pqNext = (BLIPV *)PvNextDli(&dli);
         if (pqNext) Kick(pqNext);
-        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, blipGroup->renderKind, &vMin, &vMax);
+        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), GetScratchpadBuffer(0), GetScratchpadBuffer(1), GetScratchpadBuffer(2), pq->c, blipGroup->renderKind, &vMin, &vMax);
         i = (pq->i + 1) & 1;
         {
             BUF *pb = &pq->abuf[i];
@@ -633,7 +633,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
     if (blipGroup->numLiveParticles <= 0) {
         blipGroup->pvt[9].pfn((char *)blipGroup + blipGroup->pvt[9].d);
     } else {
-        qwordV c = QwMid(vMin.q, vMax.q, VU_FLOATA(0.5f));
+        qwordV c = ScaleSum(vMin.q, vMax.q, VU_FLOATA(0.5f));
         blipGroup->boundsCenter = c;
         float g = GFromQw(QwLength(VuSubRef(c, vMax.q)));
         blipGroup->boundsRadius = g + blipGroup->maxSize;

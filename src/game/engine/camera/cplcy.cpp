@@ -317,7 +317,7 @@ static __inline__ float GClamp(float g, float gMin, float gMax)
     return g;
 }
 
-static __inline__ float GClamp2(float g, float gMin, float gMax)
+static __inline__ float ClampAssign(float g, float gMin, float gMax)
 {
     if (g < gMin) g = gMin;
     else if (gMax < g) g = gMax;
@@ -335,7 +335,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     x = p->zoom;
     p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
     x += p->zoomSpeed * D_002DDED0.dt;
-    p->zoom = x = GClamp2(x, 0.0f, 1.0f);
+    p->zoom = x = ClampAssign(x, 0.0f, 1.0f);
     if (p->zoomSpeed != 0.0f && 0.0f < x && x < 1.0f) {
         struct SND *ps = p->zoomSound;
         SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->zoomSpeed)));

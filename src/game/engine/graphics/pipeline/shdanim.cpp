@@ -187,14 +187,14 @@ void SetSaiIframe(SAAV *saa, int n)
     }
 }
 
-static inline int IFromG(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
+static inline int ToFixed12(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
 // Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked. (inferred)
 void SetSaiDuDv(SAAV *saa, float uOffset, float vOffset)
 {
     int u, v;
     if (IsSlEmpty(&saa->instances)) return;
-    u = IFromG(uOffset);
-    v = IFromG(vOffset);
+    u = ToFixed12(uOffset);
+    v = ToFixed12(vOffset);
     if (saa->uOffset == u && saa->vOffset == v) return;
     saa->uOffset = u;
     saa->vOffset = v;

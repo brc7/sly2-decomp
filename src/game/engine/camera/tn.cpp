@@ -379,7 +379,7 @@ extern LM D_002C41B0;
 extern float D_002C41E4;
 extern float D_002C41E8;
 extern float D_002C41EC;
-static inline qword QwToVu(qword qw)
+static inline qword MoveToVu(qword qw)
 {
     qword qwOut;
     __asm__("qmtc2 %1, %0" : "=j"(qwOut) : "r"(qw));
@@ -396,7 +396,7 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
         g = gMax;
     return g;
 }
-static inline float GSmoothStep(float u)
+static inline float SmoothStep(float u)
 {
     return u * u * (3.0f - (u + u));
 }
@@ -954,7 +954,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 //    (lqc2 0(v0) after addiu -0x1DE0); the pull's length through GXOfQw (reload's qmfc2 + asm mtc1 schedule after the clqPull address);
 //    ptn->pshape read only after the fEntered test; tManual stored before fArrived; the idle ramp's 0 in an else arm; the enter ramp's product
 //    in its own variable (gEnter); the time-since-manual factor through GLimitRange (gMin in f6, gMax in f7).
-// Everything else was found in T1146 / T1203: the two normalise shapes (A: register result, fallback lq before the branch, QwLengthUntied; B: QwToVu,
+// Everything else was found in T1146 / T1203: the two normalise shapes (A: register result, fallback lq before the branch, QwLengthUntied; B: MoveToVu,
 // the arms store to the VECTOR4), GMin for min.s, the switch on nMode, the chain assignments, g_clock.dt re-read at every use, the pull-vFocus
 // fallback g_qwZero.
 // What it does, in order:
@@ -1114,7 +1114,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         *(qword *)&dpos = QwSub(PosLoWorld(ptnCur->ploPull), *(qword *)&pcpdefi->posBase);
         dpos.z = 0.0f;
         qword *pqwFallback = &D_002A2DD0;
-        qword qwDir = QwToVu(*(qword *)&dpos);
+        qword qwDir = MoveToVu(*(qword *)&dpos);
         qword qwLen = QwLengthUntied(qwDir);
         if (GFromVf(qwLen) < 0.0001f)
         {
@@ -1206,7 +1206,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         qword *pqwFallbackView = &D_002A2DA0;
         *(qword *)&vecView = QwSub(*(qword *)&posHang, *(qword *)&pcm->pos);
         vecView.z *= 0.3f;
-        qword qwView = QwToVu(*(qword *)&vecView);
+        qword qwView = MoveToVu(*(qword *)&vecView);
         qword qwLenView = QwLengthUntied(qwView);
         if (GFromVf(qwLenView) < 0.0001f)
         {
@@ -1473,7 +1473,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                         radPanRevNew += 6.2831855f;
                 }
                 u = (radPan - radPanRevNew) / (radPanFwdNew - radPanRevNew);
-                u = GSmoothStep(u);
+                u = SmoothStep(u);
             }
             uFrameYWant = pcpd->uFrameY;
             sDistOut = u * sDistFwd + (1.0f - u) * sDistRev;
@@ -1563,34 +1563,34 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 // from `pqw -= 4`: loop.c emits the pointer's final value after loop 1 and cse2 folds the rewind to sp+0x30, which
 // is why the game sets the loop-2 pointer in the STACKSCOPE constructor's delay slot. Any `&aqw[3]` written after
 // loop 1 is hoisted above loop 1 by gcse's PRE instead.
-static inline float GFromVfNi(qword qw)
+static inline float ReadVfX(qword qw)
 {
     float g;
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
 // v * (1 / |v|), with |v| in x of qwLen
-static inline qword QwScaleByInverse(qword v, qword qwLen)
+static inline qword ScaleByInverse(qword v, qword qwLen)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v));
     return qw;
 }
-static inline qword QwMiniXyz(qword qw0, qword qw1)
+static inline qword MinXyz(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vmini.xyz %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline qword QwMaxXyz(qword qw0, qword qw1)
+static inline qword MaxXyz(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vmax.xyz %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
 // back * v.x + side * v.y + up * v.z
-static inline qword QwAxesXyz(qword qwV, qword qwBack, qword qwSide, qword qwUp)
+static inline qword CombineAxes(qword qwV, qword qwBack, qword qwSide, qword qwUp)
 {
     qword qw;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(qw) : "j"(qwV), "j"(qwBack), "j"(qwSide), "j"(qwUp));
@@ -1623,22 +1623,22 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     qword qwFallback = D_002A2DA0;
     qword qwLen = QwLengthUntied(qwCross);
     qword qwSide;
-    if (GFromVfNi(qwLen) < 0.0001f)
+    if (ReadVfX(qwLen) < 0.0001f)
     {
         qwSide = qwFallback;
     }
     else
     {
-        qwSide = QwScaleByInverse(qwCross, qwLen);
+        qwSide = ScaleByInverse(qwCross, qwLen);
     }
     aqw[9] = qwSide;
     aqw[8] = QwCross(aqw[10], qwSide);
     qword *pqw; // the current sample
     for (i = 0; i < 5; i++)
     {
-        qword pos = QwAdd(GetLoWorldPos(plo), QwAxesXyz(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
-        aqw[0] = QwMiniXyz(aqw[0], pos);
-        aqw[1] = QwMaxXyz(aqw[0], pos);
+        qword pos = QwAdd(GetLoWorldPos(plo), CombineAxes(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
+        aqw[0] = MinXyz(aqw[0], pos);
+        aqw[1] = MaxXyz(aqw[0], pos);
         pqw = &aqw[3 + i];
         *pqw = pos;
     }
