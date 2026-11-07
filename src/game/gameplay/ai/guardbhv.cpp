@@ -541,7 +541,6 @@ qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x174F08: BHVANIM vtable slot 11 (UpdateMotion): while playing, drives the guard's velocity from the animation's
@@ -558,7 +557,7 @@ void UpdateBhvanimMotion(struct S *behavior)
         qword b = GetLoWorldPos(behavior->guard);
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
+        SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), QwordX(d)));
     }
 }
 } } // namespace M_UpdateBhvanimMotion
@@ -1073,12 +1072,6 @@ static inline float VectorLength(qword v)
     return VuXToFloat(VuLength(v));
 }
 // VU0 helper: x component of a quadword vector.
-static inline float VuGetX(qword qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 // VU0 helper: y component of a quadword vector.
 static inline float VuGetY(qword qw)
 {
@@ -1151,7 +1144,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
             continue;
         {
             qword local = ConvertPosBetweenLos(0, guard, to);
-            angle = __builtin_fabsf(atan2f(VuGetY(local), VuGetX(local)));
+            angle = __builtin_fabsf(atan2f(VuGetY(local), QwordX(local)));
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
         {
@@ -2903,12 +2896,6 @@ struct VU_FLOAT
 
 };
 // VU0 helper: x component of a quadword vector.
-static inline float VuGetX(qword qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 // VU0 helper: x component of a quadword vector (VU register operand variant for the match).
 static inline float VuGetXKeepInVf(qword qw)
 {
@@ -2992,14 +2979,14 @@ struct VV
 static inline VV NormalizeSafeN(VV v, VV fallback)
 {
     qword len = VuLength(v);
-    if (VuGetX(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
     return VuDivideByLength(v, len);
 }
 // VU0 helper: v / len, or `fallback` when the length is zero.
 static inline VV DivSafe(VV v, VV len, VV fallback)
 {
-    if (VuGetX(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
     return VuDivideByLength(v, len);
 }
@@ -3145,7 +3132,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         FindShapeClosestPointFromDistance(behavior->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->sExtra);
     }
     dir.qw = NormalizeSafeN(VuProjectOut(dir.qw, D_002A2DC0), D_002A2DA0);
-    behavior->sSeparation = VuGetX(VuLengthXY(VuSub(point.qw, posActor)));
+    behavior->sSeparation = QwordX(VuLengthXY(VuSub(point.qw, posActor)));
     float ds = EvaluateClampedQuadratic(&D_002BE640, &D_002BE650, behavior->sSeparation);
     if (fReverse)
         ds = -ds;
@@ -3244,7 +3231,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             qword normalCopy;
             qword qwLen;
             QW_LENGTH_COPY(qwLen, normalCopy, normal.qw);
-            if (VuGetX(qwLen) < 0.0001f)
+            if (QwordX(qwLen) < 0.0001f)
                 normal.qw = *pqwZeroHere;
             else
                 normal.qw = VuDivideByLength(normalCopy, qwLen);
@@ -3268,12 +3255,12 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 pqwZero = &D_002A2DA0;
                 qword dirNow = DivSafe(dpos, VLength2(dpos), *pqwZero);
 
-                g *= EvaluateClampedQuadratic(&D_002BE680, &D_002BBB60, VuGetX(VDot(dirNow, behavior->guard->axis)));
+                g *= EvaluateClampedQuadratic(&D_002BE680, &D_002BBB60, QwordX(VDot(dirNow, behavior->guard->axis)));
                 if (g == 0.0f)
                     continue;
                 VEC side;
                 side.qw = VCross(D_002A2DC0, nextDir.qw);
-                if (behavior->pcrv != behavior->guard->pcrvPrimary && VuGetX(VDot(normal.qw, side.qw)) < 0.0f)
+                if (behavior->pcrv != behavior->guard->pcrvPrimary && QwordX(VDot(normal.qw, side.qw)) < 0.0f)
                     g = -g;
                 accel = VAddScaled(accel, VCross(normal.qw, D_002A2DC0), VU_FLOAT(gMass * g * D_002BE674));
             }
@@ -3295,7 +3282,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             pqwZero = &D_002A2DA0;
             normal.qw = VuProjectOut(VuSub(posHit.qw, posNext), D_002A2DC0);
             qword qwLen = VuLength(normal.qw);
-            if (VuGetX(qwLen) < 0.0001f)
+            if (QwordX(qwLen) < 0.0001f)
                 normal.qw = *pqwZero;
             else
                 normal.qw = VuDivideByLength(normal.qw, qwLen);
@@ -3573,12 +3560,6 @@ static inline float VuXToFloat(qword qw)
     return g;
 }
 // VU0 helper: x component of a quadword vector.
-static inline float VuGetX(qword qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 // VU0 helper: y component of a quadword vector.
 static inline float VuGetY(qword qw)
 {
@@ -3689,24 +3670,24 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
     {
         qword pos = GetLoWorldPos(behavior->guard);
         qword dpos = VuProjectOut(VuSub(behavior->target, pos), D_002A2DC0);
-        float g = EvaluateClampedQuadratic(&D_002BE6A0, &D_002BBB60, VuGetX(VuLengthXY(dpos)));
+        float g = EvaluateClampedQuadratic(&D_002BE6A0, &D_002BBB60, QwordX(VuLengthXY(dpos)));
         CHOICE *pchoice = behavior->driver->choice;
         switch (pchoice->kind)
         {
         case 0:
             SetAsegaSpeed__FP5ASEGAf(pchoice->control, behavior->rate * g);
-            SetStepguardMoverRadTarget(behavior->guard->control, atan2f(VuGetY(dpos), VuGetX(dpos)));
+            SetStepguardMoverRadTarget(behavior->guard->control, atan2f(VuGetY(dpos), QwordX(dpos)));
             break;
         case 3:
         {
             qword qwLocal = VuDotMatrixRows(GetLoWorldMatrix(behavior->guard), dpos);
             qword qwFallback = D_002A2DD0;
             float gSpeed = behavior->rate * g;
-            gSpeed *= VuGetX(VuLengthXY(pchoice->model->velocity));
+            gSpeed *= QwordX(VuLengthXY(pchoice->model->velocity));
             qword qwLen = VuLengthUntied(qwLocal);
             VU_FLOAT vuSpeed(gSpeed);
             qword qwDir;
-            if (VuGetX(qwLen) < 0.0001f)
+            if (QwordX(qwLen) < 0.0001f)
             {
                 qwDir = qwFallback;
             }
@@ -7440,7 +7421,6 @@ inline X::X() { ClearPointerPair(this); }
 extern "C" {
 }
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x17E0E0: Picks the farthest free point among 16 directions around the target and sends the goto child there.
@@ -7462,7 +7442,7 @@ extern "C" void RegoalBhvStalk(struct S *behavior) {
     dd = c ? c->unknownDC : 0;
     q = dd ? dd->pathzone : 0;
     best = 0.0f;
-    ang = atan2f(GetY(d), GetX(d));
+    ang = atan2f(GetY(d), QwordX(d));
     r = GetPathlinkEndpointPos(&t->goal, b);
     for (i = 0; i < 16; i++) {
         qword o = SetVectorCylind(ang + D_002BE770[i], D_002BE76C, 0.0f);

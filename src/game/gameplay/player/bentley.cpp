@@ -2168,12 +2168,6 @@ static inline float GetX(qword q)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(q));
     return f;
 }
-static inline float GetXM(qword q)
-{
-    float f;
-    __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q));
-    return f;
-}
 static inline float GetZ(qword q)
 {
     float f;
@@ -2236,7 +2230,7 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     qword qlen = Length(n.q);
     SafeDiv(n, qlen, D_002A2DA0);
     qword c = Cross(n.q, dv);
-    float len = GetXM(qlen);
+    float len = QwordX(qlen);
     float cz = GetZ(c);
     float dot = GetX(Dot(dv, n.q));
     float w = cz / len;

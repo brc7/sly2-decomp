@@ -746,7 +746,6 @@ static inline qword ScaleVecX(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1
 static inline qword LengthXYInX(qword v){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));return r;}
 // camera up row; the pointer parameter gives the game's &cm+0x60 base register (lqc2 0x10(s1), then s1-0x60 for the calls)
 static inline qword GetMatrixUp(const M4 *m){return m->r[1];}
-static inline float LaneXGpr(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline float LaneY(qword qw){float y;__asm__("prot3w %0,%1":"=r"(y):"r"(qw));return y;}
 static inline float LaneZ(qword qw){float z;__asm__("pextuw %0,$0,%1":"=r"(z):"r"(qw));return z;}
 // screen position of a projected point: x and y from [-1,1] to pixels, z kept
@@ -754,7 +753,7 @@ static inline VU_FLOAT ScreenFromProjected(qword q)
 {
     VU_FLOAT v;
     int t;
-    float x=LaneXGpr(q)*320.0f+320.0f;
+    float x=QwordX(q)*320.0f+320.0f;
     float y=LaneY(q)*-246.40000915527344f+246.40000915527344f;
     float z=LaneZ(q);
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(v.qw),"=&r"(t):"f"(x),"f"(y),"f"(z));
@@ -799,9 +798,9 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
         qword base = ConvertCmWorldToScreen(&D_002DDF40, world);
         qword top = ConvertCmWorldToScreen(&D_002DDF40, head);
         VU_FLOAT screen = ScreenFromProjected(base);
-        float distance = LaneXGpr(LengthXYInX(VuSub(screen.qw, reconSel->origin)));
+        float distance = QwordX(LengthXYInX(VuSub(screen.qw, reconSel->origin)));
         VU_FLOAT screenTop = ScreenFromProjected(top);
-        float size = LaneXGpr(LengthXYInX(VuSub(screen.qw, screenTop.qw)));
+        float size = QwordX(LengthXYInX(VuSub(screen.qw, screenTop.qw)));
         float proximity = 1.0f - (distance - 128.0f) / 128.0f;
         size = size / 120.0f;
         reconSel->rising = 1;

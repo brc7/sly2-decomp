@@ -376,12 +376,11 @@ extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, void *pv)
 }
 
 // MATCH (Claude agent, laneC10 2026-10-23): from v4; p->maxSize stored in each branch of the if/else (gcc cross-jumps the two stores into one join block), which lets the g8C load schedule first. One commented register pin (r in InitS).
-static __inline__ float GetX(qwordV q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ int FVecsNear(qwordV a, qwordV b)
 {
-    return AreFloatsNear(GetX(a), GetX(b), 1e-4f) && AreFloatsNear(GetY(a), GetY(b), 1e-4f) &&
+    return AreFloatsNear(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear(GetY(a), GetY(b), 1e-4f) &&
            AreFloatsNear(GetZ(a), GetZ(b), 1e-4f);
 }
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
@@ -483,18 +482,12 @@ extern "C" void SubscribeBlipgObject(BLIPGV *blipGroup, LOV *plo)
 // bounds in vf26 (min) / vf25 (max) in place and writes the new pa/pb entries to vf21/vf22.
 // vmin/vmax are only asm INPUTS of the vcallms: keeping both registers set once makes sched1 treat their loads as
 // "birthing" insns, which gives the original order of the parameter spill stores (see notes/130000.md).
-static __inline__ float FloatFromQw(qwordV q)
-{
-    float g;
-    __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q));
-    return g;
-}
 /* Non-VU work done while the microprogram runs: move particle i's extra entry down to slot j. */
 static __inline__ void MoveExtra(qwordV *pc, int i, int j, int k, qwordV dt)
 {
     pc[j] = pc[i];
     if (k == 2) {
-        float g = FloatFromQw(dt);
+        float g = QwordX(dt);
         ((VEC *)&pc[j])->v.w = NormalizeAngle(((VEC *)&pc[i])->v.w + ((VEC *)&pc[i])->v.z * g);
     }
 }

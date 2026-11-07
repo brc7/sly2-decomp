@@ -22,6 +22,7 @@
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
+#include "sly2/vu0.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
 
@@ -4266,7 +4267,6 @@ extern "C" G D_002DDF40;
 extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
 extern "C" void UpdateSpriteSlot(S *,int,M23 *,float,const RGBA &,const RGBA &);
-static inline float GetX(qword q) {float f; __asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float GetY(qword q) {float f; __asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
@@ -4292,7 +4292,7 @@ extern "C" void AdvanceWidgetSprite(S *group,float dt) {
         M23 m=D_002A3A10;
         if(group->owner->followObject) {
             qword worldPos=GetLoWorldPos(group->owner->followObject); qword screenPos=ConvertCmWorldToScreen(&D_002DDF40,worldPos);
-            m.a[4] = GetX(screenPos)*320.0f+320.0f;
+            m.a[4] = QwordX(screenPos)*320.0f+320.0f;
             m.a[5] = GetY(screenPos)*-246.40001f+246.40001f;
         }
         if(group->owner->xform) m=Mul(m,*group->owner->xform);

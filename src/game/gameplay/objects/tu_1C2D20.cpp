@@ -127,7 +127,6 @@ extern "C" int StageLootPouchLoot(SPRAYER *pouch, SOV *item, int id, void *attac
 //  * `count`, start, target and offset are plain values; the stack slots at sp+0x60..0x90 are their spill slots, and
 //    `dest` is caller-saved around the duration call.
 // Lane x of a VU vector as a float.
-static inline float X(qwordV q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 // Scales vector v by lane x of s.
 static inline qwordV Scale(qwordV s, qwordV v) { qwordV r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(s), "j"(v)); return r; }
 // Length of a vector, in lane x.
@@ -149,7 +148,7 @@ static inline qwordV Unit(qwordV v, qwordV len)
 static inline qwordV Normalize(qwordV v, qwordV fallback)
 {
     qwordV len = Length(v);
-    if (X(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
     return Unit(v, len);
 }

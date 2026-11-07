@@ -374,7 +374,6 @@ extern void EvaluateShapeAtDistance(void *p, float t, VU *ppos, VU *pdir);
 extern float atan2f(float y, float x);
 extern qword D_002A2DC0;
 extern qword D_002A2DA0;
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ qword VLen(qword c)
 {
@@ -442,7 +441,7 @@ void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, floa
         qword s = Bc(*(int *)&m);
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(n), "j"(s));
     }
-    *pg = atan2f(GetY(n), GetX(n));
+    *pg = atan2f(GetY(n), QwordX(n));
 }
 } } // namespace M_func_001830D8
 
@@ -607,7 +606,6 @@ struct Q { char pad[0x218]; qword *p218; };
 struct P { char pad[0x10C]; float f10C; };
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x1834D0
  * Purpose: Angle (atan2) from the pole axis to the player
@@ -622,7 +620,7 @@ void GetPoleGrabspotClosestParam(struct P *pole, struct Q *q, float *pg)
     qword b = GetLoWorldPos(pole);
     qword d;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-    *pg = atan2f(GetY(d), GetX(d)) * pole->f10C;
+    *pg = atan2f(GetY(d), QwordX(d)) * pole->f10C;
 }
 } } // namespace M_func_001834D0
 
@@ -768,7 +766,6 @@ struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float 
 extern qword GetLoWorldPos(void *p);
 extern qword *GetLoWorldMatrix(void *p);
 extern float atan2f(float y, float x);
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x183818
  * Purpose: Hold position/heading from the object matrix (offset by player radius unless x10C)
@@ -795,7 +792,7 @@ void GetHoldGrabspotGrabPosition(struct O *hold, struct J *pj, qword *pv, float 
         *pv = r;
     }
     if (pg) {
-        float gAng = atan2f(GetY(d), GetX(d));
+        float gAng = atan2f(GetY(d), QwordX(d));
         if (pj->unknown1040 == 1)
             gAng += 3.14159265f;
         *pg = gAng;

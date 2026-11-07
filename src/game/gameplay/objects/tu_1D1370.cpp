@@ -440,8 +440,7 @@ void ResumeSnd(SOUND *);
 void WakeSo(P *);
 }
 // Helpers X, Y, Pack, PackMesh, Dot, ShotLength, DistanceAndVelocity, Evaluate, Clamp, Abs (small asm wrappers/accessors shaped for the match).
-static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
-static inline float Y(qword q){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return X(r);}
+static inline float Y(qword q){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return QwordX(r);}
 static inline qword Pack(float x,float y,float z){qword a,b;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(a),"=&r"(b):"f"(x),"f"(y),"f"(z));return a;}
 static inline qword PackMesh(float x,float y,float z){register qword a __asm__("$2"),b __asm__("$3");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(a),"=&r"(b):"f"(x),"f"(y),"f"(z));return a;}
 static inline qword Dot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"j"(a),"j"(b));return r;}
@@ -519,7 +518,7 @@ extern "C" void UpdateRobottank(P *tank)
             ++i;
             qword direction=SetVectorCylind(tank->wheelAngle,1.0f,0.0f);
             direction=ConvertXfVec(0,side->reference->parent,direction);
-            float orientation=atan2f(Y(direction),X(direction));
+            float orientation=atan2f(Y(direction),QwordX(direction));
             scalar.q=Pack(0.0f,0.0f,ClampToLimits__FP2LMf(limits,orientation));
             limits=(LIMITS*)((char*)limits+sizeof(SIDE));
             SetActPositionGoal(side->binding,scalar.q);
@@ -858,7 +857,6 @@ qword GetLoWorldPos(void *);
 void FindShapeClosestPointFromDistance(void *,qword,void *,qword *,qword *,float *,float *,float);
 float atan2f(float, float);
 // Helpers GetX, GetY (small asm wrappers/accessors shaped for the match).
-static inline float GetX(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 // Distance between two points in the xy plane.
 static inline float Dist2D(qword a, qword b)
@@ -927,7 +925,7 @@ void SteerRobottankAlongPath(OBJ *tank)
     v=AddScaled(point,fallback,f);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(w) : "j"(v), "j"(pos));
     dir=NormalizeOr(w,fallback);
-    tank->goalHeading = atan2f(GetY(dir), GetX(dir));
+    tank->goalHeading = atan2f(GetY(dir), QwordX(dir));
     tank->drive = tank->maxDrive * 0.75f;
 }
 } } // namespace M_func_001D2490
@@ -1001,7 +999,6 @@ int IsPointInVol(void *, qword);
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
 // Helpers Sub, Add, GetX, GetY, GetZ (small asm wrappers/accessors shaped for the match).
-static inline float GetX(VV q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(VV q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float GetZ(VV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // Length of the xy part of a vector.
@@ -1011,7 +1008,7 @@ static inline float Length2D(VV v)
     __asm__("vmul.xy %0, %1, %2\n\tvaddy.x %0, %0, %0y"
             : "=j"(r) : "j"(v), "j"(v), "jm"(v.q), "jm"(v.q)); /* last two: allocation only (keep delta VU-class) */
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(r));
-    return GetX(r);
+    return QwordX(r);
 }
 // Distance in the xy plane.
 static inline float Dist2D(VV a, VV b) { return Length2D(VuSub(a, b)); }
@@ -1030,7 +1027,7 @@ static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\t
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = Sqrt(Dot(v, v));
-    if (GetX(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
     return DivideQ(v, len);
 }
@@ -1137,7 +1134,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         // attack: stop, turn the wheels towards the target, fire when the selected attachment is aimed
         tank->drive = 0.0f;
         tank->goalHeading = tank->heading;
-        tank->wheelAngle = atan2f(GetY(delta), GetX(delta));
+        tank->wheelAngle = atan2f(GetY(delta), QwordX(delta));
         if (tank->nextAttack < D_002DDED0.t) {
             ATTACH *attach = FindReadyRobottankWeapon(tank);
             if (attach) {
@@ -1170,7 +1167,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         break;
     }
     case 3:
-        tank->goalHeading = atan2f(-GetY(delta), -GetX(delta));
+        tank->goalHeading = atan2f(-GetY(delta), -QwordX(delta));
         tank->wheelAngle = tank->heading;
         tank->drive = tank->slip * 0.85f;
         break;
@@ -2062,13 +2059,12 @@ static inline VV Dot(VV a, VV b)
 }
 // Helpers Length, GFromQw, DivideQ (small asm wrappers/accessors shaped for the match).
 static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
-static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = Length(v);
-    if (GFromQw(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
     return DivideQ(v, len);
 }

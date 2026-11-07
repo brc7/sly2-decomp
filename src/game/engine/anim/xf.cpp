@@ -279,7 +279,6 @@ qword GetXfValueFromMatrix(struct S *p, float *m)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CAD0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static __inline__ qword Make(float x, float y, float z)
@@ -303,9 +302,9 @@ qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
     union { qword q; float f[4]; } r;
     CalculateSinCos__FfPfT1(GetY(a), &s0, &c0);
     CalculateSinCos__FfPfT1(GetZ(a), &s1, &c1);
-    r.q = Make(c0 * c1 * GetX(b) - s1 * GetY(b),
-               c0 * s1 * GetX(b) + c1 * GetY(b),
-               -s0 * GetX(b) + GetZ(b));
+    r.q = Make(c0 * c1 * QwordX(b) - s1 * GetY(b),
+               c0 * s1 * QwordX(b) + c1 * GetY(b),
+               -s0 * QwordX(b) + GetZ(b));
     return r.q;
 }
 } } // namespace M_func_0022CAD0
@@ -1075,12 +1074,6 @@ static inline float VuGetZ(qword qw)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
     return z;
 }
-static inline float VuGetX(qword qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 static inline float VuGetY(qword qw)
 {
     float y;
@@ -1089,7 +1082,7 @@ static inline float VuGetY(qword qw)
 }
 static inline int AreVectorsNearXyz(qword qwA, qword qwB)
 {
-    return AreFloatsNear(VuGetX(qwA), VuGetX(qwB), 0.0001f) && AreFloatsNear(VuGetY(qwA), VuGetY(qwB), 0.0001f) &&
+    return AreFloatsNear(QwordX(qwA), QwordX(qwB), 0.0001f) && AreFloatsNear(VuGetY(qwA), VuGetY(qwB), 0.0001f) &&
            AreFloatsNear(VuGetZ(qwA), VuGetZ(qwB), 0.0001f);
 }
 extern qword D_002A2DD0;
@@ -1569,7 +1562,7 @@ void UpdateSoSlots(SO *so)
                     __asm__("" : : ); // schedule only: puts the spill store ahead of the call's argument moves (no instruction)
                     qword qwCur = SlotRestValue(xf, &xf->mat);
                     qword qwDir = VuSub(qwTarget, qwCur);
-                    float gDist = VuGetX(VuLength(qwDir));
+                    float gDist = QwordX(VuLength(qwDir));
                     if (gDist > 0.0001f)
                     {
                         qwDir = VuDivX(qwDir, VuFloat(gDist).qw);

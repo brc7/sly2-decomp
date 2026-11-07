@@ -2202,7 +2202,6 @@ static inline float LaneX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g)
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float LengthSqXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return LaneX(r); }
 static inline float FloatUse(float g, void *a) { __asm__("" : "+f"(g) : "r"(a)); return g; }
-static inline float LaneXGpr(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 static inline float LengthSqXYOfGpr(qword v)
 {
     qword r;
@@ -2210,12 +2209,12 @@ static inline float LengthSqXYOfGpr(qword v)
             "\tvaddy.x %0,%0,%0y"
             : "=j"(r)
             : "j"(v));
-    return LaneXGpr(r);
+    return QwordX(r);
 }
 static inline qword SqrtVec(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
 static inline float LengthXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return LaneX(SqrtVec(r)); }
 static inline qword DotVec(qword a, qword b) { qword r, one; __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(r), "=j"(one) : "j"(a), "j"(b)); return r; }
-static inline float LengthOfGpr(qword v) { return LaneXGpr(SqrtVec(DotVec(v, v))); }
+static inline float LengthOfGpr(qword v) { return QwordX(SqrtVec(DotVec(v, v))); }
 static inline float LengthOf(qword v) { return LaneX(SqrtVec(DotVec(v, v))); }
 static inline float MinF(float a, float b) { return b < a ? b : a; }
 
@@ -2260,7 +2259,7 @@ static inline float NormalizeInPlace(U &v, const qword &vDefault)
         v.q = vDefault;
     else
         v.q = DivVec(v.q, l);
-    return LaneXGpr(l);
+    return QwordX(l);
 }
 static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }
 static inline float ClampF(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
@@ -3033,16 +3032,10 @@ static inline qword Div(qword v, qword l)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
-static inline float X(qword q)
-{
-    float f;
-    __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q));
-    return f;
-}
 static inline qword Normalize(qword v, qword fallback)
 {
     qword l = Len(v);
-    if (X(l) < 1.0e-4f)
+    if (QwordX(l) < 1.0e-4f)
         return fallback;
     return Div(v, l);
 }

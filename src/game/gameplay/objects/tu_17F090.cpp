@@ -720,7 +720,6 @@ extern "C" float NormalizeAngle__Ff(float);
 extern "C" float ClampAbs__Fff(float,float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 // Helpers Sub, X, Y, Transform (small asm wrappers/accessors shaped for the match).
-static inline float X(qword v){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Y(qword v){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(v));return f;}
 static inline qword Transform(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
 // 3x3 matrix product.
@@ -740,9 +739,9 @@ extern "C" void UpdateHackbullet(P*bullet){
  qword position;
  position=GetLoWorldPos(bullet->target);
  qword displacement=VuSub(position,GetLoWorldPos(bullet));
- float desired=atan2f(Y(displacement),X(displacement));
+ float desired=atan2f(Y(displacement),QwordX(displacement));
  qword direction=((qword(*)(void*))bullet->vt[33].fn)((char*)bullet+bullet->vt[33].delta);
- float current=atan2f(Y(direction),X(direction));
+ float current=atan2f(Y(direction),QwordX(direction));
  float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->turnRate*D_002DDED0.dt);
  rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
  ((void(*)(void*,qword))bullet->vt[35].fn)((char*)bullet+bullet->vt[35].delta,Transform(rotation,direction));
@@ -905,12 +904,11 @@ static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt Q,%1x\n\tvwaitq\n\tva
 static inline qword QwDivide(qword v,qword len){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"j"(len));return r;}
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
 static inline qword QwScaleX(qword v,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(g.qw));return r;}
-static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
-static inline float GYOfQw(qword qw){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(qw));return GXOfQw(r);}
+static inline float GYOfQw(qword qw){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(qw));return QwordX(r);}
 // Helpers Length, Heading (small asm wrappers/accessors shaped for the match).
-static inline float Length(qword v){return GXOfQw(QwSqrt(QwDot(v,v)));}
-static inline float Heading(qword v){return atan2f(GYOfQw(v),GXOfQw(v));}
+static inline float Length(qword v){return QwordX(QwSqrt(QwDot(v,v)));}
+static inline float Heading(qword v){return atan2f(GYOfQw(v),QwordX(v));}
 // Unit vector of v, or the fallback when its length is below eps.
 static inline qword QwNormalizeSafe(qword v,qword fallback,float eps){
  qword r=QwSqrt(QwDot(v,v));float x;
@@ -1884,12 +1882,11 @@ static inline float Planar(U*p){
  return Scalar(root);
 }
 // Lane x as a float.
-static inline float GX(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 // Signed distance of a point from a plane, returning the VU temporaries.
 static inline float Distance(U*dot,U*one,qword plane,qword point){
  qword d=point,o;
  __asm__("vmul.xyz %0,%2,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w":"+j"(d),"=&j"(o):"j"(plane));
- one->q=o;dot->q=d;return GX(d);
+ one->q=o;dot->q=d;return QwordX(d);
 }
 // vtable slot 60: SO base then contacts against each segment (AddXp) for requests with flag bit 49. (inferred)
 void AddHackwallXps(P*wall,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){

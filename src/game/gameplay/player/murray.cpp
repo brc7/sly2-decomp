@@ -1213,7 +1213,6 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
 
 namespace M_ChooseMurrayThrowTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct O { char pad[0xE0]; struct O *pnext; int x4; int xE8; };
@@ -1227,8 +1226,8 @@ float atan2f(float y, float x);
 float GetStepHeading(struct P *p);
 float NormalizeAngle__Ff(float g);
 qword SetVectorCylind(float a, float b, float c);
-static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return GetX(t); }
-static __inline__ float GetY2(qword t) { __asm__("prot3w %0,%0" : "+r"(t)); return GetX(t); }
+static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return QwordX(t); }
+static __inline__ float GetY2(qword t) { __asm__("prot3w %0,%0" : "+r"(t)); return QwordX(t); }
 static inline qword ToGpr(qword v) { qword r; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
 static inline float LenXY(qword v) {
     qword d;
@@ -1267,7 +1266,7 @@ void ChooseMurrayThrowTarget(struct P *murray)
             continue;
         if (500.0f < GetZ2(ToGpr(d)))
             continue;
-        { qword t = ToGpr(d); float x = GetX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = atan2f(GetX(t), x); }
+        { qword t = ToGpr(d); float x = QwordX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = atan2f(QwordX(t), x); }
         if (D_002C0988 < __builtin_fabsf(NormalizeAngle__Ff(g - GetStepHeading(murray))))
             continue;
         poBest = object;
@@ -2159,8 +2158,7 @@ static inline float LenXY(qword v) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return GetX(t); }
+static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return QwordX(t); }
 static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
 /** @sly2-annot addr=0x1B70A0
  * Purpose: If target x10DC is a stunned guard (0x209A68(..,0x17)) within reach and 0xA0 pressed: Circle lifts
@@ -3084,7 +3082,6 @@ void StartMurrayAltAttack(struct P *murray)
 
 namespace M_SetMurrayAttack { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
@@ -3149,7 +3146,7 @@ void SetMurrayAttack(struct P *murray, int k)
     if (murray->interactTarget && murray->interactKind >= 2 && !(murray->pl->x30 & 8)) {
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(murray->interactTarget)), "j"(GetLoWorldPos(murray)));
-        g = atan2f(GetY(d), GetX(d));
+        g = atan2f(GetY(d), QwordX(d));
         if (__builtin_fabsf(NormalizeAngle__Ff(g - murray->g1A8)) < D_002C09F0) {
             SetStepTargetHeading(murray, g);
             FixStepAngularVelocity(murray);

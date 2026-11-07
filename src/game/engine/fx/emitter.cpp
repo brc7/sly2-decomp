@@ -953,12 +953,6 @@ static inline float GClamp(float g, float lo, float hi)
         return hi;
     return g;
 }
-static inline float GetX(qword q)
-{
-    float f;
-    __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q));
-    return f;
-}
 
 void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac, float gScale) __asm__("WakeSoWater__FP2SOP5WATERfP6VECTORT3ff");
 // Makes an object's wake in water: by distance from its last wake point and a random chance per dt, emits splash
@@ -967,7 +961,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
 {
     float volume = 0.0f;    /* 0 until the sound is set: also the clamp floor and StopSnd's argument */
     VTE *pvte = &so->pvt->a[33];
-    float distance = GetX(Length(VuSub(pos, pvte->pfn((char *)so + pvte->d))));
+    float distance = QwordX(Length(VuSub(pos, pvte->pfn((char *)so + pvte->d))));
     int shouldWake = RandomFloatInRange__Fff(volume, 3.0f) < dt;
     SND *soundObject;
     float strength, interval;

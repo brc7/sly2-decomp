@@ -1416,12 +1416,6 @@ static inline qword Sqrt(qword a)
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
     return a;
 }
-static inline float Float(qword a)
-{
-    float f;
-    __asm__("mtc1 %1,%0" : "=f"(f) : "r"(a));
-    return f;
-}
 struct R3 {U r[3];};
 struct MATH {
     U first, second;
@@ -1516,7 +1510,7 @@ void ProjectRipTransform(S *p)
     if (!IsVectorNearlyZero(p->omega)) {
         qword omega = Scale(p->omega, Broadcast(&w.shared.math.first, p->angularDamping * D_002DDED0.dt + 1.0f));
         p->omega = omega;
-        float length = Float(Sqrt(Sq(omega)));
+        float length = QwordX(Sqrt(Sq(omega)));
         if (0.0001f < length) {
             w.shared.math.first.q = Normalize(omega, length, &w.shared.math.second);
             BuildAxisAngleRotationMatrix((M3 *)&w.rotation, w.shared.math.first.q, length * D_002DDED0.dt);
@@ -2772,14 +2766,13 @@ static inline qword Divide(qword v, qword l)
     __asm__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(r) : "j"(v), "j"(l), "j"(l)); /* allocation-only second "j"(l): keeps the length in a VF register */
     return r;
 }
-static inline float GetX(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 /* *pv /= |*pv|, or *pv = *pfallback when the length is below 1e-4; returns the length */
 static inline qword NormalizeSafe(qword *pv, const qword *pfallback)
 {
     register qword g asm("$2") = *(volatile qword *)pv; /* the one register pin: the target reads the vector into $v0, then qmtc2 */
     qword v = g;
     qword len = Length(v);
-    if (GetX(len) < 0.0001f) *pv = *pfallback;
+    if (QwordX(len) < 0.0001f) *pv = *pfallback;
     else *pv = Divide(v, len);
     return len;
 }
@@ -2799,7 +2792,7 @@ extern "C" void ProjectLeafTransform(P *p)
     SplitVectorAlongAxis(p->vel, row0, &w.along, &w.across);
     qword len = NormalizeSafe(&w.along, &D_002A2DA0);
     float dt = D_002DDED0.dt;
-    g = GetX(len);
+    g = QwordX(len);
     float gAlong = D_002C2028 + (D_002C202C * dt + 1.0f) * (g - D_002C2028);
     float gAcross = drag * dt + 1.0f;
     p->vel = VecCombo(VU_FLOAT(gAlong), VU_VECTOR(w.along), VU_FLOAT(gAcross), VU_VECTOR(w.across));
@@ -2983,12 +2976,11 @@ static inline qword Factors(const float *cs, float speed, float *first, float *s
     *second = b;
     return dt;
 }
-static inline float X(qword q) {float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f;}
 static inline float Y(qword q) {float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f;}
 static inline float Z(qword q) {float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f;}
 static inline void FNear(int *pf, qword a, qword b)
 {
-    if (AreFloatsNear__Ffff(X(b), X(a), 0.0001f))
+    if (AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f))
         if (AreFloatsNear__Ffff(Y(b), Y(a), 0.0001f))
             *pf = AreFloatsNear__Ffff(Z(b), Z(a), 0.0001f) != 0;
 }

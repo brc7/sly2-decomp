@@ -2225,12 +2225,6 @@ static inline qword DotVec(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float LaneXGpr(qword qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 extern "C" {
 void UpdateJtAirInput(JTAIR *pjtair);
 }
@@ -2440,7 +2434,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->jtbs == JTBS_13)
                     {
                         qword velocity = jt->GetVelocity();
-                        int fStill = LaneXGpr(DotVec(velocity, *(qword *)PmatLoWorld(jt)->mat[0])) < D_002BF354;
+                        int fStill = QwordX(DotVec(velocity, *(qword *)PmatLoWorld(jt)->mat[0])) < D_002BF354;
                         if (fStill)
                             SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }
@@ -2688,12 +2682,6 @@ static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **sou
     *source = sourceValue;
     return r;
 }
-static inline float X(qword q)
-{
-    float x;
-    __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q));
-    return x;
-}
 static inline qword Pack(float x, float y, float z)
 {
     qword q, t;
@@ -2824,7 +2812,7 @@ void UpdateJtAttachCorrection(struct P *jt)
                     }
                 }
             }
-            heading = X(ConvertXfVec(jt->space, relativeDestination, w.relative.q));
+            heading = QwordX(ConvertXfVec(jt->space, relativeDestination, w.relative.q));
             heading = ClampToLimits__FP2LMf(&D_002BF3B0, heading);
             axis = Pack(heading, zero, zero);
             w.axis.q = axis;

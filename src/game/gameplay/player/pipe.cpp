@@ -163,7 +163,6 @@ struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 static inline qword operator*(VU_FLOAT f, VU_VECTOR v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
 
-static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 static inline qword Length(qword v)
 {
     qword d, len;
@@ -180,7 +179,7 @@ static inline qword Unit(qword v, qword len)
 static inline qword Normalize(qword v, qword fallback)
 {
     qword len = Length(v);
-    if (X(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
     return Unit(v, len);
 }
@@ -260,7 +259,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
         w.basis.r[1] = back.q;
         qword len = Length(back.q);
         w.basis.r[1] = Unit(back.q, len);
-        if (X(len) < 0.0001f)
+        if (QwordX(len) < 0.0001f)
             w.basis.r[1] = GetNormalVector(up);
         w.basis.r[0] = Cross(w.basis.r[1], w.basis.r[2]);
     }

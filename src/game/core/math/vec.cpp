@@ -124,7 +124,6 @@ namespace V_GetNormalVectors {
 typedef int qword __attribute__((mode(TI)));
 #define CROSS(r, a, b) __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b))
 #define DOT(d, one, v) __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=j"(one), "=j"(d) : "j"(v))
-static __inline__ float FloatQ(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 /** @sly2-annot addr=0x11E2D8
  * Purpose: Two unit vectors perpendicular to a normal (basis rows)
  * Info: proposed name GetNormalVectors (T1); TU vec
@@ -146,7 +145,7 @@ extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *outBasis)
         register qword d __asm__("vf1");
         register qword one __asm__("vf2");
         DOT(d, one, x);
-        if (FloatQ(d) < 1.0e-4f)
+        if (QwordX(d) < 1.0e-4f)
             CROSS(x, vc, va);
     }
     {
@@ -176,7 +175,6 @@ namespace V_GetNormalVector {
 // union int->float so gcc emits the mtc1 itself (its latency gives the target schedule). x stays an asm mtc1 from the qword. One pin (|y| in $f0).
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { qword t; float y; __asm__("prot3w %0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(y) : "r"(t)); return y; }
 static __inline__ float GetZ(qword q) { qword t; float z; __asm__("pextuw %0,$0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(z) : "r"(t)); return z; }
 static __inline__ qword Make(float x, float y, float z)
@@ -426,7 +424,6 @@ static inline qword Len(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     return l;
 }
-static __inline__ float F(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 /** @sly2-annot addr=0x11E7C8
  * Purpose: Closest points between two segments (clamped line solution)
  * Info: proposed name FindClosestPointBetweenLineSegments (T1); TU vec
@@ -453,7 +450,7 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
     *outNormal = n;
     pdef = &D_002A2DA0;
     l = Len(n);
-    if (F(l) < 1e-4f) {
+    if (QwordX(l) < 1e-4f) {
         *outNormal = *pdef;
     } else {
         qword r;
@@ -467,7 +464,6 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
 //////// 0x11E958 CalculateVectorPanTilt
 namespace V_CalculateVectorPanTilt {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
@@ -482,9 +478,9 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
     if (outPan)
-        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
+        *outPan = NormalizeAngle__Ff(atan2f(GetY(v), QwordX(v)));
     if (outTilt)
-        *outTilt = NormalizeAngle__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
+        *outTilt = NormalizeAngle__Ff(atan2f(GetZ(v), sqrtf_(QwordX(v) * QwordX(v) + GetY(v) * GetY(v))));
 }
 }
 
@@ -820,7 +816,6 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
 //////// 0x11EF08 GetVectorCylind
 namespace V_GetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x11EF00: dead-code scrap (sly2/scrap.h)
@@ -836,7 +831,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
     if (outAngle)
-        *outAngle = NormalizeAngle__Ff(atan2f(GetY(v), GetX(v)));
+        *outAngle = NormalizeAngle__Ff(atan2f(GetY(v), QwordX(v)));
     if (outRadius) {
         qword d, l;
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v));

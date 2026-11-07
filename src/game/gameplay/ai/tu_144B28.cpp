@@ -148,7 +148,6 @@ float atan2f(float y, float x);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *object, int cid);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
@@ -218,7 +217,7 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
         clampedSpeed = Clamp(speed, D_002BBB60[0], D_002BBB60[1]);
         if (0.0f < clampedSpeed) {
             poctl->speed = clampedSpeed * behavior->speedScale;
-            poctl->heading = atan2f(GetY(v), GetX(v));
+            poctl->heading = atan2f(GetY(v), QwordX(v));
         }
         if (behavior->forcesButton8)
             poctl->grfbtn |= 8;
@@ -983,7 +982,6 @@ qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
@@ -1000,7 +998,7 @@ void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
         if (behavior->state == 0)
             speed = 0.1f;
         poctl->speed = speed;
-        poctl->heading = atan2f(GetY(toTarget), GetX(toTarget));
+        poctl->heading = atan2f(GetY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
@@ -1174,7 +1172,6 @@ qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146560: Second interact behaviour vtable slot 14 (steering).
@@ -1191,7 +1188,7 @@ void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
         if (behavior->state == 0)
             speed = 0.1f;
         poctl->speed = speed;
-        poctl->heading = atan2f(GetY(toTarget), GetX(toTarget));
+        poctl->heading = atan2f(GetY(toTarget), QwordX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
             poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
             UpdatePoctlPressed(poctl);
@@ -1403,7 +1400,6 @@ qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: vector difference.
 // VU0 helper: square root through the POCTL register.
 static __inline__ float SqrtQ(qword t)
@@ -1432,7 +1428,7 @@ static __inline__ float AngleXYKeepAlive(qword d, qword b)
     register qword r __asm__("v1"); /* register pin (Claude agent) */
     float x;
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d), "j"(b));
-    x = GetX(r);
+    x = QwordX(r);
     {
         float y;
         __asm__("prot3w %0,%1" : "=r"(y) : "0"(r));
@@ -1446,7 +1442,7 @@ static __inline__ float AngleXY(qword d)
     float fy;
     __asm__("prot3w %0,%1" : "=r"(y) : "r"(d));
     __asm__("mtc1 %1,%0" : "=f"(fy) : "r"(y));
-    return atan2f(fy, GetX(d));
+    return atan2f(fy, QwordX(d));
 }
 // 0x146B18: Third interact behaviour vtable slot 14 (steering): speed limited from the horizontal distance, heading
 // toward the target; states 2 and 4 press the attack button (0x80) and state 3 jumps (0x40) for their first 0.1 s.
@@ -1573,7 +1569,6 @@ float GetStepHeading(struct MURRAYV *step);
 float ClampAbs__Fff(float g, float dg);
 void SetStepTargetHeading(struct MURRAYV *step, float heading);
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840): in 0 he faces D_002E1E40
@@ -1600,7 +1595,7 @@ void UpdateBhvMurray(struct P *behavior)
             playerPos = GetLoWorldPos(D_002E1E40);
             murrayPos = GetLoWorldPos(behavior->murray);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(toPlayer) : "j"(playerPos), "j"(murrayPos));
-            headingToPlayer = atan2f(GetY(toPlayer), GetX(toPlayer));
+            headingToPlayer = atan2f(GetY(toPlayer), QwordX(toPlayer));
             if (__builtin_fabsf(NormalizeAngle__Ff(headingToPlayer - behavior->startHeading)) < D_002BD374) {
                 heading = GetStepHeading(behavior->murray);
                 {

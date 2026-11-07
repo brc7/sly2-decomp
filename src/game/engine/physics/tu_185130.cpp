@@ -622,7 +622,6 @@ static inline qword QwAddScaledJ(qword base,qword vec,VU_FLOAT k,qword f){qword 
 static inline qword QwAddScaledRef(qword base,const qword&vec,VU_FLOAT k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
 static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
 static inline qword QwDivide(qword a,qword g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
-static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline float GXOfQwR(qword qw,const qword&f){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"r"(f));return x;}
 static inline qword QwCross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwRotateVecAt(const M3*m,const qword*pv){qword r;__asm__("vmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(*pv),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
@@ -656,7 +655,7 @@ extern "C" void UpdateJtMeshAttachment(JTV*jt){
  qword difference=VuSub(closest.q,position);
  qword len=QwSqrt(VuDot(difference,difference));
  qword fallback=QwScaleX(normal.q,VuFloat(-1.0f));register qword direction asm("vf2"); // the one register pin: direction vf2
- if(GXOfQw(len)<0.0001f)direction=fallback;else direction=QwDivide(difference,len);
+ if(QwordX(len)<0.0001f)direction=fallback;else direction=QwDivide(difference,len);
  qword target=QwAddScaled(closest.q,direction,VuFloat(-jt->points[0].f[0]));
  M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,D_002A2DC0.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
  int i;
@@ -681,7 +680,7 @@ extern "C" void UpdateJtMeshAttachment(JTV*jt){
   qword dir=QwSqrt(VuDot(movement.q,movement.q));
   VU_FLOAT speed;LoadVuFloatFromMemWord(speed,*(int*)&jt->control->speed);M3 copy=rotation;
   qword fallback=D_002A2DC0.q;
-  if(GXOfQw(dir)<0.0001f)dir=fallback;else dir=QwDivideR(movement.q,dir,fallback); // "r"(fallback): allocation-only
+  if(QwordX(dir)<0.0001f)dir=fallback;else dir=QwDivideR(movement.q,dir,fallback); // "r"(fallback): allocation-only
   movement.q=QwScaleX(dir,speed);
   jt->acceleration.q=QwCombo(jt->axes[1].direction.q,jt->axes[2].direction.q,VuFloatFromMemWord(movement.i[1]),VuFloatFromMemWord(movement.i[2]));
   jt->acceleration.q=QwScaleX(jt->acceleration.q,VuFloatFromMemF(jt->request->multiplier));
@@ -692,7 +691,7 @@ extern "C" void UpdateJtMeshAttachment(JTV*jt){
   jt->acceleration.q=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
  }
  int active=0;
- if(GXOfQw(VuDot(jt->acceleration.q,jt->acceleration.q))>1.0f)active=1;
+ if(QwordX(VuDot(jt->acceleration.q,jt->acceleration.q))>1.0f)active=1;
  else if(jt->control->speed!=0.0f)active=1;
  if(active){
   SetJtState__FP2JT3JTS4JTBS(jt,21,11);UpdateDirectionalBlend(jt,jt->axes,jt->request);

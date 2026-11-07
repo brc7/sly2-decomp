@@ -3328,7 +3328,6 @@ static inline qword ScaleNew(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,
 static inline qword AddScaled(qword a,qword b,qword k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
 static inline qword DotQ(qword value,qword normal){qword d=value,b=normal,one;__asm__("vmul.xyz %0,%0,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d),"=&j"(one):"j"(b));return d;}
 // x of a qword: the compiler emits the qmfc2, the asm the mtc1 (an asm qmfc2 issues it before the 0.5 load)
-static inline float GetX(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Length(qword a){qword d,one;float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
 
 /** @sly2-annot addr=0x1F59A0
@@ -3366,7 +3365,7 @@ extern "C" void AccelSoTowardMatBounded(P *so,const M3 *orientation,const COEF *
     {M3 out;MulMatrix3Matrix3(&out,&owner->matrix,&frame);relative=out;}
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&relative,&angle,&axis.q);
     desired=ClampAbs__Fff((angle/stopAngle)*maximum,maximum);
-    speed=GetX(DotQ(owner->velocity,axis.q));
+    speed=QwordX(DotQ(owner->velocity,axis.q));
     clock=&D_002DDED0;
     float half=clock->dt*0.5f;
     remaining=angle-(speed+desired)*half;

@@ -782,7 +782,6 @@ static inline VV Root(VV a)
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
     return a;
 }
-static inline float ToFloatR(qword v) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(v)); return f; }
 static inline VV LengthOf(const U &v)
 {
     qword d, one;
@@ -830,9 +829,9 @@ extern "C" { void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPA
             segment.q = ApplyConstrNoTransform(space, segment.q);
         }
         qword length = LengthOf(segment);
-        float size = ToFloatR(length);
+        float size = QwordX(length);
         segment.q = NormalizeTo(segment, length);
-        float distance = ToFloatR(DotInto(segment.q, delta));
+        float distance = QwordX(DotInto(segment.q, delta));
         fraction = 0.0f;
         if (distance < 0.0f) {
             if (forward) { fraction = 1.0f; index = previous; break; }
@@ -1005,8 +1004,7 @@ static inline VV Root(VV a)
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
     return a;
 }
-static inline float ToFloatR(qword v) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(v)); return f; }
-static inline float Length(VV a) { return ToFloatR(Root(Dot(a, a))); }
+static inline float Length(VV a) { return QwordX(Root(Dot(a, a))); }
 static inline VV Normalize(VV a)
 {
     qword length = Root(Dot(a, a));
@@ -1875,7 +1873,8 @@ static inline VV TransformPoint(const M4 &m, VV v)
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float GFromVf(VV v) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 /* float out of a VF register: asm mtc1, the compiler emits the qmfc2 (reload); the one-cost asm decides the sched2 ties */
-static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
+// Same idiom as sly2/vu0.h QwordX; kept local because the shared template changes StepChainRk4 (10/838 instructions off).
+static inline float QwordX(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV Dot(VV a, VV b)
 {
@@ -1952,7 +1951,7 @@ static inline float Normalize(U *pv, const qword &fallback)
         pv->q = fallback;
     else
         pv->q = DivideQ(pv->q, len);
-    return GFromQw(len);
+    return QwordX(len);
 }
 /* Normalize for a vector re-read from memory after a join (dir2): the game loads it into a GPR (lq) and reload copies it into
    the dot's VF input (qmtc2, no RTL insn of its own); the dot hands the VF copy on to the divide as a tied output.
@@ -1968,11 +1967,11 @@ static inline float NormalizeV(U *pv, const qword &fallback, float prev)
         pv->q = fallback;
     else
         pv->q = DivideQ(vf, len);
-    return GFromQw(len);
+    return QwordX(len);
 }
 static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
-static inline int FWithin(VV a, VV b, float s) { return GFromQw(Length(VuSub(a, b))) < s; }
+static inline int FWithin(VV a, VV b, float s) { return QwordX(Length(VuSub(a, b))) < s; }
 
 static inline void Store(U *pd, VV v) { pd->q = v; }
 static inline const qword &Q(const U *p) { return p->q; }
@@ -2014,7 +2013,7 @@ void StepChainRk4(CHAIN *chain)
         float scale = 0.75f - 0.25f / (count - 2);
         float rest = chain->distance[count - 1];
         VV chord = SubP(&newP[0], &newP[count - 1]);
-        float amplitude = scale * SqrtF(GMax(rest * rest - GFromQw(Dot(chord, chord)), 0.0f));
+        float amplitude = scale * SqrtF(GMax(rest * rest - QwordX(Dot(chord, chord)), 0.0f));
         for (i = 1; i < count - 1; i++) {
             VV F = AddScaled(chain->force, VU_FLOAT(-chain->damping), newV[i].q);
             if (chain->stretch != 0.0f || chain->stretchDamping != 0.0f) {
@@ -2096,7 +2095,7 @@ void StepChainRk4(CHAIN *chain)
         chain->position[i].q = end;
         chain->velocity[i].q = endVel;
         count = i + 1;
-        chain->distance[i] = chain->distance[i - 1] + GFromQw(Length(VuSub(chain->position[i].q, chain->position[i - 1].q)));
+        chain->distance[i] = chain->distance[i - 1] + QwordX(Length(VuSub(chain->position[i].q, chain->position[i - 1].q)));
         chain->path->dist[i] = chain->distance[i];
         chain->path->count = count;
     } else {
@@ -2121,7 +2120,7 @@ void StepChainRk4(CHAIN *chain)
     if (chain->mode != 3) {
         chain->path->dist[0] = 0.0f;
         for (i = 1; i < count; i++)
-            chain->path->dist[i] = chain->path->dist[i - 1] + GFromQw(Length(VuSub(chain->path->pos[i - 1].q, chain->path->pos[i].q)));
+            chain->path->dist[i] = chain->path->dist[i - 1] + QwordX(Length(VuSub(chain->path->pos[i - 1].q, chain->path->pos[i].q)));
     }
     InvalidateShapeCache(chain->path);
 }
@@ -2190,7 +2189,6 @@ static inline VV TransformPoint(const M4 &m, VV v)
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes StepChain (62/215 instructions off).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float GFromVf(VV v) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
-static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV Dot(VV a, VV b)
 {
@@ -2258,7 +2256,7 @@ void StepChain(CHAIN *chain)
         VV pos = VecCombo3(chain->position[i].q, VU_FLOAT(dt * 0.5f), chain->velocity[i].q, VU_FLOAT(dt * 0.5f), vel);
         VV delta = VuSub(pos, prev);
         VV dir = NormalizeSafe(delta, D_002A2DA0);
-        float proj = -GFromQw(DotVf1(VuSub(vel, prevVel), dir));
+        float proj = -QwordX(DotVf1(VuSub(vel, prevVel), dir));
         float d = Abs(chain->distance[i] - chain->distance[i - 1]);
         prev = AddScaled(prev, VU_FLOAT(d), dir);
         prevVel = AddScaled(vel, VU_FLOAT(proj), dir);

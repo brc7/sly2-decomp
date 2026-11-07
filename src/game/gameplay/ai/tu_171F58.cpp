@@ -140,7 +140,6 @@ float NormalizeAngle(float rad);
 int IsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
@@ -220,7 +219,7 @@ extern "C" void UpdateBhvSearch(BHV171V *behavior) {
                 qword b = GetLoWorldPos(behavior->guard);
                 qword d;
                 d = VuSub(a, b);
-                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
+                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), QwordX(d)));
             }
             break;
         case 3:
@@ -299,7 +298,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             qword b = GetLoWorldPos(behavior->guard);
             qword d;
             d = VuSub(a, b);
-            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
+            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), QwordX(d)));
             {
                 BHVO *child = PushStepBehavior(behavior->guard, CID_BHVIDLE);
                 StartPushedBhv(child);
@@ -449,7 +448,6 @@ static inline qword VuLengthXY(qword v)
 // VU0 helper: x of a VU register as a float.
 static inline float VuXToFloat(qword qw){float g;__asm__("qmfc2 %0, %1":"=r"(g):"j"(qw));return g;}
 // VU0 helper: x component of a quadword vector.
-static inline float VuGetX(qword qw){float x;__asm__("mtc1 %1, %0":"=f"(x):"r"(qw));return x;}
 // allocation-only second "j"(b): the extra reference raises b's local-alloc priority, so b gets vf1 and the dot vf2 as in the target
 static inline qword VuDotProduct(qword a, qword b)
 {
@@ -512,7 +510,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
         qword len = VuLengthReuseOne(w.query.delta.q);
         qword g = VuFloatFromMemWord(*(int *)&object->reach);
         qword n;
-        if (VuGetX(len) < 0.0001f) {
+        if (QwordX(len) < 0.0001f) {
             w.query.scalar.q = g;
             n = qwFallback;
         } else {
@@ -590,7 +588,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
             qword qwFallback = D_002A2DA0;
             qword planar = VuSub(delta, VuScaleByX(up, VuDotProduct(delta, up)));
             qword len = VuLength(planar);
-            if (VuGetX(len) < 0.0001f)
+            if (QwordX(len) < 0.0001f)
                 planar = qwFallback;
             else
                 planar = VuDivideByX(planar, len);
@@ -602,7 +600,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
             if (previous) {
                 qword d;
                 QW_SUB_T(d, probe, previous->candidate.q);
-                if (VuGetX(VuLengthXY(d)) < 150.0f)
+                if (QwordX(VuLengthXY(d)) < 150.0f)
                     continue;
             }
             previous = &behavior->searchPoints[accepted++];

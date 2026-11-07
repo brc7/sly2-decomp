@@ -234,15 +234,13 @@ static inline qwordV Normalize(qwordV v)
 static inline float ZOfP(qwordV v)
 { float z; __asm__("pextuw %0,$zero,%1" : "=r"(z) : "r"(v)); return z; }
 // Lane x as a float.
-static inline float FQ(qwordV q)
-{ float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // Length of the xy part of a vector.
 static inline float LenXY(qwordV v)
 {
     qwordV d, l;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(d) : "j"(v));
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "j"(d));
-    return FQ(l);
+    return QwordX(l);
 }
 // Signed distance of pos from a plane (xyz normal, w offset); also returns the VU temporaries (variant A, register
 // order for the match).
@@ -267,7 +265,7 @@ static inline float PlaneDistB(UQ &r, UQ &one, qwordV plane, qwordV pos)
     InitVuTemp(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
-    float f = FQ(g);
+    float f = QwordX(g);
     __asm__("" : "+j"(g), "+j"(o));
     one.q = o;
     r.q = g;
@@ -282,7 +280,7 @@ static inline float PlaneDistS(UQ &r, UQ &one, qwordV plane, qwordV pos)
     InitVuTemp(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
-    float f = FQ(g);
+    float f = QwordX(g);
     one.q = o;
     r.q = g;
     return f;

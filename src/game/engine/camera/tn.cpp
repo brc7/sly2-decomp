@@ -213,12 +213,6 @@ static inline qword QwDot(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float GXOfQw(qword qw)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
-    return x;
-}
 static inline qword QwCross(qword a, qword b)
 {
     qword qw;
@@ -902,7 +896,6 @@ extern "C" void DeactivateCptn(CMPART2 *p) {
     DeactivateCplcy(p);
 }
 
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // Positions tn target via FillCrvcCache or atan2 heading. (inferred)
 void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
@@ -918,7 +911,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
         qword v = ConvertPosBetweenLos(0, ps, q), d;
         float g;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(*(qword *)&ps->posCenter));
-        g = atan2f(GetY(d), GetX(d));
+        g = atan2f(GetY(d), QwordX(d));
         if (g < 0.0f) g += 6.2831855f;
         ps->uProgress = g * ps->sRadius;
     }
@@ -1112,7 +1105,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwNormal) : "j"(qwDir));
             *(qword *)&dpos = qwNormal;
         }
-        float gPull = GEvaluateClqLm(&ptnCur->clqPull, &ptnCur->lmPull, GXOfQw(qwLen));
+        float gPull = GEvaluateClqLm(&ptnCur->clqPull, &ptnCur->lmPull, QwordX(qwLen));
         *(qword *)&vFocus = QwMulX(*(qword *)&dpos, VuFloat(gPull));
     }
     else

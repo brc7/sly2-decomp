@@ -835,7 +835,6 @@ static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" :
 static inline qword ZeroVec() { qword r; __asm__("vsub.xyzw %0,$vf0,$vf0" : "=j"(r)); return r; }
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 static inline qword ScaleVecX(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(a)); return r; }
-static inline float LaneX(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
 static inline qword DotVec(qword a, qword b)
 {
     qword d, one;
@@ -844,12 +843,12 @@ static inline qword DotVec(qword a, qword b)
 }
 static inline qword SqrtVec(qword d) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(d)); return r; }
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
-static inline float LengthOf(VU_VECTOR v) { return LaneX(SqrtVec(DotVec(v.q, v.q))); }
+static inline float LengthOf(VU_VECTOR v) { return QwordX(SqrtVec(DotVec(v.q, v.q))); }
 static inline float LengthXYOf(qword v)
 {
     qword l;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(l) : "j"(v));
-    return LaneX(SqrtVec(l));
+    return QwordX(SqrtVec(l));
 }
 static inline qword DivVec(qword v, qword l)
 {
@@ -861,7 +860,7 @@ static inline qword DivVec(qword v, qword l)
 static inline qword NormalizeVec(qword v, qword fallback)
 {
     qword l = SqrtVec(DotVec(v, v));
-    if (LaneX(l) < 0.0001f)
+    if (QwordX(l) < 0.0001f)
         return fallback;
     return DivVec(v, l);
 }
@@ -936,12 +935,12 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             side.q = SetVectorCylind(angle, 1.0f, 0.0f);
             U input;
             input.q = SetVectorCylind(joy->heading, 1.0f, 0.0f);
-            float g = ClampF(D_002BF5BC * LaneX(DotVec(side.q, input.q)), -1.0f, 1.0f);
+            float g = ClampF(D_002BF5BC * QwordX(DotVec(side.q, input.q)), -1.0f, 1.0f);
             g *= joy->amount;
             if (__builtin_fabsf(g) < 0.2f)
                 g = 0.0f;
             lateral = g * speedMax;
-            lateral = MinF(SqrtF(speedMax * speedMax - LaneX(DotVec(vel.q, vel.q))), lateral);
+            lateral = MinF(SqrtF(speedMax * speedMax - QwordX(DotVec(vel.q, vel.q))), lateral);
             float s;
             FOCUS *focus;
             if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
@@ -1037,7 +1036,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             FindShapeClosestPoint(focus->other, *ctx->actor->ppos, 0, 0, &dir, 0, 0);
         dir.f[2] = 0.0f;
         dir.q = NormalizeVec(dir.q, D_002A2DA0);
-        float g = LaneX(DotVec(input.q, dir.q));
+        float g = QwordX(DotVec(input.q, dir.q));
         switch (ctx->index) {
         case 0:
             if (joy->amount < 0.25f)
@@ -1452,7 +1451,6 @@ static inline void AddFlags(uint *pflags, uint bits)
 static inline VU_FLOAT VuFloat(const float &g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)&g)); return v; }
 
 static inline bool Less(int n, int limit) { return n < limit; }   // as in SetJtAirState: keeps the two range tests apart
-static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 // The vector is moved to a GPR once (gcc's own qmfc2 for the "r" inputs) and its x word is stored straight from there:
 // no C construct gives a 32-bit store of the low word of a TImode GPR (unions go through the stack, casts sign-extend).
 // Same StoreX/GetY/GetZ helpers as the matched func_001E9AC0.cpp.
@@ -1493,7 +1491,7 @@ static inline qword Unit(qword v, qword len)
 static inline qword Normalize(qword v, qword fallback)
 {
     qword len = Length(v);
-    if (X(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return fallback;
     return Unit(v, len);
 }
@@ -1560,7 +1558,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             dir.i[2] = 0;
             Normalize(&dir.q);
             qword normal = dir.q;   // read before the call: a VU pseudo spilled to 0x50
-            grab->reversed = X(Dot(normal, GetLoWorldMatrix(grab->pactor)->row[0])) < D_002BF63C;
+            grab->reversed = QwordX(Dot(normal, GetLoWorldMatrix(grab->pactor)->row[0])) < D_002BF63C;
             break;
         }
         case 2: {

@@ -419,12 +419,6 @@ extern "C" void *ChooseBhvDimitriAttackRouteEnd(BHVATK *behavior)
 }
 
 // VU0 helper: x component of a vector.
-static __inline__ float GetX(qwordV q)
-{
-    float x;
-    __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q));
-    return x;
-}
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qwordV q)
 {
@@ -463,7 +457,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         child->sgf = 0xB;
         d = VuSub(GetLoWorldPos(behavior->goal), GetLoWorldPos(behavior->guard));
         {
-            float g = atan2f(GetY(d), GetX(d)) + 3.1415927f;
+            float g = atan2f(GetY(d), QwordX(d)) + 3.1415927f;
             SetStepguardMoverRadTarget(behavior->guard->mover, g);
         }
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);

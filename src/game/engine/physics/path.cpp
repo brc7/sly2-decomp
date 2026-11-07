@@ -62,7 +62,6 @@ void InitDl(DL *pdl, int ibDle);
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspQuick { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ qword Make(float x, float y, float z)
 {
@@ -97,7 +96,7 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
     union { qword q; float f; } u;
     NODE *pn, *pnEnd, *anode;
     int mask;
-    u.q = Make(GetX(pos), GetY(pos), -1.0f);
+    u.q = Make(QwordX(pos), GetY(pos), -1.0f);
     pn = graph->anode;
     pnEnd = &graph->anode[graph->cnode];
     anode = graph->anode;
@@ -123,7 +122,6 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspSafe { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ qword Make(float x, float y, float z)
 {
@@ -160,7 +158,7 @@ LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
     NODE *pnEnd, *anode;
     int mask;
     qword q;
-    q = Make(GetX(pos), GetY(pos), -1.0f);
+    q = Make(QwordX(pos), GetY(pos), -1.0f);
     u.q = q;
     pnEnd = &graph->anode[graph->cnode];
     anode = graph->anode;
@@ -636,7 +634,6 @@ qword GetClosestPointOnNavTriangle(T *t, qword p);
 static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float Z(qword a) { float z; __asm__("qmfc2.ni %0,%1\n\tpextuw %0,$zero,%0" : "=r"(z) : "j"(a)); return z; }
 static inline float ZOf(qword q) { float z; __asm__("pextuw %0,$zero,%1" : "=r"(z) : "r"(q)); return z; }
-static inline float XOf(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static inline qword Dot(qword a, qword b)
 {
     qword d = a, one;
@@ -673,7 +670,7 @@ extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
         qword n = Cross(ab, VuSub(vc.q, va.q));
         qword dv = Dot(VuSub(va.q, pos), n);
         float nz = ZOf(n);
-        float dot = XOf(dv);
+        float dot = QwordX(dv);
         float g = dot / nz;
         result.q = AddScaled(pos, D_002A2DC0, g);
     }
@@ -1676,7 +1673,6 @@ void InitObstacleQueryCursor(struct S*,struct C*);
 void SweepObstacleRange(void*,int*,int*,qword*,float,float);
 static inline qword Max(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Min(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Z(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
 /** @sly2-annot addr=0x1C1700
@@ -1697,7 +1693,7 @@ int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int 
  if(!cursor){cursor=&local;cursor->version=-1;}
  if(cursor->version!=zone->version)InitObstacleQueryCursor(zone,cursor);
  lo=Min(from,to);hi=Max(from,to);
- SweepObstacleRange(zone->xEvents,&cursor->xmin,&cursor->xmax,&cursor->x,X(lo),X(hi));
+ SweepObstacleRange(zone->xEvents,&cursor->xmin,&cursor->xmax,&cursor->x,QwordX(lo),QwordX(hi));
  SweepObstacleRange(zone->zEvents,&cursor->zmin,&cursor->zmax,&cursor->z,Z(lo),Z(hi));
  copy.q=And(cursor->x,cursor->z);mask=copy;
  {void**cursor=out;
@@ -2197,8 +2193,7 @@ static inline NAV *PnavFind(const qword &pos) { return FindPathzoneAtPos(pos, 0)
 static inline void AppendNode(DL *pdl, NODE *pnode) { AppendDlEntry__FP2DLPv(pdl, pnode); }
 static inline void RemoveNode(DL *pdl, NODE *pnode) { RemoveDlEntry__FP2DLPv(pdl, pnode); }
 static inline void InsertNode(DL *pdl, NODE *pnodeNext, NODE *pnode) { InsertDlEntryBefore__FP2DLPvT1(pdl, pnodeNext, pnode); }
-static inline float GXOfQw(qword qw) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw)); return x; }
-static inline float GDistX(const qword &a, const qword &b) { return GXOfQw(QwLength(VuSub(a, b))); }
+static inline float GDistX(const qword &a, const qword &b) { return QwordX(QwLength(VuSub(a, b))); }
 
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
 /** @sly2-annot addr=0x1C21D8

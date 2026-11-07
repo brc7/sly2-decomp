@@ -338,18 +338,12 @@ static inline qword DivQ(qword v, qword f)
     return r;
 }
 // Lane x of a 128-bit register as a float.
-static inline float GetX(qword q)
-{
-    float f;
-    __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q));
-    return f;
-}
 
 // Unit vector of v, or def for a near-zero vector.
 static inline qword NormalizeSafe(qword v, qword def)
 {
     qword len = Length(v);
-    if (GetX(len) < 0.0001f)
+    if (QwordX(len) < 0.0001f)
         return def;
     return DivQ(v, len);
 }
@@ -388,7 +382,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
     pqBest = 0;
     for (pl = bomb->pxp->pl; pl; pl = pl->next) {
         for (pq = pl->pq; pq; pq = pq->pqNext) {
-            float g = GetX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
+            float g = QwordX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
             int f;
             if (gBest <= g)
                 continue;

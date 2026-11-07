@@ -1483,7 +1483,6 @@ struct VU_FLOAT {
 // Helpers PvAllocFrame, GetZ, GFromVf, Add, Sub (small asm wrappers/accessors shaped for the match).
 static inline void *PvAllocFrame(int cb, int cbAlign) { ALLOCREQ req(cb, cbAlign); return AllocFromStack(&req); }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-static inline float GFromVf(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
 // Dot product.
 static inline qword Dot(qword a, qword b)
 {
@@ -1514,7 +1513,7 @@ static inline qword Normalize(qword v)
 {
     qword fallback = D_002A2DA0;
     qword l = Length(v);
-    if (GFromVf(l) < 0.0001f)
+    if (QwordX(l) < 0.0001f)
         l = fallback;
     else
         l = Div(v, l);
@@ -1573,7 +1572,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
             return;
         posSnap.f[2] = GetZ(pos);
     }
-    if (FFartherThan(GFromVf(LengthXY(VuSub(posOrig.q, posSnap.q))), D_002C0E80))
+    if (FFartherThan(QwordX(LengthXY(VuSub(posOrig.q, posSnap.q))), D_002C0E80))
         return;
     if (!FindDprizeLanding(-250.0f, 1500.0f, D_002A775C, posSnap.q, 0, 0, &posSnap.q))
         return;

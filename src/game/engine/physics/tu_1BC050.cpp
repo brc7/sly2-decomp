@@ -157,7 +157,6 @@ int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float
 
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /* The world matrix: virtual slot 31. */
 static inline M4 *GetMat(CID14V *p) { return ((M4 *(*)(CID14V *))p->vt[31].pfn)((CID14V *)((char *)p + p->vt[31].d)); }
@@ -269,8 +268,8 @@ extern "C" void RemoveCid14Hierarchy(CID14V *polygon)
 // Lexicographic comparison of two positions by x, then y (sort callback for the hull).
 int ComparePosXY(qword a, qword b)
 {
-    if (GetX(a) < GetX(b)) return -1;
-    if (GetX(b) < GetX(a)) return 1;
+    if (QwordX(a) < QwordX(b)) return -1;
+    if (QwordX(b) < QwordX(a)) return 1;
     if (GetY(a) < GetY(b)) return -1;
     if (GetY(b) < GetY(a)) return 1;
     return 0;
@@ -286,7 +285,7 @@ int ComparePosXY(qword a, qword b)
 // Sign of the 2D cross product of (a - b) and (b - c) with an epsilon: -1, 0 or 1 for a right turn, straight, left.
 int GetTurnSignXY(qword a, qword b, qword c)
 {
-    float g = (GetX(a) - GetX(b)) * (GetY(b) - GetY(c)) - (GetY(a) - GetY(b)) * (GetX(b) - GetX(c));
+    float g = (QwordX(a) - QwordX(b)) * (GetY(b) - GetY(c)) - (GetY(a) - GetY(b)) * (QwordX(b) - QwordX(c));
     if (g < -D_002C0AB0) return -1;
     if (D_002C0AB0 < g) return 1;
     return 0;
