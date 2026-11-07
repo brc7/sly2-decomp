@@ -1351,37 +1351,28 @@ void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
 } } // namespace M_SetBhvcombatState
 
 // 0x1766D8 InitBhvguard
-namespace M_InitBhvguard { extern "C" {
-struct S;
-struct S { char pad[0x30]; int modeKind; };
-void InitBhv(struct S *p);
-} } // namespace M_InitBhvguard
 // 0x1766D8: BHVGUARD vtable slot 7 (OnPush): no mode (-1).
 void BHVGUARD::OnPush()
 {
-    using namespace M_InitBhvguard;
-    M_InitBhvguard::S *p = (M_InitBhvguard::S *)this;
-    InitBhv(p);
-    p->modeKind = -1;
+    InitBhv(this);
+    mode.kind = -1;
 }
 
 // 0x176708 StartBhvguard
 namespace M_StartBhvguard { extern "C" {
-struct F;
-struct F { int a[0x1C]; };
-void StartBhv(void *p);
 void func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *p, struct F *pf);
+void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m);
+} } // namespace M_StartBhvguard
 // 0x176708: BHVGUARD vtable slot 8 (Start): mode 0 (which immediately becomes patrol).
-void StartBhvguard(void *p)
+extern "C" void StartBhvguard(BHV156 *p)
 {
-    struct F f;
+    using namespace M_StartBhvguard;
+    BHVGUARDRECDATA f;
     StartBhv(p);
     func_002333B4(&f, 0, sizeof(f));
-    f.a[0] = GUARD_MODE_START;
+    f.kind = GUARD_MODE_START;
     SetBhvguardMode(p, &f);
 }
-} } // namespace M_StartBhvguard
 
 // 0x176750 SetBhvguardMode
 namespace M_SetBhvguardMode { extern "C" {
@@ -1557,22 +1548,21 @@ extern "C" void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) {
 
 // 0x176B80 InflictBhvguardZap
 namespace M_InflictBhvguardZap { extern "C" {
-struct F; 
-struct F { int source; int pad; void *target; int kind; int amount; int pad2[0x13]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void DeliverZapToSo(struct F *pf);
+void DeliverZapToSo(ZPR *pzpr);
+} } // namespace M_InflictBhvguardZap
 // 0x176B80: Inflicts a zap of kind 0x40000 and `amount` on the guard from `source`.
-void InflictBhvguardZap(BHVGUARD *behavior, int amount, int source)
+extern "C" void InflictBhvguardZap(BHVGUARD *behavior, int amount, LO *source)
 {
-    struct F f;
+    using namespace M_InflictBhvguardZap;
+    ZPR f;
     func_002333B4(&f, 0, sizeof(f));
-    f.source = source;
-    f.amount = amount;
-    f.kind = 0x40000;
-    f.target = behavior->owner;
+    f.ploSource = source;
+    f.dhp = amount;
+    f.zpk = 0x40000;
+    f.unknown08 = behavior->owner;
     DeliverZapToSo(&f);
 }
-} } // namespace M_InflictBhvguardZap
 
 // 0x176BE8 HandleBhvguardMessage
 namespace M_BHVGUARD_FHandleMessage {
