@@ -3993,31 +3993,30 @@ void UpdateBhvpatrol(BHVPATROL *behavior) {
 
 // 0x179D30 SetBhvpatrolState
 namespace M_SetBhvpatrolState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct S;
+struct CLOCK; struct VTE; struct O; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
 struct T { char pad[0x2DC]; char scriptResumePoint[4]; };
-struct S { char pad[0x10]; struct T *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; float stateTime; void *script; };
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 void SaveBhvScriptResumeState(void *p, void *q);
-void SetBhvScriptScript(struct O *o, void *t, int a, void *u);
-void ArmBhvpatrolPauseTimer(struct S *p);
-void ArmBhvpatrolWalkTimer(struct S *p);
+void SetBhvScriptScript(struct O *o, int t, int a, void *u);
+void ArmBhvpatrolPauseTimer(BHVPATROL *p);
+void ArmBhvpatrolWalkTimer(BHVPATROL *p);
 // 0x179D30: BHVPATROL state switch: 0 runs the patrol script (BHV169, saving the resume point), 1/2 idle, 3
 // hands-off idle.
-void SetBhvpatrolState(struct S *behavior, int n) {
+void SetBhvpatrolState(BHVPATROL *behavior, int n) {
     if (n == behavior->state) return;
-    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->child, behavior->guard->scriptResumePoint);
-    PopBhv(&behavior->child);
+    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->pbhvNext, ((struct T *)behavior->owner)->scriptResumePoint);
+    PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1: case 2:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
+            struct O *o = PushStepBehavior(((struct T *)behavior->owner), CID_BHVIDLE);
             StartPushedBhv(o);
         }
         ArmBhvpatrolPauseTimer(behavior);
@@ -4025,8 +4024,8 @@ void SetBhvpatrolState(struct S *behavior, int n) {
         break;
     case 0:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV169);
-            SetBhvScriptScript(o, behavior->script, 0, behavior->guard->scriptResumePoint);
+            struct O *o = PushStepBehavior(((struct T *)behavior->owner), CID_BHV169);
+            SetBhvScriptScript(o, behavior->script, 0, ((struct T *)behavior->owner)->scriptResumePoint);
             StartPushedBhv(o);
         }
         ArmBhvpatrolWalkTimer(behavior);
@@ -4034,7 +4033,7 @@ void SetBhvpatrolState(struct S *behavior, int n) {
         break;
     case 3:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
+            struct O *o = PushStepBehavior(((struct T *)behavior->owner), CID_BHVIDLE);
             o->sgf = 1;
             StartPushedBhv(o);
         }
