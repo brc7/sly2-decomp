@@ -20,8 +20,6 @@ struct M3{qword r[3];};
 struct M4{U r[4];};
 struct V3{float f[3];};
 struct PLANE{V3 normal;float distance;};
-/* g++ 2.95 vtable entry. */
-struct VTE { short d; short pad; void (*pfn)(); };
 
 struct TEX0_FIELDS {
     ulong tbp0 : 14;
@@ -51,18 +49,13 @@ struct RT
 typedef char assert_RT_size[sizeof(RT) == 0x28 ? 1 : -1];
 
 /* An object the camera renders (+0xE4 list): LO fields used by AcquireRenderTarget. */
-struct LOROOTV { struct LOV *plo; };
-struct LOV { char pad0[0xC]; VTE *vt; char pad10[4]; LOROOTV *ploroot; char pad18[0x10]; unsigned long loBits; char pad30[0x10]; int flags40; };   /* loBits bit 60: LO::isInWorld; flags40: tagged flag word */
 /* An object of the second list (+0x108). */
-struct RTO { int a, b, c; VTE *vt; char pad[0x15C - 0x10]; int unknown15C; int unknown160; };   /* both set to 1 while shown in a target */
+struct RTO : SO { char pad150[0x15C - 0x150]; int unknown15C; int unknown160; };   /* both set to 1 while shown in a target */
 /* The camera object (an XFM, which ends at +0xE0). */
-struct RTCAM
+struct RTCAM : XFM
 {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0xE0 - 0x10];
     int c;             /* +0xE0 objects hidden while rendering, with their flags (1 shown again, 2 re-enabled) */
-    LOV *ap[4];
+    LO *ap[4];
     int af[4];
     int numShown;      /* +0x104 objects shown only in the target */
     RTO *shown[4];
@@ -75,7 +68,7 @@ struct GSB { int x0, x4, ibMax; };
 struct MATRIX4;
 struct SW; struct LO; struct BASIC;
 /* The hero's PO view: a 0x34-derived hero hands on to the object at +0xF40. */
-struct POV { char pad[0xF40]; POV *controlled; };   /* (inferred) the object the hero currently controls */
+struct POV : PO { char pad180[0xF40 - 0x180]; POV *controlled; };   /* (inferred) the object the hero currently controls */
 
 /* The two render targets' lookup rows (26 ints each, -1: none), indexed by GetRenderTargetTexture (tu_1BE398's .data). */
 int D_002C0B28[26] = {-1, -1, -1, 15, 15, 16, 16, -1, -1, 17, -1, -1, -1, -1, -1, 15, 16, 17, 15, 16, 17, -1, 15, 16, 17, -1};
@@ -94,7 +87,7 @@ void SetupRenderTargetView(RT *prt, VIFS *pvifs);
 RT *AcquireRenderTarget(RTCAM *pcam);
 void InitXfm(RTCAM *pcam);
 void LoadXfmFromBrx(RTCAM *pcam, void *pbis);
-int IsLoInWorld(LOV *plo);
+int IsLoInWorld(LO *plo);
 void BuildModelDrawPackets(void *pv, RTCAM *pcam);
 POV *GetHeroPo(SW *psw);
 }
@@ -263,7 +256,7 @@ extern "C" void LoadRtcamFromBrx(RTCAM *pcam, void *pbis)
 }
 
 // Adds an object to the set the camera renders into its target. (inferred)
-extern "C" void AddRtcamObject(RTCAM *rtcam, LOV *x)
+extern "C" void AddRtcamObject(RTCAM *rtcam, LO *x)
 {
     if (x) rtcam->ap[rtcam->c++] = x;
 }
@@ -273,12 +266,10 @@ extern "C" void AddRtcamObject(RTCAM *rtcam, LOV *x)
 extern "C" void AddRtcamObjectShown(RTCAM *rtcam, RTO *po)
 {
     if (po) {
-        VTE *e;
         rtcam->shown[rtcam->numShown++] = po;
         po->unknown160 = 1;
         po->unknown15C = 1;
-        e = &po->vt[9];
-        ((void (*)(void *))e->pfn)((char *)po + e->d);
+        po->Remove();
     }
 }
 
@@ -299,28 +290,28 @@ extern "C" RT *AcquireRenderTarget(RTCAM *rtcam)
     if (rtcam->prt) {
         rtcam->prt->camera = rtcam;
         for (j = 0; j < rtcam->c; j++) {
-            LOV *o = rtcam->ap[j];
+            LO *o = rtcam->ap[j];
             int x;
             rtcam->af[j] = 0;
-            if (((int)(o->loBits >> 60) & 1) == 0) {   /* `== 0`, not `!`: see the merge guide (C++ bool) */
+            if (((int)o->isInWorld & 1) == 0) {   /* `== 0`, not `!`: see the merge guide (C++ bool) */
                 rtcam->af[j] = 1;
-                ((void (*)(void *))o->vt[8].pfn)((char *)o + o->vt[8].d);
+                o->Add();
                 if (!IsLoInWorld(o)) {
-                    LOV *q;
-                    AppendDlEntry(&g_sw.busyRoots, o->ploroot);
-                    q = o->ploroot->plo;
-                    ((void (*)(void *))q->vt[23].pfn)((char *)q + q->vt[23].d);
+                    LO *q;
+                    AppendDlEntry(&g_sw.busyRoots, o->root);
+                    q = o->root->topObject;
+                    q->OnAdd();
                 }
             }
-            x = o->flags40;
+            x = o->unknown40;
             if ((x ^ 1) & 1) x = *(int *)x;
             if (x & 8) {
                 rtcam->af[j] |= 2;
-                ((void (*)(void *, int))o->vt[21].pfn)((char *)o + o->vt[21].d, 0);
+                o->SetFlag8(0);
             }
         }
-        ((void (*)(void *, int))rtcam->vt[21].pfn)((char *)rtcam + rtcam->vt[21].d, 1);
-        ((void (*)(void *, int, int, int, int, int))rtcam->vt[3].pfn)((char *)rtcam + rtcam->vt[3].d, 2, 0, 0, 0, 0);
+        rtcam->SetFlag8(1);
+        rtcam->HandleSpliceEvent(2, 0, 0, 0, 0);
     }
     return rtcam->prt;
 }
@@ -331,8 +322,6 @@ extern "C" void AcquireRenderTargetNoResult(RTCAM *pcam)
     AcquireRenderTarget(pcam);
 }
 
-#define VCALL(o, n, args...) ((void (*)(...))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, args)
-#define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 // Gives the camera's render target back: restores its objects (vtable slots 9 / 21 by the recorded flags), then
 // notifies itself (slot 21 with 0, message 3). (inferred)
 extern "C" void ReleaseRenderTarget(RTCAM *rtcam)
@@ -342,15 +331,13 @@ extern "C" void ReleaseRenderTarget(RTCAM *rtcam)
     rtcam->prt->camera = 0;
     rtcam->prt = 0;
     for (i = 0; i < rtcam->c; i++) {
-        LOV *o = rtcam->ap[i];
-        if (rtcam->af[i] & 1) VCALL0(o, 9);
-        if (rtcam->af[i] & 2) VCALL(o, 21, 1);
+        LO *o = rtcam->ap[i];
+        if (rtcam->af[i] & 1) o->Remove();
+        if (rtcam->af[i] & 2) o->SetFlag8(1);
     }
-    VCALL(rtcam, 21, 0);
-    VCALL(rtcam, 3, 3, 0, 0, 0, 0);
+    rtcam->SetFlag8(0);
+    rtcam->HandleSpliceEvent(3, 0, 0, 0, 0);
 }
-#undef VCALL
-#undef VCALL0
 
 // Returns texture n of the camera's render target (table D_002C0BF8[target][n]), or -1 when it holds none; used by
 // the glob renderer to bind the target texture. (inferred)
