@@ -544,27 +544,34 @@ typedef char assert_GOMER_size[sizeof(GOMER) == 0x1010 ? 1 : -1];
 /* 113 CID113 (0x60): guard script; vtable 0x2CF880, 48 slots */
 struct CID113 : LO
 {
-    GUARDSCRIPTCMD *firstCommand; /* +0x50 [S] the first script command (PostStepguardLoad keeps it as the guard's home record) */
-    char pad54[0x60 - 0x54];
+    DL commands;            /* +0x50 [S] the SSGE command list (InitGuardScript: link at +0x18); PostStepguardLoad keeps the head as the guard's home record */
+    char pad5C[0x60 - 0x5C];
     virtual void PostLoad() __asm__("PostGuardScriptLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid113ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitGuardScript");   /* slot 7 */
 };
 typedef char assert_CID113_size[sizeof(CID113) == 0x60 ? 1 : -1];
-typedef char assert_CID113_firstCommand[SLY2_OFFSETOF(CID113, firstCommand) == 0x50 ? 1 : -1];
+typedef char assert_CID113_commands[SLY2_OFFSETOF(CID113, commands) == 0x50 ? 1 : -1];
 
 /* 169 BHV169 (0x60): guard-script runner (flag 0x21); vtable 0x2CF7F8, 15 slots */
 struct BHV169 : BHV
 {
-    char pad30[0x4C - 0x30];
-    int isScriptBusy;       /* +0x4C [S] (inferred) a script command is running: no special state now (CanSetStepguardSpecial) */
-    char pad50[0x60 - 0x50];
+    CID113 *script;         /* +0x30 [S] the script being run */
+    LO *context;            /* +0x34 [S] the object script oids are looked up relative to */
+    SSGE *currentCommand;   /* +0x38 [S] */
+    float commandStartTime; /* +0x3C [S] */
+    int isCommandBusy;      /* +0x40 [S] a child behaviour runs the current command */
+    SSGRESUME *resume;      /* +0x44 [S] the resume point SetBhvScriptScript starts from (cleared after) */
+    float heading;          /* +0x48 [S] */
+    int allowPartialRoute;  /* +0x4C [S] passed to the path/goto children; also blocks special states (CanSetStepguardSpecial) */
+    ANIMBINDING animBinding; /* +0x50 [S] the binding command 14 plays */
     virtual void OnPush() __asm__("InitBhvScript");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv169ClassDesc");   /* slot 6 */
     virtual void Close() __asm__("CloseBhvScript");   /* slot 9 */
     virtual void Update() __asm__("UpdateBhvScript");   /* slot 10 */
-    virtual void ExecuteScriptCommand() __asm__("ExecuteBhvScriptCommand");   /* slot 15 */
+    virtual void ExecuteScriptCommand(SSGE *pssge) __asm__("ExecuteBhvScriptCommand");   /* slot 15: starts a command (SetBhvScriptScript, UpdateBhvScript) */
 };
+typedef char assert_BHV169_animBinding[SLY2_OFFSETOF(BHV169, animBinding) == 0x50 ? 1 : -1];
 typedef char assert_BHV169_size[sizeof(BHV169) == 0x60 ? 1 : -1];
 
 /* 171 BHV171 (0xE0): suspicious/search mode (flag 0x1F); vtable 0x2CFA10, 14 slots */

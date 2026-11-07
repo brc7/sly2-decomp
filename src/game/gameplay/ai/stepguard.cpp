@@ -313,7 +313,7 @@ void STEPGUARD::PostLoad()
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
     guard->altPatrolScript = (CID113 *)CreateLo((CID)0x71, 0, (OID)0x2CB, -1);
     AddGuardScriptGoto(guard->altPatrolScript, -1, -1, 40.0f);
-    guard->homeRecord = guard->altPatrolScript->firstCommand;
+    guard->homeRecord = (SSGE *)guard->altPatrolScript->commands.head;
     guard->altPatrolScript->Remove();
     if (guard->pickpocketIndicator0)
         guard->pickpocketIndicator0->Remove();
@@ -449,7 +449,7 @@ void STEPGUARD::OnProxyAcquire(LO *plo)
     EnableStuckWatch(guard->stuckWatch);
     guard->homePosition = GetLoWorldPos(guard);
     guard->homeHeading = GetStepHeading(guard);
-    guard->homeRecord->position = position;
+    guard->homeRecord->ppos = position;
     guard->homeRecord->heading = guard->homeHeading;
     SetStepTargetHeading(guard, guard->homeHeading);
     guard->capabilityFlags = 0;
@@ -786,7 +786,7 @@ int CanSetStepguardSpecial(STEPGUARD *guard, int special)
     if (StepguardHasSgf(guard, SGF_KO))
         return 0;
     bhv = (BHV169 *)FindStepBehavior(guard, CID_BHV169);
-    if (bhv && bhv->isScriptBusy)
+    if (bhv && bhv->allowPartialRoute)
         return 0;
     switch (special) {
     case SPECIAL_SIZE_DESTABILIZER:

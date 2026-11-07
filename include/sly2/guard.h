@@ -20,12 +20,37 @@ struct GUARDLOOT
       undefined4 unknown04[3]; /* [?] */
 };
 
-/* A guard script command (CID113's command list; only what ResetStepguardToHome fills: the goto position and heading). [S] */
-struct GUARDSCRIPTCMD
+/* A guard script command (SSGE, from SW::slotheapSsge; tu_1709A8.cpp): its kind (SSGK_*: 0 set the context object,
+   1/2 walk/pause times, 3 teleport, 4 message, 5 wait, 6 follow a path, 7 go to a point, 8 animation, 9 label,
+   10 jump, 11/12 busy on/off, 13 leap, 14 play the behaviour's binding, 15 relay alarm), the target id (an oid, -1
+   none), the kind-dependent arguments and the script's list link (DLE at +0x18). [S] */
+struct SSGE
 {
-      undefined4 unknown0[2];
-      qword *position;      /* +0x8 [S] points at the guard's home position */
-      float heading;        /* +0xC [S] */
+      int kind;             /* +0x00 */
+      int id;               /* +0x04 */
+      union                 /* +0x08 by kind: 5 a time, 3/7 a point, 6/13..15 a number */
+      {
+            int n;
+            float g;
+            qword *ppos;
+      };
+      union                 /* +0x0C kind 6: an oid for the patrol path's second target; kinds 3/7: a heading */
+      {
+            int secondOid;
+            float heading;
+      };
+      int lookAtOid;        /* +0x10 kind 7 */
+      float gotoParam;      /* +0x14 kind 7: BHVGOTO +0xB0 (meaning unknown) */
+      SSGE *next;           /* +0x18 */
+      SSGE *previous;       /* +0x1C */
+};
+typedef char assert_SSGE_size[sizeof(SSGE) == 0x20 ? 1 : -1];
+/* Where a guard script resumes (STEPGUARD::scriptResumePoint, 12 bytes: SaveBhvScriptResumeState). [S] */
+struct SSGRESUME
+{
+      SSGE *command;        /* +0x0 */
+      LO *context;          /* +0x4 */
+      float pathParam;      /* +0x8 kind 6: where along the path */
 };
 
 /* A stimulus template (only the kind CanStepguardSenseStimulus switches on: 0 noise, 1 sight). [S] */
@@ -198,7 +223,7 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x2e0[2];
       int patrolScript;     /* +0x2E8 [S] the patrol script (BHVPATROL) */
       CID113 *altPatrolScript; /* +0x2EC [S] the alternative patrol script (PostStepguardLoad creates it) */
-      GUARDSCRIPTCMD *homeRecord; /* +0x2F0 [S] the home marker the guard returns to: the alternative patrol script's first command (ResetStepguardToHome) */
+      SSGE *homeRecord;     /* +0x2F0 [S] the home marker the guard returns to: the alternative patrol script's first command (ResetStepguardToHome) */
       undefined4 unk_0x2f4[3];
       qword homePosition;   /* +0x300 [S] */
       float homeHeading;    /* +0x310 [S] */
