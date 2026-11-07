@@ -524,10 +524,8 @@ namespace M_func_001A16C8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union U{float f[4];qword q;int bits[4];}U;   // floats first: U globals are initialized
 typedef union F{float value;int bits;}F;
-struct VT{short delta,pad;void*fn;};
-struct O{char pad[0xC];struct VT*vt;};
 struct M3{U row[3];};
-struct P{struct O*self;char pad4[0x30-4];struct O*target;char pad34[8];int mode;char pad40[0x20];U velocity;};
+struct P{LO*self;char pad4[0x30-4];LO*target;char pad34[8];int mode;char pad40[0x20];U velocity;};
 extern F D_002BFACC;
 extern F D_002BFAD0;
 extern F D_002BFAD4;
@@ -536,11 +534,11 @@ extern U D_002BFAF0;
 extern F D_002BFB00;
 extern F D_002BFB04;
 extern U D_002A2DA0,D_002A2DC0;
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO*,int);
 qword LimitVectorLength(qword,float);
-qword GetLoWorldPos(struct O*);
-struct M3*GetLoWorldMatrix(struct O*);
-qword ConvertVecBetweenLos(struct O*,struct O*,qword);
+qword GetLoWorldPos(LO*);
+struct M3*GetLoWorldMatrix(LO*);
+qword ConvertVecBetweenLos(LO*,LO*,qword);
 void SetJtHurtState(struct P*,int);
 static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
 static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;}
@@ -595,7 +593,7 @@ void StartJtKnockback(struct P*p){
         break;
     case 0x40:
         if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x36)){
-            struct O*target=p->target;
+            LO*target=p->target;
             struct M3*basis;
             qword delta,local;
             selfPosition.q=GetLoWorldPos(p->self);
@@ -610,11 +608,10 @@ void StartJtKnockback(struct P*p){
         break;
     case 0x100:
         if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x4F)){
-            struct O*target=p->target;
+            LO*target=p->target;
             qword n,a,b,mixed,z;
             if(IsBasicDerivedFrom__FP5BASIC3CID(target,0x51)){
-                struct VT*vt=target->vt;
-                struct M3*basis=((struct M3*(*)(void*))vt[31].fn)((char*)target+vt[31].delta);
+                struct M3*basis=(struct M3*)target->GetWorldMatrix();   /* its rows as quadwords */
                 scratch=basis->row[0];
             }else{
                 qword targetPoint;
@@ -645,9 +642,7 @@ void StartJtKnockback(struct P*p){
         break;
     }
     {
-        struct O*object=p->self;
-        struct VT*vt=object->vt;
-        ((void(*)(void*,qword))vt[35].fn)((char*)object+vt[35].delta,output.q);
+        p->self->SetVelocity(output.q);
     }
     SetJtHurtState(p,7);
 }
