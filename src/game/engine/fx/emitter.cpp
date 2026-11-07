@@ -732,15 +732,18 @@ namespace M_WakeSoWater__FP2SOP5WATERfP6VECTORT3ff {
 // (Lilly's agent, T1683) MATCH, no register pins. Built from the lilly1/v3 drafts (Claude agents, T1679 / lane E20).
 //
 // Sly 2 signature (SO *, WATER *, qword pos, qword v, float dt, float gFrac, float gScale) despite the Sly 1 mangled name.
-// The splash is EmitParticlesAt(pos, dir, cParticle, EMITP, EMITV, &e, 0, 0) with the EMITP (0x40) and EMITV (0x70) blocks
+// The splash is EmitParticlesAt(pos, dir, cParticle, EMITVIsland, EMITVELIsland, &e, 0, 0) with the EMITVIsland (0x40) and EMITVELIsland (0x70) blocks
 // passed BY VALUE (EABI: a3 / t0 point at the caller's copies). They are aggregate initializers: g++ builds each one
 // in a memset stack temp and block-copies it, which is the target's memset + stores + lq/sq copy. What matched is the
 // unions in the two types (as in StaticInit_emitter): store_constructor emits a (clobber (mem:BLK)) for every union
 // initializer, and those clobbers are scheduler barriers.
-// - EMITV: G4V at +0x00, a 4-float union at +0x40 and Sly 1's CLQ at +0x60 give the target's FPU numbers for
+// - EMITVELIsland: G4V at +0x00, a 4-float union at +0x40 and Sly 1's CLQ at +0x60 give the target's FPU numbers for
 //   5.0 / 0.39 / 1.047 / -1 (-1 reuses 0.39's register) and the store order.
-// - EMITP: a CLQ at +0x18 ({8, 12, 1}; Sly 1's EMITRIP has a clqScale) puts the +0x10 store before the +0xC store.
+// - EMITVIsland: a CLQ at +0x18 ({8, 12, 1}; Sly 1's EMITRIP has a clqScale) puts the +0x10 store before the +0xC store.
 //   Any union holding +0x18/+0x1C matches; field names other than the Sly 1 types are unknown.
+// Both blocks stay initializer views (islands of sly2/emitter.h's EMITV and EMITVEL): the header EMITV's anonymous union
+// of the rip and blip records crashes cc1plus (silent exit) as an aggregate initializer, and EMITVEL has no union at
+// +0x00 for the FPU numbering.
 // - E is 0x14 bytes (memset sizeof); the splash position (v raised 30 in z) is its own stack local.
 typedef int qword __attribute__((mode(TI)));
 
@@ -754,18 +757,18 @@ union CLQ {
 union G4V { struct { float g0, g4, g8, gC; }; float ag[4]; };
 
 /* the particle record (EMITB+0xC0, emitter.h's EMITV) as rips use it (Sly 1's EMITRIP, objects as OIDs) */
-struct EMITP {
+struct EMITVIsland {
     int ripKind;            /* +0x00 RIPT of each particle */
     int ripGroupKind;       /* +0x04 kind of the RIPG they go into */
     int renderOid, nextRenderOid, touchOid;   /* +0x08 here: WATER's splash and ripple objects, and the WATER */
     int unknown14;
     CLQ scaleRange;         /* +0x18 g0/g1: initial scale range (EmitRips); g2 unknown */
     int unknown28, unknown2C;
-    qword unknown30;        /* some 16-byte member: the target copies EMITP with lq/sq, so the type is 16-aligned */
+    qword unknown30;        /* some 16-byte member: the target copies EMITVIsland with lq/sq, so the type is 16-aligned */
 };
 
-/* the velocity record (see EMITDEF::EMITV) */
-struct EMITV {
+/* the velocity record (see EMITDEF::EMITVELIsland) */
+struct EMITVELIsland {
     G4V speed;              /* +0x00 speed range, damping, z speed ratio */
     qword addedVelocity;    /* +0x10 */
     qword curlAxis;         /* +0x20 */
@@ -777,8 +780,8 @@ struct EMITV {
     CLQ alpha;              /* +0x60 */
 };
 
-typedef char check_emitp[(sizeof(EMITP) == 0x40) ? 1 : -1];
-typedef char check_emitv[(sizeof(EMITV) == 0x70) ? 1 : -1];
+typedef char check_emitp[(sizeof(EMITVIsland) == 0x40) ? 1 : -1];
+typedef char check_emitv[(sizeof(EMITVELIsland) == 0x70) ? 1 : -1];
 
 struct VTE { short d; short pad; qword (*pfn)(void *); };
 struct VT { VTE a[64]; };
@@ -806,7 +809,7 @@ void SetSndRange(void *p, float a, float b);
 void RcPtr_Assign(void *pp, void *p);
 RIP *NewRipInGroup(void *p, int k, int x);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void EmitParticlesAt(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
+void EmitParticlesAt(qword pos, qword dir, int n, EMITVIsland emitp, EMITVELIsland emitv, E *pe, int x, int y);
 }
 
 static inline qword Length(qword a)
@@ -869,8 +872,8 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                 if (soundObject)
                     soundObject->lastWakeTime = D_002DDED0.time;
                 if (500.0f < distance && water->splashObject) {
-                    EMITP emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
-                    EMITV emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, so->motion->velocity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
+                    EMITVIsland emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
+                    EMITVELIsland emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, so->motion->velocity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
                                     {{ 0.39269909f, 1.0471976f }}, { 0 }, {{ 1.0f, 0.0f, -1.0f }} };
                     E emitg;
                     V4 posSplash;

@@ -55,7 +55,7 @@ struct EMITV
             int oid10;          /* +0x10 touch object (EMITREF_Touch) */
             float ripScale;     /* +0x14 the group's emit scale (SetRipgEmitb) */
             LM lmScale;         /* +0x18 initial scale range (EmitRips: each rip's scale g0) */
-            int unknown20;
+            float unknown20;    /* +0x20 (WakeSoWater's splash sets 1) */
             float scaleSlope;   /* +0x24 the rips' scale curve g1, g2 (both 0: keep the kind's) */
             float scaleCurve;   /* +0x28 */
             int unknown2C;
