@@ -2210,7 +2210,7 @@ typedef struct EMITBV {
     FRM *pfrm;                  /* +0x1C the origin's local transform */
     int pad20[4];
     /* +0x30 the origin data: point, box corners, or an EMITMESH (its centre at +0x20) */
-    union { qword v; qword *pm; EMITP *pemitp; struct { char pad[0x20]; qword v; } *pq; } u30;
+    union { qword v; qword *pm; EMITP *pemitp; struct { char pad[0x20]; qword v; } *pq; } origin;
     qword vector;               /* +0x40 */
     float speedMin, speedMax;   /* +0x50 */
     char pad58[0xD8 - 0x58];
@@ -2271,7 +2271,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
     if (explso->grf & EXPLSO_HAS_VECTOR)
         emitb.vector = explso->vector;
     if (explso->grf & EXPLSO_HAS_ORIGIN) {
-        emitb.u30.v = explso->origin;
+        emitb.origin.v = explso->origin;
         emitb.originKind = EMIT_ORIGIN_POINT;
     } else if (explso->grf & EXPLSO_HAS_XF) {
         emitb.pfrm = (FRM *)explso->pxf;
@@ -2318,7 +2318,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
         void *sound;
         switch (emitb.originKind) {
         case EMIT_ORIGIN_POINT:
-            pos.q = emitb.u30.v;
+            pos.q = emitb.origin.v;
             break;
         case EMIT_ORIGIN_BOX: {     /* the box centre */
             float half = 0.5f;
@@ -2327,7 +2327,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
                 __asm__("qmtc2.ni %1, %0" : "=j"(hv) : "r"(half));
                 h.q = hv;
                 {
-                    qword *pm = emitb.u30.pm;
+                    qword *pm = emitb.origin.pm;
                     register qword m1 __asm__("vf2") = pm[1];
                     register qword m0 __asm__("vf3") = pm[0];
                     register qword centre __asm__("vf1");
@@ -2341,7 +2341,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
             pos.q = ((X4 *)emitb.pemitp->shape)->p->v;
             break;
         case EMIT_ORIGIN_MESH:
-            pos.q = emitb.u30.pq->v;
+            pos.q = emitb.origin.pq->v;
             break;
         }
         if (emitb.pfrm) {

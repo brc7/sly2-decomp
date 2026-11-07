@@ -927,7 +927,7 @@ extern "C" float D_002BDA60, D_002BDA64;
 struct JOY { char pad[0x1070]; float dxRight; float dyRight; float sRight; };   /* the right stick: deflection and its magnitude */
 struct GS { char pad[0x4CC]; int unknown4CC; };
 struct TGT { char pad[0x20]; qword pos; };
-struct OBJ { char pad[0x40]; int m40; };
+struct OBJ { char pad[0x40]; int matrix; };   /* the camera XF: its matrix at +0x40 */
 struct X {
     GS *pgs; int pad4[3]; OBJ *cameraXf; TGT *act; float nextSwayTime; int pad1C;
     union { qword q; float f[4]; } pos; qword v;
@@ -1016,7 +1016,7 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
     }
     SetActPositionGoal(p->act, pos);
     p->v = v;
-    SetCmMat4(&D_002DDF40, &p->cameraXf->m40);
+    SetCmMat4(&D_002DDF40, &p->cameraXf->matrix);
 }
 } // namespace M_UpdateCphang
 

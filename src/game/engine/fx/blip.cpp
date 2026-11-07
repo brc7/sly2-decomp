@@ -107,15 +107,15 @@ struct BLIPGV
     int pad11C;
     float maxSize;          /* 0x120 the largest |size| over a life (pads the bounds) */
     char pad124[0x130 - 0x124];
-    char ab130[0x10];       /* 0x130 alpha CLQ over the normalized life */
-    char ab140[4];          /* 0x140 (zeroed, uploaded to the VU) */
+    char alphaCurve[0x10];       /* 0x130 alpha CLQ over the normalized life */
+    char unknown140[4];          /* 0x140 (zeroed, uploaded to the VU) */
     float frameRate;        /* 0x144 texture frames per second */
     char pad148[8];
-    S150 s150;              /* 0x150 */
+    S150 lifeParams;              /* 0x150 */
     int pad15C;
     int motionKind;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
     int pad164[3];
-    char ab170[0x30];       /* 0x170 EMITDV */
+    char emitdv[0x30];       /* 0x170 EMITDV */
     int numFrames;          /* 0x1A0 texture animation frames (a power of two, <= 16) */
     int pad1A4[3];
     GE age[0x20];           /* 0x1B0 */
@@ -414,7 +414,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
         blipGroup->hasColorRanges = emitb->hasColorRanges;
     }
     PropagateBlipgShader(blipGroup, emitb->shaderOid);
-    func_002333B4(blipGroup->ab140, 0, 0x10);
+    func_002333B4(blipGroup->unknown140, 0, 0x10);
     if (blipGroup->numFrames >= 2) {
         int n = blipGroup->numFrames;
         if (emitb->shaderLoopTime != 0.0f)
@@ -422,7 +422,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
         else
             blipGroup->frameRate = (float)n / emitb->lifetime;
     }
-    PrescaleClq((CLQ *)emitb->alpha, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->ab130);
+    PrescaleClq((CLQ *)emitb->alpha, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
     PrescaleClq((CLQ *)emitb->scale, 1.0f / emitb->lifetime, 0.0f, (CLQ *)&blipGroup->poly);
     if (blipGroup->poly.b == 0.0f && blipGroup->poly.c == 0.0f) {
         blipGroup->maxSize = __builtin_fabsf(blipGroup->poly.a);
@@ -441,7 +441,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
     }
     f = 0;
     g = emitb->lifetime;
-    InitS(g, &blipGroup->s150);
+    InitS(g, &blipGroup->lifeParams);
     {
     int kC4 = emitb->motionKind;
     blipGroup->motionKind = kC4;
@@ -453,9 +453,9 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
     }
     if (f)
         blipGroup->motionKind = 1;
-    func_002333B4(blipGroup->ab170, 0, 0x30);
+    func_002333B4(blipGroup->emitdv, 0, 0x30);
     if (!blipGroup->motionKind)
-        SetEmitdvEmitb((EMITDV *)blipGroup->ab170, emitb);
+        SetEmitdvEmitb((EMITDV *)blipGroup->emitdv, emitb);
 }
 
 // BLIPG vt16 Update: just UpdateLo. (inferred)
@@ -600,7 +600,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};
     VECTORV vMax = {{{-FLT_MAX, -FLT_MAX, -FLT_MAX}}};
     M4 m;
-    m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->ab170);
+    m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->emitdv);
     {
     DLI dli;
     BLIPV *pq;
@@ -683,7 +683,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
             ProjectBlipgTransformAccel(blipGroup);
             return;
         }
-        m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->ab170);
+        m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->emitdv);
     }
     {
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};
@@ -952,10 +952,10 @@ extern "C" void AddBlipgVuParams(BLIPGV *blipGroup)
     pn[2] = blipGroup->numFrames;
     *(float *)&pn[3] = pclock->dtReal;
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, blipGroup->numColors, blipGroup->colors, 0x30 - blipGroup->numColors);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->ab130, 1);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->alphaCurve, 1);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->poly, 2);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->ab140, 3);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->s150, 4);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->unknown140, 3);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->lifeParams, 4);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, blipGroup->gifPacket, 0x30);
     AddVifUnpackRefs__4VIFS3UPKiPviPPPv(pdma, 0xC, blipGroup->numFrames, blipGroup->age, 0xF, 0);
 }

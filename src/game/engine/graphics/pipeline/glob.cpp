@@ -551,7 +551,9 @@ namespace M_StoreRelightColors { extern "C" {
 /* RGBA (one byte per qword lane) -> 1555 conversion. The C16 bitfield struct copy gives the target's dead
    register copies after each sh. */
 typedef struct { unsigned char r, pad0[3], g, pad1[3], b, pad2[3], a, pad3[3]; } CQW;
-struct X { int pad[2]; int iA; int iB; int iEnd; char *ib14; char *ib18; int pad2; char *ib20; char *ib24; };
+/* the readback request: qword indices of the two result arrays and their end in VU1 memory, and the EE buffers
+   (offsets from pbBase) the colours, the second alpha bytes and the alpha bytes go to */
+struct X { int pad[2]; int iA; int iB; int iEnd; char *colorsA; char *colorsB; int pad2; char *alphaA; char *alphaB; };
 struct S { char pad[0x3010]; int pbBase; char pad2[0x3070 - 0x3014]; struct X x; };
 typedef struct { unsigned short rgb : 15, a : 1; } C16;
 // Relight readback: converts the two RGBA results per vertex in VU1 data memory to RGBA5551 into the glob's EE colour
@@ -563,10 +565,10 @@ void StoreRelightColors(struct S *p)
     CQW *pqwA = (CQW *)p + px->iA;
     CQW *pqwB = (CQW *)p + px->iB;
     CQW *pqwEnd = (CQW *)p + px->iEnd;
-    C16 *ps1 = (C16 *)(px->ib14 + pbBase);
-    C16 *ps2 = (C16 *)(px->ib18 + pbBase);
-    unsigned char *pb2 = (unsigned char *)(px->ib20 + pbBase);
-    unsigned char *pbAlpha = (unsigned char *)(px->ib24 + pbBase);
+    C16 *ps1 = (C16 *)(px->colorsA + pbBase);
+    C16 *ps2 = (C16 *)(px->colorsB + pbBase);
+    unsigned char *pb2 = (unsigned char *)(px->alphaA + pbBase);
+    unsigned char *pbAlpha = (unsigned char *)(px->alphaB + pbBase);
     for (; pqwB < pqwEnd; pqwB++, pqwA++) {
         C16 c1, c2;
         C16 *pd1, *pd2;
@@ -587,7 +589,7 @@ void StoreRelightColors(struct S *p)
         c2.a = pqwA->a >> 7;
         *pd2 = c2;
         *pbAlpha++ = pqwB->a;
-        if (px->ib20)
+        if (px->alphaA)
             *pb2++ = pqwA->a;
     }
 }
