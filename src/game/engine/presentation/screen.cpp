@@ -903,7 +903,7 @@ extern "C" int GetCurrentNoticeTextId(SCREENV *screen)
 }
 
 namespace M_SetNoticeState { extern "C" {
-extern struct CLOCK { float stateTime; float deltaTime; } D_002DDED0;
+extern CLOCK D_002DDED0;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[64]; } VT;
 typedef struct { char pad[0xC]; VT *vt; } LO;
 typedef struct {
@@ -927,7 +927,7 @@ void SetNoticeState(OBJ *p, int n)
         return;
     switch (p->state) {
     case NOTICE_HIDING:
-        if (n == NOTICE_APPEARING && p->stateTime == D_002DDED0.stateTime)
+        if (n == NOTICE_APPEARING && p->stateTime == D_002DDED0.time)
             n = 2;
         break;
     case NOTICE_SWAPPING:
@@ -956,7 +956,7 @@ void SetNoticeState(OBJ *p, int n)
         }
     }
     p->state = n;
-    p->stateTime = D_002DDED0.stateTime;
+    p->stateTime = D_002DDED0.time;
 }
 } } // namespace M_SetNoticeState
 
