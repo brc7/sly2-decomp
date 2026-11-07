@@ -15,6 +15,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/light.h"
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
 struct VTE {
     short d;
@@ -98,20 +99,6 @@ typedef char Offset_mask[FIELD_OFFSET(SWL, mask) == 0x4570 ? 1 : -1];
 typedef char Offset_free[FIELD_OFFSET(SWL, free) == 0x4590 ? 1 : -1];
 typedef char Size_NODE[sizeof(NODE) == 32 ? 1 : -1];
 
-/* The packet request of BuildSoLightPackets / BuildLightPackets. */
-struct LIGHTQ {
-    int pad0; qword *input; int pad8[2];
-    float strength;               // 0x10
-    int cqwPacket;                // 0x14
-    uchar *pbPacket;              // 0x18
-    float limit;                  // 0x1C
-    float extra;                  // 0x20
-    uchar *pbPayload;             // 0x24
-    int cqwBasis;                 // 0x28
-    uchar *pbBasis;               // 0x2C
-};
-typedef char O_x14_Offset[FIELD_OFFSET(LIGHTQ,cqwPacket)==20?1:-1];
-typedef char O_x18_Offset[FIELD_OFFSET(LIGHTQ,pbPacket)==24?1:-1];
 struct M3R { qword r[3]; };
 struct SPHERE { qword pos; float sRadius; int pad[3]; };
 struct CAMERA { char pad[0x48]; float radius; char pad4C[0x90 - 0x4C]; qword position; };
@@ -704,10 +691,10 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
 }
 
 // BuildSoLightPackets: per-frame "shader basis" packets for a query point.
-//  1. point = *p->input (optionally transformed by M4 *transform); FindLightsAffectingPoint collects the 4 best-ranked lights.
+//  1. point = *p->pposCenter (optionally transformed by M4 *transform); FindLightsAffectingPoint collects the 4 best-ranked lights.
 //  2. If p->strength != 0: four 48-byte VIF packets (tag 0x6C03C000 | (i*3+0x15) + 12 words), from each result
 //     light's payload (+0x120), the rest from the default block D_002BFC60 (same code as BuildLightPackets), padded to a qword.
-//  3. If p->limit != 0: weighted centre of the enabled results (kind 1: virtual slot 31 returns a matrix, its row 3;
+//  3. If p->sRadius != 0: weighted centre of the enabled results (kind 1: virtual slot 31 returns a matrix, its row 3;
 //     kind 0: point - direction * D_002BFC90), clamped to D_002BFC94 * limit from the point; basis from GetNormalVectors,
 //     row 2 = dir * extent; packet (M4 rows + kind + fraction) unpacked with tag 0x6C05C00E after aligning to 12 mod 16.
 union U { qword q; float f[4]; uint u[4]; };
@@ -740,7 +727,7 @@ static inline float LengthQ(qword v)
 }
 static inline uint *Write(VIFS *vifs, uint x) { uchar *d; *(uint *)vifs->m_pb = x; d = vifs->m_pb + 4; vifs->m_pb = d; return (uint *)d; }
 #define Copy(D,S,W) uint*d_=(D);const uint*s_=(S);do{int k;for(k=0;k<(W);k+=4){uint a=s_[0],b=s_[1],c=s_[2],e=s_[3];d_[0]=a;d_[1]=b;d_[2]=c;d_[3]=e;s_+=4;d_+=4;}}while(0);
-static inline void Clear(LIGHTQ *p) { p->cqwBasis = 0; p->pbBasis = 0; p->pbPayload = 0; }
+static inline void Clear(SOBOUNDS *p) { p->cqwVolume = 0; p->pbVolume = 0; p->pmatClip = 0; }
 static inline void Align(uint align)
 {
     VIFS *dma = &D_002DEA28;
@@ -753,10 +740,10 @@ static inline void Align(uint align)
 }
 // Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag 0x6C03C000.
 // (inferred)
-extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
+extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, SOBOUNDS *p)
 {
     RESULT results[4];
-    qword point = *p->input;
+    qword point = *p->pposCenter;
     if (transform)
         point = Transform(*transform, point);
     FindLightsAffectingPoint(world, point, 4, results);
@@ -788,7 +775,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
         Align(0);
         p->cqwPacket = (D_002DEA28.m_pb - p->pbPacket) >> 4;
     }
-    if (p->limit == 0.0f) {
+    if (p->sRadius == 0.0f) {
         Clear(p);
     } else {
         float total = 0.0f;
@@ -824,7 +811,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             qword center = DivQ(sum, VU_FLOAT(total));
             qword dir = VuSub(point, center);
             float dist = LengthQ(dir);
-            float limit = D_002BFC94 * p->limit;
+            float limit = D_002BFC94 * p->sRadius;
             float extent;
             if (dist < limit) {
                 if (dist < 1.0f)
@@ -836,7 +823,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             } else {
                 dir = DivQ(dir, VU_FLOAT(dist));
             }
-            extent = dist + p->extra;
+            extent = dist + p->sExtra;
             M3 basis;
             GetNormalVectors(dir, D_002A2DB0, D_002A2DA0, (M3R *)&basis);
             basis.row[2].q = ScaleQ(dir, VU_FLOAT(extent));
@@ -853,20 +840,20 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             packet.fraction = dist / extent;
             SPHERE spheres[3];
             spheres[0].pos = point;
-            spheres[0].sRadius = p->limit;
+            spheres[0].sRadius = p->sRadius;
             spheres[1].pos = VuAdd(center, basis.row[2].q);
-            spheres[1].sRadius = p->limit * extent / dist;
+            spheres[1].sRadius = p->sRadius * extent / dist;
             spheres[2].pos = AddScaledQ(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].sRadius = 0;
             packet.kind = DoesSphereHitSpheres(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
             {
                 uchar *pb = D_002DEA28.m_pb;
-                p->pbBasis = pb;
+                p->pbVolume = pb;
                 // pin: sched1 puts the Align(12) constant first (birthing-insn boost), so the %hi(D_002DEA28)
                 // pseudo dies right where this one is born and local-alloc's fake-lifetime check keeps the
                 // hi out of v1; a hard-reg v1 here has no fake lifetime, giving the target's v1 for both.
                 register uchar *payload asm("$3") = pb + 16;
-                p->pbPayload = payload;
+                p->pmatClip = (MATRIX4 *)payload;   /* the clip matrix follows the packet's tag */
             }
             Align(12);
             {
@@ -883,7 +870,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
                 } while (0);
                 g->m_pb += 80;
             }
-            p->cqwBasis = (D_002DEA28.m_pb - p->pbBasis) >> 4;
+            p->cqwVolume = (D_002DEA28.m_pb - p->pbVolume) >> 4;
         }
     }
 }
@@ -906,7 +893,7 @@ typedef char VIFS_m_pb_Offset[FIELD_OFFSET(VIFS,m_pb)==12?1:-1];
 typedef char BLOCK_PrefixSize[sizeof(BLOCK)==48?1:-1];
 typedef char VIFS_PrefixSize[sizeof(VIFS)==36?1:-1];
 // Same packet build for an explicit light list (rebuilds each light first) (inferred)
-extern "C" void BuildLightPackets(void *a0, int n, LIGHTV **ap, LIGHTQ *o)
+extern "C" void BuildLightPackets(void *a0, int n, LIGHTV **ap, SOBOUNDS *o)
 {
     int i;
     o->pbPacket = D_002DEA28.m_pb;
