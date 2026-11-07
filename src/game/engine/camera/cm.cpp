@@ -162,23 +162,15 @@ void UpdateCmLast__FP2CM(struct CM *cm)
 } } // namespace M_UpdateCmLast__FP2CM
 
 namespace M_ResetCameraPolicies { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct E { struct O *po; int pad[3]; };
-struct P { char pad[0x30C]; int policyCount; int pad2; struct E policies[8]; char pad3[0x620 - 0x394];
-            int stereoEyeOffset; float stereoFocusDistance; };   /* +0x620 stored as a word (0) here */
-// Calls vtable slot 7 (unknown: reset) on every policy on the stack, then resets the stereo eye offset (0) and focus
-// distance (10).
-void ResetCameraPolicies(struct P *p)
+// Calls ResetPolicy (vtable slot 7) on every policy on the stack, then resets the stereo eye offset (+0x620: 0) and
+// focus distance (+0x624: 10).
+void ResetCameraPolicies(CM *p)
 {
     int i;
-    for (i = 0; i < p->policyCount; i++) {
-        struct O *o = p->policies[i].po;
-        struct VTE *e = &o->vt[7];
-        ((void (*)(void *))e->pfn)((char *)o + e->d);
-    }
-    p->stereoEyeOffset = 0;
-    p->stereoFocusDistance = 10.0f;
+    for (i = 0; i < p->numPolicies; i++)
+        p->policyStack[i].policy->ResetPolicy();
+    p->unknown620 = 0.0f;
+    p->unknown624 = 10.0f;
 }
 } } // namespace M_ResetCameraPolicies
 
