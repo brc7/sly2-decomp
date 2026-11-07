@@ -2146,21 +2146,6 @@ namespace M_LoadSubglobType0FromBrx {
 //    switch: the clear-then-set keeps loop.c from hoisting the constant with the other 1s;
 //  - the lit-batch count is Min(0x27, cvtx - iofs) through an inline Min (no REG_EQUAL on n's first set);
 //  - ppart->iqwVtx is re-read for iqwEnd/iqwOwn; pg[0] = pg[1] = pg[2] = -1.0f.
-union QW
-{
-    VECTOR vec;
-    VECTOR4 vec4;
-    ulong ull;
-    ulong aul[2];
-    uint aun[4];
-    ushort aus[8];
-    uchar ab[16];
-    long ll;
-    long al[2];
-    int an[4];
-    short as[8];
-    float ag[4];
-};
 class DMAS
 {
 public:
