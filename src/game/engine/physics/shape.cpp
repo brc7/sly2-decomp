@@ -124,8 +124,8 @@ namespace M_CacheShapeSegment { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f; };
 struct M4 { qword a, b, c, d; };
-struct PATH {
-    char pad[0xEC];
+struct PATH : XFM {
+    char pad[0xEC - 0xE0];
     float *times;       // 0xEC
     float *dist;        // 0xF0
     qword *points;      // 0xF4
@@ -265,7 +265,7 @@ extern "C" void InvalidateShapeCache(SHAPE *shape)
 
 namespace M_func_001E6340 { extern "C" {
 struct Q { char pad[0x4C]; int mode; };
-struct S { char pad[0x17C]; struct Q *chain; };
+struct S : XFM { char pad[0x17C - 0xE0]; struct Q *chain; };
 void StepChainRk4(struct Q *q);
 void StepChain(struct Q *q);
 void InheritLoFlag4(struct S *p);
@@ -1113,7 +1113,7 @@ namespace M_func_001E7BB8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M4 {qword r[4];};
-struct S {char pad[0xA0];struct M4 mat;int mode;char padE4[4];int n;float *times,*dist;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
+struct S : LO { char pad[0xA0 - 0x50]; struct M4 mat;int mode;char padE4[4];int n;float *times,*dist;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
 extern void UpdateXfmMatWorld(struct S*);
 static inline qword Point(qword old,qword r0,qword r1,qword r2,qword r3,qword p){__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(old):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(p));return old;}
 // World-space axis-aligned bounds of the transformed points and curve control points.
@@ -1226,7 +1226,7 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M4 {qword r[4];};
 struct BASIS3 {qword r[3];};
-struct P {char padA0[0xA0];struct M4 matrix;int mode;char padE4[4];int count;float *times,*distances;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
+struct P : LO { char padA0[0xA0 - 0x50]; struct M4 matrix;int mode;char padE4[4];int count;float *times,*distances;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
 extern void UpdateXfmMatWorld(struct P*);
 static inline qword ReadPoint(const qword*source){register qword value __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(value):"m"(*source));return value;}
 static inline qword DirInPlace(qword m0,qword m1,qword m2,qword a){__asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m0),"j"(m1),"j"(m2));return a;}
@@ -1943,7 +1943,7 @@ void SetChainEndObject(struct P *shape, int end, LO *object)
 namespace M_func_001E94B0 { extern "C" {
 struct AR { int cb; int cbAlign; };
 typedef struct { float m[4][4]; } MATRIX4;
-struct X { char pad[0x60]; MATRIX4 mat; char pad2[0xE0 - 0xA0]; int mode; int isClosed; int numPoints; float *times; float *distances; void *points; };
+struct X : LO { char pad[0x60 - 0x50]; MATRIX4 mat; char pad2[0xE0 - 0xA0]; int mode; int isClosed; int numPoints; float *times; float *distances; void *points; };
 struct X *CreateLo__F3CIDP2SO3OIDi(int k, int n, void *pv, int m);
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
 void *AllocFromWorldHeap(struct AR *par);
@@ -1985,7 +1985,7 @@ namespace M_func_001E95B0 {
  * entered with a goto to its first label, so loop.c sees a jump into the loop and leaves it alone. */
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
-struct PATH {char pad[0xE8];int count;int padEC;float*dist;U*pos;};
+struct PATH : XFM { char pad[0xE8 - 0xE0]; int count;int padEC;float*dist;U*pos;};
 struct S {char pad[0x48];PATH*path;int mode;int pad50;U*positions;U*previousPositions;float*time;char pad60[0x84-0x60];int capacity;float step;};
 extern "C" { extern float D_002C3678; }
 extern "C" void InvalidateShapeCache(PATH*);
@@ -2243,7 +2243,7 @@ void CID106::RenderSelf()
 namespace M_func_001E9C30 { extern "C" {
 
 struct MSG { int cb; int nKind; };
-struct S { char pad[0x180]; void *pv; };
+struct S : XFM { char pad[0x180 - 0xE0]; void *pv; };
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void BuildShapeVolumeSegments(void *pv, struct S *p);
 // Allocates and builds the shape's volume/segment table once. (inferred)
@@ -2380,7 +2380,7 @@ namespace M_func_001EA000 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; } __attribute__((aligned(16)));
 struct SEG { float a, b; };
-struct PV { char pad[0x114]; int version; };
+struct PV : XFM { char pad[0x114 - 0xE0]; int version; };
 struct S {
     SHAPE *po;
     int c4;              // number of segments in aseg
