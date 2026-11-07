@@ -1069,9 +1069,12 @@ typedef char assert_BHVSHOOT_size[sizeof(BHVSHOOT) == 0x40 ? 1 : -1];
 struct BHV178 : BHV
 {
     int state;              /* +0x30 */
-    int unknown34[3];
-    int chosenTarget;       /* +0x40 */
-    int unknown44[3];
+    float stateTime;        /* +0x34 */
+    LO *preferredTarget;    /* +0x38 the cheapest designated target (ChooseBhvTargetsTarget) */
+    LO *nearAvoidObject;    /* +0x3C an avoid object within 800 that wins over it */
+    LO *chosenTarget;       /* +0x40 the one fought (BHVCOMBAT target) */
+    float nextChooseTime;   /* +0x44 */
+    int unknown48[2];
     virtual void Start() __asm__("StartBhvTargets");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv178ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvTargets");   /* slot 7 */

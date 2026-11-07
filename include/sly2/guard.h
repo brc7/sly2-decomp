@@ -353,9 +353,9 @@ struct STEPGUARD : public STEP
       int isMovingForward;  /* +0xF8C [S] */
       void *attachPoint;    /* +0xF90 [S] */
       int designatedTargetCount; /* +0xF94 [S] targets designated by script (SetStepguardTargetLists); with avoidObjectCount, non-zero means a target list (FBhvguardHasTargetList) */
-      int designatedTargets[4]; /* +0xF98 [S] */
+      LO *designatedTargets[4]; /* +0xF98 [S] */
       int avoidObjectCount; /* +0xFA8 [S] objects to avoid (SetStepguardTargetLists) */
-      int avoidObjects[4];  /* +0xFAC [S] */
+      LO *avoidObjects[4];  /* +0xFAC [S] */
       int specialState;     /* +0xFBC [S] */
       float specialStartTime; /* +0xFC0 [S] */
       void *scale;          /* +0xFC4 [S] a scale record (value at +0x20) */

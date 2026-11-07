@@ -4628,14 +4628,9 @@ extern "C" void UpdateBhvshoot(BHVSHOOT *behavior)
 
 // 0x17B690 HandleBhvshootMessage
 namespace M_BHVSHOOT_FHandleMessage { extern "C" {
-struct M; struct U; 
-struct M { int animation; int n4; int event; };
-struct U { char pad[0x40]; void *binding; };
-int GetAnimBindingInstance(void *p);
-int HandleBhvMessage(BHVSHOOT *p, int msg, struct M *pm);
 // 0x17B690: BHVSHOOT vtable slot 13 (HandleMessage): ASEG events 0x31/0x32 open/close the firing window (+0xF60).
-int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, struct M *pm) {
-    if (msg == 9 && !behavior->state && ((struct U *)behavior->pbhvNext)->binding && GetAnimBindingInstance(((struct U *)behavior->pbhvNext)->binding) == pm->animation) {
+int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, ASEGEVENTMSG *pm) {
+    if (msg == 9 && !behavior->state && ((BHVANIM *)behavior->pbhvNext)->binding && GetAnimBindingInstance(((BHVANIM *)behavior->pbhvNext)->binding) == pm->asega) {
         switch (pm->event) {
         case 0x31: ((STEPGUARD *)behavior->owner)->firingWindow = 1; return 1;
         case 0x32: ((STEPGUARD *)behavior->owner)->firingWindow = 0; return 1;
@@ -4711,38 +4706,34 @@ extern "C" void CloseBhvTargets(BHV178 *behavior)
 
 // 0x17B8B0 SetBhvTargetsState
 namespace M_func_0017B8B0 { extern "C" {
-struct VTE; struct O; struct S;
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; int target; char pad3[8]; int sgf; int unknown40; };
-struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; char pad3[8]; int chosenTarget; };
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
+BHV *PushStepBehavior(void *p, int n);
 void SetStepguardTarget(void *p, int n);
 // 0x17B8B0: Targets behaviour state change: 0 idle without a target, 1 combat (BHVCOMBAT) on the chosen target, 2
 // hands-off idle.
-void SetBhvTargetsState(struct S *behavior, int n)
+void SetBhvTargetsState(BHV178 *behavior, int n)
 {
     if (n == behavior->state)
         return;
-    PopBhv(behavior->childSlot);
+    PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
+        BHVIDLE *o = (BHVIDLE *)PushStepBehavior(behavior->owner, CID_BHVIDLE);
         StartPushedBhv(o);
     }
-        SetStepguardTarget(behavior->guard, 0);
+        SetStepguardTarget(behavior->owner, 0);
         break;
     case 1: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVCOMBAT);
+        BHVCOMBAT *o = (BHVCOMBAT *)PushStepBehavior(behavior->owner, CID_BHVCOMBAT);
         o->target = behavior->chosenTarget;
-        o->unknown40 = 1;
+        o->isHitConfirmed = 1;
         StartPushedBhv(o);
     } break;
     case 2: {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
+        BHVIDLE *o = (BHVIDLE *)PushStepBehavior(behavior->owner, CID_BHVIDLE);
         o->sgf = 1;
         StartPushedBhv(o);
     } break;
@@ -4752,26 +4743,20 @@ void SetBhvTargetsState(struct S *behavior, int n)
 
 // 0x17B9C0 ChooseBhvTargetsTarget
 namespace M_func_0017B9C0 {
-union U; struct RANGE; struct POLY; struct P; struct C; struct WORK; 
+union U; struct RANGE; struct POLY; struct WORK;
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
 struct RANGE{float lo,hi;};
 struct POLY{float a,b,c;};
-// Choice i of the selector.
-struct P{char pad[0x28];unsigned long flags;char pad30[0xF94-0x30];int count;P*choices[4];P*Choice(int i){return choices[i];}int nearCount;P*near[0];};
-struct C{char pad[0x10];P*guard;char pad14[0x38-0x14];P*preferred;P*near;P*selected;float time;};
 struct WORK{float t,d,t2,d2;U origin,bestPoint;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern RANGE D_002BE740;
  extern POLY D_002BE720,D_002BE730;
  float RandomFloatInRange__Fff(float,float);
- qword GetLoWorldPos(P*);
+ qword GetLoWorldPos(void*);
  void FindClosestPointOnLine(qword,qword,qword,qword*,float*,float*);
 }
-// Bit 60 of an object's flag word (in the world).
-static inline unsigned long Eligible(unsigned long flags){return (flags>>60)&1;}
 // VU0 helper: moves a CPU quadword into a VU register.
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 // VU0 helper: loads a quadword into a VU register.
@@ -4813,16 +4798,6 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char POLY_Size[sizeof(POLY)==12?1:-1];
 typedef char RANGE_Size[sizeof(RANGE)==8?1:-1];
 typedef char WORK_Size[sizeof(WORK)==48?1:-1];
-typedef char P_flags_Offset[FIELD_OFFSET(P,flags)==40?1:-1];
-typedef char P_count_Offset[FIELD_OFFSET(P,count)==3988?1:-1];
-typedef char P_choices_Offset[FIELD_OFFSET(P,choices)==3992?1:-1];
-typedef char P_nearCount_Offset[FIELD_OFFSET(P,nearCount)==4008?1:-1];
-typedef char P_near_Offset[FIELD_OFFSET(P,near)==4012?1:-1];
-typedef char C_actor_Offset[FIELD_OFFSET(C,guard)==16?1:-1];
-typedef char C_preferred_Offset[FIELD_OFFSET(C,preferred)==56?1:-1];
-typedef char C_near_Offset[FIELD_OFFSET(C,near)==60?1:-1];
-typedef char C_selected_Offset[FIELD_OFFSET(C,selected)==64?1:-1];
-typedef char C_time_Offset[FIELD_OFFSET(C,time)==68?1:-1];
 typedef char WORK_t_Offset[FIELD_OFFSET(WORK,t)==0?1:-1];
 typedef char WORK_d_Offset[FIELD_OFFSET(WORK,d)==4?1:-1];
 typedef char WORK_t2_Offset[FIELD_OFFSET(WORK,t2)==8?1:-1];
@@ -4836,14 +4811,14 @@ typedef char RANGE_lo_Offset[FIELD_OFFSET(RANGE,lo)==0?1:-1];
 typedef char RANGE_hi_Offset[FIELD_OFFSET(RANGE,hi)==4?1:-1];
 // 0x17B9C0: Every random interval, picks the cheapest designated target (cost: distance, a bonus for preferred
 // ones, a penalty near avoid objects) or a nearer avoid object within 800.
-extern "C" void ChooseBhvTargetsTarget(C *behavior)
+extern "C" void ChooseBhvTargetsTarget(BHV178 *behavior)
 {
     WORK work;
-    P *best;
+    LO *best;
     float lower;
     qword zero;
     float now = D_002DDED0.time;
-    if (now < behavior->time)
+    if (now < behavior->nextChooseTime)
         return;
     // D_002BE710 holds the random-delay range.
     register unsigned int randomAddress __asm__("$2");
@@ -4851,34 +4826,34 @@ extern "C" void ChooseBhvTargetsTarget(C *behavior)
     __asm__("sqc2 %4,%0\n\tdaddu %2,%z5,$zero\n\tlwc1 %1,-0x18f0(%3)\n\taddiu %3,%3,-0x18f0"
             : "=m"(work.bestPoint.q), "=f"(lower), "=&r"(best), "+r"(randomAddress)
             : "j"(zero), "J"(0), "m"(*(float *)(randomAddress - 0x18f0)));
-    behavior->time = now + RandomFloatInRange__Fff(lower, ((RANGE *)randomAddress)->hi);
-    work.origin.q = GetLoWorldPos(behavior->guard);
+    behavior->nextChooseTime = now + RandomFloatInRange__Fff(lower, ((RANGE *)randomAddress)->hi);
+    work.origin.q = GetLoWorldPos(behavior->owner);
     // D_002A55FC supplies the initial selection cost.
     int i;
-    P *actor;
+    STEPGUARD *actor;
     unsigned int limitHigh;
     {
         register int firstIndex __asm__("$5");
-        register P *firstActor __asm__("$4");
+        register STEPGUARD *firstActor __asm__("$4");
         register unsigned int high __asm__("$3");
         __asm__("lui %0,0x2a\n\tdaddu %1,$zero,$zero\n\tlw %2,%3"
                 : "=&r"(high), "=&r"(firstIndex), "=r"(firstActor)
-                : "m"(behavior->guard));
+                : "m"(behavior->owner));
         limitHigh = high;
         i = firstIndex;
         actor = firstActor;
     }
     float bestCost = *(float *)(limitHigh + 0x55fc);
-    if (actor->count > 0)
+    if (actor->designatedTargetCount > 0)
         do {
-            P *choice = actor->Choice(i);
-            if (Eligible(choice->flags)) {
+            LO *choice = actor->designatedTargets[i];
+            if ((int)choice->isInWorld & 1) {
                 qword candidate = From(GetLoWorldPos(choice));
                 float cost = Distance(&work.origin, candidate);
-                if (choice == behavior->preferred)
+                if (choice == behavior->preferredTarget)
                     cost = D_002BE720.a + cost * (D_002BE720.b + cost * D_002BE720.c);
-                for (int j = 0; j < behavior->guard->nearCount; j++) {
-                    qword position = GetLoWorldPos(behavior->guard->near[j]);
+                for (int j = 0; j < ((STEPGUARD *)behavior->owner)->avoidObjectCount; j++) {
+                    qword position = GetLoWorldPos(((STEPGUARD *)behavior->owner)->avoidObjects[j]);
                     FindClosestPointOnLine(position, work.origin.q, To(candidate), 0, &work.t, &work.d);
                     if (work.t < 0.0f)
                         continue;
@@ -4895,13 +4870,13 @@ extern "C" void ChooseBhvTargetsTarget(C *behavior)
                 }
             }
             ++i;
-            actor = behavior->guard;
-        } while (i < actor->count);
-    behavior->preferred = best;
-    P *nearest = 0;
+            actor = (STEPGUARD *)behavior->owner;
+        } while (i < actor->designatedTargetCount);
+    behavior->preferredTarget = best;
+    LO *nearest = 0;
     float distance = 800.0f;
-    for (int k = 0; k < behavior->guard->nearCount; k++) {
-        P *choice = behavior->guard->near[k];
+    for (int k = 0; k < ((STEPGUARD *)behavior->owner)->avoidObjectCount; k++) {
+        LO *choice = ((STEPGUARD *)behavior->owner)->avoidObjects[k];
         qword position = From(GetLoWorldPos(choice));
         float f = DistanceFrom(position, &work.origin);
         if (f > distance)
@@ -4918,8 +4893,8 @@ extern "C" void ChooseBhvTargetsTarget(C *behavior)
         nearest = choice;
         distance = f;
     }
-    behavior->near = nearest;
-    behavior->selected = nearest ? nearest : behavior->preferred;
+    behavior->nearAvoidObject = nearest;
+    behavior->chosenTarget = nearest ? nearest : behavior->preferredTarget;
 }
 
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
@@ -4930,20 +4905,14 @@ typedef char Long_Size[sizeof(unsigned long)==8?1:-1];
 typedef char Qword_Size[sizeof(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
 typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
-typedef char P_View_Size[sizeof(P)==0xfb0?1:-1];
-typedef char P_Alignment[__alignof__(P)==8?1:-1];
-typedef char C_Size[sizeof(C)==0x48?1:-1];
 } // namespace M_func_0017B9C0
 
 // 0x17BD78 UpdateBhvTargets
 namespace M_func_0017BD78 { extern "C" {
-struct T; 
-struct T { char pad[0x30]; int target; };
 void UpdateBhv(BHV178 *p);
 int IsStepguardHandsOff(void *p);
 void ChooseBhvTargetsTarget(BHV178 *p);
 int IsBhvBusyAbove(BHV178 *p);
-int IsBhvcombatDone(struct T *p);
 // 0x17BD78: Targets behaviour vtable slot 10 (Update): re-chooses and (re)engages the designated targets; pauses
 // while hands-off.
 void UpdateBhvTargets(BHV178 *behavior) {
@@ -4961,8 +4930,8 @@ void UpdateBhvTargets(BHV178 *behavior) {
         case 1:
             if (f) SetBhvTargetsState(behavior, 2);
             else if (!behavior->chosenTarget) SetBhvTargetsState(behavior, 0);
-            else if (behavior->chosenTarget != ((struct T *)behavior->pbhvNext)->target) { SetBhvTargetsState(behavior, -1); SetBhvTargetsState(behavior, 1); }
-            else if (IsBhvcombatDone(((struct T *)behavior->pbhvNext))) SetBhvTargetsState(behavior, 0);
+            else if (behavior->chosenTarget != ((BHVCOMBAT *)behavior->pbhvNext)->target) { SetBhvTargetsState(behavior, -1); SetBhvTargetsState(behavior, 1); }
+            else if (IsBhvcombatDone((BHVCOMBAT *)behavior->pbhvNext)) SetBhvTargetsState(behavior, 0);
             break;
         case 2:
             if (!f) SetBhvTargetsState(behavior, 0);
