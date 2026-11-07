@@ -1579,8 +1579,7 @@ struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct pas
 struct PMF { short delta; short index; void (*pfn)(void *); };
 struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
-struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int selectedSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
-extern struct MC D_002E65E0;
+extern SAVE D_002E65E0;
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
@@ -1645,14 +1644,14 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x15:
     case 0x18:
     case 0x2E:
-        if (D_002E65E0.state != 6)
+        if (D_002E65E0.nState != 6)
             return;
         ClearMcDialogState(dialog);
         return;
     case 0x13:
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             CreateMemcardThread(D_002F633C, D_002A6D88.l);
             SetMcDialogState(dialog, 0x16);
         } else
@@ -1661,7 +1660,7 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x16:
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
             return;
         }
@@ -1670,7 +1669,7 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x1A:
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
             switch (dialog->followUpAction) {
             case 1:
@@ -1691,7 +1690,7 @@ void CMemcardDialog_Update(struct S *dialog)
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         D_002E65E0.selectedSlot = 0;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
             return;
         }
