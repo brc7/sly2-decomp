@@ -76,8 +76,8 @@ void FaceStepToward(STEP *pstep, LO *plo);
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitBentley { extern "C" {
 struct S10A8 { float g0; int n4; float g8; float gC; };
-struct P {
-    char pad0[0x3D8]; float x3D8;
+struct P : STEP {
+    char pad0[0x3D8 - 0x2C0]; float x3D8;
     char pad1[0x1000 - 0x3DC]; int x1000;
     char pad2[0x103C - 0x1004]; float x103C; int x1040; int x1044; float x1048;
     char pad3[0x1098 - 0x104C]; float x1098; float x109C; float x10A0; float x10A4; struct S10A8 s10A8;
@@ -141,7 +141,7 @@ extern "C" void LoadBentleyFromBrx(BENTLEY *bentley, CBinaryInputStream *pbis)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostBentleyLoad { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
-struct S { char pad[0x10b8]; int f10b8; char pad2[0x1320 - 0x10bc]; char gaitA[0xc0]; char a13e0[0x100]; char a14e0[0x10];
+struct S : STEP { char pad[0x10B8 - 0x2C0]; int f10b8; char pad2[0x1320 - 0x10bc]; char gaitA[0xc0]; char a13e0[0x100]; char a14e0[0x10];
     char a14f0[0x100]; char a15f0[0x10]; char gaitB[0x110]; char crosshair[0x10]; };
 union VQ { float af[4]; ti128 q; };   /* a 16-byte vector that can be initialized, read as a quadword (.q) */
 extern VQ D_002BC920;
@@ -324,7 +324,7 @@ void UpdateBentleyStateMachine(struct P *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00134D30 { extern "C" {
-struct S { char pad[0x150]; void *controller; char pad2[0xf00 - 0x154]; int ff00; int jtModeState; char pad3[0x18]; int jtModeKind; };
+struct S : SO { void *controller; char pad2[0xf00 - 0x154]; int ff00; int jtModeState; char pad3[0x18]; int jtModeKind; };
 int IsStepplayerInJtMode(struct S *);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
 void EndJtMode(void *);
@@ -754,7 +754,7 @@ namespace M_func_001356E8 { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
 struct C { int a[4]; };
 struct LSG { ti128 pos; int pad[0x14]; };
-struct S { char pad[0xec]; int fec; char pad2[0x16f0 - 0xf0]; ti128 v16f0; };
+struct S : LO { char pad[0xEC - 0x50]; int fec; char pad2[0x16f0 - 0xf0]; ti128 v16f0; };
 union VQ { float af[4]; ti128 q; };
 extern VQ D_002BC970;    /* screen points for ConvertCmScreenToWorld */
 extern VQ D_002BC980;
@@ -787,7 +787,7 @@ void UpdateBentleyAimPoint(struct S *bentley) {
 namespace M_FireBentleyDart { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
 struct Q { char pad[0x50]; ti128 v50; int f60; };
-struct S { char pad[0x16d8]; int f16d8; void *f16dc; void *f16e0; struct Q *pq; ti128 v16f0; float f1700; };
+struct S : STEPPLAYER { char pad[0x16D8 - 0x1320]; int f16d8; void *f16dc; void *f16e0; struct Q *pq; ti128 v16f0; float f1700; };
 extern ti128 D_002A2DD0;
 extern float D_002DDED0;
 void UpdateBentleyAimPoint(struct S *);
@@ -893,7 +893,7 @@ void PresetBentleyAccel(struct P *bentley)
 namespace M_func_00135A48 { extern "C" {
 struct O { char pad[0x10]; unsigned long grf; };
 struct E { struct O *po; char pad[0x3c]; };
-struct S { char pad[0xdf0]; int hurt; char pad2[0xf50 - 0xdf4]; int pipe; char pad3[0x13d0 - 0xf54]; int st; };
+struct S : STEP { char pad[0xDF0 - 0x2C0]; int hurt; char pad2[0xf50 - 0xdf4]; int pipe; char pad3[0x13d0 - 0xf54]; int st; };
 void AdjustJtHurtXp(void *, struct E *);
 void ResetJtPipeAdjust(void *, struct E *);
 void AdjustStepNewXp(struct S *, struct E *, int);
@@ -916,7 +916,7 @@ struct O { char pad[0xC]; struct VT *pvt; char pad2[0x15C - 0x10]; int x15C; };
 struct Q { int x0; void *p4; };
 struct M { int x0; int x4; int x8; };
 struct E { int x0; int x4; struct M *pm; };
-struct P { char pad[0x1030]; int action; char pad1[0x16B4 - 0x1034]; struct Q *pq; char pad2[0x16CC - 0x16B8]; int x16CC;
+struct P : STEP { char pad[0x1030 - 0x2C0]; int action; char pad1[0x16B4 - 0x1034]; struct Q *pq; char pad2[0x16CC - 0x16B8]; int x16CC;
     char pad3[0x1710 - 0x16D0]; char crosshair[0x1824 - 0x1710]; struct E ae[6]; char pad4[0x186C - 0x186C]; struct O *po; };
 void HandleStepplayerMessage(struct P *p, int k, struct M *pm);
 struct O *AcquireProxyObject(void *pv, int n);
@@ -982,7 +982,7 @@ void SetBentleyPlayerState(void *bentley, unsigned int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BENTLEY_PlayerStateCur { extern "C" {
-struct S { char pad[0x13d0]; int st; };
+struct S : STEPPLAYER { char pad[0x13D0 - 0x1320]; int st; };
 // BENTLEY slot 89: the inverse map, Bentley state -> generic player state 0..8 (else -1).
 int GetBentleyPlayerState(struct S *bentley) {
     switch (bentley->st) {
@@ -1002,7 +1002,7 @@ int GetBentleyPlayerState(struct S *bentley) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135D80 { extern "C" {
-struct S { char pad[0x268]; int f268; char pad1[0x2c0 - 0x26c]; int air; char pad2[0x4c0 - 0x2c4]; int grab; char pad3[0xdf0 - 0x4c4]; int hurt; char pad4[0x13d0 - 0xdf4]; int st; };
+struct S : PO { char pad[0x268 - 0x180]; int f268; char pad1[0x2c0 - 0x26c]; int air; char pad2[0x4c0 - 0x2c4]; int grab; char pad3[0xdf0 - 0x4c4]; int hurt; char pad4[0x13d0 - 0xdf4]; int st; };
 int GetJtGrabAdjustRecord(void *, int *);
 int GetJtAirAdjustRecord(void *, int *);
 int GetJtHurtAdjustRecord(void *, int *);
@@ -1036,7 +1036,7 @@ extern "C" int TryFaceBentleyAttachedObject()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135E40 { extern "C" {
-struct S { char pad[0x13d0]; int st; };
+struct S : STEPPLAYER { char pad[0x13D0 - 0x1320]; int st; };
 int GetStepplayerMovementNoise(struct S *);
 // BENTLEY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
 // then 1 (noisy) in BENTLEY_RUN/NEAR_TARGET/ADRENALINE, else -1.
@@ -1055,7 +1055,7 @@ namespace M_func_00135EB0 { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
 struct Q { char pad[0x148]; unsigned long grf; };
 struct A { char pad[0x40]; int f40; char pad1[8]; struct Q *pq; char pad2[0x60 - 0x50]; ti128 v60; char pad3[0x88 - 0x70]; float f88; };
-struct S { char pad[0x208]; struct A *pa; char pad1[0x4c0 - 0x20c]; int grab; char pad2[0x9e0 - 0x4c4]; int places;
+struct S : PO { char pad[0x208 - 0x180]; struct A *pa; char pad1[0x4c0 - 0x20c]; int grab; char pad2[0x9e0 - 0x4c4]; int places;
     char pad3[0xf50 - 0x9e4]; int pipe; char pad4[0x108c - 0xf54]; int f108c; char pad5[0x13d0 - 0x1090]; int st; };
 void AddJtPlaceAtPosition(void *, int, ti128);
 void RecordJtGrabPlace(void *);
@@ -1081,7 +1081,7 @@ void UpdateBentleyPlaces(struct S *bentley) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BENTLEY_FInvulnerable { extern "C" {
-struct S { char pad[0x4c0]; int grab; char pad2[0x13d0 - 0x4c4]; int st; };
+struct S : STEP { char pad[0x4C0 - 0x2C0]; int grab; char pad2[0x13d0 - 0x4c4]; int st; };
 int IsJtGrabBusy(void *, int);
 int IsStepplayerInvulnerable(struct S *, int);
 // BENTLEY slot 76: on a pipe with zap kind 0x4000, or the grab check, else the STEPPLAYER base.
@@ -1093,7 +1093,7 @@ int IsBentleyInvulnerable(struct S *bentley, int msg) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135FF0 { extern "C" {
-struct S { char pad[0x13d0]; int st; };
+struct S : STEPPLAYER { char pad[0x13D0 - 0x1320]; int st; };
 // BENTLEY slot 94: 1 in states 0/1/5/7 (free movement), else 0. (inferred)
 int IsBentleyFreeMoving(struct S *bentley) {
     switch (bentley->st) {
@@ -1151,7 +1151,7 @@ namespace M_func_00136118 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
 struct Q { int x0; };
-struct P { char pad[0x150]; void *controller; char pad0[0x20C - 0x154]; float g20C; char padA[0x2C0 - 0x210]; char air[0x1030 - 0x2C0]; void *action;
+struct P : SO { void *controller; char pad0[0x20C - 0x154]; float g20C; char padA[0x2C0 - 0x210]; char air[0x1030 - 0x2C0]; void *action;
     char pad1[0x13D0 - 0x1034]; int state; char pad2[0x16B0 - 0x13D4]; int subState; struct Q *pq; char pad3[0x186C - 0x16B8]; struct O *po; };
 extern struct CLOCK D_002DDED0;
 int IsAsegaRetracted(void *pv);
@@ -1226,7 +1226,7 @@ extern "C" void SetBentleyAimState(BENTLEY *bentley, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBentleyAim { extern "C" {
-struct P { char pad[0x150]; void *controller; char pad0[0xF20 - 0x154]; int jtModeKind; char pad1[0x1028 - 0xF24]; void *p1028; int pad2[2];
+struct P : SO { void *controller; char pad0[0xF20 - 0x154]; int jtModeKind; char pad1[0x1028 - 0xF24]; void *p1028; int pad2[2];
     void *p1034; char pad3[0x13D0 - 0x1038]; int state; char pad4[0x16BC - 0x13D4]; int aimState; char pad5[0x1700 - 0x16C0];
     float g1700; int pad6[3]; char crosshair[4]; int x1714; char pad7[0x181C - 0x1718]; int x181C; };
 extern struct CLOCK D_002DDED0;
@@ -1292,7 +1292,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; qword pos; } M4;
 struct VT { short d; short pad; void *f; };
 struct O { char pad[0xA0]; void *xA0; };
-struct G { char pad[0x13D0]; int state; char pad2[0x1910 - 0x13D4]; int x1910; int k1914; char pad3[4]; struct Q *pq; };
+struct G : STEPPLAYER { char pad[0x13D0 - 0x1320]; int state; char pad2[0x1910 - 0x13D4]; int x1910; int k1914; char pad3[4]; struct Q *pq; };
 struct Q { char pad[0xC]; struct VT *vt; };
 struct P {
     char pad[0xC]; struct VT *vt; char pad1[0x54 - 0x10]; struct O *p54; struct O *p58; struct O *p5C;
@@ -1410,7 +1410,7 @@ namespace M_BENTLEY_FCanUseGadget { extern "C" {
 /* v3 (Claude agent, 2026-10-17): aligned 10. Shared function-scope `void *pv` for case 12 pa11C0 and pe->p4 puts pa in a0 like the target. Left: target loads x15C into v1 and copies the 1CADE0 result to v1 (daddu v1,v0; bnez v1). */
 struct A { char pad[0x15C]; int x15C; };
 struct E { int x0; void *p4; void *p8; };
-struct P { char pad[0x2C0]; char air[0x200]; char grab[0xF50 - 0x4C0]; char pipe[0x11B4 - 0xF50]; int x11B4; int pad1[2];
+struct P : STEP { char air[0x200]; char grab[0xF50 - 0x4C0]; char pipe[0x11B4 - 0xF50]; int x11B4; int pad1[2];
     struct A *pa11C0; char pad2[0x12F0 - 0x11C4]; int x12F0; char pad3[0x13D0 - 0x12F4]; int state; char pad4[0x1818 - 0x13D4];
     long x1818; };
 extern int D_002DFBC0;
@@ -1517,7 +1517,7 @@ namespace M_StartBentleyGadget { extern "C" {
 struct E { int x0; void *p4; void *p8; };
 struct O { char pad[0x15C]; int x15C; char pad1[0x16C - 0x160]; void *p16C; };
 struct G { int x0; int x4; int x8; int xC; };
-struct P { char pad[0x4C0]; char grab[0x9BC - 0x4C0]; int x9BC; char pad1[0x11B0 - 0x9C0]; char thrower[4]; int x11B4; int pad2[2];
+struct P : STEP { char pad[0x4C0 - 0x2C0]; char grab[0x9BC - 0x4C0]; int x9BC; char pad1[0x11B0 - 0x9C0]; char thrower[4]; int x11B4; int pad2[2];
     struct O *po11C0; char pad3[0x130C - 0x11C4]; int x130C; char pad4[0x16B4 - 0x1310]; struct E *pe16B4;
     char pad5[0x1874 - 0x16B8]; int x1874; };
 extern struct G D_002DEB30;
@@ -1605,7 +1605,7 @@ extern "C" char *GetBentleySaveVarRoot()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136CC0 { extern "C" {
-struct S { char pad[0x204]; int f204; char pad2[0x13d0 - 0x208]; int st; };
+struct S : PO { char pad[0x204 - 0x180]; int f204; char pad2[0x13d0 - 0x208]; int st; };
 int GetStepplayerGroundProbeFlags(struct S *);
 // BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
 int GetBentleyGroundProbeFlags(struct S *bentley) {
@@ -1670,7 +1670,7 @@ void UpdateBentleyCrosshair(struct P *bentley, int k)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136ED0 { extern "C" {
-struct L { char pad[0x10b8]; void *f10b8; };
+struct L : STEP { char pad[0x10B8 - 0x2C0]; void *f10b8; };
 struct S { struct L *pl; int pad[2]; int fc; int f10; char pad2[0xe0 - 0x14]; int fe0; };
 struct M { int id; int f4; int f8; };
 void DetachXfActById(int, struct L *, void *);
@@ -1866,7 +1866,7 @@ struct P : BASE {
     V4(a) V4(b) V4(c) V4(d) V4(e) V4(f) V4(g) V4(h)
     virtual qword GetVel();            /* 33 */
 };
-struct PX { char pad[0x10DC]; P *py; };
+struct PX : STEP { char pad[0x10DC - 0x2C0]; P *py; };
 struct S { P *p; };
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -1924,7 +1924,7 @@ extern "C" void SetBentleyXpFriction(void *pv, XP *xp)
 namespace M_func_001374F0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x18]; float g18; float g1C; };
-struct O { char pad[0x150]; struct Q *pq; char pad2[0x10DC - 0x154]; void *interactTarget; };
+struct O : SO { struct Q *pq; char pad2[0x10DC - 0x154]; void *interactTarget; };
 struct P { struct O *po; int x4; int x8; int xC; };
 qword SetVectorCylind(float a, float b, float c);
 qword GetLoWorldPos(void *p);
@@ -1999,8 +1999,8 @@ struct P : BASE {
     virtual void v34();
     virtual void SetVel(qword v);      /* 35 */
 };
-struct PX {
-    char pad[0x190];
+struct PX : PO {
+    char pad[0x190 - 0x180];
     qword v190;
     char pad1A0[0x10];
     MATRIX3 m1B0;
