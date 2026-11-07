@@ -405,7 +405,7 @@ Every choice:
 | (wave 10) | C++-named hand-written definitions in namespaces | the wave-9 device at scale: a namespaced `.cpp` function whose symbol is mangled becomes a C-linkage definition of its literal symbol (`extern "C" int FPausedEmitter__FP7EMITTER(EMITTER *p)`), because its own private types would be `M_x::EMITTER` and change the mangling; done mechanically (emitter 8, rip 6, cm 2, memcard 3...) | the user's "keep conflicting private views in per-function namespaces"; the views conflict across the files of every wave-10 TU | the function's views move to shared types: then it becomes the C++ function again (reversible: the symbol is the same string) |
 | (wave 10) | namespaced callee and global declarations | as in wave 9, declarations inside a namespace of a `.cpp` block get the namespace in their mangled names (calls and globals of those blocks reference `..M_x..` symbols); relocations are masked, so matching is unaffected, but a native link would need them fixed. Left as wave 9 left them | — | the native-link step |
 | (wave 10) | m2c-body types | file-scope TU-private views of the fields the m2c bodies use, header types wherever the headers name the fields (cm.h CPLCY family and CM, xfm.h SHAPE, sw.h SW, lo.h LO with real virtual calls, stepplayer.h STEPPLAYER, so.h XF/SO), unnamed header words through offset macros, derived views for class hierarchies (ACTPHASE/ACTREST : ACT, CLUE/LOOT/VAULT : DPRIZE, GRABSPOT36 : GRABSPOT35) | each view names only what the code reads; names follow the per-function views and the annotations | the headers name the fields |
-| tu_17F090.cpp | HACK and HACKSHIP / HACKENEMY / HACKLOCK | separate views over SO (HACK words repeated by a macro), not derived | the class words at +0x1C8 lie inside HACK's 16-byte tail padding; a derived struct starts at 0x1D0 (every field 8 off) | a packed/aligned base view is shown to match |
+| tu_17F090.cpp | HACK and HACKSHIP / HACKENEMY / HACKLOCK | separate views over SO (HACK words repeated by a macro), not derived | the class words at +0x1C8 lie inside HACK's 16-byte tail padding; a derived struct starts at 0x1D0 (every field 8 off) | done (names/vu-objects): the premise was wrong (HACK is 0x1C0; +0x1C0/+0x1C4 belong to each subclass), sly2/hack.h derives them |
 | memcard.cpp | SAVEINFO (+0x48) | union of the whole flag word and the creation day/month bytes that overlap its upper half | FillMcDirInfo reads/writes +0x48 with lw/sw and stores bytes at +0x4A/+0x4B | the real record (a date struct overlapping a bit-field word?) |
 | memcard.cpp | CompareSaves__FP4SAVET0 | C-linkage literal symbol over SAVEINFO | its Sly 1 symbol says SAVE, but it compares two directory records (SAVE is the 0xFD70-byte manager here) | a Sly 2 symbol |
 | stepplayer.cpp | STEPPLAYER virtual slots | real calls for slots 87, 88, 99; slot 101 by hand | stepplayer.h's declaration order gives OnActive at 0x270 (slot 77) where the code calls 0x330; the header's appended "override declared in" lines are not in vtable order | stepplayer.h's virtual order fixed |
@@ -1160,6 +1160,33 @@ Kept (noted for their owners): gc.cpp's six node views (above); bif.cpp's 14 SPN
 a union with the allocation size); callback.cpp's SPFV (a frame slot read through, owner unknown); the CSidebag release
 views outside splice/ (lo.cpp's RF, screen.cpp's DestroyBasic, asega.cpp's homed CRefPtr<CSidebag> assignment);
 basic.h's comment that frame.cpp/eval.cpp define their own CFrame views is stale.
+
+### Views unified (names/vu-objects): the hack and robot tank classes
+
+The gameplay-objects family, round 1 (from 9197b908): the registry classes of the two largest object TUs get their real
+layouts in new headers, and the per-function views of them go. Every function and data symbol of tu_17F090.cpp,
+tu_1D1370.cpp, class_registry.cpp and the other 74 includers of sly2/classes.h MATCHes, and each object is identical
+to the branch start's (`nm -S`: symbols with sizes, binding and section; relocations by symbol name). The vtables and
+class_registry's factories are unchanged (the classes keep their sizes, virtual layouts and constructors).
+Struct/class/union definitions: tu_17F090.cpp 149 -> 34, tu_1D1370.cpp 148 -> 112.
+
+| type | header | change | views removed |
+|---|---|---|---|
+| HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL | sly2/hack.h (new; classes.h includes it at the classes' emission position) | real layouts with offset asserts; records HACKE (anim entry), HACKSHIPPART, HACKRULE (the enemy's per-state enter/stay limits), HACKWALLSEG (0x30, AddHackwallSegment) and HACKWALLPIECE (0x70, the allocated piece); HACK +0x1A0 is a union of the qword InitHack stores and the CLQ TakeHackDamage evaluates (decision 1.8's form); slot 82 is `Kill(LO *ploKiller)` (the killer lands in ZPR +0x08); HACKSHIP's and ROBOTTANK's cleared constructor word is the engine sound (CID151) | all 76 functions of tu_17F090: HACKV/HACKSHIPV/HACKENEMYV/HACKLOCKV/HACKSEG and the per-function S/O/P/E/Q/R/T/N/M/CTX/F views; real virtual calls for Kill, Reset, GetVelocity, SetVelocity, SetAngularVelocity, RotateToMat, GetLocalTransform, SetParent and the health widget's Show/Hide |
+| ROBOTTANK, CID108 | sly2/tank.h (new, same arrangement) | real layouts: ROBOTTANKWHEEL (0x60), ROBOTTANKSIDE (0x14), ROBOTTANKAMMO (0xC), the drive/traction terms, health and widget, the AI's target/path/selection; the weapons are JSG objects (`struct JSG *apjsgWeapon[8]`) | the file-scope ROBOTTANKV/RCPICKUP/XPLISTV and the views of 24 functions (Init, the pickup search and collect, path reset, wheel contacts and bounds, the wheel/side/ammo setters, health meter, the weapon ammo helpers' owner, all CID108 functions) |
+
+**Why the hack classes no longer need separate views.** Decision 1.1 kept HACKSHIP/HACKENEMY/HACKLOCK as separate
+views over PO because their words at +0x1C8 seemed to lie inside HACK's tail padding. They do not: HACK's descriptor
+size is 0x1C0, no HACK function touches +0x1C0, and each subclass's state and state time (+0x1C0/+0x1C4) are its own
+first fields, so the derived classes start at 0x1C0 and every offset falls where the views had it.
+
+Kept: the views of other families' records (XP contact sides, the contact request, a SOPART read with a 64-bit flag
+word, the LO flag word read whole: the LOIsland reads of decision 1.4), the hand-tuned helpers, and in tu_1D1370 the
+large tuned functions (PostRobottankLoad, UpdateRobottank, UpdateRobottankAi, PresetRobottankAccel, the pinned
+func_001D3450, RenderRobottankSelf, TakeRobottankDamage), SetRobottankState (its widget Show/Hide sites belong to the
+cross-family pass) and the weapon (JSG) views. Not started: prize.cpp, grabspot.cpp. Natural spellings that matched
+where the views had arithmetic: RenderHackwallSelf reads `wall->aseg[i].dlPiece.head` (was
+`((N**)((int)wall+i*0x30))[0x1DC/4]`); InitRobottank stores `0.0f` into the float the view wrote as an int.
 
 ## Path-hash quirk (asm functions)
 
