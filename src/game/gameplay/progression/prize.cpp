@@ -643,7 +643,7 @@ void CheckDprizeCollect(struct S *prize)
 
 namespace M_func_001C5DF0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { int a[3]; struct VTE *vt; char pad[0x1B8]; int isCollectable; };
+struct O : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x1C8 - 0x150]; int isCollectable; };
 struct Q { char pad[0x44]; int grf; };
 // DPRIZE::TakeDamage (new virtual slot 75): a collectable prize hit by a zap with flag 8 counts as collected.
 } } // namespace M_func_001C5DF0
@@ -654,7 +654,7 @@ int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out h
     struct Q *q = (struct Q *)pzpr;
     if (!p->isCollectable) return 0;
     if (!(q->grf & 8)) return 0;
-    { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 1); }
+    p->SetState(1);
     return 1;
 }
 
@@ -990,7 +990,7 @@ void InitCoin(struct S *coin)
 
 namespace M_func_001C6588 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { int a[3]; struct VTE *vt; char pad[0x140]; int state; char pad2[0xE4]; float lifetimeLeft; };
+struct O : SO { virtual void SetState(int state);   /* slot 76 */ int state; char pad2[0xE4]; float lifetimeLeft; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // COIN Update: UpdateDprize, then while idle counts the lifetime down and starts vanishing at zero.
@@ -999,7 +999,7 @@ void COIN::Update() { using namespace M_func_001C6588; M_func_001C6588::O *p = (
     UpdateDprize(p);
     if (!p->state) {
         p->lifetimeLeft -= D_002DDED0.deltaTime;
-        if (p->lifetimeLeft <= 0.0f) { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 5); }
+        if (p->lifetimeLeft <= 0.0f) p->SetState(5);
     }
 }
 
@@ -1102,7 +1102,7 @@ void InitMedicine(struct S *medicine)
 
 namespace M_func_001C6880 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { int a[3]; struct VTE *vt; char pad[0x140]; int state; char pad2[0xE4]; float lifetimeLeft; };
+struct O : SO { virtual void SetState(int state);   /* slot 76 */ int state; char pad2[0xE4]; float lifetimeLeft; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // MEDICINE Update: as COIN's (lifetime countdown while idle, then vanish).
@@ -1111,7 +1111,7 @@ void MEDICINE::Update() { using namespace M_func_001C6880; M_func_001C6880::O *p
     UpdateDprize(p);
     if (!p->state) {
         p->lifetimeLeft -= D_002DDED0.deltaTime;
-        if (p->lifetimeLeft <= 0.0f) { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 5); }
+        if (p->lifetimeLeft <= 0.0f) p->SetState(5);
     }
 }
 
@@ -1622,7 +1622,7 @@ void LoadLootFromBrx(struct S *loot, void *pv)
 
 namespace M_func_001C7778 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { int a[3]; struct VTE *vt; char pad[0x140]; int state; char pad2[0xE4]; float lifetimeLeft; };
+struct O : SO { virtual void SetState(int state);   /* slot 76 */ int state; char pad2[0xE4]; float lifetimeLeft; };
 extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // LOOT Update: as COIN's (lifetime countdown while idle, then vanish).
@@ -1631,7 +1631,7 @@ void LOOT::Update() { using namespace M_func_001C7778; M_func_001C7778::O *p = (
     UpdateDprize(p);
     if (!p->state) {
         p->lifetimeLeft -= D_002DDED0.deltaTime;
-        if (p->lifetimeLeft <= 0.0f) { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 5); }
+        if (p->lifetimeLeft <= 0.0f) p->SetState(5);
     }
 }
 
