@@ -22,7 +22,7 @@ struct PAUSEMENU : SCREENBASE
     virtual void Show() __asm__("ShowPausemenu");   /* slot 10; key function */
     virtual void Update() __asm__("UpdatePauseMenu");   /* slot 7 */
     virtual void Draw() __asm__("PAUSEMENU_Slot8Default");   /* slot 8 */
-    virtual void UnknownSlot9() __asm__("PAUSEMENU_Slot9");   /* slot 9 */
+    virtual void SetFocus(int fFocus, SCREENBASE *pscrOther) __asm__("PAUSEMENU_Slot9");   /* slot 9 */
     virtual void Hide() __asm__("HidePauseMenu");   /* slot 11 */
 };
 

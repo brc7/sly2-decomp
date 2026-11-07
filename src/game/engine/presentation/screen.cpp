@@ -306,30 +306,23 @@ extern "C" void PostLoadScreens()
 }
 
 namespace M_func_001D95B8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; void *joypad; };   /* a screen: the joypad it reads (only while focused) */
-struct S { struct O *requested; int a, b; struct O *focused; };
-extern char D_002DFC00[];   /* the joypad */
+struct S { SCREENBASE *requested; int a, b; SCREENBASE *focused; };   /* the shown-screen list: head, focused screen */
+extern JOY D_002DFC00;   /* the joypad */
 // If the screen at the head of the shown list (the requested top screen) differs from the focused one, tells the old one
 // it lost focus and focuses the new one. (inferred)
 void UpdateScreenFocus(struct S *list) {
-    struct O *requested = list->requested;
-    struct O *previous;
+    SCREENBASE *requested = list->requested;
+    SCREENBASE *previous;
     if (requested == list->focused) return;
     if (list->focused) {
-        list->focused->joypad = 0;
-        {
-            struct O *focused = list->focused;
-            struct VTE *entry = &focused->vt[9];   /* SetFocus(isFocused, other) */
-            ((void (*)(void *, int, struct O *))entry->pfn)((char *)focused + entry->d, 0, requested);
-        }
+        list->focused->pjoy = 0;
+        list->focused->SetFocus(0, requested);   /* slot 9 */
     }
     previous = list->focused;
     list->focused = requested;
     if (requested) {
-        struct VTE *entry = &requested->vt[9];
-        requested->joypad = D_002DFC00;
-        ((void (*)(void *, int, struct O *))entry->pfn)((char *)requested + entry->d, 1, previous);
+        requested->pjoy = &D_002DFC00;
+        requested->SetFocus(1, previous);
     }
 }
 } } // namespace M_func_001D95B8

@@ -19,9 +19,10 @@ template <> CRefPtr<CSidebag>::~CRefPtr();
  * screen.cpp). The HUD meter and the pause menu derive from it directly, SCREEN adds slots 12..14. */
 struct SCREENBASE : BASIC
 {
+    JOY *pjoy;              /* +0x10 the joypad it reads (only while focused: UpdateScreenFocus) */
     virtual void Update() __asm__("UpdateScreenDefault");   /* slot 7 (empty); key function (screen.cpp) */
     virtual void Draw() __asm__("DrawScreen");   /* slot 8 */
-    virtual void UnknownSlot9() __asm__("ScreenSlot9Default");   /* slot 9 */
+    virtual void SetFocus(int fFocus, SCREENBASE *pscrOther) __asm__("ScreenSlot9Default");   /* slot 9: focus gained / lost (UpdateScreenFocus) */
     virtual void Show() __asm__("ShowScreen");   /* slot 10 */
     virtual void Hide() __asm__("HideScreen");   /* slot 11 */
 };
@@ -29,7 +30,7 @@ struct SCREENBASE : BASIC
 /* The HUD meter (DRAFT name; vtable 0x2D8668, screen.cpp). */
 struct HUDMETER : SCREENBASE
 {
-    int unknown10[4];       /* +0x10 */
+    int unknown14[3];       /* +0x14 */
     float shownHealth;      /* +0x20 the fractions shown (they follow health / power) */
     float health;           /* +0x24 */
     float shownPower;       /* +0x28 */
@@ -49,7 +50,6 @@ typedef char assert_HUDMETER_size[sizeof(HUDMETER) == 0x50 ? 1 : -1];
 /* SCREEN: a UI screen or dialog: the text it shows, the widget object and a mode with its entry time. */
 struct SCREEN : SCREENBASE
 {
-    JOY *pjoy;              /* +0x10 the joypad it reads (only while focused: UpdateScreenFocus) */
     int unknown14;          /* +0x14 */
     int idText;             /* +0x18 id of the text shown */
     int unknown1C;          /* +0x1C */
