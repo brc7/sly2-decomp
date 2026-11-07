@@ -6469,38 +6469,29 @@ void BHVGOTO::Close()
 
 // 0x17D450 SetBhvgotoState
 namespace M_SetBhvgotoState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct A; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int pad[2]; int lookAt; } idle; }; union { int ignoresBlockers; qword goalPos; }; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
-struct A { char pad[0x294]; int pathShape; char pad2[0xFE8 - 0x298]; int capabilities; };
-struct S {
-    char pad[0x10]; struct A *guard; int pad2; struct O *child; char pad3[0x14]; int state; float stateTime;
-    char pad4[0x80 - 0x38]; qword relocateGoalRef; qword relocatePos; char pad5[0xA8 - 0xA0]; int lookAtTarget; int unknownAC; char pad6[8]; int firstLink; int isDirect;
-};
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
-void SetBhvpathShape(struct O *o, int a, int b);
+BHV *PushStepBehavior(STEPGUARD *guard, int n);
+void SetBhvpathShape(BHVPATH *o, void *shape, int b);
+} }
 // 0x17D450: BHVGOTO state change: 4 stand (BHVIDLE), 1/2 walk the path (BHVWALKPATH, the run animation when
-// allowed), 3 traverse a path link (BHVPATHLINK), 5 relocate (BHVRELOCATE).
-void SetBhvgotoState(struct S *behavior, int n) {
+// allowed), 3 traverse a path link (BHVPATHLINK), 5 relocate (BHV191 on the relocate goal).
+extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
+    using namespace M_SetBhvgotoState;
     if (n == behavior->state) return;
-    if (!((unsigned)n < 3 && behavior->state >= 0 && behavior->state < 3)) PopBhv(&behavior->child);
+    if (!((unsigned)n < 3 && behavior->state >= 0 && behavior->state < 3)) PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 4:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-            o->idle.lookAt = behavior->lookAtTarget;
+            BHVIDLE *o = (BHVIDLE *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVIDLE);
+            o->lookAt = behavior->lookAtTarget;
             StartPushedBhv(o);
         }
         break;
     case 3:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVPATHLINK);
+            BHVPATHLINK *o = (BHVPATHLINK *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVPATHLINK);
             o->pathlink = behavior->firstLink;
             StartPushedBhv(o);
         }
@@ -6508,16 +6499,16 @@ void SetBhvgotoState(struct S *behavior, int n) {
     case 1:
     case 2:
         {
-            struct O *o = behavior->child;
+            BHVWALKPATH *o = (BHVWALKPATH *)behavior->pbhvNext;
             if (o == 0) {
-                o = PushStepBehavior(behavior->guard, CID_BHVWALKPATH);
+                o = (BHVWALKPATH *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVWALKPATH);
                 o->lookAtTarget = behavior->lookAtTarget;
                 o->ignoresBlockers = behavior->isDirect;
-                if (!behavior->lookAtTarget || behavior->unknownAC || !(behavior->guard->capabilities & 4)) o->animSgf = 9; else o->animSgf = 8;
-                SetBhvpathShape(o, behavior->guard->pathShape, 0);
+                if (!behavior->lookAtTarget || behavior->unknownAC || !(((STEPGUARD *)behavior->owner)->capabilityFlags & 4)) o->animSgf = 9; else o->animSgf = 8;
+                SetBhvpathShape(o, ((STEPGUARD *)behavior->owner)->unknown294, 0);
                 StartPushedBhv(o);
             } else {
-                SetBhvpathShape(o, behavior->guard->pathShape, 0);
+                SetBhvpathShape(o, ((STEPGUARD *)behavior->owner)->unknown294, 0);
             }
         }
         break;
@@ -6526,15 +6517,13 @@ void SetBhvgotoState(struct S *behavior, int n) {
         break;
     case 5:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV191);
-            o->goalRef = behavior->relocateGoalRef;
-            o->goalPos = behavior->relocatePos;
+            BHV191 *o = (BHV191 *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHV191);
+            o->end = behavior->relocateGoal;
             StartPushedBhv(o);
         }
         break;
     }
 }
-} } // namespace M_SetBhvgotoState
 
 // 0x17D608 SnapPositionToSurfaceAbove
 namespace M_FSnapPosToSurfaceAbove {
