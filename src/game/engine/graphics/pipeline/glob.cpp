@@ -3912,7 +3912,7 @@ typedef char GIFS_m_ab_Offset[FIELD_OFFSET(GIFS,m_ab)==4?1:-1];
 typedef char GIFS_m_pb_Offset[FIELD_OFFSET(GIFS,m_pb)==12?1:-1];
 typedef char COMMAND_kind_Offset[FIELD_OFFSET(COMMAND,kind)==0?1:-1];
 typedef char COMMAND_index_Offset[FIELD_OFFSET(COMMAND,index)==2?1:-1];
-// Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 g_sw.tex2ProjVolume) with alpha blend
+// Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 g_sw.tex2Background) with alpha blend
 // over full-screen strips (MSCAL 0x1C48) (inferred)
 extern "C" void EndRpProjVolume(VIFS *input, int first, int mode)
 {
@@ -3958,7 +3958,7 @@ extern "C" void EndRpProjVolume(VIFS *input, int first, int mode)
         AddFramePatch(2, &gifs, &cursor);
         gifs.PackAD(6, 0x6A8000000L);
         gifs.PackAD(0x14, 1);
-        gifs.PackAD(0x16, g_sw.tex2ProjVolume);
+        gifs.PackAD(0x16, g_sw.tex2Background);
         gifs.PackAD(0x3F, 0);
         gifs.PackAD(0x47, 0x31001);
         gifs.PackAD(1, 0x180808080L);

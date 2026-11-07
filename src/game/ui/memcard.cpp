@@ -66,7 +66,7 @@ BUF<0x50> d_002E6500 __asm__("D_002E6500");     /* directory path */
 }
 MCDLGG D_002E6550;      /* the memory card dialog (CMemcardDialog) */
 MCSTATUSG D_002E65A0;   /* the card status widget (CMcStatus) */
-/* The save manager (SAVE, 0xFDA0 bytes up to memory.cpp's .bss at 0x2F6380; its MEMCARD worker D_002F633C at
+/* The save manager (SAVE, 0xFDA0 bytes up to memory.cpp's .bss at 0x2F6380; its MEMCARD worker g_save.memcard at
    +0xFD5C). */
 namespace BSS_memcard { BUF<0xFDA0> d_002E65E0 __asm__("D_002E65E0"); }
 
@@ -118,7 +118,6 @@ extern char D_002DEB30[];       /* the game */
 extern SAVE D_002E65E0;   /* the save manager */
 extern int D_004425D8;
 extern char D_003D9ED0[];       /* the pause menu */
-extern MEMCARD D_002F633C __asm__("D_002E65E0+0xFD5C");      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
 extern CLOCK D_002DDED0;
 extern void *D_002D3750[] __asm__("_vt$14CMemcardDialog");      /* CMemcardDialog vtable (emitted here) */
 /* CMemcardDialog (DRAFT name, from its functions' annotations): the memory-card dialog screen, vtable 0x2D3750, emitted
@@ -1891,7 +1890,6 @@ struct E { char pad[0x14]; int selectedIndex; int pad2[1]; };   /* a pause menu 
 struct H { char pad[0x24]; int topPage; };   /* the pause menu: index of the top page */
 extern "C" {
 extern SAVE D_002E65E0;
-extern SAVESLOT D_002E6604[] __asm__("D_002E65E0+0x24");
 extern char D_002E6550[];
 extern SW D_003DD490;
 extern struct H D_003D9ED0;
@@ -1914,7 +1912,7 @@ extern "C" void UpdateSaveMenuSlots(void)
         return;
     page = &D_003D9EDC[D_003D9ED0.topPage];
     {
-        SAVESLOT *slot = D_002E6604;
+        SAVESLOT *slot = g_save.aslot;
         for (i = 0; i < 3; i++, slot++) {
             isUsed[i] = EvalSaveVar(D_003DD490.psvpDt, slot);
         }
@@ -2056,7 +2054,6 @@ extern struct G D_003D9ED0;
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern SW D_003DD490;
-extern SAVESLOT D_002E6604[] __asm__("D_002E65E0+0x24");
 int IsPauseMenuOnSavePage(struct G *g);
 int GetPauseMenuTopPageId(struct G *g);
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b);
@@ -2075,7 +2072,7 @@ void FormatSavePageTextB(char *buf)
     world = &D_003DD490;
     {
     struct E *page = &D_003D9EDC[menu->topPage];
-    GetGlobalSaveVar(&ref, world->psvpDt, &D_002E6604[page->selectedIndex]);
+    GetGlobalSaveVar(&ref, world->psvpDt, &g_save.aslot[page->selectedIndex]);
     }
     isUsed = ref.u.g;
     Decref__4CRef(&ref);
@@ -2128,8 +2125,7 @@ namespace M_func_001ADC40 {
 /* (Claude agent, 2026-10-17) frame pointer copy pf used only for the push call reproduces the a0->s5 copy. */
 extern "C" {
  extern SW D_003DD490;
- extern SAVESLOT D_002E6604[] __asm__("D_002E65E0+0x24");
- extern char D_003D9ED0[];
+  extern char D_003D9ED0[];
  void*GetGlobalSaveVar(CRefData*,void*,void*);
  void Decref__4CRef(CRefData*);
  void*STACKSCOPE_ctor(void*);
@@ -2149,7 +2145,7 @@ static inline int GetN(CRefData&r,void*a,SAVESLOT*b){GetGlobalSaveVar(&r,a,b);in
 extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
  CRefData ref;
  SW*pg=&D_003DD490;
- SAVESLOT*pb=&D_002E6604[idx];
+ SAVESLOT*pb=&g_save.aslot[idx];
  if(GetG(ref,pg->psvpDt,pb)!=0.0f){
   int frame[4];int*pf=frame;STACKSCOPE_ctor(pf);
   void*value=AllocSaveKey((char *)"episodeBest",0);
@@ -2228,7 +2224,7 @@ extern "C" void CMcStatus_Update(MCDLG *dialog)
     pchild = dialog->pchild;
     if (pchild != 0) {
         if (pchild->displayState == 2 && pchild->targetDisplayState == pchild->displayState && D_002DDED0.realTime - pchild->tDisplayState > 1.0f &&
-            IsMemcardThreadValid(&D_002F633C) == 0) {
+            IsMemcardThreadValid(&g_save.memcard) == 0) {
             HideMcDialogWidget(dialog);
         }
     }

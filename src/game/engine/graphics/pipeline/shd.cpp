@@ -225,11 +225,11 @@ static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,co
     float alpha=*gain*0.003921569f;
     *outAlpha=alpha;outColor->n=rgb;
 }
-// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (its TEX0 saved in
-// SW::tex2ProjVolume, +0x3EA0) (inferred)
+// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (the CLUT of
+// SW::tex2Background) (inferred)
 void BuildWorldBackgroundImage(SW *psw, GSB *pgsb)
 {
-    if (!pgsb && !(psw->tex2ProjVolume & (0x3FFFL << 37)))
+    if (!pgsb && !(psw->tex2Background & (0x3FFFL << 37)))
         return;
     {
     float ag[3];
@@ -279,13 +279,13 @@ void BuildWorldBackgroundImage(SW *psw, GSB *pgsb)
         }
     }
     if (pgsb)
-        psw->tex2ProjVolume = ((ulong)IgsAllocGsb(pgsb, 4) << 37) | 0x2000000001B00000L;
+        psw->tex2Background = ((ulong)IgsAllocGsb(pgsb, 4) << 37) | 0x2000000001B00000L;
     GIFS gifs;
     QW aqw[0x80];
     QW *aqwSend;
     gifs.AllocStatic(0x80, aqw);
     gifs.AddDmaCnt();
-    BuildImageGifs((int)((psw->tex2ProjVolume >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &gifs);
+    BuildImageGifs((int)((psw->tex2Background >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &gifs);
     gifs.AddDmaRefs(0x40, (QW *)aclr);   /* the 256 colours as 0x40 quadwords */
     gifs.AddPrimPack(0, 1, 14);
     gifs.PackAD(0x3F, 0);

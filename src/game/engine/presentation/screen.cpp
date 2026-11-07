@@ -30,6 +30,7 @@
 #include "sly2/joy.h"
 #include "sly2/save.h"
 #include "sly2/game.h"
+#include "sly2/task.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -77,13 +78,12 @@ SCRINL<0x30> D_003DA0C0(D_002CA490);    /* notice */
 SCRCTOR<0x60> D_003DA0F0(GADGETMENU_ctor);
 SCRCTOR<0x270> D_003DA150(ConstructThiefnetScreen);
 SCRCTOR<0x110> D_003DA3C0(ConstructJobListScreen);
-/* 0x3DA4D0: the selected job (JOBSEL *, read as D_003DA4D0 below) heads a 0x20-byte object: the next screen starts
+/* 0x3DA4D0: the selected job (JOB *, read as D_003DA4D0 below) heads a 0x20-byte object: the next screen starts
  * at 0x3DA4F0. A plain pointer would be emitted after every constructed object (plain .bss goes at the end of the
  * file), so the slot is a 0x20-byte record with an empty inline constructor, emitted here in order and constructed
  * by no code. Only the first word is named. */
-struct JOBSEL;
 // Job-select slot: the selector and its seven ints.
-struct JOBSELSLOT { JOBSEL *pjobsel; int an[7]; JOBSELSLOT() {} };
+struct JOBSELSLOT { JOB *pjobsel; int an[7]; JOBSELSLOT() {} };
 JOBSELSLOT s_jobselslot __asm__("D_003DA4D0");
 SCRCTOR<0x40> D_003DA4F0(ConstructScreen52D);
 SCRCTOR<0x40> D_003DA530(ConstructTitleScreen);
@@ -181,7 +181,6 @@ struct TITLE : SCREEN   /* the title screen */
     virtual void Update() __asm__("UpdateTitleScreen");   /* slot 7 */
 };
 /* The job list's selected job (+0x6C / +0x70 text ids). */
-struct JOBSEL { char pad0[0x6C]; int ids6C; int ids70; };
 
 extern SW D_003DD490;
 extern "C" {
@@ -190,7 +189,7 @@ extern DL D_003DA0E0;
 extern char D_002E1E60[], D_002E6550[], D_002E65A0[];   /* letterbox, memcard dialog and status */
 extern char D_002DEA00[], D_002DEA28[];   /* the two HUD packet streams (DMAS) */
 extern LO *D_002E1E40, *D_002DD5BC, *D_002F7900;    /* the three heroes */
-extern JOBSEL *D_003DA4D0;
+extern JOB *D_003DA4D0;
 extern const char D_002A7AA8[], D_002A7AB8[];   /* a glyph suffix; "%d%%" */
 extern char D_003D4A60[];
 
@@ -2725,8 +2724,7 @@ void SelectLanguageItem(struct S *p) {
 
 namespace M_UpdateTitleScreen { extern "C" {
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
-typedef struct { char pad[0xFD50]; void *saveToLoad; void *foundSave; } BIG;
-extern BIG D_002E65E0;
+extern SAVE D_002E65E0;
 extern char D_002E6550[];
 extern struct G D_003DD490;
 extern char D_003D9ED0[];
@@ -2761,9 +2759,9 @@ void UpdateTitleScreen(TITLE *p)
     if (p->pjoy == 0)
         return;
     if (HandleJoyButtons(p->pjoy, 0x800)) {
-        if ((D_002E65E0.saveToLoad = D_002E65E0.foundSave) != 0) {
+        if ((D_002E65E0.currentSlot = D_002E65E0.newestSlot) != 0) {
             SetMcDialogPhase(D_002E6550, 1);
-            StartGameFromSave(D_002E65E0.saveToLoad);
+            StartGameFromSave(D_002E65E0.currentSlot);
         } else {
             StartNewGame(p);
         }
@@ -2908,7 +2906,7 @@ extern "C" void BuildJobListWorldText(char *pch)
 extern "C" void BuildJobDescriptionText(char *pch)
 {
     if (D_003DA4D0 != 0) {
-        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->ids70));
+        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->descriptionTextId));
     }
 }
 
@@ -2916,7 +2914,7 @@ extern "C" void BuildJobDescriptionText(char *pch)
 extern "C" void BuildJobNameText(char *pch)
 {
     if (D_003DA4D0 != 0) {
-        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->ids6C));
+        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->labelNameId));
     }
 }
 

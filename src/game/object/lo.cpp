@@ -132,11 +132,11 @@ void FreeSlotheapSlot(void *, void *);
 // Unlinks the object's root record from the world's root and busy lists, frees it and clears the object's pointer.
 void FreeLoroot(LO *p)
 {
-    char *pdl = D_003DD490 + 0x2C;
+    DL *pdl = &((SW *)D_003DD490)->busyRoots;
     if (IsEntryInDl__FP2DLPv(pdl, p->root))
         RemoveDlEntry__FP2DLPv(pdl, p->root);
     RemoveFromSwBusyList(D_003DD490, p->root);
-    FreeSlotheapSlot(D_003DD490 + 0x398C, p->root);
+    FreeSlotheapSlot(&((SW *)D_003DD490)->slotheapLoroot, p->root);
     p->root = 0;
 }
 } } // namespace M_FreeLoroot

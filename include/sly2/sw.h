@@ -249,7 +249,7 @@ struct SW : public BASIC
       CID116 *pcid116Fade;   /* the screen fade object (CID116, inferred) */
       float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp BuildWorldBackgroundImage); was _pad_283 */
       float aclrShdLight[3][4]; /* +0x3E70 [S] draft name: three user HSV colours converted by ConvertUserHsvToUserRgb (same function) */
-      ulong tex2ProjVolume; /* +0x3EA0 [S] draft name: TEX2 register packed by EndRpProjVolume (glob.cpp) */
+      ulong tex2Background; /* +0x3EA0 [S] TEX2 whose CBP is the 256-entry CLUT BuildWorldBackgroundImage (shd.cpp) builds from agShdLight; glob.cpp's projected-volume pass reads the framebuffer through it */
       int fRebuildBackground; /* +0x3EA8 [S] DrawSw rebuilds the background image (BuildWorldBackgroundImage) and clears it
                                  (draw.cpp); was _pad_283 */
       SL slPoctl;   /* player-object controllers (POCTL) */
@@ -394,7 +394,7 @@ typedef char assert_SW_pblockRender[SLY2_OFFSETOF(SW, pblockRender) == 0x3E5C ? 
 typedef char assert_SW_unknown3E40[SLY2_OFFSETOF(SW, unknown3E40) == 0x3E40 ? 1 : -1];
 typedef char assert_SW_agShdLight[SLY2_OFFSETOF(SW, agShdLight) == 0x3E64 ? 1 : -1];
 typedef char assert_SW_aclrShdLight[SLY2_OFFSETOF(SW, aclrShdLight) == 0x3E70 ? 1 : -1];
-typedef char assert_SW_tex2ProjVolume[SLY2_OFFSETOF(SW, tex2ProjVolume) == 0x3EA0 ? 1 : -1];
+typedef char assert_SW_tex2Background[SLY2_OFFSETOF(SW, tex2Background) == 0x3EA0 ? 1 : -1];
 typedef char assert_SW_slPoctl[SLY2_OFFSETOF(SW, slPoctl) == 0x3EAC ? 1 : -1];
 typedef char assert_SW_dlCid98[SLY2_OFFSETOF(SW, dlCid98) == 0x3FC0 ? 1 : -1];
 typedef char assert_SW_dlTargetrec[SLY2_OFFSETOF(SW, dlTargetrec) == 0x3FCC ? 1 : -1];

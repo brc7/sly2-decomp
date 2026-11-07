@@ -632,9 +632,8 @@ struct VT {
     char pad[0x188]; short d49; short pd49; void (*f49)(void *,int);
     short d50; short pd50; void (*f50)(void *);
 };
-struct O {char pad[0x54];int state;};   /* a task (state 1: active, inferred) */
 /* The lists of AddItemCounterOidA/B read one word late: object of entry i, then oid of entry i + 1. */
-struct E {struct O *object;int nextOid;};
+struct E {TASK *object;int nextOid;};
 struct S {
     char pad[0xC];struct VT *vt;char pad10[0x100];
     int countA;int firstOidA;struct E a[15];int lastObjectA;int countB;int firstOidB;struct E b[0];
@@ -643,7 +642,7 @@ enum { TASK_STATE_ACTIVE = 1 };   /* (inferred) */
 extern char D_002C3EC0[0x90];
 extern char D_002A8AA0[];
 void UpdateWidget(struct S *);
-int IsTaskComplete(struct O *);
+int IsTaskComplete(TASK *);
 int IsWidgetAnimPlaying(struct S *,int);
 int sprintf(char *,char *,...);
 // Per-frame item counter: counts finished and active objects, writes done / total / remaining into the widget's item
@@ -657,7 +656,7 @@ void UpdateItemCounterWidget(struct S *widget)
     int numActive = 0;
     UpdateWidget(widget);
     for (i = 0; i < widget->countB; i++) {
-        struct O *task = widget->b[i].object;
+        TASK *task = widget->b[i].object;
         if (task) {
             if (task->state == TASK_STATE_ACTIVE)
                 numActive++;
@@ -668,7 +667,7 @@ void UpdateItemCounterWidget(struct S *widget)
         }
     }
     for (i = 0; i < widget->countA; i++) {
-        struct O *task = widget->a[i].object;
+        TASK *task = widget->a[i].object;
         if (task) {
             if (task->state == TASK_STATE_ACTIVE)
                 numActive++;
