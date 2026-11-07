@@ -12,7 +12,7 @@
 #include "sly2/stepplayer.h"   /* ZPR (BHVGUARDRECDATA) */
 
 struct CID113;  /* the guard script class (classes.h) */
-struct NOISE;   /* a noise event heard by the guards' listeners (noise.cpp) */
+struct CID147;   /* NOISE: a noise event heard by the guards' listeners (noise.cpp; fields in classes.h) */
 
 /* one pickpocket-able loot entry carried by a guard (16 bytes) */
 struct GUARDLOOT
@@ -259,7 +259,7 @@ struct STEPGUARD : public STEP
       int hurtZapMask;      /* +0x350 [S] zap kinds that hurt (InitStepguard) */
       int knockdownZapMask; /* +0x354 [S] zap kinds that knock down */
       int koZapMask;        /* +0x358 [S] zap kinds that knock out */
-      NOISE *heldNoise;     /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
+      CID147 *heldNoise;    /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
       float pulseStartTime; /* +0x360 [S] */
       int unknown364;       /* +0x364 [S] */
       LM closeAngleRangeHeld; /* +0x368 [S] interaction angle range while held (GuardEvalInteractMode) */

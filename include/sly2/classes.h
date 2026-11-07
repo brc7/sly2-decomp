@@ -481,14 +481,30 @@ struct CID117 : LO
 typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
 
 /* 147 CID147 (0x60): stimulus (noise) instance; vtable 0x2CE2B8, 6 slots; defined between CID117 and CID47: noise.cpp emits CID47, CID147, CID117 */
+/* CID147 is the NOISE record (noise.cpp's view NOISE; STEPGUARD::heldNoise): a refcounted noise event emitted from a
+   CID117 noise type and linked on g_sw.dlStimulus. */
 struct CID147 : BASIC
 {
-    char pad10[0x60 - 0x10];
+    int refCount;           /* +0x10 */
+    struct CID117 *type;    /* +0x14 the noise type it was emitted from */
+    int unknown18[2];
+    qword position;         /* +0x20 where it is (a held noise is moved with its maker: UpdateBhvSleep) */
+    qword startPosition;    /* +0x30 */
+    int loudness;           /* +0x40 */
+    int unknown44;
+    int serial;             /* +0x48 */
+    float startTime;        /* +0x4C */
+    int unknown50;
+    int noiseKind;          /* +0x54 what made it (3: a thrown guard yelling, UpdateBhvThrown) */
+    CID147 *next;           /* +0x58 link of DL g_sw.dlStimulus */
+    int unknown5C;
     virtual void AddRef() __asm__("RetainNoise");   /* slot 1; key function (noise.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("ReleaseNoise");   /* slot 2 */
 };
 typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
+typedef char assert_CID147_position[SLY2_OFFSETOF(CID147, position) == 0x20 ? 1 : -1];
+typedef char assert_CID147_noiseKind[SLY2_OFFSETOF(CID147, noiseKind) == 0x54 ? 1 : -1];
 
 /* 47 CID47 (0x110): stimulus listener; vtable 0x2CE118, 50 slots */
 struct CID47 : XFM
@@ -967,7 +983,7 @@ typedef char assert_BHVGUARD_size[sizeof(BHVGUARD) == 0xB0 ? 1 : -1];
 struct BHV176 : BHV
 {
     int state;              /* +0x30 */
-    int unknown34;
+    float stateTime;        /* +0x34 */
     float lastYellTime;     /* +0x38 */
     int thrower;            /* +0x3C id of the object that threw the guard (detector target id) */
     virtual void Close() __asm__("CloseBhvThrown");   /* slot 9 */
@@ -1022,7 +1038,7 @@ typedef char assert_BHVLEAP_size[sizeof(BHVLEAP) == 0xA0 ? 1 : -1];
 struct BHV175 : BHVANIM
 {
     int sleepState;         /* +0x50 own sub-state: 0 asleep, 1 waking (-1 before Start) */
-    int unknown54;          /* +0x54 written with the sub-state */
+    float sleepStateF;      /* +0x54 the sub-state again, as a float (SetBhvSleepState) */
     float wakeTime;         /* +0x58 */
     int unknown5C;
     virtual void OnPush() __asm__("InitBhvSleep");   /* slot 7 */

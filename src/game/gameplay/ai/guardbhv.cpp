@@ -3184,7 +3184,7 @@ float NormalizeAngle__Ff(float f);
 qword SetVectorCylind(float a, float b, float c);
 void SetLeapTarget(void *p, qword v);
 void SetStepguardAttack(STEPGUARD *guard, int b, int c, qword v);
-void ReplaceHeldSwNoise(SW *psw, int n, qword v, STEPGUARD *guard, NOISE **ppnoise);
+void ReplaceHeldSwNoise(SW *psw, int n, qword v, STEPGUARD *guard, CID147 **ppnoise);
 LO *GetHeroPo(SW *psw);
 int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
@@ -3247,8 +3247,6 @@ void BHVHIT::Close()
 namespace RO_ORDER { extern const float r_D_002A5584 __asm__("D_002A5584") = 3.40282347e+38f; }
 // 0x1795E8 UpdateBhvhit
 namespace M_UpdateBhvhit { extern "C" {
-struct V;
-struct V { char pad[0x20]; qword position; };   /* the held noise (NOISE has no header yet) */
 void UpdateBhvanim(BHVHIT *p);
 qword GetLoWorldPos(void *p);
 void JoltCamera(void *p, int n);
@@ -3260,7 +3258,7 @@ void UpdateBhvhit(BHVHIT *behavior) {
     UpdateBhvanim(behavior);
     {
         STEPGUARD *pt = ((STEPGUARD *)behavior->owner);
-        struct V *v = ((struct V *)pt->heldNoise);
+        CID147 *v = pt->heldNoise;
         v->position = GetLoWorldPos(pt);
     }
     t = D_002DDED0.time + 0.0001f;
@@ -3864,10 +3862,7 @@ void BHV175::OnPush()
 
 // 0x17A4E8 StartBhvSleep
 namespace M_func_0017A4E8 { extern "C" {
-struct T; 
-typedef int qword __attribute__((mode(TI)));
 extern SW D_003DD490;
-struct T { char pad[0x35C]; char heldNoise[4]; char pad2[0xF64 - 0x360]; void *detector; };
 void StartBhvanim(BHV175 *p);
 void SetBhvSleepState(BHV175 *p, int n);
 void ResetDetectorTargets(void *p);
@@ -3879,9 +3874,9 @@ void StartBhvSleep(BHV175 *behavior)
 {
     StartBhvanim(behavior);
     SetBhvSleepState(behavior, 0);
-    ResetDetectorTargets(((struct T *)behavior->owner)->detector);
-    ReplaceHeldSwNoise(&D_003DD490, 1, GetLoWorldPos(((struct T *)behavior->owner)), ((struct T *)behavior->owner),
-                       ((struct T *)behavior->owner)->heldNoise);
+    ResetDetectorTargets(((STEPGUARD *)behavior->owner)->pdetector);
+    ReplaceHeldSwNoise(&D_003DD490, 1, GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner),
+                       &((STEPGUARD *)behavior->owner)->heldNoise);
 }
 } } // namespace M_func_0017A4E8
 
@@ -3890,7 +3885,6 @@ namespace M_func_0017A558 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 extern SW D_003DD490;
-struct T { char pad[0x35C]; char heldNoise[4]; };
 void CloseBhvanim(BHV175 *p);
 void SetBhvSleepState(BHV175 *p, int n);
 void ReplaceHeldSwNoise(SW *g, int a, qword q, int b, void *pv);
@@ -3899,28 +3893,25 @@ void CloseBhvSleep(BHV175 *behavior)
 {
     CloseBhvanim(behavior);
     SetBhvSleepState(behavior, -1);
-    ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, ((struct T *)behavior->owner)->heldNoise);
+    ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, &((STEPGUARD *)behavior->owner)->heldNoise);
 }
 } } // namespace M_func_0017A558
 
 // 0x17A5B0 SetBhvSleepState
 namespace M_func_0017A5B0 { extern "C" {
-struct U; struct S;
 extern CLOCK D_002DDED0;
-struct U { int kind; int pad; void *payload; };
-struct S { char pad[0x10]; STEPGUARD *guard; char pad2[0x2C]; struct U *binding; char pad3[0xC]; int state; float unknown54; float wakeTime; };
 void SetSmaGoal(void *p, int n);
 float RandomFloatInRange__Fff(float a, float b);
 // 0x17A5B0: Sleep behaviour sub-state: 0 asleep (state machine goal 0x44, arms the wake timer), 1 waking up (goal
 // 0x43).
-void SetBhvSleepState(struct S *behavior, int n) {
-    if (n == behavior->state) return;
-    behavior->state = n;
-    behavior->unknown54 = n;
+void SetBhvSleepState(BHV175 *behavior, int n) {
+    if (n == behavior->sleepState) return;
+    behavior->sleepState = n;
+    behavior->sleepStateF = n;
     switch (n) {
     case 0:
         if (behavior->binding->kind == 1) SetSmaGoal(behavior->binding->payload, 0x44);
-        { float t = D_002DDED0.time; behavior->wakeTime = t + RandomFloatInRange__Fff(behavior->guard->sleepTimeMin, behavior->guard->sleepTimeMax); }
+        { float t = D_002DDED0.time; behavior->wakeTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->sleepTimeMin, ((STEPGUARD *)behavior->owner)->sleepTimeMax); }
         break;
     case 1:
         if (behavior->binding->kind == n) SetSmaGoal(behavior->binding->payload, 0x43);
@@ -3931,27 +3922,22 @@ void SetBhvSleepState(struct S *behavior, int n) {
 
 // 0x17A670 UpdateBhvSleep
 namespace M_func_0017A670 { extern "C" {
-struct V; struct T; struct S;
-typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
-struct V { char pad[0x20]; qword position; };
-struct T { char pad[0x35C]; struct V *heldNoise; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x3C]; int state; int pad3; float wakeTime; };
-void UpdateBhvanim(struct S *p);
-void SetBhvSleepState(struct S *p, int n);
+void UpdateBhvanim(BHV175 *p);
+void SetBhvSleepState(BHV175 *p, int n);
 qword GetLoWorldPos(void *p);
 // 0x17A670: Sleep behaviour vtable slot 10 (Update): wakes up when the timer expires; keeps the held noise at the
 // guard.
-void UpdateBhvSleep(struct S *behavior) {
+void UpdateBhvSleep(BHV175 *behavior) {
     int s;
     UpdateBhvanim(behavior);
     do {
-        s = behavior->state;
+        s = behavior->sleepState;
         if (s == 0 && D_002DDED0.time > behavior->wakeTime) SetBhvSleepState(behavior, 1);
-    } while (behavior->state != s);
+    } while (behavior->sleepState != s);
     {
-        struct T *t = behavior->guard;
-        struct V *v = t->heldNoise;
+        STEPGUARD *t = (STEPGUARD *)behavior->owner;
+        CID147 *v = t->heldNoise;
         v->position = GetLoWorldPos(t);
     }
 }
@@ -4011,15 +3997,12 @@ void BHV176::Close()
 
 // 0x17A7F8 UpdateBhvThrown
 namespace M_func_0017A7F8 { extern "C" {
-struct R; 
-typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 extern float D_002BE6C0;
 extern SW D_003DD490;
-struct R { char pad[0x54]; int noiseType; };
 void UpdateBhv(BHV176 *p);
 qword GetLoWorldPos(void *p);
-struct R *NewNoise(void *p, qword q, STEPGUARD *t);
+CID147 *NewNoise(void *p, qword q, STEPGUARD *t);
 // 0x17A7F8: Thrown behaviour vtable slot 10 (Update): ends after landing (states 2/3); emits a yelling noise
 // periodically while airborne.
 void UpdateBhvThrown(BHV176 *behavior) {
@@ -4033,7 +4016,7 @@ void UpdateBhvThrown(BHV176 *behavior) {
         if (D_002DDED0.time - behavior->lastYellTime > D_002BE6C0) {
             SW *g = &D_003DD490;
             behavior->lastYellTime = D_002DDED0.time;
-            NewNoise(g->apstimk[0], GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner))->noiseType = 3;
+            NewNoise(g->apstimk[0], GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner))->noiseKind = 3;
         }
     }
 }
@@ -4041,33 +4024,30 @@ void UpdateBhvThrown(BHV176 *behavior) {
 
 // 0x17A8C8 SetBhvThrownState
 namespace M_func_0017A8C8 { extern "C" {
-struct VTE; struct S;
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct S { char pad[0x10]; STEPGUARD *guard; int pad2; char childSlot[0x18]; int state; float stateTime; };
 void PopBhv(void *p);
-void ClearBhvBusy(struct S *p);
+void ClearBhvBusy(BHV176 *p);
 BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17A8C8: Thrown behaviour state switch: pushes the animation for the state (flags 18/19/20/21/19 for states 0-4)
 // and sets the airborne flag for states 0-1; -1 clears busy.
-void SetBhvThrownState(struct S *behavior, int n) {
+void SetBhvThrownState(BHV176 *behavior, int n) {
     if (behavior->state == n) return;
-    PopBhv(behavior->childSlot);
+    PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0: case 1: case 2: case 3: case 4:
         {
-            BHVANIM *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+            BHVANIM *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
             int a[5] = { 18, 19, 20, 21, 19 };
             o->sgf = a[behavior->state];
             StartPushedBhv(o);
         }
-        behavior->guard->isInvulnerable32C = (unsigned)behavior->state < 2;
+        ((STEPGUARD *)behavior->owner)->isInvulnerable32C = (unsigned)behavior->state < 2;
         break;
     case -1:
         ClearBhvBusy(behavior);
-        behavior->guard->isInvulnerable32C = 0;
+        ((STEPGUARD *)behavior->owner)->isInvulnerable32C = 0;
         break;
     }
 }
