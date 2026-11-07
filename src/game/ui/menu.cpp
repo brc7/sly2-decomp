@@ -9,6 +9,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
+#include "sly2/save.h"
 #include "sly2/screen.h"
 #include "sly2/util.h"
 
@@ -65,12 +66,7 @@ struct DISPU { unsigned int dx : 12; unsigned int dy : 11; unsigned int r0 : 9; 
 struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
 struct SNDMGR { char pad[0x14C]; float soundVolume; float musicVolume; };
 struct MCDLG { char pad[0x4C]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
-struct GSAVE { char pad[0xFD50]; int currentSlot; };   /* the save manager (memcard.cpp) */
 struct OPT;
-struct CONTEXT { char bytes[0x5464]; };
-struct BANK { char pad[0x24]; CONTEXT contexts[3]; char padFD50[8]; CONTEXT *current; };
-typedef char CONTEXT_Size[sizeof(CONTEXT)==21604?1:-1];
-typedef char BANK_current_Offset[FIELD_OFFSET(BANK,current)==64856?1:-1];
 /* A save variable reference. */
 struct CRef;
 extern "C" CRef *__4CRefRC4CRef(CRef *, const CRef *);
@@ -98,9 +94,7 @@ extern GSV D_002DEB80;
 #define D_003DD18C (*(float *)((char *)base_D_003DD040 + 0x14C))   /* the sound manager (SNDMGRG)+0x14C */
 extern SNDMGR D_003DD040;
 extern char D_002BBB60[];
-extern CONTEXT D_002E6604[] __asm__("D_002E65E0+0x24");   /* the save manager's contexts (+0x24) */
 extern MCDLG D_002E6550;
-extern GSAVE D_002E65E0;
 #undef D_003DD050
 #define D_003DD050 (*(int *)((char *)base_D_003DD040 + 0x10))   /* the sound manager (SNDMGRG)+0x10 */
 extern int D_002C2D8C;
@@ -144,7 +138,7 @@ int IsWidgetAnimPlaying(POOL *, int);
 int GetJoySelectionStepY(JOY *);
 int GetJoySelectionStepX(JOY *);
 uint HandleJoyButtons(JOY *, uint);
-CRef GetGlobalSaveVar(OPT *, CONTEXT *);
+CRef GetGlobalSaveVar(OPT *, SAVESLOT *);
 CRef SetGlobalSaveVar(OPT *, const CRef &, void *);
 void SetMcDialogState(MCDLG *, int);
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
@@ -160,7 +154,7 @@ int AreWidgetLoadsIdle(void);
 int GetCurrentWorld(void);
 int GetBasicCid(void *p);
 void SetJobListPage(void *p, int f);
-void StartSaveSlotJob(GSAVE *p);
+void StartSaveSlotJob(SAVE *p);
 void ResetGameSequence(void);
 void FailJob(void *p);
 void WipeToWorldWarp(SW *pg, void *s, int a, int b, int c, int d);
@@ -328,8 +322,9 @@ void SetPauseMenuState(PMENU *menu, int st)
     }
 }
 
-static inline float Value(OPT*key,CONTEXT*context){CRef result=GetGlobalSaveVar(key,context);return result.f;}
-static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
+static inline float Value(OPT*key,SAVESLOT*context){CRef result=GetGlobalSaveVar(key,context);return result.f;}
+/* The save manager is reached back from its slot array (as the code computes it). */
+static inline void Select(SAVESLOT*contexts,SAVESLOT*context){SAVE*save=(SAVE*)((char*)contexts-SLY2_OFFSETOF(SAVE,aslot));save->selectedSlot=context;}
 // Per-frame pause menu update (screen slot 7): joystick navigation, item activation callbacks, the volume and video
 // items and the save-slot pages.
 extern "C" void UpdatePauseMenu(PMENU*menu){
@@ -391,7 +386,7 @@ extern "C" void UpdatePauseMenu(PMENU*menu){
   if(flags&0x20){
    int kind=GetPauseMenuTopPageId(menu);
    if(kind!=0x19&&kind!=0x1E)break;
-   CONTEXT*contexts=D_002E6604;CONTEXT*context=contexts+group->index;
+   SAVESLOT*contexts=g_save.aslot;SAVESLOT*context=contexts+group->index;
    if(Value((*(OPT * *)&g_sw.psvpDt),context)==0.0f)break;
    Select(contexts,context);
    SetMcDialogState(&D_002E6550,0x20);
@@ -873,7 +868,7 @@ extern "C" void OnPauseItemJobList(void)
 // Item text callback for the quit item: string 0x47 or 0x46 by a flag.
 extern "C" void GetPauseQuitItemText(int *menu)
 {
-    if (D_002E65E0.currentSlot) { *menu = 0x47; return; }
+    if (g_save.currentSlot) { *menu = 0x47; return; }
     *menu = 0x46;
 }
 
@@ -883,7 +878,7 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
 {
     BroadcastGameEvent(D_002DEB30, 0x2D, 0);
     BroadcastGameEvent(D_002DEB30, 0x2E, 0);
-    if (D_002E65E0.currentSlot) {
+    if (g_save.currentSlot) {
         CREFP r;
         int v;
         D_002E6550.followUpAction = 1;
@@ -894,7 +889,7 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
             SetMcDialogState(&D_002E6550, 0x22);
         } else {
             SetMcDialogState(&D_002E6550, 0x1A);
-            StartSaveSlotJob(&D_002E65E0);
+            StartSaveSlotJob(&g_save);
         }
     } else {
         ResetGameSequence();
