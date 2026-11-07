@@ -235,15 +235,14 @@ extern "C" void SetPoTnCam(PO *po, TN *tunnel) {
 struct CRef {
     int tagk; int tag;
 };
-class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int, void *, int, void **, CRef *); };
 // Slot 80: asks the PO (message 0xD with a bool reply, default yes) whether it can be healed.
-extern "C" int CanPoBeHealed(OBase *po)
+extern "C" int CanPoBeHealed(PO *po)
 {
     CRef ref;
     int f = 1;
     ref.tagk = 0x17;
     ref.tag = f;
-    po->Msg(0xD, 0, 0, 0, &ref);
+    po->HandleSpliceEvent(0xD, 0, 0, 0, (int)&ref);   /* the last argument is the reply */
     if (ref.tagk == 0x17) f = ref.tag;
     Decref__4CRef(&ref);
     return f;
