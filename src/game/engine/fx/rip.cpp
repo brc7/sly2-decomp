@@ -82,7 +82,7 @@ struct RIPF : RIP
 };
 struct FLYING : RIP   /* RIPT 3 */
 {
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceLeaf");   /* key function */
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
     virtual void PostEmit(void *pv) __asm__("PostFlyingEmit");
     virtual void Render(CM *pcm) __asm__("RenderFlying");
 };
@@ -93,7 +93,7 @@ struct STUCK : RIP   /* RIPT 10 */
 };
 struct SHRAPNEL : RIP   /* RIPT 8 */
 {
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceShrapnel");   /* key function */
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("HandleShrapnelBounce");   /* key function */
     virtual void PostEmit(void *pv) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
     virtual void Render(CM *pcm) __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
 };

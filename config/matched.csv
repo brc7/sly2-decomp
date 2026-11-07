@@ -4073,11 +4073,11 @@ GetMaxRipSize,0x1CF5C8,2,match,src/game/engine/fx/rip.cpp
 PostFlyingEmit,0x1CF5D0,17,match,src/game/engine/fx/rip.cpp
 RenderFlying,0x1CF618,37,match,src/game/engine/fx/rip.cpp
 CreateStuck,0x1CF6B0,174,match,src/game/engine/fx/rip.cpp
-FBounceLeaf,0x1CF968,46,match,src/game/engine/fx/rip.cpp
+HandleFlyingBounce,0x1CF968,46,match,src/game/engine/fx/rip.cpp
 UpdateStuck,0x1CFA20,7,match,src/game/engine/fx/rip.cpp
 RenderStuck,0x1CFA40,30,match,src/game/engine/fx/rip.cpp
 PostShrapnelEmit__FP8SHRAPNELP5EMITB,0x1CFAB8,73,match,src/game/engine/fx/rip.cpp
-FBounceShrapnel,0x1CFBE0,41,match,src/game/engine/fx/rip.cpp
+HandleShrapnelBounce,0x1CFBE0,41,match,src/game/engine/fx/rip.cpp
 RenderShrapnel__FP8SHRAPNELP2CM,0x1CFC88,20,match,src/game/engine/fx/rip.cpp
 InitMatch__FP5MATCHP6VECTORfP2SO,0x1CFCD8,22,match,src/game/engine/fx/rip.cpp
 LaunchMatch__FP5MATCH,0x1CFD30,85,match,src/game/engine/fx/rip.cpp

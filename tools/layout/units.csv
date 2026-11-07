@@ -4084,11 +4084,11 @@ GetMaxRipSize,0x1CF5C8,rip
 PostFlyingEmit,0x1CF5D0,rip
 RenderFlying,0x1CF618,rip
 CreateStuck,0x1CF6B0,rip
-FBounceLeaf,0x1CF968,rip
+HandleFlyingBounce,0x1CF968,rip
 UpdateStuck,0x1CFA20,rip
 RenderStuck,0x1CFA40,rip
 PostShrapnelEmit__FP8SHRAPNELP5EMITB,0x1CFAB8,rip
-FBounceShrapnel,0x1CFBE0,rip
+HandleShrapnelBounce,0x1CFBE0,rip
 RenderShrapnel__FP8SHRAPNELP2CM,0x1CFC88,rip
 InitMatch__FP5MATCHP6VECTORfP2SO,0x1CFCD8,rip
 LaunchMatch__FP5MATCH,0x1CFD30,rip
