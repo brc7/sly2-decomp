@@ -1997,35 +1997,28 @@ loop:
 
 // 0x1F4E28 FreeSoContacts
 namespace M_func_001F4E28 { extern "C" {
-struct VTE; struct VT; struct X; struct N; struct E; struct P;
-struct VTE { short d; short p; void (*pfn)(void *, void *); };
-struct VT { struct VTE a[55]; };
-struct X { char pad[0xC]; struct VT *pvt; };
-struct N { void *contacts; struct N *next; int *head; struct X *other; };
-struct E { char pad[0x60]; struct X *rootSo; struct N *contactLists; void *unknownContacts68; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct E *tree; };
+struct N;
+struct N { void *contacts; struct N *next; int *head; SO *other; };   /* a contact list (SOTREE::pxplistFirst) */
 struct G;
 extern struct G D_003DD490;
-void InvalidateSoAaox(struct P *);
 void FreeSwXpList__FP2SWP2XP(struct G *, void *);
-#define VF(q, n, a) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d, a)
 // Frees every contact of the tree, notifying both sides (slot 54) first.
-void FreeSoContacts(struct P *so)
+void FreeSoContacts(SO *so)
 {
     struct N *pn;
-    if (!so->tree) return;
+    if (!so->physicsTree) return;
     InvalidateSoAaox(so);
-    for (pn = so->tree->contactLists; pn; pn = pn->next) {
-        struct X *q = so->tree->rootSo;
-        q->pvt->a[54].pfn((char *)q + q->pvt->a[54].d, pn->other);
-        pn->other->pvt->a[54].pfn((char *)pn->other + pn->other->pvt->a[54].d, so->tree->rootSo);
+    for (pn = (struct N *)so->physicsTree->pxplistFirst; pn; pn = pn->next) {
+        SO *q = so->physicsTree->root;
+        q->OnContactFreed(pn->other);
+        pn->other->OnContactFreed(so->physicsTree->root);
         FreeSwXpList__FP2SWP2XP(&D_003DD490, pn->contacts);
         *pn->head = 0;
         pn->contacts = 0;
     }
-    so->pvt->a[54].pfn((char *)so + so->pvt->a[54].d, 0);
-    FreeSwXpList__FP2SWP2XP(&D_003DD490, so->tree->unknownContacts68);
-    so->tree->unknownContacts68 = 0;
+    so->OnContactFreed(0);
+    FreeSwXpList__FP2SWP2XP(&D_003DD490, so->physicsTree->pxpFirst);
+    so->physicsTree->pxpFirst = 0;
 }
 } } // namespace M_func_001F4E28
 
