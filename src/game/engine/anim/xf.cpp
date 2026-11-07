@@ -2387,8 +2387,7 @@ typedef struct OBJ { VT *vt; } OBJ;
 typedef struct E { OBJ *curve; int targetIndex; char pad8[8]; struct E *next; } E;
 /* ASEGA (aseg.h): local time +0x1C, act segments +0x34, overrides +0x38, speed +0x40; ACTSEG (C) and OVRA (E) views */
 typedef struct A { char pad0[0x1C]; float localTime; char pad20[0x34 - 0x20]; C *firstActSeg; E *firstOverride; char pad3C[4]; float speed; } A;
-typedef struct G { char pad[0x3D58]; int worldStampCounter; } G;
-extern G D_003DD490;
+extern SW D_003DD490;
 extern qword D_002A2DD0;
 int IsAsegaRetracted(A *);
 int IsActCurrent(C *);
@@ -2456,7 +2455,7 @@ void EvaluateXfSlotValue(A *a, int flag)
             *(M4 *)p->m = t;
         }
         p->velocity = D_002A2DD0;
-        p->worldStamp = ++D_003DD490.worldStampCounter;
+        p->worldStamp = ++D_003DD490.transformStamp;
     }
     for (i = 0; i < n; i++)
         list[i]->vt[18].pfn((char *)list[i] + list[i]->vt[18].d);
