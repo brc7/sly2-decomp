@@ -239,8 +239,6 @@ void PostLoadStepplayer(struct P *player)
 namespace M_func_00140338 { extern "C" {
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
-struct G { char pad[0x4A4]; int n4A4; };
-extern struct G D_002DDF40;
 int GetCurrentWorld(void);
 void RestartHudWidget1(void *p);
 int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
@@ -256,7 +254,7 @@ void AcknowledgeStepplayerHint(void)
     if (FindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
     SetSndSourceLo(CreateSfxSound(0x32), 0);
     *(float *)(D_003DD490 + 0x4754) = D_002DDED0.time;
-    D_002DDF40.n4A4++;
+    g_cm.cplook.numActivations++;   /* the look policy's activation count (ActivateCplook/ActivateCpzoom also bump it) */
 }
 } } // namespace M_func_00140338
 
@@ -920,8 +918,6 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
 
 namespace M_GetStepplayerCmFocusPos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct G { char pad[0x260]; void *p260; char pad2[0x300 - 0x264]; int n300; };
-extern struct G D_002DDF40;
 struct V { float x, y, z; } __attribute__((aligned(16)));
 void GetJtPipePosition(void *p, struct V *v);
 qword GetLoWorldPos(void *p);
@@ -936,7 +932,7 @@ void GetStepplayerCameraFocusPosition(char *player, struct V *v)
     *(qword *)v = GetLoWorldPos(player);
     if (*(int *)(player + 0x208)) {
         z = *(float *)(player + 0x238) + *(float *)(player + 0x1048);
-    } else if (*(int *)(player + 0x2DC) == 0x14 || D_002DDF40.n300 != 0 || D_002DDF40.p260 != player) {
+    } else if (*(int *)(player + 0x2DC) == 0x14 || g_cm.nCut != 0 || (void *)g_cm.focus != (void *)player) {
         v->z += *(float *)(player + 0x248) + *(float *)(player + 0x1048);
         return;
     } else {
@@ -959,8 +955,6 @@ struct JT {
     float x104C; float x1050; char pad7[0x1060 - 0x1054]; VU x1060; qword x1070;
 };
 extern struct CLOCK D_002DDED0;
-struct GS { char pad[0x260]; struct JT *p260; char pad2[0x300 - 0x264]; int x300; };
-extern struct GS D_002DDF40;
 extern float D_002BCC98, D_002BCC9C, D_002BCCA0, D_002BCCA4, D_002BCCA8, D_002BCCAC, D_002BCCB0, D_002BCCB4;
 extern char D_002BCCB8[], D_002BCCC8[], D_002BCCD8[];
 extern struct { float a, b, c; } D_002BCCF0;
@@ -1002,7 +996,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
         }
         g = Clamp(v.f[2], z + lo, z + hi);
         jt->x104C = g;
-        if (D_002DDF40.x300 != 0 || D_002DDF40.p260 != jt) {
+        if (g_cm.nCut != 0 || (void *)g_cm.focus != (void *)jt) {
             xp->pos.f[2] = g;
         } else {
             void *pv = jt->x434 ? D_002BCCC8 : D_002BCCB8;
