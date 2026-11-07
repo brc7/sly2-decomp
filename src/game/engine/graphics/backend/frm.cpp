@@ -89,7 +89,7 @@ void PropagateSais(FRM *pfrm);
 void PropagateSaisF(FRM *pfrm, int f) __asm__("PropagateSais");
 void RebuildFrameGifs__Fv();
 void sceDmaSync(sceDmaChan *pch, int a, int b);
-int FIsDlEmpty__FP2DL(DL*);
+int IsDlEmpty__FP2DL(DL*);
 void RemoveDlEntry__FP2DLPv(DL*,void*);
 void ClearPhase(int phase);
 }
@@ -231,7 +231,7 @@ void RenderFrame(FRM *frame, int renderGifs)
 // Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO
 // in frame->releaseList and frees the pool blocks in frame->freeList. (inferred)
 void ClearPendingFrame(FRM *frame){
- if(!FIsDlEmpty__FP2DL(&frame->releaseList)){
+ if(!IsDlEmpty__FP2DL(&frame->releaseList)){
   DLI iter(&frame->releaseList);
   for(LOV*object=(LOV*)iter.Next();object;object=(LOV*)iter.Next()){
    RemoveDlEntry__FP2DLPv(&frame->releaseList,object);
@@ -239,7 +239,7 @@ void ClearPendingFrame(FRM *frame){
   }
   ClearDl__FP2DL(&frame->releaseList);
  }
- if(!FIsDlEmpty__FP2DL(&frame->freeList)){
+ if(!IsDlEmpty__FP2DL(&frame->freeList)){
   DLI iter(&frame->freeList);
   for(Y*object=(Y*)iter.Next();object;object=(Y*)iter.Next()){
    if(object->storage)FreeSlotheapSlot(&g_sw.slotheapUnk40a0,object->storage);

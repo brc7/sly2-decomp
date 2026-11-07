@@ -930,7 +930,7 @@ PrependDlEntry__FP2DLPv,0x11A250,12,match,src/game/core/containers/dl.cpp
 InsertDlEntryBefore__FP2DLPvT1,0x11A280,26,match,src/game/core/containers/dl.cpp
 RemoveDlEntry__FP2DLPv,0x11A2E8,38,match,src/game/core/containers/dl.cpp
 FFindDlEntry__FP2DLPv,0x11A380,11,match,src/game/core/containers/dl.cpp
-FIsDlEmpty__FP2DL,0x11A3B0,3,match,src/game/core/containers/dl.cpp
+IsDlEmpty__FP2DL,0x11A3B0,3,match,src/game/core/containers/dl.cpp
 CPvDl__FP2DL,0x11A3C0,12,match,src/game/core/containers/dl.cpp
 StaticInit_dl,0x11A3F8,77,match,src/game/core/containers/dl.cpp
 func_0011A530,0x11A530,8,match,src/game/core/containers/dl.cpp
@@ -1003,7 +1003,7 @@ GTrunc__Fd,0x11D740,44,match,src/game/core/math/util.cpp
 GTrunc__Ff,0x11D7F0,42,match,src/game/core/math/util.cpp
 GModPositive__Fff,0x11D898,15,match,src/game/core/math/util.cpp
 FitClq__FffffP3CLQ,0x11D8D8,13,match,src/game/core/math/util.cpp
-FCheckLm__FP2LMf,0x11D910,12,match,src/game/core/math/util.cpp
+IsWithinLimits__FP2LMf,0x11D910,12,match,src/game/core/math/util.cpp
 GLimitLm__FP2LMf,0x11D948,12,match,src/game/core/math/util.cpp
 ClampAngleToRange,0x11D978,24,match,src/game/core/math/util.cpp
 Force__FPv,0x11D9D8,2,match,src/game/core/math/util.cpp
@@ -1480,8 +1480,8 @@ OpenBasFromFileKey,0x132600,14,match,src/game/core/binstream/bas.cpp
 FOpenSector__18CBinaryAsyncStreamUiUi,0x132640,17,match,src/game/core/binstream/bas.cpp
 Close__18CBinaryAsyncStream,0x132688,34,match,src/game/core/binstream/bas.cpp
 StartSpooling__18CBinaryAsyncStream,0x132710,47,match,src/game/core/binstream/bas.cpp
-FSpooling__18CBinaryAsyncStream,0x1327D0,3,match,src/game/core/binstream/bas.cpp
-FSpoolingComplete__18CBinaryAsyncStream,0x1327E0,50,match,src/game/core/binstream/bas.cpp
+IsSpooling__18CBinaryAsyncStream,0x1327D0,3,match,src/game/core/binstream/bas.cpp
+IsSpoolingComplete__18CBinaryAsyncStream,0x1327E0,50,match,src/game/core/binstream/bas.cpp
 FinishSpooling__18CBinaryAsyncStream,0x1328A8,33,match,src/game/core/binstream/bas.cpp
 Spool__18CBinaryAsyncStream,0x132930,25,match,src/game/core/binstream/bas.cpp
 Skip__18CBinaryAsyncStreami,0x132998,4,match,src/game/core/binstream/bas.cpp

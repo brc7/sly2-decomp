@@ -109,7 +109,8 @@ Needs the matchtool environment (`SLY2_M2C_INC` for m2c files). Exit 0 = all app
 Policies:
 - **Plain names when the signature is not confirmed**: an unmangled C-linkage identifier everywhere (`EvaluateBezierPos`), never a guessed or placeholder mangling. The linker
   symbol is a claim about the binary and matchtool cannot check references, so a wrong mangling would record something false. Upgrading later is another rename.
-- **Confident mangled names** are used verbatim as identifiers (C files and `extern "C"` blocks in hand .cpp); promoting files to natural C++ is a separate cleanup.
+- **Confident mangled names** for a `func_XXXXXXXX` are used verbatim as identifiers (C files and `extern "C"` blocks in hand .cpp); promoting files to natural C++ is a separate cleanup.
+  Renaming a function that already has a mangled name keeps C++ linkage (see "C++-linkage renames" below).
 - One rename changes, in one lexer pass per file: code identifiers, the name inside string literals (asm labels, inline asm), comments (to the plain name), the file name
   (`src/**/OLD.c` -> `<symbol>.c`), `symbol_addrs.txt`, `functions.csv` and `matched.csv`. It also sweeps the `func_XXXXXXXX` placeholder, which finishes upstream's partial
   renames (421 named symbols are still referenced as `func_` in 2,791 places). Data symbols get `// type:data` entries.
@@ -122,6 +123,58 @@ Policies:
 - **Multi-line asm strings**: gcc 2.95 accepts raw newlines in string literals and a few files use them in asm templates
   (`lo.cpp`, `cm.cpp`); the lexer lets a string span lines only when it directly follows `asm(` / `__asm__ volatile(`.
 - Files that cannot be built here (51, mostly src/lib needing native ee-gcc 2.96 binutils) are refused unless `--allow-unverifiable`.
+- **Symbol tables (nm)**: besides the per-address byte compare, every rebuilt object's symbol table (defined and undefined
+  symbols) must equal the old one with exactly the intended renames applied. This catches what matchtool cannot see: a
+  renamed callee, or a call that now binds to another overload. `_GLOBAL_$I$<path>.cpp<6 random chars>` stubs (gcc picks
+  new random characters on every compile) are compared without the random part.
+- `tools/layout/units.csv` (function,addr,home_tu) follows renames by address, like the config tables.
+
+### C++-linkage renames (2026-11)
+
+When OLD's symbol is a g++ 2.95 mangled function name and NEW is a plain name, the function **keeps C++ linkage** and only
+its base name changes (`--plain` restores the old behaviour: a C-linkage symbol):
+
+```sh
+tools/rename.py FCheckLm__FP2LMf IsWithinLimits      # -> IsWithinLimits__FP2LMf
+tools/rename.py 0x11D910 IsWithinLimits              # same; NEW may also be the full new mangled name
+```
+
+- **Symbol**: in gcc 2.95's encoding the base name is the prefix before the `__` split and nothing after it depends on it
+  (`F<params>`, `<len><Class>`, `Q<n>` qualification, `C` const, `H`/`t` template arguments, `T`/`N` back-references
+  only encode types), so the new symbol is `NEW + OLD[split:]` (`UpdateAlert__8STEPGUARD` -> `X__8STEPGUARD`). This is a
+  pre-check (the computed name must demangle back to NEW with the same class); the **ground truth is the object**: the
+  defining file is recompiled and must define the new symbol, and every rebuilt object's symbol table must differ only by
+  OLD -> NEW. A changed signature or class in NEW is refused (that is a source edit, not a rename).
+- **Edits**: the mangled name everywhere it is spelled (verbatim identifiers in `extern "C"` declarations, `__asm__("OLD")`
+  labels, `jal` in inline asm, comments) -> new mangled name; the base name in code and comments -> NEW; config tables.
+  Natural definitions are recognised at file scope, inside plain namespaces, and as members (`T CLS::Name(...) {`), also
+  under the C++ name an asm label gives the symbol (`int FCheckLm(LMV *, float) __asm__("FCheckLm__FP2LMf")` aliases
+  rename both the label and the alias name only when the alias name is the base name).
+- **Unique base** (no other config function has that base or plain name): every code/comment token of the base is
+  renamed. A same-named function that config does not know (an overload, a C function of another file) would show up in
+  the symbol check and the rename is reverted.
+- **Shared base, member** (`Skip__18CBinaryInputStreami` vs `Skip__18CBinaryAsyncStreami`): only the spellings that name
+  this class's member are renamed up front (`CLS::Name`, declarations directly inside every `struct/class CLS { ... }`
+  body, including the per-file private class views, unqualified/`this->` calls inside `CLS::` member bodies). The remaining
+  call sites (`pbis->Skip(n)`) are **found by compiling**: every call that still means `CLS::Skip` fails ("no matching
+  function for call to `CLS::Skip`"), those lines are renamed, and the candidates are rebuilt until they compile (at most
+  6 rounds; JSON log: `compiler_guided_lines`). Every file that uses the base name is re-verified, so a call that silently
+  binds to another same-named method (e.g. one inherited from a base class) fails the symbol check.
+- **Shared base, free function** (overloads `GTrunc__Fd`/`GTrunc__Ff`, or a C function of the same name): refused; call
+  sites cannot be told apart by name. Rename by hand (or rename the other function first).
+- **Virtual members**: the C++ name is the vtable slot shared by the hierarchy, so it never changes in a one-symbol rename.
+  If an `__asm__` label fixes the symbol (most members in `include/sly2/*.h`: `virtual int JthsCurrent()
+  __asm__("JthsCurrent__10STEPPLAYER")`), only the label and config change (log: `label_only`); otherwise refused. Renaming
+  the slot itself across the hierarchy is a hand edit (it changes no symbol when every override carries a label).
+- **Refused**: constructors, destructors, operators, members of class templates and function templates (every
+  instantiation changes), new base names containing `__` or ending in `_`, and new base names already used in code or as
+  another function's base in config (`--allow-existing-uses` accepts the code case).
+- **`_GLOBAL_$I$` / `StaticInit_` stubs** (convention): keep their names. They are compiler-generated; every merged TU maps
+  them through `SLY2_ALIAS` (`_GLOBAL_$I$*=func_XXXXXXXX`, `__static_initialization_and_destruction_0=StaticInit_<tu>`), so
+  a function rename never changes them, and the tool's symbol check ignores the random suffix. Two config entries name a
+  stub after a global (`_GLOBAL_$I$g_gc`, `_GLOBAL_$I$g_dro`); if that global is renamed, the symbol check maps the stub
+  along with it. Renaming a TU renames its `StaticInit_<tu>` mechanically (structural names, section 3).
+- **Cost**: a header edit rebuilds every includer (a label in `include/sly2/stepplayer.h` = 81 files, ~6 min on 2 cores).
 
 **Trial** (152 verifier-CORRECT rows): 148 applied (100 mangled + 48 plain) across 438 files, all verified MATCH; 3 refused (names already declared with C++ linkage in callers:
 `ClsgClipEdgeToBsp`, `PruneBsp`, `BuildRotateVectorsMatrix`); 1 reverted automatically: `func_001A7518` -> `main` broke the match because gcc inserts an implicit `__main` call
@@ -170,7 +223,8 @@ data symbol stays byte-identical (matchtool), and every file is re-checked after
 
 **Matching constraints** (what is not free)
 - Function and global names are linker symbols: rename them with `tools/rename.py` (config + all callers), never by hand.
-  `extern "C"` names are the symbol; C++ names mangle parameter TYPES (not parameter names).
+  `extern "C"` names are the symbol; C++ names mangle parameter TYPES (not parameter names). For a C++ function give the
+  new base name only (`tools/rename.py FCheckLm__FP2LMf IsWithinLimits`); the tool keeps the signature part (section 5).
 - Local/parameter/field names never reach the object file. Types (`int` vs `bool`, signedness, widths), control-flow
   shape and statement order can change codegen: a readability rewrite of logic must still match or be reverted.
 - Line numbers matter for a few functions (path-hash quirk: `#line` pins). Adding comment lines can shift them — re-check

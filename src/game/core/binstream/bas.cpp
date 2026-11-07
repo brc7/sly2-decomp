@@ -36,8 +36,8 @@ public:
     int FOpenSector(uint isector, uint cb);
     void Close();
     void StartSpooling();
-    bool FSpooling();
-    bool FSpoolingComplete();
+    bool IsSpooling();
+    bool IsSpoolingComplete();
     void FinishSpooling();
     void Spool();
     void Skip(int cb);
@@ -141,7 +141,7 @@ void CBinaryAsyncStream::Close()
         fd = -1;
         break;
     case BASK_Cd:
-        if (FSpooling()) {
+        if (IsSpooling()) {
             sceCdSync(0);
             FinishSpooling();
         }
@@ -162,7 +162,7 @@ void CBinaryAsyncStream::Close()
 void CBinaryAsyncStream::StartSpooling()
 {
     int halfSize = spoolSize / 2;
-    if (!FSpooling() && bytesNotRead != 0) {
+    if (!IsSpooling() && bytesNotRead != 0) {
         int size = bytesNotRead < halfSize ? bytesNotRead : halfSize;
         byte *dest = (current == spoolBuffer) ? spoolBuffer + halfSize : spoolBuffer;
         pendingSize = size;
@@ -184,7 +184,7 @@ void CBinaryAsyncStream::StartSpooling()
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
 // Returns whether a read is in flight.
-bool CBinaryAsyncStream::FSpooling()
+bool CBinaryAsyncStream::IsSpooling()
 {
     return pendingSize != 0;
 }
@@ -196,11 +196,11 @@ bool CBinaryAsyncStream::FSpooling()
  * @end-sly2-annot */
 // Returns whether the read in flight has completed, polled without blocking, and only once the consumer has used
 // the current half; a read error abandons the read (returns false).
-bool CBinaryAsyncStream::FSpoolingComplete()
+bool CBinaryAsyncStream::IsSpoolingComplete()
 {
     int status = 0;
     bool isComplete = false;
-    if (currentSize == currentPos && FSpooling())
+    if (currentSize == currentPos && IsSpooling())
     {
         switch (kind)
         {
@@ -240,7 +240,7 @@ bool CBinaryAsyncStream::FSpoolingComplete()
 // rewinds the consumer to its start.
 void CBinaryAsyncStream::FinishSpooling()
 {
-    if (!FSpoolingComplete())
+    if (!IsSpoolingComplete())
         return;
     if (kind == BASK_Cd)
     {

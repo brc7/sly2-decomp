@@ -1000,7 +1000,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(P *, int);
 int DoesTargetRecordAllowGuard(void *, P *);
 qword GetLoWorldPos(P *);
 unsigned IsrcFromIdProxy__Fi(unsigned);
-int FCheckLm__FP2LMf(LM *, float);
+int IsWithinLimits__FP2LMf(LM *, float);
 qword ConvertAloPos(P *, P *, qword);
 float atan2f(float, float);
 int FilterAttackLineOfSightHit(void *, void *);
@@ -1124,9 +1124,9 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
         float angle, gain;
         if (!entry->enabled)
             continue;
-        if (!FCheckLm__FP2LMf(&entry->distance, distance))
+        if (!IsWithinLimits__FP2LMf(&entry->distance, distance))
             continue;
-        if (!FCheckLm__FP2LMf(&entry->height, height))
+        if (!IsWithinLimits__FP2LMf(&entry->height, height))
             continue;
         {
             qword local = ConvertAloPos(0, guard, to);
@@ -1201,7 +1201,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 qword GetLoWorldPos(void *p);
 float GetStepHeading(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
-int FCheckLm__FP2LMf(void *p, float f);
+int IsWithinLimits__FP2LMf(void *p, float f);
 float RadNormalize__Ff(float f);
 qword *GetLoWorldMatrix(struct A *a);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
@@ -1253,15 +1253,15 @@ int CanBhvcombatShoot(struct S *behavior) {
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pb), "j"(pa));
     g = GetStepHeading(behavior->guard);
     GetVectorSphere(d, &f[0], &f[1], &f[2]);
-    if (!FCheckLm__FP2LMf(behavior->guard->shootRange, f[2])) return 0;
+    if (!IsWithinLimits__FP2LMf(behavior->guard->shootRange, f[2])) return 0;
     {
         float h = RadNormalize__Ff(f[0] - g);
-        if (!FCheckLm__FP2LMf(behavior->guard->shootPan, h)) return 0;
+        if (!IsWithinLimits__FP2LMf(behavior->guard->shootPan, h)) return 0;
     }
     CalculateVectorPanTilt(*GetLoWorldMatrix(behavior->guard), 0, &f[3]);
     {
         float h = RadNormalize__Ff(f[1] - f[3]);
-        if (!FCheckLm__FP2LMf(behavior->guard->shootTilt, h)) return 0;
+        if (!IsWithinLimits__FP2LMf(behavior->guard->shootTilt, h)) return 0;
     }
     if (!k) {
         if (behavior->state == 0) {
@@ -5840,7 +5840,7 @@ extern float D_002A5600;
 qword GetLoWorldPos(ACTOR*);
 void GetVectorCylind(qword,float*,float*,float*);
 float RadNormalize__Ff(float);float GLimitAbs__Fff(float,float);float GLimitLm__FP2LMf(LM*,float);
-qword SetVectorCylind(float,float,float);int FCheckLm__FP2LMf(LM*,float);
+qword SetVectorCylind(float,float,float);int IsWithinLimits__FP2LMf(LM*,float);
 int FindPathzoneClosestFreePoint(void*,qword,qword*);
 int FindPathzoneSegmentBlocker(void*,qword,qword,int,SEGMENT*);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
@@ -5901,7 +5901,7 @@ extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin
     if (FindPathzoneClosestFreePoint(region, QwAdd(origin, SetVectorCylind(angle, length, 0.0f)), &closest.q)) {
         GetVectorCylind(QwSub(closest.q, origin), &flow.candidateAngle, &flow.candidateLength, 0);
         if (__builtin_fabsf(RadNormalize__Ff(flow.candidateAngle - heading)) < tuning->wide
-            && FCheckLm__FP2LMf(&second, flow.candidateLength))
+            && IsWithinLimits__FP2LMf(&second, flow.candidateLength))
             return closest.q;
     }
     qword target, best;
@@ -5976,7 +5976,7 @@ float GetTargetRecordFacing(struct K *k);
 qword GetLoWorldPos(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
 float RadNormalize__Ff(float f);
-int FCheckLm__FP2LMf(void *p, float f);
+int IsWithinLimits__FP2LMf(void *p, float f);
 qword ChooseBhvCirclePosition(struct S *p, void *q, float f, qword v);
 void FindPathzonePathCurve(void *q, qword a, qword b, struct B *c);
 void SetBhvpathShape(struct T *t, struct B *b, int n);
@@ -6015,7 +6015,7 @@ void UpdateBhvCircle(struct S *behavior) {
         GetVectorCylind(dv, &out[0], &out[1], 0);
     }
     if (__builtin_fabsf(RadNormalize__Ff(out[0] - g)) > k->f18) goto repath;
-    if (FCheckLm__FP2LMf(behavior->guard->a324, out[1])) return;
+    if (IsWithinLimits__FP2LMf(behavior->guard->a324, out[1])) return;
 repath:
     {
         qword v = GetLoWorldPos(behavior->guard);

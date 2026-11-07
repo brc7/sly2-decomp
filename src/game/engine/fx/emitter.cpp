@@ -495,7 +495,7 @@ struct EMITTERV {
 struct EMITX { PRG **ppprg; RIPG **ppripg; EMITTERV *pemitter; };
 extern "C" {
 void UpdateLo(EMITTERV *p);
-int FIsDlEmpty__FP2DL(int *pdl);
+int IsDlEmpty__FP2DL(int *pdl);
 int IsLoInWorld(EMITTERV *p);
 qword GetLoWorldPos(void *p);
 float GRandInRange__Fff(float gMin, float gMax);
@@ -529,7 +529,7 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *p, float dt)
     UpdateLo(p);
     if (p->x118 != -1)
         return;
-    if (!FIsDlEmpty__FP2DL(&p->dl11C)) {
+    if (!IsDlEmpty__FP2DL(&p->dl11C)) {
         EMITTERV *pe;
         for (pe = (EMITTERV *)p->dl11C; pe; pe = pe->pNext) {
             if (!IsLoInWorld(pe))
@@ -1326,7 +1326,7 @@ PART *PripNewRipg(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITTERV *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
-int FIsDlEmpty__FP2DL(void *p);
+int IsDlEmpty__FP2DL(void *p);
 }
 // Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions.
 extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTERV *pemit, EMITX *px, int c, qword *apos, qword *avel, float *at0, float *at1)
@@ -1364,7 +1364,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTERV *pemit, EMITX 
             ppart->mat40 = *GetLoWorldMatrix(pemit->pshd->p0);
         ppart->Init(pemit);
     }
-    if (FIsDlEmpty__FP2DL((char *)pso + 0x15C))
+    if (IsDlEmpty__FP2DL((char *)pso + 0x15C))
         pso->V9();
 }
 } // namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5

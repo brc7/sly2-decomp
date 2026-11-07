@@ -90,7 +90,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(NOISE *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *pointer, int value);
 void UnsubscribeLoAll(NOISE *noise);
-int FCheckLm__FP2LMf(void *object, float z);
+int IsWithinLimits__FP2LMf(void *object, float z);
 NOISETYPE *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void InitXfm(LISTENER *object);
 void SetLoBusyk(LISTENER *object, int value);
@@ -251,7 +251,7 @@ extern "C" int IsPositionInNoise(NOISE *noise, qword pos)
     qword offset, lengthSquared;
     float distance;
     offset = VuSub(pos, noise->pos);
-    if (!FCheckLm__FP2LMf(&noise->type->heightRange, GetZ(offset)))
+    if (!IsWithinLimits__FP2LMf(&noise->type->heightRange, GetZ(offset)))
         return 0;
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(lengthSquared) : "j"(offset));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(lengthSquared) : "j"(lengthSquared));
@@ -471,7 +471,7 @@ extern "C" int CanListenerHearNoise(LISTENER *listener, NOISE *noise)
         if (!type->isMuted) {
             listenerPos = GetLoWorldPos(listener);
             offset = VuSub(listenerPos, noise->pos);
-            if (FCheckLm__FP2LMf(&type->heightRange, GetZ(offset)) && FIn(offset, type->range))
+            if (IsWithinLimits__FP2LMf(&type->heightRange, GetZ(offset)) && FIn(offset, type->range))
                 return 1;
         }
     }

@@ -389,7 +389,7 @@ struct RIPGV { char pad[0xC]; struct VTE *vt; char p1[0x15C - 0x10]; DL dl; };
 void AddRipRef__FP3RIP(struct RIP *prip);
 void ReleaseRip__FP3RIP(struct RIP *prip);
 int IsLoInWorld(struct RIPGV *p);
-int FIsDlEmpty__FP2DL(DL *pdl);
+int IsDlEmpty__FP2DL(DL *pdl);
 void BounceRipgRips__FP4RIPG(struct RIPGV *p);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -417,7 +417,7 @@ void UpdateRipg(struct RIPGV *ripGroup)
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         ReleaseRip__FP3RIP(prip);
     }
-    if (!IsLoInWorld(ripGroup) || FIsDlEmpty__FP2DL(&ripGroup->dl))
+    if (!IsLoInWorld(ripGroup) || IsDlEmpty__FP2DL(&ripGroup->dl))
         ((void (*)(void *))ripGroup->vt[9].pf)((char *)ripGroup + ripGroup->vt[9].d);
     else
         BounceRipgRips__FP4RIPG(ripGroup);
@@ -465,7 +465,7 @@ void *AllocFromStack(const REQ *);
 int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
 int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-int FIsDlEmpty__FP2DL(DL *);
+int IsDlEmpty__FP2DL(DL *);
 void BounceRipgRips__FP4RIPG(P *);
 }
 /* the scratch request and the rip iterator share one stack slot */
@@ -525,7 +525,7 @@ void BounceRipgRips__FP4RIPG(P *p)
             }
             D_002DD2FC = shapes.outer;
         }
-        if (FIsDlEmpty__FP2DL(&p->rips)) p->vt[9].fn((char *)p + p->vt[9].delta);
+        if (IsDlEmpty__FP2DL(&p->rips)) p->vt[9].fn((char *)p + p->vt[9].delta);
     }
 }
 } // namespace M_BounceRipgRips__FP4RIPG

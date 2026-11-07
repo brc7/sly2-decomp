@@ -473,7 +473,7 @@ int IsBhvBusyAbove(struct P *p);
 qword GetLoWorldPos(void *p);
 struct SO *PickBhvfollowTarget(struct P *p);
 int IsBhvfollowLeaderOnNewGround(struct P *p);
-int FCheckLm__FP2LMf(struct LM *plm, float g);
+int IsWithinLimits__FP2LMf(struct LM *plm, float g);
 void SetBhvfollowState(struct P *p, int n);
 int GetBasicCid(void *p);
 int IsBhvInteractIdle(struct X *px);
@@ -541,7 +541,7 @@ void UpdateBhvfollow(struct P *behavior)
             f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
             if (f)
                 SetBhvfollowState(behavior, 1);
-            else if (FCheckLm__FP2LMf(&D_002BD330, g)) {
+            else if (IsWithinLimits__FP2LMf(&D_002BD330, g)) {
                 behavior->p90 = object;
                 SetBhvfollowState(behavior, 2);
             }
@@ -554,7 +554,7 @@ void UpdateBhvfollow(struct P *behavior)
             f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
             if (f)
                 SetBhvfollowState(behavior, 1);
-            else if (!FCheckLm__FP2LMf(&D_002BD338, g))
+            else if (!IsWithinLimits__FP2LMf(&D_002BD338, g))
                 SetBhvfollowState(behavior, 0);
             else {
                 switch (GetBasicCid(behavior->guard)) {

@@ -133,7 +133,7 @@ void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
 qword SetVectorCylind(float,float,float);
 }
 float GRandInRange(float gMin, float gMax);
-int FCheckLm(LMV *plm, float g) __asm__("FCheckLm__FP2LMf");   /* LMV: this file's view of LM */
+int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
 float RadNormalize(float rad);
 int FIsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 
@@ -388,8 +388,8 @@ extern "C" int TryAddSearchCandidate(QUERY *query) {
     float f;
     d = VuSub(query->candidate.q, query->point.q);
     GetVectorSphere(d, &a, &b, &c);
-    if (!FCheckLm((LMV *)&D_002A53C0, c)) return 0;
-    if (!FCheckLm((LMV *)&D_002A53C8, b)) return 0;
+    if (!IsWithinLimits((LMV *)&D_002A53C0, c)) return 0;
+    if (!IsWithinLimits((LMV *)&D_002A53C8, b)) return 0;
     if (query->count >= 0x40) return 0;
     row = &query->row[query->count++];
     row->point.q = query->candidate.q;

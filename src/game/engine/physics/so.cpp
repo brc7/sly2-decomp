@@ -676,7 +676,7 @@ struct G;
 extern struct G D_003DD490;
 int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
-int FIsDlEmpty__FP2DL(void *);
+int IsDlEmpty__FP2DL(void *);
 void RemoveSwPlacesOf(struct G *, int, struct E *);
 void FreeSoContacts(struct P *);
 void RemoveSwAaobrObject(struct G *, struct Q *);
@@ -698,7 +698,7 @@ void RemoveSoPartFromTree(struct P *so, struct E *pe)
     RemoveDlEntry__FP2DLPv(so->tree->parts, pe);
     if (pe->flags & (1L << 51)) RemoveSwPlacesOf(&D_003DD490, 0, pe);
     FreeSoContacts(so);
-    if (FIsDlEmpty__FP2DL(so->tree->parts)) {
+    if (IsDlEmpty__FP2DL(so->tree->parts)) {
         struct Q *pq = so->tree;
         ((struct Q2 *)pq->rootSo)->tree = 0;
         so->tree = 0;

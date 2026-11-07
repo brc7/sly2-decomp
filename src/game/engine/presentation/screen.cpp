@@ -352,7 +352,7 @@ void RemoveGrfusr__Fi(int);
 int HandleJoyButtons(PAD *, int);
 void ClearJoyButtons(PAD *, int);
 int TryOpenPauseMenu(int);
-int FIsDlEmpty__FP2DL(void *);
+int IsDlEmpty__FP2DL(void *);
 void UpdatePauseMenu(void *);
 void UpdateThiefnet(void *);
 void UpdateGadgetMenu(void *);
@@ -389,7 +389,7 @@ void UpdateScreens(void *pdl)
         if (!TryOpenPauseMenu(0))
             ClearJoyButtons(pad, 0x800);
     } else if (D_002DFBC0 & 2) {
-        int r = FIsDlEmpty__FP2DL(pdl);
+        int r = IsDlEmpty__FP2DL(pdl);
         int f = 0;
         if (pad->unknown100C == 1 && 5.0f <= D_002DDED0.t)
             f = 1;

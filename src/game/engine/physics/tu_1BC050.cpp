@@ -106,7 +106,7 @@ void RemoveLoHierarchy(CID14V *p);
 void AppendDlEntry__FP2DLPv(DLV *pdl, void *pv);
 void RemoveDlEntry__FP2DLPv(DLV *pdl, void *pv);
 int FFindDlEntry__FP2DLPv(DLV *pdl, void *pv);
-int FIsDlEmpty__FP2DL(DLV *pdl);
+int IsDlEmpty__FP2DL(DLV *pdl);
 void PostLoLoad(CID14V *p);
 float UMaxShape(CID14V *p);
 void MeasureShape(CID14V *p);
@@ -1169,7 +1169,7 @@ extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
 // Drains g_sw.dlCid14Pending, registering each queued polygon as an obstacle (merging where they overlap).
 extern "C" void UpdatePendingCid14Obstacles(void)
 {
-    while (!FIsDlEmpty__FP2DL((DLV *)&g_sw.dlCid14Pending)) {
+    while (!IsDlEmpty__FP2DL((DLV *)&g_sw.dlCid14Pending)) {
         void *pv = ((DLV *)&g_sw.dlCid14Pending)->pvFirst;
         RemoveDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, pv);
         RegisterCid14Obstacle((CID14V *)pv);

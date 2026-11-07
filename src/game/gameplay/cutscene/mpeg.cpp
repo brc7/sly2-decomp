@@ -128,7 +128,7 @@ extern JOY D_002DFC00;
 int func_00234A60(int n) __asm__("WaitSema");
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(DMA *, QW *);
 void RestoreGsBuffers__Fv(void);
-int FCheckLm__FP2LMf(const LM *, float);
+int IsWithinLimits__FP2LMf(const LM *, float);
 void SwapGsBuffers__Fv(void);
 int SemaCreate__Fii(int a, int b);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
@@ -236,7 +236,7 @@ void MpegDisplayThread(void)
         D_002F66B0.stage = 2;
         RestoreGsBuffers__Fv();
         x = 0;
-        if (D_002F66B0.psubt && FCheckLm__FP2LMf(&D_002F66B0.psubt->window, D_002DDED0.tReal - D_002F66B0.t10C))
+        if (D_002F66B0.psubt && IsWithinLimits__FP2LMf(&D_002F66B0.psubt->window, D_002DDED0.tReal - D_002F66B0.t10C))
             x = (QW *)((unsigned)D_002F66B0.pb + 0x41DC00);
         Draw(x, &D_002F66B0);
         Draw(x, &D_002F66B0);

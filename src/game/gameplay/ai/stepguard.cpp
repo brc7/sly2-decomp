@@ -2152,7 +2152,7 @@ struct Y *FindStepBehavior(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword GetLoWorldPos(void *p);
 int IsPointInVol(struct L *pl, qword q);
-int FCheckLm__FP2LMf(void *p, float f);
+int IsWithinLimits__FP2LMf(void *p, float f);
 
 // 0x208E70: Ranks how the hero can interact with this guard: 4 the guard is engaged with (attacking, hurt by,
 // holding) the hero, 3 the hero is inside a pickpocket glint volume, 2 close (distance and angle window), 1 in
@@ -2195,9 +2195,9 @@ int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
             return 3;
     }
     pv = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
-    if (d <= guard->closeRange * D_002C3D94 && FCheckLm__FP2LMf(pv, ang) && guard->unknown364)
+    if (d <= guard->closeRange * D_002C3D94 && IsWithinLimits__FP2LMf(pv, ang) && guard->unknown364)
         return 2;
-    if (d <= guard->interactRange && FCheckLm__FP2LMf(guard->interactAngleRange, ang) && guard->canInteract)
+    if (d <= guard->interactRange && IsWithinLimits__FP2LMf(guard->interactAngleRange, ang) && guard->canInteract)
         return 1;
     return 0;
 }

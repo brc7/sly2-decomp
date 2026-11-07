@@ -987,7 +987,7 @@ extern "C" {
 qword GetLoWorldPos(P *);
 ATTACH *FindReadyRobottankWeapon(P *);
 P *FindNearestRobottankPickup(P *);
-int FCheckLm__FP2LMf(LM *, float);
+int IsWithinLimits__FP2LMf(LM *, float);
 void SetRobottankTactic(P *, int);
 float acosf(float);
 M3 BuildAxisAngleRotationMatrix(qword, float);
@@ -1083,7 +1083,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         switch (state) {
         case 0:
             if (tank->selectedAttach) {
-                if (FCheckLm__FP2LMf(&tank->selectedAttach->enterRange, distance))
+                if (IsWithinLimits__FP2LMf(&tank->selectedAttach->enterRange, distance))
                     SetRobottankTactic(tank, 1);
             } else if (tank->selectedObject) {
                 SetRobottankTactic(tank, 2);
@@ -1092,7 +1092,7 @@ extern "C" void UpdateRobottankAi(P *tank)
             }
             break;
         case 1:
-            if (!tank->selectedAttach || !FCheckLm__FP2LMf(&tank->selectedAttach->exitRange, distance))
+            if (!tank->selectedAttach || !IsWithinLimits__FP2LMf(&tank->selectedAttach->exitRange, distance))
                 SetRobottankTactic(tank, 0);
             break;
         case 2:

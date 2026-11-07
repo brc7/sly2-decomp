@@ -2146,7 +2146,7 @@ int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
 struct S *FindBhvInBhvstk(void *p, int n);
 qword GetLoWorldPos(void *p);
-int FCheckLm__FP2LMf(void *p, float g);
+int IsWithinLimits__FP2LMf(void *p, float g);
 void SetBhvjuggledState(struct S *p, int n);
 void StartMurrayLiftGuard(struct P *p, void *q);
 void SetMurrayState(struct P *p, int n);
@@ -2195,7 +2195,7 @@ int TryMurrayTakedown(struct P *murray)
     qword d = GetLoWorldPos(murray);
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
     u.q = d;
-    if (LenXY(d) < D_002C09AC && FCheckLm__FP2LMf(D_002C09B0, GetZ(d)) && murray->interactTarget->xFEC)
+    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, GetZ(d)) && murray->interactTarget->xFEC)
         f = GrfConsumePressed__5POCTLUif(murray->pl, BUTTON_ACTION, 0.15f) != 0;
     if (f) {
         SetBhvjuggledState(ps, 2);
@@ -2204,7 +2204,7 @@ int TryMurrayTakedown(struct P *murray)
     }
     d = u.q;
     g = 0;
-    if (LenXY(d) < D_002C09B8 && FCheckLm__FP2LMf(D_002C09C0, GetZ(d)) && murray->x180C)
+    if (LenXY(d) < D_002C09B8 && IsWithinLimits__FP2LMf(D_002C09C0, GetZ(d)) && murray->x180C)
         g = GrfConsumePressed__5POCTLUif(murray->pl, BUTTON_ATTACK, 0.15f) != 0;
     if (!g)
         goto ret0;

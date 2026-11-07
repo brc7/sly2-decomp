@@ -1343,7 +1343,7 @@ typedef struct {
 } OBJ;
 void UpdateLo(OBJ *);
 void UpdateRelayScript(void *);
-int FIsDlEmpty__FP2DL(DL *);
+int IsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 // Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
 static inline void InitDli(DLI *pdli, DL *pdl)
@@ -1388,7 +1388,7 @@ void UpdateRelay(OBJ *relay)
     InitDli(&dli, &relay->scripts);
     while ((pv = PvNextDli(&dli)) != 0)
         UpdateRelayScript(pv);
-    if (FIsDlEmpty__FP2DL(&relay->scripts))
+    if (IsDlEmpty__FP2DL(&relay->scripts))
         StopRelay(relay);
     D_002DD2FC = dli.pdliNext;
 }
@@ -1419,7 +1419,7 @@ struct OBJ {
 void AddRelayBlockEnd(OBJ *);
 void *NewRelayJsg(OBJ *, void *, int);
 void UpdateRelayScript(void *);
-int FIsDlEmpty__FP2DL(DL *);
+int IsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 void SetLoBusyk(OBJ *, int);
 enum { LO_FLAG_02 = 2 };   /* set while a relay holds its busy mark (also set by several Init functions; meaning inferred only that far) */
@@ -1459,7 +1459,7 @@ void FireRelay(OBJ *relay, int n)
     UpdateRelayScript(NewRelayJsg(relay, relay->topBlock, 0));
     if (!relay->isFiring)
         return;
-    if (FIsDlEmpty__FP2DL(&relay->scripts)) {
+    if (IsDlEmpty__FP2DL(&relay->scripts)) {
         StopRelay(relay);
         return;
     }
