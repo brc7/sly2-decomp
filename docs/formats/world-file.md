@@ -144,7 +144,7 @@ U16 n ; n x { U16 value ; string16 name }   -> hash table at psw+0x3A18+8
 U16 c ; c x 10 bytes                        -> blob, then func_001D7C80
 ```
 
-Both samples have n=960 symbols and c=5461 trie entries, identical in both files. The 10-byte records are the save-variable trie `{s16 sym; s8 kind; u8 cbits; u16 ib; u16 iChild; u16 iSibling}` mapping names to offsets in the save blob `[C:runtime]` (decoded in RAM: 4,472 variables; see [save-memcard](../engine/save-memcard.md) and [save-variables](../reference/save-variables.md)). The U16 per symbol is its symbol id.
+Both samples have n=960 symbols and c=5461 trie entries, identical in both files. The 10-byte records are the save-variable trie `{s16 sym; s8 kind; u8 cbits; u16 ib; u16 iChild; u16 iSibling}` mapping names to offsets in the save blob `[C:runtime]` (decoded in RAM: 4,472 variables; see [save-memcard](../engine/save-memcard.md) and [save-variables](save-variables.md)). The U16 per symbol is its symbol id.
 
 ### 3.4 Level table (`LoadLevelTableFromBrx`, `func_0020F318`)
 

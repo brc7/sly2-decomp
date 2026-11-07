@@ -345,6 +345,17 @@ Override `CMpeg` playback (src/lib libmpeg + the MPEG display thread). Demux PSS
 
 ---
 
+### 6.6 Render port checklist
+
+Distilled from the rendering research (see [engine.md](../engine.md#73-rendering-enginegraphics) for the pipeline):
+1. Decode level textures to RGBA8 (or keep palettes where SAA shader animations rewrite CLUTs); load GLOBSETs as vertex/index buffers.
+2. Compute relight colours A/B on the CPU whenever lights or ambient change; keep B.a (the "how directly lit" term the shadows use).
+3. Draw in kind order with the bucket sort rules; map TEST/ALPHA/FOGCOL per material layer to pipeline state; reversed-Z.
+4. Per-vertex fog from the fit parameters; fade alpha from the globset draw.
+5. Outlines as silhouette-tested thin quads (~1 px at 448 lines, depth test nearer-or-equal without depth write, then a depth-only pass);
+   shadow volumes with a real stencil (Z-fail; kinds 7 and 8 in separate bits) and the 3-entry shadow table, alpha scaled by the lit fraction.
+6. HUD as a 2-D sprite pass; ignore VU double buffering, GS block aliasing, CT16 shuffles and the debug hooks.
+
 ## 7. Build system
 
 ### 7.1 Two builds, one repo
