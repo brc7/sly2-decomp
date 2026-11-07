@@ -49,7 +49,8 @@ struct SPRITEDESC
     WIDGET *owner;               /* +0x08 */
     int unknownC;                /* +0x0C */
     int index;                   /* +0x10 NESTED: the sprite group; EFFECT: the texture resource id */
-    char pad14[0x40 - 0x14];
+    void *texture;               /* +0x14 EFFECT: its texture reference (a render-target record, resource at +0x20) */
+    char pad18[0x40 - 0x18];
 };
 
 /* A sprite item (0x70 bytes): one sprite placed by a slot's current key: its colours, 2-D pose, descriptor, the slot
@@ -63,7 +64,9 @@ struct SPRITEITEM
     SPRITEDESC *descriptor;      /* +0x30 */
     char pad34[0x58 - 0x34];
     int spriteSlot;              /* +0x58 NESTED: the slot of the nested group */
-    char pad5C[0x64 - 0x5C];
+    char pad5C[0x61 - 0x5C];
+    uchar drawFlags;             /* +0x61 QueueSpriteItem's flags (RenderWidget's channel) */
+    char pad62[0x64 - 0x62];
     int arg;                     /* +0x64 */
     SLE link;                    /* +0x68 link in WIDGET::renderQueue */
     int unknown6C;               /* +0x6C */

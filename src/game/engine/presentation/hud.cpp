@@ -2046,19 +2046,17 @@ extern "C" void UpdateSpriteItem(float time, S *sprite, T *item, void *matrix, R
 
 // 0x2158C0 ReleaseSpriteItem
 namespace M_func_002158C0 { extern "C" {
-struct L { char pad[0x84]; char *spriteGroups; };
 struct Q { char pad[0x20]; void *resource; };   /* a texture reference */
-struct S { int id; int kind; struct L *owner; int unknownC; int index; struct Q *texture; };
-struct T { char pad[0x58]; int spriteSlot; };
+struct S { int id; int kind; WIDGET *owner; int unknownC; int index; struct Q *texture; };
 void StopSpriteSlot(void *p, int a);
 void ReleaseRenderTarget(void *p);
-void InitSpriteItem(struct T *t);
+void InitSpriteItem(SPRITEITEM *item);
 // Releases a sprite item's payload (stops a nested sprite, drops a texture reference) and resets it. (inferred)
-void ReleaseSpriteItem(struct S *sprite, struct T *item)
+void ReleaseSpriteItem(struct S *sprite, SPRITEITEM *item)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_NESTED:
-        StopSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot);
+        StopSpriteSlot(&sprite->owner->spriteGroups[sprite->index], item->spriteSlot);
         break;
     case SPRITE_KIND_EFFECT:
         if (sprite->texture) {
@@ -2074,24 +2072,21 @@ void ReleaseSpriteItem(struct S *sprite, struct T *item)
 
 // 0x215960 QueueSpriteItem
 namespace M_func_00215960 { extern "C" {
-struct L { char pad[0x84]; char *spriteGroups; };
-struct S { int id; int kind; struct L *owner; int unknownC; int index; };
-struct T { char pad[0x58]; int spriteSlot; char pad5c[5]; unsigned char drawFlags; };
 void DrawSpriteSlot(void *p, int a, int b);
-void PrependSlEntry(void *p, struct T *t);
+void PrependSlEntry(SL *psl, SPRITEITEM *item);
 // Queues a sprite item for drawing (nested sprites draw recursively). (inferred)
-void QueueSpriteItem(struct S *sprite, struct T *item, int drawFlags)
+void QueueSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item, int drawFlags)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_NESTED:
-        DrawSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot, item->drawFlags);
+        DrawSpriteSlot(&sprite->owner->spriteGroups[sprite->index], item->spriteSlot, item->drawFlags);
         break;
     case SPRITE_KIND_GEOMETRY:
     case SPRITE_KIND_TEXT:
     case SPRITE_KIND_EFFECT:
     case SPRITE_KIND_PICTURE:
         item->drawFlags = drawFlags;
-        PrependSlEntry((char *)sprite->owner + 0xFC, item);   /* the widget's render queue (+0xFC) */
+        PrependSlEntry(&sprite->owner->renderQueue, item);
         break;
     case SPRITE_KIND_POLYGON:
     case SPRITE_KIND_UNUSED5:
