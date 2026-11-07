@@ -278,14 +278,6 @@ void DeleteSw(SW *world)
 
 namespace M_func_0020E180 { extern "C" {
 struct MSG { int cb; int nKind; };
-struct H { int unknown0; int unknown4; int unknown8; int unknownC; int unknown10; int unknown14; char dl[0x10]; };
-struct S {
-    char pad0[0x3BF4]; int levelFlags;
-    char pad1[0x3CD4 - 0x3BF8]; void *workBuffers[3];
-    char pad2[0x3E38 - 0x3CE0]; int unknown3E38;
-    char pad3[0x3F0C - 0x3E3C]; struct H *loadHeader; char pad4[0x3F20 - 0x3F10]; void *largeWorkBuffer;
-    char pad5[0x45E8 - 0x3F24]; char renderTargets[2][0x28];   /* sw.h artgt */
-};
 struct ZPR { char ab[0x630]; };
 extern char D_002DEB30[];
 void *AllocFromWorldHeap(struct MSG *pmsg);
@@ -295,9 +287,10 @@ void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2L
 void InitRenderTargets(void *p, struct ZPR *pz);
 void BroadcastGameEvent(void *p, int a, int b);
 
-// Sets up a fresh world for loading: the work buffers (3 x 0x4800 and 0x8000 bytes), a list header, two ZPR inits,
+// Sets up a fresh world for loading: the three AAOX buffers (0x4800 bytes each), the update list (0x8000 bytes), the root
+// proxy record, the two render targets (one ZPR init),
 // game callback 2.
-void InitSwLoadBuffers(struct S *world)
+void InitSwLoadBuffers(SW *world)
 {
     struct MSG msg;
     struct ZPR zpr;
@@ -306,21 +299,21 @@ void InitSwLoadBuffers(struct S *world)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        world->workBuffers[i] = AllocFromWorldHeap(&msg);
+        world->aaaox[i] = (struct AAOX *)AllocFromWorldHeap(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    world->largeWorkBuffer = AllocClearedFromWorldHeap(&msg);
+    world->aloupd = (LOUPD *)AllocClearedFromWorldHeap(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    world->loadHeader = (__typeof__(world->loadHeader))AllocClearedFromWorldHeap(&msg);
-    world->loadHeader->unknown0 = -1;
-    world->loadHeader->unknown8 = -1;
-    InitSl(world->loadHeader->dl, 0x14);
+    world->ppxrRoot = (PXR *)AllocClearedFromWorldHeap(&msg);
+    world->ppxrRoot->idProxy = -1;
+    world->ppxrRoot->oidProxy = -1;
+    InitSl(&world->ppxrRoot->slChild, 0x14);   /* linked through PXR::sleSibling */
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        InitRenderTargets(world->renderTargets[j], &zpr);
-    if (world->levelFlags & 0x20)
+        InitRenderTargets(&world->artgt[j], &zpr);
+    if (world->transition.flags & 0x20)
         world->unknown3E38 = 1;
     BroadcastGameEvent(D_002DEB30, 2, 0);
 }
