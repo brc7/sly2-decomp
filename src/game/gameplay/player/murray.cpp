@@ -18,6 +18,7 @@
 #include "sly2/cm.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+#include "sly2/act.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -2627,9 +2628,6 @@ typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002C09F0;
-struct VT { short d; short pad; void *pfn; };
-struct OBJ { struct VT *vt; };
-struct R { int x0; struct OBJ *po; };
 struct PL { char pad[0x30]; int x30; };
 struct P {
     char pad0[0x150]; struct PL *pl; char pad1[0x190 - 0x154]; qword v190; char pad1b[0x1A8 - 0x1A0]; float g1A8; char pad2[0x1B0 - 0x1AC];
@@ -2647,7 +2645,7 @@ void ReleaseSma(void *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ASEGA **ppanim);
 EA *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ASEGA *pa, float t);
-struct R *FindAsegChannel(struct ASEG *p, struct P *pp, int a, int b);
+CHN *FindAsegChannel(struct ASEG *p, struct P *pp, int a, int b);
 void ReleaseInteractTargetMark(struct P *p);
 // Rotate v by the 3x3 matrix rows m[0..2].
 static inline qword MulM3(qword *m, qword v)
@@ -2694,11 +2692,11 @@ void SetMurrayAttack(struct P *murray, int k)
     if (g != 0.0f)
         SetAsegaChannelWeight(murray->panim, D_002DDED0.time + g / murray->panim->speed);
     if (murray->panim) {
-        struct R *r = FindAsegChannel(murray->panim->animation, murray, 1, 1);
+        CHN *r = FindAsegChannel(murray->panim->animation, murray, 1, 1);
         if (r) {
             qword a, b, pos, t, v;
-            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &a, 0.0f, 0.0f, 0);
-            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &b, murray->panim->animation->duration, 0.0f, 0);
+            r->pac->Evaluate(0.0f, 0.0f, &a, 0);
+            r->pac->Evaluate(murray->panim->animation->duration, 0.0f, &b, 0);
             pos = GetLoWorldPos(murray);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(t) : "j"(b), "j"(a));
             t = MulM3(murray->m1B0, t);
