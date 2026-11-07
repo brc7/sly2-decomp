@@ -747,11 +747,6 @@ typedef struct {int cb,alignment;} MSG;
 struct BIS {int grf;char unknown4[0x2C];void *vt;int cbSpool;char *abSpool;int unknown3C[10];};
 typedef struct {int keyLo,keyHi,kind;char filename[0x104];} KEY;   /* a file lookup key (inferred) */
 typedef union {MSG msg;char magic[4];} TMP;
-typedef struct S S;
-/* A deferred load record (0x50 bytes, g_sw.slWidgetDeferred): four key words read from the BRX, the widget, the
-   load priorities. */
-typedef struct N {int key0,key1;char pad8[0x2C];int key2;int pad38;int key3;S *owner;int priority,lastPriority;struct N *next;} N;
-struct S : LO {int spriteCount;void *sprites;int state;char pad5c[4];int stateFrame;char pad64[0x5C];N *deferredLoad;};
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -764,9 +759,9 @@ extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
 extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
 extern "C" unsigned short U16Read__18CBinaryInputStream(BIS *);
 extern "C" int strncmp(const void *,const void *,unsigned int);
-extern "C" void SetWidgetState(S *,int);
-extern "C" void LoadSpriteTable(S *,BIS *,S *,int *,void **);
-extern "C" void LoadSpriteGroups(S *,BIS *,S *);
+extern "C" void SetWidgetState(WIDGET *,int);
+extern "C" void LoadSpriteTable(WIDGET *,BIS *,WIDGET *,int *,SPRITEDESC **);
+extern "C" void LoadSpriteGroups(WIDGET *,BIS *,WIDGET *);
 extern "C" { 
  }
 extern "C" { extern POOL D_003E1C70; }
@@ -774,9 +769,9 @@ extern "C" { extern int D_002BE538; }
 extern "C" { extern char D_002A8AE8[]; }
 // Build the file's decryption key from its load record (kind 2, lo = (k0^k2)+0xCA0, hi = k1^k3); returns whether the
 // key is usable (hi != 0).
-static inline int SetKey(KEY *key,N *load) {
+static inline int SetKey(KEY *key,WIDGETLOAD *load) {
     if(!load)return 0;
-    {int k2=load->key2,k0=load->key0,k3=load->key3,k1=load->key1;
+    {int k2=load->file.aw[13],k0=load->file.aw[0],k3=load->file.aw[15],k1=load->file.aw[1];
     key->kind=2;
     key->keyLo=(k0^k2)+0xCA0;
     key->keyHi=k1^k3;}
@@ -789,22 +784,22 @@ struct WORK {
  KEY key __attribute__((aligned(16)));
 };
 // Loads a streamed widget's sprite file when the widget first leaves the unloaded state.
-extern "C" void LoadWidgetSprites(S *widget) {
+extern "C" void LoadWidgetSprites(WIDGET *widget) {
     WORK work;
     register BIS *bs asm("$17");asm("la %0,%a1":"=r"(bs):"p"(&work.stream));
     int priority=0;
-    N *load;
-    S *owner;
+    WIDGETLOAD *load;
+    WIDGET *owner;
     int version;
     /* the highest priority among widgets that are loaded and shown (or hidden within the last frame) ... */
-    for(load=(*(N * *)&g_sw.slWidgetDeferred);load;load=load->next) {
+    for(load=(*(WIDGETLOAD **)&g_sw.slWidgetDeferred);load;load=load->next) {
         owner=load->owner;
         if(owner->state==0)continue;
         if(owner->state==1 && D_002BE538-owner->stateFrame>=2)continue;
         priority=StdMaxInt(priority,load->lastPriority);
     }
     /* ... evicts every loaded widget loaded at or above it, since the sprite heap is reset to that point */
-    for(load=(*(N * *)&g_sw.slWidgetDeferred);load;load=load->next) {
+    for(load=(*(WIDGETLOAD **)&g_sw.slWidgetDeferred);load;load=load->next) {
         owner=load->owner;
         if(load->priority>=priority && owner->state!=0)SetWidgetState(owner,0);
     }
