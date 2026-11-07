@@ -2726,33 +2726,33 @@ extern "C" void SetStepguardGrfsgf(STEPGUARD *guard, unsigned long grfsg)
 
 // 0x209890 AddStepguardSgf
 namespace M_AddStepguardSgf { extern "C" {
-struct T; struct S; struct L;
+struct SGFEVENT; struct S; struct ARGS;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct T { int a; int b; };
-extern struct T D_002C3D98[2];
+struct SGFEVENT { int sgf; int gameEvent; };
+extern struct SGFEVENT D_002C3D98[2];
 extern char D_002DEB30[];
-struct S { char pad[0xC]; VTE *vt; char pad2[0x2C0 - 0x10]; long fl; };
-struct L { int *pa; int *pb; };
+struct S { char pad[0xC]; VTE *vt; char pad2[0x2C0 - 0x10]; long grfsg; };
+struct ARGS { int *sgf; int *state; };
 long GetSgfMask(int n);
-void SetStepguardGrfsgf(struct S *p, long fl);
-int MaskHasSgf(long m, int a);
-void BroadcastGameEvent(void *p, int b, struct S *ps);
+void SetStepguardGrfsgf(struct S *p, long grfsg);
+int MaskHasSgf(long mask, int sgf);
+void BroadcastGameEvent(void *p, int gameEvent, struct S *source);
 // 0x209890: Raises guard flag `sgf`: sends itself message 7 (raised, -1) and broadcasts the game event tied to some
 // flags (attacking 0x14, flag 0xC 0x16).
-void AddStepguardSgf(struct S *guard, int n)
+void AddStepguardSgf(struct S *guard, int sgf)
 {
-    long m = GetSgfMask(n);
-    struct L l;
-    int b;
+    long mask = GetSgfMask(sgf);
+    struct ARGS args;
+    int state;
     unsigned int i;
-    SetStepguardGrfsgf(guard, guard->fl | m);
-    b = -1;
-    l.pa = &n;
-    l.pb = &b;
-    ((void (*)(void *, int, int, int, struct L *, int))guard->vt[3].pfn)((char *)guard + guard->vt[3].d, 7, 0, 2, &l, 0);
+    SetStepguardGrfsgf(guard, guard->grfsg | mask);
+    state = -1;
+    args.sgf = &sgf;
+    args.state = &state;
+    ((void (*)(void *, int, int, int, struct ARGS *, int))guard->vt[3].pfn)((char *)guard + guard->vt[3].d, 7, 0, 2, &args, 0);
     for (i = 0; i < 2; i++) {
-        if (MaskHasSgf(m, D_002C3D98[i].a))
-            BroadcastGameEvent(D_002DEB30, D_002C3D98[i].b, guard);
+        if (MaskHasSgf(mask, D_002C3D98[i].sgf))
+            BroadcastGameEvent(D_002DEB30, D_002C3D98[i].gameEvent, guard);
     }
 }
 } } // namespace M_AddStepguardSgf
@@ -2761,19 +2761,19 @@ void AddStepguardSgf(struct S *guard, int n)
 namespace M_RemoveStepguardSgf {
 class OBase; class O;
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int msg, int a, int c, void **apv, int x); };
-class O : public OBase { public: char pad[0x2C0 - 0x10]; unsigned long fl; };
+class O : public OBase { public: char pad[0x2C0 - 0x10]; unsigned long grfsg; };
 extern "C" unsigned long GetSgfMask(int n);
-extern "C" void SetStepguardGrfsgf(O *p, unsigned long fl);
+extern "C" void SetStepguardGrfsgf(O *p, unsigned long grfsg);
 // 0x209970: Lowers guard flag `sgf` and sends itself message 7 (-1, lowered).
-extern "C" void RemoveStepguardSgf(O *guard, int n)
+extern "C" void RemoveStepguardSgf(O *guard, int sgf)
 {
-    int m;
-    void *apv[2];
-    SetStepguardGrfsgf(guard, guard->fl & ~GetSgfMask(n));
-    m = -1;
-    apv[0] = &m;
-    apv[1] = &n;
-    guard->Msg(7, 0, 2, apv, 0);
+    int state;
+    void *args[2];
+    SetStepguardGrfsgf(guard, guard->grfsg & ~GetSgfMask(sgf));
+    state = -1;
+    args[0] = &state;
+    args[1] = &sgf;
+    guard->Msg(7, 0, 2, args, 0);
 }
 } // namespace M_RemoveStepguardSgf
 
@@ -2781,18 +2781,21 @@ extern "C" void RemoveStepguardSgf(O *guard, int n)
 namespace M_FGrfHasSgf { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x2099F0: True if flag `sgf` is set in a mask.
-int MaskHasSgf(unsigned long fl, int n) { return (fl & GetSgfMask(n)) != 0; }
+int MaskHasSgf(unsigned long mask, int sgf) { return (mask & GetSgfMask(sgf)) != 0; }
 } } // namespace M_FGrfHasSgf
 
 // 0x209A28 CountSgfMatch
 namespace M_func_00209A28 { extern "C" {
 // 0x209A28: Returns the number of flags in `subset` if it is a subset of `mask`, else 0.
-int CountSgfMatch(unsigned long a, unsigned long b) {
-    unsigned long x = a & b;
-    int c;
-    if (x != a) return 0;
-    for (c = 0; x != 0; c++) x &= x - 1;
-    return c;
+int CountSgfMatch(unsigned long subset, unsigned long mask)
+{
+    unsigned long common = subset & mask;
+    int count;
+    if (common != subset)
+        return 0;
+    for (count = 0; common != 0; count++)
+        common &= common - 1;   // clear the lowest set bit
+    return count;
 }
 } } // namespace M_func_00209A28
 
@@ -2807,45 +2810,50 @@ extern "C" int StepguardHasSgf(STEPGUARD *guard, int sgf)
 namespace M_func_00209A88 { extern "C" {
 struct CRef; struct S;
 struct CRef { int tagk; int tag; };
-struct S { char pad[0x2C0]; long n; };
-void *ListSgfsInMask(long n, char *ab);
-void func_00200F58(struct CRef *ret, void *p, int n, char *ab);
+struct S { char pad[0x2C0]; long grfsg; };
+void *ListSgfsInMask(long mask, char *sgfs);
+void func_00200F58(struct CRef *ret, void *count, int type, char *values);
 // 0x209A88: Splice getter: the guard's set flags as a list.
-struct CRef *GetStepguardSgfRefList(struct CRef *ret, struct S *p) { char ab[0xC0]; func_00200F58(ret, ListSgfsInMask(p->n, ab), 0x1010, ab); return ret; }
+struct CRef *GetStepguardSgfRefList(struct CRef *ret, struct S *guard)
+{
+    char sgfs[0xC0];
+    func_00200F58(ret, ListSgfsInMask(guard->grfsg, sgfs), 0x1010, sgfs);
+    return ret;
+}
 } } // namespace M_func_00209A88
 
 // 0x209AD0 FindBestAnimBinding
 namespace M_PanimbindBest { extern "C" {
-struct E; struct S;
-struct E { char pad[0x10]; long id; char pad2[8]; };
-struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
+struct BINDINGREC; struct S;
+struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
+struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
 long GetSgfMask(int n);
-int CountSgfMatch(long id, long mask);
+int CountSgfMatch(long subset, long mask);
 // 0x209AD0: Finds the animation binding whose flag set is the largest subset of `mask` and contains its lowest
 // flag.
-struct E *FindBestAnimBinding(struct S *p, long mask)
+struct BINDINGREC *FindBestAnimBinding(struct S *guard, long mask)
 {
     int i;
-    int k = 0;
-    long m = 0;
-    int best = 0;
-    struct E *pbest = 0;
-    struct E *pe;
-    for (; k < 0x30; k++) {
-        m = GetSgfMask(k);
-        if (mask & m)
+    int sgf = 0;
+    long lowestMask = 0;
+    int bestCount = 0;
+    struct BINDINGREC *best = 0;
+    struct BINDINGREC *rec;
+    for (; sgf < 0x30; sgf++) {
+        lowestMask = GetSgfMask(sgf);
+        if (mask & lowestMask)
             break;
     }
-    for (i = 0; i < p->c; i++) {
-        int r;
-        pe = &p->a[i];
-        r = CountSgfMatch(pe->id, mask);
-        if (r && (pe->id & m) && best < r) {
-            best = r;
-            pbest = pe;
+    for (i = 0; i < guard->bindingCount; i++) {
+        int count;
+        rec = &guard->bindings[i];
+        count = CountSgfMatch(rec->sgfMask, mask);
+        if (count && (rec->sgfMask & lowestMask) && bestCount < count) {
+            bestCount = count;
+            best = rec;
         }
     }
-    return pbest;
+    return best;
 }
 } } // namespace M_PanimbindBest
 
@@ -2853,42 +2861,51 @@ struct E *FindBestAnimBinding(struct S *p, long mask)
 namespace M_func_00209BC0 { extern "C" {
 struct S;
 struct ENTRY;
-struct S { char pad[0x2C0]; long mask; };
-struct ENTRY *FindBestAnimBinding(struct S *p, long mask);
+struct S { char pad[0x2C0]; long grfsg; };
+struct ENTRY *FindBestAnimBinding(struct S *guard, long mask);
 // 0x209BC0: Finds the best animation binding for the guard's current flags.
-struct ENTRY *FindCurrentAnimBinding(struct S *p)
+struct ENTRY *FindCurrentAnimBinding(struct S *guard)
 {
-    return FindBestAnimBinding(p, p->mask);
+    return FindBestAnimBinding(guard, guard->grfsg);
 }
 } } // namespace M_func_00209BC0
 
 // 0x209BE0 FindAnimBinding
 namespace M_func_00209BE0 { extern "C" {
-struct E; struct S;
-struct E { char pad[0x10]; long id; char pad2[8]; };
-struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
+struct BINDINGREC; struct S;
+struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
+struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
 // 0x209BE0: Finds the animation binding with exactly this flag set.
-struct E *FindAnimBinding(struct S *p, long id) { int i; for (i = 0; i < p->c; i++) { struct E *pe = &p->a[i]; if (pe->id == id) return pe; } return 0; }
+struct BINDINGREC *FindAnimBinding(struct S *guard, long sgfMask)
+{
+    int i;
+    for (i = 0; i < guard->bindingCount; i++) {
+        struct BINDINGREC *rec = &guard->bindings[i];
+        if (rec->sgfMask == sgfMask)
+            return rec;
+    }
+    return 0;
+}
 } } // namespace M_func_00209BE0
 
 // 0x209C18 EnsureAnimBinding
 namespace M_func_00209C18 { extern "C" {
-struct E; struct S;
-struct E { char pad[0x10]; long id; char pad2[8]; };
-struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
-struct E *FindAnimBinding(struct S *p, long id);
-void ReleaseAnimBinding(struct E *pe, struct S *p);
+struct BINDINGREC; struct S;
+struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
+struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
+struct BINDINGREC *FindAnimBinding(struct S *guard, long sgfMask);
+void ReleaseAnimBinding(struct BINDINGREC *rec, struct S *guard);
 // 0x209C18: Finds or appends (released) the animation binding for a flag set.
-struct E *EnsureAnimBinding(struct S *p, long id)
+struct BINDINGREC *EnsureAnimBinding(struct S *guard, long sgfMask)
 {
-    struct E *pe = FindAnimBinding(p, id);
-    if (!pe) {
-        struct E *pn = &p->a[p->c++];
-        pn->id = id;
-        pe = pn;
+    struct BINDINGREC *rec = FindAnimBinding(guard, sgfMask);
+    if (!rec) {
+        struct BINDINGREC *added = &guard->bindings[guard->bindingCount++];
+        added->sgfMask = sgfMask;
+        rec = added;
     }
-    ReleaseAnimBinding(pe, p);
-    return pe;
+    ReleaseAnimBinding(rec, guard);
+    return rec;
 }
 } } // namespace M_func_00209C18
 
@@ -2898,10 +2915,10 @@ struct VE; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct S;
 struct VE { short d; short pad; void (*pf)(void *, int, void *, qword, qword, qword); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; char pad3[0xF80 - 0x21C]; int k; void *attachObject; float attachParam; int pad4; void *pF90; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *groundPosition; char pad3[0xF80 - 0x21C]; int attachKind; void *attachObject; float attachParam; int pad4; void *attachAnchor; /* (inferred) */ };
 extern qword D_002A2DA0;
 void func_001F4FA8(struct S *p);
-void EvaluateShapeS(void *po, qword *pa, qword *pb, float f);
+void EvaluateShapeS(void *shape, qword *pos, qword *tangent, float s);
 qword func_001A62E8(void *p);
 qword *func_001A6318(void *p);
 
@@ -2909,32 +2926,32 @@ qword *func_001A6318(void *p);
 // object.
 void AddStepguardAttachContacts(struct S *guard)
 {
-    qword a, b;
+    qword pos, tangent;
     func_001F4FA8(guard);
-    switch (guard->k) {
+    switch (guard->attachKind) {
     case 0:
-        EvaluateShapeS(guard->attachObject, &a, &b, guard->attachParam);
-        guard->vt[82].pf((char *)guard + guard->vt[82].d, 0x22, guard->attachObject, a, b, *guard->p218);
+        EvaluateShapeS(guard->attachObject, &pos, &tangent, guard->attachParam);
+        guard->vt[82].pf((char *)guard + guard->vt[82].d, 0x22, guard->attachObject, pos, tangent, *guard->groundPosition);
         break;
     case 1: {
         struct VE *entry;
-        void *pthis;
-        EvaluateShapeS(guard->attachObject, &a, &b, guard->attachParam);
+        void *self;
+        EvaluateShapeS(guard->attachObject, &pos, &tangent, guard->attachParam);
         entry = &guard->vt[82];
-        pthis = (char *)guard + entry->d;
-        entry->pf(pthis, 7, guard->attachObject, a, b, func_001A62E8(guard->pF90));
+        self = (char *)guard + entry->d;
+        entry->pf(self, 7, guard->attachObject, pos, tangent, func_001A62E8(guard->attachAnchor));
         break;
     }
     case 2: {
         struct VE *entry = &guard->vt[82];
-        void *pthis = (char *)guard + entry->d;
-        entry->pf(pthis, 7, guard->attachObject, func_001A62E8(guard->attachObject), *func_001A6318(guard->attachObject), func_001A62E8(guard->pF90));
+        void *self = (char *)guard + entry->d;
+        entry->pf(self, 7, guard->attachObject, func_001A62E8(guard->attachObject), *func_001A6318(guard->attachObject), func_001A62E8(guard->attachAnchor));
         break;
     }
     case 3: {
         struct VE *entry = &guard->vt[82];
-        void *pthis = (char *)guard + entry->d;
-        entry->pf(pthis, 7, guard->attachObject, func_001A62E8(guard->attachObject), D_002A2DA0, *guard->p218);
+        void *self = (char *)guard + entry->d;
+        entry->pf(self, 7, guard->attachObject, func_001A62E8(guard->attachObject), D_002A2DA0, *guard->groundPosition);
         break;
     }
     }
@@ -2943,20 +2960,20 @@ void AddStepguardAttachContacts(struct S *guard)
 
 // 0x209E28 SendStepguardRootBhvMode6
 namespace M_func_00209E28 { extern "C" {
-struct F;
-struct F { int a[0x1C]; };
+struct MODEREC;
+struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
 void *FindStepBhv(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
-void SetBhvguardMode(void *p, struct F *pf);
+void SetBhvguardMode(void *bhv, struct MODEREC *mode);
 // 0x209E28: Sends mode record 6 with `value` to the guard's root behaviour (BHVGUARD).
-void SendStepguardRootBhvMode6(void *p, int n)
+void SendStepguardRootBhvMode6(void *guard, int value)
 {
-    void *o = FindStepBhv(p, CID_BHVGUARD);
-    struct F f;
-    func_002333B4(&f, 0, sizeof f);
-    f.a[0] = 6;
-    f.a[4] = n;
-    SetBhvguardMode(o, &f);
+    void *bhv = FindStepBhv(guard, CID_BHVGUARD);
+    struct MODEREC mode;
+    func_002333B4(&mode, 0, sizeof mode);
+    mode.kind = 6;
+    mode.value = value;
+    SetBhvguardMode(bhv, &mode);
 }
 } } // namespace M_func_00209E28
 
