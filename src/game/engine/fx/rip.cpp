@@ -329,9 +329,6 @@ struct DLI { DL *list; void **next; int offset; DLI *outer; };
 struct ENTRY { int a, b; void *poly; };
 struct SHAPE { char pad10[0x10]; unsigned long flags; char pad18[0x54]; int capacity; char pad70[4]; void *tree; };
 struct XP { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };
-struct RIP;
-struct RVE { short delta, pad; int (*fn)(void *, SHAPE *, qword, qword); };
-struct RIP { char pad14[0x14]; float start; char pad18[0x58]; qword position, extra; char pad90[0x5C]; RVE *vt; };
 struct NODE;
 struct STATE { char pad20[0x20]; qword origin; float radius; DL shapes; char pad40[0x20]; void *subject; NODE *nodes; char pad68[8]; unsigned long flags; };
 struct OBJ { char padEC[0xEC]; STATE *state; };
@@ -395,12 +392,12 @@ void BounceRipgRips__FP4RIPG(P *p)
                     Init(&phase.rip, &p->rips);
                     RIP *rip;
                     for (rip = (RIP *)Next(&phase.rip); rip; rip = (RIP *)Next(&phase.rip)) {
-                        if (D_002DDED0.time <= rip->start) continue;
-                        int count = ClipEdgeToObjectPruned(shape, entries, rip->extra, rip->position, 4, contacts);
+                        if (D_002DDED0.time <= rip->startTime) continue;
+                        int count = ClipEdgeToObjectPruned(shape, entries, rip->previousPosition, rip->currentPosition, 4, contacts);
                         int i = 0;
                         if (i < count) do {
                             XP *hit = &contacts[i];
-                            if (hit->fraction != 0.0f && rip->vt[8].fn((char *)rip + rip->vt[8].delta, shape, hit->position, hit->normal)) break;
+                            if (hit->fraction != 0.0f && rip->HandleBounce(shape, hit->position, hit->normal)) break;
                             i++;
                         } while (i < count);
                     }
