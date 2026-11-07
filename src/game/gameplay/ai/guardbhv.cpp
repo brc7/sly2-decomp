@@ -6885,10 +6885,9 @@ void UpdateBhvgoto(struct S *behavior) {
 
 // 0x17D8A8 FindBhvgotoRoute
 namespace M_FindBhvgotoRoute { extern "C" {
-struct G; struct I; struct D; struct C; struct A; struct V2; struct S;
+struct I; struct D; struct C; struct A; struct V2; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct G { char pad[0x45CC]; void *pathGraph; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct I { char pad[0x128]; void *endZone; };
 struct D { char pad[0x10]; void *pathzone; };
 struct C { char pad[0xDC]; struct D *unknownDC; };
@@ -6924,13 +6923,13 @@ void FindBhvgotoRoute(struct S *behavior) {
     if (goalZone == 0) {
         failed = 1;
     } else if (goalZone != currentZone) {
-        struct G *g = &D_003DD490;
+        SW *g = &D_003DD490;
         int n;
-        if ((behavior->numRouteLinks = FindPathlinkRoute(g->pathGraph, behavior->guard, goalPos, 1, 1, behavior->route)) <= 0) {
+        if ((behavior->numRouteLinks = FindPathlinkRoute(g->pregtree, behavior->guard, goalPos, 1, 1, behavior->route)) <= 0) {
             if (behavior->allowPartialRoute == 0) {
                 failed = 1;
             } else {
-                n = FindPathlinkRoute(g->pathGraph, behavior->guard, goalPos, 0, 1, behavior->route);
+                n = FindPathlinkRoute(g->pregtree, behavior->guard, goalPos, 0, 1, behavior->route);
                 behavior->numRouteLinks = n;
                 if (n == 0) {
                     failed = 1;
