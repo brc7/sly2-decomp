@@ -71,7 +71,7 @@ struct DIMITRIV
 typedef char assert_DIMITRI_hitPointsAtLastEscape[(unsigned int)&((DIMITRIV *)0)->hitPointsAtLastEscape == 0x1018 ? 1 : -1];
 /* A sub-behaviour pushed by PushStepBehavior (vtable slot 8 starts it); its fields depend on its class: BHV181 (route,
    target), BHVCOMBAT/BHVATTACK (target, attack entry), BHVANIM/BHVIDLE (guard flag, look-at), BHVWALKPATH. */
-struct BHVO { int a[3]; VTE *vt; char pad[0x20]; void *target; int pad34; union { void *route; void *lookAt; };
+struct BHVO : BHV { void *target; int pad34; union { void *route; void *lookAt; };
               union { int sgf; int attackEntry; }; union { int combatUnknown40; int walkIgnoresBlockers; };
               char pad44[8]; void *escapeTarget; char pad50[0xC0 - 0x50]; int walkAnimSgf; int padC4; void *walkLookAt; };
 typedef char assert_BHVO_walkLookAt[(unsigned int)&((BHVO *)0)->walkLookAt == 0xC8 ? 1 : -1];
@@ -296,21 +296,17 @@ extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
     switch (k) {
     case 0: {
         BHVO *child = PushStepBehavior(behavior->guard, CID_BHV181);
-        VTE *entry;
         child->route = behavior->route;
         child->escapeTarget = behavior->target;
-        entry = &child->vt[8];
-        ((void (*)(void *))entry->pfn)((char *)child + entry->d);
+        child->Start();
         behavior->guard->hitPointsAtLastEscape = behavior->guard->hitPoints;
         break;
     }
     case 1: {
         BHVO *child = PushStepBehavior(behavior->guard, CID_BHVCOMBAT);
-        VTE *entry;
         child->target = behavior->target;
         child->combatUnknown40 = k;
-        entry = &child->vt[8];
-        ((void (*)(void *))entry->pfn)((char *)child + entry->d);
+        child->Start();
         break;
     }
     }
@@ -452,7 +448,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
             float g = atan2f(QwordY(d), QwordX(d)) + 3.1415927f;
             SetStepguardMoverRadTarget(behavior->guard->mover, g);
         }
-        ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
+        child->Start();
         behavior->unknown3C = D_002A5138;
         break;
     }
@@ -460,7 +456,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         BHVO *child;
         child = PushStepBehavior(behavior->guard, CID_BHVIDLE);
         child->lookAt = behavior->target;
-        ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
+        child->Start();
         break;
     }
     case 2: {
@@ -482,7 +478,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         child->walkAnimSgf = 8;
         child->walkLookAt = behavior->target;
         child->walkIgnoresBlockers = 1;
-        ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
+        child->Start();
         break;
     }
     case 3: {
@@ -490,7 +486,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         child = PushStepBehavior(behavior->guard, CID_BHVATTACK);
         child->attackEntry = (int)behavior->attack;
         child->target = behavior->target;
-        ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
+        child->Start();
         behavior->guard->attackCooldownEnd = D_002A5138;
         behavior->attackCount++;
         break;
