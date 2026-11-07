@@ -29,7 +29,7 @@ public:
 class CQueueOutputIop : public CQueueOutput {
 public:
     virtual int FAsyncDrain();   /* key function: CQueueOutputIop's vtable comes out here */
-    virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIop_CbWrite");
+    virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIop_WriteBytes");
     int format;                 /* 0x10: ADPCM (interleaved per channel), else PCM */
     int sampleRate;             /* (inferred: passed on to snd_StartMovieSound) */
     int channelCount;
@@ -42,11 +42,11 @@ public:
     void Reset();
 };
 typedef char CQueueOutputIop_Size[sizeof(CQueueOutputIop)==0x30?1:-1];
-/* The video output to the IPU (FMpegDecodeVideo's local, built by hand). */
+/* The video output to the IPU (FeedMpegVideoDecoder's local, built by hand). */
 class CQueueOutputIpu : public CQueueOutput {
 public:
     virtual int FAsyncDrain();   /* key function: CQueueOutputIpu's vtable comes out here */
-    virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIpu_CbWrite");
+    virtual int CbWrite(int cb, char *pb) __asm__("CQueueOutputIpu_WriteBytes");
 };
 /* The audio stream header record. */
 struct MPEGAUDIOREC { int a[2]; int format, sampleRate, channelCount, interleave; int pad[4]; };
@@ -88,7 +88,7 @@ typedef char CMPEG_x240[FIELD_OFFSET(CMPEG,stage)==0x240?1:-1];
 typedef char CMPEG_size[sizeof(CMPEG)==0x248?1:-1];
 
 /* 0x002F66B0: the player. Its constructor (inlined into StaticInit_mpeg) only sets the audio output's vtable (the
-   member's implicit constructor; the IPU output's vtable is stored by hand in FMpegDecodeVideo). */
+   member's implicit constructor; the IPU output's vtable is stored by hand in FeedMpegVideoDecoder). */
 inline CMPEG::CMPEG() { }
 CMPEG D_002F66B0;
 
@@ -188,18 +188,18 @@ void Skip__18CBinaryAsyncStreami(CBinaryAsyncStream *t, int r);
 void MpegDisplayThread(void);
 int CQueueOutputIop_Init(CQueueOutputIop *p, MPEGAUDIOREC *pa);
 void StageInterleavedIopAudio(CQueueOutputIop *p, int cb, char *pb);
-int CQueueOutputIop_CbSend(CQueueOutputIop *p, int b, char *c);
+int CQueueOutputIop_SendBytes(CQueueOutputIop *p, int b, char *c);
 void CQueueOutputIop_Update(CQueueOutputIop *p);
 void Init__10CMpegAudio(CMpegAudio *p);
 void Reset__10CMpegAudio(CMpegAudio *p);
 void Close__10CMpegAudio(CMpegAudio *p);
-int FAccept__10CMpegAudioiPUc(CMpegAudio *p, int cb, unsigned char *pb);
+int AcceptPacket__10CMpegAudioiPUc(CMpegAudio *p, int cb, unsigned char *pb);
 void Update__10CMpegAudio(CMpegAudio *p);
-int FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, struct MCB *pm, CMPEG *p);
-void FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, struct MCB *pm, CMPEG *p);
-int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *p);
-int FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *p);
-int FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg(void);
+int AcceptMpegVideoData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, struct MCB *pm, CMPEG *p);
+void AcceptMpegAudioData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, struct MCB *pm, CMPEG *p);
+int FeedMpegVideoDecoder__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *p);
+int OnMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *p);
+int OnMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg(void);
 void BuildMpegGifs(CMPEG *p);
 void DrawMpegSubtitles(CMPEG *p);
 SUBT *FindMpegSubtitles(K *pe);
@@ -207,7 +207,7 @@ void Execute__5CMpegPv(CMPEG *p, K *k);
 void CMpeg_Start(CMPEG *p, CBinaryAsyncStream *a);
 void Update__5CMpeg(CMPEG *p);
 void Finish__5CMpeg(CMPEG *p);
-int CbDemuxed__5CMpegi(CMPEG *p, int wait);
+int DemuxStream__5CMpegi(CMPEG *p, int wait);
 }
 
 // Subtitle track lookup for a movie entry; returns none in the retail build (the caller stores the result in
@@ -320,7 +320,7 @@ void StageInterleavedIopAudio(CQueueOutputIop *queue, int cb, char *pb)
 }
 
 // Write cb bytes into the IOP ring buffer in chunks via CbSend; returns bytes written. (inferred)
-extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *queue, int cb, char *pb)
+extern "C" int CQueueOutputIop_WriteBytes(CQueueOutputIop *queue, int cb, char *pb)
 {
     int c = cb;
     int total = 0;
@@ -348,7 +348,7 @@ extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *queue, int cb, char *pb)
                 dst[0x3F1] = r;
             }
         }
-        rd = CQueueOutputIop_CbSend(queue, n, dst);
+        rd = CQueueOutputIop_SendBytes(queue, n, dst);
         c -= rd;
         if (!rd) break;
         total += rd;
@@ -364,7 +364,7 @@ extern "C" int CQueueOutputIop_CbWrite(CQueueOutputIop *queue, int cb, char *pb)
 
 struct REQ { int a; int b; int c; int d; };
 // FlushCache + sceSifSetDma to IOP buffer at write offset; returns count. (inferred)
-int CQueueOutputIop_CbSend(CQueueOutputIop *queue, int b, char *c)
+int CQueueOutputIop_SendBytes(CQueueOutputIop *queue, int b, char *c)
 {
     REQ req;
     int off, h, n;
@@ -415,7 +415,7 @@ int CQueueOutputIop::FAsyncDrain() {   /* key function */
 }
 
 // Kick IPU_TO DMA (0x1000B400/10/20) with up to 0x1000 bytes.
-extern "C" int CQueueOutputIpu_CbWrite(void *p, unsigned int cb, unsigned int pv)
+extern "C" int CQueueOutputIpu_WriteBytes(void *p, unsigned int cb, unsigned int pv)
 {
     int n = cb & 0xFFFFFFF0;
     if (n > 0x1000) n = 0x1000;
@@ -475,7 +475,7 @@ void Close__10CMpegAudio(CMpegAudio *audio)
 }
 
 // accept demuxed audio packet: pick stream id, init queue from header, CbFill.
-int FAccept__10CMpegAudioiPUc(CMpegAudio *audio, int cb, unsigned char *pb)
+int AcceptPacket__10CMpegAudioiPUc(CMpegAudio *audio, int cb, unsigned char *pb)
 {
     int n;
     int id;
@@ -522,24 +522,24 @@ void Update__10CMpegAudio(CMpegAudio *audio)
 /* libmpeg's stream callback data: the bytes at n8, nC of them. */
 struct MCB { int a, b; int n8; unsigned int nC; };
 // sceMpeg video stream callback: CbFill video queue.
-int FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *player)
+int AcceptMpegVideoData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *player)
 {
     if (player->qVideo.ucb < pm->nC) return 0;
     CbFill__10CByteQueueiPUc(&player->qVideo, pm->nC, (void *)pm->n8);
     return 1;
 }
 
-// audio stream callback -> CMpegAudio::FAccept(pmpeg+0x180).
-void FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *player) {
-    FAccept__10CMpegAudioiPUc(&player->audio, pm->nC, (unsigned char *)pm->n8);
+// audio stream callback -> CMpegAudio::AcceptPacket(pmpeg+0x180).
+void AcceptMpegAudioData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg(void *a, MCB *pm, CMPEG *player) {
+    AcceptPacket__10CMpegAudioiPUc(&player->audio, pm->nC, (unsigned char *)pm->n8);
 }
 
 // decode callback: feed IPU from video queue.
-int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *player)
+int FeedMpegVideoDecoder__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *player)
 {
     void *buf[16];
     while (player->qVideo.cb14 < 0x1000) {
-        int v = CbDemuxed__5CMpegi(player, 1);
+        int v = DemuxStream__5CMpegi(player, 1);
         if (v == 2) {
             func_002333B4(buf, 0, 0x40);
             CbFill__10CByteQueueiPUc(&player->qVideo, 0x40 - player->qVideo.cb14 % 32, buf);
@@ -554,15 +554,15 @@ int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *pla
 }
 
 // idle callback: spool stream + audio update. (inferred)
-int FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *player)
+int OnMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg(void *a, void *b, CMPEG *player)
 {
-    CbDemuxed__5CMpegi(player, 0);
+    DemuxStream__5CMpegi(player, 0);
     Update__10CMpegAudio(&player->audio);
     return 1;
 }
 
 // sceMpeg error callback: always continues (returns 1).
-int FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg(void) {
+int OnMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg(void) {
     return 1;
 }
 
@@ -797,22 +797,22 @@ void CMpeg_Start(CMPEG *player, CBinaryAsyncStream *a)
     Init__10CMpegAudio(&player->audio);
     sceMpegInit();
     sceMpegCreate(&player->mpeg, player->pb + 0x98000, 0x1ADA60);
-    sceMpegAddStrCallback(&player->mpeg, 0, 0, (void *)FMpegAcceptVideo__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
-    sceMpegAddStrCallback(&player->mpeg, 2, 0, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
-    sceMpegAddStrCallback(&player->mpeg, 3, 0, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
-    sceMpegAddStrCallback(&player->mpeg, 2, D_002E1E54 + 1, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
-    sceMpegAddStrCallback(&player->mpeg, 3, D_002E1E54 + 1, (void *)FMpegAcceptAudio__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
-    sceMpegAddCallback(&player->mpeg, 1, (void *)FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
-    sceMpegAddCallback(&player->mpeg, 4, (void *)FMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
-    sceMpegAddCallback(&player->mpeg, 0, (void *)FMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
-    while (!CbDemuxed__5CMpegi(player, 1)) ;
+    sceMpegAddStrCallback(&player->mpeg, 0, 0, (void *)AcceptMpegVideoData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 2, 0, (void *)AcceptMpegAudioData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 3, 0, (void *)AcceptMpegAudioData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 2, D_002E1E54 + 1, (void *)AcceptMpegAudioData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddStrCallback(&player->mpeg, 3, D_002E1E54 + 1, (void *)AcceptMpegAudioData__FP7sceMpegP16sceMpegCbDataStrP5CMpeg, player);
+    sceMpegAddCallback(&player->mpeg, 1, (void *)FeedMpegVideoDecoder__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
+    sceMpegAddCallback(&player->mpeg, 4, (void *)OnMpegDecoderIdle__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
+    sceMpegAddCallback(&player->mpeg, 0, (void *)OnMpegDecoderError__FP7sceMpegP13sceMpegCbDataP5CMpeg, player);
+    while (!DemuxStream__5CMpegi(player, 1)) ;
     D_002DEDBC = 0;
 }
 
 // get decoded picture, BuildMpegGifs, subtitles, signal display thread.
 void Update__5CMpeg(CMPEG *player)
 {
-    while (player->stage == 1) CbDemuxed__5CMpegi(player, 0);
+    while (player->stage == 1) DemuxStream__5CMpegi(player, 0);
     if (sceMpegGetPicture(&player->mpeg, player->pb + 0x285A80, 0x5CD) < 0) return;
     if (player->mpeg.frameCount == 0) {
         player->t10C = D_002DDED0.realTime;
@@ -820,7 +820,7 @@ void Update__5CMpeg(CMPEG *player)
         DrawMpegSubtitles(player);
         func_00234CA0(0);
     }
-    while (player->stage) CbDemuxed__5CMpegi(player, 0);
+    while (player->stage) DemuxStream__5CMpegi(player, 0);
     func_00234A40(player->sema);
     Update__10CMpegAudio(&player->audio);
 }
@@ -840,7 +840,7 @@ void Finish__5CMpeg(CMPEG *player)
 }
 
 // spool async stream and demux into sceMpeg (returns 2 at EOF).
-int CbDemuxed__5CMpegi(CMPEG *player, int wait)
+int DemuxStream__5CMpegi(CMPEG *player, int wait)
 {
     int n, r;
     n = player->pstrm->bytesLoaded - player->pstrm->readOffset;
