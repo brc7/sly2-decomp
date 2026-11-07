@@ -540,36 +540,25 @@ extern "C" void EnsureSoTree(SO *so)
 
 // 0x1F2870 AddSoPartToTree
 namespace M_AddSoPartToTree { extern "C" {
-struct M; struct O; struct E; struct VTE; struct VT; struct Q; struct P;
-typedef int qword __attribute__((mode(TI)));
-struct M { qword a[4]; };
-struct O { char pad[0x40]; struct M matWorld; char pad2[0xA4 - 0x80]; int stamp; };
-struct E { struct O *transform; int pad[7]; struct M matWorld; char pad3[0xA8 - 0x60]; int geomStamp; int worldStamp; };
-struct VTE { short d; short p; int (*pfn)(void *); };
-struct VT { struct VTE a[63]; };
-struct Q { char pad[0x34]; char parts[1]; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct Q *tree; };
-void EnsureSoTree(struct P *);
 int IsEntryInDl__FP2DLPv(void *, void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
-void InvalidateSoAaox(struct P *);
-void UpdateSoPartGeom(struct E *);
-void WakeSo(struct P *);
+void UpdateSoPartGeom(SOPART *);
+void WakeSo(SO *);
 // Adds one part to the tree's part list: copies the XF matrix and stamp, marks the tree dirty, transforms the
 // part's geometry to world space and wakes the tree if the object is not fixed.
-void AddSoPartToTree(struct P *so, struct E *pe)
+void AddSoPartToTree(SO *so, SOPART *pe)
 {
-    struct O *po;
+    XF *po;
     EnsureSoTree(so);
-    if (IsEntryInDl__FP2DLPv(so->tree->parts, pe)) return;
-    AppendDlEntry__FP2DLPv(so->tree->parts, pe);
+    if (IsEntryInDl__FP2DLPv(&so->physicsTree->parts, pe)) return;
+    AppendDlEntry__FP2DLPv(&so->physicsTree->parts, pe);
     po = pe->transform;
-    pe->geomStamp = -1;
-    pe->matWorld = po->matWorld;
-    pe->worldStamp = po->stamp;
+    pe->meshStamp = -1;
+    pe->matWorld = po->worldMatrix;
+    pe->worldStamp = po->worldStamp;
     InvalidateSoAaox(so);
     UpdateSoPartGeom(pe);
-    if (!so->pvt->a[62].pfn((char *)so + so->pvt->a[62].d)) WakeSo(so);
+    if (!so->IsFixed()) WakeSo(so);
 }
 } } // namespace M_AddSoPartToTree
 
