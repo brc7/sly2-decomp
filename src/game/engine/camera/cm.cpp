@@ -719,7 +719,6 @@ void CalcCmAdjust(void *a, CPDEFI *b)
 namespace M_ApplyCameraSpring { extern "C" {
 // MATCH (Claude agent): hard-register VF locals; clock pointer pinned to v0 and the second dt read via a v0-pinned int.
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 struct CLOCKIsland { float time; union { float g; int n; } deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (union view of one float) */
 extern struct CLOCKIsland D_002DDED0;
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
@@ -747,9 +746,9 @@ void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, 
     __asm__("qmtc2.ni %1, %0" : "=j"(s3) : "r"(pclock->deltaTime.n));
     v = *(qword *)pvel;
     __asm__("vmulax.xyzw ACC, %0, %2x\n\tvmaddx.xyzw %0, %1, %3x" : "+j"(d) : "j"(v), "j"(s1), "j"(s2));
-    { VU u; u.q = s1; }
+    { QWROW u; u.q = s1; }
     __asm__("vadda.xyzw ACC, %0, $vf0\n\tvmaddx.xyzw %0, %1, %2x" : "+j"(v) : "j"(d), "j"(s3));
-    { VU u; u.q = s2; }
+    { QWROW u; u.q = s2; }
     *(qword *)pvel = v;
     {
         register qword s4 __asm__("vf3");
@@ -757,9 +756,9 @@ void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, 
         { register int n __asm__("v0") = pclock->deltaTime.n;
         __asm__("qmtc2.ni %1, %0" : "=j"(s4) : "r"(n)); }
         x = *ppos;
-        { VU u; u.q = s3; }
+        { QWROW u; u.q = s3; }
         __asm__("vadda.xyzw ACC, %0, $vf0\n\tvmaddx.xyzw %0, %1, %2x" : "+j"(x) : "j"(v), "j"(s4));
-        { VU u; u.q = s4; }
+        { QWROW u; u.q = s4; }
         *ppos = x;
     }
 }
@@ -1422,7 +1421,6 @@ void JoltCamera(CM *p, int a)
 
 namespace M_BuildStereoEyeViewProj { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 typedef struct { qword r[4]; } M4;
 void VECTOR_opAssign(qword *p, qword v);
@@ -1442,7 +1440,7 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 // into pm (proj = pv or matProj) (inferred)
 void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
 {
-    U r, g;
+    QWROW r, g;
     float f = 0.0f;
     switch (k) {
     case 1: f = cm->stereoEyeOffset; break;

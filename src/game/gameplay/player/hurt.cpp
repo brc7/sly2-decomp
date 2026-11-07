@@ -358,10 +358,9 @@ void PostLoadJtHurt(JTHURT *s)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetJtAccelZap {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; int i[4]; } U;
 struct VE { short d; short pad; void *pfn; };
 struct X { char pad[0x80]; qword v80; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0xE8-0x10]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(U &u); };
+struct O { char pad[0xC]; struct VE *vt; char pad1[0xE8-0x10]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(QWROW &u); };
 struct P { struct O *o; int state; };
 extern "C" qword D_002A2DD0;
 extern "C" float D_002BFA90[3];   /* the zap spring */
@@ -369,13 +368,13 @@ extern "C" struct CLOCK D_002DDED0;
 
 extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
 // Broadcast g into a VU0 register and store it to u.
-static inline qword BroadcastTo(float g,U *u) { qword q=VuFromFloat<qword>(g); u->q=q;return q; }
+static inline qword BroadcastTo(float g,QWROW *u) { qword q=VuFromFloat<qword>(g); u->q=q;return q; }
 // Set the vector to -xE8->v80 (keeping the -1 broadcast in u).
-inline void O::Negate(U &u) { qword v=xE8->v80; qword k=VuFromFloat<qword>(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
+inline void O::Negate(QWROW &u) { qword v=xE8->v80; qword k=VuFromFloat<qword>(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
 // Physics preset in the hurt state: in knockback states adds velocity or springs toward the target velocity.
 extern "C" void PresetJtAccelZap(struct P *p)
 {
- U u,v,u2;
+ QWROW u,v,u2;
  qword k;
  float zero;
  switch(p->state) {
@@ -1085,14 +1084,13 @@ SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2460 {
-union U {qword q;float f[4];int i[4];};
-struct M4 {U r[4];};
+struct M4 {QWROW r[4];};
 struct VTE {short delta,pad;void*fn;};
 struct EFFECT {char pad[0xC];VTE*vt;};
 /* The hero's water volume (STEPPLAYER::pwater; classes.h WATER has no fields yet): splash effect, zap kind and tag. */
 struct L {char pad[0xC];VTE*vt;char pad10[0x164];EFFECT*effect;char pad178[0xC];int kind,tag;};
-struct HIT {L*target;int pad4;STEPPLAYER*source;int tag,kind;char pad14[0xC];U point,direction;char pad40[0x20];};
-struct MSG {int type;char pad4[0x1C];U position;};
+struct HIT {L*target;int pad4;STEPPLAYER*source;int tag,kind;char pad14[0xC];QWROW point,direction;char pad40[0x20];};
+struct MSG {int type;char pad4[0x1C];QWROW position;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword GetLoWorldPos(LO*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
@@ -1104,7 +1102,7 @@ extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
 // damage and probes for the surface (ProbeStepplayerSurface).
 extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 {
-    U point;
+    QWROW point;
     int valid;
     if (((L *)player->pwater)) {
         point.q = GetLoWorldPos(player);
@@ -1140,12 +1138,12 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
     int i = 0;
     if (!(player->clorefSplash > 0))
         return;
-    U position;
+    QWROW position;
     M4 predicted, base;
     M4 *pbase = &base;
     M4 *ppred = &predicted;
     // Preserve the saved register for the predicted position.
-    register U *predpos __asm__("$20") = &predicted.r[3];
+    register QWROW *predpos __asm__("$20") = &predicted.r[3];
     for (; i < player->clorefSplash; i++) {
         LOREF *entry = &player->alorefSplash[i];
         if (D_002DDED0.time - entry->tLast < 0.05f)
@@ -1177,7 +1175,6 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2788 {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 struct MSG { int cb; int nKind; };
 struct HIT { qword pos; char pad[0x5F0]; };
 struct L { char pad[0xE0]; int xE0; };
@@ -1193,7 +1190,7 @@ int ProbeStepplayerSurface(STEPPLAYER *po, L *pl, qword *pv);
 // Line test from the player down to the linked volume's surface; writes the hit position.
 int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 {
-    U off, b, a;
+    QWROW off, b, a;
     HIT hit;
     off.q = D_002A2DD0;
     {
@@ -1223,7 +1220,6 @@ int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A28B0 { extern "C" {
-typedef union { qword q; float f[4]; int i[4]; } U;
 extern struct CLOCK D_002DDED0;
 int ProbeStepplayerSurface(STEPPLAYER *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
@@ -1239,7 +1235,7 @@ static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(
 // buoyancy; otherwise the SO base.
 void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
 {
- U origin,vel,pos,local,dir,v50,accel,bcast;
+ QWROW origin,vel,pos,local,dir,v50,accel,bcast;
  float z,g;
  qword v,k;
  struct CLOCK *clock;

@@ -420,23 +420,23 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
 //////// 0x195FB8 SetJtAirState
 namespace M_func_00195FB8 {
 typedef int qword __attribute__((mode(TI)));
-union U{qword q;float f[4];int i[4];};struct M3{U row[3];};struct VTE{short delta,pad;void*fn;};
+struct M3{QWROW row[3];};struct VTE{short delta,pad;void*fn;};
 struct SPACE;struct OBJECT;struct PROVIDER;struct REFERENCE;struct EVENT;struct EFFECT;struct SCENE;struct SECONDARY;
 struct DATA{char pad0[4];float amount;};struct SOURCE{char pad0[0x114];DATA*data;char pad118[0x64];int state;};
 struct COMPONENT{void*object;};
-struct BODY{char pad0[0x70];U position;char pad80[0x20];SPACE*frame;};struct MOTION{char pad0[0x80];U acceleration;};
-struct ACTOR{char pad0[12];VTE*vt;char pad10[0x48];BODY*body;char pad5C[0x8C];MOTION*motion;char padEC[0x28];DATA*data;char pad118[0x78];U velocity;char pad1A0[8];float heading;char pad1AC[0x31C];int category;char pad4CC[0x434];char secondary[0x30];ASEG*secondaryClip;char pad934[0x50];SOURCE*secondaryFocus;char pad988[0x688];U offset;char pad1020[0x10];ASEGA*animation;COMPONENT component;char pad1038[0x4DC];ASEG*clip1514;ASEG*clip1518;char pad151C[0x338];SOURCE*primaryFocus;char pad1858[0x4D0];EFFECT*effect;};
-struct LINK{SPACE*space;void*target;};union WORD{int bits;float amount;};struct TRACK{int opaque;WORD control;float weight;};struct QUERY{OBJECT*object;PROVIDER*provider;REFERENCE*reference;int tag;U point;};
-struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];U relative,direction,offset;char pad100[0x20];ASEG*base[5];ASEG*alternate[5];ASEG*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;ASEG*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];ASEG*multi;SOURCE*scriptFocus;char pad1C0[8];ASEG*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
-struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
-struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
-extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
+struct BODY{char pad0[0x70];QWROW position;char pad80[0x20];SPACE*frame;};struct MOTION{char pad0[0x80];QWROW acceleration;};
+struct ACTOR{char pad0[12];VTE*vt;char pad10[0x48];BODY*body;char pad5C[0x8C];MOTION*motion;char padEC[0x28];DATA*data;char pad118[0x78];QWROW velocity;char pad1A0[8];float heading;char pad1AC[0x31C];int category;char pad4CC[0x434];char secondary[0x30];ASEG*secondaryClip;char pad934[0x50];SOURCE*secondaryFocus;char pad988[0x688];QWROW offset;char pad1020[0x10];ASEGA*animation;COMPONENT component;char pad1038[0x4DC];ASEG*clip1514;ASEG*clip1518;char pad151C[0x338];SOURCE*primaryFocus;char pad1858[0x4D0];EFFECT*effect;};
+struct LINK{SPACE*space;void*target;};union WORD{int bits;float amount;};struct TRACK{int opaque;WORD control;float weight;};struct QUERY{OBJECT*object;PROVIDER*provider;REFERENCE*reference;int tag;QWROW point;};
+struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];QWROW relative,direction,offset;char pad100[0x20];ASEG*base[5];ASEG*alternate[5];ASEG*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;ASEG*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];ASEG*multi;SOURCE*scriptFocus;char pad1C0[8];ASEG*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
+struct RANGE{float low,high;};struct TWO_ROWS{QWROW row[2];};
+struct WORK{QWROW temp;M3 basis;QWROW scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
+extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern QWROW D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
 void LinkStepAttachment(ACTOR*,void*,int);void RefreshSwObjectCollisionFilter(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
 qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(ASEG*);int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**);}
 // Call the actor's no-argument virtual at vtable slot `slot`.
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 // Zero the xyz words of v.
-static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
+static inline void ClearXYZ(QWROW*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 // Zero the actor's velocity.
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
 // x < limit.
@@ -446,10 +446,10 @@ typedef char Pointer_Width[sizeof(void*)==4?1:-1];
 typedef char Float_Width[sizeof(float)==4?1:-1];
 typedef char Int_Width[sizeof(int)==4?1:-1];
 typedef char Short_Width[sizeof(short)==2?1:-1];
-typedef char U_Alignment[__alignof__(U)==16?1:-1];
+typedef char U_Alignment[__alignof__(QWROW)==16?1:-1];
 typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char DATA_Size[sizeof(DATA)==8?1:-1];
@@ -561,7 +561,7 @@ typedef char WORK_endVelocity_Offset[FIELD_OFFSET(WORK,endVelocity)==160?1:-1];
 typedef char WORK_duration_Offset[FIELD_OFFSET(WORK,duration)==176?1:-1];
 typedef void(*VECTOR_SETTER)(void*,qword);
 // Store a VU0 register to home (volatile, keeps the original store).
-static inline void PublishReal(U*home,qword value){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(value));}
+static inline void PublishReal(QWROW*home,qword value){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(value));}
 // Air sub-state change: leaves the old one and enters the new one (clips, cane state, landing target, velocities,
 // state-machine flags).
 extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
@@ -647,7 +647,7 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
         LinkStepAttachment(air->actor, air->link->target, 1);
         qword point = TransformXfPos(air->link->space, 0, air->relative.q);
         register qword direction __asm__("vf1"), negative __asm__("vf2"), upArg __asm__("$5");
-        register U *axisAddress __asm__("$4");
+        register QWROW *axisAddress __asm__("$4");
         float negativeScalar = -1.0f;
         __asm__("lui $3,%%hi(%6)\n\tlui %3,%%hi(%7)\n\tlqc2 %0,%4\n\tmfc1 %2,%5\n\taddiu $3,$3,%%lo(%6)\n\tqmtc2.ni "
                 "%2,%1\n\taddiu %3,%3,%%lo(%7)\n\tlq %2,0($3)\n\tvmulx.xyzw %0,%0,%1x"
@@ -941,7 +941,6 @@ namespace M_func_00196928 { extern "C" {
 /* ComputeMaxBallisticTime: largest non-negative limit from two quadratic root sets and two sqrt cone terms
    (lane 6, 2026-10-24).  v and a are VECTORs passed by value in single GPRs. */
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 
 /* quadratic solver: returns the root count, roots written to the float buffer */
 int SolveQuadratic__FfffPf(float a, float b, float c, float *roots);
@@ -965,7 +964,7 @@ static inline float LenXY(qword v) {
 // low/high bounds (two quadratic root sets) and two cone terms. Used to plan launches toward safe places and targets.
 // (inferred)
 float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slope0, float slope1) {
-    U r0, r1;
+    QWROW r0, r1;
     float az = QwordZ(a) * 0.5f, naz = -az;
     float vz, best = 0.0f, l, t;
     int n;
@@ -986,13 +985,13 @@ float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slo
 //////// 0x196AA8 ProjectJtVelocityOnContacts
 namespace M_func_00196AA8 {
 typedef int qword __attribute__((mode(TI)));typedef unsigned int uint;
-union U{qword q;float f[4];int i[4];};struct P;
-struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];U normal;char pad90[0x1C];CONTACT*next;};
+struct P;
+struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];QWROW normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
-struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{U scalar;REQ request;};struct WORK{U normals[64];SCRATCH scratch;FRAME frame;U residual,original;};
-extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(REQ*);void SolveInequalities(int,float*,float*,float*,float);void SetJtAirState(MOVE*,int,void*);}
+struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{QWROW scalar;REQ request;};struct WORK{QWROW normals[64];SCRATCH scratch;FRAME frame;QWROW residual,original;};
+extern "C"{extern QWROW D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(REQ*);void SolveInequalities(int,float*,float*,float*,float);void SetJtAirState(MOVE*,int,void*);}
 // Store a VU0 register to home (volatile).
-static inline void Publish(U*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
+static inline void Publish(QWROW*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 // Return v scaled by k.x.
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(v):"j"(v),"j"(k));return v;}
 // z lane of q as a float.
@@ -1012,7 +1011,7 @@ static inline float Square(qword a){qword q=a,one;float f;__asm__("vmul.xyz %0,%
 // Allocate bytes, 16-byte aligned, from the frame stack.
 static inline float*Allocate(REQ*r,int bytes){r->bytes=bytes;r->alignment=16;return(float*)AllocFromStack(r);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char CONTACT_Size[sizeof(CONTACT)==176?1:-1];
 typedef char GROUP_Size[sizeof(GROUP)==8?1:-1];
 typedef char COLLISION_Size[sizeof(COLLISION)==108?1:-1];
@@ -1044,18 +1043,18 @@ typedef char Float_Size[sizeof(float)==4?1:-1];
 typedef char Int_Size[sizeof(int)==4?1:-1];
 typedef char uint_Size[sizeof(uint)==4?1:-1];
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
-typedef char U_Align[__alignof__(U)==16?1:-1];
+typedef char U_Align[__alignof__(QWROW)==16?1:-1];
 typedef char SCRATCH_Align[__alignof__(SCRATCH)==16?1:-1];
 typedef char WORK_Align[__alignof__(WORK)==16?1:-1];
 typedef char FRAME_Align[__alignof__(FRAME)==1?1:-1];
 typedef char REQ_Align[__alignof__(REQ)==4?1:-1];
-typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
-typedef char U_float_Offset[FIELD_OFFSET(U,f)==0?1:-1];
-typedef char Normal_Count[sizeof(((WORK*)0)->normals)/sizeof(U)==64?1:-1];
+typedef char U_q_Offset[FIELD_OFFSET(QWROW,q)==0?1:-1];
+typedef char U_float_Offset[FIELD_OFFSET(QWROW,f)==0?1:-1];
+typedef char Normal_Count[sizeof(((WORK*)0)->normals)/sizeof(QWROW)==64?1:-1];
 typedef char Normal_Stride[(FIELD_OFFSET(WORK,normals[1])-FIELD_OFFSET(WORK,normals[0]))==16?1:-1];
 // Collects up to 64 contact normals (flipped when Sly is not the owner of the contact), solves the inequality system
 // and returns the residual direction the player may still move in. (inferred)
-extern "C" void ProjectJtVelocityOnContacts(MOVE *p, U *out)
+extern "C" void ProjectJtVelocityOnContacts(MOVE *p, QWROW *out)
 {
     WORK w;
     unsigned base = (unsigned)w.normals - 16;
@@ -1096,7 +1095,7 @@ collected:
     float *cursor = matrix;
     for (int i = 0; i < count; i++) {
         for (int j = 0; j < count; j++) {
-            MatrixDot(cursor, ((U *)((unsigned)(i * 16) + (unsigned)w.normals))->q, w.normals[j].q);
+            MatrixDot(cursor, ((QWROW *)((unsigned)(i * 16) + (unsigned)w.normals))->q, w.normals[j].q);
             cursor++;
         }
     }
@@ -1109,7 +1108,7 @@ collected:
         if (count > 0) {
             register qword value __asm__("vf3");
             register int remaining __asm__("$3");
-            register U *normal __asm__("$2");
+            register QWROW *normal __asm__("$2");
             __asm__("qmtc2.ni %3,%0\n\tdaddu %1,%4,$zero\n\tdaddu %2,%5,$zero"
                     : "=j"(value), "=&r"(remaining), "=r"(normal)
                     : "r"(original), "r"(count), "r"(w.normals));
@@ -1123,7 +1122,7 @@ collected:
     SolveInequalities(count, matrix, rhs, weights, D_002A63B0);
     if (count > 0) {
         register float *read __asm__("$2") = weights;
-        register U *normal __asm__("$4") = w.normals;
+        register QWROW *normal __asm__("$4") = w.normals;
         for (register int remaining __asm__("$3") = count; remaining != 0;) {
             register int bits __asm__("$5");
             __asm__("lw %0,%1" : "=r"(bits) : "m"(*read));
@@ -1157,15 +1156,15 @@ namespace RO_ORDER { extern const float r_D_002A63B0 __asm__("D_002A63B0") = 3.4
 //////// 0x196DF8 PresetJtAccelJump
 namespace M_PresetJtAccelJump {
 typedef int qword __attribute__((mode(TI)));
-union U{qword q;float f[4];int i[4];};struct M3{U row[3];};struct M4{U row[4];};
-struct VTE{short delta,pad;void*fn;};struct BODY{char pad0[0xB0];U angularVelocity;char padC0[0x30];U angularAcceleration;};struct MOTION{char pad0[0x80];U acceleration;};struct ACTOR{char pad0[12];VTE*vt;char pad10[0x4C];BODY*body;char pad60[0x88];MOTION*motion;char padEC[0x190-0xEC];U velocity;};
-struct CONTEXT{ACTOR*actor;int state;char pad8[0x10];float stamp;int mode;char pad20[0x14];float gain;char pad38[0x68];U desired;char padB0[0x110];float targetX,targetZ;};
+struct M3{QWROW row[3];};struct M4{QWROW row[4];};
+struct VTE{short delta,pad;void*fn;};struct BODY{char pad0[0xB0];QWROW angularVelocity;char padC0[0x30];QWROW angularAcceleration;};struct MOTION{char pad0[0x80];QWROW acceleration;};struct ACTOR{char pad0[12];VTE*vt;char pad10[0x4C];BODY*body;char pad60[0x88];MOTION*motion;char padEC[0x190-0xEC];QWROW velocity;};
+struct CONTEXT{ACTOR*actor;int state;char pad8[0x10];float stamp;int mode;char pad20[0x14];float gain;char pad38[0x68];QWROW desired;char padB0[0x110];float targetX,targetZ;};
 struct SMP{float maximum,minimum,duration;};struct RANGE{float low,high;};struct POLY{float c0,c1,c2;};struct PARAMS{float values[3];};
 /* The basis writer and later vectors share their actual stack homes. */
-union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
-union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
-extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
+union BASE_PHASE{M3 returned;struct{QWROW local,acceleration,corrected,scalar;}vectors;};
+union WORK{struct{QWROW local,scalar;M3 basis,rotation,returned;QWROW original;}turn;struct{QWROW direction;M3 basis;BASE_PHASE phase;}move;QWROW scalar;};
+extern "C"{extern CLOCK D_002DDED0;extern QWROW D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
+qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,QWROW*);}
 // The actor's velocity (virtual slot 33).
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 // Rotate vector by the 3x3 matrix rows r0..r2 (seed provides the output register).
@@ -1173,7 +1172,7 @@ static inline qword Rotate(qword r0,qword r1,qword r2,qword vector,qword seed){_
 // Rotate vector by the 3x3 matrix m (seed provides the output register).
 static inline qword Rotate(M3*m,qword vector,qword seed){return Rotate(m->row[0].q,m->row[1].q,m->row[2].q,vector,seed);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char M4_Size[sizeof(M4)==64?1:-1];
 typedef char M3_row_Offset[FIELD_OFFSET(M3,row)==0?1:-1];
@@ -1357,7 +1356,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
     case 21: break;
     default: {
         register qword word __asm__("$2") = Velocity(p->actor);
-        register U *fallback __asm__("$3");
+        register QWROW *fallback __asm__("$3");
         register float epsilon __asm__("$f1"), length __asm__("$f0");
         register qword direction __asm__("vf3"), root __asm__("vf2");
         __asm__("sq %0,%1\n\tlui %0,%%hi(%8)\n\tsw $zero,8(%7)\n\taddiu %2,%0,%%lo(%8)\n\tli.s %3,0.0001\n\tlq "
@@ -2599,27 +2598,26 @@ extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SO *so, ED
 namespace M_func_001995D8 {
 /* Build paired arc samples and transform them into world space. */
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];int i[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
-struct M3 {U r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
-struct M4 {U r[4];};
+struct M3 {QWROW r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
+struct M4 {QWROW r[4];};
 struct P {char pad[0x108];float ax,ay,az,bx,by,bz;};
 extern "C" { extern qword D_002A2DC0; }
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 // Pack x, y, z into a 128-bit value.
-static inline qword Pack(float x,float y,float z){U u;qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));u.q=q;return q;}
+static inline qword Pack(float x,float y,float z){QWROW u;qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));u.q=q;return q;}
 // Rotate v by the 3x3 matrix m.
 static inline qword Rot(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
 // Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4*m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(v));return r;}
 // Set v to (x, 0, z).
-static inline void Set(U*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
+static inline void Set(QWROW*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
 // Generates paired arc sample points (9 rotations of 15 degrees) and transforms them to world space, used to probe a
 // ledge's surroundings.
-extern "C" void BuildJtEdgeProbeArc(P *p, const M4 *world, int count, U *out)
+extern "C" void BuildJtEdgeProbeArc(P *p, const M4 *world, int count, QWROW *out)
 {
     M3 m;
-    U *cursor = out, *v;
+    QWROW *cursor = out, *v;
     Set(cursor++, p->bx, p->bz);
     Set(cursor++, p->bx, p->by);
     Set(cursor++, p->ax, p->az);
@@ -2630,8 +2628,8 @@ extern "C" void BuildJtEdgeProbeArc(P *p, const M4 *world, int count, U *out)
     int i;
     for (i = 8; i >= 0; i--) {
         m = BuildAxisAngleRotationMatrix(D_002A2DC0, (i - 4) * 0.261799395084381103515625f);
-        U *v0 = cursor++;
-        U *v1 = cursor++;
+        QWROW *v0 = cursor++;
+        QWROW *v1 = cursor++;
         v0->q = Rot(m, a);
         v1->q = Rot(m, b);
     }
@@ -2750,21 +2748,20 @@ namespace M_func_001999D0 {
 // it), a two-input Dot so Len(v) = Sqrt(Dot(v, v)), and block-scoped case locals (case 2 reuses case 1's slots).
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
-union U { qword q; float f[4]; int i[4]; };
 struct EDGE;
 struct NODE;
-struct FACE { U plane; EDGE *first, *second; int flags; };
+struct FACE { QWROW plane; EDGE *first, *second; int flags; };
 struct EDGE { ushort vertices[2], face, other; EDGE *next, *nextOther; };
-struct GEOMETRY { char pad0[4]; U *points; char pad8[4]; FACE *faces; };
+struct GEOMETRY { char pad0[4]; QWROW *points; char pad8[4]; FACE *faces; };
 struct QUERY { int pad0, count, pad8; NODE *tree; };
 struct SHAPE { char pad0[0x68]; QUERY query; char pad78[0x18]; GEOMETRY geometry; };
 struct ACTOR { char pad0[0x258]; SHAPE *shape; };
 struct JT { ACTOR *actor; };
-struct SPAN { U first, last, firstPlane, lastPlane; float from, to; int flags; FACE *firstFace, *lastFace; };
+struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flags; FACE *firstFace, *lastFace; };
 extern "C" {
-extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
+extern QWROW D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
 int CollectEdgesAtGeomPoint(GEOMETRY *, QUERY *, int, int, EDGE **);
-int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
+int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, QWROW *);   // FCheckJtSingleEdge
 int func_00118668(NODE *, int, qword, qword, int, SPAN *);
 int IsJtEdgeNormalValid(JT *, qword, qword);
 }
@@ -2788,16 +2785,16 @@ static inline qword Normalize(qword v, qword fallback)
 
 // Tests a contact against a shape feature: for a vertex, sums IsJtSingleEdgeGrabbable over the edges meeting there
 // (at most 64) plus a BSP clip test; for an edge tests it directly. Returns nonzero with the grab normal.
-extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, void *info, U *out)
+extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, void *info, QWROW *out)
 {
     switch (kind) {
     case 1: {
         EDGE *edges[64];
-        U direction;
+        QWROW direction;
         int found = 0;
         qword sum = D_002A2DD0.q;
         GEOMETRY *geometry = &shape->geometry;
-        int count = CollectEdgesAtGeomPoint(geometry, &shape->query, (U *)info - geometry->points, 64, edges);
+        int count = CollectEdgesAtGeomPoint(geometry, &shape->query, (QWROW *)info - geometry->points, 64, edges);
         for (int i = 0; i < count; i++) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edges[i], &direction)) {
                 found = 1;
@@ -2819,11 +2816,11 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
             return 0;
         int found = 0;
         qword sum = D_002A2DD0.q;
-        U direction;
+        QWROW direction;
         SPAN spans[2];
         for (EDGE *edge = face->first; edge; edge = edge->next) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
-                U *points = shape->geometry.points;
+                QWROW *points = shape->geometry.points;
                 if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {
                     found = 1;
@@ -2833,7 +2830,7 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
         }
         for (EDGE *edge = face->second; edge; edge = edge->nextOther) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
-                U *points = shape->geometry.points;
+                QWROW *points = shape->geometry.points;
                 if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {
                     found = 1;
@@ -2861,7 +2858,6 @@ namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned long ulong;
-typedef union { qword q; float f[4]; int i[4]; } U;
 typedef struct CONTACT CONTACT;
 typedef struct GROUP { CONTACT *first; struct GROUP *next; } GROUP;
 typedef struct { char pad[0x64]; GROUP *groups; char pad68[8]; ulong flags; } EC;
@@ -2874,10 +2870,10 @@ typedef struct LO {
 } LO;
 typedef struct BSPNODE { struct BSPNODE *left,*right; qword *plane; } BSPNODE;
 typedef struct { int pad0; LO *owner; char pad8[0x74-8]; BSPNODE *bsp; } SHAPE;
-typedef struct { SHAPE *shape; void *spool; LO *object; LO *lo; U position,local,world; } ENDPOINT;
-struct CONTACT { ENDPOINT endpoints[2]; U normal; float distance,friction,response; int kind; void *info[2]; int tag; CONTACT *next; U difference; };
+typedef struct { SHAPE *shape; void *spool; LO *object; LO *lo; QWROW position,local,world; } ENDPOINT;
+struct CONTACT { ENDPOINT endpoints[2]; QWROW normal; float distance,friction,response; int kind; void *info[2]; int tag; CONTACT *next; QWROW difference; };
 typedef struct { LO *self; int state; char pad8[0x1C-8]; int mode; } P;
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char FLAG_Size[sizeof(FLAG)==8?1:-1];
 typedef char GROUP_Size[sizeof(GROUP)==8?1:-1];
 typedef char ENDPOINT_Size[sizeof(ENDPOINT)==64?1:-1];
@@ -2909,7 +2905,7 @@ extern int D_002BF8A8;
 extern qword D_002A2DC0;
 extern char D_003DD490[];
 extern int IsStepplayerPushing(LO *);
-extern int IsJtEdgeGrabbable(P *,SHAPE *,qword,int,void *,U *);
+extern int IsJtEdgeGrabbable(P *,SHAPE *,qword,int,void *,QWROW *);
 extern void RecalcSwXpMovement(void *,int,CONTACT **);
 extern BSPNODE *FindBspLeafContainingPointFast(BSPNODE *,BSPNODE *,qword);
 // Project position onto the plane through back with the given normal, offset along axis and lifted by lift (inferred
@@ -2948,7 +2944,7 @@ static inline ENDPOINT *Opposite2(CONTACT *contact,int side)
 // and returns it with its index and normal.
 CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
 {
-    U direction, point;
+    QWROW direction, point;
 
     CONTACT *contact;
     GROUP *group;
@@ -3010,7 +3006,7 @@ CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
                 qword back;
                 qword lift;
                 qword value;
-                U *selected;
+                QWROW *selected;
                 selected = &Opposite2(contact, side)->position;
                 back = VuFromFloat<qword>(-D_002BF8A4);
                 /* "rV": the word is a memory operand that fails 'V' at reload, so reload loads it at the asm through the
@@ -3022,11 +3018,11 @@ CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
                    share one slot the same way and keep both stores (an assignment to one union loses the first store as
                    dead, a compound literal assigned in C++ adds a second slot). */
                 {
-                    U s = {back};
+                    QWROW s = {back};
                 }
                 point.q = value;
                 {
-                    U s = {lift};
+                    QWROW s = {lift};
                 }
                 if (FindBspLeafContainingPointFast(shape->bsp, (BSPNODE *)0x7FFFFFFF, value))
                     continue;
@@ -3546,17 +3542,16 @@ float MeasureJumpToRail(S *s, float parameter)
 namespace M_func_0019AAB8 {
 
 typedef int qword __attribute__((mode(TI)));
-union V{qword q;float f[4];};
 struct ACTOR;struct MOVE{ACTOR*actor;};
 class A0{public:char pad[224];};
-class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,V*,void*,float);};
+class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,QWROW*,void*,float);};
 class Y:public A0,public O{};
 struct S{MOVE*move;Y*object;int pad8[2];qword q;};
 extern "C" { extern qword D_002A2DD0; }
 extern "C" void MeasureJtJumpToTarget(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char V_Size[sizeof(V)==16?1:-1];
+typedef char V_Size[sizeof(QWROW)==16?1:-1];
 typedef char MOVE_Size[sizeof(MOVE)==4?1:-1];
 typedef char MOVE_actor_Offset[FIELD_OFFSET(MOVE,actor)==0?1:-1];
 typedef char A0_Size[sizeof(A0)==224?1:-1];
@@ -3570,7 +3565,7 @@ typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
 // (target class inferred: hide point)
 extern "C" float MeasureJumpToHidePoint(S *s, float parameter)
 {
-    V v;
+    QWROW v;
     float r;
     s->object->f3(s->move->actor, &v, 0, parameter);
     MeasureJtJumpToTarget(s->move, s->q, s->object, v.q, D_002A2DD0, 0, &r, 0, 0);
@@ -3582,17 +3577,16 @@ extern "C" float MeasureJumpToHidePoint(S *s, float parameter)
 namespace M_func_0019AB38 {
 
 typedef int qword __attribute__((mode(TI)));
-union V{qword q;float f[4];};
 struct ACTOR;struct MOVE{ACTOR*actor;};
 class A0{public:char pad[400];};
-class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,V*,void*,float);};
+class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,QWROW*,void*,float);};
 class Y:public A0,public O{};
 struct S{MOVE*move;Y*object;int pad8[2];qword q;};
 extern "C" { extern qword D_002A2DD0; }
 extern "C" void MeasureJtJumpToTarget(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char V_Size[sizeof(V)==16?1:-1];
+typedef char V_Size[sizeof(QWROW)==16?1:-1];
 typedef char MOVE_Size[sizeof(MOVE)==4?1:-1];
 typedef char MOVE_actor_Offset[FIELD_OFFSET(MOVE,actor)==0?1:-1];
 typedef char A0_Size[sizeof(A0)==400?1:-1];
@@ -3605,7 +3599,7 @@ typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
 // Same as MeasureJumpToHidePoint for the other hide-shape class. (inferred)
 extern "C" float MeasureJumpToHideShape(S *s, float parameter)
 {
-    V v;
+    QWROW v;
     float r;
     s->object->f3(s->move->actor, &v, 0, parameter);
     MeasureJtJumpToTarget(s->move, s->q, s->object, v.q, D_002A2DD0, 0, &r, 0, 0);
@@ -3631,16 +3625,15 @@ float MeasureJumpTargetAtTime(void *record, float duration) { struct S *s = (str
 //////// 0x19ABF0 MeasureJumpToPipe
 namespace M_GMeasureJumpPipe { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } V;
 struct CONTEXT; struct OBJECT;
 struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
-void EvaluateShapeAtDistance(struct OBJECT *, float, V *, V *);
+void EvaluateShapeAtDistance(struct OBJECT *, float, QWROW *, QWROW *);
 qword ConvertPosBetweenLos(struct OBJECT *, struct OBJECT *, qword);
 float MeasureJumpTargetAtTime(void *, float);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef char V_Size[sizeof(V)==16?1:-1];
+typedef char V_Size[sizeof(QWROW)==16?1:-1];
 typedef char T_Size[sizeof(struct T)==32?1:-1];
 typedef char S_Size[sizeof(struct S)==8?1:-1];
 typedef char S_Context_Offset[FIELD_OFFSET(struct S,a)==0?1:-1];
@@ -3650,7 +3643,7 @@ typedef char T_Object_Offset[FIELD_OFFSET(struct T,b)==4?1:-1];
 typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
 // Callback: evaluates the pipe curve at s, then minimizes over time with MeasureJumpTargetAtTime.
 float MeasureJumpToPipe(struct S *s, float parameter) {
-    V v; struct T t; float r;
+    QWROW v; struct T t; float r;
     struct OBJECT *b = s->b;
     EvaluateShapeAtDistance(b, parameter, &v, 0);
     t.a = s->a;

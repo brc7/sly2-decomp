@@ -314,7 +314,6 @@ namespace M_UpdateBentley { extern "C" {
 /* v4 (Claude agent, laneB5, 2026-10-23): aligned 17 -> 16. LenXY as asm1 = vmul.xy+vaddy.x fused, asm2 = vsqrt+vwaitq+vaddq.x (fixes case 6 lw p1030 placement). Case 5 lw p150 still after vmul. MulT r[0] vf1 (target vf3): "=j"(r)+"0"(r[0]) last, r[1]/r[2] operand swaps, r0 local: no change (16-17). Pull by-value VF helpers: 30. */
 /* v3 (Claude agent, laneB4, 2026-10-23): aligned 37 -> 17. LenXY as two asms: vmul.xy alone, then vaddy.x+vsqrt+vwaitq+vaddq.x fused (fixes the extra-instruction offset). */
 /* v2 (Claude agent, 2026-10-23): aligned 42 -> 37. MulT asm operand order: outputs (r, one, t0, t1, t2), inputs (v, r[2], r[1]) gives the target's temp VF numbers (t0 vf7, one vf8, t1 vf6, t2 vf5). Left: r = r[0] lands in vf1 (target vf3; "0"(r[0]) tie same), LenXY: target loads p150 before the vmul and p1030 after vaddq (fused LenXY asm worse, 46-54), the mtc1/add.s nop in case 6. */
-typedef union { qword q; float f[4]; } VUF;
 struct POLY { float a; float b; float c; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
@@ -397,7 +396,7 @@ static __inline__ void SetVel(BENTLEY *p, qword v, BLDIR *pv, ASEGBL *n)
 // Set v190 to the negated step-animation translation of the current action.
 static __inline__ void Pull(BENTLEY *p)
 {
-    VUF u;
+    QWROW u;
     qword v = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
     qword r;
     qword uq;
@@ -409,7 +408,7 @@ static __inline__ void Pull(BENTLEY *p)
 // Set v190 to the negated step-animation translation of the current action (volatile stores keep the original order).
 static __inline__ void PullB(BENTLEY *p)
 {
-    VUF u;
+    QWROW u;
     qword v = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
     qword r, t;
     __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(-1.0f));

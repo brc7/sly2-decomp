@@ -1320,10 +1320,9 @@ void TranslateSoToPos(struct P *so, qword v)
 namespace M_RotateSoToMat {
 union U; struct M3; struct LO; struct VTE; struct P; 
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; int i[4]; };
 // 3x3 matrix of U rows with copy constructor and assignment.
-struct M3 { U r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
-struct LO { M3 matrix; U position; M3 rotation; char pad[0x30]; LO *parent; int stamp; };
+struct M3 { QWROW r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
+struct LO { M3 matrix; QWROW position; M3 rotation; char pad[0x30]; LO *parent; int stamp; };
 struct VTE { short delta,pad; void (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" { extern SW D_003DD490; }
@@ -1480,10 +1479,9 @@ qword SO::GetAngularVelocity()
 namespace M_SetSoAngularVelocity {
 union U; struct M3; struct LO; struct VTE; struct P;
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; int i[4]; };
 // 3x3 matrix of U rows with copy constructor and assignment.
-struct M3 { U r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
-struct LO { M3 matrix; U position; M3 rotation; char pad[0x24]; int kind; short state; char pad9A[6]; LO *parent; int stamp; char padA8[8]; U velocity; };
+struct M3 { QWROW r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
+struct LO { M3 matrix; QWROW position; M3 rotation; char pad[0x24]; int kind; short state; char pad9A[6]; LO *parent; int stamp; char padA8[8]; QWROW velocity; };
 struct VTE { short delta,pad; qword (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
@@ -1511,7 +1509,7 @@ static inline qword Transform(const M3 &m,qword v) { qword r;
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;
 }
 // Zero the xyz words of v.
-static inline void Clear(U *v) { v->i[2]=0;v->i[1]=0;v->i[0]=0; }
+static inline void Clear(QWROW *v) { v->i[2]=0;v->i[1]=0;v->i[0]=0; }
 // Slot 36: sets the rotation XF's angular velocity from a world-space w.
 extern "C" void SetSoAngularVelocity(P *so,qword position)
 {
@@ -1664,9 +1662,8 @@ extern "C" void MatchSoXf(X *so, X *q)
 namespace M_func_001F4A80 {
 union U; struct M4; struct VTE; struct A; struct P;
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
 // 4x4 matrix of U rows with copy constructor and assignment.
-struct M4 {U r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];} M4&operator=(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];return *this;}};
+struct M4 {QWROW r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];} M4&operator=(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];return *this;}};
 struct VTE { short d; short pad; void (*pfn)(); };
 struct A { char pad[0x70]; qword pos; };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE8 - 0x10]; void *pe; };
@@ -1704,7 +1701,7 @@ extern "C" void SetSoXf(struct P *so, struct A *pa)
     {
         register qword r __asm__("vf6");
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w" : "+j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(pa->pos));
-    U v; v.q = q;
+    QWROW v; v.q = q;
     qword rr;__asm__("qmfc2.ni %0,%1":"=r"(rr):"j"(r));
     setpos((char*)so+delta,rr);
     }
@@ -2548,7 +2545,6 @@ extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qw
 namespace M_AccelSoTowardPosSpring { extern "C" {
 struct COEF; struct VE; struct OWNER; struct S; 
 typedef int qword __attribute__((mode(TI)));
-typedef union {qword q;float f[4];} V;
 struct COEF {float a,b,c;};
 struct VE {short d,pad;qword(*fn)(void*);};
 struct OWNER {char pad[0xA0];void *parent;char padA4[0x4C];qword force;};
@@ -2564,7 +2560,7 @@ __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tv
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
 // Load a 128-bit vector into a GPR ($2) with lq.
-static inline qword LoadVector(const V *value){register qword result asm("v0");__asm__("lq %0,%1":"=r"(result):"m"(value->q));return result;}
+static inline qword LoadVector(const QWROW *value){register qword result asm("v0");__asm__("lq %0,%1":"=r"(result):"m"(value->q));return result;}
 // Move a float's bits into a GPR qword ($2).
 static inline qword Scalar(float f){register qword r __asm__("$2");__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
 // Return old + direction * factor.x.
@@ -2573,7 +2569,7 @@ __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b
 // Spring force toward a target position (CLQ on the distance) and toward a target velocity (clamped to 1/dt).
 void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCoefficients,qword velocity,struct COEF*velocityCoefficients)
 {
- V argument,point,old1,scale1,speed,old2,scale2;
+ QWROW argument,point,old1,scale1,speed,old2,scale2;
  register struct S *p __asm__("$17")=input;
  register struct COEF *c __asm__("$16")=positionCoefficients,*d __asm__("$18")=velocityCoefficients;
  register struct OWNER *owner __asm__("$19");
@@ -3003,12 +2999,11 @@ union U; struct TRI; struct MESH; struct EDGE; struct PLANE; struct P; struct FR
 // MATCH (T1582): ONE function-scope triangle index (`itri`, used by the edge loop and as the second loop's
 // counter) and ONE function-scope `ptri` shared by both loops; per-loop locals gave register rotation only.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 struct TRI {int vertex[3];};
 struct MESH {qword *velocity,*acceleration;TRI *triangles;};
 struct EDGE {unsigned short vertex[2],face[2];int extra[2];};
-struct PLANE {U normal;U extra;};
-struct P {char pad0[0x10];MESH *mesh;char pad14[0x68];U *positions;int planeCount;PLANE *planes;char pad88[8];int pointCount;U *source;int triCount;void *triSource;int edgeCount;EDGE *edges;};
+struct PLANE {QWROW normal;QWROW extra;};
+struct P {char pad0[0x10];MESH *mesh;char pad14[0x68];QWROW *positions;int planeCount;PLANE *planes;char pad88[8];int pointCount;QWROW *source;int triCount;void *triSource;int edgeCount;EDGE *edges;};
 struct FRAME;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -3030,7 +3025,7 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
 extern "C" void EnsureSoPartMesh(P *so)
 {
     if(so->mesh)return;
-    U first,second,cross;
+    QWROW first,second,cross;
     FRAME storage;
     MSG request;
     int triBytes=sizeof(TRI),alignment=16;
@@ -3062,7 +3057,7 @@ extern "C" void EnsureSoPartMesh(P *so)
             }
         }
     }
-    U *positions=so->positions;
+    QWROW *positions=so->positions;
     for(itri=0;itri<so->triCount;itri++) {
         ptri=&so->mesh->triangles[itri];
         PLANE *plane=&so->planes[itri];
@@ -3173,9 +3168,8 @@ namespace M_func_001F70C0 {
 union U; struct M4; struct LO; struct GEO; struct TREE; struct P; struct FRAME; struct MSG;
 // Insert zeroed vertices, rebuild transformed geometry, and rebase its tree.
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
 // 4x4 matrix of U rows with copy constructor and assignment.
-struct M4 {U rows[4];M4(){}M4(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4&operator=(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
+struct M4 {QWROW rows[4];M4(){}M4(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4&operator=(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
 struct LO {char pad40[0x40];M4 matrix;};
 struct GEO {int count;qword *points;int planeCount;void *planes;int unknown10,unknown14;};
 struct TREE {int count,flag,unused;void *nodes;};

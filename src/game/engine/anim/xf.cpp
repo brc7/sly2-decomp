@@ -249,7 +249,6 @@ extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CC00 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 struct S { char pad[0x94]; int k; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix

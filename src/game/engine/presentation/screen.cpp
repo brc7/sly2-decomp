@@ -1265,7 +1265,6 @@ namespace M_SetGadgetMenuStickDir {
 // Change a selector's input mode and, when the joystick points somewhere, move the selection to the
 // enabled item that lies closest along that direction from the current one.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 
 struct PROX { float along, distance; };
 struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };
@@ -1287,7 +1286,7 @@ void SetGadgetMenuStickDir(GADGETMENU *sel, int mode);
 }
 
 // Pack x, y, z into a 128-bit GPR value (home is a scratch slot).
-static inline qword XYZ(float x, float y, float z, U &home)
+static inline qword XYZ(float x, float y, float z, QWROW &home)
 {
     qword r, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
@@ -1308,7 +1307,7 @@ static inline qword Normalize(qword a)
     return r;
 }
 // "rV": the float stays a memory operand until reload, which loads it through the dying %hi register.
-static inline qword Splat(const float &f, U &home)
+static inline qword Splat(const float &f, QWROW &home)
 {
     qword s;
     __asm__("qmtc2.ni %1,%0" : "=j"(s) : "rV"(*(const int *)&f));
@@ -1322,7 +1321,7 @@ static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %
 // Moves the gadget-menu selection to the selectable item lying closest along the stick direction (slot 14).
 void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
 {
-    U home;
+    QWROW home;
     HIT hit;
     PROX proximity;
     if (mode == sel->nMode)

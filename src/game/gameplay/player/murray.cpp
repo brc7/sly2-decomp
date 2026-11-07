@@ -493,7 +493,6 @@ void UpdateMurray(MURRAY *murray)
 #undef FIELD_OFFSET
 
 namespace M_UpdateMurrayCarry { extern "C" {
-typedef union { qword q; float f[4]; } U;
 void DetachMurrayCarried(MURRAY *p);
 void SetMurrayState(MURRAY *p, int n);
 int IsPowerupAcquired(int n);
@@ -505,7 +504,7 @@ qword GetStepAsegaTranslation(MURRAY *p,ASEGA *pasega,float g);
 void UpdateGaitBlend(void *p, float g);
 void UpdateGaitFootsteps(void *p);
 // Store -value into *velocity, keeping the -1 broadcast in *scalar (register-pinned).
-static inline void NegateSource(qword value,qword*velocity,U*scalar){
+static inline void NegateSource(qword value,qword*velocity,QWROW*scalar){
     register qword input __asm__("vf3"),neg __asm__("vf1"),result __asm__("vf2");
     register int bits __asm__("$3");
     float negative=-1.0f;
@@ -568,7 +567,7 @@ void UpdateMurrayCarry(MURRAY *murray)
         UpdateGaitFootsteps(&murray->gaitB);
         break;
     case 2: {
-        U u;
+        QWROW u;
         qword v;
         SetStepTargetHeading(murray, murray->controller->leftStickAngle);
         v = GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
@@ -916,7 +915,6 @@ namespace M_SetMurrayState {
 // Lane 4 (Claude agent): hacks of the earlier drafts (xori/mtc1/addiu asm, 6 pins) are gone; this has ONE pin
 // (the zero-vector temp in case 7) and one VU vsub.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; int i[4]; };
 struct VE { short delta, pad; void (*fn)(); };
 struct OBJ { char pad[12]; VE *vt; };
 struct COMPONENT;
@@ -928,7 +926,7 @@ struct P {
     void *first;            // 0x58
     void *second;           // 0x5C
     char pad60[304];
-    U velocity;             // 0x190
+    QWROW velocity;             // 0x190
     float phase;            // 0x1A0
     char pad1a4[804];
     int submode;            // 0x4C8
@@ -951,7 +949,7 @@ struct P {
     char pad13ec[32];
     ASEG *clip7;            // 0x140C
     char pad1410[16];
-    U goal;                 // 0x1420
+    QWROW goal;                 // 0x1420
     char pad1430[8];
     ASEG *clip8;            // 0x1438
     int alternate8;         // 0x143C
@@ -979,7 +977,7 @@ struct P {
 };
 extern "C" {
 extern CLOCK D_002DDED0;
-extern U D_002A2DD0;
+extern QWROW D_002A2DD0;
 extern int D_002DD5BC;
 void SetXfRole(P *, void *, int);
 void ScheduleIdleTimer(P *);
@@ -1156,7 +1154,7 @@ extern "C" void SetMurrayState(P *murray, int next)
             murray->velocity.q = zero;
         } // pin: the zero vector goes through $v1 here
         ChooseMurrayThrowTarget(murray);
-        U point = murray->goal;
+        QWROW point = murray->goal;
         qword current = GetLoWorldPos(murray);
         qword difference;
         __asm__("vsub.xyzw %0,%0,%2" : "=j"(difference) : "0"(point.q), "j"(current));
@@ -1200,7 +1198,7 @@ extern "C" void SetMurrayState(P *murray, int next)
     case MURRAY_PIPE: SetJtPipeState(Block(murray, 0xF50), 0); return;
     case MURRAY_TURNBUCKLE: {
         clip = murray->clip21;
-        U *velocity = &murray->velocity;
+        QWROW *velocity = &murray->velocity;
         velocity->i[2] = 0;
         flags = 9;
         velocity->i[1] = 0;
@@ -1406,12 +1404,11 @@ namespace M_func_001B6CC0 {
 extern "C" qword D_002A2DC0;
 enum { FACTOR_ADDRESS = 0x002C09A4 };
 extern "C" void AddSoAcceleration(MURRAY *p, qword v);
-typedef union { qword q; float f[4]; } U;
 // Return a scaled by g.
-static inline qword Scale(qword a, float g) { U u; qword k, r; __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(g)); u.q = k; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(u.q)); return r; }
+static inline qword Scale(qword a, float g) { QWROW u; qword k, r; __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(g)); u.q = k; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(u.q)); return r; }
 // Store k to u, return a scaled by k, then store negative to u (register-pinned).
-static inline qword Factor(qword a,qword k,qword negative,U *pu) {
-    U &u=*pu; register qword r __asm__("vf3");
+static inline qword Factor(qword a,qword k,qword negative,QWROW *pu) {
+    QWROW &u=*pu; register qword r __asm__("vf3");
     __asm__("sqc2 %2,%0\n\tvmulx.xyzw %1,%3,%2x\n\tsqc2 %4,%0":"=m"(u.q),"=&j"(r):"j"(k),"j"(a),"j"(negative));
     return r;
 }
@@ -1425,9 +1422,9 @@ static inline qword Projection(qword a,qword b) {
 static inline int ReadFactor(void){unsigned int bits=FACTOR_ADDRESS & ~0xFFFF;__asm__("lw %0,%1":"+r"(bits):"m"(((int*)bits)[(FACTOR_ADDRESS&0xFFFF)/4]));return bits;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
-typedef char U_q_Offset[((unsigned int)&(((U*)0x10000)->q)-0x10000)==0?1:-1];
+typedef char U_q_Offset[((unsigned int)&(((QWROW*)0x10000)->q)-0x10000)==0?1:-1];
 typedef char Factor_Address[FACTOR_ADDRESS==0x002C09A4?1:-1];
 // State 3 physics helper: sub-state 0 cancels ground velocity, sub-state 1 adds horizontal correction toward the
 // desired point.
@@ -1438,7 +1435,7 @@ extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
         AddSoAcceleration(murray, Scale(*(qword *)&murray->physics->gravity, -1.0f));
     case 1: {
         qword v = murray->GetVelocity();
-        U u; register qword kn __asm__("vf5"); register qword n __asm__("vf1");
+        QWROW u; register qword kn __asm__("vf5"); register qword n __asm__("vf1");
         __asm__("qmtc2.ni %1,%0":"=j"(kn):"r"(-1.0f));
         __asm__("vmulx.xyzw %0,%1,%2x":"=j"(n):"j"(murray->qwUnknown190),"j"(kn));
         int bits = ReadFactor();
@@ -1786,7 +1783,6 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
 } // namespace M_func_001B72B0
 
 namespace M_func_001B7700 { extern "C" {
-typedef union {qword q;float f[4];} U;
 /* A transform (XF) as read here: position, parent and velocity. */
 struct XFV{char pad[0x30];qword pos;char pad40[0x60];struct XFV*parent;char padA4[0xC];qword velocity;};
 extern qword D_002A2DC0;
@@ -1797,28 +1793,28 @@ void SeekAsega(struct ASEGA*,int,float,float);
 // Clamp inputValue to [inputLower, *upper] (register-pinned).
 static inline float Clamp(float inputValue,float inputLower,const float*upper){register float value __asm__("$f0")=inputValue;register float lower __asm__("$f12")=inputLower;float limit=*upper;if(value<lower)return lower;if(limit<value)return limit;return value;}
 // Return v scaled by f (broadcast through u).
-static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
+static inline qword Scale(qword v,float f,QWROW*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
 // Final launch scale: the up vector scaled by the bits-as-float factor (register-pinned).
-static inline qword FinalLaunchScale(const qword*up,int bits,U*scalar){register qword factor __asm__("vf2"),source __asm__("vf1"),result __asm__("vf3");__asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tvmulx.xyzw %2,%1,%0x\n\tsqc2 %0,%3":"=j"(factor),"=j"(source),"=j"(result),"=m"(scalar->q):"r"(bits),"m"(*up));return result;}
+static inline qword FinalLaunchScale(const qword*up,int bits,QWROW*scalar){register qword factor __asm__("vf2"),source __asm__("vf1"),result __asm__("vf3");__asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tvmulx.xyzw %2,%1,%0x\n\tsqc2 %0,%3":"=j"(factor),"=j"(source),"=j"(result),"=m"(scalar->q):"r"(bits),"m"(*up));return result;}
 // Return a + b * s, storing s to u.
-static inline qword AddScaled(qword a,qword b,qword s,U*u){qword r;u->q=s;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(u->q));return r;}
+static inline qword AddScaled(qword a,qword b,qword s,QWROW*u){qword r;u->q=s;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(u->q));return r;}
 // Return *p + b * s.
-static inline qword AddScaledMemory(const U*p,qword b,qword s){qword a,r;__asm__("lqc2 %1,%2\n\tvadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r),"=&j"(a):"m"(p->q),"j"(b),"j"(s));return r;}
+static inline qword AddScaledMemory(const QWROW*p,qword b,qword s){qword a,r;__asm__("lqc2 %1,%2\n\tvadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r),"=&j"(a):"m"(p->q),"j"(b),"j"(s));return r;}
 // Divide v by s, storing s to u.
-static inline qword Div(qword v,qword s,U*u){qword r;u->q=s;__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(u->q),"j"(v));return r;}
+static inline qword Div(qword v,qword s,QWROW*u){qword r;u->q=s;__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(u->q),"j"(v));return r;}
 // Store a VU0 register to *p.
 static inline void Store(qword*p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
 // Copy the actor pointer into callee-saved $16.
 static inline MURRAY*CaptureActor(MURRAY*input){register MURRAY*output __asm__("$16");__asm__("daddu %0,%1,$zero":"=r"(output):"r"(input));return output;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
-typedef char U_f_Offset[FIELD_OFFSET(U,f)==0?1:-1];
+typedef char U_q_Offset[FIELD_OFFSET(QWROW,q)==0?1:-1];
+typedef char U_f_Offset[FIELD_OFFSET(QWROW,f)==0?1:-1];
 typedef char qword_PrefixSize[sizeof(qword)==16?1:-1];
-typedef char U_PrefixSize[sizeof(U)==16?1:-1];
+typedef char U_PrefixSize[sizeof(QWROW)==16?1:-1];
 // Start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 a ballistic solve toward the hands.
 void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
  MURRAY*owner=CaptureActor(murray);
- U roots;U u;U start;
+ QWROW roots;QWROW u;QWROW start;
  qword end;
  switch(owner->liftClip){
  case 0:{
@@ -1832,7 +1828,7 @@ void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation,float*dura
   break;
  }
  case 1:{
-  U v;
+  QWROW v;
   register qword pos __asm__("$18");
   qword acceleration;
   float t;
@@ -1894,7 +1890,7 @@ typedef char int_Width[sizeof(int)==4?1:-1];
 typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
 typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
-typedef char U_Alignment[__alignof__(U)==16?1:-1];
+typedef char U_Alignment[__alignof__(QWROW)==16?1:-1];
 } } // namespace M_func_001B7700
 #undef FIELD_OFFSET
 
@@ -2470,7 +2466,6 @@ void UpdateMurrayAttack(MURRAY *murray)
 } } // namespace M_UpdateMurrayAttack
 
 namespace M_func_001B8B70 { extern "C" {
-typedef union U { qword q; float f[4]; } U;
 struct PARAM { float value; int kind,id,reserved; };
 struct LIMIT { float lo,hi; };
 struct POLY { float a,b,c; };
@@ -2484,7 +2479,7 @@ void FaceStepToward(MURRAY*,void*);
 // Evaluate the quadratic a + b*t + c*t^2.
 static inline float Polynomial(struct POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 // Blend value into *velocity by strength g (and its complement), keeping the scalars in *scalar (register-pinned).
-static inline void Blend(qword value,float g,qword*velocity,U*scalar){
+static inline void Blend(qword value,float g,qword*velocity,QWROW*scalar){
     register qword input __asm__("vf1"),strength __asm__("vf5"),negative __asm__("vf2"),other __asm__("vf4"),complement __asm__("vf3"),current __asm__("vf1");
     register int bits __asm__("$3"),rest __asm__("$2");
     register float neg __asm__("$f0")=-1.0f;register float one __asm__("$f1")=1.0f;float remain;
@@ -2504,7 +2499,7 @@ static inline void Blend(qword value,float g,qword*velocity,U*scalar){
     scalar->q=strength;
 }
 // Store -value into *velocity, keeping the -1 broadcast in *scalar (register-pinned).
-static inline void NegateSource(qword value,qword*velocity,U*scalar){
+static inline void NegateSource(qword value,qword*velocity,QWROW*scalar){
     register qword input __asm__("vf3"),neg __asm__("vf1"),result __asm__("vf2");
     register int bits __asm__("$3");
     float negative=-1.0f;
@@ -2533,7 +2528,7 @@ static inline qword OrbitVector(MURRAY*p){
 }
 // State 11 velocity: animation root motion, blended toward the stick direction between two animation parameters.
 void UpdateMurrayAttackVelocity(MURRAY*murray){
-    U scalar;
+    QWROW scalar;
     if(murray->activeAnimation){
         qword value=GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
         NegateSource(value,&murray->qwUnknown190,&scalar);
@@ -2794,8 +2789,7 @@ void UpdateMurrayLift(MURRAY *murray)
 namespace M_SetMurrayLiftSubstate {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef unsigned long ulong;
-union U { qword q; float f[4]; int i[4]; };
-struct M4 { U row[4]; };
+struct M4 { QWROW row[4]; };
 struct EVENT { float time; int kind,tag,pad; };
 /* STEPPLAYER::unknown1088 as written here: +0x1C an active flag. */
 struct PROXYV { char pad[0x1C]; int active; };
@@ -2884,7 +2878,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
         SO *root = murray->psoCarryRoot;
         SetLoParent(owner, root, 15);
         SetSoTreeFlag2(owner, 1);
-        U position, rotation;
+        QWROW position, rotation;
         M4 frame;
         GetMurrayGripFrame(murray, root->rootTransform, &D_002A2D30, &rotation.q, &position.q);
         murray->apactCarryA[1] = NewPositionAct(owner, owner->rotationXf, (void *)5, 7, 2, rotation.q);

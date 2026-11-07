@@ -2091,7 +2091,6 @@ void PresetJtAccelHide(struct P *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001942F0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 struct S4C { char pad[0x148]; long fl; };
 struct A { char pad[0x40]; int x40; char pad2[0x4C-0x44]; struct S4C *x4c; char pad3[0x60-0x50]; qword x60; char pad4[0x88-0x70]; float x88; };
 struct O { char pad[0x208]; struct A *x208; char pad2[0x9E0-0x20C]; char places[0x108C-0x9E0]; int x108c; };
@@ -2143,7 +2142,7 @@ void RecordJtGrabPlace(struct P *grab)
             s = grab->x14->x184;
         {
             qword a;
-            U d;
+            QWROW d;
             a = GetLoWorldPos(grab->x0);
             qword dq;
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(GetLoWorldPos(grab->x14)));
@@ -2741,7 +2740,6 @@ namespace M_EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND {
 // collected, then handed to the emitter's particle system in one batch.
 typedef int qword __attribute__((mode(TI)));
 
-union VECTOR { qword q; float f[4]; };
 struct VU_FLOAT
 {
     qword q;
@@ -2759,7 +2757,7 @@ struct VU_VECTOR
     // Wrap a qword.
     VU_VECTOR(qword a) { q = a; }
     // Wrap a VECTOR.
-    VU_VECTOR(const VECTOR &v) { q = v.q; }
+    VU_VECTOR(const QWROW &v) { q = v.q; }
 };
 
 struct GRABSPOT
@@ -2769,7 +2767,7 @@ struct GRABSPOT
     virtual void V2();
     virtual void V3();
     virtual void V4();
-    virtual void GetSparkle(VECTOR *ppos, VECTOR *pv, float sParam);
+    virtual void GetSparkle(QWROW *ppos, QWROW *pv, float sParam);
 };
 struct LO;
 struct JTGRABCAND
@@ -2792,7 +2790,7 @@ extern "C" {
 extern CLOCK D_002DDED0;    // g_clock
 float RandomFloatInRange__Fff(float gMin, float gMax);                    // RandomFloatInRange
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");          // memset
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITG *pemitg, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITG *pemitg, int cpart, QWROW *apos, QWROW *av, float *atBirth, float *atDeath,
                    void *pv1, void *pv2);
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
@@ -2813,7 +2811,7 @@ static inline VU_VECTOR AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT g)
     return a;
 }
 // Ask the candidate's grab spot for its sparkle position and direction.
-static inline void GetSparkle(JTGRABCAND *candidate, VECTOR *posOut, VECTOR *pv)
+static inline void GetSparkle(JTGRABCAND *candidate, QWROW *posOut, QWROW *pv)
 {
     candidate->grabSpot->GetSparkle(posOut, pv, candidate->spotDistance);
 }
@@ -2822,7 +2820,7 @@ static inline void GetSparkle(JTGRABCAND *candidate, VECTOR *posOut, VECTOR *pv)
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER *player, int ccand,
                                                           JTGRABCAND *candidates)
 {
-    VECTOR apos[10], av[10];
+    QWROW apos[10], av[10];
     float atBirth[10], atDeath[10];
     EMITTER *pemitter = player->pemitterGrab;
     EMITVEL *pemitp;
@@ -2851,7 +2849,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
             c++;
 
         while (--c >= 0) {
-            VECTOR pos, v, vScaled;
+            QWROW pos, v, vScaled;
             VU_FLOAT s;
 
             GetSparkle(candidate, &pos, &v);

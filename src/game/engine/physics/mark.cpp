@@ -603,7 +603,6 @@ namespace M_MarkSoContactsBspBsp {
 //    parameters (struct copies that survive cse1 and vanish at register allocation) give exactly that count; GFromVf taking a VU_FLOAT
 //    in Length and PlaneDist was the last step (215 -> 219).
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct SCALAR;
@@ -612,21 +611,21 @@ extern "C" SCALAR *InitVuTemp(SCALAR *);
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 struct SCENE;
 struct CONTACT;
-struct SPACE { char pad0[0x70]; U position; };
+struct SPACE { char pad0[0x70]; QWROW position; };
 struct EDGE { unsigned short aipos[2], aisurf[2]; EDGE *pedgeNext; EDGE *pedgeOtherNext; };
-struct SURF { U plane; EDGE *pedge; EDGE *pedgeOther; unsigned int grf; int ipos; };
-struct SHAPE { SPACE *space; void *owner; char pad8[0x8C]; U *apos; int pad98; SURF *asurf; int cedge; EDGE *aedge; };
+struct SURF { QWROW plane; EDGE *pedge; EDGE *pedgeOther; unsigned int grf; int ipos; };
+struct SHAPE { SPACE *space; void *owner; char pad8[0x8C]; QWROW *apos; int pad98; SURF *asurf; int cedge; EDGE *aedge; };
 struct NODE { unsigned int left, right; SURF *psurf; };
-struct LSG { U apos[2], anormal[2]; float au[2]; int lsgk; SURF *apsurf[2]; EDGE *pedge; int iiposSwap; LSG *plsgNext; };
+struct LSG { QWROW apos[2], anormal[2]; float au[2]; int lsgk; SURF *apsurf[2]; EDGE *pedge; int iiposSwap; LSG *plsgNext; };
 struct XP { char pad0[0x9C]; int kind; void *first, *second; int padA8; XP *next; };
 extern "C" {
-extern U D_002A2DC0;
+extern QWROW D_002A2DC0;
 int ClsgClipSoAllEdges(SCENE *, SHAPE *, SHAPE *, NODE *, int, LSG *) __asm__("ClipSoAllEdges");
 int ClipSoBspEdges(SCENE *, SHAPE *, SHAPE *, int, NODE *, int, LSG *);
 void CategorizeClippedSegments(int, LSG *, int *, int *, LSG **, LSG **) __asm__("CategorizeClippedSegments__FiP3LSGPiT2PP3LSGT4");
 void AddEmbeddedVertexXps(SCENE *, SHAPE *, SHAPE *, int, int *, LSG **, CONTACT **);
 int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *, int, int, LSG *, LSG **);
-int ClosestPointsOfLines(qword, qword, qword, qword, float *, U *);
+int ClosestPointsOfLines(qword, qword, qword, qword, float *, QWROW *);
 void AddXp(SCENE *, SHAPE *, SHAPE *, VV, float, VV, int, void *, void *, CONTACT **);
 }
 
@@ -674,7 +673,7 @@ static inline float PlaneDist(VV point, VV plane)
     return GFromVf(g);
 }
 // Closest points of the lines (a, b) and (c, d): parameter into *au, normal into *normal.
-static inline void Closest(VV a, VV b, VV c, VV d, float *au, U *normal)
+static inline void Closest(VV a, VV b, VV c, VV d, float *au, QWROW *normal)
 {
     (void)ClosestPointsOfLines(a, b, c, d, au, normal);
 }
@@ -691,8 +690,8 @@ extern "C" void MarkSoContactsBspBsp(SCENE *scene, SHAPE *a, SHAPE *b, int nodeC
     LSG *aplsgBoth[2];
     LSG *aplsgPath[32];
     float au[2];
-    U normal;
-    U apos[2];
+    QWROW normal;
+    QWROW apos[2];
     CONTACT *old = *out;
     aclsg[0] = ClsgClipSoAllEdges(scene, b, a, last, 128, aalsg[0]);
     int clsg1 = ClipSoBspEdges(scene, a, b, nodeCount, nodes, 128, aalsg[1]);
@@ -743,7 +742,7 @@ extern "C" void MarkSoContactsBspBsp(SCENE *scene, SHAPE *a, SHAPE *b, int nodeC
                 ipos = plsg->iiposSwap;
                 psurf = plsg->apsurf[1];
             }
-            U *ppos = a->apos + plsg->pedge->aipos[ipos];
+            QWROW *ppos = a->apos + plsg->pedge->aipos[ipos];
             XP *pxp = (XP *)*out;
             while (pxp) {
                 if (pxp->kind == 1 && pxp->first == ppos && pxp->second == psurf)
@@ -774,8 +773,8 @@ struct POLY{qword plane;char opaque10[8];int flags;};
 struct ENTRY{ENTRY*child[2];POLY*poly;};
 struct HIT{qword p;char pad10[0x30];float time;char pad44[0x1C];};
 struct OUT{qword p,plane;int kind;};
-union U{qword q;float f[4];};union SCR{REQ req;U u;};
-struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;U position,endpoint;};
+union SCR{REQ req;QWROW u;};
+struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;QWROW position,endpoint;};
 extern "C" FRAME*STACKSCOPE_ctor(FRAME*);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
 extern "C" void*AllocFromStack(REQ*);
@@ -847,8 +846,8 @@ typedef char HIT_time_Offset[FIELD_OFFSET(HIT,time)==64?1:-1];
 typedef char OUT_p_Offset[FIELD_OFFSET(OUT,p)==0?1:-1];
 typedef char OUT_plane_Offset[FIELD_OFFSET(OUT,plane)==16?1:-1];
 typedef char OUT_kind_Offset[FIELD_OFFSET(OUT,kind)==32?1:-1];
-typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
-typedef char U_f_Offset[FIELD_OFFSET(U,f)==0?1:-1];
+typedef char U_q_Offset[FIELD_OFFSET(QWROW,q)==0?1:-1];
+typedef char U_f_Offset[FIELD_OFFSET(QWROW,f)==0?1:-1];
 typedef char SCR_req_Offset[FIELD_OFFSET(SCR,req)==0?1:-1];
 typedef char SCR_u_Offset[FIELD_OFFSET(SCR,u)==0?1:-1];
 typedef char WORK_count_Offset[FIELD_OFFSET(WORK,count)==1568?1:-1];
@@ -867,8 +866,8 @@ typedef char HIT_PrefixSize[sizeof(HIT)==96?1:-1];
 typedef char HIT_Alignment[__alignof__(HIT)==16?1:-1];
 typedef char OUT_PrefixSize[sizeof(OUT)==48?1:-1];
 typedef char OUT_Alignment[__alignof__(OUT)==16?1:-1];
-typedef char U_PrefixSize[sizeof(U)==16?1:-1];
-typedef char U_Alignment[__alignof__(U)==16?1:-1];
+typedef char U_PrefixSize[sizeof(QWROW)==16?1:-1];
+typedef char U_Alignment[__alignof__(QWROW)==16?1:-1];
 typedef char SCR_PrefixSize[sizeof(SCR)==16?1:-1];
 typedef char SCR_Alignment[__alignof__(SCR)==16?1:-1];
 typedef char WORK_PrefixSize[sizeof(WORK)==1616?1:-1];

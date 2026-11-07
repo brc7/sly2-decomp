@@ -1309,12 +1309,11 @@ namespace M_func_001C6DE8 {
 //    dependent, which is why that store precedes the $ra/$f20 saves in the prologue. cse merges any plain copy made before the
 //    test, so the argument is held in a variable pinned to $a2 (the one allowed pin).
 typedef int qword __attribute__((mode(TI)));
-union VECTOR4 { qword q; float f[4]; };
 struct LSG {
-    VECTOR4 posA;           // 0x00: hit point (lower cast)
-    VECTOR4 posB;           // 0x10: hit point (upper cast)
-    VECTOR4 normalA;        // 0x20
-    VECTOR4 normalB;        // 0x30
+    QWROW posA;           // 0x00: hit point (lower cast)
+    QWROW posB;           // 0x10: hit point (upper cast)
+    QWROW normalA;        // 0x20
+    QWROW normalB;        // 0x30
     float t;                // 0x40
     float u;                // 0x44
     char pad48[0x18];

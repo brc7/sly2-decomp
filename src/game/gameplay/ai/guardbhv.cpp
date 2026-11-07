@@ -863,8 +863,7 @@ union U; struct M4; struct VTE; struct NAME; struct SCALE; struct ENTRY; struct 
 // FRAME with out-of-line ctor/dtor (STACKSCOPE_ctor / STACKSCOPE_ctor_1AE4A0(this, 2)), CRef(bool) with inline dtor
 // (Decref), and `void *argument = (char *)entry + 0x18;` declared after the CRef.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
-struct M4 { U row[4]; };
+struct M4 { QWROW row[4]; };
 struct VTE { short delta, pad; void *fn; };
 struct NAME { unsigned identity; };
 struct SCALE { char pad[0x20]; float value; };
@@ -894,8 +893,8 @@ struct P {
     char padFC0[4];
     SCALE *scale;
 };
-struct LSG { U point; char rest[0x50]; };
-struct LOS { U start, end; LSG hit; };
+struct LSG { QWROW point; char rest[0x50]; };
+struct LOS { QWROW start, end; LSG hit; };
 extern "C" void Decref__4CRef(void *);
 struct POLY { float a, b, c; };
 struct BASIC {
@@ -1200,15 +1199,14 @@ namespace M_UpdateBhvcombat { extern "C" {
 union U; struct OWNER; struct TUNE; struct SCALE; struct P; struct C; struct X; struct WORK; 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
-typedef union U{qword q;float f[4];}U;
 typedef struct P P;
 typedef struct OWNER{char pad[0x10];void*region;}OWNER;
 typedef struct TUNE{char pad[0xDC];OWNER*owner;}TUNE;
 typedef struct SCALE{char pad[0x20];float value;}SCALE;
 struct P{char pad[0xE8];TUNE*tuning;char padEC[0x314-0xEC];float close,far;char pad31C[0xF40-0x31C];int emit;float time;char padF48[0xFBC-0xF48];int mode;int padFC0;SCALE*scale;};
-typedef struct C{char pad[0x10];P*guard;int pad14;void*sub;char pad1C[0x30-0x1C];P*target;int state;char pad38[0x44-0x38];void*region;char pad48[8];U cached;}C;
+typedef struct C{char pad[0x10];P*guard;int pad14;void*sub;char pad1C[0x30-0x1C];P*target;int state;char pad38[0x44-0x38];void*region;char pad48[8];QWROW cached;}C;
 typedef struct X{void*a,*b;char pad8[8];qword point;}X;
-typedef struct WORK{X frame;U point;}WORK;
+typedef struct WORK{X frame;QWROW point;}WORK;
 extern CLOCK D_002DDED0;
 extern float D_002BE614;
 
@@ -1228,13 +1226,13 @@ int IsBhvshootDone(void*);
 int IsBhvanimDone(void*);
 void EmitStepguardStimulus(P*,P*);
 // Stores a quadword (keeps the target's instruction choice).
-static inline void StorePoint(U*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
+static inline void StorePoint(QWROW*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
 // VU0 helper: x of a VU register as a float (register-pinned).
 static inline float XFloat(qword q){register float f __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
 // VU0 helper: square root of x.
 static inline qword Root(qword q){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));return q;}
 // Matching helper (register-pinned asm): horizontal distance from `pos` to a point; also returns the actor and its mode.
-static inline float DistanceXY(C *p, U *point, qword pos, P **actor, int *mode)
+static inline float DistanceXY(C *p, QWROW *point, qword pos, P **actor, int *mode)
 {
     register qword a __asm__("vf2"), b __asm__("vf3"), d __asm__("vf1");
     P *o;
@@ -1256,7 +1254,7 @@ static inline float DistanceXY(C *p, U *point, qword pos, P **actor, int *mode)
 // Returns the region object of the actor's tuning owner (NULL if none).
 static inline void*ActorRegion(P*actor){OWNER*owner=actor->tuning?actor->tuning->owner:0;return owner?owner->region:0;}
 // Matching helper (register-pinned asm): true if the actor moved farther than a .data threshold from `point`.
-static inline int Moved(C *p, U *point)
+static inline int Moved(C *p, QWROW *point)
 {
     register qword a __asm__("vf2"), d __asm__("vf1");
     qword one;
@@ -1277,7 +1275,7 @@ static inline int Moved(C *p, U *point)
     result = threshold < distance ? result : 0;
     return result;
 }
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char X_Size[sizeof(X)==32?1:-1];
 typedef char WORK_Size[sizeof(WORK)==48?1:-1];
 typedef char P_tuning_Offset[FIELD_OFFSET(P,tuning)==232?1:-1];
@@ -1734,7 +1732,6 @@ namespace M_BHVGUARD_FHandleMessage {
 union U; struct VE; struct OBJECT; struct MSGDATA; union MSG; struct STATE; struct HELPER; struct S; struct SLOT; struct M4; struct WORK; struct OFFSETINPUTS;
 // Handle movement-state response events.
 typedef int qword __attribute__((mode(TI)));
-union U{qword q;float f[4];};
 struct VE{short delta,pad;void*fn;};
 struct ASEG;struct ASEGA;struct TUNE;
 struct OBJECT{
@@ -1760,7 +1757,7 @@ struct HELPER{char pad0[0x58];float until;unsigned flags;};
 struct S{char pad0[0x10];OBJECT*guard;int pad14;HELPER*helper;char pad1C[0x14];STATE current;};
 struct SLOT{int kind;char pad4[0xC];};
 struct M4{qword r[4];};
-struct WORK{STATE next;U scalar,own,other,copy,delta;};
+struct WORK{STATE next;QWROW scalar,own,other,copy,delta;};
 struct OFFSETINPUTS{qword own,other,copy;};
 extern "C"{
 extern OBJECT*D_002F7900;
@@ -2057,7 +2054,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_mask[(sizeof(unsigned long)==8)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_U[(sizeof(U)==16)?1:-1];
+typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
 typedef char layout_VE[(sizeof(VE)==8)?1:-1];
 typedef char layout_MSGDATA[(sizeof(MSGDATA)==0x60)?1:-1];
 typedef char layout_MSG[(sizeof(MSG)==0x60)?1:-1];
@@ -2065,8 +2062,8 @@ typedef char layout_STATE[(sizeof(STATE)==0x70)?1:-1];
 typedef char layout_HELPER[(sizeof(HELPER)==0x60)?1:-1];
 typedef char layout_SLOT[(sizeof(SLOT)==0x10)?1:-1];
 typedef char layout_M4[(sizeof(M4)==0x40)?1:-1];
-typedef char layout_U_q[((unsigned long)&((U*)0)->q==0x0)?1:-1];
-typedef char layout_U_f[((unsigned long)&((U*)0)->f==0x0)?1:-1];
+typedef char layout_U_q[((unsigned long)&((QWROW*)0)->q==0x0)?1:-1];
+typedef char layout_U_f[((unsigned long)&((QWROW*)0)->f==0x0)?1:-1];
 typedef char layout_VE_delta[((unsigned long)&((VE*)0)->delta==0x0)?1:-1];
 typedef char layout_VE_fn[((unsigned long)&((VE*)0)->fn==0x4)?1:-1];
 typedef char layout_MSGDATA_object[((unsigned long)&((MSGDATA*)0)->object==0x0)?1:-1];
@@ -4671,7 +4668,6 @@ namespace M_UpdateBhvjuggled { extern "C" {
 struct VTE; struct C; struct B; struct A; struct Y; struct X; struct OUT;
 // Update the movement-state controller.
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 extern CLOCK D_002DDED0;
 extern float D_002BE6C8, D_002BE6CC;
 struct VTE { short d; short pad; void *pfn; };
@@ -4722,7 +4718,7 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
         case 4:
         case 5: {
             struct OUT out;
-            U a, b, t, vel, ud;
+            QWROW a, b, t, vel, ud;
             qword tq, c;
             float dt;
             register void*nullSource __asm__("$5");
@@ -4770,7 +4766,7 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_U[(sizeof(U)==16)?1:-1];
+typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
 typedef char layout_VTE[(sizeof(struct VTE)==8)?1:-1];
 typedef char layout_C[(sizeof(struct C)==0x20)?1:-1];
 typedef char layout_B[(sizeof(struct B)==0x94)?1:-1];
@@ -4778,8 +4774,8 @@ typedef char layout_A[(sizeof(struct A)==0x20C)?1:-1];
 typedef char layout_X[(sizeof(struct X)==0x19A8)?1:-1];
 typedef char layout_Y[(sizeof(struct Y)==0x64)?1:-1];
 typedef char layout_OUT[(sizeof(struct OUT)==0x40)?1:-1];
-typedef char layout_U_q[((unsigned)&((U*)0)->q==0)?1:-1];
-typedef char layout_U_f[((unsigned)&((U*)0)->f==0)?1:-1];
+typedef char layout_U_q[((unsigned)&((QWROW*)0)->q==0)?1:-1];
+typedef char layout_U_f[((unsigned)&((QWROW*)0)->f==0)?1:-1];
 typedef char layout_VTE_delta[((unsigned)&((struct VTE*)0)->d==0)?1:-1];
 typedef char layout_VTE_fn[((unsigned)&((struct VTE*)0)->pfn==4)?1:-1];
 typedef char layout_C_gain[((unsigned)&((struct C*)0)->endTime==0x1C)?1:-1];
@@ -5292,13 +5288,12 @@ namespace M_func_0017B9C0 {
 union U; struct RANGE; struct POLY; struct P; struct C; struct WORK; 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
-union U{qword q;float f[4];};
 struct RANGE{float lo,hi;};
 struct POLY{float a,b,c;};
 // Choice i of the selector.
 struct P{char pad[0x28];unsigned long flags;char pad30[0xF94-0x30];int count;P*choices[4];P*Choice(int i){return choices[i];}int nearCount;P*near[0];};
 struct C{char pad[0x10];P*guard;char pad14[0x38-0x14];P*preferred;P*near;P*selected;float time;};
-struct WORK{float t,d,t2,d2;U origin,bestPoint;};
+struct WORK{float t,d,t2,d2;QWROW origin,bestPoint;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern RANGE D_002BE740;
@@ -5312,7 +5307,7 @@ static inline unsigned long Eligible(unsigned long flags){return (flags>>60)&1;}
 // VU0 helper: moves a CPU quadword into a VU register.
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 // VU0 helper: loads a quadword into a VU register.
-static inline qword Load(U*u){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(u->q));return r;}
+static inline qword Load(QWROW*u){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(u->q));return r;}
 // VU0 helper: x of a VU register as a float.
 // VU0 helper: length of a vector.
 static inline float Length(qword v)
@@ -5326,7 +5321,7 @@ static inline float Length(qword v)
     return VuToFloat(d);
 }
 // VU0 helper: distance from an origin to a point.
-static inline float Distance(U *origin, qword point)
+static inline float Distance(QWROW *origin, qword point)
 {
     register qword a __asm__("vf2") = origin->q;
     qword b = point, d;
@@ -5334,7 +5329,7 @@ static inline float Distance(U *origin, qword point)
     return Length(d);
 }
 // VU0 helper: distance from a point to an origin.
-static inline float DistanceFrom(qword point, U *origin)
+static inline float DistanceFrom(qword point, QWROW *origin)
 {
     qword a = point, b = Load(origin), d;
     __asm__("vsub.xyzw %0,%1,%2" : "=&j"(d) : "j"(a), "j"(b));
@@ -5343,10 +5338,10 @@ static inline float DistanceFrom(qword point, U *origin)
 // Identity (keeps a value in a register for the match).
 static inline qword To(qword a){return a;}
 // VU0 helper: stores a VU register to memory.
-static inline void Store(U*u,qword a){__asm__("sqc2 %1,%0":"=m"(u->q):"j"(a));}
+static inline void Store(QWROW*u,qword a){__asm__("sqc2 %1,%0":"=m"(u->q):"j"(a));}
 // Clamps *x into a range.
 static inline void ClampIn(float*x,RANGE*p){float lo=p->lo,hi=p->hi;if(*x<lo)*x=lo;else if(hi<*x)*x=hi;}
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char POLY_Size[sizeof(POLY)==12?1:-1];
 typedef char RANGE_Size[sizeof(RANGE)==8?1:-1];
 typedef char WORK_Size[sizeof(WORK)==48?1:-1];
@@ -5465,7 +5460,7 @@ typedef char UInt_Size[sizeof(unsigned int)==4?1:-1];
 typedef char Float_Size[sizeof(float)==4?1:-1];
 typedef char Long_Size[sizeof(unsigned long)==8?1:-1];
 typedef char Qword_Size[sizeof(qword)==16?1:-1];
-typedef char U_Alignment[__alignof__(U)==16?1:-1];
+typedef char U_Alignment[__alignof__(QWROW)==16?1:-1];
 typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
 typedef char P_View_Size[sizeof(P)==0xfb0?1:-1];
 typedef char P_Alignment[__alignof__(P)==8?1:-1];
@@ -5831,7 +5826,6 @@ namespace M_func_0017C6D0 { extern "C" {
 struct X; struct P;
 /* UpdateBhvEscort (Claude agent): state-machine controller. pos is a plain qword (spilled pseudo) so p->v60=pos goes qmfc2+sq; the goto loop + explicit 250.0f local stops loop.c hoisting the case-1 constant. */
 typedef int qword __attribute__((mode(TI)));
-typedef union {qword q;float f[4];} U;
 struct X {qword header,v;};
 struct P {char pad10[0x10];void*guard;int pad14;void*child;char pad1C[4];int pending;char pad24[12];void*escorted;char pad34[0x40-0x34];qword localOffset;int state;float time;int pad58[2];qword lastGoalPosition;};
 void UpdateBhv(struct P*);
@@ -5912,7 +5906,7 @@ test:
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_U[(sizeof(U)==16)?1:-1];
+typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
 typedef char layout_X[(sizeof(struct X)==32)?1:-1];
 typedef char layout_P[(sizeof(struct P)==0x70)?1:-1];
 typedef char layout_float[(sizeof(float)==4)?1:-1];

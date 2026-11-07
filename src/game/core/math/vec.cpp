@@ -133,7 +133,6 @@ namespace V_GetNormalVector {
 // GetNormalVector MATCH (Claude agent, lane A10, 2026-10-23), from v3: y/z extracts are asm prot3w/pextuw into a plain int, then a
 // union int->float so gcc emits the mtc1 itself (its latency gives the target schedule). x stays an asm mtc1 from the qword. One pin (|y| in $f0).
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 // y lane of q as a float.
 static __inline__ float GetY(qword q) { qword t; float y; __asm__("prot3w %0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(y) : "r"(t)); return y; }
 // z lane of q as a float.
@@ -152,7 +151,7 @@ extern "C" qword GetNormalVector(qword v)
 {
     float x, y, z;
     float ax;
-    qword w; U u;
+    qword w; QWROW u;
     { int ci; union { int i; float f; } c;
     __asm__("prot3w %0,%1" : "=r"(ci) : "r"(v));
     c.i = ci;

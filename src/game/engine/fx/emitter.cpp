@@ -1132,7 +1132,6 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
 
 namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
@@ -1151,7 +1150,7 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
     int iPan = i % c;
     float tilt = pemitvx->tiltBase + (float)iTilt * pemitvx->dTilt;
     float pan = pemitvx->panBase + (float)iPan * pemitvx->dPan;
-    U v;
+    QWROW v;
     M3 m;
     qword r;
     if (gRand != 0.0f) {
@@ -1172,7 +1171,6 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
 
 namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 extern struct CLOCK D_002DDED0;
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, EMITVEL *plm, qword *pv, int n, qword *pvOut);   /* the record starts with the speed LM */
 float RandomFloatInRange__Fff(float a, float b);
@@ -1189,7 +1187,7 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
     *ptDeath = birthTime + emitv->lifetime;
     skip = RandomFloatInRange__Fff(emitv->lmPush.minValue, emitv->lmPush.maxValue);
     if (skip != 0.0f) {
-        U u;
+        QWROW u;
         qword r;
         {
             qword qwuOut;

@@ -453,7 +453,6 @@ int TestStepplayerHidden(STEPPLAYER *player)
 
 namespace M_FStepplayerNearInteractTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
@@ -462,7 +461,7 @@ int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
 {
     float gDist, minValue, maxValue;
     qword a, b, t;
-    U d;
+    QWROW d;
     float g;
     int f;
     if (player->interactMode != 4 || player->nUnk10e4 == 3) return 0;
@@ -559,7 +558,6 @@ namespace M_func_00140DB0 { extern "C" {
    vf3 from 0x10(sp)); the byte offset in its own variable makes the address
    (ae + off), not (off * 64 + ae). */
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 struct E { int a, b, k; char pad[0x34]; };
 struct S { char pad[0x40]; qword v; struct E *ae; };
 struct X150 { char pad[0x80]; int x80; };
@@ -572,7 +570,7 @@ void CalculateSoContactResponse(struct P *p, void *a, struct S *s, void *b, int 
 // Slot 68 (contact impulse): special handling when the other body is one of the player characters.
 void HandleStepplayerContactImpulse(struct P *player, void *a, struct S *s, void *b, int i)
 {
-    U c;
+    QWROW c;
     qword save;
     int kk, off;
     save = s->v;
@@ -885,14 +883,13 @@ void GetStepplayerCameraFocusPosition(char *player, struct V *v)
 namespace M_GetStepplayerCpdefi { extern "C" {
 /* VU0 length via asm; qmfc2 into an int then explicit mtc1 (gives the original GPR/FPR allocation). */
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 struct VTE { short d; short pad; void *pfn; };
-struct XP { char pad[0x10]; VU pos; char pad2[0x34 - 0x20]; float g34; };
+struct XP { char pad[0x10]; QWROW pos; char pad2[0x34 - 0x20]; float g34; };
 struct JT {
     char pad[0xC]; struct VTE *vt; char pad1[0x2C0 - 0x10]; char ax2C0[0x2DC - 0x2C0]; int x2DC;
     char pad2[0x434 - 0x2E0]; int x434; char pad3[0x4C0 - 0x438]; char ax4C0[0xC]; int x4CC;
     char pad4[0xDF0 - 0x4D0]; char axDF0[4]; int xDF4; char pad5[0x1044 - 0xDF8]; int x1044; int pad6;
-    float x104C; float x1050; char pad7[0x1060 - 0x1054]; VU x1060; qword x1070;
+    float x104C; float x1050; char pad7[0x1060 - 0x1054]; QWROW x1060; qword x1070;
 };
 extern struct CLOCK D_002DDED0;
 extern float D_002BCC98, D_002BCC9C, D_002BCCA0, D_002BCCA4, D_002BCCA8, D_002BCCAC, D_002BCCB0, D_002BCCB4;
@@ -919,12 +916,12 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
         xp->pos.q = jt->x1060.q;
         jt->x104C = jt->x1060.f[2];
     } else {
-        VU v;
+        QWROW v;
         float z, lo, hi, g;
         struct VTE *e;
         { qword q = GetLoWorldPos(jt); __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); }
         e = &jt->vt[97];
-        ((void (*)(void *, VU *))e->pfn)((char *)jt + e->d, &v);
+        ((void (*)(void *, QWROW *))e->pfn)((char *)jt + e->d, &v);
         if (jt->x434) {
             lo = D_002BCCA0;
             hi = D_002BCCA4;
@@ -1899,7 +1896,6 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 
 namespace M_GetStepplayerStunHold { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 struct S { int k; float g4; float g8; int pad; qword pos; qword dir; };
 extern qword D_002A2DC0;
 qword GetLoWorldPos(LO *p);
@@ -1907,7 +1903,7 @@ qword GetLoWorldPos(LO *p);
 void GetStepplayerStunHold(STEPPLAYER *player, struct S *ps, float g)
 {
     qword v, h, pos, s, r;
-    VU u;
+    QWROW u;
     v = player->GetVelocity();
     {
         qword d, one, up = D_002A2DC0;

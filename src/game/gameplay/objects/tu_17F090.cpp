@@ -180,7 +180,6 @@ extern "C" void AdjustHackNewXp(HACKV *hack, XP *pxp)
 namespace M_func_0017F1D0 { extern "C" {
 /* Apply damage and a projected knockback impulse from the message. */
 typedef int qword __attribute__((mode(TI)));
-typedef union {qword q;float f[4];} U;
 struct MSG {char pad[0x10];int delta;char pad14[0x20-0x14];qword pos;char pad30[0x44-0x30];int flags;};
 extern qword D_002A2DC0,D_002A2DA0;
 qword GetLoWorldPos(HACKV*);
@@ -191,7 +190,7 @@ static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,
 // Unit vector along a, or fallback when its length is too small.
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 // Return a + b * g.
-static inline qword AddScaled(qword a,qword b,float g){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
+static inline qword AddScaled(qword a,qword b,float g){qword k;QWROW u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
 // vt75 (msg with flag 8): health += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain,
 // limited) through constraint and SetVelocity. (inferred)
 int TakeHackDamage(HACKV*hack,struct MSG*m){
@@ -695,9 +694,8 @@ void HACKBULLET::Init()
 
 namespace M_func_001801B8 {
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
 struct M3 {
- U r[3];
+ QWROW r[3];
  // Uninitialised 3x3 matrix.
  M3(){}
  // Copy the three rows.

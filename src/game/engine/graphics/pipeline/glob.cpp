@@ -451,7 +451,6 @@ extern "C" void BindGlobset(S *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ExpandSphereForProjection { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 struct M4 { qword r[4]; };
 extern const qword D_002BE570;
 // Transform point p by the 4x4 matrix m.
@@ -486,7 +485,7 @@ static inline qword MAdd(qword p, qword v, qword k)
 // (inferred)
 qword ExpandSphereForProjection(const struct M4 *m, qword p, float *radius)
 {
-    U u;
+    QWROW u;
     qword d = VuSub(Transform(m, D_002BE570), p);
     float len = Length(d);
     if (*radius < len) {

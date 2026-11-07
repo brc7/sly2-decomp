@@ -395,12 +395,11 @@ void ROBOTTANK::OnActive(int fActive)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottank {
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
-struct M3 {U rows[3];};
-struct M4 {M3 basis;U position;};
+struct M3 {QWROW rows[3];};
+struct M4 {M3 basis;QWROW position;};
 struct FRAME {M4 matrix,world;};
 struct VENTRY {short delta,pad;void (*fn)();};
-struct REF {char pad0[0x70];U position;char pad80[0x20];FRAME *parent;};
+struct REF {char pad0[0x70];QWROW position;char pad80[0x20];FRAME *parent;};
 struct POLY {float a,b,c;};
 struct LIMITS {float low,high;};
 struct P;
@@ -450,7 +449,7 @@ static inline qword Dot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\
 // Length of a as a float.
 static inline float ShotLength(qword a){qword r=Dot(a,a);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));register float value __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(value):"j"(r));return value;}
 // XY length of a as a float, storing velocity to home.
-static inline float DistanceAndVelocity(qword a,qword velocity,U&home){qword r=a;asm("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y\n\tsq %2,%1":"+j"(r),"=m"(home.q):"r"(velocity));asm("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));register float value __asm__("$2");asm("qmfc2.ni %0,%1":"=r"(value):"j"(r));return value;}
+static inline float DistanceAndVelocity(qword a,qword velocity,QWROW&home){qword r=a;asm("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y\n\tsq %2,%1":"+j"(r),"=m"(home.q):"r"(velocity));asm("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));register float value __asm__("$2");asm("qmfc2.ni %0,%1":"=r"(value):"j"(r));return value;}
 // Evaluate the quadratic a + b*t + c*t^2.
 static inline float Evaluate(const POLY &p,float t){return p.a+t*(p.b+t*p.c);}
 // Zeroes the tank's turn and drive inputs and makes its current heading the goal heading (stop in place).
@@ -473,7 +472,7 @@ static inline qword GetVelocity(P *p){VENTRY &e=p->vt[33];return ((qword (*)(voi
 // volume/pitch. (inferred)
 extern "C" void UpdateRobottank(P *tank)
 {
-    U scalar,position,targetPosition,targetVelocity,shot;
+    QWROW scalar,position,targetPosition,targetVelocity,shot;
     int i=0;
     UpdateSo(tank);
     tank->heading=atan2f(tank->space->world.basis.rows[0].f[1],tank->space->world.basis.rows[0].f[0]);
@@ -660,7 +659,7 @@ typedef char guard_43[(OFF(ATTACH,angle)==116)?1:-1];
 typedef char guard_44[(OFF(ATTACH,speed)==120)?1:-1];
 typedef char guard_45[(OFF(ATTACH,active)==160)?1:-1];
 typedef char guard_46[(OFF(SOUND,references)==78)?1:-1];
-typedef char guard_48[(sizeof(U)==16)?1:-1];
+typedef char guard_48[(sizeof(QWROW)==16)?1:-1];
 typedef char guard_49[(sizeof(M3)==48)?1:-1];
 typedef char guard_50[(sizeof(M4)==64)?1:-1];
 typedef char guard_51[(sizeof(FRAME)==128)?1:-1];
@@ -676,7 +675,7 @@ typedef char guard_60[(sizeof(short)==2)?1:-1];
 typedef char guard_61[(sizeof(float)==4)?1:-1];
 typedef char guard_62[(sizeof(void*)==4)?1:-1];
 typedef char guard_63[(sizeof(qword)==16)?1:-1];
-typedef char guard_64[(__alignof__(U)==16)?1:-1];
+typedef char guard_64[(__alignof__(QWROW)==16)?1:-1];
 typedef char guard_65[(sizeof(((P*)0)->attachments)==32)?1:-1];
 typedef char guard_66[(OFF(P,attachments)+sizeof(((P*)0)->attachments)==0x51C)?1:-1];
 typedef char guard_67[(sizeof(long)==8)?1:-1];
@@ -945,8 +944,7 @@ namespace M_UpdateRobottankAi {
 //   temporary takes slot 0x00, the case-2 matrix 0x10, the case-3 matrix the coalesced 0x00, and the HIT array
 //   (declared after the tactic switch) 0x40.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
-struct M3 { U rows[3]; };
+struct M3 { QWROW rows[3]; };
 struct LM { float min, maxValue; };
 struct BINDING { char pad0[0x28]; float pitch; };
 struct P;
@@ -954,8 +952,8 @@ struct ATTACH {
     char pad0[0x20]; void *binding; char pad24[0xC]; void *mesh; BINDING *meshBinding; int pad38; P *anchor;
     char pad40[0x3C]; float radius; int tactic; void *constraint; LM enterRange, exitRange, fireInterval;
 };
-struct PATH { char pad0[0xE8]; int count; int padEC, padF0; U *points; };
-struct HIT { U start, end, normal0, normal1; float startFraction, endFraction; char pad48[0x18]; };
+struct PATH { char pad0[0xE8]; int count; int padEC, padF0; QWROW *points; };
+struct HIT { QWROW start, end, normal0, normal1; float startFraction, endFraction; char pad48[0x18]; };
 struct P {
     char pad0[0x188]; int state; char pad18C[0x36C]; int attachCount; ATTACH *attachments[8]; float slip;
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];

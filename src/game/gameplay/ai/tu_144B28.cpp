@@ -857,7 +857,6 @@ extern "C" int IsBhvInteractIdle(BHVSTATE *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00145DB0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 extern struct CLOCK D_002DDED0;
 float D_002BD344 = 300.0f;
 struct { float near; float far; } D_002BD348 = {250.0f, 350.0f};
@@ -875,7 +874,7 @@ void SetBhvInteractState(BHV195 *, int);
 // (state 2) once close and facing it, 1 runs back into the distance band, 2 interacts until the attack ends.
 void UpdateBhvInteract(BHV195 *behavior)
 {
-    VU toTarget;
+    QWROW toTarget;
     qword targetPos, ownerPos, delta, length, one, normalized;
     float distance;
     UpdateBhv(behavior);
@@ -946,7 +945,6 @@ void UpdateBhvInteract(BHV195 *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146068 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(BHV195 *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
@@ -1043,7 +1041,6 @@ extern "C" int IsBhvInteract2Idle(BHVSTATE *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001462A8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 extern struct CLOCK D_002DDED0;
 float D_002BD350 = 350.0f;
 struct { float near; float far; } D_002BD358 = {250.0f, 350.0f};
@@ -1059,7 +1056,7 @@ void SetBhvInteract2State(BHV196 *, int);
 // 0x1462A8: Second interact behaviour vtable slot 10 (Update): the BHV195 approach with its own conditions.
 void UpdateBhvInteract2(BHV196 *behavior)
 {
-    VU toTarget;
+    QWROW toTarget;
     qword targetPos, ownerPos, delta, length, one, normalized;
     float distance;
     UpdateBhv(behavior);
@@ -1130,7 +1127,6 @@ void UpdateBhvInteract2(BHV196 *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146560 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(BHV196 *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
