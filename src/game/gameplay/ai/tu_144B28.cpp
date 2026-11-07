@@ -25,6 +25,9 @@ enum {
     CID_PO = 0x32,
     CID_STEP = 0x33,
     CID_STEPPLAYER = 0x34,
+    CID_JT = 0x35,          /* Sly */
+    CID_MURRAY = 0x36,
+    CID_BENTLEY = 0x37,
     CID_BHV168 = 0xA8,
 };
 /* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
@@ -459,17 +462,17 @@ struct SO *PickBhvfollowTarget(struct P *behavior)
 namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBhvfollow { extern "C" {
-// UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1), inline GClamp.
+// UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline GClamp.
 typedef int qword __attribute__((mode(TI)));
 struct LM { float gMin, gMax; };
-struct D { char pad[0x10]; void *p10; };
-struct C { char pad[0xDC]; struct D *pd; };
-struct PO { char pad[0xE8]; struct C *pc; char pad2[0x2DC - 0xEC]; int x2DC; char pad3[0x1030 - 0x2E0]; void *p1030; };
-struct X { char pad[0x40]; int x40; };
+struct D { char pad[0x10]; void *navGraph; };
+struct C { char pad[0xDC]; struct D *unknownDC; };
+struct PO { char pad[0xE8]; struct C *unknownE8; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
+struct X { char pad[0x40]; int usesStraightPath; };
 struct SO;
 struct P {
     char pad[0x10]; struct PO *guard; char pad1[4]; struct X *child; char pad2[0x30 - 0x1C]; void *leader; char pad3[0x50 - 0x34];
-    qword q50; int x60; char pad4[0x6C - 0x64]; float g6C; float g70; float g74; float g78; char pad5[0x90 - 0x7C]; struct SO *p90;
+    qword followPoint; int state; char pad4[0x6C - 0x64]; float distanceNear; float distanceFar; float speedNear; float speedFar; char pad5[0x90 - 0x7C]; struct SO *threat;
 };
 extern const float D_002A4E34;   /* defined below where the ELF has it (.rodata order) */
 struct LM D_002BD330 = {0.0f, 600.0f};
@@ -480,7 +483,7 @@ int IsBhvBusyAbove(struct P *p);
 qword func_001A62E8(void *p);
 struct SO *PickBhvfollowTarget(struct P *p);
 int IsBhvfollowLeaderOnNewGround(struct P *p);
-int FCheckLm__FP2LMf(struct LM *plm, float g);
+int FCheckLm__FP2LMf(struct LM *range, float g);
 void SetBhvfollowState(struct P *p, int n);
 int CidBasic(void *p);
 int IsBhvInteractIdle(struct X *px);
@@ -517,63 +520,65 @@ static __inline__ void GClamp(float *pg, float lo, float hi) { if (*pg < lo) *pg
 static __inline__ int FFar(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
 
 // 0x1453F0: Follow behaviour vtable slot 10 (Update): follows the leader (+0x30); distance bands switch between
-// standing, walking and running, re-pathing when far.
+// standing, walking and running, re-pathing when far. State 0 follows (re-targets the follow point when the leader moved, animation speed
+// from the leader distance), 1 waits for the leader to land on new ground, 2 fights the threat until the partner's
+// interact behaviour goes idle or the threat leaves the band.
 void UpdateBhvfollow(struct P *behavior)
 {
-    struct PO *po;
-    qword a, b;
-    float gXY, g;
-    struct SO *object;
-    void *pv30;
+    struct PO *follower;
+    qword followerPos, leaderPos;
+    float leaderDistanceXY, threatDistance;
+    struct SO *threat;
+    void *leader;
     UpdateBhv(behavior);
-    po = behavior->guard;
-    pv30 = behavior->leader;
-    a = func_001A62E8(po);
-    b = func_001A62E8(pv30);
-    gXY = LenXY(Sub(a, b));
-    object = PickBhvfollowTarget(behavior);
-    if (object) {
-        qword c = func_001A62E8(object);
-        float dA = Len(Sub(c, a));
-        float dB = Len(Sub(c, b));
-        g = dA < dB ? dA : dB;
+    follower = behavior->guard;
+    leader = behavior->leader;
+    followerPos = func_001A62E8(follower);
+    leaderPos = func_001A62E8(leader);
+    leaderDistanceXY = LenXY(Sub(followerPos, leaderPos));
+    threat = PickBhvfollowTarget(behavior);
+    if (threat) {
+        qword threatPos = func_001A62E8(threat);
+        float toFollower = Len(Sub(threatPos, followerPos));
+        float toLeader = Len(Sub(threatPos, leaderPos));
+        threatDistance = toFollower < toLeader ? toFollower : toLeader;
     } else {
-        g = D_002A4E34;
+        threatDistance = D_002A4E34;
     }
     while (!IsBhvBusyAbove(behavior)) {
-        int state = behavior->x60;
-        int f;
+        int state = behavior->state;
+        int onNewGround;
         switch (state) {
         case 0:
-            f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
-            if (f)
+            onNewGround = IsBhvfollowLeaderOnNewGround(behavior) != 0;
+            if (onNewGround)
                 SetBhvfollowState(behavior, 1);
-            else if (FCheckLm__FP2LMf(&D_002BD330, g)) {
-                behavior->p90 = object;
+            else if (FCheckLm__FP2LMf(&D_002BD330, threatDistance)) {
+                behavior->threat = threat;
                 SetBhvfollowState(behavior, 2);
             }
             break;
         case 1:
-            if (behavior->guard->x2DC == -1)
+            if (behavior->guard->airState == -1)
                 SetBhvfollowState(behavior, 0);
             break;
         case 2:
-            f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
-            if (f)
+            onNewGround = IsBhvfollowLeaderOnNewGround(behavior) != 0;
+            if (onNewGround)
                 SetBhvfollowState(behavior, 1);
-            else if (!FCheckLm__FP2LMf(&D_002BD338, g))
+            else if (!FCheckLm__FP2LMf(&D_002BD338, threatDistance))
                 SetBhvfollowState(behavior, 0);
             else {
                 switch (CidBasic(behavior->guard)) {
-                case 0x36:
+                case CID_MURRAY:
                     if (IsBhvInteractIdle(behavior->child))
                         SetBhvfollowState(behavior, 0);
                     break;
-                case 0x37:
+                case CID_BENTLEY:
                     if (IsBhvInteract2Idle(behavior->child))
                         SetBhvfollowState(behavior, 0);
                     break;
-                case 0x35:
+                case CID_JT:
                     if (IsBhvInteract3Idle(behavior->child))
                         SetBhvfollowState(behavior, 0);
                     break;
@@ -581,20 +586,20 @@ void UpdateBhvfollow(struct P *behavior)
             }
             break;
         }
-        if (behavior->x60 == state)
+        if (behavior->state == state)
             break;
     }
-    if (behavior->x60 == 0) {
-        struct D *pd = behavior->guard->pc ? behavior->guard->pc->pd : 0;
-        void *pv = pd ? pd->p10 : 0;
-        if (!pv)
-            behavior->child->x40 = 1;
-        if (FFar(behavior->q50, b))
+    if (behavior->state == 0) {
+        struct D *d = behavior->guard->unknownE8 ? behavior->guard->unknownE8->unknownDC : 0;
+        void *navGraph = d ? d->navGraph : 0;
+        if (!navGraph)
+            behavior->child->usesStraightPath = 1;
+        if (FFar(behavior->followPoint, leaderPos))
             UpdateBhvfollowPosition(behavior);
-        if (po->p1030) {
-            float t = (gXY - behavior->g6C) / (behavior->g70 - behavior->g6C);
+        if (follower->locomotionAsega) {
+            float t = (leaderDistanceXY - behavior->distanceNear) / (behavior->distanceFar - behavior->distanceNear);
             GClamp(&t, 0.0f, 1.0f);
-            SetAsegaSpeed__FP5ASEGAf(po->p1030, (1.0f - t) * behavior->g74 + t * behavior->g78);
+            SetAsegaSpeed__FP5ASEGAf(follower->locomotionAsega, (1.0f - t) * behavior->speedNear + t * behavior->speedFar);
         }
     }
 }
