@@ -152,13 +152,23 @@ struct ANIMBINDINGREC
 /* 120 CID120 (0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
 struct CID120 : LO
 {
-    int unknown50[4];
+    int unknown50;          /* +0x50 [S] (InitGuardAttack 0) */
+    float range;            /* +0x54 [S] reach (InitGuardAttack 300) */
+    float heightMin;        /* +0x58 [S] height window of the target (-5000..5000) */
+    float heightMax;        /* +0x5C [S] */
     float cooldownMin;      /* +0x60 [S] delay range before the attack can be chosen again */
     float cooldownMax;      /* +0x64 [S] */
-    int unknown68[10];
-    qword strikeOffset;     /* +0x90 [S] */
-    void *aimObject;        /* +0xA0 [S] */
-    int unknownA4[2];
+    float angle;            /* +0x68 [S] radians (SetGuardAttackAngleDegrees; 10 degrees by default) */
+    float unknown6C;        /* +0x6C [S] */
+    int unknown70[3];
+    int aimObjectOid;       /* +0x7C [S] the transform that aims (a gun arm; -1 none) */
+    int effectorOid;        /* +0x80 [S] the transform that strikes */
+    int strikeLabel;        /* +0x84 [S] label of the attack animation at the strike */
+    int unknown88[2];
+    qword strikeOffset;     /* +0x90 [S] where the effector is, relative to the aim object, at the strike (PostGuardAttackLoad) */
+    XF *aimObject;          /* +0xA0 [S] FindSoXf(aimObjectOid) */
+    XF *effector;           /* +0xA4 [S] FindSoXf(effectorOid) */
+    int unknownA8;          /* +0xA8 [S] (InitGuardAttack 1) */
     STEPGUARD *guard;       /* +0xAC [S] the guard owning the attack */
     ANIMBINDING binding;    /* +0xB0 [S] the attack's animation */
     ANIMBINDING *activeBinding; /* +0xC0 [S] */
@@ -169,6 +179,8 @@ struct CID120 : LO
     virtual void Clone(LO *ploBase) __asm__("CloneGuardAttack");   /* slot 41 */
 };
 typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
+typedef char assert_CID120_aimObjectOid[SLY2_OFFSETOF(CID120, aimObjectOid) == 0x7C ? 1 : -1];
+typedef char assert_CID120_guard[SLY2_OFFSETOF(CID120, guard) == 0xAC ? 1 : -1];
 
 /* STEPGUARD: the guard: a STEP driven by its behaviour stack (root BHV156), with hit points, a target, pickpocket
    loot, a vision detector and animation bindings.
