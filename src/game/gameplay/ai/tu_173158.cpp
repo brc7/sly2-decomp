@@ -104,7 +104,7 @@ struct EVENT{float time;char pad4[8];LOV*tag;char pad10[0x10];EVENT*next;char pa
 struct LINK{LOV**pp;};
 struct CRefV{int tag;void*value;};
 /* SnapToGround's line hit. */
-struct HITY { qwordV v; char pad[0x18]; float f28; char pad2[0x14]; float f40; char pad3[0x1C]; };
+struct HITY { qwordV v; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };   /* hit point, normal at +0x20 */
 struct VU_FLOAT { qwordV qw; };
 /* SetBhvguardMode's argument (cleared by its constructor). */
 extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
@@ -366,7 +366,7 @@ extern "C" int SnapToGround(qwordV *position, float top, float bottom, int accep
         HITY hit;
         IntersectSwBoundingBox(&D_003DD490, start, end, filter, 0, &firstObject, &numObjects);
         if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, start, end, firstObject, (void *)numObjects, &hit)
-            || hit.f40 == 0.0f || (!acceptAnySlope && hit.f28 < 0.7f)) {
+            || hit.unknown40 == 0.0f || (!acceptAnySlope && hit.normalZ < 0.7f)) {
             STACKSCOPE_ctor_1AE4A0(&scope, 2);
             return 0;
         }

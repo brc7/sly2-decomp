@@ -64,7 +64,7 @@ struct SWN { char pad[0x3D68]; int noiseCount; char pad2[0x3FFC - 0x3D6C]; char 
 typedef char assert_SWN_types[(unsigned int)&((SWN *)0)->types == 0x4020 ? 1 : -1];
 /* A listener (an XFM, which ends at +0xE0): the noises it hears. */
 struct K { short x; short y; int i; };
-struct LISTENER { char pad0[0xC]; VTE *vt; char pad10[0x18]; int unknown28; signed char ips; char x2D; long k : 4; unsigned int pad1 : 8; unsigned int isInWorld : 1;
+struct LISTENER { char pad0[0xC]; VTE *vt; char pad10[0x18]; int unknown28; signed char ips; char grfvis; long k : 4; unsigned int pad1 : 8; unsigned int isInWorld : 1;
                   char pad30[0x10]; unsigned int grfUnk40; char pad44[0xE0 - 0x44]; unsigned int noiseCount; NOISE *noises[8]; K key; };
 typedef char assert_LISTENER_key[(unsigned int)&((LISTENER *)0)->key == 0x104 ? 1 : -1];
 

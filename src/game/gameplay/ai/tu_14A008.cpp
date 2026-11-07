@@ -103,10 +103,10 @@ struct HEROV { char pad[0xC]; VTE *vt; char pad1[0x258 - 0x10]; PATH *path; char
 struct XEC { char pad[0x20]; qword pos; float radius; };
 struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int flags; XEC *hidingInfo; char pad2[0x174 - 0xF0]; SOV *next; };
 /* The sub-behaviours started by SetBhvRouteState. */
-struct O9E { int pad[3]; VTE *vt; char pad1[0x38 - 0x10]; void *x38; int x3C; };
-struct OA7 { int pad[3]; VTE *vt; char pad1[0x40 - 0x10]; int x40; char pad2[0x64 - 0x44]; float x64; char pad3[0xC0 - 0x68]; int xC0; char pad4[4]; void *xC8; };
-struct OAC { int pad[3]; VTE *vt; char padx[0x50 - 0x10]; qword x50; char pad1[0x68 - 0x60]; int x68; };
-struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LOV *x30; char pad2[8]; ATKENTRY *attack; };
+struct O9E { int pad[3]; VTE *vt; char pad1[0x38 - 0x10]; void *lookAt; int unknown3C; };   /* BHVIDLE */
+struct OA7 { int pad[3]; VTE *vt; char pad1[0x40 - 0x10]; int usesStraightPath; char pad2[0x64 - 0x44]; float arrivalRadius; char pad3[0xC0 - 0x68]; int unknownC0; char pad4[4]; void *faceTarget; /* (inferred) */ };   /* BHVWALKPATH */
+struct OAC { int pad[3]; VTE *vt; char padx[0x50 - 0x10]; qword goal; char pad1[0x68 - 0x60]; int unknown68; };   /* BHVLEAP */
+struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LOV *target; char pad2[8]; ATKENTRY *attack; };   /* BHVATTACK */
 struct MSG { int kind; int pad[3]; int val; char pad2[0x70 - 0x14]; };
 
 extern CLOCK D_002DDED0;
@@ -606,7 +606,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
     switch (state) {
     case 0: {
         struct O9E *po = (struct O9E *)PushStepBhv(behavior->guard, CID_BHVIDLE);
-        po->x38 = PpoHero(&D_003DD490);
+        po->lookAt = PpoHero(&D_003DD490);
         VCALL0(po, 8);
         {
             GUARDV *guard = behavior->guard;
@@ -637,10 +637,10 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         MeasureShape(psp);
         po = (struct OA7 *)PushStepBhv(behavior->guard, CID_BHVWALKPATH);
         SetBhvpathShape(po, psp, 0);
-        po->xC0 = 8;
-        po->x40 = 1;
-        po->x64 = 25.0f;
-        po->xC8 = PpoHero(&D_003DD490);
+        po->unknownC0 = 8;
+        po->usesStraightPath = 1;
+        po->arrivalRadius = 25.0f;
+        po->faceTarget = PpoHero(&D_003DD490);
         VCALL0(po, 8);
         behavior->guard->attackCooldownEnd = D_002DDED0.t;
         SetSoCnstrForce(behavior->guard, 0);
@@ -649,14 +649,14 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
     }
     case 2: {
         struct OAC *po = (struct OAC *)PushStepBhv(behavior->guard, CID_BHVLEAP);
-        po->x50 = func_001A62E8(GetBhvRouteStationKind(behavior));
-        po->x68 = 1;
+        po->goal = func_001A62E8(GetBhvRouteStationKind(behavior));
+        po->unknown68 = 1;
         VCALL0(po, 8);
         break;
     }
     case 3: {
         struct OA4 *po = (struct OA4 *)PushStepBhv(behavior->guard, CID_BHVATTACK);
-        po->x30 = behavior->guard->target;
+        po->target = behavior->guard->target;
         po->attack = behavior->attack;
         VCALL0(po, 8);
         behavior->guard->attackCooldownEnd = 3.40282346638528859812e+38f;
@@ -664,8 +664,8 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
     }
     case 4: {
         struct O9E *po = (struct O9E *)PushStepBhv(behavior->guard, CID_BHVIDLE);
-        po->x38 = PpoHero(&D_003DD490);
-        po->x3C = 1;
+        po->lookAt = PpoHero(&D_003DD490);
+        po->unknown3C = 1;
         VCALL0(po, 8);
         break;
     }
