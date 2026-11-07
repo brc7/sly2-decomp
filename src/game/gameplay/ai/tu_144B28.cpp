@@ -611,25 +611,20 @@ struct PATHZONE;
 struct D { char pad[0x10]; PATHZONE *pathZone; };
 struct C { char pad[0xDC]; D *region; };
 struct SHAPE { char pad[0xE8]; int pointCount; char pad2[0xF4 - 0xEC]; qword *points; };
-struct GUARD { char pad[0xE8]; C *physics; char pad2[0x294 - 0xEC]; SHAPE *pathShape; };
 struct O;
 struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };   /* slot 33: velocity */
 struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword velocity; char pad3[0x1A8 - 0x1A0]; float heading; };
-struct P {
-    char pad[0x10]; GUARD *guard; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; O *leader; char pad3[0x40 - 0x34];
-    qword followOffset; qword followPoint; char pad4[0x68 - 0x60]; float velocityLeadTime;
-};
 extern "C" {
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
 M3 *GetLoWorldMatrix(void *p);
 M3 BuildAxisAngleRotationMatrix(qword axis, float g);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-PATHZONE *GetBhvfollowLeaderGround(P *behavior);
+PATHZONE *GetBhvfollowLeaderGround(BHVFOLLOW *behavior);
 int FindPathzonePathCurve(PATHZONE *pathZone, qword start, qword goal, SHAPE *path);
 void MeasureShape(SHAPE *shape);
 void SetBhvpathShape(void *path, SHAPE *shape, int n);
-void UpdateBhvfollowPosition(P *p);
+void UpdateBhvfollowPosition(BHVFOLLOW *p);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
@@ -669,25 +664,25 @@ static inline qword MulM3(const M3 &m, qword v)
 // 0x1457A8: Computes the follow position: the leader's position offset by its velocity (lead time
 // +0x68) and by the follow offset (+0x40) in the leader's frame (its heading for a step, its orientation otherwise),
 // then routes the walk-goal child there through the follower's path zone (or straight when it has none).
-void UpdateBhvfollowPosition(P *behavior)
+void UpdateBhvfollowPosition(BHVFOLLOW *behavior)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
-    behavior->followPoint = GetLoWorldPos(behavior->leader);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEP)) {
-        O *leader = behavior->leader;
+    behavior->followPoint = GetLoWorldPos(((struct O *)behavior->leader));
+    if (IsBasicDerivedFrom__FP5BASIC3CID(((struct O *)behavior->leader), CID_STEP)) {
+        O *leader = ((struct O *)behavior->leader);
         u.s.m = BuildAxisAngleRotationMatrix(D_002A2DC0, leader->heading);
         u.s.pos = AddScaled(behavior->followPoint, VU_FLOAT(-behavior->velocityLeadTime), MulM3(u.s.m, leader->velocity));
     } else {
         O *leader;
-        u.s.m = *GetLoWorldMatrix(behavior->leader);
-        leader = behavior->leader;
+        u.s.m = *GetLoWorldMatrix(((struct O *)behavior->leader));
+        leader = ((struct O *)behavior->leader);
         u.s.pos = AddScaled(behavior->followPoint, VU_FLOATM(behavior->velocityLeadTime), leader->vt->pfn((O *)((char *)leader + leader->vt->d)));
     }
     u.s.pos = VuAdd(u.s.pos, MulM3(u.s.m, behavior->followOffset));
     {
-        GUARD *guard = behavior->guard;
-        SHAPE *path = guard->pathShape;
-        D *d = guard->physics ? guard->physics->region : 0;
+        STEPGUARD *guard = ((STEPGUARD *)behavior->owner);
+        SHAPE *path = ((struct SHAPE *)guard->unknown294);
+        D *d = ((struct C *)guard->physics) ? ((struct C *)guard->physics)->region : 0;
         PATHZONE *pathZone = d ? d->pathZone : 0;
         qword start = GetLoWorldPos(guard);
         if (!pathZone) {
@@ -700,7 +695,7 @@ void UpdateBhvfollowPosition(P *behavior)
         } else if (!FindPathzonePathCurve(pathZone, start, u.s.pos, path)) {
             FindPathzonePathCurve(pathZone, start, start, path);
         }
-        SetBhvpathShape(behavior->child, path, 0);
+        SetBhvpathShape(behavior->pbhvNext, path, 0);
     }
 }
 } // namespace M_func_001457A8
