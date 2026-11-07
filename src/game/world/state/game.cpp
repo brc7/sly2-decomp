@@ -168,7 +168,7 @@ struct CRef : CRefData {
     ~CRef() { Decref__4CRef(this); }
 };
 struct OPT;
-struct JOBTIME { char pad[0x9C]; float start, end, elapsed; };   /* a JOB's difficulty-ease window and elapsed time */
+struct JOBTIME : LO { char pad[0x9C - 0x50]; float start, end, elapsed; };   /* a JOB's difficulty-ease window and elapsed time */
 struct G {
     char pad[0x3B0C]; JOBTIME *currentJob;
     char pad10[0xC]; OPT *playTimeVar;
@@ -253,7 +253,7 @@ typedef char Clock_Delta[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 
 namespace M_NEpisodePercentComplete {
 struct ALLOCREQ { int cb; int nKind; };
-struct X { char pad[0x54]; int state; char pad2[0xA0 - 0x58]; int numFollowers; };
+struct X : LO { char pad[0x54 - 0x50]; int state; char pad2[0xA0 - 0x58]; int numFollowers; };
 struct G { char pad[0x3AFC]; int numTasks; };
 extern "C" { extern G D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
@@ -404,7 +404,7 @@ void HideCountdownHud(struct SW *world)
 } } // namespace M_func_00161958
 
 namespace M_BroadcastGameEvent { extern "C" {
-struct X { char pad[0x7C]; void *job; char pad2[0x88 - 0x80]; struct X *nextActive; };
+struct X : LO { char pad[0x7C - 0x50]; void *job; char pad2[0x88 - 0x80]; struct X *nextActive; };
 struct G { char pad[0x3B0C]; void *currentJob; };
 extern struct G D_003DD490;
 extern char D_002DE578[];
@@ -433,7 +433,7 @@ struct P{
  char pad0[0x10];int savedOids[3];char pad1[0x64-0x1C];P*startTask;
  char pad2[0xF4-0x68];int stateSource,stateRequester;char pad3[0x11A8-0xFC];void*widget;
 };
-struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
+struct CONTEXT : LO { char pad[0xF0 - 0x50]; int stateSource,stateRequester;};
 struct CHECK{int words[16];};
 struct G{
  char pad0[0x3B0C];P*currentJob;P*currentTask;P*pendingTask;void*failedJob;void*playTimeVar;
@@ -821,7 +821,7 @@ void JOB::Init()
 namespace M_LoadJobFromBrx {
 struct ALLOCREQ { int cb; int nKind; };
 class CBinaryInputStream;
-struct S { char pad[0x54]; int numCompleteEvents; void *completeEvents; int numFailEvents; void *failEvents; char pad2[0x8C - 0x64]; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
+struct S : LO { char pad[0x54 - 0x50]; int numCompleteEvents; void *completeEvents; int numFailEvents; void *failEvents; char pad2[0x8C - 0x64]; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
 extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *stream);
@@ -858,7 +858,7 @@ extern "C" void LoadJobFromBrx(S *job, CBinaryInputStream *stream)
 } // namespace M_LoadJobFromBrx
 
 namespace M_AddJobCompleteEvent { extern "C" {
-struct S { char pad[0x54]; int numCompleteEvents; int *completeEvents; };
+struct S : LO { char pad[0x54 - 0x50]; int numCompleteEvents; int *completeEvents; };
 // Splice: adds a game-event id that completes the job when it arrives (at most 32).
 void AddJobCompleteEvent(struct S *job, int eventId)
 {
@@ -869,7 +869,7 @@ void AddJobCompleteEvent(struct S *job, int eventId)
 } } // namespace M_AddJobCompleteEvent
 
 namespace M_func_00162630 { extern "C" {
-struct S { char pad[0x5C]; int numFailEvents; int *failEvents; };
+struct S : LO { char pad[0x5C - 0x50]; int numFailEvents; int *failEvents; };
 // Splice: adds a game-event id that fails the job when it arrives (at most 32).
 void AddJobFailEvent(struct S *job, int eventId)
 {
@@ -880,7 +880,7 @@ void AddJobFailEvent(struct S *job, int eventId)
 } } // namespace M_func_00162630
 
 namespace M_func_00162660 { extern "C" {
-struct S { char pad[0xAC]; int completionWidgetOid; int introLabel; int outroLabel; };
+struct S : LO { char pad[0xAC - 0x50]; int completionWidgetOid; int introLabel; int outroLabel; };
 // Splice: sets the job's completion widget oid and its intro and outro labels.
 void SetJobCompletionWidget(struct S *job, int widgetOid, int introLabel, int outroLabel)
 {
@@ -891,7 +891,7 @@ void SetJobCompletionWidget(struct S *job, int widgetOid, int introLabel, int ou
 } } // namespace M_func_00162660
 
 namespace M_FJobLive { extern "C" {
-struct S { char pad[0x50]; int isDisabled; char pad2[0xF0 - 0x54]; int stateSource; };
+struct S : LO { int isDisabled; char pad2[0xF0 - 0x54]; int stateSource; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 // True when the job is enabled, its state source is not 2/3 and no world transition is in progress.
@@ -905,7 +905,7 @@ int IsJobLive(struct S *job)
 
 namespace M_func_001626C0 { extern "C" {
 struct E { int object, context, stateMask, level; };
-struct S { char pad[0x50]; int isDisabled; char pad2[0x8C - 0x54]; int numVisibility; struct E *visibility; };
+struct S : LO { int isDisabled; char pad2[0x8C - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateBit(int i);
 // Splice: adds a visibility record {object, context, state mask, level} to the job.
 void AddJobStateVisibility(struct S *job, int object, int state, int context, int level)
@@ -922,7 +922,7 @@ void AddJobStateVisibility(struct S *job, int object, int state, int context, in
 
 namespace M_func_00162728 { extern "C" {
 struct E { int state, root, stateMachine, goal, restoreOnly, level; };
-struct S { char pad[0x50]; int isDisabled; char pad2[0x94 - 0x54]; int numRsmgs; struct E *rsmgs; };
+struct S : LO { int isDisabled; char pad2[0x94 - 0x54]; int numRsmgs; struct E *rsmgs; };
 // Splice: adds a state rsmg record {state, root, state machine, goal, level} to the job.
 void AddJobStateRsmg(struct S *job, int state, int root, int stateMachine, int goal, int level)
 {
@@ -935,8 +935,8 @@ void AddJobStateRsmg(struct S *job, int state, int root, int stateMachine, int g
 
 namespace M_PostJobLoad { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-struct S {
-    char pad[0x7C]; int startCount;
+struct S : LO {
+    char pad[0x7C - 0x50]; int startCount;
     char pad1[0x8C - 0x80]; int numVisibility, visibility, numRsmgs, rsmgs;
     char pad2[0xA4 - 0x9C]; float elapsedTime; void *stateSaveVar; int completionWidgetOid;
     char pad3[0xB8 - 0xB0]; void *completionWidget; void *widget379;
@@ -1016,8 +1016,8 @@ extern "C" void EndCurrentJob(JOBV *job)
 }
 
 namespace M_ResetJobTasks { extern "C" {
-struct X { char pad[0x64]; int startCount; char pad2[0x84 - 0x68]; struct X *pNext; };
-struct S { char pad[0x7C]; int startCount; struct X *pFirst; };
+struct X : LO { char pad[0x64 - 0x50]; int startCount; char pad2[0x84 - 0x68]; struct X *pNext; };
+struct S : LO { char pad[0x7C - 0x50]; int startCount; struct X *pFirst; };
 void UpdateTaskSaveVars(struct X *p);
 void UpdateJobSaveVars(struct S *p);
 // Clears the start counts of the job's tasks and the job's own, and refreshes their save variables.
@@ -1249,8 +1249,8 @@ void FailJob(int job)
 } } // namespace M_func_00162E38
 
 namespace M_AbortJob { extern "C" {
-struct S { char pad[0x64]; void *startTask; };
-struct T { char pad[0x7C]; struct S *job; };
+struct S : LO { char pad[0x64 - 0x50]; void *startTask; };
+struct T : LO { char pad[0x7C - 0x50]; struct S *job; };
 extern char D_002DEB30[];
 void ResetJobTasks(struct S *p);
 void SetTaskStateCascade(void *p, int n);
@@ -1283,7 +1283,7 @@ extern "C" void CompleteJob(JOBV *job, TASKV *task)
 }
 
 namespace M_FinishJob { extern "C" {
-struct S { char pad[0x68]; void *completeTask; char pad2[0x78 - 0x6C]; int isReplay; };   /* isReplay (inferred): skip completion and autosave */
+struct S : LO { char pad[0x68 - 0x50]; void *completeTask; char pad2[0x78 - 0x6C]; int isReplay; };   /* isReplay (inferred): skip completion and autosave */
 extern char D_002DEB30[];
 extern char D_002E65E0[];
 void SetTaskStateCascade(void *p, int n);
@@ -1312,7 +1312,7 @@ static inline void SetLoFlagsInline(struct LO *plo, int bits)
     else
         plo->unknown40 = v | bits;
 }
-struct S { char pad[0xC0]; void *nextTask; char pad2[0xCC - 0xC4]; struct LO *exitObject; };
+struct S : LO { char pad[0xC0 - 0x50]; void *nextTask; char pad2[0xCC - 0xC4]; struct LO *exitObject; };
 extern char D_002E1E88[];
 int HasPendingStartupSteps(void *p);
 void RunNextStartupStep(void *p);
@@ -1335,7 +1335,7 @@ void ContinueAfterJob(struct S *job)
 } } // namespace M_func_00162FD0
 
 namespace M_UpdateJob { extern "C" {
-struct S { char pad[0xB0]; int introLabel; int outroLabel; void *completionWidget; void *widget379; void *nextTask; int completionPhase; char pad2[0xCC - 0xC8]; void *exitObject; };
+struct S : LO { char pad[0xB0 - 0x50]; int introLabel; int outroLabel; void *completionWidget; void *widget379; void *nextTask; int completionPhase; char pad2[0xCC - 0xC8]; void *exitObject; };
 enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };   /* as SetJobCompletionPhase */
 void UpdateLo(struct S *p);
 int IsWidgetAnimPlaying(void *p, int n);
@@ -1491,8 +1491,8 @@ extern "C" int IsJobComplete(JOBV *job)
 }
 
 namespace M_func_00163430 { extern "C" {
-struct X { char pad[0x54]; int state; };   /* a task */
-struct S { char pad[0x64]; struct X *startTask; struct X *completeTask; };
+struct X : LO { char pad[0x54 - 0x50]; int state; };   /* a task */
+struct S : LO { char pad[0x64 - 0x50]; struct X *startTask; struct X *completeTask; };
 // Same idiom as sly2/util.h StdMaxInt; kept local because the shared helper changes GetJobState (1/11 instructions off).
 static inline int StdMaxIntLocal(int a, int b) { return a > b ? a : b; }
 // Returns the job's state from its tasks: the start task's state while below 2, else max(end task state, 1).
@@ -1515,7 +1515,7 @@ struct CRef{
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
-struct S{char pad[0x7C];int startCount;char pad80[0x24];float elapsedTime;char padA8[0x28];OPT startCountVar,completeVar,elapsedTimeVar;};
+struct S : LO { char pad[0x7C - 0x50]; int startCount;char pad80[0x24];float elapsedTime;char padA8[0x28];OPT startCountVar,completeVar,elapsedTimeVar;};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsJobComplete(S*);
@@ -1549,7 +1549,7 @@ extern "C" void UpdateJobSaveVars(S *job)
 } // namespace M_UpdateJobSaveVars
 
 namespace M_InitTask { extern "C" {
-struct S { char pad[0x54]; int state; float stateChangeTime; int objectiveTextId; char p2[0xB8-0x60]; int warpOid; int level; int playerOid; char p3[0xF0-0xC4]; int pendingCascadeState; int stateSource; };
+struct S : LO { char pad[0x54 - 0x50]; int state; float stateChangeTime; int objectiveTextId; char p2[0xB8-0x60]; int warpOid; int level; int playerOid; char p3[0xF0-0xC4]; int pendingCascadeState; int stateSource; };
 struct G { char pad[0x3AFC]; int numTasks; };
 extern struct G D_003DD490;
 void InitLo(struct S *p);
@@ -1574,7 +1574,7 @@ public:
     int U8Read() __asm__("U8Read__18CBinaryInputStream");
     int S32Read() __asm__("S32Read__18CBinaryInputStream");
 };
-struct S { char pad[0x90]; int *prerequisiteOids; int numPrerequisites; void *prerequisites; int *followerOids; int numFollowers; void *followers; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
+struct S : LO { char pad[0x90 - 0x50]; int *prerequisiteOids; int numPrerequisites; void *prerequisites; int *followerOids; int numFollowers; void *followers; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
 extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
@@ -1632,7 +1632,7 @@ extern "C" void LoadTaskFromBrx(S *task, CBinaryInputStream *stream)
 } // namespace M_LoadTaskFromBrx
 
 namespace M_FTaskLive { extern "C" {
-struct S { char pad[0x50]; int isDisabled; char pad2[0xF4 - 0x54]; int stateSource; };
+struct S : LO { int isDisabled; char pad2[0xF4 - 0x54]; int stateSource; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 // True when the task is enabled, its state source is not 2/3 and no world transition is in progress.
@@ -1646,7 +1646,7 @@ int IsTaskLive(struct S *task)
 
 namespace M_func_00163838 { extern "C" {
 struct E { int object, context, stateMask, level; };
-struct S { char pad[0x50]; int isDisabled; char pad2[0xA8 - 0x54]; int numVisibility; struct E *visibility; };
+struct S : LO { int isDisabled; char pad2[0xA8 - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateMaskFromSplice(void *p);
 // Splice: adds a visibility record (state mask from a Splice list) to the task.
 void AddTaskStateVisibility(struct S *task, int object, void *states, int context, int level)
@@ -1663,7 +1663,7 @@ void AddTaskStateVisibility(struct S *task, int object, void *states, int contex
 
 namespace M_func_001638A0 { extern "C" {
 struct E { int state, root, stateMachine, goal, restoreOnly, level; };   /* as PostTaskLoad's E24 */
-struct S { char pad[0x50]; int isDisabled; char pad2[0xB0 - 0x54]; int numRsmgs; struct E *rsmgs; };
+struct S : LO { int isDisabled; char pad2[0xB0 - 0x54]; int numRsmgs; struct E *rsmgs; };
 // Splice: adds a state rsmg record to the task.
 void AddTaskStateRsmg(struct S *task, int state, int root, int stateMachine, int goal, int restoreOnly, int level)
 {
@@ -1795,7 +1795,7 @@ typedef char layout_S_fd0[(((unsigned)&((struct S*)0)->completionCountKey==0xd0)
 } } // namespace M_PostTaskLoad
 
 namespace M_UpdateTask { extern "C" {
-struct S { char pad[0x54]; int state; float stateChangeTime; char pad2[0x78 - 0x5C]; float timeLimit; struct S *job; LO *marker; };
+struct S : LO { char pad[0x54 - 0x50]; int state; float stateChangeTime; char pad2[0x78 - 0x5C]; float timeLimit; struct S *job; LO *marker; };
 extern struct CLOCK D_002DDED0;
 void UpdateLo(struct S *p);
 void SendTaskTimeout(struct S *p, int n);
@@ -1825,7 +1825,7 @@ void UpdateTask(struct S *task)
 } } // namespace M_UpdateTask
 
 namespace M_ActivateTask {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
+struct X : LO { char pad[0xF0 - 0x50]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
     X *job;
@@ -2036,7 +2036,7 @@ extern "C" int IsCurrentTask(TASKV *task)
 
 namespace M_FTaskComplete { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-struct S { char pad[0x54]; int state; char pad2[0xD8 - 0x58]; int completeKey; };
+struct S : LO { char pad[0x54 - 0x50]; int state; char pad2[0xD8 - 0x58]; int completeKey; };
 extern char D_003D4A60[];
 void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
@@ -2056,7 +2056,7 @@ int IsTaskComplete(struct S *task)
 } } // namespace M_FTaskComplete
 
 namespace M_OidFromTaskState { extern "C" {
-struct S { char pad[0x54]; int state; };
+struct S : LO { char pad[0x54 - 0x50]; int state; };
 // Returns the default state-machine goal oid of the task's state (0x612..0x615 for 0..3), else -1.
 int GetTaskStateGoalOid(struct S *task)
 {
@@ -2081,8 +2081,8 @@ public:
     inline StateSourceScope(X *follower, int source, int requester);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x68]; X *completeTask;
+struct X : LO {
+    char pad[0x68 - 0x50]; X *completeTask;
     char pad1[0x7C - 0x6C]; X *job;
     char pad2[0x94 - 0x80]; int numPrerequisites;
     char pad3[0xA0 - 0x98]; int numFollowers; X **followers;
@@ -2134,7 +2134,7 @@ extern "C" void VisitTaskTopo(X *task, int *count, X **order, int depth, int job
 namespace M_RestoreTaskState { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct Y;
-struct X { char pad[0x54]; int state; char pad1[0x64 - 0x58]; union { struct X *startTask; int startCount; }; char pad2[0x7C - 0x68]; union { struct X *job; int jobStartCount; }; char pad3[0x94 - 0x80]; int numPrerequisites; struct X **prerequisites; char pad4[0xE0 - 0x9C]; int stateKey; int pad5; int interruptedKey; };
+struct X : LO { char pad[0x54 - 0x50]; int state; char pad1[0x64 - 0x58]; union { struct X *startTask; int startCount; }; char pad2[0x7C - 0x68]; union { struct X *job; int jobStartCount; }; char pad3[0x94 - 0x80]; int numPrerequisites; struct X **prerequisites; char pad4[0xE0 - 0x9C]; int stateKey; int pad5; int interruptedKey; };
 extern char D_003D4A60[];
 void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
@@ -2195,7 +2195,7 @@ struct CRef {
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
-struct S{char pad[0x54];int state;char pad58[0xC];int startCount,completionCount;char pad6C[0x10];void*job;char pad80[0x48];OPT startCountVar,completionCountVar,completeVar,stateVar,interruptedVar;int pendingCascadeState,stateSource;};
+struct S : LO { char pad[0x54 - 0x50]; int state;char pad58[0xC];int startCount,completionCount;char pad6C[0x10];void*job;char pad80[0x48];OPT startCountVar,completionCountVar,completeVar,stateVar,interruptedVar;int pendingCascadeState,stateSource;};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsTaskComplete(S*);
@@ -2244,8 +2244,8 @@ extern "C" void UpdateTaskSaveVars(S *task)
 } // namespace M_UpdateTaskSaveVars
 
 namespace M_FTaskPrereqsMet { extern "C" {
-struct X { char pad[0x54]; int state; char pad2[0x6C - 0x58]; int isOptional; };
-struct S { char pad[0x94]; int numPrerequisites; struct X **prerequisites; };
+struct X : LO { char pad[0x54 - 0x50]; int state; char pad2[0x6C - 0x58]; int isOptional; };
+struct S : LO { char pad[0x94 - 0x50]; int numPrerequisites; struct X **prerequisites; };
 // True when every prerequisite is complete or optional and available.
 int AreTaskPrereqsMet(struct S *task)
 {
@@ -2273,8 +2273,8 @@ public:
     inline StateSourceScope(X *px, int source, int requester, int isJob);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x54]; int state;
+struct X : LO {
+    char pad[0x54 - 0x50]; int state;
     char pad1[0x7C - 0x58]; X *job;
     char pad2[0xF0 - 0x80]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
 };
@@ -2387,8 +2387,8 @@ public:
     inline StateSourceScope(X *px, int source, int requester, int isJob);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x54]; int state;
+struct X : LO {
+    char pad[0x54 - 0x50]; int state;
     char pad1[0x7C - 0x58]; X *job;
     char pad2[0xF0 - 0x80]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
 };
@@ -2458,7 +2458,7 @@ extern "C" void ForceTaskState(X *task, int newState, int requester)
 } // namespace M_ForceTaskState
 
 namespace M_UpdateCurrentJob { extern "C" {
-struct X { char pad[0x64]; void *startTask; void *completeTask; };
+struct X : LO { char pad[0x64 - 0x50]; void *startTask; void *completeTask; };
 struct G { char pad[0x3B0C]; struct X *currentJob; };
 extern struct G D_003DD490;
 int FindSwObjectsByClass(struct G *pg, int kind, int n, int m, int c, void **apv);
@@ -2487,7 +2487,7 @@ void UpdateCurrentJob(void)
 } } // namespace M_UpdateCurrentJob
 
 namespace M_func_00164AA8 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
+struct X : LO { char pad[0xF0 - 0x50]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
     X *job;
@@ -2529,7 +2529,7 @@ extern "C" void ForceTaskState0(X *task)
 } // namespace M_func_00164AA8
 
 namespace M_func_00164B38 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
+struct X : LO { char pad[0xF0 - 0x50]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
     X *job;
@@ -2571,7 +2571,7 @@ extern "C" void ForceTaskState1(X *task)
 } // namespace M_func_00164B38
 
 namespace M_func_00164BC8 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
+struct X : LO { char pad[0xF0 - 0x50]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
     X *job;
@@ -2613,7 +2613,7 @@ extern "C" void ForceTaskState2(X *task)
 } // namespace M_func_00164BC8
 
 namespace M_func_00164C58 {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
+struct X : LO { char pad[0xF0 - 0x50]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
     X *job;
@@ -2656,8 +2656,8 @@ extern "C" void ForceTaskState3(X *task)
 
 namespace M_CollectTaskCascade { extern "C" {
 struct X;
-struct Y { char pad[0x78]; int isReplay; };
-struct X { char pad[0x54]; int state; char pad2[0x7C - 0x58]; struct Y *job; char pad3[0x94 - 0x80]; int numFollowers; struct X **followers; char pad4[0xF0 - 0x9C]; int pendingCascadeState; };
+struct Y : LO { char pad[0x78 - 0x50]; int isReplay; };
+struct X : LO { char pad[0x54 - 0x50]; int state; char pad2[0x7C - 0x58]; struct Y *job; char pad3[0x94 - 0x80]; int numFollowers; struct X **followers; char pad4[0xF0 - 0x9C]; int pendingCascadeState; };
 // Collects the successors whose state must be raised along with the task (state 2 becomes 3 across jobs).
 void CollectTaskCascade(struct X *task, int newState, int *count, struct X **collected)
 {
@@ -2680,14 +2680,14 @@ void CollectTaskCascade(struct X *task, int newState, int *count, struct X **col
 } } // namespace M_CollectTaskCascade
 
 namespace M_SetTaskStateCascade {
-struct P {
-    char pad[0x54]; int state;
+struct P : LO {
+    char pad[0x54 - 0x50]; int state;
     char pad58[0x24]; void *job;
     char pad80[0x14]; int numPrerequisites;
     char pad98[8]; int numFollowers; P **followers;
     char padA8[0x48]; int pendingCascadeState; int stateSource, stateRequester;
 };
-struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
+struct CONTEXT : LO { char pad[0xF0 - 0x50]; int stateSource,stateRequester;};
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 struct G{char pad[0x3B7C];void*episodePercentVars[9];};
 struct CRef;
@@ -2983,8 +2983,8 @@ public:
     inline StateSourceScope(X *px, int source, int requester, int isJob);
     inline ~StateSourceScope();
 };
-struct X {
-    char pad[0x54]; int state;
+struct X : LO {
+    char pad[0x54 - 0x50]; int state;
     char pad1[0x7C - 0x58]; X *job;
     char pad2[0xB8 - 0x80]; int warpOid; int level; int playerOid;
     char pad3[0xF0 - 0xC4]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
@@ -3194,7 +3194,7 @@ extern "C" void SetTaskState(O *task, int n)
 #define D_002DEB44 (*(int *)((char *)base_D_002DEB30 + 0x14))   /* g_game+0x14 */
 
 namespace M_SetTaskStatePropagate {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
+struct X : LO { char pad[0xF0 - 0x50]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
     X *job;
@@ -3224,7 +3224,7 @@ public:
         }
     }
 };
-struct S { char pad[0x54]; int state; char pad2[0xA0 - 0x58]; int numFollowers; X **followers; char pad3[0xF4 - 0xA8]; int stateSource; int stateRequester; };
+struct S : LO { char pad[0x54 - 0x50]; int state; char pad2[0xA0 - 0x58]; int numFollowers; X **followers; char pad3[0xF4 - 0xA8]; int stateSource; int stateRequester; };
 extern "C" void SetTaskState(S *task, int state);
 extern "C" void RecomputeTaskState(X *follower, int n);
 // SetTaskState, then recomputes each successor.
@@ -3242,8 +3242,8 @@ extern "C" void SetTaskStatePropagate(S *task, int newState)
 } // namespace M_SetTaskStatePropagate
 
 namespace M_RecomputeTaskState { extern "C" {
-struct Y { char pad[0x54]; int state; };
-struct X { char pad[0x54]; int state; char pad2[0x94 - 0x58]; int numPrerequisites; struct Y **prerequisites; char pad3[0xF0 - 0x9C]; int pendingCascadeState; };
+struct Y : LO { char pad[0x54 - 0x50]; int state; };
+struct X : LO { char pad[0x54 - 0x50]; int state; char pad2[0x94 - 0x58]; int numPrerequisites; struct Y **prerequisites; char pad3[0xF0 - 0x9C]; int pendingCascadeState; };
 void SetTaskStatePropagate(struct X *task, int state);
 // Derives a successor's state from its prerequisites (locked until all are complete, then available).
 void RecomputeTaskState(struct X *task, int prerequisiteState)
@@ -3298,7 +3298,7 @@ int CompareTasks(struct X **ppx1, struct X **ppx2)
 
 namespace M_SortTasksTopologically {
 struct ALLOCREQ { int cb; int nKind; };
-struct X { char pad[0x94]; int numPrerequisites; char pad2[0xFC - 0x98]; int visitCount; };
+struct X : LO { char pad[0x94 - 0x50]; int numPrerequisites; char pad2[0xFC - 0x98]; int visitCount; };
 struct G { char pad[0x3AFC]; int numTasks; };
 extern "C" { extern G D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
