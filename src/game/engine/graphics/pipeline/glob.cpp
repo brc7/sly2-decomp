@@ -446,7 +446,7 @@ extern "C" void AddWrWarpGroup(LO *plo, X *px);
 extern "C" void BindGlobset(S *p)
 {
     if (p->unknown4C != -1)
-        p->unknown4C = g_sw.unknown3D5C;
+        p->unknown4C = g_sw.relightStamp;
     for (int i = 0; i < p->cgrp; i++) {
         HDR *phdr = &p->ahdr[i];
         GRP *pgrp = &p->agrp[i];
@@ -862,7 +862,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
         prpl->pad4 = 0;
         prpl->chain = descriptor->chain;
     }
-    p->tick = D_003DD490.unknown3D5C;
+    p->tick = D_003DD490.relightStamp;
 }
 } // namespace M_SubmitGlobsetRelight
 
@@ -1372,7 +1372,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     if (gVis == 0.0f)
         return;
     pmodel->t = D_002DDED0.time;
-    if (pmodel->nStamp != D_003DD490.unknown3D5C)
+    if (pmodel->nStamp != D_003DD490.relightStamp)
         SubmitGlobsetRelight(pmodel);
     int i;
     for (i = 0; i < pmodel->cobj; i++)
@@ -3617,7 +3617,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
     }
     if (pclutset != 0)
-        pglobset->unknown4C = g_sw.unknown3D5C;
+        pglobset->unknown4C = g_sw.relightStamp;
     pglob->iUnkEnd = D_003DA790;
     RelocateShaderUploadRecords(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
     if (pglob->pwrbg != 0)

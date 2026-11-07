@@ -4344,7 +4344,7 @@ void SetSoBit35Hierarchy(struct L *so, long f)
     struct L *q;
     if (f != so->bit35) {
         so->bit35 = f;
-        if (D_003DD490.unknown3E5C) {
+        if (D_003DD490.pblockRender) {
             if (f) AddLoToRenderTree(so);
             else RemoveLoFromRenderTree(so);
         }

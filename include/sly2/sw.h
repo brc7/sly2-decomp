@@ -166,7 +166,8 @@ struct SW : public BASIC
       DL dlSoTreeQueue2;    /* +0x3D34 [S] the dirty SOTREEs (sensor.cpp appends a beam's tree after moving it) */
       SLOTHEAP slotheapXp;   /* contact point records */
       int transformStamp; /* frame stamp compared with XF::worldStamp */
-      int unknown3D5C;
+      int relightStamp;    /* +0x3D5C bumped when the world's lighting changes; models and scenes keep a copy and re-light
+                              when it differs (light.cpp, render.cpp, glob.cpp, tu_1D57A8.cpp CullSceneRenderList); was unknown3D5C */
       int frameCounter;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
       uint32_t   _pad_256    [ 1 ] ;
       int stimulusSerial;    /* serial number of the last stimulus (inferred) */
@@ -194,7 +195,8 @@ struct SW : public BASIC
       uint32_t   _pad_279    [ 1 ] ;
       int unknown3E40;      /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
       SLOTHEAP slotheapSobounds;   /* SO bounds records */
-      void *unknown3E5C;
+      struct RENDERBLOCK *pblockRender; /* +0x3E5C root block of the level's render tree (tu_1D57A8.cpp InsertRenderEntry);
+                                          was unknown3E5C */
       CID116 *pcid116Fade;   /* the screen fade object (CID116, inferred) */
       float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp BuildWorldBackgroundImage); was _pad_283 */
       float aclrShdLight[3][4]; /* +0x3E70 [S] draft name: three user HSV colours converted by ConvertUserHsvToUserRgb (same function) */
@@ -323,6 +325,8 @@ typedef char assert_SW_numCluesCollected[SLY2_OFFSETOF(SW, numCluesCollected) ==
 typedef char assert_SW_dlTaskActive[SLY2_OFFSETOF(SW, dlTaskActive) == 0x3B00 ? 1 : -1];
 typedef char assert_SW_dlWidgetExclusive[SLY2_OFFSETOF(SW, dlWidgetExclusive) == 0x3BD0 ? 1 : -1];
 typedef char assert_SW_slWidgetDeferred[SLY2_OFFSETOF(SW, slWidgetDeferred) == 0x3BDC ? 1 : -1];
+typedef char assert_SW_relightStamp[SLY2_OFFSETOF(SW, relightStamp) == 0x3D5C ? 1 : -1];
+typedef char assert_SW_pblockRender[SLY2_OFFSETOF(SW, pblockRender) == 0x3E5C ? 1 : -1];
 typedef char assert_SW_unknown3E40[SLY2_OFFSETOF(SW, unknown3E40) == 0x3E40 ? 1 : -1];
 typedef char assert_SW_agShdLight[SLY2_OFFSETOF(SW, agShdLight) == 0x3E64 ? 1 : -1];
 typedef char assert_SW_aclrShdLight[SLY2_OFFSETOF(SW, aclrShdLight) == 0x3E70 ? 1 : -1];
