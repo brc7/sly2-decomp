@@ -634,13 +634,7 @@ extern "C" int CompareSaves__FP4SAVET0(SAVEINFO *psi0, SAVEINFO *psi1)
 }
 
 namespace M_SetSaveState {
-struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-struct CRef {
-    int m_tagk; union { int n; float g; void *pv; } u;
-    CRef(const CRef &) __asm__("__4CRefRC4CRef");
-    ~CRef() { Decref__4CRef(this); }
-};
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct SLOT { char pad[0x5408]; char info[0x5C]; };   /* SAVEINFO at +0x5408 */
 struct THR;
@@ -1758,17 +1752,8 @@ namespace M_func_001ACFE0 {
 // SetPv receives the context at the call site (evaluated before the CRef copy) but its body names
 // D_003D4A60 again after the copy. That is what puts `lui a3` after the copy ctor yet keeps a3's low half
 // ahead of the a2 setup (the scheduler boosts insns that set a register exactly once in the function).
-class CRef;
 extern "C" void Decref__4CRef(CRef *pref);                       // ~CRef
 extern "C" CRef *__4CRefRC4CRef(CRef *, const CRef *);            // CRef copy ctor, returns this
-class CRef {
-public:
-    int m_tagk;
-    int m_tag;
-    CRef(bool f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &ref) { __4CRefRC4CRef(this, &ref); }
-    ~CRef() { Decref__4CRef(this); }
-};
 class O;
 struct S { char pad[0x40]; int state; int phase; float tPhase; int followUpAction; };   // the memcard dialog
 extern "C" {
@@ -1993,9 +1978,7 @@ void SelectSaveSlotToSave(struct S *item)
 extern SAVE D_002E65E0;
 
 namespace M_func_001AD538 {
-struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-struct CRef { int m_tagk; float m_tag; CRef(const CRef &) __asm__("__4CRefRC4CRef"); ~CRef() { Decref__4CRef(this); } };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; };
 struct GD { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw */
@@ -2013,7 +1996,7 @@ void SetMcDialogPhase(void *p, int n);
 int GetPauseMenuTopPageId(void *g);
 }
 CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
-static inline float EvalSaveVar(int saveVar, void *slot) { return Eval(saveVar, slot).m_tag; }
+static inline float EvalSaveVar(int saveVar, void *slot) { return Eval(saveVar, slot).u.g; }
 // Menu hook: re-evaluates the three slots' Splice values and updates their entries.
 extern "C" void UpdateSaveMenuSlots(void)
 {

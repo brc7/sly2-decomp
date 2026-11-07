@@ -1681,13 +1681,6 @@ float RandomFloatInRange__Fff(float a, float b);
 void sprintf(char *buf, const char *fmt, ...);
 void SetDprizeDprizes(void *p, int n);
 }
-struct CRef {
-    int m_tagk; int m_tag;
-    CRef() { m_tagk = -1; }
-    CRef(int k, int n) { m_tagk = k; m_tag = n; }
-    ~CRef() { Decref__4CRef(this); }
-    CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
-};
 struct LOOTENTRY { int id; int saveId; };
 struct LO { char pad[0xC]; VTE *vt; };
 struct S {
@@ -1717,7 +1710,7 @@ void SetLootDprizes(S *loot, int n)
         char buf[0x10];
         sprintf(buf, D_002A7768, loot->currentEntry->saveId);
         ref = GetSaveVarByName(D_002A7770, D_002A7778, buf, 0);
-        SetSaveVarByName(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
+        SetSaveVarByName(CRef(ref.u.n + 1, 0x15), D_002A7770, D_002A7778, buf, 0);
         LO *plo = loot->collectListener;
         if (plo) {
             M m;
@@ -1882,13 +1875,6 @@ void *GetClueSaveKey(int n);
 int CountCollectedClues(void);
 void SetClueCollected(int n, int f);
 }
-struct CRef {
-    int m_tagk; int m_tag;
-    CRef() {}
-    CRef(int f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
-    ~CRef() { Decref__4CRef(this); }
-};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" { 
  }
@@ -2137,29 +2123,21 @@ void *__4CRefRC4CRef(void *p, const void *q);
 void *GetVaultSaveKey(void);
 void AutosaveGame(void *p, int n);
 }
-struct CRef {
-    int m_tagk; int m_tag;
-    CRef() {}
-    CRef(int f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
-    ~CRef() { Decref__4CRef(this); }
-};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" { 
 extern char D_002E65E0[];
  }
 
 extern "C" CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p);
-struct RAW { int m_tagk; int m_tag; };
-extern "C" RAW *GetGlobalSaveVar(RAW *pr, void *pv, void *p);
+extern "C" CRefData *GetGlobalSaveVar(CRefData *pr, void *pv, void *p);
 // Helpers NFromPv, SetPv (small asm wrappers/accessors shaped for the match).
-static inline int NFromPv(void *pv,RAW &ref) { int n; GetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
+static inline int NFromPv(void *pv,CRefData &ref) { int n; GetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.u.n;Decref__4CRef(&ref);return n; }
 static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=SetGlobalSaveVar(pv,arg,D_003D4A60); }
 extern "C" void SetVaultOpened(int f);
 // Records in the save whether the current level's vault is open. (inferred)
 void SetVaultOpened(int f)
 {
-    STACKSCOPE frame; RAW ref;
+    STACKSCOPE frame; CRefData ref;
     void *pv = GetVaultSaveKey();
     if (!pv) return;
     if (f) {
