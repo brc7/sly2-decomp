@@ -117,6 +117,31 @@ struct EMITO
 };
 typedef char assert_EMITO_size[sizeof(EMITO) == 0x40 ? 1 : -1];
 
+/* EMITVEL: how particles move (EMITB+0x50, 0x70 bytes; Sly 1's EMITV, renamed here because EMITV names the
+   particle record in the accessors' mangled names; defaults D_002DE5F0 in emitter.cpp) */
+struct EMITVEL
+{
+    LM lmSpeed;             /* +0x00 speed range */
+    float damping;          /* +0x08 velocity damping (default -1) */
+    float zSpeedRatio;      /* +0x0C the emission direction's component is scaled by it (ChooseEmitvVelocityAge) */
+    qword addedVelocity;    /* +0x10 added to every particle's velocity (default 0, 0, -1500: gravity) */
+    qword curlAxis;         /* +0x20 */
+    float curlRate;         /* +0x30 */
+    int particlesPerRing;   /* +0x34 */
+    float randomRadius;     /* +0x38 jitter of the direction grid, in cells */
+    float lifetime;         /* +0x3C particle lifetime */
+    LM lmTilt;              /* +0x40 tilt range (radians) */
+    LM lmPush;              /* +0x48 seconds of motion applied at birth (pre-advanced particles) */
+    LM lmAge;               /* +0x50 how long ago a particle was born */
+    char pad58[0x60 - 0x58];
+    union
+    {
+        qword alpha;        /* +0x60 alpha over the particle's life (copied whole into each rip) */
+        EMITCLQ alphaCurve; /* +0x60 its coefficients */
+    };
+};
+typedef char assert_EMITVEL_size[sizeof(EMITVEL) == 0x70 ? 1 : -1];
+
 /* EMITB: the emitter block. +0x10..+0x4F is the origin record (Sly 1's EMITO; the defaults D_002DE5B0 in
    emitter.cpp), +0x50..+0xBF the velocity record (Sly 1's EMITV; defaults D_002DE5F0), +0xC0 the particle record
    (EMITV below: blip or rip parameters by particleKind). Only the fields the code reads are named. */
@@ -129,31 +154,12 @@ struct EMITB
                                indexed by EMITREF) */
     char pad0C[4];
     EMITO emito;            /* +0x10 the origin record */
-    /* +0x50: the velocity record */
-    LM lmSpeed;             /* +0x50 speed range */
-    float damping;          /* +0x58 velocity damping (default -1) */
-    float zSpeedRatio;      /* +0x5C the emission direction's component is scaled by it (ChooseEmitvVelocityAge) */
-    qword addedVelocity;    /* +0x60 added to every particle's velocity (default 0, 0, -1500: gravity) */
-    qword curlAxis;         /* +0x70 */
-    float curlRate;         /* +0x80 */
-    int particlesPerRing;   /* +0x84 */
-    float randomRadius;     /* +0x88 */
-    float lifetime;         /* +0x8C particle lifetime */
-    LM lmTilt;              /* +0x90 tilt range (radians) */
-    LM lmPush;              /* +0x98 random push along the velocity */
-    LM lmAge;               /* +0xA0 how long ago a particle was born */
-    char padA8[0xB0 - 0xA8];
-    union
-    {
-        qword alpha;        /* +0xB0 alpha over the particle's life (copied whole into each rip) */
-        EMITCLQ alphaCurve; /* +0xB0 its coefficients */
-    };
+    EMITVEL vel;            /* +0x50 the velocity record */
     EMITV v;                /* +0xC0 the particle record (see EMITV) */
 };
 typedef char assert_EMITB_v[SLY2_OFFSETOF(EMITB, v) == 0xC0 ? 1 : -1];
 typedef char assert_EMITB_emito[SLY2_OFFSETOF(EMITB, emito) == 0x10 ? 1 : -1];
-typedef char assert_EMITB_alpha[SLY2_OFFSETOF(EMITB, alpha) == 0xB0 ? 1 : -1];
-typedef char assert_EMITB_particlesPerRing[SLY2_OFFSETOF(EMITB, particlesPerRing) == 0x84 ? 1 : -1];
+typedef char assert_EMITB_vel[SLY2_OFFSETOF(EMITB, vel) == 0x50 ? 1 : -1];
 
 /* EMITTER: a particle emitter placed in a level: emits particles (RIPG) or sprites (BLIPG) at a rate, configured
    through its shared EMITB block. */

@@ -1189,32 +1189,21 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
 namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-/* the velocity record (EMITDEF::EMITV); passed on as the speed LM (its first two floats) */
-struct P {
-    char pad[0xC];
-    float zSpeedRatio;          /* +0x0C */
-    char pad1[0x38 - 0x10];
-    float randomRadius;         /* +0x38 jitter of the direction grid, in cells */
-    float lifetime;             /* +0x3C */
-    char pad2[0x48 - 0x40];
-    float skipMin, skipMax;     /* +0x48 seconds of motion applied at birth (pre-advanced particles) */
-    float birthMin, birthMax;   /* +0x50 how long ago the particle was born */
-};
 extern struct CLOCK D_002DDED0;
-void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, struct P *plm, qword *pv, int n, qword *pvOut);
+void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, EMITVEL *plm, qword *pv, int n, qword *pvOut);   /* the record starts with the speed LM */
 float RandomFloatInRange__Fff(float a, float b);
 
 // Chooses particle `index`'s velocity (ChooseEmitVelocity over the speed range) and its birth / death times; a
 // nonzero skip moves the position along the velocity, as if the particle had already been flying that long.
-void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(struct P *emitv, void *pemitvx, int unused, int index, qword *ppos, qword *pv, qword *pvel, float *ptBirth, float *ptDeath)
+void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *emitv, void *pemitvx, int unused, int index, qword *ppos, qword *pv, qword *pvel, float *ptBirth, float *ptDeath)
 {
     float birthTime, skip;
     ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(pemitvx, emitv->randomRadius, emitv->zSpeedRatio, emitv, pv, index, pvel);
     birthTime = D_002DDED0.time;
-    birthTime = birthTime - RandomFloatInRange__Fff(emitv->birthMin, emitv->birthMax);
+    birthTime = birthTime - RandomFloatInRange__Fff(emitv->lmAge.minValue, emitv->lmAge.maxValue);
     *ptBirth = birthTime;
     *ptDeath = birthTime + emitv->lifetime;
-    skip = RandomFloatInRange__Fff(emitv->skipMin, emitv->skipMax);
+    skip = RandomFloatInRange__Fff(emitv->lmPush.minValue, emitv->lmPush.maxValue);
     if (skip != 0.0f) {
         U u;
         qword r;
@@ -1304,7 +1293,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *em
         rip->velocity = velocities[i];
         rip->birthTime = birthTimes[i];
         rip->duration = deathTimes[i] - birthTimes[i];
-        rip->alpha = emitb->alpha;
+        rip->alpha = emitb->vel.alpha;
         SetEmitdvEmitb__FP6EMITDVP5EMITB(rip->emitdv, emitb);
         rip->renderObject = (int)emitb->aploRef[EMITREF_Render];
         if (emitb->aploRef[EMITREF_Reference])
@@ -1466,11 +1455,11 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
     gen->atBirth = (float *)PvAlloc(c * 4, 16);
     gen->atDeath = (float *)PvAlloc(c * 4, 16);
     EMITVX vx;
-    CalculateEmitvx__FiP2LMiP6EMITVX(emitb->particlesPerRing, &emitb->lmTilt, c, &vx);
+    CalculateEmitvx__FiP2LMiP6EMITVX(emitb->vel.particlesPerRing, &emitb->vel.lmTilt, c, &vx);
     for (int i = 0; i < c; i++) {
         union { qword q; float f[4]; } normal;
         ChooseEmitoPos__FP5EMITOiiP6VECTORT3(emitb, i, c, &gen->apos[i], &normal.q);
-        ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(&emitb->lmSpeed /* the velocity record */, &vx, &emitb->emito, i, &gen->apos[i], &normal.q, &gen->av[i], &gen->atBirth[i], &gen->atDeath[i]);
+        ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(&emitb->vel, &vx, &emitb->emito, i, &gen->apos[i], &normal.q, &gen->av[i], &gen->atBirth[i], &gen->atDeath[i]);
         XF *pxf = (XF *)emitb->emito.pxfOrigin;   /* this TU's XF view */
         if (pxf) {
             {
@@ -1684,10 +1673,10 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
 // Copies an EMITB's particle motion parameters into an EMITDV (the curl axis normalized, +z if degenerate).
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, EMITB *emitb)
 {
-    emitdv->addedVelocity = emitb->addedVelocity;
-    VNormalize(&emitdv->curlAxis, emitb->curlAxis, D_002A2DC0);
-    emitdv->curlRate = emitb->curlRate;
-    emitdv->damping = emitb->damping;
+    emitdv->addedVelocity = emitb->vel.addedVelocity;
+    VNormalize(&emitdv->curlAxis, emitb->vel.curlAxis, D_002A2DC0);
+    emitdv->curlRate = emitb->vel.curlRate;
+    emitdv->damping = emitb->vel.damping;
 }
 } } // namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB
 
@@ -2048,8 +2037,8 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
         if (!(maxCount < count))
             count = maxCount;
         speedScale = ClampToLimits__FP2LMf(D_002BDEC0, scale);
-        emitb.lmSpeed.minValue *= speedScale;
-        emitb.lmSpeed.maxValue *= speedScale;
+        emitb.vel.lmSpeed.minValue *= speedScale;
+        emitb.vel.lmSpeed.maxValue *= speedScale;
         { float h = 0.5f; scale = (h < scale) ? scale : h; }
         VECTOR_opAssign((qword *)&emitb.v.scale, __ml__FG8VU_FLOATG9VU_VECTOR(func_00256CE8(scale).q, __9VU_VECTORRC6VECTOR((qword *)&emitb.v.scale).q));
     }

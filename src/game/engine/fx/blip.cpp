@@ -400,15 +400,15 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITB *emitb)
         if (emitb->v.shaderLoopTime != 0.0f)
             blipGroup->frameRate = (float)n / emitb->v.shaderLoopTime;
         else
-            blipGroup->frameRate = (float)n / emitb->lifetime;
+            blipGroup->frameRate = (float)n / emitb->vel.lifetime;
     }
-    PrescaleClq((CLQ *)&emitb->alphaCurve, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
-    PrescaleClq((CLQ *)&emitb->v.scale, 1.0f / emitb->lifetime, 0.0f, (CLQ *)&blipGroup->poly);
+    PrescaleClq((CLQ *)&emitb->vel.alphaCurve, 1.0f / emitb->vel.lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
+    PrescaleClq((CLQ *)&emitb->v.scale, 1.0f / emitb->vel.lifetime, 0.0f, (CLQ *)&blipGroup->poly);
     if (blipGroup->poly.b == 0.0f && blipGroup->poly.c == 0.0f) {
         blipGroup->maxSize = __builtin_fabsf(blipGroup->poly.a);
     } else {
         float ag[3];
-        float t = emitb->lifetime;
+        float t = emitb->vel.lifetime;
         ag[0] = blipGroup->poly.a;
         ag[1] = 0.0f;
         ag[2] = GEval(&blipGroup->poly, t);
@@ -420,14 +420,14 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITB *emitb)
         blipGroup->maxSize = Max3(__builtin_fabsf(ag[0]), __builtin_fabsf(ag[1]), __builtin_fabsf(ag[2]));
     }
     f = 0;
-    g = emitb->lifetime;
+    g = emitb->vel.lifetime;
     InitS(g, &blipGroup->lifeParams);
     {
     int kC4 = emitb->v.motionKind;
     blipGroup->motionKind = kC4;
     if (!kC4) {
-        int fNear = FVecsNear(D_002A2DD0, emitb->addedVelocity);
-        if (fNear && emitb->damping == 0.0f && emitb->curlRate == 0.0f)
+        int fNear = FVecsNear(D_002A2DD0, emitb->vel.addedVelocity);
+        if (fNear && emitb->vel.damping == 0.0f && emitb->vel.curlRate == 0.0f)
             f = 1;
     }
     }
