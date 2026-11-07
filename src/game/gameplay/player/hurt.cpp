@@ -73,7 +73,6 @@ typedef int qword __attribute__((mode(TI)));
 // Zero the xyz words.
 union U{float f[4];qword q;int bits[4];void Clear(){bits[0]=bits[1]=bits[2]=0;}};   // floats first: U globals are initialized
 struct VE{short delta,pad;void(*fn)();};
-struct ASEGA{char pad[12];VE*vt;};
 struct ASEG;
 struct COMPONENT;
 struct CONTROL{char pad[0x18];float yaw;};
@@ -194,7 +193,6 @@ typedef char int_Size[sizeof(int)==4?1:-1];
 typedef char float_Size[sizeof(float)==4?1:-1];
 typedef char pointer_Size[sizeof(void*)==4?1:-1];
 typedef char short_Size[sizeof(short)==2?1:-1];
-typedef char ASEGA_Prefix_Size[sizeof(ASEGA)==0x10?1:-1];
 typedef char CONTROL_Prefix_Size[sizeof(CONTROL)==0x1C?1:-1];
 typedef char VALUE_Prefix_Size[sizeof(VALUE)==0x30?1:-1];
 typedef char INNER_Prefix_Size[sizeof(INNER)==0x64?1:-1];
