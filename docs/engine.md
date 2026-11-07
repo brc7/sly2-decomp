@@ -32,7 +32,7 @@ purpose is a hypothesis until a verifier, a runtime check or a structural fact b
 `(inferred)`.
 
 Conventions: "slot N" / `vtN` is C++ virtual slot N. gcc 2.95 vtable entries are 8 bytes `{s16 delta; s16 pad; void
-*pfn}` and slot 0 is a null header. CID numbers are hex (`CID 0x47`) or decimal placeholders (`CID71`, `BHV171`) for
+*pfn}` and slot 0 is a null header. CID numbers are hex (`CID 0x47`) or decimal placeholders (`CID148`, `BHV171`) for
 classes whose Sucker Punch name is unknown.
 
 ## 2. The shape of the program

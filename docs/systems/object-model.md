@@ -52,7 +52,7 @@ Each class has a numeric class id (`CID`) and a descriptor:
   from the world heap) and run the inline constructor, which stores the vtable. Abstract and embedded classes have no
   factory.
 - **Descriptor getters** `Get<Class>ClassDesc` return the class's table entry; they sit in vtable slot 6
-  (`Pclassinfo`) of every class, so `plo->Pclassinfo()->cid` is the runtime type.
+  (`GetClassInfo`) of every class, so `plo->GetClassInfo()->cid` is the runtime type.
 - Factories, getters, the Splice binding thunks and the option tables all belong to one translation unit, the crt0
   block, which is why they live together in `app/class_registry.cpp` (with `class_registry_options.inc` and the
   generated wrappers in `src/generated/splicewrap/`).
@@ -72,11 +72,11 @@ streams, camera policies, particles) put their vptr elsewhere.
 
 **Slot numbering.** A gcc 2.95 vtable entry is `{short delta; short pad; function}` and entry 0 is a null header, so
 "slot N" means entry N. The code's comments, the `LO_SLOT_*` enum in `lo.cpp` and the hand-made calls in m2c views
-(`object->vt[N]`) all use this numbering. The `VUnkNN` member names in `lo.h` and `task.h` are not slot numbers (they
-are one lower); trust the asm label on the declaration.
+(`object->vt[N]`) all use this numbering; the headers mark it on each declaration (`/* slot N */`), and the asm label
+on a declaration names the function that fills the slot.
 
-**BASIC's slots**: 1 and 2 empty defaults (role unknown); 3 `HandleSpliceEvent`; 4 `SendMessage`; 5 `HandleMessage`;
-6 `Pclassinfo`.
+**BASIC's slots**: 1 and 2 empty defaults (`AddRef` / `Release` in basic.h; role unknown); 3 `HandleSpliceEvent`;
+4 `SendMessage`; 5 `HandleMessage`; 6 `GetClassInfo`.
 
 **LO's slots** (they keep their meaning in every LO subclass; a subclass appends its own after the last LO slot):
 
@@ -87,8 +87,8 @@ are one lower); trust the asm label on the declaration.
 - 14 `LoadFromBrx` (`LoadLoFromBrx`); 15 post-load (`PostLoLoad`); 16 per-frame update (`UpdateLo`); 17 inherits a flag
   from the parent (`InheritLoFlag4`);
 - 19 `RenderSelf` (empty for LO); 20 render-all;
-- **22 / 23 `OnLoRemove` / `OnLoAdd`**: the object stops / starts being live (lo.h declares them as `Freeze` /
-  `Unfreeze`, Sly 1's names for the same pair);
+- **22 / 23 `OnLoRemove` / `OnLoAdd`**: the object stops / starts being live (lo.h declares them as `OnRemove` /
+  `OnAdd`; Sly 1 called the pair Freeze / Unfreeze);
 - 25 `SetIdProxy`; 26 reset-for-proxy (run when a spare proxy copy is placed); 28 child list (`LO_GetChildren`);
 - 29 / 30 / 31 `TranslateToPos` / `RotateToMat` / world matrix; 33-36 velocity and angular velocity get/set;
 - 40 / 41 `CloneHierarchy` / `Clone`; 42 set busy distance; 46 `SetVisMask`; 47 / 48 set / clear flags.

@@ -170,11 +170,11 @@ called from the owner's slot 70, and sometimes an `UpdateJtInternalXps*` constra
   `UpdateJtActivePipe` (stick to climb speed), `PresetJtAccelPipe`, and the constraint `UpdateJtInternalXpsPipe` that
   keeps the hero on the pipe.
 - **Hurt** (`JTHURT`, `hurt.cpp`): damage in and the hurt state machine. `TakeStepplayerDamage` (slot 75) forwards to
-  `TakeJtDamage`, which lets the owner veto (`ShouldStepplayerVetoDamage`), filters by zap kind, scales by difficulty,
-  decrements HP, broadcasts the game event, plays the hit clip and sound and starts knock-back
-  (`StartJtKnockback`). `SetJtHurtState` runs the sub-states including the death states; when the hurt animation ends a
-  stored callback runs (`SetJtHurtCallback` / `RunJtHurtCallback`), for example returning the hero to a safe place.
-  `IsJtInvulnerable` and `IsStepplayerInvulnerable` filter zaps (hands-off, cheat, state-dependent kinds).
+  `TakeJtDamage`, which lets the owner veto (`ShouldJtVetoDamage`: the owner's slot 86, `IsZapLethal`), filters by zap
+  kind, scales by difficulty, decrements HP, broadcasts the game event, plays the hit clip and sound and starts
+  knock-back (`StartJtKnockback`). `SetJtHurtState` runs the sub-states including the death states; when the hurt
+  animation ends a stored callback runs (`SetJtHurtCallback` / `RunJtHurtCallback`), for example returning the hero to a
+  safe place. `IsJtInvulnerable` and `IsStepplayerInvulnerable` filter zaps (hands-off, cheat, state-dependent kinds).
   `UpdateStepplayerWater` inflicts drowning/hazard damage when the hero is inside a hazard volume.
 - **Places** (`JTPLACES`, `places.cpp`): remembers recent safe footholds (`UpdateJtPlaces`) and puts the hero back on
   the best one after a fall or hazard (`ReturnJtToSafePlace`, `ReturnJtToPosition`); `RemoveSwPlacesOf` forgets places
@@ -236,16 +236,16 @@ generic player states 5 and 6) and controller hand-off (`SetCtlState` on another
 ## 9. Gadgets, HP and MP
 
 - STEPPLAYER has three gadget slots (`GADGETSLOT`: gadget id, state, time). `UpdateStepplayerGadgets` runs per frame:
-  on a buffered press of the slot's button it asks the hero's slot 99 (`FCanUseGadget`) and checks the gadget's MP
+  on a buffered press of the slot's button it asks the hero's slot 99 (`CanUseGadget`) and checks the gadget's MP
   cost against the current MP; failure plays the error sound, success moves the slot to the gadget's mode (hold or
   one-shot) through `SetGadgetSlotState`, which calls slot 100 (`StartGadget`). While a hold gadget's button stays down
   slot 101 (`UpdateStepplayerGadget`) runs every frame; releasing it, or the hero becoming unable to use it, calls
   slot 102 (`StopStepplayerGadget`).
 - The per-gadget description records (mode, owner, price, MP cost, unlock episode, name, description, icon) are the
   `GADGETDESC` table defined in `stepplayer.cpp`. Ownership is a bit per gadget in the save data (`IsPowerupAcquired`).
-- Each hero decides usability per state: `JT::FCanUseGadget` asks the active component (`FJtairCanUseGadget`,
+- Each hero decides usability per state: `JT::CanUseGadget` asks the active component (`FJtairCanUseGadget`,
   `FJtgrabCanUseGadget`, `FJtpipeCanUseGadget`) and refuses during a mode; `CanBentleyUseGadget` and
-  Murray's `FCanUseGadget` override have their own rules. The effect itself is in `UseJtGadget`, `StartBentleyGadget` and
+  Murray's `CanUseGadget` override have their own rules. The effect itself is in `UseJtGadget`, `StartBentleyGadget` and
   `UseMurrayGadget`; time-based gadgets work through the clock's rate slots (`SetClockRate`), and the timed guard
   override (all guards frozen) is `SetGuardOverride` / `UpdateSwGuardOverride`.
 - HP and MP live in the save blob: `BindStepplayerHpMp` points the hurt component's HP and the MP pointer at the
@@ -270,8 +270,8 @@ generic player states 5 and 6) and controller hand-off (`SetCtlState` on another
 - **Hands-off means invulnerable** (`IsPoInvulnerable`), and `IsJtgoalHolding` freezes the behaviour stack.
 - **Becoming current clears the behaviour stack** (`SetStepplayerCtlState`), so do not keep state in a partner
   behaviour that must survive a character switch.
-- Several JT fields, enumerators and STEPPLAYER virtuals are still offset-named or `VUnkNN`; their meaning is
-  documented next to the function that uses them. Treat names marked (inferred) in the code as hypotheses.
+- Several JT fields and enumerators are still offset-named; their meaning is documented next to the function that
+  uses them. Treat names marked (inferred) in the code as hypotheses.
 
 ## 11. How to
 
@@ -282,7 +282,7 @@ generic player states 5 and 6) and controller hand-off (`SetCtlState` on another
 3. Decide who enters it: a transition in `ChooseJtGroundState` (grounded moves from input), a component (through
    `SetJtState` or the generic player state), or a message in `HandleJtMessage`.
 4. Add its per-frame work to the switch in `UpdateJtPre` (input, desired velocity) and, if it animates, to `UpdateJt`.
-5. Add its physics to `PresetJtAccel`, and its gadget rules to `JT::FCanUseGadget`.
+5. Add its physics to `PresetJtAccel`, and its gadget rules to `JT::CanUseGadget`.
 6. If scripts or other components must request it generically, extend `SetJtPlayerState` / `GetJtPlayerState` and the
    partner overrides.
 
@@ -292,7 +292,7 @@ generic player states 5 and 6) and controller hand-off (`SetCtlState` on another
 slot 88, adding a generic player state if none fits.
 
 **Add a gadget.** Add its description record (mode, MP cost, ...) to the gadget table, accept it in the hero's
-`FCanUseGadget` override, implement the effect in the hero's `StartGadget` override (and slots 101/102 for hold
+`CanUseGadget` override, implement the effect in the hero's `StartGadget` override (and slots 101/102 for hold
 gadgets), and give it an ownership bit so ThiefNet can sell it.
 
 **Debug "the hero does nothing".** Check, in order: is the PO current and its POCTL in control state 1

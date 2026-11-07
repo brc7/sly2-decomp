@@ -113,7 +113,7 @@ STEP (`step.cpp`) is the bridge between gameplay and physics:
 - **Constraints.** Components that pin a character to geometry add constraint contacts or project movement: pipe
   climbing (`UpdateJtInternalXpsPipe`), wall press, sticky meshes (`SolveMeshConstraints`, `UpdateJtMeshAttachment`),
   guards attached to rails and pipes (`AddStepguardAttachContacts`).
-- **Ignoring collisions.** `FIgnoreIntersection` (slot 61) answers per pair; the broad phase combines both objects'
+- **Ignoring collisions.** `ShouldIgnoreIntersection` (slot 61) answers per pair; the broad phase combines both objects'
   answers and only pairs them when neither asks to ignore the other. Heroes use it to pass through a thrown object
   for a moment (Murray after a throw); guards ignore some objects while dead and their holder's group while juggled. When the answer changes, call
   `RefreshSwObjectCollisionFilter` so existing pairs are re-evaluated.
@@ -143,7 +143,7 @@ crossbow dart, 0x200000 juggle (floors hp at 5).
 - **Delivery.** `DeliverZapToSo` walks from the target up its parent chain. For each object it skips the zap if an
   identical one (same source, part, kinds and responder) is still in the world's recent-zap history, computes the
   object's response from its per-kind response table (`GetSoZapResponseFlags`), and asks the object's slot 75
-  (`FTakeDamage`: `CanSoTakeDamage` for plain SOs, `TakeStepguardDamage`, `TakeStepplayerDamage`). The first object that
+  (`TakeDamage`: `CanSoTakeDamage` for plain SOs, `TakeStepguardDamage`, `TakeStepplayerDamage`). The first object that
   accepts it is logged in the history; if the response is damaging, both sides get a message and Splice events so
   scripts can react. `ExpireSwZapRecords` drops history entries after a short window, which is what keeps one swing or
   one beam from hitting every frame.
@@ -202,7 +202,7 @@ crossbow dart, 0x200000 juggle (floors hp at 5).
   locked; a half-locked object still takes part.
 - **Wake what you disturb.** Code that changes an object's state without contacts (teleport, re-parent, enabling
   collision) should wake it, or a sleeping tree will ignore the change.
-- **Collision filters are cached in pairs.** After changing what `FIgnoreIntersection` answers, call
+- **Collision filters are cached in pairs.** After changing what `ShouldIgnoreIntersection` answers, call
   `RefreshSwObjectCollisionFilter`.
 - **Zap history dedupes.** A repeated identical zap inside the history window is dropped silently; give distinct hits
   distinct sources or parts, or wait out the window.
@@ -231,7 +231,7 @@ slot 75.
 new contacts of the floor kind, as STEP does.
 
 **Debug "falls through the floor".** Check that the floor object is live (in the world and its root active), has
-collision parts with a BSP, is not ignored by the walker's `FIgnoreIntersection`, and that the walker's probe flags
+collision parts with a BSP, is not ignored by the walker's `ShouldIgnoreIntersection`, and that the walker's probe flags
 (slot 85) are not zero in its current state.
 
 ## 11. Where to look

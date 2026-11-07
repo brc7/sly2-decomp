@@ -156,7 +156,7 @@ needs the field renamed in all of them in one batch. The tool's docstring has th
   library only; reads files, builds nothing). Prints one row per path and a TOTAL row; `--csv` writes one row per
   file, `--top N` lists the files with the most open items. Columns: `files`/`hdr` (files / with a header comment),
   `funcs` (definitions with a body, inline struct members included), `doc` (prose comment block directly above),
-  `annot` (only a generated `@sly2-annot` draft above), `undoc`, `func_` (still `func_XXXXXXXX`), `func_refs`
+  `annot` (only a generated `@sly2-annot` draft above; 0 since the drafts were removed), `undoc`, `func_` (still `func_XXXXXXXX`), `func_refs`
   (placeholder tokens in code), `hung` (Hungarian return-type prefixes: `FCheckLm`, `PloFind`, `GGetX`...), `short`
   (single-letter params/locals other than i/j), `m2c` (`temp_`, `var_`, `sp10`, `arg0`), `offs` (`x4C8`, `unk_..`,
   `_pad_..`, `pad14` occurrences), `inferred` (markers).

@@ -69,7 +69,7 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
 - XF parent reference (0x22D6B0): -1 -> NULL; 0x0nnn own XF n; 0x1nnn XF n of the **parent SO** (child SOs); 0x2000 -> XF-context stack top. In L02, XF[0] is the root and every
   other XF points at an earlier own XF. Kinds 8/14 (pivot = -origin) do not occur in L02.
 - Sub-glob geometry is in XF[ixf] space; extra instances = instance MATRIX4 * XF[inst.ixf].
-- **The SO's world position is XF[ref3]** (the third trailing XF reference, SO+0x60 = what `PmatWorld` 0x1F3FA0 returns) `[C:runtime]`.
+- **The SO's world position is XF[ref3]** (the third trailing XF reference, SO+0x60 = what `GetSoWorldMatrix` 0x1F3FA0 returns) `[C:runtime]`.
 - Coordinates: right-handed, **Z up** (camera basis rows at g_cm+0x60 = forward, left, up) `[C:runtime]`. 1 unit = 1 cm `[H]` (Sly is 196 units tall with ears).
   The exporter writes Y-up metres: `(x, y, z) -> (x, z, -y) * 0.01`.
 

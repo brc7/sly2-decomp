@@ -48,7 +48,7 @@ Two refcounted "application" objects (`ASEGA`, `SMA`) are the important ownershi
   `LoadXfmConstraintsFromBrx` (constraints); each installs an action of the matching role on its XFs.
 - `LoadAsegFromBrx` reads clips: per channel a curve from the curve factories (`PacNewKind`, `PacNewKind2`), times in
   1/60 s ticks. `SM::LoadFromBrx` reads states and transitions and builds the distance table.
-- Post-load: `ASEG::VUnk14` / `SM::VUnk14` (the slot-15 post-load hooks; names provisional) start auto-start clips and
+- Post-load: `ASEG::PostLoad` / `SM::PostLoad` (the slot-15 post-load hooks) start auto-start clips and
   machines through deferred world callbacks (`PostAsegLoadCallback`, `SetSmPendingApply`).
 
 ### Per frame
@@ -164,7 +164,7 @@ lip-sync (the sound manager sets the speaker roles' SM goals; see [sound-and-mus
 - **Clip time is game time** times speed; anything that must stay in sync with audio (lip-sync, rhythm) uses stream time
   instead ([sound-and-music.md](sound-and-music.md)).
 - **Settling matters for performance**: objects whose slots never settle stay awake and keep the SO update busy.
-- Act kinds, curve classes and some role numbers still have provisional names (`ACT1`, `ACT7`, `VSlot1`...); match by
+- Act kinds, curve classes and some role numbers still have provisional names (`ACT1`, `ACT7`...); match by
   behaviour, not name, and check the doc comments' `(inferred)` marks.
 
 ## 10. How to
