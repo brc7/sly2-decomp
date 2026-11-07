@@ -195,7 +195,7 @@ typedef char align_5[__alignof__(struct CONTEXT)==4?1:-1];
 namespace M_LoadMurrayFromBrx { extern "C" {
 struct REQ { int cb; int align; };
 struct T { int x0; void *x4; void *x8; void *xC; };
-struct P { char pad[0x15F0]; void *x15F0; void *x15F4; void *x15F8; void *x15FC; char pad2[0x1610 - 0x1600]; struct T *x1610; struct T *x1614; };
+struct P : STEPPLAYER { char pad[0x15F0 - 0x1320]; void *x15F0; void *x15F4; void *x15F8; void *x15FC; char pad2[0x1610 - 0x1600]; struct T *x1610; struct T *x1614; };
 extern char D_002C0270[];
 void LoadStepFromBrx(struct P *p);
 void BindLoOidTable(struct P *p, int n, void *q);
@@ -475,7 +475,7 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
 #undef FIELD_OFFSET
 
 namespace M_func_001B5038 { extern "C" {
-struct S { char pad[0x150]; void *controller; char pad2[0xF00 - 0x154]; int f00; int f04; char pad3[0xF20 - 0xF08]; int f20; };
+struct S : SO { void *controller; char pad2[0xF00 - 0x154]; int f00; int f04; char pad3[0xF20 - 0xF08]; int f20; };
 int IsStepplayerInJtMode(struct S *p);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
@@ -666,7 +666,7 @@ namespace M_UpdateMurrayCarry { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct VT { short d; short pad; void *pfn; };
-struct T { char pad[0x180]; struct LO *po; };
+struct T : CID35 { struct LO *po; };
 struct PL { char pad[0x18]; float g18; float g1C; char pad2[0x30 - 0x20]; int x30; };
 struct P {
     char pad0[0xC]; struct VT *vt; char pad1[0x150 - 0x10]; struct PL *pl;
@@ -767,8 +767,8 @@ typedef struct R { char pad[0x74]; float x74; } R;
 typedef struct B { char pad[0x14]; R *pr; char pad2[4]; float x1C; } B;
 typedef struct A { B *pb; } A;
 typedef struct C { void *x; } C;
-typedef struct P {
-    char pad0[0x58];
+typedef struct P : LO {
+    char pad0[0x58 - 0x50];
     void *x58, *x5C;
     char pad60[0x190 - 0x60];
     qword x190;
@@ -877,7 +877,7 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern int D_002C0908[][5], D_002C0948[][5];
 extern float D_002C0900;
-struct P { char pad[0x150]; int controller; char pad1[0x1034 - 0x154]; int x1034; char pad2[0x1524 - 0x1038]; float f1524; float f1528; int x152C; int x1530; int x1534; };
+struct P : SO { int controller; char pad1[0x1034 - 0x154]; int x1034; char pad2[0x1524 - 0x1038]; float f1524; float f1528; int x152C; int x1530; int x1534; };
 struct P *GetHeroPo(void *g);
 int IsSwHandsOff(void *g);
 int GetSmaCurrentState(int a);
@@ -1070,7 +1070,7 @@ typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char action[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int strafeSubstate; float f17F8; };
+struct P : LO { char pad[0x58 - 0x50]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char action[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int strafeSubstate; float f17F8; };
 void SetXfRole(struct P *p, int a, int b);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(void *p);
@@ -1119,7 +1119,7 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
 namespace M_ChooseMurrayThrowTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0xE0]; struct O *pnext; int x4; int xE8; };
-struct P { char pad[0x1A8]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *carried; char pad2[0x1410 - 0x13F4]; float g1410;
+struct P : PO { char pad[0x1A8 - 0x180]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *carried; char pad2[0x1410 - 0x13F4]; float g1410;
            char pad3[0x1420 - 0x1414]; qword throwGoal; };
 struct G { char pad[0x13B4]; struct O *pFirst; };
 extern float D_002C0984, D_002C0988;
@@ -1509,7 +1509,7 @@ extern "C" void SetMurrayState(P *murray, int next)
 namespace M_GetMurrayCpdefi { extern "C" {
 struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
-struct S { char pad[0x4CC]; int x4CC; char pad1[0x1080 - 0x4D0]; float t1080; char pad2[0x10E4 - 0x1084]; int interactKind; char pad3[0x13D0 - 0x10E8]; int k; };
+struct S : STEP { char pad[0x4CC - 0x2C0]; int x4CC; char pad1[0x1080 - 0x4D0]; float t1080; char pad2[0x10E4 - 0x1084]; int interactKind; char pad3[0x13D0 - 0x10E8]; int k; };
 void GetStepplayerCpdefi(struct S *p, int *pf);
 void UpdateJtThrowHoldPosition(void *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
@@ -1531,7 +1531,7 @@ void GetMurrayCpdefi(struct S *murray, int *pf)
 } } // namespace M_GetMurrayCpdefi
 
 namespace M_PresetMurrayAccel { extern "C" {
-struct S { char pad[0x13D0]; int k; };
+struct S : STEPPLAYER { char pad[0x13D0 - 0x1320]; int k; };
 void PresetSoAccel(struct S *p);
 void PresetStepAccel(struct S *p);
 void PresetJtAccelJump(void *p);
@@ -1558,8 +1558,8 @@ void PresetMurrayAccel(struct S *murray)
 namespace M_HandleMurrayMessage { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct MSG { void *x0; int x4; int x8; } MSG;
-typedef struct P {
-    char pad0[0x1030];
+typedef struct P : STEP {
+    char pad0[0x1030 - 0x2C0];
     void *action;
     void *x1034;
     char pad1038[0x13D0 - 0x1038];
@@ -1673,7 +1673,7 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
 namespace M_func_001B6BA8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x18]; float f18; float f1C; };
-struct P { char pad[0x150]; struct Q *controller; char pad0[0x190 - 0x154]; qword q190; char pad1[0x1030 - 0x1A0]; int action; char pad2[0x131C - 0x1034]; char x131C[0x13D8 - 0x131C]; int x13D8; float f13DC; int x13E0; int x13E4; };
+struct P : SO { struct Q *controller; char pad0[0x190 - 0x154]; qword q190; char pad1[0x1030 - 0x1A0]; int action; char pad2[0x131C - 0x1034]; char x131C[0x13D8 - 0x131C]; int x13D8; float f13DC; int x13E0; int x13E4; };
 extern float D_002C09A0, D_002BF730;
 int IsAsegaRetracted(int n);
 void SetMurrayState(struct P *p, int n);
@@ -1923,8 +1923,8 @@ typedef char WORD_value_Offset[((unsigned int)&(((union WORD*)0)->value))==0?1:-
 #undef FIELD_OFFSET
 
 namespace M_StartMurrayLiftGrabspot { extern "C" {
-struct T { char pad[0x180]; int n; };
-struct S { char pad[0x13EC]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
+struct T : CID35 { int n; };
+struct S : STEPPLAYER { char pad[0x13EC - 0x1320]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
 void SetMurrayState(struct S *p, int n);
 void FaceStepToward(struct S *p, int n);
 // If lifting is allowed (x13EC): the grab spot becomes the carried target, lift clip 0, state 4, face it.
@@ -1940,8 +1940,8 @@ void StartMurrayLiftGrabspot(struct S *murray, struct T *pt)
 } } // namespace M_StartMurrayLiftGrabspot
 
 namespace M_StartMurrayLiftGuard { extern "C" {
-struct T { char pad[0x180]; int n; };
-struct S { char pad[0x13EC]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
+struct T : CID35 { int n; };
+struct S : STEPPLAYER { char pad[0x13EC - 0x1320]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
 void SetMurrayState(struct S *p, int n);
 void FaceStepToward(struct S *p, int n);
 // Same as StartMurrayLiftGrabspot with lift clip 1 (the guard-lift clip x1444).
@@ -1960,7 +1960,7 @@ namespace M_FTryMurrayTakedown { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x26C]; char x26C[0xFEC - 0x26C]; void *xFEC; };
 struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
-struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *interactTarget; char pad3[0x180C - 0x10E0]; int x180C; };
+struct P : SO { void *pl; char pad2[0x10DC - 0x154]; struct O *interactTarget; char pad3[0x180C - 0x10E0]; int x180C; };
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
 int StepguardHasSgf(struct O *po, int n);
@@ -2133,9 +2133,9 @@ typedef union {qword q;float f[4];} U;
 struct LO{char pad[0x30];qword pos;char pad40[0x60];struct LO*parent;char padA4[0xC];qword velocity;};
 struct ACC{char pad[0x80];qword v;};
 struct O{char pad[0x58];struct LO*lo;char pad5C[0x8C];struct ACC*acc;};
-struct X{char pad[0x180];struct O*object;};
+struct X : CID35 { struct O*object;};
 struct ANIM{char pad[0x40];float rate;};
-struct P{char pad[0x1030];struct ANIM*anim;char pad1034[0x3BC];struct X*x;char pad13F4[0x58];int state;};
+struct P : STEP { char pad[0x1030 - 0x2C0]; struct ANIM*anim;char pad1034[0x3BC];struct X*x;char pad13F4[0x58];int state;};
 extern qword D_002A2DC0;
 extern float D_002C09C8;
 qword ConvertXfVec(struct LO*,struct LO*,qword);
@@ -2168,7 +2168,7 @@ typedef char U_PrefixSize[sizeof(U)==16?1:-1];
 typedef char LO_PrefixSize[sizeof(struct LO)==192?1:-1];
 typedef char ACC_PrefixSize[sizeof(struct ACC)==144?1:-1];
 typedef char O_PrefixSize[sizeof(struct O)==236?1:-1];
-typedef char X_PrefixSize[sizeof(struct X)==388?1:-1];
+typedef char X_PrefixSize[sizeof(struct X)==400?1:-1];
 typedef char ANIM_PrefixSize[sizeof(struct ANIM)==68?1:-1];
 typedef char P_PrefixSize[sizeof(struct P)==5200?1:-1];
 // Start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 a ballistic solve toward the hands.
@@ -2254,16 +2254,16 @@ typedef char U_Alignment[__alignof__(U)==16?1:-1];
 typedef char LO_Alignment[__alignof__(struct LO)==16?1:-1];
 typedef char ACC_Alignment[__alignof__(struct ACC)==16?1:-1];
 typedef char O_Alignment[__alignof__(struct O)==4?1:-1];
-typedef char X_Alignment[__alignof__(struct X)==4?1:-1];
+typedef char X_Alignment[__alignof__(struct X)==16?1:-1];
 typedef char ANIM_Alignment[__alignof__(struct ANIM)==4?1:-1];
-typedef char P_Alignment[__alignof__(struct P)==4?1:-1];
+typedef char P_Alignment[__alignof__(struct P)==16?1:-1];
 } } // namespace M_func_001B7700
 #undef FIELD_OFFSET
 
 namespace M_ThrowMurrayCarried { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct T { char pad[0x180]; struct LO *po; };
-struct P { char pad[0x13F0]; struct T *carried; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword throwGoal; };
+struct T : CID35 { struct LO *po; };
+struct P : STEPPLAYER { char pad[0x13F0 - 0x1320]; struct T *carried; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword throwGoal; };
 void DetachMurrayCarried(struct P *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void StunStepguardThrownOp3(struct LO *p);
@@ -2303,7 +2303,7 @@ void ThrowMurrayCarried(struct P *murray)
 
 namespace M_func_001B7A78 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x1420]; qword q1420; };
+struct P : STEPPLAYER { char pad[0x1420 - 0x1320]; qword q1420; };
 void SetMurrayState(struct P *p, int n);
 qword GetLoWorldPos(void *p);
 void SetStepTargetHeadingFromVector(struct P *p, qword q);
@@ -2324,8 +2324,8 @@ void ThrowMurrayCarriedAt(struct P *murray, void *pv)
 
 namespace M_func_001B7AE8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct T { char pad[0x180]; SO *po; };
-struct S { char pad[0x13F0]; struct T *pt; };
+struct T : CID35 { SO *po; };
+struct S : STEPPLAYER { char pad[0x13F0 - 0x1320]; struct T *pt; };
 extern qword D_002C09D0, D_002A2DD0;
 void DetachMurrayCarried(struct S *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int n);
@@ -2354,7 +2354,7 @@ namespace M_DropMurrayCarried { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; SO *x180; };   /* the carry grab spot (classes.h CID36): +0x180 the carried object */
-struct P { char pad[0x13D0]; int state; char pad1[0x13F0 - 0x13D4]; struct O *carried; char pad2[0x1450 - 0x13F4]; int x1450; char pad3[0x1530 - 0x1454]; int x1530; };
+struct P : STEPPLAYER { char pad[0x13D0 - 0x1320]; int state; char pad1[0x13F0 - 0x13D4]; struct O *carried; char pad2[0x1450 - 0x13F4]; int x1450; char pad3[0x1530 - 0x1454]; int x1530; };
 extern qword D_002C09E0, D_002A2DD0;
 void SetSmaGoal(int a, int b);
 void DetachMurrayCarried(struct P *p);
@@ -2405,7 +2405,7 @@ extern char D_003DD490[];
 struct VE { short d; short pad; void (*pfn)(...); };
 struct X { char pad[0x58]; int x58; int x5C; };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
-struct P { char pad[0x13F0]; struct O *carried; int a13F4[4]; int x1404; int x1408; char pad2[0x1430 - 0x140C]; struct X *x1430; float f1434; char pad3[0x1600 - 0x1438]; int a1600[4]; int x1610, x1614; int a1618[4]; };
+struct P : STEPPLAYER { char pad[0x13F0 - 0x1320]; struct O *carried; int a13F4[4]; int x1404; int x1408; char pad2[0x1430 - 0x140C]; struct X *x1430; float f1434; char pad3[0x1600 - 0x1438]; int a1600[4]; int x1610, x1614; int a1618[4]; };
 void ReleaseAct(int *p);
 void SetXfRole(struct X *x, int a, int b);
 void SetSoTreeFlag2(struct X *x, int a);
@@ -2443,7 +2443,7 @@ void DetachMurrayCarried(struct P *murray)
 } } // namespace M_DetachMurrayCarried
 
 namespace M_SetMurrayPlayerState { extern "C" {
-struct P { char pad[0x2C4]; int x2C4; char pad2[0x13F0 - 0x2C8]; void *carried; };
+struct P : STEP { char pad[0x2C4 - 0x2C0]; int x2C4; char pad2[0x13F0 - 0x2C8]; void *carried; };
 void SetMurrayState(struct P *p, int n);
 void DropMurrayCarried(struct P *p);
 // MURRAY slot 88: maps a generic player state 0..8 to Murray states (0 -> carry 5 or idle 0, 1 -> jump 2, ...).
@@ -2470,7 +2470,7 @@ void SetMurrayPlayerState(struct P *murray, unsigned int k)
 } } // namespace M_SetMurrayPlayerState
 
 namespace M_GetMurrayPlayerState { extern "C" {
-struct S { char pad[0x13D0]; int n; };
+struct S : STEPPLAYER { char pad[0x13D0 - 0x1320]; int n; };
 // MURRAY slot 89: Murray state -> generic player state 0..8 or -1.
 int GetMurrayPlayerState(struct S *murray)
 {
@@ -2490,7 +2490,7 @@ int GetMurrayPlayerState(struct S *murray)
 } } // namespace M_GetMurrayPlayerState
 
 namespace M_func_001B8008 { extern "C" {
-struct P { char pad[0x268]; int x268; char pad1[0x13D0 - 0x26C]; int k; char pad2[0x13F0 - 0x13D4]; int carried; char pad3[0x1458 - 0x13F4]; int carrySubstate; char pad4[0x1A58 - 0x145C]; int a1A58[0x16]; int a1AB0[3]; int x1ABC; };
+struct P : PO { char pad[0x268 - 0x180]; int x268; char pad1[0x13D0 - 0x26C]; int k; char pad2[0x13F0 - 0x13D4]; int carried; char pad3[0x1458 - 0x13F4]; int carrySubstate; char pad4[0x1A58 - 0x145C]; int a1A58[0x16]; int a1AB0[3]; int x1ABC; };
 int GetJtGrabAdjustRecord(void *p, int *pk);
 int GetJtHurtAdjustRecord(void *p, int *pk);
 int GetJtAirAdjustRecord(void *p, int *pk);
@@ -2529,7 +2529,7 @@ extern "C" int TryFaceMurrayAttachedObject()
 }
 
 namespace M_func_001B8100 { extern "C" {
-struct S { char pad[0x13D0]; int n; char pad2[0x17F4 - 0x13D4]; int strafeSubstate; };
+struct S : STEPPLAYER { char pad[0x13D0 - 0x1320]; int n; char pad2[0x17F4 - 0x13D4]; int strafeSubstate; };
 int GetStepplayerMovementNoise(struct S *p);
 // MURRAY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
 // then 1 (noisy) in MURRAY_RUN/POWER_MOVE or when strafing with a sub-state, else -1.
@@ -2549,7 +2549,7 @@ int GetMurrayMovementNoise(struct S *murray)
 } } // namespace M_func_001B8100
 
 namespace M_func_001B8180 { extern "C" {
-struct S { char pad[0x13D0]; int n; };
+struct S : STEPPLAYER { char pad[0x13D0 - 0x1320]; int n; };
 // MURRAY slot 94: 1 for the free-movement states 0/1/9/10. (inferred)
 } } // namespace M_func_001B8180
 int MURRAY::IsFreeMoving() { using namespace M_func_001B8180; M_func_001B8180::S *p = (M_func_001B8180::S *)this;
@@ -2561,8 +2561,8 @@ int MURRAY::IsFreeMoving() { using namespace M_func_001B8180; M_func_001B8180::S
 }
 
 namespace M_func_001B81B8 { extern "C" {
-struct T { char pad[0x180]; SO *po; };   /* the carry grab spot (classes.h CID36): +0x180 the carried object */
-struct P { char pad[0xF1C]; SO *xF1C; char pad2[0x13F0 - 0xF20]; struct T *carried; };
+struct T : CID35 { SO *po; };   /* the carry grab spot (classes.h CID36): +0x180 the carried object */
+struct P : STEP { char pad[0xF1C - 0x2C0]; SO *xF1C; char pad2[0x13F0 - 0xF20]; struct T *carried; };
 void IgnoreStepSlot87(struct P *p, int b);
 int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int n);
 // MURRAY slot 87 (playable flag): STEP base, then propagates to the carried object (SetFlag8; SetPlayable when it is
@@ -2593,7 +2593,7 @@ namespace M_func_001B82A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M { char pad[0x148]; unsigned long f148; };
 struct Q { char pad[0x40]; int x40; char pad2[8]; struct M *pm; char pad3[0x10]; qword q60; char pad4[0x18]; float f88; };
-struct S { char pad[0x208]; struct Q *pq; char pad2[0x108C - 0x20C]; int x108C; char pad3[0x13D0 - 0x1090]; int k; };
+struct S : PO { char pad[0x208 - 0x180]; struct Q *pq; char pad2[0x108C - 0x20C]; int x108C; char pad3[0x13D0 - 0x1090]; int k; };
 void AddJtPlaceAtPosition(void *p, int a, qword q);
 void RecordJtGrabPlace(void *p);
 void RecordJtPipePlace(void *p);
@@ -2614,7 +2614,7 @@ void UpdateMurrayPlaces(struct S *murray)
 } } // namespace M_func_001B82A0
 
 namespace M_func_001B8368 { extern "C" {
-struct S { char pad[0x204]; int f204; char pad2[0x13D0-0x208]; int n; int reserved; int m; };
+struct S : PO { char pad[0x204 - 0x180]; int f204; char pad2[0x13D0-0x208]; int n; int reserved; int m; };
 int GetStepplayerGroundProbeFlags(struct S *p);
 // MURRAY slot 85: 0 if x204 is set, in mode 1 or in state 20, else the STEPPLAYER base.
 int GetMurrayGroundProbeFlags(struct S *murray)
@@ -2626,7 +2626,7 @@ int GetMurrayGroundProbeFlags(struct S *murray)
 } } // namespace M_func_001B8368
 
 namespace M_func_001B83B8 { extern "C" {
-struct P { char pad[0x4C0]; char sub[0x13D0 - 0x4C0]; int state; };
+struct P : STEP { char pad[0x4C0 - 0x2C0]; char sub[0x13D0 - 0x4C0]; int state; };
 int IsJtGrabBusy(void *p, int k);
 int IsStepplayerInvulnerable(struct P *p, int k);
 // MURRAY slot 76 (zap kind): true in state 15, in state 20 for kind 0x4000, the component check, else the base.
@@ -2649,7 +2649,7 @@ int IsMurrayInvulnerable(struct P *murray, int k)
 } } // namespace M_func_001B83B8
 
 namespace M_MURRAY_FIgnoreIntersection { extern "C" {
-struct P { char pad[0x13D0]; int state; char pad1[0x1430 - 0x13D4]; void *p1430; char pad2[0x1910 - 0x1434]; int a1910[1]; };
+struct P : STEPPLAYER { char pad[0x13D0 - 0x1320]; int state; char pad1[0x1430 - 0x13D4]; void *p1430; char pad2[0x1910 - 0x1434]; int a1910[1]; };
 int ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
 int IsLoSelfOrDescendantOf(void *pv, void *p1);
 int MaxInt(int n, int k);
@@ -2678,7 +2678,7 @@ extern "C" int CanMurrayAttack(MURRAY *murray)
 namespace M_StartMurrayPunch { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct T { char pad[0x14]; int x14; };
-struct P { char pad[0x10DC]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; char pad2[0x190C - 0x1808]; struct T *x190C; };
+struct P : STEP { char pad[0x10DC - 0x2C0]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; char pad2[0x190C - 0x1808]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
 qword GetLoWorldPos(void *p);
 qword ConvertVecBetweenLos(void *a, void *b, qword q);
@@ -2704,7 +2704,7 @@ void StartMurrayPunch(struct P *murray)
 namespace M_StartMurrayAltAttack { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct T { char pad[0x14]; int x14; };
-struct P { char pad[0x10DC]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; int x1808; char pad2[0x190C - 0x180C]; struct T *x190C; };
+struct P : STEP { char pad[0x10DC - 0x2C0]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; int x1808; char pad2[0x190C - 0x180C]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
 qword GetLoWorldPos(void *p);
 qword ConvertVecBetweenLos(void *a, void *b, qword q);
@@ -2740,8 +2740,8 @@ struct R { int x0; struct OBJ *po; };
 struct S14 { char pad[0x74]; float g74; };
 struct ANIM { char pad[0x14]; struct S14 *p14; char pad2[0x40 - 0x18]; float g40; };
 struct PL { char pad[0x30]; int x30; };
-struct P {
-    char pad0[0x150]; struct PL *pl; char pad1[0x190 - 0x154]; qword v190; char pad1b[0x1A8 - 0x1A0]; float g1A8; char pad2[0x1B0 - 0x1AC];
+struct P : SO {
+    struct PL *pl; char pad1[0x190 - 0x154]; qword v190; char pad1b[0x1A8 - 0x1A0]; float g1A8; char pad2[0x1B0 - 0x1AC];
     qword m1B0[3]; char pad3[0x1030 - 0x1E0]; struct ANIM *panim; char x1034[0x10DC - 0x1034]; void *interactTarget; char pad5[0x10E4 - 0x10E0];
     int interactKind; char pad6[0x17FC - 0x10E8]; void *ap17FC[5]; int attackSubstate; float g1814; int x1818; int x181C; int comboWindow;
     char pad7[0x1830 - 0x1824]; qword v1830; char pad8[0x190C - 0x1840]; void *x190C;
@@ -2821,7 +2821,7 @@ void SetMurrayAttack(struct P *murray, int k)
 } } // namespace M_SetMurrayAttack
 
 namespace M_func_001B8938 { extern "C" {
-struct S { char pad[0x1030]; void *p; char pad2[0x190C - 0x1034]; void *q; };
+struct S : STEP { char pad[0x1030 - 0x2C0]; void *p; char pad2[0x190C - 0x1034]; void *q; };
 extern char D_002C09F8[];
 void DetachSoActsMatching(void *a, struct S *p, int n, void *s);
 void SetMurrayState(struct S *p, int n);
@@ -2837,8 +2837,7 @@ void CancelMurrayAttack(struct S *murray)
 
 namespace M_UpdateMurrayAttack { extern "C" {
 typedef struct T { char pad[0x1C]; float x1C; } T;
-typedef struct P {
-    char pad0[0x150];
+typedef struct P : SO {
     T *controller;
     char pad154[0x1030 - 0x154];
     void *action;
@@ -2895,8 +2894,8 @@ struct Q { char pad[0x14]; void *table; float angle,time; };
 struct PARAM { float value; int kind,id,reserved; };
 struct LIMIT { float lo,hi; };
 struct POLY { float a,b,c; };
-struct P {
-    char pad[0x150]; struct Q *orbit;
+struct P : SO {
+    struct Q *orbit;
     char pad154[0x190-0x154]; qword velocity;
     char pad1A0[0x1030-0x1A0]; struct Q *source;
     char pad1034[0x10DC-0x1034]; void *focus; int reserved10E0,mode;
@@ -2992,7 +2991,7 @@ struct VE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x40 - 0x10]; qword v40; char rest[0x20]; };
 union V3 { qword q; struct { float x,y,z,w; } value; };
 static __inline__ void Zero(union V3 *pv) { pv->value.z = 0; pv->value.y = 0; pv->value.x = 0; }
-struct P { char pad[0x190]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANIMATION *action; struct COMPONENT x1034;
+struct P : PO { char pad[0x190 - 0x180]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANIMATION *action; struct COMPONENT x1034;
     char pad2[0x1840 - 0x1038]; int x1840; float f1844; struct CLIP *x1848; struct CLIP *x184C; struct SCRIPT x1850; float f186C;
     char pad3[0x1890 - 0x1870]; struct O x1890; struct O *x1900; struct CLIP *x1904; int powerContactTrigger; };
 void StopLeap(struct O *o);
@@ -3098,8 +3097,7 @@ void SetMurrayPowerSubstate(struct P *murray, int st)
 
 namespace M_func_001B8EC0 { extern "C" {
 typedef struct T { char pad[0x1C]; float x1C; char pad2[0x80 - 0x20]; int x80; } T;
-typedef struct P {
-    char pad0[0x150];
+typedef struct P : SO {
     T *controller;
     char pad154[0x1030 - 0x154];
     void *action;
@@ -3166,7 +3164,7 @@ void UpdateMurrayPower(P *murray)
 namespace M_func_001B90B8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x1C]; float g; };
-struct P { char pad[0x180]; float f180; int pad2[3]; qword q190; char pad3[0x1030 - 0x1A0]; struct Q *pq; char pad4[0x1840 - 0x1034]; int n; };
+struct P : PO { float f180; int pad2[3]; qword q190; char pad3[0x1030 - 0x1A0]; struct Q *pq; char pad4[0x1840 - 0x1034]; int n; };
 qword GetStepAsegaTranslation(struct P *p, struct Q *pq, float g);
 // State 12 sub-states 1/3: velocity from the animation root motion.
 void UpdateMurrayPowerVelocity(struct P *murray)
@@ -3259,8 +3257,8 @@ extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
 
 namespace M_UpdateMurrayLift { extern "C" {
 struct O { char pad[0x28]; unsigned long f28; };
-struct T { char pad[0x180]; struct O *po; };
-struct P { char pad[0x1030]; int action; char pad1[0x13F0 - 0x1034]; struct T *carried; char pad2[0x1448 - 0x13F4]; int x1448; int x144C; int x1450; };
+struct T : CID35 { struct O *po; };
+struct P : STEP { char pad[0x1030 - 0x2C0]; int action; char pad1[0x13F0 - 0x1034]; struct T *carried; char pad2[0x1448 - 0x13F4]; int x1448; int x144C; int x1450; };
 void SetMurrayState(struct P *p, int n);
 int IsAsegaRetracted(int n);
 // State 4: waits for the grab event (x1448), aborts if the object is gone; after attaching goes to carry (state 5)
@@ -3509,8 +3507,8 @@ extern "C" void EnterMurrayThrowAim(MURRAY *murray, int n, void *pv)
 
 namespace M_FCanUseGadget__6MURRAYi { extern "C" {
 /* CanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring IsStepplayerInJtMode with (p, k): it takes only p (as in CanUseGadget), and the extra k use raised k's allocation priority. */
-struct O { char pad[0x180]; void *x180; };
-struct P { char pad[0x2C4]; int x2C4; char pad1[0x12F0 - 0x2C8]; int x12F0; char pad2[0x13D0 - 0x12F4]; int state; char pad3[0x13F0 - 0x13D4]; struct O *carried; };
+struct O : CID35 { void *x180; };
+struct P : STEP { char pad[0x2C4 - 0x2C0]; int x2C4; char pad1[0x12F0 - 0x2C8]; int x12F0; char pad2[0x13D0 - 0x12F4]; int state; char pad3[0x13F0 - 0x13D4]; struct O *carried; };
 extern int D_002DFBC0;
 int IsStepplayerInJtMode(struct P *p);
 int CanJtUseGadgetInAir(void *p, int k);
@@ -3566,7 +3564,7 @@ int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
 namespace M_UseMurrayGadget { extern "C" {
 struct G { char pad[0xC]; int xC; };
 extern struct G D_002DEB30;
-struct P { char pad[0x9BC]; int x9BC; char pad1[0x10DC - 0x9C0]; int interactTarget; char pad2[0x130C - 0x10E0]; int x130C; char pad3[0x13E8 - 0x1310]; int x13E8; char pad4[0x143C - 0x13EC]; int x143C; char pad5[0x1AC4 - 0x1440]; int x1AC4; };
+struct P : STEP { char pad[0x9BC - 0x2C0]; int x9BC; char pad1[0x10DC - 0x9C0]; int interactTarget; char pad2[0x130C - 0x10E0]; int x130C; char pad3[0x13E8 - 0x1310]; int x13E8; char pad4[0x143C - 0x13EC]; int x143C; char pad5[0x1AC4 - 0x1440]; int x1AC4; };
 void BroadcastGameEvent(void *p, int a, struct P *b);
 void ChargeGadgetMp(struct P *p, int k);
 void StartStepplayerGadget(struct P *p, int k);
@@ -3628,7 +3626,7 @@ namespace RO_ORDER { extern const char r_D_002A75E0[] __asm__("D_002A75E0") = "m
 namespace M_func_001B9B70 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { int n; float g; int pad[2]; qword q10; qword q20; };
-struct P { char pad[0x13D0]; int state; char pad1[0x1830 - 0x13D4]; qword q1830; };
+struct P : STEPPLAYER { char pad[0x13D0 - 0x1320]; int state; char pad1[0x1830 - 0x13D4]; qword q1830; };
 extern qword D_002A2DD0;
 void GetStepplayerStunHold(struct P *p, struct O *po);
 // MURRAY slot 96: STEPPLAYER base; during an attack the target point is the predicted attack end.
@@ -3653,7 +3651,7 @@ void GetMurrayStunHold(struct P *murray, struct O *object)
 } } // namespace M_func_001B9B70
 
 namespace M_func_001B9C00 { extern "C" {
-struct S { char pad[0x1034]; void *p1034; char pad1[0x1530 - 0x1038]; void *p1530; int n1534; };
+struct S : STEP { char pad[0x1034 - 0x2C0]; void *p1034; char pad1[0x1530 - 0x1038]; void *p1530; int n1534; };
 void SetMurrayState(struct S *p, int n);
 void SeekSma(void *p, int n);
 void SetSmaGoal(void *p, int n);
@@ -3681,7 +3679,7 @@ void StartMurrayStruggle(struct S *murray, void *pv, int n, int m, int f)
 namespace M_func_001B9CA0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
-struct S { char pad[0x26C]; char x26c[4]; };
+struct S : PO { char pad[0x26C - 0x180]; char x26c[4]; };
 void ClearBhvstk__FP6BHVSTK(void *p);
 struct O *PushStepBehavior(struct S *p, int oid);
 // Splice-callable: clears Murray's behaviour stack; with the flag set also triggers child object 0xC6 (slot 8).
@@ -3706,7 +3704,7 @@ extern "C" void StartMurrayFlop(MURRAY *murray, int n, void *pv)
 
 namespace M_func_001B9D28 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x1AD0]; LO *po; int n1AD4; };
+struct P : STEPPLAYER { char pad[0x1AD0 - 0x1320]; LO *po; int n1AD4; };
 int IsPowerupAcquired(int n);
 void ApplyAsegCore(int n, LO *po, int a, int b, float g0, float g1);
 // If power-up 0x11 is owned: places the hit effect object at the point and plays its animation.
@@ -3725,7 +3723,7 @@ void SpawnMurrayHitEffect(struct P *murray, qword q)
 namespace M_func_001B9DB8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; char pad[0x18]; unsigned long fl; };
-struct S { char pad[0x1AD8]; struct O *po; void *pv; };
+struct S : STEPPLAYER { char pad[0x1AD8 - 0x1320]; struct O *po; void *pv; };
 void ApplyAsegCore(void *a, struct O *po, int c, int d, float f, float g);
 // Same as SpawnMurrayHitEffect without the power-up check (event 0x40000 from Murray).
 void SpawnMurrayHitEffectUnchecked(struct S *murray, int x)
