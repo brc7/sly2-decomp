@@ -122,12 +122,6 @@ struct BND
 };
 
 
-struct SUBGLOBLOAD
-{
-    float fogIntensity;     /* BuildCmFgfn's argument (the fog curve uploaded with the geometry) */
-    int numLitQwords;       /* size of the lit-vertex DMA chain (set by the type-0 loader) */
-    int batchMode;          /* 0 / 1 / 2: batch header flag 0x100 / 0x200 / 0x400 */
-};
 
 struct XPLIST
 {
@@ -2574,12 +2568,6 @@ struct CLUTSET
     int cpal;
     CLUTPAL *apal;
     int *aipal;
-};
-struct SUBGLOBLOAD
-{
-    float fogIntensity;     /* BuildCmFgfn's argument (the fog curve uploaded with the geometry) */
-    int numLitQwords;       /* size of the lit-vertex DMA chain (set by the type-0 loader) */
-    int batchMode;          /* 0 / 1 / 2: batch header flag 0x100 / 0x200 / 0x400 */
 };
 struct GLOBSET
 {
