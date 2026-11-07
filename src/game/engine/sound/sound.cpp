@@ -2144,24 +2144,22 @@ void SetSndmgrMasterVolume(SNDMGR *soundManager, float volume)
 } } // namespace M_SetSndmgrMasterVolume
 
 namespace M_SetSndmgrChannelVolume {
-class X;
-typedef void (X::*PMF)();
-struct P {char pad0[0x13C];float volumes[8][4];int pad1BC;float channelVolumes[4];char pad1D0[0x30];X *dialogSound;int musicStackCount;X *musicStack[8];X *ambienceSound;};
+typedef void (STREAMSND::*PMF)();
 struct LM {float low,high;};
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern PMF D_002A8298,D_002A82A0; }
 extern "C" float ClampToLimits__FP2LMf(LM *,float);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 extern "C" void snd_SetMasterVolume(int,int);
-static inline X *ReadReceiver(X **pp)
+static inline STREAMSND *ReadReceiver(STREAMSND **pp)
 {
-    register X *receiver __asm__("$4");
+    register STREAMSND *receiver __asm__("$4");
     __asm__("lw %0,%1":"=r"(receiver):"m"(*pp));
     return receiver;
 }
 // Sets one category's weight on a volume channel, recomputes the channel's output volume, sends it and updates the live
 // streams.
-extern "C" void SetSndmgrChannelVolume(P *soundManager,int channel,int category,float volume)
+extern "C" void SetSndmgrChannelVolume(SNDMGR *soundManager,int channel,int category,float volume)
 {
     if((unsigned int)category>=8)return;
     if(channel<0)return;
@@ -2178,7 +2176,7 @@ extern "C" void SetSndmgrChannelVolume(P *soundManager,int channel,int category,
         if(action!=0){
             switch(channel){
             case VOLUME_CHANNEL_AMBIENCE:if(soundManager->ambienceSound)(soundManager->ambienceSound->*action)();break;
-            case VOLUME_CHANNEL_MUSIC:for(int i=0;i<soundManager->musicStackCount;i++){X **slot=&soundManager->musicStack[i];X *music=ReadReceiver(slot);if(music){union {X *p;unsigned w;} r;r.p=music;(((X *)r.w)->*action)();}}break;
+            case VOLUME_CHANNEL_MUSIC:for(int i=0;i<soundManager->musicStackCount;i++){STREAMSND **slot=&soundManager->musicStack[i];STREAMSND *music=ReadReceiver(slot);if(music){union {STREAMSND *p;unsigned w;} r;r.p=music;(((STREAMSND *)r.w)->*action)();}}break;
             case VOLUME_CHANNEL_DIALOG:if(soundManager->dialogSound)(soundManager->dialogSound->*action)();break;
             }
         }
@@ -2200,14 +2198,6 @@ typedef char layout_member_pointer[(sizeof(PMF)==8)?1:-1];
 typedef char layout_limit[(sizeof(LM)==8)?1:-1];
 typedef char layout_limit_low[((unsigned)&((LM*)0)->low==0)?1:-1];
 typedef char layout_limit_high[((unsigned)&((LM*)0)->high==4)?1:-1];
-typedef char layout_volumes[((unsigned)&((P*)0)->volumes==0x13C)?1:-1];
-typedef char layout_volume_stride[(sizeof(((P*)0)->volumes[0])==0x10)?1:-1];
-typedef char layout_channel_volumes[((unsigned)&((P*)0)->channelVolumes==0x1C0)?1:-1];
-typedef char layout_dialog_sound[((unsigned)&((P*)0)->dialogSound==0x200)?1:-1];
-typedef char layout_count[((unsigned)&((P*)0)->musicStackCount==0x204)?1:-1];
-typedef char layout_music_stack[((unsigned)&((P*)0)->musicStack==0x208)?1:-1];
-typedef char layout_ambience_sound[((unsigned)&((P*)0)->ambienceSound==0x228)?1:-1];
-typedef char layout_size[(sizeof(P)==0x22C)?1:-1];
 } // namespace M_SetSndmgrChannelVolume
 
 namespace M_ResetSndmgrVolumes { extern "C" {
