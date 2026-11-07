@@ -667,11 +667,10 @@ struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;c
  void Stop() __asm__("JtHurtFallCallback");
  void Finish() __asm__("ReturnJtToSafePlaceCallback");
 };
-struct G{char pad[0x4038];int channel;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern char D_002DE578[],D_002DEB30[];
- extern G D_003DD490;
+ extern SW D_003DD490;
  extern qword D_002A2DD0;
  union VQ{float f[4];qword q;};
  extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
@@ -688,7 +687,7 @@ extern "C"{
  void*CreateSfxSound(int);
  void SetSndSourceLo(void*,P*);
  qword GetLoWorldPos(P*);
- void*NewNoise(int,qword,P*);
+ void*NewNoise(STIMK*,qword,P*);
 }
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
 static inline int Reject(P*p,int flags){VE*v=&p->vt[76];return ((int(*)(P*,int))v->fn)((P*)((char*)p+v->delta),flags);}
@@ -725,7 +724,6 @@ typedef char RECORD_delta_Offset[FIELD_OFFSET(RECORD,delta)==16?1:-1];
 typedef char RECORD_a_Offset[FIELD_OFFSET(RECORD,a)==48?1:-1];
 typedef char RECORD_b_Offset[FIELD_OFFSET(RECORD,b)==52?1:-1];
 typedef char RECORD_c_Offset[FIELD_OFFSET(RECORD,c)==56?1:-1];
-typedef char G_channel_Offset[FIELD_OFFSET(G,channel)==16440?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
 typedef char unsigned_Size[sizeof(unsigned)==4?1:-1];
 typedef char float_Size[sizeof(float)==4?1:-1];
@@ -736,7 +734,6 @@ typedef char C_Prefix_Size[sizeof(C)==0x110?1:-1];
 typedef char P_Prefix_Size[sizeof(P)==0x11AC?1:-1];
 typedef char W_Prefix_Size[sizeof(W)==0x15C?1:-1];
 typedef char COUNT_Size[sizeof(COUNT)==12?1:-1];
-typedef char G_Prefix_Size[sizeof(G)==0x403C?1:-1];
 // Applies a damage record to the player: the owner may veto it (vt86), flag filters, damage scaled by difficulty,
 // health counter, game event broadcast, hit clip, sound, knockback and callback. Returns nonzero if taken.
 extern "C" int TakeJtDamage(C *p, RECORD *input)
@@ -856,9 +853,9 @@ notify: {
     }
 }
 sound:
-    register G *game __asm__("$16") = &D_003DD490;
+    register SW *game __asm__("$16") = &D_003DD490;
     qword point = GetLoWorldPos(p->actor);
-    int channel = game->channel;
+    STIMK *channel = game->apstimk[6];
     (void)NewNoise(channel, point, p->actor);
     return 1;
 }
