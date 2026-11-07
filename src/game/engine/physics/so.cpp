@@ -107,8 +107,8 @@ struct VU_VECTOR4
 };
 
 /* SO::psobounds is sly2/light.h's SOBOUNDS. */
-/* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
-struct SOWATCH { char pad0[0x44]; int unknown44; char pad48[0x6C]; int animIndex; };
+/* The record only CanSoTakeDamage reads (its +0x44 word). */
+struct SOWATCH { char pad0[0x44]; int unknown44; };
 /* Hand-made virtual calls for the slots so.h does not declare with these signatures (g++ 2.95 {delta, pfn}). */
 struct VTE { short d; short pad; void (*pfn)(); };
 #define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
@@ -3733,31 +3733,29 @@ struct T *FindSoSaa(SO *so, int n)
 
 // 0x1F81E0 SetSoAnimIndex
 namespace M_func_001F81E0 { extern "C" {
-struct A;
-struct A : LO { char pad[0xAC - 0x50]; int numAnimIds; int *animIds; int animIndex; };
-// Selects an animation by oid: +0xB4 = -(index in the list + 3), or 0 when not found. (inferred)
-void SetSoAnimIndex(struct A *so, int n)
+// Selects one of the model's shader oids: selectedShader = -(index in the list + 3), or 0 when not found. (inferred)
+void SetSoAnimIndex(SO *so, int n)
 {
     int i;
     if (n == -1) {
-        so->animIndex = 0;
+        so->model.selectedShader = 0;
         return;
     }
-    for (i = 0; i < so->numAnimIds; i++) {
-        if (n == so->animIds[i]) {
-            so->animIndex = -(i + 3);
+    for (i = 0; i < so->model.numShaderOids; i++) {
+        if (n == so->model.shaderOids[i]) {
+            so->model.selectedShader = -(i + 3);
             return;
         }
     }
-    so->animIndex = 0;
+    so->model.selectedShader = 0;
 }
 } } // namespace M_func_001F81E0
 
 // 0x1F8238 ClearSoAnimIndex
-// Clears the selected animation (+0xB4 = 0). (inferred)
-extern "C" void ClearSoAnimIndex(SOWATCH *pwatch)
+// Clears the selected shader (+0xB4 = 0). (inferred)
+extern "C" void ClearSoAnimIndex(SO *so)
 {
-    pwatch->animIndex = 0;
+    so->model.selectedShader = 0;
 }
 
 // 0x1F8240 FindTargetRecordById

@@ -176,12 +176,12 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
     {
         pglobset->apsaa[i] = PsaaLoadFromBrx((void *)1, pbis);
     }
-    pglobset->unknown2C = pbis->U8Read();
-    pglobset->unknown30 = (int *)PvAllocSwClear(pglobset->unknown2C * sizeof(int));
-    pglobset->unknown34 = 0;
-    for (int i = 0; i < pglobset->unknown2C; i++)
+    pglobset->numShaderOids = pbis->U8Read();
+    pglobset->shaderOids = (int *)PvAllocSwClear(pglobset->numShaderOids * sizeof(int));
+    pglobset->selectedShader = 0;
+    for (int i = 0; i < pglobset->numShaderOids; i++)
     {
-        pglobset->unknown30[i] = pbis->S32Read();
+        pglobset->shaderOids[i] = pbis->S32Read();
     }
     pglobset->numPieces = pbis->S16Read();
     pglobset->subMeshes = (SUBGLOB *)PvAllocSwClear(pglobset->numPieces * sizeof(SUBGLOB));
@@ -2711,9 +2711,9 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 {
                     if (psubglob->unknown02 & 2)
                     {
-                        int ioid = pglobset->unknown2C;
+                        int ioid = pglobset->numShaderOids;
                         while (--ioid >= 0)
-                            iqw += AddShaderVifUnpackQword(FindShader(pglobset->unknown30[ioid]), ishdp, iqw, &vifs);
+                            iqw += AddShaderVifUnpackQword(FindShader(pglobset->shaderOids[ioid]), ishdp, iqw, &vifs);
                     }
                     ppart->aiqwShdp[ishdp] = iqw;
                     iqw += AddVifUnpackShdp(pbatch->pshd, ishdp, iqw, &vifs);

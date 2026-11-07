@@ -95,9 +95,9 @@ struct GLOBSET
       float boundsRadius; /* radius of the bounding sphere */
       int cpsaa;   /* number of shader animations */
       SAA **apsaa;   /* the shader animations */
-      int unknown2C;   /* possibly numLoadedInts (low-confidence guess: count read from the BRX (U8), sizes unknown30) */
-      int *unknown30;   /* possibly loadedInts (low-confidence guess: int array read from the BRX) */
-      int unknown34;
+      int numShaderOids;   /* +0x2C number of selectable shader oids (U8 in the BRX) */
+      int *shaderOids;   /* +0x30 the shader oids (glob.cpp builds their VIF unpacks for subglobs with flag 2) */
+      int selectedShader;   /* +0x34 -(index in shaderOids + 3) once SetSoAnimIndex selected one, 0: none */
       int numPieces; /* number of GLOBs */
       SUBGLOB *subMeshes;  /* the sub-meshes */
       GLOB *pieces;  /* the GLOBs */
@@ -123,6 +123,7 @@ struct GLOBSET
        (the New<Class> factories of class_registry.cpp, rip.cpp's NewRipGroup). */
     GLOBSET();
 };
+typedef char assert_GLOBSET_selectedShader[SLY2_OFFSETOF(GLOBSET, selectedShader) == 0x34 ? 1 : -1];
 
 /* CONSTR: a motion constraint: a direction (normal) and the kind of constraint along it.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
