@@ -2906,7 +2906,7 @@ extern "C" void SetHackenemyEntrySecondVectors(void *p, int, void *, void *);
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 1183 on CID73 (g_aeopid[1381], thunkFn/thunkUser): unpacks the script's 3 arguments
-// (0x105F, Lm, Lm) with RefSetArgsFromSplice, calls SetHackenemyEntryVectors2 and returns nothing to the script.
+// (0x105F, Lm, Lm) with RefSetArgsFromSplice, calls SetHackenemyEntrySecondVectors and returns nothing to the script.
 extern "C" CRef RefThunk_SetHackenemyEntryVectors2(void *p, int c, void *aref)
 {
     int ak[3] = {0x105f, 0xa, 0xa};
