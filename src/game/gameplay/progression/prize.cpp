@@ -1938,26 +1938,26 @@ void CLUE::Init()
 }
 
 namespace M_func_001C7E68 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { int a[3]; struct VTE *vt; };
+/* A clue (classes.h CLUE, a DPRIZE): its slot 76, the state setter. */
+struct O : SO { virtual void SetState(int state); };
 void SO_ResetForProxy(struct O *p);
 // CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
 void ResetClue(struct O *clue)
 {
     SO_ResetForProxy(clue);
-    { struct VTE *e = &clue->vt[76]; e->pfn((char *)clue + e->d, 0); }
+    clue->SetState(0);
 }
 } } // namespace M_func_001C7E68
 
 namespace M_func_001C7EA8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { int a[3]; struct VTE *vt; };
+/* A clue (classes.h CLUE, a DPRIZE): its slot 76, the state setter. */
+struct O : SO { virtual void SetState(int state); };
 void SO_Slot27(struct O *p);
 // CID 95 vtable slot 27. (inferred)
 void ClearClueState(struct O *clue)
 {
     SO_Slot27(clue);
-    { struct VTE *e = &clue->vt[76]; e->pfn((char *)clue + e->d, -1); }
+    clue->SetState(-1);
 }
 } } // namespace M_func_001C7EA8
 
