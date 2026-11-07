@@ -50,7 +50,8 @@ char *GetReconSelectedText(int *pn);
 void GetSubtitleText(char *pchz, int n);
 void FormatSubtitleButtonGlyphs(char *pchz, int n);
 void SetWidgetRequest(WIDGET *widget, int request);
-void SetWidgetStateW(WIDGET *widget, int state) __asm__("SetWidgetState");
+void SetWidgetState(WIDGET *widget, int state);
+int HasSpriteAnim(void *pv, SPRITEGRP *group, int id);
 int IsWidgetObscured(WIDGET *widget);
 int IsWidgetIdle(WIDGET *widget);
 int GetSpriteMainState(SPRITEGRP *spriteGroup);
@@ -759,7 +760,6 @@ extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
 extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
 extern "C" unsigned short U16Read__18CBinaryInputStream(BIS *);
 extern "C" int strncmp(const void *,const void *,unsigned int);
-extern "C" void SetWidgetState(WIDGET *,int);
 extern "C" void LoadSpriteTable(WIDGET *,BIS *,WIDGET *,int *,SPRITEDESC **);
 extern "C" void LoadSpriteGroups(WIDGET *,BIS *,WIDGET *);
 extern "C" { 
@@ -836,37 +836,36 @@ load:
 
 // 0x212780 UnloadWidgetSprites
 namespace M_UnloadWidgetSprites { extern "C" {
-struct C { char pad[0x44]; int priority; int lastPriority; };   /* the deferred load record */
-struct S { char pad[0x48]; int unknown48; int unknown4C; int spriteCount; int sprites; char pad2[0x28]; short numSpriteGroups; short pad3; int spriteGroups; char pad4[0x38]; struct C *deferredLoad; char pad5[0x34]; int xform; char childList[4]; };
-void ClearSl(void *p);
+void ClearSl(SL *psl);
+} } // namespace M_UnloadWidgetSprites
 // Drops a widget's sprite tables and lists (on entering the unloaded state).
-void UnloadWidgetSprites(struct S *widget)
+extern "C" void UnloadWidgetSprites(WIDGET *widget)
 {
-    struct C *load;
+    using namespace M_UnloadWidgetSprites;
+    WIDGETLOAD *load;
     widget->xform = 0;
     widget->spriteCount = 0;
     widget->sprites = 0;
     widget->numSpriteGroups = 0;
     widget->spriteGroups = 0;
-    ClearSl(widget->childList);
+    ClearSl(&widget->renderQueue);
     load = widget->deferredLoad;
     load->priority = 0;
     load->lastPriority = 0;
 }
-} } // namespace M_UnloadWidgetSprites
 
 // 0x2127C8 AreWidgetLoadsIdle
 namespace M_func_002127C8 { extern "C" {
-struct Q { char pad[0x58]; int state; int pad2; int stateFrame; int request; };   /* the widget */
-struct S { char pad[0x40]; struct Q *owner; char pad2[8]; struct S *next; };   /* a deferred load record */
 extern int D_002BE538;
+} } // namespace M_func_002127C8
 // True when no deferred widget sprite load is younger than two frames (used to wait for widgets before continuing).
 // (inferred)
-int AreWidgetLoadsIdle(void)
+extern "C" int AreWidgetLoadsIdle(void)
 {
-    struct S *load;
-    for (load = (*(struct S * *)&g_sw.slWidgetDeferred); load; load = load->next) {
-        struct Q *widget = load->owner;
+    using namespace M_func_002127C8;
+    WIDGETLOAD *load;
+    for (load = (*(WIDGETLOAD * *)&g_sw.slWidgetDeferred); load; load = load->next) {
+        WIDGET *widget = load->owner;
         int value;
         if (widget->state == WIDGET_STATE_UNLOADED)
             continue;
@@ -879,89 +878,69 @@ int AreWidgetLoadsIdle(void)
     }
     return 1;
 }
-} } // namespace M_func_002127C8
 
 // 0x212828 ShowWidgetArgsFromSplice
 namespace M_ShowWidgetArgsFromSplice { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; char argTextIds[4]; };
 struct L { int words[4]; };
 void SetValuesFromSpliceList(CRefData *r, void *a, int b, int c, struct L *pl, void *d);
 void Decref__4CRef(CRefData *r);
+} } // namespace M_ShowWidgetArgsFromSplice
 // Shows a widget with argument ids taken from a splice list (at most 10).
-void ShowWidgetArgsFromSplice(struct S *widget, void *spliceList)
+extern "C" void ShowWidgetArgsFromSplice(WIDGET *widget, void *spliceList)
 {
+    using namespace M_ShowWidgetArgsFromSplice;
     CRefData ref;
     struct L scratch;
     SetValuesFromSpliceList(&ref, spliceList, 0x10, 0xA, &scratch, widget->argTextIds);
     Decref__4CRef(&ref);
-    widget->vt[49].pf((char *)widget + widget->vt[49].d, -1);   /* ShowWidget */
+    widget->Show(-1);
 }
-} } // namespace M_ShowWidgetArgsFromSplice
 
 // 0x212880 ShowWidgetArgs
-namespace M_ShowWidgetArgs { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; int argTextIds[10]; };
 // Shows a widget with n argument ids (at most 10), e.g. the text ids it displays.
-void ShowWidgetArgs(struct S *widget, int n, int *src)
+extern "C" void ShowWidgetArgs(WIDGET *widget, int n, int *src)
 {
     int i;
     for (i = 0; i < n && (unsigned)i < 10; i++)
         widget->argTextIds[i] = src[i];
-    widget->vt[49].pf((char *)widget + widget->vt[49].d, -1);   /* ShowWidget */
+    widget->Show(-1);
 }
-} } // namespace M_ShowWidgetArgs
 
 // 0x2128E8 ShowWidget
-namespace M_ShowWidget {
-struct B { char pad[0xC];
-  virtual void v1(); virtual void v2(); virtual void v3(); virtual void v4(); virtual void v5();
-  virtual void v6(); virtual void v7(); virtual void v8(); virtual void v9(); virtual void v10();
-  virtual void v11(); virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
-  virtual void v16(); };
-struct S : B {
-  char pad10[0x48]; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; char pad7c[8]; void *mainSprite;
-  void SetState(int) __asm__("SetWidgetState");
-  void SetRequest(int) __asm__("SetWidgetRequest");
-  int HasSpriteAnim(void *, int) __asm__("HasSpriteAnim");
-  void Show(int) __asm__("ShowWidget");
-};
-// ShowWidget (widget slot 49): requests that a widget show, loading its sprites first if needed; k = the animation
-// argument (-1 = default).
-void S::Show(int animId)
+// ShowWidget (widget slot 49): requests that a widget show, loading its sprites first if needed; animId = the
+// animation to loop (-1 = default).
+void WIDGET::Show(int animId)
 {
     if (state == WIDGET_STATE_UNLOADED)
-        SetState(WIDGET_STATE_HIDDEN);
-    SetRequest(WIDGET_REQUEST_SHOW);
+        SetWidgetState(this, WIDGET_STATE_HIDDEN);
+    SetWidgetRequest(this, WIDGET_REQUEST_SHOW);
     loopAnimId = animId;
     showAnimId = -1;
     hideAnimId = -1;
     if (animId != -1) {
-        SetState(WIDGET_STATE_HIDDEN);
-        SetState(WIDGET_STATE_VISIBLE);
+        SetWidgetState(this, WIDGET_STATE_HIDDEN);
+        SetWidgetState(this, WIDGET_STATE_VISIBLE);
         return;
     }
     /* default animations, where the sprite has them; 0x314 is the main track */
     loopAnimId = 0x314;
-    if (HasSpriteAnim(mainSprite, 0x30F))
+    if (HasSpriteAnim(this, spriteGroups, 0x30F))
         showAnimId = 0x30F;
-    if (HasSpriteAnim(mainSprite, 0x310))
+    if (HasSpriteAnim(this, spriteGroups, 0x310))
         loopAnimId = 0x310;
-    if (HasSpriteAnim(mainSprite, 0x311))
+    if (HasSpriteAnim(this, spriteGroups, 0x311))
         hideAnimId = 0x311;
     if (state == WIDGET_STATE_HIDDEN)
-        v16();   /* UpdateWidget */
+        Update();
 }
-} // namespace M_ShowWidget
 
 // 0x2129E8 HideWidget
-// Requests that a widget hide; without a disappear animation it goes straight to hidden.
-extern "C" void HideWidget(WIDGET *widget)
+// HideWidget (widget slot 50): requests that a widget hide; without a disappear animation it goes straight to hidden.
+void WIDGET::Hide()
 {
-    SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
-    if (widget->hideAnimId == -1)
-        SetWidgetStateW(widget, WIDGET_STATE_HIDDEN);
+    SetWidgetRequest(this, WIDGET_REQUEST_HIDE);
+    if (hideAnimId == -1)
+        SetWidgetState(this, WIDGET_STATE_HIDDEN);
 }
 
 // 0x212A30 ResetWidgetVisibleTime
