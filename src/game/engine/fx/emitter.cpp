@@ -462,25 +462,21 @@ extern "C" void AttachEmitterToReferencedObject(EMITTERV *pemitter)
     SetLoParent(pemitter, GetSoFromLo((int)*pemitter->pemitb->aploRef), 0);
 }
 
-namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv {
-struct EMITTERV { char pad[0x14C]; void *pripg; void *pblipg; };   /* +0x14C, +0x150 */
-enum MSGID { MSGID_0, MSGID_1 };
 extern "C" { void UnsubscribeLoObject(void *pv, void *po); }
 // Emitter message handler: on message 1 (an object is going away) forgets that object if it is the emitter's rip
 // or blip group (it subscribes to both).
-extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTERV *pemitter, MSGID msgid, void *pv)
+void EMITTER::HandleMessage(MSGID msgid, void *pv)
 {
     if (msgid == 1) {
-        if (pv == pemitter->pripg) {
-            UnsubscribeLoObject(pv, pemitter);
-            pemitter->pripg = 0;
-        } else if (pv == pemitter->pblipg) {
-            UnsubscribeLoObject(pv, pemitter);
-            pemitter->pblipg = 0;
+        if (pv == pripg) {
+            UnsubscribeLoObject(pv, this);
+            pripg = 0;
+        } else if (pv == pblipg) {
+            UnsubscribeLoObject(pv, this);
+            pblipg = 0;
         }
     }
 }
-} // namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv
 
 #ifndef SLY2_ENUM_ENSK
 #define SLY2_ENUM_ENSK
@@ -775,12 +771,10 @@ void UnpauseEmitter(EMITTERV *pemitter)
     pemitter->tUnpause = -1.0f;
 }
 
-namespace M_IsEmitterPaused__FP7EMITTER {
-extern "C" { extern CLOCK D_002DDED0; }
-struct EMITTERV { char pad[0xF0]; int emitMode; int particleCount; char pad2[0x148 - 0xF8]; float tUnpause; };
 // Returns whether the emitter is paused: before its unpause time, or (continuous and constant-count modes) with no particles left to
 // emit.
-extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
+int IsEmitterPaused(EMITTER *pemitter) __asm__("IsEmitterPaused__FP7EMITTER");
+int IsEmitterPaused(EMITTER *pemitter)
 {
     if (D_002DDED0.time < pemitter->tUnpause)
         return 1;
@@ -792,7 +786,6 @@ extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
     }
     return 0;
 }
-} // namespace M_IsEmitterPaused__FP7EMITTER
 
 void OnEmitterValuesChanged(EMITTERV *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 // Called when the emitter's properties changed: clears the dirty flag, pushes the new emission parameters to its blip
@@ -813,12 +806,9 @@ void OnEmitterValuesChanged(EMITTERV *pemitter)
     }
 }
 
-namespace M_SetEmitterParticleCount__FP7EMITTERi {
-struct EMITTERV { char pad[0xE0]; int isDirty; char pad2[0xC]; int emitMode; int particleCount; };
-void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
-void UnpauseEmitter(EMITTERV *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
 // Sets the emitter's particle count; in continuous mode, 0 pauses it and -1 unpauses it.
-extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTERV *pemitter, int c)
+void SetEmitterParticleCount(EMITTER *pemitter, int c) __asm__("SetEmitterParticleCount__FP7EMITTERi");
+void SetEmitterParticleCount(EMITTER *pemitter, int c)
 {
     switch (pemitter->emitMode) {
     case EMIT_MODE_CONTINUOUS:
@@ -833,9 +823,8 @@ extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTERV *pemitter, int c)
         pemitter->particleCount = c;
         break;
     }
-    pemitter->isDirty = 1;
+    pemitter->fDirty = 1;
 }
-} // namespace M_SetEmitterParticleCount__FP7EMITTERi
 
 void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause) __asm__("SetEmitterAutoPause__FP7EMITTERi");
 // Sets the emitter's auto-pause flag (the condition that pauses it is read elsewhere; inferred to be its source going
@@ -2106,7 +2095,6 @@ void ExplodeExplgExplso(S *group, P *explso)
 
 namespace M_HandleExplsMessage { extern "C" {
 struct O { char pad[0x100]; void *pripg; void *pblipg; };   /* EXPLS: its particle groups (+0x100, +0x104) */
-void UnsubscribeLoObject(void *pv, void *po);
 } } // namespace M_HandleExplsMessage
 // EXPLS::HandleMessage: on message 1 (an object is going away) forgets its rip or blip group if it is that object.
 void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
