@@ -514,6 +514,43 @@ Not attempted: act.cpp's 19 curve-class vtables (namespace-scoped classes of Pac
 move them to file scope under real names with `_vt$` names in config, as slice 2 did for the registry classes),
 hud's and memcard's local classes, the 19 macros without a header type, unifying the three CFrame views.
 
+### Views unified (names/vu-f6-render): the render family
+
+The private views of the emitter block and its records, the rips, the render list, the model sub-mesh records, the
+colour tables / bitmaps / TEX0 register and the GS block allocator, replaced by shared header types. Every function and
+data symbol of every touched file and of every includer of the changed headers (the 75 classes.h includers for
+emitter.h) MATCHes, and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---:|
+| SUBGLOBX (12 identical copies), SUBGLOBLOAD (2) | new sly2/glob.h | 14 | 11 |
+| RPL, the render-list entry (`pbCall`/`pvCall`: the two DMA CALL targets) | new sly2/render.h (self-contained) | 6 | 4 |
+| EMITTER's fields (mode, count, rate, pause, group list/link, current rate, density, box radius...) | sly2/emitter.h | 9 EMITTERV/M_InitEmitter views | 1 |
+| EMITB as Sly 1 lays it out: EMITO origin record (+0x10, a union for the point position / data word), EMITVEL velocity record (+0x50; Sly 1's EMITV, renamed because EMITV is in the accessors' mangled names), EMITV particle record (+0xC0) as a union of the rip and blip records selected by particleKind, with EMITROLL/EMITREMIT payloads; EMITREF indices for aploRef; EMITMESH/EMITTRI, EMITVX, EXPLSO and its flags | sly2/emitter.h | 31 (EMITBV/EP/E/S/B/X/P/EMITREFS/EMITO/SAV/EO/EMITMESH/EMITVX/EMITDEF::EMITO...) | emitter, blip, rip, grab, po |
+| RIP and its kind classes moved out of rip.cpp; RIP gains startTime, renderObject, the scale curve, orientation, velocity, angularVelocity, touchObject; FLYING/MATCH/REMIT/SHRAPNEL fields; `RIP::Init(pos, scale, psoTouch)` in Sly 1's parameter order (InitMatch's symbol), `PostEmit(EMITB *)` | new sly2/rip.h | 14 (rip.cpp's per-function RIP/RIPGV/SHRAPNEL/OBJ views, emitter.cpp's RIPV/RIP) | rip, emitter |
+| TEX0 (one word or GS fields), CLUT, BMP | new sly2/shd.h (self-contained) | 9 | shd, font, gs, tu_1BE398 |
+| GSB/GSBB (0x630) | new sly2/gs.h (self-contained) | 4 | gs, font, tu_1BE398 |
+
+Hand-made vtable calls that became real virtual calls and still match: EMITTER group creation (RotateToMat, slot 30),
+ConvertEmitoPosVec and OriginateSplineSinkParticles (GetLocalTransform, slot 32), EmitRips and WakeSoWater (RIP::Init,
+PostEmit). EMITTER::HandleMessage and REMIT::PostEmit became members. EmitRips matched only once RIP::Init took its
+arguments as (position, scale, touch object): with (position, touch, scale) the scale's call moves and the allocation
+shifts. Struct definitions in src/game .cpp: 7290 -> 7162; render-family names (inv.py): 165 -> 82.
+
+Islands (matching-only, recorded in scratch islands.csv): emitter.cpp's two default/splash initializers keep their
+union-shaped views (`EMITDEF::EMITVELIsland`, WakeSoWater's `EMITVIsland`/`EMITVELIsland`): the unions there are
+scheduling barriers the header records do not have, and the header EMITV (anonymous union of the two records) as an
+aggregate initializer makes cc1plus exit silently. RIP::Init reads the clock through a bare-float view of g_clock.time
+(10/23 off through CLOCK).
+
+Not converted: views of RIPG, BLIPG, EXPLG and EXPLS fields (classes.h names none of their fields; not this family's
+header: rip.cpp's RIPGV, emitter.cpp's BLIPG/RIPG/PRG/EXPLGV/EXPLS views, the EMITG views typed on them); RENDERTGT
+views (sly2/sw.h keeps TEX0 as a plain word; shd.h's TEX0 union could replace it); the namespaced Lilly views in
+glob.cpp, shd.cpp, light.cpp, blip.cpp (SHD, DMA/DMAS/VIFS/GIFS packet classes, PACKET, LIGHT, SAA); tu_1147D8 /
+tu_114AE0's constructor-initialized CLUT/BMP (a constructor in shd.h's CLUT would change every includer); the hand
+vtable calls of rip.cpp's hand-tuned functions (BounceRipgRips, UpdateRipg, RenderRipgSelf, HandleRipBounce, the
+Render* bodies).
+
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key
