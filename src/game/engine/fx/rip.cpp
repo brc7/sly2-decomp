@@ -2074,21 +2074,17 @@ typedef char follow_layout[(sizeof(qword) == 16 && sizeof(M3) == 0x30 && sizeof(
 #undef OFF
 
 namespace M_UpdateMatch { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; };
 extern struct CLOCK { float time; } D_002DDED0;
 void LaunchMatch__FP5MATCH(MATCH *p);
 } } // namespace M_UpdateMatch
 // MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
-// render object (vtable slot 8) and removes itself.
-void MATCH::Update()   /* key function (the namespace's views) */
+// render object (LO::Add, vtable slot 8) and removes itself.
+void MATCH::Update()   /* key function (the namespace's declarations) */
 {
     using namespace M_UpdateMatch;
     if (D_002DDED0.time >= startTime && shouldLaunch) LaunchMatch__FP5MATCH(this);
     if (D_002DDED0.time - startTime > duration) {
-        struct O *po = (struct O *)renderObject;   /* its vtable slot 8 by hand */
-        struct VTE *e = &po->vt[8];
-        ((void (*)(void *))e->pfn)((char *)po + e->d);
+        renderObject->Add();
         RemoveRip(this);
     }
 }
