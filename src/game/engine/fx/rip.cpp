@@ -1778,21 +1778,19 @@ void STUCK::Update()   /* key function: STUCK's vtable comes out here */
 
 namespace M_RenderStuck {
 typedef int qword __attribute__((mode(TI)));
-struct M { qword a, b, c; };
-struct S { char pad[0x40]; M orientation; qword position; char pad2[0xF0 - 0x80]; void *host; };   /* STUCK: position / orientation in its host's space */
 extern "C" {
-qword TransformXfPos(void *p, int n, qword q);
-M ConvertXfMat(void *p, int n, M *pm);
-int RenderRipAtPose(S *p, qword q, M m);
-void RenderStuck(S *p);
+qword TransformXfPos(LO *plo, int n, qword q);
+RIPM3 ConvertXfMat(LO *plo, int n, RIPM3 *pm);
+int RenderRipAtPose(RIP *prip, qword q, RIPM3 m);
+void RenderStuck(STUCK *pstuck);
 }
 // STUCK Render: its position and orientation taken from the host object's space to world, then rendered.
-void RenderStuck(S *p)
+void RenderStuck(STUCK *pstuck)
 {
-    qword q = TransformXfPos(p->host, 0, p->position);
-    M m;
-    m = ConvertXfMat(p->host, 0, &p->orientation);
-    RenderRipAtPose(p, q, m);
+    qword q = TransformXfPos(pstuck->ploHost, 0, pstuck->currentPosition);
+    RIPM3 m;
+    m = ConvertXfMat(pstuck->ploHost, 0, &pstuck->orientation);
+    RenderRipAtPose(pstuck, q, m);
 }
 } // namespace M_RenderStuck
 
