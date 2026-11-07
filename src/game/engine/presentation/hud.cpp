@@ -3312,18 +3312,15 @@ namespace M_func_00218220 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) {u=x;} } __attribute__((aligned(16)));
-struct M23 {float a[6];} __attribute__((aligned(16)));
-struct O {char pad[0xF4]; void *followObject; M23 *xform;};   /* the widget: world object to follow (inferred), transform override */
-struct S {char pad[0x24]; O *owner; int isEnabled;};   /* the main sprite group */
-extern "C" M23 D_002A3A10;
+extern "C" SPRITEXF D_002A3A10;
 extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
-extern "C" void UpdateSpriteSlot(S *,int,M23 *,float,const RGBA &,const RGBA &);
+extern "C" void UpdateSpriteSlot(SPRITEGRP *,int,SPRITEXF *,float,const RGBA &,const RGBA &);
 // Compose two 2x3 affine matrices (q then n).
-static inline M23 Mul(const M23 &q, const M23 &n)
+static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
-    M23 r;
+    SPRITEXF r;
     r.a[0] = m0 * n.a[0] + m1 * n.a[2];
     r.a[1] = m0 * n.a[1] + m1 * n.a[3];
     r.a[2] = m2 * n.a[0] + m3 * n.a[2];
@@ -3333,9 +3330,9 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     return r;
 }
 // Advances the widget's main sprite by dt; a world-anchored widget follows its object's screen position. (inferred)
-extern "C" void AdvanceWidgetSprite(S *group,float dt) {
+extern "C" void AdvanceWidgetSprite(SPRITEGRP *group,float dt) {
     if(group->isEnabled) {
-        M23 m=D_002A3A10;
+        SPRITEXF m=D_002A3A10;
         if(group->owner->followObject) {
             qword worldPos=GetLoWorldPos(group->owner->followObject); qword screenPos=ConvertCmWorldToScreen(&g_cm,worldPos);
             m.a[4] = QwordX(screenPos)*320.0f+320.0f;
