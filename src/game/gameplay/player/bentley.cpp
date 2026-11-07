@@ -324,17 +324,16 @@ void UpdateBentleyStateMachine(struct P *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00134D30 { extern "C" {
-struct S { char pad[0x150]; void *controller; char pad2[0xf00 - 0x154]; int ff00; int jtModeState; char pad3[0x18]; int jtModeKind; };
-int IsStepplayerInJtMode(struct S *);
+int IsStepplayerInJtMode(BENTLEY *);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
 void EndJtMode(void *);
 void UpdateJtMode(void *);
 // While in a look mode: in recon (mode 1, kind 0) the face buttons (mask 0x4F0) end it; then updates the mode.
-void UpdateBentleyJtMode(struct S *bentley) {
+void UpdateBentleyJtMode(BENTLEY *bentley) {
     if (!IsStepplayerInJtMode(bentley))
         return;
-    void *pv = &bentley->ff00;
-    if (bentley->jtModeState == 1 && bentley->jtModeKind == 0 && ConsumeButtonsPressedWithin__5POCTLUif(bentley->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(pv);
+    void *pv = &bentley->jtmode;
+    if (bentley->jtmode.state == 1 && bentley->jtmode.kind == 0 && ConsumeButtonsPressedWithin__5POCTLUif(bentley->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(pv);
     UpdateJtMode(pv);
 }
 } } // namespace M_func_00134D30
@@ -897,17 +896,16 @@ void PresetBentleyAccel(struct P *bentley)
 namespace M_func_00135A48 { extern "C" {
 struct O { char pad[0x10]; unsigned long grf; };
 struct E { struct O *po; char pad[0x3c]; };
-struct S { char pad[0xdf0]; int hurt; char pad2[0xf50 - 0xdf4]; int pipe; char pad3[0x13d0 - 0xf54]; int st; };
 void AdjustJtHurtXp(void *, struct E *);
 void ResetJtPipeAdjust(void *, struct E *);
-void AdjustStepNewXp(struct S *, struct E *, int);
+void AdjustStepNewXp(BENTLEY *, struct E *, int);
 // BENTLEY contact adjust (slot 55): hurt -> AdjustJtHurtXp, pipe -> ResetJtPipeAdjust, else the STEP base.
-void AdjustBentleyXp(struct S *bentley, struct E *ae, int i) {
+void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
     struct E *pe = &ae[i];
     if (pe->po->grf & (0x8000L << 33)) return;
-    switch (bentley->st) {
-    case BENTLEY_HURT: AdjustJtHurtXp(&bentley->hurt, ae); break;
-    case BENTLEY_PIPE: ResetJtPipeAdjust(&bentley->pipe, ae); break;
+    switch (bentley->state) {
+    case BENTLEY_HURT: AdjustJtHurtXp(&bentley->jthurt, ae); break;
+    case BENTLEY_PIPE: ResetJtPipeAdjust(&bentley->jtpipe, ae); break;
     default: AdjustStepNewXp(bentley, ae, i); break;
     }
 }
@@ -986,10 +984,9 @@ void SetBentleyPlayerState(void *bentley, unsigned int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BENTLEY_PlayerStateCur { extern "C" {
-struct S { char pad[0x13d0]; int st; };
 // BENTLEY slot 89: the inverse map, Bentley state -> generic player state 0..8 (else -1).
-int GetBentleyPlayerState(struct S *bentley) {
-    switch (bentley->st) {
+int GetBentleyPlayerState(BENTLEY *bentley) {
+    switch (bentley->state) {
     case BENTLEY_IDLE: return 0;
     case BENTLEY_AIR: return 1;
     case BENTLEY_GRAB: return 2;
@@ -1006,23 +1003,22 @@ int GetBentleyPlayerState(struct S *bentley) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135D80 { extern "C" {
-struct S { char pad[0x268]; int f268; char pad1[0x2c0 - 0x26c]; int air; char pad2[0x4c0 - 0x2c4]; int grab; char pad3[0xdf0 - 0x4c4]; int hurt; char pad4[0x13d0 - 0xdf4]; int st; };
-int GetJtGrabAdjustRecord(void *, int *);
-int GetJtAirAdjustRecord(void *, int *);
-int GetJtHurtAdjustRecord(void *, int *);
-void SetStepPhys(struct S *, int, int);
+SOPART *GetJtGrabAdjustRecord(JTGRAB *, int *);
+SOPART *GetJtAirAdjustRecord(JTAIR *, int *);
+SOPART *GetJtHurtAdjustRecord(JTHURT *, int *);
+void SetStepPhys(BENTLEY *, SOPART *, int);
 // BENTLEY slot 90: asks the active component (air/grab/hurt) for the per-state STEP parameter block, default +0x268,
 // then applies it (STEP base).
-void ApplyBentleyStateStepParams(struct S *bentley) {
+void ApplyBentleyStateStepParams(BENTLEY *bentley) {
     int n = 0;
-    int r;
-    switch (bentley->st) {
-    case BENTLEY_GRAB: r = GetJtGrabAdjustRecord(&bentley->grab, &n); break;
-    case BENTLEY_HURT: r = GetJtHurtAdjustRecord(&bentley->hurt, &n); break;
-    case BENTLEY_AIR: r = GetJtAirAdjustRecord(&bentley->air, &n); break;
+    SOPART *r;
+    switch (bentley->state) {
+    case BENTLEY_GRAB: r = GetJtGrabAdjustRecord(&bentley->jtgrab, &n); break;
+    case BENTLEY_HURT: r = GetJtHurtAdjustRecord(&bentley->jthurt, &n); break;
+    case BENTLEY_AIR: r = GetJtAirAdjustRecord(&bentley->jtair, &n); break;
     default: r = 0; break;
     }
-    if (!r) r = bentley->f268;
+    if (!r) r = bentley->unknown268;
     SetStepPhys(bentley, r, n);
 }
 } } // namespace M_func_00135D80
@@ -1040,14 +1036,13 @@ extern "C" int TryFaceBentleyAttachedObject()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135E40 { extern "C" {
-struct S { char pad[0x13d0]; int st; };
-int GetStepplayerMovementNoise(struct S *);
+int GetStepplayerMovementNoise(BENTLEY *);
 // BENTLEY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
 // then 1 (noisy) in BENTLEY_RUN/NEAR_TARGET/ADRENALINE, else -1.
-int GetBentleyMovementNoise(struct S *bentley) {
+int GetBentleyMovementNoise(BENTLEY *bentley) {
     int r = GetStepplayerMovementNoise(bentley);
     if (r != -1) return r;
-    switch (bentley->st) {
+    switch (bentley->state) {
     case BENTLEY_RUN: case BENTLEY_NEAR_TARGET: case BENTLEY_ADRENALINE: return 1;
     }
     return -1;
@@ -1085,22 +1080,20 @@ void UpdateBentleyPlaces(struct S *bentley) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BENTLEY_FInvulnerable { extern "C" {
-struct S { char pad[0x4c0]; int grab; char pad2[0x13d0 - 0x4c4]; int st; };
-int IsJtGrabBusy(void *, int);
-int IsStepplayerInvulnerable(struct S *, int);
+int IsJtGrabBusy(JTGRAB *, int);
+int IsStepplayerInvulnerable(BENTLEY *, int);
 // BENTLEY slot 76: on a pipe with zap kind 0x4000, or the grab check, else the STEPPLAYER base.
-int IsBentleyInvulnerable(struct S *bentley, int msg) {
-    switch (bentley->st) { case BENTLEY_PIPE: if (msg == 0x4000) return 1; break; case BENTLEY_GRAB: if (IsJtGrabBusy(&bentley->grab, msg)) return 1; break; }
+int IsBentleyInvulnerable(BENTLEY *bentley, int msg) {
+    switch (bentley->state) { case BENTLEY_PIPE: if (msg == 0x4000) return 1; break; case BENTLEY_GRAB: if (IsJtGrabBusy(&bentley->jtgrab, msg)) return 1; break; }
     return IsStepplayerInvulnerable(bentley, msg);
 }
 } } // namespace M_BENTLEY_FInvulnerable
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135FF0 { extern "C" {
-struct S { char pad[0x13d0]; int st; };
 // BENTLEY slot 94: 1 in states 0/1/5/7 (free movement), else 0. (inferred)
-int IsBentleyFreeMoving(struct S *bentley) {
-    switch (bentley->st) {
+int IsBentleyFreeMoving(BENTLEY *bentley) {
+    switch (bentley->state) {
     case BENTLEY_IDLE: case BENTLEY_RUN: case BENTLEY_NEAR_TARGET: case BENTLEY_WALK: return 1;
     }
     return 0;
@@ -1609,12 +1602,11 @@ extern "C" char *GetBentleySaveVarRoot()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136CC0 { extern "C" {
-struct S { char pad[0x204]; int f204; char pad2[0x13d0 - 0x208]; int st; };
-int GetStepplayerGroundProbeFlags(struct S *);
+int GetStepplayerGroundProbeFlags(BENTLEY *);
 // BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
-int GetBentleyGroundProbeFlags(struct S *bentley) {
-    if (bentley->f204) return 0;
-    switch (bentley->st) {
+int GetBentleyGroundProbeFlags(BENTLEY *bentley) {
+    if (bentley->unknown204) return 0;
+    switch (bentley->state) {
     case BENTLEY_PIPE: return 0;
     case BENTLEY_HOVER: return 5;
     case BENTLEY_ADRENALINE: return 0xf;
