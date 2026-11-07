@@ -28,6 +28,31 @@ struct CPDEFI
       VECTOR4 adjustedPosition; /* adjusted position */
 };
 
+/* CAMEVENT: an event a camera move fires (its data words only; the code calls through a vtable pointer at +0x0C, see
+   cplcy.cpp's ActivateCpcamblend/DeactivateCpcamblend). CAMPOSE: one camera pose: eye position, orientation (Euler
+   angles) and FOV. CAMMOVE: a cutscene camera move from one pose to another over dt (CPCAMBLEND plays it).
+   Moved here unchanged from the five identical copies in cm.cpp, tn.cpp, jt.cpp, mode.cpp and relay.cpp. */
+struct CAMEVENT
+{
+      uint32_t   _pad_376    [ 3 ] ;
+};
+struct CAMPOSE
+{
+      VECTOR4 pos;
+      VECTOR4 eul;
+      float radFov;
+};
+struct CAMMOVE
+{
+      CAMPOSE *pposeFrom;
+      CAMPOSE *pposeTo;
+      float dt;
+      int fCutOnLeave;
+      int iCurve;
+      CAMEVENT *pevent;
+      int nUnk18;
+};
+
 /* CPLCYDATA: the data every camera policy has: the hero it follows and the FOV/near clip it saved on activation
    (restored on deactivation).
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */

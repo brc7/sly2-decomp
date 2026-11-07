@@ -411,26 +411,6 @@ bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("InvertMatrix4")
 void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sNear, float sFar, MATRIX4 *pmat) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern CLOCK D_002DDED0; }
-struct CAMEVENT
-{
-      uint32_t   _pad_376    [ 3 ] ;
-};
-struct CAMPOSE
-{
-      VECTOR4 pos;
-      VECTOR4 eul;
-      float radFov;
-};
-struct CAMMOVE
-{
-      CAMPOSE *pposeFrom;
-      CAMPOSE *pposeTo;
-      float dt;
-      int fCutOnLeave;
-      int iCurve;
-      CAMEVENT *pevent;
-      int nUnk18;
-};
 extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("CombineEyeLookAtProj");
 extern "C" void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane);
 void UpdateCmVisZone(CM *pcm) __asm__("UpdateCmVisZone__FP2CM");

@@ -149,26 +149,6 @@ struct JOY
       float uDpad;
       undefined4 unknown10F0[4];
 };
-struct CAMEVENT
-{
-      uint32_t   _pad_376    [ 3 ] ;
-};
-struct CAMPOSE
-{
-      VECTOR4 pos;
-      VECTOR4 eul;
-      float radFov;
-};
-struct CAMMOVE
-{
-      CAMPOSE *pposeFrom;
-      CAMPOSE *pposeTo;
-      float dt;
-      int fCutOnLeave;
-      int iCurve;
-      CAMEVENT *pevent;
-      int nUnk18;
-};
 extern CM D_002DDF40;
 void SpringCm(CM *pcm, qword *pqwPos, VECTOR *pvVel, qword qwTarget, float k, float c) __asm__("ApplyCameraSpring");
 void SetCmPanTilt(CM *pcm, qword posEye, qword posCenter, float radPan, float radTilt) __asm__("SetCameraLookAt");

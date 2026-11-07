@@ -58,26 +58,6 @@ struct SUBGLOBX
       float gUnk10;
       uint grfUnk14;
 };
-struct CAMEVENT
-{
-      uint32_t   _pad_376    [ 3 ] ;
-};
-struct CAMPOSE
-{
-      VECTOR4 pos;
-      VECTOR4 eul;
-      float radFov;
-};
-struct CAMMOVE
-{
-      CAMPOSE *pposeFrom;
-      CAMPOSE *pposeTo;
-      float dt;
-      int fCutOnLeave;
-      int iCurve;
-      CAMEVENT *pevent;
-      int nUnk18;
-};
 void CutCm(CM *pcm);
 extern "C" void SetCmPolicy(CM *pcm, int nPriority, void *pvMode, int nUnk, int nUnk2);
 extern "C" void RevokeCmPolicy(CM *pcm, int grf, int nPriority, void *pvMode, void *pvHero, void *pvOwner);

@@ -241,29 +241,6 @@ struct WARPV : XFM
       OID aoidAlias[4];
 };
 
-struct CAMEVENT
-{
-      uint32_t   _pad_376    [ 3 ] ;
-};
-
-struct CAMPOSE
-{
-      VECTOR4 pos;
-      VECTOR4 eul;
-      float radFov;
-};
-
-struct CAMMOVE
-{
-      CAMPOSE *pposeFrom;
-      CAMPOSE *pposeTo;
-      float dt;
-      int fCutOnLeave;
-      int iCurve;
-      CAMEVENT *pevent;
-      int nUnk18;
-};
-
 void JoltCm(CM *pcm, int nUnk61c) __asm__("JoltCamera");
 
 void CutCm(CM *pcm);
