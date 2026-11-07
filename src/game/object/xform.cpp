@@ -234,13 +234,6 @@ extern "C" qword GetXfmVelocity(XFM *xfm)
     return GetXfVelocity(o, 0, MulPos((M4 *)&o->matWorld, *(qword *)xfm->mat.mat[3]));
 }
 
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 /** @sly2-annot addr=0x2314D0
  * Purpose: via GetXfAngularVelocity
  * Info: proposed name GetXfmAngularVelocity (T2); class XFM slot34; TU xform
@@ -259,7 +252,7 @@ extern "C" qword GetXfmAngularVelocity(XFM *xfm)
         }
         {
             union { qword q; float f; } r;
-            r.q = Make(m.mat[1][2], m.mat[2][0], m.mat[0][1]);
+            r.q = QwordFromFloats<qword>(m.mat[1][2], m.mat[2][0], m.mat[0][1]);
             return r.q;
         }
     }

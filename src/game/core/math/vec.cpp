@@ -38,13 +38,6 @@ float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext
 //////// 0x11E1A0 SetVectorCylind
 namespace V_SetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 /** @sly2-annot addr=0x11E1A0
  * Purpose: Vector from cylindrical (rad, r, z) via CalculateSinCos, returned by value
  * Info: proposed name SetVectorCylind (T1); TU vec
@@ -56,20 +49,13 @@ static __inline__ qword Make(float x, float y, float z)
 // Builds a vector from cylindrical coordinates: angle `rad` around z, `radius` in the xy plane, height z.
 extern "C" qword SetVectorCylind(float rad, float radius, float z)
 {
-    union { qword q; float f[4]; } v; float gA, gB; CalculateSinCos__FfPfT1(rad, &gA, &gB); v.q = Make(gB * radius, gA * radius, z); return v.q;
+    union { qword q; float f[4]; } v; float gA, gB; CalculateSinCos__FfPfT1(rad, &gA, &gB); v.q = QwordFromFloats<qword>(gB * radius, gA * radius, z); return v.q;
 }
 }
 
 //////// 0x11E208 SetVectorSphere
 namespace V_SetVectorSphere {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 /** @sly2-annot addr=0x11E208
  * Purpose: Vector from spherical (pan, tilt, r)
  * Info: proposed name SetVectorSphere (T1); TU vec
@@ -83,7 +69,7 @@ extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
     float sp, cp, st, ct;
     CalculateSinCos__FfPfT1(radPan, &sp, &cp);
     CalculateSinCos__FfPfT1(radTilt, &st, &ct);
-    v.q = Make(ct * cp * r, ct * sp * r, st * r);
+    v.q = QwordFromFloats<qword>(ct * cp * r, ct * sp * r, st * r);
     return v.q;
 }
 }
@@ -177,13 +163,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 static __inline__ float GetY(qword q) { qword t; float y; __asm__("prot3w %0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(y) : "r"(t)); return y; }
 static __inline__ float GetZ(qword q) { qword t; float z; __asm__("pextuw %0,$0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(z) : "r"(t)); return z; }
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 static inline qword Normalize(qword v)
 {
     qword d, l, r;
@@ -221,14 +200,14 @@ extern "C" qword GetNormalVector(qword v)
     float az = fabsf(z);
         if (ax <= ay) {
         if (ax <= az)
-            w = u.q = Make(0.0f, z, -y);
+            w = u.q = QwordFromFloats<qword>(0.0f, z, -y);
         else
-            w = u.q = Make(y, -x, 0.0f);
+            w = u.q = QwordFromFloats<qword>(y, -x, 0.0f);
     } else {
         if (ay <= az)
-            w = u.q = Make(z, 0.0f, -x);
+            w = u.q = QwordFromFloats<qword>(z, 0.0f, -x);
         else
-            w = u.q = Make(y, -x, 0.0f);
+            w = u.q = QwordFromFloats<qword>(y, -x, 0.0f);
     }
     }
     return Normalize(VuCross(v, w));

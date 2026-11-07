@@ -231,13 +231,6 @@ M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CA18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 struct S { char pad[0x94]; int k; };
 qword DecomposeRotationMatrixToEuler(float *m);
 /** @sly2-annot addr=0x22CA18
@@ -262,13 +255,13 @@ qword GetXfValueFromMatrix(struct S *p, float *m)
     switch (p->k) {
     case 0: case 15: break;
     case 1: case 4: case 5: case 9: case 10:
-        r.q = Make(m[12], m[13], m[14]); v = r.q; break;
+        r.q = QwordFromFloats<qword>(m[12], m[13], m[14]); v = r.q; break;
     case 6: case 7:
         v = DecomposeRotationMatrixToEuler(m); break;
     case 11:
-        r.q = Make(m[4], m[8], m[9]); v = r.q; break;
+        r.q = QwordFromFloats<qword>(m[4], m[8], m[9]); v = r.q; break;
     case 12:
-        r.q = Make(m[0], m[5], m[10]); v = r.q; break;
+        r.q = QwordFromFloats<qword>(m[0], m[5], m[10]); v = r.q; break;
     }
     return v;
 }
@@ -277,13 +270,6 @@ qword GetXfValueFromMatrix(struct S *p, float *m)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CAD0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 /** @sly2-annot addr=0x22CAD0
  * Purpose: CalculateSinCos-based helper
@@ -298,7 +284,7 @@ qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
     union { qword q; float f[4]; } r;
     CalculateSinCos__FfPfT1(QwordY(a), &s0, &c0);
     CalculateSinCos__FfPfT1(QwordZ(a), &s1, &c1);
-    r.q = Make(c0 * c1 * QwordX(b) - s1 * QwordY(b),
+    r.q = QwordFromFloats<qword>(c0 * c1 * QwordX(b) - s1 * QwordY(b),
                c0 * s1 * QwordX(b) + c1 * QwordY(b),
                -s0 * QwordX(b) + QwordZ(b));
     return r.q;

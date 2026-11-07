@@ -694,13 +694,6 @@ extern "C" qword DecomposeRotationMatrixToVector(void *matrix)
     return r;
 }
 
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 /** @sly2-annot addr=0x11BFF0
  * Purpose: Euler angles from a rotation matrix (asin of -m02 clamped, atan2 for the others, gimbal-lock
  *   branch)
@@ -719,14 +712,14 @@ extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix)
     if (tilt < 1.5706963539123535f) {
         if (-1.5706963539123535f < tilt) {
             float x = atan2f(matrix->mat[1][2], matrix->mat[2][2]);
-            r.q = Make(x, tilt, atan2f(matrix->mat[0][1], matrix->mat[0][0]));
+            r.q = QwordFromFloats<qword>(x, tilt, atan2f(matrix->mat[0][1], matrix->mat[0][0]));
             q = r.q;
         } else {
-            r.q = Make(0.0f, tilt, atan2f(-matrix->mat[1][0], -matrix->mat[2][0]));
+            r.q = QwordFromFloats<qword>(0.0f, tilt, atan2f(-matrix->mat[1][0], -matrix->mat[2][0]));
             q = r.q;
         }
     } else {
-        r.q = Make(0.0f, tilt, atan2f(-matrix->mat[1][0], matrix->mat[2][0]));
+        r.q = QwordFromFloats<qword>(0.0f, tilt, atan2f(-matrix->mat[1][0], matrix->mat[2][0]));
         q = r.q;
     }
     return q;

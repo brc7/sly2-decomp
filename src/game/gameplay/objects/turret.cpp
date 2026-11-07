@@ -100,11 +100,6 @@ void ReleaseAct(void **ph);
 }
 
 // Packs three floats into a VU vector (x, y, z).
-static inline qword Make(float x,float y,float z) {
-    qword q,t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));
-    return q;
-}
 
 // TURRET vtable slot 7 (Init): PO defaults; pitchRange +-1.5 rad, yawRange +-0.7 rad (named from how UpdateTurretAim
 // uses them; the act gets (0, -yaw, pitch)), zoom range and strength, active at load, and the self pointer.
@@ -208,7 +203,7 @@ extern "C" void UpdateTurretAim(TURRETV *turret)
     turret->yaw = ClampToLimits__FP2LMf(&turret->yawRange, turret->yaw);
     if (turret->isActRunning) {
         V v;
-        v.q = Make(0.0f, -turret->yaw, turret->pitch);
+        v.q = QwordFromFloats<qword>(0.0f, -turret->yaw, turret->pitch);
         SetActPositionGoal(turret->rotationAct, v.q);
     }
 }
@@ -318,7 +313,7 @@ extern "C" void SetTurretActive(TURRETV *turret, int k)
         turret->isActRunning = k;
         if (k) {
             V v;
-            v.q = Make(0.0f, -turret->yaw, turret->pitch);
+            v.q = QwordFromFloats<qword>(0.0f, -turret->yaw, turret->pitch);
             turret->rotationAct = (void *)NewPositionAct(turret, turret->rotationXf, 1, 5, 3, v.q);
         } else {
             ReleaseAct(&turret->rotationAct);

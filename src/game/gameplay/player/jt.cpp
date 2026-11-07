@@ -2657,14 +2657,6 @@ static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **sou
     *source = sourceValue;
     return r;
 }
-static inline qword Pack(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t)
-            : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 static inline float CorrectionDistance(struct P *p, qword correction)
 {
     register qword d __asm__("vf1");
@@ -2747,7 +2739,7 @@ void UpdateJtAttachCorrection(struct P *jt)
                 }
             }
             heading = ClampToLimits__FP2LMf(&D_002BF3A8, heading);
-            tilt = Pack(zero, heading, zero);
+            tilt = QwordFromFloats<qword>(zero, heading, zero);
             w.axis.q = tilt;
             LoadRotateMatrixEuler(&w.rotation, VuAdd(jt->euler, w.axis.q));
             frame = &w.transform;
@@ -2789,7 +2781,7 @@ void UpdateJtAttachCorrection(struct P *jt)
             }
             heading = QwordX(ConvertXfVec(jt->space, relativeDestination, w.relative.q));
             heading = ClampToLimits__FP2LMf(&D_002BF3B0, heading);
-            axis = Pack(heading, zero, zero);
+            axis = QwordFromFloats<qword>(heading, zero, zero);
             w.axis.q = axis;
             {
                 register qword returned __asm__("vf2") = ConvertXfVec(space, jt->space, w.axis.q),
@@ -4912,7 +4904,6 @@ extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
 extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
 extern "C" qword ConvertVecBetweenLos(O*,O*,qword);
 extern "C" void RecalculateAsegBlend(ANIM*);
-static inline qword Make(float x,float y,float z){qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));return q;}
 static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
 static inline qword Normalize(qword vin, const U *negative, U *u)
 {
@@ -5038,7 +5029,7 @@ extern "C" void UpdateJtSmoothing(P *jt)
         __asm__("lwc1 %0,%4\n\tdaddu %1,$zero,$zero\n\tlwc1 %2,%5\n\tneg.s %0,%0\n\tlqc2 %3,%6"
                 : "=f"(y), "=&r"(root), "=f"(z), "=j"(axis2)
                 : "m"(params->y), "m"(params->z), "m"(camera->r[2]));
-        qword local = Make(zero, y, z);
+        qword local = QwordFromFloats<qword>(zero, y, z);
         register qword axis0 __asm__("vf2"), axis1 __asm__("vf1"), rotated __asm__("vf4");
         __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %5,%2"
                 : "=j"(axis0), "=j"(axis1), "=j"(rotated)

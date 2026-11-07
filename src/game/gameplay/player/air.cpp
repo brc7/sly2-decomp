@@ -2208,12 +2208,6 @@ static inline float LengthOfGpr(qword v) { return QwordX(SqrtVec(DotVec(v, v)));
 static inline float LengthOf(qword v) { return VuToFloat(SqrtVec(DotVec(v, v))); }
 static inline float MinF(float a, float b) { return b < a ? b : a; }
 
-static inline qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0" : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 static inline qword Transform(const M4 &m, qword v)
 {
     qword q;
@@ -2375,7 +2369,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             SPACE *frame = body->frame;
             U v;
             ACTOR *actor = p->actor;
-            v.q = Make(velBest.f[0], velBest.f[1], FloatUse(vel.f[2], actor) + tBest * actor->physics->gravity.f[2]);
+            v.q = QwordFromFloats<qword>(velBest.f[0], velBest.f[1], FloatUse(vel.f[2], actor) + tBest * actor->physics->gravity.f[2]);
             body->velocityGoal.q = ConvertXfVec(0, frame, v.q);
             if (srcBest)
                 SetJtAirState(p, 6, srcBest);

@@ -414,9 +414,6 @@ void ResumeSnd(struct M *p);
 void PauseSnd(struct M *p);
 struct V3 { float x, y, z; };
 // Packs three floats into a vector.
-static __inline__ qword Make(float x, float y, float z) { qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z)); return q; }
 // Zeroes the x, y, z of a vector (w untouched).
 static __inline__ void ZeroVector(qword *pq) { struct V3 *pv = (struct V3 *)pq; pv->z = 0; pv->y = 0; pv->x = 0; }
 // vtable slot 16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals. (inferred)
@@ -440,7 +437,7 @@ void UpdateHackship(struct S *ship) {
         int i;
         ship->heading = t->heading;
         ship->desiredVelocity = SetVectorCylind(t->heading, t->speed * D_002BE7E8, 0.0f);
-        v = Make(0.0f, 0.0f, ship->params->height); u.q = v;
+        v = QwordFromFloats<qword>(0.0f, 0.0f, ship->params->height); u.q = v;
         for (i = 0; i < ship->partCount; i++) {
             struct E *e = &ship->parts[i];
             if (e->actuator) SetActPositionGoal(e->actuator, v);

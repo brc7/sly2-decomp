@@ -62,13 +62,6 @@ void InitDl(DL *pdl, int ibDle);
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspQuick { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 static __inline__ float Dot(qword a, qword b)
 {
     qword d, one;
@@ -95,7 +88,7 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
     union { qword q; float f; } u;
     NODE *pn, *pnEnd, *anode;
     int mask;
-    u.q = Make(QwordX(pos), QwordY(pos), -1.0f);
+    u.q = QwordFromFloats<qword>(QwordX(pos), QwordY(pos), -1.0f);
     pn = graph->anode;
     pnEnd = &graph->anode[graph->cnode];
     anode = graph->anode;
@@ -121,13 +114,6 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspSafe { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 static __inline__ float Dot(qword a, qword b)
 {
     qword d, one;
@@ -156,7 +142,7 @@ LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
     NODE *pnEnd, *anode;
     int mask;
     qword q;
-    q = Make(QwordX(pos), QwordY(pos), -1.0f);
+    q = QwordFromFloats<qword>(QwordX(pos), QwordY(pos), -1.0f);
     u.q = q;
     pnEnd = &graph->anode[graph->cnode];
     anode = graph->anode;

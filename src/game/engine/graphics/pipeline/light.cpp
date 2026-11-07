@@ -159,13 +159,6 @@ float cosf(float) __asm__("cosf");
 void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru);
 void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu, float *pru);
 
-static __inline__ qword Make(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
-            : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 // After world load, if no light in the world light list (*(LIGHT * *)&g_sw.aslCid[4]) qualifies (not dynamic), create a
 // LIGHT (CreateLo CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240. (inferred)
 extern "C" void EnsureSwDefaultLight(void)
@@ -179,7 +172,7 @@ extern "C" void EnsureSwDefaultLight(void)
     }
     if (light) return;
     light = CreateLo__F3CIDP2SO3OIDi(4, 0, 0x188, -1);
-    r.q = Make(-0.2f, 0.3f, -1.0f);
+    r.q = QwordFromFloats<qword>(-0.2f, 0.3f, -1.0f);
     BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
     c = m;
     ((void (*)(LIGHTV *, M3R *))light->vt[30].pfn)((LIGHTV *)((char *)light + light->vt[30].d), &c);

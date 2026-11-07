@@ -441,7 +441,6 @@ void WakeSo(P *);
 }
 // Helpers X, Y, Pack, PackMesh, Dot, ShotLength, DistanceAndVelocity, Evaluate, Clamp, Abs (small asm wrappers/accessors shaped for the match).
 static inline float Y(qword q){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return QwordX(r);}
-static inline qword Pack(float x,float y,float z){qword a,b;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(a),"=&r"(b):"f"(x),"f"(y),"f"(z));return a;}
 static inline qword PackMesh(float x,float y,float z){register qword a __asm__("$2"),b __asm__("$3");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(a),"=&r"(b):"f"(x),"f"(y),"f"(z));return a;}
 static inline qword Dot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"j"(a),"j"(b));return r;}
 static inline float ShotLength(qword a){qword r=Dot(a,a);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));register float value __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(value):"j"(r));return value;}
@@ -519,7 +518,7 @@ extern "C" void UpdateRobottank(P *tank)
             qword direction=SetVectorCylind(tank->wheelAngle,1.0f,0.0f);
             direction=ConvertXfVec(0,side->reference->parent,direction);
             float orientation=atan2f(Y(direction),QwordX(direction));
-            scalar.q=Pack(0.0f,0.0f,ClampToLimits__FP2LMf(limits,orientation));
+            scalar.q=QwordFromFloats<qword>(0.0f,0.0f,ClampToLimits__FP2LMf(limits,orientation));
             limits=(LIMITS*)((char*)limits+sizeof(SIDE));
             SetActPositionGoal(side->binding,scalar.q);
             ++side;
@@ -1549,12 +1548,6 @@ static inline VU_VECTOR Transform(const M4 &m, VU_VECTOR vv)
     return VU_VECTOR(r);
 }
 // Packs floats into a VU vector.
-static inline qword Pack(float x, float y, float z)
-{
-    qword q, t;
-    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0" : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
-    return q;
-}
 // Helpers Clamp, Min, Scale (small asm wrappers/accessors shaped for the match).
 static inline float Clamp(float v, float low, float high) { if (v < low) return low; else if (high < v) return high; else return v; }
 static inline float Min(float a, float b) { return b < a ? b : a; }
@@ -1742,7 +1735,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
             if (best < amount) {
                 best = amount;
                 VECTOR4 packed;
-                *(qword *)&packed = Pack(x, 0.0f, z + best);
+                *(qword *)&packed = QwordFromFloats<qword>(x, 0.0f, z + best);
                 bestPoint = *(qword *)&packed;
             }
         }
