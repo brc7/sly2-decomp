@@ -73,6 +73,15 @@ enum {
     SPECIAL_INSANITY_STRIKE = 0x22,
     SPECIAL_RAGE_BOMB = 0x25,
 };
+/* Animation binding kinds (ANIMBINDING::kind): what the bound oid resolved to and how StartAnimBinding plays it.
+   Word +0x4 holds the oid until resolved, then the resource or the kind's payload; +0x8 the running instance. */
+enum {
+    BINDING_NONE = -1,
+    BINDING_ASEG = 0,       /* an animation segment, played as an ASEGA */
+    BINDING_SM = 1,         /* a state machine, played as an SMA */
+    BINDING_LEAP = 2,       /* a leap payload, played on the guard's LEAP (+0xDB0) */
+    BINDING_DIRANIM = 3,    /* a four-animation payload, played on the guard's DIRANIM (+0xE20) */
+};
 
 /* The guard's mover (at STEPGUARD +0xFD0, which guard.h leaves unnamed; tu_144B28.cpp reads the same bytes as a
    JTGOAL): a lock flag and the owning guard at +0xC. */
@@ -1415,23 +1424,23 @@ extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int n, int h
 namespace M_func_00207C48 { extern "C" {
 struct PAYLOAD3; struct BINDING;
 struct PAYLOAD3 { int anim0; char pad0[0x2C]; int anim1; char pad1[0x2C]; int anim2; char pad2[0x2C]; int anim3; };
-struct BINDING { int kind; struct PAYLOAD3 *payload; int pad; int argument; };
+struct BINDING { int kind; struct PAYLOAD3 *payload; int pad; int flags; };
 long GetSgfMaskFromSpliceList(int list);
 struct BINDING *EnsureAnimBinding(void *guard, long sgfMask);
 struct PAYLOAD3 *func_0020CA00(int cb);
 void func_0020C7D8(struct PAYLOAD3 *payload);
-// 0x207C48: Splice option: binds a flag set to a kind-3 payload (a new 0xD0-byte object with four animation parameters, inferred).
+// 0x207C48: Splice option: binds a flag set to a DIRANIM payload (a new 0xD0-byte object with four animations, inferred).
 void SetStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
 {
     struct BINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
-    binding->kind = 3;
+    binding->kind = BINDING_DIRANIM;
     binding->payload = func_0020CA00(0xD0);
     func_0020C7D8(binding->payload);
     binding->payload->anim0 = anim0;
     binding->payload->anim1 = anim1;
     binding->payload->anim2 = anim2;
     binding->payload->anim3 = anim3;
-    binding->argument = 8;
+    binding->flags = 8;
 }
 } } // namespace M_func_00207C48
 
@@ -1454,20 +1463,20 @@ void SetAndResolveStepguardAnimBindingKind3(void *guard, int sgfList, int anim0,
 namespace M_func_00207D98 { extern "C" {
 struct PAYLOAD2; struct BINDING;
 struct PAYLOAD2 { int parameter; };
-struct BINDING { int kind; struct PAYLOAD2 *payload; int pad; int argument; };
+struct BINDING { int kind; struct PAYLOAD2 *payload; int pad; int flags; };
 unsigned long GetSgfMaskFromSpliceList(void *list);
 struct BINDING *EnsureAnimBinding(void *guard, unsigned long sgfMask);
 struct PAYLOAD2 *func_0020C010(int cb);
 void func_0020BD78(struct PAYLOAD2 *payload);
-// 0x207D98: Splice option: binds a flag set to a kind-2 payload (a new 0x40-byte object with one parameter).
+// 0x207D98: Splice option: binds a flag set to a LEAP payload (a new 0x40-byte object with one parameter).
 void SetStepguardAnimBindingKind2(void *guard, void *sgfList, int parameter)
 {
     struct BINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
-    binding->kind = 2;
+    binding->kind = BINDING_LEAP;
     binding->payload = func_0020C010(0x40);
     func_0020BD78(binding->payload);
     binding->payload->parameter = parameter;
-    binding->argument = 0;
+    binding->flags = 0;
 }
 } } // namespace M_func_00207D98
 
@@ -1489,10 +1498,10 @@ void SetAndResolveStepguardAnimBindingKind2(void *guard, int sgfList, int b, flo
 // 0x207EB8 SetZapReactionBindings
 namespace M_func_00207EB8 { extern "C" {
 struct BINDING;
-struct BINDING { int kind; int oid; int resolved; int argument; };
+struct BINDING { int kind; int oid; int instance; int flags; };
 void ReleaseAnimBinding(struct BINDING *binding, void *guard);
-// 0x207EB8: Sets the binding (oid, argument) of every zap kind in `mask` (26 kinds) in a zap-reaction table.
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int argument, struct BINDING *table)
+// 0x207EB8: Sets the binding (oid, flags) of every zap kind in `mask` (26 kinds) in a zap-reaction table.
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table)
 {
     int i;
     int bit = 1;
@@ -1500,7 +1509,7 @@ void SetZapReactionBindings(void *guard, int zapMask, int oid, int argument, str
         if (zapMask & bit) {
             ReleaseAnimBinding(table, guard);
             table->oid = oid;
-            table->argument = argument;
+            table->flags = flags;
         }
         bit <<= 1;
         table++;
@@ -1511,11 +1520,11 @@ void SetZapReactionBindings(void *guard, int zapMask, int oid, int argument, str
 // 0x207F50 SetAndResolveZapReactionBindings
 namespace M_func_00207F50 { extern "C" {
 struct BINDING;
-struct BINDING { int kind; int oid; int resolved; int argument; };
+struct BINDING { int kind; int oid; int instance; int flags; };
 void ReleaseAnimBinding(struct BINDING *binding, void *guard);
 void ResolveAnimBinding(struct BINDING *binding, void *guard);
 // 0x207F50: SetZapReactionBindings, then resolves each binding.
-void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int argument, struct BINDING *table)
+void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table)
 {
     int i;
     int bit = 1;
@@ -1523,7 +1532,7 @@ void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int arg
         if (zapMask & bit) {
             ReleaseAnimBinding(table, guard);
             table->oid = oid;
-            table->argument = argument;
+            table->flags = flags;
             ResolveAnimBinding(table, guard);
         }
         bit <<= 1;
@@ -1535,60 +1544,60 @@ void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int arg
 // 0x207FF8 SetStepguardKoReactions
 namespace M_func_00207FF8 { extern "C" {
 struct BINDING;
-struct BINDING { int kind, oid, resolved, argument; };
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int argument, struct BINDING *table);
+struct BINDING { int kind, oid, instance, flags; };
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x207FF8: Splice option: sets KO reactions (table +0xC10, used by the KO behaviour).
-void SetStepguardKoReactions(char *guard, int zapMask, int oid, int argument)
+void SetStepguardKoReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(guard, zapMask, oid, argument, (struct BINDING *)(guard + 0xC10));
+    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xC10));
 }
 } } // namespace M_func_00207FF8
 
 // 0x208018 SetAndResolveStepguardKoReactions
 namespace M_func_00208018 { extern "C" {
 struct BINDING;
-struct BINDING { int kind, oid, resolved, argument; };
-void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int argument, struct BINDING *table);
+struct BINDING { int kind, oid, instance, flags; };
+void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208018: Splice option: sets and resolves KO reactions.
-void SetAndResolveStepguardKoReactions(char *guard, int zapMask, int oid, int argument)
+void SetAndResolveStepguardKoReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetAndResolveZapReactionBindings(guard, zapMask, oid, argument, (struct BINDING *)(guard + 0xC10));
+    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xC10));
 }
 } } // namespace M_func_00208018
 
 // 0x208038 SetStepguardHurtReactions
 namespace M_func_00208038 { extern "C" {
 struct BINDING;
-struct BINDING { int kind, oid, resolved, argument; };
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int argument, struct BINDING *table);
+struct BINDING { int kind, oid, instance, flags; };
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208038: Splice option: sets hurt reactions (table +0xA70).
-void SetStepguardHurtReactions(char *guard, int zapMask, int oid, int argument)
+void SetStepguardHurtReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(guard, zapMask, oid, argument, (struct BINDING *)(guard + 0xA70));
+    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xA70));
 }
 } } // namespace M_func_00208038
 
 // 0x208058 SetAndResolveStepguardHurtReactions
 namespace M_func_00208058 { extern "C" {
 struct BINDING;
-struct BINDING { int kind, oid, resolved, argument; };
-void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int argument, struct BINDING *table);
+struct BINDING { int kind, oid, instance, flags; };
+void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208058: Splice option: sets and resolves hurt reactions.
-void SetAndResolveStepguardHurtReactions(char *guard, int zapMask, int oid, int argument)
+void SetAndResolveStepguardHurtReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetAndResolveZapReactionBindings(guard, zapMask, oid, argument, (struct BINDING *)(guard + 0xA70));
+    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xA70));
 }
 } } // namespace M_func_00208058
 
 // 0x208078 SetStepguardKnockdownReactions
 namespace M_func_00208078 { extern "C" {
 struct BINDING;
-struct BINDING { int kind, oid, resolved, argument; };
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int argument, struct BINDING *table);
+struct BINDING { int kind, oid, instance, flags; };
+void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
 // 0x208078: Splice option: sets knockdown reactions (table +0x8D0).
-void SetStepguardKnockdownReactions(char *guard, int zapMask, int oid, int argument)
+void SetStepguardKnockdownReactions(char *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(guard, zapMask, oid, argument, (struct BINDING *)(guard + 0x8D0));
+    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0x8D0));
 }
 } } // namespace M_func_00208078
 
@@ -2166,70 +2175,70 @@ int AreStepguardSensesEnabled(struct S *guard)
 
 // 0x208E70 GuardEvalInteractMode
 namespace M_GuardEvalInteractMode { extern "C" {
-struct L; struct Y; struct X; struct S;
+struct VOL; struct BHVHOLD; struct PLAYER; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct L { char pad[0x28]; unsigned long fl28; };
-struct Y { char pad[0x50]; void *p50; char pad2[0x5C - 0x54]; void *p5C; };
-struct X { char pad[0x10DC]; void *p10DC; int pad2; int n10E4; char pad3[0x10F0 - 0x10E8]; int n10F0; };
+struct VOL { char pad[0x28]; unsigned long loFlags; /* bit 60: in the world */ };
+struct BHVHOLD { char pad[0x50]; void *target; char pad2[0x5C - 0x54]; void *holder; };
+struct PLAYER { char pad[0x10DC]; void *interactTarget; int pad2; int interactMode; char pad3[0x10F0 - 0x10E8]; int fightEnabled; /* (inferred) */ };
 struct S {
     char pad0[0x2C0]; unsigned long guardFlags; char pad1[0x364 - 0x2C8]; int unknown364; char closeAngleRangeHeld[8]; char closeAngleRange[8]; float closeRange; int canInteract;
-    char interactAngleRange[8]; float interactRange; void *target; char pad2[0x3F4 - 0x390]; struct L *pickpocketIndicator0; struct L *pickpocketIndicator1;
+    char interactAngleRange[8]; float interactRange; void *target; char pad2[0x3F4 - 0x390]; struct VOL *pickpocketIndicator0; struct VOL *pickpocketIndicator1;
 };
 extern float D_002C3D90;
 extern float D_002C3D94;
-void HeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
+void HeroInteractDistance(struct PLAYER *player, struct S *guard, void *target, float *distance, float *angle);
 unsigned long GetSgfMask(int n);
 int StepguardHasSgf(struct S *p, int n);
-struct Y *FindStepBhv(struct S *p, int n);
+struct BHVHOLD *FindStepBhv(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword func_001A62E8(void *p);
-int FCheckVolPoint(struct L *pl, qword q);
+int FCheckVolPoint(struct VOL *volume, qword pos);
 int FCheckLm__FP2LMf(void *p, float f);
 
 // 0x208E70: Ranks how the hero can interact with this guard: 4 the guard is engaged with (attacking, hurt by,
 // holding) the hero, 3 the hero is inside a pickpocket glint volume, 2 close (distance and angle window), 1 in
-// interaction range, 0 none. Also returns the distance through `pout`.
-int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
+// interaction range, 0 none. Also returns the distance through `distanceOut`.
+int GuardEvalInteractMode(struct S *guard, struct PLAYER *player, float *distanceOut)
 {
-    float d, ang;
-    void *o;
-    struct L *pl;
-    void *pv;
-    HeroInteractDistance(x, guard, &x->p10DC, &d, &ang);
-    if (pout)
-        *pout = d;
+    float distance, angle;
+    void *opponent;
+    struct VOL *indicator;
+    void *angleRange;
+    HeroInteractDistance(player, guard, &player->interactTarget, &distance, &angle);
+    if (distanceOut)
+        *distanceOut = distance;
     if (!(guard->guardFlags & GetSgfMask(1))) {
-        if (guard->unknown364 && x->n10F0) {
+        if (guard->unknown364 && player->fightEnabled) {
             if (StepguardHasSgf(guard, SGF_COMBAT))
-                o = guard->target;
+                opponent = guard->target;
             else if (StepguardHasSgf(guard, 5))
-                o = FindStepBhv(guard, CID_BHV161)->p50;
+                opponent = FindStepBhv(guard, CID_BHV161)->target;
             else if (StepguardHasSgf(guard, 6))
-                o = FindStepBhv(guard, CID_BHV162)->p50;
+                opponent = FindStepBhv(guard, CID_BHV162)->target;
             else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
-                o = FindStepBhv(guard, CID_BHVJUGGLED)->p5C;
-                if (o == x)
-                    *pout += D_002C3D90;
+                opponent = FindStepBhv(guard, CID_BHVJUGGLED)->holder;
+                if (opponent == player)
+                    *distanceOut += D_002C3D90;
             } else
-                o = 0;
-            if (o) {
-                if (o == x)
+                opponent = 0;
+            if (opponent) {
+                if (opponent == player)
                     return 4;
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(o, CID_STEPPLAYER))
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(opponent, CID_STEPPLAYER))
                     return 4;
             }
         }
-        if (guard == x->p10DC && x->n10E4 == 3)
-            pl = guard->pickpocketIndicator1;
+        if (guard == player->interactTarget && player->interactMode == 3)
+            indicator = guard->pickpocketIndicator1;
         else
-            pl = guard->pickpocketIndicator0;
-        if (pl && !!((pl->fl28 >> 60) & 1) && FCheckVolPoint(pl, func_001A62E8(x)))
+            indicator = guard->pickpocketIndicator0;
+        if (indicator && !!((indicator->loFlags >> 60) & 1) && FCheckVolPoint(indicator, func_001A62E8(player)))
             return 3;
     }
-    pv = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
-    if (d <= guard->closeRange * D_002C3D94 && FCheckLm__FP2LMf(pv, ang) && guard->unknown364)
+    angleRange = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
+    if (distance <= guard->closeRange * D_002C3D94 && FCheckLm__FP2LMf(angleRange, angle) && guard->unknown364)
         return 2;
-    if (d <= guard->interactRange && FCheckLm__FP2LMf(guard->interactAngleRange, ang) && guard->canInteract)
+    if (distance <= guard->interactRange && FCheckLm__FP2LMf(guard->interactAngleRange, angle) && guard->canInteract)
         return 1;
     return 0;
 }
@@ -2240,12 +2249,13 @@ namespace M_func_00209098 { extern "C" {
 struct S;
 struct G;
 extern struct G D_003DD490;
-struct S { char pad[0xFC8]; int n; };
+struct S { char pad[0xFC8]; int isHandsOff; };
 int func_0020F1B8(struct G *p);
 // 0x209098: True while the guard is hands-off (+0xFC8) or world input is locked.
 int IsStepguardHandsOff(struct S *guard)
 {
-    if (guard->n != 0) return 1;
+    if (guard->isHandsOff != 0)
+        return 1;
     return func_0020F1B8(&D_003DD490);
 }
 } } // namespace M_func_00209098
@@ -2256,8 +2266,8 @@ int IsStepguardHandsOff(struct S *guard)
 extern "C" void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard)
 {
     int kind = binding->kind;
-    if (kind != 2) {   // (tested in this order for the match)
-        if (kind == 3) {
+    if (kind != BINDING_LEAP) {   // (tested in this order for the match)
+        if (kind == BINDING_DIRANIM) {
             func_0020CA20(binding->h);
             binding->h = 0;
         }
@@ -2266,73 +2276,73 @@ extern "C" void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard)
         binding->h = 0;
     }
     binding->h = -1;
-    binding->kind = -1;
+    binding->kind = BINDING_NONE;
 }
 
 // 0x209130 ResolveAnimBinding
 namespace M_ResolveAnimBinding { extern "C" {
-struct H; union PAYLOAD; struct E;
-struct H { int id; void *table; };
-struct DIRECTION_STATE;
+struct LEAPPAYLOAD; union PAYLOAD; struct E;
+struct LEAPPAYLOAD { int id; void *aseg; };
+struct DIRANIMPAYLOAD;
 struct MARKER;
 union PAYLOAD {
     int oid;
-    struct H *curvature;
-    struct DIRECTION_STATE *direction;
+    struct LEAPPAYLOAD *leap;
+    struct DIRANIMPAYLOAD *diranim;
     void *resource;
 };
-struct E { int kind; union PAYLOAD value; int n8, nC; };
+struct E { int kind; union PAYLOAD value; int instance, flags; };
 extern char D_003DD490[];
-void func_0020BD88(struct H *, void *);
-void func_0020C7E0(struct DIRECTION_STATE *, void *);
+void func_0020BD88(struct LEAPPAYLOAD *, void *);
+void func_0020C7E0(struct DIRANIMPAYLOAD *, void *);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
 int CidBasic(void *);
 struct MARKER *func_0012F938(void *, int);
-struct H *func_0020C010(int);
-void func_0020BD78(struct H *);
+struct LEAPPAYLOAD *func_0020C010(int);
+void func_0020BD78(struct LEAPPAYLOAD *);
 
-// 0x209130: Resolves a binding's oid: an ASEG (cid 0x6D; kind 2 if it has label 0x22) or an SM (cid 0x6F, kind 1);
-// else empty.
-void ResolveAnimBinding(struct E *e, void *context)
+// 0x209130: Resolves a binding's oid: an ASEG (cid 0x6D; wrapped in a new leap payload if it has label
+// 0x22) or an SM (cid 0x6F); else empty. Leap and DIRANIM payloads resolve their own oids.
+void ResolveAnimBinding(struct E *binding, void *context)
 {
     void *resource;
-    if (e->kind != 2) {
-        if (e->kind == 3) {
-            func_0020C7E0(e->value.direction, context);
+    if (binding->kind != BINDING_LEAP) {
+        if (binding->kind == BINDING_DIRANIM) {
+            func_0020C7E0(binding->value.diranim, context);
             return;
         }
     } else {
-        func_0020BD88(e->value.curvature, context);
+        func_0020BD88(binding->value.leap, context);
         return;
     }
-    resource = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, e->value.oid, context);
+    resource = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, binding->value.oid, context);
     if (!resource) {
-        e->kind = -1;
+        binding->kind = BINDING_NONE;
         return;
     }
     switch (CidBasic(resource)) {
     case 0x6D:
         if (func_0012F938(resource, 0x22)) {
-            e->kind = 2;
-            e->value.curvature = func_0020C010(0x40);
-            func_0020BD78(e->value.curvature);
-            e->value.curvature->table = resource;
-            func_0020BD88(e->value.curvature, context);
-            if (e->nC == -1)
-                e->nC = 0;
+            binding->kind = BINDING_LEAP;
+            binding->value.leap = func_0020C010(0x40);
+            func_0020BD78(binding->value.leap);
+            binding->value.leap->aseg = resource;
+            func_0020BD88(binding->value.leap, context);
+            if (binding->flags == -1)
+                binding->flags = 0;
         } else {
-            e->value.resource = resource;
-            e->kind = 0;
+            binding->value.resource = resource;
+            binding->kind = BINDING_ASEG;
         }
         break;
     case 0x6F:
-        e->kind = 1;
-        e->value.resource = resource;
-        if (e->nC == -1)
-            e->nC = 0;
+        binding->kind = BINDING_SM;
+        binding->value.resource = resource;
+        if (binding->flags == -1)
+            binding->flags = 0;
         break;
     default:
-        e->kind = -1;
+        binding->kind = BINDING_NONE;
         break;
     }
 }
@@ -2342,38 +2352,38 @@ namespace RO_ORDER { extern const float r_D_002A8868 __asm__("D_002A8868") = 3.4
 namespace RO_ORDER { extern const float r_D_002A886C __asm__("D_002A886C") = 3.40282347e+38f; }
 // 0x209278 StartAnimBinding
 namespace M_StartAnimBinding { extern "C" {
-struct O; struct E;
+struct INSTANCE; struct BINDING;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct E { int k; int h; struct O *po; };
-void func_0012F9B8(int h, char *p, int fl, struct O **ppo, float g, float f);
-void PsmaApplySmOut(int h, char *p, int a, int fl, struct O **ppo);
-void StartLeap(int h, char *p, int fl, struct O *po);
-void func_0020C948(int h, char *p, int fl, struct O *po);
-#define VC1(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
-// 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the kind-2/3 payload.
-void StartAnimBinding(struct E *pe, char *p, int fl, float g)
+struct INSTANCE { char pad[0xC]; VTE *vt; };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
+void func_0012F9B8(int aseg, char *guard, int flags, struct INSTANCE **instance, float start, float speed);
+void PsmaApplySmOut(int sm, char *guard, int a, int flags, struct INSTANCE **instance);
+void StartLeap(int leap, char *guard, int flags, struct INSTANCE *instance);
+void func_0020C948(int diranim, char *guard, int flags, struct INSTANCE *instance);
+#define START_INSTANCE(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
+// 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the leap/DIRANIM payload on the guard's own LEAP / DIRANIM.
+void StartAnimBinding(struct BINDING *binding, char *guard, int flags, float start)
 {
-    switch (pe->k) {
-    case -1:
+    switch (binding->kind) {
+    case BINDING_NONE:
         break;
-    case 0:
-        func_0012F9B8(pe->h, p, fl, &pe->po, g, 1.0f);
-        VC1(pe->po);
+    case BINDING_ASEG:
+        func_0012F9B8(binding->resource, guard, flags, &binding->instance, start, 1.0f);
+        START_INSTANCE(binding->instance);
         break;
-    case 1:
-        PsmaApplySmOut(pe->h, p, -1, fl, &pe->po);
-        VC1(pe->po);
+    case BINDING_SM:
+        PsmaApplySmOut(binding->resource, guard, -1, flags, &binding->instance);
+        START_INSTANCE(binding->instance);
         break;
-    case 2:
-        pe->po = (struct O *)(p + 0xDB0);
-        StartLeap(pe->h, p, fl, pe->po);
-        VC1(pe->po);
+    case BINDING_LEAP:
+        binding->instance = (struct INSTANCE *)(guard + 0xDB0);   /* STEPGUARD::leap */
+        StartLeap(binding->resource, guard, flags, binding->instance);
+        START_INSTANCE(binding->instance);
         break;
-    case 3:
-        pe->po = (struct O *)(p + 0xE20);
-        func_0020C948(pe->h, p, fl, pe->po);
-        VC1(pe->po);
+    case BINDING_DIRANIM:
+        binding->instance = (struct INSTANCE *)(guard + 0xE20);   /* STEPGUARD::cid146 */
+        func_0020C948(binding->resource, guard, flags, binding->instance);
+        START_INSTANCE(binding->instance);
         break;
     }
 }
@@ -2381,47 +2391,47 @@ void StartAnimBinding(struct E *pe, char *p, int fl, float g)
 
 // 0x209360 StopAnimBinding
 namespace M_StopAnimBinding { extern "C" {
-struct O; struct S;
+struct INSTANCE; struct BINDING;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct O { char pad[0xC]; VTE *vt; };
-struct S { int k; int pad; struct O *po; };
-void func_00130B18(struct O *po);
-void func_001F0598(struct O *po);
-void func_0020C080(struct O *po);
-void func_0020CA48(struct O *po);
-#define VDEL(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
+struct INSTANCE { char pad[0xC]; VTE *vt; };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
+void func_00130B18(struct INSTANCE *instance);
+void func_001F0598(struct INSTANCE *instance);
+void func_0020C080(struct INSTANCE *instance);
+void func_0020CA48(struct INSTANCE *instance);
+#define DELETE_INSTANCE(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
 // 0x209360: Stops the running animation instance per kind (retract the ASEGA or SMA, ...) and drops it.
-void StopAnimBinding(struct S *p)
+void StopAnimBinding(struct BINDING *binding)
 {
-    switch (p->k) {
-    case -1:
+    switch (binding->kind) {
+    case BINDING_NONE:
         break;
-    case 0:
-        if (p->po) {
-            func_00130B18(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_ASEG:
+        if (binding->instance) {
+            func_00130B18(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
-    case 1:
-        if (p->po) {
-            func_001F0598(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_SM:
+        if (binding->instance) {
+            func_001F0598(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
-    case 2:
-        if (p->po) {
-            func_0020C080(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_LEAP:
+        if (binding->instance) {
+            func_0020C080(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
-    case 3:
-        if (p->po) {
-            func_0020CA48(p->po);
-            VDEL(p->po);
-            p->po = 0;
+    case BINDING_DIRANIM:
+        if (binding->instance) {
+            func_0020CA48(binding->instance);
+            DELETE_INSTANCE(binding->instance);
+            binding->instance = 0;
         }
         break;
     }
@@ -2430,52 +2440,53 @@ void StopAnimBinding(struct S *p)
 
 // 0x209430 IsAnimBindingDone
 namespace M_FAnimBindingDone { extern "C" {
-struct O; struct E;
-struct O { char pad[0x30]; int n30; };
-struct E { int k; int h; struct O *po; };
-int FAsegaRetracted(struct O *po);
-int FSmaRetracted(struct O *po);
-int FLeapDone(struct O *po);
-int func_0020CA98(struct O *po);
+struct INSTANCE; struct BINDING;
+struct INSTANCE { char pad[0x30]; int isActive; /* SMA: (inferred) */ };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
+int FAsegaRetracted(struct INSTANCE *instance);
+int FSmaRetracted(struct INSTANCE *instance);
+int FLeapDone(struct INSTANCE *instance);
+int func_0020CA98(struct INSTANCE *instance);
 // 0x209430: True if the binding's animation instance finished or was retracted (or none is running).
-int IsAnimBindingDone(struct E *pe)
+// (`done = 0; if (...) done = 1;` per case: the boolean-expression and early-return forms do not match.)
+int IsAnimBindingDone(struct BINDING *binding)
 {
-    int f;
-    switch (pe->k) {
-    case 0:
-        f = 0;
-        if (!pe->po || FAsegaRetracted(pe->po))
-            f = 1;
+    int done;
+    switch (binding->kind) {
+    case BINDING_ASEG:
+        done = 0;
+        if (!binding->instance || FAsegaRetracted(binding->instance))
+            done = 1;
         break;
-    case 1:
-        f = 0;
-        if (!pe->po || FSmaRetracted(pe->po) || !pe->po->n30)
-            f = 1;
+    case BINDING_SM:
+        done = 0;
+        if (!binding->instance || FSmaRetracted(binding->instance) || !binding->instance->isActive)
+            done = 1;
         break;
-    case 2:
-        f = 0;
-        if (!pe->po || FLeapDone(pe->po))
-            f = 1;
+    case BINDING_LEAP:
+        done = 0;
+        if (!binding->instance || FLeapDone(binding->instance))
+            done = 1;
         break;
-    case 3:
-        f = 0;
-        if (!pe->po || func_0020CA98(pe->po))
-            f = 1;
+    case BINDING_DIRANIM:
+        done = 0;
+        if (!binding->instance || func_0020CA98(binding->instance))
+            done = 1;
         break;
-    case -1:
+    case BINDING_NONE:
     default:
-        f = 1;
+        done = 1;
         break;
     }
-    return f;
+    return done;
 }
 } } // namespace M_FAnimBindingDone
 
 // 0x209518 GetAnimBindingInstance
 namespace M_func_00209518 { extern "C" {
-struct B; struct S;
+struct INSTANCE; struct BINDING;
 struct ANIMATION;
-struct B {
+struct INSTANCE {
     char pad[0x24];
     struct ANIMATION *animation24;
     char pad2[8];
@@ -2483,16 +2494,16 @@ struct B {
     int pad3;
     struct ANIMATION *animation38;
 };
-struct S { int n; int a; struct B *pb; };
+struct BINDING { int kind; int resource; struct INSTANCE *instance; };
 
-// 0x209518: Returns the binding's running animation instance for its kind.
-struct ANIMATION *GetAnimBindingInstance(struct S *p)
+// 0x209518: Returns the ASEGA that the binding's running instance plays (the instance itself for an ASEG).
+struct ANIMATION *GetAnimBindingInstance(struct BINDING *binding)
 {
-    switch (p->n) {
-    case 0: return (struct ANIMATION *)p->pb;
-    case 1: return p->pb->animation30;
-    case 2: return p->pb->animation38;
-    case 3: return p->pb->animation24;
+    switch (binding->kind) {
+    case BINDING_ASEG: return (struct ANIMATION *)binding->instance;
+    case BINDING_SM: return binding->instance->animation30;
+    case BINDING_LEAP: return binding->instance->animation38;
+    case BINDING_DIRANIM: return binding->instance->animation24;
     }
     return 0;
 }
