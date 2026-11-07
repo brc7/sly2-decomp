@@ -1440,7 +1440,7 @@ ApplyAsegToObject,0x130488,aseg
 FindAsegPlayerForObject__FP4ASEGP3ALO,0x1304A8,aseg
 EnsureAseg__FP4ASEGP3ALO4SEEKffiPP5ASEGA,0x1304E0,aseg
 EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi,0x130598,aseg
-ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA,0x1305B8,aseg
+ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA,0x1305B8,aseg
 ReleaseAsega,0x130658,aseg
 DropAsegaRef,0x1306A8,aseg
 SetAsegMasterSpeed,0x1306F0,aseg
@@ -1451,7 +1451,7 @@ DecrefAsega,0x1308B8,asega
 UpdateAsega,0x130918,asega
 RetractAsega,0x130B18,asega
 SeekAsega,0x130D30,asega
-UpdateAsegaIeaCur__FP5ASEGA,0x130EB0,asega
+SyncAsegaEventCursor__FP5ASEGA,0x130EB0,asega
 HandleAsegaEvents,0x130F88,asega
 HandleAsegaEventsFastForward,0x131100,asega
 GetAsegaEventTarget,0x131270,asega
@@ -1593,7 +1593,7 @@ EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL,0x137A30,blend
 FillBlendSyncTables__FiiPviiP3OID,0x137FB8,blend
 CalculateBlendSyncTable__FiiPviiP4MRSGPf,0x1380F0,blend
 FindSyncInterval__FffiP4MRSGPf,0x138370,blend
-SetAsegblDominantBl,0x1383F0,blend
+SetBlendDominantSegment,0x1383F0,blend
 RecalculateAsegBlend,0x1384C0,blend
 BlendChannelPose,0x138660,blend
 EvaluateBlendChnPosVel,0x138970,blend

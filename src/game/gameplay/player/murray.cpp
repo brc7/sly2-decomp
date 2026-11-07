@@ -874,12 +874,12 @@ void SetXfRole(P *p, void *x, int k);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(A *pa);
 void ReleaseSma(C *pc);
-void ApplyAsegCur(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA");
+void ReplaceCurrentAseg(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
 
 /** @sly2-annot addr=0x1B5658
  * Purpose: Switch carry substate x1458 (0 stand,1 walk via blend x1460,2 run clip x151C); restarts animation
- *   with ApplyAsegCur and component
+ *   with ReplaceCurrentAseg and component
  * Info: proposed name SetMurrayCarrySubstate (T1); TU murray
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
@@ -937,7 +937,7 @@ state2:
 done:
     ReleaseAsega(&murray->a);
     ReleaseSma(&murray->c);
-    ApplyAsegCur(pr, murray, f, 1.0f, n, &murray->a);
+    ReplaceCurrentAseg(pr, murray, f, 1.0f, n, &murray->a);
     ReplaceSma(pv, murray, -1, n, &murray->c);
 }
 } } // namespace M_SetMurrayCarrySubstate
@@ -1163,7 +1163,7 @@ void SetXfRole(struct P *p, int a, int b);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct P *p, int n, void *q, float f1, float f2);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct P *p, int n, void *q, float f1, float f2);
 void ReplaceSma(int a, struct P *p, int b, int n, void *q);
 /** @sly2-annot addr=0x1B5D30
  * Purpose: Switch strafe substate x17F4 (0 stand, 1 blend x1630, 2 clip x17F0), restart animation
@@ -1205,7 +1205,7 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
     }
     ReleaseAsega(murray->action);
     ReleaseSma(murray->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, murray, n, murray->action, 0.0f, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, n, murray->action, 0.0f, 1.0f);
     ReplaceSma(x, murray, -1, n, murray->x1034);
 }
 } } // namespace M_func_001B5D30
@@ -1384,7 +1384,7 @@ qword GetLoWorldPos(P *);
 void SetStepTargetHeadingFromVector(P *, qword);
 void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
 ENTRY *FindAsegLabel(ASEG *, int);
 void SetAsegaChannelWeight(ASEGA *, float);
@@ -1395,7 +1395,7 @@ static inline void Call(OBJ *p, int index) { VE &v = p->vt[index]; ((void (*)(vo
 static inline void SetVelocity(P *p, qword q) { VE &v = p->vt[35]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
 /** @sly2-annot addr=0x1B6078
  * Purpose: Murray state switch (x13D0, 0..21): exit work for old state, entry work (clip selection, velocity
- *   reset, component state), shared ApplyAsegCur/component restart, then vt90
+ *   reset, component state), shared ReplaceCurrentAseg/component restart, then vt90
  * Info: proposed name SetMurrayState (T1); TU murray
  * Notes: runtime3/4: states 0,1,4,10,11,13,21
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
@@ -1603,7 +1603,7 @@ extern "C" void SetMurrayState(P *murray, int next)
         float position = 0.0f;
         ReleaseAsega(animation);
         ReleaseSma(component);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, murray, position, 1.0f, flags, animation);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, murray, position, 1.0f, flags, animation);
         ReplaceSmaEx(source, murray, id, flags, mode, component);
         if (clip || source) {
             if (clip && duration == position) {
@@ -3112,7 +3112,7 @@ float RadNormalize__Ff(float g);
 void SetStepTargetHeading(struct P *p, float g);
 void FixStepAngularVelocity(struct P *p);
 void ReleaseSma(void *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
 float *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ANIM *pa, float t);
 struct R *FindAsegChannel(struct S14 *p, struct P *pp, int a, int b);
@@ -3160,7 +3160,7 @@ void SetMurrayAttack(struct P *murray, int k)
     }
     g = 0.0f;
     ReleaseSma(murray->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
     if (q) {
         float *pg = FindAsegLabel(q, 0x1AC);
         if (pg)
@@ -3391,7 +3391,7 @@ void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
 qword GetLoWorldPos(struct P *p);
 struct M3 *GetLoWorldMatrix(struct P *p);
 void ReleaseSma(struct COMPONENT *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
@@ -3490,7 +3490,7 @@ void SetMurrayPowerSubstate(struct P *murray, int st)
         return;
     }
     ReleaseSma(&murray->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->action);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->action);
 }
 } } // namespace M_func_001B8D30
 #undef FIELD_OFFSET

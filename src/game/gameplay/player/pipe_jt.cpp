@@ -88,7 +88,7 @@ float GLimitLm__FP2LMf(LMV*,float);
 void SetStepplayerTnOverride(JT*,void*);
 EFFECT*CreateSfxSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 void SetJtCaneState__FP2JTi(JT*,int);void ReleaseSma(COMPONENT**);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEGV*,JT*,float,float,int,ASEGAV**);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEGV*,JT*,float,float,int,ASEGAV**);
 int FActiveCplcy__FP5CPLCY(void *);
 }
 
@@ -670,7 +670,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         break;
     }
     ReleaseSma(&pipe->actor->component);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, pipe->actor, position, speed, flags, &pipe->actor->asega);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, pipe->actor, position, speed, flags, &pipe->actor->asega);
     Clear(&pipe->actor->velocity);
 }
 

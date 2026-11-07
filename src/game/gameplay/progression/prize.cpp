@@ -2458,7 +2458,7 @@ qword ConvertXfVec(void *frame, void *vault, qword q);
 qword GetLoWorldPos(void *vault);
 qword TransformXfPos(void *frame, void *vault, qword q);
 void SetXfRole(struct S *vault, struct X *px, int n);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
 // Loads the vault dial's selected index and its timer object (register-pinned for the match).
 static inline void Selection(const struct S*vault,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
@@ -2499,7 +2499,7 @@ void SetVaultDialState(struct S *vault, int n)
         break;
     case 2:
         SetStepplayerGrabTarget(vault->user, vault->digitTargets[vault->selectedDigit]);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(vault->digitAnims[vault->selectedDigit], vault, 0.0f, 1.0f, 0, vault->dialAnim);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(vault->digitAnims[vault->selectedDigit], vault, 0.0f, 1.0f, 0, vault->dialAnim);
         break;
     }
 }

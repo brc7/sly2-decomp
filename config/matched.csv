@@ -1431,7 +1431,7 @@ ApplyAsegToObject,0x130488,8,match,src/game/engine/anim/aseg.cpp
 FindAsegPlayerForObject__FP4ASEGP3ALO,0x1304A8,13,match,src/game/engine/anim/aseg.cpp
 EnsureAseg__FP4ASEGP3ALO4SEEKffiPP5ASEGA,0x1304E0,45,match,src/game/engine/anim/aseg.cpp
 EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi,0x130598,8,match,src/game/engine/anim/aseg.cpp
-ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA,0x1305B8,39,match,src/game/engine/anim/aseg.cpp
+ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA,0x1305B8,39,match,src/game/engine/anim/aseg.cpp
 ReleaseAsega,0x130658,20,match,src/game/engine/anim/aseg.cpp
 DropAsegaRef,0x1306A8,17,match,src/game/engine/anim/aseg.cpp
 SetAsegMasterSpeed,0x1306F0,23,match,src/game/engine/anim/aseg.cpp
@@ -1442,7 +1442,7 @@ DecrefAsega,0x1308B8,23,match,src/game/engine/anim/asega.cpp
 UpdateAsega,0x130918,127,match,src/game/engine/anim/asega.cpp
 RetractAsega,0x130B18,133,match,src/game/engine/anim/asega.cpp
 SeekAsega,0x130D30,96,match,src/game/engine/anim/asega.cpp
-UpdateAsegaIeaCur__FP5ASEGA,0x130EB0,53,match,src/game/engine/anim/asega.cpp
+SyncAsegaEventCursor__FP5ASEGA,0x130EB0,53,match,src/game/engine/anim/asega.cpp
 HandleAsegaEvents,0x130F88,93,match,src/game/engine/anim/asega.cpp
 HandleAsegaEventsFastForward,0x131100,92,match,src/game/engine/anim/asega.cpp
 GetAsegaEventTarget,0x131270,7,match,src/game/engine/anim/asega.cpp
@@ -1584,7 +1584,7 @@ EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL,0x137A30,354,match,src/game/eng
 FillBlendSyncTables__FiiPviiP3OID,0x137FB8,78,match,src/game/engine/anim/blend.cpp
 CalculateBlendSyncTable__FiiPviiP4MRSGPf,0x1380F0,160,match,src/game/engine/anim/blend.cpp
 FindSyncInterval__FffiP4MRSGPf,0x138370,32,match,src/game/engine/anim/blend.cpp
-SetAsegblDominantBl,0x1383F0,51,match,src/game/engine/anim/blend.cpp
+SetBlendDominantSegment,0x1383F0,51,match,src/game/engine/anim/blend.cpp
 RecalculateAsegBlend,0x1384C0,103,match,src/game/engine/anim/blend.cpp
 BlendChannelPose,0x138660,195,match,src/game/engine/anim/blend.cpp
 EvaluateBlendChnPosVel,0x138970,139,match,src/game/engine/anim/blend.cpp

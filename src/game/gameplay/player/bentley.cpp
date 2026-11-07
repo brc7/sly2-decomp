@@ -620,7 +620,7 @@ void ResetGaitFeet(struct ASEGP *);
 void SetJtModeState__FP6JTMODEi(void *, int);
 void ReleaseAsega(void *);
 void ReleaseSma(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct P *, int, void *, float, float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct P *, int, void *, float, float);
 void ReplaceSmaEx(void *, struct P *, int, int, int, void *);
 
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
@@ -796,7 +796,7 @@ void SetBentleyState(struct P *p, int k)
     }
     ReleaseAsega(&p->action);
     ReleaseSma(&p->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(asega, p, n, &p->action, g, rate);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(asega, p, n, &p->action, g, rate);
     ReplaceSmaEx(jt, p, anim, n, c, &p->x1034);
     VCALL0(p, 90);
 }
@@ -1268,7 +1268,7 @@ struct S { int pad[3]; struct VTE *vt; char pad1[0x190 - 0x10]; float v190[3]; c
     char pad3[0x14e4 - 0x1038]; struct ASEG *f14e4; struct ASEG *f14e8; char pad4[0x15d4 - 0x14ec]; struct ASEG *f15d4;
     char pad5[0x15f0 - 0x15d8]; struct ASEG *f15f0; char pad6[0x16b0 - 0x15f4]; int subState; };
 void ReleaseSma(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, float, int, void **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, float, int, void **);
 /** @sly2-annot addr=0x136040
  * Purpose: Set +0x16B0 sub-state and play the matching aseg
  * Info: proposed name SetBentleySubState16B0 (T2); TU bentley
@@ -1304,7 +1304,7 @@ void SetBentleySubState(struct S *bentley, int n) {
         break;
     }
     ReleaseSma(&bentley->f1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, bentley, 0.0f, 1.0f, grfapl, &bentley->pasega1030);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(aseg, bentley, 0.0f, 1.0f, grfapl, &bentley->pasega1030);
     ((void (*)(void *))bentley->vt[90].pfn)((char *)bentley + bentley->vt[90].d);
 }
 } } // namespace M_func_00136040
@@ -1504,7 +1504,7 @@ M4 GetRelativeXfMatrix(void *, void *, M4 *);
 void *NewPositionAct(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword DecomposeRotationMatrixToEuler(M4 *pm);
 void ReleaseSma(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
 
 /** @sly2-annot addr=0x136530
  * Purpose: State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code
@@ -1571,7 +1571,7 @@ void SetBentleyHoverState(struct P *bentley, int k)
         break;
     }
     ReleaseSma(&bentley->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->action, 0.0f, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->action, 0.0f, 1.0f);
     ((void (*)(void *))bentley->vt[90].f)((char *)bentley + bentley->vt[90].d);
 }
 } } // namespace M_func_00136530
@@ -1963,7 +1963,7 @@ qword ConvertAloPos(void *, struct PO *, qword);
 void SetStepTargetHeadingFromVector(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
 void RecalculateAsegBlend(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
 void DetachXfActById(void *, struct PO *, int);
 void SetAsegaChannelWeight(void *, float);
 static __inline__ float Clamp(float g, float minValue, float maxValue)
@@ -2030,7 +2030,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
         break;
     }
     }
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->po, 1, &ps->pvE0, D_002DDED0.t - ps->g18, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->po, 1, &ps->pvE0, D_002DDED0.t - ps->g18, 1.0f);
     if (!ps->pvE0)
         return;
     if (ps->x10)
@@ -2379,7 +2379,7 @@ extern float D_002BC9B8;
 void FaceStepToward(P *p, int n);
 R *FindAsegChannel(X *px, P *p, int a, int b);
 void ReleaseSma(void *pv);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
 }
 #define PXOF(p) ((PX *)(p))
 
@@ -2422,7 +2422,7 @@ extern "C" void SetBentleyHelperState(S *s, int k)
             s->kCur = k;
         }
     ReleaseSma(PXOF(s->p)->a1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(px, s->p, 1, &PXOF(s->p)->action, 0.0f, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(px, s->p, 1, &PXOF(s->p)->action, 0.0f, 1.0f);
 }
 } // namespace M_func_001375D0
 

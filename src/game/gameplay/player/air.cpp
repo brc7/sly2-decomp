@@ -169,7 +169,7 @@ struct MRSGC
       MRSG *amrsg;
 };
 
-void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
+void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
 
 float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
 
@@ -595,7 +595,7 @@ struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
 void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
-qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -1102,7 +1102,7 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
         return;
     if (!active || active->clip != clip) {
         ReleaseSma(&air->actor->component);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, air->actor, blend, weight, flags, &air->actor->animation);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, air->actor, blend, weight, flags, &air->actor->animation);
     }
     Notify(air->actor, 90);
 }
@@ -1680,11 +1680,11 @@ struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x2
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
 void ReleaseSma(void *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, void *b, float g, float h);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, void *b, float g, float h);
 #define Get(p, i) ((p)->x1c == 2 ? (p)->a134[i] : (p)->a120[i])
 /** @sly2-annot addr=0x197370
  * Purpose: Set x30=1 and start a turn/flip clip chosen from the heading difference (atan2, RadNormalize) via
- *   ApplyAsegCur
+ *   ReplaceCurrentAseg
  * Info: proposed name StartJtAirTurn (T2); TU air
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
@@ -1713,7 +1713,7 @@ void StartJtAirTurn(struct P *p)
     if (!pv)
         pv = p->a120[0];
     ReleaseSma(p->x0->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->x1c, s->x40);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->x1c, s->x40);
 }
 } } // namespace M_func_00197370
 
@@ -2066,7 +2066,7 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 if (air->fCanDoubleJump && air->pstepplayer->pxfUnk58->vUnkB0.z < 0.0f)
                 {
-                    ApplyAsegCur(air->apasegDoubleJump[0], (ALO *)air->pstepplayer, 0.0f, 1.0f, 1, &air->pstepplayer->pasegaUnk1030);
+                    ReplaceCurrentAseg(air->apasegDoubleJump[0], (ALO *)air->pstepplayer, 0.0f, 1.0f, 1, &air->pstepplayer->pasegaUnk1030);
                     air->fCanDoubleJump = 0;
                     air->pstepplayer->SetVelocity(JtPlanLaunchVz(air, 6));
                     break;

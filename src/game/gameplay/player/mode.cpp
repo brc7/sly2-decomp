@@ -160,7 +160,7 @@ struct MRSGC
       int cmrsg;
       MRSG *amrsg;
 };
-void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
+void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
 struct LOREF
 {
       LO *plo;
@@ -442,7 +442,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
     }
     if (aseg && !jtMode->pstepplayer->VUnk93())
         aseg = 0;
-    ApplyAsegCur(aseg, (ALO *)jtMode->pstepplayer, 0.0f, 1.0f, 1, &jtMode->pasega);
+    ReplaceCurrentAseg(aseg, (ALO *)jtMode->pstepplayer, 0.0f, 1.0f, 1, &jtMode->pasega);
 }
 
 /** @sly2-annot addr=0x19D330

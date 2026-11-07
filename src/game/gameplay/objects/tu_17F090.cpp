@@ -244,14 +244,14 @@ struct R { int oid; void *animation; void *stateMachine; int flags; };
 struct S { char pad[0x194]; void *asega; int sma[1]; };
 void ReleaseSma(void *p);
 void ReleaseAsega(void *pp);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, struct S *p, float t, float svt, int grf, void *pp);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, struct S *p, float t, float svt, int grf, void *pp);
 void ReplaceSma(void *a, struct S *p, int b, int c, void *d);
 // Retract the current ASEGA / SMA and apply the record's clip and SM state. (inferred)
 void StartHackAnim(struct S *hack, struct R *r) {
     ReleaseSma(hack->sma);
     ReleaseAsega(&hack->asega);
     if (r) {
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(r->animation, hack, 0.0f, 1.0f, r->flags, &hack->asega);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(r->animation, hack, 0.0f, 1.0f, r->flags, &hack->asega);
         ReplaceSma(r->stateMachine, hack, -1, r->flags, hack->sma);
     }
 }

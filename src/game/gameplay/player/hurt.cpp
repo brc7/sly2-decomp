@@ -114,7 +114,7 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  void InvalidateSoAaox(P*);
  void ReleaseAsega(ASEGA**);
  void ReleaseSma(COMPONENT**);
- void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
  void ReplaceSma(void*,P*,int,void*,COMPONENT**);
 }
 static inline qword Vector(P*p){VE*v=&p->vt[33];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
@@ -340,7 +340,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
         clip = hurt->Default(next);
     ReleaseAsega(&hurt->actor->asega);
     ReleaseSma(&hurt->actor->component);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
     ReplaceSma(0, hurt->actor, -1, 0, &hurt->actor->component);
     Invoke(hurt->actor, 90);
 }
@@ -769,7 +769,7 @@ extern "C"{
  extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
  int ShouldJtVetoDamage(C*,RECORD*);
  int ScaleByDifficulty(void*,int);
- void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  void DropStepplayerBooty(P*);
  void BroadcastGameEvent(void*,int,P*);
@@ -874,7 +874,7 @@ extern "C" int TakeJtDamage(C *p, RECORD *input)
             }
             *p->counter = Add32(*p->counter, delta);
             if (p->effect)
-                ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->effect, p->actor, 0.0f, 1.0f, 1, &p->output);
+                ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(p->effect, p->actor, 0.0f, 1.0f, 1, &p->output);
             goto sound;
         }
         register RECORD *destination __asm__("$2");

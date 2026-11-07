@@ -148,7 +148,7 @@ int IsValidCritterLinkIndex(unsigned int n);
 ASEG *FindCritterLinkObject(CID96V *p, OID oid);
 void ResolveCritterLinks(CID96V *p);
 }
-void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA */
+void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA */
 float RadNormalize(float r);                                                                  /* RadNormalize__Ff */
 LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
@@ -187,7 +187,7 @@ extern "C" void InitCritter(CID96V *critter)
 extern "C" void RemoveCritterHierarchy(CID96V *critter)
 {
     RemoveSoHierarchy(critter);
-    ApplyAsegCur(0, 0, 0.0f, 0.0f, 0, &critter->segmentAnim);
+    ReplaceCurrentAseg(0, 0, 0.0f, 0.0f, 0, &critter->segmentAnim);
 }
 
 // CID96 vtable slot 14 (LoadFromBrx): SO load; the position XF gets role 1 and a cleared vector; remembers the
@@ -547,7 +547,7 @@ void SetCritterState(CID96V *critter, int next)
     critter->state = next;
     critter->stateTime = D_002DDED0.t;
     if (next != CRITTER_TURN) {
-        ApplyAsegCur(critter->stateAnims[next].paseg, (ALO *)critter, 0.0f, 1.0f, critter->stateAnims[next].applyFlags | 1, &critter->segmentAnim);
+        ReplaceCurrentAseg(critter->stateAnims[next].paseg, (ALO *)critter, 0.0f, 1.0f, critter->stateAnims[next].applyFlags | 1, &critter->segmentAnim);
     }
 }
 

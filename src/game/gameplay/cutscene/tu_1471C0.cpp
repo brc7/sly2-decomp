@@ -101,7 +101,7 @@ int IsLoInWorld(CAPTUREV *p);
 void AppendDlEntry__FP2DLPv(void *p, LOROOTV *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
 void CaptureFramebufferToTexture(CAPTUREV *p);
 void SetFrameCaptureState(CAPTUREV *p, int n);
 void EndDmaCnt__4DMAS(GIFS *pgifs);
@@ -402,7 +402,7 @@ extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
     segment = (CAPTUREV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
     if (segment) {
         SetTaggedFlags(&segment->taggedFlags, 0x100);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);
         SetFrameCaptureState(capture, CAPTURE_STARTED);
     }
 }

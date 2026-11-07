@@ -875,7 +875,7 @@ int IsTossableActive(void *p);
 void TriggerTossable(void *p);
 void ReleaseAsega(void *p);
 void ChargeGadgetMp(void *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
 void SetGuardOverride(void *p, int n);
 void SetAllGuardsSpecialState(void *p, int n);
 void *AcquireProxyObject(void *p, int n);
@@ -1001,7 +1001,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                         AsStepplayer(player)->idGadgetOverlay = -1;
                     } else {
                         ChargeGadgetMp(player);
-                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(F(void *, player, 0x130C), player, 0.0f, 8, 1.0f,
+                        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(F(void *, player, 0x130C), player, 0.0f, 8, 1.0f,
                                                               &AsStepplayer(player)->pasegaGadgetOverlay);
                         AsStepplayer(player)->idGadgetOverlay = F(int, player, 0x9BC);
                     }
@@ -3148,11 +3148,11 @@ void StopStepplayerScriptAnim(struct P *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 void ReleaseSma(void *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *o, struct P *p, int a, void *b, float f, float g);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *o, struct P *p, int a, void *b, float f, float g);
 void ReleaseAsega(void *p);
 void ReplaceSma(void *o, struct P *p, int n, int a, void *b);
 /** @sly2-annot addr=0x143EE0
- * Purpose: oid -1 stops; else find object: class 0x6D -> vt88(b) and ApplyAsegCur(o,p,a,+0x1030); class 0x6F
+ * Purpose: oid -1 stops; else find object: class 0x6D -> vt88(b) and ReplaceCurrentAseg(o,p,a,+0x1030); class 0x6F
  *   -> vt88(b) and SMA start 0x1F1448 into +0x1034
  * Info: proposed name PlayStepplayerScriptAnim (T2); TU stepplayer
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
@@ -3171,7 +3171,7 @@ void PlayStepplayerScriptAnim(struct P *player, int oid, int a, int b)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
         player->vt[88].pfn((char *)player + player->vt[88].d, b);
         ReleaseSma(player->m1034);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, player, a, player->action, 0.0f, 1.0f);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, player, a, player->action, 0.0f, 1.0f);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
         player->vt[88].pfn((char *)player + player->vt[88].d, b);
         ReleaseAsega(player->action);

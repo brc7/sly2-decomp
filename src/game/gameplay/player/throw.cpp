@@ -132,7 +132,7 @@ void SetLoParent(O *,int,int);
 void FadeSoOut(O *,float);
 void ChargeGadgetMp(O *,int);
 void ReleaseSma(HANDLE *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGAV **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGAV **);
 void SetSoCnstrForce(O *po, int a);
 void SetSoCnstrTorque(O *po, int a);
 qword ConvertAloVec(void *p, int a, qword q);
@@ -1188,7 +1188,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
         break;
     }
     ReleaseSma(&s->owner->extra);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(animation, s->owner, 0.0f, 1.0f, flags, &s->owner->animation);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(animation, s->owner, 0.0f, 1.0f, flags, &s->owner->animation);
     PlainCall(s->owner, 90);
     RecalcSwOxfFilterForObject(&D_003DD490, s->owner);
 }

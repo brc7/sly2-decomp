@@ -1966,7 +1966,7 @@ unsigned GetSoZapResponseFlags(OBJECT*,unsigned);
 int GetZapKindIndex(unsigned);
 void SetTargetRecordState(TUNE*,int);
 void SetBhvSleepState(HELPER*,int);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,OBJECT*,float,float,int,ASEGA**);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,OBJECT*,float,float,int,ASEGA**);
 unsigned long GetSgfMask(int);
 int IsStepguardTargetValidEx(OBJECT*,OBJECT*,unsigned long);
 int IsStepguardTargetValid(OBJECT*,OBJECT*,unsigned long);
@@ -2092,7 +2092,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                     w.next.kind = GUARD_MODE_SLEEP;
                     SetBhvguardMode(behavior, &w.next);
                 } else
-                    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->otherClip, behavior->guard, 0.0f, 1.0f, 1,
+                    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->otherClip, behavior->guard, 0.0f, 1.0f, 1,
                                                           &behavior->guard->otherAnimation);
             }
         } else if (msg->data.kind == ZAP_JUGGLE && (msg->data.flags & 8)
@@ -2164,7 +2164,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                 if (behavior->guard->capacity > 0) {
                     behavior->guard->progress += msg->data.amount;
                     if (behavior->guard->progress > 0) {
-                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->clip, behavior->guard, 0.0f, 1.0f, 1,
+                        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->clip, behavior->guard, 0.0f, 1.0f, 1,
                                                               &behavior->guard->animation);
                         behavior->guard->animationTime = D_002DDED0.t;
                     } else

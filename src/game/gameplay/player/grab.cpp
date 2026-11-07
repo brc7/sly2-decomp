@@ -1426,7 +1426,7 @@ qword ConvertAloPos(void *, void *, qword);
 void ResetGaitFeet(PROGRAM_ITEM *);
 void ReleaseAsega(ANIMATION **);
 void ReleaseSma(COMPONENT *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP *, ACTOR *, float, float, int, ANIMATION **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(CLIP *, ACTOR *, float, float, int, ANIMATION **);
 void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *);
 void EnableJtLeanActs(ACTOR *, int);
 }
@@ -1854,7 +1854,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
         return;
     ReleaseAsega(&grab->pactor->animation);
     ReleaseSma(&grab->pactor->component);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, grab->pactor, blend, speed, flags, &grab->pactor->animation);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, grab->pactor, blend, speed, flags, &grab->pactor->animation);
     ReplaceSma(script, grab->pactor, -1, flags, &grab->pactor->component);
     Notify(grab->pactor, 90);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->pactor, 53))

@@ -113,7 +113,7 @@ void SetAsegaHandsOff(ASEGA *p, int f);
 void DetachXfActById(void *pvId, SO *pso, XF *pxf);
 void AssignSidebagRef(struct R4 **pp, struct R4 *p);
 }
-void UpdateAsegaIeaCur(ASEGA *player);
+void SyncAsegaEventCursor(ASEGA *player);
 int FFindDlEntry(DL *pdl, void *pv);                    /* FFindDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);                  /* RemoveDlEntry__FP2DLPv */
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);     /* PloFindSwObject__FP2SWi3OIDP2LO */
@@ -263,7 +263,7 @@ void RetractAsega(ASEGA *player)
 
 struct R80 { char pad[0x80]; float gMin; float gMax; float *pg; };
 /** @sly2-annot addr=0x130D30
- * Purpose: Seek to (SEEK kind, t, svt) then UpdateAsegaIeaCur
+ * Purpose: Seek to (SEEK kind, t, svt) then SyncAsegaEventCursor
  * Info: proposed name SeekAsega (T1); TU asega
  * Notes: names_v2 C proposed HandleAsegaEvents__FP5ASEGAP4ASEGPi (0.438)
  * Confidence: high [T1 0.90] - evidence: static naming pass; sources: r1_116918
@@ -287,7 +287,7 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
         ACTSEGV *ps;
         player->tLocal = t;
         WrapAsegaTime(player, &player->tLocal, &player->svt);
-        UpdateAsegaIeaCur(player);
+        SyncAsegaEventCursor(player);
         for (ps = (ACTSEGV *)player->pactsegFirst; ps; ps = ps->pactsegNext) {
             if (IsActCurrent(ps)) {
                 R80 *pr = (R80 *)ps->pxf;
@@ -308,12 +308,12 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
 // Types: include/sly2/aseg.h (ASEG::ceaFrame/aeaFrame at 0xA0/0xA4, ASEGA::tLocal/svt/iea at 0x1C/0x40/0x50).
 /** @sly2-annot addr=0x130EB0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name UpdateAsegaIeaCur__FP5ASEGA (EXISTING); TU asega
+ * Info: proposed name SyncAsegaEventCursor__FP5ASEGA (EXISTING); TU asega
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
 // Resynchronizes the player's event cursor to the first event at or after its current local time.
-void UpdateAsegaIeaCur(ASEGA *player)
+void SyncAsegaEventCursor(ASEGA *player)
 {
     ASEG *segment = player->paseg;
     int cea = segment->ceaFrame;

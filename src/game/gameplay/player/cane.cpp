@@ -112,7 +112,7 @@ EFFECT*CreateSfxSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourceP
 qword GetLoWorldPos(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int FindSmStateOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
 }
 static __inline__ void Emit(JT*jt,int id){if(id!=-1){EFFECT*effect=CreateSfxSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,GetLoWorldPos(jt));}}
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
@@ -546,7 +546,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
                          : "$2", "memory");
     jt->reset = 0;
     jt->stateTime = now;
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clipArgument, jt, startArgument, rateArgument, 1, &jt->current);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clipArgument, jt, startArgument, rateArgument, 1, &jt->current);
     if (stopDelay != 0.0f) {
         register ASEGA *current __asm__("$4");
         register float stopTime __asm__("$f12");

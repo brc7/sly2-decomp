@@ -189,7 +189,7 @@ int IsLeapDone(LEAPV *p);
 void ReleaseLeapConstraint(LEAPV *p);
 int IsDirAnimStopped(DIRACT *p);
 }
-void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA */
+void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);                                              /* FIsBasicDerivedFrom__FP5BASIC3CID */
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
@@ -567,7 +567,7 @@ LEAPV *ConstructLeap(LEAPV *leap) { leap->pvt = D_002DAA10; leap->state = -1; le
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // If the leap is not finished: state 4 and clears its animation job.
-extern "C" void StopLeap(LEAPV *leap) { if (!IsLeapDone(leap)) { SetLeapState(leap, 4); ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &leap->job); } }
+extern "C" void StopLeap(LEAPV *leap) { if (!IsLeapDone(leap)) { SetLeapState(leap, 4); ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &leap->job); } }
 
 /** @sly2-annot addr=0x20C0D8
  * Purpose: state == 4
@@ -649,7 +649,7 @@ void SetLeapState(LEAPV *leap, int state)
     leap->stateTime = D_002DDED0.time;
     switch (state) {
     case 0:
-        ApplyAsegCur(leap->tuning->animation, leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
+        ReplaceCurrentAseg(leap->tuning->animation, leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
         SubscribeLoObject(leap->job, leap);
         leap->previousVelocity.q = GetSoGravity(leap->subject);
         break;
@@ -876,7 +876,7 @@ extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
     object->grfapl = b;
     object->n0 = 0;
     object->n4 = 0;
-    ApplyAsegCur(dirAnims->paseg, a, 0.0f, 1.0f, b, &object->pasega);
+    ReplaceCurrentAseg(dirAnims->paseg, a, 0.0f, 1.0f, b, &object->pasega);
     SubscribeLoObject(object->pasega, object);
     object->ppaseg = &dirAnims->paseg;
 }
@@ -916,7 +916,7 @@ extern "C" void FreeDirAnim(DIRACT *dirAnims) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Clears the directional animation's job if active.
-extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
+extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
 
 /** @sly2-annot addr=0x20CA98
  * Purpose: job +0x24 == 0
@@ -1046,7 +1046,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             tag = FindAsegLabel(animation, id);
             if (tag)
                 time = tag->tLocal;
-            ApplyAsegCur(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
+            ReplaceCurrentAseg(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
             SubscribeLoObject(dirAnims->active, dirAnims);
             dirAnims->best = best;
         }

@@ -1,6 +1,6 @@
 // aseg.cpp -- animation segments: ASEG (a clip: channels, overrides, start/frame/end events) and the creation, lookup
 // and release of its ASEGA players. TU 0x12F248..0x1308A8 (23 functions, address order).
-// Entry points: LoadAsegFromBrx (level loading), ApplyAsegCore / ApplyAsegToObject / EnsureAseg / ApplyAsegCur (start a
+// Entry points: LoadAsegFromBrx (level loading), ApplyAsegCore / ApplyAsegToObject / EnsureAseg / ReplaceCurrentAseg (start a
 // segment on an object), FindAsegLabel / GetAsegLabelTime, ReleaseAsega, PredictAsegTransform.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_aseg
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00130888
@@ -93,7 +93,7 @@ void SetAsegaHandsOff(ASEGA *, int);
 void HandleAsegaEvent(ASEGA *, EA *);
 void EvaluateXfSlotValue(ASEGA *, int);
 void HandleAsegaEventsFastForward(ASEGA *);
-void UpdateAsegaIeaCur__FP5ASEGA(ASEGA *);
+void SyncAsegaEventCursor__FP5ASEGA(ASEGA *);
 M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
 M4 BuildXfValueMatrix(XFV *pxf, qword q);
 M4 BuildEulerDerivativeMatrix(XFV *pxf, M4 *pm, qword q1, qword q2);
@@ -114,7 +114,7 @@ void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);                  
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                     /* PloFindSwObject__FP2SWi3OIDP2LO */
 void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime, int *pcea, EA **paea);
 ASEGA *FindAsegPlayerForObject(ASEG *segment, ALO *palo);
-/* ApplyAsegCore with the parameter order ApplyAsegCur and PostAsegLoadCallback pass (the floats first) */
+/* ApplyAsegCore with the parameter order ReplaceCurrentAseg and PostAsegLoadCallback pass (the floats first) */
 extern "C" void ApplyAseg(ASEG *segment, ALO *root, float t, float svt, int applyFlags, ASEGA **playerSlot) __asm__("ApplyAsegCore");
 void EnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags, ASEGA **playerSlot);
 extern "C" void ReleaseAsega(ASEGA **playerSlot);
@@ -303,7 +303,7 @@ static inline float ClampFloat(float g, float lo, float hi) { float r; if (g < l
 static inline float EvaluateQuadratic(CLQ *pclq, float t) { return pclq->g0 + t * (pclq->g1 + t * pclq->g2); }
 /** @sly2-annot addr=0x12F9B8
  * Purpose: Core of applying an animation segment to an ALO hierarchy: allocates an ASEGA from the pool, links
- *   it, binds channels, sets speed, fast-forwards events, UpdateAsegaIeaCur
+ *   it, binds channels, sets speed, fast-forwards events, SyncAsegaEventCursor
  * Info: proposed name ApplyAseg (T1); TU aseg
  * Notes: verifier: 0x12F9B8 is the ApplyAseg body (Sly 2 dropped the OVR arg); r1 ApplyAsegOvr superseded
  *   (was ApplyAsegOvr)
@@ -394,7 +394,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
             p->iea = pt->ceaFrame;
         HandleAsegaEventsFastForward(p);
     } else {
-        UpdateAsegaIeaCur__FP5ASEGA(p);
+        SyncAsegaEventCursor__FP5ASEGA(p);
     }
     ((void (*)(ASEGA *, int, int, int, int, int))PVT(p)[3].pfn)((ASEGA *)((char *)p + PVT(p)[3].d), 2, 0, 0, 0, 0);
 }
@@ -638,7 +638,7 @@ ASEGA *EnsureAsegPlayer(ASEG *segment, ALO *root, SEEK seek, float t, float svt,
  * @end-sly2-annot */
 // Replaces a "current segment" slot: releases the player held in *ppasega and, if a segment is given, starts it and
 // takes a reference.
-void ApplyAsegCur(ASEG *segment, ALO *root, float t, float svt, int applyFlags, ASEGA **playerSlot)
+void ReplaceCurrentAseg(ASEG *segment, ALO *root, float t, float svt, int applyFlags, ASEGA **playerSlot)
 {
     ReleaseAsega(playerSlot);
     if (segment)

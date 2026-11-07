@@ -130,7 +130,7 @@ void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
 void GetSoCpdefi(DANCERV *p, struct CPDEFIV *pc);
 int POCTL_FConsumePressed(void *p, int a);
 int GrfPressedWithin__5POCTLUif(void *, int, float);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGAV **pp);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGAV **pp);
 void *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *p);
 void InitLo(RHYTHMMGR *p);
 void SetLoBusyk(RHYTHMMGR *p, int n);
@@ -290,7 +290,7 @@ void PlayDancerMove(DANCERV *dancer, int key, int nextClipOid, int clipIndex)
 // a null segment stops it.
 void ApplyDancerAseg(DANCERV *dancer, void *segment, int applyFlags)
 {
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(segment, dancer, 0.0f, 1.0f, applyFlags | 1, &dancer->segmentAnim);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(segment, dancer, 0.0f, 1.0f, applyFlags | 1, &dancer->segmentAnim);
 }
 
 // Splice: adds a move (at most 8): its button, the success clip and its apply flags, the fail and miss clips.

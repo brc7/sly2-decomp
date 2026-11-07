@@ -45,7 +45,7 @@ struct CHN
     VU segmentEnd;
     VU segmentEndTangent;
 };
-/* A segment's channel chain entry and the chain list (SetAsegblDominantBl, RecalculateAsegBlend). */
+/* A segment's channel chain entry and the chain list (SetBlendDominantSegment, RecalculateAsegBlend). */
 struct CHNE { int kind; int object; CHN *xf; char pad[0x1c - 0xc]; int unknown1C; char pad2[0x28 - 0x20]; CHNE *next; };
 struct LINK { char pad[0x1C]; float relativeTime; char pad20[0xC]; LINK *next; int prevLink; CHNE *firstChannel; };
 struct KEY { float t; int kind; int arg8; int argC; };
@@ -107,7 +107,7 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, EL
 float GetAsegLabelTime(ASEG *paseg, OID oid);
 float GModPositive__Fff(float, float);
 int IsActCurrent(CHNE *);
-void SetAsegblDominantBl(ASEG *p, int n);
+void SetBlendDominantSegment(ASEG *p, int n);
 void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *syncTable, float *pf);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
@@ -373,14 +373,14 @@ namespace RO_ORDER { extern const float r_D_002A4AF0 __asm__("D_002A4AF0") = -3.
 /** @sly2-annot addr=0x1383F0
  * Purpose: When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping
  *   of every live ACT on the blended aseg channels
- * Info: proposed name SetAsegblDominantBl (T1); TU blend
+ * Info: proposed name SetBlendDominantSegment (T1); TU blend
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
 // Records which blended segment dominates (weight above 0.9999, or -1 for none); when it changes, resets the smoothing
 // state of every live action on the blend's channels so they do not interpolate across the switch.
-extern "C" void SetAsegblDominantBl(ASEG *blend, int dominant) {
+extern "C" void SetBlendDominantSegment(ASEG *blend, int dominant) {
     LINK *link;
     CHNE *channelEntry;
     if (dominant == blend->dominantElement) return;
@@ -421,7 +421,7 @@ extern "C" void RecalculateAsegBlend(ASEG *blend)
             if (0.9999f < *(float *)((char *)blend->elements + j * blend->cb))
                 break;
         } while (1);
-        SetAsegblDominantBl(blend, j);
+        SetBlendDominantSegment(blend, j);
     }
     for (link = blend->links; link; link = link->next)
         link->relativeTime = link->relativeTime / blend->tMax;
