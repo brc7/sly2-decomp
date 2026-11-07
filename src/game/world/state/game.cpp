@@ -44,7 +44,7 @@ struct JOBV : public LO
     int outroLabel;             /* +0xB4 */
     void *completionWidget; /* +0xB8 has a completion sequence when set */
 };
-/* TASK (: LO): its job (+0x7C) and, if not -1, the task that becomes pending when it completes (+0xB8). */
+/* TASK (: LO): its job (+0x7C) and its warp oid (+0xB8; a task with a warp becomes the pending task). */
 struct TASKV : public LO
 {
     char pad50[0x7C - 0x50];
