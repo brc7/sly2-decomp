@@ -1123,7 +1123,7 @@ struct BHVGOTO : BHV
     int pathGraphVersion;   /* +0xA4 path graph version the route was planned on */
     LO *lookAtTarget;       /* +0xA8 */
     int unknownAC;
-    int unknownB0;
+    float gotoParam;        /* +0xB0 [S] set from the script's goto command (SSGE::gotoParam; meaning unknown) */
     int numRouteLinks;      /* +0xB4 */
     PATHLINK *firstLink;    /* +0xB8 the route's (single) link (FindPathlinkRoute) */
     int isDirect;           /* +0xBC goes straight to the goal (no route) */

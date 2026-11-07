@@ -593,55 +593,35 @@ void *FindBhvScriptTarget(BHV169 *behavior, int oid)
 } } // namespace M_func_001715B8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001715F0 {
-typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(); };
-struct RANGE { float min, max; };
-struct GUARD { char pad[0x2CC]; struct RANGE walkTimes; struct RANGE pauseTimes; char pad2[0xF80 - 0x2DC]; int attachKind; };
-struct O { int guard, b, command; virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5(); virtual void V6(); virtual void V7(); virtual void V8(); };
-struct CMD { int kind; int id; union { struct RANGE range; struct { int arg; int secondOid; } s; } u; int lookAtOid; float gotoParam; };
-struct POINTCMD { int kind; int id; void *position; float heading; };   /* the current command as guard kind 3/7 point */
-struct BINDING { int kind; int oid; int instance; int flags; };   /* an ANIMBINDING */
-struct RESUME { int command, context; float pathParam; };
-struct SB { int guard, b, command; virtual void V1(); virtual void V2(); virtual void Msg(int, int, int, void **, int); };
-struct S : SB {
-    struct GUARD *guard; char pad1[0x30 - 0x14];
-    void *script; void *context; struct POINTCMD *currentCommand; float commandStartTime; int isCommandBusy; struct RESUME *resume; float heading; int allowPartialRoute;
-    struct BINDING animBinding;   /* +0x50 the binding kind 14 plays */
-};
-struct GOAL { void *shape; void *object; int pad[2]; qword q; GOAL(); };   /* guard BHVGOTO goal: guard shape, an object or guard point */
-extern "C" { extern struct CLOCK D_002DDED0; }
-extern "C" { void *FindBhvScriptTarget(struct S *behavior, int oid); }
-extern "C" { void GetBhvScriptTargetPose(struct S *behavior, void *target, qword *posOut, float *headingOut); }
-extern "C" { void TeleportBhvScriptGuard(struct S *behavior, qword pos, float heading); }
-extern "C" { void *PushStepBehavior(struct GUARD *guard, int cid); }
-extern "C" { void EnsureShapeVolumeSegments(void *shape); }
-extern "C" { void SetBhvrailGoal(void *bhv, int goal); }
-extern "C" { void SetBhvpipeGoal(void *bhv, int goal); }
-extern "C" { void ClearPointerPair(struct GOAL *goal); }
-// Default constructor: both pointers cleared (ClearPointerPair).
-inline GOAL::GOAL() { ClearPointerPair(this); }
-extern "C" { int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid); }
-extern "C" { void SetBhvgotoGoal(void *bhv, struct GOAL *goal); }
-extern "C" { void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float speed); }
-extern "C" { void *FindGuardScriptLabel(void *script, int id); }
-extern "C" { void SetBhvBusy(struct S *behavior); }
-extern "C" { void ClearBhvBusy(struct S *behavior); }
-extern "C" { void ReleaseAnimBinding(struct BINDING *binding, struct GUARD *guard); }
-extern "C" { void ResolveAnimBinding(struct BINDING *binding, struct GUARD *guard); }
-extern "C" { void func_001E0020(void *sgg, int alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM"); }
+namespace M_func_001715F0 { extern "C" {
+extern CLOCK D_002DDED0;
+void *FindBhvScriptTarget(BHV169 *behavior, int oid);
+void GetBhvScriptTargetPose(BHV169 *behavior, void *target, qword *posOut, float *headingOut);
+void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading);
+BHV *PushStepBehavior(STEPGUARD *guard, int cid);
+void EnsureShapeVolumeSegments(void *shape);
+void SetBhvrailGoal(BHV *bhv, int goal);
+void SetBhvpipeGoal(BHV *bhv, int goal);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
+void SetBhvgotoGoal(BHVGOTO *bhv, PATHLINKEND *goal);
+void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float speed);
+void SetBhvBusy(BHV169 *behavior);
+void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void func_001E0020(void *sgg, int alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
+void ClearPointerPair(void *goal);
+}
+/* island: the goto goal as a PATHLINKEND with an inline constructor calling ClearPointerPair; the header's
+   asm-labelled constructor keeps &goal in a saved register (1 instruction more, 164/322 off). */
+struct PATHLINKENDIsland { SHAPE *shape; LO *object; int pad[2]; qword pos; PATHLINKENDIsland() { ClearPointerPair(this); } };
+}
 
-struct BHVPATROLPATHV : O { char pad1[0x30 - 0x10]; void *path; int pathArg; float startParam; char pad2[0x50-0x3C]; void *secondTarget; int pad3; int allowPartialRoute; };
-struct BHVGOTOV : O { char pad1[0xA8 - 0x10]; void *lookAt; int pad2; float gotoParam; int pad3[2]; int allowPartialRoute; };
-struct BHVLEAPV : O { char pad1[0x60 - 0x10]; void *target; int arg; int unknown68; };
-struct BHVANIMV : O { char pad1[0x40 - 0x10]; struct BINDING *binding; };
-
-#define VCALL8(o) { struct O *oo = (struct O *)(o); oo->V8(); }
-
-// 0x1715F0: Executes one script command (kinds 0-15): set context, set times, teleport, message, spawn child
-// behaviours, label/jump, busy on/off, relay alarm.
-extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
+// 0x1715F0: Script behaviour vtable slot 15: executes one script command (kinds 0-15): set context, set times,
+// teleport, message, spawn child behaviours, label/jump, busy on/off, relay alarm.
+void BHV169::ExecuteScriptCommand(SSGE *command)
 {
+    using namespace M_func_001715F0;
+    BHV169 *behavior = this;
     union { qword q; } pose;
     float heading;
     void *args;
@@ -649,13 +629,13 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     int attachKind;
     switch (command->kind) {
     case SSGK_SET_CONTEXT:
-        behavior->context = FindBhvScriptTarget(behavior, command->id);
+        behavior->context = (LO *)FindBhvScriptTarget(behavior, command->id);
         break;
     case SSGK_SET_WALK_TIMES:
-        behavior->guard->walkTimes = command->u.range;
+        ((STEPGUARD *)behavior->owner)->walkTimes = command->range;
         break;
     case SSGK_SET_PAUSE_TIMES:
-        behavior->guard->pauseTimes = command->u.range;
+        ((STEPGUARD *)behavior->owner)->pauseTimes = command->range;
         break;
     case SSGK_TELEPORT: {
         GetBhvScriptTargetPose(behavior, FindBhvScriptTarget(behavior, command->id), &pose.q, &heading);
@@ -664,19 +644,19 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     }
     case SSGK_MESSAGE:
         args = &command->id;
-        behavior->Msg(4, 0, 1, &args, 0);
+        behavior->HandleSpliceEvent(4, 0, 1, &args, 0);
         break;
     case SSGK_WAIT: {
-        struct GUARD *guard = behavior->guard;
+        STEPGUARD *guard = (STEPGUARD *)behavior->owner;
         switch (guard->attachKind) {
         case 2:
-            ((struct O *)PushStepBehavior(guard, CID_BHV187))->V8();
+            PushStepBehavior(guard, CID_BHV187)->Start();
             break;
         case 3:
-            ((struct O *)PushStepBehavior(guard, CID_BHV188))->V8();
+            PushStepBehavior(guard, CID_BHV188)->Start();
             break;
         case -1:
-            ((struct O *)PushStepBehavior(guard, CID_BHVIDLE))->V8();
+            PushStepBehavior(guard, CID_BHVIDLE)->Start();
             break;
         }
         behavior->isCommandBusy = 1;
@@ -684,32 +664,32 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     }
     case SSGK_FOLLOW_PATH: {
         void *target = FindBhvScriptTarget(behavior, behavior->currentCommand->id);
-        struct GUARD *guard;
+        STEPGUARD *guard;
         if (!target) break;
-        guard = behavior->guard;
+        guard = (STEPGUARD *)behavior->owner;
         attachKind = guard->attachKind;
         switch (attachKind) {
         case -1: {
-            struct BHVPATROLPATHV *child = (struct BHVPATROLPATHV *)PushStepBehavior(guard, CID_BHVPATROLPATH);
-            child->path = target;
-            child->pathArg = command->u.s.arg;
-            child->allowPartialRoute = behavior->allowPartialRoute;
+            BHVPATROLPATH *child = (BHVPATROLPATH *)PushStepBehavior(guard, CID_BHVPATROLPATH);
+            child->shape = (SHAPE *)target;
+            child->isForward = command->n;
+            child->isDirect = behavior->allowPartialRoute;
             if (!behavior->allowPartialRoute) EnsureShapeVolumeSegments(target);
-            if (behavior->resume) child->startParam = behavior->resume->pathParam;   /* resume where it was */
-            if (command->u.s.secondOid != -1) child->secondTarget = FindBhvScriptTarget(behavior, command->u.s.secondOid);
-            VCALL8(child);
+            if (behavior->resume) child->pathParam = behavior->resume->pathParam;   /* resume where it was */
+            if (command->secondOid != -1) child->lookAtTarget = (LO *)FindBhvScriptTarget(behavior, command->secondOid);
+            child->Start();
             break;
         }
         case 0: {
-            struct O *child = (struct O *)PushStepBehavior(guard, CID_BHVRAIL);
-            SetBhvrailGoal(child, (int)behavior->currentCommand->position);
-            VCALL8(child);
+            BHV *child = PushStepBehavior(guard, CID_BHVRAIL);
+            SetBhvrailGoal(child, (int)behavior->currentCommand->ppos);
+            child->Start();
             break;
         }
         case 1: {
-            struct O *child = (struct O *)PushStepBehavior(guard, CID_BHVPIPE);
-            SetBhvpipeGoal(child, (int)behavior->currentCommand->position);
-            VCALL8(child);
+            BHV *child = PushStepBehavior(guard, CID_BHVPIPE);
+            SetBhvpipeGoal(child, (int)behavior->currentCommand->ppos);
+            child->Start();
             break;
         }
         }
@@ -717,30 +697,30 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
         break;
     }
     case SSGK_GOTO: {
-        struct POINTCMD *point;
-        struct GUARD *guard;
-        GOAL goal;
+        SSGE *point;
+        STEPGUARD *guard;
+        PATHLINKENDIsland goal;
         point = behavior->currentCommand;
         if (point->id == -1) {
-            goal.q = *(qword *)point->position;
+            goal.pos = *point->ppos;
             behavior->heading = point->heading;
         } else {
             void *target = FindBhvScriptTarget(behavior, point->id);
             if (target) {
                 GetBhvScriptTargetPose(behavior, target, 0, &behavior->heading);
-                if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) goal.shape = target;
-                else goal.object = target;
+                if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) goal.shape = (SHAPE *)target;
+                else goal.object = (LO *)target;
             }
         }
-        guard = behavior->guard;
+        guard = (STEPGUARD *)behavior->owner;
         attachKind = guard->attachKind;
         if (attachKind == -1) {
-            struct BHVGOTOV *child = (struct BHVGOTOV *)PushStepBehavior(guard, CID_BHVGOTO);
-            SetBhvgotoGoal(child, &goal);
-            if (command->lookAtOid != -1) child->lookAt = FindBhvScriptTarget(behavior, command->lookAtOid);
+            BHVGOTO *child = (BHVGOTO *)PushStepBehavior(guard, CID_BHVGOTO);
+            SetBhvgotoGoal(child, (PATHLINKEND *)&goal);
+            if (command->lookAtOid != -1) child->lookAtTarget = (LO *)FindBhvScriptTarget(behavior, command->lookAtOid);
             child->gotoParam = command->gotoParam;
-            child->allowPartialRoute = behavior->allowPartialRoute;
-            VCALL8(child);
+            child->isDirect = behavior->allowPartialRoute;
+            child->Start();
         }
         behavior->isCommandBusy = 1;
         break;
@@ -752,8 +732,8 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     case SSGK_LABEL:
         break;
     case SSGK_JUMP: {
-        void *label = FindGuardScriptLabel(behavior->script, command->id);
-        if (label) behavior->currentCommand = (struct POINTCMD *)label;
+        SSGE *label = FindGuardScriptLabel(behavior->script, command->id);
+        if (label) behavior->currentCommand = label;
         break;
     }
     case SSGK_BUSY_ON:
@@ -764,33 +744,32 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
         break;
     case SSGK_LEAP: {
         void *target = FindBhvScriptTarget(behavior, behavior->currentCommand->id);
-        struct BHVLEAPV *child = (struct BHVLEAPV *)PushStepBehavior(behavior->guard, CID_BHVLEAP);
-        child->target = target;
-        child->unknown68 = 1;
-        child->arg = command->u.s.arg;
-        VCALL8(child);
+        BHVLEAP *child = (BHVLEAP *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVLEAP);
+        child->target = (LO *)target;
+        child->extra = 1;
+        child->isReversed = command->n;
+        child->Start();
         behavior->isCommandBusy = 1;
         break;
     }
     case SSGK_PLAY_BINDING:
-        ReleaseAnimBinding(&behavior->animBinding, behavior->guard);
-        behavior->animBinding.oid = command->id;
-        behavior->animBinding.flags = command->u.s.arg;
-        ResolveAnimBinding(&behavior->animBinding, behavior->guard);
-        if (behavior->guard->attachKind == -1) {
-            struct BHVANIMV *child = (struct BHVANIMV *)PushStepBehavior(behavior->guard, CID_BHVANIM);
+        ReleaseAnimBinding(&behavior->animBinding, (STEPGUARD *)behavior->owner);
+        behavior->animBinding.oid = (OID)command->id;
+        behavior->animBinding.flags = command->n;
+        ResolveAnimBinding(&behavior->animBinding, (STEPGUARD *)behavior->owner);
+        if (((STEPGUARD *)behavior->owner)->attachKind == -1) {
+            BHVANIM *child = (BHVANIM *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVANIM);
             child->binding = &behavior->animBinding;
-            VCALL8(child);
+            child->Start();
             behavior->isCommandBusy = 1;
         }
         break;
     case SSGK_RELAY_ALARM:
-        func_001E0020(FindBhvScriptTarget(behavior, command->id), command->u.s.arg);
+        func_001E0020(FindBhvScriptTarget(behavior, command->id), command->n);
         break;
     }
     behavior->commandStartTime = D_002DDED0.time;
 }
-} // namespace M_func_001715F0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171AF8 { extern "C" {

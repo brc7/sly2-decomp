@@ -203,12 +203,12 @@ void STEPGUARD::Init()
     guard->shootRange.maxValue = high;
     guard->attackRange.minValue = extent;
     guard->unknownRange31C.minValue = medium;
-    guard->walkTimeMin = D_002A8600;
+    guard->walkTimes.minValue = D_002A8600;
     guard->attackRange.maxValue = high;
     guard->unknownRange31C.maxValue = 450.0f;
     guard->circleDistance.minValue = medium;
     guard->circleDistance.maxValue = 600.0f;
-    guard->walkTimeMax = limit;
+    guard->walkTimes.maxValue = limit;
     guard->closeAngleRange.minValue = -100.0f;
     guard->closeAngleRange.maxValue = 350.0f;
     guard->closeRange = 1000.0f;

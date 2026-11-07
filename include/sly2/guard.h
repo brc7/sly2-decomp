@@ -28,16 +28,23 @@ struct SSGE
 {
       int kind;             /* +0x00 */
       int id;               /* +0x04 */
-      union                 /* +0x08 by kind: 5 a time, 3/7 a point, 6/13..15 a number */
+      union
       {
-            int n;
-            float g;
-            qword *ppos;
-      };
-      union                 /* +0x0C kind 6: an oid for the patrol path's second target; kinds 3/7: a heading */
-      {
-            int secondOid;
-            float heading;
+            struct
+            {
+                  union     /* +0x08 by kind: 5 a time, 3/7 a point, 6/13..15 a number */
+                  {
+                        int n;
+                        float g;
+                        qword *ppos;
+                  };
+                  union     /* +0x0C kind 6: an oid for the patrol path's second target; kinds 3/7: a heading */
+                  {
+                        int secondOid;
+                        float heading;
+                  };
+            };
+            LM range;       /* +0x08 kinds 1/2: the walk/pause time range */
       };
       int lookAtOid;        /* +0x10 kind 7 */
       float gotoParam;      /* +0x14 kind 7: BHVGOTO +0xB0 (meaning unknown) */
@@ -215,10 +222,8 @@ struct STEPGUARD : public STEP
       unsigned long grfsg;          /* +0x2C0 [R] guard flag word == union of the flags of the behaviours on bhvstk (all
                                        guards in all states, ram_inspector check). 64-bit: on ee-gcc long = 8 bytes, long long = 16 */
       undefined4 unk_0x2c8;
-      float walkTimeMin;    /* +0x2CC [S] patrol walk duration range (BHVPATROL) */
-      float walkTimeMax;    /* +0x2D0 [S] */
-      float pauseTimeMin;   /* +0x2D4 [S] patrol pause duration range (BHVPATROL) */
-      float pauseTimeMax;   /* +0x2D8 [S] */
+      LM walkTimes;         /* +0x2CC [S] patrol walk duration range (BHVPATROL; script command 1 copies it whole) */
+      LM pauseTimes;        /* +0x2D4 [S] patrol pause duration range (BHVPATROL; script command 2) */
       int scriptResumePoint; /* +0x2DC [S] where a patrol script resumes (BHVPATROL) */
       undefined4 unk_0x2e0[2];
       int patrolScript;     /* +0x2E8 [S] the patrol script (BHVPATROL) */
@@ -395,7 +400,7 @@ typedef char assert_STEPGUARD_attackOidCount[SLY2_OFFSETOF(STEPGUARD, attackOidC
 typedef char assert_STEPGUARD_aimOffset[SLY2_OFFSETOF(STEPGUARD, aimOffset) == 0xF20 ? 1 : -1];
 typedef char assert_STEPGUARD_removalTime[SLY2_OFFSETOF(STEPGUARD, removalTime) == 0xFF8 ? 1 : -1];
 typedef char assert_STEPGUARD_escortPos[SLY2_OFFSETOF(STEPGUARD, escortPos) == 0xF70 ? 1 : -1]; /* stepguard.cpp */
-typedef char assert_STEPGUARD_walkTimeMin[SLY2_OFFSETOF(STEPGUARD, walkTimeMin) == 0x2CC ? 1 : -1];
+typedef char assert_STEPGUARD_walkTimes[SLY2_OFFSETOF(STEPGUARD, walkTimes) == 0x2CC ? 1 : -1];
 typedef char assert_STEPGUARD_isInvulnerable32C[SLY2_OFFSETOF(STEPGUARD, isInvulnerable32C) == 0x32C ? 1 : -1];
 typedef char assert_STEPGUARD_unknown3D4[SLY2_OFFSETOF(STEPGUARD, unknown3D4) == 0x3D4 ? 1 : -1];
 typedef char assert_STEPGUARD_relocatePoint[SLY2_OFFSETOF(STEPGUARD, relocatePoint) == 0x4B0 ? 1 : -1];

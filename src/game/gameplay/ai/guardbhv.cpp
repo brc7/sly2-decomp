@@ -4007,11 +4007,11 @@ void ArmBhvpatrolWalkTimer(BHVPATROL *behavior)
 {
     if (behavior->walkEndTime < 3.40282346638528859812e+38f)
         return;
-    if (((STEPGUARD *)behavior->owner)->walkTimeMin == 3.40282346638528859812e+38f)
+    if (((STEPGUARD *)behavior->owner)->walkTimes.minValue == 3.40282346638528859812e+38f)
         behavior->walkEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.time;
-        behavior->walkEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->walkTimeMin, ((STEPGUARD *)behavior->owner)->walkTimeMax);
+        behavior->walkEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->walkTimes.minValue, ((STEPGUARD *)behavior->owner)->walkTimes.maxValue);
     }
 }
 } } // namespace M_ArmBhvpatrolWalkTimer
@@ -4027,11 +4027,11 @@ void ArmBhvpatrolPauseTimer(BHVPATROL *behavior)
 {
     if (behavior->pauseEndTime < 3.40282346638528859812e+38f)
         return;
-    if (((STEPGUARD *)behavior->owner)->pauseTimeMin == 3.40282346638528859812e+38f)
+    if (((STEPGUARD *)behavior->owner)->pauseTimes.minValue == 3.40282346638528859812e+38f)
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.time;
-        behavior->pauseEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->pauseTimeMin, ((STEPGUARD *)behavior->owner)->pauseTimeMax);
+        behavior->pauseEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->pauseTimes.minValue, ((STEPGUARD *)behavior->owner)->pauseTimes.maxValue);
     }
 }
 } } // namespace M_ArmBhvpatrolPauseTimer
