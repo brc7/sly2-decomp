@@ -253,27 +253,25 @@ extern "C" void InitCm__FP2CM(CM *cm)
 } // namespace M_InitCm__FP2CM
 
 namespace M_CutCm__FP2CM { extern "C" {
-struct CMC { char pad[0x300]; int cutCount; };
 // Requests a camera cut (no smoothing) this frame: cutCount = max(cutCount, 1).
-void CutCm__FP2CM(struct CMC *p)
+void CutCm__FP2CM(CM *p)
 {
-    int n = p->cutCount;
+    int n = p->nCut;
     int m = 1;
     if (m < n) m = n;
-    p->cutCount = m;
+    p->nCut = m;
 }
 } } // namespace M_CutCm__FP2CM
 
 namespace M_SetCmCut { extern "C" {
-struct CMX { char pad[0x300]; int cutCount; float cutPan; float cutTilt; };
 // Cut with explicit pan/tilt: cutPanAngle(+0x304)/cutTiltAngle(+0x308) = args, nCut = max(nCut,2) (inferred)
-void SetCmCut(struct CMX *p, float a, float b)
+void SetCmCut(CM *p, float a, float b)
 {
     int m = 2;
-    p->cutTilt = b;
-    p->cutPan = a;
-    if (m < p->cutCount) m = p->cutCount;
-    p->cutCount = m;
+    p->cutTiltAngle = b;
+    p->cutPanAngle = a;
+    if (m < p->nCut) m = p->nCut;
+    p->nCut = m;
 }
 } } // namespace M_SetCmCut
 
@@ -627,15 +625,14 @@ void SetCameraLookAt(struct CM *cm, qword pos, qword tgt, float da, float db)
 namespace M_BuildCmFgfn { extern "C" {
 extern float D_002A4FF8;
 void FitRecipFunction__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb);
-struct P { char pad[0x240]; float nearFog, farFog, maxFog; };
 // Builds the GS fog function (FGFN) from nearFogDistance/farFogDistance/maxFog (+0x240..0x248): linear map to 0..4080, +8417280
 // bias.
-void BuildCmFgfn(struct P *p, float *af, float f)
+void BuildCmFgfn(CM *p, float *af, float f)
 {
     if (f == D_002A4FF8) f = 1.0f;
-    FitRecipFunction__FffffPfT4(1.0f, 4080.0f, p->farFog / p->nearFog, (1.0f - p->maxFog * f) * 4080.0f, &af[0], &af[1]);
+    FitRecipFunction__FffffPfT4(1.0f, 4080.0f, p->farFogDistance / p->nearFogDistance, (1.0f - p->maxFog * f) * 4080.0f, &af[0], &af[1]);
     af[0] += 8417280.0f;
-    af[2] = p->nearFog;
+    af[2] = p->nearFogDistance;
     af[3] = af[0] + 8192.0f;
 }
 } } // namespace M_BuildCmFgfn
@@ -752,12 +749,11 @@ void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
 
 namespace M_CalcCmAdjust { extern "C" {
 void SetVectorCylind(void *a, void *b, float x, float y, float z);
-struct CPDEFIV { char pad[0x30]; float radHome; float sAdjust; };
 // The camera adjust offset: a cylindrical vector pointing opposite the focus's home angle (homeHeading + pi) with length
 // adjustDistance (CPDEFI +0x30 / +0x34). (inferred)
-void CalcCmAdjust(void *a, struct CPDEFIV *b)
+void CalcCmAdjust(void *a, CPDEFI *b)
 {
-    SetVectorCylind(a, b, b->radHome + 3.14159265f, b->sAdjust, 0.0f);
+    SetVectorCylind(a, b, b->homeHeading + 3.14159265f, b->adjustDistance, 0.0f);
 }
 } } // namespace M_CalcCmAdjust
 
@@ -767,10 +763,9 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 struct CLOCK { float time; union { float g; int n; } deltaTime; };
 extern struct CLOCK D_002DDED0;
-struct P { char pad[0x300]; int cutCount; };
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
 // nCut.
-void ApplyCameraSpring(struct P *p, qword *ppos, float *pvel, qword target, float k1, float k2)
+void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, float k2)
 {
     register struct CLOCK *pclock __asm__("v0");
     register qword s1 __asm__("vf3");
@@ -778,7 +773,7 @@ void ApplyCameraSpring(struct P *p, qword *ppos, float *pvel, qword target, floa
     register qword s3 __asm__("vf5");
     register qword d __asm__("vf1");
     register qword v __asm__("vf2");
-    if (p->cutCount) {
+    if (p->nCut) {
         *ppos = target;
         pvel[2] = 0.0f;
         pvel[1] = 0.0f;
@@ -813,40 +808,38 @@ void ApplyCameraSpring(struct P *p, qword *ppos, float *pvel, qword target, floa
 
 namespace M_AdjustCmCpdefi { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x2C0]; qword adjustOffset; qword adjustVelocity; qword focusOffset; qword focusVelocity; };
 struct O { char pad[0x4F4]; int stepMode; };
-struct S { qword a; qword b; qword c[2]; qword d; };
 extern qword D_002A2DD0;
-qword CalcCmAdjust(struct P *p, struct S *ps);
+qword CalcCmAdjust(CM *p, CPDEFI *ps);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k);
-void ApplyCameraSpring(struct P *p, qword *ppos, qword *pvel, qword target, float k1, float k2);
+void ApplyCameraSpring(CM *p, ::qword *ppos, VECTOR *pvel, qword target, float k1, float k2);
 // Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4 (0/1/2) different
 // gains; writes cpdefi.adjustedPosition = basePosition + dposAdjust.
-void AdjustCmCpdefi(struct P *p, struct O *po, struct S *ps)
+void AdjustCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
 {
     qword q = CalcCmAdjust(p, ps);
     if (IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
         switch (po->stepMode) {
         case 0:
-            ApplyCameraSpring(p, &p->adjustOffset, &p->adjustVelocity, q, 5.0f, -3.5f);
-            ApplyCameraSpring(p, &p->focusOffset, &p->focusVelocity, D_002A2DD0, 5.0f, -3.5f);
+            ApplyCameraSpring(p, &p->dposAdjust, &p->vAdjust, q, 5.0f, -3.5f);
+            ApplyCameraSpring(p, &p->dposFocus, &p->vFocus, D_002A2DD0, 5.0f, -3.5f);
             break;
         case 1:
-            ApplyCameraSpring(p, &p->adjustOffset, &p->adjustVelocity, q, 1.0f, -10.0f);
-            ApplyCameraSpring(p, &p->focusOffset, &p->focusVelocity, p->focusOffset, 0.0f, -10.0f);
+            ApplyCameraSpring(p, &p->dposAdjust, &p->vAdjust, q, 1.0f, -10.0f);
+            ApplyCameraSpring(p, &p->dposFocus, &p->vFocus, p->dposFocus, 0.0f, -10.0f);
             break;
         case 2:
-            ApplyCameraSpring(p, &p->adjustOffset, &p->adjustVelocity, q, 5.0f, -3.5f);
+            ApplyCameraSpring(p, &p->dposAdjust, &p->vAdjust, q, 5.0f, -3.5f);
             break;
         }
     } else {
-        ApplyCameraSpring(p, &p->adjustOffset, &p->adjustVelocity, q, 5.0f, -3.5f);
-        ApplyCameraSpring(p, &p->focusOffset, &p->focusVelocity, D_002A2DD0, 5.0f, -3.5f);
+        ApplyCameraSpring(p, &p->dposAdjust, &p->vAdjust, q, 5.0f, -3.5f);
+        ApplyCameraSpring(p, &p->dposFocus, &p->vFocus, D_002A2DD0, 5.0f, -3.5f);
     }
     {
         qword r;
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(ps->b), "j"(p->adjustOffset));
-        ps->d = r;
+        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(*(qword *)&ps->basePosition), "j"(p->dposAdjust));
+        *(qword *)&ps->adjustedPosition = r;
     }
 }
 } } // namespace M_AdjustCmCpdefi
