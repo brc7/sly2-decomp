@@ -10,6 +10,7 @@
 #include "sly2/eopid.h"
 #include "sly2/gc.h"
 #include "sly2/sidebag.h"
+#include "sly2/method.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
 
@@ -20,20 +21,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    extended with the typed pointers this TU reads), and one EOPID, sly2/eopid.h's, whose get/set words are the
    superset union of typed pointers to member functions. The C-named CRef setters of splice/ref.cpp are called as
    C functions; results that the per-function files passed by hidden pointer are by-value calls. */
-
-/* A method value (pool 6, CSlotPool<0x14, 0x100>): the object, the thunk and its argument count. */
-class CMethod : public CGcObj<CMethod>
-{
-public:
-    BASIC *m_pbasic;
-    PFNTHUNK m_pfnthunk;
-    int m_crefReq;
-    void operator delete(void *pv) { FreeSlotheapSlot(&CSlotPool<0x14, 0x100>::s_pool.slotheap, pv); }
-};
-/* The method pool's members are emitted by splice/gc.cpp: declared as specializations here so that this file calls
-   them without emitting its own (weak) copies. */
-template <> CMethod *CGcObj<CMethod>::PtNew();
-template <> void CGcObj<CMethod>::Unlink();
 
 void EnsureBasicSidebag(BASIC *object);
 
