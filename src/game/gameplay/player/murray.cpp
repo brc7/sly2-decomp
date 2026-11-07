@@ -61,6 +61,10 @@ extern const char D_002A75E0[];   /* "murray" */
 void SetMurrayState(MURRAY *pmurray, int nState, void *pv);
 }
 
+/* The carry target MURRAY::ploCarried points at: a carry grab spot (classes.h CID36, no fields there yet); +0x180 is the
+   object it holds (the one Murray lifts), +0x190/+0x198 the objects whose transforms are the hands' IK goals. */
+struct CARRYSPOTV { char pad[0x180]; LO *plo; char pad184[0x190 - 0x184]; SO *psoGoalA; int pad194; SO *psoGoalB; };
+
 namespace M_InitMurray { extern "C" {
 /* InitMurray: actor defaults init. The int -1 stores come before the float stores in source; gcc schedules them so strafeSubstate lands right after unknown220. (Claude agent) */
 extern MURRAY *D_002F7900;
@@ -581,28 +585,15 @@ void UpdateMurray(struct P *murray)
 #undef FIELD_OFFSET
 
 namespace M_UpdateMurrayCarry { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct VT { short d; short pad; void *pfn; };
-struct T { char pad[0x180]; struct LO *po; };
-struct PL { char pad[0x18]; float g18; float g1C; char pad2[0x30 - 0x20]; int x30; };
-struct P {
-    char pad0[0xC]; struct VT *vt; char pad1[0x150 - 0x10]; struct PL *pl;
-    char pad2[0x190 - 0x154]; qword v190; char pad3[0x2C0 - 0x1A0]; char air[0xF00 - 0x2C0]; char xF00[0x1030 - 0xF00];
-    struct PL *action; char pad4[0x13D0 - 0x1034]; int state; char pad5[0x13F0 - 0x13D4]; struct T *carried;
-    char pad6[0x1438 - 0x13F4]; int x1438; int x143C; char pad7[0x1458 - 0x1440]; int carrySubstate; char pad8[0x1460 - 0x145C]; char x1460[1];
-};
-void DetachMurrayCarried(struct P *p);
-void SetMurrayState(struct P *p, int n);
-int GetButtonsPressedWithin__5POCTLUif(struct PL *pl,unsigned int k,float g);
-int ConsumeButtonsPressedWithin__5POCTLUif(struct PL *pl, int k, float g);
-void ClearPoctlJoyPressed(struct PL *pl, int k);
+void DetachMurrayCarried(MURRAY *p);
+void SetMurrayState(MURRAY *p, int n);
 int IsPowerupAcquired(int n);
-void SetJtAirJump(void *p, int a, int b, int c);
-void StartJtMode(void *p, int a, int b, int c);
-void SetMurrayCarrySubstate(struct P *p, int n);
-void SetStepTargetHeading(struct P *p, float g);
-qword GetStepAsegaTranslation(struct P *p,struct PL*pl,float g);
+void SetJtAirJump(JTAIR *p, int a, int b, int c);
+void StartJtMode(JTMODE *p, int a, int b, int c);
+void SetMurrayCarrySubstate(MURRAY *p, int n);
+void SetStepTargetHeading(MURRAY *p, float g);
+qword GetStepAsegaTranslation(MURRAY *p,ASEGA *pasega,float g);
 void UpdateGaitBlend(void *p, float g);
 void UpdateGaitFootsteps(void *p);
 // Store -value into *velocity, keeping the -1 broadcast in *scalar (register-pinned).
@@ -617,37 +608,37 @@ static inline void NegateSource(qword value,qword*velocity,U*scalar){
     *velocity=result;
 }
 // Copy the PL pointer through pinned registers.
-static inline struct PL*CopyPL(struct PL*p){register struct PL*source __asm__("$2")=p;register struct PL*copy __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(source));return copy;}
-// State 5 (carrying x13F0): drops it if it is no longer active; jump with power-up 0x12, throw/toss buttons, carry
+static inline POCTL*CopyPL(POCTL*p){register POCTL*source __asm__("$2")=p;register POCTL*copy __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(source));return copy;}
+// State 5 (carrying ploCarried): drops it if it is no longer active; jump with power-up 0x12, throw/toss buttons, carry
 // locomotion. Power-up 0x12 is Atlas Strength.
-void UpdateMurrayCarry(struct P *murray)
+void UpdateMurrayCarry(MURRAY *murray)
 {
     int s;
     for (;;) {
         s = murray->carrySubstate;
         switch (s) {
         case 0: case 1: case 2:
-            if ((((int)murray->carried->po->isInWorld & 1) == 0)) {
+            if ((((int)((CARRYSPOTV *)murray->ploCarried)->plo->isInWorld & 1) == 0)) {
                 DetachMurrayCarried(murray);
-                murray->carried = 0;
+                murray->ploCarried = 0;
                 SetMurrayState(murray, MURRAY_IDLE);
-            } else if (GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_JUMP, 0.1f) && IsPowerupAcquired(0x12)) {
-                ClearPoctlJoyPressed(murray->pl, BUTTON_JUMP);
-                SetJtAirJump(murray->air, 0xF, 0, 0);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
+            } else if (murray->controller->GetButtonsPressedWithin(BUTTON_JUMP, 0.1f) && IsPowerupAcquired(0x12)) {
+                murray->controller->ClearJoyPressed(BUTTON_JUMP);
+                SetJtAirJump(&murray->jtair, 0xF, 0, 0);
+            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
                 SetMurrayState(murray, MURRAY_THROW);
-            } else if (ConsumeButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_ALT_ATTACK, 0.0f) && murray->x1438) {
-                murray->x143C = 0;
+            } else if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.0f) && murray->unknown1438) {
+                murray->unknown143C = 0;
                 SetMurrayState(murray, MURRAY_TOSS);
-            } else if (GetButtonsPressedWithin__5POCTLUif(murray->pl, BUTTON_LOOK, 0.15f) && ((int (*)(void *, int))murray->vt[99].pfn)((char *)murray + murray->vt[99].d, 3)) {
-                ClearPoctlJoyPressed(murray->pl, BUTTON_LOOK);
-                StartJtMode(murray->xF00, 0, 0, 0);
+            } else if (murray->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && murray->CanUseGadget(3)) {
+                murray->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&murray->jtmode, 0, 0, 0);
             } else {
-                struct PL*source=murray->pl;
-                struct PL*pl=CopyPL(source);
-                float g=source->g1C;
+                POCTL*source=murray->controller;
+                POCTL*pl=CopyPL(source);
+                float g=source->leftStickDeflection;
                 if (murray->carrySubstate == 0 ? 0.1f < g : 0.0f < g) {
-                    if ((pl->x30 & 8) && IsPowerupAcquired(0x12))
+                    if ((pl->buttonsHeld & 8) && IsPowerupAcquired(0x12))
                         SetMurrayCarrySubstate(murray, 2);
                     else
                         SetMurrayCarrySubstate(murray, 1);
@@ -664,16 +655,16 @@ void UpdateMurrayCarry(struct P *murray)
     case 0:
         break;
     case 1:
-        SetStepTargetHeading(murray, murray->pl->g18);
-        UpdateGaitBlend(murray->x1460, murray->pl->g1C);
-        UpdateGaitFootsteps(murray->x1460);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        UpdateGaitBlend(&murray->gaitB, murray->controller->leftStickDeflection);
+        UpdateGaitFootsteps(&murray->gaitB);
         break;
     case 2: {
         U u;
         qword v;
-        SetStepTargetHeading(murray, murray->pl->g18);
-        v = GetStepAsegaTranslation(murray,murray->action,murray->action->g1C);
-        NegateSource(v,&murray->v190,&u);
+        SetStepTargetHeading(murray, murray->controller->leftStickAngle);
+        v = GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
+        NegateSource(v,&murray->qwUnknown190,&u);
         break;
     }
     }
@@ -1776,10 +1767,6 @@ typedef char WORD_bits_Offset[((unsigned int)&(((union WORD*)0)->bits))==0?1:-1]
 typedef char WORD_value_Offset[((unsigned int)&(((union WORD*)0)->value))==0?1:-1];
 } } // namespace M_SetMurrayFlopSubstate
 #undef FIELD_OFFSET
-
-/* The carry target MURRAY::ploCarried points at: a carry grab spot (classes.h CID36, no fields there yet); +0x180 is the
-   object it holds (the one Murray lifts), +0x190/+0x198 the objects whose transforms are the hands' IK goals. */
-struct CARRYSPOTV { char pad[0x180]; LO *plo; char pad184[0x190 - 0x184]; SO *psoGoalA; int pad194; SO *psoGoalB; };
 
 namespace M_StartMurrayLiftGrabspot { extern "C" {
 void SetMurrayState(MURRAY *p, int n);
