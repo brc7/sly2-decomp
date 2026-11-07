@@ -1974,10 +1974,10 @@ extern "C" void AddRelayPipeTo(RELAYV *relay, OID oidTarget, int fAsync, OID oid
     prelaycmd->pipeTo.oidTarget = oidTarget; prelaycmd->pipeTo.gTolerance = gTolerance; prelaycmd->pipeTo.oidActor = oidActor;
 }
 
-// 0x1E0910 AddRelayCommand1B
+// 0x1E0910 AddRelayWaitAndReleaseGrab
 // Splice builtin: append a RELAYCK 0x1B (Unk1B) command to the relay (AddRelayCommand(prelay,0x1B,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand1B(RELAYV *relay, OID oidActor)
+extern "C" void AddRelayWaitAndReleaseGrab(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk1B, 0)->unk1B.oidActor = oidActor;
 }
@@ -1990,10 +1990,10 @@ extern "C" void AddRelayHeroState(RELAYV *relay, int nUnk4, int nState, int fAsy
     prelaycmd->heroState.nUnk4 = nUnk4; prelaycmd->heroState.nState = nState; prelaycmd->heroState.oidActor = oidActor;
 }
 
-// 0x1E0990 AddRelayStepCmd1D
+// 0x1E0990 AddRelayStepGrab
 // Splice builtin: append a RELAYCK 0x1D (StepCmd1D) command to the relay (AddRelayCommand(prelay,0x1D,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd1D(RELAYV *relay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepGrab(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1D, 0);
@@ -2001,18 +2001,18 @@ extern "C" void AddRelayStepCmd1D(RELAYV *relay, OID oidGoal, OID oidActor)
     prelaycmd->stepCmd1D.oidActor = oidActor;
 }
 
-// 0x1E09D0 AddRelayStepCmd1E
+// 0x1E09D0 AddRelayStepThrowAt
 // Splice builtin: appends step command 0x1E with two objects for oidActor.
-extern "C" void AddRelayStepCmd1E(RELAYV *relay, OID oidA, OID oidB, OID oidActor)
+extern "C" void AddRelayStepThrowAt(RELAYV *relay, OID oidA, OID oidB, OID oidActor)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1E, 0);
     prelaycmd->stepCmd1E.oidA = oidA; prelaycmd->stepCmd1E.oidB = oidB; prelaycmd->stepCmd1E.oidActor = oidActor;
 }
 
-// 0x1E0A20 AddRelayStepCmd1F
+// 0x1E0A20 AddRelayStepGrabState9
 // Splice builtin: append a RELAYCK 0x1F (StepCmd1F) command to the relay (AddRelayCommand(prelay,0x1F,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd1F(RELAYV *relay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepGrabState9(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1F, 0);
@@ -2020,10 +2020,10 @@ extern "C" void AddRelayStepCmd1F(RELAYV *relay, OID oidGoal, OID oidActor)
     prelaycmd->stepCmd1F.oidActor = oidActor;
 }
 
-// 0x1E0A60 AddRelayStepCmd20
+// 0x1E0A60 AddRelayStepAttachToHands
 // Splice builtin: append a RELAYCK 0x20 (StepCmd20) command to the relay (AddRelayCommand(prelay,0x20,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd20(RELAYV *relay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepAttachToHands(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd20, 0);
@@ -2031,10 +2031,10 @@ extern "C" void AddRelayStepCmd20(RELAYV *relay, OID oidGoal, OID oidActor)
     prelaycmd->stepCmd20.oidActor = oidActor;
 }
 
-// 0x1E0AA0 AddRelayStepCmd21
+// 0x1E0AA0 AddRelayStepGrabState5
 // Splice builtin: append a RELAYCK 0x21 (StepCmd21) command to the relay (AddRelayCommand(prelay,0x21,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd21(RELAYV *relay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepGrabState5(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd21, 0);
@@ -2042,9 +2042,9 @@ extern "C" void AddRelayStepCmd21(RELAYV *relay, OID oidGoal, OID oidActor)
     prelaycmd->stepCmd21.oidActor = oidActor;
 }
 
-// 0x1E0AE0 AddRelayStepCmd22
+// 0x1E0AE0 AddRelayStepGrabAseg
 // Splice builtin: appends step command 0x22 (a target and a mode) for oidActor.
-extern "C" void AddRelayStepCmd22(RELAYV *relay, OID oidTarget, int nMode, int nUnk6, OID oidActor)
+extern "C" void AddRelayStepGrabAseg(RELAYV *relay, OID oidTarget, int nMode, int nUnk6, OID oidActor)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd22, 0);
     prelaycmd->stepCmd22.oidTarget = oidTarget; prelaycmd->stepCmd22.nMode = nMode; prelaycmd->stepCmd22.nUnk6 = nUnk6;
@@ -2074,10 +2074,10 @@ extern "C" void AddRelayGoTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidAc
     prelaycmd->goTo.fUnk9 = 1;
 }
 
-// 0x1E0C08 AddRelayGoTo_1E0C08
+// 0x1E0C08 AddRelayGoToAlt
 // Splice builtin: the GoTo variant with an explicit fAsync (RELAYCK 0x24): oidActor goes to oidTarget at run fraction
 // uRun, arriving within gArrive, playing clip idClip.
-extern "C" void AddRelayGoTo_1E0C08(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, int idClip, float uRun, float gArrive)
+extern "C" void AddRelayGoToAlt(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, int idClip, float uRun, float gArrive)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_GoTo, fAsync);
     prelaycmd->goTo.oidTarget = oidTarget; prelaycmd->goTo.uRun = uRun; prelaycmd->goTo.gArrive = gArrive;
@@ -2126,9 +2126,9 @@ extern "C" void AddRelayWalkTo(RELAYV *relay, OID oidTarget, float gUnk5, int nU
     prelaycmd->walkTo.idClip = idClip;
 }
 
-// 0x1E0DB8 AddRelayStepCmd29
+// 0x1E0DB8 AddRelayStepCarryTo
 // Splice builtin: appends step command 0x29 (a target, a parameter, an arrival distance) for oidActor.
-extern "C" void AddRelayStepCmd29(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, float gUnk5, float gArrive)
+extern "C" void AddRelayStepCarryTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, float gUnk5, float gArrive)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd29, fAsync);
     prelaycmd->stepCmd29.oidTarget = oidTarget; prelaycmd->stepCmd29.gUnk5 = gUnk5; prelaycmd->stepCmd29.gArrive = gArrive;
@@ -2219,10 +2219,10 @@ extern "C" void AddRelayHidePart(RELAYV *relay, OID oidAseg, OID oidPart)
     prelaycmd->hidePart.oidPart = oidPart;
 }
 
-// 0x1E1058 AddRelayCommand32
+// 0x1E1058 AddRelayJoltCamera
 // Splice builtin: append a RELAYCK 0x32 (Unk32) command to the relay (AddRelayCommand(prelay,0x32,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand32(RELAYV *relay, int n, int fAsync)
+extern "C" void AddRelayJoltCamera(RELAYV *relay, int n, int fAsync)
 {
     AddRelayCommand(relay, RELAYCK_Unk32, fAsync)->unk32.nUnk4 = n;
 }
@@ -2306,10 +2306,10 @@ extern "C" void AddRelayCamBlendTo(RELAYV *relay, qword qwPos, qword angles, int
     prelaycmd->camBlendTo.nUnk17 = nUnk17;
 }
 
-// 0x1E1388 AddRelayCommand3A
+// 0x1E1388 AddRelayPopCamBlend
 // Splice builtin: append a RELAYCK 0x3A (Unk3A) command to the relay (AddRelayCommand(prelay,0x3A,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand3A(RELAYV *relay, int n)
+extern "C" void AddRelayPopCamBlend(RELAYV *relay, int n)
 {
     AddRelayCommand(relay, RELAYCK_Unk3A, 1)->unk3A.nUnk4 = n;
 }
@@ -2384,10 +2384,10 @@ extern "C" void AddRelayButtonPrompt(RELAYV *relay, int grfbtn, OID oidWho)
     prelaycmd->buttonPrompt.grfbtn = grfbtn; prelaycmd->buttonPrompt.oidWho = oidWho;
 }
 
-// 0x1E15B0 AddRelayCommand43
+// 0x1E15B0 AddRelayWaitPlayerState
 // Splice builtin: append a RELAYCK 0x43 (Unk43) command to the relay (AddRelayCommand(prelay,0x43,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand43(RELAYV *relay, int n, OID oidActor)
+extern "C" void AddRelayWaitPlayerState(RELAYV *relay, int n, OID oidActor)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk43, 0);
@@ -2505,26 +2505,26 @@ extern "C" void AddRelayMurrayApplySma(RELAYV *relay, int nUnk5, int nUnk7, int 
     prelaycmd->unk4F.oidActor = oidActor;
 }
 
-// 0x1E18E0 AddRelayCommand50
+// 0x1E18E0 AddRelayWaitBentleyGadget
 // Splice builtin: append a RELAYCK 0x50 (Unk50) command to the relay (AddRelayCommand(prelay,0x50,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand50(RELAYV *relay, OID oidActor)
+extern "C" void AddRelayWaitBentleyGadget(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
 }
 
-// 0x1E1910 AddRelayCommand51
+// 0x1E1910 AddRelayWaitBentleyGadgetDone
 // Splice builtin: append a RELAYCK 0x51 (Unk51) command to the relay (AddRelayCommand(prelay,0x51,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand51(RELAYV *relay, OID oidActor)
+extern "C" void AddRelayWaitBentleyGadgetDone(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
 }
 
-// 0x1E1940 AddRelayCommand52
+// 0x1E1940 AddRelayWaitLine
 // Splice builtin: append a RELAYCK 0x52 (Unk52) command to the relay (AddRelayCommand(prelay,0x52,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand52(RELAYV *relay, float dtWait)
+extern "C" void AddRelayWaitLine(RELAYV *relay, float dtWait)
 {
     AddRelayCommand(relay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
 }
@@ -2570,10 +2570,10 @@ extern "C" void AddRelayResetStepGoal(RELAYV *relay, OID oidStep, OID oidUnk5)
     prelaycmd->resetStepGoal.oidUnk5 = oidUnk5;
 }
 
-// 0x1E1A60 AddRelayCommand57
+// 0x1E1A60 AddRelayMurrayThrowAim
 // Splice builtin: append a RELAYCK 0x57 (Unk57) command to the relay (AddRelayCommand(prelay,0x57,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand57(RELAYV *relay, OID oidActor)
+extern "C" void AddRelayMurrayThrowAim(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
 }

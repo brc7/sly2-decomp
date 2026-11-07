@@ -1595,18 +1595,18 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_AddRelayStepCmd29 (was src/game/app/splice_thunks/RefThunk_AddRelayStepCmd29.cpp) ----
 namespace T_RefThunk_AddRelayStepCmd29 {
-extern "C" { void AddRelayStepCmd29(void *p, int, float, float, int, int); CRef RefThunk_AddRelayStepCmd29(void *p, int c, void *aref); }
+extern "C" { void AddRelayStepCarryTo(void *p, int, float, float, int, int); CRef RefThunk_AddRelayStepCmd29(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x1085F0
  * Purpose: Splice option thunk: optid 675 on RELAY (g_aeopid[667] thunkFn/thunkUser, returns Void, crefReq
  *   5); unpacks 5 args (Oid, Float, Float, Bool, Oid) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayStepCmd29 (0x1E0DB8)
+ *   AddRelayStepCarryTo (0x1E0DB8)
  * Info: proposed name RefThunk_AddRelayStepCmd29 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 675 on RELAY (g_aeopid[667], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
-// Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayStepCmd29 and returns nothing to the script.
+// Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayStepCarryTo and returns nothing to the script.
 CRef RefThunk_AddRelayStepCmd29(void *object, int argCount, void *args)
 {
     int argTypes[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
@@ -1618,7 +1618,7 @@ CRef RefThunk_AddRelayStepCmd29(void *object, int argCount, void *args)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayStepCmd29(object, v0, v1, v2, v3, v4);
+    AddRelayStepCarryTo(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayStepCmd29
