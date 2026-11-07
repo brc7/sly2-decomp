@@ -15,15 +15,15 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/classes.h"
 
 /* View of the grab spot (an XFM). */
-struct K { int a, b; };
+struct DLEV { void *next, *prev; };   /* a DL link */
 struct GRABXFM
 {
     char pad0[0x38];
     float sBusy;        /* +0x038 LO busy radius; 1e10 at load means "use the default" (D_002C3C58) */
     char pad3C[0xA4];
     char grabspot[0x20];/* +0x0E0 GRABSPOTDATA (0x20) */
-    int unknown100;
-    K listLink;         /* +0x104 kept across CloneXfm (the list link, inferred) */
+    int unknown100;     /* +0x100 */
+    DLEV listLink;      /* +0x104 kept across CloneXfm (the list link, inferred) */
 };
 typedef char assert_GRABXFM_k[(unsigned int)&((GRABXFM *)0)->listLink == 0x104 ? 1 : -1];
 /* The object a position is measured from (+0x240). */
@@ -52,7 +52,12 @@ void CID39::Init()
 }
 
 // CID39 vtable slot 15 (PostLoad): finishes the LO load; an unset busy radius (1e10) becomes 1250 units.
-extern "C" void PostGrabSpotXfmLoad(GRABXFM *grabSpot) { PostLoLoad(grabSpot); if (grabSpot->sBusy == 1e10f) grabSpot->sBusy = D_002C3C58; }
+extern "C" void PostGrabSpotXfmLoad(GRABXFM *grabSpot)
+{
+    PostLoLoad(grabSpot);
+    if (grabSpot->sBusy == 1e10f)
+        grabSpot->sBusy = D_002C3C58;
+}
 
 // CID39 vtable slot 23 (OnAdd): enters the active world and the world list g_sw.dlCid39.
 extern "C" void OnGrabSpotXfmAdd(GRABXFM *grabSpot)
@@ -69,7 +74,12 @@ extern "C" void OnGrabSpotXfmRemove(GRABXFM *grabSpot)
 }
 
 // CID39 vtable slot 41 (Clone): copies the source XFM but keeps this object's own list link. (inferred)
-extern "C" void CloneGrabSpotXfm(GRABXFM *grabSpot) { K listLink = grabSpot->listLink; CloneXfm(grabSpot); grabSpot->listLink = listLink; }
+extern "C" void CloneGrabSpotXfm(GRABXFM *grabSpot)
+{
+    DLEV listLink = grabSpot->listLink;
+    CloneXfm(grabSpot);
+    grabSpot->listLink = listLink;
+}
 
 // If `offset` is non-null, stores the vector from reference's position (+0x240) to the world position of `object`.
 // Used as a grab-spot helper (the reference is a step/player). (inferred)
