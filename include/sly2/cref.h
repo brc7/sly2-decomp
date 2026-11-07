@@ -51,7 +51,7 @@ struct CRef
       CRef(int tagk) { InitTag(tagk); }
       CRef(const CRef &r);
       CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }            /* a word with its tag, no retain (bif's builtins) */
-      CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: RefEvalLambda) */
+      CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: EvalLambda) */
       CRef(CPair *ppair) __asm__("CRef_ctor_CPair");
       CRef(const VECTOR *pvec) __asm__("CRef_ctor_VECTOR");           /* the payload types own a heap each (CSpliceHeap, sly2/slotheap.h) */
       CRef(const MATRIX4 *pmat) __asm__("CRef_ctor_MATRIX4");

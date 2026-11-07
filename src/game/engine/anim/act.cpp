@@ -1342,7 +1342,7 @@ extern qword D_002A2DD0;
 extern float D_002A45A8;
 struct CLOCK { float t; int dt; };
 extern struct CLOCK D_002DDED0;
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
 void *FindClosestSwPo(void *pg, qword pos);
 qword GetLoWorldPos(void *po);
 void SortXfActs(void *a, struct X *b);
@@ -1361,7 +1361,7 @@ static __inline__ float VectorLength(U *pv, qword a)
 }
 
 /** @sly2-annot addr=0x12D220
- * Purpose: Updates an aim/look-at act: finds target object (PloFindSwObject), pan/tilt
+ * Purpose: Updates an aim/look-at act: finds target object (FindSwObject), pan/tilt
  *   (CalculateVectorPanTilt)
  * Info: proposed name UpdateActLookAt (T1); class ActLookAt; TU act
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
@@ -1381,7 +1381,7 @@ void UpdateActLookAt(struct P *p)
     qword vel;
 
     if (p->target == 0 && p->targetOid != -1)
-        p->target = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x104, p->targetOid, p->object);
+        p->target = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x104, p->targetOid, p->object);
     {
         struct X *xf = p->xf;
         int z;

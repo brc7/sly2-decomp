@@ -183,7 +183,7 @@ DLV *GetSwClassList(SW *psw, CIDV cid);
 void AppendSlEntry(DLV *pdl, void *pv);
 void RemoveSlEntry(DLV *pdl, void *pv);
 void InitXfm(BLIPGV *p);
-void SetLoBusyk(BLIPGV *p, int busyk);
+void SetLoBusyKind(BLIPGV *p, int busyk);
 void RemoveLoHierarchy(BLIPGV *p);
 void SnipLo(BLIPGV *p);
 void FreeLoroot(BLIPGV *p);
@@ -214,7 +214,7 @@ void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");       
 void InitDl(DLV *pdl, int ibDle) __asm__("InitDl__FP2DLi");                                /* InitDl__FP2DLi */
 int IsDlEmpty(DLV *pdl) __asm__("IsDlEmpty__FP2DL");                                        /* IsDlEmpty__FP2DL */
 int CountDlEntries(DLV *pdl) __asm__("CountDlEntries__FP2DL");                                             /* CountDlEntries__FP2DL */
-int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");                /* FIsBasicDerivedFrom__FP5BASIC3CID */
+int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");                /* IsBasicDerivedFrom__FP5BASIC3CID */
 int AreFloatsNear(float a, float b, float eps);                   /* AreFloatsNear__Ffff */
 float NormalizeAngle(float g);                                    /* NormalizeAngle__Ff */
 void PrescaleClq(CLQ *pclq, float g, float h, CLQ *pclqDst);    /* PrescaleClq__FP3CLQffT0 */
@@ -300,7 +300,7 @@ void InitBlipg(BLIPGV *blipGroup)
     InitDl(&blipGroup->dl, 0x1090);
     blipGroup->oid = -1;
     blipGroup->sBusy = 1e10f;
-    SetLoBusyk(blipGroup, 1);
+    SetLoBusyKind(blipGroup, 1);
     x = blipGroup->flags40;
     if ((x ^ 1) & 1) *(int *)x = (*(int *)x & 1) | 0xe;
     else blipGroup->flags40 = (x & 1) | 0xe;
@@ -469,7 +469,7 @@ extern "C" void UpdateBlipg(BLIPGV *blipGroup, float dt)
 extern "C" void SubscribeBlipgObject(BLIPGV *blipGroup, LOV *plo)
 {
     SubscribeLoObject(blipGroup, plo);
-    if (FIsBasicDerivedFrom((BASIC *)plo, CID_1D) != 0) {
+    if (IsBasicDerivedFrom((BASIC *)plo, CID_1D) != 0) {
         blipGroup->plo = plo;
         blipGroup->sBusy = plo->sBusy;
     }

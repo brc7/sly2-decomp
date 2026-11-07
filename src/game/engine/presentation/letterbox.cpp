@@ -25,7 +25,7 @@ struct LETTERBOX
 
 extern SW D_003DD490;               /* g_sw */
 extern char D_004435F0[];           /* speaker label (HYPOTHESIS) */
-LO *PloFindSwObject(SW *sw, int findFlags, OID oid, LO *context);
+LO *FindSwObject(SW *sw, int findFlags, OID oid, LO *context);
 extern "C" {
 void SetWidgetRequest(TIMER *timer, int n);                   /* SetTimerTimers (HYPOTHESIS) */
 void ClearSubtitle(void *p);                                   /* InitSpeakerLabel (HYPOTHESIS) */
@@ -42,7 +42,7 @@ void ClearSubtitle(void *p);                                   /* InitSpeakerLab
 // (SetWidgetRequest). A level without that object has no letterbox. (inferred)
 extern "C" void InitLetterbox(LETTERBOX *letterbox)
 {
-      TIMER *timer = (TIMER *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x373, 0);
+      TIMER *timer = (TIMER *)FindSwObject(&D_003DD490, 0x405, (OID)0x373, 0);
 
       letterbox->timer = timer;
       if (timer)

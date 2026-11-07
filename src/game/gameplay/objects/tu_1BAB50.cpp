@@ -77,9 +77,9 @@ void OnSoRemove(TRIG *p);
 void OnSoAdd(TRIG *p);
 void RemoveDlEntry__FP2DLPv(void *pdl, void *pv);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void EnsureSwCallback(SW *, TRIG *, PMF, int);
-SOX *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int v, TRIG *p);
+SOX *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int v, TRIG *p);
 void ShowSoGlobsById(TRIG *p, int v);
 void HideSoGlobsById(TRIG *p, int v);
 void ShowSoPartsById(TRIG *p, int v);
@@ -176,7 +176,7 @@ extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
     if ((e->x40.l & 0xC00000000UL) != 0x800000000UL) return 1;
     if (breakable->triggerClassCount != 0 && e->x0 != breakable) {
         for (i = 0; i < breakable->triggerClassCount; i++)
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(e->x0, breakable->triggerClasses[i].a)) break;
+            if (IsBasicDerivedFrom__FP5BASIC3CID(e->x0, breakable->triggerClasses[i].a)) break;
         if (i >= breakable->triggerClassCount) return 0;
     }
     ScheduleBreakableReaction(breakable, e->x0, e->xC);
@@ -221,7 +221,7 @@ void SetBreakableStage(TRIG *breakable, int id)
                 I *pi = &pe->a[k];
                 SOX *ps = 0;
                 if ((0xC3 >> pi->a) & 1) {
-                    ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
+                    ps = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
                     if (!ps) continue;
                 }
                 switch ((unsigned int)pi->a) {
@@ -263,7 +263,7 @@ void SetBreakableStage(TRIG *breakable, int id)
                 I *pi = &pe->a[k];
                 SOX *ps = 0;
                 if ((0xC3 >> pi->a) & 1) {
-                    ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
+                    ps = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
                     if (!ps) continue;
                 }
                 switch ((unsigned int)pi->a) {
@@ -314,14 +314,14 @@ void CID98::VUnk57()
         for (i = 0; i < breakable->triggerClassCount; i++) {
             I *pe = &breakable->triggerClasses[i];
             if (!pe->b) continue;
-            if (!FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, pe->a)) continue;
+            if (!IsBasicDerivedFrom__FP5BASIC3CID(pl->po, pe->a)) continue;
             if (!(breakable->breakFlags & 0x3000000)) ScheduleBreakableReaction(breakable, pl->po, 0);
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, 0x62)) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(pl->po, 0x62)) {
                 TRIG *q = pl->po;
                 for (j = 0; j < q->triggerClassCount; j++) {
                     I *pe2 = &q->triggerClasses[j];
                     if (!pe2->b) continue;
-                    if (!FIsBasicDerivedFrom__FP5BASIC3CID(breakable, pe2->a)) continue;
+                    if (!IsBasicDerivedFrom__FP5BASIC3CID(breakable, pe2->a)) continue;
                     ScheduleBreakableReaction(q, breakable, 0);
                     break;
                 }
@@ -348,7 +348,7 @@ void TRIG::Action()
         p->reactionMask = 0xE;
     } else {
         v = p->zapKind;
-        if (v == 0x100 || v == 0x10000 || v == 0x20000 || (p->instigator && FIsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x3B)))
+        if (v == 0x100 || v == 0x10000 || v == 0x20000 || (p->instigator && IsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x3B)))
             p->reactionMask = 8;
         else
             p->reactionMask = 0;
@@ -358,7 +358,7 @@ void TRIG::Action()
     pe = &p->stages[p->stage];
     RunBreakableStageActions(p, p->stages - 1);
     RunBreakableStageActions(p, pe);
-    if (!p->instigator || !FIsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x38) || FIsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x3C)) {
+    if (!p->instigator || !IsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x38) || IsBasicDerivedFrom__FP5BASIC3CID(p->instigator, 0x3C)) {
         EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(p), p->instigator);
     }
     if (pe->n > 0) {
@@ -393,7 +393,7 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
         if ((breakable->firingCount > 0 || pe->n <= 0) && ((0x3F >> pi->a) & 1)) continue;
         ps = 0;
         if ((0xC3 >> pi->a) & 1) {
-            ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
+            ps = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
             if (!ps) continue;
         }
         switch ((unsigned int)pi->a) {
@@ -419,7 +419,7 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
             HideSoPartsById(breakable, pi->b);
             break;
         case 7:
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(ps, 0x1E)) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(ps, 0x1E)) {
                 MSGS msg;
                 msg.a = 1;
                 msg.ps = psPrev ? psPrev : ps;

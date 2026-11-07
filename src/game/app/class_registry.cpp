@@ -136,12 +136,12 @@ __asm__(
 namespace T_RefThunkBasicDERIVED_FROMQ {
 extern "C" {
 CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, int *an);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref);
 }
 /** @sly2-annot addr=0x100228
  * Purpose: Splice option thunk (just BEFORE the requested span): optid 3 on BASIC (g_aeopid[2] thunkFn,
- *   returns Bool, crefReq 1); unpacks 1 arg (Cid) and returns FIsBasicDerivedFrom(pbasic, cid) via
+ *   returns Bool, crefReq 1); unpacks 1 arg (Cid) and returns IsBasicDerivedFrom(pbasic, cid) via
  *   CRef_SetBool
  * Info: proposed name RefThunkBasicDERIVED_FROMQ (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
@@ -149,13 +149,13 @@ CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref);
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 3 on BASIC (g_aeopid[2], thunkFn): unpacks the script's 1 argument (Cid) with
-// RefSetArgsFromSplice, calls FIsBasicDerivedFrom and returns a bool to the script.
+// RefSetArgsFromSplice, calls IsBasicDerivedFrom and returns a bool to the script.
 CRef RefThunkBasicDERIVED_FROMQ(void *object, int argCount, void *args)
 {
     int argType = 7;
     int n;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &n);
-    ref = FIsBasicDerivedFrom__FP5BASIC3CID(object, n) != 0;
+    ref = IsBasicDerivedFrom__FP5BASIC3CID(object, n) != 0;
     return ref;
 }
 } // namespace T_RefThunkBasicDERIVED_FROMQ

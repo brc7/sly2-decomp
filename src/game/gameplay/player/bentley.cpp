@@ -1959,7 +1959,7 @@ struct S { struct PO *po; int state; int x8; int xC; int x10; int x14; float g18
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, float);
-qword ConvertAloPos(void *, struct PO *, qword);
+qword ConvertPosBetweenLos(void *, struct PO *, qword);
 void SetStepTargetHeadingFromVector(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
 void RecalculateAsegBlend(void *);
@@ -2005,7 +2005,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
         } else {
             ps->g1C = 0.5f;
         }
-        r.q = ConvertAloPos(ps->pvE4, ps->po, D_002A2DD0);
+        r.q = ConvertPosBetweenLos(ps->pvE4, ps->po, D_002A2DD0);
         ps->x8 = 0.0f < r.a[1] ? 1 : 0;
         if (state == 0 && f) {
             SetStepTargetHeadingFromVector(ps->po, v.q);

@@ -664,12 +664,12 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 /** @sly2-annot addr=0x129D58
  * Purpose: Returns S32 copy (float truncated)
- * Info: proposed name CRef_RefCoerceS32 (T1); class CRef; TU ref
+ * Info: proposed name CRef_CoerceS32 (T1); class CRef; TU ref
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
 // Returns the value coerced to an integer (floats truncated).
-extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *source)
+extern "C" CRef *CRef_CoerceS32(CRef *pref, CRef *source)
 {
     if (source->m_tagk == 0x15)
     {
@@ -686,12 +686,12 @@ extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *source)
 
 /** @sly2-annot addr=0x129DA8
  * Purpose: Returns F32 copy (int promoted); used by most numeric builtins
- * Info: proposed name CRef_RefCoerceF32 (T1); class CRef; TU ref
+ * Info: proposed name CRef_CoerceF32 (T1); class CRef; TU ref
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
 // Returns the value coerced to a float (integers promoted); the numeric built-ins use it.
-extern "C" CRef *CRef_RefCoerceF32(CRef *pref, CRef *source)
+extern "C" CRef *CRef_CoerceF32(CRef *pref, CRef *source)
 {
     if (source->m_tagk == 0x16)
     {

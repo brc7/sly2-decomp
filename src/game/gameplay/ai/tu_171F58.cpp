@@ -130,14 +130,14 @@ void StepBhvSearchPoint(BHV171V *behavior);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 float GetStepHeading(void *object);
 void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*);
-int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
+int FindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
 qword SetVectorCylind(float,float,float);
 }
 float RandomFloatInRange(float gMin, float gMax);
 int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
 float NormalizeAngle(float rad);
-int FIsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -549,27 +549,27 @@ extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
         TryAddSearchCandidate(&w.query);
     }
     for (object = (*(NODE **)&g_sw.dlTarget); object; object = object->nextE0) {
-        if ((object->flags & 1) && FIsBasicDerivedFrom(object, CID_CLASS19)) {
+        if ((object->flags & 1) && IsBasicDerivedFrom(object, CID_CLASS19)) {
             w.query.candidate.q = GetLoWorldPos(object);
             TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS35, 0, 0x100, w.result256);
+        int count = FindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS35, 0, 0x100, w.result256);
         for (int i = 0; i < count; i++) {
             w.query.candidate.q = GetLoWorldPos(w.result256[i]);
             TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_BOOTY, 0, 0x20, w.result32);
+        int count = FindSwObjectsByClass(&D_003DD490, 0x505, CID_BOOTY, 0, 0x20, w.result32);
         for (int i = 0; i < count; i++) {
             w.query.candidate.q = GetLoWorldPos(w.result32[i]);
             TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS27, 0, 0x80, w.result128);
+        int count = FindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS27, 0, 0x80, w.result128);
         for (int i = 0; i < count; i++) {
             w.query.candidate.q = GetLoWorldPos(w.result128[i]);
             TryAddSearchCandidate(&w.query);

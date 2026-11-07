@@ -77,7 +77,7 @@ void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetSndmgrMasterVolume(void *psndmgr, float g);
 void WipeToWorldWarp(void *psw, void *prec, int a, int b, void *c, int d);
-void *PrecWorldEntry(void *p);
+void *GetWorldEntry(void *p);
 int GetCompletionPercent(void *pgs, void *psvset);
 void SetPowerupAcquired(int n, int f);
 int GetGadgetSlotFromId(void *pstepplayer, int id);
@@ -170,8 +170,8 @@ extern "C" void CheatWipeToWarp(void *param)
 // Cheat action: wipes to the world entry of episode `param` (or of episode 0 if it has none). (inferred)
 extern "C" void CheatWarpToEpisode(void *param)
 {
-    void *prec = PrecWorldEntry(param);
-    if (!prec) prec = PrecWorldEntry(0);
+    void *prec = GetWorldEntry(param);
+    if (!prec) prec = GetWorldEntry(0);
     WipeToWorldWarp(D_003DD490, prec, 0x189, -1, 0, -1);
 }
 

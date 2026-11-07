@@ -124,7 +124,7 @@ int ClipEdgeToSphere(qword a, qword b, qword c, int n, HITB *phit, float g);
 void AddSoCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
 void AddXp(G *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
 void AdjustSoXps(BOMBV *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsPoPlayable(BOMBV *p);
 void PostSwCallback(G *pg, BOMBV *p, long k, void *x);
 void SetLoParent(BOMBV *, Q18 *, int);
@@ -399,7 +399,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
                 break;
             case 2: {
                 BOMBV *pOther = AE(pq)[IOther(pq, bomb)].object;
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(pOther, 0x32)) {
+                if (IsBasicDerivedFrom__FP5BASIC3CID(pOther, 0x32)) {
                     f = 0;
                     if (IsPoPlayable(pOther))
                         f = 1;
@@ -454,7 +454,7 @@ extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
     unsigned int i;
     for (; pn; pn = pn->pparent) {
         for (i = 0; i < 4; i++) {
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(pn, D_002BC9D0[i])) return 0;
+            if (IsBasicDerivedFrom__FP5BASIC3CID(pn, D_002BC9D0[i])) return 0;
         }
     }
     return 1;
@@ -508,7 +508,7 @@ extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
         }
         pu->q = n;
         PrepareBombDetonation(bomb, GetLoWorldPos(bomb), u.q);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID((void *)pm->x0, 0x4F))
+        if (IsBasicDerivedFrom__FP5BASIC3CID((void *)pm->x0, 0x4F))
             PrimeBomb(bomb, 0.25f);
         else
             PrimeBomb(bomb, 0.0f);
@@ -601,7 +601,7 @@ extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
             continue;
         if (pso60 == bomb->pxp->pso60)
             continue;
-        if (ps->planeCount && !IntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, FIsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
+        if (ps->planeCount && !IntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, IsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
             continue;
         apo[n] = ps->po;
         n++;
@@ -699,7 +699,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
     if (bomb->makesNoise) {
         POV *po = (POV *)bomb->owner;
         void *pv = bomb;
-        if (po != (POV *)bomb && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
+        if (po != (POV *)bomb && IsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }

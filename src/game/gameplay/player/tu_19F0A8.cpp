@@ -27,7 +27,7 @@ extern SWVIEW D_003DD490;         /* g_sw */
 extern CLOCK D_002DDED0;          /* g_clock */
 float D_002BF938 = 6.0f;         /* override duration (s) */
 extern "C" {
-int CploFindSwObjectsByClass(SWVIEW *world, int findFlags, int cid, int unused, int maxCount, void *results);
+int FindSwObjectsByClass(SWVIEW *world, int findFlags, int cid, int unused, int maxCount, void *results);
 void SetStepguardSpecial(GUARDV *guard, int state);
 void SetGuardOverride(SWVIEW *world, int isActive);
 }
@@ -47,7 +47,7 @@ extern "C" void RefreshPlayersAfterPowerupChange()
       OBJ *players[8];
       int count, i;
 
-      count = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 8, players);
+      count = FindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 8, players);
       for (i = 0; i < count; i++) {
             OBJ *player = players[i];
             VTE *entry = &player->vt[104];
@@ -87,7 +87,7 @@ extern "C" void SetGuardOverride(SWVIEW *world, int isActive)
 
       world->isGuardOverrideActive = isActive;
       world->guardOverrideStartTime = D_002DDED0.t;
-      count = CploFindSwObjectsByClass(world, 0x105, 0x38, 0, 32, guards);
+      count = FindSwObjectsByClass(world, 0x105, 0x38, 0, 32, guards);
       for (i = 0; i < count; i++) {
             if (isActive)
                   SetStepguardSpecial(guards[i], 0xE);
@@ -108,7 +108,7 @@ extern "C" void SetAllGuardsSpecialState(SWVIEW *world, int state)
       GUARDV *guards[32];
       int count, i;
 
-      count = CploFindSwObjectsByClass(world, 0x105, 0x38, 0, 32, guards);
+      count = FindSwObjectsByClass(world, 0x105, 0x38, 0, 32, guards);
       for (i = 0; i < count; i++)
             SetStepguardSpecial(guards[i], state);
 }

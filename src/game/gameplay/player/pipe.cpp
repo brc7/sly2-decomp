@@ -61,7 +61,7 @@ float ModPositive__Fff(float, float);     // wrap into range
 float ClampShapeDistance(PIPEV *, float);
 void EvaluateShapeAtDistance(PIPEV *, float, qword *, qword *);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
-qword ConvertAloVec(PIPEV *, PIPEV *, qword);
+qword ConvertVecBetweenLos(PIPEV *, PIPEV *, qword);
 qword GetNormalVector(qword);
 qword GetLoWorldPos(void *q);
 void FindShapeClosestPoint(PIPEV *p, qword q, int a, void *pv, int b, int c, float *pf);
@@ -252,7 +252,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
                 break;
         }
         rot = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(w.tangent, w.direction);
-        qword ref = ConvertAloVec(pipe, 0, pipe->axis);
+        qword ref = ConvertVecBetweenLos(pipe, 0, pipe->axis);
         fwd.q = Transform(rot, ref);
         qword up = Normalize(w.first, D_002A2DC0);
         w.basis.r[2] = up;

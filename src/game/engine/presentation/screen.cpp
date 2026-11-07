@@ -184,7 +184,7 @@ void SetGadgetMenuState(GADGETMENUV *gadgetMenu, int nState);
 void ClearThiefnet(SCREENV *screen);
 void ClearJobList(SCREENV *screen);
 int GetWorldNameTextId(int nWorld);
-int NWorldCur();
+int GetCurrentWorld();
 int GetCompletionPercent(void *pgs, void *psave);
 int sprintf(char *pch, const char *pchzFormat, ...);
 void strcpy1(char *pchDst, const char *pchSrc);
@@ -196,8 +196,8 @@ void InitDl(DL *pdl, int ibDle);
 int IsEntryInDl(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
 void PrependDlEntry(DL *pdl, void *pv);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *plo);
-char *PchzFindSwLangstr(SW *psw, int id);
+LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
+char *FindSwLocalizedString(SW *psw, int id);
 void Flush__4DMAS(void *pdmas) __asm__("Flush__4DMAS");
 
 /** @sly2-annot addr=0x1D93D8
@@ -552,9 +552,9 @@ typedef struct {
     int anims[5];
 } OBJ;
 extern struct G D_003DD490;
-W *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
+W *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 Q *GetHeroPo(struct G *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
 int GetStepplayerMp(Q *);
 void PlayWidgetAnim(W *, int);
 void SetWidgetAnimPhase(W *, int, float);
@@ -573,11 +573,11 @@ void PostHudMeterLoad(OBJ *p)
 {
     Q *hero;
     W *widget;
-    p->widget = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36B, 0);
+    p->widget = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36B, 0);
     p->state = 0;
     p->hero = 0;
     hero = GetHeroPo(&D_003DD490);
-    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
+    if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
         p->hero = hero;
     if (p->hero == 0) {
         p->shownHealth = p->health = 0.0f;
@@ -586,13 +586,13 @@ void PostHudMeterLoad(OBJ *p)
     }
     p->shownHealth = p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
     p->shownPower = p->power = (float)GetStepplayerMp(p->hero) / (float)p->hero->maxPower;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
             p->anims[0] = 0x347;
             p->anims[1] = 0x348;
             p->anims[2] = 0x349;
             p->anims[3] = 0x34A;
             p->anims[4] = 0x34B;
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
             p->anims[0] = 0x342;
             p->anims[1] = 0x343;
             p->anims[2] = 0x344;
@@ -651,7 +651,7 @@ typedef struct OBJ {
 } OBJ;
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern REC D_002BCD00[];
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int IsPowerupAcquired(int);
 void PlayWidgetAnim(SUB *, int);
 void StopWidgetAnim(SUB *, int);
@@ -689,13 +689,13 @@ void SetHudMeterState(OBJ *p, int s)
         VCALL1(p->widget, 49, p->steadyAnim);
         PlayWidgetAnim(p->widget, 0x34F);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
             n = 0x12;
             tbl = D_002C2DE8;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
             n = 9;
             tbl = D_002C3028;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
             n = 8;
             tbl = D_002C3148;
         }
@@ -764,7 +764,7 @@ extern struct G D_003DD490;
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3248[];
 Q *GetHeroPo(struct G *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetHudMeterState(OBJ *, int);
 int GetStepplayerMp(Q *);
 int AreFloatsNear__Ffff(float, float, float);
@@ -795,7 +795,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
     old = p->hero;
     p->hero = 0;
     q = GetHeroPo(&D_003DD490);
-    if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
+    if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
         p->hero = q;
     if (!p->hero) {
         p->shownHealth = p->health = 0;
@@ -809,11 +809,11 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         else
             SetHudMeterState(p, HUDMETER_SWITCH_HERO);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
             p->steadyAnim = 0x33D; p->damageAnim = 0x33E; p->hideAnim = 0x33F; p->state6Anim = 0x340; p->state7Anim = 0x341;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
             p->steadyAnim = 0x347; p->damageAnim = 0x348; p->hideAnim = 0x349; p->state6Anim = 0x34A; p->state7Anim = 0x34B;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
             p->steadyAnim = 0x342; p->damageAnim = 0x343; p->hideAnim = 0x344; p->state6Anim = 0x345; p->state7Anim = 0x346;
         }
         p->shownHealth = p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
@@ -892,7 +892,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
 // Post-load of the notice banner: finds its widget.
 extern "C" void PostNoticeLoad(SCREENV *screen)
 {
-    PLONOTICE(screen) = PloFindSwObject(&D_003DD490, 0x405, (OID)0x371, 0);
+    PLONOTICE(screen) = FindSwObject(&D_003DD490, 0x405, (OID)0x371, 0);
 }
 
 /** @sly2-annot addr=0x1DA320
@@ -1148,7 +1148,7 @@ struct S *ConstructScreen(struct S *p) {
 } } // namespace M_func_001DA728
 
 /** @sly2-annot addr=0x1DA770
- * Purpose: slot 12: resolve widget oid +0x20 to object +0x24 (PloFindSwObject kind 5)
+ * Purpose: slot 12: resolve widget oid +0x20 to object +0x24 (FindSwObject kind 5)
  * Info: proposed name PostScreenLoad (T2); class SCREENV; TU screen
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
@@ -1159,7 +1159,7 @@ struct S *ConstructScreen(struct S *p) {
 void SCREEN::PostLoad()   /* key function: SCREEN's vtable comes out here */
 {
     SCREENV *screen = (SCREENV *)this;
-    screen->widget = (SCRCHILD *)PloFindSwObject(&D_003DD490, 5, (OID)screen->queuedTextId, 0);
+    screen->widget = (SCRCHILD *)FindSwObject(&D_003DD490, 5, (OID)screen->queuedTextId, 0);
 }
 
 /** @sly2-annot addr=0x1DA7B0
@@ -1363,7 +1363,7 @@ extern int D_002C3258[];
 void UpdateTimedScreen(OBJ *);
 int HandleJoyButtons(void *, int);
 void *GetHeroPo(struct G *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetGadgetMenuState(OBJ *, int);
 void UpdateScreenStickDir(OBJ *);
 R *FindScreenEntry(OBJ *, int);
@@ -1399,7 +1399,7 @@ void UpdateGadgetMenu(OBJ *p)
         return;
     }
     hero = GetHeroPo(&D_003DD490);
-    if (hero == 0 || !FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34)) {
+    if (hero == 0 || !IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34)) {
         SetGadgetMenuState(p, GADGETMENU_CLOSED);
         return;
     }
@@ -1445,7 +1445,7 @@ extern float D_002C3264;
 extern int D_002C3268[];
 int IsWidgetVisible(void *);
 Q *GetHeroPo(struct G *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void CTextBox_SetPos(TXT *, float, float);
 void CTextBox_SetSize(TXT *, float, float);
 void CTextBox_SetTextColor(TXT *, unsigned int *);
@@ -1474,7 +1474,7 @@ void DrawGadgetMenuSlotLabels(OBJ *p)
     hero = GetHeroPo(&D_003DD490);
     if (hero == 0)
         return;
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
         return;
     for (i = 0; i < p->itemCount; i++) {
         ENT *pe = &p->items[i];
@@ -1524,11 +1524,11 @@ struct E *FindScreenEntry(struct S *p, int gadgetId) {
 namespace M_func_001DAE58 { extern "C" {
 struct E { int a[4]; int unlockEpisode; int b[3]; };
 extern struct E D_002BCD00[];
-int NEpisodeBest(void);
+int GetBestEpisode(void);
 /** @sly2-annot addr=0x1DAE58
  * Purpose: Item i of table D_002BCD00 is available when progress (0x210B28) >= its threshold
  * Info: proposed name FScreenItemUnlocked (T2); TU screen
- * Notes: runtime7b V03: returns NEpisodeBest() >= gadget[i].x10 (unlock episode); S71 list matches exactly
+ * Notes: runtime7b V03: returns GetBestEpisode() >= gadget[i].x10 (unlock episode); S71 list matches exactly
  * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
@@ -1536,7 +1536,7 @@ int NEpisodeBest(void);
 int IsScreenItemUnlocked(int i) {
     struct E *pe = &D_002BCD00[i];
     if (pe->unlockEpisode == -1) return 0;
-    return NEpisodeBest() >= pe->unlockEpisode;
+    return GetBestEpisode() >= pe->unlockEpisode;
 }
 } } // namespace M_func_001DAE58
 
@@ -1544,7 +1544,7 @@ namespace M_FPowerupAcquired { extern "C" {
 typedef struct CRef { int tagk; int tag; } CRef;
 extern char D_002A79A0[], D_002A79A8[], D_002A79B8[];
 void sprintf(char *pch, char *fmt, int n);
-void RefGetSaveVarV(CRef *pref, char *a, char *b, char *c, int d);
+void GetSaveVarByName(CRef *pref, char *a, char *b, char *c, int d);
 void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1DAEA8
@@ -1563,7 +1563,7 @@ int IsPowerupAcquired(int n) {
     if (n == -1) return 0;
     ref.tagk = -1;
     sprintf(ach, D_002A79A0, n);
-    RefGetSaveVarV(&tmp, D_002A79A8, D_002A79B8, ach, 0);
+    GetSaveVarByName(&tmp, D_002A79A8, D_002A79B8, ach, 0);
     func_00129658(&ref, &tmp);
     Decref__4CRef(&tmp);
     r = ref.tag;
@@ -1589,7 +1589,7 @@ extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79A8[]; }
 extern "C" { extern char D_002A79B8[]; }
 extern "C" { int sprintf(char *, const char *, ...); }
-extern "C" { CRef RefSetSaveVarV(const CRef &, const char *, ...); }
+extern "C" { CRef SetSaveVarByName(const CRef &, const char *, ...); }
 extern "C" { void BroadcastGameEvent(G *, int, int); }
 /** @sly2-annot addr=0x1DAF38
  * Purpose: Set powerUps.mppukfAcquired[n]; when set broadcast game event 0x3B with n
@@ -1604,7 +1604,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
     CRef ref;
     char buf[0x20];
     sprintf(buf, D_002A79A0, n);
-    ref = RefSetSaveVarV(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
+    ref = SetSaveVarByName(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
     if (f) {
         D_002DEB30.powerupId = n;
         BroadcastGameEvent(&D_002DEB30, 0x3B, 0);
@@ -1886,7 +1886,7 @@ void DecrementSwHandsOff(void *, int);
 void SelectGadgetMenuItem(OBJ *, int);
 void SetScreenMode(OBJ *, int, int);
 void RefreshGadgetMenuItems(OBJ *);
-SUB *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
+SUB *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void SetGadgetMenuState(OBJ *p, int s);
 #define VCALL(o, itemCount) ((void (*)(void *))(o)->vt[itemCount].pfn)((char *)(o) + (o)->vt[itemCount].d)
 /** @sly2-annot addr=0x1DB520
@@ -1946,7 +1946,7 @@ void SetGadgetMenuState(OBJ *p, int s)
     if (p->state != GADGETMENU_CLOSED) {
         SUB *e;
         RefreshGadgetMenuItems(p);
-        e = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->widgetOid, 0);
+        e = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->widgetOid, 0);
         p->widget = e;
         if (!e) {
             SetGadgetMenuState(p, GADGETMENU_CLOSED);
@@ -2076,8 +2076,8 @@ void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void RefreshPlayersAfterPowerupChange(void *);
 void sprintf(char *, const char *, ...);
-CRef RefGetSaveVarV(const char *, ...);
-CRef RefSetSaveVarV(const CRef &, const char *, ...);
+CRef GetSaveVarByName(const char *, ...);
+CRef SetSaveVarByName(const CRef &, const char *, ...);
 void UpdateScreenStickDir(OBJ *);
 void UpdateThiefnetWidgets(OBJ *);
 }
@@ -2135,9 +2135,9 @@ extern "C" void UpdateThiefnet(OBJ *p)
                 CRef r;
                 char buf[32];
                 sprintf(buf, D_002A79A0, p->selectedLoot);
-                r = RefGetSaveVarV(D_002A79D0, D_002A79D8, buf, 0);
+                r = GetSaveVarByName(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.m_tag > 0) {
-                    RefSetSaveVarV(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
+                    SetSaveVarByName(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
                     SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->selectedLoot].sellPrice);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(CreateSfxSound(0x29), 0);
@@ -2263,7 +2263,7 @@ extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79D0[]; }
 extern "C" { extern char D_002A79D8[]; }
 extern "C" int sprintf(char *, const char *, ...);
-extern "C" CRef RefGetSaveVarV(const char *, ...);
+extern "C" CRef GetSaveVarByName(const char *, ...);
 extern "C" int IsScreenItemUnlocked(int);
 extern "C" int IsPowerupAcquired(int);
 extern "C" void SelectThiefnetItem(OBJ *, int);
@@ -2305,7 +2305,7 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
             CRef ref;
             char ach[0x20];
             sprintf(ach, D_002A79A0, i);
-            ref = RefGetSaveVarV(D_002A79D0, D_002A79D8, ach, 0);
+            ref = GetSaveVarByName(D_002A79D0, D_002A79D8, ach, 0);
             if (ref.m_tag == 0)
                 continue;
             if (p->itemCount > 0x40)
@@ -2634,7 +2634,7 @@ extern char D_003DD490[];
 extern REC D_002BCD00[];
 extern char *D_002C3268[];
 extern char D_002A7A10[], D_002A7A18[], D_002A7A28[];
-char *PchzFindSwLangstr__FP2SWi(void *, int);
+char *FindSwLocalizedString__FP2SWi(void *, int);
 char *strcpy(char *, char *);
 int sprintf(char *, char *, ...);
 OBJ *FindScreenEntry(GS *,int);
@@ -2654,14 +2654,14 @@ void BuildGadgetMenuInfoText(char *out)
     char buf[256];
     unsigned char *s;
     if (D_003DA0F0.timerKind != -1) {
-        strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, D_003DA0F0.modeArg));
+        strcpy(out, FindSwLocalizedString__FP2SWi(D_003DD490, D_003DA0F0.modeArg));
     } else if (D_003DA0F0.selectedGadget == -1) {
-        strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xDD));
+        strcpy(out, FindSwLocalizedString__FP2SWi(D_003DD490, 0xDD));
     } else {
         OBJ *po = FindScreenEntry(&D_003DA0F0,D_003DA0F0.selectedGadget);
         int v = GetGadgetSlotFromId(GetHeroPo(D_003DD490), D_003DA0F0.selectedGadget);
         if ((po->flags & 1) && v < 0) {
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xE1));
+            strcpy(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0xE1));
             s = (unsigned char *)D_002A7A10;
         } else {
             char *sz;
@@ -2669,10 +2669,10 @@ void BuildGadgetMenuInfoText(char *out)
                 sz = D_002C3268[v];
             else
                 sz = D_002A7A10;
-            sprintf(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].descriptionTextId), sz, sz, sz);
-            s = (unsigned char *)PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].detailTextId);
+            sprintf(buf, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].descriptionTextId), sz, sz, sz);
+            s = (unsigned char *)FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].detailTextId);
         }
-        sprintf(out, D_002A7A18, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].nameTextId),
+        sprintf(out, D_002A7A18, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].nameTextId),
                       *s ? D_002A7A28 : D_002A7A10, s, buf);
     }
 }
@@ -2685,7 +2685,7 @@ extern struct G2 D_003DA150;
 struct T { int a[5]; int id; int b[2]; };
 extern struct T D_002BCD00[];
 extern struct G D_003DD490;
-void *PchzFindSwLangstr__FP2SWi(struct G *g, int n);
+void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(char *p, void *q);
 /** @sly2-annot addr=0x1DC790
  * Purpose: Text callback rows 0x43C-0x441: power-up name of row i
@@ -2700,7 +2700,7 @@ void BuildThiefnetPowerupNameText(char *pch, int i) {
     unsigned int n = pg->ae[pg->i + i].n;
     int id = -1;
     if (n < 0x2B) id = D_002BCD00[n].id;
-    if (id != -1) strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, id));
+    if (id != -1) strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, id));
     else *pch = 0;
 }
 } } // namespace M_BuildThiefnetPowerupNameText
@@ -2758,8 +2758,8 @@ extern "C" { extern char D_002A79D8[]; }
 extern "C" { extern char D_002A7A30[]; }
 extern "C" int sprintf(char *, const char *, ...);
 extern "C" char *strcpy(char *, const char *);
-extern "C" CRef RefGetSaveVarV(const char *, ...);
-extern "C" { char *PchzFindSwLangstr__FP2SWi(G *, int); }
+extern "C" CRef GetSaveVarByName(const char *, ...);
+extern "C" { char *FindSwLocalizedString__FP2SWi(G *, int); }
 /** @sly2-annot addr=0x1DC890
  * Purpose: Text callback rows 0x448-0x44D: loot name of row i, "%s (%d)" when owned more than once
  * Info: proposed name BuildThiefnetLootNameText (T1); TU screen
@@ -2776,12 +2776,12 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
         CRef ref;
         char ach[0x20];
         sprintf(ach, D_002A79A0, i);
-        ref = RefGetSaveVarV(D_002A79D0, D_002A79D8, ach, 0);
+        ref = GetSaveVarByName(D_002A79D0, D_002A79D8, ach, 0);
         c = ref.m_tag;
         ids = D_002C3288[i].ids;
     }
     if (ids != -1) {
-        strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
+        strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, ids));
         if (c >= 2)
             sprintf(pch, D_002A7A30, pch, c);
     } else {
@@ -2819,7 +2819,7 @@ namespace M_func_001DCA30 { extern "C" {
 #undef D_003DA180
 #define D_003DA180 (*(int *)((char *)base_D_003DA150 + 0x30))   /* screen's object+0x30 */
 extern struct G D_003DD490;
-void *PchzFindSwLangstr__FP2SWi(struct G *g, int n);
+void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(char *p, void *q);
 /** @sly2-annot addr=0x1DCA30
  * Purpose: Text callback 0x436: popup prompt text by popup mode (-1/0/1 -> ids 0xDE/0xDF/0xE0)
@@ -2836,7 +2836,7 @@ void BuildThiefnetPromptText(char *pch) {
     case 1: id = 0xE0; break;
     default: *pch = 0; return;
     }
-    strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, id));
+    strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, id));
 }
 } } // namespace M_func_001DCA30
 #undef D_003DA180
@@ -2855,13 +2855,13 @@ extern REC D_002BCD00[];
 extern REC2 D_002C3288[];
 extern struct G D_003DD490;
 extern char D_002DEB30[],D_002A7A38[];
-char *PchzFindSwLangstr__FP2SWi(struct G *,int);
+char *FindSwLocalizedString__FP2SWi(struct G *,int);
 int GetCoinCount(void *);
 int sprintf(char *,const char *,...);
 char *strcpy(char *,const char *);
 static inline void CopyId(char *p,int id)
 {
-    strcpy(p,PchzFindSwLangstr__FP2SWi(&D_003DD490,id));
+    strcpy(p,FindSwLocalizedString__FP2SWi(&D_003DD490,id));
 }
 /** @sly2-annot addr=0x1DCAB0
  * Purpose: Text callback 0x435: popup message, or the selected power-up's name, description and affordability
@@ -2890,9 +2890,9 @@ void BuildThiefnetInfoText(char *pch)
                     int idsT=count<*pc?0xD9:0xDA;
                     struct G *pg=&D_003DD490;
                     char *fmt=D_002A7A38;
-                    char *pch1=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].nameTextId);
-                    char *pch2=PchzFindSwLangstr__FP2SWi(pg,D_002BCD00[i].detailTextId);
-                    sprintf(pch,fmt,pch1,pch2,PchzFindSwLangstr__FP2SWi(pg,idsT));
+                    char *pch1=FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].nameTextId);
+                    char *pch2=FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].detailTextId);
+                    sprintf(pch,fmt,pch1,pch2,FindSwLocalizedString__FP2SWi(pg,idsT));
                     return;
                 }
             }
@@ -2902,7 +2902,7 @@ void BuildThiefnetInfoText(char *pch)
         case 1: {
             unsigned int i=pt->selectedLoot;
             if(i<0x40) {
-                sprintf(pch,PchzFindSwLangstr__FP2SWi(&D_003DD490,0xDB),D_002C3288[i].name);
+                sprintf(pch,FindSwLocalizedString__FP2SWi(&D_003DD490,0xDB),D_002C3288[i].name);
                 return;
             }
             CopyId(pch,0xE3);
@@ -3672,7 +3672,7 @@ void SetMcDialogPhase(void *, int);
 void StartGameFromSave(void *);
 void StartNewGame(OBJ *);
 int CountRegionLanguages(void);
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
+void *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 void GetRegionLanguages(int *, int **);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void PushPauseMenuPage(void *, int, ITEM *, void *, void *);
@@ -3714,7 +3714,7 @@ void UpdateTitleScreen(OBJ *p)
         return;
     if (!HandleJoyButtons(p->joypad, 0x10))
         return;
-    pv = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, 0x5D6, 0);
+    pv = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, 0x5D6, 0);
     if (pv == 0)
         return;
     GetRegionLanguages(&c, &ak);
@@ -3748,13 +3748,13 @@ extern "C" { extern void *D_002E1E40; }
 extern "C" { extern void *D_002DD5BC; }
 extern "C" { extern void *D_002F7900; }
 extern "C" {
-CRef RefSetGlobalSaveVar(void *, const CRef &, G *);
+CRef SetGlobalSaveVar(void *, const CRef &, G *);
 void BindStepplayerHpMp(void *, int);
 void StartGameFromSave(G *);
 }
 /* The unused third parameter is deliberate: it is the same SetPv form as SetBootyContainerKind / ClearStepplayerBootySave,
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
-static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, &D_003D4A60); }
+static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, &D_003D4A60); }
 /** @sly2-annot addr=0x1DDB08
  * Purpose: Clear the save flag at (*(void * *)&g_sw.psvpDt), bind hp/power of the three heroes, PlayGameFromGs(g_gs)
  * Info: proposed name StartNewGame (T1); TU screen
@@ -3816,8 +3816,8 @@ extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
 extern "C" int CountRegionLanguages(void);
-extern "C" { char *PchzFindSwLangstr__FP2SWi(G *, int); }
-extern "C" { CRef RefGetGlobalSaveVar(void *, void *); }
+extern "C" { char *FindSwLocalizedString__FP2SWi(G *, int); }
+extern "C" { CRef GetGlobalSaveVar(void *, void *); }
 /** @sly2-annot addr=0x1DDBF0
  * Purpose: Text callback 0x5D3: title prompt (continue vs new game, options, language) from string ids
  *   5/6/8/0x56
@@ -3831,24 +3831,24 @@ extern "C" void BuildTitlePromptText(char *pch)
     float g;
     void *pv;
     if (D_002DFC00.unknown100C == 1 && D_002DFC00.unknown1010 == 0) {
-        strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 9));
+        strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 9));
         return;
     }
     g = 0.0f;
     pv = D_002E65E0.foundSave;
     if (pv) {
-        CRef ref = RefGetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
+        CRef ref = GetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
         g = ref.m_g;
     }
     {
         int ids = g != 0.0f ? 6 : 5;
-        strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, ids));
+        strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, ids));
     }
     strcpy1(pch, D_002A7A70);
-    strcpy1(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 8));
+    strcpy1(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 8));
     if (CountRegionLanguages() >= 2) {
         strcpy1(pch, D_002A7A70);
-        strcpy1(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 0x56));
+        strcpy1(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 0x56));
     }
 }
 } // namespace M_BuildTitlePromptText
@@ -3888,7 +3888,7 @@ int GetWorldNameTextId(int n) {
 // Text callback: the current episode's name.
 extern "C" void BuildJobListWorldText(char *pch)
 {
-    StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, GetWorldNameTextId(NWorldCur())));
+    StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, GetWorldNameTextId(GetCurrentWorld())));
 }
 
 /** @sly2-annot addr=0x1DDE10
@@ -3901,7 +3901,7 @@ extern "C" void BuildJobListWorldText(char *pch)
 extern "C" void BuildJobDescriptionText(char *pch)
 {
     if (D_003DA4D0 != 0) {
-        StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, D_003DA4D0->ids70));
+        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->ids70));
     }
 }
 
@@ -3915,7 +3915,7 @@ extern "C" void BuildJobDescriptionText(char *pch)
 extern "C" void BuildJobNameText(char *pch)
 {
     if (D_003DA4D0 != 0) {
-        StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, D_003DA4D0->ids6C));
+        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->ids6C));
     }
 }
 
@@ -3925,7 +3925,7 @@ struct E { struct O *po; int a, b; };
 struct G2 { char pad[0x48]; int c; struct E ae[1]; };
 extern struct G2 D_003DA3C0;
 extern struct G D_003DD490;
-void *PchzFindSwLangstr__FP2SWi(struct G *g, int n);
+void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(void *p, void *q);
 /** @sly2-annot addr=0x1DDEA0
  * Purpose: Text callback rows 0x51E-0x527: job name of row i
@@ -3936,7 +3936,7 @@ void strcpy(void *p, void *q);
 // Text callback: the job name of row i.
 void BuildJobListRowText(void *p, int i) {
     struct G2 *pg = &D_003DA3C0;
-    if (i < pg->c) strcpy(p, PchzFindSwLangstr__FP2SWi(&D_003DD490, pg->ae[i].po->n));
+    if (i < pg->c) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, pg->ae[i].po->n));
 }
 } } // namespace M_BuildJobListRowText
 
@@ -3946,7 +3946,7 @@ struct E { struct O *po; int a, b; };
 struct G2 { char pad[0x48]; int c; struct E ae[1]; };
 extern struct G2 D_003DA3C0;
 extern struct G D_003DD490;
-void *PchzFindSwLangstr__FP2SWi(struct G *g, int n);
+void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(void *p, void *q);
 /** @sly2-annot addr=0x1DDF00
  * Purpose: Text callback rows 0x528-0x52B: task name of row i
@@ -3957,7 +3957,7 @@ void strcpy(void *p, void *q);
 // Text callback: the task name of row i.
 void BuildJobListTaskRowText(void *p, int i) {
     struct G2 *pg = &D_003DA3C0;
-    if (i < pg->c) strcpy(p, PchzFindSwLangstr__FP2SWi(&D_003DD490, pg->ae[i].po->n));
+    if (i < pg->c) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, pg->ae[i].po->n));
 }
 } } // namespace M_BuildJobListTaskRowText
 
@@ -3970,7 +3970,7 @@ void BuildJobListTaskRowText(void *p, int i) {
 // Text callback: a title-screen string followed by a button glyph. (inferred)
 extern "C" void BuildTitleScreenButtonText(char *pch)
 {
-    StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, 0x40));
+    StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, 0x40));
     strcpy1(pch, D_002A7AA8);
 }
 

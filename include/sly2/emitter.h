@@ -162,8 +162,8 @@ extern "C" void *memset(void *pv, int b, unsigned int cb);
 extern "C" int memcmp(const void *pv1, const void *pv2, unsigned int cb);
 struct EMITMESH;
 void LoadEmitmeshFromBrx(EMITMESH *pemitmesh, CBinaryInputStream *pbis);
-/* PloFindSwObject (sw.cpp) under a label: files that include this header declare its mangled name as a C function */
-LO *PloFindSwObjectE(SW *psw, int grffso, OID oid, LO *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
+/* FindSwObject (sw.cpp) under a label: files that include this header declare its mangled name as a C function */
+LO *PloFindSwObjectE(SW *psw, int grffso, OID oid, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 extern SW g_sw __asm__("D_003DD490");
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descriptor table (0x14-byte rows) */
 
@@ -275,7 +275,7 @@ template <class T> void CloneEmitter(T *p, LO *ploBase)
 }
 
 /** @sly2-annot addr=0x2586D8
- * Purpose: resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)]
+ * Purpose: resolve emitter object references (FindSwObject) after load [game linkonce (inline/template)]
  * Info: proposed name BindEmitter (T2); TU game_linkonce
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4

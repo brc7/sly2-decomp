@@ -109,7 +109,7 @@ extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
 void HideSoPart(JT*,ACTION*);void InvalidateSoAaox(JT*);void SetJtHandsTarget(void*,int);
 EFFECT*CreateSfxSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
-qword GetLoWorldPos(void*);qword ConvertAloPos(void*,void*,qword);
+qword GetLoWorldPos(void*);qword ConvertPosBetweenLos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int FindSmStateOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
@@ -121,7 +121,7 @@ static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((ch
 
 extern "C" {
 qword GetLoWorldPos(void *);
-qword ConvertAloPos(void *, void *, qword);
+qword ConvertPosBetweenLos(void *, void *, qword);
 float atan2f(float, float);
 float NormalizeAngle__Ff(float);
 void UpdateJtHands(void *);
@@ -220,14 +220,14 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
 
     case 3: {
         WORK work;
-        register qword first __asm__("$2") = ConvertAloPos(0, jt, GetLoWorldPos(jt->pointObject));
+        register qword first __asm__("$2") = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->pointObject));
         register POINT *point __asm__("$3");
         register void *world __asm__("$4");
         register JT *receiver __asm__("$5");
         __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero"
                 : "=r"(point), "=r"(world), "=r"(receiver), "=m"(work.first.q)
                 : "m"(jt->point), "r"(first), "r"(jt));
-        register qword second __asm__("$2") = ConvertAloPos(world, receiver, point->position.q);
+        register qword second __asm__("$2") = ConvertPosBetweenLos(world, receiver, point->position.q);
         register qword average __asm__("vf2");
         register int mode __asm__("$3");
         __asm__(".set noat\n\tlui $1,0x3f00\n\tmtc1 $1,$f0\n\t.set at\n\tqmtc2.ni %3,$vf4\n\tlqc2 $vf3,%4\n\tmfc1 "
@@ -661,8 +661,8 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     qword a, b, s, d;
     float t;
     int f;
-    a = ConvertAloPos(0, jt, GetLoWorldPos(jt->pointObject));
-    b = ConvertAloPos(0, jt, jt->point->position.q);
+    a = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->pointObject));
+    b = ConvertPosBetweenLos(0, jt, jt->point->position.q);
     t = 0.5f;
     s = VuFromFloat<qword>(t);
     u.q = s;
@@ -839,7 +839,7 @@ extern "C" float D_002BF4B8;
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
-extern "C" int PloFindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
+extern "C" int FindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
 extern "C" float NormalizeAngle__Ff(float);
 struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"(v.qw):"f"(g));return v;} static inline qword FloatToVec(float g){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(g):"memory");return q;}
@@ -850,7 +850,7 @@ static inline qword Transform(const M4&m,qword v){qword q;q = VuMulMatrix4(m.r[0
 static inline qword GetVelocity(ALO*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
 static inline void*GetFrame(ALO*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
-static inline int IsBonus(ALO*const &n){return PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
+static inline int IsBonus(ALO*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
 /** @sly2-annot addr=0x18F2B0
  * Purpose: Search the target list (*(ALO * *)&g_sw.dlTarget) (flags&mask) for the best TARGET within 300 of Sly's projected
  *   position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta
@@ -878,7 +878,7 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
     position = GetLoWorldPos(jt);
     VU_FLOAT scalar = VuFloatBits(dt);
     origin.q = AddScaled(position, GetVelocity(jt), scalar);
-    reference.q = ConvertAloPos(jt, 0, offset->q);
+    reference.q = ConvertPosBetweenLos(jt, 0, offset->q);
     target.q = VuAdd(Rotate(rotation, offset->q), origin.q);
     delta.q = VuSubRef(target.q, reference.q);
     for (ALO *node = (*(ALO **)&g_sw.dlTarget); node; node = node->next) {

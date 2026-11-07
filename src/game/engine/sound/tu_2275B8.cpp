@@ -51,7 +51,7 @@ float GetDialogTime(void *p);
 void CRichText_Trim(CRichText *prt, int n);
 int sprintf(char *pch, const char *fmt, ...);
 }
-char *PchzFindSwLangstr(struct SW *psw, int id);
+char *FindSwLocalizedString(struct SW *psw, int id);
 
 /** @sly2-annot addr=0x2275B8
  * Purpose: kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F
@@ -125,7 +125,7 @@ extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
         *buffer = 0;
         return;
     }
-    strcpy(buffer, PchzFindSwLangstr((struct SW *)D_003DD490, textId));
+    strcpy(buffer, FindSwLocalizedString((struct SW *)D_003DD490, textId));
 }
 
 /** @sly2-annot addr=0x227820

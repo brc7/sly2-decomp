@@ -80,8 +80,8 @@ extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) 
 #undef D_003DA0D8
 #define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
 extern "C" char D_000000C0[];         /* VU1 microprogram entry at 0xC0 */
-char *PchzFindSwLangstr(SW *psw, int id);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+char *FindSwLocalizedString(SW *psw, int id);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 int IsEntryInDl(DL *pdl, void *pv);
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
@@ -148,7 +148,7 @@ namespace M_BuildCoinCountText { extern "C" {
 struct CRef { int tagk; int tag; };
 extern char D_003D4A60[];
 extern char D_002A8AA0[];
-void RefGetGlobalSaveVar(struct CRef *r, int *p, void *q);
+void GetGlobalSaveVar(struct CRef *r, int *p, void *q);
 void Decref__4CRef(struct CRef *r);
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // 0x210ED0: dead-code scrap (sly2/scrap.h)
@@ -169,7 +169,7 @@ void BuildCoinCountText(void *f, int **pp)
         char *fmt = D_002A8AA0;
         struct CRef r;
         int v;
-        RefGetGlobalSaveVar(&r, p, D_003D4A60);
+        GetGlobalSaveVar(&r, p, D_003D4A60);
         v = r.tag;
         Decref__4CRef(&r);
         fiprintf(f, fmt, v);
@@ -227,7 +227,7 @@ struct X { char pad[0xF20]; int modeKind; char padf24[0x18]; float hudZoom; };  
 extern char D_003DD490[];
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
 struct X *GetHeroPo(void *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
 int sprintf(char *, char *, ...);
 int fptodp(float);
 /** @sly2-annot addr=0x210FE0
@@ -244,7 +244,7 @@ void BuildBinocularReadoutText(char *text)
 {
     struct X *hero = GetHeroPo(D_003DD490);
     float zoom;
-    if (!hero || !FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER))
+    if (!hero || !IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER))
         return;
     switch (hero->modeKind) {
     case 0:
@@ -254,11 +254,11 @@ void BuildBinocularReadoutText(char *text)
         zoom = g_cm.cpzoom.rZoomMax * hero->hudZoom;
         break;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_JT)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_JT)) {
         sprintf(text, D_002A8AB8, (int)zoom);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_BENTLEY)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_BENTLEY)) {
         sprintf(text, D_002A8AC0, fptodp(zoom));
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_MURRAY)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_MURRAY)) {
         int distance = (int)zoom;
         if (distance < 4)
             sprintf(text, D_002A8AC8, distance);
@@ -283,7 +283,7 @@ void BuildBinocularReadoutText(char *text)
 extern "C" void BuildReconSelectionText(char *text, int which)
 {
     JT *hero = (JT *)GetHeroPo(&D_003DD490);
-    if (!hero || !FIsBasicDerivedFrom((BASIC *)hero, (CID)CID_STEPPLAYER))
+    if (!hero || !IsBasicDerivedFrom((BASIC *)hero, (CID)CID_STEPPLAYER))
         return;
     int *reconSelector = hero->jtmode.hud.pnUnk14;
     char *reconText = 0;
@@ -307,8 +307,8 @@ struct Z { char pad[0xF8]; int nameTextId; };
 struct Y { char pad[0x74]; int numTargets; struct Z *targets[1]; };
 struct X { char pad[0xF38]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.pnUnk14 */
 struct X *GetHeroPo(struct G *g);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+char *FindSwLocalizedString__FP2SWi(struct G *g, int id);
 void strcpy(char *dst, char *src);
 /** @sly2-annot addr=0x2111F0
  * Purpose: STRINGGEN ids 0x2DF-0x2E4: langstr of recon target i (P+0x78[i]->idName F8) if i < P+0x74
@@ -321,10 +321,10 @@ void BuildReconTargetText(char *dst, int i)
 {
     struct G *sw = &D_003DD490;
     struct X *hero = GetHeroPo(sw);
-    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
+    if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
         struct Y *selector = hero->reconSelector;
         if (selector && i < selector->numTargets)
-            strcpy(dst, PchzFindSwLangstr__FP2SWi(sw, selector->targets[i]->nameTextId));
+            strcpy(dst, FindSwLocalizedString__FP2SWi(sw, selector->targets[i]->nameTextId));
     }
 }
 } } // namespace M_BuildReconTargetText
@@ -340,7 +340,7 @@ struct E { int numEntries; struct F *entries; char pad[0xC]; int selection; char
 extern struct E D_003D9EDC[] __asm__("D_003D9ED0+0xC");   /* screen's object+0xC, a separate symbol to g++: the base+offset form changes BuildMenuCarouselText (CSE of the base) */
 #undef D_003D9EF4
 extern int D_003D9EF4 __asm__("D_003D9ED0+0x24");   /* screen's object+0x24; see D_003D9EDC */
-const char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
+const char *FindSwLocalizedString__FP2SWi(struct G *g, int id);
 char *strcpy(char *dst, const char *src);
 /** @sly2-annot addr=0x211298
  * Purpose: STRINGGEN ids 0x2D2-0x2DB: name of entry (k + sel - 3) mod n of the current menu page
@@ -359,7 +359,7 @@ void BuildMenuCarouselText(char *dst, int k)
         int j = k + (long)(page->selection - 3);   /* slot 3 of the carousel is the selection */
         while (j < 0)
             j += n;
-        (void)strcpy(dst, PchzFindSwLangstr__FP2SWi(&D_003DD490, page->entries[j % n].id));
+        (void)strcpy(dst, FindSwLocalizedString__FP2SWi(&D_003DD490, page->entries[j % n].id));
     }
 }
 } } // namespace M_func_00211298
@@ -370,7 +370,7 @@ void BuildMenuCarouselText(char *dst, int k)
 namespace M_BuildWidgetArgText { extern "C" {
 struct T { char pad[0xCC]; int argTextIds[1]; };
 extern struct G D_003DD490;
-int PchzFindSwLangstr__FP2SWi(struct G *g, int id);
+int FindSwLocalizedString__FP2SWi(struct G *g, int id);
 void strcpy(void *p, int v);
 /** @sly2-annot addr=0x211348
  * Purpose: STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC)
@@ -381,7 +381,7 @@ void strcpy(void *p, int v);
 // HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
 void BuildWidgetArgText(void *text, int i, struct T *widget)
 {
-    strcpy(text, PchzFindSwLangstr__FP2SWi(&D_003DD490, widget->argTextIds[i]));
+    strcpy(text, FindSwLocalizedString__FP2SWi(&D_003DD490, widget->argTextIds[i]));
 }
 } } // namespace M_BuildWidgetArgText
 
@@ -424,7 +424,7 @@ extern "C" void BuildSubtitleButtonText(int n)
 // HUD text 0x2F1: the message of the scrolling ticker.
 extern "C" void BuildTickerText(char *pchz)
 {
-    strcpy(pchz, PchzFindSwLangstr(&D_003DD490, D_003DA0D8));
+    strcpy(pchz, FindSwLocalizedString(&D_003DD490, D_003DA0D8));
 }
 
 // 0x211420 BuildHeldItemText
@@ -438,8 +438,8 @@ struct X { char pad[0x4C8]; int grabState; char pad4cc[0x9A0 - 0x4CC]; struct Y 
 enum { GRAB_STATE_HOLDING = 0xC };   /* (inferred) */
 extern char D_003DD490[];
 struct X *GetHeroPo(void *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-char *PchzFindSwLangstr__FP2SWi(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+char *FindSwLocalizedString__FP2SWi(void *, int);
 void strcpy(char *, char *);
 /** @sly2-annot addr=0x211420
  * Purpose: STRINGGEN id 0x2F4: name of the object the player operates in mode x4C8==0xC (cid 0x5E table
@@ -453,14 +453,14 @@ void BuildHeldItemText(char *text)
 {
     int id = -1;
     struct X *hero = GetHeroPo(D_003DD490);
-    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
+    if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
         struct Y *held = hero->heldObject;
         if (held) {
             int grabState = hero->grabState;
             if (grabState == GRAB_STATE_HOLDING) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(held, CID_LOOT))
+                if (IsBasicDerivedFrom__FP5BASIC3CID(held, CID_LOOT))
                     id = D_002C3288[held->loot->lootIndex].nameTextId;
-                else if (FIsBasicDerivedFrom__FP5BASIC3CID(held, CID_KEY))
+                else if (IsBasicDerivedFrom__FP5BASIC3CID(held, CID_KEY))
                     id = held->keyTextId;
                 else
                     id = hero->heldTextId;
@@ -468,7 +468,7 @@ void BuildHeldItemText(char *text)
         }
     }
     if (id != -1)
-        strcpy(text, PchzFindSwLangstr__FP2SWi(D_003DD490, id));
+        strcpy(text, FindSwLocalizedString__FP2SWi(D_003DD490, id));
     else
         *text = 0;
 }
@@ -776,9 +776,9 @@ extern struct G D_003DD490;
 struct B { int oid; void *object; };
 struct S { char pad[0x110]; int numEntriesA; struct B entriesA[0x10]; int numEntriesB; struct B entriesB[1]; };
 void PostWidgetLoad(struct S *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
+void *FindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
 /** @sly2-annot addr=0x211EC0
- * Purpose: CID 0x81 PostLoad: PostWidgetLoad then resolve both oid lists to LOs (PloFindSwObject grffso 5)
+ * Purpose: CID 0x81 PostLoad: PostWidgetLoad then resolve both oid lists to LOs (FindSwObject grffso 5)
  * Info: proposed name PostWidget129Load (T2); class WIDGET129 slot15; TU hud
  * Notes: v2: demoted to T2 (placeholder token in name: 129)
  * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r7c_hud
@@ -790,12 +790,12 @@ void WIDGET129::VUnk14() { using namespace M_func_00211EC0; using M_func_00211EC
     int i;
     PostWidgetLoad(widget);
     for (i = 0; i < widget->numEntriesB; i++) {
-        void *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesB[i].oid, 0);
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesB[i].oid, 0);
         if (object)
             widget->entriesB[i].object = object;
     }
     for (i = 0; i < widget->numEntriesA; i++) {
-        void *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesA[i].oid, 0);
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesA[i].oid, 0);
         if (object)
             widget->entriesA[i].object = object;
     }
@@ -1026,8 +1026,8 @@ struct S {
 /* lowFlags: LO grfUnk40, either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
 extern struct G { char pad[0x3BE8]; void *hudFont; } D_003DD490;
 void PostLoLoad(struct S *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, struct S *);
-void SetLoBusyk(struct S *p, int);
+void *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, struct S *);
+void SetLoBusyKind(struct S *p, int);
 /** @sly2-annot addr=0x2123C8
  * Purpose: WIDGET PostLoad: font LO 0x374 into SW+0x3BE8, screen centring from width/height, show if flag,
  *   busy 1, set LO flags 0x102
@@ -1048,7 +1048,7 @@ void PostWidgetLoad(struct S *widget)
     if (widget->hasFont) {
         struct G *sw = &D_003DD490;
         if (!sw->hudFont)
-            sw->hudFont = PloFindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, widget);
+            sw->hudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, widget);
     }
     widget->ownerWidget = widget;
     widget->isNonExclusive = -1;
@@ -1059,7 +1059,7 @@ void PostWidgetLoad(struct S *widget)
     widget->screenX = 2048.0f - (float)scaledWidth * 0.5f;
     if (widget->isShownOnLoad)
         widget->pvt->pf((char *)widget + widget->pvt->d, -1);   /* ShowWidget */
-    SetLoBusyk(widget, 1);
+    SetLoBusyKind(widget, 1);
     flags = widget->lowFlags;
     if ((flags ^ 1) & 1) *(int *)flags |= 0x102;
     else widget->lowFlags = flags | 0x102;
@@ -3612,7 +3612,7 @@ extern "C" { extern char D_004435F0[]; }
 extern "C" { extern SCROLL D_003DA0C0; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const float D_002C40B8; }
-extern "C" void *PchzFindSwLangstr__FP2SWi(WORLD *,int);
+extern "C" void *FindSwLocalizedString__FP2SWi(WORLD *,int);
 extern "C" char *strcpy(char *,const char *);
 extern "C" char *strcpy1(char *,const char *);
 extern "C" RT *ConstructRichText2FromSprite(RT *,char *,S *,DATA *);
@@ -3650,7 +3650,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         if(i>=108)*(long *)text=*(const long *)D_002A8B80;
         else D_003E1C88[i].get(text,D_003E1C88[i].context,p->owner);
     }else if(p->kind==TEXT_SOURCE_LANGSTR){
-        strcpy(text,(const char *)PchzFindSwLangstr__FP2SWi(&D_003DD490,p->id));
+        strcpy(text,(const char *)FindSwLocalizedString__FP2SWi(&D_003DD490,p->id));
     }
     if(p->kind==TEXT_SOURCE_TABLE && p->id==TEXT_ID_SUBTITLE){
         int lines=1,ch,visible;

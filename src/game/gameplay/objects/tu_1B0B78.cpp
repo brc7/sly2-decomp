@@ -131,7 +131,7 @@ LOV *FindClosestSwPo(SW *, qwordV);
 EFFECT *CreateSfxSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
-qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
+qwordV ConvertPosBetweenLos(CID96V *, CID96V *, qwordV);
 void SprayDifficultyPrizes(void *, qwordV, int, int, CID96V *);
 M3 BuildAxisAngleRotationMatrix(qwordV v, float g);
 float atan2f(float y, float x);
@@ -150,7 +150,7 @@ void ResolveCritterLinks(CID96V *p);
 }
 void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA */
 float NormalizeAngle(float r);                                                                  /* NormalizeAngle__Ff */
-LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
+LOV *FindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("FindSwObject__FP2SWi3OIDP2LO");                                   /* FindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
 
 // CID96 vtable slot 7 (Init): SO init; startle distances 400/800, idle 2-6 s, walk 6-10 s, fade 1 s; no animations yet
@@ -539,7 +539,7 @@ void SetCritterState(CID96V *critter, int next)
         EFFECT *sound = CreateSfxSound(0x14);
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, GetLoWorldPos(critter));
-        SprayDifficultyPrizes(D_002DE578, ConvertAloPos(critter, 0, critter->damageOffset.q), critter->amount, -100, critter);
+        SprayDifficultyPrizes(D_002DE578, ConvertPosBetweenLos(critter, 0, critter->damageOffset.q), critter->amount, -100, critter);
         Call(critter, 9);
         break;
     }
@@ -660,7 +660,7 @@ extern "C" void SetCritterLink(CID96V *critter, int state, OID oid, int applyFla
 ASEG *FindCritterLinkObject(CID96V *critter, OID oid)
 {
     LOV *object;
-    object = PloFindSwObject(&D_003DD490, 1, oid, (LOV *)critter);
+    object = FindSwObject(&D_003DD490, 1, oid, (LOV *)critter);
     if (object != 0) {
         VTE *vt = object->pvt;
         ((void (*)(void *))vt[9].pfn)((char *)object + vt[9].d);

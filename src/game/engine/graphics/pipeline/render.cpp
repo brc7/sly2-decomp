@@ -45,7 +45,7 @@ extern char D_003DA0F0[];
 extern DMAS D_002DEA00, D_002DEA28;   /* the two DMA streams flushed after the world is rendered */
 extern "C" {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");   /* memset */
-int CploFindSwObjectsByClass(SW *p, int a, int b, int c, int d, LO **ap);
+int FindSwObjectsByClass(SW *p, int a, int b, int c, int d, LO **ap);
 void SubmitGlobsetRelight(void *p);
 void PrepareSwLights(SW *p);
 void DrawGadgetMenuSlotLabels(void *p);
@@ -194,7 +194,7 @@ extern "C" void SubmitSwRelightAll(SW *world)
 {
     LO *objects[0x400];
     int count, i;
-    count = CploFindSwObjectsByClass(world, 0x105, 0x30, 0, 0x400, objects);
+    count = FindSwObjectsByClass(world, 0x105, 0x30, 0, 0x400, objects);
     for (i = 0; i < count; i++) {
         LO *object = objects[i];
         if ((Flags(object) & 8) && object->relightStamp != world->relightStamp)

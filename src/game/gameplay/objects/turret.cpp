@@ -87,7 +87,7 @@ float SmoothValue__FfffP3SMPPf(float,float,float,const float *,float *);
 float ClampToLimits__FP2LMf(const LMV *,float);
 float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPV *,float *);
 void SetActPositionGoal(void *,qword);
-CRef RefGetGlobalSaveVar(int,void *);
+CRef GetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
 int POCTL_ConsumeAnyPressed(CONTROL *x, int a);
@@ -192,7 +192,7 @@ extern "C" void UpdateTurretAim(TURRETV *turret)
             float cubeY = y * y;
             cubeY = cubeY * y;
             float ay = cubeY * accel;
-            if (!RefGetGlobalSaveVar((*(int *)&g_sw.psvpReverseAim), D_003D4A60).u.n) ay = -ay;   /* "reverse aim" option */
+            if (!GetGlobalSaveVar((*(int *)&g_sw.psvpReverseAim), D_003D4A60).u.n) ay = -ay;   /* "reverse aim" option */
             if (ay * turret->vyaw <= 0.0f) turret->vyaw = 0.0f;
             CLOCK *clock = &D_002DDED0;
             const float *damping = D_002C4408;

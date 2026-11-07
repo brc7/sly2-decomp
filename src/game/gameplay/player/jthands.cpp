@@ -87,8 +87,8 @@ qword GetLoWorldPos(LO *plo);
 void FindShapeClosestPointFromDistance(void *pshape, qword pos, void *p, qword *ppos, qword *pdir, float *pu, float *ps, float s);
 void FindShapeClosestPoint(LO *pshape, qword pos, int a, int b, int c, int d, float *ps);
 M4 InvertMatrix4Rigid(const MATRIX4 *pmat);
-qword ConvertAloPos(LO *ploFrom, LO *ploTo, qword pos);
-M4 ConvertAloMat4(LO *ploFrom, LO *ploTo, const M4 *pmat);
+qword ConvertPosBetweenLos(LO *ploFrom, LO *ploTo, qword pos);
+M4 ConvertMat4BetweenLos(LO *ploFrom, LO *ploTo, const M4 *pmat);
 M3 *ConvertXfMat(M3 *pmatOut, XF *pxfFrom, XF *pxfTo, const M3 *pmat);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword vec);
 qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);
@@ -101,8 +101,8 @@ void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
 SO *GetSoFromLo(LO *plo);
 int MaxInt(int grf, int n);   /* NMaxIgnore */
-int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
-int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
+int FindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
 qword GetXfValueFromMatrix(XF *pxfA, XF *pxfB);
 ACT *NewPositionAct(LO *plo, XF *pxf, int a, int b, int c, qword qw);
 ACT *NewBezierAct(LO *plo, XF *pxf, int n, float t, qword pos, qword vel);
@@ -296,7 +296,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
     }
     w.stage.late.context.phands = hands;
     {
-        qword raw = ConvertAloPos(0, hands->pso, w.position.q);
+        qword raw = ConvertPosBetweenLos(0, hands->pso, w.position.q);
         register qword point __asm__("vf1");
         __asm__("qmtc2.ni %1,%0" : "=j"(point) : "r"(raw));
         qword length = LengthXY(point);
@@ -305,7 +305,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
         StoreX(&w.stage.late.local.f[0], length);
     }
 
-    w.stage.late.context.pos = ConvertAloPos(hands->pso, 0, w.stage.late.local.q);
+    w.stage.late.context.pos = ConvertPosBetweenLos(hands->pso, 0, w.stage.late.local.q);
     if (hands->nKind == 2) {
         MinimizeRange((float (*)(void *, float))EvaluateJtHandsCurveB, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
         GetClosestPointOnJtHandsCurveB(hands, w.stage.late.context.pos, &w.projection, 0, w.t);
@@ -359,7 +359,7 @@ struct SWALLOC
 };
 void *AllocFromWorldHeap(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
-LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
+LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice);
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 extern "C" void MeasureShape(SHAPE *pshape);
 inline void *AllocFromWorldHeapAligned(int cb, int alignment)
@@ -403,7 +403,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
         cHands++;
         for (int j = 0; j < 2; j++)
         {
-            SHAPE *shape = (SHAPE *)PloNew((CID)10, hands->pso, (OID)0xB2, -1);
+            SHAPE *shape = (SHAPE *)CreateLo((CID)10, hands->pso, (OID)0xB2, -1);
             shape->crvk = (CRVK)0;
             shape->ccv = D_002C1ED0;
             shape->mpicvu = (float *)AllocFromWorldHeapAligned(D_002C1ED0 << 2, 16);
@@ -488,7 +488,7 @@ extern "C" void UpdateJtHandsCallback(void *pv, JTHANDS *hands)
 extern "C" CID20 *FindJtHandsTarget(JTV *jt, LO *lo)
 {
     CID20 *apcid[4];
-    int c = CploFindSwObjectsByClass(&D_003DD490, 0x401, 0x14, lo, 4, (LO **)apcid);
+    int c = FindSwObjectsByClass(&D_003DD490, 0x401, 0x14, lo, 4, (LO **)apcid);
     int i;
     for (i = 0; i < c; i++) {
         if (apcid[i]->grfHand & jt->grfHandTarget) return apcid[i];
@@ -520,13 +520,13 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
     case 1:
         hands->ploRef = hands->ploTarget;
         hands->nKind = 1;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 10)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 10)) {
             LO *shape = hands->ploTarget;
             FindShapeClosestPoint(shape, GetLoWorldPos(hands->pso), 0, 0, 0, 0, &hands->sParam);
             hands->nKind = 0;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((JTV *)hands->pso)->grfHandTarget)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((JTV *)hands->pso)->grfHandTarget)) {
             hands->nKind = 2;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x30)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x30)) {
             CID20 *pcid = FindJtHandsTarget((JTV *)hands->pso, hands->ploTarget);
             if (pcid) {
                 hands->ploRef = pcid;
@@ -658,7 +658,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero"
                 : "=&r"(counterArgument), "=r"(counterSpace)
                 : "r"(counterMatrix), "r"(object));
-        new (product) M4(ConvertAloMat4(0, counterSpace, counterArgument));
+        new (product) M4(ConvertMat4BetweenLos(0, counterSpace, counterArgument));
         register M4 *inverse __asm__("$16");
         {
             register qword row1 __asm__("$6"), row2 __asm__("$3"), row3 __asm__("$2"), row0 __asm__("$7");
@@ -801,7 +801,7 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
     CID20 *pcid = FindJtHandsTarget((JTV *)hands->pso, object);
     if (pcid) {
         M4 u;
-        M4 t = ConvertAloMat4(0, object, (M4 *)pcid->PmatWorld());
+        M4 t = ConvertMat4BetweenLos(0, object, (M4 *)pcid->PmatWorld());
         u = t;
         M4 w = InvertMatrix4RigidV(u);
         MulMatrix4RetV(&t, &m, &w);

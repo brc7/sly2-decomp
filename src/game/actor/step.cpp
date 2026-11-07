@@ -32,7 +32,7 @@ void LoadPoFromBrx(PO *ppo, CBinaryInputStream *pbis);
 void ClonePo(PO *ppo, PO *ppoBase);
 void CloneBhvstk(BHVSTK *pbhvstk, STEP *pstep);
 void RenderSoSelf(SO *pso, void *pcm, void *pro);
-qword ConvertAloPos(SO *psoFrom, SO *psoTo, qword pos);
+qword ConvertPosBetweenLos(SO *psoFrom, SO *psoTo, qword pos);
 int EnsureSoPhysRegionRecord(STEP *pstep);   /* its int result decides the scheduling around the call (the v0 rule) */
 SOPART *FindSoPart(SO *pso, OID oid);
 void SetStepPhys(STEP *pstep, SOPART *ppart, int n);
@@ -93,7 +93,7 @@ void STEP::Init()
 }
 
 /** @sly2-annot addr=0x2039C0
- * Purpose: STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300
+ * Purpose: STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertPosBetweenLos(parent,this,0)), 0x1F8300
  * Info: proposed name LoadStepFromBrx (T1); class STEP slot14; TU step
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+parse-verified
@@ -105,7 +105,7 @@ void STEP::Init()
 extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 {
     LoadPoFromBrx(step, stream);
-    step->qwUnk240 = ConvertAloPos(step->psoParent, step, D_002A2DD0);
+    step->qwUnk240 = ConvertPosBetweenLos(step->psoParent, step, D_002A2DD0);
     EnsureSoPhysRegionRecord(step);
 }
 
@@ -196,7 +196,7 @@ extern qword D_002A2DC0;
 extern qword D_002A2DD0;
 void RemoveSoParts(struct S *p);
 void AddSoParts(struct S *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 void CloneSoPartGeomInserting(struct M *m, void *p, int k, struct Q *q);
 void EnsureSoPartMesh(struct Q *q);
 void UpdateGeomWorld(void *a, void *b, void *firstHelper);
@@ -223,7 +223,7 @@ void BuildStepPhysPart(struct S *step, struct M *m)
     step->numParts = n + 1;
     allPinned = 0;
     step->physPart = (struct Q *)(step->parts + n * 0xB0);
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(step, 0x34))
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(step, 0x34))
         allPinned = m->numPinnedPoints == m->numLocalPoints;
     CloneSoPartGeomInserting(m, step->rootTransform, !allPinned ? 2 : 3, step->physPart);
     EnsureSoPartMesh(step->physPart);
@@ -607,7 +607,7 @@ void PresetStepAccel(struct S *step)
 extern "C" void TranslateStepToPos(STEP *step, qword pos)
 {
     TranslateSoToPos(step, pos);
-    step->qwUnk230 = ConvertAloPos(step, 0, step->qwUnk240);
+    step->qwUnk230 = ConvertPosBetweenLos(step, 0, step->qwUnk240);
 }
 
 /** @sly2-annot addr=0x2041F8
@@ -1149,7 +1149,7 @@ struct HIT { qword pos; qword unknown10; qword normal; qword unknown30; float t;
 extern qword D_002A2DC0;
 extern char D_003DD490[];
 void AddSoCustomXps(void);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
 int ClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
 int HasStepFloorNearby(struct S *p, qword v, struct X *x, int n);
@@ -1174,7 +1174,7 @@ void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a
     fl = step->vt[85].pf((char *)step + step->vt[85].d);
     if ((fl & PROBE_ENABLED) == 0)
         return;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(x->so->tree->rootSo, 0x33))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(x->so->tree->rootSo, 0x33))
         return;
     pos = GetLoWorldPos(step);
     if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & PROBE_FROM_TOP) ? step->topPoint : step->basePoint), 1, &hit) <= 0)
@@ -1508,7 +1508,7 @@ typedef struct P {
     char pad4[0x1060 - 0x104C]; qword adjusted;
 } P;
 extern qword D_002A2DD0, D_002A2DC0;
-extern int FIsBasicDerivedFrom__FP5BASIC3CID(B *, int);
+extern int IsBasicDerivedFrom__FP5BASIC3CID(B *, int);
 extern void MatchSoXf(P *, B *);
 static inline qword Transform(const M4*m,qword v,qword last,qword*published){
  register qword result __asm__("vf7"),argument __asm__("$5"),origin __asm__("vf1")=last;
@@ -1530,7 +1530,7 @@ static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm_
 extern void MatchStepXf(P *step, B *other)
 {
     if (!other) return;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 3)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(other, 3)) {
         M4 m;
         U scale;
         register qword v __asm__("vf2");
@@ -1549,7 +1549,7 @@ extern void MatchStepXf(P *step, B *other)
         scale.q = sc;
         positionFn(self, t);}}
         { VTE *s=step->base.vt; ((void (*)(P *,const M4 *))s[30].fn)((P *)((char *)step+s[30].delta), &m); }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(&step->base,0x34)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(&step->base,0x34)) {
             qword r;
             qword scq;
             __asm__("qmtc2.ni %1,%0" : "=j"(scq) : "r"(step->amount.word));
@@ -1600,7 +1600,7 @@ extern "C" BHV *PushStepBehavior(STEP *step)
 }
 
 /** @sly2-annot addr=0x205458
- * Purpose: Find the behaviour of class cid in the step's BHVSTK (0x1EEEE0, FIsBasicDerivedFrom)
+ * Purpose: Find the behaviour of class cid in the step's BHVSTK (0x1EEEE0, IsBasicDerivedFrom)
  * Info: named FindStepBehavior (was proposed PbhvFindStep); TU step
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
  * See: docs/engine/player.md#3-step-stepcpp-0x203948,
@@ -1617,7 +1617,7 @@ extern char D_003DD040[];
 extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
 void ApplySmGetSma(void *x, struct S *ps, int a, int b, void **ppv);
 /** @sly2-annot addr=0x205478
@@ -1640,7 +1640,7 @@ void AddStepDialogSmRefs(struct S *step, int mask)
         if (mask & bit) {
             if (++step->a[i] < 2) {
                 int id = GetDialogRoleSmOid(D_003DD040, i);
-                void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
+                void *x = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                 if (x) {
                     void *y = FindSmaForObject__FP2SMP3ALO(x, step);
                     if (!y)
@@ -1658,7 +1658,7 @@ extern char D_003DD040[];
 extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
 void RetractSma(void *y);
 /** @sly2-annot addr=0x205588
@@ -1680,7 +1680,7 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
             if (step->a[i] != 0) {
                 if (--step->a[i] <= 0) {
                     int id = GetDialogRoleSmOid(D_003DD040, i);
-                    void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
+                    void *x = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                     if (x) {
                         void *y = FindSmaForObject__FP2SMP3ALO(x, step);
                         if (y)

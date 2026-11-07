@@ -167,7 +167,7 @@ extern "C"
 {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                       // memset
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);         // CopyAb
-qwordV ConvertAloPos(SO *psoFrom, SO *psoTo, qwordV pos);              // ConvertLoPos
+qwordV ConvertPosBetweenLos(SO *psoFrom, SO *psoTo, qwordV pos);              // ConvertLoPos
 float NormalizeAngle__Ff(float rad);                                      // NormalizeAngle
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);           // CalculateSinCos
 MATRIX4V InvertMatrix4Rigid(const MATRIX4V *pmat);                          // the inverse of a 4x4 matrix
@@ -175,7 +175,7 @@ MATRIX4V __ml__FRC7MATRIX4T0(const MATRIX4V &matL, const MATRIX4V &matR);     //
 void InitLo(WRV *warp);
 void InitSl(void *pdl, int ibDle);
 void AppendSlEntry(void *pdl, void *pv);
-void SetLoBusyk(WRV *warp, int busyk);
+void SetLoBusyKind(WRV *warp, int busyk);
 void UpdateLo(WRV *warp);
 M3 BuildAxisAngleRotationMatrix(qwordV,float);
 }
@@ -207,7 +207,7 @@ void WR::Init()
     p->currentEntryIndex = -1;
     p->lastUpdateTime = -1.0f;
     InitSl(&p->warpGroups, 0xA0);
-    SetLoBusyk(p, 1);
+    SetLoBusyKind(p, 1);
     f = p->flags;
     if (FIsPtr(f)) *(int *)f |= 2;
     else p->flags = f | 2;
@@ -444,7 +444,7 @@ void UpdateWrStateVectors(WRV *warp)
             MATRIX4V matWorld = group->glob->pxf->matWorld;
             if (group->glob->pmatUnk08)
                 matWorld = __ml__FRC7MATRIX4T0(matWorld, *group->glob->pmatUnk08);
-            posWorldBend = ConvertAloPos(group->pso, 0, posBend);
+            posWorldBend = ConvertPosBetweenLos(group->pso, 0, posBend);
 
             // the state vectors of every warp entry
             for (int iwre = 0; iwre < warp->entryCount; iwre++)

@@ -131,9 +131,9 @@ void GetSoCameraDefaults(DANCERV *p, struct CPDEFIV *pc);
 int POCTL_ConsumeAnyPressed(void *p, int a);
 int GetButtonsPressedWithin__5POCTLUif(void *, int, float);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGAV **pp);
-void *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *p);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *p);
 void InitLo(RHYTHMMGR *p);
-void SetLoBusyk(RHYTHMMGR *p, int n);
+void SetLoBusyKind(RHYTHMMGR *p, int n);
 void PostLoLoad(RHYTHMMGR *p);
 void PostSwCallback(SW *psw, RHYTHMMGR *p, long k, int n);
 void ReplaceSma(void *o2, void *o, int k, int n, void **ppo);
@@ -311,7 +311,7 @@ extern "C" void AddDancerMove(DANCERV *dancer, int key, int successOid, int succ
 // Finds a clip by oid (searched from the dancer) and removes it from the world (vtable slot 9), so it only plays as
 // a move.
 void *FindDancerMoveObject(DANCERV *dancer, int oid) {
-    DANCERV *clip = (DANCERV *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, oid, dancer);
+    DANCERV *clip = (DANCERV *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, oid, dancer);
     if (clip != 0) {
         VTE *vt = clip->vt;
         ((void (*)(void *))vt[9].pfn)((char *)clip + vt[9].d);
@@ -390,7 +390,7 @@ extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
     manager->repeatPressScore = -0.2f;
     manager->earlyPressScore = -1.5f;
     manager->missScore = -1.5f;
-    SetLoBusyk(manager, 1);
+    SetLoBusyKind(manager, 1);
     SetTaggedFlags(&manager->taggedFlags, 0xA);
 }
 
@@ -412,12 +412,12 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
     float jitter = third * 0.5f;
     for (i = 0; i < manager->numGrades; i++) {
         SMAE *grade = &manager->grades[i];
-        void *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, grade->oid, manager);
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, grade->oid, manager);
         void *sma;
         float boundary;
         if (!object)
             continue;
-        sma = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, OID_GRADE_SMA, object);
+        sma = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, OID_GRADE_SMA, object);
         if (!sma)
             continue;
         ReplaceSma(sma, object, grade->gradeOid, 0, &grade->sma);

@@ -191,9 +191,9 @@ void PostLoadJtModeHud(JTMODEHUD *phud);
 int IsAsegaRetracted(ASEGA *pasega);
 void SetStepTargetHeading(STEPPLAYER *pstepplayer, float g);
 void UpdateJtModeHud(JTMODEHUD *phud);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
 void InitReconSel(int *psel, JTMODE *pjtmode);
-void *PloFindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int oid, int z);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int oid, int z);
 void PostReconSelLoad(void *p);
 void SetJtModeHudOverride(JTMODEHUD *phud, WIDGET *pwidget);
 void GatherJtModeHudTags(JTMODEHUD *phud);
@@ -512,7 +512,7 @@ extern "C" void InitJtModeHud(JTMODEHUD *hud, JTMODE *jtMode)
 {
     hud->pjtmode = jtMode;
     hud->nState = -1;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(jtMode->pstepplayer, 0x35) != 0) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(jtMode->pstepplayer, 0x35) != 0) {
         int *psel = (int *)((char *)hud->pjtmode->pstepplayer + 0x1D40);   /* the recon selector */
         hud->pnUnk14 = psel;
         InitReconSel(psel, jtMode);
@@ -523,7 +523,7 @@ extern "C" void InitJtModeHud(JTMODEHUD *hud, JTMODE *jtMode)
 
 /** @sly2-annot addr=0x19D540
  * Purpose: Find the per-character HUD widgets by oid (JT 0x35F/0x368, CID 0x37 0x360/0x369, MURRAY 0x36
- *   0x361/...) via PloFindSwObject
+ *   0x361/...) via FindSwObject
  * Info: proposed name PostLoadJtModeHud (T1); TU mode
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
@@ -531,15 +531,15 @@ extern "C" void InitJtModeHud(JTMODEHUD *hud, JTMODE *jtMode)
 // Finds the per-character HUD widgets by oid (Sly 0x35F/0x368, Bentley 0x360/0x369, Murray 0x361/...).
 extern "C" void PostLoadJtModeHud(JTMODEHUD *hud)
 {
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x35)) {
-        hud->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x35F, 0);
-        hud->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x368, 0);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x37)) {
-        hud->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x360, 0);
-        hud->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x369, 0);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x36)) {
-        hud->pwidgetHud = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x361, 0);
-        hud->pwidgetDefault = (WIDGET *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36A, 0);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x35)) {
+        hud->pwidgetHud = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x35F, 0);
+        hud->pwidgetDefault = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x368, 0);
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x37)) {
+        hud->pwidgetHud = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x360, 0);
+        hud->pwidgetDefault = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x369, 0);
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(hud->pjtmode->pstepplayer, 0x36)) {
+        hud->pwidgetHud = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x361, 0);
+        hud->pwidgetDefault = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36A, 0);
     }
     if (hud->pnUnk14)
         PostReconSelLoad(hud->pnUnk14);

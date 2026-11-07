@@ -28,7 +28,7 @@ float D_002C40C0 = 1500.0f;   /* target's .data (the next word is 0: alignment):
 
 extern "C" {
 void InitXfm(XFM *pxfm);
-void SetLoBusyk(LO *plo, int busyk);
+void SetLoBusyKind(LO *plo, int busyk);
 void PostLoLoad(LO *plo);
 void OnLoAdd(LO *plo);
 void OnLoRemove(LO *plo);
@@ -42,7 +42,7 @@ void RemoveDlEntry(DL *pdl, void *pv);
 extern "C" void InitTarget(TARGET *target)
 {
     InitXfm(target);
-    SetLoBusyk(target, 3);
+    SetLoBusyKind(target, 3);
     target->grftak = 0x17E;
     target->sRadiusTarget = 25.0f;
     target->nUnkF4 = -1;

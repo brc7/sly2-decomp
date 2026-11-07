@@ -2089,7 +2089,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
  * Purpose: Transform a 3x3 matrix from XF space a to XF space b (NULL = world): inv(b)*a*m, copies to *pr
  * Info: proposed name ConvertXfMat (T1); TU xf
  * Notes: top50_round (0.65): Body: InvertMatrix3Cofactor(b->mat) and 3x3 products; four NULL cases. Same
- *   family as ConvertXfPos/ConvertXfVec. Sly 1 ConvertAloMat
+ *   family as ConvertXfPos/ConvertXfVec. Sly 1 ConvertMatBetweenLos
  * Confidence: mid (draft) [T1 0.65] - evidence: Sly 1 / Lilly reference; semantic review; sources:
  *   r8_21BB88+top50_round
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100

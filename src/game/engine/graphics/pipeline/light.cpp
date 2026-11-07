@@ -123,10 +123,10 @@ BLOCK D_002BFC60 = {{{0, 0, 0x3F000000, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};   /* word 
 float D_002BFC90 = 1000.0f, D_002BFC94 = 2.5f;
 extern CAMERA D_002DDF40;
 
-LIGHTV *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+LIGHTV *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void BuildOrthonormalMatrixZ(M3R *pm, qword v, qword w);     /* the hidden result pointer passed by hand */
 void InitXfm(LIGHTV *p);
-void SetLoBusyk(LIGHTV *p, int n);
+void SetLoBusyKind(LIGHTV *p, int n);
 void PostLoLoad(LIGHTV *p);
 void AddLoHierarchy(LIGHTV *p);
 void RemoveLoHierarchy(LIGHTV *p);
@@ -166,7 +166,7 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 // After world load, if no light in the world light list (*(LIGHT * *)&g_sw.aslCid[4]) qualifies (not dynamic), create a
-// LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240. (inferred)
+// LIGHT (CreateLo CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240. (inferred)
 extern "C" void EnsureSwDefaultLight(void)
 {
     LIGHTV *light;
@@ -177,7 +177,7 @@ extern "C" void EnsureSwDefaultLight(void)
         if (light->isDynamic == 0) break;
     }
     if (light) return;
-    light = PloNew__F3CIDP2SO3OIDi(4, 0, 0x188, -1);
+    light = CreateLo__F3CIDP2SO3OIDi(4, 0, 0x188, -1);
     r.q = Make(-0.2f, 0.3f, -1.0f);
     BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
     c = m;
@@ -198,7 +198,7 @@ void LIGHT::Init()
     light->sFar = 2000.0f;
     light->midtoneAngle = 240.0f;
     light->enabled = 1;
-    SetLoBusyk(light, 1);
+    SetLoBusyKind(light, 1);
     flags = light->flagsOrPointer;
     if ((flags ^ 1) & 1) *(int *)flags &= ~0x20;
     else light->flagsOrPointer = flags & ~0x20;

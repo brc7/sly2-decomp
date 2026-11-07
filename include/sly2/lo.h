@@ -39,7 +39,7 @@ struct LO : public BASIC
       SLE sleOid;   /* link in the world's per-oid hash chain */
       SLE sleCid;   /* link in the world's per-class list */
       DLE dleChild;   /* link in the parent's list of children */
-      char cpaloFindSwObjects;   /* count kept by PloFindSwObject searches (Sly 1 name; meaning not confirmed) */
+      char cpaloFindSwObjects;   /* count kept by FindSwObject searches (Sly 1 name; meaning not confirmed) */
       uchar grfvis;   /* visibility flag bits (SetVisMask) */
       long nUnk48 : 4;
                long busyk : 4;   /* busy kind: how the object takes part in the busy list */
@@ -102,7 +102,7 @@ struct LO : public BASIC
 typedef char assert_LO_size[sizeof(LO) == 0x50 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_LO_psoParent[SLY2_OFFSETOF(LO, psoParent) == 0x10 ? 1 : -1];   /* vptr at +0xC precedes it (CONFIRMED runtime, 8162/8162 objects) */
 typedef char assert_LO_ploroot[SLY2_OFFSETOF(LO, ploroot) == 0x14 ? 1 : -1];   /* LOROOT(+0x14)->plo = topmost ancestor (CONFIRMED runtime FINDINGS) */
-typedef char assert_LO_oid[SLY2_OFFSETOF(LO, oid) == 0x18 ? 1 : -1];   /* matched code (PloNew 0x13E3C8 family) */
+typedef char assert_LO_oid[SLY2_OFFSETOF(LO, oid) == 0x18 ? 1 : -1];   /* matched code (CreateLo 0x13E3C8 family) */
 typedef char assert_LO_sleOid[SLY2_OFFSETOF(LO, sleOid) == 0x1C ? 1 : -1];   /* oid hash SL ibNext 0x1C (CONFIRMED runtime) */
 typedef char assert_LO_sleCid[SLY2_OFFSETOF(LO, sleCid) == 0x20 ? 1 : -1];   /* per-class SL ibNext 0x20 (CONFIRMED runtime) */
 typedef char assert_LO_dleChild[SLY2_OFFSETOF(LO, dleChild) == 0x24 ? 1 : -1];   /* child DL ibDle 0x24 (CONFIRMED runtime) */

@@ -2,7 +2,7 @@
 // with lookup, binding and cloning. TU 0x127B18..0x128138 (10 functions, address order). The binding pool's GC
 // members are CGcObj<CVarb>'s (sly2/gc.h) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by
 // splice/gc.cpp.
-// Entry points: CFrame::PrefFindBinding / FFindBinding (symbol lookup), CFrame_RefAddBinding (define).
+// Entry points: CFrame::FindBindingPtr / FindSidebagBinding (symbol lookup), CFrame_AddBinding (define).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_frame
 // SLY2_ALIAS: _GLOBAL_$I$*=_GLOBAL_$I$g_gc
 #include "sly2/cref.h"
@@ -60,9 +60,9 @@ public:
     /* 0x20 */ int isBusy;       /* set while a lookup is inside this frame (cycle guard) */
 
     ~CFrame();
-    CRef RefSetBinding(unsigned int sym, CRef *pref);
-    int FFindBinding(unsigned int sym, int recurse, CRef *pref);
-    CRef *PrefFindBinding(unsigned int sym, int recurse);
+    CRef AssignBinding(unsigned int sym, CRef *pref);
+    int FindBinding(unsigned int sym, int recurse, CRef *pref);
+    CRef *FindBindingPtr(unsigned int sym, int recurse);
     void SetPbinding(CVarb *binding) { firstBinding = binding; }
 };
 
@@ -82,7 +82,7 @@ extern "C" {
 void CFrame_SetSingleParent(CFrame *frame, CFrame *parentFrame);
 void CFrame_AddParent(CFrame *frame, CFrame *parentFrame);
 void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame);
-CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref);
+CRef CFrame_AddBinding(CFrame *frame, int sym, CRef *pref);
 SPO CFrame_CloneTo(CFrame *source, void *a);
 }
 
@@ -143,13 +143,13 @@ void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame)
 
 /** @sly2-annot addr=0x127C00
  * Purpose: Prepends a new BINDING {sym, ref} (pool alloc 0x257340) to the frame binding list; returns Void
- * Info: proposed name CFrame_RefAddBinding (T1); class CFrame; TU frame
+ * Info: proposed name CFrame_AddBinding (T1); class CFrame; TU frame
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
 // Adds a new binding {sym, value} at the head of the frame's binding list; returns Void.
-CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref)
+CRef CFrame_AddBinding(CFrame *frame, int sym, CRef *pref)
 {
     CVarbPtr *ppbFirst = &frame->firstBinding;
     SPW sp;
@@ -162,7 +162,7 @@ CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref)
 }
 
 /** @sly2-annot addr=0x127CF0
- * Purpose: PrefFindBinding(sym,1) and assign; returns Void
+ * Purpose: FindBindingPtr(sym,1) and assign; returns Void
  * Info: proposed name CFrame_RefSetBinding (T1); class CFrame; TU frame
  * Confidence: high [T1 0.88] - evidence: static naming pass; sources:
  *   r1_116918+verdicts_A1+names_v2-signature(verified)
@@ -172,10 +172,10 @@ CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref)
  * @end-sly2-annot */
 // Assigns a new value to the existing binding of sym, searching this frame and its parents; returns Void (nothing
 // happens when the symbol is unbound).
-CRef CFrame::RefSetBinding(unsigned int sym, CRef *pref)
+CRef CFrame::AssignBinding(unsigned int sym, CRef *pref)
 {
     CRef ref;
-    CRef *prefFound = PrefFindBinding(sym, 1);
+    CRef *prefFound = FindBindingPtr(sym, 1);
     if (prefFound)
         *prefFound = *pref;
     ref.Decref();
@@ -184,7 +184,7 @@ CRef CFrame::RefSetBinding(unsigned int sym, CRef *pref)
 }
 
 /** @sly2-annot addr=0x127D78
- * Purpose: PrefFindBinding wrapper: copies binding into *pref, returns found
+ * Purpose: FindBindingPtr wrapper: copies binding into *pref, returns found
  * Info: proposed name CFrame_FFindBinding (T1); class CFrame; TU frame
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
  *   r1_116918+verdicts_A1+names_v2-signature(verified)
@@ -193,9 +193,9 @@ CRef CFrame::RefSetBinding(unsigned int sym, CRef *pref)
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
 // Looks sym up (in the parents too when recurse is set) and copies the value into *pref; returns whether it was found.
-int CFrame::FFindBinding(unsigned int sym, int recurse, CRef *pref)
+int CFrame::FindBinding(unsigned int sym, int recurse, CRef *pref)
 {
-    CRef *prefFound = PrefFindBinding(sym, recurse);
+    CRef *prefFound = FindBindingPtr(sym, recurse);
     if (prefFound)
     {
         if (pref)
@@ -212,7 +212,7 @@ int CFrame::FFindBinding(unsigned int sym, int recurse, CRef *pref)
  * @end-sly2-annot */
 // Returns a pointer to the value bound to sym in this frame or, when recurse is set, in a parent frame (depth first).
 // The busy flag stops cycles in the parent graph. Returns null when unbound.
-CRef *CFrame::PrefFindBinding(unsigned int sym, int recurse)
+CRef *CFrame::FindBindingPtr(unsigned int sym, int recurse)
 {
     CRef *pref = 0;
     CVarb *binding;
@@ -233,7 +233,7 @@ CRef *CFrame::PrefFindBinding(unsigned int sym, int recurse)
         CFrame *frame = parents[i].p;
         if (!frame->isBusy)
         {
-            pref = frame->PrefFindBinding(sym, recurse);
+            pref = frame->FindBindingPtr(sym, recurse);
             if (pref)
                 goto done;
         }

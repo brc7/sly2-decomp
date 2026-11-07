@@ -1232,7 +1232,7 @@ void *FindNavTriangleQuick(void*,qword,int);
 qword GetClosestPointOnNavTriangle(void*,qword);
 int FindPathzoneObstacles(struct S*,void*,qword,qword,int,void**);
 int IsPosInConvexObstacle(void*,qword);
-qword ConvertAloPos(void*,void*,qword);
+qword ConvertPosBetweenLos(void*,void*,qword);
 int ClipEdgeToPathzone(struct S*,qword,qword,int,struct HIT*,int);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 int FindPathzoneClosestPoint(struct S*,qword,qword*,int);
@@ -1266,11 +1266,11 @@ int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  if(!poly){*out=projected;return 1;}
  best.i[2]=0;best.i[1]=0;best.i[0]=0;
  bestDistance=D_002A76DC;
- first=ConvertAloPos(poly,0,poly->vertices[0]);
+ first=ConvertPosBetweenLos(poly,0,poly->vertices[0]);
  z=InitialEndpoint(&a,first,projected);
  i=1;if(i<InitialCount(poly)){do{
   int c;qword*h;
-  b.q=ConvertAloPos(poly,0,poly->vertices[i]);b.f[2]=z;
+  b.q=ConvertPosBetweenLos(poly,0,poly->vertices[i]);b.f[2]=z;
   c=ClipEdgeToPathzone(zone,a.q,b.q,1,hits,2);
   {int k;h=&hits[0].pos[1];for(k=0;k<c;k++){
    FindClosestPointOnLineSegment(projected,h[-1],h[0],&nearest.q,0,&distance);
@@ -1438,12 +1438,12 @@ void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
 namespace M_PostLoadSwPathzones { extern "C" {
 struct MSG { int cb; int nKind; };
 struct G { char pad[0x45C8]; void *defaultPathzone; void *zoneBsp; };
-void *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+void *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void InitDefaultPathzoneCg(void *p);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void BindSwPathzones(void *p);
 /** @sly2-annot addr=0x1C10C8
- * Purpose: If no zone BSP: create default pathzone (PloNew cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then
+ * Purpose: If no zone BSP: create default pathzone (CreateLo cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then
  *   bind zones
  * Info: proposed name PostLoadSwPathzones (T1); TU path
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
@@ -1455,7 +1455,7 @@ void PostLoadSwPathzones(struct G *world)
 {
     if (!world->zoneBsp) {
         struct MSG msg;
-        world->defaultPathzone = PloNew__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
+        world->defaultPathzone = CreateLo__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
         InitDefaultPathzoneCg(world->defaultPathzone);
         msg.cb = 0x30;
         msg.nKind = 0x10;
@@ -1471,8 +1471,8 @@ struct LO { char pad[0x124]; int zoneIndex; char p1[0x150 - 0x128]; int linkInde
 struct AL { int cb; int cbAlign;  };
 struct S { char pad[0x10]; int c; int *zoneIds; struct LO **zones; int linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
 extern char D_003DD490[];
-struct LO *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope);
-int CploFindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap);
+struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope);
+int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap);
 void *AllocCopyFromWorldHeap(const struct AL *pal, const void *pv);
 static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;}
 static __inline__ const struct AL*PrepareRequest(struct AL*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct AL*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;}
@@ -1493,11 +1493,11 @@ void BindSwPathzones(struct S *world)
     struct AL al;
     char*worldPage=WorldPage();
     for (i = 0; i < world->c; i++) {
-        struct LO *plo = PloFindSwObject__FP2SWi3OIDP2LO(WorldAddress(worldPage), 5, world->zoneIds[i], 0);
+        struct LO *plo = FindSwObject__FP2SWi3OIDP2LO(WorldAddress(worldPage), 5, world->zoneIds[i], 0);
         plo->zoneIndex = i;
         world->zones[i] = plo;
     }
-    n = CploFindSwObjectsByClass(WorldAddress(worldPage), 0x205, 0x7C, QueryScope(), 0x400, ap);
+    n = FindSwObjectsByClass(WorldAddress(worldPage), 0x205, 0x7C, QueryScope(), 0x400, ap);
     {register int alignment __asm__("$7")=0x10;
     c = 0x400;
     if (n < 0x400) c = n;
@@ -1992,7 +1992,7 @@ qword GetPathlinkEndpointCenter(struct S *endpoint)
 namespace M_func_001C1FA0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct LO { char pad[0x218]; qword *pq; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 qword GetPathlinkEndpointPos(void *p, qword q);
 /** @sly2-annot addr=0x1C1FA0
  * Purpose: Object within radius of the endpoint (class 0x40 always true)
@@ -2005,7 +2005,7 @@ int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 {
     qword a, b, d;
     float f;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x40)) return 1;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x40)) return 1;
     a = *object->pq;
     b = GetPathlinkEndpointPos(endpoint, a);
     __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(b));
@@ -2083,7 +2083,7 @@ void RemovePathlinkHierarchy(void *pathlink)
 namespace M_func_001C20E8 { extern "C" {
 struct E { void *p0; void *p4; int pad[6]; };
 struct S { char pad[0x50]; int c; char pad2[0xC]; struct E a[6]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *q, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *q, int n);
 /** @sly2-annot addr=0x1C20E8
  * Purpose: Append endpoint (shape if class 10 else LO), max 6
  * Info: proposed name AddPathlinkEndpointObject (T2); TU path
@@ -2095,7 +2095,7 @@ void AddPathlinkEndpointObject(struct S *pathlink, void *object)
 {
     if ((unsigned)pathlink->c < 6) {
         struct E *pe = &pathlink->a[pathlink->c++];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 10)) pe->p0 = object; else pe->p4 = object;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, 10)) pe->p0 = object; else pe->p4 = object;
     }
 }
 } } // namespace M_func_001C20E8

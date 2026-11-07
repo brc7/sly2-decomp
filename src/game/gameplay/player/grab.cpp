@@ -42,7 +42,7 @@ void InitGait(GAIT *pgait, STEPPLAYER *pstepplayer, int n);
 void ResetJtHands(JTHANDS *phands);
 }
 extern CLOCK D_002DDED0;
-LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
+LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 
 /* Hand-made LO virtual calls (g++ 2.95 vtable entries {delta, pfn}; the vtable pointer is at +0xC). */
 struct VTE { short d; short pad; void (*pfn)(); };
@@ -54,7 +54,7 @@ LO *AcquireProxyObject(LO *plo, int n);
 void SetLoParent(LO *plo, int n1, int n2);
 void FadeSoIn(LO *plo, float dt);
 LO *AcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand);
-LO *PloNew__F3CIDP2SO3OIDi(CID cid, SO *psoParent, OID oid, int n);
+LO *CreateLo__F3CIDP2SO3OIDi(CID cid, SO *psoParent, OID oid, int n);
 void SetTnTnsOverride(TN *ptn, int n);
 void ResetJtGrabTnParams(JTGRAB *pjtgrab);
 void InitDirectionalBlend(STEPPLAYER *pstepplayer, BLDIR *abldir, ASEGBL **ppasegbl);
@@ -405,7 +405,7 @@ extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
 }
 
 /** @sly2-annot addr=0x1910F8
- * Purpose: PostLoad of the grab context: PloNew(CID 0xF TN, oid 0x148) as its private TN (SetTnTnsOverride
+ * Purpose: PostLoad of the grab context: CreateLo(CID 0xF TN, oid 0x148) as its private TN (SetTnTnsOverride
  *   0), reset TN params (0x194118), two place tables (0x1A0300), blend blocks, 3-entry swing blend (0x137A30
  *   cbBl 0xC), reach tracker bound to owner SMA x1030
  * Info: proposed name PostLoadJtGrab (T1); TU grab
@@ -420,7 +420,7 @@ extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
 // directional blends (InitDirectionalBlend).
 extern "C" void PostLoadJtGrab(JTGRAB *grab)
 {
-    grab->ptn = (TN *)PloNew__F3CIDP2SO3OIDi((CID)0xF, 0, (OID)0x148, -1);
+    grab->ptn = (TN *)CreateLo__F3CIDP2SO3OIDi((CID)0xF, 0, (OID)0x148, -1);
     SetTnTnsOverride(grab->ptn, 0);
     ResetJtGrabTnParams(grab);
     InitDirectionalBlend(grab->pstepplayer, grab->abldirA, &grab->pasegblA);
@@ -506,7 +506,7 @@ void MarkSoContactsSphereBsp(SW *, SO *, SO *, int, BSP *, XP **);
 int PruneBspBySphere(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
 void MarkSoContactsBspBsp(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
 void AttachJtHandsObject(ATTACH *, ACTOR *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
 int IsStepplayerGrabReady(ACTOR *);
 int GetStepplayerMp(ACTOR *);
 uint GetGadgetButtonMask(ACTOR *, int);
@@ -680,7 +680,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
                 SetControl(grab->pactor, 0);
             break;
         case 5:
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->pactorFocus, 11) && IsStepplayerGrabReady(grab->pactor)) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(grab->pactorFocus, 11) && IsStepplayerGrabReady(grab->pactor)) {
                 grab->pactor->ptarget = grab->pactorFocus;
                 grab->pactor->gTarget = grab->gParam;
                 SetControl(grab->pactor, 8);
@@ -795,7 +795,7 @@ extern HEIGHT D_002BF630;
 qword GetLoWorldPos(ACTOR *);
 void GetGrabspotPositionNear(void *, ACTOR *, float *, U *, float *);
 qword PosSmooth(qword, qword, float, SMP *, U *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword SetVectorCylind(float, float, float);
 float GetShapeMinDistance(FOCUS *);
 float GetShapeMaxDistance(FOCUS *);
@@ -925,7 +925,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         PosSmooth(pos.q, goal.q, D_002DDED0.dt, &smp, &vel);
         float lateral;
         qword offset;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 38)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 38)) {
             offset = ZeroVec();
             lateral = 0.0f;
         } else {
@@ -946,7 +946,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             lateral = MinF(SqrtF(speedMax * speedMax - LaneX(DotVec(vel.q, vel.q))), lateral);
             float s;
             FOCUS *focus;
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
                 float lo, hi;
                 SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMinDistance(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
                 SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
@@ -978,7 +978,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             }
         } else {
             step = 0;
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12)) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12)) {
                 FOCUS *focus = ctx->focus;
                 if (lateral < -25.0f && (focus->flags & 1)) {
                     step = ctx->action == 0 && ctx->actor->role == 0 ? 3 : 2;
@@ -1399,7 +1399,7 @@ extern MANAGER D_002DDF40;
 extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002BF650;
 extern float D_002BF63C;
 extern float D_002BF640;
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(void *);
 M3 *GetLoWorldMatrix(void *);
 void FindShapeClosestPoint(SOURCE *, qword, void *, void *, void *, float *, float *);
@@ -1422,7 +1422,7 @@ void ReleaseJtHandsActs(void *);
 void StopSnd(EFFECT *, float);
 void SetStepplayerTnOverride(ACTOR *, void *);
 void ResetJtGrabTnParams(CONTEXT *);
-qword ConvertAloPos(void *, void *, qword);
+qword ConvertPosBetweenLos(void *, void *, qword);
 void ResetGaitFeet(PROGRAM_ITEM *);
 void ReleaseAsega(ANIMATION **);
 void ReleaseSma(COMPONENT *);
@@ -1530,7 +1530,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
         grab->pactor->x1038 = -1;
         break;
     case -1:
-        if (grab->focus && FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 10)) {
+        if (grab->focus && IsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 10)) {
             SOURCE *source = grab->focus;
             FindShapeClosestPoint(source, GetLoWorldPos(grab->pactor), 0, 0, 0, &grab->param, &grab->value);
         }
@@ -1746,7 +1746,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
         case 0:
             clip = grab->clip170;
             if (!grab->pactor->focus) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 12)) {
+                if (IsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 12)) {
                     SOURCE *source = grab->focus;
                     if (source->actor)
                         SetStepplayerTnOverride(grab->pactor, source->actor);
@@ -1755,7 +1755,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
                         grab->aux->target = source;
                         SetStepplayerTnOverride(grab->pactor, grab->aux);
                     }
-                } else if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 34)) {
+                } else if (IsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 34)) {
                     SOURCE *source = grab->focus;
                     if (source->owner)
                         SetStepplayerTnOverride(grab->pactor, source->owner);
@@ -1763,11 +1763,11 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
                         ResetJtGrabTnParams(grab);
                         grab->aux->enabled = 1;
                         AUX *aux = grab->aux;
-                        aux->position = ConvertAloPos(0, grab->aux, GetLoWorldPos(source));
+                        aux->position = ConvertPosBetweenLos(0, grab->aux, GetLoWorldPos(source));
                         grab->aux->value = source->parameter;
                         SetStepplayerTnOverride(grab->pactor, grab->aux);
                     }
-                } else if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 38)) {
+                } else if (IsBasicDerivedFrom__FP5BASIC3CID(grab->focus, 38)) {
                     SOURCE *source = grab->focus;
                     if (source->owner)
                         SetStepplayerTnOverride(grab->pactor, source->owner);
@@ -1857,7 +1857,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, grab->pactor, blend, speed, flags, &grab->pactor->animation);
     ReplaceSma(script, grab->pactor, -1, flags, &grab->pactor->component);
     Notify(grab->pactor, 90);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->pactor, 53))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(grab->pactor, 53))
         EnableJtLeanActs(grab->pactor, special);
 }
 } // namespace M_SetJtGrabKind
@@ -1872,7 +1872,7 @@ extern float D_002BF660;
 extern float D_002BF664;
 extern int D_002E1E40;
 struct P { int x0; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
 void SetJtGrabState(struct P *p, int n, struct O *o, int a);
 /** @sly2-annot addr=0x1938C0
  * Purpose: Walk the sorted g_sw grab-candidate array (dist < D_002BF660); map class to grab state (HND
@@ -1898,18 +1898,18 @@ int TryGrabJtNearestCandidate(struct P *p)
         int k;
         if (e->x8 > D_002BF660) break;
         o = e->x0;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(o, 0xB))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x13) || IsBasicDerivedFrom__FP5BASIC3CID(o, 0xB))
             k = (p->x0 == D_002E1E40) ? 6 : 5;
-        else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x1B))
+        else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x1B))
             k = 8;
-        else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0xC))
+        else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0xC))
             k = 0;
-        else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x22))
+        else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x22))
             k = 0;
-        else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x26))
+        else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x26))
             k = e->x0->x10c;
         else
-            k = FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x23) ? 7 : -1;
+            k = IsBasicDerivedFrom__FP5BASIC3CID(o, 0x23) ? 7 : -1;
         if (k != -1) {
             SetJtGrabState(p, k, o, e->x4);
             return 1;
@@ -2006,7 +2006,7 @@ float GetShapeMinDistance(struct O *o);
 float GetShapeMaxDistance(struct O *o);
 float ModPositive__Fff(float g, float hi);
 void EvaluateShapeAtDistance(struct O *o, float g, U *pv, int n);
-qword ConvertAloPos(int n, struct P *p, qword q);
+qword ConvertPosBetweenLos(int n, struct P *p, qword q);
 int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
 static __inline__ float ClampF(float g, float lo, float hi)
 {
@@ -2046,7 +2046,7 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
     else
         t = ClampF(grab->x4e0 + g, lo, hi);
     EvaluateShapeAtDistance(o, t, &v, 0);
-    v.q = ConvertAloPos(0, grab, v.q);
+    v.q = ConvertPosBetweenLos(0, grab, v.q);
     if (ClipEdgeToSphere(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(hit.b.q), "j"(q->x10.q));
         SetActRotationGoal(r, d);
@@ -2379,7 +2379,7 @@ struct A { char pad[0x40]; int x40; char pad2[0x4C-0x44]; struct S4C *x4c; char 
 struct O { char pad[0x208]; struct A *x208; char pad2[0x9E0-0x20C]; char places[0x108C-0x9E0]; int x108c; };
 struct T { char pad[0xEC]; int xec; char pad2[0x10C-0xF0]; float x10c; char pad3[0x184-0x110]; float x184; char pad4[0x19C-0x188]; int x19c; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct T *x14; void *x18; int x1c; float x20; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 void AddJtPlaceOnCurve(void *p, void *s, float g);
 void AddJtPlaceAtPosition(void *p, int a, qword q);
 qword GetLoWorldPos(void *p);
@@ -2410,21 +2410,21 @@ void RecordJtGrabPlace(struct P *grab)
         break;
     case 0:
     case 13:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0xC)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0xC)) {
             if (grab->x14->x19c)
                 return;
             g = grab->x20;
             AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
             break;
         }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x26)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x26)) {
             if (grab->x14->xec)
                 return;
             g = 0.0f;
             AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
             break;
         }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x22)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x22)) {
             if (grab->x14->xec)
                 return;
             s = grab->x14->x10c;
@@ -2754,7 +2754,7 @@ namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi {
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 
 
@@ -2901,7 +2901,7 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
         DL *pdlTarget = &D_003DD490.dlTarget;
         for (TARGET *target = (TARGET *)pdlTarget->head; target; target = (TARGET *)target->dleTarget.next)
         {
-            if ((target->grftak & 1) && FIsBasicDerivedFrom(target, (CID)19))
+            if ((target->grftak & 1) && IsBasicDerivedFrom(target, (CID)19))
                 AddJtGrabCandidate(world, player, qwPosJt, target, (CID19 *)target, 4, candidates);
         }
     }
@@ -3375,7 +3375,7 @@ extern "C" LO *AcquireJtGrabMarker(SW *world, LO *lo, JTGRABCAND *candidate)
 }
 
 /** @sly2-annot addr=0x1957C0
- * Purpose: g_sw+0x4744 = PloFindSwObject(g_sw, 0x405, oid 0x624)
+ * Purpose: g_sw+0x4744 = FindSwObject(g_sw, 0x405, oid 0x624)
  * Info: proposed name PostSwLoadGrabMarker (T2); TU grab
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
@@ -3384,7 +3384,7 @@ extern "C" LO *AcquireJtGrabMarker(SW *world, LO *lo, JTGRABCAND *candidate)
 // World post-load: finds the grab marker template (oid 0x624) into g_sw+0x4744.
 extern "C" void PostLoadGrabMarker(SW *world)
 {
-    world->ploUnk4744 = PloFindSwObject(world, 0x405, (OID)0x624, 0);
+    world->ploUnk4744 = FindSwObject(world, 0x405, (OID)0x624, 0);
 }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

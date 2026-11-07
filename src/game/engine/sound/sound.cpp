@@ -452,7 +452,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0x28]; ulong fl; };
 struct P { char pad[0xC]; struct VTE *vtable; float volume; char pad1[0x1C - 0x14]; struct O *source; qword position; char range[0x14]; float effectiveVolume; };
 void StopSnd(struct P *, float);
-qword ConvertAloPos(struct O *, int, qword);
+qword ConvertPosBetweenLos(struct O *, int, qword);
 void CalculateSndVolPan(struct P *, qword, void *, float *, int *);
 void SetSndFlags(struct P *, int, int);
 void SetSndPan(struct P *, int);
@@ -474,7 +474,7 @@ void UpdateSndPositional(struct P *sound)
         StopSnd(sound, 0.0f);
         return;
     }
-    CalculateSndVolPan(sound, ConvertAloPos(sound->source, 0, sound->position), sound->range, &fade, &panAngle);
+    CalculateSndVolPan(sound, ConvertPosBetweenLos(sound->source, 0, sound->position), sound->range, &fade, &panAngle);
     volume = sound->volume * fade;
     if ((int)(volume * 1024.0f) != (int)(sound->effectiveVolume * 1024.0f)) {
         if (sound->effectiveVolume == 0.0f) sound->vtable[15].pfn((char *)sound + sound->vtable[15].d, 0);
@@ -2286,7 +2286,7 @@ extern struct SW D_003DD490;
 void OnMicLevelResult(void);
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
 void *GetHeroPo(struct SW *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(void *);
 void ReplaceHeldNoise(struct O *, qword, void *, void *);
 #define CID_STEPPLAYER 0x34
@@ -2317,7 +2317,7 @@ void UpdateHeadsetMicrophone(struct P *soundManager)
     }
     noiseType = 0;
     hero = GetHeroPo(&D_003DD490);
-    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && 0.5f < soundManager->micLevel) {
+    if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && 0.5f < soundManager->micLevel) {
         float height;
         noiseType = D_003DD490.micNoiseType;
         position = GetLoWorldPos(hero);
@@ -2360,7 +2360,7 @@ struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pa
 struct P {char pad5C[0x5C];int musicLayer2Requests,musicLayer0Requests,selectedMusicLayer;char pad68[0xA0];float musicLayerWeights[3];struct COEF musicLayerSmoothing[3];char pad138[0xCC];int musicStackCount;struct REF *musicStack[8];};
 extern char D_003DD490[];
 struct PLAYER *GetCurrentPo(void *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 float SmoothValue__FfffP3SMPPf(float,float,float,struct COEF *,float *);
 void SetStreamsndGroupVolume(struct REF *,int,float);
 static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
@@ -2382,7 +2382,7 @@ void UpdateMusicMix(struct P *input)
     soundManager->selectedMusicLayer = 1;
     if (soundManager->musicLayer2Requests) soundManager->selectedMusicLayer = 2;
     else if (soundManager->musicLayer0Requests) soundManager->selectedMusicLayer = 0;
-    else if (GetCurrentPo(D_003DD490) && FIsBasicDerivedFrom__FP5BASIC3CID(GetCurrentPo(D_003DD490), 0x34)) {
+    else if (GetCurrentPo(D_003DD490) && IsBasicDerivedFrom__FP5BASIC3CID(GetCurrentPo(D_003DD490), 0x34)) {
         struct PLAYER *player = GetCurrentPo(D_003DD490);
         if (player->state == 3) soundManager->selectedMusicLayer = 0;
         else if (player->state == 4) soundManager->selectedMusicLayer = 2;
@@ -2731,7 +2731,7 @@ void StopDialog(P *, int);
 D *FindDialogStream(P *, int);
 X *PstreamsndNew(D *, int);
 void SetSubtitle(void *, int, int);
-X *PloFindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
+X *FindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
 int GetDialogRoleSmOid(P *, int);
 X *FindLiveSma(X *, int);
 }
@@ -2757,7 +2757,7 @@ extern "C" X *StartDialog(P *soundManager, int id, int noSubtitle)
     soundManager->dialogElapsed = 0;
     if (!noSubtitle) SetSubtitle(D_004435F0, id, record->speakerId);
     if (record->speakerId != -1 && record->numEvents) {
-        register X *speaker __asm__("$19")=PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
+        register X *speaker __asm__("$19")=FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
         if (speaker) {
             register int role __asm__("$18")=0;
             register int speakerRole __asm__("$20")=3;

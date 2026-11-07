@@ -96,16 +96,16 @@ extern char D_003DD490[];
 extern "C" {
 qword D_002BDBF0[1] = {0};   /* detector's .data: the zero position (16 bytes) */
 void InitXfm(DETECTORV *object);
-void SetLoBusyk(DETECTORV *object, int n);
+void SetLoBusyKind(DETECTORV *object, int n);
 void UpdateLo(DETECTORV *object);
 qword GetLoWorldPos(void *object);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int state);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int state);
 void BroadcastGameEvent(void *object, int n, void *q);
 void memmove(void *dst, void *src, int cb);
 SOV *GetHeroPo(void *object);
 int IsLoInWorld(SOV *object);
 int IsSwInputLocked(void *object);
-qword ConvertAloPos(void *plo0, void *plo1, qword v);
+qword ConvertPosBetweenLos(void *plo0, void *plo1, qword v);
 int func_00118668(void *object, int mask, qword a, qword b, int n, BUF *pbuf);
 int IsPointInVol(void *object, qword v);
 int ShouldKeepSoNotSelf(void *context, HITV *hit);
@@ -132,7 +132,7 @@ extern "C" void InitDetector(DETECTORV *detector)
 {
     unsigned int flags;
     InitXfm(detector);
-    SetLoBusyk(detector, 1);
+    SetLoBusyKind(detector, 1);
     flags = detector->objectFlags;
     if (!(flags & 1)) *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else detector->objectFlags = flags | 2;
@@ -162,7 +162,7 @@ extern "C" void UpdateDetectorTargets(DETECTORV *detector)
 extern "C" qword GetDetectorEyePosition(DETECTORV *detector)
 {
     if (!detector->eye) return GetLoWorldPos(detector);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(detector->eye, CID_STEPGUARD)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(detector->eye, CID_STEPGUARD)) {
         U height;
         qword heightVector;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
         qword result;
@@ -252,7 +252,7 @@ extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newS
     entry->stateTime = D_002DDED0.t;
     if (newState == TARGET_SEEN) {
         void *parent = detector->parent;
-        if (parent && FIsBasicDerivedFrom__FP5BASIC3CID(parent, CID_STEP))
+        if (parent && IsBasicDerivedFrom__FP5BASIC3CID(parent, CID_STEP))
             BroadcastGameEvent(D_002DEB30, 0x13, parent);
     }
 }
@@ -298,19 +298,19 @@ extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, in
     SOV *hero = GetHeroPo(D_003DD490);
     if (!target) { state = TARGET_UNSEEN; goto done; }
     if (!IsLoInWorld(target)) { state = TARGET_UNSEEN; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO) && target->vt[77].pfn((char *)target + target->vt[77].d) == 2) { state = TARGET_UNSEEN; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_SAFEHOUSE)) { state = TARGET_UNSEEN; goto done; }
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO) && target->vt[77].pfn((char *)target + target->vt[77].d) == 2) { state = TARGET_UNSEEN; goto done; }
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_SAFEHOUSE)) { state = TARGET_UNSEEN; goto done; }
     if (IsSwInputLocked(D_003DD490)) { state = TARGET_UNSEEN; goto done; }
     if (detector->isDisabled) { state = TARGET_UNSEEN; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && target->isHidden) { state = TARGET_UNSEEN; goto done; }
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && target->isHidden) { state = TARGET_UNSEEN; goto done; }
     if (detector->isForced) { state = TARGET_SEEN; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEP))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEP))
         targetPos = Add(GetLoWorldPos(target), target->eyeOffset);
     else
         targetPos = GetLoWorldPos(target);
     for (occluder = *(WVOL **)&g_sw.dlCid23; occluder; occluder = occluder->next) {
-        qword eyeLocal = ConvertAloPos(0, occluder, GetDetectorEyePosition(detector));
-        qword targetLocal = ConvertAloPos(0, occluder, targetPos);
+        qword eyeLocal = ConvertPosBetweenLos(0, occluder, GetDetectorEyePosition(detector));
+        qword targetLocal = ConvertPosBetweenLos(0, occluder, targetPos);
         if (func_00118668(occluder->bsp, 0x7FFFFFFF, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = TARGET_UNSEEN; goto done; }
     }
     switch (state) {
@@ -374,7 +374,7 @@ extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
         return 0;
     {
         OV *ancestor = object;
-        while (ancestor && !FIsBasicDerivedFrom__FP5BASIC3CID(ancestor, CID_STEP))
+        while (ancestor && !IsBasicDerivedFrom__FP5BASIC3CID(ancestor, CID_STEP))
             ancestor = ancestor->parent;
         return ancestor == 0;
     }
@@ -394,7 +394,7 @@ extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
     qword boxMax = eyePos;
     qword boxMin = eyePos;
     for (i = 0; i < 1; i++) {
-        qword point = ConvertAloPos(target, 0, localPoints[i]);
+        qword point = ConvertPosBetweenLos(target, 0, localPoints[i]);
         points[i] = point;
         __asm__("vmini.xyz %0, %0, %1" : "+j"(boxMin) : "j"(point));
         __asm__("vmax.xyz %0, %0, %1" : "+j"(boxMax) : "j"(point));
@@ -421,15 +421,15 @@ static inline float Dot(qword a, const VECTORQ &b)
 // are JT states).
 extern "C" int IsDetectorTargetConcealed(DETECTORV *detector, SOV *target)
 {
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER)) return 0;
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER)) return 0;
     if (target->jtSubstate == -1) return 0;
     VECTORQ offset; offset.q = VuSub(GetLoWorldPos(target), GetLoWorldPos(detector));
     switch (target->jtState) {
     case 0:
     case 13:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_C)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_C)) {
             if (target->attachedObject->unknown194) return 0;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_22)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, CID_COVER_22)) {
             if (target->attachedObject->unknownE4) return 0;
         } else {
             return !target->attachedObject->unknownE4;

@@ -146,23 +146,23 @@ struct S {
 };
 extern char D_003DD490[];
 void PostSoLoad(struct S *p);
-struct LO *PloFindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
+struct LO *FindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
 // DPRIZE vtable slot 15 PostLoad: base + resolve linked objects via SW lookup.
 void PostDprizeLoad(struct S *prize)
 {
     struct LO *plo;
     PostSoLoad(prize);
-    plo = PloFindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, prize);
+    plo = FindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, prize);
     prize->target = plo;
     if (plo)
         ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
-    if (prize->glintOwnerOid != -1) prize->glintOwner = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->glintOwnerOid, prize);
-    if (prize->leftEmitterOid != -1) prize->leftEmitter = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->leftEmitterOid, prize);
-    if (prize->rightEmitterOid != -1) prize->rightEmitter = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->rightEmitterOid, prize);
-    if (prize->linkedOid204 != -1) prize->linked208 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->linkedOid204, prize);
-    if (prize->collectListenerOid != -1) prize->collectListener = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->collectListenerOid, prize);
-    if (prize->vanishListenerOid != -1) prize->vanishListener = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->vanishListenerOid, prize);
+    if (prize->glintOwnerOid != -1) prize->glintOwner = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->glintOwnerOid, prize);
+    if (prize->leftEmitterOid != -1) prize->leftEmitter = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->leftEmitterOid, prize);
+    if (prize->rightEmitterOid != -1) prize->rightEmitter = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->rightEmitterOid, prize);
+    if (prize->linkedOid204 != -1) prize->linked208 = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->linkedOid204, prize);
+    if (prize->collectListenerOid != -1) prize->collectListener = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->collectListenerOid, prize);
+    if (prize->vanishListenerOid != -1) prize->vanishListener = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->vanishListenerOid, prize);
     ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, prize->initialState);
 }
 } } // namespace M_PostDprizeLoad
@@ -377,12 +377,12 @@ namespace M_IsDprizeCollisionCandidate { extern "C" {
 struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // collision filter callback (FIsCidDerived test). (inferred)
 int IsDprizeCollisionCandidate(void *prize, struct Q *q)
 {
     void *s;
-    /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
+    /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (IsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || IsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
 }
 } } // namespace M_IsDprizeCollisionCandidate
 
@@ -657,7 +657,7 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x1C8 - 0x10]; int isCollectable; float expireTime; };
 int CollectActivePickupInfos(void *pg, int c, void **ap);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 int TryCollectDprize(struct S *p, void *pv);
 // for each collector PZI (CppziCur) check collection. (inferred)
 void CheckDprizeCollect(struct S *prize)
@@ -672,7 +672,7 @@ void CheckDprizeCollect(struct S *prize)
     n = CollectActivePickupInfos(D_003DD490, 0x10, ap);
     for (i = 0; ; i++) {
         if (i >= n) break;
-        if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(prize, 0x5B)) break;
+        if (i > 0 && !IsBasicDerivedFrom__FP5BASIC3CID(prize, 0x5B)) break;
         if (TryCollectDprize(prize, ap[i])) break;
     }
 }
@@ -940,7 +940,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002C0D80;
 extern float D_002C0D90;
 extern struct G D_003DD490;
-qword ConvertAloVec(struct S *,void *,qword);
+qword ConvertVecBetweenLos(struct S *,void *,qword);
 float RandomFloatInRange__Fff(float,float);
 struct Q *NewRipInGroup(struct G *,void *,void *);
 qword GetLoWorldPos(void *);
@@ -969,7 +969,7 @@ void EmitDprizeGlint(struct S *prize)
     void *emitter;
     struct Q *q;
     if(!prize->owner||prize->probability<=0)return;
-    direction=ConvertAloVec(prize,0,D_002C0D80);
+    direction=ConvertVecBetweenLos(prize,0,D_002C0D80);
     side=Dot(direction,D_002DDF40.b)<0;
     if(side!=prize->previous) {
         if(RandomFloatInRange__Fff(0,1)<prize->probability) {
@@ -1313,7 +1313,7 @@ void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2
 namespace M_PdprizeNewSpray { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
 struct LO *AcquireProxyObject(void *pg, int n);
 void LockProxyObject(void *pg, struct LO *plo);
 // make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject). (inferred)
@@ -1328,7 +1328,7 @@ int NewSprayedDprize(void *prize, int kind, int n, struct LO **aplo)
     case 0x5D: id = 0x2B4; break;
     default: return 0;
     }
-    pg = PloFindSwObject__FP2SWi3OIDP2LO(prize, 5, id, 0);
+    pg = FindSwObject__FP2SWi3OIDP2LO(prize, 5, id, 0);
     if (!pg) return 0;
     c = 0;
     for (i = 0; ; i++) {
@@ -1733,8 +1733,8 @@ struct M { int n; S *p; int pad[14]; };
 extern "C" { extern char D_002A7768[]; }
 extern "C" { extern char D_002A7770[]; }
 extern "C" { extern char D_002A7778[]; }
-extern "C" { CRef RefGetSaveVarV(char *a, char *b, char *c, int n); }
-extern "C" { CRef RefSetSaveVarV(const CRef &r, char *a, char *b, char *c, int n); }
+extern "C" { CRef GetSaveVarByName(char *a, char *b, char *c, int n); }
+extern "C" { CRef SetSaveVarByName(const CRef &r, char *a, char *b, char *c, int n); }
 extern "C" void SetLootDprizes(S *p, int n);
 // CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
 void SetLootDprizes(S *loot, int n)
@@ -1748,8 +1748,8 @@ void SetLootDprizes(S *loot, int n)
         CRef ref;
         char buf[0x10];
         sprintf(buf, D_002A7768, loot->currentEntry->saveId);
-        ref = RefGetSaveVarV(D_002A7770, D_002A7778, buf, 0);
-        RefSetSaveVarV(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
+        ref = GetSaveVarByName(D_002A7770, D_002A7778, buf, 0);
+        SetSaveVarByName(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
         LO *plo = loot->collectListener;
         if (plo) {
             M m;
@@ -1856,7 +1856,7 @@ struct A { int c; short *pk; };
 struct HT {void *buckets[0x35];int count;void *entries;};
 struct X {char pad[8];struct HT table;};
 extern const char D_002A7768[],D_002A7788[];
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 int sprintf(char *buf,const char *fmt,...);
 int FindSaveSymbol(struct HT *pt,const char *s);
 struct A *GetLevelListEntry(int h);
@@ -1871,7 +1871,7 @@ struct A *GetClueSaveKey(int input)
     struct A a;
     struct K k;
     char buf[0x10];
-    h = IlevelCur__Fv();
+    h = GetCurrentLevelIndex__Fv();
     if (h == -1) return 0;
     sprintf(buf, D_002A7768, n);
     k.a = Find(&(*(struct X *)&g_sw.savevars), D_002A7788);
@@ -1891,9 +1891,9 @@ void *GetClueSaveKey(void *p);
 }
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
-extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
+extern "C" void GetGlobalSaveVar(CRef *pref, void *pv, void *p);
 // Reads an int global save variable.
-static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
+static inline int NFromPv(void *pv) { CRef ref; int n; GetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int IsClueCollected(void *p);
 // wrapper of GetClueSaveKey. (inferred)
 int IsClueCollected(void *clue)
@@ -1925,12 +1925,12 @@ struct CRef {
 extern "C" { extern char D_003D4A60[]; }
 extern "C" { 
  }
-extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
+extern "C" CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 /* Copy the reference into the setter's value argument. */
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRef arg(r);
-    const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
+    const CRef &ret = SetGlobalSaveVar(pv, arg, D_003D4A60);
 }
 // set clue bit / count. (inferred)
 void SetClueCollected(int n, int f)
@@ -1963,7 +1963,7 @@ struct G { char pad[0x3A18]; struct M m; };
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 extern char D_002A7788[];
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 struct { int a; int b; } *GetLevelListEntry(int n);
 void CopyAb__FPvT0Ui(struct K *pk, int a, int b);
 void *FindSaveVar(void *a, void *b, struct T *pt);
@@ -1980,7 +1980,7 @@ int CountCollectedClues(void)
     unsigned int i;
     struct E *pe;
     unsigned int v;
-    n = IlevelCur__Fv();
+    n = GetCurrentLevelIndex__Fv();
     if (n == -1)
         return 0;
     c = 0;
@@ -2048,12 +2048,12 @@ void SetSndSourceLo(void *p, int n);
 qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
 struct LO *GetProxyCopyValue(struct S *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
 // Does the object's GetProxyCopyValue owner derive from class 7?
-static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
 void SetClueDprizes(struct S *clue, int n)
 {
@@ -2077,7 +2077,7 @@ void SetClueDprizes(struct S *clue, int n)
         EmitSwNoise(pg, 0, qv, clue);
         ((void (*)(void *, int, int, int, int, int))clue->vt[3].pf)((char *)clue + clue->vt[3].d, 5, 0, 0, 0, 0);
         q = GetProxyCopyValue(clue);
-        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
+        if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
             struct LO *plo = GetProxyCopyValue(clue);
             SetClueCollected(plo->clueIndex, 1);
             ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
@@ -2116,7 +2116,7 @@ struct B { int a, b; int c; short Find(char *s) ; };
 extern "C" { 
  }
 extern "C" {
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 void *GetLevelListEntry(int n);
 int ConcatSaveKeys(void *p, X *px);
 int GetVaultSaveKey(void);
@@ -2128,7 +2128,7 @@ inline short B::Find(char *s) { return FindSaveSymbol(&c, s); }
 // the original (FVaultOpened) suggested a predicate but it returns the key.
 int GetVaultSaveKey(void)
 {
-    int n = IlevelCur__Fv();
+    int n = GetCurrentLevelIndex__Fv();
     X x;
     short s;
     if (n == -1) return 0;
@@ -2148,9 +2148,9 @@ void *GetVaultSaveKey(void);
 }
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
-extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
+extern "C" void GetGlobalSaveVar(CRef *pref, void *pv, void *p);
 // Reads an int global save variable.
-static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
+static inline int NFromPv(void *pv) { CRef ref; int n; GetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int IsVaultOpened(void);
 // Whether the current level's vault has been opened (reads the 'fVault' save flag).
 int IsVaultOpened(void)
@@ -2183,12 +2183,12 @@ extern "C" {
 extern char D_002E65E0[];
  }
 
-extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
+extern "C" CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 struct RAW { int m_tagk; int m_tag; };
-extern "C" RAW *RefGetGlobalSaveVar(RAW *pr, void *pv, void *p);
+extern "C" RAW *GetGlobalSaveVar(RAW *pr, void *pv, void *p);
 // Helpers NFromPv, SetPv (small asm wrappers/accessors shaped for the match).
-static inline int NFromPv(void *pv,RAW &ref) { int n; RefGetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
-static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60); }
+static inline int NFromPv(void *pv,RAW &ref) { int n; GetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
+static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=SetGlobalSaveVar(pv,arg,D_003D4A60); }
 extern "C" void SetVaultOpened(int f);
 // Records in the save whether the current level's vault is open. (inferred)
 void SetVaultOpened(int f)
@@ -2453,7 +2453,7 @@ extern qword D_002C1080;
 extern qword D_002C1090;
 void DropAsegaRef(void *vault);
 void SetStepplayerGrabTarget(void *vault, void *q);
-qword ConvertAloVec(void *vault, void *frame, qword q);
+qword ConvertVecBetweenLos(void *vault, void *frame, qword q);
 qword ConvertXfVec(void *frame, void *vault, qword q);
 qword GetLoWorldPos(void *vault);
 qword TransformXfPos(void *frame, void *vault, qword q);
@@ -2487,13 +2487,13 @@ void SetVaultDialState(struct S *vault, int n)
         SetStepplayerGrabTarget(vault->user, vault->dialCenter);
         vault->dialTimer->endTime = D_002DDED0.t + 0.25f;
         px = vault->dialTimer;
-        q = ConvertXfVec(0, px->parentFrame, ConvertAloVec(vault->user, 0, D_002C1080));
+        q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1080));
         px->startPoint = q;
         {int selected;Selection(vault,&selected,&px);
         q=TransformXfPos(0,px->parentFrame,GetLoWorldPos(vault->digitTargets[selected]));}
         px->digitPoint = q;
         px = vault->dialTimer;
-        q = ConvertXfVec(0, px->parentFrame, ConvertAloVec(vault->user, 0, D_002C1090));
+        q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1090));
         px->endPoint = q;
         SetXfRole(vault, vault->dialTimer, 0x11);
         break;

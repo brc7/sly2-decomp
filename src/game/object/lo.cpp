@@ -513,16 +513,16 @@ extern "C" int LO_GetChildren()
 
 namespace M_PsoFromLo { extern "C" {
 struct S { char pad[0x10]; struct S *parent; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 /** @sly2-annot addr=0x1A5BF0
- * Purpose: Return plo if it is an SO (FIsBasicDerivedFrom CID 0x30) else plo->psoParent
+ * Purpose: Return plo if it is an SO (IsBasicDerivedFrom CID 0x30) else plo->psoParent
  * Info: proposed name GetSoFromLo (T1); TU lo
  * Notes: names_v2 v1 proposed SetLightSaturate_Old__FP5LIGHTP6VECTOR (0.000)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Returns the object itself when it is an SO (cid 0x30), else its parent SO.
-struct S *GetSoFromLo(struct S *object) { if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return object; return object->parent; }
+struct S *GetSoFromLo(struct S *object) { if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return object; return object->parent; }
 } } // namespace M_PsoFromLo
 
 /** @sly2-annot addr=0x1A5C28
@@ -550,8 +550,8 @@ struct S {
 };
 extern float D_002A6A40;
 void RunLoDeferredCallbacks(struct S *s);
-int PrefFindBinding__6CFrameUii(void *p, int a, int b);
-void SetLoBusyk(struct S *s, int n);
+int FindBindingPtr__6CFrameUii(void *p, int a, int b);
+void SetLoBusyKind(struct S *s, int n);
 /** @sly2-annot addr=0x1A5C48
  * Purpose: LO vt15: run deferred callbacks, vt3 message 0; if Splice frame has binding 1 -> busyk 2->0, grf
  *   x40|=2 (wants Splice update) else tSplice(x30)=D_002A6A40
@@ -568,10 +568,10 @@ void PostLoLoad(struct S *object)
     RunLoDeferredCallbacks(object);
     e = &object->vt[3];
     ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)object + e->d, 0, 1, 0, 0, 0);
-    if (object->frame && PrefFindBinding__6CFrameUii(object->frame, 1, 1)) {
+    if (object->frame && FindBindingPtr__6CFrameUii(object->frame, 1, 1)) {
         int v;
         if ((int)object->busyk == 2)
-            SetLoBusyk(object, 0);
+            SetLoBusyKind(object, 0);
         v = object->flags;
         if ((v ^ 1) & 1) *(int *)v |= 2;
         else object->flags = v | 2;
@@ -1191,10 +1191,10 @@ void*FindSoPart(struct ALO*,int);
 void HideSoPart(struct ALO*, void*);
 void*FindSoGlob(struct ALO*,int);
 void HideSoGlobsById(struct ALO*,int);
-struct LO*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct ALO*);
+struct LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct ALO*);
 /** @sly2-annot addr=0x1A64E8
  * Purpose: Resolve a table {grf,id,ib} of OID refs into fields at plo+ib: grf&0x10 part by id, 0x20/0x40 SO
- *   sub-objects (0x1F6030/0x1F5FF8), else PloFindSwObject 0x15E938 (kind 4/5/1); grf&0x200 -> vt9 Remove the
+ *   sub-objects (0x1F6030/0x1F5FF8), else FindSwObject 0x15E938 (kind 4/5/1); grf&0x200 -> vt9 Remove the
  *   found object
  * Info: proposed name BindLoOidTable (T1); TU lo
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
@@ -1251,7 +1251,7 @@ void BindLoOidTable(struct ALO *object, int numEntries, struct E *entries)
                 findKind = 4;
             else
                 findKind = (flags & 1) ? 5 : 1;
-            found = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, (entry->flags & 0x400) ? findKind | 0x400 : findKind, entry->id, object);
+            found = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, (entry->flags & 0x400) ? findKind | 0x400 : findKind, entry->id, object);
             if (!found) {
                 i++;
                 continue;
@@ -1566,12 +1566,12 @@ void SetLoBusyDistance(struct S *object, float g)
 
 /** @sly2-annot addr=0x1A6C90
  * Purpose: Return signed 4-bit field bits 52-55 of x28
- * Info: proposed name GetLoBusyk (T2); TU lo
+ * Info: proposed name GetLoBusyKind (T2); TU lo
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Returns the busy kind (signed 4-bit field: 0 busy near the camera, 1 always, 2 never, 3 busy near the hero).
-extern "C" int GetLoBusyk(LO *plo)
+extern "C" int GetLoBusyKind(LO *plo)
 {
     return plo->busyk;
 }
@@ -1593,7 +1593,7 @@ void ResortSwBusyEntry(void *, void *);
  * Purpose: Set the LO busy kind (LO+0x28 bits 52-55: 0 busy within sBusy of the camera, 1 always busy, 2
  *   never busy, 3 busy within sBusy of the hero) and re-sort the root in the SW busy list if it is in the
  *   world
- * Info: proposed name SetLoBusyk (T1); TU lo
+ * Info: proposed name SetLoBusyKind (T1); TU lo
  * Notes: top50_round (0.80): UpdateLoBusy 0x148300 switch on the same nibble: case1 fIn=1, case2 fIn=0, case0
  *   dist(PosLoWorld,camera pos D_002DDF40)<sBusy(+0x38), case3 dist to GetHeroPo. InitLo sets 2, InitSo 0,
  *   InitTarget/InitGrabspot 3, relays 1 wh
@@ -1603,7 +1603,7 @@ void ResortSwBusyEntry(void *, void *);
  * @end-sly2-annot */
 // Sets the busy kind (0 busy within the busy distance of the camera, 1 always busy, 2 never busy, 3 busy within the
 // busy distance of the hero) and re-sorts the root in the world's busy list when it is in the world.
-void SetLoBusyk(struct O *object, int busyk)
+void SetLoBusyKind(struct O *object, int busyk)
 {
     if (busyk != object->busyk) {
         object->busyk = busyk;
@@ -1791,13 +1791,13 @@ void InvertMatrix4Rigid(M4 *pm, M4 *pn);
 /** @sly2-annot addr=0x1A6F00
  * Purpose: Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse);
  *   vector by value
- * Info: proposed name ConvertAloPos (T1); TU lo
+ * Info: proposed name ConvertPosBetweenLos (T1); TU lo
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a point from one object's space to another's (through world space; a null object means world space).
-qword ConvertAloPos(struct LO *a, struct LO *b, qword v)
+qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 {
     if (a) {
         M4 *pm = a->vt[31].pfn((struct LO *)((char *)a + a->vt[31].d));
@@ -1821,13 +1821,13 @@ M3 *GetLoWorldMatrix(void *p);
 void InvertMatrix3Cofactor(M3 *pm, M3 *pn);
 /** @sly2-annot addr=0x1A6FC0
  * Purpose: Same for direction vectors (rotation only, M3)
- * Info: proposed name ConvertAloVec (T1); TU lo
+ * Info: proposed name ConvertVecBetweenLos (T1); TU lo
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a direction vector from one object's space to another's (rotation only).
-qword ConvertAloVec(void *a, void *b, qword v)
+qword ConvertVecBetweenLos(void *a, void *b, qword v)
 {
     if (a) {
         M3 *pm = GetLoWorldMatrix(a);
@@ -1861,12 +1861,12 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 }
 /** @sly2-annot addr=0x1A7050
  * Purpose: Same for a 3x3 matrix
- * Info: proposed name ConvertAloMat (T1); TU lo
+ * Info: proposed name ConvertMatBetweenLos (T1); TU lo
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a 3x3 matrix from one object's space to another's.
-extern "C" M3 ConvertAloMat(void *a, void *b, const M3 *m)
+extern "C" { M3 ConvertMatBetweenLos(void *a, void *b, const M3 *m)
 {
     M3 result;
     if (a) result = Mul(*GetLoWorldMatrix(a), *m);
@@ -1875,7 +1875,7 @@ extern "C" M3 ConvertAloMat(void *a, void *b, const M3 *m)
         result = Mul(InvertMatrix3Cofactor(GetLoWorldMatrix(b)), result);
     }
     return result;
-}
+} }
 } // namespace M_ConvertAloMat
 
 namespace M_ConvertAloMat4 { extern "C" {
@@ -1887,13 +1887,13 @@ void InvertMatrix4Rigid(M4 *out, void *in);
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
 /** @sly2-annot addr=0x1A71B0
  * Purpose: Same for a 4x4 matrix (vt31 + inverse 0x11C318)
- * Info: proposed name ConvertAloMat4 (T1); TU lo
+ * Info: proposed name ConvertMat4BetweenLos (T1); TU lo
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Converts a 4x4 matrix from one object's space to another's.
-M4 ConvertAloMat4(struct O *o1, struct O *o2, M4 *m)
+M4 ConvertMat4BetweenLos(struct O *o1, struct O *o2, M4 *m)
 {
     M4 t;
     M4 r;

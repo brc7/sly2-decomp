@@ -34,7 +34,7 @@ int U32Read__18CBinaryInputStream(void *pbis);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pgeom);
 void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *pv, void *pbis);
-qword ConvertAloPos(int a, VIS *pvis, qword pos);
+qword ConvertPosBetweenLos(int a, VIS *pvis, qword pos);
 int FindBspLeafContainingPointFast(int pbsp, int n, qword pos);
 void SetVisInside(VIS *vis, int isInside);
 }
@@ -62,7 +62,7 @@ extern "C" void LoadVisFromBrx(VIS *vis, void *stream)
 // result with SetVisInside. Called by the camera for every zone each frame.
 extern "C" void UpdateVisInside(VIS *vis, qword worldPos)
 {
-    SetVisInside(vis, FindBspLeafContainingPointFast(vis->bspc.rootBsp, 0x7FFFFFFF, ConvertAloPos(0, vis, worldPos)) != 0);
+    SetVisInside(vis, FindBspLeafContainingPointFast(vis->bspc.rootBsp, 0x7FFFFFFF, ConvertPosBetweenLos(0, vis, worldPos)) != 0);
 }
 
 // Stores the zone's inside state; on a change also stamps the time (g_clock.t) it changed.

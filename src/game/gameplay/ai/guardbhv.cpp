@@ -211,7 +211,7 @@ struct STEPGUARD3C : public STEPGUARD
 extern SW D_003DD490;           /* g_sw */
 extern CLOCK D_002DDED0;        /* g_clock */
 extern float D_002BE610;        /* attack retry delay */
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 extern "C" {
 void InitBhv(BHV *behavior);
 void StartBhv(BHV *behavior);
@@ -261,13 +261,13 @@ struct L; struct O;
 struct O;
 struct L { struct O *object; };
 struct O { char pad[0x14]; struct L *root; char pad2[0x1E8]; struct O *owner; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 // 0x174898: Returns the guard that owns an object: the object's root if it is a STEPGUARD, else (for cid 0x4F
 // children such as bombs) the root of its owner (+0x200); NULL otherwise.
 struct O *GetStepguardFromLo(struct O *p) {
     if (!p) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->root->object, CID_STEPGUARD)) return p->root->object;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_BOMB) && FIsBasicDerivedFrom__FP5BASIC3CID(p->owner->root->object, CID_STEPGUARD)) return p->owner->root->object;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p->root->object, CID_STEPGUARD)) return p->root->object;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, CID_BOMB) && IsBasicDerivedFrom__FP5BASIC3CID(p->owner->root->object, CID_STEPGUARD)) return p->owner->root->object;
     return 0;
 }
 } } // namespace M_PstepguardFromLo
@@ -949,14 +949,14 @@ struct U { char pad[0x70]; unsigned long unknownFlags70; };
 struct O { char pad[0xEC]; struct U *unknownEC; };
 struct Y { int pad; struct O *hitObject; int pad2[2]; unsigned long hitFlags; };
 struct X { char pad[0x74]; int filter; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 // 0x175820: Line-test filter for attack checks: ignores non-blocking hits, cid 0x62 objects (when the attack asks)
 // and any step.
 int FilterAttackLineOfSightHit(struct X *x, struct Y *p) {
     if (p->hitFlags & (1UL << 48)) return 0;
     if (p->hitObject->unknownEC->unknownFlags70 & 4) return 0;
-    if (x->filter && FIsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
-    return !FIsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_STEP);
+    if (x->filter && IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
+    return !IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_STEP);
 }
 } } // namespace M_func_00175820
 
@@ -1022,12 +1022,12 @@ extern CLOCK D_002DDED0;
 extern POLY D_002BE600;
 extern LM D_002BBB60;
 extern char D_003DD490[];
-int FIsBasicDerivedFrom__FP5BASIC3CID(P *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(P *, int);
 int DoesTargetRecordAllowGuard(void *, P *);
 qword GetLoWorldPos(P *);
-unsigned IsrcFromIdProxy__Fi(unsigned);
+unsigned GetSourceIndexFromProxyId__Fi(unsigned);
 int IsWithinLimits__FP2LMf(LM *, float);
-qword ConvertAloPos(P *, P *, qword);
+qword ConvertPosBetweenLos(P *, P *, qword);
 float atan2f(float, float);
 int FilterAttackLineOfSightHit(void *, void *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
@@ -1124,7 +1124,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
     }
     if (D_002DDED0.time < guard->cooldown)
         return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO)) {
         VTE *e = &target->vt[77];
         if (((int (*)(void *))e->fn)((char *)target + e->delta))
             return 0;
@@ -1138,7 +1138,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
         distance = VectorLengthXY(d);
         height = VuGetZ(d);
     }
-    if (IsrcFromIdProxy__Fi(target->name->identity) == IsrcFromIdProxy__Fi(guard->name->identity))
+    if (GetSourceIndexFromProxyId__Fi(target->name->identity) == GetSourceIndexFromProxyId__Fi(guard->name->identity))
         distance += ((unsigned)target < (unsigned)guard) ? 75.0f : -75.0f;
     if ((guard->mode == 8 || guard->mode == 13) && guard->scale) {
         float s = guard->scale->value;
@@ -1155,7 +1155,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
         if (!IsWithinLimits__FP2LMf(&entry->height, height))
             continue;
         {
-            qword local = ConvertAloPos(0, guard, to);
+            qword local = ConvertPosBetweenLos(0, guard, to);
             angle = __builtin_fabsf(atan2f(VuGetY(local), VuGetX(local)));
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
@@ -1223,7 +1223,7 @@ struct R2 { struct T *object; };
 struct R1 { char pad[0x14]; struct R2 *root; };
 struct R { int pad; struct R1 *hitObject; };
 union V { qword q; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 qword GetLoWorldPos(void *p);
 float GetStepHeading(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
@@ -1251,13 +1251,13 @@ int CanBhvcombatShoot(struct S *behavior) {
     struct T *t;
     struct A *a = behavior->guard;
     if ((a->grfCapability & 8) == 0 || a->currentAttack || behavior->chosenAttack || !behavior->target || (((int)(behavior->target->loFlags >> 60) & 1) == 0)) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_PO)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_PO)) {
         struct T *q = behavior->target;
         struct VTE *entry = &q->vt[0x4D];
         if (((int (*)(void *))entry->pfn)((char *)q + entry->d) == 2) return 0;
     }
     mustShootNow = 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_STEPPLAYER)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_STEPPLAYER)) {
         t = behavior->target;
         if (t->unknown4CC != -1) {
             if (t->grabState < 5) mustShootNow = t->grabState >= 3;
@@ -1266,7 +1266,7 @@ int CanBhvcombatShoot(struct S *behavior) {
             if (t->airState == 0x11) mustShootNow = 1;
         }
         if (t->unknownF54 != -1) mustShootNow = 1;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(t, CID_JT)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(t, CID_JT)) {
             switch (t->jts) {
             case 3: case 0x15: case 0x16:
                 mustShootNow = 1;
@@ -1955,8 +1955,8 @@ extern CLOCK D_002DDED0;extern float D_002BE620;
 void*func_002333B4(void*,int,unsigned) __asm__("memset");
 void SetBhvguardMode(S*,STATE*);
 qword GetLoWorldPos(void*);M4*GetLoWorldMatrix(void*);
-qword ConvertAloVec(void*,void*,qword);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
+qword ConvertVecBetweenLos(void*,void*,qword);
+int IsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void SpawnMurrayHitEffectUnchecked(OBJECT*,qword);
 void SpawnMurrayHitEffect(OBJECT*,qword);
 OBJECT*NewNoise(void*,qword,OBJECT*);
@@ -2138,7 +2138,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                 (void)NewNoise(context, position, behavior->guard);
             }
             if (Below(behavior->current.kind, GUARD_MODE_KO) && !Below(behavior->current.kind, GUARD_MODE_SLEEP)
-                && FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object, CID_CLASS101)
+                && IsBasicDerivedFrom__FP5BASIC3CID(msg->data.object, CID_CLASS101)
                 && (originalFlags & (REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN)))
                 flags = originalFlags | REACT_KO;
             if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
@@ -2190,7 +2190,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                 selected = &w.next.msg;
             }
             if (flags & (REACT_HURT | REACT_KO | REACT_KNOCKDOWN)) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPPLAYER)) {
+                if (IsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPPLAYER)) {
                     qword own = GetLoWorldPos(behavior->guard);
                     OBJECT *otherObject = selected->data.object;
                     w.own.q = own;
@@ -2212,19 +2212,19 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                                 : "=&j"(axis), "=&j"(origin), "=&j"(delta), "=&r"(receiver), "=&r"(queryKind)
                                 : "m"(frame->r[0]), "m"(inputs), "m"(selected->data.object), "i"(targetKind));
                         w.delta.q = delta;
-                        special = FIsBasicDerivedFrom__FP5BASIC3CID(receiver, queryKind);
+                        special = IsBasicDerivedFrom__FP5BASIC3CID(receiver, queryKind);
                     }
                     qword direction = w.delta.q;
                     if (special && selected->data.object->state == 12) {
                         OBJECT *object = selected->data.object;
-                        *(qword *)&w.scalar = ConvertAloVec(0, object, direction);
+                        *(qword *)&w.scalar = ConvertVecBetweenLos(0, object, direction);
                         w.scalar.f[0] *= 0.25f;
-                        direction = ConvertAloVec(object, 0, w.scalar.q);
+                        direction = ConvertVecBetweenLos(object, 0, w.scalar.q);
                     }
                     qword normalized = Normalize(direction);
                     *(qword *)&w.scalar = Scalar(500.0f);
                     selected->data.direction = ScaleInPlace(normalized, w.scalar.q);
-                } else if (behavior->guard->mode == -1 && FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPGUARD)
+                } else if (behavior->guard->mode == -1 && IsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPGUARD)
                            && selected->data.object->mode == 0x22)
                     SetStepguardSpecial(behavior->guard, 0x22);
                 behavior->current.kind = GUARD_MODE_NONE;
@@ -2336,7 +2336,7 @@ extern "C"{
  void SetBhvSearchWatched(H*,P*);
  int IsBhvSearchIdle(H*);
  int IsBhvanimDone(H*);
- int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
+ int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  int IsBhvScriptDone(H*);
  int IsBhvcombatDone(H*);
  P*GetStepguardFromLo(void*);
@@ -2467,7 +2467,7 @@ extern "C" void UpdateBhvguard(C *behavior)
             } else if (IsBhvanimDone(behavior->helper)) {
                 STATE next;
                 Clear(&next);
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_DIMITRI)) {
+                if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_DIMITRI)) {
                     next.kind = GUARD_MODE_FLEE;
                     next.payload.s.object = behavior->state.payload.s.object;
                 } else {
@@ -2504,7 +2504,7 @@ extern "C" void UpdateBhvguard(C *behavior)
                     else {
                         next.kind = GUARD_MODE_CALM;
                         P *other = h->object;
-                        if (other && FIsBasicDerivedFrom__FP5BASIC3CID(other, CID_STEPPLAYER) && Mode(other) == 2) {
+                        if (other && IsBasicDerivedFrom__FP5BASIC3CID(other, CID_STEPPLAYER) && Mode(other) == 2) {
                             P *owner = GetStepguardFromLo(other->extra);
                             if (owner && owner != behavior->guard) {
                                 next.payload.s.object = owner;
@@ -2598,7 +2598,7 @@ struct A { char pad[0xC]; struct VTE *vt; char pad2[0xFBC - 0x10]; int specialSt
 struct S { char pad[0x10]; struct A *guard; char pad2[0x1C]; int state; };
 struct F { int kind; int pad[3]; void *arg; float argFloat; int rest[0x16]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct A *p, int n);
 void *GetHeroPo(struct G *g);
 int HasBhvguardTargetList(struct S *p);
 int ShouldBhvguardUseNeelaBehavior(struct S *p);
@@ -2613,7 +2613,7 @@ void SetBhvguardMode(struct S *p, struct F *f);
 void ResumeBhvguard(struct S *behavior) {
     struct F f;
     func_002333B4(&f, 0, sizeof f);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_DIMITRI) && behavior->guard->unknown1010 > 0) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_DIMITRI) && behavior->guard->unknown1010 > 0) {
         f.kind = GUARD_MODE_FLEE;
         f.arg = GetHeroPo(&D_003DD490);
     } else if (behavior->guard->specialState == 0x15) {
@@ -2696,7 +2696,7 @@ extern "C" int ShouldBhvguardUseNeelaBehavior(BHV *behavior)
 {
     int f;
     f = 0;
-    if (FIsBasicDerivedFrom(behavior->pstep, (CID)0x3C) != 0) {
+    if (IsBasicDerivedFrom(behavior->pstep, (CID)0x3C) != 0) {
         f = ((STEPGUARD3C *)behavior->pstep)->useChaseBehavior != 0;
     }
     return f;
@@ -4073,7 +4073,7 @@ int GetZapKindIndex(int mask);
 void StartBhvhit(struct S *p);
 void *GetHeroPo(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
-qword ConvertAloPos(struct A *source, void *target, qword v);
+qword ConvertPosBetweenLos(struct A *source, void *target, qword v);
 void SprayDifficultyPrizes(void *a, qword v, int n, int m, struct A *p);
 void RefreshSwObjectCollisionFilter(struct G *g, struct A *p);
 void ResetDetectorTargets(void *p);
@@ -4114,7 +4114,7 @@ void StartBhvko(struct S *behavior) {
         qword v;
         /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
         __asm__ __volatile__("" : : : "memory");
-        v = ConvertAloPos(behavior->guard, 0, q);
+        v = ConvertPosBetweenLos(behavior->guard, 0, q);
         SprayDifficultyPrizes(D_002DE578, v, n, behavior->guard->unknown3F0, behavior->guard);
     }
     RefreshSwObjectCollisionFilter(&D_003DD490, behavior->guard);
@@ -4381,7 +4381,7 @@ extern "C"{
  extern qword D_002A2DC0;
  extern LIMIT D_002BE6B8;
  unsigned long GetSgfMask(int);
- int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
+ int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  qword GetLoWorldPos(P*);
  M3*GetLoWorldMatrix(P*);
  void FindShapeClosestPoint(P*,qword,void*,qword*,qword*,float*,float*);
@@ -4482,7 +4482,7 @@ extern "C" void StartBhvleap(C *behavior)
     unsigned long active = 0;
     if (behavior->target) {
         float heading;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_SHAPE)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_SHAPE)) {
             P *target = behavior->target;
             qword position = GetLoWorldPos(behavior->guard);
             FindShapeClosestPoint(target, position, 0, &behavior->point.q, &work.temp.first.direction.q, 0,
@@ -4494,21 +4494,21 @@ extern "C" void StartBhvleap(C *behavior)
             M3 *b = GetLoWorldMatrix(behavior->target);
             heading = atan2f(((U *)a->r)->f[1], ((U *)b->r)->f[0]);
         }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_RAIL)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_RAIL)) {
             active |= GetSgfMask(SGF_ON_RAIL);
             if (!behavior->reverse)
                 heading = NormalizeAngle__Ff(heading + 3.1415927410125732421875f);
             behavior->basisValid = 1;
             BuildAxisAngleRotationMatrix(&work.temp.first.rotation, heading, D_002A2DC0);
             behavior->matrix = work.temp.first.rotation;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS39)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS39)) {
             active |= GetSgfMask(SGF_ON_CLASS39);
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_PIPE)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_PIPE)) {
             active |= GetSgfMask(SGF_ON_PIPE);
             behavior->basisValid = 1;
             GetPipeGoalMatrix(behavior->target, behavior->reverse, &behavior->matrix, work.curve);
             AdjustBhvleapAttachPoint(behavior);
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS19) && behavior->target->kind == 3) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS19) && behavior->target->kind == 3) {
             active |= GetSgfMask(SGF_ON_CLASS19);
             behavior->basisValid = 1;
             M3 *m = GetLoWorldMatrix(behavior->target);
@@ -5217,7 +5217,7 @@ void StartAnimBinding(struct C *c, struct A *a, int fl, float g);
 float *FindAsegLabel(void *p, void *q);
 void SeekAsega(void *p, float a, float b, int n);
 void SetBhvjuggledState(struct S *p, int n);
-struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
+struct O *FindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(struct A *a);
 void NewNoise(void *p, qword v, struct A *a);
@@ -5255,7 +5255,7 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
             }
             SeekAsega(behavior->binding->payload, g, 1.0f, 0);
             SetBhvjuggledState(behavior, 0);
-            o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
+            o = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
             if (o) {
                 struct X x;
                 struct VTE *entry;
@@ -6270,7 +6270,7 @@ struct P {char pad10[0x10];void*guard;int pad14;void*child;char pad1C[4];int pen
 void UpdateBhv(struct P*);
 int IsBhvBusyAbove(struct P*);
 qword GetLoWorldPos(void*);
-qword ConvertAloPos(void*,void*,qword);
+qword ConvertPosBetweenLos(void*,void*,qword);
 int IsStepguardHandsOff(void*);
 void SetBhvEscortState(struct P*,int);
 void ClearPointerPair(struct X*);
@@ -6312,7 +6312,7 @@ top: {
         else if (lim < LenXY(SubIn(behavior->lastGoalPosition, pos))) {
             qword v;
             behavior->lastGoalPosition = pos;
-            v = ConvertAloPos(behavior->escorted, 0, behavior->localOffset);
+            v = ConvertPosBetweenLos(behavior->escorted, 0, behavior->localOffset);
             ClearPointerPair(&x);
             x.v = v;
             SetBhvgotoGoal(behavior->child, &x);
@@ -6378,7 +6378,7 @@ struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; void *es
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
-qword ConvertAloPos(void *p, int n, qword v);
+qword ConvertPosBetweenLos(void *p, int n, qword v);
 void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 // 0x17C928: Escort behaviour state change: 0 go to the offset point, 1 run to the object (flag 0x1C), 2 hands-off
@@ -6418,7 +6418,7 @@ void SetBhvEscortState(struct S *behavior, int n) {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
             qword v;
             behavior->lastGoalPosition = GetLoWorldPos(behavior->escorted);
-            v = ConvertAloPos(behavior->escorted, 0, behavior->localOffset);
+            v = ConvertPosBetweenLos(behavior->escorted, 0, behavior->localOffset);
             o->gotoAllowPartialRoute = 1;
             ClearPointerPair(&x);
             x.v = v;
@@ -7938,7 +7938,7 @@ struct R { float start; float end; };
 struct B { char pad[0xE4]; int isClosed; char pad2[0x180 - 0xE8]; void *blockedRanges; };
 struct X { qword a; qword v; };
 struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; struct B *shape; int isForward; float pathParam; int pad4; qword goal; char pad5[8]; int isDirect; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GetShapeMinDistance(struct B *b);
 float GetShapeMaxDistance(struct B *b);
 float WrapShapeDistance(struct B *b, float f);
@@ -7952,7 +7952,7 @@ void SetBhvgotoGoal(void *p, struct X *x);
 void AdvanceBhvpatrolpathGoal(struct S *behavior, int force) {
     float d;
     float t;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_GUARD)) d = D_002BE7BC; else d = D_002BE7C0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_GUARD)) d = D_002BE7BC; else d = D_002BE7C0;
     if (behavior->isForward == 0) d = -d;
     t = behavior->pathParam + d;
     if (behavior->shape->isClosed == 0) {

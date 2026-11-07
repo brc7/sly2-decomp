@@ -255,9 +255,9 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct G { char pad[0x4A4]; int n4A4; };
 extern struct G D_002DDF40;
-int NWorldCur(void);
+int GetCurrentWorld(void);
 void RestartHudWidget1(void *p);
-int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
+int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
 void RestartHudWidget2(void *p);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
@@ -271,10 +271,10 @@ void SetSndSourceLo(void *p, int n);
 // On the hint button (mask 0x200) when allowed, dismisses/acknowledges the pending hint. (inferred)
 void AcknowledgeStepplayerHint(void)
 {
-    if (!NWorldCur())
+    if (!GetCurrentWorld())
         return;
     RestartHudWidget1(D_003DD490);
-    if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
+    if (FindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
     SetSndSourceLo(CreateSfxSound(0x32), 0);
     *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
     D_002DDF40.n4A4++;
@@ -591,7 +591,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct P { char pad[0x10E4]; int interactKind; void *p10E8; int interactMode; };
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x140AF8
  * Purpose: True when interact mode (+0x10EC)==4 and kind!=3 and the target (+0x10E8) is within an xy distance
@@ -610,7 +610,7 @@ int IsStepplayerNearInteractTarget(struct P *player, int fX)
     float g;
     int f;
     if (player->interactMode != 4 || player->interactKind == 3) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(player->p10E8, 0x3A)) gDist = D_002BCC7C;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(player->p10E8, 0x3A)) gDist = D_002BCC7C;
     else gDist = D_002BCC80;
     minValue = D_002BCC84;
     maxValue = D_002BCC88;
@@ -870,7 +870,7 @@ void SetJtThrowState(void *p, int n);
 qword GetStepAsegaTranslation(void *p, struct SO *pso, float g);
 qword GetLoWorldPos(void *p);
 void ReleaseJtThrowObject(void *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsTossableActive(void *p);
 void TriggerTossable(void *p);
 void ReleaseAsega(void *p);
@@ -988,7 +988,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             if (AsStepplayer(player)->jtgrab.nState == 0xB) {
                 void *object;
                 int n;
-                if (AsStepplayer(player)->jtgrab.plo != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(AsStepplayer(player)->jtgrab.plo, 100)) {
+                if (AsStepplayer(player)->jtgrab.plo != 0 && IsBasicDerivedFrom__FP5BASIC3CID(AsStepplayer(player)->jtgrab.plo, 100)) {
                     object = AsStepplayer(player)->jtgrab.plo;
                     if (IsTossableActive(object))
                         TriggerTossable(object);
@@ -1579,7 +1579,7 @@ struct CRef { int tagk; int tag; };
 extern char D_002A4D50[];
 extern char D_002A4D58[];
 int sprintf(char *, const char *, ...);
-void RefGetSaveVarV(struct CRef *r, void *a, void *b, char *c, int d);
+void GetSaveVarByName(struct CRef *r, void *a, void *b, char *c, int d);
 void Decref__4CRef(struct CRef *r);
 // 0x141EF0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
@@ -1600,7 +1600,7 @@ void LoadStepplayerGadgets(struct P *player)
         struct VTE *e;
         sprintf(ach, D_002A4D50, i);
         e = &player->vt[103];
-        RefGetSaveVarV(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4D58, ach, 0);
+        GetSaveVarByName(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4D58, ach, 0);
         player->ae[i].id = r.tag;
         Decref__4CRef(&r);
     }
@@ -1629,7 +1629,7 @@ extern char D_002A4D58[];
 void SetGadgetSlotState(P *p, E *pe, int n);
 int sprintf(char *pch, const char *fmt, ...);
 }
-extern "C" { CRef RefSetSaveVarV(const CRef &ref, void *o, const char *fmt, ...); }
+extern "C" { CRef SetSaveVarByName(const CRef &ref, void *o, const char *fmt, ...); }
 /** @sly2-annot addr=0x141FC8
  * Purpose: Assign gadget id to slot i (<3): stop old, clear duplicates in other slots, write all to save var
  *   apukCur[%d], then vt105
@@ -1658,7 +1658,7 @@ extern "C" void SetStepplayerGadget(P *player, unsigned int i, int id)
         }
         sprintf(ach, D_002A4D50, j);
         VTE *e = &player->vt[103];
-        RefSetSaveVarV(CRef(0x15, player->ae[j].id), e->pfn((char *)player + e->d), D_002A4D58, ach, 0);
+        SetSaveVarByName(CRef(0x15, player->ae[j].id), e->pfn((char *)player + e->d), D_002A4D58, ach, 0);
     }
     VTE *e = &player->vt[105];
     ((void (*)(void *))e->pfn)((char *)player + e->d);
@@ -2379,7 +2379,7 @@ int IsWithinLimits__FP2LMf(void *p, float g);
 void AttachAct(Q *pq);
 void DetachAct(Q *pq);
 qword GetLoWorldPos(void *p);
-qword ConvertAloPos(int n, P *p, qword q);
+qword ConvertPosBetweenLos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
 float ClampAngleToRange(LM *plm, float g);
 M3 LoadRotateMatrixPanTilt(float a, float b);
@@ -2495,7 +2495,7 @@ void PickHeroInteractTarget(P *p)
             return;
         }
         AttachAct(p->pq);
-        CalculateVectorPanTilt(ConvertAloPos(0, p, GetLoWorldPos(p->leanTarget)), &pan, &tilt);
+        CalculateVectorPanTilt(ConvertPosBetweenLos(0, p, GetLoWorldPos(p->leanTarget)), &pan, &tilt);
         pan = ClampAngleToRange(&p->lmPan, pan);
         tilt = ClampAngleToRange(&p->lmTilt, tilt);
         {
@@ -2547,7 +2547,7 @@ struct P { char pad[0x10F8]; void *leanTarget; int x10FC; };
 extern float D_002BD2C0;
 extern float D_002BD2C4;
 qword GetLoWorldPos(void *p);
-qword ConvertAloPos(void *pm, struct P *p, qword v);
+qword ConvertPosBetweenLos(void *pm, struct P *p, qword v);
 float atan2f(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -2566,7 +2566,7 @@ int GetStepplayerLeanFlags(struct P *player)
     int n;
     int r;
     if (player->leanTarget) {
-        qword v = ConvertAloPos(0, player, GetLoWorldPos(player->leanTarget));
+        qword v = ConvertPosBetweenLos(0, player, GetLoWorldPos(player->leanTarget));
         float g = atan2f(GetY(v), GetX(v));
         float a = __builtin_fabsf(g);
         if (a < D_002BD2C0) n = 0;
@@ -2740,11 +2740,11 @@ extern char D_002A4D98[];
 extern char D_002A4DA0[];
 short FindSaveSymbol(void *, char *);
 int FindSaveVar(TRIE *, KEY *, OUT *);
-CRef RefGetSaveVar(TRIE *p, KEY *key, char *pb);
+CRef GetSaveVar(TRIE *p, KEY *key, char *pb);
 void *AllocFromStack(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
 }
-static inline CRef Lookup(KEY &k) { return RefGetSaveVar(&(*(TRIE *)&g_sw.savevars), &k, D_003D4A60); }
+static inline CRef Lookup(KEY &k) { return GetSaveVar(&(*(TRIE *)&g_sw.savevars), &k, D_003D4A60); }
 static inline void *Alloc(int cb)
 {
     AREQ req(cb, 0x10);
@@ -2836,22 +2836,22 @@ void *FindBootySaveVar(void *p);
 int GetCurrentBootyEntryId(void *p);
 void *GetBootyContainerSaveKey(Q *p);
 S *ClearStepplayerBootySave(LO *p, int n);
-int IlevelCur__Fv(void);
+int GetCurrentLevelIndex__Fv(void);
 BL *GetLevelListEntry(int);
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
-int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
+int FindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
-CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
+CRef SetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 }
-extern "C" { CRef RefSetSaveVarV(const CRef &ref, const void *o, ...); }
-extern "C" { CRef RefGetSaveVarV(const char *, ...); }
-static inline void Send(void *pv, CRef ref) { RefSetGlobalSaveVar(pv, ref, &D_003D4A60); }
+extern "C" { CRef SetSaveVarByName(const CRef &ref, const void *o, ...); }
+extern "C" { CRef GetSaveVarByName(const char *, ...); }
+static inline void Send(void *pv, CRef ref) { SetGlobalSaveVar(pv, ref, &D_003D4A60); }
 struct CRefRaw { int tagk; int tag; };
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRefRaw arg;
     __4CRefRC4CRef((CRef *)&arg, &r);
-    RefSetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
+    SetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
     Decref__4CRef((CRef *)&arg);
 }
 static inline void *Vcall103(LO *lo) { VTE *e = &lo->vt[103]; return e->pfn((char *)lo + e->d); }
@@ -2869,7 +2869,7 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
     STACKSCOPE m;
     switch (n) {
     case 0: {
-        CRef ret = RefSetSaveVarV(CRef(0x15, q->p194 ? GetCurrentBootyEntryId(q->p194) : -1), Vcall103(lo), D_002A4DB0, 0);
+        CRef ret = SetSaveVarByName(CRef(0x15, q->p194 ? GetCurrentBootyEntryId(q->p194) : -1), Vcall103(lo), D_002A4DB0, 0);
         if (lo->booty) {
             if (!q->p194) {
                 int dummy[2];
@@ -2893,26 +2893,26 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
             CRef a(0x15, -1);
             Send(pv, a);
         }
-        CRef ret = RefSetSaveVarV(CRef(0x15, -1), Vcall103(lo), D_002A4DB0, 0);
+        CRef ret = SetSaveVarByName(CRef(0x15, -1), Vcall103(lo), D_002A4DB0, 0);
         Y *py = lo->booty->p158;
         if (py->x4 != -1) {
             char ach[32];
             sprintf(ach, D_002A4D50, py->x4);
-            ret = RefGetSaveVarV(D_002A4DC0, D_002A4DC8, ach, 0);
-            ret = RefSetSaveVarV(CRef(0x15, ret.tag + 1), D_002A4DC0, D_002A4DC8, ach, 0);
+            ret = GetSaveVarByName(D_002A4DC0, D_002A4DC8, ach, 0);
+            ret = SetSaveVarByName(CRef(0x15, ret.tag + 1), D_002A4DC0, D_002A4DC8, ach, 0);
         }
         break;
     }
     case 2: {
         S *ps = ClearStepplayerBootySave(lo, GetCurrentBootyEntryId(lo->booty));
-        int i = IlevelCur__Fv();
+        int i = GetCurrentLevelIndex__Fv();
         if (ps && i != -1) {
             BL *pb = GetLevelListEntry(i);
             int f = 0;
             if (pb->c >= 4 && func_00233178(ps->pk, pb->pv, 8) == 0) f = 1;
             if (f) {
                 SO *apso[15];
-                int c = CploFindSwObjectsByClass(D_003DD490, 5, 0x25, 0, 0xF, apso);
+                int c = FindSwObjectsByClass(D_003DD490, 5, 0x25, 0, 0xF, apso);
                 for (int j = 0; j < c; j++) {
                     if (apso[j]->x180 == ps->pk->xC) {
                         lo->booty->p15C = apso[j];
@@ -2947,8 +2947,8 @@ extern "C" G D_003D4A60;
 extern "C" { extern char D_002A4DB0[]; }
 extern "C" {
 void *FindBootySaveVar(void *p);
-CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
-CRef RefSetSaveVarV(const CRef &ref, void *o, void *pv, int n);
+CRef SetGlobalSaveVar(void *p, const CRef &ref, G *pv);
+CRef SetSaveVarByName(const CRef &ref, void *o, void *pv, int n);
 }
 /* Same SetPv form as SetBootyContainerKind: the unused dummy param makes gcc set up %hi(D_003D4A60)
    before the copy (lui in the copy-ctor jal slot). The copy is made in a raw struct with explicit
@@ -2959,7 +2959,7 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     CRefRaw arg;
     __4CRefRC4CRef((CRef *)&arg, &r);
     {
-        const CRef &ret = RefSetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
+        const CRef &ret = SetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
     }
     Decref__4CRef((CRef *)&arg);
 }
@@ -2978,7 +2978,7 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
         SetPv(pv, a, &D_003D4A60);
     }
     VTE *e = &lo->vt[103];
-    CRef ret = RefSetSaveVarV(CRef(0x15, -1, 0), e->pfn((char *)lo + e->d), D_002A4DB0, 0);
+    CRef ret = SetSaveVarByName(CRef(0x15, -1, 0), e->pfn((char *)lo + e->d), D_002A4DB0, 0);
     return pv;
 }
 } // namespace M_func_00143AF0
@@ -2988,7 +2988,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct CRef { int tagk; int tag; };
 extern char D_002A4DB0[];
-void RefGetSaveVarV(struct CRef *r, void *a, void *b, int c);
+void GetSaveVarByName(struct CRef *r, void *a, void *b, int c);
 void Decref__4CRef(struct CRef *r);
 void ClearStepplayerBootySave(struct O *p, int n);
 void SpawnStepplayerBootyMarker(struct O *p, int n);
@@ -3005,7 +3005,7 @@ void RestoreStepplayerBooty(struct O *player)
     struct CRef r;
     int n;
     struct VTE *e = &player->vt[103];
-    RefGetSaveVarV(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4DB0, 0);
+    GetSaveVarByName(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4DB0, 0);
     n = r.tag;
     Decref__4CRef(&r);
     if ((unsigned int)(n + 1) < 2) return;
@@ -3145,8 +3145,8 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct P { char pad[0xC]; struct VTE *vt; char pad2[0x1030 - 0x10]; char action[4]; char m1034[4]; };
 extern char D_003DD490[];
 void StopStepplayerScriptAnim(struct P *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 void ReleaseSma(void *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *o, struct P *p, int a, void *b, float f, float g);
 void ReleaseAsega(void *p);
@@ -3166,13 +3166,13 @@ void PlayStepplayerScriptAnim(struct P *player, int oid, int a, int b)
         StopStepplayerScriptAnim(player);
         return;
     }
-    o = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, player);
+    o = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, player);
     if (!o) return;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
         player->vt[88].pfn((char *)player + player->vt[88].d, b);
         ReleaseSma(player->m1034);
         ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, player, a, player->action, 0.0f, 1.0f);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
         player->vt[88].pfn((char *)player + player->vt[88].d, b);
         ReleaseAsega(player->action);
         ReplaceSma(o, player, -1, a, player->m1034);

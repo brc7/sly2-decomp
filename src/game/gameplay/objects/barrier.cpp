@@ -61,8 +61,8 @@ int ShouldSoIgnoreIntersection(BARRIERV *pso, void *psoOther);
 void AdjustSoNewXp(BARRIERV *pso);
 void EnsureSwCallback(void *psw, void *pv, long k, int n);
 }
-int FIsBasicDerivedFrom(struct BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
-extern "C" void *PrefFindBinding__6CFrameUii(void *pframe, int a, int b);
+int IsBasicDerivedFrom(struct BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+extern "C" void *FindBindingPtr__6CFrameUii(void *pframe, int a, int b);
 
 // BARRIER vtable slot 7 (Init): initializes the SO part, then sets SO flag bit 34 (fTreeRoot in sly2/so.h), so the
 // barrier is the root of its own physics tree.
@@ -94,7 +94,7 @@ extern "C" int ShouldBarrierIgnoreIntersection(BARRIERV *barrier, void *other)
         if (HasLoOid(other, barrier->objects[i])) isNamed = 1;
     }
     for (j = 0; j < barrier->numClasses; j++) {
-        if (FIsBasicDerivedFrom((struct BASIC *)other, barrier->classes[j])) isNamed = 1;
+        if (IsBasicDerivedFrom((struct BASIC *)other, barrier->classes[j])) isNamed = 1;
     }
     {
         int result;
@@ -112,7 +112,7 @@ extern "C" int ShouldBarrierIgnoreIntersection(BARRIERV *barrier, void *other)
 extern "C" void NotifyBarrierImpact(BARRIERV *barrier)
 {
     AdjustSoNewXp(barrier);
-    if (barrier->frame && PrefFindBinding__6CFrameUii(barrier->frame, 5, 1))
+    if (barrier->frame && FindBindingPtr__6CFrameUii(barrier->frame, 5, 1))
         EnsureSwCallback(D_003DD490, barrier, ((LONGU *)&D_002A4790)->l, 0);
 }
 

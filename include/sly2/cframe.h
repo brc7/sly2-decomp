@@ -10,7 +10,7 @@
 #include "sly2/gc.h"
 
 /* CFrame: a Splice environment frame: the variable bindings of one scope and up to four parent frames searched after
-   it. Layout from src/game/object/proxy/ReleasePspare__FP5PROXYP10PROXYSPARE.cpp (2 copies in Lilly ports) */
+   it. Layout from src/game/object/proxy/ReleaseProxySpare__FP5PROXYP10PROXYSPARE.cpp (2 copies in Lilly ports) */
 class CFrame : public CGcObj<CFrame>
 {
 public:

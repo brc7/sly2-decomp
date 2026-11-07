@@ -1,9 +1,9 @@
-// basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, GetBasicCid), the sidebag and its
+// basic.cpp -- BASIC, the root of the object classes: class test (IsBasicDerivedFrom, GetBasicCid), the sidebag and its
 // option setters (EnsureLoSidebag*), Splice events and the deferred Splice callbacks, LO subscriptions and messages.
 // TU 0x132B00..0x1336F0 (28 functions, address order). The sidebag pool's GC members (PushFront 0x255C00, MakeRoot
 // 0x258178) are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp); the EMITTER class descriptor getter
 // 0x258F30 is emitter.cpp's (sly2/emitter.h).
-// Entry points: FIsBasicDerivedFrom (class tests everywhere), HandleBasicSpliceEvent (vtable slot 3),
+// Entry points: IsBasicDerivedFrom (class tests everywhere), HandleBasicSpliceEvent (vtable slot 3),
 // SendLoMessage / SubscribeLoObject, ScheduleSwSpliceCallback, the EnsureLoSidebag* option setters.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001336D0
@@ -54,7 +54,7 @@ extern int D_0027A108[];   /* s_aotypEvtParm, read from its second word */
 SIDEBAG *PtNew__t6CGcObj1Z8CSidebag(void);
 void AssignSidebagRef(SIDEBAG **pp, SIDEBAG *p);
 void MakeRoot__t6CGcObj1Z8CSidebag(SIDEBAG *p);
-void RefEnsureOption__FP5BASICiP4CRef(CREFV *pref, LO *plo, int optid, CREFV *prefValue);
+void EnsureBasicOption__FP5BASICiP4CRef(CREFV *pref, LO *plo, int optid, CREFV *prefValue);
 void Decref__4CRef(CREFV *pref);
 void CRef_ctor_CLQ(CREFV *pref, CLQ *pclq);
 void CRef_ctor_LM(CREFV *pref, LM *plm);
@@ -68,18 +68,18 @@ CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
 void CRef_SetSymid(CREFV *pref, int n);
 void CRef_SetBasic(CREFV *pref, BASICV *pbasic);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
-void RefEval__FP5CPairP6CFrame(CREFV *pref, CPAIR *pair, CFrame *frame);
+void EvalExpression__FP5CPairP6CFrame(CREFV *pref, CPAIR *pair, CFrame *frame);
 void __as__4CRefRC4CRef(CREFV *pref, CREFV *prefFrom);
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
-int PrefFindBinding__6CFrameUii(CFrame *p, int k, int n);
+int FindBindingPtr__6CFrameUii(CFrame *p, int k, int n);
 CREFV *BuildSpliceListFromValues(CREFV *ret, int x, int *pn, int y);
 
 void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref);
 SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *p, CPAIR *pair, float t);
 SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
 }
-int FIsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
 
 /** @sly2-annot addr=0x132B00
@@ -105,7 +105,7 @@ extern "C" void BASIC_Slot2Default(void) {
 
 /** @sly2-annot addr=0x132B10
  * Purpose: cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax)
- * Info: proposed name FIsBasicDerivedFrom (T1); TU basic
+ * Info: proposed name IsBasicDerivedFrom (T1); TU basic
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#1-class-descriptors-and-vtables,
  *   docs/engine/object-model.md#9-key-functions,
@@ -113,7 +113,7 @@ extern "C" void BASIC_Slot2Default(void) {
  * @end-sly2-annot */
 // True when the object's class is cid or derives from it: the class ids of a subtree are contiguous, so this is a
 // range test of the object's cid against [cid, cidMax of cid) in the class-descriptor table.
-int FIsBasicDerivedFrom(BASICV *object, CIDV n) {
+int IsBasicDerivedFrom(BASICV *object, CIDV n) {
     CLASSINFO *pr = ((CLASSINFO *(*)(void *))object->vtable[6].pfn)((char *)object + object->vtable[6].d);
     int x = pr->cid;
     int f = 0;
@@ -136,26 +136,26 @@ void EnsureBasicSidebag(BASICV *object) {
 
 /* EnsureLoSidebag* (Sly 1 names); the C++ original inlined the CRef constructor/setter, ~CRef -> Decref. */
 /** @sly2-annot addr=0x132BC8
- * Purpose: RefEnsureOption(plo, optid, bool CRef (tagk 0x17))
+ * Purpose: EnsureBasicOption(plo, optid, bool CRef (tagk 0x17))
  * Info: proposed name EnsureLoSidebagBool (T1); TU basic
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#5-objects-and-scripts,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-// Sets a boolean sidebag option on the object unless it already has a value (RefEnsureOption).
+// Sets a boolean sidebag option on the object unless it already has a value (EnsureBasicOption).
 void EnsureLoSidebagBool(LO *plo, OPTID optid, int v)
 {
     CREFV ref;
     CREFV refT;
     ref.m_tagk = 0x17;
     ref.u.n = v != 0;
-    RefEnsureOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
     Decref__4CRef(&refT);
     Decref__4CRef(&ref);
 }
 
 /** @sly2-annot addr=0x132C20
- * Purpose: RefEnsureOption with S32 CRef (tagk 0x15)
+ * Purpose: EnsureBasicOption with S32 CRef (tagk 0x15)
  * Info: proposed name EnsureLoSidebagInt (T1); TU basic
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#9-key-functions,
@@ -168,13 +168,13 @@ void EnsureLoSidebagInt(LO *plo, OPTID optid, int v)
     CREFV refT;
     ref.m_tagk = 0x15;
     ref.u.n = v;
-    RefEnsureOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
     Decref__4CRef(&refT);
     Decref__4CRef(&ref);
 }
 
 /** @sly2-annot addr=0x132C78
- * Purpose: RefEnsureOption with F32 CRef (tagk 0x16)
+ * Purpose: EnsureBasicOption with F32 CRef (tagk 0x16)
  * Info: proposed name EnsureLoSidebagFloat (T1); TU basic
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#9-key-functions,
@@ -187,7 +187,7 @@ void EnsureLoSidebagFloat(LO *plo, OPTID optid, float g)
     CREFV refT;
     ref.m_tagk = 0x16;
     ref.u.g = g;
-    RefEnsureOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
     Decref__4CRef(&refT);
     Decref__4CRef(&ref);
 }
@@ -195,7 +195,7 @@ void EnsureLoSidebagFloat(LO *plo, OPTID optid, float g)
 /* The payload constructors need a frame slot apart from the result (the m2c frames: value at 0, result at 0x10). */
 struct CREFFR { CREFV ref; char pad8[8]; CREFV refT; };
 /** @sly2-annot addr=0x132CC8
- * Purpose: RefEnsureOption with CRef(CLQ*)
+ * Purpose: EnsureBasicOption with CRef(CLQ*)
  * Info: proposed name EnsureLoSidebagClq (T1); TU basic
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#9-key-functions,
@@ -206,13 +206,13 @@ void EnsureLoSidebagClq(LO *plo, OPTID optid, CLQ *pclq)
 {
     CREFFR fr;
     CRef_ctor_CLQ(&fr.ref, pclq);
-    RefEnsureOption__FP5BASICiP4CRef(&fr.refT, plo, optid, &fr.ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&fr.refT, plo, optid, &fr.ref);
     Decref__4CRef(&fr.refT);
     Decref__4CRef(&fr.ref);
 }
 
 /** @sly2-annot addr=0x132D28
- * Purpose: RefEnsureOption with CRef(LM*)
+ * Purpose: EnsureBasicOption with CRef(LM*)
  * Info: proposed name EnsureLoSidebagLm (T1); TU basic
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#9-key-functions,
@@ -223,13 +223,13 @@ void EnsureLoSidebagLm(LO *plo, OPTID optid, LM *plm)
 {
     CREFFR fr;
     CRef_ctor_LM(&fr.ref, plm);
-    RefEnsureOption__FP5BASICiP4CRef(&fr.refT, plo, optid, &fr.ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&fr.refT, plo, optid, &fr.ref);
     Decref__4CRef(&fr.refT);
     Decref__4CRef(&fr.ref);
 }
 
 /** @sly2-annot addr=0x132D88
- * Purpose: RefEnsureOption with S32 CRef holding an OID
+ * Purpose: EnsureBasicOption with S32 CRef holding an OID
  * Info: proposed name EnsureLoSidebagOid (T1); TU basic
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#9-key-functions,
@@ -242,13 +242,13 @@ void EnsureLoSidebagOid(LO *plo, OPTID optid, OID v)
     CREFV refT;
     ref.m_tagk = 0x15;
     ref.u.n = v;
-    RefEnsureOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
     Decref__4CRef(&refT);
     Decref__4CRef(&ref);
 }
 
 /** @sly2-annot addr=0x132DE0
- * Purpose: RefEnsureOption with a vector CRef (passed by value as qword)
+ * Purpose: EnsureBasicOption with a vector CRef (passed by value as qword)
  * Info: proposed name EnsureLoSidebagVector (T1); TU basic
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#9-key-functions,
@@ -260,13 +260,13 @@ extern "C" void EnsureLoSidebagVector(LO *plo, int optid, qword v)
     CREFV ref;
     CREFV refT;
     CRef_ctor(&ref, v);
-    RefEnsureOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
     Decref__4CRef(&refT);
     Decref__4CRef(&ref);
 }
 
 /** @sly2-annot addr=0x132E40
- * Purpose: RefEnsureOption with a null BASIC CRef (default object option)
+ * Purpose: EnsureBasicOption with a null BASIC CRef (default object option)
  * Info: proposed name EnsureLoSidebagBasic (T2); TU basic
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
@@ -276,7 +276,7 @@ extern "C" void EnsureLoSidebagBasic(LO *plo, int optid)
 {
     CREFFR fr;
     CRef_ctor_BASIC(&fr.ref, 0);
-    RefEnsureOption__FP5BASICiP4CRef(&fr.refT, plo, optid, &fr.ref);
+    EnsureBasicOption__FP5BASICiP4CRef(&fr.refT, plo, optid, &fr.ref);
     Decref__4CRef(&fr.refT);
     Decref__4CRef(&fr.ref);
 }
@@ -349,7 +349,7 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 }
 
 /** @sly2-annot addr=0x133000
- * Purpose: RefEval the call list in the object's frame; copy result to *pref if given
+ * Purpose: EvalExpression the call list in the object's frame; copy result to *pref if given
  * Info: proposed name EvalSpliceEventCallback (T1); TU basic
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
@@ -358,7 +358,7 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref)
 {
     CREFV ref;
-    RefEval__FP5CPairP6CFrame(&ref, pair, frame);
+    EvalExpression__FP5CPairP6CFrame(&ref, pair, frame);
     if (pref != 0) {
         __as__4CRefRC4CRef(pref, &ref);
     }
@@ -442,7 +442,7 @@ extern "C" void CancelSwSpliceCallback(SW *world, int id) {
 // arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
 extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int y, CREFV *z)
 {
-    if (object->frame && PrefFindBinding__6CFrameUii(object->frame, k, 1)) {
+    if (object->frame && FindBindingPtr__6CFrameUii(object->frame, k, 1)) {
         CREFV ref;
         SPAIR sp;
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);

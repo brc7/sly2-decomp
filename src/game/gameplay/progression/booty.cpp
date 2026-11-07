@@ -174,9 +174,9 @@ void GetBootyContainerSaveKey(CID37V *p);
 void *PvContSaveKey(CID37V *p) __asm__("GetBootyContainerSaveKey");
 int GetSavedBootyContainerKind(CID37V *p);
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);    /* FIsBasicDerivedFrom__FP5BASIC3CID */
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);    /* IsBasicDerivedFrom__FP5BASIC3CID */
 void LaunchMatch(MATCH *pmatch);                    /* LaunchMatch__FP5MATCH */
-int IlevelCur();                                    /* IlevelCur__Fv */
+int GetCurrentLevelIndex();                                    /* GetCurrentLevelIndex__Fv */
 
 // BOOTY (cid 0x67) vtable slot 7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
 extern "C" void InitBooty(BOOTYV *booty) {
@@ -302,7 +302,7 @@ struct XPO { BASIC *pbasic; };
 struct XPM { char pad[0x14]; XPO *pa; };
 // BOOTY (cid 0x67) vtable slot 61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
 extern "C" int ShouldBootyIgnoreIntersection(BOOTYV *booty, XPM *pm) {
-    if (booty->st == 5 && FIsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
+    if (booty->st == 5 && IsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
     return ShouldSoIgnoreIntersection(booty, pm);
 }
 
@@ -310,7 +310,7 @@ struct XPE { int f0; int f4; BASIC *pbasic; char pad[0x34]; };
 // BOOTY (cid 0x67) vtable slot 55: base, and when dropped and touched by a non-player post callback D_002A4B58. (inferred)
 extern "C" void AdjustBootyNewXp(BOOTYV *booty, XPE *ae, int i) {
     AdjustSoNewXp(booty, ae, i);
-    if (booty->st == 5) { XPE *pe = &ae[1 - i]; if (!FIsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, booty, D_002A4B58.l, 0); }
+    if (booty->st == 5) { XPE *pe = &ae[1 - i]; if (!IsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, booty, D_002A4B58.l, 0); }
 }
 
 // BOOTY (cid 0x67) vtable slot 75: if zap qualifies and dropped, reset to state 0 and return 1. (inferred)
@@ -688,7 +688,7 @@ extern "C" void OnBootyContainerAdd(CID37V *container) { func_00183FB8(container
 extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
 {
     BOOTYV *pqa, *ppa;
-    if (!FIsBasicDerivedFrom((BASIC *)q, CID_34))
+    if (!IsBasicDerivedFrom((BASIC *)q, CID_34))
         return;
     pqa = q->pbooty;
     ppa = container->pbooty;
@@ -729,7 +729,7 @@ void GetBootyContainerSaveKey(CID37V *container) {
     int i;
     int v;
     i = 0;
-    v = IlevelCur();
+    v = GetCurrentLevelIndex();
     if (v == -1) v = i;
     i = v;
     char *pv = (char *)&g_sw.savevars;
@@ -759,15 +759,15 @@ public:
 };
 struct CREFC { int m_tagk; int m_n; };
 extern "C" {
-void RefGetGlobalSaveVar(CREFC *, void *, void *);
-CRef RefSetGlobalSaveVar(void *, const CRef &, void *);
+void GetGlobalSaveVar(CREFC *, void *, void *);
+CRef SetGlobalSaveVar(void *, const CRef &, void *);
 }
 // Reads an integer save variable through a CRef.
 static inline int NFromRef(void *pv)
 {
     CREFC ref;
     int n;
-    RefGetGlobalSaveVar(&ref, pv, D_003D4A60);
+    GetGlobalSaveVar(&ref, pv, D_003D4A60);
     n = ref.m_n;
     Decref__4CRef(&ref);
     return n;
@@ -790,7 +790,7 @@ int GetSavedBootyContainerKind(CID37V *container) {
 }
 
 // Stores a CRef into a global save variable.
-static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60); }
+static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, D_003D4A60); }
 // Splice: reset current booty, save kind n, and spawn if n != -1. (inferred)
 extern "C" void SetBootyContainerKind(CID37V *container, int n)
 {

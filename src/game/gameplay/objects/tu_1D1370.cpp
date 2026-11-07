@@ -175,9 +175,9 @@ extern char D_003DD490[];
 void PostSoLoad(P *);
 REF *FindSoXf(P *,int,int);
 void *memmove(void *,const void *,int);
-qword ConvertAloPos(void *,P *,qword);
+qword ConvertPosBetweenLos(void *,P *,qword);
 void *NewPositionAct(P *,REF *,int,int,int,qword);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
+void *FindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
 void *ApplySmToObject(void *,P *,int,int);
 void *NewSampledShape(int,int);
 void ReplaceSma(void *,P *,int,int,void **);
@@ -210,7 +210,7 @@ extern "C" void PostRobottankLoad(P *tank){
    memmove(current.entry,source,bytes);
    --tank->count;
   }else{
-   qword returned=ConvertAloPos(0,tank,reference->position);
+   qword returned=ConvertPosBetweenLos(0,tank,reference->position);
    register qword position __asm__("vf2");register int upper __asm__("$2");
    asm("qmtc2.ni %3,%0\n\tsqc2 %0,%1\n\tlw %2,%4":"=j"(position),"=m"(current.entry->position.q),"=r"(upper):"r"(returned),"m"(current.entry->upper.bits));
    register qword high __asm__("vf3"),low __asm__("vf4");
@@ -277,11 +277,11 @@ extern "C" void PostRobottankLoad(P *tank){
  ATTACH **cursor=tank->attachments;int byteOffset=0;
  do {
   current.attachment=*cursor;
-  current.attachment->object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,tank);
+  current.attachment->object=FindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,tank);
   if(current.attachment->object){
    current.attachment->mesh=FindSoXf(tank,current.attachment->meshId,6);
    if(current.attachment->mesh || current.attachment->meshId==invalid){
-    current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,tank);
+    current.attachment->extra=FindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,tank);
     if(current.attachment->extra || current.attachment->extraId==invalid){
      current.attachment->binding=ApplySmToObject(current.attachment->object,tank,-1,0);
      if(current.attachment->mesh)current.attachment->meshBinding=NewPositionAct(tank,current.attachment->mesh,1,7,3,D_002A2DD0);
@@ -784,14 +784,14 @@ extern char D_003DD490[];
 extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C20C0[3];
 qword GetLoWorldPos(void *);
-int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
-// Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass. (inferred)
+int FindSwObjectsByClass(void *, int, int, int, int, SO **);
+// Nearest object of class 0x6C (CID 108 ammo pickup) via FindSwObjectsByClass. (inferred)
 SO *FindNearestRobottankPickup(OBJ *pickup)
 {
     SO *best = 0;
     SO *aso[16];
     qword pos = GetLoWorldPos(pickup);
-    int n = CploFindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
+    int n = FindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
     float fMin = D_002A7810;
     int i;
     for (i = 0; i < n; i++) {
@@ -1473,7 +1473,7 @@ struct VU_FLOAT { qword q; VU_FLOAT(float g) { __asm__("mfc1 %0,%1" : "=r"(q) : 
 /* -FLT_MAX / FLT_MAX below are constant-pool literals (0x2A7838/0x2A783C), not globals: their REG_EQUAL sets order f24/f26 */
 
 extern "C" {
-qword ConvertAloPos(OWNER *, OWNER *, qword);
+qword ConvertPosBetweenLos(OWNER *, OWNER *, qword);
 qword *VECTOR_opAssign(qword *, qword);
 M4 InvertMatrix4Rigid(const M4 *);
 void InitPlaneFromNormalPos(VECTOR4 *, qword, qword);
@@ -1591,7 +1591,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
     M4 *pmat = GetMatrix(owner);
     M4 frame;
     M4 *pframe = &frame;
-    BuildFrame(pframe, pmat, ConvertAloPos(owner, 0, wheel->pos));
+    BuildFrame(pframe, pmat, ConvertPosBetweenLos(owner, 0, wheel->pos));
     M4 inverse;
     inverse = InvertMatrix4Rigid(pframe);
     float height = wheel->top - wheel->bottom;
@@ -1861,7 +1861,7 @@ typedef struct {
 extern char D_003DD490[];
 extern const LONGU D_002A7840;
 void AdjustSoNewXp(void *, OBJ *, int);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, long, void *);
 // Lane z as a float.
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
@@ -1882,14 +1882,14 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
         s.q = sq;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(contact->normal), "j"(s.q));
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 0x4D) || GetZ(v) < 0.7f) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x4D) || GetZ(v) < 0.7f) {
         contact->elasticity = 0.0f;
         contact->friction = 0.1f;
     } else {
         contact->elasticity = 0.5f;
         contact->friction = 0.1f;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 0x6C))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x6C))
         EnsureSwCallback(D_003DD490, tank, D_002A7840.l, other);
 }
 } } // namespace M_AdjustRobottankNewXp
@@ -1900,7 +1900,7 @@ typedef int qword __attribute__((mode(TI)));
 struct E { int a[8]; float g20; int b[11]; qword q50; };
 struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
 void UpdateSoTreeBounds(struct S *p);
-qword ConvertAloPos(struct S *p, int n, qword q);
+qword ConvertPosBetweenLos(struct S *p, int n, qword q);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
 // CID 77 vtable slot 49: SO tree bounds then extend by each wheel sphere. (inferred)
 void UpdateRobottankBounds(struct S *tank) {
@@ -1908,7 +1908,7 @@ void UpdateRobottankBounds(struct S *tank) {
     UpdateSoTreeBounds(tank);
     for (i = 0; i < tank->c; i++) {
         struct E *pe = &tank->ae[i];
-        ExtendSoTreeBounds(tank, ConvertAloPos(tank, 0, pe->q50), pe->g20);
+        ExtendSoTreeBounds(tank, ConvertPosBetweenLos(tank, 0, pe->q50), pe->g20);
     }
 }
 } } // namespace M_UpdateRobottankBounds
@@ -1934,7 +1934,7 @@ extern "C" { extern qword D_002A2DC0,D_002A2DB0; }
 extern "C" { extern char D_002C21A0[],D_002C21B0[],D_002C21C0[]; }
 extern "C" float D_002C21CC;
 extern "C" {
-qword ConvertAloVec(P*,P*,qword);
+qword ConvertVecBetweenLos(P*,P*,qword);
 qword TransformXfPos(P*,NODE*,qword);
 CONTACT*FindDeepestRobottankWheelXp(P*,ENTRY*);
 float SmoothValue__FfffP3SMPPf(float,float,float,void*,float*);
@@ -1959,7 +1959,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
 extern "C" void RenderRobottankSelf(P*tank){
  V velocity,point;M3 basis;
  VE*method=&tank->vt[33];
- velocity.q=ConvertAloVec(0,tank,method->fn((P*)((char*)tank+method->delta)));
+ velocity.q=ConvertVecBetweenLos(0,tank,method->fn((P*)((char*)tank+method->delta)));
  for(int i=0;i<tank->count;i++){
   ENTRY*e=&tank->entries[i];
   point.q=TransformXfPos(0,(NODE*)tank->space,e->node->local.position.q);

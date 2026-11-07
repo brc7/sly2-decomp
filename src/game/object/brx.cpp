@@ -1,9 +1,9 @@
 // brx.cpp -- loading objects from a level file (.brx): the object list reader (LoadSwObjectsFromBrx), object creation
-// and cloning (PloNew, PloCloneLo), the option readers that apply a level file's option values through g_aeopid
+// and cloning (CreateLo, CloneLoWithParent), the option readers that apply a level file's option values through g_aeopid
 // (LoadOptionsFromBrx, LoadOptionFromBrx, RefFromBrx), the post-load object-reference fixups, and the two load
 // collectors (an array of the loaded objects; a proxy collector that parents and tags them).
 // TU 0x13E368..0x13FF70 (16 functions, address order).
-// Entry points: LoadSwObjectsFromBrx (from the level loader), PloNew / PloCloneLo (object creation),
+// Entry points: LoadSwObjectsFromBrx (from the level loader), CreateLo / CloneLoWithParent (object creation),
 // LoadOptionsFromBrx (from every class's LoadFromBrx).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_brx
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013FF50
@@ -73,7 +73,7 @@ struct SWALLOC
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
-CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
+CRef BuildSpliceListFromValues(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 struct OIDFIELD
 {
     OID oid;
@@ -166,16 +166,16 @@ int IsCidDerivedFrom(CID cid, CID cidBase);
 LO *FindSwObjectInProxyScope(SW *world, int grf, OID oid, LO *ploCtx, void *pchList);
 int FindProxyRefPath(PXR *ppxr, int n, int *pid);
 }
-LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
-LO *PloFindSwObject(SW *world, int grf, OID oid, LO *ploCtx);
+LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice);
+LO *FindSwObject(SW *world, int grf, OID oid, LO *ploCtx);
 /* The same function called with a fifth argument (the target loads a4 before the call; 0x15E938 passes 0 on to
    FindSwObjectInProxyScope): an asm-labelled second form, as frm's PropagateSaisF. */
-LO *PloFindSwObjectPch(SW *world, int grf, OID oid, LO *ploCtx, void *pchList) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
+LO *FindSwObjectExtraArg(SW *world, int grf, OID oid, LO *ploCtx, void *unusedA4) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-int IlevelCur();
-int IdProxy(int isrc, int n);
-int FMatchLoadFilter(int c, short *aid);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int GetCurrentLevelIndex();
+int MakeProxyId(int isrc, int n);
+int IsCurrentLevelInList(int c, short *aid);
 void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *stream,
                       CLoadCollector *plc);
 
@@ -192,13 +192,13 @@ static inline int Max(int a, int b) { return a < b ? b : a; }
 
 /** @sly2-annot addr=0x13E368
  * Purpose: Linear search of SW.alangstr by id; returns string or "" (D_002A4BE0) if id==-1 or not found
- * Info: proposed name PchzFindSwLangstr (T1); TU brx
+ * Info: proposed name FindSwLocalizedString (T1); TU brx
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
  * See: docs/engine/world-sw.md#9-source-files, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
 // Returns the localized string with the given id from the world's string table, or "" when id is -1 or not found.
-char *PchzFindSwLangstr(SW *world, int id)
+char *FindSwLocalizedString(SW *world, int id)
 {
     int i;
     if (id == -1) return (char *)D_002A4BE0;
@@ -213,7 +213,7 @@ char *PchzFindSwLangstr(SW *world, int id)
  * Purpose: Create object: D_002BAAE8[cid].pfnNew(); set psoParent(+0x10), oid(+0x18), refcounted pframe from
  *   isplice; append to SW oid and cid hash lists; vt7 Init; vt11 if fInWorld; vt23 if frozen-list member;
  *   record in SW load list (+0x39E4)
- * Info: proposed name PloNew (T1); TU brx
+ * Info: proposed name CreateLo (T1); TU brx
  * Notes: runtime: links into SW oid hash + per-class list confirmed
  * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); semantic review; sources:
  *   r2_131F70+runtime
@@ -224,7 +224,7 @@ char *PchzFindSwLangstr(SW *world, int id)
 // Creates an object of class cid: allocates it through the class descriptor, sets parent, oid and Splice frame, links
 // it into the world's oid and class lists, runs Init (slot 7) and the in-world callbacks, and records it in the
 // current load collector. The general object factory.
-LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice)
+LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
 {
     SW *world;
     LO *plo = (D_002BAAE8 + cid)->pfnNew();
@@ -245,9 +245,9 @@ LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice)
 }
 
 /** @sly2-annot addr=0x13E510
- * Purpose: Clone object: PloNew(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for
- *   SO also clones children via PloCloneLo)
- * Info: proposed name PloCloneLo (T1); TU brx
+ * Purpose: Clone object: CreateLo(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for
+ *   SO also clones children via CloneLoWithParent)
+ * Info: proposed name CloneLoWithParent (T1); TU brx
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
  * Confidence: high [T1 0.93] - evidence: semantic review; sources: r2_131F70+parse-verified
  * See: docs/engine/object-model.md#3-creation-hierarchy-and-removal,
@@ -256,19 +256,19 @@ LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice)
  * @end-sly2-annot */
 // Clones an object under a new parent: a new object of the same class and oid, then CloneHierarchy (slot 40), which for
 // an SO also clones the children.
-LO *PloCloneLo(LO *plo, SO *psoParent)
+LO *CloneLoWithParent(LO *plo, SO *psoParent)
 {
     CLASSINFO *pclassinfo;
     LO *ploNew;
     if (!plo) return 0;
     pclassinfo = plo->Pclassinfo();
-    ploNew = PloNew(pclassinfo->cid, psoParent, plo->oid, -1);
+    ploNew = CreateLo(pclassinfo->cid, psoParent, plo->oid, -1);
     ploNew->CloneHierarchy(plo);   /* vtable slot 40 */
     return ploNew;
 }
 
 /** @sly2-annot addr=0x13E590
- * Purpose: LORUN callback: *(OID-resolved LO*)(plo + ib) = PloFindSwObject(g_sw, 4, oid, plo)
+ * Purpose: LORUN callback: *(OID-resolved LO*)(plo + ib) = FindSwObject(g_sw, 4, oid, plo)
  * Info: proposed name PostLoadOidField (T1); TU brx
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx-0x13e368-0x13ff70
@@ -278,11 +278,11 @@ LO *PloCloneLo(LO *plo, SO *psoParent)
 void PostLoadOidField(LO *plo, void *pv)
 {
     OIDFIELD *poidfield = (OIDFIELD *)pv;
-    *(LO **)((char *)plo + poidfield->ib) = PloFindSwObject(&D_003DD490, 4, poidfield->oid, plo);
+    *(LO **)((char *)plo + poidfield->ib) = FindSwObject(&D_003DD490, 4, poidfield->oid, plo);
 }
 
 /** @sly2-annot addr=0x13E5E0
- * Purpose: LORUN callback: finds object by oid (PloFindSwObject mode 4) and calls the stored
+ * Purpose: LORUN callback: finds object by oid (FindSwObject mode 4) and calls the stored
  *   pointer-to-member setter with it
  * Info: proposed name PostLoadOidSetter (T1); TU brx
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
@@ -291,7 +291,7 @@ void PostLoadOidField(LO *plo, void *pv)
 // Deferred post-load callback: resolves a stored oid to an object and calls the stored member-function setter with it.
 void PostLoadOidSetter(LO *plo, void *pv)
 {
-    LO *ploFound = PloFindSwObject(&D_003DD490, 4, ((OIDPMF *)pv)->oid, plo);
+    LO *ploFound = FindSwObject(&D_003DD490, 4, ((OIDPMF *)pv)->oid, plo);
     (((LOSETTEE *)plo)->*((OIDPMF *)pv)->pmf)(ploFound);
 }
 
@@ -386,16 +386,16 @@ extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *
 // option's record peopid of g_aeopid (brx.h EOPID, 0x28 bytes). grfeopid is the record's flags MASKED by the caller: LoadOptionsFromBrx
 // (level files, 0x13F810) passes grf & 0x2580, AcquireProxySpare (0x1CAEC8, options of a copy's objects) grf & 0x2031. Four shapes:
 //  1. grf & 0x401 - a METHOD option (g_aeopid[26] = Remove, otyp 0x12, grf 0x4401): record +0x18 arguments are read (each: a u16 type, bit 0x8000 = a u8
-//     count of elements of type & 0x7fff -> a splice list by RefSetArgListFromPvs; else one RefFromBrx value) into 32 CRefs, then the record's
+//     count of elements of type & 0x7fff -> a splice list by BuildSpliceListFromValues; else one RefFromBrx value) into 32 CRefs, then the record's
 //     splice thunk is called: +8 when grf has 0x400 (FILE options: SplLoRemoveDeferred 0x100B10 = DeferLoRemove), else +0x10 (the thunk scripts call:
 //     SplLoRemove 0x100B88 = LO::Remove NOW). So a level file's option 26 is a deferred Remove; AcquireProxySpare (mask 0x2031 has no 0x400) removes at once.
 //  2. grf & 0x90 - the value is stored straight into a C member at pv + record +0x18 (pv = pmfObj(1) when grf & 0x2000), by type (the same type codes
-//     as RefFromPv / RefSetPeopid). An OBJECT REFERENCE (otyp & 0x7fff >> 12 == 2, e.g. 0x2006) holds an oid (s32): with grf 0x80 (file) it is queued
+//     as RefFromPv / SetOptionRecordValue). An OBJECT REFERENCE (otyp & 0x7fff >> 12 == 2, e.g. 0x2006) holds an oid (s32): with grf 0x80 (file) it is queued
 //     on the object's run list as {oid, member offset} -> PostLoadOidField at PostLoad; else (0x10) stored at once with the offset at +0x10.
 //  3. otherwise a typed SETTER (pointer to member function) is called with the value: the one at +0x18 when grf & 0x100, else the one at +0x10, on pv
 //     (or pmfObj(1)). A 0x2xxx object reference is queued on the run list as {oid, the +0x18 setter} -> PostLoadOidSetter (grf & 0x100) or the +0x10
-//     setter is called at once with the object found by PostLoadOidSetter; either way the object is PloFindSwObject(&g_sw, 4, oid, the loading object):
-//     the nearest object with that oid (mode 4 of CploFindSwObjects, relative to the loading object), found AFTER the whole level is loaded for files.
+//     setter is called at once with the object found by PostLoadOidSetter; either way the object is FindSwObject(&g_sw, 4, oid, the loading object):
+//     the nearest object with that oid (mode 4 of FindSwObjectsInProxyScope, relative to the loading object), found AFTER the whole level is loaded for files.
 // The two MMI arms (types 2 and 3) pack a vector4 with mfc1 / pextlw / pcpyld and pass it by value in $a1. Found on the way: the incoming pvStruct is
 // `void *const` (assign_parms marks a const parameter's pseudo RTX_UNCHANGING_P, so reload_cse and the schedulers move its reloads across the record stores:
 // 91.1% -> 97.7%); the setters of non-int types are CASTS of the int setter (`(void (BASIC::*)(float))pmfSet`: gcc's cast of a pointer to member function is
@@ -440,7 +440,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                     apv[iElt] = &arefElt[iElt].u;
                     aotyp[iElt] = (OTYP)otyp;
                 }
-                aref[iarg] = RefSetArgListFromPvs(cElt, aotyp, apv);
+                aref[iarg] = BuildSpliceListFromValues(cElt, aotyp, apv);
             }
             else
             {
@@ -823,7 +823,7 @@ extern "C" void SetLoTagHierarchy(LO *plo, int n)
 {
     LO *ploChild;
     plo->nUnk48 = n;
-    if (FIsBasicDerivedFrom(plo, (CID)0x30))
+    if (IsBasicDerivedFrom(plo, (CID)0x30))
     {
         for (ploChild = (LO *)((SO *)plo)->dlChild.head; ploChild; ploChild = (LO *)ploChild->dleChild.next)
             SetLoTagHierarchy(ploChild, n);
@@ -855,16 +855,16 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
 
 /** @sly2-annot addr=0x13FAD0
  * Purpose: True if global D_003E1110 == -1 or appears in the object's S16 filter list
- * Info: proposed name FMatchLoadFilter (T1); TU brx
+ * Info: proposed name IsCurrentLevelInList (T1); TU brx
  * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
  * See: docs/engine/world-sw.md#loadswobjectsfrombrx-0x13fb40-matched,
  *   docs/formats/meshes-scene.md#4-scene-assembly-and-placement,
  *   docs/formats/meshes-scene.md#devtools-findings-v3-2026-11-01
  * @end-sly2-annot */
-// True when no load filter is active (D_003E1110 == -1) or the active filter id is in the object's filter list.
-int FMatchLoadFilter(int c, short *aid)
+// True when no load filter is active (GetCurrentLevelIndex() = g_sw.nLoadFilter, D_003E1110, is -1) or it is in the list.
+int IsCurrentLevelInList(int c, short *aid)
 {
-    int ilevel = IlevelCur();
+    int ilevel = GetCurrentLevelIndex();
     int i;
     if (ilevel == -1) return 1;
     for (i = 0; ; i++)
@@ -935,11 +935,11 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
         {
             SW *world = &D_003DD490;
             int r;
-            t = IdProxy(world->isrcLoading, -1);
+            t = MakeProxyId(world->isrcLoading, -1);
             r = FindProxyRefPath(world->ppxrRoot, 1, &t);
             if (k == -2)
             {
-                if (PloFindSwObjectPch(world, 0x405, (OID)oid, 0, (void *)r))
+                if (FindSwObjectExtraArg(world, 0x405, (OID)oid, 0, (void *)r))
                 {
                     goto skip;
                 }
@@ -959,11 +959,11 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
         }
         {
         filter:
-            if (FMatchLoadFilter(k, as) == 0)
+            if (IsCurrentLevelInList(k, as) == 0)
             {
                 if (cid == 0x84 || cid == 0x85)
                 {
-                    plo1 = PloNew((CID)cid, psoParent, (OID)oid, -1);
+                    plo1 = CreateLo((CID)cid, psoParent, (OID)oid, -1);
                     if (cid == 0x84)
                         *(int *)((char *)plo1 + 0x50) = 1;
                     else
@@ -983,7 +983,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
         }
         else
         {
-            plo2 = PloNew((CID)cid, psoParent, (OID)oid, n);
+            plo2 = CreateLo((CID)cid, psoParent, (OID)oid, n);
             plo2->LoadFromBrx(stream);
             if (plc)
                 LC_ADD(plc, 1, &plo2);

@@ -183,7 +183,7 @@ qwordV DecomposeRotationMatrixToEuler(const void *);
 ACT *NewPositionAct(CID100V *, XFV *, int, int, int, qwordV);
 qwordV ConvertXfVec(XFV *, XFV *, qwordV);
 M3 *BuildOrthonormalMatrixZP(M3 *, qwordV, qwordV) __asm__("BuildOrthonormalMatrixZ");   /* hidden result pointer by hand */
-int CploFindSwObjectsByClass(SW *, int, int, int, int, SOV **);
+int FindSwObjectsByClass(SW *, int, int, int, int, SOV **);
 void FadeSoOut(CID100V *, float);
 void SetSmaGoalIfReachable(SMA *, int);
 struct R30 { char pad[0x30]; int state; };
@@ -211,7 +211,7 @@ void SweepTossableProbes(CID100V *p, int zapKind, int damage, qwordV pos, float 
 void SetTossableState(CID100V *p, int state);
 void UpdateTossable(CID100V *p);
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");    /* FIsBasicDerivedFrom__FP5BASIC3CID */
+int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");    /* IsBasicDerivedFrom__FP5BASIC3CID */
 
 // The gadget's state setter through its vtable (slot 76: SetTossableState, or a subclass's override such as
 // SelectGuardTrapTarget).
@@ -328,7 +328,7 @@ extern "C" int ShouldTossableIgnoreIntersection(CID100V *gadget, BASIC *other)
     int ignore = ShouldSoIgnoreIntersection(gadget, other);
     int state = gadget->state;
     if (state == TOSSABLE_HELD || state == TOSSABLE_FADING) {
-        if (FIsBasicDerivedFrom(other, CID_34)) ignore = MaxInt(ignore, 1);
+        if (IsBasicDerivedFrom(other, CID_34)) ignore = MaxInt(ignore, 1);
     }
     return ignore;
 }
@@ -397,7 +397,7 @@ int IsTossableChainFree(CID100V *gadget, SOV *object)
     unsigned i;
     for (; object; object = object->parent) {
         for (i = 0; i < 4; i++)
-            if (FIsBasicDerivedFrom((BASIC *)object, (CIDV)D_002C42E8[i])) return 0;
+            if (IsBasicDerivedFrom((BASIC *)object, (CIDV)D_002C42E8[i])) return 0;
     }
     return 1;
 }
@@ -725,7 +725,7 @@ void SetTossableState(CID100V *gadget, int state)
         }
         SetSoCnstrTorque(gadget, 1);
         SOV *objects[32];
-        int count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 32, objects);
+        int count = FindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 32, objects);
         gadget->nearest = FindNearest(gadget, count, objects, D_002E1E40, D_002A97A8);
         break;
     }
@@ -882,7 +882,7 @@ extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
         float bestDistance;
         ACTOR *bestActor;
         Vec pos(gadget->source ? SourcePosition(gadget->source) : GetLoWorldPos(gadget));
-        count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 0x20, (SOV **)candidates);
+        count = FindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 0x20, (SOV **)candidates);
         bestDistance = 400.0f;
         bestActor = 0;
         for (i = 0; i < count; i++) {

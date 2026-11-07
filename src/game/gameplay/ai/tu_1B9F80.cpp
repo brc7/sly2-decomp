@@ -91,7 +91,7 @@ int GetBasicCid(void *pv);
 void UpdateStepguard(NEELAV*);
 int StepguardHasSgf(NEELAV*,int);
 qword GetLoWorldPos(void*);
-qword ConvertAloPos(NEELAV*,void*,qword);
+qword ConvertPosBetweenLos(NEELAV*,void*,qword);
 int IsPointInVol(VOLUME*,qword);
 void SetNeelaState(NEELAV*,int);
 int IsAsegaRetracted(ASEGA*);
@@ -259,7 +259,7 @@ extern "C" void UpdateNeela(NEELAV *neela)
             }
         }
         if (!neela->target && !StepguardHasSgf(neela, SGF_IDLE)) {
-            qword position = Vector(ConvertAloPos(neela, 0, D_002C0A80.q));
+            qword position = Vector(ConvertPosBetweenLos(neela, 0, D_002C0A80.q));
             qword low = VuAdd(position, D_002C0A90.q);
             qword high = VuAdd(position, D_002C0AA0.q);
             STACKSCOPE arena;

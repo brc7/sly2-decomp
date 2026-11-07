@@ -128,7 +128,7 @@ float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
-POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
+POOL *FindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
 void ScreenSlot9Default(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void ShowScreen(void);
@@ -144,8 +144,8 @@ int IsWidgetAnimPlaying(POOL *, int);
 int GetJoySelectionStepY(JOY *);
 int GetJoySelectionStepX(JOY *);
 uint HandleJoyButtons(JOY *, uint);
-CRef RefGetGlobalSaveVar(OPT *, CONTEXT *);
-CRef RefSetGlobalSaveVar(OPT *, const CRef &, void *);
+CRef GetGlobalSaveVar(OPT *, CONTEXT *);
+CRef SetGlobalSaveVar(OPT *, const CRef &, void *);
 void SetMcDialogState(MCDLG *, int);
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 float ClampToLimits__FP2LMf(void *, float);
@@ -154,10 +154,10 @@ void ApplyGsSettings(void *);
 int IsScreenShown(void *p);
 int IsSwTransitionBusy(SWM *g);
 char *GetHeroPo(SWM *g);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
 int AreWidgetLoadsIdle(void);
-int NWorldCur(void);
+int GetCurrentWorld(void);
 int GetBasicCid(void *p);
 void SetJobListPage(void *p, int f);
 void StartSaveSlotJob(GSAVE *p);
@@ -179,8 +179,8 @@ int GetPauseMenuTopPageId(PMENU *p);
 int IsPauseMenuOnSavePage(PMENU *p);
 }
 /* Callers' views (asm labels). */
-CRef Eval(int a, void *b) __asm__("RefGetGlobalSaveVar");
-void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("RefGetGlobalSaveVar");
+CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
+void GetGlobalSaveVarInto(CREFP *r, int a, void *b) __asm__("GetGlobalSaveVar");
 
 /** @sly2-annot addr=0x1AE928
  * Purpose: Find menu widget object (oid 0x370) into +0x20; state 0, selection -1
@@ -191,7 +191,7 @@ void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("RefGetGlobalSaveVar
  * @end-sly2-annot */
 // Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
 extern "C" void InitPauseMenu(PMENU *menu) {
-    menu->pool = (POOL *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
+    menu->pool = (POOL *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
     menu->pending = -1;
     menu->state = 0;
 }
@@ -370,7 +370,7 @@ void SetPauseMenuState(PMENU *menu, int st)
     }
 }
 
-static inline float Value(OPT*key,CONTEXT*context){CRef result=RefGetGlobalSaveVar(key,context);return result.f;}
+static inline float Value(OPT*key,CONTEXT*context){CRef result=GetGlobalSaveVar(key,context);return result.f;}
 static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
 /** @sly2-annot addr=0x1AEEE0
  * Purpose: Screen vt7: per-frame menu input (GetJoySelectionStepY, HandleJoyButtons), item activation callbacks,
@@ -733,7 +733,7 @@ extern "C" void GetPauseMenuVideoItemText(int *menu)
     }
 }
 
-static inline void SetPv(OPT*key,CRef r,void*context){RefSetGlobalSaveVar(key,r,context);}
+static inline void SetPv(OPT*key,CRef r,void*context){SetGlobalSaveVar(key,r,context);}
 static inline void SetInt(OPT*key,int x){CRef r(x);SetPv(key,r,D_003D4A60);}
 static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,D_003D4A60);}
 static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,D_003D4A60);}
@@ -918,7 +918,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
     if (IsSwTransitionBusy(&D_003DD490)) return 0;
     if (IsScreenShown(&D_002E6550)) return 0;
     pl = GetHeroPo(&D_003DD490);
-    if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
+    if (pl && IsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
     if (!AreWidgetLoadsIdle()) return 0;
     psrc = D_002C00E8;
     pdst = D_002F65D0;
@@ -928,13 +928,13 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
         case 0x6A:
             f = 0;
             if (D_003DA3C0.unknown24) {
-                if (NWorldCur()) f = 1;
+                if (GetCurrentWorld()) f = 1;
             }
             break;
         case 0x6B:
             f = 0;
             if (D_003DD490.currentJob) {
-                if (NWorldCur()) f = 1;
+                if (GetCurrentWorld()) f = 1;
             }
             break;
         case 0x43:
@@ -949,7 +949,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
         case 0x2C:
             break;
         case 0x42:
-            f = NWorldCur() != 0;
+            f = GetCurrentWorld() != 0;
             break;
         }
         if (f) {
@@ -1109,7 +1109,7 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
         CREFP r;
         int v;
         D_002E6550.followUpAction = 1;
-        RefGetGlobalSaveVarP(&r, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
+        GetGlobalSaveVarInto(&r, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
         v = r.tag;
         Decref__4CRef(&r);
         if (v == 0) {

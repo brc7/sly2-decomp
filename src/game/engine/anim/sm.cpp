@@ -39,7 +39,7 @@ void ChooseSmaTransition(SMA *psma, int n);
 }
 int IsEntryInDl(DL *pdl, void *pv);
 int FindSmStateOptional(SM *psm, OID oid);
-LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
+LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 extern "C" {
 void PostLoLoad(LO *plo);
 void ApplySmToObject(SM *psm, ALO *palo, OID oid, GRFAPL grfapl);   /* PsmaApplySm */
@@ -380,7 +380,7 @@ void SM::VUnk14()
     SM *psm = (SM *)this;
     PostLoLoad(psm);
     if (psm->psminit) {
-        LO *plo = PloFindSwObject(&D_003DD490, 4, psm->psminit->oidRoot, psm);
+        LO *plo = FindSwObject(&D_003DD490, 4, psm->psminit->oidRoot, psm);
         ApplySmToObject(psm, (ALO *)plo, psm->psminit->oidInitialState, psm->psminit->grfapl);
     }
 }

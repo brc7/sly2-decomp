@@ -190,8 +190,8 @@ void ReleaseLeapConstraint(LEAPV *p);
 int IsDirAnimStopped(DIRACT *p);
 }
 void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA */
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);                                              /* FIsBasicDerivedFrom__FP5BASIC3CID */
-LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                                              /* IsBasicDerivedFrom__FP5BASIC3CID */
+LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                                   /* FindSwObject__FP2SWi3OIDP2LO */
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 /** @sly2-annot addr=0x20B840
@@ -462,7 +462,7 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
     if (p->fInit)
         return;
     if (!p->paseg) {
-        p->paseg = (ASEG *)PloFindSwObject(&D_003DD490SW, 4, p->oid, (LO *)arg);
+        p->paseg = (ASEG *)FindSwObject(&D_003DD490SW, 4, p->oid, (LO *)arg);
         if (!p->paseg)
             return;
     }
@@ -605,7 +605,7 @@ extern "C" void UpdateLeap(LEAPV *leap)
             else if (leap->arrival <= D_002DDED0.time) {
                 if (leap->ballistic)
                     SetLeapState(leap, 3);
-                else if (FIsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38))
+                else if (IsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38))
                     EnableStuckWatch(leap->subject->control);
             }
             break;
@@ -654,7 +654,7 @@ void SetLeapState(LEAPV *leap, int state)
         leap->previousVelocity.q = GetSoGravity(leap->subject);
         break;
     case 1: {
-        if (FIsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38)) {
+        if (IsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38)) {
             ALO *subject = leap->subject;
             DetachStepguard(subject);
             DisableStuckWatch(subject->control);
@@ -679,8 +679,8 @@ void SetLeapState(LEAPV *leap, int state)
         float time;
         if (ballistic) {
             float low, high, slopeLow, slopeHigh;
-            if (leap->related && (FIsBasicDerivedFrom((BASIC *)leap->related, (CID)0x13) ||
-                                  FIsBasicDerivedFrom((BASIC *)leap->related, (CID)0xB))) {
+            if (leap->related && (IsBasicDerivedFrom((BASIC *)leap->related, (CID)0x13) ||
+                                  IsBasicDerivedFrom((BASIC *)leap->related, (CID)0xB))) {
                 low = 1250.0f;
                 slopeLow = 1.1f;
                 high = 0.0f;
@@ -745,7 +745,7 @@ void SetLeapState(LEAPV *leap, int state)
         if (leap->ballistic)
             ReleaseLeapConstraint(leap);
         SetSoGravity(leap->subject, leap->previousVelocity.q);
-        if (FIsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38))
+        if (IsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38))
             EnableStuckWatch(leap->subject->control);
         break;
     }
@@ -831,7 +831,7 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
         register qword scalar __asm__("vf1");
         int f;
         e = &dirAnims->ae[i];
-        o = (ASEG *)PloFindSwObject(&D_003DD490SW, 4, (OID)(int)e->animation, (LO *)arg);
+        o = (ASEG *)FindSwObject(&D_003DD490SW, 4, (OID)(int)e->animation, (LO *)arg);
         e->animation = o;
         if (!o)
             continue;

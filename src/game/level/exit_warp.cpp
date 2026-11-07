@@ -87,16 +87,16 @@ extern char D_002F66B0[];       /* the movie player */
 extern CLOCK D_002DDED0;        /* g_clock */
 
 struct CM;
-LO *PloFindSwObject(SW *world, int findFlags, OID oid, LO *context);
-int FAddRsmg(SW *world, RSMG *arsmg, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
+LO *FindSwObject(SW *world, int findFlags, OID oid, LO *context);
+int AddOrUpdateRsmg(SW *world, RSMG *arsmg, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
 void CutCm(CM *pcm);
 extern "C" {
-int CploFindSwObjectsByClass(SW *world, int findFlags, int cid, LO *context, int cploMax, void *aplo);
+int FindSwObjectsByClass(SW *world, int findFlags, int cid, LO *context, int cploMax, void *aplo);
 void LoadXfmFromBrx(WARPV *warp, CBinaryInputStream *stream);
 void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
 LO *GetHeroPo(SW *world);
 void InitXfm(EXITV *exitVolume);
-void SetLoBusyk(EXITV *exitVolume, int busyk);
+void SetLoBusyKind(EXITV *exitVolume, int busyk);
 void *AllocCopyFromWorldHeap(MEMREQ *request, WARPBLOB *pblob);
 void LoadVolFromBrx(EXITV *exitVolume, CBinaryInputStream *stream);
 void *AllocFromWorldHeap(MEMREQ *request);
@@ -109,7 +109,7 @@ void UpdateLo(EXITV *exitVolume, float dt);
 void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
 void WipeToWorldWarp(SW *world, void *pvWorld, int a, int b, int grf, int c);
 qwordV GetLoWorldPos(LO *object);
-qwordV ConvertAloPos(int a, EXITV *exitVolume, qwordV pos);
+qwordV ConvertPosBetweenLos(int a, EXITV *exitVolume, qwordV pos);
 int FindBspLeafContainingPointFast(void *pbsp, int n, qwordV pos);
 void TriggerRsmg(SW *world, int crsmg, RSMG *arsmg, WARPV *warp, int fOn);
 
@@ -142,12 +142,12 @@ extern "C" WARPV *FindWarpByOid(SW *world, OID oid, OID contextOid)
     int findFlags = 5;
     if (contextOid != -1)
     {
-        context = PloFindSwObject(world, 5, contextOid, 0);
+        context = FindSwObject(world, 5, contextOid, 0);
         if (context)
             findFlags = 1;
     }
     result = 0;
-    c = CploFindSwObjectsByClass(world, findFlags, 0x2A, context, 0x20, warpList);
+    c = FindSwObjectsByClass(world, findFlags, 0x2A, context, 0x20, warpList);
     for (i = 0; i < c; i++)
     {
         WARPV *warp = warpList[i];
@@ -181,7 +181,7 @@ extern "C" EXITV *FindDefaultExit(SW *world)
 {
     EXITV *exitList[32];
     EXITV *result = 0;
-    int c = CploFindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, exitList);
+    int c = FindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, exitList);
     int i;
     for (i = 0; i < c; i++)
         if (exitList[i]->isDefault)
@@ -251,7 +251,7 @@ void EXIT::Init()
     InitXfm(exitVolume);
     exitVolume->targetWarpOid = 0x189;
     exitVolume->wipeOid = -1;
-    SetLoBusyk(exitVolume, 0);
+    SetLoBusyKind(exitVolume, 0);
     grf = exitVolume->flagWord;
     if (!(grf & 1))
         *(int *)grf |= 2;
@@ -337,7 +337,7 @@ extern "C" void SetExitExits(EXITV *exitVolume, int newState)
     {
         if (newState == 4)
         {
-            SetLoBusyk(exitVolume, 1);
+            SetLoBusyKind(exitVolume, 1);
             IncrementSwHandsOff(&D_003DD490, 3);
             D_003DD490.exitBeingTaken = exitVolume;
         }
@@ -443,7 +443,7 @@ extern "C" void UpdateExit(EXITV *exitVolume, float dt)
         int isInside;
         if (!hero)
             return;
-        u.q = ConvertAloPos(0, exitVolume, GetLoWorldPos(hero));
+        u.q = ConvertPosBetweenLos(0, exitVolume, GetLoWorldPos(hero));
         isInside = FindBspLeafContainingPointFast(exitVolume->bspTree, 0x7FFFFFFF, u.q) != 0;
         switch (exitVolume->state)
         {
@@ -508,10 +508,10 @@ extern "C" void TriggerWarp(WARPV *warp)
     for (i = 0; i < (int)warp->pairCount; i++)
     {
         WARPPAIR *pair = &warp->pairs[i];
-        LO *object = PloFindSwObject(&D_003DD490, 4, pair->object, (LO *)warp);
+        LO *object = FindSwObject(&D_003DD490, 4, pair->object, (LO *)warp);
         if (object)
         {
-            LO *target = PloFindSwObject(&D_003DD490, 4, pair->target, (LO *)warp);
+            LO *target = FindSwObject(&D_003DD490, 4, pair->target, (LO *)warp);
             if (target)
             {
                 VT *vtable = *(VT **)((char *)object + 0xC);
@@ -521,7 +521,7 @@ extern "C" void TriggerWarp(WARPV *warp)
     }
     TriggerRsmg(&D_003DD490, warp->rsmgCount, warp->rsmgs, warp, 1);
     ApplyTaskStates(D_002DEB30, warp->taskStateCount, warp->taskStates, warp);
-    for (j = CploFindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, exitList) - 1; j >= 0; j--)
+    for (j = FindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, exitList) - 1; j >= 0; j--)
     {
         if (exitList[j]->state != 2)
             SetExitExits(exitList[j], 0);
@@ -531,7 +531,7 @@ extern "C" void TriggerWarp(WARPV *warp)
 }
 
 /** @sly2-annot addr=0x2288D8
- * Purpose: FAddRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger
+ * Purpose: AddOrUpdateRsmg(g_sw, p+0xE4, 4, p+0xE0, ...) when fOnTrigger
  * Info: proposed name SetWarpRsmg (T1); TU exit_warp
  * Notes: verifier WRONG: SetCid41Rsmg -> SetWarpRsmg | Sly1 SetWarpRsmg; class is CID 0x2A=42 WARP (r8
  *   SetCid41Rsmg was CID 0x29)
@@ -544,7 +544,7 @@ extern "C" void TriggerWarp(WARPV *warp)
 extern "C" void SetWarpRsmg(WARPV *warp, int d, OID e, OID f, OID g)
 {
     if (d)
-        FAddRsmg(&D_003DD490, warp->rsmgs, 4, &warp->rsmgCount, d, e, f, g);
+        AddOrUpdateRsmg(&D_003DD490, warp->rsmgs, 4, &warp->rsmgCount, d, e, f, g);
 }
 
 /** @sly2-annot addr=0x228920

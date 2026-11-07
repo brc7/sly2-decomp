@@ -1,6 +1,6 @@
 // serialize.cpp -- reads a compiled Splice expression tree (pair list) from the level stream.
 // TU 0x12A3D8..0x12A980 (3 functions, address order).
-// Entry point: PpairSerializeIn (from the level's Splice section loader).
+// Entry point: DeserializePair (from the level's Splice section loader).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_serialize
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012A960
 #include "sly2/slotheap.h"
@@ -10,7 +10,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* TU-private views. NODE is a CPair (0x14 bytes, freed into pool 0); this CRef keeps the per-file inline SetTag
    (Decref + InitTag) and typed setters, which sly2/cref.h declares differently (SetTag out of line).
-   PpairSerializeIn matched with this order: fNext computed before tagk (no pins or asm). */
+   DeserializePair matched with this order: fNext computed before tagk (no pins or asm). */
 struct NODE; struct OBJ; struct T18; struct T19; struct BIS;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; float *ag; NODE *pnode; } u;
@@ -66,11 +66,11 @@ struct SPN {
     ~SPN() { NODE *pn = p; if (pn && --pn->cref == 0) delete pn; }
     NODE *operator->() { return p; }
 };
-extern "C" SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis);
+extern "C" SPN DeserializePair__FP18CBinaryInputStream(BIS *pbis);
 /** @sly2-annot addr=0x12A3D8
  * Purpose: Deserializes a compiled Splice expression tree from the level stream (typed U8 tag,
  *   S32/S16/F32/U32 payloads, jump table 0x2A4500)
- * Info: proposed name PpairSerializeIn (T1); TU serialize
+ * Info: proposed name DeserializePair (T1); TU serialize
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels;
  *   splice Ref node list (WE header) | splice_scripts format doc cites this function by this name
  *   (CONFIRMED(code) in the doc)
@@ -82,7 +82,7 @@ extern "C" SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis);
 // Reads one compiled Splice expression (a pair list) from the level stream: per node a U8 tag byte (bit 7 = another
 // node follows, low 7 bits = TAGK) and its payload (S32, F32, U32 or float arrays; tag 31 is a nested list read
 // recursively). Debug builds' extra line info (D_003E1C34) is skipped. Returns the list head.
-SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Read__18CBinaryInputStream(pbis);
+SPN DeserializePair__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Read__18CBinaryInputStream(pbis);
  if (b == 0xFF) return SPN(0);
  SPN sp; NODE *pnNew = PtNew__t6CGcObj1Z5CPair(); sp.Set(pnNew);
  if (D_003E1C34) { S32Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); }
@@ -101,5 +101,5 @@ SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Rea
  case 28: pref->SetTag(0x1C); for (int i = 0; i < 3; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
  case 29: pref->SetTag(0x1D); for (int i = 0; i < 2; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
  case 30: pref->SetTag(0x1E); for (int i = 0; i < 3; i++) { float *ag = pref->u.ag; float g = F32Read__18CBinaryInputStream(pbis); ag += i; *ag = g; } break;
- case 31: *pref = PpairSerializeIn__FP18CBinaryInputStream(pbis).p; break;
- } if (fNext) { NODE *pn = sp.p; SPN next = PpairSerializeIn__FP18CBinaryInputStream(pbis); pn->pnext = next.p; } return SPN(sp.p); }
+ case 31: *pref = DeserializePair__FP18CBinaryInputStream(pbis).p; break;
+ } if (fNext) { NODE *pn = sp.p; SPN next = DeserializePair__FP18CBinaryInputStream(pbis); pn->pnext = next.p; } return SPN(sp.p); }

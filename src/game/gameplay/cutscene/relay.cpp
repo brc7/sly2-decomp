@@ -963,7 +963,7 @@ struct RELAYV : public LO
       undefined4 unk_0xa8[2];
 };
 
-LO *PloFindSwObject(SW *psw, GRFFSO grffso, OID oid, LO *ploContext);
+LO *FindSwObject(SW *psw, GRFFSO grffso, OID oid, LO *ploContext);
 
 void StopAsegSoundEvent(SW *psw, int sfxid, ASEG *paseg, CRefPtr<SND> *ppsnd) __asm__("StopSwAsegSound");
 
@@ -1419,7 +1419,7 @@ void *NewRelayJsg(OBJ *, void *, int);
 void UpdateRelayScript(void *);
 int IsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
-void SetLoBusyk(OBJ *, int);
+void SetLoBusyKind(OBJ *, int);
 enum { LO_FLAG_02 = 2 };   /* set while a relay holds its busy mark (also set by several Init functions; meaning inferred only that far) */
 // The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
 static inline int GetLoFlags(OBJ *lo)
@@ -1463,7 +1463,7 @@ void FireRelay(OBJ *relay, int n)
     }
     if (GetLoFlags(relay) & LO_FLAG_02)
         return;
-    SetLoBusyk(relay, 1);
+    SetLoBusyKind(relay, 1);
     SetLoFlagBits(relay, LO_FLAG_02);
     relay->isMarkedBusy = 1;
 }
@@ -1500,7 +1500,7 @@ struct OBJ {
 };
 void RemoveJsg(void *);
 void ClearRelayAlarms(OBJ *);
-void SetLoBusyk(OBJ *, int);
+void SetLoBusyKind(OBJ *, int);
 enum { LO_FLAG_02 = 2 };
 // Clears bits of the LO flag word, stored inline or (bit 0 clear) behind a pointer.
 static inline void ClearLoFlagBits(OBJ *lo, int bits)
@@ -1542,7 +1542,7 @@ void StopRelay(OBJ *relay)
         RemoveJsg(pv);
     ClearRelayAlarms(relay);
     if (relay->isMarkedBusy) {
-        SetLoBusyk(relay, 2);
+        SetLoBusyKind(relay, 2);
         ClearLoFlagBits(relay, LO_FLAG_02);
     }
     relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 6, 0, 0, 0, 0);
@@ -2716,8 +2716,8 @@ namespace M_func_001E1DB8 { extern "C" {
 struct S;
 typedef struct S { char pad[0x18]; int context; } S;
 extern struct G D_003DD490;
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int x);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
+void *FindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int x);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void *GetProxyCurrentObject(void *p);
 // Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their current object.
 // (inferred)
@@ -2727,8 +2727,8 @@ void *FindJsgObject(S *script, int id)
     if (id == -1) {
         q = 0;
     } else {
-        q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, script->context);
-        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = GetProxyCurrentObject(q);
+        q = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, script->context);
+        if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = GetProxyCurrentObject(q);
     }
     return q;
 }
@@ -2745,7 +2745,7 @@ namespace M_NextJsgCommand__FP3JSG {
 // the time it started is noted (the relay's busy bit 0x100 picks the real-time clock). A reference is held on the script meanwhile: a command can
 // end it (StopBlock on itself).
 typedef unsigned  size_t;
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 extern "C" {
 /* memset: sly2/classes.h's declaration */
 }
@@ -2981,7 +2981,7 @@ void NextJsgCommand(JSGV *script)
         else
         {
             LO *plo = PloFindJsgObject(script, prelaycmd->raiseAlarm.oidRelay);
-            prelayAlarm = (plo && FIsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
+            prelayAlarm = (plo && IsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
         }
         if (prelayAlarm)
         {
@@ -2999,7 +2999,7 @@ void NextJsgCommand(JSGV *script)
         else
         {
             LO *plo = PloFindJsgObject(script, prelaycmd->stopRelay.oidRelay);
-            prelayStop = (plo && FIsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
+            prelayStop = (plo && IsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
         }
         if (prelayStop)
         {
@@ -3010,7 +3010,7 @@ void NextJsgCommand(JSGV *script)
     case RELAYCK_SetCtlState:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->setCtlState.oidObj);
-        if (plo && FIsBasicDerivedFrom(plo, (CID)50))
+        if (plo && IsBasicDerivedFrom(plo, (CID)50))
         {
             ((PO *)plo)->SetCtlState(1);
         }
@@ -3033,7 +3033,7 @@ void NextJsgCommand(JSGV *script)
         LO *ploRoot = PloFindJsgObject(script, prelaycmd->playAseg.oidRoot);
         if (ploRoot)
         {
-            if (FIsBasicDerivedFrom(ploRoot, (CID)52))
+            if (IsBasicDerivedFrom(ploRoot, (CID)52))
             {
                 PlayStepClip((STEPPLAYER *)ploRoot, prelaycmd->playAseg.oidAseg, prelaycmd->playAseg.grfapl | 1, 5);
                 if (!prelaycmd->fAsync)
@@ -3042,13 +3042,13 @@ void NextJsgCommand(JSGV *script)
                 }
                 break;
             }
-            if (!FIsBasicDerivedFrom(ploRoot, (CID)48))
+            if (!IsBasicDerivedFrom(ploRoot, (CID)48))
             {
                 ploRoot = 0;
             }
         }
         LO *ploAseg = PloFindJsgObject(script, prelaycmd->playAseg.oidAseg);
-        if (ploAseg && FIsBasicDerivedFrom(ploAseg, (CID)109))
+        if (ploAseg && IsBasicDerivedFrom(ploAseg, (CID)109))
         {
             ASEGA *pasega = PasegaApplyAseg((ASEG *)ploAseg, (ALO *)ploRoot, 0.0f, 1.0f, prelaycmd->playAseg.grfapl);
             if (!prelaycmd->fAsync)
@@ -3062,7 +3062,7 @@ void NextJsgCommand(JSGV *script)
     case RELAYCK_FireRelay:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->fireRelay.oidRelay);
-        if (plo && FIsBasicDerivedFrom(plo, (CID)114))
+        if (plo && IsBasicDerivedFrom(plo, (CID)114))
         {
             RelayFire((RELAYV *)plo, ploActor);
             if (!prelaycmd->fAsync)
@@ -3101,8 +3101,8 @@ void NextJsgCommand(JSGV *script)
     case RELAYCK_WidgetShow:
     case RELAYCK_WidgetHide:
     {
-        LO *plo = PloFindSwObject(&D_003DD490, (GRFFSO)0x405, prelaycmd->widgetShow.oidWidget, 0);
-        if (plo && FIsBasicDerivedFrom(plo, (CID)126))
+        LO *plo = FindSwObject(&D_003DD490, (GRFFSO)0x405, prelaycmd->widgetShow.oidWidget, 0);
+        if (plo && IsBasicDerivedFrom(plo, (CID)126))
         {
             if (prelaycmd->relayck == RELAYCK_WidgetShow)
             {
@@ -3192,7 +3192,7 @@ void NextJsgCommand(JSGV *script)
     case RELAYCK_TeleportTo:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->teleportTo.oidWhere);
-        if (plo && FIsBasicDerivedFrom(plo, (CID)41))
+        if (plo && IsBasicDerivedFrom(plo, (CID)41))
         {
             PutSwHeroAtWarp((WARPV *)plo);
             break;
@@ -3201,9 +3201,9 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (plo && FIsBasicDerivedFrom(plo, (CID)27))
+        if (plo && IsBasicDerivedFrom(plo, (CID)27))
         {
-            if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+            if (IsBasicDerivedFrom(script->ploActor, (CID)52))
             {
                 STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
                 EnterJtGrabState(&pstepplayer->jtgrab, 8, plo, 0);
@@ -3216,7 +3216,7 @@ void NextJsgCommand(JSGV *script)
         MATRIX3 mat;
         float rad;
         GetJsgLocation(script, plo, (qword *)&pos, &rad);
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)51))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)51))
         {
             STEP *pstep = (STEP *)script->ploActor;
             pstep->TranslateToPos(QwSub(*(qword *)&pos, pstep->qwUnk240));
@@ -3228,7 +3228,7 @@ void NextJsgCommand(JSGV *script)
         }
         mat = LoadRotateMatrixRad(rad, D_002A2DC0);
         script->ploActor->RotateToMat((MATRIX4 *)&mat);
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             pstepplayer->qwUnk1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(pstepplayer->nUnk1048));
@@ -3249,7 +3249,7 @@ void NextJsgCommand(JSGV *script)
     case RELAYCK_SetTunnel:
     {
         LO *plo = PloFindJsgObject(script, prelaycmd->setTunnel.oidTunnel);
-        if (plo && FIsBasicDerivedFrom(plo, (CID)15))
+        if (plo && IsBasicDerivedFrom(plo, (CID)15))
         {
             SetJsgTn(script, (TN *)plo);
         }
@@ -3264,7 +3264,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtpipe.nState == -1)
@@ -3284,7 +3284,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)53))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)53))
         {
             JT *pjt = (JT *)script->ploActor;
             switch (prelaycmd->heroState.nState)
@@ -3306,7 +3306,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEP *pstep = (STEP *)script->ploActor;
             StepCmdHoldOn((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd1D.oidGoal));
@@ -3318,7 +3318,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEP *pstep = (STEP *)script->ploActor;
             LO *ploA = PloFindJsgObject(script, prelaycmd->stepCmd1E.oidA);
@@ -3332,7 +3332,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEP *pstep = (STEP *)script->ploActor;
             StepCmdHoldOn9((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd1F.oidGoal));
@@ -3344,7 +3344,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEP *pstep = (STEP *)script->ploActor;
             StepCmdCarry((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd20.oidGoal));
@@ -3355,7 +3355,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEP *pstep = (STEP *)script->ploActor;
             StepCmdPlaceHeld((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd21.oidGoal));
@@ -3367,10 +3367,10 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEP *pstep = (STEP *)script->ploActor;
-            LO *ploTarget = PloFindSwObject(&D_003DD490, (GRFFSO)1, prelaycmd->stepCmd22.oidTarget, pstep);
+            LO *ploTarget = FindSwObject(&D_003DD490, (GRFFSO)1, prelaycmd->stepCmd22.oidTarget, pstep);
             LO *ploDir;
             if (prelaycmd->stepCmd22.nMode == 3)
             {
@@ -3396,7 +3396,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             SetJsgJt(script, prelaycmd, script->ploActor);
         }
@@ -3406,7 +3406,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (prelaycmd->goTo.idClip != -1)
@@ -3416,15 +3416,15 @@ void NextJsgCommand(JSGV *script)
             LO *plo = PloFindJsgObject(script, prelaycmd->goTo.oidTarget);
             if (plo)
             {
-                if (FIsBasicDerivedFrom(plo, (CID)34) || FIsBasicDerivedFrom(plo, (CID)12) || FIsBasicDerivedFrom(plo, (CID)38) ||
-                    FIsBasicDerivedFrom(plo, (CID)88) || FIsBasicDerivedFrom(plo, (CID)11) || FIsBasicDerivedFrom(plo, (CID)19))
+                if (IsBasicDerivedFrom(plo, (CID)34) || IsBasicDerivedFrom(plo, (CID)12) || IsBasicDerivedFrom(plo, (CID)38) ||
+                    IsBasicDerivedFrom(plo, (CID)88) || IsBasicDerivedFrom(plo, (CID)11) || IsBasicDerivedFrom(plo, (CID)19))
                 {
                     uint grf;
-                    if (FIsBasicDerivedFrom(pstepplayer, (CID)53))
+                    if (IsBasicDerivedFrom(pstepplayer, (CID)53))
                     {
                         grf = 0xFFFF;
                     }
-                    else if (FIsBasicDerivedFrom(pstepplayer, (CID)55))
+                    else if (IsBasicDerivedFrom(pstepplayer, (CID)55))
                     {
                         grf = 0xF8FE;
                     }
@@ -3457,12 +3457,12 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (!IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             break;
         }
         LO *plo = PloFindJsgObject(script, prelaycmd->followPath.oidPath);
-        if (plo && FIsBasicDerivedFrom(plo, (CID)10))
+        if (plo && IsBasicDerivedFrom(plo, (CID)10))
         {
             STEP *pstep = (STEP *)script->ploActor;
             if (prelaycmd->followPath.idClip != -1)
@@ -3483,7 +3483,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEP *pstep = (STEP *)script->ploActor;
             VECTOR4 pos;
@@ -3507,7 +3507,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtgrab.nKind != -1)
@@ -3525,7 +3525,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             LO *plo = PloFindJsgObject(script, prelaycmd->respawn.oidSpot);
@@ -3559,7 +3559,7 @@ void NextJsgCommand(JSGV *script)
             {
                 pstepplayer->jtair.fCanDoubleJump = prelaycmd->respawn.nUnk5;
             }
-            if (FIsBasicDerivedFrom(pstepplayer, (CID)53))
+            if (IsBasicDerivedFrom(pstepplayer, (CID)53))
             {
                 ((JT *)pstepplayer)->janim.nUnk10 = prelaycmd->respawn.nUnk6;
             }
@@ -3571,7 +3571,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             VECTOR4 pos;
             LO *plo = PloFindJsgObject(script, prelaycmd->launchTo.oidTarget);
@@ -3585,7 +3585,7 @@ void NextJsgCommand(JSGV *script)
     {
         LO *plo = FadeAsegObjectEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_AddObject, prelaycmd->addObject.oidObj, prelaycmd->addObject.dtFade, script->ploContext,
                                       (ASEG *)script->relay);
-        if (plo && !prelaycmd->fAsync && FIsBasicDerivedFrom(plo, (CID)48))
+        if (plo && !prelaycmd->fAsync && IsBasicDerivedFrom(plo, (CID)48))
         {
             script->ploFade = plo;
         }
@@ -3689,11 +3689,11 @@ void NextJsgCommand(JSGV *script)
         LO *ploStep = PloFindJsgObject(script, prelaycmd->startJtMode.oidStep);
         if (ploStep)
         {
-            FIsBasicDerivedFrom(ploStep, (CID)51);
+            IsBasicDerivedFrom(ploStep, (CID)51);
         }
-        LO *ploHud = PloFindSwObject(&D_003DD490, (GRFFSO)0x405, prelaycmd->startJtMode.oidUnk6, 0);
+        LO *ploHud = FindSwObject(&D_003DD490, (GRFFSO)0x405, prelaycmd->startJtMode.oidUnk6, 0);
         LO *plo = PloFindJsgObject(script, prelaycmd->startJtMode.oidActor);
-        if (plo && FIsBasicDerivedFrom(plo, (CID)52))
+        if (plo && IsBasicDerivedFrom(plo, (CID)52))
         {
             script->pstepplayerMode = (STEPPLAYER *)plo;
             StartJtMode(&((STEPPLAYER *)plo)->jtmode, 1, (STEP *)ploStep, ploHud);
@@ -3789,7 +3789,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)68))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)68))
         {
             if (D_002DE570)
             {
@@ -3802,7 +3802,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)68))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)68))
         {
             LO *plo = script->ploActor;
             LO *ploOther;
@@ -3812,7 +3812,7 @@ void NextJsgCommand(JSGV *script)
             }
             else
             {
-                ploOther = PloFindSwObject(&D_003DD490, (GRFFSO)4, prelaycmd->playAsegDefault.oidOther, plo);
+                ploOther = FindSwObject(&D_003DD490, (GRFFSO)4, prelaycmd->playAsegDefault.oidOther, plo);
             }
             PlayJtAsegDefault(plo, ploOther, 0);
         }
@@ -3828,7 +3828,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)54))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
             LO *plo = PloFindJsgObject(script, (OID)prelaycmd->unk4F.nUnk5);
@@ -3848,7 +3848,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)55))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)55))
         {
             SetJsgJt(script, prelaycmd, script->ploActor);
         }
@@ -3883,7 +3883,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)54))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             EnterMurrayThrowAim((MURRAY *)script->ploActor);
         }
@@ -3893,11 +3893,11 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)55))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)55))
         {
             BENTLEY *pbentley = (BENTLEY *)script->ploActor;
             LO *plo = PloFindJsgObject(script, prelaycmd->unk58.oidShip);
-            if (plo && FIsBasicDerivedFrom(plo, (CID)54))
+            if (plo && IsBasicDerivedFrom(plo, (CID)54))
             {
                 SetJtAirJump(&pbentley->jtair, (pbentley->jtair.nState == 0x11) ? 3 : 1, 0, 0);
                 SetJsgJt(script, prelaycmd, pbentley);
@@ -3909,7 +3909,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(script->ploActor, (CID)54))
+        if (!IsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             break;
         }
@@ -3934,7 +3934,7 @@ void NextJsgCommand(JSGV *script)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(script->ploActor, (CID)54))
+        if (!IsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             break;
         }
@@ -3981,7 +3981,7 @@ namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // HeroState, Unk50 / 51 / 58 / 59 / 5A) wait for the character (pjt / ploActor) to get there or reach a state; Face / Unk32 / Rumble / HintBox wait their time
 // since tCommand; Line / StopLine / Unk52 / WaitTimer / ButtonPrompt wait for the dialogue; the camera ones (CamBlendTo, Tween*) for the camera.
 // The result is one variable (the game's s2) assigned in every arm; a command that has several "done at once" exits writes them as `else fComplete = 1`.
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Whether the object is in the active world (LO::fInWorld).
 inline int FIsLoInWorld(LO *plo)
 {
@@ -4204,7 +4204,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk1B:
-        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
+        if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtair.nState >= 0xB && pstepplayer->jtair.nState <= 0xD)
@@ -4227,7 +4227,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_HeroState:
-        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x35))
+        if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x35))
         {
             JT *pjt = (JT *)script->ploActor;
             switch (prelaycmd->heroState.nState)
@@ -4324,7 +4324,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         break;
     }
     case RELAYCK_FollowPath:
-        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
+        if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             STEP *pstep = (STEP *)script->ploActor;
             BHV166 *pbhv = (BHV166 *)PbhvFindStep(pstep, 0xA8);
@@ -4348,7 +4348,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_WalkTo:
-        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
+        if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             STEP *pstep = (STEP *)script->ploActor;
             BHV *pbhv = PbhvFindStep(pstep, 0xC1);
@@ -4405,7 +4405,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_LaunchTo:
-        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
+        if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             fComplete = ((STEPPLAYER *)script->ploActor)->jtair.nState == -1;
         }
@@ -4512,7 +4512,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk43:
-        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
+        if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             fComplete = 0;
             if (((STEPPLAYER *)script->ploActor)->VUnk88() == prelaycmd->unk43.nUnk4)
@@ -4560,7 +4560,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk4F:
         fComplete = 0;
-        if (FIsBasicDerivedFrom(script->ploActor, (CID)0x36))
+        if (IsBasicDerivedFrom(script->ploActor, (CID)0x36))
         {
             MURRAY *pmurrayActor = (MURRAY *)script->ploActor;
             if (pmurrayActor->nState != 6)
@@ -4692,7 +4692,7 @@ struct C { char pad[0x18]; int context; };
 struct O { char pad[0x74]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
 struct O *FindJsgObject(struct C *script, int n);
 float GetDifficulty(struct G *pg);
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int oid, int b);
+void *FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int oid, int b);
 void *FindLiveSma(void *p, int n);
 float EstimateSmaTimeToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
@@ -4717,7 +4717,7 @@ float GetJsgCommandDuration(struct C *script, struct P *command)
     }
     case 0xD:
         if (command->targetState != -1) {
-            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->u10.n, script->context);
+            void *px = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->u10.n, script->context);
             if (px) {
                 void *py = FindLiveSma(px, command->u14.n);
                 if (py) g = EstimateSmaTimeToState(py, command->targetState);
@@ -4771,7 +4771,7 @@ void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
 void SetStepTargetHeading(ACTOR*,float);
 void EvaluateShapeAtParam(PATH*,float,qword*,qword*);
 qword GetLoWorldPos(ACTOR*);
-qword ConvertAloVec(void*,ACTOR*,qword);
+qword ConvertVecBetweenLos(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
 int AreFloatsNear__Ffff(float,float,float);
 }
@@ -4934,7 +4934,7 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
     :"m"(work.second),"r"(actorPosition),"r"(actor),"rJ"(sourceSpace));
    work.to.f[2]=0.0f;
    float speed;
-   work.normal.q=NormalizeDirection(ConvertAloVec(sourceInput,targetInput,work.to.q),speed,out->speed);
+   work.normal.q=NormalizeDirection(ConvertVecBetweenLos(sourceInput,targetInput,work.to.q),speed,out->speed);
    out->y=work.normal.f[0]*speed;out->x=-work.normal.f[1]*speed;
   }
   break;
@@ -5025,7 +5025,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; float *(*pfn)(void *); };
 struct O { int pad[3]; struct VTE *vt; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
 struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 qword GetLoWorldPos(struct O *po);
 void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
 float atan2f(float y, float x);
@@ -5039,7 +5039,7 @@ void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg
     struct O *px = script->po24;
     if (!px) px = script->po44;
     if (po) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
             FindShapeClosestPoint(po, GetLoWorldPos(px), 0, &uv.q, ag, 0, 0);
             g = atan2f(ag[1], ag[0]);
         } else {
@@ -5051,7 +5051,7 @@ void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg
         }
     } else {
         uv.q = GetLoWorldPos(px);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(px, 0x33)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(px, 0x33)) {
             qword q;
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(q) : "j"(uv.q), "j"(px->v240));
             uv.q = q;
@@ -5099,7 +5099,7 @@ struct G { int a; };
 extern struct G D_003DD490;
 struct P { char pad[0x24]; void *p24; char pad2[0x6C - 0x28]; struct O *po; int fActive; };
 void SetTnTnsOverride(struct O *po, int n);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *GetCurrentPo(struct G *pg);
 // Switch the script's active tunnel (ptnCur +0x6C): release/hide old (SetTnTnsOverride(tn,-1), vt9), attach/show new (vt8)
 // with owner = actor or current PO. (inferred)
@@ -5115,7 +5115,7 @@ void SetJsgTunnel(struct P *script, struct O *po)
     script->po = po;
     script->fActive = (uchar)po->fBit60 == 0;
     if (script->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
-    po->pvE0 = (script->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x30)) ? script->p24 : GetCurrentPo(&D_003DD490);
+    po->pvE0 = (script->p24 && IsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x30)) ? script->p24 : GetCurrentPo(&D_003DD490);
     SetTnTnsOverride(po, 1);
 }
 } } // namespace M_SetJsgTunnel
@@ -5127,7 +5127,7 @@ typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x1044]; int n1044; float f1048; char pad2[0x1060 - 0x104C]; qword v1060; qword v1070; };
 struct P { char pad[0x24]; struct X *p24; char pad2[0x74 - 0x28]; void *p74; };
 extern qword D_002A2DD0;
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(struct X *);
 void GetJsgTargetPosHeading(struct P *, void *, qword *, int);
 // Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
@@ -5135,7 +5135,7 @@ void GetJsgTargetPosHeading(struct P *, void *, qword *, int);
 void SetRelayScriptFocus(struct P *script, void *pv)
 {
     struct X *px;
-    if (script->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x34))
+    if (script->p24 && IsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x34))
         px = script->p24;
     else
         px = 0;
@@ -5185,12 +5185,12 @@ struct VTE; struct O; struct P;
 struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; int aB8[4]; int aC8[4]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 // Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
 void AddJsgStepHold(struct P *script, struct O *po, int a, int b)
 {
     int i;
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
     for (i = 0; i < script->c; i++)
         if (script->apo[i] == po) return;
     if ((unsigned)script->c >= 4) return;
@@ -5208,7 +5208,7 @@ struct VTE; struct O; struct P;
 struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
 // index * 4 in $a0 (shapes the register choice).
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
@@ -5216,7 +5216,7 @@ static inline unsigned ByteOffset(int index){register unsigned result __asm__("$
 void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
 {
     int i;
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
     for(i=0;i<script->c;i++) {
         if(script->apo[i]==po)break;
     }
@@ -5348,7 +5348,7 @@ namespace M_func_001E5570 { extern "C" {
 struct O; struct P;
 struct O { char pad[0x26C]; int a; };
 struct P { char pad[0x24]; struct O *po; int *pnMin; int *pnMax; int *pn; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid);
 void ClearBhvstk__FP6BHVSTK(void *p);
 // If the current command is FollowPath (0x27) or WalkTo (0x28) and the actor is a STEPPLAYER, ClearBhvstk on it.
 // (inferred)
@@ -5357,10 +5357,10 @@ void AbortJsgMove(struct P *script)
     if (script->pnMin < script->pn && script->pn < script->pnMax) {
         switch (*script->pn) {
         case 0x27:
-            if (script->po && FIsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
+            if (script->po && IsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
             break;
         case 0x28:
-            if (script->po && FIsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
+            if (script->po && IsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
             break;
         }
     }
@@ -5542,7 +5542,7 @@ extern char D_003DD490[];
 extern struct VTE D_002D8C08[] __asm__("_vt$8RELAYJSG");
 struct S *AllocZeroedFromSlotheap(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
-int PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
+int FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void PrependDlEntry__FP2DLPv(void *, void *);
 // Sets the script's last command to the BlockEnd that closes the block opened at `first` (nesting counted), or to its
 // first command when the block is never closed.
@@ -5582,7 +5582,7 @@ struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
     else
         p->context = (int)relay;
     if (pe->oid != -1)
-        p->block = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, pe->oid, 0);
+        p->block = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, pe->oid, 0);
     p->firstCommand = pe;
     peLast = &relay->commands[relay->commandCount - 1];
     SetBlockEnd(p, pe, peLast);

@@ -108,8 +108,8 @@ void StartHackAnim(HACKLOCKV *lock, HACKE *phacke);
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
 void SetHackwallSegmentState(SO *pso, HACKSEG *pseg, int n);
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *plo);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
+LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
 
 namespace M_func_0017F090 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -224,11 +224,11 @@ extern "C" void BindHackAnimEntries(HACKV *hack, int c, HACKE *ahacke)
         i = c;
         do {
             if (phacke->oid != -1) {
-                plo = PloFindSwObject(&D_003DD490, 4, phacke->oid, hack);
+                plo = FindSwObject(&D_003DD490, 4, phacke->oid, hack);
                 if (plo != 0) {
-                    if (FIsBasicDerivedFrom(plo, (CID)0x6D) != 0) {
+                    if (IsBasicDerivedFrom(plo, (CID)0x6D) != 0) {
                         phacke->animation = plo;
-                    } else if (FIsBasicDerivedFrom(plo, (CID)0x6F) != 0) {
+                    } else if (IsBasicDerivedFrom(plo, (CID)0x6F) != 0) {
                         phacke->stateMachine = plo;
                     }
                 }
@@ -346,7 +346,7 @@ extern struct G D_003DD490;
 struct E { int xfOid; int objectOid; int xf; int actuator; int object; int sma; };   /* a ship part, 0x18 bytes */
 struct S { char pad[0x230]; int partCount; struct E parts[1]; };
 int FindSoXf(struct S *p, int a, int b);
-int PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
+int FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
 int NewPositionAct(struct S *p, int xf, int a, int b, int d, qword q);
 int ApplySmToObject(int e, struct S *p, int a, int b);
 // Look up child XFs / objects for entries and create vector actuators. (inferred)
@@ -355,7 +355,7 @@ void BindHackshipParts(struct S *ship) {
     for (i = 0; i < ship->partCount; i++) {
         struct E *pe = &ship->parts[i];
         pe->xf = FindSoXf(ship, pe->xfOid, 6);
-        pe->object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->objectOid, ship);
+        pe->object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->objectOid, ship);
         if (pe->xf) pe->actuator = NewPositionAct(ship, pe->xf, 0, 7, 2, D_002A2DD0);
         if (pe->object) pe->sma = ApplySmToObject(pe->object, ship, -1, 0);
     }
@@ -770,7 +770,7 @@ namespace M_func_001803E0 { extern "C" {
 struct E { int a; int b; int x8; int xc; char p0[8]; float g18; char pad[0x24]; };
 struct S { char pad[0x1CC]; int x1cc; };
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
-int FIsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
 void StartHackDying(struct S *p, int n);
 // vtable slot 55: CID47::AdjustXp then start dying on contact. (inferred)
 void AdjustHackbulletNewXp(struct S *bullet, struct E *ae, int i)
@@ -780,7 +780,7 @@ void AdjustHackbulletNewXp(struct S *bullet, struct E *ae, int i)
     AdjustHackNewXp(bullet, ae, i);
     pe = &ae[1 - i];
     oid = pe->xc;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47) || !bullet->x1cc)
+    if (IsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47) || !bullet->x1cc)
         StartHackDying(bullet, oid);
     if (bullet->x1cc) ae[2].g18 = 1.0f;
 }
@@ -884,7 +884,7 @@ void UpdateSo(P*);
 int IsHackAnimDone(P*);
 void SetHackenemyState(P*,int);
 qword GetLoWorldPos(void*);
-qword ConvertAloVec(void*,void*,qword);
+qword ConvertVecBetweenLos(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
 float atan2f(float,float);
 float NormalizeAngle__Ff(float);
@@ -893,7 +893,7 @@ void FindPathzonePathCurve(void*,qword,qword,void*);
 void FindShapeClosestPointFromDistance(void*,qword,void*,qword*,float,qword*,float*,float*);
 float GetShapeMaxDistance(void*);
 float GetDifficulty(void*);
-int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
+int FindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
 }
 // Helpers VuFloat, VuFloatFromMemWord, QwSub, QwSubC (small asm wrappers/accessors shaped for the match).
@@ -953,7 +953,7 @@ extern "C" void UpdateHackenemy(P*enemy){
   qword target=GetLoWorldPos(enemy->target);
   qword delta=QwSub(target,GetLoWorldPos(enemy));
   float distance=Length(delta);
-  float heading=NormalizeAngle__Ff(Heading(ConvertAloVec(0,enemy,delta)));
+  float heading=NormalizeAngle__Ff(Heading(ConvertVecBetweenLos(0,enemy,delta)));
   int accept;
   if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=IsWithinLimits__FP2LMf(&rule->stayDistance,distance);
   if(accept){
@@ -1007,12 +1007,12 @@ dispatch:
    unit.q=QwNormalizeSafe(d,D_002A2DD0,eps);
   }
   float remaining=GetShapeMaxDistance(enemy->curve)-enemy->progress;
-  float turn=Heading(ConvertAloVec(0,enemy,unit.q));
+  float turn=Heading(ConvertVecBetweenLos(0,enemy,unit.q));
   float response=GetDifficulty(D_002DE578);
   float speed=Limit(Evaluate(&enemy->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&enemy->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*enemy->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   NODE*objects[64];
-  int n=CploFindSwObjectsByClass(D_003DD490,0x105,0x49,0,64,objects);
+  int n=FindSwObjectsByClass(D_003DD490,0x105,0x49,0,64,objects);
   for(int i=0;i<n;i++){
    NODE*object=objects[i];
    if(object!=&enemy->node&&object->group!=enemy->node.group){
@@ -1404,11 +1404,11 @@ void SetHacklockEntry(struct S *lock, unsigned int i, int a, int d)
 namespace M_func_001816E8 { extern "C" {
 struct S { char pad[0x200]; int a; int b; };
 extern char D_003DD490[];
-void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
-// FAddRsmg on its RSMG table. (inferred)
+void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
+// AddOrUpdateRsmg on its RSMG table. (inferred)
 void AddHacklockRsmg(struct S *lock, int x, int y, int z, int w)
 {
-    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &lock->b, 4, &lock->a, x, y, z, w);
+    AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &lock->b, 4, &lock->a, x, y, z, w);
 }
 } } // namespace M_func_001816E8
 
@@ -1467,7 +1467,7 @@ struct E { int oid; int pieceCount; int unknown8; int unknownC; char dl[0xC]; in
 struct R { int a; void *p; int unknown8; int n; unsigned long fl; char pad[0x98]; };
 struct S { char pad[0x28]; unsigned long fl; char p0[0x30]; int unknown60; char p1[0x7C]; int partCount; struct R *parts; char p2[0xE0]; int segmentCount; struct E segments[4]; };
 extern char D_003DD490[];
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int n, int oid, struct S *p);
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int n, int oid, struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void AppendDlEntry__FP2DLPv(void *pdl, void *shape);
@@ -1481,7 +1481,7 @@ void PostHackwallLoad(struct S *wall)
     struct R *pr;
     for (i = 0; i < wall->segmentCount; i++) {
         pe = &wall->segments[i];
-        pe->shape = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, wall);
+        pe->shape = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oid, wall);
         if (!pe->shape) {
             i--;
             wall->segmentCount--;
@@ -1975,7 +1975,7 @@ namespace M_func_00182700 { extern "C" {
 struct E { int a; int b; int x8; int xc; char pad[0x30]; };
 struct S { char pad[0x188]; int n; };
 void AdjustHackNewXp(struct S *p, struct E *ae, int i);
-int FIsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
 void StartHackDying(struct S *p, int n);
 // vtable slot 55: base then start dying. (inferred)
 void AdjustHackwallNewXp(struct S *wall, struct E *ae, int i)
@@ -1984,7 +1984,7 @@ void AdjustHackwallNewXp(struct S *wall, struct E *ae, int i)
     if (wall->n) {
         struct E *pe = &ae[1 - i];
         int oid = pe->xc;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47))
             StartHackDying(wall, oid);
     }
 }

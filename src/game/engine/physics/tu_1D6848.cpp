@@ -234,7 +234,7 @@ qwordV GetLoWorldPos(SOV *);                                       // PosLoWorld
 MATRIX4V *__ml__FRC7MATRIX4T0(MATRIX4V *, MATRIX4V *, MATRIX4V *);
 void *func_002333B4(void *, int, int) __asm__("memset");                           // memset
 void LoadIdentityMatrix4(XFV *, int, MATRIX4V *, MATRIX4V *, float);
-int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *, int);                                    // FIsBasicDerivedFrom
+int IsBasicDerivedFrom__FP5BASIC3CID(SOV *, int);                                    // IsBasicDerivedFrom
 void SetBombOwner(SOV *, LAUNCH *);
 void RefreshSwObjectCollisionFilter(void *, SOV *);
 void SetSoCnstrForce(SOV *, void *);
@@ -381,7 +381,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     qwordV posAim;
     qwordV posLaunch = AddScaled(posOrigin, VU_FLOAT(offset), Normalize(dpos));
     posAim = QwFromVf(posLaunch);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x4F)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(pso, 0x4F)) {
         SetBombOwner(pso, plaunch);
         RefreshSwObjectCollisionFilter(D_003DD490, pso);
     }
@@ -389,9 +389,9 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     SetSoCnstrForce(pso, 0);
     SetSoCnstrTorque(pso, 0);
     SetLoParent(pso, 0, 3);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x52)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(pso, 0x52)) {
         SetSoPosXfVelocityLocal(pso, VECTORV(pso->svLaunch, 0.0f, 0.0f).q);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x51)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(pso, 0x51)) {
         qwordV v = VuFloatFromWord(pso->svLaunch) * Normalize2(posAim, posStart);
         pso->SetVelocity(v);
         MATRIX3V mat;
@@ -410,6 +410,6 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         qwordV w = NormalizeTo(QwToVf(VECTORV(x, y, z).q)) * VU_FLOAT(g);
         pso->SetAngularVelocity(w);
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x50))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(pso, 0x50))
         pso->SetTarget(plaunch->psoSource, VECTOR4V(plaunch->posTarget));
 }

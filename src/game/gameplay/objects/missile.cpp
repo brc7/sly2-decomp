@@ -145,7 +145,7 @@ void ReplaceCurrentAseg(ASEG *segment, ALO *palo, float t, float rt, int grf, AS
 int AreFloatsNear(float g0, float g1, float gEpsilon);
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 // MISSILE::Init (vtable slot 7): the BOMB init; runs a flight action (parameter 1); launch speed 800.
 void InitMissile(MISSILE *missile);
@@ -202,7 +202,7 @@ int ShouldMissileIgnoreIntersection(MISSILE *missile, SO *pso)
     for (i = 0; i < missile->numIgnoredObjects; i++)
         if (missile->ignoredObjects[i] == pso->oid) r = MaxInt(r, 1);
     for (j = 0; j < missile->numIgnoredClasses; j++)
-        if (FIsBasicDerivedFrom(pso, missile->ignoredClasses[j])) r = MaxInt(r, 1);
+        if (IsBasicDerivedFrom(pso, missile->ignoredClasses[j])) r = MaxInt(r, 1);
     return r;
 }
 

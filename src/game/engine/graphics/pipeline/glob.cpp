@@ -176,7 +176,7 @@ void* memset(void* ptr, int value, size_t num);
 
 void LoadPoseSetsFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("LoadPoseSetsFromBrx");
 
-int FIsLoadFilterMatch(int cfilter, short *afilter) __asm__("FMatchLoadFilter__FiPs");
+int FIsLoadFilterMatch(int cfilter, short *afilter) __asm__("IsCurrentLevelInList__FiPs");
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 extern "C" SAA *PsaaLoadFromBrx(void *pvOwner, CBinaryInputStream *pbis) __asm__("LoadSaaFromBrx");
@@ -440,7 +440,7 @@ struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { 
  }
-extern "C" LO *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
+extern "C" LO *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
 extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
@@ -456,7 +456,7 @@ extern "C" void BindGlobset(S *p)
         GRP *pgrp = &p->agrp[i];
         for (int j = 0; j < phdr->citem; j++) {
             ITEM *pitem = &pgrp->aitem[j];
-            pitem->plo = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pitem->oid, p->pvOwner);
+            pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pitem->oid, p->pvOwner);
             if (pitem->plo)
                 pitem->pbone = pitem->plo->PboneFind(pitem->n8);
             if (pitem->pbone) {
@@ -479,7 +479,7 @@ extern "C" void BindGlobset(S *p)
         }
     }
     for (X *px = p->pxFirst; px; px = px->pxNext) {
-        LO *plo = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, px->oid, p->pvOwner);
+        LO *plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, px->oid, p->pvOwner);
         if (plo)
             AddWrWarpGroup(plo, px);
     }
@@ -619,7 +619,7 @@ extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_0025E090[]; }
 extern "C" { extern char D_0025E668[]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
-extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
+extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 static inline int Min(int a, int b) { return a < b ? a : b; }
 // Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload
@@ -634,7 +634,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
     pvifs->AddDmaCnt();
     pvifs->AddVifFlusha();
     pvifs->AddVifBaseOffset(0x32, 0);
-    int c = CploFindSwObjectsByClass(&D_003DD490, 0x505, 4, 0, 0x180, (void **)apx);
+    int c = FindSwObjectsByClass(&D_003DD490, 0x505, 4, 0, 0x180, (void **)apx);
     for (i = 0; i < c; i++) {
         px = apx[i];
         if (!px->isDisabled)
@@ -2365,7 +2365,7 @@ struct SL
 void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 struct BASIC;
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 struct XF;
 class CBinaryStreamBase
 {
@@ -2898,7 +2898,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     else
     {
         vifsAux.AllocStack(0x800);
-        if (FIsBasicDerivedFrom((BASIC *)pglobset->pso, (CID)0x31) && !(psubglob->bUnk02 & 4) && (uchar)(psubglob->bUnk00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
+        if (IsBasicDerivedFrom((BASIC *)pglobset->pso, (CID)0x31) && !(psubglob->bUnk02 & 4) && (uchar)(psubglob->bUnk00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
             psubglob->gUnk04 == D_002A52A0 && g_sw.fUnk3e40 == 0)
         {
             QW qwOne;
