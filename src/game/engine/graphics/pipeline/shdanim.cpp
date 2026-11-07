@@ -26,14 +26,7 @@ struct SAAF
     union { struct { LM lm1, lm2; }; float ag[4]; };   /* 0x0C */
     union { unsigned short cLoop; int cLoopWord; };    /* 0x1C (also read as a whole word) */
 };
-struct LOOPV : SAA { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
-struct PINGPONGV : SAA { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
-struct SHUFFLEV : SAA { float pauseMin; float pauseMax; float pauseTime; };
-enum EYESS { EYESS_Nil = -1, EYESS_Open = 0, EYESS_Closing = 1, EYESS_Closed = 2, EYESS_Opening = 3 };
-struct EYESV : SAA { float blinkTime; float openTimeMin; float openTimeMax; float doubleBlinkChance;
-    int unknown60; EYESS eyess; float stateTime; float openTime; float frameRate; float frame; float openFraction; };
-struct SCROLLERV : SAA { float uSpeed; float vSpeed; float uRange; float vRange; float uSpeedScale; float vSpeedScale; };
-struct CIRCLERV : SAA { float angularSpeed; float radius; float uCenter; float vCenter; };
+/* The kinds (LOOP, PINGPONG, SHUFFLE, EYES, SCROLLER, CIRCLER) are classes.h's classes. */
 /* An SAA class: its size and constructor (the BRX class table D_002BAAE8, virtual slot 6). */
 struct SAACLS { int a[3]; int cb; SAA *(*pfnNew)(void); };
 
@@ -65,7 +58,7 @@ void SetSaiIframe(SAA *p, int n);
 void SetSaiDuDv(SAA *p, float uOffset, float vOffset);
 int DoesSaaMatchOid(SAA *p, int *pid);
 }
-void SetEyesEyess(EYESV *peyes, EYESS eyess) __asm__("SetEyesEyess__FP4EYES5EYESS");
+void SetEyesEyess(EYES *peyes, EYESS eyess) __asm__("SetEyesEyess__FP4EYES5EYESS");
 
 // Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read
 // 0x20-byte SAAF and call vt7 Init(psaa, psaaf)
@@ -97,7 +90,7 @@ extern "C" SAA *CloneSaa(SAA *saa) {
 // SAA (CID 0x8A) vt7 Init. (inferred)
 void SAA::Init(SAAF *q)   /* key function: SAA's vtable comes out here */
 {
-    SAA *p = (SAA *)this;
+    SAA *p = this;
     p->id = q->a;
     p->unknown18 = q->b;
     p->grf = q->c;
@@ -183,7 +176,7 @@ int DoesSaaMatchOid(SAA *saa, int *pid) {
 // LOOP vt7 Init.
 void LOOP::Init(SAAF *psaa)
 {
-    LOOPV *p = (LOOPV *)this;
+    LOOP *p = this;
     LM *plm2 = &p->pauseTimeRange;
     LM *plm1;
     float g;
@@ -197,11 +190,11 @@ void LOOP::Init(SAAF *psaa)
     p->pauseRemaining = p->pauseTime = g;
 }
 
-void UpdateLoop(LOOPV *ploop, float dt) __asm__("UpdateLoop__FP4LOOPf");
+void UpdateLoop(LOOP *ploop, float dt) __asm__("UpdateLoop__FP4LOOPf");
 // Advances a LOOP animation: steps the frame index at its rate, and at the end of a cycle picks a new cycle duration
 // and pause from their random ranges (lmLoop, lmPause), waiting out the pause before the next cycle; pushes the frame
 // to the shader instances. Nothing to do with fewer than two frames or no instances.
-void UpdateLoop(LOOPV *ploop, float dt)
+void UpdateLoop(LOOP *ploop, float dt)
 {
     if (IsSlEmpty(&ploop->instances))
         return;
@@ -225,9 +218,9 @@ void UpdateLoop(LOOPV *ploop, float dt)
     SetSaiIframe(ploop, (int)ploop->frame);
 }
 
-float GetLoopCompletion(LOOPV *p) __asm__("GetLoopCompletion__FP4LOOP");
+float GetLoopCompletion(LOOP *p) __asm__("GetLoopCompletion__FP4LOOP");
 // Completion fraction of a LOOP cycle including its pause: elapsed frame time / (cycle time + pause).
-float GetLoopCompletion(LOOPV *loop) {
+float GetLoopCompletion(LOOP *loop) {
     float frameRate = loop->frameRate;
     return (loop->frame / frameRate) / (((float)loop->numFrames / frameRate) + loop->pauseTime);
 }
@@ -235,7 +228,7 @@ float GetLoopCompletion(LOOPV *loop) {
 // PINGPONG vt7 Init. (inferred)
 void PINGPONG::Init(SAAF *psaa)
 {
-    PINGPONGV *p = (PINGPONGV *)this;
+    PINGPONG *p = this;
     LM *plm2 = &p->pauseTimeRange;
     LM *plm1;
     float g;
@@ -249,10 +242,10 @@ void PINGPONG::Init(SAAF *psaa)
     p->pauseRemaining = p->pauseTime = g;
 }
 
-void UpdatePingpong(PINGPONGV *ppingpong, float dt) __asm__("UpdatePingpong__FP8PINGPONGf");
+void UpdatePingpong(PINGPONG *ppingpong, float dt) __asm__("UpdatePingpong__FP8PINGPONGf");
 // Advances a PINGPONG animation: frames run forward then backward; at frame 0 it picks a new round-trip duration and
 // pause from the random ranges and waits out the pause.
-void UpdatePingpong(PINGPONGV *ppingpong, float dt)
+void UpdatePingpong(PINGPONG *ppingpong, float dt)
 {
     if (IsSlEmpty(&ppingpong->instances) || ppingpong->numFrames < 2)
         return;
@@ -280,9 +273,9 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
     SetSaiIframe(ppingpong, (int)ppingpong->frame);
 }
 
-float GetPingpongCompletion(PINGPONGV *ppingpong) __asm__("GetPingpongCompletion__FP8PINGPONG");
+float GetPingpongCompletion(PINGPONG *ppingpong) __asm__("GetPingpongCompletion__FP8PINGPONG");
 // Completion fraction of a PINGPONG round trip including its pause (the backward half counts from 2*cframe down).
-float GetPingpongCompletion(PINGPONGV *ppingpong)
+float GetPingpongCompletion(PINGPONG *ppingpong)
 {
     float absDframe = ppingpong->frameRate;
     float progress;
@@ -302,7 +295,7 @@ float GetPingpongCompletion(PINGPONGV *ppingpong)
 // SHUFFLE init (vtable slot 7): base SAA init, then the random pause range between frame changes.
 void SHUFFLE::Init(SAAF *psaaf)
 {
-    SHUFFLEV *pshuffle = (SHUFFLEV *)this;
+    SHUFFLE *pshuffle = this;
     float dtMax, dtMin;
     InitSaa(pshuffle, psaaf);
     dtMin = psaaf->lm1.minValue;
@@ -311,9 +304,9 @@ void SHUFFLE::Init(SAAF *psaaf)
     pshuffle->pauseMin = dtMin;
 }
 
-void UpdateShuffle(SHUFFLEV *pshuffle, float dt) __asm__("UpdateShuffle__FP7SHUFFLEf");
+void UpdateShuffle(SHUFFLE *pshuffle, float dt) __asm__("UpdateShuffle__FP7SHUFFLEf");
 // Advances a SHUFFLE animation: after each random pause, jumps to a different random frame.
-void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
+void UpdateShuffle(SHUFFLE *pshuffle, float dt)
 {
     if (IsSlEmpty(&pshuffle->instances) || pshuffle->numFrames < 2)
         return;
@@ -329,7 +322,7 @@ void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
 }
 
 // EYES vt7 Init. (inferred)
-extern "C" void InitEyes(EYESV *eyes, SAAF *psaaf)
+extern "C" void InitEyes(EYES *eyes, SAAF *psaaf)
 {
     InitSaa(eyes, psaaf);
     eyes->unknown60=psaaf->cLoopWord;
@@ -342,7 +335,7 @@ extern "C" void InitEyes(EYESV *eyes, SAAF *psaaf)
 
 // Sets the blink state of an EYES animation (open, closing, closed, opening) and starts its timing: on opening, picks
 // how long the eyes stay open (zero for a double blink, chance uDoubleBlink) and the frame rate of the blink.
-void SetEyesEyess(EYESV *peyes, EYESS eyess)
+void SetEyesEyess(EYES *peyes, EYESS eyess)
 {
     if (eyess == peyes->eyess)
         return;
@@ -370,7 +363,7 @@ void SetEyesEyess(EYESV *peyes, EYESS eyess)
 // EYES vt8 Update. (inferred)
 void EYES::Update()
 {
-    EYESV *peyes = (EYESV *)this;
+    EYES *peyes = this;
     if (IsSlEmpty(&peyes->instances) || peyes->numFrames < 2)
         return;
     EYESS eyessNext = peyes->eyess;
@@ -406,7 +399,7 @@ void EYES::Update()
 }
 
 // Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0) (inferred)
-extern "C" void SetEyesClosed(EYESV *eyes, float g)
+extern "C" void SetEyesClosed(EYES *eyes, float g)
 {
     eyes->openFraction = g;
     if (g >= 1.0f) {
@@ -419,16 +412,16 @@ extern "C" void SetEyesClosed(EYESV *eyes, float g)
 }
 
 // EYES vt10: SAA::FMatches or *poid == +0x60. (inferred)
-extern "C" int DoesEyesMatchOid(EYESV *eyes, int *pid)
+extern "C" int DoesEyesMatchOid(EYES *eyes, int *pid)
 {
     int f = 0;
     if (DoesSaaMatchOid(eyes, pid) || *pid == eyes->unknown60) f = 1;
     return f;
 }
 
-void InitScroller(SCROLLERV *p, SAAF *psaaf) __asm__("InitScroller__FP8SCROLLERP4SAAF");
+void InitScroller(SCROLLER *p, SAAF *psaaf) __asm__("InitScroller__FP8SCROLLERP4SAAF");
 // SCROLLER init: base SAA init, then the u/v scroll speeds and wrap ranges; master speed multipliers start at 1.
-void InitScroller(SCROLLERV *scroller, SAAF *psaaf) {
+void InitScroller(SCROLLER *scroller, SAAF *psaaf) {
     InitSaa(scroller, psaaf);
     scroller->uSpeed = psaaf->ag[0];
     scroller->vSpeed = psaaf->ag[1];
@@ -441,7 +434,7 @@ void InitScroller(SCROLLERV *scroller, SAAF *psaaf) {
 // SCROLLER vt8 Update. (inferred)
 void SCROLLER::Update()
 {
-    SCROLLERV *p = (SCROLLERV *)this;
+    SCROLLER *p = this;
     float uOffset, vOffset;
     if (IsSlEmpty(&p->instances)) return;
     uOffset = fmodf(p->uOffset * (1.0f / 4096.0f) + p->uSpeed * p->uSpeedScale * D_002DDED0.deltaTime, p->uRange);
@@ -449,10 +442,10 @@ void SCROLLER::Update()
     SetSaiDuDv(p, uOffset, vOffset);
 }
 
-float GetScrollerCompletion(SCROLLERV *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
+float GetScrollerCompletion(SCROLLER *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
 // Completion fraction of a SCROLLER: the average of its u and v offsets as fractions of their wrap ranges (0.5 for an
 // axis that does not move).
-float GetScrollerCompletion(SCROLLERV *pscroller)
+float GetScrollerCompletion(SCROLLER *pscroller)
 {
     float uComp = 0.0f;
     if (pscroller->uSpeed != 0.0f)
@@ -466,17 +459,17 @@ float GetScrollerCompletion(SCROLLERV *pscroller)
     return uComp;
 }
 
-void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float uSpeedScale, float vSpeedScale) __asm__("SetScrollerMasterSpeeds__FP8SCROLLERff");
+void SetScrollerMasterSpeeds(SCROLLER *pscroller, float uSpeedScale, float vSpeedScale) __asm__("SetScrollerMasterSpeeds__FP8SCROLLERff");
 // Sets the SCROLLER's u and v speed multipliers (lets game code speed up or stop a scrolling texture, e.g. water
 // flow).
-void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float uSpeedScale, float vSpeedScale)
+void SetScrollerMasterSpeeds(SCROLLER *pscroller, float uSpeedScale, float vSpeedScale)
 {
     pscroller->uSpeedScale = uSpeedScale;
     pscroller->vSpeedScale = vSpeedScale;
 }
 
 // CIRCLER vt7 Init. (inferred)
-void CIRCLER::Init(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
+void CIRCLER::Init(SAAF *psaaf) { CIRCLER *p = this;
     InitSaa(p, psaaf);
     p->angularSpeed = psaaf->ag[0];
     p->radius = psaaf->ag[1];
@@ -484,10 +477,10 @@ void CIRCLER::Init(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
     p->vCenter = psaaf->ag[3];
 }
 
-void UpdateCircler(CIRCLERV *pcircler, float dt) __asm__("UpdateCircler__FP7CIRCLERf");
+void UpdateCircler(CIRCLER *pcircler, float dt) __asm__("UpdateCircler__FP7CIRCLERf");
 // Advances a CIRCLER animation: the uv offset moves around a circle (radius, centre) at radsSpeed, driven by the game
 // clock.
-void UpdateCircler(CIRCLERV *pcircler, float dt)
+void UpdateCircler(CIRCLER *pcircler, float dt)
 {
     if (IsSlEmpty(&pcircler->instances))
         return;
@@ -500,9 +493,9 @@ void UpdateCircler(CIRCLERV *pcircler, float dt)
     SetSaiDuDv(pcircler, sinOut, cosOut);
 }
 
-float GetCirclerCompletion(CIRCLERV *pcircler) __asm__("GetCirclerCompletion__FP7CIRCLER");
+float GetCirclerCompletion(CIRCLER *pcircler) __asm__("GetCirclerCompletion__FP7CIRCLER");
 // Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
-float GetCirclerCompletion(CIRCLERV *pcircler)
+float GetCirclerCompletion(CIRCLER *pcircler)
 {
     float angle = D_002DDED0.time * pcircler->angularSpeed;
     return ModPositive__Fff(angle, 6.28318530718f) * 0.159154943092f;
