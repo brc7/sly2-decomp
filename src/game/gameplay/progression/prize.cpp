@@ -1460,10 +1460,8 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
 } // namespace M_SprayDprizes
 
 namespace M_InitLoot { extern "C" {
-struct S : SO { char pad150[0x1A0 - 0x150]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; };
-void InitDprize(struct S *p);
 // CID 94 Init. (inferred)
-void InitLoot(struct S *loot)
+void InitLoot(LOOT *loot)
 {
     InitDprize(loot);
     loot->bounceRadius = 35.0f;
@@ -1480,15 +1478,13 @@ void InitLoot(struct S *loot)
 namespace M_LoadLootFromBrx { extern "C" {
 struct STACKSCOPE_STORAGE { int a, b, c, d; };
 struct ALLOCREQ_VIEW { int cb; int cbAlign; int pad[2]; };
-struct S { char p0[0x23C]; int entryCount; void *entries; };
 struct STACKSCOPE_STORAGE *STACKSCOPE_ctor(struct STACKSCOPE_STORAGE *ph);
-void *AllocFromStack(struct ALLOCREQ_VIEW *pal);
-void *AllocCopyFromWorldHeap(struct ALLOCREQ_VIEW *pal, void *pv);
+LOOTE *AllocFromStack(struct ALLOCREQ_VIEW *pal);
+LOOTE *AllocCopyFromWorldHeap(struct ALLOCREQ_VIEW *pal, void *pv);
 void STACKSCOPE_ctor_1AE4A0(struct STACKSCOPE_STORAGE *ph, int n) __asm__("_$_10STACKSCOPE");
-void LoadDprizeFromBrx(struct S *p, void *pv);
-void ClearCurrentLootEntry(struct S *p);
+void LoadDprizeFromBrx(LOOT *p, void *pv);
 // CID 94 LoadFromBrx (base + copies table on stack heap). (inferred)
-void LoadLootFromBrx(struct S *loot, void *pv)
+void LoadLootFromBrx(LOOT *loot, void *pv)
 {
     struct STACKSCOPE_STORAGE h;
     struct ALLOCREQ_VIEW al;
@@ -1508,18 +1504,16 @@ void LoadLootFromBrx(struct S *loot, void *pv)
 } } // namespace M_LoadLootFromBrx
 
 namespace M_func_001C7778 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O : SO { virtual void SetState(int state);   /* slot 76 */ int state; char pad2[0xE4]; float lifetimeLeft; };
 extern struct CLOCK D_002DDED0;
-void UpdateDprize(struct O *p);
+void UpdateDprize(DPRIZE *p);
 // LOOT Update: as COIN's (lifetime countdown while idle, then vanish).
 } } // namespace M_func_001C7778
 // LOOT::Update: prize update, then while idle count the lifetime down and vanish at zero.
-void LOOT::Update() { using namespace M_func_001C7778; M_func_001C7778::O *p = (M_func_001C7778::O *)this;
-    UpdateDprize(p);
-    if (!p->state) {
-        p->lifetimeLeft -= D_002DDED0.deltaTime;
-        if (p->lifetimeLeft <= 0.0f) p->SetState(5);
+void LOOT::Update() { using namespace M_func_001C7778;
+    UpdateDprize(this);
+    if (!state) {
+        lifetimeLeft -= D_002DDED0.deltaTime;
+        if (lifetimeLeft <= 0.0f) SetState(5);
     }
 }
 
@@ -1532,22 +1526,16 @@ float RandomFloatInRange__Fff(float a, float b);
 void sprintf(char *buf, const char *fmt, ...);
 void SetDprizeDprizes(void *p, int n);
 }
-struct LOOTENTRY { int id; int saveId; };
 struct LISTENER { char pad[0xC]; VTE *vt; };
-struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
-    char p1[0x210 - 0x154]; LISTENER *collectListener;
-    char p2[0x230 - 0x214]; float lifetimeMin; float lifetimeMax; float lifetimeLeft;
-    char p3[0x244 - 0x23C]; LOOTENTRY *currentEntry;
-};
-struct M { int n; S *p; int pad[14]; };
+struct M { int n; DPRIZE *p; int pad[14]; };
 extern "C" { extern char D_002A7768[]; }
 extern "C" { extern char D_002A7770[]; }
 extern "C" { extern char D_002A7778[]; }
 extern "C" { CRef GetSaveVarByName(char *a, char *b, char *c, int n); }
 extern "C" { CRef SetSaveVarByName(const CRef &r, char *a, char *b, char *c, int n); }
-extern "C" void SetLootDprizes(S *p, int n);
+extern "C" void SetLootDprizes(LOOT *p, int n);
 // CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
-void SetLootDprizes(S *loot, int n)
+void SetLootDprizes(LOOT *loot, int n)
 {
     if (loot->state == n) return;
     switch (n) {
@@ -1560,7 +1548,7 @@ void SetLootDprizes(S *loot, int n)
         sprintf(buf, D_002A7768, loot->currentEntry->saveId);
         ref = GetSaveVarByName(D_002A7770, D_002A7778, buf, 0);
         SetSaveVarByName(CRef(ref.u.n + 1, 0x15), D_002A7770, D_002A7778, buf, 0);
-        LISTENER *plo = loot->collectListener;
+        LISTENER *plo = (LISTENER *)loot->collectListener;
         if (plo) {
             M m;
             m.n = n;
@@ -1625,16 +1613,14 @@ extern "C" int GetCurrentLootEntryId(LOOT *loot)
 }
 
 namespace M_func_001C7A58 { extern "C" {
-struct E { int id; char pad[0x18]; int globCount; void *globIds[3]; };   /* LOOTE */
-struct S : SO { char pad150[0x23C - 0x150]; int entryCount; struct E *entries; struct E *currentEntry; };
-void HideSoAllGlobs(struct S *p);
-void ShowSoGlobsById(struct S *p, void *pv);
+void HideSoAllGlobs(LOOT *p);
+void ShowSoGlobsById(LOOT *p, void *pv);
 // Makes the entry with this id current (the first entry when none matches), then hides the loot's globs
 // (func_001F6A68, inferred) and shows the entry's ones. Used by StageLootPouchLoot.
-void SelectLootEntry(struct S *loot, int id)
+void SelectLootEntry(LOOT *loot, int id)
 {
     int i, j, count;
-    struct E *entry;
+    LOOTE *entry;
     count = loot->entryCount;
     /* the exit test inside the loop body is what the original's loop shape needs (MATCHING_NOTES "Loop exit handling") */
     for (j = 0; ; j++) {
@@ -1804,11 +1790,9 @@ void CLUE::Init()
 }
 
 namespace M_func_001C7E68 { extern "C" {
-/* A clue (classes.h CLUE, a DPRIZE): its slot 76, the state setter. */
-struct O : SO { virtual void SetState(int state); };
-void SO_ResetForProxy(struct O *p);
+void SO_ResetForProxy(CLUE *p);
 // CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
-void ResetClue(struct O *clue)
+void ResetClue(CLUE *clue)
 {
     SO_ResetForProxy(clue);
     clue->SetState(0);
@@ -1816,11 +1800,9 @@ void ResetClue(struct O *clue)
 } } // namespace M_func_001C7E68
 
 namespace M_func_001C7EA8 { extern "C" {
-/* A clue (classes.h CLUE, a DPRIZE): its slot 76, the state setter. */
-struct O : SO { virtual void SetState(int state); };
-void SO_Slot27(struct O *p);
+void SO_Slot27(CLUE *p);
 // CID 95 vtable slot 27. (inferred)
-void ClearClueState(struct O *clue)
+void ClearClueState(CLUE *clue)
 {
     SO_Slot27(clue);
     clue->SetState(-1);
@@ -1831,31 +1813,28 @@ namespace M_SetClueDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct LISTENER { char pad[0xC]; struct VTE *vt; };   /* slot 51 is not declared in a header */
-struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
-    char p1[0x210 - 0x154]; struct LISTENER *collectListener;
-};
-struct M { int n; struct S *p; int pad[14]; };
+struct M { int n; DPRIZE *p; int pad[14]; };
 extern char D_003DD490[];
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
-qword GetLoWorldPos(struct S *p);
-void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
-CLUEPROXY *GetProxyCopyValue(struct S *p);
+qword GetLoWorldPos(CLUE *p);
+void *EmitSwNoise(void *pg, int n, qword q, CLUE *p);
+CLUEPROXY *GetProxyCopyValue(CLUE *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
 void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
-void SetDprizeDprizes(struct S *p, int n);
+void SetDprizeDprizes(CLUE *p, int n);
 // Does the object's GetProxyCopyValue owner derive from class 7?
-static inline int FTest(struct S *p) { CLUEPROXY *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+static inline int FTest(CLUE *p) { CLUEPROXY *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
-void SetClueDprizes(struct S *clue, int n)
+void SetClueDprizes(CLUE *clue, int n)
 {
     CLUEPROXY *q;
     char *pg;
     qword qv;
     if (n == clue->state) return;
     if (n == 1) {
-        struct LISTENER *plo = clue->collectListener;
+        struct LISTENER *plo = (struct LISTENER *)clue->collectListener;
         if (plo) {
             struct M m;
             m.n = n;
