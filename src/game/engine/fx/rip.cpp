@@ -2667,16 +2667,6 @@ extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
 
 namespace M_UpdateRipt1 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *, float, qword, int); } a[4]; } VT;
-typedef struct {
-    char pad[0x18];
-    float duration;
-    int renderObject;
-    float scaleStart;
-    float scaleSlope;
-    char pad28[0xEC - 0x28];
-    VT *vt;
-} EMIT;
 typedef struct { char pad[0xE0]; int numEdges; char *edges; } Q;   /* the touch object: its 0xB0-byte collision records (inferred) */
 typedef struct {
     char pad[0x70];
@@ -2685,12 +2675,12 @@ typedef struct {
     char pad90[0xE0 - 0x90];
     Q *q;                   /* +0xE0 touch object */
     char pade4[0xF4 - 0xE4];
-    int nextRenderObject;
+    LO *nextRenderObject;   /* +0xF4 the ripple's render object */
 } OBJ;
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
 int ClipEdgeToObject(void *, qword, qword, int, HIT *);
-EMIT *NewRipInGroup(struct G *, int, int);
+RIP *NewRipInGroup(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
 // RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
 // the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
@@ -2699,7 +2689,7 @@ void UpdateRipt1(OBJ *object, int isTouching)
 {
     HIT hit;
     int i;
-    EMIT *ripple;
+    RIP *ripple;
     if (isTouching == 0 || object->nextRenderObject == 0)
         goto done;
     hit.pos = object->position;
@@ -2710,7 +2700,7 @@ void UpdateRipt1(OBJ *object, int isTouching)
 found:
     ripple = NewRipInGroup(&D_003DD490, 7, 0);
     if (ripple) {
-        ripple->vt->a[1].pfn((char *)ripple + ripple->vt->a[1].d, 40.0f, hit.pos, 0);
+        ripple->Init(hit.pos, 40.0f, 0);
         ripple->duration = 0.75f;
         ripple->scaleStart = 40.0f;
         ripple->scaleSlope = 30.0f;
