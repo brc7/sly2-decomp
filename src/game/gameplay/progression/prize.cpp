@@ -964,13 +964,13 @@ changed:
 } } // namespace M_func_001C6308
 
 namespace M_func_001C64F8 { extern "C" {
-struct S { char pad[0x1A4]; int glintOwnerOid; int glintOwner; int leftEmitterOid; int leftEmitter; int rightEmitterOid; };
+struct S : SO { char pad150[0x1A4 - 0x150]; int glintOwnerOid; int glintOwner; int leftEmitterOid; int leftEmitter; int rightEmitterOid; };
 // Splice setter: the oids of the glint owner and the left / right glint emitters (resolved at post-load).
 void SetDprizeParams(struct S *p, int glintOwnerOid, int leftEmitterOid, int rightEmitterOid) { p->glintOwnerOid = glintOwnerOid; p->leftEmitterOid = leftEmitterOid; p->rightEmitterOid = rightEmitterOid; }
 } } // namespace M_func_001C64F8
 
 namespace M_func_001C6508 { extern "C" {
-struct S { char pad[0x1A0]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; };
+struct S : SO { char pad150[0x1A0 - 0x150]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; };
 void InitDprize(struct S *p);
 // CID 91 Init (sprayable pickup; coin?). (inferred)
 void InitCoin(struct S *coin)
@@ -1195,7 +1195,7 @@ extern "C" void OnMedicineSmackDone()
 }
 
 namespace M_func_001C6AB8 { extern "C" {
-struct S { char pad[0x1A0]; float glintChance; char pad2[0x2C]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; };
+struct S : SO { char pad150[0x1A0 - 0x150]; float glintChance; char pad2[0x2C]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; };
 void InitDprize(struct S *p);
 // CID 92 Init. (inferred)
 } } // namespace M_func_001C6AB8
@@ -1573,7 +1573,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
 } // namespace M_SprayDprizes
 
 namespace M_InitLoot { extern "C" {
-struct S { char pad[0x1A0]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; };
+struct S : SO { char pad150[0x1A0 - 0x150]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; };
 void InitDprize(struct S *p);
 // CID 94 Init. (inferred)
 void InitLoot(struct S *loot)
@@ -1745,7 +1745,7 @@ extern "C" int GetCurrentLootEntryId(LOOTV *loot)
 
 namespace M_func_001C7A58 { extern "C" {
 struct E { int id; char pad[0x18]; int globCount; void *globIds[3]; };   /* LOOTE */
-struct S { char pad[0x23C]; int entryCount; struct E *entries; struct E *currentEntry; };
+struct S : SO { char pad150[0x23C - 0x150]; int entryCount; struct E *entries; struct E *currentEntry; };
 void HideSoAllGlobs(struct S *p);
 void ShowSoGlobsById(struct S *p, void *pv);
 // Makes the entry with this id current (the first entry when none matches), then hides the loot's globs
@@ -2165,7 +2165,7 @@ void VAULT::PostLoad()
 }
 
 namespace M_func_001C8350 { extern "C" {
-struct S { char pad[0x180]; int state; char p1[0x198 - 0x184]; int enteredCode; void *relay; char p2[0x1F0 - 0x1A0]; int combination; };
+struct S : PO { int state; char p1[0x198 - 0x184]; int enteredCode; void *relay; char p2[0x1F0 - 0x1A0]; int combination; };
 void UpdateSo(struct S *vault);
 int IsRelayFiring(void *vault);
 void SetVaultState(struct S *vault, int n);
@@ -2218,7 +2218,7 @@ union U {qword q;float f[4];};
 struct POINT {char pad[0x10];float x,y;};
 struct TIMER {char pad[0xA8];float end;};
 struct SGG;struct ALARM;
-struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int selectedDigit,enteredCode;SGG*relay;void*dialAnim;char pad1A4[0x1F0-0x1A4];int combination;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
+struct S : SO {struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int selectedDigit,enteredCode;SGG*relay;void*dialAnim;char pad1A4[0x1F0-0x1A4];int combination;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
 extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
 extern "C" { extern struct CLOCK {float time,deltaTime;} D_002DDED0; }
@@ -2436,7 +2436,7 @@ struct G { char pad[0x4764]; int cluesCollected; int cluesRequired; };
 extern struct G D_003DD490;
 struct H;
 extern struct H D_003DD040;
-struct S { char pad[0x190]; int user; char pad2[0x64]; int notEnoughCluesDialog; };
+struct S : PO { char pad180[0x190 - 0x180]; int user; char pad2[0x64]; int notEnoughCluesDialog; };
 void SetVaultState(struct S *vault, int n);
 void RestartHudWidget2(struct G *pg);
 void StartDialog(struct H *ph, int n, int m);
