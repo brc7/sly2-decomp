@@ -92,15 +92,14 @@ struct VU_FLOAT
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022C818 { extern "C" {
-struct S { char pad[0x80]; int a; float b; int *pa; float *pb; };
-// Points a transform slot's value/speed references at its own storage (value 0, speed 1), detaching any animation that
-// was driving it. (inferred)
-void ResetXfValueRef(void *q, struct S *p)
+// Points a transform slot's time/speed sources at its own segment fields (time 0, speed 1), detaching any animation
+// that was driving it. (inferred)
+void ResetXfValueRef(ALO *q, XF *p)
 {
-    p->b = 1.0f;
-    p->a = 0;
-    p->pa = &p->a;
-    p->pb = &p->b;
+    p->segmentEndTime = 1.0f;
+    p->segmentStartTime = 0;
+    p->timeSource = &p->segmentStartTime;
+    p->speedSource = &p->segmentEndTime;
 }
 } } // namespace M_func_0022C818
 
@@ -190,15 +189,14 @@ M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CA18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x94]; int k; };
 qword DecomposeRotationMatrixToEuler(float *m);
 // The inverse of BuildXfValueMatrix: extracts a slot's component value (translation, Euler angles, shear or scale)
 // from a matrix, by the slot's component kind. (inferred)
-qword GetXfValueFromMatrix(struct S *p, float *m)
+qword GetXfValueFromMatrix(XF *p, float *m)
 {
     qword v;
     union { qword q; float f; } r;
-    switch (p->k) {
+    switch (p->kind) {
     case 0: case 15: break;
     case 1: case 4: case 5: case 9: case 10:
         r.q = QwordFromFloats<qword>(m[12], m[13], m[14]); v = r.q; break;
@@ -250,14 +248,13 @@ extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return
 namespace M_func_0022CC00 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct S { char pad[0x94]; int k; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix
 // writes the value (rotation kinds are handled by BuildEulerDerivativeMatrix). (inferred)
-float *BuildXfValueDerivativeMatrix(float *m, struct S *p, qword v)
+float *BuildXfValueDerivativeMatrix(float *m, XF *p, qword v)
 {
     func_002333B4(m, 0, 0x40);
-    switch (p->k) {
+    switch (p->kind) {
     case 0: case 15: break;
     case 1: case 4: case 5: case 9: case 10:
         __asm__("sw %1,%0" : "=m"(m[12]) : "r"(v));
@@ -768,36 +765,33 @@ extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022DD00 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };   /* the C file's unprototyped pointer */
-struct O { char pad[0x18]; struct VTE *vt; };
-struct S { char pad[0x80]; float gMin; float gMax; float *pg; int pad1; struct O *po; int pad2; short k; short state; };
-void ResetXfValueRef(void *pa, struct S *p);
-void SetXfRole(void *pa, struct S *p, int state);
-// Keeps an animated slot value inside its [gMin, gMax] range: when it leaves the range (or the job is done) the job's
-// driver is notified and the slot switches to a settling role. (inferred)
-void UpdateXfJobRange(void *pa, struct S *p)
+void ResetXfValueRef(void *pa, XF *p);
+void SetXfRole(void *pa, XF *p, int state);
+// Keeps an animated slot's time inside its [segmentStartTime, segmentEndTime] window: when it leaves the window (or the
+// phase is done) the slot's act is updated (slot 4) and the slot switches to a settling role. (inferred)
+void UpdateXfJobRange(void *pa, XF *p)
 {
-    float g = *p->pg;
-    if (g < p->gMin || p->gMax < g || p->state >= 3) {
-        if (p->po) {
-            p->po->vt[4].pfn((char *)p->po + p->po->vt[4].d);
-            switch (p->k) {
+    float g = *p->timeSource;
+    if (g < p->segmentStartTime || p->segmentEndTime < g || p->phase >= 3) {
+        if (p->firstActuator) {
+            p->firstActuator->Update();
+            switch (p->role) {
             case 10:
-                if (p->state == 3 || p->state == 4) SetXfRole(pa, p, 7);
-                else if (p->state != 2) SetXfRole(pa, p, 6);
+                if (p->phase == 3 || p->phase == 4) SetXfRole(pa, p, 7);
+                else if (p->phase != 2) SetXfRole(pa, p, 6);
                 break;
             case 6:
-                if (p->state == 3 || p->state == 4) SetXfRole(pa, p, 7);
+                if (p->phase == 3 || p->phase == 4) SetXfRole(pa, p, 7);
                 break;
             case 19:
-                if (p->state != 2) SetXfRole(pa, p, 0x12);
+                if (p->phase != 2) SetXfRole(pa, p, 0x12);
                 break;
             case 12:
-                if (p->state != 2) SetXfRole(pa, p, 0xB);
+                if (p->phase != 2) SetXfRole(pa, p, 0xB);
                 break;
             }
         } else {
-            p->state = 0;
+            p->phase = 0;
             ResetXfValueRef(pa, p);
             SetXfRole(pa, p, 0);
         }
@@ -1896,64 +1890,54 @@ M4 *GetRelativeXfMatrix(M4 *pr, struct O *pa, struct O *pb, M4 *pm)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddXfAct { extern "C" {
-typedef struct VT { short d; short pad; void *pfn; } VT;
-typedef struct N { char pad[0xC]; int k; struct N *next; int role; VT *vt; } N;
-typedef struct S { char pad[0x90]; N *first; } S;
-void WakeXfOwner(void *, S *);
-
-#define VCALL(o, k) ((void (*)(void *))(o)->vt[k].pfn)((char *)(o) + (o)->vt[k].d)
+void WakeXfOwner(void *, XF *);
 
 // Inserts an action into a transform slot's action list, sorted by priority; if it becomes the head (the action in
 // effect) the slot is woken and the old head detached / new head attached, else the head is told (slot 3).
-void AddXfAct(void *ctx, S *s, N *n)
+void AddXfAct(void *ctx, XF *s, ACT *n)
 {
-    N **pp = &s->first;
-    N *head = s->first;
-    N *e;
-    for (e = head; e && e->k > n->k; e = e->next)
-        pp = &e->next;
-    n->next = *pp;
+    ACT **pp = &s->firstActuator;
+    ACT *head = s->firstActuator;
+    ACT *e;
+    for (e = head; e && e->priority > n->priority; e = e->pactNext)
+        pp = &e->pactNext;
+    n->pactNext = *pp;
     *pp = n;
-    if (s->first != head) {
+    if (s->firstActuator != head) {
         WakeXfOwner(ctx, s);
         if (head)
-            VCALL(head, 2);
-        VCALL(s->first, 1);
+            head->Detach();
+        s->firstActuator->Attach();
     } else if (head) {
-        VCALL(head, 3);
+        head->SwitchTarget();
     }
 }
 } } // namespace M_AddXfAct
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00230100 { extern "C" {
-typedef struct VT { short d; short pad; void *pfn; } VT;
-typedef struct N { char pad[0x10]; struct N *next; int role; VT *vt; } N;
-typedef struct S { char pad[0x90]; N *first; } S;
-void WakeXfOwner(void *, S *);
-
-#define VCALL(o, k) ((void (*)(void *))(o)->vt[k].pfn)((char *)(o) + (o)->vt[k].d)
+void WakeXfOwner(void *, XF *);
 
 // Unlinks an action from a transform slot's list and wakes the slot. (inferred)
-void RemoveXfAct(void *ctx, S *s, N *n)
+void RemoveXfAct(void *ctx, XF *s, ACT *n)
 {
-    N *head = s->first;
-    N **pp = &s->first;
-    N *e;
-    for (e = head; e; e = e->next) {
+    ACT *head = s->firstActuator;
+    ACT **pp = &s->firstActuator;
+    ACT *e;
+    for (e = head; e; e = e->pactNext) {
         if (e == n) {
-            *pp = e->next;
-            if (s->first != head) {
+            *pp = e->pactNext;
+            if (s->firstActuator != head) {
                 WakeXfOwner(ctx, s);
-                VCALL(head, 2);
-                if (s->first)
-                    VCALL(s->first, 1);
+                head->Detach();
+                if (s->firstActuator)
+                    s->firstActuator->Attach();
             } else if (head) {
-                VCALL(head, 3);
+                head->SwitchTarget();
             }
             return;
         }
-        pp = &e->next;
+        pp = &e->pactNext;
     }
 }
 } } // namespace M_func_00230100
@@ -1962,48 +1946,43 @@ void RemoveXfAct(void *ctx, S *s, N *n)
 namespace M_func_002301D0 { extern "C" {
 /* (Claude agent, lane E13) Matched. c is reused as the insertion index (for (c--; ...)), and the sorted insert is
    an if + do-while instead of a for loop. */
-typedef struct VT { short d; short pad; void *pfn; } VT;
-typedef struct N { char pad[0xC]; int k; struct N *next; int role; VT *vt; } N;
-typedef struct S { char pad[0x90]; N *first; } S;
-void WakeXfOwner(void *, S *);
-
-#define VCALL(o, k) ((void (*)(void *))(o)->vt[k].pfn)((char *)(o) + (o)->vt[k].d)
+void WakeXfOwner(void *, XF *);
 
 // Re-sorts a slot's actions (up to 16) by priority after priorities changed, re-attaching the new head. (inferred)
-void SortXfActs(void *ctx, S *s)
+void SortXfActs(void *ctx, XF *s)
 {
-    N *a[16];
+    ACT *a[16];
     int c = 0;
-    N *e;
-    N *head;
+    ACT *e;
+    ACT *head;
     {
-        N *ee;
-        for (ee = s->first; ee; ee = ee->next)
+        ACT *ee;
+        for (ee = s->firstActuator; ee; ee = ee->pactNext)
             a[c++] = ee;
     }
-    head = s->first;
-    s->first = 0;
+    head = s->firstActuator;
+    s->firstActuator = 0;
     for (c--; c >= 0; c--) {
-        N *n = a[c];
-        N **pp = &s->first;
-        e = s->first;
-        if (e && e->k > n->k) {
+        ACT *n = a[c];
+        ACT **pp = &s->firstActuator;
+        e = s->firstActuator;
+        if (e && e->priority > n->priority) {
             do {
-                pp = &e->next;
-                e = e->next;
-            } while (e && e->k > n->k);
+                pp = &e->pactNext;
+                e = e->pactNext;
+            } while (e && e->priority > n->priority);
         }
-        n->next = *pp;
+        n->pactNext = *pp;
         *pp = n;
     }
-    if (s->first != head) {
+    if (s->firstActuator != head) {
         WakeXfOwner(ctx, s);
         if (head)
-            VCALL(head, 2);
-        if (s->first)
-            VCALL(s->first, 1);
+            head->Detach();
+        if (s->firstActuator)
+            s->firstActuator->Attach();
     } else if (head) {
-        VCALL(head, 3);
+        head->SwitchTarget();
     }
 }
 } } // namespace M_func_002301D0
@@ -2148,26 +2127,25 @@ void UnsettleXfSlot(void *a, B *b)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00230630 { extern "C" {
-typedef struct S { char pad[0x98]; short role; short segmentKind; } S;
-void SetXfRole(void *, S *, int);
+void SetXfRole(void *, XF *, int);
 
 // Moves a slot whose motion has finished to the matching resting role (by kind and phase). (inferred)
-void SettleXfSlot(void *p, S *s)
+void SettleXfSlot(void *p, XF *s)
 {
     switch (s->role) {
     case 7:
     case 9:
-        if (s->segmentKind == 2)
+        if (s->phase == 2)
             SetXfRole(p, s, 10);
-        else if (s->segmentKind == 1)
+        else if (s->phase == 1)
             SetXfRole(p, s, 6);
         break;
     case 11:
-        if (s->segmentKind == 2)
+        if (s->phase == 2)
             SetXfRole(p, s, 0xC);
         break;
     case 18:
-        if (s->segmentKind == 2)
+        if (s->phase == 2)
             SetXfRole(p, s, 0x13);
         break;
     case 1:
