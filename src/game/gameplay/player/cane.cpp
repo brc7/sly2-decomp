@@ -149,15 +149,6 @@ extern U D_002BF4D0;
 extern U D_002BF4E0;
 }
 
-/** @sly2-annot addr=0x18E540
- * Purpose: Set Sly's cane state (x18D8): exit old (remove sweep effect unless continuing, stop reach track),
- *   state 3 resolves to fore/back sweep 4/5 or 6/7, enter new (blend clip, contact deadline, sounds),
- *   continue ASEGA if transition table D_002BF448 says so
- * Info: proposed name SetJtCaneState (T1); TU cane
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#10-source-files,
- *   docs/engine/player.md#11-key-functions
- * @end-sly2-annot */
 // Sets Sly's cane state (JT+0x18D8, jtcs): leaves the old one (removes the sweep effect unless continuing, stops the
 // reach tracker), resolves the generic sweep state 3 to a fore/back sweep (4/5 or 6/7), and enters the new one
 // (blend clip, contact deadline, sounds). -1 ends any cane action.
@@ -627,13 +618,6 @@ typedef char layout_WORK_average[((unsigned long)&((WORK*)0)->average==0)?1:-1];
 typedef char layout_WORK_half[((unsigned long)&((WORK*)0)->half==0x10)?1:-1];
 typedef char layout_WORK_first[((unsigned long)&((WORK*)0)->first==0x20)?1:-1];
 
-/** @sly2-annot addr=0x18ED70
- * Purpose: If jtcs (x18D8)==0 (reach) run the reach tracker 0x1CC2E8 on JT+0x17D0
- * Info: proposed name UpdateJtCane (T1); TU cane
- * Notes: names_v2 B proposed EnsureAloSfx__FP3ALO (0.856)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // In the reach cane state (0) runs the hand reach tracker (UpdateJtHands on JT+0x17D0).
 extern "C" void UpdateJtCane__FP2JT(JT *jt)
 {
@@ -641,14 +625,6 @@ extern "C" void UpdateJtCane__FP2JT(JT *jt)
         UpdateJtHands(jt->track);
 }
 
-/** @sly2-annot addr=0x18ED98
- * Purpose: Midpoint of (hook child x19A4 pos, right-hand XF x19C0 pos) in Sly's local frame has y>0 (target
- *   behind) -> 1
- * Info: proposed name ShouldJtSweepBack (T1); TU cane
- * Notes: names_v2 C proposed BindAlo__FP3ALO (0.638)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // True if the target lies behind Sly: the midpoint of the hook child and the right-hand transform has y > 0 in Sly's
 // local frame, so a back sweep is used.
 extern "C" int ShouldJtSweepBack(JT *jt)
@@ -673,15 +649,6 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     return f;
 }
 
-/** @sly2-annot addr=0x18EE38
- * Purpose: Pick the cane combo/attack jtcs: jts 0x10 takedown if a nearby (D_002BF4AC) target's TN 0xB1
- *   points at Sly; sidestep (jts 5) picks 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE or 0xC on ground;
- *   +1 alternates fore/back
- * Info: proposed name JtcsChooseJtAttack (T2); TU cane
- * Notes: names_v2 C proposed PostAloLoad__FP3ALO (0.438)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // Picks the cane attack state: takedown (jts 0x10) if a nearby target (within D_002BF4AC) has its takedown behaviour
 // (0xB1) pointing at Sly; from a sidestep, 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE, or 0xC on the ground.
 extern "C" int ChooseJtAttackCaneState(JT *jt)
@@ -743,12 +710,6 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
     return n;
 }
 
-/** @sly2-annot addr=0x18F050
- * Purpose: Return the next sweep jtcs: toggle 0x16<->0x17, else 0x17 if ShouldJtSweepBack else 0x16
- * Info: proposed name JtcsChooseJtSweep (T2); TU cane
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // The next sweep cane state: alternates 0x16 and 0x17, otherwise 0x17 for a back sweep (ShouldJtSweepBack) or 0x16.
 extern "C" int ChooseJtSweepCaneState(JT *jt)
 {
@@ -761,15 +722,6 @@ extern "C" int ChooseJtSweepCaneState(JT *jt)
     return r;
 }
 
-/** @sly2-annot addr=0x18F0A8
- * Purpose: Per-frame cane input: per-jts allow list (3/21/22 hang states: square(0x80) launches jump via
- *   SetJtAirJump; sidestep sub-cases), then buffered button 0x10/0x80 within 0.35 s restarts SetJtCaneState with
- *   JtcsChooseJtSweep/Attack
- * Info: proposed name UpdateJtActiveCane (T1); TU cane
- * Notes: names_v2 C proposed MatchAloOtherObject__FP3ALOT0 (0.638)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // Per-frame cane input: per-state allow lists (in hang states square (0x80) launches a jump through SetJtAirJump;
 // sidestep sub-cases), then a buffered attack button (0x10/0x80) within 0.35 s restarts the swing.
 extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
@@ -849,14 +801,6 @@ static inline qword GetVelocity(ALO*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*
 static inline void*GetFrame(ALO*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
 static inline int IsBonus(ALO*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
-/** @sly2-annot addr=0x18F2B0
- * Purpose: Search the target list (*(ALO * *)&g_sw.dlTarget) (flags&mask) for the best TARGET within 300 of Sly's projected
- *   position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta
- * Info: proposed name ChooseJtAttackTarget (T1); TU cane
- * Notes: names_v2 v1 proposed MeasureJtJumpToTarget__FP2JTP6VECTORP3ALOT1T1PfT5T1T1 (0.019)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
 // (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.
 extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, float dtInput, U *offset, ALO **out,
@@ -910,13 +854,6 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
     *outvector = answer.q;
 }
 
-/** @sly2-annot addr=0x18F560
- * Purpose: ChooseJtAttackTarget(grf 2, dt 0.15, drad 3.15 if jts==0 else 1.6), blend u=clamp((z+50)/110) into
- *   the two sweep BLs, reblend, face the target when standing
- * Info: proposed name ChooseJtSweepTarget (T1); TU cane
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // Finds a sweep target (flags 2, dt 0.15, cone 3.15 rad when standing else 1.6), blends the two sweep clips by the
 // target's height ((z + 50) / 110, clamped) and faces the target when standing.
 extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
@@ -939,13 +876,6 @@ extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
     }
 }
 
-/** @sly2-annot addr=0x18F688
- * Purpose: ChooseJtAttackTarget(grf 8, 0.25, 1.0) and turn toward the found target (atan2),
- *   FixStepAngularVelocity
- * Info: proposed name ChooseJtRushTarget (T1); TU cane
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_B
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // Finds a rush target (flags 8, dt 0.25, cone 1.0 rad) and turns Sly toward it.
 extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
 {
@@ -962,13 +892,6 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
     FixStepAngularVelocity(jt);
 }
 
-/** @sly2-annot addr=0x18F740
- * Purpose: ChooseJtAttackTarget(grf 4, 0.25, 3.15) and face target
- * Info: proposed name ChooseJtSmashTarget (T1); TU cane
- * Notes: names_v2 v1 proposed GMeasureJumpRail__FP3MJRf (0.000)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
- * @end-sly2-annot */
 // Finds a smash target (flags 4, dt 0.25, cone 3.15 rad) and faces it.
 extern "C" void ChooseJtSmashTarget__FP2JT(JT *jt)
 {

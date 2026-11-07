@@ -89,14 +89,6 @@ struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct S { char pad[8]; float g; char p1[8]; int x14; int p2; int x1c; struct VTE *vt; };
 extern float D_002A5680;
 void SetLoBusyKind(void *p, int n);
-/** @sly2-annot addr=0x182C70
- * Purpose: Init the GRABSPOT mix-in sub-object: x14=-1, sBusy-like g=D_002A5680, player mask 7, owner (vt6)
- *   busyk 3
- * Info: proposed name InitGrabspot (T1); TU grabspot
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1ff3b8-0x1ff3b8-0x1ff690
- * @end-sly2-annot */
 // Initializes the GRABSPOT mix-in (the part of an object the player can grab): no current grabber, default busy
 // value, player class mask 7 (all players), owner via slot 6, busy kind 3.
 void InitGrabspot(struct S *grabspot)
@@ -110,15 +102,6 @@ void InitGrabspot(struct S *grabspot)
 }
 } } // namespace M_InitGrabspot
 
-/** @sly2-annot addr=0x182CC0
- * Purpose: Default: no wrap range (return 0)
- * Info: proposed name GetGrabspotWrapRange (T1); class GRABSPOT; TU grabspot
- * Notes: superseded: GRABSPOT_FGetWrapRange (verdicts_followups) | verifier better_name (CORRECT row):
- *   Default slot 1 of the GRABSPOT secondary vtable (7 vtables). Overrides return a [min,max] parameter range
- *   and 1: CID34 +-pi*k (angular wrap), RAIL/PIPE shape s-
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // GRABSPOT default: no wrap range (returns 0).
 int GRABSPOT::GetGrabRange()   /* key function: GRABSPOT's vtable comes out here */
 {
@@ -126,12 +109,6 @@ int GRABSPOT::GetGrabRange()   /* key function: GRABSPOT's vtable comes out here
 }
 
 namespace M_func_00182CC8 { extern "C" {
-/** @sly2-annot addr=0x182CC8
- * Purpose: Default: *pparam = 0
- * Info: proposed name GetGrabspotClosestParam (T2); class GRABSPOT; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // GRABSPOT default: closest parameter 0.
 void GetGrabspotClosestParam(void *p, int a, int *pn)
 {
@@ -139,12 +116,6 @@ void GetGrabspotClosestParam(void *p, int a, int *pn)
 }
 } } // namespace M_func_00182CC8
 
-/** @sly2-annot addr=0x182CD0
- * Purpose: Default no-op
- * Info: proposed name GetGrabspotGrabPos (T2); class GRABSPOT; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // GRABSPOT default: no position (no-op).
 extern "C" void GetGrabspotGrabPosition()
 {
@@ -153,13 +124,6 @@ extern "C" void GetGrabspotGrabPosition()
 namespace M_func_00182CD8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct S { char pad[0x20]; struct VTE *vt; };
-/** @sly2-annot addr=0x182CD8
- * Purpose: Call slot B (closest param) then slot C (pos at that param)
- * Info: proposed name GetGrabspotPosNear (T2); TU grabspot
- * Notes: names_v2 C proposed SetStepRunTarget__FP4STEPffP5BLRUNP6ASEGBL (0.638)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // The grab position nearest the player: closest parameter (slot 0xB), then the position at it (slot 0xC).
 void GetGrabspotPositionNear(struct S *grabspot, int a, float *pg, int b, int c)
 {
@@ -173,12 +137,6 @@ void GetGrabspotPositionNear(struct S *grabspot, int a, float *pg, int b, int c)
 }
 } } // namespace M_func_00182CD8
 
-/** @sly2-annot addr=0x182D70
- * Purpose: Default no-op
- * Info: proposed name AdjustGrabspotScore (T2); class GRABSPOT; TU grabspot
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // GRABSPOT default: leaves the candidate score unchanged.
 extern "C" void AdjustGrabspotScore()
 {
@@ -193,12 +151,6 @@ extern qword SetVectorSphere(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8B0;
 extern qword D_002A2DC0;
-/** @sly2-annot addr=0x182D78
- * Purpose: Default: random point in a sphere around the owner (RandomFloatInRange pan/tilt/radius), zero dv
- * Info: proposed name GetGrabspotSparklePos (T2); class GRABSPOT; TU grabspot
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // GRABSPOT default sparkle position: a random point in a sphere around the owner, zero direction.
 void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
 {
@@ -212,12 +164,6 @@ void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
 }
 } } // namespace M_func_00182D78
 
-/** @sly2-annot addr=0x182E78
- * Purpose: Default: return 0
- * Info: proposed name GRABSPOT_vtF (T2); class GRABSPOT; TU grabspot
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // GRABSPOT's own slot 6 (secondary vtable): the owner getter, which every grab-spot class overrides to return its object (see sly2/xfm.h; GetGrabspotSparklePosition calls it); the base has no owner and returns 0.
 extern "C" int GetGrabspotOwner()
 {
@@ -228,12 +174,6 @@ namespace M_func_00182E80 { extern "C" {
 struct S { char pad[0x190]; char sub[0x2C]; int n; };
 void InitShape(struct S *p);
 void InitGrabspot(void *p);
-/** @sly2-annot addr=0x182E80
- * Purpose: CID12 vt7: InitShape, InitGrabspot(+0x190 sub), kind 3
- * Info: proposed name InitCid12 (T2); class CID12 slot7; TU grabspot
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Wall grab spot (CID12, wall press) Init: shape init, its GRABSPOT part, busy kind 3.
 void InitWallGrabspot(struct S *wall)
 {
@@ -243,14 +183,6 @@ void InitWallGrabspot(struct S *wall)
 }
 } } // namespace M_func_00182E80
 
-/** @sly2-annot addr=0x182EB8
- * Purpose: vt23: LO OnAdd + append to grab list g_sw.dlCid12
- * Info: proposed name OnCid12Add (T2); class CID12 slot23; TU grabspot
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was CID12_Unfreeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnAdd: LO base, then joins the world's wall-grab list (g_sw.dlCid12).
 void CID12::OnAdd()
 {
@@ -259,14 +191,6 @@ void CID12::OnAdd()
     AppendDlEntry(&g_sw.dlCid12, lo);
 }
 
-/** @sly2-annot addr=0x182EF0
- * Purpose: vt22: LO OnRemove + remove from g_sw.dlCid12
- * Info: proposed name OnCid12Remove (T2); class CID12 slot22; TU grabspot
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was CID12_Freeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnRemove: LO base, then leaves the wall-grab list.
 extern "C" void OnWallGrabspotRemove(LO *lo)
 {
@@ -280,12 +204,6 @@ extern float D_002BE8B4;
 void PostLoLoad(struct S *p);
 void SetTnTnsOverride(void *p, int n);
 float UpdateShapeBoundingSphere(struct S *p);
-/** @sly2-annot addr=0x182F28
- * Purpose: vt15: PostLoLoad, private TN override off, default busy radius = bounding radius + D_002BE8B4
- * Info: proposed name PostCid12Load (T2); class CID12 slot15; TU grabspot
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Post-load: LO base, private TN override off, default busy radius = bounding radius + D_002BE8B4.
 void PostWallGrabspotLoad(struct S *wall)
 {
@@ -299,12 +217,6 @@ namespace M_func_00182FA0 { extern "C" {
 struct K { int a; int b; };
 struct S { char pad[0x1B4]; struct K k; };
 void CloneShape(struct S *p);
-/** @sly2-annot addr=0x182FA0
- * Purpose: vt41: CloneShape keeping own 8-byte field
- * Info: proposed name CloneCid12 (T2); class CID12 slot41; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Clone: clones the shape but keeps its own 8-byte field.
 void CloneWallGrabspot(struct S *wall)
 {
@@ -318,14 +230,6 @@ namespace M_func_00182FE8 { extern "C" {
 struct S { char pad[0xE4]; int x; };
 float GetShapeMinDistance(struct S *p);
 float GetShapeMaxDistance(struct S *p);
-/** @sly2-annot addr=0x182FE8
- * Purpose: If open shape: out [GetShapeMinDistance, GetShapeMaxDistance], return 1
- * Info: proposed name CID12_FGetGrabRange (T2); class CID12; TU grabspot
- * Notes: superseded: CID12_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named GetGrabRange
- *   everywhere (verifier r4b: all overrides return a [min,max] range)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // For an open shape outputs [GetShapeMinDistance, GetShapeMaxDistance] and returns 1.
 int GetWallGrabspotWrapRange(struct S *wall, float *pg)
 {
@@ -345,12 +249,6 @@ struct S { char pad[0xE4]; int isClosed; };
 struct V { float a[4]; };
 void FindShapeClosestPoint(struct S *p, qword q, int a, struct V *pv, int b, int c, float *pg);
 float GetShapeMaxDistance(struct S *p);
-/** @sly2-annot addr=0x183040
- * Purpose: FindShapeClosestPoint to the player, clamp to [30, sMax-30] if open
- * Info: proposed name GetCid12ClosestParam (T2); class CID12; TU grabspot
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // The shape distance closest to the player, clamped to [30, length - 30] on open shapes.
 void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
 {
@@ -404,12 +302,6 @@ static __inline__ qword VNormalize(qword c, qword k)
     }
     return t;
 }
-/** @sly2-annot addr=0x1830D8
- * Purpose: Position and facing (atan2 of tangent x up) on the shape at param g
- * Info: proposed name GetCid12GrabPos (T2); class CID12; TU grabspot
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Position and facing (atan2 of tangent x up) on the shape at the given distance.
 void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, float *pg)
 {
@@ -462,12 +354,6 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
-/** @sly2-annot addr=0x183218
- * Purpose: Random point along the shape with outward offset
- * Info: proposed name GetCid12SparklePos (T2); class CID12; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // A random point along the shape with an outward offset (grab-hint sparkle).
 void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
 {
@@ -499,12 +385,6 @@ void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
 }
 } } // namespace M_func_00183218
 
-/** @sly2-annot addr=0x183340
- * Purpose: CID34 vt7: InitXfm + InitGrabspot(+0xE0)
- * Info: proposed name InitCid34 (T2); class CID34 slot7; TU grabspot
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Pole (CID34) Init: transform init and its GRABSPOT part.
 extern "C" void InitPoleGrabspot(XFM *xfm)
 {
@@ -512,14 +392,6 @@ extern "C" void InitPoleGrabspot(XFM *xfm)
     InitGrabspot((char *)xfm + 0xE0);   /* its GRABSPOT */
 }
 
-/** @sly2-annot addr=0x183370
- * Purpose: vt23: OnAdd + append to its grab list
- * Info: proposed name OnCid34Add (T2); class CID34 slot23; TU grabspot
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was CID34_Unfreeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnAdd: unfreeze, then joins its grab list.
 void CID34::OnAdd()
 {
@@ -528,14 +400,6 @@ void CID34::OnAdd()
     AppendDlEntry(&g_sw.dlCid34, lo);
 }
 
-/** @sly2-annot addr=0x1833A8
- * Purpose: vt22: OnRemove + remove from grab list
- * Info: proposed name OnCid34Remove (T2); class CID34 slot22; TU grabspot
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was CID34_Freeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnRemove: freeze, then leaves its grab list.
 extern "C" void OnPoleGrabspotRemove(LO *lo)
 {
@@ -548,12 +412,6 @@ struct S { char pad[0x38]; float g; char p2[0xA4]; void *pe0; char p3[0x28]; flo
 extern float D_002BE8C0;
 void PostLoLoad(struct S *p);
 void SetTnTnsOverride(void *p, int n);
-/** @sly2-annot addr=0x1833E0
- * Purpose: vt15: PostLoLoad, TN override off, default radius = r(x10C)+D_002BE8C0
- * Info: proposed name PostCid34Load (T2); class CID34 slot15; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Post-load: LO base, TN override off, default busy radius = pole radius + D_002BE8C0.
 void PostPoleGrabspotLoad(struct S *pole)
 {
@@ -567,12 +425,6 @@ namespace M_func_00183450 { extern "C" {
 struct K { int a; int b; };
 struct S { char pad[0x104]; struct K k; };
 void CloneXfm(struct S *p);
-/** @sly2-annot addr=0x183450
- * Purpose: vt41: CloneXfm keeping own field
- * Info: proposed name CloneCid34 (T2); class CID34 slot41; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Clone: clones the transform but keeps its own field.
 void ClonePoleGrabspot(struct S *pole)
 {
@@ -582,14 +434,6 @@ void ClonePoleGrabspot(struct S *pole)
 }
 } } // namespace M_func_00183450
 
-/** @sly2-annot addr=0x183498
- * Purpose: Range [-pi r, pi r] (circumference of radius x10C): a round pole
- * Info: proposed name CID34_FGetGrabRange (T2); class CID34; TU grabspot
- * Notes: superseded: CID34_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named GetGrabRange
- *   everywhere (verifier r4b: all overrides return a [min,max] range)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 /* CID 34 grab range: [-pi r, pi r] around the pole. */
 // Wrap range [-pi r, pi r]: the circumference of the pole (radius at +0x10C), so the player can circle it.
 extern "C" int GetPoleGrabspotWrapRange(GRABPOLE *ppole, float *ag)
@@ -605,12 +449,6 @@ struct Q { char pad[0x218]; qword *p218; };
 struct P { char pad[0x10C]; float f10C; };
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-/** @sly2-annot addr=0x1834D0
- * Purpose: Angle (atan2) from the pole axis to the player
- * Info: proposed name GetCid34ClosestParam (T2); class CID34; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // The arc-length parameter of the player's angle around the pole axis.
 void GetPoleGrabspotClosestParam(struct P *pole, struct Q *q, float *pg)
 {
@@ -628,12 +466,6 @@ struct O { char pad[0x10C]; float radius; };
 struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
-/** @sly2-annot addr=0x183540
- * Purpose: Point at angle g/r on the circle of radius r + player radius
- * Info: proposed name GetCid34GrabPos (T2); class CID34; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // The point at angle param / r on the circle of radius r + the player's radius.
 void GetPoleGrabspotGrabPosition(struct O *pole, float g, struct J *pj, qword *pv, float *pg)
 {
@@ -658,12 +490,6 @@ extern qword SetVectorCylind(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8C4;
 extern qword D_002A2DC0;
-/** @sly2-annot addr=0x183600
- * Purpose: Random point on a ring around the pole
- * Info: proposed name GetCid34SparklePos (T2); class CID34; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // A random point on a ring around the pole.
 void GetPoleGrabspotSparklePosition(struct O *pole, qword *pv, qword *pdv)
 {
@@ -674,12 +500,6 @@ void GetPoleGrabspotSparklePosition(struct O *pole, qword *pv, qword *pdv)
 }
 } } // namespace M_func_00183600
 
-/** @sly2-annot addr=0x1836C8
- * Purpose: CID38 vt7: InitXfm + InitGrabspot(+0xE0)
- * Info: proposed name InitCid38 (T2); class CID38 slot7; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // CID38 hold point Init: transform init and its GRABSPOT part. (class role inferred)
 extern "C" void InitHoldGrabspot(XFM *xfm)
 {
@@ -687,14 +507,6 @@ extern "C" void InitHoldGrabspot(XFM *xfm)
     InitGrabspot((char *)xfm + 0xE0);   /* its GRABSPOT */
 }
 
-/** @sly2-annot addr=0x1836F8
- * Purpose: vt23: OnAdd + append to grab list
- * Info: proposed name OnCid38Add (T2); class CID38 slot23; TU grabspot
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was CID38_Unfreeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnAdd for the CID38 hold point (OnHoldGrabspotAdd): unfreeze, then joins its grab list.
 void CID38::OnAdd()
 {
@@ -703,14 +515,6 @@ void CID38::OnAdd()
     AppendDlEntry(&g_sw.dlCid38, lo);
 }
 
-/** @sly2-annot addr=0x183730
- * Purpose: vt22: OnRemove + remove from grab list
- * Info: proposed name OnCid38Remove (T2); class CID38 slot22; TU grabspot
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was CID38_Freeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnRemove: freeze, then leaves its grab list.
 extern "C" void OnHoldGrabspotRemove(LO *lo)
 {
@@ -723,12 +527,6 @@ struct S { char pad[0x38]; float g; char p2[0xA4]; void *pe0; };
 extern float D_002BE8C8;
 void PostLoLoad(struct S *p);
 void SetTnTnsOverride(void *p, int n);
-/** @sly2-annot addr=0x183768
- * Purpose: vt15: PostLoLoad, TN override off, default radius D_002BE8C8
- * Info: proposed name PostCid38Load (T2); class CID38 slot15; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Post-load: LO base, TN override off, default busy radius D_002BE8C8.
 void PostHoldGrabspotLoad(struct S *hold)
 {
@@ -742,12 +540,6 @@ namespace M_func_001837D0 { extern "C" {
 struct K { int a; int b; };
 struct S { char pad[0x104]; struct K k; };
 void CloneXfm(struct S *p);
-/** @sly2-annot addr=0x1837D0
- * Purpose: vt41: CloneXfm keeping own field
- * Info: proposed name CloneCid38 (T2); class CID38 slot41; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Clone: clones the transform but keeps its own field.
 void CloneHoldGrabspot(struct S *hold)
 {
@@ -764,12 +556,6 @@ struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float 
 extern qword GetLoWorldPos(void *p);
 extern qword *GetLoWorldMatrix(void *p);
 extern float atan2f(float y, float x);
-/** @sly2-annot addr=0x183818
- * Purpose: Hold position/heading from the object matrix (offset by player radius unless x10C)
- * Info: proposed name GetCid38GrabPos (T2); class CID38; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Hold position and heading from the object matrix, pushed out by the player's radius unless +0x10C is set.
 void GetHoldGrabspotGrabPosition(struct O *hold, struct J *pj, qword *pv, float *pg)
 {
@@ -797,14 +583,6 @@ void GetHoldGrabspotGrabPosition(struct O *hold, struct J *pj, qword *pv, float 
 }
 } } // namespace M_func_00183818
 
-/** @sly2-annot addr=0x183900
- * Purpose: CID88 vt7: InitSo, InitGrabspot(+0x150), state 0, radius 300, flag x18C=1, zap response mask
- * Info: proposed name InitBarrel (T1); class BARREL slot7; TU grabspot
- * Notes: v3 class identity: InitCid88 -> InitBarrel
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Barrel (CID88, a liftable object) Init: SO init, its GRABSPOT part, state 0, radius 300, free flag, zap mask.
 extern "C" void InitBarrel(BARRELV *barrel)
 {
@@ -817,14 +595,6 @@ extern "C" void InitBarrel(BARRELV *barrel)
     SetSoZapResponse(barrel, 0x03188001, 0);
 }
 
-/** @sly2-annot addr=0x183970
- * Purpose: vt26: SO slot 26 base then state x17C=0
- * Info: proposed name BARREL_vt26 (T2); class BARREL slot26; TU grabspot
- * Notes: v3 class identity: CID88_vt26 -> BARREL_vt26 | T2: placeholder token vt26
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 /* BARREL slot 26. */
 // SO slot 26 base, then carry state 0. (inferred)
 extern "C" void ResetBarrel(BARRELV *barrel)
@@ -833,15 +603,6 @@ extern "C" void ResetBarrel(BARRELV *barrel)
     barrel->nState = 0;
 }
 
-/** @sly2-annot addr=0x183998
- * Purpose: vt23: UnfreezeSo + append to grab list
- * Info: proposed name OnBarrelAdd (T1); class BARREL slot23; TU grabspot
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was CID88_Unfreeze) | v3 class identity: OnCid88Add -> OnBarrelAdd
- * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources:
- *   arbitration_slots22_23+class_review(master_names_v2_1)
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnAdd for the barrel (OnBarrelAdd): unfreeze, then joins its grab list.
 void BARREL::OnAdd()
 {
@@ -850,15 +611,6 @@ void BARREL::OnAdd()
     AppendDlEntry(&g_sw.dlCid88, so);
 }
 
-/** @sly2-annot addr=0x1839D0
- * Purpose: vt22: FreezeSo + remove from grab list
- * Info: proposed name OnBarrelRemove (T1); class BARREL slot22; TU grabspot
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was CID88_Freeze) | v3 class identity: OnCid88Remove -> OnBarrelRemove
- * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources:
- *   arbitration_slots22_23+class_review(master_names_v2_1)
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnRemove: freeze, then leaves its grab list.
 extern "C" void OnBarrelRemove(SO *so)
 {
@@ -870,14 +622,6 @@ namespace M_CloneBarrel { extern "C" {
 struct K { int a; int b; };
 struct S { char pad[0x174]; struct K k; };
 void CloneSo(struct S *p);
-/** @sly2-annot addr=0x183A08
- * Purpose: vt41: SO Clone keeping own field
- * Info: proposed name CloneBarrel (T1); class BARREL slot41; TU grabspot
- * Notes: v3 class identity: CloneCid88 -> CloneBarrel
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Clone: SO clone keeping its own field.
 void CloneBarrel(struct S *barrel)
 {
@@ -887,14 +631,6 @@ void CloneBarrel(struct S *barrel)
 }
 } } // namespace M_CloneBarrel
 
-/** @sly2-annot addr=0x183A50
- * Purpose: vt61: SO base, and ignore a STEPPLAYER that is holding this object (grab state 1 on it)
- * Info: proposed name BARREL_FIgnoreIntersection (T2); class BARREL slot61; TU grabspot
- * Notes: v3 class identity: CID88_FIgnoreIntersection -> BARREL_FIgnoreIntersection
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 /* BARREL slot 61: also ignore a stepplayer that is holding this barrel. */
 // Intersection filter (slot 61): SO base, and ignores a player that is holding this barrel (grab state 1 on it).
 extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
@@ -922,14 +658,6 @@ void PresetSoAccel(struct S *p);
 void *GetLoWorldMatrix(struct S *p);
 void TiltMatUpright(void *p, int n, struct M *pm);
 void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b);
-/** @sly2-annot addr=0x183B00
- * Purpose: vt70: pending velocity, and while free (x18C, state 0) spring the object upright
- * Info: proposed name PresetBarrelAccel (T2); class BARREL slot70; TU grabspot
- * Notes: v3 class identity: PresetCid88Accel -> PresetBarrelAccel
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Physics preset (slot 70): pending velocity, and while free (state 0) springs the barrel upright.
 void PresetBarrelAccel(struct S *barrel)
 {
@@ -973,15 +701,6 @@ qword TransformXfPos(void *pv, void *pvA0, qword v);
 void SetBarrelState(struct O *p, int n);
 }
 
-/** @sly2-annot addr=0x183B80
- * Purpose: Carry state switch of a liftable object (0 free .. 3): reparent to/from the carrier (SetLoParent),
- *   constraint force/torque, part flags
- * Info: proposed name SetBarrelState (T2); class BARREL; TU grabspot
- * Notes: v3 class identity: SetCid88State -> SetBarrelState
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Carry state switch (0 free .. 3): reparents to/from the carrier, force/torque constraints, part flags.
 void SetBarrelState(struct O *barrel, int n)
 {
@@ -1058,14 +777,6 @@ qword GetLoWorldPos(struct S *p);
 void EmitSwNoise(void *g, int n, qword pos, struct S *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
 void SetBarrelState(struct S *p, int n);
-/** @sly2-annot addr=0x183E08
- * Purpose: CID88 own vt slot 75: on a zap that qualifies, noise event and drop/state change
- * Info: proposed name HandleBarrelZap (T2); class BARREL slot75; TU grabspot
- * Notes: v3 class identity: HandleCid88Zap -> HandleBarrelZap
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources:
- *   r4b_rest+class_review(master_names_v2_1)
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Barrel zap handler (own slot 75): on a qualifying zap, makes a noise event and drops/changes state.
 int HandleBarrelZap(struct S *barrel, struct Q *q)
 {
@@ -1091,13 +802,6 @@ int HandleBarrelZap(struct S *barrel, struct Q *q)
 }
 } } // namespace M_func_00183E08
 
-/** @sly2-annot addr=0x183F08
- * Purpose: CID35 vt7: InitXfm, InitGrabspot(+0xE0), x0F0=1, radius 200, player mask 0
- * Info: proposed name InitCid35 (T2); class CID35 slot7; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558,
- *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 /* CID 35 Init. */
 // Mission trigger spot (CID35) Init: transform init, its GRABSPOT part, enabled, radius 200, player mask 0.
 extern "C" void InitTriggerGrabspot(GRABSPOT35 *trigger)
@@ -1113,13 +817,6 @@ namespace M_func_00183F50 { extern "C" {
 struct S { char pad[0x38]; float g; char p2[0xC0]; int playerMask; };
 extern float D_002BE900;
 void PostLoLoad(struct S *p);
-/** @sly2-annot addr=0x183F50
- * Purpose: vt15: PostLoLoad, mask default 7, default radius D_002BE900
- * Info: proposed name PostCid35Load (T2); class CID35 slot15; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558,
- *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Post-load: LO base, player mask default 7, default busy radius D_002BE900.
 void PostTriggerGrabspotLoad(struct S *trigger)
 {
@@ -1129,15 +826,6 @@ void PostTriggerGrabspotLoad(struct S *trigger)
 }
 } } // namespace M_func_00183F50
 
-/** @sly2-annot addr=0x183FB8
- * Purpose: vt23 (shared with CID 0x24): OnAdd + list
- * Info: proposed name OnCid35Add (T2); class CID35 slot23; TU grabspot
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was CID35_Unfreeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/game-progression.md#8-key-functions, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
 // OnAdd (shared with CID36): unfreeze, then joins its grab list.
 void CID35::OnAdd()
 {
@@ -1146,14 +834,6 @@ void CID35::OnAdd()
     AppendDlEntry(&g_sw.dlCid35, lo);
 }
 
-/** @sly2-annot addr=0x183FF0
- * Purpose: vt22 (shared with 0x24/0x25): OnRemove + list
- * Info: proposed name OnCid35Remove (T2); class CID35 slot22; TU grabspot
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was CID35_Freeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnRemove (shared with CID36/37): freeze, then leaves its grab list.
 extern "C" void OnTriggerGrabspotRemove(LO *lo)
 {
@@ -1161,12 +841,6 @@ extern "C" void OnTriggerGrabspotRemove(LO *lo)
     RemoveDlEntry(&g_sw.dlCid35, lo);
 }
 
-/** @sly2-annot addr=0x184028
- * Purpose: Splice property op: mask(+0xFC)
- * Info: proposed name AddGrabspotPlayerMask (T2); TU grabspot
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Splice property op: ORs bits into the player class mask (+0xFC).
 extern "C" void AddGrabspotPlayerMask(GRABSPOT35 *grabspot, STEPPLAYER *player)
 {
@@ -1175,12 +849,6 @@ extern "C" void AddGrabspotPlayerMask(GRABSPOT35 *grabspot, STEPPLAYER *player)
 
 namespace M_func_00184040 { extern "C" {
 struct S { char pad[0xFC]; int fl; };
-/** @sly2-annot addr=0x184040
- * Purpose: Map player class to mask: STEPPLAYER 0x34 -> 7, JT 0x35
- * Info: proposed name SetGrabspotPlayerClass (T2); TU grabspot
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Maps a player class to the mask: STEPPLAYER (0x34) -> 7 (everyone), JT (0x35) -> Sly only, ...
 void SetGrabspotPlayerClass(struct S *grabspot, int n)
 {
@@ -1197,12 +865,6 @@ namespace M_func_001840B8 { extern "C" {
 struct S { char pad[0x118]; int a; int b; };
 extern char D_003DD490[];
 void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
-/** @sly2-annot addr=0x1840B8
- * Purpose: AddOrUpdateRsmg(g_sw, &p->b, 4, &p->a, 1, ...)
- * Info: proposed name AddCid35Rsmg (T2); class CID35; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Registers a state-machine message link (AddOrUpdateRsmg) for the trigger spot.
 void AddTriggerGrabspotRsmg(struct S *trigger, int y, int z, int w)
 {
@@ -1214,12 +876,6 @@ namespace M_func_001840F8 { extern "C" {
 struct S { char pad[0x15C]; int a; int b; };
 extern char D_002DEB30[];
 void AppendBoundedPair(void *g, void *pb, int n, void *pa, int x, int y);
-/** @sly2-annot addr=0x1840F8
- * Purpose: FAddPair(D_002DEB30, ...)
- * Info: proposed name AddCid35Pair (T2); class CID35; TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Registers a pair (FAddPair) for the trigger spot.
 void AddTriggerGrabspotPair(struct S *trigger, int x, int y)
 {
@@ -1234,15 +890,6 @@ extern char D_003DD490[], D_002DEB30[];
 void TriggerRsmg(void *g, int a, int *pb, struct S *p, int n);
 void ApplyTaskStates(void *g, int a, int *pb, struct S *p);
 void FireRelay(void *p, int n);
-/** @sly2-annot addr=0x184130
- * Purpose: Set state x10C, send message 6, TriggerRsmg, ApplyTaskStates, FireRelay
- * Info: proposed name TriggerCid35 (T2); class CID35 slot51; TU grabspot
- * Notes: runtime6 O1: CID35 spot -> ApplyTaskStates(task, 4) | T2: placeholder token Cid35
- * Confidence: low (draft) [T2 0.45] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/engine/game-progression.md#worked-example-job-m1_sat-s57-s62-cruntime,
- *   docs/engine/player.md#9-grabbable-world-objects,
- *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Fires the trigger: sets its state, sends message 6, triggers the linked state machines, applies task states and
 // fires its relay.
 void FireTriggerGrabspot(struct S *trigger, int n)
@@ -1259,12 +906,6 @@ void FireTriggerGrabspot(struct S *trigger, int n)
 }
 } } // namespace M_func_00184130
 
-/** @sly2-annot addr=0x1841F0
- * Purpose: mask(+0xFC) & player's class bit (+0x1000) != 0
- * Info: proposed name FGrabspotAllowsPlayer (T2); TU grabspot
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Whether the grab spot's player mask contains the player's class bit (+0x1000).
 extern "C" int CanGrabspotAcceptPlayer(GRABSPOT35 *grabspot, STEPPLAYER *player)
 {
@@ -1274,12 +915,6 @@ extern "C" int CanGrabspotAcceptPlayer(GRABSPOT35 *grabspot, STEPPLAYER *player)
 namespace M_func_00184208 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *a, void *b);
-/** @sly2-annot addr=0x184208
- * Purpose: Out PosLoWorld of the owner
- * Info: proposed name GetCid35GrabPos (T2); class CID35; TU grabspot
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // The trigger spot's grab position: its owner's world position.
 void GetTriggerGrabspotGrabPosition(void *a, void *b, qword *p)
 {
@@ -1287,12 +922,6 @@ void GetTriggerGrabspotGrabPosition(void *a, void *b, qword *p)
 }
 } } // namespace M_func_00184208
 
-/** @sly2-annot addr=0x184238
- * Purpose: *pscore -= radius - (D_002BF660 - 150)
- * Info: proposed name AdjustCid35Score (T2); class CID35; TU grabspot
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Biases the candidate score by the spot's radius: score -= radius - (D_002BF660 - 150).
 extern "C" void AdjustTriggerGrabspotScore(GRABSPOT35 *trigger, float *pgScore)
 {
@@ -1302,12 +931,6 @@ extern "C" void AdjustTriggerGrabspotScore(GRABSPOT35 *trigger, float *pgScore)
 namespace M_func_00184268 { extern "C" {
 struct S { char pad[0xF0]; int unknownF0; char p1[8]; int playerMask; char p2[0x84]; int oid0; int p3; int oid1; int p4; int oid2; int p5; int oid3; };
 void InitTriggerGrabspot(struct S *p);
-/** @sly2-annot addr=0x184268
- * Purpose: CID 0x24 (child of CID35) vt7: InitCid35 and four oids -1
- * Info: proposed name InitCid36 (T2); class CID36 slot7; TU grabspot
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Carry grab spot (CID36, child of CID35) Init: CID35 init and four oids -1.
 void InitCarryGrabspot(struct S *carry)
 {
@@ -1321,12 +944,6 @@ carry->playerMask = 4;
 }
 } } // namespace M_func_00184268
 
-/** @sly2-annot addr=0x1842B0
- * Purpose: CID 0x24 vt15: PostCid35Load and resolve three oids (FindSwObject kind 4)
- * Info: proposed name PostCid36Load (T2); class CID36 slot15; TU grabspot
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Post-load: CID35 post-load and resolves three oids.
 /* CID 36 PostLoad. */
 void CID36::PostLoad()
@@ -1338,13 +955,6 @@ void CID36::PostLoad()
     p->plo3 = FindSwObject(&D_003DD490, 4, p->oid3, p);
 }
 
-/** @sly2-annot addr=0x184330
- * Purpose: TriggerCid35 then, if the grabber is MURRAY, start his lift (0x1B7000)
- * Info: proposed name Cid35OnGrab (T2); class CID36 slot51; TU grabspot
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#9-grabbable-world-objects,
- *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 /* CID 36 slot 51: on grab, start Murray's lift. */
 // Fires the trigger, then if the grabber is Murray starts his lift (StartMurrayLiftGrabspot).
 extern "C" void OnTriggerGrabspotGrabbed(GRABSPOT36 *trigger, LO *lo)
@@ -1359,16 +969,6 @@ namespace M_func_00184380 { extern "C" {
 struct T { char pad[0xF4]; int n; };
 struct S { char pad[0x180]; int x; char pad2[0x18]; int n; };
 int IsLoSelfOrDescendantOf(struct T *q, int x);
-/** @sly2-annot addr=0x184380
- * Purpose: 1 if ids differ else IsLoSelfOrDescendantOf
- * Info: proposed name FCid35NotTarget (T2); class CID35; TU grabspot
- * Notes: names_v2 C proposed OnHbskAdd__FP4HBSK (0.638) | verifier PLAUSIBLE: Returns 1 if q+0xF4 != p+0x198,
- *   else IsLoSelfOrDescendantOf(q, p+0x180); used by ChooseMurrayThrowTarget. Body matches purpose, but 'NotTarget'
- *   does not describe the parent test; class placeholder. | T2 forced: verifier: role word not supported by
- *   the code
- * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r4b_rest+verdicts_followups
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // 1 if the ids differ, else whether the object is a parent of the spot (IsLoSelfOrDescendantOf). (inferred)
 int ShouldTriggerGrabspotSkipTarget(struct S *trigger, struct T *q)
 {
@@ -1377,13 +977,6 @@ int ShouldTriggerGrabspotSkipTarget(struct S *trigger, struct T *q)
 }
 } } // namespace M_func_00184380
 
-/** @sly2-annot addr=0x1843C0
- * Purpose: CID27 vt7: InitXfm + InitGrabspot(+0x130)
- * Info: proposed name InitCid27 (T2); class CID27 slot7; TU grabspot
- * Notes: names_v2 C proposed OnHbskRemove__FP4HBSK (0.638)
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Table grab spot (CID27, hide under) Init: transform init and its GRABSPOT part.
 extern "C" void InitTableGrabspot(XFM *xfm)
 {
@@ -1409,12 +1002,6 @@ static __inline__ float DistanceBetween(qword a, qword b)
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
-/** @sly2-annot addr=0x1843F0
- * Purpose: vt15: PostLoLoad; default radius = distance to its point + D_002BE904
- * Info: proposed name PostCid27Load (T2); class CID27 slot15; TU grabspot
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // Post-load: LO base; default busy radius = distance to its point + D_002BE904.
 void PostTableGrabspotLoad(struct O *table)
 {
@@ -1425,14 +1012,6 @@ void PostTableGrabspotLoad(struct O *table)
 }
 } } // namespace M_func_001843F0
 
-/** @sly2-annot addr=0x1844A0
- * Purpose: vt23: OnAdd + append to g_sw.dlCid27
- * Info: proposed name OnCid27Add (T2); class CID27 slot23; TU grabspot
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was CID27_Unfreeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnAdd: unfreeze, then joins the world's table list (g_sw.dlCid27).
 void CID27::OnAdd()
 {
@@ -1441,16 +1020,6 @@ void CID27::OnAdd()
     AppendDlEntry(&g_sw.dlCid27, lo);
 }
 
-/** @sly2-annot addr=0x1844D8
- * Purpose: vt22: OnRemove + remove from g_sw.dlCid27
- * Info: proposed name OnCid27Remove (T2); class CID27 slot22; TU grabspot
- * Notes: names_v2 B proposed FIgnoreHbskIntersection__FP4HBSKP2SO (0.856) | slot 22 OnRemove resolved by
- *   arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was
- *   CID27_Freeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; static naming pass; sources:
- *   arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // OnRemove: freeze, then leaves the table list.
 extern "C" void OnTableGrabspotRemove(LO *lo)
 {
@@ -1467,13 +1036,6 @@ extern int D_002DFB84;
 extern float D_002BE908;
 qword GetLoWorldPos(void *p);
 qword ConvertPosBetweenLos(struct S *p, int n, qword q);
-/** @sly2-annot addr=0x184510
- * Purpose: Hold position (debug flag D_002DFB84 uses child x15C pos + offset)
- * Info: proposed name GetCid27GrabPos (T2); class CID27; TU grabspot
- * Notes: names_v2 B proposed PresetHbskAccel__FP4HBSKf (0.856)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // The hold position (the debug flag D_002DFB84 uses a child's position plus an offset).
 void GetTableGrabspotGrabPosition(struct S *table, int unused, UV *pv)
 {
@@ -1497,12 +1059,6 @@ extern qword SetVectorCylind(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE90C;
 extern qword D_002A2DC0;
-/** @sly2-annot addr=0x1845A0
- * Purpose: Random point on a disc around its point
- * Info: proposed name GetCid27SparklePos (T2); class CID27; TU grabspot
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+verdicts_B
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // A random point on a disc around its point.
 void GetTableGrabspotSparklePosition(struct O *table, qword *pv, qword *pdv)
 {
@@ -1515,14 +1071,6 @@ void GetTableGrabspotSparklePosition(struct O *table, qword *pv, qword *pdv)
 
 namespace M_PgrabspotFromLo { extern "C" {
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-/** @sly2-annot addr=0x184670
- * Purpose: Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0,
- *   CID12 +0x190, ...) or NULL
- * Info: proposed name GetGrabspotFromLo (T1); TU grabspot
- * Notes: names_v2 C proposed PdartOldestHbskStuck__FP4HBSK (0.638)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
- * @end-sly2-annot */
 // The GRABSPOT part of an object by class (barrel +0x150, table +0x130, pole +0xE0, wall +0x190, ...), or null.
 void *GetGrabspotFromLo(char *p)
 {

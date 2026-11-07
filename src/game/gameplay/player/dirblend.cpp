@@ -78,14 +78,6 @@ M4 *GetLoWorldMatrix(PLAYERV *player);
 }
 float D_002BF9F0 = 0.3f;   /* dirblend's .data: input dead zone (the next 12 bytes are 0: alignment) */
 
-/** @sly2-annot addr=0x1A0300
- * Purpose: For 8 directional clips measure root velocity (clip displacement / duration via key lookup
- *   0x12FF10) and build the 8-entry blend (0x137A30 cbBl 0x20)
- * Info: proposed name PostLoadDirBlend (T2); TU dirblend
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
- *   docs/engine/animation.md#6-source-files, docs/engine/player.md#10-source-files
- * @end-sly2-annot */
 // Measures each active directional clip's root velocity (displacement between t=0 and t=duration, divided by the
 // duration) into axes[i].direction, then allocates the 8-entry dynamic animation blend for them and returns it in
 // *blendOut. Called once when a move that uses directional blending is set up (grab, Murray).
@@ -126,13 +118,6 @@ static inline float Float3(qword q){register int bits __asm__("$7");float f;__as
 
 static inline float Float1(qword q){register int bits __asm__("$7");register float f __asm__("$f1");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 
-/** @sly2-annot addr=0x1A0450
- * Purpose: Choose/blend directional clip weights from the movement vector and update the animation request
- * Info: proposed name UpdateDirBlend (T2); TU dirblend
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18,
- *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
- * @end-sly2-annot */
 // Per-frame: picks the axis set for the current side (-1 none, 0 negative, 1 positive), weights each axis by how much
 // of the player's acceleration lies along its root velocity (normalized so weights sum to at most 1, the remainder
 // going to the idle/head axis), rescales the acceleration to the blended root velocity and reblends `request`.
@@ -302,12 +287,6 @@ static inline void BlendNegative(PLAYERV *player, DIRAXIS *axes, float xin, cons
     __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->acceleration.q), "=m"(out->q) : "j"(ka), "j"(kc));
 }
 
-/** @sly2-annot addr=0x1A0720
- * Purpose: Update directional acceleration and side state from heading/magnitude
- * Info: proposed name UpdateJtDirAccel (T2); TU dirblend
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18
- * @end-sly2-annot */
 // Turns a steering input (heading and magnitude relative to the player's facing, optionally facing the lock-on
 // target) into the player's acceleration: chooses the side from the lateral input past a dead zone (D_002BF9F0),
 // removes the sideways velocity when the side flips, and blends the two side axes' root velocities. (inferred)

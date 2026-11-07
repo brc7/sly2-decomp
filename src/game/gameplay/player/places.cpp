@@ -108,37 +108,17 @@ void *memmove(void *dst, const void *src, unsigned int cb);
 void RemoveJtPlacesOf(JTPLACES *p, LO *a, PLACESPOT *b);
 }
 
-/** @sly2-annot addr=0x19F3E8
- * Purpose: Init the STEPPLAYER+0x9E0 safe-place table: store owner
- * Info: proposed name InitJtPlaces (T1); TU places
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
- *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Initializes the player's safe-place table (STEPPLAYER+0x9E0): stores the owner.
 extern "C" void InitJtPlaces(JTPLACES *places, JT *jt)
 {
     places->jt = jt;
 }
 
-/** @sly2-annot addr=0x19F3F0
- * Purpose: Empty PostLoad of the place table
- * Info: proposed name PostLoadJtPlaces (T1); TU places
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Post-load of the safe-place table: nothing to do.
 extern "C" void PostLoadJtPlaces(void)
 {
 }
 
-/** @sly2-annot addr=0x19F3F8
- * Purpose: World position of a recorded place (object-local pos via ConvertXfPos, or stored world pos)
- * Info: proposed name PosFromJtPlace (T2); TU places
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // World position of a recorded place: an object-local position converted through the object's transform, a curve
 // distance evaluated on the object, or a stored world position.
 extern "C" qword GetJtPlacePosition(JT *jt, PLACE *q, float g)
@@ -168,25 +148,9 @@ extern "C" qword GetJtPlacePosition(JT *jt, PLACE *q, float g)
     return r;
 }
 
-/** @sly2-annot addr=0x19F540
- * Purpose: Build a place record from a world position and call ReturnJtToSafePlace with it
- * Info: proposed name ReturnJtToPos (T2); TU places
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Builds a place record for a world position and returns the player there (ReturnJtToSafePlace).
 extern "C" void ReturnJtToPosition(JT *jt, qword q) { PLACE f; func_002333B4(&f, 0, sizeof f); f.v.q = q; ReturnJtToSafePlace(jt, &f); }
 
-/** @sly2-annot addr=0x19F590
- * Purpose: Put the player back at a safe place (best recorded place if none given): ballistic launch toward
- *   it (DtBallisticMax, SetJtAirJump, ChooseJtLanding) or teleport with camera cut (CutCm) when he is not
- *   the active player
- * Info: proposed name ReturnJtToSafePlace (T1); TU places
- * Notes: runtime3: places MRU table
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Puts the player back at a safe place (the best recorded one when `place` is null): a ballistic launch toward it
 // when reachable (ComputeMaxBallisticTime, SetJtAirJump, ChooseJtLanding), otherwise a teleport with a camera cut.
 // Used after falling into hazards and by the hurt callbacks.
@@ -226,12 +190,6 @@ extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
 }
 
 static inline float EvaluateClq(CLQ *clq, float g) { return clq->g + g * (clq->gFirst + g * clq->gSecond); }
-/** @sly2-annot addr=0x19F7D0
- * Purpose: Score a place: distance from STEPs, line-of-sight/bounding-sphere test against objects
- * Info: proposed name ScoreJtPlace (T2); TU places
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Scores a recorded place: distance from nearby STEP objects (guards) and a line-of-sight / bounding-sphere test
 // against them; lower is better. (inferred)
 extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
@@ -289,12 +247,6 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A66A0 __asm__("D_002A66A0") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x19FAF8
- * Purpose: Pick the best recorded place (ScoreJtPlace against up to 16 STEP objects CID 0x33)
- * Info: proposed name ChooseJtSafePlace (T2); TU places
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Picks the best recorded place by ScoreJtPlace against up to 16 STEP objects (CID 0x33).
 extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
 {
@@ -323,13 +275,6 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
     pe->v.q = r;
 }
 
-/** @sly2-annot addr=0x19FC30
- * Purpose: Each frame, when standing on stable ground (jts in a ground list, floor normal z>0.7, not flagged)
- *   record the floor object/pos; grab and pipe states record their spot (RecordJtGrabPlace/RecordJtPipePlace)
- * Info: proposed name UpdateJtPlaces (T1); TU places
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Per frame: when standing on stable ground (a ground state, floor normal z > 0.7, floor not flagged) records the floor
 // object and position; the grab and pipe states record their own spot (RecordJtGrabPlace, RecordJtPipePlace).
 extern "C" void UpdateJtPlaces(JT *jt)
@@ -360,14 +305,6 @@ extern "C" void UpdateJtPlaces(JT *jt)
     }
 }
 
-/** @sly2-annot addr=0x19FD30
- * Purpose: Move-to-front insert of (object, param s) into the place table, merging entries within 50 of s
- * Info: proposed name AddJtPlaceOnCurve (T2); TU places
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950,
- *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8,
- *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Inserts (object, curve distance) at the front of the place table, merging an entry on the same object within 50.
 extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
 {
@@ -408,14 +345,6 @@ static __inline__ float Dist(qword a, qword b)
     g = VuToFloat(r);
     return g;
 }
-/** @sly2-annot addr=0x19FEB0
- * Purpose: Move-to-front insert of (object, position) merging entries within 50 units
- * Info: proposed name AddJtPlaceAtPos (T2); TU places
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950,
- *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Inserts (object, position) at the front of the place table, merging an entry within 50 units.
 extern "C" void AddJtPlaceAtPosition(JTPLACES *places, PLACESPOT *s, qword q)
 {
@@ -448,12 +377,6 @@ extern "C" void AddJtPlaceAtPosition(JTPLACES *places, PLACESPOT *s, qword q)
     e->t = D_002DDED0.t;
 }
 
-/** @sly2-annot addr=0x1A0048
- * Purpose: Compact the place table removing entries that reference the given object(s)
- * Info: proposed name RemoveJtPlacesOf (T2); TU places
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Compacts the place table, dropping entries that reference the given object.
 extern "C" void RemoveJtPlacesOf(JTPLACES *s, LO *p0, PLACESPOT *p8)
 {
@@ -472,14 +395,6 @@ extern "C" void RemoveJtPlacesOf(JTPLACES *s, LO *p0, PLACESPOT *p8)
     s->count = dst - s->entries;
 }
 
-/** @sly2-annot addr=0x1A00D0
- * Purpose: Purge a removed object from the place tables of Sly (g_pjt D_002E1E40), D_002DD5BC and D_002F7900
- *   (the other two player globals, presumably Bentley/Murray)
- * Info: proposed name RemoveSwPlacesOf (T1); TU places
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
- *   docs/reference/functions/player.md#places-0x19f3e8-0x1a0300
- * @end-sly2-annot */
 // Purges a removed object from the place tables of all three players (Sly g_pjt, and the two other player globals
 // D_002DD5BC and D_002F7900, presumably Bentley and Murray).
 extern "C" void RemoveSwPlacesOf(void *g, LO *a, PLACESPOT *b)

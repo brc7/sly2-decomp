@@ -90,14 +90,6 @@ struct P {
 struct P *D_002DD5BC;   /* the Bentley object (bentley's .bss; medium: by layout) */
 void InitStepplayer(struct P *p);
 void InitGait(void *pv, struct P *p, int n);
-/** @sly2-annot addr=0x134648
- * Purpose: BENTLEY vt7: InitStepplayer then Bentley defaults (camera offsets 45/125, two 0x20B840 sub-objects
- *   at +0x1320/+0x1600, gadget slot kinds 7/9/11 ...)
- * Info: proposed name InitBentley (T1); class BENTLEY slot7; TU bentley
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
 // BENTLEY Init (vtable slot 7): STEPPLAYER init, then Bentley's defaults: camera offsets 45/125, the two gait records
 // (+0x1320/+0x1600) and his gadget slot kinds (7/9/11 ...).
 void InitBentley(struct P *bentley)
@@ -138,17 +130,8 @@ void InitBentley(struct P *bentley)
 }
 } } // namespace M_InitBentley
 
-/** @sly2-annot addr=0x134770
- * Purpose: BENTLEY vt14: STEP LoadFromBrx base (0x2039C0) then 0x1A64E8(p, 0x76, D_002BC390) (load
- *   class-specific data table)
- * Info: proposed name LoadBentleyFromBrx (T1); class BENTLEY slot14; TU bentley
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest+parse-verified
- * See: docs/engine/player.md#11-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY LoadFromBrx (slot 14): STEP base, then binds his class-specific object table (0x76 entries).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadBentleyFromBrx(BENTLEY *bentley, CBinaryInputStream *pbis)
 {
     LoadStepFromBrx(bentley, pbis);
@@ -169,13 +152,6 @@ void PostJtLoadGait(void *);
 void InitBentleyCrosshair(void *, struct S *, ti128, float, float);
 void AttachStepplayerToStartMarker(struct S *, int);
 void SetBentleyState(struct S *, int);
-/** @sly2-annot addr=0x1347A8
- * Purpose: BENTLEY vt15: PostLoadStepplayer, find child SO 0xB, bind anim blends, init crosshair/aim helper
- *   (0x136D28), AttachStepplayerToStartMarker(0x16), SetBentleyState(0)
- * Info: proposed name PostBentleyLoad (T1); class BENTLEY slot15; TU bentley
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY post-load (slot 15): STEPPLAYER post-load, finds child SO 0xB, binds the animation blends, initializes the
 // crosshair (InitBentleyCrosshair) and attaches him to his start marker.
 void PostBentleyLoad(struct S *bentley) {
@@ -227,16 +203,6 @@ void UpdateBentleyAim(struct P *p);
 
 #define VCALL99(p, a) ((int (*)(void *, int))(p)->vt[99].pfn)((char *)(p) + (p)->vt[99].d, a)
 
-/** @sly2-annot addr=0x134850
- * Purpose: Per-frame transitions of the Bentley state (+0x13D0) driven by component states, then sub-machines
- *   0x136118/0x136338/0x1367D8
- * Info: proposed name UpdateBentleyStateMachine (T1); TU bentley
- * Notes: runtime5a #8/#31: input switch (0x40 jump, 0x400 look, 0x10 gadget, 0x20 grab) consistent with
- *   S49-S53
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Per-frame Bentley state transitions (+0x13D0) driven by the component states, then the sub-machines (sub-state,
 // aim, hover).
 void UpdateBentleyStateMachine(struct P *p)
@@ -363,12 +329,6 @@ int IsStepplayerInJtMode(struct S *);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
 void EndJtMode(void *);
 void UpdateJtMode(void *);
-/** @sly2-annot addr=0x134D30
- * Purpose: While in jtmode: on button mask 0x4F0 in mode 1/kind 0 call 0x19CCE8, then update jtmode 0x19D330
- * Info: proposed name UpdateBentleyJtmode (T2); TU bentley
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // While in a look mode: in recon (mode 1, kind 0) the face buttons (mask 0x4F0) end it; then updates the mode.
 void UpdateBentleyJtMode(struct S *bentley) {
     if (!IsStepplayerInJtMode(bentley))
@@ -501,12 +461,6 @@ static __inline__ void Kick(void *pv, float g)
     UpdateGaitFootsteps(pv);
 }
 
-/** @sly2-annot addr=0x134DA8
- * Purpose: BENTLEY vt16: UpdateStepplayer, then (if in world) Bentley state machine and per-state actions
- * Info: proposed name UpdateBentley (T1); class BENTLEY slot16; TU bentley
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY Update (slot 16): UpdateStepplayer, then (if in the world) the state machine and per-state actions.
 void UpdateBentley(struct P *bentley)
 {
@@ -628,14 +582,6 @@ void ReplaceSmaEx(void *, struct P *, int, int, int, void *);
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
 #define VCALL1(p, n, a) ((void (*)(void *, int))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d, a)
 
-/** @sly2-annot addr=0x135248
- * Purpose: Bentley state change (+0x13D0): exit/enter actions, animations (asega), component state changes
- * Info: proposed name SetBentleyState (T1); TU bentley
- * Notes: runtime5a #8: Bentley state +0x13D0 values 0/12/3 observed
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Bentley state change (+0x13D0): exit/enter actions, animations and component state changes.
 void SetBentleyState(struct P *p, int k)
 {
@@ -821,14 +767,6 @@ void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void ShouldKeepSoNotSelf();
 void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
 int FindFirstObjectHitByLine(int, ti128, ti128, int, int, struct LSG *);
-/** @sly2-annot addr=0x1356E8
- * Purpose: Ray from two screen points (ConvertCmScreenToWorld) through the world (IntersectSwBoundingBox +
- *   PsoHitTestLineObjects); store hit (or far point) at +0x16F0
- * Info: proposed name UpdateBentleyAimPoint (T2); TU bentley
- * Notes: runtime5a #4: +0x16F0 written at fire (S53) | T2 forced: v2 tier kept (v2 held this name at T2)
- * Confidence: low (draft) [T2 0.65] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Casts a ray through two screen points into the world (box query plus line test against objects) and stores the hit
 // (or the far point) as the aim point.
 void UpdateBentleyAimPoint(struct S *bentley) {
@@ -861,17 +799,6 @@ struct O *AcquireProxyObject(void *, int);
 void LaunchSoFromLauncher(struct Q *, struct O *);
 void PrimeBomb__FP4BOMBf(struct O *, float);
 void SetBentleyAimState(struct S *, int);
-/** @sly2-annot addr=0x1357C0
- * Purpose: Binocucom crossbow dart: clone the selected ACCMISS template (+0x16DC/+0x16E0), launch from the
- *   launcher CID112 toward the aim point +0x16F0 (LaunchSoFromLauncher), PrimeBomb(4.0), aim state +0x16BC =
- *   1
- * Info: proposed name FireBentleyDart (T1); TU bentley
- * Notes: v3: superseded FireBentleyProjectile | runtime5a #1/#2 CORRECTION: fires the ACCMISS dart (S53 oid
- *   0x245, tDetonate = fire + 4.0), not a BOMB; v2 FireBentleyProjectile
- * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime5a
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Fires the binocucom crossbow dart: clones the selected projectile template and launches it from the launcher
 // (CID112) toward the aim point. (runtime-verified: the dart, not a bomb)
 void FireBentleyDart(struct S *bentley, int a) {
@@ -899,12 +826,6 @@ void FireBentleyDart(struct S *bentley, int a) {
 }
 } } // namespace M_FireBentleyDart
 
-/** @sly2-annot addr=0x1358A8
- * Purpose: BENTLEY vt50: GetStepplayerCpdefi plus per-state tweaks (pipe 13 -> 0x19EA00, state 5 sets flag)
- * Info: proposed name GetBentleyCpdefi (T1); class BENTLEY slot50; TU bentley
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY camera definition (slot 50): GetStepplayerCpdefi plus per-state tweaks (pipe 13 uses the pipe velocity,
 // state 5 sets a flag).
 extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
@@ -940,13 +861,6 @@ void PresetJtAccelHide(void *p);
 void PresetJtAccelZap(void *p);
 void PresetJtAccelPipe(void *p);
 void AddSoAcceleration(struct P *p, qword v);
-/** @sly2-annot addr=0x135940
- * Purpose: BENTLEY vt70: state-dependent physics preset (pipe/jtair/jtgrab/jthurt components; state 6 sub 2
- *   applies drag via 0x1FAC30)
- * Info: proposed name BENTLEY_VUnk69 (T2); class BENTLEY slot70; TU bentley
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY physics preset (slot 70): per state, the pipe / air / grab / hurt component's preset; state 6 sub-state 2
 // applies drag.
 void PresetBentleyAccel(struct P *bentley)
@@ -987,12 +901,6 @@ struct S { char pad[0xdf0]; int hurt; char pad2[0xf50 - 0xdf4]; int pipe; char p
 void AdjustJtHurtXp(void *, struct E *);
 void ResetJtPipeAdjust(void *, struct E *);
 void AdjustStepNewXp(struct S *, struct E *, int);
-/** @sly2-annot addr=0x135A48
- * Purpose: BENTLEY vt55: per-state contact hook (hurt 0x1A2100, pipe 0x19E9C8, else STEP base 0x204250)
- * Info: proposed name BENTLEY_VUnk54 (T2); class BENTLEY slot55; TU bentley
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY contact adjust (slot 55): hurt -> AdjustJtHurtXp, pipe -> ResetJtPipeAdjust, else the STEP base.
 void AdjustBentleyXp(struct S *bentley, struct E *ae, int i) {
     struct E *pe = &ae[i];
@@ -1020,13 +928,6 @@ void LockProxyObject(void *pv, struct O *po);
 void FireBentleyDart(struct P *p, int n);
 void HandleBentleyCrosshairMessage(void *pv, int k, struct M *pm);
 void SetGadgetRecordObject(struct P *p, struct E *pe, int n);
-/** @sly2-annot addr=0x135AD8
- * Purpose: BENTLEY vt5: HandleStepplayerMessage then Bentley-specific msg 9 kinds (0x216 spawn object from
- *   template, ...)
- * Info: proposed name HandleBentleyMessage (T1); class BENTLEY slot5; TU bentley
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY message handler (slot 5): HandleStepplayerMessage, then Bentley-specific animation events (message 9 kinds:
 // 0x216 spawns an object from a template, ...).
 void HandleBentleyMessage(struct P *bentley, int k, struct M *pm)
@@ -1066,13 +967,6 @@ void HandleBentleyMessage(struct P *bentley, int k, struct M *pm)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetBentleyPlayerState { extern "C" {
 void SetBentleyState(void *, int);
-/** @sly2-annot addr=0x135C20
- * Purpose: BENTLEY vt88: map generic player state 0..8 to Bentley states (0,2,3,4,9,10,11,12,13) via
- *   SetBentleyState
- * Info: proposed name SetBentleyPlayerState (T1); class BENTLEY slot88; TU bentley
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 88: maps a generic player state 0..8 to Bentley states (0, 2, 3, 4, 9, 10, 11, 12, 13).
 void SetBentleyPlayerState(void *bentley, unsigned int n)
 {
@@ -1093,12 +987,6 @@ void SetBentleyPlayerState(void *bentley, unsigned int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BENTLEY_PlayerStateCur { extern "C" {
 struct S { char pad[0x13d0]; int st; };
-/** @sly2-annot addr=0x135D08
- * Purpose: BENTLEY vt89: inverse map Bentley state -> generic 0..8 (else -1)
- * Info: proposed name GetBentleyPlayerState (T1); class BENTLEY slot89; TU bentley
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 89: the inverse map, Bentley state -> generic player state 0..8 (else -1).
 int GetBentleyPlayerState(struct S *bentley) {
     switch (bentley->st) {
@@ -1123,13 +1011,6 @@ int GetJtGrabAdjustRecord(void *, int *);
 int GetJtAirAdjustRecord(void *, int *);
 int GetJtHurtAdjustRecord(void *, int *);
 void SetStepPhys(struct S *, int, int);
-/** @sly2-annot addr=0x135D80
- * Purpose: BENTLEY vt90: ask the active component (jtair/jtgrab/jthurt) for an animation/feature id, default
- *   +0x268, then STEP 0x203D00
- * Info: proposed name BENTLEY_VUnk89 (T2); class BENTLEY slot90; TU bentley
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 90: asks the active component (air/grab/hurt) for the per-state STEP parameter block, default +0x268,
 // then applies it (STEP base).
 void ApplyBentleyStateStepParams(struct S *bentley) {
@@ -1146,23 +1027,11 @@ void ApplyBentleyStateStepParams(struct S *bentley) {
 }
 } } // namespace M_func_00135D80
 
-/** @sly2-annot addr=0x135E30
- * Purpose: BENTLEY vt91: empty
- * Info: proposed name BENTLEY_VUnk90 (T2); class BENTLEY slot91; TU bentley
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 91 (end the melee attack; Sly cancels his cane state here): Bentley has none, empty.
 extern "C" void EndBentleyMeleeAttack()
 {
 }
 
-/** @sly2-annot addr=0x135E38
- * Purpose: BENTLEY vt92: returns 0
- * Info: proposed name BENTLEY_VUnk91 (T2); class BENTLEY slot92; TU bentley
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 92 (face the object he is attached to; Sly does): returns 0.
 extern "C" int TryFaceBentleyAttachedObject()
 {
@@ -1173,12 +1042,6 @@ extern "C" int TryFaceBentleyAttachedObject()
 namespace M_func_00135E40 { extern "C" {
 struct S { char pad[0x13d0]; int st; };
 int GetStepplayerMovementNoise(struct S *);
-/** @sly2-annot addr=0x135E40
- * Purpose: BENTLEY vt98: STEPPLAYER::GetMovementNoise, else 1 in states 1/5/14, -1 otherwise
- * Info: proposed name BENTLEY_VUnk97 (T2); class BENTLEY slot98; TU bentley
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
 // then 1 (noisy) in BENTLEY_RUN/NEAR_TARGET/ADRENALINE, else -1.
 int GetBentleyMovementNoise(struct S *bentley) {
@@ -1201,12 +1064,6 @@ struct S { char pad[0x208]; struct A *pa; char pad1[0x4c0 - 0x20c]; int grab; ch
 void AddJtPlaceAtPosition(void *, int, ti128);
 void RecordJtGrabPlace(void *);
 void RecordJtPipePlace(void *);
-/** @sly2-annot addr=0x135EB0
- * Purpose: Per state: remember standing places (jtplaces 0x19FEB0) when on solid ground, or grab/pipe updates
- * Info: proposed name UpdateBentleyPlaces (T2); TU bentley
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Per state: records standing places when on solid ground (AddJtPlaceAtPosition), or the grab/pipe updates.
 void UpdateBentleyPlaces(struct S *bentley) {
     struct A *pa;
@@ -1231,12 +1088,6 @@ namespace M_BENTLEY_FInvulnerable { extern "C" {
 struct S { char pad[0x4c0]; int grab; char pad2[0x13d0 - 0x4c4]; int st; };
 int IsJtGrabBusy(void *, int);
 int IsStepplayerInvulnerable(struct S *, int);
-/** @sly2-annot addr=0x135F78
- * Purpose: BENTLEY vt76: pipe state and zpk 0x4000 or jtgrab check, else STEPPLAYER::IsInvulnerable
- * Info: proposed name IsBentleyInvulnerable (T1); class BENTLEY slot76; TU bentley
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 76: on a pipe with zap kind 0x4000, or the grab check, else the STEPPLAYER base.
 int IsBentleyInvulnerable(struct S *bentley, int msg) {
     switch (bentley->st) { case BENTLEY_PIPE: if (msg == 0x4000) return 1; break; case BENTLEY_GRAB: if (IsJtGrabBusy(&bentley->grab, msg)) return 1; break; }
@@ -1247,12 +1098,6 @@ int IsBentleyInvulnerable(struct S *bentley, int msg) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135FF0 { extern "C" {
 struct S { char pad[0x13d0]; int st; };
-/** @sly2-annot addr=0x135FF0
- * Purpose: BENTLEY vt94: 1 in states 0/1/5/7 else 0
- * Info: proposed name BENTLEY_VUnk93 (T2); class BENTLEY slot94; TU bentley
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 94: 1 in states 0/1/5/7 (free movement), else 0. (inferred)
 int IsBentleyFreeMoving(struct S *bentley) {
     switch (bentley->st) {
@@ -1271,12 +1116,6 @@ struct S { int pad[3]; struct VTE *vt; char pad1[0x190 - 0x10]; float v190[3]; c
     char pad5[0x15f0 - 0x15d8]; struct ASEG *f15f0; char pad6[0x16b0 - 0x15f4]; int subState; };
 void ReleaseSma(void *);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, float, int, void **);
-/** @sly2-annot addr=0x136040
- * Purpose: Set +0x16B0 sub-state and play the matching aseg
- * Info: proposed name SetBentleySubState16B0 (T2); TU bentley
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Sets the +0x16B0 sub-state and plays its animation.
 void SetBentleySubState(struct S *bentley, int n) {
     struct ASEG *aseg;
@@ -1326,12 +1165,6 @@ int GetGadgetButtonMask(struct P *p, int n);
 int POCTL_IsButtonDown(void *pv, int n);
 void ReleaseBentleyHeldObject(struct P *p);
 void SetJtAirJump(void *pv, int a, int b, int c);
-/** @sly2-annot addr=0x136118
- * Purpose: Sub-state machine on +0x16B0
- * Info: proposed name UpdateBentleySubState16B0 (T2); TU bentley
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // The +0x16B0 sub-state machine.
 void UpdateBentleySubState(struct P *bentley)
 {
@@ -1369,12 +1202,6 @@ void UpdateBentleySubState(struct P *bentley)
 }
 } } // namespace M_func_00136118
 
-/** @sly2-annot addr=0x136298
- * Purpose: Release object at +0x186C back to its manager
- * Info: proposed name ReleaseBentleyHeldObject (T2); TU bentley
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 /* Hands the proxy held at +0x186C back: hooks it to Bentley if IsThrowableGadget allows, then unlocks it in the
    current pocket's proxy. */
 // Releases the object at +0x186C back to its manager.
@@ -1389,12 +1216,6 @@ extern "C" void ReleaseBentleyHeldObject(BENTLEY *bentley)
     bentley->ppocketCur = 0;
 }
 
-/** @sly2-annot addr=0x1362F8
- * Purpose: Set +0x16BC aim state with timestamp; state 0 stops crosshair helper (0x136F48(-1))
- * Info: proposed name SetBentleyAimState (T2); TU bentley
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Sets the dart aim state (+0x16BC) with a timestamp; state 0 also stops the crosshair.
 extern "C" void SetBentleyAimState(BENTLEY *bentley, int n)
 {
@@ -1421,17 +1242,8 @@ void FireBentleyDart(struct P *p, int n);
 void UpdateBentleyCrosshair(void *pv, int n);
 int FindSmStateOptional__FP2SM3OID(void *pv, int n);
 void SnapSma(void *pv, int n);
-/** @sly2-annot addr=0x136338
- * Purpose: Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; pad
- *   0x8 within 0.25 s while 0 fires (FireBentleyDart); back to 0 after 2.0 s
- * Info: proposed name UpdateBentleyAim (T1); TU bentley
- * Notes: runtime5a #3 CLARIFIED: binocucom dart aim; +0x16BC -1 not in look mode, 0 ready, 1 fired/cool-down
- *   (2.0 s)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; the fire button within
-// 0.25 s while ready fires (FireBentleyDart).
+// 0.25 s while ready fires (FireBentleyDart). The cool-down is 2.0 s.
 void UpdateBentleyAim(struct P *bentley)
 {
     int s;
@@ -1508,12 +1320,6 @@ qword DecomposeRotationMatrixToEuler(M4 *pm);
 void ReleaseSma(void *);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
 
-/** @sly2-annot addr=0x136530
- * Purpose: State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code
- * Info: proposed name SetBentleyHoverState (T2); TU bentley
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // State machine on +0x1800 with reparenting and actuator teardown; also called from the throw code. (inferred: hover
 // pack)
 void SetBentleyHoverState(struct P *bentley, int k)
@@ -1583,12 +1389,6 @@ namespace M_func_001367D8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct S { int pad[3]; struct VTE *vt; char pad2[0x208 - 0x10]; int f208; char pad3[0x1800 - 0x20c]; int st; };
 void SetBentleyState(struct S *, int);
-/** @sly2-annot addr=0x1367D8
- * Purpose: Small transition loop (state 1 returns to 0 and makes the PO current via vt79)
- * Info: proposed name UpdateBentleyStateMisc (T2); TU bentley
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Small transition loop: state 1 returns to 0 and makes Bentley the current player object.
 void UpdateBentleyStateMisc(struct S *bentley) {
     int st;
@@ -1626,12 +1426,6 @@ struct E *GetBentleyGadgetFromId(struct P *p, int k);
 int IsTossableActive(void *pv);
 int ChooseProxySpare(void *pv, int n);
 int IsCameraPolicyActive__FP5CPLCY(void *pv);
-/** @sly2-annot addr=0x136870
- * Purpose: BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability
- * Info: proposed name CanBentleyUseGadget (T1); class BENTLEY slot99; TU bentley
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 99: per-state checks and the per-gadget record's availability.
 int CanBentleyUseGadget(struct P *bentley, int k)
 {
@@ -1707,16 +1501,6 @@ int CanBentleyUseGadget(struct P *bentley, int k)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PgadgetBentleyFromId { extern "C" {
 /* Sly 2 version takes a base pointer in $a0 and saak in $a1 and returns a pointer into it. */
-/** @sly2-annot addr=0x136A28
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name GetBentleyGadgetFromId (EXISTING); TU bentley
- * Notes: RENAME proposed -> GetBentleyGadgetFromId (existing_name_changes.csv) | runtime5a #5/#6: x16B4 =
- *   Bentley+0x1830 = record for gadget 7 (S50); CbFromSaak name refuted
- * Confidence: name high [EXISTING 0.90]; purpose not reviewed - evidence: runtime (save-state RAM);
- *   arbitration; pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // The gadget record for a gadget id.
 int GetBentleyGadgetFromId(char *bentley, int saak)
 {
@@ -1752,14 +1536,6 @@ void GetGadgetButtonMask(struct P *p, int k);
 void SetBentleyState(struct P *p, int n);
 void ChargeGadgetMp(struct P *p, int k);
 void StartStepplayerGadget(struct P *p, int k);
-/** @sly2-annot addr=0x136A90
- * Purpose: BENTLEY vt100: broadcast event 0x3C, then per gadget id: throw/grab/air actions using the gadget
- *   record
- * Info: proposed name StartBentleyGadget (T1); class BENTLEY slot100; TU bentley
- * Notes: runtime5a #7: gadget 7 two-press chain observed (S50/S51)
- * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 100: broadcasts game event 0x3C, then per gadget id starts the throw/grab/air action using its record.
 void StartBentleyGadget(struct P *bentley, int k)
 {
@@ -1812,13 +1588,6 @@ void StartBentleyGadget(struct P *bentley, int k)
 }
 } } // namespace M_StartBentleyGadget
 
-/** @sly2-annot addr=0x136C50
- * Purpose: BENTLEY vt105: base, then enable feature 0x24D if current player and gadget 0xC equipped, else
- *   disable
- * Info: proposed name OnBentleyGadgetsChanged (T1); class BENTLEY slot105; TU bentley
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 105: base, then enables feature 0x24D if he is the current player with gadget 0xC equipped, else
 // disables it.
 void BENTLEY::OnGadgetsChanged()
@@ -1832,12 +1601,6 @@ void BENTLEY::OnGadgetsChanged()
     HideSoGlobsById(bentley, 0x24D);
 }
 
-/** @sly2-annot addr=0x136CB0
- * Purpose: BENTLEY vt103: returns "bentley" (save-variable namespace used for hpCur/mpCur/apukCur)
- * Info: proposed name GetBentleySaveVarRoot (T1); class BENTLEY slot103; TU bentley
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 103: returns "bentley", the save-variable namespace for his hpCur/mpCur/apukCur.
 extern "C" char *GetBentleySaveVarRoot()
 {
@@ -1848,12 +1611,6 @@ extern "C" char *GetBentleySaveVarRoot()
 namespace M_func_00136CC0 { extern "C" {
 struct S { char pad[0x204]; int f204; char pad2[0x13d0 - 0x208]; int st; };
 int GetStepplayerGroundProbeFlags(struct S *);
-/** @sly2-annot addr=0x136CC0
- * Purpose: BENTLEY vt85: per-state mode code, else STEPPLAYER::GetGroundProbeFlags
- * Info: proposed name BENTLEY_VUnk84 (T2); class BENTLEY slot85; TU bentley
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
 int GetBentleyGroundProbeFlags(struct S *bentley) {
     if (bentley->f204) return 0;
@@ -1872,12 +1629,6 @@ typedef int ti128 __attribute__((mode(TI)));
 struct E { char pad[0x18]; int f18; };
 struct S { int f0; int f4; int pad[6]; ti128 v20; float f30; int f34; struct E ae[6]; };
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(int, int, int, struct E *, int, int, int, int *);
-/** @sly2-annot addr=0x136D28
- * Purpose: Init 6 blended animation slots (EnsureAsegBlendDynamic) for an aim helper struct at +0x1710
- * Info: proposed name InitBentleyCrosshair (T2); TU bentley
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Initializes the six blended animation slots of the crosshair/aim helper (+0x1710).
 void InitBentleyCrosshair(struct S *bentley, int a, ti128 v, float g0, float g1) {
     unsigned int i;
@@ -1899,12 +1650,6 @@ int IsAsegaRetracted(void *p);
 void SetBentleyCrosshairState(struct P *p, int k);
 int GetButtonsPressedWithin__5POCTLUif(struct A *pa, int grf, float g);
 void ClearPoctlJoyPressed(struct A *pa, int n);
-/** @sly2-annot addr=0x136DC0
- * Purpose: Aim-helper update: on button 0x80 and CanUseGadget(2) restart
- * Info: proposed name UpdateBentleyCrosshair (T2); TU bentley
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Crosshair update: on button 0x80 when gadget 2 is usable, restarts it.
 void UpdateBentleyCrosshair(struct P *bentley, int k)
 {
@@ -1933,12 +1678,6 @@ struct L { char pad[0x10b8]; void *f10b8; };
 struct S { struct L *pl; int pad[2]; int fc; int f10; char pad2[0xe0 - 0x14]; int fe0; };
 struct M { int id; int f4; int f8; };
 void DetachXfActById(int, struct L *, void *);
-/** @sly2-annot addr=0x136ED0
- * Purpose: msg 9 kinds 0x16E/0x242 for the helper struct
- * Info: proposed name HandleBentleyHelperMessage (T2); TU bentley
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Crosshair message handler: message 9 kinds 0x16E/0x242.
 void HandleBentleyCrosshairMessage(struct S *bentley, int msg, struct M *pm) {
     if (msg != 9 || pm->id != bentley->fe0)
@@ -1968,12 +1707,6 @@ void RecalculateAsegBlend(void *);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
 void DetachXfActById(void *, struct PO *, int);
 void SetAsegaChannelWeight(void *, float);
-/** @sly2-annot addr=0x136F48
- * Purpose: helper state change
- * Info: proposed name SetBentleyCrosshairState (T2); TU bentley
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Crosshair state change.
 void SetBentleyCrosshairState(struct S *ps, int state)
 {
@@ -2034,15 +1767,6 @@ void SetBentleyCrosshairState(struct S *ps, int state)
 }
 } } // namespace M_func_00136F48
 
-/** @sly2-annot addr=0x1371B8
- * Purpose: {owner, -1} init
- * Info: proposed name InitJt1FF0Owner (T2); TU bentley
- * Notes: superseded: InitJtHelper1371B8 (verdicts_followups) | verifier better_name (PLAUSIBLE row): Body
- *   {*p=owner, p[1]=-1}; only caller InitJt passes (pjt+0x1FF0, pjt). Address-suffixed placeholder with '?';
- *   no class identity. | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Initializes the blend/helper record (players.h BTBLENDS): owner and state -1. (inferred)
 extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 {
@@ -2056,12 +1780,6 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { int pad[3]; struct VTE *vt; char pad2[0x1020]; int action; };
 struct S { struct O *po; };
 int IsAsegaRetracted(int);
-/** @sly2-annot addr=0x1371C8
- * Purpose: If action +0x1030 done, vt88(0)
- * Info: proposed name JtHelperStopScript (T2); TU bentley
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // When the owner's current action (+0x1030) has retracted, returns him to generic player state 0 (slot 88).
 void EndBentleyHelperWhenRetracted(struct S *bentley) {
     if (IsAsegaRetracted(bentley->po->action)) {
@@ -2071,12 +1789,6 @@ void EndBentleyHelperWhenRetracted(struct S *bentley) {
 }
 } } // namespace M_func_001371C8
 
-/** @sly2-annot addr=0x137218
- * Purpose: 0x2046F0(owner, owner->+0x10DC)
- * Info: proposed name JtHelperApplyInteract (T2); TU bentley
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Turns Bentley toward his interact target, if any.
 extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
 {
@@ -2176,14 +1888,6 @@ qword LimitVectorLength(qword v, float g);
 void AddSoAcceleration(P *p, qword v);
 }
 
-/** @sly2-annot addr=0x137248
- * Purpose: Relative velocity/position correction against a ridden object
- * Info: proposed name JT_VUnk69 (T2); class JT; TU bentley
- * Notes: agent qualifier: helper
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Corrects Bentley's relative velocity and position against the object he rides. (inferred)
 extern "C" void CorrectBentleyRideVelocity(S *s)
 {
@@ -2215,12 +1919,6 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
 }
 } // namespace M_func_00137248
 
-/** @sly2-annot addr=0x1374E0
- * Purpose: arg1+0x94 = const
- * Info: proposed name SetJtContactParam (T2); TU bentley
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Contact adjust hook: sets the contact's friction to D_002BC9B4.
 extern "C" void SetBentleyXpFriction(void *pv, XP *xp)
 {
@@ -2235,12 +1933,6 @@ struct O { char pad[0x150]; struct Q *pq; char pad2[0x10DC - 0x154]; void *inter
 struct P { struct O *po; int x4; int x8; int xC; };
 qword SetVectorCylind(float a, float b, float c);
 qword GetLoWorldPos(void *p);
-/** @sly2-annot addr=0x1374F0
- * Purpose: aim toward +0x10DC target
- * Info: proposed name JtHelper1374F0 (T2); TU bentley
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // With a target and a positive range: 1 if the target lies behind Bentley's facing, 0 if in front; otherwise returns
 // the record's stored flag. (inferred)
 int IsBentleyHelperTargetBehind(struct P *bentley)
@@ -2341,13 +2033,6 @@ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, f
 }
 #define PXOF(p) ((PX *)(p))
 
-/** @sly2-annot addr=0x1375D0
- * Purpose: state setter scaling velocity on exit
- * Info: proposed name JtHelperSetState (T2); TU bentley
- * Notes: names_v2 C proposed CatchWmDisplayState__FP2WM (0.200)
- * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
- * @end-sly2-annot */
 // Helper state change: plays the state's clip and, on leaving, scales the velocity. (inferred)
 extern "C" void SetBentleyHelperState(S *s, int k)
 {

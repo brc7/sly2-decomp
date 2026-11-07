@@ -168,13 +168,6 @@ int IsCameraPolicyActive(CPLCY *pcplcy);                                    /* I
 
 #define BIT60(o) ((int)((o)->fl28 >> 60) & 1)
 
-/** @sly2-annot addr=0x201D78
- * Purpose: recon selector init: owner, origin = screen centre (320,246.4), state -1
- * Info: proposed name InitReconSel (T1); TU tu_201D78
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
- * See: docs/engine/core-library.md#6-source-files, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Initializes the recon (camera snapshot) selector: owner, aim origin at the screen centre (320, 246.4), state -1.
 extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 {
@@ -191,12 +184,6 @@ extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
     reconSel->state = -1;
 }
 
-/** @sly2-annot addr=0x201DC8
- * Purpose: find widgets 0x362/0x365 (JT only) and LO 0x602; collect all CID 0x2E targets (max 16)
- * Info: proposed name PostReconSelLoad (T1); TU tu_201D78
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Post-load: finds the selector's HUD widgets (0x362/0x365, Sly only) and object 0x602, and collects every recon target
 // (CID 0x2E, at most 16).
 extern "C" void PostReconSelLoad(RECONSEL *reconSel)
@@ -210,12 +197,6 @@ extern "C" void PostReconSelLoad(RECONSEL *reconSel)
     ResetReconTargets(reconSel);
 }
 
-/** @sly2-annot addr=0x201E88
- * Purpose: vt slot 9 on each target companion object (+0x100)
- * Info: proposed name ResetReconTargets (T2); TU tu_201D78
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Calls virtual slot 9 on each target's companion object (+0x100). (inferred: resets its marker)
 void ResetReconTargets(RECONSEL *reconSel)
 {
@@ -229,12 +210,6 @@ void ResetReconTargets(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x201F00
- * Purpose: vt slot 8 on companion of each visible target
- * Info: proposed name NotifyReconTargets (T2); TU tu_201D78
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Calls virtual slot 8 on the companion of each visible target. (inferred)
 void NotifyReconTargets(RECONSEL *reconSel)
 {
@@ -245,12 +220,6 @@ void NotifyReconTargets(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x201F90
- * Purpose: flag +0xB8 = origin inside any class-0x19 VOL (IsPointInVol)
- * Info: proposed name UpdateReconSelInVolume (T2); TU tu_201D78
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Sets the in-volume flag (+0xB8) when the aim origin is inside any volume of class 0x19.
 void UpdateReconSelInVolume(RECONSEL *reconSel)
 {
@@ -266,12 +235,6 @@ void UpdateReconSelInVolume(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x202030
- * Purpose: pending list (+0x74/+0x78, max 5): targets with name id and task state 1/2
- * Info: proposed name RefreshReconPendingTargets (T1); TU tu_201D78
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Rebuilds the pending list (at most 5): targets with a name id whose task state is 1 or 2.
 void RefreshReconPendingTargets(RECONSEL *reconSel)
 {
@@ -288,12 +251,6 @@ void RefreshReconPendingTargets(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x2020C8
- * Purpose: fade marker SO in/out (0.25 s) by camera distance vs radius
- * Info: proposed name FadeReconTargetMarkers (T2); TU tu_201D78
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Fades each target's marker in or out (0.25 s) by camera distance against its radius.
 void FadeReconTargetMarkers(RECONSEL *reconSel)
 {
@@ -314,12 +271,6 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x2021F8
- * Purpose: per pending target play 0x33A (done) or 0x33B on widget +0xAC
- * Info: proposed name UpdateReconChecklist (T1); TU tu_201D78
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Per pending target plays the checklist animation on its widget: 0x33A when done, 0x33B otherwise.
 void UpdateReconChecklist(RECONSEL *reconSel)
 {
@@ -335,22 +286,9 @@ void UpdateReconChecklist(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x2022A0
- * Purpose: target +0x108 = 0
- * Info: proposed name ClearReconTargetMarks (T2); TU tu_201D78
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Clears each target's mark (+0x108).
 void ClearReconTargetMarks(RECONSEL *reconSel) { int i; for (i = 0; i < reconSel->count; i++) reconSel->items[i]->state = 0; }
 
-/** @sly2-annot addr=0x2022D8
- * Purpose: in-volume flag or any visible target
- * Info: proposed name FReconSelAvailable (T2); TU tu_201D78
- * Notes: names_v2 C proposed LoadBrkFromBrx__FP3BRKP18CBinaryInputStream (0.167)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // True when the aim origin is in a recon volume or any target is visible.
 int IsReconSelAvailable(RECONSEL *reconSel)
 {
@@ -364,12 +302,6 @@ int IsReconSelAvailable(RECONSEL *reconSel)
 }
 
 struct SOF { char pad[0x10]; long fl; char pad2[0x58]; int n; };
-/** @sly2-annot addr=0x202350
- * Purpose: filter callback for IntersectSwBoundingBox
- * Info: proposed name FFilterReconOccluder (T2); TU tu_201D78
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Filter callback for the occlusion box query.
 int FilterReconOccluder(void *a, RECONTGT *object) { SOF *p = (SOF *)object; int r = 0; if (!(p->fl & 0x1000000000000L)) r = p->n > 0; return r; }
 
@@ -394,13 +326,6 @@ static inline qword Normalize(qword v)
 }
 // v *= k.x in place
 #define SCALE_IN_PLACE(v,k) __asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k))
-/** @sly2-annot addr=0x202378
- * Purpose: 4-ray occlusion test from origin to target -> state 1 clear / 2 blocked / 3 partial
- * Info: proposed name UpdateReconTargetVisibility (T1); TU tu_201D78
- * Notes: names_v2 C proposed PostBrkLoadCallbackHookup__FP3BRK5MSGIDPv (0.438)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7c_hud+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Four-ray occlusion test from the origin to a target: state 1 clear, 2 blocked, 3 partly visible.
 void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
 {
@@ -479,13 +404,6 @@ static inline qword ScalarBits(const float*p){qword q;__asm__("lw %0,%1":"=r"(q)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A8550 __asm__("D_002A8550") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x202540
- * Purpose: choose closest unblocked target in frustum; on change SetReconSelState(2)
- * Info: proposed name SelectReconTarget (T1); TU tu_201D78
- * Notes: names_v2 C proposed FAbsorbBrkWkr__FP3BRKP3WKR (0.638)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Chooses the closest unblocked target in the view frustum; on a change enters selector state 2.
 void SelectReconTarget(RECONSEL *reconSel)
 {
@@ -531,25 +449,9 @@ void SelectReconTarget(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x2026F8
- * Purpose: langstr of P+0xC0
- * Info: proposed name GetReconPendingText (T1); TU tu_201D78
- * Notes: names_v2 C proposed SetBrkOnPlayer__FP3BRKi (0.638)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
- *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // The localized string of the pending-target label (+0xC0).
 extern "C" const char *GetReconPendingText(RECONSEL *reconSel) { if (reconSel->pending == -1) return 0; return FindSwLocalizedString(&D_003DD490, reconSel->pending); }
 
-/** @sly2-annot addr=0x202730
- * Purpose: langstr of P+0xBC
- * Info: proposed name GetReconSelectedText (T1); TU tu_201D78
- * Notes: names_v2 C proposed SetBrkOnBomb__FP3BRKi (0.638)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
- *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // The localized string of the selected-target label (+0xBC).
 extern "C" const char *GetReconSelectedText(RECONSEL *reconSel) { if (reconSel->selected == -1) return 0; return FindSwLocalizedString(&D_003DD490, reconSel->selected); }
 
@@ -568,13 +470,6 @@ static inline int IndirectWord(int word)
     return result;
 }
 static inline void Restore(LOV *x,uint mask){uint f=x->grf40;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->grf40=mask|(f&1);}
-/** @sly2-annot addr=0x202768
- * Purpose: state machine -1..10; 8 = snapshot (clock & sound paused, player flags 0x102), 9 = photo taken
- *   (StartDialog, BroadcastGameEvent 10, mark target done)
- * Info: proposed name SetReconSelState (T1); TU tu_201D78
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Selector state machine (-1..10); 8 = snapshot (clock and sound paused, player flags 0x102), 9 = photo taken
 // (dialog, game event 10, target marked done).
 void SetReconSelState(RECONSEL *reconSel, int nextState)
@@ -755,14 +650,6 @@ static inline VU_FLOAT ScreenFromProjected(qword q)
     return v;
 }
 static inline float ClampF(float g,float minValue,float maxValue){return StdMax(minValue,Min(g,maxValue));}
-/** @sly2-annot addr=0x202D38
- * Purpose: per frame: project target head to screen, proximity to centre / size gain, drive states, shutter
- *   on button 10 (250 when locked)
- * Info: proposed name UpdateReconSel (T1); TU tu_201D78
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10,
- *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Per frame: projects the target's head to the screen, scores proximity to the centre and size, drives the states and
 // takes the photo on button 10 (250 when locked).
 extern "C" void UpdateReconSel(RECONSEL *reconSel)
@@ -947,12 +834,6 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     }
 }
 
-/** @sly2-annot addr=0x203568
- * Purpose: CID 0x2E Init: InitXfm, ids -1/-2
- * Info: proposed name InitReconTarget (T1); class CID46 slot7; TU tu_201D78
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Recon target (CID 0x2E) Init: transform init, ids -1/-2.
 extern "C" void InitReconTarget(RECONTGT *target)
 {
@@ -963,15 +844,7 @@ extern "C" void InitReconTarget(RECONTGT *target)
     target->idPending = -2; //P
 }
 
-/** @sly2-annot addr=0x2035A8
- * Purpose: CID 0x2E LoadFromBrx: defaults 75 / 0.25 / 5000, copy defaults
- * Info: proposed name LoadReconTargetFromBrx (T1); class CID46 slot14; TU tu_201D78
- * Notes: level_parser CONFIRMED-code (layout read from the matched function; class absent from samples) |
- *   whole_game: loader read in all 43 levels (base reader only, nothing extra; CONFIRMED code+parse)
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7c_hud+parse-code+parse-verified
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
-// Recon target LoadFromBrx: defaults 75 / 0.25 / 5000, then the level's values.
+// Recon target LoadFromBrx: defaults 75 / 0.25 / 5000, then the level's values. Verified by parsing all 43 levels.
 extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
 {
     target->sHead = 0.0f;
@@ -983,13 +856,6 @@ extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
     if (target->idPending == -2) target->idPending = target->id;
 }
 
-/** @sly2-annot addr=0x203638
- * Purpose: CID 0x2E PostLoad: PostLoLoad + register with task +0xEC
- * Info: proposed name PostReconTargetLoad (T1); class CID46 slot15; TU tu_201D78
- * Notes: names_v2 C proposed AddBrkTouchClass__FP3BRK3CID (0.638)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Recon target post-load: LO base and registration with its task (+0xEC).
 void CID46::PostLoad()
 {
@@ -1002,12 +868,6 @@ void CID46::PostLoad()
     }
 }
 
-/** @sly2-annot addr=0x203670
- * Purpose: CID 0x2E HandleMessage: on msg 0x11 refresh player recon list and checklist
- * Info: proposed name HandleReconTargetMessage (T1); class CID46 slot5; TU tu_201D78
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Recon target message handler: on message 0x11 refreshes the player's recon list and checklist.
 extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
 {
@@ -1021,13 +881,6 @@ extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
     }
 }
 
-/** @sly2-annot addr=0x2036E8
- * Purpose: mark target photographed (task +0xEC or local flag)
- * Info: proposed name SetReconTargetDone (T2); TU tu_201D78
- * Notes: names_v2 C proposed FIgnoreBrkpIntersection__FP4BRKPP2SO (0.638)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Marks the target photographed (in its task, or a local flag without one).
 void SetReconTargetDone(RECONTGT *target, int n)
 {
@@ -1039,22 +892,9 @@ void SetReconTargetDone(RECONTGT *target, int n)
     } else target->fDone = n;
 }
 
-/** @sly2-annot addr=0x203758
- * Purpose: task done ? or local flag
- * Info: proposed name IsReconTargetDone (T1); TU tu_201D78
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Whether the target was photographed (task done, or the local flag).
 int IsReconTargetDone(RECONTGT *target) { if (target->link) return IsTaskComplete(target->link); return target->fDone; }
 
-/** @sly2-annot addr=0x203790
- * Purpose: visible and task state 1
- * Info: proposed name IsReconTargetSelectable (T1); TU tu_201D78
- * Notes: names_v2 C proposed UpdateZapbreak__FP8ZAPBREAKf (0.200)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
- * @end-sly2-annot */
 // Whether the target is visible and its task is in state 1.
 int IsReconTargetSelectable(RECONTGT *target)
 {

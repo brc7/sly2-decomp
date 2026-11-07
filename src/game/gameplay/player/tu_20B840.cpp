@@ -196,13 +196,6 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                                 
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                                   /* FindSwObject__FP2SWi3OIDP2LO */
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
-/** @sly2-annot addr=0x20B840
- * Purpose: GAIT init: stepplayer, sfxidStep, gVolWalk 0.6, gVolRun 1.0
- * Info: proposed name InitGait (T1); TU tu_20B840
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7c_hud
- * See: docs/engine/animation.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc
- * @end-sly2-annot */
 // Initializes a gait record (walk/run locomotion): owner, footstep sound id, walk volume 0.6, run volume 1.0.
 extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
   p->pstepplayer = pstepplayer;
@@ -222,12 +215,6 @@ static inline qword DivVec(qword qw, VU_FLOAT g)
     return qwRet;
 }
 void PostJtLoadGait(GAIT *pgait) __asm__("PostJtLoadGait");
-/** @sly2-annot addr=0x20B868
- * Purpose: GAIT PostLoad: foot markers, root velocity per clip, dynamic blend
- * Info: proposed name PostJtLoadGait (T1); TU tu_20B840
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Gait post-load: foot markers, root velocity per clip and the dynamic walk/run blend.
 void PostJtLoadGait(GAIT *gait)
 {
@@ -295,13 +282,6 @@ void PostJtLoadGait(GAIT *gait)
     ReblendAsegbl(gait->pasegbl);
 }
 
-/** @sly2-annot addr=0x20BAD8
- * Purpose: weighted root velocity of the two clips
- * Info: proposed name VRootGait (T2); TU tu_20B840
- * Notes: names_v2 C proposed ConvertApos__FiP6VECTORP7MATRIX4T2 (0.438)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // The weighted root velocity of the two gait clips.
 qword GetGaitRootVelocity(GAIT *gait)
 {
@@ -321,13 +301,6 @@ qword GetGaitRootVelocity(GAIT *gait)
     return acc;
 }
 
-/** @sly2-annot addr=0x20BB48
- * Purpose: returns pasegbl(+4)->x50
- * Info: proposed name PxGaitBlend (T2); TU tu_20B840
- * Notes: names_v2 C proposed PdleFromDlEntry__FP2DLPv (0.198)
- * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Returns the value at +0x50 of the gait's blend (+4). (inferred)
 ASEGA *GetGaitBlendValue(GAIT *gait) {
     return (ASEGA *)gait->pasegbl->dlAsega.head;
@@ -347,13 +320,6 @@ static inline qword Negate(qword v,U *value) {
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(result) : "j"(v),"j"(value->q));
     return result;
 }
-/** @sly2-annot addr=0x20BB58
- * Purpose: set walk/run weights, reblend, write root velocity
- * Info: proposed name UpdateGaitBlend (T1); TU tu_20B840
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
- * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
- *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Sets the walk/run weights, reblends and writes the resulting root velocity.
 extern "C" void UpdateGaitBlend(GAIT *gait, float g)
 {
@@ -377,13 +343,6 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
     *(qword *)&pt->vUnk190 = r2;
 }
 
-/** @sly2-annot addr=0x20BC08
- * Purpose: footstep sfx when a foot goes down; volume lerp walk/run; range 500/2000
- * Info: proposed name UpdateGaitFootsteps (T1); TU tu_20B840
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
- * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
- *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Plays the footstep sound when a foot goes down, volume interpolated between walk and run, audible range 500/2000.
 extern "C" void UpdateGaitFootsteps(GAIT *gait)
 {
@@ -414,35 +373,15 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
     }
 }
 
-/** @sly2-annot addr=0x20BD68
- * Purpose: afFootDown[0..1] = 0
- * Info: proposed name ResetGaitFeet (T2); TU tu_20B840
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Clears both foot-down flags.
 extern "C" void ResetGaitFeet(GAIT *gait) { gait->afFootDown[1] = 0; gait->afFootDown[0] = 0; }
 
-/** @sly2-annot addr=0x20BD78
- * Purpose: *p = -1
- * Info: proposed name InitAsegArc (T2); TU tu_20B840
- * Notes: names_v2 A proposed InvalidateCrvcCache__FP4CRVC (0.913)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7c_hud+verdicts_A2
- * See: docs/engine/animation.md#7-key-functions,
- *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Initializes an animation arc record (first word = -1).
 extern "C" void InitAsegArc(OID *p) {
     *p = (OID)-1;
 }
 
 // Initialize curve timing, planar distance and curvature.
-/** @sly2-annot addr=0x20BD88
- * Purpose: arc timing from ASEG labels 0x22/0x23/0x24, planar distance, curvature
- * Info: proposed name PostAsegArcLoad (T2); TU tu_20B840
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Arc timing from the animation labels 0x22/0x23/0x24: planar distance and curvature of the leap.
 extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
 {
@@ -501,14 +440,6 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
     p->fInit = 1;
 }
 
-/** @sly2-annot addr=0x20BF80
- * Purpose: construct CID 0x91 leap in place and enter state 0
- * Info: proposed name StartLeap (T1); TU tu_20B840
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
- * See: docs/engine/animation.md#7-key-functions,
- *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
- *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
- * @end-sly2-annot */
 // Constructs a leap object (CID 0x91) in place and enters state 0.
 extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
     if (ptune->animation == 0)
@@ -522,66 +453,27 @@ extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
     SetLeapState(p, 0);
 }
 
-/** @sly2-annot addr=0x20C010
- * Purpose: alloc from slotheap g_sw.slotheapLeap
- * Info: proposed name PvAllocLeap (T2); TU tu_20B840
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
 // Allocates a leap object from the world's leap slot heap.
 extern "C" LEAPV *AllocLeap(void) {
     return (LEAPV *)AllocZeroedFromSlotheap(&g_sw.slotheapLeap);
 }
 
-/** @sly2-annot addr=0x20C030
- * Purpose: free to slotheap g_sw.slotheapLeap
- * Info: proposed name FreeLeap (T2); TU tu_20B840
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
 // Returns a leap object to the world's leap slot heap.
 extern "C" void FreeLeap(LEAPV *leap) {
     FreeSlotheapSlot(&g_sw.slotheapLeap, leap);
 }
 
-/** @sly2-annot addr=0x20C058
- * Purpose: CID 0x91 ctor (vtable 0x2DAA10)
- * Info: proposed name ConstructLeap (T1); class LEAP; TU tu_20B840
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Leap (CID 0x91) constructor: sets its vtable.
 LEAPV *ConstructLeap(LEAPV *leap) { leap->pvt = D_002DAA10; leap->state = -1; leap->x0 = 0; leap->x4 = 0; return leap; }
 
-/** @sly2-annot addr=0x20C080
- * Purpose: if not finished: state 4, clear anim job
- * Info: proposed name StopLeap (T2); TU tu_20B840
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // If the leap is not finished: state 4 and clears its animation job.
 extern "C" void StopLeap(LEAPV *leap) { if (!IsLeapDone(leap)) { SetLeapState(leap, 4); ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &leap->job); } }
 
-/** @sly2-annot addr=0x20C0D8
- * Purpose: state == 4
- * Info: proposed name IsLeapDone (T1); TU tu_20B840
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Whether the leap is in state 4 (done).
 int IsLeapDone(LEAPV *leap) {
     return leap->state == 4;
 }
 
-/** @sly2-annot addr=0x20C0E8
- * Purpose: leap state machine 1..3
- * Info: proposed name UpdateLeap (T1); TU tu_20B840
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Leap state machine for states 1..3.
 extern "C" void UpdateLeap(LEAPV *leap)
 {
@@ -614,12 +506,6 @@ extern "C" void UpdateLeap(LEAPV *leap)
 }
 
 struct MSGL { int a, b, n8; };
-/** @sly2-annot addr=0x20C290
- * Purpose: CID 0x91 slot5: ASEG label 0x22 -> launch (state 1)
- * Info: proposed name HandleLeapMessage (T1); class LEAP slot5; TU tu_20B840
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Leap message handler (slot 5): animation label 0x22 launches the leap (state 1).
 void LEAP::HandleMessage(MSGID msg_m, void *pm_m)   /* key function: LEAP's vtable comes out here */
 { LEAPV *p = (LEAPV *)this; int msg = (int)msg_m; MSGL *pm = (MSGL *)pm_m; if (msg == 9 && pm->n8 == 0x22) SetLeapState(p, 1); HandleBasicMessage(p, msg, pm); }
@@ -627,12 +513,6 @@ void LEAP::HandleMessage(MSGID msg_m, void *pm_m)   /* key function: LEAP's vtab
 static inline qword Scalar(float f){qword r;__asm__("qmtc2 %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword Combine(qword a,qword x,qword b,qword y){qword r;__asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(a),"j"(x),"j"(b),"j"(y));return r;}
 static inline void Store(U *home,qword value){__asm__("sqc2 %1,%0":"=m"(home->q):"j"(value));}
-/** @sly2-annot addr=0x20C2F8
- * Purpose: 0 start anim; 1 launch (ballistic DtBallisticMax or flightTime), constraint; 2/3 seek; 4 land
- * Info: proposed name SetLeapState (T1); TU tu_20B840
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Leap states: 0 start animation; 1 launch (ballistic time or the given flight time) with a constraint; 2/3 seek the
 // target; 4 land.
 void SetLeapState(LEAPV *leap, int state)
@@ -747,12 +627,6 @@ void SetLeapState(LEAPV *leap, int state)
 }
 
 struct ACTPOS { char pad[0x20]; qword v; };
-/** @sly2-annot addr=0x20C6F8
- * Purpose: update target / constraint target
- * Info: proposed name SetLeapTarget (T2); TU tu_20B840
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Updates the leap's target and constraint target.
 extern "C" void SetLeapTarget(LEAPV *leap, qword v)
 {
@@ -768,12 +642,6 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
     }
 }
 
-/** @sly2-annot addr=0x20C760
- * Purpose: drop constraint, clear LO flag bit 26
- * Info: proposed name ReleaseLeapConstraint (T2); TU tu_20B840
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Drops the leap constraint and clears LO flag bit 26.
 void ReleaseLeapConstraint(LEAPV *leap)
 {
@@ -788,25 +656,11 @@ void ReleaseLeapConstraint(LEAPV *leap)
     RefreshSwObjectCollisionFilter(&D_003DD490, leap->subject);
 }
 
-/** @sly2-annot addr=0x20C7D8
- * Purpose: fInit (+0xC0) = 0
- * Info: proposed name InvalidateDirAnims (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Marks the directional animations uninitialized.
 extern "C" void InvalidateDirAnims(DIRBL *dirAnims) {
     dirAnims->fInit = 0;
 }
 
-/** @sly2-annot addr=0x20C7E0
- * Purpose: 4 directional ASEGs: root velocity and speed
- * Info: proposed name InitDirAnims (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Measures the root velocity and speed of the four directional animations.
 extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
 {
@@ -853,13 +707,6 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
     dirAnims->fInit = 1;
 }
 
-/** @sly2-annot addr=0x20C948
- * Purpose: init CID 0x92 object (vtable 0x2DA9D0) and apply ASEG
- * Info: proposed name StartDirAnim (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Initializes a directional-animation object (CID 0x92) and applies its animation.
 extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
 {
@@ -876,63 +723,24 @@ extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
     object->ppaseg = &dirAnims->paseg;
 }
 
-/** @sly2-annot addr=0x20CA00
- * Purpose: alloc from slotheap g_sw.slotheapDiract
- * Info: proposed name PvAllocDirAnim (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
 // Allocates a directional-animation object from the world's slot heap.
 extern "C" DIRACT *AllocDirAnim(void) {
     return (DIRACT *)AllocZeroedFromSlotheap(&g_sw.slotheapDiract);
 }
 
-/** @sly2-annot addr=0x20CA20
- * Purpose: free to slotheap g_sw.slotheapDiract
- * Info: proposed name FreeDirAnim (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
 // Returns a directional-animation object to the world's slot heap.
 extern "C" void FreeDirAnim(DIRACT *dirAnims) {
     FreeSlotheapSlot(&g_sw.slotheapDiract, dirAnims);
 }
 
-/** @sly2-annot addr=0x20CA48
- * Purpose: clear anim job if active
- * Info: proposed name StopDirAnim (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Clears the directional animation's job if active.
 extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
 
-/** @sly2-annot addr=0x20CA98
- * Purpose: job +0x24 == 0
- * Info: proposed name FDirAnimStopped (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Whether the directional animation's job is cleared.
 int IsDirAnimStopped(DIRACT *dirAnims) {
     return dirAnims->pasega == 0;
 }
 
-/** @sly2-annot addr=0x20CAA8
- * Purpose: CID 0x92 slot5: labels 0x17D/0x17E fForward, 0x17F/0x180 fBackward
- * Info: proposed name HandleDirAnimMessage (T2); class CID146 slot5; TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
- * See: docs/engine/animation.md#7-key-functions,
- *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Directional-animation message handler (slot 5): labels 0x17D/0x17E set forward, 0x17F/0x180 backward.
 void CID146::HandleMessage(MSGID msg_m, void *pm_m)
 {
@@ -987,13 +795,6 @@ static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x20CB28
- * Purpose: choose best of 4 directional anims vs desired direction
- * Info: proposed name SelectDirAnim (T2); TU tu_20B840
- * Notes: T2 forced: verifier: coined class word without descriptor
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
- * @end-sly2-annot */
 // Chooses the best of the four directional animations for the desired direction.
 extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
 {

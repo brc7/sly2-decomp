@@ -384,15 +384,6 @@ struct PROXYINIT
       LO *plo;
 };
 
-/** @sly2-annot addr=0x191090
- * Purpose: Init the STEPPLAYER+0x4C0 grab/action context: owner, nState=-1, nKind=-1, x4FC=-1, init two
- *   blend/actuator blocks (+0x180,+0x240, 0x20B840 id 0x6F) and the reach tracker at +0x440
- * Info: proposed name InitJtGrab (T1); TU grab
- * Notes: names_v2 B proposed GMeasureJumpHshape__FP3MJHf (0.978)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
- * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
- *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Initializes the player's grab/action context (STEPPLAYER+0x4C0): owner, state -1, kind -1, and the two directional
 // blend blocks.
 extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
@@ -406,16 +397,6 @@ extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
     ResetJtHands(&grab->hands);
 }
 
-/** @sly2-annot addr=0x1910F8
- * Purpose: PostLoad of the grab context: CreateLo(CID 0xF TN, oid 0x148) as its private TN (SetTnTnsOverride
- *   0), reset TN params (0x194118), two place tables (0x1A0300), blend blocks, 3-entry swing blend (0x137A30
- *   cbBl 0xC), reach tracker bound to owner SMA x1030
- * Info: proposed name PostLoadJtGrab (T1); TU grab
- * Notes: runtime2: private TN oid 0x148
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 /* Creates the grab's TN (CID 0xF, oid 0x148) and loads the grab animations: both direction blends, both gaits, the
    lean blend (ablC) and the hands on the player's current animation. */
 // Post-load: creates the context's private camera TN object (oid 0x148) and resets its parameters; builds the
@@ -594,17 +575,6 @@ static inline void ProbeGround(CONTEXT *p)
     SetJtGrabKind(p, 8);
 }
 
-/** @sly2-annot addr=0x1911A8
- * Purpose: Per-frame input for the current grab action: X (0x40) jumps off via SetJtAirJump kinds 7/1, button
- *   0x400 enters JTMODE, actions 8/9/10/11/12 finish on anim end or stick input, action 5 targets a class-11
- *   object, action 8 probes ground under the player (box query + line test + BSP sphere) before entering step
- *   8
- * Info: proposed name UpdateJtGrabInput (T1); TU grab
- * Notes: runtime4: Murray state 13 runs it (wall press S37)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Per-frame input for the current grab action: X jumps off (SetJtAirJump kinds 7/1), the action buttons per state,
 // gadgets.
 extern "C" void UpdateJtGrabInput(CONTEXT *grab)
@@ -872,21 +842,8 @@ static inline qword MulM3Vec(M3 *pm, qword v)
 }
 static inline void SetXYZ(U *p, float x, float y, float z) { p->f[0] = x; p->f[1] = y; p->f[2] = z; }
 
-/** @sly2-annot addr=0x191A10
- * Purpose: Per-frame update of the grab context: dispatch on nState (hang/shimmy/climb kinds), choose nKind,
- *   SetJtHfdk, curve param clamp (0x193C98), commit animation/axis weights
- * Info: proposed name UpdateJtActiveHide (T1); TU grab
- * Notes: names_v2 v1 proposed UpdateJtActiveHide__FP2JTP3JOY (0.000) [verified CORRECT] | verifier side
- *   finding names it UpdateJtActiveHide; orchestrator: verified name UpdateJtActiveHide__FP2JTP3JOY restored
- *   over UpdateJtActiveGrab (verified > unverified) | arbitration adopt verified: Calls SetJtHfdk at 4 sites
- *   like Sly1 UpdateJtActiveHide (Match/Right/Left/Stand). First arg is the hide substate (+0 = JT), so drop
- *   the Sly1 mangling UpdateJtAc
- * Confidence: mid (draft) [T1 0.75] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
- *   sources: r4b_rest+verdicts_A1;verified_A+arbitration
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Per-frame update of the grab context: dispatches on the grab state (hang, shimmy, climb, hide, press ...), chooses
-// the kind and drives SetJtGrabKind.
+// the kind and drives SetJtGrabKind. Sly 1 name (same SetJtHfdk calls).
 extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
 {
     U pos;
@@ -1197,17 +1154,6 @@ void SetJtCaneState__FP2JTi(struct O *o, int n);
 void UpdateJtCane__FP2JT(struct O *o);
 void SetJtHandsTarget(void *p, int n);
 void ClearJtDetectionOutOfSight(struct P *p);
-/** @sly2-annot addr=0x1928F8
- * Purpose: Start a grab action: SetJtGrabKind(-1), store nState/tEnter/plo/pspot, owner vt88
- *   SetPlayerState(2) (=jts 7), then map nState to initial kind (6 = Sly cane reach:
- *   SetJtCaneState(0)+UpdateJtCane; 5/9 reach tracker; 8 -> kind 7; 1 -> detector reset 0x192A28; 11/12 set x500)
- * Info: proposed name SetJtGrabState (T1); TU grab
- * Notes: runtime4: JTGRAB tEnter = Murray state entry
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Starts a grab action: resets the kind, stores the state, time, object and grab spot, and switches the player's
 // generic state to 2 (grab).
 void SetJtGrabState(struct P *grab, int n, int a, int b)
@@ -1278,14 +1224,6 @@ struct P { void *x0; };
 // destructor out of line even when every use is inlined, and the ELF has no such functions.
 struct SCOPEDIJ { char c; STACKSCOPE frame; int i, j; };
 extern "C" void ClearJtDetectionOutOfSight(P *p);
-/** @sly2-annot addr=0x192A28
- * Purpose: For each detector-owning object in list (*(O * *)&g_sw.dlStepguard) that currently tracks the player: if farther
- *   than D_002BF638 or line of sight blocked (IntersectSwBoundingBox + PsoHitTestLineObjects) reset its
- *   detector state (SetDetectorTargetState 0)
- * Info: proposed name ClearJtDetectionOutOfSight (T2); TU grab
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // For each guard that currently tracks the player, clears the detection when the player is out of its sight.
 // (inferred)
 void ClearJtDetectionOutOfSight(P *p)
@@ -1489,14 +1427,6 @@ static inline qword Transform(const M3 &m, qword q)
     return r;
 }
 
-/** @sly2-annot addr=0x192BD8
- * Purpose: Set the sub-step (nKind, +0xC) of the grab context: leave old (per-kind/per-state cleanup), enter
- *   new (anim clip, script, flags, blend; TN params via 0x194118)
- * Info: proposed name SetJtGrabKind (T1); TU grab
- * Notes: names_v2 v1 proposed UpdateJtActiveHide__FP2JTP3JOY (0.027)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Sets the grab sub-step (kind, +0xC): leaves the old one (per-kind/per-state cleanup) and enters the new (animation
 // clips, physics, camera).
 extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
@@ -1854,19 +1784,8 @@ extern int D_002E1E40;
 struct P { int x0; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
 void SetJtGrabState(struct P *p, int n, struct O *o, int a);
-/** @sly2-annot addr=0x1938C0
- * Purpose: Walk the sorted g_sw grab-candidate array (dist < D_002BF660); map class to grab state (HND
- *   0x13/PIPE? 0xB -> 6 for Sly g_pjt else 5; CID27 0x1B -> 8; CID12/CID34 -> 0; CID38 -> its field; CID35 ->
- *   7) and SetJtGrabState on the first match; return 1 if grabbed
- * Info: proposed name TryGrabJtNearestCandidate (T1); TU grab
- * Notes: names_v2 B proposed MatchJtXmgRail__FP2JTP3XMGP6ACTADJ (0.919) | runtime2: CID27->8, CID12/34->0,
- *   rail->3
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); static naming pass; sources:
- *   r4b_rest+runtime
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Walks the sorted grab candidates (distance < D_002BF660) and maps the nearest usable one's class to a grab state;
-// returns nonzero if a grab started.
+// returns nonzero if a grab started. Runtime: CID27 gives state 8, CID12/34 state 0, rails state 3.
 int TryGrabJtNearestCandidate(struct P *p)
 {
     struct G *g = &D_003DD490;
@@ -1923,13 +1842,6 @@ static inline qword Reject(qword a,qword n){register qword d __asm__("vf2");qwor
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");register qword one __asm__("vf4");float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 static inline float Dot(qword a,qword b){qword d=b,one;float f;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a),"0"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
 static inline qword Scale(qword a,float g){U u;qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(g));u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
-/** @sly2-annot addr=0x193A68
- * Purpose: For a curve (rail) target at param t: landing position offset and a velocity along the curve
- *   tangent clamped by SmoothValue limits 50 from the ends
- * Info: proposed name GetJtRailLanding (T1); TU grab
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest+verdicts_A1
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // For a rail target at parameter t: the landing position offset and a velocity along the rail tangent.
 void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *outVel, float t)
 {
@@ -1987,13 +1899,6 @@ float ModPositive__Fff(float g, float hi);
 void EvaluateShapeAtDistance(struct O *o, float g, U *pv, int n);
 qword ConvertPosBetweenLos(int n, struct P *p, qword q);
 int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
-/** @sly2-annot addr=0x193C98
- * Purpose: Advance/clamp the grab param along the held curve object (wrap with ModPositive if closed, else
- *   clamp to [sMin,sMax]) and line-test the new point
- * Info: proposed name ClampJtGrabCurveParam (T2); TU grab
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Advances/clamps the grab parameter along the held curve object (wraps on closed curves, clamps on open ones).
 void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
 {
@@ -2064,21 +1969,8 @@ static __inline__ float Dot2(qword a, qword b)
     __asm__("qmfc2.ni %0,%2\n\tmtc1 %0,%1" : "=&r"(bits), "=f"(r) : "j"(d));
     return r;
 }
-/** @sly2-annot addr=0x193DE8
- * Purpose: Add contact constraints for the held object: state 4 -> vt82(0x23, plo, pos), state 3 rail/edge ->
- *   constraint along curve from velocity
- * Info: proposed name UpdateJtInternalXpsHide (T1); TU grab
- * Notes: names_v2 A proposed UpdateJtInternalXpsHide__FP2JT (0.995) [verified CORRECT] | CONFLICT: verified
- *   tier-A name differs from TU name; orchestrator: verified name UpdateJtInternalXpsHide__FP2JT restored
- *   over AddJtGrabXps (verified > unverified) | arbitration adopt verified: Verifier matched Sly1 body; arg
- *   is the hide substate (reads +0x8 first), keep unmangled.
- * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
- *   sources: r4b_rest+verdicts_A2;verified_A+arbitration
- * See: docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Adds the contact constraints for the held object (state 4: point constraint; state 3: rail/edge ...).
+// Sly 1 name and body.
 void UpdateJtInternalXpsHide(struct S *p)
 {
     switch (p->x8) {
@@ -2164,17 +2056,8 @@ typedef char alignment_4[__alignof__(struct PROJECTION)==16?1:-1];
 typedef char alignment_5[__alignof__(struct S)==4?1:-1];
 } } // namespace M_UpdateJtInternalXpsHide
 
-/** @sly2-annot addr=0x1940B0
- * Purpose: (existing name) Set hide/grab facing kind hfdk (+0x2C) and tHfdk=g_clock.t; kind 3 -> x34=1; 1/2
- *   -> x34=2 if owner TN matches
- * Info: proposed name SetJtHfdk (EXISTING); TU grab
- * Notes: RENAME proposed -> SetJtHfdk (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.75] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4b_rest+arbitration
- * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Sets the hide/grab facing kind (+0x2C) and its time; kind 3 and 1/2 adjust the camera flag.
+// (Sly 1-derived name: SetJtHfdk.)
 /* Sets the grab's hand/foot kind (stamping the time) and from it the focus kind: 1 for kind 3, for kinds 1 and 2 2
    when the player's current TN is the grab's, else 0. The Sly 1 symbol says JT *; Sly 2's takes the JTGRAB, so it
    keeps the symbol as a C-linkage definition. */
@@ -2200,13 +2083,6 @@ namespace M_func_00194118 { extern "C" {
 typedef struct T { char pad[0xFC]; int fc, x100, x104, x108, x10c, x110, x114; int pad2[2]; int x120, x124, x128; int x12c; int x130; int p3[3]; int x140; int p4[8]; int x164, x168, x16c; } T;
 typedef struct O { char pad[0x68]; T *t; } O;
 extern char D_002BF670[];
-/** @sly2-annot addr=0x194118
- * Purpose: Reset a block of TN parameters (x100..x16C) of the grab context's private TN to defaults
- * Info: proposed name ResetJtGrabTnParams (T2); TU grab
- * Notes: names_v2 C proposed ResetJtDynamicTunnel__FP2JT (0.241)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Resets a block of the private camera TN's parameters to defaults.
 void ResetJtGrabTnParams(O *o)
 {
@@ -2271,20 +2147,7 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char VT_Size[sizeof(VT)==8?1:-1];
 typedef char VT_d_Offset[((unsigned int)&(((VT*)0x10000)->d)-0x10000)==0?1:-1];
 typedef char VT_fn_Offset[((unsigned int)&(((VT*)0x10000)->pfn)-0x10000)==4?1:-1];
-/** @sly2-annot addr=0x194170
- * Purpose: If grab state 3 on a curve object: smooth the velocity component along the curve direction
- *   (SmoothValue D_002BF700) and AddSoVelocity
- * Info: proposed name PresetJtAccelHide (T1); TU grab
- * Notes: names_v2 A proposed PresetJtAccelHide__FP2JT (0.988) [verified CORRECT] | CONFLICT: verified tier-A
- *   name differs from TU name; orchestrator: verified name PresetJtAccelHide__FP2JT restored over
- *   PresetJtAccelGrab (verified > unverified) | arbitration adopt verified: Verifier matched Sly1 body; same
- *   substate arg; keep unmangled.
- * Confidence: mid (draft) [T1 0.70] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
- *   sources: r4b_rest+verdicts_A2;verified_A+arbitration
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
-// Grab physics preset: in grab state 3 on a curve object smooths the velocity along the curve.
+// Grab physics preset: in grab state 3 on a curve object smooths the velocity along the curve. Sly 1 name and body.
 void PresetJtAccelHide(struct P *p)
 {
     U v, w, r, k;
@@ -2347,13 +2210,6 @@ void AddJtPlaceOnCurve(void *p, void *s, float g);
 void AddJtPlaceAtPosition(void *p, int a, qword q);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-/** @sly2-annot addr=0x1942F0
- * Purpose: Per grab state, record the held spot/param into the STEPPLAYER+0x9E0 place table (0x19FD30 /
- *   0x19FEB0) unless the object forbids it
- * Info: proposed name RecordJtGrabPlace (T2); TU grab
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Per grab state, records the held spot/parameter in the player's safe-place table.
 void RecordJtGrabPlace(struct P *grab)
 {
@@ -2416,13 +2272,6 @@ void RecordJtGrabPlace(struct P *grab)
 }
 } } // namespace M_func_001942F0
 
-/** @sly2-annot addr=0x1944C8
- * Purpose: Return the state-specific actuator/adjust record for the grab kind (x54/x58/x60/x64) and a flag
- * Info: proposed name PactadjFromJtGrab (T2); TU grab
- * Notes: names_v2 v1 proposed FUN_001d1478 (0.000)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 /* The grab's record for its state and kind (precUnk54/58/60/64); *pfFlip set in state 8 for kinds 9 and 10. */
 // The adjust record for the grab kind and a flag.
 extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
@@ -2453,16 +2302,8 @@ extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
     return record;
 }
 
-/** @sly2-annot addr=0x194558
- * Purpose: Can the player use gadget/action k while in this grab kind (k==3 special; kinds 1/8/11/12 forbid;
- *   3/4 allow 1,2,0x1F)
- * Info: proposed name FJtGrabAllowsGadget (T2); TU grab
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 extern "C" {
 extern int D_002DFBC0;
-// Whether gadget/action k can be used in this grab kind (kinds 1/8/11/12 forbid; 3/4 allow ...).
 int IsCameraPolicyActive__FP5CPLCY(void *pcplcy);
 }
 static inline int IsGrabCameraFree(JTGRAB *grab)
@@ -2495,12 +2336,6 @@ extern "C" int CanJtUseGadgetInGrab(JTGRAB *grab, int n)
     return 1;
 }
 
-/** @sly2-annot addr=0x194640
- * Purpose: True for grab kind 0xC, or kind 8 when helper says so
- * Info: proposed name FJtGrabBusy (T2); TU grab
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 /* Whether the grab makes the player immune to zaps (state 12; state 8 with kinds 9 and 10). */
 // True for grab kind 0xC, or kind 8 when the helper says so (the grab makes the player immune to zaps).
 static inline int IsGrabFlipping(JTGRAB *grab) { return grab->nKind == 9 || grab->nKind == 10; }
@@ -2576,13 +2411,6 @@ static inline void MoveJtGrabCands(JTGRABCAND *pcandDst, JTGRABCAND *pcandSrc, s
     memmove(pcandDst, pcandSrc, cb);
 }
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand) __asm__("AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND");
-/** @sly2-annot addr=0x194688
- * Purpose: Test one grab spot against the player and insert it into the sorted candidate array (priority,
- *   distance, one per group); skips held/just-released objects, mask mismatch, beyond sBusy or 1000
- * Info: proposed name AddJtGrabCandidate (T1); TU grab
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Tests one grab spot against the player and inserts it into the candidate list if usable.
 void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GRABSPOT *spot, int ccandMax, JTGRABCAND *candidates)
 {
@@ -2743,15 +2571,6 @@ extern "C" float D_002BF70C;   // C symbol: this view has no extern "C" block
 extern "C" { extern HINTBOX D_003DA0C0; }
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand) __asm__("AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND");
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
-/** @sly2-annot addr=0x194A40
- * Purpose: Every frame collect the player's grab candidates from the world grab lists selected by grf (HND,
- *   PIPE, CID27, HSHAPE, CID34/38/35, RAIL, CID39), refine the best 4, drive the hint box text
- * Info: proposed name GatherJtGrabCandidates (T1); TU grab
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#9-grabbable-world-objects,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
- *   docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Every frame collects the player's grab candidates from the world's grab lists.
 void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
 {
@@ -2857,12 +2676,6 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
 }
 } // namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi
 
-/** @sly2-annot addr=0x194F48
- * Purpose: qsort comparator: -1 if a->g < b->g else 1
- * Info: proposed name CompareJtGrabCandidates (T1); TU grab
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 /* qsort order of grab candidates: nearer first. */
 // qsort comparator by candidate score.
 extern "C" int CompareJtGrabCandidates(JTGRABCAND *pcand0, JTGRABCAND *pcand1) { if (pcand0->sDist < pcand1->sDist) return -1; return 1; }
@@ -2927,12 +2740,6 @@ LO *AcquireJtGrabMarker(SW *psw, int id, JTGRABCAND *pcand);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
 
-/** @sly2-annot addr=0x194F70
- * Purpose: Refine the best grab candidates (param/position on the spot, timers)
- * Info: proposed name UpdateJtGrabCandidates (T1); TU grab
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // Refines the best grab candidates (parameter and position on the spot, reachability).
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER *player, int ccand, JTGRABCAND *candidates)
 {
@@ -3132,12 +2939,6 @@ static inline void GetSparkle(JTGRABCAND *candidate, VECTOR *posOut, VECTOR *pv)
     candidate->pspot->GetSparkle(posOut, pv, candidate->sParam);
 }
 
-/** @sly2-annot addr=0x195368
- * Purpose: For every candidate spawn/refresh the grab sparkle marker effect
- * Info: proposed name EmitJtGrabSparkles (T1); TU grab
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 // For every candidate spawns/refreshes the grab-hint sparkle effect.
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER *player, int ccand,
                                                           JTGRABCAND *candidates)
@@ -3207,13 +3008,6 @@ LEmit:
 }
 } // namespace M_EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND
 
-/** @sly2-annot addr=0x195608
- * Purpose: Splice entry: for candidate with id, acquire a new marker proxy (0x1956D0) and replace (vt9
- *   Remove) the old one
- * Info: proposed name SetSwGrabMarkerProxy (T2); TU grab
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 /* Moves the world's grab marker (SW::ploUnk4744) onto the candidate for plo: acquires a new marker there and
    removes the candidate's old one (LO slot 9). */
 // Splice entry: for the candidate with the id, acquires a new marker proxy and replaces the old one.
@@ -3244,13 +3038,6 @@ extern "C" void SetGrabMarkerProxy(SW *world, LO *lo)
     candidate->ploUnk10 = ploMarker;
 }
 
-/** @sly2-annot addr=0x1956D0
- * Purpose: Acquire proxy id (AcquireProxyObject), unparent, Remove, fade in 0.25 s, place at candidate pos with
- *   identity rotation and zero velocity
- * Info: proposed name AcquireJtGrabMarker (T1); TU grab
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 /* A grab marker proxy of plo placed at the candidate: unparented, shown (LO slot 9), faded in, moved to the
    candidate's position (slot 29) with matrix D_002A2D00 (slot 30) and zero velocities (slots 35, 36). */
 // Acquires a marker proxy, unparents it, fades it in over 0.25 s and places it at the candidate.
@@ -3287,12 +3074,6 @@ extern "C" LO *AcquireJtGrabMarker(SW *world, LO *lo, JTGRABCAND *candidate)
     return ploMarker;
 }
 
-/** @sly2-annot addr=0x1957C0
- * Purpose: g_sw+0x4744 = FindSwObject(g_sw, 0x405, oid 0x624)
- * Info: proposed name PostSwLoadGrabMarker (T2); TU grab
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#grab-0x191090-0x195950
- * @end-sly2-annot */
 /* The world's grab marker object (oid 0x624). */
 // World post-load: finds the grab marker template (oid 0x624) into g_sw+0x4744.
 extern "C" void PostLoadGrabMarker(SW *world)

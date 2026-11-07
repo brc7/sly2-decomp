@@ -509,18 +509,6 @@ void ScaleStepSpinSpeed(struct S *p, float g);
 void InitBentleyHelper(void *pv, struct S *p);
 void ResetJtHands(void *pv);
 static __inline__ void InitLm(struct LM4 *range, float g8, float gc) { range->g8 = g8; range->gc = gc; range->n = 0; }
-/** @sly2-annot addr=0x188488
- * Purpose: JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits
- *   -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD4 = ids 0x1A/0x25/0x26/0x29, sets g_pjt
- *   D_002E1E40=pjt
- * Info: proposed name InitJt (T1); class JT slot7; TU jt
- * Notes: names_v2 v1 proposed Chetkido__Fv (0.002) | runtime: g_pjt D_002E1E40 = 0xFB1580 (only JT); x19AC
- *   stored as float 15.0
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); static naming pass; sources:
- *   r4_17F090+verdicts_tu_r4r6+runtime
- * See: docs/engine/main-loop-startup.md#7-source-files, docs/engine/player.md#10-source-files,
- *   docs/engine/player.md#11-key-functions
- * @end-sly2-annot */
 // JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
 // records, helpers).
 void InitJt(struct S *jt)
@@ -563,17 +551,8 @@ struct S { char pad[0x240]; VEC3 v; };
 extern char D_002BE990[];
 void LoadStepFromBrx(struct S *p);
 void BindLoOidTable(struct S *p, int n, void *pv);
-/** @sly2-annot addr=0x1885B8
- * Purpose: JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table)
- * Info: proposed name LoadJtFromBrx (T1); class JT slot14; TU jt
- * Notes: runtime: +0x240 = (0,0,-75) confirmed | level_parser CONFIRMED-parse: payload layout followed by the
- *   parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime+parse-verified
- * See: docs/engine/player.md#11-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) offset and binds his object table (0xAD entries).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadJtFromBrx(struct S *jt)
 {
     VEC3 *pv;
@@ -611,15 +590,6 @@ extern int ApplySmToObject(int a, int b, int c, int d);
 extern char D_002BF1B0[];
 extern qword D_002A2DD0;
 
-/** @sly2-annot addr=0x188608
- * Purpose: JT vt15 PostLoad: base 0x1400B8, BindLoOidTable, look up ~10 named child ALOs/actuators (0x1F4C58
- *   by id+kind) into x10B8/x19C0..x19E0, sub-object postloads (0x1A0300, 0x18F908), build blend/aseg tables,
- *   SM applies
- * Info: proposed name PostJtLoad (T1); class JT slot15; TU jt
- * Notes: names_v2 C proposed PostStepLoadRun__FP4STEPP5BLRUNPP6ASEGBL (0.438)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT post-load (slot 15): STEPPLAYER post-load, then looks up about ten named child objects/actuators (hands, hook,
 // lean actuators) and builds his animation blends.
 void PostJtLoad(char *p)
@@ -707,14 +677,6 @@ static inline qword ProjectOutVec(qword v,qword n){qword d=VuDot(v,n);qword al,a
 // 0x188958: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x80");
 
-/** @sly2-annot addr=0x188960
- * Purpose: JT vt70: base accel (SO 0x1F9B20 for jts 3/8 else STEP 0x204108), then per-jts sub-handler:
- *   3->0x1903B8, 8->0x19DF70(+0xF50), 2 jump->0x196DF8(+0x2C0), 4->0x1A1148(+0xDF0), 7->0x194170(+0x4C0),
- *   6->0x137248(+0x1FF0), 14/24 velocity projections
- * Info: proposed name PresetJtAccel (T2); class JT slot70; TU jt
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT physics preset (slot 70): the base preset (SO for states 3/8, else STEP), then the per-state handler (air, grab,
 // hang, pipe, hurt ...).
 extern "C" void PresetJtAccel(P *jt)
@@ -819,13 +781,6 @@ static __inline__ float ReplaceIfBelow(float g, float lo, float v)
     if (g < lo) return v;
     return g;
 }
-/** @sly2-annot addr=0x188CC8
- * Purpose: JT vt55 (p, XP-like pa, pv): base STEP 0x204250, jts 8 -> 0x19E9C8, jts 7 friction-like scale g94
- *   = clamp(|v.xy|/g88+0.5, 0.5,1.5)
- * Info: proposed name AdjustJtXp (T2); class JT slot55; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT contact adjust (slot 55): STEP base, then per state (pipe 8 -> ResetJtPipeAdjust, grab 7 friction-like scale ...).
 void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 {
@@ -877,13 +832,6 @@ struct PO { char pad[0xC]; struct VT *pvt; };
 struct E { char pad[0xC]; struct PO *po; qword v10; qword v20; qword v30; };
 extern void AdjustStepXpVelocity(void *p, struct E *ae, int i);
 extern qword GetLoWorldPos(void *p);
-/** @sly2-annot addr=0x188E78
- * Purpose: JT vt57 (p, entries, i): base STEP 0x2044B0; if entry's object is self, v30 -= angvel x (pos -
- *   PosLoWorld)
- * Info: proposed name AdjustJtXpVelocity (T2); class JT slot57; TU jt
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 57: STEP base; for a contact on Sly himself, removes the rotational part (angular velocity x offset) from
 // the contact velocity. (inferred)
 void AdjustJtXpVelocity(void *p, struct E *ae, int i)
@@ -940,13 +888,6 @@ extern void SetGadgetRecordObject(void *p, E *pe, void *c);
 static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
 
 
-/** @sly2-annot addr=0x188F20
- * Purpose: JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for
- *   x18E0/x1030 -> SetJtState or 0x18E540; 9, ...)
- * Info: proposed name HandleJtMessage (T1); class JT slot5; TU jt
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT message handler (slot 5): STEPPLAYER base, then message 3 (animation finished) and the animation events of Sly's
 // clips (cane hits, footsteps, effects).
 void HandleJtMessage(char *p, int msg, void *pv)
@@ -1105,16 +1046,8 @@ void HandleJtMessage(char *p, int msg, void *pv)
 }
 } } // namespace M_HandleJtMessage
 
-/** @sly2-annot addr=0x189458
- * Purpose: JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1
- * Info: proposed name TryFaceJtAttachedObject (T1); class JT slot92; TU jt
- * Notes: verifier PLAUSIBLE: JT::FMatchAttached -> JT::FFaceTarget (vt92) | verifier: purpose partly wrong:
- *   JT slot 92 (MURRAY returns 0, BENTLEY no-op). If ploUnk18c0: 0x2046F0 = atan2 of (target pos - own pos)
- *   -> 0x204660 sets heading angle + Z rotation, i.e. turn t
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 92: if Sly is attached to an object (x18C0) faces it and returns 1.
+// Murray's override returns 0; Bentley's does nothing.
 extern "C" int TryFaceJtAttachedObject(JT *jt)
 {
     LO *lo;
@@ -1132,12 +1065,6 @@ extern "C" int TryFaceJtAttachedObject(JT *jt)
 namespace M_func_00189488 { extern "C" {
 struct S { char pad[0x18C8]; int n; };
 int GetStepplayerMovementNoise(struct S *p);
-/** @sly2-annot addr=0x189488
- * Purpose: JT vt98: base 0x1409B8; if -1, return 1 for jts 1/5/6/9 else -1
- * Info: proposed name JT_vt98 (T2); class JT slot98; TU jt
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1; then 1 (noisy) in JTS_Run/5/JTS_Interact/9, else -1.
 int GetJtMovementNoise(struct S *jt)
 {
@@ -1154,12 +1081,6 @@ int GetJtMovementNoise(struct S *jt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001894F8 { extern "C" {
 struct S { char pad[0x18C8]; int n; };
-/** @sly2-annot addr=0x1894F8
- * Purpose: JT vt94 (pure virtual in STEPPLAYER): 1 for jts 0,1,5,10,12,24
- * Info: proposed name JT_vt94 (T2); class JT slot94; TU jt
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 94: 1 for the free-movement states 0, 1, 5, 10, 12, 24. (inferred)
 int IsJtFreeMoving(struct S *jt)
 {
@@ -1182,12 +1103,6 @@ static __inline__ void Call(struct O *o, int n)
     struct VTE *e = &o->vt[21];
     e->pfn((char *)o + e->d, n);
 }
-/** @sly2-annot addr=0x189530
- * Purpose: JT vt87 (p,f): base STEP 0x205D10, then vt21(!f) on three attached sub-objects
- * Info: proposed name SetJtPlayable (T2); class JT slot87; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 87 (playable flag): STEP base, then the flag on three attached sub-objects.
 void SetJtPlayable(struct S *jt, int f)
 {
@@ -1334,13 +1249,6 @@ static inline qword MakeVec(float gX, float gY, float gZ)
     return *(qword *)&vecXyz;
 }
 void UpdateJtLean(JT *pjt) __asm__("UpdateJtLean__FP2JT");
-/** @sly2-annot addr=0x189618
- * Purpose: Body lean actuators x19E4/E8/EC from velocity of the floor object / curve he stands on; last step
- *   of UpdateJt
- * Info: proposed name UpdateJtLean (T1); TU jt
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Body lean actuators from the velocity of the floor object or curve Sly stands on.
 void UpdateJtLean(JT *jt)
 {
@@ -1532,13 +1440,6 @@ extern "C" int D_002BF340;          // 50.0f, read as its bits
 extern "C" int D_002BF344;     // -50.0f, read as its bits
 extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg) __asm__("RebuildJtXmg");
-/** @sly2-annot addr=0x189C40
- * Purpose: Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical
- *   probe line)
- * Info: proposed name RebuildJtXmg (T1); TU jt
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Foot placement for one foot: when the foot clip changes, rebuilds the reach geometry (sphere the leg can reach,
 // vertical probe lines).
 void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg)
@@ -1614,12 +1515,6 @@ extern qword D_002A2DC0;
 extern qword D_002A2DD0;
 int TryMatchJtXmg(O *p, M *pm, void *px);
 }
-/** @sly2-annot addr=0x189EC8
- * Purpose: Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target
- * Info: proposed name TryMatchJtXmg (T1); TU jt
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Probes the ground along the foot geometry's lines (normal z > 0.7) and sets the foot target; nonzero on a match.
 int TryMatchJtXmg(O *jt, M *pm, void *px)
 {
@@ -1678,13 +1573,6 @@ void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
 int TryMatchJtXmg(struct S *p, void *pv, int n);
 int FindSmStateOptional__FP2SM3OID(void *p, int n);
 void SnapSma(void *p, int n);
-/** @sly2-annot addr=0x18A0C8
- * Purpose: Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620),
- *   TryMatchJtXmg
- * Info: proposed name UpdateJtStand (T1); TU jt
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Standing: state-machine mask from the lean flags, riding platform rotation, foot placement for both feet.
 void UpdateJtStand(struct S *jt)
 {
@@ -1711,12 +1599,6 @@ void UpdateJtStand(struct S *jt)
 }
 } } // namespace M_UpdateJtStand
 
-/** @sly2-annot addr=0x18A238
- * Purpose: JT vt19: if jts==3 render extra (0x190D10) then STEPPLAYER render 0x1425B0
- * Info: proposed name RenderJtSelf (T1); class JT slot19; TU jt
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT render (slot 19): while hanging (state 3) applies the hand IK first, then the STEPPLAYER render.
 extern "C" void RenderJtSelf(JT *jt, void *camera)
 {
@@ -1732,13 +1614,6 @@ typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int caneState; char p3[0xC8]; void *hookChild; };
 qword GetLoWorldPos(void *p);
 void UpdateSoXfWorld(struct S *p);
-/** @sly2-annot addr=0x18A278
- * Purpose: JT vt17: cache PosLoWorld of x19A4 child, call SO vt17 0x1F3980, record self/child positions when
- *   x18D8==0
- * Info: proposed name JT_vt17 (T2); class JT slot17; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
 // (inferred)
 void UpdateJtWorldTransform(struct S *jt)
@@ -1762,12 +1637,6 @@ typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0x1880]; int n; char p1[0xC]; qword aq[3]; char p2[0xEC]; float g; };
 void UpdateSoTreeBounds(struct S *p);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
-/** @sly2-annot addr=0x18A2E0
- * Purpose: JT vt49: SO 0x1F50E0 then 0x1F5480(pjt, q[i], g) for each extra entry
- * Info: proposed name JT_vt49 (T2); class JT slot49; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 49: SO base, then the same update for each extra entry. (inferred)
 void UpdateJtExtraEntries(struct S *jt)
 {
@@ -1786,13 +1655,6 @@ typedef union { qword q; VEC v; } UV;
 struct S { char pad[0x18C4]; void *hangHandle; int n; };
 qword GetLoWorldPos(void *p);
 void GetStepplayerCameraFocusPosition(struct S *p, UV *pv);
-/** @sly2-annot addr=0x18A350
- * Purpose: JT vt97 (p, out): target pos; jts 3 -> z of x18C4 obj -175, jts 0x16 -> -100, jts 0x15 own pos;
- *   default STEPPLAYER 0x141588
- * Info: proposed name GetJtCameraTarget (T2); class JT slot97; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 97: the camera target position (hanging: hook z - 175; state 0x16: -100; ...).
 void GetJtCameraTarget(struct S *jt, UV *pv)
 {
@@ -1821,13 +1683,6 @@ struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char pipe[4]; int xf54; ch
 extern struct CLOCK D_002DDED0;
 void GetStepplayerCpdefi(struct S *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
-/** @sly2-annot addr=0x18A428
- * Purpose: JT vt50 (p, int *pgrf): stamp x? with g_clock.t while moving, base 0x141640, jts 8 sub, jts 3/5/6
- *   -> *pgrf|=1
- * Info: proposed name JT_vt50 (T2); class JT slot50; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
 void GetJtCpdefi(struct S *jt, int *pf)
 {
@@ -1893,12 +1748,6 @@ static __inline__ qword OffsetSub(const M *m, const VU *scalar, const VU *base)
             : "m"(m->r[1]), "m"(scalar->q), "m"(base->q));
     return value;
 }
-/** @sly2-annot addr=0x18A4E8
- * Purpose: VU-heavy helper called by STEPPLAYER 0x141640: smoothed curve target (SmoothValue, SMaxCrv)
- * Info: TU jt
- * Notes: descriptive only: (JT curve/rail helper) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
- * @end-sly2-annot */
 // VU helper of GetStepplayerCpdefi: the smoothed camera curve target. (inferred)
 extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
 {
@@ -2192,13 +2041,6 @@ static inline qword RotateVecAt(MATRIX3 *matrix, qword *pqwVec)
     return result;
 }
 extern "C" void ChooseJtGroundState(JT *pjt) __asm__("ChooseJtGroundState");
-/** @sly2-annot addr=0x18A8C8
- * Purpose: Each frame pick the grounded state (stand/run/... via SetJtState) from input and floor
- * Info: proposed name ChooseJtGroundState (T1); TU jt
- * Notes: runtime2: run(1) with grfbtn 0x8 / walk(12) / fight stance(5) choices observed
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Every frame picks the grounded state (stand, run, crouch, sidestep ...) from input and floor, via SetJtState.
 extern "C" void ChooseJtGroundState(JT *jt)
 {
@@ -2493,13 +2335,6 @@ int IsStepplayerInJtMode(struct S *p);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
-/** @sly2-annot addr=0x18B2C0
- * Purpose: If player can act (0x1443D8) and POCTL button 0x410/0x4F0 pressed toggle JTMODE at x0F00
- *   (0x19CCE8), then update it (0x19D330)
- * Info: proposed name UpdateJtModeInput (T2); TU jt
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
 void UpdateJtModeInput(struct S *p)
 {
@@ -2531,14 +2366,6 @@ static __inline__ qword Mul(MATRIX4 *pm, qword v)
             : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return o;
 }
-/** @sly2-annot addr=0x18B348
- * Purpose: From clip label 0x167 sample positions of 3 child XFs into x1BE0..x1C20
- * Info: proposed name CacheJtRestPose (T2); TU jt
- * Notes: verifier: purpose partly wrong: Samples ASEG label 0x167 via PredictAsegEffect for 3 XFs into
- *   0x1BE0..0x1C00, plus a derived vector and the first point re-expressed in inverse(m2). 'Rest pose'
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // From clip label 0x167 samples the positions of three child transforms into x1BE0..x1C20.
 void CacheJtRestPose(struct O *jt)
 {
@@ -2621,12 +2448,6 @@ static inline float CorrectionDistance(struct P *p, qword correction)
     __asm__("qmfc2.ni %0,%1" : "=r"(result) : "j"(d));
     return result;
 }
-/** @sly2-annot addr=0x18B460
- * Purpose: jts 11 handler: attachment correction, decays inactive responses
- * Info: proposed name UpdateJtAttachCorrection (T2); TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // State 11 handler: corrects the attachment and decays inactive responses. (inferred)
 void UpdateJtAttachCorrection(struct P *jt)
 {
@@ -3067,13 +2888,6 @@ static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, 
     *stateOut = state;
 }
 
-/** @sly2-annot addr=0x18B7E8
- * Purpose: Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input,
- *   ChooseJtGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
- * Info: proposed name UpdateJtPre (T1); TU jt
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Per-frame active movement before the base update: grab candidates, mode input, ChooseJtGroundState, component
 // input.
 void UpdateJtPre(struct P *jt)
@@ -3279,14 +3093,6 @@ extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword
 extern void UpdateJtLean__FP2JT(void *p);
 
 
-/** @sly2-annot addr=0x18BCE0
- * Purpose: JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand,
- *   feet, rope/curve checks (SetJtState 0x16/3/8), UpdateJtLean last
- * Info: proposed name UpdateJt (T1); class JT slot16; TU jt
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT Update (slot 16): STEPPLAYER update, UpdateJtPre, actuators and animation, UpdateJtStand, feet, cane, lean.
 void UpdateJt(char *p)
 {
@@ -3418,13 +3224,6 @@ void *GetJtGrabAdjustRecord(void *p, int *pn);
 void *GetJtHurtAdjustRecord(void *p, int *pn);
 void *GetJtAirAdjustRecord(void *p, int *pn);
 void SetStepPhys(struct S *p, void *pv, int n);
-/** @sly2-annot addr=0x18C060
- * Purpose: JT vt90 (pure virtual in STEPPLAYER): get state-specific array from jts 7/4/2 sub-objects and pass
- *   to 0x203D00
- * Info: proposed name JT_vt90 (T2); class JT slot90; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 90: takes the per-state STEP parameter array from the grab/hurt/air components and applies it.
 void ApplyJtStateStepParams(struct S *jt)
 {
@@ -3442,12 +3241,6 @@ void ApplyJtStateStepParams(struct S *jt)
 }
 } } // namespace M_func_0018C060
 
-/** @sly2-annot addr=0x18C120
- * Purpose: (pjt,f): enable/disable 5 actuators x19E4..x19F4 (0x12CFE0/0x12D020)
- * Info: proposed name EnableJtLeanActs (T2); TU jt
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 /* Shows (bit set) or hides each of the seven act5s by the bits of grf (bit 0x20 is +0x19FC, 0x40 +0x19F8). */
 // Enables or disables the five lean actuators (x19E4..x19F4).
 extern "C" void EnableJtLeanActs(JT *jt, int grf)
@@ -3658,16 +3451,6 @@ void ChooseJtRushTarget(JT *pjt) __asm__("ChooseJtRushTarget__FP2JT");
 void ChooseJtSmashTarget(JT *pjt) __asm__("ChooseJtSmashTarget__FP2JT");
 void SetJtChannelMask(JT *pjt, uint grf) __asm__("EnableJtLeanActs");
 void SetJtState(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtState__FP2JT3JTS4JTBS");
-/** @sly2-annot addr=0x18C250
- * Purpose: Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state
- * Info: proposed name SetJtState (T1); TU jt
- * Notes: names_v2 C proposed UpdateCplook__FP6CPLOOKP6CPDEFIP3JOYf (0.200) | runtime2: jts values
- *   0/1/2/5/7/8/11/12 and runtime3 jts 4 observed
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); static naming pass; sources:
- *   r4_17F090+verdicts_tu_r4r6+runtime
- * See: docs/engine/overview.md#6-subsystem-map, docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
- *   docs/engine/player.md#11-key-functions
- * @end-sly2-annot */
 // Sets Sly's state (jts, x18C8) and sub-state (jtbs, x18D0): exit and enter logic for every state (clips, physics
 // flags, components). The central state switch of the player.
 void SetJtState(JT *jt, JTS jts, JTBS jtbs)
@@ -4258,12 +4041,6 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
 namespace M_func_0018D500 { extern "C" {
 struct S { char pad[0xF04]; int n; };
 int IsCameraPolicyActive__FP5CPLCY(void *p);
-/** @sly2-annot addr=0x18D500
- * Purpose: JT vt106: 0 if jts==1 or 0x14FD50((*(char (*)[])&g_cm.part3a0)) else 1
- * Info: proposed name JT_vt106 (T2); class JT slot106; TU jt
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 106: 0 while the look mode runs (jtmode.nState == 1) or the camera policy at g_cm+0x3A0 is on top, else 1 (inferred: the free-camera test, cf. CanJtUseGadget case 3).
 int IsJtCameraFree(struct S *jt)
 {
@@ -4274,12 +4051,6 @@ int IsJtCameraFree(struct S *jt)
 }
 } } // namespace M_func_0018D500
 
-/** @sly2-annot addr=0x18D548
- * Purpose: JT vt91: calls 0x18E540(pjt,-1) (first fn of next TU)
- * Info: proposed name JT_vt91 (T2); class JT slot91; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 91: cancels the cane state (SetJtCaneState(-1)).
 void JT::EndMeleeAttack()
 {
@@ -4290,12 +4061,6 @@ void JT::EndMeleeAttack()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtPlayerState { extern "C" {
 void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m);
-/** @sly2-annot addr=0x18D568
- * Purpose: JT vt88: map generic player state 0..8 -> SetJtState(0,2,7,4,0x12,0x13,0x14,0x17,8)
- * Info: proposed name SetJtPlayerState (T1); class JT slot88; TU jt
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 88: maps a generic player state 0..8 to SetJtState (0, 2, 7, 4, 0x12, 0x13, 0x14, 0x17, 8).
 void SetJtPlayerState(void *p, int n)
 {
@@ -4316,12 +4081,6 @@ void SetJtPlayerState(void *p, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_GetJtPlayerState { extern "C" {
 struct S { char pad[0x18C8]; int n; };
-/** @sly2-annot addr=0x18D620
- * Purpose: JT vt89: inverse map jts -> generic state 0..8 or -1
- * Info: proposed name GetJtPlayerState (T1); class JT slot89; TU jt
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 89: the inverse map, jts -> generic state 0..8 or -1.
 int GetJtPlayerState(struct S *jt)
 {
@@ -4340,12 +4099,6 @@ int GetJtPlayerState(struct S *jt)
 }
 } } // namespace M_GetJtPlayerState
 
-/** @sly2-annot addr=0x18D698
- * Purpose: (owner, rec, obj): release rec->obj (0x133448), store new and register (0x1333C0)
- * Info: proposed name SetGadgetRecObject (T2); TU jt
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 /* Moves a pocket's subscription from its current object (+8) to plo. */
 // Releases the gadget record's object, stores the new one and registers it.
 extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
@@ -4364,12 +4117,6 @@ extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PgadrecFromJtGadget { extern "C" {
-/** @sly2-annot addr=0x18D6F8
- * Purpose: Return JT gadget record for gadget id 0x1A/0x25/0x26/0x29 (x1FB0/x1FBC/x1FC8/x1FD4)
- * Info: proposed name GetJtGadgetRecord (T1); TU jt
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Sly's gadget record for gadget ids 0x1A/0x25/0x26/0x29, or null.
 void *GetJtGadgetRecord(char *p, int n)
 {
@@ -4416,13 +4163,6 @@ extern float D_002BF3EC;
 extern float D_002BF3F0;
 int FPocketItemCarried(CID100 *pcid100) __asm__("IsTossableActive");
 extern "C" JTPOCKET *GetJtGadgetRecord(JT *pjt, int idGadget);
-/** @sly2-annot addr=0x18D760
- * Purpose: Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket
- *   item)
- * Info: proposed name JT_FCanUseGadget (T1); class JT slot99; TU jt
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 99: whether Sly can use the gadget now (per-state allow lists; the aiming state allows only the carried
 // gadget).
 int JT::CanUseGadget(int gadgetId)
@@ -4570,14 +4310,6 @@ extern void ExplodeWithDefaults(int x);
 extern void SetJtAirJump(void *p, int a, int b, int c);
 extern void StartStepplayerGadget(void *p, int n);
 
-/** @sly2-annot addr=0x18DA48
- * Purpose: JT vt100 (gadget id): per-gadget action: slow-motion (clock rate via 0x14D1D0 + sound 0x67/0x66),
- *   states via SetJtState (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records
- * Info: proposed name UseJtGadget (T1); class JT slot100; TU jt
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 100: per-gadget action (slow motion through the clock rate and sounds, decoys, throws ...).
 void UseJtGadget(char *p, int n)
 {
@@ -4690,13 +4422,6 @@ void SetClockRate(struct CLOCK *pclock, int n, float g);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
 void StopStepplayerGadget(struct S *p, int n);
-/** @sly2-annot addr=0x18DD78
- * Purpose: JT vt102: for gadget 0x1D/0x2A restore clock rate 1.0, stop sound x2044; else base 0x141E28
- * Info: proposed name EndJtGadget (T2); class JT slot102; TU jt
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
- * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 102: for gadgets 0x1D/0x2A restores the clock rate 1.0 and stops the sound, else the STEPPLAYER base.
 void EndJtGadget(struct S *jt, int n)
 {
@@ -4715,25 +4440,12 @@ void EndJtGadget(struct S *jt, int n)
 }
 } } // namespace M_func_0018DD78
 
-/** @sly2-annot addr=0x18DE08
- * Purpose: JT vt103: return static descriptor &D_002A5EF0
- * Info: proposed name JT_vt103 (T2); class JT slot103; TU jt
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 103: the save-variable namespace string for Sly (D_002A5EF0). (inferred, as Bentley's "bentley")
 extern "C" char *GetJtSaveVarRoot()
 {
     return (char *)D_002A5EF0;
 }
 
-/** @sly2-annot addr=0x18DE18
- * Purpose: (pjt,obj): obj -> x9C0=1 and set grab sub-state kind 6 on x4C0 (0x1928F8); null -> release if kind
- *   6
- * Info: proposed name SetJtGrabObject (T2); class JT; TU jt
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 /* Grabs plo as a carried object (grab state 6), or drops what is carried (STEPPLAYER slot 87 with 0). */
 // With an object: marks it and enters grab kind 6 on it; null releases it.
 extern "C" void SetJtGrabObject(JT *jt, LO *lo)
@@ -4755,12 +4467,6 @@ namespace RO_ORDER { extern const char r_D_002A5EF0[] __asm__("D_002A5EF0") = "s
 namespace M_func_0018DE80 { extern "C" {
 struct S { char pad[0x18C8]; int n; };
 void GetStepplayerStunHold(struct S *p, int *pf);
-/** @sly2-annot addr=0x18DE80
- * Purpose: JT vt96 (p,int*pf): base 0x143220 then *pf=1 for jts 0,1,5,10,12
- * Info: proposed name JT_vt96 (T2); class JT slot96; TU jt
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 96: base, then sets the flag for states 0, 1, 5, 10, 12.
 void GetJtStunHold(struct S *jt, int *pf)
 {
@@ -4776,12 +4482,6 @@ void GetJtStunHold(struct S *jt, int *pf)
 namespace M_func_0018DEE0 { extern "C" {
 struct S { char pad[0x204]; int x204; char p1[0x16C0]; int n; };
 int GetStepplayerGroundProbeFlags(struct S *p);
-/** @sly2-annot addr=0x18DEE0
- * Purpose: JT vt85: 0 if x204 or jts 3/8/21/22; 1 for 13/14; 0xF for 24; else base 0x143C78
- * Info: proposed name JT_vt85 (T2); class JT slot85; TU jt
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
 int GetJtGroundProbeFlags(struct S *p)
 {
@@ -4798,24 +4498,12 @@ int GetJtGroundProbeFlags(struct S *p)
 }
 } } // namespace M_func_0018DEE0
 
-/** @sly2-annot addr=0x18DF50
- * Purpose: Store int at x1D30
- * Info: proposed name SetJtX1D30 (T2); TU jt
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Stores an int at x1D30 (meaning not identified).
 extern "C" void SetJtUnknown1D30(JT *jt, int n)
 {
     jt->nUnk1d30 = n;
 }
 
-/** @sly2-annot addr=0x18DF58
- * Purpose: Store vector at x1FA0
- * Info: proposed name SetJtX1FA0 (T2); TU jt
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Stores a vector at x1FA0 (meaning not identified).
 extern "C" void SetJtUnknown1FA0(JT *jt, qword qw)
 {
@@ -4930,13 +4618,6 @@ static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, u
     return dt;
 }
 
-/** @sly2-annot addr=0x18DF60
- * Purpose: Smooth Sly's matrix/position (SmoothMatrix, PosSmooth) and update directional anim weights
- * Info: proposed name UpdateJtSmoothing (T2); TU jt
- * Notes: names_v2 C proposed UpdateSuvInfluences__FP3SUVP2RO (0.438)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Smooths Sly's matrix and position and updates the directional animation weight.
 extern "C" void UpdateJtSmoothing(P *jt)
 {
@@ -5079,13 +4760,6 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
-/** @sly2-annot addr=0x18E1E0
- * Purpose: Turn Sly toward object x10DC with SmoothValue
- * Info: proposed name UpdateJtFaceTarget (T2); TU jt
- * Notes: names_v2 C proposed UpdateRop__FP3ROPf (0.438)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Turns Sly toward the interact target (x10DC) with smoothing.
 void UpdateJtFaceTarget(struct O *jt)
 {
@@ -5127,12 +4801,6 @@ namespace M_func_0018E330 { extern "C" {
 extern char D_003DD490[];
 int FindSwObjectsByClass(void *g, int a, int b, int c, int cMax, void **ap);
 void UpdateStepguardPickpocket(void *p);
-/** @sly2-annot addr=0x18E330
- * Purpose: Find up to 32 objects (0x15E9C8 g_sw,0x505,0x38) and call 0x1F1900 on each
- * Info: TU jt
- * Notes: descriptive only: (JT callback: notify objects) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
- * @end-sly2-annot */
 // World callback registered by OnJtActive: runs UpdateStepguardPickpocket on every guard (CID 0x38, at most 32).
 void UpdateAllGuardsPickpocket(void)
 {
@@ -5151,12 +4819,6 @@ extern const LONGU D_002A5F98;
 extern char D_003DD490[];
 void OnStepplayerActive(void *p);
 void EnsureSwCallback(void *, void *, long, int);
-/** @sly2-annot addr=0x18E3A0
- * Purpose: JT vt78: base 0x144480 then 0x149AB8(g_sw, pjt, D_002A5F98, 0)
- * Info: proposed name OnJtActive (T2); class JT slot78; TU jt
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // JT slot 78 (becomes active): STEPPLAYER base, then registers the guard pickpocket callback.
 void OnJtActive(void *p)
 {

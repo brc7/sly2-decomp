@@ -142,24 +142,9 @@ extern "C" M3 ConvertXfMatR(XF *pxfFrom, XF *pxfTo, void *pmat) __asm__("Convert
 extern "C" qword func_0011BFF0V(M3 mat) __asm__("DecomposeRotationMatrixToEuler");
 extern "C" void MinimizeRange(float (*pfn)(void *, float), void *pv, float a, float b, float c, float d, float *pu, float *pg) __asm__("MinimizeRange__FPFPvf_fPvffffPfT6");
 
-/** @sly2-annot addr=0x1CC158
- * Purpose: JTHANDS: target ids (+0x90, +0xA4) = -1
- * Info: proposed name ResetJtHands (T2); TU jthands
- * Notes: names_v2 C proposed ClearCmFadeObjects__FP2CM (0.200)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Clears the hands' two target ids (+0x90, +0xA4) to -1.
 extern "C" void ResetJtHands(JTHANDS *hands) { hands->nMode = -1; hands->nKind = -1; }
 
-/** @sly2-annot addr=0x1CC168
- * Purpose: Closest point of q on segment between the two A curves (hand XF path) evaluated at t
- * Info: proposed name ClosestPointOnJtHandsCurveA (T2); TU jthands
- * Notes: names_v2 C proposed RemoveCmFadeObject__FP2CMP3ALO (0.638)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Closest point to `point` on the segment between the two A curves (the hand transform's path) evaluated at t.
 extern "C" void GetClosestPointOnJtHandsCurveA(JTHANDS *hands, qword pos, float *pu, float *ps, float u)
 {
@@ -169,17 +154,8 @@ extern "C" void GetClosestPointOnJtHandsCurveA(JTHANDS *hands, qword pos, float 
     FindClosestPointOnLineSegment(pos, a, b, 0, pu, ps);
 }
 
-/** @sly2-annot addr=0x1CC1F8
- * Purpose: Same for the B curves (chain top XF)
- * Info: proposed name ClosestPointOnJtHandsCurveB (T2); TU jthands
- * Notes: names_v2 C proposed ConvertCmScreenToWorld (0.638) | verifier PLAUSIBLE: Evaluates the two B shapes
- *   (+0x18, +0x2C) at u=t and returns the closest point on the SEGMENT between them (ClosestPointOnSegmentT).
- *   Purpose only says 'same for the B curves'; name suffix B is a sibli | T2 forced: verifier: role word not
- *   supported by the code
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+verdicts_followups
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Same as GetClosestPointOnJtHandsCurveA, for the B curves (the chain-top transform's path).
+// It returns the closest point on the segment between the two B shapes at t.
 extern "C" void GetClosestPointOnJtHandsCurveB(JTHANDS *hands, qword pos, float *pu, float *ps, float u)
 {
     qword a, b;
@@ -188,21 +164,9 @@ extern "C" void GetClosestPointOnJtHandsCurveB(JTHANDS *hands, qword pos, float 
     FindClosestPointOnLineSegment(pos, a, b, 0, pu, ps);
 }
 
-/** @sly2-annot addr=0x1CC288
- * Purpose: Parameter callback for curve A (used by FindShapeClosestPointFromDistance)
- * Info: proposed name GJtHandsCurveA (T2); TU jthands
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Parameter callback for curve A, used by FindShapeClosestPointFromDistance.
 extern "C" float EvaluateJtHandsCurveA(JTHANDSCTX *context, float u) { float g; GetClosestPointOnJtHandsCurveA(context->phands, context->pos, 0, &g, u); return g; }
 
-/** @sly2-annot addr=0x1CC2B8
- * Purpose: Parameter callback for curve B
- * Info: proposed name GJtHandsCurveB (T2); TU jthands
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Parameter callback for curve B.
 extern "C" float EvaluateJtHandsCurveB(JTHANDSCTX *context, float u) { float g; GetClosestPointOnJtHandsCurveB(context->phands, context->pos, 0, &g, u); return g; }
 
@@ -253,14 +217,6 @@ static inline const M4 *InverseArgument(const M4 *value)
     return arg;
 }
 
-/** @sly2-annot addr=0x1CC2E8
- * Purpose: Fit the hand curves to the grab target: find best clip parameter, seek/reblend the hold clips, set
- *   actor position goal and step turn target
- * Info: proposed name UpdateJtHands (T1); TU jthands
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908,
- *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Fits the hand curves to the grab target: finds the best clip parameter, seeks/reblends the hold clips, and sets the
 // actor's position goal and the step's turn target.
 extern "C" void UpdateJtHands(JTHANDS *hands)
@@ -372,12 +328,6 @@ inline void *AllocFromWorldHeapAligned(int cb, int alignment)
     return AllocFromWorldHeap(allocator);
 }
 
-/** @sly2-annot addr=0x1CC5E8
- * Purpose: Build hands record: hand-frame matrix, sampled A/B curves per hold clip (PredictAsegEffect), blend
- * Info: proposed name InitJtHands (T1); TU jthands
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Builds the hands record: the hand-frame matrix, the sampled A/B curves per hold clip (PredictAsegEffect) and the
 // blend between the clips.
 void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
@@ -447,14 +397,6 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
 }
 
 /* The grab target's tree is ignored while it is held (state 1). */
-/** @sly2-annot addr=0x1CC9A8
- * Purpose: If hands hold an object (state 1) add ignore bits for its tree
- * Info: proposed name GrfJtHandsIgnoreIntersection (T2); TU jthands
- * Notes: names_v2 C proposed ResetCmLookAtSmooth__FP2CMP6VECTOR (0.438)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // While the hands hold an object (state 1) adds intersection-ignore bits for its object tree.
 extern "C" int GetJtHandsIgnoreFlags(JTHANDS *hands, SO *so, int grf)
 {
@@ -466,25 +408,12 @@ extern "C" int GetJtHandsIgnoreFlags(JTHANDS *hands, SO *so, int grf)
     return grf;
 }
 
-/** @sly2-annot addr=0x1CCA20
- * Purpose: SW callback wrapper calling UpdateJtHands
- * Info: proposed name UpdateJtHandsCallback (T2); TU jthands
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // World callback wrapper that runs UpdateJtHands.
 extern "C" void UpdateJtHandsCallback(void *pv, JTHANDS *hands)
 {
     UpdateJtHands(hands);
 }
 
-/** @sly2-annot addr=0x1CCA40
- * Purpose: First nearby object of class 0x14 whose flags match the hands' grf
- * Info: proposed name PloFindJtHandsTarget (T2); TU jthands
- * Notes: names_v2 C proposed AdjustCmJoy__FP2CMP3JOY5JOYIDPf (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // The first nearby object of class 0x14 whose flags match the hands' flags.
 extern "C" CID20 *FindJtHandsTarget(JTV *jt, LO *lo)
 {
@@ -497,14 +426,6 @@ extern "C" CID20 *FindJtHandsTarget(JTV *jt, LO *lo)
     return 0;
 }
 
-/** @sly2-annot addr=0x1CCAC0
- * Purpose: Choose grab target (shape closest point or class-0x14 object), new position act, reblend, schedule
- *   UpdateJtHandsCallback
- * Info: proposed name SetJtHandsTarget (T2); TU jthands
- * Notes: names_v2 C proposed RevokeCmPolicy__FP2CMi3CPPP5CPLCYP2SOPv (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Chooses the grab target (closest point on a shape, or a class-0x14 object), creates the position act, reblends and
 // schedules UpdateJtHandsCallback.
 extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
@@ -575,13 +496,6 @@ static inline void DeltaForDuration(CARRYWORK &w, qword raw, float &bound, qword
 }
 struct __attribute__((packed)) BASIS_TAIL { float firstW; qword row1, row2; };
 
-/** @sly2-annot addr=0x1CCC88
- * Purpose: Create position and orientation jobs that carry the selected animated object along the predicted
- *   clip path to the hand (ballistic time, SetLoParent)
- * Info: proposed name StartJtHandsCarry (T2); TU jthands
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Creates position and orientation jobs that carry the selected animated object along the predicted clip path to the
 // hand (ballistic time, reparenting).
 extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
@@ -778,14 +692,6 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
 
 /* Attach the held object to the hand: parent it to the hand's XF, place it at the hand (relative to a CID 0x14
    counterpart when there is one), constrain it, and give it position/orientation acts. */
-/** @sly2-annot addr=0x1CD098
- * Purpose: Attach held object to the hand: constraints (SetSoCnstrForce/Torque), XF from matrix, acts,
- *   FadeSoIn
- * Info: proposed name AttachJtHandsObject (T2); TU jthands
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Attaches the held object to the hand: force/torque constraints, transform from the hand matrix, acts, fade-in.
 extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
 {
@@ -820,13 +726,6 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
     hands->psoHeld = object;
 }
 
-/** @sly2-annot addr=0x1CD2C0
- * Purpose: Free the three hand acts if active
- * Info: proposed name ReleaseJtHandsActs (T2); TU jthands
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Frees the three hand acts that are active.
 extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 {
@@ -839,13 +738,6 @@ extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 }
 
 /* Release the held object onto po (its parent, or the world) and move it there with acts; then target po. */
-/** @sly2-annot addr=0x1CD308
- * Purpose: SetJtHandsTarget variant that parents the object and builds pos/rot acts
- * Info: proposed name SetJtHandsTargetAttached (T2); TU jthands
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
- * @end-sly2-annot */
 // Variant of SetJtHandsTarget that parents the object and builds the position/rotation acts.
 extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
 {

@@ -212,14 +212,6 @@ int D_002BF920 = -1;   /* mode's .data: the interact mode the HUD widget last sh
 extern char D_002DEB30[];
 extern char D_004435F0[];
 
-/** @sly2-annot addr=0x19CBF8
- * Purpose: Init the STEPPLAYER+0xF00 look/recon mode context: owner, state -1, requested kind -1, then its
- *   HUD (0x19D4D0)
- * Info: proposed name InitJtMode (T1); TU mode
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
- *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Initializes the player's look/recon mode context (STEPPLAYER+0xF00): owner, state -1, requested kind -1, then its
 // HUD. Kinds: 0 binocucom, 1 recon (runtime-verified), 2 another look mode.
 extern "C" void InitJtMode(JTMODE *jtMode, STEPPLAYER *player)
@@ -230,30 +222,14 @@ extern "C" void InitJtMode(JTMODE *jtMode, STEPPLAYER *player)
     InitJtModeHud(&jtMode->hud, jtMode);
 }
 
-/** @sly2-annot addr=0x19CC30
- * Purpose: PostLoad: bind the mode HUD widgets (0x19D540)
- * Info: proposed name PostLoadJtMode (T1); TU mode
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Post-load: binds the mode HUD widgets.
 extern "C" void PostLoadJtMode(JTMODE *jtMode)
 {
     PostLoadJtModeHud(&jtMode->hud);
 }
 
-/** @sly2-annot addr=0x19CC50
- * Purpose: Request the look/recon mode of kind n: if running and switching to kind 1, end (2) and reset (-1)
- *   first; store kind (+0x20) and enter state 0
- * Info: proposed name StartJtMode (T1); TU mode
- * Notes: runtime4: started by 0x400 + CanUseGadget(3) in Murray switch = JTMODE look mode | runtime5a
- *   #9-#11: JTMODE kind 0 = binocucom for Sly/Murray/Bentley (shared component +0xF00)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Requests mode `kind`: if a mode is running and the request is recon (1), ends and resets the current one first;
-// stores the kind and enters state 0 (starting).
+// stores the kind and enters state 0 (starting). Kind 0 is the binocucom (all three characters), 1 recon.
 extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *widget)
 {
     if (jtMode->nState != -1) {
@@ -270,14 +246,6 @@ extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *w
 }
 
 
-/** @sly2-annot addr=0x19CCE8
- * Purpose: Leave the mode (SetJtModeState 2) unless the owner state is 0/8/9/10
- * Info: proposed name EndJtMode (T1); TU mode
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80,
- *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
 // Leaves the mode (state 2, ending) unless the owner is in state 0, 8, 9 or 10.
 extern "C" void EndJtMode(JTMODE *jtMode) {
     if (jtMode->hud.pnUnk14) {
@@ -297,14 +265,6 @@ extern "C" void EndJtMode(JTMODE *jtMode) {
 // is let go (virtual 86). Entering a state: starting (0) plays the start clip, running (1) pushes the camera policy (CPLOOK priority 7 for kinds 0 and 2, the recon
 // camera priority 8 for kind 1), turns the hero to its look direction, stops him and the held object and lowers sound buses 0 and 1 to 0.6; ending (2) plays the end clip and
 // off (-1) gives the hero's animation back. The overlay (hud) follows the same states.
-/** @sly2-annot addr=0x19CD38
- * Purpose: Leave/enter mode states -1 off, 0 starting, 1 running (push CPLOOK prio 7 for kinds 0/2, recon
- *   camera prio 8 for kind 1, stop hero, duck sound buses 0/1 to 0.6), 2 ending; HUD follows
- * Info: proposed name SetJtModeState (T1); TU mode
- * Notes: runtime6 C7/C8: kind 1 (recon) pushes CPZOOM at CM+0x520 prio 8 + IncrementSwNoPause (S57)
- * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Mode state change: -1 off, 0 starting, 1 running (pushes the look camera policy at priority 7 for kinds 0/2 or the
 // recon camera at priority 8 for kind 1, stops the hero and ducks sound buses 0/1 to 0.6), 2 ending; the HUD follows.
 void SetJtModeState(JTMODE *jtMode, int state)
@@ -445,15 +405,6 @@ void SetJtModeState(JTMODE *jtMode, int state)
     ReplaceCurrentAseg(aseg, (ALO *)jtMode->pstepplayer, 0.0f, 1.0f, 1, &jtMode->pasega);
 }
 
-/** @sly2-annot addr=0x19D330
- * Purpose: Per-frame mode state machine: 0 waits for start clip then 1, 1 turns toward look direction, 2
- *   waits for end clip then -1; updates HUD (0x19DA78)
- * Info: proposed name UpdateJtMode (T1); TU mode
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
- *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Per-frame mode state machine: state 0 waits for the start clip then runs, state 1 turns the player toward the look
 // direction, state 2 waits for the end clip then turns the mode off; updates the HUD.
 extern "C" void UpdateJtMode(JTMODE *jtMode)
@@ -499,14 +450,6 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
     v->dxRight = 0.0f;
 }
 
-/** @sly2-annot addr=0x19D4D0
- * Purpose: Init mode HUD sub-record: owner, state -1; for JT (CID 0x35) bind the widget at JT+0x1D40
- *   (0x201D78)
- * Info: proposed name InitJtModeHud (T1); TU mode
- * Notes: runtime3: JT+0x1D40 widget, oids 0x35F/0x368
- * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Initializes the mode HUD record: owner, state -1; for Sly (CID 0x35) also binds the recon selector at JT+0x1D40.
 extern "C" void InitJtModeHud(JTMODEHUD *hud, JTMODE *jtMode)
 {
@@ -521,13 +464,6 @@ extern "C" void InitJtModeHud(JTMODEHUD *hud, JTMODE *jtMode)
     hud->pnUnk14 = 0;
 }
 
-/** @sly2-annot addr=0x19D540
- * Purpose: Find the per-character HUD widgets by oid (JT 0x35F/0x368, CID 0x37 0x360/0x369, MURRAY 0x36
- *   0x361/...) via FindSwObject
- * Info: proposed name PostLoadJtModeHud (T1); TU mode
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Finds the per-character HUD widgets by oid (Sly 0x35F/0x368, Bentley 0x360/0x369, Murray 0x361/...).
 extern "C" void PostLoadJtModeHud(JTMODEHUD *hud)
 {
@@ -546,13 +482,6 @@ extern "C" void PostLoadJtModeHud(JTMODEHUD *hud)
     SetJtModeHudOverride(hud, hud->pwidgetDefault);
 }
 
-/** @sly2-annot addr=0x19D660
- * Purpose: Set HUD state: on first use gather tags (0x19D948); state 0 broadcasts game event 0xC for kind 1,
- *   starts timers/speaker labels
- * Info: proposed name SetJtModeHudState (T2); TU mode
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // HUD state change: on first use gathers the world's tag list; state 0 broadcasts game event 0xC for recon and starts
 // the timers and speaker labels.
 extern "C" void SetJtModeHudState(JTMODEHUD *hud, int st)
@@ -634,12 +563,6 @@ typedef char Alignment_0[__alignof__(STACKSCOPE)==1?1:-1];
 typedef char Alignment_1[__alignof__(LOCAL_LAYOUT)==4?1:-1];
 typedef char Alignment_2[__alignof__(X)==4?1:-1];
 typedef char Alignment_5[__alignof__(GTASK)==4?1:-1];
-/** @sly2-annot addr=0x19D948
- * Purpose: Collect and qsort a list of world tag ids (g_sw game record x6C...) for the HUD
- * Info: proposed name GatherJtModeHudTags (T2); TU mode
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Collects the world's tag ids from the game record and sorts them (qsort) for the HUD. (inferred)
 extern "C" void GatherJtModeHudTags(JTMODEHUD *hud)
 {
@@ -671,12 +594,6 @@ extern "C" void GatherJtModeHudTags(JTMODEHUD *hud)
 /* Event controller. Below/Equal are true when the selector is NULL (old draft had them false). */
 static inline void Below(int&value,WIDGET*q){value=0;if(!q||q->nState<2)value=1;}
 static inline void Equal(int&value,WIDGET*q){value=0;if(!q||q->nState==2)value=1;}
-/** @sly2-annot addr=0x19DA78
- * Purpose: Per-frame HUD update for the mode state (widget update 0x202D38, timers)
- * Info: proposed name UpdateJtModeHud (T2); TU mode
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Per-frame HUD update for the current mode state (widget update, timers).
 extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
 {
@@ -727,11 +644,5 @@ extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
     SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.uZoom);
 }
 
-/** @sly2-annot addr=0x19DCA0
- * Purpose: Set active HUD widget to arg or default (field c)
- * Info: proposed name SetJtModeHudOverride (T2); TU mode
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
- * @end-sly2-annot */
 // Makes the given widget the active HUD widget, or the default one when null.
 extern "C" void SetJtModeHudOverride(JTMODEHUD *s, WIDGET *a) { if (a) s->pwidgetCur = a; else s->pwidgetCur = s->pwidgetDefault; }

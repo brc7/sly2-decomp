@@ -59,14 +59,6 @@ struct BASIC;
 enum CID { CID_38 = 0x38 };
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);   /* IsBasicDerivedFrom__FP5BASIC3CID */
 
-/** @sly2-annot addr=0x144638
- * Purpose: JTGOAL init: store owning STEPPLAYER at +0
- * Info: proposed name InitJtgoal (T1); TU jtgoal
- * Notes: names_v2 B proposed SetRobVehicle__FP3ROB3OID (0.873)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r2b_rest+verdicts_followups
- * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
- *   docs/engine/player.md#10-source-files, docs/engine/player.md#11-key-functions
- * @end-sly2-annot */
 // Binds the goal state to its owning player.
 extern "C" void InitJtgoal(JTGOAL *goal, PO *player)
 {
@@ -91,15 +83,6 @@ static inline int GetPlayerEndIndex(PO *player, SO *contact)
     return player == contact->ends[0].object ? 0 : 1;
 }
 
-/** @sly2-annot addr=0x144640
- * Purpose: Anti-stuck for scripted walk-to-goal: every D_002BD2D0 s while the player is pushed (behaviour
- *   stack/ride), if hands-off nudge blocking guards (event 0x17, 0x1F7BF8); if distance to qwGoal did not
- *   shrink enough, snap goal to ground (0x173610/0x17D608) and warp the player there (0x19F540), fHold=1
- * Info: proposed name UpdateJtgoal (T1); TU jtgoal
- * Notes: names_v2 B proposed BindRob__FP3ROB (0.885)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
- * @end-sly2-annot */
 // Per-frame anti-stuck check for a scripted walk to the goal, run every D_002BD2D0 seconds while the player is being
 // driven. In hands-off mode it first fades out guards touching the player (broadcasting event 0x17 for visible ones);
 // otherwise, if the distance to the goal shrank by less than D_002BD2D4 per second, it snaps the goal onto the ground
@@ -180,14 +163,6 @@ static __inline__ int GetDistanceBits(qword from, qword to)
     return distanceBits;
 }
 
-/** @sly2-annot addr=0x1448F0
- * Purpose: Set goal position unless holding or already within D_002BD2D8: store qwGoal, sDist = distance from
- *   player, tCheck = now + interval
- * Info: proposed name SetJtgoal (T1); TU jtgoal
- * Notes: names_v2 B proposed FChooseRobReturnPoint__FP3ROBP3ROH (0.856)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
- * @end-sly2-annot */
 // Sets a new goal position unless the goal is holding or the new point is within D_002BD2D8 of the current goal;
 // records the current distance and schedules the next progress check.
 extern "C" void SetJtgoal(JTGOAL *goal, qword newGoalPos)
@@ -203,12 +178,6 @@ extern "C" void SetJtgoal(JTGOAL *goal, qword newGoalPos)
     goal->nextCheckTime = D_002DDED0.t + D_002BD2D0;
 }
 
-/** @sly2-annot addr=0x1449C8
- * Purpose: returns fHold (+0x28)
- * Info: proposed name IsJtgoalHolding (T1); TU jtgoal
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
- * @end-sly2-annot */
 // Returns nonzero while the goal has warped the player and waits for the player to be free again.
 extern "C" int IsJtgoalHolding(JTGOAL *goal)
 {

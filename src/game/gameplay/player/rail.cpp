@@ -58,13 +58,6 @@ void EvaluateShapeAtDistance(RAILV *p, float s, qword *ppos, qword *pdir);
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
-/** @sly2-annot addr=0x1CB908
- * Purpose: RAIL::Init (vt7): InitShape + init GRABSPOT base at +0x190; +0x1C4=1, +0x1C0=1000
- * Info: proposed name InitRail (T1); class RAIL slot7; TU rail
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/object-model.md#8-source-files, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // RAIL::Init (vtable slot 7): shape init, then its GRABSPOT part; sets the two rail tuning values (+0x1C4 = 1,
 // +0x1C0 = 1000; meaning not identified).
 extern "C" void InitRail(RAILV *rail)
@@ -75,12 +68,6 @@ extern "C" void InitRail(RAILV *rail)
     rail->unknown1C0 = 1000.0f;
 }
 
-/** @sly2-annot addr=0x1CB950
- * Purpose: RAIL vt15 PostLoad: base then if length (+0x38)==1e10 compute path length + margin
- * Info: proposed name PostRailLoad (T1); class RAIL slot15; TU rail
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // RAIL post-load (slot 15): if the level left the length at the 1e10 sentinel, uses the shape's length plus
 // D_002C1EC0 (1250).
 extern "C" void PostRailLoad(RAILV *rail)
@@ -89,14 +76,6 @@ extern "C" void PostRailLoad(RAILV *rail)
     if (rail->length == 1e10f) rail->length = UpdateShapeBoundingSphere(rail) + D_002C1EC0;
 }
 
-/** @sly2-annot addr=0x1CB9B0
- * Purpose: RAIL vt23: LO base (0x1A6178) then append to global rail list g_sw.dlCid13
- * Info: proposed name OnRailAdd (T1); class RAIL slot23; TU rail
- * Notes: names_v2 B proposed OnHpntAdd__FP4HPNT (0.923) | slot 23 OnAdd resolved by arbitration
- *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation)
- * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // RAIL slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's rail list
 // (g_sw.dlCid13) so the player's grab search sees it.
 void RAIL::OnAdd()
@@ -106,14 +85,6 @@ void RAIL::OnAdd()
     AppendDlEntry(&g_sw.dlCid13, rail);
 }
 
-/** @sly2-annot addr=0x1CB9E8
- * Purpose: RAIL vt22: LO base (0x1A6150) then remove from g_sw.dlCid13
- * Info: proposed name OnRailRemove (T1); class RAIL slot22; TU rail
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation)
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_A2+verify_side
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // RAIL slot 22 (OnRemove): LO base, then leaves the world's rail list.
 extern "C" void OnRailRemove(RAILV *rail)
 {
@@ -121,13 +92,6 @@ extern "C" void OnRailRemove(RAILV *rail)
     RemoveDlEntry(&g_sw.dlCid13, rail);
 }
 
-/** @sly2-annot addr=0x1CBA20
- * Purpose: RAIL::Clone (vt41): CloneShape keeping own GRABSPOT link
- * Info: proposed name CloneRail (T1); class RAIL slot41; TU rail
- * Notes: names_v2 C proposed BindHpnt__FP4HPNT (0.438)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // RAIL::Clone (slot 41): clones the shape but keeps this rail's own 8-byte link at +0x1B4.
 extern "C" void CloneRail(RAILV *rail)
 {
@@ -136,13 +100,6 @@ extern "C" void CloneRail(RAILV *rail)
     rail->k = k;
 }
 
-/** @sly2-annot addr=0x1CBA68
- * Purpose: GRABSPOT iface: if enabled return path [low,high] distance
- * Info: proposed name RAIL_FGetGrabRange (T2); class RAIL; TU rail
- * Notes: names_v2 B proposed CloneHpnt__FP4HPNTT0 (0.923)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // GRABSPOT interface: for a closed (looping) rail returns 1 and the [min, max] shape distance range a grab position
 // wraps around; open rails return 0.
 extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
@@ -155,12 +112,6 @@ extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
     return 0;
 }
 
-/** @sly2-annot addr=0x1CBAC0
- * Purpose: GRABSPOT iface: nearest path distance to point, clamped to [50, high-50] unless looping
- * Info: proposed name RAIL_ClampGrabDistance (T2); class RAIL; TU rail
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // GRABSPOT interface: the shape distance of the rail point closest to the player; on open rails clamped to
 // [50, length - 50] so the player never grabs the very end.
 extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
@@ -177,13 +128,6 @@ extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
     *pf = v;
 }
 
-/** @sly2-annot addr=0x1CBB58
- * Purpose: GRABSPOT iface: position at distance (+ offset from given point)
- * Info: proposed name GetRailGrabPos (T2); class RAIL; TU rail
- * Notes: names_v2 C proposed CloneHbsk__FP4HBSKT0 (0.638)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // GRABSPOT interface: the rail point at distance `distance`; optionally the offset from the player's position to it.
 extern "C" void GetRailGrabPosition(RAILV *a, float g, P *p, VECTORV *pv)
 {
@@ -281,13 +225,6 @@ static inline qword DisplacementValue(const qword &start, const qword &direction
     scalar.q = scale;
     return AddScaled(point, vector, scalar.q);
 }
-/** @sly2-annot addr=0x1CBBA8
- * Purpose: GRABSPOT iface: orientation basis along rail at distance
- * Info: proposed name GetRailGrabMat (T2); class RAIL; TU rail
- * Notes: names_v2 C proposed SetHbskHbsks__FP4HBSK5HBSKS (0.438)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
- * @end-sly2-annot */
 // GRABSPOT interface: a random point near the rail around `distance` and a random outward direction, used to place the
 // grab-hint sparkle effect. (inferred from the grabspot sparkle pattern)
 void GetRailSparklePosition(RAILV *rail, qword *posOut, qword *dirOut, float g)

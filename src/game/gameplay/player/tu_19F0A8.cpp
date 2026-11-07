@@ -32,13 +32,6 @@ void SetStepguardSpecial(GUARDV *guard, int state);
 void SetGuardOverride(SWVIEW *world, int isActive);
 }
 
-/** @sly2-annot addr=0x19F0A8
- * Purpose: For every STEPPLAYER (CID 0x34, up to 8) call its vt104
- * Info: proposed name NotifySwStepplayers (T2); TU tu_19F0A8
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/main-loop-startup.md#8-key-functions, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
- * @end-sly2-annot */
 // Calls virtual slot 104 on every STEPPLAYER (CID 0x34, at most 8) in the world. Called after a power-up is bought in
 // the shop screen and by the give-gadget cheat, so the slot is inferred to refresh the player's gadget/power-up
 // state. (inferred)
@@ -55,13 +48,6 @@ extern "C" void RefreshPlayersAfterPowerupChange()
       }
 }
 
-/** @sly2-annot addr=0x19F120
- * Purpose: Each frame (from UpdateSw): if the g_sw+0x4748 override flag is set and older than D_002BF938 s,
- *   clear it (0x19F170(psw,0))
- * Info: proposed name UpdateSwGuardOverride (T1); TU tu_19F0A8
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_19f0a8-0x19f0a8-0x19f3e8
- * @end-sly2-annot */
 // Per frame (from UpdateSw): ends the guard override once it has been active longer than D_002BF938 (6 s).
 extern "C" void UpdateSwGuardOverride(SWVIEW *world)
 {
@@ -71,13 +57,6 @@ extern "C" void UpdateSwGuardOverride(SWVIEW *world)
       }
 }
 
-/** @sly2-annot addr=0x19F170
- * Purpose: Set/clear the override flag with timestamp and put every STEPGUARD (CID 0x38, max 32) into guard
- *   state 0xE, or back to -1 if it was in 0xE
- * Info: proposed name SetSwGuardOverride (T2); TU tu_19F0A8
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_19f0a8-0x19f0a8-0x19f3e8
- * @end-sly2-annot */
 // Starts (isActive != 0) or ends the world's guard override and timestamps it: every STEPGUARD (CID 0x38, at most 32)
 // enters special state 0xE, or, when ending, guards still in state 0xE return to -1 (none).
 extern "C" void SetGuardOverride(SWVIEW *world, int isActive)
@@ -96,12 +75,6 @@ extern "C" void SetGuardOverride(SWVIEW *world, int isActive)
       }
 }
 
-/** @sly2-annot addr=0x19F220
- * Purpose: Put every STEPGUARD into guard state x via 0x207030
- * Info: proposed name SetSwGuardsState (T2); TU tu_19F0A8
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_19f0a8-0x19f0a8-0x19f3e8
- * @end-sly2-annot */
 // Puts every STEPGUARD in the world (at most 32) into the given special state (used by a gadget with state 0x15).
 extern "C" void SetAllGuardsSpecialState(SWVIEW *world, int state)
 {

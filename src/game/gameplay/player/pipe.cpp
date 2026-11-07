@@ -73,14 +73,6 @@ qword SetVectorCylind(float,float,float);
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
-/** @sly2-annot addr=0x1C3390
- * Purpose: PIPE::Init (vt7): InitShape + GRABSPOT init (+0x190); defaults
- * Info: proposed name InitPipe (T1); class PIPE slot7; TU pipe
- * Notes: names_v2 v1 proposed FIsJtSoundBase__FP2JT (0.044)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/player.md#10-source-files,
- *   docs/engine/player.md#11-key-functions
- * @end-sly2-annot */
 // PIPE::Init (vtable slot 7): shape init, its GRABSPOT part, grabbing enabled, the default reference axis and two
 // grab parameters (8 and 9, as HND uses).
 extern "C" void InitPipe(PIPEV *pipe)
@@ -93,14 +85,6 @@ extern "C" void InitPipe(PIPEV *pipe)
     pipe->isGrabDisabled = 1;
 }
 
-/** @sly2-annot addr=0x1C33E8
- * Purpose: PIPE vt23: base then append to pipe list g_sw.dlCid11
- * Info: proposed name OnPipeAdd (T1); class PIPE slot23; TU pipe
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation)
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // PIPE slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's pipe list (g_sw.dlCid11).
 void PIPE::OnAdd()
 {
@@ -109,14 +93,6 @@ void PIPE::OnAdd()
     AppendDlEntry(&g_sw.dlCid11, pipe);
 }
 
-/** @sly2-annot addr=0x1C3420
- * Purpose: PIPE vt22: base then remove from g_sw.dlCid11
- * Info: proposed name OnPipeRemove (T1); class PIPE slot22; TU pipe
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation)
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // PIPE slot 22 (OnRemove): LO base, then leaves the world's pipe list.
 extern "C" void OnPipeRemove(PIPEV *pipe)
 {
@@ -124,13 +100,6 @@ extern "C" void OnPipeRemove(PIPEV *pipe)
     RemoveDlEntry(&g_sw.dlCid11, pipe);
 }
 
-/** @sly2-annot addr=0x1C3458
- * Purpose: PIPE vt15: base PostLoad + default length
- * Info: proposed name PostPipeLoad (T1); class PIPE slot15; TU pipe
- * Notes: names_v2 v1 proposed CollectJtPrize__FP2JT3PCKP3ALO (0.008)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // PIPE post-load (slot 15): if the level left the length at the 1e10 sentinel, uses the shape's length plus
 // D_002C0D00 (1250).
 extern "C" void PostPipeLoad(PIPEV *pipe)
@@ -139,12 +108,6 @@ extern "C" void PostPipeLoad(PIPEV *pipe)
     if (pipe->length == 1e10f) pipe->length = UpdateShapeBoundingSphere(pipe) + D_002C0D00;
 }
 
-/** @sly2-annot addr=0x1C34B8
- * Purpose: PIPE vt41 Clone
- * Info: proposed name ClonePipe (T1); class PIPE slot41; TU pipe
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // PIPE::Clone (slot 41): clones the shape but keeps this pipe's own 8-byte link at +0x1B4.
 extern "C" void ClonePipe(PIPEV *pipe)
 {
@@ -196,15 +159,6 @@ static inline qword Transform(const M3 &m, qword q)
 
 struct WORK { M3 basis; qword tangent, first, direction; };
 
-/** @sly2-annot addr=0x1C3500
- * Purpose: Orientation basis for a position `distance` along the pipe path (searching samples until tangent
- *   agrees)
- * Info: proposed name GetPipeGoalMatrix (T1); TU pipe
- * Notes: names_v2 C proposed GetJtPipeGoalMat__FP2JTP4PIPEfP7MATRIX3 (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8,
- *   docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // The climbing frame at `distance` along the pipe: searches sample distances around it until the local direction
 // agrees with the start tangent, rotates the pipe's reference axis accordingly and builds an orthonormal basis
 // (side, up, along). With forward == 0 the side and up rows are flipped (climbing the other way). Used by the
@@ -259,13 +213,6 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
         *out = w.basis;
 }
 
-/** @sly2-annot addr=0x1C3958
- * Purpose: GRABSPOT iface: closest distance clamped
- * Info: proposed name PIPE_ClampGrabDistance (T2); class PIPE; TU pipe
- * Notes: names_v2 v1 proposed GetJtDiapi__FP2JTP6DIALOGP5DIAPI (0.438)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // GRABSPOT interface: the shape distance of the pipe point closest to the player; on open pipes clamped to
 // [100, length - 35].
 extern "C" void GetPipeClosestParam(PIPEV *pipe, void *q, float *pf)
@@ -283,13 +230,6 @@ static inline int ScaleBits(void) {
     __asm__("lw %0,%1":"=r"(bits):"m"(page[(SCALE_WORD_ADDRESS & 0xFFFF) / sizeof(int)]));
     return bits;
 }
-/** @sly2-annot addr=0x1C3A08
- * Purpose: GRABSPOT iface: basis + position at distance
- * Info: proposed name GetPipeGrabPosMat (T2); class PIPE; TU pipe
- * Notes: names_v2 C proposed InitHbsk__FP4HBSK (0.638)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // GRABSPOT interface: the pipe point at distance `distance`, pushed out along the climbing frame's side axis by
 // D_002C0D04 (-50) so the hands meet the pipe surface.
 extern "C" void GetPipeGrabPosition(PIPEV *pipe, int unused, qword *pvec, float g)
@@ -320,12 +260,6 @@ static inline qword Bc(float g) {
     u.q=q;
     return q;
 }
-/** @sly2-annot addr=0x1C3A88
- * Purpose: GRABSPOT iface: orientation at distance
- * Info: proposed name GetPipeGrabMat (T2); class PIPE; TU pipe
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // GRABSPOT interface: a random point near the pipe around `distance` and a random outward direction, used to place the
 // grab-hint sparkle effect.
 extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut, float t)
@@ -354,12 +288,6 @@ extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut
     *dirOut = dir;
 }
 
-/** @sly2-annot addr=0x1C3BB0
- * Purpose: GRABSPOT iface: [low high] if enabled
- * Info: proposed name PIPE_FGetGrabRange (T2); class PIPE; TU pipe
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // GRABSPOT interface: for a closed (looping) pipe returns 1 and the [min, max] distance range a grab position wraps
 // around; open pipes return 0.
 extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
@@ -372,12 +300,6 @@ extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
     return 0;
 }
 
-/** @sly2-annot addr=0x1C3C08
- * Purpose: +0x1AC = (arg==0)
- * Info: proposed name SetPipeGrabDisabled (T2); class PIPE; TU pipe
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
- * @end-sly2-annot */
 // Enables or disables grabbing this pipe (+0x1AC holds the inverted flag). (inferred)
 extern "C" void SetPipeGrabEnabled(PIPEV *pipe, int f)
 {

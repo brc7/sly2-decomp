@@ -278,14 +278,6 @@ typedef struct T {
     float x108, x10c, x110, x114, x118, x11c; char pad3[0x164-0x120]; float x164;
 } T;
 extern qword D_002BF740;
-/** @sly2-annot addr=0x195950
- * Purpose: Init the STEPPLAYER+0x2C0 air/jump context (owner, kind -1, sub-state -1, default tuning
- *   D_002BF740...)
- * Info: proposed name InitJtAir (T1); TU air
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
- *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Initializes the player's air/jump context (STEPPLAYER+0x2C0): owner, kind -1, sub-state -1 and the default jump
 // tuning.
 void InitJtAir(T *t, int a)
@@ -308,13 +300,6 @@ void InitJtAir(T *t, int a)
 namespace M_PostLoadJtAir { extern "C" {
 struct S { int a; char pad[0x17C-4]; char b[0x1B8-0x17C]; char c[4]; };
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(int, int, int, void *, int, int, int, void *);
-/** @sly2-annot addr=0x1959C0
- * Purpose: Create the 5-entry dynamic jump ASEG blend (0x137A30 cbBl 0xC, 5 entries)
- * Info: proposed name PostLoadJtAir (T1); TU air
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Post-load: creates the 5-entry dynamic jump animation blend.
 void PostLoadJtAir(struct S *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->a, 0xC, 5, s->b, 0, 0, 0, s->c); }
 } } // namespace M_PostLoadJtAir
@@ -367,17 +352,6 @@ static inline qword ProjectOutVec(qword v, qword n)
     return qw;
 }
 void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");
-/** @sly2-annot addr=0x195A00
- * Purpose: Start a flight of kind nKind (n2 = directional clip, plo = object): reset record unless double
- *   jump (6), launch velocity from JtPlanLaunchVz, push along facing for 3/0xE, wall run 0x11 adds 400 up,
- *   then SetJtAirState
- * Info: proposed name SetJtAirJump (T1); TU air
- * Notes: runtime2: kind 1 jump, double jump keeps kind 1
- * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Starts a flight of the given kind (jump, double jump 6, fall, wall run 0x11, rail kinds ...): resets the record
 // unless double-jumping, computes the launch velocity (PlanJtLaunchVelocity), picks the directional clip and the
 // landing target object, and enters the air state. The main way every other state launches the player into the air.
@@ -709,13 +683,6 @@ typedef char WORK_endVelocity_Offset[FIELD_OFFSET(WORK,endVelocity)==160?1:-1];
 typedef char WORK_duration_Offset[FIELD_OFFSET(WORK,duration)==176?1:-1];
 typedef void(*VECTOR_SETTER)(void*,qword);
 static inline void PublishReal(U*home,qword value){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(value));}
-/** @sly2-annot addr=0x195FB8
- * Purpose: Set the air context sub-state: leave old / enter new (clips, cane state via SetJtCaneState, landing
- *   target, velocities, SM flags)
- * Info: proposed name SetJtAirState (T1); TU air
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Air sub-state change: leaves the old one and enters the new one (clips, cane state, landing target, velocities,
 // state-machine flags).
 extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
@@ -1114,13 +1081,6 @@ static inline float LenXY(qword v) {
     return r;
 }
 
-/** @sly2-annot addr=0x196928
- * Purpose: Largest non-negative time from two quadratic root sets (projectile z(t) reaching low/high bounds)
- *   and two cone terms
- * Info: proposed name DtBallisticMax (T2); TU air
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // The largest non-negative time at which a projectile with the given vertical velocity and acceleration reaches the
 // low/high bounds (two quadratic root sets) and two cone terms. Used to plan launches toward safe places and targets.
 // (inferred)
@@ -1203,13 +1163,6 @@ typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
 typedef char U_float_Offset[FIELD_OFFSET(U,f)==0?1:-1];
 typedef char Normal_Count[sizeof(((WORK*)0)->normals)/sizeof(U)==64?1:-1];
 typedef char Normal_Stride[(FIELD_OFFSET(WORK,normals[1])-FIELD_OFFSET(WORK,normals[0]))==16?1:-1];
-/** @sly2-annot addr=0x196AA8
- * Purpose: Collect up to 64 contact normals (flipped when Sly is not the owner), SolveInequalities and return
- *   the residual direction used to slide along contacts
- * Info: proposed name ProjectJtVelocityOnContacts (T2); TU air
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Collects up to 64 contact normals (flipped when Sly is not the owner of the contact), solves the inequality system
 // and returns the residual direction the player may still move in. (inferred)
 extern "C" void ProjectJtVelocityOnContacts(MOVE *p, U *out)
@@ -1385,14 +1338,6 @@ typedef char WORK_move_direction_Offset[FIELD_OFFSET(WORK,move.direction)==0?1:-
 typedef char WORK_move_basis_Offset[FIELD_OFFSET(WORK,move.basis)==16?1:-1];
 typedef char WORK_move_phase_Offset[FIELD_OFFSET(WORK,move.phase)==64?1:-1];
 typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
-/** @sly2-annot addr=0x196DF8
- * Purpose: Air acceleration: spin toward target matrix (SmoothValue), steer with stick (AccelSoTowardPosSpring),
- *   limit horizontal speed, contact slide via 0x196AA8
- * Info: proposed name PresetJtAccelJump (T1); TU air
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
- *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Air physics preset: spins toward the target orientation, steers with the stick (spring toward the desired position),
 // limits horizontal speed and slides along contacts.
 extern "C" void PresetJtAccelJump(CONTEXT *p)
@@ -1659,13 +1604,6 @@ float NormalizeAngle__Ff(float g);
 void ReleaseSma(void *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, void *b, float g, float h);
 #define Get(p, i) ((p)->x1c == 2 ? (p)->a134[i] : (p)->a120[i])
-/** @sly2-annot addr=0x197370
- * Purpose: Set x30=1 and start a turn/flip clip chosen from the heading difference (atan2, NormalizeAngle) via
- *   ReplaceCurrentAseg
- * Info: proposed name StartJtAirTurn (T2); TU air
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Marks a mid-air turn and starts the turn/flip clip chosen from the heading difference.
 void StartJtAirTurn(struct P *p)
 {
@@ -1698,12 +1636,6 @@ void StartJtAirTurn(struct P *p)
 namespace M_func_001974C8 { extern "C" {
 typedef struct N { int v; struct N *next; } N;
 typedef struct O { char pad[0x64]; N *p; } O;
-/** @sly2-annot addr=0x1974C8
- * Purpose: Walk a linked list and return the first non-null payload
- * Info: proposed name PvFirstNonNull (T2); TU air
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Walks a linked list and returns the first non-null payload.
 int GetFirstNonNullEntry(O *o)
 {
@@ -1788,19 +1720,8 @@ static inline qword ScaleVec(qword vec, VU_FLOAT scale)
     return qw;
 }
 void UpdateJtAirInput(JTAIR *pjtair) __asm__("UpdateJtAirInput");
-/** @sly2-annot addr=0x197500
- * Purpose: Per-frame air input: double jump, glide/hover (Murray/Sly sheet D_002F7900), throws
- *   (SetJtThrowState), grabs (SetJtGrabState / 0x19C688), ChooseJtLanding, edge grabs via
- *   PxpFindJtBestEdge
- * Info: proposed name UpdateJtAirInput (T1); TU air
- * Notes: runtime2/3: JTAIR states 1/3/4/10/0x11 observed; +4 is nKind, +0x1C is nState (purpose claims
- *   otherwise are refuted)
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
- * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
- *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Per-frame air input: double jump, glide/hover (via the power-up sheet), throws (SetJtThrowState), grabs
-// (SetJtGrabState / GrabJtAirTarget) and gadgets.
+// (SetJtGrabState / GrabJtAirTarget) and gadgets. Runtime-checked: +4 is the kind, +0x1C the state.
 void UpdateJtAirInput(JTAIR *air)
 {
     VECTOR4 posHero;
@@ -2229,13 +2150,6 @@ static inline float NormalizeInPlace(U &v, const qword &vDefault)
 static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }
 static inline int IsMoving(qword v) { return D_002BF848 < LengthXYOf(v); }
 
-/** @sly2-annot addr=0x197F98
- * Purpose: jts 2 per-frame update on +0x2C0: stick combo timers, jump-target intercept search over
- *   (*(SOURCE * *)&g_sw.dlCid88)/(*(OBJECT * *)&g_sw.dlCid40) (JMT list), goal prediction, heading per mode, basic move
- * Info: proposed name UpdateJtActiveJump (T1); TU air
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Per-frame update of the jump state (jts 2): stick combo timers, a search for an interceptable jump target among the
 // world's object lists, landing detection, edge grabs and the transitions out of the air.
 extern "C" void UpdateJtActiveJump(CONTEXT *p)
@@ -2588,14 +2502,6 @@ extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
 qword TransformXfPos(int n, int m, qword q);
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
-/** @sly2-annot addr=0x1991A0
- * Purpose: If air kind 0x11 (wall run) build a constraint frame against the wall (GetNormalVectors) and add
- *   it
- * Info: proposed name AddJtWallRunXps (T2); TU air
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
 void AddJtWallRunXps(struct P *p)
 {
@@ -2700,13 +2606,6 @@ struct P { P0 *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; C8 *xc8; };
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" void FreeSwXpList__FP2SWP2XP(G *g, X *x);
-/** @sly2-annot addr=0x199298
- * Purpose: If kind 0x11, free the wall-run XP list (FreeSwXpList)
- * Info: proposed name FreeJtWallRunXps (T2); TU air
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
- *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // During a wall run (kind 0x11) frees the wall-run contact list.
 extern "C" void FreeJtWallRunXps(P *p)
 {
@@ -2756,15 +2655,8 @@ extern "C" { extern qword D_002A2DA0; }
 static inline void Normal(VECTOR*v,qword fallback){qword a=v->q;register qword d __asm__("vf1");qword one;float g;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));if(g<0.0001f){a=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q":"=j"(a):"j"(d),"0"(a));}v->q=a;}
 static inline float Dot(qword a,qword b){qword d,one;float g;__asm__("vmul.xyz %0,%3,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"0"(b),"j"(a));__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));return g;}
 static inline qword Scale(qword a,float f,VECTOR&k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k.q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(q));return r;}
-/** @sly2-annot addr=0x199408
- * Purpose: (existing) For an edge between a walkable (n.z>0.7) and a wall face (n.z<0.55) compute the grab
- *   direction
- * Info: proposed name IsJtSingleEdgeGrabbable (EXISTING); TU air
- * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // For an edge between a walkable face (normal z > 0.7) and a wall face (normal z < 0.55) computes the grab direction;
-// returns nonzero if the edge is a ledge Sly can grab.
+// returns nonzero if the edge is a ledge Sly can grab. (Sly 1-derived name: FCheckJtSingleEdge.)
 /* Its VECTOR (a qword/float/int union) is not basic.h's, so it keeps its symbol as a C-linkage definition. */
 extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SO *so, EDGE *e, VECTOR *out)
 {
@@ -2805,12 +2697,6 @@ static inline qword Pack(float x,float y,float z){U u;qword q,t;__asm__("mfc1 %0
 static inline qword Rot(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
 static inline qword Transform(const M4*m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(v));return r;}
 static inline void Set(U*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
-/** @sly2-annot addr=0x1995D8
- * Purpose: Generate paired arc sample points (9 rotations of 15 deg) and transform them to world
- * Info: proposed name BuildJtEdgeProbeArc (T2); TU air
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Generates paired arc sample points (9 rotations of 15 degrees) and transforms them to world space, used to probe a
 // ledge's surroundings.
 extern "C" void BuildJtEdgeProbeArc(P *p, const M4 *world, int count, U *out)
@@ -2883,13 +2769,6 @@ static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *
     return ClipEdgeToObject(s, *a, *b, 1, h);
 }
 
-/** @sly2-annot addr=0x1997D8
- * Purpose: Sweep 11 probe segments around the edge point against every layer's shapes; true if >=2 hit (valid
- *   ledge normal)
- * Info: proposed name IsJtEdgeNormalValid (T1); TU air
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest+verdicts_A2
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Sweeps 11 probe segments around the edge point against every layer's shapes; true if at least two hit (a valid
 // ledge normal).
 extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
@@ -2986,13 +2865,6 @@ static inline qword Normalize(qword v, qword fallback)
     return VuDivByX(v, l);
 }
 
-/** @sly2-annot addr=0x1999D0
- * Purpose: Contact direction vs a shape feature: vertex -> sum FCheckJtSingleEdge over edges at the point
- *   (CpedgeFromGeomPoint, max 64) + BSP clip test; edge -> FCheckJtSingleEdge; then IsJtEdgeNormalValid
- * Info: proposed name FCheckJtEdgeGrab (T1); TU air
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest+verdicts_B
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Tests a contact against a shape feature: for a vertex, sums IsJtSingleEdgeGrabbable over the edges meeting there
 // (at most 64) plus a BSP clip test; for an edge tests it directly. Returns nonzero with the grab normal.
 extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, void *info, U *out)
@@ -3144,14 +3016,6 @@ static inline ENDPOINT *Opposite2(CONTACT *contact,int side)
     int one=1;
     return (ENDPOINT *)(((one-side)<<6)+(uint)contact);
 }
-/** @sly2-annot addr=0x199D48
- * Purpose: Pick the best supporting ledge contact of the player (walk contact groups, FCheckJtEdgeGrab, BSP
- *   point test), returning side and normal
- * Info: proposed name PxpFindJtBestEdge (T1); TU air
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources:
- *   r4b_rest+verdicts_A2+names_v2-signature(verified)
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Picks the best supporting ledge contact of the player (walks the contact groups, IsJtEdgeGrabbable, BSP point test)
 // and returns it with its index and normal.
 CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
@@ -3309,15 +3173,6 @@ typedef char P_Size[sizeof(P)==524?1:-1];
 typedef char WORK_request_Offset[FIELD_OFFSET(WORK,request)==0?1:-1];
 typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
 typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
-/** @sly2-annot addr=0x19A098
- * Purpose: Return true if Sly is wedged: at most once per second and >=1 s after state change, solve contact
- *   normals against gravity (SolveInequalities) and test residual z > -0.1
- * Info: proposed name IsJtStuck (T1); TU air
- * Notes: names_v2 v1 proposed FUN_0017ece8 (0.000)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8,
- *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
- * @end-sly2-annot */
 // True if Sly is wedged: at most once per second and at least 1 s after a state change, solves the contact normals
 // against gravity and finds no free direction.
 extern "C" int IsJtStuck(P *p, float previous, float *stamp)
@@ -3432,12 +3287,6 @@ struct C { char pad[0x88]; float g88; };
 struct B { char pad[0xE8]; struct C *pc; };
 struct S { struct B *pb; };
 int SolveQuadratic__FfffPf(float, float, float, float *);
-/** @sly2-annot addr=0x19A400
- * Purpose: Solve 0.5 g t^2 + dvz t + dz = 0 (SolveQuadratic) for the landing time; fail if no positive root
- * Info: proposed name SolveJtJumpTimeToTarget (T1); TU air
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
 int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
@@ -3483,13 +3332,6 @@ static __inline__ unsigned LenXY1(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(bits) : "j"(v));
     return bits;
 }
-/** @sly2-annot addr=0x19A4A0
- * Purpose: Predict a jump from Sly's pos/velocity to a target point on (moving) object: time, cost g,
- *   predicted pos/velocity
- * Info: proposed name MeasureJtJumpToTarget (T1); TU air
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Predicts a jump from Sly's position and velocity to a point on a (possibly moving) object: time, cost, and the
 // predicted position and velocity at landing.
 void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
@@ -3663,13 +3505,6 @@ static inline float SqrtfEarly(float g)
 }
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 namespace RO_ORDER { extern const float r_D_002A656C __asm__("D_002A656C") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x19A750
- * Purpose: Launch velocity for a flight kind: z raised to the per-kind value (215/1200/250/500 apex,
- *   700/900/800 constants, bounce, double jump solved with SolveQuadratic)
- * Info: proposed name JtPlanLaunchVz (T1); TU air
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Launch velocity for a flight kind: the vertical part raised to the kind's apex (215/1200/250/500) or constant
 // (700/900/800), bounce and double jump solved from the current velocity.
 qword JtPlanLaunchVz(JTAIR *air, int kind)
@@ -3769,12 +3604,6 @@ typedef char S_a_Offset[FIELD_OFFSET(S,a)==0?1:-1];
 typedef char S_b_Offset[FIELD_OFFSET(S,b)==4?1:-1];
 typedef char S_c_Offset[FIELD_OFFSET(S,c)==8?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
-/** @sly2-annot addr=0x19AA58
- * Purpose: MinimizeRange callback: GetJtRailLanding at u then MeasureJtJumpToTarget cost
- * Info: proposed name MeasureJumpToRail (T1); TU air
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // MinimizeRange callback: the rail landing at parameter u (GetJtRailLanding), then the MeasureJtJumpToTarget cost.
 float MeasureJumpToRail(S *s, float parameter)
 {
@@ -3810,13 +3639,6 @@ typedef char S_Size[sizeof(S)==32?1:-1];
 typedef char S_move_Offset[FIELD_OFFSET(S,move)==0?1:-1];
 typedef char S_object_Offset[FIELD_OFFSET(S,object)==4?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
-/** @sly2-annot addr=0x19AAB8
- * Purpose: MinimizeRange callback: object vfunc gives target pos at u, then MeasureJtJumpToTarget cost
- * Info: proposed name GMeasureJumpHpnt (T2); TU air
- * Notes: names_v2 B proposed GetJtJumpToTargetVelocity__FP2JTP6VECTOR (0.856)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // MinimizeRange callback: the target object's position at u (virtual call), then the MeasureJtJumpToTarget cost.
 // (target class inferred: hide point)
 extern "C" float MeasureJumpToHidePoint(S *s, float parameter)
@@ -3853,12 +3675,6 @@ typedef char S_Size[sizeof(S)==32?1:-1];
 typedef char S_move_Offset[FIELD_OFFSET(S,move)==0?1:-1];
 typedef char S_object_Offset[FIELD_OFFSET(S,object)==4?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
-/** @sly2-annot addr=0x19AB38
- * Purpose: Same as 0x19AAB8 for the other hide-shape class
- * Info: proposed name GMeasureJumpToHshape (T2); TU air
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+verdicts_B
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Same as MeasureJumpToHidePoint for the other hide-shape class. (inferred)
 extern "C" float MeasureJumpToHideShape(S *s, float parameter)
 {
@@ -3881,13 +3697,6 @@ typedef char S_Size[sizeof(struct S)==32?1:-1];
 typedef char S_Context_Offset[FIELD_OFFSET(struct S,a)==0?1:-1];
 typedef char S_Object_Offset[FIELD_OFFSET(struct S,b)==4?1:-1];
 typedef char S_Local_Point_Offset[FIELD_OFFSET(struct S,q)==16?1:-1];
-/** @sly2-annot addr=0x19ABB8
- * Purpose: MinimizeRange callback over time: MeasureJtJumpToTargetAtTime(dt) cost
- * Info: proposed name MeasureJumpTargetAtTime (T1); TU air
- * Notes: names_v2 v1 proposed OnJmtRemove__FP3JMT (0.001)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // MinimizeRange callback over time: the MeasureJtJumpToTargetAtTime cost after dt.
 float MeasureJumpTargetAtTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }
 } } // namespace M_GMeasureJumpTargetTime
@@ -3912,12 +3721,6 @@ typedef char S_Object_Offset[FIELD_OFFSET(struct S,b)==4?1:-1];
 typedef char T_Context_Offset[FIELD_OFFSET(struct T,a)==0?1:-1];
 typedef char T_Object_Offset[FIELD_OFFSET(struct T,b)==4?1:-1];
 typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
-/** @sly2-annot addr=0x19ABF0
- * Purpose: Callback: evaluate curve at s, then MinimizeRange over time with MeasureJumpTargetAtTime
- * Info: proposed name MeasureJumpToPipe (T1); TU air
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Callback: evaluates the pipe curve at s, then minimizes over time with MeasureJumpTargetAtTime.
 float MeasureJumpToPipe(struct S *s, float parameter) {
     V v; struct T t; float r;
@@ -3957,13 +3760,6 @@ static inline float Len(qword v)
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(l));
     return r;
 }
-/** @sly2-annot addr=0x19AC88
- * Purpose: Callback: speed-limited path length/time to a target along a Bezier path (0x185D18), min(1e6,
- *   (v0+v1)*t/2)
- * Info: proposed name GMeasureJumpPath (T2); TU air
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Callback: speed-limited path length and time to a target along a Bezier path; returns min(1e6, (v0 + v1) * t / 2).
 float MeasureJumpAlongPath(struct P *p, float t)
 {
@@ -4010,13 +3806,6 @@ static inline float Dist(qword a, qword b)
     return r;
 }
 extern "C" int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc);
-/** @sly2-annot addr=0x19AE00
- * Purpose: Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment);
- *   return hit point
- * Info: proposed name FindJtObstruction (T1); TU air
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Checks the predicted Bezier jump path for obstructions (box query plus line tests per segment); returns nonzero
 // with the hit point.
 int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
@@ -4055,15 +3844,6 @@ int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qwo
 } // namespace M_FFindJtObstruction
 
 //////// 0x19B088 AdjustJtLandingScore
-/** @sly2-annot addr=0x19B088
- * Purpose: g + gPenalty, + D_002BF900 if candidate is the jump source
- * Info: proposed name AdjustJtLandingScore (EXISTING); TU air
- * Notes: agent/verifier proposes AdjustJtLandingScore for this existing name (see existing_name_changes.csv)
- *   | RENAME proposed -> AdjustJtLandingScore (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.65] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r4b_rest+arbitration
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 /* A landing score plus the bonus D_002BF900 for the object the air state prefers (ploUnk37c). */
 // Landing score adjustment: adds the bonus D_002BF900 for the object the air state prefers (inferred).
 extern "C" float AdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
@@ -4082,12 +3862,6 @@ struct SO { char pad[0x70]; long fl; };
 struct A { char pad[0xEC]; struct SO *pso; };
 struct X { int a; struct A *pa; int b, c; long fl; };
 struct L { int c; struct SO **a; };
-/** @sly2-annot addr=0x19B0A8
- * Purpose: Obstruction filter: ignore flagged XPs, objects with flag 4 and objects in an ignore list
- * Info: proposed name FFilterJtObstruction (T2); TU air
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Obstruction filter: ignores flagged contacts, objects with flag 4 and objects in an ignore list.
 int FilterJtObstruction(struct L *l, struct X *x) {
     struct SO *so;
@@ -4282,14 +4056,6 @@ static inline float Length(qword v)
     return r;
 }
 
-/** @sly2-annot addr=0x19B110
- * Purpose: Choose the jump target/landing among all candidate lists ((*(HOOK * *)&g_sw.dlTarget)..(*(MESH * *)&g_sw.dlCid9)), scoring with
- *   MinimizeRange over the GMeasure* callbacks, AdjustJtLandingScore and FindJtObstruction; then
- *   SetJtAirState
- * Info: proposed name ChooseJtLanding (T1); TU air
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Chooses the jump target/landing among all candidate lists (hooks, rails, pipes, hide shapes, meshes ...), scoring
 // each with the jump measures, and returns the chosen landing state (jtbs).
 extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
@@ -4704,13 +4470,6 @@ typedef char M4_row0_Offset[((unsigned)&((M4*)0)->row[0])==0?1:-1];
 typedef char M4_row1_Offset[((unsigned)&((M4*)0)->row[1])==16?1:-1];
 typedef char M4_row2_Offset[((unsigned)&((M4*)0)->row[2])==32?1:-1];
 typedef char M4_row3_Offset[((unsigned)&((M4*)0)->row[3])==48?1:-1];
-/** @sly2-annot addr=0x19C300
- * Purpose: Cost of landing on target local point after duration dt in the target's predicted frame; out goal
- *   pos/velocity
- * Info: proposed name MeasureJtJumpToTargetAtTime (T1); TU air
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Cost of landing on a target's local point after duration dt in the target's predicted frame; outputs the goal
 // position and velocity.
 extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qword localPoint, float *score,
@@ -4901,13 +4660,6 @@ void SetJtState__FP2JT3JTS4JTBS(struct O *o, int a, int b);
 void SetBentleyState(int a, int b);
 void SetJtAirState(struct P *p, int a, int b);
 #define B(c, off) ((c) ? (void *)((char *)(c) + (off)) : (void *)0)
-/** @sly2-annot addr=0x19C688
- * Purpose: On landing on a grab target, switch per air kind (6,11,12,13,...) to SetJtGrabState with the
- *   target's GRABSPOT sub-object (+0x150/+0x190/+0xE0) or SetJtState
- * Info: proposed name GrabJtAirTarget (T2); TU air
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // On reaching a grab target, switches per air kind (6, 11, 12, 13, ...) to SetJtGrabState with the target's GRABSPOT
 // part.
 void GrabJtAirTarget(struct P *p)
@@ -4965,12 +4717,6 @@ void GrabJtAirTarget(struct P *p)
 } } // namespace M_func_0019C688
 
 //////// 0x19C828 LandJtAir
-/** @sly2-annot addr=0x19C828
- * Purpose: Kind 0x11 (wall run) -> SetJtAirJump(3); else SetJtAirState(4)
- * Info: proposed name LandJtAir (T2); TU air
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Lands: a wall run (kind 0x11) becomes a jump (SetJtAirJump kind 3), otherwise air state 4.
 extern "C" void LandJtAir(JTAIR *air)
 {
@@ -4985,13 +4731,6 @@ extern "C" void LandJtAir(JTAIR *air)
 namespace M_func_0019C870 { extern "C" {
 struct O { char pad[0x520]; int x520; };
 struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c4; };
-/** @sly2-annot addr=0x19C870
- * Purpose: Return the state-specific record for the air kind (rail kinds 0xB-0xD use owner x520, wall run
- *   x0C4, else x0C0)
- * Info: proposed name PactadjFromJtAir (T2); TU air
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
 int GetJtAirAdjustRecord(struct S *s, int *pn) {
     int v;
@@ -5006,13 +4745,6 @@ int GetJtAirAdjustRecord(struct S *s, int *pn) {
 } } // namespace M_func_0019C870
 
 //////// 0x19C8B0 AddJtAirCpdefiFlags
-/** @sly2-annot addr=0x19C8B0
- * Purpose: If x28 set, *pgrf
- * Info: proposed name AddJtAirCpdefiFlags (T2); TU air
- * Notes: names_v2 C proposed ResetJmtList__Fv (0.170)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Camera-definition hook: ORs the air flags into *flags when +0x28 is set. (inferred)
 extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 {
@@ -5027,12 +4759,6 @@ struct O { char pad[0x12F0]; int x12f0; };
 struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
 extern int D_002DFBC0;
 int IsCameraPolicyActive__FP5CPLCY(void *);
-/** @sly2-annot addr=0x19C8D0
- * Purpose: Can gadget/action k be used in the current air sub-state
- * Info: proposed name FJtAirAllowsGadget (T2); TU air
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Whether gadget/action k can be used in the current air sub-state.
 int CanJtUseGadgetInAir(struct S *p, int k) {
     switch (k) {
@@ -5064,13 +4790,6 @@ int CanJtUseGadgetInAir(struct S *p, int k) {
 } } // namespace M_func_0019C8D0
 
 //////// 0x19C9B8 InitJmt
-/** @sly2-annot addr=0x19C9B8
- * Purpose: JMT vt7 Init: InitXfm then sRadius(+0xE8)=100
- * Info: proposed name InitJmt (T1); class CID40 slot7; TU air
- * Notes: names_v2 B proposed InitCnvo__FP4CNVO (0.856)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // JMT Init (slot 7): transform init, radius 100. (JMT: an air jump target marker, inferred)
 extern "C" void InitJmt(XFM *pjmt)
 {
@@ -5079,13 +4798,6 @@ extern "C" void InitJmt(XFM *pjmt)
 }
 
 //////// 0x19C9E8 AddJmtHierarchy
-/** @sly2-annot addr=0x19C9E8
- * Purpose: JMT vt11: AddLoHierarchy then append to g_dlJmt D_003E1420
- * Info: proposed name AddJmtHierarchy (T1); class CID40 slot11; TU air
- * Notes: names_v2 B proposed OnJmtAdd__FP3JMT (0.859)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // JMT slot 11: adds the hierarchy, then joins the global JMT list (D_003E1420).
 void CID40::AddHierarchy()
 {
@@ -5095,15 +4807,6 @@ void CID40::AddHierarchy()
 }
 
 //////// 0x19CA20 RemoveJmtHierarchy
-/** @sly2-annot addr=0x19CA20
- * Purpose: JMT vt12: RemoveLoHierarchy then remove from g_dlJmt
- * Info: proposed name RemoveJmtHierarchy (T1); class CID40 slot12; TU air
- * Notes: names_v2 B proposed OnJmtRemove__FP3JMT (0.856) [verified CORRECT] | mangled dropped (does not match
- *   final name): OnJmtRemove__FP3JMT
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources:
- *   r4b_rest+verdicts_B+names_v2-signature(verified)
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // JMT slot 12: removes the hierarchy, then leaves the JMT list.
 extern "C" void RemoveJmtHierarchy(XFM *pjmt)
 {
@@ -5116,12 +4819,6 @@ namespace M_CloneJmt { extern "C" {
 struct K { int a, b; };
 struct S { char pad[0xE0]; struct K k; };
 void CloneXfm(struct S *);
-/** @sly2-annot addr=0x19CA58
- * Purpose: JMT vt41 Clone: CloneXfm keeping own DLE
- * Info: proposed name CloneJmt (T1); class CID40 slot41; TU air
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // JMT Clone (slot 41): clones the transform but keeps its own list entry.
 void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
 } } // namespace M_CloneJmt
