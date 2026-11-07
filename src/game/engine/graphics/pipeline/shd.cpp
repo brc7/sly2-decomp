@@ -813,21 +813,14 @@ extern "C" int AddShaderVifUnpack(SHD *pshd, int ishdp, int iqw, VIFS *pvifs)
     return pshdp->cqw;
 }
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddShaderVifUnpackQword { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x30]; qword q; };
-struct E { int a; struct O *po; };
-struct S { char pad[0x20]; struct E *ae; };
-void AddVifUnpack__4VIFS3UPKiPvi(int a, int b, int c, qword *d, int e);
-// Variant of 0x1EC688 for a single qword from an object. (inferred)
-int AddShaderVifUnpackQword(struct S *p, int i, int x, int y)
+// Variant of AddShaderVifUnpack for a single qword: quadword 3 of record ishdp. (inferred)
+extern "C" int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvifs)
 {
-    struct E *pe = p->ae + i; qword q = pe->po->q;
-    AddVifUnpack__4VIFS3UPKiPvi(y, 12, 1, &q, x);
+    SHDP *pshdp = &pshd->ashdp[ishdp];
+    QW qw = pshdp->aqw[3];
+    pvifs->AddVifUnpack(UPK_V4_32, 1, &qw, iqw);
     return 1;
 }
-} } // namespace M_AddShaderVifUnpackQword
 
 // CopyAb(dst=+8, src=+4, cb=+0) (inferred)
 /* Copies one upload record's bytes (cb from pvSrc to pvDst). */
