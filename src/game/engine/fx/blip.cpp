@@ -5,6 +5,8 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013A9C8
 #include "sly2/slotheap.h"
 #include "gifs.h"
+#include "vifs.h"
+#include "sly2/render.h"
 #include "sly2/vu0.h"
 #include "sly2/classes.h"
 
@@ -50,8 +52,7 @@ extern "C" CLOCKV D_002DDED0;
 struct CMV { char pad[0x90]; qwordV pos; char padA0[0x100 - 0xA0]; float projScaleX; char pad104[0x114 - 0x104]; float projScaleY; };   /* CM: matProj[0][0], [1][1] */
 extern "C" CMV D_002DDF40;
 
-struct VIFS { int pad[3]; int writeOffset; };   /* (inferred) where the next packet starts */
-extern "C" VIFS D_002DEA28;
+extern "C" VIFS D_002DEA28;   /* the frame's VIF1 packet stream */
 
 /* The particle buffer: three parallel arrays of 0x2B entries. */
 struct BUF { VEC a[0x2B]; VEC b[0x2B]; VEC c[0x2B]; char pad[0x840 - 0x810]; };
@@ -181,16 +182,8 @@ int sceDmaSync(void *pch, int mode, int timeout);
 void STACKSCOPE_ctor(void *pf);
 void STACKSCOPE_ctor_1AE4A0(void *pf, int n) __asm__("_$_10STACKSCOPE");
 void VECTOR_opAssign(void *pv, qwordV v);
-void AddDmaCnt__4DMAS(VIFS *p);
-void EndDmaCnt__4DMAS(VIFS *p);
-void AddDmaRet__4DMAS(VIFS *p);
-void UnpackHelper__4VIFS3UPKiiPiPPUi(VIFS *p, int a, int b, int c, int d, void *ppv);
+/* by hand: RenderBlipgSelf passes a fifth word (its matched form; as a member call 4 instructions move) */
 void AddVifUnpack__4VIFS3UPKiPvi(VIFS *p, ...);
-void AddVifStcycl__4VIFSii(VIFS *p, int a, int b);
-void AddVifUnpackRefs__4VIFS3UPKiPviPPPv(VIFS *p, int a, int c, void *pv, int addr, int flag);
-void AddVifMscal__4VIFSPv(VIFS *p, void *pv);
-void AddVifFlush__4VIFS(VIFS *p);
-void AddVifFlusha__4VIFS(VIFS *p);
 }
 void AppendDlEntry(DLV *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");                          /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");                          /* RemoveDlEntry__FP2DLPv */
@@ -766,7 +759,6 @@ struct VU_FLOATR {
        (sched1 then keeps the lw and the lui apart, and both get v0 like the target) */
     VU_FLOATR(const float *pf, CMV *pcm) { __asm__("lw %0, %1" : "=r"(q) : "m"(*pf), "r"(pcm)); }
 };
-struct DMA { int kind; int unknown4; int packetStart; int unknownC; };   /* a render-list entry */
 extern "C" {
 void *AllocFromStack(const AL &al);
 int IsLoInWorld(LOV *plo);
@@ -774,7 +766,7 @@ qwordV GetLoWorldPos(LOV *plo);
 M3 *GetLoWorldMatrix(LOV *plo);
 int IsInCameraFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int IsWithinCameraRenderDistance(CMV *pcm, qwordV d, float g, float *pg);
-DMA *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void);
 }
 static inline void *PvAllocStack(int cb) { return AllocFromStack(AL(cb, 0x10)); }
 /* earlyclobber output (else branch: vsub vf3 distinct from its inputs); the 2nd "j"(b) is allocation-only */
@@ -865,11 +857,11 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
         return;
     }
     int c = 0;
-    DMA *pdma = AllocRenderListEntry();
-    pdma->kind = 0xC;
-    pdma->unknown4 = 0;
-    int save = D_002DEA28.writeOffset;
-    AddDmaCnt__4DMAS(&D_002DEA28);
+    RPL *prpl = AllocRenderListEntry();
+    prpl->kind = 0xC;
+    prpl->depth = 0;
+    uchar *pbStart = D_002DEA28.m_pb;
+    D_002DEA28.AddDmaCnt();
     for (BLIPV *pq = (BLIPV *)blipGroup->dl.head; pq; pq = pq->pblipNext) {
         BUF *pb = &pq->abuf[pq->i];
         for (int i = 0; i < cLight; i++) {
@@ -883,24 +875,24 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             as[1] = pq->c * ten + 0x34;
             as[2] = pq->c;
             AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 9, 1, as, 0, ten);
-            AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 4, &aLight[i], 7);
-            AddVifStcycl__4VIFSii(&D_002DEA28, 1, 10);
+            D_002DEA28.AddVifUnpack((UPK)0xC, 4, &aLight[i], 7);
+            D_002DEA28.AddVifStcycl(1, 10);
             if (blipGroup->renderKind == 1)
-                AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->b, as[0] + 1, 0);
-            AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->c, as[0] + 2, 0);
-            AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->a, as[0] + 3, 0);
-            AddVifStcycl__4VIFSii(&D_002DEA28, 1, 1);
+                D_002DEA28.AddVifUnpackRefs((UPK)0xC, pq->c, pb->b, as[0] + 1, 0);
+            D_002DEA28.AddVifUnpackRefs((UPK)0xC, pq->c, pb->c, as[0] + 2, 0);
+            D_002DEA28.AddVifUnpackRefs((UPK)0xC, pq->c, pb->a, as[0] + 3, 0);
+            D_002DEA28.AddVifStcycl(1, 1);
             switch (blipGroup->renderKind) {
-            case 0: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000000); break;
-            case 1: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000390); break;
-            case 2: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000870); break;
+            case 0: D_002DEA28.AddVifMscal(D_00000000); break;
+            case 1: D_002DEA28.AddVifMscal(D_00000390); break;
+            case 2: D_002DEA28.AddVifMscal(D_00000870); break;
             }
-            AddVifFlush__4VIFS(&D_002DEA28);
+            D_002DEA28.AddVifFlush();
         }
     }
-    EndDmaCnt__4DMAS(&D_002DEA28);
-    AddDmaRet__4DMAS(&D_002DEA28);
-    pdma->packetStart = save;
+    D_002DEA28.EndDmaCnt();
+    D_002DEA28.AddDmaRet();
+    prpl->pbCall = pbStart;
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }
 
@@ -912,26 +904,26 @@ extern "C" void AddBlipgVuParams(BLIPGV *blipGroup)
     int *pn;
     VIFS *pdma = &D_002DEA28;
     CLOCKV *pclock;
-    UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 5, 0, &pg);
+    pdma->UnpackHelper((UPK)0xC, 1, 5, 0, (uint **)&pg);
     pclock = &D_002DDED0;
     pg[0] = D_002DDF40.projScaleX;
     pg[1] = D_002DDF40.projScaleY;
     pg[2] = blipGroup->flyingScale;
     pg[3] = D_002DDED0.t;
-    UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 6, 0, &pn);
+    pdma->UnpackHelper((UPK)0xC, 1, 6, 0, (uint **)&pn);
     pn[0] = 0;
     if (blipGroup->hasColorRanges)
         pn[0] |= 1;
     pn[1] = blipGroup->numColors;
     pn[2] = blipGroup->numFrames;
     *(float *)&pn[3] = pclock->dtReal;
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, blipGroup->numColors, blipGroup->colors, 0x30 - blipGroup->numColors);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->alphaCurve, 1);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->poly, 2);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->unknown140, 3);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->lifeParams, 4);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, blipGroup->gifPacket, 0x30);
-    AddVifUnpackRefs__4VIFS3UPKiPviPPPv(pdma, 0xC, blipGroup->numFrames, blipGroup->age, 0xF, 0);
+    pdma->AddVifUnpack((UPK)0xE, blipGroup->numColors, blipGroup->colors, 0x30 - blipGroup->numColors);
+    pdma->AddVifUnpack((UPK)8, 1, blipGroup->alphaCurve, 1);
+    pdma->AddVifUnpack((UPK)8, 1, &blipGroup->poly, 2);
+    pdma->AddVifUnpack((UPK)8, 1, blipGroup->unknown140, 3);
+    pdma->AddVifUnpack((UPK)8, 1, &blipGroup->lifeParams, 4);
+    pdma->AddVifUnpack((UPK)0xC, 4, blipGroup->gifPacket, 0x30);
+    pdma->AddVifUnpackRefs((UPK)0xC, blipGroup->numFrames, blipGroup->age, 0xF, 0);
 }
 
 // Pass 2 begin (kind 12): upload blip microprogram. (inferred)
@@ -943,7 +935,7 @@ extern "C" void BeginRpBlip(VIFS *pvifs)
 // Pass 2 end: FLUSHA. (inferred)
 extern "C" void EndRpBlip(VIFS *pvifs)
 {
-    AddDmaCnt__4DMAS(pvifs);
-    AddVifFlusha__4VIFS(pvifs);
-    EndDmaCnt__4DMAS(pvifs);
+    pvifs->AddDmaCnt();
+    pvifs->AddVifFlusha();
+    pvifs->EndDmaCnt();
 }
