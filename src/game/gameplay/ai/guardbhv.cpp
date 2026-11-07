@@ -3733,14 +3733,13 @@ void StartBhvhit(struct S *behavior) {
 
 // 0x179598 CloseBhvhit
 namespace M_CloseBhvhit { extern "C" {
-struct G; struct S;
+struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct G { int a; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct S { char pad[0x10]; char *guard; };
 void CloseBhvanim(struct S *p);
-void ReplaceHeldSwNoise(struct G *g, int a, qword q, int b, void *pv);
+void ReplaceHeldSwNoise(SW *g, int a, qword q, int b, void *pv);
 } } // namespace M_CloseBhvhit
 // 0x179598: BHVHIT vtable slot 9 (Close): BHVANIM Close, releases the held noise.
 void BHVHIT::Close()
@@ -4467,17 +4466,16 @@ void BHV175::OnPush()
 
 // 0x17A4E8 StartBhvSleep
 namespace M_func_0017A4E8 { extern "C" {
-struct G; struct T; struct S;
+struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct G { int a; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct T { char pad[0x35C]; char heldNoise[4]; char pad2[0xF64 - 0x360]; void *detector; };
 struct S { char pad[0x10]; struct T *guard; };
 void StartBhvanim(struct S *p);
 void SetBhvSleepState(struct S *p, int n);
 void ResetDetectorTargets(void *p);
 qword GetLoWorldPos(void *p);
-void ReplaceHeldSwNoise(struct G *g, int a, qword q, void *b, void *pv);
+void ReplaceHeldSwNoise(SW *g, int a, qword q, void *b, void *pv);
 // 0x17A4E8: Sleep behaviour vtable slot 8 (Start): BHVANIM Start, sub-state 0 (asleep, random duration), resets the
 // detector, holds a snoring noise.
 void StartBhvSleep(struct S *behavior)
@@ -4492,16 +4490,15 @@ void StartBhvSleep(struct S *behavior)
 
 // 0x17A558 CloseBhvSleep
 namespace M_func_0017A558 { extern "C" {
-struct G; struct S;
+struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct G { int a; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct T { char pad[0x35C]; char heldNoise[4]; };
 struct S { char pad[0x10]; struct T *guard; };
 void CloseBhvanim(struct S *p);
 void SetBhvSleepState(struct S *p, int n);
-void ReplaceHeldSwNoise(struct G *g, int a, qword q, int b, void *pv);
+void ReplaceHeldSwNoise(SW *g, int a, qword q, int b, void *pv);
 // 0x17A558: Sleep behaviour vtable slot 9 (Close): BHVANIM Close, releases the held noise.
 void CloseBhvSleep(struct S *behavior)
 {
