@@ -413,6 +413,7 @@ qword GetLoWorldPos(struct P *p);
 void CreateNoise(void *a, qword pos, struct P *p, int n);
 
 
+// Larger of a and b.
 static inline float MaxF(float a, float b) { return b > a ? b : a; }
 
 // If a hide volume set exists (+0x10C4): smooths the hide blend (+0x10CC) toward 1 inside, 0 outside.
@@ -731,6 +732,7 @@ void UnsubscribeLoObject(void *p, void *q);
 void HandleBhvstkMessage(void *p, int msg, void *pmsg);
 void HandlePoMessage(void *p, int msg, void *pmsg);
 
+// Start iterating list with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *list)
 {
     pdli->m_pdl = list;
@@ -739,6 +741,7 @@ static inline void InitDli(DLI *pdli, DL *list)
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *NextDliItem(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
@@ -974,6 +977,7 @@ void AddJtAirCpdefiFlags(void *, struct XP *);
 void SmoothJtCameraCurveTarget(void *, struct XP *);
 void AddJtHurtCpdefiFlags(void *, struct XP *);
 
+// Evaluate the quadratic a + b*x + c*x^2.
 static __inline__ float EvaluatePoly(float x, float a, float b, float c) { return a + x * (b + x * c); }
 
 // STEPPLAYER camera definition (slot 50): SO base, then the camera focus height and flags.
@@ -1314,7 +1318,9 @@ struct CRef;
 extern "C" void Decref__4CRef(CRef *);
 struct CRef {
     int tagk; int tag;
+    // Script reference with the given tag and value.
     CRef(int k, int n) { tagk = k; tag = n; }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 struct VTE { short d; short pad; void *(*pfn)(void *); };
@@ -1457,6 +1463,7 @@ struct P {
 extern struct CLOCK D_002DDED0;
 void LoadIdentityMatrix4(void *a, int b, M4 *pm, int c, float g);
 qword GetLoWorldPos(void *p);
+// Transform point v by the 4x4 matrix pm.
 static __inline__ qword Mul(M4 *pm, qword v)
 {
     qword o;
@@ -1464,6 +1471,7 @@ static __inline__ qword Mul(M4 *pm, qword v)
             : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return o;
 }
+// Distance between a and b as a float.
 static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, t;
@@ -1597,6 +1605,7 @@ void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
 qword DecomposeRotationMatrixToEuler(M3 *pm);
 void *NewPositionAct(struct P *p, struct SO *pso, int a, int b, int c, qword q);
 void DetachAct(void *pv);
+// Rotate v by the 3x3 matrix pm.
 static __inline__ qword MulV(M3 *pm, qword v)
 {
     qword o;
@@ -1604,6 +1613,7 @@ static __inline__ qword MulV(M3 *pm, qword v)
             : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(v));
     return o;
 }
+// Return the 3x3 matrix product *pa * *pb.
 static __inline__ M3 MulM3(M3 *pa, M3 *pb)
 {
     M3 m;
@@ -1723,6 +1733,7 @@ struct VU_VECTOR4
     qword qw;
 };
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
+// Evaluate the quadratic g0 + g1*x + g2*x^2.
 static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
@@ -1742,6 +1753,7 @@ struct SWALLOC
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 struct KEY
 {
+    // Allocate the object zeroed, 16-byte aligned, from the world heap.
     static void *operator new(uint cb)
     {
         SWALLOC swalloc;
@@ -1808,12 +1820,14 @@ extern "C" { extern CLQ D_002BD290; }
 extern "C" { extern CLQ D_002BD2A0; }
 extern "C" { extern CLQ D_002BD2B0; }
 extern "C" { extern LM D_002BBB60; }
+// Return a - b.
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
     r.qw = VuSub(a, b);
     return r;
 }
+// XY length of v, in the x lane.
 static inline qword LengthXYInX2(qword v)
 {
     qword qw;
@@ -1821,12 +1835,14 @@ static inline qword LengthXYInX2(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// x lane of qw as a float (keeps it in a VF register).
 static inline float LaneXKeepVf(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw));
     return x;
 }
+// Evaluate the quadratic and clamp it to the range.
 static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
 {
     float g = clq->g0 + x * (clq->g1 + x * clq->g2);
@@ -1921,6 +1937,7 @@ void SetActPositionGoal(Q *pq, qword q);
 void PickHeroInteractTarget(P *p);
 }
 struct VU_VECTOR4 { qword qw; };
+// 3x3 matrix product matL * matR.
 inline M3 operator*(const M3 &matL, const M3 &matR) return mat
 {
     qword qwL0 = matL.r[0];
@@ -1939,12 +1956,14 @@ inline M3 operator*(const M3 &matL, const M3 &matR) return mat
             : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[2])->qw));
     *(VU_VECTOR4 *)&mat.r[2] = v2;
 }
+// Fraction of g between a and b; 0 when a == b.
 static inline float InverseLerp(float g, float a, float b)
 {
     if (b == a)
         return 0.5f;
     return (g - a) / (b - a);
 }
+// Float i of the matrix's first row.
 static inline float X(const M3 &m, int i) { return ((float *)&m.r[0])[i]; }
 
 // Per-frame interact/lean target pick: ranks candidates with GetHeroInteractDistance.
@@ -2182,7 +2201,9 @@ namespace M_PkeyFindBootySaveVar {
 struct CRef {
     int m_tagk;
     int m_tag;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
@@ -2198,6 +2219,7 @@ struct ENT {
 struct TRIE { int pad; ENT *ae; char x8[1]; };
 struct KEY { int c; unsigned short *a; };
 struct OUT { ENT *pe; int n; };
+// Allocation request: byte count and alignment.
 struct AREQ { int cb; int cbAlign; AREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct G { char pad[0x3A18]; TRIE trie; };
 extern "C" {
@@ -2213,7 +2235,9 @@ CRef GetSaveVar(TRIE *p, KEY *key, char *pb);
 void *AllocFromStack(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
 }
+// Look up a save variable by key.
 static inline CRef Lookup(KEY &k) { return GetSaveVar(&(*(TRIE *)&g_sw.savevars), &k, D_003D4A60); }
+// Allocate cb bytes, 16-byte aligned.
 static inline void *Alloc(int cb)
 {
     AREQ req(cb, 0x10);
@@ -2273,12 +2297,18 @@ extern "C" void *__4CRefRC4CRef(CRef *, const CRef *); // CRef copy ctor returns
 extern "C" CRef *func_00129658(CRef *, const CRef *) __asm__("__as__4CRefRC4CRef");
 struct CRef {
     int tagk; int tag;
+    // Empty (untagged) script reference.
     CRef() { tagk = -1; }
+    // Script reference with the given tag and value.
     CRef(int k, int n) { tagk = k; tag = n; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
+    // Assign a script reference.
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
+// Script reference padded to 16 bytes.
 struct CRef16 : CRef { int pad[2]; CRef16(int k, int n) : CRef(k, n) {} };
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct Y { int x0; int x4; };
@@ -2307,8 +2337,10 @@ CRef SetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 }
 extern "C" { CRef SetSaveVarByName(const CRef &ref, const void *o, ...); }
 extern "C" { CRef GetSaveVarByName(const char *, ...); }
+// Store ref into the global save variable pv.
 static inline void Send(void *pv, CRef ref) { SetGlobalSaveVar(pv, ref, &D_003D4A60); }
 struct CRefRaw { int tagk; int tag; };
+// Store the reference r into the save variable pv.
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRefRaw arg;
@@ -2316,6 +2348,7 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     SetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
     Decref__4CRef((CRef *)&arg);
 }
+// Call the object's virtual at vtable slot 103 and return its pointer.
 static inline void *Vcall103(LO *lo) { VTE *e = &lo->vt[103]; return e->pfn((char *)lo + e->d); }
 
 // Booty save-state transitions: 0 picked up, 1 delivered, 2 dropped ...
@@ -2388,10 +2421,15 @@ extern "C" void Decref__4CRef(CRef *);
 extern "C" void __4CRefRC4CRef(CRef *, const CRef *);
 struct CRef {
     int tagk; int tag;
+    // Empty (untagged) script reference.
     CRef() { tagk = -1; }
+    // Script reference with value n and tag k.
     CRef(int n, int k) { tag = n; tagk = k; }
+    // Script reference with tag k and value n.
     CRef(int k, int n, int) { tagk = k; tag = n; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 struct CRefRaw { int tagk; int tag; };  /* same layout, no ctor/dtor */

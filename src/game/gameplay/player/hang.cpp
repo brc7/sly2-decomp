@@ -154,17 +154,29 @@ extern "C" void PostJtLoadSwing(void *jt, void *q, int *pn)
 // No register pins; two commented allocation-only empty asms remain (removing either one costs 1-25 aligned).
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 struct OBJ{NODE*p;};
+// VU float wrapper (from a qword or, out of line, from a float in memory).
 struct VU_FLOAT{qword q;VU_FLOAT(){}explicit VU_FLOAT(qword a){q=a;}inline VU_FLOAT(const float&f);};
+// VU vector wrapper.
 struct VU_VECTOR{qword q;VU_VECTOR(){}VU_VECTOR(qword a){q=a;}};
+// Broadcast a float into a VU_FLOAT.
 static inline VU_FLOAT Scalar(float value){qword q;q = VuFromFloat<qword>(value);return VU_FLOAT(q);}
+// Return value scaled by amount.
 static inline VU_VECTOR operator*(VU_VECTOR value,VU_FLOAT amount){qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(value.q),"j"(amount.q));return VU_VECTOR(q);}
+// Return first - second.
 static inline qword SubV(VU_VECTOR first,VU_VECTOR second){qword q;q = VuSub(first.q, second.q);return q;}
+// Dot product of a0 and b into *out.
 static inline void StoreDot(float*out,const qword&a0,const qword&b){qword a=a0;qword one;float bits;__asm__("vmul.xyz %1,%1,%3\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tqmfc2.ni %0,%1":"=&rV"(*out),"+j"(a),"=j"(one):"j"(b),"j"(a));}
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"rV"(n));return VU_FLOAT(q);}
+// Broadcast the float f (read from memory) into a VU0 register.
 inline VU_FLOAT::VU_FLOAT(const float&f){*this=VuFloatFromMemWord(*(int*)&f);}
+// Return a*x + b*y + c*z.
 static inline VU_VECTOR MulAdd3(VU_VECTOR a,VU_VECTOR b,VU_VECTOR c,VU_FLOAT x,VU_FLOAT y,VU_FLOAT z){qword out;__asm__("vmulax.xyzw $ACC,%1,%4x\n\tvmaddax.xyzw $ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(out):"j"(a.q),"j"(b.q),"j"(c.q),"j"(x.q),"j"(y.q),"j"(z.q));return VU_VECTOR(out);}
+// Return *a*x + *b*y + *c*z, storing x to *scalar.
 static inline VU_VECTOR Sum3(const U*a,const U*b,const U*c,VU_FLOAT x,VU_FLOAT y,VU_FLOAT z,qword*scalar){*scalar=x.q;VU_VECTOR va=a->q;*scalar=y.q;VU_VECTOR vb=b->q;*scalar=z.q;VU_VECTOR vc=c->q;return MulAdd3(va,vb,vc,x,y,z);}
+// Store v to d.
 static inline void StoreQ(U*d,VU_VECTOR v){d->q=v.q;}
+// Identity accessor (keeps the original address arithmetic).
 static inline U*Addr(U*p){return p;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char DELTA_Size[sizeof(DELTA)==32?1:-1];
@@ -255,26 +267,47 @@ extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *in
 // CalculateJtHangAccel laneH9v1 (Claude agent lane H9): laneH8v1 + const-ref DivVec, QwSub, ProjectOutVec and CombineVec(a) (134 -> 75).
 /* laneH8v1 (Claude agent): fresh Lilly-style rewrite of CalculateJtHangAccel, aligned 134 (old .cpp 162), frame 0x2A0 exact, no pins, VU helper asms only. */
 struct VUF{qword qw;};   /* (VUF in the per-function file; AnticipateJtForce has its own VUF class) */
+// Broadcast a float into a VU0 register.
 static inline VUF VuFloat(float g){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
+// Broadcast the float word n into a VU0 register.
 static inline VUF VufFromMemWord(int n){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
+// Return a scaled by g.
 static inline qword ScaleVecX(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
+// Return base + vec * k.
 static inline qword AddScaledVec(qword base,qword vec,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
+// Divide a by the x lane of g.
 static inline qword DivVec(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
+// Divide a by the x lane of g (operand order swapped).
 static inline qword DivVecBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
+// Rotate v by the 3x3 matrix m.
 static inline qword RotateVec(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
+// Return a*ka + b*kb.
 static inline qword CombineVec(const qword&a,const qword&b,VUF ka,VUF kb){qword r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
+// Return base + (a + b) * k.
 static inline qword AddScaledVec2(qword base,qword a,qword b,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
+// Return a scaled by g (extra operands only influence allocation).
 static inline qword ScaleVecXK(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */
+// Remove v's component along the unit axis: v - (v.axis) axis.
 static inline qword ProjectOutVec(const qword&v,const qword&axis){VUF d;d.qw=VuDot(v,axis);return VuSubRef(v,ScaleVecX(axis,d));}
+// x lane of qw as a float (the "j" operand keeps it in a VF register).
 static inline float LaneXKeepVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
+// Normalize *pv in place, or replace it with *pfallback when its length is below 1e-4.
 static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=VuSqrtX(VuDot(pv->q,pv->q));if(LaneXKeepVf(len)<0.0001f)*pv=*pfallback;else pv->q=DivVec(pv->q,len);return len;}
+// Length of v as a float.
 static inline float LengthOf(qword v){return QwordX(VuSqrtX(VuDot(v,v)));}
+// Evaluate the quadratic g0 + g1*x + g2*x^2.
 static inline float EvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
+// Larger of a and b.
 static inline float MaxOf(float a,float b){return(b>a)?b:a;}
+// The object's velocity (virtual slot 33).
 static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
+// The object's reference space (virtual slot 32).
 static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->fn)((char*)p+e->delta,0);}
+// Unit vector along v, or fallback when its length is below 1e-4.
 static inline qword NormalizeVec(qword v,qword fallback){qword len=VuSqrtX(VuDot(v,v));qword r;if(QwordX(len)<0.0001f)r=fallback;else r=DivVec(v,len);return r;}
+// Identity accessor (keeps the original address arithmetic).
 static inline CLOCK*Addr(CLOCK*p){return p;}
+// Return base + (a + b) * k.x.
 static inline qword AddScaledVec2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
 // Swing physics while hanging from a hook: pendulum motion around the hand-hold, smoothed swing angle, then
 // AnticipateJtForce for the resulting acceleration.
@@ -372,6 +405,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         jt->response[0].first = projected;
 }
 
+// Return the 3x3 matrix product of a and b.
 static inline M3P Mul(const M3P &a, const M3P &b) return r
 {
     __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
@@ -404,9 +438,13 @@ extern "C" void AddJtExternalAccelerations(JT *s) { AddSoAcceleration(s->link->o
 
 // Update target-facing movement modes and animation weights.
 extern "C" float fabsf(float);
+// Rotate v by the transpose of m (three dot products).
 static inline qword Local(const M3&m,qword v){qword q,one,a,b,c;__asm__("vmul.xyzw %2,%5,%8\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%8\n\tvmul.xyzw %4,%7,%8\n\tvadday.x $ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y $ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z $ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"=j"(q),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return q;}
+// Squared length of value (x lane).
 static inline qword LengthSquared(qword value){qword n;n = VuDot(value, value);return n;}
+// The actor's velocity (virtual slot 33).
 static inline qword Velocity(JT*jt){return ((qword(*)(void*))jt->vt[33].fn)((char*)jt+jt->vt[33].delta);}
+// Ask the actor whether mode is allowed (virtual slot 99).
 static inline int Can(JT*jt,int mode){return ((int(*)(void*,int))jt->vt[99].fn)((char*)jt+jt->vt[99].delta,mode);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char U_Size[sizeof(U)==16?1:-1];

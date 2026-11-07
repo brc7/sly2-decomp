@@ -70,6 +70,7 @@ namespace RO_ORDER { extern const float r_D_002A6720 __asm__("D_002A6720") = 3.4
 namespace M_SetJtHurtState {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
+// Zero the xyz words.
 union U{float f[4];qword q;int bits[4];void Clear(){bits[0]=bits[1]=bits[2]=0;}};   // floats first: U globals are initialized
 struct VE{short delta,pad;void(*fn)();};
 struct ASEGA{char pad[12];VE*vt;};
@@ -80,6 +81,7 @@ struct VALUE{char pad[0x20];U value;};
 struct INNER{char pad[0x60];VALUE*value;};
 struct RIG{char pad[0xA8];INNER*inner;};
 struct P{char pad0[12];VE*vt;char pad10[0x150-0x10];CONTROL*control;char pad154[8];int frozen;char pad160[0x190-0x160];U zero;char pad1A0[8];float yaw;int pad1AC;U forward;char pad1C0[0x1030-0x1C0];ASEGA*asega;COMPONENT*component;char pad1038[0x19B8-0x1038];RIG*first;RIG*second;};
+// The default clip for state `next`: clips[0] below state 8, clips[8] from state 8 on.
 struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;ASEG*clips[13];ASEG*Default(int next){ASEG**base=clips;int offset=next<8?0:0x20;return *(ASEG**)((char*)base+offset);}};
 struct CLOCK{float time,dt;};
 struct CM{char pad[0x90];U position;};
@@ -110,9 +112,13 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
  void ReplaceSma(void*,P*,int,void*,COMPONENT**);
 }
+// The actor's velocity (virtual slot 33).
 static inline qword Vector(P*p){VE*v=&p->vt[33];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+// Set the actor's vector at virtual slot 36.
 static inline void SetVector(P*p,qword q){VE*v=&p->vt[36];((void(*)(P*,qword))v->fn)((P*)((char*)p+v->delta),q);}
+// Call the actor's no-argument virtual at vtable slot `slot`.
 static inline void Invoke(P*p,int slot){VE*v=&p->vt[slot];((void(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+// Load the main camera's position into a GPR.
 static inline qword Position()
 {
     register CM *manager __asm__("$2") = &D_002DDF40;
@@ -120,8 +126,11 @@ static inline qword Position()
     __asm__("lq %0,%1" : "=r"(value) : "m"(manager->position.q));
     return value;
 }
+// Move a 128-bit GPR value into a VU0 register.
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
+// x lane of a as a float.
 static inline float X(qword a){int word;float f;__asm__("qmfc2.ni %0,%1":"=r"(word):"j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
+// *a - b, fetching the hurt context's actor (register-pinned).
 static inline qword Difference(U *a, qword b, C *c, P *&actor)
 {
     register qword x __asm__("vf1"), y __asm__("vf2");
@@ -132,6 +141,7 @@ static inline qword Difference(U *a, qword b, C *c, P *&actor)
     actor = owner;
     return x;
 }
+// *a - b, fetching the hurt context's actor (second register variant).
 static inline qword Difference1(U *a, qword b, C *c, P *&actor)
 {
     register qword x __asm__("vf4"), y __asm__("vf1");
@@ -142,6 +152,7 @@ static inline qword Difference1(U *a, qword b, C *c, P *&actor)
     actor = owner;
     return x;
 }
+// Clamp value to [lo, range->hi].
 static inline float ClampKnownLower(float value, float lo, LIMIT *range)
 {
     register float hi __asm__("$f1") = range->hi;
@@ -367,7 +378,9 @@ extern "C" float D_002BFA90[3];   /* the zap spring */
 extern "C" struct CLOCK D_002DDED0;
 
 extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
+// Broadcast g into a VU0 register and store it to u.
 static inline qword BroadcastTo(float g,U *u) { qword q=VuFromFloat<qword>(g); u->q=q;return q; }
+// Set the vector to -xE8->v80 (keeping the -1 broadcast in u).
 inline void O::Negate(U &u) { qword v=xE8->v80; qword k=VuFromFloat<qword>(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
 // Physics preset in the hurt state: in knockback states adds velocity or springs toward the target velocity.
 extern "C" void PresetJtAccelZap(struct P *p)
@@ -542,10 +555,15 @@ qword GetLoWorldPos(struct O*);
 struct M3*GetLoWorldMatrix(struct O*);
 qword ConvertVecBetweenLos(struct O*,struct O*,qword);
 void SetJtHurtState(struct P*,int);
+// Broadcast a float into a VU0 register (via a GPR).
 static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
+// Move a float's bits into a GPR qword.
 static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;}
+// Return v scaled by k.x.
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;}
+// y lane of q as a float.
 static inline float Z(qword q){register int bits __asm__("$3");float f;__asm__("prot3w %0,%1":"=r"(bits):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
+// Unit vector along *u, or fallback when its length is too small (register-pinned).
 static inline qword Normal(U*u,qword fallback){
     register qword v __asm__("vf3")=u->q;
     register qword d __asm__("vf1"),one __asm__("vf2"),r __asm__("vf4");
@@ -558,7 +576,9 @@ static inline qword Normal(U*u,qword fallback){
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(d),"j"(v));
     return r;
 }
+// Return a*direction.x + b*z.x (operands as in the original).
 static inline qword Blend(qword direction,qword z,qword a,qword b){__asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x":"+j"(z):"j"(direction),"j"(a),"j"(b));return z;}
+// self - (target + basis.row0 * negative).
 static inline qword Intercept(U*self,U*target,struct M3*basis,U*negative){
     register qword position __asm__("vf2")=target->q;
     register qword axis __asm__("vf1")=basis->row[0].q;
@@ -568,6 +588,7 @@ static inline qword Intercept(U*self,U*target,struct M3*basis,U*negative){
     __asm__("vsub.xyzw %0,%0,%1":"+j"(position):"j"(axis));
     return position;
 }
+// *first - target (register-pinned).
 static inline qword Difference(U*first,qword target){
     register qword a __asm__("vf2");
     register qword b __asm__("vf3");
@@ -695,12 +716,19 @@ extern "C"{
  qword GetLoWorldPos(P*);
  void*NewNoise(int,qword,P*);
 }
+// a + b with unsigned wrap.
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
+// Ask the actor whether to reject the hit with these flags (virtual slot 76).
 static inline int Reject(P*p,int flags){VE*v=&p->vt[76];return ((int(*)(P*,int))v->fn)((P*)((char*)p+v->delta),flags);}
+// Pass the hit record to the actor's delegate virtual (slot 75).
 static inline int Delegate(P*p,RECORD*r){VE*v=&p->vt[75];return ((int(*)(P*,RECORD*))v->fn)((P*)((char*)p+v->delta),r);}
+// The actor's vector at virtual slot `slot`.
 static inline qword Vector(P*p,int slot){VE*v=&p->vt[slot];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+// Set the actor's vector at virtual slot `slot`.
 static inline void SetVector(P*p,int slot,qword value){VE*v=&p->vt[slot];((void(*)(P*,qword))v->fn)((P*)((char*)p+v->delta),value);}
+// Notify the actor with value (virtual slot 88).
 static inline void Notify(P*p,int value){VE*v=&p->vt[88];((void(*)(P*,int))v->fn)((P*)((char*)p+v->delta),value);}
+// z lane of value as a float.
 static inline float Z(qword value){register int word __asm__("$9");float result;__asm__("pextuw %0,$zero,%1":"=r"(word):"r"(value));__asm__("mtc1 %1,%0":"=f"(result):"r"(word));return result;}
 typedef char RECORD_Size[sizeof(RECORD)==96?1:-1];
 typedef char ACTION_Size[sizeof(ACTION)==8?1:-1];
@@ -1110,6 +1138,7 @@ extern "C" P*DeliverZapToSo(HIT*);
 extern "C" int ProbeStepplayerSurface(P*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
+// The actor's velocity (virtual slot 33).
 static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 // From UpdateStepplayer: if the player's height-adjusted point is inside the linked volume, inflicts the zap/drown
 // damage and probes for the surface (ProbeStepplayerSurface).
@@ -1258,8 +1287,11 @@ void AddSoWaterAcceleration(struct P *p,void *o);
 qword GetLoWorldPos(struct P *p);
 float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
 void AddSoAcceleration(struct P *p,qword v);
+// The actor's velocity (virtual slot 33).
 static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
+// Rotate *v by the 3x3 matrix m.
 static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
+// Broadcast int bits into a VU0 register.
 static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
 // STEPPLAYER vtable slot 72 (shared by Sly and Murray): in water/vertical states applies the water current and
 // buoyancy; otherwise the SO base.
