@@ -2146,51 +2146,13 @@ namespace M_LoadSubglobType0FromBrx {
 //    switch: the clear-then-set keeps loop.c from hoisting the constant with the other 1s;
 //  - the lit-batch count is Min(0x27, cvtx - iofs) through an inline Min (no REG_EQUAL on n's first set);
 //  - ppart->iqwVtx is re-read for iqwEnd/iqwOwn; pg[0] = pg[1] = pg[2] = -1.0f.
-class DMAS
-{
-public:
-      uchar* m_pbMax;
-      uchar* m_ab;
-      QW* m_pqwCnt;
-      uchar* m_pb;
-      int m_fPad;
-      int m_fEndPrim;
-    void AllocStack(int cqw) __asm__("AllocSw__4DMASi");
-    void DetachCopySw(int *pcqw, QW **paqw, QW **paqwCopy) __asm__("DetachCopySw__4DMASPiPP2QWT2");
-    void AddDmaCnt() __asm__("AddDmaCnt__4DMAS");
-    void AddDmaRefs(int cqw, QW *aqw) __asm__("AddDmaRefs__4DMASiP2QW");
-    void AddDmaRet() __asm__("AddDmaRet__4DMAS");
-    void EndDmaCnt() __asm__("EndDmaCnt__4DMAS");
-    virtual void EndPrim(int fEOP);
-};
-inline void AddDmaInt(DMAS *pdmas, int val)
+/* the word-append helper as this function was matched with: store, then advance (vifs.h's AddDmaInt advances first,
+   which reorders the code here; named apart: ADL would find both) */
+inline void AddDmaIntStore(DMAS *pdmas, int val)
 {
     *(int *)pdmas->m_pb = val;
     pdmas->m_pb += 4;
 }
-enum UPK
-{
-    UPK_S16 = 1,
-    UPK_S8 = 2,
-    UPK_V3_32 = 8,
-    UPK_V4_32 = 12,
-    UPK_V4_8 = 14,
-    UPK_V4_5 = 15,
-};
-class VIFS : public DMAS
-{
-public:
-      uint m_unMask;
-      int m_fCheckCnt;
-    VIFS() __asm__("__4VIFS");
-    void Align(int iun) __asm__("Align__4VIFSi");
-    void AddVifMscal(void *pv) __asm__("AddVifMscal__4VIFSPv");
-    void AddVifStcycl(int wl, int cl) __asm__("AddVifStcycl__4VIFSii");
-    void AddVifStrow(QW *pqw) __asm__("AddVifStrow__4VIFSP2QW");
-    void AddVifStmask(uint unMask) __asm__("AddVifStmask__4VIFSUi");
-    void UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun) __asm__("UnpackHelper__4VIFS3UPKiiPiPPUi");
-    void AddVifUnpack(UPK upk, int c, void *pvSrc, int iqw) __asm__("AddVifUnpack__4VIFS3UPKiPvi");
-};
 struct BMP;
 struct CLUT;
 extern "C" {
@@ -2707,7 +2669,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     STACKSCOPE scopeOuter;
     VIFS vifs;
     VIFS vifsAux;
-    vifs.AllocStack(0x2000);
+    vifs.AllocSw(0x2000);
     QW *pqwChain = (QW *)vifs.m_pb;
     pglob->iUnkFirst = D_003DA790;
     if (psubglob->unknown02 & 1)
@@ -2717,7 +2679,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     }
     else
     {
-        vifsAux.AllocStack(0x800);
+        vifsAux.AllocSw(0x800);
         if (IsBasicDerivedFrom((BASIC *)pglobset->owner, (CID)0x31) && !(psubglob->unknown02 & 4) && (uchar)(psubglob->unknown00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
             psubglob->unknown04 == D_002A52A0 && g_sw.unknown3E40 == 0)
         {
@@ -2803,7 +2765,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     VIFS vifsLit;
     if (!(psubglob->unknown02 & 1))
     {
-        vifsLit.AllocStack(0x2000);
+        vifsLit.AllocSw(0x2000);
         vifsLit.AddDmaCnt();
     }
     int *acbatch = (int *)AllocClearedFromStack16(cbatch * 4);
@@ -3256,7 +3218,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                                 }
                             }
                             vifsLit.AddVifMscal(D_00000000 + 0x10);
-                            AddDmaInt(&vifsLit, 0x90000000);
+                            AddDmaIntStore(&vifsLit, 0x90000000);
                         }
                     }
                 }
