@@ -875,7 +875,7 @@ struct VS { union { float af[4]; qword q; } pos; int c; int ai[3]; };   /* float
 struct F { struct V *apv[3]; };
 struct FS { int ai[3]; };
 struct P { float x, y; int z; unsigned short c, d; };
-struct S { char pad[0xE0]; int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
+struct S : XFM { int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
 /* The default navigation graph (path's .data): four corner vertices of a 200000-unit square, each with its
@@ -997,7 +997,7 @@ extern "C" int IsEdgeBlockedByPathzone(PATHZONEV *zone, qword from, qword to, in
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C09A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0xE0]; char graph[4]; };
+struct S : XFM { char graph[4]; };
 void *FindNavTriangleQuick(void *p,qword pos,int flags);
 int FindPathzoneObstacles(struct S *p, int a, qword q0, qword q1, int c, void **ap);
 int IsPosInConvexObstacle(void *pv, qword q);
@@ -1053,7 +1053,7 @@ namespace M_func_001C0B50 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct HIT {qword pos[2];char pad[0x40];};
-struct S {char pad[0xE0];char bsp[8];int count;int padEC;int padF0;qword*vertices;};
+struct S : XFM {char bsp[8];int count;int padEC;int padF0;qword*vertices;};
 extern const float D_002A76DC;   /* defined below where the ELF has it (.rodata order) */
 void *FindNavTriangleQuick(void*,qword,int);
 qword GetClosestPointOnNavTriangle(void*,qword);
@@ -1754,7 +1754,7 @@ void RemovePathlinkHierarchy(void *pathlink)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C20E8 { extern "C" {
 struct E { void *p0; void *p4; int pad[6]; };
-struct S { char pad[0x50]; int c; char pad2[0xC]; struct E a[6]; };
+struct S : LO { int c; char pad2[0xC]; struct E a[6]; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *q, int n);
 // Appends an endpoint to a path link (a shape for class 10, otherwise an object); max 6.
 void AddPathlinkEndpointObject(struct S *pathlink, void *object)
@@ -1770,7 +1770,7 @@ void AddPathlinkEndpointObject(struct S *pathlink, void *object)
 namespace M_func_001C2148 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { qword q; int pad[4]; };
-struct S { char pad[0x50]; int c; char pad2[0x1c]; struct E a[6]; };
+struct S : LO { int c; char pad2[0x1c]; struct E a[6]; };
 // Appends a fixed-position endpoint to a path link; max 6.
 void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
 {

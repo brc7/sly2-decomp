@@ -1789,7 +1789,7 @@ struct O *FindRobottankWeapon(struct S *tank, int id) {
 namespace M_func_001D3FF0 { extern "C" {
 struct E { int n; int nMax; int b; };
 struct Q { char pad[0x574]; struct E ae[1]; };
-struct S { char p0[0x150]; int n150; int a; int i; int d; };
+struct S : SO { int n150; int a; int i; int d; };
 void SetRcPickupState(struct S *p, int n);
 // The smaller of two values.
 // Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup
@@ -2466,7 +2466,7 @@ void CID108::Update() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p
 namespace M_SetRcPickupState { extern "C" {
 extern struct CLOCK { float time; } D_002DDED0;
 extern int D_002C2248[];
-struct S { char p0[0x150]; int n150; float g154; char p1[0x164-0x158]; void *p164; };
+struct S : SO { int n150; float g154; char p1[0x164-0x158]; void *p164; };
 void SetSmaGoalIfReachable(void *p, int n);
 // Pickup state x150 with time; SMA goal from D_002C2248[state]. (inferred)
 void SetRcPickupState(struct S *pickup, int n) {
