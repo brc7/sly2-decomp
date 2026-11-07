@@ -706,18 +706,16 @@ typedef int qword __attribute__((mode(TI)));
 struct PATHZONE;
 struct D { char pad[0x10]; struct PATHZONE *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
-struct GUARD { char pad[0xE8]; struct C *physics; };
 struct SO { char pad[0x18]; int oid; };
 struct LEADER { char pad[0x2DC]; int airState; };
-struct P { char pad[0x10]; struct GUARD *guard; char pad2[0x30 - 0x14]; struct LEADER *leader; char pad3[0x80 - 0x34]; qword landingPoint; };
-struct SO *GetBhvfollowLeaderGround(struct P *behavior);
+struct SO *GetBhvfollowLeaderGround(BHVFOLLOW *behavior);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 qword GetLoWorldPos(void *p);
 int IsPosFreeInPathzone(struct SO *ground, qword pos, int n);
 int SnapToGround(qword *pos, float above, float below, int c, int d);
 // 0x1459C0: True if the leader has landed on a different path zone than the follower's (not zone oid
 // 0x2CA); stores the snapped landing point (+0x80) for state 1.
-int IsBhvfollowLeaderOnNewGround(struct P *behavior)
+int IsBhvfollowLeaderOnNewGround(BHVFOLLOW *behavior)
 {
     struct SO *ground = GetBhvfollowLeaderGround(behavior);
     struct D *d;
@@ -725,15 +723,15 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
     qword pos;
     if (!ground)
         return 0;
-    d = behavior->guard->physics ? behavior->guard->physics->region : 0;
+    d = ((struct C *)((STEPGUARD *)behavior->owner)->physics) ? ((struct C *)((STEPGUARD *)behavior->owner)->physics)->region : 0;
     pathZone = d ? d->pathZone : 0;
     if ((struct PATHZONE *)ground == pathZone)
         return 0;
     if (ground->oid == 0x2CA)
         return 0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEPPLAYER) && behavior->leader->airState != -1)
+    if (IsBasicDerivedFrom__FP5BASIC3CID(((struct LEADER *)behavior->leader), CID_STEPPLAYER) && ((struct LEADER *)behavior->leader)->airState != -1)
         return 0;   /* still in the air */
-    pos = GetLoWorldPos(behavior->leader);
+    pos = GetLoWorldPos(((struct LEADER *)behavior->leader));
     if (!IsPosFreeInPathzone(ground, pos, 0))
         return 0;
     if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0))
