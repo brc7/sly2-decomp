@@ -46,7 +46,7 @@ struct CID151 : BASIC
     virtual void Resume() __asm__("__pure_virtual");   /* slot 12 (pure) */
     virtual void ApplyParams() __asm__("__pure_virtual");   /* slot 13 (pure) */
     virtual void QueryStatus() __asm__("__pure_virtual");   /* slot 14 (pure) */
-    virtual void SetCulled() __asm__("__pure_virtual");   /* slot 15 (pure) */
+    virtual void SetCulled(int fCulled) __asm__("__pure_virtual");   /* slot 15 (pure) */
     virtual void UpdatePositional() __asm__("UpdateSndPositional");   /* slot 16 */
 };
 typedef char assert_CID151_size[sizeof(CID151) == 0x60 ? 1 : -1];
@@ -66,7 +66,7 @@ struct BANKSND : CID151
     virtual void Resume() __asm__("ContinueBanksnd");   /* slot 12 */
     virtual void ApplyParams() __asm__("ApplyBanksndParams");   /* slot 13 */
     virtual void QueryStatus() __asm__("BANKSND_QueryStatus");   /* slot 14 */
-    virtual void SetCulled() __asm__("SetBankSoundCulled");   /* slot 15 */
+    virtual void SetCulled(int fCulled) __asm__("SetBankSoundCulled");   /* slot 15 */
 };
 
 /* STREAMSND: a sound streamed from disc (DRAFT name). */
@@ -95,7 +95,7 @@ struct STREAMSND : CID151
     virtual void Resume() __asm__("ResumeStreamSound");   /* slot 12 */
     virtual void ApplyParams() __asm__("ApplyStreamsndParams");   /* slot 13 */
     virtual void QueryStatus() __asm__("QueryStreamSoundStatus");   /* slot 14 */
-    virtual void SetCulled() __asm__("SetStreamSoundCulled");   /* slot 15 */
+    virtual void SetCulled(int fCulled) __asm__("SetStreamSoundCulled");   /* slot 15 */
     virtual void UpdatePositional() __asm__("UpdateStreamsndPositional");   /* slot 16 */
 };
 

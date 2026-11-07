@@ -312,30 +312,26 @@ extern "C" void SetSndDoppler()
 namespace M_UpdateSndPositional { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
+/* LO's flag word at +0x28 read as a whole (sly2/lo.h's isInWorld bit-field compiles to a mask test, not the shift) */
 struct O { char pad[0x28]; ulong fl; };
-struct P { char pad[0xC]; struct VTE *vtable; float volume; char pad1[0x1C - 0x14]; struct O *source; qword position; char range[0x14]; float effectiveVolume; };
-void StopSnd(struct P *, float);
-qword ConvertPosBetweenLos(struct O *, int, qword);
-void CalculateSndVolPan(struct P *, qword, void *, float *, int *);
-void SetSndFlags(struct P *, int, int);
-void SetSndPan(struct P *, int);
+qword ConvertPosBetweenLos(LO *, int, qword);
+void CalculateSndVolPan(CID151 *, qword, float *, float *, int *);
 // Positional update (slot 16): volume from the distance to the listener and pan from its direction; switches the
 // sound's culled state when it becomes audible or silent.
-void UpdateSndPositional(struct P *sound)
+void UpdateSndPositional(CID151 *sound)
 {
     float fade;
     int panAngle;
     float volume;
-    if (sound->source && (((sound->source->fl >> 60) & 1) == 0)) {
+    if (sound->source && ((((O *)sound->source)->fl >> 60) & 1) == 0) {
         StopSnd(sound, 0.0f);
         return;
     }
-    CalculateSndVolPan(sound, ConvertPosBetweenLos(sound->source, 0, sound->position), sound->range, &fade, &panAngle);
+    CalculateSndVolPan(sound, ConvertPosBetweenLos(sound->source, 0, sound->position), &sound->rangeNear, &fade, &panAngle);
     volume = sound->volume * fade;
     if ((int)(volume * 1024.0f) != (int)(sound->effectiveVolume * 1024.0f)) {
-        if (sound->effectiveVolume == 0.0f) sound->vtable[15].pfn((char *)sound + sound->vtable[15].d, 0);
-        else if (volume == 0.0f) sound->vtable[15].pfn((char *)sound + sound->vtable[15].d, 1);
+        if (sound->effectiveVolume == 0.0f) sound->SetCulled(0);
+        else if (volume == 0.0f) sound->SetCulled(1);
         sound->effectiveVolume = volume;
         SetSndFlags(sound, SND_DIRTY_VOLUME, SND_DIRTY_VOLUME);
     }
@@ -365,17 +361,15 @@ extern "C" void AddSndToDirtyList(CID151 *sound)
 }
 
 namespace M_RemoveSndFromDirtyList { extern "C" {
-struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *vtable; };
 struct DL;
 int IsEntryInDl__FP2DLPv(struct DL *, void *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 // Takes a sound off the dirty list and drops the list's reference.
-void RemoveSndFromDirtyList(struct X *sound)
+void RemoveSndFromDirtyList(CID151 *sound)
 {
     if (IsEntryInDl__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, sound)) {
         RemoveDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, sound);
-        sound->vtable->pfn((char *)sound + sound->vtable->d);
+        sound->Release();
     }
 }
 } } // namespace M_RemoveSndFromDirtyList
