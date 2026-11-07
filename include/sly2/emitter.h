@@ -250,6 +250,16 @@ int BisU16Read(CBinaryInputStream *pbis) __asm__("U16Read__18CBinaryInputStream"
 int BisU32Read(CBinaryInputStream *pbis) __asm__("U32Read__18CBinaryInputStream");
 extern "C" void *memset(void *pv, int b, unsigned int cb);
 extern "C" int memcmp(const void *pv1, const void *pv2, unsigned int cb);
+/* EMITVX: an even grid of emission directions for one burst (CalculateEmitvx; ChooseEmitVelocity picks cell i) */
+struct EMITVX
+{
+    int c;                  /* directions around the circle (pan steps) */
+    float dTilt;            /* tilt step */
+    float dPan;             /* pan step (2 pi / c) */
+    float tiltBase;         /* first tilt (half a step into the tilt range) */
+    float panBase;          /* random starting pan */
+};
+
 /* EMITMESH: an emitter's mesh origin (EMITO kind 3; particles spawn on its surface, triangles picked in proportion
    to their area) */
 struct EMITTRI { int aipos[3]; float sArea; };   /* a triangle: three vertex indices and its area */

@@ -1124,7 +1124,6 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *p, qword *pv, qword *pw)
 
 namespace M_CalculateEmitvx__FiP2LMiP6EMITVX {
 struct LM { float minValue; float maxValue; };
-struct EMITVX { int c; float dg; float drad; float g; float rad; };
 float NormalizeAngle(float rad) asm("NormalizeAngle__Ff");
 float RandomFloatInRange(float gMin, float gMax) asm("RandomFloatInRange__Fff");
 // Sets up an even distribution of emission directions: c directions around the circle (capped at cMax) times enough
@@ -1139,10 +1138,10 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
         pemitvx->c = cMax;
     n = (cMax + (pemitvx->c - 1)) / pemitvx->c;
     dg = NormalizeAngle(plm->maxValue - plm->minValue);
-    pemitvx->drad = 6.2831855f / pemitvx->c;
-    pemitvx->dg = dg / n;
-    pemitvx->g = plm->minValue + pemitvx->dg * 0.5f;
-    pemitvx->rad = RandomFloatInRange(0.0f, 6.2831855f);
+    pemitvx->dPan = 6.2831855f / pemitvx->c;
+    pemitvx->dTilt = dg / n;
+    pemitvx->tiltBase = plm->minValue + pemitvx->dTilt * 0.5f;
+    pemitvx->panBase = RandomFloatInRange(0.0f, 6.2831855f);
 }
 } // namespace M_CalculateEmitvx__FiP2LMiP6EMITVX
 
@@ -1150,7 +1149,6 @@ namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
-struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
 struct LM { float minValue; float maxValue; };
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
@@ -1161,7 +1159,7 @@ void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
 
 // Picks the velocity of particle i from an EMITVX distribution: its pan/tilt grid cell, jittered by gRand, rotated
 // into the emission normal's frame and scaled by speed sv.
-void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, float gRand, float sv, struct LM *plm,
+void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand, float sv, struct LM *plm,
                                                      qword *pnormal, int i, qword *pv)
 {
     int c = pemitvx->c;
@@ -1442,7 +1440,6 @@ typedef int qword __attribute__((mode(TI)));
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
-struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
 struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
 extern "C" {
 void *AllocFromStack(AL *pal);
