@@ -199,23 +199,8 @@ template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)
     return p->pemitb;
 }
 
-/* the blip colours: a u16 count, a byte, then count RGBA words (colour corrected; at most 32 kept) */
-/** @sly2-annot addr=0x2584A8
- * Purpose: read count + RGBA list into EMITB [game linkonce (inline/template)]
- * Info: proposed name LoadEmitblipColorsFromBrx (T1); TU game_linkonce
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: sdk_names+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/** @sly2-annot addr=0x258F40
- * Purpose: EXPLO twin of 0x2584A8 [game linkonce (inline/template)]
- * Info: proposed name LoadExploBlipColorsFromBrx (T1); TU game_linkonce
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: sdk_names+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+/* the blip colours: a u16 count, a byte, then count RGBA words (colour corrected; at most 32 kept)
+   Layout parse-verified: a parser following it reads every byte of 4 levels. */
 template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis)
 {
     struct RGBAW { unsigned char r, g, b, a; };   /* basic.h's RGBA cannot be a union member (operator=) */
@@ -256,36 +241,12 @@ template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
 }
 
 /* Clone (slot 41): the XFM part, then one more share of the block */
-/** @sly2-annot addr=0x258620
- * Purpose: EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)]
- * Info: proposed name CloneEmitter (T1); class EMITTER slot41; TU game_linkonce
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/** @sly2-annot addr=0x2590B8
- * Purpose: EXPLO/EXPLS vt41 [game linkonce (inline/template)]
- * Info: proposed name CloneExplo (T1); class EXPLO slot41; TU game_linkonce
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class T> void CloneEmitter(T *p, LO *ploBase)
 {
     p->XFM::Clone(ploBase);
     p->pemitb->cref++;
 }
 
-/** @sly2-annot addr=0x2586D8
- * Purpose: resolve emitter object references (FindSwObject) after load [game linkonce (inline/template)]
- * Info: proposed name BindEmitter (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/** @sly2-annot addr=0x259170
- * Purpose: EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)]
- * Info: proposed name BindExplo (T2); class EXPLO slot15; TU game_linkonce
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 /* PostLoad (slot 15 of EXPLO; EMITTER's PostEmitterLoad calls it): resolve the block's OIDs to objects, and give the
    block its own reference record when they differ from the shared one */
 template <class T> void func_002586D8(T *p)
@@ -346,24 +307,6 @@ template <class T> void func_002586D8(T *p)
     }
 }
 
-/** @sly2-annot addr=0x258F30
- * Purpose: duplicate EMITTER class-descriptor getter (vtable slot 6 of the second, never-stored EMITTER vtable):
- *   returns the same record as GetEmitterClassDesc (0x113BE0)
- * Info: was proposed as EMITTER_PvOptionDefaults (wrong); _linkonce suffix keeps the symbol distinct from
- *   GetEmitterClassDesc; TU game_linkonce
- * Confidence: high - evidence: static analysis (same data record as GetEmitterClassDesc); sources:
- *   class_reference hidden-types
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/** @sly2-annot addr=0x2599C8
- * Purpose: duplicate EXPLO class-descriptor getter (vtable slot 6 of the second, never-stored EXPLO vtable):
- *   returns the same record as GetExploClassDesc (0x113C10)
- * Info: was proposed as EXPLO_PvOptionDefaults (wrong); _linkonce suffix keeps the symbol distinct from
- *   GetExploClassDesc; TU game_linkonce
- * Confidence: high - evidence: static analysis (same data record as GetExploClassDesc); sources:
- *   class_reference hidden-types
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 /* GetClassInfo of the second (never stored) vtable of each class: the class descriptor */
 template <class T> CLASSINFO *GetEmitterClassDesc_linkonce(T *p) { return PclassinfoEmitb(p); }
 

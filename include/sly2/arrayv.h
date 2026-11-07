@@ -150,12 +150,6 @@ template <class T> void CHashIndex<T>::Init(CDynArrayV<T> *pary, void *pfnKey)
 }
 
 /* 0x256588: every listener's OnAdd (slot 2). */
-/** @sly2-annot addr=0x256588
- * Purpose: for each node in list call node->vt[2](pv) [game linkonce (inline/template)]
- * Info: proposed name BroadcastToList (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class T> void CDynArrayV<T>::NotifyAdd(T *pt)
 {
     ArrayV::ARYV *p = (ArrayV::ARYV *)this;
@@ -175,12 +169,6 @@ template <class T> T *CDynArrayV<T>::Add(T *pt)
 }
 
 /* 0x256658: free the elements, then every listener's Clear (slot 1). */
-/** @sly2-annot addr=0x256658
- * Purpose: free array and destroy list nodes via vt [game linkonce (inline/template)]
- * Info: proposed name CDynArrayV_Clear (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class T> void CDynArrayV<T>::Clear()
 {
     ArrayV::ARYV *p = (ArrayV::ARYV *)this;
@@ -191,25 +179,12 @@ template <class T> void CDynArrayV<T>::Clear()
 }
 
 /* 0x2566B0: one element's bytes. */
-/** @sly2-annot addr=0x2566B0
- * Purpose: virtual: read 4 bytes from binary stream (0x117968) [game linkonce (inline/template)]
- * Info: proposed name LoadS32FromBis_vt (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class T> void CDynArrayV<T>::ReadElement(T *pt, CBinaryInputStream *pbis)
 {
     ArrayV_Read(pbis, 4, pt);
 }
 
 /* 0x2566D8: Clear (slot 2), then a count and per element: clear a scratch element, ReadElement (slot 4), Add (5). */
-/** @sly2-annot addr=0x2566D8
- * Purpose: virtual: read count, then per element memset/vt4 load/vt5 add (stack scratch scope) [game linkonce
- *   (inline/template)]
- * Info: proposed name LoadListFromBrx_vt (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class T> void CDynArrayV<T>::Load(CBinaryInputStream *pbis)
 {
     ArrayV::ARYV3 *p = (ArrayV::ARYV3 *)this;
@@ -230,13 +205,6 @@ template <class T> void CDynArrayV<T>::Load(CBinaryInputStream *pbis)
 }
 
 /* 0x2567D0: free every entry and the buckets through the allocator (slot 3). */
-/** @sly2-annot addr=0x2567D0
- * Purpose: free all chained entries and bucket array through allocator vt[3] [game linkonce
- *   (inline/template)]
- * Info: proposed name CHash_Clear (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class K, class V> void CHash<K, V>::Clear()
 {
     ArrayV::HASH *h = (ArrayV::HASH *)this;
@@ -257,12 +225,6 @@ template <class K, class V> void CHash<K, V>::Clear()
 }
 
 /* 0x2568A0: the index's hash. */
-/** @sly2-annot addr=0x2568A0
- * Purpose: CHash_Clear(this+0x14) [game linkonce (inline/template)]
- * Info: proposed name CHash_ClearAt14 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class T> void CHashIndex<T>::Clear()
 {
     ((CHash<T, int> *)((char *)this + 0x14))->Clear();
@@ -272,12 +234,6 @@ template <class T> void CHashIndex<T>::Clear()
    instantiated template member compiles 2 instructions off; see there). */
 
 /* 0x2569F8: insert (key, value) under the key's caseless string hash (53 buckets on the first insert). */
-/** @sly2-annot addr=0x2569F8
- * Purpose: insert key/value (HashStringCaseInsensitive of key), grow when empty [game linkonce (inline/template)]
- * Info: proposed name CHash_Insert (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class K, class V> V *CHash<K, V>::Insert(K *pk, V *pvValue)
 {
     ArrayV::HASH *h = (ArrayV::HASH *)this;
@@ -299,12 +255,6 @@ template <class K, class V> V *CHash<K, V>::Insert(K *pk, V *pvValue)
 }
 
 /* 0x256AF0: insert (key of the element, its index) into the hash. */
-/** @sly2-annot addr=0x256AF0
- * Purpose: insert (hash(px), index of px) into owner hash [game linkonce (inline/template)]
- * Info: proposed name CHashIndex_Add (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 template <class T> void CHashIndex<T>::OnAdd(T *pt)
 {
     ArrayV::HASHINDEX *p = (ArrayV::HASHINDEX *)this;
