@@ -2216,7 +2216,6 @@ inline void AddDmaIntStore(DMAS *pdmas, int val)
 }
 void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
-struct BASIC;
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 struct SPECPARAMS
 {
