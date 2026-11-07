@@ -14,6 +14,9 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
+/* CMIsland: g_cm's position as a qword member at +0x90; this form exists to reproduce the original codegen (read at
+   base &g_cm + 0x90; a cast of CM::pos folds the offset into the base). */
+struct CMIsland { char pad[0x90]; qwordV pos; };
 typedef unsigned int uint;
 typedef unsigned char uchar;
 typedef unsigned long ulong;
@@ -70,9 +73,7 @@ struct JTV { char pad[0xC]; VTE *vt; char pad1[0x2DC - 0x10]; int state; };
    switches waypoint modes 0/1/2; unknown4750/4754 are times the waypoints fade in after; mode-2 waypoints hide while
    unknown4764 < unknown4768. */
 struct SW { char pad[0x3B0C]; int unknown3B0C; char pad3B10[0xC40]; float unknown4750, unknown4754; char pad4758[0xC]; int unknown4764, unknown4768; };
-struct CAM { char pad[0x90]; qwordV pos; char padA0[0x404]; int frame; };
 extern SW D_003DD490;      // g_sw
-extern CAM D_002DDF40;     // g_cm
 extern CLOCK D_002DDED0;   // g_clock
 extern qwordV D_002A2DC0;   // g_normalZ
 extern "C" {
@@ -314,11 +315,11 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
     UQ normalScratch;
     struct { int numObjects; O **objects; int faceBudget; FACE **faceCursor; } query;   /* one aggregate (stack layout) */
 
-    CAM *camera = &D_002DDF40;
-    if (waypoint->clipFrame == camera->frame)
+    CM *camera = &g_cm;
+    if (waypoint->clipFrame == camera->cplook.numActivations)
         return;
-    waypoint->clipFrame = camera->frame;
-    qwordV posCam = camera->pos;
+    waypoint->clipFrame = camera->cplook.numActivations;
+    qwordV posCam = *(qwordV *)&camera->pos;
     O *source = waypoint->source;
     register qwordV rr asm("$6");   // pin: PosLoWorld result lives in a2 (3rd arg of InitPlaneFromPositions); later uses reload from the 0x190 slot
     if (source)
@@ -558,7 +559,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
         return;
 
     CalculateWayptCurtainExtraHeight((O *)waypoint);
-    qwordV posCam = D_002DDF40.pos;
+    qwordV posCam = ((CMIsland *)&g_cm)->pos;
     qwordV pos = GetLoWorldPos(waypoint->source);
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
     float distance;

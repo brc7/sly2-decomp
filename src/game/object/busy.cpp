@@ -12,8 +12,12 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
+#include "sly2/cm.h"
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
+/* CMIsland: g_cm's position as a qword member at +0x90; this form exists to reproduce the original codegen (read at
+   base &g_cm + 0x90; a cast of CM::pos folds the offset into the base). */
+struct CMIsland { char pad[0x90]; qword pos; };
 struct VTE { short d; short pad; void *pfn; };
 /* View of an SO: vtable (22 leave, 23 enter), its busy-list entry (+0x14), zone kind in bits 52..55 of the flags
    at +0x28 (0 camera, 1 always in, 2 always out, 3 hero), the zone mask byte (+0x2D) and the zone radius (+0x38). */
@@ -22,7 +26,6 @@ typedef char assert_SO_busyDistance[(unsigned int)&((SO *)0)->busyDistance == 0x
 /* A busy-list entry (the next link is at +4). */
 struct ITEM { SO *object; ITEM *next; };
 /* View of the camera (zone mask +0x14, position +0x90). */
-struct CM { char pad[0x14]; int zoneMask; char pad2[0x90 - 0x18]; qword position; };
 /* View of the world's busy-list fields. */
 struct SWBUSY
 {
@@ -37,7 +40,6 @@ struct SWBUSY
 };
 typedef char assert_SWBUSY_heroPos[(unsigned int)&((SWBUSY *)0)->heroPos == 0x39C0 ? 1 : -1];
 
-extern CM D_002DDF40;
 float g_busyRescanDistance = 500.0f;   /* busy's .data (the next 12 bytes are 0: alignment) */
 extern DLI *D_002DD2FC;     /* g_pdliFirst */
 extern "C" {
@@ -123,8 +125,8 @@ extern "C" void UpdateSwBusyList(SWBUSY *world)
     int cameraMask;
     void *hero;
     void *entry;
-    cameraPos = D_002DDF40.position;
-    cameraMask = D_002DDF40.zoneMask;
+    cameraPos = ((CMIsland *)&g_cm)->pos;
+    cameraMask = g_cm.grfvis;
     hero = GetHeroPo();
     if (hero)
         heroPos = GetLoWorldPos(hero);
@@ -211,8 +213,8 @@ extern "C" void UpdateSoBusy(SWBUSY *world, SO *object)
     void *hero;
     int isInZone, entry;
     if ((*(int *)&g_sw.aploNew)) return;
-    cameraPos = D_002DDF40.position;
-    cameraMask = D_002DDF40.zoneMask;
+    cameraPos = ((CMIsland *)&g_cm)->pos;
+    cameraMask = g_cm.grfvis;
     hero = GetHeroPo();
     if (hero) heroPos = GetLoWorldPos(hero);
     else heroPos = cameraPos;

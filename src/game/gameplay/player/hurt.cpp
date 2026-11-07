@@ -17,6 +17,7 @@
 #include "sly2/jt.h"          /* JT; stepplayer.h JTHURT, ZPR, STEPPLAYER */
 #include "sly2/so.h"
 #include "sly2/sw.h"
+#include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
@@ -82,12 +83,10 @@ struct RIG{char pad[0xA8];INNER*inner;};
 struct P{char pad0[12];VE*vt;char pad10[0x150-0x10];CONTROL*control;char pad154[8];int frozen;char pad160[0x190-0x160];U zero;char pad1A0[8];float yaw;int pad1AC;U forward;char pad1C0[0x1030-0x1C0];ASEGA*asega;COMPONENT*component;char pad1038[0x19B8-0x1038];RIG*first;RIG*second;};
 struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;ASEG*clips[13];ASEG*Default(int next){ASEG**base=clips;int offset=next<8?0:0x20;return *(ASEG**)((char*)base+offset);}};
 struct CLOCK{float time,deltaTime;};
-struct CM{char pad[0x90];U position;};
 struct POLY{float a,b,c;};
 struct LIMIT{float lo,hi;};
 extern "C"{
  extern CLOCK D_002DDED0;
- extern CM D_002DDF40;
  extern U D_002A2DD0;
  // hurt's .data starts here (address order across the namespaces below). This namespace has no extern "C" block, so
  // the definitions carry it themselves (C symbols).
@@ -115,9 +114,9 @@ static inline void SetVector(P*p,qword q){VE*v=&p->vt[36];((void(*)(P*,qword))v-
 static inline void Invoke(P*p,int slot){VE*v=&p->vt[slot];((void(*)(P*))v->fn)((P*)((char*)p+v->delta));}
 static inline qword Position()
 {
-    register CM *manager __asm__("$2") = &D_002DDF40;
+    register CM *manager __asm__("$2") = &g_cm;
     register qword value __asm__("$2");
-    __asm__("lq %0,%1" : "=r"(value) : "m"(manager->position.q));
+    __asm__("lq %0,%1" : "=r"(value) : "m"(*(qword *)&manager->pos));
     return value;
 }
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
@@ -174,7 +173,6 @@ typedef char CONTROL_yaw_Offset[FIELD_OFFSET(CONTROL,yaw)==24?1:-1];
 typedef char RIG_inner_Offset[FIELD_OFFSET(RIG,inner)==168?1:-1];
 typedef char INNER_value_Offset[FIELD_OFFSET(INNER,value)==96?1:-1];
 typedef char VALUE_value_Offset[FIELD_OFFSET(VALUE,value)==32?1:-1];
-typedef char CM_position_Offset[FIELD_OFFSET(CM,position)==144?1:-1];
 typedef char POLY_a_Offset[FIELD_OFFSET(POLY,a)==0?1:-1];
 typedef char POLY_b_Offset[FIELD_OFFSET(POLY,b)==4?1:-1];
 typedef char POLY_c_Offset[FIELD_OFFSET(POLY,c)==8?1:-1];
@@ -197,7 +195,6 @@ typedef char INNER_Prefix_Size[sizeof(INNER)==0x64?1:-1];
 typedef char RIG_Prefix_Size[sizeof(RIG)==0xAC?1:-1];
 typedef char P_Prefix_Size[sizeof(P)==0x19C0?1:-1];
 typedef char C_Prefix_Size[sizeof(C)==0xD4?1:-1];
-typedef char CM_Prefix_Size[sizeof(CM)==0xA0?1:-1];
 // Hurt sub-state switch (leave/enter): Sly-specific settings for CID 0x35, facing and launch from the hit direction,
 // retracting/applying hit clips, and the death states 8..12.
 extern "C" void SetJtHurtState(C *hurt, int next)
