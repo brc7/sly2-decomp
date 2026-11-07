@@ -4028,33 +4028,29 @@ extern "C" XF *GetXfFromHandle(CID149 *pxfh, int n)
 
 // 0x1F8910 FindXfHandleActuator
 namespace M_func_001F8910 { extern "C" {
-struct E; struct Q; struct P;
-struct E { int kind; int pad[2]; int priority; struct E *next; };
-struct Q { char pad[0x90]; struct E *firstAct; };
-struct P { char pad[0x20]; void *so; struct Q *transform; };
-void RemoveXfAct(void *, struct Q *, struct E *);
+struct E;
+struct E { int kind; int pad[2]; int priority; struct E *next; };   /* an ACT (actuator) */
+void RemoveXfAct(SO *, XF *, struct E *);
 void FreeAct(struct E *);
-void SortXfActs(void *, struct Q *);
-void SetXfRole(void *, struct Q *, int);
-void UnsettleXfSlot(void *, struct Q *);
+void SortXfActs(SO *, XF *);
 // Finds the XF's actuator of kind k; n = -1 removes it, otherwise it is updated and re-prioritised.
-struct E *FindXfHandleActuator(struct P *handle, int k, int n, int m)
+struct E *FindXfHandleActuator(CID149 *handle, int k, int n, int m)
 {
     struct E *pe;
-    for (pe = handle->transform->firstAct; pe; pe = pe->next) {
+    for (pe = (struct E *)handle->pxf->firstActuator; pe; pe = pe->next) {
         if (pe->kind != k) continue;
         if (n == -1) {
-            RemoveXfAct(handle->so, handle->transform, pe);
+            RemoveXfAct(handle->pso, handle->pxf, pe);
             FreeAct(pe);
             return 0;
         }
         if (m != pe->priority) {
             pe->priority = m;
-            SortXfActs(handle->so, handle->transform);
+            SortXfActs(handle->pso, handle->pxf);
         }
-        if (pe == handle->transform->firstAct) {
-            SetXfRole(handle->so, handle->transform, n);
-            UnsettleXfSlot(handle->so, handle->transform);
+        if (pe == (struct E *)handle->pxf->firstActuator) {
+            SetXfRole(handle->pso, handle->pxf, n);
+            UnsettleXfSlot(handle->pso, handle->pxf);
         }
         return pe;
     }
@@ -4064,22 +4060,21 @@ struct E *FindXfHandleActuator(struct P *handle, int k, int n, int m)
 
 // 0x1F89E0 SetXfHandleActuator1
 namespace M_func_001F89E0 { extern "C" {
-struct R; struct P;
+struct R;
 typedef int qword __attribute__((mode(TI)));
 struct R { char pad[0x14]; int role; };
-struct P { char pad[0x20]; void *so; void *transform; };
-struct R *FindXfHandleActuator(struct P *, int, int, int);
+struct R *FindXfHandleActuator(CID149 *, int, int, int);
 void SetActPositionGoal(struct R *, qword);
-void NewPositionAct(void *, void *, int, int, int, qword);
+void NewPositionAct(SO *, XF *, int, int, int, qword);
 // Updates or creates the XF's kind-1 actuator (a target vector) with its parameters.
-void SetXfHandleActuator1(struct P *handle, int n, int m, qword q)
+void SetXfHandleActuator1(CID149 *handle, int n, int m, qword q)
 {
     struct R *r = FindXfHandleActuator(handle, 1, n, m);
     if (r) {
         r->role = n;
         SetActPositionGoal(r, q);
     } else if (n != -1) {
-        NewPositionAct(handle->so, handle->transform, m, n, 2, q);
+        NewPositionAct(handle->pso, handle->pxf, m, n, 2, q);
     }
 }
 } } // namespace M_func_001F89E0
@@ -4121,13 +4116,12 @@ void SetXfHandleActuator1Mat(struct P *handle, int a, int b)
 
 // 0x1F8B58 SetXfHandleActuator4
 namespace M_func_001F8B58 { extern "C" {
-struct R; struct P;
+struct R;
 struct R { char pad[0x14]; int role; int pad2; float unknown1C; float unknown20; };
-struct P { char pad[0x20]; void *so; void *transform; };
-struct R *FindXfHandleActuator(struct P *, int, int, int);
-void NewPathAct(void *, void *, int, int, float, float);
+struct R *FindXfHandleActuator(CID149 *, int, int, int);
+void NewPathAct(SO *, XF *, int, int, float, float);
 // Updates or creates the XF's kind-4 actuator with two floats.
-void SetXfHandleActuator4(struct P *handle, int n, int m, float f, float g)
+void SetXfHandleActuator4(CID149 *handle, int n, int m, float f, float g)
 {
     struct R *r = FindXfHandleActuator(handle, 4, n, m);
     if (r) {
@@ -4135,7 +4129,7 @@ void SetXfHandleActuator4(struct P *handle, int n, int m, float f, float g)
         r->unknown1C = f;
         r->unknown20 = g;
     } else if (n != -1) {
-        NewPathAct(handle->so, handle->transform, m, n, f, g);
+        NewPathAct(handle->pso, handle->pxf, m, n, f, g);
     }
 }
 } } // namespace M_func_001F8B58
