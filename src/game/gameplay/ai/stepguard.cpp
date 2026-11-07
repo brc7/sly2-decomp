@@ -84,15 +84,15 @@ enum {
 };
 
 /* The guard's mover (at STEPGUARD +0xFD0, which guard.h leaves unnamed; tu_144B28.cpp reads the same bytes as a
-   JTGOAL): a lock flag and the owning guard at +0xC. */
+   JTGOAL): the driver (the behaviour whose motion update moves the guard), a heading lock and the owning guard. */
 struct GUARDMOVER
 {
-    int n0;
-    int fLocked;            /* +0x04 */
-    int n8;
-    STEPGUARD *pstepguard;  /* +0x0C */
+    int driver;             /* +0x00 BHV * */
+    int isHeadingLocked;    /* +0x04 */
+    int unknown8;           /* +0x08 */
+    STEPGUARD *guard;       /* +0x0C */
 };
-#define PMOVER(pstepguard) ((GUARDMOVER *)((char *)(pstepguard) + 0xFD0))
+#define PMOVER(guard) ((GUARDMOVER *)((char *)(guard) + 0xFD0))
 /* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target): the time the first guard engaged,
    the target, and the engaged guards from +0x2C. */
 struct TARGETREC
@@ -169,7 +169,7 @@ void CloneStepguardAnimBindings(STEPGUARD *guard);
 void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget);
 void ClearStepguardIgnoreClasses(STEPGUARD *guard);
 void ClearStepguardForceClasses(STEPGUARD *guard);
-void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard);
+void CloneStepguardMover(GUARDMOVER *mover, STEPGUARD *guard);
 int StepguardHasSgf(STEPGUARD *guard, int sgf);
 void RemoveTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
 void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
@@ -333,7 +333,7 @@ struct S {
     char pad0[0x18]; int oid; char pad1[0x3C - 0x1C]; struct C3 *unknown3C; char pad2[0x58 - 0x40]; int xfRolesIdle; int xfRolesUngrounded;
     char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int unknown2F0;
     char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *stuckWatch; void *hazardWatch;
-    char pad7[0xFC4 - 0x4A0]; void *unknownFC4;
+    char pad7[0xFC4 - 0x4A0]; void *scaleAct;
 };
 extern char D_002C3CF8[];
 extern char D_003DD490[];
@@ -382,7 +382,7 @@ void PostStepguardLoad(struct S *guard)
         guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
     x = PxfFindSo(guard, guard->oid, 0xC);
     if (x)
-        guard->unknownFC4 = func_0012DC18(guard, x, 0, 7, 2, D_002A2DE0);
+        guard->scaleAct = func_0012DC18(guard, x, 0, 7, 2, D_002A2DE0);
 }
 } } // namespace M_PostStepguardLoad
 
@@ -914,11 +914,11 @@ int CanSetStepguardSpecial(void *guard, int special)
 namespace RO_ORDER { extern const float r_D_002A8698 __asm__("D_002A8698") = 3.40282347e+38f; }
 // 0x207030 SetStepguardSpecial
 namespace M_SetStepguardSpecial { extern "C" {
-struct V3; struct ASEGDEF; struct ASEGA; struct BHVANIM; struct BHVGUARD; struct S;
+struct V3; struct ASEG; struct ASEGA; struct BHVANIM; struct BHVGUARD; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-struct ASEGDEF { char pad[0x78]; float defaultSpeed; };
-struct ASEGA { char pad[0x14]; struct ASEGDEF *def; };
+struct ASEG { char pad[0x78]; float defaultSpeed; };
+struct ASEGA { char pad[0x14]; struct ASEG *aseg; };
 struct BHVANIM { char pad[0x40]; void *binding; };
 struct BHVGUARD { char pad[0x30]; int modeKind; char pad2[0x40 - 0x34]; int modeObject; float modeAmount; };
 struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int special; float specialStartTime; void *scaleAct; };
@@ -967,7 +967,7 @@ void SetStepguardSpecial(struct S *guard, int special)
         if (bhv) {
             struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
             if (asega)
-                SetAsegaMasterSpeed(asega, asega->def->defaultSpeed);
+                SetAsegaMasterSpeed(asega, asega->aseg->defaultSpeed);
         }
         break;
     }
@@ -2511,25 +2511,26 @@ struct ANIMATION *GetAnimBindingInstance(struct BINDING *binding)
 
 // 0x209590 CloneAnimBinding
 namespace M_func_00209590 { extern "C" {
-struct S;
-struct S { int k; void *pv; };
+struct BINDING;
+struct BINDING { int kind; void *payload; };
 void *func_0020C010(int cb);
 void *func_0020CA00(int cb);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-// 0x209590: Deep-copies a binding's kind-2 (0x40) or kind-3 (0xD0) payload.
-void CloneAnimBinding(struct S *p)
+// 0x209590: Deep-copies a binding's leap (0x40 bytes) or DIRANIM (0xD0 bytes) payload, so a
+// cloned guard does not share it.
+void CloneAnimBinding(struct BINDING *binding)
 {
-    void *pv;
-    switch (p->k) {
-    case 2:
-        pv = func_0020C010(0x40);
-        CopyAb__FPvT0Ui(pv, p->pv, 0x40);
-        p->pv = pv;
+    void *copy;
+    switch (binding->kind) {
+    case BINDING_LEAP:
+        copy = func_0020C010(0x40);
+        CopyAb__FPvT0Ui(copy, binding->payload, 0x40);
+        binding->payload = copy;
         break;
-    case 3:
-        pv = func_0020CA00(0xD0);
-        CopyAb__FPvT0Ui(pv, p->pv, 0xD0);
-        p->pv = pv;
+    case BINDING_DIRANIM:
+        copy = func_0020CA00(0xD0);
+        CopyAb__FPvT0Ui(copy, binding->payload, 0xD0);
+        binding->payload = copy;
         break;
     }
 }
@@ -2537,23 +2538,24 @@ void CloneAnimBinding(struct S *p)
 
 // 0x209618 DriveStepguardFromAnim
 namespace M_func_00209618 { extern "C" {
-struct E; struct A; struct B; struct Entry; union FLOATWORD; struct Param; struct S;
+struct ASEGA; struct INSTANCE; struct LEAP; struct BINDING; union FLOATWORD; struct ACT; struct S;
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct E { char pad[0x1C]; float radius; };
-struct A { char pad[0x10]; qword v10; char pad2[0x30 - 0x20]; struct E *pe30; };
-struct B { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct E *pe38; };
-struct Entry { int kind; int unused; void *object; };
+struct ASEGA { char pad[0x1C]; float localTime; };
+struct INSTANCE { char pad[0x10]; qword velocity; /* DIRANIM */ char pad2[0x30 - 0x20]; struct ASEGA *asega; /* SMA */ };
+struct LEAP { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct ASEGA *asega; };
+struct BINDING { int kind; int resource; void *instance; };
 union FLOATWORD { float value; int bits; };
-struct Param { int pad[2]; union FLOATWORD *value; };
-struct S { char pad[0x190]; qword v190; char pad2[0x1E0 - 0x1A0]; qword v1E0; char pad3[0xFC4 - 0x1F0]; struct Param *param; };
+struct ACT { int pad[2]; union FLOATWORD *scale; };
+struct S { char pad[0x190]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
 extern qword D_002A2DD0;
-qword func_00204E38(struct S *, struct E *, float);
-qword func_00204ED8(struct S *, struct E *, float);
-void UpdateLeap(struct B *);
-// 0x209618: Drives the guard from its animation: sets the desired velocity and angular velocity from the binding's
-// root motion.
-void DriveStepguardFromAnim(struct Entry *entry, struct S *s)
+qword func_00204E38(struct S *, struct ASEGA *, float);
+qword func_00204ED8(struct S *, struct ASEGA *, float);
+void UpdateLeap(struct LEAP *);
+// 0x209618: Drives the guard from its animation: sets the desired velocity and angular velocity from the binding'guard
+// root motion (scaled by the special-state scale act when there is one); a leap drives
+// it only outside its airborne states.
+void DriveStepguardFromAnim(struct BINDING *binding, struct S *guard)
 {
     U factor, value;
     register qword scalar __asm__("vf1");
@@ -2565,41 +2567,41 @@ void DriveStepguardFromAnim(struct Entry *entry, struct S *s)
      __asm__("sq %1,%0":"=m"(value.q):"r"(zero));}
     extra=value.q;
     { register int kind __asm__("v1");
-      __asm__("lw %0,%1":"=r"(kind):"m"(entry->kind));
+      __asm__("lw %0,%1":"=r"(kind):"m"(binding->kind));
     switch (kind) {
-    case 0:
-    case 1:
+    case BINDING_ASEG:
+    case BINDING_SM:
         {
-            struct E *e;
-            if (kind == 0) e = (struct E *)entry->object;
-            else e = ((struct A *)entry->object)->pe30;
-            if (e) {
-                value.q = func_00204E38(s, e, e->radius);
-                extra = func_00204ED8(s, e, e->radius);
+            struct ASEGA *asega;
+            if (kind == BINDING_ASEG) asega = (struct ASEGA *)binding->instance;
+            else asega = ((struct INSTANCE *)binding->instance)->asega;
+            if (asega) {
+                value.q = func_00204E38(guard, asega, asega->localTime);
+                extra = func_00204ED8(guard, asega, asega->localTime);
             }
         }
         break;
-    case 2:
+    case BINDING_LEAP:
         {
-            struct B *b;
-            UpdateLeap((struct B *)entry->object);
-            b = (struct B *)entry->object;
-            if (b->state > 0 && (b->state < 3 || b->state == 4)) break;
-            value.q = func_00204E38(s, b->pe38, b->pe38->radius);
+            struct LEAP *leap;
+            UpdateLeap((struct LEAP *)binding->instance);
+            leap = (struct LEAP *)binding->instance;
+            if (leap->state > 0 && (leap->state < 3 || leap->state == 4)) break;
+            value.q = func_00204E38(guard, leap->asega, leap->asega->localTime);
         }
         break;
-    case 3: {
-        register struct A *object __asm__("v0")=(struct A *)entry->object;
+    case BINDING_DIRANIM: {
+        register struct INSTANCE *object __asm__("v0")=(struct INSTANCE *)binding->instance;
         register qword vector __asm__("v0");
-        __asm__("lq %0,16(%1)":"=r"(vector):"r"(object),"m"(object->v10));
+        __asm__("lq %0,16(%1)":"=r"(vector):"r"(object),"m"(object->velocity));
         value.q=vector; }
         break;
     }
     }
     {
       register qword current __asm__("vf2")=value.q;
-      if (s->param) {
-        register union FLOATWORD *wordAddress __asm__("v0")=s->param->value;
+      if (guard->scaleAct) {
+        register union FLOATWORD *wordAddress __asm__("v0")=guard->scaleAct->scale;
         register int parameterWord __asm__("v0");
         __asm__("lw %0,0(%2)\n\tqmtc2.ni %0,%1":"=r"(parameterWord),"=j"(scalar):"r"(wordAddress),"m"(wordAddress->bits));
         factor.q=scalar;
@@ -2607,74 +2609,74 @@ void DriveStepguardFromAnim(struct Entry *entry, struct S *s)
         value.q=current;
       }
     }
-    s->v1E0 = extra;
+    guard->desiredAngularVelocity = extra;
     __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(scalar) : "r"(-1.0f));
     factor.q=scalar;
     { register qword source __asm__("vf3")=value.q;
       __asm__("vmulx.xyzw %0,%1,%2x":"=j"(neg):"j"(source),"j"(factor.q)); }
-    s->v190 = neg;
+    guard->desiredVelocity = neg;
 }
 } } // namespace M_func_00209618
 
 // 0x209768 InitStepguardMover
 // 0x209768: Initializes the guard's mover (+0xFD0): owner = guard.
-extern "C" void InitStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
+extern "C" void InitStepguardMover(GUARDMOVER *mover, STEPGUARD *guard)
 {
-    pmover->pstepguard = guard;
+    mover->guard = guard;
 }
 
 // 0x209770 CloneStepguardMover
 // 0x209770: Clone fix-up of the mover: owner = guard.
-extern "C" void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
+extern "C" void CloneStepguardMover(GUARDMOVER *mover, STEPGUARD *guard)
 {
-    pmover->pstepguard = guard;
+    mover->guard = guard;
 }
 
 // 0x209778 ClearStepguardMover
 namespace M_func_00209778 { extern "C" {
 // 0x209778: Clears the mover (driver, lock, third word).
-void ClearStepguardMover(int *p)
+void ClearStepguardMover(GUARDMOVER *mover)
 {
-    p[0] = 0;
-    p[1] = 0;
-    p[2] = 0;
+    mover->driver = 0;
+    mover->isHeadingLocked = 0;
+    mover->unknown8 = 0;
 }
 } } // namespace M_func_00209778
 
 // 0x209788 SetStepguardMoverDriver
 // 0x209788: Sets the mover's driver: the behaviour whose motion update moves the guard.
-extern "C" void SetStepguardMoverDriver(int *pn, int n)
+extern "C" void SetStepguardMoverDriver(int *driverSlot, int driver)
 {
-    *pn = n;
+    *driverSlot = driver;
 }
 
 // 0x209790 ResetStepguardMover
 // 0x209790: Resets the mover: no driver, unlocked, zero desired velocity.
-extern "C" void ResetStepguardMover(GUARDMOVER *pmover)
+extern "C" void ResetStepguardMover(GUARDMOVER *mover)
 {
     STEPGUARD *guard;
-    pmover->n0 = 0;
-    guard = pmover->pstepguard;
-    pmover->fLocked = 0;
-    VECTOR *pv = &guard->vUnk190;
-    pv->z = 0.0f;
-    pv->y = 0.0f;
-    pv->x = 0.0f;
-    func_001F5078(pmover->pstepguard);
+    mover->driver = 0;
+    guard = mover->guard;
+    mover->isHeadingLocked = 0;
+    VECTOR *velocity = &guard->vUnk190;
+    velocity->z = 0.0f;
+    velocity->y = 0.0f;
+    velocity->x = 0.0f;
+    func_001F5078(mover->guard);
 }
 
 // 0x2097C8 LockStepguardMover
 // 0x2097C8: Locks the mover's heading.
-extern "C" void LockStepguardMover(GUARDMOVER *pmover)
+extern "C" void LockStepguardMover(GUARDMOVER *mover)
 {
-    pmover->fLocked = 1;
+    mover->isHeadingLocked = 1;
 }
 
 // 0x2097D8 UnlockStepguardMover
 // 0x2097D8: Unlocks the mover's heading.
-extern "C" void UnlockStepguardMover(GUARDMOVER *pmover)
+extern "C" void UnlockStepguardMover(GUARDMOVER *mover)
 {
-    pmover->fLocked = 0;
+    mover->isHeadingLocked = 0;
 }
 
 // 0x2097E0 UpdateStepguardMover
@@ -2683,27 +2685,34 @@ struct VTE; struct O;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { int a, b, c; struct VTE *vt; };
 // 0x2097E0: Per-frame mover update: calls the driver's motion update (vtable slot 11).
-void UpdateStepguardMover(struct O **pp) { struct O *o = *pp; if (o) { struct VTE *entry = &o->vt[11]; entry->pfn((char *)o + entry->d); } }
+void UpdateStepguardMover(struct O **mover)
+{
+    struct O *driver = *mover;
+    if (driver) {
+        struct VTE *entry = &driver->vt[11];
+        entry->pfn((char *)driver + entry->d);
+    }
+}
 } } // namespace M_func_002097E0
 
 // 0x209818 SetStepguardMoverRadTarget
 // 0x209818: Unless the heading is locked, sets the guard's target heading.
-extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *pmover)
+extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *mover)
 {
-    if (pmover->fLocked == 0) {
-        func_00204660(pmover->pstepguard);
+    if (mover->isHeadingLocked == 0) {
+        func_00204660(mover->guard);
     }
 }
 
 // 0x209840 SetStepguardMoverTargetMatrix
 // 0x209840: Unless the heading is locked, sets the guard's target orientation matrix.
 /* Sets the guard's target orientation unless the mover is locked. */
-extern "C" void SetStepguardMoverTargetMatrix(GUARDMOVER *pmover, MATRIX3 *pmat)
+extern "C" void SetStepguardMoverTargetMatrix(GUARDMOVER *mover, MATRIX3 *matrix)
 {
     STEPGUARD *guard;
-    if (pmover->fLocked == 0) {
-        guard = pmover->pstepguard;
-        guard->matTarget = *pmat;
+    if (mover->isHeadingLocked == 0) {
+        guard = mover->guard;
+        guard->matTarget = *matrix;
     }
 }
 
