@@ -81,15 +81,7 @@ struct POSESET
     POSE apose[4];
 };
 
-/* SUBGLOBX: the per-sub-mesh extra data of a GLOBSET: bounding sphere, render distance and flags. Moved from the
-   identical Lilly-ported copies (names from glob.cpp's). */
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
-      uint flags;
-};
+/* SUBGLOBX (the per-sub-mesh culling data of a GLOBSET) is defined in sly2/glob.h. */
 
 /* GLOBSET: an SO's model: its GLOBs and sub-meshes, poses, shader animations and bounding sphere.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
@@ -168,20 +160,7 @@ struct REGENT
       undefined4 unknown20[20];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
 };
 
-/* SOBOUNDS: the bounds/lighting record an SO hierarchy shares (pool g_sw.slotheapSobounds, reference counted; 0x30
-   bytes: RenderSoAll copies it). The lighting stamp is compared with the world's light stamp by RefreshSoBoundsRecord
-   (so.cpp) before the light packets are rebuilt. */
-struct SOBOUNDS
-{
-      SO *pso;   /* +0x00 the owner (SetSoBoundsScale keeps scale in step only for it) */
-      undefined4 unknown04;
-      int refCount;   /* +0x08 objects sharing it */
-      int lightStamp;   /* +0x0C world light stamp of the last BuildSoLightPackets */
-      undefined4 unknown10[4];
-      float scale;   /* +0x20 */
-      undefined4 unknown24[3];
-};
-typedef char assert_SOBOUNDS_size[sizeof(SOBOUNDS) == 0x30 ? 1 : -1];
+/* SOBOUNDS (SO::psobounds, the bounds/lighting record an SO hierarchy shares) is defined in sly2/light.h. */
 
 /* SO: the solid object: an LO with transforms, a model, collision parts and (optionally) physics.
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (23 copies in Lilly ports) */

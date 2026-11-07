@@ -25,6 +25,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
+#include "sly2/light.h"
 #include "sly2/vu0.h"
 #include "sly2/act.h"
 #include "sly2/dli.h"
@@ -105,6 +106,7 @@ struct VU_VECTOR4
     qword qw;
 };
 
+/* SO::psobounds is sly2/light.h's SOBOUNDS. */
 /* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
 struct SOWATCH { char pad0[0x44]; int unknown44; char pad48[0x6C]; int animIndex; };
 /* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
@@ -1135,7 +1137,6 @@ void SetSoGrfBit8(struct P *so, int enabled)
 
 // 0x1F3C10 RefreshSoBoundsRecord
 namespace M_func_001F3C10 { extern "C" {
-struct Q; struct A;
 extern SW D_003DD490;
 void BuildSoLightPackets(SW *pg, int n, SOBOUNDS *pq);
 // Recomputes the shared bounds record when its stamp is older than the world's current stamp. (inferred)
@@ -1163,19 +1164,18 @@ extern "C" void RenderSoSelf(SO *so)
 
 // 0x1F3CC8 RenderSoAll
 namespace M_func_001F3CC8 { extern "C" {
-struct B; struct VTE; struct O; struct P;
-struct B { char b[0x30]; };
-struct VTE { short d; short pad; void (*pfn)(void *, int, float, float, struct B *); };
+struct VTE; struct O; struct P;
+struct VTE { short d; short pad; void (*pfn)(void *, int, float, float, SOBOUNDS *); };
 struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x24 - 0x10]; struct O *next; };
-struct P { char pad[0x64]; struct O *firstChild; char pad2[0x70 - 0x68]; struct O *firstRemovedChild; char pad3[0x80 - 0x74]; char globset[0x134 - 0x80]; struct B *bounds; };
+struct P { char pad[0x64]; struct O *firstChild; char pad2[0x70 - 0x68]; struct O *firstRemovedChild; char pad3[0x80 - 0x74]; char globset[0x134 - 0x80]; SOBOUNDS *bounds; };
 struct G;
 extern struct G D_003DD490;
-void BuildSoLightPackets(struct G *, int, struct B *);
-void RenderSoGlobset(void *, int, float, float, struct B *);
+void BuildSoLightPackets(struct G *, int, SOBOUNDS *);
+void RenderSoGlobset(void *, int, float, float, SOBOUNDS *);
 // Slot 20: draws the glob set with explicit parameters and recurses into the children.
-void RenderSoAll(struct P *so, int a, struct B *pb, float f1, float f2)
+void RenderSoAll(struct P *so, int a, SOBOUNDS *pb, float f1, float f2)
 {
-    struct B b;
+    SOBOUNDS b;
     int unused[4];
     struct O *po;
     if (!pb && so->bounds) {

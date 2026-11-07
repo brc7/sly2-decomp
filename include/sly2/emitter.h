@@ -30,23 +30,49 @@ enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 struct EMITV2 { float a[2]; };
 struct EMITV3 { float a[3]; };
 struct EMITV4 { float a[4]; };
+struct EMITREMIT { int oidExpls; float rate; };   /* re-emitting rips (RIPT 2): the explosion they re-emit, per second */
+struct EMITROLL { int rollKind; int hasRandomRoll; LM lmRollSpeed; };   /* rolling blips (render kind 2): rollKind 0
+                                                    mirrors the roll for blips moving away from the camera; random
+                                                    start angle; roll speed range (EmitBlips) */
 
-/* a 0x40-byte variant record: a kind, and its payload at +0x30; the defaults it is reset from are whole records.
-   +0x08..+0x14 hold OIDs that func_002586D8 resolves (record 1: +0x08, +0x0C, +0x10; record 0: +0x14);
-   LoadEmitblipColorsFromBrx stores a byte it reads at +0x0C and its colour list at +0x1C. */
+/* a scale or alpha curve over a particle's life (Sly 1's CLQ: three coefficients) */
+struct EMITCLQ { float g0, g1, g2, gUnused; };
 struct EMITBLIPCLRS { int c; RGBA argba[1]; };   /* count, then c colours (0x10-aligned allocation) */
-/* EMITV: see the comment above EMITBLIPCLRS. */
+/* EMITV: the particle record at EMITB+0xC0 (0x40 bytes): a kind, the per-particle-kind fields (a union: EMITB's
+   particleKind selects which record the slot holds; func_002586D8 resolves record 1's OIDs at +0x08..+0x10 and record
+   0's at +0x14), and a payload at +0x30 whose shape the kind gives. The defaults it is reset from are whole records
+   (D_002BDE10: record 0, D_002BDE70: record 1). The name is the one its accessors' mangled names carry. */
 struct EMITV
 {
-    int k;                  /* +0x00 kind of the payload (-1 or 0: unset) */
-    char pad04[4];
-    int oid08;              /* +0x08 an OID (record 1) */
-    int n0C;                /* +0x0C an OID (record 1); the blip colour byte (LoadEmitblipColorsFromBrx) */
-    int oid10;              /* +0x10 an OID (record 1) */
-    int oid14;              /* +0x14 an OID (record 0) */
-    char pad18[4];
-    EMITBLIPCLRS *pblipclrs; /* +0x1C the blip colour list */
-    char pad20[0x10];
+    int k;                  /* +0x00 kind (rips: the RIPT of each particle; blips: render kind, 1 flying, 2 rolling;
+                               -1 or 0: unset) */
+    union
+    {
+        struct              /* record 1 (particleKind 1): rips (Sly 1's EMITRIP, objects as OIDs) */
+        {
+            int ripGroupKind;   /* +0x04 kind of the RIPG they go into */
+            int oid08;          /* +0x08 render object (EMITREF_Render) */
+            int n0C;            /* +0x0C next-render object (EMITREF_RenderNext) */
+            int oid10;          /* +0x10 touch object (EMITREF_Touch) */
+            float ripScale;     /* +0x14 the group's emit scale (SetRipgEmitb) */
+            LM lmScale;         /* +0x18 initial scale range (EmitRips: each rip's scale g0) */
+            float unknown20;    /* +0x20 (WakeSoWater's splash sets 1) */
+            float scaleSlope;   /* +0x24 the rips' scale curve g1, g2 (both 0: keep the kind's) */
+            float scaleCurve;   /* +0x28 */
+            int unknown2C;
+        };
+        struct              /* record 0 (particleKind 0): blips (Sly 1's EMITBLIP) */
+        {
+            int motionKind;     /* +0x04 0: EMITDV motion, 1: straight, 2: spline */
+            int hasRandomFrame; /* +0x08 */
+            int hasColorRanges; /* +0x0C the byte LoadEmitblipColorsFromBrx reads before its colours */
+            int oidShader;      /* +0x10 */
+            int oid14;          /* +0x14 render object (EMITREF_Render) */
+            float shaderLoopTime; /* +0x18 one pass through the texture frames (0: the lifetime) */
+            EMITBLIPCLRS *pblipclrs; /* +0x1C the blip colour list */
+            EMITCLQ scale;      /* +0x20 scale over the blip's life */
+        };
+    };
     union
     {
         float g;
@@ -54,43 +80,113 @@ struct EMITV
         EMITV2 v2;
         EMITV3 v3;
         EMITV4 v4;
-    } u;                    /* +0x30 the payload (shape given by k) */
+        EMITROLL roll;
+        EMITREMIT remit;
+    } u;                    /* +0x30 the payload (shape given by k; blips: flying scale, shrapnel: direction) */
 } __attribute__((aligned(16)));
+typedef char assert_EMITV_oid14[SLY2_OFFSETOF(EMITV, oid14) == 0x14 ? 1 : -1];
+typedef char assert_EMITV_ripScale[SLY2_OFFSETOF(EMITV, ripScale) == 0x14 ? 1 : -1];
+typedef char assert_EMITV_u[SLY2_OFFSETOF(EMITV, u) == 0x30 ? 1 : -1];
 typedef char assert_EMITV_size[sizeof(EMITV) == 0x40 ? 1 : -1];
 
-/* EMITB: the emitter block (only the fields the accessors use) */
+/* indices into EMITB::aploRef, the objects the block's OIDs resolve to (func_002586D8) */
+enum EMITREF
+{
+    EMITREF_Reference = 0,  /* the origin's reference object (EMITO::originOid; UpdateEmitter puts the emitter itself
+                               here for the emission when both it and the shape are unset) */
+    EMITREF_Shape = 1,      /* the origin's curve shape (origin kind 2) */
+    EMITREF_Render = 2,     /* rips: render object (record 1 +0x08); blips: record 0 +0x14 */
+    EMITREF_RenderNext = 3, /* rips: second render object (record 1 +0x0C) */
+    EMITREF_Touch = 4,      /* rips: touch object (record 1 +0x10) */
+};
+
+/* EMITO: where particles start (EMITB+0x10, 0x40 bytes; Sly 1's EMITO; defaults D_002DE5B0 in emitter.cpp) */
+struct EMITO
+{
+    int originKind;         /* +0x00 emitter.cpp's EMIT_ORIGIN: 0 point, 1 box, 2 curve, 3 mesh */
+    int normalKind;         /* +0x04 how the emission direction is chosen (EMIT_NORMAL) */
+    int velocityKind;       /* +0x08 how particle velocities follow the reference object (EMIT_VELOCITY) */
+    XF *pxfOrigin;          /* +0x0C a local transform for the origin (0: none) */
+    int originOid;          /* +0x10 the origin's reference object (-1: none) */
+    LM lmOffset;            /* +0x14 random distance moved along the chosen direction */
+    char pad1C[4];
+    union                   /* +0x20 origin data, selected by originKind */
+    {
+        qword posPoint;     /* point: the position itself */
+        int pvEmito;        /* box: its BOX; curve: -1, then an OID; mesh: its EMITMESH (allocated per kind) */
+    };
+    qword direction;        /* +0x30 emission direction, centre or tangent partner (by normalKind) */
+};
+typedef char assert_EMITO_size[sizeof(EMITO) == 0x40 ? 1 : -1];
+
+/* EMITVEL: how particles move (EMITB+0x50, 0x70 bytes; Sly 1's EMITV, renamed here because EMITV names the
+   particle record in the accessors' mangled names; defaults D_002DE5F0 in emitter.cpp) */
+struct EMITVEL
+{
+    LM lmSpeed;             /* +0x00 speed range */
+    float damping;          /* +0x08 velocity damping (default -1) */
+    float zSpeedRatio;      /* +0x0C the emission direction's component is scaled by it (ChooseEmitvVelocityAge) */
+    qword addedVelocity;    /* +0x10 added to every particle's velocity (default 0, 0, -1500: gravity) */
+    qword curlAxis;         /* +0x20 */
+    float curlRate;         /* +0x30 */
+    int particlesPerRing;   /* +0x34 */
+    float randomRadius;     /* +0x38 jitter of the direction grid, in cells */
+    float lifetime;         /* +0x3C particle lifetime */
+    LM lmTilt;              /* +0x40 tilt range (radians) */
+    LM lmPush;              /* +0x48 seconds of motion applied at birth (pre-advanced particles) */
+    LM lmAge;               /* +0x50 how long ago a particle was born */
+    char pad58[0x60 - 0x58];
+    union
+    {
+        qword alpha;        /* +0x60 alpha over the particle's life (copied whole into each rip) */
+        EMITCLQ alphaCurve; /* +0x60 its coefficients */
+    };
+};
+typedef char assert_EMITVEL_size[sizeof(EMITVEL) == 0x70 ? 1 : -1];
+
+/* EMITB: the emitter block. +0x10..+0x4F is the origin record (Sly 1's EMITO; the defaults D_002DE5B0 in
+   emitter.cpp), +0x50..+0xBF the velocity record (Sly 1's EMITV; defaults D_002DE5F0), +0xC0 the particle record
+   (EMITV below: blip or rip parameters by particleKind). Only the fields the code reads are named. */
 struct EMITB
 {
     int cref;               /* +0x00 share count (copy on write) */
-    int kv;                 /* +0x04 which record the slot at +0xC0 holds (0, 1; -1 none) */
+    int particleKind;       /* +0x04 0 blips (BLIPG), 1 rips (RIPG), -1 unset; also which record the slot at +0xC0
+                               holds */
     LO **aploRef;           /* +0x08 the five objects the block's OIDs resolve to (func_002586D8, a 0x14-byte block;
-                               [0] is the origin object). emitter.cpp's views: the EMITO pointer, `poidParent` */
+                               indexed by EMITREF) */
     char pad0C[4];
-    int kEmito;             /* +0x10 EMITO kind (1, 2, 3; 0 unset) */
-    char pad14[0xC];
-    int oidEmito;           /* +0x20 the origin object's OID */
-    char pad24[0xC];
-    int pvEmito;            /* +0x30 EMITO data (allocated per kind; for kind 2: -1, then an OID) */
-    char pad34[0x8C];
-    EMITV v;                /* +0xC0 the variant record (see EMITV) */
+    EMITO emito;            /* +0x10 the origin record */
+    EMITVEL vel;            /* +0x50 the velocity record */
+    EMITV v;                /* +0xC0 the particle record (see EMITV) */
 };
 typedef char assert_EMITB_v[SLY2_OFFSETOF(EMITB, v) == 0xC0 ? 1 : -1];
+typedef char assert_EMITB_emito[SLY2_OFFSETOF(EMITB, emito) == 0x10 ? 1 : -1];
+typedef char assert_EMITB_vel[SLY2_OFFSETOF(EMITB, vel) == 0x50 ? 1 : -1];
 
 /* EMITTER: a particle emitter placed in a level: emits particles (RIPG) or sprites (BLIPG) at a rate, configured
    through its shared EMITB block. */
 struct EMITTER : public XFM
 {
-    int fDirty;             /* +0xE0 set by an ensure for writing */
+    int fDirty;             /* +0xE0 set by an ensure for writing (OnEmitterValuesChanged applies it) */
     EMITB *pemitb;          /* +0xE4 the emitter block (shared until written: PemitbEnsure) */
     char padE8[8];
-    int k;                  /* +0xF0 emission kind (3: rate per second) */
-    int c;                  /* +0xF4 emission count (inferred: particles per burst) */
-    LM lmRate;              /* +0xF8 emission rate range (per second, kind 3) */
-    char pad100[0x114 - 0x100];
-    int fAutoPause;         /* +0x114 pause emitting automatically (inferred: when off screen or far away) */
-    char pad118[0x130 - 0x118];
-    float tNext;            /* +0x130 game time of the next emission */
-    char pad134[0x148 - 0x134];
+    int emitMode;           /* +0xF0 emission mode (emitter.cpp's EMIT_MODE; -1: PostEmitterLoad infers one) */
+    int particleCount;      /* +0xF4 particles left to emit (-1: unlimited) */
+    LM rate;                /* +0xF8 emission rate range (per second; burst modes: per burst) */
+    int isCountDensity;     /* +0x100 scale the rate by the origin box (volume for constant count, else area) */
+    float pauseChance;      /* +0x104 probability of a pause after a burst */
+    LM pauseTime;           /* +0x108 pause duration range */
+    float constantCount;    /* +0x110 particles to keep alive (constant-count mode) */
+    int autoPause;          /* +0x114 pause emitting automatically (inferred: when off screen or far away) */
+    int groupOid;           /* +0x118 OID of the group emitter this one is slaved to (-1: none) */
+    DL groupList;           /* +0x11C the emitters slaved to this one (linked through groupLink) */
+    DLE groupLink;          /* +0x128 this emitter's link in its group's list */
+    float currentRate;      /* +0x130 rate drawn from `rate` */
+    float rateRedrawInterval; /* +0x134 */
+    float rateRedrawTime;   /* +0x138 game time `currentRate` is drawn again */
+    float density;          /* +0x13C rate multiplier (box volume or area when isCountDensity) */
+    float boxRadius;        /* +0x140 half the largest origin box extent (box modifier: particles wrap inside it) */
+    float particleFraction; /* +0x144 fractional particle carried to the next frame */
     float tUnpause;         /* +0x148 game time emission resumes */
     RIPG *pripg;            /* +0x14C particle group it emits into */
     BLIPG *pblipg;          /* +0x150 sprite group it emits into */
@@ -103,7 +199,37 @@ struct EMITTER : public XFM
     virtual void Update() __asm__("UpdateEmitter__FP7EMITTERf");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneEmitter__H1Z7EMITTER_PX01P2LO_v");   /* slot 41 */
 };
+typedef char assert_EMITTER_groupLink[SLY2_OFFSETOF(EMITTER, groupLink) == 0x128 ? 1 : -1];
+typedef char assert_EMITTER_tUnpause[SLY2_OFFSETOF(EMITTER, tUnpause) == 0x148 ? 1 : -1];
 typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class descriptor cb */
+
+/* EXPLSO flags: which of the explode request's fields the caller set (Sly 1's GRFEXPLSO) */
+enum EXPLSO_FLAGS {
+    EXPLSO_HAS_REFERENCE = 0x01,
+    EXPLSO_HAS_VECTOR = 0x02,
+    EXPLSO_HAS_ORIGIN = 0x04,
+    EXPLSO_HAS_SCALE = 0x08,
+    EXPLSO_HAS_RIP_SCALE = 0x10,    /* rips: the scale is their fixed initial scale */
+    EXPLSO_HAS_TOUCH = 0x20,
+    EXPLSO_HAS_XF = 0x40,           /* a local transform for the origin */
+    EXPLSO_HAS_COUNT = 0x80,
+};
+/* EXPLSO: what an explosion is asked to explode with (EXPL slot 51, ExplodeExplso; EXPLSO_* flags say which fields
+   the caller set) */
+struct EXPLSO
+{
+    int grf;                /* +0x00 EXPLSO_* flags */
+    LO *ploReference;       /* +0x04 reference object (the origin and the velocities follow it) */
+    float scale;            /* +0x08 */
+    float radius;           /* +0x0C (a scale of 0: the scale is radius / 100) */
+    qword vector;           /* +0x10 emission direction */
+    qword origin;           /* +0x20 origin point */
+    LO *ploTouch;           /* +0x30 the rips' touch object */
+    XF *pxf;                /* +0x34 a local transform for the origin */
+    int count;              /* +0x38 particle count */
+    int pad3C;
+};
+typedef char assert_EXPLSO_size[sizeof(EXPLSO) == 0x40 ? 1 : -1];
 
 /* EXPL: the explosion base class (an XFM; no own fields known here). */
 struct EXPL : public XFM
@@ -158,9 +284,34 @@ extern "C" void ColorCorrectRgba(RGBA *prgba);
 int BisU8Read(CBinaryInputStream *pbis) __asm__("U8Read__18CBinaryInputStream");
 int BisU16Read(CBinaryInputStream *pbis) __asm__("U16Read__18CBinaryInputStream");
 int BisU32Read(CBinaryInputStream *pbis) __asm__("U32Read__18CBinaryInputStream");
-extern "C" void *memset(void *pv, int b, unsigned int cb);
-extern "C" int memcmp(const void *pv1, const void *pv2, unsigned int cb);
-struct EMITMESH;
+/* memset / memcmp under labels, so that includers' own (namespaced) C declarations of them do not become ambiguous */
+void *EmitbMemset(void *pv, int b, unsigned int cb) __asm__("memset");
+int EmitbMemcmp(const void *pv1, const void *pv2, unsigned int cb) __asm__("memcmp");
+/* EMITVX: an even grid of emission directions for one burst (CalculateEmitvx; ChooseEmitVelocity picks cell i) */
+struct EMITVX
+{
+    int c;                  /* directions around the circle (pan steps) */
+    float dTilt;            /* tilt step */
+    float dPan;             /* pan step (2 pi / c) */
+    float tiltBase;         /* first tilt (half a step into the tilt range) */
+    float panBase;          /* random starting pan */
+};
+
+/* EMITMESH: an emitter's mesh origin (EMITO kind 3; particles spawn on its surface, triangles picked in proportion
+   to their area) */
+struct EMITTRI { int aipos[3]; float sArea; };   /* a triangle: three vertex indices and its area */
+struct EMITMESH
+{
+    int cpos;               /* +0x00 vertex count */
+    qword *apos;            /* +0x04 vertex positions */
+    int ctri;               /* +0x08 triangle count */
+    EMITTRI *atri;          /* +0x0C */
+    qword *anormal;         /* +0x10 vertex normals (sums of the triangle normals, normalized at load) */
+    float sArea;            /* +0x14 total area */
+    int pad18[2];
+    qword center;           /* +0x20 (FireExplsExplso: where the explosion's sound plays) */
+};
+typedef char assert_EMITMESH_center[SLY2_OFFSETOF(EMITMESH, center) == 0x20 ? 1 : -1];
 void LoadEmitmeshFromBrx(EMITMESH *pemitmesh, CBinaryInputStream *pbis);
 /* FindSwObject (sw.cpp) under a label: files that include this header declare its mangled name as a C function */
 LO *PloFindSwObjectE(SW *psw, int grffso, OID oid, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
@@ -218,7 +369,7 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
     u.req.cbAlign = 0x10;
     pclrs = (EMITBLIPCLRS *)PvAllocLevelHeapUncleared(&u.req);
     pv->pblipclrs = pclrs;
-    pv->n0C = BisU8Read(pbis);
+    pv->hasColorRanges = BisU8Read(pbis);
     pclrs->c = MinInt(n, 32);
     for (i = 0; i < n; i++)
     {
@@ -237,8 +388,8 @@ template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
     req.cbAlign = 0x10;
     InitEmitBlock(p->pemitb = (EMITB *)PvAllocLevelHeapUncleared(&req));
     p->XFM::LoadFromBrx(pbis);
-    if (p->pemitb->kEmito == 3)
-        LoadEmitmeshFromBrx((EMITMESH *)p->pemitb->pvEmito, pbis);
+    if (p->pemitb->emito.originKind == 3)
+        LoadEmitmeshFromBrx((EMITMESH *)p->pemitb->emito.pvEmito, pbis);
     LoadEmitblipColorsFromBrx(p, pbis);
 }
 
@@ -263,11 +414,11 @@ template <class T> void func_002586D8(T *p)
     p->LO::PostLoad();
     {
         EMITB *pemitb0 = p->pemitb;
-        oid1 = pemitb0->oidEmito;
-        if (pemitb0->kEmito == 2)
-            oid2 = pemitb0->pvEmito;
+        oid1 = pemitb0->emito.originOid;
+        if (pemitb0->emito.originKind == 2)
+            oid2 = pemitb0->emito.pvEmito;
     }
-    memset(aplo, 0, 0x14);
+    EmitbMemset(aplo, 0, 0x14);
     if (oid1 != -1)
         aplo[0] = PloFindSwObjectE(&g_sw, 4, (OID)oid1, p);
     if (oid2 != -1)
@@ -277,7 +428,7 @@ template <class T> void func_002586D8(T *p)
         aplo[1] = plo;
     }
     pemitb = p->pemitb;
-    switch (pemitb->kv)
+    switch (pemitb->particleKind)
     {
     case 1:
     {
@@ -299,7 +450,7 @@ template <class T> void func_002586D8(T *p)
     }
     if (p->pemitb->aploRef == 0)
         p->pemitb->aploRef = (LO **)PvEmitbRefsNull(p);
-    if (memcmp(p->pemitb->aploRef, aplo, 0x14))
+    if (EmitbMemcmp(p->pemitb->aploRef, aplo, 0x14))
     {
         PemitbEnsure(p, ENSK_Set);
         preq = &req;
@@ -318,12 +469,12 @@ template <class T> CLASSINFO *GetEmitterClassDesc_linkonce(T *p) { return Pclass
 template <class T> EMITV *func_00258898(T *p, ENSK ensk)
 {
     EMITB *pemitb = PemitbEnsure(p, ensk);
-    if (ensk == ENSK_Set && pemitb->kv == -1)
+    if (ensk == ENSK_Set && pemitb->particleKind == -1)
     {
-        pemitb->kv = 0;
+        pemitb->particleKind = 0;
         pemitb->v = D_002BDE10;
     }
-    if (pemitb->kv != 0)
+    if (pemitb->particleKind != 0)
         return (EMITV *)D_002DE720;
     return &pemitb->v;
 }
@@ -332,12 +483,12 @@ template <class T> EMITV *func_00258898(T *p, ENSK ensk)
 template <class T> EMITV *func_00258920(T *p, ENSK ensk)
 {
     EMITB *pemitb = PemitbEnsure(p, ensk);
-    if (ensk == ENSK_Set && pemitb->kv == -1)
+    if (ensk == ENSK_Set && pemitb->particleKind == -1)
     {
-        pemitb->kv = ensk;
+        pemitb->particleKind = ensk;
         pemitb->v = D_002BDE70;
     }
-    if (pemitb->kv != 1)
+    if (pemitb->particleKind != 1)
         return (EMITV *)D_002DE720;
     return &pemitb->v;
 }
@@ -357,35 +508,35 @@ template <class T> void func_002589A8(T *p, int kv)
 }
 
 /* get: which record the slot holds */
-template <class T> int func_002589F0(T *p) { return p->pemitb->kv; }
+template <class T> int func_002589F0(T *p) { return p->pemitb->particleKind; }
 
 /* setUser: set the EMITO kind and allocate its data (only from unset) */
 template <class T> void func_00258A00(T *p, int k)
 {
     EMITB *pemitb;
-    if (p->pemitb->kEmito == k)
+    if (p->pemitb->emito.originKind == k)
         return;
-    if (p->pemitb->kEmito != 0)
+    if (p->pemitb->emito.originKind != 0)
         return;
     pemitb = PemitbEnsure(p, ENSK_Set);
-    pemitb->kEmito = k;
+    pemitb->emito.originKind = k;
     switch (k)
     {
-    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
-    case 2: pemitb->pvEmito = -1; break;
-    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
+    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
+    case 2: pemitb->emito.pvEmito = -1; break;
+    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
     }
 }
 
 /* get: the EMITO kind */
-template <class T> int func_00258AB8(T *p) { return p->pemitb->kEmito; }
+template <class T> int func_00258AB8(T *p) { return p->pemitb->emito.originKind; }
 
 /* ensure: the EMITO kind (as kind 0 on a write) */
 template <class T> int *func_00258AC8(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         func_00258A00(p, 0);
-    return &p->pemitb->kEmito;
+    return &p->pemitb->emito.originKind;
 }
 
 /* ensure: the EMITO data (as kind 1 on a write) */
@@ -393,7 +544,7 @@ template <class T> int func_00258B00(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         func_00258A00(p, 1);
-    return p->pemitb->pvEmito;
+    return p->pemitb->emito.pvEmito;
 }
 
 /* ensure: the EMITO kind (as kind 2 on a write) */
@@ -401,7 +552,7 @@ template <class T> int *func_00258B38(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         func_00258A00(p, 2);
-    return &p->pemitb->kEmito;
+    return &p->pemitb->emito.originKind;
 }
 
 /* setUser: record 1's payload kind (2, 3 or 8; only from unset), payload reset from its default */

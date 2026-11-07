@@ -659,6 +659,81 @@ counted pointers in the derived class). Not attempted: the SP* inline-release ow
 views of splice/ (tied to gc.cpp's linkonce instances), WIDGET (classes.h, another family), screen.cpp's
 per-function views (~100), CRichText/CFont. For sw.h's owner: FILEREC's key words are aw[0], aw[1], aw[13], aw[15].
 
+### Views unified (names/vu-f6-render): the render family
+
+The private views of the emitter block and its records, the rips, the render list, the model sub-mesh records, the
+colour tables / bitmaps / TEX0 register and the GS block allocator, replaced by shared header types. Every function and
+data symbol of every touched file and of every includer of the changed headers (the 75 classes.h includers for
+emitter.h) MATCHes, and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---:|
+| SUBGLOBX (12 identical copies), SUBGLOBLOAD (2) | new sly2/glob.h | 14 | 11 |
+| RPL, the render-list entry (`pbCall`/`pvCall`: the two DMA CALL targets) | new sly2/render.h (self-contained) | 6 | 4 |
+| EMITTER's fields (mode, count, rate, pause, group list/link, current rate, density, box radius...); EMITB as Sly 1 lays it out: EMITO origin record (+0x10, a union for the point position / data word), EMITVEL velocity record (+0x50; Sly 1's EMITV, renamed because EMITV is in the accessors' mangled names), EMITV particle record (+0xC0) as a union of the rip and blip records selected by particleKind, with EMITROLL/EMITREMIT payloads; EMITREF indices for aploRef; EMITMESH/EMITTRI, EMITVX, EXPLSO and its flags | sly2/emitter.h | emitter.cpp 60 definitions (7 EMITTER views, the EMITB/record views EMITBV/EP/E/S/B/X/P/EMITREFS/EMITO/SAV/EO, EMITMESH/EMITVX copies, EMITDEF::EMITO and their helper types); blip 1, grab 3, po 2 | 4 |
+| RIP and its kind classes moved out of rip.cpp; RIP gains startTime, renderObject, the scale curve, orientation, velocity, angularVelocity, touchObject; FLYING/MATCH/REMIT/SHRAPNEL fields; `RIP::Init(pos, scale, psoTouch)` in Sly 1's parameter order (InitMatch's symbol), `PostEmit(EMITB *)` | new sly2/rip.h | 14 (rip.cpp's per-function RIP/RIPGV/SHRAPNEL/OBJ views, emitter.cpp's RIPV/RIP) | rip, emitter |
+| TEX0 (one word or GS fields), CLUT, BMP | new sly2/shd.h (self-contained) | 9 | shd, font, gs, tu_1BE398 |
+| GSB/GSBB (0x630) | new sly2/gs.h (self-contained) | 4 | gs, font, tu_1BE398 |
+
+Hand-made vtable calls that became real virtual calls and still match: EMITTER group creation (RotateToMat, slot 30),
+ConvertEmitoPosVec and OriginateSplineSinkParticles (GetLocalTransform, slot 32), EmitRips and WakeSoWater (RIP::Init,
+PostEmit). EMITTER::HandleMessage and REMIT::PostEmit became members. EmitRips matched only once RIP::Init took its
+arguments as (position, scale, touch object): with (position, touch, scale) the scale's call moves and the allocation
+shifts. Struct definitions in src/game .cpp: 7290 -> 7162; render-family names (inv.py): 165 -> 82.
+
+Islands (matching-only, recorded in scratch islands.csv): emitter.cpp's two default/splash initializers keep their
+union-shaped views (`EMITDEF::EMITVELIsland`, WakeSoWater's `EMITVIsland`/`EMITVELIsland`): the unions there are
+scheduling barriers the header records do not have, and the header EMITV (anonymous union of the two records) as an
+aggregate initializer makes cc1plus exit silently. RIP::Init reads the clock through a bare-float view of g_clock.time
+(10/23 off through CLOCK).
+
+Not converted: views of RIPG, BLIPG, EXPLG and EXPLS fields (classes.h names none of their fields; not this family's
+header: rip.cpp's RIPGV, emitter.cpp's BLIPG/RIPG/PRG/EXPLGV/EXPLS views, the EMITG views typed on them); RENDERTGT
+views (sly2/sw.h keeps TEX0 as a plain word; shd.h's TEX0 union could replace it); the namespaced Lilly views in
+glob.cpp, shd.cpp, light.cpp, blip.cpp (SHD, DMA/DMAS/VIFS/GIFS packet classes, PACKET, LIGHT, SAA); tu_1147D8 /
+tu_114AE0's constructor-initialized CLUT/BMP (a constructor in shd.h's CLUT would change every includer); the hand
+vtable calls of rip.cpp's hand-tuned functions (BounceRipgRips, UpdateRipg, RenderRipgSelf, HandleRipBounce, the
+Render* bodies).
+
+### Views unified, round 2 (names/vu-f6-render-2): shaders, packet streams, light packets, rip calls
+
+The namespaced Lilly / per-function views of the render family's records in shd, glob, blip, light, tu_1147D8 and
+tu_114AE0 (and so.cpp's views of the light record), and the hand-made vtable calls of rip.cpp, replaced by shared types
+and real calls. Every function and data symbol of each touched file and of every includer of a changed header MATCHes,
+and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---|
+| CLUT/BMP constructors from a header (`CLUT(void *pvHeader)` calls CopyClutHeader; likewise BMP), CLUT/BMP `clevel` (+0x05, the level filter) and BMP `cb` (+0x10) | sly2/shd.h | 4 | tu_1147D8, tu_114AE0 |
+| TEX (0x14: grftex +0x04, cbmp +0x06 = the frame count, cclut +0x07; glob's Lilly TEXF had cibmp/ciclut at +4/+5, the loaders show otherwise), SHDP (upload record), SHD (0x2C), SHDBLIP (the compact record blips use, linked on SW::slShd; our name) | sly2/shd.h | shd 30 (SHDV, the loaders' X/Y/E/Z/E20/E28, LoadShdFromBrx's L/C/ENT, BuildShaderTex0List's Src/S3/Dst, BuildShaderGifPackets' ENTRY/PACKET/RGBA/TEXTURE, the upload functions' E1/E2/T1/T2/BS/X/DMAS/M, the hash functions' S); blip 1 | shd, blip |
+| the frame's VIF1 stream D_002DEA28 as vifs.h's VIFS | (vifs.h) | glob 4 DMA, blip VIFS | glob, blip |
+| render-list entry | sly2/render.h RPL | blip DMA | blip |
+| SOBOUNDS, the per-object light packets (SO::psobounds, only declared by so.h) | new sly2/light.h | light LIGHTQ, glob 2 SHD (the "SHD" of RenderSoGlobset / BuildModelDrawPackets is this record), so.cpp SOBOUNDS/Q/B | light, glob, so |
+
+Real calls that match: blip's VIFS/DMAS members (all but one AddVifUnpack that passes a fifth word: 4 instructions move
+as a member call), GIFS::PackAD in PackTexGifs, VIFS::AddVifUnpack in AddShaderVifUnpack, UploadPermShaders' GIFS/VIFS
+locals with member calls and a STACKSCOPE local (the views were 0x30 bytes; the real 0x28/0x24-byte classes give the
+same frame; `result = 0` must sit between the two constructors), BuildUploadBitmapGifs a C++ function again
+(`BuildUploadBitmapGifs__FiP3GSBP4GIFS` from the real GSB/GIFS types). rip.cpp: RIP::Update and SO::Remove in UpdateRipg,
+RIP::Render in RenderRipgSelf, RIP::HandleBounce in BounceRipgRips, RIP::Project in ProjectRipgTransform, RIP::Init in
+UpdateRipt1 (the hand call's (float, qword, pointer) order is the same register assignment as Init's (qword, float,
+pointer)). For these rip.h's `Update()` and `Render()` lost their parameters: the dispatchers pass none, UpdateRip and
+RenderRip take only the rip, and no override reads a time step or camera (Sly 1's `RenderShrapnel__FP8SHRAPNELP2CM`
+symbol still names a CM). SHDBLIP's colour is a union with a channel array: PropagateBlipgShader indexes it, and only an
+array member keeps the colour's address in a register (9/85 off through a cast).
+
+Inventory (inv.py render-family names in src/game .cpp): 82 -> 60; struct/class/union definitions in src/game .cpp/.inc
+(`grep -E '^\s*(typedef\s+)?(struct|class|union)\s+\w*\s*(:[^{;]*)?\{'`): 6938 -> 6873.
+
+Not converted, and why: LIGHT (light.cpp's LIGHTV) and SAA (shdanim's SAAV/SAAF/SAACLS, glob's SAAVIRT/SAAFIELDS) need
+fields in sly2/classes.h (LIGHT +0xE0..0x170 and SAA +0x10..0x50 are padding there; not this family's header);
+glob's M_LoadSubglobType0FromBrx (a 1450-line Lilly port with its own QW/VECTOR/RGBA/OID/SAA/LO/SO universe) keeps its
+DMAS/VIFS/TEX/SHD/CLUT copies until that universe gives way to the shared headers; glob's relight PACKET/PACKETS and
+light.cpp's PACKET are different records (no shared evidence); shd.cpp's CopyClutHeader/CopyBitmapHeader (file
+headers, not CLUT/BMP objects), BuildWorldBackgroundImage's GIFS view, AddShaderVifUnpackQword, SHDREC; rip.cpp's
+remaining hand calls (BounceRipgRips' slot-9 Remove on the P view, UpdateRip's slots 7/73, ReleaseRip's slots 3/5,
+CreateStuck's Init on its O view, MATCH's slot 8, REMIT's slot 51) sit on views that would need RIPG/SO/STUCK fields.
+
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key

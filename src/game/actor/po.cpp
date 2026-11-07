@@ -12,6 +12,7 @@
 #include "sly2/cm.h"
 #include "sly2/po.h"
 #include "sly2/step.h"
+#include "sly2/emitter.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/cref.h"
@@ -21,9 +22,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 
-/* An emitter (its block at +0xE4 is reference counted, copied on write). */
-struct EMB { int cref; int b; int *pn; };
-struct EMITX { char pad[0xE0]; int fDirty; EMB *pemitb; };
 
 /* The world (SW) as this TU reads it. */
 
@@ -59,7 +57,7 @@ void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pv, float *pa, float *pb);
-EMB *AllocCopyFromWorldHeap(MSG *, EMB *);
+EMITB *AllocCopyFromWorldHeap(MSG *, EMITB *);
 void *AllocClearedFromWorldHeap(MSG *pmsg);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(CRefData *p);
@@ -80,9 +78,9 @@ void UpdatePoctlPressed(POCTL *p);
 int GetButtonsPressedWithin__5POCTLUif(POCTL *p, unsigned int grf, float dt);
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, unsigned int grf, float dt);
 void UpdateSwPoFollowers(SW *p);
-/* sly2/emitter.h's PemitbEnsure<EMITTER> (the linkonce copy 0x258658, emitted by emitter.cpp); po's private
-   EMITX/EMB views keep it from including emitter.h (its heap allocators are declared on other request types) */
-EMB *PemitbEnsureEmitter(EMITX *p, int x) __asm__("PemitbEnsure__H1Z7EMITTER_PX014ENSK_P5EMITB");
+/* sly2/emitter.h's PemitbEnsure<EMITTER> (the linkonce copy 0x258658, emitted by emitter.cpp), declared by its symbol:
+   calling the template here would emit another copy of it in this object */
+EMITB *PemitbEnsureEmitter(EMITTER *p, int x) __asm__("PemitbEnsure__H1Z7EMITTER_PX014ENSK_P5EMITB");
 }
 /* LoadRotateMatrixPanTilt as this caller sees it: returning the matrix. */
 MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) __asm__("LoadRotateMatrixPanTilt");
@@ -423,18 +421,19 @@ PO *GetHeroPo(SW *world) {
     return ((PO *)world->currentPlayer);
 }
 
-// Adds an LO to the world's follower list (max 4) and gives it a 0x14-byte follower record. (inferred)
-extern "C" void AddSwPoFollower(SW *world, EMITX *follower)
+// Adds an emitter to the world's follower list (max 4) and gives it its own 0x14-byte reference block (its
+// reference object follows the current PO, UpdateSwPoFollowers). (inferred)
+extern "C" void AddSwPoFollower(SW *world, EMITTER *follower)
 {
     if ((unsigned int)world->cpemitTracked < 4) {
-        EMB *pv;
+        EMITB *pv;
         world->apemitTracked[world->cpemitTracked++] = (EMITTER *)follower;
         pv = PemitbEnsureEmitter(follower, 1);
-        if (!pv->pn) {
+        if (!pv->aploRef) {
             MSG msg;
             msg.cb = 0x14;
             msg.nKind = 0x10;
-            pv->pn = (int *)AllocClearedFromWorldHeap(&msg);
+            pv->aploRef = (LO **)AllocClearedFromWorldHeap(&msg);   /* its own reference block */
         }
     }
 }
@@ -444,8 +443,8 @@ void UpdateSwPoFollowers(SW *world)
 {
     int i;
     for (i = 0; i < world->cpemitTracked; i++) {
-        EMITX *pb = (EMITX *)world->apemitTracked[i];
-        *pb->pemitb->pn = (int)world->currentPlayer;
+        EMITTER *pb = (EMITTER *)world->apemitTracked[i];
+        pb->pemitb->aploRef[EMITREF_Reference] = (LO *)world->currentPlayer;   /* emit from the current PO */
         SetLoParent(pb, (int)world->currentPlayer, 0);
     }
 }

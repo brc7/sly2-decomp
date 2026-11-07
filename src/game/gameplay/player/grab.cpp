@@ -26,6 +26,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
+#include "sly2/emitter.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -2797,28 +2798,8 @@ struct JTGRABCAND
     float dsParam;
     qword position;
 };
-struct EMITP                // particle parameters, at EMITB + 0x50
-{
-    LM lmSv;                // velocity scale
-    char pad08[0x3C - 0x08];
-    float dtLife;
-    char pad40[0x48 - 0x40];
-    LM lmOffset;            // push along the velocity
-    LM lmAge;               // how long ago the particle was born
-};
-struct EMITB { char pad0[0x50]; EMITP emitp; };
 struct PRG;
-struct EMITTER
-{
-    char pad0[0xE0];
-    int fValuesChanged;
-    EMITB *pemitb;
-    char padE8[0xFC - 0xE8];
-    float gRate;            // particles per second
-    char pad100[0x150 - 0x100];
-    PRG *pprg;
-};
-struct EMITX { PRG **ppprg; void *ppripg; EMITTER *pemitter; };
+struct EMITX { BLIPG **ppblipg; void *ppripg; EMITTER *pemitter; };   /* EMITG */
 struct SW;
 struct STEPPLAYER { char pad0[0x12F8]; EMITTER *pemitterGrab; };
 
@@ -2859,15 +2840,15 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
     VECTOR apos[10], av[10];
     float atBirth[10], atDeath[10];
     EMITTER *pemitter = player->pemitterGrab;
-    EMITP *pemitp;
+    EMITVEL *pemitp;
     int cpart;
     int icand;
 
     if (!pemitter)
         return;
-    if (pemitter->fValuesChanged)
+    if (pemitter->fDirty)
         OnEmitterValuesChanged(pemitter);
-    pemitp = &pemitter->pemitb->emitp;
+    pemitp = &pemitter->pemitb->vel;
 
     cpart = 0;
     for (icand = 0; icand < ccand; icand++) {
@@ -2877,7 +2858,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
 
         if (candidate->priority == -1)
             continue;
-        g = pemitter->gRate * D_002DDED0.deltaTime;
+        g = pemitter->rate.maxValue * D_002DDED0.deltaTime;
         gRand = RandomFloatInRange__Fff(0.0f, 1.0f);
         c = (int)g;
         g -= (float)c;
@@ -2889,16 +2870,16 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
             VU_FLOAT s;
 
             GetSparkle(candidate, &pos, &v);
-            s = VU_FLOAT(RandomInRange(&pemitp->lmSv));
+            s = VU_FLOAT(RandomInRange(&pemitp->lmSpeed));
             VU_VECTOR vs = s * v;
             vScaled.q = vs.q;
             float tBirth = D_002DDED0.time;
             tBirth -= RandomInRange(&pemitp->lmAge);
             atBirth[cpart] = tBirth;
-            atDeath[cpart] = tBirth + pemitp->dtLife;
-            if (pemitp->lmOffset.minValue != pemitp->lmOffset.maxValue) {
+            atDeath[cpart] = tBirth + pemitp->lifetime;
+            if (pemitp->lmPush.minValue != pemitp->lmPush.maxValue) {
                 VU_VECTOR posOld = pos;
-                s = VU_FLOAT(RandomInRange(&pemitp->lmOffset));
+                s = VU_FLOAT(RandomInRange(&pemitp->lmPush));
                 pos.q = AddScaled(posOld, vScaled, s).q;
             }
             apos[cpart] = pos;
@@ -2913,7 +2894,7 @@ LEmit:
     if (cpart > 0) {
         EMITX emitx;
         func_002333B4(&emitx, 0, sizeof(emitx));
-        emitx.ppprg = &pemitter->pprg;
+        emitx.ppblipg = &pemitter->pblipg;
         emitx.pemitter = pemitter;
         EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(pemitter->pemitb, &emitx, cpart, apos, av, atBirth, atDeath, 0,
                                                       0);

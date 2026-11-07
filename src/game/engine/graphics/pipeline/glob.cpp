@@ -15,6 +15,9 @@
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
+#include "sly2/glob.h"
+#include "sly2/render.h"
+#include "sly2/light.h"
 #include "sly2/cm.h"
 #include "vifs.h"
 #include "gifs.h"
@@ -35,6 +38,7 @@ typedef unsigned size_t; inline float GetVectorComponentX(VECTOR *pvec); inline 
 extern "C" {
 extern char D_0025B880[], D_0025C1B0[];   /* the cel-border VU1 microprogram */
 extern QW D_002DF700[2], D_002DF720[2];   /* the cutout GS register packets */
+extern VIFS D_002DEA28;                     /* the frame's VIF1 packet stream */
 void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd) __asm__("EnsureVu1Code__FP4VIFSPvT1");
 void BeginRpGlobV(VIFS *pvifs) __asm__("BeginRpGlob");   /* named apart: other functions declare their own views */
 void EndRpGlobV(VIFS *pvifs) __asm__("EndRpGlob");
@@ -98,12 +102,6 @@ struct BND
 };
 
 
-struct SUBGLOBLOAD
-{
-    float fogIntensity;     /* BuildCmFgfn's argument (the fog curve uploaded with the geometry) */
-    int numLitQwords;       /* size of the lit-vertex DMA chain (set by the type-0 loader) */
-    int batchMode;          /* 0 / 1 / 2: batch header flag 0x100 / 0x200 / 0x400 */
-};
 
 
 struct SWALLOC
@@ -706,18 +704,6 @@ struct PACKET
     U sphere;
     M4 matrix;
 };
-struct DMA
-{
-    char pad[0xC];
-    uchar *pb;
-};
-struct RPL
-{
-    int kind, pad4;
-    uchar *pb;
-    void *chain;
-};
-extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern SW D_003DD490; }
 extern "C" {
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
@@ -762,11 +748,11 @@ static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw, int fNever)
 // Append a VIF code TAG and then cw words from pv to the DMA packet D_002DEA28.
 template <uint TAG> static inline void UnpackQws(const void *pv, int cw, int fNever)
 {
-    DMA *pdma = &D_002DEA28;
-    *(uint *)pdma->pb = TAG;
-    pdma->pb += 4;
-    CopyQws((uint *)pdma->pb, (const uint *)pv, cw, fNever);
-    pdma->pb += cw * 4;
+    VIFS *pdma = &D_002DEA28;
+    *(uint *)pdma->m_pb = TAG;
+    pdma->m_pb += 4;
+    CopyQws((uint *)pdma->m_pb, (const uint *)pv, cw, fNever);
+    pdma->m_pb += cw * 4;
 }
 // Return the entry's world matrix: its transform, times its parent's matrix when it has one.
 static inline M4 ModelMatrix(const ENTRY *entry) return model
@@ -813,26 +799,26 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
             packet.sphere.q = QwTransformPos(&packet.matrix, center.q);
             packet.sphere.f[3] = GetMaxRowLengthMatrix3((const M3 *)&packet.matrix) * sphere->sphere.radius;
         }
-        ulong *ptag = (ulong *)D_002DEA28.pb;
+        ulong *ptag = (ulong *)D_002DEA28.m_pb;
         *ptag = 0x10000000;
-        D_002DEA28.pb += 0x10;
+        D_002DEA28.m_pb += 0x10;
         UnpackQws<0x6C06C301>(&packet, sizeof(PACKET) / sizeof(uint), fNever);
         {
-            DMA *pdma = &D_002DEA28;
-            for (uchar *pbPad = pdma->pb; (uint)pbPad & 0xF; pbPad = pdma->pb)
+            VIFS *pdma = &D_002DEA28;
+            for (uchar *pbPad = pdma->m_pb; (uint)pbPad & 0xF; pbPad = pdma->m_pb)
             {
                 *(uint *)pbPad = 0;
-                pdma->pb += 4;
+                pdma->m_pb += 4;
             }
         }
-        *(uint *)ptag |= ((D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
-        *(ulong *)D_002DEA28.pb = 0x60000000;
-        D_002DEA28.pb += 0x10;
+        *(uint *)ptag |= ((D_002DEA28.m_pb - (uchar *)ptag) >> 4) - 1;
+        *(ulong *)D_002DEA28.m_pb = 0x60000000;
+        D_002DEA28.m_pb += 0x10;
         RPL *prpl = AllocRenderListEntry();
-        prpl->pb = (uchar *)ptag;
+        prpl->pbCall = (uchar *)ptag;
         prpl->kind = 0;
-        prpl->pad4 = 0;
-        prpl->chain = descriptor->chain;
+        *(int *)&prpl->depth = 0;   /* an int store of 0.0f */
+        prpl->pvCall = descriptor->chain;
     }
     p->tick = D_003DD490.relightStamp;
 }
@@ -858,8 +844,6 @@ typedef struct DESC {
     uint base;
 } DESC;
 typedef struct ENTRY { char pad0[0x18]; BONE *bones; } ENTRY;
-typedef struct DMA { uint fields[3]; uint *cur; } DMA;
-extern DMA D_002DEA28;
 
 // Load a 128-bit value with lq into a GPR (no VU0 round trip).
 static __inline__ qword ReadCPU(const qword *source)
@@ -872,12 +856,12 @@ static __inline__ qword ReadCPU(const qword *source)
 // Pad the DMA packet with zero words until its cursor is at the given offset within a quadword.
 static __inline__ void Align(uint align)
 {
-    DMA *dma = &D_002DEA28;
-    qword *output = (qword *)dma->cur;
+    VIFS *dma = &D_002DEA28;
+    qword *output = (qword *)dma->m_pb;
     while (((uint)output & 15) != align) {
         *(uint *)output = 0;
-        dma->cur++;
-        output = (qword *)dma->cur;
+        dma->m_pb += 4;
+        output = (qword *)dma->m_pb;
     }
 }
 
@@ -899,9 +883,9 @@ void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
     opcode |= 0x6000C000;
     opcode |= 0x0C000000;
     opcode |= descriptor->base;
-    *D_002DEA28.cur = opcode;
-    D_002DEA28.cur++;
-    output = (qword *)D_002DEA28.cur;
+    *(uint *)D_002DEA28.m_pb = opcode;
+    D_002DEA28.m_pb += 4;
+    output = (qword *)D_002DEA28.m_pb;
     bone = entry->bones;
     last = bone + descriptor->count - 1;
     parent = bone->transform;
@@ -945,7 +929,7 @@ void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
         v5 = n0; v6 = n1; v7 = n2; v8 = n3;
         bone++;
     }
-    D_002DEA28.cur = (uint *)output;
+    D_002DEA28.m_pb = (uchar *)output;
 }
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
@@ -959,7 +943,6 @@ typedef char layout_BONE_local[((unsigned long)&((BONE*)0)->local==0x10)?1:-1];
 typedef char layout_DESC_count[((unsigned long)&((DESC*)0)->count==0x1)?1:-1];
 typedef char layout_DESC_base[((unsigned long)&((DESC*)0)->base==0xc)?1:-1];
 typedef char layout_ENTRY_bones[((unsigned long)&((ENTRY*)0)->bones==0x18)?1:-1];
-typedef char layout_DMA_cur[((unsigned long)&((DMA*)0)->cur==0xc)?1:-1];
 typedef char layout_M4_row0[((unsigned long)&((M4*)0)->r[0]==0x0)?1:-1];
 typedef char layout_M4_row1[((unsigned long)&((M4*)0)->r[1]==0x10)?1:-1];
 typedef char layout_M4_row2[((unsigned long)&((M4*)0)->r[2]==0x20)?1:-1];
@@ -1012,7 +995,7 @@ namespace M_RenderSoGlobset {
 //   Left: cull 1 load/sq order + registers (target: radius lw after gain, regs v1/a0/v0/a2), cull 2 radius/range registers swapped (target radius v1, range a0),
 //   cull-2 tail `sw v1,0x1A4` / `swc1 f0,0x158` (sched1 puts the i+1 PRE insn before the swc1, so reload's spill store wins the sched2 luid tie).
 // laneH21v2 (Claude agent): aligned 30. laneI9v1 + CopyQws as `do { } while (0);` + for-k copy loop (no asm barrier; 31) + cull 2 through GetSphereVisibilitySync (vcallms and the cfc2.i sync as separate asms: target mtc1 zero / qmfc2 order) with a commented dead-$3 clobber on its qmfc2 (30).
-// laneI9v1 (Claude agent): aligned 31. laneI8v1 + final dist qmfc2 written straight to prpl->dist via "=r,m" : "j,!r" (never-chosen m alternative keeps the MEM; the qmfc2 output reload in v0 advances reload's round robin, so the pbStart reload gets v1 as in the target).
+// laneI9v1 (Claude agent): aligned 31. laneI8v1 + final dist qmfc2 written straight to prpl->depth via "=r,m" : "j,!r" (never-chosen m alternative keeps the MEM; the qmfc2 output reload in v0 advances reload's round robin, so the pbStart reload gets v1 as in the target).
 // laneI8v1 (Claude agent): aligned 33. laneI7v2 + KindOf as (ulong)(psub->grf & 0xF8) >> 3 (target lbu + dsrl in the final switch, 35 -> 33).
 // laneI7v2 (Claude agent): aligned 35. laneI6v2 + params (pmodel, pmatWorld, gFirst, gSecond, pshd) (entry pshd spill order, 51 -> 48) + case-3 SqDist returns float straight from qmfc2 (48 -> 35).
 // laneI6v2 (Claude agent): aligned 51. laneI5v4 + final GetSquaredLengthBits with qwOne as operand 0, case 3 GBitsSqDist (old order), fAlt kind as (x != 1.0f) ? 23 : 22.
@@ -1025,10 +1008,6 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
 typedef int qword __attribute__((mode(TI)));
-struct MATRIX4
-{
-    float mat[4][4];
-} __attribute__((aligned(16)));
 struct VECTOR4
 {
     float x, y, z, w;
@@ -1116,26 +1095,6 @@ struct MODEL
         float scale;
     };
 };
-struct SHD
-{
-    uint aw[9];
-    MATRIX4 *pmatClip;
-    uint ibRef;
-    uint cqwRef;
-};
-struct DMA
-{
-    char pad[0xC];
-    uchar *pb;
-};
-struct RPL
-{
-    int kind;
-    float dist;
-    uchar *pb;
-    char *pv;
-};
-extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
@@ -1297,32 +1256,32 @@ static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
 // Append the VIF code TAG and then cw words from pv to the DMA packet D_002DEA28.
 template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
 {
-    DMA *pdma = &D_002DEA28;
-    *(uint *)pdma->pb = TAG;
-    pdma->pb += 4;
-    CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
-    pdma->pb += cw * 4;
+    VIFS *pdma = &D_002DEA28;
+    *(uint *)pdma->m_pb = TAG;
+    pdma->m_pb += 4;
+    CopyQws((uint *)pdma->m_pb, (const uint *)pv, cw);
+    pdma->m_pb += cw * 4;
 }
 // Append the VIF code tag and then cw words from pv to the DMA packet D_002DEA28.
 static inline void UnpackQws(uint tag, const void *pv, int cw)
 {
-    DMA *pdma = &D_002DEA28;
-    *(uint *)pdma->pb = tag;
-    pdma->pb += 4;
-    CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
-    pdma->pb += cw * 4;
+    VIFS *pdma = &D_002DEA28;
+    *(uint *)pdma->m_pb = tag;
+    pdma->m_pb += 4;
+    CopyQws((uint *)pdma->m_pb, (const uint *)pv, cw);
+    pdma->m_pb += cw * 4;
 }
 // Append the VIF code tag and then cw words from pv (copied one word at a time) to the DMA packet.
 static inline void UnpackWords(uint tag, const void *pv, int cw)
 {
-    DMA *pdma = &D_002DEA28;
-    *(uint *)pdma->pb = tag;
-    pdma->pb += 4;
-    uint *pwDst = (uint *)pdma->pb;
+    VIFS *pdma = &D_002DEA28;
+    *(uint *)pdma->m_pb = tag;
+    pdma->m_pb += 4;
+    uint *pwDst = (uint *)pdma->m_pb;
     const uint *pwSrc = (const uint *)pv;
     for (int k = 0; k < cw; k++)
         *pwDst++ = *pwSrc++;
-    pdma->pb += cw * 4;
+    pdma->m_pb += cw * 4;
 }
 // Sub-glob kind: bits 3..7 of its flags.
 static inline int KindOf(SUB *psub)
@@ -1331,7 +1290,7 @@ static inline int KindOf(SUB *psub)
 }
 // Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates shader
 // animations, builds/queues VIF packets (0x1681F8/0x1684D0) (inferred)
-extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SHD *pshd)
+extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SOBOUNDS *pshd)
 {
     SUBDESC *pdesc;
     qword posCam = g_cm.matq.pos;
@@ -1411,39 +1370,39 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             if (!IsWithinCameraRenderDistance(&g_cm, dposSub, psph->sRange, &gVisSub))
                 continue;
         }
-        uchar *pbStart = D_002DEA28.pb;
+        uchar *pbStart = D_002DEA28.m_pb;
         if (psub->grf & 0x100)
         {
-            *(ulong *)pbStart = (ulong)(int)(pshd->aw[5] | 0x40000000) | ((ulong)(int)pshd->aw[6] << 32);
-            D_002DEA28.pb += 0x10;
+            *(ulong *)pbStart = (ulong)(int)(pshd->cqwPacket | 0x40000000) | ((ulong)(int)pshd->pbPacket << 32);
+            D_002DEA28.m_pb += 0x10;
         }
         ulong *ptag;
         switch (psub->grf & 7)
         {
         case 2:
-            if (!pshd->cqwRef)
+            if (!pshd->pbVolume)
                 continue;
-            *(ulong *)D_002DEA28.pb = (ulong)(int)(pshd->ibRef | 0x40000000) | ((ulong)pshd->cqwRef << 32);
-            D_002DEA28.pb += 0x10;
-            ptag = (ulong *)D_002DEA28.pb;
+            *(ulong *)D_002DEA28.m_pb = (ulong)(int)(pshd->cqwVolume | 0x40000000) | ((ulong)(uint)pshd->pbVolume << 32);
+            D_002DEA28.m_pb += 0x10;
+            ptag = (ulong *)D_002DEA28.m_pb;
             *ptag = 0x10000000;
-            D_002DEA28.pb += 0x10;
+            D_002DEA28.m_pb += 0x10;
             break;
         case 3:
         {
-            ptag = (ulong *)D_002DEA28.pb;
+            ptag = (ulong *)D_002DEA28.m_pb;
             *ptag = 0x10000000;
             float g = SqDist(posCam, posSub);
             float sNear = sRadiusSub + g_cm.nearCornerDistance;
-            D_002DEA28.pb += 0x10;
+            D_002DEA28.m_pb += 0x10;
             int fNear = g < sNear * sNear;
             UnpackWords(0x6001C012, &fNear, 1);
             break;
         }
         default:
-            ptag = (ulong *)D_002DEA28.pb;
+            ptag = (ulong *)D_002DEA28.m_pb;
             *ptag = 0x10000000;
-            D_002DEA28.pb += 0x10;
+            D_002DEA28.m_pb += 0x10;
             break;
         }
         if (psub->abone)
@@ -1497,16 +1456,16 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             }
         }
         {
-            DMA *pdma = &D_002DEA28;
-            for (uchar *pbPad = pdma->pb; (uint)pbPad & 0xF; pbPad = pdma->pb)
+            VIFS *pdma = &D_002DEA28;
+            for (uchar *pbPad = pdma->m_pb; (uint)pbPad & 0xF; pbPad = pdma->m_pb)
             {
                 *(uint *)pbPad = 0;
-                pdma->pb += 4;
+                pdma->m_pb += 4;
             }
         }
-        *(uint *)ptag |= ((int)(D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
-        *(ulong *)D_002DEA28.pb = 0x60000000;
-        D_002DEA28.pb += 0x10;
+        *(uint *)ptag |= ((int)(D_002DEA28.m_pb - (uchar *)ptag) >> 4) - 1;
+        *(ulong *)D_002DEA28.m_pb = 0x60000000;
+        D_002DEA28.m_pb += 0x10;
         RPL *prpl = AllocRenderListEntry();
         switch (KindOf(psub))
         {
@@ -1534,11 +1493,11 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             break;
         }
         if (psub->grf & 0x400)
-            prpl->dist = pdesc->dist;
+            prpl->depth = pdesc->dist;
         else
-            StoreSquaredLengthBits(*(int *)&prpl->dist, dposSub);
-        prpl->pb = pbStart;
-        prpl->pv = psub->pb;
+            StoreSquaredLengthBits(*(int *)&prpl->depth, dposSub);
+        prpl->pbCall = pbStart;
+        prpl->pvCall = psub->pb;
     }
 }
 } // namespace M_RenderSoGlobset
@@ -1554,10 +1513,6 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
 typedef int qword __attribute__((mode(TI)));
-struct MATRIX4
-{
-    float mat[4][4];
-} __attribute__((aligned(16)));
 struct VECTOR4
 {
     float x, y, z, w;
@@ -1576,10 +1531,6 @@ struct OBJ
 {
     char pad[0xC];
     VTENT *pvt;
-};
-struct SHD
-{
-    uint aw[12];
 };
 struct ALO
 {
@@ -1648,26 +1599,13 @@ struct MODEL
     char pad48[8];
     float scale;
 };
-struct DMA
-{
-    char pad[0xC];
-    uchar *pb;
-};
-struct RPL
-{
-    int kind;
-    float dist;
-    uchar *pb;
-    char *pv;
-};
 struct G;
-extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern G D_003DD490; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-void BuildLightPackets(G *pg, int c, void **apv, SHD *pshd);
+void BuildLightPackets(G *pg, int c, void **apv, SOBOUNDS *pshd);
 int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
 int GetRenderTargetTexture(ALO *palo, int n);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
@@ -1736,31 +1674,31 @@ static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
 // Append the VIF code TAG and then cw words from pv to the DMA packet D_002DEA28.
 template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
 {
-    DMA *pdma = &D_002DEA28;
-    *(uint *)pdma->pb = TAG;
-    pdma->pb += 4;
-    CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
-    pdma->pb += cw * 4;
+    VIFS *pdma = &D_002DEA28;
+    *(uint *)pdma->m_pb = TAG;
+    pdma->m_pb += 4;
+    CopyQws((uint *)pdma->m_pb, (const uint *)pv, cw);
+    pdma->m_pb += cw * 4;
 }
 // Append the VIF code tag and then cw words from pv to the DMA packet D_002DEA28.
 static inline void UnpackQws(uint tag, const void *pv, int cw)
 {
-    DMA *pdma = &D_002DEA28;
-    *(uint *)pdma->pb = tag;
-    pdma->pb += 4;
-    CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
-    pdma->pb += cw * 4;
+    VIFS *pdma = &D_002DEA28;
+    *(uint *)pdma->m_pb = tag;
+    pdma->m_pb += 4;
+    CopyQws((uint *)pdma->m_pb, (const uint *)pv, cw);
+    pdma->m_pb += cw * 4;
 }
 // Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin matrices) and queues it
 // with its sort distance. (inferred)
 extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 {
-    SHD shd;
+    SOBOUNDS shd;
     MATRIX4 matModel;
-    SHD *pshd;
+    SOBOUNDS *pshd;
     if (palo->cpshd)
     {
-        func_002333B4(&shd, 0, sizeof(SHD));
+        func_002333B4(&shd, 0, sizeof(SOBOUNDS));
         pshd = &shd;
         BuildLightPackets(&D_003DD490, palo->cpshd, palo->apshd, &shd);
     }
@@ -1815,15 +1753,15 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
             CopyAb__FPvT0Ui(&pos, &pmodel->asph[i], 12);
             dpos = TransformPoint(matModel, *(qword *)&pos);
         }
-        uchar *pbStart = D_002DEA28.pb;
+        uchar *pbStart = D_002DEA28.m_pb;
         if (psub->grf & 0x100)
         {
-            *(ulong *)pbStart = (ulong)(int)(pshd->aw[5] | 0x40000000) | ((ulong)(int)pshd->aw[6] << 32);
-            D_002DEA28.pb += 0x10;
+            *(ulong *)pbStart = (ulong)(int)(pshd->cqwPacket | 0x40000000) | ((ulong)(int)pshd->pbPacket << 32);
+            D_002DEA28.m_pb += 0x10;
         }
-        ulong *ptag = (ulong *)D_002DEA28.pb;
+        ulong *ptag = (ulong *)D_002DEA28.m_pb;
         *ptag = 0x10000000;
-        D_002DEA28.pb += 0x10;
+        D_002DEA28.m_pb += 0x10;
         if (psub->abone)
             UnpackQws<0x6C04C000>((uint *)&D_002A2D30, 16);
         else
@@ -1872,24 +1810,24 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
             }
         }
         {
-            DMA *pdma = &D_002DEA28;
-            for (uchar *pbPad = pdma->pb; (uint)pbPad & 0xF; pbPad = pdma->pb)
+            VIFS *pdma = &D_002DEA28;
+            for (uchar *pbPad = pdma->m_pb; (uint)pbPad & 0xF; pbPad = pdma->m_pb)
             {
                 *(uint *)pbPad = 0;
-                pdma->pb += 4;
+                pdma->m_pb += 4;
             }
         }
-        *(uint *)ptag |= ((int)(D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
-        *(ulong *)D_002DEA28.pb = 0x60000000;
-        D_002DEA28.pb += 0x10;
+        *(uint *)ptag |= ((int)(D_002DEA28.m_pb - (uchar *)ptag) >> 4) - 1;
+        *(ulong *)D_002DEA28.m_pb = 0x60000000;
+        D_002DEA28.m_pb += 0x10;
         RPL *prpl = AllocRenderListEntry();
         prpl->kind = kind;
         if (psub->grf & 0x400)
-            prpl->dist = pdesc->dist;
+            prpl->depth = pdesc->dist;
         else
-            StoreSquaredLengthBits(*(int *)&prpl->dist, dpos);
-        prpl->pb = pbStart;
-        prpl->pv = psub->pb;
+            StoreSquaredLengthBits(*(int *)&prpl->depth, dpos);
+        prpl->pbCall = pbStart;
+        prpl->pvCall = psub->pb;
     }
 }
 } // namespace M_BuildModelDrawPackets
@@ -2573,12 +2511,6 @@ struct CLUTSET
     int cpal;
     CLUTPAL *apal;
     int *aipal;
-};
-struct SUBGLOBLOAD
-{
-    float fogIntensity;     /* BuildCmFgfn's argument (the fog curve uploaded with the geometry) */
-    int numLitQwords;       /* size of the lit-vertex DMA chain (set by the type-0 loader) */
-    int batchMode;          /* 0 / 1 / 2: batch header flag 0x100 / 0x200 / 0x400 */
 };
 struct GLOBSET
 {

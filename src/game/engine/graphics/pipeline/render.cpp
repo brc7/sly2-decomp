@@ -9,6 +9,7 @@
 #include "gifs.h"
 #include "sly2/slotheap.h"
 #include "sly2/util.h"
+#include "sly2/render.h"
 #include "sly2/vu0.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
@@ -25,7 +26,6 @@ struct VTE { short delta; short pad; void *fn; };
 struct LOV { char pad[0xC]; VTE *vtable; char pad10[0x30]; int flagsOrPointer; char pad44[0x80 - 0x44]; char globset[0x4C]; int relightStamp; };
 typedef char assert_LO_relightStamp[(unsigned int)&((LOV *)0)->relightStamp == 0xCC ? 1 : -1];
 /* A render-list entry (AllocRenderListEntry hands them out of the buffer at D_003B3980). */
-struct RPL { int kind; float depth; int dmaCalls[2]; };   /* render-list entry (full view in draw.cpp) */
 
 extern RPL *D_003D4A50;
 extern char D_003B3980[];
@@ -159,7 +159,7 @@ extern "C" void DrawWorldLabel(qword position, const char *text, const RGBAV *un
 // sorts the entries by kind and depth into the frame's VIF1 chain.
 extern "C" RPL *AllocRenderListEntry(void)
 {
-    func_002333B4(D_003D4A50->dmaCalls, 0, 8);
+    func_002333B4(&D_003D4A50->pbCall, 0, 8);
     return D_003D4A50++;
 }
 
