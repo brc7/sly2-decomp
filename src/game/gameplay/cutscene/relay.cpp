@@ -4029,17 +4029,10 @@ extern "C" { extern SW D_003DD490; }
 // Vector difference.
 // Lane x of a VU register as a float.
 // Length of the xy part, in lane x.
-static inline qword QwLengthXY(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // Length of the xy part as a float.
 static inline float GLengthXY(qword v)
 {
-    return VuToFloat(QwLengthXY(v));
+    return VuToFloat(VuLengthXY(v));
 }
 // Lane y of a 128-bit register as a float.
 // Lane z of a 128-bit register as a float.

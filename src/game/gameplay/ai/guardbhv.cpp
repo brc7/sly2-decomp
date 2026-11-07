@@ -2926,13 +2926,6 @@ static inline qword VuLength(qword v)
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(len) : "j"(qwSq_)); \
     }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline qword VuLengthXY(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // VU0 helper: v divided by a given length.
 // Same idiom as sly2/vu0.h VuDivByX; kept local because its callers pass mixed operand types (the template wants one).
 static inline qword VuDivByX(qword v, qword qwLen)
@@ -3529,13 +3522,6 @@ static inline qword VuProjectOut(qword v, qword n)
 }
 // VU0 helper: length of a vector (in x).
 // VU0 helper: horizontal (xy) length of a vector.
-static inline qword VuLengthXY(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // VU0 helper: length of a vector (operands not tied, for the match).
 static inline qword VuLengthUntied(qword v)
 {

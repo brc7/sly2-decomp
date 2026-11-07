@@ -437,13 +437,6 @@ static inline qword VuLengthReuseOne(qword v)
     return qwLen;
 }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline qword VuLengthXY(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // VU0 helper: x of a VU register as a float.
 // VU0 helper: x component of a quadword vector.
 // allocation-only second "j"(b): the extra reference raises b's local-alloc priority, so b gets vf1 and the dot vf2 as in the target

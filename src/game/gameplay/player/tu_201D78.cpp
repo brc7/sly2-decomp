@@ -740,7 +740,6 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
 // keeps jump.c from turning it into movn.
 struct VU_FLOAT {qword qw;};
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1,%0":"=j"(v.qw):"rV"(n));return v;}
-static inline qword LengthXYInX(qword v){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));return r;}
 // camera up row; the pointer parameter gives the game's &cm+0x60 base register (lqc2 0x10(s1), then s1-0x60 for the calls)
 static inline qword GetMatrixUp(const M4 *m){return m->r[1];}
 // screen position of a projected point: x and y from [-1,1] to pixels, z kept
@@ -793,9 +792,9 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
         qword base = ConvertCmWorldToScreen(&D_002DDF40, world);
         qword top = ConvertCmWorldToScreen(&D_002DDF40, head);
         VU_FLOAT screen = ScreenFromProjected(base);
-        float distance = QwordX(LengthXYInX(VuSub(screen.qw, reconSel->origin)));
+        float distance = QwordX(VuLengthXY(VuSub(screen.qw, reconSel->origin)));
         VU_FLOAT screenTop = ScreenFromProjected(top);
-        float size = QwordX(LengthXYInX(VuSub(screen.qw, screenTop.qw)));
+        float size = QwordX(VuLengthXY(VuSub(screen.qw, screenTop.qw)));
         float proximity = 1.0f - (distance - 128.0f) / 128.0f;
         size = size / 120.0f;
         reconSel->rising = 1;

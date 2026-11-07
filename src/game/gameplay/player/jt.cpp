@@ -1277,16 +1277,9 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword LengthXYInX(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 static inline float LengthXYOf(qword v)
 {
-    return VuToFloat(LengthXYInX(v));
+    return VuToFloat(VuLengthXY(v));
 }
 static inline qword LengthInXViaDot(qword v)
 {

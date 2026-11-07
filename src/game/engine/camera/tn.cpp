@@ -192,13 +192,6 @@ static inline qword QwLengthUntied(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qwSq));
     return qwLen;
 }
-static inline qword QwLengthXY(qword v)
-{
-    qword qw;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 struct CPD
 {
       CID cid;
@@ -1209,7 +1202,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
         dradPanFree *= GLimitRange(GEvaluateClq(&D_002C4220, D_002DDED0.t - tManual), D_002BBB60.gMin, D_002BBB60.gMax);
         float radPanFree = NormalizeAngle(radPanNew + dradPanFree * D_002DDED0.dt);
-        float uSpeed = GMin(VuToFloat(QwLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
+        float uSpeed = GMin(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
         float radTiltFree;
         SMP smp;
         if (uSpeed > 0.1f)
@@ -1294,9 +1287,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             if (ploPlayer != 0)
             {
                 if ((*(  int  *)((uint8_t *)( ploPlayer ) + (  0x4CC )))  != -1 && (*(  int  *)((uint8_t *)( ploPlayer ) + (  0x4C8 )))  == 0)
-                    gPull = GMin(VuToFloat(QwLengthXY(*(qword *)&vFocus)) * 0.005f, 1.0f);
+                    gPull = GMin(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.005f, 1.0f);
                 else
-                    gPull = GMin(VuToFloat(QwLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
+                    gPull = GMin(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
             }
             else
             {
