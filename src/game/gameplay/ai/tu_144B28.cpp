@@ -251,18 +251,17 @@ namespace M_func_00144E68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int usesStraightPath; char pad3[0x64 - 0x44]; float arrivalRadius; char pad4[0xCC - 0x68]; int forcesButton8; float speedScale; };
-struct P { char pad[0x10]; void *guard; char pad2[0x30 - 0x14]; int usesStraightPath; float arrivalRadius; int forcesButton8; float speedScale; qword goal; };
 void StartBhv(void *behavior);
 struct O *PushStepBehavior(void *guard, int cid);
-void SetBhvWalkToGoal(struct P *behavior, qword goal);
+void SetBhvWalkToGoal(BHV193 *behavior, qword goal);
 // 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
 // goal and starts it.
-void StartBhvWalkTo(struct P *behavior)
+void StartBhvWalkTo(BHV193 *behavior)
 {
     struct O *child;
     struct VTE *entry;
     StartBhv(behavior);
-    child = PushStepBehavior(behavior->guard, CID_BHV168);
+    child = PushStepBehavior(behavior->owner, CID_BHV168);
     child->usesStraightPath = behavior->usesStraightPath;
     child->arrivalRadius = behavior->arrivalRadius;
     child->forcesButton8 = behavior->forcesButton8;
