@@ -1287,7 +1287,6 @@ struct PRG {
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
 };
-struct EMITX { PRG **ppprg; void *ppripg; LO *subscriber; };   /* EMITG */
 extern "C" {
 extern char D_003DD490[];
 PRG *NewBlipGroup(void *pv);
@@ -1296,7 +1295,7 @@ BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int RandomIntInRange__Fii(int nMin, int nMax);
 float RandomFloatInRange__Fff(float gMin, float gMax);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *p, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
 }
 
 // Dot product of the xyz parts of a and b as a float.
@@ -1316,20 +1315,20 @@ static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValu
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
 // roll speed / angle for rolling blips), plus the spline end points for spline motion; each slot is mirrored into the
 // block's second frame buffer.
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;
-    if (px && px->ppprg)
-        pprg = *px->ppprg;
+    if (px && px->ppblipg)
+        pprg = (PRG *)*px->ppblipg;
     if (!pprg) {
         pprg = NewBlipGroup(D_003DD490);
         if (!pprg)
             return;
-        if (px && px->ppprg)
-            *px->ppprg = pprg;
+        if (px && px->ppblipg)
+            *px->ppblipg = (BLIPG *)pprg;
         SetBlipgEmitb(pprg, emitter);
-        if (px && px->subscriber)
-            pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->subscriber);
+        if (px && px->ploSubscriber)
+            pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->ploSubscriber);
         if (!pprg)
             return;
     }
