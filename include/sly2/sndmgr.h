@@ -96,10 +96,10 @@ struct SNDMGR
     int pad1EC;
     long tickNow;                /* +0x1F0 this update's tick */
     long tickLast;               /* +0x1F8 the last update's tick */
-    STREAMSND *dialogSound;      /* +0x200 counted pointers (released by g_sndmgr's destructor) */
+    SNDREF dialogSound;          /* +0x200 counted pointers (released by g_sndmgr's destructor) */
     int musicStackCount;         /* +0x204 */
-    STREAMSND *musicStack[8];    /* +0x208 */
-    STREAMSND *ambienceSound;    /* +0x228 */
+    SNDREF musicStack[8];        /* +0x208 */
+    SNDREF ambienceSound;        /* +0x228 */
     void *dialogRoleObjects[6];  /* +0x22C per lip-sync role (3: the speaker object; the others its state machines) */
     int dialogEventIndex;        /* +0x244 */
     float dialogEventTime;       /* +0x248 */

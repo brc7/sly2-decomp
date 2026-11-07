@@ -101,6 +101,24 @@ struct STREAMSND : CID151
     virtual void UpdatePositional() __asm__("UpdateStreamsndPositional");   /* slot 16 */
 };
 
+
+/* SNDREF: a counted pointer to a stream sound (g_sndmgr's dialog, music stack and ambience): reassigned out of line
+   (AssignSoundRef; InitSoundRef attaches a new one), released inline through the sound's Release (slot 2). No
+   constructors: g_sndmgr's members are not constructed (SNDMGR_ctor clears them), and a default constructor would make
+   g++ emit a construction loop for the music stack. */
+struct SNDREF;
+extern "C" void InitSoundRef(SNDREF *psndref, STREAMSND *psnd);
+extern "C" void AssignSoundRef(SNDREF *psndref, STREAMSND *psnd);
+struct SNDREF
+{
+    STREAMSND *p;
+    SNDREF &operator=(const SNDREF &r) { AssignSoundRef(this, r.p); return *this; }
+    SNDREF &operator=(STREAMSND *psnd) { AssignSoundRef(this, psnd); return *this; }
+    ~SNDREF() { if (p) p->Release(); }
+    operator STREAMSND *() { return p; }
+    STREAMSND *operator->() { return p; }
+};
+
 typedef char assert_STREAMSND_kind[(int)&((STREAMSND *)0)->streamKind == 0x3B8 ? 1 : -1];
 typedef char assert_STREAMSND_size[sizeof(STREAMSND) == 0x3C0 ? 1 : -1];
 

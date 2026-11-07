@@ -25,12 +25,6 @@
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
 struct SNDOBJ { char pad0[0xC]; VTESND *vtable; };
-/* A counted pointer to a sound object: released through its vtable slot 2. */
-struct SNDREF
-{
-    SNDOBJ *p;
-    ~SNDREF() { if (p) p->vtable[2].pfn((char *)p + p->vtable[2].d); }
-};
 struct SNDMGRG;
 extern "C" {
 void SNDMGR_ctor(SNDMGRG *soundManager);
@@ -1581,7 +1575,7 @@ void UpdateSndmgr(SNDMGR *soundManager)
     soundManager->tickNow = TickNow(&D_002DDED0);
     UpdateHeadsetMicrophone(soundManager);
     PollSoundManagerStatus(soundManager);
-    music = soundManager->musicStackCount > 0 ? *(soundManager->musicStack + soundManager->musicStackCount - 1) : 0;
+    music = soundManager->musicStackCount > 0 ? (soundManager->musicStack + soundManager->musicStackCount - 1)->p : 0;
     /* the long-running sounds stay paused while the disc is busy (inferred: disc errors / reads) */
     if (D_002BD4C0 == CD_STATE_IDLE) {
         if (soundManager->isPaused) {
@@ -2176,7 +2170,7 @@ extern "C" void SetSndmgrChannelVolume(SNDMGR *soundManager,int channel,int cate
         if(action!=0){
             switch(channel){
             case VOLUME_CHANNEL_AMBIENCE:if(soundManager->ambienceSound)(soundManager->ambienceSound->*action)();break;
-            case VOLUME_CHANNEL_MUSIC:for(int i=0;i<soundManager->musicStackCount;i++){STREAMSND **slot=&soundManager->musicStack[i];STREAMSND *music=ReadReceiver(slot);if(music){union {STREAMSND *p;unsigned w;} r;r.p=music;(((STREAMSND *)r.w)->*action)();}}break;
+            case VOLUME_CHANNEL_MUSIC:for(int i=0;i<soundManager->musicStackCount;i++){STREAMSND **slot=&soundManager->musicStack[i].p;STREAMSND *music=ReadReceiver(slot);if(music){union {STREAMSND *p;unsigned w;} r;r.p=music;(((STREAMSND *)r.w)->*action)();}}break;
             case VOLUME_CHANNEL_DIALOG:if(soundManager->dialogSound)(soundManager->dialogSound->*action)();break;
             }
         }
