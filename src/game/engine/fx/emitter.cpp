@@ -1328,7 +1328,6 @@ namespace M_EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3 {
 // MATCH (Claude agent, lane E21), from fresh3 (56). Fixes: (1) for-increment written `k++, i++` (loop.c prepends each biv to loop_iv_list, so the LAST-incremented biv's giv inits are emitted first in the preheader; the target computes i*16 before k*16/k*4, which clobbers v1 and stops reload inheriting k from the k<c test); (2) Dot's d output `=j` (not earlyclobber) so it shares a's vf2.
 // DRAFT (Claude agent, lane E5): fresh rewrite, aligned 49 (old 80). Outer while(k<c && (pblk || (pblk=alloc))) gives the target loop shape; GRand(&p->lm) inline gives the hoisted plm slot; unsigned n0 &= ~1u gives lui/ori. Left: giv bases (target base = &apd[i] for a-side, separate &afr[1].apos[i] giv for the copy).
 typedef int qword __attribute__((mode(TI)));
-struct EMITTERV;
 /* per-blip draw data (the third array of a frame) */
 struct PD { unsigned int color; int frame; float rollSpeed; float rollAngle; };
 struct PAIR { qword a; qword b; };
@@ -1338,7 +1337,7 @@ struct BLK {
     int numBlips; PAIR *apair; int pad108C; BLK *pblkNext;   /* apair: spline end points (spline motion) */
 };
 struct PRG;
-struct PRGVT { char pad[0x198]; short d; short pad2; void (*pfn)(PRG *, EMITTERV *); };
+struct PRGVT { char pad[0x198]; short d; short pad2; void (*pfn)(PRG *, LO *); };
 /* BLIPG (fields as the blip-emission code reads them; kinds after Sly 1's BLIPMK / BLIPOK) */
 struct PRG {
     char pad0[0xC]; PRGVT *pvt; char pad10[0x160 - 0x10];
@@ -1355,28 +1354,18 @@ struct PRG {
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
 };
-struct LM { float minValue, maxValue; };
-/* EMITB, the blip-related fields (the record at +0xC0 as blips use it; Sly 1's EMITBLIP) */
-struct EMITTERV {
-    char pad[0xC8];
-    int hasRandomFrame;         /* +0xC8 */
-    char padCC[0xF0 - 0xCC];
-    int rollKind;               /* +0xF0 0: mirror the roll for blips moving away from the camera */
-    int hasRandomRoll;          /* +0xF4 random start angle */
-    LM rollSpeed;               /* +0xF8 */
-};
-struct EMITX { PRG **ppprg; void *ppripg; EMITTERV *pemitter; };   /* EMITG (pemitter: the subscriber) */
+struct EMITX { PRG **ppprg; void *ppripg; LO *subscriber; };   /* EMITG */
 struct CM { char pad[0x70]; qword dir; };
 extern "C" {
 extern CM D_002DDF40;
 extern char D_003DD490[];
 PRG *NewBlipGroup(void *pv);
-void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
+void SetBlipgEmitb(PRG *pprg, EMITB *p);
 BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int RandomIntInRange__Fii(int nMin, int nMax);
 float RandomFloatInRange__Fff(float gMin, float gMax);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
 }
 
 static inline float Dot(qword a, qword b)
@@ -1394,7 +1383,7 @@ static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValu
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
 // roll speed / angle for rolling blips), plus the spline end points for spline motion; each slot is mirrored into the
 // block's second frame buffer.
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;
     if (px && px->ppprg)
@@ -1406,8 +1395,8 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px,
         if (px && px->ppprg)
             *px->ppprg = pprg;
         SetBlipgEmitb(pprg, emitter);
-        if (px && px->pemitter)
-            pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->pemitter);
+        if (px && px->subscriber)
+            pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->subscriber);
         if (!pprg)
             return;
     }
@@ -1426,14 +1415,14 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px,
             pd->color = RandomIntInRange__Fii(0, pprg->numColors - 1);
             if (pprg->hasColorRanges)
                 pd->color &= ~1u;
-            if (emitter->hasRandomFrame)
+            if (emitter->v.hasRandomFrame)
                 pd->frame = RandomIntInRange__Fii(0, pprg->numFrames - 1);
             if (pprg->renderKind == 2) {
-                float g = GRand(&emitter->rollSpeed);
+                float g = GRand(&emitter->v.u.roll.lmRollSpeed);
                 pd->rollSpeed = g;
-                if (!emitter->rollKind && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
+                if (!emitter->v.u.roll.rollKind && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
                     pd->rollSpeed = -g;
-                if (emitter->hasRandomRoll)
+                if (emitter->v.u.roll.hasRandomRoll)
                     pd->rollAngle = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
             }
             if (pprg->motionKind == 2) {
