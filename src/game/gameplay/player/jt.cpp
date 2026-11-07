@@ -329,18 +329,16 @@ void InitJt(struct S *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadJtFromBrx { extern "C" {
-typedef struct { float x, y, z; } VEC3;
-struct S { char pad[0x240]; VEC3 v; };
 extern char D_002BE990[];
-void LoadStepFromBrx(struct S *p);
-void BindLoOidTable(struct S *p, int n, void *pv);
-// JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) offset and binds his object table (0xAD entries).
+void LoadStepFromBrx(JT *p);
+void BindLoOidTable(JT *p, int n, void *pv);
+// JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) pivot offset and binds his object table (0xAD entries).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadJtFromBrx(struct S *jt)
+void LoadJtFromBrx(JT *jt)
 {
-    VEC3 *pv;
+    VECTOR *pv;
     LoadStepFromBrx(jt);
-    pv = &jt->v;
+    pv = &jt->vecPivotOffset;
     pv->x = 0.0f;
     pv->y = 0.0f;
     pv->z = -75.0f;
