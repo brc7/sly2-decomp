@@ -351,7 +351,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                         {
                             step->AddDialogSmRefs(0x3F, 1);
                             SetSoCnstrForce(step, 1);
-                            ClearXyz(&step->vUnk190);
+                            ClearXyz(&step->unknown190);
                             step->SetVelocity(D_002A2DD0);
                             step->SetAngularVelocity(D_002A2DD0);
                         }
@@ -365,7 +365,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                     jtMode->hud.SetState(0);
                     break;
             }
-            ClearXyz(&jtMode->player->vUnk190);
+            ClearXyz(&jtMode->player->unknown190);
             jtMode->player->SetVelocity(D_002A2DD0);
             jtMode->player->SetAngularVelocity(D_002A2DD0);
             CutCm(&D_002DDF40);
@@ -414,12 +414,12 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
         n = jtMode->state;
         switch (n) {
         case 0:
-            *(qword *)&jtMode->player->vUnk190 = D_002A2DD0;
+            *(qword *)&jtMode->player->unknown190 = D_002A2DD0;
             if (!jtMode->animationPlayback || IsAsegaRetracted(jtMode->animationPlayback))
                 SetJtModeState(jtMode, 1);
             break;
         case 1:
-            *(qword *)&jtMode->player->vUnk190 = D_002A2DD0;
+            *(qword *)&jtMode->player->unknown190 = D_002A2DD0;
             switch (jtMode->kind) {
             case 0:
                 SetStepTargetHeading(jtMode->player, ((CMVIEW *)&D_002DDF40)->lookHeading);
@@ -434,7 +434,7 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             }
             break;
         case 2:
-            *(qword *)&jtMode->player->vUnk190 = D_002A2DD0;
+            *(qword *)&jtMode->player->unknown190 = D_002A2DD0;
             if (!jtMode->animationPlayback || IsAsegaRetracted(jtMode->animationPlayback))
                 SetJtModeState(jtMode, -1);
             break;
@@ -499,7 +499,7 @@ extern "C" void SetJtModeHudState(JTMODEHUD *hud, int st)
             hud->pwidgetHud->vt[49].pfn((char *)hud->pwidgetHud + hud->pwidgetHud->vt[49].d, -1);
             PlayWidgetAnim(hud->pwidgetHud, 0x352);
             PlayWidgetAnim(hud->pwidgetHud, 0x351);
-            SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->player->radTarget + 3.1415927f) * 0.15915494f);
+            SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->player->targetHeading + 3.1415927f) * 0.15915494f);
             SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.zoom);
         }
         if (hud->pjtmode->kind == 1) {
@@ -640,7 +640,7 @@ extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
         D_002BF920
  = hud->pjtmode->player->nUnk10e4;
     }
-    SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->player->radTarget + 3.14159265f) * 0.15915494f);
+    SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->player->targetHeading + 3.14159265f) * 0.15915494f);
     SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.zoom);
 }
 

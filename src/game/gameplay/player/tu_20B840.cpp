@@ -340,7 +340,7 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
     q = GetGaitRootVelocity(gait);
     r1=Negate(q,&b);
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(a.q), "j"(r1));
-    *(qword *)&pt->vUnk190 = r2;
+    *(qword *)&pt->unknown190 = r2;
 }
 
 // Plays the footstep sound when a foot goes down, volume interpolated between walk and run, audible range 500/2000.

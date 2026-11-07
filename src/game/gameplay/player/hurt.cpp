@@ -992,13 +992,13 @@ extern "C" int IsJtInvulnerable(JT *jt, int zpk)
     return IsStepplayerInvulnerable(jt, zpk);
 }
 
-/* Whether the hurt player ignores zap kind zpk: always while nUnk298 is set; kinds 0x2000/0x4000 by the hurt, grab
+/* Whether the hurt player ignores zap kind zpk: always while unknown298 is set; kinds 0x2000/0x4000 by the hurt, grab
    and air states; others while hurt, in post-hit mode 1, with D_002E1E00 bit 0 set or with the world's hands off. */
 // Base invulnerability check: the object flag at x298, hands-off mode, or for zap kinds 0x2000/0x4000 depending on the
 // hurt/grab/air sub-states.
 extern "C" int ShouldStepplayerIgnoreZap(JTHURT *hurt, int zpk)
 {
-    if (hurt->player->nUnk298)
+    if (hurt->player->unknown298)
         return 1;
     if (zpk == 0x2000 || zpk == 0x4000) {
         switch (hurt->player->jthurt.state) {

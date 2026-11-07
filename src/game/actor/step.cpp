@@ -90,7 +90,7 @@ void STEP::Init()
 extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 {
     LoadPoFromBrx(step, stream);
-    step->qwUnk240 = ConvertPosBetweenLos(step->psoParent, step, D_002A2DD0);
+    step->unknown240 = ConvertPosBetweenLos(step->psoParent, step, D_002A2DD0);
     EnsureSoPhysRegionRecord(step);
 }
 
@@ -98,7 +98,7 @@ extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 {
     ClonePo(step, pstepBase);
-    CloneBhvstk(&step->bhvstk, step);
+    CloneBhvstk(&step->behaviors, step);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -375,10 +375,10 @@ void UpdateStepPhys(struct S *input)
 // Sets the "no base" option (+0x204); turning it on drops the cached floor contact (+0x208).
 extern "C" void SetStepNoBase(STEP *step, int n)
 {
-    if (step->nUnk204 != n) {
-        step->nUnk204 = n;
+    if (step->unknown204 != n) {
+        step->unknown204 = n;
         if (n != 0) {
-            step->pxpFloor = 0;
+            step->floorContact = 0;
         }
     }
 }
@@ -439,7 +439,7 @@ void UpdateStep(struct S *step)
 // Slot 85: ground-probe flags for AddStepCustomXps: 0 with the no-base option, else 7 (probe, use top point, ...).
 extern "C" int GetStepGroundProbeFlags(STEP *step)
 {
-    return (step->nUnk204 != 0) ? 0 : PROBE_DEFAULT;
+    return (step->unknown204 != 0) ? 0 : PROBE_DEFAULT;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -503,7 +503,7 @@ void PresetStepAccel(struct S *step)
 extern "C" void TranslateStepToPos(STEP *step, qword pos)
 {
     TranslateSoToPos(step, pos);
-    step->qwUnk230 = ConvertPosBetweenLos(step, 0, step->qwUnk240);
+    step->unknown230 = ConvertPosBetweenLos(step, 0, step->unknown240);
 }
 
 // Slot 30: RotateSoToMat, then takes the new heading as target heading and stores it in the controller.
@@ -514,7 +514,7 @@ extern "C" void RotateStepToMat(STEP *step, MATRIX3 *matrix)
     SetStepTargetHeading(step, GetStepHeading(step));
     pctl = step->pctl;
     if (pctl != 0) {
-        pctl->radLeft = step->radTarget;
+        pctl->radLeft = step->targetHeading;
     }
 }
 
@@ -639,8 +639,8 @@ namespace M_AdjustStepXpVelocity {
 // AdjustStepXpVelocity: a STEP's contact-velocity adjustment (vtable slot 56; Sly 1 has AdjustStepXpVelocity(STEP *, XP *, int)).
 // After the base version (AdjustSoXpVelocity), for a kind-0xE contact: the closing speed along the contact normal is smoothed
 // with SmoothValue (SmoothValue) toward two limits (SMPs D_002C3C98 / D_002C3CA8), the change is limited to dt * 9000 up and
-// dt * -4500 down, and this side's velocity gets normal * -speed plus (matTarget * vUnk190 without its part along the
-// normal) * gUnk180. Finally the contact distance moves by gUnk210 - gUnk248.
+// dt * -4500 down, and this side's velocity gets normal * -speed plus (matTarget * unknown190 without its part along the
+// normal) * unknown180. Finally the contact distance moves by unknown210 - gUnk248.
 // Matched with one asm statement per VU0 operation, no register pins: the local pmat gives the target's pointer/row registers,
 // the two smoothing outputs are separate address-taken floats (frame slots after the VU_FLOAT home at 0($sp)).
 typedef int qword __attribute__((mode(TI)));
@@ -674,13 +674,13 @@ struct XP
 struct STEP
 {
     char pad0[0x180];
-    float gUnk180;
+    float unknown180;
     char pad184[0xC];
-    qword vUnk190;
+    qword unknown190;
     char pad1a0[0x10];
     struct M3 matTarget;
     char pad1e0[0x30];
-    float gUnk210;
+    float unknown210;
     char pad214[0x34];
     float gUnk248;
 };
@@ -743,7 +743,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     float gVn = QwordX(VuDot(VuSub(pxp->axpd[0].v, pxp->axpd[1].v), pxp->normal));
     float gVnMin;
     float gVnTarget;
-    SmoothValue__FfffP3SMPPf(pxp->gDist, step->gUnk210, D_002DDED0.deltaTime, D_002C3C98, &gVnMin);
+    SmoothValue__FfffP3SMPPf(pxp->gDist, step->unknown210, D_002DDED0.deltaTime, D_002C3C98, &gVnMin);
     SmoothValue__FfffP3SMPPf(pxp->gDist, 0.0f, D_002DDED0.deltaTime, D_002C3CA8, &gVnTarget);
     gVn = gVn > gVnMin ? gVn : gVnMin;
     if (gVn < gVnTarget)
@@ -761,13 +761,13 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
 
     struct XPD *pxpd = &pxp->axpd[ixpd];
     struct M3 *pmat = &step->matTarget;
-    qword v = QwRotate(pmat, step->vUnk190);
+    qword v = QwRotate(pmat, step->unknown190);
     qword normal = pxp->normal;
     qword vT = VuSub(v, VuScaleByX(normal, VuDot(v, normal)));
     struct VU_FLOAT vuVn = VuFloat(-gVn);
-    struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->gUnk180);
+    struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->unknown180);
     pxpd->v = QwAddScaled2(pxpd->v, normal, vuVn.qw, vT, vuK.qw);
-    pxp->gDist += step->gUnk210 - step->gUnk248;
+    pxp->gDist += step->unknown210 - step->gUnk248;
 }
 } // namespace M_AdjustStepXpVelocity
 
@@ -990,9 +990,9 @@ extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 {
     XP *pxp;
     OnSoContactFreed(step, object);
-    pxp = step->pxpFloor;
+    pxp = step->floorContact;
     if ((pxp != 0) && (PSO_XP(pxp) == object)) {
-        step->pxpFloor = 0;
+        step->floorContact = 0;
     }
 }
 
@@ -1051,7 +1051,7 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
     float r = 0.1f;
     qword qwScaled;
     r = rGravity > r ? rGravity : r;
-    SetSoMass(step, step->physics->m * step->rUnk260 / r);
+    SetSoMass(step, step->physics->m * step->unknown260 / r);
     {
         struct VU_FLOAT vuR;
         qword qwGrav = *(qword *)&step->physics->gravity;
@@ -1061,11 +1061,11 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
     {
         struct VU_FLOAT vuOld;
         qword qwResult;
-        __asm__("qmtc2 %1, %0" : "=j"(vuOld.qw) : "rV"(*(int *)&step->rUnk260));
+        __asm__("qmtc2 %1, %0" : "=j"(vuOld.qw) : "rV"(*(int *)&step->unknown260));
         __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qwResult) : "j"(qwScaled), "j"(vuOld.qw));
         *(qword *)&step->physics->gravity = qwResult;
     }
-    step->rUnk260 = r;
+    step->unknown260 = r;
 }
 } // namespace M_func_00204DA8
 
@@ -1310,13 +1310,13 @@ typedef char layout_adjusted[((unsigned)&((P*)0)->adjusted==0x1060)?1:-1];
 // PushBhvstk in a1).
 extern "C" BHV *PushStepBehavior(STEP *step)
 {
-    return PushBhvstk(&step->bhvstk);
+    return PushBhvstk(&step->behaviors);
 }
 
 // Finds the behaviour of class cid (or derived from it) on the step's behaviour stack.
 extern "C" BHV *FindStepBehavior(STEP *step, CID cid)
 {
-    return FindBhvInBhvstk(&step->bhvstk, cid);
+    return FindBhvInBhvstk(&step->behaviors, cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

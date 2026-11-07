@@ -912,7 +912,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         }
         break;
     }
-    HandleBhvstkMessage(&AsStepplayer(player)->bhvstk, msg, pv);
+    HandleBhvstkMessage(&AsStepplayer(player)->behaviors, msg, pv);
     HandlePoMessage(player, msg, pv);
 }
 } } // namespace M_HandleStepplayerMessage
@@ -1049,7 +1049,7 @@ extern "C" void RemoveStepplayerHierarchy(STEPPLAYER *player)
     RemoveSoHierarchy(player);
     ReleaseAsega(&PASEGAHURT(player));
     ReleaseAsega(&player->jtmode.animationPlayback);
-    ClearBhvstk(&player->bhvstk);
+    ClearBhvstk(&player->behaviors);
 }
 
 namespace M_func_00141968 { extern "C" {
@@ -2603,7 +2603,7 @@ extern "C" int IsStepplayerInScriptState(STEPPLAYER *player)
 extern "C" int IsStepplayerPushing(STEPPLAYER *player)
 {
     int f = 0;
-    if (player->bhvstk.cpbhv > 0 || player->pjsgScript != 0) {
+    if (player->behaviors.depth > 0 || player->pjsgScript != 0) {
         f = 1;
     }
     return f;

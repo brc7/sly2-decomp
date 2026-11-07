@@ -481,7 +481,7 @@ void STEPGUARD::RemoveHierarchy()
     STEPGUARD *guard = (STEPGUARD *)this;
     RemoveSoHierarchyV();
     SetStepguardTarget(guard, 0);
-    ClearBhvstk(&guard->bhvstk);
+    ClearBhvstk(&guard->behaviors);
     ReleaseAsega(&guard->pasega);
 }
 
@@ -2663,7 +2663,7 @@ extern "C" void ResetStepguardMover(GUARDMOVER *mover)
     mover->driver = 0;
     guard = mover->guard;
     mover->isHeadingLocked = 0;
-    VECTOR *velocity = &guard->vUnk190;
+    VECTOR *velocity = &guard->unknown190;
     velocity->z = 0.0f;
     velocity->y = 0.0f;
     velocity->x = 0.0f;
@@ -3084,7 +3084,7 @@ extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, int n, qword qw)
     BHVARG *pbhvSub;
     guard->nUnkF68 = n;
     guard->qwUnkF70 = qw;
-    behavior = (BHV156 *)FindBhvInBhvstk(&guard->bhvstk, CID_BHVGUARD);
+    behavior = (BHV156 *)FindBhvInBhvstk(&guard->behaviors, CID_BHVGUARD);
     if (behavior == 0)
         return;
     nCur = guard->nUnkF68;

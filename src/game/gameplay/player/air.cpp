@@ -374,7 +374,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     }
     if (kind == 9)
     {
-        air->rGravitySaved = air->player->rUnk260;
+        air->rGravitySaved = air->player->unknown260;
         SetStepGravityRatio(air->player, D_002BF750);
     }
     vel = JtPlanLaunchVz(air, kind);
@@ -404,7 +404,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
             {
                 qword dvel;
                 air->unknown40 = 3;
-                dvel = SetVectorCylind(air->player->radTarget, D_002BF754, 0.0f);
+                dvel = SetVectorCylind(air->player->targetHeading, D_002BF754, 0.0f);
                 air->player->SetVelocity(VuAdd(vel, dvel));
             }
             SetJtAirState(air, 0, lo);
@@ -1735,7 +1735,7 @@ void UpdateJtAirInput(JTAIR *air)
     *(qword *)&posHero = PosLoWorld(air->player);
     *(qword *)&vel = air->player->GetVelocity();
     pctl = air->player->pctl;
-    pxpFloor = air->player->pxpFloor;
+    pxpFloor = air->player->floorContact;
     if (pxpFloor != 0 && pxpFloor->normal.z > 0.7f)
         fFloor = 1;
     do
@@ -3455,7 +3455,7 @@ namespace M_func_0019A750 {
 // Globals: D_002BF8B0 (D_002BF8B0), D_002BF8C0 (D_002BF8C0), D_002BF8C8 (D_002BF8C8), D_002BF8CC (D_002BF8CC), D_002BF8D0 (D_002BF8D0), D_002BF8D4 (D_002BF8D4), D_002BF8D8 (D_002BF8D8), D_002BF8DC (D_002BF8DC), D_002BF73C (g_SheetMovementMiscDoubleJumpHeight), D_002BF738 (g_SheetMovementMiscJumpHeight)
 // 0x0019A750 JtPlanLaunchVz (MATCH, T1312): the velocity the hero gets when a flight of this kind starts. It is the current velocity with its z raised:
 //   z = max(z, vz of the kind), vz from g = the gravity (negative, SOPHYS::gravity.z, -1750) and, per kind
-//   1, 7, 0xF   sqrt(2 g (zLand - zFoot - 215))      the X jump: the apex is 215 above the take-off (zLand - zFoot = *pqwUnk218.z - qwUnk230.z is 0 on flat ground, the radicand is floored at 0)
+//   1, 7, 0xF   sqrt(2 g (zLand - zFoot - 215))      the X jump: the apex is 215 above the take-off (zLand - zFoot = *unknown218.z - unknown230.z is 0 on flat ground, the radicand is floored at 0)
 //   9, 0xE, 0xD the same with the apex 1200 / 250 / 500
 //   2, 0x12, 3  the constants 700 / 900 / 800 (a launch is never slower than that upwards)
 //   4           700 + 0.5 z limited to 700 (a bounce: a fall is turned into a launch of 700 at the most)
@@ -3550,7 +3550,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
                     sApex = D_002BF738;
                     break;
             }
-            vzNew = SqrtfEarly(Max((g + g) * (((VECTOR4 *)air->player->pqwUnk218)->z - ((VECTOR4 *)&air->player->qwUnk230)->z - sApex), 0.0f));
+            vzNew = SqrtfEarly(Max((g + g) * (((VECTOR4 *)air->player->unknown218)->z - ((VECTOR4 *)&air->player->unknown230)->z - sApex), 0.0f));
             break;
         }
         case 4:

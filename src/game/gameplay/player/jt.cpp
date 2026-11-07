@@ -1127,7 +1127,7 @@ namespace M_UpdateJtLean__FP2JT {
 // 0x00189618 UpdateJtLean__FP2JT  (our name; was UpdateJtLean)
 // The last step of the hero's per-frame update (JT::Update). The three actuators at JT+0x19E4 / 0x19E8 / 0x19EC hold the lean offset of his body.
 //  - nothing happens before JT::PostLoad made them, or while they are not in their owner's chain; in the look mode they go back to zero;
-//  - standing (jts 0) on an object (pxpFloor's part: the thing under his feet) or holding on to a curve (jts 7, grab record kind 0: state 3 a SHAPE he holds on at u, state 4 an object):
+//  - standing (jts 0) on an object (floorContact's part: the thing under his feet) or holding on to a curve (jts 7, grab record kind 0: state 3 a SHAPE he holds on at u, state 4 an object):
 //    the velocity of that object at his position (GetXfVelocity) is seen from his own frame (matTarget); its horizontal speed picks how far he leans (a quadratic of speed / 1000,
 //    D_002BF310, limited to 0..1: k) -> the lean vector (vx, vy) * 20 * k / |v|, z = -7.5 * sqrt(1 - k^2), z kept below what each foot's offset actuator (19F0 / 19F4) allows.
 //    (re/notes/hero-movement-matched.md, T1448, has the whole reading with the constants.)
@@ -1271,8 +1271,8 @@ void UpdateJtLean(JT *jt)
     }
     switch (jt->state) {
     case JTS_Stand:
-        if (jt->pxpFloor)
-            lo = jt->pxpFloor->axpd[1].psoLeaf;
+        if (jt->floorContact)
+            lo = jt->floorContact->axpd[1].psoLeaf;
         break;
     case JTS_Grab:
         if (jt->jtgrab.kind == 0) {
@@ -2078,7 +2078,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->animState != 8 && jt->animState != 9 || jt->janim.isInputOpen)
                     {
     fell:
-                        if (D_002DDED0.time - jt->tUnk20c > 0.1f)
+                        if (D_002DDED0.time - jt->unknown20C > 0.1f)
                             SetJtAirJump(&jt->jtair, 0, 0, 0);
                     }
                     break;
@@ -2250,7 +2250,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtAirJump(&jt->jtair, 0xB, 0, 0);
                         break;
                     }
-                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z)
+                    if (jt->floorContact && 0.7f < jt->floorContact->normal.z)
                     {
                         if (D_002DDED0.time - jt->stateStartTime > 0.4f)
                             SetJtState(jt, JTS_Stand, JTBS_Nil);
@@ -2262,7 +2262,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z && D_002DDED0.time - jt->stateStartTime > 0.4f)
+                    if (jt->floorContact && 0.7f < jt->floorContact->normal.z && D_002DDED0.time - jt->stateStartTime > 0.4f)
                     {
                         float tLabel = TFindAsegLabel(jt->unknown1A84, (OID)0x16D);
                         ASEGA *asega = jt->activeAnimation;
@@ -2315,7 +2315,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                             mat = LoadRotateMatrixRad(jt->unknown1F94 * D_002BF364, D_002A2DA0);
                             *(qword *)&vTarget = TransformPos(jt->hangHandle->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
-                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->physics->gravity);
+                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->unknown240), *(qword *)&jt->physics->gravity);
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->unknown1F98);
                         jt->SetVelocity(ScaleVecX(velocity, scale));
                         SetJtAirJump(&jt->jtair, 0xC, 0, 0);
@@ -3620,7 +3620,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Run:
             case JTS_Unk0A:
             case JTS_Gait2:
-                jt->uGait = jt->activeAnimation->time / jt->activeAnimation->animation->duration;
+                jt->gaitBlend = jt->activeAnimation->time / jt->activeAnimation->animation->duration;
                 break;
             case JTS_Pounce:
                 if (jt->activeAnimation != 0 && !FAsegaStopped(jt->activeAnimation))
@@ -3653,8 +3653,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 OnGameEvent(&D_002DEB30, 0x38, jt);
                 break;
             case JTS_Unk18:
-                jt->rUnk200 = 1.0f;
-                jt->pctl->radLeft = jt->radTarget;
+                jt->unknown200 = 1.0f;
+                jt->pctl->radLeft = jt->targetHeading;
                 break;
             case JTS_Unk0D:
                 jt->attachedTo = 0;
@@ -3691,7 +3691,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 if (FindSmStateOptional(stateMachine, oid) < 0)
                     oid = OID_Nil;
                 grfRoute = GrfJtLeanMask(jt);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 if (jt->unknown1A54 != 0 && jt->unknown1A70 != 0)
                 {
                     switch (jt->animState)
@@ -3711,7 +3711,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Run:
                 aseg = ((GAIT *)jt->gait)->blendedAnimation;
                 grfapl = 9;
-                tStart = jt->uGait * aseg->duration;
+                tStart = jt->gaitBlend * aseg->duration;
                 ClearGaitFootDown((GAIT *)jt->gait);
                 break;
             case JTS_Interact:
@@ -3766,7 +3766,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 }
                 sfxid = jt->hangHandle->sfxidHangStart;
                 SetJtAnimState(jt, 1);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 CalculateJtHangAccel(jt);
                 SetPlayerTn(jt, jt->hangHandle->ptn);
             }
@@ -3793,25 +3793,25 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Unk0D:
                 SetJtAnimState(jt, -1);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 ChooseJtSmashTarget(jt);
                 aseg = jt->unknown1A80;
                 jt->unknown19B0 = D_002DDED0.time + D_002BF3E4;
                 break;
             case JTS_Unk0E:
                 SetJtAnimState(jt, -1);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 aseg = jt->unknown1A84;
                 break;
             case JTS_Unk0A:
                 aseg = jt->unknown1BC0;
                 grfapl = 9;
-                tStart = jt->uGait * aseg->duration;
+                tStart = jt->gaitBlend * aseg->duration;
                 jt->unknown1038 = -1;
                 break;
             case JTS_Pickpocket:
                 aseg = jt->pasegPickpocket;
-                *(qword *)&jt->vUnk190 = D_002A2DD0;
+                *(qword *)&jt->unknown190 = D_002A2DD0;
                 jt->unknown10E0 |= 2;
                 grf = 100;
                 jt->unknown1BD4 = 0;
@@ -3819,7 +3819,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Gait2:
                 aseg = ((GAIT *)jt->unk_0x1c30)->blendedAnimation;
                 grfapl = 9;
-                tStart = jt->uGait * aseg->duration;
+                tStart = jt->gaitBlend * aseg->duration;
                 ClearGaitFootDown((GAIT *)jt->unk_0x1c30);
                 break;
             case JTS_Pounce:
@@ -3829,7 +3829,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     aseg = jt->pasegPouncePowerUp;
                     UpdateJtPounceArc(jt);
                     MATRIX3 *matrix = &jt->matTarget;
-                    qword velocity = RotateVecRows(*(qword *)matrix->mat[0], *(qword *)matrix->mat[1], *(qword *)matrix->mat[2], ScaleVec(*(qword *)&jt->vUnk190, VuFloat(-1.0f)));
+                    qword velocity = RotateVecRows(*(qword *)matrix->mat[0], *(qword *)matrix->mat[1], *(qword *)matrix->mat[2], ScaleVec(*(qword *)&jt->unknown190, VuFloat(-1.0f)));
                     jt->SetVelocity(velocity);
                     FixStepAngularVelocity(jt);
                 }
@@ -3847,27 +3847,27 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     tLabel /= aseg->masterSpeed;
                     qword posHold = PosLoWorld(jt->interactTarget);
                     qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->interactTarget->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
-                    *(qword *)&jt->vUnk190 = DivVec(VuSub(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
-                    jt->vUnk190.z = gZero;
-                    jt->SetVelocity(*(qword *)&jt->vUnk190);
+                    *(qword *)&jt->unknown190 = DivVec(VuSub(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
+                    jt->unknown190.z = gZero;
+                    jt->SetVelocity(*(qword *)&jt->unknown190);
                 }
                 break;
             case JTS_Unk12:
                 stateMachine = jt->unknown102C;
                 SlotSetRole(jt, jt->unknown58, 1);
                 SlotSetRole(jt, jt->unknown5C, 1);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
             case JTS_Unk13:
                 SlotSetRole(jt, jt->unknown58, 1);
                 SlotSetRole(jt, jt->unknown5C, 1);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk14:
                 SlotSetRole(jt, jt->unknown58, 2);
                 SlotSetRole(jt, jt->unknown5C, 2);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk11:
@@ -3880,7 +3880,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 jt->unknown1F18->HandleSpliceEvent(5, 0, 0, 0, 0);
                 if (*(TN **)((char *)jt->unknown1F18 + 0x110) != 0)
                     SetPlayerTn(jt, *(TN **)((char *)jt->unknown1F18 + 0x110));
@@ -3892,7 +3892,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 jt->hangHandle->HandleSpliceEvent(5, 0, 0, 0, 0);
                 SubscribeLoObject(jt->hangHandle, jt);
                 SetPlayerTn(jt, jt->hangHandle->ptn);
@@ -3908,9 +3908,9 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ReblendAsegbl(jt->unknown2038);
                 aseg = jt->unknown2038;
                 SetStepRadTarget(jt, jt->pctl->radLeft);
-                qword velocity = SetVectorCylind(jt->radTarget, D_002BF3E8, gZero);
+                qword velocity = SetVectorCylind(jt->targetHeading, D_002BF3E8, gZero);
                 jt->SetVelocity(velocity);
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
             }
             break;
         }
@@ -3943,25 +3943,25 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTBS_4:
                 stateMachine = jt->unknown1BC4;
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 break;
             case JTBS_5:
                 jt->unknown1038 = -1;
                 aseg = jt->unknown14D0;
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 grfapl = 9;
                 break;
             case JTBS_6:
                 SetJtAnimState(jt, -1);
                 aseg = jt->apasegSwing[10];
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 jt->janim.useAltLanding = 0;
                 jt->janim.isInputOpen = 0;
                 break;
             case JTBS_7:
                 SetJtAnimState(jt, -1);
                 aseg = jt->apasegSwing[11];
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 jt->janim.useAltLanding = 0;
                 jt->janim.isInputOpen = 0;
                 break;
@@ -3972,7 +3972,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 else
                     aseg = jt->unknown1FE8;
                 jt->janim.isInputOpen = 0;
-                ClearXyz(&jt->vUnk190);
+                ClearXyz(&jt->unknown190);
                 break;
             case JTBS_10:
                 stateMachine = jt->unknown1F14;
@@ -3982,12 +3982,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 grfapl = 9;
                 break;
             case JTBS_12:
-                jt->rUnk200 = D_002BF358;
+                jt->unknown200 = D_002BF358;
                 grf = 0x18;
                 break;
             case JTBS_13:
                 fKeep = 1;
-                jt->rUnk200 = D_002BF35C;
+                jt->unknown200 = D_002BF35C;
                 grf = 0x18;
                 break;
         }

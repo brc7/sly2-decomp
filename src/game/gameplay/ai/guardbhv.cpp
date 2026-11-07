@@ -366,7 +366,7 @@ void BHVANIM::Close()
     BHVANIMV *behavior = (BHVANIMV *)this;
     CloseBhv(behavior);
     SetBhvanimState(behavior, 1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, behavior->sgf);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, behavior->sgf);
 }
 
 // 0x174B68 UpdateBhvanim
@@ -678,7 +678,7 @@ void BHVSTRIKE::Start()
 {
     BHVANIMV *behavior = (BHVANIMV *)this;
     ANIMREF *panim;
-    ((STEPGUARD *)behavior->pstep)->fUnkF3C = 1;
+    ((STEPGUARD *)behavior->owner)->fUnkF3C = 1;
     StartBhvanim(behavior);
     panim = behavior->panim;
     if (panim->kind == 2) {
@@ -780,7 +780,7 @@ extern "C" void CloseBhvattack(BHVATTACKV *behavior)
 {
     CloseBhv(behavior);
     SetBhvattackState(behavior, -1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ATTACK);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_ATTACK);
 }
 
 // 0x175488 SetBhvattackState
@@ -885,7 +885,7 @@ extern "C" int HandleBhvattackMessage(BHVATTACKV *behavior, int msgid, MSGLO *pm
     if (msgid == 0xB) {
         object = pmsg->plo;
         if (object == behavior->plo) {
-            if (GetStepguardFromLo(object) == (STEPGUARD *)behavior->pstep) {
+            if (GetStepguardFromLo(object) == (STEPGUARD *)behavior->owner) {
                 behavior->fHit = 1;
                 return 1;
             }
@@ -922,7 +922,7 @@ extern "C" void StartBhvcombat(BHVCOMBATV *behavior)
 {
     StartBhv(behavior);
     SetBhvcombatState(behavior, 3);
-    SetStepguardTarget((STEPGUARD *)behavior->pstep, behavior->ploTarget);
+    SetStepguardTarget((STEPGUARD *)behavior->owner, behavior->ploTarget);
 }
 
 // 0x1757D0 CloseBhvcombat
@@ -932,7 +932,7 @@ void BHVCOMBAT::Close()
     BHVCOMBATV *behavior = (BHVCOMBATV *)this;
     CloseBhv(behavior);
     SetBhvcombatState(behavior, -1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_COMBAT);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_COMBAT);
 }
 
 // 0x175810 IsBhvcombatDone
@@ -1279,13 +1279,13 @@ extern "C" int TryBhvcombatChooseAttack(BHVCOMBATV *behavior)
 {
     STEPGUARD *guard;
     void *pentry;
-    guard = (STEPGUARD *)behavior->pstep;
+    guard = (STEPGUARD *)behavior->owner;
     pentry = ChooseStepguardAttack(guard, behavior->ploTarget, guard->pvEngage);
     behavior->pentry = pentry;
     if (pentry != 0) {
         return 1;
     }
-    guard = (STEPGUARD *)behavior->pstep;
+    guard = (STEPGUARD *)behavior->owner;
     if (guard->tAttackNext < D_002DDED0.time) {
         guard->tAttackNext = D_002DDED0.time + D_002BE610;
     }
@@ -2625,7 +2625,7 @@ extern "C" int HasBhvguardTargetList(BHV *behavior)
 {
     STEPGUARD *guard;
     int f;
-    guard = (STEPGUARD *)behavior->pstep;
+    guard = (STEPGUARD *)behavior->owner;
     f = 0;
     if ((guard->cUnkFA8 != 0) || (guard->cUnkF94 != 0)) {
         f = 1;
@@ -2657,8 +2657,8 @@ extern "C" int ShouldBhvguardUseNeelaBehavior(BHV *behavior)
 {
     int f;
     f = 0;
-    if (IsBasicDerivedFrom(behavior->pstep, (CID)0x3C) != 0) {
-        f = ((STEPGUARD3C *)behavior->pstep)->useChaseBehavior != 0;
+    if (IsBasicDerivedFrom(behavior->owner, (CID)0x3C) != 0) {
+        f = ((STEPGUARD3C *)behavior->owner)->useChaseBehavior != 0;
     }
     return f;
 }
@@ -4020,7 +4020,7 @@ void BHVKO::Close()
 {
     BHV *behavior = (BHV *)this;
     CloseBhvhit(behavior);
-    RefreshSwObjectCollisionFilter(&D_003DD490, behavior->pstep);
+    RefreshSwObjectCollisionFilter(&D_003DD490, behavior->owner);
 }
 
 // 0x179A58 InitBhvpatrol
@@ -4071,7 +4071,7 @@ void BHVPATROL::Close()
     BHV *behavior = (BHV *)this;
     SetBhvpatrolState(behavior, -1);
     CloseBhv(behavior);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_PATROL);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_PATROL);
 }
 
 // 0x179BA0 UpdateBhvpatrol
@@ -4650,7 +4650,7 @@ void BHV176::Close()
     BHVSTATE *behavior = (BHVSTATE *)this;
     CloseBhv(behavior);
     SetBhvThrownState(behavior, -1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, 0x16);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, 0x16);
 }
 
 // 0x17A7F8 UpdateBhvThrown
@@ -5528,7 +5528,7 @@ extern "C" void CloseBhvTargets(BHVSTATE *behavior)
 {
     CloseBhv(behavior);
     SetBhvTargetsState(behavior, -1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, 0x20);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, 0x20);
 }
 
 // 0x17B8B0 SetBhvTargetsState
@@ -5852,7 +5852,7 @@ void BHV179::Close()
     BHVSTATE *behavior = (BHVSTATE *)this;
     CloseBhv(behavior);
     SetBhvCircleState(behavior, -1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, 0x19);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, 0x19);
 }
 
 // 0x17BFF8 ChooseBhvCirclePosition
@@ -6102,7 +6102,7 @@ extern "C" void InitBhvEscort(BHV50 *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
-    AddStepguardSgf((STEPGUARD *)behavior->pstep, 0x26);
+    AddStepguardSgf((STEPGUARD *)behavior->owner, 0x26);
 }
 
 // 0x17C670 CloseBhvEscort
@@ -6110,7 +6110,7 @@ extern "C" void InitBhvEscort(BHV50 *behavior)
 extern "C" void CloseBhvEscort(BHV *behavior)
 {
     CloseBhv(behavior);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, 0x26);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, 0x26);
 }
 
 // 0x17C6A0 StartBhvEscort
@@ -6325,7 +6325,7 @@ extern "C" void CloseBhvrail(BHVSTATE *behavior)
 {
     CloseBhv(behavior);
     SetBhvrailState(behavior, -1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_RAIL);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_ON_RAIL);
 }
 
 // 0x17CB80 UpdateBhvrail
@@ -6453,7 +6453,7 @@ extern "C" void InitBhvpipe(BHVSTATE *behavior)
 {
     InitBhv(behavior);
     behavior->nState = -1;
-    AddStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_PIPE);
+    AddStepguardSgf((STEPGUARD *)behavior->owner, SGF_ON_PIPE);
 }
 
 // 0x17CEA0 StartBhvpipe
@@ -6471,7 +6471,7 @@ extern "C" void CloseBhvpipe(BHVSTATE *behavior)
 {
     CloseBhv(behavior);
     SetBhvpipeState(behavior, -1);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_PIPE);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_ON_PIPE);
 }
 
 // 0x17CF10 UpdateBhvpipe
@@ -6591,7 +6591,7 @@ void BHV187::OnPush()
 {
     BHV *behavior = (BHV *)this;
     InitBhv(behavior);
-    AddStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_CLASS19);
+    AddStepguardSgf((STEPGUARD *)behavior->owner, SGF_ON_CLASS19);
 }
 
 // 0x17D1F0 StartBhvAttachCid19
@@ -6628,7 +6628,7 @@ void StartBhvAttachCid19(struct S *behavior)
 extern "C" void CloseBhvAttachCid19(BHV *behavior)
 {
     CloseBhv(behavior);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_CLASS19);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_ON_CLASS19);
 }
 
 // 0x17D2B0 InitBhvAttachCid39
@@ -6637,7 +6637,7 @@ void BHV188::OnPush()
 {
     BHV *behavior = (BHV *)this;
     InitBhv(behavior);
-    AddStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_CLASS39);
+    AddStepguardSgf((STEPGUARD *)behavior->owner, SGF_ON_CLASS39);
 }
 
 // 0x17D2E0 StartBhvAttachCid39
@@ -6664,7 +6664,7 @@ void StartBhvAttachCid39(struct S *behavior)
 extern "C" void CloseBhvAttachCid39(BHV *behavior)
 {
     CloseBhv(behavior);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_CLASS39);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_ON_CLASS39);
 }
 
 namespace RO_ORDER { extern const float r_D_002A55FC __asm__("D_002A55FC") = 3.40282347e+38f; }
@@ -6696,7 +6696,7 @@ extern "C" void StartBhvgoto(BHVGOTOV *behavior)
     int sgf;
     sgf = behavior->sgf;
     if (sgf != -1) {
-        AddStepguardSgf((STEPGUARD *)behavior->pstep, sgf);
+        AddStepguardSgf((STEPGUARD *)behavior->owner, sgf);
     }
     StartBhv(behavior);
     SetBhvgotoState(behavior, 4);
@@ -6713,7 +6713,7 @@ void BHVGOTO::Close()
     SetBhvgotoState(behavior, -1);
     sgf = behavior->sgf;
     if (sgf != -1) {
-        RemoveStepguardSgf((STEPGUARD *)behavior->pstep, sgf);
+        RemoveStepguardSgf((STEPGUARD *)behavior->owner, sgf);
     }
 }
 
@@ -7174,7 +7174,7 @@ void BHV189::Start()
     BHVTARGET *behavior = (BHVTARGET *)this;
     StartBhv(behavior);
     SetBhvStalkState(behavior, 0);
-    SetStepguardTarget((STEPGUARD *)behavior->pstep, behavior->plo);
+    SetStepguardTarget((STEPGUARD *)behavior->owner, behavior->plo);
 }
 
 // 0x17DDE8 CloseBhvStalk
@@ -7417,7 +7417,7 @@ extern "C" void InitBhvpathlink(BHVPATHLINKV *behavior)
 {
     InitBhv(behavior);
     behavior->nState = -1;
-    AddStepguardSgf((STEPGUARD *)behavior->pstep, SGF_PATHLINK);
+    AddStepguardSgf((STEPGUARD *)behavior->owner, SGF_PATHLINK);
 }
 
 // 0x17E3D8 StartBhvpathlink
@@ -7437,7 +7437,7 @@ extern "C" void CloseBhvpathlink(BHVPATHLINKV *behavior)
     CloseBhv(behavior);
     SetBhvpathlinkState(behavior, -1);
     ClearBhvBusy(behavior);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_PATHLINK);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_PATHLINK);
 }
 
 // 0x17E458 UpdateBhvpathlink
@@ -7632,7 +7632,7 @@ void SetBhvpathlinkState(struct S *behavior, int n) {
 extern "C" void InitBhvRelocate(BHV *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf((STEPGUARD *)behavior->pstep, 0x2D);
+    AddStepguardSgf((STEPGUARD *)behavior->owner, 0x2D);
 }
 
 // 0x17E8B8 StartBhvRelocate
@@ -7649,7 +7649,7 @@ void BHV191::Start()
 extern "C" void CloseBhvRelocate(BHV *behavior)
 {
     CloseBhv(behavior);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, 0x2D);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, 0x2D);
 }
 
 // 0x17E918 UpdateBhvRelocate
@@ -7734,7 +7734,7 @@ extern "C" void InitBhvpatrolpath(BHVPATROLPATHV *behavior)
 {
     InitBhv(behavior);
     behavior->pathParam = -1.0f;
-    AddStepguardSgf((STEPGUARD *)behavior->pstep, SGF_PATROLPATH);
+    AddStepguardSgf((STEPGUARD *)behavior->owner, SGF_PATROLPATH);
 }
 
 // 0x17EB88 StartBhvpatrolpath
@@ -7776,7 +7776,7 @@ void BHVPATROLPATH::Close()
 {
     BHV *behavior = (BHV *)this;
     CloseBhv(behavior);
-    RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_PATROLPATH);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, SGF_PATROLPATH);
 }
 
 // 0x17ECB0 UpdateBhvpatrolpath

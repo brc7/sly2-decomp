@@ -3205,7 +3205,7 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)51))
         {
             STEP *pstep = (STEP *)script->ploActor;
-            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->qwUnk240));
+            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->unknown240));
             SetStepRadTarget(pstep, rad);
         }
         else
@@ -3519,7 +3519,7 @@ void NextJsgCommand(JSGV *script)
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
             {
-                place.position = VuAdd(PosLoWorld(pstepplayer), pstepplayer->qwUnk240);
+                place.position = VuAdd(PosLoWorld(pstepplayer), pstepplayer->unknown240);
             }
             else
             {
@@ -4284,7 +4284,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             if (fComplete)
             {
-                ClearBhvstk(&pstep->bhvstk);
+                ClearBhvstk(&pstep->behaviors);
                 if (prelaycmd->followPath.idClip != -1)
                 {
                     StopStepClip((STEPPLAYER *)pstep);
@@ -4308,7 +4308,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             if (fComplete)
             {
-                ClearBhvstk(&pstep->bhvstk);
+                ClearBhvstk(&pstep->behaviors);
                 if (prelaycmd->walkTo.idClip != -1)
                 {
                     StopStepClip((STEPPLAYER *)pstep);
