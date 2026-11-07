@@ -62,7 +62,7 @@ void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitRobottank { extern "C" {
 struct V { float x, y, z; };
-struct S { char p0[0x180]; int state; char p1[0x51C-0x184]; float maxDrive; struct V unknown520; int pad; int unknown530; struct V unknown534;
+struct S : PO { int state; char p1[0x51C-0x184]; float maxDrive; struct V unknown520; int pad; int unknown530; struct V unknown534;
     char p2[0x55C-0x540]; int maxHealth; char p3[0x578-0x560]; int unknown578; char p4[8]; int unknown584; char p5[8]; int unknown590; char p6[8]; int engineSoundId; };
 void InitPo(struct S *p);
 // Sets x, y, z of a vector.
@@ -107,7 +107,7 @@ struct X : B {
 
     char pad[0xB0 - 0x10];
 };
-struct OBJ { char pad[0x4F8]; int c; X *a[1]; };
+struct OBJ : PO { char pad180[0x4F8 - 0x180]; int c; X *a[1]; };
 extern "C" {
 void ClonePo(OBJ *);
 void CopyRobottankWeapon(X *, X *);
@@ -170,7 +170,7 @@ struct SIDE {int id;REF *reference;void *binding;int padC,pad10;};
 struct ATTACH {char pad[0x18];int id;void *object;void *binding;char pad24[8];int meshId;REF *mesh;void *meshBinding;int extraId;void *extra;};
 union CURRENT {E*entry;SIDE*side;ATTACH*attachment;};
 union SCALE {const qword*axis;int stride;};
-struct P {char pad[0x190];int count;char pad194[0xC];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];char pad51C[0x50];void *asset;void *binding;char pad574[0x38];void *path;};
+struct P : SO { char pad150[0x190 - 0x150];int count;char pad194[0xC];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];char pad51C[0x50];void *asset;void *binding;char pad574[0x38];void *path;};
 extern "C" {
 extern qword D_002A2DC0,D_002A2DD0;
 extern char D_003DD490[];
@@ -2429,7 +2429,7 @@ void InitRcPickup(struct S *pickup) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostRcPickupLoad { extern "C" {
-struct S { char p0[0x160]; void *smaSource; int sma; };
+struct S : SO { char pad150[0x160 - 0x150]; void *smaSource; int sma; };
 void PostSoLoad(struct S *p);
 void ReplaceSma(void *a, struct S *p, int b, int c, int *pn);
 void SetRcPickupState(struct S *p, int n);
