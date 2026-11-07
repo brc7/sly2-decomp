@@ -18,36 +18,21 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/classes.h"
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
-/* g++ 2.95 vtable entry (VTEQ: the slot-33 velocity getter's form). */
+/* g++ 2.95 vtable entry (the blast listener's slot 51 is called by hand: its class is not known). */
 struct VTE { short d; short pad; void *pfn; };
-typedef struct VTEQ { short d; short pad; qword (*pfn)(void *); } VTEQ;
 
 /* The bomb's XA (+0xE4: its position at +0x50) and XP (+0xEC: radius at +0x30, owner at +0x60, contact list at +0x64). */
 struct XPQ;
 typedef struct XPL { XPQ *pq; struct XPL *next; } XPL;
-struct XE4 { char pad[0x50]; qword pos; };
 struct XEC { char pad[0x30]; float g30; char pad34[0x2C]; void *pso60; XPL *pl; };
 /* A custom contact (0x30): position, normal, the normal's dot as float bits, the object. */
-struct LOV;
-struct CXP { qword pos; qword normal; int n20; LOV *plo; int pad[2]; };
+struct CXP { qword pos; qword normal; int n20; SO *plo; int pad[2]; };
 typedef char assert_CXP_size[sizeof(CXP) == 0x30 ? 1 : -1];
 struct POV;
 struct Q18 { char pad[0x18]; int f18; };
 struct LOROOTV { void *plo; };
-struct BOMBV
+struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
 {
-    int pad[3]; VTE *vt;
-    void *psoParent;
-    LOROOTV *ploroot;          /* +0x14 */
-    char pad18[0x10];
-    unsigned long fl;          /* +0x28 fInWorld = bit 60 */
-    char pad30[0x10];
-    int grfUnk40;
-    char pad44[0xE4 - 0x44];
-    XE4 *pxa;                  /* +0xE4 */
-    int physics;               /* +0xE8 SO::physics (non-zero: has physics) */
-    XEC *pxp;                  /* +0xEC */
-    char padF0[0x150 - 0xF0];
     int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, TakeBombDamage) */
     float tDetonate;           /* +0x154 */
     float detonateSpeed;       /* +0x158 detonates on impact above this speed (UpdateBomb) */
@@ -75,8 +60,7 @@ struct BOMBV
 };
 typedef char assert_BOMB_pbombOwner[(unsigned int)&((BOMBV *)0)->owner == 0x200 ? 1 : -1];
 /* Objects of the SO list D_003E13B4 (UpdateBombCustomXps) and their marker LOs. */
-struct LOV { char pad[0x28]; int x28; signed char x2C; char x2D; long k:4; long :8; unsigned int f:1; char pad2[0xEC - 0x30]; XEC *pxp; };
-struct NV { char pad[0x60]; LOV *plo; };
+struct NV { char pad[0x60]; SO *plo; };
 struct SOV { char pad[0x10]; SOV *pparent; LOROOTV *ploroot; char pad1[0xE0 - 0x18]; SOV *pnext; int xE4; int grfE8; union { NV *pn; XEC *pxp; }; int xF0; };
 /* The SO list head D_003E13B4. */
 struct SOLIST { SOV *p; };
@@ -118,11 +102,11 @@ void PostSoLoad(BOMBV *);
 void UpdateSo(BOMBV *p);
 void *AllocFromWorldHeap(AREQV *);
 void HandleBasicMessage(BOMBV *, int, void *);
-void UpdateSwPox(G *pg, XEC *pa, XEC *pb, int n);
+void UpdateSwPox(G *pg, SOTREE *pa, SOTREE *pb, int n);
 qword GetLoWorldPos(void *p);
 int ClipEdgeToSphere(qword a, qword b, qword c, int n, HITB *phit, float g);
 void AddSoCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
-void AddXp(G *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
+void AddXp(G *pg, SOPART *ppart, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
 void AdjustSoXps(BOMBV *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsPoPlayable(BOMBV *p);
@@ -137,7 +121,7 @@ M3 *GetLoWorldMatrix(BOMBV *);
 void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
 void ShouldKeepSoNotSelf();
-void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), XEC *px, float g, int *pc, XAV ***paps);
+void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), SOTREE *px, float g, int *pc, XAV ***paps);
 void *AllocFromStack(AREQV *preq);
 int IntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
@@ -172,10 +156,10 @@ extern "C" void InitBomb(BOMBV *bomb) {
     bomb->makesNoise = 1;
     bomb->zapKind = 0x100;
     bomb->blastDamage = -10;
-    x = bomb->grfUnk40;
+    x = bomb->unknown40;
     bomb->k = 0;
     if ((x ^ 1) & 1) *(int *)x |= 2;
-    else bomb->grfUnk40 = x | 2;
+    else bomb->unknown40 = x | 2;
     bomb->owner = bomb;
 }
 
@@ -217,11 +201,9 @@ extern "C" void UpdateBomb(BOMBV *bomb)
     if (bomb->tDetonate <= D_002DDED0.time)
         goto out;
     {
-        VTE *vt;
         qword v;
         int f;
-        vt = bomb->vt;   /* assignments, not initializers: C++ forbids the goto past initializations */
-        v = ((qword (*)(void *))vt[33].pfn)((char *)bomb + vt[33].d);
+        v = bomb->GetVelocity();   /* assignments, not initializers: C++ forbids the goto past initializations */
         f = GLength(v) < bomb->detonateSpeed;
         if (f) {
         out:
@@ -240,10 +222,10 @@ extern "C" void UpdateBombCustomXps(BOMBV *bomb)
     int unused[4];
     HITB hit;
     for (i = 0; i < bomb->cxp; i++)
-        UpdateSwPox(&D_003DD490, bomb->pxp, bomb->axp[i].plo->pxp, 2);
+        UpdateSwPox(&D_003DD490, bomb->physicsTree, bomb->axp[i].plo->physicsTree, 2);
     bomb->cxp = 0;
     for (pso = (*(SOLIST *)&g_sw.dlTarget).p; pso; pso = pso->pnext) {
-        LOV *plo;
+        SO *plo;
         SOV *pp;
         if (!pso->xF0)
             continue;
@@ -258,19 +240,19 @@ extern "C" void UpdateBombCustomXps(BOMBV *bomb)
         }
         if (!plo)
             continue;
-        if (!(uchar)plo->f)
+        if (!(uchar)plo->isInWorld)
             continue;
         {
             qword a = GetLoWorldPos(pso);
-            XEC *px = plo->pxp;
-            qword b = bomb->pxa->pos;
-            if (ClipEdgeToSphere(a, b, GetLoWorldPos(bomb), 1, &hit, px->g30)) {
+            SOTREE *px = plo->physicsTree;
+            qword b = *(qword *)bomb->parts->matWorld.mat[3];
+            if (ClipEdgeToSphere(a, b, GetLoWorldPos(bomb), 1, &hit, px->boundsRadius)) {
                 CXP *pe;
                 qword d;
                 register qword vp __asm__("vf2");
                 register qword vn __asm__("vf1");
                 register int n __asm__("$2");
-                UpdateSwPox(&D_003DD490, bomb->pxp, plo->pxp, 1);
+                UpdateSwPox(&D_003DD490, bomb->physicsTree, plo->physicsTree, 1);
                 pe = &bomb->axp[bomb->cxp++];
                 pe->plo = plo;
                 __asm__("" : "+r"(pe));
@@ -296,7 +278,7 @@ extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int a2, int a3, int a4, 
         CXP *pe;
         for (pe = bomb->axp; pe < bomb->axp + bomb->cxp; pe++) {
             if ((void *)pe->plo == ps->po->pxp->pso60) {
-                AddXp(&D_003DD490, bomb->pxa, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
+                AddXp(&D_003DD490, bomb->parts, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
                 return;
             }
         }
@@ -371,10 +353,10 @@ extern "C" void HandleBombContact(BOMBV *bomb)
             return;
         break;
     }
-    pos = bomb->pxa->pos;
+    pos = *(qword *)bomb->parts->matWorld.mat[3];
     gBest = D_002A4B18;
     pqBest = 0;
-    for (pl = bomb->pxp->pl; pl; pl = pl->next) {
+    for (pl = (XPL *)bomb->physicsTree->pxplistFirst; pl; pl = pl->next) {
         for (pq = pl->pq; pq; pq = pq->pqNext) {
             float g = QwordX(Length(VuSub(*(qword *)AE(pq)[0].pad, pos)));
             int f;
@@ -411,8 +393,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
     case 0:
     case 2: {
         qword posT = *(qword *)AE(pqBest)[0].pad;
-        VTEQ *pe = &((VTEQ *)bomb->vt)[33];
-        qword v = pe->pfn((char *)bomb + pe->d);
+        qword v = bomb->GetVelocity();
         register qword n __asm__("vf1");
         register qword kDef __asm__("$6");
         qword l;
@@ -457,7 +438,7 @@ extern "C" void ApplyBombThrow(BOMBV *bomb, Q18 *q) {
     SetSoRotXfVelocityLocal(bomb, D_002A2DD0);
     SetSoCnstrForce(bomb, 1);
     SetSoCnstrTorque(bomb, 1);
-    ((void (*)(void *, int, int, int, int, int))bomb->vt[3].pfn)((char *)bomb + bomb->vt[3].d, 0x1b, 0, 0, 0, 0);
+    bomb->HandleSpliceEvent(0x1b, 0, 0, 0, 0);
 }
 
 // Length of a vector, in lane x.
@@ -529,14 +510,8 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
         return;
     bomb->posDetonate = pos;
     bomb->isDetonationPrepared = 1;
-    {
-        VTE *e = &bomb->vt[33];
-        bomb->velocityAtDetonation = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
-    }
-    {
-        VTE *e = &bomb->vt[34];
-        bomb->angularVelocityAtDetonation = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
-    }
+    bomb->velocityAtDetonation = bomb->GetVelocity();
+    bomb->angularVelocityAtDetonation = bomb->GetAngularVelocity();
     switch (bomb->detonationPoseMode) {
     case 0:
         BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[2], q);
@@ -571,7 +546,7 @@ extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
     int n;
     SOV **apo;
     int i;
-    { float a = bomb->sRadius; float b = bomb->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, bomb->posDetonate, ShouldKeepSoNotSelf, bomb->pxp, b >= a ? b : a, &c, &aps); }
+    { float a = bomb->sRadius; float b = bomb->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, bomb->posDetonate, ShouldKeepSoNotSelf, bomb->physicsTree, b >= a ? b : a, &c, &aps); }
     if (c == 0) {
         *pc = 0;
         *papo = 0;
@@ -587,7 +562,7 @@ extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
         void *pso60 = ps->po->pxp->pso60;
         if (ps->xC == 1)
             continue;
-        if (pso60 == bomb->pxp->pso60)
+        if (pso60 == bomb->physicsTree->root)
             continue;
         if (ps->planeCount && !IntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, IsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
             continue;
@@ -624,7 +599,7 @@ namespace RO_ORDER { extern const float r_D_002A4B1C __asm__("D_002A4B1C") = 3.4
 // remove.
 extern "C" void DetonateBomb(BOMBV *bomb)
 {
-    if (((bomb->fl >> 60) & 1) == 0)
+    if ((bomb->isInWorld & 1) == 0)
         return;
     PrepareBombDetonation(bomb, GetLoWorldPos(bomb), D_002A2DC0);
     FRAME frame;
@@ -671,10 +646,10 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         }
         FrameFree(&frame, 2);
     }
-    ((void (*)(BOMBV *, qword))bomb->vt[29].pfn)((BOMBV *)((char *)bomb + bomb->vt[29].d), bomb->posDetonate);
-    ((void (*)(BOMBV *, void *))bomb->vt[30].pfn)((BOMBV *)((char *)bomb + bomb->vt[30].d), &bomb->matDetonate);
-    ((void (*)(BOMBV *, qword))bomb->vt[35].pfn)((BOMBV *)((char *)bomb + bomb->vt[35].d), bomb->velocityAtDetonation);
-    ((void (*)(BOMBV *, qword))bomb->vt[36].pfn)((BOMBV *)((char *)bomb + bomb->vt[36].d), bomb->angularVelocityAtDetonation);
+    bomb->TranslateToPos(bomb->posDetonate);
+    bomb->RotateToMat((MATRIX4 *)&bomb->matDetonate);   /* a 3x3 rotation (M3) */
+    bomb->SetVelocity(bomb->velocityAtDetonation);
+    bomb->SetAngularVelocity(bomb->angularVelocityAtDetonation);
     if (bomb->blastListener) {
         MSG2 msg2;
         POV *po = bomb->blastListener;
@@ -693,10 +668,10 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         }
         NewNoise(D_003DD490.stimulusSystem, GetLoWorldPos(bomb), pv)[0x54 / 4] = 1;
     }
-    ((void (*)(BOMBV *))bomb->vt[9].pfn)((BOMBV *)((char *)bomb + bomb->vt[9].d));
+    bomb->Remove();
     bomb->isDetonationPrepared = 0;
     bomb->tDetonate = D_002A4B1C;
-    ((void (*)(BOMBV *, int, int, int, int, int))bomb->vt[3].pfn)((BOMBV *)((char *)bomb + bomb->vt[3].d), 5, 0, 0, 0, 0);
+    bomb->HandleSpliceEvent(5, 0, 0, 0, 0);
 }
 
 namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
@@ -717,7 +692,7 @@ extern "C" void ResetBomb(BOMBV *bomb) {
 extern "C" int ShouldBombIgnoreIntersection(BOMBV *bomb, SOV *pso)
 {
     int r = ShouldSoIgnoreIntersection(bomb, pso);
-    if (pso->ploroot->plo == bomb->owner->ploroot->plo) {
+    if (pso->ploroot->plo == bomb->owner->root->topObject) {
         r = MaxInt(r, 1);
     }
     return r;
