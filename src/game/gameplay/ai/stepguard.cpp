@@ -1505,12 +1505,8 @@ extern "C" void ReleaseStepguardZapReactions(STEPGUARD *guard)
 }
 
 // 0x208208 CloneZapReactions
-namespace M_func_00208208 { extern "C" {
-struct BINDING;
-struct BINDING { int words[4]; };
-void CloneAnimBinding(struct BINDING *binding);
 // 0x208208: Deep-copies all 26 entries of a zap-reaction table.
-void CloneZapReactions(void *guard, struct BINDING *table)
+extern "C" void CloneZapReactions(STEPGUARD *guard, ANIMBINDING *table)
 {
     int i;
     for (i = 25; i >= 0; i--) {
@@ -1518,7 +1514,6 @@ void CloneZapReactions(void *guard, struct BINDING *table)
         table++;
     }
 }
-} } // namespace M_func_00208208
 
 // 0x208250 CloneStepguardAnimBindings
 // 0x208250: Deep-copies the animation bindings and zap-reaction tables after a clone.
@@ -1794,23 +1789,20 @@ int IsStepguardPreferClass(STEPGUARD *guard, void *object)
 
 // 0x208860 RemoveStepguardDetectTarget
 namespace M_func_00208860 { extern "C" {
-struct QW; struct DETECTORV; 
-typedef struct QW { int a[4]; } QW;
-struct DETECTORV { char pad[0xFC]; int count; QW targets[1]; };
-QW *FindDetectorTarget(struct DETECTORV *detector);
+DETECTORTARGET *FindDetectorTarget(DETECTOR *detector);    /* the object passes through in a1 */
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 // 0x208860: Removes a designated (non-generated) detector target, compacting the list.
 void RemoveStepguardDetectTarget(STEPGUARD *guard)
 {
-    QW *entry = FindDetectorTarget(((struct DETECTORV *)guard->pdetector));
-    struct DETECTORV *detector = ((struct DETECTORV *)guard->pdetector);
-    int count = detector->count;
-    QW *generatedStart = &detector->targets[count - guard->generatedTargetCount];
+    DETECTORTARGET *entry = FindDetectorTarget(guard->pdetector);
+    DETECTOR *detector = guard->pdetector;
+    int count = detector->ctarget;
+    DETECTORTARGET *generatedStart = &detector->atarget[count - guard->generatedTargetCount];
     if (entry && entry < generatedStart) {
         int index;
-        detector->count = count - 1;
-        index = entry - detector->targets;
-        CopyAb__FPvT0Ui(entry, entry + 1, (((struct DETECTORV *)guard->pdetector)->count - index) * 16);
+        detector->ctarget = count - 1;
+        index = entry - detector->atarget;
+        CopyAb__FPvT0Ui(entry, entry + 1, (guard->pdetector->ctarget - index) * 16);
     }
 }
 } } // namespace M_func_00208860
@@ -1827,12 +1819,8 @@ extern "C" void ClearStepguardTargetLists(STEPGUARD *guard)
 }
 
 // 0x208920 AddStepguardIgnoreClass
-namespace M_func_00208920 { extern "C" {
-struct S;
-struct S { char pad[0x3A8]; unsigned int classCount; int classes[5]; };
 // 0x208920: Adds a class to the ignored-class list (at most 5).
-void AddStepguardIgnoreClass(struct S *guard, int cid) { if (guard->classCount < 5) guard->classes[guard->classCount++] = cid; }
-} } // namespace M_func_00208920
+extern "C" void AddStepguardIgnoreClass(STEPGUARD *guard, int cid) { if ((unsigned int)guard->ignoreClassCount < 5) guard->ignoreClasses[guard->ignoreClassCount++] = cid; }
 
 // 0x208948 RemoveStepguardIgnoreClass
 namespace M_func_00208948 { extern "C" {
@@ -1874,12 +1862,8 @@ int IsStepguardIgnoreClass(STEPGUARD *guard, void *object)
 } } // namespace M_func_002089F0
 
 // 0x208A68 AddStepguardForceClass
-namespace M_func_00208A68 { extern "C" {
-struct S;
-struct S { char pad[0x3C0]; unsigned int classCount; int classes[2]; };
 // 0x208A68: Adds a class to the forced-class list (at most 2).
-void AddStepguardForceClass(struct S *guard, int cid) { if (guard->classCount < 2) guard->classes[guard->classCount++] = cid; }
-} } // namespace M_func_00208A68
+extern "C" void AddStepguardForceClass(STEPGUARD *guard, int cid) { if ((unsigned int)guard->forceClassCount < 2) guard->forceClasses[guard->forceClassCount++] = cid; }
 
 // 0x208A90 RemoveStepguardForceClass
 namespace M_func_00208A90 { extern "C" {
