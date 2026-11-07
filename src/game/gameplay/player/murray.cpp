@@ -2648,7 +2648,6 @@ void StartMurrayAltAttack(MURRAY *murray)
 } } // namespace M_StartMurrayAltAttack
 
 namespace M_SetMurrayAttack { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
@@ -2656,25 +2655,18 @@ extern float D_002C09F0;
 struct VT { short d; short pad; void *pfn; };
 struct OBJ { struct VT *vt; };
 struct R { int x0; struct OBJ *po; };
-struct PL { char pad[0x30]; int x30; };
-struct P {
-    char pad0[0x150]; struct PL *pl; char pad1[0x190 - 0x154]; qword v190; char pad1b[0x1A8 - 0x1A0]; float g1A8; char pad2[0x1B0 - 0x1AC];
-    qword m1B0[3]; char pad3[0x1030 - 0x1E0]; struct ASEGA *panim; char x1034[0x10DC - 0x1034]; void *interactTarget; char pad5[0x10E4 - 0x10E0];
-    int interactKind; char pad6[0x17FC - 0x10E8]; void *ap17FC[5]; int attackSubstate; float g1814; int x1818; int x181C; int comboWindow;
-    char pad7[0x1830 - 0x1824]; qword v1830; char pad8[0x190C - 0x1840]; void *x190C;
-};
 void ReleaseAsega(void *pp);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
-void SetStepTargetHeading(struct P *p, float g);
-void FixStepAngularVelocity(struct P *p);
+void SetStepTargetHeading(MURRAY *p, float g);
+void FixStepAngularVelocity(MURRAY *p);
 void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ASEGA **ppanim);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, MURRAY *p, float g, float h, int n, struct ASEGA **ppanim);
 float *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ASEGA *pa, float t);
-struct R *FindAsegChannel(struct ASEG *p, struct P *pp, int a, int b);
-void ReleaseInteractTargetMark(struct P *p);
+struct R *FindAsegChannel(struct ASEG *p, MURRAY *pp, int a, int b);
+void ReleaseInteractTargetMark(MURRAY *p);
 // Rotate v by the 3x3 matrix rows m[0..2].
 static inline qword MulM3(qword *m, qword v)
 {
@@ -2683,55 +2675,55 @@ static inline qword MulM3(qword *m, qword v)
 }
 // Attack sub-state (x1810, clip table x17FC[kind]): resets event flags, auto-faces a target within the cone, starts the
 // clip and predicts its end point.
-void SetMurrayAttack(struct P *murray, int k)
+void SetMurrayAttack(MURRAY *murray, int k)
 {
     void *q;
     float g;
     if (k == murray->attackSubstate)
         return;
     murray->attackSubstate = k;
-    murray->g1814 = D_002DDED0.time;
+    murray->attackStartTime = D_002DDED0.time;
     if (k == -1)
         return;
     murray->comboWindow = 0;
-    murray->x1818 = 0;
-    murray->x181C = 0;
-    if (murray->x190C)
-        ReleaseAsega(&murray->x190C);
-    q = murray->ap17FC[k];
-    murray->v190 = D_002A2DD0;
-    if (murray->interactTarget && murray->interactKind >= 2 && !(murray->pl->x30 & 8)) {
+    murray->unknown1818 = 0;
+    murray->unknown181C = 0;
+    if (murray->unknown190C)
+        ReleaseAsega(&murray->unknown190C);
+    q = murray->apasegAttack[k];
+    murray->qwUnknown190 = D_002A2DD0;
+    if (murray->interactTarget && murray->nUnk10e4 >= 2 && !(murray->controller->buttonsHeld & 8)) {
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(murray->interactTarget)), "j"(GetLoWorldPos(murray)));
         g = atan2f(QwordY(d), QwordX(d));
-        if (__builtin_fabsf(NormalizeAngle__Ff(g - murray->g1A8)) < D_002C09F0) {
+        if (__builtin_fabsf(NormalizeAngle__Ff(g - murray->targetHeading)) < D_002C09F0) {
             SetStepTargetHeading(murray, g);
             FixStepAngularVelocity(murray);
         }
     }
     g = 0.0f;
-    ReleaseSma(murray->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
+    ReleaseSma(&murray->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->activeAnimation);
     if (q) {
         float *pg = FindAsegLabel(q, 0x1AC);
         if (pg)
             g = *pg;
     }
     if (g != 0.0f)
-        SetAsegaChannelWeight(murray->panim, D_002DDED0.time + g / murray->panim->speed);
-    if (murray->panim) {
-        struct R *r = FindAsegChannel(murray->panim->animation, murray, 1, 1);
+        SetAsegaChannelWeight(murray->activeAnimation, D_002DDED0.time + g / murray->activeAnimation->speed);
+    if (murray->activeAnimation) {
+        struct R *r = FindAsegChannel(murray->activeAnimation->animation, murray, 1, 1);
         if (r) {
             qword a, b, pos, t, v;
             ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &a, 0.0f, 0.0f, 0);
-            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &b, murray->panim->animation->duration, 0.0f, 0);
+            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &b, murray->activeAnimation->animation->duration, 0.0f, 0);
             pos = GetLoWorldPos(murray);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(t) : "j"(b), "j"(a));
-            t = MulM3(murray->m1B0, t);
+            t = MulM3(murray->aqwTarget, t);
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(v) : "j"(pos), "j"(t));
-            murray->v1830 = v;
+            murray->unknown1830 = v;
         } else {
-            murray->v1830 = GetLoWorldPos(murray);
+            murray->unknown1830 = GetLoWorldPos(murray);
         }
     }
     ReleaseInteractTargetMark(murray);
@@ -2753,49 +2745,36 @@ void CancelMurrayAttack(MURRAY *murray)
 } } // namespace M_func_001B8938
 
 namespace M_UpdateMurrayAttack { extern "C" {
-typedef struct T { char pad[0x1C]; float x1C; } T;
-typedef struct P {
-    char pad0[0x150];
-    T *controller;
-    char pad154[0x1030 - 0x154];
-    void *action;
-    char pad1034[0x1810 - 0x1034];
-    int attackSubstate;
-    char pad1814[0x181C - 0x1814];
-    int x181C;
-} P;
 int IsAsegaRetracted(void *p);
-void SetMurrayState(P *p, int s);
-int CanMurrayAttack(P *p);
-int ConsumeButtonsPressedWithin__5POCTLUif(T *t, int k, float f);
-void SetMurrayAttack(P *p, int k);
-int TryMurrayTakedown(P *p);
-void CancelMurrayAttack(P *p);
+void SetMurrayState(MURRAY *p, int s);
+void SetMurrayAttack(MURRAY *p, int k);
+int TryMurrayTakedown(MURRAY *p);
+void CancelMurrayAttack(MURRAY *p);
 
 // State 11 combo: chains square (0 <-> 1) or 0x10 (2 <-> 3) within the combo window; takedown check; movement cancel.
-void UpdateMurrayAttack(P *murray)
+void UpdateMurrayAttack(MURRAY *murray)
 {
     int s;
     for (;;) {
         s = murray->attackSubstate;
-        if (!murray->action || IsAsegaRetracted(murray->action)) {
+        if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) {
             SetMurrayState(murray, MURRAY_IDLE);
         } else {
             switch (murray->attackSubstate) {
             case 0:
             case 1:
-                if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_ATTACK, 0.25f)) {
+                if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, murray->attackSubstate == 0);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
-                    if (murray->x181C && 0.0f < murray->controller->x1C) CancelMurrayAttack(murray);
+                    if (murray->unknown181C && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
                 }
                 break;
             case 2:
             case 3:
-                if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_ALT_ATTACK, 0.25f)) {
+                if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, (murray->attackSubstate == 2) ? 3 : 2);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
-                    if (murray->x181C && 0.0f < murray->controller->x1C) CancelMurrayAttack(murray);
+                    if (murray->unknown181C && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
                 }
                 break;
             }
