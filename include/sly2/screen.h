@@ -19,9 +19,10 @@ template <> CRefPtr<CSidebag>::~CRefPtr();
  * screen.cpp). The HUD meter and the pause menu derive from it directly, SCREEN adds slots 12..14. */
 struct SCREENBASE : BASIC
 {
+    JOY *pjoy;              /* +0x10 the joypad it reads (only while focused: UpdateScreenFocus) */
     virtual void Update() __asm__("UpdateScreenDefault");   /* slot 7 (empty); key function (screen.cpp) */
     virtual void Draw() __asm__("DrawScreen");   /* slot 8 */
-    virtual void UnknownSlot9() __asm__("ScreenSlot9Default");   /* slot 9 */
+    virtual void SetFocus(int fFocus, SCREENBASE *pscrOther) __asm__("ScreenSlot9Default");   /* slot 9: focus gained / lost (UpdateScreenFocus) */
     virtual void Show() __asm__("ShowScreen");   /* slot 10 */
     virtual void Hide() __asm__("HideScreen");   /* slot 11 */
 };
@@ -29,7 +30,7 @@ struct SCREENBASE : BASIC
 /* The HUD meter (DRAFT name; vtable 0x2D8668, screen.cpp). */
 struct HUDMETER : SCREENBASE
 {
-    int unknown10[4];       /* +0x10 */
+    int unknown14[3];       /* +0x14 */
     float shownHealth;      /* +0x20 the fractions shown (they follow health / power) */
     float health;           /* +0x24 */
     float shownPower;       /* +0x28 */
@@ -37,7 +38,11 @@ struct HUDMETER : SCREENBASE
     int state;              /* +0x30 */
     STEPPLAYER *hero;       /* +0x34 */
     WIDGET *widget;         /* +0x38 */
-    int anims[5];           /* +0x3C the per-character animations */
+    int idAnimSteady;       /* +0x3C the per-character animations: steady, damage flash, hide, the alternate */
+    int idAnimDamage;       /* +0x40    steady states 6 and 7 (SetHudMeterState) */
+    int idAnimHide;         /* +0x44 */
+    int idAnimState6;       /* +0x48 */
+    int idAnimState7;       /* +0x4C */
     virtual void Update() __asm__("UpdateHudMeter");   /* slot 7; key function (screen.cpp) */
 };
 typedef char assert_HUDMETER_size[sizeof(HUDMETER) == 0x50 ? 1 : -1];
@@ -45,13 +50,17 @@ typedef char assert_HUDMETER_size[sizeof(HUDMETER) == 0x50 ? 1 : -1];
 /* SCREEN: a UI screen or dialog: the text it shows, the widget object and a mode with its entry time. */
 struct SCREEN : SCREENBASE
 {
-    char pad10[0x18 - 0x10];
+    int unknown14;          /* +0x14 */
     int idText;             /* +0x18 id of the text shown */
-    char pad1C[4];
+    int unknown1C;          /* +0x1C */
     int idTextQueued;       /* +0x20 text to show next; for widget screens the widget oid */
-    void *pchild;           /* +0x24 the widget object */
-    int nMode;              /* +0x28 screen mode (-1 after ResetMode) */
+    void *pchild;           /* +0x24 the widget object (WIDGET; the bodies read it through their WIDGET views) */
+    int nMode;              /* +0x28 screen mode (-1 after ResetMode); the stick direction of the menus (slot 14) */
     float modeStartTime;    /* +0x2C time the mode was entered */
+    int nPopup;             /* +0x30 the message popup (SetScreenMode): -1 none, 0 a prompt, 1 a timed message */
+    float tPopupEnd;        /* +0x34 when the popup closes (UpdateTimedScreen) */
+    int idsPopup;           /* +0x38 the popup's text id */
+    int unknown3C;          /* +0x3C */
     SCREEN() __asm__("ConstructScreen");        /* out of line: screen.cpp */
     void ResetMode() __asm__("ResetScreenMode");   /* mode -1, time now (screen.cpp; DRAFT name ResetScreenMode) */
     virtual void PostLoad() __asm__("PostLoadScreen");   /* slot 12 (screen.cpp: resolves the widget); key function (screen.cpp) */
@@ -59,5 +68,6 @@ struct SCREEN : SCREENBASE
     virtual void Reset() __asm__("ResetScreen");   /* slot 13 */
     virtual void SetMode(int nMode) __asm__("__pure_virtual");   /* slot 14 (pure) */
 };
+typedef char assert_SCREEN_size[sizeof(SCREEN) == 0x40 ? 1 : -1];
 
 #endif

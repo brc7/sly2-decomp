@@ -18,8 +18,12 @@ public:
       CRefPtr<CFrame> m_apframeParent[4];   /* the parent frames */
       CRefPtr<CVarb> m_pvarb;   /* first variable binding of this scope */
       int m_fVisited;   /* visited mark of a lookup or GC walk (inferred) */
+      int m_fObjectFrame;   /* +0x24 an object's own frame (BuiltinFindBindingOrNoop climbs to it; inferred) */
+    CRef *FindBindingPtr(unsigned int sym, int fRecurse) __asm__("FindBindingPtr__6CFrameUii");   /* splice/frame.cpp */
     void RemoveParent(CFrame *pframeParent) __asm__("CFrame_RemoveParent");
     void AddParent(CFrame *pframeParent) __asm__("CFrame_AddParent");   /* from LoadProxyFromBrx__FP2SWP2SO3CID3OIDiP18CBinaryInputStreamP14CLoadCollector.cpp */
 };
+
+typedef char assert_CFrame_size[sizeof(CFrame) == 0x28 ? 1 : -1];   /* the frame pool's slot size */
 
 #endif /* SLY2_CFRAME_H */
