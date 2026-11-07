@@ -588,8 +588,7 @@ extern "C" int IsBhvScriptDone(BHVSSG *behavior)
 namespace M_func_00171468 { extern "C" {
 extern struct CLOCK D_002DDED0;
 struct COMMAND { int kind; int pad; float duration; };
-struct GUARD { char pad[0xF80]; int attachKind; char pad2[0xFD0 - 0xF84]; char mover[4]; };
-struct S { char pad[0x10]; struct GUARD *guard; int pad2; void *child; char pad3[0x1C]; struct COMMAND *currentCommand; float commandStartTime; int isCommandBusy; int pad4; float heading; };
+struct S { char pad[0x10]; STEPGUARD *guard; int pad2; void *child; char pad3[0x1C]; struct COMMAND *currentCommand; float commandStartTime; int isCommandBusy; int pad4; float heading; };
 int IsBhvpatrolpathDone(void *bhv);
 int HasBhvrailArrived(void *bhv);
 int HasBhvpipeArrived(void *bhv);
@@ -618,7 +617,7 @@ int IsBhvScriptCommandBusy(struct S *behavior) {
     case SSGK_GOTO:
         if (HasBhvgotoArrived(behavior->child)) {
             behavior->isCommandBusy = 0;
-            SetStepguardMoverRadTarget(behavior->guard->mover, behavior->heading);
+            SetStepguardMoverRadTarget((&behavior->guard->mover), behavior->heading);
         }
         break;
     case SSGK_WAIT:
@@ -892,8 +891,7 @@ namespace M_func_00171C18 { extern "C" {
 struct COMMAND { int kind; };
 struct RESUME { struct COMMAND *command; int context; float pathParam; };
 struct BHVPATROLPATHV { char pad[0x38]; float pathParam; };
-struct GUARD { char pad[0xF80]; int attachKind; };
-struct S { char pad[0x10]; struct GUARD *guard; int pad1; struct BHVPATROLPATHV *child; char pad2[0x18]; int context; struct COMMAND *currentCommand; };
+struct S { char pad[0x10]; STEPGUARD *guard; int pad1; struct BHVPATROLPATHV *child; char pad2[0x18]; int context; struct COMMAND *currentCommand; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // 0x171C18: Saves the current command and context (and remaining wait) so the script can resume later.
 void SaveBhvScriptResumeState(struct S *behavior, struct RESUME *resume)

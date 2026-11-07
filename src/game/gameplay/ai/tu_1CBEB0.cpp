@@ -36,7 +36,7 @@ void RAJAN::Init()
 {
     RAJANV *rajan = (RAJANV *)this;
       InitStepguard(rajan);
-      rajan->unk_0x488[(0x4A4 - 0x488) / 4] = 1;   /* +0x4A4 (STEPGUARD padding; gomer/tu_14FAC8 set it too) */
+      rajan->tracksRelocatePoint = 1;   /* +0x4A4 (tu_14FAC8 sets it too) */
 }
 
 // 0x1CBEE0: RAJAN vtable slot 89 (sense a stimulus): for an audible noise whose emitter has id 0x246 at +0x18
