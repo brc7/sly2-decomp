@@ -847,16 +847,13 @@ void BuildSaveFilePath(struct M *saveManager, struct SAVE *slot, char *buf)
 } } // namespace M_BuildSaveFilePath
 
 namespace M_McJobSaveSlot { extern "C" {
-struct S { char pad[0xFD50]; void *currentSlot; };
 extern char D_002E6550[];
-void *McJobGetInfo(struct S *s);
-void *CreateSaveDir(struct S *s);
-void *WriteSaveSlotFile(struct S *s, void *x);
+int CreateSaveDir(SAVE *s);
 void SetMcDialogPhase(void *p, int n);
 // Worker job: checks the card, creates the save directory when needed and writes one slot file.
-void *McJobSaveSlot(struct S *saveManager)
+int McJobSaveSlot(SAVE *saveManager)
 {
-    void *error = McJobGetInfo(saveManager);
+    int error = McJobGetInfo(saveManager);
     if (!error) error = CreateSaveDir(saveManager);
     if (!error) error = WriteSaveSlotFile(saveManager, saveManager->currentSlot);
     if (error) SetMcDialogPhase(D_002E6550, 3);
@@ -879,16 +876,14 @@ extern "C" int McJobAutosave(SAVE *saveManager)
 }
 
 namespace M_func_001ABC68 { extern "C" {
-struct S { char pad[0xFD58]; void *selectedSlot; };   /* the slot picked on the save page */
 extern char D_002E6550[];
-void *McJobGetInfo(struct S *s);
-void *CreateSaveDir(struct S *s);
-void *WriteSaveSlotFileReset(struct S *s, void *x);
+int CreateSaveDir(SAVE *s);
+int WriteSaveSlotFileReset(SAVE *s, SAVESLOT *pslot);
 void SetMcDialogPhase(void *p, int n);
 // Worker job: like McJobSaveSlot, but the slot is written with a GS reset first (WriteSaveSlotFileReset).
-void *McJobSaveSlotResetGs(struct S *saveManager)
+int McJobSaveSlotResetGs(SAVE *saveManager)
 {
-    void *error = McJobGetInfo(saveManager);
+    int error = McJobGetInfo(saveManager);
     if (!error) error = CreateSaveDir(saveManager);
     if (!error) error = WriteSaveSlotFileReset(saveManager, saveManager->selectedSlot);
     if (error) SetMcDialogPhase(D_002E6550, 3);
@@ -900,17 +895,16 @@ namespace M_func_001ABCE8 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C88;
-struct S { char pad[0xFD50]; int currentSlot; int pad2[2]; char memcard[4]; };
-void ResetRumbleSaveVar(struct S *p);
-void BuildMemcardGsMask(void *p, int n);
-void CreateMemcardThread(void *p, long k);
+void ResetRumbleSaveVar(SAVE *p);
+void BuildMemcardGsMask(SAVEVARS *psv, SAVESLOT *pslot);
+void CreateMemcardThread(MEMCARD *p, long k);
 // Starts the autosave: resets the rumble save variable, stores the save variables into the current slot and queues
 // McJobAutosave.
-void StartAutosaveJob(struct S *saveManager)
+void StartAutosaveJob(SAVE *saveManager)
 {
     ResetRumbleSaveVar(saveManager);
-    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), saveManager->currentSlot);
-    CreateMemcardThread(saveManager->memcard, D_002A6C88.l);
+    BuildMemcardGsMask(&g_sw.savevars, saveManager->currentSlot);
+    CreateMemcardThread(&saveManager->memcard, D_002A6C88.l);
 }
 } } // namespace M_func_001ABCE8
 
@@ -918,40 +912,37 @@ namespace M_func_001ABD40 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C90;
-struct S { char pad[0xFD50]; int currentSlot; int pad2[2]; char memcard[4]; };
-void ResetRumbleSaveVar(struct S *p);
-void BuildMemcardGsMask(void *p, int n);
-void CreateMemcardThread(void *p, long k);
+void ResetRumbleSaveVar(SAVE *p);
+void BuildMemcardGsMask(SAVEVARS *psv, SAVESLOT *pslot);
+void CreateMemcardThread(MEMCARD *p, long k);
 // Starts a save to the current slot: same preparation as the autosave, then queues McJobSaveSlot.
-void StartSaveSlotJob(struct S *saveManager)
+void StartSaveSlotJob(SAVE *saveManager)
 {
     ResetRumbleSaveVar(saveManager);
-    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), saveManager->currentSlot);
-    CreateMemcardThread(saveManager->memcard, D_002A6C90.l);
+    BuildMemcardGsMask(&g_sw.savevars, saveManager->currentSlot);
+    CreateMemcardThread(&saveManager->memcard, D_002A6C90.l);
 }
 } } // namespace M_func_001ABD40
 
 namespace M_func_001ABD98 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
-struct G { char pad[0x3B54]; int saveVarAutosaveEnabled; };   /* g_sw: id of the autosave-enabled save variable (inferred) */
 struct H { char pad[0x4C]; int followUpAction; };   /* the memcard dialog */
-struct S { char pad[0xFD50]; void *currentSlot; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern struct H D_002E6550;
 extern int D_002DEB4C;
 extern char D_003D4A60[], D_002E65A0[];
-int IsSwTransitionBusy(struct G *g);
+int IsSwTransitionBusy(SW *g);
 int GetCurrentWorld(void);
-void GetGlobalSaveVar(struct CRef *ret, int a, void *b);
+void GetGlobalSaveVar(struct CRef *ret, SVPATH *a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
-void StartAutosaveJob(struct S *s);
+void StartAutosaveJob(SAVE *s);
 void ShowMcDialogWidget(void *p);
 // Autosaves when a slot is current and no transition is running (Splice save flag unless forced): shows the "no card"
 // dialog (state 0x22) when the card is missing, else starts the autosave job.
-void AutosaveGame(struct S *saveManager, int force)
+void AutosaveGame(SAVE *saveManager, int force)
 {
-    struct G *world;
+    SW *world;
     struct CRef ref;
     int isEnabled;
     if (!saveManager->currentSlot)
@@ -963,7 +954,7 @@ void AutosaveGame(struct S *saveManager, int force)
         return;
     if (!GetCurrentWorld() && !force)
         return;
-    GetGlobalSaveVar(&ref, world->saveVarAutosaveEnabled, D_003D4A60);
+    GetGlobalSaveVar(&ref, world->psvpAutosaveWarned, D_003D4A60);
     isEnabled = ref.m_tag;
     Decref__4CRef(&ref);
     if (!isEnabled) {
