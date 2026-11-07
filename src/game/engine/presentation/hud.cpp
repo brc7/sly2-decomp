@@ -1597,11 +1597,8 @@ extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animInd
 } // namespace M_func_00214100
 
 // 0x2142B0 HasSpriteAnim
-namespace M_FSpriteHasAnim { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct S { unsigned short numAnims; short pad; struct E *anims; };   /* a sprite group */
 // True when the sprite's animation list contains the id.
-int HasSpriteAnim(void *pv, struct S *group, int id)
+extern "C" int HasSpriteAnim(void *pv, SPRITEGRP *group, int id)
 {
     int i;
     if (id == -1)
@@ -1612,7 +1609,6 @@ int HasSpriteAnim(void *pv, struct S *group, int id)
     }
     return 0;
 }
-} } // namespace M_FSpriteHasAnim
 
 // 0x214300 SetWidgetExclusive
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
@@ -3170,11 +3166,8 @@ extern "C" void StartSpriteAnimAt(S *group, int animIndex, int slot, M23 *matrix
 } // namespace M_func_00217D98
 
 // 0x217EF8 FindFreeSpriteSlot
-namespace M_IFreeSpriteSlot { extern "C" {
-struct E { char pad[8]; short animIndex; char pad2[14]; };
-struct S { short numAnims; unsigned short numSlots; char pad[4]; struct E *slots; };
 // First free reusable sprite slot.
-int FindFreeSpriteSlot(struct S *group)
+extern "C" int FindFreeSpriteSlot(SPRITEGRP *group)
 {
     int i;
     int count = group->numSlots;
@@ -3184,7 +3177,6 @@ int FindFreeSpriteSlot(struct S *group)
     }
     return 0;
 }
-} } // namespace M_IFreeSpriteSlot
 
 // 0x217F38 ResetSpriteSlotItems
 namespace M_func_00217F38 { extern "C" {
@@ -3455,18 +3447,14 @@ void StopSpriteSlot(struct S *group, int slot)
 } } // namespace M_func_00218660
 
 // 0x218710 IsSpriteAnimActive
-namespace M_FSpriteAnimActive { extern "C" {
-struct B { char pad[8]; short animIndex; char pad2[6]; int isFinished; };
-struct S { char pad[8]; struct B *slots; };
 // True while the sprite animation is running.
-int IsSpriteAnimActive(struct S *group)
+extern "C" int IsSpriteAnimActive(SPRITEGRP *group)
 {
-    struct B *mainSlot = group->slots;
+    SPRITESLOT *mainSlot = group->slots;
     if (mainSlot->animIndex != 0 && mainSlot->isFinished == 0)
         return 1;
     return 0;
 }
-} } // namespace M_FSpriteAnimActive
 
 // 0x218738 GetSpriteMainState
 // State of the sprite group's main animation. (inferred)
