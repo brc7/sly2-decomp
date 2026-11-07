@@ -523,10 +523,6 @@ extern "C" int GetBanksndKind(BANKSND *sound)
 }
 
 namespace M_PlayBanksnd { extern "C" {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int panAngle; float pitchRatio; char pad2[0x44 - 0x1C]; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags; unsigned short playState; char pad4[0x60 - 0x54]; int sfxId; };
-struct G { char pad[0xE8]; int bank; };   /* SNDMGR */
-struct S { int kind; };   /* a sound's entry in SNDMGR soundKinds */
 /* 989snd play parameters (0x30 bytes): the fields named in mask are used */
 struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad12; int pad14[3]; short pitch; short pad22; int pad24; int mask; int pad2C; };
 #define PLAY_PARAM_BANK 1
@@ -538,25 +534,23 @@ struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad1
 #define SFX_SLY 0x6F       /* the three heroes' effects that drive StepRandomSfxVariation (inferred) */
 #define SFX_BENTLEY 0x73
 #define SFX_MURRAY 0x15
-extern struct G D_003DD040;
+extern SNDMGR D_003DD040;
 extern char D_003DD490[];
 extern int D_002DD5BC, D_002F7900, D_002E1E40;   /* Bentley, Murray, Sly */
-struct S *FindSoundForSfxId(struct G *, int);
-short GetSoundIndex(struct G *, struct S *);
-void SetSndFlags(struct P *, int, int);
-void RemoveSndFromDirtyList(struct P *);
+short GetSoundIndex(SNDMGR *, int *);
+void RemoveSndFromDirtyList(CID151 *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void OnBankSoundStarted(void);
-void func_00232320(struct M *, void (*)(void), struct P *);
+void func_00232320(struct M *, void (*)(void), BANKSND *);
 void func_002322F0(struct M *);
 int GetHeroPo(void *);
-void StepRandomSfxVariation(struct G *);
+void StepRandomSfxVariation(SNDMGR *);
 // Starts a bank sound on the 989snd library (slot 9) with its bank, sound index, volume, pan and pitch: loopers start
 // asynchronously and get a voice handle, one-shots are fire-and-forget; some effects get special handling.
-void PlayBanksnd(struct P *sound)
+void PlayBanksnd(BANKSND *sound)
 {
-    struct G *soundManager = &D_003DD040;
-    struct S *entry = FindSoundForSfxId(soundManager, sound->sfxId);
+    SNDMGR *soundManager = &D_003DD040;
+    int *entry = FindSoundForSfxId(soundManager, sound->sfxId);
     struct M params;
     int owner;
     if (!entry || !soundManager->bank) {
@@ -583,9 +577,9 @@ void PlayBanksnd(struct P *sound)
         params.mask |= PLAY_PARAM_PITCH;
         params.pitch = (int)(sound->pitchRatio * 1524.0f);
     }
-    if (entry->kind == SOUND_KIND_LOOPING) {
+    if (*entry == SOUND_KIND_LOOPING) {
         sound->playState = 1;
-        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);
+        sound->AddRef();
         func_00232320(&params, OnBankSoundStarted, sound);
         SetSndFlags(sound, SND_START | SND_PAUSE | SND_CONTINUE | SND_STOP | SND_DIRTY_SOUND_PARAMS, 0);
         return;
@@ -823,23 +817,19 @@ void SetStreamGroupPan(STREAMSND *sound, unsigned int group, int deg)
 } } // namespace M_func_001FC380
 
 namespace M_func_001FC408 { extern "C" {
-struct R { float lo, hi; };
-struct E { int object; struct R range; float gain; };
-struct P { char pad[0xA0]; int groupSourceCounts[6]; struct E groupSources[6][8]; };
-void SetSndFlags(struct P *, int, int);
 // Adds a positional source (object, volume, range) to a stream sub-group (at most 8 per group); the loudest audible
 // source drives the group's volume and pan. (inferred)
-void AddStreamGroupSource(struct P *sound, unsigned int group, int object, struct R *range, float gain)
+void AddStreamGroupSource(STREAMSND *sound, unsigned int group, LO *object, LM *range, float gain)
 {
     if (group < 6 && sound->groupSourceCounts[group] < 8) {
-        struct E *source;
+        SNDSOURCE *source;
         SetSndFlags(sound, SND_POSITIONAL, SND_POSITIONAL);
         source = &sound->groupSources[group][sound->groupSourceCounts[group]++];
-        source->object = object;
+        source->plo = object;
         source->gain = gain;
         source->range = *range;
-        if (source->range.lo == source->range.hi)
-            source->range.hi += 1.0f;   /* keep the falloff range non-empty */
+        if (source->range.minValue == source->range.maxValue)
+            source->range.maxValue += 1.0f;   /* keep the falloff range non-empty */
     }
 }
 } } // namespace M_func_001FC408
@@ -935,10 +925,8 @@ extern "C" void ResumeStreamSound(CID151 *sound)
 }
 
 namespace M_ApplyStreamsndParams { extern "C" {
-struct P { char pad[0x14]; int panAngle; float pitchRatio; char pad2[0x40 - 0x1C]; int voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags;
-    char pad4[0x70 - 0x52]; float groupVolumes[6]; int groupPans[6]; char pad5[0x3BC - 0xA0]; int dirtyGroups; };
 // Sends a stream's changed volume, pan and pitch, then each sub-group's parameters (slot 13).
-void ApplyStreamsndParams(struct P *sound)
+void ApplyStreamsndParams(STREAMSND *sound)
 {
     int i;
     /* sound flags: 0x10 volume, 0x20 pan, 0x40 pitch dirty; 0x80 / 0x100 sub-group volume / pan dirty */
@@ -1052,17 +1040,12 @@ void UpdateStreamsndPositional(struct P *sound)
 } } // namespace M_UpdateStreamsndPositional
 
 namespace M_func_001FCBA8 { extern "C" {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[8]; };
-struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; int voiceHandle; char pad3[0x50 - 0x44]; unsigned short flags; short playState; };
-void ResumeSnd(struct X *);
-void SetSndFlags(struct X *, int, int);
-#define VF(q, n) (q)->vtable->a[n].pfn((char *)(q) + (q)->vtable->a[n].d)
+void ResumeSnd(CID151 *);
 // Async callback when a stream started: stores its stream handle, or stops the sound if starting failed; drops the
 // callback's reference. (inferred)
 void OnStreamSoundStarted(int handle, long context)
 {
-    struct X *sound = (struct X *)context;
+    CID151 *sound = (CID151 *)context;
     sound->voiceHandle = handle;
     if (handle)
         SetSndFlags(sound, SND_QUERY_STARTED, SND_QUERY_STARTED);
@@ -1070,29 +1053,26 @@ void OnStreamSoundStarted(int handle, long context)
         ResumeSnd(sound);
         sound->playState = 0;
         if (!(sound->flags & SND_STOP))
-            VF(sound, 7);   /* slot 7 */
+            sound->Start();
     }
-    VF(sound, 2);   /* Decref */
+    sound->Release();
 }
 } } // namespace M_func_001FCBA8
 #undef VF
 
 namespace M_OnStreamsndStatus { extern "C" {
-struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *vtable; char pad2[0x52 - 0x10]; short playState; };
-void ResumeSnd(struct X *);
-void SetSndFlags(struct X *, int, int);
+void ResumeSnd(CID151 *);
 // Async callback of the stream status query.
 void OnStreamsndStatus(int hasStopped, long context)
 {
-    struct X *sound = (struct X *)context;
+    CID151 *sound = (CID151 *)context;
     if (hasStopped) {
         sound->playState = 0;
         ResumeSnd(sound);
     } else {
         SetSndFlags(sound, SND_QUERY_STARTED, SND_QUERY_STARTED);   /* ask again */
     }
-    sound->vtable->pfn((char *)sound + sound->vtable->d);   /* Decref */
+    sound->Release();
 }
 } } // namespace M_OnStreamsndStatus
 
