@@ -1888,24 +1888,21 @@ extern "C" void SetBentleyXpFriction(void *pv, XP *xp)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001374F0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x18]; float g18; float g1C; };
-struct O { char pad[0x150]; struct Q *pq; char pad2[0x10DC - 0x154]; void *interactTarget; };
-struct P { struct O *po; int x4; int x8; int xC; };
 qword SetVectorCylind(float a, float b, float c);
 qword GetLoWorldPos(void *p);
 // With a target and a positive range: 1 if the target lies behind Bentley's facing, 0 if in front; otherwise returns
 // the record's stored flag. (inferred)
-int IsBentleyHelperTargetBehind(struct P *bentley)
+int IsBentleyHelperTargetBehind(BTBLENDS *bentley)
 {
     float zero = 0.0f;
-    struct Q *pq = bentley->po->pq;
-    if (zero < pq->g1C && bentley->po->interactTarget) {
-        qword v = SetVectorCylind(pq->g18 - 1.5707964f, 1.0f, zero);
-        qword a = GetLoWorldPos(bentley->po->interactTarget);
+    POCTL *pq = bentley->pbentley->controller;
+    if (zero < pq->leftStickDeflection && bentley->pbentley->interactTarget) {
+        qword v = SetVectorCylind(pq->leftStickAngle - 1.5707964f, 1.0f, zero);
+        qword a = GetLoWorldPos(bentley->pbentley->interactTarget);
         qword b, d, t;
         float g;
         __asm__("" : "+j"(a));
-        b = GetLoWorldPos(bentley->po);
+        b = GetLoWorldPos(bentley->pbentley);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         __asm__("vmul.xyz %0, %2, %3\n"
             "vaddw.x %1, $vf0, $vf0w\n"
@@ -1914,7 +1911,7 @@ int IsBentleyHelperTargetBehind(struct P *bentley)
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
         if (g > zero) return 0; return 1;
     }
-    return bentley->xC;
+    return bentley->unknown0C;
 }
 } } // namespace M_func_001374F0
 
