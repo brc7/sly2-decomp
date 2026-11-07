@@ -1186,7 +1186,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct MSG { int cb; int nKind; };
 struct HIT { qword pos; char pad[0x5F0]; };
-struct O { char pad[0x1098]; float x1098; float x109C; };
+struct O : STEP { char pad[0x1098 - 0x2C0]; float x1098; float x109C; };
 struct L { char pad[0xE0]; int xE0; };
 extern "C" {
 extern qword D_002A2DD0;
