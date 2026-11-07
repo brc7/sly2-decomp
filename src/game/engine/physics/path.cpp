@@ -40,9 +40,8 @@ struct CG
 typedef char assert_CG_size[sizeof(CG) == 0x30 ? 1 : -1];
 /* A path zone (an XFM): its graph at +0xE0, the navigation version it was last changed in (g_sw +0x3D70, bumped by
    every obstacle change), a list and its index in the world's zone BSP (BindSwPathzones). */
-struct PATHZONEV
+struct PATHZONEV : XFM
 {
-    char pad0[0xE0];
     CG cg;                  /* +0xE0 */
     int unknown110;         /* +0x110 (Init: -1) */
     int version;            /* +0x114 */
@@ -1427,7 +1426,7 @@ namespace M_func_001C1700 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;unsigned int words[4];};
 struct C {qword x,z;int version;int xmin,xmax,zmin,zmax;};
-struct S {char pad[0xFC];int obstacleCapacity,numEvents;void*xEvents,*zEvents;void**obstacles;int unknown110,version;};
+struct S : XFM { char pad[0xFC - 0xE0]; int obstacleCapacity,numEvents;void*xEvents,*zEvents;void**obstacles;int unknown110,version;};
 void InitObstacleQueryCursor(struct S*,struct C*);
 void SweepObstacleRange(void*,int*,int*,qword*,float,float);
 static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
@@ -1485,7 +1484,7 @@ void RemoveObstacleEvents(int count, struct E *events, int key)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1968 { extern "C" {
 struct E;
-struct S { char pad[0xF8]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; int *obstacles; int unknown110; int version; };
+struct S : XFM { char pad[0xF8 - 0xE0]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; int *obstacles; int unknown110; int version; };
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
 void RemoveObstacleEvents(int n, struct E *a, int key);
@@ -1537,7 +1536,7 @@ namespace M_func_001C1BA0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E;
 struct O { char pad[0x1A0]; union { qword q; float g[4]; } a; union { qword q; float g[4]; } b; char p1[0x1DC - 0x1C0]; struct S *pathzone; };
-struct S { char pad[0xF8]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; struct O **obstacles; int unknown110; int version; };
+struct S : XFM { char pad[0xF8 - 0xE0]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; struct O **obstacles; int unknown110; int version; };
 struct M { struct O *po; void *pv; };
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
@@ -1584,7 +1583,7 @@ namespace RO_ORDER { extern const float r_D_002A76E4 __asm__("D_002A76E4") = 3.4
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1D20 { extern "C" {
 struct E { float t; unsigned short k; unsigned short bit; };
-struct S { char pad[0xFC]; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; void **obstacles; };
+struct S : XFM { char pad[0xFC - 0xE0]; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; void **obstacles; };
 struct A { int cb; int align; };
 extern const float D_002A76E0;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A76E4;   /* defined below where the ELF has it (.rodata order) */
@@ -1707,7 +1706,7 @@ int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitPathlink { extern "C" {
-struct S { char pad[0x120]; int kind; char pad2[0x2c]; int linkIndex; };
+struct S : LO { char pad[0x120 - 0x50]; int kind; char pad2[0x2c]; int linkIndex; };
 void InitLo(struct S *p);
 } } // namespace M_InitPathlink
 // CID 124 slot 7 (Init): InitLo.
@@ -1808,8 +1807,8 @@ namespace M_FindPathlinkRoute {
 // never-touched RAII-style object (inline empty dtor) or a volatile. Rest of the code is lilly4 (StoreX estimate).
 typedef int qword __attribute__((mode(TI)));
 struct MSG { int cb; int nKind; };
-struct NAV { char pad[0x124]; int index; };
-struct EDGE { char pad[0x128]; NAV *pnavDest; int pad12C; qword posBegin; qword posEnd; };
+struct NAV : XFM { char pad[0x124 - 0xE0]; int index; };
+struct EDGE : LO { char pad[0x128 - 0x50]; NAV *pnavDest; int pad12C; qword posBegin; qword posEnd; };
 struct ADJ { int cedge; int *aiedge; };
 struct GRAPH { char pad[0x10]; int cnav; char pad14[8]; ADJ *aadj; int cedge; EDGE **apedge; };
 struct NODE { NAV *pnav; EDGE *pedge; NODE *pnodeParent; float gCost; float gEstimate; int state; NODE *pnodeNext; NODE *pnodePrev; };
@@ -1966,7 +1965,7 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
 namespace M_func_001C26E0 { extern "C" {
 struct PATHLINKV : LO { char pad50[0x120 - 0x50]; int kind; int fromZone; int toZone; };   /* classes.h PATHLINK : LO */
 /* The actor asking (inferred: a guard-like object): the zones it may enter and the link kinds it may use. */
-struct G { char pad[0xE94]; int numAllowedZones; int allowedZones[84]; int allowedLinkKinds; };
+struct G : STEP { char pad[0xE94 - 0x2C0]; int numAllowedZones; int allowedZones[84]; int allowedLinkKinds; };
 // Returns 1 when the actor may traverse the path link: the link is in the world, the actor allows its kind (kind 1
 // needs bit 0 as well as bit 1), and, when the actor has a zone list, both end zones are on it. (inferred)
 int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct G *actor)
