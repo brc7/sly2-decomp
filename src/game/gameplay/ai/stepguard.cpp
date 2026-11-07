@@ -953,43 +953,33 @@ void UpdateStepguardSpecial(STEPGUARD *guard)
 
 // 0x207350 UpdateStepguard
 namespace M_UpdateStepguard { extern "C" {
-struct ATTACK; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct ATTACK { char pad[0xC0]; void *activeBinding; };
-struct S {
-    char pad0[0x28]; unsigned long loFlags; /* bit 60: in the world */
-    char pad1[0x208 - 0x30]; void *groundSurface; char pad1b[0x218 - 0x20C]; qword *groundPosition;
-    char pad2[0x26C - 0x21C]; char behaviorStack[0x34C - 0x26C]; int heldAnimation;
-    char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *stuckWatch; void *hazardWatch;
-    char pad5[0x4A4 - 0x4A0]; int tracksRelocatePoint; char pad6[0x4B0 - 0x4A8]; qword relocatePoint;
-    char pad7[0xF00 - 0x4C0]; struct ATTACK *currentAttack; char pad8[0xF0C - 0xF04]; int aimAct;
-    char pad9[0xFBC - 0xF10]; int special; char padA[0xFD0 - 0xFC0]; char mover[0x10];
-};
 extern qword D_002A2DD0;
-void UpdateStep(struct S *p);
-void UpdateStepguardSpecial(struct S *p);
-void UpdateStepguardDetectTargets(struct S *p);
-int IsAnimBindingDone(void *binding);
-void SetStepguardAttack(struct S *p, struct ATTACK *attack, int aimTarget, qword aimOffset);
-void UpdateStepguardAim(struct S *p);
-void StageStepguardLoot(struct S *p);
+void UpdateStepguardSpecial(STEPGUARD *guard);
+void UpdateStepguardDetectTargets(STEPGUARD *guard);
+int IsAnimBindingDone(ANIMBINDING *binding);
+void SetStepguardAttack(STEPGUARD *guard, CID120 *attack, int aimTarget, qword aimOffset);
+void UpdateStepguardAim(STEPGUARD *guard);
 void UpdateStuckWatch(void *p);
 void UpdateHazardWatch(void *p);
-void UpdateBhvstk(void *p);
-void UpdateStepguardMover(void *p);
-int IsAsegaRetracted(int h);
-void DropAsegaRef(int *ph);
+void UpdateBhvstk(BHVSTK *stack);
+void UpdateStepguardMover(GUARDMOVER *mover);
+void StageStepguardLoot(STEPGUARD *guard);
+int IsAsegaRetracted(ASEGA *pasega);
+void DropAsegaRef(ASEGA **ppasega);
+} }
 
 // 0x207350: STEPGUARD vtable slot 16 (Update): step update; while in the world and not time-frozen: special-state
 // timeouts, target detection, attack animation, aim, pickpocket, components, the behaviour stack, the mover and
 // finished animations; guards that track a relocation point (named guards, inferred) record their last grounded
 // position there for the relocate behaviour.
-void UpdateStepguard(struct S *guard)
+void STEPGUARD::Update()
 {
-    UpdateStep(guard);
-    if (((guard->loFlags >> 60) & 1) == 0)
+    using namespace M_UpdateStepguard;
+    STEPGUARD *guard = this;
+    STEP::Update();
+    if (((LO_FLAGS28(guard) >> 60) & 1) == 0)
         return;
-    if (guard->special == SPECIAL_TEMPORAL_LOCK)
+    if (guard->specialState == SPECIAL_TEMPORAL_LOCK)
         return;
     UpdateStepguardSpecial(guard);
     UpdateStepguardDetectTargets(guard);
@@ -1001,54 +991,47 @@ void UpdateStepguard(struct S *guard)
         StageStepguardLoot(guard);
     UpdateStuckWatch(guard->stuckWatch);
     UpdateHazardWatch(guard->hazardWatch);
-    UpdateBhvstk(guard->behaviorStack);
-    UpdateStepguardMover(guard->mover);
+    UpdateBhvstk(&guard->behaviors);
+    UpdateStepguardMover(&guard->mover);
     if (guard->heldAnimation && IsAsegaRetracted(guard->heldAnimation))
         DropAsegaRef(&guard->heldAnimation);
-    if (guard->tracksRelocatePoint && guard->groundSurface)
-        guard->relocatePoint = *guard->groundPosition;
+    if (guard->tracksRelocatePoint && guard->floorContact)
+        guard->relocatePoint = *guard->unknown218;
 }
-} } // namespace M_UpdateStepguard
 
 // 0x207468 TakeStepguardDamage
 namespace M_FTakeStepguardDamage { extern "C" {
-struct LOROOTED; struct BOMB; struct ZAP; struct S;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct LOROOTED { char pad[0x14]; void *root; };
-struct BOMB { char pad[0x200]; struct LOROOTED *thrower; };
-struct ZAP { struct BOMB *source; int pad[2]; int kind; };
-struct S { char pad[0xC]; VTE *vt; char pad2[4]; void *root; char pad3[0x26C - 0x18]; char behaviorStack[4]; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct BOMB *object, int cid);
-int CanSoTakeDamage(struct S *p, struct ZAP *zap);
-void HandleBhvstkMessage(void *stack, int message, struct ZAP *zap);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid);
+int CanSoTakeDamage(STEPGUARD *guard, ZPR *zap);
+void HandleBhvstkMessage(BHVSTK *stack, int message, ZPR *zap);
+} }
 // 0x207468: STEPGUARD vtable slot 75 (take damage): unless the zap is lethal, ignores it when invulnerable, from
 // its own team's bomb (cid 0x4F) or rejected by the base; then forwards it to the behaviour stack (message 0xC).
-int TakeStepguardDamage(struct S *guard, struct ZAP *zap)
+int STEPGUARD::TakeDamage(ZPR *zap)
 {
-    if (!((int (*)(void *))guard->vt[86].pfn)((char *)guard + guard->vt[86].d)) {
-        if (((int (*)(void *, int))guard->vt[76].pfn)((char *)guard + guard->vt[76].d, zap->kind))
+    using namespace M_FTakeStepguardDamage;
+    STEPGUARD *guard = this;
+    if (!guard->IsZapLethal(zap)) {
+        if (guard->IsInvulnerable((ZPK)zap->zpk))
             return 1;
-        if (zap->source && IsBasicDerivedFrom__FP5BASIC3CID(zap->source, CID_BOMB) && zap->source->thrower->root == guard->root)
+        if (zap->ploSource && IsBasicDerivedFrom__FP5BASIC3CID(zap->ploSource, CID_BOMB) && ((BOMB *)zap->ploSource)->thrower->root == guard->root)
             return 1;
         if (!CanSoTakeDamage(guard, zap))
             return 0;
     }
-    HandleBhvstkMessage(guard->behaviorStack, 0xC, zap);
+    HandleBhvstkMessage(&guard->behaviors, 0xC, zap);
     return 1;
 }
-} } // namespace M_FTakeStepguardDamage
 
 // 0x207530 IsStepguardZapLethal
-namespace M_func_00207530 { extern "C" {
-struct ZAP; 
-struct ZAP { char pad[0xC]; int kind; int hpDelta; };
 // 0x207530: STEPGUARD vtable slot 86: true if the zap's damage reaches the maximum hit points and its kind is not
 // one of the harmless kinds (0, 1, 0x80000, 0x100000).
-int IsStepguardZapLethal(STEPGUARD *guard, struct ZAP *zap)
+int STEPGUARD::IsZapLethal(ZPR *zap)
 {
-    if (-zap->hpDelta < guard->maxHitPoints)
+    STEPGUARD *guard = this;
+    if (-zap->dhp < guard->maxHitPoints)
         return 0;
-    switch (zap->kind) {
+    switch (zap->zpk) {
     case 0:
     case 1:
     case 0x80000:
@@ -1057,7 +1040,6 @@ int IsStepguardZapLethal(STEPGUARD *guard, struct ZAP *zap)
     }
     return 1;
 }
-} } // namespace M_func_00207530
 
 // 0x207598 IsStepguardInvulnerable
 namespace M_FInvulnerableStepguard { extern "C" {
