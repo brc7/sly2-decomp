@@ -136,15 +136,14 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int n[4]; } VU;
 typedef struct { VU r[3]; } M3;
 typedef struct { VU r[4]; } M4;
-struct S { M4 m; char pad[0x94 - 0x40]; int k; };
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 M3 *LoadRotateMatrixEuler(M3 *pm, qword v);
 VU *VECTOR_opAssign(VU *pv, qword q);
 // Builds the local matrix a slot value produces for the slot's component kind: translation, Euler rotation, shear or
 // scale (an identity matrix with the value written in the right place). (inferred)
-M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
+M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
 {
-    switch (p->k) {
+    switch (p->kind) {
     case 0: case 8: case 13: case 14: case 15:
         break;
     case 1: case 4: case 5: case 9: case 10:
@@ -159,7 +158,7 @@ M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
     case 6: case 7: {
         M3 m;
         LoadRotateMatrixEuler(&m, v);
-        VECTOR_opAssign(&pm->r[3], p->m.r[3].q);
+        VECTOR_opAssign(&pm->r[3], ((M4 *)&p->localMatrix)->r[3].q);
         pm->r[0]=m.r[0];
         pm->r[1]=m.r[1];
         pm->r[2]=m.r[2];
@@ -622,17 +621,16 @@ extern "C" void PopXfContext()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022D6B0 { extern "C" {
-struct S { char pad[0x54]; int base; };
 extern int D_004437A0;
 extern int D_004437A8[];
 // Resolves a transform id to an address: the high bits choose the local table (c), the parent's table (b) or the top
 // of the context stack; the low bits index 0x100-byte transform records. (inferred)
-int ResolveXfId(int a, struct S *b, struct S *c)
+int ResolveXfId(int a, SO *b, SO *c)
 {
     int r = 0;
     switch (a & 0x3000) {
-    case 0: if (c) r = c->base + (a << 8); break;
-    case 0x1000: a &= ~0xF000; r = b->base + (a << 8); break;
+    case 0: if (c) r = (int)c->transforms + (a << 8); break;
+    case 0x1000: a &= ~0xF000; r = (int)b->transforms + (a << 8); break;
     case 0x2000: r = D_004437A8[D_004437A0 - 1]; break;
     }
     return r;
