@@ -256,8 +256,11 @@ struct SW : public BASIC
       SLOTHEAP slotheapRip;  /* +0x4054 [S] RIP records (rip.cpp NewRipInGroup / ReleaseRip); was unknown4054 */
       struct RIPG *pripgDefault; /* +0x406C [S] the shared kind-0 ripple group, made on first use (rip.cpp); was _pad_318 */
       SLOTHEAP slotheapBlipg;
-      SLOTHEAP unknown4088; /* +0x4088 [S] draft: the frame dl40 records come from it (frm.cpp ClearPendingFrame) */
-      SLOTHEAP unknown40A0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
+      SLOTHEAP slotheapBlip; /* +0x4088 [S] BLIP records (blip.cpp NewBlip). RemoveBlip parks a blip on the pending list
+                                D_002DEB00 and frm.cpp's ClearPendingFrame frees it here (its "freeList" records are these
+                                blips); was unknown4088 */
+      SLOTHEAP slotheapBlipSpline; /* +0x40A0 [S] a curved blip's spline block (BLIP +0x1088, motion kind 2; NewBlip /
+                                ClearPendingFrame); was unknown40A0 */
       SLOTHEAP slotheapSsge;   /* SSGE records */
       SLOTHEAP slotheapJsg; /* +0x40D0 [S] JSG slot heap (relay.cpp allocates / frees JSGs); was _pad_323 */
       SLOTHEAP slotheapXa;   /* XA records */
@@ -356,7 +359,7 @@ typedef char assert_SW_dlTargetrec[SLY2_OFFSETOF(SW, dlTargetrec) == 0x3FCC ? 1 
 typedef char assert_SW_dlCid21[SLY2_OFFSETOF(SW, dlCid21) == 0x3FE4 ? 1 : -1];
 typedef char assert_SW_dlCid23[SLY2_OFFSETOF(SW, dlCid23) == 0x3FF0 ? 1 : -1];
 typedef char assert_SW_dlStimulus[SLY2_OFFSETOF(SW, dlStimulus) == 0x3FFC ? 1 : -1];
-typedef char assert_SW_unknown40A0[SLY2_OFFSETOF(SW, unknown40A0) == 0x40A0 ? 1 : -1];
+typedef char assert_SW_slotheapBlipSpline[SLY2_OFFSETOF(SW, slotheapBlipSpline) == 0x40A0 ? 1 : -1];
 typedef char assert_SW_pripgDefault[SLY2_OFFSETOF(SW, pripgDefault) == 0x406C ? 1 : -1];
 typedef char assert_SW_slotheapJsg[SLY2_OFFSETOF(SW, slotheapJsg) == 0x40D0 ? 1 : -1];
 typedef char assert_SW_slShd[SLY2_OFFSETOF(SW, slShd) == 0x4100 ? 1 : -1];

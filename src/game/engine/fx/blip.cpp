@@ -248,11 +248,11 @@ void StartupBlips()
 // Allocate a BLIP (+spline block) and append to the blipg list.
 extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
 {
-    SLOTHEAP *pslotheap = &psw->unknown4088;
+    SLOTHEAP *pslotheap = &psw->slotheapBlip;
     BLIPV *pblip = (BLIPV *)AllocZeroedFromSlotheap(pslotheap);
     if (!pblip) return 0;
     if (pblipg->motionKind == 2) {
-        pblip->ae = (BEZ *)AllocZeroedFromSlotheap(&psw->unknown40A0);
+        pblip->ae = (BEZ *)AllocZeroedFromSlotheap(&psw->slotheapBlipSpline);
         if (!pblip->ae) { FreeSlotheapSlot(pslotheap, pblip); return 0; }
     }
     pblip->pblipg = pblipg;

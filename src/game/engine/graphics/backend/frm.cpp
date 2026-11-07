@@ -39,7 +39,7 @@ struct sceDmaChan;
 /* g++ 2.95 vtable entry, the objects on releaseList and the records on freeList. */
 struct VTE { short delta, pad; void (*method)(void *); };
 struct LOV { char pad[12]; VTE *vt; };   /* the vtable word of an LO (sly2/lo.h's LO has it implicitly) */
-struct Y { char pad[0x1088]; void *storage; };
+struct Y { char pad[0x1088]; void *storage; };   /* a removed BLIP (blip.cpp RemoveBlip): its spline block at +0x1088 */
 /* The list iterator as this TU spells it (sly2/dli.h DLI with a constructor and destructor). */
 extern void *D_002DD2FC;
 struct DLI {
@@ -268,9 +268,9 @@ void ClearPendingFrame(FRM *frame)
         DLI iter(&frame->freeList);
         for (Y *object = (Y *)iter.Next(); object; object = (Y *)iter.Next()) {
             if (object->storage)
-                FreeSlotheapSlot(&g_sw.unknown40A0, object->storage);
+                FreeSlotheapSlot(&g_sw.slotheapBlipSpline, object->storage);
             RemoveDlEntry__FP2DLPv(&frame->freeList, object);
-            FreeSlotheapSlot(&g_sw.unknown4088, object);
+            FreeSlotheapSlot(&g_sw.slotheapBlip, object);
         }
         ClearDl__FP2DL(&frame->freeList);
     }
