@@ -275,7 +275,6 @@ static inline VUF VuFloat(float g){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"
 static inline VUF VufFromMemWord(int n){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword ScaleVecX(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
 static inline qword AddScaledVec(qword base,qword vec,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
-static inline qword SqrtVec(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
 static inline qword DivVec(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
 static inline qword DivVecBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
 static inline qword RotateVec(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
@@ -284,14 +283,14 @@ static inline qword AddScaledVec2(qword base,qword a,qword b,VUF k){qword r;__as
 static inline qword ScaleVecXK(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */
 static inline qword ProjectOutVec(const qword&v,const qword&axis){VUF d;d.qw=VuDot(v,axis);return VuSubRef(v,ScaleVecX(axis,d));}
 static inline float LaneXKeepVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
-static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=SqrtVec(VuDot(pv->q,pv->q));if(LaneXKeepVf(len)<0.0001f)*pv=*pfallback;else pv->q=DivVec(pv->q,len);return len;}
-static inline float LengthOf(qword v){return QwordX(SqrtVec(VuDot(v,v)));}
+static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=VuSqrtX(VuDot(pv->q,pv->q));if(LaneXKeepVf(len)<0.0001f)*pv=*pfallback;else pv->q=DivVec(pv->q,len);return len;}
+static inline float LengthOf(qword v){return QwordX(VuSqrtX(VuDot(v,v)));}
 static inline float EvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
 static inline float MinOf(float a,float b){return(b<a)?b:a;}
 static inline float MaxOf(float a,float b){return(b>a)?b:a;}
 static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
 static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->fn)((char*)p+e->delta,0);}
-static inline qword NormalizeVec(qword v,qword fallback){qword len=SqrtVec(VuDot(v,v));qword r;if(QwordX(len)<0.0001f)r=fallback;else r=DivVec(v,len);return r;}
+static inline qword NormalizeVec(qword v,qword fallback){qword len=VuSqrtX(VuDot(v,v));qword r;if(QwordX(len)<0.0001f)r=fallback;else r=DivVec(v,len);return r;}
 static inline CLOCK*Addr(CLOCK*p){return p;}
 static inline qword AddScaledVec2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
 /** @sly2-annot addr=0x18FC60

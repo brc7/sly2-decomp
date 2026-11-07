@@ -895,18 +895,17 @@ static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword QwSubC(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b):"vf3");return r;} /* clobber of the dead vf3 */
 // Helpers QwSqrt, QwDivide, QwAddScaled, QwScaleX, GXOfQw, GXOfVf (small asm wrappers/accessors shaped for the match).
-static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(r):"j"(a));return r;}
 static inline qword QwDivide(qword v,qword len){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"j"(len));return r;}
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
 static inline qword QwScaleX(qword v,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(g.qw));return r;}
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
 static inline float GYOfQw(qword qw){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(qw));return QwordX(r);}
 // Helpers Length, Heading (small asm wrappers/accessors shaped for the match).
-static inline float Length(qword v){return QwordX(QwSqrt(VuDot(v,v)));}
+static inline float Length(qword v){return QwordX(VuSqrtX(VuDot(v,v)));}
 static inline float Heading(qword v){return atan2f(GYOfQw(v),QwordX(v));}
 // Unit vector of v, or the fallback when its length is below eps.
 static inline qword QwNormalizeSafe(qword v,qword fallback,float eps){
- qword r=QwSqrt(VuDot(v,v));float x;
+ qword r=VuSqrtX(VuDot(v,v));float x;
  __asm__("mtc1 %1,%0":"=f"(x):"r"(r),"r"(fallback)); /* allocation-only "r"(fallback): the fallback is held in a GPR */
  if(x<eps)r=fallback;else r=QwDivide(v,r);
  return r;}
@@ -915,7 +914,7 @@ static inline qword NormalizeInPlace(U*pv,const qword*pfallback,void*own){float 
  __asm__("":"=j"(v):"0"(g),"r"(own)); /* empty asm: v is a VF copy of the GPR load g; allocation-only "r"(own) keeps p ahead of the rule giv in global-alloc priority */
 
  __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=j"(one):"j"(v),"j"(v),"r"(g),"f"(eps)); /* allocation-only "r"(v): v is read back through a GPR; "f"(eps): eps is loaded first */
- qword len=QwSqrt(d);
+ qword len=VuSqrtX(d);
  if(GXOfVf(len)<eps)pv->q=*pfallback;
  else{qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"j"(len),"f"(eps));pv->q=r;} /* allocation-only "f"(eps): eps is live into this block, so loop.c leaves its load in the loop */
  return len;}

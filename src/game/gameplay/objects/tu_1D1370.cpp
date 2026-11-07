@@ -1006,12 +1006,11 @@ static inline float Length2D(VV v)
 // Distance in the xy plane.
 static inline float Dist2D(VV a, VV b) { return Length2D(VuSub(a, b)); }
 // Helpers Sqrt, DivideQ (small asm wrappers/accessors shaped for the match).
-static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
-    VV len = Sqrt(VuDot(v, v));
+    VV len = VuSqrtX(VuDot(v, v));
     if (QwordX(len) < 0.0001f)
         return fallback;
     return DivideQ(v, len);
@@ -2026,7 +2025,6 @@ static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = Zero(); return v; }
 static inline VV VuAdd(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 // Dot product.
 // Same idiom as sly2/vu0.h VuDot; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuDot(VV a, VV b)
@@ -2037,7 +2035,7 @@ static inline VV VuDot(VV a, VV b)
     return r;
 }
 // Helpers Length, GFromQw, DivideQ (small asm wrappers/accessors shaped for the match).
-static inline VV Length(VV v) { return Sqrt(VuDot(v, v)); }
+static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)

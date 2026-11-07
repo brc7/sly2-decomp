@@ -2191,10 +2191,9 @@ static inline float LengthSqXYOfGpr(qword v)
             : "j"(v));
     return QwordX(r);
 }
-static inline qword SqrtVec(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
-static inline float LengthXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VuToFloat(SqrtVec(r)); }
-static inline float LengthOfGpr(qword v) { return QwordX(SqrtVec(VuDot(v, v))); }
-static inline float LengthOf(qword v) { return VuToFloat(SqrtVec(VuDot(v, v))); }
+static inline float LengthXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VuToFloat(VuSqrtX(r)); }
+static inline float LengthOfGpr(qword v) { return QwordX(VuSqrtX(VuDot(v, v))); }
+static inline float LengthOf(qword v) { return VuToFloat(VuSqrtX(VuDot(v, v))); }
 static inline float MinF(float a, float b) { return b < a ? b : a; }
 
 static inline qword Transform(const M4 &m, qword v)
@@ -2226,7 +2225,7 @@ static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, qword c, VU_FLOAT 
 static inline qword DivVec(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
 static inline float NormalizeInPlace(U &v, const qword &vDefault)
 {
-    qword l = SqrtVec(VuDot(v.q, v.q));
+    qword l = VuSqrtX(VuDot(v.q, v.q));
     if (VuToFloat(l) < 0.0001f)
         v.q = vDefault;
     else
@@ -2985,13 +2984,7 @@ static inline qword Add(qword a, qword b)
     __asm__("vadd.xyzw %0, %0, %1" : "+j"(a) : "j"(b));
     return a;
 }
-static inline qword Sqrt(qword d)
-{
-    qword l;
-    __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
-    return l;
-}
-static inline qword Len(qword v) { return Sqrt(VuDot(v, v)); }
+static inline qword Len(qword v) { return VuSqrtX(VuDot(v, v)); }
 static inline qword Div(qword v, qword l)
 {
     qword r;

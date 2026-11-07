@@ -840,14 +840,13 @@ static inline qword DotVec(qword a, qword b)
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     return d;
 }
-static inline qword SqrtVec(qword d) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(d)); return r; }
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
-static inline float LengthOf(VU_VECTOR v) { return QwordX(SqrtVec(DotVec(v.q, v.q))); }
+static inline float LengthOf(VU_VECTOR v) { return QwordX(VuSqrtX(DotVec(v.q, v.q))); }
 static inline float LengthXYOf(qword v)
 {
     qword l;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(l) : "j"(v));
-    return QwordX(SqrtVec(l));
+    return QwordX(VuSqrtX(l));
 }
 static inline qword DivVec(qword v, qword l)
 {
@@ -858,7 +857,7 @@ static inline qword DivVec(qword v, qword l)
 }
 static inline qword NormalizeVec(qword v, qword fallback)
 {
-    qword l = SqrtVec(DotVec(v, v));
+    qword l = VuSqrtX(DotVec(v, v));
     if (QwordX(l) < 0.0001f)
         return fallback;
     return DivVec(v, l);

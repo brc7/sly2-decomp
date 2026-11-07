@@ -1859,7 +1859,8 @@ static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "
 /* float out of a VF register: asm mtc1, the compiler emits the qmfc2 (reload); the one-cost asm decides the sched2 ties */
 // Same idiom as sly2/vu0.h QwordX; kept local because the shared template changes StepChainRk4 (10/838 instructions off).
 static inline float QwordX(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
-static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
+// Same idiom as sly2/vu0.h VuSqrtX; kept local because the shared template changes StepChainRk4 (10/838 instructions off).
+static inline VV VuSqrtX(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 // Same idiom as sly2/vu0.h VuDot; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuDot(VV a, VV b)
 {
@@ -1868,7 +1869,7 @@ static inline VV VuDot(VV a, VV b)
             : "=j"(r), "=j"(one) : "j"(a), "j"(b));
     return r;
 }
-static inline VV Length(VV v) { return Sqrt(VuDot(v, v)); }
+static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Same idiom as sly2/vu0.h VuScaleByX; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuScaleByX(VV v, VV g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g)); return r; }
@@ -1947,7 +1948,7 @@ static inline float NormalizeV(U *pv, const qword &fallback, float prev)
     qword d, one, vf;
     __asm__("vmul.xyz %1, %3, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z"
             : "=j"(one), "=j"(d), "=j"(vf) : "2"(v), "r"(v), "r"(v), "r"(&fallback), "f"(prev));   /* "r"(v) x2: allocation only */
-    VV len = Sqrt(d);
+    VV len = VuSqrtX(d);
     if (VuToFloat(len) < 0.0001f)
         pv->q = fallback;
     else
@@ -2172,7 +2173,6 @@ static inline VV TransformPoint(const M4 &m, VV v)
 }
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes StepChain (62/215 instructions off).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 /* Dot with the 1.0 scratch in $vf1 (see the header comment) */
 static inline VV DotVf1(VV a, VV b)
 {
@@ -2181,7 +2181,7 @@ static inline VV DotVf1(VV a, VV b)
             : "=j"(r) : "j"(a), "j"(b) : "vf1");
     return r;
 }
-static inline VV Length(VV v) { return Sqrt(VuDot(v, v)); }
+static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 /* base + v * g */
 static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
