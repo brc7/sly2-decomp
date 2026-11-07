@@ -205,8 +205,9 @@ struct SW : public BASIC
       float midtone;    /* midtone level */
       VECTOR vecLightRgb;   /* global light colour (RGB) */
       float midtoneBlend; /* midtone blend, 0..1 */
-      int unknown3E38;
-      uint32_t   _pad_279    [ 1 ] ;
+      int unknown3E38;      /* +0x3E38 [S] draw.cpp calls it the stereo flag (it doubles the render passes; cm.cpp, shd.cpp,
+                               frm.cpp test it too); SW_ctor sets it to 1 */
+      int fForceClear;      /* +0x3E3C [S] clear the frame even when the render list is not empty (draw.cpp); was _pad_279 */
       int unknown3E40;      /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
       SLOTHEAP slotheapSobounds;   /* SO bounds records */
       struct RENDERBLOCK *pblockRender; /* +0x3E5C root block of the level's render tree (tu_1D57A8.cpp InsertRenderEntry);
@@ -215,7 +216,8 @@ struct SW : public BASIC
       float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp BuildWorldBackgroundImage); was _pad_283 */
       float aclrShdLight[3][4]; /* +0x3E70 [S] draft name: three user HSV colours converted by ConvertUserHsvToUserRgb (same function) */
       ulong tex2ProjVolume; /* +0x3EA0 [S] draft name: TEX2 register packed by EndRpProjVolume (glob.cpp) */
-      uint32_t   _pad_283    [ 1 ] ;
+      int fRebuildBackground; /* +0x3EA8 [S] DrawSw rebuilds the background image (BuildWorldBackgroundImage) and clears it
+                                 (draw.cpp); was _pad_283 */
       SL slPoctl;   /* player-object controllers (POCTL) */
       uint cpo;             /* +0x3EB8 [R] player-object count (4 in the Paris hub: Bentley, Sly, Murray, char-select PO; 0 in
                                the 3 states with no world loaded) */

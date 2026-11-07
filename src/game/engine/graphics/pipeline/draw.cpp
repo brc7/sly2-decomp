@@ -30,14 +30,11 @@ struct V4 { V3 v; float w; };
 /* Views of objects whose classes are not modelled yet; only the fields this TU reads. */
 struct CM { char pad[0x4C]; float rNear; float rFar; char pad2[0xC]; MATRIX4V cameraMatrix; char pad3[0xA0]; MATRIX4V viewProj; };
 struct FR { char pad[0x24]; uchar *chainStart; };   /* the frame: where its VIF1 chain starts */
-/* SW: vecLightRgb (+0x3E28), the stereo flag (+0x3E38, sw.h's fUnk3e38: also keys shd.cpp's colour correction),
-   a forced clear (+0x3E3C) and a background-image rebuild request (+0x3EA8) (inferred from these uses) */
-struct GAME { char pad[0x3E28]; int vecLightRgb[4]; int isStereo; int forceClear; char pad2[0x3EA8 - 0x3E40]; int rebuildBackground; };
 typedef void (*PFNRP)(VIFS *, int, int);
 #define NUM_RPL_KINDS 26
 #define DMA_TAG_CALL 0x50000000    /* DMAtag id CALL (5 << 28); the address goes in the upper word */
 
-extern GAME D_003DD490;
+extern SW D_003DD490;
 extern VIFS D_002DEA28;
 extern FR *g_pfrmOpen;
 extern FR D_002DEA50;
@@ -58,7 +55,7 @@ extern "C" {
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4V *pm0, MATRIX4V *pm1);
 void BeginRpGlob(VIFS *pvifs, void *a1, void *a2);
-void BuildWorldBackgroundImage(GAME *pgame, int n);
+void BuildWorldBackgroundImage(SW *pgame, int n);
 }
 
 typedef int (*PFNCMP)(const void *, const void *);
@@ -126,7 +123,7 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 {
     V4 clipConstants[2];
     MATRIX4V viewProj, cameraMatrix;
-    if (D_003DD490.isStereo) {
+    if (D_003DD490.unknown3E38) {
         if (g_pfrmOpen == &D_002DEA50)
             vifs->AddDmaCall((QW *)D_002DF940);
         else
@@ -150,7 +147,7 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
         clipConstants[1].v = D_002C1F10;
         clipConstants[1].w = -depthRatio / depthScale;
         vifs->AddVifUnpack(UPK_V4_32, 2, clipConstants, 0);
-        if (D_003DD490.isStereo) {
+        if (D_003DD490.unknown3E38) {
             if (g_pfrmOpen == &D_002DEA50)
                 BuildStereoEyeViewProj(camera, 1, 0, &viewProj, &cameraMatrix);
             else
@@ -174,7 +171,7 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 // Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls
 // the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL tags; flushes VIFS/GIFS.
 // (inferred)
-extern "C" void DrawSw(GAME *world)
+extern "C" void DrawSw(SW *world)
 {
     MATRIX4V mat0;
     MATRIX4V mat1;
@@ -194,9 +191,9 @@ extern "C" void DrawSw(GAME *world)
     D_002DEA28.AddDmaCall((QW *)D_002DF800);
     D_002DEA28.m_fCheckCnt = 1;
     D_002DEA28.AddDmaCnt();
-    if (world->forceClear || firstIndex[1] == endIndex[1])
+    if (world->fForceClear || firstIndex[1] == endIndex[1])
         D_002DEA28.AddVifDirect(0x25, (QW *)D_002DEDC0, 0);
-    if (D_003DD490.isStereo) {
+    if (D_003DD490.unknown3E38) {
         D_002DEA28.AddVifFlush();
         if (g_pfrmOpen == &D_002DEA50)
             D_002DEA28.AddDmaCall((QW *)D_002DF940);
@@ -217,7 +214,7 @@ extern "C" void DrawSw(GAME *world)
     D_002DEA28.AddVifUnpack(UPK_V4_32, 2, &v0, 0);
     D_002DEA28.AddVifUnpack(UPK_S32, 1, &D_002DE5A4, 0xD);
     D_002DE5A4 = 0;
-    if (D_003DD490.isStereo) {
+    if (D_003DD490.unknown3E38) {
         if (g_pfrmOpen == &D_002DEA50)
             BuildStereoEyeViewProj(&D_002DDF40, 1, 0, &mat0, &mat1);
         else
@@ -230,7 +227,7 @@ extern "C" void DrawSw(GAME *world)
     }
     D_002DEA28.AddVifUnpack(UPK_V4_32, 4, &mat0, 2);
     D_002DEA28.AddVifUnpack(UPK_V4_32, 4, &mat1, 6);
-    D_002DEA28.AddVifUnpack(UPK_V4_32, 1, world->vecLightRgb, 0xA);
+    D_002DEA28.AddVifUnpack(UPK_V4_32, 1, &world->vecLightRgb, 0xA);
     D_002DEA28.AddVifBaseOffset(0x32, 0x1E7);
     D_002DEA28.EndDmaCnt();
     passPrev = -1;
@@ -260,8 +257,8 @@ extern "C" void DrawSw(GAME *world)
     D_003D4A50 = 0;
     D_002DEA00.Flush();
     D_002DEA28.Flush();
-    if (world->rebuildBackground) {
-        world->rebuildBackground = 0;
+    if (world->fRebuildBackground) {
+        world->fRebuildBackground = 0;
         BuildWorldBackgroundImage(world, 0);
     }
 }
