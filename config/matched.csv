@@ -2885,7 +2885,7 @@ AddHackwallSegment,0x182AB8,23,match,src/game/gameplay/objects/tu_17F090.cpp
 StaticInit_tu_17F090,0x182B18,77,match,src/game/gameplay/objects/tu_17F090.cpp
 func_00182C50,0x182C50,8,match,src/game/gameplay/objects/tu_17F090.cpp
 InitGrabspot,0x182C70,20,match,src/game/gameplay/player/grabspot.cpp
-GRABSPOT_FGetGrabRange,0x182CC0,2,match,src/game/gameplay/player/grabspot.cpp
+GetGrabspotWrapRange,0x182CC0,2,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotClosestParam,0x182CC8,2,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotGrabPosition,0x182CD0,2,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotPositionNear,0x182CD8,38,match,src/game/gameplay/player/grabspot.cpp

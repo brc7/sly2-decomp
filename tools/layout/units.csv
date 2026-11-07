@@ -2896,7 +2896,7 @@ AddHackwallSegment,0x182AB8,tu_17F090
 StaticInit_tu_17F090,0x182B18,tu_17F090
 func_00182C50,0x182C50,tu_17F090
 InitGrabspot,0x182C70,grabspot
-GRABSPOT_FGetGrabRange,0x182CC0,grabspot
+GetGrabspotWrapRange,0x182CC0,grabspot
 GetGrabspotClosestParam,0x182CC8,grabspot
 GetGrabspotGrabPosition,0x182CD0,grabspot
 GetGrabspotPositionNear,0x182CD8,grabspot
