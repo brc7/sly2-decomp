@@ -1224,7 +1224,7 @@ typedef char assert_BHV191_size[sizeof(BHV191) == 0x50 ? 1 : -1];
 /* 12 CID12 (0x1C0): wall grabspot (wall press); vtable 0x2D2738, 50 slots */
 struct CID12 : SHAPE, GRABSPOT
 {
-    int unknown1B4[2];      /* +0x1B4 kept across Clone */
+    DLE dleGrab;            /* +0x1B4 link in the world's grab list g_sw.dlCid12 (sw.cpp InitDl offset; kept across Clone) */
     int unknown1BC;
     virtual void OnAdd() __asm__("OnWallGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid12ClassDesc");   /* slot 6 */
@@ -1239,12 +1239,12 @@ struct CID12 : SHAPE, GRABSPOT
     virtual LO *GetOwner() __asm__("func_002599F0__FP5CID12");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
-typedef char assert_CID12_unknown1B4[SLY2_OFFSETOF(CID12, unknown1B4) == 0x1B4 ? 1 : -1];
+typedef char assert_CID12_dleGrab[SLY2_OFFSETOF(CID12, dleGrab) == 0x1B4 ? 1 : -1];
 
 /* 34 CID34 (0x110): pole (GRABSPOT); vtable 0x2D2558, 50 slots */
 struct CID34 : XFM, GRABSPOT
 {
-    int unknown104[2];      /* +0x104 kept across Clone */
+    DLE dleGrab;            /* +0x104 link in g_sw.dlCid34 (kept across Clone) */
     float sRadius;          /* +0x10C pole radius */
     virtual void OnAdd() __asm__("OnPoleGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid34ClassDesc");   /* slot 6 */
@@ -1264,7 +1264,7 @@ typedef char assert_CID34_sRadius[SLY2_OFFSETOF(CID34, sRadius) == 0x10C ? 1 : -
 /* 38 CID38 (0x110); vtable 0x2D2378, 50 slots */
 struct CID38 : XFM, GRABSPOT
 {
-    int unknown104[2];      /* +0x104 kept across Clone */
+    DLE dleGrab;            /* +0x104 link in g_sw.dlCid38 (kept across Clone) */
     int fNoPushOut;         /* +0x10C the grab position is not pushed out by the player's radius */
     virtual void OnAdd() __asm__("OnHoldGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid38ClassDesc");   /* slot 6 */
@@ -1280,7 +1280,7 @@ typedef char assert_CID38_size[sizeof(CID38) == 0x110 ? 1 : -1];
 /* 88 BARREL (0x1A0): BARREL / carryable (REVIEW, medium); vtable 0x2D20D0, 75 slots */
 struct BARREL : SO, GRABSPOT
 {
-    int unknown174[2];      /* +0x174 kept across Clone */
+    DLE dleGrab;            /* +0x174 link in g_sw.dlCid88 (kept across Clone) */
     int carryState;         /* +0x17C 0 free .. 3 (SetBarrelState) */
     float carryStateTime;   /* +0x180 */
     int unknown184[2];
@@ -1304,7 +1304,7 @@ typedef char assert_BARREL_carryState[SLY2_OFFSETOF(BARREL, carryState) == 0x17C
 /* 35 CID35 (0x180): GRABSPOT XFM; mission trigger spot (ApplyTaskStates); vtable 0x2D1EE8, 51 slots */
 struct CID35 : XFM, GRABSPOT
 {
-    int unknown104[2];
+    DLE dleGrab;            /* +0x104 link in g_sw.dlCid35 */
     int nFired;             /* +0x10C last FireTriggerGrabspot argument */
     float sRadius;          /* +0x110 biases the grab score (AdjustTriggerGrabspotScore) */
     void *relay;            /* +0x114 fired with the trigger */
@@ -1360,7 +1360,7 @@ typedef char assert_CID36_oid1[SLY2_OFFSETOF(CID36, oid1) == 0x184 ? 1 : -1];
 /* 27 CID27 (0x160): table grabspot (VOL + GRABSPOT; hide under); vtable 0x2D1B60, 50 slots */
 struct CID27 : VOL, GRABSPOT
 {
-    int unknown154[2];
+    DLE dleGrab;            /* +0x154 link in g_sw.dlCid27 */
     LO *ploHold;            /* +0x15C child whose height sets the hold position */
     virtual void OnAdd() __asm__("OnTableGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid27ClassDesc");   /* slot 6 */

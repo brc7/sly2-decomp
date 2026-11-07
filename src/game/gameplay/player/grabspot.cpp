@@ -85,20 +85,16 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
 
 namespace M_InitGrabspot { extern "C" {
-struct VTE { short d; short pad; void *(*pfn)(void *); };
-struct S { char pad[8]; float g; char p1[8]; int x14; int p2; int x1c; struct VTE *vt; };
 extern float D_002A5680;
 void SetLoBusyKind(void *p, int n);
 // Initializes the GRABSPOT mix-in (the part of an object the player can grab): no current grabber, default busy
 // value, player class mask 7 (all players), owner via slot 6, busy kind 3.
-void InitGrabspot(struct S *grabspot)
+void InitGrabspot(GRABSPOT *grabspot)
 {
-    struct VTE *e;
-    grabspot->x14 = -1;
-    grabspot->g = D_002A5680;
-    grabspot->x1c = 7;
-    e = &grabspot->vt[6];
-    SetLoBusyKind(e->pfn((char *)grabspot + e->d), 3);
+    grabspot->nUnk14 = -1;
+    grabspot->sBusy = D_002A5680;
+    grabspot->grfPlayers = 7;
+    SetLoBusyKind(grabspot->GetOwner(), 3);
 }
 } } // namespace M_InitGrabspot
 
@@ -122,17 +118,12 @@ extern "C" void GetGrabspotGrabPosition()
 }
 
 namespace M_func_00182CD8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct S { char pad[0x20]; struct VTE *vt; };
 // The grab position nearest the player: closest parameter (slot 0xB), then the position at it (slot 0xC).
-void GetGrabspotPositionNear(struct S *grabspot, int a, float *pg, int b, int c)
+void GetGrabspotPositionNear(GRABSPOT *grabspot, STEPPLAYER *pstepplayer, float *pg, qword *ppos, float *pgHeading)
 {
     float g;
-    struct VTE *e;
-    e = &grabspot->vt[2];
-    ((void (*)(void *, int, float *))e->pfn)((char *)grabspot + e->d, a, &g);
-    e = &grabspot->vt[3];
-    ((void (*)(void *, int, int, int, float))e->pfn)((char *)grabspot + e->d, a, b, c, g);
+    grabspot->GetClosestParam(pstepplayer, &g);
+    grabspot->GetGrabPos(g, pstepplayer, ppos, pgHeading);
     if (pg) *pg = g;
 }
 } } // namespace M_func_00182CD8
@@ -144,17 +135,15 @@ extern "C" void AdjustGrabspotScore()
 
 namespace M_func_00182D78 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VT { struct { short d; short pad; void *(*pfn)(void *); } a[8]; };
-struct O { char pad[0x20]; struct VT *vtable; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorSphere(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8B0;
 extern qword D_002A2DC0;
 // GRABSPOT default sparkle position: a random point in a sphere around the owner, zero direction.
-void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
+void GetGrabspotSparklePosition(GRABSPOT *grabspot, qword *pv, qword *pdv)
 {
-    void *object = grabspot->vtable->a[6].pfn((char *)grabspot + grabspot->vtable->a[6].d);
+    void *object = grabspot->GetOwner();
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float t = RandomFloatInRange__Fff(-1.0f, 1.0f);
     float gTilt = __builtin_fabsf(t) * t * 1.5707964f;
@@ -171,15 +160,14 @@ extern "C" int GetGrabspotOwner()
 }
 
 namespace M_func_00182E80 { extern "C" {
-struct S { char pad[0x190]; char sub[0x2C]; int n; };
-void InitShape(struct S *p);
-void InitGrabspot(void *p);
+void InitShape(SHAPE *p);
+void InitGrabspot(GRABSPOT *p);
 // Wall grab spot (CID12, wall press) Init: shape init, its GRABSPOT part, busy kind 3.
-void InitWallGrabspot(struct S *wall)
+void InitWallGrabspot(CID12 *wall)
 {
     InitShape(wall);
-    InitGrabspot(wall->sub);
-    wall->n = 3;
+    InitGrabspot((GRABSPOT *)&wall->ptn);   /* its GRABSPOT, addressed by its first field (a base conversion adds a null test) */
+    wall->unknown1BC = 3;
 }
 } } // namespace M_func_00182E80
 
@@ -199,41 +187,37 @@ extern "C" void OnWallGrabspotRemove(LO *lo)
 }
 
 namespace M_func_00182F28 { extern "C" {
-struct S { char pad[0x38]; float g; char p2[0x154]; void *carrier; };
 extern float D_002BE8B4;
-void PostLoLoad(struct S *p);
+void PostLoLoad(LO *p);
 void SetTnTnsOverride(void *p, int n);
-float UpdateShapeBoundingSphere(struct S *p);
+float UpdateShapeBoundingSphere(SHAPE *p);
 // Post-load: LO base, private TN override off, default busy radius = bounding radius + D_002BE8B4.
-void PostWallGrabspotLoad(struct S *wall)
+void PostWallGrabspotLoad(CID12 *wall)
 {
     PostLoLoad(wall);
-    if (wall->carrier) SetTnTnsOverride(wall->carrier, 0);
-    if (wall->g == 1e10f) wall->g = UpdateShapeBoundingSphere(wall) + D_002BE8B4;
+    if (wall->ptn) SetTnTnsOverride(wall->ptn, 0);
+    if (wall->busyRadius == 1e10f) wall->busyRadius = UpdateShapeBoundingSphere(wall) + D_002BE8B4;
 }
 } } // namespace M_func_00182F28
 
 namespace M_func_00182FA0 { extern "C" {
-struct K { int a; int b; };
-struct S { char pad[0x1B4]; struct K k; };
-void CloneShape(struct S *p);
+void CloneShape(SHAPE *p);
 // Clone: clones the shape but keeps its own 8-byte field.
-void CloneWallGrabspot(struct S *wall)
+void CloneWallGrabspot(CID12 *wall)
 {
-    struct K k = wall->k;
+    DLE dle = wall->dleGrab;
     CloneShape(wall);
-    wall->k = k;
+    wall->dleGrab = dle;
 }
 } } // namespace M_func_00182FA0
 
 namespace M_func_00182FE8 { extern "C" {
-struct S { char pad[0xE4]; int x; };
-float GetShapeMinDistance(struct S *p);
-float GetShapeMaxDistance(struct S *p);
+float GetShapeMinDistance(SHAPE *p);
+float GetShapeMaxDistance(SHAPE *p);
 // For an open shape outputs [GetShapeMinDistance, GetShapeMaxDistance] and returns 1.
-int GetWallGrabspotWrapRange(struct S *wall, float *pg)
+int GetWallGrabspotWrapRange(CID12 *wall, float *pg)
 {
-    if (wall->x) {
+    if (wall->isClosed) {
         pg[0] = GetShapeMinDistance(wall);
         pg[1] = GetShapeMaxDistance(wall);
         return 1;
@@ -245,12 +229,11 @@ int GetWallGrabspotWrapRange(struct S *wall, float *pg)
 namespace M_func_00183040 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct T { char pad[0x218]; qword *pq; };
-struct S { char pad[0xE4]; int isClosed; };
 struct V { float a[4]; };
-void FindShapeClosestPoint(struct S *p, qword q, int a, struct V *pv, int b, int c, float *pg);
-float GetShapeMaxDistance(struct S *p);
+void FindShapeClosestPoint(SHAPE *p, qword q, int a, struct V *pv, int b, int c, float *pg);
+float GetShapeMaxDistance(SHAPE *p);
 // The shape distance closest to the player, clamped to [30, length - 30] on open shapes.
-void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
+void GetWallGrabspotClosestParam(CID12 *wall, struct T *t, float *pg)
 {
     struct V v;
     FindShapeClosestPoint(wall, *t->pq, 0, &v, 0, 0, pg);
@@ -411,35 +394,32 @@ extern "C" void OnPoleGrabspotRemove(LO *lo)
 }
 
 namespace M_func_001833E0 { extern "C" {
-struct S { char pad[0x38]; float g; char p2[0xA4]; void *pe0; char p3[0x28]; float radius; };
 extern float D_002BE8C0;
-void PostLoLoad(struct S *p);
+void PostLoLoad(LO *p);
 void SetTnTnsOverride(void *p, int n);
 // Post-load: LO base, TN override off, default busy radius = pole radius + D_002BE8C0.
-void PostPoleGrabspotLoad(struct S *pole)
+void PostPoleGrabspotLoad(CID34 *pole)
 {
     PostLoLoad(pole);
-    if (pole->pe0) SetTnTnsOverride(pole->pe0, 0);
-    if (pole->g == 1e10f) pole->g = pole->radius + D_002BE8C0;
+    if (pole->ptn) SetTnTnsOverride(pole->ptn, 0);
+    if (pole->busyRadius == 1e10f) pole->busyRadius = pole->sRadius + D_002BE8C0;
 }
 } } // namespace M_func_001833E0
 
 namespace M_func_00183450 { extern "C" {
-struct K { int a; int b; };
-struct S { char pad[0x104]; struct K k; };
-void CloneXfm(struct S *p);
+void CloneXfm(XFM *p);
 // Clone: clones the transform but keeps its own field.
-void ClonePoleGrabspot(struct S *pole)
+void ClonePoleGrabspot(CID34 *pole)
 {
-    struct K k = pole->k;
+    DLE dle = pole->dleGrab;
     CloneXfm(pole);
-    pole->k = k;
+    pole->dleGrab = dle;
 }
 } } // namespace M_func_00183450
 
 /* CID 34 grab range: [-pi r, pi r] around the pole. */
 // Wrap range [-pi r, pi r]: the circumference of the pole (radius at +0x10C), so the player can circle it.
-extern "C" int GetPoleGrabspotWrapRange(GRABPOLE *ppole, float *ag)
+extern "C" int GetPoleGrabspotWrapRange(CID34 *ppole, float *ag)
 {
     ag[0] = ppole->sRadius * -3.1415927f;
     ag[1] = ppole->sRadius * 3.1415927f;
@@ -449,29 +429,27 @@ extern "C" int GetPoleGrabspotWrapRange(GRABPOLE *ppole, float *ag)
 namespace M_func_001834D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x218]; qword *p218; };
-struct P { char pad[0x10C]; float f10C; };
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 // The arc-length parameter of the player's angle around the pole axis.
-void GetPoleGrabspotClosestParam(struct P *pole, struct Q *q, float *pg)
+void GetPoleGrabspotClosestParam(CID34 *pole, struct Q *q, float *pg)
 {
     qword a = *q->p218;
     qword b = GetLoWorldPos(pole);
     qword d;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-    *pg = atan2f(QwordY(d), QwordX(d)) * pole->f10C;
+    *pg = atan2f(QwordY(d), QwordX(d)) * pole->sRadius;
 }
 } } // namespace M_func_001834D0
 
 namespace M_func_00183540 { extern "C" {
-struct O { char pad[0x10C]; float radius; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 // The point at angle param / r on the circle of radius r + the player's radius.
-void GetPoleGrabspotGrabPosition(struct O *pole, float g, STEPPLAYER *pj, qword *pv, float *pg)
+void GetPoleGrabspotGrabPosition(CID34 *pole, float g, STEPPLAYER *pj, qword *pv, float *pg)
 {
-    float gPan = g / pole->radius;
-    float gR = pole->radius + pj->grabRadius;
+    float gPan = g / pole->sRadius;
+    float gR = pole->sRadius + pj->grabRadius;
     if (pv) {
         *pv = VuSub(VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->pivotOffset);
     }
@@ -485,17 +463,16 @@ void GetPoleGrabspotGrabPosition(struct O *pole, float g, STEPPLAYER *pj, qword 
 
 namespace M_func_00183600 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x10C]; float radius; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8C4;
 extern qword D_002A2DC0;
 // A random point on a ring around the pole.
-void GetPoleGrabspotSparklePosition(struct O *pole, qword *pv, qword *pdv)
+void GetPoleGrabspotSparklePosition(CID34 *pole, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
-    float gR = RandomFloatInRange__Fff(0.0f, D_002BE8C4) + pole->radius;
+    float gR = RandomFloatInRange__Fff(0.0f, D_002BE8C4) + pole->sRadius;
     *pv = VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
@@ -524,44 +501,40 @@ extern "C" void OnHoldGrabspotRemove(LO *lo)
 }
 
 namespace M_func_00183768 { extern "C" {
-struct S { char pad[0x38]; float g; char p2[0xA4]; void *pe0; };
 extern float D_002BE8C8;
-void PostLoLoad(struct S *p);
+void PostLoLoad(LO *p);
 void SetTnTnsOverride(void *p, int n);
 // Post-load: LO base, TN override off, default busy radius D_002BE8C8.
-void PostHoldGrabspotLoad(struct S *hold)
+void PostHoldGrabspotLoad(CID38 *hold)
 {
     PostLoLoad(hold);
-    if (hold->pe0) SetTnTnsOverride(hold->pe0, 0);
-    if (hold->g == 1e10f) hold->g = D_002BE8C8;
+    if (hold->ptn) SetTnTnsOverride(hold->ptn, 0);
+    if (hold->busyRadius == 1e10f) hold->busyRadius = D_002BE8C8;
 }
 } } // namespace M_func_00183768
 
 namespace M_func_001837D0 { extern "C" {
-struct K { int a; int b; };
-struct S { char pad[0x104]; struct K k; };
-void CloneXfm(struct S *p);
+void CloneXfm(XFM *p);
 // Clone: clones the transform but keeps its own field.
-void CloneHoldGrabspot(struct S *hold)
+void CloneHoldGrabspot(CID38 *hold)
 {
-    struct K k = hold->k;
+    DLE dle = hold->dleGrab;
     CloneXfm(hold);
-    hold->k = k;
+    hold->dleGrab = dle;
 }
 } } // namespace M_func_001837D0
 
 namespace M_func_00183818 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x10C]; int n10C; };
 extern qword GetLoWorldPos(void *p);
 extern qword *GetLoWorldMatrix(void *p);
 extern float atan2f(float y, float x);
 // Hold position and heading from the object matrix, pushed out by the player's radius unless +0x10C is set.
-void GetHoldGrabspotGrabPosition(struct O *hold, STEPPLAYER *pj, qword *pv, float *pg)
+void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *pv, float *pg)
 {
     float g = 0.0f;
     qword d;
-    if (hold->n10C == 0)
+    if (hold->fNoPushOut == 0)
         g = pj->grabRadius;
     d = *GetLoWorldMatrix(hold);
     if (pv) {
@@ -619,15 +592,13 @@ extern "C" void OnBarrelRemove(SO *so)
 }
 
 namespace M_CloneBarrel { extern "C" {
-struct K { int a; int b; };
-struct S { char pad[0x174]; struct K k; };
-void CloneSo(struct S *p);
+void CloneSo(SO *p);
 // Clone: SO clone keeping its own field.
-void CloneBarrel(struct S *barrel)
+void CloneBarrel(BARREL *barrel)
 {
-    struct K k = barrel->k;
+    DLE dle = barrel->dleGrab;
     CloneSo(barrel);
-    barrel->k = k;
+    barrel->dleGrab = dle;
 }
 } } // namespace M_CloneBarrel
 
