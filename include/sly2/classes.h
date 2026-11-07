@@ -904,7 +904,7 @@ struct BHVCOMBAT : BHV
     float stateTime;        /* +0x38 */
     CID120 *attack;         /* +0x3C the chosen attack */
     int isHitConfirmed;     /* +0x40 */
-    int region;             /* +0x44 */
+    struct CID17 *pathzone; /* +0x44 the path zone of the target position the pursuit was last goaled at */
     int unknown48[2];
     qword cachedPosition;   /* +0x50 */
     virtual void Close() __asm__("CloseBhvcombat");   /* slot 9 */
