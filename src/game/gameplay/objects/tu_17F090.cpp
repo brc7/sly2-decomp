@@ -1592,19 +1592,16 @@ namespace M_func_001823C8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union U{qword q;float f[4];int i[4];}U;
 typedef struct M4{U r[4];}M4;
-typedef struct NODE{U position;char pad10[0x50];struct NODE*next;}NODE;
-typedef struct ENTRY{char pad0[0x10];NODE*head;char pad14[0xC];float radius;char pad24[0xC];}ENTRY;
 typedef struct OWNER{char pad0[0x70];qword position;}OWNER;
 typedef struct REQUEST{OWNER*owner;int unused4;float radius;int unusedC;long flags;int unused18,start;M4 matrix;char pad60[0x1C];qword*vertices;char pad80[0x10];int count;qword*world;}REQUEST;
-typedef struct CONTACT{char pad[0xB0];}CONTACT;
-typedef struct P{char pad0[0xE0];int contactCount;CONTACT*contacts;char padE8[0xE0];int entryCount;ENTRY entries[1];}P;
+typedef struct CONTACT{char pad[0xB0];}CONTACT;   /* the contact list (XP) */
 typedef struct SEGMENT{qword a,b,plane;char pad30[0x30];}SEGMENT;
 typedef struct WORK{U direction,newEndpoint,oldEndpoint;SEGMENT segments[2];U scale,dot,one;}WORK;
 extern qword D_002A2DA0;extern int D_003DD490;
-extern void AddSoCustomXps(P*,REQUEST*,int,int,int,CONTACT**);
+extern void AddSoCustomXps(SO*,REQUEST*,int,int,int,CONTACT**);
 extern qword*InitVuTemp(qword*);
 extern int ClipEdgeToSphere(qword,float,qword,qword,int,SEGMENT*);
-extern void AddXp(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
+extern void AddXp(void*,SOPART*,REQUEST*,qword,qword,int,HACKWALLPIECE*,int,CONTACT**,float);
 
 // Helpers Sub, Broadcast, BroadcastBits, Scalar, MAdd, MAdd2, Point (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
@@ -1635,37 +1632,37 @@ static inline float Distance(U*dot,U*one,qword plane,qword point){
  one->q=o;dot->q=d;return QwordX(d);
 }
 // vtable slot 60: SO base then contacts against each segment (AddXp) for requests with flag bit 49. (inferred)
-void AddHackwallXps(P*wall,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
+void AddHackwallXps(HACKWALL*wall,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
  WORK w;int i,count;qword center;CONTACT**out=pout;
  AddSoCustomXps(wall,q,unused2,unused3,unused4,pout);
  if(!(q->flags&0x2000000000000L))return;
  center=q->owner->position;
- count=wall->entryCount;i=0;
+ count=wall->cseg;i=0;
  do{
   if(count<=0)goto done;
  top:
   {
-  ENTRY*entry=&wall->entries[i];NODE*n=entry->head;float radius=q->radius+entry->radius;
-  for(;n;n=n->next){
+  HACKWALLSEG*entry=&wall->aseg[i];HACKWALLPIECE*n=(HACKWALLPIECE*)entry->dlPiece.head;float radius=q->radius+entry->sRadius;
+  for(;n;n=(HACKWALLPIECE*)n->dle.next){
    float distance;
-   w.direction.q=Sub(n->position.q,center);w.direction.i[2]=0;
+   w.direction.q=Sub(n->pos,center);w.direction.i[2]=0;
    distance=Planar(&w.direction);
    if(distance<radius){
     w.newEndpoint.q=VuFromFloat<qword>(-q->radius);
-    AddXp(&D_003DD490,&wall->contacts[wall->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
+    AddXp(&D_003DD490,&wall->parts[wall->numParts-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
    }else{
     int j;
     for(j=q->start;j<q->count;j++){
      w.newEndpoint.q=Point(&q->matrix,q->vertices[j]);w.oldEndpoint.q=q->world[j];
-     w.newEndpoint.f[2]=w.oldEndpoint.f[2]=n->position.f[2];
-     if(ClipEdgeToSphere(n->position.q,radius,w.newEndpoint.q,w.oldEndpoint.q,2,w.segments)>0){
+     w.newEndpoint.f[2]=w.oldEndpoint.f[2]=((U*)&n->pos)->f[2];
+     if(ClipEdgeToSphere(n->pos,radius,w.newEndpoint.q,w.oldEndpoint.q,2,w.segments)>0){
       qword plane,point,result;
       w.scale.q=BroadcastBits(*(int*)&q->radius);
       plane=w.segments[0].plane;point=w.oldEndpoint.q;
       result=MAdd2(point,plane,w.scale.q);
       InitVuTemp(&w.dot.q);InitVuTemp(&w.one.q);
       distance=Distance(&w.dot,&w.one,plane,point)-q->radius;
-      AddXp(&D_003DD490,&wall->contacts[wall->contactCount-1],q,result,plane,10,n,0,out,distance);
+      AddXp(&D_003DD490,&wall->parts[wall->numParts-1],q,result,plane,10,n,0,out,distance);
       break;
      }
     }
@@ -1673,7 +1670,7 @@ void AddHackwallXps(P*wall,REQUEST*q,int unused2,int unused3,int unused4,CONTACT
   }
   }
   ++i;
-  if(i<wall->entryCount)goto top;
+  if(i<wall->cseg)goto top;
  }while(0);
  done:;
 }
@@ -1681,14 +1678,9 @@ typedef char qword_Size[(sizeof(qword)==16)?1:-1];
 typedef char Long_Size[(sizeof(long)==8)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
-typedef char ENTRY_Size[(sizeof(ENTRY)==0x30)?1:-1];
 typedef char CONTACT_Size[(sizeof(CONTACT)==0xB0)?1:-1];
 typedef char SEGMENT_Size[(sizeof(SEGMENT)==0x60)?1:-1];
 typedef char SegmentBuffer_Size[(sizeof(SEGMENT[2])==0xC0)?1:-1];
-typedef char NODE_position_Offset[((unsigned)&((NODE*)0)->position==0)?1:-1];
-typedef char NODE_next_Offset[((unsigned)&((NODE*)0)->next==96)?1:-1];
-typedef char ENTRY_head_Offset[((unsigned)&((ENTRY*)0)->head==16)?1:-1];
-typedef char ENTRY_radius_Offset[((unsigned)&((ENTRY*)0)->radius==32)?1:-1];
 typedef char OWNER_position_Offset[((unsigned)&((OWNER*)0)->position==112)?1:-1];
 typedef char REQUEST_owner_Offset[((unsigned)&((REQUEST*)0)->owner==0)?1:-1];
 typedef char REQUEST_radius_Offset[((unsigned)&((REQUEST*)0)->radius==8)?1:-1];
@@ -1698,10 +1690,6 @@ typedef char REQUEST_matrix_Offset[((unsigned)&((REQUEST*)0)->matrix==32)?1:-1];
 typedef char REQUEST_vertices_Offset[((unsigned)&((REQUEST*)0)->vertices==124)?1:-1];
 typedef char REQUEST_count_Offset[((unsigned)&((REQUEST*)0)->count==144)?1:-1];
 typedef char REQUEST_world_Offset[((unsigned)&((REQUEST*)0)->world==148)?1:-1];
-typedef char P_contactCount_Offset[((unsigned)&((P*)0)->contactCount==224)?1:-1];
-typedef char P_contacts_Offset[((unsigned)&((P*)0)->contacts==228)?1:-1];
-typedef char P_entryCount_Offset[((unsigned)&((P*)0)->entryCount==456)?1:-1];
-typedef char P_entries_Offset[((unsigned)&((P*)0)->entries==460)?1:-1];
 typedef char SEGMENT_plane_Offset[((unsigned)&((SEGMENT*)0)->plane==32)?1:-1];
 typedef char WORK_direction_Offset[((unsigned)&((WORK*)0)->direction==0)?1:-1];
 typedef char WORK_newEndpoint_Offset[((unsigned)&((WORK*)0)->newEndpoint==16)?1:-1];
@@ -1710,6 +1698,7 @@ typedef char WORK_segments_Offset[((unsigned)&((WORK*)0)->segments==48)?1:-1];
 typedef char WORK_scale_Offset[((unsigned)&((WORK*)0)->scale==240)?1:-1];
 typedef char WORK_dot_Offset[((unsigned)&((WORK*)0)->dot==256)?1:-1];
 typedef char WORK_one_Offset[((unsigned)&((WORK*)0)->one==272)?1:-1];
+
 } } // namespace M_func_001823C8
 
 namespace M_func_00182700 { extern "C" {
