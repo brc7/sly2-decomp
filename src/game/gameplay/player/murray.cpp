@@ -2678,7 +2678,7 @@ int ShouldMurrayIgnoreIntersection(struct P *murray, void *pv)
 // True if no attack overlay is running and no attack sub-state, else the combo-window flag (x1820).
 extern "C" int CanMurrayAttack(MURRAY *murray)
 {
-    if (murray->pasegaUnk190c != 0 || murray->nUnk1810 != -1) {
+    if (murray->unknown190C != 0 || murray->unknown1810 != -1) {
         return FCANATTACKBUSY(murray);
     }
     return 1;
@@ -3709,7 +3709,7 @@ void ClearMurrayBehaviors(struct S *murray, int f)
 // Splice-callable: clears the alternate flag and enters state 3 (flop).
 extern "C" void StartMurrayFlop(MURRAY *murray, int n, void *pv)
 {
-    murray->nUnk13e8 = 0;
+    murray->unknown13E8 = 0;
     SetMurrayState(murray, 3, pv);
 }
 

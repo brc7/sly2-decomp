@@ -3901,9 +3901,9 @@ void NextJsgCommand(JSGV *script)
         }
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
-            if (pmurray->moverec.nState < 7)
+            if (pmurray->moverec.state < 7)
             {
-                if (pmurray->moverec.nState < 4)
+                if (pmurray->moverec.state < 4)
                 {
                     break;
                 }
@@ -3926,13 +3926,13 @@ void NextJsgCommand(JSGV *script)
         }
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
-            if (pmurray->moverec.nState < 7)
+            if (pmurray->moverec.state < 7)
             {
-                if (pmurray->moverec.nState < 4)
+                if (pmurray->moverec.state < 4)
                 {
                     break;
                 }
-                prelaycmd->unk5A.nUnk6 = pmurray->moverec.nUnk00;
+                prelaycmd->unk5A.nUnk6 = pmurray->moverec.unknown00;
                 LO *plo = PloFindJsgObject(script, prelaycmd->unk5A.oidShip);
                 if (plo)
                 {
@@ -4512,7 +4512,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         if (IsBasicDerivedFrom(script->ploActor, (CID)0x36))
         {
             MURRAY *pmurrayActor = (MURRAY *)script->ploActor;
-            if (pmurrayActor->nState != 6)
+            if (pmurrayActor->state != 6)
             {
                 fComplete = 1;
             }
@@ -4524,14 +4524,14 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk50:
         fComplete = 0;
-        if (!script->pjt || ((BENTLEY *)script->pjt)->nState == 6)
+        if (!script->pjt || ((BENTLEY *)script->pjt)->state == 6)
         {
             fComplete = 1;
         }
         break;
     case RELAYCK_Unk51:
         fComplete = 0;
-        if (!script->pjt || ((BENTLEY *)script->pjt)->nState != 6)
+        if (!script->pjt || ((BENTLEY *)script->pjt)->state != 6)
         {
             fComplete = 1;
         }
@@ -4558,9 +4558,9 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             else
             {
                 fComplete = 0;
-                if (pmurrayShip->moverec.nState < 7)
+                if (pmurrayShip->moverec.state < 7)
                 {
-                    fComplete = pmurrayShip->moverec.nState >= 4;
+                    fComplete = pmurrayShip->moverec.state >= 4;
                 }
             }
         }
@@ -4579,8 +4579,8 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             else
             {
-                qword qwNew = pmurray->moverec.qwPosNew;
-                qword qwOld = pmurray->moverec.qwPosOld;
+                qword qwNew = pmurray->moverec.newPosition;
+                qword qwOld = pmurray->moverec.oldPosition;
                 float gEps = D_002C3628;
                 fComplete = AreFloatsNear(QwordX(qwNew), QwordX(qwOld), gEps) && AreFloatsNear(QwordY(qwNew), QwordY(qwOld), gEps) &&
                             AreFloatsNear(QwordZ(qwNew), QwordZ(qwOld), gEps);
@@ -4600,9 +4600,9 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 fComplete = 1;
             }
-            else if (pmurray->moverec.nState == -1 || pmurray->moverec.nState == 0)
+            else if (pmurray->moverec.state == -1 || pmurray->moverec.state == 0)
             {
-                if (pmurray->moverec.nState == 0)
+                if (pmurray->moverec.state == 0)
                 {
                     pmurray->SetPlayerState(0);
                 }

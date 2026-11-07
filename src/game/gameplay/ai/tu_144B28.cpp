@@ -1529,7 +1529,7 @@ void BHV198::Start()
 {
     BHVB *behavior = (BHVB *)this;
     StartBhv(behavior);
-    ((MURRAY *)behavior->owner)->unk_0x1ac0 = 1;
+    ((MURRAY *)behavior->owner)->unknown1AC0 = 1;
     SetMurrayState((MURRAY *)behavior->owner, 0xC);
     SetMurrayPowerSubstate((MURRAY *)behavior->owner, 0);
 }
