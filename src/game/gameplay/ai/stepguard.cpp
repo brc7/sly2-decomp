@@ -2465,20 +2465,13 @@ extern "C" void UnlockStepguardMover(GUARDMOVER *mover)
 }
 
 // 0x2097E0 UpdateStepguardMover
-namespace M_func_002097E0 { extern "C" {
-struct VTE; struct O;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int a, b, c; struct VTE *vt; };
 // 0x2097E0: Per-frame mover update: calls the driver's motion update (vtable slot 11).
-void UpdateStepguardMover(struct O **mover)
+extern "C" void UpdateStepguardMover(GUARDMOVER *mover)
 {
-    struct O *driver = *mover;
-    if (driver) {
-        struct VTE *entry = &driver->vt[11];
-        entry->pfn((char *)driver + entry->d);
-    }
+    BHV *driver = mover->driver;
+    if (driver)
+        driver->UpdateMotion();
 }
-} } // namespace M_func_002097E0
 
 // 0x209818 SetStepguardMoverRadTarget
 // 0x209818: Unless the heading is locked, sets the guard's target heading.
@@ -2511,56 +2504,49 @@ extern "C" void SetStepguardSgfMask(STEPGUARD *guard, unsigned long grfsg)
 
 // 0x209890 AddStepguardSgf
 namespace M_AddStepguardSgf { extern "C" {
-struct SGFEVENT; struct S; struct ARGS;
-typedef struct { short d; short pad; void *pfn; } VTE;
 struct SGFEVENT { int sgf; int gameEvent; };
 extern struct SGFEVENT D_002C3D98[2];
 extern char D_002DEB30[];
-struct S { char pad[0xC]; VTE *vt; char pad2[0x2C0 - 0x10]; long grfsg; };
 struct ARGS { int *sgf; int *state; };
 long GetSgfMask(int n);
-void SetStepguardSgfMask(struct S *p, long grfsg);
-int MaskHasSgf(long mask, int sgf);
-void BroadcastGameEvent(void *p, int gameEvent, struct S *source);
-// 0x209890: Raises guard flag `sgf`: sends itself message 7 (raised, -1) and broadcasts the game event tied to some
-// flags (attacking 0x14, flag 0xC 0x16).
-void AddStepguardSgf(struct S *guard, int sgf)
+void BroadcastGameEvent(void *p, int gameEvent, STEPGUARD *source);
+} }
+// 0x209890: Raises guard flag `sgf`: sends itself splice event 7 (raised, -1) and broadcasts the game event tied to
+// some flags (attacking 0x14, flag 0xC 0x16).
+extern "C" void AddStepguardSgf(STEPGUARD *guard, int sgf)
 {
+    using namespace M_AddStepguardSgf;
     long mask = GetSgfMask(sgf);
-    struct ARGS args;
+    ARGS args;
     int state;
     unsigned int i;
     SetStepguardSgfMask(guard, guard->grfsg | mask);
     state = -1;
     args.sgf = &sgf;
     args.state = &state;
-    ((void (*)(void *, int, int, int, struct ARGS *, int))guard->vt[3].pfn)((char *)guard + guard->vt[3].d, 7, 0, 2, &args, 0);
+    guard->HandleSpliceEvent(7, 0, 2, (void **)&args, 0);
     for (i = 0; i < 2; i++) {
         if (MaskHasSgf(mask, D_002C3D98[i].sgf))
             BroadcastGameEvent(D_002DEB30, D_002C3D98[i].gameEvent, guard);
     }
 }
-} } // namespace M_AddStepguardSgf
 
 // 0x209970 RemoveStepguardSgf
 namespace M_RemoveStepguardSgf {
-class OBase; class O;
-class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int msg, int a, int c, void **apv, int x); };
-class O : public OBase { public: char pad[0x2C0 - 0x10]; unsigned long grfsg; };
 extern "C" unsigned long GetSgfMask(int n);
-extern "C" void SetStepguardSgfMask(O *p, unsigned long grfsg);
-// 0x209970: Lowers guard flag `sgf` and sends itself message 7 (-1, lowered).
-extern "C" void RemoveStepguardSgf(O *guard, int sgf)
+}
+// 0x209970: Lowers guard flag `sgf` and sends itself splice event 7 (-1, lowered).
+extern "C" void RemoveStepguardSgf(STEPGUARD *guard, int sgf)
 {
+    using namespace M_RemoveStepguardSgf;
     int state;
     void *args[2];
     SetStepguardSgfMask(guard, guard->grfsg & ~GetSgfMask(sgf));
     state = -1;
     args[0] = &state;
     args[1] = &sgf;
-    guard->Msg(7, 0, 2, args, 0);
+    guard->HandleSpliceEvent(7, 0, 2, args, 0);
 }
-} // namespace M_RemoveStepguardSgf
 
 // 0x2099F0 MaskHasSgf
 namespace M_FGrfHasSgf { extern "C" {
@@ -2608,29 +2594,26 @@ struct CRef *GetStepguardSgfRefList(struct CRef *ret, STEPGUARD *guard)
 
 // 0x209AD0 FindBestAnimBinding
 namespace M_PanimbindBest { extern "C" {
-struct BINDINGREC; struct S;
-struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
-struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
 long GetSgfMask(int n);
 int CountSgfMatch(long subset, long mask);
 // 0x209AD0: Finds the animation binding whose flag set is the largest subset of `mask` and contains its lowest
 // flag.
-struct BINDINGREC *FindBestAnimBinding(struct S *guard, long mask)
+ANIMBINDINGREC *FindBestAnimBinding(STEPGUARD *guard, long mask)
 {
     int i;
     int sgf = 0;
     long lowestMask = 0;
     int bestCount = 0;
-    struct BINDINGREC *best = 0;
-    struct BINDINGREC *rec;
+    ANIMBINDINGREC *best = 0;
+    ANIMBINDINGREC *rec;
     for (; sgf < 0x30; sgf++) {
         lowestMask = GetSgfMask(sgf);
         if (mask & lowestMask)
             break;
     }
-    for (i = 0; i < guard->bindingCount; i++) {
+    for (i = 0; i < guard->cbindingrec; i++) {
         int count;
-        rec = &guard->bindings[i];
+        rec = &guard->abindingrec[i];
         count = CountSgfMatch(rec->sgfMask, mask);
         if (count && (rec->sgfMask & lowestMask) && bestCount < count) {
             bestCount = count;
@@ -2655,15 +2638,12 @@ struct ENTRY *FindCurrentAnimBinding(STEPGUARD *guard)
 
 // 0x209BE0 FindAnimBinding
 namespace M_func_00209BE0 { extern "C" {
-struct BINDINGREC; struct S;
-struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
-struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
 // 0x209BE0: Finds the animation binding with exactly this flag set.
-struct BINDINGREC *FindAnimBinding(struct S *guard, long sgfMask)
+ANIMBINDINGREC *FindAnimBinding(STEPGUARD *guard, long sgfMask)
 {
     int i;
-    for (i = 0; i < guard->bindingCount; i++) {
-        struct BINDINGREC *rec = &guard->bindings[i];
+    for (i = 0; i < guard->cbindingrec; i++) {
+        ANIMBINDINGREC *rec = &guard->abindingrec[i];
         if (rec->sgfMask == sgfMask)
             return rec;
     }
@@ -2673,73 +2653,59 @@ struct BINDINGREC *FindAnimBinding(struct S *guard, long sgfMask)
 
 // 0x209C18 EnsureAnimBinding
 namespace M_func_00209C18 { extern "C" {
-struct BINDINGREC; struct S;
-struct BINDINGREC { char binding[0x10]; long sgfMask; char pad2[8]; };
-struct S { char pad[0x4C0]; int bindingCount; char pad2[0xC]; struct BINDINGREC bindings[1]; };
-struct BINDINGREC *FindAnimBinding(struct S *guard, long sgfMask);
-void ReleaseAnimBinding(struct BINDINGREC *rec, struct S *guard);
+ANIMBINDINGREC *FindAnimBinding(STEPGUARD *guard, long sgfMask);
 // 0x209C18: Finds or appends (released) the animation binding for a flag set.
-struct BINDINGREC *EnsureAnimBinding(struct S *guard, long sgfMask)
+ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, unsigned long sgfMask)
 {
-    struct BINDINGREC *rec = FindAnimBinding(guard, sgfMask);
+    ANIMBINDINGREC *rec = FindAnimBinding(guard, sgfMask);
     if (!rec) {
-        struct BINDINGREC *added = &guard->bindings[guard->bindingCount++];
+        ANIMBINDINGREC *added = &guard->abindingrec[guard->cbindingrec++];
         added->sgfMask = sgfMask;
         rec = added;
     }
-    ReleaseAnimBinding(rec, guard);
-    return rec;
+    ReleaseAnimBinding(&rec->binding, guard);
+    return &rec->binding;
 }
 } } // namespace M_func_00209C18
 
 // 0x209C88 AddStepguardAttachContacts
 namespace M_func_00209C88 { extern "C" {
-struct VE; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct S;
-struct VE { short d; short pad; void (*pf)(void *, int, void *, qword, qword, qword); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *groundPosition; char pad3[0xF80 - 0x21C]; int attachKind; void *attachObject; float attachParam; int pad4; void *attachAnchor; /* (inferred) */ };
 extern qword D_002A2DA0;
-void IgnoreSoSlot59(struct S *p);
-void EvaluateShapeAtDistance(void *shape, qword *pos, qword *tangent, float s);
+void IgnoreSoSlot59(STEPGUARD *p);
+void EvaluateShapeAtDistance(LO *shape, qword *pos, qword *tangent, float s);
 qword GetLoWorldPos(void *p);
 qword *GetLoWorldMatrix(void *p);
 
 // 0x209C88: STEPGUARD vtable slot 59: while attached (rail, pipe, ...), adds constraint contacts toward the attach
 // object.
-void AddStepguardAttachContacts(struct S *guard)
+} }
+void STEPGUARD::AddExtraXps()
 {
+    using namespace M_func_00209C88;
+    STEPGUARD *guard = this;
     qword pos, tangent;
     IgnoreSoSlot59(guard);
     switch (guard->attachKind) {
     case 0:
         EvaluateShapeAtDistance(guard->attachObject, &pos, &tangent, guard->attachParam);
-        guard->vt[82].pf((char *)guard + guard->vt[82].d, 0x22, guard->attachObject, pos, tangent, *guard->groundPosition);
+        guard->AddAxisXps(0x22, guard->attachObject, pos, tangent, *guard->unknown218);
         break;
     case 1: {
-        struct VE *entry;
-        void *self;
         EvaluateShapeAtDistance(guard->attachObject, &pos, &tangent, guard->attachParam);
-        entry = &guard->vt[82];
-        self = (char *)guard + entry->d;
-        entry->pf(self, 7, guard->attachObject, pos, tangent, GetLoWorldPos(guard->attachAnchor));
+        guard->AddAxisXps(7, guard->attachObject, pos, tangent, GetLoWorldPos(guard->attachPoint));
         break;
     }
     case 2: {
-        struct VE *entry = &guard->vt[82];
-        void *self = (char *)guard + entry->d;
-        entry->pf(self, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), *GetLoWorldMatrix(guard->attachObject), GetLoWorldPos(guard->attachAnchor));
+        guard->AddAxisXps(7, guard->attachObject, GetLoWorldPos(guard->attachObject), *GetLoWorldMatrix(guard->attachObject), GetLoWorldPos(guard->attachPoint));
         break;
     }
     case 3: {
-        struct VE *entry = &guard->vt[82];
-        void *self = (char *)guard + entry->d;
-        entry->pf(self, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), D_002A2DA0, *guard->groundPosition);
+        guard->AddAxisXps(7, guard->attachObject, GetLoWorldPos(guard->attachObject), D_002A2DA0, *guard->unknown218);
         break;
     }
     }
 }
-} } // namespace M_func_00209C88
+// (end of AddStepguardAttachContacts: M_func_00209C88)
 
 // 0x209E28 SendStepguardRootBhvMode6
 namespace M_func_00209E28 { extern "C" {

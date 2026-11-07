@@ -134,7 +134,7 @@ struct ANIMBINDING
    the owning guard. [S] */
 struct GUARDMOVER
 {
-      int driver;           /* +0x0 [S] the driving behaviour (a BHV *; 0 none) */
+      BHV *driver;          /* +0x0 [S] the driving behaviour (0 none): UpdateStepguardMover runs its UpdateMotion (slot 11) */
       int isHeadingLocked;  /* +0x4 [S] */
       int unknown8;         /* +0x8 [S] */
       STEPGUARD *guard;     /* +0xC [S] the owning guard */
@@ -143,7 +143,8 @@ struct GUARDMOVER
 struct ANIMBINDINGREC
 {
       ANIMBINDING binding;  /* +0x0 [S] */
-      undefined4 unknown10[4];
+      unsigned long sgfMask; /* +0x10 [S] the guard-flag set the binding plays for (FindBestAnimBinding) */
+      undefined4 unknown18[2];
 };
 
 /* CID120 (classes.h's family, defined here): its vtable follows _vt$9STEPGUARD in stepguard.cpp's run, and g++
