@@ -1655,7 +1655,6 @@ typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
 struct BIS;
-struct HEAP;
 struct ROOT;
 struct GROUP;
 struct FRAME {char fields[0x70];};
@@ -1673,7 +1672,6 @@ struct ANIM {ushort count,pad2;KEY *keys;float duration;ROOT *owner;GROUP *group
 struct REUSE {int count;FRAME *frames;short index,phase;void *previous;float elapsed;int pad14;};
 struct GROUP {ushort animCount,reuseCount;ANIM *animations;REUSE *reuse;char padC[0x14];int index;ROOT *owner;int first;int pad2C;};
 struct ROOT {char pad[0x80];ushort groupCount,pad82;GROUP *groups;};
-struct OWNER {char pad[0xC4];HEAP *heap;};
 extern "C" {
 int U16Read__18CBinaryInputStream(BIS *);
 uint U32Read__18CBinaryInputStream(BIS *);
@@ -1693,27 +1691,27 @@ static inline void CopyXY(M23 *dst,const M3 &src){
 }
 // Loads sprite groups, their reusable frames and animation keys.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
+extern "C" void LoadSpriteGroups(WIDGET *owner,BIS *stream,ROOT *root){
  int i,j,k,m;
  root->groupCount=U16Read__18CBinaryInputStream(stream);
- root->groups=(GROUP *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)root->groupCount*0x30,0x12);
+ root->groups=(GROUP *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)root->groupCount*0x30,0x12);
  for(i=0;i<root->groupCount;i++){
   GROUP *group=&root->groups[i];
   group->first=(i==0);group->owner=root;
   group->reuseCount=U16Read__18CBinaryInputStream(stream);
-  group->reuse=(REUSE *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)group->reuseCount*0x18,0x12);
+  group->reuse=(REUSE *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)group->reuseCount*0x18,0x12);
   int count=U16Read__18CBinaryInputStream(stream);
   for(j=0;j<group->reuseCount;){
    int next=j+1;
    REUSE *reuse=&group->reuse[j];
    reuse->previous=0;reuse->index=-1;reuse->phase=0;reuse->elapsed=0.0f;
    reuse->count=count;
-   reuse->frames=(FRAME *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,count*0x70,0x10);
+   reuse->frames=(FRAME *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,count*0x70,0x10);
    for(m=0;m<reuse->count;m++)InitSpriteItem(&reuse->frames[m]);
    j=next;
   }
   group->animCount=U16Read__18CBinaryInputStream(stream);
-  group->animations=(ANIM *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)group->animCount*0x18,0x12);
+  group->animations=(ANIM *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)group->animCount*0x18,0x12);
   group->index=-1;
   for(j=0;j<group->animCount;j++){
    ANIM *animation=&group->animations[j];
@@ -1721,12 +1719,12 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
    animation->duration=F32Read__18CBinaryInputStream(stream);
    animation->id=S32Read__18CBinaryInputStream(stream);
    animation->count=U16Read__18CBinaryInputStream(stream);
-   animation->keys=(KEY *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)animation->count*0x20,0x12);
+   animation->keys=(KEY *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)animation->count*0x20,0x12);
    for(k=0;k<animation->count;k++){
     KEY *key=&animation->keys[k];
     key->time=F32Read__18CBinaryInputStream(stream);
     key->itemCount=U8Read__18CBinaryInputStream(stream);
-    key->items=(ITEM *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->itemCount*0x40,0x12);
+    key->items=(ITEM *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->itemCount*0x40,0x12);
     for(m=0;m<key->itemCount;m++){
      ITEM *item=&key->items[m];
      item->a0=U16Read__18CBinaryInputStream(stream);item->a2=U16Read__18CBinaryInputStream(stream);item->a4=U16Read__18CBinaryInputStream(stream);item->a6=S16Read__18CBinaryInputStream(stream);
@@ -1734,22 +1732,22 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
      M3 raw;ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);M3 matrix=raw;CopyXY(&item->matrix,matrix);
     }
     key->colorCount=U8Read__18CBinaryInputStream(stream);
-    key->colors=(COLORS *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->colorCount*8,0x12);
+    key->colors=(COLORS *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->colorCount*8,0x12);
     for(m=0;m<key->colorCount;m++){
      COLORS *colors=&key->colors[m];
      RGBA second(U32Read__18CBinaryInputStream(stream));RGBA first(U32Read__18CBinaryInputStream(stream));
      colors->second=*(RGBA_RAW *)&second;colors->first=*(RGBA_RAW *)&first;
     }
     key->shortCount=U8Read__18CBinaryInputStream(stream);
-    key->shorts=(ushort *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->shortCount*2,0x12);
+    key->shorts=(ushort *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->shortCount*2,0x12);
     for(m=0;m<key->shortCount;m++){
      ushort *dst=&key->shorts[m];*dst=U16Read__18CBinaryInputStream(stream);
     }
     key->byteCount=U8Read__18CBinaryInputStream(stream);
-    key->bytes=(uchar *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->byteCount,0x12);
+    key->bytes=(uchar *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->byteCount,0x12);
     for(int byteIndex=0;byteIndex<key->byteCount;byteIndex++)key->bytes[byteIndex]=U8Read__18CBinaryInputStream(stream);
     key->tagCount=U8Read__18CBinaryInputStream(stream);
-    key->tags=(TAG *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->tagCount*8,0x12);
+    key->tags=(TAG *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->tagCount*8,0x12);
     for(m=0;m<key->tagCount;m++){
      key->tags[m].kind=U8Read__18CBinaryInputStream(stream);
      if(key->tags[m].kind<2)key->tags[m].value.signedBits=S32Read__18CBinaryInputStream(stream);
