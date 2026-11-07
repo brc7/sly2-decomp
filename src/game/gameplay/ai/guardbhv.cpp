@@ -6162,21 +6162,18 @@ void BHV189::Start()
 
 // 0x17DDE8 CloseBhvStalk
 namespace M_func_0017DDE8 { extern "C" {
-struct T; 
-struct T { char pad[0xF64]; void *detector; };
 void CloseBhv(BHV189 *p);
 void ResetDetectorTargets(void *p);
-void SetStepguardTarget(struct T *t, int n);
-void RemoveStepguardSgf(struct T *t, int n);
+void SetStepguardTarget(STEPGUARD *t, int n);
 // 0x17DDE8: Stalk behaviour vtable slot 9 (Close): state -1, resets the detector, clears the target, lowers flag
 // 0x2B.
 void CloseBhvStalk(BHV189 *behavior)
 {
     CloseBhv(behavior);
     SetBhvStalkState(behavior, -1);
-    ResetDetectorTargets(((struct T *)behavior->owner)->detector);
-    SetStepguardTarget(((struct T *)behavior->owner), 0);
-    RemoveStepguardSgf(((struct T *)behavior->owner), 0x2B);
+    ResetDetectorTargets(((STEPGUARD *)behavior->owner)->pdetector);
+    SetStepguardTarget((STEPGUARD *)behavior->owner, 0);
+    RemoveStepguardSgf((STEPGUARD *)behavior->owner, 0x2B);
 }
 } } // namespace M_func_0017DDE8
 
@@ -6189,22 +6186,16 @@ extern "C" int IsBhvStalkDone(BHV189 *behavior)
 
 // 0x17DE50 UpdateBhvStalk
 namespace M_func_0017DE50 { extern "C" {
-struct VTE; struct X; struct T; struct A; 
-typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 extern float D_002BE760, D_002BE764, D_002BE768;
-struct VTE { short d; short pad; void *pfn; };
-struct X { qword a; qword v; };
-struct T { char pad[0x40]; struct X goal; };
-struct A { char pad[0xC]; struct VTE *vt; };
 void UpdateBhv(BHV189 *p);
 int IsBhvBusyAbove(BHV189 *p);
 int IsBhvanimDone(void *p);
 int IsStepguardHandsOff(void *p);
-int IsStepguardForceClass(struct A *a, void *o);
-float GetRandomStepguardDelay(struct A *a);
+int IsStepguardForceClass(STEPGUARD *a, void *o);
+float GetRandomStepguardDelay(STEPGUARD *a);
 qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(struct X *s, qword v);
+qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v);
 void RegoalBhvStalk(BHV189 *p);
 // VU0 helper: distance between two points.
 static __inline__ float Dist(qword a, qword b) {
@@ -6224,22 +6215,18 @@ void UpdateBhvStalk(BHV189 *behavior) {
     while (s = behavior->state, !IsBhvBusyAbove(behavior)) {
         switch (behavior->state) {
         case 0:
-            if (IsBhvanimDone(((struct T *)behavior->pbhvNext))) SetBhvStalkState(behavior, 1);
+            if (IsBhvanimDone(behavior->pbhvNext)) SetBhvStalkState(behavior, 1);
             break;
         case 1:
-            if (IsStepguardHandsOff(((struct A *)behavior->owner))) {
+            if (IsStepguardHandsOff(((STEPGUARD *)behavior->owner))) {
                 SetBhvStalkState(behavior, 2);
             } else {
                 { float dt = D_002DDED0.deltaTime; behavior->forcedDelay -= dt; }
                 if (behavior->forcedDelay <= 0.0f) {
                     void *o;
-                    {
-                        struct A *a = ((struct A *)behavior->owner);
-                        struct VTE *entry = &a->vt[0x58];
-                        o = ((void *(*)(void *))entry->pfn)((char *)a + entry->d);
-                    }
-                    if (o == behavior->target && IsStepguardForceClass(((struct A *)behavior->owner), o)) {
-                        behavior->forcedDelay = GetRandomStepguardDelay(((struct A *)behavior->owner));
+                    o = ((STEPGUARD *)behavior->owner)->ChooseTarget();
+                    if (o == behavior->target && IsStepguardForceClass(((STEPGUARD *)behavior->owner), o)) {
+                        behavior->forcedDelay = GetRandomStepguardDelay(((STEPGUARD *)behavior->owner));
                     } else {
                         SetBhvStalkState(behavior, -1);
                     }
@@ -6247,22 +6234,22 @@ void UpdateBhvStalk(BHV189 *behavior) {
             }
             break;
         case 2:
-            if (!IsStepguardHandsOff(((struct A *)behavior->owner))) SetBhvStalkState(behavior, 1);
+            if (!IsStepguardHandsOff(((STEPGUARD *)behavior->owner))) SetBhvStalkState(behavior, 1);
             break;
         }
         if (behavior->state != s) continue;
         break;
     }
     if (behavior->state == 1) {
-        struct T *t = ((struct T *)behavior->pbhvNext);
+        BHVGOTO *t = (BHVGOTO *)behavior->pbhvNext;
         if (D_002DDED0.time - behavior->lastRegoalTime > D_002BE760) {
-        struct X *x = &t->goal;
-        qword pos = GetLoWorldPos(((struct A *)behavior->owner));
+        PATHLINKEND *x = &t->goal;
+        qword pos = GetLoWorldPos(((STEPGUARD *)behavior->owner));
         int f = 0;
         qword q = GetPathlinkEndpointPos(x, pos);
-        if (Dist(GetLoWorldPos(((struct A *)behavior->owner)), q) < D_002BE764) {
+        if (Dist(GetLoWorldPos(((STEPGUARD *)behavior->owner)), q) < D_002BE764) {
             f = 1;
-        } else if (Dist(GetLoWorldPos(((struct A *)behavior->owner)), GetLoWorldPos(behavior->target)) < D_002BE768) {
+        } else if (Dist(GetLoWorldPos(((STEPGUARD *)behavior->owner)), GetLoWorldPos(behavior->target)) < D_002BE768) {
             f = 1;
         }
         if (f) RegoalBhvStalk(behavior);
