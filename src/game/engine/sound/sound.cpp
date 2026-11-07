@@ -1084,46 +1084,38 @@ extern "C" void FreeStreamsnd(void *pv)
 }
 
 namespace M_SNDMGR_ctor { extern "C" {
-struct T { float fastSpeed; float slowSpeed; float fastTime; };   /* SMP: SmoothValue parameters */
 struct V2 { float x, y; };
 /* SNDMGR (layout: sly2/sndmgr.h): BASIC's header, the headset option, the bank / stream sound pools, the dirty list, the
    paused flag, the mute-when-stopped flags, the microphone noise curves (CLQ), the playback mode, the music layers'
    smoothing parameters, the counted sound pointers released by the destructor (dialog +0x200, the eight music-stack
    entries +0x208, ambience +0x228). */
-struct P {
-    int frame; int sidebag; int pad8; void *vtable; int isHeadsetEnabled; char pad14[0x1C - 0x14]; char bankSoundPool[0x18]; char streamSoundPool[0x18]; char dirtySounds[0xC];
-    int isPaused; char pad5C[0x68 - 0x5C]; int muteWhenStoppedFlags; char pad6C[0x80 - 0x6C]; char micNoiseRangeCurve[0x10]; char micNoiseHeightCurve[0x10];
-    char padA0[0x104 - 0xA0]; int playbackMode; char pad108[0x114 - 0x108]; struct T musicLayerSmoothing[3];
-    char pad138[0x200 - 0x138]; int dialogSound; int musicStackCount; int musicStack[8]; int ambienceSound;
-};
 extern char D_002CA510[] __asm__("_vt$6CID152");
 extern const struct V2 D_002A83B8;
 extern const struct V2 D_002A83C0;
-void InitSlotheap(void *, int, int, int);
-void InitDl__FP2DLi(void *, int);
-void FitClq__FffffP3CLQ(float, float, float, void *, float);
-static inline void InitSmoothing(struct T *smoothing, float fastSpeed, float fastTime)
+void InitDl__FP2DLi(DL *, int);
+void FitClq__FffffP3CLQ(float, float, float, CLQ *, float);
+static inline void InitSmoothing(SMP *smoothing, float fastSpeed, float fastTime)
 {
     smoothing->fastSpeed = fastSpeed;
     smoothing->slowSpeed = 0.0f;
-    smoothing->fastTime = fastTime;
+    smoothing->fastDuration = fastTime;
 }
 // Constructs the sound manager (g_sndmgr, at static initialisation): the bank and stream sound pools, empty counted
 // pointers, the dirty list, the music layers' smoothing and the microphone noise curves.
-struct P *SNDMGR_ctor(struct P *soundManager)
+SNDMGR *SNDMGR_ctor(SNDMGR *soundManager)
 {
     int n;
     int *entry;
-    soundManager->frame = 0;
-    soundManager->sidebag = 0;
-    soundManager->vtable = D_002CA510;
-    InitSlotheap(soundManager->bankSoundPool, 0x70, 0x80, 0x10);      /* 128 bank sounds of 0x70 bytes */
-    InitSlotheap(soundManager->streamSoundPool, 0x3C0, 0x10, 0x10);   /* 16 stream sounds of 0x3C0 bytes */
-    soundManager->dialogSound = 0;
-    entry = soundManager->musicStack;
+    soundManager->abasic[0] = 0;   /* BASIC: frame, side bag, vtable */
+    soundManager->abasic[1] = 0;
+    soundManager->abasic[3] = (int)D_002CA510;
+    InitSlotheap(&soundManager->bankSoundPool, 0x70, 0x80, 0x10);      /* 128 bank sounds of 0x70 bytes */
+    InitSlotheap(&soundManager->streamSoundPool, 0x3C0, 0x10, 0x10);   /* 16 stream sounds of 0x3C0 bytes */
+    soundManager->dialogSound.p = 0;
+    entry = (int *)soundManager->musicStack;
     for (n = 7; n != -1; n--) *entry++ = 0;
-    soundManager->ambienceSound = 0;
-    InitDl__FP2DLi(soundManager->dirtySounds, 0x38);
+    soundManager->ambienceSound.p = 0;
+    InitDl__FP2DLi(&soundManager->dirtySounds, 0x38);
     soundManager->muteWhenStoppedFlags = MUTE_WHEN_STOPPED_ALL;
     soundManager->isHeadsetEnabled = 0;
     soundManager->playbackMode = 0;
@@ -1131,13 +1123,13 @@ struct P *SNDMGR_ctor(struct P *soundManager)
     InitSmoothing(&soundManager->musicLayerSmoothing[1], 1.0f, 0.25f);
     {
         /* quadratics through (0, 0), (0.5, x), (1, y): noise range 500 / 3000 and height 500 / 1000 at half / full level */
-        struct T *smoothing = &soundManager->musicLayerSmoothing[0];
+        SMP *smoothing = &soundManager->musicLayerSmoothing[0];
         float zero;
         float half = 0.5f;
         InitSmoothing(smoothing, 3.0f, 0.25f);
         zero = smoothing->slowSpeed;
-        FitClq__FffffP3CLQ(zero, D_002A83B8.y, half, soundManager->micNoiseRangeCurve, D_002A83B8.x);
-        FitClq__FffffP3CLQ(zero, D_002A83C0.y, half, soundManager->micNoiseHeightCurve, D_002A83C0.x);
+        FitClq__FffffP3CLQ(zero, D_002A83B8.y, half, &soundManager->micNoiseRangeCurve, D_002A83B8.x);
+        FitClq__FffffP3CLQ(zero, D_002A83C0.y, half, &soundManager->micNoiseHeightCurve, D_002A83C0.x);
     }
     soundManager->isPaused = 0;
     return soundManager;
@@ -1485,15 +1477,6 @@ void PostSoundLoad(struct P *soundManager)
 namespace M_ResetSndmgr { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 /* SNDMGR (layout: sly2/sndmgr.h) */
-struct P {
-    char pad0[0x14]; int unknown14; int numSfx; char bankSoundPool[0x18]; char streamSoundPool[0x18]; char dirtySounds[0xC];
-    int isPaused; int musicLayer2Requests; int musicLayer0Requests; int selectedMusicLayer; int muteWhenStoppedFlags;
-    int pad6C[2]; void *micNoise; char pad78[0xEC - 0x78];
-    void *firstDialogStream; void *firstMusicFile; void *ambienceRecord; int numSounds; int *soundKinds; int *soundIndexFromSfx;
-    int playbackMode; float musicLayerWeights[3];
-    char pad114[0x138 - 0x114]; int sfxVariationStep; char pad13C[0x1D0 - 0x13C]; int numAmbienceGroups; char pad1D4[0x200 - 0x1D4];
-    int dialogSound; int musicStackCount; int musicStack[8]; int ambienceSound; void *dialogRoleObjects[6];
-};
 extern qword D_002A2DD0;
 extern char D_004435F0[];
 void snd_StopAllStreams(void);
@@ -1505,10 +1488,10 @@ void ClearSubtitle(void *);
 void AssignSoundRef(void *, void *);
 void ResetSlotheap(void *);
 void ClearDl__FP2DL(void *);
-void ResetSndmgrVolumes(struct P *);
+void ResetSndmgrVolumes(SNDMGR *);
 // Stops every sound and stream, flushes the hardware queues, clears the manager's state and dirty list and resets volumes
 // (level teardown).
-void ResetSndmgr(struct P *soundManager)
+void ResetSndmgr(SNDMGR *soundManager)
 {
     snd_StopAllStreams();
     func_00233048(SUKR_RPC, SUKR_STOP_ALL, 0, 0, 0, 0, 0);
@@ -1535,9 +1518,9 @@ void ResetSndmgr(struct P *soundManager)
     AssignSoundRef(&soundManager->ambienceSound, 0);
     func_002333B4(soundManager->dialogRoleObjects, 0, sizeof(soundManager->dialogRoleObjects));
     soundManager->muteWhenStoppedFlags = MUTE_WHEN_STOPPED_ALL;
-    ResetSlotheap(soundManager->bankSoundPool);
-    ResetSlotheap(soundManager->streamSoundPool);
-    ClearDl__FP2DL(soundManager->dirtySounds);
+    ResetSlotheap(&soundManager->bankSoundPool);
+    ResetSlotheap(&soundManager->streamSoundPool);
+    ClearDl__FP2DL(&soundManager->dirtySounds);
     ResetSndmgrVolumes(soundManager);
 }
 } } // namespace M_ResetSndmgr
