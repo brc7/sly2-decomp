@@ -112,6 +112,7 @@ public:
     int S32Read();
     float F32Read();
     void ReadVector(VECTOR *pvec);
+    void ReadMatrix4(MATRIX4 *pmat);
 };
 
 struct BND
@@ -2163,46 +2164,6 @@ void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 struct BASIC;
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 struct XF;
-class CBinaryStreamBase
-{
-public:
-    int m_grfbis;
-    byte *m_pb;
-    int m_cb;
-    int m_ibStream;
-    byte *m_pbRaw;
-    int m_cbRaw;
-    int m_grfDecomp;
-    int m_cbSpillOver;
-    int m_unk20;
-    byte *m_abWindow;
-    int m_unk28;
-    int m_unk2c;
-};
-class CBinaryInputStream : public CBinaryStreamBase
-{
-public:
-    int m_cbSpool;
-    byte *m_abSpool;
-    int m_fd;
-    int m_cbDone;
-    int m_cbRequest;
-    int m_cbRemaining;
-    int m_cbRetry;
-    int m_isector;
-    int m_cbuf;
-    int m_cbufFill;
-    int m_icbufRead;
-    int m_icbufWrite;
-    void Read(int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
-    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
-    char S8Read() __asm__("S8Read__18CBinaryInputStream");
-    short S16Read() __asm__("S16Read__18CBinaryInputStream");
-    int S32Read() __asm__("S32Read__18CBinaryInputStream");
-    float F32Read() __asm__("F32Read__18CBinaryInputStream");
-    void ReadVector(VECTOR *pvec) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
-    void ReadMatrix4(MATRIX4 *pmat) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
-};
 typedef struct SHD;
 typedef struct SHDP;
 struct TEXF
