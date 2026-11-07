@@ -3345,48 +3345,40 @@ extern "C" int CanSoTakeDamage(SO *so, SOWATCH *pwatch)
 
 // 0x1F7598 DeliverZapToSo
 namespace M_func_001F7598 { extern "C" {
-struct VT; struct O; struct K; struct N; struct M; struct M2; struct M3;
+struct K; struct N; struct M; struct M2; struct M3;
 typedef int qword __attribute__((mode(TI)));
-struct O;
-struct VT {
-    short d; short pad;
-    void *pfn;
-};
-struct O { char pad[0xC]; struct VT *pvt; struct O *parent; };
 struct K {
-    struct O *source; int part; void *target; int zapKinds;
+    SO *source; int part; void *target; int zapKinds;
     char pad[0x44 - 0x10];
-    int responseFlags; struct O *responder; float time; char dle[0x10];
+    int responseFlags; SO *responder; float time; char dle[0x10];
 } __attribute__((aligned(16)));
-struct N { int source; int part; int pad8; int zapKinds; char pad[0x48 - 0x10]; struct O *responder; char pad2[0x50 - 0x4C]; struct N *next; };
-struct M { struct O *po; int n; struct K *zpr; };
-struct M2 { struct O **pso; int *zapKinds; };
+struct N { int source; int part; int pad8; int zapKinds; char pad[0x48 - 0x10]; SO *responder; char pad2[0x50 - 0x4C]; struct N *next; };
+struct M { SO *po; int n; struct K *zpr; };
+struct M2 { SO **pso; int *zapKinds; };
 struct M3 { struct K *zpr; };
 extern float D_002DDED0;
-struct O *GetSoFromLo(void *);
-int GetSoZapResponseFlags(struct O *, int);
+SO *GetSoFromLo(void *);
+int GetSoZapResponseFlags(SO *, int);
 struct K *AllocZeroedFromSlotheap(void *);
 void ClearDle__FP3DLE(void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
 
-#define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
-
 // Delivers a zap (damage) record to the first object in the target chain that accepts it: skips zaps already in the
 // recent-zap list, computes the response and calls the object's zap handler.
 // Sly 1 zap.cpp vocabulary (InflictZpdZap, FInflictSoZap).
-struct O *DeliverZapToSo(struct K *pk)
+SO *DeliverZapToSo(struct K *pk)
 {
     int unused[4];
     struct M m;
     struct M2 m2;
-    struct O *po;
+    SO *po;
     for (po = GetSoFromLo(pk->target); po; po = po->parent) {
         struct N *pn;
         for (pn = (*(struct N * *)&g_sw.dlZprHit); pn; pn = pn->next) {
             if (pn->source == (int)pk->source && pn->part == pk->part && pn->zapKinds == pk->zapKinds && pn->responder == po) return 0;
         }
         pk->responseFlags = GetSoZapResponseFlags(po, pk->zapKinds);
-        if (VCALL(po, 75, int (*)(void *, struct K *)), pk)) {
+        if (po->TakeDamage((ZPR *)pk)) {
             struct K *pkNew;
             pk->responder = po;
             pkNew = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapZprHit));
@@ -3397,16 +3389,16 @@ struct O *DeliverZapToSo(struct K *pk)
             if (pk->responseFlags & 0xF8) {
                 {
                     m.po = po; m.n = (int)pk->source; m.zpr = pk;
-                    VCALL(po, 4, void (*)(void *, int, struct M *)), 0xB, &m);
-                    VCALL(pk->source, 4, void (*)(void *, int, struct M *)), 0xB, &m);
+                    po->SendMessage((MSGID)0xB, &m);
+                    pk->source->SendMessage((MSGID)0xB, &m);
                 }
                 {
                     m2.pso = &po; m2.zapKinds = &pk->zapKinds;
-                    VCALL(pk->source, 3, void (*)(void *, int, int, int, void *, int)), 0xA, 1, 2, &m2, 0);
+                    pk->source->HandleSpliceEvent(0xA, 1, 2, (void **)&m2, 0);
                 }
                 {
-                    m2.pso = (struct O **)pk;
-                    VCALL(po, 3, void (*)(void *, int, int, int, void *, int)), 0xB, 1, 2, &m2, 0);
+                    m2.pso = (SO **)pk;
+                    po->HandleSpliceEvent(0xB, 1, 2, (void **)&m2, 0);
                 }
             }
             return po;
