@@ -437,42 +437,56 @@ typedef char assert_JTGOAL_isHolding[SLY2_OFFSETOF(JTGOAL, isHolding) == 0x28 ? 
 struct JTTHROW
 {
       struct STEPPLAYER *player;        /* owner */
-      int state;    /* state */
+      int state;    /* -1 none, 0 holding, 1/2 hold turn, 3 lift, 4 aiming, 5/6 aim turn, 7 throwing (SetJtThrowState) */
       float stateStartTime; /* time the state was entered */
-      undefined4 unknown0C;
-      struct LO *ploCarried;   /* carried object */
+      struct LO *ploHoldParent;   /* +0x0C splice option 0x283; on leaving the carry the object is dropped and faded out only when
+                                     its parent is this object's parent (SetJtThrowState -1) */
+      struct LO *ploCarried;   /* carried object: Bentley (D_002DD5BC, the hover launch) or a tossable (CID 100) */
       float holdTurnAngle; /* turn while holding */
       float aimTurnAngle; /* turn while aiming */
       LM lmAim;   /* aim limits */
-      float unknown24;
-      float aimSpeed; /* aim speed */
+      float tPredict;   /* +0x24 seconds of arc predicted (UpdateJtThrowArc; x1.35 with power-up 0x24) */
+      float aimSpeed; /* aim speed; also the flight speed (StartJtThrowFlight) */
       undefined4 unknown2C;
-      VECTOR unknown30;
-      undefined4 unknown3C;
-      JTAIRBL abl[2];   /* first blends */
+      union
+      {
+            VECTOR wLaunchLocal;   /* +0x30 angular velocity given at release, in the hero's frame (ReleaseJtThrowObject); (0, 0, 25) */
+            qword qwWLaunchLocal;
+      };
+      JTAIRBL abl[2];   /* +0x40 hold blends (state 0, turn weights) */
       struct ASEGBL *pasegbl;
-      undefined4 unk_0x5c[(0x64 - 0x5c) / 4];
-      struct ASEG *unknown64;   /* an animation whose label 0x1C7 times Murray's aimed-throw release (air.cpp) */
-      JTAIRBL ablB[4];   /* second blends */
+      struct ASEG *pasegHoldTurnA;   /* +0x5C state 1 */
+      struct ASEG *pasegHoldTurnB;   /* +0x60 state 2 */
+      struct ASEG *unknown64;   /* +0x64 state 3 (lift); its label 0x1C7 times Murray's aimed-throw release (air.cpp) */
+      JTAIRBL ablB[4];   /* +0x68 aim blends (state 4: turn x distance) */
       struct ASEGBL *pasegblB;
-      undefined4 unk_0x9c[(0xa4 - 0x9c) / 4];
-      JTAIRBL ablC[2];   /* third blends */
+      struct ASEG *pasegAimTurnA;   /* +0x9C state 5 */
+      struct ASEG *pasegAimTurnB;   /* +0xA0 state 6 */
+      JTAIRBL ablC[2];   /* +0xA4 throw blends (state 7: near/far) */
       struct ASEGBL *pasegblC;
-      VECTOR unknownC0;
-      undefined4 unknownCC;
-      VECTOR unknownD0;
-      undefined4 unknownDC;
-      qword holdPosition; /* hold position */
-      undefined4 unk_0xf0[(0x100 - 0xf0) / 4];
+      union
+      {
+            VECTOR posAimLocal;   /* +0xC0 initial aim point in the hero's frame (SetJtThrowState 4); (1000, 0, 0) */
+            qword qwPosAimLocal;
+      };
+      union
+      {
+            VECTOR posLaunchLocal;   /* +0xD0 launch point in the hero's frame (UpdateJtThrowArc); (42, -73, -50) */
+            qword qwPosLaunchLocal;
+      };
+      qword holdPosition; /* hold (aim) position */
+      qword vLaunch;   /* +0xF0 launch velocity of the predicted arc (UpdateJtThrowArc; given at release) */
       qword blendFromPosition; /* blend start position */
       qword blendToPosition; /* blend end position */
       float blendStartTime; /* blend start time */
       float blendDuration; /* blend duration */
       int isBlending;  /* a blend is running */
-      struct LO *ploMarker;   /* aim marker */
-      int unknown130;
+      struct LO *ploMarker;   /* aim marker (a trail mesh: its ring of arc frames, UpdateJtThrowArc) */
+      float tFlight;   /* +0x130 predicted flight time, rate limited (UpdateJtThrowArc) */
       undefined4 unk_0x134[(0x140 - 0x134) / 4];
 };
+typedef char assert_JTTHROW_tFlight[SLY2_OFFSETOF(JTTHROW, tFlight) == 0x130 ? 1 : -1];
+typedef char assert_JTTHROW_size[sizeof(JTTHROW) == 0x140 ? 1 : -1];
 
 /* STEPPLAYER: the shared base of the three heroes: the movement subsystems, interaction, idle and gadget state.
    Layout from src/game/gameplay/player/air.cpp (UpdateJtAirInput) (15 copies in Lilly ports) */

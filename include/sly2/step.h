@@ -64,7 +64,11 @@ struct STEP : public PO
             qword aqwTarget[3];   /* the same rows as VU quadwords (jthands.cpp reads them so). Local qword-row form of
                                      MATRIX3: a candidate for a MATRIX3 union in sly2/basic.h */
       };
-      qword unknown1E0;
+      union
+      {
+            qword unknown1E0;   /* root-motion velocity (throw.cpp: the z of root channel 6 while unknown1A4 is 1, else zero) */
+            VECTOR vecUnknown1E0;   /* the same, by component (UpdateJtThrow writes x, z, y) */
+      };
       float rSpin;   /* spin rate */
       VECTOR vSpin;   /* spin axis */
       float unknown200;
