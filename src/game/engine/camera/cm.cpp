@@ -530,19 +530,18 @@ int CompareCameraVisZones(struct T **ppa, struct T **ppb)
 namespace M_UpdateCmVisZone__FP2CM { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x110]; int k; };
-struct CM { char pad[0x90]; qword pos; };
 extern char D_003DD490[];
 int FindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap);
 void UpdateVisInside(struct O *po, qword pos);
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 int CompareCameraVisZones(const void *a, const void *b);
-void SetCmVisZone(struct CM *p, struct O *po);
+void SetCmVisZone(CM *p, struct O *po);
 // Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and selects the best
 // via SetCmVisZone if its kind==1.
-void UpdateCmVisZone__FP2CM(struct CM *cm)
+void UpdateCmVisZone__FP2CM(CM *cm)
 {
     struct O *apo[32];
-    qword pos = cm->pos;
+    qword pos = *(qword *)&cm->pos;
     int n = FindSwObjectsByClass(D_003DD490, 0x105, 5, 0, 0x20, apo);
     int i;
     for (i = 0; i < n; i++)
@@ -577,11 +576,9 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } V4;
 struct M3 { V4 r[3]; } __attribute__((aligned(16)));
 typedef struct { M3 m; V4 pos; } M4;
-struct CM { char pad[0x60]; M4 mat; };
 void GetVectorSphere(qword v, float *a, float *b, int c);
 M3 LoadRotateMatrixPanTilt(float a, float b);
 void VECTOR_opAssign(V4 *p, qword v);
-void UpdateCmMat4__FP2CM(struct CM *p);
 static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
 {
     VECTOR_opAssign(&pm->pos, pos);
@@ -593,14 +590,14 @@ static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
 }
 // Place camera at pos looking at target, with extra pan/tilt offsets: pan/tilt from (tgt-pos) (0x11EFB0), rotation
 // 0x11B720, pos row, UpdateCmMat4. (inferred)
-void SetCameraLookAt(struct CM *cm, qword pos, qword tgt, float da, float db)
+void SetCameraLookAt(CM *cm, qword pos, qword tgt, float da, float db)
 {
     qword d;
     float a, b;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(tgt), "j"(pos));
     GetVectorSphere(d, &a, &b, 0);
-    LoadM4(&cm->mat, LoadRotateMatrixPanTilt(a + da, b + db), pos);
-    UpdateCmMat4__FP2CM(cm);
+    LoadM4((M4 *)&cm->mat, LoadRotateMatrixPanTilt(a + da, b + db), pos);
+    UpdateCmMat4(cm);
 }
 } } // namespace M_SetCameraLookAt
 
