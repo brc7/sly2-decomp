@@ -444,10 +444,10 @@ static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value)
  * @end-sly2-annot */
 // Evaluates the time derivative of a transform slot's local matrix (its velocity as a matrix): zero for resting roles,
 // built from the slot velocity (+0xB0) for velocity roles and from the segment's tangent for segment roles; mirrored
-// slots (kinds 8 / 14) negate their source's translation rate. (inferred: the name says matrix, the body is the
-// derivative; SetXfRole reads velocities off it)
-// Proposed name: EvaluateXfSlotMatrixDerivative (rename later with tools/rename.py; callers: itself, the second
-// evaluator in this file, SetXfRole's view).
+// slots (kinds 8 / 14) negate their source's translation rate. Writes and returns *pr. (inferred)
+// Formerly EvaluateXfSlotMatrix: despite that name the body computes the matrix's time derivative, which is how
+// SetXfRole reads velocities off it. Callers: itself (mirrored slots), GetXfAngularVelocity, GetXfVelocity and
+// SetXfRole.
 extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
 {
     M4 m, m2;

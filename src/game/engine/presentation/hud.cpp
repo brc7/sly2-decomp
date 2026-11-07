@@ -957,7 +957,7 @@ typedef struct { int cb; int cbAlign; } AREQ;
 struct O { char pad[0x40]; void *owner; };
 struct S {
     char pad[0x50]; int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
-    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteHeap;
+    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteHeap;   /* duration: +0x90; the visible timeout UpdateWidget checks is +0x8C (see SetWidgetState's view) */
 };
 extern char D_003E1C70[], D_003E1C80[];
 
@@ -1390,7 +1390,7 @@ namespace M_SetWidgetState { extern "C" {
 struct S {
     char pad[0x58]; int state; float stateTime; int stateFrame; int request; float requestTime;
     char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
-    float mainAnimTime; float visibleTimeout;   /* +0x8C, read as the visible-duration limit (LoadWidgetFromBrx stores its F32 at +0x90) */
+    float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
 struct G { char pad[0x3BEC]; int numShownWidgets; };
@@ -1453,7 +1453,7 @@ namespace M_UpdateWidget { extern "C" {
 struct S {
     char pad[0x58]; int state; float stateTime; int stateFrame; int request; float requestTime;
     char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
-    float mainAnimTime; float visibleTimeout;   /* +0x8C, read as the visible-duration limit (LoadWidgetFromBrx stores its F32 at +0x90) */
+    float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
 struct Clock { char pad[0x3C]; float time; float dt; };
