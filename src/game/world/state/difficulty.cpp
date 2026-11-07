@@ -5,6 +5,7 @@
 // much the player is struggling (deaths raise it by 0.1, completed jobs lower it by 0.2).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_difficulty
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001553D0
+#include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/cref.h"
 #include "sly2/slotheap.h"
@@ -43,8 +44,8 @@ struct DIFFICULTY
 typedef char assert_DIFFICULTY_size[sizeof(DIFFICULTY) == 0x18 ? 1 : -1];
 
 /* A job (or task) seen through the fields this TU reads: JOB::pgDifficulty at +0xA8 (HYPOTHESIS: per-job override). */
-struct JOBV { char pad[0xA8]; float *difficulty; };
-struct TASKV { char pad[0x54]; int state; char pad2[0x10]; int completionCount; char pad3[0x10]; JOBV *job; char pad4[0x28]; float *rating; };
+struct JOBV : LO { char pad[0xA8 - 0x50]; float *difficulty; };
+struct TASKV : LO { char pad[0x54 - 0x50]; int state; char pad2[0x10]; int completionCount; char pad3[0x10]; JOBV *job; char pad4[0x28]; float *rating; };
 
 struct SVSET;
 struct SVSTORE;
