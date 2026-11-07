@@ -2320,12 +2320,8 @@ void UpdateJtModeInput(JT *p)
 namespace M_func_0018B348 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } MATRIX4;
-struct O { char pad[0x60]; void *p60; char pad1[0x19A4 - 0x64]; struct X *hookChild; char pad2[0x19C0 - 0x19A8]; void *p19C0;
-    char pad3[0x19CC - 0x19C4]; void *p19CC; char pad4[0x1BC8 - 0x19D0]; void *p1BC8; char pad5[0x1BD8 - 0x1BCC]; float g1BD8;
-    char pad6[0x1BE0 - 0x1BDC]; qword v1BE0; qword v1BF0; qword v1C00; qword v1C10; qword v1C20; };
-struct X { char pad[0x60]; void *p60; };
 extern float GetAsegLabelTime(void *p, int n);
-extern void PredictAsegTransform(void *a, float g, struct O *p, float h, void *b, void *c, MATRIX4 *pm, int n);
+extern void PredictAsegTransform(void *a, float g, JT *p, float h, void *b, void *c, MATRIX4 *pm, int n);
 extern qword DecomposeRotationMatrixToEuler(MATRIX4 *pm);
 extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm);
 static __inline__ qword Mul(MATRIX4 *pm, qword v)
@@ -2336,23 +2332,23 @@ static __inline__ qword Mul(MATRIX4 *pm, qword v)
     return o;
 }
 // From clip label 0x167 samples the positions of three child transforms into x1BE0..x1C20.
-void CacheJtRestPose(struct O *jt)
+void CacheJtRestPose(JT *jt)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
-    if (!jt->p1BC8)
+    if (!jt->pasegPickpocket)
         return;
     z = 0.0f;
-    jt->g1BD8 = GetAsegLabelTime(jt->p1BC8, 0x167);
-    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
-    jt->v1BE0 = m0.r[3];
-    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
-    jt->v1BF0 = m1.r[3];
-    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
-    jt->v1C00 = m2.r[3];
-    jt->v1C10 = DecomposeRotationMatrixToEuler(&m2);
+    jt->tPickpocketLabel = GetAsegLabelTime(jt->pasegPickpocket, 0x167);
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19A4->rootTransform, jt->rootTransform, &m0, 0);
+    jt->posPickpocketHand = m0.r[3];
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19CC, jt->rootTransform, &m1, 0);
+    jt->posPickpocket19CC = m1.r[3];
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19C0, jt->rootTransform, &m2, 0);
+    jt->posPickpocket19C0 = m2.r[3];
+    jt->eulerPickpocket19C0 = DecomposeRotationMatrixToEuler(&m2);
     InvertMatrix4Rigid(&mi, &m2);
-    jt->v1C20 = Mul(&mi, jt->v1BE0);
+    jt->posPickpocketHandLocal = Mul(&mi, jt->posPickpocketHand);
 }
 } } // namespace M_func_0018B348
 
@@ -3188,24 +3184,23 @@ typedef char layout_TARGET_kind[((unsigned)&((struct X1854*)0)->x124==0x124)?1:-
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018C060 { extern "C" {
-struct S { char pad[0x2C0]; char air[0x200]; char grab[0x60]; void *x520; char p1[0x8CC]; char hurt[0x930]; void *a1720[0x6A]; int n; };
-void *GetJtGrabAdjustRecord(void *p, int *pn);
-void *GetJtHurtAdjustRecord(void *p, int *pn);
-void *GetJtAirAdjustRecord(void *p, int *pn);
-void SetStepPhys(struct S *p, void *pv, int n);
+SOPART *GetJtGrabAdjustRecord(JTGRAB *p, int *pn);
+SOPART *GetJtHurtAdjustRecord(JTHURT *p, int *pn);
+SOPART *GetJtAirAdjustRecord(JTAIR *p, int *pn);
+void SetStepPhys(JT *p, SOPART *pv, int n);
 // JT slot 90: takes the per-state STEP parameter array from the grab/hurt/air components and applies it.
-void ApplyJtStateStepParams(struct S *jt)
+void ApplyJtStateStepParams(JT *jt)
 {
     int n = 0;
-    void *pv;
-    switch (jt->n) {
-    case 7: pv = GetJtGrabAdjustRecord(jt->grab, &n); break;
-    case 4: pv = GetJtHurtAdjustRecord(jt->hurt, &n); break;
-    case 2: pv = GetJtAirAdjustRecord(jt->air, &n); break;
-    case 21: case 22: pv = jt->x520; break;
-    default: pv = jt->a1720[jt->n]; break;
+    SOPART *pv;
+    switch (jt->state) {
+    case 7: pv = GetJtGrabAdjustRecord(&jt->jtgrab, &n); break;
+    case 4: pv = GetJtHurtAdjustRecord(&jt->jthurt, &n); break;
+    case 2: pv = GetJtAirAdjustRecord(&jt->jtair, &n); break;
+    case 21: case 22: pv = jt->jtgrab.unknown60; break;
+    default: pv = jt->aprecJts[jt->state]; break;
     }
-    if (!pv) pv = jt->a1720[0];
+    if (!pv) pv = jt->aprecJts[0];
     SetStepPhys(jt, pv, n);
 }
 } } // namespace M_func_0018C060

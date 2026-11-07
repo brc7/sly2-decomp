@@ -148,7 +148,13 @@ struct JT : public STEPPLAYER
       LO *ploPickpocket;   /* the object being pickpocketed */
       LO *unknown1BD0;
       int unknown1BD4;
-      undefined4 unk_0x1bd8[(0x1c30 - 0x1bd8) / 4];
+      float tPickpocketLabel;   /* +0x1BD8 time of label 0x167 in pasegPickpocket (CacheJtRestPose) */
+      undefined4 unknown1BDC;
+      qword posPickpocketHand;   /* +0x1BE0 the hand object's position at that label (CacheJtRestPose) */
+      qword posPickpocket19CC;   /* +0x1BF0 unknown19CC's position at that label */
+      qword posPickpocket19C0;   /* +0x1C00 unknown19C0's position at that label */
+      qword eulerPickpocket19C0;   /* +0x1C10 unknown19C0's rotation (Euler angles) at that label */
+      qword posPickpocketHandLocal;   /* +0x1C20 posPickpocketHand in unknown19C0's frame */
       undefined4 unk_0x1c30[(0x1ce0 - 0x1c30) / 4];
       ASEG *apasegSwing[13];   /* cane swing animations */
       ASEG *pasegAttackA;   /* first attack animation */
