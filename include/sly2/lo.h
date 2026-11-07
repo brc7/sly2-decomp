@@ -69,7 +69,7 @@ struct LO : public BASIC
       virtual void UpdateXfWorld() __asm__("InheritLoFlag4");   /* slot 17: updates the world transform from the parent (LO: inherits flag 4 only; SO/XFM: world matrix) (inferred) */
       virtual void UpdateXfWorldHierarchy() __asm__("UpdateLoXfWorldHierarchy");
       virtual void RenderSelf() __asm__("RenderLoSelf");
-      virtual void RenderAll() __asm__("RenderLoAll");
+      virtual void RenderAll(MATRIX4 *pmatWorld, float gFirst, float gSecond, struct SOBOUNDS *psobounds) __asm__("RenderLoAll");   /* slot 20: draws the object and its children at pmatWorld (0: their own), with RenderSoGlobset's two opacity factors and the shared bounds record (0: the object's own); lo.cpp RenderLoAtMatrix, so.cpp RenderSoAll */
       virtual void SetFlag8(int fOn) __asm__("SetLoFlag8");   /* slot 21: sets or clears flag bit 8 of the flag word; meaning not known (inferred) */
       virtual void OnRemove() __asm__("OnLoRemove");
       virtual void OnAdd() __asm__("OnLoAdd");

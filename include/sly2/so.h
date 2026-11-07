@@ -219,7 +219,7 @@ struct SO : public LO
     virtual void UpdateXfWorld() __asm__("UpdateSoXfWorld");   /* slot 17 */
     virtual void UpdateXfWorldHierarchy() __asm__("UpdateSoXfWorldHierarchy");   /* slot 18 */
     virtual void RenderSelf() __asm__("RenderSoSelf");   /* slot 19 */
-    virtual void RenderAll() __asm__("RenderSoAll");   /* slot 20 */
+    virtual void RenderAll(MATRIX4 *pmatWorld, float gFirst, float gSecond, struct SOBOUNDS *psobounds) __asm__("RenderSoAll");   /* slot 20 */
     virtual void SetFlag8(int fOn) __asm__("SetSoGrfBit8");   /* slot 21 */
     virtual void OnRemove() __asm__("OnSoRemove");   /* slot 22 */
     virtual void OnAdd() __asm__("OnSoAdd");   /* slot 23 */

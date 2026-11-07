@@ -38,11 +38,9 @@ enum
     LO_SLOT_ADD_HIERARCHY = 11,
     LO_SLOT_REMOVE_HIERARCHY = 12,
     LO_SLOT_UPDATE_LOROOT = 13,
-    LO_SLOT_RENDER_ALL = 20,
     LO_SLOT_ON_REMOVE = 22,
     LO_SLOT_ON_ADD = 23,
     LO_SLOT_GET_CHILDREN = 28,
-    LO_SLOT_WORLD_MATRIX = 31,
     LO_SLOT_APPLY_TRANSFORM = 37,
 };
 
@@ -489,25 +487,21 @@ extern "C" void RenderLoAll()
 namespace M_func_001A5EE8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword q[4]; } M4;
-struct VTE { short d; short pad; void *pfn; };
-struct O { int frame, sidebag, firstRefNode; struct VTE *vt; };
 void InvertMatrix4Rigid(M4 *out, void *in);
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
-void RenderLoAtMatrix(struct O *object, void *m, float a, float b)
+void RenderLoAtMatrix(LO *object, void *m, float a, float b)
 {
     M4 t;
     M4 r;
     M4 inv;
     M4 *pr = &r;
     M4 *pinv = &inv;
-    struct VTE *e = &object->vt[LO_SLOT_WORLD_MATRIX];
-    InvertMatrix4Rigid(pinv, ((void *(*)(void *))e->pfn)((char *)object + e->d));
+    InvertMatrix4Rigid(pinv, object->GetWorldMatrix());
     __ml__FRC7MATRIX4T0(pr, m, pinv);
     t = r;
-    e = &object->vt[LO_SLOT_RENDER_ALL];
-    ((void (*)(void *, M4 *, int, float, float))e->pfn)((char *)object + e->d, &t, 0, a, b);
+    object->RenderAll((MATRIX4 *)&t, a, b, 0);
 }
 } } // namespace M_func_001A5EE8
 

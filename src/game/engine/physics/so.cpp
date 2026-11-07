@@ -131,7 +131,8 @@ void InvalidateSoAaox(SO *pso);
 void MarkSoTreeBoundsDirty(SO *pso);
 void ClearSoTreeBoundsDirty(SO *pso);
 void RefreshSoBoundsRecord(SO *pso);
-void RenderSoGlobset(GLOBSET *pglobset, int n, float uAlpha1, float uAlpha2, SOBOUNDS *psobounds);
+void RenderSoGlobset(GLOBSET *pglobset, MATRIX4 *pmatWorld, float uAlpha1, float uAlpha2, SOBOUNDS *psobounds);
+void BuildSoLightPackets(SW *pg, MATRIX4 *pmatWorld, SOBOUNDS *pq);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword qw);
 void UnsettleXfSlot(SO *pso, XF *pxf);
 void AddObjectToBroadPhase(SW *psw, SO *pso);
@@ -1109,7 +1110,6 @@ void SetSoGrfBit8(struct P *so, int enabled)
 // 0x1F3C10 RefreshSoBoundsRecord
 namespace M_func_001F3C10 { extern "C" {
 extern SW D_003DD490;
-void BuildSoLightPackets(SW *pg, int n, SOBOUNDS *pq);
 // Recomputes the shared bounds record when its stamp is older than the world's current stamp. (inferred)
 void RefreshSoBoundsRecord(SO *so)
 {
@@ -1134,31 +1134,22 @@ extern "C" void RenderSoSelf(SO *so)
 }
 
 // 0x1F3CC8 RenderSoAll
-namespace M_func_001F3CC8 { extern "C" {
-struct VTE; struct O; struct P;
-struct VTE { short d; short pad; void (*pfn)(void *, int, float, float, SOBOUNDS *); };
-struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x24 - 0x10]; struct O *next; };
-struct P { char pad[0x64]; struct O *firstChild; char pad2[0x70 - 0x68]; struct O *firstRemovedChild; char pad3[0x80 - 0x74]; char globset[0x134 - 0x80]; SOBOUNDS *bounds; };
-struct G;
-extern struct G D_003DD490;
-void BuildSoLightPackets(struct G *, int, SOBOUNDS *);
-void RenderSoGlobset(void *, int, float, float, SOBOUNDS *);
 // Slot 20: draws the glob set with explicit parameters and recurses into the children.
-void RenderSoAll(struct P *so, int a, SOBOUNDS *pb, float f1, float f2)
+void SO::RenderAll(MATRIX4 *pmatWorld, float gFirst, float gSecond, SOBOUNDS *psoboundsArg)
 {
     SOBOUNDS b;
     int unused[4];
-    struct O *po;
-    if (!pb && so->bounds) {
-        b = *so->bounds;
+    LO *po;
+    SOBOUNDS *pb = psoboundsArg;
+    if (!pb && psobounds) {
+        b = *psobounds;
         pb = &b;
-        BuildSoLightPackets(&D_003DD490, a, &b);
+        BuildSoLightPackets(&D_003DD490, pmatWorld, &b);
     }
-    RenderSoGlobset(so->globset, a, f1, f2, pb);
-    for (po = so->firstChild; po != so->firstRemovedChild; po = po->next)
-        po->pvt[20].pfn((char *)po + po->pvt[20].d, a, f1, f2, pb);
+    RenderSoGlobset(&model, pmatWorld, gFirst, gSecond, pb);
+    for (po = (LO *)children.head; po != ploRemovedFirst; po = (LO *)po->siblingLink.next)
+        po->RenderAll(pmatWorld, gFirst, gSecond, pb);
 }
-} } // namespace M_func_001F3CC8
 
 // 0x1F3E00 OnSoRemove
 namespace M_OnSoRemove { extern "C" {
