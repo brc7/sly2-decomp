@@ -2738,27 +2738,18 @@ void REMIT::PostEmit(EMITB *pemitb)
     rate = pemitb->v.u.remit.rate;
 }
 
-namespace M_UpdateRemit { extern "C" {
-struct TGT;
-typedef struct { short d; short pad; void (*pf)(struct TGT *, EXPLSO *); } VTE;
-typedef struct TGT { char pad[0xC]; VTE *vt; } TGT;   /* the EXPLS: its explode virtual (slot 51) takes the EXPLSO, which
-                                                         emitter.h's EXPL::ExplodeExplso does not declare */
-} } // namespace M_UpdateRemit
 // REMIT Update: base update, then explodes its EXPLS (slot 51) at its position `rate` times per second (the EXPLSO
 // with only the origin set).
 void REMIT::Update()   /* key function */
 {
-    using namespace M_UpdateRemit;
     UpdateRip(this);
     if (pexpls) {
         accumulated += g_clock.deltaTime * rate;
         while (accumulated >= 1.0f) {
             EXPLSO m;
-            TGT *t;
             m.grf = EXPLSO_HAS_ORIGIN;
             m.origin = currentPosition;
-            t = (TGT *)pexpls;
-            t->vt[51].pf((TGT *)((char *)t + t->vt[51].d), &m);
+            pexpls->ExplodeExplso(&m);
             accumulated -= 1.0f;
         }
     }

@@ -234,7 +234,7 @@ typedef char assert_EXPLSO_size[sizeof(EXPLSO) == 0x40 ? 1 : -1];
 /* EXPL: the explosion base class (an XFM; no own fields known here). */
 struct EXPL : public XFM
 {
-    virtual void ExplodeExplso() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 (ExplodeExplso); key function (emitter.cpp) */
+    virtual void ExplodeExplso(EXPLSO *pexplso) __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 (ExplodeExplso); key function (emitter.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplClassDesc");   /* slot 6 */
 };
 typedef char assert_EXPL_size[sizeof(EXPL) == 0xE0 ? 1 : -1];   /* class descriptor cb */

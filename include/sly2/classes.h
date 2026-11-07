@@ -511,7 +511,7 @@ struct EXPLG : EXPL
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplgClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExplgFromBrx");   /* slot 14 */
     virtual void Clone(LO *ploBase) __asm__("CloneExplg");   /* slot 41 */
-    virtual void ExplodeExplso() __asm__("ExplodeExplgExplso");   /* slot 51 */
+    virtual void ExplodeExplso(EXPLSO *pexplso) __asm__("ExplodeExplgExplso");   /* slot 51 */
 };
 typedef char assert_EXPLG_size[sizeof(EXPLG) == 0xF0 ? 1 : -1];
 
@@ -521,8 +521,8 @@ struct EXPLS : EXPLO
     char padF0[0x110 - 0xF0];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleExplsMessage");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplsClassDesc");   /* slot 6 */
-    virtual void ExplodeExplso() __asm__("ExplodeExplsExplso");   /* slot 51 */
-    virtual void FireExplso() __asm__("FireExplsExplso");   /* slot 52 */
+    virtual void ExplodeExplso(EXPLSO *pexplso) __asm__("ExplodeExplsExplso");   /* slot 51 */
+    virtual void FireExplso(EXPLSO *pexplso) __asm__("FireExplsExplso");   /* slot 52 */
 };
 typedef char assert_EXPLS_size[sizeof(EXPLS) == 0x110 ? 1 : -1];
 
