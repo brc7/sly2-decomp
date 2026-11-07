@@ -75,6 +75,7 @@ void ACT7::Attach()
     *(void **)(pact->pxf + 0xA8) = pact->pikrec;
 }
 
+// Read an object id (S16) from the stream and resolve it through the object's lookup virtual (vtable slot 51).
 static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
 {
     VTE *e = &so->vt[51];
@@ -163,7 +164,9 @@ extern "C" void InitIkRecord(IKREC*ikRecord){
 /* SolveIk's own views of the IK record (REQUEST) and frames (FRAME): its asm addresses them by offset. */
 union U{qwordV q;float f[4];int i[4];};
 struct M3{
+ // 3x3 matrix of U rows with copy constructor.
  U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}
+ // Assign the three rows.
  M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}
 };
 struct M4{U r[4];};
@@ -176,11 +179,13 @@ struct REQUEST{
 };
 /* Every home is written by the native return, matrix-copy or vector phase. */
 struct WORK{U row[23];};
+// Placement new: construct at p.
 inline void*operator new(unsigned int,void*p){return p;}
 struct GAME{char pad[0x3D58];int stamp;};extern "C" GAME D_003DD490;
 extern "C" float acosf(float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qwordV,float);
 extern "C" qwordV*VECTOR_opAssign(qwordV*,qwordV);
+// Copy the request's snapshot matrix into the current frame's local matrix (register-pinned); returns 1.0.
 static inline float CopySnapshot(REQUEST*q){float high;register FRAME*d __asm__("$4")=q->current;register qwordV odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->current),"m"(q->snapshot.r[0].q):"at");d->local.r[0].q=odd;even=q->snapshot.r[1].q;d->local.r[1].q=even;odd=q->snapshot.r[2].q;d->local.r[2].q=odd;even=q->snapshot.r[3].q;d->local.r[3].q=even;return high;}
 
 // Two-bone IK solve (the IK action's update): restores the first bone's snapshot, finds the elbow angle from the bone

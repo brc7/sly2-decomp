@@ -76,6 +76,7 @@ void DetachAct(ACTV *act);
 void FreeAct(void *pv);   /* frees an act record into its pool */
 }
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
+// Zero the xyz components of pv.
 static inline void ZeroVector(VECTOR *pv)
 {
     pv->z = 0.0f;
@@ -90,6 +91,7 @@ extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
 /* The factories construct in place: as class members, the allocators and constructors would get out-of-line copies
    in act.cpp, the classes' key TU (g++ 2.95 emits a class's inline members with its vtable). */
 inline void *operator new(unsigned int, void *pv) { return pv; }
+// Allocate cb bytes, 16-byte aligned, for a vector curve.
 static inline void *AllocVecCurve(unsigned int cb) { M_PacNewKind::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind {
 extern "C" AC *PacNewKind(int k);
@@ -141,6 +143,7 @@ typedef struct T {   /* the transform slot (XF) */
     VECTOR segmentEnd;            /* 0xE0 */
     VECTOR segmentEndTangent;     /* 0xF0 */
 } T;
+// Zero the xyz components of pv.
 static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; }
 // Prepares a transform slot's motion segment from a constant curve (slot 2): start and end value are the constant,
 // velocities zero, motion kind "still" (2). (inferred)
@@ -227,6 +230,7 @@ namespace M_func_0012B738 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
+// True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
@@ -344,6 +348,7 @@ namespace M_func_0012BBD0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
+// True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
@@ -471,6 +476,7 @@ namespace M_func_0012C140 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
+// True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
@@ -637,6 +643,7 @@ namespace M_func_0012C768 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
+// True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
@@ -738,6 +745,7 @@ namespace M_PacNewKind2 {
 struct AREQ { int cb; int cbAlign; };
 extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
 } // namespace M_PacNewKind2
+// Allocate cb bytes, 16-byte aligned, for a float curve.
 static inline void *AllocFloatCurve(unsigned int cb) { M_PacNewKind2::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind2::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind2 {
 extern "C" ACG *PacNewKind2(int k);
@@ -981,6 +989,7 @@ void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword positionGoal; };
 extern qword D_002A2DD0;
+// True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
@@ -1042,7 +1051,9 @@ qword GetLoWorldPos(void *po);
 void SortXfActs(void *a, struct X *b);
 qword ConvertXfVec(int n, int k, qword v);
 void CalculateVectorPanTilt(qword q, float *pa, float *pb);
+// Evaluate the quadratic a + b*t + c*t^2 at t.
 static __inline__ float EvaluateQuadratic(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
+// Length of the xyz part of a as a float (pv is a scratch home).
 static __inline__ float VectorLength(U *pv, qword a)
 {
     qword t;
@@ -1158,8 +1169,10 @@ typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
 };
+// Rotate v by the 3x3 matrix m.
 static inline qword MulM3(const M3 &m, qword v)
 {
     qword r;
@@ -1167,6 +1180,7 @@ static inline qword MulM3(const M3 &m, qword v)
         : "=j"(r) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     return r;
 }
+// Length of the xyz part of c, in the x lane.
 static inline qword VLen(qword c)
 {
     qword l, one;
@@ -1174,6 +1188,7 @@ static inline qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+// Return a + (b - c) * f.
 static inline qword AddScaledDiff(qword a, qword b, qword c, VU_FLOAT f)
 {
     qword r, d;
@@ -1181,6 +1196,7 @@ static inline qword AddScaledDiff(qword a, qword b, qword c, VU_FLOAT f)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(d), "j"(f.q));
     return r;
 }
+// x lane of q as a float.
 static inline float GetX(qword q)
 {
     float f;
@@ -1218,12 +1234,15 @@ M3 BuildOrthonormalMatrixZ(qword a, qword b);
 void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc);
 }
 
+// Store m as the transform's segment matrix and mark the segment kind as a matrix (5).
 static inline void SetMat(X *px, const M3 &m)
 {
     px->segment = m;
     px->segmentKind = 5;
 }
 
+// Copy m into mT, convert it from the parent's space into the transform's segment matrix and set the segment kind to
+// 5.
 static inline void Fin(P *p, M3 &mT, M3 m)
 {
     mT = m;
@@ -1386,6 +1405,7 @@ typedef struct O { char pad[0x18]; VT *vt; } O;
 typedef struct SW { char pad[0xC0]; qword a; char pad2[0x10]; qword b; } SW;
 typedef struct T2 { char pad[8]; SW *psw; char pad1[0x10]; O *po; qword v; } T2;
 void UpdateActDefault(T2 *p);
+// Add *ps to *pd (register-pinned to vf1/vf2).
 static __inline__ void AddV(qword *pd, qword *ps)
 {
     register qword b __asm__("vf2") = *ps;
@@ -1439,6 +1459,7 @@ void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword rotationGoal; };
 extern qword D_002A2DD0;
+// True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
@@ -1666,6 +1687,7 @@ typedef struct Y { char pad[0xB0]; qword velocity; qword direction; int length; 
 typedef struct X { char pad[8]; Y *xf; char pad2[0x20 - 0xC]; qword vector; } X;
 extern qword D_002A2DA0;
 void AttachActBase(X *x);
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -1673,6 +1695,7 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+// Normalize *pv in place (or replace it with *pdef when its length is below 1e-4); returns the original length.
 static __inline__ qword Normalize1(qword *pv, qword *pdef)
 {
     qword c;

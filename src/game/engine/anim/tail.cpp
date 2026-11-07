@@ -68,6 +68,7 @@ void AddXfAct(struct S *,struct O *,struct Hook *);
 qword TransformXfPos(struct O *,struct O *,qword);
 qword ConvertXfVec(struct O *,struct O *,qword);
 }
+// Allocate cb zeroed bytes, 16-byte aligned, from the world heap.
 static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return AllocClearedFromWorldHeap(&req); }
 // Loads an SO's chains (tails, ropes) from the level stream. Per chain: step count, bend stiffness, damping, relative
 // damping, maximum bend angle, gravity and anchor vectors, then the links; each link resolves its transform through the
@@ -136,6 +137,7 @@ struct VU_VECTOR4
 {
     qword qw;
 };
+// 3x3 matrix product matL * matR.
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
     qword qwL0 = *(qword *)matL.mat[0];
@@ -154,6 +156,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
             : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)matR.mat[2])->qw));
     *(VU_VECTOR4 *)mat.mat[2] = v2;
 }
+// Rotate qwVec by the 3x3 matrix pmat.
 inline qword RotateVector(MATRIX3 *pmat, qword qwVec)
 {
     qword qwResult;
@@ -169,7 +172,9 @@ struct ACTV
       int nPriority;
       ACTV *pactNext;
       int nRole;
+    // Uninitialised ACTV.
     ACTV() {}
+    // ACTV with the given ack value.
     ACTV(int ack) : ack(ack) {}
 };
 extern CLOCK D_002DDED0;
@@ -203,18 +208,21 @@ struct VU_FLOAT
 {
     qword qw;
 };
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
+// Length of v (x lane).
 static inline qword VuLength(qword v)
 {
     qword qw;
@@ -222,6 +230,7 @@ static inline qword VuLength(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// Length of v (x lane), with the squared length kept in its own register.
 static inline qword VuLengthUntied(qword v)
 {
     qword qwSq;
@@ -234,18 +243,21 @@ extern "C" qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 extern "C" float AngleBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 extern qword D_002A2DA0;
+// Return qwBase + qwVec * gScale.
 static inline qword VuAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
     return qw;
 }
+// Divide qwVec by g.
 static inline qword VuDivByFloat(qword qwVec, VU_FLOAT g)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qw) : "j"(g.qw), "j"(qwVec));
     return qw;
 }
+// Combine the chain velocity terms: qwVel*gA + qwVelRel*gB + qwPerp*gK + the last term times its factor.
 static inline qword CombineChainVelocity(qword qwVel, VU_FLOAT gA, qword qwVelRel, VU_FLOAT gB, qword qwPerp, VU_FLOAT gK, qword gravity, VU_FLOAT gDt)
 {
     qword qw;

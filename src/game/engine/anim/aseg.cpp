@@ -172,6 +172,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
 /* Event payloads read into the EA unions. */
 struct L0 { int n; int a, b, c; float x, y, z; };
 struct L20 { int a, b; float g; };
+// Allocate cb zeroed bytes, 16-byte aligned, from the world heap.
 static __inline__ void *AllocWorldHeapBlock(int cb) { AREQV req; req.cb = cb; req.cbAlign = 0x10; return AllocClearedFromWorldHeap(&req); }
 // Loads one event list of a segment: per event a time (or not, per fTime), a kind and its typed payload values; returns
 // the count and the array through pc / pa. Layout parse-verified: a parser following it reads every byte of 4 levels.
@@ -249,7 +250,9 @@ extern "C" float GetAsegLabelTime(ASEG *segment, int n)
 // MATCH (Claude agent, laneB6, 2026-10-23), from the 116/aligned-25 draft: (1) no f4/f2 locals (`(grf >> 2) & 1` and `grf & 2` at their uses), so the vtable address is hoisted into fp; (2) AddXfAct takes pn as a 3rd argument; (3) pn->priority before pn->role; (4) floats before pp in the prototype (prologue copy order).
 /* The new ASEGA is built by hand (memset, vtable store), so its slots are called through PVT. */
 struct G { ASEGA *p; G(ASEGA *pp) : p(pp) { ((void (*)(ASEGA *))PVT(p)[1].pfn)((ASEGA *)((char *)p + PVT(p)[1].d)); }
+    // Scope guard: on destruction call the player's virtual at vtable slot 2 (end of an update bracket).
     ~G() { ((void (*)(ASEGA *))PVT(p)[2].pfn)((ASEGA *)((char *)p + PVT(p)[2].d)); } };
+// Evaluate the quadratic g0 + g1*t + g2*t^2.
 static inline float EvaluateQuadratic(CLQ *pclq, float t) { return pclq->g0 + t * (pclq->g1 + t * pclq->g2); }
 // Starts playing a segment on an object hierarchy (ALO root, or the segment's own objects): takes an ASEGA from the pool,
 // links it into the world's and the segment's player lists, binds every channel to its target transform as an
@@ -397,6 +400,7 @@ void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
 
 // (Claude agent, laneB10) memsets through an inline ClearM4 helper keep &m2/&mB out of gcse; pe at function scope.
 static inline void ClearM4(M4 *pm) { func_002333B4(pm, 0, sizeof(M4)); }
+// Element-wise sum of two 4x4 matrices.
 static inline M4 AddM4(const M4 &a, const M4 &b) return m
 {
     int i;

@@ -141,7 +141,9 @@ extern "C" void DecrefAsega(ASEGA *player)
     }
 }
 
+// The segment's flag word: grfUnk40 itself when bit 0 is set, otherwise the word it points to.
 static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { unsigned int x = pq->grfUnk40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
+// Close the guard's update bracket: call its player's virtual at vtable slot 2.
 static __inline__ void End(G *pg) { ASEGA *po = pg->p; ((void (*)(void *))PVT(po)[2].pfn)((char *)po + PVT(po)[2].d); }
 // Per-frame update of a playing segment: advances local time by speed, wraps or clamps it at the end, dispatches the
 // events crossed this frame, and retracts the player when a non-looping segment finished.
@@ -494,6 +496,8 @@ extern "C" void SendAsegaMessage(ASEGA *player, int message, ASEGA *argument) {
     { ASEGA *po = g.po; ((void (*)(void *))PVT(po)[2].pfn)((char *)po + PVT(po)[2].d); }
 }
 
+// Ping-pong time reflection: make the rates positive and, once *pt reaches tMax, reflect it (t2 - t) and reverse the
+// rates.
 static __inline__ void PingPong(ASEGA *p, float *pt, float *pdt, float tMax, float t2)
 {
     *pdt = __builtin_fabsf(*pdt);
@@ -699,6 +703,8 @@ void Unlink__t6CGcObj1Z5CVarb(void *);
 void Unlink__t6CGcObj1Z8CSidebag(void *);
 }
 extern "C" void Decref__4CRef(void *);
+// Drop a reference to an R1 record; on the last one release its variable and CRef, unlink it from the GC list and
+// free its slot.
 static inline void Release1(R1 *r)
 {
     if (r) {
@@ -710,6 +716,7 @@ static inline void Release1(R1 *r)
         }
     }
 }
+// Drop a reference to an R4 record; on the last one release it and free its slot.
 static inline void Release4(R4 *r)
 {
     if (r) {

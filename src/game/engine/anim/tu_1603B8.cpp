@@ -91,10 +91,12 @@ extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream
     }
 }
 
+// Transform point by the 4x4 matrix.
 static inline qword Transform(const M4 &matrix,qword point) {
  qword result;
  result = VuMulMatrix4(matrix.r[0].q, matrix.r[1].q, matrix.r[2].q, matrix.r[3].q, point);return result;
 }
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
  qword a0=a.r[0],a1=a.r[1],a2=a.r[2];

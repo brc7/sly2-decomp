@@ -182,6 +182,7 @@ void LoadOptionsFromBrx(void *pvStruct, CBinaryInputStream *pbis);
 
 
 void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbis, CLoadCollector *pcollector);
+// Allocate cb bytes with alignment cbAlign from the world heap.
 inline void *AllocWorldHeapBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -190,6 +191,7 @@ inline void *AllocWorldHeapBlock(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwImpl(pswalloc);
 }
+// Allocate cb zeroed bytes with alignment cbAlign from the frame stack.
 inline void *AllocClearedStackBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -198,6 +200,7 @@ inline void *AllocClearedStackBlock(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocStackClearImpl(pswalloc);
 }
+// Allocate cb bytes with alignment cbAlign from the world heap and copy pvBase into them.
 inline void *AllocWorldHeapCopy(int cb, int cbAlign, void *pvBase)
 {
     SWALLOC swalloc;
@@ -418,7 +421,9 @@ void ChooseSmaTransition(S *, int);
 }
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 // Starts a state machine on an object: takes an SMA from the world's pool, links it into the machine's and the world's
@@ -602,7 +607,9 @@ extern "C" void RetractAsega(void *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 // Sets the goal state (by OID, -1 = none). If it changes, either breaks off the running transition (when the transition
@@ -677,7 +684,9 @@ extern "C" int IsSmaRetracted(P *);
 extern "C" void SetAsegaSpeed__FP5ASEGAf(void *, float);
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 // Sets the activation's playback speed and passes it to the running animation.
@@ -724,7 +733,9 @@ extern "C" void AbortSmaTransition(P *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 // Sets a goal and immediately re-chooses (aborting the running transition), so the machine heads for it right away.
@@ -751,7 +762,9 @@ extern "C" void NotifySmaSpliceOnEnterState(P *, int, int);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 // Jumps straight to a state without animating: stops the running animation, sets current and goal, notifies the state
@@ -866,7 +879,9 @@ void ApplyAsegCore(struct T *, int, float, float, int, struct ANIMATION **);
 void SubscribeLoObject(struct ANIMATION *, struct P *);
 void RetractAsega(struct ANIMATION *);
 void NotifySmaSpliceOnEnterState(struct P *, int, int);
+// Copy p into $4 (register-pinned for matching).
 static inline struct P *Receiver(struct P *p){register struct P *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
+// Byte offset of 8-byte entry `index`.
 static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;}
 // The machine's driver: with no goal (or at the goal) it wanders, otherwise it heads toward the goal; starts the chosen
 // transition's animation segment on the root object, records the next state and notifies.
@@ -1006,7 +1021,9 @@ struct P { char pad[0xC]; VT *vtable; char pad2[0x28 - 0x10]; Q *pq; };
 extern "C" void SendLoMessage(P *, int, int);
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; ((void (*)(void *))p->vtable->a[1].pfn)((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { ((void (*)(void *))p->vtable->a[2].pfn)((char *)p + p->vtable->a[2].d); }
 };
 // The activation's message handler: forwards the message to its listener object (slot 5) and to the LO base handler.
@@ -1029,7 +1046,9 @@ extern "C" void EndSmaTransition(P *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 // Reacts to "animation finished" (message 2) from the running transition's player: ends the transition and chooses the
@@ -1056,7 +1075,9 @@ extern "C" void RetractAsega(Q *);
 extern "C" void SeekAsega(Q *, int, float, float);
 struct Lock {
     P *p;
+    // Scope guard: call the object's virtual at slot 1 on entry and slot 2 on exit (update bracket).
     Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    // Close the update bracket (virtual slot 2).
     ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 // Skips the activation forward by t seconds, through as many transitions as that covers.
@@ -1090,6 +1111,7 @@ int IsSmaRetracted(struct P *);
 int FindSmStateRequired(void *, int);
 struct A *ChooseSmTransitionTowardGoal(void *, int, int, int, int);
 float GetDifficulty(void *);
+// Evaluate the quadratic x + y*t + z*t^2.
 static inline float Eval(struct V3 *pv, float t)
 {
     return pv->x + t * (pv->y + t * pv->z);
