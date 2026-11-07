@@ -3510,30 +3510,26 @@ void HandleSoTouchZaps(struct P *so)
 
 // 0x1F7A68 SetSoZapMode
 namespace M_func_001F7A68 { extern "C" {
-struct E; struct P;
-typedef unsigned long ulong;
-struct E { char pad[0x14]; short damage; short pad2; int zapKinds; char pad3[0xB0 - 0x1C]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; char pad2[0x148 - 0xE8]; union { signed char hitDamage0; struct { ulong lo : 24; ulong zapMode : 2; ulong hi : 38; } f; ulong flags; } u; };
 // Sets the zap mode (+0x148 bits 24-25, 0..3); mode 2 makes the parts with zap kind 0 damaging (0x10000) with the
 // object's hit damage, the other modes make them harmless.
-void SetSoZapMode(struct P *so, int k)
+void SetSoZapMode(SO *so, int k)
 {
     int from, to, s;
     int i;
-    if (k == ((int)(so->u.flags >> 24) & 3)) return;
+    if (k == ((int)(*(ulong *)&so->unknown148 >> 24) & 3)) return;   /* read as the whole +0x148 word (zapMode bits 24-25): the bit-field read compiles differently */
     switch (k) {
     case 0: case 1: case 3:
         from = 0x10000; to = 0; s = -10;
         break;
     case 2:
-        s = so->u.hitDamage0; from = 0; to = 0x10000;
+        s = so->unknown148; from = 0; to = 0x10000;
         break;
     }
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (pe->zapKinds == from) { pe->zapKinds = to; pe->damage = s; }
+        SOPART *pe = &so->parts[i];
+        if (pe->zapKindFlags == from) { pe->zapKindFlags = to; pe->damage = s; }
     }
-    so->u.f.zapMode = (unsigned int)k;
+    so->zapMode = (unsigned int)k;
 }
 } } // namespace M_func_001F7A68
 
@@ -3659,16 +3655,13 @@ void SetSoFadeRate(SO *so, float g)
 
 // 0x1F7E08 CollectSoParts
 namespace M_func_001F7E08 { extern "C" {
-struct E; struct P;
-struct E { char pad[0xB0]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
 // Collects the parts that pass an optional predicate into an array; returns the count.
-int CollectSoParts(struct P *so, int (*pfn)(void *, struct E *), void *pv, struct E **ape)
+int CollectSoParts(SO *so, int (*pfn)(void *, SOPART *), void *pv, SOPART **ape)
 {
     int n = 0;
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
+        SOPART *pe = &so->parts[i];
         if (!pfn || pfn(pv, pe)) {
             ape[n++] = pe;
         }
