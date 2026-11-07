@@ -928,7 +928,7 @@ struct ASEGA { char pad[0x14]; struct ASEG *aseg; };
 struct BHVANIM { char pad[0x40]; void *binding; };
 struct BHVGUARD { char pad[0x30]; int modeKind; char pad2[0x40 - 0x34]; int modeObject; float modeAmount; };
 struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int special; float specialStartTime; void *scaleAct; };
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern qword D_002A2DE0;
 extern qword D_002C3D30;
 extern float D_002A8698;
@@ -956,7 +956,7 @@ void SetStepguardSpecial(struct S *guard, int special)
         return;
     old = guard->special;
     guard->special = special;
-    guard->specialStartTime = D_002DDED0.t;
+    guard->specialStartTime = D_002DDED0.time;
     switch (old) {
     case SPECIAL_SIZE_DESTABILIZER:
     case SPECIAL_REDUCTION_BOMB:
@@ -1029,7 +1029,7 @@ void SetStepguardSpecial(struct S *guard, int special)
 // 0x207288 UpdateStepguardSpecial
 namespace M_UpdateStepguardSpecial { extern "C" {
 struct S;
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002C3D40[3];    /* special-state durations: 10 s shrink, 30 s rage, 5 s roar */
 struct S { char pad[0xFBC]; int special; float specialStartTime; };
 void SetStepguardSpecial(struct S *p, int n);
@@ -1039,16 +1039,16 @@ void UpdateStepguardSpecial(struct S *guard)
     switch (guard->special) {
     case SPECIAL_SIZE_DESTABILIZER:
     case SPECIAL_REDUCTION_BOMB:
-        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[0])
+        if (D_002DDED0.time - guard->specialStartTime > D_002C3D40[0])
             SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
     case SPECIAL_INSANITY_STRIKE:
     case SPECIAL_RAGE_BOMB:
-        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[1])
+        if (D_002DDED0.time - guard->specialStartTime > D_002C3D40[1])
             SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
     case SPECIAL_GUTTURAL_ROAR:
-        if (D_002DDED0.t - guard->specialStartTime > D_002C3D40[2])
+        if (D_002DDED0.time - guard->specialStartTime > D_002C3D40[2])
             SetStepguardSpecial(guard, SPECIAL_NONE);
         break;
     }
@@ -1218,7 +1218,6 @@ union FLAGS {unsigned long value;unsigned char bytes[8];};
 struct P {char pad0[0x28];FLAGS flags;char pad30[0x30];SPACE *space;char pad64[0xC8];float opacity;int unused130;void *material;char pad138[0x108];float pivot[3];char pad24C[0x114];float start;};
 struct CAMERA {char pad0[0x14];int mask;char pad18[0x78];U position;};
 struct PROFILE {float a,b,c,unused,min,max;};
-struct CLOCK {float time,deltaTime;};
 struct EFFECT;
 extern "C" { extern CAMERA D_002DDF40; }
 extern "C" { 
@@ -3143,7 +3142,7 @@ int CompareStepguardStimuli(void *guard, struct STIMULUS *a, struct STIMULUS *b)
 // 0x20A298 IsStepguardTargetValid
 namespace M_func_0020A298 { extern "C" {
 struct ENTRY; struct S;
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002C3DAC;
 struct ENTRY { void *object; int state; float stateTime; float lastSeenTime; /* (inferred) */ };
 struct S { char pad[0x2C0]; long grfsg; char pad2[0x3D0 - 0x2C8]; int unknown3D0; char pad3[0xF64 - 0x3D4]; void *detector; };
@@ -3163,7 +3162,7 @@ int IsStepguardTargetValid(struct S *guard, void *target, long mask)
     entry = FindDetectorTarget(guard->detector, target);
     if (!entry)
         goto ret1;
-    if (!entry->state || D_002DDED0.t - entry->lastSeenTime < D_002C3DAC)
+    if (!entry->state || D_002DDED0.time - entry->lastSeenTime < D_002C3DAC)
         goto ret1;
     if (!(guard->grfsg & mask))
         goto ret0;
@@ -3561,7 +3560,7 @@ void ClearStepguardAttacks(struct S *guard)
 namespace M_func_0020AB68 { extern "C" {
 struct BINDING; struct ATTACK; struct S;
 typedef int qword __attribute__((mode(TI)));
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002A88C4;
 struct BINDING { char pad[0xC]; int flags; };
 struct ATTACK { char pad[0x60]; float cooldownMin; float cooldownMax; char pad2[0xC0 - 0x68]; struct BINDING *activeBinding; };
@@ -3577,7 +3576,7 @@ void SetStepguardAttack(struct S *guard, struct ATTACK *attack, int aimTarget, q
     if (guard->currentAttack) {
         float next;
         StopAnimBinding(guard->currentAttack->activeBinding);
-        next = D_002DDED0.t;
+        next = D_002DDED0.time;
         next += RandomFloatInRange__Fff(guard->currentAttack->cooldownMin, guard->currentAttack->cooldownMax);
         guard->currentAttack = 0;
         guard->tAttackNext = next;
@@ -3820,7 +3819,7 @@ int GetStepguardGroundProbeFlags(struct S *guard)
 namespace M_func_0020B140 { extern "C" {
 struct STIMULUS; struct S;
 typedef int qword __attribute__((mode(TI)));
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002C3DB8;
 extern struct { char pad[0x4030]; int defaultNoiseType; } D_003DD490;
 struct STIMULUS { char pad[0x30]; qword targetPos; char pad2[4]; void *subject; char pad3[0xC]; int level; };
@@ -3842,7 +3841,7 @@ void EmitStepguardStimulus(struct S *guard, void *target)
     stimulus->targetPos = targetPos;
     stimulus->subject = target;
     stimulus->level = 4;
-    guard->alertCooldownEnd = D_002DDED0.t + D_002C3DB8;
+    guard->alertCooldownEnd = D_002DDED0.time + D_002C3DB8;
 }
 } } // namespace M_func_0020B140
 
@@ -4005,7 +4004,7 @@ struct GUARD {
 };
 struct S { char pad[0x50]; int guardCount; struct GUARD **guards; };
 struct MODEREC { int kind; int rest[27]; };
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002C3DBC;
 extern const float D_002A88CC;
 void UpdateLo(struct S *manager);
@@ -4025,7 +4024,7 @@ void UpdateGuardManager(struct S *manager)
     guards = manager->guards;
     for (i = 0; i < count; i++) {
         struct GUARD *guard = guards[i];
-        if (((int)(guard->loFlags >> 60) & 1) && D_002DDED0.t - guard->removalTime > D_002C3DBC) {
+        if (((int)(guard->loFlags >> 60) & 1) && D_002DDED0.time - guard->removalTime > D_002C3DBC) {
             switch (guard->removalMode) {
             case 0:
                 break;
