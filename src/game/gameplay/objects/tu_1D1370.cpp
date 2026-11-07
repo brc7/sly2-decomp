@@ -407,7 +407,6 @@ struct ENTRY {int id;REF *reference;int unknown;float steering;char pad10[4];flo
 struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
 struct P {char pad0[0xC];VENTRY *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
-struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0; }
 extern "C" POLY D_002C2040;
@@ -653,7 +652,6 @@ typedef char guard_43[(OFF(ATTACH,angle)==116)?1:-1];
 typedef char guard_44[(OFF(ATTACH,speed)==120)?1:-1];
 typedef char guard_45[(OFF(ATTACH,active)==160)?1:-1];
 typedef char guard_46[(OFF(SOUND,references)==78)?1:-1];
-typedef char guard_47[(OFF(CLOCK,deltaTime)==4)?1:-1];
 typedef char guard_48[(sizeof(U)==16)?1:-1];
 typedef char guard_49[(sizeof(M3)==48)?1:-1];
 typedef char guard_50[(sizeof(M4)==64)?1:-1];
@@ -683,7 +681,6 @@ typedef char guard_73[(OFF(VENTRY,delta)==0)?1:-1];
 typedef char guard_74[(OFF(VENTRY,fn)==4)?1:-1];
 typedef char guard_75[(OFF(M4,basis)==0)?1:-1];
 typedef char guard_76[(OFF(M4,position)==0x30)?1:-1];
-typedef char guard_77[(OFF(CLOCK,time)==0)?1:-1];
 typedef char guard_78[(OFF(P,entries[1])-OFF(P,entries[0])==0x60)?1:-1];
 typedef char guard_79[(OFF(P,sides[1])-OFF(P,sides[0])==0x14)?1:-1];
 typedef char guard_80[(OFF(P,attachments[1])-OFF(P,attachments[0])==4)?1:-1];
@@ -1230,7 +1227,6 @@ struct P {
     int unused52C; LIMITS limits; float reverseLimit, contactScale; char pad540[0x10]; float drive, turn, acceleration;
     char pad55C[0x64]; float lastCorrection;
 };
-struct CLOCK { float time, deltaTime; };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0, D_002A2DD0; }
@@ -1883,7 +1879,6 @@ struct ENTRY{int unknown;NODE*node;CONTACT*contacts;char padC[8];float tilt,spee
 struct P;
 struct VE{short delta,pad;qword(*fn)(P*);};
 struct P{char pad[0xC];VE*vt;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
-struct CLOCK{float time,deltaTime;};
 struct G{char pad[0x3D58];int generation;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern G D_003DD490; }
@@ -2099,7 +2094,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRobottankState { extern "C" {
-extern struct CLOCK { float time; float deltaTime; } D_002DDED0;
+extern CLOCK D_002DDED0;
 typedef struct VT1 { struct { short d; short pad; void (*pfn)(void *, int); } a[64]; } VT1;
 typedef struct { char pad[0xC]; VT1 *vt; } W;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int, int, int, int, int); } a[8]; } VT;
@@ -2464,7 +2459,7 @@ void CID108::Update() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRcPickupState { extern "C" {
-extern struct CLOCK { float time; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern int D_002C2248[];
 struct S { char p0[0x150]; int n150; float g154; char p1[0x164-0x158]; void *p164; };
 void SetSmaGoalIfReachable(void *p, int n);
