@@ -1771,25 +1771,22 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
 namespace M_HandleFlyingBounce { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct A { void *hitObject; void *hitBody; };   /* the bounce contact (inferred) */
-struct S { char pad[0xF0]; void *stuckVisual; };   /* FLYING */
 extern int D_002C1F70[1];
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
-void RemoveRip__FP3RIP(struct S *p);
+void CreateStuck(FLYING *p, void *a, void *b, qword q0, qword q1);
 } } // namespace M_HandleFlyingBounce
 // FLYING HandleBounce: unless the hit body is of an excluded class, sticks (CreateStuck, except on CID 0x59) and removes
 // the flying rip.
 int FLYING::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
     using namespace M_HandleFlyingBounce;
-    M_HandleFlyingBounce::S *p = (M_HandleFlyingBounce::S *)this;
     M_HandleFlyingBounce::A *pa = (M_HandleFlyingBounce::A *)pa_m;
     unsigned int i;
     for (i = 0; i < sizeof(D_002C1F70) / sizeof(D_002C1F70[0]); i++) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, D_002C1F70[i])) return 0;
     }
-    if (!IsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, 0x59)) CreateStuck(p, p->stuckVisual, pa->hitObject, q0, q1);
-    RemoveRip__FP3RIP(p);
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, 0x59)) CreateStuck(this, ploStuckRender, pa->hitObject, q0, q1);
+    RemoveRip(this);
     return 1;
 }
 
@@ -2139,22 +2136,19 @@ namespace M_UpdateMatch { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
 extern struct CLOCK { float time; } D_002DDED0;
-struct S { char p0[0x14]; float startTime; float duration; struct O *renderObject; char p1[0x104-0x20]; int shouldLaunch; };
-void LaunchMatch__FP5MATCH(struct S *p);
-void RemoveRip__FP3RIP(struct S *p);
+void LaunchMatch__FP5MATCH(MATCH *p);
 } } // namespace M_UpdateMatch
 // MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
 // render object (vtable slot 8) and removes itself.
 void MATCH::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateMatch;
-    M_UpdateMatch::S *p = (M_UpdateMatch::S *)this;
-    if (D_002DDED0.time >= p->startTime && p->shouldLaunch) LaunchMatch__FP5MATCH(p);
-    if (D_002DDED0.time - p->startTime > p->duration) {
-        struct O *po = p->renderObject;
+    if (D_002DDED0.time >= startTime && shouldLaunch) LaunchMatch__FP5MATCH(this);
+    if (D_002DDED0.time - startTime > duration) {
+        struct O *po = (struct O *)renderObject;   /* its vtable slot 8 by hand */
         struct VTE *e = &po->vt[8];
         ((void (*)(void *))e->pfn)((char *)po + e->d);
-        RemoveRip__FP3RIP(p);
+        RemoveRip(this);
     }
 }
 

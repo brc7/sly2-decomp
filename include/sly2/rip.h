@@ -73,6 +73,7 @@ struct RIPF : RIP
 };
 struct FLYING : RIP   /* RIPT 3 */
 {
+    LO *ploStuckRender;        /* +0xF0 what it becomes when it sticks (the EMITB's next-render object) */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
     virtual void PostEmit(EMITB *pemitb) __asm__("PostFlyingEmit");
     virtual void Render(CM *pcm) __asm__("RenderFlying");
@@ -91,6 +92,8 @@ struct SHRAPNEL : RIP   /* RIPT 8 */
 };
 struct MATCH : RIP   /* RIPT 6 */
 {
+    char padF0[0x104 - 0xF0];
+    int shouldLaunch;          /* +0x104 launch once its start time has come */
     virtual void Update(float dt) __asm__("UpdateMatch");   /* key function */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitMatch__FP5MATCHP6VECTORfP2SO");
     virtual void Project() __asm__("ProjectMatchTransform");
