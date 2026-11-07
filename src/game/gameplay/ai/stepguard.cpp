@@ -920,11 +920,9 @@ int CanSetStepguardSpecial(void *guard, int special)
 namespace RO_ORDER { extern const float r_D_002A8698 __asm__("D_002A8698") = 3.40282347e+38f; }
 // 0x207030 SetStepguardSpecial
 namespace M_SetStepguardSpecial { extern "C" {
-struct V3; struct ASEG; struct ASEGA; struct BHVANIM; struct BHVGUARD; struct S;
+struct V3;  struct BHVANIM; struct BHVGUARD; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-struct ASEG { char pad[0x78]; float defaultSpeed; };
-struct ASEGA { char pad[0x14]; struct ASEG *aseg; };
 struct BHVANIM { char pad[0x40]; void *binding; };
 struct BHVGUARD { char pad[0x30]; int modeKind; char pad2[0x40 - 0x34]; int modeObject; float modeAmount; };
 struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int special; float specialStartTime; void *scaleAct; };
@@ -973,7 +971,7 @@ void SetStepguardSpecial(struct S *guard, int special)
         if (bhv) {
             struct ASEGA *asega = GetAnimBindingInstance(bhv->binding);
             if (asega)
-                SetAsegaMasterSpeed(asega, asega->aseg->defaultSpeed);
+                SetAsegaMasterSpeed(asega, asega->animation->masterSpeed);
         }
         break;
     }

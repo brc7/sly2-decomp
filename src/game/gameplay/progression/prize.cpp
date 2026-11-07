@@ -213,10 +213,7 @@ union M3 { qword rows[3]; float values[12]; };
 struct VTE { short delta, pad; void *fn; };
 struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
 struct MOTION { VTE *vt; };
-struct ENTRY { unsigned int key; MOTION *motion; };
-struct ACTION { char pad5C[0x5C]; int count; ENTRY *entries; };
-struct ANIM { char pad14[0x14]; ACTION *action; int word18; float time; char pad20[0x20]; float duration; };
-struct HOLDER { char pad30[0x30]; ANIM *animation; };
+struct HOLDER { char pad30[0x30]; ASEGA *animation; };
 struct P {
     char padC[0xC]; VTE *vt; char pad10[8]; int id; char pad1C[0x3C];
     CHANNEL *position, *orientation;
@@ -293,10 +290,10 @@ static inline CHANNEL *GetChannel(P *prize, int channel)
     return ((CHANNEL *(*)(P *, int))e.fn)((P *)((char *)prize + e.delta), channel);
 }
 // Samples a motion curve at the animation time: value and velocity (motion vtable slot 3).
-static inline void Sample(MOTION *motion, const ANIM *animation, qword *value, qword *velocity)
+static inline void Sample(MOTION *motion, const ASEGA *animation, qword *value, qword *velocity)
 {
     VTE &e = motion->vt[3];
-    ((void (*)(MOTION *, float, float, qword *, qword *))e.fn)((MOTION *)((char *)motion + e.delta), animation->time, animation->duration, value, velocity);
+    ((void (*)(MOTION *, float, float, qword *, qword *))e.fn)((MOTION *)((char *)motion + e.delta), animation->time, animation->speed, value, velocity);
 }
 
 // DPRIZE vtable slot 17: damped spring/hover integration of the prize position (state 6 -> base). (inferred)
@@ -315,19 +312,19 @@ extern "C" void ProjectDprizeTransform(P *prize)
     prize->position->velocity = prize->velocity;
     { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
     if (prize->holder && prize->holder->animation) {
-        ANIM *animation = prize->holder->animation;
-        ACTION *action = animation->action;
+        ASEGA *animation = prize->holder->animation;
+        ASEG *action = animation->animation;
         MOTION *positionMotion = 0, *orientationMotion = 0;
         int i = 0;
-        for (; i < action->count; i++) {
-            ENTRY *entry = &action->entries[i];
-            unsigned int key = entry->key;
+        for (; i < action->cchn; i++) {
+            CHN *entry = &action->achn[i];
+            unsigned int key = entry->grf;
             if (!(key & 0x40000000U)) continue;
             if (((int)(key << 12) >> 12) != prize->id) continue;
             {
                 CHANNEL *selected = GetChannel(prize, (int)(key << 2) >> 22);
-                if (selected == prize->position) positionMotion = entry->motion;
-                else if (selected == prize->orientation) orientationMotion = entry->motion;
+                if (selected == prize->position) positionMotion = (MOTION *)entry->pac;
+                else if (selected == prize->orientation) orientationMotion = (MOTION *)entry->pac;
             }
             if (positionMotion && orientationMotion) break;
         }
@@ -766,8 +763,7 @@ struct V { float x, y, z, w; } __attribute__((aligned(16)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct OBJ { VTE *vt; };
 struct H { int x0; OBJ *pobj; };
-struct Q { char pad[0x14]; void *animSource; char p1[0x1C - 0x18]; float time; char p2[0x40 - 0x20]; float unknown40; };
-struct R { char pad[0x30]; Q *currentSegment; };
+struct R { char pad[0x30]; ASEGA *currentSegment; };
 struct LO { char pad[0x12C]; float unknown12C; char p1[0x150 - 0x130]; int state; char p2[0x168 - 0x154]; R *sma; };
 extern "C" {
 H *FindAsegChannel(void *p, LO *plo, int a, int b);
@@ -781,15 +777,15 @@ extern "C" { void RenderLoAtMatrix(LO *plo, M4 m, float a, float b); }
 // DPRIZE vtable slot 19 RenderSelf (bob/spin then SO render).
 void RenderDprizeSelf(LO *prize)
 {
-    Q *q;
+    ASEGA *q;
     H *ph;
     if (prize->state == 2) return;
     if (prize->sma && (q = prize->sma->currentSegment) != 0) {
-        ph = FindAsegChannel(q->animSource, prize, 0xC, 1);
+        ph = FindAsegChannel(q->animation, prize, 0xC, 1);
         if (ph) {
             V v;
             OBJ *pobj = ph->pobj;
-            ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->time, q->unknown40);
+            ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->time, q->speed);
             M4 m;
             m = LoadMatrixFromPosRotScale(GetLoWorldPos(prize), GetLoWorldMatrix(prize), &v);
             RenderLoAtMatrix(prize, m, prize->unknown12C, prize->unknown12C);
