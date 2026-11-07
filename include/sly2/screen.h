@@ -2,8 +2,8 @@
  * virtual layout from its ELF vtable (0x2D85E8, 14 slots: BASIC's 6 and 8 of its own; slot 14 pure). Each slot is
  * declared as a member whose asm label is the function the vtable holds there (as sly2/classes.h does).
  * DRAFT names: SCREEN is screen.cpp's view name, the members are VSlot<n> except where a function name says more;
- * the fields are those screen.cpp's and memcard.cpp's bodies read. screen.cpp still uses its own view (its vtable is
- * not emitted yet); memcard.cpp's CMcStatus derives from this class. Since data/address-names-2: SCREEN derives from
+ * the fields are those screen.cpp's and memcard.cpp's bodies read (screen.cpp's file-scope bodies use SCREEN and
+ * HUDMETER; its per-function views are not folded yet); memcard.cpp's CMcStatus derives from this class. Since data/address-names-2: SCREEN derives from
  * SCREENBASE (the 11-slot base the HUD meter and the pause menu share) and screen.cpp emits SCREENBASE's, HUDMETER's,
  * SCREEN's and its screens' vtables (their classes are in screen.cpp, after this header). */
 #ifndef SLY2_SCREEN_H
@@ -29,8 +29,18 @@ struct SCREENBASE : BASIC
 /* The HUD meter (DRAFT name; vtable 0x2D8668, screen.cpp). */
 struct HUDMETER : SCREENBASE
 {
+    int unknown10[4];       /* +0x10 */
+    float shownHealth;      /* +0x20 the fractions shown (they follow health / power) */
+    float health;           /* +0x24 */
+    float shownPower;       /* +0x28 */
+    float power;            /* +0x2C */
+    int state;              /* +0x30 */
+    STEPPLAYER *hero;       /* +0x34 */
+    WIDGET *widget;         /* +0x38 */
+    int anims[5];           /* +0x3C the per-character animations */
     virtual void Update() __asm__("UpdateHudMeter");   /* slot 7; key function (screen.cpp) */
 };
+typedef char assert_HUDMETER_size[sizeof(HUDMETER) == 0x50 ? 1 : -1];
 
 /* SCREEN: a UI screen or dialog: the text it shows, the widget object and a mode with its entry time. */
 struct SCREEN : SCREENBASE
