@@ -1067,13 +1067,14 @@ void HandleStepguardMessage(STEPGUARD *guard, int message, struct ATTACHMSG *arg
 
 // 0x207690 RenderStepguardSelf
 namespace M_RenderStepguardSelf {
-union U; struct M4; struct SPACE; union FLAGS; struct P; struct CAMERA; struct PROFILE; 
+union U; struct M4; struct SPACE; union FLAGS; struct STEPGUARDIsland; struct CAMERA; struct PROFILE; 
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M4 {U rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4 &operator=(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
 struct SPACE {char pad0[0x40];M4 matrix;};
 union FLAGS {unsigned long value;unsigned char bytes[8];};
-struct P {char pad0[0x28];FLAGS flags;char pad30[0x30];SPACE *space;char pad64[0xC8];float opacity;int unused130;void *material;char pad138[0x108];float pivot[3];char pad24C[0x114];float start;};
+/* island: reads SO +0x28 flags bytes, +0x60 root XF matrix as qword rows, +0x134 material and STEP +0x240 as floats (lo.h/so.h/step.h layouts); not attempted */
+struct STEPGUARDIsland {char pad0[0x28];FLAGS flags;char pad30[0x30];SPACE *space;char pad64[0xC8];float opacity;int unused130;void *material;char pad138[0x108];float pivot[3];char pad24C[0x114];float start;};
 struct CAMERA {char pad0[0x14];int mask;char pad18[0x78];U position;};
 struct PROFILE {float a,b,c,unused,min,max;};
 struct CLOCK {float time,deltaTime;};
@@ -1085,11 +1086,11 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3D4C; }
 extern "C" { extern float D_002C3D50[3],D_002C3D60[2],D_002BBB60[2]; }
 extern "C" {
-void RefreshSoBoundsRecord(P *);
+void RefreshSoBoundsRecord(STEPGUARDIsland *);
 int IsCameraPolicyActive__FP5CPLCY(void *);
 void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float);
 void *func_002333B4(void *,int,unsigned int) __asm__("memset");
-qword GetLoWorldPos(P *);
+qword GetLoWorldPos(STEPGUARDIsland *);
 float sinf(float);
 qword *VECTOR_opAssign(qword *,qword);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
@@ -1109,7 +1110,7 @@ static inline float Length(qword a)
 }
 // 0x207690: STEPGUARD vtable slot 19 (render): draws the guard; while the camera policy is active, applies a 0.85 s
 // squash/stretch pulse and a distance-based scale.
-extern "C" void RenderStepguardSelf(P *guard)
+extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
 {
     M4 local;
     U offset;
@@ -1639,21 +1640,23 @@ extern "C" void AddStepguardDetectTargetBack(STEPGUARD *guard, LO *object)
 
 // 0x2085D0 TryAddStepguardDetectTarget
 namespace M_FAddStepguardDetectTarget {
-struct E; struct T; 
+struct DETECTORTARGETIsland; struct DETECTORIsland; 
 // Placement new.
 inline void *operator new(unsigned int,void *storage){return storage;}
 
 /* A detector target entry (DETECTOR's DTE) and the detector's target list. */
-struct E {
+/* island: placement-new constructor for the pinned insert */
+struct DETECTORTARGETIsland {
     STEPGUARD *object;
     int state;
     float stateTime;
     int pad;
-    E(STEPGUARD *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.time) {}
+    DETECTORTARGETIsland(STEPGUARD *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.time) {}
 };
-struct T { char pad[0xFC]; unsigned int count; struct E targets[8]; };
+/* island: entry addresses spelled as byte offsets in pinned registers (asm-pinned, see the comment below) */
+struct DETECTORIsland { char pad[0xFC]; unsigned int count; struct DETECTORTARGETIsland targets[8]; };
 extern "C" CLOCK D_002DDED0;
-extern "C" struct E *FindDetectorTarget(struct T *detector, STEPGUARD *object);
+extern "C" struct DETECTORTARGETIsland *FindDetectorTarget(struct DETECTORIsland *detector, STEPGUARD *object);
 extern "C" void *memmove(void *d, void *s, int n);
 
 // 0x2085D0: Inserts an object into the detector's target list (at most eight): `atFront` appends it as a designated
@@ -1662,17 +1665,17 @@ extern "C" void *memmove(void *d, void *s, int n);
 // is what matches.)
 extern "C" int TryAddStepguardDetectTarget(STEPGUARD *guard, STEPGUARD *object, int atFront)
 {
-    struct E *entry;
-    struct T *detector;
+    struct DETECTORTARGETIsland *entry;
+    struct DETECTORIsland *detector;
     register unsigned int n __asm__("$16");
     if (!object || object == guard)
         return 0;
     entry = 0;
     if (!atFront)
-        entry = FindDetectorTarget(((struct T *)guard->pdetector), object);
+        entry = FindDetectorTarget(((struct DETECTORIsland *)guard->pdetector), object);
     if (entry)
         return 0;   // already tracked
-    detector = ((struct T *)guard->pdetector);
+    detector = ((struct DETECTORIsland *)guard->pdetector);
     n = detector->count;
     if (n >= 8) {
         int numGenerated;
@@ -1685,27 +1688,27 @@ extern "C" int TryAddStepguardDetectTarget(STEPGUARD *guard, STEPGUARD *object, 
                 n -= numGenerated;
                 n *= 16;
                 n += 0x100;
-                entry = (struct E *)((char *)detector + n);
+                entry = (struct DETECTORTARGETIsland *)((char *)detector + n);
                 memmove(entry + 1, entry, (numGenerated - 1) * 16);
-                new(entry) E(object, D_002DDED0);
-                ((struct T *)guard->pdetector)->count++;
+                new(entry) DETECTORTARGETIsland(object, D_002DDED0);
+                ((struct DETECTORIsland *)guard->pdetector)->count++;
                 return 1;
             }
         }
     } else {
         if (atFront) {
             register unsigned int offset __asm__("$2") = n * 16 + 0x100;
-            entry = (struct E *)((char *)detector + offset);
+            entry = (struct DETECTORTARGETIsland *)((char *)detector + offset);
         } else {
             int numGenerated = guard->generatedTargetCount;
             n -= numGenerated;
             n *= 16;
             n += 0x100;
-            entry = (struct E *)((char *)detector + n);
+            entry = (struct DETECTORTARGETIsland *)((char *)detector + n);
             memmove(entry + 1, entry, numGenerated * 16);
         }
-        new(entry) E(object, D_002DDED0);
-        ((struct T *)guard->pdetector)->count++;
+        new(entry) DETECTORTARGETIsland(object, D_002DDED0);
+        ((struct DETECTORIsland *)guard->pdetector)->count++;
         return 1;
     }
     return 0;
@@ -2255,7 +2258,7 @@ int IsAnimBindingDone(ANIMBINDING *binding)
 
 // 0x209518 GetAnimBindingInstance
 namespace M_func_00209518 { extern "C" {
-struct INSTANCE; struct BINDING;
+struct INSTANCE; struct ANIMBINDINGIsland;
 struct ANIMATION;
 struct INSTANCE {
     char pad[0x24];
@@ -2265,10 +2268,11 @@ struct INSTANCE {
     int pad3;
     struct ANIMATION *animation38;
 };
-struct BINDING { int kind; int resource; struct INSTANCE *instance; };
+/* island: the LEAP +0x38 / DIRANIM +0x24 animation words are padding in leap.h (other family) */
+struct ANIMBINDINGIsland { int kind; int resource; struct INSTANCE *instance; };
 
 // 0x209518: Returns the ASEGA that the binding's running instance plays (the instance itself for an ASEG).
-struct ANIMATION *GetAnimBindingInstance(struct BINDING *binding)
+struct ANIMATION *GetAnimBindingInstance(struct ANIMBINDINGIsland *binding)
 {
     switch (binding->kind) {
     case BINDING_ASEG: return (struct ANIMATION *)binding->instance;
@@ -2307,24 +2311,26 @@ void CloneAnimBinding(ANIMBINDING *binding)
 
 // 0x209618 DriveStepguardFromAnim
 namespace M_func_00209618 { extern "C" {
-struct ASEGA; struct INSTANCE; struct LEAP; struct BINDING; union FLOATWORD; struct ACT; struct S;
+struct ASEGA; struct INSTANCE; struct LEAP; struct ANIMBINDINGIsland; union FLOATWORD; struct ACT; struct STEPGUARDIsland;
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct ASEGA { char pad[0x1C]; float localTime; };
 struct INSTANCE { char pad[0x10]; qword velocity; /* DIRANIM */ char pad2[0x30 - 0x20]; struct ASEGA *asega; /* SMA */ };
 struct LEAP { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct ASEGA *asega; };
-struct BINDING { int kind; int resource; void *instance; };
+/* island: register-pinned asm body */
+struct ANIMBINDINGIsland { int kind; int resource; void *instance; };
 union FLOATWORD { float value; int bits; };
 struct ACT { int pad[2]; union FLOATWORD *scale; };
-struct S { char pad[0x190]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
+/* island: register-pinned asm body; STEP +0x190/+0x1E0 as qwords (step.h has VECTOR/qword padding names) */
+struct STEPGUARDIsland { char pad[0x190]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
 extern qword D_002A2DD0;
-qword GetStepAsegaTranslation(struct S *, struct ASEGA *, float);
-qword GetStepAsegaRotation(struct S *, struct ASEGA *, float);
+qword GetStepAsegaTranslation(struct STEPGUARDIsland *, struct ASEGA *, float);
+qword GetStepAsegaRotation(struct STEPGUARDIsland *, struct ASEGA *, float);
 void UpdateLeap(struct LEAP *);
 // 0x209618: Drives the guard from its animation: sets the desired velocity and angular velocity from the binding'guard
 // root motion (scaled by the special-state scale act when there is one); a leap drives
 // it only outside its airborne states.
-void DriveStepguardFromAnim(struct BINDING *binding, struct S *guard)
+void DriveStepguardFromAnim(struct ANIMBINDINGIsland *binding, struct STEPGUARDIsland *guard)
 {
     U factor, value;
     register qword scalar __asm__("vf1");
@@ -3278,11 +3284,12 @@ extern "C" void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, int aimTarg
 
 // 0x20ACC0 UpdateStepguardAim
 namespace M_func_0020ACC0 { extern "C" {
-struct MATRIX3; struct AIMOBJECT; struct ATTACK; struct ACT; 
+struct MATRIX3; struct AIMOBJECT; struct CID120Island; struct ACT; 
 typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
 struct AIMOBJECT { char pad[0x30]; qword pos; char pad2[0x60]; int unknownA0; };
-struct ATTACK { char pad[0x90]; qword strikeOffset; struct AIMOBJECT *aimObject; };
+/* island: the aim object read as an XF with a qword at +0x30 (its matrix row) in an asm operand */
+struct CID120Island { char pad[0x90]; qword strikeOffset; struct AIMOBJECT *aimObject; };
 struct ACT { char pad[0x20]; qword goal; };
 qword TransformXfPos(int target, int a, qword offset);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *matrix, qword from, qword to);
@@ -3293,9 +3300,9 @@ void UpdateStepguardAim(STEPGUARD *guard)
 {
     MATRIX3 rotation;
     qword aimPoint, direction;
-    aimPoint = TransformXfPos(guard->aimTarget, ((struct ATTACK *)guard->aimAttack)->aimObject->unknownA0, guard->aimOffset);
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(direction) : "j"(aimPoint), "j"(((struct ATTACK *)guard->aimAttack)->aimObject->pos));
-    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&rotation, ((struct ATTACK *)guard->aimAttack)->strikeOffset, direction);
+    aimPoint = TransformXfPos(guard->aimTarget, ((struct CID120Island *)guard->aimAttack)->aimObject->unknownA0, guard->aimOffset);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(direction) : "j"(aimPoint), "j"(((struct CID120Island *)guard->aimAttack)->aimObject->pos));
+    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&rotation, ((struct CID120Island *)guard->aimAttack)->strikeOffset, direction);
     { struct ACT *act = ((struct ACT *)guard->aimAct); act->goal = DecomposeRotationMatrixToEuler(&rotation); }
 }
 } } // namespace M_func_0020ACC0
@@ -3431,15 +3438,16 @@ extern "C" void SetAndResolveGuardAttackBindingKind2(CID120 *attack)
 
 // 0x20B090 GetStepguardGroundProbeFlags
 namespace M_func_0020B090 { extern "C" {
-struct DRIVER; struct S;
+struct DRIVER; struct STEPGUARDIsland;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct DRIVER { char pad[0xC]; VTE *vt; };
-struct S { char pad[0x2C0]; long grfsg; char pad2[0xFD0 - 0x2C8]; struct DRIVER *moverDriver; };
+/* island: the mover driver called through BHV slot 12, which step.h declares void (other family) */
+struct STEPGUARDIsland { char pad[0x2C0]; long grfsg; char pad2[0xFD0 - 0x2C8]; struct DRIVER *moverDriver; };
 long GetSgfMask(int n);
-int GetStepGroundProbeFlags(struct S *p);
+int GetStepGroundProbeFlags(struct STEPGUARDIsland *p);
 // 0x20B090: STEPGUARD vtable slot 85 (ground-probe flags): 1 with flag 0x14, 0 while thrown (flags 0x12/0x13/0x16),
 // else the mover driver's or the step's.
-int GetStepguardGroundProbeFlags(struct S *guard)
+int GetStepguardGroundProbeFlags(struct STEPGUARDIsland *guard)
 {
     long thrownMask;
     if (guard->grfsg & GetSgfMask(0x14))
