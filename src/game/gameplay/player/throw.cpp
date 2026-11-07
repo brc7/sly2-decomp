@@ -587,7 +587,8 @@ static inline qword SubVec(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2"
 static inline VU_VECTOR VuSub(VU_VECTOR a,VU_VECTOR b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a.q),"j"(b.q));return VU_VECTOR(r);}
 // Same idiom as sly2/vu0.h VuMin; kept local: this file includes the header below the function that needs it.
 static inline qword VuMin(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword MaxVec(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Same idiom as sly2/vu0.h VuMax; kept local: this file includes the header below the function that needs it.
+static inline qword VuMax(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // Same idiom as sly2/vu0.h VuToFloat; kept local: this file includes the header below the function that needs it.
 static inline float VuToFloat(qword v){float g;__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(v));return g;}
 // Same idiom as sly2/vu0.h QwordZ; kept local: this file includes the header below the function that needs it.
@@ -662,8 +663,8 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     qword posEnd = PosOnArc(posLaunch, vAccel, vLaunch, t, 0.5f);
     STACKSCOPE stackscope;
     qword posMin = VuMin(posApex, posEnd);
-    qword posMax = MaxVec(posApex, posEnd);
-    posMax = MaxVec(posLaunch, posMax);
+    qword posMax = VuMax(posApex, posEnd);
+    posMax = VuMax(posLaunch, posMax);
     posMin = VuMin(posLaunch, posMin);
     int cso;
     SO **apso;

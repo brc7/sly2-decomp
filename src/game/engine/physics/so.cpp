@@ -2838,12 +2838,6 @@ static inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
             : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(*(qword *)pmat->mat[3]), "j"(qwPos));
     return qwResult;
 }
-static inline qword QwMax(qword qw0, qword qw1)
-{
-    qword qw;
-    __asm__("vmax.xyz %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
-    return qw;
-}
 // |v| (x, y, z)
 static inline float GLength(qword v)
 {
@@ -2874,7 +2868,7 @@ static inline float GDistanceFused(qword qwA, qword qwB)
 static inline void ExtendBox(qword &qwMin, qword &qwMax, const qword &qwPos)
 {
     qwMin = VuMin(qwMin, qwPos);
-    qwMax = QwMax(qwMax, qwPos);
+    qwMax = VuMax(qwMax, qwPos);
 }
 
 /** @sly2-annot addr=0x1F50E0
@@ -2905,7 +2899,7 @@ extern "C" void UpdateSoTreeBounds(SO *so)
             qword qwLo = QwAddScaledF(*(qword *)ppart->pxf->matWorld.mat[3], D_002A2DE0, -gRadius);
             qwMin = VuMin(qwMin, qwLo);
             qword qwHi = QwAddScaledF(*(qword *)ppart->pxf->matWorld.mat[3], D_002A2DE0, gRadius);
-            qwMax = QwMax(qwMax, qwHi);
+            qwMax = VuMax(qwMax, qwHi);
         }
         else
         {

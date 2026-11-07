@@ -666,7 +666,6 @@ int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range
     return 0;
 }
 
-static inline qword Max(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
@@ -699,7 +698,7 @@ void RegisterCid14Obstacle(CID14V *polygon)
     for (i = 1; i < polygon->numPoints - 1; i++) {
         qword v = MulPt(&m, polygon->points[i]);
         polygon->boundsMin.q = VuMin(polygon->boundsMin.q, v);
-        polygon->boundsMax.q = Max(polygon->boundsMax.q, v);
+        polygon->boundsMax.q = VuMax(polygon->boundsMax.q, v);
         a[i] = v;
     }
     polygon->boundsMin.f[2] = D_002A76D0;
