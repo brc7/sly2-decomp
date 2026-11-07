@@ -10,7 +10,7 @@ in renders against game screenshots; `[H]` = inferred.
 
 ## 1. Where models live
 
-Each SO-family object record (CID 0x30-0x6C) carries a GLOBSET as item 3 of its payload ([level-objects.md](level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse)):
+Each SO-family object record (CID 0x30-0x6C) carries a GLOBSET as item 3 of its payload ([level-objects.md](level-objects.md#6-so-payload-loadsofrombrx-cparse)):
 SO transforms (XFs), visibility mask, GLOBSET, collision parts (GEOM + TREE), mass, options, children.
 
 ## 2. GLOBSET (`LoadGlobsetFromBrx`, matched) `[C:parse]`
