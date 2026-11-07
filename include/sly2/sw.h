@@ -331,7 +331,9 @@ struct SW : public BASIC
       float tLookLast;   /* time of the last look-around (inferred) */
       float unknown4754;    /* +0x4754 [S] a game time like tLookLast: both start at -60 (SW_ctor) and RenderWaypt fades the
                                waypoints in from the later of the two (waypoint.cpp); was _pad_352 */
-      float unknown4758;    /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.time (guardbhv.cpp) */
+      float guardAlertResumeTime; /* +0x4758 [S] game time before which guards in combat emit no alert stimulus (guardbhv.cpp
+                               UpdateBhvcombat); gadget 0x17 sets it to now + D_002BCC94 after removing the player's noises
+                               (stepplayer.cpp); was unknown4758 */
       float unknown475C;
       int iclueNext;        /* +0x4760 [S] index the next loading clue bottle takes (prize.cpp CLUEPROXY::PostLoad); was _pad_354 */
       int numCluesCollected; /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
@@ -405,7 +407,7 @@ typedef char assert_SW_slotheapLeap[SLY2_OFFSETOF(SW, slotheapLeap) == 0x4648 ? 
 typedef char assert_SW_slotheapDiract[SLY2_OFFSETOF(SW, slotheapDiract) == 0x4660 ? 1 : -1];
 typedef char assert_SW_artgt[SLY2_OFFSETOF(SW, artgt) == 0x45E8 ? 1 : -1];
 typedef char assert_SW_bootyProxySource[SLY2_OFFSETOF(SW, bootyProxySource) == 0x4638 ? 1 : -1];
-typedef char assert_SW_unknown4758[SLY2_OFFSETOF(SW, unknown4758) == 0x4758 ? 1 : -1];
+typedef char assert_SW_guardAlertResumeTime[SLY2_OFFSETOF(SW, guardAlertResumeTime) == 0x4758 ? 1 : -1];
 typedef char assert_SW_iclueNext[SLY2_OFFSETOF(SW, iclueNext) == 0x4760 ? 1 : -1];
 typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
 
