@@ -5029,66 +5029,50 @@ if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == scri
 
 // 0x1E51A0 AddJsgStepHold
 namespace M_AddJsgStepHold { extern "C" {
-struct VTE; struct O; struct P;
-struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
-struct O { int pad[3]; struct VTE *vt; };
-struct P { char pad[0xA4]; int c; struct O *apo[4]; int aB8[4]; int aC8[4]; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
 // Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
-void AddJsgStepHold(struct P *script, struct O *po, int a, int b)
+void AddJsgStepHold(JSGV *script, STEP *po, int a, int b)
 {
     int i;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for (i = 0; i < script->c; i++)
-        if (script->apo[i] == po) return;
-    if ((unsigned)script->c >= 4) return;
-    script->aB8[script->c] = a;
-    script->aC8[script->c] = b;
-    script->apo[script->c] = po;
-    script->c++;
-    po->vt[0x53].pfn((char *)po + po->vt[0x53].d, a, b);
+    for (i = 0; i < script->cstepHold; i++)
+        if (script->apstepHold[i] == po) return;
+    if ((unsigned)script->cstepHold >= 4) return;
+    script->anHold5[script->cstepHold] = a;
+    script->anHold6[script->cstepHold] = b;
+    script->apstepHold[script->cstepHold] = po;
+    script->cstepHold++;
+    po->AddDialogSmRefs(a, b);
 }
 } } // namespace M_AddJsgStepHold
 
 // 0x1E5280 RemoveJsgStepHold
 namespace M_RemoveJsgStepHold { extern "C" {
-struct VTE; struct O; struct P;
-struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
-struct O { int pad[3]; struct VTE *vt; };
-struct P { char pad[0xA4]; int c; struct O *apo[4]; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
 // index * 4 in $a0 (shapes the register choice).
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
-void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
+void RemoveJsgStepHold(JSGV *script, STEP *po, int a, int b)
 {
     int i;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for(i=0;i<script->c;i++) {
-        if(script->apo[i]==po)break;
+    for(i=0;i<script->cstepHold;i++) {
+        if(script->apstepHold[i]==po)break;
     }
-    if (i >= script->c) return;
+    if (i >= script->cstepHold) return;
     {
         register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)script;
         unsigned int dest;
         __asm__("daddu %0,%1,$zero":"=r"(dest):"r"(addr));
-        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(script->c-i)*4-4);
+        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(script->cstepHold-i)*4-4);
     }
-    script->c--;
-    po->vt[0x54].pfn((char *)po + po->vt[0x54].d, a, b);
+    script->cstepHold--;
+    po->RemoveDialogSmRefs(a, b);
 }
 
-typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
-typedef char layout_int[(sizeof(int)==4)?1:-1];
-typedef char layout_VTE[(sizeof(struct VTE)==8)?1:-1];
-typedef char layout_O_prefix[(sizeof(struct O)==16)?1:-1];
-typedef char layout_P_array_prefix[(sizeof(struct P)==0xB8)?1:-1];
-typedef char layout_VTE_delta[((unsigned)&((struct VTE*)0)->d==0)?1:-1];
-typedef char layout_VTE_function[((unsigned)&((struct VTE*)0)->pfn==4)?1:-1];
-typedef char layout_O_vtable[((unsigned)&((struct O*)0)->vt==0xC)?1:-1];
-typedef char layout_P_count[((unsigned)&((struct P*)0)->c==0xA4)?1:-1];
-typedef char layout_P_array[((unsigned)&((struct P*)0)->apo==0xA8)?1:-1];
+typedef char layout_JSGV_count[SLY2_OFFSETOF(JSGV, cstepHold) == 0xA4 ? 1 : -1];
+typedef char layout_JSGV_array[SLY2_OFFSETOF(JSGV, apstepHold) == 0xA8 ? 1 : -1];
 } } // namespace M_RemoveJsgStepHold
 
 // 0x1E5370 ClearJsgAseg
