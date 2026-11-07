@@ -169,44 +169,30 @@ void InitEmitBlock(struct S *p)
 } } // namespace M_InitEmitBlock
 
 namespace M_InitEmitter { extern "C" {
-/* EMITTER as Init writes it (field meanings from Sly 1's EMITTER, which has the same members in the same order) */
-struct S {
-    char pad[0x40];
-    unsigned int flags40;       /* +0x40 LO flag word, or (bit 0 clear) a pointer to the shared one */
-    char pad44[0xF0 - 0x44];
-    int emitMode;               /* +0xF0 EMITRK: continuous / constant count / burst (-1: infer at post-load) */
-    int particleCount;          /* +0xF4 particles left to emit (-1: unlimited) */
-    float rateMin, rateMax;     /* +0xF8 particles per second (burst modes: per burst) */
-    char pad100[0x118 - 0x100];
-    int groupOid;               /* +0x118 OID of the group emitter this one is slaved to (-1: none) */
-    char groupList[0x128 - 0x11C];   /* +0x11C DL of the emitters slaved to this one */
-    char groupLink[0x148 - 0x128];   /* +0x128 this emitter's DLE in its group's list, and timing fields */
-    float unpauseTime;          /* +0x148 */
-};
 void InitXfm(void *p);
 void InitDl__FP2DLi(void *pdl, int ib);
 void SetLoBusyKind(void *p, int n);
 } } // namespace M_InitEmitter
 // EMITTER::Init: XFM init, then "unset" defaults (mode and count -1, no group, 10 particles per second, not paused),
-// an empty slaved-emitter list linked through +0x128, busy level 0, and LO flag bit 2 set.
+// an empty slaved-emitter list linked through +0x128, busy level 0, and LO flag bit 2 set (field meanings from Sly 1's
+// EMITTER, which has the same members in the same order).
 void EMITTER::Init()
 {
-    M_InitEmitter::S *emitter = (M_InitEmitter::S *)this;
     unsigned int flags;
-    M_InitEmitter::InitXfm(emitter);
-    emitter->particleCount = -1;
-    emitter->emitMode = -1;
-    emitter->groupOid = -1;
-    emitter->rateMax = 10.0f;
-    emitter->rateMin = 10.0f;
-    emitter->unpauseTime = -1.0f;
-    M_InitEmitter::InitDl__FP2DLi(emitter->groupList, 0x128);
-    M_InitEmitter::SetLoBusyKind(emitter, 0);
-    flags = emitter->flags40;
+    M_InitEmitter::InitXfm(this);
+    particleCount = -1;
+    emitMode = -1;
+    groupOid = -1;
+    rate.maxValue = 10.0f;
+    rate.minValue = 10.0f;
+    tUnpause = -1.0f;
+    M_InitEmitter::InitDl__FP2DLi(&groupList, 0x128);
+    M_InitEmitter::SetLoBusyKind(this, 0);
+    flags = unknown40;   /* LO flag word, or (bit 0 clear) a pointer to the shared one */
     if ((flags ^ 1) & 1)
         *(int *)flags |= 2;     /* bit 0 clear: the word points at the shared flags */
     else
-        emitter->flags40 = flags | 2;
+        unknown40 = flags | 2;
 }
 
 namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream {
