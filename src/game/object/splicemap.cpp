@@ -14,35 +14,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/pair.h"
 #include "sly2/sp.h"
-/* A Splice frame, as far as this TU touches it. */
-struct FRAMEV
-{
-    int cref;                   /* +0x0 */
-    unsigned prev : 13;         /* +0x4 GC list links: slot index and page */
-    unsigned prevpg : 2;
-    unsigned p1 : 1;            /* set by MakeRoot__t6CGcObj1Z6CFrame */
-    unsigned next : 13;
-    unsigned nextpg : 2;
-    unsigned p2 : 1;
-    char pad[0x24 - 8];
-    int n24;                    /* +0x24 */
-};
-
-extern "C" {
-void func_00257078(FRAMEV *pframe, int n) __asm__("_$_6CFrame");
-}
-
+#include "sly2/cframe.h"
 /* Counted pointers returned by value from the serializer / frame allocator. */
 typedef CRefOwner<CPair> SPPAIR;
-struct SPFRAME
-{
-    FRAMEV *p;
-    SPFRAME(const SPFRAME &r);
-    ~SPFRAME() { FRAMEV *q = p; if (q && --q->cref == 0) func_00257078(q, 3); }
-};
+typedef CRefOwner<CFrame> SPFRAME;
 
 /* One script chunk loaded from the BRX: c entries of {pair to evaluate, frame it was evaluated in}. */
-struct SPLCE { CPair *ppair; FRAMEV *pframe; };
+struct SPLCE { CPair *ppair; CFrame *pframe; };
 struct SPLCS
 {
     int a;              /* +0x0 */
@@ -55,8 +33,6 @@ struct SZ { int cb; int cbAlign; SZ(int a, int b) { cb = a; cbAlign = b; } };
 extern int D_003E1C34;
 
 extern "C" {
-void *PtNew__t6CGcObj1Z6CFrame(void);
-void FramePtr_Assign(void *ppframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void ShutdownSplice(void);
 int U32Read__18CBinaryInputStream(void *stream);
 SPLCS *AllocClearedFromWorldHeap(SZ *psz);
@@ -65,17 +41,15 @@ SPPAIR DeserializePair__FP18CBinaryInputStream(void *stream);
 void CBinaryInputStream_SkipStringSw(void *stream);
 CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i);
 void CGc_UpdateRecyclable(void *pgc);
-SPFRAME Attach__t7CRefPtr1Z6CFrameP6CFrame(void *pv);
-void MakeRoot__t6CGcObj1Z6CFrame(FRAMEV *pframe);
 }
-extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *ppair, FRAMEV *pframe);
+extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *ppair, CFrame *pframe);
 
 // Creates the world's root Splice frame and keeps a reference to it. Called when a level body is loaded.
 extern "C" void InitSwSpliceFrame(SW *world)
 {
     world->unknown3A14 = 1;
-    FramePtr_Assign(world, PtNew__t6CGcObj1Z6CFrame());
-    MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)world->scriptFrame.m_p);
+    world->scriptFrame = CGcObj<CFrame>::PtNew();
+    world->scriptFrame.m_p->MakeRoot();
 }
 
 // Clears the world's Splice table pointer before a level load. (inferred)
@@ -87,7 +61,7 @@ extern "C" void ClearSwSpliceTable(SW *world)
 // Releases the world's root Splice frame and shuts the Splice VM down. Called when the world is deleted.
 extern "C" void DeleteSwSplice(SW *world)
 {
-    FramePtr_Assign(world, 0);
+    world->scriptFrame = 0;
     ShutdownSplice();
 }
 
@@ -133,7 +107,7 @@ extern "C" void LoadSwSpliceFromBrx(SW *world, int a, void *stream)
 }
 
 // Returns the Splice frame of table entry index (null for -1); objects get their frame from it at creation.
-extern "C" FRAMEV *GetSpliceFrame(SW *world, int i)
+extern "C" CFrame *GetSpliceFrame(SW *world, int i)
 {
     if (i == -1) return 0;
     return world->psplcs->ae[i].pframe;
@@ -148,12 +122,11 @@ extern "C" CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i)
 {
     CRef r;
     if (psplcs->ae[i].ppair && !psplcs->ae[i].pframe) {
-        void *pv = PtNew__t6CGcObj1Z6CFrame();
-        SPFRAME sp = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
-        MakeRoot__t6CGcObj1Z6CFrame(sp.p);
-        sp.p->n24 = 1;
+        SPFRAME sp(CGcObj<CFrame>::PtNew());
+        sp.p->MakeRoot();
+        sp.p->m_fObjectFrame = 1;
         r = EvalExpression__FP5CPairP6CFrame(psplcs->ae[i].ppair, sp.p);
-        sp.p->cref++;
+        sp.p->m_cref++;
         psplcs->ae[i].pframe = sp.p;
     }
     r.Retag(0x24);

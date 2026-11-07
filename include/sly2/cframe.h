@@ -39,5 +39,6 @@ typedef char assert_CFrame_size[sizeof(CFrame) == 0x28 ? 1 : -1];   /* the frame
 /* emitted by splice/gc.cpp; declared so that includers call them and emit no copy */
 template <> void CGcObj<CFrame>::Unlink();
 template <> CFrame *CGcObj<CFrame>::PtNew();
+template <> void CGcObj<CFrame>::MakeRoot();
 
 #endif /* SLY2_CFRAME_H */
