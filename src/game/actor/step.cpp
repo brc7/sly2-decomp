@@ -15,6 +15,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00205E50
 #include "sly2/basic.h"
 #include "sly2/so.h"
+#include "sly2/act.h"
 #include "sly2/po.h"
 #include "sly2/step.h"
 #include "sly2/slotheap.h"
@@ -1079,25 +1080,18 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204E38 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { short d; short pad; void *pfn; } VTE;
 extern qword D_002A2DD0;
-struct O { VTE *vt; };
-struct X { int a; struct O *po; };
-struct TABLE;
-struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float effectiveSpeed; };
-int IsAsegaRetracted(struct Q *q);
-struct X *FindAsegChannel(struct TABLE *table, void *owner, int kind, int check);
+int IsAsegaRetracted(ASEGA *pasega);
+CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check);
 // If the step's animation (ASEGA) is live, evaluates its translation channel for this object; else zero.
 // Used for root motion (BHVANIM events, Murray, Sly's acceleration preset, dancers).
-qword GetStepAsegaTranslation(void *step, struct Q *q, float g)
+qword GetStepAsegaTranslation(void *step, ASEGA *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !IsAsegaRetracted(q)) {
-        struct X *x = FindAsegChannel(q->table, step, 1, 1);
-        if (x) {
-            struct O *o = x->po;
-            ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->effectiveSpeed);
-        }
+        CHN *x = FindAsegChannel(q->animation, step, 1, 1);
+        if (x)
+            x->pac->Evaluate(g, q->speed, 0, &r);
     }
     return r;
 }
@@ -1106,24 +1100,17 @@ qword GetStepAsegaTranslation(void *step, struct Q *q, float g)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204ED8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { short d; short pad; void *pfn; } VTE;
 extern qword D_002A2DD0;
-struct O { VTE *vt; };
-struct X { int a; struct O *po; };
-struct TABLE;
-struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float g40; };
-int IsAsegaRetracted(struct Q *q);
-struct X *FindAsegChannel(struct TABLE *table, void *owner, int kind, int check);
+int IsAsegaRetracted(ASEGA *pasega);
+CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check);
 // Same as GetStepAsegaTranslation for the rotation channel.
-qword GetStepAsegaRotation(void *step, struct Q *q, float g)
+qword GetStepAsegaRotation(void *step, ASEGA *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !IsAsegaRetracted(q)) {
-        struct X *x = FindAsegChannel(q->table, step, 6, 1);
-        if (x) {
-            struct O *o = x->po;
-            ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->g40);
-        }
+        CHN *x = FindAsegChannel(q->animation, step, 6, 1);
+        if (x)
+            x->pac->Evaluate(g, q->speed, 0, &r);
     }
     return r;
 }
