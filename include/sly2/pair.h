@@ -38,10 +38,10 @@ typedef CRefPtr<CPair> CPairPtr;
 struct CPair
 {
       int cref;               /* 0x00 reference count */
-      int x4;                 /* 0x04 GC link word */
+      int gcLink;             /* 0x04 GC link word */
       CRef ref;               /* 0x08 the element */
-      CPairPtr pnext;         /* 0x10 the rest of the list */
-      void SetNext(CPair *ppair) { pnext = ppair; }
+      CPairPtr next;          /* 0x10 the rest of the list */
+      void SetNext(CPair *ppair) { next = ppair; }
       /* Pairs live in the first engine slot pool (slot size 0x14 == sizeof(CPair)). */
       void operator delete(void *pv) { Unlink__t6CGcObj1Z5CPair(pv); FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
 };

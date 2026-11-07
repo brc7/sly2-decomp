@@ -1416,7 +1416,7 @@ CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     sp->ref = args[0];
     CRef *pref = &args[1];
     if (pref->m_tagk == TAGK_PAIR)
-        sp->pnext = (CPair *)pref->u.pv;
+        sp->next = (CPair *)pref->u.pv;
     return CRef(sp.p);
 }
 } // namespace M_RefOpCons__FiP4CRefP6CFrame
@@ -1674,7 +1674,7 @@ struct SPN {
 };
 extern "C" CRef RefOpShuffle(void *pbasic, CRef *args);
 static inline void SetSpn(SPN *psp, CPair *pn) { *psp = pn; }
-static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->pnext = psp->p; *psp = sp.p; }
+static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->next = psp->p; *psp = sp.p; }
 /** @sly2-annot addr=0x120FB0
  * Purpose: Random permutation of a list (Fisher-Yates via NRandInRange 0x11D3F8), guarantees first element
  *   changes; Nil entry pins tail
@@ -1698,7 +1698,7 @@ CRef RefOpShuffle(void *pbasic, CRef *args)
     SPN spRes;
     CPairPtr *pspHead = (CPairPtr *)&spRes;
     CPair *pn;
-    for (pn = args[0].u.ppair; pn; pn = pn->pnext.p) {
+    for (pn = args[0].u.ppair; pn; pn = pn->next.p) {
         if (pn->ref.m_tagk == 0) iNil = c;
         else apref[c++] = &pn->ref;
     }
@@ -1726,22 +1726,22 @@ CRef RefOpShuffle(void *pbasic, CRef *args)
         *psp = PtNew__t6CGcObj1Z5CPair();
         CPair *pnNew = psp->p;
         pnNew->ref = *apref[i];
-        psp = &pnNew->pnext;
+        psp = &pnNew->next;
         if (i == iNil - 1) pnLast = pnNew;
     }
     if (pnLast && pnLast != spRes.p) {
         if (!fShuffle) {
             SPN sp;
             sp.Set(spRes.p);
-            SetSpn(&spRes, spRes->pnext.p);
-            InsertAfter(&pnLast->pnext, sp);
+            SetSpn(&spRes, spRes->next.p);
+            InsertAfter(&pnLast->next, sp);
         }
         if (spRes.p != pnLast) {
             SPN sp;
             CPair *pnNew = PtNew__t6CGcObj1Z5CPair();
             sp.Set(pnNew);
             sp->ref = CRef(0);
-            InsertAfter(&pnLast->pnext, sp);
+            InsertAfter(&pnLast->next, sp);
         }
     }
     return CRef(spRes.p);
@@ -1782,11 +1782,11 @@ CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
         return args[0];
     SP result;
     CPair *tail;
-    for (CPair *argPair = args[0].u.ppair; argPair; argPair = argPair->pnext.p) {
+    for (CPair *argPair = args[0].u.ppair; argPair; argPair = argPair->next.p) {
         if (argPair->ref.m_tagk != TAGK_PAIR)
             continue;
         SP piece;   /* every list but the last is copied; the last is shared */
-        if (argPair->pnext.p) {
+        if (argPair->next.p) {
             SP copy = CPair_CloneTo(argPair->ref.u.ppair, 0, 0);
             piece = copy.p;
         } else {
@@ -1796,11 +1796,11 @@ CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
             result = PtNew__t6CGcObj1Z5CPair();
             result->ref = piece.p;
         } else {
-            tail->pnext = piece.p;
+            tail->next = piece.p;
         }
         tail = piece.p;
-        while (tail->pnext.p)
-            tail = tail->pnext.p;
+        while (tail->next.p)
+            tail = tail->next.p;
     }
     if (!result.p)
         return CRef(0);
@@ -1850,13 +1850,13 @@ SPN func_00121578(CRef **ppref1, CRef **ppref2)
     CPair *pn2 = (CPair *)pref1->u.pv;
     pn2->ref.Retag(TAGK_QUOTE);
     pn2->SetNext(PtNew__t6CGcObj1Z5CPair());
-    *ppref1 = &pn2->pnext.p->ref;
-    CRef *pref2 = &pn1->pnext.p->ref;
+    *ppref1 = &pn2->next.p->ref;
+    CRef *pref2 = &pn1->next.p->ref;
     *pref2 = PtNew__t6CGcObj1Z5CPair();
     CPair *pn3 = (CPair *)pref2->u.pv;
     pn3->ref.Retag(TAGK_QUOTE);
     pn3->SetNext(PtNew__t6CGcObj1Z5CPair());
-    *ppref2 = &pn3->pnext.p->ref;
+    *ppref2 = &pn3->next.p->ref;
     return SPN(sp.p);
 }
 } // namespace M_func_00121578
@@ -1913,9 +1913,9 @@ CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
         if (result->ref.m_tagk != TAGK_PAIR)
             result->ref = newPair.p;
         else
-            tail->pnext = newPair.p;
+            tail->next = newPair.p;
         CPair *appended = newPair.p;
-        element = element->pnext.p;
+        element = element->next.p;
         tail = appended;
     }
     return CRef((CPair *)result->ref.u.pv);
@@ -1983,12 +1983,12 @@ CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
                 result = head;
                 result->ref = newPair.p;
             } else {
-                tail->pnext = newPair.p;
+                tail->next = newPair.p;
             }
             CPair *appended = newPair.p;
             tail = appended;
         }
-        element = element->pnext.p;
+        element = element->next.p;
     }
     if (!result.p)
         return CRef(0);
@@ -2036,7 +2036,7 @@ CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
         while (pn) {
             *pb = pn->ref;
             CRef ref = RefEval__FP5CPairP6CFrame(sp.p, callArgs);
-            pn = pn->pnext.p;
+            pn = pn->next.p;
         }
     }
     return CRef(TAGK_VOID);
@@ -3045,7 +3045,7 @@ CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     SPN sp;
     sp.Set(PtNew__t6CGcObj1Z5CPair());
     sp->SetNext(PtNew__t6CGcObj1Z5CPair());
-    CRef *pref = &sp->pnext.p->ref;
+    CRef *pref = &sp->next.p->ref;
     pref->Retag(TAGK_VECTOR);
     sp->ref.SetF32(RadBetweenVectors(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, pref->u.pv));
     return CRef(sp.p);
@@ -3271,7 +3271,7 @@ CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *ar
     struct { float g, h, i; } g;
     sp.Set(PtNew__t6CGcObj1Z5CPair());
     sp->SetNext(PtNew__t6CGcObj1Z5CPair());
-    CRef *pref = &sp->pnext.p->ref;
+    CRef *pref = &sp->next.p->ref;
     pref->Retag(TAGK_VECTOR);
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(args[0].u.pv, &g.g, pref->u.pv);
     sp->ref.SetF32(g.g);
@@ -4008,15 +4008,15 @@ CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
     call->ref.SetProc((CProc *)proc);
     if (c >= 3) {
         CPair *tail = call;
-        for (CPair *arg = args[2].u.ppair; arg; arg = arg->pnext.p) {
+        for (CPair *arg = args[2].u.ppair; arg; arg = arg->next.p) {
             tail->SetNext(PtNew__t6CGcObj1Z5CPair());
-            tail = tail->pnext.p;
+            tail = tail->next.p;
             CRef *element = &tail->ref;
             *element = PtNew__t6CGcObj1Z5CPair();
             CPair *quoted = element->u.ppair;   /* (quote arg): the argument is passed unevaluated */
             quoted->ref.Retag(TAGK_QUOTE);
             quoted->SetNext(PtNew__t6CGcObj1Z5CPair());
-            quoted->pnext.p->ref = arg->ref;
+            quoted->next.p->ref = arg->ref;
         }
     }
     G *sw = &D_003DD490;
@@ -4420,9 +4420,9 @@ CRef RefOpFindObjectsFromOids(void *pbasic, CRef *args)
         if (list->ref.m_tagk != TAGK_PAIR)
             list->ref = newPair.p;
         else
-            tail->pnext = newPair.p;
+            tail->next = newPair.p;
         CPair *appended = newPair.p;
-        oidPair = oidPair->pnext.p;
+        oidPair = oidPair->next.p;
         tail = appended;
     }
     int unused[4];   /* stack frame size (inferred: a dead local of the original) */
@@ -4799,7 +4799,7 @@ extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CR
         SPN spTail(0);
         CPair *pn;
 
-        for (pn = args[0].u.ppair; pn; pn = pn->pnext.p) {
+        for (pn = args[0].u.ppair; pn; pn = pn->next.p) {
             CRef *prefTo = &args[2];
             LO *plo = (LO *)pn->ref.u.pv;
             int i;
@@ -4817,16 +4817,16 @@ extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CR
                     SPN spLo(PtNew__t6CGcObj1Z5CPair());
                     SPN spPos(PtNew__t6CGcObj1Z5CPair());
                     spLo->ref.SetBasic((BASIC *)plo);
-                    spLo->pnext = spPos.p;
+                    spLo->next = spPos.p;
                     if (pv == 0x7B) {
                         SPN spNormal(PtNew__t6CGcObj1Z5CPair());
                         SPN spItem(PtNew__t6CGcObj1Z5CPair());
                         spPos->ref.SetVector((VECTOR *)&hit.pos);
-                        spPos->pnext = spNormal.p;
+                        spPos->next = spNormal.p;
                         spNormal->ref.SetVector((VECTOR *)&hit.normal);
                         spItem->ref = spLo.p;
                         if (spHead.p)
-                            spTail->pnext = spItem.p;
+                            spTail->next = spItem.p;
                         else
                             spHead = spItem.p;
                         spTail = spItem.p;

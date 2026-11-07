@@ -105,7 +105,7 @@ CRef RefOpPrint(int c, CRef *aref, CFrame *frame);
 CRef RefOpEqv(int c, CRef *aref, CFrame *frame);
 
 /* The argument list of a special form: the rest of the list after the keyword. */
-static inline CPair *PpairArgs(CPair *expr) { return ((CPair *)expr->ref.u.pv)->pnext.p; }
+static inline CPair *PpairArgs(CPair *expr) { return ((CPair *)expr->ref.u.pv)->next.p; }
 
 /** @sly2-annot addr=0x126438
  * Purpose: Evaluates a symbol: looks up its binding in the frame chain (0x127D78) and returns it
@@ -137,7 +137,7 @@ CRef RefEvalSet(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *args = PpairArgs(expr);
-    ref = RefEval(args->pnext.p, frame);
+    ref = RefEval(args->next.p, frame);
     ref = frame->RefSetBinding(args->ref.u.n, &ref);
     return ref;
 }
@@ -153,7 +153,7 @@ CRef RefEvalDefine(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *args = PpairArgs(expr);
-    ref = RefEval(args->pnext.p, frame);
+    ref = RefEval(args->next.p, frame);
     ref = CFrame_RefAddBinding(frame, args->ref.u.n, &ref);
     return ref;
 }
@@ -170,7 +170,7 @@ CRef RefEvalAssert(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *args = PpairArgs(expr);
-    CPair *pmsg = args->pnext.p;
+    CPair *pmsg = args->next.p;
     ref = RefEval(args, frame);
     if (ref.u.n == 0)
     {
@@ -195,7 +195,7 @@ CRef RefEvalAssert(CPair *expr, CFrame *frame)
 extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *args = ((CPair *)expr->ref.u.pv)->pnext.p;
+    CPair *args = ((CPair *)expr->ref.u.pv)->next.p;
     if (args)
         ref = RefEval(args, frame);
     else
@@ -218,8 +218,8 @@ CRef RefEvalIf(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *ppairCond = PpairArgs(expr);
-    CPair *ppairThen = ppairCond->pnext.p;
-    CPair *ppairElse = ppairThen->pnext.p;
+    CPair *ppairThen = ppairCond->next.p;
+    CPair *ppairElse = ppairThen->next.p;
     ref = RefEval(ppairCond, frame);
     if (ref.u.n == 1)
         ref = RefEval(ppairThen, frame);
@@ -244,7 +244,7 @@ CRef RefEvalOr(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *pq;
-    for (pq = PpairArgs(expr); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(expr); pq; pq = pq->next.p)
     {
         ref = RefEval(pq, frame);
         if (ref.m_tagk != 0x17 || ref.u.n != 0)
@@ -266,7 +266,7 @@ CRef RefEvalAnd(CPair *expr, CFrame *frame)
     CRef ref;
     CPair *pq;
     ref = true;
-    for (pq = PpairArgs(expr); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(expr); pq; pq = pq->next.p)
     {
         ref = RefEval(pq, frame);
         if (ref.m_tagk == 0x17 && ref.u.n == 0)
@@ -304,18 +304,18 @@ CRef RefEvalCond(CPair *expr, CFrame *frame)
             f = 0;
             if (test.m_tagk != 0x17 || test.u.n)
                 f = 1;
-            if (f && !pc->pnext.p)
+            if (f && !pc->next.p)
                 ref = test;
         }
         if (f)
         {
-            for (pc = pc->pnext.p; pc; pc = pc->pnext.p)
+            for (pc = pc->next.p; pc; pc = pc->next.p)
                 ref = RefEval(pc, frame);
             pcl = 0;
         }
         else
         {
-            pcl = pcl->pnext.p;
+            pcl = pcl->next.p;
         }
     }
     return ref;
@@ -340,7 +340,7 @@ CRef RefEvalCase(CPair *expr, CFrame *frame)
     ref.InitTag(0x24);
     pkey = PpairArgs(expr);
     arefT[0] = RefEval(pkey, frame);
-    pcl = pkey->pnext.p;
+    pcl = pkey->next.p;
     while (pcl)
     {
         CPair *pc = (CPair *)pcl->ref.u.pv;
@@ -365,19 +365,19 @@ CRef RefEvalCase(CPair *expr, CFrame *frame)
                 }
                 else
                 {
-                    pk = pk->pnext.p;
+                    pk = pk->next.p;
                 }
             }
         }
         if (f)
         {
-            for (pc = pc->pnext.p; pc; pc = pc->pnext.p)
+            for (pc = pc->next.p; pc; pc = pc->next.p)
                 ref = RefEval(pc, frame);
             pcl = 0;
         }
         else
         {
-            pcl = pcl->pnext.p;
+            pcl = pcl->next.p;
         }
     }
     return ref;
@@ -403,10 +403,10 @@ CRef RefEvalLet(CPair *expr, CFrame *frame)
     {
         CFrame *pframeNew = PtNew__t6CGcObj1Z6CFrame();
         spf = pframeNew;
-        for (pn = (CPair *)args->ref.u.pv; pn; pn = pn->pnext.p)
+        for (pn = (CPair *)args->ref.u.pv; pn; pn = pn->next.p)
         {
             CPair *pb = (CPair *)pn->ref.u.pv;
-            refVal = RefEval(pb->pnext.p, frame);
+            refVal = RefEval(pb->next.p, frame);
             refT = CFrame_RefAddBinding(spf.p, pb->ref.u.n, &refVal);
         }
         CFrame_SetSingleParent(spf.p, frame);
@@ -416,7 +416,7 @@ CRef RefEvalLet(CPair *expr, CFrame *frame)
         spf = frame;
     }
     CPair *pq;
-    for (pq = args->pnext.p; pq; pq = pq->pnext.p)
+    for (pq = args->next.p; pq; pq = pq->next.p)
         ref = RefEval(pq, spf.p);
     return ref;
 }
@@ -433,7 +433,7 @@ CRef RefEvalWhile(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *ppairCond = PpairArgs(expr);
-    CPair *ppairBody = ppairCond->pnext.p;
+    CPair *ppairBody = ppairCond->next.p;
     for (;;)
     {
         ref = RefEval(ppairCond, frame);
@@ -458,7 +458,7 @@ CRef RefEvalWhile(CPair *expr, CFrame *frame)
 CRef RefEvalLambda(CPair *expr, CFrame *frame)
 {
     CPair *args = PpairArgs(expr);
-    CPair *ppairBody = args->pnext.p;
+    CPair *ppairBody = args->next.p;
     SPO sp(PtNew__t6CGcObj1Z5CProc());
     sp->closureFrame = frame;
     if (args->ref.m_tagk == 0)
@@ -478,7 +478,7 @@ CRef RefEvalLambda(CPair *expr, CFrame *frame)
         }
         else
         {
-            pparam = pparam->pnext.p;
+            pparam = pparam->next.p;
             c++;
         }
     }
@@ -502,7 +502,7 @@ CRef RefEvalLambdaBody(CPair *expr, CFrame *frame)
     do
     {
         ref = RefEval(pbody, frame);
-        pbody = pbody->pnext.p;
+        pbody = pbody->next.p;
     } while (pbody);
     return ref;
 }
@@ -520,7 +520,7 @@ CRef RefEvalBegin(CPair *expr, CFrame *frame)
     CPair *pq;
     ref.Decref();
     ref.InitTag(0x24);
-    for (pq = PpairArgs(expr); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(expr); pq; pq = pq->next.p)
         ref = RefEval(pq, frame);
     return ref;
 }
@@ -588,14 +588,14 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
     }
     int carg = cargMin + (fRest != 0);
     CRef aref[32];
-    CPair *pn = ppairFn->pnext.p;
+    CPair *pn = ppairFn->next.p;
     int c = cargMin;
     int i;
     for (i = 0; i < c; i++)
     {
         ref = RefEval(pn, frame);
         aref[i] = ref;
-        pn = pn->pnext.p;
+        pn = pn->next.p;
     }
     if (fRest)
     {
@@ -608,7 +608,7 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
             spNew->ref = RefEval(spCur.p, frame);
             if (spLast.p)
             {
-                spLast->pnext = spNew.p;
+                spLast->next = spNew.p;
                 spLast = spNew.p;
             }
             else
@@ -617,7 +617,7 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
                 spList = spLast.p;
             }
             c++;
-            spCur = spCur->pnext.p;
+            spCur = spCur->next.p;
         }
         if (spList.p)
             aref[i] = spList.p;
@@ -638,9 +638,9 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
         for (i = 0; i < carg; i++)
         {
             if (pparam->ref.m_tagk == 0x14)
-                pparam = pparam->pnext.p;
+                pparam = pparam->next.p;
             CRef r = CFrame_RefAddBinding(spf.p, pparam->ref.u.n, &aref[i]);
-            pparam = pparam->pnext.p;
+            pparam = pparam->next.p;
         }
         ref = RefEvalLambdaBody((CPair *)proc, spf.p);
         break;
@@ -689,7 +689,7 @@ CRef RefEval(CPair *expr, CFrame *frame)
         case 14: return RefEvalWhile(expr, frame);
         case 16: return RefEvalBegin(expr, frame);
         case 15: return RefEvalLambda(expr, frame);
-        case 18: return pn->pnext.p->ref;
+        case 18: return pn->next.p->ref;
         case 17: return CRef(-1);
         }
         return RefEvalApply(expr, frame);
