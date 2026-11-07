@@ -533,19 +533,10 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 extern struct CLOCK D_002DDED0;
-struct CM;
-extern struct CM D_002DDF40;
 extern char D_002BD9B8[], D_002BD9C8[], D_002BD9D8[], D_002BD9E8[], D_002BD9F8[];
 extern char D_002BBB60[], D_002BBB68[];
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
-struct X {
-    char pad0[0x18]; float targetZoom; char pad1[0x20 - 0x1C];
-    qword smoothedFocus; qword smoothedEye; void *hasPose; char pad2[0x50 - 0x44];
-    qword posePosition; qword poseAngles; float poseFov; char pad3[0x80 - 0x74];
-    qword targetPosition; qword targetAngles; float targetFov; float panAngle; float tiltAngle; float zoom; float zoomSpeed; float maxZoom; float zoomFov; float wideFov;
-    struct SND *zoomSound;
-};
-void UpdateCplcy(struct X *p);
+void UpdateCplcy(CPZOOM *p);
 float SmoothValue__FfffP3SMPPf(void *p, float *pdg, float g, float gTarget, float dt);
 float ClampToLimits__FP2LMf(void *p, float g);
 void SetSndPitch(struct SND *p, float g);
@@ -558,12 +549,11 @@ void SmoothMatrix(M3 *a, M3 *b, void *p, M3 *out, int n, float g);
 qword DecomposeRotationMatrixToEuler(M3 *pm);
 float SmoothAngle__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 qword *VECTOR_opAssign(qword *p, qword v);
-void SetCmMat4(struct CM *p, M4 *m);
-void SetCmFov__FP2CMf(struct CM *p, float g);
+void SetCmMat4(CM *p, M4 *m);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(M4 *pm, float *pa, float *pb);
-qword PosCpzoomEye(struct X *p);
-qword PosCpzoomCenter(struct X *p);
-void SetCameraLookAt(struct CM *p, qword a, qword b, float c, float d);
+qword PosCpzoomEye(CPZOOM *p);
+qword PosCpzoomCenter(CPZOOM *p);
+void SetCameraLookAt(CM *p, qword a, qword b, float c, float d);
 
 
 static __inline__ float GFrac(float g, float a, float b)
@@ -574,42 +564,42 @@ static __inline__ float GFrac(float g, float a, float b)
 
 // Smooth zoom toward zoomTarget with sounds; if posed (hasPose +0x40) blend pos/eul/fov to target pose, else smooth
 // center/eye and SetCmLookAt.
-void UpdateCpzoom(struct X *p)
+void UpdateCpzoom(CPZOOM *p)
 {
     UpdateCplcy(p);
     if (D_002DDED0.deltaTime == 0.0f)
         return;
-    if (0.0f <= p->targetZoom) {
-        float g = Clamp(SmoothValue__FfffP3SMPPf(D_002BD9B8, 0, p->zoom, p->targetZoom, D_002DDED0.deltaTime), 0.0f, 1.0f);
-        p->zoomSpeed = (g - p->zoom) / D_002DDED0.deltaTime;
+    if (0.0f <= p->zoomTarget) {
+        float g = Clamp(SmoothValue__FfffP3SMPPf(D_002BD9B8, 0, p->zoom, p->zoomTarget, D_002DDED0.deltaTime), 0.0f, 1.0f);
+        p->svuZoom = (g - p->zoom) / D_002DDED0.deltaTime;
         p->zoom = g;
     }
-    if (p->zoomSpeed != 0.0f) {
-        struct SND *ps = p->zoomSound;
-        SetSndPitch(ps, ClampToLimits__FP2LMf(D_002BBB68, __builtin_fabsf(p->zoomSpeed)));
-        ps = p->zoomSound;
-        SetSndVolume(ps, ClampToLimits__FP2LMf(D_002BBB60, __builtin_fabsf(p->zoomSpeed) * 0.5f + 0.5f));
-        if (p->zoomSound->pauseCount > 0)
-            ResumeSnd(p->zoomSound);
+    if (p->svuZoom != 0.0f) {
+        struct SND *ps = (struct SND *)p->psndZoom.m_p;
+        SetSndPitch(ps, ClampToLimits__FP2LMf(D_002BBB68, __builtin_fabsf(p->svuZoom)));
+        ps = (struct SND *)p->psndZoom.m_p;
+        SetSndVolume(ps, ClampToLimits__FP2LMf(D_002BBB60, __builtin_fabsf(p->svuZoom) * 0.5f + 0.5f));
+        if (((struct SND *)p->psndZoom.m_p)->pauseCount > 0)
+            ResumeSnd((struct SND *)p->psndZoom.m_p);
     } else {
-        if (p->zoomSound->pauseCount <= 0)
-            PauseSnd(p->zoomSound);
+        if (((struct SND *)p->psndZoom.m_p)->pauseCount <= 0)
+            PauseSnd((struct SND *)p->psndZoom.m_p);
     }
     if (p->hasPose) {
         M3 m0, m30, m60, m90;
         M4 m4;
         float u;
-        p->posePosition = PosSmooth(p->posePosition, p->targetPosition, D_002DDED0.deltaTime, D_002BD9C8, 0);
-        LoadRotateMatrixEuler(&m90, p->poseAngles);
+        *(qword *)&p->pos = PosSmooth(*(qword *)&p->pos, *(qword *)&p->targetEyePosition, D_002DDED0.deltaTime, D_002BD9C8, 0);
+        LoadRotateMatrixEuler(&m90, *(qword *)&p->eul);
         m0 = m90;
-        LoadRotateMatrixEuler(&m90, p->targetAngles);
+        LoadRotateMatrixEuler(&m90, *(qword *)&p->eulTarget);
         m30 = m90;
         SmoothMatrix(&m0, &m30, D_002BD9D8, &m60, 0, D_002DDED0.deltaTime);
-        p->poseAngles = DecomposeRotationMatrixToEuler(&m60);
-        p->poseFov = SmoothAngle__FfffP3SMPPf(D_002BD9E8, 0, p->poseFov, p->targetFov, D_002DDED0.deltaTime);
+        *(qword *)&p->eul = DecomposeRotationMatrixToEuler(&m60);
+        p->fieldOfView = SmoothAngle__FfffP3SMPPf(D_002BD9E8, 0, p->fieldOfView, p->targetFieldOfView, D_002DDED0.deltaTime);
         {
         M4 *pm4 = &m4;
-        VECTOR_opAssign(&pm4->q.r[3], p->posePosition);
+        VECTOR_opAssign(&pm4->q.r[3], *(qword *)&p->pos);
         pm4->q.r[0] = m60.r[0];
         pm4->q.r[1] = m60.r[1];
         pm4->q.r[2] = m60.r[2];
@@ -617,23 +607,23 @@ void UpdateCpzoom(struct X *p)
         m4.af[1][3] = 0.0f;
         m4.af[0][3] = 0.0f;
         pm4->af[3][3] = 1.0f;
-        SetCmMat4(&D_002DDF40, pm4);
-        SetCmFov__FP2CMf(&D_002DDF40, p->poseFov);
+        SetCmMat4(&g_cm, pm4);
+        SetCmFov(&g_cm, p->fieldOfView);
         DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(pm4, &p->panAngle, &p->tiltAngle);
         }
-        p->zoom = ClampToLimits__FP2LMf(D_002BBB60, GFrac(p->poseFov, p->zoomFov, p->wideFov));
+        p->zoom = ClampToLimits__FP2LMf(D_002BBB60, GFrac(p->fieldOfView, p->zoomedFieldOfView, p->wideFieldOfView));
     } else {
         float u = 1.0f - p->zoom;
-        SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
+        SetCmFov(&g_cm, (1.0f - u) * p->zoomedFieldOfView + u * p->wideFieldOfView);
         {
-            qword a = p->smoothedEye;
-            p->smoothedEye = PosSmooth(a, PosCpzoomEye(p), D_002DDED0.deltaTime, D_002BD9F8, 0);
+            qword a = *(qword *)&p->smoothedEyePosition;
+            *(qword *)&p->smoothedEyePosition = PosSmooth(a, PosCpzoomEye(p), D_002DDED0.deltaTime, D_002BD9F8, 0);
         }
         {
-            qword a = p->smoothedFocus;
-            p->smoothedFocus = PosSmooth(a, PosCpzoomCenter(p), D_002DDED0.deltaTime, D_002BD9F8, 0);
+            qword a = *(qword *)&p->smoothedFocusPosition;
+            *(qword *)&p->smoothedFocusPosition = PosSmooth(a, PosCpzoomCenter(p), D_002DDED0.deltaTime, D_002BD9F8, 0);
         }
-        SetCameraLookAt(&D_002DDF40, p->smoothedEye, p->smoothedFocus, 0.0f, 0.0f);
+        SetCameraLookAt(&g_cm, *(qword *)&p->smoothedEyePosition, *(qword *)&p->smoothedFocusPosition, 0.0f, 0.0f);
     }
     g_sw.tLookLast = D_002DDED0.time;
 }
