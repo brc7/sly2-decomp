@@ -14,31 +14,10 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct VTE { short d; short pad; void *pfn; };
-struct SLV { void *pvFirst; int n4, n8; };
-struct SAAV;
 /* A shader animation instance (0x14 bytes): its texture / frame record (unpacked from the VIF data), on its SAA's list. */
-struct SAIE { int a; void *pv; int b; SAAV *owner; SAIE *next; };
+struct SAIE { int a; void *pv; int b; SAA *owner; SAIE *next; };
 
-/* SAA, the base of every shader animation (0x50 bytes). */
-struct SAAV
-{
-    int x0, x4, x8;
-    VTE *vt;                    /* 0x0C */
-    float updateTime;             /* 0x10 */
-    int id;                     /* 0x14 */
-    int unknown18;                    /* 0x18 */
-    int numFrames;                 /* 0x1C */
-    int unknown20;                    /* 0x20 */
-    short uOffset, vOffset;               /* 0x24: uv offset (1/4096) */
-    unsigned short frame;      /* 0x28 */
-    short pad2A;
-    int isDirty;                 /* 0x2C */
-    void *owner;               /* 0x30 */
-    SLV instances;                  /* 0x34: the instances (SAIE) */
-    SAAV *next;                 /* 0x40: next in g_sw.slSaa */
-    char pad44[0x50 - 0x44];
-};
-typedef char assert_SAA_size[sizeof(SAAV) == 0x50 ? 1 : -1];
+/* SAA, the base of every shader animation (0x50 bytes), is classes.h's class. */
 /* The BRX record an SAA is initialised from. */
 struct SAAF
 {
@@ -47,16 +26,16 @@ struct SAAF
     union { struct { LM lm1, lm2; }; float ag[4]; };   /* 0x0C */
     union { unsigned short cLoop; int cLoopWord; };    /* 0x1C (also read as a whole word) */
 };
-struct LOOPV : SAAV { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
-struct PINGPONGV : SAAV { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
-struct SHUFFLEV : SAAV { float pauseMin; float pauseMax; float pauseTime; };
+struct LOOPV : SAA { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
+struct PINGPONGV : SAA { LM loopTimeRange; LM pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
+struct SHUFFLEV : SAA { float pauseMin; float pauseMax; float pauseTime; };
 enum EYESS { EYESS_Nil = -1, EYESS_Open = 0, EYESS_Closing = 1, EYESS_Closed = 2, EYESS_Opening = 3 };
-struct EYESV : SAAV { float blinkTime; float openTimeMin; float openTimeMax; float doubleBlinkChance;
+struct EYESV : SAA { float blinkTime; float openTimeMin; float openTimeMax; float doubleBlinkChance;
     int unknown60; EYESS eyess; float stateTime; float openTime; float frameRate; float frame; float openFraction; };
-struct SCROLLERV : SAAV { float uSpeed; float vSpeed; float uRange; float vRange; float uSpeedScale; float vSpeedScale; };
-struct CIRCLERV : SAAV { float angularSpeed; float radius; float uCenter; float vCenter; };
+struct SCROLLERV : SAA { float uSpeed; float vSpeed; float uRange; float vRange; float uSpeedScale; float vSpeedScale; };
+struct CIRCLERV : SAA { float angularSpeed; float radius; float uCenter; float vCenter; };
 /* An SAA class: its size and constructor (the BRX class table D_002BAAE8, virtual slot 6). */
-struct SAACLS { int a[3]; int cb; SAAV *(*pfnNew)(void); };
+struct SAACLS { int a[3]; int cb; SAA *(*pfnNew)(void); };
 
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -66,12 +45,12 @@ extern SAIE D_003DA798[];
 int U16Read__18CBinaryInputStream(void *pbis);
 void Read__18CBinaryInputStreamiPv(void *pbis, int cb, char *buf);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
-void ClearSl(SLV *psl);
+void ClearSl(SL *psl);
 void ClearSle(void *psle);
-void InitSl(SLV *psl, int ib);
-void AppendSlEntry(SLV *psl, void *pv);
-void PrependSlEntry(SLV *psl, void *pv);
-int IsSlEmpty(SLV *psl);
+void InitSl(SL *psl, int ib);
+void AppendSlEntry(SL *psl, void *pv);
+void PrependSlEntry(SL *psl, void *pv);
+int IsSlEmpty(SL *psl);
 void UnpackHelper__4VIFS3UPKiiPiPPUi(void *a, int b, int c, void *d, SAIE *pe, int *pb);
 void ApplyCopyRecord(SAIE *pe);
 float RandomFloatInRange__Fff(float gLow, float gHigh);
@@ -81,56 +60,56 @@ float fmodf(float x, float y);
 float NormalizeAngle__Ff(float rad);
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);
 
-void InitSaa(SAAV *p, SAAF *psaaf);
-void SetSaiIframe(SAAV *p, int n);
-void SetSaiDuDv(SAAV *p, float uOffset, float vOffset);
-int DoesSaaMatchOid(SAAV *p, int *pid);
+void InitSaa(SAA *p, SAAF *psaaf);
+void SetSaiIframe(SAA *p, int n);
+void SetSaiDuDv(SAA *p, float uOffset, float vOffset);
+int DoesSaaMatchOid(SAA *p, int *pid);
 }
 void SetEyesEyess(EYESV *peyes, EYESS eyess) __asm__("SetEyesEyess__FP4EYES5EYESS");
 
 // Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read
 // 0x20-byte SAAF and call vt7 Init(psaa, psaaf)
-extern "C" SAAV *LoadSaaFromBrx(void *pv, void *pbis)
+extern "C" SAA *LoadSaaFromBrx(void *pv, void *pbis)
 {
     char buf[0x20];
     int i = U16Read__18CBinaryInputStream(pbis);
-    SAAV *p;
+    SAA *p;
     if (i == -1) return 0;
     p = (D_002BAAE8 + i)->pfnNew();
     p->owner = pv;
     Read__18CBinaryInputStreamiPv(pbis, 0x20, buf);
-    ((void (*)(void *, char *))p->vt[7].pfn)((char *)p + p->vt[7].d, buf);
+    p->Init((SAAF *)buf);
     return p;
 }
 
 // Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the SAA list g_sw.slSaa.
 // (inferred)
-extern "C" SAAV *CloneSaa(SAAV *saa) {
-    SAACLS *pcls = ((SAACLS *(*)(void *))saa->vt[6].pfn)((char *)saa + saa->vt[6].d);
-    SAAV *pNew = pcls->pfnNew();
+extern "C" SAA *CloneSaa(SAA *saa) {
+    SAACLS *pcls = (SAACLS *)saa->GetClassInfo();
+    SAA *pNew = pcls->pfnNew();
     CopyAb__FPvT0Ui(pNew, saa, pcls->cb);
     ClearSl(&pNew->instances);
     ClearSle(&pNew->next);
-    AppendSlEntry((SLV *)&g_sw.slSaa, pNew);
+    AppendSlEntry((SL *)&g_sw.slSaa, pNew);
     return pNew;
 }
 
 // SAA (CID 0x8A) vt7 Init. (inferred)
 void SAA::Init(SAAF *q)   /* key function: SAA's vtable comes out here */
 {
-    SAAV *p = (SAAV *)this;
+    SAA *p = (SAA *)this;
     p->id = q->a;
     p->unknown18 = q->b;
-    p->unknown20 = q->c;
+    p->grf = q->c;
     p->numFrames = q->d;
     InitSl(&p->instances, 0x10);
-    if (p->owner == 0) PrependSlEntry((SLV *)&g_sw.slSaa, p);
-    else AppendSlEntry((SLV *)&g_sw.slSaa, p);
+    if (p->owner == 0) PrependSlEntry((SL *)&g_sw.slSaa, p);
+    else AppendSlEntry((SL *)&g_sw.slSaa, p);
 }
 
 // Allocate a copy record (D_003DA798, max 0x200), link it to the SAA, fill it from a VIF unpack (0x226E88) and apply
 // it. (inferred)
-extern "C" int AddSaaCopyRecord(SAAV *saa, void *a1, void *a2)
+extern "C" int AddSaaCopyRecord(SAA *saa, void *a1, void *a2)
 {
     SAIE e;
     SAIE *pe;
@@ -148,10 +127,10 @@ extern "C" int AddSaaCopyRecord(SAAV *saa, void *a1, void *a2)
     return 1;
 }
 
-int ShouldUpdateSaa(SAAV *p) __asm__("ShouldUpdateSaa__FP3SAA");
+int ShouldUpdateSaa(SAA *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // Returns 1 the first time it is called in a frame (stamps the animation with the clock time), 0 after: an SAA shared
 // by several shaders is advanced only once per frame.
-int ShouldUpdateSaa(SAAV *saa) {
+int ShouldUpdateSaa(SAA *saa) {
     if (saa->updateTime != D_002DDED0.time) {
         saa->updateTime = D_002DDED0.time;
         return 1;
@@ -160,17 +139,17 @@ int ShouldUpdateSaa(SAAV *saa) {
 }
 
 // SAA vt8 base: empty. (inferred)
-extern "C" void UpdateSaa(SAAV *saa) {
+extern "C" void UpdateSaa(SAA *saa) {
 }
 
-float GetSaaCompletion(SAAV *p) __asm__("GetSaaCompletion__FP3SAA");
+float GetSaaCompletion(SAA *p) __asm__("GetSaaCompletion__FP3SAA");
 // Base completion fraction (0..1) of an animation cycle: always 0.
-float GetSaaCompletion(SAAV *saa) {
+float GetSaaCompletion(SAA *saa) {
     return 0.0f;
 }
 
 // Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked. (inferred)
-void SetSaiIframe(SAAV *saa, int n)
+void SetSaiIframe(SAA *saa, int n)
 {
     unsigned short i;
     if (IsSlEmpty(&saa->instances)) return;
@@ -184,7 +163,7 @@ void SetSaiIframe(SAAV *saa, int n)
 // Convert g to 12-bit fixed point (x4096, rounded, low 12 bits).
 static inline int ToFixed12(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
 // Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked. (inferred)
-void SetSaiDuDv(SAAV *saa, float uOffset, float vOffset)
+void SetSaiDuDv(SAA *saa, float uOffset, float vOffset)
 {
     int u, v;
     if (IsSlEmpty(&saa->instances)) return;
@@ -197,7 +176,7 @@ void SetSaiDuDv(SAAV *saa, float uOffset, float vOffset)
 }
 
 // SAA vt10: *poid == psaa->+0x14. (inferred)
-int DoesSaaMatchOid(SAAV *saa, int *pid) {
+int DoesSaaMatchOid(SAA *saa, int *pid) {
     return *pid == saa->id;
 }
 
@@ -532,13 +511,13 @@ float GetCirclerCompletion(CIRCLERV *pcircler)
 // For every dirty SAA in g_sw.slSaa apply its copy records and clear dirty. (inferred)
 extern "C" void PropagateSais(void)
 {
-    SAAV *p;
+    SAA *p;
     SAIE *q;
     int unused[4];
-    for (p = (SAAV *)((SLV *)&g_sw.slSaa)->pvFirst; p; p = p->next) {
+    for (p = (SAA *)((SL *)&g_sw.slSaa)->head; p; p = p->next) {
         if (p->isDirty) {
             p->isDirty = 0;
-            for (q = (SAIE *)p->instances.pvFirst; q; q = q->next) ApplyCopyRecord(q);
+            for (q = (SAIE *)p->instances.head; q; q = q->next) ApplyCopyRecord(q);
         }
     }
 }

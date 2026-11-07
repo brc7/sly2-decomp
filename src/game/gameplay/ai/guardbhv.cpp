@@ -1540,187 +1540,175 @@ void StartBhvguard(void *p)
 
 // 0x176750 SetBhvguardMode
 namespace M_SetBhvguardMode { extern "C" {
-struct VTE; struct B6; struct F; struct O; struct A; struct S;
-typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
 extern float D_002BE618[2];
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct B6 { qword q[6]; };
-struct F { int kind; int pad[3]; union { struct { int arg; float argFloat; } s; struct B6 zap; } u; };
-/* The pushed child; its fields at +0x30..+0x40 depend on its class. */
-struct O {
-    char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int combatTarget; int escortObject; }; int pad3;
-    union { int lookAt; int target; int useChaseBehavior; }; union { int sgf; int thrownKind; };
-    union { qword pos; float stalkParam; }; union { struct B6 zap; struct { int pad[3]; int holder; } juggled; };
-};
-struct A { char pad[0x4B0]; qword relocatePoint; char pad2[0xF68 - 0x4C0]; int escortObject; int pad3; qword escortPos; char pad4[0x108C - 0xF80]; int useChaseBehavior; };
-struct S { char pad[0x10]; struct A *guard; int pad2; char childSlot[0x18]; struct F mode; float modeTime; float watchEndTime; };
-int IsBhvguardModeSame(struct F *a, struct F *b);
+int IsBhvguardModeSame(BHVGUARDRECDATA *a, BHVGUARDRECDATA *b);
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
-void SetBhvScriptScript(struct O *o, int a, int b, int c);
-void SetBhvSearchWatched(struct O *o, int n);
+BHV *PushStepBehavior(STEPGUARD *p, int n);
+void SetBhvScriptScript(BHV169 *o, void *a, int b, int c);
+void SetBhvSearchWatched(BHV171 *o, void *n);
 float RandomFloatInRange__Fff(float a, float b);
-void SetStepguardTarget(void *p, int n);
+void SetStepguardTarget(STEPGUARD *p, int n);
+} }
 // 0x176750: BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the new
 // mode: 1 patrol, 2 search a stimulus, 3 alert animation, 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, and the
 // special modes.
-void SetBhvguardMode(struct S *behavior, struct F *m) {
+extern "C" void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) {
+    using namespace M_SetBhvguardMode;
     int clearsTarget;
-    if (IsBhvguardModeSame(m, &behavior->mode)) return;
-    PopBhv(behavior->childSlot);
-    behavior->mode = *m;
+    if (IsBhvguardModeSame(m, &behavior->modeRec)) return;
+    PopBhv(&behavior->pbhvNext);
+    behavior->modeRec = *m;
     behavior->modeTime = D_002DDED0.time;
     clearsTarget = 0;
     switch (m->kind) {
     case GUARD_MODE_SCRIPT:
         {
-            struct O *o;
+            BHV169 *o;
             clearsTarget = 1;
-            o = PushStepBehavior(behavior->guard, CID_BHV169);
-            SetBhvScriptScript(o, m->u.s.arg, 1, 0);
+            o = (BHV169 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV169);
+            SetBhvScriptScript(o, m->arg.object, 1, 0);
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_CALM:
         {
-            struct O *o;
+            BHV *o;
             clearsTarget = 1;
-            o = PushStepBehavior(behavior->guard, CID_BHVPATROL);
+            o = (BHV *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVPATROL);
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_ALERT_ANIM:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+            BHVANIM *o = (BHVANIM *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVANIM);
             o->sgf = 0xB;
-            o->lookAt = m->u.s.arg;
+            o->lookAt = (LO *)m->arg.object;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_ALERT:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVCOMBAT);
-            o->combatTarget = m->u.s.arg;
+            BHVCOMBAT *o = (BHVCOMBAT *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVCOMBAT);
+            o->target = (LO *)m->arg.object;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_SUSPICIOUS:
         {
-            struct O *o;
+            BHV171 *o;
             clearsTarget = 1;
-            o = PushStepBehavior(behavior->guard, CID_BHV171);
-            SetBhvSearchWatched(o, m->u.s.arg);
+            o = (BHV171 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV171);
+            SetBhvSearchWatched(o, m->arg.object);
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_HURT:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV161);
-            o->zap = m->u.zap;
+            BHVHIT *o = (BHVHIT *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV161);
+            o->zpr = m->zap;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_KNOCKDOWN:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV162);
-            o->zap = m->u.zap;
+            BHVHIT *o = (BHVHIT *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV162);
+            o->zpr = m->zap;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_KO:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVKO);
-            o->zap = m->u.zap;
+            BHVHIT *o = (BHVHIT *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVKO);
+            o->zpr = m->zap;
             clearsTarget = 1;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_SLEEP:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV175);
+            BHV *o = (BHV *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV175);
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_THROWN:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV176);
-            o->thrownKind = behavior->mode.u.s.arg;
+            BHV176 *o = (BHV176 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV176);
+            o->thrower = (int)behavior->modeRec.arg.object;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_JUGGLED:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVJUGGLED);
-            o->juggled.holder = m->u.s.arg;
+            BHVJUGGLED *o = (BHVJUGGLED *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVJUGGLED);
+            o->holder = (SO *)m->arg.object;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_TARGET_LIST:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV178);
+            BHV *o = (BHV *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV178);
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_FLEE:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV180);
-            o->target = m->u.s.arg;
+            BHV180 *o = (BHV180 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV180);
+            o->target = (LO *)m->arg.object;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_BHV182:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV182);
-            o->target = m->u.s.arg;
+            BHV182 *o = (BHV182 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV182);
+            o->target = (LO *)m->arg.object;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_NEELA_CHASE:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV174);
-            o->useChaseBehavior = behavior->guard->useChaseBehavior;
+            BHV174 *o = (BHV174 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV174);
+            o->useChaseBehavior = ((NEELA *)behavior->owner)->useChaseBehavior;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_ESCORT:
         {
-            struct O *o;
+            BHV183 *o;
             clearsTarget = 1;
-            o = PushStepBehavior(behavior->guard, CID_BHV183);
-            o->escortObject = behavior->guard->escortObject;
-            o->pos = behavior->guard->escortPos;
+            o = (BHV183 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV183);
+            o->escorted = ((STEPGUARD *)behavior->owner)->escortObject;
+            o->localOffset = ((STEPGUARD *)behavior->owner)->escortPos;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_WATCH:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
+            BHVIDLE *o = (BHVIDLE *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVIDLE);
             o->sgf = 0x1A;
-            o->lookAt = m->u.s.arg;
+            o->lookAt = (LO *)m->arg.object;
             StartPushedBhv(o);
         }
         { float t = D_002DDED0.time; behavior->watchEndTime = t + RandomFloatInRange__Fff(D_002BE618[0], D_002BE618[1]); }
         break;
     case GUARD_MODE_STALK:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV189);
-            o->target = m->u.s.arg;
-            o->stalkParam = m->u.s.argFloat;
+            BHV189 *o = (BHV189 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV189);
+            o->target = (LO *)m->arg.object;
+            o->forcedDelay = m->arg.amount;
             StartPushedBhv(o);
         }
         break;
     case GUARD_MODE_RELOCATE:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV191);
-            o->pos = behavior->guard->relocatePoint;
+            BHV191 *o = (BHV191 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV191);
+            o->end.pos = ((STEPGUARD *)behavior->owner)->relocatePoint;
             StartPushedBhv(o);
         }
         break;
     }
-    if (clearsTarget) SetStepguardTarget(behavior->guard, 0);
+    if (clearsTarget) SetStepguardTarget(((STEPGUARD *)behavior->owner), 0);
 }
-} } // namespace M_SetBhvguardMode
+// (end of SetBhvguardMode: M_SetBhvguardMode)
 
 // 0x176B80 InflictBhvguardZap
 namespace M_InflictBhvguardZap { extern "C" {
@@ -3856,7 +3844,7 @@ void StartBhvpatrol(BHVPATROL *behavior) {
     StartBhv(behavior);
     t = ((STEPGUARD *)behavior->owner);
     if (t->patrolScript) behavior->script = t->patrolScript;
-    else if (t->capabilityFlags & 2) behavior->script = t->altPatrolScript;
+    else if (t->capabilityFlags & 2) behavior->script = (int)t->altPatrolScript;
     else { behavior->script = 0; SetBhvpatrolState(behavior, 2); return; }
     if (((STEPGUARD *)behavior->owner)->scriptResumePoint) ChooseGuardScriptNearestCommand(behavior->script, GetLoWorldPos(((STEPGUARD *)behavior->owner)), &((STEPGUARD *)behavior->owner)->scriptResumePoint);
     if (IsStepguardHandsOff(((STEPGUARD *)behavior->owner))) SetBhvpatrolState(behavior, 3); else SetBhvpatrolState(behavior, 0);
@@ -3974,11 +3962,11 @@ void ArmBhvpatrolWalkTimer(BHVPATROL *behavior)
 {
     if (behavior->walkEndTime < 3.40282346638528859812e+38f)
         return;
-    if (((STEPGUARD *)behavior->owner)->walkTimeMin == 3.40282346638528859812e+38f)
+    if (((STEPGUARD *)behavior->owner)->walkTimes.minValue == 3.40282346638528859812e+38f)
         behavior->walkEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.time;
-        behavior->walkEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->walkTimeMin, ((STEPGUARD *)behavior->owner)->walkTimeMax);
+        behavior->walkEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->walkTimes.minValue, ((STEPGUARD *)behavior->owner)->walkTimes.maxValue);
     }
 }
 } } // namespace M_ArmBhvpatrolWalkTimer
@@ -3992,11 +3980,11 @@ void ArmBhvpatrolPauseTimer(BHVPATROL *behavior)
 {
     if (behavior->pauseEndTime < 3.40282346638528859812e+38f)
         return;
-    if (((STEPGUARD *)behavior->owner)->pauseTimeMin == 3.40282346638528859812e+38f)
+    if (((STEPGUARD *)behavior->owner)->pauseTimes.minValue == 3.40282346638528859812e+38f)
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
     else {
         float t = D_002DDED0.time;
-        behavior->pauseEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->pauseTimeMin, ((STEPGUARD *)behavior->owner)->pauseTimeMax);
+        behavior->pauseEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->pauseTimes.minValue, ((STEPGUARD *)behavior->owner)->pauseTimes.maxValue);
     }
 }
 } } // namespace M_ArmBhvpatrolPauseTimer
@@ -6407,37 +6395,29 @@ void BHVGOTO::Close()
 
 // 0x17D450 SetBhvgotoState
 namespace M_SetBhvgotoState { extern "C" {
-struct VTE; struct O; struct A; struct S;
-typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int pad[2]; int lookAt; } idle; }; union { int ignoresBlockers; qword goalPos; }; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
-struct A { char pad[0x294]; int pathShape; char pad2[0xFE8 - 0x298]; int capabilities; };
-struct S {
-    char pad[0x10]; struct A *guard; int pad2; struct O *child; char pad3[0x14]; int state; float stateTime;
-    char pad4[0x80 - 0x38]; qword relocateGoalRef; qword relocatePos; char pad5[0xA8 - 0xA0]; int lookAtTarget; int unknownAC; char pad6[8]; int firstLink; int isDirect;
-};
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
-void SetBhvpathShape(struct O *o, int a, int b);
+BHV *PushStepBehavior(STEPGUARD *guard, int n);
+void SetBhvpathShape(BHVPATH *o, void *shape, int b);
+} }
 // 0x17D450: BHVGOTO state change: 4 stand (BHVIDLE), 1/2 walk the path (BHVWALKPATH, the run animation when
-// allowed), 3 traverse a path link (BHVPATHLINK), 5 relocate (BHVRELOCATE).
-void SetBhvgotoState(struct S *behavior, int n) {
+// allowed), 3 traverse a path link (BHVPATHLINK), 5 relocate (BHV191 on the relocate goal).
+extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
+    using namespace M_SetBhvgotoState;
     if (n == behavior->state) return;
-    if (!((unsigned)n < 3 && behavior->state >= 0 && behavior->state < 3)) PopBhv(&behavior->child);
+    if (!((unsigned)n < 3 && behavior->state >= 0 && behavior->state < 3)) PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 4:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-            o->idle.lookAt = behavior->lookAtTarget;
+            BHVIDLE *o = (BHVIDLE *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVIDLE);
+            o->lookAt = behavior->lookAtTarget;
             StartPushedBhv(o);
         }
         break;
     case 3:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVPATHLINK);
+            BHVPATHLINK *o = (BHVPATHLINK *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVPATHLINK);
             o->pathlink = behavior->firstLink;
             StartPushedBhv(o);
         }
@@ -6445,16 +6425,16 @@ void SetBhvgotoState(struct S *behavior, int n) {
     case 1:
     case 2:
         {
-            struct O *o = behavior->child;
+            BHVWALKPATH *o = (BHVWALKPATH *)behavior->pbhvNext;
             if (o == 0) {
-                o = PushStepBehavior(behavior->guard, CID_BHVWALKPATH);
+                o = (BHVWALKPATH *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVWALKPATH);
                 o->lookAtTarget = behavior->lookAtTarget;
                 o->ignoresBlockers = behavior->isDirect;
-                if (!behavior->lookAtTarget || behavior->unknownAC || !(behavior->guard->capabilities & 4)) o->animSgf = 9; else o->animSgf = 8;
-                SetBhvpathShape(o, behavior->guard->pathShape, 0);
+                if (!behavior->lookAtTarget || behavior->unknownAC || !(((STEPGUARD *)behavior->owner)->capabilityFlags & 4)) o->animSgf = 9; else o->animSgf = 8;
+                SetBhvpathShape(o, ((STEPGUARD *)behavior->owner)->unknown294, 0);
                 StartPushedBhv(o);
             } else {
-                SetBhvpathShape(o, behavior->guard->pathShape, 0);
+                SetBhvpathShape(o, ((STEPGUARD *)behavior->owner)->unknown294, 0);
             }
         }
         break;
@@ -6463,15 +6443,13 @@ void SetBhvgotoState(struct S *behavior, int n) {
         break;
     case 5:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHV191);
-            o->goalRef = behavior->relocateGoalRef;
-            o->goalPos = behavior->relocatePos;
+            BHV191 *o = (BHV191 *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHV191);
+            o->end = behavior->relocateGoal;
             StartPushedBhv(o);
         }
         break;
     }
 }
-} } // namespace M_SetBhvgotoState
 
 // 0x17D608 SnapPositionToSurfaceAbove
 namespace M_FSnapPosToSurfaceAbove {
@@ -6558,42 +6536,29 @@ int SnapPositionToSurfaceAbove(qword *ppos)
 
 // 0x17D6C8 UpdateBhvgoto
 namespace M_UpdateBhvgoto { extern "C" {
-struct W; struct T; struct V; struct A; struct S;
-typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
 extern float D_002BE758, D_002BE75C;
 struct W { int pad[0x28 / 4]; int version; };
-extern SW D_003DD490;
-struct T { char pad[0x30]; void *shape; float pathParam; };
-struct V { int pad[2]; float z; };
-struct A { char pad[0x218]; struct V *unknown218; char pad2[0xFE8 - 0x21C]; int capabilities; };
-struct S {
-    char pad[0x10]; struct A *guard; int pad2; struct T *child; char pad3[0x14]; int state;
-    char pad4[0x80 - 0x34]; int relocateRef0; int relocateRef1; char pad5[8]; float relocatePos[4]; float planTime; int pathGraphVersion;
-};
-void UpdateBhv(struct S *p);
-int IsBhvBusyAbove(struct S *p);
-int IsBhvpathAtEnd(struct T *t);
-void SetBhvgotoState(struct S *p, int n);
-int IsBhvwalkpathStuck(struct T *t);
-float GetShapeMaxDistance(void *p);
-void EvaluateShapeAtDistance(void *p, float f, float *pv, int n);
-int IsBhvpathlinkDone(struct T *t);
-int IsBhvRelocateDone(struct T *t);
-void PlanBhvgoto(struct S *p);
+int IsBhvwalkpathStuck(BHVPATH *t);
+float GetShapeMaxDistance(SHAPE *p);
+void EvaluateShapeAtDistance(SHAPE *p, float f, qword *pv, int n);
+int IsBhvpathlinkDone(BHV *t);
+int IsBhvRelocateDone(BHV *t);
+} }
 // 0x17D6C8: BHVGOTO vtable slot 10 (Update): re-plans when stale or the path graph changed; at a path link's start
 // traverses it; relocates when stuck.
-void UpdateBhvgoto(struct S *behavior) {
+void BHVGOTO::Update() {
+    using namespace M_UpdateBhvgoto;
+    BHVGOTO *behavior = this;
     int s;
     UpdateBhv(behavior);
-    if (!(behavior->guard->capabilities & 2)) return;
+    if (!(((STEPGUARD *)behavior->owner)->capabilityFlags & 2)) return;
     while (!IsBhvBusyAbove(behavior)) {
         s = behavior->state;
         switch (s) {
         case 1:
         case 2:
             {
-                struct T *t = behavior->child;
+                BHVPATH *t = (BHVPATH *)behavior->pbhvNext;
                 if (s == 2 && IsBhvpathAtEnd(t)) {
                     SetBhvgotoState(behavior, 3);
                 } else if (D_002DDED0.time - behavior->planTime > D_002BE758 || behavior->pathGraphVersion != ((struct W *)D_003DD490.pregtree)->version) {
@@ -6601,26 +6566,25 @@ void UpdateBhvgoto(struct S *behavior) {
                 } else if (IsBhvwalkpathStuck(t)) {
                     float f = t->pathParam + D_002BE75C;
                     float maxParam = GetShapeMaxDistance(t->shape);
-                    behavior->relocateRef0 = 0;
-                    behavior->relocateRef1 = 0;
-                    EvaluateShapeAtDistance(t->shape, f < maxParam ? f : maxParam, behavior->relocatePos, 0);
-                    behavior->relocatePos[2] = behavior->guard->unknown218->z;
+                    behavior->relocateGoal.shape = 0;
+                    behavior->relocateGoal.object = 0;
+                    EvaluateShapeAtDistance(t->shape, f < maxParam ? f : maxParam, &behavior->relocateGoal.pos, 0);
+                    ((float *)&behavior->relocateGoal.pos)[2] = ((float *)((STEPGUARD *)behavior->owner)->unknown218)[2];
                     SetBhvgotoState(behavior, 5);
                 }
             }
             break;
         case 3:
-            if (IsBhvpathlinkDone(behavior->child)) PlanBhvgoto(behavior);
+            if (IsBhvpathlinkDone(behavior->pbhvNext)) PlanBhvgoto(behavior);
             break;
         case 5:
-            if (IsBhvRelocateDone(behavior->child)) PlanBhvgoto(behavior);
+            if (IsBhvRelocateDone(behavior->pbhvNext)) PlanBhvgoto(behavior);
             break;
         }
         if (s != behavior->state) continue;
         break;
     }
 }
-} } // namespace M_UpdateBhvgoto
 
 // 0x17D8A8 FindBhvgotoRoute
 namespace M_FindBhvgotoRoute { extern "C" {
@@ -6818,20 +6782,13 @@ int IsBhvgotoPathFinished(BHVGOTO *behavior)
 } } // namespace M_FBhvgotoPathFinished
 
 // 0x17DD38 SetBhvgotoGoal
-namespace M_SetBhvgotoGoal { extern "C" {
-struct Q2; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct Q2 { qword a, b; };
-struct S { char pad[0x40]; struct Q2 goal; char pad2[0x40]; float planTime; };
-void PlanBhvgoto(struct S *p);
-// 0x17DD38: Sets the goal (a 16-byte header plus the position) and re-plans.
-void SetBhvgotoGoal(struct S *behavior, struct Q2 *pq)
+// 0x17DD38: Sets the goal and re-plans.
+extern "C" void SetBhvgotoGoal(BHVGOTO *behavior, PATHLINKEND *pq)
 {
     behavior->goal = *pq;
     behavior->planTime = -3.40282346638528859812e+38f;
     PlanBhvgoto(behavior);
 }
-} } // namespace M_SetBhvgotoGoal
 
 // 0x17DD70 InitBhvStalk
 namespace M_func_0017DD70 { extern "C" {

@@ -1,10 +1,10 @@
-// tu_1709A8.cpp -- guard scripts. The script object (SSG, cid 0x71, an LO) holds a list of commands (SSGE: set the
+// tu_1709A8.cpp -- guard scripts. The script object (CID113, cid 0x71, an LO) holds a list of commands (SSGE: set the
 // context object, set walk/pause times, teleport, message, wait, go to / follow a path, look at, animation, labels
-// and jumps, busy on/off, relay alarm) appended by its Splice options; the script-running guard behaviour (BHVSSG,
+// and jumps, busy on/off, relay alarm) appended by its Splice options; the script-running guard behaviour (BHV169,
 // BHV169, guard flag 0x21) steps through them, spawning child behaviours for the commands that take time. Entry
 // points: AddGuardScript* (Splice), StartGuardScript, SetBhvScriptScript, UpdateBhvScript, ExecuteBhvScriptCommand.
 // TU 0x1709A8..0x171F58 (42 functions, address order).
-// Types: SSGE (with a kind-selected argument union), SSG, BHVSSG and BHVGUARD are TU-private views written for the
+// Types: SSGE (with a kind-selected argument union), CID113, BHV169 and BHVGUARD are TU-private views written for the
 // 26 m2c bodies and a few small functions; the other functions keep the per-function views they were matched with,
 // each in a namespace named after it (as vec.cpp and mark.cpp do).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1709A8
@@ -59,74 +59,27 @@ enum {
     SSGK_PLAY_BINDING = 14,     /* BHVANIM on the behaviour's own binding */
     SSGK_RELAY_ALARM = 15,
 };
-/* A guard script command (SSGE, from SW::slotheapSsge): its kind (0 set the context object, 1/2 a key pair, 3 a
-   point, 4, 5 wait g seconds, 6 follow a path object, 7 go to a point, 8..10, 11/12 stop/resume point selection,
-   13..15 animations), the target id (an oid, -1 for none), the kind-dependent arguments, and the script's list
-   link (DLE at +0x18). */
-struct SSGE
-{
-    int kind;               /* +0x00 */
-    int id;                 /* +0x04 */
-    union                   /* +0x08 by kind: 5 a time, 3/7 a point, 6/13..15 a number */
-    {
-        int n;
-        float g;
-        qword *ppos;
-    };
-    union                   /* +0x0C kind 6: an oid for the patrol path's +0x50; kinds 3/7: a heading */
-    {
-        int secondOid;
-        float heading;
-    };
-    int lookAtOid;          /* +0x10 kind 7 */
-    float gotoParam;        /* +0x14 kind 7: BHVGOTO +0xB0 (meaning unknown) */
-    SSGE *next;        /* +0x18 */
-    SSGE *previous;
-};
-/* The guard script object (an LO): its commands from +0x50. */
-struct SSG
-{
-    char pad0[0x50];
-    DL commands;              /* +0x50 */
-};
-/* Behaviour vtable entries (g++ 2.95 {delta, pfn}). */
-struct VTE { short d; short pad; void (*pfn)(); };
-/* The script-running guard behaviour (BHV, bhvstk.cpp's layout: vtable +0xC, owner +0x10, sub-behaviour +0x18). */
-struct BHVSSG
-{
-    char pad0[0xC];
-    VTE *vt;               /* +0x0C */
-    STEPGUARD *guard;  /* +0x10 */
-    char pad14[4];
-    char childSlot[0x18];      /* +0x18 the running sub-behaviour */
-    SSG *script;              /* +0x30 */
-    LO *context;              /* +0x34 the object script oids are looked up relative to */
-    SSGE *currentCommand;         /* +0x38 */
-    float commandStartTime;   /* +0x3C */
-    int isCommandBusy;              /* +0x40 */
-};
-/* The guard behaviour (CID 0x9C) as IsGuardRunningScript reads it: its mode and the mode's argument. */
-struct BHVGUARDV { char pad0[0x30]; int mode; char pad34[0xC]; int argument; };
-
+/* The guard script object is CID113 (classes.h; its commands from +0x50), the commands SSGE and the script-running
+   behaviour BHV169 (sly2/guard.h, classes.h). */
 extern SW D_003DD490;
 extern "C" {
-void InitLo(SSG *script);
-void PostLoLoad(SSG *script);
+void InitLo(CID113 *script);
+void PostLoLoad(CID113 *script);
 void InitSl(DL *pdl, int ibDle);       /* InitDl */
 void AppendSlEntry(DL *pdl, void *pv);        /* AppendDlEntry */
-void PrepareGuardScriptTargets(SSG *script);
-SSGE *AppendGuardScriptCommand(SSG *script, int kind, int id) __asm__("AddGuardScriptCommand");
-void StartGuardScript(LO *object, SSG *script);
-void InitBhv(BHVSSG *behavior);
-void CloseBhv(BHVSSG *behavior);
-void UpdateBhv(BHVSSG *behavior);
-void ClearBhvBusy(BHVSSG *behavior);
+void PrepareGuardScriptTargets(CID113 *script);
+SSGE *AppendGuardScriptCommand(CID113 *script, int kind, int id) __asm__("AddGuardScriptCommand");
+void StartGuardScript(LO *object, CID113 *script);
+void InitBhv(BHV169 *behavior);
+void CloseBhv(BHV169 *behavior);
+void UpdateBhv(BHV169 *behavior);
+void ClearBhvBusy(BHV169 *behavior);
 void PopBhv(void *behavior);
 void AddStepguardSgf(STEPGUARD *guard, int sgf);
 void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
-void SetBhvScriptScript(BHVSSG *behavior, SSG *script, int n, void *pv);
-int IsBhvScriptCommandBusy(BHVSSG *behavior);
-SSGE *FindGuardScriptLabel(SSG *script, int id);
+void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPartialRoute, SSGRESUME *resume);
+int IsBhvScriptCommandBusy(BHV169 *behavior);
+SSGE *FindGuardScriptLabel(CID113 *script, int id);
 void *FindStepBehavior(LO *object, int cid);
 }
 
@@ -146,7 +99,7 @@ int GetShapeMoveKind(void *p)
 } } // namespace M_func_001709A8
 
 // 0x1709F8: Guard script (cid 0x71) vtable slot 7 (Init): LO Init, then an empty command list.
-extern "C" void InitGuardScript(SSG *script)
+extern "C" void InitGuardScript(CID113 *script)
 {
     InitLo(script);
     InitSl(&script->commands, 0x18);
@@ -155,7 +108,7 @@ extern "C" void InitGuardScript(SSG *script)
 // 0x170A28: Guard script vtable slot 15 (PostLoad): LO post-load, then prepares its targets.
 void CID113::PostLoad()
 {
-    SSG *script = (SSG *)this;
+    CID113 *script = this;
     PostLoLoad(script);
     PrepareGuardScriptTargets(script);
 }
@@ -191,7 +144,7 @@ void PrepareGuardScriptTargets(struct S *context)
 } } // namespace M_func_00170A58
 
 // 0x170B40: Splice option: appends command kind 0, set the lookup context object (oid).
-extern "C" void AddGuardScriptSetContext(SSG *script, int id)
+extern "C" void AddGuardScriptSetContext(CID113 *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_SET_CONTEXT, id);
 }
@@ -215,26 +168,26 @@ void AddGuardScriptSetPauseTimes(void *script, struct RANGE *range) { AddGuardSc
 } } // namespace M_func_00170BA0
 
 // 0x170BE0: Splice option: appends command kind 3, teleport the guard to a target (oid).
-extern "C" void AddGuardScriptTeleport(SSG *script, int id)
+extern "C" void AddGuardScriptTeleport(CID113 *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_TELEPORT, id);
 }
 
 // 0x170C00: Splice option: appends command kind 4, send the guard message 4 with an argument.
-extern "C" void AddGuardScriptMessage(SSG *script, int id)
+extern "C" void AddGuardScriptMessage(CID113 *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_MESSAGE, id);
 }
 
 // 0x170C20: Splice option: appends command kind 5, wait/idle for a time.
-extern "C" void AddGuardScriptWait(SSG *script, float g)
+extern "C" void AddGuardScriptWait(CID113 *script, float g)
 {
     AppendGuardScriptCommand(script, SSGK_WAIT, -1)->g = g;
 }
 
 // 0x170C50: Appends command kind 6, follow a path target (oid): BHVPATROLPATH on a patrol path with `pathArg` and an
 // optional second target, or BHVRAIL/BHVPIPE when the guard is attached to a rail or pipe.
-extern "C" void AddGuardScriptFollowPath(SSG *script, int id, int pathArg, int secondOid)
+extern "C" void AddGuardScriptFollowPath(CID113 *script, int id, int pathArg, int secondOid)
 {
     SSGE *command;
     command = AppendGuardScriptCommand(script, SSGK_FOLLOW_PATH, id);
@@ -244,7 +197,7 @@ extern "C" void AddGuardScriptFollowPath(SSG *script, int id, int pathArg, int s
 
 // 0x170C90: Appends command kind 7, go to a target (oid; a point when -1) with BHVGOTO, optionally looking at
 // `lookAtOid` (-1 for none); `gotoParam` is copied to BHVGOTO +0xB0 (meaning unknown).
-extern "C" void AddGuardScriptGoto(SSG *script, int id, int lookAtOid, float gotoParam)
+extern "C" void AddGuardScriptGoto(CID113 *script, int id, int lookAtOid, float gotoParam)
 {
     SSGE *command;
     command = AppendGuardScriptCommand(script, SSGK_GOTO, id);
@@ -253,51 +206,51 @@ extern "C" void AddGuardScriptGoto(SSG *script, int id, int lookAtOid, float got
 }
 
 // 0x170CD0: Splice option: appends command kind 8, play the animation of a target (oid).
-extern "C" void AddGuardScriptAnim(SSG *script, int id)
+extern "C" void AddGuardScriptAnim(CID113 *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_ANIM, id);
 }
 
 // 0x170CF0: Splice option: appends command kind 9, a label.
-extern "C" void AddGuardScriptLabel(SSG *script, int id)
+extern "C" void AddGuardScriptLabel(CID113 *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_LABEL, id);
 }
 
 // 0x170D10: Splice option: appends command kind 10, jump to a label.
-extern "C" void AddGuardScriptJump(SSG *script, int id)
+extern "C" void AddGuardScriptJump(CID113 *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_JUMP, id);
 }
 
 // 0x170D30: Splice option: appends command kind 11, behaviour busy on (also suspends target selection and
 // nearest-command resume).
-extern "C" void AddGuardScriptBusyOn(SSG *script, int n1, int n2)
+extern "C" void AddGuardScriptBusyOn(CID113 *script, int n1, int n2)
 {
     AppendGuardScriptCommand(script, SSGK_BUSY_ON, -1);
 }
 
 // 0x170D50: Splice option: appends command kind 12, behaviour busy off.
-extern "C" void AddGuardScriptBusyOff(SSG *script, int n1, int n2)
+extern "C" void AddGuardScriptBusyOff(CID113 *script, int n1, int n2)
 {
     AppendGuardScriptCommand(script, SSGK_BUSY_OFF, -1);
 }
 
 // 0x170D70: Splice option: appends command kind 13, leap at a target (oid) with an int argument (BHVLEAP, cid 0xAC).
-extern "C" void AddGuardScriptLeap(SSG *script, int id, int n)
+extern "C" void AddGuardScriptLeap(CID113 *script, int id, int n)
 {
     AppendGuardScriptCommand(script, SSGK_LEAP, id)->n = n;
 }
 
 // 0x170DA0: Splice option: appends command kind 14, play the behaviour's own animation binding (BHVANIM, cid 0x9D)
 // with an int argument and a sensor block.
-extern "C" void AddGuardScriptPlayBinding(SSG *script, int id, int n)
+extern "C" void AddGuardScriptPlayBinding(CID113 *script, int id, int n)
 {
     AppendGuardScriptCommand(script, SSGK_PLAY_BINDING, id)->n = n;
 }
 
 // 0x170DD0: Splice option: appends command kind 15, ensure the relay alarm of a target.
-extern "C" void AddGuardScriptEnsureRelayAlarm(SSG *script, int id, int n)
+extern "C" void AddGuardScriptEnsureRelayAlarm(CID113 *script, int id, int n)
 {
     AppendGuardScriptCommand(script, SSGK_RELAY_ALARM, id)->n = n;
 }
@@ -305,7 +258,7 @@ extern "C" void AddGuardScriptEnsureRelayAlarm(SSG *script, int id, int n)
 // 0x170E00: Allocates a command node from the script pool, sets its kind and argument and appends it to the
 // script's list; returns it.
 /* Appends a command of the given kind (and target id, -1 for none) to the script; returns it. */
-extern "C" SSGE *AddGuardScriptCommand(SSG *script, int kind, int id)
+extern "C" SSGE *AddGuardScriptCommand(CID113 *script, int kind, int id)
 {
     SSGE *command;
     command = (SSGE *)AllocZeroedFromSlotheap(&D_003DD490.slotheapSsge);
@@ -316,7 +269,7 @@ extern "C" SSGE *AddGuardScriptCommand(SSG *script, int kind, int id)
 }
 
 // 0x170E68: Starts this script on a guard, if one is given.
-extern "C" void StartGuardScriptOnGuard(SSG *script, LO *object)
+extern "C" void StartGuardScriptOnGuard(CID113 *script, LO *object)
 {
     if (object != 0) {
         StartGuardScript(object, script);
@@ -474,7 +427,7 @@ void GetGuardScriptTargetPose(void *script, qword pos, LO *target, qword *posOut
 
 // 0x1711F0: Finds the label command (kind 9) with the given id.
 /* The label command (kind 9) with the given id. The unused array is part of the original frame. */
-extern "C" SSGE *FindGuardScriptLabel(SSG *script, int id)
+extern "C" SSGE *FindGuardScriptLabel(CID113 *script, int id)
 {
     int unused[4];
     SSGE *command;
@@ -487,32 +440,28 @@ extern "C" SSGE *FindGuardScriptLabel(SSG *script, int id)
 // 0x171228: Script behaviour (BHV169) vtable slot 7 (OnPush): base, then raises guard flag 0x21.
 void BHV169::OnPush()
 {
-    BHVSSG *behavior = (BHVSSG *)this;
+    BHV169 *behavior = this;
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, SGF_SCRIPT);
+    AddStepguardSgf(((STEPGUARD *)behavior->owner), SGF_SCRIPT);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171258 { extern "C" {
-struct S;
-struct VTE { short d; short pad; void (*pfn)(); };
-struct SCRIPT { int frame; char pad[0x4C]; int firstCommand; };
-struct RESUME { int command; int context; };
-struct S { int pad0; char ref4[8]; struct VTE *vt; char pad[8]; char childSlot[0x18]; struct SCRIPT *script; int context; int currentCommand; int pad3; int isCommandBusy; struct RESUME *resume; int pad4; int allowPartialRoute; };
-void PopBhv(void *slot);
-void FramePtr_Assign(struct S *behavior, int frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void AssignSidebagRef(void *ref, int n);
-// 0x171258: Switches the script a script behaviour runs: stops the old one (message 3), starts the new one (message
-// 2) at its first command or at a saved resume point.
-void SetBhvScriptScript(struct S *behavior, struct SCRIPT *script, int allowPartialRoute, struct RESUME *resume)
+void FramePtr_Assign(CRefPtr<CFrame> *pref, CFrame *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+void AssignSidebagRef(CRefPtr<CSidebag> *pref, CSidebag *sidebag);
+} }
+// 0x171258: Switches the script a script behaviour runs: stops the old one (splice event 3), starts the new one
+// (event 2) at its first command or at a saved resume point.
+extern "C" void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPartialRoute, SSGRESUME *resume)
 {
+    using namespace M_func_00171258;
     if (script == behavior->script)
         return;
     if (behavior->script) {
-        PopBhv(behavior->childSlot);
-        ((void (*)(void *, int, int, int, int, int))behavior->vt[3].pfn)((char *)behavior + behavior->vt[3].d, 3, 0, 0, 0, 0);
-        FramePtr_Assign(behavior, 0);
-        AssignSidebagRef(behavior->ref4, 0);
+        PopBhv(&behavior->pbhvNext);
+        behavior->HandleSpliceEvent(3, 0, 0, 0, 0);
+        FramePtr_Assign(&behavior->scriptFrame, 0);
+        AssignSidebagRef(&behavior->scriptVariables, 0);
         behavior->context = 0;
         behavior->currentCommand = 0;
         behavior->isCommandBusy = 0;
@@ -521,13 +470,13 @@ void SetBhvScriptScript(struct S *behavior, struct SCRIPT *script, int allowPart
     behavior->script = script;
     if (!script)
         return;
-    FramePtr_Assign(behavior, script->frame);
-    ((void (*)(void *, int, int, int, int, int))behavior->vt[3].pfn)((char *)behavior + behavior->vt[3].d, 2, 0, 0, 0, 0);
+    FramePtr_Assign(&behavior->scriptFrame, script->scriptFrame.m_p);
+    behavior->HandleSpliceEvent(2, 0, 0, 0, 0);
     behavior->allowPartialRoute = allowPartialRoute;
     if (!resume || !resume->command) {
-        struct SCRIPT *s = behavior->script;
-        int first = s->firstCommand;
-        behavior->context = (int)s;
+        CID113 *s = behavior->script;
+        SSGE *first = (SSGE *)s->commands.head;
+        behavior->context = s;
         behavior->currentCommand = first;
     } else {
         behavior->currentCommand = resume->command;
@@ -535,24 +484,23 @@ void SetBhvScriptScript(struct S *behavior, struct SCRIPT *script, int allowPart
         behavior->context = resume->context;
     }
     if (behavior->currentCommand)   /* ExecuteBhvScriptCommand (vtable slot 15) */
-        ((void (*)(void *, int))behavior->vt[15].pfn)((char *)behavior + behavior->vt[15].d, behavior->currentCommand);
+        behavior->ExecuteScriptCommand(behavior->currentCommand);
     behavior->resume = 0;
 }
-} } // namespace M_func_00171258
 
 // 0x171398: Script behaviour vtable slot 9 (Close): base, clears busy, drops the script and lowers flag 0x21.
-extern "C" void CloseBhvScript(BHVSSG *behavior)
+extern "C" void CloseBhvScript(BHV169 *behavior)
 {
     CloseBhv(behavior);
     ClearBhvBusy(behavior);
     SetBhvScriptScript(behavior, 0, 0, 0);
-    RemoveStepguardSgf(behavior->guard, SGF_SCRIPT);
+    RemoveStepguardSgf(((STEPGUARD *)behavior->owner), SGF_SCRIPT);
 }
 
 // 0x1713E8: Script behaviour vtable slot 10 (Update): executes commands until one is still busy or the script ends.
 /* Runs the script: while a command is current and done (IsBhvScriptCommandBusy), steps to the next one and starts it
    (behaviour slot 15). Returns the current command (0 at the end). */
-extern "C" SSGE *UpdateBhvScript(BHVSSG *behavior)
+extern "C" SSGE *UpdateBhvScript(BHV169 *behavior)
 {
     SSGE *next;
     SSGE *command;
@@ -568,8 +516,7 @@ extern "C" SSGE *UpdateBhvScript(BHVSSG *behavior)
             behavior->currentCommand = next;
             if (next == 0)
                 break;   // the script ended (returns the last command)
-            VTE *entry = behavior->vt;
-            ((void (*)(BHVSSG *, SSGE *))entry[15].pfn)((BHVSSG *)((char *)behavior + entry[15].d), next);   // StartCommand
+            behavior->ExecuteScriptCommand(next);   // StartCommand
             command = behavior->currentCommand;
             if (command == 0)
                 break;
@@ -579,7 +526,7 @@ extern "C" SSGE *UpdateBhvScript(BHVSSG *behavior)
 }
 
 // 0x171458: True when the script has no current command (finished).
-extern "C" int IsBhvScriptDone(BHVSSG *behavior)
+extern "C" int IsBhvScriptDone(BHV169 *behavior)
 {
     return behavior->currentCommand == 0;
 }
@@ -587,115 +534,91 @@ extern "C" int IsBhvScriptDone(BHVSSG *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171468 { extern "C" {
 extern struct CLOCK D_002DDED0;
-struct COMMAND { int kind; int pad; float duration; };
-struct S { char pad[0x10]; STEPGUARD *guard; int pad2; void *child; char pad3[0x1C]; struct COMMAND *currentCommand; float commandStartTime; int isCommandBusy; int pad4; float heading; };
 int IsBhvpatrolpathDone(void *bhv);
 int HasBhvrailArrived(void *bhv);
 int HasBhvpipeArrived(void *bhv);
 int HasBhvgotoArrived(void *bhv);
 int IsBhvanimDone(void *bhv);
-void SetStepguardMoverRadTarget(void *mover, float heading);
-void PopBhv(void *slot);
+void SetStepguardMoverRadTarget(GUARDMOVER *mover, float heading);
 // 0x171468: True while the running command's child behaviour (goto, look, wait, kinds 13/14) is still active; pops
 // it when done.
-int IsBhvScriptCommandBusy(struct S *behavior) {
+int IsBhvScriptCommandBusy(BHV169 *behavior) {
     if (!behavior->isCommandBusy) return 0;
     switch (behavior->currentCommand->kind) {
     case SSGK_FOLLOW_PATH:
-        switch (behavior->guard->attachKind) {
+        switch (((STEPGUARD *)behavior->owner)->attachKind) {
         case -1:
-            if (IsBhvpatrolpathDone(behavior->child)) behavior->isCommandBusy = 0;
+            if (IsBhvpatrolpathDone(behavior->pbhvNext)) behavior->isCommandBusy = 0;
             break;
         case 0:
-            if (HasBhvrailArrived(behavior->child)) behavior->isCommandBusy = 0;
+            if (HasBhvrailArrived(behavior->pbhvNext)) behavior->isCommandBusy = 0;
             break;
         case 1:
-            if (HasBhvpipeArrived(behavior->child)) behavior->isCommandBusy = 0;
+            if (HasBhvpipeArrived(behavior->pbhvNext)) behavior->isCommandBusy = 0;
             break;
         }
         break;
     case SSGK_GOTO:
-        if (HasBhvgotoArrived(behavior->child)) {
+        if (HasBhvgotoArrived(behavior->pbhvNext)) {
             behavior->isCommandBusy = 0;
-            SetStepguardMoverRadTarget((&behavior->guard->mover), behavior->heading);
+            SetStepguardMoverRadTarget((&((STEPGUARD *)behavior->owner)->mover), behavior->heading);
         }
         break;
     case SSGK_WAIT:
-        if (behavior->currentCommand->duration < D_002DDED0.time - behavior->commandStartTime) behavior->isCommandBusy = 0;
+        if (behavior->currentCommand->g < D_002DDED0.time - behavior->commandStartTime) behavior->isCommandBusy = 0;
         break;
     case SSGK_LEAP: case SSGK_PLAY_BINDING:
-        if (IsBhvanimDone(behavior->child)) behavior->isCommandBusy = 0;
+        if (IsBhvanimDone(behavior->pbhvNext)) behavior->isCommandBusy = 0;
         break;
     }
-    if (!behavior->isCommandBusy) PopBhv(&behavior->child);
+    if (!behavior->isCommandBusy) PopBhv(&behavior->pbhvNext);
     return behavior->isCommandBusy;
 }
 } } // namespace M_func_00171468
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001715B8 { extern "C" {
-struct S { char pad[0x34]; int context; };
 extern SW D_003DD490;
-void *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, int context);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, LO *context);
 // 0x1715B8: Finds a world object by oid relative to the script's current context object.
-void *FindBhvScriptTarget(struct S *behavior, int oid)
+void *FindBhvScriptTarget(BHV169 *behavior, int oid)
 {
-    int context = behavior->context;
+    LO *context = behavior->context;
     int findKind = context ? 4 : 5;
     return FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, findKind, oid, context);
 }
 } } // namespace M_func_001715B8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001715F0 {
-typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(); };
-struct RANGE { float min, max; };
-struct GUARD { char pad[0x2CC]; struct RANGE walkTimes; struct RANGE pauseTimes; char pad2[0xF80 - 0x2DC]; int attachKind; };
-struct O { int guard, b, command; virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5(); virtual void V6(); virtual void V7(); virtual void V8(); };
-struct CMD { int kind; int id; union { struct RANGE range; struct { int arg; int secondOid; } s; } u; int lookAtOid; float gotoParam; };
-struct POINTCMD { int kind; int id; void *position; float heading; };   /* the current command as guard kind 3/7 point */
-struct BINDING { int kind; int oid; int instance; int flags; };   /* an ANIMBINDING */
-struct RESUME { int command, context; float pathParam; };
-struct SB { int guard, b, command; virtual void V1(); virtual void V2(); virtual void Msg(int, int, int, void **, int); };
-struct S : SB {
-    struct GUARD *guard; char pad1[0x30 - 0x14];
-    void *script; void *context; struct POINTCMD *currentCommand; float commandStartTime; int isCommandBusy; struct RESUME *resume; float heading; int allowPartialRoute;
-    struct BINDING animBinding;   /* +0x50 the binding kind 14 plays */
-};
-struct GOAL { void *shape; void *object; int pad[2]; qword q; GOAL(); };   /* guard BHVGOTO goal: guard shape, an object or guard point */
-extern "C" { extern struct CLOCK D_002DDED0; }
-extern "C" { void *FindBhvScriptTarget(struct S *behavior, int oid); }
-extern "C" { void GetBhvScriptTargetPose(struct S *behavior, void *target, qword *posOut, float *headingOut); }
-extern "C" { void TeleportBhvScriptGuard(struct S *behavior, qword pos, float heading); }
-extern "C" { void *PushStepBehavior(struct GUARD *guard, int cid); }
-extern "C" { void EnsureShapeVolumeSegments(void *shape); }
-extern "C" { void SetBhvrailGoal(void *bhv, int goal); }
-extern "C" { void SetBhvpipeGoal(void *bhv, int goal); }
-extern "C" { void ClearPointerPair(struct GOAL *goal); }
-// Default constructor: both pointers cleared (ClearPointerPair).
-inline GOAL::GOAL() { ClearPointerPair(this); }
-extern "C" { int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid); }
-extern "C" { void SetBhvgotoGoal(void *bhv, struct GOAL *goal); }
-extern "C" { void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float speed); }
-extern "C" { void *FindGuardScriptLabel(void *script, int id); }
-extern "C" { void SetBhvBusy(struct S *behavior); }
-extern "C" { void ClearBhvBusy(struct S *behavior); }
-extern "C" { void ReleaseAnimBinding(struct BINDING *binding, struct GUARD *guard); }
-extern "C" { void ResolveAnimBinding(struct BINDING *binding, struct GUARD *guard); }
-extern "C" { void func_001E0020(void *sgg, int alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM"); }
+namespace M_func_001715F0 { extern "C" {
+extern CLOCK D_002DDED0;
+void *FindBhvScriptTarget(BHV169 *behavior, int oid);
+void GetBhvScriptTargetPose(BHV169 *behavior, void *target, qword *posOut, float *headingOut);
+void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading);
+BHV *PushStepBehavior(STEPGUARD *guard, int cid);
+void EnsureShapeVolumeSegments(void *shape);
+void SetBhvrailGoal(BHV *bhv, int goal);
+void SetBhvpipeGoal(BHV *bhv, int goal);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
+void SetBhvgotoGoal(BHVGOTO *bhv, PATHLINKEND *goal);
+void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float speed);
+void SetBhvBusy(BHV169 *behavior);
+void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void func_001E0020(void *sgg, int alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
+void ClearPointerPair(void *goal);
+}
+/* island: the goto goal as a PATHLINKEND with an inline constructor calling ClearPointerPair; the header's
+   asm-labelled constructor keeps &goal in a saved register (1 instruction more, 164/322 off). */
+struct PATHLINKENDIsland { SHAPE *shape; LO *object; int pad[2]; qword pos; PATHLINKENDIsland() { ClearPointerPair(this); } };
+}
 
-struct BHVPATROLPATHV : O { char pad1[0x30 - 0x10]; void *path; int pathArg; float startParam; char pad2[0x50-0x3C]; void *secondTarget; int pad3; int allowPartialRoute; };
-struct BHVGOTOV : O { char pad1[0xA8 - 0x10]; void *lookAt; int pad2; float gotoParam; int pad3[2]; int allowPartialRoute; };
-struct BHVLEAPV : O { char pad1[0x60 - 0x10]; void *target; int arg; int unknown68; };
-struct BHVANIMV : O { char pad1[0x40 - 0x10]; struct BINDING *binding; };
-
-#define VCALL8(o) { struct O *oo = (struct O *)(o); oo->V8(); }
-
-// 0x1715F0: Executes one script command (kinds 0-15): set context, set times, teleport, message, spawn child
-// behaviours, label/jump, busy on/off, relay alarm.
-extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
+// 0x1715F0: Script behaviour vtable slot 15: executes one script command (kinds 0-15): set context, set times,
+// teleport, message, spawn child behaviours, label/jump, busy on/off, relay alarm.
+void BHV169::ExecuteScriptCommand(SSGE *command)
 {
+    using namespace M_func_001715F0;
+    BHV169 *behavior = this;
     union { qword q; } pose;
     float heading;
     void *args;
@@ -703,13 +626,13 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     int attachKind;
     switch (command->kind) {
     case SSGK_SET_CONTEXT:
-        behavior->context = FindBhvScriptTarget(behavior, command->id);
+        behavior->context = (LO *)FindBhvScriptTarget(behavior, command->id);
         break;
     case SSGK_SET_WALK_TIMES:
-        behavior->guard->walkTimes = command->u.range;
+        ((STEPGUARD *)behavior->owner)->walkTimes = command->range;
         break;
     case SSGK_SET_PAUSE_TIMES:
-        behavior->guard->pauseTimes = command->u.range;
+        ((STEPGUARD *)behavior->owner)->pauseTimes = command->range;
         break;
     case SSGK_TELEPORT: {
         GetBhvScriptTargetPose(behavior, FindBhvScriptTarget(behavior, command->id), &pose.q, &heading);
@@ -718,19 +641,19 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     }
     case SSGK_MESSAGE:
         args = &command->id;
-        behavior->Msg(4, 0, 1, &args, 0);
+        behavior->HandleSpliceEvent(4, 0, 1, &args, 0);
         break;
     case SSGK_WAIT: {
-        struct GUARD *guard = behavior->guard;
+        STEPGUARD *guard = (STEPGUARD *)behavior->owner;
         switch (guard->attachKind) {
         case 2:
-            ((struct O *)PushStepBehavior(guard, CID_BHV187))->V8();
+            PushStepBehavior(guard, CID_BHV187)->Start();
             break;
         case 3:
-            ((struct O *)PushStepBehavior(guard, CID_BHV188))->V8();
+            PushStepBehavior(guard, CID_BHV188)->Start();
             break;
         case -1:
-            ((struct O *)PushStepBehavior(guard, CID_BHVIDLE))->V8();
+            PushStepBehavior(guard, CID_BHVIDLE)->Start();
             break;
         }
         behavior->isCommandBusy = 1;
@@ -738,32 +661,32 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     }
     case SSGK_FOLLOW_PATH: {
         void *target = FindBhvScriptTarget(behavior, behavior->currentCommand->id);
-        struct GUARD *guard;
+        STEPGUARD *guard;
         if (!target) break;
-        guard = behavior->guard;
+        guard = (STEPGUARD *)behavior->owner;
         attachKind = guard->attachKind;
         switch (attachKind) {
         case -1: {
-            struct BHVPATROLPATHV *child = (struct BHVPATROLPATHV *)PushStepBehavior(guard, CID_BHVPATROLPATH);
-            child->path = target;
-            child->pathArg = command->u.s.arg;
-            child->allowPartialRoute = behavior->allowPartialRoute;
+            BHVPATROLPATH *child = (BHVPATROLPATH *)PushStepBehavior(guard, CID_BHVPATROLPATH);
+            child->shape = (SHAPE *)target;
+            child->isForward = command->n;
+            child->isDirect = behavior->allowPartialRoute;
             if (!behavior->allowPartialRoute) EnsureShapeVolumeSegments(target);
-            if (behavior->resume) child->startParam = behavior->resume->pathParam;   /* resume where it was */
-            if (command->u.s.secondOid != -1) child->secondTarget = FindBhvScriptTarget(behavior, command->u.s.secondOid);
-            VCALL8(child);
+            if (behavior->resume) child->pathParam = behavior->resume->pathParam;   /* resume where it was */
+            if (command->secondOid != -1) child->lookAtTarget = (LO *)FindBhvScriptTarget(behavior, command->secondOid);
+            child->Start();
             break;
         }
         case 0: {
-            struct O *child = (struct O *)PushStepBehavior(guard, CID_BHVRAIL);
-            SetBhvrailGoal(child, (int)behavior->currentCommand->position);
-            VCALL8(child);
+            BHV *child = PushStepBehavior(guard, CID_BHVRAIL);
+            SetBhvrailGoal(child, (int)behavior->currentCommand->ppos);
+            child->Start();
             break;
         }
         case 1: {
-            struct O *child = (struct O *)PushStepBehavior(guard, CID_BHVPIPE);
-            SetBhvpipeGoal(child, (int)behavior->currentCommand->position);
-            VCALL8(child);
+            BHV *child = PushStepBehavior(guard, CID_BHVPIPE);
+            SetBhvpipeGoal(child, (int)behavior->currentCommand->ppos);
+            child->Start();
             break;
         }
         }
@@ -771,30 +694,30 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
         break;
     }
     case SSGK_GOTO: {
-        struct POINTCMD *point;
-        struct GUARD *guard;
-        GOAL goal;
+        SSGE *point;
+        STEPGUARD *guard;
+        PATHLINKENDIsland goal;
         point = behavior->currentCommand;
         if (point->id == -1) {
-            goal.q = *(qword *)point->position;
+            goal.pos = *point->ppos;
             behavior->heading = point->heading;
         } else {
             void *target = FindBhvScriptTarget(behavior, point->id);
             if (target) {
                 GetBhvScriptTargetPose(behavior, target, 0, &behavior->heading);
-                if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) goal.shape = target;
-                else goal.object = target;
+                if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) goal.shape = (SHAPE *)target;
+                else goal.object = (LO *)target;
             }
         }
-        guard = behavior->guard;
+        guard = (STEPGUARD *)behavior->owner;
         attachKind = guard->attachKind;
         if (attachKind == -1) {
-            struct BHVGOTOV *child = (struct BHVGOTOV *)PushStepBehavior(guard, CID_BHVGOTO);
-            SetBhvgotoGoal(child, &goal);
-            if (command->lookAtOid != -1) child->lookAt = FindBhvScriptTarget(behavior, command->lookAtOid);
+            BHVGOTO *child = (BHVGOTO *)PushStepBehavior(guard, CID_BHVGOTO);
+            SetBhvgotoGoal(child, (PATHLINKEND *)&goal);
+            if (command->lookAtOid != -1) child->lookAtTarget = (LO *)FindBhvScriptTarget(behavior, command->lookAtOid);
             child->gotoParam = command->gotoParam;
-            child->allowPartialRoute = behavior->allowPartialRoute;
-            VCALL8(child);
+            child->isDirect = behavior->allowPartialRoute;
+            child->Start();
         }
         behavior->isCommandBusy = 1;
         break;
@@ -806,8 +729,8 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
     case SSGK_LABEL:
         break;
     case SSGK_JUMP: {
-        void *label = FindGuardScriptLabel(behavior->script, command->id);
-        if (label) behavior->currentCommand = (struct POINTCMD *)label;
+        SSGE *label = FindGuardScriptLabel(behavior->script, command->id);
+        if (label) behavior->currentCommand = label;
         break;
     }
     case SSGK_BUSY_ON:
@@ -818,105 +741,93 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
         break;
     case SSGK_LEAP: {
         void *target = FindBhvScriptTarget(behavior, behavior->currentCommand->id);
-        struct BHVLEAPV *child = (struct BHVLEAPV *)PushStepBehavior(behavior->guard, CID_BHVLEAP);
-        child->target = target;
-        child->unknown68 = 1;
-        child->arg = command->u.s.arg;
-        VCALL8(child);
+        BHVLEAP *child = (BHVLEAP *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVLEAP);
+        child->target = (LO *)target;
+        child->extra = 1;
+        child->isReversed = command->n;
+        child->Start();
         behavior->isCommandBusy = 1;
         break;
     }
     case SSGK_PLAY_BINDING:
-        ReleaseAnimBinding(&behavior->animBinding, behavior->guard);
-        behavior->animBinding.oid = command->id;
-        behavior->animBinding.flags = command->u.s.arg;
-        ResolveAnimBinding(&behavior->animBinding, behavior->guard);
-        if (behavior->guard->attachKind == -1) {
-            struct BHVANIMV *child = (struct BHVANIMV *)PushStepBehavior(behavior->guard, CID_BHVANIM);
+        ReleaseAnimBinding(&behavior->animBinding, (STEPGUARD *)behavior->owner);
+        behavior->animBinding.oid = (OID)command->id;
+        behavior->animBinding.flags = command->n;
+        ResolveAnimBinding(&behavior->animBinding, (STEPGUARD *)behavior->owner);
+        if (((STEPGUARD *)behavior->owner)->attachKind == -1) {
+            BHVANIM *child = (BHVANIM *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVANIM);
             child->binding = &behavior->animBinding;
-            VCALL8(child);
+            child->Start();
             behavior->isCommandBusy = 1;
         }
         break;
     case SSGK_RELAY_ALARM:
-        func_001E0020(FindBhvScriptTarget(behavior, command->id), command->u.s.arg);
+        func_001E0020(FindBhvScriptTarget(behavior, command->id), command->n);
         break;
     }
     behavior->commandStartTime = D_002DDED0.time;
 }
-} // namespace M_func_001715F0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171AF8 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; void *script; };
-qword GetLoWorldPos(void *p);
-void GetGuardScriptTargetPose(void *script, qword pos, int target, int posOut, int headingOut);
+qword GetLoWorldPos(LO *p);
+void GetGuardScriptTargetPose(CID113 *script, qword pos, int target, int posOut, int headingOut);
+} }
 // 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
-void GetBhvScriptTargetPose(struct S *behavior, int target, int posOut, int headingOut)
+extern "C" void GetBhvScriptTargetPose(BHV169 *behavior, int target, int posOut, int headingOut)
 {
-    GetGuardScriptTargetPose(behavior->script, GetLoWorldPos(behavior->guard), target, posOut, headingOut);
+    using namespace M_func_00171AF8;
+    GetGuardScriptTargetPose(behavior->script, GetLoWorldPos(behavior->owner), target, posOut, headingOut);
 }
-} } // namespace M_func_00171AF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171B60 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct VTE { short d; short pad; void (*pfn)(); };
-struct GUARD { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char unknown1B0[0x10]; };
-struct S { char pad[0x10]; struct GUARD *guard; };
-void DetachStepguard(struct GUARD *guard);
-void SetStepTargetHeading(struct GUARD *guard, float heading);
+void DetachStepguard(STEPGUARD *guard);
+void SetStepTargetHeading(STEPGUARD *guard, float heading);
+} }
 // 0x171B60: Places the guard at a position and heading and zeroes its velocities.
-void TeleportBhvScriptGuard(struct S *behavior, qword pos, float heading)
+// (lo.h declares RotateToMat with a MATRIX4; the guard passes its 3x3 target matrix: slot 30 takes a MATRIX3.)
+extern "C" void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading)
 {
-    struct GUARD *guard = behavior->guard;
-    struct VTE *entry;
+    using namespace M_func_00171B60;
+    STEPGUARD *guard = (STEPGUARD *)behavior->owner;
     DetachStepguard(guard);
-    entry = &guard->vt[0x1D];   /* set position */
-    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, pos);
+    guard->TranslateToPos(pos);
     SetStepTargetHeading(guard, heading);
-    entry = &guard->vt[0x1E];   /* set orientation */
-    ((void (*)(void *, void *))entry->pfn)((char *)guard + entry->d, guard->unknown1B0);
-    entry = &guard->vt[0x23];   /* set velocity */
-    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
-    entry = &guard->vt[0x24];   /* set angular velocity */
-    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
+    guard->RotateToMat((MATRIX4 *)&guard->matTarget);
+    guard->SetVelocity(D_002A2DD0);
+    guard->SetAngularVelocity(D_002A2DD0);
 }
-} } // namespace M_func_00171B60
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171C18 { extern "C" {
-struct COMMAND { int kind; };
-struct RESUME { struct COMMAND *command; int context; float pathParam; };
-struct BHVPATROLPATHV { char pad[0x38]; float pathParam; };
-struct S { char pad[0x10]; STEPGUARD *guard; int pad1; struct BHVPATROLPATHV *child; char pad2[0x18]; int context; struct COMMAND *currentCommand; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
+} }
 // 0x171C18: Saves the current command and context (and remaining wait) so the script can resume later.
-void SaveBhvScriptResumeState(struct S *behavior, struct RESUME *resume)
+extern "C" void SaveBhvScriptResumeState(BHV169 *behavior, SSGRESUME *resume)
 {
-    switch (behavior->guard->attachKind) {
+    using namespace M_func_00171C18;
+    switch (((STEPGUARD *)behavior->owner)->attachKind) {
     case -1:
         resume->command = behavior->currentCommand;
         resume->context = behavior->context;
         if (resume->command && resume->command->kind == SSGK_FOLLOW_PATH)
-            resume->pathParam = behavior->child->pathParam;
+            resume->pathParam = ((BHVPATROLPATH *)behavior->pbhvNext)->pathParam;
         break;
     case 0: case 1:   /* on a rail or pipe: no resume point */
         func_002333B4(resume, 0, sizeof(*resume));
         break;
     }
 }
-} } // namespace M_func_00171C18
 
 // 0x171C98: Pops any running child behaviour and jumps the script to a label.
 /* Jumps to the label command id of the running script (popping a running sub-behaviour first). */
-extern "C" void JumpBhvScriptToLabel(BHVSSG *behavior, int id)
+extern "C" void JumpBhvScriptToLabel(BHV169 *behavior, int id)
 {
     if (behavior->script != 0) {
         if (behavior->isCommandBusy != 0) {
-            PopBhv(&behavior->childSlot);
+            PopBhv(&behavior->pbhvNext);
             behavior->isCommandBusy = 0;
         }
         behavior->currentCommand = FindGuardScriptLabel(behavior->script, id);
@@ -966,12 +877,12 @@ void SetGuardRoutineMode(void *guard)
 /* Whether plo's guard behaviour (CID 0x9C) is in mode 5 on script command id. */
 extern "C" int IsGuardRunningScript(LO *object, int id)
 {
-    BHVGUARDV *bhv;
+    BHV156 *bhv;
     int running;
-    bhv = (BHVGUARDV *)FindStepBehavior(object, CID_BHVGUARD);
+    bhv = (BHV156 *)FindStepBehavior(object, CID_BHVGUARD);
     running = 0;
     if ((bhv != 0) && (bhv->mode == 5)) {
-        running = bhv->argument == id;
+        running = (int)bhv->modeObject == id;
     }
     return running;
 }
