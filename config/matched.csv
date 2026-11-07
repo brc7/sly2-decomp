@@ -1564,7 +1564,7 @@ GetBentleyGadgetFromId,0x136A28,25,match,src/game/gameplay/player/bentley.cpp
 StartBentleyGadget,0x136A90,111,match,src/game/gameplay/player/bentley.cpp
 OnBentleyGadgetsChanged,0x136C50,24,match,src/game/gameplay/player/bentley.cpp
 GetBentleySaveVarRoot,0x136CB0,3,match,src/game/gameplay/player/bentley.cpp
-GetBentleyModeCode,0x136CC0,25,match,src/game/gameplay/player/bentley.cpp
+GetBentleyGroundProbeFlags,0x136CC0,25,match,src/game/gameplay/player/bentley.cpp
 InitBentleyCrosshair,0x136D28,37,match,src/game/gameplay/player/bentley.cpp
 UpdateBentleyCrosshair,0x136DC0,68,match,src/game/gameplay/player/bentley.cpp
 HandleBentleyCrosshairMessage,0x136ED0,29,match,src/game/gameplay/player/bentley.cpp
@@ -1763,7 +1763,7 @@ FindBootySaveVar,0x143410,154,match,src/game/gameplay/player/stepplayer.cpp
 UpdateStepplayerBootySave,0x143678,286,match,src/game/gameplay/player/stepplayer.cpp
 ClearStepplayerBootySave,0x143AF0,57,match,src/game/gameplay/player/stepplayer.cpp
 RestoreStepplayerBooty,0x143BD8,39,match,src/game/gameplay/player/stepplayer.cpp
-GetStepplayerModeCode,0x143C78,32,match,src/game/gameplay/player/stepplayer.cpp
+GetStepplayerGroundProbeFlags,0x143C78,32,match,src/game/gameplay/player/stepplayer.cpp
 TranslateStepplayerToPos,0x143CF8,10,match,src/game/gameplay/player/stepplayer.cpp
 WillStepplayerLand,0x143D20,49,match,src/game/gameplay/player/stepplayer.cpp
 SetStepplayerRide,0x143DE8,61,match,src/game/gameplay/player/stepplayer.cpp
@@ -1785,7 +1785,7 @@ IsStepplayerInJtMode,0x1443D8,3,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerJtModeBinocucom,0x1443E8,3,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerJtModeRecon,0x1443F8,4,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerJtModeKind2,0x144408,4,match,src/game/gameplay/player/stepplayer.cpp
-ShouldStepplayerVetoDamage,0x144418,25,match,src/game/gameplay/player/stepplayer.cpp
+IsStepplayerZapLethal,0x144418,25,match,src/game/gameplay/player/stepplayer.cpp
 OnStepplayerActive,0x144480,23,match,src/game/gameplay/player/stepplayer.cpp
 StaticInit_stepplayer,0x1444E0,77,match,src/game/gameplay/player/stepplayer.cpp
 func_00144618,0x144618,8,match,src/game/gameplay/player/stepplayer.cpp
@@ -3049,7 +3049,7 @@ EndJtGadget,0x18DD78,35,match,src/game/gameplay/player/jt.cpp
 GetJtSaveVarRoot,0x18DE08,3,match,src/game/gameplay/player/jt.cpp
 SetJtGrabObject,0x18DE18,26,match,src/game/gameplay/player/jt.cpp
 GetJtStunHold,0x18DE80,24,match,src/game/gameplay/player/jt.cpp
-GetJtModeCode,0x18DEE0,27,match,src/game/gameplay/player/jt.cpp
+GetJtGroundProbeFlags,0x18DEE0,27,match,src/game/gameplay/player/jt.cpp
 SetJtUnknown1D30,0x18DF50,2,match,src/game/gameplay/player/jt.cpp
 SetJtUnknown1FA0,0x18DF58,2,match,src/game/gameplay/player/jt.cpp
 UpdateJtSmoothing,0x18DF60,159,match,src/game/gameplay/player/jt.cpp
@@ -3652,7 +3652,7 @@ GetMurrayMovementNoise,0x1B8100,31,match,src/game/gameplay/player/murray.cpp
 IsMurrayFreeMoving,0x1B8180,13,match,src/game/gameplay/player/murray.cpp
 SetMurrayPlayable,0x1B81B8,58,match,src/game/gameplay/player/murray.cpp
 UpdateMurrayPlaces,0x1B82A0,49,match,src/game/gameplay/player/murray.cpp
-GetMurrayModeCode,0x1B8368,19,match,src/game/gameplay/player/murray.cpp
+GetMurrayGroundProbeFlags,0x1B8368,19,match,src/game/gameplay/player/murray.cpp
 IsMurrayInvulnerable,0x1B83B8,37,match,src/game/gameplay/player/murray.cpp
 ShouldMurrayIgnoreIntersection,0x1B8450,35,match,src/game/gameplay/player/murray.cpp
 CanMurrayAttack,0x1B84E0,10,match,src/game/gameplay/player/murray.cpp
@@ -3857,7 +3857,7 @@ LoadPoFromBrx,0x1C3DC8,11,match,src/game/actor/po.cpp
 ClonePo,0x1C3DF8,10,match,src/game/actor/po.cpp
 HandlePoMessage,0x1C3E20,27,match,src/game/actor/po.cpp
 IsPoInvulnerable,0x1C3E90,15,match,src/game/actor/po.cpp
-GetPoJtHoldState,0x1C3ED0,2,match,src/game/actor/po.cpp
+GetPoHealthState,0x1C3ED0,2,match,src/game/actor/po.cpp
 SetPoCtlState,0x1C3ED8,69,match,src/game/actor/po.cpp
 OnPoActive,0x1C3FF0,35,match,src/game/actor/po.cpp
 GetPoCtlState,0x1C4080,6,match,src/game/actor/po.cpp
@@ -4732,7 +4732,7 @@ RenderSoSelf,0x1F3C70,22,match,src/game/engine/physics/so.cpp
 RenderSoAll,0x1F3CC8,77,match,src/game/engine/physics/so.cpp
 OnSoRemove,0x1F3E00,42,match,src/game/engine/physics/so.cpp
 OnSoAdd,0x1F3EA8,61,match,src/game/engine/physics/so.cpp
-SO_PmatWorld,0x1F3FA0,3,match,src/game/engine/physics/so.cpp
+GetSoWorldMatrix,0x1F3FA0,3,match,src/game/engine/physics/so.cpp
 GetSoLocalXf,0x1F3FB0,24,match,src/game/engine/physics/so.cpp
 ApplySoProxy,0x1F4010,36,match,src/game/engine/physics/so.cpp
 TranslateSoToPos,0x1F40A0,143,match,src/game/engine/physics/so.cpp
@@ -5094,7 +5094,7 @@ RemoveStepDialogSmRefs,0x205588,58,match,src/game/actor/step.cpp
 IntersectStepFootprint,0x205670,93,match,src/game/actor/step.cpp
 BuildStepFootprint,0x2057E8,73,match,src/game/actor/step.cpp
 FitStepToTerrain,0x205910,254,match,src/game/actor/step.cpp
-IsStepHitByLethalZap,0x205D08,2,match,src/game/actor/step.cpp
+IsStepZapLethal,0x205D08,2,match,src/game/actor/step.cpp
 IgnoreStepSlot87,0x205D10,2,match,src/game/actor/step.cpp
 StaticInit_step,0x205D18,77,match,src/game/actor/step.cpp
 func_00205E50,0x205E50,8,match,src/game/actor/step.cpp
@@ -5818,7 +5818,7 @@ TranslateXfmToPos,0x2312A0,23,match,src/game/object/xform.cpp
 RotateXfmToMat,0x231300,25,match,src/game/object/xform.cpp
 UpdateXfmMatWorld,0x231368,34,match,src/game/object/xform.cpp
 InvalidateXfm,0x2313F0,19,match,src/game/object/xform.cpp
-XFM_PmatWorld,0x231440,10,match,src/game/object/xform.cpp
+GetXfmWorldMatrix,0x231440,10,match,src/game/object/xform.cpp
 GetXfmVelocity,0x231468,26,match,src/game/object/xform.cpp
 GetXfmAngularVelocity,0x2314D0,32,match,src/game/object/xform.cpp
 XFM_GetLocalTransform,0x231550,17,match,src/game/object/xform.cpp

@@ -206,7 +206,7 @@ struct JT : public STEPPLAYER
     virtual void PresetAccel() __asm__("PresetJtAccel");   /* slot 70 */
     virtual int IsInvulnerable(ZPK zpk) __asm__("IsJtInvulnerable");   /* slot 76 */
     virtual void OnActive(int fActive) __asm__("OnJtActive");   /* slot 78 */
-    virtual int GetGroundProbeFlags() __asm__("GetJtModeCode");   /* slot 85 */
+    virtual int GetGroundProbeFlags() __asm__("GetJtGroundProbeFlags");   /* slot 85 */
     virtual void SetPlayable(int fOn) __asm__("SetJtPlayable");   /* slot 87 */
     virtual void SetPlayerState(int n) __asm__("SetJtPlayerState");   /* slot 88 */
     virtual int GetPlayerState() __asm__("GetJtPlayerState");   /* slot 89 */

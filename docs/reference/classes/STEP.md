@@ -54,7 +54,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
 | 29 | TranslateToPos | **override** | [`TranslateStepToPos`](../../../src/game/actor/step.cpp) | `0x2041C0` | TranslateToPos |
 | 30 | RotateToMat | **override** | [`RotateStepToMat`](../../../src/game/actor/step.cpp) | `0x2041F8` | RotateToMat |
-| 31 | PmatWorld | inherited (SO) | `SO_PmatWorld` | `0x1F3FA0` | PmatWorld |
+| 31 | PmatWorld | inherited (SO) | `GetSoWorldMatrix` | `0x1F3FA0` | PmatWorld |
 | 32 | LO_PxfLocal | inherited (SO) | `SO_PxfLocal?` | `0x1F3FB0` | PxfLocal |
 | 33 | GetVelocity | inherited (SO) | `GetSoVelocity` | `0x1F4440` | GetVelocity |
 | 34 | GetAngularVelocity | inherited (SO) | `GetSoAngularVelocity` | `0x1F4558` | GetAngularVelocity |

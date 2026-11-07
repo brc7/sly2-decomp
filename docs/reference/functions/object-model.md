@@ -207,7 +207,7 @@ Totals on this page: T1 113, T2 53.
 | [0x231300](../../../src/game/object/xform.cpp) | `RotateXfmToMat` | store rotation rows (w=0), invalidate | 0.60 | T1 |  |
 | [0x231368](../../../src/game/object/xform.cpp) | `UpdateXfmMatWorld` | recompute matWorld when parent stamp newer | 0.50 | T1 |  |
 | [0x2313F0](../../../src/game/object/xform.cpp) | `InvalidateXfm` | marks world stamp stale and flags | 0.40 | T2 |  |
-| [0x231440](../../../src/game/object/xform.cpp) | `XFM_PmatWorld` | UpdateXfmMatWorld then return &matWorld (+0xA0) | 0.60 | T1 |  |
+| [0x231440](../../../src/game/object/xform.cpp) | `GetXfmWorldMatrix` | UpdateXfmMatWorld then return &matWorld (+0xA0) | 0.60 | T1 |  |
 | [0x231468](../../../src/game/object/xform.cpp) | `GetXfmVelocity` | velocity via GetXfVelocity of parent XF | 0.45 | T2 |  |
 | [0x2314D0](../../../src/game/object/xform.cpp) | `GetXfmAngularVelocity` | via GetXfAngularVelocity | 0.45 | T2 |  |
 | [0x231550](../../../src/game/object/xform.cpp) | `XFM_PxfLocal` | copies local matrix out; returns parent XF or default | 0.35 | T2 |  |

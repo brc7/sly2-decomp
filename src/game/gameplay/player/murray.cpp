@@ -2924,7 +2924,7 @@ void UpdateMurrayPlaces(struct S *murray)
 
 namespace M_func_001B8368 { extern "C" {
 struct S { char pad[0x204]; int f204; char pad2[0x13D0-0x208]; int n; int reserved; int m; };
-int GetStepplayerModeCode(struct S *p);
+int GetStepplayerGroundProbeFlags(struct S *p);
 /** @sly2-annot addr=0x1B8368
  * Purpose: MURRAY vt85: 0 if x204 set, mode 1 or state 20, else base 0x143C78
  * Info: proposed name MURRAY_vt85 (T2); class MURRAY slot85; TU murray
@@ -2932,11 +2932,11 @@ int GetStepplayerModeCode(struct S *p);
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // MURRAY slot 85: 0 if x204 is set, in mode 1 or in state 20, else the STEPPLAYER base.
-int GetMurrayModeCode(struct S *murray)
+int GetMurrayGroundProbeFlags(struct S *murray)
 {
     if (murray->f204) return 0;
     if (murray->m == 1 || murray->n == MURRAY_PIPE) return 0;
-    return GetStepplayerModeCode(murray);
+    return GetStepplayerGroundProbeFlags(murray);
 }
 } } // namespace M_func_001B8368
 

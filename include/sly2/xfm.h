@@ -45,7 +45,7 @@ struct XFM : public LO
                                3504 instances / 73 states: w = 1; rows 0-2 unit length in 3492, 12 scaled). Plain XFM/PROXY/TARGET instances are
                                mostly all-zero here (HYPOTHESIS: not maintained unless used). Note SO positions are NOT here:
                                SO+0x60 pxfRoot is an XF whose world position is at XF+0x70. */
-    virtual MATRIX4 *GetWorldMatrix() __asm__("XFM_PmatWorld");   /* slot 31 */
+    virtual MATRIX4 *GetWorldMatrix() __asm__("GetXfmWorldMatrix");   /* slot 31 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetXfmClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitXfm");   /* slot 7 */
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetXfmParent");   /* slot 10 */

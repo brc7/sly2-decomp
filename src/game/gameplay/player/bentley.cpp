@@ -1845,22 +1845,22 @@ extern "C" char *GetBentleySaveVarRoot()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136CC0 { extern "C" {
 struct S { char pad[0x204]; int f204; char pad2[0x13d0 - 0x208]; int st; };
-int GetStepplayerModeCode(struct S *);
+int GetStepplayerGroundProbeFlags(struct S *);
 /** @sly2-annot addr=0x136CC0
  * Purpose: BENTLEY vt85: per-state mode code, else STEPPLAYER::GetGroundProbeFlags
  * Info: proposed name BENTLEY_VUnk84 (T2); class BENTLEY slot85; TU bentley
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-// BENTLEY slot 85: a per-state mode code, else the STEPPLAYER base.
-int GetBentleyModeCode(struct S *bentley) {
+// BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
+int GetBentleyGroundProbeFlags(struct S *bentley) {
     if (bentley->f204) return 0;
     switch (bentley->st) {
     case BENTLEY_PIPE: return 0;
     case BENTLEY_HOVER: return 5;
     case BENTLEY_ADRENALINE: return 0xf;
     }
-    return GetStepplayerModeCode(bentley);
+    return GetStepplayerGroundProbeFlags(bentley);
 }
 } } // namespace M_func_00136CC0
 

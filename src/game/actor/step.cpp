@@ -54,7 +54,7 @@ enum
 {
     PROBE_ENABLED = 1,          /* cast the floor ray at all */
     PROBE_FROM_TOP = 2,         /* cast to the top helper point instead of the base point */
-    PROBE_FLAG4 = 4,            /* set by the default flags; not read here */
+    PROBE_FLAG4 = 4,            /* the floor contact takes part in the contact solver (solve.cpp tests it) */
     PROBE_KEEP_NORMAL = 8,      /* always use the hit normal (no snapping to straight up) */
     PROBE_DEFAULT = PROBE_ENABLED | PROBE_FROM_TOP | PROBE_FLAG4
 };
@@ -1960,7 +1960,7 @@ extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qwo
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 // Slot 86: the base answer 0; STEPGUARD's override tests whether the current zap is lethal (inferred).
-extern "C" int IsStepHitByLethalZap()
+extern "C" int IsStepZapLethal()
 {
     return 0;
 }

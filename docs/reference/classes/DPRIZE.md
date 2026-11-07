@@ -52,7 +52,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` |
 | 29 | TranslateToPos | inherited (SO) | `TranslateSoToPos` | `0x1F40A0` |
 | 30 | RotateToMat | inherited (SO) | `RotateSoToMat` | `0x1F42E0` |
-| 31 | PmatWorld | inherited (SO) | `SO_PmatWorld` | `0x1F3FA0` |
+| 31 | PmatWorld | inherited (SO) | `GetSoWorldMatrix` | `0x1F3FA0` |
 | 32 | LO_PxfLocal | inherited (SO) | `SO_PxfLocal?` | `0x1F3FB0` |
 | 33 | GetVelocity | inherited (SO) | `GetSoVelocity` | `0x1F4440` |
 | 34 | GetAngularVelocity | inherited (SO) | `GetSoAngularVelocity` | `0x1F4558` |

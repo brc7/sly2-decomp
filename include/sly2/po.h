@@ -65,7 +65,7 @@ struct PO : public SO
     virtual void Init() __asm__("InitPo");   /* slot 7 */
     virtual void Clone(LO *ploBase) __asm__("ClonePo");   /* slot 41 */
       virtual int IsInvulnerable(ZPK zpk) __asm__("IsPoInvulnerable");
-      virtual int GetHealthState() __asm__("GetPoJtHoldState");
+      virtual int GetHealthState() __asm__("GetPoHealthState");
       virtual void OnActive(int fActive) __asm__("OnPoActive");
       virtual void SetCtlState(int nState) __asm__("SetPoCtlState");
       virtual int CanBeHealed() __asm__("CanPoBeHealed");

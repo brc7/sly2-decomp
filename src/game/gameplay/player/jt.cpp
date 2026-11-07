@@ -4936,7 +4936,7 @@ void GetJtStunHold(struct S *jt, int *pf)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DEE0 { extern "C" {
 struct S { char pad[0x204]; int x204; char p1[0x16C0]; int n; };
-int GetStepplayerModeCode(struct S *p);
+int GetStepplayerGroundProbeFlags(struct S *p);
 /** @sly2-annot addr=0x18DEE0
  * Purpose: JT vt85: 0 if x204 or jts 3/8/21/22; 1 for 13/14; 0xF for 24; else base 0x143C78
  * Info: proposed name JT_vt85 (T2); class JT slot85; TU jt
@@ -4944,7 +4944,7 @@ int GetStepplayerModeCode(struct S *p);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
-int GetJtModeCode(struct S *p)
+int GetJtGroundProbeFlags(struct S *p)
 {
     if (p->x204) return 0;
     switch (p->n) {
@@ -4955,7 +4955,7 @@ int GetJtModeCode(struct S *p)
     case 24:
         return 0xF;
     }
-    return GetStepplayerModeCode(p);
+    return GetStepplayerGroundProbeFlags(p);
 }
 } } // namespace M_func_0018DEE0
 

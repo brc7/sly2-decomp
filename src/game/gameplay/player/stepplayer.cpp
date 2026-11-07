@@ -3031,8 +3031,8 @@ namespace M_func_00143C78 { extern "C" {
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-// Slot 85 base: a mode code from the component states (0 if +0x204, 4 in grab 3/4, 1 in the air, ...).
-int GetStepplayerModeCode(char *player)
+// Slot 85 base: the ground-probe flags (step.cpp PROBE_*) from the component states (0 if +0x204, 4 in grab 3/4, 1 in the air, 7 = default ...).
+int GetStepplayerGroundProbeFlags(char *player)
 {
     if (*(int *)(player + 0x204)) return 0;
     switch (*(int *)(player + 0x4C8)) {
@@ -3494,8 +3494,8 @@ struct Q { char pad[0xC]; int c; int n; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-// Slot 86: vetoes damage below the hp maximum or of certain zap kinds (0, 1, 0x80000, ...). (inferred)
-int ShouldStepplayerVetoDamage(char *player, struct Q *q)
+// Slot 86 (IsZapLethal): 1 when the zap's damage (-n) reaches the word at +0xDFC (the hit points, inferred) and its kind is not 0, 1, 0x80000 or 0x100000; else 0. (inferred)
+int IsStepplayerZapLethal(char *player, struct Q *q)
 {
     if (-q->n < *(int *)(player + 0xDFC)) return 0;
     switch (q->c) {

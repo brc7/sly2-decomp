@@ -53,7 +53,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 28 | CploChildren | **override** | [`FGetTnPshape?`](../../../src/game/engine/camera/tn.cpp) | `0x221120` | CploChildren |
 | 29 | TranslateToPos | inherited (XFM) | `TranslateXfmToPos` | `0x2312A0` | TranslateToPos |
 | 30 | RotateToMat | inherited (XFM) | `RotateXfmToMat` | `0x231300` | RotateToMat |
-| 31 | PmatWorld | inherited (XFM) | `XFM_PmatWorld` | `0x231440` | PmatWorld |
+| 31 | PmatWorld | inherited (XFM) | `GetXfmWorldMatrix` | `0x231440` | PmatWorld |
 | 32 | LO_PxfLocal | inherited (XFM) | `XFM_PxfLocal?` | `0x231550` | PxfLocal |
 | 33 | GetVelocity | inherited (XFM) | `GetXfmVelocity?` | `0x231468` | GetVelocity |
 | 34 | GetAngularVelocity | inherited (XFM) | `GetXfmAngularVelocity?` | `0x2314D0` | GetAngularVelocity |

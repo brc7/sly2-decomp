@@ -198,7 +198,7 @@ struct SO : public LO
                 ulong fTreeRoot : 1;   /* the object is the root of its physics tree */
                 ulong fUnk35 : 1;
                 ulong fHasIkLimbs : 1;   /* the object has IK limbs */
-    virtual MATRIX4 *GetWorldMatrix() __asm__("SO_PmatWorld");   /* slot 31 */
+    virtual MATRIX4 *GetWorldMatrix() __asm__("GetSoWorldMatrix");   /* slot 31 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSoClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSo");   /* slot 7 */
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetSoParent");   /* slot 10 */

@@ -103,7 +103,7 @@ struct STEP : public PO
       virtual void AddDialogSmRefs(uint grf, int fCount) __asm__("AddStepDialogSmRefs");
       virtual void RemoveDialogSmRefs(uint grf, int fCount) __asm__("RemoveStepDialogSmRefs");
       virtual int GetGroundProbeFlags() __asm__("GetStepGroundProbeFlags");
-      virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepHitByLethalZap");
+      virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepZapLethal");
       virtual void SetPlayable(int fOn) __asm__("IgnoreStepSlot87");
 };
 typedef char assert_STEP_size[sizeof(STEP) == 0x2C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

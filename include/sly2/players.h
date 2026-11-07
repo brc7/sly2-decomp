@@ -110,7 +110,7 @@ struct MURRAY : public STEPPLAYER
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMurrayIgnoreIntersection");   /* slot 61 */
     virtual void PresetAccel() __asm__("PresetMurrayAccel");   /* slot 70 */
     virtual int IsInvulnerable(ZPK zpk) __asm__("IsMurrayInvulnerable");   /* slot 76 */
-    virtual int GetGroundProbeFlags() __asm__("GetMurrayModeCode");   /* slot 85 */
+    virtual int GetGroundProbeFlags() __asm__("GetMurrayGroundProbeFlags");   /* slot 85 */
     virtual void SetPlayable(int fOn) __asm__("SetMurrayPlayable");   /* slot 87 */
     virtual void SetPlayerState(int n) __asm__("SetMurrayPlayerState");   /* slot 88 */
     virtual int GetPlayerState() __asm__("GetMurrayPlayerState");   /* slot 89 */
@@ -195,7 +195,7 @@ struct BENTLEY : public STEPPLAYER
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustBentleyXp");   /* slot 55 */
     virtual void PresetAccel() __asm__("PresetBentleyAccel");   /* slot 70 */
     virtual int IsInvulnerable(ZPK zpk) __asm__("IsBentleyInvulnerable");   /* slot 76 */
-    virtual int GetGroundProbeFlags() __asm__("GetBentleyModeCode");   /* slot 85 */
+    virtual int GetGroundProbeFlags() __asm__("GetBentleyGroundProbeFlags");   /* slot 85 */
     virtual void SetPlayerState(int n) __asm__("SetBentleyPlayerState");   /* slot 88 */
     virtual int GetPlayerState() __asm__("GetBentleyPlayerState");   /* slot 89 */
     virtual void ApplyStateStepParams() __asm__("ApplyBentleyStateStepParams");   /* slot 90 */

@@ -1573,7 +1573,7 @@ GetBentleyGadgetFromId,0x136A28,bentley
 StartBentleyGadget,0x136A90,bentley
 OnBentleyGadgetsChanged,0x136C50,bentley
 GetBentleySaveVarRoot,0x136CB0,bentley
-GetBentleyModeCode,0x136CC0,bentley
+GetBentleyGroundProbeFlags,0x136CC0,bentley
 InitBentleyCrosshair,0x136D28,bentley
 UpdateBentleyCrosshair,0x136DC0,bentley
 HandleBentleyCrosshairMessage,0x136ED0,bentley
@@ -1772,7 +1772,7 @@ FindBootySaveVar,0x143410,stepplayer
 UpdateStepplayerBootySave,0x143678,stepplayer
 ClearStepplayerBootySave,0x143AF0,stepplayer
 RestoreStepplayerBooty,0x143BD8,stepplayer
-GetStepplayerModeCode,0x143C78,stepplayer
+GetStepplayerGroundProbeFlags,0x143C78,stepplayer
 TranslateStepplayerToPos,0x143CF8,stepplayer
 WillStepplayerLand,0x143D20,stepplayer
 SetStepplayerRide,0x143DE8,stepplayer
@@ -1794,7 +1794,7 @@ IsStepplayerInJtMode,0x1443D8,stepplayer
 IsStepplayerJtModeBinocucom,0x1443E8,stepplayer
 IsStepplayerJtModeRecon,0x1443F8,stepplayer
 IsStepplayerJtModeKind2,0x144408,stepplayer
-ShouldStepplayerVetoDamage,0x144418,stepplayer
+IsStepplayerZapLethal,0x144418,stepplayer
 OnStepplayerActive,0x144480,stepplayer
 StaticInit_stepplayer,0x1444E0,stepplayer
 func_00144618,0x144618,stepplayer
@@ -3060,7 +3060,7 @@ EndJtGadget,0x18DD78,jt
 GetJtSaveVarRoot,0x18DE08,jt
 SetJtGrabObject,0x18DE18,jt
 GetJtStunHold,0x18DE80,jt
-GetJtModeCode,0x18DEE0,jt
+GetJtGroundProbeFlags,0x18DEE0,jt
 SetJtUnknown1D30,0x18DF50,jt
 SetJtUnknown1FA0,0x18DF58,jt
 UpdateJtSmoothing,0x18DF60,jt
@@ -3663,7 +3663,7 @@ GetMurrayMovementNoise,0x1B8100,murray
 IsMurrayFreeMoving,0x1B8180,murray
 SetMurrayPlayable,0x1B81B8,murray
 UpdateMurrayPlaces,0x1B82A0,murray
-GetMurrayModeCode,0x1B8368,murray
+GetMurrayGroundProbeFlags,0x1B8368,murray
 IsMurrayInvulnerable,0x1B83B8,murray
 ShouldMurrayIgnoreIntersection,0x1B8450,murray
 CanMurrayAttack,0x1B84E0,murray
@@ -3868,7 +3868,7 @@ LoadPoFromBrx,0x1C3DC8,po
 ClonePo,0x1C3DF8,po
 HandlePoMessage,0x1C3E20,po
 IsPoInvulnerable,0x1C3E90,po
-GetPoJtHoldState,0x1C3ED0,po
+GetPoHealthState,0x1C3ED0,po
 SetPoCtlState,0x1C3ED8,po
 OnPoActive,0x1C3FF0,po
 GetPoCtlState,0x1C4080,po
@@ -4743,7 +4743,7 @@ RenderSoSelf,0x1F3C70,so
 RenderSoAll,0x1F3CC8,so
 OnSoRemove,0x1F3E00,so
 OnSoAdd,0x1F3EA8,so
-SO_PmatWorld,0x1F3FA0,so
+GetSoWorldMatrix,0x1F3FA0,so
 GetSoLocalXf,0x1F3FB0,so
 ApplySoProxy,0x1F4010,so
 TranslateSoToPos,0x1F40A0,so
@@ -5105,7 +5105,7 @@ RemoveStepDialogSmRefs,0x205588,step
 IntersectStepFootprint,0x205670,step
 BuildStepFootprint,0x2057E8,step
 FitStepToTerrain,0x205910,step
-IsStepHitByLethalZap,0x205D08,step
+IsStepZapLethal,0x205D08,step
 IgnoreStepSlot87,0x205D10,step
 StaticInit_step,0x205D18,step
 func_00205E50,0x205E50,step
@@ -5830,7 +5830,7 @@ TranslateXfmToPos,0x2312A0,xform
 RotateXfmToMat,0x231300,xform
 UpdateXfmMatWorld,0x231368,xform
 InvalidateXfm,0x2313F0,xform
-XFM_PmatWorld,0x231440,xform
+GetXfmWorldMatrix,0x231440,xform
 GetXfmVelocity,0x231468,xform
 GetXfmAngularVelocity,0x2314D0,xform
 XFM_GetLocalTransform,0x231550,xform

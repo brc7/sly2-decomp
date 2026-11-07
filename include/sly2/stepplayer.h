@@ -548,10 +548,10 @@ struct STEPPLAYER : public STEP
     virtual void AddAxisXps(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepplayerAxisXps");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void AddDialogSmRefs(uint grf, int fCount) __asm__("AddStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void RemoveDialogSmRefs(uint grf, int fCount) __asm__("RemoveStepplayerDialogSmRefs");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int GetGroundProbeFlags() __asm__("GetStepplayerModeCode");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int GetGroundProbeFlags() __asm__("GetStepplayerGroundProbeFlags");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int CanBeHealed() __asm__("CanStepplayerBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int IsZapLethal(ZPR *pzpr) __asm__("ShouldStepplayerVetoDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepplayerZapLethal");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void UpdateGadget() __asm__("UpdateStepplayerGadget");   /* slot 101: named from its overrides (inferred) */
     virtual void StopGadget() __asm__("StopStepplayerGadget");   /* slot 102: named from its overrides (inferred) */
     virtual void GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: named from its overrides (inferred) */

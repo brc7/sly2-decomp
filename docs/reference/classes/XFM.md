@@ -54,7 +54,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
 | 29 | TranslateToPos | **override** | [`TranslateXfmToPos`](../../../src/game/object/xform.cpp) | `0x2312A0` | TranslateToPos |
 | 30 | RotateToMat | **override** | [`RotateXfmToMat`](../../../src/game/object/xform.cpp) | `0x231300` | RotateToMat |
-| 31 | PmatWorld | **override** | [`XFM_PmatWorld`](../../../src/game/object/xform.cpp) | `0x231440` | PmatWorld |
+| 31 | PmatWorld | **override** | [`GetXfmWorldMatrix`](../../../src/game/object/xform.cpp) | `0x231440` | PmatWorld |
 | 32 | LO_PxfLocal | **override** | [`XFM_PxfLocal?`](../../../src/game/object/xform.cpp) | `0x231550` | PxfLocal |
 | 33 | GetVelocity | **override** | [`GetXfmVelocity?`](../../../src/game/object/xform.cpp) | `0x231468` | GetVelocity |
 | 34 | GetAngularVelocity | **override** | [`GetXfmAngularVelocity?`](../../../src/game/object/xform.cpp) | `0x2314D0` | GetAngularVelocity |
