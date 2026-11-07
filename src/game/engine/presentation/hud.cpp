@@ -3660,7 +3660,6 @@ extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 namespace M_func_00218660 { extern "C" {
 struct E { char pad[8]; short animIndex; short pad2; float time; int isFinished; void *sound; };
 struct S { char pad[8]; struct E *slots; char padc[4]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };
-struct CLOCKIsland { unsigned long ticks; };   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
 void ResetSpriteSlotItems(struct S *p, int i);
@@ -3681,7 +3680,7 @@ void StopSpriteSlot(struct S *group, int slot)
         float t=state->time;
         group->lastStartAnim = state->animIndex;
         group->lastStartTime = t;
-        group->lastStartFrame = (*(struct CLOCKIsland *)&g_clock.frameTick).ticks;
+        group->lastStartFrame = g_clock.frameTick;
         group->pendingAnim = -1;
         state->animIndex = -1;
         state->isFinished = 0;
