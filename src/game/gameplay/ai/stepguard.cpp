@@ -170,17 +170,17 @@ struct BLOCK; struct F64; struct S;
 // (Claude agent, nonvu16, 2026-10-17) plain stores, no register pins; store order tuned (see notes/200000.md).
 struct S;
 struct BLOCK {char unknown[0xC];struct S *owner;char tail[0x14];};
-struct F64 { char pad[0x40]; int u40; };
+struct F64 { char pad[0x40]; int unknownFlags40; };
 struct S {
     char pad0[0x148]; unsigned long u148_lo : 16; unsigned long u148_f : 4; unsigned long u148_hi : 44;
-    char pad1[0x260 - 0x150]; float gravityRatio; char pad2[0x2CC - 0x264]; float f2CC; float f2D0;
-    char pad3[0x314 - 0x2D4]; float f314; float f318; float f31C; float f320; float f324; float f328;
-    char pad4[0x350 - 0x32C]; int n350; int n354; int n358; int pad35C; float pulseStartTime; int unknown364; char pad5[0x370 - 0x368];
-    float f370; float f374; float closeRange; int canInteract; float f380; float f384; float interactRange;
-    char pad6[0x3D8 - 0x38C]; int n3D8; char pad7[0x3F0 - 0x3DC]; int n3F0; char pad8[0x3FC - 0x3F4]; int n3FC;
-    char pad9[0x4A0 - 0x400]; int unknown4A0; char padA[0xE64 - 0x4A4]; int sensesEnabled; int minStimulusLevel; float fE6C; float fE70;
-    char padB[0xE78 - 0xE74]; int searchMode; float fE7C; float fE80; int nE84; char padC[0xF40 - 0xE88]; int nF40; int padF44;
-    float fF48; float fF4C; float fF50; float fF54; float fF58; float fF5C; char padD[0xF64 - 0xF60]; struct F64 *detector;
+    char pad1[0x260 - 0x150]; float gravityRatio; char pad2[0x2CC - 0x264]; float walkTimeMin; float walkTimeMax;
+    char pad3[0x314 - 0x2D4]; float attackRangeClose; float attackRangeFar; float unknownRangeMin; float unknownRangeMax; float circleDistanceMin; float circleDistanceMax;
+    char pad4[0x350 - 0x32C]; int hurtZapMask; int knockdownZapMask; int koZapMask; int pad35C; float pulseStartTime; int unknown364; char pad5[0x370 - 0x368];
+    float unknown370; float unknown374; float closeRange; int canInteract; float unknown380; float unknown384; float interactRange;
+    char pad6[0x3D8 - 0x38C]; int coinCountOverride; char pad7[0x3F0 - 0x3DC]; int unknown3F0; char pad8[0x3FC - 0x3F4]; int unknown3FC;
+    char pad9[0x4A0 - 0x400]; int unknown4A0; char padA[0xE64 - 0x4A4]; int sensesEnabled; int minStimulusLevel; float unknownE6C; float unknownE70;
+    char padB[0xE78 - 0xE74]; int searchMode; float sleepTimeMin; float sleepTimeMax; int sleepDartCapacity; char padC[0xF40 - 0xE88]; int unknownF40; int padF44;
+    float shootRangeMin; float shootRangeMax; float shootPanMin; float shootPanMax; float shootTiltMin; float shootTiltMax; char padD[0xF64 - 0xF60]; struct F64 *detector;
     char padE[0xF80 - 0xF68]; int attachKind; char padF[0xFBC - 0xF84]; int specialState; char padG[0xFD0 - 0xFC0]; struct BLOCK block;
     float unknownFF4; char padH[0x1000 - 0xFF8]; int removalMode;
 };
@@ -204,54 +204,59 @@ void InitStepguard(struct S *guard)
     EnsureStepguardManager();
     guard->detector = PloNew__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
     SetLoBusyk(guard->detector, 2);
-    v = guard->detector->u40;
+    v = guard->detector->unknownFlags40;
     if (!(v & 1))
         *(int *)v &= -3;
     else
-        guard->detector->u40 = v & -3;
-    a = 0.785398245f; b = 1.30899704f; limit = D_002A8600; medium = 300.0f; high = 1200.0f; extent = 800.0f;
-    guard->fF50 = -a;
-    guard->fF54 = a;
-    guard->fF58 = -b;
-    guard->fF5C = b;
-    guard->fF48 = medium;
-    guard->fF4C = high;
-    guard->f314 = extent;
-    guard->f31C = medium;
-    guard->f2CC = D_002A8600;
-    guard->f318 = high;
-    guard->f320 = 450.0f;
-    guard->f324 = medium;
-    guard->f328 = 600.0f;
-    guard->f2D0 = limit;
-    guard->f370 = -100.0f;
-    guard->f374 = 350.0f;
+        guard->detector->unknownFlags40 = v & -3;
+    a = 0.785398245f;
+    b = 1.30899704f;
+    limit = D_002A8600;
+    medium = 300.0f;
+    high = 1200.0f;
+    extent = 800.0f;
+    guard->shootPanMin = -a;
+    guard->shootPanMax = a;
+    guard->shootTiltMin = -b;
+    guard->shootTiltMax = b;
+    guard->shootRangeMin = medium;
+    guard->shootRangeMax = high;
+    guard->attackRangeClose = extent;
+    guard->unknownRangeMin = medium;
+    guard->walkTimeMin = D_002A8600;
+    guard->attackRangeFar = high;
+    guard->unknownRangeMax = 450.0f;
+    guard->circleDistanceMin = medium;
+    guard->circleDistanceMax = 600.0f;
+    guard->walkTimeMax = limit;
+    guard->unknown370 = -100.0f;
+    guard->unknown374 = 350.0f;
     guard->closeRange = 1000.0f;
-    guard->f380 = -800.0f;
-    guard->f384 = extent;
+    guard->unknown380 = -800.0f;
+    guard->unknown384 = extent;
     guard->interactRange = 3000.0f;
-    guard->fE7C = 16.0f;
-    guard->fE80 = 20.0f;
-    guard->nE84 = 50;
-    guard->fE6C = 5.5f;
-    guard->fE70 = 6.5f;
-    guard->n354 = 0x29FF7E;
+    guard->sleepTimeMin = 16.0f;
+    guard->sleepTimeMax = 20.0f;
+    guard->sleepDartCapacity = 50;
+    guard->unknownE6C = 5.5f;
+    guard->unknownE70 = 6.5f;
+    guard->knockdownZapMask = 0x29FF7E;
     guard->unknown364 = 1;
     guard->canInteract = 1;
     guard->sensesEnabled = 1;
-    guard->nF40 = 1;
+    guard->unknownF40 = 1;
     guard->minStimulusLevel = -1;
     guard->searchMode = 0;
-    guard->n350 = 0x20F800;
-    guard->n358 = 0xF800;
+    guard->hurtZapMask = 0x20F800;
+    guard->koZapMask = 0xF800;
     guard->pulseStartTime = -10.0f;
     guard->unknown4A0 = 1;
     guard->gravityRatio = 1.5f;
     guard->u148_f = 2;
-    guard->n3F0 = -200;
-    guard->n3D8 = -1;
+    guard->unknown3F0 = -200;
+    guard->coinCountOverride = -1;
     guard->attachKind = -1;
-    guard->n3FC = -1;
+    guard->unknown3FC = -1;
     guard->specialState = -1;
     guard->unknownFF4 = D_002A8604;
     guard->removalMode = D_002C3CF0;
@@ -288,9 +293,9 @@ extern "C" void ResetStepguardFromScript(O *guard)
 {
     int n;
     void *apv[1];
-guard->V26(0);
-n = 0;
-apv[0] = &n;
+    guard->V26(0);
+    n = 0;
+    apv[0] = &n;
     guard->Msg(0xE, 1, 1, apv, 0);
 }
 } // namespace M_func_00206170
@@ -300,13 +305,13 @@ namespace M_PostStepguardLoad { extern "C" {
 struct VE; struct O; struct C3; struct K; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; char pad2[0x50 - 0x10]; int n50; };
-struct C3 { char pad[0x24]; int n24; };
+struct O { char pad[0xC]; struct VE *vt; char pad2[0x50 - 0x10]; int unknown50; };
+struct C3 { char pad[0x24]; int unknown24; };
 struct K { long l; } __attribute__((packed));
 struct S {
-    char pad0[0x18]; int n18; char pad1[0x3C - 0x1C]; struct C3 *p3C; char pad2[0x58 - 0x40]; int n58; int n5C;
-    char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int n2F0;
-    char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *helperComponent; void *attachComponent;
+    char pad0[0x18]; int oid; char pad1[0x3C - 0x1C]; struct C3 *unknown3C; char pad2[0x58 - 0x40]; int xfRolesIdle; int xfRolesUngrounded;
+    char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int unknown2F0;
+    char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *stuckWatch; void *hazardWatch;
     char pad7[0xFC4 - 0x4A0]; void *unknownFC4;
 };
 extern char D_002C3CF8[];
@@ -329,32 +334,32 @@ void *FindSoXf(struct S *p, int n, int m);
 void *NewPositionAct(struct S *p, void *x, int a, int b, int c, qword q);
 
 // 0x2061D8: STEPGUARD vtable slot 15 (PostLoad): step post-load, binds its oid table, gravity ratio, attaches
-// children, resolves animation bindings and attack oids, and creates its two helper components (+0x498/+0x49C).
+// children, resolves animation bindings and attack oids, and creates its stuck and hazard watches (+0x498/+0x49C).
 void PostStepguardLoad(struct S *guard)
 {
     void *x;
     PostStepLoad(guard);
     BindLoOidTable(guard, 1, D_002C3CF8);
     SetStepGravityRatio(guard, guard->gravityRatio);
-    SetXfRole(guard, guard->n58, 2);
-    SetXfRole(guard, guard->n5C, 2);
+    SetXfRole(guard, guard->xfRolesIdle, 2);
+    SetXfRole(guard, guard->xfRolesUngrounded, 2);
     ResolveStepguardAnimBindings(guard);
     ResolveStepguardAttacks(guard);
-    guard->helperComponent = func_001AE4F8(0x10);
-    InitStuckWatch(guard->helperComponent, guard);
-    guard->attachComponent = func_001AE4F8(0x14);
-    InitHazardWatch(guard->attachComponent, guard);
-    if (!guard->p3C->n24)
+    guard->stuckWatch = func_001AE4F8(0x10);
+    InitStuckWatch(guard->stuckWatch, guard);
+    guard->hazardWatch = func_001AE4F8(0x14);
+    InitHazardWatch(guard->hazardWatch, guard);
+    if (!guard->unknown3C->unknown24)
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
     guard->alternatePatrolScript = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
     AddGuardScriptLookAt(guard->alternatePatrolScript, -1, -1, 40.0f);
-    guard->n2F0 = guard->alternatePatrolScript->n50;
+    guard->unknown2F0 = guard->alternatePatrolScript->unknown50;
     guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
     if (guard->pickpocketIndicator0)
         guard->pickpocketIndicator0->vt[9].pf((char *)guard->pickpocketIndicator0 + guard->pickpocketIndicator0->vt[9].d);
     if (guard->pickpocketIndicator1)
         guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
-    x = FindSoXf(guard, guard->n18, 0xC);
+    x = FindSoXf(guard, guard->oid, 0xC);
     if (x)
         guard->unknownFC4 = NewPositionAct(guard, x, 0, 7, 2, D_002A2DE0);
 }
@@ -452,17 +457,17 @@ void STEPGUARD::RemoveHierarchy()
 
 // 0x206518 ResetStepguardToHome
 namespace M_ResetStepguardToHome { extern "C" {
-struct VE; struct O; struct P2F0; struct F64; struct S;
+struct VE; struct O; struct HOMEREC; struct F64; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VE *vt; };
-struct P2F0 { char pad[8]; qword *pq; float f; };
-struct F64 { char pad[0xE0]; void *pE0; void *pE4; };
+struct HOMEREC { char pad[8]; qword *position; float f; };
+struct F64 { char pad[0xE0]; void *owner; void *unknownE4; };
 struct S {
-    char pad0[0xEC]; void *pEC; char pad1[0x26C - 0xF0]; char a26C[0x2F0 - 0x26C]; struct P2F0 *p2F0;
-    char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int n340; int n344;
-    char pad4[0x494 - 0x348]; int n494; void *helperComponent; void *attachComponent; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
-    int nE84; int nE88; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char aFD0[0xFE8 - 0xFD0];
+    char pad0[0xEC]; void *unknownEC; char pad1[0x26C - 0xF0]; char bhvstk[0x2F0 - 0x26C]; struct HOMEREC *homeRecord;
+    char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int staggerCapacity; int staggerProgress;
+    char pad4[0x494 - 0x348]; int lootEnabled; void *stuckWatch; void *hazardWatch; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
+    int sleepDartCapacity; int sleepDartProgress; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char mover[0xFE8 - 0xFD0];
     int capabilities; struct O *knockdownHelper;
 };
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648;
@@ -490,22 +495,22 @@ void SetLoParent(struct F64 *pf, struct S *p, int n);
 void ResetStepguardToHome(struct S *guard)
 {
     struct O *o;
-    qword *pq;
+    qword *position;
     SO_ResetForProxy(guard);
-    pq = &guard->homePosition;
+    position = &guard->homePosition;
     guard->hp = guard->hpMax;
-    guard->nE88 = guard->nE84;
-    guard->n344 = guard->n340;
-    ClearBhvstk__FP6BHVSTK(guard->a26C);
-    ClearStepguardMover(guard->aFD0);
+    guard->sleepDartProgress = guard->sleepDartCapacity;
+    guard->staggerProgress = guard->staggerCapacity;
+    ClearBhvstk__FP6BHVSTK(guard->bhvstk);
+    ClearStepguardMover(guard->mover);
     SetStepguardGrfsgf(guard, 0);
-    ResetStuckWatch(guard->helperComponent);
-    ResetHazardWatch(guard->attachComponent);
-    EnableStuckWatch(guard->helperComponent);
+    ResetStuckWatch(guard->stuckWatch);
+    ResetHazardWatch(guard->hazardWatch);
+    EnableStuckWatch(guard->stuckWatch);
     guard->homePosition = GetLoWorldPos(guard);
     guard->homeHeading = GetStepHeading(guard);
-    guard->p2F0->pq = pq;
-    guard->p2F0->f = guard->homeHeading;
+    guard->homeRecord->position = position;
+    guard->homeRecord->f = guard->homeHeading;
     SetStepTargetHeading(guard, guard->homeHeading);
     guard->capabilities = 0;
     if (FindBestAnimBinding(guard, GetSgfMask(SGF_MOVING)))
@@ -522,7 +527,7 @@ void ResetStepguardToHome(struct S *guard)
     UpdateDetectorTrackedObject(guard->detector, guard, D_002F7900);
     UpdateDetectorTrackedObject(guard->detector, guard, D_002DD5BC);
     UpdateDetectorTrackedObject(guard->detector, guard, D_002DD648);
-    if (guard->n494) {
+    if (guard->lootEnabled) {
         GenerateStepguardLoot(guard);
         StageStepguardLoot(guard);
     }
@@ -531,8 +536,8 @@ void ResetStepguardToHome(struct S *guard)
     o = PushStepBehavior(guard, CID_BHVGUARD);
     o->vt[8].pf((char *)o + o->vt[8].d);
     SetLoParent(guard->detector, guard, 0xF);
-    guard->detector->pE0 = guard;
-    guard->detector->pE4 = guard->pEC;
+    guard->detector->owner = guard;
+    guard->detector->unknownE4 = guard->unknownEC;
 }
 } } // namespace M_ResetStepguardToHome
 
@@ -541,11 +546,11 @@ namespace M_ClearStepguardState { extern "C" {
 struct F; struct S;
 extern float D_002A8610;
 extern int D_002C3CF0;
-struct F { char pad[0xF0]; int a; int b; };
+struct F { char pad[0xF0]; int unknownF0; int unknownF4; };
 struct S {
-    char p0[0x2DC]; int unknown2DC[3]; int patrolScript; char p1[0x330 - 0x2EC]; int isKnockedOut; char p2[0x360 - 0x334]; float pulseStartTime;
-    char p3[0x390 - 0x364]; int forcedTarget; char p4[0x484 - 0x394]; int n484, n488, isLootStaged, n490; char p5[0x4A0 - 0x494]; int unknown4A0;
-    char p6[0xE94 - 0x4A4]; int nE94; char p7[0xF64 - 0xE98]; struct F *pf; int nF68; char p8[0xF94 - 0xF6C]; int designatedTargetCount;
+    char p0[0x2DC]; int scriptResumePoint[3]; int patrolScript; char p1[0x330 - 0x2EC]; int isKnockedOut; char p2[0x360 - 0x334]; float pulseStartTime;
+    char p3[0x390 - 0x364]; int forcedTarget; char p4[0x484 - 0x394]; int numLoot, firstLoot, isLootStaged, unknown490; char p5[0x4A0 - 0x494]; int unknown4A0;
+    char p6[0xE94 - 0x4A4]; int unknownE94; char p7[0xF64 - 0xE98]; struct F *detector; int escortObject; char p8[0xF94 - 0xF6C]; int designatedTargetCount;
     char p9[0xFA8 - 0xF98]; int avoidObjectCount; char p10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char p11[0xFF4 - 0xFD0]; float unknownFF4;
     char p12[0x1000 - 0xFF8]; int removalMode;
 };
@@ -564,14 +569,14 @@ void ClearStepguardState(struct S *guard)
     SO_Slot27(guard);
     DetachStepguard(guard);
     guard->patrolScript = 0;
-    func_002333B4(guard->unknown2DC, 0, 0xC);
-    guard->nE94 = 0;
-    guard->pf->a = 0;
-    guard->pf->b = 0;
-    guard->n484 = 0;
-    guard->n488 = 0;
+    func_002333B4(guard->scriptResumePoint, 0, 0xC);
+    guard->unknownE94 = 0;
+    guard->detector->unknownF0 = 0;
+    guard->detector->unknownF4 = 0;
+    guard->numLoot = 0;
+    guard->firstLoot = 0;
     guard->isLootStaged = 0;
-    guard->n490 = 0;
+    guard->unknown490 = 0;
     guard->designatedTargetCount = 0;
     guard->avoidObjectCount = 0;
     guard->forcedTarget = 0;
@@ -579,7 +584,7 @@ void ClearStepguardState(struct S *guard)
     ClearStepguardTargetLists(guard);
     one = 1;
     guard->isKnockedOut = 0;
-    guard->nF68 = 0;
+    guard->escortObject = 0;
     guard->isHandsOff = 0;
     guard->unknownFCC = 0;
     guard->pulseStartTime = -10.0f;
@@ -1032,7 +1037,7 @@ struct S {
     char pad0[0x28]; unsigned long fl28;
     char pad1[0x208 - 0x30]; int n208; char pad1b[0x218 - 0x20C]; qword *pq218;
     char pad2[0x26C - 0x21C]; char behaviorStack[0x34C - 0x26C]; int heldAnimation;
-    char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *helperComponent; void *attachComponent;
+    char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *stuckWatch; void *hazardWatch;
     char pad5[0x4A4 - 0x4A0]; int n4A4; char pad6[0x4B0 - 0x4A8]; qword q4B0;
     char pad7[0xF00 - 0x4C0]; struct O *po; char pad8[0xF0C - 0xF04]; int hF0C;
     char pad9[0xFBC - 0xF10]; int kFBC; char padA[0xFD0 - 0xFC0]; char xFD0[0x10];
@@ -1070,8 +1075,8 @@ void UpdateStepguard(struct S *guard)
         UpdateStepguardAim(guard);
     if (guard->isLootStaged)
         StageStepguardLoot(guard);
-    UpdateStuckWatch(guard->helperComponent);
-    UpdateHazardWatch(guard->attachComponent);
+    UpdateStuckWatch(guard->stuckWatch);
+    UpdateHazardWatch(guard->hazardWatch);
     UpdateBhvstk(guard->behaviorStack);
     UpdateStepguardMover(guard->xFD0);
     if (guard->heldAnimation && FAsegaRetracted(guard->heldAnimation))
@@ -1137,7 +1142,11 @@ struct S;
 struct S { char pad[0x298]; int a; char pad2[0x90]; int b; };
 int StepguardHasSgf(struct S *p, int n);
 // 0x207598: STEPGUARD vtable slot 76: true while invulnerable (+0x32C or +0x298 set, or flag 0x2A).
-int IsStepguardInvulnerable(struct S *guard) { if (guard->b || guard->a) return 1; return StepguardHasSgf(guard, 0x2A) != 0; }
+int IsStepguardInvulnerable(struct S *guard)
+{
+    if (guard->b || guard->a) return 1;
+    return StepguardHasSgf(guard, 0x2A) != 0;
+}
 } } // namespace M_FInvulnerableStepguard
 
 // 0x2075D0 HandleStepguardMessage
@@ -1301,7 +1310,12 @@ struct S { char pad[0xFF8]; float t; };
 void OnSoAdd(struct S *p);
 void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 // 0x2079E0: STEPGUARD vtable slot 23 (OnAdd): base, links on the world's guard list, removal time FLT_MAX.
-void OnStepguardAdd(struct S *guard) { OnSoAdd(guard); AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard); guard->t = D_002A8868; }
+void OnStepguardAdd(struct S *guard)
+{
+    OnSoAdd(guard);
+    AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard);
+    guard->t = D_002A8868;
+}
 } } // namespace M_OnStepguardAdd
 
 // 0x207A20 GetSgfMask
@@ -1818,7 +1832,10 @@ extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, in
             if (numGenerated > 0) {
                 // Full: drop the oldest generated entry (the last) and insert in front of the generated tail.
                 guard->generatedTargetCount = numGenerated - 1;
-                n = 8; n -= numGenerated; n *= 16; n += 0x100;
+                n = 8;
+                n -= numGenerated;
+                n *= 16;
+                n += 0x100;
                 entry = (struct E *)((char *)detector + n);
                 memmove(entry + 1, entry, (numGenerated - 1) * 16);
                 new(entry) E(object, D_002DDED0);
@@ -1832,7 +1849,9 @@ extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, in
             entry = (struct E *)((char *)detector + offset);
         } else {
             int numGenerated = guard->generatedTargetCount;
-            n -= numGenerated; n *= 16; n += 0x100;
+            n -= numGenerated;
+            n *= 16;
+            n += 0x100;
             entry = (struct E *)((char *)detector + n);
             memmove(entry + 1, entry, numGenerated * 16);
         }
@@ -2211,7 +2230,11 @@ extern struct G D_003DD490;
 struct S { char pad[0xFC8]; int n; };
 int IsSwInputLocked(struct G *p);
 // 0x209098: True while the guard is hands-off (+0xFC8) or world input is locked.
-int IsStepguardHandsOff(struct S *guard) { if (guard->n != 0) return 1; return IsSwInputLocked(&D_003DD490); }
+int IsStepguardHandsOff(struct S *guard)
+{
+    if (guard->n != 0) return 1;
+    return IsSwInputLocked(&D_003DD490);
+}
 } } // namespace M_func_00209098
 
 // 0x2090D0 ReleaseAnimBinding
@@ -2586,7 +2609,12 @@ extern "C" void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
 // 0x209778 ClearStepguardMover
 namespace M_func_00209778 { extern "C" {
 // 0x209778: Clears the mover (driver, lock, third word).
-void ClearStepguardMover(int *p) { p[0] = 0; p[1] = 0; p[2] = 0; }
+void ClearStepguardMover(int *p)
+{
+    p[0] = 0;
+    p[1] = 0;
+    p[2] = 0;
+}
 } } // namespace M_func_00209778
 
 // 0x209788 SetStepguardMoverDriver
@@ -2959,7 +2987,11 @@ struct O { char pad[0x58]; int n; };
 int StepguardHasSgf(void *p, int n);
 struct O *FindStepBehavior(void *p, int oid);
 // 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
-int GetStepguardJuggledValue(void *p) { if (StepguardHasSgf(p, SGF_JUGGLED)) return FindStepBehavior(p, CID_BHVJUGGLED)->n; return 0; }
+int GetStepguardJuggledValue(void *p)
+{
+    if (StepguardHasSgf(p, SGF_JUGGLED)) return FindStepBehavior(p, CID_BHVJUGGLED)->n;
+    return 0;
+}
 } } // namespace M_func_0020A010
 
 // 0x20A058 SetStepguardTargetLists
@@ -3378,7 +3410,11 @@ struct S;
 extern struct CLOCK D_002DDED0;
 struct S { int a; float t; int n; };
 // 0x20A9A8: Sets an engagement record's state and its time.
-void SetTargetRecordState(struct S *p, int n) { p->t = D_002DDED0.t; p->n = n; }
+void SetTargetRecordState(struct S *p, int n)
+{
+    p->t = D_002DDED0.t;
+    p->n = n;
+}
 } } // namespace M_func_0020A9A8
 
 // 0x20A9C0 GetStepguardDefaultAttack
@@ -3444,7 +3480,11 @@ void ResolveStepguardAttacks(struct S *guard)
 // 0x20AB58 ClearStepguardAttacks
 namespace M_func_0020AB58 { extern "C" {
 // 0x20AB58: Clears both attack lists.
-void ClearStepguardAttacks(char *p) { *(int *)(p + 0xED8) = 0; *(int *)(p + 0xEFC) = 0; }
+void ClearStepguardAttacks(char *p)
+{
+    *(int *)(p + 0xED8) = 0;
+    *(int *)(p + 0xEFC) = 0;
+}
 } } // namespace M_func_0020AB58
 
 // 0x20AB68 SetStepguardAttack
@@ -3620,7 +3660,12 @@ namespace M_func_0020AF28 { extern "C" {
 struct S;
 struct S { char pad[0x7C]; int a, b, c; };
 // 0x20AF28: Splice option: sets the attack's three oids.
-void SetGuardAttackOids(struct S *guard, int a, int b, int c) { guard->a = a; guard->b = b; guard->c = c; }
+void SetGuardAttackOids(struct S *guard, int a, int b, int c)
+{
+    guard->a = a;
+    guard->b = b;
+    guard->c = c;
+}
 } } // namespace M_func_0020AF28
 
 // 0x20AF38 SetGuardAttackBinding

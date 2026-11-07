@@ -865,7 +865,7 @@ extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
 {
     if (state == gadget->state)
         return;
-    if (gadget->state == TOSSABLE_EXTRACTING && gadget->actor) {
+    if (gadget->state == 5 && gadget->actor) {
         R30 *behavior;
         RemoveSoXa(gadget->actor, &gadget->hook);
         behavior = FindStepBehavior(gadget->actor, 0xB0);

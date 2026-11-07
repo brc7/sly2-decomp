@@ -1589,12 +1589,11 @@ typedef char layout_adjusted[((unsigned)&((P*)0)->adjusted==0x1060)?1:-1];
 
 /** @sly2-annot addr=0x205438
  * Purpose: Push a new behaviour of class cid on the step's BHVSTK (+0x26C) and Init it (0x1EEE00)
- * Info: proposed name PbhvPushStep (T1); TU step
+ * Info: named PushStepBehavior (was proposed PbhvPushStep; cid passes through in $a1 to PushBhvstk); TU step
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
  * See: docs/engine/player.md#3-step-stepcpp-0x203948, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-// Pushes a new behaviour of class cid on the step's behaviour stack (+0x26C) and initialises it.
 extern "C" BHV *PushStepBehavior(STEP *step)
 {
     return PushBhvstk(&step->bhvstk);
@@ -1602,12 +1601,11 @@ extern "C" BHV *PushStepBehavior(STEP *step)
 
 /** @sly2-annot addr=0x205458
  * Purpose: Find the behaviour of class cid in the step's BHVSTK (0x1EEEE0, FIsBasicDerivedFrom)
- * Info: proposed name PbhvFindStep (T1); TU step
+ * Info: named FindStepBehavior (was proposed PbhvFindStep); TU step
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
  * See: docs/engine/player.md#3-step-stepcpp-0x203948,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-// Returns the behaviour of class cid on the step's behaviour stack, or 0.
 extern "C" BHV *FindStepBehavior(STEP *step, CID cid)
 {
     return FindBhvInBhvstk(&step->bhvstk, cid);

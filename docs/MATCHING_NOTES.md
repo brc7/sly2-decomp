@@ -567,6 +567,11 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - `do { ...; goto next; ... next: i = n; } while (i < 3)` -> `for (...; i = n) { ...; continue; }` (DrawFrameCaptureScreen).
 - A nested `if (d == 0) { ... }` comparator chain as early returns (CompareSortRecs); `{int j; for (j = 0, p = a; j < n;
   j++, p++) f(p->k);}` as `for (int j = 0; j < n; j++) f(a[j].k);` (CprplPartitionArpl).
+- `goto finish` from several early cases into a shared tail -> an `if / else if` chain ending in the tail
+  (HandleBhvguardMessage; the nested `if (a) { if (b) {...} }` case folds into `else if (a && b)`); anonymous unions for
+  per-class child fields (`union { int lookAt; int gotoSgf; };`); typed `&p->segments[i]` / `p->mover` / `p->heldNoise` for
+  `(char *)p + 0x60 + i * 32` style arithmetic; a `template <class T> static inline` helper for the vtable-slot-8 start
+  call (StartPushedBhv).
 
 **Not free** (reverted):
 - Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
@@ -624,3 +629,7 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - Factoring a repeated block into a `static inline` helper, even once (UpdateEmitter's particle-count clamp: register
   allocation changes); `int f = 0 < d; if (f) c = d;` written `if (d > 0) c = d;` (loses slt/movn); folding
   `if (!a(p)) continue; if (b(p)) goto found;` into `if (a(p) && b(p)) ...` through an inline predicate.
+- `if (a > 0) if (a < 3)` -> `if (a > 0 && a < 3)` (PlanBhvgoto); `(struct SEG *)(i * 32 + (int)p)` -> `&p->segments[i]` in
+  SetBhvpathlinkState (address computed differently).
+- A `static inline` helper can be emitted out of line (a non-template one in tu_171F58, the template with a cast in
+  tu_1553F0: a new local symbol in `nm`): check the nm set, not only matchtool, after introducing a helper.
