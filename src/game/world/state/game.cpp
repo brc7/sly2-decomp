@@ -98,6 +98,52 @@ enum STATESOURCE {
     STATE_SOURCE_SCRIPT = 4         /* the Splice ForceTaskState0..3 */
 };
 
+/* Sets a task's (or, with isJob, a job's) state source / requester for a scope and restores them after; a scope
+   holds either half. */
+class StateSourceScope {
+public:
+    JOB *job;
+    TASK *task;
+    int savedSource;
+    int savedRequester;
+    inline StateSourceScope(TASK *px, int source, int requester);
+    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
+    inline ~StateSourceScope();
+};
+inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
+{
+    job = 0;
+    task = px;
+    if (px) {
+        savedSource = px->stateSource;
+        px->stateSource = source;
+        savedRequester = task->stateRequester;
+        task->stateRequester = requester;
+    }
+}
+inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
+{
+    job = owner;
+    task = 0;
+    if (owner) {
+        savedSource = owner->stateSource;
+        owner->stateSource = source;
+        savedRequester = job->stateRequester;
+        job->stateRequester = requester;
+    }
+}
+inline StateSourceScope::~StateSourceScope()
+{
+    if (job) {
+        job->stateSource = savedSource;
+        job->stateRequester = savedRequester;
+    }
+    if (task) {
+        task->stateSource = savedSource;
+        task->stateRequester = savedRequester;
+    }
+}
+
 // Once-per-boot game startup (from main): language-dependent setup, game event 0, and the game sequence queue.
 extern "C" void StartupGame()
 {
@@ -415,22 +461,6 @@ extern SAVE D_002E65E0;
  void Decref__4CRef(CRef*);
 }
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-/* Sets a task's state source / requester for a scope (the job half is unused here). */
-struct OVERRIDE {
-    JOB *context; TASK *object; int oldSource, oldRequester;
-    OVERRIDE(TASK *p, int source, int requester) : context(0), object(p)
-    {
-        if (object) {
-            oldSource = object->stateSource; object->stateSource = source;
-            oldRequester = object->stateRequester; object->stateRequester = requester;
-        }
-    }
-    ~OVERRIDE()
-    {
-        if (context) { context->stateSource = oldSource; context->stateRequester = oldRequester; }
-        if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
-    }
-};
 struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef GetGlobalSaveVar(void*,void*);
 static inline float GetFloat(void*p,void*context){const CRef&r=GetGlobalSaveVar(p,context);return r.g;}
@@ -440,15 +470,10 @@ static inline int Same(CHECK*a,CHECK*b){
  return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);
 }
 typedef char CHECK_Size[sizeof(CHECK)==64?1:-1];
-typedef char OVERRIDE_Size[sizeof(OVERRIDE)==16?1:-1];
 typedef char CRef_Size[sizeof(CRef)==8?1:-1];
 typedef char LEASE_Size[sizeof(LEASE)==1?1:-1];
 typedef char P_widget_Offset[FIELD_OFFSET(P,widget)==4520?1:-1];
 typedef char CHECK_words_Offset[FIELD_OFFSET(CHECK,words)==0?1:-1];
-typedef char OVERRIDE_context_Offset[FIELD_OFFSET(OVERRIDE,context)==0?1:-1];
-typedef char OVERRIDE_object_Offset[FIELD_OFFSET(OVERRIDE,object)==4?1:-1];
-typedef char OVERRIDE_oldX_Offset[FIELD_OFFSET(OVERRIDE,oldSource)==8?1:-1];
-typedef char OVERRIDE_oldY_Offset[FIELD_OFFSET(OVERRIDE,oldRequester)==12?1:-1];
 typedef char CRef_kind_Offset[FIELD_OFFSET(CRef,kind)==0?1:-1];
 typedef char CRef_g_Offset[FIELD_OFFSET(CRef,g)==4?1:-1];
 // The game record's event handler: world teardown (1) saves widget state, reset (3) applies the pending save data and
@@ -503,7 +528,7 @@ extern "C" void HandleGameEvent(GAME *game, int action)
         SortTasksTopologically(&count, &tasks);
         for (; i < count; i++) {
             TASK *task = tasks[i];
-            OVERRIDE restoring(task, STATE_SOURCE_RESTORE, 0);
+            StateSourceScope restoring(task, STATE_SOURCE_RESTORE, 0);
             RestoreTaskState(task);
         }
         SW *world = &D_003DD490;
@@ -522,7 +547,7 @@ extern "C" void HandleGameEvent(GAME *game, int action)
         }
         for (int j = 0; j < count; j++) {
             TASK *task = tasks[j];
-            OVERRIDE gameplay(task, STATE_SOURCE_GAMEPLAY, 0);
+            StateSourceScope gameplay(task, STATE_SOURCE_GAMEPLAY, 0);
             UpdateTaskSaveVars(task);
         }
         mark.Release();
@@ -1594,33 +1619,6 @@ void UpdateTask(TASK *task)
 } } // namespace M_UpdateTask
 
 namespace M_ActivateTask {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    StateSourceScope(TASK *px, int source, int requester)
-    {
-        task = px;
-        job = 0;
-        savedSource = px->stateSource;
-        px->stateSource = source;
-        savedRequester = task->stateRequester;
-        task->stateRequester = requester;
-    }
-    ~StateSourceScope()
-    {
-        if (job) {
-            job->stateSource = savedSource;
-            job->stateRequester = savedRequester;
-        }
-        if (task) {
-            task->stateSource = savedSource;
-            task->stateRequester = savedRequester;
-        }
-    }
-};
 extern "C" { extern SW D_003DD490; }
 extern "C" void DeactivateTask(TASK *px);
 extern "C" void BeginTask(TASK *px);
@@ -1780,37 +1778,6 @@ int GetTaskStateGoalOid(TASK *task)
 } } // namespace M_OidFromTaskState
 
 namespace M_VisitTaskTopo {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    inline StateSourceScope(TASK *follower, int source, int requester);
-    inline ~StateSourceScope();
-};
-inline StateSourceScope::StateSourceScope(TASK *follower, int source, int requester)
-{
-    job = 0;
-    task = follower;
-    if (follower) {
-        savedSource = follower->stateSource;
-        follower->stateSource = source;
-        savedRequester = task->stateRequester;
-        task->stateRequester = requester;
-    }
-}
-inline StateSourceScope::~StateSourceScope()
-{
-    if (job) {
-        job->stateSource = savedSource;
-        job->stateRequester = savedRequester;
-    }
-    if (task) {
-        task->stateSource = savedSource;
-        task->stateRequester = savedRequester;
-    }
-}
 // Topological visit: records the depth and emits the task once all its prerequisites are visited, then visits the
 // successors.
 extern "C" void VisitTaskTopo(TASK *task, int *count, TASK **order, int depth, int jobDepth)
@@ -1956,49 +1923,6 @@ int AreTaskPrereqsMet(TASK *task)
 } } // namespace M_FTaskPrereqsMet
 
 namespace M_RequestTaskState {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    inline StateSourceScope(TASK *px, int source, int requester);
-    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
-    inline ~StateSourceScope();
-};
-inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
-{
-    job = 0;
-    task = px;
-    if (px) {
-        savedSource = px->stateSource;
-        px->stateSource = source;
-        savedRequester = task->stateRequester;
-        task->stateRequester = requester;
-    }
-}
-inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
-{
-    job = owner;
-    task = 0;
-    if (owner) {
-        savedSource = owner->stateSource;
-        owner->stateSource = source;
-        savedRequester = job->stateRequester;
-        job->stateRequester = requester;
-    }
-}
-inline StateSourceScope::~StateSourceScope()
-{
-    if (job) {
-        job->stateSource = savedSource;
-        job->stateRequester = savedRequester;
-    }
-    if (task) {
-        task->stateSource = savedSource;
-        task->stateRequester = savedRequester;
-    }
-}
 extern "C" int AreTaskPrereqsMet(TASK *p);
 extern "C" void SetTaskStateCascade(TASK *p, int newState);
 extern "C" void ActivateTask(TASK *p);
@@ -2063,49 +1987,6 @@ extern "C" void RequestTaskState(TASK *task, int newState, int requester)
 } // namespace M_RequestTaskState
 
 namespace M_ForceTaskState {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    inline StateSourceScope(TASK *px, int source, int requester);
-    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
-    inline ~StateSourceScope();
-};
-inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
-{
-    job = 0;
-    task = px;
-    if (px) {
-        savedSource = px->stateSource;
-        px->stateSource = source;
-        savedRequester = task->stateRequester;
-        task->stateRequester = requester;
-    }
-}
-inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
-{
-    job = owner;
-    task = 0;
-    if (owner) {
-        savedSource = owner->stateSource;
-        owner->stateSource = source;
-        savedRequester = job->stateRequester;
-        job->stateRequester = requester;
-    }
-}
-inline StateSourceScope::~StateSourceScope()
-{
-    if (job) {
-        job->stateSource = savedSource;
-        job->stateRequester = savedRequester;
-    }
-    if (task) {
-        task->stateSource = savedSource;
-        task->stateRequester = savedRequester;
-    }
-}
 extern "C" int AreTaskPrereqsMet(TASK *p);
 extern "C" void SetTaskStateCascade(TASK *p, int newState);
 extern "C" void ActivateTask(TASK *p);
@@ -2162,164 +2043,48 @@ void UpdateCurrentJob(void)
 } } // namespace M_UpdateCurrentJob
 
 namespace M_func_00164AA8 {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    StateSourceScope(TASK *px)
-    {
-        job = 0;
-        task = px;
-        if (px) {
-            savedSource = px->stateSource;
-            px->stateSource = STATE_SOURCE_SCRIPT;
-            savedRequester = px->stateRequester;
-            px->stateRequester = 0;
-        }
-    }
-    ~StateSourceScope()
-    {
-        if (job) {
-            job->stateSource = savedSource;
-            job->stateRequester = savedRequester;
-        }
-        if (task) {
-            task->stateSource = savedSource;
-            task->stateRequester = savedRequester;
-        }
-    }
-};
 extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 0 and updates the current job.
 extern "C" void ForceTaskState0(TASK *task)
 {
-    StateSourceScope scope(task);
+    StateSourceScope scope(task, STATE_SOURCE_SCRIPT, 0);
     ForceTaskState(task, TASK_STATE_LOCKED, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164AA8
 
 namespace M_func_00164B38 {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    StateSourceScope(TASK *px)
-    {
-        job = 0;
-        task = px;
-        if (px) {
-            savedSource = px->stateSource;
-            px->stateSource = STATE_SOURCE_SCRIPT;
-            savedRequester = px->stateRequester;
-            px->stateRequester = 0;
-        }
-    }
-    ~StateSourceScope()
-    {
-        if (job) {
-            job->stateSource = savedSource;
-            job->stateRequester = savedRequester;
-        }
-        if (task) {
-            task->stateSource = savedSource;
-            task->stateRequester = savedRequester;
-        }
-    }
-};
 extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 1 and updates the current job.
 extern "C" void ForceTaskState1(TASK *task)
 {
-    StateSourceScope scope(task);
+    StateSourceScope scope(task, STATE_SOURCE_SCRIPT, 0);
     ForceTaskState(task, TASK_STATE_AVAILABLE, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164B38
 
 namespace M_func_00164BC8 {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    StateSourceScope(TASK *px)
-    {
-        job = 0;
-        task = px;
-        if (px) {
-            savedSource = px->stateSource;
-            px->stateSource = STATE_SOURCE_SCRIPT;
-            savedRequester = px->stateRequester;
-            px->stateRequester = 0;
-        }
-    }
-    ~StateSourceScope()
-    {
-        if (job) {
-            job->stateSource = savedSource;
-            job->stateRequester = savedRequester;
-        }
-        if (task) {
-            task->stateSource = savedSource;
-            task->stateRequester = savedRequester;
-        }
-    }
-};
 extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 2 and updates the current job.
 extern "C" void ForceTaskState2(TASK *task)
 {
-    StateSourceScope scope(task);
+    StateSourceScope scope(task, STATE_SOURCE_SCRIPT, 0);
     ForceTaskState(task, TASK_STATE_DONE, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164BC8
 
 namespace M_func_00164C58 {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    StateSourceScope(TASK *px)
-    {
-        job = 0;
-        task = px;
-        if (px) {
-            savedSource = px->stateSource;
-            px->stateSource = STATE_SOURCE_SCRIPT;
-            savedRequester = px->stateRequester;
-            px->stateRequester = 0;
-        }
-    }
-    ~StateSourceScope()
-    {
-        if (job) {
-            job->stateSource = savedSource;
-            job->stateRequester = savedRequester;
-        }
-        if (task) {
-            task->stateSource = savedSource;
-            task->stateRequester = savedRequester;
-        }
-    }
-};
 extern "C" void ForceTaskState(TASK *px, int a, int b);
 extern "C" void UpdateCurrentJob();
 // Splice: forces the task to state 3 and updates the current job.
 extern "C" void ForceTaskState3(TASK *task)
 {
-    StateSourceScope scope(task);
+    StateSourceScope scope(task, STATE_SOURCE_SCRIPT, 0);
     ForceTaskState(task, TASK_STATE_COMPLETE, 0);
     UpdateCurrentJob();
 }
@@ -2373,22 +2138,6 @@ CRef*__4CRefRC4CRef(CRef*,const CRef*);
 void Decref__4CRef(CRef*);
 }
 static inline void*Allocate(int n){return AllocClearedFromStack(REQUEST(n,16));}
-/* Sets a task's state source / requester for a scope (as in HandleGameEvent). */
-struct OVERRIDE {
-    JOB *context; TASK *object; int oldSource, oldRequester;
-    OVERRIDE(TASK *p, int source, int requester) : context(0), object(p)
-    {
-        if (object) {
-            oldSource = object->stateSource; object->stateSource = source;
-            oldRequester = object->stateRequester; object->stateRequester = requester;
-        }
-    }
-    ~OVERRIDE()
-    {
-        if (context) { context->stateSource = oldSource; context->stateRequester = oldRequester; }
-        if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
-    }
-};
 struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef SetGlobalSaveVar(void*,const CRef&,void*);
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=SetGlobalSaveVar(object,arg,D_003D4A60);}
@@ -2419,7 +2168,7 @@ extern "C" void SetTaskStateCascade(TASK *task, int state)
         CollectTaskCascade(task, cascadeState, &count, collected);
         for (; i < count; i++) {
             TASK *collectedTask = collected[i];
-            OVERRIDE inherited(collectedTask, task->stateSource, task->stateRequester);
+            StateSourceScope inherited(collectedTask, task->stateSource, task->stateRequester);
             SetTaskStatePropagate(collectedTask, collectedTask->nStatePending);
         }
         for (int j = 0; j < count; j++)
@@ -2509,49 +2258,6 @@ void StartTaskByOid(void *pv, int worldEntry, int oid)
 } } // namespace M_func_001651D8
 
 namespace M_RestoreTasksAfterLoad {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    inline StateSourceScope(TASK *pending, int source, int requester);
-    inline StateSourceScope(JOB *pending, int source, int requester, int isJob);
-    inline ~StateSourceScope();
-};
-inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
-{
-    job = 0;
-    task = px;
-    if (px) {
-        savedSource = px->stateSource;
-        px->stateSource = source;
-        savedRequester = task->stateRequester;
-        task->stateRequester = requester;
-    }
-}
-inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
-{
-    job = owner;
-    task = 0;
-    if (owner) {
-        savedSource = owner->stateSource;
-        owner->stateSource = source;
-        savedRequester = job->stateRequester;
-        job->stateRequester = requester;
-    }
-}
-inline StateSourceScope::~StateSourceScope()
-{
-    if (job) {
-        job->stateSource = savedSource;
-        job->stateRequester = savedRequester;
-    }
-    if (task) {
-        task->stateSource = savedSource;
-        task->stateRequester = savedRequester;
-    }
-}
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002A5238[]; }
@@ -2605,49 +2311,6 @@ extern "C" void RestoreTasksAfterLoad(GAME *game)
 } // namespace M_RestoreTasksAfterLoad
 
 namespace M_GoToTask {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    inline StateSourceScope(TASK *px, int source, int requester);
-    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
-    inline ~StateSourceScope();
-};
-inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
-{
-    job = 0;
-    task = px;
-    if (px) {
-        savedSource = px->stateSource;
-        px->stateSource = source;
-        savedRequester = task->stateRequester;
-        task->stateRequester = requester;
-    }
-}
-inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
-{
-    job = owner;
-    task = 0;
-    if (owner) {
-        savedSource = owner->stateSource;
-        owner->stateSource = source;
-        savedRequester = job->stateRequester;
-        job->stateRequester = requester;
-    }
-}
-inline StateSourceScope::~StateSourceScope()
-{
-    if (job) {
-        job->stateSource = savedSource;
-        job->stateRequester = savedRequester;
-    }
-    if (task) {
-        task->stateSource = savedSource;
-        task->stateRequester = savedRequester;
-    }
-}
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002A5238[]; }
@@ -2788,35 +2451,6 @@ extern "C" void SetTaskState(TASK *task, int n)
 #define D_002DEB44 (*(int *)((char *)base_D_002DEB30 + 0x14))   /* g_game+0x14 */
 
 namespace M_SetTaskStatePropagate {
-class StateSourceScope {
-public:
-    JOB *job;
-    TASK *task;
-    int savedSource;
-    int savedRequester;
-    StateSourceScope(TASK *follower, int source, int requester)
-    {
-        job = 0;
-        task = follower;
-        if (follower) {
-            savedSource = follower->stateSource;
-            follower->stateSource = source;
-            savedRequester = task->stateRequester;
-            task->stateRequester = requester;
-        }
-    }
-    ~StateSourceScope()
-    {
-        if (job) {
-            job->stateSource = savedSource;
-            job->stateRequester = savedRequester;
-        }
-        if (task) {
-            task->stateSource = savedSource;
-            task->stateRequester = savedRequester;
-        }
-    }
-};
 extern "C" void SetTaskState(TASK *task, int state);
 extern "C" void RecomputeTaskState(TASK *follower, int n);
 // SetTaskState, then recomputes each successor.
