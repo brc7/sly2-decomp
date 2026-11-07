@@ -20,6 +20,7 @@
 #include "vifs.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
+#include "sly2/cref.h"
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
@@ -139,11 +140,10 @@ extern "C" void BuildContextText(char *pchz, char *pchzContext)
 
 // 0x210ED8 BuildCoinCountText
 namespace M_BuildCoinCountText { extern "C" {
-struct CRef { int tagk; int tag; };
 extern char D_003D4A60[];
 extern char D_002A8AA0[];
-void GetGlobalSaveVar(struct CRef *r, int *p, void *q);
-void Decref__4CRef(struct CRef *r);
+void GetGlobalSaveVar(CRefData *r, int *p, void *q);
+void Decref__4CRef(CRefData *r);
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // 0x210ED0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
@@ -154,10 +154,10 @@ void BuildCoinCountText(void *f, int **pp)
     int *p = *pp;
     if (p && *p) {
         char *fmt = D_002A8AA0;
-        struct CRef r;
+        CRefData r;
         int v;
         GetGlobalSaveVar(&r, p, D_003D4A60);
-        v = r.tag;
+        v = r.u.n;
         Decref__4CRef(&r);
         fiprintf(f, fmt, v);
     }
@@ -998,16 +998,15 @@ int AreWidgetLoadsIdle(void)
 
 // 0x212828 ShowWidgetArgsFromSplice
 namespace M_ShowWidgetArgsFromSplice { extern "C" {
-struct CRef { int tagk; int tag; };
 struct VE { short d; short pad; void (*pf)(void *, int); };
 struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; char argTextIds[4]; };
 struct L { int words[4]; };
-void SetValuesFromSpliceList(struct CRef *r, void *a, int b, int c, struct L *pl, void *d);
-void Decref__4CRef(struct CRef *r);
+void SetValuesFromSpliceList(CRefData *r, void *a, int b, int c, struct L *pl, void *d);
+void Decref__4CRef(CRefData *r);
 // Shows a widget with argument ids taken from a splice list (at most 10).
 void ShowWidgetArgsFromSplice(struct S *widget, void *spliceList)
 {
-    struct CRef ref;
+    CRefData ref;
     struct L scratch;
     SetValuesFromSpliceList(&ref, spliceList, 0x10, 0xA, &scratch, widget->argTextIds);
     Decref__4CRef(&ref);

@@ -12,6 +12,7 @@
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
+#include "sly2/cref.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 
@@ -289,7 +290,6 @@ extern float D_002BD990, D_002BD994, D_002BD998, D_002BD99C;
 extern char D_002BD9A0[];
 extern struct LM D_002BD9B0;
 extern char D_002BBB60[], D_002BBB68[];
-struct CRef { int m_tagk; int m_n; };
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
 struct JOY { char pad[0x103C]; float leftStickX; float leftStickY; char pad2[0x1074 - 0x1044]; float dyRight; }; /* sticks (joy.h's JOY) */
 struct X {
@@ -304,8 +304,8 @@ void SetSndVolume(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
 void SetCmFov__FP2CMf(struct CM *p, float g);
-void GetGlobalSaveVar(struct CRef *, void *, void *);
-void Decref__4CRef(struct CRef *);
+void GetGlobalSaveVar(CRefData *, void *, void *);
+void Decref__4CRef(CRefData *);
 float ClampAbs__Fff(float g, float gMax);
 float NormalizeAngle__Ff(float g);
 qword PosCplookEye(struct X *p);
@@ -327,7 +327,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
 {
     float x, u, gPan, gTilt, dt;
     int f;
-    struct CRef ref;
+    CRefData ref;
     UpdateCplcy(p, pv, pjoy);
     x = p->zoom;
     p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
@@ -349,7 +349,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     gPan = -__builtin_fabsf(pjoy->leftStickX) * pjoy->leftStickX * D_002BD990;
     gTilt = -__builtin_fabsf(pjoy->leftStickY) * pjoy->leftStickY * D_002BD994;
     GetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
-    f = ref.m_n;
+    f = ref.u.n;
     Decref__4CRef(&ref);
     if (f)
         gTilt = -gTilt;
