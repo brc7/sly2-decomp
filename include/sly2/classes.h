@@ -938,7 +938,7 @@ struct BHVJUGGLED : BHVANIM
     int juggleState;        /* +0x50 own sub-state (-1 before Start; the BHVANIM state is +0x30) */
     float stateTime;        /* +0x54 */
     int hitCount;           /* +0x58 */
-    LO *holder;             /* +0x5C the object holding the guard */
+    SO *holder;             /* +0x5C the object holding the guard (its physicsTree groups the intersections ShouldStepguardIgnoreIntersection skips) */
     int unknown60;
     void *holdAct;          /* +0x64 */
     int unknown68[2];

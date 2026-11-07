@@ -361,30 +361,24 @@ extern "C" DETECTOR *GetStepguardDetector(STEPGUARD *guard)
 }
 
 // 0x206380 ShouldStepguardIgnoreIntersection
-namespace M_FIgnoreStepguardIntersection { extern "C" {
-struct SOV; struct HOLDER; struct BHVJUGGLED; struct S;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct SOV { char pad[0xC]; VTE *vt; char pad2[0xEC - 0x10]; void *collisionGroup; };
-struct HOLDER { char pad[0xEC]; void *collisionGroup; };
-struct BHVJUGGLED { char pad[0x50]; int state; char pad2[8]; struct HOLDER *holder; };
-struct S { char pad[0x26C]; char behaviorStack[4]; };
-int ShouldSoIgnoreIntersection(struct S *p, struct SOV *other);
-int StepguardHasSgf(struct S *p, int n);
-struct BHVJUGGLED *FindBhvInBhvstk(void *stack, int cid);
+extern "C" {
+int ShouldSoIgnoreIntersection(STEPGUARD *guard, SO *psoOther);
 int MaxInt(int ignore, int b);
+}
 // 0x206380: STEPGUARD vtable slot 61 (should an intersection with `other` be ignored): the step test, plus, while dead
-// (flag 7), objects whose vtable slot 62 test fails, and, while juggled/carried (flag 0x17), objects of its holder's
-// group in juggled states 0/4/5.
-int ShouldStepguardIgnoreIntersection(struct S *guard, struct SOV *other)
+// (flag 7), objects that are not fixed (slot 62), and, while juggled/carried (flag 0x17), objects of its holder's
+// physics tree in juggled states 0/4/5.
+int STEPGUARD::ShouldIgnoreIntersection(SO *other)
 {
+    STEPGUARD *guard = this;
     int ignore = ShouldSoIgnoreIntersection(guard, other);
     if (StepguardHasSgf(guard, SGF_KO)) {
-        if (!((int (*)(void *))other->vt[62].pfn)((char *)other + other->vt[62].d))
+        if (!other->IsFixed())
             ignore = MaxInt(ignore, 1);
     } else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
-        struct BHVJUGGLED *juggled = FindBhvInBhvstk(guard->behaviorStack, CID_BHVJUGGLED);
-        if (other->collisionGroup == juggled->holder->collisionGroup) {
-            switch (juggled->state) {
+        BHVJUGGLED *juggled = (BHVJUGGLED *)FindBhvInBhvstk(&guard->behaviors, CID_BHVJUGGLED);
+        if (other->physicsTree == juggled->holder->physicsTree) {
+            switch (juggled->juggleState) {
             case 0:
             case 4:
             case 5:
@@ -395,7 +389,6 @@ int ShouldStepguardIgnoreIntersection(struct S *guard, struct SOV *other)
     }
     return ignore;
 }
-} } // namespace M_FIgnoreStepguardIntersection
 
 // 0x206458 GetStepguardMaxHitPoints
 // 0x206458: Splice getter: maximum hit points as the level sees them ((maxHitPoints - 1) / 10, at least 0).
