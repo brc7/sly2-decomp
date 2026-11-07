@@ -581,13 +581,24 @@ typedef char assert_EXPLS_size[sizeof(EXPLS) == 0x110 ? 1 : -1];
 /* 131 WIDGET131 (0x140): WIDGET: episode menu; vtable 0x2CEEB8, 50 slots */
 struct WIDGET131 : WIDGET
 {
-    char pad110[0x140 - 0x110];
+    /* the menu (tu_15CD68.cpp; g_sw.pepmenu points at it) */
+    int episode;                 /* +0x110 selected episode */
+    int nextEpisode;             /* +0x114 episode being scrolled to */
+    int lastEpisode;             /* +0x118 last selectable episode */
+    int menuState;               /* +0x11C EPMENU_* */
+    int menuSub;                 /* +0x120 */
+    float menuStateTime;         /* +0x124 real time of the last menu state change */
+    int chapter;                 /* +0x128 */
+    int promptState;             /* +0x12C */
+    float promptTime;            /* +0x130 */
+    char pad134[0x140 - 0x134];
     virtual void Init() __asm__("InitEpisodeMenu");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidget131ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostEpisodeMenuLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateEpisodeMenu");   /* slot 16 */
 };
 typedef char assert_WIDGET131_size[sizeof(WIDGET131) == 0x140 ? 1 : -1];
+typedef char assert_WIDGET131_promptTime[SLY2_OFFSETOF(WIDGET131, promptTime) == 0x130 ? 1 : -1];
 
 /* 116 CID116 (0x70): screen tint / fill (render kinds 14 and 1); vtable 0x2CF058, 48 slots */
 struct CID116 : LO
