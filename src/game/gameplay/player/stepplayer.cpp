@@ -2510,7 +2510,6 @@ int WillStepplayerLand(struct SO *so, float dt)
 
 namespace M_func_00143DE8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, ...); };
-struct LO { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int *p40; };
 struct P {
     char pad[0xC]; struct VTE *vt; char pad1[0x26C - 0x10]; char m26C[0x4C8 - 0x26C]; int grabState;
     char pad2[0xF00 - 0x4CC]; char mF00[0x1084 - 0xF00]; struct LO *plo; char pad3[0x11B4 - 0x1088]; int x11B4;
@@ -2524,7 +2523,7 @@ void SetStepplayerRide(struct P *player, struct LO *lo)
     struct LO *old = player->plo;
     if (lo == old) return;
     if (old) {
-        old->vt[2].pfn((char *)old + old->vt[2].d);
+        old->Release();
         switch (player->grabState) {
         case 5: case 6:
             player->vt[88].pfn((char *)player + player->vt[88].d, 0);
@@ -2534,10 +2533,10 @@ void SetStepplayerRide(struct P *player, struct LO *lo)
     player->plo = lo;
     if (!lo)
         return;
-    lo->vt[1].pfn((char *)lo + lo->vt[1].d);
+    lo->AddRef();
     ClearBhvstk__FP6BHVSTK(player->m26C);
     if (IsStepplayerInJtMode(player)) SetJtModeState__FP6JTMODEi(player->mF00, -1);
-    if (player->x11B4 != -1 && *player->plo->p40 != 0x1E)
+    if (player->x11B4 != -1 && *(int *)player->plo->unknown40 != 0x1E)
         player->vt[88].pfn((char *)player + player->vt[88].d, 0);
 }
 } } // namespace M_func_00143DE8
