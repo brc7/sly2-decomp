@@ -88,7 +88,7 @@ extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
 /* The factories construct in place: as class members, the allocators and constructors would get out-of-line copies
    in act.cpp, the classes' key TU (g++ 2.95 emits a class's inline members with its vtable). */
 inline void *operator new(unsigned int, void *pv) { return pv; }
-static inline void *PvNewAc(unsigned int cb) { M_PacNewKind::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind::AllocClearedFromWorldHeap(&req); }
+static inline void *AllocVecCurve(unsigned int cb) { M_PacNewKind::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind {
 extern "C" AC *PacNewKind(int k);
 /** @sly2-annot addr=0x12B3B0
@@ -103,12 +103,12 @@ extern "C" AC *PacNewKind(int k);
 AC *PacNewKind(int k)
 {
     switch (k) {
-    case 0: return new (PvNewAc(sizeof(AC0))) AC0;
-    case 1: return new (PvNewAc(sizeof(AC1))) AC1;
-    case 2: return new (PvNewAc(sizeof(AC2))) AC2;
-    case 3: return new (PvNewAc(sizeof(AC3))) AC3;
-    case 4: return new (PvNewAc(sizeof(AC4))) AC4;
-    case 5: return new (PvNewAc(sizeof(AC5))) AC5;
+    case 0: return new (AllocVecCurve(sizeof(AC0))) AC0;
+    case 1: return new (AllocVecCurve(sizeof(AC1))) AC1;
+    case 2: return new (AllocVecCurve(sizeof(AC2))) AC2;
+    case 3: return new (AllocVecCurve(sizeof(AC3))) AC3;
+    case 4: return new (AllocVecCurve(sizeof(AC4))) AC4;
+    case 5: return new (AllocVecCurve(sizeof(AC5))) AC5;
     }
     return 0;
 }
@@ -276,7 +276,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
-static __inline__ int FVecsNear(qword a, qword b)
+static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
            FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
@@ -317,8 +317,8 @@ void PrepareVecCurveASegment(T *t, OBJ *po)
     po->t1 = t->a[i].t;
     po->pos1.v = t->a[i].pos;
     po->dpos1 = t->a[i].dposIn;
-    f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0) &&
-            FVecsNear(D_002A2DD0, po->dpos1);
+    f = AreVectorsNear(po->pos0.q, po->pos1.q) && AreVectorsNear(D_002A2DD0, po->dpos0) &&
+            AreVectorsNear(D_002A2DD0, po->dpos1);
     po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012B738
@@ -422,7 +422,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
-static __inline__ int FVecsNear(qword a, qword b)
+static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
            FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
@@ -462,8 +462,8 @@ void PrepareVecCurveBSegment(T *t, OBJ *po)
     po->t1 = t->a[i].t;
     po->pos1.v = t->a[i].pos;
     po->dpos1 = t->a[i].dpos;
-    f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0) &&
-            FVecsNear(D_002A2DD0, po->dpos1);
+    f = AreVectorsNear(po->pos0.q, po->pos1.q) && AreVectorsNear(D_002A2DD0, po->dpos0) &&
+            AreVectorsNear(D_002A2DD0, po->dpos1);
     po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012BBD0
@@ -578,7 +578,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
-static __inline__ int FVecsNear(qword a, qword b)
+static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
            FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
@@ -639,8 +639,8 @@ void PrepareFloatCurveASegment(T *t, OBJ *po)
             po->dpos1.af[j] = 0;
         }
     }
-    f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0.q) &&
-        FVecsNear(D_002A2DD0, po->dpos1.q);
+    f = AreVectorsNear(po->pos0.q, po->pos1.q) && AreVectorsNear(D_002A2DD0, po->dpos0.q) &&
+        AreVectorsNear(D_002A2DD0, po->dpos1.q);
     po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012C140
@@ -774,7 +774,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
 extern qword D_002A2DD0;
-static __inline__ int FVecsNear(qword a, qword b)
+static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
            FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
@@ -835,8 +835,8 @@ void PrepareFloatCurveBSegment(T *t, OBJ *po)
             po->dpos1.af[j] = 0;
         }
     }
-    f = FVecsNear(po->pos0.q, po->pos1.q) && FVecsNear(D_002A2DD0, po->dpos0.q) &&
-        FVecsNear(D_002A2DD0, po->dpos1.q);
+    f = AreVectorsNear(po->pos0.q, po->pos1.q) && AreVectorsNear(D_002A2DD0, po->dpos0.q) &&
+        AreVectorsNear(D_002A2DD0, po->dpos1.q);
     po->segmentKind = f ? 2 : 1;
 }
 } } // namespace M_func_0012C768
@@ -887,7 +887,7 @@ namespace M_PacNewKind2 {
 struct AREQ { int cb; int cbAlign; };
 extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
 } // namespace M_PacNewKind2
-static inline void *PvNewAcg(unsigned int cb) { M_PacNewKind2::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind2::AllocClearedFromWorldHeap(&req); }
+static inline void *AllocFloatCurve(unsigned int cb) { M_PacNewKind2::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind2::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind2 {
 extern "C" ACG *PacNewKind2(int k);
 /** @sly2-annot addr=0x12CB98
@@ -904,9 +904,9 @@ extern "C" ACG *PacNewKind2(int k);
 ACG *PacNewKind2(int k)
 {
     switch (k) {
-    case 0: return new (PvNewAcg(sizeof(ACG0))) ACG0;
-    case 1: return new (PvNewAcg(sizeof(ACG1))) ACG1;
-    case 2: return new (PvNewAcg(sizeof(ACG2))) ACG2;
+    case 0: return new (AllocFloatCurve(sizeof(ACG0))) ACG0;
+    case 1: return new (AllocFloatCurve(sizeof(ACG1))) ACG1;
+    case 2: return new (AllocFloatCurve(sizeof(ACG2))) ACG2;
     }
     return 0;
 }
@@ -1269,7 +1269,7 @@ void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword positionGoal; };
 extern qword D_002A2DD0;
-static __inline__ int FVecsNear(qword a, qword b)
+static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
            FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
@@ -1293,7 +1293,7 @@ void SetActPositionGoal(struct P *p, qword v)
     qword dv;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->positionGoal));
     p->positionGoal = v;
-    if (p->xf->activeAct == p && !FVecsNear(D_002A2DD0, dv)) {
+    if (p->xf->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
         p->xf->goalValue = v;
         UnsettleXfSlot(p->object, p->xf);
     }
@@ -1348,9 +1348,9 @@ qword GetLoWorldPos(void *po);
 void SortXfActs(void *a, struct X *b);
 qword ConvertXfVec(int n, int k, qword v);
 void CalculateVectorPanTilt(qword q, float *pa, float *pb);
-static __inline__ float GEval(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
-static __inline__ float GClamp(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
-static __inline__ float GLength(U *pv, qword a)
+static __inline__ float EvaluateQuadratic(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
+static __inline__ float ClampFloat(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
+static __inline__ float VectorLength(U *pv, qword a)
 {
     qword t;
     float g;
@@ -1422,8 +1422,8 @@ void UpdateActLookAt(struct P *p)
         p->hasPreviousAim = 0;
     } else {
         CalculateVectorPanTilt(ConvertXfVec(0, p->xf->parent, dv), &ag[0], &ag[1]);
-        ag[0] = GClamp(GEval(&p->panCurve, ag[0]), p->panMin, p->panMax);
-        ag[1] = GClamp(GEval(&p->tiltCurve, ag[1]), p->tiltMin, p->tiltMax);
+        ag[0] = ClampFloat(EvaluateQuadratic(&p->panCurve, ag[0]), p->panMin, p->panMax);
+        ag[1] = ClampFloat(EvaluateQuadratic(&p->tiltCurve, ag[1]), p->tiltMin, p->tiltMax);
         ((float *)&s.pos)[2] = ag[0];
         ((float *)&s.pos)[1] = -ag[1];
         ((int *)&s.pos)[0] = 0;
@@ -1798,7 +1798,7 @@ void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword rotationGoal; };
 extern qword D_002A2DD0;
-static __inline__ int FVecsNear(qword a, qword b)
+static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(GetX(a), GetX(b), 1e-4f) && FFloatsNear__Ffff(GetY(a), GetY(b), 1e-4f) &&
            FFloatsNear__Ffff(GetZ(a), GetZ(b), 1e-4f);
@@ -1816,7 +1816,7 @@ void SetActRotationGoal(struct P *p, qword v)
     qword dv;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->rotationGoal));
     p->rotationGoal = v;
-    if (p->xf->activeAct == p && !FVecsNear(D_002A2DD0, dv)) {
+    if (p->xf->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
         {
             qword shiftedStart;
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedStart) : "j"(p->xf->segmentStart), "j"(dv), "j"(dv));
