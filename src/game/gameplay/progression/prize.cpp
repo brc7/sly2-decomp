@@ -317,15 +317,9 @@ namespace M_CheckDprizeBounce {
 // two tie and the li.s goes first as in the target.
 typedef int qword __attribute__((mode(TI)));
 union U { qword qw; float g[4]; };
-union FLOATWORD { float g; int bits; };
 struct XF { char pad[0x70]; qword pos; };
 struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
 struct CMCONTACT { qword pos; U plane; int kind; void *pv; };
-struct P {
-    char pad0[0x150]; int state; char pad154[0x1C]; qword pos; qword v;
-    char pad190[0x34]; int fRaised; char pad1C8[8]; float gThreshold; FLOATWORD gBoost; FLOATWORD sRadius;
-    int collectRadius; float gNormalResponse; FLOATWORD gTangentResponse;
-};
 
 extern "C" {
 extern char D_003DD490[];
@@ -333,7 +327,7 @@ extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002A2DE0;
 extern float D_002C0D74, D_002C0D78;
 void STACKSCOPE_ctor(STACKSCOPE *);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int) __asm__("_$_10STACKSCOPE");
-qword GetLoWorldPos(P *);
+qword GetLoWorldPos(DPRIZE *);
 int IsDprizeCollisionCandidate(void *, SOPART *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
 int IntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
@@ -407,15 +401,15 @@ static inline float GDot(qword a, qword b)
 // The smaller of two floats.
 
 // query nearby solids (IntersectSwBoundingBox) and resolve deepest contact (bounce). (inferred)
-extern "C" void CheckDprizeBounce(P *prize)
+extern "C" void CheckDprizeBounce(DPRIZE *prize)
 {
     STACKSCOPE frame;
     U vec;
     float gDeepest = 0.0f;
     qword pos = GetLoWorldPos(prize);
-    qword posMin = (vec.qw = VuFromFloat<qword>(-prize->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
+    qword posMin = (vec.qw = VuFromFloat<qword>(-prize->bounceRadius), QwAddScaled(pos, D_002A2DE0, vec.qw));
     qword posMax = GetLoWorldPos(prize);
-    vec.qw = VuFloatBits(prize->sRadius.bits);
+    vec.qw = VuFloatBits(*(int *)&prize->bounceRadius);
     posMax = QwAddScaled(posMax, D_002A2DE0, vec.qw);
     int cpart;
     SOPART **appart;
@@ -427,20 +421,20 @@ extern "C" void CheckDprizeBounce(P *prize)
         if (ppart->grf & (1UL << 49)) {
             qword center = ppart->transform->pos;
             qword posCur = GetLoWorldPos(prize);
-            float g = VuToFloat(QwLength(VuSub(center, posCur))) - ppart->sRadius - prize->sRadius.g;
+            float g = VuToFloat(QwLength(VuSub(center, posCur))) - ppart->sRadius - prize->bounceRadius;
             if (g < gDeepest) {
-                vec.qw = QwNormalize(VuSub(prize->pos, ppart->transform->pos), D_002A2DA0);
-                if (GDot(prize->v, vec.qw) < 0.0f) {
+                vec.qw = QwNormalize(VuSub<qword>(prize->position, ppart->transform->pos), D_002A2DA0);
+                if (GDot(prize->velocity, vec.qw) < 0.0f) {
                     gDeepest = g;
                     normal.qw = vec.qw;
                 }
             }
         } else if (ppart->cplane) {
-            int ccontact = IntersectSphereBsp(GetLoWorldPos(prize), prize->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
+            int ccontact = IntersectSphereBsp(GetLoWorldPos(prize), prize->bounceRadius, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
             for (int j = 0; j < ccontact; j++) {
                 CMCONTACT *pcontact = &acontact[j];
                 float g = GDot(pcontact->pos, pcontact->plane.qw) - pcontact->plane.g[3];
-                if (g < gDeepest && GDot(prize->v, pcontact->plane.qw) < 0.0f) {
+                if (g < gDeepest && GDot(prize->velocity, pcontact->plane.qw) < 0.0f) {
                     normal.qw = pcontact->plane.qw;
                     gDeepest = g;
                 }
@@ -452,26 +446,26 @@ extern "C" void CheckDprizeBounce(P *prize)
         {
             U primary;
             if (normal.g[2] > 0.7f && prize->state == 4) {
-                float gNormal = SplitVectorAlongAxis(prize->v, D_002A2DC0, 0, &primary.qw);
+                float gNormal = SplitVectorAlongAxis(prize->velocity, D_002A2DC0, 0, &primary.qw);
                 float gSpeed = GFromVf(QwNormalizeInto(&primary.qw, D_002A2DD0));
-                float gTangent = StdMin(prize->gTangentResponse.g * gSpeed, D_002C0D74);
-                gNormal = StdMin(-prize->gNormalResponse * gNormal, D_002C0D78);
+                float gTangent = StdMin(prize->tangentResponse * gSpeed, D_002C0D74);
+                gNormal = StdMin(-prize->normalResponse * gNormal, D_002C0D78);
                 response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(gNormal), D_002A2DC0);
-                if (!prize->fRaised) {
-                    int fTrigger = GDot(response.qw, normal.qw) < prize->gThreshold;
+                if (!prize->hasBoosted) {
+                    int fTrigger = GDot(response.qw, normal.qw) < prize->bounceBoostThreshold;
                     if (fTrigger) {
-                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(prize->gBoost.bits), D_002A2DC0);
-                        prize->fRaised = 1;
+                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(*(int *)&prize->bounceBoost), D_002A2DC0);
+                        prize->hasBoosted = 1;
                     }
                 }
             } else {
                 U secondary;
-                SplitVectorAlongAxis(prize->v, normal.qw, &primary.qw, &secondary.qw);
-                response.qw = QwCombo(VU_FLOAT(-prize->gNormalResponse), primary.qw, VU_FLOAT(prize->gTangentResponse.bits), secondary.qw);
+                SplitVectorAlongAxis(prize->velocity, normal.qw, &primary.qw, &secondary.qw);
+                response.qw = QwCombo(VU_FLOAT(-prize->normalResponse), primary.qw, VU_FLOAT(*(int *)&prize->tangentResponse), secondary.qw);
             }
         }
-        prize->pos = QwAddScaled(prize->pos, normal.qw, VU_FLOAT(-gDeepest).qw);
-        prize->v = response.qw;
+        prize->position = QwAddScaled(prize->position, normal.qw, VU_FLOAT(-gDeepest).qw);
+        prize->velocity = response.qw;
     }
 }
 } // namespace M_CheckDprizeBounce
