@@ -11,6 +11,7 @@
 #include "sly2/sw.h"
 #include "sly2/cm.h"
 #include "sly2/po.h"
+#include "sly2/step.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 
@@ -18,55 +19,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-struct VTE { short d; short pad; void (*pf)(); };
-#define VCALL(o, n, a) ((void (*)(void *, int))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d, a)
-struct POCTLV;
-
-/* A PO (player-controllable SO) as this TU reads it. */
-struct POV
-{
-    int unknown0, unknown4, unknown8;   /* BASIC */
-    VTE *vt;                    /* 0x00C */
-    int parent, root;           /* 0x010: LO psoParent, ploroot */
-    int oid;                    /* 0x018 */
-    char pad1C[0x28 - 0x1C];
-    unsigned long flags;        /* 0x028 */
-    char pad30[0x40 - 0x30];
-    int loFlags;                  /* 0x040: pointer or tagged flags */
-    char pad44[0x150 - 0x44];
-    POCTLV *poctl;              /* 0x150 */
-    int forcedButtons;                 /* 0x154: buttons forced down */
-    int pad158;
-    int collectEnabled;         /* 0x15C: its pickup info (PZI) starts here: collection enabled */
-    int unknown160[2];
-    POV *collector;             /* 0x168: PZI collector (the PO itself) */
-    void *cameraTunnel;                  /* 0x16C: its camera tunnel */
-    int pad170;
-    void *wakeSound;                 /* 0x174 */
-    char pad178[0x26C - 0x178];
-    char behaviorStack[4];               /* 0x26C: its behaviour stack */
-};
-typedef char PO_16C[FIELD_OFFSET(POV,cameraTunnel)==0x16C?1:-1];
-typedef char PO_26C[FIELD_OFFSET(POV,behaviorStack)==0x26C?1:-1];
-
-/* POCTL (0xE0). */
-struct POCTLV
-{
-    int a, b, c;
-    void *vt;                   /* 0x0C */
-    float leftDx, leftDy, leftAngle, leftLength;   /* 0x10: left stick x, y, angle, length */
-    float rightDx, rightDy, rightAngle, rightLength;   /* 0x20: right stick */
-    int buttons;                    /* 0x30: buttons down */
-    int pad34[3];
-    MATRIX3 mat;                /* 0x40: camera pan / tilt */
-    float leftHoldRadius, rightHoldRadius;   /* 0x70: stick hold radii (po.h sLeftHold / sRightHold) */
-    int pressedMask;            /* 0x78: po.h grfPressed */
-    POV *po;                    /* 0x7C */
-    int state;                    /* 0x80: control state */
-    int pad84;
-    union { float allTimes[22]; struct { float pressTimes[16]; float leftStickTimes[2]; float rightStickTimes[2]; }; };   /* 0x88: when pressed */
-};
-typedef char POCTL_size[sizeof(POCTLV)==0xE0?1:-1];
 
 /* An emitter (its block at +0xE4 is reference counted, copied on write). */
 struct EMB { int cref; int b; int *pn; };
@@ -77,9 +29,9 @@ struct SWP
 {
     char pad0[0x3EB8];
     int c;                      /* 0x3EB8 */
-    POV *a[16];                  /* 0x3EBC: the POs with a controller */
-    POV *currentPo;                /* 0x3EFC */
-    POV *overridePo;            /* 0x3F00 */
+    PO *a[16];                  /* 0x3EBC: the POs with a controller */
+    PO *currentPo;                /* 0x3EFC */
+    PO *overridePo;            /* 0x3F00 */
     char pad3F04[0x4778 - 0x3F04];
     union { unsigned int numFollowersU; int numFollowers; }; /* 0x4778 */
     EMITX *followers[4];            /* 0x477C */
@@ -88,7 +40,6 @@ typedef char SWP_3EFC[FIELD_OFFSET(SWP,currentPo)==0x3EFC?1:-1];
 typedef char SWP_4778[FIELD_OFFSET(SWP,followers)==0x477C?1:-1];
 
 struct CMV { char pad[0x3B0]; int part3b0; };
-struct TNV { char pad[0x128]; int nPriority; };
 struct MSG { int cb; int nKind; };
 struct SL;
 extern SWP D_003DD490;
@@ -102,13 +53,13 @@ extern const float D_002A7708;   /* defined below where the ELF has it (.rodata 
 /* po's .data (address order): the default PZI (zero) and the three player pointers (jt's, bentley's and murray's
  * globals) scanned for in-world STEPPLAYERs. */
 char D_002C0D18[0x10] = {0};
-extern POV *D_002E1E40, *D_002DD5BC, *D_002F7900;
-POV **D_002C0D28[3] = {&D_002E1E40, &D_002DD5BC, &D_002F7900};
-void InitSo(POV *p);
-void LoadSoFromBrx(POV *a, void *b);
+extern STEP *D_002E1E40, *D_002DD5BC, *D_002F7900;
+STEP **D_002C0D28[3] = {&D_002E1E40, &D_002DD5BC, &D_002F7900};
+void InitSo(PO *p);
+void LoadSoFromBrx(PO *a, void *b);
 void CBinaryInputStream_SkipStringSw(void *b);
-void CloneSo(POV *p);
-void HandleBasicMessage(POV *p, int n);
+void CloneSo(PO *p);
+void HandleBasicMessage(PO *p, int n);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
 int IsSwHandsOff(SWP *p);
@@ -127,21 +78,21 @@ void *AllocClearedFromWorldHeap(MSG *pmsg);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(struct CRef *p);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SWP *p, int a, int b, int c);
-qword GetLoWorldPos(POV *);
+qword GetLoWorldPos(PO *);
 int FindBhvInBhvstk(void *p, int n);
 
-int GetPoCtlState(POV *p);
-POCTLV *POCTL_ctor(POCTLV *p, POV *q);
-void SwitchToPo(SWP *pg, POV *plo);
-void SetPoctlStateValue(POCTLV *pv, int n);
-POV *GetHeroPo(SWP *p);
-POV *GetCurrentPo(SWP *p);
-void ResetPoctl(POCTLV *p);
-void ClearPoctlJoyPressed(POCTLV *p, int grf);
-void ConvertPoctlStick(POCTLV *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
-void UpdatePoctlPressed(POCTLV *p);
-int GetButtonsPressedWithin__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
-int ConsumeButtonsPressedWithin__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
+int GetPoCtlState(PO *p);
+POCTL *POCTL_ctor(POCTL *p, PO *q);
+void SwitchToPo(SWP *pg, PO *plo);
+void SetPoctlStateValue(POCTL *pv, int n);
+PO *GetHeroPo(SWP *p);
+PO *GetCurrentPo(SWP *p);
+void ResetPoctl(POCTL *p);
+void ClearPoctlJoyPressed(POCTL *p, int grf);
+void ConvertPoctlStick(POCTL *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
+void UpdatePoctlPressed(POCTL *p);
+int GetButtonsPressedWithin__5POCTLUif(POCTL *p, unsigned int grf, float dt);
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, unsigned int grf, float dt);
 void UpdateSwPoFollowers(SWP *p);
 /* sly2/emitter.h's PemitbEnsure<EMITTER> (the linkonce copy 0x258658, emitted by emitter.cpp); po's private
    EMITX/EMB views keep it from including emitter.h (its heap allocators are declared on other request types) */
@@ -152,32 +103,32 @@ MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) __asm__("LoadRotateMatrixPanT
 
 // Slot 7 (Init): InitSo, enables collection in the PO's pickup info (pzi) with itself as collector, and sets
 // flag 2 in the LO flags.
-extern "C" void InitPo(POV *po)
+extern "C" void InitPo(PO *po)
 {
     int flags;
     InitSo(po);
-    po->collectEnabled = 1;
-    po->collector = po;
-    flags = po->loFlags;
-    if ((flags ^ 1) & 1) *(int *)flags |= 2; else po->loFlags = flags | 2;
+    po->unknown15C = 1;
+    po->unknown168 = po;
+    flags = po->unknown40;
+    if ((flags ^ 1) & 1) *(int *)flags |= 2; else po->unknown40 = flags | 2;
 }
 
 // Slot 14 (LoadFromBrx): LoadSoFromBrx, then one more stream record.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void PO::LoadFromBrx(CBinaryInputStream *b_m) { POV *a = (POV *)this; void *b = (void *)b_m; LoadSoFromBrx(a, b); CBinaryInputStream_SkipStringSw(b); }
+void PO::LoadFromBrx(CBinaryInputStream *b_m) { PO *a = this; void *b = (void *)b_m; LoadSoFromBrx(a, b); CBinaryInputStream_SkipStringSw(b); }
 
 // Slot 41 (Clone): base SO clone, then points the clone's pickup collector at the clone itself.
-extern "C" void ClonePo(POV *po) {
+extern "C" void ClonePo(PO *po) {
     CloneSo(po);
-    po->collector = po;
+    po->unknown168 = po;
 }
 
 // Slot 5 (HandleMessage): base LO handling; on message 5 stops and releases the wake ambient sound (+0x174).
-extern "C" void HandlePoMessage(POV *po, int message)
+extern "C" void HandlePoMessage(PO *po, int message)
 {
     HandleBasicMessage(po, message);
     if (message == 5) {
-        void **sound = &po->wakeSound;
+        void **sound = &po->unknown174;
         if (sound && *sound) {
             StopSnd(*sound, 0.0f);
             RcPtr_Assign(sound, 0);
@@ -195,21 +146,21 @@ extern "C" int GetPoHealthState(void) {
 
 // Slot 79: sets the controller state. On first use registers the PO in the world's PO list (max 16) and creates its
 // POCTL; state -1 means not controllable.
-extern "C" void SetPoCtlState(POV *po, int state)
+extern "C" void SetPoCtlState(PO *po, int state)
 {
     if (state == GetPoCtlState(po)) return;
-    if (!po->poctl) {
+    if (!po->controller) {
         SWP *world = &D_003DD490;
         if ((unsigned int)world->c >= 16) return;
         world->a[world->c++] = po;
-        po->poctl = POCTL_ctor((POCTLV *)func_001AE4F8(0xE0), po);
+        po->controller = POCTL_ctor((POCTL *)func_001AE4F8(0xE0), po);
     }
     switch (state) {
     case 1: {
         SWP *world = &D_003DD490;
-        POV *hero = world->currentPo;
+        PO *hero = world->currentPo;
         if (po != hero) {
-            if (hero) VCALL(hero, 79, 0);
+            if (hero) hero->SetCtlState(0);
             SwitchToPo(world, po);
         }
         break;
@@ -221,12 +172,12 @@ extern "C" void SetPoCtlState(POV *po, int state)
         break;
     }
     }
-    SetPoctlStateValue(po->poctl, state);
+    SetPoctlStateValue(po->controller, state);
 }
 
 // Slot 78: the PO became (fOn=1) or stopped being (0) the active player: (de)activates its own camera tunnel when it
 // has one, otherwise sets or revokes the camera policy.
-extern "C" void OnPoActive(POV *po, int isActive)
+extern "C" void OnPoActive(PO *po, int isActive)
 {
     if (isActive) {
         if (po->cameraTunnel) SetTnTnsOverride(po->cameraTunnel, 1);
@@ -238,8 +189,8 @@ extern "C" void OnPoActive(POV *po, int isActive)
 }
 
 // Returns the POCTL state (+0x80), or -1 when the PO has no controller.
-int GetPoCtlState(POV *po) {
-    POCTLV *ppoctl = po->poctl;
+int GetPoCtlState(PO *po) {
+    POCTL *ppoctl = po->controller;
     int n = -1;
     if (ppoctl != 0) {
         n = ppoctl->state;
@@ -248,23 +199,23 @@ int GetPoCtlState(POV *po) {
 }
 
 // Returns 1 when the PO has a controller state other than -1, i.e. it can be played.
-extern "C" int IsPoPlayable(POV *po) {
+extern "C" int IsPoPlayable(PO *po) {
     return ~GetPoCtlState(po) != 0;
 }
 
 // Returns 1 when the PO is the world's current PO (+0x3EFC).
-extern "C" int IsPoCurrent(POV *po) {
+extern "C" int IsPoCurrent(PO *po) {
     return po == GetHeroPo(&D_003DD490);
 }
 
 // Returns 1 when the PO is the effective current PO (the override at +0x3F00 if set, otherwise the current PO).
-extern "C" int IsPoActive(POV *po) {
+extern "C" int IsPoActive(PO *po) {
     return po == GetCurrentPo(&D_003DD490);
 }
 
 // Sets the PO's camera tunnel (+0x16C): deactivates the old one, unparents the new one and activates it when this
 // PO is active.
-extern "C" void SetPoTnCam(POV *po, TNV *tunnel) {
+extern "C" void SetPoTnCam(PO *po, TN *tunnel) {
     void *ptnCur = po->cameraTunnel;
     if (tunnel != ptnCur) {
         if (ptnCur != 0) {
@@ -272,7 +223,7 @@ extern "C" void SetPoTnCam(POV *po, TNV *tunnel) {
         }
         po->cameraTunnel = tunnel;
         if (tunnel != 0) {
-            tunnel->nPriority = -1;
+            tunnel->priority = -1;
             SetLoParent(po->cameraTunnel, 0, 0);
             if (GetCurrentPo(&D_003DD490) == po) {
                 SetTnTnsOverride(po->cameraTunnel, 1);
@@ -299,38 +250,38 @@ extern "C" int CanPoBeHealed(OBase *po)
 }
 
 // Slot 81: forwards a health/magic change (dhp, dmp) to the PO as message 0xC.
-extern "C" void AddPoHpMp(POV *po, int dhp, int dmp)
+extern "C" void AddPoHpMp(PO *po, int dhp, int dmp)
 {
     void *apv[2];
     int n0, n1;
     /*B*/n0 = dhp; n1 = dmp; apv[0] = &n0; apv[1] = &n1;/*E*/
-    { VTE *e = &po->vt[3]; ((int (*)(void *, int, int, int, void **, int))e->pf)((char *)po + e->d, 0xC, 0, 2, apv, 0); }
+    po->HandleSpliceEvent(0xC, 0, 2, apv, 0);
 }
 
 // POCTL constructor: vtable, Reset, owner PO, state -1, and registration in the world's POCTL list.
-POCTLV *POCTL_ctor(POCTLV *poctl, POV *po)
+POCTL *POCTL_ctor(POCTL *poctl, PO *po)
 {
-    poctl->a = 0;
-    poctl->b = 0;
-    poctl->vt = D_002CA240;
+    poctl->scriptFrame.m_p = 0;
+    poctl->scriptVariables.m_p = 0;
+    *(char **)((char *)poctl + 0xC) = D_002CA240;   /* the vptr, stored by hand (_vt$5POCTL) */
     ResetPoctl(poctl);
-    poctl->po = po;
+    poctl->controlled = po;
     poctl->state = -1;
     AppendSlEntry(&g_sw.slPoctl, poctl);
     return poctl;
 }
 
 // Clears both sticks (dx/dy/angle/length), the held buttons and every pressed timestamp.
-void ResetPoctl(POCTLV *poctl)
+void ResetPoctl(POCTL *poctl)
 {
-    poctl->buttons = 0;
-    poctl->rightDx = poctl->rightDy = poctl->rightAngle = poctl->rightLength = poctl->leftDx = poctl->leftDy = poctl->leftAngle = poctl->leftLength = 0.0f;
+    poctl->buttonsHeld = 0;
+    poctl->dxRight = poctl->dyRight = poctl->rightStickAngle = poctl->rightStickDeflection = poctl->dxLeft = poctl->dyLeft = poctl->leftStickAngle = poctl->leftStickDeflection = 0.0f;
     ClearPoctlJoyPressed(poctl, 0xFFFF);
 }
 
 // Converts a stick deflection (dx, dy) into length and camera-relative angle. Below a hold radius (which decays by
 // 0.2 per update) the previous angle is kept, so a stick returning to centre does not snap the heading.
-void ConvertPoctlStick(POCTLV *poctl, float cameraAngle, float *dxInOut, float *dyInOut, float *angleInOut, float *lengthOut, float *holdRadiusInOut)
+void ConvertPoctlStick(POCTL *poctl, float cameraAngle, float *dxInOut, float *dyInOut, float *angleInOut, float *lengthOut, float *holdRadiusInOut)
 {
     float sine, cosine;
     *lengthOut = SqrtFloat(*dxInOut * *dxInOut + *dyInOut * *dyInOut);
@@ -355,7 +306,7 @@ extern J D_002E0D00;
 }
 // Per-frame controller update: state 0 clears it; state 1 reads the pad (or the alternate pad), masks the buttons,
 // converts both sticks with ConvertPoctlStick and records press times (UpdatePoctlPressed).
-extern "C" void UpdatePoctl(POCTLV *poctl)
+extern "C" void UpdatePoctl(POCTL *poctl)
 {
     float a, b;
     J *pj;
@@ -367,53 +318,53 @@ extern "C" void UpdatePoctl(POCTLV *poctl)
         break;
     case 1:
         pj = (D_002DFBC0 & 2) ? &D_002DFC00 : &D_002E0D00;
-        poctl->leftDx = pj->dxLeft;
-        poctl->leftDy = pj->dyLeft;
-        poctl->rightDx = pj->dxRight;
-        poctl->rightDy = pj->dyRight;
-        poctl->buttons = (pj->buttons & ~pj->buttonsLatched) | poctl->po->forcedButtons;
+        poctl->dxLeft = pj->dxLeft;
+        poctl->dyLeft = pj->dyLeft;
+        poctl->dxRight = pj->dxRight;
+        poctl->dyRight = pj->dyRight;
+        poctl->buttonsHeld = (pj->buttons & ~pj->buttonsLatched) | poctl->controlled->grfbtnForce;
         DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&g_cm.mat, &a, &b);
         break;
     }
-    poctl->mat = LoadRotateMatrixPanTiltR(a, b);
-    ConvertPoctlStick(poctl, a, &poctl->leftDx, &poctl->leftDy, &poctl->leftAngle, &poctl->leftLength, &poctl->leftHoldRadius);
-    ConvertPoctlStick(poctl, a, &poctl->rightDx, &poctl->rightDy, &poctl->rightAngle, &poctl->rightLength, &poctl->rightHoldRadius);
+    poctl->matPanTilt = LoadRotateMatrixPanTiltR(a, b);
+    ConvertPoctlStick(poctl, a, &poctl->dxLeft, &poctl->dyLeft, &poctl->leftStickAngle, &poctl->leftStickDeflection, &poctl->sLeftHold);
+    ConvertPoctlStick(poctl, a, &poctl->dxRight, &poctl->dyRight, &poctl->rightStickAngle, &poctl->rightStickDeflection, &poctl->sRightHold);
     UpdatePoctlPressed(poctl);
 }
 
 // Stores the current time for every newly pressed button and for each stick direction that was just pushed.
-void UpdatePoctlPressed(POCTLV *poctl)
+void UpdatePoctlPressed(POCTL *poctl)
 {
     float t = D_002DDED0;
-    int grf = poctl->buttons & ~poctl->pressedMask;
+    int grf = poctl->buttonsHeld & ~poctl->buttonsPressed;
     float *pg;
-    poctl->pressedMask = poctl->buttons;
+    poctl->buttonsPressed = poctl->buttonsHeld;
     if (grf) {
         pg = poctl->pressTimes;
         do { if (grf & 1) *pg = t; grf >>= 1; pg++; } while (grf);
     }
-    poctl->leftStickTimes[poctl->leftLength > 0.0f] = t;
-    poctl->rightStickTimes[poctl->rightLength > 0.0f] = t;
+    poctl->atLeftStick[poctl->leftStickDeflection > 0.0f] = t;
+    poctl->atRightStick[poctl->rightStickDeflection > 0.0f] = t;
 }
 
 // Sets the controller state; when it becomes active (1) all held buttons are marked as already pressed so they do
 // not count as new presses.
-void SetPoctlStateValue(POCTLV *poctl, int state) {
+void SetPoctlStateValue(POCTL *poctl, int state) {
     poctl->state = state;
     if (state == 1) {
-        poctl->pressedMask = 0xFFFF;
+        poctl->buttonsPressed = 0xFFFF;
     }
 }
 
 // POCTL method: mask of the buttons in grf pressed within the last dt seconds. Sly 1 name: GrfPressedWithin.
-int GetButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt)
+int GetButtonsPressedWithin__5POCTLUif(POCTL *poctl, unsigned int buttons, float dt)
 {
     int grfRet = 0;
     int i = 0;
     float *pg;
     float t = D_002DDED0;
     if (buttons) {
-        pg = poctl->allTimes;
+        pg = poctl->pressTimes;
         do {
             if ((buttons & 1) && t - *pg <= dt) grfRet |= 1 << i;
             buttons >>= 1; pg++; i++;
@@ -423,26 +374,26 @@ int GetButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, floa
 }
 
 // POCTL method: GetButtonsPressedWithin, then clears the returned presses so each press is consumed once. Sly 1 name: GrfConsumePressed.
-int ConsumeButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt) {
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *poctl, unsigned int buttons, float dt) {
     int grfRet = GetButtonsPressedWithin__5POCTLUif(poctl, buttons, dt);
     ClearPoctlJoyPressed(poctl, grfRet);
     return grfRet;
 }
 
 // Returns 1 if any button in grf was pressed this frame, consuming the press.
-extern "C" int POCTL_ConsumeAnyPressed(POCTLV *p, unsigned int grf) { return ConsumeButtonsPressedWithin__5POCTLUif(p, grf, 0.0f) != 0; }
+extern "C" int POCTL_ConsumeAnyPressed(POCTL *p, unsigned int grf) { return ConsumeButtonsPressedWithin__5POCTLUif(p, grf, 0.0f) != 0; }
 
 // Returns 1 if any button in grf is held down.
-extern "C" int POCTL_IsButtonDown(POCTLV *poctl, int buttons) {
-    return (poctl->buttons & buttons) != 0;
+extern "C" int POCTL_IsButtonDown(POCTL *poctl, int buttons) {
+    return (poctl->buttonsHeld & buttons) != 0;
 }
 
 // Forgets the presses of the buttons in grf (their press time becomes -FLT_MAX).
-void ClearPoctlJoyPressed(POCTLV *poctl, int buttons)
+void ClearPoctlJoyPressed(POCTL *poctl, int buttons)
 {
     float *pg;
     if (!buttons) return;
-    pg = poctl->allTimes;
+    pg = poctl->pressTimes;
     do { if (buttons & 1) *pg = -3.40282346638528859812e+38f; buttons >>= 1; pg++; } while (buttons);
 }
 
@@ -471,10 +422,10 @@ static inline qword Norm(qword v, qword fallback)
 }
 // Returns a unit lateral direction for the controller: the input direction taken into the camera pan/tilt frame,
 // reduced to (-y, z, 0) and normalised, with a fixed fallback when degenerate (inferred).
-extern "C" qword GetPoctlLateralVector(POCTLV *poctl, qword dir)
+extern "C" qword GetPoctlLateralVector(POCTL *poctl, qword dir)
 {
     U v;
-    v.q = Local((M3 *)&poctl->mat, dir);
+    v.q = Local((M3 *)&poctl->matPanTilt, dir);
     v.f[0] = -v.f[1];
     v.f[1] = v.f[2];
     v.f[2] = 0.0f;
@@ -483,7 +434,7 @@ extern "C" qword GetPoctlLateralVector(POCTLV *poctl, qword dir)
 
 // Returns the world's current PO (the hero being played).
 // Runtime-checked: SW+0x3EFC follows the character being played (Murray in his levels), while g_pjt is always Sly.
-POV *GetHeroPo(SWP *world) {
+PO *GetHeroPo(SWP *world) {
     return world->currentPo;
 }
 
@@ -519,14 +470,14 @@ extern "C" CREF4 *SetSaveVarByName(CREF4 *pret, CREF4 *pref, const char *s, int 
 void Decref4(CREF4 *p) __asm__("Decref__4CRef");
 // Makes ppo the current PO: deactivates the old effective PO, activates the new one, publishes its oid in the
 // splice variable oidPoCurrent for player characters, and updates the followers.
-void SwitchToPo(SWP *world, POV *po)
+void SwitchToPo(SWP *world, PO *po)
 {
-    POV *cur = GetCurrentPo(world);
-    POV *nw = world->overridePo;
+    PO *cur = GetCurrentPo(world);
+    PO *nw = world->overridePo;
     if (!nw) nw = po;
-    if (cur != nw && cur) VCALL(cur, 78, 0);
+    if (cur != nw && cur) cur->OnActive(0);
     world->currentPo = po;
-    if (cur != nw && nw) VCALL(nw, 78, 1);
+    if (cur != nw && nw) nw->OnActive(1);
     if (po && IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
         CREF4 ret, ref;
         ref.m_tagk = 0x15;
@@ -540,8 +491,8 @@ void SwitchToPo(SWP *world, POV *po)
 }
 
 // Returns the effective current PO: the override if set, otherwise the current PO.
-POV *GetCurrentPo(SWP *world) {
-    POV *ppo = world->overridePo;
+PO *GetCurrentPo(SWP *world) {
+    PO *ppo = world->overridePo;
     if (ppo == 0) {
         ppo = world->currentPo;
     }
@@ -549,14 +500,14 @@ POV *GetCurrentPo(SWP *world) {
 }
 
 // Sets (or clears, with 0) the override PO, deactivating the old effective PO and activating the new one. (inferred)
-extern "C" void SetSwPoOverride(SWP *world, POV *po)
+extern "C" void SetSwPoOverride(SWP *world, PO *po)
 {
-    POV *cur = GetCurrentPo(world);
-    POV *nw = po;
+    PO *cur = GetCurrentPo(world);
+    PO *nw = po;
     if (!nw) nw = world->currentPo;
-    if (cur != nw && cur) VCALL(cur, 78, 0);
+    if (cur != nw && cur) cur->OnActive(0);
     world->overridePo = po;
-    if (cur != nw && nw) VCALL(nw, 78, 1);
+    if (cur != nw && nw) nw->OnActive(1);
 }
 
 static inline float LenSq(qword a) {
@@ -570,12 +521,12 @@ static inline float LenSq(qword a) {
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7708 __asm__("D_002A7708") = 3.40282347e+38f; }
 // Returns the PO from the world's PO list nearest to a position, among POs that are in the world.
-extern "C" POV *FindClosestSwPo(SWP *world,qword pos) {
-    POV *best=0; int i=0;
+extern "C" PO *FindClosestSwPo(SWP *world,qword pos) {
+    PO *best=0; int i=0;
     float minimum=D_002A7708;
     for(;i<world->c;++i) {
-        POV *lo=world->a[i];
-        if((int)(lo->flags>>60)&1) {
+        PO *lo=world->a[i];
+        if((int)lo->isInWorld & 1) {
             float dist=LenSq(VuSub(pos,GetLoWorldPos(lo)));
             if(dist<minimum) { minimum=dist; best=lo; }
         }
@@ -589,17 +540,18 @@ extern "C" int CollectActivePickupInfos(SWP *world, int maxCount, void **pzis)
 {
     int c;
     unsigned int j;
-    POV *plo, *plo2;
+    PO *plo;
+    STEP *plo2;
     if (maxCount <= 0) return 0;
     c = 1;
     plo = GetHeroPo(world);
     if (plo) {
-    *pzis = &plo->collectEnabled;
+    *pzis = &plo->unknown15C;
     if (IsBasicDerivedFrom__FP5BASIC3CID(plo, 0x34)) {
         for (j = 0; j < sizeof(D_002C0D28) / sizeof(D_002C0D28[0]) && c < maxCount; j++) {
             plo2 = *D_002C0D28[j];
-            if (!plo2 || plo2 == plo || !FindBhvInBhvstk(plo2->behaviorStack, 0xC2)) continue;
-            if ((int)(plo2->flags >> 60) & 1) pzis[c++] = &plo2->collectEnabled;
+            if (!plo2 || plo2 == plo || !FindBhvInBhvstk(&plo2->behaviors, 0xC2)) continue;
+            if ((int)plo2->isInWorld & 1) pzis[c++] = &plo2->unknown15C;
         }
     }
     } else {
