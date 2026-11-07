@@ -168,21 +168,11 @@ namespace M_InitCm__FP2CM {
 // InitCm: near/far and LM init via inline helpers (parameter pseudos give the original FP register choice).
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned char r, g, b, a; RGBA(unsigned int n) { *(unsigned int *)this = n; } };
-struct V3 { float x, y, z; };
-struct LM { float g0; int n4; float g8; float gC; };
-struct CM {
-    char pad[0x10]; int visZone; int visFlags; float fovCullRef; float cullScale; float fieldOfView; float targetFov; int pad28;
-    float fovSmoothing; int fovSmoothing30; float fovSmoothing34; float fovSmoothing38; float aspect; int pad40[3]; float nearClip; float farClip; int pad54[3];
-    float mat[16]; char padA0[0x240 - 0xA0]; V3 nearFog; RGBA fogColor;
-    char pad250[0x30C - 0x250]; int policyCount; char pad310[0x3A0 - 0x310]; int defaultPolicy[4]; int followPolicy[40]; int lookPolicy[22];
-    int unknownPolicy4A8[6]; int hangPolicy[16]; int blendPolicy[8]; int zoomPolicy[52]; int unknown5F0[10]; float joltTime; int joltKind;
-};
 extern "C" {
 extern float D_002BD81C, D_002BD820, D_002BD824;
 extern qword D_002BD830;
 extern qword D_002BD840;
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void RecalcCmFrustrum__FP2CM(CM *p);
 void SetCameraLookAt(CM *p, qword pos, qword tgt, float da, float db);
 void CutCm__FP2CM(CM *p);
 void InitCmpart1(void *p);
@@ -191,44 +181,44 @@ void InitCplcy(void *p);
 void SetCmPolicy(CM *p, int prio, void *po, int a, int b);
 }
 static inline void SetNF(CM *cm, float n, float f) { cm->nearClip = n; cm->farClip = f; }
-static inline void InitLm(LM *plm, float g0, float g8, float gC) { plm->g0 = g0; plm->gC = gC; plm->g8 = g8; plm->n4 = 0; }
+static inline void InitSmpa(SMPA *psmpa, float g0, float g8, float gC) { psmpa->fastSpeed = g0; psmpa->maxSpeedChange = gC; psmpa->fastDuration = g8; psmpa->slowSpeed = 0.0f; }
 // Camera init: fogColor fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat, RecalcCmFrustrum, SetCmLookAt,
 // CutCm, Init on each embedded policy, push default policy (+0x3A0) with SetCmPolicy(prio 0), joltTime=-10.
 extern "C" void InitCm__FP2CM(CM *cm)
 {
     static RGBA s_rgba(0x80303030);
-    cm->nearFog.x = D_002BD81C;
-    cm->nearFog.y = D_002BD820;
-    cm->nearFog.z = D_002BD824;
-    cm->aspect = 1.29870152f;
+    cm->nearFogDistance = D_002BD81C;
+    cm->farFogDistance = D_002BD820;
+    cm->maxFog = D_002BD824;
+    cm->aspectRatio = 1.29870152f;
     SetNF(cm, 100.0f, 100000.0f);
-    cm->cullScale = 1.0f;
-    cm->fovCullRef = 1.0f;
-    cm->targetFov = 1.0f;
+    cm->rCullScale = 1.0f;
+    cm->rFovCullRef = 1.0f;
+    cm->targetFieldOfView = 1.0f;
     cm->fieldOfView = 1.0f;
-    cm->fogColor = s_rgba;
-    InitLm((LM *)&cm->fovSmoothing, 0.5f, 0.1f, 10.0f);
-    float *pm = cm->mat;
+    *(RGBA *)&cm->rgbaFog = s_rgba;
+    InitSmpa(&cm->smpaFov, 0.5f, 0.1f, 10.0f);
+    float *pm = &cm->mat.mat[0][0];
     func_002333B4(pm, 0, 0x40);
     pm[15] = 1.0f;
     pm[10] = 1.0f;
     pm[5] = 1.0f;
     pm[0] = 1.0f;
-    RecalcCmFrustrum__FP2CM(cm);
+    RecalcCmFrustrum(cm);
     SetCameraLookAt(cm, D_002BD830, D_002BD840, 0.0f, 0.0f);
     CutCm__FP2CM(cm);
-    cm->policyCount = 0;
-    InitCmpart1(cm->defaultPolicy);
-    InitCptn(cm->followPolicy);
-    InitCplcy(cm->lookPolicy);
-    InitCplcy(cm->unknownPolicy4A8);
-    InitCplcy(cm->hangPolicy);
-    InitCplcy(cm->blendPolicy);
-    InitCplcy(cm->zoomPolicy);
-    InitCplcy(cm->unknown5F0);
-    cm->visZone = 0;
-    cm->visFlags = 0xFF;
-    SetCmPolicy(cm, 0, cm->defaultPolicy, 0, 0);
+    cm->numPolicies = 0;
+    InitCmpart1(&cm->part3a0);
+    InitCptn(&cm->tunnelPolicy);
+    InitCplcy(&cm->cplook);
+    InitCplcy(&cm->fixedCameraPolicy);
+    InitCplcy(&cm->hangPolicy);
+    InitCplcy(&cm->cpcamblend);
+    InitCplcy(&cm->cpzoom);
+    InitCplcy(&cm->turretPolicy);
+    cm->pzonVis = 0;
+    cm->grfvis = 0xFF;
+    SetCmPolicy(cm, 0, &cm->part3a0, 0, 0);
     cm->joltKind = -1;
     cm->joltTime = -10.0f;
 }
