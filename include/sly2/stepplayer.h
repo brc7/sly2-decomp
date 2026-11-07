@@ -476,6 +476,14 @@ struct JTTHROW
 
 /* STEPPLAYER: the shared base of the three heroes: the movement subsystems, interaction, idle and gadget state.
    Layout from src/game/gameplay/player/air.cpp (UpdateJtAirInput) (15 copies in Lilly ports) */
+/* LOREF: an object reference with a time stamp (STEPPLAYER::alorefSplash: an object in the hero's water volume and the
+   clock time of its last surface-crossing effect, UpdateStepplayerWater in hurt.cpp). */
+struct LOREF
+{
+      LO *plo;
+      float tLast;
+};
+
 struct STEPPLAYER : public STEP
 {
       JTAIR jtair;   /* jumping/falling */
@@ -510,9 +518,9 @@ struct STEPPLAYER : public STEP
       struct RELAYJSG *pjsgScript;   /* +0x1084 the relay job sequence (RELAYJSG, sly2/relay.h; refcounted) scripting the hero, set by
                                    SetStepplayerRide; its prelaycmdJt is the current actor command (jtgoal.cpp, stepplayer.cpp) */
       void *unknown1088;
-      int unknown108C;
-      LOREF *unknown1090;
-      int unknown1094;
+      struct WATER *pwater;   /* +0x108C the water volume the hero is in (0 when dry; UpdateStepplayerWater in hurt.cpp) */
+      LOREF *alorefSplash;   /* +0x1090 objects in that water with their last splash time (UpdateStepplayerWater) */
+      int clorefSplash;
       float waterProbe[4];   /* +0x1098 water-surface probe: [0]/[1] the line's bottom/top offsets above the hero (ProbeStepplayerSurface),
                                 [2] the height offset and [3] the current factor of ResolveStepplayerWaterContact */
       SMPA unknown10A8;

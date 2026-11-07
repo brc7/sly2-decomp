@@ -191,11 +191,6 @@ extern float D_002C41DC;
 extern VECTOR D_002A2DC0;
 extern qword D_002A2DC0q __asm__("D_002A2DC0");
 extern qword D_002A2DD0;
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 extern "C" void GetVectorCylind(qword v, float *prad, float *psXY, float *pz);
 qword ClipCmEye(CM *pcm, qword posFrom, qword posTo) __asm__("ClipCameraEye");

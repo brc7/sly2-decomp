@@ -78,12 +78,6 @@ struct SWALLOC
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
-
 int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("CanJtUseGadgetInAir");
 
 int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("CanJtUseGadgetInGrab");
@@ -3331,7 +3325,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     if (jts != JTS_Unk08 && jts != JTS_Hang && jts != JTS_HangFollow)
                         SetJtAnimState(jt, -1);
                 }
-                if (jt->unknown108C == 0)
+                if (jt->pwater == 0)
                 {
                     EXPL *pexpl = 0;
                     switch (jts)

@@ -81,12 +81,6 @@ void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal
 
 float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
 
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
-
 void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
 extern "C" int GetStepplayerMp(STEPPLAYER *pstepplayer);

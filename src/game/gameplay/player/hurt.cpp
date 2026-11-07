@@ -7,10 +7,11 @@
 //
 // Types: the functions on named fields use stepplayer.h's JTHURT/ZPR/STEPPLAYER, jt.h's JT and so.h's SO. The others
 // keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp
-// do): the hand-tuned ones (SetJtHurtState, PresetJtAccelZap, UpdateJtActiveZap, StartJtKnockback, TakeJtDamage,
-// UpdateStepplayerWater: register pins, by-value helper shapes, unions whose stores the match
-// needs), and a record not identified yet (AddJtHurtCpdefiFlags). PostLoadJtHurt, SetJtHurtCallback,
-// RunJtHurtCallback, GetJtHurtAdjustRecord and ProbeStepplayerSurface are on the header types.
+// do): the hand-tuned ones (SetJtHurtState, PresetJtAccelZap, UpdateJtActiveZap, StartJtKnockback, TakeJtDamage:
+// register pins, by-value helper shapes, unions whose stores the match needs), and a record not identified yet
+// (AddJtHurtCpdefiFlags). PostLoadJtHurt, SetJtHurtCallback, RunJtHurtCallback, GetJtHurtAdjustRecord,
+// ProbeStepplayerSurface, UpdateStepplayerWater and ResolveStepplayerWaterContact are on the header types
+// (UpdateStepplayerWater keeps a view of the WATER volume, whose classes.h type has no fields yet).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hurt
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A2BB0
 #include "sly2/jt.h"          /* JT; stepplayer.h JTHURT, ZPR, STEPPLAYER */
@@ -1100,66 +1101,61 @@ SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2460 {
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];int i[4];};
 struct M4 {U r[4];};
 struct VTE {short delta,pad;void*fn;};
-struct P;
 struct EFFECT {char pad[0xC];VTE*vt;};
+/* The hero's water volume (STEPPLAYER::pwater; classes.h WATER has no fields yet): splash effect, zap kind and tag. */
 struct L {char pad[0xC];VTE*vt;char pad10[0x164];EFFECT*effect;char pad178[0xC];int kind,tag;};
-struct ENTRY{P*object;float time;};
-struct P {char pad[0xC];VTE*vt;char pad10[0x2CC];int state;char pad2E0[0xB14];int mode;char padDF8[0x294];L*link;ENTRY*entries;int count;float pad1098[2];float height;};
-struct HIT {L*target;int pad4;P*source;int tag,kind;char pad14[0xC];U point,direction;char pad40[0x20];};
+struct HIT {L*target;int pad4;STEPPLAYER*source;int tag,kind;char pad14[0xC];U point,direction;char pad40[0x20];};
 struct MSG {int type;char pad4[0x1C];U position;};
 struct CLOCK {float time,deltaTime;};
 extern "C" CLOCK D_002DDED0;
-extern "C" qword GetLoWorldPos(P*);
+extern "C" qword GetLoWorldPos(LO*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
-extern "C" P*DeliverZapToSo(HIT*);
-extern "C" int ProbeStepplayerSurface(P*,L*,qword*);
+extern "C" void*DeliverZapToSo(HIT*);
+extern "C" int ProbeStepplayerSurface(STEPPLAYER*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
-// The actor's velocity (virtual slot 33).
-static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
 // From UpdateStepplayer: if the player's height-adjusted point is inside the linked volume, inflicts the zap/drown
 // damage and probes for the surface (ProbeStepplayerSurface).
-extern "C" void UpdateStepplayerWater(P *player)
+extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 {
     U point;
     int valid;
-    if (player->link) {
+    if (((L *)player->pwater)) {
         point.q = GetLoWorldPos(player);
-        point.f[2] += player->height;
-        if (player->mode == 3 || player->mode == 10)
+        point.f[2] += player->waterProbe[2];
+        if (player->jthurt.state == 3 || player->jthurt.state == 10)
             point.f[2] -= 10.0f;
-        L *link = player->link;
+        L *link = ((L *)player->pwater);
         valid = ((int (*)(void *, qword))link->vt[73].fn)((char *)link + link->vt[73].delta, point.q);
     } else
         valid = 0;
     if (!valid)
         return;
-    if (player->link->kind) {
+    if (((L *)player->pwater)->kind) {
         int notify = 0;
-        if (QwordZ(Direction(player)) < 0.0f || (player->state == -1 && player->mode != 7))
+        if (QwordZ(player->GetVelocity()) < 0.0f || (player->jtair.state == -1 && player->jthurt.state != 7))
             notify = 1;
         if (notify) {
             HIT hit;
             func_002333B4(&hit, 0, sizeof(hit));
-            hit.target = player->link;
+            hit.target = ((L *)player->pwater);
             hit.source = player;
-            hit.tag = player->link->tag;
-            hit.kind = player->link->kind;
+            hit.tag = ((L *)player->pwater)->tag;
+            hit.kind = ((L *)player->pwater)->kind;
             hit.point.q = GetLoWorldPos(player);
-            hit.direction.q = Direction(player);
+            hit.direction.q = player->GetVelocity();
             (void)DeliverZapToSo(&hit);
         }
     }
-    if (!player->link->effect)
+    if (!((L *)player->pwater)->effect)
         return;
-    if (!ProbeStepplayerSurface(player, player->link, &point.q))
+    if (!ProbeStepplayerSurface(player, ((L *)player->pwater), &point.q))
         return;
     int i = 0;
-    if (!(player->count > 0))
+    if (!(player->clorefSplash > 0))
         return;
     U position;
     M4 predicted, base;
@@ -1167,13 +1163,13 @@ extern "C" void UpdateStepplayerWater(P *player)
     M4 *ppred = &predicted;
     // Preserve the saved register for the predicted position.
     register U *predpos __asm__("$20") = &predicted.r[3];
-    for (; i < player->count; i++) {
-        ENTRY *entry = &player->entries[i];
-        if (D_002DDED0.time - entry->time < 0.05f)
+    for (; i < player->clorefSplash; i++) {
+        LOREF *entry = &player->alorefSplash[i];
+        if (D_002DDED0.time - entry->tLast < 0.05f)
             continue;
-        P *object = entry->object;
+        SO *object = (SO *)entry->plo;
         position.q = GetLoWorldPos(object);
-        void *frame = ((void *(*)(void *, M4 *))object->vt[32].fn)((char *)object + object->vt[32].delta, pbase);
+        void *frame = object->GetLocalTransform((MATRIX4 *)pbase);
         LoadIdentityMatrix4(frame, 0, ppred, 0, D_002DDED0.deltaTime);
         predicted = __ml__FRC7MATRIX4T0(ppred, pbase);
         int crossed = 0;
@@ -1187,9 +1183,9 @@ extern "C" void UpdateStepplayerWater(P *player)
             msg.position = position;
             msg.position.f[2] = point.f[2];
             msg.type = 4;
-            EFFECT *effect = player->link->effect;
+            EFFECT *effect = ((L *)player->pwater)->effect;
             ((void (*)(void *, MSG *))effect->vt[51].fn)((char *)effect + effect->vt[51].delta, &msg);
-            entry->time = D_002DDED0.time;
+            entry->tLast = D_002DDED0.time;
         }
     }
 }

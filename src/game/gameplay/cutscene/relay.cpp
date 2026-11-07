@@ -204,12 +204,6 @@ void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("SetStepTargetHeadin
 
 void SetStepRadTowardDir(STEP *pstep, qword dpos) __asm__("SetStepTargetHeadingFromVector");
 
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
-
 void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
 void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");

@@ -1682,11 +1682,6 @@ struct SWALLOC
     int cbAlign;
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
-struct LOREF
-{
-      LO *plo;
-      undefined4 unk_0x04;
-};
 extern "C" { extern CLQ D_002BD280; }
 extern "C" { extern CLQ D_002BD290; }
 extern "C" { extern CLQ D_002BD2A0; }
