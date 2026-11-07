@@ -17,6 +17,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/scrap.h"
 #include "sly2/vu0.h"
+#include "sly2/cref.h"
 
 /* The LO flag word at +0x28 (read as one 64-bit word by the m2c views; lo.h names the bits). */
 #define LO_REMOVED_BIT    0x0100000000000000UL  /* bit 56 (isRemoved): taken out of the world */
@@ -667,24 +668,17 @@ int IsLoInWorld(struct S *object)
 } } // namespace M_func_001A61A0
 
 namespace M_HandleLoSpliceEvent { extern "C" {
-struct CRef {
-    int kind;
-    union { int integer; float scalar; void *pointer; } value;
-};
 extern char D_002DEB30[];
 void HandleBasicSpliceEvent(void *p, int n, int deferred, int argumentCount,
-                   void *const *arguments, struct CRef *output);
+                   void *const *arguments, CRefData *output);
 void BroadcastGameEvent(void *p, int n, void *q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
-typedef char CRef_KindOffset[FIELD_OFFSET(CRef,kind)==0?1:-1];
-typedef char CRef_ValueOffset[FIELD_OFFSET(CRef,value)==4?1:-1];
-typedef char CRef_Size[sizeof(struct CRef)==8?1:-1];
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
 typedef char Int_Size[sizeof(int)==4?1:-1];
 // LO's Splice event handler (vtable slot 3): the BASIC handling, then the trigger (5) and untrigger (6) events are also
 // reported to the game progress object (as game events 0x1A/0x1B).
 void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
-                   void *const *arguments, struct CRef *output)
+                   void *const *arguments, CRefData *output)
 {
     HandleBasicSpliceEvent(object, n, deferred, argumentCount, arguments, output);
     switch (n) {
