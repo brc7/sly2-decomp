@@ -1432,14 +1432,12 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
 
 namespace M_PostSoundLoad { extern "C" {
 struct K { int keyLo; int keyHi; int kind; char filename; char pad[0x110 - 0xD]; };   /* a file lookup key */
-struct X { int key0; int key1; char pad[0x34 - 8]; int key2; int unknown38; int key3; };   /* a file record */
-struct P { char pad[0xA8]; struct X bankRecord; char pad2[0xE8 - 0xA8 - sizeof(struct X)]; int bank; char pad3[0xF8 - 0xEC]; int numSounds; int *soundKinds; };   /* SNDMGR */
 void InitFileKey(struct K *);
 int snd_BankLoadByLoc(int, int);
 void snd_ResolveBankXREFS(void);
 int snd_IsSoundALooper(int, int);
 /* SOUND_KIND_LOOPING: defined with PlayBanksnd */
-static inline int BuildStreamFileKey(struct K *key, struct X *record)
+static inline int BuildStreamFileKey(struct K *key, FILEREC *record)
 {
     if (!record) return 0;
     {
@@ -1454,7 +1452,7 @@ static inline int BuildStreamFileKey(struct K *key, struct X *record)
     return key->keyHi != 0;
 }
 // After loading: loads the sound bank if needed, resolves its cross references and marks which sounds loop.
-void PostSoundLoad(struct P *soundManager)
+void PostSoundLoad(SNDMGR *soundManager)
 {
     int i;
     if (!soundManager->bank) {

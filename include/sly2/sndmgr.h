@@ -11,8 +11,21 @@
    size at +0x38 and the headset flag at +0x4C of the dialog streams' copy; sound.cpp's PostSoundLoad/PlayStreamsnd). */
 struct FILEREC
 {
-    uint aw[16];
+    union
+    {
+        uint aw[16];
+        struct
+        {
+            int key0;           /* +0x00 */
+            int key1;           /* +0x04 */
+            int unknown08[11];
+            int key2;           /* +0x34 */
+            int unknown38;      /* +0x38 */
+            int key3;           /* +0x3C */
+        };
+    };
 };
+typedef char assert_FILEREC_size[sizeof(FILEREC) == 0x40 ? 1 : -1];
 
 /* DIALOGEVENT: a lip-sync / gesture event of a dialog line (frames at 60 per second since the previous event; the role
    it drives and the value: a state for the speaker's state machines or a gesture weight). */
