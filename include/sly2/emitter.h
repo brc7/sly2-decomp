@@ -250,7 +250,21 @@ int BisU16Read(CBinaryInputStream *pbis) __asm__("U16Read__18CBinaryInputStream"
 int BisU32Read(CBinaryInputStream *pbis) __asm__("U32Read__18CBinaryInputStream");
 extern "C" void *memset(void *pv, int b, unsigned int cb);
 extern "C" int memcmp(const void *pv1, const void *pv2, unsigned int cb);
-struct EMITMESH;
+/* EMITMESH: an emitter's mesh origin (EMITO kind 3; particles spawn on its surface, triangles picked in proportion
+   to their area) */
+struct EMITTRI { int aipos[3]; float sArea; };   /* a triangle: three vertex indices and its area */
+struct EMITMESH
+{
+    int cpos;               /* +0x00 vertex count */
+    qword *apos;            /* +0x04 vertex positions */
+    int ctri;               /* +0x08 triangle count */
+    EMITTRI *atri;          /* +0x0C */
+    qword *anormal;         /* +0x10 vertex normals (sums of the triangle normals, normalized at load) */
+    float sArea;            /* +0x14 total area */
+    int pad18[2];
+    qword center;           /* +0x20 (FireExplsExplso: where the explosion's sound plays) */
+};
+typedef char assert_EMITMESH_center[SLY2_OFFSETOF(EMITMESH, center) == 0x20 ? 1 : -1];
 void LoadEmitmeshFromBrx(EMITMESH *pemitmesh, CBinaryInputStream *pbis);
 /* FindSwObject (sw.cpp) under a label: files that include this header declare its mangled name as a C function */
 LO *PloFindSwObjectE(SW *psw, int grffso, OID oid, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");

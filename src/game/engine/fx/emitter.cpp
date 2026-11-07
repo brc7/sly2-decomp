@@ -196,11 +196,7 @@ void EMITTER::Init()
 }
 
 namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream {
-typedef int qword __attribute__((mode(TI)));
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
-struct CBinaryInputStream;
-struct TRI { int aipos[3]; float sArea; };
-struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; int pad18[2]; qword center; };
 extern "C" {
 int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(CBinaryInputStream *pbis, qword *pv);
@@ -248,10 +244,10 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
     for (i = 0; i < pemitmesh->cpos; i++)
         ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->apos[i]);
     pemitmesh->ctri = U16Read__18CBinaryInputStream(pbis);
-    pemitmesh->atri = (TRI *)PvAlloc(pemitmesh->ctri * 16, 16);
+    pemitmesh->atri = (EMITTRI *)PvAlloc(pemitmesh->ctri * 16, 16);
     pemitmesh->sArea = 0.0f;
     for (int itri = 0; itri < pemitmesh->ctri; itri++) {
-        TRI *ptri = &pemitmesh->atri[itri];
+        EMITTRI *ptri = &pemitmesh->atri[itri];
         for (i = 0; i < 3; i++)
             ptri->aipos[i] = U16Read__18CBinaryInputStream(pbis);
         ptri->sArea = F32Read__18CBinaryInputStream(pbis);
@@ -923,8 +919,6 @@ struct MATRIX3 { qword r[3]; };
 struct CM { char pad[0x60]; MATRIX3 mat; };
 extern "C" { extern CM D_002DDF40; }
 extern "C" { extern qword D_002A2DA0; }
-struct TRI { int aipos[3]; float sArea; };
-struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; };
 struct BOXE { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct MESHO { char pad[0xE8]; int numLengths; int padEC; float *cumulativeLength; };   /* the curve shape */
 extern "C" {
@@ -1036,7 +1030,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *emitb, int index, in
     case EMIT_ORIGIN_MESH: {
         EMITMESH *mesh = (EMITMESH *)origin->pvEmito;
         float s = RandomFloatInRange__Fff(0.0f, 1.0f) * mesh->sArea;
-        TRI *ptri;
+        EMITTRI *ptri;
         int itri;
         for (itri = 0; itri < mesh->ctri; itri++) {
             ptri = &mesh->atri[itri];
