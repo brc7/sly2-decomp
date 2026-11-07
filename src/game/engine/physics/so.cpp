@@ -653,86 +653,77 @@ void RemoveSoParts(SO *so)
 
 // 0x1F2C30 AddSoHierarchy
 namespace M_AddSoHierarchy { extern "C" {
-struct VTE; struct VT; struct S8; struct E; struct L; struct H; struct G;
+struct S8; struct H; struct G;
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[12]; };
 struct S8 { long l; } __attribute__((packed));
-struct E { char pad[0xDC]; void *region; };
-struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int flagWord; char pad2[0x64 - 0x44]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xE8 - 0x74]; struct E *physics; };
 struct H { char pad[0x2C]; int numZones; };
 struct G { char pad[0x45CC]; struct H *zoneBsp; };
 extern struct G D_003DD490;
 extern const struct S8 D_002A8270;
-void AddLoHierarchy(struct L *);
-void UpdateSoXfWorldMatrices(struct L *);
-void AddSoParts(struct L *);
-qword GetLoWorldPos(struct L *);
+void AddLoHierarchy(SO *);
+void AddSoParts(SO *);
+qword GetLoWorldPos(SO *);
 void *FindPathzoneAtPos(qword, int);
-void SetSoPhysRegion(struct L *, void *);
-void PostSwCallback(struct G *, struct L *, long, int);
+void SetSoPhysRegion(SO *, void *);
+void PostSwCallback(struct G *, SO *, long, int);
 // Slot 11 (AddHierarchy): AddLoHierarchy, adds the parts, sets flags 0x14, registers the physics region (if the
 // object has a region record) and recurses into the children.
-void AddSoHierarchy(struct L *so)
+void AddSoHierarchy(SO *so)
 {
-    struct L *q;
+    LO *q;
     void *pv;
     int unused[4];
     int v;
     AddLoHierarchy(so);
     UpdateSoXfWorldMatrices(so);
     AddSoParts(so);
-    v = so->flagWord;
+    v = so->unknown40;
     if ((v ^ 1) & 1) *(int *)v |= 0x14;
-    else so->flagWord = v | 0x14;
-    pv = so->physics ? so->physics->region : 0;
+    else so->unknown40 = v | 0x14;
+    pv = so->physics ? so->physics->pregent : 0;
     if (pv) {
         if (D_003DD490.zoneBsp && D_003DD490.zoneBsp->numZones)
             SetSoPhysRegion(so, FindPathzoneAtPos(GetLoWorldPos(so), 1));
         else
             PostSwCallback(&D_003DD490, so, D_002A8270.l, 0);
     }
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
-        q->pvt->a[11].pfn((char *)q + q->pvt->a[11].d);
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
+        q->AddHierarchy();
 }
 } } // namespace M_AddSoHierarchy
 
 // 0x1F2D48 RemoveSoHierarchy
 namespace M_RemoveSoHierarchy { extern "C" {
-struct VTE; struct O; struct E; struct P; struct K;
+struct K;
 typedef unsigned long ulong;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong flags; };
-struct E { char pad[0xDC]; int region; };
-struct P { char pad[0x64]; DL children; char pad2[0xE8 - 0x70]; struct E *physics; char pad3[0x12C - 0xEC]; float alpha; int alphaRate; };
 struct K { long l; } __attribute__((packed));
 struct G;
 extern struct G D_003DD490;
 extern const struct K D_002A8270;
-void RemoveLoHierarchy(struct P *);
-void RemoveSoParts(struct P *);
-void ClearSwCallbacks(struct G *, int, struct P *, long, int);
-void SetSoPhysRegion(struct P *, int);
+void RemoveLoHierarchy(SO *);
+void RemoveSoParts(SO *);
+void ClearSwCallbacks(struct G *, int, SO *, long, int);
+void SetSoPhysRegion(SO *, int);
 // Slot 12 (RemoveHierarchy): RemoveLoHierarchy, removes the parts, resets the fade, unregisters the region callback
 // and recurses into the children.
-void RemoveSoHierarchy(struct P *so)
+void RemoveSoHierarchy(SO *so)
 {
     DLI dli;
-    struct O *po;
-    int n;
+    LO *po;
+    REGENT *n;
     RemoveLoHierarchy(so);
     RemoveSoParts(so);
-    so->alphaRate = 0;
-    so->alpha = 1.0f;
+    so->opacitySpeed = 0;
+    so->opacity = 1.0f;
     n = 0;
-    if (so->physics) n = so->physics->region;
+    if (so->physics) n = so->physics->pregent;
     if (n) {
         ClearSwCallbacks(&D_003DD490, 3, so, D_002A8270.l, 0);
         SetSoPhysRegion(so, 0);
     }
     InitDli(&dli, &so->children);
-    while ((po = (__typeof__(po))PvNextDli(&dli)) != 0 && !(po->flags & (1L << 56)))
-        po->pvt[12].pfn((char *)po + po->pvt[12].d);
+    while ((po = (__typeof__(po))PvNextDli(&dli)) != 0 && !po->isRemoved)
+        po->RemoveHierarchy();
     D_002DD2FC = dli.m_pdliNext;
 }
 } } // namespace M_RemoveSoHierarchy
