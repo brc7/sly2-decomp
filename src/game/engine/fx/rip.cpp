@@ -37,68 +37,63 @@ void ReleaseRip(RIP *prip);
 void RemoveRip(RIP *prip);
 void TouchRip(RIP *prip, int fRemove);
 
-namespace M_NewRipGroup { extern "C" {
+/* The hand-made construction of a RIPG (zeroed pool memory set up as an SO, then as a RIPG) stores the two vtable
+   pointers by hand. */
 struct VTE { short d; short pad; void (*pf)(); };
-struct O { int basic0; int basic4; int basic8; struct VTE *vt; char p1[0x80 - 0x10]; char globset[0xD0]; int groupKind; };   /* RIPG */
-extern struct VTE D_002D9978[] __asm__("_vt$2SO");
-extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
-void *AllocZeroedFromSlotheap(void *pool);
-void *func_002333B4(void *sw, int c, int cb) __asm__("memset");
-void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
+#define VPTR(p) (*(VTE **)((char *)(p) + 0xC))   /* BASIC's vtable pointer word */
+extern "C" {
+extern VTE D_002D9978[] __asm__("_vt$2SO");
+extern VTE D_002D77D8[] __asm__("_vt$4RIPG");
+void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
+void *ConstructGlobset(GLOBSET *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), returning this */
 void *GetSwClassList(SW *sw, int n);
 void AppendSlEntry(void *pl, void *pv);
-#define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
-// Returns kind rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
-// kind kind new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then kind RIPG (its GLOBSET included),
+void InitSo(SO *pso);
+void SetLoBusyKind(LO *plo, int n);
+void EnsureSoTree(SO *pso);
+void SetSoTreeFlag2(SO *pso, int n);
+}
+void InitDl(DL *pdl, int ib);
+// Returns a rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
+// kind a new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then a RIPG (its GLOBSET included),
 // linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
-struct O *NewRipGroup(SW *sw, int kind)
+extern "C" RIPG *NewRipGroup(SW *sw, int kind)
 {
-    struct O *ripGroup;
-    if (!kind && sw->pripgDefault) return (struct O *)sw->pripgDefault;
-    ripGroup = (__typeof__(ripGroup))AllocZeroedFromSlotheap(&sw->slotheapRipg);
+    RIPG *ripGroup;
+    if (!kind && sw->pripgDefault) return sw->pripgDefault;
+    ripGroup = (RIPG *)AllocZeroedFromSlotheap(&sw->slotheapRipg);
     if (!ripGroup) return 0;
-    func_002333B4(ripGroup, 0, 0x1B0);
-    ripGroup->basic0 = 0;
-    ripGroup->basic4 = 0;
-    ripGroup->vt = D_002D9978;
-    ConstructGlobset(ripGroup->globset);
+    func_002333B4(ripGroup, 0, sizeof(RIPG));
+    ripGroup->scriptFrame.m_p = 0;
+    ripGroup->scriptVariables.m_p = 0;
+    VPTR(ripGroup) = D_002D9978;
+    ConstructGlobset(&ripGroup->model);
     ripGroup->groupKind = kind;
-    ripGroup->vt = D_002D77D8;
+    VPTR(ripGroup) = D_002D77D8;
     AppendSlEntry(GetSwClassList(sw, 0x57), ripGroup);
-    VCALL0(ripGroup, 7);
-    VCALL0(ripGroup, 11);
-    VCALL0(ripGroup, 15);
-    if (!kind) sw->pripgDefault = (RIPG *)ripGroup;
+    ripGroup->Init();
+    ripGroup->AddHierarchy();
+    ripGroup->PostLoad();
+    if (!kind) sw->pripgDefault = ripGroup;
     return ripGroup;
 }
-} } // namespace M_NewRipGroup
-#undef VCALL0
 
-namespace M_InitRipg__FP4RIPG { extern "C" {
-struct S { char p0[0x40]; int flags40; char p1[0x148 - 0x44]; unsigned long renderFlags; int groupKind; char p2[0x15C - 0x154]; char ripList[4]; };   /* RIPG */
-void InitSo(struct S *ripGroup);
-void InitDl__FP2DLi(void *pdl, int n);
-void SetLoBusyKind(struct S *ripGroup, int n);
-void EnsureSoTree(struct S *ripGroup);
-void SetSoTreeFlag2(struct S *ripGroup, int n);
 // RIPG::Init (vt slot 7): InitSo, an empty rip list (linked at RIP+0xC), busy level 1, LO flag bits 1-3 set and
-// render flag bit 35 cleared; a kind-1 group also gets func_001F27F0 / func_001F6860(.., 1) (inferred: its own
-// world registration).
-void InitRipg__FP4RIPG(struct S *ripGroup)
+// SO flag bit 35 cleared; a kind-1 group also gets its own tree record (EnsureSoTree, SetSoTreeFlag2(.., 1)).
+void RIPG::Init()
 {
     int flags;
-    InitSo(ripGroup);
-    InitDl__FP2DLi(ripGroup->ripList, 0xC);
-    SetLoBusyKind(ripGroup, 1);
-    flags = ripGroup->flags40;
-    if (IsPointer(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else ripGroup->flags40 = (flags & 1) | 0xE;
-    ripGroup->renderFlags &= ~(1UL << 35);
-    if (ripGroup->groupKind == 1) {
-        EnsureSoTree(ripGroup);
-        SetSoTreeFlag2(ripGroup, 1);
+    InitSo(this);
+    InitDl(&ripList, 0xC);
+    SetLoBusyKind(this, 1);
+    flags = unknown40;
+    if (IsPointer(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else unknown40 = (flags & 1) | 0xE;
+    unknownFlag148A = 0;
+    if (groupKind == 1) {
+        EnsureSoTree(this);
+        SetSoTreeFlag2(this, 1);
     }
 }
-} } // namespace M_InitRipg__FP4RIPG
 
 void SetRipgEmitb(RIPG *ripGroup, EMITB *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
 // Copy emitb rate into RIPG.
@@ -112,7 +107,6 @@ extern "C" {
 void RemoveSoHierarchy(RIPG *p);
 void RemoveObjectFromBroadPhase(SW *psw, void *pv);
 void SnipLo(RIPG *p);
-void *GetSwClassList(SW *psw, int n);
 void RemoveSlEntry(void *pl, RIPG *p);
 void FreeLoroot(RIPG *p);
 void FreeSlotheapSlot(void *pool, void *pv);
