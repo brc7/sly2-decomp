@@ -56,10 +56,9 @@ static inline void *PvNextSli(SLI *psli)
     return pv;
 }
 
-struct JOYV { char pad[0x10B4]; int btn; };
 
 extern CLOCK D_002DDED0;
-extern JOYV D_002DFC00;
+extern JOY D_002DFC00;
 #undef D_003DA0B8
 #define D_003DA0B8 (*(int *)((char *)base_D_003D9ED0 + 0x1E8))   /* screen's object+0x1E8 */
 extern char D_003DD490[], D_003DD040[], D_003D4A60[];
@@ -110,17 +109,17 @@ extern "C" void ResetCheatCodeProgress(CODES *codes)
 
 // Feeds one new button press of the first pad (g_joy) into every unfinished code while the cheat entry is open: a
 // code advances when the press is its next button, otherwise it starts over. Arms a one-second check timer.
-extern "C" void MatchCheatCodePress(CODES *codes, JOYV *pjoy, unsigned short btnPrev)
+extern "C" void MatchCheatCodePress(CODES *codes, JOY *pjoy, unsigned short btnPrev)
 {
     CODE *pcode;
     if (pjoy != &D_002DFC00) return;
-    if (btnPrev == pjoy->btn) return;
-    if (!pjoy->btn) return;
+    if (btnPrev == pjoy->buttonsHeld) return;
+    if (!pjoy->buttonsHeld) return;
     if (!D_003DA0B8) return;
     for (pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->next) {
         int fDone = pcode->numMatched >= pcode->numButtons;
         if (!fDone) {
-            if (pcode->buttons[pcode->numMatched] == pjoy->btn) pcode->numMatched++;
+            if (pcode->buttons[pcode->numMatched] == pjoy->buttonsHeld) pcode->numMatched++;
             else pcode->numMatched = 0;
         }
     }

@@ -20,6 +20,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/sw.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -93,12 +94,11 @@ namespace M_UpdateCmLast__FP2CM { extern "C" {
 /* The focus SO's vtable, called by hand (slot 50, GetCpdefi; so.h is not included here). */
 struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct O { int pad[3]; struct VTE *vt; };
-struct G { char pad[0x3E38]; int unknown3E38; };
 extern struct CLOCK D_002DDED0;
 extern int D_002DFBC0;
 extern JOY D_002DFC00;
 extern JOY D_002E0D00;
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern char D_002BD810[];
 void ResetCmAdjust(CM *p, CPDEFI *pcpdefi);
 void AdjustCmCpdefi(CM *p, SO *pso, CPDEFI *pcpdefi);
@@ -720,13 +720,13 @@ namespace M_ApplyCameraSpring { extern "C" {
 // MATCH (Claude agent): hard-register VF locals; clock pointer pinned to v0 and the second dt read via a v0-pinned int.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct CLOCK { float time; union { float g; int n; } deltaTime; };
-extern struct CLOCK D_002DDED0;
+struct CLOCKIsland { float time; union { float g; int n; } deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (union view of one float) */
+extern struct CLOCKIsland D_002DDED0;
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
 // nCut.
 void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, float k2)
 {
-    register struct CLOCK *pclock __asm__("v0");
+    register struct CLOCKIsland *pclock __asm__("v0");
     register qword s1 __asm__("vf3");
     register qword s2 __asm__("vf4");
     register qword s3 __asm__("vf5");
@@ -1111,7 +1111,6 @@ namespace M_ClipCameraEye {
 typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register, from a value or from memory.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
-struct CLOCK { float time, deltaTime, unknown8, unknownC, dtPrev; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern qword D_002BD8F0, D_002BD900;
@@ -1154,13 +1153,13 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
     CLOCK *pclock = &D_002DDED0;
     int ii, jj;
     qword dpos = VuSub(posTarget, pos);
-    qword v = DivideBy(dpos, VU_FLOAT(&pclock->dtPrev));
+    qword v = DivideBy(dpos, VU_FLOAT(&pclock->cameraDeltaTime));
     qword posMin = VuAdd(pos, D_002BD8F0);
     qword posMax = VuAdd(pos, D_002BD900);
     STACKSCOPE frame;
     IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)HasCameraBsp, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);
-    qword r = AddScaled(pos, w, VU_FLOAT(&pclock->dtPrev));
+    qword r = AddScaled(pos, w, VU_FLOAT(&pclock->cameraDeltaTime));
     return r;
 }
 } // namespace M_ClipCameraEye

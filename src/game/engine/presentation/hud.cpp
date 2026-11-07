@@ -166,19 +166,19 @@ void BuildCoinCountText(void *f, int **pp)
 
 // 0x210F50 BuildClueCountText
 namespace M_BuildClueCountText { extern "C" {
-extern struct G { char pad[0x4764]; int a; int b; } D_003DD490;
+extern SW D_003DD490;
 extern char D_002A8AA8[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D0: clue bottles collected / total in this level. Runtime-checked counters SW+0x4764 / +0x4768.
 void BuildClueCountText(void *f)
 {
-    fiprintf(f, D_002A8AA8, D_003DD490.a, D_003DD490.b);
+    fiprintf(f, D_002A8AA8, D_003DD490.numCluesCollected, D_003DD490.numClues);
 }
 } } // namespace M_BuildClueCountText
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-extern struct CLOCK { float time; float deltaTime; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D1: the mission countdown as minutes:seconds (never below zero).
@@ -539,14 +539,14 @@ namespace M_func_00211D38 { extern "C" {
 // Actor update: commit completed state after every noninitial guard path.
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
 struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int isOpen; int keepsGamePaused; };
-extern struct G { char pad[0x3B0C]; void *pausedClockOwner; } D_003DD490;   /* SW+0x3B0C: resumed via func_00162DF8 (inferred) */
+extern SW D_003DD490;   /* SW+0x3B0C: resumed via func_00162DF8 (inferred) */
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int IsWidgetIdle(struct S *p);
 void UpdateWidget(struct S *p);
 int IsScreenShown(void *);
 int HandleJoyButtons(void *, int);
-void DecrementSwHandsOff(struct G *, int);
+void DecrementSwHandsOff(SW *, int);
 void RestartJob(void *);
 // Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
 // resumes the game and hides the box. (inferred)
@@ -558,9 +558,9 @@ void UpdateModalBoxWidget(struct S *widget)
     if (widget->state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - widget->stateTime && !IsScreenShown(D_002E6550)
         && !IsScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0 /* face buttons */)) {
         DecrementSwHandsOff(&D_003DD490, 0);
-        if (widget->keepsGamePaused == 0 && D_003DD490.pausedClockOwner) {
+        if (widget->keepsGamePaused == 0 && D_003DD490.currentJob) {
             D_002DD318++;
-            RestartJob(D_003DD490.pausedClockOwner);
+            RestartJob(D_003DD490.currentJob);
         }
         widget->pvt->pf((char *)widget + widget->pvt->d);   /* HideWidget (slot 50) */
     }
@@ -1122,13 +1122,12 @@ struct S {
     float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
-struct G { char pad[0x3BEC]; int numShownWidgets; };
-struct Clock { char pad[0x3C]; float time; float dt; };
-extern struct G D_003DD490;
-extern struct Clock D_002DDED0;
+struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: as UpdateWidget's: the view keeps &g_clock in a register (address folding) */
+extern SW D_003DD490;
+extern struct CLOCKIsland D_002DDED0;
 extern int D_002DD318;
 extern int D_002BE538;
-void SetClockRate(struct Clock *,int,float);
+void SetClockRate(struct CLOCKIsland *,int,float);
 void LoadWidgetSprites(struct S *);
 void UnloadWidgetSprites(struct S *);
 void StopWidgetMainAnim(struct S *);
@@ -1178,8 +1177,8 @@ struct S {
     float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
-struct Clock { char pad[0x3C]; float time; float dt; };
-extern struct Clock D_002DDED0;
+struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: a view based at +0x3C keeps &g_clock in a register; the full CLOCK folds the offset (UpdateWidget 107/123 off) */
+extern struct CLOCKIsland D_002DDED0;
 void UpdateLo(struct S *);
 int IsWidgetAnimPlaying(struct S *,int);
 void SetWidgetRequest(struct S *,int);
@@ -3674,7 +3673,7 @@ extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 namespace M_func_00218660 { extern "C" {
 struct E { char pad[8]; short animIndex; short pad2; float time; int isFinished; void *sound; };
 struct S { char pad[8]; struct E *slots; char padc[4]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };
-struct CLOCK { unsigned long ticks; };
+struct CLOCKIsland { unsigned long ticks; };   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
 void ResetSpriteSlotItems(struct S *p, int i);
@@ -3695,7 +3694,7 @@ void StopSpriteSlot(struct S *group, int slot)
         float t=state->time;
         group->lastStartAnim = state->animIndex;
         group->lastStartTime = t;
-        group->lastStartFrame = (*(struct CLOCK *)&g_clock.frameTick).ticks;
+        group->lastStartFrame = (*(struct CLOCKIsland *)&g_clock.frameTick).ticks;
         group->pendingAnim = -1;
         state->animIndex = -1;
         state->isFinished = 0;

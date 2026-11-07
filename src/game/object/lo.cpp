@@ -865,7 +865,6 @@ struct VE{short delta,pad;META*(*type)(P*);};
 union FLAGS{ulong word;struct{ulong pad:48;int kind:4,mode:4;uint reserved:1,autoA:1,autoB:1,end:5;}bits;};
 struct TAG{int word;int Get()const{register int v __asm__("$4")=word;if(!(v&1))v=*(int*)v;return v;}void Set(int v){v&=~1;int d=word;if(!(d&1))*(int*)d=v|(*(int*)d&1);else word=v|(d&1);}};
 struct P{ROOT*root;FIELD*field;int pad8;VE*vt;char pad10[0x18];FLAGS flags;int pad30;int word34;float scale;NODE*nodes;TAG tag;char pad44[12];};
-struct G{char pad[0x3F10];int phase;};
 typedef char BINDING_Size[sizeof(BINDING)==24?1:-1];
 typedef char FIELD_Size[sizeof(FIELD)==12?1:-1];
 typedef char ROOT_Size[sizeof(ROOT)==32?1:-1];
@@ -900,10 +899,9 @@ typedef char P_tag_Offset[FIELD_OFFSET(P,tag)==64?1:-1];
 typedef char VE_delta_Offset[FIELD_OFFSET(VE,delta)==0?1:-1];
 typedef char VE_type_Offset[FIELD_OFFSET(VE,type)==4?1:-1];
 typedef char META_bytes_Offset[FIELD_OFFSET(META,bytes)==12?1:-1];
-typedef char G_phase_Offset[FIELD_OFFSET(G,phase)==16144?1:-1];
 extern "C"{
 extern char g_gc[],D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"),D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
-extern G D_003DD490;
+extern SW D_003DD490;
 void CGc_UpdateRecyclable(void*);
 void func_00257250(void*,int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Decref__4CRef(void*);
@@ -921,7 +919,7 @@ void*AllocCopyFromWorldHeap(REQUEST*,void*);
 void ClearSle(int*);
 void ClearSl(void*);
 void AppendSlEntry(void*,NODE*);
-void*GetSwProxyRefBucket(G*,int);
+void*GetSwProxyRefBucket(SW*,int);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
 struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);Decref__4CRef(b->cref);Unlink__t6CGcObj1Z5CVarb(b);FreeSlotheapSlot(D_004520D0,b);}Unlink__t6CGcObj1Z8CSidebag(f);FreeSlotheapSlot(D_00452148,f);}}};
@@ -951,7 +949,7 @@ extern "C" void CloneLo(P*object,const P*source){
     object->tag.Set(source->tag.Get());
     object->word34=source->word34;
     char*dst;const char*src;
-    if(D_003DD490.phase!=-2){src=(const char*)source+0x50;dst=(char*)object+0x50;object->nodes=source->nodes;}
+    if(D_003DD490.isrcLoading!=-2){src=(const char*)source+0x50;dst=(char*)object+0x50;object->nodes=source->nodes;}
     else{
         src=(const char*)source+0x50;dst=(char*)object+0x50;REQUEST request;
         for(NODE*n=source->nodes;n&&n->owner==source;n=n->next){

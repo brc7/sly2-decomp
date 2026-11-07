@@ -219,10 +219,9 @@ struct P {
     qword coordinate, velocity, acceleration;
 };
 union FLOATWORD { float value; int bits; };
-struct CLOCK { float time; FLOATWORD deltaTime; };
-struct SW { char pad3D58[0x3D58]; int stamp; };
+struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 extern "C" {
-extern CLOCK D_002DDED0;
+extern CLOCKIsland D_002DDED0;
 extern SW D_003DD490;
 extern float D_002C0D4C;
 extern qword D_002A2DC0;
@@ -309,7 +308,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
     VECTOR_opAssign(&channel->position, newPosition);
     *(float *)((char *)channel + 0x3C) = 1.0f;
     prize->position->velocity = prize->velocity;
-    { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
+    { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
     if (prize->holder && prize->holder->animation) {
         ASEGA *animation = prize->holder->animation;
         ASEG *action = animation->animation;
@@ -340,7 +339,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
                 *(float *)((char *)channel + 0x3C) = 1.0f;
                 CHANNEL *current = prize->position;
                 current->velocity = VuAdd(current->velocity, RotateVec(frame, velocity.q));
-                { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
+                { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
             }
             if (orientationMotion) {
                 Sample(orientationMotion, animation, &angles.q, &angularVelocity.q);
@@ -350,7 +349,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
                 current->matrix.values[3] = 0.0f; current->matrix.values[7] = 0.0f; current->matrix.values[11] = 0.0f;
                 CHANNEL *spin = prize->orientation;
                 spin->velocity = RotateVec(frame, angularVelocity.q);
-                { int stamp = ++D_003DD490.stamp; prize->orientation->stamp = stamp; }
+                { int stamp = ++D_003DD490.transformStamp; prize->orientation->stamp = stamp; }
             }
         }
     }
@@ -2207,7 +2206,7 @@ struct SGG;struct ALARM;
 struct S : SO {struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int selectedDigit,enteredCode;SGG*relay;void*dialAnim;char pad1A4[0x1F0-0x1A4];int combination;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
 extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
-extern "C" { extern struct CLOCK {float time,deltaTime;} D_002DDED0; }
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" int ConsumeButtonsPressedWithin__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 extern "C" void SetVaultDialState(struct S*,int);
@@ -2269,7 +2268,6 @@ extern "C" void UpdateVaultInput(struct S*vault){
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(float)==4 && sizeof(void*)==4 && OFF(POINT,x)==0x10 && OFF(POINT,y)==0x14 && OFF(TIMER,end)==0xA8 && OFF(S,input)==0x150 && OFF(S,state)==0x188 && OFF(S,selectedDigit)==0x194 && OFF(S,enteredCode)==0x198 && OFF(S,relay)==0x19C && OFF(S,dialAnim)==0x1A0 && OFF(S,combination)==0x1F0 && OFF(S,timer)==0x204 && OFF(CLOCK,time)==0 && OFF(CLOCK,deltaTime)==4 && sizeof(D_002C0FF0)==0x90)?1:-1];
 } // namespace M_func_001C84D8
 #undef OFF
 
@@ -2423,21 +2421,20 @@ typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,time)==0 &
 #undef OFF
 
 namespace M_func_001C8AF0 { extern "C" {
-struct G { char pad[0x4764]; int cluesCollected; int cluesRequired; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct H;
 extern struct H D_003DD040;
 struct S : PO { char pad180[0x190 - 0x180]; int user; char pad2[0x64]; int notEnoughCluesDialog; };
 void SetVaultState(struct S *vault, int n);
-void RestartHudWidget2(struct G *pg);
+void RestartHudWidget2(SW *pg);
 void StartDialog(struct H *ph, int n, int m);
 // Splice entry, when the player uses the vault: with enough clue bottles collected (g_sw counters at +0x4764/+0x4768)
 // it remembers the user and starts the intro (state 1); otherwise it shows the clue count HUD and plays the
 // not-enough-clues dialog. (inferred)
 void TriggerVault(struct S *vault, int n)
 {
-    struct G *pg = &D_003DD490;
-    if (pg->cluesCollected >= pg->cluesRequired) {
+    SW *pg = &D_003DD490;
+    if (pg->numCluesCollected >= pg->numClues) {
         vault->user = n;
         SetVaultState(vault, 1);
     } else {

@@ -73,31 +73,10 @@ struct LIGHTV
 };
 typedef char assert_LIGHT_size[sizeof(LIGHTV) == 0x170 ? 1 : -1];
 
-/* The plane tree's node (32 bytes) and a 256-bit light mask. */
-struct NODE { qword plane; NODE *left, *right; int leftLeaf, rightLeaf; };
-typedef union { qword q[2]; uint a[8]; } MASK;
-/* The world (SW) as this TU reads it. */
-struct SWL
-{
-    char pad0[0x3D5C];
-    int relightStamp;           /* 0x3D5C: bumped by light changes */
-    char pad3D60[0x4154 - 0x3D60];
-    LIGHTV *objects[0x100];      /* 0x4154 */
-    int disabled;               /* 0x4554: rebuild the masks */
-    int pad4558;
-    NODE *tree;                 /* 0x455C */
-    int cleaves;                /* 0x4560 */
-    MASK *leaves;               /* 0x4564 */
-    int pad4568, pad456C;
-    union { MASK mask; int pending[8]; };   /* 0x4570: lights not in the tree */
-    unsigned int free[8];       /* 0x4590: free slots */
-};
-typedef char Offset_objects[FIELD_OFFSET(SWL, objects) == 0x4154 ? 1 : -1];
-typedef char Offset_tree[FIELD_OFFSET(SWL, tree) == 0x455C ? 1 : -1];
-typedef char Offset_leaves[FIELD_OFFSET(SWL, leaves) == 0x4564 ? 1 : -1];
-typedef char Offset_mask[FIELD_OFFSET(SWL, mask) == 0x4570 ? 1 : -1];
-typedef char Offset_free[FIELD_OFFSET(SWL, free) == 0x4590 ? 1 : -1];
-typedef char Size_NODE[sizeof(NODE) == 32 ? 1 : -1];
+/* A node of the world's cell tree (32 bytes; brx_sw.cpp loads it): a plane, then the children or leaf indices. The
+   leaves' light masks are sly2/sw.h's LIGHTMASK. */
+struct CELL { qword plane; CELL *left, *right; int leftLeaf, rightLeaf; };
+typedef char Size_NODE[sizeof(CELL) == 32 ? 1 : -1];
 
 /* The packet request of BuildSoLightPackets / BuildLightPackets. */
 struct LIGHTQ {
@@ -116,7 +95,7 @@ typedef char O_x18_Offset[FIELD_OFFSET(LIGHTQ,pbPacket)==24?1:-1];
 struct M3R { qword r[3]; };
 struct SPHERE { qword pos; float sRadius; int pad[3]; };
 
-extern SWL D_003DD490;
+extern SW D_003DD490;
 extern "C" {
 extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
 extern VIFS D_002DEA28;
@@ -147,11 +126,11 @@ void RebuildLight(LIGHTV *p);
 void SetLightMidtoneStrength(LIGHTV *p, float f);
 void SetLightMidtoneAngle(LIGHTV *p, float f);
 void InvalidateLight(LIGHTV *p);
-void InsertLightInTree(SWL *s, NODE *n, qword pos, float r, int bit);
-void AddLightToSw(SWL *s, LIGHTV *o);
-void RemoveLightFromSw(SWL *p, LIGHTV *q);
+void InsertLightInTree(SW *s, CELL *n, qword pos, float r, int bit);
+void AddLightToSw(SW *s, LIGHTV *o);
+void RemoveLightFromSw(SW *p, LIGHTV *q);
 struct RESULT;
-void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results);
+void FindLightsAffectingPoint(SW *p, qword pos, int capacity, RESULT *results);
 int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
 }
 int AreFloatsNear(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
@@ -404,18 +383,18 @@ void RebuildLight(LIGHTV *light)
 }
 
 // Records that the light changed: a non-dynamic light bumps the world's relight stamp (RenderSw then resubmits
-// relighting), and a non-static point light marks the world light tree for rebuilding (g_sw.unknown4554). (inferred)
+// relighting), and a non-static point light marks the world light tree for rebuilding (g_sw.fLightTreeDirty). (inferred)
 void InvalidateLight(LIGHTV *light)
 {
     if (!light->isDynamic) D_003DD490.relightStamp++;
-    if (!light->isStatic && light->kind) g_sw.unknown4554 = 1;
+    if (!light->isStatic && light->kind) g_sw.fLightTreeDirty = 1;
 }
 
 union UF { qword q; float f; };
 // Set bit `bit` in the bit array a.
 static __inline__ void SetBit(int *a, int bit) { int *pw = &a[bit / 32]; *pw |= 1 << bit; }
 // Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf masks. (inferred)
-void InsertLightInTree(SWL *s, NODE *n, qword pos, float r, int bit)
+void InsertLightInTree(SW *s, CELL *n, qword pos, float r, int bit)
 {
     UF d, one;
     qword plane, td, tone;
@@ -431,13 +410,13 @@ void InsertLightInTree(SWL *s, NODE *n, qword pos, float r, int bit)
         if (n->left)
             InsertLightInTree(s, n->left, pos, r, bit);
         else
-            SetBit((int *)s->leaves[n->leftLeaf].a, bit);
+            SetBit((int *)s->aleaf[n->leftLeaf].aw, bit);
     }
     if (-r < dist) {
         if (n->right)
             InsertLightInTree(s, n->right, pos, r, bit);
         else
-            SetBit((int *)s->leaves[n->rightLeaf].a, bit);
+            SetBit((int *)s->aleaf[n->rightLeaf].aw, bit);
     }
 }
 
@@ -450,7 +429,7 @@ static __inline__ void SetBitM(int *a, int bit)
     *pw |= m;
 }
 // Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending. (inferred)
-void AddLightToSw(SWL *s, LIGHTV *light)
+void AddLightToSw(SW *s, LIGHTV *light)
 {
     if (light->slot < 0) {
         unsigned int i;
@@ -461,12 +440,12 @@ void AddLightToSw(SWL *s, LIGHTV *light)
         for (i = 0; ; i++) {
             if (i >= 8)
                 return;
-            w = s->free[i];
+            w = s->lightmaskFree.aw[i];
             if (!w)
                 continue;
             bit = -w & w;
             w = bit;
-            s->free[i] &= ~w;
+            s->lightmaskFree.aw[i] &= ~w;
             n = i * 32;
             if (w & 0xAAAAAAAA) n += 1;
             if (w & 0xCCCCCCCC) n += 2;
@@ -475,40 +454,40 @@ void AddLightToSw(SWL *s, LIGHTV *light)
             if (w & 0xFFFF0000U) slot = n + 16; else slot = n;
             break;
         }
-        s->objects[slot] = light;
+        s->aplight[slot] = (LIGHT *)light;
         light->slot = slot;
     }
-    if (s->disabled)
+    if (s->fLightTreeDirty)
         return;
     if (light->isStatic)
         return;
-    if (!light->kind || light->isDynamic || !s->tree)
-        SetBitM(s->pending, light->slot);
+    if (!light->kind || light->isDynamic || !s->acell)
+        SetBitM((int *)s->lightmaskPending.aw, light->slot);
     else
-        InsertLightInTree(s, s->tree, GetLoWorldPos(light), light->sFar, light->slot);
+        InsertLightInTree(s, s->acell, GetLoWorldPos(light), light->sFar, light->slot);
 }
 
 // Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) (inferred)
-void RemoveLightFromSw(SWL *p, LIGHTV *light)
+void RemoveLightFromSw(SW *p, LIGHTV *light)
 {
     int n = light->slot;
-    p->free[n / 32] |= 1 << (n % 32);
-    p->objects[light->slot] = 0;
+    p->lightmaskFree.aw[n / 32] |= 1 << (n % 32);
+    p->aplight[light->slot] = 0;
     light->slot = -1;
-    p->disabled = 1;
+    p->fLightTreeDirty = 1;
 }
 
 // If the light tree is dirty, clear masks and re-insert every slotted light. (inferred)
-extern "C" void PrepareSwLights(SWL *s)
+extern "C" void PrepareSwLights(SW *s)
 {
     unsigned int i;
-    if (s->disabled) {
-        s->disabled = 0;
-        func_002333B4(&s->mask, 0, 0x20);
-        func_002333B4(s->leaves, 0, s->cleaves << 5);
+    if (s->fLightTreeDirty) {
+        s->fLightTreeDirty = 0;
+        func_002333B4(&s->lightmaskPending, 0, 0x20);
+        func_002333B4(s->aleaf, 0, s->cleaf << 5);
         for (i = 0; i < 0x100; i++) {
-            if (s->objects[i])
-                AddLightToSw(s, s->objects[i]);
+            if ((LIGHTV *)s->aplight[i])
+                AddLightToSw(s, (LIGHTV *)s->aplight[i]);
         }
     }
 }
@@ -531,7 +510,7 @@ extern "C" void PrepareSwLights(SWL *s)
  *    both in $f2).
  */
 struct HOME { qword q; };
-struct WORK { MASK mask; HOME distance, unity; };  /* local frame: mask + two vector temporaries */
+struct WORK { LIGHTMASK mask; HOME distance, unity; };  /* local frame: mask + two vector temporaries */
 // Placement new: construct at destination.
 inline void *operator new(unsigned, void *destination) { return destination; }
 struct LSPHERE {                                    /* the bounding sphere at LIGHT+0x100 */
@@ -580,37 +559,37 @@ static inline int BitIndex(uint isolated, int base)
     return result;
 }
 // Walk the light tree for a point and rank up to N lights affecting it. (inferred)
-void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results)
+void FindLightsAffectingPoint(SW *p, qword pos, int capacity, RESULT *results)
 {
     WORK w;
-    NODE *n;
-    MASK *leaf;
+    CELL *n;
+    LIGHTMASK *leaf;
     uint i;
     float score;
     func_002333B4(results, 0, capacity * sizeof(RESULT));
-    w.mask.q[0] = p->mask.q[0];
-    w.mask.q[1] = p->mask.q[1];
-    if (p->tree) {
-        n = p->tree;
+    w.mask.aqw[0] = p->lightmaskPending.aqw[0];
+    w.mask.aqw[1] = p->lightmaskPending.aqw[1];
+    if (p->acell) {
+        n = p->acell;
         do {
             score = PlaneDistance(&w.distance, &w.unity, n->plane, pos);
             if (score < 0.0f) {
                 if (n->left) n = n->left;
-                else { leaf = &p->leaves[n->leftLeaf]; break; }
+                else { leaf = &p->aleaf[n->leftLeaf]; break; }
             } else {
                 if (n->right) n = n->right;
-                else { leaf = &p->leaves[n->rightLeaf]; break; }
+                else { leaf = &p->aleaf[n->rightLeaf]; break; }
             }
         } while (n);
-        for (i = 0; i < 8; i++) w.mask.a[i] |= leaf->a[i];
+        for (i = 0; i < 8; i++) w.mask.aw[i] |= leaf->aw[i];
     }
     for (i = 0; i < 8; i++) {
-        uint word = w.mask.a[i];
+        uint word = w.mask.aw[i];
         if (word) {
             do {
                 uint remaining = word & (word - 1);
                 uint isolated = word & ~remaining;
-                LIGHTV *o = p->objects[BitIndex(isolated, i * 32)];
+                LIGHTV *o = (LIGHTV *)p->aplight[BitIndex(isolated, i * 32)];
                 score = ((LSPHERE *)&o->position)->Score(pos);
                 int j = capacity;
                 while (j > 0) {
@@ -767,7 +746,7 @@ static inline void Align(uint align)
 }
 // Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag 0x6C03C000.
 // (inferred)
-extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
+extern "C" void BuildSoLightPackets(SW *world, M4 *transform, LIGHTQ *p)
 {
     RESULT results[4];
     qword point = *p->input;

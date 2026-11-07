@@ -65,7 +65,6 @@ typedef char GROUP_Size[sizeof(PAGE)==28?1:-1];
 
 struct DISPU { unsigned int dx : 12; unsigned int dy : 11; unsigned int r0 : 9; unsigned int r1; } __attribute__((aligned(8)));
 struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
-struct SWM { char pad[0x3B0C]; union { int currentJob; void *currentJobPtr; };   /* sw.h currentJob */ char pad3B10[0x3B40 - 0x3B10]; struct OPT *first, *second; };
 struct MCDLG { char pad[0x4C]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
 struct GSAVE { char pad[0xFD50]; int currentSlot; };   /* the save manager (memcard.cpp) */
 struct OPT;
@@ -74,7 +73,7 @@ struct BANK { char pad[0x24]; CONTEXT contexts[3]; char padFD50[8]; CONTEXT *cur
 typedef char CONTEXT_Size[sizeof(CONTEXT)==21604?1:-1];
 typedef char BANK_current_Offset[FIELD_OFFSET(BANK,current)==64856?1:-1];
 
-extern SWM D_003DD490;
+extern SW D_003DD490;
 extern "C" {
 extern PMENU D_003D9ED0;
 extern char D_002DDED0[], D_002DEB30[];
@@ -109,13 +108,13 @@ float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
-POOL *FindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
+POOL *FindSwObject__FP2SWi3OIDP2LO(SW *world, int a, int b, int c);
 void ScreenSlot9Default(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void ShowScreen(void);
 void SetClockRate(void *p, int n, float g);
-void IncrementSwHandsOff(SWM *p, int n);
-void DecrementSwHandsOff(SWM *p, int n);
+void IncrementSwHandsOff(SW *p, int n);
+void DecrementSwHandsOff(SW *p, int n);
 void BroadcastGameEvent(void *p, int n, int m);
 void HideScreen(PMENU *p);
 void PlayWidgetAnim(POOL *, int);
@@ -133,8 +132,8 @@ float ClampToLimits__FP2LMf(void *, float);
 void SetSndmgrChannelVolume(SNDMGR *, int, float, int);
 void ApplyGsSettings(void *);
 int IsScreenShown(void *p);
-int IsSwTransitionBusy(SWM *g);
-char *GetHeroPo(SWM *g);
+int IsSwTransitionBusy(SW *g);
+char *GetHeroPo(SW *g);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
 int AreWidgetLoadsIdle(void);
@@ -144,7 +143,7 @@ void SetJobListPage(void *p, int f);
 void StartSaveSlotJob(GSAVE *p);
 void ResetGameSequence(void);
 void FailJob(void *p);
-void WipeToWorldWarp(SWM *pg, void *s, int a, int b, int c, int d);
+void WipeToWorldWarp(SW *pg, void *s, int a, int b, int c, int d);
 
 void SetPauseMenuState(PMENU *s, int st);
 void ReplacePauseMenuPage(PMENU *s, int n, ITEM *af);
@@ -632,9 +631,9 @@ void ApplyPauseMenuVideoItem(PMENU*owner,ITEM*msg){
   SetPauseMenuState(owner,9);
   break;
  case 63:{
-  SWM*game=&D_003DD490;
-  SetFloat(game->first,D_002F6468-636.0f);
-  SetFloat(game->second,D_002F646C-50.0f);
+  SW*game=&D_003DD490;
+  SetFloat(((struct OPT *)game->psvpScreenCenterX),D_002F6468-636.0f);
+  SetFloat(((struct OPT *)game->psvpScreenCenterY),D_002F646C-50.0f);
   SetPauseMenuState(owner,9);
   break;
  }
@@ -900,9 +899,9 @@ extern "C" void OnPauseItemRestartJob(void)
 // "Return to hideout" item: wipes to the hideout warp (0x189) and fails the current job.
 extern "C" void OnPauseItemReturnToHideout(ITEM *item)
 {
-    SWM *pg = &D_003DD490;
+    SW *pg = &D_003DD490;
     WipeToWorldWarp(pg, (void *)D_002A3928, 0x189, -1, 0x80, -1);
-    if (pg->currentJobPtr) FailJob(pg->currentJobPtr);
+    if (pg->currentJob) FailJob(pg->currentJob);
     if (item) item->flags |= 2;
 }
 

@@ -160,23 +160,22 @@ void TouchRip(RIP *prip, int fRemove);
 namespace M_NewRipGroup { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct O { int basic0; int basic4; int basic8; struct VTE *vt; char p1[0x80 - 0x10]; char globset[0xD0]; int groupKind; };   /* RIPG */
-struct G { char pad[0x403C]; char pool[0x30]; struct O *defaultRipGroup; };   /* SW: the RIPG slot pool and the shared kind-0 group */
 extern struct VTE D_002D9978[] __asm__("_vt$2SO");
 extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
 void *AllocZeroedFromSlotheap(void *pool);
 void *func_002333B4(void *sw, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
-void *GetSwClassList(struct G *sw, int n);
+void *GetSwClassList(SW *sw, int n);
 void AppendSlEntry(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
 // Returns kind rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
 // kind kind new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then kind RIPG (its GLOBSET included),
 // linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
-struct O *NewRipGroup(struct G *sw, int kind)
+struct O *NewRipGroup(SW *sw, int kind)
 {
     struct O *ripGroup;
-    if (!kind && sw->defaultRipGroup) return sw->defaultRipGroup;
-    ripGroup = (__typeof__(ripGroup))AllocZeroedFromSlotheap(sw->pool);
+    if (!kind && sw->pripgDefault) return (struct O *)sw->pripgDefault;
+    ripGroup = (__typeof__(ripGroup))AllocZeroedFromSlotheap(&sw->slotheapRipg);
     if (!ripGroup) return 0;
     func_002333B4(ripGroup, 0, 0x1B0);
     ripGroup->basic0 = 0;
@@ -189,7 +188,7 @@ struct O *NewRipGroup(struct G *sw, int kind)
     VCALL0(ripGroup, 7);
     VCALL0(ripGroup, 11);
     VCALL0(ripGroup, 15);
-    if (!kind) sw->defaultRipGroup = ripGroup;
+    if (!kind) sw->pripgDefault = (RIPG *)ripGroup;
     return ripGroup;
 }
 } } // namespace M_NewRipGroup
@@ -231,8 +230,6 @@ void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 namespace M_OnRipgRemove__FP4RIPG {
 struct RIP;
 struct RIPGV { char pad[0x10]; int psoParent; char p1[0xEC - 0x14]; void *aaobrEntry; char p2[0x15C - 0xF0]; DL dl; };
-struct SW { char pad[0x403C]; char pool[0x30]; RIPGV *defaultRipGroup; };
-extern "C" { extern SW D_003DD490; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *rip);
 void RemoveSoHierarchy(RIPGV *p);
@@ -253,8 +250,8 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
     SW *psw;
     InitDli(&dli, &ripGroup->dl);
     while ((rip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(rip);
-    psw = &D_003DD490;
-    if (ripGroup == psw->defaultRipGroup) psw->defaultRipGroup = 0;
+    psw = &g_sw;
+    if (ripGroup == (RIPGV *)psw->pripgDefault) psw->pripgDefault = 0;
     RemoveSoHierarchy(ripGroup);
     if (ripGroup->aaobrEntry) {
         RemoveObjectFromBroadPhase(psw, ripGroup->aaobrEntry);
@@ -263,7 +260,7 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
     SnipLo(ripGroup);
     RemoveSlEntry(GetSwClassList(psw, 0x57), ripGroup);
     if (!ripGroup->psoParent) FreeLoroot(ripGroup);
-    FreeSlotheapSlot(psw->pool, ripGroup);
+    FreeSlotheapSlot(&psw->slotheapRipg, ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
 } // namespace M_OnRipgRemove__FP4RIPG
@@ -279,7 +276,7 @@ typedef struct S {
     VT *vt; char padF0[0x154 - 0xF0]; float size; int pad158; DL children; char pad168[8];
     union U lo; union U hi; union U center; float radius;
 } S;
-extern struct { float t; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern const float D_002A77D0, D_002A77D4;
 void MarkSoTreeBoundsDirty(S *);
 // (a + b) * k.x.  The second "j"(k) operand is allocation-only: it gives k the register priority the original had.
@@ -302,7 +299,7 @@ void ProjectRipgTransform(S *p)
     phi->f[1] = phi->f[2] = D_002A77D4;
     hi.f[0] = D_002A77D4;
     while ((q = (S *)PvNextDli(&dli)) != 0) {
-        if (D_002DDED0.t >= q->time)
+        if (D_002DDED0.time >= q->time)
             q->vt->a[4].pfn((char *)q + q->vt->a[4].d);
         lo.q = VuMin(lo.q, VuMin(q->cornerA, q->cornerB));
         hi.q = VuMax(hi.q, VuMax(q->cornerA, q->cornerB));
@@ -598,7 +595,6 @@ struct X *PvtripFromRipt(struct X *p, unsigned int k)
 
 namespace M_NewRipInGroup { extern "C" {
 struct R { int a, b; void *p8; };
-struct G { char pad[0x4054]; char pool[4]; };
 struct Q { char pad[0x15C]; char dl[4]; };
 extern char D_003DD490[];
 struct Q *NewRipGroup(void *pg, int n);
@@ -607,13 +603,13 @@ struct R *PvtripFromRipt(void *pv, void *a);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void AddRipRef__FP3RIP(struct R *r);
 // Allocate a RIP from the rip pool (g_sw.slotheapRefnode?), construct by type, link into RIPG dlRip, AddRipRef.
-struct R *NewRipInGroup(struct G *p, void *a, struct Q *q)
+struct R *NewRipInGroup(SW *p, void *a, struct Q *q)
 {
     void *pv;
     struct R *r;
     if (!q) q = NewRipGroup(D_003DD490, 0);
     if (!q) return 0;
-    pv = AllocZeroedFromSlotheap(p->pool);
+    pv = AllocZeroedFromSlotheap(&p->slotheapRip);
     if (pv) {
     r = PvtripFromRipt(pv, a);
     r->p8 = q;
@@ -684,7 +680,7 @@ void ReleaseRip__FP3RIP(struct S *p)
             FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
         }
         p->pn = 0;
-        FreeSlotheapSlot((*(char (*)[])&g_sw.unknown4054), p);
+        FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRip), p);
     }
 }
 } } // namespace M_ReleaseRip__FP3RIP
@@ -741,9 +737,6 @@ struct RIP {
 struct SHAPE {
     void *frame;
     void *owner;
-};
-struct CLOCK {
-    float time, deltaTime;
 };
 struct PROX {
     float fraction, distance;
@@ -1178,8 +1171,6 @@ typedef char layout_ceb08_16[((unsigned)&((RIP*)0)->restitution==0xF4)?1:-1];
 typedef char layout_ceb08_17[((unsigned)&((RIP*)0)->friction==0xF8)?1:-1];
 typedef char layout_ceb08_18[((unsigned)&((SHAPE*)0)->frame==0x0)?1:-1];
 typedef char layout_ceb08_19[((unsigned)&((SHAPE*)0)->owner==0x4)?1:-1];
-typedef char layout_ceb08_20[((unsigned)&((CLOCK*)0)->time==0x0)?1:-1];
-typedef char layout_ceb08_21[((unsigned)&((CLOCK*)0)->deltaTime==0x4)?1:-1];
 typedef char layout_ceb08_22[((unsigned)&((PROX*)0)->fraction==0x0)?1:-1];
 typedef char layout_ceb08_23[((unsigned)&((PROX*)0)->distance==0x4)?1:-1];
 typedef char layout_ceb08_24[((unsigned)&((WORK*)0)->temporary==0x0)?1:-1];
@@ -1217,7 +1208,6 @@ typedef char layout_ceb08_55[((unsigned)&((SPECIAL_PAGE*)0)->blend==0x1F64)?1:-1
 typedef char layout_ceb08_56[((unsigned)&((WORK*)0)->proximity.fraction==0x40)?1:-1];
 typedef char layout_ceb08_57[((unsigned)&((WORK*)0)->proximity.distance==0x44)?1:-1];
 typedef char layout_ceb08_58[((unsigned)&((RIP*)0)->velocity.f[2]==0x98)?1:-1];
-typedef char layout_ceb08_59[(sizeof(CLOCK)==8)?1:-1];
 typedef char layout_ceb08_60[(sizeof(((WORK*)0)->contact)==16)?1:-1];
 typedef char layout_ceb08_61[(sizeof(((WORK*)0)->normal)==16)?1:-1];
 typedef char layout_ceb08_62[(sizeof(((WORK*)0)->scalar)==16)?1:-1];
@@ -1326,13 +1316,7 @@ struct S {
     float touchWord, angularDamping;
 }; /* +0xE0: the touch object (unused here) */
 extern "C" {
-extern struct CLOCK {
-    float time;
-    union {
-        float deltaTime;
-        int dtbits;
-    };
-} D_002DDED0;
+extern CLOCK D_002DDED0;
 }
 extern "C" {
 int IsVectorNearlyZero(qword);int IsVectorShorterThan2(qword);int IsVectorShorterThan5(qword);
@@ -1433,14 +1417,14 @@ static inline qword AddScaled(qword a, qword b, qword s)
 static inline int ClockWord(char *page)
 {
     int word;
-    __asm__("lw %0,%%lo(%2)(%1)" : "=r"(word) : "r"(page), "i"(&D_002DDED0.dtbits), "m"(*(const int *)(page - 0x212C)));
+    __asm__("lw %0,%%lo(%2)(%1)" : "=r"(word) : "r"(page), "i"(&D_002DDED0.deltaTime), "m"(*(const int *)(page - 0x212C)));
     return word;
 }
 // High address page (lui) of the frame clock D_002DDED0.
 static inline char *ClockPage()
 {
     register char *page __asm__("$2");
-    __asm__("lui %0,%%hi(%1)" : "=r"(page) : "i"(&D_002DDED0.dtbits));
+    __asm__("lui %0,%%hi(%1)" : "=r"(page) : "i"(&D_002DDED0.deltaTime));
     return page;
 }
 // Store the first two basis rows into the record's matrix at +0x40/+0x50.
@@ -1501,9 +1485,6 @@ typedef char layout_cf0a0_18[((unsigned)&((S*)0)->phys==0xA0)?1:-1];
 typedef char layout_cf0a0_19[((unsigned)&((S*)0)->omega==0xD0)?1:-1];
 typedef char layout_cf0a0_20[((unsigned)&((S*)0)->touchWord==0xE0)?1:-1];
 typedef char layout_cf0a0_21[((unsigned)&((S*)0)->angularDamping==0xE4)?1:-1];
-typedef char layout_cf0a0_22[((unsigned)&((CLOCK*)0)->time==0x0)?1:-1];
-typedef char layout_cf0a0_23[((unsigned)&((CLOCK*)0)->deltaTime==0x4)?1:-1];
-typedef char layout_cf0a0_24[((unsigned)&((CLOCK*)0)->dtbits==0x4)?1:-1];
 typedef char layout_cf0a0_25[((unsigned)&((MATH*)0)->first==0x0)?1:-1];
 typedef char layout_cf0a0_26[((unsigned)&((MATH*)0)->second==0x10)?1:-1];
 typedef char layout_cf0a0_27[((unsigned)&((MATH*)0)->scratch==0x20)?1:-1];
@@ -1567,7 +1548,7 @@ struct S {
     int pad2;
     POLY alpha;
 };
-extern "C" { extern struct CLOCK { float time,deltaTime; } D_002DDED0; }
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern struct LIMIT { float lo,hi; } D_002BBB60; }
 extern "C" {
 int IsInCameraFrustum(CM*,qword,qword);
@@ -2176,7 +2157,7 @@ struct S {
     char pad[0x14]; float start, duration; X *x; char pad20[0x40 - 0x20];
     M3 mat; qword pos, prev, vel, accel; char padB0[0xF0 - 0xB0]; qword axis; float angle;
 };
-extern "C" { extern struct CLOCK { float time, deltaTime; } D_002DDED0; }
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" {
 void LoadIdentityMatrix4(void *, int, M4 *, M4 *, float);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
@@ -2227,16 +2208,14 @@ void ProjectMatchTransform(S *p)
 }
 
 #define OFF(t, m) ((int)&((t *)0)->m)
-typedef char follow_layout[(sizeof(qword) == 16 && sizeof(M3) == 0x30 && sizeof(M4) == 0x40 && sizeof(U) == 16 && OFF(CLOCK, time) == 0 && OFF(CLOCK, deltaTime) == 4 &&
-                            OFF(X, data) == 0x60 && OFF(S, start) == 0x14 && OFF(S, duration) == 0x18 && OFF(S, x) == 0x1C && OFF(S, mat) == 0x40 && OFF(S, pos) == 0x70 &&
-                            OFF(S, prev) == 0x80 && OFF(S, vel) == 0x90 && OFF(S, accel) == 0xA0 && OFF(S, axis) == 0xF0 && OFF(S, angle) == 0x100) ? 1 : -1];
+
 } // namespace M_ProjectMatchTransform
 #undef OFF
 
 namespace M_UpdateMatch { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
-extern struct CLOCK { float time; } D_002DDED0;
+extern CLOCK D_002DDED0;
 struct S { char p0[0x14]; float startTime; float duration; struct O *renderObject; char p1[0x104-0x20]; int shouldLaunch; };
 void LaunchMatch__FP5MATCH(struct S *p);
 void RemoveRip__FP3RIP(struct S *p);
@@ -2257,7 +2236,7 @@ void MATCH::Update(float dt)   /* key function (the namespace's views) */
 }
 
 namespace M_RenderMatch { extern "C" {
-extern struct CLOCK { float time; } D_002DDED0;
+extern CLOCK D_002DDED0;
 struct S { char pad[0x14]; float startTime; };
 void RenderRip(struct S *p);
 // MATCH Render: wraps RenderRip. (inferred)
@@ -2314,9 +2293,6 @@ struct RIP {
     POLY opacity;
     char pad3C[0x34];
     qword position;
-};
-struct CLOCK {
-    float time, deltaTime;
 };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern POLY D_002C1FB0,D_002C1FD0,D_002C1FF0; }
@@ -2467,7 +2443,7 @@ void InitSmack(OBJ *object, qword q)
 
 namespace M_ProjectSmackTransform { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 typedef struct { qword a; qword b; } Q2;
 typedef struct {
     char pad0[0x14];
@@ -2488,7 +2464,7 @@ qword ConvertCmScreenToWorld(void *, qword);
 // and converts back to world space.
 void ProjectSmackTransform(OBJ *object)
 {
-    EvaluateBezierPos(StdMax(object->startTime + object->duration - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, object->screenPos, object->velocity, object->def->a, object->def->b, &object->screenPos, &object->velocity, 0);
+    EvaluateBezierPos(StdMax(object->startTime + object->duration - D_002DDED0.time, D_002DDED0.deltaTime), D_002DDED0.deltaTime, 1.0f, object->screenPos, object->velocity, object->def->a, object->def->b, &object->screenPos, &object->velocity, 0);
     object->previousPosition = object->position;
     object->position = ConvertCmScreenToWorld(&g_cm, object->screenPos);
 }
@@ -2509,7 +2485,7 @@ struct S {
     char padF4[0x100 - 0xF4];
     qword pos;
 };
-extern "C" { extern struct CLOCK {float time,deltaTime;} D_002DDED0; }
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" {
 qword ConvertCmScreenToWorld(CM*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
@@ -2550,7 +2526,7 @@ void RenderSmack(S *p)
 } // namespace M_RenderSmack
 
 namespace M_UpdateSmack {
-extern "C" { extern struct { float t; float dt; } D_002DDED0; }
+extern "C" { extern CLOCK D_002DDED0; }
 struct C { virtual void f(); };
 typedef void (C::*PMF)(void *);
 struct D { char pad[0x60]; PMF pmf; };
@@ -2570,7 +2546,7 @@ void SMACK::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateSmack;
     M_UpdateSmack::OBJ *p = (M_UpdateSmack::OBJ *)this;
-    if (p->duration < D_002DDED0.t - p->startTime) {
+    if (p->duration < D_002DDED0.time - p->startTime) {
         PMF pmf = p->def->pmf;
         (p->target->*pmf)(p->argument);
         RemoveRip__FP3RIP(p);
@@ -2633,7 +2609,6 @@ namespace M_ProjectLeafTransform {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct P { char pad0[0x40]; M3 matrix; char pad70[0x20]; qword vel; char padA0[0x24]; float drag; };
-struct CLOCK { float time, deltaTime; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002C2010[3], D_002C2020[2], D_002C2028, D_002C202C;
@@ -2882,7 +2857,7 @@ union FLOATWORD {
     float value;
     int bits;
 };
-struct CLOCK {
+struct CLOCKIsland {   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
     float time;
     union FLOATWORD deltaTime;
 };
@@ -3016,8 +2991,8 @@ typedef char layout_basis_y[(MIX_OFF(struct B,y)==0x10)?1:-1];
 typedef char layout_owner_position[(MIX_OFF(struct S,pos)==0x70)?1:-1];
 typedef char layout_owner_velocity[(MIX_OFF(struct S,vel)==0x90)?1:-1];
 typedef char layout_word_size[(sizeof(union FLOATWORD)==4)?1:-1];
-typedef char layout_clock_size[(sizeof(struct CLOCK)==8)?1:-1];
-typedef char layout_clock_dt[(MIX_OFF(struct CLOCK,deltaTime)==4)?1:-1];
+typedef char layout_clock_size[(sizeof(struct CLOCKIsland)==8)?1:-1];
+typedef char layout_clock_dt[(MIX_OFF(struct CLOCKIsland,deltaTime)==4)?1:-1];
 typedef char layout_int_size[(sizeof(int)==4)?1:-1];
 typedef char layout_float_size[(sizeof(float)==4)?1:-1];
 typedef char layout_state_size[(sizeof(struct MIX_STATE)==32)?1:-1];
@@ -3036,7 +3011,7 @@ typedef char layout_union_qword[(MIX_OFF(union U,q)==0)?1:-1];
 typedef char layout_union_float[(MIX_OFF(union U,f)==0)?1:-1];
 typedef char layout_word_float[(MIX_OFF(union FLOATWORD,value)==0)?1:-1];
 typedef char layout_word_integer[(MIX_OFF(union FLOATWORD,bits)==0)?1:-1];
-typedef char layout_clock_time[(MIX_OFF(struct CLOCK,time)==0)?1:-1];
+typedef char layout_clock_time[(MIX_OFF(struct CLOCKIsland,time)==0)?1:-1];
 } } // namespace M_ProjectBubletTransform
 #undef MIX_OFF
 
@@ -3063,7 +3038,7 @@ void PostRemitEmit(struct O *p, struct O *q) {
 
 namespace M_UpdateRemit { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 typedef struct { int flags; int pad[7]; qword origin; int pad2[4]; } MSG;   /* EXPLSO */
 struct TGT;
 typedef struct { short d; short pad; void (*pf)(struct TGT *, MSG *); } VTE;
@@ -3086,7 +3061,7 @@ void REMIT::Update(float dt)   /* key function (the namespace's views) */
     M_UpdateRemit::OBJ *p = (M_UpdateRemit::OBJ *)this;
     UpdateRip(p);
     if (p->expls) {
-        p->accumulated += D_002DDED0.dt * p->rate;
+        p->accumulated += D_002DDED0.deltaTime * p->rate;
         while (p->accumulated >= 1.0f) {
             MSG m;
             TGT *t;

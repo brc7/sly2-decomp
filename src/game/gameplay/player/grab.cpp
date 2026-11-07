@@ -203,11 +203,7 @@ struct SVPATH
       short *aid;
 };
 
-struct LOUPD
-{
-      int grf;
-      LO *plo;
-};
+/* LOUPD: sly2/sw.h */
 
 struct CID34 : public XFM, public GRABSPOT
 {
@@ -346,7 +342,6 @@ struct CONTEXT {
     ACTOR *pactor; float tStamp; int action; int step; float tHold; ACTOR *pactorFocus; char pad18[8]; float gParam;
     char pad24[0x440 - 0x24]; ATTACH attach; char pad478[0x500 - 0x478]; int fInhibit;
 };
-struct CLOCK { float time, deltaTime; };
 struct SWALLOC { int cb, cbAlign; };
 struct VU_FLOAT { qword q; };
 
@@ -641,7 +636,6 @@ struct CONTEXT {
     char pad224[0x240 - 0x224]; PROGRAM program240; char pad2E4[0x330 - 0x2E4]; ENTRY axes2[8]; void *request2;
     char pad434[0x440 - 0x434]; char sub[0x10];
 };
-struct CLOCK { float time, deltaTime; };
 struct VU_FLOAT { qword q; };
 
 extern "C" {
@@ -1055,8 +1049,7 @@ struct P {
     struct O *x0; float x4; int x8; int pad0c[2]; int x14; int x18; char pad[0x440-0x1C]; char x440[0x4C4-0x440];
     int x4c4; char pad2[0x500-0x4C8]; int x500;
 };
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 void SetJtGrabKind(struct P *p, int n);
 void SetJtCaneState__FP2JTi(struct O *o, int n);
 void UpdateJtCane__FP2JT(struct O *o);
@@ -1219,7 +1212,6 @@ struct CONTEXT {
     ASEG *clip4F0, *clip4F4, *clip4F8; int tag; int fInhibit; char pad504[0x50C - 0x504];
     ASEG *clip50C, *clip510, *clip514;
 };
-struct CLOCK { float time, deltaTime; };
 struct VU_FLOAT { qword q; };
 union U { qword q; float f[4]; int i[4]; };
 
@@ -1741,8 +1733,7 @@ struct T {char pad[0x18];float x18,x1C;};
 struct O {char pad[0x150];struct T*controller;char pad154[0x240-0x154];qword pos;};
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
-struct CLOCK {float time,deltaTime;};
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002BF668;
 extern qword D_002A2DC0,D_002A2DD0;
 void EvaluateShapeAtParam(struct CURVE*,float,qword*,qword*);
@@ -2031,8 +2022,7 @@ struct E8 { char pad[0x80]; qword x80; };
 struct O { char pad[0xC]; VT *vt; char pad2[0xE8-0x10]; struct E8 *xe8; };
 struct S { char pad[0x1BC]; int x1bc; float x1c0; float x1c4; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct S *x14; int x18; float x1c; };
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700;
 void EvaluateShapeAtParam(struct S *s, U *position, U *direction, float g);
@@ -2049,8 +2039,6 @@ typedef char P_x0_Offset[FIELD_OFFSET(P,x0)==0?1:-1];
 typedef char P_x8_Offset[FIELD_OFFSET(P,x8)==8?1:-1];
 typedef char P_x14_Offset[FIELD_OFFSET(P,x14)==20?1:-1];
 typedef char P_x1c_Offset[FIELD_OFFSET(P,x1c)==28?1:-1];
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char SMP_a_Offset[FIELD_OFFSET(SMP,a)==0?1:-1];
 typedef char SMP_b_Offset[FIELD_OFFSET(SMP,b)==4?1:-1];
 typedef char SMP_c_Offset[FIELD_OFFSET(SMP,c)==8?1:-1];
@@ -2058,7 +2046,6 @@ typedef char E8_PrefixSize[sizeof(struct E8)==144?1:-1];
 typedef char O_PrefixSize[sizeof(struct O)==236?1:-1];
 typedef char S_PrefixSize[sizeof(struct S)==456?1:-1];
 typedef char P_PrefixSize[sizeof(struct P)==32?1:-1];
-typedef char CLOCK_PrefixSize[sizeof(struct CLOCK)==8?1:-1];
 typedef char SMP_PrefixSize[sizeof(struct SMP)==12?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char U_Size[sizeof(U)==16?1:-1];
@@ -2642,8 +2629,6 @@ struct JTGRABCAND {
     float dsParam;
     qword position;
 };
-struct SW { char pad0[0x4678]; int cjtgrabcand; JTGRABCAND ajtgrabcand[4]; };
-struct CLOCK { float time; float deltaTime; };
 
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -2675,9 +2660,9 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
         if (candidates->grabSpot->nUnk14 != -1)
             candidates->priority = 1;
     }
-    JTGRABCAND *ajtgrabcandOld = world->ajtgrabcand;
+    JTGRABCAND *ajtgrabcandOld = ((JTGRABCAND *)world->ajtgrabcand);
     for (i = world->cjtgrabcand; --i >= 0; ) {
-        oldCandidate = &world->ajtgrabcand[i];
+        oldCandidate = &((JTGRABCAND *)world->ajtgrabcand)[i];
         // Search the new candidates from the end; the drop code sits in the loop's exit test (its calls stop gcc
         // from duplicating the test in front of the loop, giving the original's jump-to-test entry).
         j = ccand;
@@ -2752,7 +2737,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                 break;
             pcand->unknown10 = plo;
         }
-        world->ajtgrabcand[world->cjtgrabcand++] = *pcand;
+        ((JTGRABCAND *)world->ajtgrabcand)[world->cjtgrabcand++] = *pcand;
         BroadcastGameEvent(D_002DEB30, 0x3D, pcand->object);
     }
     qsort(ajtgrabcandOld, world->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
@@ -2836,7 +2821,6 @@ struct EMITTER
 struct EMITX { PRG **ppprg; void *ppripg; EMITTER *pemitter; };
 struct SW;
 struct STEPPLAYER { char pad0[0x12F8]; EMITTER *pemitterGrab; };
-struct CLOCK { float time, deltaTime; };
 
 extern "C" {
 extern CLOCK D_002DDED0;    // g_clock

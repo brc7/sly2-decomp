@@ -22,6 +22,7 @@
 #include "sly2/lo.h"
 #include "sly2/sndmgr.h"
 #include "sly2/vu0.h"
+#include "sly2/sw.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
@@ -1531,11 +1532,10 @@ void ResetSndmgr(SNDMGR *soundManager)
 
 namespace M_UpdateSndmgr { extern "C" {
 struct K { float fastSpeed, slowSpeed, fastTime; };   /* SMP */
-struct CLOCK { float time; float deltaTime; char pad[0x40 - 8]; float realDeltaTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern int D_002BD4C0;
 extern struct K D_002A8288;
-long TickNow(struct CLOCK *);
+long TickNow(CLOCK *);
 void UpdateHeadsetMicrophone(SNDMGR *);
 void PollSoundManagerStatus(SNDMGR *);
 void ResumeSnd(CID151 *);
@@ -1599,11 +1599,10 @@ namespace M_func_001FDA48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 /* NOISETYPE (noise.cpp): range +0x54, height range +0x58 (low, high) */
 struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
-struct SW { char pad[0x4034]; struct O *micNoiseType; };   /* the world's noise type for the headset microphone */
-extern struct SW D_003DD490;
+extern SW D_003DD490;
 void OnMicLevelResult(void);
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
-void *GetHeroPo(struct SW *);
+void *GetHeroPo(SW *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(void *);
 void ReplaceHeldNoise(struct O *, qword, void *, void *);
@@ -1632,7 +1631,7 @@ void UpdateHeadsetMicrophone(SNDMGR *soundManager)
     hero = GetHeroPo(&D_003DD490);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && 0.5f < soundManager->micLevel) {
         float height;
-        noiseType = D_003DD490.micNoiseType;
+        noiseType = (O *)D_003DD490.apstimk[5];
         position = GetLoWorldPos(hero);
         noiseType->range = Eval(&soundManager->micNoiseRangeCurve, soundManager->micLevel);
         height = Eval(&soundManager->micNoiseHeightCurve, soundManager->micLevel);

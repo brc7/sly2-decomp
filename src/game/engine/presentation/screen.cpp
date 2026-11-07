@@ -26,6 +26,8 @@
 #include "sly2/util.h"
 #include "sly2/dli.h"
 #include "sly2/cref.h"
+#include "sly2/joy.h"
+#include "sly2/save.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -295,7 +297,7 @@ void UpdateScreenFocus(struct S *list) {
 } } // namespace M_func_001D95B8
 
 namespace M_func_001D9648 { extern "C" {
-extern struct CLOCK { float time; float deltaTime; float g; } D_002DDED0;
+extern CLOCK D_002DDED0;
 typedef struct { char pad[0x100C]; int unknown100C; } PAD;
 extern int D_002DFBC0;
 extern int D_002DFBC4;
@@ -325,7 +327,7 @@ void UpdateScreens(void *pdl)
 {
     PAD *pad;
     if (D_002DFBC4 & 8) {
-        if (D_002DDED0.g == 0.0f || 0.1f < D_002DDED0.time / D_002DDED0.g)
+        if (D_002DDED0.rate == 0.0f || 0.1f < D_002DDED0.time / D_002DDED0.rate)
             RemoveGrfusr__Fi(8);
     }
     if (D_002DFBC0 & 2)
@@ -630,7 +632,7 @@ typedef struct OBJ {
     int state7Anim;
 } OBJ;
 extern struct G D_003DD490;
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_002C3248[];
 Q *GetHeroPo(struct G *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -726,7 +728,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         if (p->shownHealth < p->health)
             p->shownHealth = p->health;
         else
-            p->shownHealth = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownHealth, p->health, D_002DDED0.dt);
+            p->shownHealth = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownHealth, p->health, D_002DDED0.deltaTime);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
         if (AreFloatsNear__Ffff(p->shownHealth, p->health, 0.0001f))
             SetHudMeterState(p, HUDMETER_STEADY);
@@ -736,7 +738,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         if (p->shownPower < p->power)
             p->shownPower = p->power;
         else
-            p->shownPower = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownPower, p->power, D_002DDED0.dt);
+            p->shownPower = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownPower, p->power, D_002DDED0.deltaTime);
         SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
         if (AreFloatsNear__Ffff(p->shownPower, p->power, 0.0001f))
             SetHudMeterState(p, HUDMETER_STEADY);
@@ -760,7 +762,7 @@ extern "C" void ResetNotice(SCREEN *screen)
 }
 
 namespace M_UpdateNotice { extern "C" {
-extern struct CLOCK { float stateTime; float deltaTime; } D_002DDED0;
+extern CLOCK D_002DDED0;
 typedef struct { char pad[0x58]; int visibility; } W;
 typedef struct {
     char pad[0x10];
@@ -884,7 +886,7 @@ extern "C" int GetCurrentNoticeTextId(SCREEN *screen)
 }
 
 namespace M_SetNoticeState { extern "C" {
-extern struct CLOCK { float stateTime; float deltaTime; } D_002DDED0;
+extern CLOCK D_002DDED0;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[64]; } VT;
 typedef struct { char pad[0xC]; VT *vt; } LO;
 typedef struct {
@@ -908,7 +910,7 @@ void SetNoticeState(OBJ *p, int n)
         return;
     switch (p->state) {
     case NOTICE_HIDING:
-        if (n == NOTICE_APPEARING && p->stateTime == D_002DDED0.stateTime)
+        if (n == NOTICE_APPEARING && p->stateTime == D_002DDED0.time)
             n = 2;
         break;
     case NOTICE_SWAPPING:
@@ -937,7 +939,7 @@ void SetNoticeState(OBJ *p, int n)
         }
     }
     p->state = n;
-    p->stateTime = D_002DDED0.stateTime;
+    p->stateTime = D_002DDED0.time;
 }
 } } // namespace M_SetNoticeState
 
@@ -981,7 +983,7 @@ extern "C" void ResetScreenMode(SCREEN *screen)
 }
 
 namespace M_func_001DA808 { extern "C" {
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 struct S { char p0[0x34]; float closeTime; };
 void UpdateScreenDefault(struct S *p);
 void SetScreenMode(struct S *p, int a, int b);
@@ -1027,7 +1029,7 @@ void UpdateScreenStickDir(OBJ *p)
 } } // namespace M_UpdateScreenStickDir
 
 namespace M_func_001DA950 { extern "C" {
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern float D_002A7984, D_002C3254;
 struct S { char p0[0x30]; int timerKind; float closeTime; int modeArg; };
 void *CreateSfxSound(int timerKind);
@@ -1346,7 +1348,6 @@ struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; ch
 
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.
-struct CLOCK { char pad[0x3C]; float realTime; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8; }
 
@@ -1543,11 +1544,11 @@ typedef struct OBJ {
     int itemCount;
     E *items;
 } OBJ;
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
-void SetClockRate(struct CLOCK *, float, int);
+void SetClockRate(CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SelectGadgetMenuItem(OBJ *, int);
@@ -1658,7 +1659,7 @@ void THIEFNET::Reset()   /* key function */
 }
 
 namespace M_ClearThiefnet { extern "C" {
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 struct P { int id, iconAnim; };
 struct S { char p0[0x40]; int tab; float tabTime; int pad; struct P items[64]; char p1[0x25C-0x24C]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 // ThiefNet: state -1, empty item list, no animation handles.
@@ -2042,9 +2043,9 @@ typedef struct OBJ {
     int scrollUpAnim;
     int scrollDownAnim;
 } OBJ;
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
-void SetClockRate(struct CLOCK *, float, int);
+void SetClockRate(CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
@@ -2131,7 +2132,7 @@ namespace RO_ORDER { extern const float r_D_002A79CC __asm__("D_002A79CC") = 3.4
 namespace RO_ORDER { extern const char r_D_002A79D0[] __asm__("D_002A79D0") = "loot"; }
 namespace RO_ORDER { extern const char r_D_002A79D8[] __asm__("D_002A79D8") = "mplootkc"; }
 namespace M_func_001DC4B0 { extern "C" {
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 typedef struct {
     char pad[0x28];
     int state;
@@ -2453,7 +2454,7 @@ extern "C" void ResetJobList(SCREEN *screen)
 }
 
 namespace M_ClearJobList { extern "C" {
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 struct S { char p0[0x40]; int page; float pageTime; char p1[0x11C-0x48]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 // Job list: state -1, time stamp, no animation handles.
 void ClearJobList(struct S *p) {
@@ -2731,7 +2732,7 @@ typedef struct OBJ {
     int scrollUpAnim;
     int scrollDownAnim;
 } OBJ;
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
@@ -2812,7 +2813,7 @@ namespace RO_ORDER { extern const char r_D_002A7A28[] __asm__("D_002A7A28") = ":
 namespace RO_ORDER { extern const char r_D_002A7A30[] __asm__("D_002A7A30") = "%s (%d)"; }
 namespace RO_ORDER { extern const char r_D_002A7A38[] __asm__("D_002A7A38") = "%s: %s. %s"; }
 namespace M_SetJobListStickDir { extern "C" {
-extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
+extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 typedef struct {
     char pad[0x28];
     int state;
@@ -3142,12 +3143,10 @@ void TITLE::SetMode(int mode)   /* key function */
 
 namespace M_BuildTitlePromptText {
 struct G { char pad[0x3B1C]; void *unknown3B1C; };
-struct H { char pad[0x100C]; int unknown100C; int unknown1010; };
-struct I { char pad[0xFD54]; void *foundSave; };
 extern "C" { extern G D_003DD490; }
-extern "C" { extern H D_002DFC00; }
+extern "C" { extern JOY D_002DFC00; }
 extern "C" { 
-extern I D_002E65E0;
+extern SAVE D_002E65E0;
  }
 extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
@@ -3160,12 +3159,12 @@ extern "C" void BuildTitlePromptText(char *pch)
 {
     float g;
     void *pv;
-    if (D_002DFC00.unknown100C == 1 && D_002DFC00.unknown1010 == 0) {
+    if (D_002DFC00.joys == 1 && D_002DFC00.joyk == 0) {
         strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 9));
         return;
     }
     g = 0.0f;
-    pv = D_002E65E0.foundSave;
+    pv = D_002E65E0.newestSlot;
     if (pv) {
         CRef ref = GetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
         g = ref.u.g;

@@ -89,11 +89,7 @@ struct SVPATH
       short *aid;
 };
 
-struct LOUPD
-{
-      int grf;
-      LO *plo;
-};
+/* LOUPD: sly2/sw.h */
 
 struct VU_FLOAT
 {
@@ -2431,8 +2427,7 @@ typedef struct P {
 /* The ASEGA's ACTSEG/OVRA lists (aseg.h, act.h); the acts' objects and transforms through the LO/P views above, the
    override curves through their vtable (slot 2). */
 #define CURVE_VT(pac) (*(VT **)(pac))
-typedef struct G { char pad[0x3D58]; int worldStampCounter; } G;
-extern G D_003DD490;
+extern SW D_003DD490;
 extern qword D_002A2DD0;
 int IsAsegaRetracted(ASEGA *);
 int IsActCurrent(ACT *);
@@ -2500,7 +2495,7 @@ void EvaluateXfSlotValue(ASEGA *a, int flag)
             *(M4 *)p->m = t;
         }
         p->velocity = D_002A2DD0;
-        p->worldStamp = ++D_003DD490.worldStampCounter;
+        p->worldStamp = ++D_003DD490.transformStamp;
     }
     for (i = 0; i < n; i++)
         list[i]->UpdateXfWorldHierarchy();

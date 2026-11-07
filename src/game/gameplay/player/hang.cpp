@@ -14,6 +14,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/clock.h"
 #include "sly2/aseg.h"
+#include "sly2/sw.h"
 #include "player_input.h"
 typedef unsigned int uint;
 union U{qword q;float f[4];int i[4];};
@@ -35,7 +36,6 @@ struct PL{char pad0[0x18];float angle,amount;};
 struct IKJ { char pad[0x30]; qword localPos; M4 worldMatrix; char pad80[0x20]; char *parent; int stamp; int ikData; };
 struct STATE{U direction,position,velocity;M3 rotation;};
 struct WORK{U reference,direction,local;M3 matrix,returned;float heading;U target;};
-struct G { char pad[0x3D58]; int xfStamp; };
 /* View of the player (JT) as the hang code reads it. */
 struct JT{
  char pad0[0xC];VTE*vt;                 /* +0x00C */
@@ -114,7 +114,7 @@ extern float D_002BF58C;
 extern float D_002BF590;
 extern float D_002BF594;
 extern float D_002BF598[3];
-extern G D_003DD490;
+extern SW D_003DD490;
 }
 /* BuildAxisAngleRotationMatrix with its hidden result pointer passed by hand (UpdateJtActiveHang loads it in asm). */
 extern "C" M3*func_0011B500_out(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");
@@ -762,7 +762,7 @@ extern "C" void RenderJtHangIk(JT *jt)
     t = jt->handChildXf;
     VECTOR_opAssign(&t->localPos, VuAdd(t->localPos, a));
     ((float *)&t->localPos)[3] = 1.0f;
-    n = ++D_003DD490.xfStamp;
+    n = ++D_003DD490.transformStamp;
     jt->handChildXf->stamp = n;
     {
         IKJ *t2 = jt->handChildXf;

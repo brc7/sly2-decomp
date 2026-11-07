@@ -19,6 +19,7 @@
 #include "sly2/basic.h"
 #include "sly2/scrap.h"
 #include "sly2/sw.h"
+#include "sly2/save.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/screen.h"
@@ -72,34 +73,7 @@ namespace BSS_memcard { BUF<0xFDA0> d_002E65E0 __asm__("D_002E65E0"); }
 // 0x1ADF98 StaticInit_memcard (the two widgets, then the six slot pools; their destruction) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* The memory card worker: semaphore, thread id (-1: none), priority. */
-struct MEMCARD
-{
-    int sema;
-    int tid;                /* +0x04 */
-    int job[2];             /* +0x08 the queued job: a pointer to a SAVE member function (CreateMemcardThread) */
-    int jobResult;          /* +0x10 the job's result code (0x20 idle, 0x21 while running; McSyncResult codes) */
-};
-/* A card directory record as the game keeps it (0x5C bytes): name, size, attribute flags and the creation /
-   modification dates. The flag word at +0x48 is read and written whole; the creation day and month bytes overlap
-   its upper half. */
-struct SAVEINFO
-{
-    char achName[0x44];
-    int cb;                 /* +0x44 */
-    union {
-        int grf;            /* +0x48 */
-        struct { uchar pad48[2]; uchar bDayC, bMonthC; };
-    };
-    ushort wYearC;          /* +0x4C */
-    uchar bHourC, bMinC, bSecC;
-    uchar pad51;
-    uchar bDayM, bMonthM;   /* +0x52 */
-    ushort wYearM;          /* +0x54 */
-    uchar bHourM, bMinM, bSecM;
-    uchar pad59[3];
-};
-typedef char assert_SAVEINFO_size[sizeof(SAVEINFO) == 0x5C ? 1 : -1];
+/* MEMCARD, SAVEINFO and the save manager SAVE: sly2/save.h */
 /* The card's own directory entry (sceMcTblGetDir). */
 struct MCTBLDIR
 {
@@ -112,24 +86,6 @@ struct MCTBLDIR
     ushort resv16;
     uint resv18[2];
     char achName[32];       /* +0x20 */
-};
-/* The save manager: card port/slot, state, three slots, the current slot and the worker. */
-struct SAVE
-{
-    int port;
-    int slot;               /* +0x04 */
-    int nState;             /* +0x08 */
-    int nStateNext;         /* +0x0C */
-    float tStateChanged;    /* +0x10 */
-    float tNextPoll;        /* +0x14 */
-    int cardType;           /* +0x18 sceMcGetInfo type (2: PS2 card) */
-    int freeClusters;       /* +0x1C */
-    int isFormatted;        /* +0x20 */
-    char aslot[3][0x5464];  /* +0x24 */
-    int currentSlot;        /* +0xFD50 the slot in use (0: none) */
-    void *newestSlot;       /* +0xFD54 the most recently modified slot (SetSaveState) */
-    int selectedSlot;          /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
-    MEMCARD memcard;        /* +0xFD5C */
 };
 /* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
 /* The dialog's child widget: its display state (2: fully shown), when that was reached, the state it is heading for. */
@@ -649,7 +605,6 @@ struct MC {
     int currentSlot; SLOT *newestSlot; int selectedSlot; THR *thr[1];
 };
 struct G { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw: id of the slot-in-use save variable */
-struct CLOCK { char pad[0x3C]; float realTime; };
 struct ST { char pad[0x44]; int phase; };   /* the memcard dialog */
 extern "C" {
 extern G D_003DD490;
@@ -1593,10 +1548,8 @@ extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
 }
 
 namespace M_func_001ACC38 { extern "C" {
-struct H { char pad[0xFD50]; int currentSlot; };
-extern struct H D_002E65E0;
-struct CLOCK { float time; float deltaTime; char pad[0x34]; float realTime; };
-extern struct CLOCK D_002DDED0;
+extern SAVE D_002E65E0;
+extern CLOCK D_002DDED0;
 struct S { char pad[0x44]; int phase; float tPhase; };
 // Sets the dialog phase and its start time; phases 2 and 3 forget the current slot.
 void SetMcDialogPhase(struct S *dialog, int phase)
@@ -1633,10 +1586,8 @@ struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct pas
 struct PMF { short delta; short index; void (*pfn)(void *); };
 struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
-struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int selectedSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
-struct CLOCK { char pad[0x3C]; float realTime; };
-extern struct MC D_002E65E0;
-extern struct CLOCK D_002DDED0;
+extern SAVE D_002E65E0;
+extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
 extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
@@ -1700,14 +1651,14 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x15:
     case 0x18:
     case 0x2E:
-        if (D_002E65E0.state != 6)
+        if (D_002E65E0.nState != 6)
             return;
         ClearMcDialogState(dialog);
         return;
     case 0x13:
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             CreateMemcardThread(D_002F633C, D_002A6D88.l);
             SetMcDialogState(dialog, 0x16);
         } else
@@ -1716,7 +1667,7 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x16:
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
             return;
         }
@@ -1725,7 +1676,7 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x1A:
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
             switch (dialog->followUpAction) {
             case 1:
@@ -1746,7 +1697,7 @@ void CMemcardDialog_Update(struct S *dialog)
         if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         D_002E65E0.selectedSlot = 0;
-        if (!D_002E65E0.jobResult) {
+        if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
             return;
         }
@@ -1929,19 +1880,18 @@ void LoadGameFromSlot(struct S *item)
 extern SAVE D_002E65E0;
 
 namespace M_func_001AD3E0 { extern "C" {
-struct G { char pad[0xFD50]; int currentSlot; int newestSlot; int selectedSlot; };
 struct H { char pad[0x4C]; int followUpAction; };
-extern struct G D_002E65E0;
+extern SAVE D_002E65E0;
 extern struct H D_002E6550;
 extern char D_003D4A60[];
 void GetGlobalSaveVar(CRefData *ret, int a, void *b);
 void Decref__4CRef(CRefData *);
 void SetMcDialogState(struct H *h, int n);
-void StartSaveSlotJob(struct G *g);
+void StartSaveSlotJob(SAVE *g);
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
 void SaveToCurrentSlot(void)
 {
-    struct G *saveManager = &D_002E65E0;
+    SAVE *saveManager = &D_002E65E0;
     struct H *dialog = &D_002E6550;
     CRefData ref;
     int isWarned;

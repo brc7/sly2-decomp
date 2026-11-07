@@ -572,19 +572,18 @@ void RemoveSoParts(SO *so)
 
 // 0x1F2C30 AddSoHierarchy
 namespace M_AddSoHierarchy { extern "C" {
-struct S8; struct H; struct G;
+struct S8; struct H; 
 typedef int qword __attribute__((mode(TI)));
 struct S8 { long l; } __attribute__((packed));
 struct H { char pad[0x2C]; int numZones; };
-struct G { char pad[0x45CC]; struct H *zoneBsp; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern const struct S8 D_002A8270;
 void AddLoHierarchy(SO *);
 void AddSoParts(SO *);
 qword GetLoWorldPos(SO *);
 void *FindPathzoneAtPos(qword, int);
 void SetSoPhysRegion(SO *, void *);
-void PostSwCallback(struct G *, SO *, long, int);
+void PostSwCallback(SW *, SO *, long, int);
 // Slot 11 (AddHierarchy): AddLoHierarchy, adds the parts, sets flags 0x14, registers the physics region (if the
 // object has a region record) and recurses into the children.
 void AddSoHierarchy(SO *so)
@@ -601,7 +600,7 @@ void AddSoHierarchy(SO *so)
     else so->unknown40 = v | 0x14;
     pv = so->physics ? so->physics->pregent : 0;
     if (pv) {
-        if (D_003DD490.zoneBsp && D_003DD490.zoneBsp->numZones)
+        if (((struct H *)D_003DD490.pregtree) && ((struct H *)D_003DD490.pregtree)->numZones)
             SetSoPhysRegion(so, FindPathzoneAtPos(GetLoWorldPos(so), 1));
         else
             PostSwCallback(&D_003DD490, so, D_002A8270.l, 0);
@@ -1136,17 +1135,16 @@ void SetSoGrfBit8(struct P *so, int enabled)
 
 // 0x1F3C10 RefreshSoBoundsRecord
 namespace M_func_001F3C10 { extern "C" {
-struct G; struct Q; struct A;
-struct G { char pad[0x3D60]; int nStampLights; };
-extern struct G D_003DD490;
-void BuildSoLightPackets(struct G *pg, int n, SOBOUNDS *pq);
+struct Q; struct A;
+extern SW D_003DD490;
+void BuildSoLightPackets(SW *pg, int n, SOBOUNDS *pq);
 // Recomputes the shared bounds record when its stamp is older than the world's current stamp. (inferred)
 void RefreshSoBoundsRecord(SO *so)
 {
     SOBOUNDS *pq = so->psobounds;
-    if (pq && pq->lightStamp != D_003DD490.nStampLights) {
+    if (pq && pq->lightStamp != D_003DD490.frameCounter) {
         BuildSoLightPackets(&D_003DD490, 0, pq);
-        so->psobounds->lightStamp = D_003DD490.nStampLights;
+        so->psobounds->lightStamp = D_003DD490.frameCounter;
     }
 }
 } } // namespace M_func_001F3C10
@@ -1259,9 +1257,7 @@ XF *GetSoLocalXf(SO *so, MATRIX4 *pm)
 
 // 0x1F4010 ApplySoProxy
 namespace M_func_001F4010 { extern "C" {
-struct G;
-struct G { char pad[0x3D58]; int nStampXf; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 MATRIX4 __ml__FRC7MATRIX4T0(MATRIX4 *, XF *);
 void UpdateSoIkBoneLengths(SO *);
 // Slot 37: applies a proxy's matrix to the first XF's local matrix, bumps the world stamp and updates the transform
@@ -1270,7 +1266,7 @@ void ApplySoProxy(SO *so, MATRIX4 *pv)
 {
     XF *pt = so->transforms;
     pt->localMatrix = __ml__FRC7MATRIX4T0(pv, pt);
-    { int n = ++D_003DD490.nStampXf; so->transforms->worldStamp = n; }
+    { int n = ++D_003DD490.transformStamp; so->transforms->worldStamp = n; }
     so->UpdateXfWorldHierarchy();
     UpdateSoIkBoneLengths(so);
 }
@@ -1278,7 +1274,7 @@ void ApplySoProxy(SO *so, MATRIX4 *pv)
 
 // 0x1F40A0 TranslateSoToPos
 namespace M_TranslateSoToPos {
-struct LO; struct E; struct VTE; struct P; struct SW;
+struct LO; struct E; struct VTE; struct P; 
 extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
@@ -1290,8 +1286,7 @@ struct REGION_LINK;
 struct E { char pad[0xDC]; struct REGION_LINK *regionLink; };
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct LO *positionXf; char pad3[0x60 - 0x5C]; struct LO *rootTransform; char pad4[0xE8 - 0x64]; struct E *physics; };
-struct SW { char pad[0x3D58]; int transformStamp; };
-extern struct SW D_003DD490;
+extern SW D_003DD490;
 qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *);
@@ -1361,7 +1356,7 @@ void TranslateSoToPos(struct P *so, qword v)
 
 // 0x1F42E0 RotateSoToMat
 namespace M_RotateSoToMat {
-union U; struct M3; struct LO; struct VTE; struct P; struct G;
+union U; struct M3; struct LO; struct VTE; struct P; 
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
 // 3x3 matrix of U rows with copy constructor and assignment.
@@ -1369,8 +1364,7 @@ struct M3 { U r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}
 struct LO { M3 matrix; U position; M3 rotation; char pad[0x30]; LO *parent; int stamp; };
 struct VTE { short delta,pad; void (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
-struct G { char pad[0x3D58]; int stamp; };
-extern "C" { extern G D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
@@ -1407,7 +1401,7 @@ extern "C" void RotateSoToMat(P *so,const M3 *basis)
         dest->r[0].i[3]=0;
         dest->r[1].i[3]=0;
         dest->r[2].i[3]=0;
-        int stamp=++D_003DD490.stamp;
+        int stamp=++D_003DD490.transformStamp;
         so->object->stamp=stamp;
         so->vt[18].fn((char *)so+so->vt[18].delta);
         FreeSoContacts(so);
@@ -2018,7 +2012,7 @@ extern "C" void WakeSo(SO *so)
 
 // 0x1F50E0 UpdateSoTreeBounds
 namespace M_UpdateSoTreeBounds {
-struct MATRIX4; struct VECTOR; struct XF; struct GEOM; struct DLE; struct SOPART; struct SOTREE; struct SO; struct SW; struct VU_FLOAT;
+struct MATRIX4; struct VECTOR; struct XF; struct GEOM; struct DLE; struct SOPART; struct SOTREE; struct SO; struct VU_FLOAT;
 // UpdateSoTreeBounds (0x1F50E0): SO virtual 48 - rebuild the bounds of the SO's tree record (SO+0xEC).
 // Pass 1, the box of every visible collision part: UpdateSoPartGeom (0x1F38A8) first, then a sphere part adds its
 // XF position -/+ radius * D_002A2DE0, a mesh part its world points, and a part whose geometry is stale
@@ -2065,7 +2059,6 @@ struct SOPART
 };
 struct SOTREE {qword boundsMin,boundsMax,boundsCenter;float boundsRadius;SOPART *ppartFirst;};
 struct SO {char pad[0xEC];SOTREE *physicsTree;};
-struct SW {char pad[0x3CCC];int fUnk3CCC;};
 struct VU_FLOAT {qword qw;};
 extern "C" { extern qword D_002A2DE0,D_002A2DF0,D_002A2E00; }
 extern "C" { extern SW D_003DD490; }
@@ -2210,7 +2203,7 @@ extern "C" void UpdateSoTreeBounds(SO *so)
     }
     so->physicsTree->boundsCenter = qwCenter;
     so->physicsTree->boundsRadius = sRadius;
-    D_003DD490.fUnk3CCC = 1;
+    D_003DD490.fAaoxUnsorted = 1;
     ClearSoTreeBoundsDirty(so);
 }
 
@@ -2468,7 +2461,6 @@ struct SPACE;
 struct OWNER {M3 matrix;char pad30[0x70];SPACE *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
-struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
 // The orientation converted from parent space to world space (ConvertXfMat).
@@ -2546,7 +2538,6 @@ typedef char check_owner_parent[((unsigned)&((OWNER*)0)->parent==0xA0)?1:-1];
 typedef char check_owner_velocity[((unsigned)&((OWNER*)0)->velocity==0xB0)?1:-1];
 typedef char check_owner_force[((unsigned)&((OWNER*)0)->force==0xF0)?1:-1];
 typedef char check_object_owner[((unsigned)&((P*)0)->owner==0x5C)?1:-1];
-typedef char check_clock_dt[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 } // namespace M_func_001F59A0
 
 // 0x1F5C30 AccelSoTowardMatSpring
@@ -2559,7 +2550,6 @@ struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];r
 struct OWNER {M3 matrix;char pad30[0x70];OWNER *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
 struct P {char pad5C[0x5C];OWNER *owner;};
 struct COEF {float a,b,c;};
-struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 ConvertXfMat(OWNER *,OWNER *,const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
@@ -2619,8 +2609,7 @@ struct COEF {float a,b,c;};
 struct VE {short d,pad;qword(*fn)(void*);};
 struct OWNER {char pad[0xA0];void *parent;char padA4[0x4C];qword force;};
 struct S {char pad[0xC];struct VE *vt;char pad10[0x48];struct OWNER *owner;};
-struct CLOCK {float time,deltaTime;};
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 qword GetLoWorldPos(struct S*);
 qword ConvertXfVec(void*,void*,qword);
 // Return x - y (vf1/vf2/vf3).
@@ -4061,11 +4050,10 @@ struct Q *NewSoPartHandle(void *pa)
 
 // 0x1F8668 SetSoBit35Hierarchy
 namespace M_func_001F8668 { extern "C" {
-struct L; struct G;
+struct L; 
 typedef unsigned long ulong;
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x148 - 0x68]; ulong lo : 35; ulong bit35 : 1; ulong hi : 28; };
-struct G { char pad[0x3E5C]; int unknown3E5C; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 void AddLoToRenderTree(struct L *);
 void RemoveLoFromRenderTree(struct L *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -4075,7 +4063,7 @@ void SetSoBit35Hierarchy(struct L *so, long f)
     struct L *q;
     if (f != so->bit35) {
         so->bit35 = f;
-        if (D_003DD490.unknown3E5C) {
+        if (D_003DD490.pblockRender) {
             if (f) AddLoToRenderTree(so);
             else RemoveLoFromRenderTree(so);
         }

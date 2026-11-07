@@ -15,12 +15,22 @@ struct JOB : public LO
       int isDisabled;       /* +0x50 [R] */
       undefined4 unk_0x54[(0x64 - 0x54) / 4];
       TASK *firstTask;      /* +0x64 [R] first task of the job */
-      TASK *finalTask;      /* +0x68 [R] final task */
-      undefined4 unk_0x6c[(0x7c - 0x6c) / 4];
+      TASK *finalTask;      /* +0x68 [R] final task (game.cpp IsJobComplete tests it) */
+      int labelNameId;      /* +0x6C [S] name-plate string id, -1 none (waypoint.cpp) */
+      int unknown70;        /* +0x70 [S] (game.cpp) */
+      undefined4 unk_0x74[(0x7c - 0x74) / 4];
       int counter;           /* +0x7C [R] counter shown by the job (ram_inspector "count") */
-      undefined4 unk_0x80[(0xa4 - 0x80) / 4];
+      DL tasks;             /* +0x80 [S] the job's tasks (game.cpp) */
+      undefined4 unk_0x8c[(0x9c - 0x8c) / 4];
+      float easeStartTime;  /* +0x9C [S] difficulty-ease thresholds (game.cpp) */
+      float easeEndTime;    /* +0xA0 [S] */
       float elapsedTime;    /* +0xA4 [R] elapsed time in the job */
-      undefined4 unk_0xa8[(0xc4 - 0xa8) / 4];
+      float *difficulty;    /* +0xA8 [S] per-job difficulty override (HYPOTHESIS, difficulty.cpp) */
+      int completionWidgetOid; /* +0xAC [S] (SetJobCompletionWidget, game.cpp) */
+      int introLabel;       /* +0xB0 [S] */
+      int outroLabel;       /* +0xB4 [S] */
+      void *completionWidget; /* +0xB8 [S] the job has a completion sequence when set */
+      undefined4 unk_0xbc[(0xc4 - 0xbc) / 4];
       int phase;            /* +0xC4 [R] completion phase */
       undefined4 unknownC8[2];
       int ksvName;          /* +0xD0 [R] save-name reference {kind, prec} (job save-variable name) */
@@ -34,6 +44,8 @@ struct JOB : public LO
 };
 typedef char assert_JOB_size[sizeof(JOB) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_JOB_firstTask[SLY2_OFFSETOF(JOB, firstTask) == 0x64 ? 1 : -1];     /* CONFIRMED runtime */
+typedef char assert_JOB_tasks[SLY2_OFFSETOF(JOB, tasks) == 0x80 ? 1 : -1];
+typedef char assert_JOB_completionWidget[SLY2_OFFSETOF(JOB, completionWidget) == 0xB8 ? 1 : -1];
 typedef char assert_JOB_phase[SLY2_OFFSETOF(JOB, phase) == 0xC4 ? 1 : -1];     /* CONFIRMED runtime */
 
 /* TASK: a task (step of a job): its state, owning job, prerequisite and successor tasks and the character it is
@@ -43,7 +55,9 @@ struct TASK : public LO
       undefined4 unknown50;
       int state;            /* +0x54 [R] -1 unset, 0 locked, 1 available, 2 done (in job), 3 done */
       float stateStartTime; /* +0x58 [R] clock.time when state was entered */
-      undefined4 unk_0x5c[(0x7c - 0x5c) / 4];
+      undefined4 unk_0x5c[(0x68 - 0x5c) / 4];
+      int completionCount;  /* +0x68 [S] (difficulty.cpp) */
+      undefined4 unk_0x6c[(0x7c - 0x6c) / 4];
       JOB *pjob;            /* +0x7C [R] owning JOB */
       undefined4 unk_0x80[(0x94 - 0x80) / 4];
       int numPrerequisites; /* +0x94 [R] prerequisite tasks */
@@ -51,7 +65,10 @@ struct TASK : public LO
       undefined4 unknown9C;
       int numSuccessors;    /* +0xA0 [R] successor tasks */
       TASK **successors;    /* +0xA4 [R] */
-      undefined4 unk_0xa8[(0xc0 - 0xa8) / 4];
+      float *rating;        /* +0xA8 [S] (difficulty.cpp) */
+      undefined4 unk_0xac[(0xb8 - 0xac) / 4];
+      int warpOid;          /* +0xB8 [S] a task with a warp becomes the pending task (game.cpp) */
+      undefined4 unk_0xbc;
       int character;        /* +0xC0 [R] character the task is played with */
       undefined4 unk_0xc4[(0xf4 - 0xc4) / 4];   /* +0xC8..+0xE8: {kind, prec} save-name references (one of them names the task) */
       int nMode;            /* +0xF4 [R] */
@@ -65,6 +82,9 @@ struct TASK : public LO
 typedef char assert_TASK_size[sizeof(TASK) == 0x110 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_TASK_state[SLY2_OFFSETOF(TASK, state) == 0x54 ? 1 : -1];     /* CONFIRMED runtime */
 typedef char assert_TASK_pjob[SLY2_OFFSETOF(TASK, pjob) == 0x7C ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_TASK_completionCount[SLY2_OFFSETOF(TASK, completionCount) == 0x68 ? 1 : -1];
+typedef char assert_TASK_warpOid[SLY2_OFFSETOF(TASK, warpOid) == 0xB8 ? 1 : -1];
+typedef char assert_TASK_character[SLY2_OFFSETOF(TASK, character) == 0xC0 ? 1 : -1];
 typedef char assert_TASK_successors[SLY2_OFFSETOF(TASK, successors) == 0xA4 ? 1 : -1];   /* CONFIRMED runtime */
 
 #endif /* SLY2_TASK_H */

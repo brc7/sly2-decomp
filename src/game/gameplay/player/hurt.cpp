@@ -83,7 +83,6 @@ struct RIG{char pad[0xA8];INNER*inner;};
 struct P{char pad0[12];VE*vt;char pad10[0x150-0x10];CONTROL*control;char pad154[8];int frozen;char pad160[0x190-0x160];U zero;char pad1A0[8];float yaw;int pad1AC;U forward;char pad1C0[0x1030-0x1C0];ASEGA*asega;COMPONENT*component;char pad1038[0x19B8-0x1038];RIG*first;RIG*second;};
 // The default clip for state `next`: clips[0] below state 8, clips[8] from state 8 on.
 struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;ASEG*clips[13];ASEG*Default(int next){ASEG**base=clips;int offset=next<8?0:0x20;return *(ASEG**)((char*)base+offset);}};
-struct CLOCK{float time,deltaTime;};
 struct POLY{float a,b,c;};
 struct LIMIT{float lo,hi;};
 extern "C"{
@@ -188,8 +187,6 @@ typedef char POLY_b_Offset[FIELD_OFFSET(POLY,b)==4?1:-1];
 typedef char POLY_c_Offset[FIELD_OFFSET(POLY,c)==8?1:-1];
 typedef char LIMIT_lo_Offset[FIELD_OFFSET(LIMIT,lo)==0?1:-1];
 typedef char LIMIT_hi_Offset[FIELD_OFFSET(LIMIT,hi)==4?1:-1];
-typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
@@ -197,7 +194,6 @@ typedef char int_Size[sizeof(int)==4?1:-1];
 typedef char float_Size[sizeof(float)==4?1:-1];
 typedef char pointer_Size[sizeof(void*)==4?1:-1];
 typedef char short_Size[sizeof(short)==2?1:-1];
-typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 typedef char ASEGA_Prefix_Size[sizeof(ASEGA)==0x10?1:-1];
 typedef char CONTROL_Prefix_Size[sizeof(CONTROL)==0x1C?1:-1];
 typedef char VALUE_Prefix_Size[sizeof(VALUE)==0x30?1:-1];
@@ -674,12 +670,10 @@ struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;c
  void Stop() __asm__("JtHurtFallCallback");
  void Finish() __asm__("ReturnJtToSafePlaceCallback");
 };
-struct CLOCK{float time,deltaTime;};
-struct G{char pad[0x4038];int channel;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern char D_002DE578[],D_002DEB30[];
- extern G D_003DD490;
+ extern SW D_003DD490;
  extern qword D_002A2DD0;
  union VQ{float f[4];qword q;};
  extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
@@ -696,7 +690,7 @@ extern "C"{
  void*CreateSfxSound(int);
  void SetSndSourceLo(void*,P*);
  qword GetLoWorldPos(P*);
- void*NewNoise(int,qword,P*);
+ void*NewNoise(STIMK*,qword,P*);
 }
 // a + b with unsigned wrap.
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
@@ -740,21 +734,16 @@ typedef char RECORD_delta_Offset[FIELD_OFFSET(RECORD,delta)==16?1:-1];
 typedef char RECORD_a_Offset[FIELD_OFFSET(RECORD,a)==48?1:-1];
 typedef char RECORD_b_Offset[FIELD_OFFSET(RECORD,b)==52?1:-1];
 typedef char RECORD_c_Offset[FIELD_OFFSET(RECORD,c)==56?1:-1];
-typedef char G_channel_Offset[FIELD_OFFSET(G,channel)==16440?1:-1];
-typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 typedef char int_Size[sizeof(int)==4?1:-1];
 typedef char unsigned_Size[sizeof(unsigned)==4?1:-1];
 typedef char float_Size[sizeof(float)==4?1:-1];
 typedef char pointer_Size[sizeof(void*)==4?1:-1];
 typedef char short_Size[sizeof(short)==2?1:-1];
-typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 typedef char RECORD_Alignment[__alignof__(RECORD)==16?1:-1];
 typedef char C_Prefix_Size[sizeof(C)==0x110?1:-1];
 typedef char P_Prefix_Size[sizeof(P)==0x11AC?1:-1];
 typedef char W_Prefix_Size[sizeof(W)==0x15C?1:-1];
 typedef char COUNT_Size[sizeof(COUNT)==12?1:-1];
-typedef char G_Prefix_Size[sizeof(G)==0x403C?1:-1];
 // Applies a damage record to the player: the owner may veto it (vt86), flag filters, damage scaled by difficulty,
 // health counter, game event broadcast, hit clip, sound, knockback and callback. Returns nonzero if taken.
 extern "C" int TakeJtDamage(C *p, RECORD *input)
@@ -874,9 +863,9 @@ notify: {
     }
 }
 sound:
-    register G *game __asm__("$16") = &D_003DD490;
+    register SW *game __asm__("$16") = &D_003DD490;
     qword point = GetLoWorldPos(p->actor);
-    int channel = game->channel;
+    STIMK *channel = game->apstimk[6];
     (void)NewNoise(channel, point, p->actor);
     return 1;
 }
@@ -1111,7 +1100,6 @@ struct ENTRY{P*object;float time;};
 struct P {char pad[0xC];VTE*vt;char pad10[0x2CC];int state;char pad2E0[0xB14];int mode;char padDF8[0x294];L*link;ENTRY*entries;int count;float pad1098[2];float height;};
 struct HIT {L*target;int pad4;P*source;int tag,kind;char pad14[0xC];U point,direction;char pad40[0x20];};
 struct MSG {int type;char pad4[0x1C];U position;};
-struct CLOCK {float time,deltaTime;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword GetLoWorldPos(P*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");

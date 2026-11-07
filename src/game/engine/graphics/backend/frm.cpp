@@ -38,7 +38,7 @@ struct FRM {
 typedef char assert_FRM_size[sizeof(FRM) == 0x50 ? 1 : -1];
 struct sceDmaChan;
 /* The records on freeList. */
-struct Y { char pad[0x1088]; void *storage; };
+struct Y { char pad[0x1088]; void *storage; };   /* a removed BLIP (blip.cpp RemoveBlip): its spline block at +0x1088 */
 /* DLIIsland: sly2/dli.h's DLI with a constructor and destructor (matching-only island: InitDli/PvNextDli plus an
    explicit pop puts ClearPendingFrame 4/98 instructions off, scheduling). */
 extern void *D_002DD2FC;
@@ -269,9 +269,9 @@ void ClearPendingFrame(FRM *frame)
         DLIIsland iter(&frame->freeList);
         for (Y *object = (Y *)iter.Next(); object; object = (Y *)iter.Next()) {
             if (object->storage)
-                FreeSlotheapSlot(&g_sw.unknown40A0, object->storage);
+                FreeSlotheapSlot(&g_sw.slotheapBlipSpline, object->storage);
             RemoveDlEntry__FP2DLPv(&frame->freeList, object);
-            FreeSlotheapSlot(&g_sw.unknown4088, object);
+            FreeSlotheapSlot(&g_sw.slotheapBlip, object);
         }
         ClearDl__FP2DL(&frame->freeList);
     }

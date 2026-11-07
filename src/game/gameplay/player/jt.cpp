@@ -457,7 +457,7 @@ struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&op
 struct M4{U r[4];};struct VTE{short delta,pad;void*fn;};
 struct ACTOR{char pad[0x80];qword response;};
 struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
-struct CLOCK{float time,deltaTime;};struct WORK{U a,b;};
+struct WORK{U a,b;};
 extern "C"{
 extern CLOCK D_002DDED0;extern qword D_002A2DC0;
 extern float D_002BF288;
@@ -568,7 +568,6 @@ typedef char P_model_Offset[((unsigned)&((P*)0)->model==4144)?1:-1];
 typedef char P_mode_Offset[((unsigned)&((P*)0)->mode==6344)?1:-1];
 typedef char P_submode_Offset[((unsigned)&((P*)0)->submode==6352)?1:-1];
 typedef char P_lookup_Offset[((unsigned)&((P*)0)->lookup==6788)?1:-1];
-typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 } // namespace M_func_00188960
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1529,7 +1528,6 @@ typedef struct S {
     qword v40; float g50; int pad54[5]; C *p68;
 } S;
 typedef struct R { unsigned int x0; char pad[0x30 - 4]; float g30; int x34; int pad38; int x3C; } R;
-typedef struct CLOCK { float time; float deltaTime; } CLOCK;
 
 extern "C" CLOCK D_002DDED0;
 extern "C" SMP D_002BF348;
@@ -1713,7 +1711,6 @@ typedef char Pointer_Size[(sizeof(void*)==4)?1:-1];
 typedef char VU_Size[(sizeof(VU)==16)?1:-1];
 typedef char WORK_Size[(sizeof(WORK)==0x40)?1:-1];
 typedef char M_Size[(sizeof(M)==0x40)?1:-1];
-typedef char CLOCK_Size[(sizeof(CLOCK)==8)?1:-1];
 typedef char S_Size[(sizeof(S)==0x70)?1:-1];
 typedef char R_Size[(sizeof(R)==0x40)?1:-1];
 typedef char A_x1024_Offset[((unsigned)&((A*)0)->x1024==4132)?1:-1];
@@ -1733,8 +1730,6 @@ typedef char R_x0_Offset[((unsigned)&((R*)0)->x0==0)?1:-1];
 typedef char R_g30_Offset[((unsigned)&((R*)0)->g30==48)?1:-1];
 typedef char R_x34_Offset[((unsigned)&((R*)0)->x34==52)?1:-1];
 typedef char R_x3C_Offset[((unsigned)&((R*)0)->x3C==60)?1:-1];
-typedef char CLOCK_t_Offset[((unsigned)&((CLOCK*)0)->time==0)?1:-1];
-typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 typedef char WORK_scalar_Offset[((unsigned)&((WORK*)0)->scalar==0)?1:-1];
 typedef char WORK_forward_Offset[((unsigned)&((WORK*)0)->forward==16)?1:-1];
 typedef char WORK_reverse_Offset[((unsigned)&((WORK*)0)->reverse==32)?1:-1];
@@ -2208,7 +2203,7 @@ namespace M_func_0018B460 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct SPACE;
-struct M3{U r[3];};struct M4{U r[4];};struct LM{float low,high;};struct CLOCK{float time,deltaTime;};
+struct M3{U r[3];};struct M4{U r[4];};struct LM{float low,high;};
 struct AIM{char pad[0x150];struct SPACE*frame;};struct OWNER{char pad[0x494];struct AIM*aim;};
 struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];struct GROUP*group;};
 struct DV{char pad[0x20];qword value;};
@@ -2451,7 +2446,6 @@ typedef char U_Size[(sizeof(U) == 16) ? 1 : -1];
 typedef char M3_Size[(sizeof(struct M3) == 48) ? 1 : -1];
 typedef char M4_Size[(sizeof(struct M4) == 64) ? 1 : -1];
 typedef char LM_Size[(sizeof(struct LM) == 8) ? 1 : -1];
-typedef char CLOCK_Size[(sizeof(struct CLOCK) == 8) ? 1 : -1];
 typedef char DV_Size[(sizeof(struct DV) == 48) ? 1 : -1];
 typedef char WORK_Size[(sizeof(struct WORK) == 240) ? 1 : -1];
 typedef char AIM_frame_Offset[((unsigned)&((struct AIM *)0)->frame == 336) ? 1 : -1];
@@ -2480,8 +2474,6 @@ typedef char WORK_rotation_Offset[((unsigned)&((struct WORK *)0)->rotation == 14
 typedef char WORK_relative_Offset[((unsigned)&((struct WORK *)0)->relative == 192) ? 1 : -1];
 typedef char WORK_residual_Offset[((unsigned)&((struct WORK *)0)->residual == 208) ? 1 : -1];
 typedef char WORK_gain_Offset[((unsigned)&((struct WORK *)0)->gain == 224) ? 1 : -1];
-typedef char CLOCK_time_Offset[((unsigned)&((struct CLOCK *)0)->time == 0) ? 1 : -1];
-typedef char CLOCK_dt_Offset[((unsigned)&((struct CLOCK *)0)->deltaTime == 4) ? 1 : -1];
 typedef char LM_low_Offset[((unsigned)&((struct LM *)0)->low == 0) ? 1 : -1];
 typedef char LM_high_Offset[((unsigned)&((struct LM *)0)->high == 4) ? 1 : -1];
 
@@ -4341,7 +4333,6 @@ struct O{char pad[0xC];VTE*vt;};
 struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
 struct ANIM;
 struct P{char pad[0xC];VTE*vt;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
-struct CLOCK{float time,deltaTime;};
 struct SMP{float a,b,c;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
@@ -4524,7 +4515,6 @@ typedef char VTE_Size[(sizeof(VTE)==8)?1:-1];
 typedef char O_Size[(sizeof(O)==16)?1:-1];
 typedef char PARAM_Size[(sizeof(PARAM)==32)?1:-1];
 typedef char SMP_Size[(sizeof(SMP)==12)?1:-1];
-typedef char CLOCK_Size[(sizeof(CLOCK)==8)?1:-1];
 typedef char P_Size[(sizeof(P)==8112)?1:-1];
 typedef char qword_Alignment[(__alignof__(qword)==16)?1:-1];
 typedef char U_Alignment[(__alignof__(U)==16)?1:-1];
@@ -4544,8 +4534,6 @@ typedef char PARAM_weight_Offset[((unsigned)&((PARAM*)0)->weight==28)?1:-1];
 typedef char SMP_a_Offset[((unsigned)&((SMP*)0)->a==0)?1:-1];
 typedef char SMP_b_Offset[((unsigned)&((SMP*)0)->b==4)?1:-1];
 typedef char SMP_c_Offset[((unsigned)&((SMP*)0)->c==8)?1:-1];
-typedef char CLOCK_time_Offset[((unsigned)&((CLOCK*)0)->time==0)?1:-1];
-typedef char CLOCK_dt_Offset[((unsigned)&((CLOCK*)0)->deltaTime==4)?1:-1];
 typedef char P_vt_Offset[((unsigned)&((P*)0)->vt==12)?1:-1];
 typedef char P_params_Offset[((unsigned)&((P*)0)->params==336)?1:-1];
 typedef char P_matrix_Offset[((unsigned)&((P*)0)->matrix==432)?1:-1];

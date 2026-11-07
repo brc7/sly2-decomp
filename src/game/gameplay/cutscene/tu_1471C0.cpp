@@ -44,7 +44,6 @@ enum CAPTURE_STATE
 };
 struct MSG { void *source; int unknown4; int eventKind; };   /* kind 9: an animation event from source */
 enum { MESSAGE_SEGMENT_EVENT = 9 };
-struct CLOCKV { char pad[0x3C]; float t; };
 struct VECTOR4F { float x, y, z, w; };
 struct M4 { qwordV r[4]; };
 struct GIFS { int a[16]; };
@@ -55,7 +54,7 @@ struct X { char pad[0x24]; void *unknown24; char pad2[0x30 - 0x28]; int unknown3
  * float[6] read through two names; D_002BD398 defined). */
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
 extern SNIP D_002BD380[2];
-extern CLOCKV D_002DDED0;
+extern CLOCK D_002DDED0;
 extern CAPTUREV *D_002DD644;
 extern char D_003DD040[];
 extern char D_003DD490[];
@@ -83,7 +82,7 @@ int IsAsegaRetracted(ASEGA *pasega);
 int IsDialogPlaying(void *p, int n);
 void HandleBasicMessage(CAPTUREV *p, int kind, MSG *message);
 void SetSoundManagerFlags(void *p, int a, int b);
-void SetClockRate(CLOCKV *p, int a, float g);
+void SetClockRate(CLOCK *p, int a, float g);
 void IncrementSwHandsOff(void *p, int a);
 void DecrementSwHandsOff(void *p, int a);
 int IsLoInWorld(CAPTUREV *p);
@@ -213,7 +212,7 @@ extern "C" void SetFrameCaptureState(CAPTUREV *capture, int state)
         break;
     }
     capture->state = state;
-    capture->stateTime = D_002DDED0.t;
+    capture->stateTime = D_002DDED0.realTime;
     switch (state) {
     case CAPTURE_IDLE:
         D_002DD644 = 0;

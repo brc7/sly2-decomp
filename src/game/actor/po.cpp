@@ -26,23 +26,10 @@ struct EMB { int cref; int b; int *pn; };
 struct EMITX { char pad[0xE0]; int fDirty; EMB *pemitb; };
 
 /* The world (SW) as this TU reads it. */
-struct SWP
-{
-    char pad0[0x3EB8];
-    int c;                      /* 0x3EB8 */
-    PO *a[16];                  /* 0x3EBC: the POs with a controller */
-    PO *currentPo;                /* 0x3EFC */
-    PO *overridePo;            /* 0x3F00 */
-    char pad3F04[0x4778 - 0x3F04];
-    union { unsigned int numFollowersU; int numFollowers; }; /* 0x4778 */
-    EMITX *followers[4];            /* 0x477C */
-};
-typedef char SWP_3EFC[FIELD_OFFSET(SWP,currentPo)==0x3EFC?1:-1];
-typedef char SWP_4778[FIELD_OFFSET(SWP,followers)==0x477C?1:-1];
 
 struct MSG { int cb; int nKind; };
 struct SL;
-extern SWP D_003DD490;
+extern SW D_003DD490;
 extern "C" {
 extern int D_002E1E00;
 extern char D_002CA240[] __asm__("_vt$5POCTL");
@@ -61,7 +48,7 @@ void CloneSo(PO *p);
 void HandleBasicMessage(PO *p, int n);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
-int IsSwHandsOff(SWP *p);
+int IsSwHandsOff(SW *p);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void SetTnTnsOverride(void *p, int f);
 void SetCmPolicy(CM *pg, int n, void *pv, void *p, int m);
@@ -76,23 +63,23 @@ EMB *AllocCopyFromWorldHeap(MSG *, EMB *);
 void *AllocClearedFromWorldHeap(MSG *pmsg);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(CRefData *p);
-void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SWP *p, int a, int b, int c);
+void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *p, int a, int b, int c);
 qword GetLoWorldPos(PO *);
 int FindBhvInBhvstk(void *p, int n);
 
 int GetPoCtlState(PO *p);
 POCTL *POCTL_ctor(POCTL *p, PO *q);
-void SwitchToPo(SWP *pg, PO *plo);
+void SwitchToPo(SW *pg, PO *plo);
 void SetPoctlStateValue(POCTL *pv, int n);
-PO *GetHeroPo(SWP *p);
-PO *GetCurrentPo(SWP *p);
+PO *GetHeroPo(SW *p);
+PO *GetCurrentPo(SW *p);
 void ResetPoctl(POCTL *p);
 void ClearPoctlJoyPressed(POCTL *p, int grf);
 void ConvertPoctlStick(POCTL *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
 void UpdatePoctlPressed(POCTL *p);
 int GetButtonsPressedWithin__5POCTLUif(POCTL *p, unsigned int grf, float dt);
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, unsigned int grf, float dt);
-void UpdateSwPoFollowers(SWP *p);
+void UpdateSwPoFollowers(SW *p);
 /* sly2/emitter.h's PemitbEnsure<EMITTER> (the linkonce copy 0x258658, emitted by emitter.cpp); po's private
    EMITX/EMB views keep it from including emitter.h (its heap allocators are declared on other request types) */
 EMB *PemitbEnsureEmitter(EMITX *p, int x) __asm__("PemitbEnsure__H1Z7EMITTER_PX014ENSK_P5EMITB");
@@ -149,15 +136,15 @@ extern "C" void SetPoCtlState(PO *po, int state)
 {
     if (state == GetPoCtlState(po)) return;
     if (!po->controller) {
-        SWP *world = &D_003DD490;
-        if ((unsigned int)world->c >= 16) return;
-        world->a[world->c++] = po;
+        SW *world = &D_003DD490;
+        if ((unsigned int)world->cpo >= 16) return;
+        world->playerObjects[world->cpo++] = (PO *)po;
         po->controller = POCTL_ctor((POCTL *)func_001AE4F8(0xE0), po);
     }
     switch (state) {
     case 1: {
-        SWP *world = &D_003DD490;
-        PO *hero = world->currentPo;
+        SW *world = &D_003DD490;
+        PO *hero = ((PO *)world->currentPlayer);
         if (po != hero) {
             if (hero) hero->SetCtlState(0);
             SwitchToPo(world, po);
@@ -166,8 +153,8 @@ extern "C" void SetPoCtlState(PO *po, int state)
     }
     case -1:
     case 0: {
-        SWP *world = &D_003DD490;
-        if (po == world->currentPo) SwitchToPo(world, 0);
+        SW *world = &D_003DD490;
+        if (po == ((PO *)world->currentPlayer)) SwitchToPo(world, 0);
         break;
     }
     }
@@ -432,16 +419,16 @@ extern "C" qword GetPoctlLateralVector(POCTL *poctl, qword dir)
 
 // Returns the world's current PO (the hero being played).
 // Runtime-checked: SW+0x3EFC follows the character being played (Murray in his levels), while g_pjt is always Sly.
-PO *GetHeroPo(SWP *world) {
-    return world->currentPo;
+PO *GetHeroPo(SW *world) {
+    return ((PO *)world->currentPlayer);
 }
 
 // Adds an LO to the world's follower list (max 4) and gives it a 0x14-byte follower record. (inferred)
-extern "C" void AddSwPoFollower(SWP *world, EMITX *follower)
+extern "C" void AddSwPoFollower(SW *world, EMITX *follower)
 {
-    if (world->numFollowersU < 4) {
+    if ((unsigned int)world->cpemitTracked < 4) {
         EMB *pv;
-        world->followers[world->numFollowersU++] = follower;
+        world->apemitTracked[world->cpemitTracked++] = (EMITTER *)follower;
         pv = PemitbEnsureEmitter(follower, 1);
         if (!pv->pn) {
             MSG msg;
@@ -453,13 +440,13 @@ extern "C" void AddSwPoFollower(SWP *world, EMITX *follower)
 }
 
 // For each follower: stores the current PO in its record and re-parents it to the current PO. (inferred)
-void UpdateSwPoFollowers(SWP *world)
+void UpdateSwPoFollowers(SW *world)
 {
     int i;
-    for (i = 0; i < world->numFollowers; i++) {
-        EMITX *pb = world->followers[i];
-        *pb->pemitb->pn = (int)world->currentPo;
-        SetLoParent(pb, (int)world->currentPo, 0);
+    for (i = 0; i < world->cpemitTracked; i++) {
+        EMITX *pb = (EMITX *)world->apemitTracked[i];
+        *pb->pemitb->pn = (int)world->currentPlayer;
+        SetLoParent(pb, (int)world->currentPlayer, 0);
     }
 }
 
@@ -468,13 +455,13 @@ extern "C" CREF4 *SetSaveVarByName(CREF4 *pret, CREF4 *pref, const char *s, int 
 void Decref4(CREF4 *p) __asm__("Decref__4CRef");
 // Makes ppo the current PO: deactivates the old effective PO, activates the new one, publishes its oid in the
 // splice variable oidPoCurrent for player characters, and updates the followers.
-void SwitchToPo(SWP *world, PO *po)
+void SwitchToPo(SW *world, PO *po)
 {
     PO *cur = GetCurrentPo(world);
-    PO *nw = world->overridePo;
+    PO *nw = ((PO *)world->overridePlayer);
     if (!nw) nw = po;
     if (cur != nw && cur) cur->OnActive(0);
-    world->currentPo = po;
+    world->currentPlayer = (PO *)po;
     if (cur != nw && nw) nw->OnActive(1);
     if (po && IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
         CREF4 ret, ref;
@@ -489,22 +476,22 @@ void SwitchToPo(SWP *world, PO *po)
 }
 
 // Returns the effective current PO: the override if set, otherwise the current PO.
-PO *GetCurrentPo(SWP *world) {
-    PO *ppo = world->overridePo;
+PO *GetCurrentPo(SW *world) {
+    PO *ppo = ((PO *)world->overridePlayer);
     if (ppo == 0) {
-        ppo = world->currentPo;
+        ppo = ((PO *)world->currentPlayer);
     }
     return ppo;
 }
 
 // Sets (or clears, with 0) the override PO, deactivating the old effective PO and activating the new one. (inferred)
-extern "C" void SetSwPoOverride(SWP *world, PO *po)
+extern "C" void SetSwPoOverride(SW *world, PO *po)
 {
     PO *cur = GetCurrentPo(world);
     PO *nw = po;
-    if (!nw) nw = world->currentPo;
+    if (!nw) nw = ((PO *)world->currentPlayer);
     if (cur != nw && cur) cur->OnActive(0);
-    world->overridePo = po;
+    world->overridePlayer = (PO *)po;
     if (cur != nw && nw) nw->OnActive(1);
 }
 
@@ -520,11 +507,11 @@ static inline float LenSq(qword a) {
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7708 __asm__("D_002A7708") = 3.40282347e+38f; }
 // Returns the PO from the world's PO list nearest to a position, among POs that are in the world.
-extern "C" PO *FindClosestSwPo(SWP *world,qword pos) {
+extern "C" PO *FindClosestSwPo(SW *world,qword pos) {
     PO *best=0; int i=0;
     float minimum=D_002A7708;
-    for(;i<world->c;++i) {
-        PO *lo=world->a[i];
+    for(;i<(int)world->cpo;++i) {
+        PO *lo=(PO *)world->playerObjects[i];
         if((int)lo->isInWorld & 1) {
             float dist=LenSq(VuSub(pos,GetLoWorldPos(lo)));
             if(dist<minimum) { minimum=dist; best=lo; }
@@ -535,7 +522,7 @@ extern "C" PO *FindClosestSwPo(SWP *world,qword pos) {
 
 // Fills up to maxCount pickup-info (PZI) pointers: the current PO's, or the default one, followed by those of the
 // other in-world player characters that pass the check. Returns the count (used by the HUD, inferred).
-extern "C" int CollectActivePickupInfos(SWP *world, int maxCount, void **pzis)
+extern "C" int CollectActivePickupInfos(SW *world, int maxCount, void **pzis)
 {
     int c;
     unsigned int j;

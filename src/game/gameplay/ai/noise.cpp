@@ -59,9 +59,6 @@ struct NOISE
     int pad5C;
 };
 typedef char assert_NOISE_size[sizeof(NOISE) == 0x60 ? 1 : -1];
-/* The world's noise state (D_003DD490). */
-struct SWN { char pad[0x3D68]; int noiseCount; char pad2[0x3FFC - 0x3D6C]; char stimulusList[0xC]; SLOTHEAP pool; NOISETYPE *types[7]; };
-typedef char assert_SWN_types[(unsigned int)&((SWN *)0)->types == 0x4020 ? 1 : -1];
 /* A listener (an XFM, which ends at +0xE0): the noises it hears. */
 struct K { short x; short y; int i; };
 struct LISTENER { char pad0[0xC]; VTE *vt; char pad10[0x18]; int unknown28; signed char ips; char grfvis; long k : 4; unsigned int pad1 : 8; unsigned int isInWorld : 1;
@@ -72,7 +69,7 @@ typedef char assert_LISTENER_key[(unsigned int)&((LISTENER *)0)->key == 0x104 ? 
  * noise durations/loudnesses. */
 extern float D_002BDCD0;
 extern LMV D_002BDCD8;
-extern SWN D_003DD490;
+extern SW D_003DD490;
 extern CLOCK D_002DDED0;
 extern float D_002BDCE0;
 extern float D_002BDCF0[3];
@@ -140,7 +137,7 @@ struct Lock {
 // sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
 extern "C" void CreateNoise(NOISETYPE *type, qword pos, int loudness, NOISE **outNoise)
 {
-    NOISE *noise = (NOISE *)AllocZeroedFromSlotheap(&D_003DD490.pool);
+    NOISE *noise = (NOISE *)AllocZeroedFromSlotheap(&D_003DD490.slotheapStimulus);
     func_002333B4(noise, 0, 0x60);
     noise->frame = 0;
     noise->sidebag = 0;
@@ -149,10 +146,10 @@ extern "C" void CreateNoise(NOISETYPE *type, qword pos, int loudness, NOISE **ou
     noise->startPosition = pos;
     noise->vt = D_002CE2B8;
     noise->loudness = loudness;
-    noise->serial = ++D_003DD490.noiseCount;
+    noise->serial = ++D_003DD490.stimulusSerial;
     noise->startTime = D_002DDED0.time;
     noise->unknown54 = type->unknown64;
-    AppendDlEntry(D_003DD490.stimulusList, noise);
+    AppendDlEntry(&D_003DD490.dlStimulus, noise);
     VCALL0(noise, 1);
     Lock lock(noise);
     FramePtr_Assign(noise, type->frame);
@@ -266,26 +263,26 @@ extern "C" int IsPositionInNoise(NOISE *noise, qword pos)
 static inline void Init(NOISETYPE *type) { VTE *entry = &type->vt[9]; ((void (*)(void *))entry->pfn)((char *)type + entry->d); }
 // 0x1569B8: Creates the world's seven noise types (oids 0x2C2..0x2C8) with their per-kind range, lifetime and
 // audibility, and stores them in the world's type table. Called at world load (inferred).
-extern "C" void CreateSwNoiseTypes(SWN *world)
+extern "C" void CreateSwNoiseTypes(SW *world)
 {
     {
         NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
         type->isMuted = 0;
-        world->types[0] = type;
+        world->apstimk[0] = (STIMK *)type;
         Init(type);
     }
     {
         NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
         type->isMuted = 1;
         type->duration = D_002BDD00;
-        world->types[1] = type;
+        world->apstimk[1] = (STIMK *)type;
         Init(type);
     }
     {
         NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
         type->isMuted = 0;
         type->range = D_002BDD04;
-        world->types[2] = type;
+        world->apstimk[2] = (STIMK *)type;
         Init(type);
     }
     {
@@ -293,7 +290,7 @@ extern "C" void CreateSwNoiseTypes(SWN *world)
         type->range = D_002BDD08;
         type->duration = D_002BDD0C;
         type->isMuted = 0;
-        world->types[3] = type;
+        world->apstimk[3] = (STIMK *)type;
         Init(type);
     }
     {
@@ -301,7 +298,7 @@ extern "C" void CreateSwNoiseTypes(SWN *world)
         type->unknown64 = 3;
         type->duration = -1.0f;
         type->isMuted = 0;
-        world->types[5] = type;
+        world->apstimk[5] = (STIMK *)type;
         Init(type);
     }
     {
@@ -309,25 +306,25 @@ extern "C" void CreateSwNoiseTypes(SWN *world)
         type->range = D_002BDD10;
         type->duration = D_002BDD14;
         type->isMuted = 0;
-        world->types[4] = type;
+        world->apstimk[4] = (STIMK *)type;
         Init(type);
     }
     {
         NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
         type->isMuted = 0;
         type->range = D_002BDD18;
-        world->types[6] = type;
+        world->apstimk[6] = (STIMK *)type;
         Init(type);
     }
 }
 
 // 0x156B98: Emits a noise at `pos` from one of the world's two generic noise types (kind 0 or 1).
-extern "C" void EmitSwNoise(SWN *world, int kind, qword pos, int loudness)
+extern "C" void EmitSwNoise(SW *world, int kind, qword pos, int loudness)
 {
     NOISETYPE *type;
     switch (kind) {
-    case 0: type = world->types[0]; break;
-    case 1: type = world->types[1]; break;
+    case 0: type = (NOISETYPE *)world->apstimk[0]; break;
+    case 1: type = (NOISETYPE *)world->apstimk[1]; break;
     }
     NewNoise(type, pos, loudness);
 }
@@ -357,12 +354,12 @@ extern "C" void ReplaceHeldNoise(NOISETYPE *type, qword pos, int loudness, NOISE
 }
 
 // 0x156C80: ReplaceHeldNoise using the world's generic noise type 0 or 1.
-extern "C" void ReplaceHeldSwNoise(SWN *world, int kind, qword pos, int loudness, NOISE **heldNoise)
+extern "C" void ReplaceHeldSwNoise(SW *world, int kind, qword pos, int loudness, NOISE **heldNoise)
 {
     NOISETYPE *type;
     switch (kind) {
-    case 0: type = world->types[0]; break;
-    case 1: type = world->types[1]; break;
+    case 0: type = (NOISETYPE *)world->apstimk[0]; break;
+    case 1: type = (NOISETYPE *)world->apstimk[1]; break;
     default: type = 0; break;
     }
     ReplaceHeldNoise(type, pos, loudness, heldNoise);
