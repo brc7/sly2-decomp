@@ -77,12 +77,12 @@ struct SHAPE : public XFM
       VECTOR4 *vertexPositions; /* control vertex positions (local) */
       undefined4 unknownF8[2];
       MATRIX4 matWorldCache;   /* world matrix the cached world positions were computed with (inferred) */
-      VECTOR4 *mpicvposA;   /* per-vertex positions, first cache (inferred) */
-      VECTOR4 *mpicvposB;   /* per-vertex positions, second cache (inferred) */
+      VECTOR4 *incomingTangents;   /* +0x140 per-vertex incoming tangents (shape.cpp's views name them incoming/outgoing) */
+      VECTOR4 *outgoingTangents;   /* +0x144 per-vertex outgoing tangents */
       int unknown148;
       float segmentLengths[11]; /* per-segment lengths (inferred from the name: g = float, s = distance) */
-      int unknown178;
-      void *unknown17C;   /* possibly chain (low-confidence guess: cast to SHAPECHAIN in shape.cpp) */
+      int segmentHint;   /* +0x178 segment index the last parameter search ended in (shape.cpp) */
+      void *chain;   /* +0x17C the chain record (SHAPECHAIN in shape.cpp; its +0x4C is a mode) */
       struct SHAPERANGES *pranges;   /* per-range data (SHAPERANGES) */
       undefined4 unknown184[3];
     virtual void Init() __asm__("InitShape");   /* slot 7 */

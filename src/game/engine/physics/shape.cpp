@@ -50,15 +50,14 @@ void SHAPE::Init()
     SHAPE *pshape = (SHAPE *)this;
     InitXfm(pshape);
     pshape->unknown148 = -1;
-    pshape->unknown178 = 1;
+    pshape->segmentHint = 1;
 }
 
 namespace M_CloneShape { extern "C" {
-struct S { char pad[0x17C]; int chain; };
-void CloneXfm(struct S *p);
-void EnsureShapeChain(struct S *p, int n);
+void CloneXfm(SHAPE *p);
+void EnsureShapeChain(SHAPE *p, int n);
 // Slot 41 (Clone): CloneXfm; if the source had a chain attached, rebuilds one for the clone.
-void CloneShape(struct S *shape)
+void CloneShape(SHAPE *shape)
 {
     CloneXfm(shape);
     if (shape->chain) {
@@ -71,60 +70,48 @@ void CloneShape(struct S *shape)
 namespace M_LoadShapeFromBrx { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct MSG { int cb; int nKind; };
-struct P {
-    char pad[0xE0];
-    int mode;
-    int isClosed;
-    int numPoints;
-    int *times;
-    float *distances;
-    qword *points;
-    char pad2[0x140 - 0xF8];
-    qword *incoming;
-    qword *outgoing;
-};
-void LoadXfmXfFromBrx(struct P *, void *);
+void LoadXfmXfFromBrx(SHAPE *, void *);
 int S8Read__18CBinaryInputStream(void *);
 int U16Read__18CBinaryInputStream(void *);
 void *AllocFromWorldHeap(struct MSG *);
 void Read__18CBinaryInputStreamiPv(void *, int, void *);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *, qword *);
-void LoadOptionsFromBrx__FPvP18CBinaryInputStream(struct P *, void *);
-void MeasureShape(struct P *);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *, VECTOR4 *);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(SHAPE *, void *);
+void MeasureShape(SHAPE *);
 // Slot 14 (LoadFromBrx): the XFM, the mode (0 linear, 1 curve), closed flag, point count, then the per-point
 // parameters, distances and positions (and curve tangents).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadShapeFromBrx(struct P *shape, void *stream)
+void LoadShapeFromBrx(SHAPE *shape, void *stream)
 {
     struct MSG msg;
     int i;
     LoadXfmXfFromBrx(shape, stream);
-    shape->mode = S8Read__18CBinaryInputStream(stream);
+    shape->curveKind = (CRVK)S8Read__18CBinaryInputStream(stream);
     shape->isClosed = S8Read__18CBinaryInputStream(stream);
-    shape->numPoints = U16Read__18CBinaryInputStream(stream);
-    msg.cb = shape->numPoints * 4;
+    shape->numControlVertices = U16Read__18CBinaryInputStream(stream);
+    msg.cb = shape->numControlVertices * 4;
     msg.nKind = 0x10;
-    shape->times = (__typeof__(shape->times))AllocFromWorldHeap(&msg);
-    msg.cb = shape->numPoints * 4;
+    shape->vertexParams = (__typeof__(shape->vertexParams))AllocFromWorldHeap(&msg);
+    msg.cb = shape->numControlVertices * 4;
     msg.nKind = 0x10;
-    shape->distances = (__typeof__(shape->distances))AllocFromWorldHeap(&msg);
-    msg.cb = shape->numPoints * 16;
+    shape->vertexArcLengths = (__typeof__(shape->vertexArcLengths))AllocFromWorldHeap(&msg);
+    msg.cb = shape->numControlVertices * 16;
     msg.nKind = 0x10;
-    shape->points = (__typeof__(shape->points))AllocFromWorldHeap(&msg);
-    Read__18CBinaryInputStreamiPv(stream, shape->numPoints * 4, shape->times);
-    for (i = 0; i < shape->numPoints; i++)
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->points[i]);
-    if (shape->mode) {
-        msg.cb = shape->numPoints * 16;
+    shape->vertexPositions = (__typeof__(shape->vertexPositions))AllocFromWorldHeap(&msg);
+    Read__18CBinaryInputStreamiPv(stream, shape->numControlVertices * 4, shape->vertexParams);
+    for (i = 0; i < shape->numControlVertices; i++)
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->vertexPositions[i]);
+    if (shape->curveKind) {
+        msg.cb = shape->numControlVertices * 16;
         msg.nKind = 0x10;
-        shape->incoming = (__typeof__(shape->incoming))AllocFromWorldHeap(&msg);
-        msg.cb = shape->numPoints * 16;
+        shape->incomingTangents = (__typeof__(shape->incomingTangents))AllocFromWorldHeap(&msg);
+        msg.cb = shape->numControlVertices * 16;
         msg.nKind = 0x10;
-        shape->outgoing = (__typeof__(shape->outgoing))AllocFromWorldHeap(&msg);
-        for (i = 0; i < shape->numPoints; i++)
-            ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->incoming[i]);
-        for (i = 0; i < shape->numPoints; i++)
-            ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->outgoing[i]);
+        shape->outgoingTangents = (__typeof__(shape->outgoingTangents))AllocFromWorldHeap(&msg);
+        for (i = 0; i < shape->numControlVertices; i++)
+            ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->incomingTangents[i]);
+        for (i = 0; i < shape->numControlVertices; i++)
+            ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->outgoingTangents[i]);
     }
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(shape, stream);
     MeasureShape(shape);
@@ -272,7 +259,7 @@ void MeasureShape(struct S *shape)
 // Invalidates the segment cache (search hint 0, cached segment -1).
 extern "C" void InvalidateShapeCache(SHAPE *shape)
 {
-    shape->unknown178 = 0;
+    shape->segmentHint = 0;
     shape->unknown148 = -1;
 }
 
@@ -1390,7 +1377,7 @@ typedef char radius_basis_prefix_align[(__alignof__(struct BASIS3)==16)?1:-1];
 // The chain's simulation mode, or -1 without a chain.
 extern "C" int GetShapeChainMode(SHAPE *shape)
 {
-    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->unknown17C;
+    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->chain;
     int n = -1;
     if (pchain != 0) {
         n = pchain->mode;
