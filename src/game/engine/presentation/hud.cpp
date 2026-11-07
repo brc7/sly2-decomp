@@ -26,6 +26,7 @@
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
 #include "sly2/hud.h"
+#include "heap.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
@@ -1416,48 +1417,32 @@ extern "C" void PlayWidgetAnimWithArg(WIDGET *widget, int animId, int arg)
 }
 
 // 0x213C68 SetWidgetXf
-namespace M_SetWidgetXf { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct M { qword a, b; };   /* a 2x3 matrix */
-struct VE { short d; short pad; struct M *(*pf)(void *, int, int); };
-struct A { struct VE *vt; };   /* a heap; slot 1 allocates */
-struct S { char pad[0xC4]; struct A *spriteHeap; char pad2[0x30]; struct M *xform; };
 // Sets the widget's 2D transform override.
-void SetWidgetXf(struct S *widget, struct M *src)
+extern "C" void SetWidgetXf(WIDGET *widget, SPRITEXF *src)
 {
-    if (!widget->xform) {
-        struct A *heap = widget->spriteHeap;
-        widget->xform = heap->vt[1].pf((char *)heap + heap->vt[1].d, 0x20, 0x1F);
-    }
+    if (!widget->xform)
+        widget->xform = (SPRITEXF *)widget->spriteHeap->Alloc(0x20, 0x1F);
     *widget->xform = *src;
 }
-} } // namespace M_SetWidgetXf
 
 // 0x213CD8 SetWidgetAnimXf
-namespace M_SetWidgetAnimXf {
-struct M { int a[8]; } __attribute__((aligned(16)));
-struct H { virtual void *Alloc(int cb, int animId); };
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; E *anims; char pad8[0x24]; M *xform; };
-struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; A *spriteGroups; char pad88[0x3C]; H *spriteHeap; };
 // Sets the 2D transform of the sprite that plays an animation id.
-extern "C" void SetWidgetAnimXf(S *widget, int animId, M *xform)
+extern "C" void SetWidgetAnimXf(WIDGET *widget, int animId, SPRITEXF *xform)
 {
     int groupIndex, animIndex;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (anim->id == animId) {
                 if (!group->xform)
-                    group->xform = (M *)widget->spriteHeap->Alloc(0x20, 0x1F);
+                    group->xform = (SPRITEXF *)widget->spriteHeap->Alloc(0x20, 0x1F);
                 *group->xform = *xform;
                 return;
             }
         }
     }
 }
-} // namespace M_SetWidgetAnimXf
 
 // 0x213DB0 SwitchWidgetAnim
 namespace M_SwitchWidgetAnim { extern "C" {
