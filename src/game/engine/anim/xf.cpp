@@ -1680,7 +1680,7 @@ namespace M_UpdateSoXfWorldMatrices {
 typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 struct X {M4 local,world;char pad80[0x20];X *parent;int priority;char pada8[0x58];};
-struct S {char pad[0x50];int count;X *array;};
+struct S : LO { int count;X *array;};
 extern "C" { extern M4 D_002A2D30; }
 extern "C" void RefreshSoAfterSlotUpdate(S *);
 // Recomputes the world matrices of an SO's linked transforms (VU matrix microprogram).
@@ -1725,7 +1725,7 @@ extern "C" void UpdateLoXfWorldHierarchy()
 namespace M_UpdateSoXfWorldHierarchy { extern "C" {
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { int a[3]; struct VTE *vt; char pad[0x14]; struct O *next; };
-struct S { char pad[0x64]; struct O *first; int a[2]; struct O *end; };
+struct S : LO { char pad[0x64 - 0x50]; struct O *first; int a[2]; struct O *end; };
 void UpdateSoXfWorldMatrices(struct S *p);
 // Recomputes an SO's world matrices and then those of its children.
 void UpdateSoXfWorldHierarchy(struct S *p)
