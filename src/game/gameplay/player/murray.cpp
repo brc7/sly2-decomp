@@ -2324,29 +2324,27 @@ void ThrowMurrayCarriedAt(struct P *murray, void *pv)
 
 namespace M_func_001B7AE8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; char pad2[0x18]; unsigned long f28; };
-struct T { char pad[0x180]; struct O *po; };
+struct T { char pad[0x180]; SO *po; };
 struct S { char pad[0x13F0]; struct T *pt; };
 extern qword D_002C09D0, D_002A2DD0;
 void DetachMurrayCarried(struct S *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-void StunStepguardThrownOp3(struct O *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int n);
+void StunStepguardThrownOp3(SO *p);
 qword ConvertVecBetweenLos(struct S *p, int n, qword q);
-void SetSoZapMode(struct O *p, int n);
+void SetSoZapMode(SO *p, int n);
 // Release in state 8: detaches, fixed local velocity D_002C09D0, no angular velocity, zap mode 3.
 void TossMurrayCarried(struct S *murray)
 {
-    struct O *object;
+    SO *object;
     qword q;
     DetachMurrayCarried(murray);
     object = murray->pt->po;
     murray->pt = 0;
-    if ((int)(object->f28 >> 60) & 1) {
+    if ((int)object->isInWorld & 1) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
         q = ConvertVecBetweenLos(murray, 0, D_002C09D0);
-        ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, q);
-        ((void (*)(void *, qword))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
+        object->SetVelocity(q);
+        object->SetAngularVelocity(D_002A2DD0);
         SetSoZapMode(object, 3);
     }
 }
@@ -3712,21 +3710,18 @@ extern "C" void StartMurrayFlop(MURRAY *murray, int n, void *pv)
 
 namespace M_func_001B9D28 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int pad[3]; struct VTE *vt; int pad1[6]; unsigned long f28; };
-struct P { char pad[0x1AD0]; struct O *po; int n1AD4; };
+struct P { char pad[0x1AD0]; LO *po; int n1AD4; };
 int IsPowerupAcquired(int n);
-void ApplyAsegCore(int n, struct O *po, int a, int b, float g0, float g1);
+void ApplyAsegCore(int n, LO *po, int a, int b, float g0, float g1);
 // If power-up 0x11 is owned: places the hit effect object at the point and plays its animation.
 void SpawnMurrayHitEffect(struct P *murray, qword q)
 {
     if (!IsPowerupAcquired(0x11))
         return;
-    struct O *object = murray->po;
-    if (!((((object->f28 >> 60) & 1) == 0)))
+    LO *object = murray->po;
+    if (!((((int)object->isInWorld & 1) == 0)))
         return;
-    struct VTE *e = &object->vt[29];
-    ((void (*)(void *, qword))e->pfn)((char *)object + e->d, q);
+    object->TranslateToPos(q);
     ApplyAsegCore(murray->n1AD4, murray->po, 0, 0, 0.0f, 1.0f);
 }
 } } // namespace M_func_001B9D28
