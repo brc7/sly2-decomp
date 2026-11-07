@@ -222,34 +222,29 @@ extern "C" void SetStepPhysByOid(STEP *step, OID oid, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetStepPhys { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword a[4]; } MATRIX4;
-struct X { char pad[0x40]; MATRIX4 m; };
-struct B { qword *p; };
-struct M { struct X *px; char pad[0xC]; struct B *pb; char pad2[0x78 - 0x14]; int c; qword *av; };
-struct S : PO { char pad[0x258 - 0x180]; struct M *pm0; struct M *pm1; };
+typedef struct { qword a[4]; } MATRIX4;   /* qword rows (TU-private; XF's matrices are converted at the call) */
 /* The C file assigned the struct result (hidden pointer = mi); as C++ that adds a temporary, so the result is
    passed by hand. This form exists to reproduce the original codegen. */
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void InvalidateSoAaox(struct S *p);
-// Sets the current phys part (+0x25C). With fForceSnap the body part (+0x258) takes its points at once (in the body
+// Sets the current phys part (psopartPhys). With fForceSnap the body part (psopartBody) takes its points at once (in the body
 // part's frame) and the per-point velocities are cleared.
-void SetStepPhys(struct S *step, struct M *pm, int f)
+void SetStepPhys(STEP *step, SOPART *pm, int f)
 {
-    step->pm1 = pm;
+    step->psopartPhys = pm;
     if (f) {
         MATRIX4 m, mm, mi;
         MATRIX4 *pmm = &mm;
         MATRIX4 *pmi = &mi;
         int i;
         qword *ps, *pd;
-        InvertMatrix4RigidP(&mi, &step->pm0->px->m);
-        __ml__FRC7MATRIX4T0(pmm, pmi, &step->pm1->px->m);
+        InvertMatrix4RigidP(&mi, (MATRIX4 *)&step->psopartBody->transform->worldMatrix);
+        __ml__FRC7MATRIX4T0(pmm, pmi, (MATRIX4 *)&step->psopartPhys->transform->worldMatrix);
         m = mm;
-        ps = step->pm1->av;
-        pd = step->pm0->av;
-        i = step->pm1->c;
+        ps = (qword *)step->psopartPhys->meshLocal.positions;
+        pd = (qword *)step->psopartBody->meshLocal.positions;
+        i = step->psopartPhys->meshLocal.numPositions;
         while (--i >= 0) {
             qword r;
             __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -258,7 +253,7 @@ void SetStepPhys(struct S *step, struct M *pm, int f)
             ps++;
             pd++;
         }
-        func_002333B4(step->pm0->pb->p, 0, step->pm0->c * 16);
+        func_002333B4(step->psopartBody->plvo->mpiposvLocal, 0, step->psopartBody->meshLocal.numPositions * 16);
         InvalidateSoAaox(step);
     }
 }
