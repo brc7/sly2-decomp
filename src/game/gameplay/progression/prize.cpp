@@ -19,6 +19,7 @@
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 #include "sly2/prize.h"
+#include "sly2/stepplayer.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/act.h"
@@ -484,14 +485,12 @@ extern "C" void CheckDprizeBounce(P *prize)
 
 namespace M_FCheckDprizeCollect { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d,pad; void (*fn)(void *,int); };
-struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x1DC - 0x150]; float radius; };
 struct Q { int enabled,pad4; float radius; SO *so; };
 extern float D_002C0D7C;
 qword GetLoWorldPos(void *);
 int IntersectSphereBsp(qword,SOPART *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
 // Sets the prize to state 1 through vtable slot 76 (SetDprizes); used when a zap collects it. (inferred)
-static inline void Trigger(struct S *p)
+static inline void Trigger(DPRIZE *p)
 {
     p->SetState(1);
 }
@@ -513,7 +512,7 @@ static inline float LenSq(qword a)
     return f;
 }
 // test one collector (PZI) against the prize: in range -> collect. (inferred)
-int TryCollectDprize(struct S *prize,struct Q *q)
+int TryCollectDprize(DPRIZE *prize,struct Q *q)
 {
     char scratch[0x30] __attribute__((aligned(16)));
     qword pos;
@@ -532,7 +531,7 @@ int TryCollectDprize(struct S *prize,struct Q *q)
         SOPART *s=&q->so->parts[i];
         if(s->isHidden)continue;
         if(s->unknownFlag10B) {
-            float r=prize->radius+s->radius;
+            float r=prize->collectRadius+s->radius;
             qword here=GetLoWorldPos(prize);
             if(LenSq(VuSub(here,*(qword *)s->transform->worldMatrix.mat[3]))<r*r) {
                 Trigger(prize);
@@ -540,7 +539,7 @@ int TryCollectDprize(struct S *prize,struct Q *q)
             }
         } else {
             qword here=GetLoWorldPos(prize);
-            if(IntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,prize->radius)) {
+            if(IntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,prize->collectRadius)) {
                 Trigger(prize);
                 return 1;
             }
@@ -550,20 +549,18 @@ int TryCollectDprize(struct S *prize,struct Q *q)
 }
 
 #define OFF(t,m) ((unsigned int)&((t*)0)->m)
-typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(unsigned long)==8 && sizeof(struct VTE)==8 && OFF(struct VTE,d)==0 && OFF(struct VTE,fn)==4 && OFF(struct S,radius)==0x1DC && sizeof(struct Q)==0x10 && OFF(struct Q,enabled)==0 && OFF(struct Q,radius)==8 && OFF(struct Q,so)==0xC)?1:-1];
+typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(unsigned long)==8 && sizeof(struct Q)==0x10 && OFF(struct Q,enabled)==0 && OFF(struct Q,radius)==8 && OFF(struct Q,so)==0xC)?1:-1];
 } } // namespace M_FCheckDprizeCollect
 #undef OFF
 
 namespace M_CheckDprizeCollect { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
-struct S : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x1C8 - 0x150]; int isCollectable; float expireTime; };
 int CollectActivePickupInfos(void *pg, int c, void **ap);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
-int TryCollectDprize(struct S *p, void *pv);
+int IsBasicDerivedFrom__FP5BASIC3CID(DPRIZE *p, int n);
+int TryCollectDprize(DPRIZE *p, void *pv);
 // for each collector PZI (CppziCur) check collection. (inferred)
-void CheckDprizeCollect(struct S *prize)
+void CheckDprizeCollect(DPRIZE *prize)
 {
     void *ap[0x10];
     int i, n;
@@ -581,21 +578,12 @@ void CheckDprizeCollect(struct S *prize)
 }
 } } // namespace M_CheckDprizeCollect
 
-namespace M_func_001C5DF0 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O : SO { virtual void SetState(int state);   /* slot 76 */ char pad150[0x1C8 - 0x150]; int isCollectable; };
-struct Q { char pad[0x44]; int grf; };
-// DPRIZE::TakeDamage (new virtual slot 75): a collectable prize hit by a zap with flag 8 counts as collected.
-} } // namespace M_func_001C5DF0
 // DPRIZE::TakeDamage: a collectable prize hit by a zap with flag 8 counts as collected.
-int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here (the namespace's views) */
+int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here */
 {
-    using namespace M_func_001C5DF0;
-    struct O *p = (struct O *)this;
-    struct Q *q = (struct Q *)pzpr;
-    if (!p->isCollectable) return 0;
-    if (!(q->grf & 8)) return 0;
-    p->SetState(1);
+    if (!isCollectable) return 0;
+    if (!(pzpr->grfzpr & 8)) return 0;
+    SetState(1);
     return 1;
 }
 
@@ -737,27 +725,22 @@ namespace M_SetDprizeDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 /* The position XF as quadwords (local translation +0x30, velocity +0xB0). */
 struct O { char pad[0x30]; qword position; char p1[0xB0 - 0x40]; qword velocity; };
-struct S : SO {
-    int state; float stateTime; int initialState; int idleAnimOverride; float animSkipTime; void *smaSource; struct LO *sma; struct LO *target;
-    qword position; qword velocity; qword acceleration;
-    char p2[0x1CC - 0x1A0]; float expireTime;
-};
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern qword D_002C0D60;
 extern float D_002A773C;
-void SetLoParent(struct S *p, int a, int b);
-struct LO *GetProxyCopyValue(struct S *p);
-void UnlockProxyObject(struct LO *q, struct S *p);
-struct LO *ApplySmToObject(void *a, struct S *p, int anim, int z);
-void SkipSma(struct LO *q, float g);
-void SetSmaGoal(struct LO *q, int anim);
-void RetractSma(struct LO *q);
+void SetLoParent(DPRIZE *p, int a, int b);
+LO *GetProxyCopyValue(DPRIZE *p);
+void UnlockProxyObject(LO *q, DPRIZE *p);
+SMA *ApplySmToObject(SM *a, DPRIZE *p, int anim, int z);
+void SkipSma(SMA *q, float g);
+void SetSmaGoal(SMA *q, int anim);
+void RetractSma(SMA *q);
 // DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps).
-void SetDprizeDprizes(struct S *prize, int n)
+void SetDprizeDprizes(DPRIZE *prize, int n)
 {
     int anim = -1;
-    struct LO *q;
+    LO *q;
     if (prize->state == n) return;
     if (n != DPRIZE_STATE_IDLE && n != DPRIZE_STATE_VANISHING)
         SetLoParent(prize, 0, 0);
@@ -780,7 +763,7 @@ void SetDprizeDprizes(struct S *prize, int n)
         prize->expireTime = D_002A773C;
         prize->Remove();
         {
-            struct LO *r = GetProxyCopyValue(prize);
+            LO *r = GetProxyCopyValue(prize);
             if (r)
                 UnlockProxyObject(r, prize);
         }
@@ -900,16 +883,13 @@ changed:
 } } // namespace M_func_001C6308
 
 namespace M_func_001C64F8 { extern "C" {
-struct S : SO { char pad150[0x1A4 - 0x150]; int glintOwnerOid; int glintOwner; int leftEmitterOid; int leftEmitter; int rightEmitterOid; };
 // Splice setter: the oids of the glint owner and the left / right glint emitters (resolved at post-load).
-void SetDprizeParams(struct S *p, int glintOwnerOid, int leftEmitterOid, int rightEmitterOid) { p->glintOwnerOid = glintOwnerOid; p->leftEmitterOid = leftEmitterOid; p->rightEmitterOid = rightEmitterOid; }
+void SetDprizeParams(DPRIZE *p, OID glintOwnerOid, OID leftEmitterOid, OID rightEmitterOid) { p->glintOwnerOid = glintOwnerOid; p->leftEmitterOid = leftEmitterOid; p->rightEmitterOid = rightEmitterOid; }
 } } // namespace M_func_001C64F8
 
 namespace M_func_001C6508 { extern "C" {
-struct S : SO { char pad150[0x1A0 - 0x150]; float glintChance; char p1[0x1D0 - 0x1A4]; float bounceBoostThreshold, bounceBoost, bounceRadius, collectRadius, normalResponse, tangentResponse; char p2[0x230 - 0x1E8]; float lifetimeMin, lifetimeMax; };
-void InitDprize(struct S *p);
 // CID 91 Init (sprayable pickup; coin?). (inferred)
-void InitCoin(struct S *coin)
+void InitCoin(COIN *coin)
 {
     InitDprize(coin);
     coin->bounceRadius = 45.0f;
@@ -925,18 +905,16 @@ void InitCoin(struct S *coin)
 } } // namespace M_func_001C6508
 
 namespace M_func_001C6588 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O : SO { virtual void SetState(int state);   /* slot 76 */ int state; char pad2[0xE4]; float lifetimeLeft; };
 extern struct CLOCK D_002DDED0;
-void UpdateDprize(struct O *p);
+void UpdateDprize(DPRIZE *p);
 // COIN Update: UpdateDprize, then while idle counts the lifetime down and starts vanishing at zero.
 } } // namespace M_func_001C6588
 // COIN::Update: prize update, then while idle count the lifetime down and vanish at zero.
-void COIN::Update() { using namespace M_func_001C6588; M_func_001C6588::O *p = (M_func_001C6588::O *)this;
-    UpdateDprize(p);
-    if (!p->state) {
-        p->lifetimeLeft -= D_002DDED0.deltaTime;
-        if (p->lifetimeLeft <= 0.0f) p->SetState(5);
+void COIN::Update() { using namespace M_func_001C6588;
+    UpdateDprize(this);
+    if (!state) {
+        lifetimeLeft -= D_002DDED0.deltaTime;
+        if (lifetimeLeft <= 0.0f) SetState(5);
     }
 }
 
