@@ -25,59 +25,11 @@
 #include "sly2/cref.h"
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
+#include "sly2/hud.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
-
-/* WIDGET::state values. */
-enum WIDGET_STATE
-{
-    WIDGET_STATE_UNLOADED = 0,
-    WIDGET_STATE_HIDDEN = 1,
-    WIDGET_STATE_VISIBLE = 2,
-    WIDGET_STATE_APPEARING = 3,
-    WIDGET_STATE_DISAPPEARING = 4,
-};
-/* WIDGET::request values. */
-enum WIDGET_REQUEST
-{
-    WIDGET_REQUEST_NONE = 0,
-    WIDGET_REQUEST_HIDE = 1,
-    WIDGET_REQUEST_SHOW = 2,
-};
-
-/* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
-struct WIDGETV : public LO
-{
-    char pad50[0x8];
-    int state;             /* +0x58 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing */
-    float stateTime;           /* +0x5C time of the last state change */
-    char pad60[0x4];
-    int request;           /* +0x64 1 hide, 2 show */
-    float requestTime;         /* +0x68 */
-    char pad6C[0x4];
-    int loopAnimId;         /* +0x70 */
-    int showAnimId;         /* +0x74 */
-    int hideAnimId;         /* +0x78 */
-    int mainAnimId;         /* +0x7C */
-    char pad80[0x28];
-    int isNonExclusive;                /* +0xA8 clear: kept on the exclusive list D_003E1060 */
-};
-/* A sprite group (0x30 bytes) as DrawSprite..GetSpriteMainState read it: the 0x18-byte animations at +4, the
-   0x18-byte playback slots at +8 (slot 0 plays the group's main track), an enable flag at +0x28. */
-struct SPRITEITEM { char pad0[0x18]; };   /* an animation */
-/* a playback slot: the animation playing (-1 none), the key, the time, whether it finished (or holds a seeked
-   time), its sound */
-struct SPRITEENTRY { char pad0[0x8]; short animIndex; short keyIndex; float time; int isFinished; void *sound; };
-struct SPRITEGRP
-{
-    unsigned short numAnims, numSlots;
-    SPRITEITEM *anims;      /* +0x04 */
-    SPRITEENTRY *slots;     /* +0x08 */
-    char padC[0x1C];
-    int isEnabled;          /* +0x28 */
-};
 
 extern SW D_003DD490;           /* g_sw */
 extern CLOCK D_002DDED0;        /* g_clock */
@@ -97,10 +49,10 @@ char *GetReconPendingText(int *pn);
 char *GetReconSelectedText(int *pn);
 void GetSubtitleText(char *pchz, int n);
 void FormatSubtitleButtonGlyphs(char *pchz, int n);
-void SetWidgetRequest(WIDGETV *widget, int request);
-void SetWidgetStateW(WIDGETV *widget, int state) __asm__("SetWidgetState");
-int IsWidgetObscured(WIDGETV *widget);
-void DrawSpriteItems(SPRITEITEM *anim, int slot, int drawFlags);
+void SetWidgetRequest(WIDGET *widget, int request);
+void SetWidgetStateW(WIDGET *widget, int state) __asm__("SetWidgetState");
+int IsWidgetObscured(WIDGET *widget);
+void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags);
 void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 /* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
 int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
@@ -706,7 +658,7 @@ struct S *WIDGET_ctor(struct S *widget)
 // 0x2121C8 IsWidgetIdle
 /* Whether the widget is neither shown nor asked to show (state and request both below 2). */
 // True when the widget is neither shown nor requested to show. (inferred)
-extern "C" int IsWidgetIdle(WIDGETV *widget)
+extern "C" int IsWidgetIdle(WIDGET *widget)
 {
     int isIdle = 0;
     if (widget->state < WIDGET_STATE_VISIBLE)
@@ -1060,7 +1012,7 @@ void S::Show(int animId)
 
 // 0x2129E8 HideWidget
 // Requests that a widget hide; without a disappear animation it goes straight to hidden.
-extern "C" void HideWidget(WIDGETV *widget)
+extern "C" void HideWidget(WIDGET *widget)
 {
     SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
     if (widget->hideAnimId == -1)
@@ -1070,7 +1022,7 @@ extern "C" void HideWidget(WIDGETV *widget)
 // 0x212A30 ResetWidgetVisibleTime
 /* Restarts the state timer of a visible widget. */
 // Restarts a visible widget's display timeout. (inferred)
-extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
+extern "C" void ResetWidgetVisibleTime(WIDGET *widget)
 {
     if (widget->state == WIDGET_STATE_VISIBLE)
         widget->stateTime = D_002DDED0.realTime;
@@ -1079,7 +1031,7 @@ extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
 // 0x212A50 SetWidgetRequest
 /* Requests a state (1 hide, 2 show) and stamps the request time. */
 // Sets the widget's requested state (show / hide), acted on by UpdateWidget.
-extern "C" void SetWidgetRequest(WIDGETV *widget, int request)
+extern "C" void SetWidgetRequest(WIDGET *widget, int request)
 {
     if (widget->request != request) {
         widget->request = request;
@@ -1330,7 +1282,7 @@ void QueueWidgetRenderSetup(struct S *p){
 
 // 0x2132D0 IsWidgetVisible
 // True when the widget's main animation is active and no higher-priority exclusive widget hides it.
-extern "C" int IsWidgetVisible(WIDGETV *widget)
+extern "C" int IsWidgetVisible(WIDGET *widget)
 {
     if (widget->mainAnimId == -1) {
         return 0;
@@ -1811,7 +1763,7 @@ int HasSpriteAnim(void *pv, struct S *group, int id)
 // 0x214300 SetWidgetExclusive
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
 // Sets whether the widget is exclusive (an exclusive widget hides lower-priority widgets while shown). (inferred)
-extern "C" void SetWidgetExclusive(WIDGETV *widget, int isNonExclusive)
+extern "C" void SetWidgetExclusive(WIDGET *widget, int isNonExclusive)
 {
     int wasNonExclusive = widget->isNonExclusive;
     if (wasNonExclusive == isNonExclusive)
