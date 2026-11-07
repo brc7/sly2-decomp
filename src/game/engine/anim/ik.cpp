@@ -88,7 +88,7 @@ void ACT7::VSlot1()
     *(void **)(pact->pxf + 0xA8) = pact->pikrec;
 }
 
-static __inline__ void *PvLookup(SOIK *so, void *pbis)
+static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
 {
     VTE *e = &so->vt[51];
     return ((void *(*)(void *, int))e->fn)((char *)so + e->delta, S16Read__18CBinaryInputStream(pbis));
@@ -119,11 +119,11 @@ extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
         msg.cb = 0xE0;
         msg.nKind = 0x10;
         ikRecord = (IKREC *)AllocClearedFromWorldHeap(&msg);
-        ikRecord->current = (A *)PvLookup(so, stream);
-        ikRecord->output = (A *)PvLookup(so, stream);
-        ikRecord->ancestor = (B *)PvLookup(so, stream);
+        ikRecord->current = (A *)ReadObjectReference(so, stream);
+        ikRecord->output = (A *)ReadObjectReference(so, stream);
+        ikRecord->ancestor = (B *)ReadObjectReference(so, stream);
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->mappedPoint);
-        ikRecord->primary = PvLookup(so, stream);
+        ikRecord->primary = ReadObjectReference(so, stream);
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->localPoint);
         InitIkRecord(ikRecord);
         NewIkAct(so, ikRecord->current, -1, ikRecord);
