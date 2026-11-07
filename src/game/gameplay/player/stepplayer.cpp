@@ -77,8 +77,8 @@ void SetStepplayerGrabTarget(STEPPLAYER *pstepplayer, LO *plo);
 void ClearBhvstk(BHVSTK *pbhvstk);
 
 namespace M_InitStepplayer { extern "C" {
-struct P {
-    char pad0[0x1020]; float x1020; char pad1[0x103C - 0x1024]; float x103C; char pad2[0x1048 - 0x1040]; float x1048;
+struct P : STEP {
+    char pad0[0x1020 - 0x2C0]; float x1020; char pad1[0x103C - 0x1024]; float x103C; char pad2[0x1048 - 0x1040]; float x1048;
     char pad3[0x10C8 - 0x104C]; int x10C8; char pad4[0x10D4 - 0x10CC]; float x10D4; float x10D8; char pad5[0x10E4 - 0x10DC];
     int interactKind; int x10E8; int interactMode; int x10F0; char pad6[0x1138 - 0x10F4]; float x1138; float x113C; float x1140; float x1144;
     char pad7[0x12F0 - 0x1148]; int x12F0; char pad8[0x1300 - 0x12F4]; int x1300; float x1304; char pad9[0x1318 - 0x1308]; int x1318;
@@ -266,8 +266,8 @@ struct VTE { short d; short pad; void (*pfn)(void *, void *); };
 struct O { int pad[3]; struct VTE *vt; };
 struct Q { char pad[0x80]; int x80; };
 struct G { char pad[0x10B4]; int x10B4; };
-struct P {
-    char pad[0x150]; struct Q *controller;
+struct P : SO {
+    struct Q *controller;
     char pad1[0x26C - 0x154]; int x26C; int c270; struct O *a274[1];
     char pad2[0xDF4 - 0x278]; int xDF4;
     char pad3[0xEFC - 0xDF8]; int xEFC;
@@ -373,7 +373,7 @@ void UpdateStepplayerInteractCandidates(struct P *player)
 } } // namespace M_UpdateStepplayerInteractCandidates
 
 namespace M_SetStepplayerPlayerInteractMode { extern "C" {
-struct X { char pad[0x10DC]; int b; int pad2; int a; int d; int c; };
+struct X : STEP { char pad[0x10DC - 0x2C0]; int b; int pad2; int a; int d; int c; };
 void ReleaseInteractTargetMark(struct X *p, int a, int b, int c, int d);
 // Slot 95: stores the interact kind, target, mode and fight target.
 void SetStepplayerPlayerInteractMode(struct X *player, int a, int b, int c, int d)
@@ -465,7 +465,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; int (*pfn)(void *, void *); };
 struct SO { char pad[0xC]; struct VTE *vt; char pad2[0xFE0 - 0x10]; struct SO *psoNext; };
 struct X { char pad[0x104]; struct X *pxNext; };
-struct P { char pad[0x10C4]; void *hideVolumes; };
+struct P : STEP { char pad[0x10C4 - 0x2C0]; void *hideVolumes; };
 int IsStepplayerInJtMode(struct P *p);
 qword GetLoWorldPos(struct P *p);
 void *NewNoise(void *a, qword pos, struct P *p);
@@ -504,7 +504,7 @@ int TestStepplayerHidden(struct P *player)
 namespace M_FStepplayerNearInteractTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct P { char pad[0x10E4]; int interactKind; void *p10E8; int interactMode; };
+struct P : STEP { char pad[0x10E4 - 0x2C0]; int interactKind; void *p10E8; int interactMode; };
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
@@ -545,7 +545,7 @@ int IsStepplayerNearInteractTarget(struct P *player, int fX)
 namespace M_func_00140C30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Y { char pad[0x28]; unsigned long fl; };
-struct X { char pad[0x1010]; qword pos; };
+struct X : STEP { char pad[0x1010 - 0x2C0]; qword pos; };
 void SetJtAirJump(void *p, int a, int b, int c);
 void AddStepAxisXps(struct X *p, void *a, struct Y *b, qword d);
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
@@ -615,7 +615,7 @@ typedef union { qword q; float f[4]; } U;
 struct E { int a, b, k; char pad[0x34]; };
 struct S { char pad[0x40]; qword v; struct E *ae; };
 struct X150 { char pad[0x80]; int x80; };
-struct P { char pad[0x150]; struct X150 *controller; };
+struct P : SO { struct X150 *controller; };
 extern int D_002E1E40;
 extern int D_002DD5BC;
 extern int D_002F7900;
@@ -1235,7 +1235,7 @@ extern "C" void OnStepplayerGadgetsChanged()
 
 namespace M_IGadgetSlotFromId { extern "C" {
 struct E { int id; int a, b; };
-struct X { char pad[0x1180]; struct E ae[3]; };
+struct X : STEP { char pad[0x1180 - 0x2C0]; struct E ae[3]; };
 // Index (0..2) of the gadget slot holding the id, else -1.
 int GetGadgetSlotFromId(struct X *p, int id)
 {
@@ -1249,7 +1249,7 @@ int GetGadgetSlotFromId(struct X *p, int id)
 
 namespace M_GrfbtnGadget { extern "C" {
 struct E { int id; int a, b; };
-struct X { char pad[0x1180]; struct E ae[3]; };
+struct X : STEP { char pad[0x1180 - 0x2C0]; struct E ae[3]; };
 extern int D_002C3258[];
 // Button mask of every slot holding the gadget id.
 int GetGadgetButtonMask(struct X *p, int id)
@@ -1399,8 +1399,8 @@ void StartStepplayerThrowAt(struct P *player, void *a, void *b)
 namespace M_func_00142310 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S8 { float a, b; };
-struct X {
-    char pad[0x11C4];
+struct X : STEP {
+    char pad[0x11C4 - 0x2C0];
     float f11C4, f11C8;
     struct S8 s11CC;
     float f11D4, f11D8;
@@ -1436,8 +1436,8 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct BUF { char pad[0x30]; qword pos; };   /* the local matrix with its translation row read as a quadword */
 struct X994 { char pad[0x1C]; float t; };
-struct P {
-    char pad[0x4C8]; int grabState; char pad1[0x4D4 - 0x4CC]; int x4D4; char pad2[0x934 - 0x4D8]; LO *po;
+struct P : STEP {
+    char pad[0x4C8 - 0x2C0]; int grabState; char pad1[0x4D4 - 0x4CC]; int x4D4; char pad2[0x934 - 0x4D8]; LO *po;
     char pad3[0x994 - 0x938]; struct X994 *p994; char pad4[0x9A4 - 0x998]; int x9A4;
 };
 extern struct CLOCK D_002DDED0;
@@ -1577,7 +1577,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 struct SO { char pad[0x40]; M3 mat; };
 struct X60 { char pad[0x40]; M3 mat; };
-struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F4; char pad3[0x1150 - 0x10F8]; M3 mat; };
+struct P : LO { char pad[0x60 - 0x50]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F4; char pad3[0x1150 - 0x10F8]; M3 mat; };
 struct SO *FindSoXf(struct P *p, int x, int n);
 void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
 qword DecomposeRotationMatrixToEuler(M3 *pm);
@@ -1654,7 +1654,7 @@ namespace RO_ORDER { extern const char r_D_002A4D50[] __asm__("D_002A4D50") = "%
 namespace RO_ORDER { extern const char r_D_002A4D58[] __asm__("D_002A4D58") = "apukCur"; }
 namespace RO_ORDER { extern const float r_D_002A4D60 __asm__("D_002A4D60") = 3.40282347e+38f; }
 namespace M_func_00142868 { extern "C" {
-struct S { char pad[0x1148]; int a; float f; };
+struct S : STEP { char pad[0x1148 - 0x2C0]; int a; float f; };
 // Sets an idle timer's kind and makes it never fire (FLT_MAX).
 void InitIdleTimer(struct S *p, int a)
 {
@@ -1666,7 +1666,7 @@ void InitIdleTimer(struct S *p, int a)
 namespace M_func_00142880 { extern "C" {
 extern struct CLOCK D_002DDED0;
 float RandomFloatInRange__Fff(float a, float b);
-struct X { char pad[0x1138]; float a0, b0, a1, b1; int f; float tNext; };
+struct X : STEP { char pad[0x1138 - 0x2C0]; float a0, b0, a1, b1; int f; float tNext; };
 // Next idle event = now + a random time in the chosen range.
 void ScheduleIdleTimer(struct X *p)
 {
@@ -1873,8 +1873,8 @@ struct Q { char pad[8]; R *p8; };
 struct S {
     char pad[0xE0]; S *pNext; int pad1; float gE8; char rng[8]; int nF4;
 };
-struct P {
-    char pad[0x60]; void *p60; char pad1[0xF04 - 0x64]; int jtModeState; char pad2[0x10DC - 0xF08];
+struct P : LO {
+    char pad[0x60 - 0x50]; void *p60; char pad1[0xF04 - 0x64]; int jtModeState; char pad2[0x10DC - 0xF08];
     S *ps10DC; int pad3; int interactKind; char pad4[0x10F4 - 0x10E8]; Q *pq; void *leanTarget; int pad5;
     int n1100; int n1104; int pad6[2]; float g1110; float g1114; float g1118; int pad7;
     LM lmPan; LM lmTilt; float g1130; float g1134; char pad8[0x1148 - 0x1138]; int n1148; float g114C;
@@ -2031,7 +2031,7 @@ void PickHeroInteractTarget(P *p)
 
 namespace M_func_00143090 { extern "C" {
 struct S8 { float a, b; };
-struct X { char pad[0x1120]; struct S8 a, b, c; };
+struct X : STEP { char pad[0x1120 - 0x2C0]; struct S8 a, b, c; };
 // Copies three pairs of idle-timer ranges into the record.
 void SetStepplayerIdleParams(struct X *player, struct S8 *a, struct S8 *b, struct S8 *c)
 {
@@ -2044,7 +2044,7 @@ void SetStepplayerIdleParams(struct X *player, struct S8 *a, struct S8 *b, struc
 namespace RO_ORDER { extern const float r_D_002A4D68 __asm__("D_002A4D68") = 3.40282347e+38f; }
 namespace M_func_001430C8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x10F8]; void *leanTarget; int x10FC; };
+struct P : STEP { char pad[0x10F8 - 0x2C0]; void *leanTarget; int x10FC; };
 extern float D_002BD2C0;
 extern float D_002BD2C4;
 qword GetLoWorldPos(void *p);
@@ -2656,7 +2656,7 @@ namespace M_DrainStepplayerMp { extern "C" {
 extern struct CLOCK D_002DDED0;
 int GetStepplayerMp(void *p);
 void SetStepplayerMp(void *p, int n);
-struct P { char pad[0x1308]; float g; };
+struct P : STEP { char pad[0x1308 - 0x2C0]; float g; };
 // Accumulates rate * dt and subtracts whole MP units (floored at 0).
 void DrainStepplayerMp(struct P *player, float f)
 {
