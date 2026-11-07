@@ -16,7 +16,8 @@
 struct GEOM
 {
       int numPositions; /* number of vertex positions */
-      VECTOR *positions; /* vertex positions */
+      VECTOR4 *positions; /* vertex positions (16 bytes each: so.cpp copies numPositions * 0x10 bytes, mark.cpp reads
+                             them as quadwords) */
       int numSurfaces; /* number of surfaces (faces) */
       SURF *surfaces; /* the surfaces */
       int numEdges; /* number of edges */
