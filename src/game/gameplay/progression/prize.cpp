@@ -1967,16 +1967,14 @@ void SetVaultOpened(int f)
 } // namespace M_func_001C8188
 
 namespace M_InitVault { extern "C" {
-struct S { char pad[0x40]; int taggedFlags; char pad2[0x13C]; int state; char pad3[0x10]; int selectedDigit; char pad4[0x58]; int combination, introDialog, notEnoughCluesDialog, openedDialog, rewardPowerup; };
-void InitPo(struct S *vault);
-// Is a tagged LO flag word a pointer (low bit clear)?
+void InitPo(VAULT *vault);
 // VAULT vtable slot 7 (Init): PO defaults; the default combination is 123 (0x7B), no dialogs or reward powerup,
 // state and dial selection off (-1).
-void InitVault(struct S *vault)
+void InitVault(VAULT *vault)
 {
     int v;
     InitPo(vault);
-    v = vault->taggedFlags;
+    v = vault->unknown40;
     vault->combination = 0x7B;
     vault->openedDialog = -1;
     vault->notEnoughCluesDialog = -1;
@@ -1984,7 +1982,7 @@ void InitVault(struct S *vault)
     vault->rewardPowerup = -1;
     vault->state = -1;
     vault->selectedDigit = -1;
-    if (IsPointer(v)) *(int *)v |= 2; else vault->taggedFlags = v | 2;
+    if (IsPointer(v)) *(int *)v |= 2; else vault->unknown40 = v | 2;
 }
 } } // namespace M_InitVault
 
@@ -1999,16 +1997,14 @@ void VAULT::PostLoad()
 }
 
 namespace M_func_001C8350 { extern "C" {
-struct S : PO { int state; char p1[0x198 - 0x184]; int enteredCode; void *relay; char p2[0x1F0 - 0x1A0]; int combination; };
-void UpdateSo(struct S *vault);
+void UpdateSo(VAULT *vault);
 int IsRelayFiring(void *vault);
-void SetVaultState(struct S *vault, int n);
-void UpdateVaultInput(struct S *vault);
+void UpdateVaultInput(VAULT *vault);
 void SetVaultOpened(int f);
 // VAULT vtable slot 16 (Update). States: 0 closed, 1 intro relay playing, 2 dialling (UpdateVaultInput) until the
 // relay ends, then 3 if the entered code equals the combination else 4 (wrong code, back to 0), 3 opening (records
 // the vault as opened), 5 open.
-void UpdateVault(struct S *vault)
+void UpdateVault(VAULT *vault)
 {
     int s;
     UpdateSo(vault);
@@ -2049,16 +2045,14 @@ namespace M_func_001C84D8 {
    variable (a3) reproduces the target's daddu scheduling; register pins as in other VU files. */
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
-struct POINT {char pad[0x10];float x,y;};
-struct TIMER {char pad[0xA8];float end;};
+struct TIMER {char pad[0xA8];float end;};   /* the dial timer XF: +0xA8 is its end time (so.h names it as an XF pointer) */
 struct SGG;struct ALARM;
-struct S : SO {struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int selectedDigit,enteredCode;SGG*relay;void*dialAnim;char pad1A4[0x1F0-0x1A4];int combination;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
 extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" int ConsumeButtonsPressedWithin__5POCTLUif(void*,int,float);
-extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
-extern "C" void SetVaultDialState(struct S*,int);
+extern "C" void func_001E0020(void*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
+extern "C" void SetVaultDialState(VAULT*,int);
 extern "C" int IsAsegaRetracted(void*);
 // Helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum (small asm wrappers/accessors shaped for the match).
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
@@ -2075,24 +2069,24 @@ static inline qword*TableWithMinimum(char*minimumPage,char*tablePage,float*out){
 // Dial input: the stick picks the nearest of nine dial positions (with hysteresis for the current one), a button
 // enters it as the next digit (code = code*10 % 1000 + digit + 1), and when the entered code equals the vault's
 // combination the vault opens; another button aborts. Runs until the sub-state stops changing.
-extern "C" void UpdateVaultInput(struct S*vault){
+extern "C" void UpdateVaultInput(VAULT*vault){
  union U point;
  int old;
  int divisor=1000;
  do{
-  old=vault->state;
-  if(ConsumeButtonsPressedWithin__5POCTLUif(vault->input,0x30,0)){
+  old=vault->dialState;
+  if(ConsumeButtonsPressedWithin__5POCTLUif(vault->controller,0x30,0)){
    func_001E0020(vault->relay,(ALARM*)0x655);
    SetVaultDialState(vault,3);
   }
-  switch(vault->state){
+  switch(vault->dialState){
   case 0:
-   if(ConsumeButtonsPressedWithin__5POCTLUif(vault->input,0xC0,0)){SetVaultDialState(vault,2);break;}
+   if(ConsumeButtonsPressedWithin__5POCTLUif(vault->controller,0xC0,0)){SetVaultDialState(vault,2);break;}
    {
     char*minimumPage=MinimumPage();char*tablePage=SelectionTablePage();int current=vault->selectedDigit,best;register int comparison __asm__("$7")=current;
     unsigned i;qword*table;
     float bias,smallest;
-    qword pt=Pack(vault->input->x,vault->input->y,0),vp;bias=D_002C0FE8;__asm__("qmtc2.ni %2,%0":"=j"(vp),"=m"(point.q):"r"(pt));point.q=pt;table=TableWithMinimum(minimumPage,tablePage,&smallest);best=-1;
+    qword pt=Pack(vault->controller->dxLeft,vault->controller->dyLeft,0),vp;bias=D_002C0FE8;__asm__("qmtc2.ni %2,%0":"=j"(vp),"=m"(point.q):"r"(pt));point.q=pt;table=TableWithMinimum(minimumPage,tablePage,&smallest);best=-1;
     for(i=0;i<9;i++){
      float distance=Len(VuSub(vp,table[i]));
      if(i==comparison)distance*=bias;
@@ -2102,10 +2096,10 @@ extern "C" void UpdateVaultInput(struct S*vault){
    }
    break;
   case 1:
-   if(vault->timer->end<=ClockTime())SetVaultDialState(vault,0);
+   if(((struct TIMER*)vault->dialTimer)->end<=ClockTime())SetVaultDialState(vault,0);
    break;
   case 2:
-   if(!vault->dialAnim||IsAsegaRetracted(vault->dialAnim)){
+   if(!vault->pasegaDial||IsAsegaRetracted(vault->pasegaDial)){
     int next=(vault->enteredCode*10)%divisor;next++;next+=vault->selectedDigit;
     vault->enteredCode=next;
     if(next==vault->combination){func_001E0020(vault->relay,(ALARM*)0x655);SetVaultDialState(vault,3);}
@@ -2113,28 +2107,22 @@ extern "C" void UpdateVaultInput(struct S*vault){
    }
    break;
   }
- }while(vault->state!=old);
+ }while(vault->dialState!=old);
 }
 
-#define OFF(t,m) ((int)&((t*)0)->m)
 } // namespace M_func_001C84D8
-#undef OFF
 
 namespace RO_ORDER { extern const float r_D_002A7798 __asm__("D_002A7798") = 3.40282347e+38f; }
 namespace M_func_001C8730 { extern "C" {
-struct S : PO {   /* VAULT's own fields (classes.h VAULT : PO) */
-    int state; float stateTime; int p188[2]; PO *user; int selectedDigit; int p198; void *relay; int p1A0; int dialogId;
-    char p1[0x1F4 - 0x1A8]; void *introDialog; int p1F8; void *openedDialog; int rewardPowerup; int p204[2]; void *a20C[6];
-};
 extern struct CLOCK D_002DDED0;
 extern char D_003DD040[];
 extern char D_003DD490[];
 void StopDialog(void *vault);
 void StopRelay(void *vault);
-void SetVaultDialState(struct S *vault, int n);
+void SetVaultDialState(VAULT *vault, int n);
 void ReleaseSwLetterbox(void *vault);
 void SetPowerupAcquired(int n, int f);
-int StartDialog(void *vault, void *q, int f);
+int StartDialog(void *vault, int q, int f);
 void IncrementSwInputLock(void *vault);
 void AcquireSwLetterbox(void *vault);
 void DecrementSwInputLock(void *vault);
@@ -2142,7 +2130,7 @@ void FireRelay(void *vault, PO *q);
 // Vault state change: stops the current dialog and relay, leaves the old state (dialling releases the letterbox; opening
 // grants the reward powerup and plays the opened dialog) and enters the new one (dialling takes the letterbox, resets
 // the dial and plays the intro dialog; other states fire the vault's own events). (inferred)
-void SetVaultState(struct S *vault, int n)
+void SetVaultState(VAULT *vault, int n)
 {
     void *pv;
     if (n == vault->state) return;
@@ -2194,7 +2182,7 @@ void SetVaultState(struct S *vault, int n)
         break;
     }
     }
-    pv = vault->a20C[vault->state];
+    pv = vault->relays[vault->state];
     vault->relay = pv;
     if (pv)
         FireRelay(pv, vault->user);
@@ -2203,11 +2191,8 @@ void SetVaultState(struct S *vault, int n)
 
 namespace M_func_001C8918 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct X { char pad[0xA0]; void *parentFrame; int pA4; float endTime; int pAC; qword startPoint; qword digitPoint; qword endPoint; };
-struct S {
-    char pad[0x188]; int dialState; float dialStateTime; void *user; int selectedDigit; int p198[2];
-    char dialAnim[8]; void *digitTargets[9]; void *digitAnims[14]; struct X *dialTimer; void *dialCenter;
-};
+struct X {   /* the dial timer XF as the dial reads it (so.h names +0xA8 as an XF pointer) */
+    char pad[0xA0]; void *parentFrame; int pA4; float endTime; int pAC; qword startPoint; qword digitPoint; qword endPoint; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002C1080;
 extern qword D_002C1090;
@@ -2217,22 +2202,22 @@ qword ConvertVecBetweenLos(void *vault, void *frame, qword q);
 qword ConvertXfVec(void *frame, void *vault, qword q);
 qword GetLoWorldPos(void *vault);
 qword TransformXfPos(void *frame, void *vault, qword q);
-void SetXfRole(struct S *vault, struct X *px, int n);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
+void SetXfRole(VAULT *vault, XF *px, int n);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, VAULT *owner, float position, float speed, int flags, void *output);
 // Loads the vault dial's selected index and its timer object (register-pinned for the match).
-static inline void Selection(const struct S*vault,int*index,struct X**timer){
+static inline void Selection(const VAULT*vault,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
  __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(vault),"m"(vault->selectedDigit),"m"(vault->dialTimer));
  *index=selected;*timer=receiver;
 }
 // Dial sub-state change (-1 off, 0 choosing, 1 turning to the chosen digit, 2 entering it, 3 done): starts the dial
 // animation and timer for the new sub-state. (inferred)
-void SetVaultDialState(struct S *vault, int n)
+void SetVaultDialState(VAULT *vault, int n)
 {
     struct X *px;
     qword q;
     if (n == vault->dialState) return;
-    DropAsegaRef(vault->dialAnim);
+    DropAsegaRef(&vault->pasegaDial);
     vault->dialState = n;
     vault->dialStateTime = D_002DDED0.time;
     switch (n) {
@@ -2245,27 +2230,27 @@ void SetVaultDialState(struct S *vault, int n)
         break;
     case 1:
         SetStepplayerGrabTarget(vault->user, vault->dialCenter);
-        vault->dialTimer->endTime = D_002DDED0.time + 0.25f;
-        px = vault->dialTimer;
+        ((struct X *)vault->dialTimer)->endTime = D_002DDED0.time + 0.25f;
+        px = (struct X *)vault->dialTimer;
         q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1080));
         px->startPoint = q;
         {int selected;Selection(vault,&selected,&px);
         q=TransformXfPos(0,px->parentFrame,GetLoWorldPos(vault->digitTargets[selected]));}
         px->digitPoint = q;
-        px = vault->dialTimer;
+        px = (struct X *)vault->dialTimer;
         q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1090));
         px->endPoint = q;
         SetXfRole(vault, vault->dialTimer, 0x11);
         break;
     case 2:
         SetStepplayerGrabTarget(vault->user, vault->digitTargets[vault->selectedDigit]);
-        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(vault->digitAnims[vault->selectedDigit], vault, 0.0f, 1.0f, 0, vault->dialAnim);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(vault->digitAnims[vault->selectedDigit], vault, 0.0f, 1.0f, 0, &vault->pasegaDial);
         break;
     }
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,time)==0 && OFF(struct CLOCK,deltaTime)==4 && OFF(struct X,parentFrame)==0xA0 && OFF(struct X,endTime)==0xA8 && OFF(struct X,startPoint)==0xB0 && OFF(struct X,digitPoint)==0xC0 && OFF(struct X,endPoint)==0xD0 && OFF(struct S,dialState)==0x188 && OFF(struct S,dialStateTime)==0x18C && OFF(struct S,user)==0x190 && OFF(struct S,selectedDigit)==0x194 && OFF(struct S,dialAnim)==0x1A0 && OFF(struct S,digitTargets)==0x1A8 && OFF(struct S,digitAnims)==0x1CC && OFF(struct S,dialTimer)==0x204 && OFF(struct S,dialCenter)==0x208)?1:-1];
+typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,time)==0 && OFF(struct CLOCK,deltaTime)==4 && OFF(struct X,parentFrame)==0xA0 && OFF(struct X,endTime)==0xA8 && OFF(struct X,startPoint)==0xB0 && OFF(struct X,digitPoint)==0xC0 && OFF(struct X,endPoint)==0xD0)?1:-1];
 } } // namespace M_func_001C8918
 #undef OFF
 
@@ -2273,14 +2258,12 @@ namespace M_func_001C8AF0 { extern "C" {
 extern SW D_003DD490;
 struct H;
 extern struct H D_003DD040;
-struct S : PO { char pad180[0x190 - 0x180]; int user; char pad2[0x64]; int notEnoughCluesDialog; };
-void SetVaultState(struct S *vault, int n);
 void RestartHudWidget2(SW *pg);
 void StartDialog(struct H *ph, int n, int m);
 // Splice entry, when the player uses the vault: with enough clue bottles collected (g_sw counters at +0x4764/+0x4768)
 // it remembers the user and starts the intro (state 1); otherwise it shows the clue count HUD and plays the
 // not-enough-clues dialog. (inferred)
-void TriggerVault(struct S *vault, int n)
+void TriggerVault(VAULT *vault, PO *n)
 {
     SW *pg = &D_003DD490;
     if (pg->numCluesCollected >= pg->numClues) {

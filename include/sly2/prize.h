@@ -203,9 +203,9 @@ struct VAULT : PO
     LO *digitTargets[9];    /* +0x1A8 grab targets of the nine dial positions */
     ASEG *digitAnims[9];    /* +0x1CC their animations */
     int combination;        /* +0x1F0 default 123 */
-    void *introDialog;      /* +0x1F4 (-1 until set) */
+    int introDialog;        /* +0x1F4 dialogs (-1: none; SetVaultState tests them against 0) */
     int notEnoughCluesDialog; /* +0x1F8 */
-    void *openedDialog;     /* +0x1FC */
+    int openedDialog;       /* +0x1FC */
     int rewardPowerup;      /* +0x200 powerup granted on opening (-1: none) */
     XF *dialTimer;          /* +0x204 the dial timer frame (oid 0x645) */
     LO *dialCenter;         /* +0x208 grab target while turning */
