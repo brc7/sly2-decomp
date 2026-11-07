@@ -1593,11 +1593,8 @@ void UpdateSndmgr(SNDMGR *soundManager)
 
 namespace M_func_001FDA48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct CLQ { float c0, c1, c2; float pad; };   /* c0 + c1 t + c2 t^2 */
 /* NOISETYPE (noise.cpp): range +0x54, height range +0x58 (low, high) */
 struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
-/* SNDMGR (layout: sly2/sndmgr.h) */
-struct P { char pad[0x10]; int isHeadsetEnabled; char pad2[0x6C - 0x14]; int isMicLevelQueryBusy; float micLevel; char micNoise[0xC]; struct CLQ micNoiseRangeCurve; struct CLQ micNoiseHeightCurve; };
 struct SW { char pad[0x4034]; struct O *micNoiseType; };   /* the world's noise type for the headset microphone */
 extern struct SW D_003DD490;
 void OnMicLevelResult(void);
@@ -1607,15 +1604,15 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(void *);
 void ReplaceHeldNoise(struct O *, qword, void *, void *);
 #define CID_STEPPLAYER 0x34
-static inline float Eval(struct CLQ *curve, float t)
+static inline float Eval(CLQ *curve, float t)   /* g0 + g1 t + g2 t^2 */
 {
-    return curve->c0 + t * (curve->c1 + t * curve->c2);
+    return curve->g0 + t * (curve->g1 + t * curve->g2);
 }
 // Headset microphone: with the headset option on, keeps one level query (SUKR command 0xB) in flight; while the hero is
 // a player and the level is above half, the hero makes a noise guards can hear, its range and height growing with the
 // level (ReplaceHeldNoise; with no noise type the held noise is released). (inferred; was named UpdateSoundListener,
 // UpdateSndmgrListener in the draft annotation)
-void UpdateHeadsetMicrophone(struct P *soundManager)
+void UpdateHeadsetMicrophone(SNDMGR *soundManager)
 {
     struct O *noiseType;
     qword position;
@@ -1657,22 +1654,19 @@ void PollSoundManagerStatus(SNDMGR *soundManager)
 namespace M_func_001FDC08 {
 // Select and normalize three animation blend weights.
 extern "C" {
-struct REF {char pad50[0x50];unsigned short flags,playState;};   /* the music STREAMSND */
-struct COEF {float fastSpeed,slowSpeed,fastTime;};   /* SMP */
 struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
 /* SNDMGR (layout: sly2/sndmgr.h) */
-struct P {char pad5C[0x5C];int musicLayer2Requests,musicLayer0Requests,selectedMusicLayer;char pad68[0xA0];float musicLayerWeights[3];struct COEF musicLayerSmoothing[3];char pad138[0xCC];int musicStackCount;struct REF *musicStack[8];};
 extern char D_003DD490[];
 struct PLAYER *GetCurrentPo(void *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *,int);
-float SmoothValue__FfffP3SMPPf(float,float,float,struct COEF *,float *);
-void SetStreamsndGroupVolume(struct REF *,int,float);
+float SmoothValue__FfffP3SMPPf(float,float,float,SMP *,float *);
+void SetStreamsndGroupVolume(STREAMSND *,int,float);
 // Picks the music layer (0, 1 or 2) from requests and the player's state (alert, hiding, actions) and cross-fades the
 // three layers of the current music stream toward it, keeping their total power constant. (inferred)
-void UpdateMusicMix(struct P *input)
+void UpdateMusicMix(SNDMGR *input)
 {
-    struct P *soundManager = input;
-    struct REF *music;
+    SNDMGR *soundManager = input;
+    STREAMSND *music;
     int i;
     float sum, selectedSquare;
     soundManager->selectedMusicLayer = 1;
@@ -1686,7 +1680,7 @@ void UpdateMusicMix(struct P *input)
         else if (player->action >= 0) { if (player->action < 3 || player->action == 13) soundManager->selectedMusicLayer = 0; }
     }
     /* the top of the music stack (this form matches; musicStack[count - 1] does not) */
-    if (soundManager->musicStackCount > 0) music = ((struct REF **)&soundManager->musicStackCount)[soundManager->musicStackCount];
+    if (soundManager->musicStackCount > 0) music = ((STREAMSND **)&soundManager->musicStackCount)[soundManager->musicStackCount];
     else music = 0;
     /* a stream that is still starting jumps straight to the selected layer, a playing one cross-fades (the goto shape
        is the one that matches: the smoothing call is emitted after the jump) */
