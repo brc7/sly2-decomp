@@ -143,21 +143,17 @@ void SetRipgEmitb(RIPG *pripg, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5E
 float RandomFloatInRange(float gMin, float gMax);
 
 namespace M_InitEmitBlock { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-typedef struct M4 { qword aq[4]; } M4;
-typedef struct B7 { qword aq[7]; } B7;
-extern M4 D_002DE5B0;
-extern B7 D_002DE5F0;
-struct S { int cref; int particleKind; int pad[2]; M4 origin; B7 velocity; char particle[0x100 - 0xC0]; };   /* EMITB */
+extern EMITO D_002DE5B0;
+extern EMITVEL D_002DE5F0;   /* defined above through its initializer view (EMITDEF::EMITVELIsland) */
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
-void InitEmitBlock(struct S *p)
+void InitEmitBlock(EMITB *p)
 {
-    func_002333B4(p, 0, sizeof(struct S));
+    func_002333B4(p, 0, sizeof(EMITB));
     p->cref = 1;
     p->particleKind = -1;
-    p->origin = D_002DE5B0;
-    p->velocity = D_002DE5F0;
+    p->emito = D_002DE5B0;
+    p->vel = D_002DE5F0;
 }
 } } // namespace M_InitEmitBlock
 
