@@ -2784,17 +2784,12 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
 
 // 0x1789F8 UpdateBhvpath
 namespace M_UpdateBhvpath { extern "C" {
-struct Y; struct X; struct A; struct T; 
-typedef int qword __attribute__((mode(TI)));
+struct T;
 struct G;
 extern struct G D_003DD020;
-struct Y { char pad[0x10]; void *pathzone; char pad2[0x0C]; char unknown20[1]; };
-struct X { char pad[0xDC]; struct Y *unknownDC; };
-struct A { char pad[0xE8]; struct X *unknownE8; };
+/* the blocker FindShapeFreePoint returns: a shape-derived object with a flag at +0x1D8 (class unidentified) */
 struct T { char pad[0x28]; unsigned long loFlags; char pad2[0x1D8 - 0x30]; int unknown1D8; };
-void UpdateBhv(BHVPATH *p);
 void StepBhvpathAlongShape(BHVPATH *p);
-qword GetLoWorldPos(struct A *a);
 int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
 void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 float GetShapeDistanceBetween(struct T *p, float a, float b);
@@ -2816,7 +2811,7 @@ void UpdateBhvpath(BHVPATH *behavior) {
     int s;
     UpdateBhv(behavior);
     StepBhvpathAlongShape(behavior);
-    pos = GetLoWorldPos(((struct A *)behavior->owner));
+    pos = GetLoWorldPos(behavior->owner);
     do {
         s = behavior->state;
         switch (s) {
@@ -2824,9 +2819,9 @@ void UpdateBhvpath(BHVPATH *behavior) {
         case 2:
         case 3:
             if (!behavior->ignoresBlockers) {
-                struct X *x = ((struct A *)behavior->owner)->unknownE8;
-                struct Y *y = x ? x->unknownDC : 0;
-                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->unknownDC->unknown20, behavior->shape, behavior->isReversed == 0, &((struct T *)behavior->blocker), &behavior->blockerRange, behavior->pathParam);
+                SOPHYS *x = behavior->owner->physics;
+                REGENT *y = x ? x->pregent : 0;
+                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->pregent->unknown20, behavior->shape, behavior->isReversed == 0, &((struct T *)behavior->blocker), &behavior->blockerRange, behavior->pathParam);
                 behavior->isBlocked = n;
                 switch (n) {
                 case 0:
