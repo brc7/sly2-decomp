@@ -1644,26 +1644,22 @@ extern "C" void GetSoRotXfVelocityLocal(SO *so)
 
 // 0x1F4898 SetSoPosXfVelocityLocal
 namespace M_func_001F4898 { extern "C" {
-struct O; struct P; struct Q;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x98]; short role; char pad2[0xA0 - 0x9A]; int parent; char pad3[0xB0 - 0xA4]; qword velocity; };
-struct P { char pad[0x58]; struct O *positionXf; };
-struct Q { char pad[0x60]; int rootTransform; };
 int IsXfRoleMoving(int);
-void SetXfRole(void *, struct O *, int);
-qword ConvertXfVec(int, int, qword);
-void UnsettleXfSlot(void *, struct O *);
+void SetXfRole(void *, XF *, int);
+qword ConvertXfVec(XF *, XF *, qword);
+void UnsettleXfSlot(void *, XF *);
 void InvalidateSoAaox(void *);
 void WakeSo(void *);
 void SetSoBit35Hierarchy(void *, int);
 // Sets the position XF's velocity from a vector in the root XF's space, refreshes and marks the physics.
-void SetSoPosXfVelocityLocal(struct P *so, qword v)
+void SetSoPosXfVelocityLocal(SO *so, qword v)
 {
-    struct O *po;
-    if (!IsXfRoleMoving(so->positionXf->role)) SetXfRole(so, so->positionXf, 1);
-    po = so->positionXf;
-    po->velocity = ConvertXfVec(((struct Q *)so)->rootTransform, po->parent, v);
-    UnsettleXfSlot(so, so->positionXf);
+    XF *po;
+    if (!IsXfRoleMoving(so->unknown58->role)) SetXfRole(so, so->unknown58, 1);
+    po = so->unknown58;
+    *(qword *)&po->velocity = ConvertXfVec(so->rootTransform, po->parent, v);
+    UnsettleXfSlot(so, so->unknown58);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -1672,26 +1668,22 @@ void SetSoPosXfVelocityLocal(struct P *so, qword v)
 
 // 0x1F4930 SetSoRotXfVelocityLocal
 namespace M_func_001F4930 { extern "C" {
-struct O; struct P; struct Q;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x98]; short role; char pad2[0xA0 - 0x9A]; int parent; char pad3[0xB0 - 0xA4]; qword velocity; };
-struct P { char pad[0x5C]; struct O *rotationXf; };
-struct Q { char pad[0x60]; int rootTransform; };
 int IsXfRoleMoving(int);
-void SetXfRole(void *, struct O *, int);
-qword ConvertXfVec(int, int, qword);
-void UnsettleXfSlot(void *, struct O *);
+void SetXfRole(void *, XF *, int);
+qword ConvertXfVec(XF *, XF *, qword);
+void UnsettleXfSlot(void *, XF *);
 void InvalidateSoAaox(void *);
 void WakeSo(void *);
 void SetSoBit35Hierarchy(void *, int);
 // Sets the rotation XF's angular velocity from a vector in the root XF's space.
-void SetSoRotXfVelocityLocal(struct P *so, qword v)
+void SetSoRotXfVelocityLocal(SO *so, qword v)
 {
-    struct O *po;
-    if (!IsXfRoleMoving(so->rotationXf->role)) SetXfRole(so, so->rotationXf, 1);
-    po = so->rotationXf;
-    po->velocity = ConvertXfVec(((struct Q *)so)->rootTransform, po->parent, v);
-    UnsettleXfSlot(so, so->rotationXf);
+    XF *po;
+    if (!IsXfRoleMoving(so->unknown5C->role)) SetXfRole(so, so->unknown5C, 1);
+    po = so->unknown5C;
+    *(qword *)&po->velocity = ConvertXfVec(so->rootTransform, po->parent, v);
+    UnsettleXfSlot(so, so->unknown5C);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -1826,19 +1818,16 @@ extern "C" void MarkSoTreeBoundsDirty(SO *so)
 
 // 0x1F4BA8 ClearSoTreeBoundsDirty
 namespace M_func_001F4BA8 { extern "C" {
-struct T; struct S;
-struct T { char pad[0x70]; ulong flags; };
-struct S { char pad[0xEC]; struct T *tree; };
 struct DL;
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 // Clears the tree's bounds-dirty flag and removes it from g_sw.dlSoTreeQueue1.
-void ClearSoTreeBoundsDirty(struct S *so)
+void ClearSoTreeBoundsDirty(SO *so)
 {
-    struct T *pt = so->tree;
+    SOTREE *pt = so->physicsTree;
     if (!pt) return;
-    if ((pt->flags & 1) == 0) return;
-    pt->flags &= ~1;
-    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, so->tree);
+    if (pt->isInFirstQueue == 0) return;
+    pt->isInFirstQueue = 0;
+    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, so->physicsTree);
 }
 } } // namespace M_func_001F4BA8
 
@@ -1862,28 +1851,22 @@ extern "C" void InvalidateSoAaox(SO *so)
 
 // 0x1F4C58 FindSoXf
 namespace M_PxfFindSo { extern "C" {
-struct E; struct S;
-struct E { char pad[0x94]; int kind; int pad2; int oid; char pad4[0x60]; };
-struct S { char pad[0x50]; int numTransforms; struct E *transforms; };
 // Finds the object's XF whose ids match the given XF's (Sly 1 PxfFindSo).
-struct E *FindSoXf(struct S *so, int oid, int kind)
+XF *FindSoXf(SO *so, int oid, int kind)
 {
     int i;
-    for (i = 0; i < so->numTransforms; i++) { struct E *pe = &so->transforms[i]; if (pe->oid == oid && pe->kind == kind) return pe; }
+    for (i = 0; i < so->numTransforms; i++) { XF *pe = &so->transforms[i]; if (pe->oid == oid && pe->kind == kind) return pe; }
     return 0;
 }
 } } // namespace M_PxfFindSo
 
 // 0x1F4CA0 CloneSoXfRef
 namespace M_func_001F4CA0 { extern "C" {
-struct T; struct S;
-struct T { char pad[0x80]; int unknown80; int unknown84; void *source88; void *source8C; char pad2[0x100 - 0x90]; };
-struct S { char pad[0x10]; struct S *parent; char pad2[0x50 - 0x14]; int numTransforms; struct T *transforms; };
 // Slot 52: re-points an XF pointer from the source object's XF block into the clone's.
-void CloneSoXfRef(struct S *pnew, struct S *pold, struct T **pp)
+void CloneSoXfRef(SO *pnew, SO *pold, XF **pp)
 {
-    struct T *t = *pp;
-    struct T *n;
+    XF *t = *pp;
+    XF *n;
     int i;
     if (!t) return;
     n = 0;
@@ -1895,8 +1878,8 @@ void CloneSoXfRef(struct S *pnew, struct S *pold, struct T **pp)
         i = t - pold->transforms;
         if (i >= 0 && i < pold->numTransforms) n = pnew->parent->transforms + i;
     }
-    if (n->source88 == &t->unknown80) n->source88 = &n->unknown80;
-    if (n->source8C == &t->unknown84) n->source88 = &n->unknown84;   /* sic: the game writes source88 here too */
+    if (n->timeSource == &t->segmentStartTime) n->timeSource = &n->segmentStartTime;
+    if (n->speedSource == &t->segmentEndTime) n->timeSource = &n->segmentEndTime;   /* sic: the game writes timeSource here too */
     *pp = n;
 }
 } } // namespace M_func_001F4CA0
