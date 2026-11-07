@@ -21,6 +21,7 @@
 #include "sly2/cm.h"
 #include "sly2/lo.h"
 #include "sly2/snd.h"
+#include "sly2/step.h"
 #include "sly2/vu0.h"
 
 /* g_sndmgr's static construction and destruction. */
@@ -390,7 +391,7 @@ void UpdateSndPositional(struct P *sound)
 } } // namespace M_UpdateSndPositional
 
 namespace M_SetSndFlags { extern "C" {
-struct S { char pad[0x50]; unsigned short flags; };
+struct S : BASIC { char pad[0x50 - 0x10]; unsigned short flags; };
 void AddSndToDirtyList(struct S *);
 void RemoveSndFromDirtyList(struct S *);
 // Sets the masked bits of a sound's request flags; a sound with pending requests is put on the manager's dirty list,
@@ -873,7 +874,7 @@ void StartStreamsnd(struct P *sound)
 } } // namespace M_StartStreamsnd
 
 namespace M_SetStreamsndGroupVolume { extern "C" {
-struct P { char pad[0x70]; float groupVolumes[6]; char pad2[0x3BC - 0x88]; int dirtyGroups; };
+struct P : STREAMSND { char pad[0x70 - 0x60]; float groupVolumes[6]; char pad2[0x3BC - 0x88]; int dirtyGroups; };
 struct S;
 extern struct S D_002BBB60;   /* the volume limits (0..1) */
 float ClampToLimits__FP2LMf(struct S *, float);
@@ -894,7 +895,7 @@ void SetStreamsndGroupVolume(struct P *sound, unsigned int group, float volume)
 } } // namespace M_SetStreamsndGroupVolume
 
 namespace M_func_001FC380 { extern "C" {
-struct P { char pad[0x88]; int groupPans[6]; char pad2[0x3BC - 0xA0]; int dirtyGroups; };
+struct P : STREAMSND { char pad[0x88 - 0x60]; int groupPans[6]; char pad2[0x3BC - 0xA0]; int dirtyGroups; };
 void SetSndFlags(struct P *, int, int);
 static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360; }   /* to 0..359 */
 // Sets the pan of one of a stream's six sub-groups and marks it dirty. (inferred)
@@ -914,7 +915,7 @@ void SetStreamGroupPan(struct P *sound, unsigned int group, int deg)
 namespace M_func_001FC408 { extern "C" {
 struct R { float lo, hi; };
 struct E { int object; struct R range; float gain; };
-struct P { char pad[0xA0]; int groupSourceCounts[6]; struct E groupSources[6][8]; };
+struct P : STREAMSND { char pad[0xA0 - 0x60]; int groupSourceCounts[6]; struct E groupSources[6][8]; };
 void SetSndFlags(struct P *, int, int);
 // Adds a positional source (object, volume, range) to a stream sub-group (at most 8 per group); the loudest audible
 // source drives the group's volume and pan. (inferred)
@@ -934,7 +935,7 @@ void AddStreamGroupSource(struct P *sound, unsigned int group, int object, struc
 } } // namespace M_func_001FC408
 
 namespace M_func_001FC4F8 { extern "C" {
-struct S { char pad[0x3B8]; int streamKind; };   /* bit 2: looping */
+struct S : STREAMSND { char pad[0x3B8 - 0x60]; int streamKind; };   /* bit 2: looping */
 // Kind of a streamed sound (slot 8): 2 when looping, else 1. (inferred)
 int GetStreamSoundKind(struct S *sound) { return (sound->streamKind & 4) ? 2 : 1; }
 } } // namespace M_func_001FC4F8
@@ -1872,9 +1873,9 @@ void PollSoundManagerStatus(struct A *soundManager)
 namespace M_func_001FDC08 {
 // Select and normalize three animation blend weights.
 extern "C" {
-struct REF {char pad50[0x50];unsigned short flags,playState;};   /* the music STREAMSND */
+struct REF : BASIC { char pad50[0x50 - 0x10]; unsigned short flags,playState;};   /* the music STREAMSND */
 struct COEF {float fastSpeed,slowSpeed,fastTime;};   /* SMP */
-struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
+struct PLAYER : STEP { char pad4C8[0x4C8 - 0x2C0]; int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
 /* SNDMGR (layout: see SNDMGRV) */
 struct P {char pad5C[0x5C];int musicLayer2Requests,musicLayer0Requests,selectedMusicLayer;char pad68[0xA0];float musicLayerWeights[3];struct COEF musicLayerSmoothing[3];char pad138[0xCC];int musicStackCount;struct REF *musicStack[8];};
 extern char D_003DD490[];
@@ -2099,7 +2100,7 @@ extern "C" void StopMusic(P *soundManager, int id)
 
 namespace M_TMusicCur { extern "C" {
 typedef unsigned long ulong;
-struct Q { char pad[0x68]; ulong playTime; };   /* a STREAMSND */
+struct Q : STREAMSND { char pad[0x68 - 0x60]; ulong playTime; };   /* a STREAMSND */
 struct S { int count; struct Q *entries[8]; };   /* the music stack */
 struct P { char pad[0x204]; struct S musicStack; };   /* SNDMGR */
 // Play time of the current music track in seconds.
@@ -2218,7 +2219,7 @@ extern "C" BASIC *StartDialog(P *soundManager, int id, int noSubtitle)
 namespace M_StopDialog { extern "C" {
 struct A { int a, b; };   /* a dialog event */
 struct E { char pad[0x54]; int numEvents; struct A *events; };   /* SNDSTREAM */
-struct Y { char pad[0x60]; struct E *record; };   /* the dialog STREAMSND */
+struct Y : STREAMSND { struct E *record; };   /* the dialog STREAMSND */
 struct Ref { struct Y *px; };
 /* SNDMGR (layout: see SNDMGRV) */
 struct P { char pad[0x200]; struct Ref dialogSound; char pad2[0x22C - 0x204]; BASIC *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; float dialogElapsed; };
@@ -2262,7 +2263,7 @@ void StopDialog(struct P *soundManager)
 
 namespace M_func_001FE848 { extern "C" {
 struct U { char pad[0x40]; int id; };   /* SNDSTREAM */
-struct T { char pad[0x60]; struct U *record; };   /* the dialog STREAMSND */
+struct T : STREAMSND { struct U *record; };   /* the dialog STREAMSND */
 struct S { char pad[0x200]; struct T *dialogSound; };   /* SNDMGR */
 static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu %0,$zero,%1":"=r"(r):"i"(1));return r;}
 // True while a dialog (optionally the one with the given id) is playing. (inferred)
