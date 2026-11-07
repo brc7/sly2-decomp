@@ -9,6 +9,7 @@
 #include "sly2/cref.h"
 #include "sly2/eopid.h"
 #include "sly2/gc.h"
+#include "sly2/sidebag.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
 
@@ -34,13 +35,6 @@ public:
 template <> CMethod *CGcObj<CMethod>::PtNew();
 template <> void CGcObj<CMethod>::Unlink();
 
-/* The sidebag calls (sidebag.cpp's CSidebag, by its linker names). */
-struct CSidebag
-{
-    int FindSidebagBinding(int sym, CRef *pref);
-    CRef AssignSidebagBinding(int sym, CRef *pref);
-};
-extern "C" CRef CSidebag_AddBinding(CSidebag *psidebag, int sym, CRef *pref);
 void EnsureBasicSidebag(BASIC *object);
 
 /* Per-class option tables: g_mpcidarysplopt (D_00279AD0, one {count, sorted array} per CID). */
