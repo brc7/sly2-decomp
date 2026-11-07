@@ -54,6 +54,7 @@ void *FindShaderById();
 int CeilLog2__FUi(int n);
 }
 void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS *pgifs);
+int IgsAllocGsb(GSB *pgsb, int cgsb);
 
 // After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data
 // pointer and color-correct its entries. (inferred)
@@ -198,29 +199,12 @@ typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
 struct VEC3 { float x, y, z; VEC3() {} };
 struct CLR { unsigned int n; CLR() {} };
-struct GIFS {
-    void *max; qword *base,*count,*current; int pad,endPrim; void *vt;
-    qword *tag; int registerCount,vertexCount;
-};
-struct O { char pad[0x3EA0]; ulong tex0; };
 extern "C" {
-struct SRC { float ag[3]; float aclr[3][4]; };
 extern int D_002C3680[3];   /* shd's .data starts here (the zero word after it is alignment) */
 extern int D_002DE598;
 void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *);
-int IgsAllocGsb__FP3GSBi(void *, int);
-void __4GIFS(GIFS *);
-void AllocStatic__4DMASiP2QW(GIFS *, int, void *);
-void AddDmaCnt__4DMAS(GIFS *);
-void BuildImageGifs__FiiiiiiP4GIFS(int, int, int, int, int, int, GIFS *);
-void AddDmaRefs__4DMASiP2QW(GIFS *, int, void *);
-void AddPrimPack__4GIFSiiUl(GIFS *, int, int, ulong);
-void PackAD__4GIFSll(GIFS *, int, ulong);
-void AddPrimEnd__4GIFS(GIFS *);
-void AddDmaEnd__4DMAS(GIFS *);
-void Detach__4DMASPiPP2QW(GIFS *, int *, qword **);
-void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, qword *);
-void BuildWorldBackgroundImage(O *p, void *pbs);
+void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, QW *);
+void BuildWorldBackgroundImage(SW *psw, GSB *pgsb);
 }
 static inline void ClearClr(CLR *pc)
 {
@@ -236,11 +220,11 @@ static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,co
     float alpha=*gain*0.003921569f;
     *outAlpha=alpha;outColor->n=rgb;
 }
-// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at
-// g_sw+0x3EA0) (inferred)
-void BuildWorldBackgroundImage(O *p, void *pbs)
+// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (its TEX0 saved in
+// SW::tex2ProjVolume, +0x3EA0) (inferred)
+void BuildWorldBackgroundImage(SW *psw, GSB *pgsb)
 {
-    if (!pbs && !(p->tex0 & (0x3FFFL << 37)))
+    if (!pgsb && !(psw->tex2ProjVolume & (0x3FFFL << 37)))
         return;
     {
     float ag[3];
@@ -249,8 +233,8 @@ void BuildWorldBackgroundImage(O *p, void *pbs)
     int i;
     {
         for (i = 0; i < 3; i++) {
-            ConvertUserHsvToUserRgb__FP6VECTORT0((*(struct SRC *)&g_sw.agShdLight).aclr[i], &v);
-            StoreColor(&argb[i],&ag[i],&(*(struct SRC *)&g_sw.agShdLight).ag[i],v);
+            ConvertUserHsvToUserRgb__FP6VECTORT0(g_sw.aclrShdLight[i], &v);
+            StoreColor(&argb[i],&ag[i],&g_sw.agShdLight[i],v);
         }
     }
     CLR aclr[256];
@@ -289,23 +273,22 @@ void BuildWorldBackgroundImage(O *p, void *pbs)
             }
         }
     }
-    GIFS dmas;
-    qword aqw[0x80];
-    qword *x;
-    if (pbs)
-        p->tex0 = ((ulong)IgsAllocGsb__FP3GSBi(pbs, 4) << 37) | 0x2000000001B00000L;
-    __4GIFS(&dmas);
-    AllocStatic__4DMASiP2QW(&dmas, 0x80, aqw);
-    AddDmaCnt__4DMAS(&dmas);
-    BuildImageGifs__FiiiiiiP4GIFS((int)((p->tex0 >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &dmas);
-    AddDmaRefs__4DMASiP2QW(&dmas, 0x40, aclr);
-    AddPrimPack__4GIFSiiUl(&dmas, 0, 1, 14);
-    PackAD__4GIFSll(&dmas, 0x3F, 0);
-    PackAD__4GIFSll(&dmas, 0x61, 0);
-    AddPrimEnd__4GIFS(&dmas);
-    AddDmaEnd__4DMAS(&dmas);
-    Detach__4DMASPiPP2QW(&dmas, 0, &x);
-    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, x);
+    if (pgsb)
+        psw->tex2ProjVolume = ((ulong)IgsAllocGsb(pgsb, 4) << 37) | 0x2000000001B00000L;
+    GIFS gifs;
+    QW aqw[0x80];
+    QW *aqwSend;
+    gifs.AllocStatic(0x80, aqw);
+    gifs.AddDmaCnt();
+    BuildImageGifs((int)((psw->tex2ProjVolume >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &gifs);
+    gifs.AddDmaRefs(0x40, (QW *)aclr);   /* the 256 colours as 0x40 quadwords */
+    gifs.AddPrimPack(0, 1, 14);
+    gifs.PackAD(0x3F, 0);
+    gifs.PackAD(0x61, 0);
+    gifs.AddPrimEnd();
+    gifs.AddDmaEnd();
+    gifs.Detach(0, &aqwSend);
+    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, aqwSend);
     }
 }
 } // namespace M_BuildWorldBackgroundImage
