@@ -2620,27 +2620,17 @@ void UpdateMurrayAttack(MURRAY *murray)
 } } // namespace M_UpdateMurrayAttack
 
 namespace M_func_001B8B70 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union U { qword q; float f[4]; } U;
-struct Q { char pad[0x18]; float angle,time; };   /* the joystick (POCTL) fields read */
 struct PARAM { float value; int kind,id,reserved; };
 struct LIMIT { float lo,hi; };
 struct POLY { float a,b,c; };
-struct P {
-    char pad[0x150]; struct Q *orbit;
-    char pad154[0x190-0x154]; qword velocity;
-    char pad1A0[0x1030-0x1A0]; ASEGA *source;
-    char pad1034[0x10DC-0x1034]; void *focus; int reserved10E0,mode;
-    char pad10E8[0x1700-0x10E8]; qword direction;
-    char pad1710[0x1818-0x1710]; int blend;
-};
 extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
-qword GetStepAsegaTranslation(struct P*,ASEGA*,float);
+qword GetStepAsegaTranslation(MURRAY*,ASEGA*,float);
 struct PARAM *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertVecBetweenLos(void*,void*,qword);
-void FaceStepToward(struct P*,void*);
+void FaceStepToward(MURRAY*,void*);
 // Evaluate the quadratic a + b*t + c*t^2.
 static inline float Polynomial(struct POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 // Blend value into *velocity by strength g (and its complement), keeping the scalars in *scalar (register-pinned).
@@ -2676,41 +2666,41 @@ static inline void NegateSource(qword value,qword*velocity,U*scalar){
 }
 // Orbit offset vector: XY direction length and the orbit's time, angle and radius loaded for the caller
 // (register-pinned).
-static inline qword OrbitVector(struct P*p){
-    register struct Q*orbit __asm__("$2");
+static inline qword OrbitVector(MURRAY*p){
+    register POCTL*orbit __asm__("$2");
     register qword d __asm__("vf1");
     register qword bits __asm__("$2");
     register float magnitude __asm__("$f0"),angle __asm__("$f12"),radius __asm__("$f13"),zero __asm__("$f14");
-    __asm__("lw %0,%2\n\tlqc2 %1,%3":"=r"(orbit),"=j"(d):"m"(p->orbit),"m"(p->direction));
+    __asm__("lw %0,%2\n\tlqc2 %1,%3":"=r"(orbit),"=j"(d):"m"(p->controller),"m"(p->unknown16F0[0].vRoot));
     __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));
-    magnitude=orbit->time;
+    magnitude=orbit->leftStickDeflection;
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));
-    angle=orbit->angle;
+    angle=orbit->leftStickAngle;
     __asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(d));
     zero=0.0f;
     __asm__("mtc1 %1,%0":"=f"(radius):"r"(bits));
     return SetVectorCylind(angle,magnitude*radius,zero);
 }
 // State 11 velocity: animation root motion, blended toward the stick direction between two animation parameters.
-void UpdateMurrayAttackVelocity(struct P*murray){
+void UpdateMurrayAttackVelocity(MURRAY*murray){
     U scalar;
-    if(murray->source){
-        qword value=GetStepAsegaTranslation(murray,murray->source,murray->source->time);
-        NegateSource(value,&murray->velocity,&scalar);
+    if(murray->activeAnimation){
+        qword value=GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
+        NegateSource(value,&murray->qwUnknown190,&scalar);
         {
-            register int active __asm__("$3")=murray->blend;
+            register int active __asm__("$3")=murray->unknown1818;
             if(active){
-            struct PARAM *start=FindAsegLabel(murray->source->animation,0x240);
-            struct PARAM *end=FindAsegLabel(murray->source->animation,0x242);
-            float t=(murray->source->time-start->value)/(end->value-start->value);
+            struct PARAM *start=FindAsegLabel(murray->activeAnimation->animation,0x240);
+            struct PARAM *end=FindAsegLabel(murray->activeAnimation->animation,0x242);
+            float t=(murray->activeAnimation->time-start->value)/(end->value-start->value);
             float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
             qword desired=OrbitVector(murray);
             desired=ConvertVecBetweenLos(0,murray,desired);
-            Blend(desired,blend,&murray->velocity,&scalar);
+            Blend(desired,blend,&murray->qwUnknown190,&scalar);
             }
         }
     }
-    if(murray->focus&&murray->mode==4)FaceStepToward(murray,murray->focus);
+    if(murray->interactTarget&&murray->nUnk10e4==4)FaceStepToward(murray,murray->interactTarget);
 }
 } } // namespace M_func_001B8B70
 
