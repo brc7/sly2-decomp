@@ -44,10 +44,10 @@ struct SNDMGRBASE
 };
 struct SNDMGRG : public SNDMGRBASE
 {
-    SNDREF ref200;
-    int n204;
-    SNDREF aref208[8];
-    SNDREF ref228;
+    SNDREF dialogSound;      /* +0x200 */
+    int musicStackCount;     /* +0x204 */
+    SNDREF musicStack[8];    /* +0x208 */
+    SNDREF ambienceSound;    /* +0x228 */
     SNDMGRG() { SNDMGR_ctor(this); }
     ~SNDMGRG() {}
 };
@@ -93,8 +93,9 @@ struct SNDV
                                   walks it for PushMusic / FindMusic (which create kind-4 STREAMSNDs on the music stack),
                                   and GetStreamVolumeChannel maps its records to channel 1, which SetSndmgrChannelVolume
                                   applies to the music stack (+0x208); channel 2 (anything not music or ambience, i.e.
-                                  the dialog streams) goes to the dialog sound (+0x200). The pass-2 comment calling it the
-                                  dialog channel was wrong.
+                                  the dialog streams) goes to the dialog sound (+0x200); and the options menu's music
+                                  slider (menu.cpp) sets channel 1. The pass-2 comment calling it the dialog channel was
+                                  wrong.
      +0xF4  ambienceRecord, +0xF8 numSounds, +0xFC soundKinds (per sound: 2 = looping), +0x100 soundIndexFromSfx
      +0x104 playbackMode (snd_SetPlaybackMode), +0x108 musicLayerWeights[3], +0x114 musicLayerSmoothing[3] (SMP)
      +0x138 sfxVariationStep      the random walk of StepRandomSfxVariation (-12..12)
@@ -104,7 +105,9 @@ struct SNDV
      +0x200 dialogSound, +0x204 musicStackCount, +0x208 musicStack[8], +0x228 ambienceSound (counted pointers)
      +0x22C dialogRoleObjects[6]  per lip-sync role (3: the speaker object; the others its state machines)
      +0x244 dialogEventIndex, +0x248 dialogEventTime, +0x24C dialogElapsed
-   Volume channels: 0 ambience, 1 music, 2 dialog. */
+   Volume channels: 0 ambience, 1 music, 2 dialog, 3 bank sound effects (the menu's effects slider sets 0 and 3).
+   Volume categories (rows of volumes): 1 the options menu, 2 the pause fade (0 pauses the channel's sounds), 3 a player
+   mode's ducking (mode.cpp: 0.6); the rest are 1. */
 struct SNDMGRV
 {
     char pad0[0x1C];
@@ -129,6 +132,7 @@ struct SNDMGRV
 #define VOLUME_CHANNEL_AMBIENCE 0
 #define VOLUME_CHANNEL_MUSIC 1
 #define VOLUME_CHANNEL_DIALOG 2
+#define VOLUME_CHANNEL_EFFECTS 3
 #define VOLUME_CATEGORY_PAUSE_FADE 2
 #define PLAY_TIME_TICKS_PER_SECOND 294912000.0f   /* a stream's play time (+0x68) counts these */
 #define CD_STATE_IDLE 3   /* cd.cpp's disc-poll state D_002BD4C0 (1 read, 2 wait, 3 idle) */
@@ -338,7 +342,7 @@ extern "C" void SetSndPitch(SNDV *sound, int n1, int n2, float pitchRatio)
 namespace M_SetSndSourceLo { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct SOURCE;
-struct P { char pad[0x1C]; struct SOURCE *source; qword v; };
+struct P { char pad[0x1C]; struct SOURCE *source; qword position; };
 extern qword D_002A2DD0;
 int FFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, unsigned short, unsigned short);
@@ -358,17 +362,17 @@ static inline int FNear(qword a, qword b)
  *   docs/engine/sound.md#2-sound-instances
  * @end-sly2-annot */
 // Makes a sound positional, following an object.
-void SetSndSourceLo(struct P *p, struct SOURCE *source)
+void SetSndSourceLo(struct P *sound, struct SOURCE *source)
 {
-    p->source = source;
-    if (source) SetSndFlags(p, 0x200, 0x200);
-    else if (FNear(D_002A2DD0, p->v)) SetSndFlags(p, 0x200, 0);
+    sound->source = source;
+    if (source) SetSndFlags(sound, 0x200, 0x200);
+    else if (FNear(D_002A2DD0, sound->position)) SetSndFlags(sound, 0x200, 0);
 }
 } } // namespace M_SetSndSourceLo
 
 namespace M_SetSndSourcePos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P { char pad[0x1C]; int n1C; qword v; };
+struct P { char pad[0x1C]; void *source; qword position;   /* SND: the followed object (SetSndSourceLo), the fixed position */ };
 extern qword D_002A2DD0;
 int FFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
@@ -386,11 +390,11 @@ static inline int FNear(qword a, qword b)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Makes a sound positional at a fixed world position (a zero vector means not positional).
-void SetSndSourcePos(struct P *p, qword v)
+void SetSndSourcePos(struct P *sound, qword position)
 {
-    p->v = v;
-    if (!FNear(D_002A2DD0, v)) SetSndFlags(p, 0x200, 0x200);
-    else if (!p->n1C) SetSndFlags(p, 0x200, 0);
+    sound->position = position;
+    if (!FNear(D_002A2DD0, position)) SetSndFlags(sound, 0x200, 0x200);
+    else if (!sound->source) SetSndFlags(sound, 0x200, 0);
 }
 } } // namespace M_SetSndSourcePos
 
@@ -728,12 +732,22 @@ extern "C" int GetBanksndKind(SNDV *sound)
 namespace M_PlayBanksnd { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int panAngle; float pitchRatio; char pad2[0x44 - 0x1C]; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags; unsigned short playState; char pad4[0x60 - 0x54]; int sfxId; };
-struct G { char pad[0xE8]; int nE8; };
-struct S { int n0; };
-struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
+struct G { char pad[0xE8]; int bank; };   /* SNDMGR */
+struct S { int kind; };   /* a sound's entry in SNDMGR soundKinds */
+/* 989snd play parameters (0x30 bytes): the fields named in mask are used */
+struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad12; int pad14[3]; short pitch; short pad22; int pad24; int mask; int pad2C; };
+#define PLAY_PARAM_BANK 1
+#define PLAY_PARAM_SOUND 2
+#define PLAY_PARAM_VOLUME 4
+#define PLAY_PARAM_PAN 8
+#define PLAY_PARAM_PITCH 0x10
+#define SOUND_KIND_LOOPING 2
+#define SFX_SLY 0x6F       /* the three heroes' effects that drive StepRandomSfxVariation (inferred) */
+#define SFX_BENTLEY 0x73
+#define SFX_MURRAY 0x15
 extern struct G D_003DD040;
 extern char D_003DD490[];
-extern int D_002DD5BC, D_002F7900, D_002E1E40;
+extern int D_002DD5BC, D_002F7900, D_002E1E40;   /* Bentley, Murray, Sly */
 struct S *PsndFromSfxid(struct G *, int);
 short IsndFromPsnd(struct G *, struct S *);
 void SetSndFlags(struct P *, int, int);
@@ -753,52 +767,52 @@ void StepRandomSfxVariation(struct G *);
  * @end-sly2-annot */
 // Starts a bank sound on the 989snd library (slot 9) with its bank, sound index, volume, pan and pitch: loopers start
 // asynchronously and get a voice handle, one-shots are fire-and-forget; some effects get special handling.
-void PlayBanksnd(struct P *p)
+void PlayBanksnd(struct P *sound)
 {
-    struct G *pg = &D_003DD040;
-    struct S *ps = PsndFromSfxid(pg, p->sfxId);
-    struct M m;
-    int id;
-    if (!ps || !pg->nE8) {
-        SetSndFlags(p, 0x1FFF, 0);
+    struct G *soundManager = &D_003DD040;
+    struct S *entry = PsndFromSfxid(soundManager, sound->sfxId);
+    struct M params;
+    int owner;
+    if (!entry || !soundManager->bank) {
+        SetSndFlags(sound, 0x1FFF, 0);
         return;
     }
-    if (p->flags & 2) {
-        RemoveSndFromDirtyList(p);
+    if (sound->flags & 2) {
+        RemoveSndFromDirtyList(sound);
         return;
     }
-    func_002333B4(&m, 0, 0x30);
-    m.n28 = 3;
-    m.n0 = pg->nE8;
-    m.h10 = IsndFromPsnd(pg, ps);
-    if (p->flags & 0x10) {
-        m.n28 |= 4;
-        m.n8 = (int)(p->effectiveVolume * 1024.0f);
+    func_002333B4(&params, 0, sizeof(params));
+    params.mask = PLAY_PARAM_BANK | PLAY_PARAM_SOUND;
+    params.bank = soundManager->bank;
+    params.soundIndex = IsndFromPsnd(soundManager, entry);
+    if (sound->flags & 0x10) {
+        params.mask |= PLAY_PARAM_VOLUME;
+        params.volume = (int)(sound->effectiveVolume * 1024.0f);
     }
-    if (p->flags & 0x20) {
-        m.n28 |= 8;
-        m.nC = p->panAngle;
+    if (sound->flags & 0x20) {
+        params.mask |= PLAY_PARAM_PAN;
+        params.pan = sound->panAngle;
     }
-    if (p->flags & 0x40) {
-        m.n28 |= 0x10;
-        m.h20 = (int)(p->pitchRatio * 1524.0f);
+    if (sound->flags & 0x40) {
+        params.mask |= PLAY_PARAM_PITCH;
+        params.pitch = (int)(sound->pitchRatio * 1524.0f);
     }
-    if (ps->n0 == 2) {
-        p->playState = 1;
-        p->vtable[1].pfn((char *)p + p->vtable[1].d);
-        func_00232320(&m, OnBankSoundStarted, p);
-        SetSndFlags(p, 0x7F, 0);
+    if (entry->kind == SOUND_KIND_LOOPING) {
+        sound->playState = 1;
+        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);
+        func_00232320(&params, OnBankSoundStarted, sound);
+        SetSndFlags(sound, 0x7F, 0);
         return;
     }
-    id = 0;
-    func_002322F0(&m);
-    SetSndFlags(p, 0x1FFF, 0);
-    switch (p->sfxId) {
-    case 0x6F: id = D_002E1E40; break;
-    case 0x73: id = D_002DD5BC; break;
-    case 0x15: id = D_002F7900; break;
+    owner = 0;
+    func_002322F0(&params);
+    SetSndFlags(sound, 0x1FFF, 0);
+    switch (sound->sfxId) {
+    case SFX_SLY: owner = D_002E1E40; break;
+    case SFX_BENTLEY: owner = D_002DD5BC; break;
+    case SFX_MURRAY: owner = D_002F7900; break;
     }
-    if (id == PpoHero(D_003DD490)) StepRandomSfxVariation(&D_003DD040);
+    if (owner == PpoHero(D_003DD490)) StepRandomSfxVariation(&D_003DD040);
 }
 } } // namespace M_PlayBanksnd
 
@@ -1896,7 +1910,7 @@ struct SNDMGR
 {
     byte ab[0x18];
     int numSfx;
-    byte unknown1C[0x8c];
+    byte pad1C[0x8c];
     FILEREC bankRecord;
     void *bank;
     SNDSTREAM *firstDialogStream;
@@ -1905,10 +1919,10 @@ struct SNDMGR
     int numSounds;
     int *soundKinds;
     int *soundIndexFromSfx;
-    byte unknown104[0xCC];
+    byte pad104[0xCC];
     int numAmbienceGroups;
     int ambienceGroupIds[6];
-    byte unknown1EC[0x3C];
+    byte pad1EC[0x3C];
     STREAMSND *ambienceSound;
 };
 extern "C" { extern int D_002E1E54; }
@@ -2032,7 +2046,7 @@ void func_00258248(struct K *);
 int snd_BankLoadByLoc(int, int);
 void snd_ResolveBankXREFS(void);
 int snd_IsSoundALooper(int, int);
-enum { SOUND_KIND_LOOPING = 2 };
+/* SOUND_KIND_LOOPING: defined with PlayBanksnd */
 static inline int FSet(struct K *key, struct X *record)
 {
     if (!record) return 0;
@@ -2654,11 +2668,12 @@ struct Ref;
 extern "C" void AssignSoundRef(Ref *, X *);
 struct Ref {
     X *px;
-    Ref &operator=(X *p) { AssignSoundRef(this, p); return *this; }
+    Ref &operator=(X *sound) { AssignSoundRef(this, sound); return *this; }
     operator X *() { return px; }
 };
-struct D { char pad[0x48]; int n48; char pad2[0x54 - 0x4C]; int n54; };
-struct P { char pad[0x200]; Ref r200; char pad2[0x22C - 0x204]; X *a[6]; int n244; int n248; int n24C; };
+struct D { char pad[0x48]; int speakerId; char pad2[0x54 - 0x4C]; int numEvents; };   /* SNDSTREAM */
+/* SNDMGR (layout: see SNDMGRV) */
+struct P { char pad[0x200]; Ref dialogSound; char pad2[0x22C - 0x204]; X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; int dialogElapsed; };
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_004435F0[]; }
@@ -2678,35 +2693,36 @@ X *func_001F67E0(X *, int);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Starts a dialog line: stops the current one, creates its stream, shows its subtitle and binds the speaker objects'
-// state machines to the six lip-sync roles.
-extern "C" X *StartDialog(P *p, int k, int f)
+// Starts a dialog line: stops the current one, creates its stream, shows its subtitle (unless noSubtitle) and, when the
+// line has events and a speaker, binds the six lip-sync roles: role 3 is the speaker object, the others the state
+// machines GetDialogRoleSmOid names on it. Each bound object is counted (vtable slot 1). Returns the stream.
+extern "C" X *StartDialog(P *soundManager, int id, int noSubtitle)
 {
-    D *pd;
-    StopDialog(p, k);
-    pd = FindDialogStream(p, k);
-    if (!pd) return 0;
-    p->r200 = PstreamsndNew(pd, 0);
-    p->n244 = 0;
-    p->n248 = 0;
-    p->n24C = 0;
-    if (!f) SetSubtitle(D_004435F0, k, pd->n48);
-    if (pd->n48 != -1 && pd->n54) {
-        register X *po __asm__("$19")=PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, pd->n48, 0);
-        if (po) {
-            register int i __asm__("$18")=0;
-            register int primaryRole __asm__("$20")=3;
-            register X **slot __asm__("$16")=p->a;
-            for(;i<6;i++,slot++) {
-                if(i==primaryRole)p->a[3]=po;
-                else *slot=func_001F67E0(po,GetDialogRoleSmOid(p,i));
+    D *record;
+    StopDialog(soundManager, id);
+    record = FindDialogStream(soundManager, id);
+    if (!record) return 0;
+    soundManager->dialogSound = PstreamsndNew(record, 0);
+    soundManager->dialogEventIndex = 0;
+    soundManager->dialogEventTime = 0;
+    soundManager->dialogElapsed = 0;
+    if (!noSubtitle) SetSubtitle(D_004435F0, id, record->speakerId);
+    if (record->speakerId != -1 && record->numEvents) {
+        register X *speaker __asm__("$19")=PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
+        if (speaker) {
+            register int role __asm__("$18")=0;
+            register int speakerRole __asm__("$20")=3;
+            register X **slot __asm__("$16")=soundManager->dialogRoleObjects;
+            for(;role<6;role++,slot++) {
+                if(role==speakerRole)soundManager->dialogRoleObjects[3]=speaker;
+                else *slot=func_001F67E0(speaker,GetDialogRoleSmOid(soundManager,role));
                 { X *current=*slot;
                   if(current) { VTE &entry=current->vtable[1];
                     entry.pfn((char *)current+entry.d); } }
             }
         }
     }
-    return p->r200;
+    return soundManager->dialogSound;
 }
 } // namespace M_StartDialog
 
@@ -2714,21 +2730,23 @@ namespace M_StopDialog { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[3]; };
 struct X { char pad[0xC]; struct VT *vtable; };
-struct A { int a, b; };
-struct E { char pad[0x54]; int c; struct A *ae; };
-struct Y { char pad[0x60]; struct E *pe; };
+struct A { int a, b; };   /* a dialog event */
+struct E { char pad[0x54]; int numEvents; struct A *events; };   /* SNDSTREAM */
+struct Y { char pad[0x60]; struct E *record; };   /* the dialog STREAMSND */
 struct Ref { struct Y *px; };
-struct P { char pad[0x200]; struct Ref r; char pad2[0x22C - 0x204]; struct X *ap[6]; int n244; int n248; float g24C; };
+/* SNDMGR (layout: see SNDMGRV) */
+struct P { char pad[0x200]; struct Ref dialogSound; char pad2[0x22C - 0x204]; struct X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; float dialogElapsed; };
+#define SM_STATE_MOUTH_REST 0x611   /* (inferred: the speaker's idle mouth) */
 void ApplyDialogEvent(struct P *, struct A *);
 void SetSmaGoal(void *, int);
 void StopSnd(struct Y *, float);
 void AssignSoundRef(struct Ref *, void *);
 void func_002333B4(void *, int, int) __asm__("memset");
-static inline void Stop(struct Ref *pr)
+static inline void Stop(struct Ref *ref)
 {
-    if (pr && pr->px) {
-        StopSnd(pr->px, 0.0f);
-        AssignSoundRef(pr, 0);
+    if (ref && ref->px) {
+        StopSnd(ref->px, 0.0f);
+        AssignSoundRef(ref, 0);
     }
 }
 /** @sly2-annot addr=0x1FE738
@@ -2739,33 +2757,33 @@ static inline void Stop(struct Ref *pr)
  * @end-sly2-annot */
 // Stops the current dialog: flushes its remaining events, returns the speakers' mouths to rest, stops the stream and
 // clears the dialog state.
-void StopDialog(struct P *p)
+void StopDialog(struct P *soundManager)
 {
-    int i;
-    struct E *pe;
-    if (!p->r.px) return;
-    pe = p->r.px->pe;
-    while (p->n244 < pe->c) {
-        ApplyDialogEvent(p, &pe->ae[p->n244]);
-        p->n244++;
+    int role;
+    struct E *record;
+    if (!soundManager->dialogSound.px) return;
+    record = soundManager->dialogSound.px->record;
+    while (soundManager->dialogEventIndex < record->numEvents) {
+        ApplyDialogEvent(soundManager, &record->events[soundManager->dialogEventIndex]);
+        soundManager->dialogEventIndex++;
     }
-    if (p->ap[5]) SetSmaGoal(p->ap[5], 0x611);
-    Stop(&p->r);
-    p->n244 = 0;
-    p->n248 = 0;
-    p->g24C = 0.0f;
-    for (i = 0; i < 6; i++) {
-        struct X *px = p->ap[i];
-        if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d);
+    if (soundManager->dialogRoleObjects[5]) SetSmaGoal(soundManager->dialogRoleObjects[5], SM_STATE_MOUTH_REST);
+    Stop(&soundManager->dialogSound);
+    soundManager->dialogEventIndex = 0;
+    soundManager->dialogEventTime = 0;
+    soundManager->dialogElapsed = 0.0f;
+    for (role = 0; role < 6; role++) {
+        struct X *object = soundManager->dialogRoleObjects[role];
+        if (object) object->vtable->a[2].pfn((char *)object + object->vtable->a[2].d);   /* release */
     }
-    func_002333B4(p->ap, 0, 0x18);
+    func_002333B4(soundManager->dialogRoleObjects, 0, sizeof(soundManager->dialogRoleObjects));
 }
 } } // namespace M_StopDialog
 
 namespace M_func_001FE848 { extern "C" {
-struct U { char pad[0x40]; int n; };
-struct T { char pad[0x60]; struct U *pu; };
-struct S { char pad[0x200]; struct T *pt; };
+struct U { char pad[0x40]; int id; };   /* SNDSTREAM */
+struct T { char pad[0x60]; struct U *record; };   /* the dialog STREAMSND */
+struct S { char pad[0x200]; struct T *dialogSound; };   /* SNDMGR */
 static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu %0,$zero,%1":"=r"(r):"i"(1));return r;}
 /** @sly2-annot addr=0x1FE848
  * Purpose: True if dialog (optionally of given id) is playing
@@ -2775,23 +2793,23 @@ static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // True while a dialog (optionally the one with the given id) is playing. (inferred)
-int IsDialogPlaying(struct S *p, int n)
+int IsDialogPlaying(struct S *soundManager, int id)
 {
-    struct U *pu; int f;
-    if (p->pt) {
-        pu = p->pt->pu;
-        f = 0;
-        if (n == -1 || pu->n == n) f = PresentValue();
-        return f;
+    struct U *record; int isPlaying;
+    if (soundManager->dialogSound) {
+        record = soundManager->dialogSound->record;
+        isPlaying = 0;
+        if (id == -1 || record->id == id) isPlaying = PresentValue();
+        return isPlaying;
     }
     return 0;
 }
 
 typedef char guard_int_size[(sizeof(int)==4)?1:-1];
 typedef char guard_pointer_size[(sizeof(void*)==4)?1:-1];
-typedef char guard_selector[((unsigned)&((struct U*)0)->n==0x40)?1:-1];
-typedef char guard_subobject[((unsigned)&((struct T*)0)->pu==0x60)?1:-1];
-typedef char guard_owner[((unsigned)&((struct S*)0)->pt==0x200)?1:-1];
+typedef char guard_selector[((unsigned)&((struct U*)0)->id==0x40)?1:-1];
+typedef char guard_subobject[((unsigned)&((struct T*)0)->record==0x60)?1:-1];
+typedef char guard_owner[((unsigned)&((struct S*)0)->dialogSound==0x200)?1:-1];
 typedef char guard_selector_size[(sizeof(struct U)==0x44)?1:-1];
 typedef char guard_subobject_size[(sizeof(struct T)==0x64)?1:-1];
 typedef char guard_owner_size[(sizeof(struct S)==0x204)?1:-1];
@@ -2799,31 +2817,32 @@ typedef char guard_owner_size[(sizeof(struct S)==0x204)?1:-1];
 
 namespace M_func_001FE888 { extern "C" {
 typedef unsigned long ulong;
-struct X { char pad[0x40]; int n40; char pad2[0x50 - 0x44]; unsigned short fl; unsigned short c52; char pad3[0x68 - 0x54]; ulong t; };
-struct P { char pad[0x200]; struct X *px; char pad2[0x24C - 0x204]; float g24C; };
-static inline float T(struct X *px) { return (float)px->t * (1.0f / 294912000.0f); }
+struct X { char pad[0x40]; int voiceHandle; char pad2[0x50 - 0x44]; unsigned short flags; unsigned short playState; char pad3[0x68 - 0x54]; ulong playTime; };   /* STREAMSND */
+struct P { char pad[0x200]; struct X *dialogSound; char pad2[0x24C - 0x204]; float dialogElapsed; };   /* SNDMGR */
+static inline float PlaySeconds(struct X *sound) { return (float)sound->playTime * (1.0f / PLAY_TIME_TICKS_PER_SECOND); }
 /** @sly2-annot addr=0x1FE888
  * Purpose: Current dialog play time (or cached time while starting)
  * Info: proposed name TDialogCur (T2); TU sound
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Play time of the current dialog (the cached time while it is still starting). (inferred)
-float GetDialogTime(struct P *p)
+// Play time of the current dialog in seconds; when the stream reports none and has no voice (not started yet, or a line
+// without audio), the time measured by UpdateDialog instead. (inferred)
+float GetDialogTime(struct P *soundManager)
 {
-    if (!p->px) return 0.0f;
-    if (T(p->px) == 0.0f) {
-        struct X *px = p->px;
-        int f = 0;
-        if (!px->n40) { f = px->c52 || (px->fl & 1); f ^= 1; }
-        if (f) return p->g24C;
+    if (!soundManager->dialogSound) return 0.0f;
+    if (PlaySeconds(soundManager->dialogSound) == 0.0f) {
+        struct X *dialog = soundManager->dialogSound;
+        int isStopped = 0;
+        if (!dialog->voiceHandle) { isStopped = dialog->playState || (dialog->flags & 1); isStopped ^= 1; }
+        if (isStopped) return soundManager->dialogElapsed;
     }
-    return T(p->px);
+    return PlaySeconds(soundManager->dialogSound);
 }
 } } // namespace M_func_001FE888
 
 namespace M_func_001FE990 { extern "C" {
-struct S { char pad[0x1D0]; int c; int a[1]; };
+struct S { char pad[0x1D0]; int numAmbienceGroups; int ambienceGroupIds[6]; };   /* SNDMGR */
 /** @sly2-annot addr=0x1FE990
  * Purpose: Index of id in a small int table (-1)
  * Info: proposed name IambFind (T2); TU sound
@@ -2831,8 +2850,14 @@ struct S { char pad[0x1D0]; int c; int a[1]; };
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Index of an id in the manager's stream-group table, or -1 (used to attach ambient emitters to groups). (inferred)
-int FindStreamGroupIndex(struct S *p, int n) { int i; for (i = 0; i < p->c; i++) if (p->a[i] == n) return i; return -1; }
+// Index of an id among the ambience stream's groups, or -1 (used to attach ambient emitters to groups). (inferred)
+int FindStreamGroupIndex(struct S *soundManager, int id)
+{
+    int i;
+    for (i = 0; i < soundManager->numAmbienceGroups; i++)
+        if (soundManager->ambienceGroupIds[i] == id) return i;
+    return -1;
+}
 } } // namespace M_func_001FE990
 
 /** @sly2-annot addr=0x1FE9C8
@@ -2851,11 +2876,12 @@ extern "C" void SetSndmgrPlaybackMode(SNDMGRV *soundManager, int nMode)
 }
 
 namespace M_SetSndmgrMasterVolume { extern "C" {
-struct P { char pad[0x1BC]; float g; };
+struct P { char pad[0x1BC]; float masterVolume; };   /* SNDMGR */
 struct S;
-extern struct S D_002BBB60;
+extern struct S D_002BBB60;   /* the volume limits (0..1) */
 float GLimitLm__FP2LMf(struct S *, float);
 void snd_SetMasterVolume(int, int);
+#define SND_MASTER_VOLUME_ALL 0x10   /* 989snd: the overall master (0..3 are the per-channel masters) (inferred) */
 /** @sly2-annot addr=0x1FE9F8
  * Purpose: Clamp and send master volume (snd_SetMasterVolume(0x10,..))
  * Info: proposed name SetSndmgrMasterVolume (T1); TU sound
@@ -2864,13 +2890,13 @@ void snd_SetMasterVolume(int, int);
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sets the master volume (clamped) on the 989snd library.
-void SetSndmgrMasterVolume(struct P *p, float x)
+void SetSndmgrMasterVolume(struct P *soundManager, float volume)
 {
-    float g = GLimitLm__FP2LMf(&D_002BBB60, x);
-    int n = (int)(g * 1024.0f);
-    if ((int)(p->g * 1024.0f) != n) {
-        p->g = g;
-        snd_SetMasterVolume(0x10, n);
+    float clamped = GLimitLm__FP2LMf(&D_002BBB60, volume);
+    int level = (int)(clamped * 1024.0f);   /* 989snd volumes are 0..1024 */
+    if ((int)(soundManager->masterVolume * 1024.0f) != level) {
+        soundManager->masterVolume = clamped;
+        snd_SetMasterVolume(SND_MASTER_VOLUME_ALL, level);
     }
 }
 } } // namespace M_SetSndmgrMasterVolume
@@ -2878,7 +2904,7 @@ void SetSndmgrMasterVolume(struct P *p, float x)
 namespace M_SetSndmgrChannelVolume {
 class X;
 typedef void (X::*PMF)();
-struct P {char pad0[0x13C];float weights[8][4];int pad1BC;float outputs[4];char pad1D0[0x30];X *object;int count;X *refs[8];X *component;};
+struct P {char pad0[0x13C];float volumes[8][4];int pad1BC;float channelVolumes[4];char pad1D0[0x30];X *dialogSound;int musicStackCount;X *musicStack[8];X *ambienceSound;};
 struct LM {float low,high;};
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern PMF D_002A8298,D_002A82A0; }
@@ -2900,34 +2926,35 @@ static inline X *ReadReceiver(X **pp)
  * @end-sly2-annot */
 // Sets one category's weight on a volume channel, recomputes the channel's output volume, sends it and updates the live
 // streams.
-extern "C" void SetSndmgrChannelVolume(P *p,int channel,int category,float input)
+extern "C" void SetSndmgrChannelVolume(P *soundManager,int channel,int category,float volume)
 {
     if((unsigned int)category>=8)return;
     if(channel<0)return;
     if(channel>=4)return;
-    input=GLimitLm__FP2LMf(&D_002BBB60,input);
-    float (*w)[4]=p->weights;
-    if(p->weights[category][channel]==input)return;
-    if(category==2){
+    volume=GLimitLm__FP2LMf(&D_002BBB60,volume);
+    float (*volumes)[4]=soundManager->volumes;
+    if(soundManager->volumes[category][channel]==volume)return;
+    if(category==VOLUME_CATEGORY_PAUSE_FADE){
         PMF action;
         func_002333B4(&action,0,8);
-        if(input==0.0f)action=D_002A8298;
-        else if(w[2][channel]==0.0f)action=D_002A82A0;
+        /* this category at 0 pauses the channel's sounds; leaving 0 resumes them */
+        if(volume==0.0f)action=D_002A8298;   /* &SND::Pause (PauseSnd) */
+        else if(volumes[2][channel]==0.0f)action=D_002A82A0;   /* &SND::Resume (ResumeSnd) */
         if(action!=0){
             switch(channel){
-            case 0:if(p->component)(p->component->*action)();break;
-            case 1:for(int i=0;i<p->count;i++){X **pp=&p->refs[i];X *o=ReadReceiver(pp);if(o){union {X *p;unsigned w;} r;r.p=o;(((X *)r.w)->*action)();}}break;
-            case 2:if(p->object)(p->object->*action)();break;
+            case VOLUME_CHANNEL_AMBIENCE:if(soundManager->ambienceSound)(soundManager->ambienceSound->*action)();break;
+            case VOLUME_CHANNEL_MUSIC:for(int i=0;i<soundManager->musicStackCount;i++){X **slot=&soundManager->musicStack[i];X *music=ReadReceiver(slot);if(music){union {X *p;unsigned w;} r;r.p=music;(((X *)r.w)->*action)();}}break;
+            case VOLUME_CHANNEL_DIALOG:if(soundManager->dialogSound)(soundManager->dialogSound->*action)();break;
             }
         }
     }
-    p->weights[category][channel]=input;
-    input=1.0f;
-    for(int i=0;i<8;i++)input*=p->weights[i][channel];
-    int next=(int)(input*1024.0f);
-    if((int)(p->outputs[channel]*1024.0f)!=next){
-        p->outputs[channel]=input;
-        snd_SetMasterVolume(channel,next);
+    soundManager->volumes[category][channel]=volume;
+    volume=1.0f;   /* from here: the channel's volume, the product of its categories */
+    for(int i=0;i<8;i++)volume*=soundManager->volumes[i][channel];
+    int level=(int)(volume*1024.0f);
+    if((int)(soundManager->channelVolumes[channel]*1024.0f)!=level){
+        soundManager->channelVolumes[channel]=volume;
+        snd_SetMasterVolume(channel,level);
     }
 }
 
@@ -2938,13 +2965,13 @@ typedef char layout_member_pointer[(sizeof(PMF)==8)?1:-1];
 typedef char layout_limit[(sizeof(LM)==8)?1:-1];
 typedef char layout_limit_low[((unsigned)&((LM*)0)->low==0)?1:-1];
 typedef char layout_limit_high[((unsigned)&((LM*)0)->high==4)?1:-1];
-typedef char layout_weights[((unsigned)&((P*)0)->weights==0x13C)?1:-1];
-typedef char layout_weight_stride[(sizeof(((P*)0)->weights[0])==0x10)?1:-1];
-typedef char layout_outputs[((unsigned)&((P*)0)->outputs==0x1C0)?1:-1];
-typedef char layout_object[((unsigned)&((P*)0)->object==0x200)?1:-1];
-typedef char layout_count[((unsigned)&((P*)0)->count==0x204)?1:-1];
-typedef char layout_references[((unsigned)&((P*)0)->refs==0x208)?1:-1];
-typedef char layout_component[((unsigned)&((P*)0)->component==0x228)?1:-1];
+typedef char layout_volumes[((unsigned)&((P*)0)->volumes==0x13C)?1:-1];
+typedef char layout_volume_stride[(sizeof(((P*)0)->volumes[0])==0x10)?1:-1];
+typedef char layout_channel_volumes[((unsigned)&((P*)0)->channelVolumes==0x1C0)?1:-1];
+typedef char layout_dialog_sound[((unsigned)&((P*)0)->dialogSound==0x200)?1:-1];
+typedef char layout_count[((unsigned)&((P*)0)->musicStackCount==0x204)?1:-1];
+typedef char layout_music_stack[((unsigned)&((P*)0)->musicStack==0x208)?1:-1];
+typedef char layout_ambience_sound[((unsigned)&((P*)0)->ambienceSound==0x228)?1:-1];
 typedef char layout_size[(sizeof(P)==0x22C)?1:-1];
 } // namespace M_SetSndmgrChannelVolume
 
@@ -2958,13 +2985,13 @@ void SetSndmgrChannelVolume(void *, int, int, float);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Resets the master volume and all channel weights to 1 (category 1 excepted).
-void ResetSndmgrVolumes(void *p)
+void ResetSndmgrVolumes(void *soundManager)
 {
-    int i, j;
-    SetSndmgrMasterVolume(p, 1.0f);
-    for (i = 0; i < 8; i++) {
-        if (i == 1) continue;
-        for (j = 0; j < 4; j++) SetSndmgrChannelVolume(p, j, i, 1.0f);
+    int category, channel;
+    SetSndmgrMasterVolume(soundManager, 1.0f);
+    for (category = 0; category < 8; category++) {
+        if (category == 1) continue;   /* the options menu's volumes (menu.cpp) are kept */
+        for (channel = 0; channel < 4; channel++) SetSndmgrChannelVolume(soundManager, channel, category, 1.0f);
     }
 }
 } } // namespace M_ResetSndmgrVolumes
@@ -3031,8 +3058,11 @@ void p_ResumeSnd() __asm__("ResumeSnd");
 extern const unsigned int r_D_002A82A0[2] __asm__("D_002A82A0") = {0xFFFF0000, (unsigned int)p_ResumeSnd};
 }
 namespace M_func_001FEED0 { extern "C" {
-struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
-struct P { char pad[0x64]; int n64; char pad2[0xE8 - 0x68]; int nE8; char pad3[0x138 - 0xEC]; int n138; };
+/* 989snd play parameters (as in PlayBanksnd) */
+struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad12; int pad14[3]; short pitch; short pad22; int pad24; int mask; int pad2C; };
+/* SNDMGR (layout: see SNDMGRV) */
+struct P { char pad[0x64]; int selectedMusicLayer; char pad2[0xE8 - 0x68]; int bank; char pad3[0x138 - 0xEC]; int sfxVariationStep; };
+#define SFX_VARIATION 0x28
 int NRandInRange__Fii(int, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void *PsndFromSfxid(struct P *, int);
@@ -3046,12 +3076,13 @@ void func_002322F0(struct M *);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// For the hero's sounds: a table-driven random walk of a value in -12..12 that is sent as a voice parameter of effect
-// 0x28 (inferred: a varying pitch or intensity).
-void StepRandomSfxVariation(struct P *p)
+// After one of the hero's own effects (PlayBanksnd), unless a music layer other than 0 is selected: a random step of the
+// variation value in -12..12 (mostly +1, sometimes -5; b picks a row of a by the value, and the higher the value the
+// more -5 entries the row has), then plays effect 0x28 with 127 x the value as its pitch modulation. (inferred)
+void StepRandomSfxVariation(struct P *soundManager)
 {
     int r;
-    if (p->n64) return;
+    if (soundManager->selectedMusicLayer) return;
     {
     int a[7][6] = {
         { -5, -5, -5, -5, -5, -5 },
@@ -3063,23 +3094,23 @@ void StepRandomSfxVariation(struct P *p)
         { 1, 1, 1, 1, 1, 1 },
     };
     int b[25] = { 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0 };
-    struct M m;
+    struct M params;
     r = NRandInRange__Fii(0, 5);
-    p->n138 += a[b[p->n138 + 12]][r];
-    func_002333B4(&m, 0, 0x30);
-    m.n28 = 0x13;
-    m.n0 = p->nE8;
-    m.h10 = IsndFromPsnd(p, PsndFromSfxid(p, 0x28));
-    m.h20 = p->n138 * 127;
-    func_002322F0(&m);
+    soundManager->sfxVariationStep += a[b[soundManager->sfxVariationStep + 12]][r];
+    func_002333B4(&params, 0, sizeof(params));
+    params.mask = 0x13;   /* bank, sound, pitch */
+    params.bank = soundManager->bank;
+    params.soundIndex = IsndFromPsnd(soundManager, PsndFromSfxid(soundManager, SFX_VARIATION));
+    params.pitch = soundManager->sfxVariationStep * 127;
+    func_002322F0(&params);
     }
 }
 } } // namespace M_func_001FEED0
 
 namespace M_func_001FF108 { extern "C" {
-struct G { char pad[0x228]; void *p228; };
+struct G { char pad[0x228]; void *ambienceSound; };   /* SNDMGR */
 extern struct G D_003DD040;
-int FindStreamGroupIndex(struct G *);
+int FindStreamGroupIndex(struct G *, int);
 void SetStreamsndGroupVolume(void *, int, float);
 void SetStreamGroupPan(void *, int, int);
 /** @sly2-annot addr=0x1FF108
@@ -3089,12 +3120,12 @@ void SetStreamGroupPan(void *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Splice command: sets the volume and pan of the ambience sub-group selected by id. (inferred)
-void SetAmbienceGroupMix(int a, int b, int c, float g)
+void SetAmbienceGroupMix(int unused, int groupId, int pan, float volume)
 {
-    int r = FindStreamGroupIndex(&D_003DD040);
-    void *p = D_003DD040.p228;
-    SetStreamsndGroupVolume(p, r, g);
-    SetStreamGroupPan(p, r, c);
+    int group = FindStreamGroupIndex(&D_003DD040, groupId);
+    void *ambience = D_003DD040.ambienceSound;
+    SetStreamsndGroupVolume(ambience, group, volume);
+    SetStreamGroupPan(ambience, group, pan);
 }
 } } // namespace M_func_001FF108
 
