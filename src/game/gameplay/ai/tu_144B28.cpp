@@ -768,8 +768,7 @@ extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetBhvfollowState { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad1[0x38 - 0x10]; int target; /* interact */ char pad2[0xC0 - 0x3C]; int mirrorPoctl; int mirrorButtonMask; float mirrorDelay; /* walk-goal */ };
+struct O : BHV { char pad1[0x38 - 0x30]; int target; /* interact */ char pad2[0xC0 - 0x3C]; int mirrorPoctl; int mirrorButtonMask; float mirrorDelay; /* walk-goal */ };
 struct LEADER { char pad[0x150]; int poctl; };
 struct P {
     char pad[0x10]; void *guard; char pad1[4]; char childSlot[0x30 - 0x18]; struct LEADER *leader; char pad2[0x60 - 0x34];
@@ -789,7 +788,7 @@ static __inline__ void Activate(struct P *behavior, int cid)
 {
     struct O *child = PushStepBehavior(behavior->guard, cid);
     child->target = behavior->threat;
-    child->vt[8].pfn((char *)child + child->vt[8].d);
+    child->Start();
 }
 // 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position
 // (mirroring the leader's button 8), 1 moves the follower to the leader's landing point, 2 pushes the partner's
@@ -809,7 +808,7 @@ void SetBhvfollowState(struct P *behavior, int state)
             child->mirrorDelay = RandomFloatInRange__Fff(0.1f, 0.3f);
         }
         UpdateBhvfollowPosition(behavior);
-        child->vt[8].pfn((char *)child + child->vt[8].d);
+        child->Start();
         break;
     }
     case 1:
