@@ -4595,27 +4595,24 @@ extern "C" void InitBhvjuggled(BHVJUGGLED *behavior)
 
 // 0x17AA08 StartBhvjuggled
 namespace M_StartBhvjuggled { extern "C" {
-struct T; struct S;
+
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0xF64]; void *detector; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x48]; int holder; };
-void StartBhvanim(struct S *p);
-void SetStepguardAttack(struct T *t, int a, int b, qword q);
-void DetachStepguard(struct T *t);
-void SetBhvjuggledState(struct S *p, int n);
-void SetBhvBusy(struct S *p);
-void SetDetectorTargetStateById(void *p, int a, int b);
+void StartBhvanim(BHVJUGGLED *p);
+void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q);
+void DetachStepguard(STEPGUARD *t);
+void SetBhvBusy(BHVJUGGLED *p);
+void SetDetectorTargetStateById(void *p, LO *a, int b);
 // 0x17AA08: BHVJUGGLED vtable slot 8 (Start): BHVANIM Start, cancels the attack, detaches, state 0 (attached to the
 // holder's hold point), busy.
-void StartBhvjuggled(struct S *behavior)
+void StartBhvjuggled(BHVJUGGLED *behavior)
 {
     StartBhvanim(behavior);
-    SetStepguardAttack(behavior->guard, 0, 0, D_002A2DD0);
-    DetachStepguard(behavior->guard);
+    SetStepguardAttack(((STEPGUARD *)behavior->owner), 0, 0, D_002A2DD0);
+    DetachStepguard(((STEPGUARD *)behavior->owner));
     SetBhvjuggledState(behavior, 0);
     SetBhvBusy(behavior);
-    SetDetectorTargetStateById(behavior->guard->detector, behavior->holder, 2);
+    SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->holder, 2);
 }
 } } // namespace M_StartBhvjuggled
 
