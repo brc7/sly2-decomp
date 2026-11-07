@@ -22,11 +22,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef int qwordV __attribute__((mode(TI)));
 typedef unsigned int uint;
 
-struct VECTORV
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-
 struct MATRIX4V
 {
     float mat[4][4];
@@ -45,7 +40,7 @@ struct VU_VECTOR
     // Wrap a qword.
     VU_VECTOR(qwordV qw) { q = qw; }
     // Wrap a VECTOR's 16 bytes.
-    VU_VECTOR(const VECTORV &vec) { q = *(const qwordV *)&vec; }
+    VU_VECTOR(const VECTOR4 &vec) { q = *(const qwordV *)&vec; }
 };
 
 struct CLQV
@@ -85,56 +80,18 @@ struct WARPVTX
     float ag[4];
 };
 
-struct WRV;
-/* A float4 as a quadword or as floats (UpdateWrMatrixes). */
-union V { qwordV q; float f[4]; };
+/* A float4 as a quadword or as floats, and a 4x4 matrix as quadword rows (UpdateWrMatrixes): basic.h's forms. */
+typedef QWROW V;
+typedef MATRIX4Q M4;
 struct M3 { float f[3][4]; } __attribute__((aligned(16)));
-struct M4 { V r[4]; };
-/* A noise term and a sum of up to four (Sly 1 names). */
-struct ONZE { float amplitude; float frequency; float phase; float randomness; };
-struct ONZ { float minValue; float maxValue; float bias; int octaveCount; ONZE octaves[4]; };
-/* A warp entry (0xD0 bytes): a circle wave or a bend with bend/swivel noise. */
-struct CIRCLE { V uvA, vectorB, uvB; int column; float spatialFrequency, frequency, phase; };
-struct BEND { ONZ bend, swivel; };
-union PAYLOAD { CIRCLE circle; BEND bend; };
-struct WRE
-{
-    int kind;          /* 0 circle, 1 bend */
-    int matrixIndex;
-    int unknown08[2];
-    union { V axis; VECTORV vecAxis; };
-    V vectorA;
-    PAYLOAD data;
-};
-typedef char assert_WRE_size[sizeof(WRE) == 0xD0 ? 1 : -1];
-enum WREK { WREK_Circle = 0, WREK_Bend = 1 };
-/* The space warp (an LO, which ends at +0x50). */
-struct WRV
-{
-    char pad0[0x40];
-    int flags;
-    char pad44[0xC];
-    float lastUpdateTime;     /* +0x50 clock time of the last matrix update */
-    int entryCount;
-    int matrixCount;
-    int freeMatrixIndex;      /* +0x5C a matrix with a free column pair, or -1 */
-    WRE entries[8];
-    int currentEntryIndex;       /* +0x6E0 the last entry added */
-    int pad6E4[3];
-    M4 warpMatrices[4];    /* +0x6F0 */
-    M4 uvMatrices[4];      /* +0x7F0 */
-    WRBG *warpGroups;  /* +0x8F0 the warp groups (a DL: head, tail, ibDle) */
-    int warpGroupsTailAndIbDle[2];   /* the rest of the warp-group DL */
-    int valuesChanged;
-};
-typedef char assert_WR_fValuesChanged[(unsigned int)&((WRV *)0)->valuesChanged == 0x8FC ? 1 : -1];
+/* ONZ/ONZE, the warp entries (WRE) and the space warp (WR) are sly2/wr.h's. */
 
 
 extern CLOCK D_002DDED0;
-extern VECTORV D_002A2DA0; // (1, 0, 0, 0)
-extern VECTORV D_002A2DB0; // (0, 1, 0, 0)
-extern VECTORV D_002A2DC0; // (0, 0, 1, 0)
-extern VECTORV D_002A2DD0; // (0, 0, 0, 0)
+extern VECTOR4 D_002A2DA0; // (1, 0, 0, 0)
+extern VECTOR4 D_002A2DB0; // (0, 1, 0, 0)
+extern VECTOR4 D_002A2DC0; // (0, 0, 1, 0)
+extern VECTOR4 D_002A2DD0; // (0, 0, 0, 0)
 extern "C"
 {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                       // memset
@@ -144,28 +101,28 @@ float NormalizeAngle__Ff(float rad);                                      // Nor
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);           // CalculateSinCos
 MATRIX4V InvertMatrix4Rigid(const MATRIX4V *pmat);                          // the inverse of a 4x4 matrix
 MATRIX4V __ml__FRC7MATRIX4T0(const MATRIX4V &matL, const MATRIX4V &matR);     // MATRIX4 operator*
-void InitLo(WRV *warp);
+void InitLo(WR *warp);
 void InitSl(void *pdl, int ibDle);
 void AppendSlEntry(void *pdl, void *pv);
-void SetLoBusyKind(WRV *warp, int busyk);
-void UpdateLo(WRV *warp);
+void SetLoBusyKind(WR *warp, int busyk);
+void UpdateLo(WR *warp);
 M3 BuildAxisAngleRotationMatrix(qwordV,float);
 }
-void UpdateWrStateVectors(WRV *warp) __asm__("UpdateWrStateVectors__FP2WR");
+void UpdateWrStateVectors(WR *warp) __asm__("UpdateWrStateVectors__FP2WR");
 float UNoise(int n);
 float UNoise(float frequency, float phase, float randomness);
 float ApplyBiasCurve(float u, float bias);
 float EvaluateNoiseChannel(ONZ *noise);
-WRE *GetCurrentWarpEntry(WRV *warp, ENSK ensk, WREK kind) __asm__("GetCurrentWarpEntry__FP2WR4ENSK4WREK");
-WRE *GetCurrentCircleWarpEntry(WRV *warp, ENSK ensk) __asm__("GetCurrentCircleWarpEntry__FP2WR4ENSK");
-WRE *GetCurrentBendWarpEntry(WRV *warp, ENSK ensk) __asm__("GetCurrentBendWarpEntry__FP2WR4ENSK");
+WRE *GetCurrentWarpEntry(WR *warp, ENSK ensk, WREK kind) __asm__("GetCurrentWarpEntry__FP2WR4ENSK4WREK");
+WRE *GetCurrentCircleWarpEntry(WR *warp, ENSK ensk) __asm__("GetCurrentCircleWarpEntry__FP2WR4ENSK");
+WRE *GetCurrentBendWarpEntry(WR *warp, ENSK ensk) __asm__("GetCurrentBendWarpEntry__FP2WR4ENSK");
 void AddNoiseOctave(ONZ *noise, float amplitude, float frequency, float phase, float randomness);
 
 // Initializes a space warp: base LO init, no free warp matrix and no current entry yet, forces a state-vector update on
 // the first frame (tUpdate = -1), empties the warp-group list and marks the object busy (it needs per-frame updates).
 void WR::Init()
 {
-    WRV *p = (WRV *)this;
+    WR *p = this;
     int f;
     InitLo(p);
     p->freeMatrixIndex = -1;
@@ -173,17 +130,17 @@ void WR::Init()
     p->lastUpdateTime = -1.0f;
     InitSl(&p->warpGroups, 0xA0);
     SetLoBusyKind(p, 1);
-    f = p->flags;
+    f = p->unknown40;
     if (IsPointer(f)) *(int *)f |= 2;
-    else p->flags = f | 2;
+    else p->unknown40 = f | 2;
 }
 
 // Attaches a warp group (WRBG: a set of mesh vertices) to a space warp: appends it to the warp's group list and points
 // the group back at the warp. Called while loading glob meshes (glob.cpp). (inferred)
-extern "C" void AddWrWarpGroup(WRV *warp, WRBG *group)
+extern "C" void AddWrWarpGroup(WR *warp, WRBG *group)
 {
     AppendSlEntry(&warp->warpGroups, group);
-    group->pwr = (WR *)warp;
+    group->pwr = warp;
 }
 
 /* UpdateWrStateVectors (comment from its per-function file): */
@@ -258,7 +215,7 @@ static inline void FitLinearClq(CLQV *pclq, const float &s0, const float &u0, co
 static inline VU_VECTOR operator*(const MATRIX4V &mat, VU_VECTOR pos)
 {
     qwordV qw;
-    qw = VuMulMatrix4(VU_VECTOR(*(VECTORV *)mat.mat[0]).q, VU_VECTOR(*(VECTORV *)mat.mat[1]).q, VU_VECTOR(*(VECTORV *)mat.mat[2]).q, VU_VECTOR(*(VECTORV *)mat.mat[3]).q, pos.q);
+    qw = VuMulMatrix4(VU_VECTOR(*(VECTOR4 *)mat.mat[0]).q, VU_VECTOR(*(VECTOR4 *)mat.mat[1]).q, VU_VECTOR(*(VECTOR4 *)mat.mat[2]).q, VU_VECTOR(*(VECTOR4 *)mat.mat[3]).q, pos.q);
     return VU_VECTOR(qw);
 }
 
@@ -302,7 +259,7 @@ static inline float FloatFromVu(VU_FLOAT g)
 // Recomputes, for every warp group, each vertex's weight (the warp envelope: linear in the distance along the warp axis,
 // clamped) and the per-vertex state vector of every warp entry (circle: cos/sin of the wave phase at the vertex; bend:
 // the vertex offset from the bend centre). Runs when the warp's parameters changed. Port of Sly 1's function.
-void UpdateWrStateVectors(WRV *warp)
+void UpdateWrStateVectors(WR *warp)
 {
     MATRIX4V dmat;
     CLQV clq;
@@ -310,7 +267,7 @@ void UpdateWrStateVectors(WRV *warp)
     qwordV posBend;
     qwordV posWorldBend;
 
-    for (WRBG *group = warp->warpGroups; group; group = group->pwrbgNextWr)
+    for (WRBG *group = (WRBG *)warp->warpGroups.head; group; group = group->pwrbgNextWr)
     {
         // the envelope's space and the bend centre in it
         if ((int)group->weki.wek == -1)
@@ -348,17 +305,17 @@ void UpdateWrStateVectors(WRV *warp)
 
         for (WRBGBATCH *pwrbgbatch = (WRBGBATCH *)group->slBatch.head; pwrbgbatch; pwrbgbatch = pwrbgbatch->pwrbgbatchNext)
         {
-            VECTORV positions[256];
+            VECTOR4 positions[256];
             float au[256];
-            CopyAb__FPvT0Ui(positions, (VECTORV *)pwrbgbatch->pvPos, pwrbgbatch->cvtx * sizeof(VECTORV));
-            VECTORV *pposEnd = positions + pwrbgbatch->cvtx;
-            VECTORV *ppos = positions;
+            CopyAb__FPvT0Ui(positions, (VECTOR4 *)pwrbgbatch->pvPos, pwrbgbatch->cvtx * sizeof(VECTOR4));
+            VECTOR4 *pposEnd = positions + pwrbgbatch->cvtx;
+            VECTOR4 *ppos = positions;
             float *pu = au;
 
             // the weight of every vertex
             for (; ppos < pposEnd; ppos++, pu++)
             {
-                VECTORV pos;
+                VECTOR4 pos;
                 float s;
                 *(qwordV *)&pos = TransformPoint(dmat, *(qwordV *)ppos);
                 switch (group->weki.wek)
@@ -411,7 +368,7 @@ void UpdateWrStateVectors(WRV *warp)
                 pu = au;
                 for (; ppos < pposEnd; ppos++, pwarpvtx++, pu++)
                 {
-                    VECTORV posWorld;
+                    VECTOR4 posWorld;
                     *(VU_VECTOR *)&posWorld = matWorld * VU_VECTOR(*ppos);
                     switch (entry->kind)
                     {
@@ -429,7 +386,7 @@ void UpdateWrStateVectors(WRV *warp)
                     }
                     case 1:
                     {
-                        VECTORV dpos;
+                        VECTOR4 dpos;
                         *(VU_VECTOR *)&dpos = VU_VECTOR(posWorld) - VU_VECTOR(posWorldBend);
                         pwarpvtx->ag[0] = *pu * dpos.x;
                         pwarpvtx->ag[1] = *pu * dpos.y;
@@ -540,11 +497,11 @@ static inline qwordV Unit(qwordV v){qwordV len,r;len = VuDot(v, v);__asm__("vsqr
 static inline qwordV UnitFresh(qwordV v){qwordV len,r;len = VuDot(v, v);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(r):"j"(v),"j"(len));return r;}
 // Rotate v by the 3x3 matrix m.
 static inline qwordV Rotate(const M3 &m,qwordV v){v = VuMulMatrix3(*(const qwordV *)m.f[0], *(const qwordV *)m.f[1], *(const qwordV *)m.f[2], v);return v;}
-void UpdateWrMatrixes(WRV *p) __asm__("UpdateWrMatrixes__FP2WR");
+void UpdateWrMatrixes(WR *p) __asm__("UpdateWrMatrixes__FP2WR");
 // Per-frame update of a space warp: refreshes the state vectors if parameters changed, then builds each warp entry's warp
 // matrix and UV matrix for the current time (circle: a rotating wave phase; bend: noise-driven bend and swivel
 // rotations). Skipped when already updated this frame.
-void UpdateWrMatrixes(WRV *p){
+void UpdateWrMatrixes(WR *p){
  UpdateLo(p);
  if(D_002DDED0.time==p->lastUpdateTime)return;
  if(p->valuesChanged)UpdateWrStateVectors(p);
@@ -589,10 +546,10 @@ void UpdateWrMatrixes(WRV *p){
  p->lastUpdateTime=D_002DDED0.time;
 }
 
-void AddWrCircleWarp(WRV *warp) __asm__("AddWrCircleWarp__FP2WR");
+void AddWrCircleWarp(WR *warp) __asm__("AddWrCircleWarp__FP2WR");
 // Adds a circle (travelling wave) warp entry and makes it current; two circle entries share one warp matrix (columns 0-1
 // and 2-3), so the second one takes the free half left by the first.
-void AddWrCircleWarp(WRV *warp)
+void AddWrCircleWarp(WR *warp)
 {
     WRE *entry = &warp->entries[warp->entryCount++];
     warp->currentEntryIndex++;
@@ -609,10 +566,10 @@ void AddWrCircleWarp(WRV *warp)
     }
 }
 
-void AddWrBendWarp(WRV *warp) __asm__("AddWrBendWarp__FP2WR");
+void AddWrBendWarp(WR *warp) __asm__("AddWrBendWarp__FP2WR");
 // Adds a bend warp entry with default axis and up vectors and neutral (0.5) bias on its bend and swivel noise channels,
 // makes it current and gives it its own warp matrix.
-void AddWrBendWarp(WRV *warp)
+void AddWrBendWarp(WR *warp)
 {
     WRE *entry = &warp->entries[warp->entryCount++];
     warp->currentEntryIndex++;
@@ -627,7 +584,7 @@ void AddWrBendWarp(WRV *warp)
 // Returns the warp's current entry (0 if it has none) for an option setter; a "set" access (ensk == 1) also marks the
 // warp's values changed so state vectors are rebuilt. The kind argument is not checked.
 // (Sly 1-derived name: PwreGetWrCur.)
-WRE *GetCurrentWarpEntry(WRV *warp, ENSK ensk, WREK kind)
+WRE *GetCurrentWarpEntry(WR *warp, ENSK ensk, WREK kind)
 {
     if (warp->entryCount == 0) {
         return 0;
@@ -640,20 +597,20 @@ WRE *GetCurrentWarpEntry(WRV *warp, ENSK ensk, WREK kind)
 
 // Returns the current warp entry for a circle-warp option (see GetCurrentWarpEntry).
 // (Sly 1-derived name: PwreGetWrCircle.)
-WRE *GetCurrentCircleWarpEntry(WRV *warp, ENSK ensk)
+WRE *GetCurrentCircleWarpEntry(WR *warp, ENSK ensk)
 {
     return GetCurrentWarpEntry(warp, ensk, WREK_Circle);
 }
 
 // Returns the current warp entry for a bend-warp option (see GetCurrentWarpEntry). (Sly 1-derived name: PwreGetWrBend.)
-WRE *GetCurrentBendWarpEntry(WRV *warp, ENSK ensk)
+WRE *GetCurrentBendWarpEntry(WR *warp, ENSK ensk)
 {
     return GetCurrentWarpEntry(warp, ensk, WREK_Bend);
 }
 
-void SetWrWavelength(WRV *warp, float sWavelength) __asm__("SetWrWavelength__FP2WRf");
+void SetWrWavelength(WR *warp, float sWavelength) __asm__("SetWrWavelength__FP2WRf");
 // Option setter: the current circle warp's wavelength, stored as its spatial frequency (0 means no spatial variation).
-void SetWrWavelength(WRV *warp, float sWavelength)
+void SetWrWavelength(WR *warp, float sWavelength)
 {
     WRE *entry = GetCurrentCircleWarpEntry(warp, ENSK_Set);
     if (sWavelength == 0.0f)
@@ -663,7 +620,7 @@ void SetWrWavelength(WRV *warp, float sWavelength)
 }
 
 // Option getter: the current circle warp's wavelength (inverse of its spatial frequency, 0 when that is 0).
-extern "C" float GetWrWavelength(WRV *warp)
+extern "C" float GetWrWavelength(WR *warp)
 {
     WRE *entry = GetCurrentCircleWarpEntry(warp, ENSK_Set);
     if (entry->data.circle.spatialFrequency == 0.0f) return 0.0f;
@@ -686,17 +643,17 @@ void AddNoiseOctave(ONZ *noise, float amplitude, float frequency, float phase, f
     }
 }
 
-void AddWrBendNoise(WRV *warp, float amplitude, float frequency, float phase, float randomness) __asm__("AddWrBendNoise__FP2WRffff");
+void AddWrBendNoise(WR *warp, float amplitude, float frequency, float phase, float randomness) __asm__("AddWrBendNoise__FP2WRffff");
 // Option setter: adds a noise octave to the current bend warp's bend-angle channel.
-void AddWrBendNoise(WRV *warp, float amplitude, float frequency, float phase, float randomness)
+void AddWrBendNoise(WR *warp, float amplitude, float frequency, float phase, float randomness)
 {
     WRE *entry = GetCurrentBendWarpEntry(warp, ENSK_Set);
     AddNoiseOctave(&entry->data.bend.bend, amplitude, frequency, phase, randomness);
 }
 
-void AddWrSwivelNoise(WRV *warp, float amplitude, float frequency, float phase, float randomness) __asm__("AddWrSwivelNoise__FP2WRffff");
+void AddWrSwivelNoise(WR *warp, float amplitude, float frequency, float phase, float randomness) __asm__("AddWrSwivelNoise__FP2WRffff");
 // Option setter: adds a noise octave to the current bend warp's swivel-angle channel.
-void AddWrSwivelNoise(WRV *warp, float amplitude, float frequency, float phase, float randomness)
+void AddWrSwivelNoise(WR *warp, float amplitude, float frequency, float phase, float randomness)
 {
     WRE *entry = GetCurrentBendWarpEntry(warp, ENSK_Set);
     AddNoiseOctave(&entry->data.bend.swivel, amplitude, frequency, phase, randomness);

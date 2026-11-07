@@ -18,6 +18,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/basic.h"
 #include "sly2/classes.h"
+#include "sly2/wr.h"
 #include "sly2/sw.h"
 #include "sly2/cref.h"
 

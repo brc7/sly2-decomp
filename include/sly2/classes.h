@@ -2363,13 +2363,7 @@ struct WAYPT : SO
 typedef char assert_WAYPT_size[sizeof(WAYPT) == 0x190 ? 1 : -1];
 
 /* 115 WR (0x900); vtable 0x2DCF00, 48 slots */
-struct WR : LO
-{
-    char pad50[0x900 - 0x50];
-    virtual void Init() __asm__("InitWr");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetWrClassDesc");   /* slot 6 */
-    virtual void Update() __asm__("UpdateWrMatrixes__FP2WR");   /* slot 16 */
-};
-typedef char assert_WR_size[sizeof(WR) == 0x900 ? 1 : -1];
+/* WR (115, 0x900) is defined in sly2/wr.h (the anim header) with its fields. */
+struct WR;
 
 #endif /* SLY2_CLASSES_H */
