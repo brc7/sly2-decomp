@@ -572,6 +572,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   per-class child fields (`union { int lookAt; int gotoSgf; };`); typed `&p->segments[i]` / `p->mover` / `p->heldNoise` for
   `(char *)p + 0x60 + i * 32` style arithmetic; a `template <class T> static inline` helper for the vtable-slot-8 start
   call (StartPushedBhv).
+- Macros for flag bits, volume channels and virtual slots; `sizeof(field)` for memset sizes; splitting a `char sNN[]` view
+  field into named fields; an array for three consecutive same-typed fields (sound.cpp).
 
 **Not free** (reverted):
 - Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
@@ -633,3 +635,12 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   SetBhvpathlinkState (address computed differently).
 - A `static inline` helper can be emitted out of line (a non-template one in tu_171F58, the template with a cast in
   tu_1553F0: a new local symbol in `nm`): check the nm set, not only matchtool, after introducing a helper.
+- A nested `if (x != 0) { if (x == 1) B; } else A;` as `if (x == 0) A; else if (x == 1) B;` (block order follows the
+  source; BuildReconSelectionText); byte arithmetic `(H *)(i * sizeof(H) + (int)base)` as `&base[i]` (scheduling;
+  RestartNestedSprite).
+- A reference alias to a member (`S &stack = p->musicStack;`) changes PushMusic / FindMusic (spell the member each time);
+  UpdateMusicMix keeps its `goto smooth` / `goto normalize` (if/else in either order moves the smoothing call before the
+  jump: 36-76% differ), and its top-of-stack read stays `((REF **)&count)[count]` (`musicStack[count - 1]` differs).
+- Not codegen but a compile error: a global enum constant passed as a call argument makes g++'s argument-dependent lookup
+  see the file-scope declaration next to a per-function `extern "C"` redeclaration (ambiguous overload); use a macro for
+  constants passed to such calls (sound.cpp SUKR_*).

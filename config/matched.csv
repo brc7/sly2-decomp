@@ -4947,7 +4947,7 @@ PvAllocStreamsnd,0x1FCCF0,8,match,src/game/engine/sound/sound.cpp
 FreeStreamsnd,0x1FCD10,9,match,src/game/engine/sound/sound.cpp
 SNDMGR_ctor,0x1FCD38,89,match,src/game/engine/sound/sound.cpp
 StartupSound,0x1FCEA0,51,match,src/game/engine/sound/sound.cpp
-OnSoundManagerQueryResult,0x1FCF70,5,match,src/game/engine/sound/sound.cpp
+OnMicLevelResult,0x1FCF70,5,match,src/game/engine/sound/sound.cpp
 OnSoundManagerStatusResult,0x1FCF88,5,match,src/game/engine/sound/sound.cpp
 FindDialogStream,0x1FCFA0,12,match,src/game/engine/sound/sound.cpp
 GetDialogStreamDuration,0x1FCFD0,10,match,src/game/engine/sound/sound.cpp
@@ -4960,7 +4960,7 @@ LoadSoundSectionFromBrx,0x1FD0E8,320,match,src/game/engine/sound/sound.cpp
 PostSoundLoad,0x1FD5E8,69,match,src/game/engine/sound/sound.cpp
 ResetSndmgr,0x1FD700,75,match,src/game/engine/sound/sound.cpp
 UpdateSndmgr,0x1FD830,133,match,src/game/engine/sound/sound.cpp
-UpdateSoundListener,0x1FDA48,88,match,src/game/engine/sound/sound.cpp
+UpdateHeadsetMicrophone,0x1FDA48,88,match,src/game/engine/sound/sound.cpp
 PollSoundManagerStatus,0x1FDBA8,23,match,src/game/engine/sound/sound.cpp
 UpdateMusicMix,0x1FDC08,174,match,src/game/engine/sound/sound.cpp
 UpdateSoundManagerStub,0x1FDEC0,2,match,src/game/engine/sound/sound.cpp
@@ -4971,7 +4971,7 @@ StopMusic,0x1FE310,57,match,src/game/engine/sound/sound.cpp
 TMusicCur,0x1FE3F8,32,match,src/game/engine/sound/sound.cpp
 FindMusic,0x1FE478,79,match,src/game/engine/sound/sound.cpp
 SetSoundManagerFlags,0x1FE5B8,9,match,src/game/engine/sound/sound.cpp
-IsSoundManagerMuted,0x1FE5E0,4,match,src/game/engine/sound/sound.cpp
+ShouldFadeWhenTimeStops,0x1FE5E0,4,match,src/game/engine/sound/sound.cpp
 StartDialog,0x1FE5F0,81,match,src/game/engine/sound/sound.cpp
 StopDialog,0x1FE738,68,match,src/game/engine/sound/sound.cpp
 IsDialogPlaying,0x1FE848,15,match,src/game/engine/sound/sound.cpp

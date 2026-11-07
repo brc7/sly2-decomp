@@ -12,6 +12,14 @@ Related: [world file](../formats/world-file.md#32-sound-section-loadsoundsection
   and handle (+0xE8), `aisnd` (sfxid -> index) and `anKind` tables; stream lists; a music stack (+0x204, depth 8); dialog stream
   (+0x200); ambience (+0x228); an 8 category x 4 channel volume matrix (+0x13C); global pause flags (+0x58) `[H r7]`.
 - `LoadSoundSectionFromBrx` 0x1FD0E8 (named by its matcher comment) reads the level's sound section `[C:static]`.
+- Stream lists: +0xEC dialog lines (SNDSTREAM: per-language record, speaker id, duration, lip-sync events), +0xF0 music
+  tracks (SNDFILE, found by FindMusicStream for PushMusic). Volume channels: 0 ambience, 1 music, 2 dialog, 3 bank SFX
+  (GetStreamVolumeChannel; SetSndmgrChannelVolume drives +0x228 / the music stack / +0x200; menu.cpp's music slider sets
+  channel 1). Volume categories: 1 options menu, 2 pause fade (0 pauses the channel), 3 player-mode ducking. Field map:
+  the SNDMGRV comment in sound.cpp `[C:static, names r4]`.
+- USB headset (+0x10, the save option): dialog lines play on the headset unless their record excludes it, and the
+  microphone level (SUKR 0xB) above 0.5 makes the hero emit a guard-audible noise whose range / height grow with the level
+  (UpdateHeadsetMicrophone 0x1FDA48, curves at +0x80 / +0x90) `[C:static, names r4]`.
 - `UpdateSndmgr` 0x1FD830 runs from UpdateSw `[H r4 main.md, r7]`.
 
 ## 2. Sound instances

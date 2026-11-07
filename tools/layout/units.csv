@@ -4958,7 +4958,7 @@ PvAllocStreamsnd,0x1FCCF0,sound
 FreeStreamsnd,0x1FCD10,sound
 SNDMGR_ctor,0x1FCD38,sound
 StartupSound,0x1FCEA0,sound
-OnSoundManagerQueryResult,0x1FCF70,sound
+OnMicLevelResult,0x1FCF70,sound
 OnSoundManagerStatusResult,0x1FCF88,sound
 FindDialogStream,0x1FCFA0,sound
 GetDialogStreamDuration,0x1FCFD0,sound
@@ -4971,7 +4971,7 @@ LoadSoundSectionFromBrx,0x1FD0E8,sound
 PostSoundLoad,0x1FD5E8,sound
 ResetSndmgr,0x1FD700,sound
 UpdateSndmgr,0x1FD830,sound
-UpdateSoundListener,0x1FDA48,sound
+UpdateHeadsetMicrophone,0x1FDA48,sound
 PollSoundManagerStatus,0x1FDBA8,sound
 UpdateMusicMix,0x1FDC08,sound
 UpdateSoundManagerStub,0x1FDEC0,sound
@@ -4982,7 +4982,7 @@ StopMusic,0x1FE310,sound
 TMusicCur,0x1FE3F8,sound
 FindMusic,0x1FE478,sound
 SetSoundManagerFlags,0x1FE5B8,sound
-IsSoundManagerMuted,0x1FE5E0,sound
+ShouldFadeWhenTimeStops,0x1FE5E0,sound
 StartDialog,0x1FE5F0,sound
 StopDialog,0x1FE738,sound
 IsDialogPlaying,0x1FE848,sound

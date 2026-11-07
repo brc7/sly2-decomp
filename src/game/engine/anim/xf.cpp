@@ -446,6 +446,8 @@ static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value)
 // built from the slot velocity (+0xB0) for velocity roles and from the segment's tangent for segment roles; mirrored
 // slots (kinds 8 / 14) negate their source's translation rate. (inferred: the name says matrix, the body is the
 // derivative; SetXfRole reads velocities off it)
+// Proposed name: EvaluateXfSlotMatrixDerivative (rename later with tools/rename.py; callers: itself, the second
+// evaluator in this file, SetXfRole's view).
 extern "C" M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po)
 {
     M4 m, m2;
