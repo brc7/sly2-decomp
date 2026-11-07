@@ -2948,39 +2948,27 @@ void REMIT::PostEmit(EMITB *pemitb)
 }
 
 namespace M_UpdateRemit { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-extern struct { float t; float dt; } D_002DDED0;
-typedef struct { int flags; int pad[7]; qword origin; int pad2[4]; } MSG;   /* EXPLSO */
 struct TGT;
-typedef struct { short d; short pad; void (*pf)(struct TGT *, MSG *); } VTE;
-typedef struct TGT { char pad[0xC]; VTE *vt; } TGT;
-typedef struct {
-    char pad0[0x70];
-    qword position;
-    char pad80[0xF0 - 0x80];
-    TGT *expls;
-    float rate;             /* explosions per second */
-    float accumulated;
-} OBJ;   /* REMIT */
-void UpdateRip(OBJ *);
+typedef struct { short d; short pad; void (*pf)(struct TGT *, EXPLSO *); } VTE;
+typedef struct TGT { char pad[0xC]; VTE *vt; } TGT;   /* the EXPLS: its explode virtual (slot 51) takes the EXPLSO, which
+                                                         emitter.h's EXPL::ExplodeExplso does not declare */
 } } // namespace M_UpdateRemit
 // REMIT Update: base update, then explodes its EXPLS (slot 51) at its position `rate` times per second (the EXPLSO
 // with only the origin set).
-void REMIT::Update(float dt)   /* key function (the namespace's views) */
+void REMIT::Update(float dt)   /* key function */
 {
     using namespace M_UpdateRemit;
-    M_UpdateRemit::OBJ *p = (M_UpdateRemit::OBJ *)this;
-    UpdateRip(p);
-    if (p->expls) {
-        p->accumulated += D_002DDED0.dt * p->rate;
-        while (p->accumulated >= 1.0f) {
-            MSG m;
+    UpdateRip(this, dt);
+    if (pexpls) {
+        accumulated += g_clock.deltaTime * rate;
+        while (accumulated >= 1.0f) {
+            EXPLSO m;
             TGT *t;
-            m.flags = 4;   /* EXPLSO has origin */
-            m.origin = p->position;
-            t = p->expls;
+            m.grf = EXPLSO_HAS_ORIGIN;
+            m.origin = currentPosition;
+            t = (TGT *)pexpls;
             t->vt[51].pf((TGT *)((char *)t + t->vt[51].d), &m);
-            p->accumulated -= 1.0f;
+            accumulated -= 1.0f;
         }
     }
 }
