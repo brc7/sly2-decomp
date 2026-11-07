@@ -858,57 +858,46 @@ void AddJobStateRsmg(JOB *job, int state, int root, int stateMachine, int goal, 
 
 namespace M_PostJobLoad { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-struct S {
-    char pad[0x7C]; int startCount;
-    char pad1[0x8C - 0x80]; int numVisibility, visibility, numRsmgs, rsmgs;
-    char pad2[0xA4 - 0x9C]; float elapsedTime; void *stateSaveVar; int completionWidgetOid;
-    char pad3[0xB8 - 0xB0]; void *completionWidget; void *widget379;
-    char pad4[0xD0 - 0xC0]; int startCountKey;
-    char pad5[0xE0 - 0xD4]; int savedTimeKey;
-    char pad6[0xE8 - 0xE4]; int stateKey;
-};
 extern char D_003D4A60[];
 extern SW D_003DD490;
-void PostLoLoad(struct S *p);
-int IsCurrentJob(struct S *p);
-int IsJobLive(struct S *p);
-void ApplyStateLoVisibility(struct S *p, int n, int c, int a);
-void TriggerStateRsmgs(struct S *p, int n, int c, int a, int b);
+void PostLoLoad(LO *p);
+void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
+void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
 void GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 void *GetSaveVarAddress(void *p, void *q, void *r);
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
 // JOB post-load (slot 15): applies the inactive visuals when it is not current, restores its counters from the save
 // variables and finds its completion widgets.
-void PostJobLoad(struct S *job)
+void PostJobLoad(JOB *job)
 {
     CRef ref;
-    int *pn;
+    SVKEY *pk;
     PostLoLoad(job);
     if (!IsCurrentJob(job) && IsJobLive(job)) {
-        ApplyStateLoVisibility(job, 5, job->numVisibility, job->visibility);
-        TriggerStateRsmgs(job, 5, job->numRsmgs, job->rsmgs, 1);
+        ApplyStateLoVisibility(job, 5, job->cvis, job->avis);
+        TriggerStateRsmgs(job, 5, job->crsmg, job->arsmg, 1);
     }
-    pn = &job->startCountKey;
-    if (*pn) {
+    pk = &job->svkStart;
+    if (pk->c) {
         int n;
-        GetGlobalSaveVar(&ref, pn, D_003D4A60);
+        GetGlobalSaveVar(&ref, pk, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        job->startCount = n;
+        job->cStart = n;
     }
-    pn = &job->savedTimeKey;
-    if (*pn) {
+    pk = &job->svkElapsed;
+    if (pk->c) {
         float g;
-        GetGlobalSaveVar(&ref, pn, D_003D4A60);
+        GetGlobalSaveVar(&ref, pk, D_003D4A60);
         g = *(float *)&ref.m_tag;
         Decref__4CRef(&ref);
-        job->elapsedTime = g;
+        job->dtElapsed = g;
     }
-    job->stateSaveVar = GetSaveVarAddress(&D_003DD490.savevars, &job->stateKey, D_003D4A60);
+    job->difficulty = (float *)GetSaveVarAddress(&D_003DD490.savevars, &job->svkDifficulty, D_003D4A60);
     if (job->completionWidgetOid != -1)
-        job->completionWidget = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
-    job->widget379 = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
+        job->completionWidget = (LO *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
+    job->widgetShared = (LO *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
 }
 } } // namespace M_PostJobLoad
 
@@ -938,92 +927,56 @@ extern "C" void EndCurrentJob(JOB *job)
 }
 
 namespace M_ResetJobTasks { extern "C" {
-struct X { char pad[0x64]; int startCount; char pad2[0x84 - 0x68]; struct X *pNext; };
-struct S { char pad[0x7C]; int startCount; struct X *pFirst; };
-void UpdateTaskSaveVars(struct X *p);
-void UpdateJobSaveVars(struct S *p);
+void UpdateTaskSaveVars(TASK *p);
+void UpdateJobSaveVars(JOB *p);
 // Clears the start counts of the job's tasks and the job's own, and refreshes their save variables.
-void ResetJobTasks(struct S *job)
+void ResetJobTasks(JOB *job)
 {
-    struct X *task;
-    for (task = job->pFirst; task; task = task->pNext) {
-        task->startCount = 0;
+    TASK *task;
+    for (task = (TASK *)job->sltask.head; task; task = (TASK *)task->sleJob.next) {
+        task->cStart = 0;
         UpdateTaskSaveVars(task);
     }
-    job->startCount = 0;
+    job->cStart = 0;
     UpdateJobSaveVars(job);
 }
 } } // namespace M_ResetJobTasks
 
 namespace M_BeginJob {
-class OBase {
-public:
-    int frame, sidebag, firstRefNode;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-class O : public OBase {
-public:
-    char pad[0x7C - 0x10];
-    int startCount;
-    void *firstTask, *lastTask; int taskLinkOffset;
-    int numVisibility, visibility, numRsmgs, rsmgs;
-    char pad2[0xF0 - 0x9C];
-    int stateSource;
-};
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_002DEB30[]; }
-extern "C" void SetSwJobCur(G *pg, O *p);
-extern "C" int IsJobLive(O *p);
-extern "C" void UpdateJobSaveVars(O *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
-extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
-extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
+extern "C" void SetSwJobCur(G *pg, JOB *p);
+extern "C" void UpdateJobSaveVars(JOB *p);
+extern "C" void BroadcastGameEvent(void *pv, int n, JOB *p);
+extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
+extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
 // Makes the job current; when live: counts the start, game event 0x21, active visuals and rsmgs, Splice event 0x13.
-extern "C" void BeginJob(O *job)
+extern "C" void BeginJob(JOB *job)
 {
     SetSwJobCur(&D_003DD490, job);
     if (IsJobLive(job)) {
-        job->startCount++;
+        job->cStart++;
         UpdateJobSaveVars(job);
         BroadcastGameEvent(D_002DEB30, 0x21, job);
-        ApplyStateLoVisibility(job, 4, job->numVisibility, job->visibility);
-        TriggerStateRsmgs(job, 4, job->numRsmgs, job->rsmgs, job->stateSource);
-        job->Msg(0x13, 0, 0, 0, 0);
+        ApplyStateLoVisibility(job, 4, job->cvis, job->avis);
+        TriggerStateRsmgs(job, 4, job->crsmg, job->arsmg, job->stateSource);
+        job->HandleSpliceEvent(0x13, 0, 0, 0, 0);
     }
 }
 } // namespace M_BeginJob
 
 namespace M_EndJob {
-class OBase {
-public:
-    int frame, sidebag, firstRefNode;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-class O : public OBase {
-public:
-    char pad[0x7C - 0x10];
-    O *job;   /* (as a task) its job */
-    char pad2[0x8C - 0x80];
-    int numVisibility, visibility, numRsmgs, rsmgs;
-    char pad3[0xF0 - 0x9C];
-    int stateSource;
-};
 struct W { int unknown0, unknown4, sectorKey; char pad[0x38 - 0xC]; int sectorXor; };   /* a file record */
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern char D_002DEB30[]; }
-extern "C" void SetSwJobCur(SW *pg, O *p);
+extern "C" void SetSwJobCur(SW *pg, JOB *p);
 extern "C" W *GetCurrentWorldEntry();
 extern "C" int GetCurrentLevelIndex__Fv();
 extern "C" W *GetLevelFileRecord(int n);
-extern "C" int IsJobLive(O *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
-extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
-extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
+extern "C" void BroadcastGameEvent(void *pv, int n, JOB *p);
+extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
+extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
 static inline int IsSameFileRecord(W *a, W *b)
 {
     if (a == b) return 1;
@@ -1031,10 +984,10 @@ static inline int IsSameFileRecord(W *a, W *b)
     return (a->sectorKey ^ a->sectorXor) == (b->sectorKey ^ b->sectorXor);
 }
 // Ends the job (and its pending task); when live: game event 0x22, inactive visuals and rsmgs, Splice event 0x14.
-extern "C" void EndJob(O *job)
+extern "C" void EndJob(JOB *job)
 {
     SetSwJobCur(&D_003DD490, 0);
-    if (D_003DD490.pendingTask && ((O *)D_003DD490.pendingTask)->job && ((O *)D_003DD490.pendingTask)->job == job)
+    if (D_003DD490.pendingTask && ((TASK *)D_003DD490.pendingTask)->pjob && ((TASK *)D_003DD490.pendingTask)->pjob == job)
         SetSwTaskPending(&D_003DD490, 0);
     W *currentEntry = GetCurrentWorldEntry();
     W *levelEntry = GetLevelFileRecord(GetCurrentLevelIndex__Fv());
@@ -1044,60 +997,43 @@ extern "C" void EndJob(O *job)
     }
     if (IsJobLive(job)) {
         BroadcastGameEvent(D_002DEB30, 0x22, job);
-        ApplyStateLoVisibility(job, 5, job->numVisibility, job->visibility);
-        TriggerStateRsmgs(job, 5, job->numRsmgs, job->rsmgs, job->stateSource);
-        job->Msg(0x14, 0, 0, 0, 0);
+        ApplyStateLoVisibility(job, 5, job->cvis, job->avis);
+        TriggerStateRsmgs(job, 5, job->crsmg, job->arsmg, job->stateSource);
+        job->HandleSpliceEvent(0x14, 0, 0, 0, 0);
     }
 }
 } // namespace M_EndJob
 
 namespace M_HandleJobGameEvent {
-class OBase {
-public:
-    int a, b, c;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-};
-class O : public OBase {
-public:
-    char pad[0x50 - 0x10];
-    int isDisabled;
-    int numCompleteEvents;
-    int *completeEvents;
-    int numFailEvents;
-    int *failEvents;
-};
 struct G;
 extern "C" { extern G D_003DD490; }
-extern "C" int IsJobLive(O *p);
 extern "C" int IsSwTransitionBusy(G *pg);
-extern "C" void SignalJobComplete(O *p);
-extern "C" void FailJob(O *p);
-extern "C" void RestartJob(O *p);
+extern "C" void SignalJobComplete(JOB *p);
+extern "C" void FailJob(JOB *p);
+extern "C" void RestartJob(JOB *p);
 // The job's game-event hook: when live, forwards the event (Splice event 0x11) and checks the complete and fail lists;
 // when not live, event 0x10 restarts it.
-extern "C" void HandleJobGameEvent(O *job, int eventId, int eventArg)
+extern "C" void HandleJobGameEvent(JOB *job, int eventId, int eventArg)
 {
     if (IsJobLive(job)) {
         void *apv[2];
         int i;
         apv[0] = &eventId;
         apv[1] = &eventArg;
-        job->Msg(0x11, 0, 2, apv, 0);
-        for (i = 0; i < job->numCompleteEvents; i++) {
-            if (eventId == job->completeEvents[i]) {
+        job->HandleSpliceEvent(0x11, 0, 2, apv, 0);
+        for (i = 0; i < job->ceventComplete; i++) {
+            if (eventId == job->aeventComplete[i]) {
                 SignalJobComplete(job);
                 break;
             }
         }
-        for (i = 0; i < job->numFailEvents; i++) {
-            if (eventId == job->failEvents[i]) {
+        for (i = 0; i < job->ceventFail; i++) {
+            if (eventId == job->aeventFail[i]) {
                 FailJob(job);
                 break;
             }
         }
-    } else if (eventId == 0x10 && job->isDisabled && !IsSwTransitionBusy(&D_003DD490)) {
+    } else if (eventId == 0x10 && job->fDisabled && !IsSwTransitionBusy(&D_003DD490)) {
         RestartJob(job);
     }
 }
