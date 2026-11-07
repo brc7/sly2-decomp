@@ -292,18 +292,18 @@ static inline int FNear(qword a, qword b)
 void CID151::Start()   /* key function: CID151's vtable comes out here (the namespace's views) */
 {
     using namespace M_StartSnd;
-    struct P *p = (struct P *)this;
-    int f = 0;
-    int k;
-    if (!p->voiceHandle) {
-        f = p->playState || (p->flags & SND_START);
-        f ^= 1;
+    struct P *sound = (struct P *)this;
+    int isStopped = 0;
+    int requests;
+    if (!sound->voiceHandle) {
+        isStopped = sound->playState || (sound->flags & SND_START);
+        isStopped ^= 1;
     }
-    if (!f) return;
-    { int fA = p->pauseCount > 0; k = SND_START | SND_DIRTY_PARAMS; if (fA) k = SND_START | SND_PAUSE | SND_DIRTY_PARAMS; }
-    if (p->source || !FNear(D_002A2DD0, p->position))
-        k |= SND_POSITIONAL;
-    SetSndFlags(p, k, k);
+    if (!isStopped) return;
+    { int isPaused = sound->pauseCount > 0; requests = SND_START | SND_DIRTY_PARAMS; if (isPaused) requests = SND_START | SND_PAUSE | SND_DIRTY_PARAMS; }
+    if (sound->source || !FNear(D_002A2DD0, sound->position))
+        requests |= SND_POSITIONAL;
+    SetSndFlags(sound, requests, requests);
 }
 
 namespace M_func_001FB1F8 { extern "C" {
@@ -612,10 +612,22 @@ struct P { char pad[0xC]; VTE *vtable; float volume; char pad2[0x40 - 0x14]; int
 extern "C" void SetSndFlags(P *, int, int);
 #define VCALL(p, n) ((p)->vtable[n].pfn((char *)(p) + (p)->vtable[n].d))
 #define ICALL(p, n) (((int (*)(void *))(p)->vtable[n].pfn)((char *)(p) + (p)->vtable[n].d))
+/* virtual slots of SND (BANKSND / STREAMSND override them) */
+#define SLOT_INCREF 1
+#define SLOT_DECREF 2
+#define SLOT_GET_KIND 8
+#define SLOT_PLAY 9
+#define SLOT_STOP 10
+#define SLOT_PAUSE 11
+#define SLOT_CONTINUE 12
+#define SLOT_APPLY_PARAMS 13
+#define SLOT_QUERY_STATUS 14
+#define SLOT_UPDATE_POSITIONAL 16
+/* holds a reference for the duration of the update */
 struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; VCALL(p, 1); }
-    ~Lock() { VCALL(p, 2); }
+    P *sound;
+    Lock(P *locked) { sound = locked; VCALL(sound, SLOT_INCREF); }
+    ~Lock() { VCALL(sound, SLOT_DECREF); }
 };
 /** @sly2-annot addr=0x1FB8E0
  * Purpose: Per-frame flush of a dirty sound: positional update;
@@ -626,39 +638,39 @@ struct Lock {
  * @end-sly2-annot */
 // Flushes a dirty sound to the sound hardware: positional update, then start, stop, status query, parameters, pause and
 // continue by its request bits (each through its virtual slot).
-extern "C" void UpdateSnd(P *p)
+extern "C" void UpdateSnd(P *sound)
 {
-    Lock l(p);
-    unsigned short fl;
-    if (p->flags & SND_POSITIONAL) VCALL(p, 16);
-    else p->effectiveVolume = p->volume;
-    fl = p->flags;
-    if (fl & SND_START) {
-        VCALL(p, 9);
-        if (ICALL(p, 8) == 1) SetSndFlags(p, SND_QUERY_PLAYING, SND_QUERY_PLAYING);
-    } else if (p->voiceHandle) {
-        if (fl & SND_STOP) {
-            VCALL(p, 10);
-            p->voiceHandle = 0;
-            SetSndFlags(p, SND_ALL & ~SND_POSITIONAL, 0);
+    Lock lock(sound);
+    unsigned short flags;
+    if (sound->flags & SND_POSITIONAL) VCALL(sound, SLOT_UPDATE_POSITIONAL);
+    else sound->effectiveVolume = sound->volume;
+    flags = sound->flags;
+    if (flags & SND_START) {
+        VCALL(sound, SLOT_PLAY);
+        if (ICALL(sound, SLOT_GET_KIND) == 1) SetSndFlags(sound, SND_QUERY_PLAYING, SND_QUERY_PLAYING);   /* one-shot: watch for its end */
+    } else if (sound->voiceHandle) {
+        if (flags & SND_STOP) {
+            VCALL(sound, SLOT_STOP);
+            sound->voiceHandle = 0;
+            SetSndFlags(sound, SND_ALL & ~SND_POSITIONAL, 0);
         } else {
-            if (fl & SND_QUERIES) VCALL(p, 14);
-            if (p->playState) return;
-            if (p->flags & SND_DIRTY_PARAMS) {
-                VCALL(p, 13);
-                SetSndFlags(p, SND_DIRTY_PARAMS, 0);
+            if (flags & SND_QUERIES) VCALL(sound, SLOT_QUERY_STATUS);
+            if (sound->playState) return;   /* still starting */
+            if (sound->flags & SND_DIRTY_PARAMS) {
+                VCALL(sound, SLOT_APPLY_PARAMS);
+                SetSndFlags(sound, SND_DIRTY_PARAMS, 0);
             }
-            fl = p->flags;
-            if (fl & SND_PAUSE) {
-                VCALL(p, 11);
-                SetSndFlags(p, SND_PAUSE, 0);
-            } else if (fl & SND_CONTINUE) {
-                VCALL(p, 12);
-                SetSndFlags(p, SND_CONTINUE, 0);
+            flags = sound->flags;
+            if (flags & SND_PAUSE) {
+                VCALL(sound, SLOT_PAUSE);
+                SetSndFlags(sound, SND_PAUSE, 0);
+            } else if (flags & SND_CONTINUE) {
+                VCALL(sound, SLOT_CONTINUE);
+                SetSndFlags(sound, SND_CONTINUE, 0);
             }
         }
-    } else if (!p->playState && !(fl & SND_POSITIONAL)) {
-        SetSndFlags(p, SND_ALL, 0);
+    } else if (!sound->playState && !(flags & SND_POSITIONAL)) {
+        SetSndFlags(sound, SND_ALL, 0);   /* not playing and nothing to follow: off the dirty list */
     }
 }
 } // namespace M_UpdateSnd
@@ -849,12 +861,13 @@ void snd_StopSound(int voiceHandle);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Stops a bank sound (slot 10): a fade-out when a fade time was requested, else immediately.
-void StopBanksnd(struct A *p)
+void StopBanksnd(struct A *sound)
 {
-    if (p->fadeTime > 0.0f)
-        snd_AutoVol(p->voiceHandle, -4, (int)(p->fadeTime * 240.0f), 2);
+    if (sound->fadeTime > 0.0f)
+        snd_AutoVol(sound->voiceHandle, -4,   /* fade to silence over fadeTime (240 ticks per second) */
+                     (int)(sound->fadeTime * 240.0f), 2);
     else
-        snd_StopSound(p->voiceHandle);
+        snd_StopSound(sound->voiceHandle);
 }
 } } // namespace M_StopBanksnd
 
@@ -883,8 +896,8 @@ extern "C" void ContinueBanksnd(SNDV *sound)
 }
 
 namespace M_ApplyBanksndParams { extern "C" {
-struct X { char pad[0x14]; int panAngle; float pitchRatio; char pad2[0x40 - 0x1C]; void *voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short fl; };
-void func_00232500(void *, int, int, int, int, int);
+struct X { char pad[0x14]; int panAngle; float pitchRatio; char pad2[0x40 - 0x1C]; void *voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags; };
+void func_00232500(void *, int, int, int, int, int);   /* 989snd: set voice volume / pan / pitch (inferred) */
 /** @sly2-annot addr=0x1FBF20
  * Purpose: vt13: send vol(*1024)/pan/pitch(*12) for dirty bits 0x10/0x20/0x40
  * Info: proposed name ApplyBanksndParams (T1); class BANKSND; TU sound
@@ -892,23 +905,23 @@ void func_00232500(void *, int, int, int, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sends a bank sound's changed volume, pan and pitch to its voice (slot 13).
-void ApplyBanksndParams(struct X *px)
+void ApplyBanksndParams(struct X *sound)
 {
-    int fl = px->fl;
-    if (fl & SND_DIRTY_SOUND_PARAMS) {
-        int m = 0;
-        int a, b;
-        if (fl & SND_DIRTY_VOLUME) { m = 1; a = (int)(px->effectiveVolume * 1024.0f); }
-        if (fl & SND_DIRTY_PAN) m |= 4;
-        if (fl & SND_DIRTY_PITCH) { m |= 8; b = (int)(px->pitchRatio * 12.0f); }
-        func_00232500(px->voiceHandle, m, a, px->panAngle, b, 0);
+    int flags = sound->flags;
+    if (flags & SND_DIRTY_SOUND_PARAMS) {
+        int changed = 0;
+        int volume, pitch;
+        if (flags & SND_DIRTY_VOLUME) { changed = 1; volume = (int)(sound->effectiveVolume * 1024.0f); }
+        if (flags & SND_DIRTY_PAN) changed |= 4;
+        if (flags & SND_DIRTY_PITCH) { changed |= 8; pitch = (int)(sound->pitchRatio * 12.0f); }
+        func_00232500(sound->voiceHandle, changed, volume, sound->panAngle, pitch, 0);
     }
 }
 } } // namespace M_ApplyBanksndParams
 
 namespace M_BANKSND_QueryStatus { extern "C" {
 struct VT { int pad[2]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; void *voiceHandle; char pad3[0x50 - 0x44]; unsigned short fl; };
+struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; void *voiceHandle; char pad3[0x50 - 0x44]; unsigned short flags; };
 void OnBankSoundStatus(void);
 void snd_SoundIsStillPlaying_CB(void *, void (*)(void), void *);
 void SetSndFlags(struct X *, int, int);
@@ -919,12 +932,12 @@ void SetSndFlags(struct X *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Asks the IOP whether a bank sound's voice is still playing (slot 14), with OnBankSoundStatus as callback.
-void BANKSND_QueryStatus(struct X *px)
+void BANKSND_QueryStatus(struct X *sound)
 {
-    if (px->fl & SND_QUERY_PLAYING) {
-        px->vtable->pfn((char *)px + px->vtable->d);
-        snd_SoundIsStillPlaying_CB(px->voiceHandle, OnBankSoundStatus, px);
-        SetSndFlags(px, SND_QUERY_PLAYING, 0);
+    if (sound->flags & SND_QUERY_PLAYING) {
+        sound->vtable->pfn((char *)sound + sound->vtable->d);
+        snd_SoundIsStillPlaying_CB(sound->voiceHandle, OnBankSoundStatus, sound);
+        SetSndFlags(sound, SND_QUERY_PLAYING, 0);
     }
 }
 } } // namespace M_BANKSND_QueryStatus
@@ -942,12 +955,14 @@ void SetSndFlags(struct P *, int, int);
  * @end-sly2-annot */
 // Culling hook (slot 15): a sound that becomes audible again restarts; one that becomes silent is stopped (loopers keep
 // their parameters so they can restart). (inferred)
-void SetBankSoundCulled(struct P *p, int f)
+void SetBankSoundCulled(struct P *sound, int isCulled)
 {
-    if (!f) ((void (*)(void *))p->vtable->a[7].pfn)((char *)p + p->vtable->a[7].d);
+    if (!isCulled) ((void (*)(void *))sound->vtable->a[7].pfn)((char *)sound + sound->vtable->a[7].d);
     else {
-        int n = 0x1FF;
-        SetSndFlags(p, ((int (*)(void *))p->vtable->a[8].pfn)((char *)p + p->vtable->a[8].d) == 2 ? n : 0x3FF, 8);
+        /* request the stop, clearing the other requests; a looper keeps its positional flag so the positional update
+           can restart it when it becomes audible again */
+        int looperMask = SND_ALL & ~SND_POSITIONAL & ~SND_QUERIES;
+        SetSndFlags(sound, ((int (*)(void *))sound->vtable->a[8].pfn)((char *)sound + sound->vtable->a[8].d) == SOUND_KIND_LOOPING ? looperMask : SND_ALL & ~SND_QUERIES, SND_STOP);
     }
 }
 } } // namespace M_func_001FC018
@@ -976,7 +991,7 @@ void FreeBanksnd(struct S *);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
-void DecrefBanksnd(struct S *p) { if (--p->refCount == 0 && p) { DestroyBasic(p, 0); FreeBanksnd(p); } }
+void DecrefBanksnd(struct S *sound) { if (--sound->refCount == 0 && sound) { DestroyBasic(sound, 0); FreeBanksnd(sound); } }
 } } // namespace M_DecrefBanksnd
 
 /** @sly2-annot addr=0x1FC0F0
@@ -1406,7 +1421,7 @@ typedef int qword __attribute__((mode(TI)));
 struct LO {char pad28[0x28];unsigned long flags;};
 struct RANGE {float low,high;};
 struct E {struct LO *object;struct RANGE limits;float gain;};
-struct P {char pad1C[0x1C];struct LO *object;qword position;char pad30[0x70];int counts[6];struct E entries[6][8];};
+struct P {char pad1C[0x1C];struct LO *object;qword position;char pad30[0x70];int groupSourceCounts[6];struct E groupSources[6][8];};
 extern qword D_002A2DD0;
 int FFloatsNear__Ffff(float,float,float);
 void UpdateSndPositional(struct P *);
@@ -1429,30 +1444,30 @@ static inline int FNear(qword a, qword b)
  * @end-sly2-annot */
 // Positional update of a stream (slot 16): the base update, then per sub-group the loudest audible source sets the
 // group's volume and pan.
-void UpdateStreamsndPositional(struct P *p)
+void UpdateStreamsndPositional(struct P *sound)
 {
     int group;
-    if (p->object || !FNear(D_002A2DD0, p->position))
-        UpdateSndPositional(p);
+    if (sound->object || !FNear(D_002A2DD0, sound->position))
+        UpdateSndPositional(sound);
     for (group = 0; group < 6; group++) {
-        int count = p->counts[group];
+        int count = sound->groupSourceCounts[group];
         if (count) {
             float maximum = 0.0f;
-            int flags = 0, active = 0, i;
-            int *pflags = &flags;
+            int panAngle = 0, numActive = 0, i;
+            int *panOut = &panAngle;   /* only the first audible source's pan is computed */
             float fade;
             for (i = 0; i < count; i++) {
-                struct E *entry = &p->entries[group][i];
+                struct E *entry = &sound->groupSources[group][i];
                 struct LO *object = entry->object;
-                if (object && ((object->flags >> 60) & 1) == 1) {
-                    active++;
-                    CalculateSndVolPan(p, func_001A62E8(object), &entry->limits, &fade, pflags);
-                    pflags = 0;
+                if (object && ((object->flags >> 60) & 1) == 1) {   /* in the world */
+                    numActive++;
+                    CalculateSndVolPan(sound, func_001A62E8(object), &entry->limits, &fade, panOut);
+                    panOut = 0;
                     { float gain = fade * entry->gain; maximum = maximum > gain ? maximum : gain; }
                 }
             }
-            SetStreamGroupPan(p, group, active == 1 ? flags : 0);
-            SetStreamsndGroupVolume(p, group, maximum);
+            SetStreamGroupPan(sound, group, numActive == 1 ? panAngle : 0);
+            SetStreamsndGroupVolume(sound, group, maximum);
         }
     }
 }
