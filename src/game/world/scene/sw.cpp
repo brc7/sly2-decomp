@@ -43,7 +43,9 @@ extern char D_002C3EB8[], D_003E1C60[];
 struct SWG
 {
     char ab[sizeof(SW)];
+    // Construct the world through SW_ctor.
     SWG() { SW_ctor((SW *)this); }
+    // Destroy the world (DestroyBasic with the delete flag 2).
     ~SWG() { DestroyBasic(this, 2); }
 } __attribute__((aligned(16)));
 SWG D_003DD490;
@@ -54,6 +56,7 @@ struct O1C20
     void *table0;
     int unknown8;
     void *table1;
+    // Initialise the record with its two tables and zero counters.
     O1C20() { unknown0 = 0; table0 = D_002C3EB8; unknown8 = 0; table1 = D_003E1C60; }
 };
 O1C20 D_003E1C20;
@@ -586,11 +589,16 @@ class CRef
 public:
     TAGK m_tagk;
     TAG m_tag;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = TAGK_Nil; }
+    // Script reference of the given tag kind.
     CRef(TAGK tagk) { SetTag(tagk); }
+    // Script reference with tag tagk and int value n.
     CRef(TAGK tagk, int n) { m_tagk = tagk; m_tag.m_n = n; }
+    // Script reference with tag tagk and float value g.
     CRef(TAGK tagk, float g) { m_tagk = tagk; m_tag.m_g = g; }
     CRef(const CRef &ref);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &ref);
     bool operator==(const CRef &ref);
@@ -602,7 +610,9 @@ extern SAVEDATA D_003D4A60;
 extern const char *D_002A39E8[9];
 extern "C" SVPATH *NewSaveKey(const char *pchz, ...);
 extern "C" CRef SetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager);
+// Store a script reference into a global save variable.
 inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { SetGlobalSaveVar(psvp, ref, &D_003D4A60); }
+// Store an int into a global save variable.
 inline void SetSaveVarInt(SVPATH *psvp, int n)
 {
     CRef ref((TAGK)0x15, n);
@@ -763,18 +773,30 @@ void ClearPhase(int);
 void ResumeWipeAfterLoad(void *);
 void RunNextStartupStep(void *);
 }
+// Empty scope object (its constructor and destructor only shape the generated code).
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
+// Script reference view: destructor releases it.
 struct REF {int tag,value;REF(const REF &);~REF(){Decref__4CRef(this);}};
 extern "C" REF GetSaveVarByName(const char *,...);
+// The frame clock's current time.
 static inline float Time(){return *(float *)D_002DDED0;}
+// True when two file headers name the same file (same pointer, or equal key words 2 ^ 14).
 static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
+// Build the file decryption key from its header (kind 2, name = (w0 ^ w13) + 0xCA0, tag = w1 ^ w15); returns whether
+// it is usable (tag != 0).
 static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
+// Call the actor's activate virtual (slot 8).
 static inline void Activate(ACTOR *actor){VT *entry=&actor->vtable[8];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
+// Call the actor's virtual slot 79 with mode.
 static inline void Enable(ACTOR *actor,int mode){VT *entry=&actor->vtable[79];((void (*)(void *,int))entry->function)((char *)actor+entry->delta,mode);}
+// Attach the actor to the context (virtual slot 38).
 static inline void Attach(ACTOR *actor,CONTEXT *context){VT *entry=&actor->vtable[38];((void (*)(void *,CONTEXT *))entry->function)((char *)actor+entry->delta,context);}
+// Call the actor's deactivate virtual (slot 9).
 static inline void Hide(ACTOR *actor){VT *entry=&actor->vtable[9];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
+// v != 0 (sltu).
 static inline int NonZero(int v){int r; __asm__("sltu %0,$zero,%1":"=r"(r):"r"(v));return r;}
+// Address of the stream record, in $4.
 static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("$4");__asm__("la %0,%a1":"=r"(result):"p"(home));return result;}
 // Runs a pending level transition: opens the level file, deletes the old world, constructs a new g_sw, loads it from
 // the BRX (LoadSwFromBrx, PostSwLoad), restores the checkpoint and the current actor, sets up the camera and runs game
@@ -1071,6 +1093,7 @@ struct SWALLOC
 };
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
+// Allocate cb bytes with alignment cbAlign from the world heap.
 inline void *PvAllocSwLoad(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -1079,6 +1102,7 @@ inline void *PvAllocSwLoad(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwImpl(pswalloc);
 }
+// Allocate cb zeroed bytes with alignment cbAlign from the world heap.
 inline void *PvAllocSwClearLoad(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -1812,6 +1836,7 @@ void SetSndVolume(struct M *, float);
 void SetSndPitch(struct M *, float);
 void SetSndDoppler(struct M *, float);
 void RcPtr_Assign(struct M **, struct M *);
+// Copy the object pointer through a register move.
 static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;}
 // Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
 // looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
@@ -1897,6 +1922,7 @@ namespace M_func_002109D0 { extern "C" {
 struct X { char pad[8]; int sectorKey; char padc[0x2C]; int sectorXor; };   /* a file record: obfuscated sector (cf. GetDiscFileEntrySize) */
 extern int D_003E1C38;
 struct X *GetLevelFileRecord(int i);
+// True when two file records name the same file (same pointer, or equal key words).
 static inline int FEqual(struct X *a, struct X *b)
 {
     if (a == b)

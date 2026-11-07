@@ -38,13 +38,17 @@ struct MCDLGG
     int state;              /* +0x40 the dialog state (SetMcDialogState), also the langstr id of its message (func_001AD8F8 prints it); was D_002E6590 */
     int phase;              /* +0x44 the dialog's phase (SetMcDialogPhase; 1, 3 tested); was D_002E6594 */
     char ab48[8];
+    // Construct the memory-card dialog through its class constructor.
     MCDLGG() { CMemcardDialog_ctor((MCDLG *)this); }
+    // Destroy the object (DestroyBasic with the delete flag 2).
     ~MCDLGG() { DestroyBasic(this, 2); }
 };
 struct MCSTATUSG
 {
     char ab[0x40];
+    // Construct the memory-card status object through its class constructor.
     MCSTATUSG() { CMcStatus_ctor(this); }
+    // Destroy the object (DestroyBasic with the delete flag 2).
     ~MCSTATUSG() { DestroyBasic((MCDLGG *)this, 2); }
 };
 /* memcard's .bss, in the ELF's order: the thread stack, the sceMcGetDir table, the directory path, the dialog (0x50),
@@ -52,6 +56,7 @@ struct MCSTATUSG
    every other uninitialized object at the end of the file, so the three plain buffers get an empty inline
    constructor (no code) to keep them ahead of the dialogs. Asm labels: the view declarations need not agree. */
 namespace BSS_memcard {
+// Uninitialised N-byte buffer.
 template <int N> struct BUF { char ab[N]; BUF() {} };
 BUF<0x4000> d_002E2080 __asm__("D_002E2080") __attribute__((aligned(64)));   /* the memcard thread's stack (stackSize 0x4000; 64-aligned by layout: 0x2E2080 after main's words at 0x2E2050..0x2E205C) */
 BUF<0x480> d_002E6080 __asm__("D_002E6080");    /* sceMcGetDir table (ENTs), cleared as 0x480 bytes */
@@ -638,6 +643,7 @@ extern "C" void Decref__4CRef(CRef *);
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef(const CRef &) __asm__("__4CRefRC4CRef");
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 struct PMF { short delta; short pad; int (*pfn)(void *); };
@@ -665,6 +671,7 @@ void ResetSaveGs(SLOT *, int);
 void SetSaveState(MC *saveManager, int state);
 }
 CRef Eval(int, SLOT *) __asm__("GetGlobalSaveVar");
+// Evaluate save variable k as a float.
 static inline float GetF(int k, SLOT *p) { return Eval(k, p).u.g; }
 
 // Changes the save state, with per-state actions on the three slots (Splice evaluations), UI updates and a GS reset
@@ -758,7 +765,10 @@ struct K;
 extern "C" void InitFileKey(K *k);
 extern "C" int GetFileKeySize(K *k);
 struct K { int sector; int size; int mode; char pad[0x104];
+  // File key in mode 2, initialised by InitFileKey.
   K() { mode = 2; InitFileKey(this); }
+  // Decode a disc file entry into this location (sector = (sectorKey ^ sectorXor) + 0xCA0, size = sizeKey ^ sizeXor,
+  // mode 2); false when entry is null.
   bool FSet(S *entry)
   {
       if (!entry) return false;
@@ -1179,8 +1189,10 @@ extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE
 struct REQUEST {uint bytes,alignment;};
 struct X;
 extern "C" void InitFileKey(X *px);
+// Disc file location (sector, size, mode 2), initialised by InitFileKey.
 struct X { uint sector; uint size; int mode; char pad[0x110 - 0xC]; X() { mode = 2; InitFileKey(this); } };   /* a disc file location (FILEKEY) */
 struct Y;extern "C" void DestroyCStreamBis(Y*,int) __asm__("_$_10CStreamBis");
+// Binary input stream view: CStreamBis constructor, destructor closes it.
 struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("CStreamBis_ctor");~Y(){DestroyCStreamBis(this,2);}};
 struct K {uint sectorKey,sizeKey;char pad[0x34-8];uint sectorXor;int pad2;uint sizeXor;};   /* a disc file entry: obfuscated sector / size */
 extern "C" {
@@ -1194,6 +1206,8 @@ void CStreamBis_Close(Y *py);
 int McClose(void *saveManager, int fd);
 int load_file_from_disc(void *saveManager, const char *dir, K *entry, const char *name);
 }
+// Decode the file entry's key into the location (mode 2, sector = (sectorKey ^ sectorXor) + 0xCA0); returns whether
+// it is usable.
 static inline int SetKey(X *location, K *entry)
 {
     if (!entry)
@@ -1765,8 +1779,11 @@ class CRef {
 public:
     int m_tagk;
     int m_tag;
+    // Script reference holding a bool (tag 0x17).
     CRef(bool f) { m_tagk = 0x17; m_tag = f; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &ref) { __4CRefRC4CRef(this, &ref); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 class O;
@@ -1788,6 +1805,7 @@ void StartSaveSlotJob(void *p);
 void OnMcDialogChoice(S *s);
 CRef SetGlobalSaveVar(O *, const CRef &, void *);                   // O::Set(const CRef &, context), returns a CRef
 }
+// Store a script reference into a global save variable.
 static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(po, arg, D_003D4A60); }
 // Runs the follow-up of the dialog state the player answered (UI hooks, save jobs).
 void OnMcDialogChoice(S *dialog)
@@ -1999,6 +2017,7 @@ extern SAVE D_002E65E0;
 namespace M_func_001AD538 {
 struct CRef;
 extern "C" void Decref__4CRef(CRef *);
+// Script reference view: copy constructor adds a reference, destructor releases it.
 struct CRef { int m_tagk; float m_tag; CRef(const CRef &) __asm__("__4CRefRC4CRef"); ~CRef() { Decref__4CRef(this); } };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; };
@@ -2017,6 +2036,7 @@ void SetMcDialogPhase(void *p, int n);
 int GetPauseMenuTopPageId(void *g);
 }
 CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
+// Evaluate save variable saveVar as a float.
 static inline float EvalSaveVar(int saveVar, void *slot) { return Eval(saveVar, slot).m_tag; }
 // Menu hook: re-evaluates the three slots' Splice values and updates their entries.
 extern "C" void UpdateSaveMenuSlots(void)
@@ -2266,7 +2286,9 @@ extern "C" {
  char*strcpy(char*,const char*);
  int GetPauseMenuTopPageId(void*);
 }
+// Read a global save variable as a float (releasing the reference).
 static inline float GetG(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);float g=r.g;Decref__4CRef(&r);return g;}
+// Read a global save variable as an int (releasing the reference).
 static inline int GetN(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);int n=r.n;Decref__4CRef(&r);return n;}
 // Per-slot text (strings 0x5CF..0x5D1): the slot's episode and completion percentage.
 extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
@@ -2298,6 +2320,7 @@ struct CMcStatus : SCREEN
     virtual void SetMode(int nMode) __asm__("CMcStatus_SetMode");   /* slot 14 */
     virtual void Update() __asm__("CMcStatus_Update");   /* slot 7 */
 };
+// Memory-card status object: queue text id 0x5D4 and reset the mode.
 CMcStatus::CMcStatus()
 {
     idTextQueued = 0x5D4;

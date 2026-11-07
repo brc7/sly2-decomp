@@ -112,10 +112,13 @@ extern "C" void InitDirectionalBlend(struct ACTOR *actor, DIRAXIS *axes, MULTI *
     *blendOut = blend;
 }
 
+// x lane of q as a float.
 static inline float FloatX(qword q){int bits;float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 
+// x lane of q as a float (through $7).
 static inline float Float3(qword q){register int bits __asm__("$7");float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 
+// x lane of q as a float (through $7 and $f1).
 static inline float Float1(qword q){register int bits __asm__("$7");register float f __asm__("$f1");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 
 // Per-frame: picks the axis set for the current side (-1 none, 0 negative, 1 positive), weights each axis by how much
@@ -217,10 +220,15 @@ extern "C" void UpdateDirectionalBlend(PLAYERV *player, DIRAXIS *axes, void *req
     }
 }
 
+// The player's velocity (virtual slot 33).
 static inline qword GetVel(PLAYERV*player){return ((qword(*)(void*))player->vt[33].fn)((char*)player+player->vt[33].delta);}
+// Set the player's velocity (virtual slot 35).
 static inline void SetVel(PLAYERV*player,qword v){((void(*)(void*,qword))player->vt[35].fn)((char*)player+player->vt[35].delta,v);}
+// Return v scaled by k.x and store side into the player.
 static inline qword ScaleAndSetSide(PLAYERV*player,qword v,qword k,int side){qword r;__asm__("vmulx.xyzw %0,%2,%3x\n\tsw %4,%1":"=j"(r),"=m"(player->side):"j"(v),"j"(k),"r"(side));return r;}
+// Move a 128-bit GPR value into vf3.
 static inline qword ToVu(qword bits){register qword r __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(bits));return r;}
+// Remove vi's component along the unit normal ni (register-pinned).
 static inline qword ProjectOut(qword ni, qword vi)
 {
     register qword n __asm__("vf1") = ni, v __asm__("vf3") = vi;
@@ -230,6 +238,7 @@ static inline qword ProjectOut(qword ni, qword vi)
     v = VuSub(v, dot);
     return v;
 }
+// Remove the sideways component (along the world matrix's row 1) from the player's velocity; saves the old velocity.
 static inline void RemoveSide(PLAYERV *player, U *result, U *oldVelocity)
 {
     M4 *basis;
@@ -240,6 +249,7 @@ static inline void RemoveSide(PLAYERV *player, U *result, U *oldVelocity)
     result->q = value;
     SetVel(player, value);
 }
+// Blend the directional axes for a positive x input into *out (register-pinned).
 static inline void BlendPositive(PLAYERV *player, DIRAXIS *axes, float xin, const U *input, U *out)
 {
     float x = xin;
@@ -265,6 +275,7 @@ static inline void BlendPositive(PLAYERV *player, DIRAXIS *axes, float xin, cons
     player->acceleration.q = ka;
     out->q = kc;
 }
+// Blend the directional axes for a negative x input into *out (register-pinned).
 static inline void BlendNegative(PLAYERV *player, DIRAXIS *axes, float xin, const U *input, U *out)
 {
     float x = xin;

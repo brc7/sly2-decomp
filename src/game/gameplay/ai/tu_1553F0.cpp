@@ -115,9 +115,12 @@ struct VECTORV { float x, y, z, w; };
 class HERO;
 struct VT { char pad[0x108]; short d; short pad2; qwordV (*pfn)(HERO *); };
 class HERO { public: char pad[0xC]; VT *pvt; };
+// Vector with a trivial copy constructor.
 struct VUV { qwordV q; VUV() {} VUV(const VUV &v) : q(v.q) {} };
 struct FRAME { int a[4]; };
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qwordV q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qwordV q; VU_VECTOR(const qwordV &v) { q = v; } };
 
 extern CLOCKV D_002DDED0;

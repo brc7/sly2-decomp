@@ -304,6 +304,8 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int n[4]; } VU;
 typedef struct { qword r[3]; } M3;
 typedef struct { VU r[4]; } M4;
+// Multiply destination's 3x3 part by basis, loading both into fixed VF registers, and publish the two product halves
+// to first/second (inferred).
 static inline void MultiplyPublished(M4 &destination,const M3 &basis,M3 &first,M3 &second){
  const M3 *pa=(const M3 *)&destination,*pb=&basis;
  register qword a0 asm("vf3"),a1 asm("vf2"),a2 asm("vf1"),b0 asm("vf4"),b1 asm("vf6"),b2 asm("vf5");
@@ -312,12 +314,14 @@ static inline void MultiplyPublished(M4 &destination,const M3 &basis,M3 &first,M
  asm volatile("sqc2 %6,%3\n\tsqc2 %6,%0\n\tsqc2 %7,%4\n\tsqc2 %7,%1\n\tsqc2 %8,%5\n\tsqc2 %8,%2":"=m"(first.r[0]),"=m"(first.r[1]),"=m"(first.r[2]),"=m"(second.r[0]),"=m"(second.r[1]),"=m"(second.r[2]):"j"(b0),"j"(a0),"j"(b2));
 }
 extern "C" void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
+// Write the skew-symmetric (cross-product) matrix of value into m's 3x3 part; returns &m.
 static inline M4 *PublishSkew(M4 &m,qword value){
  register M4 *result asm("$2");
  asm("pextuw %0,$zero,%7\n\tmtc1 %7,$f4\n\tmtc1 %0,$f1\n\tprot3w %0,%7\n\tneg.s $f3,$f4\n\tmtc1 %0,$f0\n\tneg.s $f2,$f1\n\tswc1 $f1,%1\n\tswc1 $f0,%2\n\tdaddu %0,%8,$zero\n\tneg.s $f0,$f0\n\tswc1 $f3,%3\n\tswc1 $f2,%4\n\tswc1 $f4,%5\n\tswc1 $f0,%6"
  :"=&r"(result),"=m"(m.r[0].f[1]),"=m"(m.r[2].f[0]),"=m"(m.r[2].f[1]),"=m"(m.r[1].f[0]),"=m"(m.r[1].f[2]),"=m"(m.r[0].f[2])
  :"r"(value),"r"(&m):"$f0","$f1","$f2","$f3","$f4");return result;
 }
+// Keep the destination and basis pointers in callee-saved $17/$18 across the following calls.
 static inline void RetainMatrices(M4 *incomingDestination,const M3 *incomingBasis,M4 *&outDestination,const M3 *&outBasis){register M4 *destination asm("$17");register const M3 *basis asm("$18");asm("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=&r"(destination),"=&r"(basis):"r"(incomingDestination),"r"(incomingBasis));outDestination=destination;outBasis=basis;}
 // Builds the derivative of a rotation as skew(angular velocity) times the basis matrix (inferred).
 extern "C" M4 *BuildRotationDerivativeMatrix(M4 *destination, void *pv, const M3 *basis, qword v)
@@ -356,11 +360,14 @@ extern "C" M4 *BuildXfValueDerivativeMatrix(M4 *pm, struct O *po, qword v);
 extern "C" qword GetXfValueFromMatrix(struct O *pa, const M4 *matrix);
 extern "C" qword DecomposeRotationMatrixToEuler(const M3 *rotation);
 extern "C" void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc);
+// Evaluate the object's Bezier segment position at the current time into the three outputs.
 static __inline__ void Eval(struct O *po, qword *pa, qword *pb, qword *pc)
 {
     EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->currentTimePtr - po->segmentStartTime, *po->curveScalePtr, po->data.r[0], po->data.r[1], po->data.r[2], po->data.r[3], pa, pb, pc);
 }
+// Copy a 128-bit GPR value (por with zero).
 static inline qword SelectedValue(qword input){qword value;__asm__("por %0,$zero,%1":"=r"(value):"r"(input));return value;}
+// Load the default point D_002A2DD0 into a GPR.
 static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value):"0"(&D_002A2DD0),"m"(D_002A2DD0));return value;}
 // Evaluates the time derivative of a transform slot's local matrix (its velocity as a matrix): zero for resting roles,
 // built from the slot velocity (+0xB0) for velocity roles and from the segment's tangent for segment roles; mirrored
@@ -481,6 +488,7 @@ void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po);
+// Element-wise sum of two 4x4 matrices into pmDst.
 static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
 {
     int i;
@@ -552,22 +560,31 @@ M4 EvaluateXfSlotMatrixDerivative(O *);
 void UpdateXfJobRange(void *,O *);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
 }
+// Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(m.r[3]),"j"(v));return r;}
+// Transform point v by the 4x4 matrix m (register-pinned to vf4).
 static inline qword InverseTransform(const M4 &m,qword v) {register qword r __asm__("vf4")=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(m.r[3]),"j"(v));return r;}
+// Load row 1 of m into vf1.
 static inline qword BasisRow1(const M4 *m){register qword r __asm__("vf1");__asm__("lqc2 %0,16(%1)":"=j"(r):"r"(m),"m"(m->r[1]));return r;}
+// Load row 2 of m.
 static inline qword BasisRow2(const M4 *m){qword r;__asm__("lqc2 %0,32(%1)":"=j"(r):"r"(m),"m"(m->r[2]));return r;}
+// Rotate v by the 3x3 part of m, loading rows 1 and 2 explicitly.
 static inline qword RotatePointerRows(const M4 &m,qword v){
 qword r1=BasisRow1(&m);
 qword r2=BasisRow2(&m);
 __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(m.r[0]),"j"(r1),"j"(r2));return v;}
+// Rotate v by the 3x3 part of m.
 static inline qword Rotate(const M4 &m,qword v) {
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2]));return v;}
+// Rotate v by the 3x3 part of the parent matrix m (row 0 pinned to vf6).
 static inline qword ParentRotate(const M4 &m,qword v) {register qword row0 __asm__("vf6")=m.r[0];
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(row0),"j"(m.r[1]),"j"(m.r[2]));return v;}
+// Rotate v by the 3x3 part of m into row 0's register.
 static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%3x\n\tvmadday.xyz ACC,%1,%3y\n\tvmaddz.xyz %0,%2,%3z":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
+// Evaluate the object's Bezier position at its current time into *v.
 static inline void Eval(O *p,qword *v) {EvaluateBezierPos(p->t1-p->t0,*p->time-p->t0,*p->dt,p->v0,p->v1,p->v2,p->v3,0,v,0);}
 // Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
 // Runtime-checked: XF+0xB0 holds the velocity.
@@ -710,13 +727,21 @@ void LoadSoIkFromBrx(S *,void *);
 void LoadXfmConstraintsFromBrx(S *,void *);
 void LoadSoChainsFromBrx(S *,void *);
 }
+// Allocate and set up an act of kind 1 (vtable D_002CA820, selector 2).
 static inline J1 *CreateJ1(){J1 *j;j=(J1 *)AllocAct(sizeof(J1));j->h.vt=D_002CA820;j->h.kind=1;j->selector=2;return j;}
+// Allocate and set up an act of kind 2 (vtable D_002CA7E0).
 static inline J2 *CreateJ2(){J2 *j;j=(J2 *)AllocAct(sizeof(J2));j->h.kind=2;j->h.vt=D_002CA7E0;return j;}
+// Allocate and set up an act of kind 4 (vtable D_002CA7A0).
 static inline J4 *CreateJ4(){J4 *j;j=(J4 *)AllocAct(sizeof(J4));j->h.kind=4;j->h.vt=D_002CA7A0;return j;}
+// Allocate and set up an act of kind 9 (vtable D_002CA6A0, id 20).
 static inline J9 *CreateJ9(){J9 *j;j=(J9 *)AllocAct(sizeof(J9));j->h.vt=D_002CA6A0;j->h.kind=9;j->h.id=20;return j;}
+// Resolve resource id through the object's lookup virtual (vtable slot 51).
 static inline RESOURCE *Lookup(S *p,int id){VE *ve=&p->vt[51];return ve->get((char *)p+ve->delta,id);}
+// Truncate f to int.
 static inline int ToInt(float f){return (int)f;}
+// Set m to the identity matrix.
 static inline void Identity(M4 *m){func_002333B4(m,0,sizeof(*m));m->r[3].f[3]=1.0f;m->r[2].f[2]=1.0f;m->r[1].f[1]=1.0f;m->r[0].f[0]=1.0f;}
+// Clear flag 0x20: on p->flags when bit 0 is set, otherwise on the word p->flags points to.
 static inline void ClearFlag(S *p){int f=p->flags;if((f^1)&1)*(int *)f&=~0x20;else p->flags=f&~0x20;}
 // Loads an SO's transforms from the level stream: per transform its kind, role, matrices and limits, plus optional
 // animation jobs (springs, chases, chains via LoadSoChainsFromBrx).
@@ -854,6 +879,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //    the personal draft's eight bound vf variables.
 MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
 
+// 3x3 matrix product matL * matR.
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
     qword qwL0 = *(qword *)matL.mat[0];
@@ -892,16 +918,19 @@ extern CLOCK D_002DDED0;
 extern SW D_003DD490;
 extern "C" void EvaluateBezierPos(float dt, float t, float sRate, qword p0, qword m0, qword p1, qword m1, VECTOR4 *ppos, VECTOR4 *pvel, VECTOR4 *pacc);
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Length of v as a float.
 static inline float VectorLength(qword v)
 {
     return VuToFloat(VuLength(v));
 }
+// True when qwA and qwB are equal within 0.0001 on x, y and z.
 static inline int AreVectorsNearXyz(qword qwA, qword qwB)
 {
     return AreFloatsNear(QwordX(qwA), QwordX(qwB), 0.0001f) && AreFloatsNear(QwordY(qwA), QwordY(qwB), 0.0001f) &&
@@ -944,48 +973,57 @@ static float s_gKpPos = 0.015000001f;
 static float s_gKdPos = 0.0025000001f;
 static float s_gKpRot = 0.015000001f;
 static float s_gKdRot = 0.0025000001f;
+// Return qwA + qwB * qwS.x.
 static inline qword VuMulAddX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
     return qw;
 }
+// Return qwA + qwB * qwS.x (operands in the opposite order).
 static inline qword VuSMulAddX(qword qwS, qword qwB, qword qwA)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %3, $vf0\n\tvmaddx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwS), "j"(qwB), "j"(qwA));
     return qw;
 }
+// Return qwA*qwS.x + qwB*qwT.x.
 static inline qword VuMulXMulX(qword qwA, qword qwS, qword qwB, qword qwT)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(qwA), "j"(qwS), "j"(qwB), "j"(qwT));
     return qw;
 }
+// Return qwA + (qwB + qwC) * qwS.x.
 static inline qword VuAddMulXMulX(qword qwA, qword qwB, qword qwC, qword qwS)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddax.xyzw $ACC, %2, %4x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwC), "j"(qwS));
     return qw;
 }
+// Return (qwA + qwB) * qwS.x.
 static inline qword VuMulXAddMulX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
     return qw;
 }
+// Return qwA scaled by qwS.x.
 static inline qword VuXMul(qword qwS, qword qwA)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwS), "j"(qwA));
     return qw;
 }
+// Return q2*q1.x + q3*q4.x.
 static inline qword VuMulXMulXSwapped(qword q1, qword q2, qword q3, qword q4)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(q2), "j"(q1), "j"(q3), "j"(q4));
     return qw;
 }
+// Current value of a transform slot by phase: rest value (0), Bezier position (1), the rest vector (2-4), Euler
+// angles of the rest matrix (5), else D_002A2DD0.
 static inline qword GetSlotValue(XF *xf)
 {
     qword qw;
@@ -1015,12 +1053,14 @@ static inline qword GetSlotValue(XF *xf)
     }
     return qw;
 }
+// Position on the transform slot's Hermite/Bezier segment at the current time.
 static inline qword EvaluateHermitePos(XF *xf)
 {
     VECTOR4 vec;
     EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->unknownE0, xf->acceleration, &vec, 0, 0);
     return *(qword *)&vec;
 }
+// Velocity on the transform slot's Hermite/Bezier segment at the current time.
 static inline qword EvaluateHermiteVel(XF *xf)
 {
     VECTOR4 vec;
@@ -1069,12 +1109,14 @@ static inline qword EvaluateHermiteVel(XF *xf)
 // An opaque copy (empty asm, "=r" tied to its input): cse cannot merge the two pseudos. The default arm of the position chase needs it so the arms of its rate
 // switch are plain $v0 loads into a short-lived local with ONE shared spill store (T1641; without it each arm spills its own and the Hermite arm picks $v1).
 static inline qword PassQ(qword x){qword r;__asm__("" : "=r"(r) : "0"(x));return r;}
+// Zero the xyz components of pvec.
 static inline void ClearXyz(VECTOR4 *pvec)
 {
     pvec->z = 0.0f;
     pvec->y = 0.0f;
     pvec->x = 0.0f;
 }
+// Rotate the slot matrix *pmatFrom by the rotation vector qwTurn and store it into the transform.
 static inline void TurnSlotMat(XF *xf, MATRIX3 *pmatFrom, qword qwTurn)
 {
     MATRIX3 matNew;
@@ -1753,6 +1795,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct O { char pad[0x40]; M4 mat; };
 void InvertMatrix4Rigid(M4 *pd, M4 *ps);
+// Transform point v by the 4x4 matrix m.
 static inline qword MulPos(const M4 *m, qword v)
 {
     qword r;
@@ -1779,6 +1822,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 struct O { char pad[0x40]; M3 mat; };
 void InvertMatrix3Cofactor(M3 *pd, M3 *ps);
+// Rotate v by the 3x3 matrix m.
 static inline qword Mul3(const M3 *m, qword v)
 {
     qword r;
@@ -1806,6 +1850,7 @@ struct M3 { qword r[3]; };
 struct O { char pad[0x40]; M3 mat; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *pm);
 extern "C" void *func_0023320C(void *d, const void *s, int n) __asm__("memcpy");
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
     qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
@@ -2047,6 +2092,7 @@ typedef struct P {
     char padC0[0xF0 - 0xC0];
     V unknownF0;
 } P;
+// Set the three components of pv.
 static inline void SetV(V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 int IsXfRoleMoving(int);
 int IsXfRoleAtRest(int);
@@ -2188,9 +2234,13 @@ qword *VECTOR_opAssign(qword *, qword);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g);
 }
+// Float broadcast into a VU0 register (passed through an FPU register first).
 struct VUF { qword q; VUF(float g) { float f = g; __asm__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Float broadcast into a VU0 register (with a volatile barrier for scheduling).
 struct VUF2 { qword q; VUF2(float g) { float f = g; __asm__ __volatile__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } operator const VUF &() const { return *(const VUF *)this; } };
+// Rotation matrix from the rotation vector v.
 static inline M3 BuildRotation(qword v) return m { BuildRotationMatrixFromVector(&m, v); }
+// Return the 3x3 matrix product of a and b.
 static inline M3 MulM3(const M3 &a, const M3 &b) return m
 {
     M3 t;
@@ -2205,6 +2255,7 @@ static inline M3 MulM3(const M3 &a, const M3 &b) return m
             : "=j"(r2) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
     t.r[2] = r2; m.r[2] = r2;
 }
+// Build a 4x4 matrix from rotation mat and translation pos.
 static inline void SetM4(M4 *pm, const M3 &mat, qword pos)
 {
     VECTOR_opAssign(&pm->r[3], pos);
@@ -2215,16 +2266,22 @@ static inline void SetM4(M4 *pm, const M3 &mat, qword pos)
     pm->m[1][3] = 0.0f;
     pm->m[0][3] = 0.0f;
 }
+// The transform's value matrix for v (BuildXfValueMatrix).
 static inline M4 C8c0(O *po, const qword &v) return r { BuildXfValueMatrix(&r, po, v); }
+// The transform's value-derivative matrix for v (BuildXfValueDerivativeMatrix).
 static inline M4 Cc00(O *po, const qword &v) return r { BuildXfValueDerivativeMatrix(&r, po, v); }
+// The rotation-derivative matrix of pm for v (BuildRotationDerivativeMatrix).
 static inline M4 Ccd0(O *po, const M4 *pm, qword v) return r { BuildRotationDerivativeMatrix(&r, po, pm, v); }
+// Return v scaled by f.
 static inline qword Scale(qword v, const VUF &f)
 {
     qword r;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=&j"(r) : "j"(f.q), "j"(v));
     return r;
 }
+// Rotation matrix from the rotation vector v scaled by f.
 static inline M3 BuildRotationS(const VUF2 &f, qword v) return m { BuildRotationMatrixFromVector(&m, Scale(v, *(const VUF *)&f)); }
+// Return a + v * f.
 static inline qword AddScale(qword a, qword v, const VUF &f)
 {
     qword r;
@@ -2307,6 +2364,7 @@ void GetXfSlotMatrixAndDerivative(P *, M4 *, M4 *, float);
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
 
+// Element-wise sum of two 4x4 matrices into d.
 static inline void AddM4(M4 *d, M4 *a, M4 *b)
 {
     int i;
@@ -2471,6 +2529,7 @@ void EvaluateXfSlotValue(A *a, int flag)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_VECTOR_opAssign { extern "C" {
 typedef int qword __attribute__((mode(TI)));
+// Assign v to *p and return p (VECTOR's operator=, emitted as the linkonce copy).
 inline qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }   /* inline, after its callers: the linkonce copy */
 } } // namespace M_VECTOR_opAssign
 

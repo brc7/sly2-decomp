@@ -419,6 +419,7 @@ void UpdateCritterPathFollow(CID96V *critter)
 struct WORK{U first,second,direction,velocity,scalar;float angle,parameter;};
 // Sets the critter's velocity (vtable slot 35); to zero.
 static inline void SetVelocity(CID96V*critter,qwordV q){VTE&v=critter->pvt[35];((void(*)(void*,qwordV))v.pfn)((char*)critter+v.d,q);}
+// Stop the critter (zero velocity).
 static inline void SetZeroVelocity(CID96V*critter){SetVelocity(critter,D_002A2DD0.q);}
 // broadcast a float into a VU register and keep the scratch store the original left in `home`
 static inline qwordV SplatInto(float f,U*home){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));home->q=q;return q;}
@@ -435,7 +436,9 @@ static inline qwordV SplatBits(int bits){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(
 #define LEN2M(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d): :"memory")
 // Virtual calls: a no-argument slot, slot 47 with 4 (the walking mode, inferred), slot 31 (the world matrix).
 static inline void Call(CID96V*critter,int index){VTE&v=critter->pvt[index];((void(*)(void*))v.pfn)((char*)critter+v.d);}
+// Set the critter's mode to 4 (virtual slot 47).
 static inline void SetMode(CID96V*critter){VTE&v=critter->pvt[47];((void(*)(void*,int))v.pfn)((char*)critter+v.d,4);}
+// The critter's world matrix (virtual slot 31).
 static inline M4*GetMatrix(CID96V*critter){VTE&v=critter->pvt[31];return ((M4*(*)(void*))v.pfn)((char*)critter+v.d);}
 // State change. Leaving idle/turn/startled restores the rotation XF's role. Idle: stops, picks the idle time. Walk:
 // walking mode, picks the walk time. Turn: reverses the path direction and heads the other way. Startled: stops and

@@ -134,8 +134,11 @@ namespace V_GetNormalVector {
 // union int->float so gcc emits the mtc1 itself (its latency gives the target schedule). x stays an asm mtc1 from the qword. One pin (|y| in $f0).
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
+// y lane of q as a float.
 static __inline__ float GetY(qword q) { qword t; float y; __asm__("prot3w %0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(y) : "r"(t)); return y; }
+// z lane of q as a float.
 static __inline__ float GetZ(qword q) { qword t; float z; __asm__("pextuw %0,$0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(z) : "r"(t)); return z; }
+// Unit vector along v.
 static inline qword Normalize(qword v)
 {
     qword d, l, r;
@@ -185,6 +188,7 @@ namespace V_AngleBetweenVectors {
 /* AngleBetweenVectors (Claude agent): angle between vectors + optional normalized axis. Length's float comes from an mtc1 asm fed by gcc's own qmfc2 ("r"(qword)), and the axis length vector (pinned vf1) is passed as a GPR qword to the qmtc2, so the move is shared like the original. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
+// Length of the xyz part of v as a float.
 static inline float Length(qword v)
 {
     qword d;
@@ -194,6 +198,7 @@ static inline float Length(qword v)
     __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
     return f;
 }
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -202,6 +207,7 @@ static inline float Dot(qword a, qword b)
     f = VuToFloat(d);
     return f;
 }
+// Length of the xyz part of v (x lane).
 static inline qword LenV(qword v)
 {
     register qword d __asm__("vf1");
@@ -209,6 +215,7 @@ static inline qword LenV(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
     return d;
 }
+// Return v scaled by g.x.
 static inline qword Scale(qword v, qword g)
 {
     U u;
@@ -249,6 +256,7 @@ namespace V_FindClosestPointBetweenLines {
    so gcc emits the qmfc2 moves itself; the commented barrier sits after ba (not ca). One pin (d). */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -257,6 +265,7 @@ static inline float Dot(qword a, qword b)
     f = VuToFloat(d);
     return f;
 }
+// Dot product of the xyz parts of a and b as a float (GPR read).
 static inline float DotG(qword a, qword b)
 {
     qword d;
@@ -324,12 +333,14 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
 namespace V_FindClosestPointBetweenLineSegments {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
+// Broadcast g into a VU0 register.
 static inline qword VF(float g)
 {
     U s;
     { qword s_q; s_q = VuFromFloat<qword>(g); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
     return s.q;
 }
+// Length of v (x lane).
 static inline qword Len(qword v)
 {
     qword d, l;
@@ -411,29 +422,34 @@ namespace V_ClosestPointsOfLines {
 /* ClosestPointsOfLines (Claude agent, lane A28, 2026-10-24): from fresh9 (13). ba via a vsub without the "memory" clobber (qmtc2 b order), and every dot readback via F3, a mtc1 asm with an allocation-only "j"(q) input next to the "r"(q) one, so the dot result stays a VU pseudo and gcc emits the qmfc2 itself. No pins. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
+// Return a - b.
 static inline qword Sub(qword a, qword b)
 {
     qword r;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory");
     return r;
 }
+// Cross product a x b.
 static inline qword Cross(qword a, qword b)
 {
     qword r;
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b) : "memory");
     return r;
 }
+// Cross product a x b (temporary variant).
 static inline qword CrossT(qword a, qword b)
 {
     __asm__("vopmula.xyz $ACC, %0, %1\n\tvopmsub.xyz %0, %1, %0" : "+j"(a) : "j"(b) : "memory");
     return a;
 }
+// Dot product of a and b (x lane).
 static inline qword DotQ(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b) : "memory");
     return d;
 }
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     int n;
@@ -441,12 +457,14 @@ static inline float Dot(qword a, qword b)
     __asm__("qmfc2.ni %0, %2\n\tmtc1 %0, %1" : "=&r"(n), "=f"(g) : "j"(DotQ(a, b)) : "memory");
     return g;
 }
+// x lane of q as a float.
 static inline float F3(qword q)
 {
     float g;
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q), "j"(q)); /* "j"(q): allocation-only operand */
     return g;
 }
+// Dot product of a and b as a float (single asm block).
 static inline float DotS(qword a, qword b)
 {
     return F3(DotQ(a, b));
@@ -501,6 +519,7 @@ extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *o
 namespace V_IntersectRayTriangle {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -510,6 +529,7 @@ static inline float Dot(qword a, qword b)
     __asm__("qmfc2.ni %0, %2\n\tmtc1 %0, %1" : "=&r"(n), "=f"(g) : "j"(d));
     return g;
 }
+// Dot product of a and b as a float (single asm block).
 static inline float DotS(qword a, qword b)
 {
     qword d;
@@ -563,6 +583,7 @@ namespace V_FindClosestPointOnLine {
 // FindClosestPointOnLine (Claude agent, lane A22, 2026-10-23): matched from build/hand_wip/FindClosestPointOnLine.v4.c.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -617,6 +638,7 @@ namespace V_FindClosestPointOnLineSegment {
 // volatile sqc2 asm (keeps it ahead of beqz); the ppos copy goes vf->gpr via a gcc reload (empty asm with "0") so
 // reorg can steal its qmfc2 into the delay slot.
 typedef int qword __attribute__((mode(TI)));
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d;
@@ -696,8 +718,11 @@ extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, floa
 namespace V_GetVectorSphere {
 /* RadPanTiltRFromVector-style: pan/tilt angles and length of v (Claude agent, 2026-10-17) */
 typedef int qword __attribute__((mode(TI)));
+// x lane of q as a float (no instruction).
 static __inline__ float GetX(qword q) { float x; __asm__("" : "=r"(x) : "0"(q)); return x; }
+// y lane of q as a float.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%0" : "=r"(y) : "0"(q)); return y; }
+// z lane of q as a float.
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r"(z) : "0"(q)); return z; }
 // Inverse of SetVectorSphere: v's pan, tilt and length (each optional).
 extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *outLength)
@@ -749,30 +774,35 @@ struct VU_FLOAT
 {
     qword qw;
 };
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Length of v (x lane).
 static inline qword LengthAsQword(qword v)
 {
     qword qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// Return qwRow scaled by gScale.
 static inline qword ScaleVectorByX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwRow), "j"(gScale.qw));
     return qw;
 }
+// Return qwBase + qwVec * gScale.
 static inline qword AddScaledVector(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
     return qw;
 }
+// Return a - b.
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
     VU_VECTOR4 r;
@@ -808,6 +838,7 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 namespace V_GetCosineBetweenVectors {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
+// Length of the xyz part of v as a float.
 static inline float Len(qword v)
 {
     qword d, one, l;
@@ -817,6 +848,7 @@ static inline float Len(qword v)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l));
     return g;
 }
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d, one;
@@ -825,6 +857,7 @@ static inline float Dot(qword a, qword b)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
 }
+// Move a float's bits into a GPR qword (mfc1).
 static inline qword QF(float g) { U u; qword u_q; __asm__("mfc1 %0, %1" : "=r"(u_q) : "f"(g)); u.q = u_q; return u.q; }
 // Returns the cosine of the angle between a and b (dot / (|a| |b|)) as a quadword; 0 if either is shorter than
 // 1e-4.

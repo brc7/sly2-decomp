@@ -16,6 +16,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 enum OID { OID_Nil };
+// Allocation request for c bytes, 16-byte aligned.
 struct AREQ { int cb; int cbAlign; AREQ(int c) { cb = c; cbAlign = 0x10; } };
 
 struct ASEG;
@@ -415,6 +416,7 @@ static __inline__ qword MaddV(qword a, qword v, qword s)
 }
 
 
+// Return a + v * s.x (split asm with a memory barrier for scheduling).
 static __inline__ qword MaddN(qword a, qword v, qword s)
 {
     qword r;
@@ -537,6 +539,7 @@ static __inline__ qword Madd2(qword a, qword v, qword s)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(v), "j"(s), "j"(v), "j"(v), "j"(a), "j"(a)); /* allocation-only (Claude agent): the 2nd "j"(v) pair and the "j"(a) pair are unused, they only raise segmentVelocity's and b's VF allocation priority */
     return r;
 }
+// Return a + v * s.x (the extra operand only influences allocation).
 static __inline__ qword Madd(qword a, qword v, qword s)
 {
     qword r;

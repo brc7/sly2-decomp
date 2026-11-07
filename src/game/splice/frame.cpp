@@ -39,10 +39,14 @@ struct SPW
 {
     CVarb *p;
     void Set(CVarb *binding) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
+    // Uninitialised counted pointer.
     SPW() {}
+    // Hold the object (adds a reference).
     SPW(CVarb *binding) { Set(binding); }
     SPW(const SPW &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPW() { CVarb *binding = p; if (binding && --binding->cref == 0) delete binding; }
+    // Access the held object.
     CVarb *operator->() { return p; }
     operator CVarb *() { return p; }
 };
@@ -63,6 +67,7 @@ public:
     CRef AssignBinding(unsigned int sym, CRef *pref);
     int FindBinding(unsigned int sym, int recurse, CRef *pref);
     CRef *FindBindingPtr(unsigned int sym, int recurse);
+    // Set the first variable binding.
     void SetPbinding(CVarb *binding) { firstBinding = binding; }
 };
 
@@ -71,10 +76,14 @@ struct SPO
 {
     CFrame *p;
     void Set(CFrame *frame) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
+    // Uninitialised counted pointer.
     SPO() {}
+    // Hold the object (adds a reference).
     SPO(CFrame *frame) { Set(frame); }
     SPO(const SPO &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPO() { CFrame *frame = p; if (frame && --frame->cref == 0) delete frame; }
+    // Access the held object.
     CFrame *operator->() { return p; }
 };
 

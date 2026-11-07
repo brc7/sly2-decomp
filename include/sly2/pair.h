@@ -41,6 +41,7 @@ struct CPair
       int gcLink;             /* 0x04 GC link word */
       CRef ref;               /* 0x08 the element */
       CPairPtr next;          /* 0x10 the rest of the list */
+      // Set the rest of the list.
       void SetNext(CPair *ppair) { next = ppair; }
       /* Pairs live in the first engine slot pool (slot size 0x14 == sizeof(CPair)). */
       void operator delete(void *pv) { Unlink__t6CGcObj1Z5CPair(pv); FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }

@@ -106,12 +106,14 @@ struct VU_FLOAT
 {
     qword qw;
 };
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// pbsp, or null when it lies at or past pbspLimit.
 static inline BSP *BspOrNullPastLimit(BSP *pbsp, BSP *pbspLimit)
 {
     if (pbsp >= pbspLimit)
@@ -120,6 +122,7 @@ static inline BSP *BspOrNullPastLimit(BSP *pbsp, BSP *pbspLimit)
     }
     return pbsp;
 }
+// Return qw1*g1 + qw2*g2.
 static inline qword BlendVectors(VU_FLOAT g1, qword qw1, VU_FLOAT g2, qword qw2)
 {
     qword qw;
@@ -242,6 +245,7 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
 
 extern BSP D_002BBB10;      /* the "inside" leaf */
 extern BSP D_002BBB20;      /* the "outside" leaf */
+// p, or null when it lies at or past pnodeMax.
 static inline BSP *NodeOrNullPastLimit(BSP *p, BSP *pnodeMax)
 {
     if (!(p < pnodeMax))
@@ -505,6 +509,7 @@ extern "C" void CloneBspc(TREE *srcTree, OWNER *srcOwner, TREE *dstTree, OWNER *
 /* plane from 3 points; qmfc2+sw in one asm puts the d store first; normal copied via float temps (load x,y,z, store y,z,x) */
 typedef struct { float x, y, z; } V3;
 typedef union { qword q; V3 v; } UV;
+// Unit vector along v.
 static inline qword Normalize(qword v)
 {
     qword d, l, r;

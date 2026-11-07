@@ -211,19 +211,26 @@ extern "C" void UpdateTurretAim(TURRETV *turret)
 // VU helpers of UpdateTurretZoom: load/move into a VU register, difference, length (as float or as raw bits),
 // transpose-rotate by a 3x3 matrix, and the position of a value inside an LM range (Fraction) and back (Blend).
 static inline qword LoadVF(const qword &value){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(value));return r;}
+// Move a 128-bit GPR value into a VU0 register.
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
+// Return b - a.
 static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2,%1":"=j"(r):"j"(b),"j"(a));return r;}
+// Length of d as a float.
 static inline float Length(qword d){qword r;float f;
     r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));
     f = VuToFloat(r);return f;}
+// Length of d, read through $3.
 static inline float OffsetLength(qword d){qword r;register int bits __asm__("$3");
     r = VuDot(d, d);
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));
     __asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(r));union {int i;float f;} value;value.i=(int)bits;return value.f;}
+// Rotate v by the transpose of m (three dot products).
 static inline qword InverseRotate(const M3 &m,qword v){qword r=m.r[0],one,a,b,c;
     __asm__("vmul.xyzw %2,%0,%7\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%5,%7\n\tvmul.xyzw %4,%6,%7\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"+j"(r),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
+// Fraction of f within the range [lo, hi]; 0 when the range is empty.
 static inline float Fraction(LMV *range,float f){if(range->lo==range->hi)return 0.0f;return (f-range->lo)/(range->hi-range->lo);}
+// Interpolate within the range at u.
 static inline float Blend(LMV *range,float u){return (1.0f-u)*range->lo+u*range->hi;}
 // Zoom: framed on the target's bounds when following one, else driven by the controller's zoom input.
 extern "C" void UpdateTurretZoom(TURRETV *turret)

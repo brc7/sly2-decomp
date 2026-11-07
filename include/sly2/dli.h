@@ -19,6 +19,8 @@ struct DLI
 
 extern DLI *D_002DD2FC;      /* g_pdliFirst */
 
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC), so
+// removals during the walk can fix it up.
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
       pdli->m_pdl = pdl;
@@ -28,6 +30,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
       D_002DD2FC = pdli;
 }
 
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
       void *pv = *pdli->m_ppv;

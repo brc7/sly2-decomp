@@ -41,6 +41,7 @@ extern char D_002D8568[] __asm__("_vt$10GADGETMENU");   /* GADGETMENUV vtable */
 struct SCRLIST
 {
     char ab[0x10];
+    // Construct an empty screen list.
     SCRLIST() { InitScreenList(this); }
 };
 /* A screen whose base fields are set inline (pframe, psidebag, vtable). */
@@ -49,14 +50,18 @@ template <int CB> struct SCRINL
     int x0, x4, x8;
     void *pvt;
     char ab[CB - 0x10];
+    // Inline screen header: zeroed fields and the given vtable.
     SCRINL(void *pvtInit) { x0 = 0; x4 = 0; pvt = pvtInit; }
+    // Destroy the screen object (DestroyBasic with the delete flag 2).
     ~SCRINL() { DestroyBasic(this, 2); }
 };
 /* A screen constructed by a C-named constructor. */
 template <int CB> struct SCRCTOR
 {
     char ab[CB];
+    // Construct the object with its class constructor.
     SCRCTOR(void *(*pfnCtor)(void *)) { pfnCtor(this); }
+    // Destroy the object (DestroyBasic with the delete flag 2).
     ~SCRCTOR() { DestroyBasic(this, 2); }
 };
 SCRLIST D_003D9E70 __attribute__((aligned(16)));   /* 16-aligned by layout: 0x3D9E70 after g_gs (save, 0x5408 bytes from 0x3D4A60) */
@@ -71,6 +76,7 @@ SCRCTOR<0x110> D_003DA3C0(ConstructJobListScreen);
  * file), so the slot is a 0x20-byte record with an empty inline constructor, emitted here in order and constructed
  * by no code. Only the first word is named. */
 struct JOBSEL;
+// Job-select slot: the selector and its seven ints.
 struct JOBSELSLOT { JOBSEL *pjobsel; int an[7]; JOBSELSLOT() {} };
 JOBSELSLOT s_jobselslot __asm__("D_003DA4D0");
 SCRCTOR<0x40> D_003DA4F0(ConstructScreen52D);
@@ -228,6 +234,7 @@ void ResetNotice(void *);
 void ResetJobList(void *);
 void CMemcardDialog_Slot13(void *);
 void ResetScreen(void *);
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -236,6 +243,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *NextListEntry(DLI *pdli)
 {
     void *pv = *pdli->ppv;
@@ -1206,6 +1214,7 @@ void CTextBox_SetHorizontalJust(TXT *, int);
 void CTextBox_SetVerticalJust(TXT *, int);
 FONT *CRichText_ctor(FONT *, int, float);
 void DrawRichText2(FONT *, TXT *, int);
+// 0.0f materialised from $zero.
 static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;}
 // While the gadget menu is visible, draws the slot button glyph next to each power-up that is equipped in a slot.
 // (inferred)
@@ -1304,9 +1313,12 @@ namespace M_SetPowerupAcquired {
 struct CRef {
     int m_tagk;
     int m_tag;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference holding a bool (tag 0x17).
     CRef(bool f) { m_tagk = 0x17; m_tag = f; }
     CRef(const CRef &);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
@@ -1390,6 +1402,7 @@ void SetSndSourceLo(void *sound, int flags);
 void SetGadgetMenuStickDir(SELECTOR *sel, int mode);
 }
 
+// Pack x, y, z into a 128-bit GPR value (home is a scratch slot).
 static inline qword XYZ(float x, float y, float z, U &home)
 {
     qword r, t;
@@ -1398,7 +1411,9 @@ static inline qword XYZ(float x, float y, float z, U &home)
     home.q = r;
     return home.q;
 }
+// Move a 128-bit GPR value into a VU0 register.
 static inline qword ToVF(qword v) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(v)); return r; }
+// Unit vector along a.
 static inline qword Normalize(qword a)
 {
     qword d, one, r, l;
@@ -1706,9 +1721,12 @@ namespace M_UpdateThiefnet {
 struct CRef {
     int m_tagk;
     int m_tag;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference holding an int (tag 0x15).
     CRef(int n) { m_tagk = 0x15; m_tag = n; }
     CRef(const CRef &);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
@@ -1881,8 +1899,10 @@ namespace M_RefreshThiefnetItems {
 struct CRef {
     int m_tagk;
     int m_tag;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
@@ -2317,8 +2337,10 @@ namespace M_BuildThiefnetLootNameText {
 struct CRef {
     int m_tagk;
     int m_tag;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &);
+    // Release the reference.
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
@@ -2424,6 +2446,7 @@ char *FindSwLocalizedString__FP2SWi(struct G *,int);
 int GetCoinCount(void *);
 int sprintf(char *,const char *,...);
 char *strcpy(char *,const char *);
+// Copy the localized string `id` into p.
 static inline void CopyId(char *p,int id)
 {
     strcpy(p,FindSwLocalizedString__FP2SWi(&D_003DD490,id));
@@ -3154,8 +3177,11 @@ class CRef {
 public:
     int m_tagk;
     int m_tag;
+    // Script reference with the given tag and value.
     CRef(int tagk, int n) { m_tagk = tagk; m_tag = n; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &ref) { __4CRefRC4CRef(this, &ref); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 struct G;
@@ -3205,8 +3231,10 @@ namespace M_BuildTitlePromptText {
 struct CRef {
     int m_tagk;
     union { int m_tag; float m_g; };
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
     CRef(const CRef &);
+    // Release the reference.
     ~CRef() { Decref(); }
     void Decref() __asm__("Decref__4CRef");
 };
@@ -3351,6 +3379,7 @@ void FreeSlotheapSlot(void *, void *);
 void func_00257078(void *, int) __asm__("_$_6CFrame");
 void func_001AE520(void *) __asm__("__builtin_delete");
 
+// Drop a reference to an R1 record; on the last one release it and free its slot.
 static inline void Release1(R1 *r)
 {
     if (r) {
@@ -3363,6 +3392,7 @@ static inline void Release1(R1 *r)
     }
 }
 
+// Drop a reference to an R4 record; on the last one release it and free its slot.
 static inline void Release4(R4 *r)
 {
     if (r) {

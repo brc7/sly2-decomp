@@ -114,9 +114,13 @@ void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int FindSmStateOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
 }
+// Play sound effect id at the JT's world position (nothing when id is -1).
 static __inline__ void Emit(JT*jt,int id){if(id!=-1){EFFECT*effect=CreateSfxSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,GetLoWorldPos(jt));}}
+// Call the node's activate virtual (vtable slot 8).
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
+// Link the node to other (virtual slot 38).
 static __inline__ void Link(NODE*p,NODE*other){VE&v=p->vt[38];((void(*)(void*,NODE*))v.fn)((char*)p+v.delta,other);}
+// Call the node's deactivate virtual (vtable slot 9).
 static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((char*)p+v.delta);}
 
 extern "C" {
@@ -792,14 +796,23 @@ extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,fl
 extern "C" int FindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
 extern "C" float NormalizeAngle__Ff(float);
 struct VU_FLOAT{qword qw;};
+// Move a float's bits into a GPR qword (mfc1).
 static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"(v.qw):"f"(g));return v;} static inline qword FloatToVec(float g){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(g):"memory");return q;}
+// Angle of v in the XY plane (atan2(y, x)).
 static inline float AngleOf(U v){return atan2f(v.f[1],v.f[0]);}
+// Return p + v * k.
 static inline qword AddScaled(qword p,qword v,VU_FLOAT k){qword q;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%2x":"=j"(q):"j"(p),"j"(k.qw),"j"(v),"j"(k.qw)/*allocation-only: VU preference spills k like the target*/);return q;}
+// Rotate v by the 3x3 matrix m.
 static inline qword Rotate(const M3&m,qword v){qword q;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(q):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"0"(v));return q;}
+// Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4&m,qword v){qword q;q = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, v);return q;}
+// The object's velocity (virtual slot 33).
 static inline qword GetVelocity(ALO*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
+// The object's reference frame into out (virtual slot 32).
 static inline void*GetFrame(ALO*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
+// Absolute value of f.
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
+// Find the world's object of class 0x33 (search mode 3) after n.
 static inline int IsBonus(ALO*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
 // Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
 // (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.

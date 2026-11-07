@@ -44,11 +44,14 @@ void func_001AE520(void *pv) __asm__("__builtin_delete");
 struct SPW
 {
     CVarb *p;
+    // Uninitialised counted pointer.
     SPW() {}
     SPW(const SPW &);
     void Set(CVarb *binding) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
+    // Drop the held object's reference, deleting it on the last one.
     ~SPW() { CVarb *binding = p; if (binding && --binding->cref == 0) delete binding; }
     void operator=(CVarb *binding) __asm__("__as__t7CRefPtr1Z5CVarbP5CVarb");
+    // Access the held object.
     CVarb *operator->() { return p; }
     operator CVarb *() { return p; }
 };
@@ -62,6 +65,7 @@ public:
 
     CRef AssignSidebagBinding(int sym, CRef *pref);
     int FindSidebagBinding(int sym, CRef *pref);
+    // Set the first variable binding.
     void SetBinding(CVarb *binding) { firstBinding = binding; }
     /* Sidebags live in the fifth engine slot pool (slot size 0xC == sizeof(CSidebag)). */
     void operator delete(void *pv) { Unlink__t6CGcObj1Z8CSidebag((GCHDR *)pv); FreeSlotheapSlot(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
@@ -73,10 +77,14 @@ struct SPS
 {
     CSidebag *p;
     void Set(CSidebag *sidebag) __asm__("Attach__t7CRefPtr1Z8CSidebagP8CSidebag");
+    // Uninitialised counted pointer.
     SPS() {}
+    // Hold the object (adds a reference).
     SPS(CSidebag *sidebag) { Set(sidebag); }
     SPS(const SPS &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPS() { CSidebag *sidebag = p; if (sidebag && --sidebag->cref == 0) delete sidebag; }
+    // Access the held object.
     CSidebag *operator->() { return p; }
 };
 

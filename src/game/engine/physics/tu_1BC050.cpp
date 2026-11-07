@@ -76,12 +76,15 @@ struct LSG {
 
 struct MSG { int cb; int nKind; };
 struct AREQC { int cb; int align; };
+// Allocation request: byte count and alignment.
 struct AREQV { int cb; int align; AREQV(int c, int a) { cb = c; align = a; } };
 
 struct VU_QWORD;
 extern "C" VU_QWORD *InitVuTemp(VU_QWORD *);
+// VU temporary initialised through InitVuTemp.
 struct VU_QWORD { qword qw; VU_QWORD() { (void)InitVuTemp(this); } };
 struct VU_FLOAT { qword qw; };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword qw; VU_VECTOR(const qword &q) { qw = q; } };
 
 extern "C" {
@@ -155,11 +158,15 @@ void AddCid14ToMerged(CID14V *p, CID14V *po);
 int func_001BCAC0F(CID14V *p, void *pv, float g0, float g1, int fRev) __asm__("FindCid14PathzoneSpan");
 int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float *pt) __asm__("FindShapeFreeRange");
 
+// Fill the heap message and allocate cb zeroed bytes (kind nKind) from the world heap.
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
+// Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
 /* The world matrix: virtual slot 31. */
 static inline M4 *GetMat(CID14V *p) { return ((M4 *(*)(CID14V *))p->vt[31].pfn)((CID14V *)((char *)p + p->vt[31].d)); }
+// Transform point v by the 4x4 matrix m.
 static inline qword MulPt(M4 *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0]), "j"(v), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3])); return r; }
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DLV *pdl)
 {
     pdli->pdl = pdl;
@@ -168,6 +175,7 @@ static inline void InitDli(DLI *pdli, DLV *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->ppv;
@@ -300,7 +308,9 @@ int WrapCid14PointIndex(CID14V *polygon, int index)
 }
 
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) V4;
+// Swap two vectors.
 static __inline__ void SwapV(V4 *a, V4 *b) { V4 t = *a; *a = *b; *b = t; }
+// Swap two floats.
 static __inline__ void SwapG(float *a, float *b) { float t = *a; *a = *b; *b = t; }
 // Slot 15 (PostLoad): PostLoLoad, classifies the outline and reverses or re-measures it when needed so it is convex
 // with a known winding.
@@ -347,18 +357,21 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2.ni %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// x lane of vf as a float (the "j" inputs only influence allocation).
 static inline float GXOfQw(const VU_QWORD &vf, const VU_QWORD &vfLive)
 {
     float g;
     __asm__("mtc1 %1,%0" : "=f"(g) : "r"(vf.qw), "j"(vf.qw), "j"(vfLive.qw), "j"(vfLive.qw)); /* "j" inputs: allocation only (see header) */
     return g;
 }
+// Return qw1*g1 + qw2*g2.
 static inline qword QwMix(VU_FLOAT g1, const qword &qw1, VU_FLOAT g2, const qword &qw2)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %4x" : "=j"(qw) : "j"(qw1), "j"(qw2), "j"(g1.qw), "j"(g2.qw));
     return qw;
 }
+// Return -v.
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
 // Clips a segment against the polygon's side planes, writing the inside span(s) as LSG entries; returns the count.
 int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSegments, LSG *segments)
@@ -436,6 +449,7 @@ int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSeg
 }
 
 union UF { qword q; float f; };
+// Signed distance from pos to plane (plane.xyz . pos - plane.w).
 static __inline__ float GDistPlane(qword plane, qword pos)
 {
     UF d, one;
@@ -460,6 +474,7 @@ int IsPosInConvexObstacle(CID14V *polygon, qword pos)
     return 1;
 }
 
+// Transform point v by the 4x4 matrix pm.
 static inline qword MulPos(M4 *pm, qword v)
 {
     qword r;
@@ -646,6 +661,7 @@ CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword start, qword end)
     return best;
 }
 
+// Unit vector along n.
 static inline qword Normalize(qword n)
 {
     qword l, one, r;
@@ -811,6 +827,7 @@ int ComparePosX(const void *a, const void *b)
     return r;
 }
 
+// z component of the cross product (b - a) x (c - b): the turn direction of the three points.
 static inline float CrossZ(qword a, qword b, qword c)
 {
     qword d, e, r; float z;

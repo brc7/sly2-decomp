@@ -80,6 +80,7 @@ void WriteTft(TFT *, OSTRM *, char **, char *, int);
 int PrintfToStream(OSTRM *out, char *format, char *args);
 void UpperizePchz(char *str);
 
+// True for '0'..'9'.
 static inline int IsDecimalDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
 // Parses an optionally negative decimal integer at str into *outValue; returns the characters consumed.
 // (Sly 1-derived name: CchParsePchzInt.)
@@ -100,7 +101,9 @@ int ParseDecimalInt(char *str, int *outValue)
 
 // Parse one TFT specifier; all length modifiers advance to conversion.
 static inline int Abs(int n) { return n < 0 ? -n : n; }
+// True when c is an upper-case letter (character class table D_002AA6A1).
 static inline int Upper(unsigned char c) { return D_002AA6A1[c] & 1; }
+// Lower-case form of c.
 static inline int Lower(unsigned char c) { int r = c + 0x20; if (!Upper(c)) r = c; return r; }
 /* ParseFormatSpec's parser states, in the order the parts of a specification appear. */
 enum { TFT_START, TFT_FLAGS, TFT_WIDTH, TFT_PRECISION, TFT_LENGTH, TFT_CONVERSION, TFT_DONE };
@@ -222,6 +225,7 @@ done:
     return (char *)p - format;
 }
 
+// Write count copies of padChar to the stream.
 static inline void WritePad(OSTRM *out, char padChar, int count)
 {
     char padByte = padChar;
@@ -559,22 +563,26 @@ static inline char *Next(char **args)
     *args = p + 8;
     return p;
 }
+// Write a zero-terminated string to the stream.
 static inline void WritePchz(OSTRM *out, char *s)
 {
     out->CbWrite(s, strlen(s));
 }
+// Address of a string literal (la).
 static inline char *LiteralAddress(char *text)
 {
     char *value;
     asm("la %0,%1" : "=r"(value) : "i"(text));
     return value;
 }
+// The stream's total written count, in $2.
 static inline int CountWord(const OSTRM *out)
 {
     register int value asm("$2");
     asm("lw %0,%1" : "=r"(value) : "m"(out->totalWritten));
     return value;
 }
+// Load the short* stored in slot into $4.
 static inline short *ShortDestination(const char *slot)
 {
     register short *value asm("$4");

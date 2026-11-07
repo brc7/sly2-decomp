@@ -25,10 +25,14 @@ struct SPW
 {
       CVarb *p;
       void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
+      // Uninitialised counted pointer.
       SPW() {}
+      // Hold the object (adds a reference).
       SPW(CVarb *pvarb) { Set(pvarb); }
       SPW(const SPW &);
+      // Drop the held object's reference, deleting it on the last one.
       ~SPW() { CVarb *pvarb = p; if (pvarb && --pvarb->cref == 0) delete pvarb; }
+      // Access the held object.
       CVarb *operator->() { return p; }
 };
 

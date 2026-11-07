@@ -69,9 +69,13 @@ float ClampToLimits(LM *plm, float g);
 int RandomIntInRange(int nMin, int nMax);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
+// Store a script reference into the global save variable key.
 static inline void Set(SVKEY *key, CRef ref) { SetGlobalSaveVar(key, ref, &D_003D4A60); }
+// Store a float into the global save variable key.
 static inline void SetG(SVKEY *key, float g) { CRef ref; ref.m_tagk = 0x16; ref.u.g = g; Set(key, ref); }
+// Read the save variable key from the world's save store.
 static inline CRef Get(SVKEY *key) { SVSET *saveSet = &D_003D4A60; return GetSaveVar(&(*(SVSTORE *)&g_sw.savevars), key, saveSet); }
+// Read the global save variable key as a float.
 static inline float GGet(SVKEY *key) { CRef ref = GetGlobalSaveVar(key, &D_003D4A60); return ref.u.g; }
 
 // Zeroes the difficulty object.

@@ -66,6 +66,7 @@ void AddStartupWarpStep(STEPQ *queue, FILEREF *fileRef, int oid, int flags);
 void AddStartupMemcardStep(STEPQ *queue);
 }
 
+// True when the file reference is set (its two check words differ).
 static inline int IsFileRefSet(FILEREF *fileRef)
 {
     if (!fileRef) return 0;

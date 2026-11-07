@@ -47,9 +47,12 @@ struct CRef
             CMethod *pmethod;       /* 0x22 */
       } u;
 
+      // Empty (untagged) script reference.
       CRef() { m_tagk = -1; }
+      // Script reference of the given tag kind.
       CRef(int tagk) { InitTag(tagk); }
       CRef(const CRef &r);
+      // Script reference holding word n with tag tagk (no retain).
       CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }            /* a word with its tag, no retain (bif's builtins) */
       CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: EvalLambda) */
       CRef(CPair *ppair) __asm__("CRef_ctor_CPair");
@@ -59,6 +62,7 @@ struct CRef
       CRef(const LM *plm) __asm__("CRef_ctor_LM");
       CRef(const SMP *psmp) __asm__("CRef_ctor_SMP");
       CRef(BASIC *pbasic) __asm__("CRef_ctor_BASIC");
+      // Release the reference.
       ~CRef() { Decref(); }
       CRef &operator=(const CRef &r);
       CRef &operator=(bool f) __asm__("CRef_SetBool");            /* a boolean (tag 0x17) */
@@ -75,7 +79,9 @@ struct CRef
       CRef &SetF32(float g);
       void SetTag(TAGK tagk);
       void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
+      // Release the payload and make the reference nil.
       void SetNil() { Decref(); InitTag(0); }
+      // Release the payload and set a new tag.
       void Retag(int tagk) { Decref(); InitTag(tagk); }               /* release the payload, then set a new tag */
 };
 typedef char assert_CRef_size[sizeof(CRef) == 8 ? 1 : -1];

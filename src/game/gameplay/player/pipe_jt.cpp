@@ -129,6 +129,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *pipe)
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(pipe->actor, 0x10, 2, &pipe->weight0, 0, 0, 0, &pipe->animation);
 }
 
+// Return v scaled by g (broadcast pinned to vf2).
 static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");qword r;s = VuFromFloat<qword>(g);u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(u.q));return r;}
 // Physics preset while on a pipe: in the mount and climb states (0, 4) accelerates Sly toward the pipe's climbing
 // frame (GetPipeGoalMatrix) at the current distance.
@@ -179,8 +180,11 @@ extern "C" void GetJtPipeDistanceRange(JTPIPE *pipe, LMV *ag) {
     }
 }
 
+// The path's eligibility flag (bit 60).
 static inline ulong Eligible(PATH*p){return (p->flags>>60)&1;}
+// Ask the JT whether action kind is allowed (virtual slot 99).
 static inline int CanAct(JT*jt,int kind){VE&v=jt->vt[99];return ((int(*)(void*,int))v.fn)((char*)jt+v.delta,kind);}
+// Direction from *a to *b and the axis pointer (register-pinned).
 static inline qword Direction(U *a, U *b, U *&axis)
 {
     register qword direction __asm__("vf3");
@@ -192,6 +196,7 @@ static inline qword Direction(U *a, U *b, U *&axis)
     axis = address;
     return direction;
 }
+// Unit vector along v (register-pinned).
 static inline qword Normal(qword v, U *axis)
 {
     register qword d __asm__("vf1"), r __asm__("vf1");
@@ -440,8 +445,11 @@ extern "C" void RecordJtPipePlace(JTPIPE *pipe)
 // Stores two vectors in the pipe context (meaning not identified). (inferred)
 extern "C" void SetJtPipeVectors(JTPIPE *s, qword a, qword b) { s->offset.q = a; s->offset2.q = b; }
 
+// Set the path's state (virtual slot 3).
 static inline void PathState(PATH*p,int state){VE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.fn)((char*)p+v.delta,state,0,0,0,0);}
+// Move a 128-bit GPR value into a VU0 register.
 static inline qword Vector(qword q){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(q));return v;}
+// Direction from *a to *b and the axis pointer (second register variant).
 static inline qword DirectionB(U *a, U *b, U *&axis)
 {
     register qword first __asm__("vf2"), second __asm__("vf1"), direction __asm__("vf3");
@@ -452,6 +460,7 @@ static inline qword DirectionB(U *a, U *b, U *&axis)
     axis = address;
     return direction;
 }
+// Unit vector along v (second register variant).
 static inline qword NormalB(qword v, U *axis)
 {
     register qword d __asm__("vf1"), r __asm__("vf2");
@@ -469,6 +478,7 @@ static inline qword NormalB(qword v, U *axis)
     __asm__("qmfc2.ni %0,%1" : "=r"(q) : "j"(r));
     return q;
 }
+// target - position and the focus pointer (register-pinned).
 static inline qword GoalInputs(U *target, qword position, void *&focus)
 {
     register qword a __asm__("vf2"), b __asm__("vf3"), r __asm__("vf1");
@@ -480,6 +490,7 @@ static inline qword GoalInputs(U *target, qword position, void *&focus)
     r = VuSub(a, b);
     return r;
 }
+// World-space point for the pipe and its owning JT (register-pinned).
 static inline qword WorldInputs(JTPIPE *pipe, U *point, U *world, qword offset, JT *&owner)
 {
     register JT *actor __asm__("$2");
@@ -490,6 +501,7 @@ static inline qword WorldInputs(JTPIPE *pipe, U *point, U *world, qword offset, 
     owner = actor;
     return value;
 }
+// Zero the xyz words of v.
 static inline void Clear(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
 // Pipe sub-state switch: from -1 mounts the pipe (subscribe, register, find the curve distance within +-50 of the
 // grab point); each state picks its clips and sounds; reaching uses the cane state (SetJtCaneState).

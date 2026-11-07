@@ -18,10 +18,14 @@ struct SPW
 {
       CPair *p;
       void Set(CPair *ppair) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+      // Uninitialised counted pointer.
       SPW() {}
+      // Hold the object (adds a reference).
       SPW(CPair *ppair) { Set(ppair); }
       SPW(const SPW &);
+      // Drop the held object's reference, deleting it on the last one.
       ~SPW() { CPair *ppair = p; if (ppair && --ppair->cref == 0) delete ppair; }
+      // Access the held object.
       CPair *operator->() { return p; }
 };
 

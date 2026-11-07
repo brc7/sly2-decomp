@@ -90,6 +90,7 @@ void PostLoadOidSetter(LO *plo, void *pv);
 CRef RefFromBrx(OTYP otyp, CBinaryInputStream *stream) __asm__("ReadOptionArgFromBrx");   /* defined below (C symbol) */
 void *AllocSwPostLoadRecord(SW *world) __asm__("AllocSwPostLoadRecord");
 extern "C" void ColorCorrectRgba(RGBA *prgba);
+// Allocate cb zeroed bytes with alignment cbAlign from the world heap.
 inline void *PvAllocSwClear(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -98,6 +99,7 @@ inline void *PvAllocSwClear(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwClearImpl(pswalloc);
 }
+// Allocate cb zeroed bytes with alignment cbAlign from the frame stack.
 inline void *PvAllocStackClear(int cb, int cbAlign)
 {
     SWALLOC swalloc;

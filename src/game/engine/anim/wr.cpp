@@ -39,8 +39,11 @@ struct VU_FLOAT
 struct VU_VECTOR
 {
     qwordV q;
+    // Uninitialised vector.
     VU_VECTOR() {}
+    // Wrap a qword.
     VU_VECTOR(qwordV qw) { q = qw; }
+    // Wrap a VECTOR's 16 bytes.
     VU_VECTOR(const VECTORV &vec) { q = *(const qwordV *)&vec; }
 };
 
@@ -238,6 +241,7 @@ static inline qwordV TransformPoint(const MATRIX4V &mat, qwordV qwPos)
     return qw;
 }
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT vu;
@@ -245,6 +249,7 @@ static inline VU_FLOAT VuFloat(float g)
     return vu;
 }
 
+// Return qw scaled by g.
 static inline qwordV VuScale(qwordV qw, VU_FLOAT g)
 {
     qwordV qwResult;
@@ -265,6 +270,7 @@ static inline qwordV VuLength(qwordV v)
 
 
 
+// Set the limit range from g0 and g1 in either order.
 static inline void SetLm(LMV *plm, const float &g0, const float &g1)
 {
     plm->minValue = Min(g0, g1);
@@ -287,6 +293,7 @@ static inline VU_VECTOR operator*(const MATRIX4V &mat, VU_VECTOR pos)
     return VU_VECTOR(qw);
 }
 
+// Return vec0 - vec1.
 static inline VU_VECTOR operator-(VU_VECTOR vec0, VU_VECTOR vec1)
 {
     qwordV qw;
@@ -304,6 +311,7 @@ static inline VU_FLOAT VuDot(VU_VECTOR vec0, VU_VECTOR vec1)
     return g;
 }
 
+// Unit vector along vec.
 static inline VU_VECTOR Normalize(VU_VECTOR vec)
 {
     qwordV qwLength = VuDot(vec, vec).q, qwNormal;
@@ -490,6 +498,7 @@ static inline float Smoothstep(float s)
     __asm__("mul.s %0,%0,%0":"+f"(square));
     return square*(3.0f-twice);
 }
+// a * b (single mul.s in the original operand order).
 static inline float Product(float a,float b)
 {
     __asm__("mul.s %0,%1,%0":"+f"(b):"f"(a));
@@ -544,14 +553,23 @@ float EvaluateNoiseChannel(ONZ *noise)
 
 // UpdateWrMatrixes (0x22C028). Circle case: the scalar-home sqc2 stores and one combine carry "memory" clobbers to fix their order (Claude agent).
 static inline qwordV ScalarLoad(const float &f){int bits;qwordV q;__asm__("lw %0,%1":"=r"(bits):"m"(f));q = VuFromFloat<qwordV>(bits);return q;}
+// Store value to home and return it.
 static inline qwordV ScalarHome(V &home,qwordV value){__asm__("sqc2 %1,%0":"=m"(home.q):"j"(value));return value;}
+// Return a*fa + b*fb.
 static inline qwordV Combine(qwordV fa,qwordV a,qwordV fb,qwordV b){qwordV r;__asm__("vmulax.xyzw ACC,%2,%1x\n\tvmaddx.xyzw %0,%4,%3x":"=j"(r):"j"(fa),"j"(a),"j"(fb),"j"(b));return r;}
+// Return a*fa + b*fb (memory variant).
 static inline qwordV CombineM(qwordV fa,qwordV a,qwordV fb,qwordV b){qwordV r;__asm__("vmulax.xyzw ACC,%2,%1x\n\tvmaddx.xyzw %0,%4,%3x":"=j"(r):"j"(fa),"j"(a),"j"(fb),"j"(b):"memory");return r;}
+// Store value to home (with a memory clobber) and return it.
 static inline qwordV ScalarHomeM(V &home,qwordV value){__asm__("sqc2 %1,%0":"=m"(home.q):"j"(value):"memory");return value;}
+// Copy the xyz floats of v into destination.
 static inline void CopyXYZ(V &destination,const V &v){float x=v.f[0],y=v.f[1],z=v.f[2];destination.f[0]=x;destination.f[1]=y;destination.f[2]=z;}
+// Copy the xy floats of v into destination.
 static inline void CopyXY(V &destination,const V &v){float x=v.f[0],y=v.f[1];destination.f[0]=x;destination.f[1]=y;}
+// Unit vector along v.
 static inline qwordV Unit(qwordV v){qwordV len,r;len = VuDot(v, v);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"0"(len));return r;}
+// Unit vector along v into a fresh register.
 static inline qwordV UnitFresh(qwordV v){qwordV len,r;len = VuDot(v, v);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=&j"(r):"j"(v),"j"(len));return r;}
+// Rotate v by the 3x3 matrix m.
 static inline qwordV Rotate(const M3 &m,qwordV v){v = VuMulMatrix3(*(const qwordV *)m.f[0], *(const qwordV *)m.f[1], *(const qwordV *)m.f[2], v);return v;}
 void UpdateWrMatrixes(WRV *p) __asm__("UpdateWrMatrixes__FP2WR");
 // Per-frame update of a space warp: refreshes the state vectors if parameters changed, then builds each warp entry's warp

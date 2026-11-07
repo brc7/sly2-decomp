@@ -25,7 +25,9 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 
 /* POD matrix rows, and the class form with user-written copies that IntegrateSoGroupTransforms / ApplySoRestingContactVelocity need. */
 struct M3 { qword r[3]; };
+// 3x3 matrix of U rows with copy constructor.
 struct M3C { U r[3]; M3C() {} M3C(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; }
+    // Assign the three rows.
     M3C &operator=(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; return *this; } };
 #define MATC(pxf) (*(M3C *)&(pxf)->localMatrix)
 
@@ -260,6 +262,7 @@ int BuildGroupXpArray(SW *world, int flags, int numObjects, SO **objects, int ma
     return count;
 }
 
+// Dot product of the xyz parts of a and b as a float.
 static inline float DotF(qword a,qword b){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"0"(a),"j"(b));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
@@ -320,11 +323,15 @@ void ClearDzgSolution(DZG *);
 #define FLT_MAX 3.40282347e+38f
 // The second "j"(b) operand is allocation-only: it puts b in vf1 like the game.
 static inline int DotQ(qword a,qword b){qword one;int r;__asm__("vmul.xyz %0,%0,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one):"j"(b),"j"(b));__asm__("qmfc2.ni %0,%1":"=r"(r):"j"(a));return r;}
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a,qword b){qword one;float f;__asm__("vmul.xyz %0,%0,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one):"j"(b));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
 // "memory": the game re-reads p->pxfRot after this dot product.
 static inline float LengthSquared(qword v){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(v),"=&j"(one): :"memory");__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
+// Single-precision square root (sqrt.s).
 static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
+// The frame clock's dt.
 static inline float ClockDt(){return D_002DDED0.deltaTime;}
+// Call p's no-argument virtual at vtable slot `slot`.
 static inline void Callback(SO *p,int slot){VTE *vt=p->pvt;vt[slot].pfn((char *)p+vt[slot].d);}
 // Solves one contact group: one DZG row per contact, target velocities from restitution and penetration, the DZG
 // and friction solve, impulses applied to the objects, then the objects are notified (slots 65-67).
@@ -434,6 +441,7 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
 }
 #undef FLT_MAX
 
+// True when a and b are equal within 0.0001 on x, y and z.
 static inline int FNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -449,11 +457,17 @@ extern "C" void PresetSoAccel(SO *p)
     if (p->externalAccelList) ApplySoExternalAccelerations(p);
 }
 
+// Rotation matrix built from the rotation vector `vector` (axis * angle).
 static inline M3C BuildRotation(qword vector) return matrix {BuildRotationMatrixFromVector(&matrix,vector);}
+// Broadcast f into a VU0 register and store it to *out.
 static inline qword Scalar(float f,U *out){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));out->q=q;return out->q;}
+// Return p + v * k.x.
 static inline qword AddScaledE(qword p,qword v,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(p),"j"(v),"j"(k));return r;}
+// Return v scaled by k.x.
 static inline qword ScaleE(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(k));return r;}
+// Zero the xyz words of v.
 static inline void Clear(U *v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
+// Return the 3x3 matrix product of a and b.
 static inline M3C MulC(const M3C &a,const M3C &b) return r
 {
     qword a0=a.r[0].q,a1=a.r[1].q,a2=a.r[2].q;
@@ -499,19 +513,33 @@ void IntegrateSoGroupTransforms(SO *p)
     ClearSoTreeDirty(p);
 }
 
+// Return p + v * k.x, computed in v's register.
 static inline qword AddScaledIn(qword p,qword v,qword k){__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x":"+j"(v):"j"(p),"j"(k));return v;}
+// Return v scaled by k.x in place.
 static inline qword ScaleIn(qword v,qword k){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;}
+// y lane of q as a float.
 static inline float YP(qword q){register float f __asm__("$2");__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
+// z lane of q as a float.
 static inline float ZP(qword q){register float f __asm__("$2");__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
+// code != 0 (sltu) in $21.
 static inline int NearFlag(int code){register int r __asm__("$21");__asm__("sltu %0,$zero,%1":"=r"(r):"r"(code));return r;}
+// Set *out when a and b are equal within 0.0001 on x, y and z.
 static inline void NearP(int *out,qword a,qword b){if(AreFloatsNear__Ffff(QwordX(a),QwordX(b),0.0001f))if(AreFloatsNear__Ffff(YP(a),YP(b),0.0001f))*out=NearFlag(AreFloatsNear__Ffff(ZP(a),ZP(b),0.0001f));}
+// Zero vector in vf3.
 static inline qword Zero(){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
+// Unsettle the transform slot, convert pending from parent to world space into *out and clear pending's y/z words.
 static inline void ConsumeOut(SO *p,XF *object,U &pending,qword*out){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
+// y lane of the qword at q as a float.
 static inline float YFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tprot3w %0,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
+// z lane of the qword at q as a float.
 static inline float ZFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tpextuw %0,$zero,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
+// Set *out when first and b are equal within 0.0001 on x, y and z (register-pinned loads).
 static inline void NearVector(int *out,const qword &first,const qword &b){register const qword *address __asm__("$2")=&first;register qword a __asm__("$16");__asm__("lq %0,0(%1)":"=r"(a):"r"(address),"m"(first));register qword bits __asm__("$2");register float ax __asm__("$f12"),bx __asm__("$f13");__asm__("lq %0,%4\n\tmtc1 %3,%1\n\tmtc1 %0,%2":"=&r"(bits),"=f"(ax),"=f"(bx):"r"(a),"m"(b));if(AreFloatsNear__Ffff(ax,bx,0.0001f))if(AreFloatsNear__Ffff(YP(a),YFromHome(b),0.0001f))*out=AreFloatsNear__Ffff(ZP(a),ZFromHome(b),0.0001f)!=0;}
+// Add q to the vector at out.
 static inline void AddVector(U *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
+// Load the transform's position into *value and return its address (+0x30).
 static inline qword*PointAddress(XF*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,0x30\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->pos));*value=point;return address;}
+// Load source into *delta and return dt * half.
 static inline float HalfAndDelta(float dt,float half,const qword&source,qword*delta){register float product __asm__("$f0");register qword d __asm__("vf3");__asm__("mul.s %0,%2,%3\n\tlqc2 %1,%4":"=f"(product),"=j"(d):"f"(dt),"f"(half),"m"(source));*delta=d;return product;}
 // Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (SO::contactVelocityChange / contactAngularVelocityChange,
 // accumulated by ApplyDzg) to the position and rotation XFs' velocities and advances the position and rotation by
@@ -572,6 +600,7 @@ extern "C" void ApplySoRestingContactVelocity(SO *input)
     }
 }
 
+// True when value and reference are equal within 0.0001 on x, y and z.
 static __inline__ int NearV(qword value,qword reference)
 {
     int same=0;
@@ -580,6 +609,7 @@ static __inline__ int NearV(qword value,qword reference)
        AreFloatsNear__Ffff(QwordZ(reference),QwordZ(value),0.0001f))same=1;
     return same;
 }
+// Add q to the vector at out.
 static __inline__ void AddTo(U *out,qword q)
 {
     qword r;
@@ -621,14 +651,18 @@ extern "C" void ApplySoImpactVelocity(SO *object)
 
 // Apply queued translation and rotation, then refresh changed objects.
 extern "C" M3 func_0011B570R(qword) __asm__("BuildRotationMatrixFromVector");
+// Set *out when a and b are equal within 0.0001 on x, y and z.
 static inline void NearR(int*out,qword a,qword b){if(AreFloatsNear__Ffff(QwordX(a),QwordX(b),0.0001f))if(AreFloatsNear__Ffff(QwordY(a),QwordY(b),0.0001f))*out=AreFloatsNear__Ffff(QwordZ(a),QwordZ(b),0.0001f)!=0;}
+// Return a + b.
 static inline qword AddR(qword a,qword b){__asm__("vadd.xyzw %0,%1,%0":"+j"(b):"j"(a));return b;}
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3&a,const M3&b) return r {
     qword a0=a.r[0],a1=a.r[1],a2=a.r[2];
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[0]));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
+// Unsettle the transform slot, return pending converted from parent to world space and clear pending's y/z words.
 static inline qword Consume(SO*p,XF*object,U&pending){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
 // Slot 67, called by SolveSwGroup after the penetration (position) pass: applies the solver's deltas directly as
 // a translation and a rotation of the XFs (pushing interpenetrating objects apart), then updates the transform
@@ -666,22 +700,26 @@ extern "C" void ApplySoContactShift(SO*object)
     }
 }
 
+// Rotate *pv in place by the 3x3 matrix pm.
 static inline void MulMVIn(M3 *pm, qword *pv)
 {
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(*pv) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]));
 }
+// Unit vector along v.
 static inline qword Normalize(qword v)
 {
     qword r, one;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tvdiv $Q, $vf0w, %0x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=&j"(r), "=&j"(one) : "j"(v));
     return r;
 }
+// Projection of a onto the unit normal n: (a.n) n.
 static inline qword Proj(qword a, qword n)
 {
     qword r, one, d;
     __asm__("vmul.xyz %2, %3, %4\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %2, %2y\n\tvmaddz.x %2, %1, %2z\n\tvmulx.xyzw %0, %4, %2x" : "=j"(r), "=&j"(one), "=&j"(d) : "j"(a), "j"(n));
     return r;
 }
+// Rejection of a from the unit normal n: a - (a.n) n.
 static inline qword Rej(qword a, qword n)
 {
     qword r, one, d;
@@ -710,6 +748,7 @@ qword ApplyConstr(CONSTR *constraint, XF *transform, qword vector)
     return vector;
 }
 
+// Rejection of a from the unit normal n: a - (a.n) n (single asm block).
 static inline qword RejF(qword a, qword n)
 {
     qword r, one, d;
@@ -733,6 +772,7 @@ extern "C" qword ApplyConstrNoTransform(CONSTR *constraint, qword vector)
     return vector;
 }
 
+// Move a VU0 register to a 128-bit GPR value.
 static inline qword Get(qword r){qword a; __asm__("qmfc2.ni %0,%1" : "=r"(a) : "j"(r)); return a;}
 // Linear velocity change an impulse causes: impulse / mass, constrained by the object's force constraint.
 qword GetSoImpulseLinearDelta(SO *objectArg,qword impulse) {
@@ -759,11 +799,13 @@ qword GetSoImpulseAngularDelta(SO *object, qword pos, qword impulse)
     return ApplySoInverseInertia(object, torque);
 }
 
+// Rotate v by the 3x3 matrix pm (r only provides the output register).
 static inline qword MulMVR(M3 *pm, qword v, qword r)
 {
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z" : "+j"(r) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(v));
     return r;
 }
+// Rotate *pv in place by the 3x3 matrix pm (register-pinned rows).
 static inline void MulMVInP(M3 *pm,qword *pv)
 {
  register qword row0 __asm__("vf5")=pm->r[0];
@@ -772,6 +814,7 @@ static inline void MulMVInP(M3 *pm,qword *pv)
  __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z"
  : "+j"(*pv):"j"(row0),"j"(row1),"j"(row2));
 }
+// Rotate *pv by the 3x3 matrix pm (register-pinned rows).
 static inline qword MulMVRow(M3 *pm, qword *pv)
 {
     register qword row __asm__("vf3")=pm->r[2];
@@ -804,6 +847,7 @@ qword CalculateSoPointVelocity(SO *object, qword *velocities, qword pos)
     return result;
 }
 
+// Add d, converted from the parent's space to world space, to the transform's acceleration.
 static inline void AddAccel(XF *po, qword d)
 {
     qword a = po->a.q;

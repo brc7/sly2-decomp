@@ -29,6 +29,7 @@ struct SNDOBJ { char pad0[0xC]; VTESND *vtable; };
 struct SNDREF
 {
     SNDOBJ *p;
+    // Release the held sound (vtable slot 2), if any.
     ~SNDREF() { if (p) p->vtable[2].pfn((char *)p + p->vtable[2].d); }
 };
 struct SNDMGRG;
@@ -41,6 +42,7 @@ struct SNDMGRBASE
     char ab[0x4C];
     DL dlSndDirty;          /* +0x4C [S] draft name: the sounds RemoveSndFromDirtyList takes out (was the address name D_003DD08C) */
     char ab58[0x200 - 0x58];
+    // Destroy the object (DestroyBasic with the delete flag 2).
     ~SNDMGRBASE() { DestroyBasic(this, 2); }
 };
 struct SNDMGRG : public SNDMGRBASE
@@ -49,7 +51,9 @@ struct SNDMGRG : public SNDMGRBASE
     int musicStackCount;     /* +0x204 */
     SNDREF musicStack[8];    /* +0x208 */
     SNDREF ambienceSound;    /* +0x228 */
+    // Construct the sound manager through SNDMGR_ctor.
     SNDMGRG() { SNDMGR_ctor(this); }
+    // Empty destructor.
     ~SNDMGRG() {}
 };
 SNDMGRG D_003DD040;
@@ -242,6 +246,7 @@ struct P { char pad[0x1C]; void *source; qword position; char pad2[0x40 - 0x30];
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
+// True when a and b are equal within 0.0001 on x, y and z.
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -310,6 +315,7 @@ struct P { char pad[0x1C]; struct SOURCE *source; qword position; };
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, unsigned short, unsigned short);
+// True when a and b are equal within 0.0001 on x, y and z.
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -329,6 +335,7 @@ struct P { char pad[0x1C]; void *source; qword position;   /* SND: the followed 
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
 void SetSndFlags(struct P *, int, int);
+// True when a and b are equal within 0.0001 on x, y and z.
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -441,14 +448,19 @@ qword GetLoWorldPos(void*);
 qword ConvertMatVec(const struct M3*,const struct M3*,qword);
 float ClampToLimits__FP2LMf(void*,float);
 float atan2f(float,float);
+// Return a - b (vf3).
 static inline qword Sub(qword a,qword b){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
+// Length of the xyz part of a as a float; also stores a to *save.
 static inline float Length(qword a,V*save){qword d,one;float g;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));
 save->q=a;
 __asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));return g;}
+// y lane of q as a float.
 static inline float Y(qword q){int bits;float f;__asm__("prot3w %0,%1":"=r"(bits):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
+// Move a VU0 register to a 128-bit GPR value.
 static inline qword Bits(qword v){qword q;__asm__("qmfc2.ni %0,%1":"=r"(q):"j"(v));return q;}
+// Round f to int (cvt.w.s) and store it to *out.
 static inline void Rounded(int*out,float f){float bits;__asm__("cvt.w.s %0,%1":"=&f"(bits):"f"(f));__asm__("swc1 %1,%0":"=m"(*out):"f"(bits));}
 // Volume and pan of a point as heard by the listener (the player, or the camera): volume falls linearly from 1 at the
 // full distance to 0 at the stop distance; pan is the angle to the point in degrees.
@@ -502,7 +514,9 @@ extern "C" void SetSndFlags(P *, int, int);
 /* holds a reference for the duration of the update */
 struct Lock {
     P *sound;
+    // Scope guard: add a reference to the sound on entry and drop it on exit.
     Lock(P *locked) { sound = locked; VCALL(sound, SLOT_INCREF); }
+    // Drop the reference taken on entry.
     ~Lock() { VCALL(sound, SLOT_DECREF); }
 };
 // Flushes a dirty sound to the sound hardware: positional update, then start, stop, status query, parameters, pause and
@@ -898,6 +912,7 @@ void SetStreamsndGroupVolume(struct P *sound, unsigned int group, float volume)
 namespace M_func_001FC380 { extern "C" {
 struct P { char pad[0x88]; int groupPans[6]; char pad2[0x3BC - 0xA0]; int dirtyGroups; };
 void SetSndFlags(struct P *, int, int);
+// Wrap an angle in degrees to 0..359.
 static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360; }   /* to 0..359 */
 // Sets the pan of one of a stream's six sub-groups and marks it dirty. (inferred)
 void SetStreamGroupPan(struct P *sound, unsigned int group, int deg)
@@ -957,6 +972,8 @@ void PauseSnd(struct P *);
 void SetSndFlags(struct P *, int, int);
 void OnStreamSoundStarted(void);
 void func_00233130(int, int, int, struct M *, void (*)(void), struct P *);
+// Build the stream file's decryption key from its record (kind 2, lo = (k0^k2)+0xCA0, hi = k1^k3); returns whether it
+// is usable (hi != 0).
 static inline int BuildStreamFileKey(struct K *key, struct X *record)
 {
     if (!record) return 0;
@@ -1111,6 +1128,7 @@ qword GetLoWorldPos(struct LO *);
 void CalculateSndVolPan(struct P *,qword,const struct RANGE *,float *,int *);
 void SetStreamGroupPan(struct P *,int,int);
 void SetStreamsndGroupVolume(struct P *,int,float);
+// True when a and b are equal within 0.0001 on x, y and z.
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -1243,6 +1261,7 @@ extern const struct V2 D_002A83C0;
 void InitSlotheap(void *, int, int, int);
 void InitDl__FP2DLi(void *, int);
 void FitClq__FffffP3CLQ(float, float, float, void *, float);
+// Initialise a smoothing record: fast speed and time, zero slow speed.
 static inline void InitSmoothing(struct T *smoothing, float fastSpeed, float fastTime)
 {
     smoothing->fastSpeed = fastSpeed;
@@ -1474,6 +1493,7 @@ struct SWALLOC
 };
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
+// Allocate cb bytes with alignment cbAlign from the world heap.
 inline void *AllocWorldHeapBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -1482,6 +1502,7 @@ inline void *AllocWorldHeapBlock(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwImpl(pswalloc);
 }
+// Allocate cb zeroed bytes with alignment cbAlign from the world heap.
 inline void *AllocClearedWorldHeapBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -1536,6 +1557,7 @@ extern "C" int snd_FlushSoundCommands(void);
 extern "C" void *func_002333B4(void *, int, uint) __asm__("memset");
 extern "C" STREAMSND *PstreamsndNew(FILEREC *, int);
 extern "C" void AssignSoundRef(void *, STREAMSND *);
+// True when two file records name the same file (same pointer, or equal key words 2 ^ 14).
 inline int IsSameFileRecord(FILEREC *record, FILEREC *other)
 {
     if (record == other)
@@ -1824,6 +1846,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(void *);
 void ReplaceHeldNoise(struct O *, qword, void *, void *);
 #define CID_STEPPLAYER 0x34
+// Evaluate the quadratic c0 + c1*t + c2*t^2.
 static inline float Eval(struct CLQ *curve, float t)
 {
     return curve->c0 + t * (curve->c1 + t * curve->c2);
@@ -2024,10 +2047,15 @@ extern "C" void InitSoundRef(Ref *, X *);
 extern "C" void AssignSoundRef(Ref *, X *);
 struct Ref {
     X *px;
+    // Counted sound reference to sound.
     Ref(X *sound) { InitSoundRef(this, sound); }
+    // Copy a counted sound reference.
     Ref(const Ref &r) { InitSoundRef(this, r.px); }
+    // Assign from another reference.
     Ref &operator=(const Ref &r) { AssignSoundRef(this, r.px); return *this; }
+    // Assign a sound.
     Ref &operator=(X *sound) { AssignSoundRef(this, sound); return *this; }
+    // Release the held sound (vtable slot 2), if any.
     ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
 };
 struct S { int count; Ref entries[8]; };   /* the music stack */
@@ -2043,6 +2071,7 @@ X *PstreamsndNew(X *, int);
 void AddStreamGroupSource(X *, int, int, float, float *);   /* (sound, group, object, gain, range): the float travels in $f12 */
 }
 struct RANGE { float near, far; };
+// Set a range's near and far distances.
 static inline void Set(RANGE *range, float near, float far) { range->near = near; range->far = far; }
 #define STREAM_KIND_LOOPING 4   /* STREAMSND kind bit 2 (GetStreamSoundKind) */
 #define MUSIC_STACK_DEPTH 8
@@ -2079,6 +2108,7 @@ struct S { int count; void *entries[8]; };   /* the music stack */
 struct P { char pad[0x204]; S musicStack; };   /* SNDMGR */
 struct Ref {
     X *px;
+    // Release the held sound (vtable slot 2), if any.
     ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
 };
 extern "C" void FindMusic(Ref *, P *, int);
@@ -2128,9 +2158,13 @@ extern "C" void InitSoundRef(Ref *, X *);
 extern "C" void AssignSoundRef(Ref *, X *);
 struct Ref {
     X *px;
+    // Counted sound reference to sound.
     Ref(X *sound) { InitSoundRef(this, sound); }
+    // Copy a counted sound reference.
     Ref(const Ref &r) { InitSoundRef(this, r.px); }
+    // Assign from another reference.
     Ref &operator=(const Ref &r) { AssignSoundRef(this, r.px); return *this; }
+    // Release the held sound (vtable slot 2), if any.
     ~Ref() { if (px) px->vtable->a[2].pfn((char *)px + px->vtable->a[2].d); }
 };
 struct S { int count; Ref entries[8]; };   /* the music stack */
@@ -2173,6 +2207,7 @@ struct Ref;
 extern "C" void AssignSoundRef(Ref *, X *);
 struct Ref {
     X *px;
+    // Assign a sound.
     Ref &operator=(X *sound) { AssignSoundRef(this, sound); return *this; }
     operator X *() { return px; }
 };
@@ -2240,6 +2275,7 @@ void SetSmaGoal(void *, int);
 void StopSnd(struct Y *, float);
 void AssignSoundRef(struct Ref *, void *);
 void func_002333B4(void *, int, int) __asm__("memset");
+// Stop the referenced sound and drop the reference, if any.
 static inline void Stop(struct Ref *ref)
 {
     if (ref && ref->px) {
@@ -2276,6 +2312,7 @@ namespace M_func_001FE848 { extern "C" {
 struct U { char pad[0x40]; int id; };   /* SNDSTREAM */
 struct T { char pad[0x60]; struct U *record; };   /* the dialog STREAMSND */
 struct S { char pad[0x200]; struct T *dialogSound; };   /* SNDMGR */
+// The constant 1 materialised in $4.
 static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu %0,$zero,%1":"=r"(r):"i"(1));return r;}
 // True while a dialog (optionally the one with the given id) is playing. (inferred)
 int IsDialogPlaying(struct S *soundManager, int id)
@@ -2304,6 +2341,7 @@ namespace M_func_001FE888 { extern "C" {
 typedef unsigned long ulong;
 struct X { char pad[0x40]; int voiceHandle; char pad2[0x50 - 0x44]; unsigned short flags; unsigned short playState; char pad3[0x68 - 0x54]; ulong playTime; };   /* STREAMSND */
 struct P { char pad[0x200]; struct X *dialogSound; char pad2[0x24C - 0x204]; float dialogElapsed; };   /* SNDMGR */
+// The sound's play time in seconds.
 static inline float PlaySeconds(struct X *sound) { return (float)sound->playTime * (1.0f / PLAY_TIME_TICKS_PER_SECOND); }
 // Play time of the current dialog in seconds; when the stream reports none and has no voice (not started yet, or a line
 // without audio), the time measured by UpdateDialog instead. (inferred)
@@ -2370,6 +2408,7 @@ extern "C" { extern PMF D_002A8298,D_002A82A0; }
 extern "C" float ClampToLimits__FP2LMf(LM *,float);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 extern "C" void snd_SetMasterVolume(int,int);
+// Load *pp into $4.
 static inline X *ReadReceiver(X **pp)
 {
     register X *receiver __asm__("$4");
@@ -2540,6 +2579,7 @@ void SetAmbienceGroupMix(int unused, int groupId, int pan, float volume)
 namespace M_func_00259B48 { extern "C" {
 typedef struct { int pad[2]; short d1; short p1; void (*f1)(void *); short d2; short p2; void (*f2)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
+// Reference-counted pointer assignment: add a reference to o, release the old target, store o.
 inline void AssignSoundRef(O **pp, O *o)
 {
     if (o) o->vt->f1((char *)o + o->vt->d1);
@@ -2551,6 +2591,7 @@ inline void AssignSoundRef(O **pp, O *o)
 namespace M_func_00259BB0 { extern "C" {
 typedef struct { int pad[2]; short d; short p; void (*f)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
+// Initialise a counted pointer to o, adding a reference.
 inline void InitSoundRef(O **pp, O *o) { if (o) o->vt->f((char *)o + o->vt->d); *pp = o; }
 } } // namespace M_func_00259BB0
 

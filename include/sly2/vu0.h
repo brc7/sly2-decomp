@@ -88,7 +88,7 @@ template <class QW> inline QW VuMulMatrix3(QW r0, QW r1, QW r2, QW v)
             : "=j"(r) : "j"(r0), "j"(r1), "j"(r2), "j"(v));
     return r;
 }
-
+// Transform point v by the 4x4 matrix with rows r0..r3 (rotation plus translation row r3).
 template <class QW> inline QW VuMulMatrix4(QW r0, QW r1, QW r2, QW r3, QW v)
 {
     QW r;
@@ -130,7 +130,7 @@ template <class QW> inline QW VuMin(QW a, QW b)
     __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
-
+// Per-lane maximum of the xyz parts of a and b.
 template <class QW> inline QW VuMax(QW a, QW b)
 {
     QW r;
@@ -183,14 +183,14 @@ template <class QW> inline float QwordX(QW q)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q));
     return g;
 }
-
+// y lane of q as a float (prot3w rotates it into the low word).
 template <class QW> inline float QwordY(QW q)
 {
     float g;
     __asm__("prot3w %0, %1" : "=r"(g) : "r"(q));
     return g;
 }
-
+// z lane of q as a float (pextuw moves it into the low word).
 template <class QW> inline float QwordZ(QW q)
 {
     float g;
@@ -223,14 +223,14 @@ inline float FpuMax(float a, float b)
     __asm__("max.s %0, %1, %2" : "=f"(r) : "f"(a), "f"(b));
     return r;
 }
-
+// Smaller of a and b (min.s).
 inline float FpuMin(float a, float b)
 {
     float r;
     __asm__("min.s %0, %1, %2" : "=f"(r) : "f"(a), "f"(b));
     return r;
 }
-
+// Absolute value of g (abs.s).
 inline float FpuAbs(float g)
 {
     float r;

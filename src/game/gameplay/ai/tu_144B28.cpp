@@ -283,6 +283,7 @@ int IsBhvpathAtEnd(void *path);
 // 0x144EE8: True if the walk-to child has reached the end of its path or its state is 2.
 struct CHILD { char pad[0x4C]; int pathState; };
 struct BHVWALKTO { char pad[0x18]; struct CHILD *child; };
+// True when the walk-to child has reached the end of its path or its path state is 2.
 int IsBhvWalkToDone(struct BHVWALKTO *behavior)
 {
     struct CHILD *child = behavior->child;
@@ -640,8 +641,11 @@ void MeasureShape(SHAPE *shape);
 void SetBhvpathShape(void *path, SHAPE *shape, int n);
 void UpdateBhvfollowPosition(P *p);
 }
+// Float broadcast into a VU0 register (copyable).
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Load a float's bits into a GPR qword (lw).
 struct VU_FLOATM { qword q; VU_FLOATM(const float &f) { __asm__("lw %0, %1" : "=r"(q) : "m"(f)); } };
 
 // VU0 helper: a + b scaled by a VU float (multiply-add).

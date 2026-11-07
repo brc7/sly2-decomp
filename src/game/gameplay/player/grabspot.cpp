@@ -272,6 +272,7 @@ extern void EvaluateShapeAtDistance(void *p, float t, VU *ppos, VU *pdir);
 extern float atan2f(float y, float x);
 extern qword D_002A2DC0;
 extern qword D_002A2DA0;
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -279,6 +280,7 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
+// Broadcast int bits into a VU0 register.
 static __inline__ qword Bc(int g)
 {
     VU u;
@@ -287,6 +289,7 @@ static __inline__ qword Bc(int g)
     u.q = s;
     return s;
 }
+// Unit vector along c; falls back to k when its length is below 1e-4.
 static __inline__ qword VNormalize(qword c, qword k)
 {
     qword l;
@@ -346,6 +349,7 @@ extern float D_002BE8B8;
 extern float D_002BE8BC;
 extern qword D_002A2DC0;
 extern qword D_002A2DA0;
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -991,6 +995,7 @@ extern void PostLoLoad(struct O *p);
 extern qword GetLoWorldPos(void *p);
 extern qword ConvertPosBetweenLos(void *p, void *q, qword v);
 extern float D_002BE904;
+// Distance between a and b as a float.
 static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, one;

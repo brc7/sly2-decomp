@@ -139,6 +139,7 @@ void SetSoCnstrTorque(O *po, int a);
 qword ConvertVecBetweenLos(void *p, int a, qword q);
 }
 
+// Set the three components of pv.
 static inline void SetV(V3 *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 // Initializes the player's carry/throw controller (JTTHROW): owner, state -1, aim ranges 500/1500, timing and the
 // default launch vectors.
@@ -167,19 +168,29 @@ extern "C" void PostJtThrowLoad(JTTHROW *thrower)
 
 // Update the controller target and consume state/animation transitions.
 static inline void IntCall(O *o,int slot,int value){VE *v=o->vt;v[slot].f.integer((char *)o+v[slot].delta,value);}
+// Call the effect's no-argument virtual at vtable slot `slot`.
 static inline void EffectCall(EFFECT *o,int slot){VE *v=o->vt;v[slot].f.plain((char *)o+v[slot].delta);}
+// Evaluate the track at time (virtual slot 3) into result.
 static inline void Evaluate(TRACK *o,int optional,V *result,float time,float scale){VE *v=o->vt;v[3].f.evaluate((char *)o+v[3].delta,optional,result,time,scale);}
+// Move a float's bits into a GPR qword ($2).
 static inline qword CPUFloat(float f){register qword r asm("$2");__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
+// Store value to home and return the stored copy.
 static inline qword ScalarHome(V &home,qword value){home.q=value;return home.q;}
+// Load a vector into a VU0 register.
 static inline qword LoadVF(const V &v){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(v));return q;}
+// Return a - b.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Return a*wa + b*wb.
 static inline qword Lerp(qword a,qword b,qword wa,qword wb){__asm__("vmulax.xyzw ACC,%0,%2x\n\tvmaddx.xyzw %0,%1,%3x":"+j"(a):"j"(b),"j"(wa),"j"(wb));return a;}
+// Throw-update asm fragment: save the owner position to home and read the throw state (register-pinned).
 static inline int SaveOwnerPosition(V &home, qword value, const JTTHROW *state)
 {
     register int result asm("$3");
     asm("sq %2,%1\n\tlw %0,%3" : "=r"(result), "=m"(home.q) : "r"(value), "m"(state->state));
     return result;
 }
+// Throw-update asm fragment: polar coordinates (angle, radius) of the movement relative to the saved position, with
+// the argument pointers for the following call.
 static inline qword PolarOperands(const V &saved, qword movement, float *angle, float *radius, float *&angleArgument,
                                   float *&radiusArgument)
 {
@@ -192,6 +203,7 @@ static inline qword PolarOperands(const V &saved, qword movement, float *angle, 
     radiusArgument = r;
     return sum;
 }
+// Throw-update asm fragment: target = owner + polar offset, and the delta.
 static inline void StoreTarget(V &target, V &delta, const V &owner, qword polar)
 {
     register qword local asm("vf1"), origin asm("vf4"), sum asm("vf2");
@@ -199,6 +211,7 @@ static inline void StoreTarget(V &target, V &delta, const V &owner, qword polar)
         : "=j"(local), "=j"(origin), "=j"(sum), "=m"(delta.q), "=m"(target.q)
         : "r"(polar), "m"(owner));
 }
+// Throw-update asm fragment: selected point minus the owner position.
 static inline qword IdleDifference(qword selected, const V &owner)
 {
     register qword point asm("vf2"), origin asm("vf3"), difference asm("vf1");
@@ -207,12 +220,14 @@ static inline qword IdleDifference(qword selected, const V &owner)
         : "r"(selected), "m"(owner));
     return difference;
 }
+// Throw-update asm fragment: target minus the owner position.
 static inline qword ActiveDifference(const V &target, const V &owner)
 {
     register qword origin asm("vf2"), difference asm("vf1");
     asm("lqc2 %0,%3\n\tlqc2 %1,%2\n\tvsub.xyzw %1,%1,%0" : "=j"(origin), "=j"(difference) : "m"(target), "m"(owner));
     return difference;
 }
+// Throw-update asm fragment: load the current and player points and the high/saved-high pointers for the projection.
 static inline void ProjectionInputs(qword current, const V &player, qword &currentVF, qword &playerVF, V *&high,
                                     V *&savedHigh)
 {
@@ -226,19 +241,23 @@ static inline void ProjectionInputs(qword current, const V &player, qword &curre
     high = upper;
     savedHigh = saved;
 }
+// Address of the upper vector, pinned to $3.
 static inline V *InitialUpAddress(V *upper)
 {
     register V *address asm("$3");
     asm("addiu %0,%1,%%lo(%2)" : "=r"(address) : "r"(upper), "i"(&D_002A2DC0));
     return address;
 }
+// player - current (register-pinned).
 static inline qword PointDifference(qword player, qword current)
 {
     register qword point asm("vf4") = player, origin asm("vf1") = current;
     asm("vsub.xyzw %0,%0,%1" : "+j"(point) : "j"(origin));
     return point;
 }
+// Move the player point into vf4.
 static inline qword PlayerVF(qword player){register qword value asm("vf4");asm("qmtc2.ni %1,%0":"=j"(value):"r"(player));return value;}
+// x of the launch length as a float (through $3).
 static inline float LaunchLengthX(qword length)
 {
     register int bits asm("$3");
@@ -246,12 +265,14 @@ static inline float LaunchLengthX(qword length)
     asm("qmfc2.ni %0,%2\n\tmtc1 %0,%1" : "=r"(bits), "=f"(x) : "j"(length));
     return x;
 }
+// Launch velocity: direction*speed + up*height.
 static inline qword LaunchVelocity(qword direction, qword speed, qword up, qword height)
 {
     register qword result asm("vf1") = up, d asm("vf3") = direction, s asm("vf4") = speed, h asm("vf2") = height;
     asm("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x" : "+j"(result) : "j"(d), "j"(s), "j"(h));
     return result;
 }
+// Load the launch velocity from home and pass it to the owner's vector virtual.
 static inline void LaunchVectorCall(O *owner, const V &home)
 {
     qword velocity = LoadVF(home);
@@ -261,6 +282,7 @@ static inline void LaunchVectorCall(O *owner, const V &home)
     asm("lh %0,%2\n\tqmfc2.ni %1,%3" : "=&r"(delta), "=r"(argument) : "m"(table[35].delta), "j"(velocity));
     table[35].f.vector((char *)owner + delta, argument);
 }
+// Unit vector of input with its component along up removed.
 static inline qword PlanarUnit(qword input, qword up)
 {
     register qword point asm("vf4") = input, normal asm("vf1") = up, projection asm("vf2"), direction asm("vf3");
@@ -285,6 +307,7 @@ static inline qword PlanarUnit(qword input, qword up)
         asm("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,Q" : "+j"(direction) : "j"(length));
     return direction;
 }
+// Lift term from the upper vector: loads the speed and up values for the launch.
 static inline qword LiftFromUpper(float height, const V &speed, V *upper, qword &speedValue, qword &upValue)
 {
     register V *address asm("$2");
@@ -297,6 +320,7 @@ static inline qword LiftFromUpper(float height, const V &speed, V *upper, qword 
     speedValue = velocity;
     return scalar;
 }
+// Load the saved player point and the throw's owner.
 static inline qword SavedPlayerAndOwner(qword player, const JTTHROW *state, O *&owner)
 {
     register qword point asm("vf4");
@@ -305,6 +329,7 @@ static inline qword SavedPlayerAndOwner(qword player, const JTTHROW *state, O *&
     owner = receiver;
     return point;
 }
+// Blend from begin to end by numerator/duration, storing the scalar to home.
 static inline qword TransitionBlend(const V &begin, const V &end, float numerator, float duration, V &home,
                                     qword &toward)
 {
@@ -321,12 +346,14 @@ static inline qword TransitionBlend(const V &begin, const V &end, float numerato
     toward = wb;
     return from;
 }
+// Planar snapshot: store value to home and read the clock dt.
 static inline float PlanarSnapshot(qword value, V &home, const float &clock)
 {
     register float dt asm("$f0");
     asm("lwc1 %0,%3\n\tsqc2 %4,%1\n\tsw $zero,%2" : "=f"(dt), "=m"(home.q), "=m"(home.f[2]) : "m"(clock), "j"(value));
     return dt;
 }
+// Publish the launch: store value to home and fetch the owner and flag for the following call.
 static inline void LaunchPublication(qword value, V &home, O *&owner, int &flag)
 {
     register O *receiver asm("$4");
@@ -338,6 +365,7 @@ static inline void LaunchPublication(qword value, V &home, O *&owner, int &flag)
     flag = mode;
 }
 typedef int RangeBits __attribute__((mode(DI)));
+// Copy a range record through a GPR.
 static inline void CopyRange(RANGE &destination, const RANGE &source)
 {
     register RangeBits value asm("$5");
@@ -551,8 +579,11 @@ extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 struct VU_VECTOR {qword q;VU_VECTOR(){}VU_VECTOR(qword qw){q=qw;}};
 // A float in x of a VU0 register; by value it has a stack home (the game's dead sqc2)
 struct VU_FLOAT {qword q;};
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.q):"r"(g));return v;}
+// Return a - b.
 static inline qword SubVec(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Return a - b.
 static inline VU_VECTOR VuSub(VU_VECTOR a,VU_VECTOR b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a.q),"j"(b.q));return VU_VECTOR(r);}
 // Same idiom as sly2/vu0.h VuMin; kept local: this file includes the header below the function that needs it.
 static inline qword VuMin(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -562,12 +593,14 @@ static inline qword VuMax(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"
 static inline float VuToFloat(qword v){float g;__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(v));return g;}
 // Same idiom as sly2/vu0.h QwordZ; kept local: this file includes the header below the function that needs it.
 static inline float QwordZ(qword v){float g;__asm__("pextuw %0,$zero,%1":"=r"(g):"r"(v));return g;}
+// XY length of v as a float.
 static inline float LengthXYOf(qword v)
 {
     __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y" : "+j"(v));
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(v));
     return VuToFloat(v);
 }
+// Length of w as a float.
 static inline float LengthOf(VU_VECTOR w)
 {
     qword v = w.q;
@@ -595,6 +628,7 @@ static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
     __asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(g0.q), "j"(b), "j"(g1.q));
     return r;
 }
+// Evaluate the quadratic g0 + g1*x + g2*x^2.
 static inline float EvaluateClq(const CLQV &clq,float x){return clq.g0+x*(clq.g1+x*clq.g2);}
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -828,9 +862,13 @@ extern "C" int AdjustJtThrowFindFlags(JTTHROW *thrower, O *object, int n)
     return n;
 }
 
+// bits (as float) divided by denominator (register-pinned).
 static inline float DivideBits(int bits,float denominator){register float value asm("$f0");register float rate asm("$f2")=denominator;__asm__ ("mtc1 %1,%0\n\tdiv.s %0,%0,%2":"=&f"(value):"r"(bits),"f"(rate));return value;}
+// The frame clock's current time.
 static inline float ClockNow(void){float value;__asm__ __volatile__ ("lwc1 %0,%1":"=f"(value):"m"(D_002DDED0.time));return value;}
+// Store the throw's active flag, start time and span in one asm block.
 static inline void PublishStart(JTTHROW *thrower,int active,float now,float span){asm("sw %3,%0\n\tswc1 %4,%1\n\tswc1 %5,%2":"=m"(thrower->transitioning),"=m"(thrower->transitionStart),"=m"(thrower->transitionDuration):"r"(active),"f"(now),"f"(span));}
+// The constant 1 in $3.
 static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero,1":"=r"(value));return value;}
 // In states 4..6: stores the launch and target points, flight time = distance / speed, start time = now, and marks
 // the flight active.
@@ -886,23 +924,41 @@ tail:
 
 // Transition controller states and select the corresponding animation.
 struct WORKS {V scalar,saved,coefficient,velocity,point;};   /* (WORK in the per-function file) */
+// Call the object's no-argument virtual at vtable slot `slot`.
 static inline void PlainCall(O *o,int slot){VE *v=o->vt;v[slot].f.plain((char *)o+v[slot].delta);}
+// Call the object's vector virtual at vtable slot `slot` with value.
 static inline void VectorCall(O *o,int slot,qword value){VE *v=o->vt;v[slot].f.vector((char *)o+v[slot].delta,value);}
+// Load the up vector D_002A2DC0 into vf1.
 static inline qword LoadUp(){register qword q __asm__("vf1");__asm__("lqc2 %0,0(%1)":"=j"(q):"r"(&D_002A2DC0),"m"(D_002A2DC0));return q;}
+// Move a GPR point into vf3.
 static inline qword PointVF(qword q){register qword r __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(q));return r;}
+// Load a saved point into vf3.
 static inline qword RestorePoint(const V &v){register qword q __asm__("vf3");__asm__("lqc2 %0,%1":"=j"(q):"m"(v));return q;}
+// Load the up vector D_002A2DC0 into vf2.
 static inline qword LaunchUp(){register qword q __asm__("vf2");__asm__("lqc2 %0,0(%1)":"=j"(q):"r"(&D_002A2DC0),"m"(D_002A2DC0));return q;}
+// Load the launch speed into vf4.
 static inline qword LaunchSpeed(const V &v){register qword q __asm__("vf4");__asm__("lqc2 %0,%1":"=j"(q):"m"(v));return q;}
+// Move the current position into vf1.
 static inline qword LaunchCurrent(qword position){register qword value asm("vf1");asm("qmtc2.ni %1,%0":"=j"(value):"r"(position));return value;}
+// Move a 128-bit GPR value into vf2.
 static inline qword ToVF(qword q){register qword r asm("vf2");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(q));return r;}
+// Move a float's bits into a GPR qword.
 static inline qword CPUFloatS(float f){qword r;__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
+// Broadcast a float into vf1.
 static inline qword ScalarS(float f){register qword r __asm__("vf1");r = VuFromFloat<qword>(f);return r;}
+// Return a - b.
 static inline qword SubS(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
+// Dot product of a and b (x lane, register-pinned).
 static inline qword DotV(qword a,qword b){register qword d __asm__("vf2"),one __asm__("vf4");__asm__("vmul.xyz %0,%1,%2":"=j"(d):"j"(a),"j"(b));__asm__("vaddw.x %0,$vf0,$vf0w":"=j"(one));__asm__("vadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d):"j"(one));return d;}
+// Length of v (x lane, vf1).
 static inline qword LengthV(qword v){register qword d __asm__("vf1");d = VuDot(v, v);__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(d));return d;}
+// Return v scaled by k.x (computed in k's register).
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%0x":"+j"(k):"j"(v));return k;}
+// Divide v by the x lane of length.
 static inline qword NormalizeLength(qword v,qword length){__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,Q":"+j"(v):"j"(length));return v;}
+// Launch velocity: direction*speed + up*height.
 static inline qword Launch(qword direction,qword speed,qword up,qword height){__asm__("vmulax.xyzw ACC,%1,%0x\n\tvmaddx.xyzw %0,%2,%3x":"+j"(speed):"j"(direction),"j"(up),"j"(height));return speed;}
+// Launch asm fragment: broadcast height, load the coefficient and fetch the owner and flag.
 static inline qword LaunchOperands(float height, const V &coefficient, qword &speed, O *&receiver, int &flag)
 {
     register qword scalar asm("vf1"), velocity asm("vf4");
@@ -917,7 +973,9 @@ static inline qword LaunchOperands(float height, const V &coefficient, qword &sp
     flag = one;
     return scalar;
 }
+// Zero the xyz floats of v.
 static inline void ZeroXYZ(V &v){v.f[0]=v.f[1]=v.f[2]=0.0f;}
+// Restore the saved target and the throw's owner.
 static inline qword RestoreTarget(O **receiver, const JTTHROW *state, const V &saved)
 {
     register O *owner asm("$4");
@@ -927,6 +985,7 @@ static inline qword RestoreTarget(O **receiver, const JTTHROW *state, const V &s
     return target;
 }
 
+// Projection asm fragment: load the current and saved points and the saved-high pointer.
 static inline qword ProjectionStart(qword current, const V &saved, qword &point, V *&savedHigh)
 {
     register V *upper asm("$3"), *retained asm("$4");
@@ -944,6 +1003,7 @@ static inline qword ProjectionStart(qword current, const V &saved, qword &point,
     point = target;
     return normal;
 }
+// Unit vector of input with its component along up removed (register-pinned).
 static inline qword ProjectUnit(qword input, qword up)
 {
     register qword direction asm("vf3") = input, normal asm("vf1") = up, projection asm("vf2"), one asm("vf4");
@@ -966,6 +1026,7 @@ static inline qword ProjectUnit(qword input, qword up)
         direction = NormalizeLength(direction, length);
     return direction;
 }
+// Load the lift height and the upper vector address.
 static inline qword LiftInputs(V *upper, float &height)
 {
     register float scalar asm("$f0");
@@ -978,7 +1039,9 @@ static inline qword LiftInputs(V *upper, float &height)
     height = scalar;
     return up;
 }
+// Copy the selected object into $4 for the following call.
 static inline O*PositionReceiver(O*selected){register O*argument asm("$4");asm("daddu %0,%1,$zero":"=r"(argument):"r"(selected));return argument;}
+// Load the saved target and the throw's owner.
 static inline qword SavedTargetAndOwner(const JTTHROW *state, O *&receiver)
 {
     register qword target asm("$2");
@@ -987,6 +1050,7 @@ static inline qword SavedTargetAndOwner(const JTTHROW *state, O *&receiver)
     receiver = owner;
     return target;
 }
+// Load the saved player position and the throw's owner.
 static inline qword SavedPlayerAndOwnerS(qword position, const JTTHROW *state, O *&receiver)
 {
     register qword point asm("vf3");

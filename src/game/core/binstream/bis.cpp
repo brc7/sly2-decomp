@@ -109,6 +109,7 @@ extern char D_002BBAF0[];
 extern char D_002CA5A0[] __asm__("_vt$15CMemInputStream");   /* CMemInputStream vtable */
 }
 
+// Allocate cb bytes for geometry data.
 static inline void *AllocGeomBlock(int cb)
 {
     MSG msg;
@@ -117,6 +118,7 @@ static inline void *AllocGeomBlock(int cb)
     return AllocFromWorldHeap(&msg);
 }
 
+// Allocate cb zeroed bytes for geometry data.
 static inline void *AllocZeroedGeomBlock(int cb)
 {
     MSG msg;

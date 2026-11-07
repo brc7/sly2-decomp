@@ -175,9 +175,11 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descript
 
 /* the class descriptor of each (rows 29 and 32), for GetEmitterClassDesc_linkonce */
 inline CLASSINFO *PclassinfoEmitb(EMITTER *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x244); }
+// EXPLO's descriptor (row 32).
 inline CLASSINFO *PclassinfoEmitb(EXPLO *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x280); }
 /* the empty reference block of each, for func_002586D8 */
 inline void *PvEmitbRefsNull(EMITTER *) { return EMITBREFS<EMITTER>::s_apvNull; }
+// EXPLO's empty reference block.
 inline void *PvEmitbRefsNull(EXPLO *) { return EMITBREFS<EXPLO>::s_apvNull; }
 
 /* copy on write: before a write (ENSK_Set), mark the object dirty and give it its own copy of a shared block */
@@ -438,6 +440,8 @@ template <class T> void *func_00258C60(T *p, ENSK ensk)
     return &pv->u;
 }
 
+// ensure: record 1's payload as kind 3 (D_002DE750 if it holds another kind); with ENSK_Set first switches it to kind
+// 3.
 template <class T> void *func_00258CC8(T *p, ENSK ensk)
 {
     EMITV *pv;
@@ -453,6 +457,8 @@ template <class T> void *func_00258CC8(T *p, ENSK ensk)
     return &pv->u;
 }
 
+// ensure: record 1's payload as kind 8 (D_002DE750 if it holds another kind); with ENSK_Set first switches it to kind
+// 8.
 template <class T> void *func_00258D30(T *p, ENSK ensk)
 {
     EMITV *pv;
@@ -503,6 +509,8 @@ template <class T> void *func_00258E60(T *p, ENSK ensk)
     return &pv->u;
 }
 
+// ensure: record 0's payload as kind 1 (D_002DE750 if it holds another kind); with ENSK_Set first switches it to kind
+// 1.
 template <class T> void *func_00258EC8(T *p, ENSK ensk)
 {
     EMITV *pv;

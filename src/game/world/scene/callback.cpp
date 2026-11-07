@@ -40,6 +40,7 @@ struct SPF
 {
     CFrame *p;
     SPF(const SPF &frame);
+    // Drop the held frame's reference, freeing it on the last one.
     ~SPF() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) func_00257078(pframe, 3); }
 };
 struct SPFV { CFrame *p; };

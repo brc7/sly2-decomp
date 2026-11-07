@@ -120,6 +120,7 @@ enum {
 enum { BTN_TRIANGLE = 0x10, BTN_CROSS = 0x40, BTN_SQUARE = 0x80 };
 enum { SOUND_MENU_BUMP = 0x36, SOUND_MENU_CONFIRM = 0x34 };
 
+// Read the save variable pkey as a float.
 static inline float GetSaveFloat(void *pkey)
 {
     float g;
@@ -129,6 +130,7 @@ static inline float GetSaveFloat(void *pkey)
     }
     return g;
 }
+// Read the save variable pkey as an int.
 static inline int GetSaveInt(void *pkey)
 {
     int n;
@@ -138,6 +140,7 @@ static inline int GetSaveInt(void *pkey)
     }
     return n;
 }
+// Play sound effect n (no source object).
 static inline void PlaySound(int n)
 {
     SetSndSourceLo(CreateSfxSound(n), 0);

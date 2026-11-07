@@ -1006,7 +1006,9 @@ struct LOS { U start, end; LSG hit; };
 extern "C" void Decref__4CRef(void *);
 struct CREF {
     int tagk, tag;
+    // Script reference holding a bool (tag 0x17).
     CREF(bool f) { tagk = 0x17; tag = f; }
+    // Release the reference.
     ~CREF() { Decref__4CRef(this); }
 };
 struct POLY { float a, b, c; };
@@ -2862,7 +2864,9 @@ int FindPathzoneClosestFreePoint(CONTEXT *pctx, qword pos, VEC *pv);
 struct VU_FLOAT
 {
     qword qw;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float g) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(g)); }
+    // Broadcast the float at pg (read from memory) into a VU0 register.
     VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(*(const int *)pg)); }
 
 };
@@ -2884,6 +2888,7 @@ static inline float VuGetXClobberA0A1(qword qw)
 struct VUF
 {
     qword qw;
+    // Broadcast the float at pg (read from memory) into a VU0 register.
     VUF(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(*(const int *)pg)); }
 };
 // VU0 helper: vector difference.
@@ -2936,8 +2941,11 @@ static inline qword VuDivByX(qword v, qword qwLen)
 struct VV
 {
     qword q;
+    // Uninitialised vector.
     VV() {}
+    // Wrap a qword.
     VV(const qword &v) { q = v; }
+    // The wrapped qword.
     operator qword() const { return q; }
 };
 // VU0 helper: normalized v, or `fallback` for a zero vector.
@@ -3029,6 +3037,7 @@ static inline VV VLength2(VV v) { return VuLengthAlt(v); }
 struct VU_VECTOR
 {
     qword q;
+    // Wrap a qword as a VU_VECTOR.
     VU_VECTOR(const qword &v) { q = v; }
 };
 // VU0 helper: weighted sum v1 * f1 + v2 * f2.
@@ -3470,6 +3479,7 @@ struct P {
     char pad90[0xC4 - 0x90]; float rate; char padC8[8]; qword cached; float timeout;
 };
 struct CLOCK { float time, deltaTime; };
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
 extern "C" {
 extern CLQ D_002BE6A0;
@@ -5159,6 +5169,7 @@ union U; union F; struct VE; struct GROUP; struct TUNE; struct P; struct ENTRY; 
 // Movement-state transitions and actor response.
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
+// Copy the 128-bit value.
 union U{qword q;float f[4];int bits[4];void Assign(const U&v){q=v.q;}};
 union F{float value;int bits;};
 struct VE{short delta,pad;void(*fn)();};
@@ -5581,6 +5592,7 @@ typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
 struct RANGE{float lo,hi;};
 struct POLY{float a,b,c;};
+// Choice i of the selector.
 struct P{char pad[0x28];unsigned long flags;char pad30[0xF94-0x30];int count;P*choices[4];P*Choice(int i){return choices[i];}int nearCount;P*near[0];};
 struct C{char pad[0x10];P*guard;char pad14[0x38-0x14];P*preferred;P*near;P*selected;float time;};
 struct WORK{float t,d,t2,d2;U origin,bestPoint;};

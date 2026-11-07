@@ -884,6 +884,8 @@ extern "C" {
 extern "C" { extern POOL D_003E1C70; }
 extern "C" { extern int D_002BE538; }
 extern "C" { extern char D_002A8AE8[]; }
+// Build the file's decryption key from its load record (kind 2, lo = (k0^k2)+0xCA0, hi = k1^k3); returns whether the
+// key is usable (hi != 0).
 static inline int SetKey(KEY *key,N *load) {
     if(!load)return 0;
     {int k2=load->key2,k0=load->key0,k3=load->key3,k1=load->key1;
@@ -1315,9 +1317,13 @@ extern struct R D_002DEA28;
 extern char D_00442210[],D_002DF010[];
 void CopyAqw__FPvT0i(void *,void *,int);
 struct E *AllocRenderListEntry(void);
+// Append one word to the packet.
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+// Pad the packet with zero words until the cursor is at word `word` of a quadword.
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+// Append n quadwords from source to the packet.
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
+// Append a VIF DIRECT code for n quadwords (aligned so the data starts on a quadword) followed by the data.
 static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 // 0x2130B8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
@@ -1358,6 +1364,7 @@ typedef unsigned char uchar;
 struct V4 {float x,y,z,w;} __attribute__((aligned(16)));
 struct PARAM {
     int mode,pad4;float priority;int padC;V4 offset,scale;
+    // Widget color parameters: zero offset and scale, with the given priority and mode 1.
     PARAM(float p){offset.x=0.0f;offset.y=0.0f;offset.z=0.0f;offset.w=0.0f;scale.x=0.0f;scale.y=0.0f;scale.z=0.0f;scale.w=0.0f;priority=p;mode=1;} PARAM(){}
 };
 struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload;int kind;char pad38[0x29];uchar channel;char pad62[6];Q *next;};
@@ -1374,13 +1381,21 @@ void QueueSpriteVuProgram(S *,int,float);
 void RenderSpritePayload(void *,void *,PARAM *,int);
 void ClearSl(LIST *);
 }
+// Pad the packet with zero words to a 64-byte boundary.
 static inline void Align(R *r){while((uint)r->cur&63){*(uint *)r->cur=0;r->cur+=4;}}
+// Store the color offset (each channel minus 127).
 static inline void Offset(V4 &v,float x,float y,float z,float w){v.x=x-127.0f;v.y=y-127.0f;v.z=z-127.0f;v.w=w-127.0f;}
+// Set the color offset from four color bytes.
 static inline void SetOffset(V4 &v,const uchar *c){Offset(v,c[0],c[1],c[2],c[3]);}
+// Map a color byte to a scale factor ((c - 127) / 127) clamped to [-1, upper].
 static inline float ColorScale(int c,float upper){return StdMax(StdMin((c-127)*0.007874016f,upper),-1.0f);}
+// Store the four channel scale factors.
 static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=ColorScale(a,upper),y=ColorScale(b,upper),z=ColorScale(d,upper),w=ColorScale(e,upper);v.x=x;v.y=y;v.z=z;v.w=w;}
+// Set the color scale from the widget's color1 bytes.
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
+// Switch the packet pointers to the uncached mirror (0x30000000), then queue the widget's render setup.
 static inline Q *Begin(S *p,R *r){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c|=0x30000000;b|=0x30000000;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
+// Switch the packet pointers back to cached addresses and empty the widget's render queue.
 static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 } // namespace M_RenderWidget
 // Renders a widget: flushes its sprite render queue with the VU microprogram packets.
@@ -1697,6 +1712,7 @@ int FindSpriteItemPose(struct S *widget, int groupIndex, struct QQ *matrix, stru
 // 0x213F70 RestartNestedSprite
 namespace M_func_00213F70 {
 typedef int qword __attribute__((mode(TI)));
+// Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
 struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
@@ -1746,6 +1762,7 @@ extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int
 // 0x214100 RestartNestedSpriteWithArg
 namespace M_func_00214100 {
 typedef int qword __attribute__((mode(TI)));
+// Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
 struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
@@ -1861,6 +1878,7 @@ struct V3 {float x,y,z;} __attribute__((aligned(16)));
 struct M3 {V3 row[3];};
 struct M23 {float a[6];} __attribute__((aligned(16)));
 struct RGBA_RAW {uchar r,g,b,a;};
+// Packed color word, quadword aligned.
 union RGBA {uint word;RGBA_RAW raw;RGBA(uint value){word=value;}} __attribute__((aligned(16)));
 struct COLORS {RGBA_RAW first,second;};
 struct ITEM {ushort a0,a2,a4;short a6;char pad8[8];M23 matrix;uchar flags,mode;char pad32[2];int id;char pad38[8];};
@@ -1882,6 +1900,7 @@ void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
 void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
 void InitSpriteItem(FRAME *);
 }
+// Copy the xy parts of the three rows of src into a 2x3 affine matrix.
 static inline void CopyXY(M23 *dst,const M3 &src){
  dst->a[0]=src.row[0].x;dst->a[1]=src.row[0].y;
  dst->a[2]=src.row[1].x;dst->a[3]=src.row[1].y;
@@ -2017,7 +2036,9 @@ extern "C" { extern PMF D_002A8B08; }
 extern "C" { extern WORLD D_003DD490; }
 extern "C" { extern QW D_002A2E10; }
 extern "C" { extern char D_00000650[],D_00000140[]; }
+// Fill the request and allocate bytes with the given alignment.
 static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
+// Copy the xy parts of the three rows of src into a 2x3 affine matrix.
 static inline void CopyXY(M23 &dst,const M3 &src){
  const float *a=(const float *)&src.r[0],*b=(const float *)&src.r[1],*c=(const float *)&src.r[2];
  dst.a[0]=a[0];dst.a[1]=a[1];dst.a[2]=b[0];dst.a[3]=b[1];dst.a[4]=c[0];dst.a[5]=c[1];
@@ -2193,6 +2214,7 @@ void BuildSpritePictureTexPacket(P *owner, Q *sprite)
 
 // 0x2156B8 InitSpriteItem
 namespace M_InitSpriteItem {
+// Packed color word.
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct CP { RGBA c0, c1; };
 /* A sprite frame item (0x70 bytes): three colour pairs, its descriptor, its slot in a nested group, an argument,
@@ -2225,6 +2247,7 @@ namespace M_func_00215730 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
     unsigned char r, g, b, a;
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct L { char pad[0x84]; char *spriteGroups; };   /* the owning widget */
@@ -2261,6 +2284,7 @@ namespace M_func_00215850 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
     unsigned char r, g, b, a;
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct L { char pad[0x84]; char *spriteGroups; };
@@ -2385,6 +2409,7 @@ int GetGlyphIndex__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
 
 // 0x215AC0 CRichText_ctor
 namespace M_CRichText_ctor {
+// Packed color word.
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct F { char pad[0x54]; char *fonts; };   /* the HUD font object: 0x40-byte fonts */
@@ -2603,7 +2628,9 @@ extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
 void ResetRichText2(struct S *,unsigned char *);
 unsigned char GetRichText2NextChar(struct S *);
 float GetFontGlyphWidth2(void *,unsigned char);
+// The newline character (10) materialised in a register.
 static inline int NewlineValue(){int value;__asm__("addiu %0,$zero,10":"=r"(value));return value;}
+// Store one byte.
 static inline void StoreByte(unsigned char *p,int c){*p=c;}
 // Counts lines, inserting line breaks where a line would exceed the box width. (inferred)
 int WrapRichText2Lines(struct S *p) {
@@ -2742,6 +2769,7 @@ typedef struct {unsigned char r,g,b,a;} RGBA;
 struct RT {char pad[0x6C];float offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;};
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
+// 2x3 affine matrix (padded to 8 floats), optionally zeroed.
 struct M23 {float a[8];enum INIT {Uninitialized,Zero};M23(INIT init=Uninitialized){if(init==Zero)func_002333B4(this,0,sizeof(*this));}} __attribute__((aligned(16)));
 struct M4 {qword r[4];};
 struct DATA {RGBA color;int mode;float priority;int limit;qword v10,v20;};
@@ -2751,9 +2779,13 @@ extern "C" { extern struct R D_002DEA28; }
 extern "C" { extern char D_00442210[],D_002DF010[]; }
 extern "C" void CopyAqw__FPvT0i(void *,void *,int);
 extern "C" struct E *AllocRenderListEntry(void);
+// Append one word to the packet.
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+// Pad the packet with zero words until the cursor is at word `word` of a quadword.
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+// Append n quadwords from source to the packet.
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
+// Append a VIF DIRECT code for n quadwords followed by the data.
 static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 
 extern "C" void SetRichText2BaseColor(struct RT *,RGBA *);
@@ -2804,6 +2836,7 @@ struct DATA {unsigned int color;int mode;float priority;unsigned int limit;qword
 
 void BuildRichTextMatrix(struct RT *p, O *po, T *pt);
 void DrawRichText2Glyphs(struct RT *p, O *po, struct DATA *q);
+// Store the x scale (register-pinned to $f2).
 static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->scaleX):"f"(x));}
 // Draws rich text at a sprite transform (font scale, line height). (inferred)
 void DrawRichText2AtXf(struct RT *p, T *pt, struct DATA *q)
@@ -2841,8 +2874,11 @@ float GetFontGlyphWidth2(void *,int);
 struct GLYPH *GetGlyph__8CFontBrxc(void *,int);
 void BuildGlyphPacket(struct GLYPH *,union M4 *,struct DATA *,int);
 struct E *AllocRenderListEntry(void);
+// Append one word to the packet.
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+// Pad the packet with zero words until the cursor is at word `word` of a quadword.
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+// True when the matrix translation (a[8], a[9]) lies inside the bounds [*left, D_002C40AC] x [D_002C40B0, D_002C40B4].
 static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;}
 // Aligns, clips and queues the glyphs with their colours. (inferred)
 void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
@@ -3052,18 +3088,22 @@ struct R { char pad[0xC]; unsigned char *cur; };
 struct S { char pad[0x12]; unsigned short mode; char pad1[8]; void *address; };
 struct D { int a; int mode; int b; int xC; char pad[0x20]; };
 extern struct R D_002DEA28;
+// Copy n words: the n mod 4 leftovers first, then whole quadwords.
 static inline void CopyWords(int *d,const int *s,int n){
     int rem=n&3,cBulk=n-rem,i;
     for(i=0;i<rem;i++)*d++=*s++;
     for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}
 }
+// Append one word to the packet.
 static inline void Word(struct R *r,unsigned int word) {
     *(unsigned int *)r->cur=word;
     r->cur+=4;
 }
+// Pad the packet with zero words to a quadword boundary.
 static inline void Align(struct R *r) {
     while((int)r->cur&15) { *(int *)r->cur=0; r->cur+=4; }
 }
+// Append a VIF code header and then n words from s.
 static inline void Unpack(struct R *r,const int *s,int n,unsigned int header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
 // Builds the matrix / parameter DMA packet for a glyph run, ending in a call tag. (inferred)
 void BuildGlyphPacket(struct S *p,const int *matrix,struct D *data,int flags) {
@@ -3099,8 +3139,11 @@ struct E {int kind;float priority;uint address;int pad;};
 extern struct R D_002DEA28;
 extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
 struct E *AllocRenderListEntry(void);
+// Append one word to the packet.
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+// Append a VIF MSCAL code starting the VU1 microprogram at entry.
 static inline void Mscal(struct R *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
+// Pad the packet with zero words to a quadword boundary.
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
 // Queues the VU microprogram pair for a sprite render mode. (inferred)
 void QueueSpriteVuProgram(struct S *p,int mode,float priority){
@@ -3143,9 +3186,13 @@ struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
 struct E *AllocRenderListEntry(void);
+// Append one word to the packet.
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+// Pad the packet with zero words to a quadword boundary.
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
+// Copy n words: the n mod 4 leftovers first, then whole quadwords.
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
+// Append a VIF code header and then n words from s.
 static inline void Unpack(struct R *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
 // Renders a geometry sprite with its transform and optional fade.
 void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
@@ -3200,13 +3247,19 @@ struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
 struct E *AllocRenderListEntry(void);
+// Append one word to the packet.
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+// Pad the packet with zero words to a quadword boundary.
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
+// Copy n words: the n mod 4 leftovers first, then whole quadwords.
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
+// Append a VIF code header and then n words from s.
 static inline void Unpack(struct R *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
 
 void CopyAqw__FPvT0i(void *,void *,int);
+// Pad the packet with zero words until the cursor is at word `word` of a quadword.
 static inline void AlignTo(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+// Append a VIF DIRECT code for n quadwords followed by the data.
 static inline void Direct(struct R *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
 // Renders a picture sprite: transformed parameters plus a direct GIF payload. (inferred)
 void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
@@ -3269,6 +3322,7 @@ void StartSpriteAnimById(struct S *group, int animId)
 namespace M_func_00217C20 {
 struct T { char pad[8]; short animIndex; };   /* slot 0 */
 struct S { char pad[8]; T *slots; char padc[0x1C]; int isEnabled; };
+// Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 extern "C" char D_002A3A10[];
 extern "C" void StopSprite(S *p, int i);
@@ -3290,6 +3344,7 @@ namespace M_func_00217CA8 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
     unsigned char r, g, b, a;
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct E { char pad[0x14]; int id; };
@@ -3327,12 +3382,14 @@ namespace M_func_00217D98 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
     unsigned char r, g, b, a;
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
 struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; void *unknown14; };
 struct F { char pad[0x18]; };
 struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
+// Compose two 2x3 affine matrices (q then n).
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -3390,6 +3447,7 @@ struct F { int numItems; struct Y *items; char pad[0x10]; };
 struct S { int counts; int anims; struct F *slots; };
 void ReleaseSpriteItem(void *p, struct Y *y);
 void InitSpriteItem(struct Y *y);
+// Release each item's sprite descriptor.
 static inline void ReleaseItems(int n, struct Y *items)
 {
     int k; for (k = 0; k < n; k++) { struct Y *item = &items[k]; if (item->descriptor) ReleaseSpriteItem(item->descriptor, item); else InitSpriteItem(item); }
@@ -3452,8 +3510,11 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
     unsigned char r, g, b, a;
+    // Uninitialised color.
     RGBA() {}
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
+    // Assign a color as one word.
     RGBA &operator=(const RGBA &c){*(RGBA2 *)this=*(const RGBA2 *)&c;return *this;}
 } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
@@ -3501,6 +3562,7 @@ extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
 // 0x218220 AdvanceWidgetSprite
 namespace M_func_00218220 {
 typedef int qword __attribute__((mode(TI)));
+// Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) {u=x;} } __attribute__((aligned(16)));
 struct M23 {float a[6];} __attribute__((aligned(16)));
 struct O {char pad[0xF4]; void *followObject; M23 *xform;};   /* the widget: world object to follow (inferred), transform override */
@@ -3511,6 +3573,7 @@ extern "C" G D_002DDF40;
 extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
 extern "C" void UpdateSpriteSlot(S *,int,M23 *,float,const RGBA &,const RGBA &);
+// Compose two 2x3 affine matrices (q then n).
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -3543,12 +3606,14 @@ namespace M_func_002183E8 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
     unsigned char r, g, b, a;
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
 struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; int sound; };
 struct F {char pad[8];float duration;char padC[0xC];};
 struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
+// Compose two 2x3 affine matrices (q then n).
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -3621,6 +3686,7 @@ struct CLOCK { unsigned long ticks; };
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
 void ResetSpriteSlotItems(struct S *p, int i);
+// Stop the sound and drop the reference, if any.
 static inline void Release(void **pp)
 {
     if (pp && *pp) {
@@ -3673,8 +3739,11 @@ namespace M_func_00218748 { extern "C" {
 struct E { char pad[0x10]; int isFinished; void *sound; };   /* a playback slot */
 struct S { char pad[8]; struct E *slots; };
 void PauseSnd(void *p);
+// The record's entry array (word at +8).
 static inline struct E *Entries(const struct S *p){struct E *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;}
+// Load a sound pointer from its slot into $3.
 static inline void *SoundRead(void *const *slot){register void *value __asm__("$3");__asm__("lw %0,%1":"=r"(value):"m"(*slot));return value;}
+// Address of entry `index` (register-pinned arithmetic).
 static inline struct E *EntryAt(struct E *entries,int index){register struct E *value asm("$2");register int bytes asm("$5")=index*sizeof(struct E);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;}
 // Marks a sprite sound event done and stops or pauses its sound. (inferred)
 void FinishSpriteSoundEvent(struct S *p, int slot)
@@ -3712,6 +3781,7 @@ namespace M_func_002188B0 {
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 struct RGBA_RAW {uchar r,g,b,a;};
+// Color bytes copied as one word.
 struct RGBA {uchar r,g,b,a;RGBA(){}RGBA(const RGBA &c){*(RGBA_RAW *)this=*(const RGBA_RAW *)&c;}RGBA(const RGBA_RAW &c){*(RGBA_RAW *)this=c;}RGBA &operator=(const RGBA &c){*(RGBA_RAW *)this=*(const RGBA_RAW *)&c;return *this;}} __attribute__((aligned(16)));
 struct M23 {float a[6];} __attribute__((aligned(16)));
 struct SPRITE;
@@ -3725,16 +3795,19 @@ void ClearSle(int *);
 void CombineSpriteColors(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *);
 void UpdateSpriteItem(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA);
 }
+// Interpolate each channel between previous and next at t.
 static inline RGBA BlendColors(float t,RGBA previous,RGBA next){
  RGBA result;
  result.r=LerpInt(t,previous.r,next.r);result.g=LerpInt(t,previous.g,next.g);result.b=LerpInt(t,previous.b,next.b);result.a=LerpInt(t,previous.a,next.a);
  return result;
 }
+// Interpolate the six matrix terms between previous and next at t.
 static inline M23 BlendMatrix(float t,const M23 &previous,const M23 &next){
  M23 result;
  for(int n=0;n<6;n++)result.a[n]=(1.0f-t)*previous.a[n]+t*next.a[n];
  return result;
 }
+// Compose two 2x3 affine matrices (q then n).
 static inline M23 Mul(const M23 &q,const M23 &n){
  float m0=q.a[0],m1=q.a[1],m2=q.a[2],m3=q.a[3],m4=q.a[4],m5=q.a[5];M23 r;
  r.a[0]=m0*n.a[0]+m1*n.a[2];r.a[1]=m0*n.a[1]+m1*n.a[3];r.a[2]=m2*n.a[0]+m3*n.a[2];r.a[3]=m2*n.a[1]+m3*n.a[3];r.a[4]=m4*n.a[0]+m5*n.a[2]+n.a[4];r.a[5]=m4*n.a[1]+m5*n.a[3]+n.a[5];return r;
@@ -3803,15 +3876,25 @@ extern "C" void StopSnd(struct M *, float);
 extern "C" void RcPtr_Assign(struct M **pp, struct M *m);
 extern "C" void *StartDialog(void *p,int a,int b);
 extern "C" void StopDialog(void *p);
+// Load the sound from its slot into $4.
 static inline M *SlotSound(M *const &slot){register M *value asm("$4");asm("lw %0,0(%1)":"=r"(value):"r"(&slot),"m"(slot));return value;}
+// Stop the slot's sound and drop the reference, if any.
 static inline void Stop(M **pp){if(pp){M *sound=SlotSound(*pp);if(sound){StopSnd(sound,0.0f);RcPtr_Assign(pp,0);}}}
+// Load the slot word (non-zero when a sound is present) into $3.
 static inline unsigned int Presence(M *const &slot){register unsigned int value asm("$3");__asm__("lw %0,%1":"=r"(value):"m"(slot));return value;}
+// index * stride (mult).
 static inline int EntryOffset(int index,int stride){int value;__asm__("mult %0,%1,%2":"=r"(value):"r"(index),"r"(stride):"hi","lo");return value;}
+// Load the action's kind into $3.
 static inline int ActionKind(const A &action){register int value asm("$3");asm("lw %0,%1":"=r"(value):"m"(action.kind));return value;}
+// index * stride (mult) into $5.
 static inline int StopOffset(int index,int stride){register int value asm("$5");asm("mult %0,%1,%2":"=r"(value):"r"(index),"r"(stride):"hi","lo");return value;}
+// Load the owner's receiver into $3.
 static inline R *StopReceiver(const S *owner){register R *value asm("$3");asm("lw %0,%1":"=r"(value):"m"(owner->r));return value;}
+// Load the receiver's entry array into $4.
 static inline E *StopArray(const R *receiver){register E *value asm("$4");asm("lw %0,%1":"=r"(value):"m"(receiver->ae));return value;}
+// Address of the sound slot at the end of an entry.
 static inline M **SlotAddress(E *entry){M **value;asm("addiu %0,%0,%2":"=r"(value):"0"(entry),"i"(sizeof(E)-sizeof(M *)));return value;}
+// Address of the entry at byte offset `offset` in the array.
 static inline E *StopEntry(E *array,int offset){register E *value asm("$2");asm("addu %0,%1,%2":"=r"(value):"r"(offset),"r"(array));return value;}
 // Runs a sprite key's actions: start / stop sounds, start / stop dialog.
 extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
@@ -3889,9 +3972,13 @@ typedef unsigned short ushort;
 struct RGBA_RAW { uchar r, g, b, a; };
 struct RGBA {
     uchar r, g, b, a;
+    // Uninitialised color.
     RGBA() {}
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA_RAW *)this = *(const RGBA_RAW *)&c; }
+    // Color from its raw word.
     RGBA(const RGBA_RAW &c) { *(RGBA_RAW *)this = c; }
+    // Assign a color as one word.
     RGBA &operator=(const RGBA &c) { *(RGBA_RAW *)this = *(const RGBA_RAW *)&c; return *this; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
@@ -3964,6 +4051,7 @@ void UpdateCurrentSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("Up
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
 
+// Interpolate each channel between previous and next at t.
 static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
 {
     RGBA result;
@@ -3974,6 +4062,7 @@ static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
     return result;
 }
 
+// Interpolate the six matrix terms between previous and next at t.
 static inline M23 BlendMatrix(float t, const M23 &previous, const M23 &next)
 {
     M23 result;
@@ -3982,6 +4071,7 @@ static inline M23 BlendMatrix(float t, const M23 &previous, const M23 &next)
     return result;
 }
 
+// Compose two 2x3 affine matrices (q then n).
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -3998,7 +4088,9 @@ static inline M23 Mul(const M23 &q, const M23 &n)
 enum Uninitialized { Uninit };
 struct LM {
     float lo, hi;
+    // Uninitialised limit.
     LM(Uninitialized) {}
+    // Uninitialised limit.
     LM() {}
 };
 float ClampToLimits(LM *, float) __asm__("ClampToLimits__FP2LMf");
@@ -4137,10 +4229,15 @@ typedef unsigned short ushort;
 struct RGBA_RAW { uchar r, g, b, a; };
 struct RGBA {
     uchar r, g, b, a;
+    // Uninitialised color.
     RGBA() {}
+    // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA_RAW *)this = *(const RGBA_RAW *)&c; }
+    // Color from its raw word.
     RGBA(const RGBA_RAW &c) { *(RGBA_RAW *)this = c; }
+    // The color as its raw word.
     const RGBA_RAW &Raw() const { return *(const RGBA_RAW *)this; }
+    // Assign a color as one word.
     RGBA &operator=(const RGBA &c) { *(RGBA_RAW *)this = *(const RGBA_RAW *)&c; return *this; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
@@ -4213,6 +4310,7 @@ void UpdateSpriteItem(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
 
+// Interpolate each channel between previous and next at t.
 static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
 {
     RGBA result;
@@ -4223,6 +4321,7 @@ static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
     return result;
 }
 
+// Interpolate the six matrix terms between previous and next at t.
 static inline M23 BlendMatrix(float t, const M23 &previous, const M23 &next)
 {
     M23 result;
@@ -4231,6 +4330,7 @@ static inline M23 BlendMatrix(float t, const M23 &previous, const M23 &next)
     return result;
 }
 
+// Compose two 2x3 affine matrices (q then n).
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -4315,6 +4415,8 @@ struct Q { char pad[8]; struct F *slots; };   /* the group */
 struct S { char pad[0xC]; char *owner; struct Q *group; };   /* an animation; owner = the widget */
 void QueueSpriteItem(void *descriptor, struct Y *item, int drawFlags);
 void PrependSlEntry(void *p, struct Y *y);
+// Queue a sprite's items for drawing, last first: items with a descriptor through QueueSpriteItem, descriptor-less
+// kind-4 items straight onto the widget's render queue.
 static inline void Draw(struct S *anim, int n, struct Y *items, int drawFlags)
 {
     int k;
@@ -4342,6 +4444,7 @@ struct POOL;
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 struct STRINGGEN {
  int id;void (*get)(char *,void *,void *);void *context;
+ // Zero the whole string generator.
  STRINGGEN(){func_002333B4(this,0,sizeof(*this));}
 };
 extern "C" {

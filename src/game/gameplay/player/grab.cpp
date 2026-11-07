@@ -158,6 +158,7 @@ void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
 struct KEY
 {
+    // Allocate the object zeroed, 16-byte aligned, from the world heap.
     static void *operator new(uint cb)
     {
         SWALLOC swalloc;
@@ -496,14 +497,20 @@ uint GetGadgetButtonMask(ACTOR *, int);
 }
 void FreeSwXpList(SW *, XP *) __asm__("FreeSwXpList__FP2SWP2XP");
 
+// Call the actor's control-setter virtual (vtable slot 88) with n.
 static inline void SetControl(ACTOR *p, int n) { VTE &v = p->vt[88]; ((void (*)(void *, int))v.fn)((char *)p + v.delta, n); }
+// Ask the actor whether action n is allowed (virtual slot 99).
 static inline int CanAct(ACTOR *p, int n) { VTE &v = p->vt[99]; return ((int (*)(void *, int))v.fn)((char *)p + v.delta, n); }
+// Notify the actor of q (virtual slot 51).
 static inline void Notify(ACTOR *p, ACTOR *q) { VTE &v = p->vt[51]; ((void (*)(void *, ACTOR *))v.fn)((char *)p + v.delta, q); }
+// Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in ClipCameraEye).
 static inline VU_FLOAT VuFloat(const float *pg) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)pg)); return v; }
+// Return a scaled by g.
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 // a * g0 + b * g1
 static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
@@ -512,6 +519,7 @@ static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
     __asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(g0.q), "j"(b), "j"(g1.q));
     return r;
 }
+// Length of the xyz part of v as a float.
 static inline float LengthOf(const qword &v)
 {
     qword qw, one;
@@ -519,8 +527,10 @@ static inline float LengthOf(const qword &v)
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(qw) : "0"(qw));
     return VuToFloat(qw);
 }
+// True when a and b are closer than s.
 static inline int IsWithinDistance(qword a, qword b, float s) { return LengthOf(VuSub(a, b)) < s; }
 
+// Probe below the actor: clip a downward segment from its base against the nearby objects and record the ground hits.
 static inline void ProbeGround(CONTEXT *p)
 {
     STACKSCOPE scope;
@@ -792,7 +802,9 @@ void RebuildJtXmg(ACTOR *, void *, void *, void *, float, void *);
 void ClampJtGrabCurveParam(ACTOR *, void *, void *);
 }
 
+// The actor's velocity (virtual slot 33).
 static inline qword GetVelocity(ACTOR *p) { VTE &v = p->vt[33]; return ((qword (*)(void *))v.fn)((char *)p + v.delta); }
+// Evaluate the binding's component (virtual slot 3) for the animation into *out.
 static inline void ReadBinding(BINDING *b, ANIM *a, U *out)
 {
     COMPONENT *c = b->component;
@@ -800,23 +812,31 @@ static inline void ReadBinding(BINDING *b, ANIM *a, U *out)
     ((void (*)(void *, int, U *, float, float))v.fn)((char *)c + v.delta, 0, out, a->phase, a->rate);
 }
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
+// Return a scaled by g.
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
+// Return a scaled by g.x.
 static inline qword ScaleVecX(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(a)); return r; }
+// Dot product of the xyz parts of a and b (x lane).
 static inline qword DotVec(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     return d;
 }
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Length of v as a float.
 static inline float LengthOf(VU_VECTOR v) { return QwordX(VuSqrtX(DotVec(v.q, v.q))); }
+// XY length of v as a float.
 static inline float LengthXYOf(qword v)
 {
     qword l;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(l) : "j"(v));
     return QwordX(VuSqrtX(l));
 }
+// Divide v by the x lane of l.
 static inline qword DivVec(qword v, qword l)
 {
     qword r;
@@ -824,6 +844,7 @@ static inline qword DivVec(qword v, qword l)
     __asm__("vmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v));
     return r;
 }
+// Unit vector along v, or fallback when its length is too small.
 static inline qword NormalizeVec(qword v, qword fallback)
 {
     qword l = VuSqrtX(DotVec(v, v));
@@ -840,6 +861,7 @@ static inline qword MulM3Vec(M3 *pm, qword v)
             : "+j"(r), "=&j"(one), "=&j"(t0), "=&j"(t1), "=&j"(t2) : "j"(v), "j"(pm->r[1].q), "j"(pm->r[2].q));
     return r;
 }
+// Set the xyz floats of p.
 static inline void SetXYZ(U *p, float x, float y, float z) { p->f[0] = x; p->f[1] = y; p->f[2] = z; }
 
 // Per-frame update of the grab context: dispatches on the grab state (hang, shimmy, climb, hide, press ...), chooses
@@ -1359,14 +1381,19 @@ void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *);
 void EnableJtLeanActs(ACTOR *, int);
 }
 
+// Set the source's state (virtual slot 3).
 static inline void SourceState(SOURCE *p, int state)
 {
     VTE &v = p->vt[3];
     ((void (*)(void *, int, void *, void *, void *, void *))v.fn)((char *)p + v.delta, state, 0, 0, 0, 0);
 }
+// Call the object's no-argument virtual at vtable slot `slot`.
 static inline void Notify(LO *lo, int slot) { VTE &v = lo->vt[slot]; ((void (*)(void *))v.fn)((char *)lo + v.delta); }
+// Call the actor's no-argument virtual at vtable slot `slot`.
 static inline void Notify(ACTOR *p, int slot) { VTE &v = p->vt[slot]; ((void (*)(void *))v.fn)((char *)p + v.delta); }
+// Call the actor's vector virtual at vtable slot `slot` with q.
 static inline void SetVector(ACTOR *p, int slot, qword q) { VTE &v = p->vt[slot]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
+// Call the actor's pointer virtual at vtable slot `slot` with pv.
 static inline void SetPointer(ACTOR *p, int slot, void *pv) { VTE &v = p->vt[slot]; ((void (*)(void *, void *))v.fn)((char *)p + v.delta, pv); }
 // bit 0 set: the word holds the flags itself; otherwise it points to them
 static inline void AddFlags(uint *pflags, uint bits)
@@ -1381,6 +1408,7 @@ static inline void AddFlags(uint *pflags, uint bits)
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in UpdateJtGrabInput).
 static inline VU_FLOAT VuFloat(const float &g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)&g)); return v; }
 
+// n < limit (keeps the two range tests apart, as in SetJtAirState).
 static inline bool Less(int n, int limit) { return n < limit; }   // as in SetJtAirState: keeps the two range tests apart
 // The vector is moved to a GPR once (gcc's own qmfc2 for the "r" inputs) and its x word is stored straight from there:
 // no C construct gives a 32-bit store of the low word of a TImode GPR (unions go through the stack, casts sign-extend).
@@ -1394,6 +1422,7 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(g.q));
     return r;
 }
+// Length of the xyz part of v (x lane).
 static inline qword Length(qword v)
 {
     qword d, one, len;
@@ -1411,6 +1440,7 @@ static inline qword Unit(qword v, qword len)
     return r;
 }
 
+// Unit vector along v, or fallback when its length is too small.
 static inline qword Normalize(qword v, qword fallback)
 {
     qword len = Length(v);
@@ -1418,7 +1448,9 @@ static inline qword Normalize(qword v, qword fallback)
         return fallback;
     return Unit(v, len);
 }
+// Normalize *pv in place (fallback D_002A2DA0).
 static inline void Normalize(qword *pv) { *pv = Normalize(*pv, D_002A2DA0); }
+// Rotate q by the 3x3 matrix m.
 static inline qword Transform(const M3 &m, qword q)
 {
     qword r;
@@ -1838,9 +1870,13 @@ qword SetVectorCylind(float,float,float);
 float GetShapeDistanceAtParam(struct CURVE*,float);
 float GetShapeMaxDistance(struct CURVE*);
 float SmoothValue__FfffP3SMPPf(float,float,float,struct SMP*,float*);
+// Remove a's component along the unit normal n (register-pinned).
 static inline qword Reject(qword a,qword n){register qword d __asm__("vf2");qword one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"0"(d));return d;}
+// Unit vector along a, or fallback when its length is too small (register-pinned).
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");register qword one __asm__("vf4");float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a,qword b){qword d=b,one;float f;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a),"0"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
+// Return a scaled by g.
 static inline qword Scale(qword a,float g){U u;qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(g));u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
 // For a rail target at parameter t: the landing position offset and a velocity along the rail tangent.
 void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *outVel, float t)
@@ -1950,6 +1986,7 @@ void FindShapeClosestPointFromParam(struct T *t, qword a, struct PROJECTION *pro
 float GetShapeMinDistance(struct T *t);
 float GetShapeMaxDistance(struct T *t);
 void EvaluateShapeAtDistance(struct T *t, float g, qword *point, qword *direction);
+// Dot product of the xyz parts of a and b as a float.
 static __inline__ float Dot(qword a, qword b)
 {
     qword d, t;
@@ -1958,6 +1995,7 @@ static __inline__ float Dot(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
     return r;
 }
+// Dot product of the xyz parts of a and b as a float (second register variant).
 static __inline__ float Dot2(qword a, qword b)
 {
     qword d, t;
@@ -2306,6 +2344,8 @@ extern "C" {
 extern int D_002DFBC0;
 int IsCameraPolicyActive__FP5CPLCY(void *pcplcy);
 }
+// True when the grab may hand the camera to the player: the step player allows it, the free-camera option bit is set
+// and no camera policy is active.
 static inline int IsGrabCameraFree(JTGRAB *grab)
 {
     int f = 0;
@@ -2389,6 +2429,7 @@ extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPv
 
 
 
+// Length of v as a float.
 static inline float LengthOf(qword v)
 {
     return VuToFloat(VuLength(v));
@@ -2397,15 +2438,18 @@ extern "C" void *memmove(void *pvDst, const void *pvSrc, size_t cb);
 extern "C" { extern JT *D_002E1E40; }
 extern "C" { extern int D_002E1E4C; }   // C symbol: this view has no extern "C" block; defined at file scope below
 extern "C" { extern float D_002BF664; }
+// True when the object's world position is farther from pos than its busy radius (busyRadius).
 static inline int IsBeyondBusyRadius(LO *lo, qword pos)
 {
     qword qwDiff = VuSub(PosLoWorld(lo), pos);
     return lo->busyRadius * lo->busyRadius < VuToFloat(VuDot(qwDiff, qwDiff));
 }
+// Zero a grab candidate.
 static inline void ZeroJtGrabCand(JTGRABCAND *candidate)
 {
     memset(candidate, 0, sizeof(JTGRABCAND));
 }
+// memmove grab candidates.
 static inline void MoveJtGrabCands(JTGRABCAND *pcandDst, JTGRABCAND *pcandSrc, size_t cb)
 {
     memmove(pcandDst, pcandSrc, cb);
@@ -2549,6 +2593,7 @@ extern "C" { extern SW D_003DD490; }
 
 
 PROXY *PproxyFromLo(LO *plo) __asm__("GetProxyCopyValue");
+// Length of v as a float.
 static inline float LengthOf(qword v)
 {
     return VuToFloat(VuLength(v));
@@ -2850,6 +2895,7 @@ union VECTOR { qword q; float f[4]; };
 struct VU_FLOAT
 {
     qword q;
+    // Uninitialised VU float.
     VU_FLOAT() {}
     // By reference: at loop time the bound temporary adds copies (keeps the inner loop at loop.c's size), and by
     // sched1 combine has folded the call-value copy into the asm input, so the qmtc2 reads $f0 directly.
@@ -2858,8 +2904,11 @@ struct VU_FLOAT
 struct VU_VECTOR
 {
     qword q;
+    // Uninitialised vector.
     VU_VECTOR() {}
+    // Wrap a qword.
     VU_VECTOR(qword a) { q = a; }
+    // Wrap a VECTOR.
     VU_VECTOR(const VECTOR &v) { q = v.q; }
 };
 
@@ -2922,7 +2971,9 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *p
 }
 void OnEmitterValuesChanged(EMITTER *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 
+// Random float in the range [minValue, maxValue].
 static inline float RandomInRange(LM *range) { return RandomFloatInRange__Fff(range->minValue, range->maxValue); }
+// Return v scaled by g.
 static inline VU_VECTOR operator*(VU_FLOAT g, VU_VECTOR v)
 {
     __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(v.q) : "j"(g.q));
@@ -2934,6 +2985,7 @@ static inline VU_VECTOR AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(a.q) : "j"(b.q), "j"(g.q));
     return a;
 }
+// Ask the candidate's grab spot for its sparkle position and direction.
 static inline void GetSparkle(JTGRABCAND *candidate, VECTOR *posOut, VECTOR *pv)
 {
     candidate->grabSpot->GetSparkle(posOut, pv, candidate->spotDistance);

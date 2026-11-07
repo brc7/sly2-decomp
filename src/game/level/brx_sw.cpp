@@ -93,11 +93,15 @@ struct SW {
     char pad3E3C[0x3F04 - 0x3E3C]; int cwe; WE *awe; int pad3F0C; int iwe;
 };
 struct ZPR { char ab[0x630]; };
+// Disc file location record (mode 2) with the rest left for the loader.
 struct ODD { ODD() { ab[2] = 2; } int ab[0x110 / 4]; };
 class CStreamBis { public: CStreamBis(int k, void *pv, int n) __asm__("CStreamBis_ctor"); ~CStreamBis(); char ab[0x70]; };
 
+// Fill the request and allocate cb zeroed bytes with alignment cbAlign from the world heap.
 static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocClearedFromWorldHeap(preq); }
+// Fill the request and allocate cb bytes with alignment cbAlign from the world heap.
 static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocFromWorldHeap(preq); }
+// Fill the request and allocate cb bytes with alignment cbAlign from the frame stack.
 static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocFromStack(preq); }
 
 // Loads a level body from the BRX world file: the proxy-source table, sound banks, save variables, the level table,

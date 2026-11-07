@@ -84,6 +84,7 @@ extern "C" void MoveSwBusyEntryToEnd(SWBUSY *world, void *pv)
     AppendDlEntry(&world->busyList, pv);
 }
 
+// Distance between a and b as a float.
 static __inline__ float GDist(qword a, qword b)
 {
     qword d;
@@ -96,6 +97,7 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
 }
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -104,6 +106,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;

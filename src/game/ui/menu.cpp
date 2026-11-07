@@ -79,10 +79,14 @@ extern "C" void Decref__4CRef(void *);
 struct CRef {
     int tag;
     union { int n; float f; };
+    // Script reference holding an int (tag 0x15).
     CRef(int x) { tag = 0x15; n = x; }
+    // Script reference holding a bool (tag 0x17).
     CRef(bool x) { tag = 0x17; n = x; }
+    // Script reference holding a float (tag 0x16).
     CRef(float x) { tag = 0x16; f = x; }
     CRef(const CRef &r);   /* out of line: __4CRefRC4CRef (ref.cpp) */
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 typedef char CRefSize[sizeof(CRef)==8?1:-1];
@@ -329,7 +333,9 @@ void SetPauseMenuState(PMENU *menu, int st)
     }
 }
 
+// Read a global save variable as a float.
 static inline float Value(OPT*key,CONTEXT*context){CRef result=GetGlobalSaveVar(key,context);return result.f;}
+// Make context the bank's current context.
 static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
 // Per-frame pause menu update (screen slot 7): joystick navigation, item activation callbacks, the volume and video
 // items and the save-slot pages.
@@ -569,6 +575,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
     }
 }
 
+// Evaluate save variable id as an int.
 static inline int GetTag(int id) { return Eval(id, D_003D4A60).n; }
 // Item text callback for the video items (76..78): picks the string from the current option values.
 extern "C" void GetPauseMenuVideoItemText(int *menu)
@@ -628,9 +635,13 @@ extern "C" void GetPauseMenuVideoItemText(int *menu)
     }
 }
 
+// Store a script reference into a global save variable.
 static inline void SetPv(OPT*key,CRef r,void*context){SetGlobalSaveVar(key,r,context);}
+// Store an int into a global save variable.
 static inline void SetInt(OPT*key,int x){CRef r(x);SetPv(key,r,D_003D4A60);}
+// Store a bool into a global save variable.
 static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,D_003D4A60);}
+// Store a float into a global save variable.
 static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,D_003D4A60);}
 #define OPTI(d) (*(OPT **)&(d))
 // Applies an option item (kinds 103 and up): sets the option values and re-applies the GS settings.

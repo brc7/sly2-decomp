@@ -86,7 +86,9 @@ struct EC { char pad[0x70]; unsigned long flags; };
 struct OV { int pad[4]; OV *parent; int root; char pad2[0xEC - 0x18]; EC *collisionEntry; };
 struct HITV { int pad; OV *object; int pad2[2]; unsigned long flags; };
 struct ARGS { DTE *entry; int *oldState; int *newState; };
+// Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
+// Vector with a trivial copy constructor.
 struct VECTORQ { qword q; VECTORQ() {} VECTORQ(const VECTORQ &v) : q(v.q) {} };
 
 extern CLOCK D_002DDED0;

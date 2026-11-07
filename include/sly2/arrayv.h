@@ -50,6 +50,7 @@ struct ARYV { char pad[0xC]; VTE *vt; int *data; int c; char pad18[0x10]; LISTEN
 struct VTINIT { char pad[0x30]; short d; short p; void (*f)(void *, void *); };   /* entry 6 (NotifyAdd) */
 struct ARR { int *data; int c; };
 struct ARYV2 { char pad[0xC]; VTINIT *vt; ARR arr; };
+// Load-allocation request: byte count and alignment.
 struct LOADDESC { int cb; int align; LOADDESC(int c, int a) { cb = c; align = a; } };
 struct SCOPEMARK { int a[4]; };
 struct ARYV3 { char pad[0xC]; VTE *vt; char x10[4]; };

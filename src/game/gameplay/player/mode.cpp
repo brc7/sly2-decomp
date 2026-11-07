@@ -96,6 +96,7 @@ struct SWALLOC
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 struct KEY
 {
+    // Allocate the object zeroed, 16-byte aligned, from the world heap.
     static void *operator new(uint cb)
     {
         SWALLOC swalloc;
@@ -178,6 +179,7 @@ extern "C" {
 void SetSoCnstrForce(SO *pso, int fOn);
 }
 extern SNDMGR D_003DD040;
+// Zero the xyz components of pvec.
 static inline void ClearXyz(VECTOR *pvec)
 {
     pvec->z = 0.0f;
@@ -541,6 +543,7 @@ extern "C" void qsort(void*,unsigned,unsigned,int(*)(const void*,const void*));
 extern "C" int CompareTasks(const void*,const void*);
 extern "C" int IsTaskComplete(X*);
 struct LOCAL_LAYOUT{STACKSCOPE frame;int count;X**array;};
+// Copy the game-task pointer through callee-saved registers.
 static inline GTASK*CopyGame(GTASK*source){register GTASK*input __asm__("$16")=source;register GTASK*result __asm__("$20");__asm__("daddu %0,%1,$zero":"=r"(result):"r"(input));return result;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char Offset_0[FIELD_OFFSET(X,tagId)==92?1:-1];
@@ -593,6 +596,7 @@ extern "C" void GatherJtModeHudTags(JTMODEHUD *hud)
 
 /* Event controller. Below/Equal are true when the selector is NULL (old draft had them false). */
 static inline void Below(int&value,WIDGET*q){value=0;if(!q||q->nState<2)value=1;}
+// value = 1 when the widget is missing or in state 2, else 0.
 static inline void Equal(int&value,WIDGET*q){value=0;if(!q||q->nState==2)value=1;}
 // Per-frame HUD update for the current mode state (widget update, timers).
 extern "C" void UpdateJtModeHud(JTMODEHUD *hud)

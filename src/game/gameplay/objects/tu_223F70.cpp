@@ -350,9 +350,13 @@ struct SCALAR {qwordV q;};
 // Asm accessors of UpdateTossableContacts (each pins one load or address computation the target has): a scalar
 // loaded into a VU register, a vector scaled by it, the other end's object, an end by index, a table entry address.
 static inline void InitScalar(SCALAR &home,const float &f){int bits;asm("lw %0,0(%1)":"=r"(bits):"0"(&f),"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(home.q):"r"(bits));}
+// Return direction scaled by scalar.
 static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV result;__asm__("vmulx.xyzw %0,%1,%0x":"=j"(result):"j"(direction),"0"(scalar.q));return result;}
+// Load the side's neighbouring object into $16.
 static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.otherObject));return value;}
+// Address of side `index` of the edge.
 static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
+// Address of coefficient `index` in the table.
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
 // CID100 contact update: after the SO update (and not in the first D_002C42E0 seconds after being picked up), each
 // contact this gadget owns is examined: a sticky gadget touching a free surface (not contact kind 8, no blocking class
@@ -451,6 +455,7 @@ int IsHealthExtractor(CID100V *gadget) {
 static inline qwordV ToVF(qwordV a) { qwordV r; __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(r) : "r"(a));return r; }
 // A vector loaded straight from memory into a VU register; a difference.
 static inline qwordV Read(const qwordV &a) { qwordV r;__asm__("lqc2 %0,%1" : "=j"(r) : "m"(a));return r; }
+// Return a - b.
 static inline qwordV Sub(qwordV a,qwordV b) { qwordV r;__asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 // Removes the component of d along the up axis (projects d onto the horizontal plane).
 static inline qwordV Flatten(qwordV d,qwordV up) {
@@ -509,23 +514,32 @@ extern "C" void OrientTossableToTarget(CID100V *gadget) {
 static inline qwordV SubP(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // Sum, cross product and dot product (lane x) in VU registers.
 static inline qwordV AddP(qwordV a,qwordV b){qwordV r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Cross product (result in b's register).
 static inline qwordV CrossXYZ(qwordV a,qwordV b){__asm__("vopmula.xyz ACC,%1,%0\n\tvopmsub.xyz %0,%0,%1":"+j"(b):"j"(a));return b;}
+// Dot product of a and b (x lane).
 static inline qwordV QwDot(qwordV a, qwordV b){qwordV qw;qwordV vfOne;
  __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));return qw;}
 // the extra "j"(qw) is allocation-only: it makes qw a VU-class pseudo, so the compiler's qmfc2 comes from the dot result (vf1)
 static inline float GXOfQw(qwordV qw){float x;__asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw));return x;}
 // Dot product as a float; a float's bit pattern in a GPR.
 static inline float DotP(qwordV a,qwordV b){return GXOfQw(QwDot(a,b));}
+// A float's raw bits.
 static inline int BitsOfFloat(float f){int n;__asm__("mfc1 %0,%1":"=r"(n):"f"(f));return n;}
 struct VUK{qwordV q;};
 // A scalar for VU use (from its bits, or a float), v scaled by it, old + v * k, a clamp, a vector-returning and a
 // vector-taking virtual call by slot, and Pin (keeps a pointer in $21, see the matching notes above).
 static inline VUK MkVukBits(int n){VUK r;__asm__("qmtc2.ni %1,%0":"=j"(r.q):"r"(n));return r;}
+// Float carried in a GPR qword (mfc1).
 static inline VUK MkVuk(float f){VUK r;__asm__("mfc1 %0,%1":"=r"(r.q):"f"(f));return r;}
+// Return v scaled by k.
 static inline qwordV ScaleK(qwordV v,VUK k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k.q));return r;}
+// Return old + v * k.
 static inline qwordV AddScaledK(qwordV old,qwordV v,VUK k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%2,%1x":"+j"(old):"j"(k.q),"j"(v));return old;}
+// The object's vector at virtual slot `slot`.
 static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return v[slot].get((char *)o+v[slot].d);}
+// Set the object's vector at virtual slot `slot`.
 static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;v[slot].set((char *)o+v[slot].d,q);}
+// Copy p into callee-saved $21.
 static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
 // See the block comment above.
 void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qwordV end, int queryCount, COLL **objects,
@@ -590,6 +604,7 @@ void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qword
 
 // Vector sum and difference.
 static __inline__ qwordV VAdd(qwordV a, qwordV b) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Return a - b.
 static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 struct COLLA { XFV *xf; };   /* a found object, read through its first word (inferred: its XF) */
 // The blast: finds the objects within radius, casts probes from pos over a sphere (11 latitude rings, D_002C4338 /
@@ -634,10 +649,12 @@ extern "C" void DropTossable(CID100V *gadget, float radius)
 static inline qwordV ToVFN(qwordV v){qwordV r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 // Difference, unit vector and length in VU registers.
 static inline qwordV SubT(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
+// Unit vector along v.
 static inline qwordV Normalize(qwordV v){qwordV len,one,result;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));
  __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(len));
  __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(result):"j"(v),"0"(len));return result;}
+// Length of the xyz part of v as a float.
 static inline float LengthT(qwordV v){qwordV one;float f;
  __asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(v),"=j"(one));
  __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(v));
@@ -856,6 +873,7 @@ static inline qwordV LoadCoefficient(){
     __asm__("qmtc2.ni %1,%0":"=j"(scalar):"r"(bits));
     return scalar;
 }
+// Qword wrapper convertible back to qwordV.
 struct Vec {qwordV q;Vec(const qwordV &v):q(v){}operator qwordV()const{return q;}};
 // CID102 state change (vtable slot 76): leaving extraction lets the actor go (unhooks it, behavior 0xB0 to state 2,
 // colour goal reset); entering it picks the nearest class-0x38 actor within 400 that answers func_00206EB0(0xB),

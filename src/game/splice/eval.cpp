@@ -66,7 +66,9 @@ struct CProc
 struct SPF
 {
     CFrame *p;
+    // Empty counted pointer.
     SPF() { p = 0; }
+    // Drop the held object's reference, deleting it on the last one.
     ~SPF() { CFrame *frame = p; if (frame && --frame->cref == 0) delete frame; }
     void operator=(CFrame *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
@@ -76,10 +78,14 @@ struct SPO
 {
     CProc *p;
     void Set(CProc *proc) __asm__("Attach__t7CRefPtr1Z5CProcP5CProc");
+    // Uninitialised counted pointer.
     SPO() {}
+    // Hold the object (adds a reference).
     SPO(CProc *proc) { Set(proc); }
     SPO(const SPO &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPO() { CProc *proc = p; if (proc && --proc->cref == 0) delete proc; }
+    // Access the held object.
     CProc *operator->() { return p; }
 };
 
@@ -437,11 +443,16 @@ struct SPPAIR
     CPair *p;
     int pad;
     void Set(CPair *expr) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    // Empty counted pointer.
     SPPAIR() { p = 0; }
+    // Hold the object (adds a reference).
     SPPAIR(CPair *expr) { Set(expr); }
+    // Drop the held object's reference, deleting it on the last one.
     ~SPPAIR() { CPair *expr = p; if (expr && --expr->cref == 0) delete expr; }
     void Assign(CPair *expr) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+    // Assign a pair (reference-counted).
     SPPAIR &operator=(CPair *expr) { Assign(expr); return *this; }
+    // Access the held object.
     CPair *operator->() { return p; }
 };
 struct SPFRAME
@@ -449,7 +460,9 @@ struct SPFRAME
     CFrame *p;
     int pad;
     void Set(CFrame *frame) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
+    // Hold the object (adds a reference).
     SPFRAME(CFrame *frame) { Set(frame); }
+    // Drop the held object's reference, deleting it on the last one.
     ~SPFRAME() { CFrame *frame = p; if (frame && --frame->cref == 0) delete frame; }
 };
 

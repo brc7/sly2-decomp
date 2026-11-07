@@ -188,6 +188,7 @@ void LoadSubglobType3FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, 
 extern "C" {
 void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType0FromBrx");
 }
+// Allocate cb zeroed bytes, 16-byte aligned, from the world heap.
 static inline void *PvAllocSwClear(int cb)
 {
     SWALLOC swalloc;
@@ -488,6 +489,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct M4 { qword r[4]; };
 extern const qword D_002BE570;
+// Transform point p by the 4x4 matrix m.
 static inline qword Transform(const struct M4 *m, qword p)
 {
     qword r;
@@ -496,6 +498,7 @@ static inline qword Transform(const struct M4 *m, qword p)
             : "j"(m->r[0]), "j"(m->r[1]), "j"(p), "j"(m->r[2]), "j"(m->r[3]));
     return r;
 }
+// Length of the xyz part of v as a float.
 static inline float Length(qword v)
 {
     qword d, one;
@@ -507,6 +510,7 @@ static inline float Length(qword v)
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
 }
+// Return p + v * k.x.
 static inline qword MAdd(qword p, qword v, qword k)
 {
     qword r;
@@ -764,6 +768,7 @@ M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
 float GetMaxRowLengthMatrix3(const M3 *pmat);
 RPL *AllocRenderListEntry(void);
 }
+// Transform point qwPos by the 4x4 matrix pmat.
 static inline qword QwTransformPos(M4 *pmat, qword qwPos)
 {
     qword qwResult;
@@ -772,6 +777,8 @@ static inline qword QwTransformPos(M4 *pmat, qword qwPos)
             : "j"(pmat->r[0].q), "j"(pmat->r[1].q), "j"(pmat->r[2].q), "j"(pmat->r[3].q), "j"(qwPos));
     return qwResult;
 }
+// Copy cw words (a multiple of 4) from pwSrc to pwDst one quadword at a time; fNever stands in for dead code the
+// original kept.
 static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw, int fNever)
 {
     if (fNever) // STAND-IN for the game's dead code (see the top of the file)
@@ -794,6 +801,7 @@ static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw, int fNever)
         pwDst += 4;
     }
 }
+// Append a VIF code TAG and then cw words from pv to the DMA packet D_002DEA28.
 template <uint TAG> static inline void UnpackQws(const void *pv, int cw, int fNever)
 {
     DMA *pdma = &D_002DEA28;
@@ -802,6 +810,7 @@ template <uint TAG> static inline void UnpackQws(const void *pv, int cw, int fNe
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw, fNever);
     pdma->pb += cw * 4;
 }
+// Return the entry's world matrix: its transform, times its parent's matrix when it has one.
 static inline M4 ModelMatrix(const ENTRY *entry) return model
 {
     const M4 *parent = entry->parent;
@@ -894,6 +903,7 @@ typedef struct ENTRY { char pad0[0x18]; BONE *bones; } ENTRY;
 typedef struct DMA { uint fields[3]; uint *cur; } DMA;
 extern DMA D_002DEA28;
 
+// Load a 128-bit value with lq into a GPR (no VU0 round trip).
 static __inline__ qword ReadCPU(const qword *source)
 {
     qword value;
@@ -901,6 +911,7 @@ static __inline__ qword ReadCPU(const qword *source)
     return value;
 }
 
+// Pad the DMA packet with zero words until its cursor is at the given offset within a quadword.
 static __inline__ void Align(uint align)
 {
     DMA *dma = &D_002DEA28;
@@ -1205,14 +1216,17 @@ int IsWithinCameraRenderDistance(VIEW *pview, qword qwDpos, float sRange, float 
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
 RPL *AllocRenderListEntry(void);
 }
+// Return the 4x4 matrix product matA * matB.
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
     __ml__FRC7MATRIX4T0(&mat, &matA, &matB);
 }
+// Copy a 4x4 matrix.
 static inline void CopyMat(MATRIX4 &matDst, const MATRIX4 &matSrc)
 {
     func_0023320C(&matDst, &matSrc, sizeof(MATRIX4));
 }
+// Transform point qwPos by the 4x4 matrix mat.
 static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
@@ -1221,6 +1235,7 @@ static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
             : "j"(*(qword *)mat.mat[0]), "j"(*(qword *)mat.mat[1]), "j"(*(qword *)mat.mat[2]), "j"(*(qword *)mat.mat[3]), "j"(qwPos));
     return qw;
 }
+// Transform point qwPos (by reference) by the 4x4 matrix mat.
 static inline qword TransformPointRef(const MATRIX4 &mat, const qword &qwPos)
 {
     qword qw;
@@ -1229,6 +1244,7 @@ static inline qword TransformPointRef(const MATRIX4 &mat, const qword &qwPos)
             : "j"(*(qword *)mat.mat[0]), "j"(*(qword *)mat.mat[1]), "j"(*(qword *)mat.mat[2]), "j"(*(qword *)mat.mat[3]), "j"(qwPos));
     return qw;
 }
+// Store the bits of qwV's squared length (xyz) into gDst.
 static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
 {
     qword qwSq, qwOne;
@@ -1236,6 +1252,7 @@ static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
     // the "m" / "!r" alternative is allocation-only (never chosen): it keeps the destination a MEM, so the qmfc2 result is an output reload
     __asm__("qmfc2.ni %0, %1" : "=r,m"(gDst) : "j,!r"(qwSq));
 }
+// Bits of qwV's squared length (xyz) as an int.
 static inline int GetSquaredLengthBits(qword qwV)
 {
     qword qwSq, qwOne;
@@ -1244,6 +1261,7 @@ static inline int GetSquaredLengthBits(qword qwV)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qwSq));
     return g;
 }
+// Squared distance between qw0 and qw1 as a float.
 static inline float SqDist(qword qw0, qword qw1)
 {
     qword qwV = VuSub(qw0, qw1);
@@ -1257,6 +1275,7 @@ static inline float SqDist(qword qw0, qword qw1)
 struct VU_FLOATM
 {
     qword qw;
+    // Load a float into a GPR qword (lw) for later VU0 use.
     VU_FLOATM(const float &g) { __asm__("lw %0, %1" : "=r"(qw) : "m"(g)); }
 };
 // The sphere's range read straight from the SPH: the struct-member MEM (MEM_IN_STRUCT_P, varying address) does not alias the
@@ -1264,6 +1283,7 @@ struct VU_FLOATM
 struct VU_FLOATS
 {
     qword qw;
+    // Load the sphere's range float into a GPR qword.
     VU_FLOATS(const SPH *psph) { __asm__("lw %0, %1" : "=r"(qw) : "m"(psph->sRange)); }
 };
 // Microprogram 0x1C0 (sphere against the view planes): its inputs and outputs live in fixed VU registers.
@@ -1317,6 +1337,7 @@ static inline float GetSphereVisibilitySync(qword posCam, qword pos, const SPH *
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qwVis));
     return g;
 }
+// Copy cw words (a multiple of 4) from pwSrc to pwDst one quadword at a time.
 static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
 {
     // empty do-while(0) (as left by a statement macro): its loop notes keep later setup below the tag/pb stores
@@ -1337,6 +1358,7 @@ static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
         pwDst += 4;
     }
 }
+// Append the VIF code TAG and then cw words from pv to the DMA packet D_002DEA28.
 template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -1345,6 +1367,7 @@ template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
     pdma->pb += cw * 4;
 }
+// Append the VIF code tag and then cw words from pv to the DMA packet D_002DEA28.
 static inline void UnpackQws(uint tag, const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -1353,6 +1376,7 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
     pdma->pb += cw * 4;
 }
+// Append the VIF code tag and then cw words from pv (copied one word at a time) to the DMA packet.
 static inline void UnpackWords(uint tag, const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -1364,6 +1388,7 @@ static inline void UnpackWords(uint tag, const void *pv, int cw)
         *pwDst++ = *pwSrc++;
     pdma->pb += cw * 4;
 }
+// Sub-glob kind: bits 3..7 of its flags.
 static inline int KindOf(SUB *psub)
 {
     return (ulong)(psub->grf & 0xF8) >> 3;
@@ -1715,14 +1740,17 @@ void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 qword GetLoWorldPos(ALO *palo);
 RPL *AllocRenderListEntry(void);
 }
+// Return the 4x4 matrix product matA * matB.
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
     __ml__FRC7MATRIX4T0(&mat, &matA, &matB);
 }
+// Copy a 4x4 matrix.
 static inline void CopyMat(MATRIX4 &matDst, const MATRIX4 &matSrc)
 {
     func_0023320C(&matDst, &matSrc, sizeof(MATRIX4));
 }
+// Transform point qwPos by the 4x4 matrix mat.
 static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
@@ -1731,6 +1759,7 @@ static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
             : "j"(*(qword *)mat.mat[0]), "j"(*(qword *)mat.mat[1]), "j"(*(qword *)mat.mat[2]), "j"(*(qword *)mat.mat[3]), "j"(qwPos));
     return qw;
 }
+// Store the bits of qwV's squared length (xyz) into gDst.
 static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
 {
     qword qwSq, qwOne;
@@ -1738,6 +1767,7 @@ static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
     // the "m"/"r" alternative is allocation-only (never chosen): it keeps the destination a MEM, so the qmfc2 result is an output reload
     __asm__("qmfc2.ni %0, %1" : "=r,m"(gDst) : "j,!r"(qwSq));
 }
+// Bits of qwV's squared length (xyz) as an int.
 static inline int GetSquaredLengthBits(qword qwV)
 {
     qword qwSq, qwOne;
@@ -1746,6 +1776,7 @@ static inline int GetSquaredLengthBits(qword qwV)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qwSq));
     return g;
 }
+// Copy cw words (a multiple of 4) from pwSrc to pwDst one quadword at a time.
 static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
 {
     // empty do-while(0) (as left by a statement macro): its loop notes keep later setup below the tag/pb stores
@@ -1766,6 +1797,7 @@ static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
         pwDst += 4;
     }
 }
+// Append the VIF code TAG and then cw words from pv to the DMA packet D_002DEA28.
 template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -1774,6 +1806,7 @@ template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
     pdma->pb += cw * 4;
 }
+// Append the VIF code tag and then cw words from pv to the DMA packet D_002DEA28.
 static inline void UnpackQws(uint tag, const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -2014,6 +2047,7 @@ struct SO {
 struct P{SO*owner;};
 struct REQUEST {
     int bytes, alignment;
+    // Allocation request: byte count and alignment.
     REQUEST(int cb, int a) : bytes(cb), alignment(a) {}
 };
 
@@ -2090,10 +2124,12 @@ BINDING*LoadClutsetFromBrx(P*,STREAM*);
 M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
+// Allocate bytes, 16-byte aligned, from the world heap.
 static inline void *Allocate(int bytes)
 {
     return AllocFromWorldHeap(REQUEST(bytes, 16));
 }
+// Reallocate old as a copy of bytes bytes, 16-byte aligned, on the world heap.
 static inline void *Reallocate(int bytes, void *old)
 {
     return AllocCopyFromWorldHeap(REQUEST(bytes, 16), old);
@@ -2239,6 +2275,7 @@ struct RGBA {
     uchar green;
     uchar blue;
     uchar alpha;
+    // Set the color from a packed 0xRRGGBBAA word.
     inline void operator=(const int rgba)
     {
         red = (rgba >> 24) & 0xFF;
@@ -2287,6 +2324,7 @@ public:
     void EndDmaCnt() __asm__("EndDmaCnt__4DMAS");
     virtual void EndPrim(int fEOP);
 };
+// Append one int to the DMA packet.
 inline void AddDmaInt(DMAS *pdmas, int val)
 {
     *(int *)pdmas->m_pb = val;
@@ -2729,11 +2767,13 @@ extern "C" { extern char D_00000000[]; }
 extern "C" {
 void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType0FromBrx");
 }
+// Allocate cb bytes, 16-byte aligned, from the world heap.
 static inline void *PvAllocSw(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocSwImpl(&swalloc);
 }
+// Allocate cb bytes, 16-byte aligned, from the world heap and copy pvBase into them.
 static inline void *PvAllocSwCopy(int cb, void *pvBase)
 {
     SWALLOCC swalloc(cb, 0x10);
@@ -2757,16 +2797,19 @@ extern "C" void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *
 void FixupRgba(RGBA *prgba) __asm__("ColorCorrectRgba");
 extern "C" { 
  }
+// Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocFromStack16(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocStackImpl(&swalloc);
 }
+// Allocate cb zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocClearedFromStack16(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocStackClearImpl(&swalloc);
 }
+// Allocate cb zeroed bytes, 16-byte aligned, from the world heap.
 static inline void *AllocClearedFromWorldHeap16(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
@@ -2814,6 +2857,7 @@ struct SAAFIELDS : public SAAVIRT
     int cqwMain;
     void *pvMain;
 };
+// Number of texture words for a sub-glob: its binding count, capped at 4.
 static inline int CwtFromSubglob(SUBGLOB *psubglob)
 {
     int cbnd = psubglob->cbnd;
@@ -2822,11 +2866,13 @@ static inline int CwtFromSubglob(SUBGLOB *psubglob)
         cwt = cbnd;
     return cwt;
 }
+// If *ppb points into the old block [pbOld, pbOld+cb), rebase it into the new block at pbNew.
 static inline void RelocPpv(char *pbOld, int cb, char *pbNew, char **ppb)
 {
     if (ppb != 0 && *ppb >= pbOld && *ppb < pbOld + cb)
         *ppb += pbNew - pbOld;
 }
+// Return pb rebased from the old block [pbOld, pbOld+cb) into the new block at pbNew (unchanged if outside).
 static inline char *RelocatePointer(char *pbOld, int cb, char *pbNew, char *pb)
 {
     char *pbRet;
@@ -3693,6 +3739,7 @@ struct E8 { int c; E6 *a; };
 struct T { int c; E8 *a; int *ai; };
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
 extern "C" void ColorCorrectRgba16(short *ps);
+// Fill the request and allocate cb zeroed bytes of kind nKind from the frame stack.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -3771,6 +3818,7 @@ struct HEADER {
 };
 struct REQUEST {
     int bytes, alignment;
+    // Allocation request: byte count and alignment.
     REQUEST(int cb, int a) : bytes(cb), alignment(a) {}
 };
 extern "C"{
@@ -3787,9 +3835,12 @@ extern UPK D_002BE558[];
 extern char D_00000000[],D_00001910[],D_00001A68[];
 }
 struct LEASE {
+    // Open a stack-allocation scope (STACKSCOPE): allocations after it are freed by Release.
     LEASE() { STACKSCOPE_ctor(this); }
+    // Release the stack allocations made since the scope opened.
     void Release() { STACKSCOPE_ctor_1AE4A0(this, 2); }
 };
+// Allocate bytes zeroed, 16-byte aligned, from the world heap.
 static inline void *Allocate(int bytes)
 {
     return AllocClearedFromWorldHeap(REQUEST(bytes, 16));
@@ -3965,6 +4016,7 @@ struct HEADER {
 };
 struct REQUEST {
     int bytes, alignment;
+    // Allocation request: byte count and alignment.
     REQUEST(int cb, int a) : bytes(cb), alignment(a) {}
     void *Allocate();
     void *AllocateZero();
@@ -3988,25 +4040,33 @@ extern UPK D_002BE558[];
 extern char D_00000000[],D_00001910[],D_00001A68[];
 }
 struct MARK {
+    // Open a stack-allocation scope (STACKSCOPE).
     MARK() { STACKSCOPE_ctor(this); }
+    // Release the stack allocations made since the scope opened.
     ~MARK() { STACKSCOPE_ctor_1AE4A0(this, 2); }
 };
 struct LEASE {
+    // Open a stack-allocation scope (STACKSCOPE).
     LEASE() { STACKSCOPE_ctor(this); }
+    // Release the stack allocations made since the scope opened.
     void Release() { STACKSCOPE_ctor_1AE4A0(this, 2); }
 };
+// Allocate this request from the frame stack.
 inline void *REQUEST::Allocate()
 {
     return AllocFromStack(*this);
 }
+// Allocate this request zeroed from the world heap.
 inline void *REQUEST::AllocateZero()
 {
     return AllocClearedFromWorldHeap(*this);
 }
+// Allocate bytes, 16-byte aligned, from the frame stack.
 static inline void *Allocate(int bytes)
 {
     return REQUEST(bytes, 16).Allocate();
 }
+// Allocate bytes zeroed, 16-byte aligned, from the world heap.
 static inline void *AllocateZero(int bytes)
 {
     return REQUEST(bytes, 16).AllocateZero();
@@ -4053,12 +4113,15 @@ static inline ushort Flags(ushort v)
     __asm__("" : "+r"(v));
     return v;
 }
+// The constant V, laundered through an empty asm so the compiler materialises it in a register where the original
+// does.
 template <int V> static inline int Flags()
 {
     int v = V;
     __asm__ __volatile__("" : "+r"(v));
     return v;
 }
+// Store the xyz components of value into destination.
 static inline void WriteVertex(U *destination, U value)
 {
     float x = ::GetVectorComponentX((VECTOR *)&value);
@@ -4594,6 +4657,7 @@ struct HEADER {
 };
 struct REQUEST {
     int bytes, alignment;
+    // Allocation request: byte count and alignment.
     REQUEST(int cb, int a) : bytes(cb), alignment(a) {}
 };
 extern "C"{
@@ -4611,10 +4675,14 @@ extern UPK D_002BE558[];
 extern char D_00000000[],D_00000738[],D_000007F0[];
 }
 struct LEASE {
+    // Empty destructor (the scope is released explicitly).
     ~LEASE() {}
+    // Open a stack-allocation scope (STACKSCOPE).
     void Acquire() { STACKSCOPE_ctor(this); }
+    // Release the stack allocations made since the scope opened.
     void Release() { STACKSCOPE_ctor_1AE4A0(this, 2); }
 };
+// Allocate bytes zeroed, 16-byte aligned, from the world heap.
 static inline void *Allocate(int bytes)
 {
     return AllocClearedFromWorldHeap(REQUEST(bytes, 16));
@@ -4907,6 +4975,7 @@ void ClearSle(int*);
 void PrependSlEntry(void*,LINK*);
 void RelocateShaderUploadRecords(int,int,int,uint,uint);
 }
+// Allocate bytes, 16-byte aligned, from the world heap and copy source into them.
 static inline void *Copy(int bytes, void *source)
 {
     REQUEST request;
@@ -4914,11 +4983,14 @@ static inline void *Copy(int bytes, void *source)
     request.alignment = 16;
     return AllocCopyFromWorldHeap(&request, source);
 }
+// Call the object's readTransform virtual (vtable slot 52) to load a transform from the stream.
 static inline void ReadTransform(SO *object, STREAM *stream, TRANSFORM **output)
 {
     VE *method = &object->vt[52];
     method->readTransform((SO *)((char *)object + method->delta), stream, output);
 }
+// If any of p's objects has flag 4, replace p's object array with a heap copy (so it can be edited without touching
+// the shared one) (inferred).
 static inline void CopyObjects(P *p)
 {
     for (int i = 0; i < p->objectCount; i++) {

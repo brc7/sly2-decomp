@@ -15,7 +15,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    hidden pointer, as in the binary (see the guide's note on tu_15DC80). */
 struct RGBA {
     unsigned char r, g, b, a;
+    // Uninitialised color.
     RGBA() {}
+    // Color from its four components.
     RGBA(int r_, int g_, int b_, int a_) { r = r_; g = g_; b = b_; a = a_; }
 };
 

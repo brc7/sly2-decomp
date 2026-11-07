@@ -248,25 +248,30 @@ struct VU_FLOAT
 struct VU_FLOATM
 {
     qword q;
+    // Load a float into a GPR qword (lw).
     VU_FLOATM(const float &g) { __asm__("lw %0, %1" : "=r"(q) : "m"(g)); }
 };
 struct VU_VECTOR
 {
     qword q;
+    // Wrap a qword as a VU_VECTOR.
     VU_VECTOR(const qword &v) { q = v; }
 };
+// Dot product of a and b (x lane).
 static inline qword Dot(VU_VECTOR a, VU_VECTOR b)
 {
     qword d;
     d = VuDot(a.q, b.q);
     return d;
 }
+// x lane of v as a float.
 static inline float Scalar(VU_VECTOR v)
 {
     float f;
     f = VuToFloat(v.q);
     return f;
 }
+// Squared length of v as a float.
 static inline float SqLength(VU_VECTOR v)
 {
     return Scalar(Dot(v, v));
@@ -283,6 +288,8 @@ static inline qword LoadSphereToVf15(const qword &pos)
     __asm__("lqc2 $vf15, %1" : "+j"(q) : "m"(pos));
     return q;
 }
+// Load the cull inputs (plane set, gain, position, radius, flags word) into the fixed vf10..vf17 registers the
+// culling asm expects.
 static inline void StartCull(qword *aqwPlane, VU_FLOATM gain, qword qwPos, VU_FLOAT radius, VU_FLOAT word)
 {
     // q10..q17 are tokens for the input registers vf10..vf17 (no values pass through them)
@@ -312,6 +319,7 @@ static inline qword GetCullSphereOffset()
     register qword qwDpos __asm__("vf18"); // pin: the microprogram's output register
     return qwDpos;
 }
+// Copy cw words (a multiple of 4) from pwSrc to pwDst one quadword at a time.
 static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
 {
     // empty do-while(0) (as left by a statement macro): its loop notes keep later setup below the tag/pb stores
@@ -332,6 +340,7 @@ static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
         pwDst += 4;
     }
 }
+// Append the VIF code TAG and then cw words from pv to the DMA packet D_002DEA28.
 template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -340,6 +349,7 @@ template <uint TAG> static inline void UnpackQws(const void *pv, int cw)
     CopyQws((uint *)pdma->pb, (const uint *)pv, cw);
     pdma->pb += cw * 4;
 }
+// Append the VIF code tag and then cw words from pv to the DMA packet D_002DEA28.
 static inline void UnpackQws(uint tag, const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -368,6 +378,7 @@ static inline void CopyWords(uint *punDst, const uint *punSrc, int cun)
         punDst += 4;
     }
 }
+// Append the VIF code TAG and then cw words from pv (word-by-word copy) to the DMA packet.
 template <uint TAG> static inline void UnpackWords(const void *pv, int cw)
 {
     DMA *pdma = &D_002DEA28;
@@ -377,6 +388,7 @@ template <uint TAG> static inline void UnpackWords(const void *pv, int cw)
     pdma->pb += cw * 4;
 }
 
+// Pad the DMA packet with zero words up to the next quadword boundary.
 static inline void PadQw()
 {
     DMA *pdma = &D_002DEA28;
@@ -622,6 +634,7 @@ extern "C" void AddLoToRenderTree(OBJ *pobj)
 }
 
 struct MSG { int cb; int nKind; };
+// Fill the heap message and allocate cb zeroed bytes of kind nKind from the world heap.
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 
 // Allocates a render-tree block: four empty entries (kind -1), 0x80 bytes.
@@ -633,6 +646,7 @@ extern "C" BLOCK *AllocRenderBlock(G *pg)
     return pblock;
 }
 
+// Distance between a and b (xyz) as a float.
 static inline float Dist(qword a, qword b)
 {
     qword d, t, va;

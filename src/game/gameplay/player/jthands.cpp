@@ -180,8 +180,10 @@ struct CTXCOPY { JTHANDSCTX context; U local; M3 transformed, temporary; };
 struct EARLY { M4 product, temporary, inverse; };
 union STAGE { EARLY early; CTXCOPY late; };
 struct WORK { U position; M3 basis; STAGE stage; float t, result, projection; U saved; };
+// Placement new: construct at destination.
 static inline void *operator new(unsigned size, void *destination) { return destination; }
 struct COPYPREFIX { U position; M3 basis; M4 product; };
+// Publish the product and basis words of the work record (register-pinned) and return the hands context.
 static inline JTHANDSCTX *PublishProductAndBasis(WORK *w)
 {
     register qword first __asm__("$6"), last __asm__("$4"), second __asm__("$2"), third __asm__("$3");
@@ -191,6 +193,7 @@ static inline JTHANDSCTX *PublishProductAndBasis(WORK *w)
             : "r"(w), "m"(w->stage.early.temporary));
     return context;
 }
+// XY length of v (x lane, vf2).
 static inline qword LengthXY(qword v)
 {
     register qword d __asm__("vf2");
@@ -200,7 +203,9 @@ static inline qword LengthXY(qword v)
     __asm__("qmfc2.ni %0,%1" : "=r"(word) : "j"(d));
     return word;
 }
+// Store the x lane of q to *p.
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
+// *saved - raw, also fetching the hands' carried object (register-pinned).
 static inline qword DifferenceFromSaved(const U *saved, qword raw, JTHANDS *hands, SO *&receiver)
 {
     register qword point __asm__("vf1"), current __asm__("vf2");
@@ -210,6 +215,7 @@ static inline qword DifferenceFromSaved(const U *saved, qword raw, JTHANDS *hand
     receiver = owner;
     return point;
 }
+// Copy a matrix pointer into $6.
 static inline const M4 *InverseArgument(const M4 *value)
 {
     register const M4 *arg __asm__("$6");
@@ -291,6 +297,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
    clips the blend of the two (weights 1 and 0 to start with) is made. */
 typedef unsigned size_t;
 extern "C" void *memset(void *ptr, int value, size_t num);
+// Set matrix to the identity.
 inline void SetMatrix4Identity(MATRIX4 *matrix)
 {
     memset(matrix, 0, sizeof(MATRIX4));
@@ -300,6 +307,7 @@ inline void SetMatrix4Identity(MATRIX4 *matrix)
     matrix->mat[0][0] = 1.0f;
 }
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
+// Transform pos by the 4x4 matrix.
 inline qword TransformPos(MATRIX4 *matrix, qword pos)
 {
     qword result;
@@ -319,6 +327,7 @@ void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc,
 LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice);
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 extern "C" void MeasureShape(SHAPE *pshape);
+// Allocate cb bytes with the given alignment from the world heap.
 inline void *AllocFromWorldHeapAligned(int cb, int alignment)
 {
     SWALLOC swalloc;
@@ -478,10 +487,15 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
    below. */
 union VIEWS { struct { M4 intermediate, product, inverse; } matrices; struct { M3 angles, converted; } basis; U scalar; };
 struct CARRYWORK { M4 original, sample, start, final; VIEWS views; qword velocity, destination, delta, endVelocity; };
+// The object's source matrix into out (virtual slot 32).
 static inline XF *SourceMatrix(LO *lo, M4 *out) { VTE &v = PVT(lo)[32]; return ((XF * (*)(LO *, M4 *))v.pfn)((LO *)((char *)lo + v.delta), out); }   /* LO slot 32, GetLocalTransform */
+// The object's world matrix (virtual slot 31).
 static inline M4 *WorldMatrix(LO *lo) { VTE &v = PVT(lo)[31]; return ((M4 * (*)(LO *))v.pfn)((LO *)((char *)lo + v.delta)); }   /* LO slot 31, GetWorldMatrix */
+// Address of the work record's translation slot (+0xB0), in $4.
 static inline qword *TranslationSlot(CARRYWORK &w) { register qword *slot __asm__("$4"); __asm__("addiu %0,%1,0xB0" : "=r"(slot) : "r"(&w)); return slot; }
+// Copy the matrix pointer into $8.
 static inline M4 *SampleOutput(M4 *value) { register M4 *result __asm__("$8"); __asm__("daddu %0,%1,$zero" : "=r"(result) : "r"(value)); return result; }
+// Difference to the destination and the speed needed to cover it in the duration (register-pinned).
 static inline void DeltaForDuration(CARRYWORK &w, qword raw, float &bound, qword &speed)
 {
     register qword destination __asm__("vf1"), difference __asm__("vf2");

@@ -31,7 +31,9 @@ void DestroyCm(CMG *pcm, int grfDelete);   /* ~CM (linkonce, below) */
 struct CMG
 {
     char ab[sizeof(CM)];
+    // Construct the camera through CM_ctor.
     CMG() { CM_ctor((CM *)this); }
+    // Destroy the camera (DestroyCm with the delete flag 2).
     ~CMG() { DestroyCm(this, 2); }
 } __attribute__((aligned(16)));
 CMG D_002DDF40;
@@ -185,6 +187,7 @@ void ResetCameraPolicies(struct P *p)
 namespace M_InitCm__FP2CM {
 // InitCm: near/far and LM init via inline helpers (parameter pseudos give the original FP register choice).
 typedef int qword __attribute__((mode(TI)));
+// Color bytes from a packed 32-bit word.
 struct RGBA { unsigned char r, g, b, a; RGBA(unsigned int n) { *(unsigned int *)this = n; } };
 struct V3 { float x, y, z; };
 struct LM { float g0; int n4; float g8; float gC; };
@@ -208,7 +211,9 @@ void InitCptn(void *p);
 void InitCplcy(void *p);
 void SetCmPolicy(CM *p, int prio, void *po, int a, int b);
 }
+// Set the camera's near and far clip distances.
 static inline void SetNF(CM *cm, float n, float f) { cm->nearClip = n; cm->farClip = f; }
+// Initialise a limit record from its three float fields and clear its int field.
 static inline void InitLm(LM *plm, float g0, float g8, float gC) { plm->g0 = g0; plm->gC = gC; plm->g8 = g8; plm->n4 = 0; }
 // Camera init: fogColor fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat, RecalcCmFrustrum, SetCmLookAt,
 // CutCm, Init on each embedded policy, push default policy (+0x3A0) with SetCmPolicy(prio 0), joltTime=-10.
@@ -316,15 +321,19 @@ namespace M_BuildFrustrum {
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { qword r[3]; };
 extern "C" void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal);
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 
+// Return a + b * s.
 static inline qword AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT s)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a.q), "j"(b.q), "j"(s.q));
     return r;
 }
+// Unit vector along v.
 static inline qword Normalize(qword v)
 {
     qword t, one, r;
@@ -335,6 +344,7 @@ static inline qword Normalize(qword v)
     return r;
 }
 
+// Unit vector along v (register-pinned to vf2).
 static inline qword Normalize1(qword v)
 {
     register qword t __asm__("vf2");
@@ -438,6 +448,7 @@ struct VU_FLOAT
 {
     qword qw;
 };
+// Return qwBase + qwD * g.
 static inline qword QwAddScaled(qword qwBase, qword qwD, VU_FLOAT g)
 {
     qword qw;
@@ -453,18 +464,21 @@ extern "C" { extern qword D_002BD890; }
 extern "C" { extern qword D_002BD8A0; }
 extern "C" { extern qword D_002A2DE0; }
 extern "C" { extern float *VECTOR_opAssign(float *pg, qword qw); }
+// Return qwRow scaled by gScale.
 static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwRow), "j"(gScale.qw));
     return qw;
 }
+// Move a float's bits into a GPR qword (mfc1).
 static inline VU_FLOAT VuFloatOfFloat(float g)
 {
     VU_FLOAT v;
     __asm__("mfc1 %0, %1" : "=r"(v.qw) : "f"(g));
     return v;
 }
+// Evaluate the quadratic g0 + g1*x + g2*x^2 and clamp it to the limit [gMin, gMax].
 static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -622,6 +636,7 @@ void GetVectorSphere(qword v, float *a, float *b, int c);
 M3 LoadRotateMatrixPanTilt(float a, float b);
 void VECTOR_opAssign(V4 *p, qword v);
 void UpdateCmMat4__FP2CM(struct CM *p);
+// Build a 4x4 matrix from rotation m and translation pos.
 static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
 {
     VECTOR_opAssign(&pm->pos, pos);
@@ -672,6 +687,7 @@ struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int policyCount; struct E policies[8]; char pad2[0x390 - 0x390]; float modeStartTime; };
 extern struct CLOCK D_002DDED0;
 void *memmove(void *dst, void *src, int cb);
+// memmove cb bytes.
 static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
 // Insert {cpp,pcplcy,focus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top:
 // prev vt3 Deactivate, modeStartTime=clock.time, vt2 Activate.
@@ -871,6 +887,7 @@ void AdjustCmCpdefi(struct P *p, struct O *po, struct S *ps)
 }
 } } // namespace M_AdjustCmCpdefi
 
+// Zero the xyz components of pv.
 static inline void ZeroVector(VECTOR *pv)
 {
     pv->z = 0.0f;
@@ -965,9 +982,12 @@ qword SetVectorSphere(float pan, float tilt, float s);
 int FindCameraClearInterval(void *p, void *x, qword a, qword b, float *pt, float *pu, float g);
 qword FindCmClosestClearPos(void *p, void *x, qword pos, float g);
 }
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 
+// Return a + b * s.
 static inline qword AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT s)
 {
     qword r;
@@ -975,6 +995,7 @@ static inline qword AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT s)
     return r;
 }
 
+// Return v1*f1 + v2*f2 + v3*f3.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2, VU_FLOAT f3, VU_VECTOR v3)
 {
     qword r;
@@ -1028,6 +1049,7 @@ int IntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, i
 void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g);
 qword LimitVectorLength(qword v, float g);
 
+// Dot product of the xyz parts of *pa and *pb, as raw float bits.
 static inline int Dot(qword *pa, qword *pb)
 {
     register qword nj __asm__("vf1") = *pb;
@@ -1040,6 +1062,7 @@ static inline int Dot(qword *pa, qword *pb)
     return d;
 }
 
+// Allocate cb bytes with alignment cbAlign from the world heap.
 static inline void *PvAlloc(int cb, int cbAlign)
 {
     struct AL al;
@@ -1127,6 +1150,7 @@ extern float D_002BD8D8;
 extern char D_002BD8E0[];
 void *InitVuTemp(void *p);
 void SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
+// Signed distance from pos to plane (plane.xyz . pos - plane.w).
 static __inline__ float GDistPlane(qword plane, qword pos)
 {
     U d, one;
@@ -1143,6 +1167,7 @@ static __inline__ float GDistPlane(qword plane, qword pos)
     d.q = td;
     return dist;
 }
+// Dot product of the xyz parts of *pa and b as a float.
 static __inline__ float GDot(const qword *pa, qword b)
 {
     qword a = *pa;
@@ -1170,6 +1195,7 @@ namespace M_ClipCameraEye {
 // pclock register, lw s0,0x10(s0)), which also shortens the clock chain in sched1 so no extra operand is needed on the vdiv;
 // v is computed before posMin so the spill slots come out v 0x30 / posMin 0x40. No register pins.
 typedef int qword __attribute__((mode(TI)));
+// Float broadcast into a VU0 register, from a value or from memory.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
 struct CLOCK { float time, deltaTime, unknown8, unknownC, dtPrev; };
 extern "C" {
@@ -1185,21 +1211,27 @@ void HasCameraBsp(void);
 void SvSquishCmEyeConstraint(void);
 qword ClipCameraEye(void *p, qword pos, qword posTarget);
 }
+// Divide v by g.
 static inline qword DivideBy(const qword &v, const VU_FLOAT &g) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
+// Return base + vec * s.
 static inline qword AddScaled(qword base, const qword &vec, const VU_FLOAT &s)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(base), "j"(vec), "j"(s.q));
     return r;
 }
+// Dot product of the xyz parts of a and b (x lane).
 static inline qword QwDot(const qword &a, const qword &b)
 {
     qword d, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
     return d;
 }
+// Square root of the x lane of a.
 static inline qword QwSqrt(const qword &a) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(a)); return r; }
+// x lane of q as a float.
 static inline float GXOfQw(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
+// Length of v as a float.
 static inline float Length(const qword &v) { return GXOfQw(QwSqrt(QwDot(v, v))); }
 
 // VEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return prev + vClip*dt.
@@ -1223,6 +1255,7 @@ namespace M_ConvertCmScreenToWorld { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct CM { char pad[0x40]; float sx, sy; char pad2[0x18]; M4 mat; };
+// Transform point v by the 4x4 matrix pm.
 static __inline__ qword Mul(M4 *pm, qword v)
 {
     qword o;
@@ -1321,6 +1354,7 @@ void SetCmMat(struct CM *cm, struct MATRIX3 *pmat)
 
 namespace M_GetCmRotDeg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
+// Pack x, y, z into a 128-bit GPR value.
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1347,6 +1381,7 @@ qword GetCmRotDeg(struct CMR *p)
 
 namespace M_SetCmRotDeg { extern "C" {
 typedef int qword __attribute__((mode(TI)));
+// Pack x, y, z into a 128-bit GPR value.
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1491,6 +1526,7 @@ typedef struct { qword r[4]; } M4;
 struct CM { char pad[0x60]; M3 mat; qword pos; char pad2[0x100 - 0xA0]; char projection[0x520]; float stereoEyeOffset; };
 void VECTOR_opAssign(qword *p, qword v);
 void CombineEyeLookAtProj(M4 *pm, void *pv, int n);
+// Copy the rotation pmat into pm with zero w in rows 0-2 and w = 1 in row 3 (the caller fills the position).
 static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 {
     pm->r[0] = pmat->r[0];

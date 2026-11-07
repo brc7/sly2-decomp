@@ -211,6 +211,7 @@ void EMITTER::Init()
 
 namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream {
 typedef int qword __attribute__((mode(TI)));
+// Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct CBinaryInputStream;
 struct TRI { int aipos[3]; float sArea; };
@@ -223,8 +224,11 @@ void *AllocFromWorldHeap(AL *pal);
 void *AllocClearedFromWorldHeap(AL *pal);
 }
 extern "C" { extern qword D_002A2DC0; }
+// Allocate cb bytes with the given alignment from the world heap.
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
+// Allocate cb zeroed bytes with the given alignment from the world heap.
 static inline void *AllocZeroedFromHeap(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocClearedFromWorldHeap(&al); }
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -235,6 +239,7 @@ static __inline__ qword VLen(qword c)
     return r;
     }
 }
+// Normalize c into *pr; falls back to k when the length is below 1e-4.
 static __inline__ void VNormalize(qword *pr, qword c, qword k)
 {
     qword l;
@@ -347,6 +352,7 @@ void SetLoBusyKind(struct EMITTERV *p, int n);
 void *GetLoWorldMatrix(struct EMITTERV *p);
 void AppendDlEntry__FP2DLPv(void *pv, struct EMITTERV *p);
 
+// Allocate cb bytes from the world heap and copy pv into them.
 static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
 {
     struct ALLOCREQ req;
@@ -510,6 +516,7 @@ extern "C" {
 qword GetLoWorldPos(ALO *referenceObject);
 float ModPositive__Fff(float g, float gMod);
 }
+// Wrap *pg into [gMin, gMax] with period gBox, writing the applied shift to *pdg (unchanged when already inside).
 static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float *pdg)
 {
     if (*pg < gMin || gMax < *pg) {
@@ -616,6 +623,7 @@ void PauseEmitter(EMITTERV *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
 void PauseEmitterIndefinite(EMITTERV *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void ModifyEmitterParticles(EMITTERV *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
 
+// Squared distance between a and b (xyz).
 static inline float Dist2(qword a, qword b)
 {
     qword d, t;
@@ -625,6 +633,7 @@ static inline float Dist2(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// a < b (float comparison helper).
 static inline int FLess(float a, float b) { return a < b; }
 
 // Per-frame emitter update: applies changed values and updates the LO; a slaved emitter (groupOid set) stops there.
@@ -931,6 +940,7 @@ void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void EmitParticlesAt(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
 }
 
+// Length of the xyz part of a, in the x lane.
 static inline qword Length(qword a)
 {
     qword r, one;
@@ -1022,8 +1032,10 @@ namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3 {
 // Notes: the unused case-1 VU_VECTOR[3] frees the stack slot that case 3's an[] reuses; VLen = one length-squared asm
 // plus a separate vsqrt asm; Normalize returns its VU_VECTOR by value (gives dir its stack slot).
 typedef int qword __attribute__((mode(TI)));
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct VU_VECTOR { qword q; };
+// Wrap a qword as a VU_VECTOR.
 static inline VU_VECTOR V(qword q) { VU_VECTOR v; v.q = q; return v; }
 struct MATRIX3 { qword r[3]; };
 struct CM { char pad[0x60]; MATRIX3 mat; };
@@ -1057,6 +1069,7 @@ float RandomFloatInRange__Fff(float gMin, float gMax);
 void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
 MATRIX3 *GetLoWorldMatrix(void *palo);
 }
+// Return f0*v0 + f1*v1 + f2*v2.
 static inline qword Combo3(VU_FLOAT f0, VU_VECTOR v0, VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword d;
@@ -1064,6 +1077,7 @@ static inline qword Combo3(VU_FLOAT f0, VU_VECTOR v0, VU_FLOAT f1, VU_VECTOR v1,
             : "=j"(d) : "j"(f0.q), "j"(v0.q), "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return d;
 }
+// Rotate v by the 3x3 matrix m.
 static inline qword MulMat(const MATRIX3 &m, qword v)
 {
     qword d;
@@ -1071,6 +1085,7 @@ static inline qword MulMat(const MATRIX3 &m, qword v)
             : "=j"(d) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     return d;
 }
+// Rotate v by the transpose of m (three dot products).
 static inline qword MulTMat(const MATRIX3 &m, qword v)
 {
     qword d, one, t0, t1, t2;
@@ -1079,7 +1094,9 @@ static inline qword MulTMat(const MATRIX3 &m, qword v)
             : "=j"(d), "=&j"(one), "=&j"(t0), "=&j"(t1), "=&j"(t2) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v));
     return d;
 }
+// Rotate v into the camera's orientation.
 static inline qword MulCam(CM *pcm, qword v) { return MulMat(pcm->mat, v); }
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -1090,8 +1107,10 @@ static __inline__ qword VLen(qword c)
     return r;
     }
 }
+// Return v scaled by f.
 static inline qword Scale(VU_FLOAT f, VU_VECTOR v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
 
+// Unit vector along d; falls back to D_002A2DA0 when the length is below 1e-4.
 static inline VU_VECTOR Normalize(qword d)
 {
     VU_VECTOR dir;
@@ -1526,6 +1545,7 @@ float RandomFloatInRange__Fff(float gMin, float gMax);
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
 }
 
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
     qword d, t;
@@ -1535,6 +1555,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 
+// Random float in the limit range [minValue, maxValue].
 static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValue, plm->maxValue); }
 
 // Spawns `c` blips into the emitter's BLIPG (creating it and handing it the subscriber on first use), filling the
@@ -1603,6 +1624,7 @@ namespace M_OriginateParticles__FiP5EMITBP7EMITGEN {
 // (Claude agent, lane E7) MATCH from the 4-diff wip: ONE register pin, the pb->apos base in $2 (v0) inside the pxf block.
 // NEAR MISS (round 9): 4/130, only $v0/$v1 for &apos[i] in the first pxf block
 typedef int qword __attribute__((mode(TI)));
+// Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
@@ -1618,7 +1640,9 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EM
 void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITTERV *pemit, qword *ppos, qword *pvel);
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *pemit, BUF *pb);
 }
+// Allocate cb bytes with the given alignment from the frame stack.
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(&al); }
+// Rotate v by the 3x3 matrix m.
 static inline qword MulRow(const MATRIX3 &m, qword v)
 {
     qword r;
@@ -1681,7 +1705,9 @@ void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
 void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb);
 }
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Transform point v by the 4x4 matrix m (rotation plus translation).
 static inline qword MulAffine(const M4 &m, qword v)
 {
     qword r;
@@ -1689,6 +1715,7 @@ static inline qword MulAffine(const M4 &m, qword v)
             : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]), "j"(v));
     return r;
 }
+// Rotate v by the 3x3 part of m.
 static inline qword MulRot(const M4 &m, qword v)
 {
     qword r;
@@ -1696,6 +1723,7 @@ static inline qword MulRot(const M4 &m, qword v)
             : "=j"(r) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     return r;
 }
+// Return v scaled by s.
 static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(v), "j"(s.q)); return d; }
 
 // For spline-motion blips: originates the spline end points from the spline target (an EXPLO with its own EMITB,
@@ -1835,6 +1863,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0x58]; float damping; int pad5c; qword addedVelocity; qword curlAxis; float curlRate; };
 struct O { qword addedVelocity; qword curlAxis; float curlRate; float damping; };   /* EMITDV: a particle's motion parameters */
 extern qword D_002A2DC0;
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -1845,6 +1874,7 @@ static __inline__ qword VLen(qword c)
     return r;
     }
 }
+// Normalize c into *pr; falls back to k when the length is below 1e-4.
 static __inline__ void VNormalize(qword *pr, qword c, qword k)
 {
     qword l;
@@ -1874,6 +1904,7 @@ namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4 {
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
+// Float carried as raw bits in a GPR qword (no VU0 transfer).
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("" : "=r"(q) : "0"(*(int *)&f)); } };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
@@ -1881,6 +1912,7 @@ struct X { float x, y, z, w; qword axis; float curlRate; float damping; };   /* 
 extern "C" { void BuildAxisAngleRotationMatrix(MATRIX3 *pm, float g, qword axis); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) __asm__("__ml__FRC7MATRIX4G8VU_FLOAT");
+// Element-wise sum of two 4x4 matrices.
 static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
 {
     for (int i = 0; i < 4; i++)
@@ -1959,6 +1991,7 @@ void EXPL::ExplodeExplso()   /* key function: EXPL's vtable comes out here (Expl
 namespace M_LoadExplgFromBrx { extern "C" {
 typedef struct MSG { int cb; int nKind; } MSG;
 void *AllocClearedFromWorldHeap(MSG *pmsg);
+// Fill the heap message and allocate cb zeroed bytes of kind nKind from the world heap.
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 struct C { int a[4]; };
 struct VTE { short d; short pad; void (*pfn)(...); };
@@ -2009,6 +2042,7 @@ int EXPLG::GetChildren(LO ***childrenOut)
 namespace M_CloneExplg { extern "C" {
 typedef struct MSG { int cb; int nKind; } MSG;
 void *AllocCopyFromWorldHeap(MSG *pmsg, void *pv);
+// Fill the heap message and reallocate pv as a cb-byte copy of kind nKind on the world heap.
 static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 struct S { int pad[4]; void *psoParent; char pad2[0xE0 - 0x14]; int numChildren; void **children; };   /* EXPLG */
 void CloneXfm(struct S *p, void *pv);
@@ -2041,6 +2075,7 @@ struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; 
 extern "C" { MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 struct VU_VECTOR4 { qword qw; };
+// 3x3 matrix product matL * matR.
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
     qword qwL0 = matL.r[0];
@@ -2059,6 +2094,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
             : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(matR.r[2]));
     *(VU_VECTOR4 *)&mat.r[2] = v2;
 }
+// Rotate qwVec by the 3x3 matrix pmat.
 inline qword QwRotateVec(const MATRIX3 *pmat, qword qwVec)
 {
     qword qwResult;

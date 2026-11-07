@@ -35,6 +35,7 @@ static inline float Dot(const qwordV *a, qwordV b) {
     r = VuToFloat(d);
     return r;
 }
+// Length of the xyz part of a as a float.
 static inline float Len(qwordV a) {
     qwordV d; float r;
     d = VuDot(a, a);
@@ -42,6 +43,7 @@ static inline float Len(qwordV a) {
     r = VuToFloat(d);
     return r;
 }
+// Unit vector along a.
 static inline qwordV Norm(qwordV a) {
     register qwordV d __asm__("vf2");
     d = VuDot(a, a);
@@ -49,6 +51,7 @@ static inline qwordV Norm(qwordV a) {
     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "+j"(d) : "j"(a));
     return d;
 }
+// Return end - *start.
 static inline qwordV Difference(qwordV end,const qwordV *start){qwordV result;result = VuSub(end, *start);return result;}
 // Returns the launch velocity that carries an object from start to end on a ballistic arc under acceleration acc.
 // g (0..1) blends the elevation angle between the direct line to the target (0) and straight up (pi/2, 1); returns
@@ -119,11 +122,14 @@ extern "C" qwordV CalculateVelocityToReachPos(qwordV start, qwordV end, qwordV a
 extern const float D_002A7874;   /* defined below where the ELF has it (.rodata order) */
 struct V { float x, y, z; };
 struct S { char p0[0x70]; struct V predictCurve; int pad; int predictMin; float predictMax; char p1[8]; struct V offsetCurve; int pad2; int offsetMin; float offsetMax; char p2[8]; float pitch; };
+// Set the three components of pv.
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7874 __asm__("D_002A7874") = 3.40282347e+38f; }
+// Initialise a launcher: base LO init, zero prediction curve with range [0, FLT_MAX], offset curve (0, 1, 0) with
+// range [0, FLT_MAX], and pitch 0.5.
 void CID112::Init() { S *launcher = (S *)this;
     InitLo(launcher);
     SetVector(&launcher->predictCurve, 0, 0, 0);
@@ -158,6 +164,7 @@ struct MATRIX3V { qwordV r[3]; };
 struct XFV { MATRIX4V mat; MATRIX4V matWorld; };
 struct CLQV { float g0, g1, g2, gUnused; };
 struct LMV { float gMin, gMax; };
+// Qword wrapper with copy constructor.
 struct VECTOR4V { qwordV q; VECTOR4V(const qwordV &v) { q = v; } VECTOR4V(const VECTOR4V &v) { q = v.q; } };
 struct SOV;
 struct BASICV {
@@ -223,11 +230,15 @@ qwordV CalculateBallisticLaunchVelocity(float, qwordV, qwordV, qwordV);         
 void LoadLookAtMatrix(MATRIX3V *, qwordV);
 float RandomFloatInRange__Fff(float, float);                               // RandomFloatInRange
 }
+// Random float in the range [gMin, gMax].
 static inline float RandomFloatInRange(const LMV &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
+// Qword wrapper convertible to and from qwordV.
 struct VV { qwordV q; VV() {} VV(const qwordV &v) { q = v; } operator qwordV() const { return q; } };
 struct VU_FLOAT {
     qwordV q;
+    // Uninitialised VU float.
     VU_FLOAT() {}
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
 // a VU float straight from a float in memory (loaded as an integer word)
@@ -240,8 +251,11 @@ struct VECTORV {
         __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0" : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     }
 };
+// Move a 128-bit GPR value into a VU0 register.
 static inline qwordV QwToVf(qwordV v) { qwordV r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(v)); return r; }
+// Move a VU0 register into a 128-bit GPR value.
 static inline qwordV QwFromVf(qwordV v) { qwordV r; __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(v)); return r; }
+// x lane of v as a float (via its raw bits).
 static inline float GFromVfBits(qwordV v)
 {
     int n;
@@ -250,12 +264,14 @@ static inline float GFromVfBits(qwordV v)
     __asm__("mtc1 %1,%0" : "=f"(g) : "r"(n));
     return g;
 }
+// Transform point v by the 4x4 matrix m.
 static inline qwordV Point(const MATRIX4V &m, qwordV v)
 {
     qwordV r;
     r = VuMulMatrix4(m.r[0], m.r[1], m.r[2], m.r[3], v);
     return r;
 }
+// Length of the xyz part of v (x lane).
 static inline qwordV Length(qwordV v)
 {
     qwordV d, l;
@@ -263,6 +279,7 @@ static inline qwordV Length(qwordV v)
     __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(l) : "j"(d));
     return l;
 }
+// Divide v by the x lane of l.
 static inline qwordV Div(qwordV v, qwordV l) { qwordV r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
 // unit vector along v (computed in place of its length), or the default direction when v is too short
 static inline qwordV Normalize(qwordV v)
@@ -288,6 +305,7 @@ static inline qwordV Normalize2(qwordV posTo, qwordV posFrom)
         l = Div(v, l);
     return l;
 }
+// Unit vector along v, or D_002A2DA0 when its length is below 1e-4.
 static inline qwordV NormalizeTo(qwordV v)
 {
     qwordV fallback = D_002A2DA0;
@@ -305,9 +323,13 @@ static inline qwordV AddScaled(VV base, VU_FLOAT g, qwordV v)
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(base.q), "j"(v), "j"(g.q));
     return r;
 }
+// Return v scaled by g.
 static inline qwordV operator*(qwordV v, VU_FLOAT g) { qwordV r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
+// Return v scaled by g.
 static inline qwordV operator*(VU_FLOAT g, qwordV v) { qwordV r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
+// Evaluate the quadratic g0 + g1*g + g2*g^2.
 static inline float GFromClq(const CLQV &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
+// Set pm to the identity matrix.
 static inline void LoadIdentity(MATRIX4V *pm) { func_002333B4(pm, 0, sizeof(*pm)); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 
 // Launches pso from the launcher: aims at the target point (optionally advanced by a predicted travel time and

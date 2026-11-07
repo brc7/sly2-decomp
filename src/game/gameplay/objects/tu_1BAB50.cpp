@@ -55,6 +55,7 @@ typedef char offset_0_x170[FIELD_OFFSET(TRIG,zapKind)==0x170?1:-1];
 typedef char size_1[sizeof(E)==16?1:-1];
 typedef char size_2[sizeof(I)==8?1:-1];
 
+// Allocation request: byte count and alignment.
 struct AREQV { int cb; int align; AREQV(int c, int a) { cb = c; align = a; } };
 struct MSG { int cb; int nKind; };
 struct SW;
@@ -123,7 +124,9 @@ extern "C" void InitBreakable(TRIG *breakable) {
 
 // Helpers Alloc, AllocB, Realloc (small asm wrappers/accessors shaped for the match).
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
+// Allocate cb zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQV(cb, 0x10)); }
+// Reallocate pv as a cb-byte copy, 16-byte aligned, on the world heap.
 static inline void *Realloc(void *pv, int cb) { return AllocCopyFromWorldHeap(AREQV(cb, 0x10), pv); }
 // CID 98 vtable slot 14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to
 // counts. (inferred)

@@ -25,10 +25,14 @@ struct CProc {
 struct SPO {
     CProc *p;
     void Set(CProc *pproc) __asm__("Attach__t7CRefPtr1Z5CProcP5CProc");
+    // Uninitialised counted pointer.
     SPO() {}
+    // Hold the object (adds a reference).
     SPO(CProc *pproc) { Set(pproc); }
     SPO(const SPO &);
+    // Drop the held object's reference, deleting it on the last one.
     ~SPO() { CProc *pproc = p; if (pproc && --pproc->cref == 0) delete pproc; }
+    // Access the held object.
     CProc *operator->() { return p; }
 };
 extern "C" {

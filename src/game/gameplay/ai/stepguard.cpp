@@ -1212,6 +1212,7 @@ namespace M_RenderStepguardSelf {
 union U; struct M4; struct SPACE; union FLAGS; struct P; struct CAMERA; struct PROFILE; 
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
+// 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {U rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4 &operator=(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
 struct SPACE {char pad0[0x40];M4 matrix;};
 union FLAGS {unsigned long value;unsigned char bytes[8];};
@@ -1827,6 +1828,7 @@ struct E {
     int state;
     float stateTime;
     int pad;
+    // Event record for source, starting in state 0 at the clock's current time.
     E(S *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.time) {}
 };
 struct T { char pad[0xFC]; unsigned int count; struct E targets[8]; };
@@ -3550,6 +3552,7 @@ void ResolveStepguardAttacks(struct S *guard)
 namespace M_func_0020AB58 { extern "C" {
 // 0x20AB58: Clears both attack lists.
 struct S { char pad[0xED8]; int attackOidCount; char pad2[0xEFC - 0xEDC]; int attackCount; };
+// Clear both attack lists (attack ids and attacks).
 void ClearStepguardAttacks(struct S *guard)
 {
     guard->attackOidCount = 0;

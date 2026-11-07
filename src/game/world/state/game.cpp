@@ -162,8 +162,11 @@ namespace M_UpdateGameTimers {
 extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
 struct CRefData { int tag; union { int n; float g; }; };
 struct CRef : CRefData {
+    // Script reference holding a float (tag 0x16).
     CRef(float x) { tag = 0x16; g = x; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 struct OPT;
@@ -181,11 +184,16 @@ extern "C" CRef GetGlobalSaveVar(OPT *, void *);
 extern "C" CRef SetGlobalSaveVar(OPT *, const CRefData &, void *);
 extern "C" int GetCurrentWorld();
 extern "C" void ChangeDifficulty(void *, float);
+// Read a global save variable as a float.
 static inline float GetFloat(OPT *p, void *context) { const CRef &r = GetGlobalSaveVar(p, context); return r.g; }
+// Store a script reference into a global save variable.
 static inline void SetPv(OPT *p, const CRef &r, void *context) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(p, arg, context); }
+// Store a float into a global save variable.
 static inline void SetFloat(OPT *p, float x, void *context) { CRef r(x); SetPv(p, r, context); }
 struct CRefCopy : CRefData {
+    // Copy a script reference (adds a reference).
     CRefCopy(const CRefData &r) { __4CRefRC4CRef(this, &r); }
+    // Release the reference.
     ~CRefCopy() { Decref__4CRef(this); }
 };
 /* The play-time write copies through a CRefData base (the episode write through CRef): the two copies differ in the target. */
@@ -257,6 +265,7 @@ struct G { char pad[0x3AFC]; int numTasks; };
 extern "C" { extern G D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
 extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
+// Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -320,14 +329,18 @@ class CRef {
 public:
     int m_tagk;
     int m_tag;
+    // Script reference holding an int (tag 0x15).
     CRef(int n) { m_tagk = 0x15; m_tag = n; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &ref) { __4CRefRC4CRef(this,&ref); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 
 };
 struct O;
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(O *, const CRef &, void *);
+// Store a script reference into a global save variable.
 static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=SetGlobalSaveVar(pv,arg,D_003D4A60);}
 struct G { char pad[0x3B20]; O *coinCountVar; };
 extern "C" { extern G D_003DD490; }
@@ -479,6 +492,7 @@ extern BANK D_002E65E0;
  CRef*__4CRefRC4CRef(CRef*,const CRef*);
  void Decref__4CRef(CRef*);
 }
+// Stack-allocation scope: opens a STACKSCOPE on construction; Release frees it.
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 /* Sets a task's state source / requester for a scope (the CONTEXT pointer is the unused JOB-layout half). */
 struct OVERRIDE {
@@ -490,15 +504,19 @@ struct OVERRIDE {
             oldRequester = object->stateRequester; object->stateRequester = requester;
         }
     }
+    // Restore the saved state source and requester on the context and object.
     ~OVERRIDE()
     {
         if (context) { context->stateSource = oldSource; context->stateRequester = oldRequester; }
         if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
     }
 };
+// Script reference view: copy constructor adds a reference, destructor releases it.
 struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef GetGlobalSaveVar(void*,void*);
+// Read a global save variable as a float.
 static inline float GetFloat(void*p,void*context){const CRef&r=GetGlobalSaveVar(p,context);return r.g;}
+// True when two file headers name the same file (same pointer, or equal key words 2 ^ 14).
 static inline int Same(CHECK*a,CHECK*b){
  if(a==b)return 1;
  if(!a||!b)return 0;
@@ -828,12 +846,14 @@ extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *stream);
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
+// Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
     return AllocFromStack(preq);
 }
+// Fill the request and reallocate pv to cb bytes of kind nKind.
 static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 {
     preq->cb = cb;
@@ -1106,6 +1126,7 @@ extern "C" int IsJobLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
+// True when two file records name the same file (same pointer, or equal key words 2 ^ 14).
 static inline int IsSameFileRecord(W *a, W *b)
 {
     if (a == b) return 1;
@@ -1396,6 +1417,7 @@ static inline void SetLoFlagsInline(struct X *plo, int bits)
     else
         plo->flags = v | bits;
 }
+// Clear flag bits: on plo->flags when bit 0 is set, otherwise on the word plo->flags points to.
 static inline void ClearLoFlagsInline(struct X *plo, int bits)
 {
     int v = plo->flags;
@@ -1411,11 +1433,13 @@ void SetLoBusyKind(struct X *p, int n);
 void IncrementSwHandsOff(void *pg, int n);
 void DecrementSwHandsOff(void *pg, int n);
 void PlayWidgetAnim(struct O *po, int n);
+// Hide the widget (virtual slot 50).
 static __inline__ void HideWidget(struct O *po)
 {
     struct VTE *e = &po->vt[50];
     ((void (*)(void *))e->pfn)((char *)po + e->d);
 }
+// Show the widget with mode n (virtual slot 49).
 static __inline__ void ShowWidget(struct O *po, int n)
 {
     struct VTE *e = &po->vt[49];
@@ -1511,10 +1535,15 @@ extern "C" {void*__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
 struct CRef{
  int m_tagk;
  union{int m_tag;float m_g;};
+ // Script reference holding an int (tag 0x15).
  CRef(int n){m_tagk=0x15;m_tag=n;}
+ // Script reference holding a bool (tag 0x17).
  CRef(bool f){m_tagk=0x17;m_tag=f;}
+ // Script reference holding a float (tag 0x16).
  CRef(float g){m_tagk=0x16;m_g=g;}
+ // Copy a script reference (adds a reference).
  CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
+ // Release the reference.
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
@@ -1522,8 +1551,11 @@ struct S{char pad[0x7C];int startCount;char pad80[0x24];float elapsedTime;char p
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsJobComplete(S*);
+// Store a script reference into a global save variable.
 static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
+// Store an int into a global save variable.
 static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
+// Store a bool into a global save variable.
 static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
 // Writes the job's count, complete flag and elapsed time into its save variables.
 extern "C" void UpdateJobSaveVars(S *job)
@@ -1558,6 +1590,7 @@ extern struct G D_003DD490;
 void InitLo(struct S *p);
 // TASK initialization (slot 7): LO init, no ids, counted in the world's task count.
 } } // namespace M_InitTask
+// TASK::Init: LO init, no state or ids yet (-1), counted in the world's task count.
 void TASK::Init() { using namespace M_InitTask; using M_InitTask::D_003DD490; M_InitTask::S *p = (M_InitTask::S *)this;
     InitLo(p);
     p->state = -1;
@@ -1584,24 +1617,28 @@ extern "C" void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 extern "C" void *AllocFromWorldHeap(ALLOCREQ *preq);
 extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *stream);
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
+// Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
     return AllocFromStack(preq);
 }
+// Fill the request and reallocate pv to cb bytes of kind nKind.
 static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 {
     preq->cb = cb;
     preq->nKind = nKind;
     return AllocCopyFromWorldHeap(preq, pv);
 }
+// Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocA(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
     return AllocClearedFromWorldHeap(preq);
 }
+// Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocB(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -1843,6 +1880,8 @@ public:
     X *task;
     int savedSource;
     int savedRequester;
+    // Scope guard: record the state source/requester on the task (or job) for the duration of a state change and
+    // restore the saved values afterwards.
     StateSourceScope(X *px, int source, int requester)
     {
         task = px;
@@ -1852,6 +1891,7 @@ public:
         savedRequester = task->stateRequester;
         task->stateRequester = requester;
     }
+    // Restore the saved state source and requester on the job and/or task.
     ~StateSourceScope()
     {
         if (job) {
@@ -2100,6 +2140,7 @@ struct X {
     char pad3[0xA0 - 0x98]; int numFollowers; X **followers;
     char pad4[0xF0 - 0xA8]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; int visitCount; int depth; int jobDepth;
 };
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *follower, int source, int requester)
 {
     job = 0;
@@ -2111,6 +2152,7 @@ inline StateSourceScope::StateSourceScope(X *follower, int source, int requester
         task->stateRequester = requester;
     }
 }
+// Restore the saved state source and requester on the job and/or task.
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
@@ -2201,9 +2243,13 @@ extern "C" {void *__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
 struct CRef {
  int tag;
  union {int n;float g;};
+ // Script reference holding an int (tag 0x15).
  CRef(int x){tag=0x15;n=x;}
+ // Script reference holding a bool (tag 0x17).
  CRef(bool x){tag=0x17;n=x;}
+ // Copy a script reference (adds a reference).
  CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
+ // Release the reference.
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
@@ -2212,7 +2258,9 @@ extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsTaskComplete(S*);
 extern "C" void UpdateJobSaveVars(void*);
+// Store a script reference into a global save variable.
 static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
+// Store an int into a global save variable.
 static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
 // Writes the task's fields into its save variables and refreshes its job's.
 extern "C" void UpdateTaskSaveVars(S *task)
@@ -2290,6 +2338,7 @@ struct X {
     char pad1[0x7C - 0x58]; X *job;
     char pad2[0xF0 - 0x80]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
 };
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
 {
     job = 0;
@@ -2301,6 +2350,7 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
 {
     job = owner;
@@ -2312,6 +2362,7 @@ inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, i
         job->jobStateRequester = requester;
     }
 }
+// Restore the saved state source and requester on the job and/or task.
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
@@ -2404,6 +2455,7 @@ struct X {
     char pad1[0x7C - 0x58]; X *job;
     char pad2[0xF0 - 0x80]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
 };
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
 {
     job = 0;
@@ -2415,6 +2467,7 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
 {
     job = owner;
@@ -2426,6 +2479,7 @@ inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, i
         job->jobStateRequester = requester;
     }
 }
+// Restore the saved state source and requester on the job and/or task.
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
@@ -2506,6 +2560,8 @@ public:
     X *task;
     int savedSource;
     int savedRequester;
+    // Scope guard: record the state source/requester on the task (or job) for the duration of a state change and
+    // restore the saved values afterwards.
     StateSourceScope(X *px)
     {
         job = 0;
@@ -2517,6 +2573,7 @@ public:
             px->stateRequester = 0;
         }
     }
+    // Restore the saved state source and requester on the job and/or task.
     ~StateSourceScope()
     {
         if (job) {
@@ -2548,6 +2605,8 @@ public:
     X *task;
     int savedSource;
     int savedRequester;
+    // Scope guard: record the state source/requester on the task (or job) for the duration of a state change and
+    // restore the saved values afterwards.
     StateSourceScope(X *px)
     {
         job = 0;
@@ -2559,6 +2618,7 @@ public:
             px->stateRequester = 0;
         }
     }
+    // Restore the saved state source and requester on the job and/or task.
     ~StateSourceScope()
     {
         if (job) {
@@ -2590,6 +2650,8 @@ public:
     X *task;
     int savedSource;
     int savedRequester;
+    // Scope guard: record the state source/requester on the task (or job) for the duration of a state change and
+    // restore the saved values afterwards.
     StateSourceScope(X *px)
     {
         job = 0;
@@ -2601,6 +2663,7 @@ public:
             px->stateRequester = 0;
         }
     }
+    // Restore the saved state source and requester on the job and/or task.
     ~StateSourceScope()
     {
         if (job) {
@@ -2632,6 +2695,8 @@ public:
     X *task;
     int savedSource;
     int savedRequester;
+    // Scope guard: record the state source/requester on the task (or job) for the duration of a state change and
+    // restore the saved values afterwards.
     StateSourceScope(X *px)
     {
         job = 0;
@@ -2643,6 +2708,7 @@ public:
             px->stateRequester = 0;
         }
     }
+    // Restore the saved state source and requester on the job and/or task.
     ~StateSourceScope()
     {
         if (job) {
@@ -2700,6 +2766,7 @@ struct P {
     char padA8[0x48]; int pendingCascadeState; int stateSource, stateRequester;
 };
 struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
+// Allocation request: byte count and alignment.
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 struct G{char pad[0x3B7C];void*episodePercentVars[9];};
 struct CRef;
@@ -2724,6 +2791,7 @@ void AutosaveGame(void*,int);
 CRef*__4CRefRC4CRef(CRef*,const CRef*);
 void Decref__4CRef(CRef*);
 }
+// Allocate n zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void*Allocate(int n){return AllocClearedFromStack(REQUEST(n,16));}
 /* Sets a task's state source / requester for a scope (as in HandleGameEvent). */
 struct OVERRIDE {
@@ -2735,15 +2803,19 @@ struct OVERRIDE {
             oldRequester = object->stateRequester; object->stateRequester = requester;
         }
     }
+    // Restore the saved state source and requester on the context and object.
     ~OVERRIDE()
     {
         if (context) { context->stateSource = oldSource; context->stateRequester = oldRequester; }
         if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
     }
 };
+// Script reference view: copy constructor adds a reference, destructor releases it.
 struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef SetGlobalSaveVar(void*,const CRef&,void*);
+// Store a script reference into a global save variable.
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=SetGlobalSaveVar(object,arg,D_003D4A60);}
+// Store an int into a global save variable.
 static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}
 // The main task state change: propagates to the collected successors, sets the state, updates the episode percent,
 // handles job start and end tasks and autosaves.
@@ -2896,6 +2968,7 @@ struct X {
     char pad2[0xB8 - 0x80]; int warpOid; int level; int playerOid;
     char pad3[0xF0 - 0xC4]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
 };
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
 {
     job = 0;
@@ -2907,6 +2980,7 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
 {
     job = owner;
@@ -2918,6 +2992,7 @@ inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, i
         job->jobStateRequester = requester;
     }
 }
+// Restore the saved state source and requester on the job and/or task.
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
@@ -3001,6 +3076,7 @@ struct X {
     char pad2[0xB8 - 0x80]; int warpOid; int level; int playerOid;
     char pad3[0xF0 - 0xC4]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester;
 };
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
 {
     job = 0;
@@ -3012,6 +3088,7 @@ inline StateSourceScope::StateSourceScope(X *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
+// Scope guard: set the state source/requester on the task (or, with isJob, the job) and save the previous values.
 inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, int isJob)
 {
     job = owner;
@@ -3023,6 +3100,7 @@ inline StateSourceScope::StateSourceScope(X *owner, int source, int requester, i
         job->jobStateRequester = requester;
     }
 }
+// Restore the saved state source and requester on the job and/or task.
 inline StateSourceScope::~StateSourceScope()
 {
     if (job) {
@@ -3214,6 +3292,8 @@ public:
     X *task;
     int savedSource;
     int savedRequester;
+    // Scope guard: record the state source/requester on the task (or job) for the duration of a state change and
+    // restore the saved values afterwards.
     StateSourceScope(X *follower, int source, int requester)
     {
         job = 0;
@@ -3225,6 +3305,7 @@ public:
             task->stateRequester = requester;
         }
     }
+    // Restore the saved state source and requester on the job and/or task.
     ~StateSourceScope()
     {
         if (job) {
@@ -3468,11 +3549,13 @@ extern "C" void ResetGameSequence()
 
 namespace M_RefGetGlobalSaveVar { extern "C" {
  void GetSaveVar(void *, void *, int, int);
+// Read a save variable from the world's global save store into a.
 inline void *GetGlobalSaveVar(void *a, int b, int c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; }
 } } // namespace M_RefGetGlobalSaveVar
 
 namespace M_RefSetGlobalSaveVar { extern "C" {
  void SetSaveVar(void *, void *, int, int, int);
+// Write a save variable into the world's global save store.
 inline void *SetGlobalSaveVar(void *a, int b, int c, int d) { SetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; }
 } } // namespace M_RefSetGlobalSaveVar
 

@@ -133,30 +133,35 @@ void PadGsbToPage(GSB *gsb);
 extern "C" void GS_InterruptV() __asm__("GS_Interrupt__Fi");
 extern "C" void BuildClearGifsP(QW *aqw, int *prgba, int n) __asm__("BuildClearGifs__FP2QWG4RGBAi");
 
+// Read the FIELD bit (bit 13) of the GS CSR register (0x12001000): which interlace field is being displayed.
 static inline int ReadFieldBit(void)
 {
     unsigned int bits;
     __asm__ __volatile__("lw %0,0x12001000":"=r"(bits):"X"(*(volatile unsigned int*)0x12001000));
     return (bits>>13)&1;
 }
+// Write a 64-bit DISPLAY value to the GS privileged register at 0x12000080 (unaligned load, then sdl/sdr).
 static inline void PublishDisplay(const DISPLAY*value)
 {
     register unsigned long word __asm__("$8");
     __asm__("ldl %0,%1\n\tldr %0,%2":"=&r"(word):"m"(((const char*)value)[7]),"m"(((const char*)value)[0]),"X"(*value));
     __asm__ __volatile__("sdl %1,0x12000087\n\tsdr %1,0x12000080":"=X"(*(volatile DISPLAY*)0x12000080):"r"(word):"$1");
 }
+// Write a 64-bit DISPFB value to the GS privileged register at 0x12000070.
 static inline void PublishBuffer(const DISPFB*value)
 {
     register unsigned long word __asm__("$4");
     __asm__("ldl %0,%1\n\tldr %0,%2":"=&r"(word):"m"(((const char*)value)[7]),"m"(((const char*)value)[0]),"X"(*value));
     __asm__ __volatile__("sdl %1,0x12000077\n\tsdr %1,0x12000070":"=X"(*(volatile DISPFB*)0x12000070):"r"(word):"$1");
 }
+// Write a 64-bit PMODE value to the GS privileged register at 0x12000000.
 static inline void PublishMode(const PMODE*value)
 {
     register unsigned long word __asm__("$9");
     __asm__("ldl %0,%1\n\tldr %0,%2":"=&r"(word):"m"(((const char*)value)[7]),"m"(((const char*)value)[0]),"X"(*value));
     __asm__ __volatile__("sdl %1,0x12000007\n\tsdr %1,0x12000000":"=X"(*(volatile PMODE*)0x12000000):"r"(word):"$1");
 }
+// Set the read-circuit-1 enable bit (bit 0) in the PMODE value.
 static inline void EnablePrimary(PMODE *mode)
 {
     const unsigned long primaryMask = 1;
@@ -228,6 +233,7 @@ void SyncVBlank()
     func_00234A60(D_002DFB4C);
 }
 
+// FIELD bit of the GS CSR register (bitfield view).
 static inline int ReadCsrFieldBit() { return ((CSR *)0x12001000)->FIELD; }
 // Presents the frame: waits for vblank, picks the field for the next frame, sets the draw environment's half-pixel
 // offset for it, and swaps the double-buffered display/draw environments (sceGsSwapDBuff), under the GS critical
@@ -360,6 +366,7 @@ void BuildFbaGifs(int cqw, QW *aqw, long d)
     gifs.EndPrim(1);
 }
 
+// Build the FRAME register's base-pointer and width bits from a display word.
 static inline ulong FrameFromDisp(ulong disp)
 {
     return ((disp & 0x1FF) << 5) | (((disp >> 16) & 0x3F) << 14);
@@ -398,6 +405,7 @@ union TEX {
     ulong word;
     TEXBITS bits;
 };
+// Extract the FBP, FBW and PSM fields of a frame word into their DISPFB positions.
 static inline ulong FrameBits(ulong frame)
 {
     return (frame & 0x1FFUL) | (((frame >> 16) & 0x3FUL) << 16) | (((frame >> 24) & 0x3FUL) << 24);

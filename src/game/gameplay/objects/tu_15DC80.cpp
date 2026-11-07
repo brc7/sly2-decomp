@@ -14,6 +14,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct VTE { short d; short pad; void (*pfn)(); };
+// Color bytes with a user constructor (part of RgbaLerp's codegen).
 struct RGBAV { unsigned char r, g, b, a; RGBAV() {} };   /* the user constructor is part of RgbaLerp's codegen */
 extern CLOCK D_002DDED0;          /* g_clock */
 

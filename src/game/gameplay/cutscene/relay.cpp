@@ -149,6 +149,7 @@ void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
 struct KEYV
 {
+    // Allocate the object zeroed, 16-byte aligned, from the world heap.
     static void *operator new(uint cb)
     {
         SWALLOC swalloc;
@@ -434,6 +435,7 @@ struct JSGREF
         script = pjsgHold;
         script->AddRef();
     }
+    // Release the script reference.
     ~JSGREF()
     {
         script->Release();
@@ -1256,6 +1258,7 @@ void InitLo(struct S *p);
 void InitDl__FP2DLi(struct DL *pdl, int ib);
 // RELAY vtable slot 7 (Init): LO defaults, no private command limit (-1), and an empty list of running scripts.
 } } // namespace M_InitRelay
+// RELAY::Init: LO defaults, no private command limit (-1) and an empty running-script list.
 void RELAY::Init() { using namespace M_InitRelay; M_InitRelay::S *p = (M_InitRelay::S *)this;
     InitLo(p);
     p->n58 = -1;
@@ -2659,7 +2662,9 @@ struct P { int pad[3]; VTE *vt; char pad2[0x28 - 0x10]; E *peFirst; E *peMax; E 
 class LOCK {
 public:
     P *m_p;
+    // Scope guard: call the object's virtual slot 1 on entry and slot 2 on exit (reference bracket).
     LOCK(P *p) : m_p(p) { p->vt[1].pfn((char *)p + p->vt[1].d); }
+    // Close the bracket (virtual slot 2).
     ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
 };
 extern "C" {
@@ -4725,7 +4730,9 @@ int AreFloatsNear__Ffff(float,float,float);
 }
 // Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
+// Square root of the x lane of a.
 static inline qword Root(qword a){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(a));return a;}
+// XY length of a as a float.
 static inline float LengthXY(qword a){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));return QwordX(Root(r));}
 // Normalizes the path tangent in place (fallback for a zero tangent).
 static inline void NormalizeTangent(U &output){
@@ -5320,7 +5327,9 @@ struct P { int pad[3]; VTE *vt; int pad10; Q *pq; char pad2[0x9C - 0x18]; int is
 class LOCK {
 public:
     P *m_p;
+    // Scope guard: call the object's virtual slot 1 on entry and slot 2 on exit (reference bracket).
     LOCK(P *p) : m_p(p) { p->vt[1].pfn((char *)p + p->vt[1].d); }
+    // Close the bracket (virtual slot 2).
     ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
 };
 extern "C" {

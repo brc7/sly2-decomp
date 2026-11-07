@@ -450,6 +450,7 @@ void ClearPoctlJoyPressed(POCTLV *poctl, int buttons)
 // VF hard-register pins in Norm reproduce the original VF numbering.
 union U { qword q; float f[4]; };
 struct M3 { qword row[3]; };
+// Rotate v by the transpose of the 3x3 matrix m (into its local frame).
 static inline qword Local(const M3 *m, qword v)
 {
     qword q, one, a, b, c;
@@ -458,6 +459,7 @@ static inline qword Local(const M3 *m, qword v)
             : "+j"(q), "=&j"(one), "=&j"(a), "=&j"(b), "=&j"(c) : "j"(m->row[1]), "j"(m->row[2]), "j"(v));
     return q;
 }
+// Unit vector along v, or fallback when its length is too small.
 static inline qword Norm(qword v, qword fallback)
 {
     register qword d __asm__("vf1"); register qword one __asm__("vf2"); qword r; float f;
@@ -559,6 +561,7 @@ extern "C" void SetSwPoOverride(SWP *world, POV *po)
     if (cur != nw && nw) VCALL(nw, 78, 1);
 }
 
+// Squared length of the xyz part of a as a float.
 static inline float LenSq(qword a) {
     qword d,one; float f;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d),"=&j"(one) : "j"(a));

@@ -26,6 +26,7 @@ struct LMK { int a, b; };
 extern "C" void *InitVuTemp(void *);            /* vector init, returns its receiver */
 /* 16-byte vector whose default constructor is the shared vector initialiser (InitVuTemp). */
 union UV { qword q; float f[4]; UV(); };
+// Construct a VU temporary via InitVuTemp.
 inline UV::UV() { (void)InitVuTemp(this); }
 /* The 48-byte shader payload of a light (RebuildLight fills it; the packets copy it). */
 struct BLOCK { union { uint words[12]; struct { int kind; float coefficients[11]; } values; }; };
@@ -413,6 +414,7 @@ void InvalidateLight(LIGHTV *light)
 }
 
 union UF { qword q; float f; };
+// Set bit `bit` in the bit array a.
 static __inline__ void SetBit(int *a, int bit) { int *pw = &a[bit / 32]; *pw |= 1 << bit; }
 // Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf masks. (inferred)
 void InsertLightInTree(SWL *s, NODE *n, qword pos, float r, int bit)
@@ -532,6 +534,7 @@ extern "C" void PrepareSwLights(SWL *s)
  */
 struct HOME { qword q; };
 struct WORK { MASK mask; HOME distance, unity; };  /* local frame: mask + two vector temporaries */
+// Placement new: construct at destination.
 inline void *operator new(unsigned, void *destination) { return destination; }
 struct LSPHERE {                                    /* the bounding sphere at LIGHT+0x100 */
     UV position;
@@ -565,6 +568,7 @@ static inline float Distance(const qword &a, qword b)
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(r));        /* gcc supplies the qmfc2 */
     return f;
 }
+// Light selection score: bias + weight * distance from pos to the sphere's position.
 inline float LSPHERE::Score(const qword &pos) { return bias + weight * Distance(pos, position.q); }
 /* index of the single set bit `isolated` inside word number base/32 (base = word * 32) */
 static inline int BitIndex(uint isolated, int base)
@@ -640,14 +644,19 @@ void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results)
  *    on the VU0 unit, which is what delays the last dead VU_FLOAT store in the pair loop).
  */
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Move a 128-bit GPR value into a VU0 register.
 static inline VV ToVF(qword v) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(v)); return r; }
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Length of v (x lane).
 static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
 // Same idiom as sly2/vu0.h VuDivByX; kept local because the shared template changes DoesSphereHitSpheres (41/135 instructions off).
 static inline VV VuDivByX(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
+// Divide v by the scalar g.
 static inline VV Divide(VV v, VU_FLOAT g) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
+// Unit vector along v.
 static inline VV Normalize(VV v) { return VuDivByX(v, Length(v)); }
 /* f1 * v1 + f2 * v2 */
 static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
@@ -714,6 +723,7 @@ union U { qword q; float f[4]; uint u[4]; };
 struct M3 { U row[3]; };
 struct M4 { U row[4]; };
 struct PACKET { U basis[3]; U position; int kind; float fraction; int pad[2]; };
+// Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4 &m, qword v)
 {
     __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddaz.xyz $ACC,%3,%0z\n\tvmaddw.xyz %0,%4,$vf0w"
@@ -727,8 +737,11 @@ static inline qword AddScaledQ(qword base, const qword &v, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%2x" : "=j"(r) : "j"(base), "j"(g.q), "j"(v));
     return r;
 }
+// Return v scaled by g.
 static inline qword ScaleQ(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
+// Divide v by the scalar g.
 static inline qword DivQ(qword v, VU_FLOAT g) { qword r; __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
+// Length of the xyz part of v as a float.
 static inline float LengthQ(qword v)
 {
     qword d, one;
@@ -738,9 +751,12 @@ static inline float LengthQ(qword v)
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(d));
     return f;
 }
+// Append one word to the VIF stream and return the new write pointer.
 static inline uint *Write(VIFS *vifs, uint x) { uchar *d; *(uint *)vifs->m_pb = x; d = vifs->m_pb + 4; vifs->m_pb = d; return (uint *)d; }
 #define Copy(D,S,W) uint*d_=(D);const uint*s_=(S);do{int k;for(k=0;k<(W);k+=4){uint a=s_[0],b=s_[1],c=s_[2],e=s_[3];d_[0]=a;d_[1]=b;d_[2]=c;d_[3]=e;s_+=4;d_+=4;}}while(0);
+// Empty the light queue (no basis, no payload).
 static inline void Clear(LIGHTQ *p) { p->cqwBasis = 0; p->pbBasis = 0; p->pbPayload = 0; }
+// Pad the DMA packet with zero words until its cursor is at the given offset within a quadword.
 static inline void Align(uint align)
 {
     VIFS *dma = &D_002DEA28;

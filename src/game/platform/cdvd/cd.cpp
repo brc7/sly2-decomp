@@ -143,6 +143,7 @@ extern int D_002BD4C0;
 #undef D_003DD0E4
 #define D_003DD0E4 (*(int *)((char *)base_D_003DD040 + 0xA4))   /* the sound manager (SNDMGRG)+0xA4 */
 extern char D_003DA4F0[];
+// CRC-32 of size bytes at data.
 static inline unsigned int ComputeCrc32(unsigned char *data, int size)
 {
     unsigned int *table = (unsigned int *)D_002A2E68;

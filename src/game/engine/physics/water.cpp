@@ -101,6 +101,7 @@ struct WORLD { char pad[0x40E8]; SLOTHEAP slotheapN; };   /* +0x40E8 the pool of
 /* CalculateWaterCurrent's matrix (constructed zeroed or not). */
 extern "C" void *func_002333B4(void *, int, int) __asm__("memset");
 enum Init { Uninitialized, Zero };
+// 4x4 matrix, zeroed when constructed with Zero.
 struct M4 { V r[4]; M4(Init mode) { if (mode == Zero) func_002333B4(this, 0, 0x40); } };
 /* AddSoWaterAcceleration's types. */
 struct M4B { M3 basis; qwordV position; };
@@ -274,9 +275,13 @@ extern "C" void UpdateSwXaList(SOW *unused, N **link)
 
 // Track collider membership and emit contact and impact events.
 static inline qwordV Add(qwordV a,qwordV b){qwordV r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
+// Copy the request pointer through $3.
 static inline REQ*Fields(REQ*p){register REQ*copy __asm__("$3");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(p));return copy;}
+// Call the object's velocity virtual (vtable slot 33).
 static inline qwordV Velocity(SOW *o){VE *v=o->vt;return v[33].f.velocity((char *)o+v[33].delta);}
+// Call the object's event virtual (vtable slot 51) with e.
 static inline void Impact(SOW *o,EVENT *e){VE *v=o->vt;v[51].f.event((char *)o+v[51].delta,e);}
+// Call the object's signal virtual (vtable slot 4).
 static inline void Signal(SOW *o,int event,PAIR *pair){VE *v=o->vt;v[4].f.signal((char *)o+v[4].delta,event,pair);}
 // Slot 16 (Update): UpdateSo, then rebuilds the set of objects overlapping the water, sends contact messages for
 // newcomers and an impact (splash) event for objects that hit the surface fast, and syncs the XA nodes.
@@ -395,11 +400,17 @@ extern "C" void HandleWaterMessage(SOW *water, int message, SOW *sender)
 
 // Query the vertical hit span and optional point and normal outputs.
 static inline float Epsilon(){register float f __asm__("$f14");__asm__ __volatile__("li.s %0,%1":"=f"(f):"F"(1e-4f));return f;}
+// y lane of q as raw int bits.
 static inline int WordY(qwordV q){int r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return r;}
+// z lane of q as raw int bits.
 static inline int WordZ(qwordV q){int r;__asm__("pextuw %0,$0,%1":"=r"(r):"r"(q));return r;}
+// Reinterpret int bits as a float.
 static inline float FloatWord(int word){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
+// True when the x lanes of d and n are within e.
 static inline int NearX(qwordV d,qwordV n,float e){return AreFloatsNear__Ffff(QwordX(d),QwordX(n),e);}
+// True when the y lanes of d and n are within the epsilon.
 static inline int NearY(qwordV d,qwordV n){int y=WordY(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(y),QwordY(n),e);}
+// True when the z lanes of d and n are within the epsilon.
 static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();return AreFloatsNear__Ffff(FloatWord(z),QwordZ(n),e);}
 // Returns the fraction (0..1) of an object's vertical extent that is under the water surface, found by casting a
 // vertical line through the object's position against the water; optionally returns the surface point and normal.
@@ -511,17 +522,26 @@ extern "C" void AddSoExternalAccelerations()
 // Resolve one contact between two physics objects: spring push, friction impulses (linear and
 // angular), restoring torque, and the water-splash / emitter-clear effects.
 static inline float Y(qwordV q){qwordV v;float f;__asm__("prot3w %0,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
+// z lane of q as a float.
 static inline float Z(qwordV q){qwordV v;float f;__asm__("pextuw %0,$zero,%1":"=r"(v):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
+// True when a and b are equal within epsilon on x, y and z.
 static inline bool Near(qwordV a,qwordV b,float epsilon){return AreFloatsNear__Ffff(QwordX(a),QwordX(b),epsilon)&&AreFloatsNear__Ffff(Y(a),Y(b),epsilon)&&AreFloatsNear__Ffff(Z(a),Z(b),epsilon);}
+// Return v scaled by k.x.
 static inline qwordV Scale(qwordV v,qwordV k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k));return r;}
+// Call the object's vector getter virtual at vtable slot `slot`.
 static inline qwordV Get(SOW *o,int slot){VE *v=o->vt;return v[slot].f.get((char *)o+v[slot].delta);}
+// Return motion + projection (normal component).
 static inline qwordV AddNormal(qwordV motion,const V &projection){qwordV r;asm("vadd.xyzw %0,%1,%2":"=j"(r):"0"(motion),"j"(projection.q));return r;}
+// Return motion + projection (tangent component).
 static inline qwordV AddTangent(qwordV motion,const V &projection){qwordV r;asm("vadd.xyzw %0,%1,%2":"=j"(r):"0"(motion),"j"(projection.q));return r;}
+// Broadcast sign into scalar and return angular scaled by it.
 static inline qwordV NegativeAngular(qwordV angular,float sign,qwordV &scalar){qwordV factor;factor = VuFromFloat<qwordV>(sign);scalar=factor;return Scale(angular,factor);}
 // The coefficient tables are indexed directly (not through a pointer) so each loop forms its own address.
 #define GAIN2(G,amount,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.ag[i]*amount*friction;}
 #define GAIN1(G,friction) {for(i=0;i<3;i++)coefficients->f[i]=G.ag[i]*friction;}
+// Set the xyz floats of v to zero.
 static inline void ZeroXyz(V &v,float zero){v.f[0]=v.f[1]=v.f[2]=zero;}
+// Stop and release the emitter's sound, if any.
 static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitter,0.0f);RcPtr_Assign(emitter,0);}}
 // Default slot 72: the water's effect on one object (a). Buoyancy pushes along the object's direction in
 // proportion to the submerged fraction; linear and angular velocities are pulled toward the water's current with

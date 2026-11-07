@@ -82,6 +82,8 @@ void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct S *s);
 // root record and the in-world bit from the parent (or makes its own root), sets the default flags and proxy-ref list,
 // and links the object into its parent's child list. Every object class calls it from its own Init.
 } } // namespace M_InitLo
+// LO::Init: base initialisation for every object (root record, in-world bit, default flags, proxy refs, parent link);
+// see the comment above.
 void LO::Init()
 {
     using namespace M_InitLo;
@@ -507,6 +509,7 @@ struct T { unsigned int value; };   /* the flags word a tagged flags pointer ref
 struct O;
 struct S { char pad[0x10]; struct O *parent; char pad2[0x2C]; unsigned int flags; };
 struct O { char pad[0x40]; struct T *flags; };
+// Clear flags fl: on p->flags when bit 0 is set, otherwise on the word p->flags points to.
 static inline void ClearFlag(struct S *p, unsigned int fl)
 {
     unsigned int v = p->flags;
@@ -566,7 +569,9 @@ struct CAMERA { char pad[0x90]; qword pos; };
 extern struct CAMERA D_002DDF40;
 qword *VECTOR_opAssign(qword *p, qword v);
 void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b);
+// Length of the xyz part of v (x lane).
 static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l),"=&j"(t) : "j"(v)); __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));return l; }
+// Unit vector along v.
 static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; }
 // Draws an object stretched along the segment start->end, facing the camera (width scaling, 0.01 epsilon), through
 // RenderLoAtMatrix. Used for beams and similar effects. (inferred)
@@ -766,6 +771,7 @@ qword GetLoEulerDegrees(void)
 namespace M_func_001A63B0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
+// Pack x, y, z into a 128-bit GPR value.
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;

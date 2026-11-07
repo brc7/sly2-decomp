@@ -220,12 +220,14 @@ extern "C" void SolveDzg(DZGXP *group, int flags)
    target's f2/f3 choices); (2) pdzx passed as AppendDzgDz's third argument (live to the call, so global-alloc puts it
    in a2); (3) the new row pdz computed before the paired row pdzA. */
 struct VU_FLOAT { qword qw; };
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Remove v's component along the unit normal n: v - (v.n) n.
 static inline qword QwProjectOut(qword v, qword n)
 {
     qword d = VuDot(v, n);
@@ -234,18 +236,21 @@ static inline qword QwProjectOut(qword v, qword n)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
     return ac;
 }
+// Return qwBase + qwVec * gScale (p only influences register allocation).
 static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale, const void *p)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw), "r"(p)); /* "r"(p): allocation-only, keeps the j-loop DZ pointer as the giv (target lwc1 0xC(a0), a0 += 0x28) */
     return qw;
 }
+// Broadcast the float word at *pn into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(const int *pn)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j,j"(v.qw) : "r,V"(*pn)); /* never-chosen "V" alternative: allocation-only (the word stays a MEM until reload) */
     return v;
 }
+// Divide v by the scalar g.
 static inline qword QwDivX(qword v, VU_FLOAT g)
 {
     qword qw;
@@ -331,6 +336,7 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
    a plain qword pointer (a scalar MEM, so the load waits for the VUF temp store), and the object count is pinned in
    $v1 for the work-array allocation. */
 struct VUF { qword q; VUF(const float &g) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(*(const int *)&g)); } };
+// Return a + b * t (the duplicated operands only influence register allocation).
 static inline qword AddScale(qword a, qword b, const VUF &t)
 {
     __asm__ __volatile__("vadda.xyzw $ACC, %0, $vf0\n\tvmaddx.xyzw %0, %1, %2x" : "+j"(a) : "j"(b), "j"(t.q), "j"(t.q), "j"(b));  /* last two operands: allocation only */

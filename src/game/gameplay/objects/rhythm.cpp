@@ -511,6 +511,7 @@ void UpdateRhythmManagerGrades(RHYTHMMGR *manager)
 struct FONT { char ab[0x84]; float dy; char pad[0xA0 - 0x88]; };
 struct RGBAV { unsigned int word; };
 struct RGBAB { unsigned char c[4]; };
+// Identity accessor (keeps the original address arithmetic).
 template <class T> static inline T *Addr(T *p) { return p; }
 /* The text box (0x1C); its setters are inline members defined at the end of this file (linkonce copies). */
 struct TB {
@@ -523,7 +524,9 @@ struct TB {
     void SetColor(RGBAV *prgba) __asm__("CTextBox_SetTextColor");
     void SetHorizontalJust(int j) __asm__("CTextBox_SetHorizontalJust");
     void SetVerticalJust(int j) __asm__("CTextBox_SetVerticalJust");
+    // Uninitialised text box.
     TB() {}
+    // Set the text box position, size, color word and color.
     void Init(float x, float y, float dx, float dy, unsigned int word, RGBAV *prgba) {
         SetPos(x, y);
         SetSize(dx, dy);

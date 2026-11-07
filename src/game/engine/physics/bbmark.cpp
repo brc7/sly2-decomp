@@ -260,6 +260,7 @@ extern "C" L *RemoveSwObjectPair(SW *unused, X *aaobr, X *otherAaobr) {
     return pair;
 }
 
+// Call po's virtual at vtable slot 61 with poOther and return its result.
 static __inline__ int Call(LO *po, LO *poOther)
 {
     return ((int (*)(void *, LO *))po->vt[61].pfn)((char *)po + po->vt[61].d, poOther);

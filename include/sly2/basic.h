@@ -108,6 +108,7 @@ struct RGBA
     uchar green;    /* green, 0..255 */
     uchar blue;    /* blue, 0..255 */
     uchar alpha;    /* alpha (opacity), 0..255 */
+    // Set the color from a packed 0xRRGGBBAA word.
     inline void operator=(const int rgba)
     {
         red = (rgba >> 24) & 0xFF;
@@ -220,10 +221,14 @@ class CRefPtr
 {
 public:
     T *m_p;   /* the pointee (its m_cref counts this reference) */
+    // Empty counted pointer.
     CRefPtr() { m_p = 0; }   /* clears (the PtNew instances, sly2/gc.h, show it in the nodes' constructors) */
+    // Empty counted pointer (the classes' clearing constructor).
     CRefPtr(REFPTRNULL) { m_p = 0; }   /* the clearing constructor of the classes' counted pointers (BASIC) */
     void Attach(T *p);
+    // Hold p, adding a reference.
     CRefPtr(T *p) { Attach(p); }
+    // Copy a counted pointer, adding a reference to its pointee.
     CRefPtr(const CRefPtr &ref)
     {
         m_p = ref.m_p;
@@ -232,6 +237,7 @@ public:
             m_p->m_cref++;
         }
     }
+    // Drop the reference to the pointee, deleting it on the last one.
     ~CRefPtr()
     {
         if (m_p)
@@ -240,8 +246,10 @@ public:
         }
     }
     void operator=(T *p);
+    // Assign from another counted pointer (reference-counted).
     void operator=(const CRefPtr &ref) { *this = ref.m_p; }
     operator T *() { return m_p; }
+    // Access the pointee.
     T *operator->() { return m_p; }
 };
 

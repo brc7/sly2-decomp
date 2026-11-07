@@ -94,6 +94,7 @@ extern "C" CBinaryInputStream *CStreamBis_ctor(CBinaryInputStream *stream, int s
 // CStreamBis destructor: closes the stream and frees the object when asked to (flag bit 0).
 /* CStreamBis's destructor (in-charge flag grf; DRAFT class name), config symbol _$_10CStreamBis. */
 extern "C" void DestroyCStreamBis(CBinaryInputStream *p, int grf) __asm__("_$_10CStreamBis");
+// Definition of _$_10CStreamBis (declared above): close the stream and free it when flag bit 0 is set.
 extern "C" void DestroyCStreamBis(CBinaryInputStream *stream, int flags)
 {
     stream->vtable = D_002D2918;

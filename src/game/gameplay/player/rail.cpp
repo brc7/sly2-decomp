@@ -170,9 +170,13 @@ float GetRandomShapeDistanceInRange(RAILV*,float,float);
 float RandomFloatInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
 void GetRailSparklePosition(RAILV*,qword*,qword*,float);
 }
+// Cross product of a and *pb.
 static inline qword CrossKeepSecond(qword a,const qword *pb){qword b;__asm__("lqc2 %0,%1":"=j"(b):"m"(*pb));qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"0"(b));return r;}
+// Rotate a by the 3x3 matrix m.
 static inline qword Dir(const M3 &m,qword a){__asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m.a),"j"(m.b),"j"(m.c));return a;}
+// Return a + b * s.x (vf2).
 static inline qword AddScaled(qword a,qword b,qword s){register qword r __asm__("vf2");__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(s));return r;}
+// Unit vector along value, or *fallbackAddress when its length is below epsilon.
 static inline qword NormalizeOr(qword value, const qword *fallbackAddress, float epsilon)
 {
     register qword length __asm__("vf1");
@@ -190,7 +194,9 @@ static inline qword NormalizeOr(qword value, const qword *fallbackAddress, float
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(result) : "j"(length), "j"(value));
     return result;
 }
+// Move a 128-bit GPR value into vf4.
 static inline qword LocalDirection(qword v){register qword q __asm__("vf4");__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(v));return q;}
+// Copy the rail and time into the argument registers for the sampler call.
 static inline void SamplerArguments(RAILV *rail, float time, RAILV **receiverOut, float *timeOut)
 {
     register RAILV *receiver __asm__("$4");
@@ -199,6 +205,7 @@ static inline void SamplerArguments(RAILV *rail, float time, RAILV **receiverOut
     *receiverOut = receiver;
     *timeOut = parameter;
 }
+// Cross product of a and b, plus the fallback address and epsilon for the following normalize.
 static inline qword CrossAndFallbackAddress(qword a, const qword &b, const qword **addressOut, float *epsilonOut)
 {
     register qword result __asm__("vf3"), axis __asm__("vf1");
@@ -214,6 +221,7 @@ static inline qword CrossAndFallbackAddress(qword a, const qword &b, const qword
     *epsilonOut = epsilon;
     return result;
 }
+// start + direction * distance, storing the scalar to `scalar`.
 static inline qword DisplacementValue(const qword &start, const qword &direction, float distance, U &scalar)
 {
     register qword point __asm__("vf3"), vector __asm__("vf4"), scale __asm__("vf1");

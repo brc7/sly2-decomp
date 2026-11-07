@@ -56,7 +56,9 @@ struct DLI {
         next = (void **)owner;
         linkOffset = offset;
     }
+    // Pop this iterator off the global iterator stack (D_002DD2FC).
     ~DLI() { D_002DD2FC = previous; }
+    // Return the current element and advance along its link field.
     void *Next()
     {
         void *value = *next;
@@ -322,6 +324,7 @@ void FlushFrames(int reset)
     D_002DEB14 = 0;
 }
 
+// Build the TEX0 base-pointer/width/format bits from a DISPFB-style display word (pointer, width, pixel format).
 static inline ulong Tex0FromDisp(ulong disp)
 {
     return ((disp & 0x1FF) << 5) | (((disp >> 16) & 0x3F) << 14) | (((disp >> 24) & 0x3F) << 20);

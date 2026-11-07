@@ -15,6 +15,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qword __attribute__((mode(TI)));
+// Color bytes; constructible from a packed 32-bit word.
 struct RGBA { unsigned char r, g, b, a; RGBA() {} RGBA(uint bits) { *(uint *)this = bits; } };
 
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */

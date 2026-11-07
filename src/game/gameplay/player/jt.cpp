@@ -109,6 +109,7 @@ void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
 struct KEY
 {
+    // Allocate the object zeroed, 16-byte aligned, from the world heap.
     static void *operator new(uint cb)
     {
         SWALLOC swalloc;
@@ -219,7 +220,9 @@ struct ACT
       int priority;
       ACT *pactNext;
       int role;
+    // Uninitialised act.
     ACT() {}
+    // Act with the given ack value.
     ACT(int ack) : ack(ack) {}
 };
 
@@ -227,6 +230,7 @@ struct ACT5 : public ACT
 {
       ACT *pactCur;
       qword qwOffset;
+    // Act with ack 5.
     ACT5() { ack = 5; }
 };
 
@@ -395,6 +399,7 @@ struct ACT1 : public ACT
 {
       int phase;
       qword qwRest;
+    // Act with ack 1 starting in phase 2.
     ACT1() { ack = 1; phase = 2; }
 };
 
@@ -508,6 +513,7 @@ void InitGait(void *pv, struct S *p, int n);
 void ScaleStepSpinSpeed(struct S *p, float g);
 void InitBentleyHelper(void *pv, struct S *p);
 void ResetJtHands(void *pv);
+// Initialise a limit record from its two float fields and clear its int field.
 static __inline__ void InitLm(struct LM4 *range, float g8, float gc) { range->g8 = g8; range->gc = gc; range->n = 0; }
 // JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
 // records, helpers).
@@ -647,6 +653,7 @@ namespace M_func_00188960 {
 
 typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
+// 3x3 matrix of U rows with copy constructor and assignment.
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
 struct M4{U r[4];};struct VTE{short delta,pad;void*fn;};
 struct MODEL{char pad[0x1C];float base;};
@@ -668,11 +675,17 @@ M4*GetLoWorldMatrix(P*);float SplitVectorAlongAxis(qword,qword,qword*,qword*);
 M3 BuildAxisAngleRotationMatrix(qword,float);
 }
 struct VU_FLOAT{qword qw;};
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
+// Return a scaled by g.
 static inline qword ScaleVecX(qword a,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
+// Divide a by g.
 static inline qword DivVec(qword a,VU_FLOAT g){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(g.qw));return r;}
+// Rotate the vector at pv by the 3x3 matrix m.
 static inline qword RotateVecAt(M3*m,qword*pv){qword r;__asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z":"=j"(r):"j"(*pv),"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q));return r;}
+// Remove v's component along the unit normal n: v - (v.n) n.
 static inline qword ProjectOutVec(qword v,qword n){qword d=VuDot(v,n);qword al,ac;__asm__("vmulx.xyzw %0,%2,%1x":"=j"(al):"j"(d),"j"(n));__asm__("vsub.xyzw %0,%1,%2":"=j"(ac):"j"(v),"j"(al));return ac;}
 // 0x188958: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x80");
@@ -776,6 +789,7 @@ extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
 extern void ResetJtPipeAdjust(void *p, struct A *pa, void *pv);
 extern void AdjustJtHurtXp(void *p, struct A *pa, void *pv);
 extern void SetBentleyXpFriction(void *p, struct A *pa, void *pv);
+// v when g is below lo, otherwise g.
 static __inline__ float ReplaceIfBelow(float g, float lo, float v)
 {
     if (g < lo) return v;
@@ -885,6 +899,7 @@ extern void SetJtAirJump(void *p, int a, int b, int c);
 extern void SetGadgetRecordObject(void *p, E *pe, void *c);
 
 
+// Zero the three fields of px.
 static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
 
 
@@ -1098,6 +1113,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x19A0]; struct O *a; struct O *b; struct O *c; };
 void IgnoreStepSlot87(struct S *p, int f);
+// Call the object's virtual at vtable slot 21 with n.
 static __inline__ void Call(struct O *o, int n)
 {
     struct VTE *e = &o->vt[21];
@@ -1136,6 +1152,7 @@ namespace M_UpdateJtLean__FP2JT {
 //    tangent and the vertical (SProjectVector) drives the three-clip lean blend of the grab record (ablC, weights +0x7B0 / +0x7BC / +0x7C8, pasegblC +0x7D4), smoothed with SmoothValueWithAccel
 //    (+0x7D8 the value, +0x7DC its rate), flipped when the record's flip (+0x4E4) is set.
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
+// Evaluate the quadratic g0 + g1*x + g2*x^2.
 static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
@@ -1175,28 +1192,33 @@ extern "C" {
 
 
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
+// XY length of v as a float.
 static inline float LengthXYOf(qword v)
 {
     return VuToFloat(VuLengthXY(v));
 }
+// Length of v in the x lane (via a dot product).
 static inline qword LengthInXViaDot(qword v)
 {
     qword qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// Unit vector along v (via a dot product).
 static inline qword NormalizeVecViaDot(qword v)
 {
     qword qw = LengthInXViaDot(v);
@@ -1204,6 +1226,7 @@ static inline qword NormalizeVecViaDot(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwNormal) : "j"(qw), "j"(v));
     return qwNormal;
 }
+// Unit vector along v.
 static inline qword NormalizeVec(qword v)
 {
     qword qw = VuLength(v);
@@ -1223,12 +1246,14 @@ extern "C" float D_002BF300;
 extern "C" { extern CLQ D_002BF310; }
 extern "C" { extern SMPA D_002BF320; }
 extern "C" { extern CLQ D_002BF330; }
+// Return vec scaled by scale.
 static inline qword ScaleVec(qword vec, VU_FLOAT scale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(scale.qw), "j"(vec));
     return qw;
 }
+// Rotate qwV by the 3x3 matrix rows.
 static inline qword MulMatrixRows(MATRIX3 *matrix, qword qwV)
 {
     qword qwLocal;
@@ -1238,6 +1263,7 @@ static inline qword MulMatrixRows(MATRIX3 *matrix, qword qwV)
             : "j"(*(qword *)matrix->mat[0]), "j"(*(qword *)matrix->mat[1]), "j"(*(qword *)matrix->mat[2]), "j"(qwV));
     return qwLocal;
 }
+// Pack gX, gY, gZ into a vector.
 static inline qword MakeVec(float gX, float gY, float gZ)
 {
     qword qwXYZ;
@@ -1416,12 +1442,14 @@ inline qword TransformPos(MATRIX4 *matrix, qword pos)
 
 
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
@@ -1429,6 +1457,7 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     return v;
 }
 int ClsgClipEdgeToSphere(qword posSphere, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg) __asm__("ClipEdgeToSphere");
+// Return qwBase + vec * scale.
 static inline qword AddScaledVec(qword qwBase, qword vec, VU_FLOAT scale)
 {
     qword qw;
@@ -1732,6 +1761,7 @@ extern "C" M *GetLoWorldMatrix(A *p);
 extern "C" float SmoothValue__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
 
 
+// base + m.row1 * scalar (one asm block, register-pinned).
 static __inline__ qword OffsetAdd(const M *m, const VU *scalar, const VU *base)
 {
     register qword value __asm__("vf1"), row __asm__("vf2");
@@ -1740,6 +1770,7 @@ static __inline__ qword OffsetAdd(const M *m, const VU *scalar, const VU *base)
             : "m"(m->r[1]), "m"(scalar->q), "m"(base->q));
     return value;
 }
+// base - m.row1 * scalar (one asm block, register-pinned).
 static __inline__ qword OffsetSub(const M *m, const VU *scalar, const VU *base)
 {
     register qword value __asm__("vf1"), row __asm__("vf2");
@@ -1985,6 +2016,7 @@ extern "C" {
 
 
 
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
@@ -2017,6 +2049,7 @@ extern "C" float D_002BF364;
 extern "C" { extern qword D_002BF370; }
 extern "C" { extern qword D_002A2DA0; }
 extern "C" { extern qword D_002A2DC0; }
+// Remove v's component along the unit normal n: v - (v.n) n.
 static inline qword ProjectOutVec(qword v, qword n)
 {
     qword qwDot = VuDot(v, n);
@@ -2026,12 +2059,14 @@ static inline qword ProjectOutVec(qword v, qword n)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qwAcross) : "j"(v), "j"(qwAlong));
     return qwAcross;
 }
+// Return vec scaled by g.
 static inline qword ScaleVecX(qword vec, VU_FLOAT g)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(vec), "j"(g.qw));
     return qw;
 }
+// Rotate the vector at pqwVec by the 3x3 matrix.
 static inline qword RotateVecAt(MATRIX3 *matrix, qword *pqwVec)
 {
     qword result;
@@ -2359,6 +2394,7 @@ extern float GetAsegLabelTime(void *p, int n);
 extern void PredictAsegTransform(void *a, float g, struct O *p, float h, void *b, void *c, MATRIX4 *pm, int n);
 extern qword DecomposeRotationMatrixToEuler(MATRIX4 *pm);
 extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm);
+// Transform point v by the 4x4 matrix pm.
 static __inline__ qword Mul(MATRIX4 *pm, qword v)
 {
     qword o;
@@ -2412,6 +2448,7 @@ float atan2f(float,float);float ClampToLimits__FP2LMf(struct LM*,float);
 struct M3 *LoadRotateMatrixEuler(struct M3 *, qword);
 qword *VECTOR_opAssign(qword *, qword);
 void SetActRotationGoal(struct DV *, qword);
+// Transform the point *a by the 4x4 matrix m (register-pinned) and fetch the source space.
 static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **source)
 {
     register qword r __asm__("vf6"), row0 __asm__("vf5") = m->r[0].q;
@@ -2426,6 +2463,7 @@ static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **sou
     *source = sourceValue;
     return r;
 }
+// Length of the position after adding the correction (position + correction), register-pinned.
 static inline float CorrectionDistance(struct P *p, qword correction)
 {
     register qword d __asm__("vf1");
@@ -2804,21 +2842,25 @@ void UpdateJtActiveZap(void *);
 void UpdateJtPlaces(struct P *);
 int IsAsegaRetracted(void *);
 void DropAsegaRef(void **);
+// Address p + offset.
 static inline void *At(struct P *p, int offset)
 {
     return (char *)p + offset;
 }
+// Evaluate the binding's component (virtual slot 3) at the model's base and scale into *out.
 static inline void ReadBinding(struct BINDING *b, struct MODEL *m, qword *out)
 {
     struct COMPONENT *c = b->component;
     struct VTE *entry = &c->vt[3];
     ((void (*)(void *, int, qword *, float, float))entry->fn)((char *)c + entry->delta, 0, out, m->base, m->scale);
 }
+// Return a scaled by b.x in place.
 static inline qword ScaleIn(qword a, qword b)
 {
     __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(a) : "j"(b));
     return a;
 }
+// Load *input, broadcast g into out and return the input scaled by it.
 static inline qword FirstNegative(const qword *input, U *out, float g)
 {
     qword a, s;
@@ -2827,6 +2869,7 @@ static inline qword FirstNegative(const qword *input, U *out, float g)
     out->q = s;
     return ScaleIn(a, out->q);
 }
+// Load *input, broadcast g into out and return the input scaled by it (second variant).
 static inline qword SecondNegative(const qword *input, U *out, float g)
 {
     qword a, s;
@@ -2835,6 +2878,7 @@ static inline qword SecondNegative(const qword *input, U *out, float g)
     out->q = s;
     return ScaleIn(a, out->q);
 }
+// The model's step-animation translation negated (scaled by -1 broadcast through u).
 static inline qword NegativeModelNative(struct P *p, U *u)
 {
     qword v = GetStepAsegaTranslation(p, p->model, p->model->base), s;
@@ -2845,6 +2889,7 @@ static inline qword NegativeModelNative(struct P *p, U *u)
     return VuScaleByX(v, u->q);
 }
 
+// The negated step-animation translation, also loading the state pointer and a 0.0f for the caller.
 static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut, float *zeroOut)
 {
     qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
@@ -2865,10 +2910,12 @@ static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut
     return result;
 }
 
+// Store value to *destination and scalar to *scalarOut in one asm block.
 static inline void WriteVectorPair(qword value, qword *destination, qword scalar, qword *scalarOut)
 {
     __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(*destination), "=m"(*scalarOut) : "j"(value), "j"(scalar));
 }
+// Step-animation translation setup: load the model and state pointers and the scale factor for the caller.
 static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, struct STATE **stateOut)
 {
     qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
@@ -3322,6 +3369,7 @@ extern "C" { extern SW D_003DD490; }
 
 
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
@@ -3401,36 +3449,42 @@ extern "C" float D_002BF3E4;
 extern "C" float D_002BF3E8;
 extern "C" float D_002BF358;
 extern "C" { extern float D_002BF35C; }
+// Zero the xyz components of pvec.
 static inline void ClearXyz(VECTOR *pvec)
 {
     pvec->z = 0.0f;
     pvec->y = 0.0f;
     pvec->x = 0.0f;
 }
+// Return vec scaled by scale.
 static inline qword ScaleVec(qword vec, VU_FLOAT scale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(vec), "j"(scale.qw));
     return qw;
 }
+// Divide vec by g.
 static inline qword DivVec(qword vec, VU_FLOAT g)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(vec), "j"(g.qw));
     return qw;
 }
+// Broadcast a float's bits into a VU0 register.
 static inline VU_FLOAT VuFloatBits(float g)
 {
     VU_FLOAT v;
     __asm__("mfc1 %0, %1" : "=r"(v.qw) : "f"(g));
     return v;
 }
+// Return pos + vel * t.
 static inline qword AdvancePos(VU_FLOAT t, qword pos, qword vel)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(qw) : "j"(pos), "j"(t.qw), "j"(vel));
     return qw;
 }
+// Rotate vec by the 3x3 matrix rows.
 static inline qword RotateVecRows(qword qwRow0, qword qwRow1, qword qwRow2, qword vec)
 {
     qword result;
@@ -3439,6 +3493,7 @@ static inline qword RotateVecRows(qword qwRow0, qword qwRow1, qword qwRow2, qwor
             : "j"(qwRow0), "j"(qwRow1), "j"(qwRow2), "j"(vec));
     return result;
 }
+// Rotate vec by the 3x3 matrix.
 static inline qword RotateVecV(qword vec, MATRIX3 *matrix)
 {
     qword result;
@@ -4534,6 +4589,7 @@ extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
 extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
 extern "C" qword ConvertVecBetweenLos(O*,O*,qword);
 extern "C" void RecalculateAsegBlend(ANIM*);
+// Unit vector along vin (or the negative fallback vector when it is too short); register-pinned.
 static inline qword Normalize(qword vin, const U *negative, U *u)
 {
     register qword v __asm__("vf3") = vin;
@@ -4563,6 +4619,7 @@ static inline qword Normalize(qword vin, const U *negative, U *u)
     return r;
 }
 
+// Target point setup: negate the offset along the matrix axes into target and fetch the owner (register-pinned).
 static inline P *NegativeTarget(const M4 &m, const qword &offset, U *negative, U *scratch, U *target, P *p)
 {
     register float minus __asm__("$f0") = -1.0f;
@@ -4590,6 +4647,7 @@ static inline P *NegativeTarget(const M4 &m, const qword &offset, U *negative, U
     return owner;
 }
 
+// y of the normalized vector as the weight amount, and a 0.0f for the caller.
 static inline float WeightAmount(qword normalized, float &zero)
 {
     register qword raw __asm__("$2");
@@ -4602,7 +4660,9 @@ static inline float WeightAmount(qword normalized, float &zero)
     return amount;
 }
 
+// High address page of the smoothing sample table.
 static inline unsigned SmoothSamplePage(){register unsigned page __asm__("$6");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002BF3F8));return page;}
+// Load the smoothing inputs (current and optional matrices, sample) and return clock dt * factor.
 static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, unsigned page, M3 *&current,
                                  M3 *&optional, SMP *&sample)
 {
@@ -4753,6 +4813,7 @@ extern struct CLOCK D_002DDED0;
 extern float D_002BF414;
 extern char D_002BF418[];
 extern qword D_002A2DA0;
+// Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
     qword l, one;

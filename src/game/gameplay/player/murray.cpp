@@ -80,6 +80,7 @@ void InitStepplayer(struct S *p);
 void InitGait(struct BIND*a,void*owner,int word90);
 void InitAsegArc(struct RESET*a);
 void InitThrow(struct CONTEXT*a,void*owner);
+// Initialise the sub-record: its two floats and a zero counter.
 static inline void Init(struct SUB *ps, float f, float g) { ps->f2 = g; ps->f1 = f; ps->i = 0; }
 // MURRAY Init (vtable slot 7): STEPPLAYER init, then Murray's defaults (state fields -1, throw range 1500/3500) and his
 // four locomotion blends.
@@ -202,6 +203,7 @@ void BindLoOidTable(struct P *p, int n, void *q);
 struct T *AllocClearedFromWorldHeap(struct REQ *r);
 void *FindSoXf(struct P *p, int a, int b);
 void InitIkRecord(struct T *t);
+// Allocate a zeroed 0xE0-byte T record, 16-byte aligned, from the world heap.
 static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return AllocClearedFromWorldHeap(&req); }
 // MURRAY LoadFromBrx (slot 14): STEP base, binds his object table (0x89 entries) and allocates the two hand/grip
 // records. Layout parse-verified: a parser following it reads every byte of 4 levels.
@@ -329,7 +331,9 @@ extern "C" void UpdateMurrayPower(P*);
 extern "C" void UpdateJtThrow(void*);
 extern "C" void UpdateJtActivePipe(void*);
 extern "C" int GetGadgetButtonMask(P*,int);
+// Copy the PL pointer through a register move.
 static inline PL*CopyPL(PL*source){PL*result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
+// Ask the actor whether action `kind` is allowed (virtual slot 99).
 static inline int Can(P*p,int kind){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,kind);}
 // Per-frame input-driven state machine (loops until the state is stable): idle/move, jump, attacks, lift/carry/throw,
 // flop, strafe. Pad bit 0x400 is look mode; gadgets are the slot buttons 0x4/0x1/0x2.
@@ -534,6 +538,7 @@ void UpdateJtActiveZap(void *p);
 int ShouldSwPairObjects(struct G *pg,struct BBOX *a,struct BBOX *b);
 void RefreshSwObjectCollisionFilter(struct G *pg, struct P *p);
 void SetActPositionGoal(void *p, qword v);
+// Store -v (v scaled by a broadcast -1) into the actor's v190.
 static inline void Neg(struct P *p, qword v)
 {
     union { qword q; float f[4]; } u;
@@ -545,6 +550,7 @@ static inline void Neg(struct P *p, qword v)
         p->v190 = qwpv190Out;
     }
 }
+// Store -v into the actor's v190 and set the action's speed from the PL's g1C.
 static inline void Neg2(struct P *p, qword v)
 {
     struct ASEGA *pl = p->action;
@@ -688,6 +694,7 @@ void SetStepTargetHeading(struct P *p, float g);
 qword GetStepAsegaTranslation(struct P *p,struct PL*pl,float g);
 void UpdateGaitBlend(void *p, float g);
 void UpdateGaitFootsteps(void *p);
+// Store -value into *velocity, keeping the -1 broadcast in *scalar (register-pinned).
 static inline void NegateSource(qword value,qword*velocity,U*scalar){
     register qword input __asm__("vf3"),neg __asm__("vf1"),result __asm__("vf2");
     register int bits __asm__("$3");
@@ -698,6 +705,7 @@ static inline void NegateSource(qword value,qword*velocity,U*scalar){
     scalar->q=neg;
     *velocity=result;
 }
+// Copy the PL pointer through pinned registers.
 static inline struct PL*CopyPL(struct PL*p){register struct PL*source __asm__("$2")=p;register struct PL*copy __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(source));return copy;}
 // State 5 (carrying x13F0): drops it if it is no longer active; jump with power-up 0x12, throw/toss buttons, carry
 // locomotion. Power-up 0x12 is Atlas Strength.
@@ -952,9 +960,13 @@ void UpdateGaitFootsteps(void*);
 qword SetVectorCylind(float,float,float);
 void UpdateDirectionalBlend(P*,ENTRY*,void*);
 }
+// Load a vector into a VU0 register.
 static inline qword Load(const U*p){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(*p));return q;}
+// XY length of v as a float.
 static inline float LengthXY(qword v){qword q;float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(q):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
+// Move a 128-bit GPR value into a VU0 register.
 static inline qword Vector(qword q){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(q));return v;}
+// Rotate vector by the 3x3 matrix m.
 static inline qword Rotate(M3 *m, qword vector)
 {
     qword result = Load(&m->rows[0]), row1 = m->rows[1].q, row2 = m->rows[2].q;
@@ -1130,9 +1142,13 @@ float atan2f(float y, float x);
 float GetStepHeading(struct P *p);
 float NormalizeAngle__Ff(float g);
 qword SetVectorCylind(float a, float b, float c);
+// z lane of t as a float.
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return QwordX(t); }
+// y lane of t as a float.
 static __inline__ float GetY2(qword t) { __asm__("prot3w %0,%0" : "+r"(t)); return QwordX(t); }
+// Move a VU0 register to a 128-bit GPR value.
 static inline qword ToGpr(qword v) { qword r; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
+// XY length of v as a float.
 static inline float LenXY(qword v) {
     qword d;
     float f;
@@ -1286,9 +1302,11 @@ void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
 ENTRY *FindAsegLabel(ASEG *, int);
 void SetAsegaChannelWeight(ASEGA *, float);
 }
+// Address p + offset.
 static inline void *Block(P *p, int offset) { return (void *)((char *)p + offset); }
 // virtual call through slot `index` of an object whose vptr is at +0xC
 static inline void Call(OBJ *p, int index) { VE &v = p->vt[index]; ((void (*)(void *))v.fn)((char *)p + v.delta); }
+// Set the actor's velocity (virtual slot 35).
 static inline void SetVelocity(P *p, qword q) { VE &v = p->vt[35]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
 // Murray state switch (x13D0, 0..21): exit work for the old state, entry work (clip selection, velocity reset,
 // component states) for the new one.
@@ -1717,12 +1735,15 @@ extern "C" qword D_002A2DC0;
 enum { FACTOR_ADDRESS = 0x002C09A4 };
 extern "C" void AddSoAcceleration(struct P *p, qword v);
 typedef union { qword q; float f[4]; } U;
+// Return a scaled by g.
 static inline qword Scale(qword a, float g) { U u; qword k, r; __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(g)); u.q = k; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(u.q)); return r; }
+// Store k to u, return a scaled by k, then store negative to u (register-pinned).
 static inline qword Factor(qword a,qword k,qword negative,U *pu) {
     U &u=*pu; register qword r __asm__("vf3");
     __asm__("sqc2 %2,%0\n\tvmulx.xyzw %1,%3,%2x\n\tsqc2 %4,%0":"=m"(u.q),"=&j"(r):"j"(k),"j"(a),"j"(negative));
     return r;
 }
+// Projection of a onto b: (a.b) b (register-pinned).
 static inline qword Projection(qword a,qword b) {
     register qword r __asm__("vf3"),one __asm__("vf4");
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tvmulx.xyzw %0,%3,%0x":"=&j"(r),"=&j"(one):"j"(a),"j"(b));
@@ -1803,6 +1824,7 @@ void *DeliverZapToSo(struct MSG *pmsg);
 float *FindAsegLabel(void *p, int n);
 void SeekAsega(struct Q *p, int n, float g, float h);
 void RetractAsega(struct Q *p);
+// Zero the xyz components of pv.
 static inline void Zero(struct V3 *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
@@ -1974,6 +1996,7 @@ void SetBhvjuggledState(struct S *p, int n);
 void StartMurrayLiftGuard(struct P *p, void *q);
 void SetMurrayState(struct P *p, int n);
 void SetMurrayAttack(struct P *p, int n);
+// XY length of v as a float.
 static inline float LenXY(qword v) {
     qword d;
     float f;
@@ -1982,7 +2005,9 @@ static inline float LenXY(qword v) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+// z lane of t as a float.
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return QwordX(t); }
+// Move a VU0 register to a 128-bit GPR value.
 static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; }
 // If the target (x10DC) is a stunned guard within reach and the attack button is pressed, lifts the guard; returns
 // nonzero if it did.
@@ -2053,6 +2078,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
 typedef struct { U row[3]; } M3;
 typedef struct { M3 basis; U position; } M4;
+// Wrap a qword as a VU_VECTOR (convertible back to qword).
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } operator qword() const { return q; } };
 typedef struct NODE { M4 local, world; char pad80[0x20]; struct NODE *parent; } NODE;
 typedef struct { char pad[0x58]; NODE *left, *right; } OWNER;
@@ -2142,13 +2168,21 @@ extern float D_002C09C8;
 qword ConvertXfVec(struct LO*,struct LO*,qword);
 int SolveQuadratic__FfffPf(float,float,float,float*);
 void SeekAsega(struct ANIM*,int,float,float);
+// Clamp inputValue to [inputLower, *upper] (register-pinned).
 static inline float Clamp(float inputValue,float inputLower,const float*upper){register float value __asm__("$f0")=inputValue;register float lower __asm__("$f12")=inputLower;float limit=*upper;if(value<lower)return lower;if(limit<value)return limit;return value;}
+// Return v scaled by f (broadcast through u).
 static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
+// Final launch scale: the up vector scaled by the bits-as-float factor (register-pinned).
 static inline qword FinalLaunchScale(const qword*up,int bits,U*scalar){register qword factor __asm__("vf2"),source __asm__("vf1"),result __asm__("vf3");__asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tvmulx.xyzw %2,%1,%0x\n\tsqc2 %0,%3":"=j"(factor),"=j"(source),"=j"(result),"=m"(scalar->q):"r"(bits),"m"(*up));return result;}
+// Return a + b * s, storing s to u.
 static inline qword AddScaled(qword a,qword b,qword s,U*u){qword r;u->q=s;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(u->q));return r;}
+// Return *p + b * s.
 static inline qword AddScaledMemory(const U*p,qword b,qword s){qword a,r;__asm__("lqc2 %1,%2\n\tvadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r),"=&j"(a):"m"(p->q),"j"(b),"j"(s));return r;}
+// Divide v by s, storing s to u.
 static inline qword Div(qword v,qword s,U*u){qword r;u->q=s;__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(u->q),"j"(v));return r;}
+// Store a VU0 register to *p.
 static inline void Store(qword*p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
+// Copy the actor pointer into callee-saved $16.
 static inline struct P*CaptureActor(struct P*input){register struct P*output __asm__("$16");__asm__("daddu %0,%1,$zero":"=r"(output):"r"(input));return output;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
@@ -2274,6 +2308,7 @@ qword GetLoWorldPos(struct LO *p);
 qword GetSoGravity(struct LO *p);
 qword CalculateVelocityToReachPos(qword a, qword b, qword c, float t);
 void SetSoZapMode(struct LO *p, int n);
+// Distance between a and b as a float.
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -2559,6 +2594,7 @@ namespace M_func_001B8180 { extern "C" {
 struct S { char pad[0x13D0]; int n; };
 // MURRAY slot 94: 1 for the free-movement states 0/1/9/10. (inferred)
 } } // namespace M_func_001B8180
+// MURRAY slot 94: 1 while Murray is in a free-movement state (idle, run, strafe, walk), else 0.
 int MURRAY::IsFreeMoving() { using namespace M_func_001B8180; M_func_001B8180::S *p = (M_func_001B8180::S *)this;
     switch (p->n) {
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_STRAFE: case MURRAY_WALK:
@@ -2767,6 +2803,7 @@ float *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ANIM *pa, float t);
 struct R *FindAsegChannel(struct S14 *p, struct P *pp, int a, int b);
 void ReleaseInteractTargetMark(struct P *p);
+// Rotate v by the 3x3 matrix rows m[0..2].
 static inline qword MulM3(qword *m, qword v)
 {
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(v) : "j"(m[0]), "j"(m[1]), "j"(m[2]));
@@ -2919,7 +2956,9 @@ struct PARAM *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertVecBetweenLos(void*,void*,qword);
 void FaceStepToward(struct P*,void*);
+// Evaluate the quadratic a + b*t + c*t^2.
 static inline float Polynomial(struct POLY*p,float t){return p->a+t*(p->b+t*p->c);}
+// Blend value into *velocity by strength g (and its complement), keeping the scalars in *scalar (register-pinned).
 static inline void Blend(qword value,float g,qword*velocity,U*scalar){
     register qword input __asm__("vf1"),strength __asm__("vf5"),negative __asm__("vf2"),other __asm__("vf4"),complement __asm__("vf3"),current __asm__("vf1");
     register int bits __asm__("$3"),rest __asm__("$2");
@@ -2939,6 +2978,7 @@ static inline void Blend(qword value,float g,qword*velocity,U*scalar){
     *velocity=current;
     scalar->q=strength;
 }
+// Store -value into *velocity, keeping the -1 broadcast in *scalar (register-pinned).
 static inline void NegateSource(qword value,qword*velocity,U*scalar){
     register qword input __asm__("vf3"),neg __asm__("vf1"),result __asm__("vf2");
     register int bits __asm__("$3");
@@ -2949,6 +2989,8 @@ static inline void NegateSource(qword value,qword*velocity,U*scalar){
     scalar->q=neg;
     *velocity=result;
 }
+// Orbit offset vector: XY direction length and the orbit's time, angle and radius loaded for the caller
+// (register-pinned).
 static inline qword OrbitVector(struct P*p){
     register struct Q*orbit __asm__("$2");
     register qword d __asm__("vf1");
@@ -3000,6 +3042,7 @@ extern qword D_002A2DD0;
 struct VE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x40 - 0x10]; qword v40; char rest[0x20]; };
 union V3 { qword q; struct { float x,y,z,w; } value; };
+// Zero the xyz components of pv.
 static __inline__ void Zero(union V3 *pv) { pv->value.z = 0; pv->value.y = 0; pv->value.x = 0; }
 struct P { char pad[0x190]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANIMATION *action; struct COMPONENT x1034;
     char pad2[0x1840 - 0x1038]; int x1840; float f1844; struct CLIP *x1848; struct CLIP *x184C; struct SCRIPT x1850; float f186C;
@@ -3398,6 +3441,7 @@ extern "C" MOTION*NewIkAct(void*,void*,void*,STRETCH*);
 extern "C" MOTION*NewMatrixAct(void*,void*,void*,void*,int,M4*);
 extern "C" void DetachMurrayCarried(P*);
 extern "C" void SetMurrayState(P*,int);
+// Zero the xyz words of v.
 static inline void ClearXYZ(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
 // Lift sub-states: 1 launches the object toward the hands (constraints, velocity), 2 attaches it.
 extern "C" void SetMurrayLiftSubstate(P *murray, int state)

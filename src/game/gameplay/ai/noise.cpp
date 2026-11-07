@@ -130,7 +130,9 @@ void CID117::Init()
 /* Holds a reference while the noise is set up (vtable slots 1/2). */
 struct Lock {
     NOISE *noise;
+    // Scope guard: call the noise's virtual slot 1 on entry and slot 2 on exit (reference bracket).
     Lock(NOISE *target) { noise = target; VCALL0(noise, 1); }
+    // Close the bracket (virtual slot 2).
     ~Lock() { VCALL0(noise, 2); }
 };
 // 0x156548: Creates a noise of type `type` at `pos`: allocates and clears a record from the world's noise pool,
@@ -204,7 +206,9 @@ extern "C" void ExpireNoise(NOISE *noise)
 class CRefGuard {
 public:
     NOISE *noise;
+    // Scope guard: call the noise's virtual slot 1 on entry and slot 2 on exit (reference bracket).
     CRefGuard(NOISE *target) : noise(target) { VCALL0(target, 1); }
+    // Close the bracket (virtual slot 2).
     ~CRefGuard() { VCALL0(noise, 2); }
 };
 // 0x156780: Ends a noise: notifies its subscribers (message 0xF), unlinks it from the active list, sends message 3

@@ -65,6 +65,7 @@ extern "C" void InitJtgoal(JTGOAL *goal, PO *player)
     goal->player = player;
 }
 
+// Distance from `from` to `to`.
 static __inline__ float GetDistance(qword from, qword to)
 {
     qword delta;
@@ -78,6 +79,7 @@ static __inline__ float GetDistance(qword from, qword to)
     return distance;
 }
 
+// Which end of the contact belongs to the player (0 or 1).
 static inline int GetPlayerEndIndex(PO *player, SO *contact)
 {
     return player == contact->ends[0].object ? 0 : 1;
@@ -150,6 +152,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
     }
 }
 
+// Distance from `from` to `to`, as raw float bits.
 static __inline__ int GetDistanceBits(qword from, qword to)
 {
     qword delta;

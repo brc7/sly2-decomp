@@ -314,6 +314,8 @@ extern "C" void RecalcSwXpMovement(SW *world, int count, XP **contacts)
 // edge. Returns the span count (Sly 1 ClsgClipSoAllEdges).
 int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int clsgMax, LSG *alsg)
     __asm__("ClipSoAllEdges");
+// Definition of ClipSoAllEdges (the C-linkage label declared above): clip each edge of ppart's world geometry against
+// the BSP absp, tagging each span with its edge; returns the span count.
 int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int clsgMax, LSG *alsg)
 {
     int ilsg = 0;
@@ -524,8 +526,11 @@ struct SCALAR;
 struct VECTOR;
 extern "C" SCALAR *InitVuTemp(SCALAR *);
 extern "C" inline VECTOR *DefaultConstructVector(VECTOR *);   /* defined after its callers (end of file) */
+// VU temporary initialised through InitVuTemp.
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
+// Vector default-constructed through DefaultConstructVector.
 struct VECTOR { qword q; VECTOR() { (void)DefaultConstructVector(this); } };
+// Wrap a qword as a VU_VECTOR4.
 struct VU_VECTOR4 { qword q; VU_VECTOR4(qword a) { q = a; } };
 struct W;
 struct B;
@@ -621,9 +626,11 @@ namespace M_MarkSoContactsBspBsp {
 //    in Length and PlaneDist was the last step (215 -> 219).
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
+// Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct SCALAR;
 extern "C" SCALAR *InitVuTemp(SCALAR *);
+// VU temporary initialised through InitVuTemp.
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 struct SCENE;
 struct CONTACT;
@@ -649,12 +656,14 @@ void AddXp(SCENE *, SHAPE *, SHAPE *, VV, float, VV, int, void *, void *, CONTAC
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 
 struct VU_FLOAT { qword qw; };
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2.ni %1,%0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Return qw1 * g1 + qw2 * g2.
 static inline VV QwMix(VU_FLOAT g1, VV qw1, VU_FLOAT g2, VV qw2)
 {
     qword qw;
@@ -663,6 +672,7 @@ static inline VV QwMix(VU_FLOAT g1, VV qw1, VU_FLOAT g2, VV qw2)
 }
 /* gcc supplies the qmfc2 for the "r" operand; the repeated "j" operand is allocation-only (keeps the value VU class). */
 static inline float GFromVf(VU_FLOAT v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v.qw), "j"(v.qw)); return g; }
+// Length of the xyz part of v as a float.
 static inline float Length(VV v)
 {
     VV d, one;
@@ -685,6 +695,7 @@ static inline float PlaneDist(VV point, VV plane)
     g.qw = dot.q;
     return GFromVf(g);
 }
+// Closest points of the lines (a, b) and (c, d): parameter into *au, normal into *normal.
 static inline void Closest(VV a, VV b, VV c, VV d, float *au, U *normal)
 {
     (void)ClosestPointsOfLines(a, b, c, d, au, normal);
@@ -793,7 +804,9 @@ extern "C" void*AllocFromStack(REQ*);
 extern "C" int PruneBspBySphere(ENTRY*,int,qword,float,int*,ENTRY**);
 extern "C" int func_00118668(ENTRY*,int,qword,qword,int,HIT*);
 extern "C" void InitPlaneFromNormalPos(qword*,qword,qword);
+// Return a - b.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
+// Unit vector along v (pinned to vf2/vf3).
 static inline qword Normal(qword v){register qword d __asm__("vf2"),one __asm__("vf3"),r __asm__("vf3");__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(d),"j"(v));return r;}
 // Finds a contact for a point embedded in a BSP: grows a probe radius from max(r, 100) until a face plane is found,
 // prunes the BSP to that sphere and clips its edges; writes a contact of kind 0xC.
@@ -961,12 +974,14 @@ struct VU_FLOAT
 {
     qword qw;
 };
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Unit vector along v.
 static inline qword QwNormalize(qword v)
 {
     qword qw = VuLength(v);
@@ -982,6 +997,7 @@ struct VERTCAND
     qword pos;
     qword plane;
 };
+// Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *PvAllocStack(int cb)
 {
     SWALLOC swalloc;
@@ -989,12 +1005,14 @@ static inline void *PvAllocStack(int cb)
     swalloc.cbAlign = 0x10;
     return PvAllocStackImpl(&swalloc);
 }
+// Return qwBase + qwVec * gScale.
 static inline qword QwAddScaled(qword qwBase, VU_FLOAT gScale, qword qwVec)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(qw) : "j"(qwBase), "j"(gScale.qw), "j"(qwVec));
     return qw;
 }
+// qwBase + qwVec * gScale as a VU_VECTOR4.
 static inline VU_VECTOR4 VecAddScaled(qword qwBase, VU_FLOAT gScale, qword qwVec)
 {
     VU_VECTOR4 v;
@@ -1233,6 +1251,7 @@ struct E {qword point,plane;int kind;DETAIL detail;};
 extern "C" int IntersectSphereBsp(qword pos, struct S*b,int c,int d,struct NODE*e,int n, struct E *buf, float f);
 extern "C" U*InitVuTemp(U*p);
 extern "C" void AddXp(void *a, struct S*s,struct S*b,qword p, qword q, int kind, void*z, void*feature,struct CONTACT**g,float f);
+// Construct a VU temporary via InitVuTemp.
 inline U::U() { (void)InitVuTemp(this); }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char Offset_0[FIELD_OFFSET(U,q)==0?1:-1];
@@ -1374,12 +1393,19 @@ struct W;struct C;
 extern "C" M4 InvertMatrix4Rigid(const M4*);
 extern "C" int ClipEdgeToObject(B*,qword,qword,int,HIT*);
 extern "C" void AddXp(W*,A*,B*,qword,qword,int,int,int,C**,float);
+// Transform point p by the 4x4 matrix m into a new register.
 static inline qword TransformNew(const M4*m,qword p){qword r;__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=&j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(p),"j"(m->r[2]),"j"(m->r[3]));return r;}
+// Transform point p by the 4x4 matrix m in place.
 static inline qword Transform(const M4*m,qword p){__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=j"(p):"j"(m->r[0]),"j"(m->r[1]),"0"(p),"j"(m->r[2]),"j"(m->r[3]));return p;}
+// Return a - b, in vf1.
 static inline qword SubN(qword a,qword b){register qword r __asm__("vf1");__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a,qword b){qword d,one;float f;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a),"j"(b));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
+// Unit vector along v (pinned to vf2/vf3/vf5).
 static inline qword Normal(qword v){register qword d __asm__("vf2"),one __asm__("vf3"),r __asm__("vf5");__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(d),"j"(v));return r;}
+// Copy a VU0 register (vmove).
 static inline qword Copy(qword q){qword r;__asm__("vmove.xyzw %0,%1":"=j"(r):"j"(q));return r;}
+// Smallest signed distance along dir of the count0 points (*points0) from pos; 0 if all are in front.
 static inline float MinDistance(qword pos,qword dir,int count0,const qword*const*points0){
  register int count __asm__("$3")=count0;
  register float best __asm__("$f12")=0;
@@ -1476,6 +1502,7 @@ extern "C" void AddZapResponderXps(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, S
    grab's ClearJtDetectionOutOfSight. This form exists to reproduce the original codegen. */
 struct SCOPE2 { char ach[2]; STACKSCOPE scope; };
 struct CBSP { int c; };
+// Allocation request: byte count and alignment.
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 extern BSP D_002BBB20;      /* the "outside" leaf (bsp.cpp) */
 /* A tree's parts (SOTREE::parts through SOPART::dle) and its flag word (+0x70: so.h's isInFirstQueue..isDone bit-fields and
@@ -1490,6 +1517,7 @@ void MarkSoContactsSweptVertices(SW *psw, SOPART *ppart, SOPART *ppartOther, XP 
 void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp);
 void MarkSoContactsBspBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, BSP *pbspLast, XP **ppxp);
 }
+// Squared length of the xyz part of v as a float.
 static inline float LengthSq(qword v)
 {
     qword d, one;
@@ -1638,6 +1666,7 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
 // its callers, so g++ calls it and emits the out-of-line copy (linkonce), as the original did. It keeps its C symbol
 // (bsp, tu_1D1370 and waypoint call it by that name).
 namespace M_func_001A87F0 {
+// Identity "constructor" for VECTOR: returns pvec unchanged (keeps the original's call shape).
 extern "C" { inline VECTOR *DefaultConstructVector(VECTOR *pvec)
 {
     return pvec;

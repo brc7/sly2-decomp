@@ -37,8 +37,10 @@ struct CPQ
     qword axis;             /* D_002A2DC0 (the up axis) */
     int unknown10;          /* 1 */
     int pad[3];
+    // Zero the whole CPQ.
     CPQ() { func_002333B4(this, 0, sizeof(CPQ)); }
 };
+// A zeroed CPQ with axis D_002A2DC0 and its unknown10 flag set.
 static inline CPQ MakeCpq()
 {
     CPQ cpq;
@@ -87,7 +89,9 @@ struct ACT
       int priority;
       ACT *pactNext;
       int role;
+    // Uninitialised ACT.
     ACT() {}
+    // ACT with the given ack value.
     ACT(int ack) : ack(ack) {}
 };
 
@@ -370,6 +374,7 @@ struct Node {
 };
 struct Stats *AllocZeroedFromSlotheap(void *);
 qword GetLoWorldPos(struct Node *);
+// Distance between a and b (xyz) as a float.
 static inline float Distance(qword a,qword b) {
  qword d,one;
  float result;
@@ -379,6 +384,7 @@ static inline float Distance(qword a,qword b) {
  __asm__("mtc1 %1,%0":"=f"(result):"r"(d));
  return result;
 }
+// Load the node's 64-bit state word.
 static inline ulong LoadState(struct Node *p)
 {
     register ulong value __asm__("$2");
@@ -750,6 +756,7 @@ void RemoveLoHierarchy(struct P *);
 void RemoveSoParts(struct P *);
 void ClearSwCallbacks(struct G *, int, struct P *, long, int);
 void SetSoPhysRegion(struct P *, int);
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
@@ -758,6 +765,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
@@ -797,6 +805,7 @@ struct O { char pad[0xC]; struct VTE *pvt; struct O *parent; char pad2[0x24 - 0x
 void UpdateLoLoroot(struct O *, struct O *, struct O *);
 void RemoveSoParts(struct O *);
 void AddSoParts(struct O *);
+// Nearest ancestor of x (or x itself) with flag bit 56 set; null if none.
 static inline struct O *Find(struct O *x)
 {
     while (x && !(x->flags & (1L << 56))) x = x->parent;
@@ -936,9 +945,13 @@ void EnsureSoBounds(P *);
 void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(P *,void *,void *);
 void SetLoVisMask(P *,int);
 }
+// Call p's virtual at vtable slot 63 and return its int result.
 static inline int Extra(P *p){VE *v=&p->vt[63];return ((int (*)(P *))v->fn)((P *)((char *)p+v->delta));}
+// Call p's virtual at vtable slot 51 with id and return the pointer it gives.
 static inline void *Lookup(P *p,int id){VE *v=&p->vt[51];return ((void *(*)(P *,int))v->fn)((P *)((char *)p+v->delta),id);}
+// Call p's virtual at vtable slot 64.
 static inline void Post(P *p){VE *v=&p->vt[64];((void (*)(P *))v->fn)((P *)((char *)p+v->delta));}
+// Set flag 8: on p->flags when bit 0 is set, otherwise on the word p->flags points to (as the original does).
 static inline void SetActive(P *p){uint f=p->flags;if((f^1)&1)*(uint *)f|=8;else p->flags=f|8;}
 // Slot 14 (LoadFromBrx): the LO base, the model and glob set, the part array (XF id, flags, radius, local
 // geometry, BSP...), the physics block (matrix, mass), options and bounds.
@@ -1203,6 +1216,7 @@ void UpdateSoPartMesh(struct E *, float);
 int IsXfRoleVelocity(int);
 void UpdateSoSlots(struct P *);
 void UpdateSoPartGeom(struct E *);
+// Zero the first three ints of a.
 static inline void Clear(int *a)
 {
     a[2] = 0;
@@ -1568,6 +1582,7 @@ namespace M_RotateSoToMat {
 union U; struct M3; struct LO; struct VTE; struct P; struct G;
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
+// 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 { U r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
 struct LO { M3 matrix; U position; M3 rotation; char pad[0x30]; LO *parent; int stamp; };
 struct VTE { short delta,pad; void (*fn)(void *); };
@@ -1580,6 +1595,7 @@ extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 extern "C" void FreeSoContacts(P *);
 extern "C" void UnsettleXfSlot(P *,LO *);
 extern "C" void UpdateSoPartMatrices(P *);
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
     qword a0=a.r[0].q,a1=a.r[1].q,a2=a.r[2].q;
@@ -1682,6 +1698,7 @@ void SetSoVelocity(struct P *so, qword q)
 // statement the three chains tie and the rows come out 0, 1, 2 as in the game. (Same recipe as the fused qmfc2 + mtc1 of vu0.h.)
 extern "C" MATRIX3 InvertMatrix3Cofactor(MATRIX3 *pmat);
 
+// 3x3 matrix product matL * matR.
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
     qword qwL0 = *(qword *)matL.mat[0];
@@ -1738,6 +1755,7 @@ namespace M_SetSoAngularVelocity {
 union U; struct M3; struct LO; struct VTE; struct P;
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
+// 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 { U r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
 struct LO { M3 matrix; U position; M3 rotation; char pad[0x24]; int kind; short state; char pad9A[6]; LO *parent; int stamp; char padA8[8]; U velocity; };
 struct VTE { short delta,pad; qword (*fn)(void *); };
@@ -1746,6 +1764,7 @@ extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 extern "C" void UnsettleXfSlot(P *,LO *);
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
     qword a0=a.r[0].q,a1=a.r[1].q,a2=a.r[2].q;
@@ -1759,10 +1778,13 @@ extern "C" qword ConvertXfVec(LO *,LO *,qword);
 extern "C" void InvalidateSoAaox(P *);
 extern "C" void WakeSo(P *);
 extern "C" void SetSoBit35Hierarchy(P *,long);
+// Return a - *pb.
 static inline qword Sub(qword a,const qword *pb) { qword r,b; __asm__("lqc2 %1,%3\n\tvsub.xyzw %0,%2,%1":"=j"(r),"=&j"(b):"j"(a),"m"(*pb));return r; }
+// Rotate v by the 3x3 matrix m.
 static inline qword Transform(const M3 &m,qword v) { qword r;
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;
 }
+// Zero the xyz words of v.
 static inline void Clear(U *v) { v->i[2]=0;v->i[1]=0;v->i[0]=0; }
 // Slot 36: sets the rotation XF's angular velocity from a world-space w.
 extern "C" void SetSoAngularVelocity(P *so,qword position)
@@ -1925,13 +1947,16 @@ namespace M_func_001F4A80 {
 union U; struct M4; struct VTE; struct A; struct P;
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
+// 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {U r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];} M4&operator=(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];return *this;}};
 struct VTE { short d; short pad; void (*pfn)(); };
 struct A { char pad[0x70]; qword pos; };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE8 - 0x10]; void *pe; };
 extern "C" void SetLoTransformFromXf(struct P *p, struct A *pa);
 extern "C" M4 *GetXfAngularVelocity(M4 *,A *,A *);
+// The object's angular-velocity matrix (GetXfAngularVelocity).
 static inline M4 BuildVelocity(A *owner) return result { GetXfAngularVelocity(&result,owner,0); }
+// Pack x, y, z into a 128-bit GPR value.
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -1940,6 +1965,7 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 typedef void (*SETVECTOR)(void *,qword);
+// Load a vtable entry's function pointer.
 static inline SETVECTOR ReadSetter(const VTE &entry){
  SETVECTOR function;
  asm("lw %0,%1":"=r"(function):"m"(entry.pfn));
@@ -2303,6 +2329,7 @@ extern "C" { extern SW D_003DD490; }
 extern "C" void UpdateSoPartGeom(SOPART *);
 extern "C" void ClearSoTreeBoundsDirty(SO *);
 
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
@@ -2316,10 +2343,12 @@ static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(g.qw));
     return qw;
 }
+// Return qwBase + qwVec * g.
 static inline qword QwAddScaledF(qword qwBase, qword qwVec, float g)
 {
     return QwAddScaled(qwBase, qwVec, VuFloat(g));
 }
+// Transform point qwPos by the 4x4 matrix pmat.
 static inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
 {
     qword qwResult;
@@ -2339,6 +2368,7 @@ static inline float GLength(qword v)
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
+// Distance between qwA and qwB.
 static inline float GDistance(const qword &qwA, const qword &qwB)
 {
     return GLength(VuSub(qwA, qwB));
@@ -2355,6 +2385,7 @@ static inline float GDistanceFused(qword qwA, qword qwB)
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
+// Grow the box [qwMin, qwMax] to contain qwPos.
 static inline void ExtendBox(qword &qwMin, qword &qwMax, const qword &qwPos)
 {
     qwMin = VuMin(qwMin, qwPos);
@@ -2484,6 +2515,7 @@ struct OUT { qword axis; int mode; };
 extern int D_002C3C20[];
 extern qword D_002C3BA0[];
 extern qword D_002A2DD0;
+// Rotate value by the 3x3 matrix (register-pinned rows).
 static inline qword Transform(M3 *matrix,qword value) {
     register qword x __asm__("vf2")=matrix->row[0];
     register qword y __asm__("vf1")=matrix->row[1];
@@ -2491,6 +2523,7 @@ static inline qword Transform(M3 *matrix,qword value) {
     __asm__("vmulax.xyz $ACC,%1,%3x\n\tvmadday.xyz $ACC,%2,%3y\n\tvmaddz.xyz %0,%0,%3z" : "+j"(z) : "j"(x),"j"(y),"j"(value));
     return z;
 }
+// Unit vector along value, or fallback when its length is too small.
 static inline qword NormalizeOr(qword value,qword fallback) {
     register qword length __asm__("vf1");
     register qword one __asm__("vf2");
@@ -2694,6 +2727,7 @@ union U; struct M3; struct OWNER; struct P; struct COEF;
 // Matched from the codex/lilly drafts (T1623). Notes: notes/1F0000.md.
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
+// 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
 struct SPACE;
 struct OWNER {M3 matrix;char pad30[0x70];SPACE *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
@@ -2702,19 +2736,27 @@ struct COEF {float a,b,c;};
 struct CLOCK {float time,deltaTime;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
+// The orientation converted from parent space to world space (ConvertXfMat).
 static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void MulMatrix3Matrix3(M3 *,const M3 *,const M3 *);
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
 extern "C" float ClampAbs__Fff(float,float);
+// Return a + b.
 static inline qword Add(qword a,qword b){__asm__("vadd.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 // volatile store: the game's later loads (dt, velocity, the epilogue) wait for these sqc2s
 static inline void StoreQ(qword v,U *out){__asm__ __volatile__("sqc2 %1,%0":"=m"(out->q):"j"(v));}
+// Broadcast f into a VU0 register and store it to *out.
 static inline qword Scalar(float f,U *out){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));__asm__("sqc2 %1,%0":"=m"(out->q):"j"(q));return q;}
+// Return source scaled by k.x.
 static inline qword Scale(qword source,qword k){qword v=source;__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;}
+// Return v scaled by k.x, computed in k's register.
 static inline qword ScaleFactor(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%0x":"+j"(k):"j"(v));return k;}
+// Return v scaled by k.x into a fresh register.
 static inline qword ScaleNew(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(k));return r;}
+// Return a + b * k.x.
 static inline qword AddScaled(qword a,qword b,qword k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
+// Dot product of the xyz parts of value and normal (x lane).
 static inline qword DotQ(qword value,qword normal){qword d=value,b=normal,one;__asm__("vmul.xyz %0,%0,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d),"=&j"(one):"j"(b));return d;}
 // x of a qword: the compiler emits the qmfc2, the asm the mtc1 (an asm qmfc2 issues it before the 0.5 load)
 static inline float Length(qword a){qword d,one;float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
@@ -2777,6 +2819,7 @@ namespace M_AccelSoTowardMatSpring {
 union U; struct M3; struct OWNER; struct P; struct COEF; 
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
+// 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
 struct OWNER {M3 matrix;char pad30[0x70];OWNER *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
 struct P {char pad5C[0x5C];OWNER *owner;};
@@ -2788,10 +2831,12 @@ extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" M3 MulMatrix3Matrix3(const M3 *,const M3 *);
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
 extern "C" qword ConvertXfVec(OWNER *,OWNER *,qword);
+// Length of the xyz part of a as a float.
 static inline float Length(qword a){qword d,one;float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"0"(d));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
+// Return old + v * s.x.
 static inline qword AddScaled(qword old,qword v,qword s){__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(old):"j"(v),"j"(s));return old;}
 // Spring torque toward a target orientation (quadratic CLQ on the angle) and toward a target angular velocity
 // (clamped to 1/dt).
@@ -2843,13 +2888,18 @@ struct CLOCK {float time,deltaTime;};
 extern struct CLOCK D_002DDED0;
 qword GetLoWorldPos(struct S*);
 qword ConvertXfVec(void*,void*,qword);
+// Return x - y (vf1/vf2/vf3).
 static inline qword Sub(qword x,qword y){register qword a __asm__("vf1")=x,b __asm__("vf2")=y,r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Length of the xyz part of value as a float.
 static inline float Length(qword value){register qword a __asm__("vf3")=value,r __asm__("vf1"),one __asm__("vf2");float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(r),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"0"(r));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
+// Load a 128-bit vector into a GPR ($2) with lq.
 static inline qword LoadVector(const V *value){register qword result asm("v0");__asm__("lq %0,%1":"=r"(result):"m"(value->q));return result;}
+// Move a float's bits into a GPR qword ($2).
 static inline qword Scalar(float f){register qword r __asm__("$2");__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
+// Return old + direction * factor.x.
 static inline qword AddScaled(qword old,qword direction,qword factor){register qword a __asm__("vf2")=old,b __asm__("vf4")=direction,scale __asm__("vf3")=factor,r __asm__("vf1");
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(scale));return r;}
 // Spring force toward a target position (CLQ on the distance) and toward a target velocity (clamped to 1/dt).
@@ -2929,6 +2979,7 @@ struct E *FindSoPart(struct S *so, int oid)
 // entry. A clone in the world joins the contact list, and it gets a bounds record of its own (EnsureSoBounds).
 
 
+// True when the object is in the world.
 inline int FIsLoInWorld(LO *plo)
 {
     return plo->isInWorld != 0;
@@ -2947,6 +2998,7 @@ extern XF D_002C44F0;
 void AddSoParts(SO *pso) __asm__("AddSoParts");
 void CloneGlobset(GLOBSET *pglobset, SO *pso, LO *ploBase) __asm__("CloneGlobset");
 void CloneBspc(BSPC *pbspcBase, GEOM *pgeomBase, BSPC *pbspc, GEOM *pgeom) __asm__("CloneBspc");
+// Allocate cb bytes from the world heap and copy pvBase into them.
 inline void *PvAllocSwCopy(int cb, void *pvBase)
 {
     SWALLOC swalloc;
@@ -2955,6 +3007,7 @@ inline void *PvAllocSwCopy(int cb, void *pvBase)
     pswalloc->cbAlign = 0x10;
     return PvAllocSwCopyImpl(pswalloc, pvBase);
 }
+// Allocate cb bytes from the frame stack.
 inline void *PvAllocStack(int cb)
 {
     SWALLOC swalloc;
@@ -3330,13 +3383,17 @@ struct P {char pad0[0x10];MESH *mesh;char pad14[0x68];U *positions;int planeCoun
 struct FRAME;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
+// Empty scope object (constructor/destructor only shape the generated code).
 struct FRAME {FRAME(){}~FRAME(){}};
 struct MSG {int bytes,alignment;};
 extern "C" void *AllocFromWorldHeap(MSG *);
 extern "C" void *AllocClearedFromWorldHeap(MSG *);
 extern "C" void *AllocClearedFromStack(MSG *);
+// Return a - b.
 static inline qword Sub(qword a,qword b) {qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
+// Cross product a x b.
 static inline qword Cross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"0"(a),"j"(b));return r;}
+// Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a,qword b){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"0"(a),"j"(b));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
@@ -3398,14 +3455,19 @@ struct TRI {int index[3];};
 struct MESH {qword *velocity,*acceleration;struct TRI *triangles;};
 struct P {void *x0;int x4;float maximum;int xC;struct MESH*mesh;char pad14[0x64];int count;qword *positions;int triCount;void *planes;char pad88[0x20];int state;};
 void InitPlaneFromPositions(void*,qword,qword,qword);
+// Return a + b * s.x (vf5).
 static inline qword Step(qword a,qword b,qword s){register qword r __asm__("vf5");
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(s));return r;}
+// Store the half-step scalar and return p + old*s + next*s (velocity-Verlet style position step) (inferred).
 static inline qword Position(qword p,qword old,qword next,qword half,V *scalar){register qword r __asm__("vf3");
 __asm__("sqc2 %5,%1\n\tvadda.xyzw $ACC,%2,$vf0\n\tvmaddax.xyzw $ACC,%3,%5x\n\tvmaddx.xyzw %0,%4,%5x":"=&j"(r),"=m"(scalar->q):"j"(p),"j"(old),"j"(next),"j"(half));return r;}
+// Squared length of the xyz part of q as a float.
 static inline float LengthSquared(qword q){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"j"(q));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
+// Copy the velocity array pointer through pinned registers.
 static inline qword *VelocityCursor(qword *p){register qword *initial __asm__("$2")=p;register qword *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(initial));return r;}
+// a < b (slt) in $2.
 static inline int PlaneLess(int a,int b){register int r __asm__("$2");__asm__("slt %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
 // Integrates a soft-mesh part's vertices by dt (semi-implicit), tracks the largest radius and invalidates the part
 // after large moves.
@@ -3483,6 +3545,7 @@ union U; struct M4; struct LO; struct GEO; struct TREE; struct P; struct FRAME; 
 // Insert zeroed vertices, rebuild transformed geometry, and rebase its tree.
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
+// 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {U rows[4];M4(){}M4(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4&operator=(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
 struct LO {char pad40[0x40];M4 matrix;};
 struct GEO {int count;qword *points;int planeCount;void *planes;int unknown10,unknown14;};
@@ -3499,6 +3562,7 @@ extern "C" M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 extern "C" void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
 extern "C" void CloneBspc(TREE *,GEO *,TREE *,GEO *);
 
+// Squared length of the xyz part of a as a float.
 static inline float SquaredLength(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
 /* volatile: the game's sqrt.s is a barrier for the scheduler (the radius store must precede the next constant). */
 static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
@@ -3719,6 +3783,7 @@ struct E { char pad[0x4C]; float t; };
 struct P { char pad[0x4118]; char pool[0x18]; struct DL dl; };
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 void FreeSlotheapSlot(void *, void *);
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
 static inline void InitDli(struct DLI *pdli, struct DL *pdl)
 {
     pdli->pdl = pdl;
@@ -3727,6 +3792,7 @@ static inline void InitDli(struct DLI *pdli, struct DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Return the current element of the iterator and advance it along the element's link field.
 static inline void *PvNextDli(struct DLI *pdli)
 {
     void *pv = *pdli->ppv;
@@ -4187,6 +4253,7 @@ struct P { char pad[0xE8]; struct E *physics; };
 struct CB { int cb; int n; };
 void *AllocClearedFromWorldHeap(struct CB *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+// Fill the request and allocate cb zeroed bytes (kind n) from the world heap.
 static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return AllocClearedFromWorldHeap(pcb); }
 // Ensures the physics region record {object, three tuning floats with defaults 75 (150 for class 0x34) and 1}.
 // (inferred)

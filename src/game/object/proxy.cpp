@@ -338,6 +338,7 @@ void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap")
 void InitStackImpl();
 void FreeStackImpl();
 CFrame *PframeFromIsplice(SW *world, int isplice, LO *plo) __asm__("GetSpliceFrame");
+// Allocate cb zeroed bytes with alignment cbAlign from the world heap.
 inline void *PvAllocSwClear(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -346,6 +347,7 @@ inline void *PvAllocSwClear(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwClearImpl(pswalloc);
 }
+// Allocate cb bytes with alignment cbAlign from the world heap.
 inline void *PvAllocSw(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -538,10 +540,13 @@ extern SW D_003DD490;
 int GetSourceIndexFromProxyId(int idProxy);
 PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("FindProxyRefPath");
 
+// The world's proxy source for proxy id idProxy.
 inline PROXYSRC *PproxysrcFromIdProxy(int idProxy)
 {
     return &D_003DD490.aproxysrc[GetSourceIndexFromProxyId(idProxy)];
 }
+// LO slot 25: move the object to proxy id idProxy in the world's proxy-reference tree (detaching it from its old path
+// and claiming the new one where the source has a single object), optionally for its children too.
 void LO::SetIdProxy(int idProxy, int fChildren)
 {
     int aid[16];
@@ -655,6 +660,7 @@ qword GetLoWorldPos(struct LO *p);
 struct MAT3 *GetLoWorldMatrix(struct LO *p);
 void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
+// Set pm to the identity matrix.
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 // After the level load, turns every unused copy of each proxy source into a spare (records the objects' rest poses
 // and builds the spare array).
@@ -754,6 +760,7 @@ extern const LONGU D_002A77C0;
 void OnLoAdd(LO *plo);
 void EnsureSwCallback(SW *world, LO *plo, long cb, int n);
 }
+// Proxy add hook: the LO add, then register the proxy's world callback unless its flag at +0xE4 is set.
 extern "C" void OnProxyAdd(PROXY *proxy)
 {
     OnLoAdd(proxy);
@@ -806,6 +813,7 @@ out:
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
+// Set matrix to the identity.
 inline void SetMatrix4Identity(MATRIX4 *matrix)
 {
     memset(matrix, 0, sizeof(MATRIX4));
@@ -979,11 +987,17 @@ void CFrame_AddParent(void *,void *);
 void FramePtr_Assign(void **,void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void CMemInputStream_dtor(STREAM *,int);
 }
+// The object pointer adjusted by the vtable entry's this-delta.
 static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.delta);}
+// Call the object's channel virtual (slot 10).
 static inline void Channel(P *p,void *context,void *channel){VTE &v=p->vt[10];((void(*)(P *,void *,void *,int))v.fn)(Adjusted(p,v),context,channel,0);}
+// Apply a matrix through the object's virtual slot 37.
 static inline void Matrix(P *p,const M4 *m){VTE &v=p->vt[37];((void(*)(P *,const M4 *))v.fn)(Adjusted(p,v),m);}
+// Reset the object (virtual slot 8).
 static inline void Reset(P *p){VTE &v=p->vt[8];((void(*)(P *))v.fn)(Adjusted(p,v));}
+// Set the object's parent (virtual slot 26).
 static inline void Parent(P *p,P *parent){VTE &v=p->vt[26];((void(*)(P *,P *))v.fn)(Adjusted(p,v),parent);}
+// Query the object's children of class 14 (virtual slot 3) into *cursor.
 static inline void Query(P *p,void **cursor){VTE &v=p->vt[3];((void(*)(P *,int,int,int,void **,int))v.fn)(Adjusted(p,v),14,0,1,cursor,0);}
 // Acquires a spare copy for the proxy: chooses one, takes it from its previous owner, places its objects at the
 // proxy and applies the init records (slot 26 on each object). Returns the spare or null.
