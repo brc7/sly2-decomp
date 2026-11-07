@@ -5747,7 +5747,7 @@ func_00229ED0,0x229ED0,water
 InitWaypt,0x229EF0,waypoint
 PostWayptLoad,0x229F88,waypoint
 UpdateWaypt,0x22A060,waypoint
-CalculateWayptCurtainDz,0x22A220,waypoint
+CalculateWayptCurtainExtraHeight,0x22A220,waypoint
 RenderWaypt,0x22A908,waypoint
 StaticInit_waypoint,0x22AEE8,waypoint
 func_0022B020,0x22B020,waypoint
