@@ -1954,10 +1954,13 @@ void ClearClueState(struct O *clue)
 }
 } } // namespace M_func_001C7EA8
 
+/* CLUEPROXY (classes.h, : PROXY) with its first own word: the clue index (+0x100). */
+struct CLUEPROXYV : PROXY { int clueIndex; };
+
 namespace M_SetClueDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
-struct LISTENER { char pad[0xC]; struct VTE *vt; char p1[0x100 - 0x10]; int clueIndex; };
+struct LISTENER { char pad[0xC]; struct VTE *vt; };   /* slot 51 is not declared in a header */
 struct S : SO { virtual void SetState(int state);   /* slot 76 */ int state;
     char p1[0x210 - 0x154]; struct LISTENER *collectListener;
 };
@@ -1967,17 +1970,17 @@ void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
-struct LISTENER *GetProxyCopyValue(struct S *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct LISTENER *p, int n);
+CLUEPROXYV *GetProxyCopyValue(struct S *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
 void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
 // Does the object's GetProxyCopyValue owner derive from class 7?
-static inline int FTest(struct S *p) { struct LISTENER *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+static inline int FTest(struct S *p) { CLUEPROXYV *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
 void SetClueDprizes(struct S *clue, int n)
 {
-    struct LISTENER *q;
+    CLUEPROXYV *q;
     char *pg;
     qword qv;
     if (n == clue->state) return;
@@ -1998,9 +2001,9 @@ void SetClueDprizes(struct S *clue, int n)
         clue->HandleSpliceEvent(5, 0, 0, 0, 0);
         q = GetProxyCopyValue(clue);
         if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
-            struct LISTENER *plo = GetProxyCopyValue(clue);
+            CLUEPROXYV *plo = GetProxyCopyValue(clue);
             SetClueCollected(plo->clueIndex, 1);
-            ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
+            plo->Remove();
             RestartHudWidget2(pg);
         }
     }
@@ -2009,18 +2012,16 @@ void SetClueDprizes(struct S *clue, int n)
 } } // namespace M_SetClueDprizes
 
 namespace M_func_001C8030 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int a[3]; struct VTE *vt; char pad[0xF0]; int clueIndex; };
 struct G { char pad[0x4760]; int nextClueIndex; };
 extern struct G D_003DD490;
-void PostLoLoad(struct O *p);
+void PostLoLoad(LO *p);
 int IsClueCollected(int n);
 // CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
 } } // namespace M_func_001C8030
-void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
+void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; CLUEPROXYV *p = (CLUEPROXYV *)this;
     PostLoLoad(p);
     p->clueIndex = D_003DD490.nextClueIndex++;
-    if (IsClueCollected(p->clueIndex)) { struct VTE *e = &p->vt[9]; e->pfn((char *)p + e->d); }
+    if (IsClueCollected(p->clueIndex)) p->Remove();
 }
 
 namespace RO_ORDER { extern const float r_D_002A7758 __asm__("D_002A7758") = 3.40282347e+38f; }
