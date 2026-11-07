@@ -159,6 +159,8 @@ struct ANIMBINDING
             ASEGA *asega;   /* +0x8 [S] kind 0: the playing instance */
             void *payload;  /* +0x8 [S] kinds 1/2: the state machine application (kind 1) or the leap (kind 2) */
             SMA *sma;       /* +0x8 [S] kind 1: the playing state machine application */
+            LEAP *leap;     /* +0x8 [S] kind 2: the guard's leap */
+            CID146 *diranim; /* +0x8 [S] kind 3: the guard's directional animation */
             BASIC *pbasic;  /* +0x8 [S] the running instance as a counted object: the ASEGA, the SMA, or the guard's own
                                LEAP / DIRANIM (StartAnimBinding takes a reference with slot 1, StopAnimBinding drops it) */
       };

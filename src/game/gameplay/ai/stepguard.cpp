@@ -2257,27 +2257,14 @@ int IsAnimBindingDone(ANIMBINDING *binding)
 
 // 0x209518 GetAnimBindingInstance
 namespace M_func_00209518 { extern "C" {
-struct INSTANCE; struct ANIMBINDINGIsland;
-struct ANIMATION;
-struct INSTANCE {
-    char pad[0x24];
-    struct ANIMATION *animation24;
-    char pad2[8];
-    struct ANIMATION *animation30;
-    int pad3;
-    struct ANIMATION *animation38;
-};
-/* island: the LEAP +0x38 / DIRANIM +0x24 animation words are padding in leap.h (other family) */
-struct ANIMBINDINGIsland { int kind; int resource; struct INSTANCE *instance; };
-
 // 0x209518: Returns the ASEGA that the binding's running instance plays (the instance itself for an ASEG).
-struct ANIMATION *GetAnimBindingInstance(struct ANIMBINDINGIsland *binding)
+ASEGA *GetAnimBindingInstance(ANIMBINDING *binding)
 {
     switch (binding->kind) {
-    case BINDING_ASEG: return (struct ANIMATION *)binding->instance;
-    case BINDING_SM: return binding->instance->animation30;
-    case BINDING_LEAP: return binding->instance->animation38;
-    case BINDING_DIRANIM: return binding->instance->animation24;
+    case BINDING_ASEG: return binding->asega;
+    case BINDING_SM: return binding->sma->pasegaCur;
+    case BINDING_LEAP: return binding->leap->pasegaCur;
+    case BINDING_DIRANIM: return binding->diranim->pasegaCur;
     }
     return 0;
 }
