@@ -2703,36 +2703,6 @@ extern "C" void AnnounceTaskJob(TASK *task)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const char r_D_002A5238[] __asm__("D_002A5238") = "oidPoCurrent"; }
 namespace M_SetTaskState {
-class OBase {
-public:
-    int a, b, c;
-    virtual void V1();
-    virtual void V2();
-    virtual void Msg(int msgid, int a, int c, void **apv, int d);
-    virtual void V4(int msgid, void *pv);
-};
-class O : public OBase {
-public:
-    int unknown10;
-    int unknown14;
-    int oid;
-    char pad[0x54 - 0x1C];
-    int state;
-    float stateChangeTime;
-    char pad1[0x64 - 0x5C];
-    union { O *startTask; int startCount; };
-    int completionCount;
-    char pad2[0x70 - 0x6C];
-    int activateWhenAvailable;
-    int resumesHere;
-    char pad3[0x7C - 0x78];
-    union { O *job; int jobStartCount; };
-    char pad4[0xA8 - 0x80];
-    int numVisibility, visibility, numRsmgs, rsmgs;
-    char pad5[0xF4 - 0xB8];
-    int stateSource;
-};
-struct DL { void *pvFirst; void *pvLast; int linkOffset; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { 
  }
@@ -2741,67 +2711,66 @@ extern "C" {
 #undef D_002DEB44
 #define D_002DEB44 (*(int *)((char *)base_D_002DEB30 + 0x14))   /* g_game+0x14 */
  }
-extern "C" int IsTaskLive(O *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
+extern "C" int IsTaskLive(TASK *p);
+extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
 extern "C" void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
 extern "C" void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
-extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
-extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
-extern "C" void UpdateTaskSaveVars(O *p);
-extern "C" void ActivateTask(O *p);
-extern "C" void DeactivateTask(O *p);
+extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
+extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
+extern "C" void UpdateTaskSaveVars(TASK *p);
+extern "C" void ActivateTask(TASK *p);
 // Low-level task state set: game events 0x26/0x25, the available-task list, counts, save variables, Splice events
 // 0x16/0x15 and the follow-up activate/deactivate.
-extern "C" void SetTaskState(O *task, int n)
+extern "C" void SetTaskState(TASK *task, int n)
 {
-    if (task->state == n)
+    if (task->nState == n)
         return;
     if (IsTaskLive(task)) {
         BroadcastGameEvent(D_002DEB30, 0x26, task);
-        task->Msg(0x16, 0, 0, 0, 0);
+        task->HandleSpliceEvent(0x16, 0, 0, 0, 0);
     }
-    if (task->state == TASK_STATE_AVAILABLE)
-        RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, task);
+    if (task->nState == TASK_STATE_AVAILABLE)
+        RemoveDlEntry__FP2DLPv(&g_sw.dlTaskActive, task);
     if (IsTaskLive(task)) {
-        ApplyStateLoVisibility(task, n, task->numVisibility, task->visibility);
-        TriggerStateRsmgs(task, n, task->numRsmgs, task->rsmgs, task->stateSource);
+        ApplyStateLoVisibility(task, n, task->cvis, task->avis);
+        TriggerStateRsmgs(task, n, task->crsmg, task->arsmg, task->stateSource);
     }
     switch (n) {
     case TASK_STATE_LOCKED:   /* a script reset clears the counters (and the job's start count for its start task) */
         if (task->stateSource == STATE_SOURCE_SCRIPT) {
-            task->startCount = 0;
+            task->cStart = 0;
             task->completionCount = 0;
-            if (task->job && task->job->startTask == task)
-                task->job->jobStartCount = 0;
+            if (task->pjob && task->pjob->ptaskStart == task)
+                task->pjob->cStart = 0;
         }
         break;
     case TASK_STATE_AVAILABLE:
-        AppendDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, task);
+        AppendDlEntry__FP2DLPv(&g_sw.dlTaskActive, task);
         break;
     case TASK_STATE_DONE:
         if (task->stateSource == STATE_SOURCE_GAMEPLAY)
             task->completionCount++;
         break;
     }
-    task->state = n;
-    task->stateChangeTime = D_002DDED0.time;
+    task->nState = n;
+    task->tState = D_002DDED0.time;
     UpdateTaskSaveVars(task);
     if (IsTaskLive(task)) {
         BroadcastGameEvent(D_002DEB30, 0x25, task);
-        task->Msg(0x15, 0, 0, 0, 0);
-        task->V4(0x11, task);
+        task->HandleSpliceEvent(0x15, 0, 0, 0, 0);
+        task->SendMessage((MSGID)0x11, task);
     }
     switch (task->stateSource) {
     case STATE_SOURCE_RESTORE:   /* the restored task to resume becomes g_game's current task oid */
-        if (task->state == TASK_STATE_AVAILABLE && task->resumesHere)
+        if (task->nState == TASK_STATE_AVAILABLE && task->fResumeHere)
             D_002DEB44 = task->oid;
         break;
     case STATE_SOURCE_GAMEPLAY:
     case STATE_SOURCE_GO_TO_TASK:
     case STATE_SOURCE_SCRIPT:
-        switch (task->state) {
+        switch (task->nState) {
         case TASK_STATE_AVAILABLE:
-            if (task->activateWhenAvailable)
+            if (task->fActivateWhenAvailable)
                 ActivateTask(task);
             break;
         case TASK_STATE_LOCKED:
@@ -2819,14 +2788,13 @@ extern "C" void SetTaskState(O *task, int n)
 #define D_002DEB44 (*(int *)((char *)base_D_002DEB30 + 0x14))   /* g_game+0x14 */
 
 namespace M_SetTaskStatePropagate {
-struct X { char pad[0xF0]; union { int pendingCascadeState; int jobStateSource; }; union { int stateSource; int jobStateRequester; }; int stateRequester; };
 class StateSourceScope {
 public:
-    X *job;
-    X *task;
+    JOB *job;
+    TASK *task;
     int savedSource;
     int savedRequester;
-    StateSourceScope(X *follower, int source, int requester)
+    StateSourceScope(TASK *follower, int source, int requester)
     {
         job = 0;
         task = follower;
@@ -2840,8 +2808,8 @@ public:
     ~StateSourceScope()
     {
         if (job) {
-            job->jobStateSource = savedSource;
-            job->jobStateRequester = savedRequester;
+            job->stateSource = savedSource;
+            job->stateRequester = savedRequester;
         }
         if (task) {
             task->stateSource = savedSource;
@@ -2849,41 +2817,38 @@ public:
         }
     }
 };
-struct S { char pad[0x54]; int state; char pad2[0xA0 - 0x58]; int numFollowers; X **followers; char pad3[0xF4 - 0xA8]; int stateSource; int stateRequester; };
-extern "C" void SetTaskState(S *task, int state);
-extern "C" void RecomputeTaskState(X *follower, int n);
+extern "C" void SetTaskState(TASK *task, int state);
+extern "C" void RecomputeTaskState(TASK *follower, int n);
 // SetTaskState, then recomputes each successor.
-extern "C" void SetTaskStatePropagate(S *task, int newState)
+extern "C" void SetTaskStatePropagate(TASK *task, int newState)
 {
     int i;
-    if (task->state == newState) return;
+    if (task->nState == newState) return;
     SetTaskState(task, newState);
-    for (i = 0; i < task->numFollowers; i++) {
-        X *follower = task->followers[i];
+    for (i = 0; i < task->cptaskSucc; i++) {
+        TASK *follower = task->aptaskSucc[i];
         StateSourceScope scope(follower, task->stateSource, task->stateRequester);
-        RecomputeTaskState(follower, task->state);
+        RecomputeTaskState(follower, task->nState);
     }
 }
 } // namespace M_SetTaskStatePropagate
 
 namespace M_RecomputeTaskState { extern "C" {
-struct Y { char pad[0x54]; int state; };
-struct X { char pad[0x54]; int state; char pad2[0x94 - 0x58]; int numPrerequisites; struct Y **prerequisites; char pad3[0xF0 - 0x9C]; int pendingCascadeState; };
-void SetTaskStatePropagate(struct X *task, int state);
+void SetTaskStatePropagate(TASK *task, int state);
 // Derives a successor's state from its prerequisites (locked until all are complete, then available).
-void RecomputeTaskState(struct X *task, int prerequisiteState)
+void RecomputeTaskState(TASK *task, int prerequisiteState)
 {
     int newState; int state;
-    if (task->pendingCascadeState != -1) return;
-    state = task->state; newState = state;
+    if (task->nStatePending != -1) return;
+    state = task->nState; newState = state;
     if (prerequisiteState >= TASK_STATE_LOCKED) {
         if (prerequisiteState < TASK_STATE_DONE) {
             newState = TASK_STATE_LOCKED;
         } else if (prerequisiteState < TASK_REQUEST_ACTIVATE) {
             int allComplete = 1;
             int i;
-            for (i = 0; i < task->numPrerequisites; i++) {
-                if (task->prerequisites[i]->state < TASK_STATE_DONE) {
+            for (i = 0; i < task->cptaskPrereq; i++) {
+                if (task->aptaskPrereq[i]->nState < TASK_STATE_DONE) {
                     allComplete = 0;
                     break;
                 }
@@ -2891,7 +2856,7 @@ void RecomputeTaskState(struct X *task, int prerequisiteState)
             if (!allComplete) {
                 newState = TASK_STATE_LOCKED;
             } else {
-                switch (task->state) {
+                switch (task->nState) {
                 case TASK_STATE_LOCKED: newState = TASK_STATE_AVAILABLE; break;
                 case TASK_STATE_AVAILABLE: case TASK_STATE_DONE: break;
                 case TASK_STATE_COMPLETE: newState = prerequisiteState; break;
@@ -2904,17 +2869,15 @@ void RecomputeTaskState(struct X *task, int prerequisiteState)
 } } // namespace M_RecomputeTaskState
 
 namespace M_func_00165C28 { extern "C" {
-struct Y { char pad[0x18]; int oid; };
-struct X { char pad[0x18]; int oid; char pad2[0x7C - 0x1C]; struct Y *job; char pad3[0x100 - 0x80]; int depth; int jobDepth; };
 // Task sort order: depth, job oid, +0x100, task oid.
-int CompareTasks(struct X **ppx1, struct X **ppx2)
+int CompareTasks(TASK **ppx1, TASK **ppx2)
 {
-    struct X *task1 = *ppx1;
-    struct X *task2 = *ppx2;
+    TASK *task1 = *ppx1;
+    TASK *task2 = *ppx2;
     int jobOid1, jobOid2;
     if (task1->jobDepth != task2->jobDepth) return task1->jobDepth - task2->jobDepth;
-    jobOid1 = task1->job ? task1->job->oid : -1;
-    jobOid2 = task2->job ? task2->job->oid : -1;
+    jobOid1 = task1->pjob ? task1->pjob->oid : -1;
+    jobOid2 = task2->pjob ? task2->pjob->oid : -1;
     if (jobOid1 != jobOid2) return jobOid1 - jobOid2;
     if (task1->depth != task2->depth) return task1->depth - task2->depth;
     return task1->oid - task2->oid;
@@ -2923,11 +2886,10 @@ int CompareTasks(struct X **ppx1, struct X **ppx2)
 
 namespace M_SortTasksTopologically {
 struct ALLOCREQ { int cb; int nKind; };
-struct X { char pad[0x94]; int numPrerequisites; char pad2[0xFC - 0x98]; int visitCount; };
 extern "C" { extern SW D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
 extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
-extern "C" void VisitTaskTopo(X *px, int *count, void *pv, int a, int b);
+extern "C" void VisitTaskTopo(TASK *px, int *count, void *pv, int a, int b);
 // Returns all tasks in prerequisite order (VisitTaskTopo from every root).
 extern "C" void SortTasksTopologically(int *count, void **order)
 {
@@ -2940,13 +2902,13 @@ extern "C" void SortTasksTopologically(int *count, void **order)
     STACKSCOPE fr;
     req.cb = pg->ctask * 4;
     req.nKind = 0x10;
-    X **tasks = (X **)AllocClearedFromStack(&req);
+    TASK **tasks = (TASK **)AllocClearedFromStack(&req);
     int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->ctask, (void **)tasks);
     int i;
     for (i = 0; i < numFound; i++)
-        tasks[i]->visitCount = 0;
+        tasks[i]->cVisit = 0;
     for (int j = 0; j < numFound; j++) {
-        if (!tasks[j]->numPrerequisites)
+        if (!tasks[j]->cptaskPrereq)
             VisitTaskTopo(tasks[j], count, *order, 0, 0);
     }
 }
