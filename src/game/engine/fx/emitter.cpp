@@ -1658,15 +1658,14 @@ void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *ge
 namespace M_EmitParticles__FiP5EMITBP5EMITG {
 struct LOC { int positions, velocities, birthTimes, deathTimes; int convertToWorld; int pad[3]; };   /* EMITGEN */
 struct L2 { int splineStarts; int splineEnds; int pad[6]; };
-struct B { int pad; int particleKind; char pad2[0xC4 - 8]; int blipMotionKind; };   /* EMITB: 1 rips; 2 spline motion */
 extern "C" {
-void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, B *b, LOC *ploc);
-void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(B *b, void *c, void *a, int q0, int q1, int q2, int q3);
-void OriginateSplineSinkParticles(void *a, B *b, LOC *ploc, L2 *pl2);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(B *b, void *c, void *a, int q0, int q1, int q2, int q3, int x, int y);
+void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, EMITB *b, LOC *ploc);
+void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *b, void *c, void *a, int q0, int q1, int q2, int q3);
+void OriginateSplineSinkParticles(void *a, EMITB *b, LOC *ploc, L2 *pl2);
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, int q0, int q1, int q2, int q3, int x, int y);
 // Emits `count` particles from an EMITB: originates them (inside count stack-allocation scope), then hands them to
 // EmitRips or EmitBlips (spline-motion blips also get their spline end points).
-void EmitParticles__FiP5EMITBP5EMITG(void *count, B *emitb, void *emitg)
+void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 {
     if (count) {
         LOC gen;
@@ -1677,7 +1676,7 @@ void EmitParticles__FiP5EMITBP5EMITG(void *count, B *emitb, void *emitg)
             EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(emitb, emitg, count, gen.positions, gen.velocities, gen.birthTimes, gen.deathTimes);
         } else {
             L2 spline;
-            if (emitb->blipMotionKind == 2) {
+            if (emitb->v.motionKind == 2   /* blips on a spline */) {
                 OriginateSplineSinkParticles(count, emitb, &gen, &spline);
             } else {
                 spline.splineStarts = 0;
@@ -1726,8 +1725,6 @@ SLY2_SCRAP("addiu $sp, $sp, 0x1b0");
 
 namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-/* EMITB: EMITV's damping (+0x58), added velocity (+0x60), curl axis (+0x70) and curl rate (+0x80) */
-struct S { char pad[0x58]; float damping; int pad5c; qword addedVelocity; qword curlAxis; float curlRate; };
 struct O { qword addedVelocity; qword curlAxis; float curlRate; float damping; };   /* EMITDV: a particle's motion parameters */
 extern qword D_002A2DC0;
 static __inline__ qword VLen(qword c)
@@ -1756,7 +1753,7 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
     *pr = t;
 }
 // Copies an EMITB's particle motion parameters into an EMITDV (the curl axis normalized, +z if degenerate).
-void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, struct S *emitb)
+void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, EMITB *emitb)
 {
     emitdv->addedVelocity = emitb->addedVelocity;
     VNormalize(&emitdv->curlAxis, emitb->curlAxis, D_002A2DC0);
