@@ -3436,26 +3436,22 @@ int GetZapKindIndex(int x)
 
 // 0x1F78D8 GetSoZapResponseFlags
 namespace M_GrfzpdFromSoGrfzpk { extern "C" {
-struct S;
-struct S { char pad[0x110]; unsigned char ab[26]; };
 // OR of the object's per-kind response bytes (+0x110[26]) for the kinds in grfzpk (Sly 1 GrfzpdFromSoGrfzpk).
-int GetSoZapResponseFlags(struct S *so, int f)
+int GetSoZapResponseFlags(SO *so, int f)
 {
     int r = 0; int i; int m;
-    for (i = 0, m = 1; i < 26; i++) { if (m & f) r |= so->ab[i]; m <<= 1; }
+    for (i = 0, m = 1; i < 26; i++) { if (m & f) r |= so->zapKindFlags[i]; m <<= 1; }
     return r;
 }
 } } // namespace M_GrfzpdFromSoGrfzpk
 
 // 0x1F7918 SetSoZapResponse
 namespace M_func_001F7918 { extern "C" {
-struct S;
-struct S { char pad[0x110]; unsigned char ab[26]; };
 // Sets the object's response byte to b for each zap kind in grfzpk.
-void SetSoZapResponse(struct S *so, int f, int b)
+void SetSoZapResponse(SO *so, int f, int b)
 {
     int i; int m;
-    for (i = 0, m = 1; i < 26; i++) { if (m & f) so->ab[i] = b; m <<= 1; }
+    for (i = 0, m = 1; i < 26; i++) { if (m & f) so->zapKindFlags[i] = b; m <<= 1; }
 }
 } } // namespace M_func_001F7918
 
@@ -3528,10 +3524,10 @@ void SetSoZapMode(SO *so, int k)
 
 // 0x1F7B40 GetSoZapMode
 namespace M_func_001F7B40 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong flags; };
 // Returns the zap mode.
-int GetSoZapMode(struct S *p) { return (int)((long)(p->flags << 8) >> 32) & 3; }
+/* SO's +0x148 word whole: the getter sign-extends through a shift pair the zapMode bit-field does not give (matching-only). */
+struct SOIsland { char pad[0x148]; ulong flags; };
+int GetSoZapMode(SOIsland *p) { return (int)((long)(p->flags << 8) >> 32) & 3; }
 } } // namespace M_func_001F7B40
 
 // 0x1F7B58 SetSoHitDamage
@@ -3677,10 +3673,10 @@ int GetSoUnknownBits16(SO *p) { return p->unknownBits148A; }
 
 // 0x1F7F08 GetSoNoJtPlace
 namespace M_func_001F7F08 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong flags; };
 // Returns the no-JT-place flag (+0x148 bit 29, so.h isNotLandable).
-int GetSoNoJtPlace(struct S *p) { return (int)((long)(p->flags << 3) >> 32) & 1; }
+/* SO's +0x148 word whole (as GetSoZapMode; matching-only). */
+struct SOIsland { char pad[0x148]; ulong flags; };
+int GetSoNoJtPlace(SOIsland *p) { return (int)((long)(p->flags << 3) >> 32) & 1; }
 } } // namespace M_func_001F7F08
 
 // 0x1F7F20 SetSoNoJtPlace
