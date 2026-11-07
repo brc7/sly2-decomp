@@ -460,21 +460,17 @@ void UpdateLo(LO *object)
 } } // namespace M_UpdateLo
 
 namespace M_func_001A5E80 { extern "C" {
-struct T { unsigned int value; };   /* the flags word a tagged flags pointer refers to */
-struct O;
-struct S { char pad[0x10]; struct O *parent; char pad2[0x2C]; unsigned int flags; };
-struct O { char pad[0x40]; struct T *flags; };
-static inline void ClearFlag(struct S *p, unsigned int fl)
+static inline void ClearFlag(LO *p, unsigned int fl)
 {
-    unsigned int v = p->flags;
+    unsigned int v = p->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
-    else p->flags = v & ~fl;
+    else p->unknown40 = v & ~fl;
 }
 // vtable slot 17: clears flag 4 unless the parent has flag 4 set (the flag is inherited from the parent; its meaning
-// is not known). (inferred)
-void InheritLoFlag4(struct S *object)
+// is not known; the parent's flag word is read through its pointer form). (inferred)
+void InheritLoFlag4(LO *object)
 {
-    if (!object->parent || !(object->parent->flags->value & 4)) ClearFlag(object, 4);
+    if (!object->parent || !(*(unsigned int *)object->parent->unknown40 & 4)) ClearFlag(object, 4);
 }
 } } // namespace M_func_001A5E80
 
@@ -610,14 +606,12 @@ extern "C" void OnLoAdd(LO *plo)
 }
 
 namespace M_func_001A61A0 { extern "C" {
-typedef unsigned long ulong;
 int IsEntryInDl__FP2DLPv(struct DL *pdl, void *pv);
-struct S { char pad[0x14]; void *root; char pad2[0x10]; ulong fl; };
 // True when the object's in-world bit is set and its root record is in the world's in-world list.
-int IsLoInWorld(struct S *object)
+int IsLoInWorld(LO *object)
 {
     int r = 0;
-    if ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.busyRoots, object->root) != 0;
+    if ((int)object->isInWorld & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.busyRoots, object->root) != 0;
     return r;
 }
 } } // namespace M_func_001A61A0
