@@ -1560,16 +1560,15 @@ void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 
 namespace M_EmitParticlesAt { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Y { int ppblipg; int ppripg; int subscriber; };   /* EMITG */
-void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, struct Y *py);
+void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, EMITG *pemitg);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Emits `count` rips from a temporary EMITB: the defaults (InitEmitBlock) with the given point origin and direction,
 // particle and velocity records (passed by value by the callers), resolved objects (`refs`, EMITB+0x08) and rip
 // group / subscriber.
-void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, int ppripg, int subscriber)
+void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, RIPG **ppripg, LO *ploSubscriber)
 {
     EMITB emitb;
-    struct Y emitg;
+    EMITG emitg;
     InitEmitBlock(&emitb);
     func_002333B4(&emitg, 0, sizeof(emitg));
     emitb.emito.posPoint = pos;
@@ -1577,7 +1576,7 @@ void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, E
     emitb.vel = *velocity;
     emitb.aploRef = aploRef;
     emitg.ppripg = ppripg;
-    emitg.subscriber = subscriber;
+    emitg.ploSubscriber = ploSubscriber;
     emitb.particleKind = 1;     /* rips */
     emitb.v = *particle;
     EmitParticles__FiP5EMITBP5EMITG(count, &emitb, &emitg);
@@ -1914,9 +1913,8 @@ typedef struct EMITTERV {
     char pad[0xE4]; EMITB *pemitb; int padE8, padEC; SND *psnd;
     float countMin, countMax;   /* +0xF4 particles per explosion */
     int keepsGroups;            /* +0xFC emit into the EXPLS's own rip / blip groups (and subscribe it) */
-    int pripg; int pblipg;      /* +0x100 */
+    RIPG *pripg; BLIPG *pblipg; /* +0x100 */
 } EMITTERV;
-typedef struct EMITR { int *ppblipg; int *ppripg; EMITTERV *subscriber; } EMITR;   /* EMITG */
 
 extern char D_002BDEC0[];
 extern float RandomFloatInRange__Fff(float lo, float hi);
@@ -1926,7 +1924,7 @@ extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
 extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
 extern void VECTOR_opAssign(qword *pv, qword a);
-extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITR *pr);
+extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITG *pemitg);
 extern qword ConvertPosBetweenLos(int x, int y, qword v);
 extern void *CreateSfxSound(int id);
 extern void SetSndSourceLo(void *p, void *pso);
@@ -1943,8 +1941,8 @@ void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
 {
     EMITP emitp;
     EMITB emitb;
-    EMITR emitg;
-    EMITR *pemitg;
+    EMITG emitg;
+    EMITG *pemitg;
     int count;
     V4 pos;
     V4 h;
@@ -1996,7 +1994,7 @@ void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
     if (expls->keepsGroups) {
         emitg.ppblipg = &expls->pblipg;
         emitg.ppripg = &expls->pripg;
-        emitg.subscriber = expls;
+        emitg.ploSubscriber = (LO *)expls;
         pemitg = &emitg;
     } else {
         pemitg = 0;
