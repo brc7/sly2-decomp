@@ -7270,19 +7270,18 @@ int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *behavior)
 
 // 0x17E628 PushBhvpathlinkLeap
 namespace M_PushBhvpathlinkLeap { extern "C" {
-struct VTE; struct O; 
+struct VTE; 
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword landingPoint; char pad3[8]; int unknown68; };
 struct SEG { qword a; qword b; };
 struct P { char pad[0x60]; struct SEG segments[6]; };
-struct O *PushStepBehavior(void *p, int n);
+BHVLEAP *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
 qword GetPathlinkEndpointPos(void *pe, qword q);
 // 0x17E628: Pushes a leap (BHVLEAP) to the current segment's end point.
 void PushBhvpathlinkLeap(BHVPATHLINK *behavior) {
-    struct O *o = PushStepBehavior(behavior->owner, CID_BHVLEAP);
-    o->unknown68 = 1;
+    BHVLEAP *o = PushStepBehavior(behavior->owner, CID_BHVLEAP);
+    o->extra = 1;
     o->landingPoint = GetPathlinkEndpointPos(&((struct P *)behavior->pathlink)->segments[behavior->segmentIndex], GetLoWorldPos(behavior->owner));
     StartPushedBhv(o);
 }
