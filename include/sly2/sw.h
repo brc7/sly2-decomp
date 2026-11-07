@@ -106,11 +106,11 @@ struct SW : public BASIC
       SL aslPxrOid[512];   /* proxy records hashed by oid */
       SL objectsByClass[199]; /* objects per class id (199 lists) */
       SLOTHEAP slotheapLoroot;   /* LOROOT records */
-      LOROOT *plorootSettled;   /* hierarchy root that settled last (inferred) */
-      uint grfvisBusy;   /* visibility bits that keep objects busy (inferred) */
+      LOROOT *plorootSettled;   /* +0x39A4 where the last incremental busy pass stopped in roots (busy.cpp) */
+      uint grfvisBusy;   /* camera zone mask of the last busy pass (busy.cpp) */
       uint32_t   _pad_185    [ 1 ] ;
-      VECTOR4 cameraBusyPosition; /* camera position used for busy (activation) distance tests */
-      VECTOR4 heroBusyPosition; /* hero position used for busy distance tests */
+      qword cameraBusyPosition; /* camera position of the last full busy pass (busy.cpp UpdateSwBusyList) */
+      qword heroBusyPosition; /* hero position of that pass */
       void *unknown39D0;
       int unknown39D4;
       void *unknown39D8;

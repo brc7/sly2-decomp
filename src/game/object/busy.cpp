@@ -19,23 +19,10 @@ struct VTE { short d; short pad; void *pfn; };
    at +0x28 (0 camera, 1 always in, 2 always out, 3 hero), the zone mask byte (+0x2D) and the zone radius (+0x38). */
 struct SO { char pad[0xC]; VTE *vtable; int pad10; void *busyEntry; char pad18[0x28 - 0x18]; long flags; float unknown30; float unknown34; float busyDistance; };
 typedef char assert_SO_busyDistance[(unsigned int)&((SO *)0)->busyDistance == 0x38 ? 1 : -1];
-/* A busy-list entry (the next link is at +4). */
-struct ITEM { SO *object; ITEM *next; };
+/* A hierarchy root (sly2/lo.h LOROOT) as the busy code sees it: the object and the next link of SW::roots. */
+struct LOROOT { SO *object; LOROOT *next; };
 /* View of the camera (zone mask +0x14, position +0x90). */
 struct CM { char pad[0x14]; int zoneMask; char pad2[0x90 - 0x18]; qword position; };
-/* View of the world's busy-list fields. */
-struct SWBUSY
-{
-    char pad[0x20];
-    DL busyList;              /* +0x20 busy list */
-    DL inZoneList;            /* +0x2C objects currently in their zone */
-    char pad38[0x39A4 - 0x38];
-    ITEM *cursor;    /* +0x39A4 where the last incremental pass stopped */
-    int cameraMask;          /* +0x39A8 camera zone mask of that pass */
-    qword cameraPos;        /* +0x39B0 camera position of that pass */
-    qword heroPos;        /* +0x39C0 hero position of that pass */
-};
-typedef char assert_SWBUSY_heroPos[(unsigned int)&((SWBUSY *)0)->heroPos == 0x39C0 ? 1 : -1];
 
 extern CM D_002DDF40;
 float g_busyRescanDistance = 500.0f;   /* busy's .data (the next 12 bytes are 0: alignment) */
@@ -43,9 +30,9 @@ extern DLI *D_002DD2FC;     /* g_pdliFirst */
 extern "C" {
 void *GetHeroPo(void);
 qword GetLoWorldPos(void *p);
-void UnlinkSwBusyEntry(SWBUSY *p, void *pv);
-void MoveSwBusyEntryToEnd(SWBUSY *p, void *pv);
-void RemoveFromSwBusyList(SWBUSY *p, ITEM *entry);
+void UnlinkSwBusyEntry(SW *p, void *pv);
+void MoveSwBusyEntryToEnd(SW *p, void *pv);
+void RemoveFromSwBusyList(SW *p, LOROOT *entry);
 }
 int IsEntryInDl(DL *pdl, void *pv);                        /* IsEntryInDl__FP2DLPv */
 void AppendDlEntry(DL *pdl, void *pv);                      /* AppendDlEntry__FP2DLPv */
@@ -53,35 +40,35 @@ void RemoveDlEntry(DL *pdl, void *pv);                      /* RemoveDlEntry__FP
 void InsertDlEntryBefore(DL *pdl, void *pvBefore, void *pv);  /* InsertDlEntryBefore__FP2DLPvT1 */
 
 // Removes a root record from the world's busy list, moving the incremental-pass cursor past it first.
-extern "C" void RemoveFromSwBusyList(SWBUSY *world, ITEM *entry)
+extern "C" void RemoveFromSwBusyList(SW *world, LOROOT *entry)
 {
-    if (IsEntryInDl(&world->busyList, entry)) {
-        if (world->cursor == entry)
-            world->cursor = entry->next;
-        RemoveDlEntry(&world->busyList, entry);
+    if (IsEntryInDl(&world->roots, entry)) {
+        if (world->plorootSettled == entry)
+            world->plorootSettled = entry->next;
+        RemoveDlEntry(&world->roots, entry);
     }
 }
 
 // Re-sorts a root record: removes it and inserts it just before the incremental-pass cursor, so the next pass checks
 // it soon.
-extern "C" void ResortSwBusyEntry(SWBUSY *world, ITEM *entry)
+extern "C" void ResortSwBusyEntry(SW *world, LOROOT *entry)
 {
     RemoveFromSwBusyList(world, entry);
-    InsertDlEntryBefore(&world->busyList, world->cursor, entry);
+    InsertDlEntryBefore(&world->roots, world->plorootSettled, entry);
 }
 
 // Unlinks an entry from the world's busy list without touching the cursor.
-extern "C" void UnlinkSwBusyEntry(SWBUSY *world, void *pv)
+extern "C" void UnlinkSwBusyEntry(SW *world, void *pv)
 {
-    RemoveDlEntry(&world->busyList, pv);
+    RemoveDlEntry(&world->roots, pv);
 }
 
 // Moves an entry to the end of the busy list (it becomes the cursor when the cursor is unset).
-extern "C" void MoveSwBusyEntryToEnd(SWBUSY *world, void *pv)
+extern "C" void MoveSwBusyEntryToEnd(SW *world, void *pv)
 {
-    RemoveDlEntry(&world->busyList, pv);
-    if (world->cursor == 0) world->cursor = (ITEM *)pv;
-    AppendDlEntry(&world->busyList, pv);
+    RemoveDlEntry(&world->roots, pv);
+    if (world->plorootSettled == 0) world->plorootSettled = (LOROOT *)pv;
+    AppendDlEntry(&world->roots, pv);
 }
 
 static __inline__ float GDist(qword a, qword b)
@@ -115,7 +102,7 @@ static inline void *PvNextDli(DLI *pdli)
 // moving it in or out of the "in zone" list (enter = vtable slot 23, leave = slot 22). Objects further than
 // D_002BD450 (500) from their zone edge are moved behind the cursor and skipped until the camera or the
 // hero has moved that far (or the camera mask changes), which restarts the full pass.
-extern "C" void UpdateSwBusyList(SWBUSY *world)
+extern "C" void UpdateSwBusyList(SW *world)
 {
     DLI dli;
     qword cameraPos, heroPos;
@@ -130,17 +117,17 @@ extern "C" void UpdateSwBusyList(SWBUSY *world)
         heroPos = GetLoWorldPos(hero);
     else
         heroPos = cameraPos;
-    cameraMoved = GDist(cameraPos, world->cameraPos);
-    heroMoved = GDist(heroPos, world->heroPos);
-    if (g_busyRescanDistance < cameraMoved || g_busyRescanDistance < heroMoved || cameraMask != world->cameraMask) {
-        world->cursor = 0;
-        world->cameraMask = cameraMask;
-        world->cameraPos = cameraPos;
-        world->heroPos = heroPos;
+    cameraMoved = GDist(cameraPos, world->cameraBusyPosition);
+    heroMoved = GDist(heroPos, world->heroBusyPosition);
+    if (g_busyRescanDistance < cameraMoved || g_busyRescanDistance < heroMoved || cameraMask != world->grfvisBusy) {
+        world->plorootSettled = 0;
+        world->grfvisBusy = cameraMask;
+        world->cameraBusyPosition = cameraPos;
+        world->heroBusyPosition = heroPos;
     }
-    InitDli(&dli, &world->busyList);
-    while ((entry = PvNextDli(&dli)) != world->cursor) {
-        SO *object = ((ITEM *)entry)->object;
+    InitDli(&dli, &world->roots);
+    while ((entry = PvNextDli(&dli)) != world->plorootSettled) {
+        SO *object = ((LOROOT *)entry)->object;
         int isInZone;
         switch ((int)((object->flags << 8) >> 60)) {
         case 2:
@@ -177,13 +164,13 @@ extern "C" void UpdateSwBusyList(SWBUSY *world)
             }
             break;
         }
-        if (isInZone != IsEntryInDl(&world->inZoneList, entry)) {
+        if (isInZone != IsEntryInDl(&world->busyRoots, entry)) {
             if (isInZone) {
-                AppendDlEntry(&world->inZoneList, entry);
+                AppendDlEntry(&world->busyRoots, entry);
                 ((void (*)(void *))object->vtable[23].pfn)((char *)object + object->vtable[23].d);
             } else {
                 ((void (*)(void *))object->vtable[22].pfn)((char *)object + object->vtable[22].d);
-                RemoveDlEntry(&world->inZoneList, entry);
+                RemoveDlEntry(&world->busyRoots, entry);
             }
         }
     }
@@ -204,7 +191,7 @@ static __inline__ float GDistSq(qword a, qword b)
 // Decides whether one object is in its activity zone (busy kind: always, never, within its busy distance of the camera
 // or of the hero, gated by the camera's zone mask) and sends the enter (slot 23) or leave (slot 22) notification
 // when that changed.
-extern "C" void UpdateSoBusy(SWBUSY *world, SO *object)
+extern "C" void UpdateSoBusy(SW *world, SO *object)
 {
     int cameraMask;
     qword cameraPos, heroPos;
@@ -245,12 +232,12 @@ extern "C" void UpdateSoBusy(SWBUSY *world, SO *object)
         }
         break;
     }
-    if (isInZone == IsEntryInDl(&world->inZoneList, (void *)entry)) return;
+    if (isInZone == IsEntryInDl(&world->busyRoots, (void *)entry)) return;
     if (isInZone) {
-        AppendDlEntry(&world->inZoneList, (void *)entry);
+        AppendDlEntry(&world->busyRoots, (void *)entry);
         ((void (*)(void *))object->vtable[23].pfn)((char *)object + object->vtable[23].d);
     } else {
         ((void (*)(void *))object->vtable[22].pfn)((char *)object + object->vtable[22].d);
-        RemoveDlEntry(&world->inZoneList, (void *)entry);
+        RemoveDlEntry(&world->busyRoots, (void *)entry);
     }
 }
