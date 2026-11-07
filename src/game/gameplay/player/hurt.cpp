@@ -360,7 +360,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
 struct VE { short d; short pad; void *pfn; };
 struct X { char pad[0x80]; qword v80; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0xE8-0x10]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(U &u); };
+struct O : LO { char pad1[0xE8-0x50]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(U &u); };
 struct P { struct O *o; int state; };
 extern "C" qword D_002A2DD0;
 extern "C" float D_002BFA90[3];   /* the zap spring */
@@ -385,7 +385,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
   v.i[2]=0;v.i[1]=0;v.i[0]=0;
   zero=v.f[2];
   if(p->o->f198!=zero)
-   v.f[2]=QwordZ(((qword (*)(void *))p->o->vt[33].pfn)((char *)p->o+p->o->vt[33].d));
+   v.f[2]=QwordZ(p->o->GetVelocity());
   AccelSoTowardPosSpring(p->o,D_002A2DD0,0,v.q,D_002BFA90);
   if(p->o->f198!=zero) {
    u.f[2]=zero;u.f[1]=zero;u.f[0]=zero;
@@ -1236,9 +1236,8 @@ struct M3 { qword r[3]; };
 struct VE { short d; short pad; void *pfn; };
 struct X { char pad[0x80]; U v80; };
 struct SMP { float a,b,c,d; };
-struct P {
- char pad[0xC]; struct VE *vt;
- char pad1[0xE8-0x10]; struct X *xE8;
+struct P : LO {
+ char pad1[0xE8-0x50]; struct X *xE8;
  char pad2[0x190-0xEC]; qword v190;
  char pad3[0x1B0-0x1A0]; struct M3 m1B0;
  char pad4[0x2DC-0x1E0]; int state2DC;
@@ -1253,7 +1252,7 @@ void AddSoWaterAcceleration(struct P *p,void *o);
 qword GetLoWorldPos(struct P *p);
 float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
 void AddSoAcceleration(struct P *p,qword v);
-static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
+static inline qword GetVel(struct P *p) { return p->GetVelocity(); }
 static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
 static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
 // STEPPLAYER vtable slot 72 (shared by Sly and Murray): in water/vertical states applies the water current and
