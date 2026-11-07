@@ -8,7 +8,7 @@
 // Types: the functions on named fields use stepplayer.h's JTHURT/ZPR/STEPPLAYER, jt.h's JT and so.h's SO. The others
 // keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp
 // do): the hand-tuned ones (SetJtHurtState, PresetJtAccelZap, UpdateJtActiveZap, StartJtKnockback, TakeJtDamage,
-// UpdateStepplayerWater, ResolveStepplayerWaterContact: register pins, by-value helper shapes, unions whose stores the match
+// UpdateStepplayerWater: register pins, by-value helper shapes, unions whose stores the match
 // needs), and a record not identified yet (AddJtHurtCpdefiFlags). PostLoadJtHurt, SetJtHurtCallback,
 // RunJtHurtCallback, GetJtHurtAdjustRecord and ProbeStepplayerSurface are on the header types.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hurt
@@ -1244,66 +1244,49 @@ int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A28B0 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
-struct M3 { qword r[3]; };
-struct VE { short d; short pad; void *pfn; };
-struct X { char pad[0x80]; U v80; };
-struct SMP { float a,b,c,d; };
-struct P {
- char pad[0xC]; struct VE *vt;
- char pad1[0xE8-0x10]; struct X *xE8;
- char pad2[0x190-0xEC]; qword v190;
- char pad3[0x1B0-0x1A0]; struct M3 m1B0;
- char pad4[0x2DC-0x1E0]; int state2DC;
- char pad5[0xDF4-0x2E0]; int stateDF4;
- char pad6[0x10A0-0xDF8]; float height10A0, alpha10A4;
- struct SMP smp10A8;
-};
 extern struct CLOCK D_002DDED0;
-int ProbeStepplayerSurface(struct P *p,void *o,qword *pos);
+int ProbeStepplayerSurface(STEPPLAYER *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
-void AddSoWaterAcceleration(struct P *p,void *o);
-qword GetLoWorldPos(struct P *p);
-float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
-void AddSoAcceleration(struct P *p,qword v);
-// The actor's velocity (virtual slot 33).
-static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
+void AddSoWaterAcceleration(STEPPLAYER *p,void *o);
+qword GetLoWorldPos(STEPPLAYER *p);
+float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float dt,SMPA *s,float *result);
+void AddSoAcceleration(STEPPLAYER *p,qword v);
 // Rotate *v by the 3x3 matrix m.
-static inline qword Mul(struct M3 *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]));return r; }
+static inline qword Mul(const qword *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m[0]),"j"(m[1]),"j"(m[2]));return r; }
 // Broadcast int bits into a VU0 register.
 static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
 // STEPPLAYER vtable slot 72 (shared by Sly and Murray): in water/vertical states applies the water current and
 // buoyancy; otherwise the SO base.
-void ResolveStepplayerWaterContact(struct P *player,void *o)
+void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
 {
  U origin,vel,pos,local,dir,v50,accel,bcast;
  float z,g;
  qword v,k;
  struct CLOCK *clock;
- if(player->state2DC==5) goto vertical;
- switch(player->stateDF4) {
+ if(player->jtair.state==5) goto vertical;
+ switch(player->jthurt.state) {
  case 7:
  vertical:
-  origin.q=GetVel(player);
+  origin.q=player->GetVelocity();
   if(origin.f[2]<0.0f) AddSoWaterAcceleration(player,o);
   break;
  case 3:case 10:
   if(!ProbeStepplayerSurface(player,o,&pos.q)) break;
-  local.q=Mul(&player->m1B0,&player->v190);
+  local.q=Mul(player->aqwTarget,&player->qwUnknown190);
   CalculateWaterCurrent(o,pos.q,&dir.q,&v50.q);
-  v=GetVel(player);
+  v=player->GetVelocity();
   vel.q=v;
   v=VuAdd(v,local.q);
   v=VuSub(v,dir.q);
-  k=Broadcast(*(int *)&player->alpha10A4);
+  k=Broadcast(*(int *)&player->waterProbe[3]);
   bcast.q=k;
   v=VuScaleByX(v,k);
   accel.q=v;
   origin.q=GetLoWorldPos(player);
   clock=&D_002DDED0;
-  SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->height10A0,vel.f[2]-dir.f[2],pos.f[2],clock->deltaTime,&player->smp10A8,&z);
-  g=(z-vel.f[2])/clock->deltaTime-player->xE8->v80.f[2];
+  SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->waterProbe[2],vel.f[2]-dir.f[2],pos.f[2],clock->deltaTime,&player->unknown10A8,&z);
+  g=(z-vel.f[2])/clock->deltaTime-player->physics->gravity.z;
   accel.f[2]=accel.f[2]>g?accel.f[2]:g;
   AddSoAcceleration(player,accel.q);
   break;
