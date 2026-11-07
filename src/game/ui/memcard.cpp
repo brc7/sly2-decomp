@@ -17,6 +17,7 @@
 // SLY2_ALIAS: _GLOBAL_$D$*=func_001AE130
 
 #include "sly2/basic.h"
+#include "sly2/lo.h"
 #include "sly2/scrap.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
@@ -127,7 +128,7 @@ struct SAVE
 };
 /* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
 /* The dialog's child widget: its display state (2: fully shown), when that was reached, the state it is heading for. */
-struct MCCHILD { char pad0[0x58]; int displayState; float tDisplayState; char pad60[4]; int targetDisplayState; char pad68[0xB0 - 0x68]; int unknownB0; };
+struct MCCHILD : LO { char pad0[0x58 - 0x50]; int displayState; float tDisplayState; char pad60[4]; int targetDisplayState; char pad68[0xB0 - 0x68]; int unknownB0; };
 struct MCDLG
 {
     char pad0[0xC];
@@ -1624,7 +1625,7 @@ extern const unsigned int r_D_002A6D88[2] __asm__("D_002A6D88") = {0xFFFF0000, (
 namespace M_CMemcardDialog_Update { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short index; void (*pfn)(void *); };
-struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
+struct P : LO { char pad[0x58 - 0x50]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int selectedSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
 struct CLOCK { char pad[0x3C]; float realTime; };
@@ -2329,7 +2330,7 @@ void HideMcDialogWidget(struct S *dialog)
 } } // namespace M_HideMcDialogWidget
 
 namespace M_func_001ADEA8 {
-struct O { char pad[0x58]; int displayState; int pad2[2]; int targetDisplayState; };
+struct O : LO { char pad[0x58 - 0x50]; int displayState; int pad2[2]; int targetDisplayState; };
 struct S { char pad[0x24]; O *child; };
 // True when the status widget's child is shown or showing.
 extern "C" int IsMcStatusVisible(S *dialog)
