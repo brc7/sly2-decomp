@@ -721,7 +721,7 @@ void SetLoEulerDegrees(struct LO *object, qword v)
     r.q = Make(QwordX(v) * 0.017453294f, QwordY(v) * 0.017453294f, QwordZ(v) * 0.017453294f);
     LoadRotateMatrixEuler(&m, r.q);
     c = m;
-    object->RotateToMat((MATRIX4 *)&c);   /* a 3x3 rotation (M3) */
+    object->RotateToMat((MATRIX3 *)&c);   /* a 3x3 rotation (M3) */
 }
 } } // namespace M_func_001A63B0
 
@@ -1010,7 +1010,7 @@ extern "C" void SetLoTransformFromXf(LO *plo, XF *pxf)
 extern "C" void SetLoXfFromMat(LO *plo, MATRIX4 *matrix)
 {
     plo->TranslateToPos(((qword *)matrix)[3]);
-    plo->RotateToMat(matrix);
+    plo->RotateToMat((MATRIX3 *)matrix);   /* its rotation rows */
 }
 
 namespace M_func_001A6C48 { extern "C" {

@@ -1543,7 +1543,7 @@ struct LIGHT : XFM
     virtual void OnRemove() __asm__("OnLightRemove");   /* slot 22 */
     virtual void OnAdd() __asm__("OnLightAdd");   /* slot 23 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateLightToPos");   /* slot 29 */
-    virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateLightToMat");   /* slot 30 */
+    virtual void RotateToMat(MATRIX3 *pmatWorld) __asm__("RotateLightToMat");   /* slot 30 */
 };
 typedef char assert_LIGHT_size[sizeof(LIGHT) == 0x170 ? 1 : -1];
 typedef char assert_LIGHT_position[SLY2_OFFSETOF(LIGHT, position) == 0x100 ? 1 : -1];

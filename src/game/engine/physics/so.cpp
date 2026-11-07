@@ -227,7 +227,7 @@ extern "C" void SetSoParent(SO *plo, SO *pa, XF *pb, int flags)
     LO_SetParent(plo, pa, pb, flags);
     UpdateSoXfWorldMatrices(plo);
     if (flags & 1) plo->TranslateToPos(*(qword *)mat.mat[3]);
-    if (flags & 2) plo->RotateToMat(&mat);
+    if (flags & 2) plo->RotateToMat((MATRIX3 *)&mat);
     if (flags & 4) plo->SetVelocity(q1);
     if (flags & 8) plo->SetAngularVelocity(q2);
     ReleaseSoBoundsHierarchy(plo);

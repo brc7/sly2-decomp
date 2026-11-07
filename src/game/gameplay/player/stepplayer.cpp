@@ -204,7 +204,7 @@ void PostLoadStepplayer(STEPPLAYER *player)
         player->transforms->worldStamp = D_003DD490.transformStamp;
         player->UpdateXfWorldHierarchy();
         player->TranslateToPos(q);
-        player->RotateToMat((MATRIX4 *)&m);
+        player->RotateToMat((MATRIX3 *)&m);
     }
     PostSwCallback(&D_003DD490, player, D_002A4D10.l, 0);
 }

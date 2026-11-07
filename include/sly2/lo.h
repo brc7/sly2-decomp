@@ -79,7 +79,7 @@ struct LO : public BASIC
       virtual void OnProxyRelease(LO *plo) __asm__("LO_Slot27Default");   /* slot 27: called by ReleaseProxySpare on every object of a spare given back to the pool (inferred) */
       virtual int GetChildren(LO ***paplo) __asm__("LO_GetChildren");
       virtual void TranslateToPos(qword qwPos) __asm__("TranslateLoToPos");
-      virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateLoToMat");
+      virtual void RotateToMat(MATRIX3 *pmatWorld) __asm__("RotateLoToMat");
       virtual MATRIX4 *GetWorldMatrix() __asm__("LO_GetWorldMatrix");
       virtual XF *GetLocalTransform(MATRIX4 *pmatLocal) __asm__("LO_GetLocalTransform");
       virtual qword GetVelocity() __asm__("GetLoVelocity");

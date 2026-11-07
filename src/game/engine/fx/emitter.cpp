@@ -370,7 +370,7 @@ void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
             group->constantCount = pemitter->constantCount;
             group->autoPause = pemitter->autoPause;
             SetLoBusyKind(group, 1);
-            group->RotateToMat((MATRIX4 *)GetLoWorldMatrix(pemitter));   /* place it at this emitter's transform */
+            group->RotateToMat((MATRIX3 *)GetLoWorldMatrix(pemitter));   /* place it at this emitter's transform */
         }
         pemitter->fDirty = 0;
         AppendDlEntry__FP2DLPv(&group->groupList, pemitter);

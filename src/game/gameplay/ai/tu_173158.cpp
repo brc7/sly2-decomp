@@ -855,7 +855,7 @@ extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *selector, qwordV
         for (i = 0; i < spawner->templateCount; i++) {
             LO *object = spawner->templates[order[i]];
             object->TranslateToPos(*position);
-            object->RotateToMat((MATRIX4 *)rotation);   /* a 3x3 rotation (M3) */
+            object->RotateToMat((MATRIX3 *)rotation);   /* a 3x3 rotation (M3) */
             guard = AcquireProxyObject(object, 0);
             if (guard) break;
         }

@@ -108,7 +108,7 @@ struct STEP : public PO
     virtual void Update() __asm__("UpdateStep");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderStepSelf");   /* slot 19 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepToPos");   /* slot 29 */
-    virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateStepToMat");   /* slot 30 */
+    virtual void RotateToMat(MATRIX3 *pmatWorld) __asm__("RotateStepToMat");   /* slot 30 */
     virtual void MatchTransform(LO *plo) __asm__("MatchStepXf");   /* slot 38 */
     virtual void Clone(LO *ploBase) __asm__("CloneStep");   /* slot 41 */
     virtual void OnContactFreed(SO *pso) __asm__("OnStepSoContactFreed");   /* slot 54 */

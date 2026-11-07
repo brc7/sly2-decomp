@@ -1251,7 +1251,7 @@ void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2
     prize->Add();
     SetLoParent(prize, 0, 0);
     prize->TranslateToPos(q1);
-    prize->RotateToMat((MATRIX4 *)D_002A2D00);   /* the identity */
+    prize->RotateToMat((MATRIX3 *)D_002A2D00);   /* the identity */
     Zero(&prize->unknown58->velocity);
     Zero(&prize->unknown5C->velocity);
     prize->animSkipTime = f1;

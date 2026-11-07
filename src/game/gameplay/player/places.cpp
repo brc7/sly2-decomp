@@ -140,7 +140,7 @@ extern "C" void ReturnJtToSafePlace(STEPPLAYER *jt, JTPLACE *q)
                 jt->TranslateToPos(VuSub(r, jt->pivotOffset));
                 jt->jtplaces.cplace = save;
                 SetStepTargetHeadingFromVector(jt, g_cm.matq.rot[0]);
-                jt->RotateToMat((MATRIX4 *)&jt->matTarget);
+                jt->RotateToMat(&jt->matTarget);
                 CutCm__FP2CM(&g_cm);
                 SetJtAirJump(&jt->jtair, 0xB, 0, 0);
                 if (e.grabSpot) {

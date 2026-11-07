@@ -227,7 +227,7 @@ struct SO : public LO
     virtual void OnProxyAcquire(LO *plo) __asm__("SO_ResetForProxy");   /* slot 26 */
     virtual void OnProxyRelease(LO *plo) __asm__("SO_Slot27");   /* slot 27 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateSoToPos");   /* slot 29 */
-    virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateSoToMat");   /* slot 30 */
+    virtual void RotateToMat(MATRIX3 *pmatWorld) __asm__("RotateSoToMat");   /* slot 30 */
     virtual XF *GetLocalTransform(MATRIX4 *pmatLocal) __asm__("GetSoLocalXf");   /* slot 32 */
     virtual qword GetVelocity() __asm__("GetSoVelocity");   /* slot 33 */
     virtual void SetVelocity(qword qwVel) __asm__("SetSoVelocity");   /* slot 35 */

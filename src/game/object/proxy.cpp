@@ -853,7 +853,7 @@ void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare)
             }
             if (pso->unknown5C)
             {
-                pso->RotateToMat((MATRIX4 *)&pposrest->mat);
+                pso->RotateToMat(&pposrest->mat);
                 pso->SetAngularVelocity(D_002A2DD0);
             }
         }
