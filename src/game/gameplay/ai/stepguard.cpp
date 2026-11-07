@@ -1154,13 +1154,11 @@ int IsStepguardZapLethal(STEPGUARD *guard, struct ZAP *zap)
 
 // 0x207598 IsStepguardInvulnerable
 namespace M_FInvulnerableStepguard { extern "C" {
-struct S;
-struct S { char pad[0x298]; int isInvulnerable298; char pad2[0x90]; int isInvulnerable32C; };
-int StepguardHasSgf(struct S *p, int n);
+
 // 0x207598: STEPGUARD vtable slot 76: true while invulnerable (+0x32C or +0x298 set, or flag 0x2A).
-int IsStepguardInvulnerable(struct S *guard)
+int IsStepguardInvulnerable(STEPGUARD *guard)
 {
-    if (guard->isInvulnerable32C || guard->isInvulnerable298)
+    if (guard->isInvulnerable32C || guard->unknown298)
         return 1;
     return StepguardHasSgf(guard, 0x2A) != 0;
 }
