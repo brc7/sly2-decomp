@@ -777,9 +777,6 @@ static __inline__ qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-struct LO;
-typedef struct { short d; short pad; void (*pfn)(struct LO *, M3 *); } VT;
-struct LO { int frame, sidebag, firstRefNode; VT *vt; };
 void LoadRotateMatrixEuler(M3 *pm, qword v);
 // Sets the object's orientation from Euler angles in degrees (through RotateToMat, slot 30).
 void SetLoEulerDegrees(struct LO *object, qword v)
@@ -790,7 +787,7 @@ void SetLoEulerDegrees(struct LO *object, qword v)
     r.q = Make(QwordX(v) * 0.017453294f, QwordY(v) * 0.017453294f, QwordZ(v) * 0.017453294f);
     LoadRotateMatrixEuler(&m, r.q);
     c = m;
-    object->vt[30].pfn((struct LO *)((char *)object + object->vt[30].d), &c);
+    object->RotateToMat((MATRIX4 *)&c);   /* a 3x3 rotation (M3) */
 }
 } } // namespace M_func_001A63B0
 
@@ -814,22 +811,17 @@ void LO_ApplyTransform(struct O *object, void *arg)
 } } // namespace M_func_001A6450
 
 namespace M_BindLoOidTable { extern "C" {
-struct LO;
-typedef struct {short d,pad;void(*pfn)(struct LO*);} VTE;
-struct LO {int frame,sidebag,firstRefNode;VTE*vt;};
-struct SUB {char pad[0x9C];int id;char pad2[0x100-0xA0];};   /* an SO part (0x100 bytes) */
-struct ALO {char pad[0x50];int numParts;struct SUB*parts;};
 struct E {int flags,id,fieldOffset;};   /* one reference: how to find it, its id, where to store it */
 enum { BIND_PART = 0x10, BIND_SO_PART = 0x20, BIND_SO_GLOBS = 0x40, BIND_HIDE_OR_REMOVE = 0x200 };
 extern char D_003DD490[];
-void*FindSoPart(struct ALO*,int);
-void HideSoPart(struct ALO*, void*);
-void*FindSoGlob(struct ALO*,int);
-void HideSoGlobsById(struct ALO*,int);
-struct LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct ALO*);
-// Resolves a table of {flags, id, field offset} object references into pointer fields of the object: parts by id,
+void*FindSoPart(SO*,int);
+void HideSoPart(SO*, void*);
+void*FindSoGlob(SO*,int);
+void HideSoGlobsById(SO*,int);
+struct LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,SO*);
+// Resolves a table of {flags, id, field offset} object references into pointer fields of the object: transforms (XF) by oid,
 // SO sub-objects, or objects found by oid in the world; flag 0x200 removes the object found.
-void BindLoOidTable(struct ALO *object, int numEntries, struct E *entries)
+void BindLoOidTable(SO *object, int numEntries, struct E *entries)
 {
     int i = 0;
     while (i < numEntries) {
@@ -837,9 +829,9 @@ void BindLoOidTable(struct ALO *object, int numEntries, struct E *entries)
         int flags = entry->flags;
         if (flags & BIND_PART) {
             /* The count and byte offset share the native search registers. */
-            register int j __asm__("$7") = object->numParts;
+            register int j __asm__("$7") = object->numTransforms;
             register int offset __asm__("$6") = j * 0x100;
-            struct SUB *part;
+            XF *part;
             i++;
             /* search the parts from the last one down (this loop shape is what matches) */
         nextPart:
@@ -847,8 +839,8 @@ void BindLoOidTable(struct ALO *object, int numEntries, struct E *entries)
             offset -= 0x100;
             if (j < 0)
                 goto notFound;
-            part = (struct SUB *)(offset + (int)object->parts);
-            if (part->id != entry->id)
+            part = (XF *)(offset + (int)object->transforms);
+            if (part->oid != entry->id)
                 goto nextPart;
             *(void **)((char *)object + entry->fieldOffset) = part;
         notFound:;
@@ -883,7 +875,7 @@ void BindLoOidTable(struct ALO *object, int numEntries, struct E *entries)
                 continue;
             }
             if (entry->flags & BIND_HIDE_OR_REMOVE)
-                found->vt[LO_SLOT_REMOVE].pfn((struct LO *)((char *)found + found->vt[LO_SLOT_REMOVE].d));
+                found->Remove();
             i++;
             *(void **)((char *)object + entry->fieldOffset) = found;
         }
@@ -891,19 +883,9 @@ void BindLoOidTable(struct ALO *object, int numEntries, struct E *entries)
 }
 
 #define OFFSET(t,m) ((unsigned int)&(((t *)0x10000)->m)-0x10000)
-typedef char layout_vte_delta[OFFSET(VTE,d)==0?1:-1];
-typedef char layout_vte_function[OFFSET(VTE,pfn)==4?1:-1];
-typedef char layout_lo_vtable[OFFSET(struct LO,vt)==12?1:-1];
-typedef char layout_sub_id[OFFSET(struct SUB,id)==0x9C?1:-1];
-typedef char layout_alo_count[OFFSET(struct ALO,numParts)==0x50?1:-1];
-typedef char layout_alo_array[OFFSET(struct ALO,parts)==0x54?1:-1];
 typedef char layout_entry_flags[OFFSET(struct E,flags)==0?1:-1];
 typedef char layout_entry_id[OFFSET(struct E,id)==4?1:-1];
 typedef char layout_entry_offset[OFFSET(struct E,fieldOffset)==8?1:-1];
-typedef char layout_vte_size[sizeof(VTE)==8?1:-1];
-typedef char layout_lo_size[sizeof(struct LO)==16?1:-1];
-typedef char layout_sub_size[sizeof(struct SUB)==0x100?1:-1];
-typedef char layout_alo_size[sizeof(struct ALO)==0x58?1:-1];
 typedef char layout_entry_size[sizeof(struct E)==12?1:-1];
 typedef char layout_word_size[sizeof(int)==4?1:-1];
 typedef char layout_pointer_size[sizeof(void*)==4?1:-1];
@@ -1267,21 +1249,18 @@ extern "C" void LO_Slot45Default()
 namespace M_ConvertAloPos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-struct LO;
-typedef struct { short d; short pad; M4 *(*pfn)(struct LO *); } VT;
-struct LO { int frame, sidebag, firstRefNode; VT *vt; };
 void InvertMatrix4Rigid(M4 *pm, M4 *pn);
 // Converts a point from one object's space to another's (through world space; a null object means world space).
 qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 {
     if (a) {
-        M4 *pm = a->vt[31].pfn((struct LO *)((char *)a + a->vt[31].d));
+        M4 *pm = (M4 *)a->GetWorldMatrix();
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
                 : "=j"(v) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]));
     }
     if (b) {
         M4 m;
-        InvertMatrix4Rigid(&m, b->vt[31].pfn((struct LO *)((char *)b + b->vt[31].d)));
+        InvertMatrix4Rigid(&m, (M4 *)b->GetWorldMatrix());
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
                 : "=j"(v) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]));
     }
