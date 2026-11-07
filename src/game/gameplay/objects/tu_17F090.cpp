@@ -4,9 +4,10 @@
 // (SetHack*Entry, AddHackwallSegment, AddHacklockRsmg...) and the world callback StartHackDying schedules.
 // TU 0x17F090..0x182C70 (76 functions, address order).
 //
-// Types: TU-private views over sly2/so.h's SO for the m2c bodies (HACK, HACKSHIP, HACKENEMY, HACKLOCK and the
-// entry record HACKE). The hand-written per-function files keep their views in namespaces named after each
-// function (as jt.cpp does), their C++-named definitions as C-linkage definitions of their literal symbols there.
+// Types: the classes and their records from sly2/hack.h (HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL;
+// HACKE, HACKSHIPPART, HACKRULE, HACKWALLSEG, HACKWALLPIECE). The per-function namespaces (as jt.cpp has them) keep
+// only the helpers that are part of a function's tuning and small views of records of other families (XP contact
+// sides, the contact request, the LO flag word read as one 64-bit value).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_17F090
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00182C50
 
@@ -16,6 +17,7 @@
 #include "sly2/scrap.h"
 #define SLY2_KEY_TU_HACKSHIP   /* this TU is the class's key TU: see sly2/classes.h */
 #include "sly2/classes.h"
+#include "sly2/hack.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/dli.h"
