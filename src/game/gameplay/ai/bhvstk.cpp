@@ -15,32 +15,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* g++ 2.95 vtable entry. */
 struct VTE { short d; short pad; void *pfn; };
-struct BHVSTKV;
-/* The owner of a behaviour (a STEPGUARD view: +0x1A8, +0x204 and its behaviour stack at +0x26C). */
-struct OWNERV;
-/* A behaviour (BHV base: kinds 0x9C..0xC6 derive from it). */
-struct BHVV
-{
-    int frame;               /* +0x0 BASIC header */
-    int sidebag;             /* +0x4 */
-    int unknown8;
-    VTE *vt;                 /* +0xC slot 7 OnPush, 8 Start, 9 Close, 10 Update, 13 HandleMessage */
-    OWNERV *owner;           /* +0x10 the guard step whose stack holds this behaviour */
-    BHVV *below;             /* +0x14 the behaviour below on the stack */
-    BHVV *above;             /* +0x18 the behaviour above (CloseBhv pops it) */
-    int isBusy;              /* +0x1C */
-    int numBusyAbove;        /* +0x20 busy behaviours above this one */
-};
-/* The stack: its owner, depth and the eight slots. */
-struct BHVSTKV { OWNERV *owner; int depth; BHVV *slots[8]; };
-struct OWNERV { char pad[0x1A8]; float targetHeading; char pad1AC[0x204 - 0x1AC]; int groundProbeOverride; char pad208[0x26C - 0x208]; BHVSTKV bhvstk; };
-typedef char assert_OWNERV_bhvstk[(unsigned int)&((OWNERV *)0)->bhvstk == 0x26C ? 1 : -1];
-/* ConstructBhv's view of a new behaviour (the vtable at +0xC) and of an embedded goal record. */
+/* A behaviour as its vtable pointer (HandleBhvstkMessage calls slot 13 with the arguments step.h leaves out). */
+struct VOBJ { char pad[0xC]; VTE *vt; };
+/* The behaviours are step.h BHV (and the classes.h subclasses), the stack step.h BHVSTK, its owner a STEP (the stack
+   at +0x26C); slot 13 (HandleMessage) is called through the vtable entry: step.h declares it without its arguments. */
+/* ConstructBhv's view of a new behaviour under construction: its BASIC header words and the vtable at +0xC. */
 struct BHVP { int tag, value, word8; void *vtable; };
-struct REFV { int tag, value; };
 struct AREQV { int cb; int nKind; };
-/* ResetBhvSteering's argument. */
-struct BHVTIMER { char pad[0x18]; float heading; int unknown1C; };
 
 /* Class ids: the guard step and the behaviour classes (docs/systems/object-model.md section 1). */
 enum {
@@ -131,51 +112,51 @@ extern "C" {
 int GetBhvSlotSize();
 void *AllocFromWorldHeap(AREQV *request);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-void ClearPointerPair(REFV *);
-BHVV *ConstructBhv(int kind, void *memory);
-void PopBhv(BHVV **slot);
-void DecrementBhvstk(BHVSTKV *stack);
+void ClearPointerPair(PATHLINKEND *);
+BHV *ConstructBhv(int kind, void *memory);
+void PopBhv(BHV **slot);
+void DecrementBhvstk(BHVSTK *stack);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
-void IncrementStepguardBusy(OWNERV *owner);
-void DecrementStepguardBusy(OWNERV *owner);
+void IncrementStepguardBusy(STEPGUARD *owner);
+void DecrementStepguardBusy(STEPGUARD *owner);
 }
 
 // 0x1EEC60: Initializes a behaviour stack by binding it to its owner (the guard step that holds it at +0x26C).
 // Runtime-confirmed layout {owner, count, slots[8]}.
-extern "C" void InitBhvstk(BHVSTKV *stack, OWNERV *owner)
+extern "C" void InitBhvstk(BHVSTK *stack, STEP *owner)
 {
     stack->owner = owner;
 }
 
 // 0x1EEC68: Clone fix-up: after an object copy, re-points the stack at its new owner.
-extern "C" void CloneBhvstk(BHVSTKV *stack, OWNERV *owner)
+extern "C" void CloneBhvstk(BHVSTK *stack, STEP *owner)
 {
     stack->owner = owner;
 }
 
 // 0x1EEC70: Allocates the eight behaviour slots (GetBhvSlotSize() bytes each, 16-byte aligned) from the world heap
 // after load.
-extern "C" void PostBhvstkLoad(BHVSTKV *stack)
+extern "C" void PostBhvstkLoad(BHVSTK *stack)
 {
     unsigned int i;
     AREQV request;
     for (i = 0; i < 8; i++) {
         request.cb = GetBhvSlotSize();
         request.nKind = 0x10;
-        stack->slots[i] = (BHVV *)AllocFromWorldHeap(&request);
+        stack->behaviors[i] = (BHV *)AllocFromWorldHeap(&request);
     }
 }
 
 // 0x1EECD0: Pops every behaviour: popping the bottom slot closes everything stacked above it; then resets the depth
 // to 0.
-void ClearBhvstk(BHVSTKV *p) __asm__("ClearBhvstk__FP6BHVSTK");
+void ClearBhvstk(BHVSTK *p) __asm__("ClearBhvstk__FP6BHVSTK");
 // Definition of ClearBhvstk__FP6BHVSTK (declared above): pop the bottom behaviour (which closes everything above it)
 // and reset the depth.
-void ClearBhvstk(BHVSTKV *stack)
+void ClearBhvstk(BHVSTK *stack)
 {
-    struct { BHVV *pbhv; int pad[3]; } bottom;
+    struct { BHV *pbhv; int pad[3]; } bottom;
     if (stack->depth > 0) {
-        bottom.pbhv = stack->slots[0];
+        bottom.pbhv = stack->behaviors[0];
         PopBhv(&bottom.pbhv);
     }
     stack->depth = 0;
@@ -183,23 +164,23 @@ void ClearBhvstk(BHVSTKV *stack)
 
 // 0x1EED10: Per-frame update: calls each stacked behaviour's Update (vtable slot 10), top (most recently pushed)
 // first.
-extern "C" void UpdateBhvstk(BHVSTKV *stack)
+extern "C" void UpdateBhvstk(BHVSTK *stack)
 {
     int i;
     for (i = stack->depth; --i >= 0;) {
-        BHVV *behavior = stack->slots[i];
-        ((void (*)(void *))behavior->vt[10].pfn)((char *)behavior + behavior->vt[10].d);
+        BHV *behavior = stack->behaviors[i];
+        behavior->Update();
     }
 }
 
 // 0x1EED78: Offers a step message (id, payload) to the stacked behaviours, top first, stopping at the first whose
 // HandleMessage (vtable slot 13) returns nonzero (consumed).
-extern "C" void HandleBhvstkMessage(BHVSTKV *stack, int messageId, int payload)
+extern "C" void HandleBhvstkMessage(BHVSTK *stack, int messageId, int payload)
 {
     int i = stack->depth;
     while (--i >= 0) {
-        BHVV *behavior = stack->slots[i];
-        VTE *entry = &behavior->vt[13];
+        BHV *behavior = stack->behaviors[i];
+        VTE *entry = &((VOBJ *)behavior)->vt[13];
         if (((int (*)(void *, int, int))entry->pfn)((char *)behavior + entry->d, messageId, payload))
             break;
     }
@@ -215,44 +196,44 @@ static inline int Count(const int *p)
 // 0x1EEE00: Pushes a new behaviour of class `cid`: takes the next free slot, clears it, constructs the behaviour
 // there (ConstructBhv), links it to its owner and to the behaviour below, then calls its OnPush (vtable slot 7). Returns
 // the new behaviour.
-extern "C" BHVV *PushBhvstk(BHVSTKV *stack, int cid)
+extern "C" BHV *PushBhvstk(BHVSTK *stack, int cid)
 {
-    BHVV *below, *behavior;
+    BHV *below, *behavior;
     void *memory;
     if (stack->depth == 0)
         below = 0;
     else
-        below = stack->slots[stack->depth - 1];
+        below = stack->behaviors[stack->depth - 1];
     {
         int index = Count(&stack->depth);
-        memory = stack->slots[index];
+        memory = stack->behaviors[index];
         stack->depth = index + 1;
     }
     func_002333B4(memory, 0, GetBhvSlotSize());
     behavior = ConstructBhv(cid, memory);
     {
-        register OWNERV *owner __asm__("$3") = stack->owner;
+        register STEP *owner __asm__("$3") = stack->owner;
         behavior->owner = owner;
-        behavior->below = below;
+        behavior->pbhvPrev = below;
     }
     if (below)
-        below->above = behavior;
-    ((void (*)(void *))behavior->vt[7].pfn)((char *)behavior + behavior->vt[7].d);
+        below->pbhvNext = behavior;
+    behavior->OnPush();
     return behavior;
 }
 
 // 0x1EEED0: Decrements the stack depth (called by PopBhv once a behaviour has been closed).
-extern "C" void DecrementBhvstk(BHVSTKV *stack)
+extern "C" void DecrementBhvstk(BHVSTK *stack)
 {
     stack->depth--;
 }
 
 // 0x1EEEE0: Returns the first stacked behaviour (searching bottom up) whose class derives from `cid`, or NULL.
-extern "C" BHVV *FindBhvInBhvstk(BHVSTKV *stack, int cid)
+extern "C" BHV *FindBhvInBhvstk(BHVSTK *stack, int cid)
 {
     int i;
     for (i = 0; i < stack->depth; i++) {
-        BHVV *behavior = stack->slots[i];
+        BHV *behavior = stack->behaviors[i];
         if (IsBasicDerivedFrom__FP5BASIC3CID(behavior, cid)) return behavior;
     }
     return 0;
@@ -261,98 +242,97 @@ extern "C" BHVV *FindBhvInBhvstk(BHVSTKV *stack, int cid)
 // 0x1EEF68: BHV vtable slot 7 (OnPush), base version: does nothing. Called by PushBhvstk right after construction.
 void BHV::OnPush()
 {
-    BHVV *behavior = (BHVV *)this;
 }
 
 // 0x1EEF70: BHV vtable slot 8 (Start), base version: does nothing. Starts the behaviour with default parameters;
 // callers that push without a specific setter call it.
-extern "C" void StartBhv(BHVV *behavior)
+extern "C" void StartBhv(BHV *behavior)
 {
 }
 
 // 0x1EEF78: BHV vtable slot 9 (Close), base version: pops whatever is stacked above this behaviour.
-extern "C" void CloseBhv(BHVV *behavior)
+extern "C" void CloseBhv(BHV *behavior)
 {
-    PopBhv(&behavior->above);
+    PopBhv(&behavior->pbhvNext);
 }
 
 // 0x1EEF98: BHV vtable slot 10 (Update), base version: empty per-frame update.
-extern "C" void UpdateBhv(BHVV *behavior)
+extern "C" void UpdateBhv(BHV *behavior)
 {
 }
 
 // 0x1EEFA0: BHV vtable slot 12, base version: returns the owner step's ground-probe flag mask, 0 when the step's
 // +0x204 override is set, else 7 (bit 0 snap to ground, bit 1 alternate probe point, bit 2 count in solver
 // contacts) (inferred).
-extern "C" int GetBhvGroundProbeFlags(BHVV *behavior)
+extern "C" int GetBhvGroundProbeFlags(BHV *behavior)
 {
-    return (behavior->owner->groundProbeOverride != 0) ? 0 : 7;
+    return (behavior->owner->unknown204 != 0) ? 0 : 7;   /* the step's ground-probe override */
 }
 
 // 0x1EEFB8: BHV vtable slot 11 (UpdateMotion), base version: empty. Per-frame motion update for the behaviour that
 // owns the step's motion controller (STEPGUARD +0xFD0).
-extern "C" void UpdateBhvMotion(BHVV *behavior)
+extern "C" void UpdateBhvMotion(BHV *behavior)
 {
 }
 
 // 0x1EEFC0: Marks a behaviour busy (once): if the owner is a STEPGUARD (cid 0x38) its busy count is incremented,
 // and every behaviour below gets its busy-above count incremented. Runtime-confirmed busy protocol.
-extern "C" void SetBhvBusy(BHVV *behavior)
+extern "C" void SetBhvBusy(BHV *behavior)
 {
     if (behavior->isBusy)
         return;
-    BHVV *lower;
+    BHV *lower;
     behavior->isBusy = 1;
     if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
-        IncrementStepguardBusy(behavior->owner);
+        IncrementStepguardBusy((STEPGUARD *)behavior->owner);
     }
-    for (lower = behavior->below; lower; lower = lower->below)
+    for (lower = behavior->pbhvPrev; lower; lower = lower->pbhvPrev)
         lower->numBusyAbove++;
 }
 
 // 0x1EF038: Inverse of SetBhvBusy: clears the busy flag, decrements the owning STEPGUARD's busy count and the
 // busy-above count of every behaviour below.
-extern "C" void ClearBhvBusy(BHVV *behavior)
+extern "C" void ClearBhvBusy(BHV *behavior)
 {
     if (!behavior->isBusy)
         return;
-    BHVV *lower;
+    BHV *lower;
     behavior->isBusy = 0;
     if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
-        DecrementStepguardBusy(behavior->owner);
+        DecrementStepguardBusy((STEPGUARD *)behavior->owner);
     }
-    for (lower = behavior->below; lower; lower = lower->below)
+    for (lower = behavior->pbhvPrev; lower; lower = lower->pbhvPrev)
         lower->numBusyAbove--;
 }
 
 // 0x1EF0A8: True if a behaviour higher on the stack is busy.
-extern "C" int IsBhvBusyAbove(BHVV *behavior)
+extern "C" int IsBhvBusyAbove(BHV *behavior)
 {
     return behavior->numBusyAbove > 0;
 }
 
 // 0x1EF0B8: BHV vtable slot 13 (HandleMessage), base version: returns 0 (message not consumed).
-extern "C" int HandleBhvMessage(BHVV *behavior, int messageId, int payload)
+extern "C" int HandleBhvMessage(BHV *behavior, int messageId, int payload)
 {
     return 0;
 }
 
 // 0x1EF0C0: BHV vtable slot 14, base version: resets a steering record (clears its +0x1C word and sets its +0x18
 // heading to the owner step's target heading, STEP::targetHeading at +0x1A8) (inferred).
-extern "C" void ResetBhvSteering(BHVV *behavior, BHVTIMER *steering)
+extern "C" void ResetBhvSteering(BHV *behavior, POCTL *steering)
 {
-    steering->unknown1C = 0;
-    steering->heading = behavior->owner->targetHeading;
+    *(int *)&steering->leftStickDeflection = 0;   /* (an integer zero store, as the target) */
+    steering->leftStickAngle = behavior->owner->targetHeading;
 }
 
 // 0x1EF0D8: Pops the behaviour in a slot: if non-null, calls its Close (vtable slot 9, which pops everything above
 // it), decrements the owner's stack depth and clears the slot.
-extern "C" void PopBhv(BHVV **slot)
+extern "C" void PopBhv(BHV **slot)
 {
-    BHVV *behavior = *slot;
+    BHV *behavior = *slot;
     if (behavior) {
-        BHVSTKV *stack = &behavior->owner->bhvstk;
-        ((void (*)(void *))behavior->vt[9].pfn)((char *)behavior + behavior->vt[9].d);
+        BHVSTK *stack = &behavior->owner->behaviors;
+        behavior->Close();
         DecrementBhvstk(stack);
         *slot = 0;
     }
@@ -370,174 +350,174 @@ static inline BHVP *ClearBhv(void *memory, int size)
 }
 // 0x1EF138: Placement factory: constructs the behaviour of class `cid` (0x9C..0xC6) in `memory` by clearing the
 // class's size and installing its BASIC header and vtable; some classes also initialize embedded reference fields.
-extern "C" BHVV *ConstructBhv(int cid, void *memory)
+extern "C" BHV *ConstructBhv(int cid, void *memory)
 {
-    BHVV *behavior;
+    BHV *behavior;
     switch (cid) {
     case CID_BHVGUARD:
         ClearBhv(memory, 0xB0)->vtable = vtableBHVGUARD;
         func_002333B4((char *)memory + 0x30, 0, 0x70);
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVANIM:
         ClearBhv(memory, 0x50)->vtable = vtableBHVANIM;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVIDLE:
         ClearBhv(memory, 0x50)->vtable = vtableBHVIDLE;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVSTRIKE:
         ClearBhv(memory, 0x60)->vtable = vtableBHVSTRIKE;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV161:
         ClearBhv(memory, 0xC0)->vtable = vtableBHV161;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV162:
         ClearBhv(memory, 0xC0)->vtable = vtableBHV162;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVKO:
         ClearBhv(memory, 0xC0)->vtable = vtableBHVKO;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVATTACK:
         ClearBhv(memory, 0x50)->vtable = vtableBHVATTACK;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVCOMBAT:
         ClearBhv(memory, 0x60)->vtable = vtableBHVCOMBAT;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVWALKPATH:
         ClearBhv(memory, 0xF0)->vtable = vtableBHVWALKPATH;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV169:
         ClearBhv(memory, 0x60)->vtable = vtableBHV169;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVPATROL:
         ClearBhv(memory, 0x50)->vtable = vtableBHVPATROL;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV171:
         ClearBhv(memory, 0xE0)->vtable = vtableBHV171;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV174:
         ClearBhv(memory, 0x40)->vtable = vtableBHV174;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVLEAP:
         ClearBhv(memory, 0xA0)->vtable = vtableBHVLEAP;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV175:
         ClearBhv(memory, 0x60)->vtable = vtableBHV175;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV176:
         ClearBhv(memory, 0x40)->vtable = vtableBHV176;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVJUGGLED:
         ClearBhv(memory, 0x70)->vtable = vtableBHVJUGGLED;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV173:
         ClearBhv(memory, 0x40)->vtable = vtableBHVSHOOT;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV178:
         ClearBhv(memory, 0x50)->vtable = vtableBHV178;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV179:
         ClearBhv(memory, 0x40)->vtable = vtableBHV179;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV180:
         ClearBhv(memory, 0x40)->vtable = vtableBHV180;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV181:
         ClearBhv(memory, 0x60)->vtable = vtableBHV181;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV168:
         ClearBhv(memory, 0xE0)->vtable = vtableBHVWALKGOAL;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV193:
         ClearBhv(memory, 0x50)->vtable = vtableBHV193;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV194:
         ClearBhv(memory, 0xA0)->vtable = vtableBHVFOLLOW;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV195:
         ClearBhv(memory, 0x40)->vtable = vtableBHV195;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV196:
         ClearBhv(memory, 0x40)->vtable = vtableBHV196;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV197:
         ClearBhv(memory, 0x40)->vtable = vtableBHV197;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV182:
         ClearBhv(memory, 0x50)->vtable = vtableBHV182;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV198:
         ClearBhv(memory, 0x40)->vtable = vtableBHV198;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV183:
         ClearBhv(memory, 0x70)->vtable = vtableBHV183;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVRAIL:
         ClearBhv(memory, 0x40)->vtable = vtableBHVRAIL;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVPIPE:
         ClearBhv(memory, 0x40)->vtable = vtableBHVPIPE;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV187:
         ClearBhv(memory, 0x30)->vtable = vtableBHV187;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVGOTO:
         ClearBhv(memory, 0xD0)->vtable = vtableBHVGOTO;
-        ClearPointerPair((REFV *)((char *)memory + 0x40));
-        ClearPointerPair((REFV *)((char *)memory + 0x60));
-        ClearPointerPair((REFV *)((char *)memory + 0x80));
-        behavior = (BHVV *)memory;
+        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x40));
+        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x60));
+        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x80));
+        behavior = (BHV *)memory;
         break;
     case CID_BHV189:
         ClearBhv(memory, 0x50)->vtable = vtableBHV189;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHVPATHLINK:
         ClearBhv(memory, 0x50)->vtable = vtableBHVPATHLINK;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     case CID_BHV191:
         ClearBhv(memory, 0x50)->vtable = vtableBHV191;
-        ClearPointerPair((REFV *)((char *)memory + 0x30));
-        behavior = (BHVV *)memory;
+        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x30));
+        behavior = (BHV *)memory;
         break;
     case CID_BHVPATROLPATH:
         ClearBhv(memory, 0x60)->vtable = vtableBHVPATROLPATH;
-        behavior = (BHVV *)memory;
+        behavior = (BHV *)memory;
         break;
     default:
         break;

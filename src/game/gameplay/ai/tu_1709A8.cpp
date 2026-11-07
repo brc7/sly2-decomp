@@ -117,20 +117,18 @@ void CID113::PostLoad()
 namespace M_func_00170A58 { extern "C" {
 struct G;
 extern struct G D_003DD490;
-struct N { int kind; int id; char pad[0x10]; struct N *next; };
-struct S : LO { struct N *head; };
-struct S *FindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, struct S *context);
-int GetShapeMoveKind(struct S *object);
-void EnsureShapeVolumeSegments(struct S *shape);
+LO *FindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, LO *context);
+int GetShapeMoveKind(LO *object);
+void EnsureShapeVolumeSegments(LO *shape);
 // 0x170A58: Walks the command list resolving targets: set-context commands (kind 0) change the lookup context;
 // move-along-shape commands (kind 6) prepare their target shape.
-void PrepareGuardScriptTargets(struct S *context)
+void PrepareGuardScriptTargets(LO *context)
 {
-    struct N *command;
-    for (command = context->head; command; command = command->next) {   /* context starts as the script itself */
+    SSGE *command;
+    for (command = (SSGE *)((CID113 *)context)->commands.head; command; command = command->next) {   /* context starts as the script itself */
         switch (command->kind) {
         case SSGK_FOLLOW_PATH: {
-            struct S *shape = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->id, context);
+            LO *shape = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->id, context);
             if (shape && GetShapeMoveKind(shape) == -1)
                 EnsureShapeVolumeSegments(shape);
             break;
@@ -151,20 +149,16 @@ extern "C" void AddGuardScriptSetContext(CID113 *script, int id)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00170B60 { extern "C" {
-struct RANGE { int min, max; };
-struct COMMAND { int kind, id; struct RANGE range; };
-struct COMMAND *AddGuardScriptCommand(void *script, int kind, int id);
+SSGE *AddGuardScriptCommand(void *script, int kind, int id);
 // 0x170B60: Splice option: appends command kind 1, set the guard's walk-time range (copied to guard +0x2CC).
-void AddGuardScriptSetWalkTimes(void *script, struct RANGE *range) { AddGuardScriptCommand(script, SSGK_SET_WALK_TIMES, -1)->range = *range; }
+void AddGuardScriptSetWalkTimes(void *script, LM *range) { AddGuardScriptCommand(script, SSGK_SET_WALK_TIMES, -1)->range = *range; }
 } } // namespace M_func_00170B60
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00170BA0 { extern "C" {
-struct RANGE { int min, max; };
-struct COMMAND { int kind, id; struct RANGE range; };
-struct COMMAND *AddGuardScriptCommand(void *script, int kind, int id);
+SSGE *AddGuardScriptCommand(void *script, int kind, int id);
 // 0x170BA0: Splice option: appends command kind 2, set the guard's pause-time range (guard +0x2D4).
-void AddGuardScriptSetPauseTimes(void *script, struct RANGE *range) { AddGuardScriptCommand(script, SSGK_SET_PAUSE_TIMES, -1)->range = *range; }
+void AddGuardScriptSetPauseTimes(void *script, LM *range) { AddGuardScriptCommand(script, SSGK_SET_PAUSE_TIMES, -1)->range = *range; }
 } } // namespace M_func_00170BA0
 
 // 0x170BE0: Splice option: appends command kind 3, teleport the guard to a target (oid).
@@ -284,15 +278,12 @@ namespace RO_ORDER { extern const float r_D_002A52B0 __asm__("D_002A52B0") = 3.4
 namespace M_func_00170E90 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
-struct N{int kind,tag;qword*position;char padC[0xC];struct N*next;};
-struct P : LO { struct N*head;};
-struct CHOICE{struct N*node;struct P*object;float value;};
 extern char D_003DD490[];
 extern const float D_002A52B0;   /* defined below where the ELF has it (.rodata order) */
-struct P*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
-void GetGuardScriptTargetPose(struct P*,qword,struct P*,qword*,float*);
-void FindShapeClosestPoint(struct P*,qword,void*,qword*,qword*,float*,float*);
-void FindShapeClosestPointFromDistance(struct P*,qword,void*,qword*,qword*,float*,float*,float);
+LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,LO*);
+void GetGuardScriptTargetPose(LO*,qword,LO*,qword*,float*);
+void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*);
+void FindShapeClosestPointFromDistance(LO*,qword,void*,qword*,qword*,float*,float*,float);
 // VU0 helper: vector difference.
 // VU0 helper: length of a vector.
 static inline float Length(qword v)
@@ -309,16 +300,16 @@ static inline float Length(qword v)
 // Choose the closest eligible point while walking the selector chain.
 // 0x170E90: Picks the command (kind 3/7 point or kind 6 shape) whose point is closest to a position, skipping
 // commands inside busy-on/off brackets; used to resume a script near the guard.
-void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *out)
+void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *out)
 {
-    struct CHOICE choice;
+    SSGRESUME choice;
     U hit;
     float value;
-    struct P *current = root;
-    struct N *node;
+    LO *current = root;
+    SSGE *node;
     int stopped = 0;
     float best = D_002A52B0;
-    for (node = current->head; node; node = node->next) {
+    for (node = (SSGE *)((CID113 *)current)->commands.head; node; node = node->next) {
         switch (node->kind) {
         case SSGK_BUSY_ON:
             stopped = 1;
@@ -330,17 +321,17 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
         case SSGK_GOTO:
             if (stopped)
                 break;
-            if (node->tag != -1) {
-                struct P *object = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
+            if (node->id != -1) {
+                LO *object = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->id, current);
                 GetGuardScriptTargetPose(root, pos, object, &hit.q, 0);
-            } else if (node->position)
-                hit.q = *node->position;
+            } else if (node->ppos)
+                hit.q = *node->ppos;
             {
                 float d = Length(VuSub(pos, hit.q));
                 if (d < best) {
                     best = d;
-                    choice.node = node;
-                    choice.object = current;
+                    choice.command = node;
+                    choice.context = current;
                 }
             }
             break;
@@ -348,18 +339,18 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
             if (stopped)
                 break;
             {
-                struct P *object = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
-                if (out && out->node == node)
-                    FindShapeClosestPointFromDistance(object, pos, 0, &hit.q, 0, 0, &value, out->value);
+                LO *object = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->id, current);
+                if (out && out->command == node)
+                    FindShapeClosestPointFromDistance(object, pos, 0, &hit.q, 0, 0, &value, out->pathParam);
                 else
                     FindShapeClosestPoint(object, pos, 0, &hit.q, 0, 0, &value);
                 {
                     float d = Length(VuSub(pos, hit.q));
                     if (d < best) {
                         best = d;
-                        choice.node = node;
-                        choice.value = value;
-                        choice.object = current;
+                        choice.command = node;
+                        choice.pathParam = value;
+                        choice.context = current;
                     }
                 }
             }
@@ -368,7 +359,7 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
             int kind = 5;
             if (current)
                 kind = 4;
-            current = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, kind, node->tag, current);
+            current = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, kind, node->id, current);
             break;
         }
         case SSGK_SET_WALK_TIMES:
@@ -833,18 +824,17 @@ extern "C" void JumpBhvScriptToLabel(BHV169 *behavior, int id)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171CF8 { extern "C" {
-struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
 void *FindStepBehavior(void *guard, int cid);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *bhv, struct MODEREC *mode);
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
 void StartGuardScript(void *guard, int script)
 {
-    struct MODEREC mode;
+    BHVGUARDRECDATA mode;
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
     if (bhv) {
         func_002333B4(&mode, 0, sizeof(mode));
-        mode.value = script;
+        mode.arg.object = (void *)script;
         mode.kind = 5;
         SetBhvguardMode(bhv, &mode);
     }
@@ -853,14 +843,13 @@ void StartGuardScript(void *guard, int script)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171D58 { extern "C" {
-struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
 void *FindStepBehavior(void *guard, int cid);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *bhv, struct MODEREC *mode);
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
 // 0x171D58: Puts the guard's root behaviour back in mode 1 (its normal routine, inferred).
 void SetGuardRoutineMode(void *guard)
 {
-    struct MODEREC mode;
+    BHVGUARDRECDATA mode;
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
     if (bhv) {
         func_002333B4(&mode, 0, sizeof(mode));

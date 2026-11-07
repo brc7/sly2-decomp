@@ -356,10 +356,22 @@ struct CID20 : XFM
 };
 typedef char assert_CID20_size[sizeof(CID20) == 0xF0 ? 1 : -1];
 
-/* 123 CID123 (0x60): 256-point route; vtable 0x2CCF10, 48 slots */
+/* A station of a CID123 route (12 bytes): its kind (0 walk to it, 1 leap to it), the oid of its object, the object. */
+struct ROUTESTATION
+{
+    int kind;               /* +0x0 */
+    int oid;                /* +0x4 */
+    LO *object;             /* +0x8 (PostRouteLoad) */
+};
+typedef char assert_ROUTESTATION_size[sizeof(ROUTESTATION) == 0xC ? 1 : -1];
+
+/* 123 CID123 (0x60): 256-point route (ROUTE, cid 0x7B: Carmelita's stations, tu_14A008.cpp); vtable 0x2CCF10, 48 slots */
 struct CID123 : LO
 {
-    char pad50[0x60 - 0x50];
+    int isReversed;         /* +0x50 1: distances along the route count the other way */
+    int stationCount;       /* +0x54 */
+    ROUTESTATION *stations; /* +0x58 (AddRoutePoint; at most 256) */
+    SHAPE *shape;           /* +0x5C the path through the stations (PostRouteLoad) */
     virtual void PostLoad() __asm__("PostRouteLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid123ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRouteFromBrx");   /* slot 14 */
@@ -369,9 +381,14 @@ typedef char assert_CID123_size[sizeof(CID123) == 0x60 ? 1 : -1];
 /* 182 BHV182 (0x50): keep pace on route; vtable 0x2CCE90, 14 slots */
 struct BHV182 : BHV
 {
-    char pad30[0x38 - 0x30];
-    LO *target;             /* +0x38 [S] the mode's object (SetBhvguardMode) */
-    char pad3C[0x50 - 0x3C];
+    int state;              /* +0x30 0 at a station, 1 walking, 2 leaping/recovering, 3 attacking, 4 hands-off */
+    float stateTime;        /* +0x34 */
+    CID123 *route;          /* +0x38 [S] the mode's object (SetBhvguardMode): the route */
+    int currentStation;     /* +0x3C the station the guard is at */
+    int targetStation;      /* +0x40 the station to go to */
+    CID120 *attack;         /* +0x44 */
+    float lastFastHeroTime; /* +0x48 last time the hero moved fast */
+    int unknown4C;
     virtual void Start() __asm__("StartBhvRoute");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv182ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvRoute");   /* slot 7 */
@@ -383,7 +400,8 @@ typedef char assert_BHV182_size[sizeof(BHV182) == 0x50 ? 1 : -1];
 /* 63 CARMELITA (0x1020); vtable 0x2CCBB8, 89 slots */
 struct CARMELITA : STEPGUARD
 {
-    char pad1010[0x1020 - 0x1010];
+    LO *marker;             /* +0x1010 the position marker (oid 0x62B) she targets while chasing on her route */
+    int unknown1014[3];
     virtual void Init() __asm__("InitCarmelita");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCarmelitaClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCarmelitaMessage");   /* slot 5 */
@@ -436,11 +454,29 @@ struct CID122 : LO
 };
 typedef char assert_CID122_size[sizeof(CID122) == 0x60 ? 1 : -1];
 
+/* One of Dimitri's escape routes (0x24 bytes, tu_1553F0.cpp): two ends with a volume around each, given as oids by
+   the Splice option AddDimitriRoute and resolved by PostDimitriLoad. */
+struct DIMITRIROUTE
+{
+    int oidFirst;           /* +0x00 */
+    LO *first;              /* +0x04 */
+    int oidFirstVolume;     /* +0x08 */
+    VOL *firstVolume;       /* +0x0C the volume around the first end */
+    int oidSecond;          /* +0x10 */
+    LO *second;             /* +0x14 */
+    int oidSecondVolume;    /* +0x18 */
+    VOL *secondVolume;      /* +0x1C */
+    int isUsed;             /* +0x20 */
+};
+typedef char assert_DIMITRIROUTE_size[sizeof(DIMITRIROUTE) == 0x24 ? 1 : -1];
+
 /* 59 DIMITRI (0x1020); vtable 0x2CDE40, 89 slots */
 struct DIMITRI : GUARD
 {
-    int fleeCount;          /* +0x1010 > 0: ResumeBhvguard flees from the hero (inferred) */
-    int unknown1014[3];
+    int routeCount;         /* +0x1010 escape routes (> 0: ResumeBhvguard flees from the hero) */
+    DIMITRIROUTE *routes;   /* +0x1014 (LoadDimitriFromBrx allocates 32) */
+    int hitPointsAtLastEscape; /* +0x1018 hit points when the last escape started */
+    int unknown101C;
     virtual void PostLoad() __asm__("PostDimitriLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetDimitriClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDimitriFromBrx");   /* slot 14 */
@@ -450,9 +486,10 @@ typedef char assert_DIMITRI_size[sizeof(DIMITRI) == 0x1020 ? 1 : -1];
 /* 180 BHV180 (0x40): DIMITRI flee; vtable 0x2CDDC0, 14 slots */
 struct BHV180 : BHV
 {
-    char pad30[0x38 - 0x30];
+    int state;              /* +0x30 0 run the attack behaviour on the route, 1 fight */
+    float stateTime;        /* +0x34 */
     LO *target;             /* +0x38 [S] what Dimitri escapes from (SetBhvguardMode: the mode's object) */
-    char pad3C[0x40 - 0x3C];
+    DIMITRIROUTE *route;    /* +0x3C the chosen route */
     virtual void OnPush() __asm__("InitBhvDimitriEscape");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv180ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvDimitriEscape");   /* slot 8 */
@@ -464,7 +501,17 @@ typedef char assert_BHV180_size[sizeof(BHV180) == 0x40 ? 1 : -1];
 /* 181 BHV181 (0x60): DIMITRI flee; vtable 0x2CDD40, 14 slots */
 struct BHV181 : BHV
 {
-    char pad30[0x60 - 0x30];
+    int state;              /* +0x30 0 turn, 1 face the target, 2 walk to the route end, 3 attack */
+    float stateTime;        /* +0x34 */
+    DIMITRIROUTE *route;    /* +0x38 */
+    float unknown3C;
+    LO *goal;               /* +0x40 the route end to go to (ChooseBhvDimitriAttackRouteEnd) */
+    float lastAttackTime;   /* +0x44 */
+    float arrivalTime;      /* +0x48 */
+    LO *target;             /* +0x4C */
+    int attackCount;        /* +0x50 */
+    CID120 *attack;         /* +0x54 the chosen attack */
+    int unknown58[2];
     virtual void Start() __asm__("StartBhvDimitriAttack");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv181ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvDimitriAttack");   /* slot 7 */
@@ -473,29 +520,55 @@ struct BHV181 : BHV
 };
 typedef char assert_BHV181_size[sizeof(BHV181) == 0x60 ? 1 : -1];
 
-/* 117 CID117 (0x70): stimulus template (radius, height, ramp); vtable 0x2CE2F8, 48 slots */
+/* 117 CID117 (0x70): stimulus template (NOISETYPE: radius, height, ramp; the world's seven in SW::apstimk); vtable 0x2CE2F8, 48 slots */
 struct CID117 : LO
 {
-    char pad50[0x70 - 0x50];
+    int isMuted;            /* +0x50 listeners ignore its noises */
+    float range;            /* +0x54 (InitNoiseType 1500) */
+    LM heightRange;         /* +0x58 (-200..500) */
+    float duration;         /* +0x60 the noises' lifetime (< 0: they last; InitNoiseType 0.25 s) */
+    int noiseKind;          /* +0x64 copied into each noise's CID147::noiseKind */
+    int unknown68[2];
     virtual void Init() __asm__("InitNoiseType");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
 
 /* 147 CID147 (0x60): stimulus (noise) instance; vtable 0x2CE2B8, 6 slots; defined between CID117 and CID47: noise.cpp emits CID47, CID147, CID117 */
+/* CID147 is the NOISE record (noise.cpp's view NOISE; STEPGUARD::heldNoise): a refcounted noise event emitted from a
+   CID117 noise type and linked on g_sw.dlStimulus. */
 struct CID147 : BASIC
 {
-    char pad10[0x60 - 0x10];
+    int refCount;           /* +0x10 */
+    struct CID117 *type;    /* +0x14 the noise type it was emitted from */
+    int unknown18[2];
+    qword position;         /* +0x20 where it is (a held noise is moved with its maker: UpdateBhvSleep) */
+    qword startPosition;    /* +0x30 */
+    int loudness;           /* +0x40 */
+    int unknown44;
+    int serial;             /* +0x48 */
+    float startTime;        /* +0x4C */
+    int unknown50;
+    int noiseKind;          /* +0x54 what made it (3: a thrown guard yelling, UpdateBhvThrown) */
+    CID147 *next;           /* +0x58 link of DL g_sw.dlStimulus */
+    int unknown5C;
     virtual void AddRef() __asm__("RetainNoise");   /* slot 1; key function (noise.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("ReleaseNoise");   /* slot 2 */
 };
 typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
+typedef char assert_CID147_position[SLY2_OFFSETOF(CID147, position) == 0x20 ? 1 : -1];
+typedef char assert_CID147_noiseKind[SLY2_OFFSETOF(CID147, noiseKind) == 0x54 ? 1 : -1];
 
-/* 47 CID47 (0x110): stimulus listener; vtable 0x2CE118, 50 slots */
+/* 47 CID47 (0x110): stimulus listener (LISTENER, noise.cpp); vtable 0x2CE118, 50 slots */
+/* The trailing key a listener keeps across a clone (CloneListener). */
+struct LISTENERKEY { short x; short y; int i; };
 struct CID47 : XFM
 {
-    char padE0[0x110 - 0xE0];
+    unsigned int noiseCount; /* +0xE0 the noises it heard and holds (at most 8) */
+    CID147 *noises[8];      /* +0xE4 */
+    LISTENERKEY key;        /* +0x104 */
+    int unknown10C;
     virtual void AddHierarchy() __asm__("AddListenerHierarchy");   /* slot 11 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid47ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitListener");   /* slot 7 */
@@ -619,10 +692,55 @@ struct BHV171 : BHV
 };
 typedef char assert_BHV171_size[sizeof(BHV171) == 0xE0 ? 1 : -1];
 
+/* A spawn selector of CID119 (0x1C bytes, tu_173158.cpp): kind 0 an LO spot, 1 a curve (walked with a one-command
+   script), 2 a small LO spot. */
+struct SPAWNSELECTOR
+{
+    int kind;               /* +0x00 */
+    int oid;                /* +0x04 */
+    LO *object;             /* +0x08 */
+    CID113 *script;         /* +0x0C kind 1: the script made for the curve (cid 0x71) */
+    SSGE *scriptCommand;    /* +0x10 kind 1: its command (the direction in its +0x8) */
+    int isBusy;             /* +0x14 a spawned guard uses it */
+    float busyUntil;        /* +0x18 */
+};
+typedef char assert_SPAWNSELECTOR_size[sizeof(SPAWNSELECTOR) == 0x1C ? 1 : -1];
+/* A spawned-guard slot of CID119 (0x30 bytes): status 0 free (ready at readyTime), 1 waiting for the player to move
+   away before re-arming. */
+struct SPAWNENTRY
+{
+    STEPGUARD *guard;       /* +0x00 */
+    float activeTime;       /* +0x04 */
+    float readyTime;        /* +0x08 */
+    SPAWNSELECTOR *selector; /* +0x0C */
+    int status;             /* +0x10 */
+    int unknown14[3];
+    qword position;         /* +0x20 the focus position when the respawn delay was armed */
+};
+typedef char assert_SPAWNENTRY_size[sizeof(SPAWNENTRY) == 0x30 ? 1 : -1];
+
 /* 119 CID119 (0xB0): off-screen guard spawner; vtable 0x2CFA90, 48 slots */
 struct CID119 : LO
 {
-    char pad50[0xB0 - 0x50];
+    int selectorCount;      /* +0x50 */
+    SPAWNSELECTOR *selectors; /* +0x54 (at most 128) */
+    int entryCount;         /* +0x58 slots in use */
+    int entryCapacity;      /* +0x5C */
+    SPAWNENTRY *entries;    /* +0x60 */
+    int unknown64[3];
+    qword lastSpawnPosition; /* +0x70 the focus position at the last spawn */
+    float planarRange;      /* +0x80 5500: farther points do not count */
+    int useEdgeTest;        /* +0x84 */
+    int useRangeTest;       /* +0x88 */
+    int useOcclusionTest;   /* +0x8C */
+    int templateCount;      /* +0x90 guard templates (at most 8) */
+    LO **templates;         /* +0x94 */
+    int offsetCount;        /* +0x98 test offsets around a spawn point (at most 16) */
+    qword *offsets;         /* +0x9C */
+    float respawnDelay;     /* +0xA0 */
+    float respawnDelay2;    /* +0xA4 the selector's */
+    float nextSpawnTime;    /* +0xA8 */
+    int mode;               /* +0xAC 0 never while the hero has an alert, 1 only shortly after it, 2 always */
     virtual void Init() __asm__("InitSpawner");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid119ClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("RemoveSpawnerHierarchy");   /* slot 12 */
@@ -969,7 +1087,7 @@ typedef char assert_BHVGUARD_size[sizeof(BHVGUARD) == 0xB0 ? 1 : -1];
 struct BHV176 : BHV
 {
     int state;              /* +0x30 */
-    int unknown34;
+    float stateTime;        /* +0x34 */
     float lastYellTime;     /* +0x38 */
     int thrower;            /* +0x3C id of the object that threw the guard (detector target id) */
     virtual void Close() __asm__("CloseBhvThrown");   /* slot 9 */
@@ -1024,7 +1142,7 @@ typedef char assert_BHVLEAP_size[sizeof(BHVLEAP) == 0xA0 ? 1 : -1];
 struct BHV175 : BHVANIM
 {
     int sleepState;         /* +0x50 own sub-state: 0 asleep, 1 waking (-1 before Start) */
-    int unknown54;          /* +0x54 written with the sub-state */
+    float sleepStateF;      /* +0x54 the sub-state again, as a float (SetBhvSleepState) */
     float wakeTime;         /* +0x58 */
     int unknown5C;
     virtual void OnPush() __asm__("InitBhvSleep");   /* slot 7 */
@@ -1055,9 +1173,12 @@ typedef char assert_BHVSHOOT_size[sizeof(BHVSHOOT) == 0x40 ? 1 : -1];
 struct BHV178 : BHV
 {
     int state;              /* +0x30 */
-    int unknown34[3];
-    int chosenTarget;       /* +0x40 */
-    int unknown44[3];
+    float stateTime;        /* +0x34 */
+    LO *preferredTarget;    /* +0x38 the cheapest designated target (ChooseBhvTargetsTarget) */
+    LO *nearAvoidObject;    /* +0x3C an avoid object within 800 that wins over it */
+    LO *chosenTarget;       /* +0x40 the one fought (BHVCOMBAT target) */
+    float nextChooseTime;   /* +0x44 */
+    int unknown48[2];
     virtual void Start() __asm__("StartBhvTargets");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv178ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvTargets");   /* slot 7 */
@@ -1163,7 +1284,10 @@ struct BHVGOTO : BHV
     int unknownAC;
     float gotoParam;        /* +0xB0 [S] set from the script's goto command (SSGE::gotoParam; meaning unknown) */
     int numRouteLinks;      /* +0xB4 */
-    PATHLINK *firstLink;    /* +0xB8 the route's (single) link (FindPathlinkRoute) */
+    union {
+        PATHLINK *firstLink;    /* +0xB8 the route's (single) link */
+        PATHLINK *route[1];     /* +0xB8 the same as the route array FindPathlinkRoute fills (FindBhvgotoRoute) */
+    };
     int isDirect;           /* +0xBC goes straight to the goal (no route) */
     int allowPartialRoute;  /* +0xC0 */
     int unknownC4[3];
@@ -1199,7 +1323,7 @@ typedef char assert_BHVPATROLPATH_size[sizeof(BHVPATROLPATH) == 0x60 ? 1 : -1];
 struct BHV189 : BHV
 {
     int state;              /* +0x30 */
-    int unknown34;
+    float stateTime;        /* +0x34 */
     LO *target;             /* +0x38 */
     float lastRegoalTime;   /* +0x3C */
     float forcedDelay;      /* +0x40 */
@@ -1634,9 +1758,10 @@ typedef char assert_MS_size[sizeof(MS) == 0x150 ? 1 : -1];
 /* 174 BHV174 (0x40): NEELA watch/alarm; vtable 0x2D4AF8, 14 slots */
 struct BHV174 : BHV
 {
-    char pad30[0x38 - 0x30];
-    int useChaseBehavior;   /* +0x38 [S] copied from NEELA::useChaseBehavior (SetBhvguardMode) */
-    char pad3C[0x40 - 0x3C];
+    int state;              /* +0x30 0 run the chase script (BHV169), 1 chase the player, 2 give up */
+    float stateTime;        /* +0x34 */
+    CID113 *chaseScript;    /* +0x38 [S] copied from NEELA::chaseScript (SetBhvguardMode) */
+    int unknown3C;
     virtual void Start() __asm__("StartBhvNeelaChase");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv174ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvNeelaChase");   /* slot 7 */
@@ -1646,11 +1771,35 @@ struct BHV174 : BHV
 typedef char assert_BHV174_size[sizeof(BHV174) == 0x40 ? 1 : -1];
 
 /* 60 NEELA (0x10A0); vtable 0x2D4820, 89 slots */
+/* NEELA's chase tuning (+0x1070): the speed factor as a clamped quadratic of the player distance, and the give-up
+   time of her chase behaviour. */
+struct NEELACHASETUNE
+{
+    CLQ speedCurve;         /* +0x00 (InitNeela 1.35, -0.0003, 0) */
+    LM speedRange;          /* +0x10 (0.9..1.2) */
+    float giveUpTime;       /* +0x18 (7 s) */
+};
 struct NEELA : STEPGUARD
 {
-    char pad1010[0x108C - 0x1010];
-    int useChaseBehavior;   /* +0x108C her option: chase (BHV174) instead of combat (ShouldBhvguardUseNeelaBehavior) */
-    char pad1090[0x10A0 - 0x1090];
+    VOL *moveVolume;        /* +0x1010 where she looks for a target while moving (flag 9) */
+    VOL *idleVolume;        /* +0x1014 ... while idle (flag 2) */
+    int state;              /* +0x1018 0 looking, 1 aiming her prop at the target */
+    float stateTime;        /* +0x101C */
+    ASEG *propAnimation;    /* +0x1020 [S] bound oid 0x5D8 (PostNeelaLoad) */
+    ASEGA *propAsega;       /* +0x1024 its playing instance (state 1) */
+    LO *target;             /* +0x1028 */
+    struct ACT *aimAct;     /* +0x102C the act turning the prop part (its angle goal at +0x20) */
+    void *unknown1030;      /* +0x1030 [S] bound oid 0x5D9 */
+    void *propPart;         /* +0x1034 [S] bound oid 0x5DA: the part turned (position +0x30, its space +0xA0) */
+    int unknown1038[2];
+    qword propAxis;         /* +0x1040 the prop's effect offset at label 0x5DB (PostNeelaLoad) */
+    LO *prop;               /* +0x1050 her attached prop (removed by ResetNeelaToHome) */
+    int unknown1054[3];
+    ANIMBINDING giveUpBinding; /* +0x1060 the animation of chase state 2 (PostNeelaLoad: kind 0, flags 1) */
+    NEELACHASETUNE chaseTune; /* +0x1070 */
+    CID113 *chaseScript;    /* +0x108C her option (SendRootBhvMode15): chase (BHV174) with this script instead of combat (ShouldBhvguardUseNeelaBehavior) */
+    SSGRESUME resumeState;  /* +0x1090 where the chase script resumes */
+    int unknown109C;
     virtual void Init() __asm__("InitNeela");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetNeelaClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostNeelaLoad");   /* slot 15 */
@@ -1658,6 +1807,7 @@ struct NEELA : STEPGUARD
     virtual void OnProxyAcquire(LO *plo) __asm__("ResetNeelaToHome");   /* slot 26 */
 };
 typedef char assert_NEELA_size[sizeof(NEELA) == 0x10A0 ? 1 : -1];
+typedef char assert_NEELA_chaseScript[SLY2_OFFSETOF(NEELA, chaseScript) == 0x108C ? 1 : -1];
 
 /* 98 CID98 (0x180): breakable props (chairs, barrels, crates, containers); vtable 0x2D4B78, 75 slots */
 struct CID98 : SO
@@ -1714,8 +1864,11 @@ struct PATHLINK : LO
 {
     int numEnds;            /* +0x50 the number of link segments (BHVPATHLINK walks 0..numEnds-1) */
     int unknown54[3];
-    PATHLINKEND aend[6];
-    char pad120[0x160 - 0x120];
+    PATHLINKEND aend[6];    /* +0x60 aend[0]/aend[1]: the link's start and end (PlanBhvgoto) */
+    int kind;               /* +0x120 0: a walkable segment (PlanBhvgoto tests the guard's distance to it) */
+    int unknown124;
+    struct CID17 *endZone;  /* +0x128 the path zone at its far end (FindBhvgotoRoute) */
+    char pad12C[0x160 - 0x12C];
     virtual void Init() __asm__("InitPathlink");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPathlinkClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddPathlinkHierarchy");   /* slot 11 */
@@ -1723,6 +1876,7 @@ struct PATHLINK : LO
     virtual void PostLoad() __asm__("PostPathlinkLoad");   /* slot 15 */
 };
 typedef char assert_PATHLINK_size[sizeof(PATHLINK) == 0x160 ? 1 : -1];
+typedef char assert_PATHLINK_kind[SLY2_OFFSETOF(PATHLINK, kind) == 0x120 ? 1 : -1];
 
 /* 99 CID99 (0x170): pickpocket dispenser / guard pouch; vtable 0x2D5450, 75 slots */
 struct CID99 : SO

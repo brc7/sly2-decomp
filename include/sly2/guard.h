@@ -12,14 +12,35 @@
 #include "sly2/stepplayer.h"   /* ZPR (BHVGUARDRECDATA) */
 
 struct CID113;  /* the guard script class (classes.h) */
-struct NOISE;   /* a noise event heard by the guards' listeners (noise.cpp) */
+struct CID147;   /* NOISE: a noise event heard by the guards' listeners (noise.cpp; fields in classes.h) */
 
 /* one pickpocket-able loot entry carried by a guard (16 bytes) */
 struct GUARDLOOT
 {
       OID oid;              /* +0x0 [R] loot object oid */
-      undefined4 unknown04[2]; /* [?] */
+      int flags;            /* +0x4 [S] (pickpocket.cpp) */
+      int key;              /* +0x8 [S] the item key (GenerateStepguardLoot) */
       int count;            /* +0xC [S] how many (StartBhvko sums the coin entries, oid 0x2B3) */
+};
+
+/* A guard's stuck watch (STEPGUARD::stuckWatch, 16 bytes, tu_20CE28.cpp): when the probes around the guard stay
+   blocked for a while the guard zaps itself (kind 0x4000) to get relocated. [S] */
+struct STUCKWATCH
+{
+      STEPGUARD *guard;     /* +0x0 */
+      int state;            /* +0x4 -1 idle */
+      float stateTime;      /* +0x8 */
+      int isEnabled;        /* +0xC */
+};
+/* A guard's hazard watch (STEPGUARD::hazardWatch, 20 bytes): while the guard falls inside the watched hazard volume it
+   is zapped with the volume's parameters (its +0x184/+0x188). [S] */
+struct HAZARDWATCH
+{
+      STEPGUARD *guard;     /* +0x00 */
+      int state;            /* +0x04 */
+      float stateTime;      /* +0x08 */
+      SO *volume;           /* +0x0C the hazard (an object attached to the guard: HandleStepguardMessage) */
+      int isEnabled;        /* +0x10 */
 };
 
 /* A guard script command (SSGE, from SW::slotheapSsge; tu_1709A8.cpp): its kind (SSGK_*: 0 set the context object,
@@ -97,7 +118,7 @@ struct DETECTORTARGET
       LO *object;           /* +0x0 [S] */
       int state;            /* +0x4 [S] */
       float stateTime;      /* +0x8 [S] */
-      int unknownC;
+      float detectTime;     /* +0xC [S] when it last left state 0 (SetDetectorTargetState) */
 };
 
 /* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target), shared by every guard engaging
@@ -125,9 +146,9 @@ struct DETECTOR : public XFM
       SOTREE *ownerPhysicsTree; /* +0xE4 [S] the owner's physics tree (copied from SO::physicsTree) */
       VOL *pvolNear;        /* +0xE8 [S] near volume (tu_1B9F80's view; VOL type [H]) */
       VOL *pvolFar;         /* +0xEC [S] far volume */
-      int unknownF0;        /* +0xF0 [S] cleared by ClearStepguardState */
-      int unknownF4;        /* +0xF4 [S] */
-      undefined4 unk_0xf8;
+      int isForced;         /* +0xF0 [S] every live target counts as seen (cleared by ClearStepguardState) */
+      int isDisabled;       /* +0xF4 [S] no target is seen */
+      int options;          /* +0xF8 [S] option bits (detector.cpp DETECTOR_*; InitNeela sets 3) */
       int ctarget;          /* +0xFC [S] entries used in atarget: the designated targets first, then the guards' generated ones (STEPGUARD::generatedTargetCount, the tail) */
       DETECTORTARGET atarget[8]; /* +0x100 [S] the tracked targets (TryAddStepguardDetectTarget, ChooseStepguardTarget) */
     virtual void Update() __asm__("UpdateDetector");   /* slot 16 */
@@ -138,7 +159,7 @@ typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* clas
 typedef char assert_DETECTOR_ctarget[SLY2_OFFSETOF(DETECTOR, ctarget) == 0xFC ? 1 : -1];
 typedef char assert_DETECTOR_atarget[SLY2_OFFSETOF(DETECTOR, atarget) == 0x100 ? 1 : -1];
 typedef char assert_DETECTOR_owner[SLY2_OFFSETOF(DETECTOR, owner) == 0xE0 ? 1 : -1];
-typedef char assert_DETECTOR_unknownF0[SLY2_OFFSETOF(DETECTOR, unknownF0) == 0xF0 ? 1 : -1];
+typedef char assert_DETECTOR_isForced[SLY2_OFFSETOF(DETECTOR, isForced) == 0xF0 ? 1 : -1];
 typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
 
 /* An animation binding of a guard (16 bytes; stepguard.cpp ResolveAnimBinding/ReleaseAnimBinding): its kind (2 and 3
@@ -261,7 +282,7 @@ struct STEPGUARD : public STEP
       int hurtZapMask;      /* +0x350 [S] zap kinds that hurt (InitStepguard) */
       int knockdownZapMask; /* +0x354 [S] zap kinds that knock down */
       int koZapMask;        /* +0x358 [S] zap kinds that knock out */
-      NOISE *heldNoise;     /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
+      CID147 *heldNoise;    /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
       float pulseStartTime; /* +0x360 [S] */
       int unknown364;       /* +0x364 [S] */
       LM closeAngleRangeHeld; /* +0x368 [S] interaction angle range while held (GuardEvalInteractMode) */
@@ -288,16 +309,16 @@ struct STEPGUARD : public STEP
       int unknown3F0;       /* +0x3F0 [S] (InitStepguard -200) */
       VOL *pickpocketIndicator0; /* +0x3F4 [S] */
       VOL *pickpocketIndicator1; /* +0x3F8 [S] */
-      int unknown3FC;       /* +0x3FC [S] (InitStepguard -1) */
-      undefined4 unk_0x400;
+      int pickpocketState;  /* +0x3FC [S] -1 none, 0 alert, 1 coins, 2 an item (SetStepguardPickpocketState; InitStepguard -1) */
+      float pickpocketStateTime; /* +0x400 [S] */
       GUARDLOOT loot[8];    /* +0x404 [R] pickpocket loot list */
       int numLoot;          /* +0x484 [R] entries used in aloot */
-      int firstLoot;        /* +0x488 [S] */
-      int isLootStaged;     /* +0x48C [S] */
-      int unknown490;       /* +0x490 [S] */
-      int lootEnabled;      /* +0x494 [S] */
-      void *stuckWatch;     /* +0x498 [S] */
-      void *hazardWatch;    /* +0x49C [S] */
+      int firstLoot;        /* +0x488 [S] the next entry to hand out */
+      int isLootStaged;     /* +0x48C [S] the next entry is staged in the pouch */
+      int isLootFixed;      /* +0x490 [S] loot set by script (no generation) */
+      LO *lootPouch;        /* +0x494 [S] the object the loot comes from (its +0x158 non-zero: pickpocketing possible) */
+      struct STUCKWATCH *stuckWatch;  /* +0x498 [S] (InitStepguard allocates it) */
+      struct HAZARDWATCH *hazardWatch; /* +0x49C [S] */
       int unknown4A0;       /* +0x4A0 [S] */
       int tracksRelocatePoint; /* +0x4A4 [S] */
       undefined4 unk_0x4a8[2];
@@ -355,9 +376,9 @@ struct STEPGUARD : public STEP
       int isMovingForward;  /* +0xF8C [S] */
       void *attachPoint;    /* +0xF90 [S] */
       int designatedTargetCount; /* +0xF94 [S] targets designated by script (SetStepguardTargetLists); with avoidObjectCount, non-zero means a target list (FBhvguardHasTargetList) */
-      int designatedTargets[4]; /* +0xF98 [S] */
+      LO *designatedTargets[4]; /* +0xF98 [S] */
       int avoidObjectCount; /* +0xFA8 [S] objects to avoid (SetStepguardTargetLists) */
-      int avoidObjects[4];  /* +0xFAC [S] */
+      LO *avoidObjects[4];  /* +0xFAC [S] */
       int specialState;     /* +0xFBC [S] */
       float specialStartTime; /* +0xFC0 [S] */
       void *scale;          /* +0xFC4 [S] a scale record (value at +0x20) */
@@ -433,7 +454,8 @@ typedef char assert_STEPGUARD_dleGuard[SLY2_OFFSETOF(STEPGUARD, dleGuard) == 0xF
 typedef char assert_STEPGUARD_attackRange[SLY2_OFFSETOF(STEPGUARD, attackRange) == 0x314 ? 1 : -1];
 typedef char assert_STEPGUARD_hurtZapMask[SLY2_OFFSETOF(STEPGUARD, hurtZapMask) == 0x350 ? 1 : -1];
 typedef char assert_STEPGUARD_coinCountOverride[SLY2_OFFSETOF(STEPGUARD, coinCountOverride) == 0x3D8 ? 1 : -1];
-typedef char assert_STEPGUARD_unknown3FC[SLY2_OFFSETOF(STEPGUARD, unknown3FC) == 0x3FC ? 1 : -1];
+typedef char assert_STEPGUARD_pickpocketState[SLY2_OFFSETOF(STEPGUARD, pickpocketState) == 0x3FC ? 1 : -1];
+typedef char assert_STEPGUARD_lootPouch[SLY2_OFFSETOF(STEPGUARD, lootPouch) == 0x494 ? 1 : -1];
 typedef char assert_STEPGUARD_lookTimes[SLY2_OFFSETOF(STEPGUARD, lookTimes) == 0xE6C ? 1 : -1];
 typedef char assert_STEPGUARD_unknownF40[SLY2_OFFSETOF(STEPGUARD, unknownF40) == 0xF40 ? 1 : -1];
 typedef char assert_STEPGUARD_removalMode[SLY2_OFFSETOF(STEPGUARD, removalMode) == 0x1000 ? 1 : -1];
