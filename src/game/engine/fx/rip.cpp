@@ -252,7 +252,7 @@ namespace M_BounceRipgRips__FP4RIPG {
  *    guard gives i the extra reference that puts it in $s2 ahead of count;
  *  - the rip loop is a real for loop (loop depth weights the rip/hit allocation priorities);
  *  - the tree origin is read through a const-reference accessor: that load is not a struct-member MEM any more, so it may alias the
- *    `entries` store, which sched1 then issues right after the allocation call (the target's store order and $v0 for p->state);
+ *    `entries` store, which sched1 then issues right after the allocation call (the target's store order and $v0 for the tree pointer);
  *  - PruneBspBySphere uses the matched callee's argument order (pos, eps, count, entries).
  */
 typedef int qword __attribute__((mode(TI)));
@@ -260,11 +260,10 @@ struct ENTRY { int a, b; void *poly; };
 struct SHAPE { char pad10[0x10]; unsigned long flags; char pad18[0x54]; int capacity; char pad70[4]; void *tree; };
 struct XP { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };
 struct NODE;
-struct STATE { char pad20[0x20]; qword origin; float radius; DL shapes; char pad40[0x20]; void *subject; NODE *nodes; char pad68[8]; unsigned long flags; };
+struct STATE {   /* the group's SO::physicsTree (an SOTREE) as this function reads it */
+    char pad20[0x20]; qword origin; float radius; DL shapes; char pad40[0x20]; void *subject; NODE *nodes; char pad68[8]; unsigned long flags; };
 struct OBJ { char padEC[0xEC]; STATE *state; };
 struct NODE { int pad; NODE *next; char pad8[4]; OBJ *object; };
-struct PVE { short delta, pad; void (*fn)(void *); };
-struct P { char padC[0xC]; PVE *vt; char pad10[0xDC]; STATE *state; char padF0[0x60]; int mode; char pad154[8]; DL rips; };
 struct REQ { int cb, align; };
 struct FRAME { int a[4]; };
 extern "C" {
@@ -276,7 +275,7 @@ int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
 int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int IsDlEmpty__FP2DL(DL *);
-void BounceRipgRips__FP4RIPG(P *);
+void BounceRipgRips__FP4RIPG(RIPG *);
 }
 /* the scratch request and the rip iterator share one stack slot */
 union PHASE { REQ request; DLI rip; };
@@ -287,11 +286,11 @@ static inline const qword &Origin(STATE *s) { return s->origin; }
 // Same idiom as sly2/util.h MinInt; kept local because the shared helper changes BounceRipgRips (139/199 instructions off).
 static inline int MinIntLocal(int a, int b) { return a <= b ? a : b; }
 // Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's HandleBounce virtual.
-void BounceRipgRips__FP4RIPG(P *p)
+void BounceRipgRips__FP4RIPG(RIPG *p)
 {
-    if (p->mode == 1) {
+    if (p->groupKind == 1) {
         NODE *node;
-        for (node = p->state->nodes; node; node = node->next) {
+        for (node = ((STATE *)p->physicsTree)->nodes; node; node = node->next) {
             if (node->object->state->flags & 4) continue;
             int special = IsBasicDerivedFrom__FP5BASIC3CID(node->object->state->subject, 0x59);
             DLI shapes;
@@ -312,13 +311,13 @@ void BounceRipgRips__FP4RIPG(P *p)
                         phase.request.cb = remaining * 12;
                         SetAlign(&phase.request, 16);
                         entries = (ENTRY *)AllocFromStack(&phase.request);
-                        if (PruneBspBySphere(shape->tree, 0x7FFFFFFF, Origin(p->state), p->state->radius, &remaining, &entries) != 2) {
+                        if (PruneBspBySphere(shape->tree, 0x7FFFFFFF, Origin((STATE *)p->physicsTree), ((STATE *)p->physicsTree)->radius, &remaining, &entries) != 2) {
                             STACKSCOPE_ctor_1AE4A0(&frame, 2);
                             continue;
                         }
                         entries--;
                     }
-                    InitDli(&phase.rip, &p->rips);
+                    InitDli(&phase.rip, &p->ripList);
                     RIP *rip;
                     for (rip = (RIP *)PvNextDli(&phase.rip); rip; rip = (RIP *)PvNextDli(&phase.rip)) {
                         if (D_002DDED0.time <= rip->startTime) continue;
@@ -336,7 +335,7 @@ void BounceRipgRips__FP4RIPG(P *p)
             }
             D_002DD2FC = shapes.m_pdliNext;
         }
-        if (IsDlEmpty__FP2DL(&p->rips)) p->vt[9].fn((char *)p + p->vt[9].delta);
+        if (IsDlEmpty__FP2DL(&p->ripList)) p->Remove();
     }
 }
 } // namespace M_BounceRipgRips__FP4RIPG
