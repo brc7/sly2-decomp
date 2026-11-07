@@ -167,13 +167,12 @@ struct E *NewSfx(void)
 
 namespace M_SND_ctor { extern "C" {
 extern char D_002D9D00[] __asm__("_vt$6CID151");
-struct S { int a; int b; int c; void *vt; float volume; char pad[0x1C]; float rangeNear; float rangeFar; char pad2[0xC]; float effectiveVolume; };
 // Base sound constructor: BASIC header cleared, SND vtable, volume 1, audible from 300 to 3000 units.
-struct S *SND_ctor(struct S *sound)
+CID151 *SND_ctor(CID151 *sound)
 {
-    sound->vt = D_002D9D00;
-    sound->a = 0;
-    sound->b = 0;
+    ((SNDOBJ *)sound)->vtable = (VTESND *)D_002D9D00;   /* the vptr, by hand (a C-named constructor) */
+    sound->scriptFrame.m_p = 0;
+    sound->scriptVariables.m_p = 0;
     sound->volume = 1.0f;
     sound->effectiveVolume = 1.0f;
     sound->rangeNear = 300.0f;
@@ -483,20 +482,16 @@ void OnBankSoundStarted(int voiceHandle, long context) { CID151 *sound = (CID151
 } } // namespace M_func_001FBAF8
 
 namespace M_func_001FBB30 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct A { char pad[0xC]; struct VTE *vt; };
-void StopSnd(struct A *sound, float fadeTime);
-void SetSndFlags(struct A *sound, int mask, int value);
 // Async "is it still playing" callback: a finished sound is stopped, a playing one gets its next status query armed;
 // drops the callback's reference. (inferred)
 void OnBankSoundStatus(int isPlaying, long context)
 {
-    struct A *sound = (struct A *)context;
+    CID151 *sound = (CID151 *)context;
     if (!isPlaying)
         StopSnd(sound, 0.0f);
     else
         SetSndFlags(sound, SND_QUERY_PLAYING, SND_QUERY_PLAYING);
-    sound->vt[2].pfn((char *)sound + sound->vt[2].d);
+    sound->Release();
 }
 } } // namespace M_func_001FBB30
 
@@ -634,10 +629,9 @@ extern "C" void ContinueBanksnd(CID151 *sound)
 }
 
 namespace M_ApplyBanksndParams { extern "C" {
-struct X { char pad[0x14]; int panAngle; float pitchRatio; char pad2[0x40 - 0x1C]; void *voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags; };
-void func_00232500(void *, int, int, int, int, int);   /* 989snd: set voice volume / pan / pitch (inferred) */
+void func_00232500(int, int, int, int, int, int);   /* 989snd: set voice volume / pan / pitch (inferred) */
 // Sends a bank sound's changed volume, pan and pitch to its voice (slot 13).
-void ApplyBanksndParams(struct X *sound)
+void ApplyBanksndParams(CID151 *sound)
 {
     int flags = sound->flags;
     if (flags & SND_DIRTY_SOUND_PARAMS) {
@@ -652,16 +646,13 @@ void ApplyBanksndParams(struct X *sound)
 } } // namespace M_ApplyBanksndParams
 
 namespace M_BANKSND_QueryStatus { extern "C" {
-struct VT { int pad[2]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; void *voiceHandle; char pad3[0x50 - 0x44]; unsigned short flags; };
 void OnBankSoundStatus(void);
-void snd_SoundIsStillPlaying_CB(void *, void (*)(void), void *);
-void SetSndFlags(struct X *, int, int);
+void snd_SoundIsStillPlaying_CB(int, void (*)(void), void *);
 // Asks the IOP whether a bank sound's voice is still playing (slot 14), with OnBankSoundStatus as callback.
-void BANKSND_QueryStatus(struct X *sound)
+void BANKSND_QueryStatus(CID151 *sound)
 {
     if (sound->flags & SND_QUERY_PLAYING) {
-        sound->vtable->pfn((char *)sound + sound->vtable->d);
+        sound->AddRef();
         snd_SoundIsStillPlaying_CB(sound->voiceHandle, OnBankSoundStatus, sound);
         SetSndFlags(sound, SND_QUERY_PLAYING, 0);
     }
@@ -669,20 +660,16 @@ void BANKSND_QueryStatus(struct X *sound)
 } } // namespace M_BANKSND_QueryStatus
 
 namespace M_func_001FC018 { extern "C" {
-struct VTE { short d; short p; void *pfn; };
-struct VT { struct VTE a[9]; };
-struct P { char pad[0xC]; struct VT *vtable; };
-void SetSndFlags(struct P *, int, int);
 // Culling hook (slot 15): a sound that becomes audible again restarts; one that becomes silent is stopped (loopers keep
 // their parameters so they can restart). (inferred)
-void SetBankSoundCulled(struct P *sound, int isCulled)
+void SetBankSoundCulled(CID151 *sound, int isCulled)
 {
-    if (!isCulled) ((void (*)(void *))sound->vtable->a[7].pfn)((char *)sound + sound->vtable->a[7].d);
+    if (!isCulled) sound->Start();
     else {
         /* request the stop, clearing the other requests; a looper keeps its positional flag so the positional update
            can restart it when it becomes audible again */
         int looperMask = SND_ALL & ~SND_POSITIONAL & ~SND_QUERIES;
-        SetSndFlags(sound, ((int (*)(void *))sound->vtable->a[8].pfn)((char *)sound + sound->vtable->a[8].d) == SOUND_KIND_LOOPING ? looperMask : SND_ALL & ~SND_QUERIES, SND_STOP);
+        SetSndFlags(sound, sound->GetKind() == SOUND_KIND_LOOPING ? looperMask : SND_ALL & ~SND_QUERIES, SND_STOP);
     }
 }
 } } // namespace M_func_001FC018
