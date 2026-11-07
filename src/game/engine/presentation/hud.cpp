@@ -440,43 +440,36 @@ extern "C" void StartupHudGifPackets(){
 } // namespace M_func_00211528
 
 // 0x211A80 BeginRpHud
+void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd);   /* uploads a VU1 microprogram once */
 namespace M_BeginRpHud { extern "C" {
-extern char D_0025AFA0[], D_0025B870[], D_002DF800[];
-extern char D_004421A0[], D_004424B0[], D_004424D0[], D_004424F0[], D_00442520[], D_004425A0[], D_00442560[], D_00442240[];
-extern char D_000000C0[], D_00000100[];
-void EnsureVu1Code__FP4VIFSPvT1(void *, void *, void *);
-void AddDmaCnt__4DMAS(void *);
-void AddVifFlush__4VIFS(void *);
-void AddDmaCall__4DMASP2QW(void *, void *);
-void AddVifBaseOffset__4VIFSii(void *, int, int);
-void AddVifUnpack__4VIFS3UPKiPvi(void *, int, int, void *, int);
-void AddVifMscal__4VIFSPv(void *, void *);
-void AddVifFlusha__4VIFS(void *);
-void AddVifDirect__4VIFSiP2QWi(void *, int, void *, int);
-void EndDmaCnt__4DMAS(void *);
+extern char D_0025AFA0[], D_0025B870[];
+extern QW D_002DF800[];
+extern char D_004421A0[], D_004424B0[], D_004424D0[], D_004424F0[], D_00442520[], D_004425A0[], D_00442560[];
+extern QW D_00442240[];
+extern char D_000000C0[], D_00000100[];   /* VU1 micro memory addresses */
 // Begins the HUD render pass: uploads the HUD VU1 microprogram and its constants and sets the GS state for HUD drawing.
-void BeginRpHud(void *p)
+void BeginRpHud(VIFS *p)
 {
-    EnsureVu1Code__FP4VIFSPvT1(p, D_0025AFA0, D_0025B870);
-    AddDmaCnt__4DMAS(p);
-    AddVifFlush__4VIFS(p);
-    AddDmaCall__4DMASP2QW(p, D_002DF800);
-    AddVifBaseOffset__4VIFSii(p, 0, 0);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 7, D_004421A0, 0xD);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 2, D_004424B0, 0x15);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 2, D_004424D0, 0x17);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 3, D_004424F0, 0x19);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 4, D_00442520, 0x1C);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 3, D_004425A0, 0x20);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 4, D_00442560, 0x23);
-    AddVifBaseOffset__4VIFSii(p, 0x32, 0x1E7);
-    AddVifMscal__4VIFSPv(p, D_000000C0);
-    AddVifFlusha__4VIFS(p);
-    AddVifDirect__4VIFSiP2QWi(p, 0x27, D_00442240, 0);
-    AddVifFlusha__4VIFS(p);
-    AddVifMscal__4VIFSPv(p, D_00000100);
-    AddVifFlusha__4VIFS(p);
-    EndDmaCnt__4DMAS(p);
+    EnsureVu1Code(p, D_0025AFA0, D_0025B870);
+    p->AddDmaCnt();
+    p->AddVifFlush();
+    p->AddDmaCall(D_002DF800);
+    p->AddVifBaseOffset(0, 0);
+    p->AddVifUnpack(UPK_V4_32, 7, D_004421A0, 0xD);
+    p->AddVifUnpack(UPK_V4_32, 2, D_004424B0, 0x15);
+    p->AddVifUnpack(UPK_V4_32, 2, D_004424D0, 0x17);
+    p->AddVifUnpack(UPK_V4_32, 3, D_004424F0, 0x19);
+    p->AddVifUnpack(UPK_V4_32, 4, D_00442520, 0x1C);
+    p->AddVifUnpack(UPK_V4_32, 3, D_004425A0, 0x20);
+    p->AddVifUnpack(UPK_V4_32, 4, D_00442560, 0x23);
+    p->AddVifBaseOffset(0x32, 0x1E7);
+    p->AddVifMscal(D_000000C0);
+    p->AddVifFlusha();
+    p->AddVifDirect(0x27, D_00442240, 0);
+    p->AddVifFlusha();
+    p->AddVifMscal(D_00000100);
+    p->AddVifFlusha();
+    p->EndDmaCnt();
 }
 } } // namespace M_BeginRpHud
 
