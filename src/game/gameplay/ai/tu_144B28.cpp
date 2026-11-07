@@ -121,24 +121,24 @@ extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *behavior)
 namespace M_UpdateBhvwalkgoalPoctl { extern "C" {
 // NEAR MISS (Claude agent): 4/150. Hard-reg VF vars in Dot fixed the first block; remaining: 2nd block vsub scheduled before the lui of D_002BD2F0 (target lui first).
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
 struct O;
 struct VT { char pad[0x2C8]; short d; short pad2; int (*pfn)(struct O *); };
-struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int x30; char pad3[0x7C - 0x34]; struct O *x7C; };
+struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int grfbtn; char pad3[0x7C - 0x34]; struct O *po; };   /* a POCTL (+0x30 buttons, +0x7C its PO) or a PO */
 struct P {
-    char pad[0x10]; void *guard; char pad1[0x4C - 0x14]; int x4C; float x50; char pad2[0x80 - 0x54];
-    qword q80; char pad3[0xC0 - 0x90]; struct O *xC0; int xC4; float xC8; int xCC; float xD0;
+    char pad[0x10]; void *guard; char pad1[0x4C - 0x14]; int pathState; float pathStateTime; char pad2[0x80 - 0x54];
+    qword goal; char pad3[0xC0 - 0x90]; struct O *mirrorPoctl; int mirrorButtonMask; float mirrorDelay; int forcesButton8; float speedScale;
 };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DC0;
 float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
 extern float D_002BBB60[2];
 float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int k);
-void UpdatePoctlPressed(struct Q *q);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *object, int cid);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
@@ -191,40 +191,42 @@ static __inline__ qword Perp(qword d, qword axis) { qword v, r;
 // Evaluates a quadratic a0 + g (a1 + g a2).
 static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
 // 0x144BC8: Walk-goal behaviour vtable slot 14 (steering): base fills the steering record, then while travelling
-// (states 0/1) sets the speed from the horizontal distance to the goal (scaled) and the heading toward it.
-void UpdateBhvwalkgoalPoctl(struct P *behavior, struct Q *q)
+// (path states 0/1) sets the POCTL stick: speed from the horizontal distance to the goal (scaled) and heading
+// toward it; holds button 8 when asked or when far from the mirrored PO, and after a delay copies that PO's masked
+// buttons (an AI partner copying the player's presses, inferred).
+void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
-    if (behavior->x4C < 2) if (behavior->x4C >= 0) {
+    ResetBhvSteering(behavior, poctl);
+    if (behavior->pathState < 2) if (behavior->pathState >= 0) {
         qword pos;
-        qword d, v, t, axis;
-        float g, s;
-        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->q80));
+        qword toGoal, v, t, up;
+        float speed, clampedSpeed;
+        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->goal));
         v = func_001A62E8(behavior->guard);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(v));
-        axis = D_002A2DC0;
-        v = Perp(d, axis);
-        g = GPoly(D_002BD2E0, LenXY(v));
-        s = GClampR(g, D_002BBB60[0], D_002BBB60[1]);
-        if (0.0f < s) {
-            q->x1C = s * behavior->xD0;
-            q->x18 = atan2f(GetY(v), GetX(v));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(toGoal) : "j"(pos), "j"(v));
+        up = D_002A2DC0;
+        v = Perp(toGoal, up);   /* horizontal part of the offset to the goal */
+        speed = GPoly(D_002BD2E0, LenXY(v));
+        clampedSpeed = GClampR(speed, D_002BBB60[0], D_002BBB60[1]);
+        if (0.0f < clampedSpeed) {
+            poctl->speed = clampedSpeed * behavior->speedScale;
+            poctl->heading = atan2f(GetY(v), GetX(v));
         }
-        if (behavior->xCC)
-            q->x30 |= 8;
-        if (behavior->xC0 && behavior->xC8 < D_002DDED0.t - behavior->x50) {
-            int f = 1;
-            struct O *po = behavior->xC0->x7C;
-            qword a, b;
-            __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(func_001A62E8(behavior->guard)));
-            __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(func_001A62E8(po)));
-            if (FFar(a, b))
-                q->x30 |= 8;
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(po, CID_STEPPLAYER))
-                f = po->vt->pfn((struct O *)((char *)po + po->vt->d)) != 0;
-            if (f) {
-                q->x30 |= behavior->xC0->x30 & behavior->xC4;
-                UpdatePoctlPressed(q);
+        if (behavior->forcesButton8)
+            poctl->grfbtn |= 8;
+        if (behavior->mirrorPoctl && behavior->mirrorDelay < D_002DDED0.t - behavior->pathStateTime) {
+            int mirror = 1;
+            struct O *leader = behavior->mirrorPoctl->po;
+            qword own, other;
+            __asm__("qmtc2.ni %1, %0" : "=j"(own) : "r"(func_001A62E8(behavior->guard)));
+            __asm__("qmtc2.ni %1, %0" : "=j"(other) : "r"(func_001A62E8(leader)));
+            if (FFar(own, other))
+                poctl->grfbtn |= 8;
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(leader, CID_STEPPLAYER))
+                mirror = leader->vt->pfn((struct O *)((char *)leader + leader->vt->d)) != 0;   /* PO slot 89 */
+            if (mirror) {
+                poctl->grfbtn |= behavior->mirrorPoctl->grfbtn & behavior->mirrorButtonMask;
+                UpdatePoctlPressed(poctl);
             }
         }
     }
