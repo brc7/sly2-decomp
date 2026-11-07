@@ -1593,65 +1593,16 @@ void SetSoRotXfVelocityLocal(SO *so, qword v)
 } } // namespace M_func_001F4930
 
 // 0x1F49C8 MatchSoXf
-namespace M_func_001F49C8 {
-class B; class X;
-typedef int qword __attribute__((mode(TI)));
-class B {
-public:
-    int a, b, c;
-    virtual void v1();
-    virtual void v2();
-    virtual void v3();
-    virtual void v4();
-    virtual void v5();
-    virtual void v6();
-    virtual void v7();
-    virtual void v8();
-    virtual void v9();
-    virtual void v10();
-    virtual void v11();
-    virtual void v12();
-    virtual void v13();
-    virtual void v14();
-    virtual void v15();
-    virtual void v16();
-    virtual void v17();
-    virtual void v18();
-    virtual void v19();
-    virtual void v20();
-    virtual void v21();
-    virtual void v22();
-    virtual void v23();
-    virtual void v24();
-    virtual void v25();
-    virtual void v26();
-    virtual void v27();
-    virtual void v28();
-    virtual void v29();
-    virtual void v30();
-    virtual void v31();
-    virtual void v32();
-    virtual qword Get33();
-    virtual qword Get34();
-    virtual void Set35(qword);
-    virtual void Set36(qword);
-};
-class X : public B {
-public:
-    char pad[0xE8 - 0x10];
-    void *physics;
-};
-extern "C" void MoveLoToObject(X *, X *);
+extern "C" void MoveLoToObject(LO *, LO *);
 // Slot 38: matches another object's transform (MatchLoXf) and copies its velocities when the object has physics.
-extern "C" void MatchSoXf(X *so, X *q)
+extern "C" void MatchSoXf(SO *so, LO *q)
 {
     MoveLoToObject(so, q);
     if (so->physics) {
-        so->Set35(q->Get33());
-        so->Set36(q->Get34());
+        so->SetVelocity(q->GetVelocity());
+        so->SetAngularVelocity(q->GetAngularVelocity());
     }
 }
-} // namespace M_func_001F49C8
 
 // 0x1F4A80 SetSoXf
 namespace M_func_001F4A80 {
