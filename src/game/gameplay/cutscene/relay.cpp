@@ -1046,7 +1046,7 @@ extern "C" void EnterMurrayThrowAim(MURRAY *pmurray);
 
 void ReleaseJsgSma(JSGV *script) __asm__("ClearJsgSma");
 
-extern "C" void StartJtThrowFlight(MOVEREC *pmr, LO *plo);
+extern "C" void StartJtThrowFlight(JTTHROW *pjtthrow, LO *plo);
 
 void PutSwHeroAtWarp(WARPV *pwarp) __asm__("PutHeroAtWarp");
 
@@ -3885,16 +3885,16 @@ void NextJsgCommand(JSGV *script)
         }
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
-            if (pmurray->moverec.state < 7)
+            if (pmurray->jtthrowAim.state < 7)
             {
-                if (pmurray->moverec.state < 4)
+                if (pmurray->jtthrowAim.state < 4)
                 {
                     break;
                 }
                 LO *plo = PloFindJsgObject(script, prelaycmd->unk59.oidShip);
                 if (plo)
                 {
-                    StartJtThrowFlight(&pmurray->moverec, plo);
+                    StartJtThrowFlight(&pmurray->jtthrowAim, plo);
                 }
             }
         }
@@ -3910,17 +3910,17 @@ void NextJsgCommand(JSGV *script)
         }
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
-            if (pmurray->moverec.state < 7)
+            if (pmurray->jtthrowAim.state < 7)
             {
-                if (pmurray->moverec.state < 4)
+                if (pmurray->jtthrowAim.state < 4)
                 {
                     break;
                 }
-                prelaycmd->unk5A.nUnk6 = pmurray->moverec.unknown00;
+                prelaycmd->unk5A.nUnk6 = (int)pmurray->jtthrowAim.player;
                 LO *plo = PloFindJsgObject(script, prelaycmd->unk5A.oidShip);
                 if (plo)
                 {
-                    StartJtThrowFlight(&pmurray->moverec, plo);
+                    StartJtThrowFlight(&pmurray->jtthrowAim, plo);
                     SetJsgJt(script, prelaycmd, pmurray);
                 }
             }
@@ -4542,9 +4542,9 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             else
             {
                 fComplete = 0;
-                if (pmurrayShip->moverec.state < 7)
+                if (pmurrayShip->jtthrowAim.state < 7)
                 {
-                    fComplete = pmurrayShip->moverec.state >= 4;
+                    fComplete = pmurrayShip->jtthrowAim.state >= 4;
                 }
             }
         }
@@ -4563,8 +4563,8 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             else
             {
-                qword qwNew = pmurray->moverec.newPosition;
-                qword qwOld = pmurray->moverec.oldPosition;
+                qword qwNew = pmurray->jtthrowAim.blendToPosition;
+                qword qwOld = pmurray->jtthrowAim.holdPosition;
                 float gEps = D_002C3628;
                 fComplete = AreFloatsNear(QwordX(qwNew), QwordX(qwOld), gEps) && AreFloatsNear(QwordY(qwNew), QwordY(qwOld), gEps) &&
                             AreFloatsNear(QwordZ(qwNew), QwordZ(qwOld), gEps);
@@ -4584,9 +4584,9 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 fComplete = 1;
             }
-            else if (pmurray->moverec.state == -1 || pmurray->moverec.state == 0)
+            else if (pmurray->jtthrowAim.state == -1 || pmurray->jtthrowAim.state == 0)
             {
-                if (pmurray->moverec.state == 0)
+                if (pmurray->jtthrowAim.state == 0)
                 {
                     pmurray->SetPlayerState(0);
                 }

@@ -423,7 +423,8 @@ struct JTTHROW
       undefined4 unknown3C;
       JTAIRBL abl[2];   /* first blends */
       struct ASEGBL *pasegbl;
-      undefined4 unk_0x5c[(0x68 - 0x5c) / 4];
+      undefined4 unk_0x5c[(0x64 - 0x5c) / 4];
+      struct ASEG *unknown64;   /* an animation whose label 0x1C7 times Murray's aimed-throw release (air.cpp) */
       JTAIRBL ablB[4];   /* second blends */
       struct ASEGBL *pasegblB;
       undefined4 unk_0x9c[(0xa4 - 0x9c) / 4];
@@ -476,7 +477,7 @@ struct STEPPLAYER : public STEP
       undefined4 unk_0x1054[(0x1060 - 0x1054) / 4];
       qword unknown1060;
       qword unknown1070;
-      undefined4 unknown1080;
+      float unknown1080;   /* stamped with clock.time while Murray is busy and grabbing (GetMurrayCpdefi) */
       struct JSG *pjsgScript;   /* script (JSG) controlling the hero */
       void *unknown1088;
       int unknown108C;

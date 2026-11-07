@@ -1813,12 +1813,12 @@ void UpdateJtAirInput(JTAIR *air)
                 break;
             case 0x12:
             {
-                float tLabel = TFindAsegLabel(D_002F7900->moverec.unknown64, (OID)0x1C7);
+                float tLabel = TFindAsegLabel(D_002F7900->jtthrowAim.unknown64, (OID)0x1C7);
                 float t = *(float *)&air->player->unknown58->reference;
                 t -= tLabel;
-                if (t <= D_002DDED0.time && D_002F7900->moverec.state != 3)
+                if (t <= D_002DDED0.time && D_002F7900->jtthrowAim.state != 3)
                 {
-                    SetJtThrowState((JTTHROW *)&D_002F7900->moverec, 3);
+                    SetJtThrowState(&D_002F7900->jtthrowAim, 3);
                     break;
                 }
                 if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)

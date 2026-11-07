@@ -226,35 +226,33 @@ void LoadMurrayFromBrx(MURRAY *murray)
 
 namespace M_PostMurrayLoad { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x18]; int x18; };
 extern qword D_002A2DE0;
-void PostLoadStepplayer(struct S *p);
+void PostLoadStepplayer(MURRAY *p);
 void PostJtLoadGait(void *p);
-void InitDirectionalBlend(struct S *p, void *a, void *b);
-void PostAsegArcLoad(void *p, struct S *s);
+void InitDirectionalBlend(MURRAY *p, void *a, void *b);
+void PostAsegArcLoad(void *p, MURRAY *s);
 void PostJtThrowLoad(void *p);
-void AttachStepplayerToStartMarker(struct S *p, int n);
-void *FindSoXf(struct S *p, int a, int b);
-int NewPositionAct(struct S *p, void *a, int b, int c, int d, qword q);
-void SetMurrayState(struct S *p, int n);
+void AttachStepplayerToStartMarker(MURRAY *p, int n);
+void *FindSoXf(MURRAY *p, int a, int b);
+struct ACT1 *NewPositionAct(MURRAY *p, void *a, int b, int c, int d, qword q);
+void SetMurrayState(MURRAY *p, int n);
 // MURRAY post-load (slot 15): STEPPLAYER post-load, the four locomotion blends and the strafe directional blends
 // (InitDirectionalBlend).
-void PostMurrayLoad(struct S *murray)
+void PostMurrayLoad(MURRAY *murray)
 {
-    char *b = (char *)murray;
     void *v;
     PostLoadStepplayer(murray);
-    PostJtLoadGait(b + 0x1320);
-    PostJtLoadGait(b + 0x1460);
-    PostJtLoadGait(b + 0x1630);
-    PostJtLoadGait(b + 0x1540);
-    InitDirectionalBlend(murray, b + 0x16F0, b + 0x17F0);
-    PostAsegArcLoad(b + 0x1850, murray);
-    PostJtThrowLoad(b + 0x1910);
+    PostJtLoadGait(&murray->gaitA);
+    PostJtLoadGait(&murray->gaitB);
+    PostJtLoadGait(&murray->gaitD);
+    PostJtLoadGait(&murray->gaitC);
+    InitDirectionalBlend(murray, murray->unknown16F0, &murray->unknown17F0);
+    PostAsegArcLoad(murray->unknown1850, murray);
+    PostJtThrowLoad(&murray->jtthrowAim);
     AttachStepplayerToStartMarker(murray, 0x16);
-    v = FindSoXf(murray, murray->x18, 0xC);
+    v = FindSoXf(murray, murray->oid, 0xC);
     if (v) {
-        *(int *)(b + 0x1ACC) = NewPositionAct(murray, v, 0, 7, 2, D_002A2DE0);
+        murray->pact1Unk1acc = NewPositionAct(murray, v, 0, 7, 2, D_002A2DE0);
     }
     SetMurrayState(murray, MURRAY_IDLE);
 }
@@ -473,17 +471,16 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
 #undef FIELD_OFFSET
 
 namespace M_func_001B5038 { extern "C" {
-struct S { char pad[0x150]; void *controller; char pad2[0xF00 - 0x154]; int f00; int f04; char pad3[0xF20 - 0xF08]; int f20; };
-int IsStepplayerInJtMode(struct S *p);
+int IsStepplayerInJtMode(MURRAY *p);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
 // While a look mode is active: in mode 1 any face button (mask 0x4F0) cancels it; then updates the mode.
-void UpdateMurrayJtModeInput(struct S *murray)
+void UpdateMurrayJtModeInput(MURRAY *murray)
 {
     if (IsStepplayerInJtMode(murray)) {
-        if (murray->f04 == 1 && !murray->f20 && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(&murray->f00);
-        UpdateJtMode(&murray->f00);
+        if (murray->jtmode.state == 1 && !murray->jtmode.kind && ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(&murray->jtmode);
+        UpdateJtMode(&murray->jtmode);
     }
 }
 } } // namespace M_func_001B5038
@@ -1508,23 +1505,22 @@ extern "C" void SetMurrayState(P *murray, int next)
 namespace M_GetMurrayCpdefi { extern "C" {
 struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
-struct S { char pad[0x4CC]; int x4CC; char pad1[0x1080 - 0x4D0]; float t1080; char pad2[0x10E4 - 0x1084]; int interactKind; char pad3[0x13D0 - 0x10E8]; int k; };
-void GetStepplayerCpdefi(struct S *p, int *pf);
+void GetStepplayerCpdefi(MURRAY *p, int *pf);
 void UpdateJtThrowHoldPosition(void *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
 // MURRAY camera definition (slot 50): stamps x1080 while moving, STEPPLAYER base, then flag bit 1 for flop/strafe.
-void GetMurrayCpdefi(struct S *murray, int *pf)
+void GetMurrayCpdefi(MURRAY *murray, int *pf)
 {
-    if (murray->k != MURRAY_IDLE && murray->k != MURRAY_PLAYER_STATE_4 && murray->x4CC) murray->t1080 = D_002DDED0.time;
+    if (murray->state != MURRAY_IDLE && murray->state != MURRAY_PLAYER_STATE_4 && murray->jtgrab.kind) murray->unknown1080 = D_002DDED0.time;
     GetStepplayerCpdefi(murray, pf);
-    switch (murray->k) {
+    switch (murray->state) {
     case MURRAY_ATTACK:
-        if (murray->interactKind != 4) break;
+        if (murray->nUnk10e4 != 4) break;
     case MURRAY_FLOP: case MURRAY_STRAFE: case MURRAY_POWER_MOVE:
         *pf |= 1;
         break;
-    case MURRAY_AIMED_THROW: UpdateJtThrowHoldPosition((char *)murray + 0x1910, pf); break;
-    case MURRAY_PIPE: GetJtPipeVelocity(&AsStepplayer(murray)->jtpipe, pf); break;
+    case MURRAY_AIMED_THROW: UpdateJtThrowHoldPosition(&murray->jtthrowAim, pf); break;
+    case MURRAY_PIPE: GetJtPipeVelocity(&murray->jtpipe, pf); break;
     }
 }
 } } // namespace M_GetMurrayCpdefi
@@ -2445,19 +2441,18 @@ void DetachMurrayCarried(struct P *murray)
 } } // namespace M_DetachMurrayCarried
 
 namespace M_SetMurrayPlayerState { extern "C" {
-struct P { char pad[0x2C4]; int x2C4; char pad2[0x13F0 - 0x2C8]; void *carried; };
-void SetMurrayState(struct P *p, int n);
-void DropMurrayCarried(struct P *p);
+void SetMurrayState(MURRAY *p, int n);
+void DropMurrayCarried(MURRAY *p);
 // MURRAY slot 88: maps a generic player state 0..8 to Murray states (0 -> carry 5 or idle 0, 1 -> jump 2, ...).
-void SetMurrayPlayerState(struct P *murray, unsigned int k)
+void SetMurrayPlayerState(MURRAY *murray, unsigned int k)
 {
     switch (k) {
     case 0:
-        if (murray->carried) SetMurrayState(murray, MURRAY_CARRY);
+        if (murray->ploCarried) SetMurrayState(murray, MURRAY_CARRY);
         else SetMurrayState(murray, MURRAY_IDLE);
         break;
     case 1:
-        switch (murray->x2C4) { case 15: case 16: break; default: DropMurrayCarried(murray); }
+        switch (murray->jtair.jumpKind) { case 15: case 16: break; default: DropMurrayCarried(murray); }
         SetMurrayState(murray, MURRAY_JUMP);
         break;
     case 2: SetMurrayState(murray, MURRAY_GRAB); break;

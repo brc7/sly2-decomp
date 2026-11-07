@@ -833,7 +833,7 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
     int state;
     state = bentley->state;
     if (state != 0 && (state != 9) && (bentley->jtgrab.kind != 0)) {
-        *(float *)&bentley->unknown1080 = D_002DDED0.time;
+        bentley->unknown1080 = D_002DDED0.time;
     }
     GetStepplayerCpdefi(bentley, pcpdefi);
     switch (bentley->state) {
