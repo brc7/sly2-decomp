@@ -13,16 +13,16 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct VIS : public XFM
 {
-      int unknownE0;            /* +0xE0 read from the BRX */
-      int unknownE4;
-      struct
-      {
-            byte pad[0xC];
-            int rootBsp;        /* +0xF4 root BSP node (an address) */
-      } bspc;                   /* +0xE8 BSPC (CBinaryInputStream_ReadBspc) */
-      byte geom[0x110 - 0xF8];  /* +0xF8 GEOM (ReadGeom) */
-      int isInside;             /* +0x110 -1 after init (unknown) */
-      float changeTime;            /* +0x114 g_clock.t when fInside last changed */
+    int unknownE0;            /* +0xE0 read from the BRX */
+    int unknownE4;
+    struct
+    {
+        byte pad[0xC];
+        int rootBsp;        /* +0xF4 root BSP node (an address) */
+    } bspc;                   /* +0xE8 BSPC (CBinaryInputStream_ReadBspc) */
+    byte geom[0x110 - 0xF8];  /* +0xF8 GEOM (ReadGeom) */
+    int isInside;             /* +0x110 -1 after init (unknown) */
+    float changeTime;            /* +0x114 g_clock.t when fInside last changed */
 };
 typedef char assert_VIS_fInside[SLY2_OFFSETOF(VIS, isInside) == 0x110 ? 1 : -1];
 
@@ -43,33 +43,33 @@ void SetVisInside(VIS *vis, int isInside);
 void CID5::Init()
 {
     VIS *vis = (VIS *)this;
-      InitXfm(vis);
-      vis->isInside = -1;
+    InitXfm(vis);
+    vis->isInside = -1;
 }
 
 // Reads a zone from the level file (vtable slot 14): transform, a 32-bit value, the volume geometry, its BSP and the
 // object options. The payload layout is parse-verified; the meaning of the 32-bit value is not known.
 extern "C" void LoadVisFromBrx(VIS *vis, void *stream)
 {
-      LoadXfmXfFromBrx(vis, stream);
-      vis->unknownE0 = U32Read__18CBinaryInputStream(stream);
-      ReadGeom__18CBinaryInputStreamP4GEOM(stream, vis->geom);
-      CBinaryInputStream_ReadBspc(stream, vis->geom, &vis->bspc);
-      LoadOptionsFromBrx__FPvP18CBinaryInputStream(vis, stream);
+    LoadXfmXfFromBrx(vis, stream);
+    vis->unknownE0 = U32Read__18CBinaryInputStream(stream);
+    ReadGeom__18CBinaryInputStreamP4GEOM(stream, vis->geom);
+    CBinaryInputStream_ReadBspc(stream, vis->geom, &vis->bspc);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(vis, stream);
 }
 
 // Tests a world position (the camera's) against the zone's BSP volume, in the zone's local space, and records the
 // result with SetVisInside. Called by the camera for every zone each frame.
 extern "C" void UpdateVisInside(VIS *vis, qword worldPos)
 {
-      SetVisInside(vis, PbspPointInBspQuick(vis->bspc.rootBsp, 0x7FFFFFFF, ConvertAloPos(0, vis, worldPos)) != 0);
+    SetVisInside(vis, PbspPointInBspQuick(vis->bspc.rootBsp, 0x7FFFFFFF, ConvertAloPos(0, vis, worldPos)) != 0);
 }
 
 // Stores the zone's inside state; on a change also stamps the time (g_clock.t) it changed.
 extern "C" void SetVisInside(VIS *vis, int isInside)
 {
-      if (isInside != vis->isInside) {
-            vis->isInside = isInside;
-            vis->changeTime = D_002DDED0.t;
-      }
+    if (isInside != vis->isInside) {
+        vis->isInside = isInside;
+        vis->changeTime = D_002DDED0.t;
+    }
 }
