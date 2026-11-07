@@ -100,8 +100,10 @@ struct BLIP
 };
 
 struct PATHLINK;
-/* A path-link endpoint / go-to goal (0x20), constructed out of line by ClearPointerPair (guardbhv; it zeroes the
-   first two words): a shape, an object, or (both NULL) the point at +0x10. PATHLINK holds six, BHVGOTO three (goal,
+void ClearPathlinkend(void *pv) __asm__("ClearPointerPair");   /* guardbhv: zeroes the first two words (C name ClearPointerPair, declared differently by its callers) */
+/* A path-link endpoint / go-to goal (0x20), constructed by an inline constructor that calls ClearPointerPair
+   (guardbhv; it zeroes the first two words; as an asm-labelled out-of-line constructor g++ keeps `this` live across
+   the call: one move more in ExecuteBhvScriptCommand, two swapped in SetBhvcombatState): a shape, an object, or (both NULL) the point at +0x10. PATHLINK holds six, BHVGOTO three (goal,
    waypoint, relocate goal), BHV191 one; tu_1709A8/tu_171F58 build goals on the stack for SetBhvgotoGoal. */
 struct PATHLINKEND
 {
@@ -109,7 +111,7 @@ struct PATHLINKEND
     LO *object;             /* +0x04 the goal object */
     int unknown8[2];
     qword pos;              /* +0x10 the goal point */
-    PATHLINKEND() __asm__("ClearPointerPair");
+    PATHLINKEND() { ClearPathlinkend(this); }
 };
 
 /* BHVGUARD's mode record (0x70, at +0x30; BHVGUARD.md): the awareness mode and its argument, or for the zap modes the

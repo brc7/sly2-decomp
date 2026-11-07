@@ -608,9 +608,6 @@ void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
 void func_001E0020(void *sgg, int alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 void ClearPointerPair(void *goal);
 }
-/* island: the goto goal as a PATHLINKEND with an inline constructor calling ClearPointerPair; the header's
-   asm-labelled constructor keeps &goal in a saved register (1 instruction more, 164/322 off). */
-struct PATHLINKENDIsland { SHAPE *shape; LO *object; int pad[2]; qword pos; PATHLINKENDIsland() { ClearPointerPair(this); } };
 }
 
 // 0x1715F0: Script behaviour vtable slot 15: executes one script command (kinds 0-15): set context, set times,
@@ -696,7 +693,7 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
     case SSGK_GOTO: {
         SSGE *point;
         STEPGUARD *guard;
-        PATHLINKENDIsland goal;
+        PATHLINKEND goal;
         point = behavior->currentCommand;
         if (point->id == -1) {
             goal.pos = *point->ppos;

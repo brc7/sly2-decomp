@@ -1419,10 +1419,6 @@ extern float D_002A5408;
 void PopBhv(void *p);
 float RandomFloatInRange__Fff(float a, float b);
 BHV *PushStepBehavior(void *p, int n);
-/* A PATHLINKEND built by hand: declared at the block start and cleared by an explicit ClearPointerPair call (the
-   PATHLINKEND constructor at the point of use schedules the call differently: 2 instructions swapped). */
-struct PATHLINKENDRAW { qword pv; qword pos; };
-void ClearPointerPair(struct PATHLINKENDRAW *x);
 void SetTargetRecordState(void *p, int n);
 qword GetLoWorldPos(LO *p);
 void SetBhvgotoGoal(BHVGOTO *p, PATHLINKEND *x);
@@ -1470,14 +1466,13 @@ void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
         {
             BHVGOTO *o = (BHVGOTO *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVGOTO);
             qword v1, v2;
-            struct PATHLINKENDRAW x;
             o->allowPartialRoute = 1;
             o->sgf = 0x1C;
             v1 = GetLoWorldPos(behavior->target);
             v2 = GetLoWorldPos(behavior->target);
-            ClearPointerPair(&x);
+            PATHLINKEND x;
             x.pos = v2;
-            SetBhvgotoGoal(o, (PATHLINKEND *)&x);
+            SetBhvgotoGoal(o, &x);
             o->lookAtTarget = behavior->target;
             o->unknownAC = 1;
             o->Start();
