@@ -1528,7 +1528,6 @@ union U { qword q; float f; };
 struct POLY {
     float a, b, c;
 };
-struct LO { char pad[0x38]; float radius; };
 struct S {
     char pad[0x14];
     float start, duration;
@@ -1579,7 +1578,7 @@ int RenderRipAtPose(S *p, qword pos, const M3 &mat)
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(delta) : "j"(pos), "j"(pg->pos));
     if (!IsInCameraFrustum(pg, delta, BcG(size * 100.0f)))
         return 1;
-    if (!IsWithinCameraRenderDistance(pg, delta, p->lo->radius, &proj))
+    if (!IsWithinCameraRenderDistance(pg, delta, p->lo->busyRadius, &proj))
         return 0;
     if (alpha < 0.0001f && size < 0.0001f)
         return 1;
