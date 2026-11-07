@@ -1808,7 +1808,7 @@ CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 }
 } // namespace M_RefOpAppend__FiP4CRefP6CFrame
 
-// 0x121578 func_00121578
+// 0x121578 BuildCallListForTwoArgs
 namespace M_func_00121578 {
 struct SPN;
 
@@ -1827,7 +1827,7 @@ struct SPN {
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
-extern "C" SPN func_00121578(CRef **ppref1, CRef **ppref2);
+extern "C" SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2);
 /** @sly2-annot addr=0x121578
  * Purpose: Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for
  *   map/filter/for-each
@@ -1838,7 +1838,7 @@ extern "C" SPN func_00121578(CRef **ppref1, CRef **ppref2);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for map/filter/for-each.
-SPN func_00121578(CRef **ppref1, CRef **ppref2)
+SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2)
 {
     SPN sp;
     sp.Set(PtNew__t6CGcObj1Z5CPair());
@@ -1878,7 +1878,7 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
+extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *args);
 extern "C" CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
 /** @sly2-annot addr=0x121710
@@ -1899,7 +1899,7 @@ CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
     SPN call;   /* (proc 'element) */
     CRef *procSlot;
     CRef *elementSlot;
-    func_00121578(&call, &procSlot, &elementSlot);
+    BuildCallListForTwoArgs(&call, &procSlot, &elementSlot);
     *procSlot = args[0];
     CPair *tail;
     CPair *element;
@@ -1947,7 +1947,7 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
+extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *args);
 extern "C" CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
 /** @sly2-annot addr=0x121938
@@ -1965,7 +1965,7 @@ CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
     SPN call;   /* (proc 'element) */
     CRef *procSlot;
     CRef *elementSlot;
-    func_00121578(&call, &procSlot, &elementSlot);
+    BuildCallListForTwoArgs(&call, &procSlot, &elementSlot);
     *procSlot = args[0];
     SP result;
     CPair *tail;
@@ -2012,7 +2012,7 @@ struct SPN {
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
-extern "C" void func_00121578(SPN *psp, CRef **ppa, CRef **ppb);
+extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef RefEval__FP5CPairP6CFrame(CPair *pn, CRef *args);
 extern "C" CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
 /** @sly2-annot addr=0x121C20
@@ -2030,7 +2030,7 @@ CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
         CRef *pa;
         CRef *pb;
         CPair *pn;
-        func_00121578(&sp, &pa, &pb);
+        BuildCallListForTwoArgs(&sp, &pa, &pb);
         *pa = args[0];
         pn = (CPair *)args[1].u.pv;
         while (pn) {
@@ -4079,7 +4079,7 @@ CRef *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
 }
 } } // namespace M_RefOpDeferObjectUpdate__FiP4CRefP6CFrame
 
-// 0x123EB0 RefOpObjectOption__FiP4CRefP6CFrame4BIFK
+// 0x123EB0 BuiltinObjectOption__FiP4CRefP6CFrame4BIFK
 namespace M_RefOpObjectOption__FiP4CRefP6CFrame4BIFK {
 struct CRef;
 struct CRef {
@@ -4098,19 +4098,19 @@ CRef RefAddOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
 CRef RefEnsureOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
 CRef RefSetOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
 CRef RefGetOption__FP5BASICi(void *a, void *b);
-CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op);
+CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op);
 }
 /** @sly2-annot addr=0x123EB0
  * Purpose: Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
  *   RefAddOption/RefEnsureOption/RefSetOption/RefGetOption
- * Info: proposed name RefOpObjectOption (T1); TU bif
+ * Info: proposed name BuiltinObjectOption (T1); TU bif
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r1_116918+verdicts_B
  * See: docs/engine/splice-scripting.md#7-key-functions, docs/formats/splice-scripts.md#3-names,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
 // RefAddOption/RefEnsureOption/RefSetOption/RefGetOption.
-CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op)
+CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op)
 {
     CRef ref;
     void *a = args[0].u.pv;
@@ -4137,18 +4137,18 @@ CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv
 namespace M_RefOpAddO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x123FB8
- * Purpose: Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption
+ * Purpose: Splice builtin "addo": BuiltinObjectOption(op 0x6C) -> RefAddOption
  * Info: proposed name BuiltinAddOption (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption.
+// Splice builtin "addo": BuiltinObjectOption(op 0x6C) -> RefAddOption.
 CRef *BuiltinAddOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6C);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6C);
     return ret;
 }
 } } // namespace M_RefOpAddO__FiP4CRefP6CFrame
@@ -4157,7 +4157,7 @@ CRef *BuiltinAddOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef
 namespace M_RefOpEnsureO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x123FE8
  * Purpose: Splice builtin "ensureo": op 0x6D RefEnsureOption
  * Info: proposed name BuiltinEnsureOption (T1); TU bif
@@ -4168,7 +4168,7 @@ void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref,
 // Splice builtin "ensureo": op 0x6D RefEnsureOption.
 CRef *BuiltinEnsureOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6D);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6D);
     return ret;
 }
 } } // namespace M_RefOpEnsureO__FiP4CRefP6CFrame
@@ -4177,7 +4177,7 @@ CRef *BuiltinEnsureOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, C
 namespace M_RefOpSetO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x124018
  * Purpose: Splice builtin "seto!": op 0x6E RefSetOption
  * Info: proposed name BuiltinSetOption (T1); TU bif
@@ -4188,7 +4188,7 @@ void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref,
 // Splice builtin "seto!": op 0x6E RefSetOption.
 CRef *BuiltinSetOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6E);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6E);
     return ret;
 }
 } } // namespace M_RefOpSetO__FiP4CRefP6CFrame
@@ -4197,7 +4197,7 @@ CRef *BuiltinSetOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef
 namespace M_RefOpGetO__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x124048
  * Purpose: Splice builtin "geto": op 0x6F RefGetOption
  * Info: proposed name BuiltinGetOption (T1); TU bif
@@ -4208,12 +4208,12 @@ void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref,
 // Splice builtin "geto": op 0x6F RefGetOption.
 CRef *BuiltinGetOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
-    RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6F);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6F);
     return ret;
 }
 } } // namespace M_RefOpGetO__FiP4CRefP6CFrame
 
-// 0x124078 RefPairFromAplo__FiPP2LO
+// 0x124078 BuildListFromObjects__FiPP2LO
 namespace M_RefPairFromAplo__FiPP2LO {
 struct CRef; struct NODE;
 struct CRef {
@@ -4234,16 +4234,16 @@ struct NODE { int cref; int pad; CRef ref; NODE *pnext; };
 extern "C" {
 NODE *PtNew__t6CGcObj1Z5CPair();
 void PairPtr_Assign(NODE **pp, NODE *p) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
-CRef RefPairFromAplo__FiPP2LO(int c, O **apo);
+CRef BuildListFromObjects__FiPP2LO(int c, O **apo);
 }
 /** @sly2-annot addr=0x124078
  * Purpose: Builds a Splice list of CRef(BASIC*) from an LO* array
- * Info: proposed name RefPairFromAplo (T1); TU bif
+ * Info: proposed name BuildListFromObjects (T1); TU bif
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Builds a Splice list of CRef(BASIC*) from an LO* array.
-CRef RefPairFromAplo__FiPP2LO(int c, O **apo)
+CRef BuildListFromObjects__FiPP2LO(int c, O **apo)
 {
     if (c == 0)
         return CRef(0);
@@ -4324,16 +4324,16 @@ struct G { char pad[0x3F0C]; void *pv; };
 extern "C" { extern G D_003DD490; }
 extern "C" {
 int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
-CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
+CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1241E8
- * Purpose: Splice builtin "find-objects": 0x15E678 + RefPairFromAplo
+ * Purpose: Splice builtin "find-objects": 0x15E678 + BuildListFromObjects
  * Info: proposed name BuiltinFindObjects (T1); TU bif
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "find-objects": 0x15E678 + RefPairFromAplo.
+// Splice builtin "find-objects": 0x15E678 + BuildListFromObjects.
 CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
@@ -4353,7 +4353,7 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     else
         pv = pg->pv;
     int c = FindSwObjectsInProxyScope(pg, k, p0, pq, pv, 0x40, ap);
-    ref = RefPairFromAplo__FiPP2LO(c, ap);
+    ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
 }
 } // namespace M_RefOpFindObjects__FiP4CRefP6CFrame
@@ -4491,17 +4491,17 @@ struct G { char pad[0x3F0C]; void *pv; };
 extern "C" { extern G D_003DD490; }
 extern "C" {
 int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
-CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
+CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x124578
- * Purpose: Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo
+ * Purpose: Splice builtin "find-nearest-objects": 0x15E678 k=4 + BuildListFromObjects
  * Info: proposed name BuiltinFindNearestObjects (T1); TU bif
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "find-nearest-objects": 0x15E678 k=4 + RefPairFromAplo.
+// Splice builtin "find-nearest-objects": 0x15E678 k=4 + BuildListFromObjects.
 CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
@@ -4520,7 +4520,7 @@ CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     else
         pv = pg->pv;
     int c = FindSwObjectsInProxyScope(pg, 4, p0, pq, pv, 0x40, ap);
-    ref = RefPairFromAplo__FiPP2LO(c, ap);
+    ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
 }
 } // namespace M_RefOpFindNearestObjects__FiP4CRefP6CFrame
@@ -4624,23 +4624,23 @@ struct CRef {
 extern "C" { extern char D_003DD490[]; }
 extern "C" {
 int CploFindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap);
-CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
+CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x124730
- * Purpose: Splice builtin "find-class-objects": 0x15E9C8 by class + RefPairFromAplo
+ * Purpose: Splice builtin "find-class-objects": 0x15E9C8 by class + BuildListFromObjects
  * Info: proposed name BuiltinFindClassObjects (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "find-class-objects": 0x15E9C8 by class + RefPairFromAplo.
+// Splice builtin "find-class-objects": 0x15E9C8 by class + BuildListFromObjects.
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     void *ap[0x180];
     int b = args[1].u.n;
     int c = CploFindSwObjectsByClass(D_003DD490, b ? 0x401 : 0x405, args[0].u.pv, b, 0x180, ap);
-    ref = RefPairFromAplo__FiPP2LO(c, ap);
+    ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
 }
 } // namespace M_RefOpFindClassObjects__FiP4CRefP6CFrame
@@ -4664,7 +4664,7 @@ extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap);
 void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
-CRef RefPairFromAplo__FiPP2LO(int c, void *ap);
+CRef BuildListFromObjects__FiPP2LO(int c, void *ap);
 CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1247D8
@@ -4684,7 +4684,7 @@ CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     void *ap1;
     IntersectSwBoundingBox(D_003DD490, *(qword *)args[0].u.pv, *(qword *)args[1].u.pv, 0, 0, &c0, &ap0);
     BuildUniqueSoList(c0, ap0, &c1, &ap1);
-    ref = RefPairFromAplo__FiPP2LO(c1, ap1);
+    ref = BuildListFromObjects__FiPP2LO(c1, ap1);
     return ref;
 }
 } // namespace M_RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame
@@ -4708,7 +4708,7 @@ extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
 void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
-CRef RefPairFromAplo__FiPP2LO(int c, void *ap);
+CRef BuildListFromObjects__FiPP2LO(int c, void *ap);
 CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
 /** @sly2-annot addr=0x1248B0
@@ -4733,12 +4733,12 @@ CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *ar
     void *ap1;
     IntersectSwBoundingSphere(D_003DD490, *(qword *)args[0].u.pv, 0, 0, g, &c0, &ap0);
     BuildUniqueSoList(c0, ap0, &c1, &ap1);
-    ref = RefPairFromAplo__FiPP2LO(c1, ap1);
+    ref = BuildListFromObjects__FiPP2LO(c1, ap1);
     return ref;
 }
 } // namespace M_RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame
 
-// 0x1249A8 RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame
+// 0x1249A8 BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame
 namespace M_RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame {
 struct SPN; struct SO; struct LO; struct HIT;
 /* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (ClipEdgeToObject) vs every SO of each LO in list aref[0].
@@ -4783,13 +4783,13 @@ extern "C" int ClipEdgeToObject(SO *pso, qword pos0, qword pos1, int f, HIT *phi
 /** @sly2-annot addr=0x1249A8
  * Purpose: Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C
  *   returns first hit
- * Info: proposed name RefOpHitTestObjectsImpl (T1); TU bif
+ * Info: proposed name BuiltinHitTestObjectsImpl (T1); TU bif
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C returns first
 // hit.
-extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CRef *args)
+extern "C" CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CRef *args)
 {
     CRef ref;
     if (args[0].m_tagk == 0) {
@@ -4859,22 +4859,22 @@ struct CRef {
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 extern "C" {
-CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
+CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
 CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c);
 }
 /** @sly2-annot addr=0x124F00
- * Purpose: Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos
+ * Purpose: Splice builtin "hit-test-objects": BuiltinHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos
  *   normal)
  * Info: proposed name BuiltinHitTestObjects (T1); TU bif
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "hit-test-objects": RefOpHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal).
+// Splice builtin "hit-test-objects": BuiltinHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal).
 CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c)
 {
     CRef ref;
-    ref = RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(0x7B, a, b, c);
+    ref = BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(0x7B, a, b, c);
     return ref;
 }
 } // namespace M_RefOpHitTestObjects__FiP4CRefP6CFrame
@@ -4891,7 +4891,7 @@ struct CRef {
     CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 extern "C" {
-CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
+CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
 CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c);
 }
 /** @sly2-annot addr=0x124F80
@@ -4905,7 +4905,7 @@ CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c);
 CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c)
 {
     CRef ref;
-    ref = RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(0x7C, a, b, c);
+    ref = BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(0x7C, a, b, c);
     return ref;
 }
 } // namespace M_RefOpHitTestObjectsFirst__FiP4CRefP6CFrame
