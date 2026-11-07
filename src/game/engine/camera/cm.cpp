@@ -163,8 +163,10 @@ namespace M_ResetCameraPolicies { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct E { struct O *po; int pad[3]; };
-struct P { char pad[0x30C]; int policyCount; int pad2; struct E policies[1]; };
-// Calls vt7 (unknown 'reset/close' slot) on every policy in acpr[], then rUnk620=0, rUnk624=10.0. (inferred)
+struct P { char pad[0x30C]; int policyCount; int pad2; struct E policies[8]; char pad3[0x620 - 0x394];
+            int stereoEyeOffset; float stereoFocusDistance; };   /* +0x620 stored as a word (0) here */
+// Calls vtable slot 7 (unknown: reset) on every policy on the stack, then resets the stereo eye offset (0) and focus
+// distance (10).
 void ResetCameraPolicies(struct P *p)
 {
     int i;
@@ -173,8 +175,8 @@ void ResetCameraPolicies(struct P *p)
         struct VTE *e = &o->vt[7];
         ((void (*)(void *))e->pfn)((char *)o + e->d);
     }
-    *(int *)((char *)p + 0x620) = 0;
-    *(float *)((char *)p + 0x624) = 10.0f;
+    p->stereoEyeOffset = 0;
+    p->stereoFocusDistance = 10.0f;
 }
 } } // namespace M_ResetCameraPolicies
 
@@ -249,13 +251,14 @@ extern "C" void InitCm__FP2CM(CM *p)
 } // namespace M_InitCm__FP2CM
 
 namespace M_CutCm__FP2CM { extern "C" {
-// NCut(+0x300) = max(nCut,1): request a camera cut (no smoothing) this frame.
-void CutCm__FP2CM(char *p)
+struct CMC { char pad[0x300]; int cutCount; };
+// Requests a camera cut (no smoothing) this frame: cutCount = max(cutCount, 1).
+void CutCm__FP2CM(struct CMC *p)
 {
-    int n = *(int *)(p + 0x300);
+    int n = p->cutCount;
     int m = 1;
     if (m < n) m = n;
-    *(int *)(p + 0x300) = m;
+    p->cutCount = m;
 }
 } } // namespace M_CutCm__FP2CM
 
@@ -770,10 +773,12 @@ void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
 
 namespace M_CalcCmAdjust { extern "C" {
 void SetVectorCylind(void *a, void *b, float x, float y, float z);
-// DposAdjust = cylindrical vector (radHome+PI, sAdjust) from CPDEFI +0x30/+0x34 via 0x11E1A0. (inferred)
-void CalcCmAdjust(void *a, char *b)
+struct CPDEFIV { char pad[0x30]; float radHome; float sAdjust; };
+// The camera adjust offset: a cylindrical vector pointing opposite the focus's home angle (radHome + pi) with length
+// sAdjust (CPDEFI +0x30 / +0x34). (inferred)
+void CalcCmAdjust(void *a, struct CPDEFIV *b)
 {
-    SetVectorCylind(a, b, *(float *)(b + 0x30) + 3.14159265f, *(float *)(b + 0x34), 0.0f);
+    SetVectorCylind(a, b, b->radHome + 3.14159265f, b->sAdjust, 0.0f);
 }
 } } // namespace M_CalcCmAdjust
 
@@ -1106,9 +1111,10 @@ qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, q
 
 // Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0) (inferred)
 /* Camera filter callback: accepts objects whose +0x70 word is positive. */
+struct LOBSP { char pad[0x70]; int numCameraBspNodes; };
 extern "C" int HasCameraBsp(void *pv, LO *plo)
 {
-    return *(int *)((char *)plo + 0x70) > 0;
+    return ((LOBSP *)plo)->numCameraBspNodes > 0;
 }
 
 namespace M_SvSquishCmEyeConstraint { extern "C" {
@@ -1338,11 +1344,13 @@ static __inline__ qword Make(float x, float y, float z)
 }
 qword func_0011BFF0(void *p);
 // Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees.
-qword GetCmRotDeg(char *p)
+#define DEGREES_PER_RADIAN 57.295776f
+struct CMR { char pad[0x60]; char mat[0x40]; };   /* CM::mat */
+qword GetCmRotDeg(struct CMR *p)
 {
     union { qword q; float f; } r;
-    qword v = func_0011BFF0(p + 0x60);
-    r.q = Make(GetX(v) * 57.295776f, GetY(v) * 57.295776f, GetZ(v) * 57.295776f);
+    qword v = func_0011BFF0(p->mat);
+    r.q = Make(GetX(v) * DEGREES_PER_RADIAN, GetY(v) * DEGREES_PER_RADIAN, GetZ(v) * DEGREES_PER_RADIAN);
     return r.q;
 }
 } } // namespace M_GetCmRotDeg
@@ -1374,7 +1382,8 @@ void SetCmRotDeg(struct CM *p, qword v)
     M4 mat = p->mat;
     union { qword q; float f; } r;
     M3 m;
-    r.q = Make(GetX(v) * 0.017453294f, GetY(v) * 0.017453294f, GetZ(v) * 0.017453294f);
+#define RADIANS_PER_DEGREE 0.017453294f
+    r.q = Make(GetX(v) * RADIANS_PER_DEGREE, GetY(v) * RADIANS_PER_DEGREE, GetZ(v) * RADIANS_PER_DEGREE);
     LoadRotateMatrixEuler(&m, r.q);
     mat.m3 = m;
     mat.af[2][3] = 0.0f;
@@ -1478,11 +1487,12 @@ void SetCmMrdRatio(CM *pcm, float g)
 
 namespace M_JoltCamera { extern "C" {
 extern float D_002DDED0;
-// TJolt(+0x618)=clock.t, nUnk61c=arg: starts the 0.5 s camera shake applied by UpdateCmMat4.
-void JoltCamera(char *p, int a)
+// Starts a camera shake of the given kind now (joltTime, +0x618; joltKind, +0x61C); UpdateCmMat4 applies it for 0.5 s.
+struct CMJ { char pad[0x618]; float joltTime; int joltKind; };
+void JoltCamera(struct CMJ *p, int a)
 {
-    *(float *)(p + 0x618) = D_002DDED0;
-    *(int *)(p + 0x61C) = a;
+    p->joltTime = D_002DDED0;
+    p->joltKind = a;
 }
 } } // namespace M_JoltCamera
 
