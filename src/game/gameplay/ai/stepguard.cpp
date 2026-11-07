@@ -2230,37 +2230,34 @@ extern "C" void StopAnimBinding(ANIMBINDING *binding)
 
 // 0x209430 IsAnimBindingDone
 namespace M_FAnimBindingDone { extern "C" {
-struct INSTANCE; struct BINDING;
-struct INSTANCE { char pad[0x30]; int isActive; /* SMA: (inferred) */ };
-struct BINDING { int kind; int resource; struct INSTANCE *instance; };
-int IsAsegaRetracted(struct INSTANCE *instance);
-int IsSmaRetracted(struct INSTANCE *instance);
-int IsLeapDone(struct INSTANCE *instance);
-int IsDirAnimStopped(struct INSTANCE *instance);
+int IsAsegaRetracted(ASEGA *pasega);
+int IsSmaRetracted(SMA *psma);
+int IsLeapDone(LEAP *pleap);
+int IsDirAnimStopped(CID146 *pdiranim);
 // 0x209430: True if the binding's animation instance finished or was retracted (or none is running).
 // (`done = 0; if (...) done = 1;` per case: the boolean-expression and early-return forms do not match.)
-int IsAnimBindingDone(struct BINDING *binding)
+int IsAnimBindingDone(ANIMBINDING *binding)
 {
     int done;
     switch (binding->kind) {
     case BINDING_ASEG:
         done = 0;
-        if (!binding->instance || IsAsegaRetracted(binding->instance))
+        if (!binding->pbasic || IsAsegaRetracted(binding->asega))
             done = 1;
         break;
     case BINDING_SM:
         done = 0;
-        if (!binding->instance || IsSmaRetracted(binding->instance) || !binding->instance->isActive)
+        if (!binding->pbasic || IsSmaRetracted(binding->sma) || !binding->sma->pasegaCur)
             done = 1;
         break;
     case BINDING_LEAP:
         done = 0;
-        if (!binding->instance || IsLeapDone(binding->instance))
+        if (!binding->pbasic || IsLeapDone((LEAP *)binding->pbasic))
             done = 1;
         break;
     case BINDING_DIRANIM:
         done = 0;
-        if (!binding->instance || IsDirAnimStopped(binding->instance))
+        if (!binding->pbasic || IsDirAnimStopped((CID146 *)binding->pbasic))
             done = 1;
         break;
     case BINDING_NONE:
@@ -2301,26 +2298,24 @@ struct ANIMATION *GetAnimBindingInstance(struct BINDING *binding)
 
 // 0x209590 CloneAnimBinding
 namespace M_func_00209590 { extern "C" {
-struct BINDING;
-struct BINDING { int kind; void *payload; };
 void *AllocLeap(int cb);
 void *AllocDirAnim(int cb);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 // 0x209590: Deep-copies a binding's leap (0x40 bytes) or DIRANIM (0xD0 bytes) payload, so a
 // cloned guard does not share it.
-void CloneAnimBinding(struct BINDING *binding)
+void CloneAnimBinding(ANIMBINDING *binding)
 {
     void *copy;
     switch (binding->kind) {
     case BINDING_LEAP:
         copy = AllocLeap(0x40);
-        CopyAb__FPvT0Ui(copy, binding->payload, 0x40);
-        binding->payload = copy;
+        CopyAb__FPvT0Ui(copy, binding->payload4, 0x40);
+        binding->payload4 = copy;
         break;
     case BINDING_DIRANIM:
         copy = AllocDirAnim(0xD0);
-        CopyAb__FPvT0Ui(copy, binding->payload, 0xD0);
-        binding->payload = copy;
+        CopyAb__FPvT0Ui(copy, binding->payload4, 0xD0);
+        binding->payload4 = copy;
         break;
     }
 }
