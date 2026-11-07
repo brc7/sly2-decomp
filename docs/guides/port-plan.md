@@ -1,11 +1,14 @@
 # Sly 2 native macOS (Apple Silicon) port: architecture plan
 
-> Copied into the docs in v3.1 from `reports/port_plan/PORT_PLAN.md` (proposal, not reviewed). Doc paths inside are relative to `reports/` and point at the docs_v2 tree; the same pages live under [../engine/](../engine.md) and [../formats/](../formats/world-file.md) here.
+> A design proposal (not reviewed), kept as a decision record. Its citations name the engine research pages of the
+> time (`rendering.md §4`, `sound.md §3`, `overview`, ...): their substance is condensed in [engine.md](../engine.md)
+> and the full pages are in git history (`git show 3493d772:docs/engine/rendering.md`); formats are under
+> [../formats/](../formats/world-file.md). The render port checklist is section 6.6.
 
 Status: proposal v1, 2026-11-01. Author: port-planning agent. Audience: the TL, plus agent teams who will build it.
 Evidence tags: **[K]** = known, with a citation to our docs or a measurement made while writing this plan.
 **[A]** = assumption or opinion that needs checking (each one is tied to a spike or a task in section 11).
-Doc paths are relative to `/home/claude/ref/reports/` unless noted. "Decomp" means `/home/claude/ref/sly2-decomp`.
+"Decomp" means this repository.
 
 ---
 
