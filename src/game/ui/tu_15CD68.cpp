@@ -38,16 +38,8 @@ struct EPMENU
 };
 
 /* g_sw seen through the per-episode save keys and the active menu. */
-struct SWV
-{
-    char pad[0x3B58];
-    void *episodePlayTimeVars[9];    /* +0x3B58 per-episode float save variable (0: not finished, HYPOTHESIS) */
-    void *episodePercentVars[9];    /* +0x3B7C per-episode percent */
-    char pad2[0x4774 - 0x3BA0];
-    EPMENU *pepmenu;    /* +0x4774 */
-};
 
-extern SWV D_003DD490;
+extern SW D_003DD490;
 extern char D_003D4A60[];
 extern char D_003D9ED0[], D_002E6550[], D_003DA4F0[];
 extern char D_002E65E0[];
@@ -84,7 +76,7 @@ int GetJoySelectionStepY(void *pjoy);
 int GetJoySelectionStepX(void *pjoy);
 int HandleJoyButtons(void *pjoy, int grf);
 void CMpeg_QueueMovie(void *pmpeg, int n);
-void WipeToWorldWarp(SWV *world, int a, int b, int c, int d, int e);
+void WipeToWorldWarp(SW *world, int a, int b, int c, int d, int e);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetExitExits(void *pexit, int n);
@@ -164,9 +156,9 @@ extern "C" void PostEpisodeMenuLoad(EPMENU *menu)
         do {
             int n;
             void *pkey;
-            if (GetSaveFloat(D_003DD490.episodePlayTimeVars[menu->lastEpisode]) != 0.0f)
+            if (GetSaveFloat(D_003DD490.apsvpEpisodeDt[menu->lastEpisode]) != 0.0f)
                 break;
-            pkey = D_003DD490.episodePercentVars[menu->lastEpisode - 1];
+            pkey = D_003DD490.apsvpEpisodePercent[menu->lastEpisode - 1];
             n = 0;
             if (pkey)
                 n = GetSaveInt(pkey);
@@ -237,7 +229,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
             /* After 10 s on a finished episode that has a movie, prompt for the replay. */
             int isFinished = 0;
             int movieKey = D_002BE248[menu->episode];
-            void *pkey = D_003DD490.episodePercentVars[menu->episode];
+            void *pkey = D_003DD490.apsvpEpisodePercent[menu->episode];
             if ((pkey && GetSaveInt(pkey) >= 100) || D_002BE26C)
                 isFinished = 1;
             if (movieKey && isFinished && 10.0f < D_002DDED0.realTime - menu->promptTime)
@@ -307,7 +299,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
         if (!IsWidgetAnimPlaying(menu, labelOid)) {
             /* A never-played episode starts through its exit (the intro), otherwise by a warp into its world. */
             int isNew = 0;
-            void *pkey = D_003DD490.episodePlayTimeVars[menu->episode];
+            void *pkey = D_003DD490.apsvpEpisodeDt[menu->episode];
             if (pkey) {
                 float playTime;
                 isNew = 1;
@@ -403,8 +395,8 @@ extern "C" int GetEpisodeMenuItemCount(EPMENU *menu)
     if (D_002BE26C)
         return 0x10;
     n = D_002BE2D0[menu->lastEpisode];
-    playTimeVar = D_003DD490.episodePlayTimeVars[menu->lastEpisode];
-    percentVar = D_003DD490.episodePercentVars[menu->lastEpisode];
+    playTimeVar = D_003DD490.apsvpEpisodeDt[menu->lastEpisode];
+    percentVar = D_003DD490.apsvpEpisodePercent[menu->lastEpisode];
     playTime = GetSaveFloat(playTimeVar);
     if (playTime == 0.0f) {
         n -= 2;
@@ -434,9 +426,9 @@ extern "C" void SetEpisodeMenuHighlight(EPMENU *menu, int promptState)
 // Text callback: "<n>%" for the selected episode (95% scale, +5 when its bonus flag is set).
 extern "C" void FormatEpisodePercent(char *pch)
 {
-    SWV *world = &D_003DD490;
+    SW *world = &D_003DD490;
     void *pkey;
-    if (world->pepmenu && (pkey = world->episodePercentVars[world->pepmenu->episode]) != 0) {
+    if (world->pepmenu && (pkey = world->apsvpEpisodePercent[world->pepmenu->episode]) != 0) {
         int n = GetSaveInt(pkey);
         n = n * 95 / 100;
         if (IsPowerupAcquired(D_002BE2F8[world->pepmenu->episode]))
@@ -448,9 +440,9 @@ extern "C" void FormatEpisodePercent(char *pch)
 // Text callback: the selected episode's play time as h:mm.
 extern "C" void FormatEpisodePlayTime(char *pch)
 {
-    SWV *world = &D_003DD490;
+    SW *world = &D_003DD490;
     void *pkey;
-    if (world->pepmenu && (pkey = world->episodePlayTimeVars[world->pepmenu->episode]) != 0) {
+    if (world->pepmenu && (pkey = world->apsvpEpisodeDt[world->pepmenu->episode]) != 0) {
         float seconds;
         int hours, minutes;
         seconds = GetSaveFloat(pkey);
