@@ -22,6 +22,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/joy.h"
 #include "sly2/scrap.h"
+#include "sly2/cref.h"
 
 /* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
    destructor DestroyBasic (cm.cpp's g_cm pattern). */
@@ -563,40 +564,6 @@ struct LOUPD
 };
 int GetCurrentLevelIndex();
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
-union TAG
-{
-    int m_n;
-    float m_g;
-    int m_bool;
-    uint m_symid;
-    BIFK m_bifk;
-    const VECTOR4* m_pvec4;
-    CPair* m_ppair;
-    CProc* m_pproc;
-    VECTOR* m_pvector;
-    MATRIX4* m_pmatrix;
-    CLQ* m_pclq;
-    LM* m_plm;
-    SMP* m_psmp;
-    BASIC* m_pbasic;
-    CMethod* m_pmethod;
-};
-class CRef
-{
-public:
-    TAGK m_tagk;
-    TAG m_tag;
-    CRef() { m_tagk = TAGK_Nil; }
-    CRef(TAGK tagk) { SetTag(tagk); }
-    CRef(TAGK tagk, int n) { m_tagk = tagk; m_tag.m_n = n; }
-    CRef(TAGK tagk, float g) { m_tagk = tagk; m_tag.m_g = g; }
-    CRef(const CRef &ref);
-    ~CRef() { Decref(); }
-    CRef &operator=(const CRef &ref);
-    bool operator==(const CRef &ref);
-    void Decref();
-    void SetTag(TAGK tagk);
-};
 extern int D_002E1E54;
 extern SAVEDATA D_003D4A60;
 extern const char *D_002A39E8[9];
@@ -605,7 +572,7 @@ extern "C" CRef SetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveMa
 inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { SetGlobalSaveVar(psvp, ref, &D_003D4A60); }
 inline void SetSaveVarInt(SVPATH *psvp, int n)
 {
-    CRef ref((TAGK)0x15, n);
+    CRef ref(n, 0x15);
     SetSaveVarRef(psvp, ref);
 }
 extern "C" CRef SetSaveVarByName(const CRef &ref, const char *pchz, ...);
@@ -640,7 +607,7 @@ void ResolveSwSaveVars(SW *world)
     SetSaveVarInt(world->psvpWidCurrent, GetCurrentLevelIndex());
     SetSaveVarInt(world->psvpEpisodeCurrent, GetCurrentWorld());
     if (GetCurrentWorld() > GetBestEpisode())
-        SetSaveVarByName(CRef((TAGK)0x15, GetCurrentWorld()), "episodeBest", 0);
+        SetSaveVarByName(CRef(GetCurrentWorld(), 0x15), "episodeBest", 0);
     BroadcastGameEvent(&D_002DEB30, 3, 0);
 }
 
@@ -718,7 +685,6 @@ struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unused3C80,unused3C84,objectId,objectKey;char pad3C90[0x228];int actorCount;ACTOR *actors[1];char pad3EC0[0x8AC];float resumeTime;char pad4770[0x20];};
 struct FRAME;
 struct STREAM;
-struct REF;
 extern "C" { extern char D_002DDED0[],D_002DDF40[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
 extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
 extern "C" { extern SW D_003DD490; }
@@ -750,7 +716,6 @@ CONTEXT *FindWarpByOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
 ACTOR *GetHeroPo(SW *);
 ACTOR *GetCurrentPo(SW *);
-void Decref__4CRef(REF *);
 ACTOR *FindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
 int IsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
 int GetPoCtlState(ACTOR *);
@@ -765,8 +730,7 @@ void RunNextStartupStep(void *);
 }
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
-struct REF {int tag,value;REF(const REF &);~REF(){Decref__4CRef(this);}};
-extern "C" REF GetSaveVarByName(const char *,...);
+extern "C" CRef GetSaveVarByName(const char *,...);
 static inline float Time(){return *(float *)D_002DDED0;}
 static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
 static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
@@ -828,7 +792,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     if(!GetHeroPo(world)&&!GetCurrentPo(world)&&world->actorCount>0){
         ACTOR *selected=0;
         int actorId;
-        {REF value=GetSaveVarByName("oidPoCurrent",0);actorId=value.value;}
+        {CRef value=GetSaveVarByName("oidPoCurrent",0);actorId=value.u.n;}
         if(actorId!=-1)selected=FindSwObject__FP2SWi3OIDP2LO(world,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
@@ -1950,16 +1914,15 @@ int GetCurrentWorld(void)
 } } // namespace M_NWorldCur
 
 namespace M_NEpisodeBest { extern "C" {
-struct CRef { int tagk; int tag; };
-void GetSaveVarByName(struct CRef *r, char *s, int a);
-void Decref__4CRef(struct CRef *r);
+void GetSaveVarByName(CRefData *r, char *s, int a);
+void Decref__4CRef(CRefData *r);
 // Returns the best episode reached (save variable "episodeBest").
 int GetBestEpisode(void)
 {
-    struct CRef r;
+    CRefData r;
     int v;
     GetSaveVarByName(&r, "episodeBest", 0);
-    v = r.tag;
+    v = r.u.n;
     Decref__4CRef(&r);
     return v;
 }
