@@ -145,13 +145,21 @@ struct BTBLEND
 struct BTBLENDS
 {
       struct BENTLEY *pbentley;   /* owner */
-      int unknown04;
-      undefined4 unk_0x08[(0x20 - 0x08) / 4];
+      int state;   /* +0x04 crosshair state: -1 off, 0..2 the blend pair played (SetBentleyCrosshairState) */
+      int side;   /* +0x08 which blend of the pair: 1 when ploRef is to Bentley's left (y > 0 in his frame) */
+      int unknown0C;   /* +0x0C set by message 9 kind 0x242 (HandleBentleyCrosshairMessage); allows a restart */
+      int unknown10;   /* +0x10 set by message 9 kind 0x16E; detaches the act of unknown10B8 */
+      int unknown14;   /* +0x14 set once the attack button is released */
+      float startTime;   /* +0x18 clock.time the crosshair left state -1 */
+      float blend;   /* +0x1C 0..1 between the pair's two blends (target height within unknown30..unknown34) */
       qword restPosition; /* rest position */
-      float unknown30;
-      undefined4 unknown34;
+      float unknown30;   /* +0x30 target height of blend 0 */
+      float unknown34;   /* +0x34 target height of blend 1 */
       BTBLEND abtblend[6];   /* the blends */
+      struct ASEGA *pasega;   /* +0xE0 the running blend application */
+      LO *ploRef;   /* +0xE4 the object whose side picks the blend */
 };
+typedef char assert_BTBLENDS_size[sizeof(BTBLENDS) == 0xF0 ? 1 : -1];   /* 0xE8 of fields, 16-byte aligned (BENTLEY +0x1800 follows) */
 
 /* BENTLEY: Bentley, the gadget partner (in his wheelchair): directional blends, gadget slots and blend set.
    Layout from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (2 copies in Lilly ports) */
@@ -178,8 +186,7 @@ struct BENTLEY : public STEPPLAYER
       qword aimPoint;   /* +0x16F0 where the crosshair ray hits (UpdateBentleyAimPoint); darts fly there */
       float lastDartTime;   /* +0x1700 clock.time of the last dart (FireBentleyDart) */
       undefined4 unk_0x1704[(0x1710 - 0x1704) / 4];
-      BTBLENDS btblends;   /* blend set */
-      undefined4 unk_0x17f0[(0x1800 - 0x17f0) / 4];
+      BTBLENDS btblends;   /* +0x1710 blend set (the crosshair/aim helper: InitBentleyCrosshair, SetBentleyCrosshairState) */
       int unknown1800;   /* +0x1800 a small state: 1 waits for floor contact, then Bentley goes idle and takes control (UpdateBentleyStateMisc) */
       undefined4 unk_0x1804[(0x1818 - 0x1804) / 4];
     union
@@ -220,6 +227,7 @@ struct BENTLEY : public STEPPLAYER
     virtual void StartGadget(int idGadget) __asm__("StartBentleyGadget");   /* slot 100 */
     virtual void *GetSaveVarRoot() __asm__("GetBentleySaveVarRoot");   /* slot 103 */
 };
-typedef char assert_BENTLEY_size[sizeof(BENTLEY) == 0x1880 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
+typedef char assert_BENTLEY_size[sizeof(BENTLEY) == 0x1880 ? 1 : -1];
+typedef char assert_BENTLEY_unknown1800[SLY2_OFFSETOF(BENTLEY, unknown1800) == 0x1800 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 #endif /* SLY2_PLAYERS_H */

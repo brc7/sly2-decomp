@@ -1248,7 +1248,7 @@ void UpdateBentleyAim(BENTLEY *bentley)
             switch (bentley->state) {
             case BENTLEY_IDLE:
                 UpdateBentleyCrosshair(&bentley->btblends, 0);
-                if (bentley->unknown181C && bentley->btblends.unknown04 != -1 && bentley->activeStateMachine && FindSmStateOptional__FP2SM3OID(bentley->unknown1028, 0x17B) >= 0)
+                if (bentley->unknown181C && bentley->btblends.state != -1 && bentley->activeStateMachine && FindSmStateOptional__FP2SM3OID(bentley->unknown1028, 0x17B) >= 0)
                     SnapSma(bentley->activeStateMachine, 0x17B);
                 break;
             case BENTLEY_RUN: case BENTLEY_AIR: case BENTLEY_GRAB: case BENTLEY_WALK:
@@ -1607,56 +1607,48 @@ void InitBentleyCrosshair(BTBLENDS *bentley, BENTLEY *a, ti128 v, float g0, floa
     bentley->pbentley = a;
     bentley->restPosition = v;
     bentley->unknown30 = g1;
-    bentley->unknown04 = -1;
+    bentley->state = -1;
     for (i = 0; i < 6; i++) EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(bentley->pbentley, 0xc, 2, bentley->abtblend[i].abl, 0, 0, 0, &bentley->abtblend[i].blendedAnimation);
 }
 } } // namespace M_func_00136D28
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136DC0 { extern "C" {
-struct VT { short d; short pad; void *pfn; };
-struct A { char pad[0x30]; int x30; };
-struct O { char pad[0xC]; struct VT *pvt; char pad2[0x150 - 0x10]; struct A *pa; };
-struct P { struct O *po; int x4; int x8; int xC; int x10; int x14; char pad[0xE0 - 0x18]; void *pE0; };
 int IsAsegaRetracted(void *p);
-void SetBentleyCrosshairState(struct P *p, int k);
-int GetButtonsPressedWithin__5POCTLUif(struct A *pa, int grf, float g);
-void ClearPoctlJoyPressed(struct A *pa, int n);
+int GetButtonsPressedWithin__5POCTLUif(POCTL *pa, int grf, float g);
+void ClearPoctlJoyPressed(POCTL *pa, int n);
 // Crosshair update: on button 0x80 when gadget 2 is usable, restarts it.
-void UpdateBentleyCrosshair(struct P *bentley, int k)
+void UpdateBentleyCrosshair(BTBLENDS *bentley, int k)
 {
-    if (bentley->pE0 && IsAsegaRetracted(bentley->pE0))
+    if (bentley->pasega && IsAsegaRetracted(bentley->pasega))
         SetBentleyCrosshairState(bentley, -1);
-    if (k != bentley->x4 && bentley->x4 != -1)
+    if (k != bentley->state && bentley->state != -1)
         SetBentleyCrosshairState(bentley, k);
-    if (k != -1 && (bentley->x4 == -1 || bentley->xC) &&
-        GetButtonsPressedWithin__5POCTLUif(bentley->po->pa, BUTTON_ATTACK, 0.1f)) {
-        struct O *object = bentley->po;
-        if (((int (*)(void *, int))object->pvt[99].pfn)((char *)object + object->pvt[99].d, 2)) {
-            ClearPoctlJoyPressed(bentley->po->pa, BUTTON_ATTACK);
+    if (k != -1 && (bentley->state == -1 || bentley->unknown0C) &&
+        GetButtonsPressedWithin__5POCTLUif(bentley->pbentley->controller, BUTTON_ATTACK, 0.1f)) {
+        if (bentley->pbentley->CanUseGadget(2)) {
+            ClearPoctlJoyPressed(bentley->pbentley->controller, BUTTON_ATTACK);
             SetBentleyCrosshairState(bentley, -1);
             SetBentleyCrosshairState(bentley, k);
         }
     }
-    if (!(bentley->po->pa->x30 & BUTTON_ATTACK))
+    if (!(bentley->pbentley->controller->buttonsHeld & BUTTON_ATTACK))
 
-        bentley->x14 = 1;
+        bentley->unknown14 = 1;
 }
 } } // namespace M_func_00136DC0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136ED0 { extern "C" {
-struct L { char pad[0x10b8]; void *f10b8; };
-struct S { struct L *pl; int pad[2]; int fc; int f10; char pad2[0xe0 - 0x14]; int fe0; };
-struct M { int id; int f4; int f8; };
-void DetachXfActById(int, struct L *, void *);
+struct M { ASEGA *pasega; int f4; int f8; };
+void DetachXfActById(ASEGA *, BENTLEY *, void *);
 // Crosshair message handler: message 9 kinds 0x16E/0x242.
-void HandleBentleyCrosshairMessage(struct S *bentley, int msg, struct M *pm) {
-    if (msg != 9 || pm->id != bentley->fe0)
+void HandleBentleyCrosshairMessage(BTBLENDS *bentley, int msg, struct M *pm) {
+    if (msg != 9 || pm->pasega != bentley->pasega)
         return;
     switch (pm->f8) {
-    case 0x16e: DetachXfActById(pm->id, bentley->pl, bentley->pl->f10b8); bentley->f10 = 1; break;
-    case 0x242: bentley->fc = 1; break;
+    case 0x16e: DetachXfActById(pm->pasega, bentley->pbentley, bentley->pbentley->unknown10B8); bentley->unknown10 = 1; break;
+    case 0x242: bentley->unknown0C = 1; break;
     }
 }
 } } // namespace M_func_00136ED0
@@ -1665,22 +1657,18 @@ void HandleBentleyCrosshairMessage(struct S *bentley, int msg, struct M *pm) {
 namespace M_func_00136F48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float a[4]; } QF;
-struct PO { char pad[0x1A8]; float g1A8; char pad1[0x10B8 - 0x1AC]; int x10B8; };
-struct E { float f0; int pad[2]; float fC; int pad2[2]; void *p18; };
-struct S { struct PO *po; int state; int x8; int xC; int x10; int x14; float g18; float g1C; char a20[0x10]; float g30; float g34;
-    struct E ae[6]; char pad[0xE0 - 0x38 - 6 * 28]; void *pvE0; void *pvE4; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, float);
-qword ConvertPosBetweenLos(void *, struct PO *, qword);
-void SetStepTargetHeadingFromVector(struct PO *, qword);
-void FixStepAngularVelocity(struct PO *);
+void ChooseJtAttackTarget(BENTLEY *, int, void *, int *, QF *, float, float, float);
+qword ConvertPosBetweenLos(void *, BENTLEY *, qword);
+void SetStepTargetHeadingFromVector(BENTLEY *, qword);
+void FixStepAngularVelocity(BENTLEY *);
 void RecalculateAsegBlend(void *);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
-void DetachXfActById(void *, struct PO *, int);
-void SetAsegaChannelWeight(void *, float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, BENTLEY *, int, ASEGA **, float, float);
+void DetachXfActById(ASEGA *, BENTLEY *, void *);
+void SetAsegaChannelWeight(ASEGA *, float);
 // Crosshair state change.
-void SetBentleyCrosshairState(struct S *ps, int state)
+void SetBentleyCrosshairState(BTBLENDS *ps, int state)
 {
     void *pv;
     float dt;
@@ -1691,24 +1679,24 @@ void SetBentleyCrosshairState(struct S *ps, int state)
         QF v;
         QF r;
         float g;
-        ps->g18 = D_002DDED0.time;
-        ps->xC = 0;
-        ps->x10 = 0;
-        ps->x14 = 0;
+        ps->startTime = D_002DDED0.time;
+        ps->unknown0C = 0;
+        ps->unknown10 = 0;
+        ps->unknown14 = 0;
         g = 1.5f;
         if (state == 0)
             g = 3.15f;
-        ChooseJtAttackTarget(ps->po, 2, ps->a20, &f, &v, ps->po->g1A8, 0.15f, g);
+        ChooseJtAttackTarget(ps->pbentley, 2, &ps->restPosition, &f, &v, ps->pbentley->targetHeading, 0.15f, g);
         if (f) {
-            ps->g1C = Clamp((v.a[2] - ps->g30) / (ps->g34 - ps->g30), 0.0f, 1.0f);
+            ps->blend = Clamp((v.a[2] - ps->unknown30) / (ps->unknown34 - ps->unknown30), 0.0f, 1.0f);
         } else {
-            ps->g1C = 0.5f;
+            ps->blend = 0.5f;
         }
-        r.q = ConvertPosBetweenLos(ps->pvE4, ps->po, D_002A2DD0);
-        ps->x8 = 0.0f < r.a[1] ? 1 : 0;
+        r.q = ConvertPosBetweenLos(ps->ploRef, ps->pbentley, D_002A2DD0);
+        ps->side = 0.0f < r.a[1] ? 1 : 0;
         if (state == 0 && f) {
-            SetStepTargetHeadingFromVector(ps->po, v.q);
-            FixStepAngularVelocity(ps->po);
+            SetStepTargetHeadingFromVector(ps->pbentley, v.q);
+            FixStepAngularVelocity(ps->pbentley);
         }
     }
     ps->state = state;
@@ -1720,22 +1708,22 @@ void SetBentleyCrosshairState(struct S *ps, int state)
     case 0:
     case 1:
     case 2: {
-        struct E *pe = &ps->ae[state * 2 + ps->x8];
-        pe->f0 = 1.0f - ps->g1C;
-        pv = pe->p18;
-        pe->fC = ps->g1C;
+        BTBLEND *pe = &ps->abtblend[state * 2 + ps->side];
+        pe->abl[0].weight = 1.0f - ps->blend;
+        pv = pe->blendedAnimation;
+        pe->abl[1].weight = ps->blend;
         dt = 0.06666667f;
         RecalculateAsegBlend(pv);
         break;
     }
     }
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->po, 1, &ps->pvE0, D_002DDED0.time - ps->g18, 1.0f);
-    if (!ps->pvE0)
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->pbentley, 1, &ps->pasega, D_002DDED0.time - ps->startTime, 1.0f);
+    if (!ps->pasega)
         return;
-    if (ps->x10)
-        DetachXfActById(ps->pvE0, ps->po, ps->po->x10B8);
-    if (ps->pvE0 && dt != 0.0f)
-        SetAsegaChannelWeight(ps->pvE0, D_002DDED0.time + dt);
+    if (ps->unknown10)
+        DetachXfActById(ps->pasega, ps->pbentley, ps->pbentley->unknown10B8);
+    if (ps->pasega && dt != 0.0f)
+        SetAsegaChannelWeight(ps->pasega, D_002DDED0.time + dt);
 }
 } } // namespace M_func_00136F48
 
@@ -1743,7 +1731,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
 extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 {
     blends->pbentley = bentley;
-    blends->unknown04 = -1;
+    blends->state = -1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
