@@ -52,6 +52,10 @@ enum {
     CID_BHV176 = 0xB0,
     CID_BHVJUGGLED = 0xB1,
 };
+/* Object ids used here. */
+enum {
+    OID_DEFAULT_ATTACK = 0x2CC,     /* the attack a guard without attack oids gets (GetStepguardDefaultAttack) */
+};
 /* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
    section 2). Only the identified flags are named. */
 enum {
@@ -110,11 +114,12 @@ struct TARGETREC
     int guardCount;         /* +0x28 */
     STEPGUARD *guards[1];   /* +0x2C */
 };
-/* An object with an animation binding at +0xB0 for its guard at +0xAC (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
+/* A guard attack (CID120) as its binding functions see it: the owning guard at +0xAC and the attack animation's
+   binding at +0xB0 (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
 struct ANIMLO
 {
     char pad0[0xAC];
-    STEPGUARD *pstepguard;  /* +0xAC */
+    STEPGUARD *guard;       /* +0xAC */
     ANIMBINDING binding;    /* +0xB0 */
 };
 /* The sub-behaviour of the guard's root behaviour in mode 0x10, as SetStepguardEscortPoint fills it. */
@@ -155,18 +160,18 @@ void func_001F5078(STEPGUARD *guard);
 void func_00204660(STEPGUARD *guard);
 int GetSgfMaskFromSpliceList(int n);
 ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, int i);
-void ResolveAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard);
-void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard);
-void CloneAnimBinding(ANIMBINDING *pbinding);
-void CloneZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
+void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+void CloneAnimBinding(ANIMBINDING *binding);
+void CloneZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void func_0020C030(int h);
 void func_0020CA20(int h);
 void AddStepguardAttackOid(STEPGUARD *guard);
 void ResolveStepguardAttacks(STEPGUARD *guard);
-void SetGuardAttackBindingKind2(ANIMLO *panimlo);
-void SetStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC);
-void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
-void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
+void SetGuardAttackBindingKind2(ANIMLO *attack);
+void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags);
+void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *table);
+void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void CloneStepguardAnimBindings(STEPGUARD *guard);
 void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget);
 void ClearStepguardIgnoreClasses(STEPGUARD *guard);
@@ -1404,22 +1409,22 @@ unsigned long GetSgfMaskFromSpliceList(void *list)
 // 0x207B70 SetStepguardAnimBinding
 // 0x207B70: Splice option: sets the animation (oid, argument) bound to a guard-flag set, creating the binding if
 // needed.
-extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC)
+extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags)
 {
-    ANIMBINDING *pbinding;
-    pbinding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(n));
-    pbinding->h = h;
-    pbinding->nC = nC;
+    ANIMBINDING *binding;
+    binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    binding->h = oid;
+    binding->nC = flags;
 }
 
 // 0x207BC8 SetAndResolveStepguardAnimBinding
 // 0x207BC8: SetStepguardAnimBinding, then resolves the binding.
-extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC)
+extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, int flags)
 {
-    ANIMBINDING *pbinding;
-    pbinding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(n));
-    SetStepguardAnimBinding(guard, n, h, nC);
-    ResolveAnimBinding(pbinding, guard);
+    ANIMBINDING *binding;
+    binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    SetStepguardAnimBinding(guard, sgfList, oid, flags);
+    ResolveAnimBinding(binding, guard);
 }
 
 // 0x207C48 SetStepguardAnimBindingKind3
@@ -1608,16 +1613,16 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // 0x2080A0 ResolveZapReactions
 // 0x2080A0: Resolves all 26 entries of a zap-reaction table.
-extern "C" void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
+extern "C" void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *table)
 {
-    ANIMBINDING *pbinding;
+    ANIMBINDING *binding;
     int i;
-    pbinding = abinding;
+    binding = table;
     i = 25;
     do {
-        ResolveAnimBinding(pbinding, guard);
+        ResolveAnimBinding(binding, guard);
         i -= 1;
-        pbinding++;
+        binding++;
     } while (i >= 0);
 }
 
@@ -1635,9 +1640,9 @@ extern "C" void ResolveStepguardAnimBindings(STEPGUARD *guard)
 
 // 0x208178 ReleaseZapReactions
 // 0x208178: Releases all 26 entries of a zap-reaction table.
-extern "C" void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
+extern "C" void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table)
 {
-    ANIMBINDING *binding = abinding;
+    ANIMBINDING *binding = table;
     int i;
     for (i = 25; i >= 0; i--) {   // 26 zap kinds
         ReleaseAnimBinding(binding, guard);
@@ -3477,34 +3482,40 @@ void SetTargetRecordState(struct TARGETREC *record, int state)
 // 0x20A9C0 GetStepguardDefaultAttack
 namespace M_func_0020A9C0 { extern "C" {
 struct S;
-struct S { char pad[0xEB8]; int aEB8[8]; int cED8; int aEDC[8]; int cEFC; };
-int PloNew__F3CIDP2SO3OIDi(int a, struct S *p, int b, int c);
+struct S { char pad[0xEB8]; int attackOids[8]; int attackOidCount; int attacks[8]; int attackCount; };
+int PloNew__F3CIDP2SO3OIDi(int cid, struct S *parent, int oid, int n);
 // Appends an attack (oid and resolved object) to the guard's two attack lists.
-static __inline__ void Push(struct S *p, int id, int v)
+static __inline__ void Push(struct S *guard, int oid, int attack)
 {
-    p->aEDC[p->cEFC++] = v;
-    p->aEB8[p->cED8++] = id;
+    guard->attacks[guard->attackCount++] = attack;
+    guard->attackOids[guard->attackOidCount++] = oid;
 }
 // 0x20A9C0: Returns the guard's first attack object, creating the default one (cid 0x78, oid 0x2CC) if it has none.
 int GetStepguardDefaultAttack(struct S *guard)
 {
-    int v;
-    if (guard->cED8 == 0) {
-        v = PloNew__F3CIDP2SO3OIDi(0x78, guard, 0x2CC, -1);
-        Push(guard, 0x2CC, v);
+    int attack;
+    if (guard->attackOidCount == 0) {
+        attack = PloNew__F3CIDP2SO3OIDi(0x78, guard, OID_DEFAULT_ATTACK, -1);
+        Push(guard, OID_DEFAULT_ATTACK, attack);
     } else {
-        v = guard->aEDC[0];
+        attack = guard->attacks[0];
     }
-    return v;
+    return attack;
 }
 } } // namespace M_func_0020A9C0
 
 // 0x20AA40 AddStepguardAttackOid
 namespace M_func_0020AA40 { extern "C" {
 struct S;
-struct S { char pad[0xEB8]; int a[8]; unsigned int c; };
+struct S { char pad[0xEB8]; int attackOids[8]; unsigned int attackOidCount; };
 // 0x20AA40: Splice option: adds an attack oid (at most 8).
-void AddStepguardAttackOid(struct S *guard, int n) { if (n != -1) { if (guard->c < 8) guard->a[guard->c++] = n; } }
+void AddStepguardAttackOid(struct S *guard, int oid)
+{
+    if (oid != -1) {
+        if (guard->attackOidCount < 8)
+            guard->attackOids[guard->attackOidCount++] = oid;
+    }
+}
 } } // namespace M_func_0020AA40
 
 // 0x20AA78 AddAndResolveStepguardAttackOid
@@ -3519,17 +3530,17 @@ extern "C" void AddAndResolveStepguardAttackOid(STEPGUARD *guard)
 namespace M_func_0020AAA8 { extern "C" {
 struct S;
 extern char D_003DD490[];
-struct S { char pad[0xEB8]; int a[8]; int n; int b[8]; int c; };
-int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int x, struct S *ps);
+struct S { char pad[0xEB8]; int attackOids[8]; int attackOidCount; int attacks[8]; int attackCount; };
+int PloFindSwObject__FP2SWi3OIDP2LO(void *sw, int k, int oid, struct S *context);
 // 0x20AAA8: Resolves the attack oids into attack objects.
 void ResolveStepguardAttacks(struct S *guard)
 {
     int i;
-    guard->c = 0;
-    for (i = 0; i < guard->n; i++) {
-        int r = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, guard->a[i], guard);
-        if (r)
-            guard->b[guard->c++] = r;
+    guard->attackCount = 0;
+    for (i = 0; i < guard->attackOidCount; i++) {
+        int attack = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, guard->attackOids[i], guard);
+        if (attack)
+            guard->attacks[guard->attackCount++] = attack;
     }
 }
 } } // namespace M_func_0020AAA8
@@ -3537,94 +3548,97 @@ void ResolveStepguardAttacks(struct S *guard)
 // 0x20AB58 ClearStepguardAttacks
 namespace M_func_0020AB58 { extern "C" {
 // 0x20AB58: Clears both attack lists.
-void ClearStepguardAttacks(char *p)
+struct S { char pad[0xED8]; int attackOidCount; char pad2[0xEFC - 0xEDC]; int attackCount; };
+void ClearStepguardAttacks(struct S *guard)
 {
-    *(int *)(p + 0xED8) = 0;
-    *(int *)(p + 0xEFC) = 0;
+    guard->attackOidCount = 0;
+    guard->attackCount = 0;
 }
 } } // namespace M_func_0020AB58
 
 // 0x20AB68 SetStepguardAttack
 namespace M_func_0020AB68 { extern "C" {
-struct C; struct O; struct S;
+struct BINDING; struct ATTACK; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002A88C4;
-struct C { char pad[0xC]; int fl; };
-struct O { char pad[0x60]; float f60; float f64; char pad2[0xC0 - 0x68]; struct C *pc; };
-struct S { char pad[0xF00]; struct O *po; float t; };
-void StopAnimBinding(struct C *pc);
+struct BINDING { char pad[0xC]; int flags; };
+struct ATTACK { char pad[0x60]; float cooldownMin; float cooldownMax; char pad2[0xC0 - 0x68]; struct BINDING *activeBinding; };
+struct S { char pad[0xF00]; struct ATTACK *currentAttack; float tAttackNext; };
+void StopAnimBinding(struct BINDING *binding);
 float GRandInRange__Fff(float a, float b);
-void StartAnimBinding(struct C *pc, struct S *p, int fl, float g);
-void SetStepguardAimAct(struct S *p, struct O *po, int n, qword v);
+void StartAnimBinding(struct BINDING *binding, struct S *guard, int flags, float start);
+void SetStepguardAimAct(struct S *guard, struct ATTACK *attack, int aimTarget, qword aimOffset);
 // 0x20AB68: Switches the current attack: stops the old animation, sets the cooldown (now + random in the attack's
 // range), starts the new animation and its aim.
-void SetStepguardAttack(struct S *guard, struct O *po, int n, qword v)
+void SetStepguardAttack(struct S *guard, struct ATTACK *attack, int aimTarget, qword aimOffset)
 {
-    if (guard->po) {
-        float t;
-        StopAnimBinding(guard->po->pc);
-        t = D_002DDED0.t;
-        t += GRandInRange__Fff(guard->po->f60, guard->po->f64);
-        guard->po = 0;
-        guard->t = t;
+    if (guard->currentAttack) {
+        float next;
+        StopAnimBinding(guard->currentAttack->activeBinding);
+        next = D_002DDED0.t;
+        next += GRandInRange__Fff(guard->currentAttack->cooldownMin, guard->currentAttack->cooldownMax);
+        guard->currentAttack = 0;
+        guard->tAttackNext = next;
     }
-    guard->po = po;
-    if (po) {
-        StartAnimBinding(po->pc, guard, po->pc->fl | 1, 0.0f);
-        guard->t = D_002A88C4;
+    guard->currentAttack = attack;
+    if (attack) {
+        StartAnimBinding(attack->activeBinding, guard, attack->activeBinding->flags | 1, 0.0f);
+        guard->tAttackNext = D_002A88C4;   /* no next attack while this one runs */
     }
-    SetStepguardAimAct(guard, po, n, v);
+    SetStepguardAimAct(guard, attack, aimTarget, aimOffset);
 }
 } } // namespace M_func_0020AB68
 
 // 0x20AC28 SetStepguardAimAct
 namespace M_func_0020AC28 { extern "C" {
-struct A; struct S;
+struct ATTACK; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct A { char pad[0xA0]; int nA0; };
-struct S { char pad[0xF08]; struct A *pa; int h; int n; char pad2[0xC]; qword v; };
-void ReleaseAct(int *ph);
-int func_0012DC18(struct S *p, int a, int b, int c, int d, qword q);
-// 0x20AC28: Releases and re-creates the aim act of the current attack.
-void SetStepguardAimAct(struct S *guard, struct A *pa, int n, qword v)
+struct ATTACK { char pad[0xA0]; int aimObject; };
+struct S { char pad[0xF08]; struct ATTACK *aimAttack; int aimAct; int aimTarget; char pad2[0xC]; qword aimOffset; };
+void ReleaseAct(int *act);
+int func_0012DC18(struct S *guard, int object, int b, int c, int d, qword q);
+// 0x20AC28: Releases and re-creates the aim act (the act that turns the attack's aim object, e.g. a gun
+// arm, toward the target) of the current attack.
+void SetStepguardAimAct(struct S *guard, struct ATTACK *attack, int aimTarget, qword aimOffset)
 {
-    if (guard->pa) {
-        ReleaseAct(&guard->h);
-        guard->h = 0;
-        guard->pa = 0;
+    if (guard->aimAttack) {
+        ReleaseAct(&guard->aimAct);
+        guard->aimAct = 0;
+        guard->aimAttack = 0;
     }
-    guard->pa = pa;
-    if (pa && pa->nA0) {
-        guard->h = func_0012DC18(guard, pa->nA0, 5, 8, 3, D_002A2DD0);
-        guard->n = n;
-        guard->v = v;
+    guard->aimAttack = attack;
+    if (attack && attack->aimObject) {
+        guard->aimAct = func_0012DC18(guard, attack->aimObject, 5, 8, 3, D_002A2DD0);
+        guard->aimTarget = aimTarget;
+        guard->aimOffset = aimOffset;
     }
 }
 } } // namespace M_func_0020AC28
 
 // 0x20ACC0 UpdateStepguardAim
 namespace M_func_0020ACC0 { extern "C" {
-struct MATRIX3; struct A; struct B; struct D; struct S;
+struct MATRIX3; struct AIMOBJECT; struct ATTACK; struct ACT; struct S;
 typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
-struct A { char pad[0x30]; qword pos; char pad2[0x60]; int nA0; };
-struct B { char pad[0x90]; qword v; struct A *pa; };
-struct D { char pad[0x20]; qword v; };
-struct S { char pad[0xF08]; struct B *pb; struct D *pd; int nF10; char pad2[0xC]; qword vF20; };
-qword func_0022FC48(int a, int b, qword v);
-void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *pm, qword a, qword b);
-qword func_0011BFF0(MATRIX3 *pm);
-// 0x20ACC0: Aims the attack: rotation toward the predicted target point, as Euler angles.
+struct AIMOBJECT { char pad[0x30]; qword pos; char pad2[0x60]; int unknownA0; };
+struct ATTACK { char pad[0x90]; qword strikeOffset; struct AIMOBJECT *aimObject; };
+struct ACT { char pad[0x20]; qword goal; };
+struct S { char pad[0xF08]; struct ATTACK *aimAttack; struct ACT *aimAct; int aimTarget; char pad2[0xC]; qword aimOffset; };
+qword func_0022FC48(int target, int a, qword offset);
+void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *matrix, qword from, qword to);
+qword func_0011BFF0(MATRIX3 *matrix);
+// 0x20ACC0: Aims the attack: the rotation that turns the attack's precomputed strike offset toward the
+// predicted target point, stored as the aim act's goal (Euler angles).
 void UpdateStepguardAim(struct S *guard)
 {
-    MATRIX3 m;
-    qword v, d;
-    v = func_0022FC48(guard->nF10, guard->pb->pa->nA0, guard->vF20);
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(guard->pb->pa->pos));
-    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, guard->pb->v, d);
-    { struct D *pd = guard->pd; pd->v = func_0011BFF0(&m); }
+    MATRIX3 rotation;
+    qword aimPoint, direction;
+    aimPoint = func_0022FC48(guard->aimTarget, guard->aimAttack->aimObject->unknownA0, guard->aimOffset);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(direction) : "j"(aimPoint), "j"(guard->aimAttack->aimObject->pos));
+    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&rotation, guard->aimAttack->strikeOffset, direction);
+    { struct ACT *act = guard->aimAct; act->goal = func_0011BFF0(&rotation); }
 }
 } } // namespace M_func_0020ACC0
 
@@ -3632,74 +3646,75 @@ void UpdateStepguardAim(struct S *guard)
 namespace M_func_0020AD38 { extern "C" {
 struct S;
 extern float D_002A88C8;
-struct S { char pad[0x50]; int n50; float f54, f58, f5C, f60, f64, f68, f6C; char pad2[0x7C - 0x70]; int n7C; int n80; int n84; char pad3[0xA8 - 0x88]; int nA8; void *pAC; char eB0[4]; };
-void InitLo(struct S *p);
-void ReleaseAnimBinding(void *pe, void *p);
+struct S { char pad[0x50]; int unknown50; float range, heightMin, heightMax, cooldownMin, cooldownMax, angle, unknown6C; char pad2[0x7C - 0x70]; int aimObjectOid; int effectorOid; int strikeLabel; char pad3[0xA8 - 0x88]; int unknownA8; void *guard; char binding[4]; };
+void InitLo(struct S *attack);
+void ReleaseAnimBinding(void *binding, void *guard);
 } } // namespace M_func_0020AD38
 // 0x20AD38: Guard attack (CID120, cid 0x78) vtable slot 7 (Init): LO Init, range 0..300, height -5000..5000,
 // cooldown 0.2..0.5 s, angle 10 degrees, no oids, empty binding.
-void CID120::Init() { using namespace M_func_0020AD38; M_func_0020AD38::S *p = (M_func_0020AD38::S *)this;
-    InitLo(p);
-    p->n50 = 0;
-    p->f54 = 300.0f;
-    p->f58 = -5000.0f;
-    p->f5C = 5000.0f;
-    p->f60 = 0.2f;
-    p->f64 = 0.5f;
-    p->f68 = 0.17453295f;
-    p->nA8 = 1;
-    p->n7C = -1;
-    p->n80 = -1;
-    p->n84 = -1;
-    p->f6C = D_002A88C8;
-    ReleaseAnimBinding(p->eB0, p->pAC);
+void CID120::Init() { using namespace M_func_0020AD38; M_func_0020AD38::S *attack = (M_func_0020AD38::S *)this;
+    InitLo(attack);
+    attack->unknown50 = 0;
+    attack->range = 300.0f;
+    attack->heightMin = -5000.0f;
+    attack->heightMax = 5000.0f;
+    attack->cooldownMin = 0.2f;
+    attack->cooldownMax = 0.5f;
+    attack->angle = 0.17453295f;   /* 10 degrees */
+    attack->unknownA8 = 1;
+    attack->aimObjectOid = -1;
+    attack->effectorOid = -1;
+    attack->strikeLabel = -1;
+    attack->unknown6C = D_002A88C8;
+    ReleaseAnimBinding(attack->binding, attack->guard);
 }
 
 // 0x20ADE8 CloneGuardAttack
 // 0x20ADE8: Guard attack vtable slot 41 (Clone): LO clone plus a copy of its binding.
-extern "C" void CloneGuardAttack(ANIMLO *panimlo)
+extern "C" void CloneGuardAttack(ANIMLO *attack)
 {
     CloneLoV();
-    CloneAnimBinding(&panimlo->binding);
+    CloneAnimBinding(&attack->binding);
 }
 
 // 0x20AE18 PostGuardAttackLoad
 namespace M_func_0020AE18 { extern "C" {
-struct A; struct O; struct L; struct S;
+struct SOV; struct LOV; struct EVAL; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct A { char pad[0xA0]; int nA0; };
-struct O { char pad[0x10]; struct O *pParent; };
-struct L { char pad[0x30]; qword v; };
-struct S { char pad[0x10]; struct O *pParent; int pad14; int cid; char pad2[0x7C - 0x1C]; int a, b, c; char pad3[0x90 - 0x88]; qword v90;
-           struct A *pa; int nA4; int pad4[1]; struct O *pAC; char eB0[4]; int hB4; char pad5[0xC0 - 0xB8]; void *pC0; };
-void PostLoLoad(struct S *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
-void ResolveAnimBinding(void *pe, struct O *o);
-void *PxfFindSo(struct O *o, int a, int b);
-float *func_0012F938(int h, int a);
-void func_001300B8(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
+struct SOV { char pad[0xA0]; int unknownA0; };
+struct LOV { char pad[0x10]; struct LOV *parent; };
+struct EVAL { char pad[0x30]; qword pos; };
+struct S { char pad[0x10]; struct LOV *parent; int pad14; int oid; char pad2[0x7C - 0x1C]; int aimObjectOid, effectorOid, strikeLabel; char pad3[0x90 - 0x88]; qword strikeOffset;
+           struct SOV *aimObject; int effector; int pad4[1]; struct LOV *guard; char binding[4]; int bindingResource; char pad5[0xC0 - 0xB8]; void *activeBinding; };
+void PostLoLoad(struct S *attack);
+int FIsBasicDerivedFrom__FP5BASIC3CID(struct LOV *object, int cid);
+void ResolveAnimBinding(void *binding, struct LOV *guard);
+void *PxfFindSo(struct LOV *root, int oid, int b);
+float *func_0012F938(int aseg, int label);
+void func_001300B8(int aseg, struct LOV *root, int so, int relativeTo, struct EVAL *result, int c, float t, float g);
 // 0x20AE18: Guard attack vtable slot 15 (PostLoad): LO post-load, finds its owning guard up the parent chain,
-// resolves its binding and precomputes its animation effect.
-void PostGuardAttackLoad(struct S *guard)
+// resolves its binding and, when it has an aim object, precomputes the strike offset: where the
+// effector is, relative to the aim object, at the strike label of the attack animation (inferred).
+void PostGuardAttackLoad(struct S *attack)
 {
-    struct O *o;
-    PostLoLoad(guard);
-    for (o = guard->pParent; o && !FIsBasicDerivedFrom__FP5BASIC3CID(o, CID_STEPGUARD); o = o->pParent)
+    struct LOV *object;
+    PostLoLoad(attack);
+    for (object = attack->parent; object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_STEPGUARD); object = object->parent)
         ;
-    guard->pAC = o;
-    ResolveAnimBinding(guard->eB0, o);
-    if (guard->cid != 0x2CC)
-        guard->pC0 = guard->eB0;
-    if (guard->a != -1) {
-        struct L l;
-        int h;
-        float *pf;
-        guard->pa = (__typeof__(guard->pa))PxfFindSo(guard->pAC, guard->a, 6);
-        guard->nA4 = (int)PxfFindSo(guard->pAC, guard->b, 6);
-        h = guard->hB4;
-        pf = func_0012F938(h, guard->c);
-        func_001300B8(h, guard->pAC, guard->nA4, guard->pa->nA0, &l, 0, *pf, 1.0f);
-        guard->v90 = l.v;
+    attack->guard = object;
+    ResolveAnimBinding(attack->binding, object);
+    if (attack->oid != OID_DEFAULT_ATTACK)
+        attack->activeBinding = attack->binding;
+    if (attack->aimObjectOid != -1) {
+        struct EVAL eval;
+        int aseg;
+        float *labelTime;
+        attack->aimObject = (__typeof__(attack->aimObject))PxfFindSo(attack->guard, attack->aimObjectOid, 6);
+        attack->effector = (int)PxfFindSo(attack->guard, attack->effectorOid, 6);
+        aseg = attack->bindingResource;
+        labelTime = func_0012F938(aseg, attack->strikeLabel);
+        func_001300B8(aseg, attack->guard, attack->effector, attack->aimObject->unknownA0, &eval, 0, *labelTime, 1.0f);
+        attack->strikeOffset = eval.pos;
     }
 }
 } } // namespace M_func_0020AE18
@@ -3707,73 +3722,73 @@ void PostGuardAttackLoad(struct S *guard)
 // 0x20AF08 SetGuardAttackAngleDegrees
 namespace M_func_0020AF08 { extern "C" {
 struct S;
-struct S { char pad[0x68]; float g; };
+struct S { char pad[0x68]; float angle; };
 // 0x20AF08: Splice option: sets the attack angle (given in degrees, stored in radians).
-void SetGuardAttackAngleDegrees(struct S *guard, float g) { guard->g = g * 0.01745329424738884f; }
+void SetGuardAttackAngleDegrees(struct S *attack, float degrees) { attack->angle = degrees * 0.01745329424738884f; }
 } } // namespace M_func_0020AF08
 
 // 0x20AF28 SetGuardAttackOids
 namespace M_func_0020AF28 { extern "C" {
 struct S;
-struct S { char pad[0x7C]; int a, b, c; };
-// 0x20AF28: Splice option: sets the attack's three oids.
-void SetGuardAttackOids(struct S *guard, int a, int b, int c)
+struct S { char pad[0x7C]; int aimObjectOid, effectorOid, strikeLabel; };
+// 0x20AF28: Splice option: sets the attack's aim object, effector and strike label (inferred).
+void SetGuardAttackOids(struct S *attack, int aimObjectOid, int effectorOid, int strikeLabel)
 {
-    guard->a = a;
-    guard->b = b;
-    guard->c = c;
+    attack->aimObjectOid = aimObjectOid;
+    attack->effectorOid = effectorOid;
+    attack->strikeLabel = strikeLabel;
 }
 } } // namespace M_func_0020AF28
 
 // 0x20AF38 SetGuardAttackBinding
 // 0x20AF38: Splice option: sets the attack's animation binding.
-extern "C" void SetGuardAttackBinding(ANIMLO *panimlo, int h, int nC)
+extern "C" void SetGuardAttackBinding(ANIMLO *attack, int oid, int flags)
 {
-    ReleaseAnimBinding(&panimlo->binding, panimlo->pstepguard);
-    panimlo->binding.h = h;
-    panimlo->binding.nC = nC;
+    ReleaseAnimBinding(&attack->binding, attack->guard);
+    attack->binding.h = oid;
+    attack->binding.nC = flags;
 }
 
 // 0x20AF88 SetAndResolveGuardAttackBinding
 // 0x20AF88: Sets and resolves the attack's animation binding.
-extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *panimlo, int h, int nC)
+extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *attack, int oid, int flags)
 {
-    ANIMBINDING *pbinding;
-    pbinding = &panimlo->binding;
-    ReleaseAnimBinding(pbinding, panimlo->pstepguard);
-    panimlo->binding.h = h;
-    panimlo->binding.nC = nC;
-    ResolveAnimBinding(pbinding, panimlo->pstepguard);
+    ANIMBINDING *binding;
+    binding = &attack->binding;
+    ReleaseAnimBinding(binding, attack->guard);
+    attack->binding.h = oid;
+    attack->binding.nC = flags;
+    ResolveAnimBinding(binding, attack->guard);
 }
 
 // 0x20AFF0 SetGuardAttackBindingKind2
 namespace M_func_0020AFF0 { extern "C" {
-struct X; struct E; struct S;
-struct X { int a; };
-struct E { int n; struct X *px; int b; int c; };
-struct S { char pad[0xAC]; int nAC; struct E e; };
-void ReleaseAnimBinding(struct E *pe, int n);
-struct X *func_0020C010(int cb);
-void func_0020BD78(struct X *px);
-// 0x20AFF0: Splice option: sets the attack's binding to a kind-2 payload.
-void SetGuardAttackBindingKind2(struct S *guard, int a)
+struct PAYLOAD2; struct BINDING; struct S;
+struct PAYLOAD2 { int parameter; };
+struct BINDING { int kind; struct PAYLOAD2 *payload; int instance; int flags; };
+struct S { char pad[0xAC]; int guard; struct BINDING binding; };
+void ReleaseAnimBinding(struct BINDING *binding, int guard);
+struct PAYLOAD2 *func_0020C010(int cb);
+void func_0020BD78(struct PAYLOAD2 *payload);
+// 0x20AFF0: Splice option: sets the attack's binding to a leap payload.
+void SetGuardAttackBindingKind2(struct S *attack, int parameter)
 {
-    struct E *pe = &guard->e;
-    ReleaseAnimBinding(pe, guard->nAC);
-    guard->e.n = 2;
-    pe->px = func_0020C010(0x40);
-    func_0020BD78(pe->px);
-    pe->px->a = a;
-    pe->c = 0;
+    struct BINDING *binding = &attack->binding;
+    ReleaseAnimBinding(binding, attack->guard);
+    attack->binding.kind = BINDING_LEAP;
+    binding->payload = func_0020C010(0x40);
+    func_0020BD78(binding->payload);
+    binding->payload->parameter = parameter;
+    binding->flags = 0;
 }
 } } // namespace M_func_0020AFF0
 
 // 0x20B060 SetAndResolveGuardAttackBindingKind2
 // 0x20B060: Sets and resolves the attack's kind-2 binding.
-extern "C" void SetAndResolveGuardAttackBindingKind2(ANIMLO *panimlo)
+extern "C" void SetAndResolveGuardAttackBindingKind2(ANIMLO *attack)
 {
-    SetGuardAttackBindingKind2(panimlo);
-    ResolveAnimBinding(&panimlo->binding, panimlo->pstepguard);
+    SetGuardAttackBindingKind2(attack);
+    ResolveAnimBinding(&attack->binding, attack->guard);
 }
 
 // 0x20B090 GetStepguardGroundProbeFlags
