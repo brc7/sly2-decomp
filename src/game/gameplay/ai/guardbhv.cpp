@@ -6610,71 +6610,57 @@ int SnapPositionToSurfaceAbove(qword *ppos)
 
 // 0x17D6C8 UpdateBhvgoto
 namespace M_UpdateBhvgoto { extern "C" {
-struct CLOCK; struct W; struct G; struct T; struct V; struct A; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct CLOCK { float time; float deltaTime; };
-extern struct CLOCK D_002DDED0;
 extern float D_002BE758, D_002BE75C;
 struct W { int pad[0x28 / 4]; int version; };
-struct G { char pad[0x45CC]; struct W *pathGraph; };
-extern struct G D_003DD490;
-struct T { char pad[0x30]; void *shape; float pathParam; };
-struct V { int pad[2]; float z; };
-struct A { char pad[0x218]; struct V *unknown218; char pad2[0xFE8 - 0x21C]; int capabilities; };
-struct S {
-    char pad[0x10]; struct A *guard; int pad2; struct T *child; char pad3[0x14]; int state;
-    char pad4[0x80 - 0x34]; int relocateRef0; int relocateRef1; char pad5[8]; float relocatePos[4]; float planTime; int pathGraphVersion;
-};
-void UpdateBhv(struct S *p);
-int IsBhvBusyAbove(struct S *p);
-int IsBhvpathAtEnd(struct T *t);
-void SetBhvgotoState(struct S *p, int n);
-int IsBhvwalkpathStuck(struct T *t);
-float GetShapeMaxDistance(void *p);
-void EvaluateShapeAtDistance(void *p, float f, float *pv, int n);
-int IsBhvpathlinkDone(struct T *t);
-int IsBhvRelocateDone(struct T *t);
-void PlanBhvgoto(struct S *p);
+struct G { char pad[0x45CC]; struct W *pathGraph; };   /* g_sw's path graph (sw.h has padding there) */
+extern struct G D_003DD490_pathGraphView __asm__("D_003DD490");
+int IsBhvwalkpathStuck(BHVPATH *t);
+float GetShapeMaxDistance(SHAPE *p);
+void EvaluateShapeAtDistance(SHAPE *p, float f, qword *pv, int n);
+int IsBhvpathlinkDone(BHV *t);
+int IsBhvRelocateDone(BHV *t);
+} }
 // 0x17D6C8: BHVGOTO vtable slot 10 (Update): re-plans when stale or the path graph changed; at a path link's start
 // traverses it; relocates when stuck.
-void UpdateBhvgoto(struct S *behavior) {
+void BHVGOTO::Update() {
+    using namespace M_UpdateBhvgoto;
+    BHVGOTO *behavior = this;
     int s;
     UpdateBhv(behavior);
-    if (!(behavior->guard->capabilities & 2)) return;
+    if (!(((STEPGUARD *)behavior->owner)->capabilityFlags & 2)) return;
     while (!IsBhvBusyAbove(behavior)) {
         s = behavior->state;
         switch (s) {
         case 1:
         case 2:
             {
-                struct T *t = behavior->child;
+                BHVPATH *t = (BHVPATH *)behavior->pbhvNext;
                 if (s == 2 && IsBhvpathAtEnd(t)) {
                     SetBhvgotoState(behavior, 3);
-                } else if (D_002DDED0.time - behavior->planTime > D_002BE758 || behavior->pathGraphVersion != D_003DD490.pathGraph->version) {
+                } else if (D_002DDED0.time - behavior->planTime > D_002BE758 || behavior->pathGraphVersion != D_003DD490_pathGraphView.pathGraph->version) {
                     PlanBhvgoto(behavior);
                 } else if (IsBhvwalkpathStuck(t)) {
                     float f = t->pathParam + D_002BE75C;
                     float maxParam = GetShapeMaxDistance(t->shape);
-                    behavior->relocateRef0 = 0;
-                    behavior->relocateRef1 = 0;
-                    EvaluateShapeAtDistance(t->shape, f < maxParam ? f : maxParam, behavior->relocatePos, 0);
-                    behavior->relocatePos[2] = behavior->guard->unknown218->z;
+                    behavior->relocateGoal.shape = 0;
+                    behavior->relocateGoal.object = 0;
+                    EvaluateShapeAtDistance(t->shape, f < maxParam ? f : maxParam, &behavior->relocateGoal.pos, 0);
+                    ((float *)&behavior->relocateGoal.pos)[2] = ((float *)((STEPGUARD *)behavior->owner)->unknown218)[2];
                     SetBhvgotoState(behavior, 5);
                 }
             }
             break;
         case 3:
-            if (IsBhvpathlinkDone(behavior->child)) PlanBhvgoto(behavior);
+            if (IsBhvpathlinkDone(behavior->pbhvNext)) PlanBhvgoto(behavior);
             break;
         case 5:
-            if (IsBhvRelocateDone(behavior->child)) PlanBhvgoto(behavior);
+            if (IsBhvRelocateDone(behavior->pbhvNext)) PlanBhvgoto(behavior);
             break;
         }
         if (s != behavior->state) continue;
         break;
     }
 }
-} } // namespace M_UpdateBhvgoto
 
 // 0x17D8A8 FindBhvgotoRoute
 namespace M_FindBhvgotoRoute { extern "C" {
@@ -6875,20 +6861,13 @@ int IsBhvgotoPathFinished(BHVGOTO *behavior)
 } } // namespace M_FBhvgotoPathFinished
 
 // 0x17DD38 SetBhvgotoGoal
-namespace M_SetBhvgotoGoal { extern "C" {
-struct Q2; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct Q2 { qword a, b; };
-struct S { char pad[0x40]; struct Q2 goal; char pad2[0x40]; float planTime; };
-void PlanBhvgoto(struct S *p);
-// 0x17DD38: Sets the goal (a 16-byte header plus the position) and re-plans.
-void SetBhvgotoGoal(struct S *behavior, struct Q2 *pq)
+// 0x17DD38: Sets the goal and re-plans.
+extern "C" void SetBhvgotoGoal(BHVGOTO *behavior, PATHLINKEND *pq)
 {
     behavior->goal = *pq;
     behavior->planTime = -3.40282346638528859812e+38f;
     PlanBhvgoto(behavior);
 }
-} } // namespace M_SetBhvgotoGoal
 
 // 0x17DD70 InitBhvStalk
 namespace M_func_0017DD70 { extern "C" {
