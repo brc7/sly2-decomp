@@ -1504,22 +1504,15 @@ namespace M_OriginateSplineSinkParticles {
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[4]; };
 struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
-struct SAV { int reference; };   /* EMITB+0x08's resolved objects: [0] */
-struct EMITBV { char pad[8]; SAV *psav; char pad2[0x18 - 0xC]; int velocityKind; int localXf; };   /* velocityKind: Sly 1's EMITVK (2: positions only, 3: world) */
-class ALO;
-struct VT { char pad[0x100]; short d; short pad2; void *(*pfn)(ALO *, M4 *); };
-class ALO { public: char pad[0xC]; VT *pvt; int psoParent; char pad2[0xE4 - 0x14]; EMITBV *pemitb; };   /* the spline target (an EXPLO) */
-struct EO { char pad[8]; ALO *splineTarget; };
-struct EMITTERV { char pad[8]; EO *peo; };
 struct TIMES { char pad[0xC]; float *atDeath; };   /* the EMITGEN being emitted */
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITBV *pemitb, BUF *pb);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, BUF *pb);
 int AreFloatsNear__Ffff(float g1, float g2, float gEps);
 void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
-void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb);
+void OriginateSplineSinkParticles(int c, EMITB *pemit, TIMES *ptimes, BUF *pb);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 static inline qword MulAffine(const M4 &m, qword v)
@@ -1541,11 +1534,11 @@ static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0
 // For spline-motion blips: originates the spline end points from the spline target (an EXPLO with its own EMITB,
 // whose reference object defaults to the target's parent), each moved by the target's motion at the particle's
 // death time (LoadIdentityMatrix4 extrapolation) and with its velocity reversed, so blips fly into the target (inferred).
-void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *gen)
+void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
 {
-    ALO *target = emitb->peo->splineTarget;
-    SAV *refs = target->pemitb->psav;
-    int saved = refs->reference;
+    EXPLO *target = (EXPLO *)emitb->aploRef[EMITREF_Render];   /* the spline target: an EXPLO */
+    LO **refs = target->pemitb->aploRef;
+    LO *saved = refs[EMITREF_Reference];
     int i;
     float tPrev;
     void *pv;
@@ -1555,17 +1548,17 @@ void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *ge
     M4 mBase;
     M4 mWorld;
     if (!saved)
-        refs->reference = target->psoParent;
+        refs[EMITREF_Reference] = target->parent;
     gen->convertToWorld = 0;
     OriginateParticles__FiP5EMITBP7EMITGEN(c, target->pemitb, gen);
-    target->pemitb->localXf = 0;
+    target->pemitb->emito.pxfOrigin = 0;
     tPrev = D_002A5150;
-    pv = target->pvt->pfn((ALO *)((char *)target + target->pvt->d), &mWorld);
+    pv = target->GetLocalTransform((MATRIX4 *)&mWorld);
     mBase = mWorld;
     for (i = 0; i < c; i++) {
         float tNow = D_002DDED0.time;
         float t = ptimes->atDeath[i] - tNow;
-        int velocityKind = target->pemitb->velocityKind;
+        int velocityKind = target->pemitb->emito.velocityKind;
         if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
             M4 mT;
             tPrev = t;
@@ -1596,7 +1589,7 @@ void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *ge
         qword vv = gen->av[i];
         gen->av[i] = Scale(vv, VU_FLOAT(-1.0f));
     }
-    target->pemitb->psav->reference = saved;
+    target->pemitb->aploRef[EMITREF_Reference] = saved;
 }
 } // namespace M_OriginateSplineSinkParticles
 
