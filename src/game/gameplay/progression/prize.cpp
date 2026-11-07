@@ -795,12 +795,10 @@ void RenderDprizeSelf(LO *prize)
 namespace RO_ORDER { extern const float r_D_002A773C __asm__("D_002A773C") = 3.40282347e+38f; }
 namespace M_SetDprizeDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
+/* The position XF as quadwords (local translation +0x30, velocity +0xB0). */
 struct O { char pad[0x30]; qword position; char p1[0xB0 - 0x40]; qword velocity; };
-struct S {
-    char pad[0xC]; struct VTE *vt;
-    char p0[0x58 - 0x10]; struct O *positionChannel;
-    char p1[0x150 - 0x5C]; int state; float stateTime; int initialState; int idleAnimOverride; float animSkipTime; void *smaSource; struct LO *sma; struct LO *target;
+struct S : SO {
+    int state; float stateTime; int initialState; int idleAnimOverride; float animSkipTime; void *smaSource; struct LO *sma; struct LO *target;
     qword position; qword velocity; qword acceleration;
     char p2[0x1CC - 0x1A0]; float expireTime;
 };
@@ -824,7 +822,7 @@ void SetDprizeDprizes(struct S *prize, int n)
     if (n != DPRIZE_STATE_IDLE && n != DPRIZE_STATE_VANISHING)
         SetLoParent(prize, 0, 0);
     if (prize->state == DPRIZE_STATE_NONE || prize->state == DPRIZE_STATE_GONE) {
-        struct O *o = prize->positionChannel;
+        struct O *o = (struct O *)prize->unknown58;
         prize->position = o->position;
         prize->velocity = o->velocity;
     }
@@ -840,7 +838,7 @@ void SetDprizeDprizes(struct S *prize, int n)
         break;
     case DPRIZE_STATE_GONE:
         prize->expireTime = D_002A773C;
-        ((void (*)(void *))prize->vt[9].pf)((char *)prize + prize->vt[9].d);
+        prize->Remove();
         {
             struct LO *r = GetProxyCopyValue(prize);
             if (r)
