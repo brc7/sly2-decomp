@@ -460,12 +460,11 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
 namespace M_func_0022D148 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-struct O { char pad[0x40]; M4 mat; char pad1[0x98 - 0x80]; short k; char pad2[0xA0 - 0x9A]; struct O *pParent; };
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po);
+M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po);
 // Element-wise sum of two 4x4 matrices into pmDst.
 static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
 {
@@ -477,13 +476,13 @@ static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
     }
 }
 // Angular velocity of a transform (up to poStop) by finite differences of its slot matrices. (inferred)
-M4 *GetXfAngularVelocity(M4 *pm, struct O *po, struct O *poStop)
+M4 *GetXfAngularVelocity(M4 *pm, XF *po, XF *poStop)
 {
     M4 mB, mA, mE, mC, mD;
-    struct O *p;
+    XF *p;
     func_002333B4(pm, 0, 0x40);
-    for (p = po; p != poStop; p = p->pParent) {
-        switch (p->k) {
+    for (p = po; p != poStop; p = p->parent) {
+        switch (p->role) {
         case 0: case 3: case 10: case 12: case 15: case 19:
             break;
         default: {
@@ -491,19 +490,19 @@ M4 *GetXfAngularVelocity(M4 *pm, struct O *po, struct O *poStop)
             EvaluateXfSlotMatrixDerivative(&mA, p);
             { qword d = mA.r[3], a = mA.r[0], b = mA.r[1], c = mA.r[2]; mB.r[0] = a; mB.r[1] = b; mB.r[2] = c; mB.r[3] = d; }
             
-            if (p->pParent) {
+            if (p->parent) {
                 M4 *pmE = &mE;
                 
                 
-                __ml__FRC7MATRIX4T0(&mC, &p->pParent->mat, &mB);
+                __ml__FRC7MATRIX4T0(&mC, (M4 *)&p->parent->worldMatrix, &mB);
                 
-                InvertMatrix4Rigid(&mD, &p->mat);
+                InvertMatrix4Rigid(&mD, (M4 *)&p->worldMatrix);
                 __ml__FRC7MATRIX4T0(pmE, &mC, &mD);
                 AddM4(&mA, pm, pmE);
                 func_0023320C(pm, &mA, 0x40);
             } else {
                 M4 *pmE = &mE;
-                InvertMatrix4Rigid(&mC, &p->mat);
+                InvertMatrix4Rigid(&mC, (M4 *)&p->worldMatrix);
                 __ml__FRC7MATRIX4T0(pmE, &mB, &mC);
                 AddM4(&mA, pm, pmE);
                 func_0023320C(pm, &mA, 0x40);
@@ -515,7 +514,7 @@ M4 *GetXfAngularVelocity(M4 *pm, struct O *po, struct O *poStop)
     if (poStop) {
         M4 *pmE = &mE;
         M4 *pmA = &mA;
-        InvertMatrix4Rigid(pmE, &poStop->mat);
+        InvertMatrix4Rigid(pmE, (M4 *)&poStop->worldMatrix);
         __ml__FRC7MATRIX4T0(pmA, pmE, pm);
         func_0023320C(pm, pmA, 0x40);
     }
@@ -1763,7 +1762,6 @@ void UpdateSoXfWorldHierarchy(struct S *p)
 namespace M_func_0022FC48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-struct O { char pad[0x40]; M4 mat; };
 void InvertMatrix4Rigid(M4 *pd, M4 *ps);
 // Transform point v by the 4x4 matrix m.
 static inline qword MulPos(const M4 *m, qword v)
@@ -1774,12 +1772,12 @@ static inline qword MulPos(const M4 *m, qword v)
     return r;
 }
 // Converts a point from transform a's space to transform b's space (0 = world).
-qword TransformXfPos(struct O *a, struct O *b, qword v)
+qword TransformXfPos(XF *a, XF *b, qword v)
 {
-    if (a) v = MulPos(&a->mat, v);
+    if (a) v = MulPos((M4 *)&a->worldMatrix, v);
     if (b) {
         M4 m;
-        InvertMatrix4Rigid(&m, &b->mat);
+        InvertMatrix4Rigid(&m, (M4 *)&b->worldMatrix);
         v = MulPos(&m, v);
     }
     return v;
@@ -1790,7 +1788,6 @@ qword TransformXfPos(struct O *a, struct O *b, qword v)
 namespace M_ConvertXfVec { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
-struct O { char pad[0x40]; M3 mat; };
 void InvertMatrix3Cofactor(M3 *pd, M3 *ps);
 // Rotate v by the 3x3 matrix m.
 static inline qword Mul3(const M3 *m, qword v)
@@ -1801,12 +1798,12 @@ static inline qword Mul3(const M3 *m, qword v)
     return r;
 }
 // Converts a direction (no translation) from transform a's space to transform b's space (0 = world).
-qword ConvertXfVec(struct O *a, struct O *b, qword v)
+qword ConvertXfVec(XF *a, XF *b, qword v)
 {
-    if (a) v = Mul3(&a->mat, v);
+    if (a) v = Mul3((M3 *)&a->worldMatrix, v);
     if (b) {
         M3 m;
-        InvertMatrix3Cofactor(&m, &b->mat);
+        InvertMatrix3Cofactor(&m, (M3 *)&b->worldMatrix);
         v = Mul3(&m, v);
     }
     return v;
@@ -1817,7 +1814,6 @@ qword ConvertXfVec(struct O *a, struct O *b, qword v)
 namespace M_ConvertXfMat {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct O { char pad[0x40]; M3 mat; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *pm);
 extern "C" void *func_0023320C(void *d, const void *s, int n) __asm__("memcpy");
 // Return the 3x3 matrix product of a and b.
@@ -1833,18 +1829,18 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 }
 // Converts a 3x3 matrix from transform a's space to transform b's space: inverse(b) * a * m.
 // Sly 1: ConvertMatBetweenLos.
-extern "C" M3 *ConvertXfMat(M3 *pr, O *pa, O *pb, const M3 *pm)
+extern "C" M3 *ConvertXfMat(M3 *pr, XF *pa, XF *pb, const M3 *pm)
 {
     if (pa) {
         if (pb) {
-            M3 m = Mul(Mul(InvertMatrix3Cofactor(&pb->mat), pa->mat), *pm);
+            M3 m = Mul(Mul(InvertMatrix3Cofactor((M3 *)&pb->worldMatrix), *(M3 *)&pa->worldMatrix), *pm);
             func_0023320C(pr, &m, 0x30);
         } else {
-            M3 m = Mul(pa->mat, *pm);
+            M3 m = Mul(*(M3 *)&pa->worldMatrix, *pm);
             func_0023320C(pr, &m, 0x30);
         }
     } else if (pb) {
-        M3 m = Mul(InvertMatrix3Cofactor(&pb->mat), *pm);
+        M3 m = Mul(InvertMatrix3Cofactor((M3 *)&pb->worldMatrix), *pm);
         func_0023320C(pr, &m, 0x30);
     } else {
         func_0023320C(pr, pm, 0x30);
@@ -1857,28 +1853,27 @@ extern "C" M3 *ConvertXfMat(M3 *pr, O *pa, O *pb, const M3 *pm)
 namespace M_func_0022FF40 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-struct O { char pad[0x40]; M4 mat; };
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 // Converts a 4x4 matrix from transform a's space to transform b's space. (inferred)
-M4 *GetRelativeXfMatrix(M4 *pr, struct O *pa, struct O *pb, M4 *pm)
+M4 *GetRelativeXfMatrix(M4 *pr, XF *pa, XF *pb, M4 *pm)
 {
     M4 m, mT, mInv;
     if (pa) {
         M4 *pmA;
         if (pb) {
             M4 *pmT = &mT;
-            InvertMatrix4Rigid(&mInv, &pb->mat);
-            __ml__FRC7MATRIX4T0(pmT, &mInv, &pa->mat);
+            InvertMatrix4Rigid(&mInv, (M4 *)&pb->worldMatrix);
+            __ml__FRC7MATRIX4T0(pmT, &mInv, (M4 *)&pa->worldMatrix);
             pmA = pmT;
         } else {
-            pmA = &pa->mat;
+            pmA = (M4 *)&pa->worldMatrix;
         }
         __ml__FRC7MATRIX4T0(&m, pmA, pm);
         func_0023320C(pr, &m, 0x40);
     } else if (pb) {
-        InvertMatrix4Rigid(&mT, &pb->mat);
+        InvertMatrix4Rigid(&mT, (M4 *)&pb->worldMatrix);
         __ml__FRC7MATRIX4T0(&m, &mT, pm);
         func_0023320C(pr, &m, 0x40);
     } else {
@@ -2309,9 +2304,8 @@ void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
 namespace M_func_00230A98 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
-typedef struct P { char pad[0xA0]; struct P *parent; } P;
 void *func_002333B4(void *, int, int) __asm__("memset");
-void GetXfSlotMatrixAndDerivative(P *, M4 *, M4 *, float);
+void GetXfSlotMatrixAndDerivative(XF *, M4 *, M4 *, float);
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
@@ -2329,10 +2323,10 @@ static inline void AddM4(M4 *d, M4 *a, M4 *b)
 
 // Walks a chain of slots, accumulating the product matrix and its derivative by the product rule, i.e. the velocity of
 // the chain's end transform. (inferred)
-void AccumulateXfChainVelocity(P *first, P *end, M4 *pA, M4 *pB, float f)
+void AccumulateXfChainVelocity(XF *first, XF *end, M4 *pA, M4 *pB, float f)
 {
     M4 m1, m2, a, b, s, t1, t2;
-    P *p;
+    XF *p;
 
     if (pB)
         b = *pB;
