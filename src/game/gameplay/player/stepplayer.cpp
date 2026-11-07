@@ -258,55 +258,45 @@ void AcknowledgeStepplayerHint(void)
 
 namespace M_UpdateStepplayer { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, void *); };
+/* A behaviour as called here: its slot 14 (BHV::UpdateSteering, declared without the controller argument it takes). */
 struct O { int pad[3]; struct VTE *vt; };
-struct Q { char pad[0x80]; int x80; };
 struct G { char pad[0x10B4]; int x10B4; };
-struct P {
-    char pad[0x150]; struct Q *controller;
-    char pad1[0x26C - 0x154]; int x26C; int c270; struct O *a274[1];
-    char pad2[0xDF4 - 0x278]; int xDF4;
-    char pad3[0xEFC - 0xDF8]; int xEFC;
-    char pad4[0xFD0 - 0xF00]; int xFD0;
-    char pad5[0x1084 - 0xFD4]; void *ride;
-};
 extern struct G D_002DFC00;
 extern char D_003DA0F0[];
-void UpdateStep(struct P *p);
-void UpdateStepplayerGadgets(struct P *p);
-int ConsumeButtonsPressedWithin__5POCTLUif(struct Q *q, int grf, float g);
-int GetButtonsPressedWithin__5POCTLUif(struct Q *q, int grf, float g);
-void AcknowledgeStepplayerHint(struct P *p);
-void UpdateJtgoal(int *pl);
-int IsJtgoalHolding(int *pl);
-void UpdateJsgJtControl(void *p, struct Q *q);
-void UpdateStepplayerInteractCandidates(struct P *p);
-void UpdateStepplayerWater(struct P *p);
-void UpdateStepplayerHideBlend(struct P *p);
-void PickHeroInteractTarget(struct P *p);
-int IsAsegaRetracted(int x);
-void DropAsegaRef(int *px);
+void UpdateStep(STEPPLAYER *p);
+void UpdateStepplayerGadgets(STEPPLAYER *p);
+void AcknowledgeStepplayerHint(STEPPLAYER *p);
+void UpdateJtgoal(JTGOAL *pl);
+int IsJtgoalHolding(JTGOAL *pl);
+void UpdateJsgJtControl(RELAYJSG *p, POCTL *q);
+void UpdateStepplayerInteractCandidates(STEPPLAYER *p);
+void UpdateStepplayerWater(STEPPLAYER *p);
+void UpdateStepplayerHideBlend(STEPPLAYER *p);
+void PickHeroInteractTarget(STEPPLAYER *p);
+int IsAsegaRetracted(ASEGA *x);
+void DropAsegaRef(ASEGA **px);
 int IsCameraPolicyActive__FP5CPLCY(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
 void OpenGadgetMenuForHero(void *p);
-void UpdateBhvstk(int *p);
+void UpdateBhvstk(BHVSTK *p);
 // STEPPLAYER Update (slot 16): STEP update, input and actions, the ride component, water, gadgets, booty, interact.
-void UpdateStepplayer(struct P *player)
+void UpdateStepplayer(STEPPLAYER *player)
 {
-    int *pl;
+    JTGOAL *pl;
     UpdateStep(player);
     UpdateStepplayerGadgets(player);
-    if (ConsumeButtonsPressedWithin__5POCTLUif(player->controller, BUTTON_HINT, 0.0f))
+    if (player->controller->ConsumeButtonsPressedWithin(BUTTON_HINT, 0.0f))
         AcknowledgeStepplayerHint(player);
-    pl = &player->xFD0;
-    if (player->xDF4 == -1) {
+    pl = &player->jtgoal;
+    if (player->jthurt.state == -1) {
         UpdateJtgoal(pl);
         if (!IsJtgoalHolding(pl)) {
-            if (player->c270 > 0) {
-                struct O *object = player->a274[player->c270 - 1];
+            if (player->behaviors.depth > 0) {
+                struct O *object = (struct O *)player->behaviors.behaviors[player->behaviors.depth - 1];
                 struct VTE *e = &object->vt[14];
                 e->pfn((char *)object + e->d, player->controller);
-            } else if (player->ride) {
-                UpdateJsgJtControl(player->ride, player->controller);
+            } else if (player->pjsgScript) {
+                UpdateJsgJtControl(player->pjsgScript, player->controller);
             }
         }
     }
@@ -314,9 +304,9 @@ void UpdateStepplayer(struct P *player)
     UpdateStepplayerWater(player);
     UpdateStepplayerHideBlend(player);
     PickHeroInteractTarget(player);
-    if (player->xEFC && IsAsegaRetracted(player->xEFC))
-        DropAsegaRef(&player->xEFC);
-    if (!IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GetButtonsPressedWithin__5POCTLUif(player->controller, BUTTON_GADGET_MENU, 0.0f)) {
+    if (player->jthurt.unknown10C && IsAsegaRetracted(player->jthurt.unknown10C))
+        DropAsegaRef(&player->jthurt.unknown10C);
+    if (!IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->state == 1 && player->controller->GetButtonsPressedWithin(BUTTON_GADGET_MENU, 0.0f)) {
 
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & (BUTTON_GADGET_MENU | BUTTON_RUN)) == BUTTON_GADGET_MENU) {
@@ -325,7 +315,7 @@ void UpdateStepplayer(struct P *player)
         }
     }
     if (!IsJtgoalHolding(pl))
-        UpdateBhvstk(&player->x26C);
+        UpdateBhvstk(&player->behaviors);
 }
 } } // namespace M_UpdateStepplayer
 
