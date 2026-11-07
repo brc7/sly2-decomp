@@ -1369,18 +1369,12 @@ extern "C" void SetStepplayerGrabState9(STEPPLAYER *player, LO *lo)
 }
 
 namespace M_func_001423A0 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct BUF { char pad[0x30]; qword pos; };
-struct VTE { short d; short pad; void *(*pfn)(void *, struct BUF *); };
-struct O { char pad[0xC]; struct VTE *vt; };
+/* The hand position actuator (JTHANDS::pactPos; act.h ACT) as read here: +0x1C its end time. */
 struct X994 { char pad[0x1C]; float t; };
-struct P {
-    char pad[0x4C8]; int grabState; char pad1[0x4D4 - 0x4CC]; int x4D4; char pad2[0x934 - 0x4D8]; struct O *po;
-    char pad3[0x994 - 0x938]; struct X994 *p994; char pad4[0x9A4 - 0x998]; int x9A4;
-};
 extern struct CLOCK D_002DDED0;
-void LoadIdentityMatrix4(void *a, int b, M4 *pm, int c, float g);
+void LoadIdentityMatrix4(XF *a, int b, M4 *pm, int c, float g);
 qword GetLoWorldPos(void *p);
 // Transform point v by the 4x4 matrix pm.
 static __inline__ qword Mul(M4 *pm, qword v)
@@ -1407,17 +1401,17 @@ static __inline__ float DistanceBetween(qword a, qword b)
     return g;
 }
 // Splice predicate: true unless in grab state 5 with a target farther than 5 units from its goal.
-int IsStepplayerGrabReady(struct P *player)
+int IsStepplayerGrabReady(STEPPLAYER *player)
 {
     struct BUF buf;
     M4 m;
     qword v;
-    if (player->grabState != 5 || !player->x4D4) return 1;
-    LoadIdentityMatrix4(player->po->vt[32].pfn((char *)player->po + player->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
+    if (player->jtgrab.state != 5 || !player->jtgrab.grabbedObject) return 1;
+    LoadIdentityMatrix4(((SO *)player->jtgrab.hands.ploHand)->GetLocalTransform((MATRIX4 *)&buf), 0, &m, 0, 0.0f);
     v = Mul(&m, buf.pos);
-    if (5.0f < DistanceBetween(GetLoWorldPos(player->po), v)) return 0;
-    if (player->x9A4 != 1) return 1;
-    if (D_002DDED0.time < player->p994->t) return 0;
+    if (5.0f < DistanceBetween(GetLoWorldPos(player->jtgrab.hands.ploHand), v)) return 0;
+    if (player->jtgrab.hands.mode != 1) return 1;
+    if (D_002DDED0.time < ((X994 *)player->jtgrab.hands.pactPos)->t) return 0;
     return 1;
 }
 } } // namespace M_func_001423A0
@@ -1507,16 +1501,12 @@ void RenderStepplayerSelf(STEPPLAYER *player)
 } } // namespace M_RenderStepplayerSelf
 
 namespace M_func_001426E8 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
-struct SO { char pad[0x40]; M3 mat; };
-struct X60 { char pad[0x40]; M3 mat; };
-struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F4; char pad3[0x1150 - 0x10F8]; M3 mat; };
-struct SO *FindSoXf(struct P *p, int x, int n);
-void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
-qword DecomposeRotationMatrixToEuler(M3 *pm);
-void *NewPositionAct(struct P *p, struct SO *pso, int a, int b, int c, qword q);
-void DetachAct(void *pv);
+XF *FindSoXf(STEPPLAYER *p, int x, int n);
+void InvertMatrix3CofactorP(M3 *pmOut, void *pm) __asm__("InvertMatrix3Cofactor");
+qword DecomposeRotationMatrixToEuler(qword *aqwRows);
+ACT *NewPositionAct(STEPPLAYER *p, XF *pxf, int a, int b, int c, qword q);
+void DetachAct(ACT *pact);
 // Rotate v by the 3x3 matrix pm.
 static __inline__ qword MulV(M3 *pm, qword v)
 {
@@ -1535,23 +1525,23 @@ static __inline__ M3 MulM3(M3 *pa, M3 *pb)
     return m;
 }
 // Finds the start-marker child and places the player relative to it.
-void AttachStepplayerToStartMarker(struct P *player, int x)
+void AttachStepplayerToStartMarker(STEPPLAYER *player, int x)
 {
-    struct SO *so = FindSoXf(player, x, 6);
+    XF *so = FindSoXf(player, x, 6);
     M3 m, a;
     if (!so)
         return;
-    InvertMatrix3CofactorP(&a, &player->p60->mat);
+    InvertMatrix3CofactorP(&a, &player->rootTransform->worldMatrix);
     {
         M3 t;
-        M3 *pb = &so->mat;
+        M3 *pb = (M3 *)&so->worldMatrix;
         t.r[0] = m.r[0] = MulV(&a, pb->r[0]);
         t.r[1] = m.r[1] = MulV(&a, pb->r[1]);
         m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
-        player->mat = t;
+        *(M3 *)player->aqwStartMarker = t;
     }
-    player->p10F4 = NewPositionAct(player, so, 3, 7, 2, DecomposeRotationMatrixToEuler(&player->mat));
-    DetachAct(player->p10F4);
+    player->pactStartMarker = NewPositionAct(player, so, 3, 7, 2, DecomposeRotationMatrixToEuler(player->aqwStartMarker));
+    DetachAct(player->pactStartMarker);
 }
 } } // namespace M_func_001426E8
 

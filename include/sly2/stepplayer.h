@@ -573,7 +573,7 @@ struct STEPPLAYER : public STEP
       LO *ploFightTarget;   /* fight target */
       int interactMode;    /* interaction mode */
       int unknown10F0;
-      undefined4 unknown10F4;
+      struct ACT *pactStartMarker;   /* +0x10F4 the position actuator that placed the hero at the start marker (AttachStepplayerToStartMarker) */
       LO *ploLean;   /* object leaned on */
       int leanKind;    /* lean kind */
       undefined4 unk_0x1100[(0x1120 - 0x1100) / 4];
@@ -581,7 +581,7 @@ struct STEPPLAYER : public STEP
       float agdtIdle[4];   /* idle time ranges for the next idle event: {min, max} by idleKind != 0, then by idleKind == 0 (ScheduleIdleTimer) */
       int idleKind;    /* idle kind */
       float tNextIdle; /* +0x114C clock.time of the next idle event (FLT_MAX: never; ScheduleIdleTimer, InitIdleTimer) */
-      undefined4 unk_0x1150[(0x1180 - 0x1150) / 4];
+      qword aqwStartMarker[3];   /* +0x1150 the hero's orientation relative to the start marker, as rows (AttachStepplayerToStartMarker) */
       GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
       undefined4 unk_0x11a4[(0x11b0 - 0x11a4) / 4];
       JTTHROW jtthrow;   /* carry/throw */
