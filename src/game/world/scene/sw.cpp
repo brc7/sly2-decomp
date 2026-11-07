@@ -1052,9 +1052,7 @@ void BindSwTimerHud(SW *world)
 
 namespace M_func_0020F7E0 { extern "C" {
 struct F8 { char pad[0x14]; float value; };   /* the element's animated value */
-struct O { char pad[0xF8]; struct F8 *anim; };
-struct E { struct O *widget; float velocity; int isHidden; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float tCountdownEnd; int lastSecond; };
+struct O { char pad[0xF8]; struct F8 *anim; };   /* the HUD widget (HUDSTACK::widget) */
 extern CLOCK D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
@@ -1065,35 +1063,35 @@ void SetSndSourceLo(void *p, void *source);
 
 // Per-frame timer HUD update: smooths the four elements and, while a countdown runs, plays the tick/tock sounds
 // (0x30/0x31) once a second. (inferred)
-void UpdateSwTimerHud(struct S *world)
+void UpdateSwTimerHud(SW *world)
 {
     float z;
     float t = 0.0f;
     int i;
     z = t;
     for (i = 0; i < 4; i++) {
-        struct E *e = &world->ae[i];
-        struct O *o = e->widget;
+        HUDSTACK *e = &world->ahudstack[i];
+        struct O *o = (struct O *)e->widget;
         if (!o || !IsWidgetVisible(o)) {
-            e->isHidden = 1;
+            e->shouldSnap = 1;
             continue;
         }
-        if (e->isHidden) {
+        if (e->shouldSnap) {
             o->anim->value = t;
-            e->velocity = 0.0f;
-            e->isHidden = 0;
+            e->dyVel = 0.0f;
+            e->shouldSnap = 0;
         } else {
-            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.deltaTime);
+            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->dyVel, t, D_002C3E88, &e->dyVel, D_002DDED0.deltaTime);
         }
         t += D_002C3E80;
         if (i == 3) {
-            float remaining = -D_002DDED0.time + world->tCountdownEnd;
+            float remaining = -D_002DDED0.time + world->hudTimerEndTime;
             int n;
             remaining = (0.0f > remaining) ? 0.0f : remaining;
             n = (int)remaining;
-            if (n != world->lastSecond) {
+            if (n != world->csecHudTimerShown) {
                 SetSndSourceLo(CreateSfxSound((n & 1) ? 0x30 : 0x31), 0);
-                world->lastSecond = n;
+                world->csecHudTimerShown = n;
             }
         }
     }
