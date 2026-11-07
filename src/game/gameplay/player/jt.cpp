@@ -1278,12 +1278,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline float LaneX(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword LengthInX(qword v)
 {
     qword qw;
@@ -1302,7 +1296,7 @@ static inline qword LengthXYInX(qword v)
 }
 static inline float LengthXYOf(qword v)
 {
-    return LaneX(LengthXYInX(v));
+    return VuToFloat(LengthXYInX(v));
 }
 static inline qword DotVec(qword a, qword b)
 {
@@ -1432,7 +1426,7 @@ void UpdateJtLean(JT *jt)
                 if (((CID12 *)lo)->nUnk1bc) {
                     *(qword *)&vecDir = NormalizeVecViaDot(*(qword *)&vecDir);
                     qword velocity = jt->GetVelocity();
-                    float gSpeed = LaneX(DotVec(velocity, *(qword *)&vecDir));
+                    float gSpeed = VuToFloat(DotVec(velocity, *(qword *)&vecDir));
                     *(qword *)&vecLean = ScaleVec(*(qword *)&vecDir, VuFloat(gSpeed));
                     float sAhead = jt->jtgrab.sParam + gSpeed * D_002BF2D0;
                     float sMax = GetShapeMaxDistance((SHAPE *)lo);

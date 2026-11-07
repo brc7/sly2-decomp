@@ -1043,12 +1043,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float GFromVf(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword QwLength(qword v)
 {
     qword qw;
@@ -1223,7 +1217,7 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
                         __asm__("qmfc2 %0, %1" : "=r"(iLenSq) : "j"(QwDot(*(qword *)&vecEdge, *(qword *)&vecEdge)));
                         __asm__("mtc1 %1, %0" : "=f"(gLenSq) : "r"(iLenSq));
                         *(qword *)&vecDelta = VuSub(pos, *(qword *)pposClosest);
-                        float u = GFromVf(QwDot(*(qword *)&vecDelta, *(qword *)&vecEdge)) / gLenSq;
+                        float u = VuToFloat(QwDot(*(qword *)&vecDelta, *(qword *)&vecEdge)) / gLenSq;
                         if (u < 0.0001f)
                         {
                             ivert = pedge->aipos[0];
@@ -1242,7 +1236,7 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
                             pposClosest = &vecClosest;
                             *(qword *)&vecDelta = VuSub(pos, *(qword *)&vecClosest);
                         }
-                        u = GFromVf(QwDot(*(qword *)&vecDelta, *(qword *)&vecDelta));
+                        u = VuToFloat(QwDot(*(qword *)&vecDelta, *(qword *)&vecDelta));
                         if (u > sRadius * sRadius)
                             continue;
                         {

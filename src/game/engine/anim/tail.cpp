@@ -242,12 +242,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline float FloatFromVu(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword VuLength(qword v)
 {
     qword qw;
@@ -393,7 +387,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 qword newSegment = VuSub(tip, basePosition);
                 qword newLength = VuLengthUntied(newSegment);
                 qword unitSegment;
-                if (FloatFromVu(newLength) < 0.0001f)
+                if (VuToFloat(newLength) < 0.0001f)
                 {
                     unitSegment = defaultDirection;
                 }

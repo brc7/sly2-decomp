@@ -588,14 +588,15 @@ static inline qword SubVec(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2"
 static inline VU_VECTOR VuSub(VU_VECTOR a,VU_VECTOR b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a.q),"j"(b.q));return VU_VECTOR(r);}
 static inline qword MinVec(qword a,qword b){qword r;__asm__("vmini.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword MaxVec(qword a,qword b){qword r;__asm__("vmax.xyz %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline float LaneX(qword v){float g;__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(v));return g;}
+// Same idiom as sly2/vu0.h VuToFloat; kept local: this file includes the header below the function that needs it.
+static inline float VuToFloat(qword v){float g;__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(v));return g;}
 // Same idiom as sly2/vu0.h QwordZ; kept local: this file includes the header below the function that needs it.
 static inline float QwordZ(qword v){float g;__asm__("pextuw %0,$zero,%1":"=r"(g):"r"(v));return g;}
 static inline float LengthXYOf(qword v)
 {
     __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y" : "+j"(v));
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(v));
-    return LaneX(v);
+    return VuToFloat(v);
 }
 static inline float LengthOf(VU_VECTOR w)
 {
@@ -604,7 +605,7 @@ static inline float LengthOf(VU_VECTOR w)
     __asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
             : "+j"(v), "=&j"(one));
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(v));
-    return LaneX(v);
+    return VuToFloat(v);
 }
 // pos + v * t + a * t2
 static inline qword BallisticPos(const qword &pos, const qword &a, const qword &v, VU_FLOAT t, VU_FLOAT t2)

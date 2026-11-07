@@ -2235,12 +2235,6 @@ struct LOREF
       LO *plo;
       undefined4 unk_0x04;
 };
-static inline float LaneX(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword DotVec(qword a, qword b)
 {
     qword qw;
@@ -2302,7 +2296,7 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     VU_VECTOR4 vecS = SubPos(posHero, PosLoWorld(lo));
     qword vec = vecS.qw;
     float dz = QwordZ(vec);
-    float sXY = LaneX(LengthXYInX2(vec));
+    float sXY = VuToFloat(LengthXYInX2(vec));
     if ((LO *)player == *pploCur)
     {
         sBias = EvaluateClq(&D_002BD280, sXY);

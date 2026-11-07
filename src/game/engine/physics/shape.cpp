@@ -1871,7 +1871,6 @@ static inline VV TransformPoint(const M4 &m, VV v)
 }
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes StepChainRk4 (48/838 instructions off).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline float GFromVf(VV v) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 /* float out of a VF register: asm mtc1, the compiler emits the qmfc2 (reload); the one-cost asm decides the sched2 ties */
 // Same idiom as sly2/vu0.h QwordX; kept local because the shared template changes StepChainRk4 (10/838 instructions off).
 static inline float QwordX(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
@@ -1948,7 +1947,7 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 static inline float Normalize(U *pv, const qword &fallback)
 {
     VV len = Length(pv->q);
-    if (GFromVf(len) < 0.0001f)
+    if (VuToFloat(len) < 0.0001f)
         pv->q = fallback;
     else
         pv->q = DivideQ(pv->q, len);
@@ -1964,7 +1963,7 @@ static inline float NormalizeV(U *pv, const qword &fallback, float prev)
     __asm__("vmul.xyz %1, %3, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z"
             : "=j"(one), "=j"(d), "=j"(vf) : "2"(v), "r"(v), "r"(v), "r"(&fallback), "f"(prev));   /* "r"(v) x2: allocation only */
     VV len = Sqrt(d);
-    if (GFromVf(len) < 0.0001f)
+    if (VuToFloat(len) < 0.0001f)
         pv->q = fallback;
     else
         pv->q = DivideQ(vf, len);
@@ -2189,7 +2188,6 @@ static inline VV TransformPoint(const M4 &m, VV v)
 }
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes StepChain (62/215 instructions off).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline float GFromVf(VV v) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV Dot(VV a, VV b)
 {
@@ -2219,7 +2217,7 @@ static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = Length(v);
-    if (GFromVf(len) < 0.0001f)
+    if (VuToFloat(len) < 0.0001f)
         return fallback;
     return DivideQ(v, len);
 }
@@ -2268,7 +2266,7 @@ void StepChain(CHAIN *chain)
     if (chain->mode == 2)
     {
         chain->position[n - 1].q = TransformPoint(chain->last->matrix, chain->end);
-        AddChainSample(chain, chain->distance[n - 2] + GFromVf(Length(VuSub(chain->position[n - 2].q, chain->position[n - 1].q))));
+        AddChainSample(chain, chain->distance[n - 2] + VuToFloat(Length(VuSub(chain->position[n - 2].q, chain->position[n - 1].q))));
         n = chain->path->count;
     }
     M4 inverse;

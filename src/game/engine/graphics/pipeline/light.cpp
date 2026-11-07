@@ -651,7 +651,6 @@ struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(
 static inline VV ToVF(qword v) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(v)); return r; }
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline float GFromVf(VV v) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV Dot(VV a, VV b)
 {
@@ -699,7 +698,7 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
         VV axis = VuSub(ps1->pos, ps0->pos);
         VV len = Length(axis);
         VV c1 = VuCross(dpos, axis);
-        float sLen = GFromVf(len);
+        float sLen = VuToFloat(len);
         VV u = Divide(axis, VU_FLOAT(sLen));
         float s = (ps0->sRadius - ps1->sRadius) / sLen;
         VV perp = Normalize(VuCross(u, c1));
@@ -712,7 +711,7 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
         VV num = Dot(pa, ba);
         VV den = Dot(ba, ba);
         sDist = QwordX(Dot(pa, n));
-        float t = QwordX(num) / GFromVf(den);
+        float t = QwordX(num) / VuToFloat(den);
         if (sDist < sRadius && t >= 0.0f && t <= 1.0f)
             return 1;
     }

@@ -2156,16 +2156,10 @@ static inline qword MulM3(const M3 &m, qword v)
         : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v), "j"(m.r[0])); /* extra operand: allocation only */
     return r;
 }
-static inline float GetX(qword q)
-{
-    float f;
-    __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(q));
-    return f;
-}
 
 static inline void SafeDiv(UQ &v, qword len, const qword &vDef)
 {
-    if (GetX(len) < 0.0001f)
+    if (VuToFloat(len) < 0.0001f)
         v.q = vDef;
     else
         v.q = DivQ(v.q, len);
@@ -2220,7 +2214,7 @@ extern "C" void CorrectBentleyRideVelocity(S *s)
     qword c = VuCross(n.q, dv);
     float len = QwordX(qlen);
     float cz = QwordZ(c);
-    float dot = GetX(Dot(dv, n.q));
+    float dot = VuToFloat(Dot(dv, n.q));
     float w = cz / len;
     float dgNext;
     SmoothValue__FfffP3SMPPf(len, D_002BC998, D_002DDED0.dt, &D_002BC9A8, &dgNext);

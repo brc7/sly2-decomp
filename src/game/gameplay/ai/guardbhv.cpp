@@ -1054,21 +1054,15 @@ static inline qword VuLength(qword v)
     return qw;
 }
 // VU0 helper: the x component of a VU register as a float.
-static inline float VuXToFloat(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 // VU0 helper: horizontal (xy) length of a vector.
 static inline float VectorLengthXY(qword v)
 {
-    return VuXToFloat(VuLengthXY(v));
+    return VuToFloat(VuLengthXY(v));
 }
 // VU0 helper: length of a vector.
 static inline float VectorLength(qword v)
 {
-    return VuXToFloat(VuLength(v));
+    return VuToFloat(VuLength(v));
 }
 // VU0 helper: x component of a quadword vector.
 // VU0 helper: y component of a quadword vector.
@@ -3528,12 +3522,6 @@ static inline VU_FLOAT VuFloat(float g)
     return v;
 }
 // VU0 helper: the x component of a VU register as a float.
-static inline float VuXToFloat(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 // VU0 helper: x component of a quadword vector.
 // VU0 helper: y component of a quadword vector.
 // VU0 helper: vector difference.
@@ -3592,9 +3580,9 @@ static inline qword VuLengthFromDot(qword v)
     return qw;
 }
 // VU0 helper: length of a vector.
-static inline float VectorLength(qword v) { return VuXToFloat(VuLength(v)); }
+static inline float VectorLength(qword v) { return VuToFloat(VuLength(v)); }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline float VectorLengthXY(qword v) { return VuXToFloat(VuLengthXY(v)); }
+static inline float VectorLengthXY(qword v) { return VuToFloat(VuLengthXY(v)); }
 // VU0 helper: vector scaled by the x of a VU float.
 static inline qword VuScaleByX(qword qwVec, VU_FLOAT g)
 {
@@ -5665,7 +5653,6 @@ static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a
 // VU0 helper: loads a quadword into a VU register.
 static inline qword Load(U*u){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(u->q));return r;}
 // VU0 helper: x of a VU register as a float.
-static inline float X(qword q){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
 // VU0 helper: length of a vector.
 static inline float Length(qword v)
 {
@@ -5675,7 +5662,7 @@ static inline float Length(qword v)
             : "+j"(d), "=&j"(one)
             : "j"(v));
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d));
-    return X(d);
+    return VuToFloat(d);
 }
 // VU0 helper: distance from an origin to a point.
 static inline float Distance(U *origin, qword point)

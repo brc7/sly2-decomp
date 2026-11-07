@@ -239,12 +239,6 @@ static inline VU_FLOAT VuFloat(float g)
     return v;
 }
 // Lane x of a VU register as a float.
-static inline float GFromVf(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 // Length of a vector, in lane x.
 static inline qword QwLength(qword v)
 {
@@ -256,7 +250,7 @@ static inline qword QwLength(qword v)
 // Length of a vector as a float.
 static inline float GLength(qword v)
 {
-    return GFromVf(QwLength(v));
+    return VuToFloat(QwLength(v));
 }
 extern "C" {
 qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);

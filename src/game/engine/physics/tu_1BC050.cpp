@@ -413,12 +413,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2.ni %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float GFromVf(qword qw)
-{
-    float g;
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline float GXOfQw(const VU_QWORD &vf, const VU_QWORD &vfLive)
 {
     float g;
@@ -457,7 +451,7 @@ int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSeg
         VU_QWORD vfOne1;
         __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddaz.x $ACC, %1, %0z\n\tvmsubw.x %0, %1, %2w"
                 : "=j"(dot1), "=j"(vfOne1) : "j"(plane), "j"(start));
-        float g1 = GFromVf(dot1.qw);
+        float g1 = VuToFloat(dot1.qw);
         VU_QWORD dot2;
         VU_QWORD vfOne2;
         __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddaz.x $ACC, %0, %1z\n\tvmsubw.x %1, %0, %2w"

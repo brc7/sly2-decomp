@@ -111,12 +111,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float VfToFloat(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline BSP *BspOrNullPastLimit(BSP *pbsp, BSP *pbspLimit)
 {
     if (pbsp >= pbspLimit)
@@ -199,7 +193,7 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
         VU_QWORD vfOne1;
         __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddaz.x $ACC, %1, %0z\n\tvmsubw.x %0, %1, %2w"
                 : "=j"(dot1), "=j"(vfOne1) : "j"(plane), "j"(pos1));
-        float g1 = VfToFloat(dot1.qw);
+        float g1 = VuToFloat(dot1.qw);
         VU_QWORD dot2;
         VU_QWORD vfOne2;
         float g2;

@@ -445,7 +445,6 @@ static inline qword VuLengthXY(qword v)
     return qw;
 }
 // VU0 helper: x of a VU register as a float.
-static inline float VuXToFloat(qword qw){float g;__asm__("qmfc2 %0, %1":"=r"(g):"j"(qw));return g;}
 // VU0 helper: x component of a quadword vector.
 // allocation-only second "j"(b): the extra reference raises b's local-alloc priority, so b gets vf1 and the dot vf2 as in the target
 static inline qword VuDotProduct(qword a, qword b)

@@ -981,7 +981,6 @@ static inline qword NormalizeEntry(qword v)
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(length) : "0"(length), "j"(v));
     return length;
 }
-static inline float Float(qword v){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(v));return f;}
 static inline qword ScalarFW(const FLOATWORD*p){register qword v __asm__("vf1");register int w __asm__("$2")=p->bits;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(w));return v;}
 static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -1015,7 +1014,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
         do {
             ASEG *animation = entry->animation;
             if (animation) {
-                float score = Float(DotReuse(scoringDirection, NormalizeEntry(entry->velocity)));
+                float score = VuToFloat(DotReuse(scoringDirection, NormalizeEntry(entry->velocity)));
                 if (animation == dirAnims->active->paseg)
                     score *= bias;
                 if (maximum < score) {

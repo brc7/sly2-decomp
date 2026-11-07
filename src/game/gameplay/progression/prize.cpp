@@ -420,7 +420,6 @@ struct VU_FLOAT {
 static inline qword VuFloat(float g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 static inline qword VuFloatBits(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "rV"(g)); return r; }
 
-static inline float GFromQw(qword q) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(q)); return g; }
 /* the second "j"(q) is allocation-only: it keeps the length qword in a VU register (the "r" use alone ties the class
    costs and puts it in a GPR), so gcc reloads it with its own qmfc2 into v1 like the target. */
 static inline float GFromVf(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q), "j"(q)); return g; }
@@ -458,7 +457,7 @@ static inline qword QwUnit(qword v, qword len)
 static inline qword QwNormalize(qword v, qword fallback)
 {
     qword len = QwLength(v);
-    if (GFromQw(len) < 0.0001f)
+    if (VuToFloat(len) < 0.0001f)
         return fallback;
     return QwUnit(v, len);
 }
@@ -479,7 +478,7 @@ static inline float GDot(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
-    return GFromQw(d);
+    return VuToFloat(d);
 }
 // The smaller of two floats.
 static inline float GMin(float a, float b) { return (b < a) ? b : a; }
@@ -505,7 +504,7 @@ extern "C" void CheckDprizeBounce(P *prize)
         if (ppart->grf & (1UL << 49)) {
             qword center = ppart->pxf->pos;
             qword posCur = GetLoWorldPos(prize);
-            float g = GFromQw(QwLength(VuSub(center, posCur))) - ppart->sRadius - prize->sRadius.g;
+            float g = VuToFloat(QwLength(VuSub(center, posCur))) - ppart->sRadius - prize->sRadius.g;
             if (g < gDeepest) {
                 vec.qw = QwNormalize(VuSub(prize->pos, ppart->pxf->pos), D_002A2DA0);
                 if (GDot(prize->v, vec.qw) < 0.0f) {

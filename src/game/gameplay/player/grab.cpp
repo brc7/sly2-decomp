@@ -530,13 +530,12 @@ static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
     __asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(g0.q), "j"(b), "j"(g1.q));
     return r;
 }
-static inline float LaneX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
 static inline float LengthOf(const qword &v)
 {
     qword qw, one;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(qw), "=j"(one) : "j"(v));
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(qw) : "0"(qw));
-    return LaneX(qw);
+    return VuToFloat(qw);
 }
 static inline int Min(int a, int b) { return a < b ? a : b; }
 static inline int IsWithinDistance(qword a, qword b, float s) { return LengthOf(VuSub(a, b)) < s; }
@@ -2583,12 +2582,6 @@ extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPv
 
 
 
-static inline float LaneX(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword LengthInX(qword v)
 {
     qword qw;
@@ -2600,7 +2593,7 @@ static inline qword LengthInX(qword v)
 }
 static inline float LengthOf(qword v)
 {
-    return LaneX(LengthInX(v));
+    return VuToFloat(LengthInX(v));
 }
 static inline qword DotVec(qword a, qword b)
 {
@@ -2617,7 +2610,7 @@ extern "C" { extern float D_002BF664; }
 static inline int IsBeyondBusyRadius(LO *lo, qword pos)
 {
     qword qwDiff = VuSub(PosLoWorld(lo), pos);
-    return lo->sBusy * lo->sBusy < LaneX(DotVec(qwDiff, qwDiff));
+    return lo->sBusy * lo->sBusy < VuToFloat(DotVec(qwDiff, qwDiff));
 }
 static inline void ZeroJtGrabCand(JTGRABCAND *candidate)
 {
@@ -2773,12 +2766,6 @@ extern "C" { extern SW D_003DD490; }
 
 
 PROXY *PproxyFromLo(LO *plo) __asm__("GetProxyCopyValue");
-static inline float LaneX(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword LengthInX(qword v)
 {
     qword qw;
@@ -2790,7 +2777,7 @@ static inline qword LengthInX(qword v)
 }
 static inline float LengthOf(qword v)
 {
-    return LaneX(LengthInX(v));
+    return VuToFloat(LengthInX(v));
 }
 extern "C" {
 int IsPoCurrent(STEPPLAYER *pstepplayer);

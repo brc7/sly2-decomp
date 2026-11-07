@@ -182,12 +182,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float GFromVf(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword QwLengthUntied(qword v)
 {
     qword qwSq;
@@ -1087,7 +1081,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         qword *pqwFallback = &D_002A2DD0;
         qword qwDir = MoveToVu(*(qword *)&dpos);
         qword qwLen = QwLengthUntied(qwDir);
-        if (GFromVf(qwLen) < 0.0001f)
+        if (VuToFloat(qwLen) < 0.0001f)
         {
             *(qword *)&dpos = *pqwFallback;
         }
@@ -1162,7 +1156,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         qword qwFallbackStick = D_002A2DA0;
         qword qwStick = *(qword *)&vecStick;
         qword qwLenStick = QwLengthUntied(qwStick);
-        if (GFromVf(qwLenStick) < 0.0001f)
+        if (VuToFloat(qwLenStick) < 0.0001f)
         {
             qwStick = qwFallbackStick;
         }
@@ -1179,7 +1173,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         vecView.z *= 0.3f;
         qword qwView = MoveToVu(*(qword *)&vecView);
         qword qwLenView = QwLengthUntied(qwView);
-        if (GFromVf(qwLenView) < 0.0001f)
+        if (VuToFloat(qwLenView) < 0.0001f)
         {
             *(qword *)&vecView = *pqwFallbackView;
         }
@@ -1190,7 +1184,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwNormal) : "j"(qwView));
             *(qword *)&vecView = qwNormal;
         }
-        float sView = GFromVf(qwLenView);
+        float sView = VuToFloat(qwLenView);
         int nTurnAxis;
         if (ptnCur != 0 && ptnCur->nTurnAxis != -1)
             nTurnAxis = ptnCur->nTurnAxis;
@@ -1209,7 +1203,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         qword qwFallbackAxis = D_002A2DA0;
         qword qwAxis = *(qword *)&vecAxis;
         qword qwLenAxis = QwLengthUntied(qwAxis);
-        if (GFromVf(qwLenAxis) < 0.0001f)
+        if (VuToFloat(qwLenAxis) < 0.0001f)
         {
             qwAxis = qwFallbackAxis;
         }
@@ -1219,12 +1213,12 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwAxis) : "j"(qwAxis));
         }
         *(qword *)&vecAxis = qwAxis;
-        float gTurn = ClampAbs(GFromVf(QwDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
+        float gTurn = ClampAbs(VuToFloat(QwDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
         float dradPanFree = gTurn * uTunnel;
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
         dradPanFree *= GLimitRange(GEvaluateClq(&D_002C4220, D_002DDED0.t - tManual), D_002BBB60.gMin, D_002BBB60.gMax);
         float radPanFree = NormalizeAngle(radPanNew + dradPanFree * D_002DDED0.dt);
-        float uSpeed = GMin(GFromVf(QwLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
+        float uSpeed = GMin(VuToFloat(QwLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
         float radTiltFree;
         SMP smp;
         if (uSpeed > 0.1f)
@@ -1281,7 +1275,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 qword qwHeadingRaw = *(qword *)&vecHeading;
                 qword qwLenHeading = QwLengthUntied(qwHeadingRaw);
                 qword qwHeading;
-                if (GFromVf(qwLenHeading) < 0.0001f)
+                if (VuToFloat(qwLenHeading) < 0.0001f)
                 {
                     qwHeading = qwFallbackHeading;
                 }
@@ -1292,7 +1286,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 }
                 *(qword *)&vecHeading = qwHeading;
                 *(qword *)&vecTangent = ConvertVecBetweenLos(ptnCur, 0, *(qword *)&vecTangent);
-                float gAlong = GFromVf(QwDot(*(qword *)&vecHeading, *(qword *)&vecTangent));
+                float gAlong = VuToFloat(QwDot(*(qword *)&vecHeading, *(qword *)&vecTangent));
                 gBlend = gAlong * gAlong * (3.0f - (fabsf(gAlong) + fabsf(gAlong)));
                 if ((grftnm & 2) == 0 || 0.0f < gAlong)
                 {
@@ -1309,9 +1303,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             if (ploPlayer != 0)
             {
                 if ((*(  int  *)((uint8_t *)( ploPlayer ) + (  0x4CC )))  != -1 && (*(  int  *)((uint8_t *)( ploPlayer ) + (  0x4C8 )))  == 0)
-                    gPull = GMin(GFromVf(QwLengthXY(*(qword *)&vFocus)) * 0.005f, 1.0f);
+                    gPull = GMin(VuToFloat(QwLengthXY(*(qword *)&vFocus)) * 0.005f, 1.0f);
                 else
-                    gPull = GMin(GFromVf(QwLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
+                    gPull = GMin(VuToFloat(QwLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
             }
             else
             {
@@ -1534,12 +1528,6 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 // from `pqw -= 4`: loop.c emits the pointer's final value after loop 1 and cse2 folds the rewind to sp+0x30, which
 // is why the game sets the loop-2 pointer in the STACKSCOPE constructor's delay slot. Any `&aqw[3]` written after
 // loop 1 is hoisted above loop 1 by gcse's PRE instead.
-static inline float ReadVfX(qword qw)
-{
-    float g;
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 // v * (1 / |v|), with |v| in x of qwLen
 static inline qword ScaleByInverse(qword v, qword qwLen)
 {
@@ -1594,7 +1582,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     qword qwFallback = D_002A2DA0;
     qword qwLen = QwLengthUntied(qwCross);
     qword qwSide;
-    if (ReadVfX(qwLen) < 0.0001f)
+    if (VuToFloat(qwLen) < 0.0001f)
     {
         qwSide = qwFallback;
     }

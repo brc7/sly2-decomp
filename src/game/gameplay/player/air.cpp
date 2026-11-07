@@ -2190,8 +2190,7 @@ static inline qword AddScaledVec2(qword a, qword b, VU_FLOAT g)
 }
 static inline qword ScaleVec2(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g.q), "j"(a), "j"(g.q)); return r; }
 static inline qword ScaleVec(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
-static inline float LaneX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
-static inline float LengthSqXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return LaneX(r); }
+static inline float LengthSqXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VuToFloat(r); }
 static inline float FloatUse(float g, void *a) { __asm__("" : "+f"(g) : "r"(a)); return g; }
 static inline float LengthSqXYOfGpr(qword v)
 {
@@ -2203,10 +2202,10 @@ static inline float LengthSqXYOfGpr(qword v)
     return QwordX(r);
 }
 static inline qword SqrtVec(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
-static inline float LengthXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return LaneX(SqrtVec(r)); }
+static inline float LengthXYOf(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VuToFloat(SqrtVec(r)); }
 static inline qword DotVec(qword a, qword b) { qword r, one; __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(r), "=j"(one) : "j"(a), "j"(b)); return r; }
 static inline float LengthOfGpr(qword v) { return QwordX(SqrtVec(DotVec(v, v))); }
-static inline float LengthOf(qword v) { return LaneX(SqrtVec(DotVec(v, v))); }
+static inline float LengthOf(qword v) { return VuToFloat(SqrtVec(DotVec(v, v))); }
 static inline float MinF(float a, float b) { return b < a ? b : a; }
 
 static inline qword Make(float x, float y, float z)
@@ -2245,7 +2244,7 @@ static inline qword DivVec(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%
 static inline float NormalizeInPlace(U &v, const qword &vDefault)
 {
     qword l = SqrtVec(DotVec(v.q, v.q));
-    if (LaneX(l) < 0.0001f)
+    if (VuToFloat(l) < 0.0001f)
         v.q = vDefault;
     else
         v.q = DivVec(v.q, l);

@@ -427,7 +427,6 @@ static inline qwordV ScaleX(qwordV a,qwordV s){qwordV r;__asm__("vmulx.xyzw %0,%
 // length of a vector, in two steps (sum of squares, then sqrt) so the stores/loads of the callers can sit between them
 static inline qwordV LengthV(qwordV v){qwordV d,one;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));return d;}
 // Lane x as a float.
-static inline float FloatOf(qwordV a){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(a));return f;}
 // v * (1/n.x); the "memory" clobbers (here and on LEN1M/LEN2M) keep the surrounding loads/stores in source order
 static inline qwordV DivBy(qwordV v,qwordV n){qwordV r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(n),"j"(v):"memory");return r;}
 // A float's bit pattern into a VU register.
@@ -500,7 +499,7 @@ void SetCritterState(CID96V *critter, int next)
             float phase = GetShapeParamSearchStep(critter->fleePath);
             qwordV delta = VuSub(w.first.q, w.second.q);
             float speed = critter->fleeSpeed.value;
-            float travel = FloatOf(LengthV(delta));
+            float travel = VuToFloat(LengthV(delta));
             critter->pathStep = phase;
             travel /= speed;
             float end = GetShapeMaxDistance(critter->fleePath);
@@ -523,7 +522,7 @@ void SetCritterState(CID96V *critter, int next)
         LEN1M(norm, one, point);
         qwordV fallback = D_002A2DA0.q;
         LEN2M(norm);
-        float length = FloatOf(norm);
+        float length = VuToFloat(norm);
         qwordV direction;
         if (length < 0.0001f) direction = fallback;
         else direction = DivBy(point, norm);

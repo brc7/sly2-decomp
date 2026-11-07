@@ -889,12 +889,6 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-static inline float VfToFloat(qword qw)
-{
-    float g;
-    __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
-    return g;
-}
 static inline qword LengthAsQword(qword v)
 {
     qword qw = VuDot(v, v);
@@ -935,7 +929,7 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 {
     VU_VECTOR4 dpos = SubPos(posTarget, posCur);
     qword qwDpos = dpos.qw;
-    float sDist = VfToFloat(LengthAsQword(qwDpos));
+    float sDist = VuToFloat(LengthAsQword(qwDpos));
     if (sDist > 0.0001f)
     {
         float svNext;

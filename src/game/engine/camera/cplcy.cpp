@@ -481,7 +481,6 @@ static inline qword Normalize(qword v)
     __asm__("vdiv Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
-static inline float GFromQ(qword v) { float g; __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 static inline qword VecMul(qword v, float g)
 {
     qword r;
@@ -508,7 +507,7 @@ qword PosCpzoomEye(struct X *p)
         qword a = GetLoWorldPos(p->focus);
         n.q = Normalize(VuSub(a, PosCpzoomCenter(p)));
         p->panAngle = atan2f(n.f[1], n.f[0]);
-        r = VuAdd(PosCpzoomCenter(p), VecMul(n.q, -GFromQ(Len(D_002A5000))));
+        r = VuAdd(PosCpzoomCenter(p), VecMul(n.q, -VuToFloat(Len(D_002A5000))));
     } else {
         M3 m;
         qword v = D_002A5000;

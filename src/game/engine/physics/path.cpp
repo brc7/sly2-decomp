@@ -246,7 +246,6 @@ extern "C" int ClassifyPlaneDistance__Ff(float);                      // 0: abov
 
 static inline float GetX(const qword &q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static inline float GetY(const qword &q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static inline float QX(qword q) { float f; __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(q)); return f; }
 // volatile (as in many matched VU helpers): keeps both qmfc2 moves after the second dot product.
 static inline qword Dot(const qword &a, const qword &b)
 {
@@ -338,8 +337,8 @@ extern "C" int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW 
         {
             qword q0 = Dot(st[0].node->plane, fromPlane.q);
             qword q1 = Dot(st[0].node->plane, toPlane.q);
-            float d0 = QX(q0);
-            float d1 = QX(q1);
+            float d0 = VuToFloat(q0);
+            float d1 = VuToFloat(q1);
             int s0 = ClassifyPlaneDistance__Ff(d0);
             int s1 = ClassifyPlaneDistance__Ff(d1);
             int neg, pos;
