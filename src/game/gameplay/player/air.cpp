@@ -148,26 +148,22 @@ void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("SetJtAirState");
 //////// 0x195950 InitJtAir
 namespace M_InitJtAir { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct T {
-    int x0, x4; int p8[5]; int x1c; char pad[0xF0-0x20]; qword xf0; char pad2[0x108-0x100];
-    float x108, x10c, x110, x114, x118, x11c; char pad3[0x164-0x120]; float x164;
-} T;
 extern qword D_002BF740;
 // Initializes the player's air/jump context (STEPPLAYER+0x2C0): owner, kind -1, sub-state -1 and the default jump
 // tuning.
-void InitJtAir(T *t, int a)
+void InitJtAir(JTAIR *t, STEPPLAYER *a)
 {
-    t->x0 = a;
-    t->x4 = -1;
-    t->x1c = -1;
-    t->xf0 = D_002BF740;
-    t->x108 = -60.0f;
-    t->x10c = -50.0f;
-    t->x110 = 75.0f;
-    t->x114 = 50.0f;
-    t->x11c = 75.0f;
-    t->x118 = -150.0f;
-    t->x164 = 1.0f;
+    t->player = a;
+    t->jumpKind = -1;
+    t->state = -1;
+    t->dposEdge = D_002BF740;
+    t->unknown108 = -60.0f;
+    t->unknown10C = -50.0f;
+    t->unknown110 = 75.0f;
+    t->unknown114 = 50.0f;
+    t->unknown11C = 75.0f;
+    t->unknown118 = -150.0f;
+    t->unknown164 = 1.0f;
 }
 } } // namespace M_InitJtAir
 
@@ -1513,16 +1509,14 @@ void StartJtAirTurn(JTAIR *p)
 
 //////// 0x1974C8 GetFirstNonNullEntry
 namespace M_func_001974C8 { extern "C" {
-typedef struct N { int v; struct N *next; } N;
-typedef struct O { char pad[0x64]; N *p; } O;
-// Walks a linked list and returns the first non-null payload.
-int GetFirstNonNullEntry(O *o)
+// Returns the first contact of the tree's contact lists (the first XPLIST with a contact).
+XP *GetFirstNonNullEntry(SOTREE *o)
 {
-    N *p = o->p;
+    XPLIST *p = o->pxplistFirst;
     while (p) {
-        if (p->v)
-            return p->v;
-        p = p->next;
+        if (p->pxpFirst)
+            return p->pxpFirst;
+        p = p->pxplistNext;
     }
     return 0;
 }
@@ -2393,41 +2387,33 @@ namespace M_func_001991A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
-typedef struct { short d; short pad; void (*pfn)(void *, int, int, qword, qword, qword); } VT;
-struct O { char pad[0xC]; VT *vt; };
-struct C8 { int x0; int x4; };
-struct P {
-    struct O *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; struct C8 *xc8; char pad3[4];
-    qword xd0; qword xe0; qword xf0;
-};
 extern qword D_002A2DB0;
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
-qword TransformXfPos(int n, int m, qword q);
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
-void AddJtWallRunXps(struct P *p)
+void AddJtWallRunXps(JTAIR *p)
 {
-    if (p->x1c != 0x11)
+    if (p->state != 0x11)
         return;
     U q, r;
     M3 m;
     U s;
     qword neg, v;
-    q.q = GetLoWorldPos(p->x0);
-    r.q = TransformXfPos(p->xc8->x0, 0, p->xd0);
+    q.q = GetLoWorldPos(p->player);
+    r.q = ConvertXfPos(p->edge->transform, 0, p->edgePosition);
     qword sq;
     __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
     s.q = sq;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->xe0), "j"(s.q));
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->normalEdge), "j"(s.q));
     m.r[0] = neg;
     GetNormalVectors(neg, D_002A2DC0, D_002A2DB0, &m.r[1]);
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(v) : "j"(p->xf0), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+            : "=j"(v) : "j"(p->dposEdge), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     qword rq;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(rq) : "j"(r.q), "j"(v));
     r.q = rq;
-    p->x0->vt[82].pfn((char *)p->x0 + p->x0->vt[82].d, 7, p->xc8->x4, r.q, D_002A2DB0, q.q);
+    p->player->AddAxisXps(7, p->edge->owner, r.q, D_002A2DB0, q.q);
 }
 } } // namespace M_func_001991A0
 
