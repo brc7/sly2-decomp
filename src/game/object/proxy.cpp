@@ -564,28 +564,27 @@ void SetSoIdProxy(struct O *object, void *a)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CA370 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
-struct Z { struct VTE *vt; };
-struct R { int n; struct LO **ap; int numCopies; int c; int unknown10; int spareTag; void **ap18; char pad[0x6C - 0x1C]; };   /* a proxy source (as below) */
+struct Z { struct VTE *vt; };   /* the load collector (CLoadCollector) */
+struct R { int n; LO **ap; int numCopies; int c; int unknown10; int spareTag; void **ap18; char pad[0x6C - 0x1C]; };   /* a proxy source (as below) */
 struct G { char pad[0x3F08]; struct R *ar; };
-void *MakeProxyId__Fii(int i, int c);
+int MakeProxyId__Fii(int i, int c);
 // Takes the next unused copy of proxy source sourceIndex: sets its proxy id, adds and reparents its objects, applies
 // the placement (slot 37) to each, reports them to the load collector and advances the source's next-copy index.
-void AddProxyCopy(struct G *world, int i, int a, int b, void *x, int y, struct Z *pz)
+void AddProxyCopy(struct G *world, int i, SO *a, XF *b, void *x, MATRIX4 *y, struct Z *pz)
 {
     struct R *pr = &world->ar[i];
-    void *v = MakeProxyId__Fii(i, pr->c);
+    int v = MakeProxyId__Fii(i, pr->c);
     int j;
     pr->ap18[pr->c] = x;
     for (j = 0; j < pr->n; j++) {
-        struct LO *plo = pr->ap[pr->c * pr->n + j];
-        ((void (*)(void *, void *, int))plo->vt[25].pf)((char *)plo + plo->vt[25].d, v, 1);
-        ((void (*)(void *))plo->vt[8].pf)((char *)plo + plo->vt[8].d);
-        ((void (*)(void *, int, int, int))plo->vt[10].pf)((char *)plo + plo->vt[10].d, a, b, 0);
-        ((void (*)(void *, int))plo->vt[37].pf)((char *)plo + plo->vt[37].d, y);
+        LO *plo = pr->ap[pr->c * pr->n + j];
+        plo->SetIdProxy(v, 1);
+        plo->Add();
+        plo->SetParent(a, b, 0);
+        plo->ApplyProxy(y);
     }
     if (pz)
-        ((void (*)(void *, int, struct LO **))pz->vt[1].pf)((char *)pz + pz->vt[1].d, pr->n, &pr->ap[pr->c * pr->n]);
+        ((void (*)(void *, int, LO **))pz->vt[1].pf)((char *)pz + pz->vt[1].d, pr->n, &pr->ap[pr->c * pr->n]);
     pr->c++;
 }
 } } // namespace M_func_001CA370
