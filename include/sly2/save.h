@@ -75,12 +75,21 @@ extern SAVEDATA g_gs __asm__("D_003D4A60");
 
 /* ---- The save manager (g_save = D_002E65E0; memcard.cpp): moved from memcard.cpp's file-scope types. ---- */
 
+/* MCJOBPMF: a queued memory card job as g++ 2.95 lays out a pointer to a SAVE member function: the this-adjust delta and
+   the function (memcard.cpp MemcardThreadMain calls pfn(&g_save + delta)). */
+struct MCJOBPMF
+{
+    short delta;
+    short pad;
+    int (*pfn)(void *psave);
+};
+
 /* MEMCARD: the memory card worker thread (SAVE::memcard): semaphore, thread id (-1: none), the queued job. */
 struct MEMCARD
 {
     int sema;
     int tid;                /* +0x04 */
-    int job[2];             /* +0x08 the queued job: a pointer to a SAVE member function (CreateMemcardThread) */
+    MCJOBPMF job;           /* +0x08 the queued job: a pointer to a SAVE member function (CreateMemcardThread) */
     int jobResult;          /* +0x10 the job's result code (0x20 idle, 0x21 while running; McSyncResult codes) */
 };
 

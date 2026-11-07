@@ -371,9 +371,6 @@ void InitMemcard(MEMCARD *worker)
 }
 
 namespace M_MemcardThreadMain { extern "C" {
-struct PMF { short delta; short pad; int (*pfn)(void *); };
-struct S { int sema; int tid; struct PMF pmf; int jobResult; };   /* MEMCARD */
-extern char D_002E65E0[];
 extern int D_004425D8[];
 void func_00234A60(int) __asm__("WaitSema");
 void func_00234A40(int) __asm__("SignalSema");
@@ -381,11 +378,11 @@ void ExitDeleteThread(void);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 // Body of the memory card worker thread: waits on the semaphore, runs the queued SAVE member-function job on g_save,
 // clears it, signals and exits.
-void MemcardThreadMain(struct S *worker)
+void MemcardThreadMain(MEMCARD *worker)
 {
     func_00234A60(worker->sema);
-    worker->jobResult = worker->pmf.pfn(D_002E65E0 + worker->pmf.delta);
-    func_002333B4(&worker->pmf, 0, sizeof(worker->pmf));
+    worker->jobResult = worker->job.pfn((char *)&g_save + worker->job.delta);
+    func_002333B4(&worker->job, 0, sizeof(worker->job));
     worker->tid = -1;
     D_004425D8[0] = -1;
     func_00234A40(worker->sema);
@@ -395,24 +392,21 @@ void MemcardThreadMain(struct S *worker)
 extern SAVE D_002E65E0;
 
 namespace M_CreateMemcardThread { extern "C" {
-struct PMF { short delta; short pad; int (*pfn)(void *); };
-struct S { int sema; int tid; struct PMF pmf; int jobResult; };   /* MEMCARD */
 struct ThreadParam { int attr; void *entry; void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned int attr2; int option; int waitType; int waitId; int wakeupCount; };
 extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern char D_002E2080[];
 extern int D_004425D8[];
-void MemcardThreadMain(struct S *worker);
-void SetMemcardThreadHighPrio__FP7MEMCARD(struct S *worker);
+void MemcardThreadMain(MEMCARD *worker);
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 int func_00234820(struct ThreadParam *tp);
 void func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 // Queues a job (a pointer to a SAVE member function) for the worker thread and starts the thread, after waiting for
 // the previous job.
-void CreateMemcardThread(struct S *worker, struct PMF pmf)
+void CreateMemcardThread(MEMCARD *worker, MCJOBPMF pmf)
 {
     struct ThreadParam tp;
-    SetMemcardThreadHighPrio__FP7MEMCARD(worker);
-    worker->pmf = pmf;
+    SetMemcardThreadHighPrio(worker);
+    worker->job = pmf;
     worker->jobResult = MC_RESULT_OK;
     func_002333B4(&tp, 0, sizeof(tp));
     tp.entry = MemcardThreadMain;
