@@ -416,14 +416,9 @@ void BounceRipgRips__FP4RIPG(P *p)
 } // namespace M_BounceRipgRips__FP4RIPG
 
 namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO {
-struct DL { void *head; void *tail; int linkOffset; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 extern "C" { extern CLOCK D_002DDED0; }
-struct VTE { short d; short pad; void (*pf)(); };
-struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; VTE *vt; };
-struct RIPGV { char pad[0x15C]; DL dl; };
-struct CM;
 struct RO;
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -444,10 +439,10 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *ripGroup, CM *pcm, RO *pr
 {
     DLI dli;
     RIP *prip;
-    InitDli(&dli, &ripGroup->dl);
+    InitDli(&dli, &ripGroup->ripList);
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) {
-        if (D_002DDED0.time <= prip->tStart) continue;
-            ((void (*)(void *))prip->vt[6].pf)((char *)prip + prip->vt[6].d);
+        if (D_002DDED0.time <= prip->startTime) continue;
+        prip->Render();
     }
     D_002DD2FC = dli.m_pdliNext;
 }

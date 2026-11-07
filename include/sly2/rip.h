@@ -54,7 +54,7 @@ struct RIP
     virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
     virtual void Project() __asm__("ProjectRipTransform");   /* slot 4 */
     virtual void Update() __asm__("UpdateRip");   /* slot 5: no time step (UpdateRipg passes none; no override reads one) */
-    virtual void Render(CM *pcm) __asm__("RenderRip");   /* slot 6 */
+    virtual void Render() __asm__("RenderRip");   /* slot 6: no camera (RenderRipgSelf passes none; RenderRip takes only the rip) */
     virtual void Touch(int fRemove) __asm__("TouchRip__FP3RIPi");   /* slot 7 */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleRipBounce");   /* slot 8 */
 };
@@ -76,19 +76,19 @@ struct FLYING : RIP   /* RIPT 3 */
     LO *ploStuckRender;        /* +0xF0 what it becomes when it sticks (the EMITB's next-render object) */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
     virtual void PostEmit(EMITB *pemitb) __asm__("PostFlyingEmit");
-    virtual void Render(CM *pcm) __asm__("RenderFlying");
+    virtual void Render() __asm__("RenderFlying");
 };
 struct STUCK : RIP   /* RIPT 10 */
 {
     virtual void Update() __asm__("UpdateStuck");   /* key function */
-    virtual void Render(CM *pcm) __asm__("RenderStuck");
+    virtual void Render() __asm__("RenderStuck");
 };
 struct SHRAPNEL : RIP   /* RIPT 8 */
 {
     VECTOR dir;                /* +0xF0 the emitter record's direction (PostShrapnelEmit) */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleShrapnelBounce");   /* key function */
     virtual void PostEmit(EMITB *pemitb) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
-    virtual void Render(CM *pcm) __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
+    virtual void Render() __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
 };
 struct MATCH : RIP   /* RIPT 6 */
 {
@@ -97,20 +97,20 @@ struct MATCH : RIP   /* RIPT 6 */
     virtual void Update() __asm__("UpdateMatch");   /* key function */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitMatch__FP5MATCHP6VECTORfP2SO");
     virtual void Project() __asm__("ProjectMatchTransform");
-    virtual void Render(CM *pcm) __asm__("RenderMatch");
+    virtual void Render() __asm__("RenderMatch");
 };
 struct GLINT : RIP   /* RIPT 4 */
 {
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitGlint");   /* key function */
     virtual void Project() __asm__("ProjectGlint");
-    virtual void Render(CM *pcm) __asm__("RenderGlint");
+    virtual void Render() __asm__("RenderGlint");
 };
 struct SMACK : RIP   /* RIPT 9 */
 {
     virtual void Update() __asm__("UpdateSmack");   /* key function */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitSmack");
     virtual void Project() __asm__("ProjectSmackTransform");
-    virtual void Render(CM *pcm) __asm__("RenderSmack");
+    virtual void Render() __asm__("RenderSmack");
 };
 struct RIPT1 : RIP   /* RIPT 1 */
 {
