@@ -361,22 +361,19 @@ void BindHackshipParts(struct S *ship) {
 } } // namespace M_func_0017F770
 
 namespace M_func_0017F850 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct S { char pad[0xC]; struct VTE *vt; char pad2[0x48]; int positionChannel; int rotationChannel; char pad3[0x168]; int animEntries[1]; };
-void PostHackLoad(struct S *p);
-void SetXfRole(struct S *p, int a, int b);
-void BindHackshipParts(struct S *p);
-void BindHackAnimEntries(struct S *p, int n, void *pv);
+void SetXfRole(SO *p, XF *pxf, int role);
+void BindHackshipParts(HACKSHIPV *p);
 // vtable slot 15: PostCid47Load, bind entries and parts. (inferred)
-void PostHackshipLoad(struct S *p) { struct VTE *e; PostHackLoad(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); SetXfRole(p, p->positionChannel, 2); SetXfRole(p, p->rotationChannel, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->animEntries); }
+void PostHackshipLoad(HACKSHIPV *p) { PostHackLoad((HACKV *)p); p->SetCtlState(0); SetXfRole(p, p->unknown58, 2); SetXfRole(p, p->unknown5C, 2); BindHackshipParts(p); BindHackAnimEntries((HACKV *)p, 5, p->ahacke); }
 } } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 { extern "C" {
-struct S { char pad[0x28]; unsigned long fl; };
-void OnPoActive(struct S *p, int f);
-void SetHackshipState(struct S *p, int f);
+/* LO's flag word as one 64-bit value: lo.h's isInWorld bit-field compiles to a different test (matching-only). */
+struct LOIsland { char pad[0x28]; unsigned long fl; };
+void OnPoActive(LOIsland *p, int f);
+void SetHackshipState(LOIsland *p, int f);
 // vtable slot 78: base then SetCid48State. (inferred)
-void OnHackshipActive(struct S *p, int f) { OnPoActive(p, f); if (f) SetHackshipState(p, 1); else if ((int)(p->fl >> 60) & 1) SetHackshipState(p, 0); }
+void OnHackshipActive(LOIsland *p, int f) { OnPoActive(p, f); if (f) SetHackshipState(p, 1); else if ((int)(p->fl >> 60) & 1) SetHackshipState(p, 0); }
 } } // namespace M_func_0017F8C8
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
