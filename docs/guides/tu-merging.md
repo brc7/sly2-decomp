@@ -1,83 +1,49 @@
-# Merging a translation unit into one source file
+# Writing a translation unit that still matches
 
-Each leaf directory under `src/game/` is one original translation unit (TU) and today holds one file per function.
-The merge wave turns `src/game/<subsystem...>/<tu>/` into one file `src/game/<subsystem...>/<tu>.cpp` whose functions
-still match one by one. This page is the procedure, every mismatch cause met so far with the fix that worked, and the
-list of merged TUs. Read it before merging a TU; add to it when you hit something new.
+> **Current rules: [decisions.md](../decisions.md).** That page lists the design decisions and compromises in force
+> (representation, linkage, data layout, flags, blobs), each with its status. This page is the history and the
+> detailed evidence behind them; prefer decisions.md when the two differ.
+
+Every original translation unit (TU) is one source file under `src/game/` (see [architecture.md](../architecture.md));
+the merge wave that turned the per-function files into these files is complete. This page is the reference for editing
+such a file without breaking the match: the generated static initializer, every mismatch cause met with the fix that
+worked, representation decisions for shared types, the path-hash quirk, inline/linkonce functions, how data is defined
+and laid out, and linkage. Read "Path-hash quirk" first, then "Mismatch causes and fixes", then "Recurring asm idioms"
+before renaming any helper. The per-TU merge log is in git history (`git show 3493d772:docs/guides/tu-merging.md`).
 
 ## Rules
 
-- One file per TU, `<tu>.cpp` next to where the directory was. Functions in address order (the original source order).
-  Use `.c` only if a function cannot match as C++, and say why in the file header (none so far).
-- Commit per TU: `merge TU <name> (<n> functions) into <path>`, only when every function of the TU matches with
-  `python3 tools/matchtool.py check <tu>.cpp`. The same commit updates `config/matched.csv` (`source` column of every
-  function of the TU, nothing else), the subsystem `README.md` row, and doc links to the deleted files
-  (`docs/reference/**`). If a TU does not fully match after a reasonable effort, do not merge it; record it below.
-- Linker symbols do not change in a merge. A function whose current symbol is a plain name (`func_0011CCA8`,
-  `PvAllocSlotheapClear`) is defined `extern "C"` in the `.cpp`; a function whose symbol is already mangled
-  (`RenderGomerSelf__FP5GOMERP2CMP2RO`) is defined with the C++ signature that mangles to it. Renaming is
-  tools/rename.py's job, not the merge's, so `config/symbol_addrs.txt` and `config/functions.csv` stay untouched.
+- One file per TU, functions in address order (the original source order). `.c` only if a function cannot match as
+  C++ (none so far). `config/matched.csv`'s `source` column names the file of every function.
+- A function whose current symbol is a plain name is defined `extern "C"`; a function whose symbol is mangled is defined
+  with the C++ signature that mangles to it. Renaming is tools/rename.py's job ([naming-workflow.md](naming-workflow.md)).
   Declare callees with the linkage of their current definition (plain-named callees `extern "C"`); relocations are
-  masked, so callee spelling never changes the match, but it keeps a later native link honest.
-- Keep each function's `@sly2-annot` block above it. Drop the blocks of `StaticInit_<tu>` and its stub (they are
-  generated now, see below).
-- Types: a type used by more than one TU goes to `include/sly2/` (new headers or additions only; never change an
-  existing layout; header changes in their own commits). TU-private types stay in the `.cpp`. Placeholder names from
-  the per-function files (`W`, `O`, `S`) become the real class name where it is known (`CPair`, `CProc`, `MS`).
+  masked, so callee spelling never changes the match, but it keeps the native link honest.
+- Types: a type used by more than one TU goes to `include/sly2/` (header changes in their own commits). TU-private types
+  stay in the `.cpp`.
 - Add layout asserts (`typedef char assert_X_size[sizeof(X) == N ? 1 : -1];`) for sizes the match or the data proves.
+- Check with `python3 tools/matchtool.py check <tu>.cpp`: every function prints MATCH, no function of the TU is missing
+  from the object, no extra symbol with an address shows up, and every data symbol the file defines MATCHes ("Data").
 
 ## Procedure
 
-1. List the TU: rows of `config/matched.csv` whose `source` is in the directory, sorted by address. Some directories
-   also hold an out-of-line inline/template instance from the linkonce area at the end of `.text` (0x254F00..);
-   it belongs to the merged file too (see "Linkonce instances").
-2. Draft: concatenate the files in address order. Drop `StaticInit_<tu>` and its 8-instruction stub, and start the
-   file with:
+The file of a TU starts with its header comment and the aliases for the generated functions:
 
-   ```cpp
-   // <tu>.cpp -- <what it is>. TU 0xSTART..0xEND (<n> functions, address order).
-   // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_<tu>
-   // SLY2_ALIAS: _GLOBAL_$I$*=<current name of the stub, e.g. func_0011CF40>
-   #include "sly2/slotheap.h"
-   ...other includes...
+```cpp
+// <tu>.cpp -- <what it is>. TU 0xSTART..0xEND (<n> functions, address order).
+// SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_<tu>
+// SLY2_ALIAS: _GLOBAL_$I$*=<current name of the stub>
+#include "sly2/slotheap.h"
+...other includes...
 
-   // 0xADDR StaticInit_<tu> and its _GLOBAL_$I$ stub: generated by g++ for the six engine slot pools.
-   SLY2_INSTANTIATE_SLOT_POOLS()
-   ```
+// 0xADDR StaticInit_<tu> and its _GLOBAL_$I$ stub: generated by g++ for the six engine slot pools.
+SLY2_INSTANTIATE_SLOT_POOLS()
+```
 
-   Put `SLY2_INSTANTIATE_SLOT_POOLS()` directly after the includes (see "Pool order" for why).
-3. Unify: one declaration per callee/global, shared types from `include/sly2/`, m2c bodies (`#include
-   "m2c_prelude.h"`, `M2C_FIELD`) rewritten as readable C++ against those types. The m2c prelude is C only, so every
-   m2c body in a merged TU has to be rewritten.
-4. `python3 tools/matchtool.py check src/game/.../<tu>.cpp` until every function prints MATCH, and check that no
-   function of the TU is missing from the object and no extra symbol with an address shows up.
-5. `git rm -r` the directory, update matched.csv / README / doc links, commit.
-
-A scratch helper that does steps 1, 2, 4 and 5 mechanically was used for this wave (not in the repo, by policy); it is
-about 100 lines of Python around `tools/matchtool.py`'s `compile_src`, `obj_functions`, `apply_aliases` and `compare`.
-
-### TUs with an older multi-function file (wave 3)
-
-Five TU directories (heap, dmas, bis, vifs, gifs) held a hand-written multi-function `<tu>.cpp` from before the
-restructure next to per-function files, some of which duplicated functions of that file; matched.csv then had two
-rows for each duplicated function (one per source). What worked for all five:
-
-1. Check the `@sly2-annot` blocks of the multi-function file for `TU <other>`: heap.cpp also held
-   `Free__9CDynArray` and `Reserve__9CDynArrayi`, which lie inside TU dynarray. Move such functions into their own
-   TU's merged file first, in a separate commit (and fix the doc links of those functions by hand afterwards: the
-   finalize step rewrites every link to the old file, so they pointed at the wrong merged file for one commit).
-2. Take the multi-function file as the base (its bodies are already C++ against the shared headers), split it at the
-   annotation blocks and put the pieces in address order (none of the five was in order).
-3. For a function defined in both places keep the copy that matches; when both match, keep the multi-function
-   file's. Add the functions that only have per-function files, rewritten against the base file's types.
-4. After finalizing, drop the duplicate matched.csv rows (same name, address and new source; keep the `match` row
-   when the old non-matching copy left a row with a score).
-
-Neither of the two "does not match inside the TU" cases was inline/class context (B6). vifs' `AddVifUnpack(UPK,
-int, void *, int)` in vifs.cpp (0.279) was a different draft of the body (a count-down copy loop and a quad loop that
-stored as it loaded); the per-function body, with its `UnpackHelper__4VIFS...` call written as a member call, matches
-inside the TU. gifs' `AddPrimPack` in gifs.cpp (0.757) lacked the per-function copy's register pin
-(`register QW *pqw __asm__("$3")`); the pinned body matches inside the TU.
+Put `SLY2_INSTANTIATE_SLOT_POOLS()` directly after the includes (see "Pool order" for why). A TU may also emit
+out-of-line inline/template instances that live in the linkonce area at the end of `.text` (0x254F00..); see "Inline
+functions and linkonce copies". m2c-style bodies (`M2C_FIELD`, the C-only m2c prelude) do not belong in a TU file:
+rewrite them as readable C++ against the shared types.
 
 ## The generated static initializer (StaticInit_<tu> and _GLOBAL_$I$)
 
@@ -114,7 +80,7 @@ in their original order, so g++ generates the initializer:
   the merged file builds and matches with the default toolchain (all five functions); it no longer needs GNU as.
   Merged at the end of wave 5.
 
-### Globals with destructors (wave 10)
+### Globals with destructors
 
 A StaticInit whose `else` branch (initp == 0) calls destructors, and a third stub `_GLOBAL_$D$...` that calls it with
 `(0, 0xFFFF)`, means the TU defines global objects with a constructor and a destructor. Five TUs had them: cm (g_cm),
@@ -248,7 +214,7 @@ Other observations:
 - Per-function gcse stand-ins (brx_sw's dead `if (fNever)` block that sizes the gcse hash table) survive the merge:
   that table size is per function, not per file.
 - When rewriting doc links, match `\.(cpp|c)` in that order: `(c|cpp)` stops at `.c` and leaves `pp` behind (fixed
-  in a follow-up commit of wave 1). Run `python3 -I tools/docs/linkcheck.py` after each merge.
+  in a follow-up commit of wave 1). Run `python3 -I tools/linkcheck.py` after each merge.
 - Not hit yet: inline methods or class definitions that become visible in the merged TU and change a function's
   codegen (pilot blocker B6). The gifs/vifs cases suspected of it were draft-body and register-pin differences
   (wave 3, see "TUs with an older multi-function file").
@@ -346,7 +312,7 @@ Other observations:
     End/Draw).
   - The SLY2_CC/-G0/-ffast-math overrides of sidebag's linkonce helpers were not needed either.
   - dzg: dzgcore's DZG cannot simply grow: SolveInequalities has a DZG on its stack, and a 0x64-byte DZG changes its
-    frame (0x130 -> 0x150, 28 of 86 off). See "Not merged".
+    frame (0x130 -> 0x150, 28 of 86 off).
 - Wave 7 (20 asm TUs of 16..25 functions): 10 matched on the first compile once the views were unified, the rest
   after one or two fixes from the mismatch table. What recurred:
   - Shared headers where they cover the fields: brx (sly2/lo.h, so.h, sw.h), xform (xfm.h XFM, so.h XF/SO), joy
@@ -915,11 +881,11 @@ PemitbEnsureEmitter 0x258658 / PemitbEnsureExplo 0x2590F0, func_002586D8 / func_
 / GetExploClassDesc_linkonce): HYPOTHESIS that they are the rest of the same template set (or of one per-class
 macro); not checked.
 
-### Linkonce copies by family (link/contiguous-tus)
+### Linkonce copies by family
 
 The plain-function copies are what keeps 38 objects' `.text` (6 on integrate/round8, after the families done
 below; full-link.md "Status") from linking as one section without `-ffunction-sections`
-([full-link.md, "Code order (link/contiguous-tus)"](full-link.md#code-order-linkcontiguous-tus-2026-11-05)): 127
+([full-link.md, "Linkonce copies"](full-link.md#linkonce-copies)): 127
 functions in the linkonce area 0x254F00..0x259DE4 were plain `.text` functions (none are since link/linkonce-rest,
 after the 58 + 51 of link/linkonce-pools and link/linkonce-misc and its 18). By family (homes in brackets; the template/inline form is a HYPOTHESIS from the address pattern, not matched
 yet):
@@ -938,7 +904,7 @@ instance in `.gnu.linkonce.t.<symbol>` and never inlined into callers (emitter.h
 in-class member may instead be inlined by callers that today call the plain copy, which changes their code; check
 every caller's TU after such a move. Renaming to the mangled template names follows the emitter.h procedure above.
 
-### The Splice GC pool family (link/linkonce-pools)
+### The Splice GC pool family
 
 The 58 functions of the first row are back in template/inline form and MATCH as instances; no case was reverted.
 
@@ -1006,7 +972,7 @@ on that branch (76 of the 127 left on it; 18 on integrate/round8 after the pools
 three class_registry constructors, VecCombo and operator*, all done on link/linkonce-rest, below); the cases and the
 two reverted ones are in "Representation decisions" above.
 
-### The container family (link/linkonce-rest)
+### The container family
 
 The last 18 copies. Every object now links whole (full-link.md "Status"); every touched file MATCHes, nm symbol
 sets change only by the renames below and T -> W for the attribute forms, symcheck is unchanged (41 unresolved, 0
@@ -1149,11 +1115,9 @@ data symbol after the functions: `D_002C0D00 @0x2C0D00 [.data 0x4]: MATCH`, or t
 (`!! <addr>  <target bytes> | <ours>`), or a placement problem (`ours is zero-initialized (bss), target is in .rodata`).
 Extern declarations are not checked; a symbol with no known address (template statics, `g_eopidref_*`) is skipped.
 
-Defining a TU's data (pilot, 2026-11-04: pipe, water, hnd, sensor, memory):
+Defining a TU's data:
 
-1. Find what the TU owns: the survey (/home/claude/ref/reports/data_survey/globals.csv, columns `owner_guess`,
-   `owner_confidence`) lists every D_ with its section, estimated size and users. Data is linked in TU order like
-   code, so the TU's .data/.bss is the range between the previous and the next TU's data; a word inside that range
+1. Find what the TU owns. Data is linked in TU order like code, so the TU's .data/.bss is the range between the previous and the next TU's data; a word inside that range
    that no code names (pipe's D_002C0D04) is the TU's too.
 2. Replace the TU's `extern` declarations by definitions with the values read from the ELF, in address order (g++
    emits .data and .bss in definition order; memory's object reproduced the target's .bss offsets exactly). Use the
@@ -1174,12 +1138,7 @@ by any TU. The end of .bss from 0x4421A0 was taken for commons (phase 3); it is 
 defined by layout since phase 7 ("Phase 7: .bss and data gaps"); only the class and template statics after it and
 in `.sbss` are commons.
 
-Phase 1 over the merged TUs (branch data/phase-2, 2026-11-05): 96 files, 660 data symbols newly defined (survey kinds:
-192 floats, 109 16-byte vectors, 76 float pairs, 115 int/float tables and records, 105 .bss objects, 25 strings, 20
-zero-filled rows, 9 tables with pointers, 9 unnamed rows given a D_ name by address), all functions and data symbols
-MATCH, linkcheck 0. One rename (missile's `s_asnipMissile`, the Sly 1 name, with tools/rename.py, which handles data:
-it adds the symbol_addrs.txt line; add `size:` by hand). Most other clear names belong to globals that unmerged TU
-directories also declare, so naming waits for the merges (survey phase 5). Refinements of the steps above:
+Rules found while defining the data of every TU (the early data survey's owner guesses were often wrong; layout wins):
 
 - **What to leave out.** `.bss` addresses inside g_sw (0x3DD490..0x3E1C20) are SW fields, not objects (ms's "first
   glob owner", the slot heaps of tu_1709A8/tu_20B840/noise/frm, light's lists). End of `.bss` from 0x4421A0 (in TU order after
@@ -1220,127 +1179,6 @@ directories also declare, so naming waits for the merges (survey phase 5). Refin
   symbol still MATCHes; the layout is not reproduced).
 - **Values** come from the ELF: floats as the shortest literal that round-trips (FLT_MAX as `3.40282347e+38f`), words
   that the code reads as float bits stay ints with a comment.
-
-| TU | defined | kinds | notes |
-|---|---:|---|---|
-| pipe, water, hnd, sensor, memory | 16 | pilot (see above) | |
-| tu_1D57A8 | 1 | float (.rodata) | FLT_MAX literal |
-| tu_1D6848 | 1 | float (.rodata) | FLT_MAX literal |
-| vol | 1 | float (.rodata) | -FLT_MAX |
-| blend | 1 | float (.rodata) | -FLT_MAX |
-| stream | 1 | string |  |
-| brx_sw | 1 | string | callee takes const void * |
-| tu_14B660 | 1 | string | cast on return |
-| tu_11AFE0 | 1 | string | "" (zero-filled .rodata row = empty string) |
-| missile | 1 | struct | s_asnipMissile (SNIP[1], Sly 1 name, high); size: in symbol_addrs |
-| dzg | 1 | float |  |
-| tu_19F0A8 | 1 | float |  |
-| dirblend | 1 | float |  |
-| tu_1FF3B8 | 1 | float |  |
-| target | 1 | float |  |
-| mode | 1 | int |  |
-| spliceutils | 1 | bss |  |
-| dzgcore | 2 | float (.rodata) |  |
-| tu_1709A8 | 1 | float (.rodata) | D_003E1548 = SW+0x40B8 skipped |
-| tu_1BAB50 | 2 | string |  |
-| tu_1D7238 | 1 | string | D_003D4A54 inside prog's .bss range: skipped |
-| tu_14FAC8 | 2 | vector array, pair | VECTOR4[3] + HEIGHT |
-| tu_201D78 | 1 | float (.rodata) | D_002DE390 extent unclear: skipped |
-| trail | 2 | float (.rodata) |  |
-| busy | 1 | float | D_003E0E70 SW interior skipped |
-| rumble | 2 | table, int | RUMPAT[11] from ELF |
-| dl | 2 | bss(.sbss) | g_psliFirst/g_pdliFirst |
-| sjis | 2 | table | GM[34], GM[4] |
-| tu_2275B8 | 3 | string,table |  |
-| mark | 3 | float,float (.rodata) |  |
-| tu_1B0B78 | 3 | int[6],vector,float (.rodata) |  |
-| pipe_jt | 1 | SMP | .rodata ones already literals |
-| tu_1BE398 | 3 | pointer table + 2 int rows | rows unnamed before (D_ by address); RT[2] = SW interior skipped |
-| jtgoal | 3 | float |  |
-| frame,splicemap,spliceobj,sidebag | 0 | - | splice pool bookkeeping in .sbss and end-of-.bss (0x4520xx): skipped (not TU order; likely template statics) |
-| pickpocket | 3 | int[4], TABLE[9] x2 |  |
-| language | 10 | int arrays x7 (new D_), REGIONLANGS[7], bss x2 |  |
-| save | 4 | int[11], int[9], strings |  |
-| draw | 2 | int[26], bss | D_002BDD88 fn table skipped; SW interior |
-| joy | 2 | VEC2[4], bss | D_002E0D00/D_002E1E00 low skipped |
-| rail | 4 | float |  |
-| render | 4 | float, LM, int |  |
-| sprbuf | 3 | int, ulong[16] x2 |  |
-| difficulty | 5 | DIFFPARAMS, strings |  |
-| tu_1B9F80 | 5 | SNIP[3], 3 vectors (U floats-first), float (.rodata) |  |
-| tu_20CE28 | 5 | VQ[5], floats |  |
-| light | 3 | BLOCK, floats | SW interior x2 |
-| dmas | 5 | bss pointers |  |
-| phasemem | 5 | bss buffers | D_003B3980 RPL buffer defined by layout |
-| tu_1A4E08 | 4 | FILEREC x2  (.rodata), FILEREF zero, STEPE bss |  |
-| basic | 0 | - | its 2 .rodata int tables lie in crt0_splicewrap's .rodata (0x27A108.., before tu_1147D8): generated area, skipped; pool .sbss skipped |
-| places | 6 | floats, VQ[8], CLQ, LM, float (.rodata) |  |
-| turret | 5 | LM, float arrays, SMP (.rodata) | D_002DDF7C inside cm's bss skipped |
-| xf | 1 | float (.rodata) | identity M4 shared block, jump table, end-of-bss stack skipped |
-| booty | 4 | VQ (.rodata), float[3] (.rodata), strings | 2 PMF skipped |
-| path | 6 | float, VS[4], FS[2], float (.rodata)x3 | D_002C0C04 const-device kept extern |
-| bomb | 6 | float, int[4], int(bits), float (.rodata)x3 | PMF skipped |
-| tu_1C2D20 | 7 | SNIP[4], LM x3, floats, float (.rodata) |  |
-| eval | 1 | string | builtin table, pool skipped |
-| jthands | 4 | int, VQ, floats | PMF + 2 low skipped |
-| text | 4 | strings (3 ro, 1 .data) |  |
-| blip | 3 | int, QW[4] bss x2 |  |
-| eopid_linkonce,ref | 0 | - | eopid_linkonce is not a TU (emitter defaults: owner undecided); ref = pool bookkeeping |
-| tu_171F58 | 8 | floats (.rodata), LM (.rodata)x2, float, LM x2 |  |
-| tu_185130 | 6 | float (.rodata)x3, SMP x3 | D_002A5688 const breaks func_001856C0; D_002BE918 const device |
-| throw | 8 | floats, CLQ, F32, float (.rodata) |  |
-| tu_1471C0 | 4 | SNIP[2], VECTOR4F[4], float[8], M4F | D_002BD398/39C one array two names |
-| font | 5 | uchar[2], ushort[256], bss x3 | pointer table left |
-| mpeg | 5 | FILEREC (.rodata)x2, int, bss int, stack | vtables, end-of-bss skipped |
-| tu_1BC050 | 8 | floats, float (.rodata)x2 | 24 unnamed ints not claimed; SW interior |
-| waypoint | 9 | int(bits), floats, CLQ x3, LM |  |
-| gc | 0 | - | pool .sbss + end-of-bss skipped |
-| main | 7 | strings (ro x2, .data x2), bss x3 | startup table skipped |
-| po | 3 | float (.rodata), zero char[16], PO**[3] pointer table | vtable, shared vector, pool skipped |
-| tu_1553F0 | 11 | float (.rodata)x4, int, VECTOR x2, floats |  |
-| tu_20B840 | 7 | OID[2]x2, int[2]x2, floats, float (.rodata) | vtable, SW interior skipped |
-| cd | 10 | ro: char[4]x2,int,uint,uint[256] (defined at end of file), int x2, bss x3 | define-after-use trick for folded consts |
-| rhythm | 10 | floats, KEY[4], VQ x2, float[3], SZ (.rodata) | PMF, singleton skipped |
-| noise | 11 | floats, LM, float[3] | vtable, SW interior skipped |
-| tu_15CD68 | 8 | ints, int tables x3, void*[9], strings | 4 pointer tables left |
-| cane | 14 | floats, int[24], float[2], U x3, bss x2 | U reordered floats-first |
-| tu_14A008 | 14 | floats, LM x5, float[3], float (.rodata), bss |  |
-| tu_173158 | 15 | floats, float[2], float (.rodata) |  |
-| frm | 11 | bss: FRM*, FRM[2], DL x2, ints | D_002DEA4C (font's guess) moved to frm |
-| step | 14 | floats, float[3]x4, VECTOR, int[2][3], float (.rodata)x3 | fixed 6 namespace-mangled extern decls (now extern "C") |
-| tu_223F70 | 17 | floats, int tables, float[4]x4, POLY, float[11], float (.rodata) |  |
-| tu_144B28 | 20 | floats, float[3], CLQ x3, LM x2, pairs x2, float (.rodata)x2 | |
-| bentley | 19 | SNIP[0x76], VQ x3, POLY x2, SMP, floats, string, bss ptr |  |
-| hurt | 20 | U/F/POLY/float arrays/records/int[14]/float (.rodata) | U floats-first; 4 namespace-mangled decls fixed |
-| prog | 17 | ints, floats, V2[206], TRI[] x5, bss x5 |  |
-| menu | 11 | META, floats, int[8]x3, FILEREC (.rodata), bss floats+ITEM[] x2 | item tables w/ fn pointers left |
-| hang | 24 | CLQ x2, LM, SMPA, SMP x2, float[3] x2, floats |  |
-| shd | 21 | bss block (ints/pointers/char[0x40]), int[3], floats | D_003DA798 view-local type skipped |
-| grab | 24 | floats, HEIGHT, U[3]x2, SMP x2, bss x2 | 2 mangled decls fixed |
-| detector | 1 | qword zero |  |
-| brx | 1 | string "" | g_aeopid, vtables skipped |
-| ms,sm,proxy,tu_1709A8(bss) | 0 | - | SW interiors |
-| clip,solve | 0 | - | already literals in code |
-| mat,vec | 0 | - | shared constant block 0x2A2D00..0x2A2E10 (after tu_114AE0's palette): owner undecided |
-| barrier,button,aseg,proxy (.rodata) | 0 | - | PMF constants (literal phase) |
-| bsp | 0 | - | data pointers (pointer phase); D_002BBB60 low |
-| cheat | 0 | - | CODE records with fn pointers + interleaved button arrays (pointer phase) |
-| thread | 0 | - | end-of-.bss stack (not TU order) |
-| gs | 29 | ints, DISPENV[2], QW[] x14, bss ints | DRAWENV pairs + CRITSECT left |
-| tn | 25 | floats, LM x4, int, bss int, float (.rodata)x5 | declaration order (not address order); vectors/tables left |
-| jt | 39 | floats, SMP x3, int(bits) x2 | declaration order; 18 mangled decls fixed; vectors/tables left |
-| tu_1D1370 | 37 | POLY, LIMITS, floats, float[2]/[3], S8(bits) x3, float (.rodata)x2 | declaration order; 29 mangled decls fixed; vectors left |
-| glob | 5 | int, float (.rodata), bss x3 | records/vector left |
-
-Phase 2 over the merged TUs (branch data/phase-3, 2026-11-05): the 24 TUs merged since phase 1 (waves 9/10, the big six),
-the leftovers of phase 1, six vtables, the class descriptor table, four engine tables and g_clock/g_game/g_joy. 524 data
-objects newly defined plus 6 vtables (survey kinds: 178 floats, 112 16-byte vectors, 88 int/float tables, records
-and zero rows, 56 strings, 45 float pairs, 40 `.bss` objects with g_clock, g_game and g_joy, 5 tables with pointers:
-the class descriptor table, which covers the survey's 199 descriptor-row names, the builtin, gadget, render-pass and
-startup tables); D_002E0CBC went back to `extern` (a field). With phase 1, about 1,236 of the survey's ~1,740 objects
-are defined (1,230 D_ objects in merged files and the six vtables); all functions and data symbols of every touched file MATCH, linkcheck 0, progress
-6,662/6,662. Refinements:
-
 - **End-of-file block.** In the big per-function-namespace files the TU's data goes in one block at the END of the
   file, at file scope, in address order (`// ---- Data owned by this TU, in address order ...`). No function sees a
   definition, so nothing folds (no define-after-use juggling), and the namespaced `extern "C"` declarations above,
@@ -1388,65 +1226,6 @@ are defined (1,230 D_ objects in merged files and the six vtables); all function
   namespace-scoped declarations"): its vtable lines point at 212 addresses in the block (190 of the survey's kind
   `vtable`, the rest classified otherwise or not listed), none of them defined by an object yet.
 
-| TU | defined | kinds | notes |
-|---|---:|---|---|
-| stepguard | 35 | FLT_MAX (.rodata) x10, floats, cid/oid int tables, float[3]/[2] x5, VECTOR4, bss x3 | |
-| guardbhv | 65 | FLT_MAX (.rodata) x5, floats, LM x5, vectors x7, cid int[5] x2, float[16], bss x3 | .bss after D_002DFB7C is tu_17F090's and joy's |
-| stepplayer | 51 | strings (.rodata) x11, FLT_MAX x3, SNIP[0x35], SMPA x3, gadget table GADGETDESC[43], floats, vectors, bss | |
-| cplcy | 40 | LM/CLQ x21, SMPA/SMP x7, VECTOR4[4], floats, vector (.rodata), bss int | D_002BBB68 (shared block) left |
-| screen | 45 | strings (.rodata) x13, FLT_MAX x3, GADGETITEM[18]/[9]/[8], int tables, SMP, floats, bss x3 (ITEM[14]) | D_003DA180 left |
-| prize | 37 | strings/FLT_MAX (.rodata) x10, SNIP tables (OIDT completed) [1]/[0x18], VECTOR4[9], CLQ, LM, floats | 2 fn-pointer records left |
-| hud | 18 | strings (.rodata) x11, "Widget Item N" char[10][0x30], words x6 | shared constants, fn records, .bss left |
-| cm | 21 | SMP/SMPA, CLQ, vectors (5 zero), smoothing weights int[9], floats, FLT_MAX | |
-| murray | 31 | name string, SNIP[0x89], anim id tables, LM, floats, vectors, g_pmurray | |
-| tu_17F090 | 25 | SMPA x3, CLQ x4, LM x2, floats, vector, ship singleton (.bss) | 2 PMF constants left |
-| memcard | 21 | strings (.rodata) x15, thread stack char[0x4000], ENT[] (0x480), path char[0x50], bss ints | |
-| sw | 26 | strings (.rodata) x3, floats, SMPA, oid table, level-table pointers and counters (.bss after g_sw) | |
-| rip | 23 | FLT_MAX x2, CLQ x4, VECTOR4 x4, floats, LM, pairs | D_002BBB50 (shared block) left |
-| grabspot | 15 | floats, CLQ x2, vector, FLT_MAX | D_002DFB84 left |
-| jt | 16 | name string, SNIP[0xAD]/[0x12], id pairs, CLQ x2, SMPA x2, vectors, LM x2, g_pjt | |
-| tn | 9 | CLQ x2, SMP x3, SMPA x2, VECTOR4, VECTOR4[5] | default CPD, zero SWCBs left |
-| relay | 9 | FLT_MAX x2, floats, float[3], CMD (.bss) | |
-| emitter | 5 | FLT_MAX x3, cid int[4], LM | |
-| sound | 4 | SMP, LM x2 (.rodata), oid int[6] | |
-| game | 4 | string; .bss guard word, g_game, pointer | check tables at 0x2A37E8 left |
-| tu_1D1370 | 9 | SMP x2, SMPA x3, VECTOR4[5], vector, goal tables | |
-| shape | 9 | FLT_MAX x4, int, float[4] x2, floats | |
-| joy | 3 (-1) | g_grfjoyt, g_grfusr, g_joy (JOY) | D_002E0CBC back to extern (a g_joy field) |
-| so, glob | 3, 3 | constraint axes/modes; VIF STMASK/UNPACK tables, vector | |
-| act, xf, lo, grab, rhythm, tu_1471C0 | 2, 1, 1, 1, 1, 1 | FLT_MAX, vectors, zero buffer, singletons/pointers | |
-| class_registry | 1 (199 rows) | CLASSDESC D_002BAAE8[199] (parents, 185 factories) | |
-| main, draw, bif | 1 each | startup stages [20]; render-pass hooks PFNRP[12][2]; Splice builtin table BIF[169] | pointers resolved |
-| clock | 1 | g_clock (CLOCK) | |
-| heap, bis, bq, dmas, gifs | 6 | vtables via symbol_addrs.txt | typeinfo word compared (0) since `-fno-rtti` |
-
-**Deferred (data phase 2), with reasons.** Still extern in the merged TUs, by survey kind: 238 vtables, 235 `.bss` names (101 SW
-interiors, 40 end of `.bss`, 31 `.sbss`, 63 others), 144 records with code pointers, 21 PMF constants, 43 int/float
-tables and zero rows, 15 floats, 11 vectors, 4 float pairs, 4 strings, 17 pointer tables and data-pointer records, 7
-engine tables/objects (the survey also lists the 198 row names inside D_002BAAE8, now defined). By reason:
-
-- *Not objects (fields or interiors):* SW interiors (0x3DD490..0x3E1C20, the bulk of the `.bss` count); g_joy fields
-  D_002E0C20/D_002E0CB4/D_002E0CBC/D_002E0CCC; g_clock fields D_002DDED4..D_002DDF18; g_game fields
-  D_002DEB40/44/48; save-manager fields D_002E6604 (+0x24), D_002F633C (+0xFD5C); D_002E5270 (inside memcard's stack:
-  needs `stack + 0x31F0`); D_003DA0B8 (inside screen's objects); D_002DE390/D_002DE3B8/D_002DE440/D_002DE514 (inside
-  cplcy's `.bss` range by text order); tn's default CPD D_002C4120 (its `lmTilt` is the separately named D_002C41A8).
-- *Extent unclear* (a scalar declaration with much more room to the next name): screen D_003DA180, grabspot
-  D_002DFB84, sound D_003DD08C, hud D_002DDF18/D_002DEBF0/D_002DECE0/D_003D9EF4/D_003DA0D8, shd D_002DE18C, the save
-  manager D_002E65E0 itself, hud's objects right after g_sw (D_003E1C70..D_003E21A0).
-- *Not in TU order:* end of `.bss` from 0x4421A0, `.sbss` pool words, `.bss` 0x3DD0E4..0x3DD190 (as in phase 1);
-  frm-range pointer D_002DEA34 (tu_1471C0).
-- *Owner by layout undecided:* the shared constant blocks `.rodata` 0x2A2D00..0x2A2E50 (identity matrices,
-  unit/zero/FLT_MAX vectors) and `.data` 0x2BBB10..0x2BBB90 (bsp's range, names used by rip/cplcy/many); the
-  `.rodata` block 0x2A37E8..0x2A3A30 (game's check tables, memcard's icon data, hud's identity M23, the world-name
-  table D_002A39E8) that sits outside those TUs' `.rodata`.
-- *Waits for types:* the CPD record D_002BF670 (grab; the CPD type lives only in tn.cpp), shd's E[] D_003DA798 (view
-  type), the zero `.data` rows D_002CE4A0/D_002CE4B8 inside the vtable block.
-- *Waits for other phases:* 238 vtables (classes' virtuals are C-named free functions); 21 PMF constants (literal
-  phase, tu_17F090's two included); 144 records with code pointers and the remaining pointer tables (hud's 107
-  `.rodata` widget records, menu/cheat/tu_15CD68 tables, prize's two records): now mechanical with the asm-label
-  pattern and the resolver; generated tables g_aeopid D_002AC880 and g_mpcidarysplopt D_00279AD0 (extend
-  gen_splicewrap); g_gs D_003D4A60 and g_cframe (owner/type not settled).
-
 Resolved decisions (user, build/rtti-palettes):
 
 - **`-fno-rtti`** is in the C++ build flags (matchtool's CFLAGS, which progress.py and tools/link.py use; stripped for
@@ -1474,23 +1253,12 @@ Resolved decisions (user, build/rtti-palettes):
   (its neighbour D_002A96F0 is a non-null one), statically zero, with no initializer writing it; it stays
   extern with the other PMF constants (literal phase). No other section attribute was added.
 
-### Phase 3: address names (branch data/address-names, 2026-11-05)
+### Phase 3: address names
 
 Goal: no `D_`/`func_` name that no object defines, so the link stops binding names to absolute
 addresses (then tools/linkaliases.py; since integrate/round10 tools/link.py's `symbols()`) (an absolute address pins the data in place: no relocatable link, no mods, no port). Measured on all 932
 objects tools/link.py builds: 917 address names (888 absolute, 29 aliases) before, 469 (467 absolute, 2 aliases)
 after. Per-name classification and the remaining list: /home/claude/ref/reports/address_names/CLASSIFY.md.
-
-| class | before | after | resolution |
-|---|---:|---:|---|
-| c: func_ name of a config function | 29 | 2 | `__asm__("<config name>")` on the declarations (92 sources; _start.c's inline asm calls FlushCache by name) |
-| a: object not defined yet | 134 | 56 | air's `.data` (73 objects, 0x2BF730..0x2BF920) and 2 FLT_MAX `.rodata` words, end-of-file block; 3 virtual PMF constants (bomb, tu_17F090) |
-| a: common symbols (end of `.bss`, `.sbss`) | 65 + 15 SDK | 0 | defined as commons (below) |
-| a: pointer records and PMF constants | 149 + 21 | 36 | 137 defined: 28 PMF constants, hud's 107 widget records, bif's math table (below) |
-| b: field / interior of a defined object | 132 | 3 | base+offset (below); D_002E5270 is `_gp` |
-| a: shared constant blocks, vtables, vtable block | 15 + 251 + 14 | same | owner undecided / decision (below) |
-| d: SDK data and unbuilt SDK functions | 47 | 47 | no owner object for the 989snd/libc/libkernel/libgraph data; 8 `.text` names are defined by the gnu-reorder SDK sources (Mac build) |
-| e: blob addresses (.vutext/.irx), small values, code interiors | 17 + 26 + 2 | same | blob labels need symbols on the blob objects; values 0x0..0x3AB0 are not image addresses (absolute is right) |
 
 Rules found:
 
@@ -1523,31 +1291,12 @@ Rules found:
   differences (memcard, mpeg, sw, tn): `.text` from objects 1,281,279 equal bytes (68 fewer); relverify, which checks
   every relocation against the ELF, has 0 mismatches.
 
-Left, by reason (467 absolute names): 251 view vtables + 14 rows of the vtable block (decision: emit them as data tables in one file at
-the end of `.data`, or wait for real classes); 56 objects whose owner, extent or type is undecided (game's check
-tables, generated g_aeopid, eopid_linkonce's rows, g_gs, shd's E[], tn/grab CPDs, codegen devices kept extern on
-purpose); 36 pointer records (cheat CODEs, menu items, tu_15CD68 label tables, prize, the palette headers, bsp/font
-rows); 15 shared-block constants; 47 SDK (Mac list: 989snd strings and words at 0x2AA100.. / 0x2C4640..,
-`_ctype_+1` D_002AA6A1, libkernel/libgraph tables; InitThread.c's D_002E5270 is `_gp` but the file only builds on
-the Mac); 45 not source (blob labels, VU/scratchpad values, memcard's X::A/B code interiors).
-
-### Phase 4: interior fields (branch data/interior-fields, 2026-11-05)
+### Phase 4: interior fields
 
 Goal: the phase-3 base+offset macros become real typed fields accessed through the real global. 302 macros in 84
 files before, 73 in 35 files after (inventory: scratch fields/inventory.py). All functions and data of every touched
 file and of the includers of the changed headers MATCH (full progress run); no rewrite changed codegen, so nothing
 was reverted for codegen.
-
-| object | before | after | what was done |
-|---|---:|---:|---|
-| g_sw (SW, D_003DD490) | 206 | 45 | sly2/sw.h: the pads split into named fields (below); 161 macros now read `g_sw.<field>` |
-| g_cm (CM, D_002DDF40) | 24 | 8 | existing fields (grfvis, rAspect, mat, rgbaFog, part3a0, cplook, `cplook.rZoomMax`, `cpzoom.rZoomMax`) |
-| g_clock (CLOCK, D_002DDED0) | 18 | 1 | dt, dtCm, tReal, dtReal, tickFrame |
-| g_joy (JOY, D_002DFC00) | 4 | 0 | dtIdle, grfbtn, grfbtnLatched, rumble |
-| memcard D_002E65A0+0x40 | 29 | 0 | not an interior: the save manager D_002E65E0 is its own object (below) |
-| sound manager, class descriptor table | 9 | 7 | sound.cpp's own use (SNDMGRBASE::dlSndDirty), basic.cpp's row (`&D_002BAAE8[29].f0`) |
-| g_game, screen objects, frm's VIFS | 12 | 12 | no header type (below) |
-
 Representation decisions:
 
 - **Globals under their real names.** sw.h, cm.h, clock.h and joy.h declare `extern SW g_sw __asm__("D_003DD490");`
@@ -1584,31 +1333,7 @@ Representation decisions:
   D_003E1C34 defined: one absolute address name fewer). This was the cause of the 68-byte `.text` regression of
   phase 3, and more: `.text` from objects 1,281,264 -> 1,281,448 equal bytes (full-link.md).
 
-Left after phase 4: 73 macros. **integrate/round5** converted 26 more in 12 files (rumble, detector, shdanim,
-tu_14A008, rail, pipe, draw, tu_185130, tu_1BC050, noise, tu_171F58, turret): each file includes sly2/sw.h (cm.h,
-clock.h where needed); a private view that clashes with a shared type by name only is renamed with a `V` suffix
-(`LMV`, `SLV`, `DLV`, `VECTORV`, `VECTORQ`, `MATRIX4V`, `SMPV`, `CLOCKV`: they keep their own layout and are the
-view-unification list for those files), the private signed TI qword gives way to basic.h's unsigned one, rumble's
-RUMS/RUMK enumerators moved into basic.h's empty placeholders. Checked: every function and data symbol MATCH, and each
-object's global symbol set (nm) is unchanged, which is what keeps a `V` rename safe: it must not touch a mangled name
-(where a renamed view appears in a C++ callee's parameters, the declaration carries the original name as an asm label:
-`FCheckLm(LMV *, float) __asm__("FCheckLm__FP2LMf")`, tu_185130's GSmooth and DL calls).
-The types/views-2 registry classes did not change the picture: the clashes are the files' own views, not registry
-classes. 47 macros remained in 23 files; **types/views-3** converted the 28 of the first group below (the files now
-include the headers; Views unified, slice 3), leaving 19 in 10 files:
-
-- ~~Header does not compile in the TU~~ (done in types/views-3): eval, frame (CFrame moved to sly2/cframe.h), sensor,
-  tu_1BE398 (enums), bif (VECTORQ), po (mat.h dropped), and basic, booty, find, save, frm, pipe_jt, throw, tu_201D78,
-  where "cc1plus exits 1 with no message" was a cc1plus segfault on the redefinition of a polymorphic class.
-- **No header type**: the sound manager SNDMGRG (cd, menu, save: the type lives in sound.cpp), g_game D_002DEB30
-  (game.cpp), the screen objects D_003D9ED0 / D_003DA150 / D_003DA0C0 (screen.cpp's opaque SCRCTOR blobs; cheat,
-  memcard, hud, screen), frm's VIFS D_002DEA28 (tu_1471C0), the class descriptor row 32 (emitter: no CIDDESC in
-  scope).
-- **Other `.bss` laid out differently from the ELF** (same technique, not done here; build/link/conflicts.txt): dl, gs,
-  glob, shd, prog, screen, stepguard, grab, joy, sprbuf, game (tu_1147D8 / tu_114AE0 are the const-array `.rodata`
-  case). Done in phase 5 (below).
-
-### Phase 5: data order (branch data/bss-order, 2026-11-05)
+### Phase 5: data order
 
 Goal: each object's `.bss`, `.data` and `.rodata` laid out as the ELF's, so a real link (no `-fdata-sections`,
 `tools/link.py --tu-data`) puts every byte where the game has it. Measured with tools/link.py in both modes
@@ -1661,26 +1386,7 @@ isolates code from data-order problems: dropping it today would turn the default
 .rodata from objects 94.4% -> 88.6%), and `--tu-data` is the measure for data order. Once `--tu-data` is at least as
 good, drop the flag (make `--tu-data` the default). (Done in phase 6: the flag is gone.)
 
-**Merged onto types/views-3 (integrate/round6).** Only booty.cpp conflicted (views-3's `g_sw.savevars` kept, with
-this phase's `.rodata` order); no other source change, and both link modes gave this phase's numbers (full-link.md,
-Status).
-
-**Left (`--tu-data`) at the end of phase 5, by kind** (all done in phase 6, below):
-
-- *`.data` in definition order but not address order* (the per-function-view files whose phase-1 definitions sit at
-  their first declaration, and gap objects not defined): jt 36, tu_1D1370 35, cplcy 26, tn 22, prize 16, tu_17F090
-  12, stepguard 11, grab 9, tu_223F70 9, rip 8, murray/hurt/tu_144B28/bentley 7, hang/prog 6, ... (303 names in 39
-  objects). Same recipe: one definition block in address order, with the gap objects defined.
-- *Shared literals* (a named constant whose bytes the ELF shares with a function's own literal: gcc pools identical
-  strings and constants per TU, ours emits both): memcard `D_002A6BA0`/`D_002A6CA0`/`D_002A6CB8`/`D_002A6EB8`,
-  tn 5, tu_171F58 3, step 3, bomb 3, tu_185130 3, path 3, tu_1D1370 2, tu_144B28 2, hurt, sw, tu_14A008, tu_20B840.
-  Fix: the function reads the named symbol instead of spelling the literal (or the reverse); the relocated words
-  are masked, so the match shows whether the code is unchanged.
-- *`.rodata` with unnamed data missing or misplaced jump tables*: memcard (with the strings above), menu, bentley,
-  sw, xf, cd, tu_1BAB50, tu_223F70, tn, bomb, rhythm (the last three: named constants to move as above, not done in
-  the timebox).
-
-### Phase 6: one link mode (branch data/order-2, 2026-11-05)
+### Phase 6: one link mode
 
 Goal: the `--tu-data` layout at least as good as the `-fdata-sections` one, then one link mode. Done: tools/link.py
 compiles without `-fdata-sections` (the `--tu-data` option and build/link/obj-tu are gone). Differing bytes 1,620
@@ -1689,11 +1395,6 @@ wrong); `.data` and `.rodata` from objects byte-identical except 3 bytes (full-l
 every function and data symbol MATCH, relocations of the touched objects 14,666 OK / 0 mismatched, no new
 unresolved symbol, ld.lld 0 errors (no duplicate definitions). Scratch tools (not in the repo): plan2/mvdef (the
 RO_ORDER moves), gather (one `.data` block), fixalign, dord/rplan/seccmp (layout against the ELF).
-
-**Merged onto integrate/round6 (integrate/round7).** Five sources conflicted with types/views-2/-3 (tu_185130,
-noise, tu_14A008, tu_171F58, throw): this phase's `.data` blocks and `RO_ORDER` definitions kept, spelled with
-views-3's V-renamed private views (`LMV`, `CLQV`) and without the interior macros the views branches replaced by
-typed fields. Link numbers unchanged except where the views moved them (full-link.md, Status).
 
 How the original got one copy where we emitted two (*shared literals*), by kind:
 
@@ -1740,12 +1441,7 @@ Other layout rules found:
 - **main's build strings** (region, date, build number at 0x2C46C0) lie after xf's `.data`, in a later TU's place:
   section `.data.buildinfo` (stylistic, as `.rodata.early`).
 
-Nothing was reverted for changing codegen. Left then: class_registry (its literals interleave with the splicewrap
-objects' in the ELF: 112 `.text` bytes of %hi/%lo) and 3 bytes of a jump-table word in serialize's PpairSerializeIn;
-both fixed on link/crt0-block ("class_registry" below; the jump table had its case labels rotated). throw keeps its private
-3-float CLQ view (`CLQV`, types/views-3); D_002C40F0 is defined as the 16-byte record under its asm label.
-
-### Phase 7: .bss and data gaps (branch data/bss-gaps, 2026-11-06)
+### Phase 7: .bss and data gaps
 
 Goal: no `.bss`/`.sbss` byte the real link leaves to an address assignment, and fewer `.data`/`.rodata` bytes cut
 from the ELF (full-link.md, "Data no object defines"). Measured with tools/link.py: `.bss` gap bytes 487,824 (20
@@ -1786,48 +1482,7 @@ Rules found:
 
 `.bss` defined (owner by layout; the users in brackets where the owner does not name it):
 
-| TU | objects |
-|---|---|
-| hud | D_003E1C70 (CLinearHeap, LINEAR view), D_003E1C80 (level heap, HEAP view), D_003E1C88 (STRINGGEN[108]), D_003E21A0 (the heap's 0x60000-byte buffer, qword array), D_004421A0..D_004425A0 (10 buffers only hud names; former commons) |
-| thread | D_004425D0/D4/D8/DC (thread ids: main [prog], render [frm], memcard, mpeg), D_004425E0 (4 spare), D_004425F0 (render stack 0x1000; D_00443268, which libkernel's sceSifLoadFileReset named, is D_0044C268: %lo is negative; fixed there) |
-| tu_2275B8 | D_004435F0 (g_subtitle 0x150: the SPEAKERLABEL, then 0x144 bytes no code names) [relay, sound, hud, mpeg, mode, letterbox] |
-| xf | D_004437A0 (transform stack depth), D_004437A8 (stack, 22 words) |
-| joy | D_002E0D00 (the second JOY, joy.h) |
-| jt | D_002E1E00 (the invulnerability word, 0x40 by layout: between joy's two JOYs and g_pjt; owner a choice) [po, hurt, tu_17F090, game] |
-| render, tu_1D7238, save | D_003D4A50 (RPL cursor), D_003D4A54 (the PO subclass's self pointer), D_003D4A60 (g_gs, SVSET) |
-| cheat | D_002DDE88 (a CODE no code names), D_002DDEC0 (the code list) [joy, screen] |
-| difficulty, letterbox, tu_1A4E08 | D_002DE578 (DIFFICULTY), D_002E1E60 (LETTERBOX), D_002E1E88 (STEPQ) |
-
-`.data`/`.rodata` defined: emitter's shared defaults D_002BDDF0..D_002BDE70 (the head of its `.data`; the two
-0x40-byte records and the EMITV2 as words, their payloads do not fit emitter.h's EMITV field names); cheat's 15
-codes (each a 6-button sequence and a 0x20-byte record: in `.data` the record is 0x20, not CODE's 0x38); language's
-25 name strings and their table D_002BFC08 (no code reads them); tu_15CD68's label rows, their pointer tables and
-the movie key tables (D_002BE200 by chapter, D_002BE248 by episode, whose last word was the gap word D_002BE268)
-with the 22 FILEREC keys they point at (0x2A3268.., `.rodata.early`); game's keys D_002A37E8/D_002A3828 and
-memcard's icon key D_002A38E8 (`.rodata.early`); sw's world-name table D_002A39E8 (`.rodata.early`, its strings
-first in sw's `.rodata`); font's font table D_002BE320; frm's frame count D_002BE538 (frm or game by layout: frm
-chosen); tu_185130's D_002BE918 (asm-labelled, the extern const declaration is a codegen device); render's two
-vectors D_002C1F00/D_002C1F10; vifs's `s_mpupkcb` D_002C4430; joy's button-bit table D_002BE970 and tu_1BC050's
-24 words D_002C0AC8 (no code names either; by layout).
-
-Left (full-link.md, "Data no object defines"):
-
-- `.bss` 60,772: the SDK libraries' `.bss` and the commons after it (0x443800..0x452200, 59,904: the SDK objects
-  build on the Mac only; 989snd's commons in the sources that build here interleave across sources, so 989snd's
-  `.bss` needs its one-TU form first), `.sbss` commons 148 (ld allocates them; no section), 384 before tu_1147D8
-  (_start's or the crt0_splicewrap TU's: class_registry, left to data/crt0-tables), 256 after emitter (0xC0
-  unnamed bytes and D_002DE720/D_002DE750: the defaults emitter.h's inline accessors fall back on, likely guarded
-  local statics; layout unknown), 80 between sound and sprbuf (not in TU order, phase 1).
-- data: the palette block 0x29A800..0x2A2900 (33,024: tu_1147D8's tail glyph table, tu_114AE0's CLUT header, a
-  32 KB bitmap and its BMP header; game artwork like the built-in font: same decision); the shared constant block
-  0x2A2D00 (336, owner undecided); crt0_splicewrap's `.data`/`.rodata` and the vtables (data/crt0-tables,
-  data/vtables); SDK `.rodata` 0x2AA100 (10,084) and 989snd's `.data` 0x2C4640 (128): Mac; dynarray's records
-  0x2BBA78 (248, function pointers into dynarray: with the vtables); small ones: 0x2A3A10 (32, after sw's world
-  table), 0x2A40F8 (40, FLT_MAX/"Nil"/"<unknown>" after class_registry's `.rodata`), 0x2A43A0 ("#DBG"/"%4d"),
-  0x2A76D8 and 0x2A8140 (-FLT_MAX/FLT_MAX literals no function of ours emits), 0x2A81B0 (".Kanji"), 0x2BFC98 (8
-  zero bytes after light).
-
-### Phase 8: absolute symbols (branch data/address-names-2, 2026-11-06)
+### Phase 8: absolute symbols
 
 Goal: no name the link binds to an absolute address (full-link.md, "Absolute symbols"). tools/link.py now writes
 build/link/absolute.txt and prints `absolute symbols: N` by class. 492 -> 274 (the rest: SDK 170, commons 69,
@@ -1868,10 +1523,7 @@ differing bytes after every step. What was done, by kind:
   `_sceSifLoadModule`, main.cpp loads the `.irx` images through it).
 - **Blob labels**: names in `.vutext` (14) and `.irx` (3) are symbols on their blob sections (link.py), not absolute.
 
-Left: full-link.md, "Absolute symbols". Nothing was reverted for changing codegen (tu_1471C0's D_002BD39C as an
-element of its owner did change func_001477D8: the addend label replaced that attempt).
-
-### Phase 9: the commons file (branch data/commons-file, 2026-11-06)
+### Phase 9: the commons file
 
 User decision: the commons link.py still bound to absolute addresses are defined in one source file rather than
 placed by a link.py ordering rule. The file is [src/game/app/commons.cpp](../../src/game/app/commons.cpp): app/
@@ -2022,382 +1674,6 @@ which tests it for 0, SCECdErNO). The last two were spelled `sceCdGetDiskType()`
 mismatches; they now call sceCdGetError (relocations of the four touched objects: 94 OK, 0 mismatched). So 0x242AB8 is sceCdGetDiskType, 0x242AE0 sceCdGetError, and 0x242A20 keeps
 functions.csv's placeholder sceCdGetDiskType2 (Sony's name for the raw call is not known).
 
-## Merged TUs
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| slotheap | platform/memory/slotheap.cpp | 7 | 3 m2c rewritten; SLOTHEAP moved to sly2/slotheap.h |
-| ms | engine/graphics/pipeline/ms.cpp | 5 | `MS : SO`; bitfield fUnk35 for the 0x148 flag |
-| letterbox | engine/presentation/letterbox.cpp | 6 | `TIMER : LO` virtual calls replace vtable-entry structs |
-| 15 x empty_* | (one per directory) | 2 each | pool initializer only |
-| method, tu_14C548, tu_1539A8 | | 2 each | pool initializer only |
-| gomer | gameplay/ai/gomer.cpp | 3 | `GOMER : STEPGUARD` |
-| tu_11AFE0 | core/containers/tu_11AFE0.cpp | 3 | `.c` that compiles the same as C++ |
-| pair | splice/pair.cpp | 3 | sly2/cref.h; delete into pool 0 |
-| varb | splice/varb.cpp | 4 | delete into pool 1 (pool order!); linkonce 0x257430 |
-| proc | splice/proc.cpp | 4 | linkonce 0x257038 |
-| tu_153B08 | gameplay/objects/tu_153B08.cpp | 3 | `.c` as C++ |
-| hnd | gameplay/player/hnd.cpp | 4 | `HND : TARGET`; m2c rewritten |
-| tu_14FAC8 | gameplay/ai/tu_14FAC8.cpp | 4 | guard subclass view; m2c rewritten (implicit args) |
-| spliceutils | splice/spliceutils.cpp | 10 | non-standard StaticInit (CSpliceHeap); 6 linkonce pool helpers |
-| phasemem | platform/memory/phasemem.cpp | 4 | `SetPhase__F5PHASE` as `SetPhase(PHASE)` |
-| crout | core/math/crout.cpp | 4 | already C++ |
-| update | level/update.cpp | 4 | new sly2/dli.h; one SW view for both functions |
-| tu_14B660 | platform/cdvd/tu_14B660.cpp | 5 | 3 m2c rewritten |
-| tu_1CBEB0 | gameplay/ai/tu_1CBEB0.cpp | 5 | `RAJAN : STEPGUARD` (+0x1010 field confirms it) |
-| brx_sw | level/brx_sw.cpp | 5 | gcse stand-in survives; private `RGBAPOD` |
-| vis | engine/graphics/pipeline/vis.cpp | 6 | `VIS : XFM` |
-| tu_19F0A8 | gameplay/player/tu_19F0A8.cpp | 6 | conflicting `.c` prototypes unified |
-| tu_15DC80 | gameplay/objects/tu_15DC80.cpp | 6 | `!(x & 1)` vs `== 0`; private RGBA with ctor |
-
-Total wave 1: 39 TUs (18 of them pool-only), 137 functions. After the wave, `JOBS=2 python3 tools/progress.py`:
-6,662/6,662 functions and 350,068/350,068 instructions, matched.csv unchanged by the run (the merge commits had already
-pointed its sources at the merged files).
-
-Wave 2 (asm-free TUs of 7..21 functions, smallest first, then three small asm TUs):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| draw | engine/graphics/pipeline/draw.cpp | 7 | real VIFS class (include/vifs.h); pass table as `PFN[][2]` |
-| dynarray | core/containers/dynarray.cpp | 7 | 4 m2c memcmp wrappers |
-| thread | platform/thread/thread.cpp | 7 | private CRITSECT |
-| language | core/locale/language.cpp | 8 | three GetRegionLanguages prototypes unified |
-| tu_2275B8 | engine/sound/tu_2275B8.cpp | 8 | speaker labels; hidden RGBA result pointer becomes a by-value call |
-| wipe | level/wipe.cpp | 8 | 80-instruction StaticInit: global `WIPE D_00443740` constructed via InitWipe; FILEREC/SW from sly2/sw.h |
-| barrier | gameplay/objects/barrier.cpp | 9 | B4 caller side solved (packed long) |
-| tu_1A4E08 | app/tu_1A4E08.cpp | 9 | 16-step queue; signed/unsigned count |
-| amb | engine/sound/amb.cpp | 10 | `AMB : XFM` |
-| bq | core/containers/bq.cpp | 10 | key-TU extra (out-of-line ctor; `__tf` gone with `-fno-rtti`) |
-| difficulty | world/state/difficulty.cpp | 10 | CRef by value (sly2/cref.h); SW::ploJobCur |
-| splicemap | object/splicemap.cpp | 10 | two counted pointers; SPLCS defined; 2 linkonce GC helpers |
-| tu_1D7238 | gameplay/ai/tu_1D7238.cpp | 10 | safehouse select object; callee types for mangled names |
-| rumble | platform/input/rumble.cpp | 11 | CRef read in an inner block (destructor order) |
-| target | gameplay/objects/target.cpp | 11 | sly2/xfm.h TARGET; private `CID21 : XFM` |
-| tu_15CD68 | ui/tu_15CD68.cpp | 12 | clock as struct field fixes two m2c bodies |
-| cheat | gameplay/progression/cheat.cpp | 13 | CODE/CODES; SL iterator SLI |
-| find | object/find.cpp | 13 | `(int)p->f == 0`; private LO view named LO |
-| bas | core/binstream/bas.cpp | 13 | 10 m2c rewritten; constructor keeps its (void *) symbol |
-| sjis | engine/font/sjis.cpp | 4 | asm (register-pinned helpers), no pin needed |
-| sky | engine/graphics/pipeline/sky.cpp | 4 | asm (`pextuw`), no pin needed |
-| tu_1603B8 | engine/anim/tu_1603B8.cpp | 4 | VU0 asm, no pin needed |
-| dl | core/containers/dl.cpp | 21 | sly2/basic.h SL/DL, sly2/dli.h DLI |
-
-Total wave 2: 23 TUs, 219 functions (plus a follow-up commit fixing three callee declarations). After the wave,
-`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged by
-the run. The same 333 SDK/asm sources as in wave 1 do not build in this Linux environment and are carried over
-(one wibo compile of an SDK file hung and had to be killed; it is among them).
-
-Wave 3 (the older multi-function files, frame, then asm-free TUs by size):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| heap | platform/memory/heap.cpp | 12 | 84-instruction StaticInit (level heap object, hand-stored vtable); 2 dynarray functions moved out first |
-| dmas | engine/graphics/backend/dmas.cpp | 20 | multi-function file kept, put in address order; 8 duplicate rows dropped |
-| bis | core/binstream/bis.cpp | 34 | 9 duplicate rows dropped; ReadGeom as member (bis.h); CMemInputStream POD view; linkonce 0x2566B0 |
-| vifs | engine/graphics/backend/vifs.cpp | 19 | AddVifUnpack: per-function body (not B6); two commits (c0b79d74, bb97924b) |
-| gifs | engine/graphics/backend/gifs.cpp | 21 | AddPrimPack: per-function body with the `$3` pin (not B6) |
-| frame | splice/frame.cpp | 15 | CFrame/CVarb/SPM/SPZ/SPW/SPO unified; `void operator=`; raw parent-store address; 5 linkonce |
-| gc | splice/gc.cpp | 19 | g_gc ctor in StaticInit; per-pool sweep macro; 12 linkonce |
-| bif2 | app/bif2.cpp | 31 | 29 Nil-returning builtin stubs |
-
-Total wave 3: 8 TUs, 171 functions (plus dynarray grown from 7 to 9 functions, two header extensions: heap.h
-CLinearHeap::Free, bis.h CBinaryInputStream::ReadGeom). No duplicate matched.csv rows remain.
-After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions. The run
-changed matched.csv only in the line endings of the two dynarray rows edited by hand with `sed` (the file has CRLF
-rows; `sed` dropped the `\r`), committed as is. The same 333 SDK/asm sources do not build here; two wibo compiles of
-SDK files hung and were killed (a leftover from an earlier run among them).
-
-Wave 4 (the last asm-free TUs by size, exit_warp, save and callback):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| eval | splice/eval.cpp | 27 | 17 mangled evaluators as C++ over one CPair/CFrame/CProc; 8 linkonce (~CFrame, frame/proc pools); header: cref.h additions |
-| ref | splice/ref.cpp | 38 | CRef members; 133-instruction StaticInit (pools + CSpliceHeap, moved to slotheap.h); 9 m2c; 3 linkonce (~CProc); header: cref.h members, TAGK guard |
-| button | gameplay/objects/button.cpp | 50 | BTN (0x158) in BUTTON : SO and VOLBTN : VOL views; 27 m2c; packed global for the B4 caller |
-| exit_warp | level/exit_warp.cpp | 22 | EXIT : VOL, WARP : XFM views with named vtable slots; bis.h member calls; the exit timers at 0x15C (re-arm) and 0x160 (wipe delay) are two fields (both called `dt` in the per-file views; the commit message's "one field" is wrong) |
-| save | world/state/save.cpp | 24 | CRef setters from ref; SVKEY/SVENT/SVSTORE/SVSET; inline wrappers kept |
-| callback | world/scene/callback.cpp | 6 | B4 solved: the by-value struct is a pointer to member function |
-
-Total wave 4: 6 TUs, 167 functions, plus three header commits (sly2/cref.h twice with basic.h's TAGK guard,
-sly2/slotheap.h CSpliceHeap) and the rename.py fix.
-After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
-matched.csv unchanged by the run. The same 333 sources do not build here (one hung wibo compile of an SDK file,
-kCopy_0023B238.c, was killed).
-
-Wave 5 (the four leftovers, then asm TUs by size):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| tu_1147D8 | platform/memory/tu_1147D8.cpp | 2 | globals only: RGBA[16] palette with ctor, CLUT/BMP copied from headers |
-| tu_114AE0 | platform/memory/tu_114AE0.cpp | 2 | same shape, RGBA[256]; natural array initializer matches |
-| tu_119BC8 | core/containers/tu_119BC8.cpp | 16 | 11 linkonce (owner attach, virtual dynarray, hash table); overrides not needed; `s1` pin kept |
-| serialize | splice/serialize.cpp | 3 | private CRef with inline SetTag; NODE deletes into pool 0 |
-| bez | core/math/bez.cpp | 5 | VU0; shared VF/VF0 helpers |
-| dirblend | gameplay/player/dirblend.cpp | 5 | VU0 + pins; one DIRAXIS[8], PLAYERV, ANIMV |
-| jtgoal | gameplay/player/jtgoal.cpp | 6 | JTGOAL with a float/bits union; FIsBasicDerivedFrom as C++ |
-| geom | engine/physics/geom.cpp | 6 | VU0 microprograms + EE asm; private qword GEOM/MATRIX4; CloneGeom as C++ |
-| tu_1D6848 | engine/physics/tu_1D6848.cpp | 6 | asm output into memory: value-returning BcQ |
-| tail | engine/anim/tail.cpp | 6 | `(int)e - 0x70`; ACTCHAINV for the m2c chain actions |
-| stream | platform/runtime/stream.cpp | 7 | OSTRM constructors as C++; CopyAb returns void |
-| vol | engine/physics/vol.cpp | 7 | VOL view (BSPC +0xE0, GEOM +0xF0, sphere) |
-| tu_1C2D20 | gameplay/objects/tu_1C2D20.cpp | 7 | prize sprayer view |
-| render | engine/graphics/pipeline/render.cpp | 7 | DMAS::Flush members (dmas.h) |
-| main | app/main.cpp | 7 | Startup/StartupSif/StartupVU0/VU1 as C++; CProg members by linker name |
-| dzgcore | core/math/dzgcore.cpp | 7 | one DZ/DZG for the solver |
-| waypoint | gameplay/progression/waypoint.cpp | 7 | one WAYPT; SW/CAM/CLOCK unified; `#undef` of per-file aliases |
-| tu_1FF3B8 | gameplay/objects/tu_1FF3B8.cpp | 8 | grab spot view |
-| clock | core/time/clock.cpp | 8 | sly2/basic.h CLOCK; asm output into a scalar |
-| busy | object/busy.cpp | 8 | SWBUSY/SO/CM views; 3 m2c |
-| clip | engine/physics/clip.cpp | 8 | one LSG (0x60); PsoHitTestLineObjects keeps its literal C symbol |
-| ik | engine/anim/ik.cpp | 8 | IKREC; SolveIk keeps its offset-addressed views |
-| cd | platform/cdvd/cd.cpp | 10 | four mangled .c definitions as C++ |
-| sprbuf | platform/memory/sprbuf.cpp | 5 | SPRBUF pair + pools as globals; asm-label hack and gnu-reorder-db gone (no GNU as needed) |
-
-Total wave 5: 24 TUs, 161 functions (sprbuf merged after the progress run below); no `#line` pin and no header change was needed. After the wave,
-`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
-matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). The same
-333 sources as in wave 4 do not build here and are carried over (among them sprbuf's old asm-labelled initializer, merged since, and
-three gnu-reorder game files: emitter func_0015CAD8, grabspot func_00259A70/func_00259C08; the last two are inline functions in sly2/xfm.h since link/linkonce-misc).
-
-Wave 6 (the next asm TUs by size, 10..15 functions):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| tu_1848A8 | core/binstream/tu_1848A8.cpp | 10 | CStreamBis as one CBinaryInputStream view (spool fields named); `int sceClose` |
-| tu_1D57A8 | engine/graphics/pipeline/tu_1D57A8.cpp | 10 | render tree (RENDER/BLOCK/STACK); `(uchar)mask` C++ fix; #line tried, not needed |
-| pickpocket | gameplay/ai/pickpocket.cpp | 11 | guard loot view (+0x3F4..+0x494); first compile |
-| tu_1471C0 | gameplay/cutscene/tu_1471C0.cpp | 11 | callee param `ulong` per mangled name |
-| rail | gameplay/player/rail.cpp | 12 | RAIL (SHAPE + grabspot); EvaluateShapeS declared once; linkonce 0x259B08 |
-| sidebag | splice/sidebag.cpp | 12 | CSidebag (pool 4); SPW member for the inline release; 6 linkonce |
-| turret | gameplay/objects/turret.cpp | 12 | TURRET view; cref.h CRef; first compile |
-| cane | gameplay/player/cane.cpp | 12 | JT view from SetJtJtcs; ChooseJtAttackTarget declared once |
-| blend | engine/anim/blend.cpp | 12 | ASEG/ASEGBL view, MRSG/BLMRSG/ELEM/CHN; AC5/ACG2 vtables and AC5's inline slot 0x2581B8 |
-| hang | gameplay/player/hang.cpp | 12 | JT/NODE/IKJ; M3 vs M3P; helper renames; asm output into a scalar |
-| throw | gameplay/player/throw.cpp | 12 | JTTHROW/O/EFFECT; helper renames; first compile |
-| tu_12E600 | engine/camera/tu_12E600.cpp | 13 | CAMERA and CPCAMERA; first compile |
-| frm | engine/graphics/backend/frm.cpp | 13 | FRM; GIFS/VIFS globals in StaticInit; nine C++ names; pass-through alias |
-| prog | engine/presentation/prog.cpp | 13 | CProg members; LOGO global for the 166-instruction StaticInit |
-| trail | engine/fx/trail.cpp | 13 | TRAIL; 3 linkonce component readers |
-| bbmark | engine/physics/bbmark.cpp | 13 | SW sweep view, X (AAOBR), POX link; first compile |
-| pipe | gameplay/player/pipe.cpp | 14 | PIPE (as RAIL); linkonce 0x259AF8 |
-| tu_1B9F80 | gameplay/ai/tu_1B9F80.cpp | 14 | NEELA (STEPGUARD view) and its behaviour |
-| places | gameplay/player/places.cpp | 14 | PLACE/JTPLACES (JT +0x9E0) |
-| bsp | core/math/bsp.cpp | 14 | BSP with a union surface field; PLANE; basic.h dropped; 2 linkonce |
-| mode | gameplay/player/mode.cpp | 14 | shared stepplayer.h JTMODE/JTMODEHUD/STEPPLAYER/POCTL; WIDGET completed locally |
-| tu_20CE28 | gameplay/ai/tu_20CE28.cpp | 15 | STUCKWATCH/VOLWATCH and their event |
-| pipe_jt | gameplay/player/pipe_jt.cpp | 15 | JTPIPE; helper renames; asm output into a scalar |
-
-Total wave 6: 23 TUs, 291 functions; no `#line` pin and no header change was needed. After the wave,
-`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged by the
-run (the merge commits had already pointed its sources at the merged files). 332 sources do not build here and are
-carried over (the 333 of wave 5 less sprbuf's old initializer): the SDK files and the three gnu-reorder game files.
-
-Wave 7 (the next asm TUs by size, 16..25 functions; jthands, spliceobj and sensor skipped, see "Not merged"):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| brx | object/brx.cpp | 16 | LoadOptionFromBrx (Lilly port, gcse stand-in) kept verbatim; lo.h/so.h/sw.h; real LO virtual calls; `(uchar)` bit test; PMF on an incomplete class; 5-argument PloFindSwObject alias |
-| missile | gameplay/objects/missile.cpp | 16 | Lilly BOMB/MISSILE grown with the C files' fields, ACCMISS, SPLMISS; hand-scheduled FireSplmiss/func_001B2468 read the vtable through PVT(p) |
-| tu_171F58 | gameplay/ai/tu_171F58.cpp | 16 | BHV171 (guard search behaviour) with the +0x18 union; first compile |
-| tu_185130 | engine/physics/tu_185130.cpp | 16 | MESH (XFM) and JT views; three VU_FLOAT wrappers renamed apart; SMP for GSmooth; first compile |
-| tu_1BE398 | engine/graphics/pipeline/tu_1BE398.cpp | 16 | RT render targets, RTCAM camera; real VIFS/DMAS members; `== 0` for `!` |
-| xform | object/xform.cpp | 18 | xfm.h XFM, so.h XF; six overrides dropped; struct-aligned M3; hidden-result operator*; PVT read per call |
-| detector | gameplay/ai/detector.cpp | 19 | DETECTOR view (guard.h's names only the volumes); union asm output via a scalar |
-| joy | platform/input/joy.cpp | 19 | sly2/joy.h JOY throughout; first compile |
-| tu_1553F0 | gameplay/ai/tu_1553F0.cpp | 19 | DIMITRI, ESC, two behaviours; +0x4C is the target object; linkonce VecCombo as C++; ICE 378 avoided with an asm-labelled declaration |
-| wr | engine/anim/wr.cpp | 20 | one WRE/WR over six views; Lilly types for UpdateWrStateVectors; first compile |
-| tu_14A008 | gameplay/ai/tu_14A008.cpp | 21 | ROUTE, BHVRT, patrolling GUARDV; `(uchar)` bit test |
-| tu_173158 | gameplay/ai/tu_173158.cpp | 21 | CID119 guard spawner (SEL, ENTRY, CM camera); union asm output via a scalar |
-| vec | core/math/vec.cpp | 22 | per-function helper namespaces; six union asm outputs via a scalar |
-| bomb | gameplay/objects/bomb.cpp | 22 | one BOMB view; goto across initializations; struct list head; packed-long callback (B4); `(uchar)` |
-| water | engine/physics/water.cpp | 22 | SOW, the N node on two lists, one VE; one-argument func_001F5078 alias |
-| memory | platform/memory/memory.cpp | 23 | allocators, STACKSCOPE, `operator delete` = __builtin_delete; 2 linkonce emitter setters (moved to sly2/emitter.h in inline pass 3: 21 left); overrides dropped |
-| noise | gameplay/ai/noise.cpp | 23 | NOISE, NOISETYPE, LISTENER; first compile |
-| bhvstk | gameplay/ai/bhvstk.cpp | 25 | BHV/BHVSTK layout; 17 m2c; first compile |
-| text | platform/runtime/text.cpp | 24 | printf: one TFT, one OSTRM (0x418); own functions by C++ name; first compile |
-
-Total wave 7: 19 TUs, 378 functions; no `#line` pin and no header change was needed. After the wave,
-`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged by the
-run (the merge commits had already pointed its sources at the merged files). The same 332 sources do not build here
-and are carried over (the SDK files and the three gnu-reorder game files).
-
-Wave 8 (inline-asm TUs of 21..38 functions, smallest first; dzg, jthands, spliceobj and sensor left for a dedicated
-pass; mark, hurt, grab, mat and proxy skipped, see "Not merged"):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| blip | engine/fx/blip.cpp | 21 | BLIPG (0x460) and BLIP unified; do/while countdown; memset returns `void *`; vu0.h VuSub/VuSubRef/VuDot; CblipeProjectBlipTransformAccelM view takes a struct |
-| aseg | engine/anim/aseg.cpp | 23 | aseg.h, dli.h; caller views (ApplyAseg = func_0012F9B8 floats first, PostAsegLoadCallback); unused DLI locals kept; packed-long PMF; aseg.h move reverted |
-| font | engine/font/font.cpp | 24 | CFont/CFontBrx/CRichText; ChNextI/ChNextC/DxFromChI/DxDrawChI int vs char views; util.h GMax |
-| solve | engine/physics/solve.cpp | 24 | SO/XF/SOPHYS/SOTREE/XP views, M3C/MATC; union asm output via a scalar; GAbs |
-| tu_1B0B78 | gameplay/objects/tu_1B0B78.cpp | 25 | CID96 view; union asm output via a scalar; VuSub |
-| gs | engine/graphics/backend/gs.cpp | 26 | GS_InterruptV() without its argument; BuildClearGifsP passes the RGBA by address; D_002DEB80W array view |
-| tu_201D78 | gameplay/player/tu_201D78.cpp | 26 | RECONSEL/RECONTGT; `== 0` for `!` (an original `!!` kept where it matches); `(int)` count casts; VuAdd/VuSub |
-| asega | engine/anim/asega.cpp | 27 | basic.h CLOCK, aseg.h; register-pinned pass-through argument |
-| util | core/math/util.cpp | 28 | basic.h SMP/SMPA/CLQ/LM/RGBA/VECTOR; ConvertUserHsvToUserRgbQ 16-byte VECTOR view; GAbs/GClamp |
-| booty | gameplay/progression/booty.cpp | 28 | struct-returning call initialised, not assigned (frame 0x40 smaller); PvContSaveKey view; packed-long PMF |
-| tu_223F70 | gameplay/objects/tu_223F70.cpp | 28 | CID100 : SO; ToVF / ToVFN kept apart (volatile); BuildOrthonormalMatrixZ's hidden pointer by hand; FIsPtr |
-| basic | object/basic.cpp | 31 | private BASIC/LO views (key-TU reasons); three linkonce copies |
-| tu_20B840 | gameplay/player/tu_20B840.cpp | 31 | stepplayer.h GAIT; private LEAP (0x70), curve markers, direction blend; first compile |
-| tu_1BC050 | engine/physics/tu_1BC050.cpp | 31 | one CID14 view (convex polygon SHAPE); float-first caller views; VU_QWORD's constructor = func_002564B8 |
-| tn | engine/camera/tn.cpp | 31 | UpdateCptn's headers for the whole TU (xfm.h TN, cm.h CMPART2/CM, its CPD); packed-long PMF; union asm output via a scalar |
-| light | engine/graphics/pipeline/light.cpp | 32 | one LIGHT (0x170) and one world light-slot view; union asm output via a scalar |
-| shdanim | engine/graphics/pipeline/shdanim.cpp | 33 | SAA base with LOOP/PINGPONG/SHUFFLE/EYES/SCROLLER/CIRCLER derived (the types the mangled names need); first compile |
-| tu_1BAB50 | gameplay/objects/tu_1BAB50.cpp | 34 | one trigger view; func_001BB400 is the member behind the callback PMF; first compile |
-| mpeg | gameplay/cutscene/mpeg.cpp | 34 | CMPEG/CMpegAudio/CQueueOutputIop; gifs.h for both GIFS users; the player defined here with a vtable-storing constructor |
-| rhythm | gameplay/objects/rhythm.cpp | 35 | DANCER/RHYTHMMGR; five linkonce CTextBox setters as TB members; packed-long PMF |
-| po | actor/po.cpp | 38 | PO/POCTL/world views; linkonce PemitbEnsureEmitter without overrides |
-| menu | ui/menu.cpp | 38 | PMENU/PAGE/ITEM, one CRef, three RefGetGlobalSaveVar views; first compile |
-
-Total wave 8: 22 TUs, 648 functions; no `#line` pin and no header change was needed. After the wave,
-`JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged by the
-run (the merge commits had already pointed its sources at the merged files). The same 332 sources do not build here
-and are carried over (the SDK files and the three gnu-reorder game files).
-
-Hard TUs (the four with competing views, plus mat; see "Representation decisions"):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| sensor | gameplay/objects/sensor.cpp | 21 | one BEAM/BEAMEND (kind-selected endpoint union), SENSOR : SO, LASEN : SENSOR; ZapLasenBeams as the callback member LASEN::ZapBeams(int) |
-| dzg | engine/physics/dzg.cpp | 9 | new sly2/dzg.h (DZG base, DZGXP : DZG, DZX, FX), dzgcore on it; XP view; SO slots 67/68 through so.h; int-view zeroing, 16-byte AL |
-| jthands | gameplay/player/jthands.cpp | 17 | stepplayer.h JTHANDS throughout; JTV/CID20/XFACT views; islands kept; PVT as a macro; per-caller views of five callees |
-| spliceobj | object/spliceobj.cpp | 18 | sly2/cref.h CRef (payload union extended), new sly2/eopid.h; CREFA wrappers gone; SPPAIR aligned; 4 pool-6 linkonce |
-| mat | core/math/mat.cpp | 33 | func_0011B500 solved with an ordering asm |
-
-Total: 5 TUs, 98 functions; header commits: sly2/dzg.h (+ dzgcore), sly2/cref.h + sly2/eopid.h. No `#line` pin.
-After the pass, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
-matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). The same
-332 sources do not build here (the SDK files and the three gnu-reorder game files). progress.py caches by source
-mtime, so the includers of the two changed headers were rebuilt with matchtool by hand (cref.h: 15, dzg.h: 1).
-
-Wave 9 (follow-ups, the wave-8 skips, then the next asm TUs by size; the per-function-namespace device of
-"Representation decisions" for views that conflict or carry tuning):
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| mark | engine/physics/mark.cpp | 22 | XP/XPS on SOPART/SOTREE/SO/XF; Lilly bsp types; 6 tuned functions in namespaces; real SO virtuals 54/56/59 |
-| hurt | gameplay/player/hurt.cpp | 28 | stepplayer.h JTHURT/JT for 14 functions; compound literal kept last with an empty asm; packed-long callback |
-| grab | gameplay/player/grab.cpp | 28 | two Lilly ports merged; JTGRAB (nState +8, nKind +0xC); SetJtHfdk keeps its Sly 1 symbol (C linkage) |
-| proxy | object/proxy.cpp | 38 | three Lilly ports merged; 11 m2c on PROXY/PROXYSRC/PROXYSPARE; linkonce FramePtr_Assign |
-| tu_1709A8 | gameplay/ai/tu_1709A8.cpp | 42 | guard scripts: SSGE (kind-selected union), SSG, BHVSSG; 26 m2c rewritten |
-| glob | engine/graphics/pipeline/glob.cpp | 42 | Lilly globset types replace bis.h; 81-instruction StaticInit (cel-border RGBA word ctor) |
-| sm | engine/anim/sm.cpp | 43 | aseg.h SM/SMA, SW::dlSma/slotheapSma; three C++-named functions at file scope; __tf2SM extra (gone with `-fno-rtti`) |
-| tu_144B28 | gameplay/ai/tu_144B28.cpp | 43 | behaviour views BHVB/BHVSTATE/...; 18 m2c |
-| tu_1D1370 | gameplay/objects/tu_1D1370.cpp | 44 | robot tank; func_001D3450's verbatim `#line` pin kept and restored after it |
-| xf | engine/anim/xf.cpp | 44 | six SLY2_CC/-G0 overrides not needed; struct results by hand; `(...)` vtable pointers |
-| shd | engine/graphics/pipeline/shd.cpp | 45 | CLUT/BMP/TEX0; int arithmetic for negative offsets |
-| step | actor/step.cpp | 46 | step.h STEP for 18 m2c; v0 rule (func_001F8300 returns int) |
-| bentley | gameplay/player/bentley.cpp | 48 | players.h BENTLEY/BTBLENDS for 11 m2c |
-| path | engine/physics/path.cpp | 51 | CG/CGV/PATHZONE; child-index fold island |
-| jt | gameplay/player/jt.cpp | 51 | five Lilly ports merged; argument-less pass-through view; __tf2JT extra (gone with `-fno-rtti`) |
-
-Total wave 9: 15 TUs, 615 functions, plus the solve.cpp (dzg.h DZGXP) and brx.cpp (eopid.h/cref.h) follow-ups; no
-header change; one `#line` pin carried over (tu_1D1370). Scratch helpers used (not in the repo): a namespaced draft
-generator, a Lilly-port type merger, an offset dumper for header types (compiles `(int)&((T *)0)->f` into .data and
-reads it back) and a void * cast fixer.
-After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
-matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). The same
-332 sources do not build here (the SDK files and the three gnu-reorder game files); one wibo compile of an SDK
-file hung until the 300-second compile timeout.
-
-Wave 10 (the remaining TUs of 51..103 functions; class_registry and the six largest TUs (relay, stepguard, bif, so,
-guardbhv, hud) were split off to other agents on their own branches mid-wave). Drafting was mechanical with scratch
-helpers (not in the repo): every hand-written per-function file verbatim in its namespace (C files wrapped in
-`extern "C"`), the m2c bodies rewritten by hand at file scope, and these automatic per-block fixes from the mismatch
-table: `(void (*)())` vtable entries and `:::`, attribute-on-typedef, `#undef` of per-file macros, `!(x & 1)` as
-`== 0`, asm outputs into union/struct members through a scalar, the 8-byte callback struct passed as a packed long
-(B4, when its globals are only call arguments), libc declarations hoisted to file scope where a constant argument
-makes the builtin matter, C-linkage literal symbols for namespaced C++-named definitions, and the void * casts.
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| cplcy | engine/camera/cplcy.cpp | 51 | cm.h policy classes; hand-stored vtables; `: : :`; PosCplookEye struct result by hand; asm output via scalar |
-| emitter | engine/fx/emitter.cpp | 54 | StaticInit generated from the EMITO/EMITV defaults (gnu-reorder-db and asm label gone); EMITTER view; B4 packed long |
-| cm | engine/camera/cm.cpp | 55 | g_cm with ctor + ~CM: construct-and-destruct StaticInit and `_GLOBAL_$D$`; cm.h CM; ZeroVector store order |
-| shape | engine/physics/shape.cpp | 56 | xfm.h SHAPE (a private SHAPE crashed g++); MaxR for a pinned register |
-| prize | gameplay/progression/prize.cpp | 61 | DPRIZE/CLUE/LOOT/VAULT views; first compile |
-| rip | engine/fx/rip.cpp | 64 | RIPG/RIP/EMITB views; first compile |
-| murray | gameplay/player/murray.cpp | 66 | players.h MURRAY; `== 0` bit tests; compound literal + memory-clobber island |
-| sw | world/scene/sw.cpp | 68 | g_sw + table header with ctor/dtor; sw.h SW; ResolveSwSaveVars at file scope; indexed lookup loop |
-| act | engine/anim/act.cpp | 72 | ACT/ACTPHASE/ACTREST, AC curves; CBinaryInputStream readers as members; asm outputs via scalar |
-| grabspot | gameplay/player/grabspot.cpp | 74 | grab spot class views; the last two gnu-reorder files match with the default toolchain |
-| tu_17F090 | gameplay/objects/tu_17F090.cpp | 76 | hack objects as separate views (tail padding); fabsf at file scope; B4 |
-| memcard | ui/memcard.cpp | 81 | two widgets with ctor/dtor; SAVE/SAVEINFO/MEMCARD views; CompareSaves literal; strcpy builtin at file scope where it matters |
-| stepplayer | gameplay/player/stepplayer.cpp | 96 | stepplayer.h STEPPLAYER; slot 101 by hand; three members defined; B4 |
-| screen | engine/presentation/screen.cpp | 98 | nine screens with ctor/dtor (templates); StrcpyCall for non-constant strcpy; first compile after the setup |
-| game | world/state/game.cpp | 101 | sw.h SW fields for the m2c globals; JOB/TASK views; one-argument CompleteJob view |
-| sound | engine/sound/sound.cpp | 103 | g_sndmgr base/member destructors; SNDV/SNDMGRV views; seven-argument RPC |
-| lo | object/lo.cpp | 74 | lo.h LO with real virtual calls; bit-field casts; needed the wibo_cc marker fix (below) |
-
-Total wave 10: 17 TUs, 1,250 functions; no `#line` pin and no header change. One tooling fix (its own commit):
-tools/wibo_cc.py placed the short-loop alignment markers (the two-pass measurement of `.p2align 3` inside short
-loops) at line indices computed on the text after asfix.divfix, but in the raw text; in a merged file a vsqrt at a
-block start in an earlier function shifted them (lo's FMatchesLoName, one nop too many). It now marks the divfixed
-text (divfix is idempotent). Before the change every source under src/game (1,723 files) was compiled to assembly
-and checked: no other file had a shifted marker, so no other object changes.
-After the wave, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions;
-matched.csv unchanged by the run (the merge commits had already pointed its sources at the merged files). 329
-sources do not build here (the SDK files; the three gnu-reorder game files of earlier waves are gone: emitter's and
-grabspot's now build with the default toolchain).
-
-Merged on their own branches (split off from wave 10 mid-wave; integrated on integrate/round2 together with wave 10
-and data/phase-2). Details in the sections "class_registry" and "Big six" below:
-
-| TU | file | functions | notes |
-|---|---|---:|---|
-| class_registry | app/class_registry.cpp | 424 | not a TU (the non-generated part of crt0_splicewrap) but merged the same way; REG construction views; see "class_registry" below |
-| hud | engine/presentation/hud.cpp | 124 | 107 namespaced (first compile); 17 m2c on a WIDGET : LO view (docs/engine/hud-ui.md), SPRITEGRP, VIFS/DMAS members, jt.h JTMODEHUD; the 1090-instruction StaticInit_hud keeps its hand-written form |
-| relay | gameplay/cutscene/relay.cpp | 141 | 2 Lilly ports with merged file-scope types; 77 m2c on the Lilly RELAY/RELAYCMD/JSG (AddRelay* builders fill the relayck-selected union member); EnsureSggAlarm at file scope over an SGG view |
-| stepguard | gameplay/ai/stepguard.cpp | 158 | guard.h extended first; 50 m2c on guard.h/step.h and GUARDMOVER/TARGETREC/ANIMLO/BHVARG views; detector Clone as a real LO virtual |
-| bif | app/bif.cpp | 161 | 120 namespaced; VU_FLOAT/VU_VECTOR linkonce members at file scope; 37 m2c builtins as C-linkage literal symbols with the CRef result pointer passed by hand (CREFV view); first compile |
-| so | engine/physics/so.cpp | 174 | 4 Lilly ports at file scope (SO::Clone is a member); 43 m2c on so.h's SO/SOPHYS/SOTREE/SOPART/XF; StaticInit_so generated from a file-scope `CPQ D_003DD020` (follow-up commit) |
-| guardbhv | gameplay/ai/guardbhv.cpp | 190 | guard.h extended first; 58 m2c (behaviour Init/Start/Close/Done) on step.h's BHV with derived behaviour views and STEPGUARD3C : STEPGUARD; first compile |
-
-Total: 7 files, 1,372 functions (class_registry 424, the big six 948), plus the two sly2/guard.h header commits of
-the big six. With wave 10 this left only air with per-function files; it was merged last (see "air" below).
-After the integration and the linkage fixes (see "Linkage of namespace-scoped declarations"), `JOBS=2 python3
-tools/progress.py` from an empty cache: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv unchanged
-by the run. The 329 sources that do not build here are all SDK files.
-
-### air (merged last)
-
-air (gameplay/player/air.cpp, 44 functions) was skipped in waves 9 and 10: everything matched except
-PxpFindJtBestEdge (a `.c` file), 11/211 off at best. Its draft (three Lilly ports merged, 6 m2c, FCheckJtSingleEdge as
-a C-linkage literal symbol, union asm outputs) was otherwise unchanged; merged on branch merge/air.
-
-Diagnosis (stack slots and a dead store; not the path hash, not scheduling). The C body stores two compound literals
-into a union that is never read, with a store to another union between them:
-`scalar = (U){back}; point.q = value; scalar = (U){lift};`. The target keeps three `sqc2`s, `back` and `lift` into
-the same slot (sp+0x20) and `point` into sp+0x10, frame 0xF0. In C, `scalar` itself is a dead pseudo and disappears;
-the two literals are block-level temporaries that share one stack slot and keep their stores. The C++ spellings tried
-before were all wrong in one of two ways: assigning a literal (or a constructed temporary) to `scalar` makes `scalar`
-addressable, so it gets a second slot (87/213: frame 0x100, stores into 0x20 and 0x30); plain stores
-`scalar.q = back; ... scalar.q = lift;` are one memory object, and the first store is deleted as dead (by flow, presumably), after which the
-VF registers are allocated differently (64/211; one instruction short, the rest shifted); volatile stores keep all
-three but reorder them and change the VF allocation (11/211, wave 9).
-A first diagnostic step was to compile the `.c` body as C++ on its own, with `#line 1` naming the old
-per-function path so that the path hash matched the original: the same 87/213 as in the merged file, so the pin was
-not the issue (the fix later matched under `#line 1 "a.cpp"` too).
-
-Fix: each literal becomes an initialised local in its own block, `{ U s = {back}; } point.q = value;
-{ U s = {lift}; }`, and the outer `scalar` declaration is dropped (an unused `U` local still takes a slot: with it the
-code is right but the block locals sit at sp+0x30 in a 0x100 frame, 44/211). Locals of sibling blocks share one
-stack slot in g++ 2.95 and an initialisation is a store to a fresh object, so both stores stay, in source order. A compound literal as the
-initialiser (`U s = (U){back};`) gives the same code; an assignment in the block (`U s; s.q = back;`) does not
-(the first store is deleted, 64/211). Plain C++ (no island), no `#line` pin; all 44 functions match.
-
-## Not merged (and why)
-
-| TU | why |
-|---|---|
-| crt0 | not a TU: platform/boot/crt0/_start.c is the hand-written `_start` as one top-level `__asm__` block (already one file); left as it is |
-| splice_thunks | merged into the crt0_splicewrap TU (class_registry.cpp) on link/crt0-block, with the generated wrappers; see "class_registry" |
-
-After wave 10 and the integration of the class_registry and big-six branches (integrate/round2), every game TU
-with per-function files is merged (air last, see "air" in Merged TUs); crt0 stays as it is (splice_thunks went into class_registry.cpp with the generated wrappers on link/crt0-block). The unhomed linkonce instances are all homed (inline passes 1 and 3, see "Inline functions and linkonce
-copies"): src/game/core/linkonce no longer exists. Read "Path-hash quirk" first, then the C-vs-C++ rows of the
-mismatch table, then "Recurring asm idioms" before renaming any helper.
-
 ## class_registry
 
 src/game/app/class_registry.cpp is the whole crt0_splicewrap TU (0x100218..0x1147D8) since link/crt0-block: 825
@@ -2431,7 +1707,7 @@ registry part needed:
   constructors are declared in the headers and defined inline in sly2/classes.h, GLOBSET and the out-of-line
   constructors are declared in theirs (Representation decisions).
 
-### The crt0_splicewrap TU (link/crt0-block, 2026-11-05)
+### The crt0_splicewrap TU
 
 Why one object: in 0x100218..0x110AB0 class_registry's asm fragments and 33 option thunks alternate with 31
 hand-written thunks (src/game/app/splice_thunks/) and 373 generated wrappers (src/generated/splicewrap/), and the
@@ -2466,7 +1742,7 @@ on intermediate states with errors in them (a CRef used before its definition, d
 reduced test, on any top-level `__asm__` after a namespace under `-fsyntax-only` (it compiles with `-O2`). A silent
 failure from matchtool is such a crash: compile by hand without `-quiet` filtering, and bisect with the real flags.
 
-### The crt0_splicewrap tables (data/crt0-tables, 2026-11-06)
+### The crt0_splicewrap tables
 
 What the TU's data is: the Splice option tables, read by spliceobj.cpp (PeopidFind, RefGetPeopid/RefSetPeopid),
 brx.cpp and proxy.cpp (LoadOptionsFromBrx), basic.cpp (HandleBasicSpliceEvent). Not per wrapper: the records point at
@@ -2499,56 +1775,3 @@ D_0027A1D8, D_002AC880, D_002BAAE8), basic.cpp MATCH; tools/link.py 0 differing 
 
 Follow-up done (link/eopid-real-refs): the records take the real addresses of the inline accessors and emit their
 63 linkonce copies here; eopid_linkonce.cpp is gone (Representation decisions).
-
-## Big six (hud, relay, stepguard, bif, so, guardbhv)
-
-The six largest TUs that were left after wave 9 (948 functions), merged on branch merge/big-six. Each was merged
-in one commit, and every function matches (matchtool on all six files at the end: 948 MATCH). Their rows are in the
-"Merged TUs" section (table "Merged on their own branches"); this section keeps what was learnt.
-
-Header commits (additions only; padding split into named fields, layout and asserts unchanged; every includer
-rebuilt by hand, all MATCH): sly2/guard.h twice. The first added ANIMBINDING/ANIMBINDINGREC and the STEPGUARD words
-pasega, nUnk390..nUnk3C0, cbindingrec, abindingrec, aabindingZap, nUnkF68 and qwUnkF70, plus DETECTOR::cUnkFC. The
-second added tAttackNext, fUnkF3C, cUnkF94 and cUnkFA8. Two follow-up commits only correct header comments (TU range
-of stepguard.cpp, STRINGGEN count of hud.cpp). No `#line` pin was needed.
-
-Procedure as in the waves before. Every per-function file goes verbatim into its own namespace. #include lines are
-hoisted to the top of the file, and each namespace starts with forward declarations of the structs it defines. m2c
-files keep their bodies under a temporary prelude until they are rewritten at file scope. Lilly ports' types are
-merged at file scope. `void *` results are cast mechanically. The scratch helpers are not in the repo.
-
-New mismatch causes and fixes (the C-vs-C++ ones already in the table above recurred about 20 times: packed-long
-callback PMFs, `!` on bit tests, asm outputs into union or struct members):
-
-| symptom | cause | fix | seen in |
-|---|---|---|---|
-| "call of overloaded `StopRelay (RELAY *&)' is ambiguous" | the same `extern "C"` function, with identical parameter types, is declared at file scope (for the rewritten bodies) and inside a per-function namespace whose code calls it. g++ 2.95 does not merge the two declarations. With different (namespace-local) parameter types the inner declaration hides the outer one and nothing is reported | drop the namespace's duplicate declaration | relay |
-| a namespaced port reports "invalid use of undefined type `struct RELAY`" before its own definition | an elaborated `struct X` that appears before the namespace defines X refers to basic.h's file-scope forward declaration | forward-declare every struct a namespace defines at the top of that namespace (a port whose types complete header types, e.g. GRABSPOT passed into stepplayer.h's JTPLACE, needs the file-scope copy instead) | relay |
-| "implicit declaration" of functions that a namespaced Lilly port declares itself | the port defines a member of a header class (`void SO::Clone(LO *)`). Lookup inside the member body goes from class scope to the class's namespace (global) and never reaches the port's namespace | put the port at file scope with its merged types | so |
-| a C++-named definition shows as "EXTRA symbol (no address)" plus a missing function | defined inside a per-function namespace, its symbol gets the namespace mangled in | file scope over file-scope types (VU_FLOAT::VU_FLOAT(float), operator*(VU_FLOAT, VU_VECTOR)) | bif |
-| parse error before `::` in a `.c` body | `__asm__ __volatile__("" ::: "memory")`: the C++ lexer reads `::` as the scope operator | write `: : :` | guardbhv |
-| a void function's m2c body "returns" `p + 4 * c` | the value is the address computation of the last store, left in v0 | define the function `void`. Returning the slot address is 8 of 25 off | stepguard (AddTargetRecordGuard) |
-| an m2c caller uses the result of a callee whose own body is void | the caller reads the v0 that the callee leaves behind | declare an int-returning asm-labelled view for that caller (`int func_002185F8I(...) __asm__("func_002185F8")`) | hud |
-| zeroing a VECTOR member is 2..14 off | the target builds `&v` once and stores z, y, x (`addiu v0, v1, 0x190; sw 4(v0); sw 8(v0); sw 0x190(v1)`) | use a local `VECTOR *pv = &p->v; pv->z = 0; pv->y = 0; pv->x = 0;` (float 0.0f stores use `$0`) | stepguard (func_00209790) |
-| `(uchar)p->f == 0` on a bit-field extracts the bit (dsrl; andi 1) where the target masks it (andi 2) | the `(uchar)` rule above is for bits past 31 (LO::fInWorld). For a low bit other than bit 0 it changes the code | `p->f == 0` or `!p->f` (SOTREE::fQueued2). Bit 0 (fQueued1) matches either way | so (func_001F4BF8) |
-| `x = !p->f` on an `unsigned int f : 1` after a 60-bit field | as the find/brx rows | `(uchar)p->f == 0` or `(int)p->f == 0`; `!(int)`, `^ 1`, `1 -`, `< 1` and `(unsigned int) == 0` do not match | relay (SetJsgTunnel) |
-| m2c calls without arguments (a0 passed through) | as the jt row | an argument-less asm-labelled view for callees outside the TU (CloneLo, RemoveSoHierarchy, PostLoLoad). The TU's own callees, and calls made first in the function (`CloseBhv(pbhv)`), matched with the arguments written out | stepguard, so, guardbhv |
-| a non-standard StaticInit (93 instructions) with one global copied from a zeroed temporary | a file-scope object with a memset constructor, initialised from an inline maker | `CPQ D_003DD020 = MakeCpq();` before SLY2_INSTANTIATE_SLOT_POOLS(), with the two SLY2_ALIAS lines (first try) | so |
-| hand-written non-standard StaticInit kept | — | it still matches inside the merged file, provided the file instantiates no slot pool (no slotheap.h), so that g++ emits no initializer of its own | hud (1090 instructions) |
-
-Representation decisions (the user's rules: separate structs by default, derived structs for supersets, unions only
-where a kind field selects the bytes, documented islands, per-function namespaces for conflicting views):
-
-| file | struct | choice | evidence | revisit when |
-|---|---|---|---|---|
-| sly2/guard.h | STEPGUARD, DETECTOR | padding split into named fields (`nUnkXXX` where the meaning is unknown), plus ANIMBINDING (16 bytes) and ANIMBINDINGREC (32 bytes) | the m2c bodies of stepguard and guardbhv read them | meanings found |
-| stepguard.cpp | GUARDMOVER | TU-private view of STEPGUARD +0xFD0 through a PMOVER macro. The header leaves +0xFD0 unnamed | stepguard's mover reads a lock flag at +4 and its owner at +0xC, while tu_144B28.cpp reads the same bytes as a JTGOAL (owner at +0). The views conflict, so the header gets no field | the +0xFD0 object is identified |
-| stepguard.cpp | TARGETREC, ANIMLO, BHVARG | TU-private views | each is used by one TU | headers for them |
-| relay.cpp | RELAYCMD | the Lilly RELAYCMD, a union of per-kind argument structs selected by relayck | each of the 59 builders stores its kind and fills that kind's member | — |
-| relay.cpp | Lilly ports, SGG | the two ports' type copies merged at file scope (GRABSPOT: the superset); SGG is an alarm view (+0x84/+0x88, the same block as RELAY's) | GRABSPOT is passed into stepplayer.h's JTPLACE | the types move to headers |
-| bif.cpp | RefOp builtins | m2c bodies are C-linkage functions under their literal mangled symbols, with the CRef result pointer passed by hand, over a TU-private POD CREFV. Not C++ `CRef RefOpX(int, CRef *, CFrame *)` | the TU's 120 other builtins use the literal-symbol convention. cref.h has no tag+value constructor that avoids the inline -1 store, and the binary calls the C-named func_001291A8/CRef_ctor_*, so every callee stays under its real symbol | the whole TU moves to C++ builtins (needs cref.h constructors and the CRef constructors renamed) |
-| so.cpp | Lilly ports; SOBOUNDS, XFH, STEPREC, SOWATCH | CloneSo/GetSoAngularVelocity/SetSoIgnoreLocked/SetSoIceable at file scope with merged types; TU-private views (so.h only forward-declares SOBOUNDS) | a member definition and C++ symbols; one TU each for the views | headers |
-| so.cpp | SO vtable entries 47 and 53 | hand-made calls (PVTE macro); LO Add/Remove as real virtuals | so.h's VUnk52/VUnk53 signatures do not fit entry 53 (it returns the new SOTREE). The VUnk numbering was not checked against vtable entries | so.h's slot names checked |
-| so.cpp | CPQ D_003DD020 | file-scope object that generates StaticInit_so (placeholder name) | matches; tu_1BC050 and guardbhv pass it to FindShapeClosestPoint (role HYPOTHESIS) | its fields are known |
-| guardbhv.cpp | behaviours | TU-private derived views of step.h's BHV per behaviour (BHVSTATE, BHVANIM, BHVATTACK, BHVCOMBAT, BHVPATH, BHVGOTO, BHVTARGET, BHVPATHLINK, BHVPATROLPATH, BHV50); the owner is `(STEPGUARD *)pbhv->pstep`; STEPGUARD3C : STEPGUARD for +0x108C | derived structs over the shared base | a behaviour header |
-| hud.cpp | WIDGET, StaticInit_hud | `WIDGET : LO` view completing basic.h's forward declaration; StaticInit_hud kept hand-written (reversible) | docs/engine/hud-ui.md. The STRINGGEN records are not one contiguous .rodata run (the copy list includes 0x2A9220, which reads as FLT_MAX / -FLT_MAX), so the table has to be rebuilt record by record from the code first | the table is spelled |

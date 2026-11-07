@@ -8,7 +8,7 @@
 # 2. progress, Docker    tools/dev.sh progress (the Linux-compiler SDK files; reuses the native results from 1)
 #                        PASS = every source built and 6662/6662 functions match
 # 3. matched.csv         unchanged against git (a changed row means a function's result changed)
-# 4. doc links           tools/docs/linkcheck.py
+# 4. doc links           tools/linkcheck.py (markdown links; --src checks docs/ references in source comments)
 # 5. full link           tools/link.py (real link: one section per object, per-function fallback for the objects
 #                        that are not contiguous yet): ld.lld errors must be 0; differing bytes against the ELF and
 #                        the fallback count are reported (informational: compare with the Status table in
@@ -55,7 +55,7 @@ if git diff --quiet -- config/matched.csv; then result "matched.csv" PASS "uncha
 else result "matched.csv" FAIL "changed: git diff config/matched.csv"; fi
 
 echo "== 4/5 doc links"
-run linkcheck python3 tools/docs/linkcheck.py; rc=$?
+run linkcheck python3 tools/linkcheck.py; rc=$?
 lc=$(tail -1 "$LOGS/verify-linkcheck.log")
 if [ $rc -eq 0 ]; then result "doc links" PASS "$lc"; else result "doc links" FAIL "$lc"; fi
 

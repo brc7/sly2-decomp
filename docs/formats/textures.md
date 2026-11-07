@@ -1,8 +1,7 @@
 # Level textures: CLUTs, bitmaps, shaders (shd TU 0x1EA568-0x1ED7A8)
 
 Textures are stored **per world entry** (WE), right after the WE's Splice entries ([level-objects.md](level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx)),
-and loaded by `LoadShadersFromBrx` 0x1EB748. The exporter `reports/textures/sly2_textures.py` decodes them to PNG
-([guides/asset-tools.md](../guides/asset-tools.md)).
+and loaded by `LoadShadersFromBrx` 0x1EB748. The exporter `reports/textures/sly2_textures.py` (research workspace, not in this repo) decodes them to PNG
 
 Tags: `[C:static]` = matched decomp code; `[C:parse]` = the walk lands exactly on every following structure in all 43 world files (37,508 bitmaps,
 38,750 shaders, 71,774 bitmap x CLUT pairs decoded with 0 errors); `[C:visual]` = the decoded images look right (signs and posters readable,
@@ -13,7 +12,7 @@ smooth gradients); `[H]` = inferred.
 ```
 U16 nclut; nclut x CLUT record          LoadColorTablesFromBrx 0x1EAE40 / LoadClutFromBrx 0x1EA8A8
 U16 nbmp;  nbmp  x BMP record           LoadBitmapsFromBrx 0x1EB098 / LoadBmpFromBrx 0x1EAF50
-U16 nsaa;  nsaa  x {U16 cid (0xFFFF none); 0x20-byte SAA payload}     PsaaLoadFromBrx 0x1ED7A8
+U16 nsaa;  nsaa  x {U16 cid (0xFFFF none); 0x20-byte SAA payload}     LoadSaaFromBrx 0x1ED7A8
 U16 nshd;  nshd  x SHD record           LoadShdFromBrx 0x1EB2F0 (0x2C bytes in memory)
 Align(0x10); cbBlob bytes = the image blob    0x20F640 -> RelocateSharedColorTables 0x1EA568 -> UploadBitmaps 0x170730
 ```
@@ -31,7 +30,7 @@ The blob is re-read only when the WE's idBlob differs from the previous one; oth
 | +0xC | U32 | blob offset (kind 1) |
 
 Colours are RGBA32 (R,G,B,A bytes) `[C:visual]`. Every loaded colour also goes through `ColorCorrectRgba` 0x1ED278 when D_003E12C8 is set; that flag is the
-anaglyph-stereo flag ([rendering](../engine/rendering.md#8-blips-hud-screen-effects)), so normal rendering does not correct colours `[C:static]`.
+anaglyph-stereo flag ([rendering](../systems/rendering.md)), so normal rendering does not correct colours `[C:static]`.
 
 ## 3. BMP record (0x18-byte header) `[C:static]`
 
@@ -52,7 +51,7 @@ index and cclut x U16 CLUT index (0xFFFF none).
 - L02 shdk counts: 1:1303, 0:153, 2:73, 3:29, 7:16, 4:4; ctex = 1 everywhere. shdk 3 batches are flat-colour FX volumes (blast domes, glows, blob shadows) `[H]`.
 - Pass meaning `[H]`: for shdk 1, pass 0 = the colour texture, pass 1 = a greyscale palette over the same indices (lighting/shadow, cf. Sly 1's three-way CLUTs).
 - Every CLUT is used by exactly one (bmp, clut) pair in L02 (2766 pairs = 2766 CLUTs) `[C:parse]`.
-- Meshes refer to shaders by index into **the shader list of the WE whose object list holds the SO** (`PshdFromIshd` 0x1EC8F8 = &D_003DCFEC[ishd], stride 0x2C);
+- Meshes refer to shaders by index into **the shader list of the WE whose object list holds the SO** (`GetShdByIndex` 0x1EC8F8 = &D_003DCFEC[ishd], stride 0x2C);
   a proxy copy uses its source WE's shaders `[C:static]`.
 
 ## 5. Pixel decode (what `sly2_textures.decode` does)
@@ -67,15 +66,7 @@ index and cclut x U16 CLUT index (0xFFFF none).
 ## 6. Runtime notes
 
 After every load the texture-table counts and list heads are reset: `ResetShaders` 0x1EC7A0 is 17 instructions that zero the 8 words 0x3DCFE8-0x3DD004 and memset nothing `[C:static v3.1]` (plus `ClearTexHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
-GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic).
-
-## Devtools findings (v3, 2026-11-01)
-
-From devtools/texture_browser (all 43 levels, 37,508 bitmaps, 71,774 bitmap x CLUT pairs, counts equal whole_game/media_counts.csv):
-- **No stored mips**: every bitmap has cb == w*h*bpp/8; only T4/T8 occur; 0 bitmaps unreferenced by a shader; 0 out-of-range shader indices `[C:parse texture_browser]`.
-- **Dedupe**: 71,774 pair uses -> 6,708 unique RGBA images (10.7x); 3,452 unique index bitmaps; 6,715 unique CLUTs. RGBA8 1,005 MB -> 223 MB unique; unique
-  indexed bitmaps + CLUTs = 22.8 MB. A port should dedupe by hash and can keep textures indexed `[C:parse texture_browser]`.
-- Vectorised decode is pixel-identical to `sly2_textures.decode` on 2,103 sampled pairs. 19 images flagged by noise/stride heuristics look like real art `[H visual]`.
+GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../systems/rendering.md).
 
 ## 7. Open
 
