@@ -1326,14 +1326,14 @@ extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
 /** @sly2-annot addr=0x1629A0
- * Purpose: Makes p the current job; if live: ++count, save vars, event 0x21, state-4 visibility/RSMGs,
- *   SendMessage 0x13
+ * Purpose: Makes p the current job; if live: ++count, save vars, game event 0x21, state-4 visibility/RSMGs,
+ *   Splice event 0x13 (vt3)
  * Info: proposed name BeginJob (T1); TU game
  * Notes: names_v2 v1 proposed UpdateTurretActive__FP6TURRETP3JOYf (0.000)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// Makes the job current; when live: counts the start, event 0x21, active visuals and rsmgs, message 0x13.
+// Makes the job current; when live: counts the start, game event 0x21, active visuals and rsmgs, Splice event 0x13.
 extern "C" void BeginJob(O *job)
 {
     SetSwJobCur(&D_003DD490, job);
@@ -1386,13 +1386,13 @@ static inline int IsSameFileRecord(W *a, W *b)
 }
 /** @sly2-annot addr=0x162A60
  * Purpose: Clears current job (and pending task if it belonged to p); resets the warp target when in the
- *   job's world entry; if live: event 0x22, state-5 visibility/RSMGs, SendMessage 0x14
+ *   job's world entry; if live: game event 0x22, state-5 visibility/RSMGs, Splice event 0x14 (vt3)
  * Info: proposed name EndJob (T1); TU game
  * Notes: names_v2 v1 proposed OnTurretActive__FP6TURRETiP2PO (0.005)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// Ends the job (and its pending task); when live: event 0x22, inactive visuals and rsmgs, message 0x14.
+// Ends the job (and its pending task); when live: game event 0x22, inactive visuals and rsmgs, Splice event 0x14.
 extern "C" void EndJob(O *job)
 {
     SetSwJobCur(&D_003DD490, 0);
@@ -1438,14 +1438,14 @@ extern "C" void SignalJobComplete(O *p);
 extern "C" void FailJob(O *p);
 extern "C" void RestartJob(O *p);
 /** @sly2-annot addr=0x162BB8
- * Purpose: Job's game-event hook: if live SendMessage 0x11(ev,arg) and check its complete-event list (->
+ * Purpose: Job's game-event hook: if live Splice event 0x11(ev,arg) (vt3) and check its complete-event list (->
  *   0x162DD0) and fail-event list (-> FailJob); if not live, event 0x10 restarts it (RestartJob)
  * Info: proposed name HandleJobGameEvent (T1); TU game
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest+verdicts_B
  * See: docs/engine/game-progression.md#8-key-functions,
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// The job's game-event hook: when live, forwards the event (message 0x11) and checks the complete and fail lists;
+// The job's game-event hook: when live, forwards the event (Splice event 0x11) and checks the complete and fail lists;
 // when not live, event 0x10 restarts it.
 extern "C" void HandleJobGameEvent(O *job, int eventId, int eventArg)
 {
@@ -2406,13 +2406,13 @@ extern "C" void PostNotice(void *pv, int n, float g);
 extern "C" void TakeExit(LO *plo);
 /** @sly2-annot addr=0x163D18
  * Purpose: Makes p the current task (and pending task if it has a warp), activates its job, if live: ++count,
- *   event 0x23, state-4 visuals, starts its music (+0x5C, 0x1DA4B8), SendMessage 0x13, triggers LO +0xC4
+ *   game event 0x23, state-4 visuals, starts its music (+0x5C, 0x1DA4B8), Splice event 0x13, triggers LO +0xC4
  * Info: proposed name BeginTask (T1); TU game
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// Makes the task current (and pending when it has a warp) and activates its job; when live: counts the start, event
-// 0x23, active visuals, starts its music, message 0x13.
+// Makes the task current (and pending when it has a warp) and activates its job; when live: counts the start,
+// game event 0x23, active visuals, starts its music, Splice event 0x13.
 extern "C" void BeginTask(O *task)
 {
     G *world = &D_003DD490;
@@ -2457,12 +2457,12 @@ extern "C" int IsTaskLive(O *p);
 extern "C" int IsJobLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 /** @sly2-annot addr=0x163E88
- * Purpose: Refused state change: event 0x27 (arg in g_game+8), SendMessage 0x12(n) to the task and to its job
+ * Purpose: Refused state change: game event 0x27 (arg in g_game+8), Splice event 0x12(n) to the task and to its job
  * Info: proposed name RejectTaskState (T2); TU game
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// Rejects a state change: event 0x27 and message 0x12(state) to the task and its job.
+// Rejects a state change: game event 0x27 and Splice event 0x12(state) to the task and its job.
 extern "C" void RejectTaskState(O *task, int state)
 {
     void *apv[1];
@@ -2506,12 +2506,12 @@ extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
 extern "C" void CancelNotice(void *pv, int n);
 /** @sly2-annot addr=0x163F48
- * Purpose: Clears current task; if live: event 0x24, state-5 visuals/RSMGs, stops its music, SendMessage 0x14
+ * Purpose: Clears current task; if live: game event 0x24, state-5 visuals/RSMGs, stops its music, Splice event 0x14
  * Info: proposed name EndTask (T1); TU game
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// Ends the task; when live: event 0x24, inactive visuals and rsmgs, stops its music, message 0x14.
+// Ends the task; when live: game event 0x24, inactive visuals and rsmgs, stops its music, Splice event 0x14.
 extern "C" void EndTask(O *task)
 {
     SetSwTaskCur(&D_003DD490, 0);
@@ -3418,12 +3418,12 @@ public:
 };
 extern "C" int IsTaskLive(O *p);
 /** @sly2-annot addr=0x165118
- * Purpose: If live, SendMessage 0x17(n)
+ * Purpose: If live, Splice event 0x17(n) (vt3)
  * Info: proposed name SendTaskTimeout (T2); TU game
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// When live, sends the task's timeout message (0x17).
+// When live, sends the task's timeout Splice event (0x17).
 extern "C" void SendTaskTimeout(O *task, int n)
 {
     if (IsTaskLive(task)) {
@@ -3444,12 +3444,12 @@ public:
 };
 extern "C" int IsTaskLive(O *p);
 /** @sly2-annot addr=0x165170
- * Purpose: If live, SendMessage 0x11(event, arg)
+ * Purpose: If live, Splice event 0x11(event, arg) (vt3)
  * Info: proposed name SendTaskGameEvent (T1); TU game
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// When live, forwards a game event to the task (message 0x11).
+// When live, forwards a game event to the task (Splice event 0x11).
 extern "C" void SendTaskGameEvent(O *task, int n, int m)
 {
     if (IsTaskLive(task)) {
@@ -3777,14 +3777,14 @@ extern "C" void UpdateTaskSaveVars(O *p);
 extern "C" void ActivateTask(O *p);
 extern "C" void DeactivateTask(O *p);
 /** @sly2-annot addr=0x1657D0
- * Purpose: Low-level task state set: events 0x26/0x25, maintains the available-task list g_sw+0x3B00, counts,
- *   save vars, SendMessage 0x16/0x15, follow-up activate/deactivate
+ * Purpose: Low-level task state set: game events 0x26/0x25, maintains the available-task list g_sw+0x3B00, counts,
+ *   save vars, Splice events 0x16/0x15 (vt3), follow-up activate/deactivate
  * Info: proposed name SetTaskState (T1); TU game
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// Low-level task state set: events 0x26/0x25, the available-task list, counts, save variables, messages 0x16/0x15 and
-// the follow-up activate/deactivate.
+// Low-level task state set: game events 0x26/0x25, the available-task list, counts, save variables, Splice events
+// 0x16/0x15 and the follow-up activate/deactivate.
 extern "C" void SetTaskState(O *task, int n)
 {
     if (task->state == n)

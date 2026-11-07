@@ -143,7 +143,7 @@ CRef EvalSet(CPair *expr, CFrame *frame)
 }
 
 /** @sly2-annot addr=0x126540
- * Purpose: (define sym expr): evaluate, CFrame::RefAddBinding (0x127C00)
+ * Purpose: (define sym expr): evaluate, CFrame_AddBinding (0x127C00)
  * Info: proposed name EvalDefine (T1); TU eval
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
@@ -213,7 +213,8 @@ extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
  * See: docs/engine/splice-scripting.md#3-the-evaluator,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-// (if test then [else]): evaluates test; evaluates and returns then when it is not #f, else the optional else branch.
+// (if test then [else]): takes the then branch only when the test value word is 1 (#t; the tag is not checked),
+// otherwise the optional else branch (Void when absent). Unlike Scheme, non-#f values other than 1 take else.
 CRef EvalIf(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -384,7 +385,7 @@ CRef EvalCase(CPair *expr, CFrame *frame)
 }
 
 /** @sly2-annot addr=0x126DB8
- * Purpose: (let ((sym val)...) body): new CFrame (0x256DD0), RefAddBinding each, then body
+ * Purpose: (let ((sym val)...) body): new CFrame (0x256DD0), CFrame_AddBinding each, then body
  * Info: proposed name EvalLet (T1); TU eval
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
@@ -428,7 +429,8 @@ CRef EvalLet(CPair *expr, CFrame *frame)
  * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-// (while test body...): re-evaluates the body while test is true; returns the last body value.
+// (while test body): re-evaluates the one body expression until test yields #f (bool tag 0x17, value 0; any other
+// value keeps looping); returns Void, not the last body value.
 CRef EvalWhile(CPair *expr, CFrame *frame)
 {
     CRef ref;

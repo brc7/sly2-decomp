@@ -84,7 +84,7 @@ extern int D_003E1C34;
 struct VTE { short d; short pad; void (*pfn)(); };
 struct LO { int pad[3]; VTE *vtable; };
 struct WE {
-    int c0; LO **apo; int c8; int cC; int spliceId; int unknown14; void *pv18; char ab1C[0x40]; int isProxySource; int unknown60; int pad64[2];   /* (inferred) isProxySource: its copies stay out of the world */
+    int c0; LO **apo; int c8; int cC; int spliceId; int unknown14; void *pv18; char ab1C[0x40]; int staysInWorld; int unknown60; int pad64[2];   /* staysInWorld (inferred): 0 = its objects and copies are Removed (vt9) after loading */
 };
 struct RGBAPOD { unsigned char r, g, b, a; };   /* basic.h RGBA has a ctor, which a union member cannot have */
 struct SW {
@@ -128,7 +128,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     for (i = 0; i < world->cwe; i++) {
         WE *pwe = &world->awe[i];
         Read__18CBinaryInputStreamiPv(stream, 0x40, pwe->ab1C);
-        pwe->isProxySource = S32Read__18CBinaryInputStream(stream);
+        pwe->staysInWorld = S32Read__18CBinaryInputStream(stream);
         pwe->unknown60 = S32Read__18CBinaryInputStream(stream);
         pwe->spliceId = S32Read__18CBinaryInputStream(stream);
         pwe->unknown14 = S32Read__18CBinaryInputStream(stream);
@@ -186,7 +186,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
         char ab[0x4040];
         InitFileKey(&odd);
         UpdateLoadingScreen(&h, GetFileIdName(pwe->ab1C));
-        world->iwe = pwe->isProxySource ? -1 : i;
+        world->iwe = pwe->staysInWorld ? -1 : i;
         CStreamBis obj(0x403F, ab, 0);
         LoadSwSharedHeaderFromBrx(1, stream);
         D_003E1C34 = S32Read__18CBinaryInputStream(stream);
@@ -211,7 +211,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
             for (j = 1; j < pwe->c8; j++)
                 for (k = 0; k < pwe->c0; k++)
                     *ppo++ = CloneLoWithParent__FP2LOP2SO(pwe->apo[k], 0);
-            if (pwe->isProxySource) {
+            if (pwe->staysInWorld) {
                 pwe->cC++;
             } else {
                 for (k = 0; k < pwe->c8 * pwe->c0; k++) {
