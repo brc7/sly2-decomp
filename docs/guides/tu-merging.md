@@ -519,12 +519,12 @@ hud's and memcard's local classes, the 19 macros without a header type, unifying
 The sound / UI / Splice-value family. Every function and data symbol of every touched file and of every includer of
 a touched header MATCHes, and each touched object is identical to the branch start's (every allocated section's
 bytes, every relocation's offset, type and symbol, the symbol table: a stricter check than nm). Private
-struct/class/union definitions in the touched .cpp files: 3,078 -> 2,739; the family's named views (CRef/CREFV/PAIRV,
-SNDMGR*/SNDV/SNDREF/EASND, SCREENV/GADGETMENUV, ...): 253 -> 71.
+struct/class/union definitions in the 30 touched .cpp files: 3,616 -> 3,274; the family's named views (CRef/CREFV/PAIRV,
+SNDMGR*/SNDV/SNDREF/EASND, SCREENV/GADGETMENUV, ...): 253 -> 69.
 
 | type | header | change | views removed |
 |---|---|---|---:|
-| CRef | sly2/cref.h | `CRefData`, the POD base (tag + payload union, `float *ag` added) for the C-style bodies; CRef gains `operator=(int/float)` (SetS32/SetF32 by label), `SetMatrix`, `SetSymid`, `SetBifk`, the inline `CRef(bool)` and `CRef(float)` constructors | 163 (bif 99 + 10 NODE pair views, game, screen, memcard, prize, stepplayer, sw, menu, rumble, serialize, splicemap, class_registry, booty, hud, cplcy, stepguard, relay, lo, po) |
+| CRef | sly2/cref.h | `CRefData`, the POD base (tag + payload union, `float *ag` added) for the C-style bodies; CRef gains `operator=(int/float)` (SetS32/SetF32 by label), `SetMatrix`, `SetSymid`, `SetBifk`, the inline `CRef(bool)` and `CRef(float)` constructors | 173 (bif 99, game, screen, memcard, prize, stepplayer, sw, menu, rumble, serialize, splicemap, class_registry, booty, hud, cplcy, stepguard, relay, lo, po, basic, guardbhv), plus bif's 10 NODE pair views |
 | SND (CID151), BANKSND, STREAMSND, SNDSOURCE, SNDREF/SNDREFC, EASND | sly2/snd.h | the fields every view agrees on; STREAMSND's record a union by stream kind (FILEREC or SNDSTREAM); `GetKind` returns int, `SetCulled(int)`; STREAMSND's C-named constructor and pool `operator new` | ~60 in sound.cpp, 8 EASND (7 unused Lilly copies) |
 | SNDMGR, SNDSTREAM, SNDFILE, DIALOGEVENT | sly2/sndmgr.h (new; separate from snd.h's 76 includers) | the documented 0x250 layout; `g_sndmgr` declared (D_003DD040) | ~30 SNDMGR views in sound.cpp, menu.cpp's, 5 interior macros (menu, cd, save) |
 | SCREEN, HUDMETER | sly2/screen.h | HUDMETER's fields (0x50) | screen.cpp's SCREENV/GADGETMENUV |
