@@ -14,8 +14,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef unsigned char byte;
 extern "C" void *memcpy(void *pvDst, const void *pvSrc, unsigned int cb);
 
-class CQueueInput { public: virtual int CbRead(int byteCount, void *dest); };
-class CQueueOutput { public: virtual int CbWrite(int byteCount, void *src); virtual int FDrain(); };
+class CQueueInput { public: virtual int ReadBytes(int byteCount, void *dest); };
+class CQueueOutput { public: virtual int WriteBytes(int byteCount, void *src); virtual int IsAsyncDrain(); };
 
 class CQueueInputMemory : public CQueueInput
 {
@@ -25,13 +25,13 @@ public:
     int readOffset;     /* +0xC read position */
     int bytesLeft;      /* +0x10 */
     CQueueInputMemory(byte *block, int blockSize) { bytesLeft = blockSize; data = block; size = blockSize; readOffset = 0; }
-    int CbRead(int byteCount, void *dest);
+    int ReadBytes(int byteCount, void *dest);
 };
 
 class CQueueInputFile : public CQueueInput
 {
 public:
-    int CbRead(int byteCount, void *dest);
+    int ReadBytes(int byteCount, void *dest);
 };
 
 class CByteQueue
@@ -102,7 +102,7 @@ int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
         remaining = freeBytes;
     while (remaining != 0) {
         int offset = writeOffset;
-        int chunk = input->CbRead(NMin(remaining, size - offset), buffer + offset);
+        int chunk = input->ReadBytes(NMin(remaining, size - offset), buffer + offset);
         if (chunk == 0)
             break;
         filled += chunk;
@@ -124,7 +124,7 @@ int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
  * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
 // Drains up to byteCount filled bytes into `output` (byteCount <= 0: a single write). Bytes handed to an output
-// whose FDrain() is true stay reserved (drainedBytes) until FreeDrain releases them; otherwise they are free at once.
+// whose IsAsyncDrain() is true stay reserved (drainedBytes) until FreeDrain releases them; otherwise they are free at once.
 // Returns the number of bytes written.
 int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
 {
@@ -134,13 +134,13 @@ int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
         remaining = filledBytes;
     while (remaining != 0) {
         int offset = readOffset;
-        int chunk = output->CbWrite(NMin(remaining, size - offset), buffer + offset);
+        int chunk = output->WriteBytes(NMin(remaining, size - offset), buffer + offset);
         if (chunk == 0)
             break;
         readOffset += chunk;
         readOffset %= size;
         filledBytes -= chunk;
-        if (output->FDrain())
+        if (output->IsAsyncDrain())
             drainedBytes += chunk;
         else
             freeBytes += chunk;
@@ -194,7 +194,7 @@ void CByteQueue::FreeDrain(int byteCount)
  *   docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
 // Memory input: copies up to byteCount bytes from the block into dest and advances. Returns the bytes copied.
-int CQueueInputMemory::CbRead(int byteCount, void *dest)
+int CQueueInputMemory::ReadBytes(int byteCount, void *dest)
 {
     int chunk = NMin(byteCount, bytesLeft);
     memcpy(dest, data + readOffset, chunk);
@@ -211,7 +211,7 @@ int CQueueInputMemory::CbRead(int byteCount, void *dest)
  *   docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
 // File input: compiled out in the retail build, always reports end of input (0 bytes).
-int CQueueInputFile::CbRead(int byteCount, void *dest)
+int CQueueInputFile::ReadBytes(int byteCount, void *dest)
 {
     return 0;
 }

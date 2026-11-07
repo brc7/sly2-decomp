@@ -152,7 +152,7 @@ extern "C" void InitGuardScript(SSG *script)
 }
 
 // 0x170A28: Guard script vtable slot 15 (PostLoad): LO post-load, then prepares its targets.
-void CID113::VUnk14()
+void CID113::PostLoad()
 {
     SSG *script = (SSG *)this;
     PostLoLoad(script);

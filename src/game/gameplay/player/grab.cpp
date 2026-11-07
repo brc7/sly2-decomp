@@ -119,7 +119,7 @@ struct GRABSPOTDATA
 
 struct GRABSPOT : public GRABSPOTDATA
 {
-    virtual int FGetWrapRange(float *pasRange);
+    virtual int GetGrabRange(float *pasRange);
     virtual void GetClosestParam(JT *pjt, float *psParam);
     virtual void GetPos(float sParam, JT *pjt, VECTOR *ppos, float *pradTarget);
     virtual void AdjustDist(float *pgDist);
@@ -1457,7 +1457,7 @@ static inline bool Less(int n, int limit) { return n < limit; }   // as in SetJt
 static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 // The vector is moved to a GPR once (gcc's own qmfc2 for the "r" inputs) and its x word is stored straight from there:
 // no C construct gives a 32-bit store of the low word of a TImode GPR (unions go through the stack, casts sign-extend).
-// Same StoreX/GetY/GetZ helpers as the matched func_001E9AC0.cpp.
+// Same StoreX/GetY/GetZ helpers as the matched RenderCid106Self.cpp.
 static inline void SetX(float *pg, qword q) { __asm__("sw %1,%0" : "=m"(*pg) : "r"(q)); }
 static inline float GetY(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f; }
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
@@ -3147,7 +3147,7 @@ struct LM { float gMin, gMax; };
 struct GRABSPOT
 {
     char pad0[0x20];
-    virtual int FGetWrapRange(float *pasRange);
+    virtual int GetGrabRange(float *pasRange);
     virtual void V2();
     virtual void V3();
     virtual void V4();

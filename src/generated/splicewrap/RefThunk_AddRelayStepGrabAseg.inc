@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void AddRelayStepGrabAseg(s32, s32, s32, s32, s32);          /* extern */
-CRef *RefThunk_AddRelayStepCmd22(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_AddRelayStepGrabAseg(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[4] = { 6, 6, 16, 6 };
     CRef ref;

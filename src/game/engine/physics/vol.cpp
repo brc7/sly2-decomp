@@ -1,7 +1,7 @@
 // vol.cpp -- VOL, a trigger volume: an XFM carrying a convex-cell BSP and its collision geometry.
 // Role: answers "is this point / sphere inside the volume?" for gameplay (guard detectors and zones, buttons,
 // splice scripts' CHECK_POINT option) and keeps the world's list of active volumes (g_sw.dlCid23).
-// Entry points: VOL::LoadFromBrx (level load), IsPointInVol, IsSphereInVol, CID23::Unfreeze / FreezeVol
+// Entry points: VOL::LoadFromBrx (level load), IsPointInVol, IsSphereInVol, CID23::OnAdd / FreezeVol
 // (enter / leave the active world). VU0 macro-mode asm.
 // TU 0x227BB8..0x227FE8 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_vol
@@ -170,7 +170,7 @@ extern "C" int IsSphereInVol(VOLV *vol, qword center, float radius)
  * @end-sly2-annot */
 // Slot 23 (OnAdd): the volume enters the active world; runs the base LO hook and appends it to the world's
 // volume list g_sw.dlCid23.
-void CID23::Unfreeze()
+void CID23::OnAdd()
 {
     VOLV *vol = (VOLV *)this;
     OnLoAdd(vol);
@@ -186,7 +186,7 @@ void CID23::Unfreeze()
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-// Slot 22 (OnRemove), the counterpart of CID23::Unfreeze: the volume leaves the active world; runs the base LO
+// Slot 22 (OnRemove), the counterpart of CID23::OnAdd: the volume leaves the active world; runs the base LO
 // hook and unlinks it from g_sw.dlCid23.
 extern "C" void FreezeVol(VOLV *vol)
 {

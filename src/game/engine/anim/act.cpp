@@ -1065,7 +1065,7 @@ extern "C" void FreeOvra(void *pv)
  * @end-sly2-annot */
 /* Common slot 1 of the act vtables: detach from the object. */
 // Base act attach (slot 1): sets the driven transform's role and wakes its owner so the act takes effect.
-void ACT::VSlot1()
+void ACT::Attach()
 {
     ACTV *act = (ACTV *)this;
     SetXfRole(act->object, act->xf, act->role);
@@ -1662,7 +1662,7 @@ typedef struct T { int pad[4]; O *p; int pad2[2]; O *q; } T;
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Offset act attach (slot 1): attaches the wrapped act.
-void ACT5::VSlot1()
+void ACT5::Attach()
 {
     using namespace M_func_0012D858;
     using M_func_0012D858::O;
@@ -2143,7 +2143,7 @@ static __inline__ qword Normalize1(qword *pv, qword *pdef)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Attach of act kind 9 (slot 1).
-void ACT9::VSlot1()
+void ACT9::Attach()
 {
     using namespace M_func_0012E120;
     using M_func_0012E120::D_002A2DA0;

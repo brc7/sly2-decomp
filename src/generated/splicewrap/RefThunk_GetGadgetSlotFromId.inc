@@ -2,7 +2,7 @@
 void SetS32__4CRefi(void *, s32);                 /* extern */
 s32 GetGadgetSlotFromId(s32, s32);                        /* extern */
 
-CRef *RefThunk_IGadgetSlotFromId(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_GetGadgetSlotFromId(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     OTYP aotyp[1];

@@ -22,12 +22,12 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x116918](../../../src/game/platform/memory/heap.cpp) | `PvAllocClear__FP4HEAPii` |  |  | existing |  |
 | [0x116970](../../../src/game/platform/memory/heap.cpp) | `PvAllocCopy__FP4HEAPiPvi` |  |  | existing |  |
 | [0x1169D8](../../../src/game/platform/memory/heap.cpp) | `PchzAllocCopy__FP4HEAPPci` |  |  | existing |  |
-| [0x116A30](../../../src/game/platform/memory/heap.cpp) | `CSwHeap_PvAlloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
+| [0x116A30](../../../src/game/platform/memory/heap.cpp) | `CSwHeap_Alloc` | Heap vtable slot 1 for the global level heap object D_002DD590: allocates cb bytes 16-aligned from the SW bump allocator 0x1AE1D0 (alignment arg ignored) | 0.55 | T1 |  |
 | [0x116A58](../../../src/game/platform/memory/heap.cpp) | `CSwHeap_PvRealloc` | vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4 unless it is -1 | 0.85 | T1 | verified |
 | [0x116A90](../../../src/game/platform/memory/heap.cpp) | `CSwHeap_Free` | vtable slot 3: no-op (bump heap never frees) | 0.55 | T1 |  |
 | [0x116A98](../../../src/game/platform/memory/heap.cpp) | `__11CLinearHeapiPUc` |  |  | existing |  |
-| [0x116AB8](../../../src/game/platform/memory/heap.cpp) | `PvAlloc__11CLinearHeapii` |  |  | existing |  |
-| [0x116AF8](../../../src/game/platform/memory/heap.cpp) | `PvRealloc__11CLinearHeapPvii` |  |  | existing |  |
+| [0x116AB8](../../../src/game/platform/memory/heap.cpp) | `Alloc__11CLinearHeapii` |  |  | existing |  |
+| [0x116AF8](../../../src/game/platform/memory/heap.cpp) | `Realloc__11CLinearHeapPvii` |  |  | existing |  |
 | [0x116B28](../../../src/game/platform/memory/heap.cpp) | `CLinearHeap_Free` | vtable slot 3 of CLinearHeap: no-op | 0.80 | T1 |  |
 
 ## dynarray (0x116CA0-0x117030)

@@ -26,7 +26,7 @@ struct AREQT : AREQV { AREQT(int c, int a) { cb = c; cbAlign = a; } };
 struct AC
 {
     virtual void Load(CBinaryInputStream *pbis);
-    virtual void VUnk2();
+    virtual void Prepare();
     virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
 };
 
@@ -248,7 +248,7 @@ extern "C" void PostAsegLoadCallback(ASEG *segment, ASEGSTART *pasegstart)
  * @end-sly2-annot */
 // After-load hook (slot 15): base PostLoLoad, then, if the segment has an auto-start record, posts PostAsegLoadCallback
 // to the world's callback queue.
-void ASEG::VUnk14()
+void ASEG::PostLoad()
 {
     ASEG *segment = (ASEG *)this;
     PostLoLoad(segment);

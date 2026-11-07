@@ -322,7 +322,7 @@ void OnBlipgRemove(BLIPGV *blipGroup)
 }
 
 // BLIPG vt2: remove from the cid list and return to pool g_sw+0x4070. (inferred)
-void BLIPG::VUnk01()
+void BLIPG::Release()
 {
     BLIPGV *p = (BLIPGV *)this;
     RemoveSlEntry(GetSwClassList(&D_003DD490, CID_1C), p);

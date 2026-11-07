@@ -2,7 +2,7 @@
 void SetF32__4CReff(void *, f32);                 /* extern */
 f32 EstimateSmaTimeToState(s32, s32);                        /* extern */
 
-CRef *RefThunk_DtSmaToState(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_EstimateSmaTimeToState(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     OTYP aotyp[1];

@@ -238,14 +238,14 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
     if ((uchar)plo->fInWorld)   /* (uchar): extract the bit as the target does ((int) adds a sign extension) */
         plo->AddHierarchy();
     if (IsLoInWorld(plo))
-        plo->Unfreeze();
+        plo->OnAdd();
     if (world->pploNew)
         *world->pploNew++ = plo;
     return plo;
 }
 
 /** @sly2-annot addr=0x13E510
- * Purpose: Clone object: CreateLo(Pclassinfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for
+ * Purpose: Clone object: CreateLo(GetClassInfo(po)->cid, psoParent, po->oid, -1) then vt40 (clone-from, which for
  *   SO also clones children via CloneLoWithParent)
  * Info: proposed name CloneLoWithParent (T1); TU brx
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
@@ -261,7 +261,7 @@ LO *CloneLoWithParent(LO *plo, SO *psoParent)
     CLASSINFO *pclassinfo;
     LO *ploNew;
     if (!plo) return 0;
-    pclassinfo = plo->Pclassinfo();
+    pclassinfo = plo->GetClassInfo();
     ploNew = CreateLo(pclassinfo->cid, psoParent, plo->oid, -1);
     ploNew->CloneHierarchy(plo);   /* vtable slot 40 */
     return ploNew;

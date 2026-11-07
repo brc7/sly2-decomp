@@ -152,7 +152,7 @@ void SubscribeRipObject(MATCH *pe, BOOTYV *p);
 float RandomFloatInRange__Fff(float a, float b);
 void InitTriggerGrabspot(CID37V *);
 void PostTriggerGrabspotLoad(CID37V *);
-void func_00183FB8(CID37V *);
+void OnTriggerGrabspotAdd(CID37V *);
 void FireTriggerGrabspot(CID37V *, HERO *);
 BOOTYV *AcquireProxyObject(void *, int);
 void PostNotice(void *pv, int n, float g);
@@ -203,7 +203,7 @@ extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
 }
 
 // BOOTY (cid 0x67) vtable slot 15: PostSoLoad then SetBootyState(0). (inferred)
-void BOOTY::VUnk14() { BOOTYV *booty = (BOOTYV *)this;
+void BOOTY::PostLoad() { BOOTYV *booty = (BOOTYV *)this;
     PostSoLoad(booty);
     SetBootyState(booty, 0);
 }
@@ -657,7 +657,7 @@ extern "C" void InitBootyContainer(CID37V *container) {
 }
 
 // cid 0x25 vtable slot 15: base 0x183F50, unique id from a g_sw counter. (inferred)
-void CID37::VUnk14() { CID37V *container = (CID37V *)this; PostTriggerGrabspotLoad(container); container->id = g_sw.cCid37++; }
+void CID37::PostLoad() { CID37V *container = (CID37V *)this; PostTriggerGrabspotLoad(container); container->id = g_sw.cCid37++; }
 
 // If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its
 // entry, link and set state 1. (inferred)
@@ -680,7 +680,7 @@ void SpawnBootyInContainer(CID37V *container, int) {
 }
 
 // cid 0x25 vtable slot 23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0). (inferred)
-extern "C" void OnBootyContainerAdd(CID37V *container) { func_00183FB8(container); EnsureSwCallback(&g_sw, container, D_002A4BB0.l, 0); }
+extern "C" void OnBootyContainerAdd(CID37V *container) { OnTriggerGrabspotAdd(container); EnsureSwCallback(&g_sw, container, D_002A4BB0.l, 0); }
 
 // cid 0x25 vtable slot 51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on
 // mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0) and sound 0x27.

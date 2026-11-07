@@ -285,7 +285,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
     }
     case 2: {
         M4 *output = &w.stage.early.temporary;
-        M4 *world = ((M4 * (*)(void *))PVT(hands->ploRef)[31].pfn)((char *)hands->ploRef + PVT(hands->ploRef)[31].delta);   /* LO slot 31, PmatWorld */
+        M4 *world = ((M4 * (*)(void *))PVT(hands->ploRef)[31].pfn)((char *)hands->ploRef + PVT(hands->ploRef)[31].delta);   /* LO slot 31, GetWorldMatrix */
         cursor = &w.stage.early.inverse;
         new (cursor) M4(InvertMatrix4Rigid(&hands->matChain));
         const M4 *inverseArg = InverseArgument((M4 *)cursor);
@@ -386,7 +386,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
     if (!hands->ploHand)
         return;
     MATRIX4 matHand;
-    XF *pxfHand = hands->ploHand->PxfLocal(&matHand);
+    XF *pxfHand = hands->ploHand->GetLocalTransform(&matHand);
     hands->matChain = matHand;
     hands->pxf = pxfHand;
     while (hands->pxf->xfk != 6)
@@ -556,8 +556,8 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
    below. */
 union VIEWS { struct { M4 intermediate, product, inverse; } matrices; struct { M3 angles, converted; } basis; U scalar; };
 struct CARRYWORK { M4 original, sample, start, final; VIEWS views; qword velocity, destination, delta, endVelocity; };
-static inline XF *SourceMatrix(LO *lo, M4 *out) { VTE &v = PVT(lo)[32]; return ((XF * (*)(LO *, M4 *))v.pfn)((LO *)((char *)lo + v.delta), out); }   /* LO slot 32, PxfLocal */
-static inline M4 *WorldMatrix(LO *lo) { VTE &v = PVT(lo)[31]; return ((M4 * (*)(LO *))v.pfn)((LO *)((char *)lo + v.delta)); }   /* LO slot 31, PmatWorld */
+static inline XF *SourceMatrix(LO *lo, M4 *out) { VTE &v = PVT(lo)[32]; return ((XF * (*)(LO *, M4 *))v.pfn)((LO *)((char *)lo + v.delta), out); }   /* LO slot 32, GetLocalTransform */
+static inline M4 *WorldMatrix(LO *lo) { VTE &v = PVT(lo)[31]; return ((M4 * (*)(LO *))v.pfn)((LO *)((char *)lo + v.delta)); }   /* LO slot 31, GetWorldMatrix */
 static inline float Max(float a, float b) { float r; __asm__("max.s %0,%1,%2" : "=f"(r) : "f"(a), "f"(b)); return r; }
 static inline qword *TranslationSlot(CARRYWORK &w) { register qword *slot __asm__("$4"); __asm__("addiu %0,%1,0xB0" : "=r"(slot) : "r"(&w)); return slot; }
 static inline M4 *SampleOutput(M4 *value) { register M4 *result __asm__("$8"); __asm__("daddu %0,%1,$zero" : "=r"(result) : "r"(value)); return result; }
@@ -795,13 +795,13 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
     ReleaseAct(&hands->pactPos);
     ReleaseAct(&hands->pactHold);
     ReleaseAct(&hands->pactTurn);
-    XF *xf = hands->ploHand->PxfLocal((MATRIX4 *)&buf);
+    XF *xf = hands->ploHand->GetLocalTransform((MATRIX4 *)&buf);
     object->SetParent(hands->pso, xf, 0);
-    m = *(M4 *)hands->ploHand->PmatWorld();
+    m = *(M4 *)hands->ploHand->GetWorldMatrix();
     CID20 *pcid = FindJtHandsTarget((JTV *)hands->pso, object);
     if (pcid) {
         M4 u;
-        M4 t = ConvertMat4BetweenLos(0, object, (M4 *)pcid->PmatWorld());
+        M4 t = ConvertMat4BetweenLos(0, object, (M4 *)pcid->GetWorldMatrix());
         u = t;
         M4 w = InvertMatrix4RigidV(u);
         MulMatrix4RetV(&t, &m, &w);
@@ -850,14 +850,14 @@ extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
 {
     M3 mat;
-    int unused[4];          /* with mat, the 0x40 bytes PxfLocal fills (a MATRIX4); part of the frame */
+    int unused[4];          /* with mat, the 0x40 bytes GetLocalTransform fills (a MATRIX4); part of the frame */
     if (!hands->psoHeld) return;
     SetJtHandsTarget(hands, -1);
     ReleaseAct(&hands->pactPos);
     ReleaseAct(&hands->pactHold);
     ReleaseAct(&hands->pactTurn);
     if (object->psoParent) {
-        XF *xf = object->PxfLocal((MATRIX4 *)&mat);
+        XF *xf = object->GetLocalTransform((MATRIX4 *)&mat);
         hands->psoHeld->SetParent(object->psoParent, xf, 0xF);
     } else {
         SetLoParent(hands->psoHeld, 0, 0xF);

@@ -294,10 +294,10 @@ struct SW : public BASIC
     /* Construction: out of line (SW_ctor, world/scene/sw.cpp; the factory NewSw in app/class_registry.cpp). */
     SW() __asm__("SW_ctor");
     /* Virtual layout of the ELF vtable _vt$2SW (0x2DC018, 9 slots): slots 1-5 BASIC's, then the overrides and
-       additions, each labelled with the function the vtable holds (types/views-3). Pclassinfo is the first virtual
+       additions, each labelled with the function the vtable holds (types/views-3). GetClassInfo is the first virtual
        SW declares, so it is the key function: no TU emits _vt$2SW (GetSwClassDesc is a C definition). */
     virtual void Update() __asm__("UpdateSw");                   /* slot 7: the per-frame world update (update.cpp) */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetSwClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetSwClassDesc");   /* slot 6 */
     virtual void Render() __asm__("RenderSw");                   /* slot 8 (render.cpp) */
     virtual void Draw() __asm__("DrawSw");                       /* slot 9 (draw.cpp) */
 };

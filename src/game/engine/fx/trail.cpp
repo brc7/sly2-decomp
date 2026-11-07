@@ -374,7 +374,7 @@ static inline float Sqrt(qwordV d)
     f = VuToFloat(d);
     return f;
 }
-// After SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow target moved by
+// After SO::Update (0x1F3980) pushes {t, uAlpha, length, GetWorldMatrix} into ring; optional follow target moved by
 // rate/distance (0x21C5F8) (inferred)
 extern "C" void ProjectTrailTransform(TRAIL *trail)
 {

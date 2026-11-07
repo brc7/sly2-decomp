@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void EnsureSggAlarm__FP3SGGP5ALARM(s32, s32);    /* extern */
-CRef *RefThunk_EnsureRelayAlarm(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_EnsureSggAlarm(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     OTYP aotyp[1];

@@ -2000,7 +2000,7 @@ void ExplodeExplParams(struct O *o, int flags, int reference, float scale, float
 } } // namespace M_ExplodeExplParams
 
 // Empty base implementation of the EXPL explode virtual (slot 51) (inferred)
-void EXPL::VSlot51()   /* key function: EXPL's vtable comes out here (ExplodeExplExplso__FP4EXPLP6EXPLSO, empty) */
+void EXPL::ExplodeExplso()   /* key function: EXPL's vtable comes out here (ExplodeExplExplso__FP4EXPLP6EXPLSO, empty) */
 {
 }
 
@@ -2047,7 +2047,7 @@ void LoadExplgFromBrx(struct S *p, void *q)
 } } // namespace M_LoadExplgFromBrx
 
 // Returns an explosion group's children: the array through the out parameter, the count as the result.
-int EXPLG::CploChildren(LO ***childrenOut)
+int EXPLG::GetChildren(LO ***childrenOut)
 {
     EXPLGV *group = (EXPLGV *)this;
     *childrenOut = group->children;

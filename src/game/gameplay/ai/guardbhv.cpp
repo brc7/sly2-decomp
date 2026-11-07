@@ -359,7 +359,7 @@ void SetBhvanimState(struct S *behavior, int n) {
 
 // 0x174B28 CloseBhvanim
 // 0x174B28: BHVANIM vtable slot 9 (Close): base, state 1 (stop the animation), lowers its guard flag.
-void BHVANIM::VSlot9()
+void BHVANIM::Close()
 {
     BHVANIMV *behavior = (BHVANIMV *)this;
     CloseBhv(behavior);
@@ -927,7 +927,7 @@ extern "C" void StartBhvcombat(BHVCOMBATV *behavior)
 
 // 0x1757D0 CloseBhvcombat
 // 0x1757D0: BHVCOMBAT vtable slot 9 (Close): state -1, lowers flag 0x1D.
-void BHVCOMBAT::VSlot9()
+void BHVCOMBAT::Close()
 {
     BHVCOMBATV *behavior = (BHVCOMBATV *)this;
     CloseBhv(behavior);
@@ -1013,8 +1013,8 @@ struct POLY { float a, b, c; };
 struct CLOCK { float time, dt; };
 struct BASIC {
     char pad0[0xC];
-    virtual void VUnk00();
-    virtual void VUnk01();
+    virtual void AddRef();
+    virtual void Release();
     virtual void HandleSpliceEvent(unsigned symidEvent, int fPost, int cargs, void **ppvargs, CREF *pref);
 };
 extern "C" {
@@ -3899,7 +3899,7 @@ void CloseBhvanim(struct S *p);
 void ReplaceHeldSwNoise(struct G *g, int a, qword q, int b, void *pv);
 } } // namespace M_CloseBhvhit
 // 0x179598: BHVHIT vtable slot 9 (Close): BHVANIM Close, releases the held noise.
-void BHVHIT::VSlot9()
+void BHVHIT::Close()
 {
     using namespace M_CloseBhvhit;
     using M_CloseBhvhit::D_003DD490;
@@ -3939,7 +3939,7 @@ void UpdateBhvhit(struct S *behavior) {
 }
 } } // namespace M_UpdateBhvhit
 
-// 0x1796A0 func_001796A0
+// 0x1796A0 InitBhvHurt
 namespace M_func_001796A0 { extern "C" {
 struct S;
 struct S { char pad[0x3C]; int sgf; };
@@ -3977,7 +3977,7 @@ void StartBhvHurt(struct S *behavior) {
 }
 } } // namespace M_func_001796D0
 
-// 0x179750 func_00179750
+// 0x179750 InitBhvKnockdown
 namespace M_func_00179750 { extern "C" {
 struct S;
 struct S { char pad[0x3C]; int sgf; };
@@ -4148,7 +4148,7 @@ typedef char layout_A_entry_capacity[(sizeof(((struct A*)0)->loot)/sizeof(struct
 
 // 0x179A20 CloseBhvko
 // 0x179A20: BHVKO vtable slot 9 (Close): BHVHIT Close and refreshes the world filter.
-void BHVKO::VSlot9()
+void BHVKO::Close()
 {
     BHV *behavior = (BHV *)this;
     CloseBhvhit(behavior);
@@ -4198,7 +4198,7 @@ void StartBhvpatrol(struct S *behavior) {
 
 // 0x179B60 CloseBhvpatrol
 // 0x179B60: BHVPATROL vtable slot 9 (Close): stops, lowers flag 0x1E.
-void BHVPATROL::VSlot9()
+void BHVPATROL::Close()
 {
     BHV *behavior = (BHV *)this;
     SetBhvpatrolState(behavior, -1);
@@ -4560,7 +4560,7 @@ extern "C" void StartBhvleap(C *behavior)
 
 // 0x17A3D0 CloseBhvleap
 // 0x17A3D0: BHVLEAP vtable slot 9 (Close): BHVANIM Close, clears busy.
-void BHVLEAP::VSlot9()
+void BHVLEAP::Close()
 {
     BHVANIMV *behavior = (BHVANIMV *)this;
     CloseBhvanim(behavior);
@@ -4615,7 +4615,7 @@ void AdjustBhvleapAttachPoint(struct O *behavior)
 }
 } } // namespace M_func_0017A468
 
-// 0x17A4B0 func_0017A4B0
+// 0x17A4B0 InitBhvSleep
 // 0x17A4B0: Sleep behaviour (BHV175) vtable slot 7 (OnPush): BHVANIM OnPush with the sleeping flag (0x10),
 // sub-state -1.
 void BHV175::OnPush()
@@ -4775,9 +4775,9 @@ void StartBhvThrown(struct S *behavior)
 }
 } } // namespace M_func_0017A730
 
-// 0x17A7B8 func_0017A7B8
+// 0x17A7B8 CloseBhvThrown
 // 0x17A7B8: Thrown behaviour vtable slot 9 (Close): state -1, lowers flag 0x16.
-void BHV176::VSlot9()
+void BHV176::Close()
 {
     BHVSTATE *behavior = (BHVSTATE *)this;
     CloseBhv(behavior);
@@ -5280,7 +5280,7 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
 
 // 0x17B178 CloseBhvjuggled
 // 0x17B178: BHVJUGGLED vtable slot 9 (Close): state -1 (restores the mass), BHVANIM Close.
-void BHVJUGGLED::VSlot9()
+void BHVJUGGLED::Close()
 {
     BHVANIMV *behavior = (BHVANIMV *)this;
     SetBhvjuggledState(behavior, -1);
@@ -5647,7 +5647,7 @@ void InitBhvTargets(struct S *behavior)
 }
 } } // namespace M_func_0017B808
 
-// 0x17B840 func_0017B840
+// 0x17B840 StartBhvTargets
 // 0x17B840: Targets behaviour vtable slot 8 (Start): state 0.
 void BHV178::Start()
 {
@@ -5980,9 +5980,9 @@ void StartBhvCircle(struct S *behavior) {
 }
 } } // namespace M_func_0017BF08
 
-// 0x17BFB8 func_0017BFB8
+// 0x17BFB8 CloseBhvCircle
 // 0x17BFB8: Circle behaviour vtable slot 9 (Close): state -1, lowers flag 0x19.
-void BHV179::VSlot9()
+void BHV179::Close()
 {
     BHVSTATE *behavior = (BHVSTATE *)this;
     CloseBhv(behavior);
@@ -6250,7 +6250,7 @@ extern "C" void CloseBhvEscort(BHV *behavior)
     RemoveStepguardSgf((STEPGUARD *)behavior->pstep, 0x26);
 }
 
-// 0x17C6A0 func_0017C6A0
+// 0x17C6A0 StartBhvEscort
 // 0x17C6A0: Escort behaviour vtable slot 8 (Start): state 0.
 void BHV183::Start()
 {
@@ -6722,7 +6722,7 @@ struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; float goalParam; };
 int HasBhvpipeArrived(struct S *behavior) { return __builtin_fabsf(behavior->guard->attachParam - behavior->goalParam) < 50.0f; }
 } } // namespace M_FBhvpipeArrived
 
-// 0x17D1C0 func_0017D1C0
+// 0x17D1C0 InitBhvAttachCid19
 // 0x17D1C0: Attach behaviour for cid 0x13 objects (BHV187) vtable slot 7 (OnPush): raises flag 0x28.
 void BHV187::OnPush()
 {
@@ -6768,7 +6768,7 @@ extern "C" void CloseBhvAttachCid19(BHV *behavior)
     RemoveStepguardSgf((STEPGUARD *)behavior->pstep, SGF_ON_CLASS19);
 }
 
-// 0x17D2B0 func_0017D2B0
+// 0x17D2B0 InitBhvAttachCid39
 // 0x17D2B0: Attach behaviour for cid 0x27 objects (BHV188) vtable slot 7 (OnPush): raises flag 0x29.
 void BHV188::OnPush()
 {
@@ -6842,7 +6842,7 @@ extern "C" void StartBhvgoto(BHVGOTOV *behavior)
 
 // 0x17D408 CloseBhvgoto
 // 0x17D408: BHVGOTO vtable slot 9 (Close): state -1, lowers its flag.
-void BHVGOTO::VSlot9()
+void BHVGOTO::Close()
 {
     BHVGOTOV *behavior = (BHVGOTOV *)this;
     int sgf;
@@ -7305,7 +7305,7 @@ void InitBhvStalk(struct S *behavior)
 }
 } } // namespace M_func_0017DD70
 
-// 0x17DDA8 func_0017DDA8
+// 0x17DDA8 StartBhvStalk
 // 0x17DDA8: Stalk behaviour vtable slot 8 (Start): state 0 (alert animation at the target) and sets the target.
 void BHV189::Start()
 {
@@ -7775,7 +7775,7 @@ extern "C" void InitBhvRelocate(BHV *behavior)
     AddStepguardSgf((STEPGUARD *)behavior->pstep, 0x2D);
 }
 
-// 0x17E8B8 func_0017E8B8
+// 0x17E8B8 StartBhvRelocate
 // 0x17E8B8: Relocate behaviour vtable slot 8 (Start): moves to the point.
 void BHV191::Start()
 {
@@ -7912,7 +7912,7 @@ void StartBhvpatrolpath(struct S *behavior) {
 
 // 0x17EC80 CloseBhvpatrolpath
 // 0x17EC80: BHVPATROLPATH vtable slot 9 (Close): lowers flag 0x2E.
-void BHVPATROLPATH::VSlot9()
+void BHVPATROLPATH::Close()
 {
     BHV *behavior = (BHV *)this;
     CloseBhv(behavior);

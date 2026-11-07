@@ -165,7 +165,7 @@ struct CMemcardDialog : SCREEN
 {
     virtual void PostLoad() __asm__("CMemcardDialog_PostLoad");   /* slot 12; key function */
     virtual void Update() __asm__("CMemcardDialog_Update");   /* slot 7 */
-    virtual void VSlot13() __asm__("CMemcardDialog_Slot13");   /* slot 13 */
+    virtual void Reset() __asm__("CMemcardDialog_Slot13");   /* slot 13 */
     virtual void SetMode(int nMode) __asm__("CMemcardDialog_SetMode");   /* slot 14 */
 };
 extern char D_002A38E8[];   /* the icon file */

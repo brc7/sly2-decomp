@@ -35,8 +35,8 @@
    its vtable before RELAY's. */
 struct RELAYJSG : BASIC
 {
-    virtual void VUnk00() __asm__("AddJsgRef");   /* slot 1; key function */
-    virtual void VUnk01() __asm__("ReleaseJsg");   /* slot 2 */
+    virtual void AddRef() __asm__("AddJsgRef");   /* slot 1; key function */
+    virtual void Release() __asm__("ReleaseJsg");   /* slot 2 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleJsgMessage");   /* slot 5 */
 };
 
@@ -280,7 +280,7 @@ struct GRABSPOTDATA
 
 struct GRABSPOTV : public GRABSPOTDATA
 {
-    virtual int FGetWrapRange(float *pasRange);
+    virtual int GetGrabRange(float *pasRange);
     virtual void GetClosestParam(JT *pjt, float *psParam);
 };
 
@@ -430,11 +430,11 @@ struct JSGREF
     JSGREF(JSGV *pjsgHold)
     {
         script = pjsgHold;
-        script->VUnk00();
+        script->AddRef();
     }
     ~JSGREF()
     {
-        script->VUnk01();
+        script->Release();
     }
 };
 
@@ -2614,7 +2614,7 @@ extern "C" void AddRelayMurrayMoveToAndControl(RELAYV *relay, OID oidShip, OID o
 
 // 0x1E1B58 AddJsgRef
 // cref++ (+0x10). (inferred)
-void RELAYJSG::VUnk00()   /* key function: RELAYJSG's vtable comes out here */
+void RELAYJSG::AddRef()   /* key function: RELAYJSG's vtable comes out here */
 {
     JSGV *script = (JSGV *)this;
     script->cref = script->cref + 1;
@@ -3054,7 +3054,7 @@ void NextJsgCommand(JSGV *script)
             if (!prelaycmd->fAsync)
             {
                 script->pasegaCur = pasega;
-                pasega->VUnk00();
+                pasega->AddRef();
             }
         }
         break;
@@ -4163,7 +4163,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         {
             if (script->pasegaCur && FAsegaStopped(script->pasegaCur))
             {
-                script->pasegaCur->VUnk01();
+                script->pasegaCur->Release();
                 script->pasegaCur = 0;
             }
             fComplete = script->pasegaCur == 0;
@@ -4213,7 +4213,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             else if (pstepplayer->jtgrab.nKind != -1 && (pstepplayer->jtgrab.nState == 0 || pstepplayer->jtgrab.nState == 0xD))
             {
-                pstepplayer->VUnk87(0);
+                pstepplayer->SetPlayerState(0);
                 fComplete = 1;
             }
             else
@@ -4515,7 +4515,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             fComplete = 0;
-            if (((STEPPLAYER *)script->ploActor)->VUnk88() == prelaycmd->unk43.nUnk4)
+            if (((STEPPLAYER *)script->ploActor)->GetPlayerState() == prelaycmd->unk43.nUnk4)
             {
                 fComplete = 1;
             }
@@ -4655,7 +4655,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             {
                 if (pmurray->moverec.nState == 0)
                 {
-                    pmurray->VUnk87(0);
+                    pmurray->SetPlayerState(0);
                 }
                 fComplete = ((STEPPLAYER *)prelaycmd->unk5A.nUnk6)->jtair.nState == -1;
             }

@@ -75,7 +75,7 @@ struct VKBLEND : public VECKEY
       MRSGC *amrsgc;
       KEYV **apkey;
       qword qwRest;
-    virtual int NKeyType() { return 5; }
+    virtual int GetKeyType() { return 5; }
 };
 struct SKBLEND : public SCALARKEY
 {
@@ -210,7 +210,7 @@ extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
 }
 
 // 0x0020B868 PostJtLoadGait__FP4GAIT  (our name)
-// After the level load (JT::VUnk14, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlendSyncTables), each clip's root movement per second
+// After the level load (JT::PostLoad, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlendSyncTables), each clip's root movement per second
 // ((position at the end - position at the start) / length), the blend (EnsureAsegBlendDynamic with the two marker arrays). Then every blended channel is told
 // which marker array keeps it in step: XFs with oid 0x10 / 0x12 / 0x14 the second foot's (amrsgc[1]), 0x11 / 0x13 / 0x15 the first's (the default), any other none.
 static inline qword SubVec(qword qw0, qword qw1)

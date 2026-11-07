@@ -1218,7 +1218,7 @@ ret0:
 // Returns the owner's damage veto (vtable slot 86) for the record.
 extern "C" int ShouldJtVetoDamage(JTHURT *hurt, ZPR *damage)
 {
-    return hurt->pstepplayer->VUnk85(damage);
+    return hurt->pstepplayer->IsZapLethal(damage);
 }
 
 /** @sly2-annot addr=0x1A2388

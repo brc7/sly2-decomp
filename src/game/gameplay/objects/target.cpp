@@ -65,7 +65,7 @@ extern "C" void OnTargetRemove(TARGET *target)
 }
 
 // TARGET vtable slot 23 (OnAdd): enters the active world and the world's target list.
-void TARGET::Unfreeze()
+void TARGET::OnAdd()
 {
     TARGET *target = (TARGET *)this;
     OnLoAdd(target);
@@ -98,7 +98,7 @@ extern "C" void OnLookTargetRemove(CID21V *lookTarget)
 }
 
 // CID21 vtable slot 23 (OnAdd): enters the active world and g_sw.dlCid21, where the player's chooser finds it.
-void CID21::Unfreeze()
+void CID21::OnAdd()
 {
     CID21V *lookTarget = (CID21V *)this;
     OnLoAdd(lookTarget);

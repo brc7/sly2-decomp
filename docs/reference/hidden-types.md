@@ -89,13 +89,13 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA550` | 4 | 1=`PvAlloc__11CLinearHeapii`, 2=`PvRealloc__11CLinearHeapPvii`, 3=`Free__11CLinearHeapPv` | [`__11CLinearHeapiPUc`](../../src/game/platform/memory/heap.cpp) (+0x0) | — |
+| `0x2CA550` | 4 | 1=`Alloc__11CLinearHeapii`, 2=`Realloc__11CLinearHeapPvii`, 3=`Free__11CLinearHeapPv` | [`__11CLinearHeapiPUc`](../../src/game/platform/memory/heap.cpp) (+0x0) | — |
 
 #### B2.3 SwHeap
 
 | vtable | Entries | Slot functions | Stored by (vptr offset) | Nearest registered |
 |---|---|---|---|---|
-| `0x2CA578` | 4 | 1=`CSwHeap_PvAlloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap.cpp) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud.cpp) | — |
+| `0x2CA578` | 4 | 1=`CSwHeap_Alloc`, 2=`CSwHeap_PvRealloc`, 3=`CSwHeap_Free` | [`StaticInit_heap`](../../src/game/platform/memory/heap.cpp) (-0x2A70), [`StaticInit_hud?`](../../src/game/engine/presentation/hud.cpp) | — |
 
 #### B2.4 CBinaryInputStream / MemInputStream
 
@@ -277,11 +277,11 @@ GCC 2.9x mangled names spell the owner class and parameter types. The retail ELF
 | `CPair` | 0 | 16 | 22 | `RefEvalSymbol__FP5CPairP6CFrame` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |
 | `CProg` | 5 | 0 | 5 | `__5CProgP4RGBAN31` | master_names (proposal), symbol_addrs |  | also a Sly 1 type (kept or carried over) |
 | `CQueueInput` | 0 | 1 | 1 | `CbFill__10CByteQueueiP11CQueueInput` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |
-| `CQueueInputFile` | 1 | 0 | 1 | `CbRead__15CQueueInputFileiPv` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |
-| `CQueueInputMemory` | 1 | 0 | 1 | `CbRead__17CQueueInputMemoryiPv` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |
+| `CQueueInputFile` | 1 | 0 | 1 | `ReadBytes__15CQueueInputFileiPv` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |
+| `CQueueInputMemory` | 1 | 0 | 1 | `ReadBytes__17CQueueInputMemoryiPv` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |
 | `CQueueOutput` | 0 | 1 | 1 | `CbDrain__10CByteQueueiP12CQueueOutput` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |
 | `CQueueOutputIop` | 2 | 0 | 6 | `Reset__15CQueueOutputIop` | master_names (proposal), symbol_addrs |  | Sly 2 type (header struct or own vtable) |
-| `CQueueOutputIpu` | 1 | 0 | 2 | `FAsyncDrain__15CQueueOutputIpu` | master_names (proposal) |  | Sly 2 type (header struct or own vtable) |
+| `CQueueOutputIpu` | 1 | 0 | 2 | `IsAsyncDrain__15CQueueOutputIpu` | master_names (proposal) |  | Sly 2 type (header struct or own vtable) |
 | `CRITSECT` | 0 | 3 | 3 | `InitCritSect__FP8CRITSECT` | master_names (proposal), symbol_addrs |  | also a Sly 1 type (kept or carried over) |
 | `CRef` | 10 | 136 | 171 | `SetS32__4CRefi` | master_names (proposal), symbol_addrs |  | also a Sly 1 type (kept or carried over) |
 | `CRichText` | 7 | 0 | 11 | `__9CRichTextPcP5CFont` | symbol_addrs |  | also a Sly 1 type (kept or carried over) |

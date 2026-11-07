@@ -357,7 +357,7 @@ static inline PL*CopyPL(PL*source){PL*result;__asm__("daddu %0,%1,$zero":"=r"(re
 static inline int Can(P*p,int kind){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,kind);}
 /** @sly2-annot addr=0x1B4AA0
  * Purpose: Per-frame input-driven state machine (loops until state stable): idle/move -> jump (Cross 0x40),
- *   lift (Circle 0x20), punch (Square 0x80), alt attack (0x10), gadget (0x400 + FCanUseGadget(3)), strafe
+ *   lift (Circle 0x20), punch (Square 0x80), alt attack (0x10), gadget (0x400 + CanUseGadget(3)), strafe
  *   (0x140AF8); dispatches per-state updates (carry, flop, lift, attack, power, struggle, jtthrow)
  * Info: proposed name UpdateMurrayStateMachine (T1); TU murray
  * Notes: runtime4: the per-state switch (no stored per-state fn pointers in MURRAY); 0x400 = look mode
@@ -2845,7 +2845,7 @@ struct S { char pad[0x13D0]; int n; };
  * @end-sly2-annot */
 // MURRAY slot 94: 1 for the free-movement states 0/1/9/10. (inferred)
 } } // namespace M_func_001B8180
-int MURRAY::VUnk93() { using namespace M_func_001B8180; M_func_001B8180::S *p = (M_func_001B8180::S *)this;
+int MURRAY::IsFreeMoving() { using namespace M_func_001B8180; M_func_001B8180::S *p = (M_func_001B8180::S *)this;
     switch (p->n) {
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_STRAFE: case MURRAY_WALK:
         return 1;
@@ -2924,7 +2924,7 @@ void UpdateMurrayPlaces(struct S *murray)
 
 namespace M_func_001B8368 { extern "C" {
 struct S { char pad[0x204]; int f204; char pad2[0x13D0-0x208]; int n; int reserved; int m; };
-int GetStepplayerModeCode(struct S *p);
+int GetStepplayerGroundProbeFlags(struct S *p);
 /** @sly2-annot addr=0x1B8368
  * Purpose: MURRAY vt85: 0 if x204 set, mode 1 or state 20, else base 0x143C78
  * Info: proposed name MURRAY_vt85 (T2); class MURRAY slot85; TU murray
@@ -2932,11 +2932,11 @@ int GetStepplayerModeCode(struct S *p);
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // MURRAY slot 85: 0 if x204 is set, in mode 1 or in state 20, else the STEPPLAYER base.
-int GetMurrayModeCode(struct S *murray)
+int GetMurrayGroundProbeFlags(struct S *murray)
 {
     if (murray->f204) return 0;
     if (murray->m == 1 || murray->n == MURRAY_PIPE) return 0;
-    return GetStepplayerModeCode(murray);
+    return GetStepplayerGroundProbeFlags(murray);
 }
 } } // namespace M_func_001B8368
 
@@ -3951,7 +3951,7 @@ extern "C" void EnterMurrayThrowAim(MURRAY *murray, int n, void *pv)
 }
 
 namespace M_FCanUseGadget__6MURRAYi { extern "C" {
-/* FCanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring IsStepplayerInJtMode with (p, k): it takes only p (as in FCanUseGadget), and the extra k use raised k's allocation priority. */
+/* CanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring IsStepplayerInJtMode with (p, k): it takes only p (as in CanUseGadget), and the extra k use raised k's allocation priority. */
 struct O { char pad[0x180]; void *x180; };
 struct P { char pad[0x2C4]; int x2C4; char pad1[0x12F0 - 0x2C8]; int x12F0; char pad2[0x13D0 - 0x12F4]; int state; char pad3[0x13F0 - 0x13D4]; struct O *carried; };
 extern int D_002DFBC0;

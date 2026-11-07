@@ -90,7 +90,7 @@ M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*VECT
 void SmoothMatrix(M4*,M3*,SMPV*,M3*,qword*,float);
 void PosSmooth(qword,qword,SMPV*,qword*,float);
 void SetJtState__FP2JT3JTS4JTBS(JTV*,int,int);void UpdateDirectionalBlend(JTV*,AXIS*,REQUEST*);
-void func_00185130(MESH *pmesh);
+void InitCid8(MESH *pmesh);
 void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal);
 void ClearMeshContactList(MESH *pmesh, LIST *plist);
 void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius);
@@ -468,7 +468,7 @@ namespace RO_ORDER { extern const float r_D_002A5690 __asm__("D_002A5690") = 3.4
 void CID9::Init()
 {
     MESH *p = (MESH *)this;
-    func_00185130(p);
+    InitCid8(p);
     p->attachRadius = D_002A5690;
 }
 

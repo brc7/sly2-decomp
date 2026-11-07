@@ -2,7 +2,7 @@
 M2C_UNK SetS32__4CRefi(void *, s32);                 /* extern */
 s32 GetSoZapResponseFlags(s32, s32);                        /* extern */
 
-CRef *RefThunk_GrfzpdFromSoGrfzpk(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_GetSoZapResponseFlags(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     OTYP aotyp[1];

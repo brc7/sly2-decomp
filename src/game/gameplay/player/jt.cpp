@@ -5,7 +5,7 @@
 // ChooseJtGroundState, HandleJtMessage, UseJtGadget and the STEPPLAYER virtual overrides.
 //
 // Types: sly2 headers (jt.h JT/JTPOCKET, stepplayer.h, step.h, po.h, so.h...); the file-scope types after the
-// includes are the union of five Lilly ports' private declarations; JT::FCanUseGadget (a member) and the ports
+// includes are the union of five Lilly ports' private declarations; JT::CanUseGadget (a member) and the ports
 // that define members stay at file scope, the other ports and the per-function files keep their views in
 // namespaces named after each function (as vec.cpp and mark.cpp do). The m2c bodies are written on the headers.
 // A JT key function is defined here (no __tf2JT typeinfo extra since -fno-rtti).
@@ -1225,8 +1225,8 @@ namespace M_UpdateJtLean__FP2JT {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF2D0 (D_002BF2D0), D_002BF2D4 (D_002BF2D4), D_002BF2D8 (D_002BF2D8), D_002BF2DC (D_002BF2DC), D_002BF2E0 (D_002BF2E0), D_002BF300 (D_002BF300), D_002BF310 (D_002BF310), D_002BF320 (D_002BF320), D_002BF330 (D_002BF330), D_002DDED0 (g_clock), D_002BBB60 (g_lmZeroOne), D_002A2DC0 (g_normalZ), D_002A2DD0 (g_qwZero)
 // 0x00189618 UpdateJtLean__FP2JT  (our name; was UpdateJtLean)
-// The last step of the hero's per-frame update (JT::VUnk15). The three actuators at JT+0x19E4 / 0x19E8 / 0x19EC hold the lean offset of his body.
-//  - nothing happens before JT::VUnk14 made them, or while they are not in their owner's chain; in the look mode they go back to zero;
+// The last step of the hero's per-frame update (JT::Update). The three actuators at JT+0x19E4 / 0x19E8 / 0x19EC hold the lean offset of his body.
+//  - nothing happens before JT::PostLoad made them, or while they are not in their owner's chain; in the look mode they go back to zero;
 //  - standing (jts 0) on an object (pxpFloor's part: the thing under his feet) or holding on to a curve (jts 7, grab record kind 0: state 3 a SHAPE he holds on at u, state 4 an object):
 //    the velocity of that object at his position (GetXfVelocity) is seen from his own frame (matTarget); its horizontal speed picks how far he leans (a quadratic of speed / 1000,
 //    D_002BF310, limited to 0..1: k) -> the lean vector (vx, vy) * 20 * k / |v|, z = -7.5 * sqrt(1 - k^2), z kept below what each foot's offset actuator (19F0 / 19F4) allows.
@@ -1497,7 +1497,7 @@ void UpdateJtLean(JT *jt)
     if (!lo)
         return;
 lComputeLean:
-    *(qword *)&vecDir = GetXfVelocity(lo->PxfLocal(0), 0, *(qword *)&vecPos);
+    *(qword *)&vecDir = GetXfVelocity(lo->GetLocalTransform(0), 0, *(qword *)&vecPos);
     *(qword *)&vecLocal = MulMatrixRows(&jt->matTarget, *(qword *)&vecDir);
     float gLen = LengthXYOf(*(qword *)&vecLocal);
     if (gLen > 0.0001f) {
@@ -1548,7 +1548,7 @@ namespace M_RebuildJtXmg {
 // the record's goal XF (the heel's IK handle). posExtrem = the ball lowered by sRadius (5: ball to sole) along g_normalZ; the sphere the foot can reach is centred on posSphere = the
 // hip + (posExtrem - the handle's goal point) with the radius sSphere = both bones of the leg + 10; the vertical line posExtrem + g_normalZ * 50 .. posExtrem - g_normalZ * 50 is clipped to
 // that sphere (0x14C748, ClsgClipEdgeToSphere's Sly 2 form: the first piece goes to posUp / posDown, fValid = it hit) and posSphereLow = the sphere's lowest point (Sly 2 only).
-// UpdateJtStand (every frame, the two feet) and JT::VUnk15 call it; TryMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
+// UpdateJtStand (every frame, the two feet) and JT::Update call it; TryMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
 // Match notes (decomp/learnings.md "T1460"): the two pool constants are `extern int` words read with VuFloatFromMemWord(D) (by-value param); the source order that keeps the game's
 // schedule is "sphere centre store, radius store, then the two constants, then the two AddScaledVec into locals, then the call", and the posExtrem store before the two clip stores.
 inline qword TransformPos(MATRIX4 *matrix, qword pos)
@@ -2366,7 +2366,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if (!jt->FCanUseGadget(2))
+                    if (!jt->CanUseGadget(2))
                         break;
                     if (jt->pctl->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0D, JTBS_Nil);
@@ -2412,7 +2412,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                         break;
                     }
-                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
@@ -2495,7 +2495,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && jt->CanUseGadget(3))
                     {
                         jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
@@ -2587,7 +2587,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                                 *(qword *)&vLocal = D_002BF370;
                             MATRIX3 mat;
                             mat = LoadRotateMatrixRad(jt->gUnk1f94 * D_002BF364, D_002A2DA0);
-                            *(qword *)&vTarget = TransformPos(jt->phndHang->PmatWorld(), RotateVecAt(&mat, (qword *)&vLocal));
+                            *(qword *)&vTarget = TransformPos(jt->phndHang->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
                         qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), SubVec(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->psophys->dvGravity);
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->gUnk1f98);
@@ -4380,7 +4380,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
         jt->jtbs = jtbs;
         jt->tJtbs = D_002DDED0.t;
     }
-    jt->VUnk89();
+    jt->ApplyStateStepParams();
     SetJtChannelMask(jt, grf);
     if (sfxid != -1)
     {
@@ -4393,24 +4393,24 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
     if (jt->pasegaUnk1030 != 0)
     {
         RetractAsega(jt->pasegaUnk1030);
-        jt->pasegaUnk1030->VUnk01();
+        jt->pasegaUnk1030->Release();
         jt->pasegaUnk1030 = 0;
     }
     else if (jt->psmaUnk1034 != 0)
     {
         RetractSma(jt->psmaUnk1034);
-        jt->psmaUnk1034->VUnk01();
+        jt->psmaUnk1034->Release();
         jt->psmaUnk1034 = 0;
     }
     if (aseg != 0)
     {
         ApplyAseg(aseg, (ALO *)jt, tStart, svt, grfapl, &jt->pasegaUnk1030);
-        jt->pasegaUnk1030->VUnk00();
+        jt->pasegaUnk1030->AddRef();
     }
     else if (stateMachine != 0)
     {
         jt->psmaUnk1034 = PsmaApplySm(stateMachine, (ALO *)jt, oid, grfapl, grfRoute);
-        jt->psmaUnk1034->VUnk00();
+        jt->psmaUnk1034->AddRef();
     }
 }
 } // namespace M_SetJtJts__FP2JT3JTS4JTBS
@@ -4442,7 +4442,7 @@ int IsJtCameraFree(struct S *jt)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 91: cancels the cane state (SetJtCaneState(-1)).
-void JT::VUnk90()
+void JT::EndMeleeAttack()
 {
     JT *jt = (JT *)this;
     SetJtCaneState(jt, -1);
@@ -4586,7 +4586,7 @@ extern "C" JTPOCKET *GetJtGadgetRecord(JT *pjt, int idGadget);
  * @end-sly2-annot */
 // JT slot 99: whether Sly can use the gadget now (per-state allow lists; the aiming state allows only the carried
 // gadget).
-int JT::FCanUseGadget(int gadgetId)
+int JT::CanUseGadget(int gadgetId)
 {
     if (FJtModeActive(this))
         return 0;
@@ -4936,7 +4936,7 @@ void GetJtStunHold(struct S *jt, int *pf)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DEE0 { extern "C" {
 struct S { char pad[0x204]; int x204; char p1[0x16C0]; int n; };
-int GetStepplayerModeCode(struct S *p);
+int GetStepplayerGroundProbeFlags(struct S *p);
 /** @sly2-annot addr=0x18DEE0
  * Purpose: JT vt85: 0 if x204 or jts 3/8/21/22; 1 for 13/14; 0xF for 24; else base 0x143C78
  * Info: proposed name JT_vt85 (T2); class JT slot85; TU jt
@@ -4944,7 +4944,7 @@ int GetStepplayerModeCode(struct S *p);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
-int GetJtModeCode(struct S *p)
+int GetJtGroundProbeFlags(struct S *p)
 {
     if (p->x204) return 0;
     switch (p->n) {
@@ -4955,7 +4955,7 @@ int GetJtModeCode(struct S *p)
     case 24:
         return 0xF;
     }
-    return GetStepplayerModeCode(p);
+    return GetStepplayerGroundProbeFlags(p);
 }
 } } // namespace M_func_0018DEE0
 

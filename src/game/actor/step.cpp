@@ -54,7 +54,7 @@ enum
 {
     PROBE_ENABLED = 1,          /* cast the floor ray at all */
     PROBE_FROM_TOP = 2,         /* cast to the top helper point instead of the base point */
-    PROBE_FLAG4 = 4,            /* set by the default flags; not read here */
+    PROBE_FLAG4 = 4,            /* the floor contact takes part in the contact solver (solve.cpp tests it) */
     PROBE_KEEP_NORMAL = 8,      /* always use the hit normal (no snapping to straight up) */
     PROBE_DEFAULT = PROBE_ENABLED | PROBE_FROM_TOP | PROBE_FLAG4
 };
@@ -635,7 +635,7 @@ extern "C" void RotateStepToMat(STEP *step, MATRIX3 *matrix)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-// Slot 63 (so.h CpartExtra): a STEP has one extra part, the phys part built by BuildStepPhysPart; the SO
+// Slot 63 (so.h GetExtraPartCount): a STEP has one extra part, the phys part built by BuildStepPhysPart; the SO
 // default (GetSoExtraPartCount) answers 0 (inferred from the slot name).
 extern "C" int GetStepExtraPartCount()
 {
@@ -1406,7 +1406,7 @@ void LinkStepAttachment(struct O *step, void *pv, int f)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddStepAxisXps {
-// STEP::VUnk81 (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (AddXp 0x1A7C18) for a point
+// STEP::AddAxisXps (0x205008, KB name VUnk81__4STEPiP2LOUxUxUx): add contacts (AddXp 0x1A7C18) for a point
 // against the three axes of the frame BuildOrthonormalMatrixZ(direction, g_normalZ) builds. The contacts go
 // to the link list entry that joins this object to the zap target of plo (or of its nearest attached
 // ancestor); with no target they go to this object's own list.
@@ -1960,7 +1960,7 @@ extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qwo
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 // Slot 86: the base answer 0; STEPGUARD's override tests whether the current zap is lethal (inferred).
-extern "C" int IsStepHitByLethalZap()
+extern "C" int IsStepZapLethal()
 {
     return 0;
 }

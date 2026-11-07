@@ -1660,7 +1660,7 @@ void RemoveLoFromRenderTree(struct L *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 /** @sly2-annot addr=0x1F3E00
- * Purpose: SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from
+ * Purpose: SO vt22: LO::OnRemove, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from
  *   g_sw.dlSoTree
  * Info: proposed name OnSoRemove (T1); class SO slot22; TU so
  * Notes: names_v2 C proposed RebuildSoPhysHook__FP2SO (0.638) | slot 22 OnRemove resolved by arbitration
@@ -1702,7 +1702,7 @@ int IsEntryInDl__FP2DLPv(struct DL *, void *);
 void AppendDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 /** @sly2-annot addr=0x1F3EA8
- * Purpose: SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to g_sw.dlSoTree and vt49
+ * Purpose: SO vt23: LO::OnAdd, re-register, vt23 children, add tree to g_sw.dlSoTree and vt49
  * Info: proposed name OnSoAdd (T1); class SO slot23; TU so
  * Notes: names_v2 C proposed FGetSoContactList__FP2SOPv (0.167) | slot 23 OnAdd resolved by arbitration
  *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was UnfreezeSo)
@@ -1730,16 +1730,16 @@ void OnSoAdd(struct L *so)
 }
 } } // namespace M_OnSoAdd
 
-// 0x1F3FA0 SO_PmatWorld
+// 0x1F3FA0 GetSoWorldMatrix
 /** @sly2-annot addr=0x1F3FA0
  * Purpose: SO vt31: &pxfRoot(+0x60)->matWorld (+0x40)
- * Info: proposed name SO_PmatWorld (T1); class SO slot31; TU so
+ * Info: proposed name GetSoWorldMatrix (T1); class SO slot31; TU so
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
  * See: docs/formats/meshes-scene.md#3-transforms-cstatic,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Slot 31: the world matrix of the root XF.
-MATRIX4 * SO::PmatWorld()
+MATRIX4 * SO::GetWorldMatrix()
 {
     SO *pso = (SO *)this;
     return &pso->pxfRoot->matWorld;
@@ -3293,7 +3293,7 @@ extern "C" void AddSoCustomXps(void)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Slot 63 (so.h CpartExtra): the number of extra parts the class adds; 0 for a plain SO (STEP adds its phys
+// Slot 63 (so.h GetExtraPartCount): the number of extra parts the class adds; 0 for a plain SO (STEP adds its phys
 // part and answers 1) (inferred from the slot name).
 extern "C" int GetSoExtraPartCount(void)
 {
@@ -3712,7 +3712,7 @@ void SO::Clone(LO *ploBase)
     CloneXfRef(ploBase, &pxfUnk5c);
     CloneXfRef(ploBase, &pxfRoot);
     CloneGlobset(&globset, this, ploBase);
-    int cpartExtra = CpartExtra();
+    int cpartExtra = GetExtraPartCount();
     apart = (SOPART *)PvAllocSwCopy((cpart + cpartExtra) * sizeof(SOPART), apart);
     for (int ipart = 0; ipart < cpart; ipart++)
     {
@@ -4436,7 +4436,7 @@ struct N *FindZapResponder(struct N *lo, void *q)
  *   docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
  *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
  * @end-sly2-annot */
-// Slot 75 (so.h FTakeDamage): returns 1 when the zap record's damage field (+0x44) is nonzero, i.e. the zap
+// Slot 75 (so.h TakeDamage): returns 1 when the zap record's damage field (+0x44) is nonzero, i.e. the zap
 // hurts (inferred).
 extern "C" int CanSoTakeDamage(SO *so, SOWATCH *pwatch)
 {
@@ -5497,7 +5497,7 @@ void SetSoBit35Hierarchy(struct L *so, long f)
 }
 } } // namespace M_func_001F8668
 
-// 0x1F8730 func_001F8730
+// 0x1F8730 IncrefXfHandle
 /** @sly2-annot addr=0x1F8730
  * Purpose: cref(+0x10)++
  * Info: proposed name IncrefXfh (T2); class CID148 slot1; TU so
@@ -5506,7 +5506,7 @@ void SetSoBit35Hierarchy(struct L *so, long f)
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Handle slot 0: increments the reference count.
-void CID148::VUnk00()   /* key function: CID148's vtable comes out here */
+void CID148::AddRef()   /* key function: CID148's vtable comes out here */
 {
     XFH *pxfh = (XFH *)this;
     pxfh->cref = pxfh->cref + 1;

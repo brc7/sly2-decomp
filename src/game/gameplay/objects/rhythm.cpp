@@ -174,7 +174,7 @@ extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
 }
 
 // DANCER vtable slot 15 (PostLoad): step post-load, resolves the move clips, then vtable slot 79 with 0. (inferred)
-void DANCER::VUnk14()
+void DANCER::PostLoad()
 {
     DANCERV *dancer = (DANCERV *)this;
     VTE *entry;
@@ -396,7 +396,7 @@ extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
 
 // Rhythm manager vtable slot 15 (PostLoad): LO post-load, then queues BindRhythmManagerGrades (D_002A5010) as a world
 // callback (it needs the other objects loaded).
-void CID121::VUnk14()
+void CID121::PostLoad()
 {
     RHYTHMMGR *manager = (RHYTHMMGR *)this;
     PostLoLoad(manager);

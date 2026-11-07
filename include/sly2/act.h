@@ -19,7 +19,7 @@
 struct AC
 {
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCurveFromBrxDefault");   /* slot 1 */
-    virtual void VSlot2(void *pv) __asm__("__pure_virtual");   /* slot 2 (pure) */
+    virtual void Prepare(void *pv) __asm__("__pure_virtual");   /* slot 2 (pure) */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("__pure_virtual");   /* slot 3 (pure) */
 };
 
@@ -28,7 +28,7 @@ struct AC0 : AC
 {
     int an[3];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcConstFromBrx");   /* slot 1 */
-    virtual void VSlot2(void *pv) __asm__("PrepareConstCurveSegment");   /* slot 2 */
+    virtual void Prepare(void *pv) __asm__("PrepareConstCurveSegment");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateConstCurve");   /* slot 3 */
 };
 
@@ -37,7 +37,7 @@ struct AC1 : AC
 {
     int an[2];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecAFromBrx");   /* slot 1 */
-    virtual void VSlot2(void *pv) __asm__("PrepareVecCurveASegment");   /* slot 2 */
+    virtual void Prepare(void *pv) __asm__("PrepareVecCurveASegment");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateVecCurveA");   /* slot 3 */
 };
 
@@ -46,7 +46,7 @@ struct AC2 : AC
 {
     int an[2];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcVecBFromBrx");   /* slot 1 */
-    virtual void VSlot2(void *pv) __asm__("PrepareVecCurveBSegment");   /* slot 2 */
+    virtual void Prepare(void *pv) __asm__("PrepareVecCurveBSegment");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateVecCurveB");   /* slot 3 */
 };
 
@@ -55,7 +55,7 @@ struct AC3 : AC
 {
     int an[11];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatAFromBrx");   /* slot 1 */
-    virtual void VSlot2(void *pv) __asm__("PrepareFloatCurveASegment");   /* slot 2 */
+    virtual void Prepare(void *pv) __asm__("PrepareFloatCurveASegment");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateFloatCurveA");   /* slot 3 */
 };
 
@@ -64,7 +64,7 @@ struct AC4 : AC
 {
     int an[11];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatBFromBrx");   /* slot 1 */
-    virtual void VSlot2(void *pv) __asm__("PrepareFloatCurveBSegment");   /* slot 2 */
+    virtual void Prepare(void *pv) __asm__("PrepareFloatCurveBSegment");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateFloatCurveB");   /* slot 3 */
 };
 
@@ -101,9 +101,9 @@ struct ACT
     int nPriority;          /* +0x0C priority among the acts on the same transform */
     ACT *pactNext;          /* +0x10 next act on the same transform (XF::pactFirst list) */
     int nRole;              /* +0x14 role of the transform the act drives (inferred, as XF::nRole) */
-    virtual void VSlot1() __asm__("AttachActBase");   /* slot 1 */
-    virtual void VSlot2() __asm__("DetachActBase");   /* slot 2 */
-    virtual void VSlot3() __asm__("ActSlot3Default");   /* slot 3 */
+    virtual void Attach() __asm__("AttachActBase");   /* slot 1 */
+    virtual void Detach() __asm__("DetachActBase");   /* slot 2 */
+    virtual void SwitchTarget() __asm__("ActSlot3Default");   /* slot 3 */
     virtual void Update() __asm__("UpdateActDefault");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActGoalDefault");   /* slot 5 */
     virtual void Clone() __asm__("CloneAct");   /* slot 6 */
@@ -123,7 +123,7 @@ struct ACT2 : ACT
 {
     char pad1C[0x80 - 0x1C];
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetLookAtActGoal");   /* slot 5 */
-    virtual void VSlot2() __asm__("DetachLookAtAct");   /* slot 2 */
+    virtual void Detach() __asm__("DetachLookAtAct");   /* slot 2 */
     virtual void Update() __asm__("UpdateActLookAt");   /* slot 4 */
 };
 
@@ -138,9 +138,9 @@ struct ACT4 : ACT
 struct ACT5 : ACT
 {
     char pad1C[0x30 - 0x1C];
-    virtual void VSlot1() __asm__("AttachOffsetAct");   /* slot 1 */
-    virtual void VSlot2() __asm__("DetachOffsetAct");   /* slot 2 */
-    virtual void VSlot3() __asm__("SwitchOffsetActTarget");   /* slot 3 */
+    virtual void Attach() __asm__("AttachOffsetAct");   /* slot 1 */
+    virtual void Detach() __asm__("DetachOffsetAct");   /* slot 2 */
+    virtual void SwitchTarget() __asm__("SwitchOffsetActTarget");   /* slot 3 */
     virtual void Update() __asm__("UpdateOffsetAct");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetOffsetActGoal");   /* slot 5 */
 };
@@ -166,7 +166,7 @@ struct ACT8 : ACT
 struct ACT9 : ACT
 {
     char pad1C[0x30 - 0x1C];
-    virtual void VSlot1() __asm__("AttachKind9Act");   /* slot 1 */
+    virtual void Attach() __asm__("AttachKind9Act");   /* slot 1 */
 };
 
 /* The classes whose slot functions other TUs define (their vtables lie in those TUs' part of the linkonce area;
@@ -176,8 +176,8 @@ struct ACT9 : ACT
 struct ACTSEG : ACT
 {
     char pad1C[0x2C - 0x1C];
-    virtual void VSlot1() __asm__("AttachActseg");   /* slot 1 */
-    virtual void VSlot2() __asm__("DetachActseg");   /* slot 2 */
+    virtual void Attach() __asm__("AttachActseg");   /* slot 1 */
+    virtual void Detach() __asm__("DetachActseg");   /* slot 2 */
     virtual void Update() __asm__("UpdateActseg");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActsegGoal");   /* slot 5 */
 };
@@ -186,7 +186,7 @@ struct ACTSEG : ACT
 struct ACT3 : ACT
 {
     int n1C;
-    virtual void VSlot1() __asm__("AttachChainAct");   /* slot 1 */
+    virtual void Attach() __asm__("AttachChainAct");   /* slot 1 */
     virtual void Clone() __asm__("CloneChainAct");   /* slot 6 */
 };
 
@@ -194,7 +194,7 @@ struct ACT3 : ACT
 struct ACT7 : ACT
 {
     int n1C;
-    virtual void VSlot1() __asm__("AttachIkAct");   /* slot 1 */
+    virtual void Attach() __asm__("AttachIkAct");   /* slot 1 */
     virtual void Clone() __asm__("CloneIkAct");   /* slot 6 */
 };
 
@@ -203,9 +203,9 @@ struct ACT7 : ACT
 struct AC5 : AC
 {
     int an[7];
-    virtual void VSlot2(void *pv) __asm__("BlendChannelPose");   /* slot 2 */
+    virtual void Prepare(void *pv) __asm__("BlendChannelPose");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateBlendChnPosVel");   /* slot 3 */
-    virtual int VSlot4() __asm__("GetBlendCurveKind");   /* slot 4 */
+    virtual int GetKind() __asm__("GetBlendCurveKind");   /* slot 4 */
 };
 
 /* ACG2 (0x14; vtable 0x2CB588, emitted by blend.cpp): blend-channel float curve */

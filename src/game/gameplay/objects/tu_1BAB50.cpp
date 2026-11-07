@@ -302,7 +302,7 @@ struct L { int x0; struct L *next; int *px8; TRIG *po; };
 struct XPO { char pad[0x64]; L *pl; };
 // CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98
 // objects. (inferred)
-void CID98::VUnk57()
+void CID98::AdjustXps()
 {
     TRIG *breakable = (TRIG *)this;
     L *pl;

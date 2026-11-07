@@ -2,7 +2,7 @@
 // list, load, deferred callbacks (LORUN), the default virtuals (render, translate, rotate, velocity...), world
 // matrices and positions, visibility and busy state. TU 0x1A5270..0x1A7518 (74 functions, address order).
 //
-// Types: sly2/lo.h's LO (real virtual calls for PmatWorld / TranslateToPos / RotateToMat), LOROOT and LORUN for the
+// Types: sly2/lo.h's LO (real virtual calls for GetWorldMatrix / TranslateToPos / RotateToMat), LOROOT and LORUN for the
 // m2c bodies. The hand-written per-function files keep their views in namespaces named after each function (as
 // jt.cpp does), their C++-named definitions as C-linkage definitions of their literal symbols there.
 // Entry points: the LO virtuals (InitLo, AddLo, RemoveLo, LO_SetParent, UpdateLo, CloneLo...), the
@@ -734,10 +734,10 @@ struct O { int frame, sidebag, firstRefNode; struct VTE *vt; };
 void InvertMatrix4Rigid(M4 *out, void *in);
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
 /** @sly2-annot addr=0x1A5EE8
- * Purpose: Draw an LO hierarchy at an explicit world matrix: m * inverse(PmatWorld()) then RenderAll (vt20)
+ * Purpose: Draw an LO hierarchy at an explicit world matrix: m * inverse(GetWorldMatrix()) then RenderAll (vt20)
  *   with that matrix and two alpha/show factors
  * Info: proposed name RenderLoAtMat (T2); TU lo
- * Notes: v3: superseded SetLoMatWorldRel | top50_round (0.50): Body: vt31 PmatWorld, InvertMatrix4Rigid,
+ * Notes: v3: superseded SetLoMatWorldRel | top50_round (0.50): Body: vt31 GetWorldMatrix, InvertMatrix4Rigid,
  *   MultiplyMatrix4Matrix4, vt20(&m,0,a,b). SO slot 20 is RenderSoAll. All callers are Render*Self functions
  *   drawing child SOs at computed matrices (RenderWaypt draws marker/base wit
  * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r4_17F090+top50_round
@@ -1056,7 +1056,7 @@ extern "C" MATRIX4 *LO_GetWorldMatrix()
 }
 
 /** @sly2-annot addr=0x1A62E8
- * Purpose: Return vt31 PmatWorld()->pos (row 3, +0x30)
+ * Purpose: Return vt31 GetWorldMatrix()->pos (row 3, +0x30)
  * Info: proposed name PosLoWorld (T1); TU lo
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
@@ -1066,11 +1066,11 @@ extern "C" MATRIX4 *LO_GetWorldMatrix()
 /* The object's world position (row 3 of its world matrix). */
 extern "C" qword GetLoWorldPos(LO *plo)
 {
-    return ((qword *)plo->PmatWorld())[3];
+    return ((qword *)plo->GetWorldMatrix())[3];
 }
 
 /** @sly2-annot addr=0x1A6318
- * Purpose: Return vt31 PmatWorld()
+ * Purpose: Return vt31 GetWorldMatrix()
  * Info: proposed name PmatLoWorld (T1); TU lo
  * Notes: names_v2 C proposed SetShadowFrustrumUp__FP6SHADOWP6VECTOR (0.438)
  * Confidence: high [T1 0.90] - evidence: static naming pass; sources: r4_17F090+verdicts_tu_r4r6
@@ -1080,7 +1080,7 @@ extern "C" qword GetLoWorldPos(LO *plo)
 // Returns the object's world matrix (vtable slot 31).
 extern "C" void GetLoWorldMatrix(LO *plo)
 {
-    plo->PmatWorld();
+    plo->GetWorldMatrix();
 }
 
 namespace M_func_001A6340 { extern "C" {
@@ -1507,7 +1507,7 @@ struct M *LO_GetLocalTransform(void *unused, struct M *pm)
 } } // namespace M_func_001A6B30
 
 /** @sly2-annot addr=0x1A6B88
- * Purpose: LO vt38(ploOther): SetLoXfFromMat(plo, ploOther->PmatWorld())
+ * Purpose: LO vt38(ploOther): SetLoXfFromMat(plo, ploOther->GetWorldMatrix())
  * Info: proposed name MatchLoXf (T2); class LO slot38; TU lo
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
@@ -1515,7 +1515,7 @@ struct M *LO_GetLocalTransform(void *unused, struct M *pm)
 // vtable slot 38: moves the object onto another object's world transform (warps and relays use it to place objects).
 extern "C" void MoveLoToObject(LO *plo, LO *ploOther)
 {
-    SetLoXfFromMat(plo, ploOther->PmatWorld());
+    SetLoXfFromMat(plo, ploOther->GetWorldMatrix());
 }
 
 /** @sly2-annot addr=0x1A6BC8
@@ -1789,7 +1789,7 @@ typedef struct { short d; short pad; M4 *(*pfn)(struct LO *); } VT;
 struct LO { int frame, sidebag, firstRefNode; VT *vt; };
 void InvertMatrix4Rigid(M4 *pm, M4 *pn);
 /** @sly2-annot addr=0x1A6F00
- * Purpose: Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse);
+ * Purpose: Transform a point from paloFrom space to world (GetWorldMatrix) then into paloTo space (inverse);
  *   vector by value
  * Info: proposed name ConvertPosBetweenLos (T1); TU lo
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090

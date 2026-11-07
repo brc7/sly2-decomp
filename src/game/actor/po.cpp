@@ -228,14 +228,14 @@ extern "C" int IsPoInvulnerable(void) { /*B*/if ((D_002E1E00 & 1) || IsSwHandsOf
 
 /** @sly2-annot addr=0x1C3ED0
  * Purpose: PO virtual slot 77: returns 0 (JTHS_Normal)
- * Info: proposed name GetPoJtHoldState (T1); class PO slot77; TU po
+ * Info: proposed name GetPoHealthState (T1); class PO slot77; TU po
  * Notes: names_v2 B proposed FIsRovSoundBase__FP3ROV (0.856)
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
  *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
 // Slot 77: the PO's JT hold state; a plain PO is always 0 (normal).
-extern "C" int GetPoJtHoldState(void) {
+extern "C" int GetPoHealthState(void) {
     return 0;
 }
 
@@ -384,7 +384,7 @@ struct CRef {
 };
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int, void *, int, void **, CRef *); };
 /** @sly2-annot addr=0x1C41B8
- * Purpose: PO virtual slot 80 (Lilly FCanBeHealed): sends message 0xD with a bool CRef (default 1) and
+ * Purpose: PO virtual slot 80 (Lilly CanBeHealed): sends message 0xD with a bool CRef (default 1) and
  *   returns the answer
  * Info: proposed name CanPoBeHealed (T1); class PO slot80; TU po
  * Notes: names_v2 C proposed InitRoh__FP3ROH (0.638)

@@ -14,8 +14,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
  * convention). HYPOTHESIS: TIMER : LO (as in Sly 1) and the slot meanings; the slot numbers are CONFIRMED by match. */
 struct TIMER : public LO
 {
-      virtual void VUnk48(int n);     /* slot 49: the letterbox passes -1 when showing */
-      virtual void VUnk49();          /* slot 50: hide */
+      virtual void Show(int n);     /* slot 49: the letterbox passes -1 when showing */
+      virtual void Hide();          /* slot 50: hide */
 };
 
 struct LETTERBOX
@@ -74,7 +74,7 @@ extern "C" void ShowLetterbox(LETTERBOX *letterbox)
 {
       if (letterbox->timer) {
             ClearSubtitle(D_004435F0);
-            letterbox->timer->VUnk48(-1);
+            letterbox->timer->Show(-1);
       }
 }
 
@@ -92,7 +92,7 @@ extern "C" void HideLetterbox(LETTERBOX *letterbox)
       TIMER *timer = letterbox->timer;
 
       if (timer)
-            timer->VUnk49();
+            timer->Hide();
 }
 
 // ---- letterbox's .bss (tu-merging.md "Data": .bss gaps): the letterbox object (0x2E1E60, between language's .bss

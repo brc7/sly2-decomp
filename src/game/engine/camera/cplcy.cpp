@@ -382,7 +382,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
 
 // ResetCplook (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
 // sound references psndUnk38 and psndZoom. (inferred)
-void CPLOOK::VSlot7()   /* key function */
+void CPLOOK::ResetPolicy()   /* key function */
 {
     CPLOOK *pcplook = this;
     RcPtr_Assign(&pcplook->psndUnk38, 0);
@@ -682,7 +682,7 @@ void UpdateCpzoom(struct X *p)
 
 // ResetCpzoom (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
 // sound references psndUnkc4 (+0xC4) and psndZoom (+0xC0). (inferred)
-void CPZOOM::VSlot7()   /* key function */
+void CPZOOM::ResetPolicy()   /* key function */
 {
     CPZOOM *pcpzoom = this;
     RcPtr_Assign(&pcpzoom->psndUnkc4, 0);
@@ -1249,7 +1249,7 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT s)
     return r;
 }
 
-// Camera follows turret object's world matrix (plo->vt31 PmatWorld), smoothing rotation/position unless cut; fov from
+// Camera follows turret object's world matrix (plo->vt31 GetWorldMatrix), smoothing rotation/position unless cut; fov from
 // turret +0x1BC. (inferred)
 void UpdateCpturret(X *p)
 {

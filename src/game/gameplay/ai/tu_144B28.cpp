@@ -874,7 +874,7 @@ void StartBhvInteract(struct BHVINTERACTV *behavior)
 } } // namespace M_func_00145D00
 
 // 0x145D68: Interact behaviour vtable slot 9 (Close): clears the owner's +0x10E0 bit 1.
-void BHV195::VSlot9()
+void BHV195::Close()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
@@ -1067,7 +1067,7 @@ void StartBhvInteract2(struct BHVINTERACTV *behavior)
 } } // namespace M_func_001461F8
 
 // 0x146260: Second interact behaviour vtable slot 9 (Close).
-void BHV196::VSlot9()
+void BHV196::Close()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
@@ -1258,7 +1258,7 @@ void StartBhvInteract3(struct BHVINTERACTV *behavior)
 } } // namespace M_func_001466F0
 
 // 0x146758: Third interact behaviour vtable slot 9 (Close).
-void BHV197::VSlot9()
+void BHV197::Close()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);

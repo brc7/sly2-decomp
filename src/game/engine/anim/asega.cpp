@@ -33,7 +33,7 @@ struct XF
     char padA0[8];
     union { XF *pxfRef; float blendWeight; };   /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
-    int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::VSlot1) */
+    int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::Attach) */
     float *rotationTimePtr; /* 0xD4: the ASEGA local time */
     char padD8[0x100 - 0xD8];
 };
@@ -46,7 +46,7 @@ struct SO { char pad0[0x50]; int cxf; XF *axf; };
 struct ACV
 {
     virtual void Load(CBinaryInputStream *pbis);
-    virtual void VUnk2();
+    virtual void Prepare();
     virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
 };
 struct ACTSEGV { int kind; LO *plo; XF *pxf; int nPriority; int pad10; int role; VTE *pvt; ACV *pac; ACV *pacRot; ASEGA *pasega; ACTSEGV *pactsegNext; };
@@ -130,7 +130,7 @@ float ModPositive(float a, float b);                   /* ModPositive__Fff */
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
 // Adds a reference to the player (slot 1).
-void ASEGA::VUnk00()   /* key function: ASEGA's vtable comes out here */
+void ASEGA::AddRef()   /* key function: ASEGA's vtable comes out here */
 {
     ASEGA *p = this;
     p->cref = p->cref + 1;
@@ -337,7 +337,7 @@ void SyncAsegaEventCursor(ASEGA *player)
 // MATCH (Claude agent laneB9, 2026-10-23): the t copy pinned to $f1 (one commented register pin) declared inside an `if (i < pq->c)` block, take-branch ends with continue (reorg puts the mov.s in the bc1t delay slot).
 // fresh1 (Claude agent, 2026-10-23): aligned 16 -> 15: pq->ae[i] indexed in the compare, then (pe = &pq->ae[i], 1) as in HandleAsegaEventsFastForward (fixes addu order). Left: target t in f2 plus a mov.s f1,f2 copy used only by c.eq.s (bc1t delay slot).
 /* The begin/end bracket the event handlers hold while they run (real virtual calls of BASIC slots 1 and 2). */
-struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->VUnk00(); } ~GV() { p->VUnk01(); } };
+struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->AddRef(); } ~GV() { p->Release(); } };
 /** @sly2-annot addr=0x130F88
  * Purpose: Dispatches events crossed during the frame (calls HandleAsegaEvent)
  * Info: proposed name HandleAsegaEvents (T1); TU asega
@@ -783,7 +783,7 @@ extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
 /* ACTSEG's slot 1, its key function (sly2/act.h). */
 // Attaches a segment channel action (slot 1): a rotation-curve channel binds its curve and the player's local time into
 // the transform's reference record; other channels use the base attach.
-void ACTSEG::VSlot1() {
+void ACTSEG::Attach() {
     ACTSEGV *p = (ACTSEGV *)this;
     ACV *pac;
     pac = p->pacRot;

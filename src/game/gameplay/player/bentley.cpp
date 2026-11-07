@@ -1172,7 +1172,7 @@ namespace M_func_00135E40 { extern "C" {
 struct S { char pad[0x13d0]; int st; };
 int GetStepplayerMovementNoise(struct S *);
 /** @sly2-annot addr=0x135E40
- * Purpose: BENTLEY vt98: STEPPLAYER::VUnk97, else 1 in states 1/5/14, -1 otherwise
+ * Purpose: BENTLEY vt98: STEPPLAYER::GetMovementNoise, else 1 in states 1/5/14, -1 otherwise
  * Info: proposed name BENTLEY_VUnk97 (T2); class BENTLEY slot98; TU bentley
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
@@ -1230,7 +1230,7 @@ struct S { char pad[0x4c0]; int grab; char pad2[0x13d0 - 0x4c4]; int st; };
 int IsJtGrabBusy(void *, int);
 int IsStepplayerInvulnerable(struct S *, int);
 /** @sly2-annot addr=0x135F78
- * Purpose: BENTLEY vt76: pipe state and zpk 0x4000 or jtgrab check, else STEPPLAYER::FInvulnerable
+ * Purpose: BENTLEY vt76: pipe state and zpk 0x4000 or jtgrab check, else STEPPLAYER::IsInvulnerable
  * Info: proposed name IsBentleyInvulnerable (T1); class BENTLEY slot76; TU bentley
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
@@ -1819,7 +1819,7 @@ void StartBentleyGadget(struct P *bentley, int k)
  * @end-sly2-annot */
 // BENTLEY slot 105: base, then enables feature 0x24D if he is the current player with gadget 0xC equipped, else
 // disables it.
-void BENTLEY::VSlot105()
+void BENTLEY::OnGadgetsChanged()
 {
     BENTLEY *bentley = (BENTLEY *)this;
     OnStepplayerGadgetsChanged(bentley);
@@ -1845,22 +1845,22 @@ extern "C" char *GetBentleySaveVarRoot()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136CC0 { extern "C" {
 struct S { char pad[0x204]; int f204; char pad2[0x13d0 - 0x208]; int st; };
-int GetStepplayerModeCode(struct S *);
+int GetStepplayerGroundProbeFlags(struct S *);
 /** @sly2-annot addr=0x136CC0
- * Purpose: BENTLEY vt85: per-state mode code, else STEPPLAYER::VUnk84
+ * Purpose: BENTLEY vt85: per-state mode code, else STEPPLAYER::GetGroundProbeFlags
  * Info: proposed name BENTLEY_VUnk84 (T2); class BENTLEY slot85; TU bentley
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-// BENTLEY slot 85: a per-state mode code, else the STEPPLAYER base.
-int GetBentleyModeCode(struct S *bentley) {
+// BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
+int GetBentleyGroundProbeFlags(struct S *bentley) {
     if (bentley->f204) return 0;
     switch (bentley->st) {
     case BENTLEY_PIPE: return 0;
     case BENTLEY_HOVER: return 5;
     case BENTLEY_ADRENALINE: return 0xf;
     }
-    return GetStepplayerModeCode(bentley);
+    return GetStepplayerGroundProbeFlags(bentley);
 }
 } } // namespace M_func_00136CC0
 
@@ -1898,7 +1898,7 @@ void SetBentleyCrosshairState(struct P *p, int k);
 int GetButtonsPressedWithin__5POCTLUif(struct A *pa, int grf, float g);
 void ClearPoctlJoyPressed(struct A *pa, int n);
 /** @sly2-annot addr=0x136DC0
- * Purpose: Aim-helper update: on button 0x80 and FCanUseGadget(2) restart
+ * Purpose: Aim-helper update: on button 0x80 and CanUseGadget(2) restart
  * Info: proposed name UpdateBentleyCrosshair (T2); TU bentley
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8

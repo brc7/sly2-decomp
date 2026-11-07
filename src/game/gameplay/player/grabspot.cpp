@@ -119,7 +119,7 @@ void InitGrabspot(struct S *grabspot)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // GRABSPOT default: no wrap range (returns 0).
-int GRABSPOT::FGetGrabRange()   /* key function: GRABSPOT's vtable comes out here */
+int GRABSPOT::GetGrabRange()   /* key function: GRABSPOT's vtable comes out here */
 {
     return 0;
 }
@@ -244,7 +244,7 @@ void InitWallGrabspot(struct S *wall)
 } } // namespace M_func_00182E80
 
 /** @sly2-annot addr=0x182EB8
- * Purpose: vt23: LO Unfreeze + append to grab list g_sw.dlCid12
+ * Purpose: vt23: LO OnAdd + append to grab list g_sw.dlCid12
  * Info: proposed name OnCid12Add (T2); class CID12 slot23; TU grabspot
  * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
  *   proximity activation) (was CID12_Unfreeze)
@@ -252,7 +252,7 @@ void InitWallGrabspot(struct S *wall)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // OnAdd: LO base, then joins the world's wall-grab list (g_sw.dlCid12).
-void CID12::Unfreeze()
+void CID12::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -260,7 +260,7 @@ void CID12::Unfreeze()
 }
 
 /** @sly2-annot addr=0x182EF0
- * Purpose: vt22: LO Freeze + remove from g_sw.dlCid12
+ * Purpose: vt22: LO OnRemove + remove from g_sw.dlCid12
  * Info: proposed name OnCid12Remove (T2); class CID12 slot22; TU grabspot
  * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
  *   incl. proximity activation) (was CID12_Freeze)
@@ -321,7 +321,7 @@ float GetShapeMaxDistance(struct S *p);
 /** @sly2-annot addr=0x182FE8
  * Purpose: If open shape: out [GetShapeMinDistance, GetShapeMaxDistance], return 1
  * Info: proposed name CID12_FGetGrabRange (T2); class CID12; TU grabspot
- * Notes: superseded: CID12_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named FGetGrabRange
+ * Notes: superseded: CID12_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named GetGrabRange
  *   everywhere (verifier r4b: all overrides return a [min,max] range)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
@@ -515,7 +515,7 @@ extern "C" void InitPoleGrabspot(XFM *xfm)
 }
 
 /** @sly2-annot addr=0x183370
- * Purpose: vt23: Unfreeze + append to its grab list
+ * Purpose: vt23: OnAdd + append to its grab list
  * Info: proposed name OnCid34Add (T2); class CID34 slot23; TU grabspot
  * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
  *   proximity activation) (was CID34_Unfreeze)
@@ -523,7 +523,7 @@ extern "C" void InitPoleGrabspot(XFM *xfm)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // OnAdd: unfreeze, then joins its grab list.
-void CID34::Unfreeze()
+void CID34::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -531,7 +531,7 @@ void CID34::Unfreeze()
 }
 
 /** @sly2-annot addr=0x1833A8
- * Purpose: vt22: Freeze + remove from grab list
+ * Purpose: vt22: OnRemove + remove from grab list
  * Info: proposed name OnCid34Remove (T2); class CID34 slot22; TU grabspot
  * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
  *   incl. proximity activation) (was CID34_Freeze)
@@ -587,7 +587,7 @@ void ClonePoleGrabspot(struct S *pole)
 /** @sly2-annot addr=0x183498
  * Purpose: Range [-pi r, pi r] (circumference of radius x10C): a round pole
  * Info: proposed name CID34_FGetGrabRange (T2); class CID34; TU grabspot
- * Notes: superseded: CID34_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named FGetGrabRange
+ * Notes: superseded: CID34_FGetWrapRange (r4b_rest) | GRABSPOT secondary slot 1 named GetGrabRange
  *   everywhere (verifier r4b: all overrides return a [min,max] range)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
@@ -695,7 +695,7 @@ extern "C" void InitHoldGrabspot(XFM *xfm)
 }
 
 /** @sly2-annot addr=0x1836F8
- * Purpose: vt23: Unfreeze + append to grab list
+ * Purpose: vt23: OnAdd + append to grab list
  * Info: proposed name OnCid38Add (T2); class CID38 slot23; TU grabspot
  * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
  *   proximity activation) (was CID38_Unfreeze)
@@ -703,7 +703,7 @@ extern "C" void InitHoldGrabspot(XFM *xfm)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // OnAdd for the CID38 hold point (OnHoldGrabspotAdd): unfreeze, then joins its grab list.
-void CID38::Unfreeze()
+void CID38::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -711,7 +711,7 @@ void CID38::Unfreeze()
 }
 
 /** @sly2-annot addr=0x183730
- * Purpose: vt22: Freeze + remove from grab list
+ * Purpose: vt22: OnRemove + remove from grab list
  * Info: proposed name OnCid38Remove (T2); class CID38 slot22; TU grabspot
  * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
  *   incl. proximity activation) (was CID38_Freeze)
@@ -852,7 +852,7 @@ extern "C" void ResetBarrel(BARRELV *barrel)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // OnAdd for the barrel (OnBarrelAdd): unfreeze, then joins its grab list.
-void BARREL::Unfreeze()
+void BARREL::OnAdd()
 {
     SO *so = (SO *)this;
     OnSoAdd(so);
@@ -1141,7 +1141,7 @@ void PostTriggerGrabspotLoad(struct S *trigger)
 } } // namespace M_func_00183F50
 
 /** @sly2-annot addr=0x183FB8
- * Purpose: vt23 (shared with CID 0x24): Unfreeze + list
+ * Purpose: vt23 (shared with CID 0x24): OnAdd + list
  * Info: proposed name OnCid35Add (T2); class CID35 slot23; TU grabspot
  * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
  *   proximity activation) (was CID35_Unfreeze)
@@ -1150,7 +1150,7 @@ void PostTriggerGrabspotLoad(struct S *trigger)
  *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
 // OnAdd (shared with CID36): unfreeze, then joins its grab list.
-void CID35::Unfreeze()
+void CID35::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -1158,7 +1158,7 @@ void CID35::Unfreeze()
 }
 
 /** @sly2-annot addr=0x183FF0
- * Purpose: vt22 (shared with 0x24/0x25): Freeze + list
+ * Purpose: vt22 (shared with 0x24/0x25): OnRemove + list
  * Info: proposed name OnCid35Remove (T2); class CID35 slot22; TU grabspot
  * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
  *   incl. proximity activation) (was CID35_Freeze)
@@ -1340,7 +1340,7 @@ carry->playerMask = 4;
  * @end-sly2-annot */
 // Post-load: CID35 post-load and resolves three oids.
 /* CID 36 PostLoad. */
-void CID36::VUnk14()
+void CID36::PostLoad()
 {
     GRABSPOT36 *p = (GRABSPOT36 *)this;
     PostTriggerGrabspotLoad(p);
@@ -1437,7 +1437,7 @@ void PostTableGrabspotLoad(struct O *table)
 } } // namespace M_func_001843F0
 
 /** @sly2-annot addr=0x1844A0
- * Purpose: vt23: Unfreeze + append to g_sw.dlCid27
+ * Purpose: vt23: OnAdd + append to g_sw.dlCid27
  * Info: proposed name OnCid27Add (T2); class CID27 slot23; TU grabspot
  * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
  *   proximity activation) (was CID27_Unfreeze)
@@ -1445,7 +1445,7 @@ void PostTableGrabspotLoad(struct O *table)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // OnAdd: unfreeze, then joins the world's table list (g_sw.dlCid27).
-void CID27::Unfreeze()
+void CID27::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -1453,7 +1453,7 @@ void CID27::Unfreeze()
 }
 
 /** @sly2-annot addr=0x1844D8
- * Purpose: vt22: Freeze + remove from g_sw.dlCid27
+ * Purpose: vt22: OnRemove + remove from g_sw.dlCid27
  * Info: proposed name OnCid27Remove (T2); class CID27 slot22; TU grabspot
  * Notes: names_v2 B proposed FIgnoreHbskIntersection__FP4HBSKP2SO (0.856) | slot 22 OnRemove resolved by
  *   arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was

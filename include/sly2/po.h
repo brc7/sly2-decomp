@@ -39,7 +39,7 @@ struct POCTL : public BASIC
     uint GetButtonsPressedWithin(uint grf, float dt);
     uint ConsumeButtonsPressedWithin(uint grf, float dt);
     int FConsumePressed(uint grf) __asm__("POCTL_ConsumeAnyPressed");   /* from IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetPoctlClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetPoctlClassDesc");   /* slot 6 */
 };
 typedef char assert_POCTL_size[sizeof(POCTL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -60,15 +60,15 @@ struct PO : public SO
       int nUnk17c;
     PO();   /* sets pvUnk174 = 0; defined inline in sly2/classes.h (as BASIC's constructor) */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPoFromBrx");   /* slot 14 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetPoClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetPoClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandlePoMessage");   /* slot 5 */
     virtual void Init() __asm__("InitPo");   /* slot 7 */
     virtual void Clone(LO *ploBase) __asm__("ClonePo");   /* slot 41 */
-      virtual int FInvulnerable(ZPK zpk) __asm__("IsPoInvulnerable");
-      virtual int JthsCurrent() __asm__("GetPoJtHoldState");
+      virtual int IsInvulnerable(ZPK zpk) __asm__("IsPoInvulnerable");
+      virtual int GetHealthState() __asm__("GetPoHealthState");
       virtual void OnActive(int fActive) __asm__("OnPoActive");
       virtual void SetCtlState(int nState) __asm__("SetPoCtlState");
-      virtual int FCanBeHealed() __asm__("CanPoBeHealed");
+      virtual int CanBeHealed() __asm__("CanPoBeHealed");
       virtual void AddHpMp(int dhp, int dmp) __asm__("AddPoHpMp");
 };
 typedef char assert_PO_size[sizeof(PO) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

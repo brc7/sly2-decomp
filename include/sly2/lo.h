@@ -55,7 +55,7 @@ struct LO : public BASIC
       int grfUnk40;
       undefined4 unk_0x44[3];
       virtual void Init() __asm__("InitLo");
-    virtual CLASSINFO *Pclassinfo() __asm__("GetLoClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetLoClassDesc");   /* slot 6 */
       virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleLoSpliceEvent");
       virtual void Add() __asm__("AddLo");
       virtual void Remove() __asm__("RemoveLo");
@@ -64,40 +64,40 @@ struct LO : public BASIC
       virtual void RemoveHierarchy() __asm__("RemoveLoHierarchy");
       virtual void UpdateLoroot(LO *plo, SO *psoOld) __asm__("UpdateLoLoroot");
       virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLoFromBrx");
-      virtual void VUnk14() __asm__("PostLoLoad");
-      virtual void VUnk15() __asm__("UpdateLo");
-      virtual void VUnk16() __asm__("InheritLoFlag4");
+      virtual void PostLoad() __asm__("PostLoLoad");
+      virtual void Update() __asm__("UpdateLo");
+      virtual void UpdateXfWorld() __asm__("InheritLoFlag4");   /* slot 17: updates the world transform from the parent (LO: inherits flag 4 only; SO/XFM: world matrix) (inferred) */
       virtual void UpdateXfWorldHierarchy() __asm__("UpdateLoXfWorldHierarchy");
       virtual void RenderSelf() __asm__("RenderLoSelf");
-      virtual void VUnk19() __asm__("RenderLoAll");
-      virtual void VUnk20(int fOn) __asm__("SetLoFlag8");
-      virtual void Freeze() __asm__("OnLoRemove");
-      virtual void Unfreeze() __asm__("OnLoAdd");
-      virtual void VUnk23() __asm__("LO_Slot24Default");
+      virtual void RenderAll() __asm__("RenderLoAll");
+      virtual void SetFlag8(int fOn) __asm__("SetLoFlag8");   /* slot 21: sets or clears flag bit 8 of the flag word; meaning not known (inferred) */
+      virtual void OnRemove() __asm__("OnLoRemove");
+      virtual void OnAdd() __asm__("OnLoAdd");
+      virtual void ReleaseSpares() __asm__("LO_Slot24Default");   /* slot 24: LO: nothing; PROXY: releases its spares and leaves the active list (inferred) */
       virtual void SetIdProxy(int idProxy, int fChildren) __asm__("SetLoIdProxy")   /* symbol from SetLoIdProxy.cpp */;
-      virtual void VUnk25(LO *plo) __asm__("LO_ResetForProxy");
-      virtual void VUnk26(LO *plo) __asm__("LO_Slot27Default");
-      virtual int CploChildren(LO ***paplo) __asm__("LO_GetChildren");
+      virtual void OnProxyAcquire(LO *plo) __asm__("LO_ResetForProxy");   /* slot 26: called by AcquireProxySpare on every object of a spare taken from the pool (inferred) */
+      virtual void OnProxyRelease(LO *plo) __asm__("LO_Slot27Default");   /* slot 27: called by ReleaseProxySpare on every object of a spare given back to the pool (inferred) */
+      virtual int GetChildren(LO ***paplo) __asm__("LO_GetChildren");
       virtual void TranslateToPos(qword qwPos) __asm__("TranslateLoToPos");
       virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateLoToMat");
-      virtual MATRIX4 *PmatWorld() __asm__("LO_GetWorldMatrix");
-      virtual XF *PxfLocal(MATRIX4 *pmatLocal) __asm__("LO_GetLocalTransform");
+      virtual MATRIX4 *GetWorldMatrix() __asm__("LO_GetWorldMatrix");
+      virtual XF *GetLocalTransform(MATRIX4 *pmatLocal) __asm__("LO_GetLocalTransform");
       virtual qword GetVelocity() __asm__("GetLoVelocity");
       virtual qword GetAngularVelocity() __asm__("GetLoAngularVelocity");
       virtual void SetVelocity(qword qwVel) __asm__("SetLoVelocity");
       virtual void SetAngularVelocity(qword qwW) __asm__("SetLoAngularVelocity");
       virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("LO_ApplyTransform");
-      virtual void VUnk37(LO *plo) __asm__("MoveLoToObject");
-      virtual void VUnk38() __asm__("SetLoTransformFromXf");
+      virtual void MatchTransform(LO *plo) __asm__("MoveLoToObject");   /* slot 38: moves the object to another object's transform (inferred) */
+      virtual void SetTransformFromXf() __asm__("SetLoTransformFromXf");   /* slot 39: rebuilds the transform from the XF record (inferred) */
       virtual void CloneHierarchy(LO *ploBase) __asm__("CloneLoHierarchy");
       virtual void Clone(LO *ploBase) __asm__("CloneLo");
-      virtual void VUnk41(float sBusy) __asm__("SetLoBusyDistance");
-      virtual void *VUnk42(int id) __asm__("LO_Slot43Default");
-      virtual void VUnk43(int id) __asm__("LO_Slot44Default");
-      virtual void VUnk44(int id) __asm__("LO_Slot45Default");
+      virtual void SetBusyDistance(float sBusy) __asm__("SetLoBusyDistance");
+      virtual void *GetAnimatedField(int id) __asm__("LO_Slot43Default");   /* slot 43: address of an animatable field (CAMERA: focal length); LO: 0 (inferred) */
+      virtual void AcquireAnimatedField(int id) __asm__("LO_Slot44Default");   /* slot 44: one more user of the field (CAMERA: FOV request count) (inferred) */
+      virtual void ReleaseAnimatedField(int id) __asm__("LO_Slot45Default");   /* slot 45: one user fewer (inferred) */
       virtual void SetVisMask(uint grfvis) __asm__("LO_SetVisMask");
-      virtual void VUnk46(int grf) __asm__("SetLoFlags");
-      virtual void VUnk47(int grf) __asm__("ClearLoFlags");
+      virtual void SetFlags(int grf) __asm__("SetLoFlags");
+      virtual void ClearFlags(int grf) __asm__("ClearLoFlags");
 };
 typedef char assert_LO_size[sizeof(LO) == 0x50 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_LO_psoParent[SLY2_OFFSETOF(LO, psoParent) == 0x10 ? 1 : -1];   /* vptr at +0xC precedes it (CONFIRMED runtime, 8162/8162 objects) */

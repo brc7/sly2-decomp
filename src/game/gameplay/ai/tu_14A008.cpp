@@ -216,7 +216,7 @@ extern "C" void LoadRouteFromBrx(ROUTE *route, void *pbis)
 
 // 0x14A0A8: ROUTE vtable slot 15 (PostLoad): LO post-load, then builds the route's path shape (kind 0x62C) from its
 // points.
-void CID123::VUnk14()
+void CID123::PostLoad()
 {
     ROUTE *route = (ROUTE *)this;
     int i;

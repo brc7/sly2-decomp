@@ -786,7 +786,7 @@ void *FindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
  * @end-sly2-annot */
 } } // namespace M_func_00211EC0
 // Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
-void WIDGET129::VUnk14() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *widget = (M_func_00211EC0::S *)this;
+void WIDGET129::PostLoad() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *widget = (M_func_00211EC0::S *)this;
     int i;
     PostWidgetLoad(widget);
     for (i = 0; i < widget->numEntriesB; i++) {

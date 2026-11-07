@@ -54,7 +54,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 28 | CploChildren | inherited (LO) | `LO_CploChildren` | `0x1A5BE8` | CploChildren |
 | 29 | TranslateToPos | **override** | [`TranslateSoToPos`](../../../src/game/engine/physics/so.cpp) | `0x1F40A0` | TranslateToPos |
 | 30 | RotateToMat | **override** | [`RotateSoToMat`](../../../src/game/engine/physics/so.cpp) | `0x1F42E0` | RotateToMat |
-| 31 | PmatWorld | **override** | [`SO_PmatWorld`](../../../src/game/engine/physics/so.cpp) | `0x1F3FA0` | PmatWorld |
+| 31 | PmatWorld | **override** | [`GetSoWorldMatrix`](../../../src/game/engine/physics/so.cpp) | `0x1F3FA0` | PmatWorld |
 | 32 | LO_PxfLocal | **override** | [`SO_PxfLocal?`](../../../src/game/engine/physics/so.cpp) | `0x1F3FB0` | PxfLocal |
 | 33 | GetVelocity | **override** | [`GetSoVelocity`](../../../src/game/engine/physics/so.cpp) | `0x1F4440` | GetVelocity |
 | 34 | GetAngularVelocity | **override** | [`GetSoAngularVelocity`](../../../src/game/engine/physics/so.cpp) | `0x1F4558` | GetAngularVelocity |

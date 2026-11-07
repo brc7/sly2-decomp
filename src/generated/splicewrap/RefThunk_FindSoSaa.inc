@@ -2,7 +2,7 @@
 void CRef_SetBasic(void *, s32);                 /* extern */
 s32 FindSoSaa(s32, s32);                        /* extern */
 
-CRef *RefThunk_PsaaFindSoOid(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_FindSoSaa(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     OTYP aotyp[1];

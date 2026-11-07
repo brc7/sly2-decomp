@@ -39,7 +39,7 @@ struct DL;
 struct CBinaryInputStream;
 extern SW D_003DD490;   /* g_psw's world */
 
-/* A path object (CID 10, SHAPE) as far as the endpoints read it: its world matrix (LO slot 31, PmatWorld) and its
+/* A path object (CID 10, SHAPE) as far as the endpoints read it: its world matrix (LO slot 31, GetWorldMatrix) and its
    control points. */
 struct SHAPEV
 {
@@ -300,7 +300,7 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
     sensor->grfSo |= 0x400000000UL;
 }
 
-// SENSOR vtable slot 61 (FIgnoreIntersection): collides with nothing (1) except that objects named in the no-trigger
+// SENSOR vtable slot 61 (ShouldIgnoreIntersection): collides with nothing (1) except that objects named in the no-trigger
 // lists (by name or class) get 2 (NMaxIgnore). (inferred)
 extern "C" int ShouldSensorIgnoreIntersection(SENSORV *sensor, SOV *pso)
 {
@@ -371,7 +371,7 @@ extern "C" void CloneLasen(LASENV *laser)
 
 // LASEN::PostLoad (vtable slot 15): SO post-load, builds the beams and their bounds, binds the end-cap animations and
 // runs a first ray pass (ZapLasenBeams(0)).
-void LASEN::VUnk14()
+void LASEN::PostLoad()
 {
     LASENV *laser = (LASENV *)this;
     PostSoLoad(laser);
@@ -415,9 +415,9 @@ static inline qword Transform(const M4 *m, qword point)
 }
 // Clamps f to [low, high].
 static inline float Clamp(float f, float low, float high) { if (f < low) return low; else if (high < f) return high; else return f; }
-/* LO slot 31 (PmatWorld) by hand. */
+/* LO slot 31 (GetWorldMatrix) by hand. */
 // The path's world matrix (LO vtable slot 31).
-static inline M4 *PmatWorld(SHAPEV *path) { VTE *v = &path->pvt[31]; return ((M4 * (*)(void *))v->fn)((char *)path + v->delta); }
+static inline M4 *GetWorldMatrix(SHAPEV *path) { VTE *v = &path->pvt[31]; return ((M4 * (*)(void *))v->fn)((char *)path + v->delta); }
 // Marks the SO's collision data dirty (flag 2 in the tagged flag word).
 static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1) *(uint *)f |= 2; else pso->grfDirty = f | 2; }
 
@@ -570,7 +570,7 @@ extern "C" void BuildLasenBeams(LASENV *laser)
                 break;
             case 1: {
                 // the matrix callback may change the endpoint's path, so it is re-read
-                M4 matrix = *PmatWorld(end->track.path);
+                M4 matrix = *GetWorldMatrix(end->track.path);
                 int k;
                 for (k = 0; k < end->track.path->cpos; k++) {
                     qword point = Transform(&matrix, end->track.path->apos[k]);

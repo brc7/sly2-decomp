@@ -80,7 +80,7 @@ CRef SetValuesFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__(
 // Finds the option record for option id opid in the object's class option table (binary search); null when absent.
 extern "C" PVREC *FindOptionRecord(BASIC *object, int optionId)
 {
-    CLASSINFO *pclassinfo = object->Pclassinfo();
+    CLASSINFO *pclassinfo = object->GetClassInfo();
     SPLOPTS *psplopts = &D_00279AD0[pclassinfo->cid];
     int lo = 0, hi = psplopts->csplopt - 1;
     SPLOPT *asplopt = psplopts->asplopt;

@@ -92,7 +92,7 @@ void CDynArray::Free()
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
 // Ensures room for `count` elements: below 512 the capacity doubles (starting at 8) until it fits, above it rounds
-// up to a multiple of 1024; storage is reallocated through the heap (see heap.cpp: PvRealloc does not copy).
+// up to a multiple of 1024; storage is reallocated through the heap (see heap.cpp: Realloc does not copy).
 void CDynArray::Reserve(int count)
 {
     if (m_cMax < count)
@@ -108,7 +108,7 @@ void CDynArray::Reserve(int count)
         {
             capacity = (count + 0x3FF) & ~0x3FF;
         }
-        m_pv = m_pheap->PvRealloc(m_pv, capacity * m_cb, 4);
+        m_pv = m_pheap->Realloc(m_pv, capacity * m_cb, 4);
         m_cMax = capacity;
     }
 }

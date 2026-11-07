@@ -2609,7 +2609,7 @@ float GetShapeMaxParam(void*);
 M3 *GetLoWorldMatrix(S*);
 void EvaluateShapeAtParam(void*,float,qword*,qword*);
 M3 BuildOrthonormalMatrixZ(qword,qword);
-void func_001E9AC0(S*);
+void RenderCid106Self(S*);
 }
 static inline qword Transform(M3 *m,qword a) { __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m->a),"j"(m->b),"j"(m->c));return a; }
 static inline qword Add(qword a,qword b) { qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r; }

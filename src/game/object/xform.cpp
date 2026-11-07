@@ -3,7 +3,7 @@
 // objects. VU0 macro-mode and EE asm.
 // TU 0x231100..0x2319E8 (18 functions, address order).
 // Entry points: the XFM virtuals (InitXfm, LoadXfmFromBrx, CloneXfm, TranslateXfmToPos, RotateXfmToMat,
-// XFM_PmatWorld, SetXfmParent) and UpdateXfmMatWorld.
+// GetXfmWorldMatrix, SetXfmParent) and UpdateXfmMatWorld.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_xform
 // SLY2_ALIAS: _GLOBAL_$I$*=func_002319C8
 #include "sly2/basic.h"
@@ -201,12 +201,12 @@ extern "C" void InvalidateXfm(XFM *xfm)
 
 /** @sly2-annot addr=0x231440
  * Purpose: UpdateXfmMatWorld then return &matWorld (+0xA0)
- * Info: proposed name XFM_PmatWorld (T1); class XFM slot31; TU xform
+ * Info: proposed name GetXfmWorldMatrix (T1); class XFM slot31; TU xform
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's world matrix (vtable slot 31): brings the cache up to date and returns it.
-MATRIX4 * XFM::PmatWorld()
+MATRIX4 * XFM::GetWorldMatrix()
 {
     XFM *pxfm = (XFM *)this;
     UpdateXfmMatWorld(pxfm);
@@ -306,7 +306,7 @@ extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
     M4 m;
     if (grf & 3) {
         if ((uchar)xfm->fInWorld) {
-            m = *(M4 *)xfm->PmatWorld();
+            m = *(M4 *)xfm->GetWorldMatrix();
         } else {
             XF *q;
             m = *(M4 *)&xfm->mat;

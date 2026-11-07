@@ -38,18 +38,18 @@ struct BOMB : public SO
       undefined4 unk_0x1f8[2];
       RWM *prwmOwner;
       undefined4 unk_0x204[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBombClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetBombClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBombMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBomb");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostBombLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateBomb");   /* slot 16 */
-    virtual void VUnk25(LO *plo) __asm__("ResetBomb");   /* slot 26 */
-    virtual void VUnk57() __asm__("HandleBombContact");   /* slot 58 */
-    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
-    virtual void VSlot76() __asm__("CloneBomb");   /* slot 76 */
-    virtual void VSlot77() __asm__("ApplyBombThrow");   /* slot 77 */
+    virtual void PostLoad() __asm__("PostBombLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateBomb");   /* slot 16 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetBomb");   /* slot 26 */
+    virtual void AdjustXps() __asm__("HandleBombContact");   /* slot 58 */
+    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
+    virtual void CopyFromSource() __asm__("CloneBomb");   /* slot 76 */
+    virtual void ApplyThrow() __asm__("ApplyBombThrow");   /* slot 77 */
 };
 struct MISSILE : public BOMB
 {
@@ -67,12 +67,12 @@ struct MISSILE : public BOMB
       ACT *flightAction;             /* +0x268 */
       float flightActionParam;            /* +0x26C the action's parameter (1.0) */
     virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetMissileClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetMissileClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
-    virtual void VSlot77() __asm__("ApplyMissileThrow");   /* slot 77 */
-    virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
+    virtual void ApplyThrow() __asm__("ApplyMissileThrow");   /* slot 77 */
+    virtual void Fire() __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
 typedef char assert_MISSILE_paseg[SLY2_OFFSETOF(MISSILE, flightAnim) == 0x230 ? 1 : -1];
@@ -82,8 +82,8 @@ struct ACCMISS : public MISSILE
       float cruiseSpeed;
       float speedChangeRate;
       undefined4 unk_0x278[2];
-    virtual void VUnk69() __asm__("PresetAccmissAccel");
-    virtual CLASSINFO *Pclassinfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
+    virtual void PresetAccel() __asm__("PresetAccmissAccel");
+    virtual CLASSINFO *GetClassInfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAccmiss__FP7ACCMISS");   /* slot 7 */
 };
 /* CID82: the class-registry name of Sly 1's SPLMISS (its vtable is _vt$5CID82). This TU is the key TU of MISSILE,
@@ -97,9 +97,9 @@ struct CID82 : public MISSILE
       undefined4 unk_0x27C;
       qword targetVelocity;     /* +0x280 velocity at the target */
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
-    virtual void VUnk69() __asm__("PresetSplmissAccel");   /* slot 70 */
-    virtual void VSlot78() __asm__("FireSplmiss");   /* slot 78 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
+    virtual void PresetAccel() __asm__("PresetSplmissAccel");   /* slot 70 */
+    virtual void Fire() __asm__("FireSplmiss");   /* slot 78 */
 };
 typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
 
@@ -193,7 +193,7 @@ extern "C" void ApplyMissileThrow(MISSILE *missile)
     ReleaseAct(&missile->flightAction);
 }
 
-// MISSILE vtable slot 61 (FIgnoreIntersection): the BOMB answer, plus bit 1 (func_00134310) for objects in the
+// MISSILE vtable slot 61 (ShouldIgnoreIntersection): the BOMB answer, plus bit 1 (func_00134310) for objects in the
 // ignore lists (by oid or class).
 int ShouldMissileIgnoreIntersection(MISSILE *missile, SO *pso)
 {
@@ -293,7 +293,7 @@ static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 // change as a constrained acceleration (no-op while thrower is set).
 /* 0x1B20B8 PresetAccmissAccel (ACCMISS vtable slot 69): ported from Lilly's personal Sly 2 decomp (src/P2/accmiss.c).
    Steers the velocity towards cruiseSpeed along the current direction (SmoothValue), constrained by the physics. */
-void ACCMISS::VUnk69()
+void ACCMISS::PresetAccel()
 {
     if (thrower == 0)
     {
@@ -371,7 +371,7 @@ extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
     if (missile->targetObject) {
         M4 m;
         M4 m2;
-        LoadIdentityMatrix4(missile->targetObject->PxfLocal((MATRIX4 *)&m), 0, &m2, 0, g);
+        LoadIdentityMatrix4(missile->targetObject->GetLocalTransform((MATRIX4 *)&m), 0, &m2, 0, g);
         *(qword *)&r = MulPt(&m2, MulPt(&m, missile->targetPos));
     } else {
         *(qword *)&r = missile->targetPos;

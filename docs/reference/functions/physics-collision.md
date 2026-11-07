@@ -276,7 +276,7 @@ Totals on this page: EXISTING 7, T1 163, T2 219.
 | [0x1F3CC8](../../../src/game/engine/physics/so.cpp) | `RenderSoAll` | SO vt20: draw globset with explicit params and recurse vt20 to children | 0.30 | T2 |  |
 | [0x1F3E00](../../../src/game/engine/physics/so.cpp) | `OnSoRemove` | SO vt22: LO::Freeze, unregister (0x1D6310), vt22 children, if tree owner: vt49 + remove from D_003E11AC | 0.85 | T1 | verified, arbitration |
 | [0x1F3EA8](../../../src/game/engine/physics/so.cpp) | `OnSoAdd` | SO vt23: LO::Unfreeze, re-register, vt23 children, add tree to D_003E11AC and vt49 | 0.85 | T1 | arbitration |
-| [0x1F3FA0](../../../src/game/engine/physics/so.cpp) | `SO_PmatWorld` | SO vt31: &pxfRoot(+0x60)->matWorld (+0x40) | 0.60 | T1 |  |
+| [0x1F3FA0](../../../src/game/engine/physics/so.cpp) | `GetSoWorldMatrix` | SO vt31: &pxfRoot(+0x60)->matWorld (+0x40) | 0.60 | T1 |  |
 | [0x1F3FB0](../../../src/game/engine/physics/so.cpp) | `SO_PxfLocal` | SO vt32: optional identity into M4 out, return +0x60 | 0.45 | T2 |  |
 | [0x1F4010](../../../src/game/engine/physics/so.cpp) | `ApplySoProxy` | SO vt37: root XF matrix = proxy matrix * own, bump g_sw stamp, vt18, 0x186820 | 0.45 | T2 |  |
 | [0x1F40A0](../../../src/game/engine/physics/so.cpp) | `TranslateSoToPos` | SO vt29: compute new position XF matrix relative to parents, free contacts, refresh XF kinds, part matrices, region | 0.60 | T1 |  |

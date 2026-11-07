@@ -156,7 +156,7 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
     for (i = 0; i < 2; i++) {
         SO *object = contact->sides[i].pso;
         if (object)
-            object->VUnk67(row, rowContact, flags, i);
+            object->CalculateContactResponse(row, rowContact, flags, i);
     }
     qword *relative = (qword *)PvAlloc(group->cpxp * 16, 16);
     rowContact->aqwRel = relative;
@@ -174,9 +174,9 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
             if (!object)
                 response->an[0] = response->an[1] = response->an[2] = 0;
             else if (object == contact->sides[0].pso)
-                object->VUnk68(&rowContact->afx[0], side->position, &response->vec);
+                object->GetVelocityAtPos(&rowContact->afx[0], side->position, &response->vec);
             else if (object == contact->sides[1].pso)
-                object->VUnk68(&rowContact->afx[1], side->position, &response->vec);
+                object->GetVelocityAtPos(&rowContact->afx[1], side->position, &response->vec);
             else
                 response->an[0] = response->an[1] = response->an[2] = 0;
         }

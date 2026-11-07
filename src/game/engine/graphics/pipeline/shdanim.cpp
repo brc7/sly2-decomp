@@ -116,7 +116,7 @@ extern "C" SAAV *CloneSaa(SAAV *saa) {
 }
 
 // SAA (CID 0x8A) vt7 Init. (inferred)
-void SAA::VSlot7(SAAF *q)   /* key function: SAA's vtable comes out here */
+void SAA::Init(SAAF *q)   /* key function: SAA's vtable comes out here */
 {
     SAAV *p = (SAAV *)this;
     p->id = q->a;
@@ -207,7 +207,7 @@ int DoesSaaMatchOid(SAAV *saa, int *pid) {
 }
 
 // LOOP vt7 Init.
-void LOOP::VSlot7(SAAF *psaa)
+void LOOP::Init(SAAF *psaa)
 {
     LOOPV *p = (LOOPV *)this;
     LMV *plm2 = &p->pauseTimeRange;
@@ -259,7 +259,7 @@ float GetLoopCompletion(LOOPV *loop) {
 }
 
 // PINGPONG vt7 Init. (inferred)
-void PINGPONG::VSlot7(SAAF *psaa)
+void PINGPONG::Init(SAAF *psaa)
 {
     PINGPONGV *p = (PINGPONGV *)this;
     LMV *plm2 = &p->pauseTimeRange;
@@ -326,7 +326,7 @@ float GetPingpongCompletion(PINGPONGV *ppingpong)
 }
 
 // SHUFFLE init (vtable slot 7): base SAA init, then the random pause range between frame changes.
-void SHUFFLE::VSlot7(SAAF *psaaf)
+void SHUFFLE::Init(SAAF *psaaf)
 {
     SHUFFLEV *pshuffle = (SHUFFLEV *)this;
     float dtMax, dtMin;
@@ -394,7 +394,7 @@ void SetEyesEyess(EYESV *peyes, EYESS eyess)
 }
 
 // EYES vt8 Update. (inferred)
-void EYES::VSlot8()
+void EYES::Update()
 {
     EYESV *peyes = (EYESV *)this;
     if (IsSlEmpty(&peyes->instances) || peyes->numFrames < 2)
@@ -465,7 +465,7 @@ void InitScroller(SCROLLERV *scroller, SAAF *psaaf) {
 }
 
 // SCROLLER vt8 Update. (inferred)
-void SCROLLER::VSlot8()
+void SCROLLER::Update()
 {
     SCROLLERV *p = (SCROLLERV *)this;
     float uOffset, vOffset;
@@ -502,7 +502,7 @@ void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float uSpeedScale, float vSpe
 }
 
 // CIRCLER vt7 Init. (inferred)
-void CIRCLER::VSlot7(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
+void CIRCLER::Init(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
     InitSaa(p, psaaf);
     p->angularSpeed = psaaf->ag[0];
     p->radius = psaaf->ag[1];

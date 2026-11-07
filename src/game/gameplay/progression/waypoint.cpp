@@ -112,7 +112,7 @@ static __inline__ void ClearBit(SOV *part)
     }
 }
 // WAYPT vtable slot 15 (PostLoad): SO post-load; the marker, beam and base are drawn by RenderWaypt, not by themselves.
-void WAYPT::VUnk14()
+void WAYPT::PostLoad()
 {
     WAYPTV *waypoint = (WAYPTV *)this;
     PostSoLoad(waypoint);

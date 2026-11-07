@@ -2,7 +2,7 @@
 void CRef_SetBool(void *, s32);                 /* extern */
 s32 CanAcquireProxy(s32);                             /* extern */
 
-CRef *RefThunk_FCanAcquireProxy(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_CanAcquireProxy(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);

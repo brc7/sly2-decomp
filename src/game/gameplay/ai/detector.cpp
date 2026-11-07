@@ -139,7 +139,7 @@ extern "C" void InitDetector(DETECTORV *detector)
 }
 
 // 0x153DB0: DETECTOR vtable slot 15 (Update): LO update, then re-evaluates the targets.
-void DETECTOR::VUnk15()
+void DETECTOR::Update()
 {
     DETECTORV *detector = (DETECTORV *)this;
     UpdateLo(detector);

@@ -198,7 +198,7 @@ extern "C" void LoadDimitriFromBrx(DIMITRIV *dimitri, void *pbis)
 
 // 0x155450: DIMITRI vtable slot 15 (PostLoad): STEPGUARD post-load, then resolves the four oids of each route
 // record.
-void DIMITRI::VUnk14()
+void DIMITRI::PostLoad()
 {
     DIMITRIV *dimitri = (DIMITRIV *)this;
     int i;

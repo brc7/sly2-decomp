@@ -2,7 +2,7 @@
 void AddRelayStepThrowAt(s32, s32, s32, s32);          /* extern */
 extern M2C_UNK D_002A3B88;
 
-CRef *RefThunk_AddRelayStepCmd1E(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_AddRelayStepThrowAt(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[3] = { 6, 6, 6 };
     CRef ref;
