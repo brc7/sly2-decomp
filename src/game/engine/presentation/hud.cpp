@@ -1203,14 +1203,15 @@ struct PARAM {
 };
 struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload;int kind;char pad38[0x29];uchar channel;char pad62[6];Q *next;};
 struct LIST {Q *first,*last;};
-struct S {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
+/* WIDGET island: a WIDGET-typed p (even the same pointer) moves the Align loop's registers (291/316 off) */
+struct WIDGETIsland {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
 extern "C" { extern VIFS D_002DEA28; }
 extern "C" {
-void RenderLoSelf(S *);
-int IsWidgetVisible(S *);
+void RenderLoSelf(WIDGETIsland *);
+int IsWidgetVisible(WIDGETIsland *);
 void DrawSprite(void *);
-void QueueWidgetRenderSetup(S *);
-void QueueSpriteVuProgram(S *,int,float);
+void QueueWidgetRenderSetup(WIDGETIsland *);
+void QueueSpriteVuProgram(WIDGETIsland *,int,float);
 void RenderSpritePayload(void *,void *,PARAM *,int);
 void ClearSl(LIST *);
 }
@@ -1227,14 +1228,14 @@ static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=Colo
 // Set the color scale from the widget's color1 bytes.
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
 // Switch the packet pointers to the uncached mirror (0x30000000), then queue the widget's render setup.
-static inline Q *Begin(S *p,VIFS *r){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c|=0x30000000;b|=0x30000000;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
+static inline Q *Begin(WIDGETIsland *p,VIFS *r){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c|=0x30000000;b|=0x30000000;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
 // Switch the packet pointers back to cached addresses and empty the widget's render queue.
-static inline void Finish(VIFS *r,S *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
+static inline void Finish(VIFS *r,WIDGETIsland *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 } // namespace M_RenderWidget
 // Renders a widget: flushes its sprite render queue with the VU microprogram packets.
-void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here (the namespace's views) */
+void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here */
     using namespace M_RenderWidget;
-    S *p=(S *)this;
+    WIDGETIsland *p=(WIDGETIsland *)this;
     RenderLoSelf(p);
     if(!IsWidgetVisible(p))return;
     DrawSprite(p->sprites);
