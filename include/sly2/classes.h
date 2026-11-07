@@ -150,7 +150,9 @@ typedef char assert_DPRIZE_size[sizeof(DPRIZE) == 0x230 ? 1 : -1];
 /* 126 WIDGET (0x110); vtable 0x2DAF30, 50 slots */
 struct WIDGET : LO
 {
-    char pad50[0x110 - 0x50];
+    char pad50[0x8C - 0x50];
+    float visibleTimeout;   /* +0x8C UpdateWidget's visible-duration limit (hud.cpp's views; ShowCountdownHud clears it) */
+    char pad90[0x110 - 0x90];
     WIDGET() __asm__("WIDGET_ctor");          /* out of line: presentation/hud/WIDGET_ctor.c */
     virtual void RenderSelf() __asm__("RenderWidget");   /* slot 19; key function (hud.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidgetClassDesc");   /* slot 6 */

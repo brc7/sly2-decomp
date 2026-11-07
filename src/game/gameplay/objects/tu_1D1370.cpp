@@ -2114,13 +2114,11 @@ int TakeRobottankDamage(P *tank, EVENT *event)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRobottankState { extern "C" {
 extern CLOCK D_002DDED0;
-typedef struct VT1 { struct { short d; short pad; void (*pfn)(void *, int); } a[64]; } VT1;
-typedef struct { char pad[0xC]; VT1 *vt; } W;
 struct OBJ : PO {
     int state;
     float t;
     char pad188[0x568 - 0x188];
-    W *pw;
+    WIDGET *pw;   /* the health meter */
     int pad56c;
     void *sma;
     char pad574[0x598 - 0x574];
@@ -2128,7 +2126,7 @@ struct OBJ : PO {
     int engineSoundId;
 };
 extern int D_002C2208[];
-void PlayWidgetAnim(W *, int);
+void PlayWidgetAnim(WIDGET *, int);
 void UpdateRobottankHealthMeter(OBJ *);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, OBJ *);
@@ -2142,14 +2140,14 @@ void SetSmaGoalIfReachable(void *, int);
 // goal from D_002C2208[state]. (inferred)
 void SetRobottankState(OBJ *tank, int n)
 {
-    W *pw;
+    WIDGET *pw;
     if (n == tank->state)
         return;
     switch (tank->state) {
     case 0:
         pw = tank->pw;
         if (pw) {
-            pw->vt->a[49].pfn((char *)pw + pw->vt->a[49].d, -1);
+            pw->Show(-1);
             PlayWidgetAnim(tank->pw, 0x34F);
             UpdateRobottankHealthMeter(tank);
         }
@@ -2169,9 +2167,9 @@ void SetRobottankState(OBJ *tank, int n)
     tank->t = D_002DDED0.time;
     switch (n) {
     case 0: {
-        W *pw2 = tank->pw;
+        WIDGET *pw2 = tank->pw;
         if (pw2)
-            ((void (*)(void *))pw2->vt->a[50].pfn)((char *)pw2 + pw2->vt->a[50].d);
+            pw2->Hide();
         {
             void **pps = &tank->engineSound;
             if (*pps) {
