@@ -90,6 +90,7 @@ struct ANIMBINDING
             OID oid;        /* +0x4 [S] before ResolveAnimBinding: the animation's oid */
             int h;          /* +0x4 [S] kinds 2/3: the LEAP / DIRANIM handle */
             ASEG *aseg;     /* +0x4 [S] kind 0: the animation segment */
+            void *payload4; /* +0x4 [S] kinds 2/3 as the Splice options allocate them (AllocLeap / AllocDirAnim) */
       };
       union {
             int instance;   /* +0x8 [S] before ResolveAnimBinding */

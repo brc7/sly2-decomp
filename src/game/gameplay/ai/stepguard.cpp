@@ -145,8 +145,8 @@ void SetTargetRecordState(TARGETREC *record, int n);
 TARGETREC *EnsureTargetRecordById(LO *object);
 void WakeSo(STEPGUARD *guard);
 void SetStepTargetHeading(STEPGUARD *guard);
-int GetSgfMaskFromSpliceList(int n);
-ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, int i);
+unsigned long GetSgfMaskFromSpliceList(int list);
+ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, unsigned long sgfMask);
 void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
 void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
 void CloneAnimBinding(ANIMBINDING *binding);
@@ -1299,24 +1299,22 @@ extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int sgfList,
 
 // 0x207C48 SetStepguardAnimBindingKind3
 namespace M_func_00207C48 { extern "C" {
-struct PAYLOAD3; struct BINDING;
+struct PAYLOAD3;
 struct PAYLOAD3 { int anim0; char pad0[0x2C]; int anim1; char pad1[0x2C]; int anim2; char pad2[0x2C]; int anim3; };
-struct BINDING { int kind; struct PAYLOAD3 *payload; int pad; int flags; };
 long GetSgfMaskFromSpliceList(int list);
-struct BINDING *EnsureAnimBinding(void *guard, long sgfMask);
 struct PAYLOAD3 *AllocDirAnim(int cb);
 void InvalidateDirAnims(struct PAYLOAD3 *payload);
 // 0x207C48: Splice option: binds a flag set to a DIRANIM payload (a new 0xD0-byte object with four animations, inferred).
-void SetStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
+void SetStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
 {
-    struct BINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     binding->kind = BINDING_DIRANIM;
-    binding->payload = AllocDirAnim(0xD0);
-    InvalidateDirAnims(binding->payload);
-    binding->payload->anim0 = anim0;
-    binding->payload->anim1 = anim1;
-    binding->payload->anim2 = anim2;
-    binding->payload->anim3 = anim3;
+    binding->payload4 = AllocDirAnim(0xD0);
+    InvalidateDirAnims((PAYLOAD3 *)binding->payload4);
+    ((PAYLOAD3 *)binding->payload4)->anim0 = anim0;
+    ((PAYLOAD3 *)binding->payload4)->anim1 = anim1;
+    ((PAYLOAD3 *)binding->payload4)->anim2 = anim2;
+    ((PAYLOAD3 *)binding->payload4)->anim3 = anim3;
     binding->flags = 8;
 }
 } } // namespace M_func_00207C48
@@ -1324,13 +1322,11 @@ void SetStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1
 // 0x207CF8 SetAndResolveStepguardAnimBindingKind3
 namespace M_func_00207CF8 { extern "C" {
 long GetSgfMaskFromSpliceList(int list);
-void *EnsureAnimBinding(void *guard, long sgfMask);
-void SetStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1, int anim2, int anim3);
-void ResolveAnimBinding(void *binding, void *guard);
+void SetStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int anim0, int anim1, int anim2, int anim3);
 // 0x207CF8: SetStepguardAnimBindingKind3, then resolves the binding.
-void SetAndResolveStepguardAnimBindingKind3(void *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
+void SetAndResolveStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
 {
-    void *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     SetStepguardAnimBindingKind3(guard, sgfList, anim0, anim1, anim2, anim3);
     ResolveAnimBinding(binding, guard);
 }
@@ -1338,21 +1334,19 @@ void SetAndResolveStepguardAnimBindingKind3(void *guard, int sgfList, int anim0,
 
 // 0x207D98 SetStepguardAnimBindingKind2
 namespace M_func_00207D98 { extern "C" {
-struct PAYLOAD2; struct BINDING;
+struct PAYLOAD2;
 struct PAYLOAD2 { int parameter; };
-struct BINDING { int kind; struct PAYLOAD2 *payload; int pad; int flags; };
 unsigned long GetSgfMaskFromSpliceList(void *list);
-struct BINDING *EnsureAnimBinding(void *guard, unsigned long sgfMask);
 struct PAYLOAD2 *AllocLeap(int cb);
 void InitAsegArc(struct PAYLOAD2 *payload);
 // 0x207D98: Splice option: binds a flag set to a LEAP payload (a new 0x40-byte object with one parameter).
-void SetStepguardAnimBindingKind2(void *guard, void *sgfList, int parameter)
+void SetStepguardAnimBindingKind2(STEPGUARD *guard, void *sgfList, int parameter)
 {
-    struct BINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     binding->kind = BINDING_LEAP;
-    binding->payload = AllocLeap(0x40);
-    InitAsegArc(binding->payload);
-    binding->payload->parameter = parameter;
+    binding->payload4 = AllocLeap(0x40);
+    InitAsegArc((PAYLOAD2 *)binding->payload4);
+    ((PAYLOAD2 *)binding->payload4)->parameter = parameter;
     binding->flags = 0;
 }
 } } // namespace M_func_00207D98
@@ -1360,13 +1354,11 @@ void SetStepguardAnimBindingKind2(void *guard, void *sgfList, int parameter)
 // 0x207E08 SetAndResolveStepguardAnimBindingKind2
 namespace M_func_00207E08 { extern "C" {
 long GetSgfMaskFromSpliceList(int list);
-void *EnsureAnimBinding(void *guard, long sgfMask);
-void SetStepguardAnimBindingKind2(void *guard, int sgfList, int b, float c, float d, float e, float f);
-void ResolveAnimBinding(void *binding, void *guard);
+void SetStepguardAnimBindingKind2(STEPGUARD *guard, int sgfList, int b, float c, float d, float e, float f);
 // 0x207E08: SetStepguardAnimBindingKind2, then resolves the binding.
-void SetAndResolveStepguardAnimBindingKind2(void *guard, int sgfList, int b, float c, float d, float e, float f)
+void SetAndResolveStepguardAnimBindingKind2(STEPGUARD *guard, int sgfList, int b, float c, float d, float e, float f)
 {
-    void *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
+    ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     SetStepguardAnimBindingKind2(guard, sgfList, b, c, d, e, f);
     ResolveAnimBinding(binding, guard);
 }
@@ -1374,18 +1366,15 @@ void SetAndResolveStepguardAnimBindingKind2(void *guard, int sgfList, int b, flo
 
 // 0x207EB8 SetZapReactionBindings
 namespace M_func_00207EB8 { extern "C" {
-struct BINDING;
-struct BINDING { int kind; int oid; int instance; int flags; };
-void ReleaseAnimBinding(struct BINDING *binding, void *guard);
 // 0x207EB8: Sets the binding (oid, flags) of every zap kind in `mask` (26 kinds) in a zap-reaction table.
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table)
+void SetZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table)
 {
     int i;
     int bit = 1;
     for (i = 25; i >= 0; i--) {
         if (zapMask & bit) {
             ReleaseAnimBinding(table, guard);
-            table->oid = oid;
+            table->oid = (OID)oid;
             table->flags = flags;
         }
         bit <<= 1;
@@ -1396,19 +1385,15 @@ void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct
 
 // 0x207F50 SetAndResolveZapReactionBindings
 namespace M_func_00207F50 { extern "C" {
-struct BINDING;
-struct BINDING { int kind; int oid; int instance; int flags; };
-void ReleaseAnimBinding(struct BINDING *binding, void *guard);
-void ResolveAnimBinding(struct BINDING *binding, void *guard);
 // 0x207F50: SetZapReactionBindings, then resolves each binding.
-void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table)
+void SetAndResolveZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table)
 {
     int i;
     int bit = 1;
     for (i = 25; i >= 0; i--) {
         if (zapMask & bit) {
             ReleaseAnimBinding(table, guard);
-            table->oid = oid;
+            table->oid = (OID)oid;
             table->flags = flags;
             ResolveAnimBinding(table, guard);
         }
@@ -1420,61 +1405,51 @@ void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int fla
 
 // 0x207FF8 SetStepguardKoReactions
 namespace M_func_00207FF8 { extern "C" {
-struct BINDING;
-struct BINDING { int kind, oid, instance, flags; };
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
+void SetZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table);
 // 0x207FF8: Splice option: sets KO reactions (table +0xC10, used by the KO behaviour).
-void SetStepguardKoReactions(char *guard, int zapMask, int oid, int flags)
+void SetStepguardKoReactions(STEPGUARD *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xC10));
+    SetZapReactionBindings(guard, zapMask, oid, flags, guard->koReactions);
 }
 } } // namespace M_func_00207FF8
 
 // 0x208018 SetAndResolveStepguardKoReactions
 namespace M_func_00208018 { extern "C" {
-struct BINDING;
-struct BINDING { int kind, oid, instance, flags; };
-void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
+void SetAndResolveZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table);
 // 0x208018: Splice option: sets and resolves KO reactions.
-void SetAndResolveStepguardKoReactions(char *guard, int zapMask, int oid, int flags)
+void SetAndResolveStepguardKoReactions(STEPGUARD *guard, int zapMask, int oid, int flags)
 {
-    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xC10));
+    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, guard->koReactions);
 }
 } } // namespace M_func_00208018
 
 // 0x208038 SetStepguardHurtReactions
 namespace M_func_00208038 { extern "C" {
-struct BINDING;
-struct BINDING { int kind, oid, instance, flags; };
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
+void SetZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table);
 // 0x208038: Splice option: sets hurt reactions (table +0xA70).
-void SetStepguardHurtReactions(char *guard, int zapMask, int oid, int flags)
+void SetStepguardHurtReactions(STEPGUARD *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xA70));
+    SetZapReactionBindings(guard, zapMask, oid, flags, guard->hurtReactions);
 }
 } } // namespace M_func_00208038
 
 // 0x208058 SetAndResolveStepguardHurtReactions
 namespace M_func_00208058 { extern "C" {
-struct BINDING;
-struct BINDING { int kind, oid, instance, flags; };
-void SetAndResolveZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
+void SetAndResolveZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table);
 // 0x208058: Splice option: sets and resolves hurt reactions.
-void SetAndResolveStepguardHurtReactions(char *guard, int zapMask, int oid, int flags)
+void SetAndResolveStepguardHurtReactions(STEPGUARD *guard, int zapMask, int oid, int flags)
 {
-    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0xA70));
+    SetAndResolveZapReactionBindings(guard, zapMask, oid, flags, guard->hurtReactions);
 }
 } } // namespace M_func_00208058
 
 // 0x208078 SetStepguardKnockdownReactions
 namespace M_func_00208078 { extern "C" {
-struct BINDING;
-struct BINDING { int kind, oid, instance, flags; };
-void SetZapReactionBindings(void *guard, int zapMask, int oid, int flags, struct BINDING *table);
+void SetZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table);
 // 0x208078: Splice option: sets knockdown reactions (table +0x8D0).
-void SetStepguardKnockdownReactions(char *guard, int zapMask, int oid, int flags)
+void SetStepguardKnockdownReactions(STEPGUARD *guard, int zapMask, int oid, int flags)
 {
-    SetZapReactionBindings(guard, zapMask, oid, flags, (struct BINDING *)(guard + 0x8D0));
+    SetZapReactionBindings(guard, zapMask, oid, flags, guard->knockdownReactions);
 }
 } } // namespace M_func_00208078
 
