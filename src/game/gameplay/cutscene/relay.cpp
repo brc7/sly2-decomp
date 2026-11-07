@@ -1329,7 +1329,7 @@ namespace M_UpdateRelay { extern "C" {
 struct DL; struct DLI;
 typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
-extern struct CLOCK { float time; float deltaTime; float pad8[14]; float realDeltaTime; float pad44[3]; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern DLI *D_002DD2FC;
 typedef struct {
     char pad[0x40];
@@ -5393,7 +5393,7 @@ struct G2 { char pad[0x30]; qword v30; };
 struct G { char pad[0x20]; float f20; char pad24[0x60 - 0x24]; struct G2 m60; char pad2[0x500 - 0xA0]; char m500[0x10]; int n510; };
 extern qword D_002A2DD0;
 extern float D_002A8124;
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern struct G D_002DDF40;
 int AreFloatsNear__Ffff(float, float, float);
 float NormalizeAngle__Ff(float);
@@ -5417,7 +5417,7 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
         script->f80 = D_002A8124;
     } else {
         pb->n4 = 0;
-        script->f80 = D_002DDED0.t + t;
+        script->f80 = D_002DDED0.time + t;
     }
     script->sub.apt[0] = &pa->t;
     script->sub.apt[1] = &pb->t;
