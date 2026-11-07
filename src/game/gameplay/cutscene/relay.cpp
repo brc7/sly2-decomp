@@ -1278,8 +1278,7 @@ extern "C" { void *AllocFromWorldHeap(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
-// Inline helper Max: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// The larger of two values.
 static inline int Max(int a, int b) { return a < b ? b : a; }
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
@@ -1313,8 +1312,7 @@ struct MSG { int cb; int nKind; };
 struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
 void *AllocCopyFromWorldHeap(struct MSG *pmsg, void *pv);
-// Inline helper PvReallocMsg: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// Resizes a world-heap block (request size and kind, then reallocate).
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
@@ -1817,19 +1815,12 @@ extern "C" void AddRelaySignal(RELAYV *relay, int idSignal)
 }
 
 // 0x1E04E0 AddRelayPlayAseg
-namespace M_AddRelayPlayAseg { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0xA (PlayAseg) command to the relay (AddRelayCommand(prelay,0xA,fAsync)) and fill
-// its args. (inferred)
-void AddRelayPlayAseg(void *pq, int a, int b, int c, int d)
+// Splice builtin: appends a PlayAseg command (RELAYCK 0xA): play animation oidAseg on oidRoot with apply flags.
+extern "C" void AddRelayPlayAseg(RELAYV *relay, OID oidAseg, OID oidRoot, int fAsync, int grfapl)
 {
-    struct CMD *p = AddRelayCommand(pq, 0xA, c);
-    p->n10 = a; p->n14 = b; p->n18 = d;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_PlayAseg, fAsync);
+    prelaycmd->playAseg.oidAseg = oidAseg; prelaycmd->playAseg.oidRoot = oidRoot; prelaycmd->playAseg.grfapl = grfapl;
 }
-} } // namespace M_AddRelayPlayAseg
 
 // 0x1E0530 AddRelayFireRelay
 // Splice builtin: append a RELAYCK 0xB (FireRelay) command to the relay (AddRelayCommand(prelay,0xB,fAsync)) and fill
@@ -1851,20 +1842,15 @@ extern "C" void AddRelaySetContext(RELAYV *relay, OID oidContext)
 }
 
 // 0x1E05A0 AddRelayApplySm
-namespace M_AddRelayApplySm { extern "C" {
-union U; struct CMD;
-union U { int n; float g; };
-struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0xD (ApplySm) command to the relay (AddRelayCommand(prelay,0xD,fAsync)) and fill
-// its args. (inferred)
-void AddRelayApplySm(void *pq, int a, int b, int c, int x, int d)
+// Splice builtin: appends an ApplySm command (RELAYCK 0xD): drive state machine oidSm toward oidState; a set fUnk7
+// forces the command asynchronous. (inferred)
+extern "C" void AddRelayApplySm(RELAYV *relay, OID oidSm, OID oidUnk5, OID oidState, int fAsync, int fUnk7)
 {
-    struct CMD *p = AddRelayCommand(pq, 0xD, x);
-    p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
-    if (d) p->b = 1;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_ApplySm, fAsync);
+    prelaycmd->applySm.oidSm = oidSm; prelaycmd->applySm.oidUnk5 = oidUnk5; prelaycmd->applySm.oidState = oidState;
+    prelaycmd->applySm.fUnk7 = fUnk7;
+    if (fUnk7) prelaycmd->fAsync = 1;
 }
-} } // namespace M_AddRelayApplySm
 
 // 0x1E0610 AddRelayWidgetShow
 // Splice builtin: append a RELAYCK 0xE (WidgetShow) command to the relay (AddRelayCommand(prelay,0xE,fAsync)) and
@@ -1943,19 +1929,12 @@ extern "C" void AddRelayGotoLabelIf(RELAYV *relay, OID oidLabel, int nValue)
 }
 
 // 0x1E07D0 AddRelayTeleportTo
-namespace M_AddRelayTeleportTo { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x16 (TeleportTo) command to the relay (AddRelayCommand(prelay,0x16,fAsync)) and
-// fill its args. (inferred)
-void AddRelayTeleportTo(void *pq, int a, int b, int c)
+// Splice builtin: appends a TeleportTo command (RELAYCK 0x16): move oidActor to oidWhere (fAir: arrive airborne).
+extern "C" void AddRelayTeleportTo(RELAYV *relay, OID oidWhere, int fAir, OID oidActor)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x16, 1);
-    p->n10 = a; p->n14 = b; p->n18 = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_TeleportTo, 1);
+    prelaycmd->teleportTo.oidWhere = oidWhere; prelaycmd->teleportTo.fAir = fAir; prelaycmd->teleportTo.oidActor = oidActor;
 }
-} } // namespace M_AddRelayTeleportTo
 
 // 0x1E0820 AddRelayCutCamera
 // Splice builtin: append a RELAYCK 0x17 (CutCamera) command to the relay (AddRelayCommand(prelay,0x17,fAsync)) and
@@ -1988,19 +1967,12 @@ extern "C" void AddRelaySetFocus(RELAYV *relay, OID oidFocus, OID oidActor)
 }
 
 // 0x1E08C0 AddRelayPipeTo
-namespace M_AddRelayPipeTo { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; int n10; float g14; int n18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x1A (PipeTo) command to the relay (AddRelayCommand(prelay,0x1A,fAsync)) and fill
-// its args. (inferred)
-void AddRelayPipeTo(void *pq, int a, int b, int c, float g)
+// Splice builtin: appends a PipeTo command (RELAYCK 0x1A): oidActor travels the pipe to oidTarget (within gTolerance).
+extern "C" void AddRelayPipeTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, float gTolerance)
 {
-    struct CMDF *p = (struct CMDF *)AddRelayCommand(pq, 0x1A, b);
-    p->n10 = a; p->g14 = g; p->n18 = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_PipeTo, fAsync);
+    prelaycmd->pipeTo.oidTarget = oidTarget; prelaycmd->pipeTo.gTolerance = gTolerance; prelaycmd->pipeTo.oidActor = oidActor;
 }
-} } // namespace M_AddRelayPipeTo
 
 // 0x1E0910 AddRelayCommand1B
 // Splice builtin: append a RELAYCK 0x1B (Unk1B) command to the relay (AddRelayCommand(prelay,0x1B,fAsync)) and fill
@@ -2011,19 +1983,12 @@ extern "C" void AddRelayCommand1B(RELAYV *relay, OID oidActor)
 }
 
 // 0x1E0940 AddRelayHeroState
-namespace M_AddRelayHeroState { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x1C (HeroState) command to the relay (AddRelayCommand(prelay,0x1C,fAsync)) and
-// fill its args. (inferred)
-void AddRelayHeroState(void *pq, int a, int b, int c, int d)
+// Splice builtin: appends a HeroState command (RELAYCK 0x1C): put oidActor into hero state nState.
+extern "C" void AddRelayHeroState(RELAYV *relay, int nUnk4, int nState, int fAsync, OID oidActor)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x1C, c);
-    p->n10 = a; p->n14 = b; p->n18 = d;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_HeroState, fAsync);
+    prelaycmd->heroState.nUnk4 = nUnk4; prelaycmd->heroState.nState = nState; prelaycmd->heroState.oidActor = oidActor;
 }
-} } // namespace M_AddRelayHeroState
 
 // 0x1E0990 AddRelayStepCmd1D
 // Splice builtin: append a RELAYCK 0x1D (StepCmd1D) command to the relay (AddRelayCommand(prelay,0x1D,fAsync)) and
@@ -2037,19 +2002,12 @@ extern "C" void AddRelayStepCmd1D(RELAYV *relay, OID oidGoal, OID oidActor)
 }
 
 // 0x1E09D0 AddRelayStepCmd1E
-namespace M_AddRelayStepCmd1E { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x1E (StepCmd1E) command to the relay (AddRelayCommand(prelay,0x1E,fAsync)) and
-// fill its args. (inferred)
-void AddRelayStepCmd1E(void *pq, int a, int b, int c)
+// Splice builtin: appends step command 0x1E with two objects for oidActor.
+extern "C" void AddRelayStepCmd1E(RELAYV *relay, OID oidA, OID oidB, OID oidActor)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x1E, 0);
-    p->n10 = a; p->n14 = b; p->n18 = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1E, 0);
+    prelaycmd->stepCmd1E.oidA = oidA; prelaycmd->stepCmd1E.oidB = oidB; prelaycmd->stepCmd1E.oidActor = oidActor;
 }
-} } // namespace M_AddRelayStepCmd1E
 
 // 0x1E0A20 AddRelayStepCmd1F
 // Splice builtin: append a RELAYCK 0x1F (StepCmd1F) command to the relay (AddRelayCommand(prelay,0x1F,fAsync)) and
@@ -2085,68 +2043,46 @@ extern "C" void AddRelayStepCmd21(RELAYV *relay, OID oidGoal, OID oidActor)
 }
 
 // 0x1E0AE0 AddRelayStepCmd22
-namespace M_AddRelayStepCmd22 { extern "C" {
-union U; struct CMD;
-union U { int n; float g; void *pv; };
-struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x22 (StepCmd22) command to the relay (AddRelayCommand(prelay,0x22,fAsync)) and
-// fill its args. (inferred)
-void AddRelayStepCmd22(void *pq, int a, int b, int c, int d)
+// Splice builtin: appends step command 0x22 (a target and a mode) for oidActor.
+extern "C" void AddRelayStepCmd22(RELAYV *relay, OID oidTarget, int nMode, int nUnk6, OID oidActor)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x22, 0);
-    p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd22, 0);
+    prelaycmd->stepCmd22.oidTarget = oidTarget; prelaycmd->stepCmd22.nMode = nMode; prelaycmd->stepCmd22.nUnk6 = nUnk6;
+    prelaycmd->stepCmd22.oidActor = oidActor;
 }
-} } // namespace M_AddRelayStepCmd22
 
 // 0x1E0B40 AddRelayFace
-namespace M_AddRelayFace { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x23 (Face) command to the relay (AddRelayCommand(prelay,0x23,fAsync)) and fill
-// its args.
-void AddRelayFace(void *pq, int a, int b, float g)
+// Splice builtin: appends a Face command (RELAYCK 0x23): oidActor turns to face oidFace, waiting dtWait.
+extern "C" void AddRelayFace(RELAYV *relay, OID oidFace, OID oidActor, float dtWait)
 {
-    struct CMDF *p = (struct CMDF *)AddRelayCommand(pq, 0x23, 0);
-    p->g10 = g; ((struct CMD *)p)->n14 = a; p->n18 = b;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Face, 0);
+    prelaycmd->face.dtWait = dtWait; prelaycmd->face.oidFace = oidFace; prelaycmd->face.oidActor = oidActor;
 }
-} } // namespace M_AddRelayFace
 
 // 0x1E0B90 AddRelayGoTo
-namespace M_AddRelayGoTo { extern "C" {
-struct S;
-typedef struct S { char pad[0x10]; int a; float f; float g; int c; int d; int e; } S;
-S *AddRelayCommand(void *p, int cb);
-// Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay (AddRelayCommand(prelay,0x24,fAsync)) and fill
-// its args. (inferred)
-void AddRelayGoTo(void *relay, int a, int b, int c, int d, float f, float g)
+// Splice builtin: appends a GoTo command (RELAYCK 0x24): oidActor goes to oidTarget at run fraction uRun, arriving
+// within gArrive, playing clip idClip (fUnk9 set; the _1E0C08 variant clears it). The old view called AddRelayCommand
+// with two arguments: fAsync was simply already in the third argument register.
+extern "C" void AddRelayGoTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, int idClip, float uRun, float gArrive)
 {
-    S *s = AddRelayCommand(relay, 0x24);
-    s->a = a;
-    s->f = f;
-    s->g = g;
-    s->c = c;
-    s->d = d;
-    s->e = 1;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_GoTo, fAsync);
+    prelaycmd->goTo.oidTarget = oidTarget;
+    prelaycmd->goTo.uRun = uRun;
+    prelaycmd->goTo.gArrive = gArrive;
+    prelaycmd->goTo.oidActor = oidActor;
+    prelaycmd->goTo.idClip = idClip;
+    prelaycmd->goTo.fUnk9 = 1;
 }
-} } // namespace M_AddRelayGoTo
 
 // 0x1E0C08 AddRelayGoTo_1E0C08
-namespace M_AddRelayGoTo_1E0C08 { extern "C" {
-union U; struct CMD;
-union U { int n; float g; };
-struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay (AddRelayCommand(prelay,0x24,fAsync)) and fill
-// its args. (inferred)
-void AddRelayGoTo_1E0C08(void *pq, int a, int x, int c, int d, float g, float h)
+// Splice builtin: the GoTo variant with an explicit fAsync (RELAYCK 0x24): oidActor goes to oidTarget at run fraction
+// uRun, arriving within gArrive, playing clip idClip.
+extern "C" void AddRelayGoTo_1E0C08(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, int idClip, float uRun, float gArrive)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x24, x);
-    p->a[0].n = a; p->a[1].g = g; p->a[2].g = h; p->a[3].n = c; p->a[4].n = d; p->a[5].n = 0;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_GoTo, fAsync);
+    prelaycmd->goTo.oidTarget = oidTarget; prelaycmd->goTo.uRun = uRun; prelaycmd->goTo.gArrive = gArrive;
+    prelaycmd->goTo.oidActor = oidActor; prelaycmd->goTo.idClip = idClip; prelaycmd->goTo.fUnk9 = 0;
 }
-} } // namespace M_AddRelayGoTo_1E0C08
 
 // 0x1E0C78 AddRelayRunOn
 // Splice builtin: append a RELAYCK 0x25 (RunOn) command to the relay (AddRelayCommand(prelay,0x25,fAsync)) and fill
@@ -2165,87 +2101,57 @@ extern "C" void AddRelayRunOff(RELAYV *relay)
 }
 
 // 0x1E0CB8 AddRelayFollowPath
-namespace M_AddRelayFollowPath { extern "C" {
-struct S;
-typedef struct S { char pad[0x10]; int a; int b; int c; float f; int d; int e; } S;
-S *AddRelayCommand(void *p, int k, int n);
-// Splice builtin: append a RELAYCK 0x27 (FollowPath) command to the relay (AddRelayCommand(prelay,0x27,fAsync)) and
-// fill its args. (inferred)
-void AddRelayFollowPath(void *relay, int a, int b, int c, int d, int e, float f)
+// Splice builtin: appends a FollowPath command (RELAYCK 0x27): oidActor follows path oidPath (mode nPathMode).
+extern "C" void AddRelayFollowPath(RELAYV *relay, OID oidPath, int nPathMode, int nUnk6, OID oidActor, int idClip, float gUnk7)
 {
-    S *s = AddRelayCommand(relay, 0x27, 0);
-    s->a = a;
-    s->b = b;
-    s->c = c;
-    s->f = f;
-    s->d = d;
-    s->e = e;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_FollowPath, 0);
+    prelaycmd->followPath.oidPath = oidPath;
+    prelaycmd->followPath.nPathMode = nPathMode;
+    prelaycmd->followPath.nUnk6 = nUnk6;
+    prelaycmd->followPath.gUnk7 = gUnk7;
+    prelaycmd->followPath.oidActor = oidActor;
+    prelaycmd->followPath.idClip = idClip;
 }
-} } // namespace M_AddRelayFollowPath
 
 // 0x1E0D38 AddRelayWalkTo
-namespace M_AddRelayWalkTo { extern "C" {
-struct S;
-typedef struct S { char pad[0x10]; int a; float f; int b; float g; int c; int d; } S;
-S *AddRelayCommand(void *p, int k, int n);
-// Splice builtin: append a RELAYCK 0x28 (WalkTo) command to the relay (AddRelayCommand(prelay,0x28,fAsync)) and fill
-// its args. (inferred)
-void AddRelayWalkTo(void *relay, int a, float f, int b, float g, int c, int d)
+// Splice builtin: appends a WalkTo command (RELAYCK 0x28): oidActor walks to oidTarget playing clip idClip.
+extern "C" void AddRelayWalkTo(RELAYV *relay, OID oidTarget, float gUnk5, int nUnk6, float gUnk7, OID oidActor, int idClip)
 {
-    S *s = AddRelayCommand(relay, 0x28, 0);
-    s->a = a;
-    s->f = f;
-    s->b = b;
-    s->g = g;
-    s->c = c;
-    s->d = d;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_WalkTo, 0);
+    prelaycmd->walkTo.oidTarget = oidTarget;
+    prelaycmd->walkTo.gUnk5 = gUnk5;
+    prelaycmd->walkTo.nUnk6 = nUnk6;
+    prelaycmd->walkTo.gUnk7 = gUnk7;
+    prelaycmd->walkTo.oidActor = oidActor;
+    prelaycmd->walkTo.idClip = idClip;
 }
-} } // namespace M_AddRelayWalkTo
 
 // 0x1E0DB8 AddRelayStepCmd29
-namespace M_AddRelayStepCmd29 { extern "C" {
-union U; struct CMD;
-union U { int n; float g; void *pv; };
-struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x29 (StepCmd29) command to the relay (AddRelayCommand(prelay,0x29,fAsync)) and
-// fill its args. (inferred)
-void AddRelayStepCmd29(void *pq, int a, int b, int c, float g, float h)
+// Splice builtin: appends step command 0x29 (a target, a parameter, an arrival distance) for oidActor.
+extern "C" void AddRelayStepCmd29(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, float gUnk5, float gArrive)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x29, b);
-    p->a[0].n = a; p->a[1].g = g; p->a[2].g = h; p->a[3].n = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd29, fAsync);
+    prelaycmd->stepCmd29.oidTarget = oidTarget; prelaycmd->stepCmd29.gUnk5 = gUnk5; prelaycmd->stepCmd29.gArrive = gArrive;
+    prelaycmd->stepCmd29.oidActor = oidActor;
 }
-} } // namespace M_AddRelayStepCmd29
 
 // 0x1E0E18 AddRelayRespawn
-namespace M_AddRelayRespawn { extern "C" {
-union U; struct CMD;
-union U { int n; float g; void *pv; };
-struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x2A (Respawn) command to the relay (AddRelayCommand(prelay,0x2A,fAsync)) and fill
-// its args. (inferred)
-void AddRelayRespawn(void *pq, int a, int b, int c, int x, int d)
+// Splice builtin: appends a Respawn command (RELAYCK 0x2A): oidActor respawns at oidSpot.
+extern "C" void AddRelayRespawn(RELAYV *relay, OID oidSpot, int nUnk5, int nUnk6, int fAsync, OID oidActor)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x2A, x);
-    p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Respawn, fAsync);
+    prelaycmd->respawn.oidSpot = oidSpot; prelaycmd->respawn.nUnk5 = nUnk5; prelaycmd->respawn.nUnk6 = nUnk6;
+    prelaycmd->respawn.oidActor = oidActor;
 }
-} } // namespace M_AddRelayRespawn
 
 // 0x1E0E78 AddRelayLaunchTo
-namespace M_AddRelayLaunchTo { extern "C" {
-union U; struct CMD;
-union U { int n; float g; void *pv; };
-struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x2B (LaunchTo) command to the relay (AddRelayCommand(prelay,0x2B,fAsync)) and
-// fill its args. (inferred)
-void AddRelayLaunchTo(void *pq, int a, int b, int c, float g, float h)
+// Splice builtin: appends a LaunchTo command (RELAYCK 0x2B): oidActor is launched toward oidTarget.
+extern "C" void AddRelayLaunchTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, float gUnk5, float gUnk6)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x2B, b);
-    p->a[0].n = a; p->a[1].g = g; p->a[2].g = h; p->a[3].n = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_LaunchTo, fAsync);
+    prelaycmd->launchTo.oidTarget = oidTarget; prelaycmd->launchTo.gUnk5 = gUnk5; prelaycmd->launchTo.gUnk6 = gUnk6;
+    prelaycmd->launchTo.oidActor = oidActor;
 }
-} } // namespace M_AddRelayLaunchTo
 
 // 0x1E0ED8 AddRelayAddObject
 // Splice builtin: append a RELAYCK 0x2C (AddObject) command to the relay (AddRelayCommand(prelay,0x2C,fAsync)) and
@@ -2333,50 +2239,30 @@ extern "C" void AddRelayRumble(RELAYV *relay, int rumk, int fAsync, float dtRumb
 }
 
 // 0x1E10C8 AddRelayExplode
-namespace M_AddRelayExplode { extern "C" {
-union U; struct CMD;
-union U { int n; float g; void *pv; };
-struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x34 (Explode) command to the relay (AddRelayCommand(prelay,0x34,fAsync)) and fill
-// its args. (inferred)
-void AddRelayExplode(void *pq, int a, int b, int c, float g)
+// Splice builtin: appends an Explode command (RELAYCK 0x34) with three objects and a delay.
+extern "C" void AddRelayExplode(RELAYV *relay, OID oidA, OID oidB, OID oidC, float dtDelay)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x34, 1);
-    p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].g = g;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Explode, 1);
+    prelaycmd->explode.oidA = oidA; prelaycmd->explode.oidB = oidB; prelaycmd->explode.oidC = oidC;
+    prelaycmd->explode.dtDelay = dtDelay;
 }
-} } // namespace M_AddRelayExplode
 
 // 0x1E1128 AddRelayEyes
-namespace M_AddRelayEyes { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x35 (Eyes) command to the relay (AddRelayCommand(prelay,0x35,fAsync)) and fill
-// its args. (inferred)
-void AddRelayEyes(void *pq, int a, int b, float g)
+// Splice builtin: appends an Eyes command (RELAYCK 0x35) with two objects and a duration.
+extern "C" void AddRelayEyes(RELAYV *relay, OID oidA, OID oidB, float dtEyes)
 {
-    struct CMDF *p = (struct CMDF *)AddRelayCommand(pq, 0x35, 1);
-    p->n10 = a; p->n14 = b; p->g18 = g;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Eyes, 1);
+    prelaycmd->eyes.oidA = oidA; prelaycmd->eyes.oidB = oidB; prelaycmd->eyes.dtEyes = dtEyes;
 }
-} } // namespace M_AddRelayEyes
 
 // 0x1E1178 AddRelaySound
-namespace M_AddRelaySound { extern "C" {
-union U; struct CMD;
-union U { int n; float g; void *pv; };
-struct CMD { int kind; int b; int n8; int nC; union U a[7]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x36 (Sound) command to the relay (AddRelayCommand(prelay,0x36,fAsync)) and fill
-// its args. (inferred)
-void AddRelaySound(void *pq, int a, int b, int c, int d, float f, float g, float h)
+// Splice builtin: appends a Sound command (RELAYCK 0x36): sound idSnd at oidA with three parameters.
+extern "C" void AddRelaySound(RELAYV *relay, int idSnd, OID oidA, int nUnk6, int nUnk7, float gUnk8, float gUnk9, float gUnk10)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x36, 1);
-    p->a[0].n = a; p->a[1].n = b; p->a[2].n = c; p->a[3].n = d;
-    p->a[4].g = f; p->a[5].g = g; p->a[6].g = h;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Sound, 1);
+    prelaycmd->sound.idSnd = idSnd; prelaycmd->sound.oidA = oidA; prelaycmd->sound.nUnk6 = nUnk6; prelaycmd->sound.nUnk7 = nUnk7;
+    prelaycmd->sound.gUnk8 = gUnk8; prelaycmd->sound.gUnk9 = gUnk9; prelaycmd->sound.gUnk10 = gUnk10;
 }
-} } // namespace M_AddRelaySound
 
 // 0x1E1208 AddRelayStopSound
 // Splice builtin: append a RELAYCK 0x37 (StopSound) command to the relay (AddRelayCommand(prelay,0x37,fAsync)) and
@@ -2387,56 +2273,38 @@ extern "C" void AddRelayStopSound(RELAYV *relay, int idSnd)
 }
 
 // 0x1E1238 AddRelayCamBlendFrom
-namespace M_AddRelayCamBlendFrom { extern "C" {
-struct CMD;
-typedef int qword __attribute__((mode(TI)));
-struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-// Splice builtin: append a RELAYCK 0x38 (CamBlendFrom) command to the relay (AddRelayCommand(prelay,0x38,fAsync)) and
-// fill its args. (inferred)
-void AddRelayCamBlendFrom(void *pq, qword a, qword v, int n, float f, float g)
+// Lanes x, y and z of a 128-bit EE register as floats (the camera builders take angles in degrees as a vector).
+static __inline__ float GetVectorX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+static __inline__ float GetVectorY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+static __inline__ float GetVectorZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
+// Splice builtin: appends a CamBlendFrom command (RELAYCK 0x38): the camera starts from position qwPos with angles
+// (degrees, stored in radians) and field of view gFov, blending over dtBlend; oidAseg names an animation. (inferred)
+extern "C" void AddRelayCamBlendFrom(RELAYV *relay, qword qwPos, qword angles, OID oidAseg, float gFov, float dtBlend)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x38, 1);
-    p->q = a;
-    p->x = GetX(v) * 0.017453294f;
-    p->y = GetY(v) * 0.017453294f;
-    p->z = GetZ(v) * 0.017453294f;
-    p->f = f;
-    p->u40.g = g;
-    p->n44 = n;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_CamBlendFrom, 1);
+    prelaycmd->camBlendFrom.qwPos = qwPos;
+    prelaycmd->camBlendFrom.radX = GetVectorX(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radY = GetVectorY(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.gFov = gFov;
+    prelaycmd->camBlendFrom.dtBlend = dtBlend;
+    prelaycmd->camBlendFrom.oidAseg = oidAseg;
 }
-} } // namespace M_AddRelayCamBlendFrom
 
 // 0x1E12E0 AddRelayCamBlendTo
-namespace M_AddRelayCamBlendTo { extern "C" {
-struct CMD;
-typedef int qword __attribute__((mode(TI)));
-struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-// Splice builtin: append a RELAYCK 0x39 (CamBlendTo) command to the relay (AddRelayCommand(prelay,0x39,fAsync)) and
-// fill its args. (inferred)
-void AddRelayCamBlendTo(void *pq, qword a, qword v, int m, int n, float f)
+// Splice builtin: appends a CamBlendTo command (RELAYCK 0x39): the camera blends to position qwPos with angles (degrees,
+// stored in radians) and field of view gFov. (inferred)
+extern "C" void AddRelayCamBlendTo(RELAYV *relay, qword qwPos, qword angles, int nUnk16, int nUnk17, float gFov)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x39, 1);
-    p->q = a;
-    p->x = GetX(v) * 0.017453294f;
-    p->y = GetY(v) * 0.017453294f;
-    p->z = GetZ(v) * 0.017453294f;
-    p->f = f;
-    p->u40.n = m;
-    p->n44 = n;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_CamBlendTo, 1);
+    prelaycmd->camBlendTo.qwPos = qwPos;
+    prelaycmd->camBlendTo.radX = GetVectorX(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radY = GetVectorY(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.gFov = gFov;
+    prelaycmd->camBlendTo.nUnk16 = nUnk16;
+    prelaycmd->camBlendTo.nUnk17 = nUnk17;
 }
-} } // namespace M_AddRelayCamBlendTo
 
 // 0x1E1388 AddRelayCommand3A
 // Splice builtin: append a RELAYCK 0x3A (Unk3A) command to the relay (AddRelayCommand(prelay,0x3A,fAsync)) and fill
@@ -2447,19 +2315,12 @@ extern "C" void AddRelayCommand3A(RELAYV *relay, int n)
 }
 
 // 0x1E13B8 AddRelayStartJtMode
-namespace M_AddRelayStartJtMode { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x3B (StartJtMode) command to the relay (AddRelayCommand(prelay,0x3B,fAsync)) and
-// fill its args. (inferred)
-void AddRelayStartJtMode(void *pq, int a, int b, int c, int d)
+// Splice builtin: appends a StartJtMode command (RELAYCK 0x3B) for oidActor with a step object.
+extern "C" void AddRelayStartJtMode(RELAYV *relay, OID oidActor, OID oidStep, OID oidUnk6, int fAsync)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x3B, d);
-    p->n10 = a; p->n14 = b; p->n18 = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StartJtMode, fAsync);
+    prelaycmd->startJtMode.oidActor = oidActor; prelaycmd->startJtMode.oidStep = oidStep; prelaycmd->startJtMode.oidUnk6 = oidUnk6;
 }
-} } // namespace M_AddRelayStartJtMode
 
 // 0x1E1408 AddRelayEndJtMode
 // Splice builtin: append a RELAYCK 0x3C (EndJtMode) command to the relay (AddRelayCommand(prelay,0x3C,fAsync)) and
@@ -2486,28 +2347,17 @@ extern "C" void AddRelayTweenAimObj(RELAYV *relay, OID oidObj, int fAsync)
 }
 
 // 0x1E1488 AddRelayTweenTarget
-namespace M_AddRelayTweenTarget { extern "C" {
-struct CMD;
-typedef int qword __attribute__((mode(TI)));
-struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-// Splice builtin: append a RELAYCK 0x3F (TweenTarget) command to the relay (AddRelayCommand(prelay,0x3F,fAsync)) and
-// fill its args. (inferred)
-void AddRelayTweenTarget(void *pq, qword a, qword v, float f)
+// Splice builtin: appends a TweenTarget command (RELAYCK 0x3F): the camera tween's target position, angles (degrees,
+// stored in radians) and field of view. (inferred)
+extern "C" void AddRelayTweenTarget(RELAYV *relay, qword qwPos, qword angles, float gFov)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x3F, 1);
-    p->q = a;
-    p->x = GetX(v) * 0.017453294f;
-    p->y = GetY(v) * 0.017453294f;
-    p->z = GetZ(v) * 0.017453294f;
-    p->f = f;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_TweenTarget, 1);
+    prelaycmd->tweenTarget.qwPos = qwPos;
+    prelaycmd->tweenTarget.radX = GetVectorX(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radY = GetVectorY(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.gFov = gFov;
 }
-} } // namespace M_AddRelayTweenTarget
 
 // 0x1E1510 AddRelayTweenTime
 // Splice builtin: append a RELAYCK 0x40 (TweenTime) command to the relay (AddRelayCommand(prelay,0x40,fAsync)) and
@@ -2526,20 +2376,13 @@ extern "C" void AddRelayTweenStart(RELAYV *relay)
 }
 
 // 0x1E1560 AddRelayButtonPrompt
-namespace M_AddRelayButtonPrompt { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; float g10; float g14; int n18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x42 (ButtonPrompt) command to the relay (AddRelayCommand(prelay,0x42,fAsync)) and
-// fill its args. (inferred)
-void AddRelayButtonPrompt(void *pq, int a, int b)
+// Splice builtin: appends a ButtonPrompt command (RELAYCK 0x42): prompt for buttons grfbtn (-1: 0x40) to oidWho.
+extern "C" void AddRelayButtonPrompt(RELAYV *relay, int grfbtn, OID oidWho)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x42, 0);
-    if (a == -1) a = 0x40;
-    p->n10 = a; p->n14 = b;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_ButtonPrompt, 0);
+    if (grfbtn == -1) grfbtn = 0x40;
+    prelaycmd->buttonPrompt.grfbtn = grfbtn; prelaycmd->buttonPrompt.oidWho = oidWho;
 }
-} } // namespace M_AddRelayButtonPrompt
 
 // 0x1E15B0 AddRelayCommand43
 // Splice builtin: append a RELAYCK 0x43 (Unk43) command to the relay (AddRelayCommand(prelay,0x43,fAsync)) and fill
@@ -2580,34 +2423,22 @@ extern "C" void AddRelayClearSubtitle(RELAYV *relay)
 }
 
 // 0x1E1670 AddRelayStepHold
-namespace M_func_001E1670 { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builder, relay command 0x47: the actor holds a step (AddJsgStepHold with two parameters) while the script
 // runs. (inferred from NextJsgCommand)
-void AddRelayStepHold(void *pq, int a, int b, int c)
+extern "C" void AddRelayStepHold(RELAYV *relay, OID oidActor, int nUnk5, int nUnk6)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x47, 1);
-    p->n10 = a; p->n14 = b; p->n18 = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk47, 1);
+    prelaycmd->unk47.oidActor = oidActor; prelaycmd->unk47.nUnk5 = nUnk5; prelaycmd->unk47.nUnk6 = nUnk6;
 }
-} } // namespace M_func_001E1670
 
 // 0x1E16C0 AddRelayStepRelease
-namespace M_func_001E16C0 { extern "C" {
-struct CMD; struct CMDF;
-struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
-struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builder, relay command 0x48: releases a step hold taken by command 0x47 (RemoveJsgStepHold). (inferred from
 // NextJsgCommand)
-void AddRelayStepRelease(void *pq, int a, int b, int c)
+extern "C" void AddRelayStepRelease(RELAYV *relay, OID oidActor, int nUnk5, int nUnk6)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x48, 1);
-    p->n10 = a; p->n14 = b; p->n18 = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk48, 1);
+    prelaycmd->unk48.oidActor = oidActor; prelaycmd->unk48.nUnk5 = nUnk5; prelaycmd->unk48.nUnk6 = nUnk6;
 }
-} } // namespace M_func_001E16C0
 
 // 0x1E1710 AddRelayRhythmSequence
 // Splice builder, relay command 0x49: starts a rhythm-game sequence on the rhythm manager (D_002DE570) from the 0x4A
@@ -2618,19 +2449,13 @@ extern "C" void AddRelayRhythmSequence(RELAYV *relay, int n)
 }
 
 // 0x1E1740 AddRelayRhythmCue
-namespace M_func_001E1740 { extern "C" {
-union U; struct CMD;
-union U { int n; float g; };
-struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builder, relay command 0x4A: one rhythm cue (time, move) for a DANCER actor, collected by the preceding 0x49.
 // (inferred from NextJsgCommand)
-void AddRelayRhythmCue(void *pq, int a, int b, int c, float g)
+extern "C" void AddRelayRhythmCue(RELAYV *relay, int nUnk5, int nUnk6, OID oidActor, float gUnk4)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x4A, 0);
-    p->a[0].g = g; p->a[1].n = a; p->a[2].n = b; p->a[3].n = c;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk4A, 0);
+    prelaycmd->unk4A.gUnk4 = gUnk4; prelaycmd->unk4A.nUnk5 = nUnk5; prelaycmd->unk4A.nUnk6 = nUnk6; prelaycmd->unk4A.oidActor = oidActor;
 }
-} } // namespace M_func_001E1740
 
 // 0x1E17A0 AddRelayPlayAsegDefault
 // Splice builtin: append a RELAYCK 0x4B (PlayAsegDefault) command to the relay (AddRelayCommand(prelay,0x4B,fAsync))
@@ -2668,23 +2493,17 @@ extern "C" void AddRelayWaitTimer(RELAYV *relay, float dtWait)
 }
 
 // 0x1E1870 AddRelayMurrayApplySma
-namespace M_func_001E1870 { extern "C" {
-union U; struct CMD;
-union U { int n; float g; };
-struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
 // Splice builder, relay command 0x4F: Murray applies an SMA found on the named object (func_001B9C00). (inferred from
 // NextJsgCommand)
-void AddRelayMurrayApplySma(void *pq, int a, int b, int c, int d, int e, int x)
+extern "C" void AddRelayMurrayApplySma(RELAYV *relay, int nUnk5, int nUnk7, int nUnk6, int nUnk8, OID oidActor, int fAsync)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x4F, x);
-    p->a[1].n = a;
-    p->a[3].n = b;
-    p->a[2].n = c;
-    p->a[4].n = d;
-    p->a[0].n = e;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk4F, fAsync);
+    prelaycmd->unk4F.nUnk5 = nUnk5;
+    prelaycmd->unk4F.nUnk7 = nUnk7;
+    prelaycmd->unk4F.nUnk6 = nUnk6;
+    prelaycmd->unk4F.nUnk8 = nUnk8;
+    prelaycmd->unk4F.oidActor = oidActor;
 }
-} } // namespace M_func_001E1870
 
 // 0x1E18E0 AddRelayCommand50
 // Splice builtin: append a RELAYCK 0x50 (Unk50) command to the relay (AddRelayCommand(prelay,0x50,fAsync)) and fill
@@ -2930,8 +2749,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP
 extern "C" {
 /* memset: sly2/classes.h's declaration */
 }
-// Inline helper GrfUpdateLo: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// The LO update flags (tagged word, maybe behind a pointer).
 inline int GrfUpdateLo(LO *plo)
 {
     int grf = plo->grfUnk40;
@@ -4874,14 +4692,13 @@ struct C { char pad[0x18]; int context; };
 struct O { char pad[0x74]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
 struct O *FindJsgObject(struct C *script, int n);
 float GetDifficulty(struct G *pg);
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int speedByDifficulty, int b);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int oid, int b);
 void *FindLiveSma(void *p, int n);
 float DtSmaToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
-// Inline helper GClamp: speedByDifficulty few VU0/EE instructions in asm (or speedByDifficulty small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Clamps g to [lo, hi].
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
-// Seconds speedByDifficulty command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
+// Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
 float GetJsgCommandDuration(struct C *script, struct P *command)
@@ -4958,9 +4775,7 @@ qword ConvertAloVec(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
 int FFloatsNear__Ffff(float,float,float);
 }
-// Inline helpers Sub, ToVU, X, Y, Z, Root, LengthXY: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 static inline float X(qword a){float r;__asm__("mtc1 %1,%0":"=f"(r):"r"(a));return r;}
@@ -5395,8 +5210,7 @@ struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
-// Inline helper ByteOffset: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// index * 4 in $a0 (shapes the register choice).
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
 void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
@@ -5643,8 +5457,7 @@ qword DecomposeRotationMatrixToEuler(void *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
-// Inline helpers X, Y, Z: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so the
-// compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers X, Y, Z (small asm wrappers/accessors shaped for the match).
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }

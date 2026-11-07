@@ -32,7 +32,7 @@ struct BOMB : public SO
       float tDetonate;
       float svDetonate;
       undefined4 unk_0x15c[(0x1e8 - 0x15c) / 4];
-      int nUnk1e8;   /* nonzero: PresetSplmissAccel and PresetAccmissAccel do nothing */
+      int thrower;   /* +0x1E8 (bomb.cpp: the thrower); while set PresetSplmissAccel and PresetAccmissAccel do nothing */
       undefined4 unk_0x1ec[(0x1f4 - 0x1ec) / 4];
       int fCustomXps;
       undefined4 unk_0x1f8[2];
@@ -53,19 +53,19 @@ struct BOMB : public SO
 };
 struct MISSILE : public BOMB
 {
-      LO *ploTarget;         /* +0x210 set by FireMissile; its local transform maps qwTarget (GetMissileTargetPosition) */
+      LO *targetObject;         /* +0x210 set by FireMissile; its local transform maps targetPos (GetMissileTargetPosition) */
       undefined4 unk_0x214[3];
-      qword qwTarget;        /* +0x220 the target point, local to ploTarget when there is one */
-      ASEG *paseg;           /* +0x230 animation applied while flying */
-      ASEGA *pasega;
-      int coidIgnore;        /* +0x238 objects (by oid) and classes the missile does not hit, four each */
-      OID aoidIgnore[4];
-      int ccidIgnore;
-      CID acidIgnore[4];
-      float svLaunch;        /* +0x260 800 */
-      int fAct;              /* +0x264 run the flight action */
-      ACT *pact;             /* +0x268 */
-      float gAct;            /* +0x26C the action's parameter (1.0) */
+      qword targetPos;        /* +0x220 the target point, local to targetObject when there is one */
+      ASEG *flightAnim;           /* +0x230 animation applied while flying */
+      ASEGA *flightAnimState;
+      int numIgnoredObjects;        /* +0x238 objects (by oid) and classes the missile does not hit, four each */
+      OID ignoredObjects[4];
+      int numIgnoredClasses;
+      CID ignoredClasses[4];
+      float launchSpeed;        /* +0x260 800 */
+      int hasFlightAction;              /* +0x264 run the flight action */
+      ACT *flightAction;             /* +0x268 */
+      float flightActionParam;            /* +0x26C the action's parameter (1.0) */
     virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetMissileClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
@@ -75,12 +75,12 @@ struct MISSILE : public BOMB
     virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
-typedef char assert_MISSILE_paseg[SLY2_OFFSETOF(MISSILE, paseg) == 0x230 ? 1 : -1];
-typedef char assert_MISSILE_svLaunch[SLY2_OFFSETOF(MISSILE, svLaunch) == 0x260 ? 1 : -1];
+typedef char assert_MISSILE_paseg[SLY2_OFFSETOF(MISSILE, flightAnim) == 0x230 ? 1 : -1];
+typedef char assert_MISSILE_svLaunch[SLY2_OFFSETOF(MISSILE, launchSpeed) == 0x260 ? 1 : -1];
 struct ACCMISS : public MISSILE
 {
-      float svTarget;
-      float svFast;
+      float cruiseSpeed;
+      float speedChangeRate;
       undefined4 unk_0x278[2];
     virtual void VUnk69() __asm__("PresetAccmissAccel");
     virtual CLASSINFO *Pclassinfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
@@ -91,11 +91,11 @@ struct ACCMISS : public MISSILE
    virtuals as members. */
 struct CID82 : public MISSILE
 {
-      float dtFlight;        /* +0x270 > 0: arrive after this time; else from the launch velocity (FireSplmiss) */
-      float svMax;           /* +0x274 1500 */
-      float tArrive;         /* +0x278 */
+      float flightTime;        /* +0x270 > 0: arrive after this time; else from the launch velocity (FireSplmiss) */
+      float maxSpeed;           /* +0x274 1500 */
+      float arrivalTime;         /* +0x278 */
       undefined4 unk_0x27C;
-      qword qwVelTarget;     /* +0x280 velocity at the target */
+      qword targetVelocity;     /* +0x280 velocity at the target */
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
     virtual void VUnk69() __asm__("PresetSplmissAccel");   /* slot 70 */
@@ -129,7 +129,7 @@ ACT *NewPathAct(MISSILE *pmissile, XF *pxf, int a, int b, float g0, float g1);
 void ApplyBombThrow(BOMB *pbomb);
 int FIgnoreBombIntersection(BOMB *pbomb, SO *pso);
 int MaxInt(int r, int n);
-void FireMissile(MISSILE *pmissile, LO *ploTarget, V *ppos);
+void FireMissile(MISSILE *pmissile, LO *targetObject, V *ppos);
 V GetMissileTargetPosition(MISSILE *pmissile, float g);
 qword LimitVectorLength(qword v, float s);
 qword GetLoWorldPos(SO *pso);
@@ -141,89 +141,90 @@ qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
 /* GetMissileTargetPosition as its two callers call it: the hidden result pointer passed by hand. */
 extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) __asm__("GetMissileTargetPosition");
-void ApplyAsegCur(ASEG *paseg, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
+void ApplyAsegCur(ASEG *segment, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
 int FFloatsNear(float g0, float g1, float gEpsilon);
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
-// MISSILE::Init (vtable slot 7): InitBomb; fFollowTrajectory(+0x264)=1; +0x260=800; +0x26C=1.
+// MISSILE::Init (vtable slot 7): the BOMB init; runs a flight action (parameter 1); launch speed 800.
 void InitMissile(MISSILE *missile);
 void MISSILE::Init()
 {
     MISSILE *missile = this;
     InitBomb(missile);
-    missile->fAct = 1;
-    missile->svLaunch = 800.0f;
-    missile->gAct = 1.0f;
+    missile->hasFlightAction = 1;
+    missile->launchSpeed = 800.0f;
+    missile->flightActionParam = 1.0f;
 }
 
-// MISSILE::LoadFromBrx (vtable slot 14): base load (LoadSoFromBrx) + SnipLoObjects(this,1, s_asnipMissile).
+// MISSILE::LoadFromBrx (vtable slot 14): SO load, then binds the flight animation (oid 0x7B, s_asnipMissile).
 void LoadMissileFromBrx(MISSILE *missile, CBinaryInputStream *stream)
 {
     LoadSoFromBrx(missile, stream);
     BindLoOidTable(missile, 1, s_asnipMissile);
 }
 
-// MISSILE::OnRemove (vtable slot 12): OnSoRemove (RemoveSoHierarchy) then retract current asega.
+// MISSILE::OnRemove (vtable slot 12): SO removal; stops the flight animation and releases the flight action.
 void OnMissileRemove(MISSILE *missile)
 {
     RemoveSoHierarchy(missile);
-    ApplyAsegCur(0, (ALO *)missile, 0.0f, 1.0f, 0, &missile->pasega);
-    ReleaseAct(&missile->pact);
+    ApplyAsegCur(0, (ALO *)missile, 0.0f, 1.0f, 0, &missile->flightAnimState);
+    ReleaseAct(&missile->flightAction);
 }
 
-// MISSILE::Fire (vt78): store source LO (+0x210) and target pos (+0x220), start fire aseg, optionally start action.
-extern "C" void FireMissile(MISSILE *missile, LO *ploTarget, V *targetPos)
+// MISSILE::Fire (vtable slot 78): remembers the target (a point, local to targetObject when given), plays the flight
+// animation and, if enabled, starts the flight action on the rotation XF (func_0012DCA0 kind 5).
+extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
 {
     V v;
     v = *targetPos;
-    missile->ploTarget = ploTarget;
-    *(V *)&missile->qwTarget = v;
-    ApplyAsegCur(missile->paseg, (ALO *)missile, 0.0f, 1.0f, 8, &missile->pasega);
-    if (missile->fAct)
-        missile->pact = NewPathAct(missile, missile->pxfUnk5c, 0, 5, missile->gAct, 0.0f);
+    missile->targetObject = targetObject;
+    *(V *)&missile->targetPos = v;
+    ApplyAsegCur(missile->flightAnim, (ALO *)missile, 0.0f, 1.0f, 8, &missile->flightAnimState);
+    if (missile->hasFlightAction)
+        missile->flightAction = NewPathAct(missile, missile->pxfUnk5c, 0, 5, missile->flightActionParam, 0.0f);
 }
 
 // MISSILE vtable slot 77 (thrown/launched): the BOMB behaviour, then stops the flight action. (inferred)
 extern "C" void ApplyMissileThrow(MISSILE *missile)
 {
     ApplyBombThrow(missile);
-    ReleaseAct(&missile->pact);
+    ReleaseAct(&missile->flightAction);
 }
 
-// MISSILE vtable slot 61: BOMB base result, modified when other SO's oid is in list +0x23C or derives from a cid in list
-// +0x250.
+// MISSILE vtable slot 61 (FIgnoreIntersection): the BOMB answer, plus bit 1 (func_00134310) for objects in the
+// ignore lists (by oid or class).
 int FIgnoreMissileIntersection(MISSILE *missile, SO *pso)
 {
     int i, j;
     int r = FIgnoreBombIntersection(missile, pso);
-    for (i = 0; i < missile->coidIgnore; i++)
-        if (missile->aoidIgnore[i] == pso->oid) r = MaxInt(r, 1);
-    for (j = 0; j < missile->ccidIgnore; j++)
-        if (FIsBasicDerivedFrom(pso, missile->acidIgnore[j])) r = MaxInt(r, 1);
+    for (i = 0; i < missile->numIgnoredObjects; i++)
+        if (missile->ignoredObjects[i] == pso->oid) r = MaxInt(r, 1);
+    for (j = 0; j < missile->numIgnoredClasses; j++)
+        if (FIsBasicDerivedFrom(pso, missile->ignoredClasses[j])) r = MaxInt(r, 1);
     return r;
 }
 
 // Splice setter: adds an object name to the missile's ignore list (at most four), see FIgnoreMissileIntersection.
 extern "C" void AddMissileSpecialObject(MISSILE *missile, OID oid)
 {
-    if ((unsigned int)missile->coidIgnore < 4) missile->aoidIgnore[missile->coidIgnore++] = oid;
+    if ((unsigned int)missile->numIgnoredObjects < 4) missile->ignoredObjects[missile->numIgnoredObjects++] = oid;
 }
 
 // Splice setter: adds a class to the missile's ignore list (at most four), see FIgnoreMissileIntersection.
 extern "C" void AddMissileSpecialClass(MISSILE *missile, CID cid)
 {
-    if ((unsigned int)missile->ccidIgnore < 4) missile->acidIgnore[missile->ccidIgnore++] = cid;
+    if ((unsigned int)missile->numIgnoredClasses < 4) missile->ignoredClasses[missile->numIgnoredClasses++] = cid;
 }
 
-// ACCMISS::Init: InitMissile; svFast(+0x270)=2000, svTarget(+0x274)=5000, fFollowTrajectory=0.
+// ACCMISS::Init: the MISSILE init; cruise speed 2000, speed change rate 5000, no flight action.
 void InitAccmiss(ACCMISS *missile)
 {
     InitMissile(missile);
-    missile->svTarget = 2000.0f;
-    missile->svFast = 5000.0f;
-    missile->fAct = 0;
+    missile->cruiseSpeed = 2000.0f;
+    missile->speedChangeRate = 5000.0f;
+    missile->hasFlightAction = 0;
 }
 
 struct VU_FLOAT
@@ -288,42 +289,42 @@ static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
     return qw;
 }
 
-// ACCMISS vtable slot 70 (PresetAccel): smooths the speed toward svTarget along the current direction and applies the
-// change as a constrained acceleration (no-op while nUnk1e8 is set).
+// ACCMISS vtable slot 70 (PresetAccel): smooths the speed toward cruiseSpeed along the current direction and applies the
+// change as a constrained acceleration (no-op while thrower is set).
 /* 0x1B20B8 PresetAccmissAccel (ACCMISS vtable slot 69): ported from Lilly's personal Sly 2 decomp (src/P2/accmiss.c).
-   Steers the velocity towards svTarget along the current direction (GSmooth), constrained by the physics. */
+   Steers the velocity towards cruiseSpeed along the current direction (GSmooth), constrained by the physics. */
 void ACCMISS::VUnk69()
 {
-    if (nUnk1e8 == 0)
+    if (thrower == 0)
     {
         qword qwVel = GetVelocity();
         float sv = GLength(qwVel);
         qword qwDir = QwDivFloat(qwVel, sv);
-        SMP smp = { svFast, 0.0f, 1.0f };
-        float svNew = GSmooth(sv, svTarget, D_002DDED0.dt, &smp, 0);
+        SMP smp = { speedChangeRate, 0.0f, 1.0f };
+        float svNew = GSmooth(sv, cruiseSpeed, D_002DDED0.dt, &smp, 0);
         qword qwDv = QwDivBits(VuSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.dt);
         AddSoAcceleration(this, ApplyConstr((CONSTR *)((char *)psophys + 0xB0), pxfUnk58, qwDv));
     }
 }
 
-// CID-82 missile Init: InitMissile; +0x274=1500. (inferred)
+// CID82 (SPLMISS) Init: the MISSILE init; maximum speed 1500.
 void CID82::Init()
 {
     CID82 *psplmiss = this;
     InitMissile(psplmiss);
-    psplmiss->svMax = 1500.0f;
+    psplmiss->maxSpeed = 1500.0f;
 }
 
-// Inline helper Scale: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// a scaled by lane x of k.
 inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a),"0"(k));return k;}
-// CID-82 Fire (vt78): FireMissile then, if no fixed time, predict target position 0.5 s ahead and set clamped launch
-// velocity. (inferred)
+// CID82 Fire (vtable slot 78): FireMissile; with a flight time the arrival time follows from it; otherwise the target
+// predicted 0.5 s ahead and the launch velocity (clamped to 0.75 maxSpeed) give the arrival time by a sweep test
+// (func_0014C748, at least 0.25). Hand-scheduled asm (see the header). (inferred)
 extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
  WORKF w;
  w.pos.q=*(qword*)point;
  FireMissile(missile,source,(V*)&w.pos);
- if(missile->dtFlight>0.0f)missile->tArrive=D_002DDED0.t+missile->dtFlight;
+ if(missile->flightTime>0.0f)missile->arrivalTime=D_002DDED0.t+missile->flightTime;
  else{
   func_001B2398Ret((V*)&w.velocity,missile,0.5f);
   register qword copied __asm__("$2");register VE*table __asm__("$3");register float negative __asm__("$f0");
@@ -333,7 +334,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
   w.spill.q=k;
   qword raw=method(receiver);
   w.velocity.q=Scale(raw,w.spill.q);
-  qword clamped=LimitVectorLength(w.velocity.q,0.75f*missile->svMax);
+  qword clamped=LimitVectorLength(w.velocity.q,0.75f*missile->maxSpeed);
   register qword velocity __asm__("vf1");
   __asm__("qmtc2.ni %1,%0":"=j"(velocity):"r"(clamped));
   register qword scalarWord __asm__("$2");
@@ -348,7 +349,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
   __asm__("vsub.xyzw %0,%4,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\taddiu %3,$zero,%8\n\tvadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %1,%0,%2x":"=j"(d),"=j"(acc),"=j"(amount),"=r"(count):"j"(direction),"j"(position),"m"(w.spill.q),"m"(w.scalar),"I"(1));
   register qword originArgument __asm__("$4"),endpointArgument __asm__("$6"),velocityArgument __asm__("$5");
   register float radius __asm__("$f12");register HIT*output __asm__("$8");
-  __asm__("lq %0,%5\n\tlwc1 %1,%6\n\tqmfc2.ni %2,%7\n\tlq %3,%8\n\tla %4,%a9":"=&r"(originArgument),"=f"(radius),"=&r"(endpointArgument),"=&r"(velocityArgument),"=r"(output):"m"(*zero),"m"(missile->svMax),"j"(acc),"m"(w.velocity.q),"p"(&w.hit));
+  __asm__("lq %0,%5\n\tlwc1 %1,%6\n\tqmfc2.ni %2,%7\n\tlq %3,%8\n\tla %4,%a9":"=&r"(originArgument),"=f"(radius),"=&r"(endpointArgument),"=&r"(velocityArgument),"=r"(output):"m"(*zero),"m"(missile->maxSpeed),"j"(acc),"m"(w.velocity.q),"p"(&w.hit));
   w.tmp.q=acc;
   ClipEdgeToSphere(originArgument,velocityArgument,endpointArgument,count,output,radius);
   register float max __asm__("$f1");
@@ -356,32 +357,31 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
   register float hi __asm__("$f3")=w.hit.t1;
   __asm__("max.s %0,%1,%2":"=f"(max):"f"(lo),"f"(hi));
   register float duration __asm__("$f2")=1.0f/max;
-  missile->tArrive=D_002DDED0.t+duration;
+  missile->arrivalTime=D_002DDED0.t+duration;
  }
 }
 
 // 4x4 matrix times point.
 static inline qword MulPt(M4 *m, qword v) { qword r; r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], v); return r; }
-// Target position in world: transform stored target pos by source LO's world matrix (predicted dt), or raw pos if no
-// source. (inferred)
+// The target point in world space: through targetObject's local matrix predicted dt ahead (LoadIdentityMatrix4),
+// or the stored point when there is no target object. (inferred)
 extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
 {
     V r;
-    if (missile->ploTarget) {
+    if (missile->targetObject) {
         M4 m;
         M4 m2;
-        LoadIdentityMatrix4(missile->ploTarget->PxfLocal((MATRIX4 *)&m), 0, &m2, 0, g);
-        *(qword *)&r = MulPt(&m2, MulPt(&m, missile->qwTarget));
+        LoadIdentityMatrix4(missile->targetObject->PxfLocal((MATRIX4 *)&m), 0, &m2, 0, g);
+        *(qword *)&r = MulPt(&m2, MulPt(&m, missile->targetPos));
     } else {
-        *(qword *)&r = missile->qwTarget;
+        *(qword *)&r = missile->targetPos;
     }
     return r;
 }
 
 // Lanes y and z of a 128-bit EE register as floats; vtable slot 33 (GetVelocity).
 static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
-// Inline helpers Z, Velocity: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
-// the compiler's register and instruction choice matches the original; the names say what they compute.
+// Lane z as a float; the missile's velocity (vtable slot 33).
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
 static inline qword Velocity(CID82*missile){VE*vt=PVT(missile);return ((qword(*)(void*))vt[33].pfn)((char*)missile+vt[33].d);}
 // Stores the output vector as the destination and reports whether it equals the previous one (part of
@@ -389,16 +389,17 @@ static inline qword Velocity(CID82*missile){VE*vt=PVT(missile);return ((qword(*)
 static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*destination){
  register qword copied __asm__("$3"),target __asm__("$17"),zero __asm__("$16");register qword*origin __asm__("$2");
  register float targetX __asm__("$f13"),epsilon __asm__("$f14"),zeroX __asm__("$f12");
- __asm__("lq %0,%6\n\tlui %1,%%hi(%8)\n\tlq %2,%7\n\taddiu %1,%1,%%lo(%8)\n\tsq %0,%5\n\tmtc1 %2,%3\n\tli.s %4,%9":"=&r"(copied),"=&r"(origin),"=&r"(target),"=f"(targetX),"=f"(epsilon),"=m"(*destination):"m"(*output),"m"(missile->qwVelTarget),"i"(&D_002A2DD0),"F"(0.0001f));
+ __asm__("lq %0,%6\n\tlui %1,%%hi(%8)\n\tlq %2,%7\n\taddiu %1,%1,%%lo(%8)\n\tsq %0,%5\n\tmtc1 %2,%3\n\tli.s %4,%9":"=&r"(copied),"=&r"(origin),"=&r"(target),"=f"(targetX),"=f"(epsilon),"=m"(*destination):"m"(*output),"m"(missile->targetVelocity),"i"(&D_002A2DD0),"F"(0.0001f));
  __asm__("lq %0,%2\n\tmtc1 %0,%1":"=r"(zero),"=f"(zeroX):"m"(*origin));
  return FFloatsNear(zeroX,targetX,epsilon)&&FFloatsNear(Y(zero),Y(target),0.0001f)&&FFloatsNear(Z(zero),Z(target),0.0001f);
 }
-// CID-82 vtable slot 70: steer velocity toward predicted target position until deadline (+0x278). (inferred)
+// CID82 vtable slot 70 (PresetAccel): steers along a Bezier from where the missile is to the predicted target, to arrive
+// at arrivalTime with targetVelocity (a moving target: the velocity that closes the gap). Hand-scheduled asm. (inferred)
 extern "C" void PresetSplmissAccel(CID82*missile){
- if(missile->nUnk1e8)return;
+ if(missile->thrower)return;
  WORKA w;
  float remaining;
- {register float deadline __asm__("$f1")=missile->tArrive;register float now __asm__("$f2")=D_002DDED0.t;
+ {register float deadline __asm__("$f1")=missile->arrivalTime;register float now __asm__("$f2")=D_002DDED0.t;
  deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.dt;remaining=GMax(deadline,0.0f)+frameStep;}
  func_001B2398Ret(&w.output,missile,GMin(remaining,0.5f));
  int stationary=CaptureDestinationAndEqual(missile,&w.output,&w.destination);
@@ -416,7 +417,7 @@ extern "C" void PresetSplmissAccel(CID82*missile){
   register qword factor __asm__("vf2"),difference __asm__("vf3"),minus __asm__("vf4"),value __asm__("vf5"),result __asm__("vf1");
   __asm__("lqc2 %0,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\tqmtc2.ni %8,%3\n\tvmulax.xyzw ACC,%1,%0x\n\tvmaddx.xyzw %4,%3,%2x":"=j"(factor),"=j"(difference),"=j"(minus),"=j"(value),"=j"(result):"m"(w.scale.q),"m"(w.delta.q),"m"(w.negative.q),"r"(velocity));
   *(qword*)&w.output=result;
- }else *(qword*)&w.output=missile->qwVelTarget;
+ }else *(qword*)&w.output=missile->targetVelocity;
  register CLOCK*clock __asm__("$17")=&D_002DDED0;
  float frameDt=clock->dt;
  qword position=GetLoWorldPos(missile);

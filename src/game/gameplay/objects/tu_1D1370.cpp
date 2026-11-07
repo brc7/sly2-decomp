@@ -63,8 +63,7 @@ struct V { float x, y, z; };
 struct S { char p0[0x180]; int state; char p1[0x51C-0x184]; float maxDrive; struct V unknown520; int pad; int unknown530; struct V unknown534;
     char p2[0x55C-0x540]; int maxHealth; char p3[0x578-0x560]; int unknown578; char p4[8]; int unknown584; char p5[8]; int unknown590; char p6[8]; int engineSoundId; };
 void InitPo(struct S *p);
-// Inline helper SetVector: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// Sets x, y, z of a vector.
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 // CID 77 vtable slot 7 Init: InitPo, max health 100, ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
 void InitRobottank(struct S *tank) {
@@ -184,8 +183,7 @@ void *NewSampledShape(int,int);
 void ReplaceSma(void *,P *,int,int,void **);
 void ResetRobottankHealth(P *);
 }
-// Inline helpers Zero, CPU: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
-// the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Zero, CPU (small asm wrappers/accessors shaped for the match).
 static inline qword Zero(){qword r;asm("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 static inline qword CPU(qword value){qword result;asm("qmfc2.ni %0,%1":"=r"(result):"j"(value));return result;}
 // CID 77 vtable slot 15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized
@@ -440,9 +438,7 @@ void SetSndPitch(SOUND *,float);
 void ResumeSnd(SOUND *);
 void WakeSo(P *);
 }
-// Inline helpers X, Y, Pack, PackMesh, Dot, ShotLength, DistanceAndVelocity, Evaluate, Clamp, Abs: small vector/scalar
-// wrappers (a few VU0/EE instructions in asm, or accessors) written so the compiler's register and instruction choice
-// matches the original; the names say what they compute.
+// Helpers X, Y, Pack, PackMesh, Dot, ShotLength, DistanceAndVelocity, Evaluate, Clamp, Abs (small asm wrappers/accessors shaped for the match).
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return X(r);}
 static inline qword Pack(float x,float y,float z){qword a,b;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(a),"=&r"(b):"f"(x),"f"(y),"f"(z));return a;}
@@ -464,9 +460,7 @@ static inline void ResetDrive(P *p){
  p->drive=zero;
  p->goalHeading=heading;
 }
-// Inline helpers GetMatrixFrom, GetVelocity: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers GetMatrixFrom, GetVelocity (small asm wrappers/accessors shaped for the match).
 static inline M4*GetMatrixFrom(P*p,VENTRY*vt){VENTRY&e=vt[31];return ((M4*(*)(void*))e.fn)((char*)p+e.delta);}
 static inline qword GetVelocity(P *p){VENTRY &e=p->vt[33];return ((qword (*)(void *))e.fn)((char *)p+e.delta);}
 // CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else
@@ -823,8 +817,7 @@ SO *FindNearestRobottankPickup(OBJ *pickup)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D2420 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-// Inline helper GetZ: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Lane z as a float.
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 struct E { float x, y, z, w; };
 struct O { char pad[0xE8]; int c; int a, b; struct E *ae; };
@@ -863,8 +856,7 @@ extern float D_002C20E0[2];
 qword GetLoWorldPos(void *);
 void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,float *,float);
 float atan2f(float, float);
-// Inline helpers GetX, GetY: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
-// the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers GetX, GetY (small asm wrappers/accessors shaped for the match).
 static inline float GetX(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 // Distance between two points in the xy plane.
@@ -1007,9 +999,7 @@ int IsPointInVol(void *, qword);
 }
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
-// Inline helpers Sub, Add, GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers Sub, Add, GetX, GetY, GetZ (small asm wrappers/accessors shaped for the match).
 static inline VV Sub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Add(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline float GetX(VV q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
@@ -1024,8 +1014,7 @@ static inline float Length2D(VV v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(r));
     return GetX(r);
 }
-// Inline helper Dist2D: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Distance in the xy plane.
 static inline float Dist2D(VV a, VV b) { return Length2D(Sub(a, b)); }
 // Dot product.
 static inline VV Dot(VV a, VV b)
@@ -1035,8 +1024,7 @@ static inline VV Dot(VV a, VV b)
             : "=j"(r), "=j"(one) : "j"(a), "j"(b));
     return r;
 }
-// Inline helpers Sqrt, DivideQ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written
-// so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Sqrt, DivideQ (small asm wrappers/accessors shaped for the match).
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
@@ -1047,8 +1035,7 @@ static inline VV NormalizeSafe(VV v, VV fallback)
         return fallback;
     return DivideQ(v, len);
 }
-// Inline helper VuFloatFromMemWord: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's
-// register and instruction choice matches the original; its name says what it computes.
+// A float's bit pattern into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "rV"(n)); return v; }
 static inline VV operator*(VU_FLOAT g, VV v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
 // Rotates a vector by a 3x3 matrix.
@@ -1059,8 +1046,7 @@ static inline VV Rotate(const M3 &m, VV v)
             : "=j"(r) : "j"(m.rows[0].q), "j"(m.rows[1].q), "j"(m.rows[2].q), "j"(v));
     return r;
 }
-// Inline helpers Max, Abs: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so the
-// compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Max, Abs (small asm wrappers/accessors shaped for the match).
 static inline float Max(float a, float b) { return a < b ? b : a; }
 static inline float Abs(float f) { return __builtin_fabsf(f); }
 
@@ -1302,9 +1288,7 @@ M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float);
 qword LimitVectorLength(float, qword);
 void AddSoAcceleration(P *, qword);
 }
-// Inline helpers ScalarBits, TimeStep, Scalar, Subtract, Scale: small vector/scalar wrappers (a few VU0/EE instructions
-// in asm, or accessors) written so the compiler's register and instruction choice matches the original; the names say
-// what they compute.
+// Helpers ScalarBits, TimeStep, Scalar, Subtract, Scale (small asm wrappers/accessors shaped for the match).
 static inline VV ScalarBits(int b) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "rV"(b)); return r; }
 static inline VV TimeStep(const CLOCK &c) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "rV"(*(const int *)&c.dt)); return r; }
 static inline VV Scalar(float f) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "r"(f)); return r; }
@@ -1342,9 +1326,7 @@ static inline VV InverseRotate(const M3 &m, VV v)
             : "=&j"(one), "=&j"(d0), "=&j"(d1), "=&j"(d2), "+j"(r) : "j"(v), "j"(m.rows[1].q), "j"(m.rows[2].q));
     return r;
 }
-// Inline helpers Divide, Evaluate, Clamp, ClampTo, Min, Abs: small vector/scalar wrappers (a few VU0/EE instructions in
-// asm, or accessors) written so the compiler's register and instruction choice matches the original; the names say what
-// they compute.
+// Helpers Divide, Evaluate, Clamp, ClampTo, Min, Abs (small asm wrappers/accessors shaped for the match).
 static inline VV Divide(VV v, VV scalar) { qword r; __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(scalar), "j"(v)); return r; }
 static inline float Evaluate(const POLY &p, float t) { return p.a + t * (p.b + t * p.c); }
 static inline float Clamp(float v, float low, float high) { if (v < low) return low; else if (high < v) return high; else return v; }
@@ -1503,9 +1485,7 @@ qword TransformPlane(M4 *, qword);
 void AddXp(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
 }
 
-// Inline helpers GetMatrix, PvAllocStack, ClearAb, Sqrt: small vector/scalar wrappers (a few VU0/EE instructions in
-// asm, or accessors) written so the compiler's register and instruction choice matches the original; the names say what
-// they compute.
+// Helpers GetMatrix, PvAllocStack, ClearAb, Sqrt (small asm wrappers/accessors shaped for the match).
 static inline M4 *GetMatrix(OWNER *p) { return p->vt[31].pfn((char *)p + p->vt[31].delta); }
 static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 static inline void ClearAb(void *pv, int cb) { func_002333B4(pv, 0, cb); }
@@ -1548,8 +1528,7 @@ static inline float Dot(qword a, qword b)
 }
 /* returning the compare as a value gives the target's li 1 / move 0 setcc in this arm only */
 static inline int FOutsideRadius(qword v, float r) { return r * r < Dot(v, v); }
-// Inline helper Sub: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Vector difference.
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // Weighted sum a*sa + b*sb.
 static inline qword Lerp(qword a, const VU_FLOATQ &sa, qword b, const VU_FLOATQ &sb)
@@ -1585,8 +1564,7 @@ static inline qword Pack(float x, float y, float z)
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0" : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-// Inline helpers Clamp, Min, Scale: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Clamp, Min, Scale (small asm wrappers/accessors shaped for the match).
 static inline float Clamp(float v, float low, float high) { if (v < low) return low; else if (high < v) return high; else return v; }
 static inline float Min(float a, float b) { return b < a ? b : a; }
 static inline VU_VECTOR Scale(const qword &a, const VU_FLOAT &s) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s.q)); return VU_VECTOR(r); }
@@ -1854,8 +1832,7 @@ struct E { int n; int nMax; int b; };
 struct Q { char pad[0x574]; struct E ae[1]; };
 struct S { char p0[0x150]; int n150; int a; int i; int d; };
 void SetRcPickupState(struct S *p, int n);
-// Inline helper Min: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// The smaller of two values.
 static inline int Min(int a, int b) { return a < b ? a : b; }
 // Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup
 // state 2. (inferred)
@@ -1886,8 +1863,7 @@ extern const LONGU D_002A7840;
 void AdjustSoNewXp(void *, OBJ *, int);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, long, void *);
-// Inline helper GetZ: tank few VU0/EE instructions in asm (or tank small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Lane z as a float.
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 // CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID
 // 0x6C pickup schedules CollectRcCarPickup. (inferred)
@@ -1918,7 +1894,7 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
 }
 } } // namespace M_AdjustRobottankNewXp
 
-// Keeps its per-function views in tank namespace of its own (see the file header).
+// Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankBounds { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { int a[8]; float g20; int b[11]; qword q50; };
@@ -1968,8 +1944,7 @@ qword*VECTOR_opAssign(qword*,qword);
 void UpdateSoXfWorldMatrices(P*);
 void RenderSoSelf(P*);
 }
-// Inline helpers Abs, Rotation: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written
-// so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Abs, Rotation (small asm wrappers/accessors shaped for the match).
 static inline float Abs(float f){float r;__asm__("abs.s %0,%1":"=f"(r):"f"(f));return r;}
 static inline M3 Rotation(qword axis,float angle) return r{BuildAxisAngleRotationMatrix(&r,axis,angle);}
 // Matrix product.
@@ -2048,8 +2023,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VU_VECTOR4 { qword q; };
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; VU_FLOAT() {} VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); } };
-// Inline helper VuFloat: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// A float into a VU register.
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "r"(g)); return v; }
 struct VENTRY { short delta, pad; void *fn; };
 struct P { char pad0[0xC]; VENTRY *vt; char pad10[0x550]; int remaining; };
@@ -2071,9 +2045,7 @@ qword SetVectorCylind(float, float, float);
 qword GetLoWorldPos(P *);
 int TakeRobottankDamage(P *, EVENT *);
 }
-// Inline helpers Zero, VecZero, Add, Sub, Sqrt: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers Zero, VecZero, Add, Sub, Sqrt (small asm wrappers/accessors shaped for the match).
 static inline VV Zero() { qword r; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(r)); return r; }
 static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = Zero(); return v; }
 static inline VV Add(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -2087,9 +2059,7 @@ static inline VV Dot(VV a, VV b)
             : "=j"(r), "=j"(one) : "j"(a), "j"(b));
     return r;
 }
-// Inline helpers Length, GFromQw, DivideQ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers Length, GFromQw, DivideQ (small asm wrappers/accessors shaped for the match).
 static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
 static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
@@ -2101,8 +2071,7 @@ static inline VV NormalizeSafe(VV v, VV fallback)
         return fallback;
     return DivideQ(v, len);
 }
-// Inline helper Cross: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Cross product.
 static inline VV Cross(VV a, VV b) { qword r; __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /* v * g with the scale (x) first */
 static inline VV ScaleV(VV g, VV v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(g), "j"(v)); return r; }
@@ -2116,8 +2085,7 @@ static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
               "jm"(f1.q), "j"(f2.q)); /* last two: allocation only */
     return r;
 }
-// Inline helper Random: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Random float in a [min, max] pair.
 static inline float Random(const float *range) { return GRandInRange__Fff(range[0], range[1]); }
 /* object vector (virtual get) += delta (virtual set) */
 static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)

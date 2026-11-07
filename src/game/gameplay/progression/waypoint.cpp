@@ -32,42 +32,44 @@ struct RGBAV
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short d; short pad; int (*pfn)(); };
 struct LO;
-struct TASKV { char pad[0x6C]; int idLabelName; };
-struct ATTACH { char pad[0x7C]; TASKV *ptask; };
+struct TASKV { char pad[0x6C]; int labelNameId; };    /* the job: its name plate string (-1: none) */
+struct ATTACH { char pad[0x7C]; TASKV *task; };
 /* View of an SO: LO flags word (or a pointer to it, bit 0 clear) at +0x40, bounding radius at +0xA0. */
-struct SOV { char pad[0x40]; int grfLo; char pad44[0x5C]; float sRadius; };
-typedef char assert_SO_sRadius[(unsigned int)&((SOV *)0)->sRadius == 0xA0 ? 1 : -1];
+struct SOV { char pad[0x40]; int taggedFlags; char pad44[0x5C]; float radius; };
+typedef char assert_SO_radius[(unsigned int)&((SOV *)0)->radius == 0xA0 ? 1 : -1];
 /* The waypoint (an SO). */
 struct WAYPTV
 {
     char pad0[0xC];
-    VTE *vt;                /* +0x00C (3 sends a message) */
+    VTE *vt;                /* +0x00C (slot 3: HandleSpliceEvent) */
     char pad10[0x30];
-    int grfLo;              /* +0x040 */
+    int taggedFlags;        /* +0x040 */
     char pad44[0x104];
-    ulong grfSo;            /* +0x148 */
-    int nMode;              /* +0x150 */
-    int cidTrigger;         /* +0x154 class that triggers it */
-    float sRadiusOff;       /* +0x158 trigger radius while inactive */
-    float sRadiusOn;        /* +0x15C ... and while active */
-    ATTACH *pattach;        /* +0x160 */
-    int fActive;            /* +0x164 */
-    LO *ploSource;          /* +0x168 */
-    SOV *psoMarker;          /* +0x16C */
-    SOV *psoBeam;            /* +0x170 */
-    SOV *psoBase;            /* +0x174 */
-    int frame;              /* +0x178 camera frame of the last height clip */
-    int fHit;               /* +0x17C */
-    float sHeight;          /* +0x180 */
-    int ipukReq;            /* +0x184 */
-    void *pcond;            /* +0x188 */
+    ulong soFlags;          /* +0x148 */
+    int mode;               /* +0x150 when it shows: 0 unless unknown3B0C, 1 only with unknown3B0C, 2 for a job */
+    int triggerClass;       /* +0x154 class of hero that activates it */
+    float inactiveRadius;   /* +0x158 activation radius while inactive */
+    float activeRadius;     /* +0x15C ... and while active */
+    ATTACH *attachment;     /* +0x160 the job it marks */
+    int isActive;           /* +0x164 */
+    LO *source;             /* +0x168 the marked object (the beam stands on it) */
+    SOV *marker;            /* +0x16C the marker at the top */
+    SOV *beam;              /* +0x170 */
+    SOV *base;              /* +0x174 */
+    int clipFrame;          /* +0x178 camera frame of the last height clip */
+    int hasCurtainHit;      /* +0x17C */
+    float height;           /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainDz) */
+    int requiredPowerup;    /* +0x184 hidden once this powerup is acquired (-1: none) */
+    void *jobCondition;     /* +0x188 shown only while this job condition holds */
 };
-typedef char assert_WAYPT_pcond[(unsigned int)&((WAYPTV *)0)->pcond == 0x188 ? 1 : -1];
+typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPTV *)0)->jobCondition == 0x188 ? 1 : -1];
 /* View of the hero (vtable slot 77, +0x2DC). */
-struct JTV { char pad[0xC]; VTE *vt; char pad1[0x2DC - 0x10]; int x2DC; };
+struct JTV { char pad[0xC]; VTE *vt; char pad1[0x2DC - 0x10]; int state; };
 
-/* World, camera and clock views (the fields used in this TU). */
-struct SW { char pad[0x3B0C]; int fUnk3B0C; char pad3B10[0xC40]; float tUnk4750, tUnk4754; char pad4758[0xC]; int cUnk4764, cUnk4768; };
+/* World, camera and clock views (the fields used in this TU). The world fields' meanings are unknown: unknown3B0C
+   switches waypoint modes 0/1/2; unknown4750/4754 are times the waypoints fade in after; mode-2 waypoints hide while
+   unknown4764 < unknown4768. */
+struct SW { char pad[0x3B0C]; int unknown3B0C; char pad3B10[0xC40]; float unknown4750, unknown4754; char pad4758[0xC]; int unknown4764, unknown4768; };
 struct CAM { char pad[0x90]; qwordV pos; char padA0[0x404]; int frame; };
 extern SW D_003DD490;      // g_sw
 extern CAM D_002DDF40;     // g_cm
@@ -82,40 +84,41 @@ JTV *GetHeroPo(SW *psw);
 int FIsBasicDerivedFrom__FP5BASIC3CID(JTV *pj, int k);
 }
 
-// InitSo; 50, 300.0, ... (inferred)
+// WAYPT (cid 107) vtable slot 7 (Init): SO init; triggered by class 50 within 300 (500 once active); no clip frame or
+// powerup yet; LO flags 0xA; clears SO flag bit 35.
 extern "C" void InitWaypt(WAYPTV *waypoint)
 {
-    int f;
+    int flags;
     InitSo(waypoint);
-    f = waypoint->grfLo;
-    waypoint->cidTrigger = 50;
-    waypoint->sRadiusOff = 300.0f;
-    waypoint->sRadiusOn = 500.0f;
-    waypoint->frame = -1;
-    waypoint->ipukReq = -1;
-    if (FIsPtr(f)) *(int *)f |= 0xA;
-    else waypoint->grfLo = f | 0xA;
-    waypoint->grfSo &= ~(1L << 35);
+    flags = waypoint->taggedFlags;
+    waypoint->triggerClass = 50;
+    waypoint->inactiveRadius = 300.0f;
+    waypoint->activeRadius = 500.0f;
+    waypoint->clipFrame = -1;
+    waypoint->requiredPowerup = -1;
+    if (FIsPtr(flags)) *(int *)flags |= 0xA;
+    else waypoint->taggedFlags = flags | 0xA;
+    waypoint->soFlags &= ~(1L << 35);
 }
 
 // Clears LO flag 8 (in the tagged flag word) on a child part, so it is not drawn by itself.
 static __inline__ void ClearBit(SOV *part)
 {
-    int f = part->grfLo;
-    if ((f ^ 1) & 1) {
-        *(int *)f &= ~8;
+    int flags = part->taggedFlags;
+    if ((flags ^ 1) & 1) {
+        *(int *)flags &= ~8;
     } else {
-        part->grfLo = f & ~8;
+        part->taggedFlags = flags & ~8;
     }
 }
-// SO PostLoad then clears grf bit 8 on child markers. (inferred)
+// WAYPT vtable slot 15 (PostLoad): SO post-load; the marker, beam and base are drawn by RenderWaypt, not by themselves.
 void WAYPT::VUnk14()
 {
     WAYPTV *waypoint = (WAYPTV *)this;
     PostSoLoad(waypoint);
-    if (waypoint->psoMarker) ClearBit(waypoint->psoMarker);
-    if (waypoint->psoBeam) ClearBit(waypoint->psoBeam);
-    if (waypoint->psoBase) ClearBit(waypoint->psoBase);
+    if (waypoint->marker) ClearBit(waypoint->marker);
+    if (waypoint->beam) ClearBit(waypoint->beam);
+    if (waypoint->base) ClearBit(waypoint->base);
 }
 
 // Distance between two points.
@@ -131,46 +134,58 @@ static __inline__ float GDist(qwordV a, qwordV b)
     g = VuToFloat(d);
     return g;
 }
-// SO update, distance to player/visibility. (inferred)
+// Calls the waypoint's vtable slot 3 (HandleSpliceEvent) with an event and no arguments.
+static inline void SendSpliceEvent(WAYPTV *waypoint, int event)
+{
+    ((void (*)(void *, int, int, int, int, int))waypoint->vt[3].pfn)((char *)waypoint + waypoint->vt[3].d, event, 0, 0, 0, 0);
+}
+enum { SPLICE_EVENT_ACTIVATE = 5, SPLICE_EVENT_DEACTIVATE = 6 };
+// WAYPT vtable slot 16 (Update): the waypoint is active while a hero of triggerClass is within the activation radius
+// (and the mode allows it); a hero of CID 0x34 that is busy (a state set, or vtable slot 77 answering 2) keeps the
+// current activity. Changes send Splice event 5 (activate) or 6 (deactivate).
 extern "C" void UpdateWaypt(WAYPTV *waypoint)
 {
-    JTV *pj;
-    int f;
-    float r;
+    JTV *hero;
+    int isInRange;
+    float radius;
     UpdateSo(waypoint);
-    pj = GetHeroPo(&D_003DD490);
-    if (pj && FIsBasicDerivedFrom__FP5BASIC3CID(pj, waypoint->cidTrigger)) {
-        r = waypoint->fActive ? waypoint->sRadiusOn : waypoint->sRadiusOff;
-        f = GDist(GetLoWorldPos(pj), GetLoWorldPos(waypoint)) < r;
-    } else f = 0;
-    if ((waypoint->nMode == 0 || waypoint->nMode == 2) && D_003DD490.fUnk3B0C)
-        f = 0;
-    if (f && FIsBasicDerivedFrom__FP5BASIC3CID(pj, 0x34) &&
-        (pj->x2DC != -1 || ((int (*)(void *))pj->vt[77].pfn)((char *)pj + pj->vt[77].d) == 2))
-        f = waypoint->fActive;
-    if (f != waypoint->fActive) {
-        waypoint->fActive = f;
-        if (f)
-            ((void (*)(void *, int, int, int, int, int))waypoint->vt[3].pfn)((char *)waypoint + waypoint->vt[3].d, 5, 0, 0, 0, 0);
+    hero = GetHeroPo(&D_003DD490);
+    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, waypoint->triggerClass)) {
+        radius = waypoint->isActive ? waypoint->activeRadius : waypoint->inactiveRadius;
+        isInRange = GDist(GetLoWorldPos(hero), GetLoWorldPos(waypoint)) < radius;
+    } else isInRange = 0;
+    if ((waypoint->mode == 0 || waypoint->mode == 2) && D_003DD490.unknown3B0C)
+        isInRange = 0;
+    if (isInRange && FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34) &&
+        (hero->state != -1 || ((int (*)(void *))hero->vt[77].pfn)((char *)hero + hero->vt[77].d) == 2))
+        isInRange = waypoint->isActive;
+    if (isInRange != waypoint->isActive) {
+        waypoint->isActive = isInRange;
+        if (isInRange)
+            SendSpliceEvent(waypoint, SPLICE_EVENT_ACTIVATE);
         else
-            ((void (*)(void *, int, int, int, int, int))waypoint->vt[3].pfn)((char *)waypoint + waypoint->vt[3].d, 6, 0, 0, 0, 0);
+            SendSpliceEvent(waypoint, SPLICE_EVENT_DEACTIVATE);
     }
 }
 
 // CalculateWayptCurtainDz (0x22A220, 441 instructions): query the camera->source "curtain" (corners posSrc, posSrc+up*k,
 // posCam+up*k, posCam; k = D_002C4490) against the BSPs of the objects found by IntersectSwBoundingBox, clip each face edge that
 // crosses the curtain plane against its four side planes and store the largest added slope (scaled by the
-// camera->source XY distance) as po->dz. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
+// camera->source XY distance) as po->height. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
 typedef unsigned short ushort;
 union UQ { qwordV q; float f[4]; };
-struct EDGE { ushort ivA, ivB, pad4, iface; EDGE *next; };
-struct FACE { qwordV eq; EDGE *pedge; int x14; int grf; int x1C; };
-struct NODE { NODE *a, *b; FACE *face; };
-struct TREE { int x0, x4, cnode; NODE *anode; };
+/* The BSP of a solid object, as func_00118D08 walks it: edges (two vertex indices and the face on their other side),
+   faces (plane, edge list, a visit flag), nodes, and the tree. */
+struct EDGE { ushort vertexA, vertexB, pad4, faceIndex; EDGE *next; };
+struct FACE { qwordV plane; EDGE *firstEdge; int unknown14; int flags; int unknown1C; };
+enum { FACE_FLAG_CANDIDATE = 0x4000 };   /* set on the faces func_00118D08 collects; cleared after the edge test */
+struct NODE { NODE *left, *right; FACE *face; };
+struct TREE { int unknown0, unknown4, numNodes; NODE *nodes; };
+/* One view for both the scenery objects (tree, vertices, faces) and the waypoint itself (source .. height). */
 struct O {
     char pad0[0x68]; TREE tree;
-    char pad78[0x1C]; qwordV *avert; int x98; FACE *aface;
-    char padA0[0xC8]; O *psrc; char pad16C[0xC]; int frame, fHit; float dz;
+    char pad78[0x1C]; qwordV *vertices; int unknown98; FACE *faces;
+    char padA0[0xC8]; O *source; char pad16C[0xC]; int clipFrame, hasCurtainHit; float height;
 };
 struct P4 { qwordV q; };
 struct REQ { int cb, align; };
@@ -292,35 +307,32 @@ static inline float LenXYFN(qwordV v, int n)
     return f;
 }
 
-// camera->source curtain query vs BSPs, stores max slope dz. (inferred)
-extern "C" void CalculateWayptCurtainDz(O *po)
+// How much taller the waypoint beam must be to be seen over the scenery from the camera (see the block comment above);
+// computed once per camera frame.
+extern "C" void CalculateWayptCurtainDz(O *waypoint)
 {
     UQ corner[4];
     UQ side[4];
     UQ tmp;
     FRAME frame;
-    UQ nrm;
-    struct { int cpso; O **apso; int cface; FACE **ppface; } L;
-#define cpso L.cpso
-#define apso L.apso
-#define cface L.cface
-#define ppface L.ppface
+    UQ normalScratch;
+    struct { int numObjects; O **objects; int faceBudget; FACE **faceCursor; } query;   /* one aggregate (stack layout) */
 
-    CAM *pcam = &D_002DDF40;
-    if (po->frame == pcam->frame)
+    CAM *camera = &D_002DDF40;
+    if (waypoint->clipFrame == camera->frame)
         return;
-    po->frame = pcam->frame;
-    qwordV posCam = pcam->pos;
-    O *psrc = po->psrc;
+    waypoint->clipFrame = camera->frame;
+    qwordV posCam = camera->pos;
+    O *source = waypoint->source;
     register qwordV rr asm("$6");   // pin: PosLoWorld result lives in a2 (3rd arg of InitPlaneFromPositions); later uses reload from the 0x190 slot
-    if (psrc)
-        rr = GetLoWorldPos(psrc);
+    if (source)
+        rr = GetLoWorldPos(source);
     else
-        rr = GetLoWorldPos(po);
+        rr = GetLoWorldPos(waypoint);
     qwordV posSrc = rr;
-    UQ *pplane = &tmp;   // &tmp taken here, not at the call: it (and its gcse copy for preq) then issues before the corner stores
-    po->fHit = 0;
-    po->dz = 0.0f;
+    UQ *planeOut = &tmp;   // &tmp taken here, not at the call: it (and its gcse copy for preq) then issues before the corner stores
+    waypoint->hasCurtainHit = 0;
+    waypoint->height = 0.0f;
 
     corner[0].q = posSrc;
     qwordV up = D_002A2DC0;
@@ -332,107 +344,111 @@ extern "C" void CalculateWayptCurtainDz(O *po)
     corner[2].q = v2;
     corner[1].q = v1;
     corner[3].q = posCam;
-    InitPlaneFromPositions(pplane, posCam, posSrc, corner[1].q);
+    InitPlaneFromPositions(planeOut, posCam, posSrc, corner[1].q);
     qwordV plane = tmp.q;
     P4 pvA, pvB;
 
     int i;
-    FACE **apface;
-    int ipso;
-    int c;
+    FACE **faces;
+    int objectIndex;
+    int numFaces;
     int j;
-    EDGE *pe;
+    EDGE *edge;
     for (i = 0; i < 4; i++) {
-        UQ *pc = corner;
-        qwordV edge = VuSub(pc[(i + 1) % 4].q, pc[i].q);
-        func_002564C0(&nrm);
-        nrm.q = plane;
-        InitPlaneFromNormalPos(&side[i], Normalize(Cross(edge, plane)), pc[i].q);
+        UQ *corners = corner;
+        qwordV cornerEdge = VuSub(corners[(i + 1) % 4].q, corners[i].q);
+        func_002564C0(&normalScratch);
+        normalScratch.q = plane;
+        InitPlaneFromNormalPos(&side[i], Normalize(Cross(cornerEdge, plane)), corners[i].q);
     }
-    ipso = 0;
+    objectIndex = 0;
     STACKSCOPE_ctor(&frame);
     REQ *preq = (REQ *)&tmp;
     preq->cb = 0x10000;
     preq->align = 16;
-    apface = (FACE **)AllocFromStack(preq);
+    faces = (FACE **)AllocFromStack(preq);
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;
     IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
-                  HasCameraBsp, 0, &cpso, &apso);
-    qwordV dpos = VuSub(posSrc, posCam);
-    int nso = cpso;
-    float sMax = ZOfN(dpos, nso) / LenXYFN(dpos, nso);
-    float sBase = sMax;
-    for (; ipso < cpso; ipso++) {
-        O *pso = apso[ipso];
-        cface = 0x4000;
-        ppface = apface;
-        TREE *ptree = &pso->tree;
-        int res = CollectBspSurfacesTouchingPolygon(ptree->anode, ptree->anode + ptree->cnode, 4, corner, &cface, &ppface);
-        switch (res) { case 0: STACKSCOPE_ctor_1AE4A0(&frame, 2); return; case 1: continue; case 2: break; }
-        c = ppface - apface;
+                  HasCameraBsp, 0, &query.numObjects, &query.objects);
+    qwordV toSource = VuSub(posSrc, posCam);
+    int numFound = query.numObjects;
+    float maxSlope = ZOfN(toSource, numFound) / LenXYFN(toSource, numFound);
+    float baseSlope = maxSlope;
+    for (; objectIndex < query.numObjects; objectIndex++) {
+        O *object = query.objects[objectIndex];
+        query.faceBudget = 0x4000;
+        query.faceCursor = faces;
+        TREE *tree = &object->tree;
+        int result = CollectBspSurfacesTouchingPolygon(tree->nodes, tree->nodes + tree->numNodes, 4, corner, &query.faceBudget, &query.faceCursor);
+        switch (result) {
+        case 0:         /* out of room: give up for this frame */
+            STACKSCOPE_ctor_1AE4A0(&frame, 2);
+            return;
+        case 1:         /* no face touches the curtain */
+            continue;
+        case 2:
+            break;
+        }
+        numFaces = query.faceCursor - faces;
         UQ d[6][2];
-        for (j = 0; j < c; ) {
-            pe = apface[j]->pedge;
+        for (j = 0; j < numFaces; ) {
+            edge = faces[j]->firstEdge;
             int jx = j;
-            __asm__("" : "+r"(jx) : "r"(pe));
-            int jn = jx + 1;
-            for (; pe; pe = pe->next) {
-                FACE *pfa = &pso->aface[pe->iface];
-                if (!(pfa->grf & 0x4000))
+            __asm__("" : "+r"(jx) : "r"(edge));
+            int nextJ = jx + 1;
+            for (; edge; edge = edge->next) {
+                FACE *face = &object->faces[edge->faceIndex];
+                if (!(face->flags & FACE_FLAG_CANDIDATE))
                     continue;
-                int ia = pe->ivA;
-                int ib = pe->ivB;
-                P4 *av = (P4 *)pso->avert;
-                P4 *pa = (P4 *)(((int)ia << 4) + (int)av);
-                P4 *pb = (P4 *)(((int)ib << 4) + (int)av);
-                P4 ta = *pa;
-                P4 tb = *pb;
-                pvA = ta;
-                pvB = tb;
-                float gA = PlaneDistA(d[0][0], d[0][1], plane, pvA.q);
-                float gB = PlaneDistB(d[1][0], d[1][1], plane, pvB.q);
-                if (0.0f < gA && 0.0f < gB)
+                int indexA = edge->vertexA;
+                int indexB = edge->vertexB;
+                P4 *vertices = (P4 *)object->vertices;
+                P4 *vertexPtrA = (P4 *)(((int)indexA << 4) + (int)vertices);   /* integer address sums: &vertices[i] schedules differently */
+                P4 *vertexPtrB = (P4 *)(((int)indexB << 4) + (int)vertices);
+                P4 vertexA = *vertexPtrA;
+                P4 vertexB = *vertexPtrB;
+                pvA = vertexA;
+                pvB = vertexB;
+                float distA = PlaneDistA(d[0][0], d[0][1], plane, pvA.q);
+                float distB = PlaneDistB(d[1][0], d[1][1], plane, pvB.q);
+                if (0.0f < distA && 0.0f < distB)
                     continue;
-                if (gA < 0.0f && gB < 0.0f)
+                if (distA < 0.0f && distB < 0.0f)
                     continue;
-                float u = gA / (gA - gB);
-                qwordV qa = VuFromFloat<qwordV>(1.0f - u);
+                float crossing = distA / (distA - distB);
+                qwordV qa = VuFromFloat<qwordV>(1.0f - crossing);
                 tmp.q = qa;
-                qwordV qb = VuFromFloat<qwordV>(u);
+                qwordV qb = VuFromFloat<qwordV>(crossing);
                 tmp.q = qb;
-                qwordV posX;
-                __asm__("vmulax.xyzw ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(posX) : "j"(pvA.q), "j"(pvB.q), "j"(qa), "j"(qb));
-                int fIn = 0;
-                if (PlaneDistS(d[2][0], d[2][1], side[0].q, posX) < 0.0f &&
-                    PlaneDistS(d[3][0], d[3][1], side[1].q, posX) < 0.0f &&
-                    PlaneDistS(d[4][0], d[4][1], side[2].q, posX) < 0.0f &&
-                    PlaneDistS(d[5][0], d[5][1], side[3].q, posX) < 0.0f)
-                    fIn = 1;
-                if (fIn) {
-                    qwordV dx = VuSub(posX, posCam);
-                    float s = ZOfP(dx) / LenXY(dx);
-                    if (sMax < s)
-                        sMax = s;
+                qwordV crossPos;
+                __asm__("vmulax.xyzw ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(crossPos) : "j"(pvA.q), "j"(pvB.q), "j"(qa), "j"(qb));
+                int isInside = 0;
+                if (PlaneDistS(d[2][0], d[2][1], side[0].q, crossPos) < 0.0f &&
+                    PlaneDistS(d[3][0], d[3][1], side[1].q, crossPos) < 0.0f &&
+                    PlaneDistS(d[4][0], d[4][1], side[2].q, crossPos) < 0.0f &&
+                    PlaneDistS(d[5][0], d[5][1], side[3].q, crossPos) < 0.0f)
+                    isInside = 1;
+                if (isInside) {
+                    qwordV toCrossing = VuSub(crossPos, posCam);
+                    float slope = ZOfP(toCrossing) / LenXY(toCrossing);
+                    if (maxSlope < slope)
+                        maxSlope = slope;
                 }
             }
-            j = jn;
+            j = nextJ;
         }
-        for (j = 0; j < c; j++)
-            apface[j]->grf &= ~0x4000;
+        for (j = 0; j < numFaces; j++)
+            faces[j]->flags &= ~FACE_FLAG_CANDIDATE;
     }
-    po->fHit = 1;
-    po->dz = (sMax - sBase) * LenXY(VuSub(posCam, posSrc));
+    waypoint->hasCurtainHit = 1;
+    waypoint->height = (maxSlope - baseSlope) * LenXY(VuSub(posCam, posSrc));
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }
-#undef cpso
-#undef apso
-#undef cface
-#undef ppface
 
 // RenderWaypt (cid 107 slot 39): fades the job marker in/out by the world clock, draws its three child SOs
 // scaled by the camera distance, and the job's name plate above it. Member names are descriptive guesses.
-// What decided the match: tStart reused for both fade times (one pseudo -> the game's f4/f3 registers), clamp
+// What decided the match: fadeStart reused for both fade times (one pseudo -> the game's f4/f3 registers), clamp
 // with a single result variable and by-value limits, `dz = p ? .. : 0.0f` (splits cse so g_normalZ's hi part is
 // copied into s4), the name plate drawn through a by-value RGBA inline (copy addresses in s0/s1), and the
 // float argument of DrawWorldLabel second (invisible in the callee, decides the f12 move's slot).
@@ -442,7 +458,7 @@ CLQV D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.
 LMV D_002C44D0 = {1.0f, 5.0f};
 float D_002C44D8 = 300.0f;
 extern "C" {
-void RenderSoSelf(WAYPTV *pwaypt);
+void RenderSoSelf(WAYPTV *waypoint);
 int FPowerupAcquired(int ipuk);
 int IsJobComplete(void *pcond);
 void CalculateWayptCurtainDz(O *po);
@@ -515,79 +531,80 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
     matRes = matT;
 }
 
-// fades the job marker, draws 3 child SOs scaled by distance, job name plate.
-extern "C" void RenderWaypt(WAYPTV *pwaypt)
+// WAYPT vtable slot 39 (RenderSelf): see the block comment above. The mode decides whether it shows at all; the beam
+// runs from the source up by height (plus a camera-distance-scaled top), with the marker on top and the base below.
+extern "C" void RenderWaypt(WAYPTV *waypoint)
 {
-    RenderSoSelf(pwaypt);
-    float tStart = GMax(D_003DD490.tUnk4750 + D_002C4494, D_003DD490.tUnk4754 + D_002C4498);
-    float uShow = GLimitG(GEvaluateClq(&D_002C44A0, D_002DDED0.t - tStart), D_002BBB60.gMin, D_002BBB60.gMax);
-    tStart = D_003DD490.tUnk4750 + D_002C449C;
-    float uLabel = GLimitG(GEvaluateClq(&D_002C44B0, D_002DDED0.t - tStart), D_002BBB60.gMin, D_002BBB60.gMax);
-    switch (pwaypt->nMode)
+    RenderSoSelf(waypoint);
+    float fadeStart = GMax(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
+    float showAlpha = GLimitG(GEvaluateClq(&D_002C44A0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    fadeStart = D_003DD490.unknown4750 + D_002C449C;
+    float labelAlpha = GLimitG(GEvaluateClq(&D_002C44B0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    switch (waypoint->mode)
     {
     case 0:
-        if (D_003DD490.fUnk3B0C)
-            uShow = uLabel = 0.0f;
+        if (D_003DD490.unknown3B0C)
+            showAlpha = labelAlpha = 0.0f;
         break;
     case 2:
-        if (D_003DD490.cUnk4764 < D_003DD490.cUnk4768 || D_003DD490.fUnk3B0C ||
-            (pwaypt->ipukReq != -1 && FPowerupAcquired(pwaypt->ipukReq)) ||
-            (pwaypt->pcond && !IsJobComplete(pwaypt->pcond)))
-            uShow = uLabel = 0.0f;
+        if (D_003DD490.unknown4764 < D_003DD490.unknown4768 || D_003DD490.unknown3B0C ||
+            (waypoint->requiredPowerup != -1 && FPowerupAcquired(waypoint->requiredPowerup)) ||
+            (waypoint->jobCondition && !IsJobComplete(waypoint->jobCondition)))
+            showAlpha = labelAlpha = 0.0f;
         break;
     case 1:
-        if (!D_003DD490.fUnk3B0C)
-            uShow = uLabel = 0.0f;
+        if (!D_003DD490.unknown3B0C)
+            showAlpha = labelAlpha = 0.0f;
         break;
     }
-    if (uShow == 0.0f)
+    if (showAlpha == 0.0f)
         return;
 
-    CalculateWayptCurtainDz((O *)pwaypt);
+    CalculateWayptCurtainDz((O *)waypoint);
     qwordV posCam = D_002DDF40.pos;
-    qwordV pos = GetLoWorldPos(pwaypt->ploSource);
-    qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pwaypt->sHeight));
-    float sDist;
-    FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &sDist);
-    float rScale = GLimitG(GEvaluateClq(&D_002C44C0, sDist), D_002C44D0.gMin, D_002C44D0.gMax);
-    qwordV posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(rScale * D_002C44D8));
+    qwordV pos = GetLoWorldPos(waypoint->source);
+    qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
+    float distance;
+    FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &distance);
+    float scale = GLimitG(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.gMin, D_002C44D0.gMax);
+    qwordV posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(scale * D_002C44D8));
 
     MATRIX4V mat;
-    if (pwaypt->psoMarker)
+    if (waypoint->marker)
     {
-        MATRIX3V matScaled = *(MATRIX3V *)GetLoWorldMatrix(pwaypt->psoMarker) * VuFloat(rScale);
-        MATRIX4V *pmat = &mat;
+        MATRIX3V scaledRotation = *(MATRIX3V *)GetLoWorldMatrix(waypoint->marker) * VuFloat(scale);
+        MATRIX4V *transform = &mat;
         VECTOR_opAssign(&mat.pos, posEnd);
-        *(MATRIX3V *)pmat = matScaled;
+        *(MATRIX3V *)transform = scaledRotation;
         mat.mat[2].w = 0.0f;
         mat.mat[1].w = 0.0f;
         mat.mat[0].w = 0.0f;
-        pmat->pos.w = 1.0f;
-        RenderLoAtMatrix(pwaypt->psoMarker, pmat, uShow, uShow);
+        transform->pos.w = 1.0f;
+        RenderLoAtMatrix(waypoint->marker, transform, showAlpha, showAlpha);
     }
-    if (pwaypt->psoBeam)
-        RenderLoAlongSegment(pwaypt->psoBeam, pos, posEnd, rScale, uShow);
-    if (pwaypt->psoBase)
+    if (waypoint->beam)
+        RenderLoAlongSegment(waypoint->beam, pos, posEnd, scale, showAlpha);
+    if (waypoint->base)
     {
-        MATRIX3V matScaled = *(MATRIX3V *)GetLoWorldMatrix(pwaypt->psoBase) * VuFloat(rScale);
-        MATRIX4V *pmat = &mat;
+        MATRIX3V scaledRotation = *(MATRIX3V *)GetLoWorldMatrix(waypoint->base) * VuFloat(scale);
+        MATRIX4V *transform = &mat;
         VECTOR_opAssign(&mat.pos, pos);
-        *(MATRIX3V *)pmat = matScaled;
+        *(MATRIX3V *)transform = scaledRotation;
         mat.mat[2].w = 0.0f;
         mat.mat[1].w = 0.0f;
         mat.mat[0].w = 0.0f;
-        pmat->pos.w = 1.0f;
-        RenderLoAtMatrix(pwaypt->psoBase, pmat, uShow, uShow);
+        transform->pos.w = 1.0f;
+        RenderLoAtMatrix(waypoint->base, transform, showAlpha, showAlpha);
     }
 
-    if (0.0f < uLabel && pwaypt->pattach && pwaypt->pattach->ptask && pwaypt->pattach->ptask->idLabelName != -1)
+    if (0.0f < labelAlpha && waypoint->attachment && waypoint->attachment->task && waypoint->attachment->task->labelNameId != -1)
     {
-        float dz = pwaypt->psoMarker ? rScale * pwaypt->psoMarker->sRadius : 0.0f;
-        qwordV posLabel = QwAddScaledG(posEnd, D_002A2DC0, VuFloat(dz));
-        RGBAV rgbaBack(0x80603030);
-        RGBAV rgbaText(0xFFC0C0C0);
-        rgbaBack.a = (uchar)(int)(uLabel * rgbaBack.a);
-        rgbaText.a = (uchar)(int)(uLabel * rgbaText.a);
-        DrawLabel(posLabel, rgbaBack, rgbaText, pwaypt->pattach->ptask->idLabelName, rScale);
+        float labelOffset = waypoint->marker ? scale * waypoint->marker->radius : 0.0f;
+        qwordV posLabel = QwAddScaledG(posEnd, D_002A2DC0, VuFloat(labelOffset));
+        RGBAV backColor(0x80603030);
+        RGBAV textColor(0xFFC0C0C0);
+        backColor.a = (uchar)(int)(labelAlpha * backColor.a);
+        textColor.a = (uchar)(int)(labelAlpha * textColor.a);
+        DrawLabel(posLabel, backColor, textColor, waypoint->attachment->task->labelNameId, scale);
     }
 }

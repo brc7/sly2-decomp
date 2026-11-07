@@ -27,34 +27,34 @@ struct BASIC;
 struct SM;
 struct SMA;
 struct ACT;
-struct SW { char pad[0x402C]; void *x402C; };
+struct SW { char pad[0x402C]; void *stimulusSystem; };   /* (inferred: func_00156698 adds a noise stimulus to it) */
 struct GAME;
 
 /* An XF (sly2/so.h: mat rows + position, world rows + position, parent, velocity). */
 struct XFV { M3 basis; qwordV orientation; M3 basisWorld; V position; char pad80[0xA0 - 0x80]; XFV *parent; char padA4[0xC]; V velocity; };
 /* SO::psophys and SO::ptree as read here. */
-struct SOPHYSV { char pad[0x80]; qwordV v80; char pad90[0xD4 - 0x90]; float gD4; float gD8; };
+struct SOPHYSV { char pad[0x80]; qwordV acceleration; char pad90[0xD4 - 0x90]; float unknownD4; float unknownD8; };   /* acceleration: inferred (PushGuardTrapAway cancels it) */
 /* A contact (elasticity at +0x98). */
 struct XP { char pad[0x98]; float elasticity; };
 struct SOV;
-struct SOTREEV { char pad[0x60]; SOV *owner; struct LN *pln; };
+struct SOTREEV { char pad[0x60]; SOV *owner; struct LN *contactLists; };
 /* A generic SO (the bodies the blast pushes, the objects the gadget meets). */
 struct SOV
 {
-    int x0, x4, x8;
+    int pad0[3];
     VTE *pvt;               /* 0x0C */
-    SOV *psoParent;          /* 0x10 */
+    SOV *parent;            /* 0x10 */
     char pad14[0x18 - 0x14];
     int oid;                /* 0x18 */
     char pad1C[0x40 - 0x1C];
-    int grf;                /* 0x40 tagged flags word */
+    int taggedFlags;        /* 0x40 tagged flags word */
     char pad44[0x58 - 0x44];
-    XFV *pxfPos;             /* 0x58 */
-    XFV *pxfRot;             /* 0x5C */
-    XFV *pxfRoot;            /* 0x60 */
+    XFV *positionXf;        /* 0x58 */
+    XFV *rotationXf;        /* 0x5C */
+    XFV *rootXf;            /* 0x60 */
     char pad64[0xE8 - 0x64];
-    SOPHYSV *psophys;        /* 0xE8 */
-    SOTREEV *ptree;          /* 0xEC */
+    SOPHYSV *physics;       /* 0xE8 */
+    SOTREEV *tree;          /* 0xEC */
     char padF0[0x150 - 0xF0];
 };
 typedef char assert_SO_size[sizeof(SOV) == 0x150 ? 1 : -1];
@@ -66,26 +66,46 @@ struct HOOK { struct CID100V *owner; ACTOR *object; HOOK *next; };
 
 struct CID100V : SOV
 {
-    int state;              /* 0x150 */
+    int state;              /* 0x150 TOSSABLE_STATE */
     float time;             /* 0x154 time of the last state change */
-    int sentinel;           /* 0x158 */
-    int kind;               /* 0x15C */
-    SOV *nearest;            /* 0x160 */
-    SM *psm;                /* 0x164 */
-    SMA *psma;              /* 0x168 */
-    CID100V *ptarget;        /* 0x16C */
-    float radius;           /* 0x170 */
-    int n174;               /* 0x174 */
-    int n178;               /* 0x178 */
+    int pendingContact;     /* 0x158 -1 none; 2 a surface to stick to was found; 4 touched while held (inferred) */
+    int gadgetKind;         /* 0x15C GADGET_KIND or another gadget id */
+    SOV *nearest;           /* 0x160 homing target (gadget 0x29) */
+    SM *stateMachine;       /* 0x164 */
+    SMA *smApplication;     /* 0x168 its goal follows the state (D_002C4398) */
+    CID100V *thrower;       /* 0x16C */
+    float maxThrowerDistance; /* 0x170 farther than this from the thrower it is fired (3000) */
+    int blastZapKind;       /* 0x174 zap kind of the blast hits (inferred, as BOMB's) */
+    int blastDamage;        /* 0x178 damage of the blast hits (-10) */
     ACT *rotationJob;       /* 0x17C */
     ACT *positionJob;       /* 0x180 */
     char pad184[0xC];
-    qwordV direction;        /* 0x190 */
-    SOV *pneighbor;          /* 0x1A0 */
+    qwordV stickNormal;     /* 0x190 contact normal of the surface to stick to */
+    SOV *stickTarget;       /* 0x1A0 */
     char pad1A4[0xC];
-    SOV *source;             /* 0x1B0 */
-    ACTOR *actor;           /* 0x1B4 */
+    SOV *source;            /* 0x1B0 where the guard trap holds its victim (inferred) */
+    ACTOR *actor;           /* 0x1B4 the trapped guard */
     HOOK hook;              /* 0x1B8 */
+};
+
+/* Tossable states (SetTossableState). */
+enum TOSSABLE_STATE
+{
+    TOSSABLE_POOLED = -1,
+    TOSSABLE_HELD = 0,
+    TOSSABLE_FLYING = 1,
+    TOSSABLE_STUCK = 2,
+    TOSSABLE_DETONATE = 3,
+    TOSSABLE_FADING = 4,
+    TOSSABLE_EXTRACTING = 5     /* health extractor / guard trap working on its actor */
+};
+/* Gadget ids (CID100V::gadgetKind) named by what the code does with them. */
+enum GADGET_KIND
+{
+    GADGET_TRIGGER_BOMB = 7,
+    GADGET_HEALTH_EXTRACTOR = 11,
+    GADGET_DETONATES_ON_STICK_1A = 0x1A,    /* detonates instead of sticking; turns toward nearest */
+    GADGET_HOMING_29 = 0x29                 /* as 0x1A, and homes on the nearest class-0x38 object */
 };
 
 struct LMV { float gMin, gMax; };
@@ -151,9 +171,9 @@ void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(SW *pg, qwordV pos, void (*pfn)(), void *pv, float r, int *pc, COLL ***papa);
 qwordV SetVectorSphere(float a, float b, float c);
 qwordV LimitVectorLength(qwordV v, float r);
-struct HIT { SOV *owner; int field4; SOV *object; int filter, channel; char pad14[0xC]; qwordV point, impulse; char pad40[0x20]; };
+struct HIT { SOV *owner; int field4; SOV *object; int zapKind, damage; char pad14[0xC]; qwordV point, impulse; char pad40[0x20]; };
 void DeliverZapToSo(HIT *px);
-struct R54 { char pad[0x54]; int x54; };
+struct R54 { char pad[0x54]; int unknown54; };   /* the stimulus NewNoise returns */
 R54 *NewNoise(void *pv, qwordV pos, CID100V *p);
 void ReleaseAct(ACT **);
 void RecalcSwOxfFilterForObject(SW *, CID100V *);
@@ -186,66 +206,72 @@ void StickTossable(CID100V *p, SOV *q);
 int IsTossableChainFree(CID100V *p, SOV *q);
 int IsTossableStateBlocking(CID100V *p);
 int IsHealthExtractor(CID100V *p);
-void ProbeTossableHit(SOV *ownerIn, int filter, int channel, qwordV start, qwordV end, int queryCount, COLL **objects, int capacity, int *count, HIT *records);
-void SweepTossableProbes(CID100V *p, int a, int b, qwordV pos, float r);
+void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qwordV end, int queryCount, COLL **objects, int capacity, int *count, HIT *records);
+void SweepTossableProbes(CID100V *p, int zapKind, int damage, qwordV pos, float r);
 void SetTossableState(CID100V *p, int state);
 void UpdateTossable(CID100V *p);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");    /* FIsBasicDerivedFrom__FP5BASIC3CID */
 
-#define VCALL(po, slot) (po)->pvt[slot].pfn((char *)(po) + (po)->pvt[slot].d
-
-// InitSo; +0x?=-10, 3000.0, -1, -1; grf|=6. (inferred)
-void InitTossable(CID100V *gadget)
+// The gadget's state setter through its vtable (slot 76: SetTossableState, or a subclass's override such as
+// SelectGuardTrapTarget).
+static inline void SetStateVirtual(CID100V *gadget, int state)
 {
-    int f;
-    InitSo(gadget);
-    f = gadget->grf;
-    gadget->n178 = -10;
-    gadget->radius = 3000.0f;
-    gadget->sentinel = -1;
-    gadget->state = -1;
-    if (FIsPtr(f)) *(int *)f |= 6;
-    else gadget->grf = f | 6;
+    gadget->pvt[76].pfn((char *)gadget + gadget->pvt[76].d, state);
 }
 
-// LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0. (inferred)
-extern "C" void LoadTossableFromBrx(CID100V *gadget, void *pbis) {
-    SOPHYSV *psophys;
-    LoadSoFromBrx(gadget, pbis);
-    psophys = gadget->psophys;
-    if (psophys != 0) {
-        psophys->gD4 = 2.0f;
-        gadget->psophys->gD8 = 2.0f;
+// CID100 vtable slot 7 (Init): SO init; blast damage -10, fired beyond 3000 units from the thrower, no pending
+// contact, pooled; LO flags 6.
+void InitTossable(CID100V *gadget)
+{
+    int flags;
+    InitSo(gadget);
+    flags = gadget->taggedFlags;
+    gadget->blastDamage = -10;
+    gadget->maxThrowerDistance = 3000.0f;
+    gadget->pendingContact = -1;
+    gadget->state = TOSSABLE_POOLED;
+    if (FIsPtr(flags)) *(int *)flags |= 6;
+    else gadget->taggedFlags = flags | 6;
+}
+
+// CID100 vtable slot 14 (LoadFromBrx): SO load; two physics parameters (+0xD4, +0xD8) set to 2.
+extern "C" void LoadTossableFromBrx(CID100V *gadget, void *stream) {
+    SOPHYSV *physics;
+    LoadSoFromBrx(gadget, stream);
+    physics = gadget->physics;
+    if (physics != 0) {
+        physics->unknownD4 = 2.0f;
+        gadget->physics->unknownD8 = 2.0f;
     }
 }
 
-// SO slot11 then, if bound SM, ReplaceSma(sm,this,-1,0,goal). (inferred)
+// CID100 vtable slot 11 (AddHierarchy): SO add; a gadget with a state machine (re)applies it.
 extern "C" void AddTossableHierarchy(CID100V *gadget)
 {
     AddSoHierarchy(gadget);
-    if (gadget->psm) ReplaceSma(gadget->psm, gadget, -1, 0, &gadget->psma);
+    if (gadget->stateMachine) ReplaceSma(gadget->stateMachine, gadget, -1, 0, &gadget->smApplication);
 }
 
-// SO slot12, SetState(-1) via vtable slot 76, release SM handle ReleaseSma. (inferred)
+// CID100 vtable slot 12 (RemoveHierarchy): SO removal, back to the pool, state machine released.
 void CID100::RemoveHierarchy()
 {
     CID100V *gadget = (CID100V *)this;
     RemoveSoHierarchy(gadget);
-    VCALL(gadget, 76), -1);
-    ReleaseSma(&gadget->psma);
+    SetStateVirtual(gadget, TOSSABLE_POOLED);
+    ReleaseSma(&gadget->smApplication);
 }
 
-// CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (StickTossable); if the owner +0x16C is
-// farther than +0x170 (3000) -> vtable slot 75 -> state 3 (auto-fire). (inferred)
+// CID100 vtable slot 16 (Update): SO update; a flying gadget with a pending contact sticks (StickTossable); a gadget
+// farther than maxThrowerDistance from its thrower is fired (vtable slot 75, TriggerTossable). (inferred)
 void UpdateTossable(CID100V *gadget)
 {
     UpdateSo(gadget);
-    if (gadget->state == 1 && gadget->sentinel != -1)
-        StickTossable(gadget, gadget->pneighbor);
-    if (gadget->ptarget) {
+    if (gadget->state == 1 && gadget->pendingContact != -1)
+        StickTossable(gadget, gadget->stickTarget);
+    if (gadget->thrower) {
         qwordV a = GetLoWorldPos(gadget);
-        qwordV b = GetLoWorldPos(gadget->ptarget);
+        qwordV b = GetLoWorldPos(gadget->thrower);
         qwordV d, t, l;
         float g;
         int f;
@@ -253,119 +279,137 @@ void UpdateTossable(CID100V *gadget)
         __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(t) : "0"(d));
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-        f = gadget->radius < g;
+        f = gadget->maxThrowerDistance < g;
         if (f)
             ((int (*)(void *, int))gadget->pvt[75].pfn)((char *)gadget + gadget->pvt[75].d, 0);   /* the slot returns int (v0 busy) */
     }
 }
 
-// if state in {1,2} SetState(3); return 1. (inferred)
+// CID100 damage handler: a flying or stuck gadget detonates. Always absorbs the damage.
 extern "C" int TakeTossableDamage(CID100V *gadget)
 {
-    switch (gadget->state) { case 1: case 2: VCALL(gadget, 76), 3); }
+    switch (gadget->state) {
+    case TOSSABLE_FLYING:
+    case TOSSABLE_STUCK:
+        SetStateVirtual(gadget, TOSSABLE_DETONATE);
+    }
     return 1;
 }
 
-struct MSG100 { int a; CID100V *o; };
-// base HandleLoMessage HandleBasicMessage; on msg 4 from self in state 1/2 -> SetState(3). (inferred)
-extern "C" void HandleTossableMessage(CID100V *gadget, int k, MSG100 *q)
+struct MSG100 { int unknown0; CID100V *target; };
+// CID100 vtable slot 5 (HandleMessage): the basic handler; message 4 aimed at a flying or stuck gadget detonates it.
+// (inferred)
+extern "C" void HandleTossableMessage(CID100V *gadget, int kind, MSG100 *message)
 {
-    HandleBasicMessage(gadget, k, q);
-    if (k == 4) {
-        CID100V *o = q->o;
-        if (o == gadget && (unsigned)(o->state - 1) < 2) VCALL(o, 76), 3);
+    HandleBasicMessage(gadget, kind, message);
+    if (kind == 4) {
+        CID100V *target = message->target;
+        if (target == gadget && (unsigned)(target->state - TOSSABLE_FLYING) < 2)   /* flying or stuck */
+            SetStateVirtual(target, TOSSABLE_DETONATE);
     }
 }
 
-// states 0x1A/0x29 -> SetState(3); else SetLoParent(q or 0,3) and SetState(2). (inferred)
-void StickTossable(CID100V *gadget, SOV *q)
+// A flying gadget meets a surface: gadgets 0x1A/0x29 detonate; others attach to the object (or to the world when
+// it is the world, oid 1) and become stuck.
+void StickTossable(CID100V *gadget, SOV *surface)
 {
-    int k = gadget->kind;
-    if (k == 0x1A || k == 0x29) VCALL(gadget, 76), 3);
+    int kind = gadget->gadgetKind;
+    if (kind == GADGET_DETONATES_ON_STICK_1A || kind == GADGET_HOMING_29) SetStateVirtual(gadget, TOSSABLE_DETONATE);
     else {
-        SetLoParent(gadget, q->oid == 1 ? 0 : q, 3);
-        VCALL(gadget, 76), 2);
+        SetLoParent(gadget, surface->oid == 1 ? 0 : surface, 3);
+        SetStateVirtual(gadget, TOSSABLE_STUCK);
     }
 }
 
-// base FIgnoreSoIntersection; in states 0/4 and other is STEPPLAYER (flag 0x34) add flag via 0x134310. (inferred)
-extern "C" int FIgnoreTossableIntersection(CID100V *gadget, BASIC *q)
+// CID100 intersection filter: the SO answer, plus (func_00134310 bit 1) the hero (CID 0x34) while the gadget is held
+// or fading, so it does not collide with the one carrying it.
+extern "C" int FIgnoreTossableIntersection(CID100V *gadget, BASIC *other)
 {
-    int v = ShouldSoIgnoreIntersection(gadget, q);
-    int k = gadget->state;
-    if (k == 0 || k == 4) { if (FIsBasicDerivedFrom(q, CID_34)) v = MaxInt(v, 1); }
-    return v;
+    int ignore = ShouldSoIgnoreIntersection(gadget, other);
+    int state = gadget->state;
+    if (state == TOSSABLE_HELD || state == TOSSABLE_FADING) {
+        if (FIsBasicDerivedFrom(other, CID_34)) ignore = MaxInt(ignore, 1);
+    }
+    return ignore;
 }
 
-// base 0x1F4FB0 then out->0x98 = 0.25. (inferred)
-extern "C" float AdjustTossableNewXp(CID100V *gadget, XP *pxp, int i) {
-    AdjustSoNewXp(gadget, pxp, i);
-    pxp->elasticity = 0.25f;
+// CID100 new-contact hook: the SO setup, then the contact's elasticity is 0.25 (a soft bounce).
+extern "C" float AdjustTossableNewXp(CID100V *gadget, XP *contact, int end) {
+    AdjustSoNewXp(gadget, contact, end);
+    contact->elasticity = 0.25f;
     return 0.25f;
 }
 
 // Update actor contacts and select the neighboring actor.
-struct SIDE { struct { int x0; SOV *p; } *po; int x4; SOV *x8; SOV *pOther; char pad[0x30]; };
-struct EDGE { SIDE as[2]; qwordV v80; char pad[0xC]; int k9C; char pad2[0xC]; EDGE *pNext; };
-struct LN { EDGE *pe; LN *pNext; };
+/* The contact graph (as in button.cpp): each contact has two ends; an end names its tree's owner and object. */
+struct SIDE { struct { int unknown0; SOV *owner; } *tree; int unknown4; SOV *object; SOV *otherObject; char pad[0x30]; };
+struct EDGE { SIDE as[2]; qwordV normal; char pad[0xC]; int contactKind; char pad2[0xC]; EDGE *next; };
+struct LN { EDGE *firstEdge; LN *next; };
 struct SCALAR {qwordV q;};
-// Inline helpers InitScalar, ScaleS, Neighbor, SideAt, CoefficientAt: small vector/scalar wrappers (a few VU0/EE
-// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
-// the names say what they compute.
+// Asm accessors of UpdateTossableContacts (each pins one load or address computation the target has): a scalar
+// loaded into a VU register, a vector scaled by it, the other end's object, an end by index, a table entry address.
 static inline void InitScalar(SCALAR &home,const float &f){int bits;asm("lw %0,0(%1)":"=r"(bits):"0"(&f),"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(home.q):"r"(bits));}
 static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV result;__asm__("vmulx.xyzw %0,%1,%0x":"=j"(result):"j"(direction),"0"(scalar.q));return result;}
-static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.pOther));return value;}
+static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.otherObject));return value;}
 static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
-// walks contact edges, picks neighbouring actor (IsTossableStateBlocking, IsTossableChainFree). (inferred)
+// CID100 contact update: after the SO update (and not in the first D_002C42E0 seconds after being picked up), each
+// contact this gadget owns is examined: a sticky gadget touching a free surface (not contact kind 8, no blocking class
+// up its parent chain) records it as the stick target with the contact normal (sign by end, D_002C3C60); a held
+// gadget notes that it touched something.
 extern "C" void UpdateTossableContacts(CID100V *gadget)
 {
-    SOV *q;
+    SOV *other;
     EDGE *pe;
-    LN *pln;
-    SOV *id;
+    LN *contactList;
+    SOV *ownObject;
     AdjustSoXps(gadget);
     if (!gadget->state && D_002DDED0.t - gadget->time < D_002C42E0) return;
-    pln = gadget->ptree->pln;
-    id = gadget->ptree->owner;
-    for (; pln; pln = pln->pNext) {
-        pe = pln->pe;
+    contactList = gadget->tree->contactLists;
+    ownObject = gadget->tree->owner;
+    for (; contactList; contactList = contactList->next) {
+        pe = contactList->firstEdge;
         while (pe) {
-            int i = pe->as[0].x8 != id;
-            if (pe->as[i].po->p != gadget) {
-                pe = pe->pNext;
+            int i = pe->as[0].object != ownObject;
+            if (pe->as[i].tree->owner != gadget) {
+                pe = pe->next;
                 continue;
             }
-            q = Neighbor(*SideAt(pe,1-i));
-            if (pe->k9C != 8 && IsTossableStateBlocking(gadget) && IsTossableChainFree(gadget, q)) {
-                SCALAR home;
-                gadget->pneighbor=q;
-                gadget->sentinel=2;
-                InitScalar(home,*CoefficientAt(D_002C3C60,i));
-                gadget->direction=ScaleS(pe->v80,home);
-            } else if (!gadget->state && gadget->sentinel == -1) {
-                gadget->sentinel = 4;
+            other = Neighbor(*SideAt(pe, 1 - i));
+            if (pe->contactKind != 8 && IsTossableStateBlocking(gadget) && IsTossableChainFree(gadget, other)) {
+                SCALAR sign;
+                gadget->stickTarget = other;
+                gadget->pendingContact = 2;
+                InitScalar(sign, *CoefficientAt(D_002C3C60, i));
+                gadget->stickNormal = ScaleS(pe->normal, sign);
+            } else if (!gadget->state && gadget->pendingContact == -1) {
+                gadget->pendingContact = 4;
             }
-            pe = pe->pNext;
+            pe = pe->next;
         }
     }
 }
 
-// returns 0 if any node in list has one of 4 flags D_002C42E8. (inferred)
-int IsTossableChainFree(CID100V *gadget, SOV *q)
+// May the gadget stick to this object? Not if it or any parent derives from one of the four blocking classes
+// (D_002C42E8: 0x33, 0x64 (gadgets), 0x4F, 0x67).
+int IsTossableChainFree(CID100V *gadget, SOV *object)
 {
     unsigned i;
-    for (; q; q = q->psoParent) {
+    for (; object; object = object->parent) {
         for (i = 0; i < 4; i++)
-            if (FIsBasicDerivedFrom((BASIC *)q, (CIDV)D_002C42E8[i])) return 0;
+            if (FIsBasicDerivedFrom((BASIC *)object, (CIDV)D_002C42E8[i])) return 0;
     }
     return 1;
 }
 
-// returns state in {1,2}. (inferred)
+// True while the gadget is flying or stuck.
 extern "C" int IsTossableActive(CID100V *gadget)
 {
-    switch (gadget->state) { case 1: case 2: return 1; }
+    switch (gadget->state) {
+    case TOSSABLE_FLYING:
+    case TOSSABLE_STUCK:
+        return 1;
+    }
     return 0;
 }
 
@@ -373,21 +417,24 @@ extern "C" int IsTossableActive(CID100V *gadget)
 // state 3. Caller HandleStepplayerMessage msg 9 kind 0x27C (2nd gadget press, JTGRAB nState 0xB). (inferred)
 extern "C" void TriggerTossable(CID100V *gadget)
 {
-    if (gadget->kind == 11) VCALL(gadget, 76), 5);
-    else VCALL(gadget, 76), 3);
+    if (gadget->gadgetKind == GADGET_HEALTH_EXTRACTOR) SetStateVirtual(gadget, TOSSABLE_EXTRACTING);
+    else SetStateVirtual(gadget, TOSSABLE_DETONATE);
 }
 
 // True if the gadget id (+0x15C) is 7 (Trigger Bomb) or 11 (Health Extractor). (inferred)
 extern "C" int IsThrowableGadget(CID100V *gadget)
 {
-    int x = gadget->kind; if (x != 7 && x != 11) return 0; return 1;
+    int kind = gadget->gadgetKind;
+    if (kind != GADGET_TRIGGER_BOMB && kind != GADGET_HEALTH_EXTRACTOR)
+        return 0;
+    return 1;
 }
 
-// state table predicate (4 with flag; 5,7,9,11,13,26,37,41). (inferred)
+// Does this gadget stick to surfaces? Gadgets 5, 7, 9, 11, 13, 0x1A, 0x25, 0x29 do; gadget 4 only while flying.
 int IsTossableStateBlocking(CID100V *gadget)
 {
-    switch (gadget->kind) {
-    case 4: return gadget->state == 1;
+    switch (gadget->gadgetKind) {
+    case 4: return gadget->state == TOSSABLE_FLYING;
     default: return 0;
     case 5: case 7: case 9: case 11: case 13: case 26: case 37: case 41: return 1;
     }
@@ -395,14 +442,13 @@ int IsTossableStateBlocking(CID100V *gadget)
 
 // True if the gadget id (+0x15C) is 11 (Health Extractor). (inferred)
 int IsHealthExtractor(CID100V *gadget) {
-    return gadget->kind == 0xB;
+    return gadget->gadgetKind == GADGET_HEALTH_EXTRACTOR;
 }
 
 // Orient an active linked object toward its target in the horizontal plane.
 // VU helpers of the probes: move/load into VU registers, difference, horizontal projection, length, lane x.
 static inline qwordV ToVF(qwordV a) { qwordV r; __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(r) : "r"(a));return r; }
-// Inline helpers Read, Sub: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
-// the compiler's register and instruction choice matches the original; the names say what they compute.
+// A vector loaded straight from memory into a VU register; a difference.
 static inline qwordV Read(const qwordV &a) { qwordV r;__asm__("lqc2 %0,%1" : "=j"(r) : "m"(a));return r; }
 static inline qwordV Sub(qwordV a,qwordV b) { qwordV r;__asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 // Removes the component of d along the up axis (projects d onto the horizontal plane).
@@ -412,24 +458,23 @@ static inline qwordV Flatten(qwordV d,qwordV up) {
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(t) : "j"(up),"j"(t));
     return Sub(d,t);
 }
-// Inline helper DotSelf: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Squared length (lane x).
 static inline qwordV DotSelf(qwordV d) { qwordV len,one;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(len),"=&j"(one) : "j"(d));return len; }
 // Square root of lane x.
 static inline qwordV Sqrt(qwordV len) {
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(len));return len; }
-// Inline helpers X, ScaleQ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
-// the compiler's register and instruction choice matches the original; the names say what they compute.
+// Lane x as a float; d divided by lane x of len (a normalize step).
 static inline float X(qwordV v) { float f;__asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(v));return f; }
 static inline qwordV ScaleQ(qwordV d,qwordV len) { qwordV r;
     __asm__ __volatile__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(d),"0"(len));return r; }
-// turns linked active object toward target in horizontal plane. (inferred)
+// CID100 orientation update (not while held or fading): after the SO step, gadgets 0x1A/0x29 spring-rotate toward
+// their homing target in the horizontal plane (or, without one, upright).
 extern "C" void OrientTossableToTarget(CID100V *gadget) {
     M3 m;
-    if(gadget->state==0 || gadget->state==4)return;
+    if (gadget->state == TOSSABLE_HELD || gadget->state == TOSSABLE_FADING) return;
     PresetSoAccel(gadget);
-    if(gadget->kind!=0x1A && gadget->kind!=0x29)return;
+    if (gadget->gadgetKind != GADGET_DETONATES_ON_STICK_1A && gadget->gadgetKind != GADGET_HOMING_29) return;
     if(gadget->nearest) {
         qwordV a=ToVF(GetLoWorldPos(gadget->nearest));
         qwordV b=GetLoWorldPos(gadget);
@@ -462,22 +507,19 @@ extern "C" void OrientTossableToTarget(CID100V *gadget) {
 // - MkVuk*/ScaleK/AddScaledK take their scalar as a by-value struct TEMPORARY: that temp is the shared 0x60($sp)
 //   home of the original (sqc2 vf,0x60 / qmfc2+sq 0x60), so there is no separate `scalar` local.
 static inline qwordV SubP(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-// Inline helpers AddP, CrossXYZ, QwDot: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Sum, cross product and dot product (lane x) in VU registers.
 static inline qwordV AddP(qwordV a,qwordV b){qwordV r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qwordV CrossXYZ(qwordV a,qwordV b){__asm__("vopmula.xyz ACC,%1,%0\n\tvopmsub.xyz %0,%0,%1":"+j"(b):"j"(a));return b;}
 static inline qwordV QwDot(qwordV a, qwordV b){qwordV qw;qwordV vfOne;
  __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));return qw;}
 // the extra "j"(qw) is allocation-only: it makes qw a VU-class pseudo, so the compiler's qmfc2 comes from the dot result (vf1)
 static inline float GXOfQw(qwordV qw){float x;__asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw));return x;}
-// Inline helpers DotP, BitsOfFloat: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Dot product as a float; a float's bit pattern in a GPR.
 static inline float DotP(qwordV a,qwordV b){return GXOfQw(QwDot(a,b));}
 static inline int BitsOfFloat(float f){int n;__asm__("mfc1 %0,%1":"=r"(n):"f"(f));return n;}
 struct VUK{qwordV q;};
-// Inline helpers MkVukBits, MkVuk, ScaleK, AddScaledK, Clamp, Get, Set, Pin: small vector/scalar wrappers (a few VU0/EE
-// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
-// the names say what they compute.
+// A scalar for VU use (from its bits, or a float), v scaled by it, old + v * k, a clamp, a vector-returning and a
+// vector-taking virtual call by slot, and Pin (keeps a pointer in $21, see the matching notes above).
 static inline VUK MkVukBits(int n){VUK r;__asm__("qmtc2.ni %1,%0":"=j"(r.q):"r"(n));return r;}
 static inline VUK MkVuk(float f){VUK r;__asm__("mfc1 %0,%1":"=r"(r.q):"f"(f));return r;}
 static inline qwordV ScaleK(qwordV v,VUK k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k.q));return r;}
@@ -486,101 +528,112 @@ static inline float Clamp(float f,float lo,float hi){float r;if(f<lo)r=lo;else i
 static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return v[slot].get((char *)o+v[slot].d);}
 static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;v[slot].set((char *)o+v[slot].d,q);}
 static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
-// traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*). (inferred)
-void ProbeTossableHit(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
- SOV *owner=Pin(ownerIn);LSG hit;int bits;
- COLL *collider=FindFirstObjectHitByLine(0,start,end,queryCount,objects,&hit);
- if(!collider)return;
- qwordV normal;
- SOV *chain=collider->object;
- {qwordV len,one;qwordV d=SubP(end,start);
- __asm__("vmul.xyz %2,%3,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %2,%1,%2z\n\tvsqrt Q,%2x\n\tvwaitq\n\tvaddq.x %2,$vf0,Q\n\tvdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%3,Q":"=&j"(normal),"=&j"(one),"=&j"(len):"j"(d));}
- SOV *object=FindZapResponder(chain,filter);
- if(!object)return;
- SOV *body=object->ptree->owner;
- int i;
- for(i=0;i<*count;i++)if(records[i].object==object)break;
- if(i>=*count&&*count<capacity){
-  HIT *record=&records[(*count)++];
-  func_002333B4(record,0,0x60);
-  bits=*(int *)&D_002C4334;
-  record->impulse=ScaleK(normal,MkVukBits(bits));
-  record->object=object;
-  record->filter=filter;
-  record->channel=channel;
-  record->point=hit.point;
-  record->owner=owner;
- }
- if(!body->psophys)return;
- float along=DotP(GetXfVelocity(body->pxfRoot,0,hit.point),normal);
- float ratio=along/D_002C4334;
- float response=Clamp(D_002C4320.a+ratio*(D_002C4320.b+ratio*D_002C4320.c),D_002BBB60.gMin,D_002BBB60.gMax);
- float fz=0.0f;
- if(fz<response){
- bits=BitsOfFloat(response*D_002C4330);
- qwordV impulse=ScaleK(normal,MkVukBits(bits));
- qwordV linear=GetSoImpulseLinearDelta(body,impulse);
- qwordV angular=GetSoImpulseAngularDelta(body,hit.point,impulse);
- qwordV delta=SubP(hit.point,body->pxfRot->position.q);
- float change=DotP(AddP(linear,CrossXYZ(angular,delta)),normal);
- if(fz<change){
- qwordV velocity,spin;
-  float x=(D_002C4334-along)/change;
-  float one=1.0f;
- if(x<fz){}else if(one<x)fz=one;else fz=x;
- {velocity=AddScaledK(Get(body,33),linear,MkVuk(fz));}
- {spin=AddScaledK(Get(body,34),angular,MkVuk(fz));}
- Set(body,35,velocity);Set(body,36,spin);
- }
- }
-}
-
-// Inline helpers VAdd, VSub: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so
-// the compiler's register and instruction choice matches the original; the names say what they compute.
-static __inline__ qwordV VAdd(qwordV a, qwordV b) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-struct COLLA { XFV *pb; };
-// builds probe sphere set and calls ProbeTossableHit per probe. (inferred)
-void SweepTossableProbes(CID100V *gadget, int a, int b, qwordV pos, float r)
+// See the block comment above.
+void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qwordV end, int queryCount, COLL **objects,
+                      int capacity, int *count, HIT *records)
 {
-    STACKSCOPEMK mark;
-    HIT ax[0x20];
-    int c;
-    COLL **apa;
-    int cx;
-    int i, j, k, m;
-    STACKSCOPE_ctor(&mark);
-    IntersectSwBoundingSphere(&D_003DD490, pos, ShouldKeepSoNotSelf, gadget->ptree, r, &c, &apa);
-    cx = 0;
-    for (i = 0; i < sizeof(D_002C4368) / sizeof(D_002C4368[0]); i++) {
-        for (j = 0; j < D_002C4368[i]; j++) {
-            qwordV v = SetVectorSphere((float)j * 2.0f * 3.1415927f / (float)D_002C4368[i], D_002C4338[i], r);
-            ProbeTossableHit(gadget, a, b, pos, VAdd(pos, v), c, apa, 0x20, &cx, ax);
+    SOV *owner = Pin(ownerIn);
+    LSG hit;
+    int bits;
+    COLL *collider = FindFirstObjectHitByLine(0, start, end, queryCount, objects, &hit);
+    if (!collider) return;
+    qwordV normal;
+    SOV *chain = collider->object;
+    {
+        /* normal = (end - start) / |end - start| */
+        qwordV len, one;
+        qwordV d = SubP(end, start);
+        __asm__("vmul.xyz %2,%3,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %2,%1,%2z\n\tvsqrt Q,%2x\n\tvwaitq\n\tvaddq.x %2,$vf0,Q\n\tvdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%3,Q" : "=&j"(normal), "=&j"(one), "=&j"(len) : "j"(d));
+    }
+    SOV *object = FindZapResponder(chain, zapKind);
+    if (!object) return;
+    SOV *body = object->tree->owner;
+    int i;
+    for (i = 0; i < *count; i++)
+        if (records[i].object == object) break;
+    if (i >= *count && *count < capacity) {
+        HIT *record = &records[(*count)++];
+        func_002333B4(record, 0, 0x60);
+        bits = *(int *)&D_002C4334;
+        record->impulse = ScaleK(normal, MkVukBits(bits));
+        record->object = object;
+        record->zapKind = zapKind;
+        record->damage = damage;
+        record->point = hit.point;
+        record->owner = owner;
+    }
+    if (!body->physics) return;
+    float along = DotP(GetXfVelocity(body->rootXf, 0, hit.point), normal);
+    float ratio = along / D_002C4334;
+    float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), D_002BBB60.gMin, D_002BBB60.gMax);
+    float fz = 0.0f;   /* 0, then the fraction of the response applied */
+    if (fz < response) {
+        bits = BitsOfFloat(response * D_002C4330);
+        qwordV impulse = ScaleK(normal, MkVukBits(bits));
+        qwordV linear = GetSoImpulseLinearDelta(body, impulse);
+        qwordV angular = GetSoImpulseAngularDelta(body, hit.point, impulse);
+        qwordV delta = SubP(hit.point, body->rotationXf->position.q);
+        float change = DotP(AddP(linear, CrossXYZ(angular, delta)), normal);
+        if (fz < change) {
+            qwordV velocity, spin;
+            float x = (D_002C4334 - along) / change;
+            float one = 1.0f;
+            if (x < fz) {
+            } else if (one < x) fz = one;
+            else fz = x;
+            { velocity = AddScaledK(Get(body, 33), linear, MkVuk(fz)); }
+            { spin = AddScaledK(Get(body, 34), angular, MkVuk(fz)); }
+            Set(body, 35, velocity);
+            Set(body, 36, spin);
         }
     }
-    for (k = 0; k < c; k++) {
-        qwordV v = LimitVectorLength(VSub(((COLLA *)apa[k])->pb->position.q, pos), r);
-        ProbeTossableHit(gadget, a, b, pos, VAdd(pos, v), c, apa, 0x20, &cx, ax);
+}
+
+// Vector sum and difference.
+static __inline__ qwordV VAdd(qwordV a, qwordV b) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+struct COLLA { XFV *xf; };   /* a found object, read through its first word (inferred: its XF) */
+// The blast: finds the objects within radius, casts probes from pos over a sphere (11 latitude rings, D_002C4338 /
+// D_002C4368 probes each) and one toward each found object, collecting up to 32 hits (ProbeTossableHit), then
+// delivers them (func_001F7598) and makes a noise stimulus at pos.
+void SweepTossableProbes(CID100V *gadget, int zapKind, int damage, qwordV pos, float radius)
+{
+    STACKSCOPEMK mark;
+    HIT hits[0x20];
+    int numFound;
+    COLL **found;
+    int numHits;
+    int ring, j, k, m;
+    STACKSCOPE_ctor(&mark);
+    IntersectSwBoundingSphere(&D_003DD490, pos, ShouldKeepSoNotSelf, gadget->tree, radius, &numFound, &found);
+    numHits = 0;
+    for (ring = 0; ring < sizeof(D_002C4368) / sizeof(D_002C4368[0]); ring++) {
+        for (j = 0; j < D_002C4368[ring]; j++) {
+            qwordV v = SetVectorSphere((float)j * 2.0f * 3.1415927f / (float)D_002C4368[ring], D_002C4338[ring], radius);
+            ProbeTossableHit(gadget, zapKind, damage, pos, VAdd(pos, v), numFound, found, 0x20, &numHits, hits);
+        }
     }
-    for (m = 0; m < cx; m++)
-        DeliverZapToSo(&ax[m]);
-    NewNoise(D_003DD490.x402C, pos, gadget)->x54 = 1;
+    for (k = 0; k < numFound; k++) {
+        qwordV v = LimitVectorLength(VSub(((COLLA *)found[k])->xf->position.q, pos), radius);
+        ProbeTossableHit(gadget, zapKind, damage, pos, VAdd(pos, v), numFound, found, 0x20, &numHits, hits);
+    }
+    for (m = 0; m < numHits; m++)
+        DeliverZapToSo(&hits[m]);
+    NewNoise(D_003DD490.stimulusSystem, pos, gadget)->unknown54 = 1;
     STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }
 
-// SetLoParent(this,0,1) then SweepTossableProbes at world pos. (inferred)
-extern "C" void DropTossable(CID100V *gadget, float f)
+// Detaches the gadget and sets off its blast of the given radius where it is.
+extern "C" void DropTossable(CID100V *gadget, float radius)
 {
     SetLoParent(gadget, 0, 1);
-    SweepTossableProbes(gadget, gadget->n174, gadget->n178, GetLoWorldPos(gadget), f);
+    SweepTossableProbes(gadget, gadget->blastZapKind, gadget->blastDamage, GetLoWorldPos(gadget), radius);
 }
 
 // Transition actor controller state.
 /* not volatile, unlike OrientTossableToTarget's ToVF */
 static inline qwordV ToVFN(qwordV v){qwordV r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
-// Inline helpers SubT, Normalize, LengthT: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Difference, unit vector and length in VU registers.
 static inline qwordV SubT(qwordV a,qwordV b){qwordV r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
 static inline qwordV Normalize(qwordV v){qwordV len,one,result;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));
@@ -606,8 +659,7 @@ static inline SOV *FindNearest(CID100V *gadget,int count,SOV **objects,SOV *near
    if(distance<best){best=distance;nearest=object;}
   }
 return nearest;}
-// Inline helper MakeBasis: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// An orthonormal basis with z along direction and the normalized rawUp as the up hint.
 static inline M3 MakeBasis(qwordV direction,qwordV rawUp) return result;{
  qwordV v=rawUp,len,one,normalized;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(len),"=&j"(one):"j"(v));
@@ -620,56 +672,75 @@ static inline M3 MakeBasis(qwordV direction,qwordV rawUp) return result;{
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A97A8 __asm__("D_002A97A8") = 3.40282347e+38f; }
-// CID100 (Bentley gadget object, id +0x15C) state: -1 pooled, 0 held by owner, 1 flight, 2 stuck to surface +0x1A0, 3
-// detonate/release, 5 health extract; each plays SMA goal D_002C4398[state] = 109..114. (inferred)
-void SetTossableState(CID100V *gadget,int state){
- int old=gadget->state;
- if(state==old)return;
- gadget->state=state;gadget->time=D_002DDED0.t;gadget->sentinel=-1;
- ReleaseAct(&gadget->positionJob);
- ReleaseAct(&gadget->rotationJob);
- if(old==0||old==4)RecalcSwOxfFilterForObject(&D_003DD490,gadget);
- switch(gadget->state){
- case 0:{
-  SetSoCnstrForce(gadget,0);SetSoCnstrTorque(gadget,0);
-  ZeroVelocity(gadget->pxfPos);ZeroVelocity(gadget->pxfRot);
-  qwordV position=gadget->pxfPos->orientation;
-  qwordV rotation=DecomposeRotationMatrixToEuler(gadget->pxfRot);
-  gadget->positionJob=NewPositionAct(gadget,gadget->pxfPos,0,7,2,position);
-  gadget->rotationJob=NewPositionAct(gadget,gadget->pxfRot,0,7,2,rotation);
-  RecalcSwOxfFilterForObject(&D_003DD490,gadget);
-  break;
- }
- case 2:{
-  SetSoCnstrForce(gadget,1);SetSoCnstrTorque(gadget,1);
-  ZeroVelocity(gadget->pxfPos);ZeroVelocity(gadget->pxfRot);
-  if(IsHealthExtractor(gadget)&&gadget->pxfRot){
-   qwordV direction=Normalize(ToVFN(ConvertXfVec(0,gadget->pxfRot->parent,gadget->direction)));
-   qwordV rawUp=ConvertXfVec(0,gadget->pxfRot->parent,D_002A2DC0);
-   M3 basis;basis=MakeBasis(direction,rawUp);
-   gadget->rotationJob=NewPositionAct(gadget,gadget->pxfRot,0,7,2,DecomposeRotationMatrixToEuler(&basis));
-  }
-  break;
- }
- case 1:{
-  SetLoParent(gadget,0,15);SetSoCnstrForce(gadget,0);
-  if(gadget->kind!=0x29){SetSoCnstrTorque(gadget,0);break;}
-  SetSoCnstrTorque(gadget,1);
-  SOV *objects[32];
-  int count=CploFindSwObjectsByClass(&D_003DD490,0x105,0x38,0,32,objects);
-  gadget->nearest=FindNearest(gadget,count,objects,D_002E1E40,D_002A97A8);
-  break;
- }
- case 4:
-  RecalcSwOxfFilterForObject(&D_003DD490,gadget);
-  FadeSoOut(gadget,0.25f);
-  break;
- }
- if(gadget->psma&&gadget->state>=0)SetSmaGoalIfReachable(gadget->psma,D_002C4398[gadget->state]);
+// CID100 state change (vtable slot 76): stamps the time, drops the pending contact and the position/rotation jobs.
+// Held: constraints off, velocities zeroed, the position and rotation are locked to where they are (jobs 7/2).
+// Stuck: constraints on, velocities zeroed; a health extractor also turns its z axis along the stick normal.
+// Flying: detached (parent flags 15), free; the homing gadget 0x29 keeps rotation constrained and picks the nearest
+// class-0x38 object (Sly, D_002E1E40, by default; height counts double). Fading: fades out over 0.25 s.
+// Leaving held or fading (and entering held) recomputes the world's object filter. The state machine's goal follows
+// the state (D_002C4398[state] = 0x6D..0x72).
+void SetTossableState(CID100V *gadget, int state)
+{
+    int oldState = gadget->state;
+    if (state == oldState) return;
+    gadget->state = state;
+    gadget->time = D_002DDED0.t;
+    gadget->pendingContact = -1;
+    ReleaseAct(&gadget->positionJob);
+    ReleaseAct(&gadget->rotationJob);
+    if (oldState == TOSSABLE_HELD || oldState == TOSSABLE_FADING) RecalcSwOxfFilterForObject(&D_003DD490, gadget);
+    switch (gadget->state) {
+    case TOSSABLE_HELD: {
+        SetSoCnstrForce(gadget, 0);
+        SetSoCnstrTorque(gadget, 0);
+        ZeroVelocity(gadget->positionXf);
+        ZeroVelocity(gadget->rotationXf);
+        qwordV position = gadget->positionXf->orientation;
+        qwordV rotation = DecomposeRotationMatrixToEuler(gadget->rotationXf);
+        gadget->positionJob = NewPositionAct(gadget, gadget->positionXf, 0, 7, 2, position);
+        gadget->rotationJob = NewPositionAct(gadget, gadget->rotationXf, 0, 7, 2, rotation);
+        RecalcSwOxfFilterForObject(&D_003DD490, gadget);
+        break;
+    }
+    case TOSSABLE_STUCK: {
+        SetSoCnstrForce(gadget, 1);
+        SetSoCnstrTorque(gadget, 1);
+        ZeroVelocity(gadget->positionXf);
+        ZeroVelocity(gadget->rotationXf);
+        if (IsHealthExtractor(gadget) && gadget->rotationXf) {
+            qwordV direction = Normalize(ToVFN(ConvertXfVec(0, gadget->rotationXf->parent, gadget->stickNormal)));
+            qwordV rawUp = ConvertXfVec(0, gadget->rotationXf->parent, D_002A2DC0);
+            M3 basis;
+            basis = MakeBasis(direction, rawUp);
+            gadget->rotationJob = NewPositionAct(gadget, gadget->rotationXf, 0, 7, 2, DecomposeRotationMatrixToEuler(&basis));
+        }
+        break;
+    }
+    case TOSSABLE_FLYING: {
+        SetLoParent(gadget, 0, 15);
+        SetSoCnstrForce(gadget, 0);
+        if (gadget->gadgetKind != GADGET_HOMING_29) {
+            SetSoCnstrTorque(gadget, 0);
+            break;
+        }
+        SetSoCnstrTorque(gadget, 1);
+        SOV *objects[32];
+        int count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 32, objects);
+        gadget->nearest = FindNearest(gadget, count, objects, D_002E1E40, D_002A97A8);
+        break;
+    }
+    case TOSSABLE_FADING:
+        RecalcSwOxfFilterForObject(&D_003DD490, gadget);
+        FadeSoOut(gadget, 0.25f);
+        break;
+    }
+    if (gadget->smApplication && gadget->state >= 0) SetSmaGoalIfReachable(gadget->smApplication, D_002C4398[gadget->state]);
 }
 
-// calls InitCid100. (inferred)
-void CID102::Init() { CID100V *gadget = (CID100V *)this;
+// CID102 (guard trap) vtable slot 7 (Init): the tossable init.
+void CID102::Init()
+{
+    CID100V *gadget = (CID100V *)this;
     InitTossable(gadget);
 }
 
@@ -700,48 +771,50 @@ static inline qwordV Splat(float f) {
     __asm__("pextlw %0,%2,%2\n\tpextlw %1,%0,%0" : "=r"(t),"=r"(r) : "r"(b));
     return r;
 }
-// state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3. (inferred)
+// CID102 vtable slot 16 (Update): the tossable update, then the extraction (see the block comment above), repeated
+// while it changes the state.
 extern "C" void UpdateGuardTrap(CID100V *gadget) {
-    int old;
+    int oldState;
     UpdateTossable(gadget);
     do {
-        old=gadget->state;
-        if(old==5) {
-            R30 *r;
-            if(!gadget->actor) {
-                VCALL(gadget, 76),3);
-            } else if(!(r=FindStepBehavior(gadget->actor,0xB0)) || IsBhvThrownDone(r)) {
-                VCALL(gadget, 76),2);
+        oldState = gadget->state;
+        if (oldState == TOSSABLE_EXTRACTING) {
+            R30 *behavior;
+            if (!gadget->actor) {
+                SetStateVirtual(gadget, TOSSABLE_DETONATE);
+            } else if (!(behavior = FindStepBehavior(gadget->actor, 0xB0)) || IsBhvThrownDone(behavior)) {
+                SetStateVirtual(gadget, TOSSABLE_STUCK);
             } else {
                 M3 m((gadget->source?GetLoWorldMatrix(gadget->source):GetLoWorldMatrix(gadget))->basis);
-                SetStepguardMoverTargetMatrix(&gadget->actor->basis,&m);
-                if(r->state!=4) {
-                    qwordV pos=gadget->source?GetLoWorldPos(gadget->source):GetLoWorldPos(gadget);
+                SetStepguardMoverTargetMatrix(&gadget->actor->basis, &m);
+                if (behavior->state != 4) {
+                    qwordV pos = gadget->source ? GetLoWorldPos(gadget->source) : GetLoWorldPos(gadget);
                     qwordV other;
-                    other=GetLoWorldPos(gadget->actor);
-                    if(LengthL(Sub(pos,other))<100.0f)SetBhvThrownState(r,4);
+                    other = GetLoWorldPos(gadget->actor);
+                    if (LengthL(Sub(pos, other)) < 100.0f) SetBhvThrownState(behavior, 4);
                 }
-                if(gadget->actor->color) {
-                    float t=(D_002DDED0.t-gadget->time)/D_002C43B0;
-                    float g=D_002C43C0[0]+t*(D_002C43C0[1]+t*D_002C43C0[2]);
-                    ClampLm(&g,&D_002BBB60);
-                    SetActPositionGoal(gadget->actor->color,Splat(g));
+                if (gadget->actor->color) {
+                    float t = (D_002DDED0.t - gadget->time) / D_002C43B0;
+                    float fade = D_002C43C0[0] + t * (D_002C43C0[1] + t * D_002C43C0[2]);
+                    ClampLm(&fade, &D_002BBB60);
+                    SetActPositionGoal(gadget->actor->color, Splat(fade));
                 }
-                if(D_002C43B0<D_002DDED0.t-gadget->time) {
+                if (D_002C43B0 < D_002DDED0.t - gadget->time) {
                     SprayDprizes(&D_003DD490,0x5D,GetLoWorldPos(gadget->source),gadget,1);
-                    VCALL(gadget->actor, 9));
+                    gadget->actor->pvt[9].pfn((char *)gadget->actor + gadget->actor->pvt[9].d);   /* Remove */
                     // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).
-                    register GAME *pgame asm("$4")=&D_002DEB30;
-                    BroadcastGameEvent(pgame,0x18,gadget->actor);
-                    VCALL(gadget, 76),3);
+                    register GAME *pgame asm("$4") = &D_002DEB30;
+                    BroadcastGameEvent(pgame, 0x18, gadget->actor);
+                    SetStateVirtual(gadget, TOSSABLE_DETONATE);
                 }
             }
         }
-    } while(gadget->state!=old);
+    } while (gadget->state != oldState);
 }
 
-struct MSGO { int a; SOV *o; };
-// negated vector -> AddSoAcceleration. (inferred)
+struct MSGO { int unknown0; SOV *o; };
+// Guard-trap hook on a held object (inferred): cancels the object's acceleration and springs it toward the trap's
+// source (or the trap).
 extern "C" void PushGuardTrapAway(CID100V *gadget, MSGO *q)
 {
     SOV *o = q->o;
@@ -750,7 +823,7 @@ extern "C" void PushGuardTrapAway(CID100V *gadget, MSGO *q)
     float m = -1.0f;
     qwordV s;
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(m));
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(o->psophys->v80), "j"(s));
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(o->physics->acceleration), "j"(s));
     u.q = s;
     AddSoAcceleration(o, r);
     if (gadget->source) v = GetLoWorldPos(gadget->source); else v = GetLoWorldPos(gadget);
@@ -785,57 +858,59 @@ static inline qwordV LoadCoefficient(){
     return scalar;
 }
 struct Vec {qwordV q;Vec(const qwordV &v):q(v){}operator qwordV()const{return q;}};
-// change selection state and prepare nearest eligible actor. (inferred)
-extern "C" void SelectGuardTrapTarget(CID100V *gadget, int k)
+// CID102 state change (vtable slot 76): leaving extraction lets the actor go (unhooks it, behavior 0xB0 to state 2,
+// colour goal reset); entering it picks the nearest class-0x38 actor within 400 that answers func_00206EB0(0xB),
+// hooks it (AddSoXa), sets its velocity to half its current one with z = 400 (a hop) and calls func_00209E28.
+extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
 {
-    if (k == gadget->state)
+    if (state == gadget->state)
         return;
-    if (gadget->state == 5 && gadget->actor) {
-        R30 *pv;
+    if (gadget->state == TOSSABLE_EXTRACTING && gadget->actor) {
+        R30 *behavior;
         RemoveSoXa(gadget->actor, &gadget->hook);
-        pv = FindStepBehavior(gadget->actor, 0xB0);
-        if (pv)
-            SetBhvThrownState(pv, 2);
+        behavior = FindStepBehavior(gadget->actor, 0xB0);
+        if (behavior)
+            SetBhvThrownState(behavior, 2);
         if (gadget->actor->color)
             SetActPositionGoal(gadget->actor->color, D_002A2DE0);
         gadget->actor = 0;
     }
-    SetTossableState(gadget, k);
-    if (k == 5) {
-        ACTOR *apo[0x20];
-        int c, i;
-        float gBest;
-        ACTOR *poBest;
-        Vec pos(gadget->source?SourcePosition(gadget->source):GetLoWorldPos(gadget));
-        c = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 0x20, (SOV **)apo);
-        gBest = 400.0f;
-        poBest = 0;
-        for (i = 0; i < c; i++) {
-            ACTOR *po = apo[i];
-            if (CanSetStepguardSpecial(po, 0xB)) {
-                float g = GDist(GetLoWorldPos(po), pos);
-                if (g < gBest) {
-                    gBest = g;
-                    poBest = po;
+    SetTossableState(gadget, state);
+    if (state == TOSSABLE_EXTRACTING) {
+        ACTOR *candidates[0x20];
+        int count, i;
+        float bestDistance;
+        ACTOR *bestActor;
+        Vec pos(gadget->source ? SourcePosition(gadget->source) : GetLoWorldPos(gadget));
+        count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 0x20, (SOV **)candidates);
+        bestDistance = 400.0f;
+        bestActor = 0;
+        for (i = 0; i < count; i++) {
+            ACTOR *candidate = candidates[i];
+            if (CanSetStepguardSpecial(candidate, 0xB)) {
+                float distance = GDist(GetLoWorldPos(candidate), pos);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    bestActor = candidate;
                 }
             }
         }
-        if (poBest) {
+        if (bestActor) {
             VU u, v;
             qwordV q, s, r;
-            gadget->actor = poBest;
+            gadget->actor = bestActor;
             gadget->hook.owner = gadget;
-            gadget->hook.object = poBest;
-            AddSoXa(poBest, &gadget->hook);
-            q = poBest->pvt[33].get((char *)poBest + poBest->pvt[33].d);
+            gadget->hook.object = bestActor;
+            AddSoXa(bestActor, &gadget->hook);
+            q = bestActor->pvt[33].get((char *)bestActor + bestActor->pvt[33].d);
             s=LoadCoefficient();
             u.q = q;
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(q), "j"(s));
             u.q = r;
             v.q = s;
             u.f[2] = D_002C43F4;
-            ((void (*)(void *, qwordV))poBest->pvt[35].pfn)((char *)poBest + poBest->pvt[35].d, u.q);
-            SendStepguardRootBhvMode6(poBest, 0);
+            ((void (*)(void *, qwordV))bestActor->pvt[35].pfn)((char *)bestActor + bestActor->pvt[35].d, u.q);
+            SendStepguardRootBhvMode6(bestActor, 0);
         }
     }
 }

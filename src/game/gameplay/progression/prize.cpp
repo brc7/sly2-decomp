@@ -98,8 +98,7 @@ struct S { char pad[0x40]; int taggedFlags; char p1[0x150 - 0x44]; int state; in
 extern float D_002A7710;
 void InitSo(struct S *p);
 void SetSoZapResponse(struct S *p, int a, int b);
-// Inline helper FPtr: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Is a tagged LO flag word a pointer (low bit clear)?
 static inline int FPtr(int v) { return !(v & 1); }
 // DPRIZE::Init (vtable slot 7): InitSo + 0x1F7918 setup.
 void InitDprize(struct S *prize)
@@ -428,9 +427,7 @@ struct VU_FLOAT {
     VU_FLOAT(float g) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(g)); }
     VU_FLOAT(int bits) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(bits)); }
 };
-// Inline helpers VuFloat, VuFloatBits, GFromQw: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers VuFloat, VuFloatBits, GFromQw (small asm wrappers/accessors shaped for the match).
 static inline qword VuFloat(float g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 static inline qword VuFloatBits(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "rV"(g)); return r; }
 
@@ -452,8 +449,7 @@ static inline qword QwCombo(VU_FLOAT g1, qword v1, VU_FLOAT g2, qword v2)
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(g1.qw), "j"(v1), "j"(g2.qw), "j"(v2));
     return r;
 }
-// Inline helper QwSub: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Vector difference.
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // Length of a vector, in lane x.
 static inline qword QwLength(qword v)
@@ -497,8 +493,7 @@ static inline float GDot(qword a, qword b)
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=j"(one) : "j"(a), "j"(b));
     return GFromQw(d);
 }
-// Inline helper GMin: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// The smaller of two floats.
 static inline float GMin(float a, float b) { return (b < a) ? b : a; }
 
 // query nearby solids (IntersectSwBoundingBox) and resolve deepest contact (bounce). (inferred)
@@ -1503,9 +1498,7 @@ struct VU_FLOAT {
     qword q;
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
-// Inline helpers PvAllocFrame, GetZ, GFromVf, Add, Sub: small vector/scalar wrappers (a few VU0/EE instructions in asm,
-// or accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers PvAllocFrame, GetZ, GFromVf, Add, Sub (small asm wrappers/accessors shaped for the match).
 static inline void *PvAllocFrame(int cb, int cbAlign) { ALLOCREQ req(cb, cbAlign); return AllocFromStack(&req); }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float GFromVf(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
@@ -1534,8 +1527,7 @@ static inline qword LengthXY(qword v)
     __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(l) : "j"(d));
     return l;
 }
-// Inline helper Div: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// v divided by lane x of l.
 static inline qword Div(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
 // Unit vector of v.
 static inline qword Normalize(qword v)
@@ -1548,8 +1540,7 @@ static inline qword Normalize(qword v)
         l = Div(v, l);
     return l;
 }
-// Inline helper Scale: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// v scaled by lane x of g.
 static inline qword Scale(qword g, qword v) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(v)); return r; }
 // base + v * g
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
@@ -1567,9 +1558,7 @@ static inline qword Combine(qword a, VU_FLOAT ga, qword b, VU_FLOAT gb)
     __asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(ga.q), "j"(b), "j"(gb.q));
     return r;
 }
-// Inline helpers GFromClq, GClampR, GClamp: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers GFromClq, GClampR, GClamp (small asm wrappers/accessors shaped for the match).
 static inline float GFromClq(const CLQ &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
 static inline float GClampR(float g, float gMin, float gMax) { if (g < gMin) return gMin; if (gMax < g) return gMax; return g; }
 static inline float GClamp(float g, const LM &lm) { return GClampR(g, lm.gMin, lm.gMax); }
@@ -1580,8 +1569,7 @@ static inline REGION *PregionFromLo(LO *plo)
     LINK *plink = pext ? pext->plink : 0;
     return plink ? plink->pregion : 0;
 }
-// Inline helper FFartherThan: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// Is g beyond gMax?
 static inline int FFartherThan(float g, float gMax) { return gMax < g; }
 
 // spray up to cRequested prizes of a kind out of a point onto the ground region. (inferred)
@@ -1873,8 +1861,7 @@ int sprintf(char *buf,const char *fmt,...);
 int FindSaveSymbol(struct HT *pt,const char *s);
 struct A *GetLevelListEntry(int h);
 struct A *ConcatSaveKeys(struct A *p, struct A *pa);
-// Inline helper Find: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Index of a save symbol by name.
 static inline int Find(struct X *px, const char *s) { return FindSaveSymbol(&px->table,s); }
 // query save data for bit n of 'afClue' for the current level. (inferred)
 struct A *GetClueSaveKey(int input)
@@ -1905,8 +1892,7 @@ void *GetClueSaveKey(void *p);
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
 extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
-// Inline helper NFromPv: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Reads an int global save variable.
 static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int IsClueCollected(void *p);
 // wrapper of GetClueSaveKey. (inferred)
@@ -2066,8 +2052,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
-// Inline helper FTest: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Does the object's GetProxyCopyValue owner derive from class 7?
 static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
 void SetClueDprizes(struct S *clue, int n)
@@ -2137,8 +2122,7 @@ int ConcatSaveKeys(void *p, X *px);
 int GetVaultSaveKey(void);
 short FindSaveSymbol(int *p, char *s);
 }
-// Inline helper Find: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Index of a save symbol by name.
 inline short B::Find(char *s) { return FindSaveSymbol(&c, s); }
 // Builds the save key of the current level's 'fVault' flag (null outside a level); like GetClueSaveKey, the name of
 // the original (FVaultOpened) suggested a predicate but it returns the key.
@@ -2165,8 +2149,7 @@ void *GetVaultSaveKey(void);
 struct CRef { int m_tagk; int m_tag; };
 extern "C" { extern char D_003D4A60[]; }
 extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
-// Inline helper NFromPv: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Reads an int global save variable.
 static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int IsVaultOpened(void);
 // Whether the current level's vault has been opened (reads the 'fVault' save flag).
@@ -2203,8 +2186,7 @@ extern char D_002E65E0[];
 extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 struct RAW { int m_tagk; int m_tag; };
 extern "C" RAW *RefGetGlobalSaveVar(RAW *pr, void *pv, void *p);
-// Inline helpers NFromPv, SetPv: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written
-// so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers NFromPv, SetPv (small asm wrappers/accessors shaped for the match).
 static inline int NFromPv(void *pv,RAW &ref) { int n; RefGetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
 static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60); }
 extern "C" void SetVaultOpened(int f);
@@ -2225,8 +2207,7 @@ void SetVaultOpened(int f)
 namespace M_InitVault { extern "C" {
 struct S { char pad[0x40]; int taggedFlags; char pad2[0x13C]; int state; char pad3[0x10]; int selectedDigit; char pad4[0x58]; int combination, introDialog, notEnoughCluesDialog, openedDialog, rewardPowerup; };
 void InitPo(struct S *vault);
-// Inline helper FPtr: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Is a tagged LO flag word a pointer (low bit clear)?
 static inline int FPtr(int v) { return !(v & 1); }
 // VAULT vtable slot 7 (Init): PO defaults; the default combination is 123 (0x7B), no dialogs or reward powerup,
 // state and dial selection off (-1).
@@ -2319,9 +2300,7 @@ extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 extern "C" void SetVaultDialState(struct S*,int);
 extern "C" int FAsegaRetracted(void*);
-// Inline helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum: small vector/scalar
-// wrappers (a few VU0/EE instructions in asm, or accessors) written so the compiler's register and instruction choice
-// matches the original; the names say what they compute.
+// Helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum (small asm wrappers/accessors shaped for the match).
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
 static inline qword Sub(qword a,qword b){qword d;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));return d;}
 static inline float Len(qword a){register qword d __asm__("vf1");register qword one __asm__("vf2");float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}

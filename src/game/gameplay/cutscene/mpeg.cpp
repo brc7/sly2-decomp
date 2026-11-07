@@ -289,8 +289,7 @@ void CQueueOutputIop::Reset()
     totalSent = 0;
 }
 
-// Inline helper Alloc: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Allocates cb bytes (alignment align) from the slot heap.
 static inline char *Alloc(int cb, int align) { return AllocFromStack(AREQ(cb, align)); }
 // Sly2 helper: for stereo-interleaved mode copy block into stack scratch (PvAllocStackImpl+CopyAb) before send.
 // (inferred)

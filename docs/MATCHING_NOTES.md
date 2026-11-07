@@ -560,6 +560,11 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   +0x7C start count vs a TASK's job pointer); enum constants in `case` labels.
 - The `_GLOBAL_$I$<file><hash>` constructor stub's suffix follows the file text, so every edit changes it (aliased by
   wildcard; ignore it in nm comparisons).
+- One-call `static inline` vtable helpers (SendSpliceEvent, SetStateVirtual for a `VCALL` macro); the tagged LO flag set
+  as `SetTaggedFlags(unsigned *word, bits)`; `*(int *)&f = 0` as `f = 0.0f`; `(T *)((char *)p + i * 0x1C + 0x2AC)` as
+  `&p->arr[i]`; `((float *)&q)[0]` as a union's `.x`; per-function command views replaced by one shared union (RELAYCMD in
+  the relay builders; a two-argument `AddRelayCommand` view was just fAsync already sitting in a2).
+- `do { ...; goto next; ... next: i = n; } while (i < 3)` -> `for (...; i = n) { ...; continue; }` (DrawFrameCaptureScreen).
 
 **Not free** (reverted):
 - Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
@@ -609,3 +614,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   dropping the `(uchar)` cast on a 1-bit bitfield test (UpdateJt).
 - Anything near register-pinned asm or register-pinned constants (Startup's colours, cane, SetMurrayCarrySubstate,
   SmoothJtCameraCurveTarget).
+- `if (j < n) do {} while (++j < n)` as a `for` (UpdateVolbtn).
+- Nested range tests `if (s < 3) if (s >= 0)` written `s < 3 && s >= 0` (becomes one unsigned compare).
+- A goto out of a nested contact walk to the code after it -> a helper that returns the result (frame and registers change:
+  UpdateButton, SendBarrierImpactMessages).
+- `&verts[i]` for `(P4 *)((i << 4) + (int)verts)` in CalculateWayptCurtainDz (different schedule).
