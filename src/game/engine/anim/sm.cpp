@@ -403,11 +403,8 @@ struct VTE5 { short d; short p; void (*pfn)(void *, int, int, int, int, int); };
 struct VT { VTE a[3]; VTE5 a3; };
 struct P { int n0; char pad[0xC - 4]; VT *vtable; char pad2[0x68 - 0x10]; char dl68[0xC]; };
 struct S { int n0; int n4; int n8; VT *vtable; char pad[0x24 - 0x10]; P *sm; int rootObject; int applyFlags; int pad30; int currentState; int nextState; int goalState; int pad40; float speed; int routeMask; int pad4C; };
-struct SW { char pad[0x3DDC]; char dl[0xC]; char pool[0x10]; };
-extern "C" { extern SW D_003DD490; }
 extern "C" { extern VT D_002D9768 __asm__("_vt$3SMA"); }
 extern "C" {
-S *AllocZeroedFromSlotheap(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void AppendDlEntry__FP2DLPv(void *, S *);
 void FramePtr_Assign(S *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
@@ -426,7 +423,7 @@ struct Lock {
 // transition.
 extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
 {
-    S *ps = AllocZeroedFromSlotheap(D_003DD490.pool);
+    S *ps = (S *)AllocZeroedFromSlotheap(&D_003DD490.slotheapSma);
     *pps = ps;
     func_002333B4(ps, 0, 0x50);
     ps->vtable = &D_002D9768;
@@ -438,7 +435,7 @@ extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
     ps->sm = p;
     ps->nextState = -1;
     ps->speed = 1.0f;
-    AppendDlEntry__FP2DLPv(D_003DD490.dl, ps);
+    AppendDlEntry__FP2DLPv(&D_003DD490.dlSma, ps);
     AppendDlEntry__FP2DLPv(p->dl68, ps);
     ps->vtable->a[1].pfn((char *)ps + ps->vtable->a[1].d);
     Lock l(p);
