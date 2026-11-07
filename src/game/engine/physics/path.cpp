@@ -804,8 +804,7 @@ struct V { qword pos; int c; struct E8 *ae; int pad[2]; };
 struct F { struct V *apv[3]; };
 struct P { float x, y, z; unsigned short c, d; };
 struct S { char pad[0x18]; int oid; char p0[0xE0 - 0x1C]; int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
-struct G { char pad[0x3D70]; int pathzoneVersion; char p1[0x45C8 - 0x3D74]; struct S *defaultPathzone; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 void LoadXfmFromBrx(struct S *p, void *pbis);
 int U16Read__18CBinaryInputStream(void *pbis);
 int U8Read__18CBinaryInputStream(void *pbis);
@@ -860,7 +859,7 @@ void LoadPathzoneFromBrx(struct S *zone, void *stream)
     }
     ComputeCgEdgeCosts(&zone->numVertices);
     if (zone->oid == 0x2CA)
-        D_003DD490.defaultPathzone = zone;
+        D_003DD490.pcid17Default = (CID17 *)zone;
     zone->version = ++D_003DD490.pathzoneVersion;
 }
 } } // namespace M_LoadPathzoneFromBrx
