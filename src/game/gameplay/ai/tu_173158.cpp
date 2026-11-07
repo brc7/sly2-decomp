@@ -32,14 +32,11 @@ struct AI { int cb; int align; };
 /* The camera (D_002DDF40): screen scales at +0x40, matrix at +0x60 (row 0 its direction, row 3 its position). */
 struct CMV { char pad[0x40]; float sx, sy; char pad48[0x18]; M4 mat; };
 
-/* An LO view: vtable, flags word (fInWorld = bit 60), radius (+0x38), the curve's path data (+0x180). */
-struct LOV { char pad0[0xC]; VTE *vt; char pad10[0x18]; unsigned long flags; char pad30[8]; float radius; char pad3C[0x144]; void *curveData; };
-typedef char assert_LOV_curveData[(unsigned int)&((LOV *)0)->curveData == 0x180 ? 1 : -1];
 /* The script object created for a curve selector (cid 0x71). */
 struct Q8 { int pad[2]; int isReversed; };
 struct SCRIPTV { char pad[0x54]; Q8 *firstCommand; };
 /* A spawn selector (0x1C bytes): kind 0 LO spot, 1 curve, 2 small LO spot. */
-struct SEL { int kind; int oid; LOV *object; SCRIPTV *script; Q8 *scriptCommand; int isBusy; float busyUntil; };
+struct SEL { int kind; int oid; LO *object; SCRIPTV *script; Q8 *scriptCommand; int isBusy; float busyUntil; };
 typedef char assert_SEL_size[sizeof(SEL) == 0x1C ? 1 : -1];
 /* Spawn selector kinds (SEL::kind). */
 enum { SELECTOR_SPOT = 0, SELECTOR_CURVE = 1, SELECTOR_SMALL_SPOT = 2 };
@@ -88,7 +85,7 @@ struct CID119V
     int useRangeTest;
     int useOcclusionTest;
     int templateCount;                 /* +0x90 guard templates (max 8) */
-    LOV **templates;
+    LO **templates;
     int offsetCount;                  /* +0x98 test offsets (max 16) */
     qwordV *offsets;
     float respawnDelay;           /* +0xA0 */
@@ -98,8 +95,8 @@ struct CID119V
 };
 typedef char assert_CID119V_size[sizeof(CID119V) == 0xB0 ? 1 : -1];
 /* UpdateSpawner's event record (the hero's last noise) and the message argument it sends. */
-struct EVENT{float time;char pad4[8];LOV*tag;char pad10[0x10];EVENT*next;char pad24[4];int kind;LOV*previous;};
-struct LINK{LOV**pp;};
+struct EVENT{float time;char pad4[8];LO*tag;char pad10[0x10];EVENT*next;char pad24[4];int kind;LO*previous;};
+struct LINK{LO**pp;};
 struct CRefV{int tag;void*value;};
 /* SnapToGround's line hit. */
 struct HITY { qwordV v; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };   /* hit point, normal at +0x20 */
@@ -152,17 +149,17 @@ int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CMV*,qwordV);
-LOV *GetHeroPo(void *g);
+LO *GetHeroPo(void *g);
 qwordV GetLoWorldPos(void *p);
 M4 *GetLoWorldMatrix(void *p);
-EVENT *FindTargetRecordById(LOV *object);
+EVENT *FindTargetRecordById(LO *object);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
-void SetDetectorTargetStateById(DETV *pdet,LOV *object,int k);
+void SetDetectorTargetStateById(DETV *pdet,LO *object,int k);
 void CollectVisibleMsGlobs(int *, void ***);
-float GetShapeMaxDistance(LOV *);
+float GetShapeMaxDistance(LO *);
 int FindRangeContaining(void *, float);
-void EvaluateShapeAtDistance(LOV *, qwordV *, qwordV *, float);
+void EvaluateShapeAtDistance(LO *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 BuildAxisAngleRotationMatrix(float, qwordV);
 GUARDV *AcquireProxyObject(void *p, int n);
@@ -175,7 +172,7 @@ int GetSpawnPointConcealment(CID119V *p, qwordV pos, int count, void **objects, 
 void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f);
 qwordV GetSpawnerFocusPosition(CID119V *p);
 void UpdateSpawnerEntries(CID119V *p, qwordV pos);
-ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *object);
+ENTRY *FindFreeSpawnerEntry(CID119V *p, LO *object);
 SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped);
 GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *selector, qwordV *position, M3 *rotation, int isFlipped);
 }
@@ -205,7 +202,7 @@ extern "C" void LoadSpawnerFromBrx(CID119V *spawner, void *bis) {
     STACKSCOPE_ctor(&scope);
     spawner->selectors = (SEL *)AllocClearedFromStack(SetAi(&request, MAX_SELECTORS * sizeof(SEL), 0x10));
     spawner->offsets = (qwordV *)AllocFromStack(SetAi(&request, MAX_OFFSETS * sizeof(qwordV), 0x10));
-    spawner->templates = (LOV **)AllocFromStack(SetAi(&request, MAX_TEMPLATES * sizeof(LOV *), 0x10));
+    spawner->templates = (LO **)AllocFromStack(SetAi(&request, MAX_TEMPLATES * sizeof(LO *), 0x10));
     AddSpawnerOffset(spawner, D_002A2DD0);   // the zero offset: the spawn point itself is always tested
     LoadLoFromBrx(spawner, bis);
     spawner->selectors = (SEL *)AllocCopyFromWorldHeap(SetAi(&request, spawner->selectorCount * sizeof(SEL), 0x10), spawner->selectors);
@@ -213,7 +210,7 @@ extern "C" void LoadSpawnerFromBrx(CID119V *spawner, void *bis) {
         void *offsets = AllocCopyFromWorldHeap(SetAi(&request, spawner->offsetCount << 4, 0x10), spawner->offsets);
         void *templates = spawner->templates;
         spawner->offsets = (qwordV *)offsets;
-        spawner->templates = (LOV **)AllocCopyFromWorldHeap(SetAi(&request, MAX_TEMPLATES * sizeof(LOV *), 0x10), templates);
+        spawner->templates = (LO **)AllocCopyFromWorldHeap(SetAi(&request, MAX_TEMPLATES * sizeof(LO *), 0x10), templates);
     }
     STACKSCOPE_ctor_1AE4A0(&scope, 2);
 }
@@ -258,7 +255,7 @@ extern "C" void AddSpawnerSmallLoSpot(CID119V *spawner, int oid)
 }
 
 // 0x173398: Splice option: appends a guard template object (at most 8).
-extern "C" void AddSpawnerTemplate(CID119V *spawner, LOV *guardTemplate)
+extern "C" void AddSpawnerTemplate(CID119V *spawner, LO *guardTemplate)
 {
     if (spawner->templateCount < MAX_TEMPLATES) {
         spawner->templates[spawner->templateCount++] = guardTemplate;
@@ -298,7 +295,7 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
             {
                 // A curve spawn walks its guard along the curve: a script (cid 0x71) with one goto command.
                 SCRIPTV *script;
-                selector->object = (LOV *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
+                selector->object = (LO *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
                 script = CreateLo(0x71, 0, 0x2CB, -1);
                 AddGuardScriptFollowPath(script, selector->oid, 1, -1);
                 selector->scriptCommand = script->firstCommand;
@@ -307,7 +304,7 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
             break;
         case SELECTOR_SPOT:
         case SELECTOR_SMALL_SPOT:
-            selector->object = (LOV *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
+            selector->object = (LO *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
             break;
         }
     }
@@ -520,7 +517,7 @@ extern "C" void UpdateSpawner(CID119V *spawner)
     EVENT *event;
     ENTRY *entry;
     SEL *selector;
-    LOV *hero;
+    LO *hero;
     UpdateLo(spawner);
     pos = GetSpawnerFocusPosition(spawner);
     UpdateSpawnerEntries(spawner, pos);
@@ -573,7 +570,7 @@ extern "C" void UpdateSpawner(CID119V *spawner)
     entry->selector = selector;
     spawner->entryCount++;
     selector->isBusy = 1;
-    link.pp = (LOV **)&guard;
+    link.pp = (LO **)&guard;
     spawner->nextSpawnTime = D_002DDED0.time + D_002BE5D8;
     // vtable slot 3 (HandleSpliceEvent): message 0x19 "guard spawned" with the guard.
     ((void (*)(void *, int, int, int, void *const *, CRefV *))spawner->vt[3].pfn)((char *)spawner + spawner->vt[3].d, 0x19, 0, 1, (void *const *)&link, 0);
@@ -625,7 +622,7 @@ extern "C" void UpdateSpawnerEntries(CID119V *spawner, qwordV pos) {
             }
         } else if (guard->isKnockedOut) {
             ReleaseSpawnerEntry(spawner, entry, ENTRY_RESPAWN_DELAY, 0);
-        } else if (((int)(guard->flags >> 60) & 1) == 0 || ((int)(entry->selector->object->flags >> 60) & 1) == 0) {
+        } else if (((int)(guard->flags >> 60) & 1) == 0 || ((int)entry->selector->object->isInWorld & 1) == 0) {
             // the guard or its spawn object left the world
             ReleaseSpawnerEntry(spawner, entry, ENTRY_FREE, 0);
         } else {
@@ -635,7 +632,7 @@ extern "C" void UpdateSpawnerEntries(CID119V *spawner, qwordV pos) {
 }
 
 // 0x173E78: Picks the slot to use: the oldest free one, or the oldest occupied one past the timeout.
-extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *spawner, LOV *object) {
+extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *spawner, LO *object) {
     float oldestActiveTime = D_002DDED0.time - D_002BE5E0; // occupied slots must be older than this
     float oldestReadyTime = D_002DDED0.time;
     ENTRY *best = 0;
@@ -644,7 +641,7 @@ extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *spawner, LOV *object) {
     for (i = 0; i < spawner->entryCapacity; i++) {
         slot = &spawner->entries[i];
         if (slot->guard != 0) {
-            if ((LOV *)slot->guard == object) continue;   // never replace the excluded guard
+            if ((LO *)slot->guard == object) continue;   // never replace the excluded guard
             if (best && best->guard == 0) continue;       // a free slot beats any occupied one
             if (oldestActiveTime <= slot->activeTime) continue;
             oldestActiveTime = slot->activeTime;
@@ -723,7 +720,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
     float minRadius = D_002A53E0;
     for (int i = 0; i < spawner->templateCount; i++)
     {
-        float radius = spawner->templates[i]->radius;
+        float radius = spawner->templates[i]->busyRadius;
         minRadius = minRadius < radius ? minRadius : radius;
     }
     SEL *bestSelector;
@@ -736,7 +733,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
     for (int i = 0; i < spawner->selectorCount; i++)
     {
         SEL *selector = &spawner->selectors[i];
-        LOV *object;
+        LO *object;
         if (selector->isBusy)
             continue;
         if (D_002DDED0.time < selector->busyUntil)
@@ -745,7 +742,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
         if (!object)
             continue;
         {
-            int isInWorld = (int)(object->flags >> 60) & 1;   // (the named temporary is needed for the match)
+            int isInWorld = (int)object->isInWorld & 1;   // (the named temporary is needed for the match)
             if (!isInWorld)
                 continue;
         }
@@ -762,7 +759,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
             case SELECTOR_SPOT:
                 spotPosition = GetLoWorldPos(selector->object);
                 rotation = *(M3 *)GetLoWorldMatrix(selector->object);
-                radius = selector->object->radius;
+                radius = selector->object->busyRadius;
                 break;
             case SELECTOR_SMALL_SPOT:
                 radius = minRadius;
@@ -792,7 +789,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
             for (int k = 0; k < numSamples; k++)
             {
                 float u = D_002BE5E8 * ((float)k + RandomFloatInRange(D_002BBB60.minValue, D_002BBB60.maxValue));
-                if (FindRangeContaining(object->curveData, u))
+                if (FindRangeContaining(((SHAPE *)object)->pranges, u))
                     continue;
                 EvaluateShapeAtDistance(object, &curvePosition.q, &curveDirection.q, u);
                 float distance = VectorLengthXY(VuDifference(pos, curvePosition.q));
@@ -857,9 +854,9 @@ extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *selector, qwordV
             order[other] = swap;
         }
         for (i = 0; i < spawner->templateCount; i++) {
-            LOV *object = spawner->templates[order[i]];
-            { VTE *entry = &object->vt[0x1D]; ((void (*)(void *, qwordV))entry->pfn)((char *)object + entry->d, *position); }
-            { VTE *entry = &object->vt[0x1E]; ((void (*)(void *, M3 *))entry->pfn)((char *)object + entry->d, rotation); }
+            LO *object = spawner->templates[order[i]];
+            object->TranslateToPos(*position);
+            object->RotateToMat((MATRIX4 *)rotation);   /* a 3x3 rotation (M3) */
             guard = AcquireProxyObject(object, 0);
             if (guard) break;
         }
