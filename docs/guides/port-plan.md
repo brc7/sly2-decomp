@@ -1,6 +1,6 @@
 # Sly 2 native macOS (Apple Silicon) port: architecture plan
 
-> Copied into the docs in v3.1 from `reports/port_plan/PORT_PLAN.md` (proposal, not reviewed). Doc paths inside are relative to `reports/` and point at the docs_v2 tree; the same pages live under [../engine/](../engine/overview.md) and [../formats/](../formats/world-file.md) here.
+> Copied into the docs in v3.1 from `reports/port_plan/PORT_PLAN.md` (proposal, not reviewed). Doc paths inside are relative to `reports/` and point at the docs_v2 tree; the same pages live under [../engine/](../engine.md) and [../formats/](../formats/world-file.md) here.
 
 Status: proposal v1, 2026-11-01. Author: port-planning agent. Audience: the TL, plus agent teams who will build it.
 Evidence tags: **[K]** = known, with a citation to our docs or a measurement made while writing this plan.
@@ -183,7 +183,7 @@ READMEs already state for their `out/` dirs.
 ### 4.2 Recompiler (port/recomp) **[K1, K4, A4, A5]**
 - Input: ELF + `functions.csv` + `junk.csv` + `symbol_addrs.txt` + `master_names.csv` (for readable C++ symbol
   names). Decoder: rabbitizer, which the decomp already depends on and which knows the R5900 (MMI, COP2 macro).
-- Output: one C++ file per TU (`reference/tu-map.md`, ~210 TUs). This keeps builds incremental, which N64Recomp also
+- Output: one C++ file per TU (`tools/layout/units.csv`, ~210 TUs). This keeps builds incremental, which N64Recomp also
   found necessary. Literal translation: `ctx->gpr[r]` is 128-bit (u64 low half plus u64 high half), branch delay
   slots expanded, branch-likely, HI/LO plus HI1/LO1 (`mult1`/`div1`), `madd`, MMI ops as small inline helpers,
   `lq`/`sq` 16-byte aligned, `ldl`/`ldr`/`sdl`/`sdr`, `sync`/`ei`/`di`/`cache` as no-ops, `syscall` calls into

@@ -1,8 +1,8 @@
 # Meshes (GLOBSET) and scene assembly
 
 How models are stored inside SO-family object payloads and how a level's objects are placed to rebuild the scene. Exporters:
-`reports/meshes/sly2_mesh.py` (OBJ) and `reports/textured/sly2_export.py` (textured, placed glTF/OBJ); see [guides/asset-tools.md](../guides/asset-tools.md).
-Render-time behaviour of the same data: [rendering](../engine/rendering.md).
+`reports/meshes/sly2_mesh.py` (OBJ) and `reports/textured/sly2_export.py` (textured, placed glTF/OBJ); see guides/asset-tools.md.
+Render-time behaviour of the same data: [rendering](../engine.md#73-rendering-enginegraphics).
 
 Tags: `[C:static]` = matched loader; `[C:parse]` = consumed exactly by the parsers over all 43 world files (11,244 SOs, 4,326,803 type-0 triangles including
 instances, 0 errors; every filtered sub-glob's skip size equals the bytes parsed); `[C:runtime]` = checked against the S02 RAM dump; `[C:visual]` = verified
@@ -44,11 +44,11 @@ S16 cgroup; per group:
 csub instance records (0x169AC8): S8; [fCompact == 0: U32]; S16 ixf; MATRIX4; S32; S8; CLUTSET
 ```
 - Each batch is one **triangle strip** of cvtx vertices; a set bit = ADC (the triangle ending at that vertex is not drawn; the first two vertices of every strip
-  carry it) `[C:visual]`, matching the VU W-word bit 15 ([rendering](../engine/rendering.md#5-vertex-formats-and-the-main-glob-program-p0)). Winding alternates.
+  carry it) `[C:visual]`, matching the VU W-word bit 15 ([rendering](../engine.md#73-rendering-enginegraphics)). Winding alternates.
 - UVs are floats; the loader stores `(int)(u*4096 + 0.5)` with no flip `[C:static]` (0x16A000 l.1227-1233). Since texture rows are stored bottom-up, glTF uses
   `(u, 1 - v)` on top-down PNGs and OBJ `(u, v)` `[C:visual]`.
 - Vertex colour is multiplied by the shader colour at load for unlit shaders (`vtx * shd.rgba / 256`, alpha `vA * shdA / 510`, 0x80 = opaque) `[C:static]`; for lit
-  shaders (shdk 1, 7) the relight program produces the final colours ([rendering](../engine/rendering.md#6-lighting-relight-and-outlines-the-cel-look)).
+  shaders (shdk 1, 7) the relight program produces the final colours ([rendering](../engine.md#73-rendering-enginegraphics)).
 - Skinned meshes (cbnd > 0) are stored in **bind pose**: Sly, Murray and Bentley render correctly un-skinned `[C:visual]`. Weights: D_002BE558 = {-1, S8, V2_8, V3_8, V4_8}
   bytes per vertex by bone count.
 
@@ -97,7 +97,7 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
 - **Placement rules for every record** (devtools/level_viewer, lib/scene.py), extending the SO rules above: XFM family (LIGHT, SHAPE/RAIL/PIPE, VOL, TN,
   EMITTER, CID24/27/36/43, ...) world = `LoadXfmXfFromBrx` 0x231768 matrix x resolve(ixf) with the same ref rules; top-level XFMs of a proxy copy get
   matProxy + repoint; LO-only classes (TASK, JOB, RELAY, ASEG, SM) have no transform. Runtime check: matWorld translation at **XFM+0xD0** (types round 2: confirmed only for LIGHT; plain XFM/PROXY/TARGET have it all zero; SO positions are at pxfRoot+0x70); 787/842 live XFMs in S02 match
-  a placed instance within 2 units `[C:runtime level_viewer]` (see [object-model](../engine/object-model.md#devtools-findings-v3-2026-11-01)).
+  a placed instance within 2 units `[C:runtime level_viewer]` (see [object-model](../engine.md#6-the-object-model)).
 - Load filter: records with k > 0 are kept iff the level index (D_003E1110 = Lnn) is in the filter (`FMatchLoadFilter` 0x13FAD0) `[C:runtime]` (re-checked v3, and `[C:live]`).
 - All 43 levels place with 0 mesh-parse failures and 0 missing proxy sources; an SO placed >= 3 times with identical XF structure can be instanced
   (Paris: 148 records / 1,799 copies) `[C:parse level_viewer]`.

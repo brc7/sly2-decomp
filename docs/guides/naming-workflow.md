@@ -3,7 +3,7 @@
 How unnamed functions (`func_XXXXXXXX`) get names, how much to trust a proposal, and how names are applied to the repo safely. Sources: the semantic playbook
 (`reports/semantic/playbook.md`), the master-name conventions (`reports/master_names_v2/CONVENTIONS.txt`), four verifier rounds, the arbitration pass and the
 rename tool (`reports/rename_tool/DESIGN.txt`). The current name list is `master_names_v2/master_names.csv` (6,186 rows); the generated per-subsystem tables
-are in [reference/functions/](../reference/functions/).
+are in `reference/functions/` (since deleted).
 
 ## 1. Where things stand (master_names_v2)
 

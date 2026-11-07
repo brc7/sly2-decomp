@@ -248,7 +248,7 @@ Other observations:
 - Per-function gcse stand-ins (brx_sw's dead `if (fNever)` block that sizes the gcse hash table) survive the merge:
   that table size is per function, not per file.
 - When rewriting doc links, match `\.(cpp|c)` in that order: `(c|cpp)` stops at `.c` and leaves `pp` behind (fixed
-  in a follow-up commit of wave 1). Run `python3 -I tools/docs/linkcheck.py` after each merge.
+  in a follow-up commit of wave 1). Run `python3 -I tools/linkcheck.py` after each merge.
 - Not hit yet: inline methods or class definitions that become visible in the merged TU and change a function's
   codegen (pilot blocker B6). The gifs/vifs cases suspected of it were draft-body and register-pin differences
   (wave 3, see "TUs with an older multi-function file").

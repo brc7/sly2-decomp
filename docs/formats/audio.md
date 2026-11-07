@@ -1,7 +1,7 @@
 # Audio files: 989snd banks, VPK streams, VAGp dialogue
 
-Decoder: `reports/audio/sly2_audio.py` (stdlib + numpy; exports WAV with loop points and spectrograms; [guides/asset-tools.md](../guides/asset-tools.md)).
-Engine side: [sound](../engine/sound.md).
+Decoder: `reports/audio/sly2_audio.py` (stdlib + numpy; exports WAV with loop points and spectrograms; guides/asset-tools.md).
+Engine side: [sound](../engine.md#77-sound-enginesound-srcsdk989snd).
 
 Tags: `[C:parse]` = header fields account exactly for the file size or tables; `[C:decode]` = the decoded signal passes plausibility checks (speech formants,
 tonal music, no clipping); `[C:static]` = IOP or EE disassembly; `[H]` = inferred. **Only one sample per kind was decoded**; the other files are presumed to use the
@@ -70,7 +70,7 @@ SBlk (offsets relative to chunk 0): `+0 "SBlk"; +4 version 3; +8 4; +0xC bank id
 
 ## Devtools findings (v3, 2026-11-01)
 
-- [devtools/audio_browser](../guides/devtools.md#audio_browser) decodes every manifest kind (VAGp 1,691, VPK 100, SBlk 43, PSS 2); PSS movie audio = SShd type 0x10 PS-ADPCM, 44.1 kHz,
+- devtools/audio_browser decodes every manifest kind (VAGp 1,691, VPK 100, SBlk 43, PSS 2); PSS movie audio = SShd type 0x10 PS-ADPCM, 44.1 kHz,
   2 ch, interleave 0x20 `[C:decode]` (one movie checked). Signal self-tests 23/23 with negative controls (e.g. a 6-byte misaligned dialogue decode is flagged).
 - Bank L02: 460/460 waves end exactly at their end flag; 383 sounds vs 381 sfx ids mapped `[C:parse]`.
 - 989snd grain types other than 1 (TONE) are not modelled (types 4, 5, 20-31, 39 occur) - open. Odd-rate tones (> 48 kHz from the note-60 formula) `[H]`.

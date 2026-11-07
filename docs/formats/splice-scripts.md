@@ -1,7 +1,7 @@
 # Splice scripts in world files
 
 Level scripts ("Splice", a compiled Scheme dialect) are stored per world entry as serialized lists. The tool `reports/splice_scripts/tool/sly2splice.py` walks, decodes,
-re-encodes and pretty-prints them; [guides/asset-tools.md](../guides/asset-tools.md) shows how to run it. Runtime side: [splice-scripting](../engine/splice-scripting.md).
+re-encodes and pretty-prints them; guides/asset-tools.md shows how to run it. Runtime side: [splice-scripting](../engine.md#72-splice-scripting-splice-appbifcpp-objectspliceobjcpp).
 
 Tags: `[C:static]` = matched code; `[C:parse]` = the walk consumes every byte and **re-encodes byte-identically: 10,930/10,930 entries in all 43 world files**
 (2,697,151 bytes); `[C:data]` = holds for every instance; `[C:runtime]` = seen bound in live frames (runtime6); `[H]` = inferred.
@@ -87,7 +87,7 @@ Not done yet.
 
 - devtools/splice_browser renders all 10,930 entries (10,900 identical to whole_game listings after name normalisation, 30 differ only in wrapping)
   and decodes text ids per level. TASK eopid 1265 (+0x5C) = **objective text**, JOB eopid 1245/1246 = job title / description (e.g. m1_sat = "Satellite
-  Sabotage") `[C:decode splice_browser]`. RELAY 0x6E3 static decode = live S59 command list `[C:runtime]` ([cutscenes](../engine/cutscenes.md#devtools-findings-v3-2026-11-01)).
+  Sabotage") `[C:decode splice_browser]`. RELAY 0x6E3 static decode = live S59 command list `[C:runtime]` ([cutscenes](../engine.md#714-cutscenes-sequences-and-movies-gameplaycutscene)).
 - The m1_sat TASK graph from LoadTaskFromBrx prereq/successor lists reproduces runtime6's chain t1_roof_intro -> ... -> t1_recon_intro `[C:parse+runtime]`.
 
 ## 6. Open

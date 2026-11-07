@@ -1,7 +1,7 @@
 # World file (BRX) format, Sly 2 PS2 (SCUS-97316)
 
 A world (level) file is one LZSS-compressed stream ([compression-lzss.md](compression-lzss.md)) located by a FILEREC
-([disc-records.md](disc-records.md)) and read front to back by `LoadSwFromBrx` 0x13DA18 ([world-sw.md](../engine/world-sw.md#2-loading-a-level)).
+([disc-records.md](disc-records.md)) and read front to back by `LoadSwFromBrx` 0x13DA18 ([world-sw.md](../engine.md#loading-a-level)).
 Merged from the asset-extraction write-up and the brx/sound/save TU write-ups. Status tags in this page:
 **confirmed** = `[C:verified]` (read from matched code and checked against both sample worlds); **code** = `[C:static]` (read from matched
 code, not exercised by the samples); **hypothesis** = `[H]`.
@@ -144,7 +144,7 @@ U16 n ; n x { U16 value ; string16 name }   -> hash table at psw+0x3A18+8
 U16 c ; c x 10 bytes                        -> blob, then func_001D7C80
 ```
 
-Both samples have n=960 symbols and c=5461 trie entries, identical in both files. The 10-byte records are the save-variable trie `{s16 sym; s8 kind; u8 cbits; u16 ib; u16 iChild; u16 iSibling}` mapping names to offsets in the save blob `[C:runtime]` (decoded in RAM: 4,472 variables; see [save-memcard](../engine/save-memcard.md) and [save-variables](save-variables.md)). The U16 per symbol is its symbol id.
+Both samples have n=960 symbols and c=5461 trie entries, identical in both files. The 10-byte records are the save-variable trie `{s16 sym; s8 kind; u8 cbits; u16 ib; u16 iChild; u16 iSibling}` mapping names to offsets in the save blob `[C:runtime]` (decoded in RAM: 4,472 variables; see [save-memcard](../engine.md#713-save-data-and-memory-card-worldstatesavecpp-uimemcardcpp) and [save-variables](save-variables.md)). The U16 per symbol is its symbol id.
 
 ### 3.4 Level table (`LoadLevelTableFromBrx`, `func_0020F318`)
 
@@ -283,7 +283,7 @@ Status:
 
 Observations:
 * `idBlob` values look like 0x411Cxxxx (0x411C70BF, 0x411C7D26, 0x411C7D54); the blob is re-read only when idBlob changes. The blob is the WE's texture image data (bitmaps + CLUT colours) `[C:parse]` ([textures.md](textures.md)).
-* Class ids in the object lists are 0x03 (XFM), 0x05, 0x06 (PROXY), 0x0E, 0x11 (PATHZONE), 0x1A (EXIT), 0x1F (EXPLG), 0x21 (EXPLS), 0x30 (SO), 0x6D (ASEG), 0x7E (WIDGET), 0x82 (WIDGET subclass) and so on (names: [class-tree](../reference/class-tree.md)). Most objects have `n = -1` (no splice frame). cid 0x84/0x85 objects are always loaded even when filtered. See [class-tree](../reference/class-tree.md) for the mapping.
+* Class ids in the object lists are 0x03 (XFM), 0x05, 0x06 (PROXY), 0x0E, 0x11 (PATHZONE), 0x1A (EXIT), 0x1F (EXPLG), 0x21 (EXPLS), 0x30 (SO), 0x6D (ASEG), 0x7E (WIDGET), 0x82 (WIDGET subclass) and so on (names: [`include/sly2/classes.h`](../../include/sly2/classes.h)). Most objects have `n = -1` (no splice frame). cid 0x84/0x85 objects are always loaded even when filtered. See [`include/sly2/classes.h`](../../include/sly2/classes.h) for the mapping.
 
 ### Relation to Sly 1 (ProjectCane `brx.cpp`)
 

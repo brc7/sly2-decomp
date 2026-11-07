@@ -8,7 +8,7 @@ Tags: `[C:parse]` = read from the loader and proven by consuming every byte of t
 `[C:static]` = read from the loader, but the class or branch never occurs in the data; `[H]` = meaning inferred.
 Types: all little-endian; `VECTOR` = 3 x F32; `MATRIX4` = 4 x VECTOR (48 B, rows 0-2 + translation; `ReadMatrix4` 0x117F18); `MATRIX3` = 36 B;
 `string16` = U16 cch + cch bytes, no NUL; `FILEREC` = 64-byte disc record ([disc-records.md](disc-records.md)). Signed counts that are negative read nothing.
-How to run the parser: [guides/asset-tools.md](../guides/asset-tools.md).
+How to run the parser: guides/asset-tools.md.
 
 ## 1. Where the stream ends
 
@@ -149,7 +149,7 @@ Events: `U8 c; c x {S8 kind; [timed: S16 t]; kind 0: S16, 3 x S32, 3 x F32 | 3: 
 - Whole game: 488,840,496 stream bytes, 7,753 WEs (1,900 distinct names; 66 names in >= 42 levels = the shared character/FX/pickup kit), 121,153 object
   records, 10,930 Splice entries `[C:parse]`. Per-level x class counts and every WE: `reports/whole_game/{objects_by_level,objects_matrix,we_names_by_level}.csv`.
 - Class identities from the object data (WE names and object strings; `whole_game/class_name_hints.csv`) are the source of the v2 class names in
-  [reference/class-tree.md](../reference/class-tree.md).
+  [`include/sly2/classes.h`](../../include/sly2/classes.h).
 
 ## 10. Open
 

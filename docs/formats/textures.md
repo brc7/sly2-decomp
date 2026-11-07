@@ -2,7 +2,7 @@
 
 Textures are stored **per world entry** (WE), right after the WE's Splice entries ([level-objects.md](level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx)),
 and loaded by `LoadShadersFromBrx` 0x1EB748. The exporter `reports/textures/sly2_textures.py` decodes them to PNG
-([guides/asset-tools.md](../guides/asset-tools.md)).
+(guides/asset-tools.md).
 
 Tags: `[C:static]` = matched decomp code; `[C:parse]` = the walk lands exactly on every following structure in all 43 world files (37,508 bitmaps,
 38,750 shaders, 71,774 bitmap x CLUT pairs decoded with 0 errors); `[C:visual]` = the decoded images look right (signs and posters readable,
@@ -31,7 +31,7 @@ The blob is re-read only when the WE's idBlob differs from the previous one; oth
 | +0xC | U32 | blob offset (kind 1) |
 
 Colours are RGBA32 (R,G,B,A bytes) `[C:visual]`. Every loaded colour also goes through `ColorCorrectRgba` 0x1ED278 when D_003E12C8 is set; that flag is the
-anaglyph-stereo flag ([rendering](../engine/rendering.md#8-blips-hud-screen-effects)), so normal rendering does not correct colours `[C:static]`.
+anaglyph-stereo flag ([rendering](../engine.md#73-rendering-enginegraphics)), so normal rendering does not correct colours `[C:static]`.
 
 ## 3. BMP record (0x18-byte header) `[C:static]`
 
@@ -67,7 +67,7 @@ index and cclut x U16 CLUT index (0xFFFF none).
 ## 6. Runtime notes
 
 After every load the texture-table counts and list heads are reset: `ResetShaders` 0x1EC7A0 is 17 instructions that zero the 8 words 0x3DCFE8-0x3DD004 and memset nothing `[C:static v3.1]` (plus `ClearTexHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
-GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic).
+GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../engine.md#73-rendering-enginegraphics).
 
 ## Devtools findings (v3, 2026-11-01)
 

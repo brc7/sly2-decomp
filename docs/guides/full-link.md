@@ -32,7 +32,7 @@ different.
 | differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; from objects .text 1,295,844, .rodata 128,544, .data 180,852 | `tools/link.py` |
 | blob bytes | 822,888: IOP modules 474,176; data no object defines 193,760; text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,576; padding / not in config 1,036; `func_00100000` 4 | `tools/link.py` |
 | config names at their config address | 8,120 / 8,120 [8,066]: config names the 6 slot pools, 5 splice heaps and their 11 sentries (symbol_addrs.txt); 23 [45] undefined names no config file knows | `tools/link.py` |
-| docs links | 0 broken | `tools/docs/linkcheck.py` |
+| docs links | 0 broken | `tools/linkcheck.py` |
 
 ## Absolute symbols (data/address-names-2, data/commons-file)
 
@@ -61,7 +61,7 @@ Left, and who decides:
   reent data, `_ctype_`). 8 SDK names do not match the defining source's name and stay absolute even then:
   strtol (func_00234580.c), RemoveIntcHandler, sceSifGetReg, Deci2Call, GetMemorySize, `_InitTLB`, DisableIntc (the
   syscall stubs func_002347xx..002351E0) and sceSifSetReg (0x23A920, which config calls sceSifExecNotifyHandler):
-  renames of SDK sources the naming pass deferred to the Mac (docs/reference/name-confidence.csv). Also to verify
+  renames of SDK sources the naming pass deferred to the Mac. Also to verify
   on the Mac: func_00237B80.c and _sceMpegCscStoreRefImage.c (gnu-reorder) now call SignalSema / FlushCache by name.
 - **User decisions**: tu_1147D8's built-in font (D_0027A778, D_0029A790, font.cpp's D_0029A7A8/D_002A28E8) and
   tu_114AE0's bitmap block (D_0029A8C0, D_002A28D0): game artwork, how image assets are kept in source.
@@ -578,7 +578,7 @@ The `--tu-data` rows are the mode data/order-2 made the only one (the option is 
 | `--tu-data` (real-link data layout): .text / .rodata / .data equal | 1,415,300 (99.90%) [1,413,936] / 301,625 (99.10%) [298,405] / 198,222 (99.57%) [197,806]; from objects .rodata 21,217 / 23,948 (88.60%) [12,157 / 18,108], .data 29,066 / 29,932 (97.11%) [28,634 / 29,916] | `tools/link.py --tu-data` |
 | `--tu-data` differing bytes | 4,985 [9,985] | `tools/link.py --tu-data` |
 | `--tu-data` config names at their config address | 6,933 / 7,282 (wrong .rodata 46, .data 303) [6,847 / 7,334; wrong .rodata 143, .bss 29, .data 313, .sbss 2] | `tools/link.py --tu-data` |
-| docs links | 0 broken | `tools/docs/linkcheck.py` |
+| docs links | 0 broken | `tools/linkcheck.py` |
 
 No source change was needed under `-fno-rtti`: the two data branches' code matches with the flag as it did without.
 
