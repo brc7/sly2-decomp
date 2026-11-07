@@ -571,20 +571,16 @@ void PostSwLoad(struct S *world)
 namespace M_ExecuteSwTransition {
 // Load the pending world and restore actor and view state.
 typedef unsigned int uint;
-struct HEADER {int words[16];};
-struct REQUEST {int flags;HEADER header;int objectId,objectKey;};
 struct KEY {int name,tag,kind;char data[0x104];};
 struct VT {short delta,unused;void *function;};
 struct WIDGET {char pad0[0x58];int shown;};
 struct ACTOR {char pad0[0xC];VT *vtable;char pad10[8];int tag;char pad1C[0xF10];WIDGET *widget;};
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
-struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unused3C80,unused3C84,objectId,objectKey;char pad3C90[0x228];int actorCount;ACTOR *actors[1];char pad3EC0[0x8AC];float resumeTime;char pad4770[0x20];};
 struct FRAME;
 struct STREAM;
 struct REF;
 extern "C" { extern char D_002DDED0[],D_002DDF40[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
 extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
-extern "C" { extern SW D_003DD490; }
 extern "C" {
 void FlushFrames__Fi(int);
 FRAME *STACKSCOPE_ctor(FRAME *);
@@ -600,7 +596,6 @@ void DeleteSw(SW *);
 void ResetClock(void *);
 void AddGrfusr__Fi(int);
 void *func_002333B4(void *,int,uint) __asm__("memset");
-SW *SW_ctor(SW *);
 int CMpeg_ExecuteOids(void *);
 void InitCm__FP2CM(void *);
 void InitSwLoadBuffers(SW *);
@@ -631,8 +626,8 @@ struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool
 struct REF {int tag,value;REF(const REF &);~REF(){Decref__4CRef(this);}};
 extern "C" REF GetSaveVarByName(const char *,...);
 static inline float Time(){return *(float *)D_002DDED0;}
-static inline int Same(const HEADER *a,const HEADER *b){if(a==b)return true;if(!b)return false;return (a->words[2]^a->words[14])==(b->words[2]^b->words[14]);}
-static inline int SetKey(KEY *key,const HEADER *header){if(!header)return false;int c=header->words[0],a=header->words[13],d=header->words[15],b=header->words[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
+static inline int Same(const FILEREC *a,const FILEREC *b){if(a==b)return true;if(!b)return false;return (a->aw[2]^a->aw[14])==(b->aw[2]^b->aw[14]);}
+static inline int SetKey(KEY *key,const FILEREC *header){if(!header)return false;int c=header->aw[0],a=header->aw[13],d=header->aw[15],b=header->aw[1];key->kind=2;key->tag=b^d;key->name=(c^a)+0xCA0;return key->tag!=0;}
 static inline void Activate(ACTOR *actor){VT *entry=&actor->vtable[8];((void (*)(void *))entry->function)((char *)actor+entry->delta);}
 static inline void Enable(ACTOR *actor,int mode){VT *entry=&actor->vtable[79];((void (*)(void *,int))entry->function)((char *)actor+entry->delta,mode);}
 static inline void Attach(ACTOR *actor,CONTEXT *context){VT *entry=&actor->vtable[38];((void (*)(void *,CONTEXT *))entry->function)((char *)actor+entry->delta,context);}
@@ -644,14 +639,14 @@ static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("
 // callback 5. Called once per frame by the main loop.
 extern "C" void ExecuteSwTransition(SW *world)
 {
-    if(!world->pending)return;
+    if(!world->isTransitionPending)return;
     FlushFrames__Fi(1);
-    REQUEST request=world->request;
-    REQUEST *destination=&world->request;
-    world->pending=0;
+    TRANS request=world->transition;
+    TRANS *destination=&world->transition;
+    world->isTransitionPending=0;
     float resume;
     if(request.flags&0xCD)resume=0.0f;
-    else{float remaining=world->resumeTime-Time();resume=remaining>0.0f?remaining:0.0f;}
+    else{float remaining=world->hudTimerEndTime-Time();resume=remaining>0.0f?remaining:0.0f;}
     FRAME frame;
     FRAME *scope=&frame;
     STACKSCOPE_ctor(scope);
@@ -660,9 +655,9 @@ extern "C" void ExecuteSwTransition(SW *world)
     KEY *keyPointer=&key;
     keyPointer->kind=2;
     InitFileKey(keyPointer);
-    int hasFile=NonZero(request.header.words[1]^request.header.words[15]);
-    if(hasFile&&!SetKey(&key,&request.header)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
-    HEADER *current=&world->current; const HEADER *requested=&request.header; int changed=!Same(requested,current);
+    int hasFile=NonZero(request.destinationLevel.aw[1]^request.destinationLevel.aw[15]);
+    if(hasFile&&!SetKey(&key,&request.destinationLevel)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
+    FILEREC *current=&world->currentLevel; const FILEREC *requested=&request.destinationLevel; int changed=!Same(requested,current);
     STREAM stream;
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
@@ -674,21 +669,21 @@ extern "C" void ExecuteSwTransition(SW *world)
     DeleteSw(world);
     ResetClock(D_002DDED0);
     AddGrfusr__Fi(8);
-    func_002333B4(&D_003DD490,0,0x4790);
-    func_002333B4(&D_003DD490,0,0x4790);
-    SW_ctor(&D_003DD490);
+    func_002333B4(&g_sw,0,sizeof(SW));
+    func_002333B4(&g_sw,0,sizeof(SW));
+    SW_ctor(&g_sw);
     if(CMpeg_ExecuteOids(D_002F66B0))changed=1;
     InitCm__FP2CM(D_002DDF40);
-    world->current=request.header;
+    world->currentLevel=request.destinationLevel;
     *destination=request;
     InitSwLoadBuffers(world);
     if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(world,reader);CStreamBis_Close(reader);}
     PostSwLoad(world);
     if(resume>0.0f)ShowCountdownHud(world,resume);
-    if(changed||(world->request.flags&0x40))ClearCheatItems();
-    CONTEXT *context=FindWarpByOid(world,world->request.objectId,world->request.objectKey);
-    if(context){TriggerWarp(context);world->objectId=world->request.objectId;world->objectKey=world->request.objectKey;}
-    if(!GetHeroPo(world)&&!GetCurrentPo(world)&&world->actorCount>0){
+    if(changed||(world->transition.flags&0x40))ClearCheatItems();
+    CONTEXT *context=FindWarpByOid(world,world->transition.oidWarpDest,world->transition.oidWarpContext);
+    if(context){TriggerWarp(context);world->returnWarpOid=world->transition.oidWarpDest;world->returnWarpContext=world->transition.oidWarpContext;}
+    if(!GetHeroPo(world)&&!GetCurrentPo(world)&&(int)world->cpo>0){
         ACTOR *selected=0;
         int actorId;
         {REF value=GetSaveVarByName("oidPoCurrent",0);actorId=value.value;}
@@ -704,8 +699,8 @@ extern "C" void ExecuteSwTransition(SW *world)
                 for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->tag)break;
                 if(i>=context->count)Attach(selected,context);
             }
-            for(int i=0;i<world->actorCount;i++){
-                ACTOR *actor=world->actors[i];
+            for(int i=0;i<(int)world->cpo;i++){
+                ACTOR *actor=(ACTOR *)world->playerObjects[i];
                 if(actor!=selected&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&!GetPoCtlState(actor))Hide(actor);
             }
         }
