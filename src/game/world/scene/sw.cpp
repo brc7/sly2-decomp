@@ -538,13 +538,7 @@ struct LANGSTR
       int id;
       char *pchz;
 };
-struct SVN
-{
-      int nHash;
-      char *pchzName;
-      int id;
-      SVN *psvnNext;
-};
+/* SVN: sly2/sw.h */
 struct SVPATH
 {
       int cid;
