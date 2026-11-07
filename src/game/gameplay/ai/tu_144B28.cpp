@@ -992,34 +992,35 @@ void UpdateBhvInteract(struct P *behavior)
 namespace M_func_00146068 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
-void UpdatePoctlPressed(struct Q *q);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
-void SteerBhvInteract(struct P *behavior, struct Q *q)
+void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
+    ResetBhvSteering(behavior, poctl);
     if (behavior->state < 3) if (behavior->state >= 0) {
-        qword a, b, d;
-        float g;
-        a = func_001A62E8(behavior->target);
-        b = func_001A62E8(behavior->owner);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        g = 1.0f;
-        if (behavior->state == 0) g = 0.1f;
-        q->x1C = g;
-        q->x18 = atan2f(GetY(d), GetX(d));
+        qword targetPos, ownerPos, toTarget;
+        float speed;
+        targetPos = func_001A62E8(behavior->target);
+        ownerPos = func_001A62E8(behavior->owner);
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(toTarget) : "j"(targetPos), "j"(ownerPos));
+        speed = 1.0f;
+        if (behavior->state == 0)
+            speed = 0.1f;
+        poctl->speed = speed;
+        poctl->heading = atan2f(GetY(toTarget), GetX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
+            UpdatePoctlPressed(poctl);
         }
     }
 }
@@ -1182,34 +1183,35 @@ void UpdateBhvInteract2(struct P *behavior)
 namespace M_func_00146560 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
 struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
-void UpdatePoctlPressed(struct Q *q);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146560: Second interact behaviour vtable slot 14 (steering).
-void SteerBhvInteract2(struct P *behavior, struct Q *q)
+void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
+    ResetBhvSteering(behavior, poctl);
     if (behavior->state < 3) if (behavior->state >= 0) {
-        qword a, b, d;
-        float g;
-        a = func_001A62E8(behavior->target);
-        b = func_001A62E8(behavior->owner);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        g = 1.0f;
-        if (behavior->state == 0) g = 0.1f;
-        q->x1C = g;
-        q->x18 = atan2f(GetY(d), GetX(d));
+        qword targetPos, ownerPos, toTarget;
+        float speed;
+        targetPos = func_001A62E8(behavior->target);
+        ownerPos = func_001A62E8(behavior->owner);
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(toTarget) : "j"(targetPos), "j"(ownerPos));
+        speed = 1.0f;
+        if (behavior->state == 0)
+            speed = 0.1f;
+        poctl->speed = speed;
+        poctl->heading = atan2f(GetY(toTarget), GetX(toTarget));
         if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;   /* press the attack button for the first 0.1 s of state 2 */
+            UpdatePoctlPressed(poctl);
         }
     }
 }
@@ -1284,20 +1286,20 @@ extern "C" int IsBhvInteract3Idle(BHVSTATE *behavior)
 namespace M_func_001467A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct PO { char pad[0x2DC]; int x2DC; float g2E0; char pad2[0xDF4 - 0x2E4]; int xDF4; char pad3[0x18C8 - 0xDF8]; int x18C8; char pad4[0x18D8 - 0x18CC]; int x18D8; };
-struct T { char pad[0x330]; int x330; };
-struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct T *target; };
+struct PO { char pad[0x2DC]; int airState; float airStateTime; char pad2[0xDF4 - 0x2E4]; int actionState; char pad3[0x18C8 - 0xDF8]; int jtState; char pad4[0x18D8 - 0x18CC]; int attackState; };
+struct TARGET { char pad[0x330]; int isKnockedOut; };
+struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct TARGET *target; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DA0;
-float D_002BD360 = 450.0f;
-float D_002BD368 __attribute__((aligned(8))) = 400.0f;
-float D_002BD36C = 550.0f;
-float D_002BD370 = 0.2f;
+float D_002BD360 = 450.0f;                                  /* attack distance */
+float D_002BD368 __attribute__((aligned(8))) = 400.0f;    /* band: near */
+float D_002BD36C = 550.0f;                                  /* band: far */
+float D_002BD370 = 0.2f;                                    /* air time before the air attack */
 void UpdateBhv(struct P *p);
-int func_001A61A0(struct T *p);
+int func_001A61A0(struct TARGET *object);
 qword func_001A62E8(void *p);
 struct M3 *func_001A6318(void *p);
-void SetBhvInteract3State(struct P *p, int n);
+void SetBhvInteract3State(struct P *behavior, int state);
 float GRandInRange__Fff(float gMin, float gMax);
 
 // VU0 helper: dot product.
@@ -1333,58 +1335,59 @@ static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
     return g;
 }
 
-// 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states (3/4).
+// 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states: when close and facing
+// the target, 30% of the time it jumps (3) and attacks in the air after 0.2 s (4) instead of the ground attack (2).
 void UpdateBhvInteract3(struct P *behavior)
 {
-    union { qword q; float f[4]; } d;
-    float g;
+    union { qword q; float f[4]; } toTarget;
+    float distance;
     int state;
     UpdateBhv(behavior);
     if (behavior->state == -1)
         return;
-    if (behavior->owner->xDF4 != -1 || !func_001A61A0(behavior->target) || behavior->target->x330) {
+    if (behavior->owner->actionState != -1 || !func_001A61A0(behavior->target) || behavior->target->isKnockedOut) {
         SetBhvInteract3State(behavior, -1);
         return;
     }
     {
-        qword a = func_001A62E8(behavior->target);
-        qword b = func_001A62E8(behavior->owner);
+        qword targetPos = func_001A62E8(behavior->target);
+        qword ownerPos = func_001A62E8(behavior->owner);
         qword dq;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(b));
-        d.q = dq;
-        d.f[2] = 0.0f;
-        g = SafeNormalize(&d.q, &D_002A2DA0);
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(targetPos), "j"(ownerPos));
+        toTarget.q = dq;
+        toTarget.f[2] = 0.0f;
+        distance = SafeNormalize(&toTarget.q, &D_002A2DA0);
     }
     do {
         state = behavior->state;
         switch (state) {
         case 0:
-            if (g < D_002BD360) {
-                struct M3 *pm = func_001A6318(behavior->owner);
-                if (0.8f < Dot(pm->r[0], d.q)) {
+            if (distance < D_002BD360) {
+                struct M3 *orientation = func_001A6318(behavior->owner);
+                if (0.8f < Dot(orientation->r[0], toTarget.q)) {   /* facing the target */
                     if (GRandInRange__Fff(0.0f, 1.0f) < 0.3f)
                         SetBhvInteract3State(behavior, 3);
                     else
                         SetBhvInteract3State(behavior, 2);
                 }
-            } else if (D_002BD36C < g) {
+            } else if (D_002BD36C < distance) {
                 SetBhvInteract3State(behavior, 1);
             }
             break;
         case 1:
-            if (g < D_002BD368)
+            if (distance < D_002BD368)
                 SetBhvInteract3State(behavior, 0);
             break;
         case 2:
-            if (behavior->owner->x18D8 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+            if (behavior->owner->attackState == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
                 SetBhvInteract3State(behavior, -1);
             break;
         case 3: {
             float t = D_002DDED0.t;
             if (0.1f < t - behavior->stateTime) {
-                struct PO *po = behavior->owner;
-                if (po->x2DC != -1) {
-                    if (po->x2DC == 1 && D_002BD370 < t - po->g2E0)
+                struct PO *owner = behavior->owner;
+                if (owner->airState != -1) {
+                    if (owner->airState == 1 && D_002BD370 < t - owner->airStateTime)
                         SetBhvInteract3State(behavior, 4);
                 } else
                     SetBhvInteract3State(behavior, -1);
@@ -1392,7 +1395,7 @@ void UpdateBhvInteract3(struct P *behavior)
             break;
         }
         case 4:
-            if (0.1f < D_002DDED0.t - behavior->stateTime && behavior->owner->x18C8 != 13)
+            if (0.1f < D_002DDED0.t - behavior->stateTime && behavior->owner->jtState != 13)
                 SetBhvInteract3State(behavior, -1);
             break;
         }
@@ -1403,24 +1406,24 @@ void UpdateBhvInteract3(struct P *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146B18 { extern "C" {
 // MATCH (Claude agent for Lilly, T1657 2026-10-25). Case 3 builds CLQ clq = {-0.25, 0.0015625} and LM lm = {0.1, 1.0} on the
-// stack: q->x1C = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), q->x18 = atan2(d.y, d.x) with d = pos(p->p38) - pos(p->p10).
+// stack: poctl->speed = GLimitLm(&lm, GFromClq(|d.xy|, &clq)), poctl->heading = atan2(d.y, d.x) with d = pos(p->p38) - pos(p->p10).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
-struct PO { char pad[0x2DC]; int x2DC; };
+struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20]; int grfbtn; };
+struct PO { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
 struct LM { float gMin, gMax; };
 extern struct CLOCK D_002DDED0;
-void ResetBhvSteering(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
-void UpdatePoctlPressed(struct Q *q);
+void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: vector difference.
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-// VU0 helper: square root through the Q register.
+// VU0 helper: square root through the POCTL register.
 static __inline__ float SqrtQ(qword t)
 {
     float g;
@@ -1464,24 +1467,24 @@ static __inline__ float GAtanR(qword d)
     return atan2f(fy, GetX(d));
 }
 // 0x146B18: Third interact behaviour vtable slot 14 (steering): speed limited from the horizontal distance, heading
-// toward the target.
-void SteerBhvInteract3(struct P *behavior, struct Q *q)
+// toward the target; states 2 and 4 press the attack button (0x80) and state 3 jumps (0x40) for their first 0.1 s.
+void SteerBhvInteract3(struct P *behavior, struct POCTL *poctl)
 {
-    ResetBhvSteering(behavior, q);
+    ResetBhvSteering(behavior, poctl);
     switch (behavior->state) {
     case 1: {
         qword d = Sub(func_001A62E8(behavior->target), func_001A62E8(behavior->owner));
-        q->x1C = 1.0f;
-        q->x18 = GAtanR(d);
+        poctl->speed = 1.0f;
+        poctl->heading = GAtanR(d);
         break;
     }
     case 2: {
         qword d = Sub(func_001A62E8(behavior->target), func_001A62E8(behavior->owner));
-        q->x1C = 1.0f;
-        q->x18 = GAtanR(d);
+        poctl->speed = 1.0f;
+        poctl->heading = GAtanR(d);
         if (D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;
+            UpdatePoctlPressed(poctl);
         }
         break;
     }
@@ -1501,21 +1504,21 @@ void SteerBhvInteract3(struct P *behavior, struct Q *q)
         s = GLimitLm(&lm, GFromClq(SqrtQ(t), &clq));
         }
         }
-        q->x1C = s;
-        q->x18 = GAtanXY2(d, b);
-        if (D_002DDED0.t - behavior->stateTime < 0.1f && behavior->owner->x2DC == -1) {
-            q->x30 |= 0x40;
-            UpdatePoctlPressed(q);
+        poctl->speed = s;
+        poctl->heading = GAtanXY2(d, b);
+        if (D_002DDED0.t - behavior->stateTime < 0.1f && behavior->owner->airState == -1) {
+            poctl->grfbtn |= 0x40;   /* jump (state 3: the jump attack) */
+            UpdatePoctlPressed(poctl);
         }
         break;
     }
     case 4: {
         qword d = Sub(func_001A62E8(behavior->target), func_001A62E8(behavior->owner));
-        q->x1C = 1.0f;
-        q->x18 = GAtanR(d);
+        poctl->speed = 1.0f;
+        poctl->heading = GAtanR(d);
         if (D_002DDED0.t - behavior->stateTime < 0.1f) {
-            q->x30 |= 0x80;
-            UpdatePoctlPressed(q);
+            poctl->grfbtn |= 0x80;
+            UpdatePoctlPressed(poctl);
         }
         break;
     }
@@ -1558,68 +1561,71 @@ void BHV198::Start()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146EE0 { extern "C" {
-void CloseBhv(void *p);
-void SetMurrayState(void *p, int n);
+struct MURRAYV { char pad[0x1AC0]; int unknown1AC0; };
+struct BHVMURRAYV { char pad[0x10]; struct MURRAYV *owner; };
+void CloseBhv(struct BHVMURRAYV *behavior);
+void SetMurrayState(struct MURRAYV *murray, int state);
 // 0x146EE0: Murray behaviour vtable slot 9 (Close): clears +0x1AC0, Murray state 0.
-void CloseBhvMurray(char *p)
+void CloseBhvMurray(struct BHVMURRAYV *behavior)
 {
-    CloseBhv(p);
-    *(int *)(*(char **)(p + 0x10) + 0x1AC0) = 0;
-    SetMurrayState(*(void **)(p + 0x10), 0);
+    CloseBhv(behavior);
+    behavior->owner->unknown1AC0 = 0;
+    SetMurrayState(behavior->owner, 0);
 }
 } } // namespace M_func_00146EE0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146F18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct X { char pad[0x1A8]; float g1A8; char pad2[0x1840 - 0x1AC]; int x1840; };
-struct P { char pad[0x10]; struct X *px; char pad2[0x30 - 0x14]; float g30; };
+struct MURRAYV { char pad[0x1A8]; float targetHeading; char pad2[0x1840 - 0x1AC]; int subState; };
+struct P { char pad[0x10]; struct MURRAYV *murray; char pad2[0x30 - 0x14]; float startHeading; };
 extern struct CLOCK D_002DDED0;
 extern void *D_002E1E40;
-float D_002BD374 = 0.5f, D_002BD378 = 15.0f;
-void UpdateBhv(struct P *p);
-qword func_001A62E8(void *p);
-void SetStepRadTargetVec(struct X *px, qword v);
+float D_002BD374 = 0.5f, D_002BD378 = 15.0f;   /* heading window (rad), turn rate (rad/s) */
+void UpdateBhv(struct P *behavior);
+qword func_001A62E8(void *object);
+void SetStepRadTargetVec(struct MURRAYV *step, qword direction);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
-float RadStepHeading(struct X *px);
+float RadStepHeading(struct MURRAYV *step);
 float GLimitAbs__Fff(float g, float dg);
-void func_00204660(struct X *px, float g);
+void func_00204660(struct MURRAYV *step, float heading);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 // VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-// 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840) relative to the current
-// player.
+// 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840): in 0 he faces D_002E1E40
+// (the current player, inferred) and remembers that heading; in 1 he keeps turning toward it (at most 15 rad/s) while
+// it stays within 0.5 rad of the remembered heading.
 void UpdateBhvMurray(struct P *behavior)
 {
     UpdateBhv(behavior);
-    switch (behavior->px->x1840) {
+    switch (behavior->murray->subState) {
     case 0:
         if (D_002E1E40) {
-            qword a, b, d;
-            a = func_001A62E8(D_002E1E40);
-            b = func_001A62E8(behavior->px);
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            SetStepRadTargetVec(behavior->px, d);
+            qword playerPos, murrayPos, toPlayer;
+            playerPos = func_001A62E8(D_002E1E40);
+            murrayPos = func_001A62E8(behavior->murray);
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(toPlayer) : "j"(playerPos), "j"(murrayPos));
+            SetStepRadTargetVec(behavior->murray, toPlayer);
         }
-        behavior->g30 = behavior->px->g1A8;
+        behavior->startHeading = behavior->murray->targetHeading;
         break;
     case 1:
         if (D_002E1E40) {
-            qword a, b, d;
-            float g, gCur;
-            a = func_001A62E8(D_002E1E40);
-            b = func_001A62E8(behavior->px);
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            g = atan2f(GetY(d), GetX(d));
-            if (__builtin_fabsf(RadNormalize__Ff(g - behavior->g30)) < D_002BD374) {
-                gCur = RadStepHeading(behavior->px);
+            qword playerPos, murrayPos, toPlayer;
+            float headingToPlayer, heading;
+            playerPos = func_001A62E8(D_002E1E40);
+            murrayPos = func_001A62E8(behavior->murray);
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(toPlayer) : "j"(playerPos), "j"(murrayPos));
+            headingToPlayer = atan2f(GetY(toPlayer), GetX(toPlayer));
+            if (__builtin_fabsf(RadNormalize__Ff(headingToPlayer - behavior->startHeading)) < D_002BD374) {
+                heading = RadStepHeading(behavior->murray);
                 {
-                    float d = RadNormalize__Ff(g - gCur);
+                    float turn = RadNormalize__Ff(headingToPlayer - heading);
                     float dt = D_002DDED0.dt;
-                    float k = D_002BD378;
-                    func_00204660(behavior->px, gCur + GLimitAbs__Fff(d, k * dt));
+                    float turnRate = D_002BD378;
+                    func_00204660(behavior->murray, heading + GLimitAbs__Fff(turn, turnRate * dt));
                 }
             }
         }
