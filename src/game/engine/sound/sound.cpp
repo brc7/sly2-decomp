@@ -275,7 +275,7 @@ void SetSndFlags(struct P *, int, int);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
-static inline int FNear(qword a, qword b)
+static inline int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
@@ -301,7 +301,7 @@ void CID151::Start()   /* key function: CID151's vtable comes out here (the name
     }
     if (!isStopped) return;
     { int isPaused = sound->pauseCount > 0; requests = SND_START | SND_DIRTY_PARAMS; if (isPaused) requests = SND_START | SND_PAUSE | SND_DIRTY_PARAMS; }
-    if (sound->source || !FNear(D_002A2DD0, sound->position))
+    if (sound->source || !AreVectorsNear(D_002A2DD0, sound->position))
         requests |= SND_POSITIONAL;
     SetSndFlags(sound, requests, requests);
 }
@@ -371,7 +371,7 @@ void SetSndFlags(struct P *, unsigned short, unsigned short);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
-static inline int FNear(qword a, qword b)
+static inline int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
@@ -388,7 +388,7 @@ void SetSndSourceLo(struct P *sound, struct SOURCE *source)
 {
     sound->source = source;
     if (source) SetSndFlags(sound, SND_POSITIONAL, SND_POSITIONAL);
-    else if (FNear(D_002A2DD0, sound->position)) SetSndFlags(sound, SND_POSITIONAL, 0);
+    else if (AreVectorsNear(D_002A2DD0, sound->position)) SetSndFlags(sound, SND_POSITIONAL, 0);
 }
 } } // namespace M_SetSndSourceLo
 
@@ -401,7 +401,7 @@ void SetSndFlags(struct P *, int, int);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
-static inline int FNear(qword a, qword b)
+static inline int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
@@ -415,7 +415,7 @@ static inline int FNear(qword a, qword b)
 void SetSndSourcePos(struct P *sound, qword position)
 {
     sound->position = position;
-    if (!FNear(D_002A2DD0, position)) SetSndFlags(sound, SND_POSITIONAL, SND_POSITIONAL);
+    if (!AreVectorsNear(D_002A2DD0, position)) SetSndFlags(sound, SND_POSITIONAL, SND_POSITIONAL);
     else if (!sound->source) SetSndFlags(sound, SND_POSITIONAL, 0);
 }
 } } // namespace M_SetSndSourcePos
@@ -1232,7 +1232,7 @@ void PauseSnd(struct P *);
 void SetSndFlags(struct P *, int, int);
 void OnStreamSoundStarted(void);
 void func_00233130(int, int, int, struct M *, void (*)(void), struct P *);
-static inline int FSet(struct K *key, struct X *record)
+static inline int BuildStreamFileKey(struct K *key, struct X *record)
 {
     if (!record) return 0;
     {
@@ -1263,7 +1263,7 @@ void PlayStreamsnd(struct P *sound)
     key.kind = 2;
     InitFileKey(&key);
     channel = GetStreamVolumeChannel(&D_003DD040, sound->streamRecord);
-    if (FSet(&key, sound->streamRecord)) {
+    if (BuildStreamFileKey(&key, sound->streamRecord)) {
         if (key.kind != 2) {
             SetSndFlags(sound, SND_ALL, 0);
             return;
@@ -1432,7 +1432,7 @@ void SetStreamsndGroupVolume(struct P *,int,float);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
-static inline int FNear(qword a, qword b)
+static inline int AreVectorsNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(X(a), X(b), 0.0001f) && FFloatsNear__Ffff(Y(a), Y(b), 0.0001f) && FFloatsNear__Ffff(Z(a), Z(b), 0.0001f);
 }
@@ -1447,7 +1447,7 @@ static inline int FNear(qword a, qword b)
 void UpdateStreamsndPositional(struct P *sound)
 {
     int group;
-    if (sound->object || !FNear(D_002A2DD0, sound->position))
+    if (sound->object || !AreVectorsNear(D_002A2DD0, sound->position))
         UpdateSndPositional(sound);
     for (group = 0; group < 6; group++) {
         int count = sound->groupSourceCounts[group];
@@ -1908,7 +1908,7 @@ struct SWALLOC
 };
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
-inline void *PvAllocSwLoad(int cb, int cbAlign)
+inline void *AllocWorldHeapBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
     swalloc.cb = cb;
@@ -1916,7 +1916,7 @@ inline void *PvAllocSwLoad(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwImpl(pswalloc);
 }
-inline void *PvAllocSwClearLoad(int cb, int cbAlign)
+inline void *AllocClearedWorldHeapBlock(int cb, int cbAlign)
 {
     SWALLOC swalloc;
     swalloc.cb = cb;
@@ -1970,7 +1970,7 @@ extern "C" int snd_FlushSoundCommands(void);
 extern "C" void *func_002333B4(void *, int, uint) __asm__("memset");
 extern "C" STREAMSND *PstreamsndNew(FILEREC *, int);
 extern "C" void AssignSoundRef(void *, STREAMSND *);
-inline int FSameFileId(FILEREC *record, FILEREC *other)
+inline int IsSameFileRecord(FILEREC *record, FILEREC *other)
 {
     if (record == other)
         return 1;
@@ -1995,7 +1995,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
 {
     FILEREC bankRecord;
     input->ReadFileRecord(&bankRecord);
-    if (!FSameFileId(&bankRecord, &soundManager->bankRecord))
+    if (!IsSameFileRecord(&bankRecord, &soundManager->bankRecord))
     {
         soundManager->bankRecord = bankRecord;
         if (soundManager->bank)
@@ -2008,14 +2008,14 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
     }
     int i;
     soundManager->numSounds = input->S16Read();
-    soundManager->soundKinds = (int *)PvAllocSwClearLoad(soundManager->numSounds * sizeof(int), 0x10);
+    soundManager->soundKinds = (int *)AllocClearedWorldHeapBlock(soundManager->numSounds * sizeof(int), 0x10);
     for (i = 0; i < soundManager->numSounds; i++)
     {
         int *kind = &soundManager->soundKinds[i];
         *kind = input->S8Read();
     }
     soundManager->numSfx = input->S16Read();
-    soundManager->soundIndexFromSfx = (int *)PvAllocSwLoad(soundManager->numSfx * sizeof(int), 0x10);
+    soundManager->soundIndexFromSfx = (int *)AllocWorldHeapBlock(soundManager->numSfx * sizeof(int), 0x10);
     func_002333B4(soundManager->soundIndexFromSfx, -1, soundManager->numSfx * sizeof(int));
     int j;
     for (j = 0; j < soundManager->numSounds; j++)
@@ -2023,7 +2023,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
     soundManager->numAmbienceGroups = input->S16Read();
     if (soundManager->numAmbienceGroups > 0)
     {
-        soundManager->ambienceRecord = (FILEREC *)PvAllocSwClearLoad(sizeof(FILEREC), 0x10);
+        soundManager->ambienceRecord = (FILEREC *)AllocClearedWorldHeapBlock(sizeof(FILEREC), 0x10);
         input->ReadFileRecord(soundManager->ambienceRecord);
         STREAMSND *sound = PstreamsndNew(soundManager->ambienceRecord, 4);
         AssignSoundRef(&soundManager->ambienceSound, sound);
@@ -2039,7 +2039,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
             currentLanguage = language;
     }
     int numDialogStreams = input->S32Read();
-    SNDSTREAM *dialogStreams = (SNDSTREAM *)PvAllocSwClearLoad(numDialogStreams * sizeof(SNDSTREAM), 0x10);
+    SNDSTREAM *dialogStreams = (SNDSTREAM *)AllocClearedWorldHeapBlock(numDialogStreams * sizeof(SNDSTREAM), 0x10);
     for (i = 0; i < numDialogStreams; i++)
     {
         SNDSTREAM *dialogStream = &dialogStreams[i];
@@ -2059,13 +2059,13 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
             }
         }
         dialogStream->numEvents = input->S32Read();
-        dialogStream->events = (ulong *)PvAllocSwLoad(dialogStream->numEvents * 8, 0x10);
+        dialogStream->events = (ulong *)AllocWorldHeapBlock(dialogStream->numEvents * 8, 0x10);
         input->Read(dialogStream->numEvents * 8, dialogStream->events);
         dialogStream->next = soundManager->firstDialogStream;
         soundManager->firstDialogStream = dialogStream;
     }
     int numMusicFiles = input->S32Read();
-    SNDFILE *musicFiles = (SNDFILE *)PvAllocSwClearLoad(numMusicFiles * sizeof(SNDFILE), 0x10);
+    SNDFILE *musicFiles = (SNDFILE *)AllocClearedWorldHeapBlock(numMusicFiles * sizeof(SNDFILE), 0x10);
     for (i = 0; i < numMusicFiles; i++)
     {
         SNDFILE *musicFile = &musicFiles[i];
@@ -2086,7 +2086,7 @@ int snd_BankLoadByLoc(int, int);
 void snd_ResolveBankXREFS(void);
 int snd_IsSoundALooper(int, int);
 /* SOUND_KIND_LOOPING: defined with PlayBanksnd */
-static inline int FSet(struct K *key, struct X *record)
+static inline int BuildStreamFileKey(struct K *key, struct X *record)
 {
     if (!record) return 0;
     {
@@ -2115,7 +2115,7 @@ void PostSoundLoad(struct P *soundManager)
         struct K key;
         key.kind = 2;
         InitFileKey(&key);
-        if (FSet(&key, &soundManager->bankRecord) && key.kind == 2)
+        if (BuildStreamFileKey(&key, &soundManager->bankRecord) && key.kind == 2)
             soundManager->bank = snd_BankLoadByLoc(key.keyLo, 0);
         snd_ResolveBankXREFS();
     }
