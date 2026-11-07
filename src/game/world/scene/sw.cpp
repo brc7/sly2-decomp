@@ -19,6 +19,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
+#include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/joy.h"
 #include "sly2/scrap.h"
@@ -349,7 +350,7 @@ int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) return 1; retu
 
 namespace M_DeleteSw { extern "C" {
 struct S { char pad[0x3B18]; int jobHandle; };   /* the level's running job (AbortJob) (inferred) */
-extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[];
+extern char D_002DEB30[], D_003D9E70[], D_003DD040[];
 
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
 extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
@@ -377,7 +378,7 @@ void DeleteSw(struct S *world)
     ResetScreens(D_003D9E70);
     DeleteSwSplice(world);
     ClearGameDifficulty(pv);
-    ResetCameraPolicies(D_002DDF40);
+    ResetCameraPolicies(&g_cm);
     ResetSndmgr(D_003DD040);
     ClearShaderGsState();
     SetRumbleRums__FP6RUMBLE4RUMS((*(char (*)[])&g_joy.rumble), 3);
@@ -652,7 +653,7 @@ struct S {
     char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
     char pad2[0x45CC - 0x408C]; void *regionTree;   /* sw.h pregtree */
 };
-extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
+extern char D_002DEB30[], D_003D9E70[];
 void PrimeSlotheap(void *p);
 void CreateSwScreenTint(struct S *p);
 void SelectSwMainMs(struct S *p);
@@ -700,7 +701,7 @@ void PostSwLoad(struct S *world)
     world->loadBuffer1 = 0;
     world->loadBuffer0 = 0;
     BuildPathzoneLinkLists(world->regionTree);
-    SetupCm__FP2CM(D_002DDF40);
+    SetupCm__FP2CM(&g_cm);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
 } } // namespace M_PostSwLoad
@@ -719,7 +720,7 @@ struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unus
 struct FRAME;
 struct STREAM;
 struct REF;
-extern "C" { extern char D_002DDED0[],D_002DDF40[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
+extern "C" { extern char D_002DDED0[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
 extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
 extern "C" { extern SW D_003DD490; }
 extern "C" {
@@ -815,7 +816,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     func_002333B4(&D_003DD490,0,0x4790);
     SW_ctor(&D_003DD490);
     if(CMpeg_ExecuteOids(D_002F66B0))changed=1;
-    InitCm__FP2CM(D_002DDF40);
+    InitCm__FP2CM(&g_cm);
     world->current=request.header;
     *destination=request;
     InitSwLoadBuffers(world);
@@ -851,8 +852,8 @@ extern "C" void ExecuteSwTransition(SW *world)
         ACTOR *actor=GetHeroPo(world);
         if(actor&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
-    UpdateCmLast__FP2CM(D_002DDF40);
-    CutCm__FP2CM(D_002DDF40);
+    UpdateCmLast__FP2CM(&g_cm);
+    CutCm__FP2CM(&g_cm);
     BroadcastGameEvent(D_002DEB30,5,0);
     ClearPhase(2);
     ResumeWipeAfterLoad(D_00443740);
