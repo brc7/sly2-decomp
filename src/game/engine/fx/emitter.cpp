@@ -1598,31 +1598,26 @@ void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 
 namespace M_EmitParticlesAt { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct M4 { qword aq[4]; } M4;
-typedef struct B7 { qword aq[7]; } B7;
-/* EMITB: the origin record at +0x10 (+0x30 point position, +0x40 direction), velocity at +0x50, particle at +0xC0 */
-struct X { int cref; int particleKind; int refs; int pad; M4 origin; B7 velocity; M4 particle; };
 struct Y { int ppblipg; int ppripg; int subscriber; };   /* EMITG */
-void InitEmitBlock(struct X *px);
-void EmitParticles__FiP5EMITBP5EMITG(void *p, struct X *px, struct Y *py);
+void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, struct Y *py);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Emits `count` rips from a temporary EMITB: the defaults (InitEmitBlock) with the given point origin and direction,
 // particle and velocity records (passed by value by the callers), resolved objects (`refs`, EMITB+0x08) and rip
 // group / subscriber.
-void EmitParticlesAt(qword pos, qword direction, void *count, M4 *particle, B7 *velocity, int refs, int ppripg, int subscriber)
+void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, int ppripg, int subscriber)
 {
-    struct X emitb;
+    EMITB emitb;
     struct Y emitg;
     InitEmitBlock(&emitb);
     func_002333B4(&emitg, 0, sizeof(emitg));
-    emitb.origin.aq[2] = pos;
-    emitb.origin.aq[3] = direction;
-    emitb.velocity = *velocity;
-    emitb.refs = refs;
+    emitb.emito.posPoint = pos;
+    emitb.emito.direction = direction;
+    emitb.vel = *velocity;
+    emitb.aploRef = aploRef;
     emitg.ppripg = ppripg;
     emitg.subscriber = subscriber;
     emitb.particleKind = 1;     /* rips */
-    emitb.particle = *particle;
+    emitb.v = *particle;
     EmitParticles__FiP5EMITBP5EMITG(count, &emitb, &emitg);
 }
 } } // namespace M_EmitParticlesAt
