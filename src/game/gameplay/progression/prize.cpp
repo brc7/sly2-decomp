@@ -137,7 +137,6 @@ extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 
 namespace M_PostDprizeLoad { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
 struct S {
     char pad[0xC]; struct VTE *vt;
     char p0[0x158 - 0x10]; int initialState;
@@ -157,7 +156,7 @@ void PostDprizeLoad(struct S *prize)
     plo = FindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, prize);
     prize->target = plo;
     if (plo)
-        ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
+        plo->Remove();
     if (prize->glintOwnerOid != -1) prize->glintOwner = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->glintOwnerOid, prize);
     if (prize->leftEmitterOid != -1) prize->leftEmitter = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->leftEmitterOid, prize);
     if (prize->rightEmitterOid != -1) prize->rightEmitter = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->rightEmitterOid, prize);
@@ -806,7 +805,6 @@ namespace RO_ORDER { extern const float r_D_002A773C __asm__("D_002A773C") = 3.4
 namespace M_SetDprizeDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
 struct O { char pad[0x30]; qword position; char p1[0xB0 - 0x40]; qword velocity; };
 struct S {
     char pad[0xC]; struct VTE *vt;
@@ -869,11 +867,11 @@ void SetDprizeDprizes(struct S *prize, int n)
     case DPRIZE_STATE_FALLING:
     case DPRIZE_STATE_VANISHING:
         q = prize->target;
-        if (q) ((void (*)(void *))q->vt[8].pf)((char *)q + q->vt[8].d);
+        if (q) q->Add();
         break;
     default:
         q = prize->target;
-        if (q) ((void (*)(void *))q->vt[9].pf)((char *)q + q->vt[9].d);
+        if (q) q->Remove();
         break;
     }
     prize->state = n;
@@ -881,7 +879,7 @@ void SetDprizeDprizes(struct S *prize, int n)
     if (anim != -1) {
         if (!prize->sma) {
             prize->sma = ApplySmToObject(prize->smaSource, prize, anim, 0);
-            ((void (*)(void *))prize->sma->vt[1].pf)((char *)prize->sma + prize->sma->vt[1].d);
+            prize->sma->AddRef();
             if (prize->animSkipTime > 0.0f)
                 SkipSma(prize->sma, prize->animSkipTime);
         } else {
@@ -889,7 +887,7 @@ void SetDprizeDprizes(struct S *prize, int n)
         }
     } else if (prize->sma) {
         RetractSma(prize->sma);
-        ((void (*)(void *))prize->sma->vt[2].pf)((char *)prize->sma + prize->sma->vt[2].d);
+        prize->sma->Release();
         prize->sma = 0;
     }
 }
@@ -2324,11 +2322,8 @@ typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(floa
 
 namespace RO_ORDER { extern const float r_D_002A7798 __asm__("D_002A7798") = 3.40282347e+38f; }
 namespace M_func_001C8730 { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
-struct S {
-    char pad[0xC]; struct VTE *vt;
-    char p0[0x180 - 0x10]; int state; float stateTime; int p188[2]; struct LO *user; int selectedDigit; int p198; void *relay; int p1A0; int dialogId;
+struct S : PO {   /* VAULT's own fields (classes.h VAULT : PO) */
+    int state; float stateTime; int p188[2]; PO *user; int selectedDigit; int p198; void *relay; int p1A0; int dialogId;
     char p1[0x1F4 - 0x1A8]; void *introDialog; int p1F8; void *openedDialog; int rewardPowerup; int p204[2]; void *a20C[6];
 };
 extern struct CLOCK D_002DDED0;
@@ -2343,7 +2338,7 @@ int StartDialog(void *vault, void *q, int f);
 void IncrementSwInputLock(void *vault);
 void AcquireSwLetterbox(void *vault);
 void DecrementSwInputLock(void *vault);
-void FireRelay(void *vault, struct LO *q);
+void FireRelay(void *vault, PO *q);
 // Vault state change: stops the current dialog and relay, leaves the old state (dialling releases the letterbox; opening
 // grants the reward powerup and plays the opened dialog) and enters the new one (dialling takes the letterbox, resets
 // the dial and plays the intro dialog; other states fire the vault's own events). (inferred)
@@ -2386,13 +2381,13 @@ void SetVaultState(struct S *vault, int n)
             vault->dialogId = StartDialog(D_003DD040, vault->introDialog, 0);
         break;
     case 1:
-        ((void (*)(void *, int))vault->vt[79].pf)((char *)vault + vault->vt[79].d, 1);
+        vault->SetCtlState(1);
         break;
     case 0:
     case 5: {
-        struct LO *q = vault->user;
+        PO *q = vault->user;
         if (q) {
-            ((void (*)(void *, int))q->vt[79].pf)((char *)q + q->vt[79].d, 1);
+            q->SetCtlState(1);
             vault->user = 0;
             DecrementSwInputLock(D_003DD490);
         }
