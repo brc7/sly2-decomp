@@ -1,7 +1,7 @@
 #include "splicewrap.h"
 s32 IsRelayAlarm(s32, s32);                 /* extern */
 void CRef_SetBool(void *, s32);                 /* extern */
-CRef *RefThunk_FRelayHasAlarm(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_IsRelayAlarm(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     OTYP aotyp[1];

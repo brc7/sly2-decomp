@@ -329,8 +329,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_00100FE0)
 #include "../../generated/splicewrap/func_00100FE0.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_GrfzpdFromSoGrfzpk)
-#include "../../generated/splicewrap/RefThunk_GrfzpdFromSoGrfzpk.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_GetSoZapResponseFlags)
+#include "../../generated/splicewrap/RefThunk_GetSoZapResponseFlags.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkSoFADE_OUT)
 #include "../../generated/splicewrap/RefThunkSoFADE_OUT.inc"
@@ -344,8 +344,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_001012C0)
 #include "../../generated/splicewrap/func_001012C0.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_PsaaFindSoOid)
-#include "../../generated/splicewrap/RefThunk_PsaaFindSoOid.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_FindSoSaa)
+#include "../../generated/splicewrap/RefThunk_FindSoSaa.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_001013E8)
 #include "../../generated/splicewrap/func_001013E8.inc"
@@ -577,8 +577,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_001024B0)
 #include "../../generated/splicewrap/func_001024B0.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_TMusicCur)
-#include "../../generated/splicewrap/RefThunk_TMusicCur.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_GetMusicTime)
+#include "../../generated/splicewrap/RefThunk_GetMusicTime.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_SetSndmgrMasterVolume)
 #include "../../generated/splicewrap/RefThunk_SetSndmgrMasterVolume.inc"
@@ -831,8 +831,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_00103A40)
 #include "../../generated/splicewrap/func_00103A40.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_FStepguardHasSgf)
-#include "../../generated/splicewrap/RefThunk_FStepguardHasSgf.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StepguardHasSgf)
+#include "../../generated/splicewrap/RefThunk_StepguardHasSgf.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepguardTargetLists(void *p, void *, void *);
@@ -1085,20 +1085,20 @@ CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunkSmAPPLY
 
-// ---- splice thunk RefThunk_PsmaApplySmEx (was src/game/app/splice_thunks/RefThunk_PsmaApplySmEx.cpp) ----
+// ---- splice thunk RefThunk_ApplySmWithKind (was src/game/app/splice_thunks/RefThunk_ApplySmWithKind.cpp) ----
 namespace T_RefThunk_PsmaApplySmEx {
-extern "C" { void * ApplySmWithKind(void *p, int, int, int, int); CRef RefThunk_PsmaApplySmEx(void *p, int c, void *aref); }
+extern "C" { void * ApplySmWithKind(void *p, int, int, int, int); CRef RefThunk_ApplySmWithKind(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x1048F0
  * Purpose: Splice option thunk: optid 477 on SM (g_aeopid[369] thunkFn, returns 0x2088, crefReq 4); unpacks 4
  *   args (0x2030, Oid, 0x100B, 0x1054) -> 0x2088 via RefSetArgsFromSplice then calls ApplySmWithKind (0x1F03A8)
- * Info: proposed name RefThunk_PsmaApplySmEx (T1); TU crt0_splicewrap
+ * Info: proposed name RefThunk_ApplySmWithKind (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 477 on SM (g_aeopid[369], thunkFn): unpacks the script's 4 arguments (0x2030, Oid,
 // 0x100B, 0x1054) with RefSetArgsFromSplice, calls ApplySmWithKind and returns a value of type 0x2088 to the script.
-CRef RefThunk_PsmaApplySmEx(void *object, int argCount, void *args)
+CRef RefThunk_ApplySmWithKind(void *object, int argCount, void *args)
 {
     int argTypes[4] = {0x2030, 0x6, 0x100b, 0x1054};
     int v0;
@@ -1117,8 +1117,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_SetSmaGoalIfReachable)
 #include "../../generated/splicewrap/RefThunk_SetSmaGoalIfReachable.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_DtSmaToState)
-#include "../../generated/splicewrap/RefThunk_DtSmaToState.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_EstimateSmaTimeToState)
+#include "../../generated/splicewrap/RefThunk_EstimateSmaTimeToState.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkSmaSEEK)
 #include "../../generated/splicewrap/RefThunkSmaSEEK.inc"
@@ -1400,14 +1400,14 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkRelayUNTRIGGER)
 #include "../../generated/splicewrap/RefThunkRelayUNTRIGGER.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_EnsureRelayAlarm)
-#include "../../generated/splicewrap/RefThunk_EnsureRelayAlarm.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_EnsureSggAlarm)
+#include "../../generated/splicewrap/RefThunk_EnsureSggAlarm.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveRelayAlarm)
-#include "../../generated/splicewrap/RefThunk_RemoveRelayAlarm.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveAlarmFromRelay)
+#include "../../generated/splicewrap/RefThunk_RemoveAlarmFromRelay.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_FRelayHasAlarm)
-#include "../../generated/splicewrap/RefThunk_FRelayHasAlarm.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_IsRelayAlarm)
+#include "../../generated/splicewrap/RefThunk_IsRelayAlarm.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearRelayAlarms)
 #include "../../generated/splicewrap/RefThunk_ClearRelayAlarms.inc"
@@ -1553,23 +1553,23 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayHeroState)
 #include "../../generated/splicewrap/RefThunk_AddRelayHeroState.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepCmd1D)
-#include "../../generated/splicewrap/RefThunk_AddRelayStepCmd1D.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepGrab)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepGrab.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepCmd1E)
-#include "../../generated/splicewrap/RefThunk_AddRelayStepCmd1E.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepThrowAt)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepThrowAt.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepCmd1F)
-#include "../../generated/splicewrap/RefThunk_AddRelayStepCmd1F.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepGrabState9)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepGrabState9.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepCmd20)
-#include "../../generated/splicewrap/RefThunk_AddRelayStepCmd20.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepAttachToHands)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepAttachToHands.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepCmd21)
-#include "../../generated/splicewrap/RefThunk_AddRelayStepCmd21.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepGrabState5)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepGrabState5.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepCmd22)
-#include "../../generated/splicewrap/RefThunk_AddRelayStepCmd22.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepGrabAseg)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepGrabAseg.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkRelayPAUSE)
 #include "../../generated/splicewrap/RefThunkRelayPAUSE.inc"
@@ -1593,21 +1593,21 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayWalkTo)
 #include "../../generated/splicewrap/RefThunk_AddRelayWalkTo.inc"
 SLY2_SPLICEWRAP_END
 
-// ---- splice thunk RefThunk_AddRelayStepCmd29 (was src/game/app/splice_thunks/RefThunk_AddRelayStepCmd29.cpp) ----
+// ---- splice thunk RefThunk_AddRelayStepCarryTo (was src/game/app/splice_thunks/RefThunk_AddRelayStepCarryTo.cpp) ----
 namespace T_RefThunk_AddRelayStepCmd29 {
-extern "C" { void AddRelayStepCarryTo(void *p, int, float, float, int, int); CRef RefThunk_AddRelayStepCmd29(void *p, int c, void *aref); }
+extern "C" { void AddRelayStepCarryTo(void *p, int, float, float, int, int); CRef RefThunk_AddRelayStepCarryTo(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x1085F0
  * Purpose: Splice option thunk: optid 675 on RELAY (g_aeopid[667] thunkFn/thunkUser, returns Void, crefReq
  *   5); unpacks 5 args (Oid, Float, Float, Bool, Oid) -> Void via RefSetArgsFromSplice then calls
  *   AddRelayStepCarryTo (0x1E0DB8)
- * Info: proposed name RefThunk_AddRelayStepCmd29 (T1); TU crt0_splicewrap
+ * Info: proposed name RefThunk_AddRelayStepCarryTo (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 675 on RELAY (g_aeopid[667], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayStepCarryTo and returns nothing to the script.
-CRef RefThunk_AddRelayStepCmd29(void *object, int argCount, void *args)
+CRef RefThunk_AddRelayStepCarryTo(void *object, int argCount, void *args)
 {
     int argTypes[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
     int v0;
@@ -2130,8 +2130,8 @@ extern "C" CRef RefThunk_SetJtPipeVectors(void *p, int c, void *aref)
 SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepplayerGadget)
 #include "../../generated/splicewrap/RefThunk_SetStepplayerGadget.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_IGadgetSlotFromId)
-#include "../../generated/splicewrap/RefThunk_IGadgetSlotFromId.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_GetGadgetSlotFromId)
+#include "../../generated/splicewrap/RefThunk_GetGadgetSlotFromId.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010B510)
 #include "../../generated/splicewrap/func_0010B510.inc"
@@ -2195,8 +2195,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkExitTRIGGER)
 #include "../../generated/splicewrap/RefThunkExitTRIGGER.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddExitRsmg)
-#include "../../generated/splicewrap/RefThunk_AddExitRsmg.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddExitTaskState)
+#include "../../generated/splicewrap/RefThunk_AddExitTaskState.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010B8F8)
 #include "../../generated/splicewrap/func_0010B8F8.inc"
@@ -2228,8 +2228,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010BE70)
 #include "../../generated/splicewrap/func_0010BE70.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddLootEntryOid)
-#include "../../generated/splicewrap/RefThunk_AddLootEntryOid.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddLootEntryObject)
+#include "../../generated/splicewrap/RefThunk_AddLootEntryObject.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_FindClosestSwPo (was src/game/app/splice_thunks/RefThunk_FindClosestSwPo.cpp) ----
@@ -2317,11 +2317,11 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010C6A8)
 #include "../../generated/splicewrap/func_0010C6A8.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_POCTL_FConsumePressed)
-#include "../../generated/splicewrap/RefThunk_POCTL_FConsumePressed.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_POCTL_ConsumeAnyPressed)
+#include "../../generated/splicewrap/RefThunk_POCTL_ConsumeAnyPressed.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_POCTL_FButtonDown)
-#include "../../generated/splicewrap/RefThunk_POCTL_FButtonDown.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_POCTL_IsButtonDown)
+#include "../../generated/splicewrap/RefThunk_POCTL_IsButtonDown.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010C820)
 #include "../../generated/splicewrap/func_0010C820.inc"
@@ -2503,26 +2503,26 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010E0C0)
 #include "../../generated/splicewrap/func_0010E0C0.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBootyEntryOid)
-#include "../../generated/splicewrap/RefThunk_AddBootyEntryOid.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBootyEntryObject)
+#include "../../generated/splicewrap/RefThunk_AddBootyEntryObject.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010E1C0)
 #include "../../generated/splicewrap/func_0010E1C0.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_FCanAcquireProxy)
-#include "../../generated/splicewrap/RefThunk_FCanAcquireProxy.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_CanAcquireProxy)
+#include "../../generated/splicewrap/RefThunk_CanAcquireProxy.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_PloAcquireProxy)
-#include "../../generated/splicewrap/RefThunk_PloAcquireProxy.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AcquireProxyObject)
+#include "../../generated/splicewrap/RefThunk_AcquireProxyObject.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_EnsureProxyCopy)
 #include "../../generated/splicewrap/RefThunk_EnsureProxyCopy.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_LockProxyPlo)
-#include "../../generated/splicewrap/RefThunk_LockProxyPlo.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_LockProxyObject)
+#include "../../generated/splicewrap/RefThunk_LockProxyObject.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(RefThunk_UnlockProxyPlo)
-#include "../../generated/splicewrap/RefThunk_UnlockProxyPlo.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_UnlockProxyObject)
+#include "../../generated/splicewrap/RefThunk_UnlockProxyObject.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_0010E4A8)
 #include "../../generated/splicewrap/func_0010E4A8.inc"
@@ -2898,16 +2898,16 @@ extern "C" void SetHackenemyEntrySecondVectors(void *p, int, void *, void *);
  * Purpose: Splice option thunk: optid 1183 on CID73 (g_aeopid[1381] thunkFn/thunkUser, returns Void, crefReq
  *   3); unpacks 3 args (0x105F, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetCid73EntryVectors2
  *   (0x181378)
- * Info: proposed name RefThunk_SetHackenemyEntryVectors2 (T2); TU crt0_splicewrap
+ * Info: proposed name RefThunk_SetHackenemyEntrySecondVectors (T2); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: RefThunk_SetCid73EntryVectors2 ->
- *   RefThunk_SetHackenemyEntryVectors2 | T2 forced: thunk name is only as good as its native (0x181378 T2)
+ *   RefThunk_SetHackenemyEntrySecondVectors | T2 forced: thunk name is only as good as its native (0x181378 T2)
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 1183 on CID73 (g_aeopid[1381], thunkFn/thunkUser): unpacks the script's 3 arguments
 // (0x105F, Lm, Lm) with RefSetArgsFromSplice, calls SetHackenemyEntrySecondVectors and returns nothing to the script.
-extern "C" CRef RefThunk_SetHackenemyEntryVectors2(void *p, int c, void *aref)
+extern "C" CRef RefThunk_SetHackenemyEntrySecondVectors(void *p, int c, void *aref)
 {
     int ak[3] = {0x105f, 0xa, 0xa};
     union { qword q; } v1;

@@ -2,7 +2,7 @@
 void SetF32__4CReff(void *, f32);                 /* extern */
 f32 GetMusicTime(s32);                             /* extern */
 
-CRef *RefThunk_TMusicCur(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_GetMusicTime(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
