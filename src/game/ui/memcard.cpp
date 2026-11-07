@@ -923,13 +923,13 @@ struct K { int sector; int size; int mode; char pad[0x104];
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Opens the save icon file on the disc (a FLOC built from the file entry); returns false when the entry is not set.
-extern "C" int FOpenSaveIconFile(S *entry)
+extern "C" { int FOpenSaveIconFile(S *entry)
 {
     K key;
     bool isSet = key.FSet(entry);
     if (isSet) return GetFileKeySize(&key);
     else return 0;
-}
+} }
 } // namespace M_FOpenSaveIconFile
 
 namespace M_CreateSaveDir { extern "C" {

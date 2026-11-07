@@ -1866,7 +1866,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a 3x3 matrix from one object's space to another's.
-extern "C" M3 ConvertAloMat(void *a, void *b, const M3 *m)
+extern "C" { M3 ConvertAloMat(void *a, void *b, const M3 *m)
 {
     M3 result;
     if (a) result = Mul(*GetLoWorldMatrix(a), *m);
@@ -1875,7 +1875,7 @@ extern "C" M3 ConvertAloMat(void *a, void *b, const M3 *m)
         result = Mul(InvertMatrix3Cofactor(GetLoWorldMatrix(b)), result);
     }
     return result;
-}
+} }
 } // namespace M_ConvertAloMat
 
 namespace M_ConvertAloMat4 { extern "C" {
