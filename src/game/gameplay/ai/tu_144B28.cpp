@@ -134,16 +134,12 @@ struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20
 struct O;
 struct VT { char pad[0x2C8]; short d; short pad2; int (*pfn)(struct O *); };
 struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int grfbtn; char pad3[0x7C - 0x34]; struct O *po; };   /* a POCTL (+0x30 buttons, +0x7C its PO) or a PO */
-struct P {
-    char pad[0x10]; void *guard; char pad1[0x4C - 0x14]; int pathState; float pathStateTime; char pad2[0x80 - 0x54];
-    qword goal; char pad3[0xC0 - 0x90]; struct O *mirrorPoctl; int mirrorButtonMask; float mirrorDelay; int forcesButton8; float speedScale;
-};
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DC0;
 float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
 extern float D_002BBB60[2];
 float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
-void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
+void ResetBhvSteering(BHVWALKGOAL *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *object, int cid);
@@ -200,15 +196,15 @@ static __inline__ float EvaluatePolynomial(float *a, float g) { return a[0] + g 
 // (path states 0/1) sets the POCTL stick: speed from the horizontal distance to the goal (scaled) and heading
 // toward it; holds button 8 when asked or when far from the mirrored PO, and after a delay copies that PO's masked
 // buttons (an AI partner copying the player's presses, inferred).
-void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
+void UpdateBhvwalkgoalPoctl(BHVWALKGOAL *behavior, struct POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
-    if (behavior->pathState < 2) if (behavior->pathState >= 0) {
+    if (behavior->state < 2) if (behavior->state >= 0) {
         qword pos;
         qword toGoal, v, t, up;
         float speed, clampedSpeed;
-        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->goal));
-        v = GetLoWorldPos(behavior->guard);
+        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->startPosition));
+        v = GetLoWorldPos(behavior->owner);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(toGoal) : "j"(pos), "j"(v));
         up = D_002A2DC0;
         v = Perp(toGoal, up);   /* horizontal part of the offset to the goal */
@@ -220,18 +216,18 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
         }
         if (behavior->forcesButton8)
             poctl->buttonsHeld |= 8;
-        if (behavior->mirrorPoctl && behavior->mirrorDelay < D_002DDED0.time - behavior->pathStateTime) {
+        if (((struct O *)behavior->mirrorPoctl) && behavior->mirrorDelay < D_002DDED0.time - behavior->stateTime) {
             int mirror = 1;
-            struct O *leader = behavior->mirrorPoctl->po;
+            struct O *leader = ((struct O *)behavior->mirrorPoctl)->po;
             qword own, other;
-            __asm__("qmtc2.ni %1, %0" : "=j"(own) : "r"(GetLoWorldPos(behavior->guard)));
+            __asm__("qmtc2.ni %1, %0" : "=j"(own) : "r"(GetLoWorldPos(behavior->owner)));
             __asm__("qmtc2.ni %1, %0" : "=j"(other) : "r"(GetLoWorldPos(leader)));
             if (IsFarApart(own, other))
                 poctl->buttonsHeld |= 8;
             if (IsBasicDerivedFrom__FP5BASIC3CID(leader, CID_STEPPLAYER))
                 mirror = leader->vt->pfn((struct O *)((char *)leader + leader->vt->d)) != 0;   /* PO slot 89 */
             if (mirror) {
-                poctl->buttonsHeld |= behavior->mirrorPoctl->grfbtn & behavior->mirrorButtonMask;
+                poctl->buttonsHeld |= ((struct O *)behavior->mirrorPoctl)->grfbtn & behavior->mirrorButtonMask;
                 UpdatePoctlPressed(poctl);
             }
         }
