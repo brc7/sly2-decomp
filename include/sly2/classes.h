@@ -542,7 +542,7 @@ typedef char assert_GOMER_size[sizeof(GOMER) == 0x1010 ? 1 : -1];
 /* 113 CID113 (0x60): guard script; vtable 0x2CF880, 48 slots */
 struct CID113 : LO
 {
-    void *firstCommand;     /* +0x50 [S] the first script command (PostStepguardLoad keeps it as the guard's home record) */
+    GUARDSCRIPTCMD *firstCommand; /* +0x50 [S] the first script command (PostStepguardLoad keeps it as the guard's home record) */
     char pad54[0x60 - 0x54];
     virtual void PostLoad() __asm__("PostGuardScriptLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid113ClassDesc");   /* slot 6 */

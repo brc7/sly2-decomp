@@ -20,13 +20,24 @@ struct GUARDLOOT
       undefined4 unknown04[3]; /* [?] */
 };
 
+/* A guard script command (CID113's command list; only what ResetStepguardToHome fills: the goto position and heading). [S] */
+struct GUARDSCRIPTCMD
+{
+      undefined4 unknown0[2];
+      qword *position;      /* +0x8 [S] points at the guard's home position */
+      float heading;        /* +0xC [S] */
+};
+
 /* DETECTOR (CID 0x10, cb 0x180): a guard's vision detector. Only the fields the option accessors below use. [S] */
 struct DETECTOR : public XFM
 {
-      undefined4 unknownE0[2];
+      STEPGUARD *owner;     /* +0xE0 [S] the guard owning the detector (ResetStepguardToHome) */
+      SOTREE *ownerPhysicsTree; /* +0xE4 [S] the owner's physics tree (copied from SO::physicsTree) */
       VOL *pvolNear;        /* +0xE8 [S] near volume (tu_1B9F80's view; VOL type [H]) */
       VOL *pvolFar;         /* +0xEC [S] far volume */
-      undefined4 unk_0xf0[(0xfc - 0xf0) / 4];
+      int unknownF0;        /* +0xF0 [S] cleared by ClearStepguardState */
+      int unknownF4;        /* +0xF4 [S] */
+      undefined4 unk_0xf8;
       int unknownFC;        /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp ClearStepguardGeneratedTargets); possibly totalContribution (low-confidence guess: [S] sum of the guards' +0x3A4 contributions) */
       undefined4 unk_0x100[(0x180 - 0x100) / 4];
     virtual void Update() __asm__("UpdateDetector");   /* slot 16 */
@@ -35,6 +46,8 @@ struct DETECTOR : public XFM
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_DETECTOR_unknownFC[SLY2_OFFSETOF(DETECTOR, unknownFC) == 0xFC ? 1 : -1];
+typedef char assert_DETECTOR_owner[SLY2_OFFSETOF(DETECTOR, owner) == 0xE0 ? 1 : -1];
+typedef char assert_DETECTOR_unknownF0[SLY2_OFFSETOF(DETECTOR, unknownF0) == 0xF0 ? 1 : -1];
 typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
 
 /* An animation binding of a guard (16 bytes; stepguard.cpp ResolveAnimBinding/ReleaseAnimBinding): its kind (2 and 3
@@ -112,7 +125,7 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x2e0[2];
       int patrolScript;     /* +0x2E8 [S] the patrol script (BHVPATROL) */
       CID113 *altPatrolScript; /* +0x2EC [S] the alternative patrol script (PostStepguardLoad creates it) */
-      void *homeRecord;     /* +0x2F0 [S] the home marker the guard returns to (ResetStepguardToHome) */
+      GUARDSCRIPTCMD *homeRecord; /* +0x2F0 [S] the home marker the guard returns to: the alternative patrol script's first command (ResetStepguardToHome) */
       undefined4 unk_0x2f4[3];
       qword homePosition;   /* +0x300 [S] */
       float homeHeading;    /* +0x310 [S] */
@@ -234,7 +247,7 @@ struct STEPGUARD : public STEP
       GUARDMOVER mover;     /* +0xFD0 [S] movement arbiter */
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
       uint capabilityFlags; /* +0xFE8 [R] capability bits (bit 3 = may shoot) */
-      void *knockdownHelper; /* +0xFEC [S] */
+      LO *knockdownHelper;  /* +0xFEC [S] removed from the world on reset (slot 9) */
       float walkPhase;      /* +0xFF0 [S] walk-cycle phase saved by BHVANIM when its walk animation stops */
       float walkPhaseTime;  /* +0xFF4 [S] the time it was saved */
       float removalTime;    /* +0xFF8 [S] time the guard was removed from the world (OnStepguardRemove) */

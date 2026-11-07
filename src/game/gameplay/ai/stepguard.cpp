@@ -438,52 +438,40 @@ void STEPGUARD::RemoveHierarchy()
 
 // 0x206518 ResetStepguardToHome
 namespace M_ResetStepguardToHome { extern "C" {
-struct VE; struct O; struct HOMEREC; struct F64; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; };
-struct HOMEREC { char pad[8]; qword *position; float f; };
-struct F64 { char pad[0xE0]; void *owner; void *collisionGroup; };
-struct S {
-    char pad0[0xEC]; void *collisionGroup; char pad1[0x26C - 0xF0]; char bhvstk[0x2F0 - 0x26C]; struct HOMEREC *homeRecord;
-    char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int staggerCapacity; int staggerProgress;
-    char pad4[0x494 - 0x348]; int lootEnabled; void *stuckWatch; void *hazardWatch; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
-    int sleepDartCapacity; int sleepDartProgress; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char mover[0xFE8 - 0xFD0];
-    int capabilities; struct O *knockdownHelper;
-};
-extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648;
-void SO_ResetForProxy(struct S *p);
-void ClearBhvstk__FP6BHVSTK(void *p);
-void ClearStepguardMover(void *p);
-void SetStepguardSgfMask(struct S *p, int n);
+extern LO *D_002E1E40, *D_002F7900, *D_002DD5BC;
+void ClearStepguardMover(GUARDMOVER *mover);
+void SetStepguardSgfMask(STEPGUARD *guard, int n);
 void ResetStuckWatch(void *p);
 void ResetHazardWatch(void *p);
 void EnableStuckWatch(void *p);
-qword GetLoWorldPos(void *p);
-float GetStepHeading(struct S *p);
-void SetStepTargetHeading(struct S *p, float f);
+qword GetLoWorldPos(LO *plo);
+float GetStepHeading(STEPGUARD *guard);
+void SetStepTargetHeading(STEPGUARD *guard, float f);
 unsigned long GetSgfMask(int n);
-void *FindBestAnimBinding(struct S *p, unsigned long m);
-void UpdateDetectorTrackedObject(struct F64 *pf, struct S *p, int n);
-void GenerateStepguardLoot(struct S *p);
-void StageStepguardLoot(struct S *p);
-struct O *PushStepBehavior(struct S *p, int n);
-void SetLoParent(struct F64 *pf, struct S *p, int n);
+void *FindBestAnimBinding(STEPGUARD *guard, unsigned long m);
+void UpdateDetectorTrackedObject(DETECTOR *detector, STEPGUARD *guard, LO *plo);
+void GenerateStepguardLoot(STEPGUARD *guard);
+void StageStepguardLoot(STEPGUARD *guard);
+BHV *PushStepBehavior(STEPGUARD *guard, int n);
+void SetLoParent(DETECTOR *detector, STEPGUARD *guard, int n);
+} }
 
 // 0x206518: STEPGUARD vtable slot 26 (reset to home, used by proxies and spawners): restores maximum values (hit
 // points etc.), clears behaviours, mover and flags, re-caches the home position and heading, and derives walk/run
 // capability bits from the animation bindings.
-void ResetStepguardToHome(struct S *guard)
+void STEPGUARD::OnProxyAcquire(LO *plo)
 {
-    struct O *o;
+    using namespace M_ResetStepguardToHome;
+    STEPGUARD *guard = this;
+    BHV *o;
     qword *position;
-    SO_ResetForProxy(guard);
+    SO::OnProxyAcquire(plo);
     position = &guard->homePosition;
-    guard->hp = guard->hpMax;
+    guard->hitPoints = guard->maxHitPoints;
     guard->sleepDartProgress = guard->sleepDartCapacity;
     guard->staggerProgress = guard->staggerCapacity;
-    ClearBhvstk__FP6BHVSTK(guard->bhvstk);
-    ClearStepguardMover(guard->mover);
+    ClearBhvstk(&guard->behaviors);
+    ClearStepguardMover(&guard->mover);
     SetStepguardSgfMask(guard, 0);
     ResetStuckWatch(guard->stuckWatch);
     ResetHazardWatch(guard->hazardWatch);
@@ -491,36 +479,35 @@ void ResetStepguardToHome(struct S *guard)
     guard->homePosition = GetLoWorldPos(guard);
     guard->homeHeading = GetStepHeading(guard);
     guard->homeRecord->position = position;
-    guard->homeRecord->f = guard->homeHeading;
+    guard->homeRecord->heading = guard->homeHeading;
     SetStepTargetHeading(guard, guard->homeHeading);
-    guard->capabilities = 0;
+    guard->capabilityFlags = 0;
     if (FindBestAnimBinding(guard, GetSgfMask(SGF_MOVING)))
-        guard->capabilities |= 2;
+        guard->capabilityFlags |= 2;
     else
         guard->searchMode = 2;
     if (FindBestAnimBinding(guard, GetSgfMask(8)))
-        guard->capabilities |= 4;
+        guard->capabilityFlags |= 4;
     if (FindBestAnimBinding(guard, GetSgfMask(SGF_LEAP)))
-        guard->capabilities |= 1;
+        guard->capabilityFlags |= 1;
     if (FindBestAnimBinding(guard, GetSgfMask(0x11)))
-        guard->capabilities |= 8;
-    UpdateDetectorTrackedObject(guard->detector, guard, D_002E1E40);
-    UpdateDetectorTrackedObject(guard->detector, guard, D_002F7900);
-    UpdateDetectorTrackedObject(guard->detector, guard, D_002DD5BC);
-    UpdateDetectorTrackedObject(guard->detector, guard, D_002DD648);
+        guard->capabilityFlags |= 8;
+    UpdateDetectorTrackedObject(guard->pdetector, guard, D_002E1E40);
+    UpdateDetectorTrackedObject(guard->pdetector, guard, D_002F7900);
+    UpdateDetectorTrackedObject(guard->pdetector, guard, D_002DD5BC);
+    UpdateDetectorTrackedObject(guard->pdetector, guard, D_002DD648);
     if (guard->lootEnabled) {
         GenerateStepguardLoot(guard);
         StageStepguardLoot(guard);
     }
     if (guard->knockdownHelper)
-        guard->knockdownHelper->vt[9].pf((char *)guard->knockdownHelper + guard->knockdownHelper->vt[9].d);
+        guard->knockdownHelper->Remove();
     o = PushStepBehavior(guard, CID_BHVGUARD);
-    o->vt[8].pf((char *)o + o->vt[8].d);
-    SetLoParent(guard->detector, guard, 0xF);
-    guard->detector->owner = guard;
-    guard->detector->collisionGroup = guard->collisionGroup;
+    o->Start();
+    SetLoParent(guard->pdetector, guard, 0xF);
+    guard->pdetector->owner = guard;
+    guard->pdetector->ownerPhysicsTree = guard->physicsTree;
 }
-} } // namespace M_ResetStepguardToHome
 
 // 0x206748 ClearStepguardState
 namespace M_ClearStepguardState { extern "C" {
