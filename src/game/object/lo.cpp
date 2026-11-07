@@ -65,9 +65,11 @@ void RemoveDlEntry(DL *pdl, void *pv);
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 
 namespace M_InitLo { extern "C" {
-struct S {
+/* LOIsland: lo.h LO with the +0x28 word as one bit-field unit (matching-only island: on lo.h LO the parent's in-world
+   bit is copied with a mask instead of the original shift pair, 14/75 instructions off). */
+struct LOIsland {
     int frame, sidebag, firstRefNode, xC;
-    struct S *parent;
+    struct LOIsland *parent;
     int root;
     char pad[0x10];
     union { unsigned long u; struct { unsigned long lowBits : 40; unsigned long visMask : 8; unsigned long unknown48 : 4; long busyk : 4; unsigned long removedBits : 4; unsigned long isInWorld : 1; unsigned long unknown61 : 3; } b; } bits;
@@ -76,9 +78,9 @@ struct S {
     int proxy;
     int flags;
 };
-void EnsureLoroot(struct S *s);
-void GetLoChildDl(struct S *p, void **a, void ***b);
-void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct S *s);
+void EnsureLoroot(struct LOIsland *s);
+void GetLoChildDl(struct LOIsland *p, void **a, void ***b);
+void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct LOIsland *s);
 // LO initialization (vtable slot 7): sets the busy defaults (busy kind 2 "never", busy distance 1e10), inherits the
 // root record and the in-world bit from the parent (or makes its own root), sets the default flags and proxy-ref list,
 // and links the object into its parent's child list. Every object class calls it from its own Init.
@@ -86,7 +88,7 @@ void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct S *s);
 void LO::Init()
 {
     using namespace M_InitLo;
-    M_InitLo::S *s = (M_InitLo::S *)this;
+    M_InitLo::LOIsland *s = (M_InitLo::LOIsland *)this;
     void *a;
     void **b;
     s->bits.b.unknown48 = 0xF;
