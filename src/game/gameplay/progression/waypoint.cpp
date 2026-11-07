@@ -26,8 +26,8 @@ struct RGBAV
     RGBAV(uint bits) { *(uint *)this = bits; }
 };
 
-struct TASKV { char pad[0x6C]; int labelNameId; };    /* the job: its name plate string (-1: none) */
-struct ATTACH { char pad[0x7C]; TASKV *task; };
+struct TASKV : LO { char pad[0x6C - 0x50]; int labelNameId; };    /* the job: its name plate string (-1: none) */
+struct ATTACH : LO { char pad[0x7C - 0x50]; TASKV *task; };
 /* The waypoint (an SO). */
 struct WAYPTV : SO
 {
