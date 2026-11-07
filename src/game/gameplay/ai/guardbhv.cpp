@@ -6153,13 +6153,12 @@ void UpdateBhvrail(BHVRAIL *behavior) {
 
 // 0x17CD00 SetBhvrailState
 namespace M_SetBhvrailState { extern "C" {
-struct CLOCK; struct VTE; struct O; 
+struct CLOCK; struct VTE; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int sgf; };
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
+BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17CD00: BHVRAIL state change: 0 walk animation (flag 9), 1 stand (flag 2).
 void SetBhvrailState(BHVRAIL *behavior, int n) {
     if (n == behavior->state) return;
@@ -6169,14 +6168,14 @@ void SetBhvrailState(BHVRAIL *behavior, int n) {
     switch (n) {
     case 1:
         {
-            struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
+            BHVANIM *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
             o->sgf = 2;
             StartPushedBhv(o);
         }
         break;
     case 0:
         {
-            struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
+            BHVANIM *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
             o->sgf = 9;
             StartPushedBhv(o);
         }
