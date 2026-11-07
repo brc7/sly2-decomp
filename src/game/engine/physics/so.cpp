@@ -1107,20 +1107,12 @@ void UpdateSoPartMatrices(struct P *so)
 
 // 0x1F3980 UpdateSoXfWorld
 namespace M_func_001F3980 { extern "C" {
-struct VTE; struct E; struct Q; struct R; struct P; 
 typedef int qword __attribute__((mode(TI)));
-typedef unsigned long ulong;
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct E { char pad[0x10]; ulong flags; char pad2[0xB0 - 0x18]; };
-struct Q { char pad[0x98]; short role; char pad2[0xB0 - 0x9A]; qword velocity; char padC0[0xF0 - 0xC0]; int unknownF0[3]; };
-struct R { char pad[0x60]; qword velocity; qword angularVelocity; };
-struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct Q *positionXf; struct Q *rotationXf; char pad3[0xE0 - 0x60]; int numParts; struct E *parts; struct R *physics; };
 extern struct CLOCK D_002DDED0;
-void UpdateSoPartMatrices(struct P *);
-void UpdateSoPartMesh(struct E *, float);
+void UpdateSoPartMatrices(SO *);
+void UpdateSoPartMesh(SOPART *, float);
 int IsXfRoleVelocity(int);
-void UpdateSoSlots(struct P *);
-void UpdateSoPartGeom(struct E *);
+void UpdateSoSlots(SO *);
 static inline void Clear(int *a)
 {
     a[2] = 0;
@@ -1129,31 +1121,31 @@ static inline void Clear(int *a)
 }
 // Slot 17: per-step transform update: part matrices, soft-mesh parts, XF positions into the physics record, the
 // physics preset (slot 70) for dynamic XFs, slots and part geometry.
-void UpdateSoXfWorld(struct P *so)
+void UpdateSoXfWorld(SO *so)
 {
     int i;
     UpdateSoPartMatrices(so);
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (*(int *)&pe->flags) UpdateSoPartMesh(pe, D_002DDED0.deltaTime);
+        SOPART *pe = &so->parts[i];
+        if (pe->plvo) UpdateSoPartMesh(pe, D_002DDED0.deltaTime);
     }
     if (so->physics) {
-        if (so->positionXf) so->physics->velocity = so->positionXf->velocity;
-        if (so->rotationXf) so->physics->angularVelocity = so->rotationXf->velocity;
-        if ((unsigned short)(so->positionXf->role - 1) < 2 || so->rotationXf->role == 1 || so->rotationXf->role == 2) {
-            if (IsXfRoleVelocity(so->positionXf->role)) {
-                Clear(so->positionXf->unknownF0);
+        if (so->unknown58) so->physics->velocity = *(qword *)&so->unknown58->velocity;
+        if (so->unknown5C) so->physics->angularVelocity = *(qword *)&so->unknown5C->velocity;
+        if ((unsigned short)(so->unknown58->role - 1) < 2 || so->unknown5C->role == 1 || so->unknown5C->role == 2) {
+            if (IsXfRoleVelocity(so->unknown58->role)) {
+                Clear((int *)&so->unknown58->acceleration);
             }
-            if (IsXfRoleVelocity(so->rotationXf->role)) {
-                Clear(so->rotationXf->unknownF0);
+            if (IsXfRoleVelocity(so->unknown5C->role)) {
+                Clear((int *)&so->unknown5C->acceleration);
             }
-            so->pvt[70].pfn((char *)so + so->pvt[70].d);
+            so->PresetAccel();
         }
     }
     UpdateSoSlots(so);
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (!(pe->flags & (1L << 50))) UpdateSoPartGeom(pe);
+        SOPART *pe = &so->parts[i];
+        if (!pe->isHidden) UpdateSoPartGeom(pe);
     }
 }
 } } // namespace M_func_001F3980
