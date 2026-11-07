@@ -443,12 +443,8 @@ typedef int qword __attribute__((mode(TI)));
 union V { qword q; struct { float x, y, z, w; } v; float a[4]; };
 struct BLK { qword apos[2][0x84]; int ibuf; int numBlips; int pad[2]; BLK *pblkNext; };   /* a block of blips, double-buffered positions */
 struct BLIPG { char pad[0x448]; BLK *pblkFirst; };
-struct ALO;
-struct EMITO { ALO *referenceObject; };
-struct EMITBV { int pad0; int particleKind; EMITO *pemito; };
-struct EMITTERV { char pad[0xE4]; EMITBV *pemitb; char pad1[0x140 - 0xE8]; float boxRadius; char pad2[0x150 - 0x144]; BLIPG *pblipg; };
 extern "C" {
-qword GetLoWorldPos(ALO *referenceObject);
+qword GetLoWorldPos(LO *referenceObject);
 float ModPositive__Fff(float g, float gMod);
 }
 static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float *pdg)
@@ -461,16 +457,16 @@ static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float 
 // Applies the emitter's box modifier to its live particles (when boxRadius is set): blips that leave the box of half-size
 // boxRadius around the reference object (else the origin) wrap around to the opposite side, so a field of
 // particles (snow, rain, dust) follows its object without visible edges. Rips are left alone.
-extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
+extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTER *pemitter)
 {
     float boxRadius = pemitter->boxRadius;
     if (boxRadius > 0.0001f) {
         V vecBox, posMin, posMax, dpos;
         volatile int unused;
         vecBox.v.z = boxRadius; vecBox.v.y = boxRadius; vecBox.v.x = boxRadius;
-        if (pemitter->pemitb->pemito->referenceObject) {
-            posMin.q = VuSub(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
-            posMax.q = VuAdd(GetLoWorldPos(pemitter->pemitb->pemito->referenceObject), vecBox.q);
+        if (pemitter->pemitb->aploRef[EMITREF_Reference]) {
+            posMin.q = VuSub(GetLoWorldPos(pemitter->pemitb->aploRef[EMITREF_Reference]), vecBox.q);
+            posMax.q = VuAdd(GetLoWorldPos(pemitter->pemitb->aploRef[EMITREF_Reference]), vecBox.q);
         } else {
             qword m, k;
             __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-1.0f));
@@ -482,7 +478,7 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
         float boxSize = pemitter->boxRadius + pemitter->boxRadius;
         vecBox.v.z = boxSize; vecBox.v.y = boxSize; vecBox.v.x = boxSize;
         if (pemitter->pemitb->particleKind == 0 && pemitter->pblipg) {
-            for (BLK *pblk = pemitter->pblipg->pblkFirst; pblk; pblk = pblk->pblkNext) {
+            for (BLK *pblk = ((BLIPG *)pemitter->pblipg)->pblkFirst; pblk; pblk = pblk->pblkNext) {
                 qword *apos = pblk->apos[pblk->ibuf];
                 for (int i = 0; i < pblk->numBlips; i++) {
                     V *ppos = (V *)&apos[i];
