@@ -18,6 +18,19 @@ struct SNDSOURCE
     float gain;                 /* +0xC */
 };
 
+/* EASND: an animation event's sound (ASEG events, StartSwAsegSound in sw.cpp): the effect, the object it follows, its
+   audible range, pitch, Doppler factor and volume. */
+struct EASND
+{
+    int sfxId;                  /* +0x00 */
+    int oid;                    /* +0x04 */
+    int rangeNear;              /* +0x08 */
+    int rangeFar;               /* +0x0C */
+    float pitch;                /* +0x10 */
+    float doppler;              /* +0x14 */
+    float volume;               /* +0x18 */
+};
+
 /* CID151: a sound instance (the registry's SND class; placeholder name): base of bank and stream sounds. */
 struct CID151 : BASIC
 {

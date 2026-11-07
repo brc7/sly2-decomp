@@ -262,16 +262,6 @@ struct OVR
       OID oid;
       KEYV *pkey;
 };
-struct EASND
-{
-      int sfxid;
-      OID oid;
-      int sNear;
-      int sFar;
-      float gPitch;
-      float gUnk14;
-      float gUnk18;
-};
 struct EA17
 {
       int n0;
