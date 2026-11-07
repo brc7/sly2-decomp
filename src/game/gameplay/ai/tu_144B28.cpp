@@ -884,7 +884,7 @@ void BHV195::VSlot9()
 // 0x145DA0: True if the interact behaviour is idle (state -1).
 extern "C" int IsBhvInteractIdle(BHVSTATE *behavior)
 {
-    return ~behavior->state == 0;
+    return behavior->state == -1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -996,7 +996,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 void SteerBhvInteract(struct P *behavior, struct POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
-    if (behavior->state < 3) if (behavior->state >= 0) {
+    if (behavior->state < 3) if (behavior->state >= 0) {   // (two ifs, upper bound first: `&&` reorders the tests)
         qword targetPos, ownerPos, toTarget;
         float speed;
         targetPos = func_001A62E8(behavior->target);
@@ -1077,7 +1077,7 @@ void BHV196::VSlot9()
 // 0x146298: True if the second interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract2Idle(BHVSTATE *behavior)
 {
-    return ~behavior->state == 0;
+    return behavior->state == -1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1187,7 +1187,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 void SteerBhvInteract2(struct P *behavior, struct POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
-    if (behavior->state < 3) if (behavior->state >= 0) {
+    if (behavior->state < 3) if (behavior->state >= 0) {   // (two ifs, upper bound first: `&&` reorders the tests)
         qword targetPos, ownerPos, toTarget;
         float speed;
         targetPos = func_001A62E8(behavior->target);
@@ -1268,7 +1268,7 @@ void BHV197::VSlot9()
 // 0x146790: True if the third interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract3Idle(BHVSTATE *behavior)
 {
-    return ~behavior->state == 0;
+    return behavior->state == -1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
