@@ -4065,10 +4065,8 @@ void StartBhvjuggled(BHVJUGGLED *behavior)
 
 // 0x17AA78 CalculateBhvjuggledHoldPoint
 namespace M_func_0017AA78 { extern "C" {
-struct P; struct REQUEST;
-typedef int qword __attribute__((mode(TI)));
+struct REQUEST;
 typedef union {qword q;float g[4];} U;
-struct P{char pad0[0x10];void*guard;char pad14[0x5C-0x14];void*target;};
 struct REQUEST{int flag;float along,up;int padC;qword point,direction;};
 extern qword D_002A2DC0,D_002A2DA0;
 extern float D_002BE6C4;
@@ -4128,10 +4126,10 @@ static inline void PublishPoint(U *home, qword scalar, qword *out, qword point)
 }
 // 0x17AA78: Computes the hold point and direction from the holder's request (its vtable slot 96) relative to the
 // guard.
-void CalculateBhvjuggledHoldPoint(struct P *behavior, struct REQUEST *request, qword *outPoint, qword *outDirection)
+void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, struct REQUEST *request, qword *outPoint, qword *outDirection)
 {
-    qword first = ToVU(GetLoWorldPos(behavior->guard));
-    qword direction = Normal(Reject(VuSub(first, GetLoWorldPos(behavior->target)), D_002A2DC0), D_002A2DA0);
+    qword first = ToVU(GetLoWorldPos(behavior->owner));
+    qword direction = Normal(Reject(VuSub(first, GetLoWorldPos(behavior->holder)), D_002A2DC0), D_002A2DA0);
     {
         U scalar;
         register unsigned int addressWord __asm__("$2") = (unsigned int)&D_002A2DC0;
@@ -4160,8 +4158,6 @@ void CalculateBhvjuggledHoldPoint(struct P *behavior, struct REQUEST *request, q
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char REQUEST_Size[(sizeof(struct REQUEST)==48)?1:-1];
-typedef char P_actor_Offset[((unsigned)&((struct P*)0)->guard==0x10)?1:-1];
-typedef char P_target_Offset[((unsigned)&((struct P*)0)->target==0x5C)?1:-1];
 typedef char REQUEST_flag_Offset[((unsigned)&((struct REQUEST*)0)->flag==0)?1:-1];
 typedef char REQUEST_along_Offset[((unsigned)&((struct REQUEST*)0)->along==4)?1:-1];
 typedef char REQUEST_up_Offset[((unsigned)&((struct REQUEST*)0)->up==8)?1:-1];
@@ -4174,8 +4170,6 @@ typedef char integer_Width[sizeof(int)==4?1:-1];
 typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
-typedef char P_PrefixSize[sizeof(struct P)==0x60?1:-1];
-typedef char P_Alignment[__alignof__(struct P)==4?1:-1];
 typedef char REQUEST_Alignment[__alignof__(struct REQUEST)==16?1:-1];
 typedef char U_q_Offset[(unsigned)&((U*)0)->q==0?1:-1];
 typedef char U_scalar_Offset[(unsigned)&((U*)0)->g==0?1:-1];
@@ -4217,22 +4211,19 @@ void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
 
 // 0x17AC90 UpdateBhvjuggled
 namespace M_UpdateBhvjuggled { extern "C" {
-struct VTE; struct C; struct B; struct A; struct Y; struct X; struct OUT;
+struct C; struct B; struct Y; struct X; struct OUT;
 // Update the movement-state controller.
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 extern CLOCK D_002DDED0;
 extern float D_002BE6C8, D_002BE6CC;
-struct VTE { short d; short pad; void *pfn; };
 struct C { char pad[0x1C]; float endTime; };
 struct B { char pad[0x90]; struct C *currentAct; };
-struct A { char pad[0xC]; struct VTE *vt; char pad2[0x58 - 0x10]; struct B *unknown58; char pad3[0x208 - 0x5C]; int isOnGround; };
 struct Y { char pad[0x60]; void *frame; };
 struct X { char pad[0x19A4]; struct Y *unknown19A4; };
 struct OUT { char pad[0x30]; qword v; };
 void UpdateBhvanim(BHVJUGGLED *p);
 void UpdateBhvjuggledHoldAct(BHVJUGGLED *p);
-qword GetLoWorldPos(struct A *a);
+qword GetLoWorldPos(void *a);
 void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
 // Returns the frame object of the actor's +0x19A4 record.
 static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknown19A4;return y->frame;}
@@ -4243,19 +4234,15 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
     qword v;
     int s;
     UpdateBhvanim(behavior);
-    {
-        struct A *a = ((struct A *)behavior->owner);
-        struct VTE *entry = &a->vt[33];
-        v = ((qword (*)(void *))entry->pfn)((char *)a + entry->d);
-    }
+    v = behavior->owner->GetVelocity();
     do {
         s = behavior->juggleState;
         switch (s) {
         case 0:
         case 1:
-            if (behavior->juggleState == 1 && ((struct A *)behavior->owner)->isOnGround) {
+            if (behavior->juggleState == 1 && behavior->owner->floorContact) {
                 SetBhvjuggledState(behavior, 3);
-            } else if (((struct A *)behavior->owner)->unknown58->currentAct != ((struct C *)behavior->holdAct) || ((struct A *)behavior->owner)->unknown58->currentAct->endTime < D_002DDED0.time) {
+            } else if (((struct B *)behavior->owner->unknown58)->currentAct != ((struct C *)behavior->holdAct) || ((struct B *)behavior->owner->unknown58)->currentAct->endTime < D_002DDED0.time) {
                 SetBhvjuggledState(behavior, 2);
             } else if (QwordZ(v) < 0.0f && behavior->juggleState == 0) {
                 SetBhvjuggledState(behavior, 1);
@@ -4264,7 +4251,7 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
             }
             break;
         case 2:
-            if (((struct A *)behavior->owner)->isOnGround) SetBhvjuggledState(behavior, 3);
+            if (behavior->owner->floorContact) SetBhvjuggledState(behavior, 3);
             break;
         case 3:
             break;
@@ -4278,11 +4265,9 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
             register void*nullOutput __asm__("$7");
             register struct X*frameLink __asm__("$3");
             CLOCK *clock=&D_002DDED0;
-            a.q = GetLoWorldPos(((struct A *)behavior->owner));
+            a.q = GetLoWorldPos(behavior->owner);
             {
-                struct A *pa = ((struct A *)behavior->owner);
-                struct VTE *entry = &pa->vt[33];
-                qword velocity = ((qword (*)(void *))entry->pfn)((char *)pa + entry->d);
+                qword velocity = behavior->owner->GetVelocity();
                 dt=clock->deltaTime;
                 /* Preserve velocity and prepare the prediction inputs. */
                 __asm__("sq %4,%0\n\tdaddu %1,%z5,$zero\n\tdaddu %2,%z5,$zero\n\tlw %3,%6" : "=m"(b.q),"=&r"(nullOutput),"=&r"(nullSource),"=&r"(frameLink) : "r"(velocity),"J"(0),"m"(((struct X *)behavior->holder)));
@@ -4291,7 +4276,7 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
             t.q = out.v;
             t.f[2] += D_002BE6C8;
             tq = t.q;
-            c = GetLoWorldPos(((struct A *)behavior->owner));
+            c = GetLoWorldPos(behavior->owner);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(tq), "j"(c));
             clock=(CLOCK*)*(int*)&clock->deltaTime;
             { qword ud_q; __asm__("qmtc2.ni %1, %0" : "=j"(ud_q) : "r"(clock)); ud.q = ud_q; }
@@ -4303,15 +4288,11 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
                 }
                 vel.f[2] = b.f[2];
             }
-            {
-                struct A *pa = ((struct A *)behavior->owner);
-                struct VTE *entry = &pa->vt[35];
-                ((void (*)(void *, qword))entry->pfn)((char *)pa + entry->d, vel.q);
-            }
+            behavior->owner->SetVelocity(vel.q);
             break;
         }
         case 6:
-            if (((struct A *)behavior->owner)->isOnGround) SetBhvjuggledState(behavior, -1);
+            if (behavior->owner->floorContact) SetBhvjuggledState(behavior, -1);
             break;
         }
     } while (behavior->juggleState != s);
@@ -4320,22 +4301,15 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_U[(sizeof(U)==16)?1:-1];
-typedef char layout_VTE[(sizeof(struct VTE)==8)?1:-1];
 typedef char layout_C[(sizeof(struct C)==0x20)?1:-1];
 typedef char layout_B[(sizeof(struct B)==0x94)?1:-1];
-typedef char layout_A[(sizeof(struct A)==0x20C)?1:-1];
 typedef char layout_X[(sizeof(struct X)==0x19A8)?1:-1];
 typedef char layout_Y[(sizeof(struct Y)==0x64)?1:-1];
 typedef char layout_OUT[(sizeof(struct OUT)==0x40)?1:-1];
 typedef char layout_U_q[((unsigned)&((U*)0)->q==0)?1:-1];
 typedef char layout_U_f[((unsigned)&((U*)0)->f==0)?1:-1];
-typedef char layout_VTE_delta[((unsigned)&((struct VTE*)0)->d==0)?1:-1];
-typedef char layout_VTE_fn[((unsigned)&((struct VTE*)0)->pfn==4)?1:-1];
 typedef char layout_C_gain[((unsigned)&((struct C*)0)->endTime==0x1C)?1:-1];
 typedef char layout_B_control[((unsigned)&((struct B*)0)->currentAct==0x90)?1:-1];
-typedef char layout_A_vt[((unsigned)&((struct A*)0)->vt==0xC)?1:-1];
-typedef char layout_A_control[((unsigned)&((struct A*)0)->unknown58==0x58)?1:-1];
-typedef char layout_A_active[((unsigned)&((struct A*)0)->isOnGround==0x208)?1:-1];
 typedef char layout_X_y[((unsigned)&((struct X*)0)->unknown19A4==0x19A4)?1:-1];
 typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->frame==0x60)?1:-1];
 typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
