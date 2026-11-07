@@ -5,9 +5,11 @@
 > and the full pages are in git history (`git show 3493d772:docs/engine/rendering.md`); formats are under
 > [../formats/](../formats/world-file.md). The render port checklist is section 6.6.
 
-Status: proposal v1, 2026-11-01. Author: port-planning agent. Audience: the TL, plus agent teams who will build it.
+Status: proposal v1, 2026-11-01; revised 2026-11-06 with the **[S]** notes (section 14). Author: port-planning agent. Audience: the TL, plus agent teams who will build it.
 Evidence tags: **[K]** = known, with a citation to our docs or a measurement made while writing this plan.
 **[A]** = assumption or opinion that needs checking (each one is tied to a spike or a task in section 11).
+**[S]** = reported by SafeHouse, unverified: a behaviour fact or design idea observed in an independent hand-written
+Sly 2 port (section 14). Facts only; that code is all rights reserved, so none of it is read while writing port code.
 "Decomp" means this repository.
 
 ---
@@ -37,6 +39,10 @@ Evidence tags: **[K]** = known, with a citation to our docs or a measurement mad
 6. **The first goal is a frame, not a boot.** M0 renders a Paris frame in Metal from a PCSX2 RAM snapshot, with no
    game code running. We already have the data, `devtools/render_lab` and `vu_microcode/chains.py`. M1, booting
    headless through the recompiled spine, runs in parallel. Both meet at M2: Paris on screen and controllable.
+7. **The differential-check harness is an M1 deliverable, not a later test.** Snapshot EE RAM and registers at a
+   function's entry and exit, run the candidate (native override, decomp edit, or recompiled code against the original
+   in PCSX2), compare. The recompiled spine is the oracle, so every nativized function can be checked from day one
+   (section 10; the hand-written port in section 14 found this the thing that made porting tractable **[S]**).
 
 ---
 
@@ -68,12 +74,12 @@ Evidence tags: **[K]** = known, with a citation to our docs or a measurement mad
 | # | Assumption | Check |
 |---|---|---|
 | A1 | Recompiled MIPS code of a 294 MHz game runs far below frame budget on M-series hardware, even with literal per-instruction translation and arena-relative loads. | T3/T5: time a headless frame |
-| A2 | The PS2 FPU's differences from IEEE matter in only a few places. The PS2 FPU has no denormals, NaN or Inf, clamps to ±max, and rounds toward zero; VU0 behaves similarly. ARM FPCR gives us flush-to-zero and round-toward-zero modes; clamping has to be emulated where it matters. | T8: differential tests on physics and camera functions against RAM snapshots |
+| A2 | The PS2 FPU's differences from IEEE matter in only a few places. The PS2 FPU has no denormals, NaN or Inf, clamps to ±max, and rounds toward zero; VU0 behaves similarly. ARM FPCR gives us flush-to-zero and round-toward-zero modes; clamping has to be emulated where it matters. Supported **[S]**: host IEEE with `-ffp-contract=off` plus EE semantics at known spots was enough for a hand port (seeds in 4.2). | T8: differential tests on physics and camera functions against RAM snapshots, starting from the 4.2 seeds |
 | A3 | macOS arm64 will not let us map guest RAM at host address 0 (the 4 GB `__PAGEZERO` rule for arm64 processes), so guest addresses are offsets from a base register. This costs one add per access. | T2 spike (5 min to try `-pagezero_size`; design does not depend on it) |
 | A4 | The game uses no self-modifying code and no runtime code loading. There are no overlays: the ELF is one static image (K5). | recompiler coverage report (T3) |
 | A5 | Every indirect jump target is a function entry (vtables, function pointers, Splice BIF table D_002BBB90) or a `.rodata` jump table that the recompiler can find statically. | T3: log and fail hard on an unknown target |
 | A6 | PSS FMV is MPEG-2 video with PS2 ADPCM audio. AVFoundation will not decode it, so we need FFmpeg (LGPL, dynamically linked) or an offline transcode at install time. | T19 |
-| A7 | Game logic is robust to frame rates up to 60 Hz. Above 60 needs the dt clamp lowered (K10), and that has gameplay risk. | M5 |
+| A7 | ~~Game logic is robust to frame rates above 60 Hz.~~ **Resolved by design (4.4)**: logic always steps at 1001/60000 s and only presentation is interpolated, so the dt clamp (K10) is never lowered **[S]**. | M5: check the interpolation set is enough |
 | A8 | No game code reads back GS memory, except the shadow and blend passes we replace, plus possibly the item-preview render-to-texture (CID45, kinds 15-20). | T13 (RTT) and T16 |
 
 ---
@@ -195,7 +201,11 @@ READMEs already state for their `out/` dirs.
   override also applies to direct calls. `jalr` and `jr` (not `$ra`) go through the same table; a miss is a hard
   error that logs the guest PC (A5). Jump tables: resolve `.rodata` tables statically into C `switch` statements.
 - FPU: emit helpers (`fadd_ps2`, ...). Mode `exact` clamps and flushes; mode `fast` relies on FPCR FZ+RZ. Default
-  to `exact` until T8 shows `fast` is safe (A2).
+  to `exact` until T8 shows `fast` is safe (A2). Native overrides and the host build use IEEE with
+  `-ffp-contract=off` (no fused multiply-add, which the EE never does) and EE semantics only where a test needs them.
+  **T8 seeds**, spots where host IEEE visibly broke a hand port **[S]**: round toward zero for animation event times
+  and for curve and rope integration; divide by zero gives ±FLT_MAX; multiply and add saturate instead of reaching
+  Inf; denormals flush to zero in guard pursuit.
 - COP2 macro ops: an emulated VU0 register file (`vf[32]` as float32x4, `vi[16]`, ACC, Q, P, MAC/status flags only
   where read) using NEON intrinsics. `vcallms`/`vcallmsr` into `g_vu0Micro` (D_00259DF0, 84 instructions; the 0x1C0
   sphere-visibility routine and matrix/point helpers, rendering.md §4) are HLE'd as hand-written C++ per entry point,
@@ -214,11 +224,15 @@ READMEs already state for their `out/` dirs.
 - `FrameRenderLoop` is overridden (section 6). `LoadingScreenThread` and `MemcardThreadMain` run as recompiled guest
   code under the baton.
 
-### 4.4 Timing **[K10]**
-- CP0 `Count` comes from `mach_absolute_time()` scaled to 294.912 MHz, so `MarkClockTick` works unmodified.
-- Pacing: the guest main loop blocks in the CloseFrame→render semaphore. The render thread releases it on
-  `CAMetalDisplayLink` callbacks at 60 Hz, so game logic sees the dt it expects (≥1/60, K10). Higher refresh rates
-  are an M5 option (A7).
+### 4.4 Timing **[K10, S]**
+- Game logic always steps at a **fixed 1001/60000 s** (NTSC field rate). The guest clock (CP0 `Count`) advances by
+  exactly one step per guest frame, so `MarkClockTick` works unmodified and sees the dt it expects (K10). Input is
+  read once per step.
+- Pacing: a **real-time accumulator, capped** (a few steps) so a stall does not trigger a catch-up spiral, decides how
+  many guest frames to run per display-link callback. At 60 Hz or below this is exactly the PS2 behaviour.
+- Above 60 Hz: **interpolate only camera, group (object) and bone matrices** between the last two steps; everything
+  else is drawn from the latest step. This resolves A7 without touching game logic **[S]**. The interpolation needs
+  the previous step's matrices, which the frame snapshot (6.1) can keep.
 
 ---
 
@@ -270,6 +284,20 @@ There is no IOP emulation. These are the EE-visible IOP services and their repla
 
 ---
 
+### 5.6 Platform notes **[S]**
+Observations from the hand-written port (section 14), to check against our own design:
+- **Disc**: it converts the disc once at install time, with mods overlaid by path. Our 5.1 reads the ISO directly with
+  an LBA overlay; an install-time unpack is the alternative if path-based mods matter more than zero-setup.
+- **Saves**: PS2 memory-card save blocks (the 0x5408-byte `g_gs` image) load as-is. Consistent with 5.3.
+- **Script-callback liveness**: Splice callbacks can fire on freed objects; harmless on PS2, a crash natively. A
+  recompiled spine reads freed arena memory the same way the PS2 did, so this mainly bites native overrides; they need
+  liveness checks.
+- **HUD**: drawn on a 640x448 4:3 canvas, then placed on the wide screen (input to the M5 HUD anchor).
+- **Stream audio**: streamed audio (music, dialogue) plays at half the 989snd output level (input to T18 mixing).
+- **macOS graphics**: macOS OpenGL stops at 4.1. A GL 4.3 renderer needs a translation shim on Metal; the options are
+  a GL- or Vulkan-on-Metal layer (for example MoltenVK) or a Metal- or Vulkan-native renderer. This plan already
+  targets Metal directly (decision 3).
+
 ## 6. Rendering → Metal
 
 ### 6.1 Interception point **[K7, K8, K16]**
@@ -303,12 +331,18 @@ There is no IOP emulation. These are the EE-visible IOP services and their repla
 
 Notes:
 - **Projection**: the screen-space "magic float" viewport constants (VU1 qw 0/1) are ignored. Use `world→clip` (qw 2-5)
-  with reversed-Z (Z "bigger = nearer" already matches, K9), hardware clipping and culling, and honour the
-  double-sided flag (MEM[0xB].x & 0x80). The guard-band and the culling marks in the W word only matter for the ADC
+  with reversed-Z (Z "bigger = nearer" already matches, K9), hardware culling, and honour the
+  double-sided flag (MEM[0xB].x & 0x80). **Near-plane clipping must follow the VU1 program's own clipping**:
+  the API clipper broke floors and shadows in the hand port **[S]**; T12's VU1 oracle is the check. The guard-band and the culling marks in the W word only matter for the ADC
   (strip restart) bit: decode it into primitive-restart indices on the CPU.
 - **Resolution**: render at drawable size. Shader constants scale outline width and blip sizes from the 448-line
   reference. Field rendering and `BlendPrevFrame` (a frame blend at alpha 0x64/0x80) become an optional "PS2 blur"
   setting that is off by default **[A]**.
+- **Colour and fog [S]**: keep vertex and material colours in GS units (0x80 = 1.0) through the shader, converting
+  only at output; fog is `F = a + b/x` (the reciprocal fit, matching `FitRecipFunction`); the 8-bit palette index
+  swaps bits 3 and 4 (already known: [textures.md](../formats/textures.md), CSM1 storage). The hand port reports the
+  shadow tint as a 256-entry table indexed by frame alpha, against our 3-entry table: reconcile in T16. Summary in
+  [rendering.md](../systems/rendering.md#13-what-a-port-must-replace).
 - **Render-to-texture** (kinds 15-20, CID45 item preview, 128x128): an offscreen Metal target per slot, bound by its
   GS TBP when sampled the next frame (A8).
 
@@ -416,6 +450,7 @@ gantt
   outlines + relight + shadows + blips + HUD on snapshots         :g1, after g0, 4
   section Track R (runtime)
   recompiler + arena + dispatch                                   :r0, 0, 3
+  differential-check harness (T4)                                 :r2, after r0, 2
   kernel HLE + CD/ISO + SIF router -> reaches frame loop (M1)     :r1, after r0, 3
   section Converge
   M2 Paris on screen, pad input                                    :m2, after g0 r1, 2
@@ -428,7 +463,7 @@ gantt
 | Milestone | Definition of done (acceptance) |
 |---|---|
 | **M0 Snapshot frame** | `sly2_port --snapshot S04.eeMemory.bin --iso X` renders the frame's RPL list (g_arpl) with Metal: kinds 1,3,4,5,6,10 plus textures, fog and fade. Golden-image test against the `.p2s` Screenshot.png (field-adjusted) at SSIM ≥ 0.90 on 3 Paris states. |
-| **M1 Headless boot** | Recompiled spine runs `_start`→`main`→19 startup entries→`StartupGame`→frame loop for 600 frames with no unknown-target or MMIO traps. Logs the boot step queue. `g_cframe` advances. CD reads served from the ISO. |
+| **M1 Headless boot** | Recompiled spine runs `_start`→`main`→19 startup entries→`StartupGame`→frame loop for 600 frames with no unknown-target or MMIO traps. Logs the boot step queue. `g_cframe` advances. CD reads served from the ISO. **Deliverable: the differential-check harness (T4)**, able to capture entry/exit state for any function and compare a candidate against the recompiled original, used by every later override. |
 | **M2 Paris on screen** | Debug warp (write SW+0x3BF0 transition to level 2) or a normal boot reaches Paris hub `nightclub/exterior`. Live frames render through the 6.1 path at 60 Hz. Sly moves with a controller. |
 | **M3 Playable Paris** | SFX, music, dialogue and ambience audible and in sync. Outlines, shadows, relight, blips and HUD on. Pause menu works. Save to slot, quit, load continues with identical `g_gs` bytes. One Paris job completed end to end. |
 | **M4 Front to back** | Logo and intro FMV play. All 44 levels load (scripted warp sweep, 300 frames each, no traps). A full playthrough smoke test using memcard saves at episode boundaries. |
@@ -457,9 +492,11 @@ loop → frame snapshot + DmaFollower → main-glob PassRenderer. Sound, memcard
 ---
 
 ## 10. Test strategy (applies to every task)
-- **Differential (function level)**: a harness loads a 32 MB snapshot into the arena, sets args, runs function X
-  through dispatch (recomp) and through the candidate (override or decomp-edit), and diffs the arena plus return
-  regs. Snapshot corpus: S02..S24 (and later), plus states captured with PINE at function entry
+- **Differential (function level, built in M1)**: a harness loads a 32 MB snapshot into the arena, sets args, runs
+  function X through dispatch (recomp, the oracle) and through the candidate (override or decomp-edit), and diffs the
+  arena plus return regs. Entry/exit pairs (EE RAM + registers) can also be captured from PCSX2 to check the
+  recompiler itself. One driver per subsystem (physics, animation, camera, player, Splice) plus a coverage report
+  over `functions.csv` is the shape that worked in the hand port **[S]**. Snapshot corpus: S02..S24 (and later), plus states captured with PINE at function entry
   (`pine_harness` breakpoints).
 - **Golden images**: per pass and per snapshot, compared against `render_lab` WebGL output (its own selftests and
   screens exist) and PCSX2 screenshots. SSIM thresholds per pass.
@@ -513,3 +550,19 @@ parallel. T9 and T13 merge them. T14-T19 are the playable-Paris set. T20 locks i
 - It does not convert the decomp to 64-bit C wholesale.
 - It does not emulate the IOP.
 - It does not ship or commit any game-derived artefact.
+
+## 14. Landscape
+An independent, playable native Sly 2 port exists: **SafeHouse** (FridiNaTor1/SafeHouse on GitHub), a hand-written
+C++20 reimplementation (~144k lines) for Windows, Linux and macOS, with high frame rates, ultrawide and mods. It was
+ported function by function against a private reference that ran the original code; by address it cites about a
+third of the functions, so the long tail is approximated or stubbed. The **[S]** notes above come from reading it
+(snapshot 2026-11-07; claims not verified by us).
+
+"A macOS port" alone is therefore not unique. Our differentiators: **correctness by construction** (every function
+is the matched bytes, recompiled), **readable, moddable source** (the decomp, with names and decomp-edit mods), and
+**documentation**. Hygiene: use only facts and ideas from it, never its code; do not read its sources while writing
+port code.
+
+**Licensing (decision for the maintainer):** neither repository has a license yet. SafeHouse's own code is therefore
+all rights reserved; ours is too until one is chosen, which is also a prerequisite for any collaboration (for example
+offering them our address→name map and docs).

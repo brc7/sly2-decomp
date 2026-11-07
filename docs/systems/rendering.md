@@ -288,6 +288,18 @@ Everything in `backend/` and the parts of `pipeline/` that touch VU or GS regist
   field offsets, `BlendPrevFrame`): replaced by the host swapchain; frame blend becomes an optional effect.
 - **Render targets**: offscreen textures bound where the game samples the target's GS address.
 
+Port facts reported by SafeHouse, an independent hand-written port (unverified; see
+[port-plan.md section 14](../guides/port-plan.md#14-landscape)):
+
+- **Depth** is reversed-Z, matching "bigger = nearer" above.
+- **Colours** stay in GS units (0x80 = 1.0) until output.
+- **Near-plane clipping** must follow the VU1 program's own clipping; the graphics API's clipper broke floors and
+  shadows.
+- **Fog** is `F = a + b/x` (a reciprocal fit, as in the light fits of section 5).
+- **8-bit palettes** swap index bits 3 and 4 (CSM1 storage; already documented in
+  [formats/textures.md](../formats/textures.md)).
+- **Shadow tint** is a 256-entry table indexed by frame alpha (to reconcile with the small shadow CLUT in section 5).
+
 The game-side structure worth keeping: the RPL kinds and their sort, the pass boundaries, the relight trigger
 (illumination stamp), shader animation semantics, and the culling/visibility rules.
 
