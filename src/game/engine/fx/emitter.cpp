@@ -16,6 +16,7 @@
 #include "sly2/basic.h"
 #include "sly2/scrap.h"
 #include "sly2/xfm.h"
+#include "sly2/so.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/emitter.h"
@@ -898,10 +899,6 @@ struct EMITV {
 typedef char check_emitp[(sizeof(EMITP) == 0x40) ? 1 : -1];
 typedef char check_emitv[(sizeof(EMITV) == 0x70) ? 1 : -1];
 
-struct VTE { short d; short pad; qword (*pfn)(void *); };
-struct VT { VTE a[64]; };
-struct XE8 { char pad[0x80]; qword velocity; };   /* SO+0xE8: its motion state */
-struct SO { int pad0[3]; VT *pvt; char pad10[0xE8 - 0x10]; XE8 *motion; };
 struct SND { char pad[0x170]; float lastWakeTime; void *wakeSound; };   /* the SO as a sound-carrying object (CID 0x32) */
 struct EVT { short d; short pad; void (*pfn)(void *, float, qword, int); };
 struct EVTT { EVT a[4]; };
@@ -945,8 +942,7 @@ void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac
 extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qword pos, qword v, float dt, float minIntervalFrac, float scale)
 {
     float volume = 0.0f;    /* 0 until the sound is set: also the clamp floor and StopSnd's argument */
-    VTE *pvte = &so->pvt->a[33];
-    float distance = QwordX(Length(VuSub(pos, pvte->pfn((char *)so + pvte->d))));
+    float distance = QwordX(Length(VuSub(pos, (qword)so->GetVelocity())));
     int shouldWake = RandomFloatInRange__Fff(volume, 3.0f) < dt;
     SND *soundObject;
     float strength, interval;
@@ -992,7 +988,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                     soundObject->lastWakeTime = D_002DDED0.time;
                 if (500.0f < distance && water->splashObject) {
                     EMITP emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
-                    EMITV emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, so->motion->velocity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
+                    EMITV emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, *(qword *)&so->physics->gravity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
                                     {{ 0.39269909f, 1.0471976f }}, { 0 }, {{ 1.0f, 0.0f, -1.0f }} };
                     E emitg;
                     V4 posSplash;
