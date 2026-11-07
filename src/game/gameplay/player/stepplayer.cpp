@@ -2186,33 +2186,23 @@ struct CRef {
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
 };
-struct ENT {
-    short ch;
-    signed char kind;
-    unsigned char fBits;
-    unsigned short ib;
-    unsigned short iChild;
-    unsigned short iSibling;
-};
-struct TRIE { int pad; ENT *ae; char x8[1]; };
 struct KEY { int c; unsigned short *a; };
-struct OUT { ENT *pe; int n; };
+struct OUT { SVENT *pe; int n; };
 struct AREQ { int cb; int cbAlign; AREQ(int c, int a) { cb = c; cbAlign = a; } };
-struct G { char pad[0x3A18]; TRIE trie; };
 extern "C" {
-extern G D_003DD490;
+extern SW D_003DD490;
 extern char D_003D4A60[];
 extern char D_002A4D88[];
 extern char D_002A4D90[];
 extern char D_002A4D98[];
 extern char D_002A4DA0[];
-short FindSaveSymbol(void *, char *);
-int FindSaveVar(TRIE *, KEY *, OUT *);
-CRef GetSaveVar(TRIE *p, KEY *key, char *pb);
+short FindSaveSymbol(SVNHASH *, char *);
+int FindSaveVar(SAVEVARS *, KEY *, OUT *);
+CRef GetSaveVar(SAVEVARS *p, KEY *key, char *pb);
 void *AllocFromStack(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
 }
-static inline CRef Lookup(KEY &k) { return GetSaveVar(&(*(TRIE *)&g_sw.savevars), &k, D_003D4A60); }
+static inline CRef Lookup(KEY &k) { return GetSaveVar(&g_sw.savevars, &k, D_003D4A60); }
 static inline void *Alloc(int cb)
 {
     AREQ req(cb, 0x10);
@@ -2225,25 +2215,25 @@ extern "C" KEY *FindBootySaveVar(int id)
     KEY key;
     OUT out;
     OUT out2;
-    TRIE *pt = &D_003DD490.trie;
+    SAVEVARS *pt = &D_003DD490.savevars;
     key.c = 0;
     key.a = as;
-    as[0] = FindSaveSymbol(pt->x8, D_002A4D88);
-    as[2] = FindSaveSymbol(pt->x8, D_002A4D90);
-    as[4] = FindSaveSymbol(pt->x8, D_002A4D98);
-    as[5] = FindSaveSymbol(pt->x8, D_002A4DA0);
+    as[0] = FindSaveSymbol(&pt->symtab, D_002A4D88);
+    as[2] = FindSaveSymbol(&pt->symtab, D_002A4D90);
+    as[4] = FindSaveSymbol(&pt->symtab, D_002A4D98);
+    as[5] = FindSaveSymbol(&pt->symtab, D_002A4DA0);
     key.c = 1;
     FindSaveVar(pt, &key, &out);
-    ENT *pe1;
-    for (int n = out.pe->iChild; n != 0; n = pe1->iSibling) {
-        pe1 = &D_003DD490.trie.ae[n];
+    SVENT *pe1;
+    for (int n = out.pe->ientChild; n != 0; n = pe1->ientSibling) {
+        pe1 = &D_003DD490.savevars.aent[n];
         key.c = 3;
-        as[1] = pe1->ch;
-        if (FindSaveVar(&D_003DD490.trie, &key, &out2)) {
-            ENT *pe2;
-            for (int n2 = out2.pe->iChild; n2 != 0; n2 = pe2->iSibling) {
-                pe2 = &D_003DD490.trie.ae[n2];
-                as[3] = pe2->ch;
+        as[1] = pe1->symid;
+        if (FindSaveVar(&D_003DD490.savevars, &key, &out2)) {
+            SVENT *pe2;
+            for (int n2 = out2.pe->ientChild; n2 != 0; n2 = pe2->ientSibling) {
+                pe2 = &D_003DD490.savevars.aent[n2];
+                as[3] = pe2->symid;
                 CRef ref;
                 for (int i = 0; i < 15; i++) {
                     as[6] = i;
