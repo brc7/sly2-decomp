@@ -173,7 +173,6 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
 namespace M_ProjectRipgTransform { extern "C" {
 // Recompute the bounds of an object from its list of child objects: run the due children's update, accumulate the
 // min/max of their two corner vectors, optionally grow by the object's size, then derive the center and radius and notify.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
@@ -214,17 +213,17 @@ void ProjectRipgTransform(S *p)
     union U lo, hi, t, half;
     // y/z of each bound are written through pointers (the original did too: it changes how the DLI fields are reloaded)
     union U *plo = &lo, *phi = &hi;
-    S *q;
+    RIP *q;
     InitDli(&dli, &p->children);
     plo->f[1] = plo->f[2] = D_002A77D0;
     lo.f[0] = D_002A77D0;
     phi->f[1] = phi->f[2] = D_002A77D4;
     hi.f[0] = D_002A77D4;
-    while ((q = (S *)PvNextDli(&dli)) != 0) {
-        if (D_002DDED0.t >= q->time)
-            q->vt->a[4].pfn((char *)q + q->vt->a[4].d);
-        lo.q = VuMin(lo.q, VuMin(q->cornerA, q->cornerB));
-        hi.q = VuMax(hi.q, VuMax(q->cornerA, q->cornerB));
+    while ((q = (RIP *)PvNextDli(&dli)) != 0) {
+        if (D_002DDED0.t >= q->startTime)
+            q->Project();
+        lo.q = VuMin(lo.q, VuMin(q->currentPosition, q->previousPosition));
+        hi.q = VuMax(hi.q, VuMax(q->currentPosition, q->previousPosition));
     }
     if (p->size != 0) {
         t.f[0] = t.f[1] = t.f[2] = p->size;
