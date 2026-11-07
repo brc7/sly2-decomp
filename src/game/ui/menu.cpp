@@ -11,6 +11,8 @@
 #include "sly2/sw.h"
 #include "sly2/screen.h"
 #include "sly2/util.h"
+#include "sly2/cref.h"
+extern "C" void Decref__4CRef(void *);
 
 /* The pause menu (DRAFT name PAUSEMENU, after its functions' annotations): an 11-slot screen (sly2/screen.h's
    SCREENBASE), vtable 0x2D37D0, emitted here. PMENU below is the view the m2c bodies read. */
@@ -72,21 +74,6 @@ struct CONTEXT { char bytes[0x5464]; };
 struct BANK { char pad[0x24]; CONTEXT contexts[3]; char padFD50[8]; CONTEXT *current; };
 typedef char CONTEXT_Size[sizeof(CONTEXT)==21604?1:-1];
 typedef char BANK_current_Offset[FIELD_OFFSET(BANK,current)==64856?1:-1];
-/* A save variable reference. */
-struct CRef;
-extern "C" CRef *__4CRefRC4CRef(CRef *, const CRef *);
-extern "C" void Decref__4CRef(void *);
-struct CRef {
-    int tag;
-    union { int n; float f; };
-    CRef(int x) { tag = 0x15; n = x; }
-    CRef(bool x) { tag = 0x17; n = x; }
-    CRef(float x) { tag = 0x16; f = x; }
-    CRef(const CRef &r);   /* out of line: __4CRefRC4CRef (ref.cpp) */
-    ~CRef() { Decref__4CRef(this); }
-};
-typedef char CRefSize[sizeof(CRef)==8?1:-1];
-struct CREFP { int tagk; int tag; };
 
 extern SWM D_003DD490;
 extern "C" {
@@ -181,7 +168,7 @@ int IsPauseMenuOnSavePage(PMENU *p);
 }
 /* Callers' views (asm labels). */
 CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
-void GetGlobalSaveVarInto(CREFP *r, int a, void *b) __asm__("GetGlobalSaveVar");
+void GetGlobalSaveVarInto(CRefData *r, int a, void *b) __asm__("GetGlobalSaveVar");
 
 // Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
 extern "C" void InitPauseMenu(PMENU *menu) {
@@ -329,7 +316,7 @@ void SetPauseMenuState(PMENU *menu, int st)
     }
 }
 
-static inline float Value(OPT*key,CONTEXT*context){CRef result=GetGlobalSaveVar(key,context);return result.f;}
+static inline float Value(OPT*key,CONTEXT*context){CRef result=GetGlobalSaveVar(key,context);return result.u.g;}
 static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
 // Per-frame pause menu update (screen slot 7): joystick navigation, item activation callbacks, the volume and video
 // items and the save-slot pages.
@@ -569,7 +556,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
     }
 }
 
-static inline int GetTag(int id) { return Eval(id, D_003D4A60).n; }
+static inline int GetTag(int id) { return Eval(id, D_003D4A60).u.n; }
 // Item text callback for the video items (76..78): picks the string from the current option values.
 extern "C" void GetPauseMenuVideoItemText(int *menu)
 {
@@ -629,7 +616,7 @@ extern "C" void GetPauseMenuVideoItemText(int *menu)
 }
 
 static inline void SetPv(OPT*key,CRef r,void*context){SetGlobalSaveVar(key,r,context);}
-static inline void SetInt(OPT*key,int x){CRef r(x);SetPv(key,r,D_003D4A60);}
+static inline void SetInt(OPT*key,int x){CRef r(x,0x15);SetPv(key,r,D_003D4A60);}
 static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,D_003D4A60);}
 static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,D_003D4A60);}
 #define OPTI(d) (*(OPT **)&(d))
@@ -885,11 +872,11 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
     BroadcastGameEvent(D_002DEB30, 0x2D, 0);
     BroadcastGameEvent(D_002DEB30, 0x2E, 0);
     if (D_002E65E0.currentSlot) {
-        CREFP r;
+        CRefData r;
         int v;
         D_002E6550.followUpAction = 1;
         GetGlobalSaveVarInto(&r, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
-        v = r.tag;
+        v = r.u.n;
         Decref__4CRef(&r);
         if (v == 0) {
             SetMcDialogState(&D_002E6550, 0x22);
