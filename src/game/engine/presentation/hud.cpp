@@ -760,13 +760,13 @@ int IsWidgetAnimPlaying(struct S *widget, int animId)
 namespace M_LoadWidgetFromBrx { extern "C" {
 typedef struct { int cb; int cbAlign; } AREQ;
 struct O { char pad[0x40]; void *owner; };
-struct S {
-    char pad[0x50]; int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
+struct S : LO {
+    int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
     char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteHeap;   /* duration: +0x90; the visible timeout UpdateWidget checks is +0x8C (see SetWidgetState's view) */
 };
 extern char D_003E1C70[], D_003E1C80[];
 
-void LoadLoFromBrx(struct S *p, void *pbis);
+void LoadLoFromBrx(LO *plo, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 int U32Read__18CBinaryInputStream(void *pbis);
