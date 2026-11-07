@@ -483,7 +483,7 @@ struct STEPPLAYER : public STEP
       float grabRadius;   /* +0x103C the hero's radius added to grab-spot positions (grabspot.cpp GetPole/Wall/HoldGrabspotGrabPosition) */
       int unknown1040;   /* +0x1040 1: grab headings are turned by pi (grabspot.cpp) */
       int unknown1044;
-      int unknown1048;
+      float unknown1048;   /* +0x1048 125 at init; added to the camera focus height (GetStepplayerCmFocusPos) */
       float unknown104C;
       float unknown1050;
       undefined4 unk_0x1054[(0x1060 - 0x1054) / 4];

@@ -3201,7 +3201,7 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(pstepplayer->unknown1048));
+            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pstepplayer->unknown1048));
             if (!prelaycmd->teleportTo.fAir && pstepplayer->unknown12F4 == 0)
             {
                 SetJtAirJump(&pstepplayer->jtair, 0xB, 0, 0);

@@ -78,53 +78,47 @@ void SetStepplayerGrabTarget(STEPPLAYER *pstepplayer, LO *plo);
 void ClearBhvstk(BHVSTK *pbhvstk);
 
 namespace M_InitStepplayer { extern "C" {
-struct P {
-    char pad0[0x1020]; float x1020; char pad1[0x103C - 0x1024]; float x103C; char pad2[0x1048 - 0x1040]; float x1048;
-    char pad3[0x10C8 - 0x104C]; int x10C8; char pad4[0x10D4 - 0x10CC]; float x10D4; float x10D8; char pad5[0x10E4 - 0x10DC];
-    int interactKind; int x10E8; int interactMode; int x10F0; char pad6[0x1138 - 0x10F4]; float x1138; float x113C; float x1140; float x1144;
-    char pad7[0x12F0 - 0x1148]; int x12F0; char pad8[0x1300 - 0x12F4]; int x1300; float x1304; char pad9[0x1318 - 0x1308]; int x1318;
-};
-void InitStep(struct P *p);
-void InitJtAir(void *pv, struct P *p);
-void InitJtGrab(void *pv, struct P *p);
-void InitJtPlaces(void *pv, struct P *p);
-void InitJtHurt(void *pv, struct P *p);
-void InitJtMode(void *pv, struct P *p);
-void InitThrow(void *pv, struct P *p);
-void InitJtPipe(void *pv, struct P *p);
-void InitJtgoal(void *pv, struct P *p);
-void SetSoZapResponse(struct P *p, int mask, int n);
+void InitStep(STEPPLAYER *p);
+void InitJtAir(JTAIR *pv, STEPPLAYER *p);
+void InitJtGrab(JTGRAB *pv, STEPPLAYER *p);
+void InitJtPlaces(JTPLACES *pv, STEPPLAYER *p);
+void InitJtHurt(JTHURT *pv, STEPPLAYER *p);
+void InitJtMode(JTMODE *pv, STEPPLAYER *p);
+void InitThrow(JTTHROW *pv, STEPPLAYER *p);
+void InitJtPipe(JTPIPE *pv, STEPPLAYER *p);
+void InitJtgoal(JTGOAL *pv, STEPPLAYER *p);
+void SetSoZapResponse(STEPPLAYER *p, int mask, int n);
 // STEPPLAYER Init (vtable slot 7), shared by Sly, Bentley and Murray: STEP init, then the embedded components (air
 // +0x2C0, grab +0x4C0, places +0x9E0, hurt +0xDF0, mode +0xF00, pipe +0xF50, throw ...) and the player defaults.
-void InitStepplayer(struct P *player)
+void InitStepplayer(STEPPLAYER *player)
 {
     InitStep(player);
-    InitJtAir(&AsStepplayer(player)->jtair, player);
-    InitJtGrab(&AsStepplayer(player)->jtgrab, player);
-    InitJtPlaces(&AsStepplayer(player)->jtplaces, player);
-    InitJtHurt(&AsStepplayer(player)->jthurt, player);
-    InitJtMode(&AsStepplayer(player)->jtmode, player);
-    InitThrow(&AsStepplayer(player)->jtthrow, player);
-    InitJtPipe(&AsStepplayer(player)->jtpipe, player);
-    InitJtgoal(&AsStepplayer(player)->jtgoal, player);
+    InitJtAir(&player->jtair, player);
+    InitJtGrab(&player->jtgrab, player);
+    InitJtPlaces(&player->jtplaces, player);
+    InitJtHurt(&player->jthurt, player);
+    InitJtMode(&player->jtmode, player);
+    InitThrow(&player->jtthrow, player);
+    InitJtPipe(&player->jtpipe, player);
+    InitJtgoal(&player->jtgoal, player);
 
 
-    player->x103C = 20.0f;
-    player->x10F0 = 1;
-    player->x1048 = 125.0f;
-    player->x10D4 = player->x10D8 = 1.0f;
-    player->x1138 = 1.5f;
-    player->x113C = 2.5f;
-    player->x1140 = 3.0f;
-    player->x1144 = 5.0f;
-    player->x12F0 = player->x10F0;
-    player->x1020 = 100.0f;
-    player->x1300 = 100;
-    player->x1304 = -60.0f;
+    player->grabRadius = 20.0f;
+    player->unknown10F0 = 1;
+    player->unknown1048 = 125.0f;
+    player->renderAlpha = player->renderAlpha2 = 1.0f;
+    player->agdtIdle[0] = 1.5f;
+    player->agdtIdle[1] = 2.5f;
+    player->agdtIdle[2] = 3.0f;
+    player->agdtIdle[3] = 5.0f;
+    player->unknown12F0 = player->unknown10F0;
+    player->unknown1020 = 100.0f;
+    player->maxGadgetPower = 100;
+    player->lastGadgetUseTime = -60.0f;
     player->interactMode = -1;
-    player->interactKind = -1;
-    player->x1318 = -1;
-    player->x10C8 = -1;
+    player->nUnk10e4 = -1;
+    player->unknown1318 = -1;
+    player->hideState = -1;
 
     SetSoZapResponse(player, 0x3FFFFFF, 0);
     SetSoZapResponse(player, 0x10FF00, 8);
