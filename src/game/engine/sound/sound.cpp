@@ -57,23 +57,6 @@ SNDMGRG D_003DD040;
 // 0x1FF188 StaticInit_sound (g_sndmgr, then the six slot pools; g_sndmgr's destruction) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* A sound as the m2c bodies read it: vtable +0xC, pan +0x14, pitch +0x18, voice handle +0x40, refcount +0x4C,
-   fade time +0x48; a bank sound's sfx id at +0x60. */
-struct SNDV
-{
-    char pad0[0xC];
-    VTESND *vtable;            /* +0x0C */
-    char pad10[4];
-    int panAngle;               /* +0x14 */
-    float pitchRatio;           /* +0x18 */
-    char pad1C[0x40 - 0x1C];
-    int voiceHandle;             /* +0x40 */
-    char pad44[0x48 - 0x44];
-    float fadeTime;           /* +0x48 */
-    ushort refCount;            /* +0x4C */
-    char pad4E[0x60 - 0x4E];
-    int sfxId;              /* +0x60 (BANKSND) */
-};
 /* A sound's request / state flags (+0x50): requests for the next flush (UpdateSnd), dirty parameters, and state. */
 #define SND_START 0x1
 #define SND_PAUSE 0x2
@@ -145,9 +128,9 @@ struct STREAMREC { char pad0[0x50]; float duration; };
 
 extern "C" {
 extern void *D_002D9C70[] __asm__("_vt$7BANKSND");  /* BANKSND vtable */
-void SetSndFlags(SNDV *sound, int grfMask, int grf);
-SNDV *SND_ctor(SNDV *sound);
-SNDV *BANKSND_ctor(SNDV *sound, int sfxId);
+void SetSndFlags(CID151 *sound, int grfMask, int grf);
+CID151 *SND_ctor(CID151 *sound);
+BANKSND *BANKSND_ctor(BANKSND *sound, int sfxId);
 void *AllocBanksnd(int cb);
 int *FindSoundForSfxId(SNDMGR *soundManager, int sfxId);
 void snd_PauseSound(int voiceHandle);
@@ -200,19 +183,17 @@ struct S *SND_ctor(struct S *sound)
 } } // namespace M_SND_ctor
 
 namespace M_PauseSnd { extern "C" {
-void SetSndFlags(CID151 *, int, int);
 // Pauses a sound (counted: nested pauses need as many resumes); the first pause requests "pause" on the next flush.
 void PauseSnd(CID151 *sound) { if (++sound->pauseCount == 1) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_PAUSE); }
 } } // namespace M_PauseSnd
 
 namespace M_ResumeSnd { extern "C" {
-void SetSndFlags(CID151 *, int, int);
 // Undoes one PauseSnd; the last one requests "continue" on the next flush.
 void ResumeSnd(CID151 *sound) { if (--sound->pauseCount == 0) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_CONTINUE); }
 } } // namespace M_ResumeSnd
 
 // Requests that a sound stop, fading out over dtFade seconds (applied by the next UpdateSnd).
-extern "C" void StopSnd(SNDV *sound, float fadeTime)
+extern "C" void StopSnd(CID151 *sound, float fadeTime)
 {
     sound->fadeTime = fadeTime;
     SetSndFlags(sound, SND_ALL, SND_STOP);
@@ -222,7 +203,6 @@ namespace M_StartSnd { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
-void SetSndFlags(CID151 *, int, int);
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -251,7 +231,6 @@ namespace M_func_001FB1F8 { extern "C" {
 struct S;
 extern struct S D_002BBB60;
 float ClampToLimits__FP2LMf(struct S *, float);
-void SetSndFlags(CID151 *, int, int);
 // Sets a sound's volume (clamped to 0..1); marks it dirty only if it changed by at least 1/1024.
 void SetSndVolume(CID151 *sound, float volume)
 {
@@ -264,7 +243,7 @@ void SetSndVolume(CID151 *sound, float volume)
 } } // namespace M_func_001FB1F8
 
 // Sets a sound's pan angle in degrees (normalized to 0..359) and marks it dirty.
-extern "C" void SetSndPan(SNDV *sound, int deg)
+extern "C" void SetSndPan(CID151 *sound, int deg)
 {
     int panAngle = deg % 360;
     panAngle = (panAngle > -1) ? panAngle : panAngle + 360;
@@ -275,7 +254,7 @@ extern "C" void SetSndPan(SNDV *sound, int deg)
 }
 
 // Sets a sound's pitch and marks it dirty.
-extern "C" void SetSndPitch(SNDV *sound, int n1, int n2, float pitchRatio)
+extern "C" void SetSndPitch(CID151 *sound, int n1, int n2, float pitchRatio)
 {
     if (pitchRatio != sound->pitchRatio) {
         sound->pitchRatio = pitchRatio;
@@ -305,7 +284,6 @@ namespace M_SetSndSourcePos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float, float, float);
-void SetSndFlags(CID151 *, int, int);
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
@@ -378,11 +356,10 @@ void SetSndFlags(CID151 *sound, unsigned short mask, unsigned short value)
 } } // namespace M_SetSndFlags
 
 // Puts a sound on the manager's dirty list (taking a reference) if it is not already there.
-extern "C" void AddSndToDirtyList(SNDV *sound)
+extern "C" void AddSndToDirtyList(CID151 *sound)
 {
     if (IsEntryInDl(&G_SNDMGR.dirtySounds, sound) == 0) {
-        VTESND *vtable = sound->vtable;
-        vtable[1].pfn((char *)sound + vtable[1].d);   /* Incref */
+        sound->AddRef();
         AppendDlEntry(&G_SNDMGR.dirtySounds, sound);
     }
 }
@@ -548,21 +525,21 @@ void OnBankSoundStatus(int isPlaying, long context)
 // Creates a bank sound for a sound-effect id from the manager's pool; it starts at the next flush.
 extern "C" void CreateSfxSound(int sfxId)
 {
-    BANKSND_ctor((SNDV *)AllocBanksnd(0x70), sfxId);
+    BANKSND_ctor((BANKSND *)AllocBanksnd(0x70), sfxId);
 }
 
 // Bank-sound constructor: base sound constructor, then the start request.
-extern "C" SNDV *BANKSND_ctor(SNDV *sound, int sfxId)
+extern "C" BANKSND *BANKSND_ctor(BANKSND *sound, int sfxId)
 {
     SND_ctor(sound);
     sound->sfxId = sfxId;
-    sound->vtable = (VTESND *)D_002D9C70;
+    ((SNDOBJ *)sound)->vtable = (VTESND *)D_002D9C70;   /* the vptr, stored by hand (a C-named constructor) */
     SetSndFlags(sound, SND_START, SND_START);
     return sound;
 }
 
 // Kind of a bank sound (slot 8): 2 for looping effects, from the level's sound table, else -1.
-extern "C" int GetBanksndKind(SNDV *sound)
+extern "C" int GetBanksndKind(BANKSND *sound)
 {
     int *pn = FindSoundForSfxId(&G_SNDMGR, sound->sfxId);
     int n = -1;
@@ -667,13 +644,13 @@ void StopBanksnd(CID151 *sound)
 } } // namespace M_StopBanksnd
 
 // Pauses a bank sound's voice (slot 11).
-extern "C" void PauseBanksnd(SNDV *sound)
+extern "C" void PauseBanksnd(CID151 *sound)
 {
     snd_PauseSound(sound->voiceHandle);
 }
 
 // Resumes a bank sound's voice (slot 12).
-extern "C" void ContinueBanksnd(SNDV *sound)
+extern "C" void ContinueBanksnd(CID151 *sound)
 {
     snd_ContinueSound(sound->voiceHandle);
 }
@@ -735,8 +712,7 @@ void SetBankSoundCulled(struct P *sound, int isCulled)
 // Adds a reference to a bank sound (slot 1).
 void BANKSND::AddRef()   /* key function: BANKSND's vtable comes out here */
 {
-    SNDV *sound = (SNDV *)this;
-    sound->refCount++;
+    refCount++;
 }
 
 namespace M_DecrefBanksnd { extern "C" {
@@ -976,19 +952,19 @@ void PlayStreamsnd(struct P *sound)
 } } // namespace M_PlayStreamsnd
 
 // Stops a streamed sound on the IOP (slot 10). (inferred)
-extern "C" void StopStreamSound(SNDV *sound)
+extern "C" void StopStreamSound(CID151 *sound)
 {
     func_00233088(SUKR_RPC, SUKR_STOP, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 // Pauses a streamed sound on the IOP (slot 11). (inferred)
-extern "C" void PauseStreamSound(SNDV *sound)
+extern "C" void PauseStreamSound(CID151 *sound)
 {
     func_00233088(SUKR_RPC, SUKR_PAUSE, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 // Resumes a streamed sound on the IOP (slot 12). (inferred)
-extern "C" void ResumeStreamSound(SNDV *sound)
+extern "C" void ResumeStreamSound(CID151 *sound)
 {
     func_00233088(SUKR_RPC, SUKR_CONTINUE, sound->voiceHandle, 0, 0, 0, 0);
 }
@@ -996,7 +972,6 @@ extern "C" void ResumeStreamSound(SNDV *sound)
 namespace M_ApplyStreamsndParams { extern "C" {
 struct P { char pad[0x14]; int panAngle; float pitchRatio; char pad2[0x40 - 0x1C]; int voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags;
     char pad4[0x70 - 0x52]; float groupVolumes[6]; int groupPans[6]; char pad5[0x3BC - 0xA0]; int dirtyGroups; };
-void func_00233088(int, int, int, int, int, int, int);
 // Sends a stream's changed volume, pan and pitch, then each sub-group's parameters (slot 13).
 void ApplyStreamsndParams(struct P *sound)
 {
@@ -1159,8 +1134,7 @@ void OnStreamsndStatus(int hasStopped, long context)
 // Adds a reference to a streamed sound (slot 1).
 void STREAMSND::AddRef()   /* key function: STREAMSND's vtable comes out here */
 {
-    SNDV *sound = (SNDV *)this;
-    sound->refCount++;
+    refCount++;
 }
 
 namespace M_DecrefStreamsnd { extern "C" {
@@ -1340,9 +1314,9 @@ int *FindSoundForSfxId(SNDMGR *soundManager, int sfxId)
 } } // namespace M_PsndFromSfxid
 
 // Index of a sound entry in the manager's table.
-extern "C" int GetSoundIndex(SNDMGR *soundManager, SNDV **ppsnd)
+extern "C" int GetSoundIndex(SNDMGR *soundManager, int *pn)
 {
-    return (int)((char *)ppsnd - (char *)soundManager->soundKinds) >> 2;
+    return (int)((char *)pn - (char *)soundManager->soundKinds) >> 2;
 }
 
 namespace M_func_001FD080 { extern "C" {
