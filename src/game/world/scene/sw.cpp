@@ -1448,9 +1448,9 @@ struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float t
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
-int FWidgetVisible(struct O *po);
+int IsWidgetVisible(struct O *po);
 float GSmoothA__FffffP4SMPAPf(float a, float b, float c, void *p, float *pv, float dt);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, void *source);
 
 /** @sly2-annot addr=0x20F7E0
@@ -1473,7 +1473,7 @@ void UpdateSwTimerHud(struct S *world)
     for (i = 0; i < 4; i++) {
         struct E *e = &world->ae[i];
         struct O *o = e->widget;
-        if (!o || !FWidgetVisible(o)) {
+        if (!o || !IsWidgetVisible(o)) {
             e->isHidden = 1;
             continue;
         }
@@ -1491,7 +1491,7 @@ void UpdateSwTimerHud(struct S *world)
             remaining = (0.0f > remaining) ? 0.0f : remaining;
             n = (int)remaining;
             if (n != world->lastSecond) {
-                SetSndSourceLo(PsndStartSound((n & 1) ? 0x30 : 0x31), 0);
+                SetSndSourceLo(CreateSfxSound((n & 1) ? 0x30 : 0x31), 0);
                 world->lastSecond = n;
             }
         }
@@ -2181,7 +2181,7 @@ extern float D_002C3EA0[3];
 extern float D_002C3EB0[2];
 struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
-struct M *PsndStartSound(int);
+struct M *CreateSfxSound(int);
 void SetSndSourceLo(struct M *, struct O *);
 void SetSndRange(struct M *, float, float);
 void SetSndVolume(struct M *, float);
@@ -2215,7 +2215,7 @@ void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id
         offset += f;
     }
     offset += p->offset;
-    m = PsndStartSound(id);
+    m = CreateSfxSound(id);
     SetSndSourceLo(m, o);
     SetSndRange(m, (float)x, (float)y);
     SetSndVolume(m, scale);

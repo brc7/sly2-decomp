@@ -1082,7 +1082,7 @@ void UpdateStuckWatch(void *p);
 void UpdateHazardWatch(void *p);
 void UpdateBhvstk(void *p);
 void UpdateStepguardMover(void *p);
-int FAsegaRetracted(int h);
+int IsAsegaRetracted(int h);
 void DropAsegaRef(int *ph);
 
 // 0x207350: STEPGUARD vtable slot 16 (Update): step update; while in the world and not time-frozen: special-state
@@ -1108,7 +1108,7 @@ void UpdateStepguard(struct S *guard)
     UpdateHazardWatch(guard->hazardWatch);
     UpdateBhvstk(guard->behaviorStack);
     UpdateStepguardMover(guard->mover);
-    if (guard->heldAnimation && FAsegaRetracted(guard->heldAnimation))
+    if (guard->heldAnimation && IsAsegaRetracted(guard->heldAnimation))
         DropAsegaRef(&guard->heldAnimation);
     if (guard->tracksRelocatePoint && guard->groundSurface)
         guard->relocatePoint = *guard->groundPosition;
@@ -2364,7 +2364,7 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 struct INSTANCE { char pad[0xC]; VTE *vt; };
 struct BINDING { int kind; int resource; struct INSTANCE *instance; };
 void ApplyAsegCore(int aseg, char *guard, int flags, struct INSTANCE **instance, float start, float speed);
-void PsmaApplySmOut(int sm, char *guard, int a, int flags, struct INSTANCE **instance);
+void ApplySmGetSma(int sm, char *guard, int a, int flags, struct INSTANCE **instance);
 void StartLeap(int leap, char *guard, int flags, struct INSTANCE *instance);
 void StartDirAnim(int diranim, char *guard, int flags, struct INSTANCE *instance);
 #define START_INSTANCE(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
@@ -2379,7 +2379,7 @@ void StartAnimBinding(struct BINDING *binding, char *guard, int flags, float sta
         START_INSTANCE(binding->instance);
         break;
     case BINDING_SM:
-        PsmaApplySmOut(binding->resource, guard, -1, flags, &binding->instance);
+        ApplySmGetSma(binding->resource, guard, -1, flags, &binding->instance);
         START_INSTANCE(binding->instance);
         break;
     case BINDING_LEAP:
@@ -2450,8 +2450,8 @@ namespace M_FAnimBindingDone { extern "C" {
 struct INSTANCE; struct BINDING;
 struct INSTANCE { char pad[0x30]; int isActive; /* SMA: (inferred) */ };
 struct BINDING { int kind; int resource; struct INSTANCE *instance; };
-int FAsegaRetracted(struct INSTANCE *instance);
-int FSmaRetracted(struct INSTANCE *instance);
+int IsAsegaRetracted(struct INSTANCE *instance);
+int IsSmaRetracted(struct INSTANCE *instance);
 int IsLeapDone(struct INSTANCE *instance);
 int IsDirAnimStopped(struct INSTANCE *instance);
 // 0x209430: True if the binding's animation instance finished or was retracted (or none is running).
@@ -2462,12 +2462,12 @@ int IsAnimBindingDone(struct BINDING *binding)
     switch (binding->kind) {
     case BINDING_ASEG:
         done = 0;
-        if (!binding->instance || FAsegaRetracted(binding->instance))
+        if (!binding->instance || IsAsegaRetracted(binding->instance))
             done = 1;
         break;
     case BINDING_SM:
         done = 0;
-        if (!binding->instance || FSmaRetracted(binding->instance) || !binding->instance->isActive)
+        if (!binding->instance || IsSmaRetracted(binding->instance) || !binding->instance->isActive)
             done = 1;
         break;
     case BINDING_LEAP:

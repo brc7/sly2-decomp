@@ -49,7 +49,7 @@ struct TASKSTATE { int a[2]; };
 struct ASHE
 {
     union { OID oid; ASEGV *paseg; } u;
-    int ensureArg;          /* last argument of PasegaEnsureAseg (inferred: a segment flag) */
+    int ensureArg;          /* last argument of EnsureAsegPlayer (inferred: a segment flag) */
 };
 struct ASH
 {
@@ -165,12 +165,12 @@ extern SLYV *D_002E1E40;
 extern const LONGU D_002A4E80;   /* callback kind: an 8-byte struct, read as one long */
 
 LOV *PloFindSwObject(SW *psw, int grffso, OID oid, LOV *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
-ASEGV *PasegaEnsureAseg(ASEGV *paseg, ALO *palo, SEEK seek, float t, float segmentSpeed, int x) __asm__("PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi");
+ASEGV *EnsureAsegPlayer(ASEGV *paseg, ALO *palo, SEEK seek, float t, float segmentSpeed, int x) __asm__("EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi");
 int FAddRsmg(SW *psw, RSMG *rsmgs, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
 int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
 extern "C" {
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, LOV *plo);
 void TriggerRsmg(SW *psw, int numRsmgs, RSMG *rsmgs, LOV *plo, int fOn);
 void FireRelay(void *relay, void *pv);
@@ -319,7 +319,7 @@ extern "C" void TriggerBtn(BTN *btn)
     if (!btn->isSilent)
     {
         LOV *object = btn->plo;
-        SetSndSourceLo(PsndStartSound(SOUND_BUTTON_CLICK), object);
+        SetSndSourceLo(CreateSfxSound(SOUND_BUTTON_CLICK), object);
     }
     RunBtnAsegs(btn, 0);
     if (!btn->staysTriggered)
@@ -361,11 +361,11 @@ extern "C" void RunBtnAsegs(BTN *btn, int listIndex)
             int seek = SEEK_FROM_START;
             if (btn->segmentSpeed < 0.0f)
                 seek = SEEK_FROM_END;
-            PasegaEnsureAseg(segment, (ALO *)target, (SEEK)seek, 0.0f, btn->segmentSpeed, ensureArg);
+            EnsureAsegPlayer(segment, (ALO *)target, (SEEK)seek, 0.0f, btn->segmentSpeed, ensureArg);
         }
         else
         {
-            PasegaEnsureAseg(segment, (ALO *)target, (SEEK)SEEK_CURRENT, 0.0f, btn->segmentSpeed, ensureArg);
+            EnsureAsegPlayer(segment, (ALO *)target, (SEEK)SEEK_CURRENT, 0.0f, btn->segmentSpeed, ensureArg);
         }
     }
     TriggerRsmg(&D_003DD490, btn->numRsmgs, btn->rsmgs, btn->plo, listIndex == 0);

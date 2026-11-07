@@ -140,7 +140,7 @@ void HideScreen(PMENU *p);
 void PlayWidgetAnim(POOL *, int);
 void SetWidgetAnimPhase(POOL *, int, float);
 void UpdateScreenDefault();
-int FWidgetAnimPlaying(POOL *, int);
+int IsWidgetAnimPlaying(POOL *, int);
 int GetJoySelectionStepY(JOY *);
 int GetJoySelectionStepX(JOY *);
 uint HandleJoyButtons(JOY *, uint);
@@ -151,7 +151,7 @@ void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 float GLimitLm__FP2LMf(void *, float);
 void SetSndmgrChannelVolume(SNDMGR *, int, float, int);
 void ApplyGsSettings(void *);
-int FScreenShown(void *p);
+int IsScreenShown(void *p);
 int IsSwTransitionBusy(SWM *g);
 char *GetHeroPo(SWM *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
@@ -392,37 +392,37 @@ extern "C" void UpdatePauseMenu(PMENU*menu){
  switch(menu->state){
  case 0:break;
  case 1:
-  if(FWidgetAnimPlaying(group->pool,0x314))break;
+  if(IsWidgetAnimPlaying(group->pool,0x314))break;
   if(menu->pending!=-1){menu->depth=menu->pending;menu->pending=-1;}
   goto resumed;
  case 2:
-  if(FWidgetAnimPlaying(group->pool,0x314))break;
+  if(IsWidgetAnimPlaying(group->pool,0x314))break;
   if(menu->pending!=-1)menu->pending=-1;else menu->depth--;
   if(menu->depth==0)goto close;
   goto resumed;
  case 3:
-  if(FWidgetAnimPlaying(group->pool,group->meta->back))break;
+  if(IsWidgetAnimPlaying(group->pool,group->meta->back))break;
   menu->depth=menu->pending;menu->pending=-1;
   SetPauseMenuState(menu,4);
   break;
  case 4:
-  if(FWidgetAnimPlaying(group->pool,group->meta->ready))break;
+  if(IsWidgetAnimPlaying(group->pool,group->meta->ready))break;
   goto resumed;
  case 8:{
-  if(FWidgetAnimPlaying(group->pool,0x314))break;
+  if(IsWidgetAnimPlaying(group->pool,0x314))break;
  close:
   POOL*pool=group->pool;VTE*method=&pool->vt[50];((void(*)(POOL*))method->pfn)((POOL*)((char*)pool+method->d));
   SetPauseMenuState(menu,0);
   break;
  }
  case 5:
-  if(FWidgetAnimPlaying(group->pool,group->meta->forward))break;
+  if(IsWidgetAnimPlaying(group->pool,group->meta->forward))break;
  activate:
   SetPauseMenuState(menu,7);
   if(!menu->input)break;
   {JOY*input=menu->input;direction=GetJoySelectionStepY(input);if(direction<0)goto up;goto positive;}
  case 6:
-  if(FWidgetAnimPlaying(group->pool,group->meta->reverse))break;goto activate;
+  if(IsWidgetAnimPlaying(group->pool,group->meta->reverse))break;goto activate;
  case 7:{
   if(!menu->input)break;
   uint flags;flags=HandleJoyButtons(menu->input,0x870);
@@ -455,10 +455,10 @@ extern "C" void UpdatePauseMenu(PMENU*menu){
   }
  }
  case 11:
-  if(FWidgetAnimPlaying(group->pool,0x331))break;
+  if(IsWidgetAnimPlaying(group->pool,0x331))break;
   SetPauseMenuState(menu,10);break;
  case 9:
-  if(FWidgetAnimPlaying(group->pool,0x332))break;
+  if(IsWidgetAnimPlaying(group->pool,0x332))break;
  resumed:
   SetPauseMenuState(menu,7);break;
  case 10:{
@@ -821,7 +821,7 @@ int GetPauseMenuTopPageId(PMENU *menu)
 {
     int n;
     void *pv;
-    if (!FScreenShown(menu)) return -1;
+    if (!IsScreenShown(menu)) return -1;
     n = menu->depth;
     if (n <= 0) return -1;
     pv = menu->ae[n - 1].items;
@@ -859,7 +859,7 @@ extern "C" int IsPauseMenuOnLoadPageA(PMENU *menu)
 {
     int n;
     PAGE *pe;
-    if (!FScreenShown(menu)) return 0;
+    if (!IsScreenShown(menu)) return 0;
     n = menu->depth;
     if (n <= 0) return 0;
     pe = PPAGE(menu, n);
@@ -879,7 +879,7 @@ extern "C" int IsPauseMenuOnLoadPageB(PMENU *menu)
 {
     int n;
     PAGE *pe;
-    if (!FScreenShown(menu)) return 0;
+    if (!IsScreenShown(menu)) return 0;
     n = menu->depth;
     if (n <= 0) return 0;
     pe = PPAGE(menu, n);
@@ -916,7 +916,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
     int f, k;
     if (!D_003D9ED0.pool) return 0;
     if (IsSwTransitionBusy(&D_003DD490)) return 0;
-    if (FScreenShown(&D_002E6550)) return 0;
+    if (IsScreenShown(&D_002E6550)) return 0;
     pl = GetHeroPo(&D_003DD490);
     if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
     if (!AreWidgetLoadsIdle()) return 0;
@@ -980,8 +980,8 @@ extern "C" void OpenPauseOptionsPage(ITEM *item)
         int ok = 1;
         switch (src->kind) {
         case 0x3D: break;
-        case 0x3C: ok = FScreenShown(D_003DA530) != 0; break;
-        case 0x3E: ok = FScreenShown(D_003DA530) == 0; break;
+        case 0x3C: ok = IsScreenShown(D_003DA530) != 0; break;
+        case 0x3E: ok = IsScreenShown(D_003DA530) == 0; break;
         }
         if (ok) *dst++ = *src;
     }

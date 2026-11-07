@@ -141,7 +141,7 @@ qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
 /* GetMissileTargetPosition as its two callers call it: the hidden result pointer passed by hand. */
 extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) __asm__("GetMissileTargetPosition");
-void ApplyAsegCur(ASEG *segment, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
+void ReplaceCurrentAseg(ASEG *segment, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
 int FFloatsNear(float g0, float g1, float gEpsilon);
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
@@ -169,7 +169,7 @@ void LoadMissileFromBrx(MISSILE *missile, CBinaryInputStream *stream)
 void OnMissileRemove(MISSILE *missile)
 {
     RemoveSoHierarchy(missile);
-    ApplyAsegCur(0, (ALO *)missile, 0.0f, 1.0f, 0, &missile->flightAnimState);
+    ReplaceCurrentAseg(0, (ALO *)missile, 0.0f, 1.0f, 0, &missile->flightAnimState);
     ReleaseAct(&missile->flightAction);
 }
 
@@ -181,7 +181,7 @@ extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
     v = *targetPos;
     missile->targetObject = targetObject;
     *(V *)&missile->targetPos = v;
-    ApplyAsegCur(missile->flightAnim, (ALO *)missile, 0.0f, 1.0f, 8, &missile->flightAnimState);
+    ReplaceCurrentAseg(missile->flightAnim, (ALO *)missile, 0.0f, 1.0f, 8, &missile->flightAnimState);
     if (missile->hasFlightAction)
         missile->flightAction = NewPathAct(missile, missile->pxfUnk5c, 0, 5, missile->flightActionParam, 0.0f);
 }

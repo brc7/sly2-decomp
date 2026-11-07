@@ -219,8 +219,8 @@ void UpdateJtActivePipe(void *pv);
 void UpdateBentleySubState(struct P *p);
 void UpdateBentleyStateMisc(struct P *p);
 void UpdateJtThrow(void *pv);
-int FAsegaRetracted(void *pv);
-int FSmaRetracted(void *pv);
+int IsAsegaRetracted(void *pv);
+int IsSmaRetracted(void *pv);
 void UpdateBentleyAim(struct P *p);
 
 #define VCALL99(p, a) ((int (*)(void *, int))(p)->vt[99].pfn)((char *)(p) + (p)->vt[99].d, a)
@@ -339,9 +339,9 @@ void UpdateBentleyStateMachine(struct P *p)
             UpdateJtThrow(p->thrower);
             break;
         case BENTLEY_SCRIPT_ANIM:
-            if (p->action && FAsegaRetracted(p->action))
+            if (p->action && IsAsegaRetracted(p->action))
                 SetBentleyState(p, BENTLEY_IDLE);
-            else if (p->p1034 && FSmaRetracted(p->p1034))
+            else if (p->p1034 && IsSmaRetracted(p->p1034))
                 SetBentleyState(p, BENTLEY_IDLE);
             break;
         case BENTLEY_ADRENALINE:
@@ -613,14 +613,14 @@ void ReleaseBentleyHeldObject(struct P *);
 void SetBentleySubState(struct P *, int);
 void SetBentleyHoverState(struct P *, int);
 void SetJtThrowState(void *, int);
-int IsmsFindSmOptional__FP2SM3OID(void *, int);
+int FindSmStateOptional__FP2SM3OID(void *, int);
 int GetStepplayerLeanFlags(struct P *);
 void InitIdleTimer(struct P *, int);
 void ResetGaitFeet(struct ASEGP *);
 void SetJtModeState__FP6JTMODEi(void *, int);
 void ReleaseAsega(void *);
 void ReleaseSma(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct P *, int, void *, float, float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct P *, int, void *, float, float);
 void ReplaceSmaEx(void *, struct P *, int, int, int, void *);
 
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
@@ -740,7 +740,7 @@ void SetBentleyState(struct P *p, int k)
                 anim = kOld != 7 ? 0x175 : 0x176;
             else
                 anim = 0x178;
-            if (IsmsFindSmOptional__FP2SM3OID(jt, anim) < 0)
+            if (FindSmStateOptional__FP2SM3OID(jt, anim) < 0)
                 anim = -1;
         }
         p->q190 = D_002A2DD0;
@@ -796,7 +796,7 @@ void SetBentleyState(struct P *p, int k)
     }
     ReleaseAsega(&p->action);
     ReleaseSma(&p->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(asega, p, n, &p->action, g, rate);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(asega, p, n, &p->action, g, rate);
     ReplaceSmaEx(jt, p, anim, n, c, &p->x1034);
     VCALL0(p, 90);
 }
@@ -1268,7 +1268,7 @@ struct S { int pad[3]; struct VTE *vt; char pad1[0x190 - 0x10]; float v190[3]; c
     char pad3[0x14e4 - 0x1038]; struct ASEG *f14e4; struct ASEG *f14e8; char pad4[0x15d4 - 0x14ec]; struct ASEG *f15d4;
     char pad5[0x15f0 - 0x15d8]; struct ASEG *f15f0; char pad6[0x16b0 - 0x15f4]; int subState; };
 void ReleaseSma(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, float, int, void **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, struct S *, float, float, int, void **);
 /** @sly2-annot addr=0x136040
  * Purpose: Set +0x16B0 sub-state and play the matching aseg
  * Info: proposed name SetBentleySubState16B0 (T2); TU bentley
@@ -1304,7 +1304,7 @@ void SetBentleySubState(struct S *bentley, int n) {
         break;
     }
     ReleaseSma(&bentley->f1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, bentley, 0.0f, 1.0f, grfapl, &bentley->pasega1030);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(aseg, bentley, 0.0f, 1.0f, grfapl, &bentley->pasega1030);
     ((void (*)(void *))bentley->vt[90].pfn)((char *)bentley + bentley->vt[90].d);
 }
 } } // namespace M_func_00136040
@@ -1317,7 +1317,7 @@ struct Q { int x0; };
 struct P { char pad[0x150]; void *controller; char pad0[0x20C - 0x154]; float g20C; char padA[0x2C0 - 0x210]; char air[0x1030 - 0x2C0]; void *action;
     char pad1[0x13D0 - 0x1034]; int state; char pad2[0x16B0 - 0x13D4]; int subState; struct Q *pq; char pad3[0x186C - 0x16B8]; struct O *po; };
 extern struct CLOCK D_002DDED0;
-int FAsegaRetracted(void *pv);
+int IsAsegaRetracted(void *pv);
 void SetBentleySubState(struct P *p, int n);
 void StickTossable(struct O *po, int n);
 int GetGadgetButtonMask(struct P *p, int n);
@@ -1338,7 +1338,7 @@ void UpdateBentleySubState(struct P *bentley)
         s = bentley->subState;
         switch (s) {
         case 0:
-            if (FAsegaRetracted(bentley->action))
+            if (IsAsegaRetracted(bentley->action))
                 SetBentleySubState(bentley, 1);
             break;
         case 1:
@@ -1417,7 +1417,7 @@ void SetBentleyAimState(struct P *p, int n);
 int GrfConsumePressed__5POCTLUif(void *pv, int n, float g);
 void FireBentleyDart(struct P *p, int n);
 void UpdateBentleyCrosshair(void *pv, int n);
-int IsmsFindSmOptional__FP2SM3OID(void *pv, int n);
+int FindSmStateOptional__FP2SM3OID(void *pv, int n);
 void SnapSma(void *pv, int n);
 /** @sly2-annot addr=0x136338
  * Purpose: Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; pad
@@ -1457,7 +1457,7 @@ void UpdateBentleyAim(struct P *bentley)
             switch (bentley->state) {
             case BENTLEY_IDLE:
                 UpdateBentleyCrosshair(bentley->crosshair, 0);
-                if (bentley->x181C && bentley->x1714 != -1 && bentley->p1034 && IsmsFindSmOptional__FP2SM3OID(bentley->p1028, 0x17B) >= 0)
+                if (bentley->x181C && bentley->x1714 != -1 && bentley->p1034 && FindSmStateOptional__FP2SM3OID(bentley->p1028, 0x17B) >= 0)
                     SnapSma(bentley->p1034, 0x17B);
                 break;
             case BENTLEY_RUN: case BENTLEY_AIR: case BENTLEY_GRAB: case BENTLEY_WALK:
@@ -1504,7 +1504,7 @@ M4 GetRelativeXfMatrix(void *, void *, M4 *);
 void *NewPositionAct(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword DecomposeRotationMatrixToEuler(M4 *pm);
 void ReleaseSma(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
 
 /** @sly2-annot addr=0x136530
  * Purpose: State machine on +0x1800 with reparenting/actuator teardown; also called from jtthrow code
@@ -1571,7 +1571,7 @@ void SetBentleyHoverState(struct P *bentley, int k)
         break;
     }
     ReleaseSma(&bentley->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->action, 0.0f, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->action, 0.0f, 1.0f);
     ((void (*)(void *))bentley->vt[90].f)((char *)bentley + bentley->vt[90].d);
 }
 } } // namespace M_func_00136530
@@ -1893,7 +1893,7 @@ struct VT { short d; short pad; void *pfn; };
 struct A { char pad[0x30]; int x30; };
 struct O { char pad[0xC]; struct VT *pvt; char pad2[0x150 - 0x10]; struct A *pa; };
 struct P { struct O *po; int x4; int x8; int xC; int x10; int x14; char pad[0xE0 - 0x18]; void *pE0; };
-int FAsegaRetracted(void *p);
+int IsAsegaRetracted(void *p);
 void SetBentleyCrosshairState(struct P *p, int k);
 int GrfPressedWithin__5POCTLUif(struct A *pa, int grf, float g);
 void ClearPoctlJoyPressed(struct A *pa, int n);
@@ -1906,7 +1906,7 @@ void ClearPoctlJoyPressed(struct A *pa, int n);
 // Crosshair update: on button 0x80 when gadget 2 is usable, restarts it.
 void UpdateBentleyCrosshair(struct P *bentley, int k)
 {
-    if (bentley->pE0 && FAsegaRetracted(bentley->pE0))
+    if (bentley->pE0 && IsAsegaRetracted(bentley->pE0))
         SetBentleyCrosshairState(bentley, -1);
     if (k != bentley->x4 && bentley->x4 != -1)
         SetBentleyCrosshairState(bentley, k);
@@ -1963,7 +1963,7 @@ qword ConvertAloPos(void *, struct PO *, qword);
 void SetStepTargetHeadingFromVector(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
 void RecalculateAsegBlend(void *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
 void DetachXfActById(void *, struct PO *, int);
 void SetAsegaChannelWeight(void *, float);
 static __inline__ float Clamp(float g, float minValue, float maxValue)
@@ -2030,7 +2030,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
         break;
     }
     }
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->po, 1, &ps->pvE0, D_002DDED0.t - ps->g18, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->po, 1, &ps->pvE0, D_002DDED0.t - ps->g18, 1.0f);
     if (!ps->pvE0)
         return;
     if (ps->x10)
@@ -2061,7 +2061,7 @@ namespace M_func_001371C8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { int pad[3]; struct VTE *vt; char pad2[0x1020]; int action; };
 struct S { struct O *po; };
-int FAsegaRetracted(int);
+int IsAsegaRetracted(int);
 /** @sly2-annot addr=0x1371C8
  * Purpose: If action +0x1030 done, vt88(0)
  * Info: proposed name JtHelperStopScript (T2); TU bentley
@@ -2070,7 +2070,7 @@ int FAsegaRetracted(int);
  * @end-sly2-annot */
 // When the owner's current action (+0x1030) has retracted, returns him to generic player state 0 (slot 88).
 void EndBentleyHelperWhenRetracted(struct S *bentley) {
-    if (FAsegaRetracted(bentley->po->action)) {
+    if (IsAsegaRetracted(bentley->po->action)) {
         struct O *object = bentley->po; struct VTE *vt = object->vt;
         ((void (*)(void *, int))vt[88].pfn)((char *)object + vt[88].d, 0);
     }
@@ -2379,7 +2379,7 @@ extern float D_002BC9B8;
 void FaceStepToward(P *p, int n);
 R *FindAsegChannel(X *px, P *p, int a, int b);
 void ReleaseSma(void *pv);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
 }
 #define PXOF(p) ((PX *)(p))
 
@@ -2422,7 +2422,7 @@ extern "C" void SetBentleyHelperState(S *s, int k)
             s->kCur = k;
         }
     ReleaseSma(PXOF(s->p)->a1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(px, s->p, 1, &PXOF(s->p)->action, 0.0f, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(px, s->p, 1, &PXOF(s->p)->action, 0.0f, 1.0f);
 }
 } // namespace M_func_001375D0
 

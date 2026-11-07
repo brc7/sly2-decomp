@@ -76,7 +76,7 @@ float SMinShape(PATH *);
 float SMaxShape(PATH*);
 qword PosSmooth(qword,qword,float,SMPV*,U*);
 void SetJtAirJump(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
-void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
+void StartJtMode(void*,int,void*,void*);int IsAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
 void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
 float fabsf(float);
@@ -86,9 +86,9 @@ void SubscribeLoObject(PATH*,JT*);void UnsubscribeLoObject(PATH*,JT*);
 void LinkStepAttachment(JT*,PATH*,int);
 float GLimitLm__FP2LMf(LMV*,float);
 void SetStepplayerTnOverride(JT*,void*);
-EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
+EFFECT*CreateSfxSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 void SetJtCaneState__FP2JTi(JT*,int);void ReleaseSma(COMPONENT**);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEGV*,JT*,float,float,int,ASEGAV**);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEGV*,JT*,float,float,int,ASEGAV**);
 int FActiveCplcy__FP5CPLCY(void *);
 }
 
@@ -278,7 +278,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
         int old;
         do {
             old = pipe->state;
-            if ((old == 0 || old == 4) && FAsegaRetracted(pipe->actor->asega))
+            if ((old == 0 || old == 4) && IsAsegaRetracted(pipe->actor->asega))
                 SetJtPipeState(pipe, 1);
         } while (pipe->state != old);
         if (pipe->state == 0 || pipe->state == 4)
@@ -606,7 +606,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         pipe->actor->motion.i[2] = 0;
         SetStepplayerTnOverride(pipe->actor, pipe->path->focus);
         if (pipe->path->attachEffectId) {
-            EFFECT *e = PsndStartSound(pipe->path->attachEffectId);
+            EFFECT *e = CreateSfxSound(pipe->path->attachEffectId);
             SetSndSourceLo(e, 0);
             SetSndSourcePos(e, w.point.q);
         }
@@ -634,7 +634,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         pipe->actor->motion.i[2] = 0;
         SetStepplayerTnOverride(pipe->actor, focus);
         if (pipe->path->releaseEffectId) {
-            EFFECT *e = PsndStartSound(pipe->path->releaseEffectId);
+            EFFECT *e = CreateSfxSound(pipe->path->releaseEffectId);
             SetSndSourceLo(e, 0);
             SetSndSourcePos(e, GetLoWorldPos(pipe->actor));
         }
@@ -670,7 +670,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         break;
     }
     ReleaseSma(&pipe->actor->component);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, pipe->actor, position, speed, flags, &pipe->actor->asega);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, pipe->actor, position, speed, flags, &pipe->actor->asega);
     Clear(&pipe->actor->velocity);
 }
 

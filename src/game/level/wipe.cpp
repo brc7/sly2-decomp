@@ -27,7 +27,7 @@ extern "C" WIPE *InitWipe(WIPE *wipe);
 
 /* Wipe states (WIPE::state). */
 enum { WIPE_IDLE = 0, WIPE_OUT = 1, WIPE_IN = 2, WIPE_TRANSITION = 3 };
-/* Wipe widget labels: the wipe-out and wipe-in animations, and the one FWidgetAnimPlaying waits on. */
+/* Wipe widget labels: the wipe-out and wipe-in animations, and the one IsWidgetAnimPlaying waits on. */
 enum { LABEL_WIPE_OUT = 0x311, LABEL_WIPE_IN = 0x30F, LABEL_WIPE_PLAYING = 0x314 };
 
 /* The wipe state (one global, D_00443740). */
@@ -49,7 +49,7 @@ extern SW D_003DD490;
 extern "C" {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
 void SetSwTransition(SW *world, TRANS *transition);
-int FWidgetAnimPlaying(WIDGETV *widget, int a);
+int IsWidgetAnimPlaying(WIDGETV *widget, int a);
 void SetWipeWipes(WIPE *wipe, int newState);
 void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newState);
 }
@@ -135,11 +135,11 @@ extern "C" void UpdateWipe(WIPE *wipe)
     case WIPE_IDLE:
         break;
     case WIPE_OUT:
-        if (!FWidgetAnimPlaying(wipe->widget, LABEL_WIPE_PLAYING))
+        if (!IsWidgetAnimPlaying(wipe->widget, LABEL_WIPE_PLAYING))
             newState = WIPE_TRANSITION;
         break;
     case WIPE_IN:
-        if (!FWidgetAnimPlaying(wipe->widget, LABEL_WIPE_PLAYING))
+        if (!IsWidgetAnimPlaying(wipe->widget, LABEL_WIPE_PLAYING))
             newState = WIPE_IDLE;
         break;
     }

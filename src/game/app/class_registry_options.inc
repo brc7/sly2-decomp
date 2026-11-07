@@ -35,7 +35,7 @@ void AddSensorNoTriggerClass() __asm__("AddSensorNoTriggerClass");
 void AddSensorNoTriggerObject() __asm__("AddSensorNoTriggerObject");
 void AddVolbtnPushObject() __asm__("AddVolbtnPushObject");
 void GetBasicCid() __asm__("GetBasicCid");
-void FAsegaRetracted() __asm__("FAsegaRetracted");
+void IsAsegaRetracted() __asm__("IsAsegaRetracted");
 void IsCurrentJob() __asm__("IsCurrentJob");
 void IsCurrentTask() __asm__("IsCurrentTask");
 void IsPoActive() __asm__("IsPoActive");
@@ -65,8 +65,8 @@ void PemitterEnsureEmitter__FP7EMITTER4ENSK() __asm__("PemitterEnsureEmitter__FP
 void GetCurrentPo() __asm__("GetCurrentPo");
 void GetHeroPo() __asm__("GetHeroPo");
 void GetTnCpd() __asm__("GetTnCpd");
-void PwreGetWrBend__FP2WR4ENSK() __asm__("PwreGetWrBend__FP2WR4ENSK");
-void PwreGetWrCircle__FP2WR4ENSK() __asm__("PwreGetWrCircle__FP2WR4ENSK");
+void GetCurrentBendWarpEntry__FP2WR4ENSK() __asm__("GetCurrentBendWarpEntry__FP2WR4ENSK");
+void GetCurrentCircleWarpEntry__FP2WR4ENSK() __asm__("GetCurrentCircleWarpEntry__FP2WR4ENSK");
 void RefThunkAsegAPPLY() __asm__("RefThunkAsegAPPLY");
 void RefThunkAsegENSURE() __asm__("RefThunkAsegENSURE");
 void RefThunkAsegFIND_LABEL() __asm__("RefThunkAsegFIND_LABEL");
@@ -856,7 +856,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkAsegaSEEK), EOPID_INT(3), EOPID_NONE}, /* [123] opt 236, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkAsegaRETRACT), EOPID_NONE, EOPID_NONE}, /* [124] opt 237, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00101D98), EOPID_INT(1), EOPID_NONE}, /* [125] opt 248, ASEGA */
-    {0, 4, EOPID_PMF(FAsegaRetracted), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [126] opt 255, ASEGA */
+    {0, 4, EOPID_PMF(IsAsegaRetracted), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [126] opt 255, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00101E18), EOPID_NONE, EOPID_NONE}, /* [127] opt 256, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResumeSnd), EOPID_NONE, EOPID_NONE}, /* [128] opt 257, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopSnd), EOPID_INT(1), EOPID_NONE}, /* [129] opt 258, CID151 */
@@ -1677,21 +1677,21 @@ EOPIDROW D_002AC880[1449] = {
     {5, 2, EOPID_INT(0x4764), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [944] opt 863, SW */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_CIRCLE_WARP), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [945] opt 864, WR */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_BEND_WARP), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [946] opt 865, WR */
-    {2, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(PwreGetWrCircle__FP2WR4ENSK)}, /* [947] opt 573, WR */
+    {2, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [947] opt 573, WR */
     {1, 0x124, EOPID_PMF(GetWrWavelength), EOPID_PMF(SetWrWavelength__FP2WRf), EOPID_PMF(SetWrWavelength__FP2WRf), EOPID_NONE}, /* [948] opt 866, WR */
-    {1, 0x2092, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_PMF(PwreGetWrCircle__FP2WR4ENSK)}, /* [949] opt 867, WR */
-    {1, 0x2092, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_PMF(PwreGetWrCircle__FP2WR4ENSK)}, /* [950] opt 868, WR */
-    {2, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(PwreGetWrCircle__FP2WR4ENSK)}, /* [951] opt 869, WR */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMF(PwreGetWrCircle__FP2WR4ENSK)}, /* [952] opt 870, WR */
-    {0xA, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(PwreGetWrCircle__FP2WR4ENSK)}, /* [953] opt 871, WR */
-    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMF(PwreGetWrCircle__FP2WR4ENSK)}, /* [954] opt 872, WR */
-    {2, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(PwreGetWrBend__FP2WR4ENSK)}, /* [955] opt 873, WR */
-    {0xA, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(PwreGetWrBend__FP2WR4ENSK)}, /* [956] opt 874, WR */
-    {1, 0x2092, EOPID_INT(0x38), EOPID_INT(0x38), EOPID_INT(0x38), EOPID_PMF(PwreGetWrBend__FP2WR4ENSK)}, /* [957] opt 875, WR */
+    {1, 0x2092, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [949] opt 867, WR */
+    {1, 0x2092, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [950] opt 868, WR */
+    {2, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [951] opt 869, WR */
+    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [952] opt 870, WR */
+    {0xA, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [953] opt 871, WR */
+    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [954] opt 872, WR */
+    {2, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [955] opt 873, WR */
+    {0xA, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [956] opt 874, WR */
+    {1, 0x2092, EOPID_INT(0x38), EOPID_INT(0x38), EOPID_INT(0x38), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [957] opt 875, WR */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_BEND_NOISE), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [958] opt 876, WR */
-    {2, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(PwreGetWrBend__FP2WR4ENSK)}, /* [959] opt 877, WR */
-    {0xA, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMF(PwreGetWrBend__FP2WR4ENSK)}, /* [960] opt 878, WR */
-    {1, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMF(PwreGetWrBend__FP2WR4ENSK)}, /* [961] opt 879, WR */
+    {2, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [959] opt 877, WR */
+    {0xA, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [960] opt 878, WR */
+    {1, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [961] opt 879, WR */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_SWIVEL_NOISE), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [962] opt 880, WR */
     {5, 2, EOPID_INT(0x54), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [963] opt 881, WR */
     {5, 0x12, EOPID_INT(0x6E0), EOPID_INT(0x6E0), EOPID_NONE, EOPID_NONE}, /* [964] opt 882, WR */

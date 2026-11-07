@@ -2168,7 +2168,7 @@ typedef struct OBJ {
 extern int D_002C2208[];
 void PlayWidgetAnim(W *, int);
 void UpdateRobottankHealthMeter(OBJ *);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, OBJ *);
 void RcPtr_Assign(void **, void *);
 void SetSndRange(void *, float, float);
@@ -2192,7 +2192,7 @@ void SetRobottankState(OBJ *tank, int n)
             UpdateRobottankHealthMeter(tank);
         }
         if (tank->engineSoundId != -1) {
-            void *ps = PsndStartSound(tank->engineSoundId);
+            void *ps = CreateSfxSound(tank->engineSoundId);
             SetSndSourceLo(ps, tank);
             RcPtr_Assign(&tank->engineSound, ps);
             SetSndRange(tank->engineSound, 500.0f, 1500.0f);

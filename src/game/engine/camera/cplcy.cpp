@@ -213,7 +213,7 @@ struct X {
     int zoomSound; int zoomStopSound; F2 panLimits; F2 tiltLimits; float startPan; float startTilt; int enterCount;
 };
 void ActivateCplcy(struct X *p);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void RcPtr_Assign(int *, void *);
 void PauseSnd(int);
@@ -231,11 +231,11 @@ void ActivateCplook(struct X *p)
     void *pv;
     float g;
     ActivateCplcy(p);
-    pv = PsndStartSound(0x26);
+    pv = CreateSfxSound(0x26);
     SetSndSourceLo(pv, 0);
     RcPtr_Assign(&p->zoomSound, pv);
     {
-        void *pv2 = PsndStartSound(0x25);
+        void *pv2 = CreateSfxSound(0x25);
         SetSndSourceLo(pv2, 0);
         RcPtr_Assign(&p->zoomStopSound, pv2);
     }
@@ -527,7 +527,7 @@ struct G { char pad[0x24]; float targetFov; char pad2[0x60 - 0x28]; char matrix[
 extern struct G D_002DDF40;
 struct A { char pad[0xA4]; float panAngle; float tiltAngle; int zoom; int zoomSpeed; float maxZoom; float zoomFov; float wideFov; void *zoomSound; void *zoomStopSound; };
 void ActivateCplcy(struct A *a, int n);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RcPtr_Assign(void **pp, void *p);
 void PauseSnd(void *p);
@@ -541,10 +541,10 @@ void ActivateCpzoom(struct A *a, int n)
     void *p;
     struct G *pg;
     ActivateCplcy(a, n);
-    p = PsndStartSound(0x26);
+    p = CreateSfxSound(0x26);
     SetSndSourceLo(p, 0);
     RcPtr_Assign(&a->zoomSound, p);
-    p = PsndStartSound(0x25);
+    p = CreateSfxSound(0x25);
     SetSndSourceLo(p, 0);
     RcPtr_Assign(&a->zoomStopSound, p);
     PauseSnd(a->zoomSound);

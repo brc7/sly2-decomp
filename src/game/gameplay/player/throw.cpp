@@ -97,7 +97,7 @@ extern const float D_002A96A0;   /* defined below where the ELF has it (.rodata 
 extern "C" {
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(O *a, int b, int c, void *d, int e, int f, int g, void *h);
 qword GetLoWorldPos(void *);
-int FPowerupAcquired(int);
+int IsPowerupAcquired(int);
 qword SetVectorCylind(float,float,float);
 void GetVectorCylind(qword,float *,float *,float *);
 float GLimitLm__FP2LMf(RANGE *,float);
@@ -107,7 +107,7 @@ float GetStepHeading(O *);
 float RadNormalize__Ff(float);
 void SetJtThrowState(JTTHROW *,int);
 void RecalculateAsegBlend(ASEG *);
-int FAsegaRetracted(ASEGAV *);
+int IsAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
 void SetBentleyHoverState(O *,int);
@@ -132,7 +132,7 @@ void SetLoParent(O *,int,int);
 void FadeSoOut(O *,float);
 void ChargeGadgetMp(O *,int);
 void ReleaseSma(HANDLE *);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGAV **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGAV **);
 void SetSoCnstrForce(O *po, int a);
 void SetSoCnstrTorque(O *po, int a);
 qword ConvertAloVec(void *p, int a, qword q);
@@ -392,7 +392,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
                 }
             } else {
                 CopyRange(w.scratch.range, s->bounds);
-                if (FPowerupAcquired(0x24))
+                if (IsPowerupAcquired(0x24))
                     w.scratch.range.hi *= D_002C40E0;
                 float dt = PlanarSnapshot(Sub(s->targetWorld.q, w.ownerPosition.q), w.delta, D_002DDED0.dt);
                 float elevation;
@@ -453,11 +453,11 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
         }
         case 1:
         case 2:
-            if (!animation || FAsegaRetracted(animation))
+            if (!animation || IsAsegaRetracted(animation))
                 SetJtThrowState(s, 0);
             break;
         case 3:
-            if (!animation || FAsegaRetracted(animation)) {
+            if (!animation || IsAsegaRetracted(animation)) {
                 if (D_002DD5BC->mode == 8)
                     SetJtThrowState(s, 4);
                 else
@@ -506,7 +506,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
                     EffectCall(s->effect, 9);
                 return;
             }
-            if (!animation || FAsegaRetracted(animation))
+            if (!animation || IsAsegaRetracted(animation))
                 SetJtThrowState(s, 4);
             else if (s->state == 4) {
                 w.scratch.vector.q = ActiveDifference(s->targetWorld, w.ownerPosition);
@@ -521,7 +521,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
             break;
         }
         case 7:
-            if (!animation || FAsegaRetracted(animation)) {
+            if (!animation || IsAsegaRetracted(animation)) {
                 if (s->animation0)
                     SetJtThrowState(s, 0);
                 else
@@ -653,7 +653,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     float tApex = GMax(-GZOfQw(vLaunch) / GZOfQw(vAccel), 0.0f);
     qword posApex = PosOnArc(posLaunch, vAccel, vLaunch, tApex, 0.5f);
     float t;
-    if (FPowerupAcquired(0x24))
+    if (IsPowerupAcquired(0x24))
         t = D_002C40E4 * thrower->tPredict;
     else
         t = thrower->tPredict;
@@ -1188,7 +1188,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
         break;
     }
     ReleaseSma(&s->owner->extra);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(animation, s->owner, 0.0f, 1.0f, flags, &s->owner->animation);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(animation, s->owner, 0.0f, 1.0f, flags, &s->owner->animation);
     PlainCall(s->owner, 90);
     RecalcSwOxfFilterForObject(&D_003DD490, s->owner);
 }

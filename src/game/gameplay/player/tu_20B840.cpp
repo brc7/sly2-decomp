@@ -67,7 +67,7 @@ struct MRSGC
 void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("ResolveAsegChannelTarget");
 CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("FindAsegChannel");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
-void FillBlAmrsg(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
+void FillBlendSyncTables(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
 void ReblendAsegbl(ASEGBL *pasegbl) __asm__("RecalculateAsegBlend");
 struct VKBLEND : public VECKEY
 {
@@ -154,7 +154,7 @@ extern void *D_002DA9D0[] __asm__("_vt$6CID146");
 
 void RecalculateAsegBlend(ASEGBL *);
 float GModPositive__Fff(float a, float b);
-void *PsndStartSound(int h);
+void *CreateSfxSound(int h);
 void SetSndSourceLo(void *p, void *source);
 qword GetLoWorldPos(void *p);
 void SetSndSourcePos(void *p, qword q);
@@ -176,7 +176,7 @@ void SetSoGravity(ALO *,qword);
 void SeekAsega(ASEGA *,int,float,float);
 void AttachStepguard(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
-int FAsegaRetracted(ASEGA *);
+int IsAsegaRetracted(ASEGA *);
 int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
 void ReleaseAct(ACT **);
 void SetXfRole(ALO *o, XF *pxf, int m);
@@ -189,7 +189,7 @@ int IsLeapDone(LEAPV *p);
 void ReleaseLeapConstraint(LEAPV *p);
 int IsDirAnimStopped(DIRACT *p);
 }
-void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA */
+void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);                                              /* FIsBasicDerivedFrom__FP5BASIC3CID */
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
@@ -210,7 +210,7 @@ extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
 }
 
 // 0x0020B868 PostJtLoadGait__FP4GAIT  (our name)
-// After the level load (JT::VUnk14, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlAmrsg), each clip's root movement per second
+// After the level load (JT::VUnk14, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlendSyncTables), each clip's root movement per second
 // ((position at the end - position at the start) / length), the blend (EnsureAsegBlendDynamic with the two marker arrays). Then every blended channel is told
 // which marker array keeps it in step: XFs with oid 0x10 / 0x12 / 0x14 the second foot's (amrsgc[1]), 0x11 / 0x13 / 0x15 the first's (the default), any other none.
 static inline qword QwSub(qword qw0, qword qw1)
@@ -237,8 +237,8 @@ void PostJtLoadGait(GAIT *gait)
 {
     if (gait->abl[0].paseg == 0)
         return;
-    FillBlAmrsg(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
-    FillBlAmrsg(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
+    FillBlendSyncTables(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
+    FillBlendSyncTables(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
     for (uint ibl = 0; ibl < 2; ibl++)
     {
         BLGAIT *pblgait = &gait->abl[ibl];
@@ -408,7 +408,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
                 t *= gait->gVolRun;
                 t += u * gait->gVolWalk;
             }
-            h = PsndStartSound(gait->sfxidStep);
+            h = CreateSfxSound(gait->sfxidStep);
             SetSndSourceLo(h, 0);
             SetSndSourcePos(h, GetLoWorldPos(x->paloRoot));
             SetSndRange(h, 500.0f, 2000.0f);
@@ -567,7 +567,7 @@ LEAPV *ConstructLeap(LEAPV *leap) { leap->pvt = D_002DAA10; leap->state = -1; le
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // If the leap is not finished: state 4 and clears its animation job.
-extern "C" void StopLeap(LEAPV *leap) { if (!IsLeapDone(leap)) { SetLeapState(leap, 4); ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &leap->job); } }
+extern "C" void StopLeap(LEAPV *leap) { if (!IsLeapDone(leap)) { SetLeapState(leap, 4); ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &leap->job); } }
 
 /** @sly2-annot addr=0x20C0D8
  * Purpose: state == 4
@@ -610,7 +610,7 @@ extern "C" void UpdateLeap(LEAPV *leap)
             }
             break;
         case 3:
-            if (FAsegaRetracted(leap->job))
+            if (IsAsegaRetracted(leap->job))
                 SetLeapState(leap, 4);
             break;
         }
@@ -649,7 +649,7 @@ void SetLeapState(LEAPV *leap, int state)
     leap->stateTime = D_002DDED0.time;
     switch (state) {
     case 0:
-        ApplyAsegCur(leap->tuning->animation, leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
+        ReplaceCurrentAseg(leap->tuning->animation, leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
         SubscribeLoObject(leap->job, leap);
         leap->previousVelocity.q = GetSoGravity(leap->subject);
         break;
@@ -876,7 +876,7 @@ extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
     object->grfapl = b;
     object->n0 = 0;
     object->n4 = 0;
-    ApplyAsegCur(dirAnims->paseg, a, 0.0f, 1.0f, b, &object->pasega);
+    ReplaceCurrentAseg(dirAnims->paseg, a, 0.0f, 1.0f, b, &object->pasega);
     SubscribeLoObject(object->pasega, object);
     object->ppaseg = &dirAnims->paseg;
 }
@@ -916,7 +916,7 @@ extern "C" void FreeDirAnim(DIRACT *dirAnims) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Clears the directional animation's job if active.
-extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
+extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
 
 /** @sly2-annot addr=0x20CA98
  * Purpose: job +0x24 == 0
@@ -1046,7 +1046,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             tag = FindAsegLabel(animation, id);
             if (tag)
                 time = tag->tLocal;
-            ApplyAsegCur(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
+            ReplaceCurrentAseg(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
             SubscribeLoObject(dirAnims->active, dirAnims);
             dirAnims->best = best;
         }

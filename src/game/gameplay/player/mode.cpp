@@ -160,7 +160,7 @@ struct MRSGC
       int cmrsg;
       MRSG *amrsg;
 };
-void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
+void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
 struct LOREF
 {
       LO *plo;
@@ -188,7 +188,7 @@ void SetJtModeState(JTMODE *pjtmode, int nState) __asm__("SetJtModeState__FP6JTM
 extern "C" {
 void InitJtModeHud(JTMODEHUD *phud, JTMODE *pjtmode);
 void PostLoadJtModeHud(JTMODEHUD *phud);
-int FAsegaRetracted(ASEGA *pasega);
+int IsAsegaRetracted(ASEGA *pasega);
 void SetStepTargetHeading(STEPPLAYER *pstepplayer, float g);
 void UpdateJtModeHud(JTMODEHUD *phud);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
@@ -442,7 +442,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
     }
     if (aseg && !jtMode->pstepplayer->VUnk93())
         aseg = 0;
-    ApplyAsegCur(aseg, (ALO *)jtMode->pstepplayer, 0.0f, 1.0f, 1, &jtMode->pasega);
+    ReplaceCurrentAseg(aseg, (ALO *)jtMode->pstepplayer, 0.0f, 1.0f, 1, &jtMode->pasega);
 }
 
 /** @sly2-annot addr=0x19D330
@@ -464,7 +464,7 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
         switch (n) {
         case 0:
             *(qword *)&jtMode->pstepplayer->vUnk190 = D_002A2DD0;
-            if (!jtMode->pasega || FAsegaRetracted(jtMode->pasega))
+            if (!jtMode->pasega || IsAsegaRetracted(jtMode->pasega))
                 SetJtModeState(jtMode, 1);
             break;
         case 1:
@@ -484,7 +484,7 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             break;
         case 2:
             *(qword *)&jtMode->pstepplayer->vUnk190 = D_002A2DD0;
-            if (!jtMode->pasega || FAsegaRetracted(jtMode->pasega))
+            if (!jtMode->pasega || IsAsegaRetracted(jtMode->pasega))
                 SetJtModeState(jtMode, -1);
             break;
         }

@@ -45,7 +45,7 @@ void *FindStreamGroupIndex(G *pg, int id);
 void AddStreamGroupSource(float g, void *p, void *q, AMB *pamb, float *pv);
 void OnLoAdd(LO *plo);
 void OnLoRemove(LO *plo);
-void *PsndStartSound(int id);
+void *CreateSfxSound(int id);
 void SetSndSourceLo(void *psnd, LO *plo);
 void SetSndRange(void *psnd, float sMin, float sMax);
 void SetSndVolume(void *psnd, float uVol);
@@ -143,7 +143,7 @@ extern "C" void OnAmbAdd(AMB *amb)
     OnLoAdd(amb);
     for (i = 0; i < amb->soundCount; i++) {
         AMBSND *sound = &amb->sounds[i];
-        void *playing = PsndStartSound(sound->soundId);
+        void *playing = CreateSfxSound(sound->soundId);
         SetSndSourceLo(playing, amb);
         SetSndRange(playing, sound->minDistance, sound->maxDistance);
         SetSndVolume(playing, sound->volume);

@@ -73,7 +73,7 @@ int IsEntryInSl(CODES *pcodes, CODE *pcode);
 void AppendSlEntry(CODES *codes, CODE *pcode);     /* append to the SL */
 void InitSl(CODES *codes, int ibSle);       /* init the SL */
 void RemoveSlEntry(CODES *codes, CODE *pcode);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetSndmgrMasterVolume(void *psndmgr, float g);
 void WipeToWorldWarp(void *psw, void *prec, int a, int b, void *c, int d);
@@ -150,7 +150,7 @@ extern "C" void UpdateCodes(CODES *codes)
             }
         }
         if (pcodeBest) {
-            SetSndSourceLo(PsndStartSound(0x34), 0);
+            SetSndSourceLo(CreateSfxSound(0x34), 0);
             pcodeBest->action(pcodeBest->actionArg);
         }
         _ResetCodes(codes);
@@ -190,7 +190,7 @@ extern "C" void CheatUnlockCompletionReward(void)
         SetPowerupAcquired(0x1F, 1);
         return;
     }
-    SetSndSourceLo(PsndStartSound(0x3E), 0);
+    SetSndSourceLo(CreateSfxSound(0x3E), 0);
 }
 
 // Cheat action: takes powerup 0x1F away again (removes it from the item list D_002E1E40 and clears it). (inferred)

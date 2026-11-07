@@ -34,7 +34,7 @@ struct XP { char pad[0x94]; float gFriction; float gElasticity; };
 extern "C" {
 extern float D_002BFB20;    /* hurt contact friction (defined below, in address order) */
 extern float D_002BFB24;    /* hurt contact elasticity */
-int FAsegaRetracted(ASEGA *pasega);
+int IsAsegaRetracted(ASEGA *pasega);
 void RunJtHurtCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlaceCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, int n);
@@ -114,7 +114,7 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  void InvalidateSoAaox(P*);
  void ReleaseAsega(ASEGA**);
  void ReleaseSma(COMPONENT**);
- void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
  void ReplaceSma(void*,P*,int,void*,COMPONENT**);
 }
 static inline qword Vector(P*p){VE*v=&p->vt[33];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
@@ -340,7 +340,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
         clip = hurt->Default(next);
     ReleaseAsega(&hurt->actor->asega);
     ReleaseSma(&hurt->actor->component);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
     ReplaceSma(0, hurt->actor, -1, 0, &hurt->actor->component);
     Invoke(hurt->actor, 90);
 }
@@ -449,7 +449,7 @@ extern "C" void UpdateJtHurtInput(JTHURT *hurt)
     int state;
     do {
         state = hurt->nState;
-        if (FAsegaRetracted(hurt->pstepplayer->pasegaUnk1030))
+        if (IsAsegaRetracted(hurt->pstepplayer->pasegaUnk1030))
             RunJtHurtCallback(hurt);
     } while (hurt->nState != -1 && hurt->nState != state);
 }
@@ -769,7 +769,7 @@ extern "C"{
  extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
  int ShouldJtVetoDamage(C*,RECORD*);
  int ScaleByDifficulty(void*,int);
- void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  void DropStepplayerBooty(P*);
  void BroadcastGameEvent(void*,int,P*);
@@ -777,7 +777,7 @@ extern "C"{
  void StartJtKnockback(C*);
  void SetJtHurtState(C*,int);
  int GetBasicCid(P*);
- void*PsndStartSound(int);
+ void*CreateSfxSound(int);
  void SetSndSourceLo(void*,P*);
  qword GetLoWorldPos(P*);
  void*NewNoise(int,qword,P*);
@@ -874,7 +874,7 @@ extern "C" int TakeJtDamage(C *p, RECORD *input)
             }
             *p->counter = Add32(*p->counter, delta);
             if (p->effect)
-                ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->effect, p->actor, 0.0f, 1.0f, 1, &p->output);
+                ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(p->effect, p->actor, 0.0f, 1.0f, 1, &p->output);
             goto sound;
         }
         register RECORD *destination __asm__("$2");
@@ -917,7 +917,7 @@ notify: {
             case 0x37: effect = 0x83; break;
             }
             P *actor = p->actor;
-            void *created = PsndStartSound(effect);
+            void *created = CreateSfxSound(effect);
             SetSndSourceLo(created, actor);
         }
         SetJtHurtCallback(p, &C::Reaction);
@@ -1023,14 +1023,14 @@ struct LONGU { long l; } __attribute__((packed));
 extern "C" {
 extern const LONGU D_002A6790;
 // Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void func_001A15B0L(JTHURT *pjthurt, long cb) __asm__("SetJtHurtCallback");   /* sets the hurt callback (+0x1C) */
 }
 // Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
 extern "C" void JtHurtShockCallback(JTHURT *hurt)
 {
-    SetSndSourceLo(PsndStartSound(0x6A), 0);
+    SetSndSourceLo(CreateSfxSound(0x6A), 0);
     SetJtHurtState(hurt, 6);
     func_001A15B0L(hurt, D_002A6790.l);
 }

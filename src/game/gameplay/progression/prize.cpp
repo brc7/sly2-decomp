@@ -1065,7 +1065,7 @@ struct X *PripNewRipg(void *pg, int a, int b);
 qword GetLoWorldPos(struct S *p);
 struct MAT *GetLoWorldMatrix(struct S *p);
 void AwardCoin(struct S *p, int n);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RestartHudWidget1(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
@@ -1093,7 +1093,7 @@ void SetCoinDprizes(struct S *coin, int n)
         } else {
             AwardCoin(coin, 0);
         }
-        SetSndSourceLo(PsndStartSound(0x29), 0);
+        SetSndSourceLo(CreateSfxSound(0x29), 0);
         plo = coin->collectListener;
         if (plo) {
             struct M m;
@@ -1180,7 +1180,7 @@ struct LO *GetHeroPo(void *pg);
 qword GetLoWorldPos(struct S *p);
 struct MAT *GetLoWorldMatrix(struct S *p);
 void OnMedicineSmackDone(struct S *p, int n);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RestartHudWidget1(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
@@ -1255,7 +1255,7 @@ void KEY::Init() { using namespace M_func_001C6AB8; M_func_001C6AB8::S *p = (M_f
 namespace M_func_001C6B28 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; char pad2[0x150 - 0x10]; int state; char pad3[0x230 - 0x154]; void *task; };
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RequestTaskState(void *p, int n, struct LO *plo);
 void SetDprizeDprizes(struct LO *p, int n);
@@ -1264,7 +1264,7 @@ void SetKeyDprizes(struct LO *key, int n)
 {
     if (key->state == n) return;
     if (n == 1) {
-        SetSndSourceLo(PsndStartSound(0), 0);
+        SetSndSourceLo(CreateSfxSound(0), 0);
         if (key->task) RequestTaskState(key->task, 2, key);
         n = 2;
         ((void (*)(void *, int, int, int, int, int))key->vt[3].pf)((char *)key + key->vt[3].d, 5, 0, 0, 0, 0);
@@ -2043,7 +2043,7 @@ struct S {
 };
 struct M { int n; struct S *p; int pad[14]; };
 extern char D_003DD490[];
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
@@ -2069,7 +2069,7 @@ void SetClueDprizes(struct S *clue, int n)
             m.p = clue;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         } else {
-            SetSndSourceLo(PsndStartSound(0x29), 0);
+            SetSndSourceLo(CreateSfxSound(0x29), 0);
         }
         pg = D_003DD490;
         n = 2;
@@ -2299,7 +2299,7 @@ extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
 extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 extern "C" void SetVaultDialState(struct S*,int);
-extern "C" int FAsegaRetracted(void*);
+extern "C" int IsAsegaRetracted(void*);
 // Helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum (small asm wrappers/accessors shaped for the match).
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
 static inline qword Sub(qword a,qword b){qword d;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));return d;}
@@ -2341,7 +2341,7 @@ extern "C" void UpdateVaultInput(struct S*vault){
    if(vault->timer->end<=ClockTime())SetVaultDialState(vault,0);
    break;
   case 2:
-   if(!vault->dialAnim||FAsegaRetracted(vault->dialAnim)){
+   if(!vault->dialAnim||IsAsegaRetracted(vault->dialAnim)){
     int next=(vault->enteredCode*10)%divisor;next++;next+=vault->selectedDigit;
     vault->enteredCode=next;
     if(next==vault->combination){func_001E0020(vault->relay,(ALARM*)0x655);SetVaultDialState(vault,3);}
@@ -2458,7 +2458,7 @@ qword ConvertXfVec(void *frame, void *vault, qword q);
 qword GetLoWorldPos(void *vault);
 qword TransformXfPos(void *frame, void *vault, qword q);
 void SetXfRole(struct S *vault, struct X *px, int n);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
 // Loads the vault dial's selected index and its timer object (register-pinned for the match).
 static inline void Selection(const struct S*vault,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
@@ -2499,7 +2499,7 @@ void SetVaultDialState(struct S *vault, int n)
         break;
     case 2:
         SetStepplayerGrabTarget(vault->user, vault->digitTargets[vault->selectedDigit]);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(vault->digitAnims[vault->selectedDigit], vault, 0.0f, 1.0f, 0, vault->dialAnim);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(vault->digitAnims[vault->selectedDigit], vault, 0.0f, 1.0f, 0, vault->dialAnim);
         break;
     }
 }

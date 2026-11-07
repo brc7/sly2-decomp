@@ -90,7 +90,7 @@ void SetLoBusyk(CAPTUREV *p, int n);
 void PostSoLoad(CAPTUREV *p);
 void BindLoOidTable(CAPTUREV *p, int n, void *q);
 void DropAsegaRef(ASEGA **ppasega);
-int FAsegaRetracted(ASEGA *pasega);
+int IsAsegaRetracted(ASEGA *pasega);
 int IsDialogPlaying(void *p, int n);
 void HandleBasicMessage(CAPTUREV *p, int kind, MSG *message);
 void SetSoundManagerFlags(void *p, int a, int b);
@@ -101,7 +101,7 @@ int IsLoInWorld(CAPTUREV *p);
 void AppendDlEntry__FP2DLPv(void *p, LOROOTV *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
 void CaptureFramebufferToTexture(CAPTUREV *p);
 void SetFrameCaptureState(CAPTUREV *p, int n);
 void EndDmaCnt__4DMAS(GIFS *pgifs);
@@ -164,7 +164,7 @@ extern "C" void UpdateFrameCapture(CAPTUREV *capture)
         return;
     case CAPTURE_SHOWING:
         ASEGA *anim = capture->segmentAnim;
-        if (anim == 0 || FAsegaRetracted(anim) != 0) {
+        if (anim == 0 || IsAsegaRetracted(anim) != 0) {
             DropAsegaRef(&capture->segmentAnim);
             SetFrameCaptureState(capture, CAPTURE_IDLE);
         }
@@ -402,7 +402,7 @@ extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
     segment = (CAPTUREV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
     if (segment) {
         SetTaggedFlags(&segment->taggedFlags, 0x100);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);
         SetFrameCaptureState(capture, CAPTURE_STARTED);
     }
 }

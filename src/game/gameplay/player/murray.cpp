@@ -345,8 +345,8 @@ extern "C" void UpdateMurrayFlop(P*);
 extern "C" void UpdateMurrayCarry(P*);
 extern "C" void UpdateMurrayStruggle(P*);
 extern "C" void UpdateMurrayLift(P*);
-extern "C" int FAsegaRetracted(void*);
-extern "C" int FSmaRetracted(void*);
+extern "C" int IsAsegaRetracted(void*);
+extern "C" int IsSmaRetracted(void*);
 extern "C" void UpdateMurrayAttack(P*);
 extern "C" void UpdateMurrayStrafe(P*);
 extern "C" void UpdateMurrayPower(P*);
@@ -480,18 +480,18 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
         case MURRAY_STRUGGLE: UpdateMurrayStruggle(murray); break;
         case MURRAY_LIFT: UpdateMurrayLift(murray); break;
         case MURRAY_THROW:
-        case MURRAY_TOSS: finished = FAsegaRetracted(murray->animation); goto checkIdle;
+        case MURRAY_TOSS: finished = IsAsegaRetracted(murray->animation); goto checkIdle;
         case MURRAY_ATTACK: UpdateMurrayAttack(murray); break;
         case MURRAY_STRAFE: UpdateMurrayStrafe(murray); break;
         case MURRAY_POWER_MOVE: UpdateMurrayPower(murray); break;
         case MURRAY_AIMED_THROW: UpdateJtThrow(murray->extra); break;
         case MURRAY_PIPE: UpdateJtActivePipe(murray->physics); break;
         case MURRAY_SCRIPT_ANIM:
-            if (murray->animation && FAsegaRetracted(murray->animation))
+            if (murray->animation && IsAsegaRetracted(murray->animation))
                 goto idle;
             if (!murray->other)
                 break;
-            finished = FSmaRetracted(murray->other);
+            finished = IsSmaRetracted(murray->other);
         checkIdle:
             if (!finished)
                 break;
@@ -557,7 +557,7 @@ struct P {
     struct O *x190C; char pad7[0x1AC8 - 0x1910]; float g1AC8; void *x1ACC;
 };
 void UpdateStepplayer(struct P *p);
-int FAsegaRetracted(struct O *p);
+int IsAsegaRetracted(struct O *p);
 void DropAsegaRef(struct O **pp);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, struct P *p, int n);
 void UpdateMurrayJtModeInput(struct P *p);
@@ -658,7 +658,7 @@ void UpdateMurray(struct P *murray)
     UpdateStepplayer(murray);
     if ((((int)(murray->x28 >> 60) & 1) == 0))
         return;
-    if (murray->x190C && FAsegaRetracted(murray->x190C))
+    if (murray->x190C && IsAsegaRetracted(murray->x190C))
         DropAsegaRef(&murray->x190C);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, murray, 0xF8FA);
     UpdateMurrayJtModeInput(murray);
@@ -733,7 +733,7 @@ void SetMurrayState(struct P *p, int n);
 int GrfPressedWithin__5POCTLUif(struct PL *pl,unsigned int k,float g);
 int GrfConsumePressed__5POCTLUif(struct PL *pl, int k, float g);
 void ClearPoctlJoyPressed(struct PL *pl, int k);
-int FPowerupAcquired(int n);
+int IsPowerupAcquired(int n);
 void SetJtAirJump(void *p, int a, int b, int c);
 void StartJtMode(void *p, int a, int b, int c);
 void SetMurrayCarrySubstate(struct P *p, int n);
@@ -776,7 +776,7 @@ void UpdateMurrayCarry(struct P *murray)
                 DetachMurrayCarried(murray);
                 murray->carried = 0;
                 SetMurrayState(murray, MURRAY_IDLE);
-            } else if (GrfPressedWithin__5POCTLUif(murray->pl, BUTTON_JUMP, 0.1f) && FPowerupAcquired(0x12)) {
+            } else if (GrfPressedWithin__5POCTLUif(murray->pl, BUTTON_JUMP, 0.1f) && IsPowerupAcquired(0x12)) {
                 ClearPoctlJoyPressed(murray->pl, BUTTON_JUMP);
                 SetJtAirJump(murray->air, 0xF, 0, 0);
             } else if (GrfConsumePressed__5POCTLUif(murray->pl, BUTTON_ACTION | BUTTON_ATTACK, 0.0f)) {
@@ -792,7 +792,7 @@ void UpdateMurrayCarry(struct P *murray)
                 struct PL*pl=CopyPL(source);
                 float g=source->g1C;
                 if (murray->carrySubstate == 0 ? 0.1f < g : 0.0f < g) {
-                    if ((pl->x30 & 8) && FPowerupAcquired(0x12))
+                    if ((pl->x30 & 8) && IsPowerupAcquired(0x12))
                         SetMurrayCarrySubstate(murray, 2);
                     else
                         SetMurrayCarrySubstate(murray, 1);
@@ -874,12 +874,12 @@ void SetXfRole(P *p, void *x, int k);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(A *pa);
 void ReleaseSma(C *pc);
-void ApplyAsegCur(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA");
+void ReplaceCurrentAseg(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
 
 /** @sly2-annot addr=0x1B5658
  * Purpose: Switch carry substate x1458 (0 stand,1 walk via blend x1460,2 run clip x151C); restarts animation
- *   with ApplyAsegCur and component
+ *   with ReplaceCurrentAseg and component
  * Info: proposed name SetMurrayCarrySubstate (T1); TU murray
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
@@ -937,7 +937,7 @@ state2:
 done:
     ReleaseAsega(&murray->a);
     ReleaseSma(&murray->c);
-    ApplyAsegCur(pr, murray, f, 1.0f, n, &murray->a);
+    ReplaceCurrentAseg(pr, murray, f, 1.0f, n, &murray->a);
     ReplaceSma(pv, murray, -1, n, &murray->c);
 }
 } } // namespace M_SetMurrayCarrySubstate
@@ -1163,7 +1163,7 @@ void SetXfRole(struct P *p, int a, int b);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct P *p, int n, void *q, float f1, float f2);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct P *p, int n, void *q, float f1, float f2);
 void ReplaceSma(int a, struct P *p, int b, int n, void *q);
 /** @sly2-annot addr=0x1B5D30
  * Purpose: Switch strafe substate x17F4 (0 stand, 1 blend x1630, 2 clip x17F0), restart animation
@@ -1205,7 +1205,7 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
     }
     ReleaseAsega(murray->action);
     ReleaseSma(murray->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, murray, n, murray->action, 0.0f, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, n, murray->action, 0.0f, 1.0f);
     ReplaceSma(x, murray, -1, n, murray->x1034);
 }
 } } // namespace M_func_001B5D30
@@ -1373,18 +1373,18 @@ void SetMurrayStrafeSubstate(P *, int);
 void SetJtThrowState(void *, int);
 void SetSoCnstrForce(P *, int);
 void SetJtPipeState(void *, int);
-int IsmsFindSmOptional__FP2SM3OID(void *, int);
+int FindSmStateOptional__FP2SM3OID(void *, int);
 int GetStepplayerLeanFlags(P *);
 void InitIdleTimer(P *, int);
 void ResetGaitFeet(void *);
 void SetJtModeState__FP6JTMODEi(void *, int);
-int FPowerupAcquired(int);
+int IsPowerupAcquired(int);
 void ChooseMurrayThrowTarget(P *);
 qword GetLoWorldPos(P *);
 void SetStepTargetHeadingFromVector(P *, qword);
 void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
 ENTRY *FindAsegLabel(ASEG *, int);
 void SetAsegaChannelWeight(ASEGA *, float);
@@ -1395,7 +1395,7 @@ static inline void Call(OBJ *p, int index) { VE &v = p->vt[index]; ((void (*)(vo
 static inline void SetVelocity(P *p, qword q) { VE &v = p->vt[35]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
 /** @sly2-annot addr=0x1B6078
  * Purpose: Murray state switch (x13D0, 0..21): exit work for old state, entry work (clip selection, velocity
- *   reset, component state), shared ApplyAsegCur/component restart, then vt90
+ *   reset, component state), shared ReplaceCurrentAseg/component restart, then vt90
  * Info: proposed name SetMurrayState (T1); TU murray
  * Notes: runtime3/4: states 0,1,4,10,11,13,21
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
@@ -1497,7 +1497,7 @@ extern "C" void SetMurrayState(P *murray, int next)
             id = (old != 10) ? 0x175 : 0x176;
         } else
             id = 0x178;
-        if (IsmsFindSmOptional__FP2SM3OID(source, id) < 0)
+        if (FindSmStateOptional__FP2SM3OID(source, id) < 0)
             id = -1;
         mode = GetStepplayerLeanFlags(murray);
         InitIdleTimer(murray, 1);
@@ -1531,7 +1531,7 @@ extern "C" void SetMurrayState(P *murray, int next)
         break;
     case MURRAY_THROW: {
         ASEG *a = murray->extra7;
-        if (a && FPowerupAcquired(0x11))
+        if (a && IsPowerupAcquired(0x11))
             clip = murray->extra7;
         else
             clip = murray->clip7;
@@ -1603,7 +1603,7 @@ extern "C" void SetMurrayState(P *murray, int next)
         float position = 0.0f;
         ReleaseAsega(animation);
         ReleaseSma(component);
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, murray, position, 1.0f, flags, animation);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, murray, position, 1.0f, flags, animation);
         ReplaceSmaEx(source, murray, id, flags, mode, component);
         if (clip || source) {
             if (clip && duration == position) {
@@ -1810,7 +1810,7 @@ typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x18]; float f18; float f1C; };
 struct P { char pad[0x150]; struct Q *controller; char pad0[0x190 - 0x154]; qword q190; char pad1[0x1030 - 0x1A0]; int action; char pad2[0x131C - 0x1034]; char x131C[0x13D8 - 0x131C]; int x13D8; float f13DC; int x13E0; int x13E4; };
 extern float D_002C09A0, D_002BF730;
-int FAsegaRetracted(int n);
+int IsAsegaRetracted(int n);
 void SetMurrayState(struct P *p, int n);
 void SetMurrayFlopSubstate(struct P *p, int n);
 int IsJtStuck(struct P *p, void *q, float f);
@@ -1831,7 +1831,7 @@ void UpdateMurrayFlop(struct P *murray)
     int s;
     for (;;) {
         s = murray->x13D8;
-        if (!murray->action || FAsegaRetracted(murray->action)) SetMurrayState(murray, MURRAY_IDLE);
+        if (!murray->action || IsAsegaRetracted(murray->action)) SetMurrayState(murray, MURRAY_IDLE);
         else if (murray->x13D8 == 1) {
             if (murray->x13E4) SetMurrayFlopSubstate(murray, 2);
             else if (IsJtStuck(murray, murray->x131C, murray->f13DC)) ReturnJtToSafePlace(murray, 0);
@@ -3112,7 +3112,7 @@ float RadNormalize__Ff(float g);
 void SetStepTargetHeading(struct P *p, float g);
 void FixStepAngularVelocity(struct P *p);
 void ReleaseSma(void *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
 float *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ANIM *pa, float t);
 struct R *FindAsegChannel(struct S14 *p, struct P *pp, int a, int b);
@@ -3160,7 +3160,7 @@ void SetMurrayAttack(struct P *murray, int k)
     }
     g = 0.0f;
     ReleaseSma(murray->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
     if (q) {
         float *pg = FindAsegLabel(q, 0x1AC);
         if (pg)
@@ -3220,7 +3220,7 @@ typedef struct P {
     char pad1814[0x181C - 0x1814];
     int x181C;
 } P;
-int FAsegaRetracted(void *p);
+int IsAsegaRetracted(void *p);
 void SetMurrayState(P *p, int s);
 int CanMurrayAttack(P *p);
 int GrfConsumePressed__5POCTLUif(T *t, int k, float f);
@@ -3244,7 +3244,7 @@ void UpdateMurrayAttack(P *murray)
     int s;
     for (;;) {
         s = murray->attackSubstate;
-        if (!murray->action || FAsegaRetracted(murray->action)) {
+        if (!murray->action || IsAsegaRetracted(murray->action)) {
             SetMurrayState(murray, MURRAY_IDLE);
         } else {
             switch (murray->attackSubstate) {
@@ -3391,7 +3391,7 @@ void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
 qword GetLoWorldPos(struct P *p);
 struct M3 *GetLoWorldMatrix(struct P *p);
 void ReleaseSma(struct COMPONENT *p);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,t)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
@@ -3490,7 +3490,7 @@ void SetMurrayPowerSubstate(struct P *murray, int st)
         return;
     }
     ReleaseSma(&murray->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->action);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->action);
 }
 } } // namespace M_func_001B8D30
 #undef FIELD_OFFSET
@@ -3515,7 +3515,7 @@ typedef struct P {
 extern float D_002DDED0;
 extern float D_002C0A30;
 extern float D_002C0A34;
-int FAsegaRetracted(void *p);
+int IsAsegaRetracted(void *p);
 void SetMurrayState(P *p, int s);
 void SetMurrayPowerSubstate(P *p, int s);
 int IsLeapDone(void *p);
@@ -3537,10 +3537,10 @@ void UpdateMurrayPower(P *murray)
         s = murray->x1840;
         switch (s) {
         case 0:
-            if (!murray->action || FAsegaRetracted(murray->action)) SetMurrayPowerSubstate(murray, 1);
+            if (!murray->action || IsAsegaRetracted(murray->action)) SetMurrayPowerSubstate(murray, 1);
             break;
         case 1:
-            if (!murray->action || FAsegaRetracted(murray->action)) {
+            if (!murray->action || IsAsegaRetracted(murray->action)) {
                 SetMurrayState(murray, MURRAY_IDLE);
             } else if (murray->powerContactTrigger) {
                 SetMurrayPowerSubstate(murray, 2);
@@ -3557,7 +3557,7 @@ void UpdateMurrayPower(P *murray)
             }
             break;
         case 3:
-            if (!murray->action || FAsegaRetracted(murray->action)) {
+            if (!murray->action || IsAsegaRetracted(murray->action)) {
                 SetMurrayState(murray, MURRAY_IDLE);
             } else if (D_002DDED0 - murray->x1844 > D_002C0A34 && murray->controller->x80 == 1 && 0.0f < murray->controller->x1C) {
                 SetMurrayState(murray, MURRAY_IDLE);
@@ -3682,7 +3682,7 @@ struct O { char pad[0x28]; unsigned long f28; };
 struct T { char pad[0x180]; struct O *po; };
 struct P { char pad[0x1030]; int action; char pad1[0x13F0 - 0x1034]; struct T *carried; char pad2[0x1448 - 0x13F4]; int x1448; int x144C; int x1450; };
 void SetMurrayState(struct P *p, int n);
-int FAsegaRetracted(int n);
+int IsAsegaRetracted(int n);
 /** @sly2-annot addr=0x1B92F8
  * Purpose: State 4: wait for grab event (x1448), abort if object gone; after attach go to carry (state 5)
  *   when anim ends
@@ -3712,7 +3712,7 @@ void UpdateMurrayLift(struct P *murray)
             }
             break;
         case 2:
-            if (FAsegaRetracted(murray->action)) SetMurrayState(murray, MURRAY_CARRY);
+            if (IsAsegaRetracted(murray->action)) SetMurrayState(murray, MURRAY_CARRY);
             break;
         }
         if (murray->x1450 == s || murray->x1450 == -1) break;
@@ -4198,7 +4198,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int pad[3]; struct VTE *vt; int pad1[6]; unsigned long f28; };
 struct P { char pad[0x1AD0]; struct O *po; int n1AD4; };
-int FPowerupAcquired(int n);
+int IsPowerupAcquired(int n);
 void ApplyAsegCore(int n, struct O *po, int a, int b, float g0, float g1);
 /** @sly2-annot addr=0x1B9D28
  * Purpose: If power-up 0x11 owned: position effect object (vt29) at given point and play its anim
@@ -4209,7 +4209,7 @@ void ApplyAsegCore(int n, struct O *po, int a, int b, float g0, float g1);
 // If power-up 0x11 is owned: places the hit effect object at the point and plays its animation.
 void SpawnMurrayHitEffect(struct P *murray, qword q)
 {
-    if (!FPowerupAcquired(0x11))
+    if (!IsPowerupAcquired(0x11))
         return;
     struct O *object = murray->po;
     if (!((((object->f28 >> 60) & 1) == 0)))

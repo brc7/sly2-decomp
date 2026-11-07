@@ -45,7 +45,7 @@ struct CHN
     VU segmentEnd;
     VU segmentEndTangent;
 };
-/* A segment's channel chain entry and the chain list (SetAsegblDominantBl, RecalculateAsegBlend). */
+/* A segment's channel chain entry and the chain list (SetBlendDominantSegment, RecalculateAsegBlend). */
 struct CHNE { int kind; int object; CHN *xf; char pad[0x1c - 0xc]; int unknown1C; char pad2[0x28 - 0x20]; CHNE *next; };
 struct LINK { char pad[0x1C]; float relativeTime; char pad20[0xC]; LINK *next; int prevLink; CHNE *firstChannel; };
 struct KEY { float t; int kind; int arg8; int argC; };
@@ -107,12 +107,12 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, EL
 float GetAsegLabelTime(ASEG *paseg, OID oid);
 float GModPositive__Fff(float, float);
 int IsActCurrent(CHNE *);
-void SetAsegblDominantBl(ASEG *p, int n);
-void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *syncTable, float *pf);
+void SetBlendDominantSegment(ASEG *p, int n);
+void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *syncTable, float *pf);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
 }
-int ImrsgLookUp(float t, float tMax, int syncCount, MRSG *syncTable, float *pdt);
+int FindSyncInterval(float t, float tMax, int syncCount, MRSG *syncTable, float *pdt);
 
 // EnsureAsegBlendDynamic (Claude agent laneBE2, 2026-10-23): MATCH. Built from build/hand_wip/EnsureAsegBlendDynamic.fresh14.cpp:
 // the E3-loop "r"(0x10) asm removed, one allocation-only empty asm on the i*4 giv, one register pin (rotationCurveBit in s5),
@@ -252,7 +252,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
 // Fills each blended segment's MRSG timing table: for every sync-point OID, the time at which that segment reaches it and
 // the duration to the next sync point (wrapping around the segment's length). These tables let segments of different
 // lengths stay in step while blended.
-void FillBlAmrsg(int elementSize, int elementCount, void *elements, int tableOffset, int syncCount, OID *syncOids)
+void FillBlendSyncTables(int elementSize, int elementCount, void *elements, int tableOffset, int syncCount, OID *syncOids)
 {
     int elementIndex;
     for (elementIndex = 0; elementIndex < elementCount; elementIndex++) {
@@ -286,7 +286,7 @@ void FillBlAmrsg(int elementSize, int elementCount, void *elements, int tableOff
  * @end-sly2-annot */
 // Computes the blend's own timing table as the weight-averaged durations of the segments' tables (and, through pf, the
 // blend's total length); with no sync points the length is simply the weighted average of the segment lengths.
-extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *blend, int tableOffset, int count, MRSG *syncTable, float *totalLength)
+extern "C" void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *blend, int tableOffset, int count, MRSG *syncTable, float *totalLength)
 {
     float sum = 0.0f;
     int i;
@@ -350,7 +350,7 @@ extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *blend, int tableOffse
  * @end-sly2-annot */
 // Finds which sync-point interval of an MRSG table contains time t (wrapping at tMax); returns its index and, through
 // pdt, the time elapsed since that sync point. Returns cmrsg when no interval matches.
-int ImrsgLookUp(float t, float duration, int syncCount, MRSG *syncTable, float *elapsed)
+int FindSyncInterval(float t, float duration, int syncCount, MRSG *syncTable, float *elapsed)
 {
     int i;
     float dt;
@@ -373,14 +373,14 @@ namespace RO_ORDER { extern const float r_D_002A4AF0 __asm__("D_002A4AF0") = -3.
 /** @sly2-annot addr=0x1383F0
  * Purpose: When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping
  *   of every live ACT on the blended aseg channels
- * Info: proposed name SetAsegblDominantBl (T1); TU blend
+ * Info: proposed name SetBlendDominantSegment (T1); TU blend
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
 // Records which blended segment dominates (weight above 0.9999, or -1 for none); when it changes, resets the smoothing
 // state of every live action on the blend's channels so they do not interpolate across the switch.
-extern "C" void SetAsegblDominantBl(ASEG *blend, int dominant) {
+extern "C" void SetBlendDominantSegment(ASEG *blend, int dominant) {
     LINK *link;
     CHNE *channelEntry;
     if (dominant == blend->dominantElement) return;
@@ -397,7 +397,7 @@ extern "C" void SetAsegblDominantBl(ASEG *blend, int dominant) {
 
 // (Claude agent) matched: count-down search as do { if (--j < 0) break; if (...) break; } while (1); separate counter k in the last loop.
 /** @sly2-annot addr=0x1384C0
- * Purpose: Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendAmrsg per mrsgc),
+ * Purpose: Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendSyncTable per mrsgc),
  *   rescale times; mirror times from a linked asegbl (+0xD8)
  * Info: proposed name ReblendAsegbl (T1); TU blend
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verdicts_followups
@@ -421,16 +421,16 @@ extern "C" void RecalculateAsegBlend(ASEG *blend)
             if (0.9999f < *(float *)((char *)blend->elements + j * blend->cb))
                 break;
         } while (1);
-        SetAsegblDominantBl(blend, j);
+        SetBlendDominantSegment(blend, j);
     }
     for (link = blend->links; link; link = link->next)
         link->relativeTime = link->relativeTime / blend->tMax;
     for (i = 0; i < blend->n; i++) {
         BLMRSG *syncInfo = &blend->syncTables[i];
-        CalculateBlendAmrsg__FiiPviiP4MRSGPf(blend, syncInfo->ib, syncInfo->syncCount, syncInfo->syncTable, &blend->tMax);
+        CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, syncInfo->ib, syncInfo->syncCount, syncInfo->syncTable, &blend->tMax);
     }
     if (blend->n == 0)
-        CalculateBlendAmrsg__FiiPviiP4MRSGPf(blend, 0, 0, 0, &blend->tMax);
+        CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, 0, 0, 0, &blend->tMax);
     for (link = blend->links; link; link = link->next)
         link->relativeTime = link->relativeTime * blend->tMax;
     if (blend->linkedBlend) {
@@ -512,7 +512,7 @@ void AC5::VSlot2(CHN *pq)
         if (!p->pblmrsg) {
             u = tCur / pa->tMax;
         } else {
-            iSeg = ImrsgLookUp(tCur, pa->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &t[0]);
+            iSeg = FindSyncInterval(tCur, pa->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &t[0]);
             u = t[0] / p->pblmrsg->syncTable[iSeg].dt;
         }
     }
@@ -613,7 +613,7 @@ void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
         u = t / p->paseg->tMax;
     } else {
         float tLocal;
-        iSeg = ImrsgLookUp(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &tLocal);
+        iSeg = FindSyncInterval(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &tLocal);
         pseg = &p->pblmrsg->syncTable[iSeg];
         u = tLocal / pseg->dt;
     }
@@ -705,7 +705,7 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
     if (p->pblmrsg == 0) {
         rate = t / p->paseg->tMax;
     } else {
-        idx = ImrsgLookUp(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &g0);
+        idx = FindSyncInterval(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &g0);
         pe = &p->pblmrsg->syncTable[idx];
         rate = g0 / pe->dt;
     }

@@ -28,8 +28,8 @@ extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the addres
 extern "C" {
 void *InitScreenList(void *pv);      /* the shown-screen list: InitDl(pdl, 0x14) */
 void *GADGETMENU_ctor(void *pv);
-void *ConstructScreen378(void *pv);      /* THIEFNET constructor */
-void *ConstructScreen4E0(void *pv);      /* JOBLIST constructor */
+void *ConstructThiefnetScreen(void *pv);      /* THIEFNET constructor */
+void *ConstructJobListScreen(void *pv);      /* JOBLIST constructor */
 void *ConstructScreen52D(void *pv);      /* screen 0x52D constructor */
 void *ConstructTitleScreen(void *pv);      /* title screen constructor */
 void DestroyBasic(void *pv, int grfDelete);
@@ -62,8 +62,8 @@ SCRINL<0x50> D_003D9E80(D_002D8668);    /* HUD meter */
 SCRINL<0x1F0> D_003D9ED0(D_002D37D0);   /* pause menu */
 SCRINL<0x30> D_003DA0C0(D_002CA490);    /* notice */
 SCRCTOR<0x60> D_003DA0F0(GADGETMENU_ctor);
-SCRCTOR<0x270> D_003DA150(ConstructScreen378);
-SCRCTOR<0x110> D_003DA3C0(ConstructScreen4E0);
+SCRCTOR<0x270> D_003DA150(ConstructThiefnetScreen);
+SCRCTOR<0x110> D_003DA3C0(ConstructJobListScreen);
 /* 0x3DA4D0: the selected job (JOBSEL *, read as D_003DA4D0 below) heads a 0x20-byte object: the next screen starts
  * at 0x3DA4F0. A plain pointer would be emitted after every constructed object (plain .bss goes at the end of the
  * file), so the slot is a 0x20-byte record with an empty inline constructor, emitted here in order and constructed
@@ -178,12 +178,12 @@ void SetScreenMode(SCREENV *screen, int n0, int n1);
 SCREENV *ConstructScreen(SCREENV *screen);
 void ClearGadgetMenu(GADGETMENUV *gadgetMenu);
 int IsScreenItemUnlocked(int idGadget);
-int FPowerupAcquired(int id);
+int IsPowerupAcquired(int id);
 LO *GetHeroPo(SW *psw);
 void SetGadgetMenuState(GADGETMENUV *gadgetMenu, int nState);
 void ClearThiefnet(SCREENV *screen);
 void ClearJobList(SCREENV *screen);
-int IdsFromWorld(int nWorld);
+int GetWorldNameTextId(int nWorld);
 int NWorldCur();
 int GetCompletionPercent(void *pgs, void *psave);
 int sprintf(char *pch, const char *pchzFormat, ...);
@@ -241,7 +241,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
-static inline void *PvNextDli(DLI *pdli)
+static inline void *NextListEntry(DLI *pdli)
 {
     void *pv = *pdli->ppv;
     pdli->ppv = (void **)((char *)pv + pdli->ibDle);
@@ -260,7 +260,7 @@ void ResetScreens(DL *pdl)
     DLI dli;
     LO *plo;
     InitDli(&dli, pdl);
-    while ((plo = (LO *)PvNextDli(&dli)) != 0)
+    while ((plo = (LO *)NextListEntry(&dli)) != 0)
         plo->vt->a[11].pfn((char *)plo + plo->vt->a[11].d);
     D_002DD318 = 0;
     ResetHudMeter(D_003D9E80);
@@ -461,7 +461,7 @@ extern "C" void DrawScreen()
 
 /** @sly2-annot addr=0x1D9880
  * Purpose: Return whether the screen is in the shown-screen list D_003D9E70
- * Info: proposed name FScreenShown (T1); TU screen
+ * Info: proposed name IsScreenShown (T1); TU screen
  * Notes: top50_round (0.65): Body FFindDlEntry(&D_003D9E70,p) (m2c drops the return). ShowScreen 0x1D98B0 /
  *   HideScreen 0x1D9910 (SCREENV slots 10/11) add/remove from the same list. Callers: pause-menu page tests,
  *   memcard dialog flow
@@ -469,7 +469,7 @@ extern "C" void DrawScreen()
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // True when the screen is on the shown-screen list.
-extern "C" void FScreenShown(SCREENV *screen)
+extern "C" void IsScreenShown(SCREENV *screen)
 {
     FFindDlEntry((DL *)&D_003D9E70, screen);
 }
@@ -652,7 +652,7 @@ typedef struct OBJ {
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern REC D_002BCD00[];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-int FPowerupAcquired(int);
+int IsPowerupAcquired(int);
 void PlayWidgetAnim(SUB *, int);
 void StopWidgetAnim(SUB *, int);
 void SetWidgetAnimPhase(SUB *, int, float);
@@ -702,7 +702,7 @@ void SetHudMeterState(OBJ *p, int s)
         found = 0;
         for (i = 0; i < n; i++) {
             int id = tbl[i].key;
-            if (FPowerupAcquired(id)) {
+            if (IsPowerupAcquired(id)) {
                 REC r = D_002BCD00[id];
                 if (r.powerCost > 0) {
                     found = 1;
@@ -769,7 +769,7 @@ void SetHudMeterState(OBJ *, int);
 int GetStepplayerMp(Q *);
 int FFloatsNear__Ffff(float, float, float);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
-int FWidgetAnimPlaying(SUB *, int);
+int IsWidgetAnimPlaying(SUB *, int);
 void SetWidgetAnimPhase(SUB *, int, float);
 /** @sly2-annot addr=0x1D9DF8
  * Purpose: Meter per-frame (vtable 0x2D8668 slot 7): follow the hero, animate hp drain/fill (state 3) and
@@ -842,11 +842,11 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         }
         break;
     case HUDMETER_DAMAGE:
-        if (!FWidgetAnimPlaying(p->widget, p->damageAnim))
+        if (!IsWidgetAnimPlaying(p->widget, p->damageAnim))
             SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         break;
     case HUDMETER_SWITCH_HERO:
-        if (!FWidgetAnimPlaying(p->widget, p->hideAnim))
+        if (!IsWidgetAnimPlaying(p->widget, p->hideAnim))
             SetHudMeterState(p, HUDMETER_STEADY);
         break;
     case HUDMETER_HIDDEN:
@@ -924,8 +924,8 @@ typedef struct {
     W *widget;
 } OBJ;
 void SetNoticeState(OBJ *, int);
-int FWidgetVisible(W *);
-int FWidgetAnimPlaying(W *, int);
+int IsWidgetVisible(W *);
+int IsWidgetAnimPlaying(W *, int);
 /** @sly2-annot addr=0x1DA350
  * Purpose: Notice banner per-frame: showing -> shown when widget state 2; time out (only while widget hidden)
  *   or swap to the queued text (anim 0x312); hide
@@ -952,7 +952,7 @@ void UpdateNotice(OBJ *p)
         } else if (p->duration == 0.0f) {
             SetNoticeState(p, NOTICE_HIDING);
         } else if (0.0f < p->duration) {
-            if (p->widget && !FWidgetVisible(p->widget))
+            if (p->widget && !IsWidgetVisible(p->widget))
                 p->stateTime += D_002DDED0.dt;
         }
         break;
@@ -961,7 +961,7 @@ void UpdateNotice(OBJ *p)
             SetNoticeState(p, NOTICE_HIDDEN);
         break;
     case NOTICE_SWAPPING:
-        if (FWidgetAnimPlaying(p->widget, 0x312))
+        if (IsWidgetAnimPlaying(p->widget, 0x312))
             break;
         if (p->queuedTextId == -1)
             SetNoticeState(p, NOTICE_HIDDEN);
@@ -1257,7 +1257,7 @@ namespace M_func_001DA950 { extern "C" {
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern float D_002A7984, D_002C3254;
 struct S { char p0[0x30]; int timerKind; float closeTime; int modeArg; };
-void *PsndStartSound(int timerKind);
+void *CreateSfxSound(int timerKind);
 void SetSndSourceLo(void *p, int timerKind);
 /** @sly2-annot addr=0x1DA950
  * Purpose: Set mode timerKind (+0x30) and arg (+0x38); mode 0 plays sound 0x29 and sets the timeout
@@ -1275,12 +1275,12 @@ void SetScreenMode(struct S *p, int timerKind, int modeArg) {
         break;
     case 0:
         p->closeTime = D_002A7984;
-        SetSndSourceLo(PsndStartSound(0x29), 0);
+        SetSndSourceLo(CreateSfxSound(0x29), 0);
         break;
     case 1:
     default:
         p->closeTime = D_002DDED0.realTime + D_002C3254;
-        SetSndSourceLo(PsndStartSound(0x36), 0);
+        SetSndSourceLo(CreateSfxSound(0x36), 0);
         break;
     }
 }
@@ -1368,7 +1368,7 @@ void SetGadgetMenuState(OBJ *, int);
 void UpdateScreenStickDir(OBJ *);
 R *FindScreenEntry(OBJ *, int);
 void SetScreenMode(OBJ *, int, int);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void SetStepplayerGadget(void *, int, int);
 /** @sly2-annot addr=0x1DAA90
@@ -1420,7 +1420,7 @@ void UpdateGadgetMenu(OBJ *p)
         } else if (((r->flags & 1) == 0)) {
             SetScreenMode(p, 1, 0x33);
         } else {
-            SetSndSourceLo(PsndStartSound(0x34), 0);
+            SetSndSourceLo(CreateSfxSound(0x34), 0);
             SetStepplayerGadget(hero, i, p->selectedGadget);
         }
     }
@@ -1443,7 +1443,7 @@ typedef struct {
 extern struct G D_003DD490;
 extern float D_002C3264;
 extern int D_002C3268[];
-int FWidgetVisible(void *);
+int IsWidgetVisible(void *);
 Q *GetHeroPo(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void CTextBox_SetPos(TXT *, float, float);
@@ -1469,7 +1469,7 @@ void DrawGadgetMenuSlotLabels(OBJ *p)
     int i;
     if (p->widget == 0)
         return;
-    if (!FWidgetVisible(p->widget))
+    if (!IsWidgetVisible(p->widget))
         return;
     hero = GetHeroPo(&D_003DD490);
     if (hero == 0)
@@ -1549,13 +1549,13 @@ void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1DAEA8
  * Purpose: Save var powerUps.mppukfAcquired[n] (has the power-up been bought)
- * Info: proposed name FPowerupAcquired (T1); TU screen
+ * Info: proposed name IsPowerupAcquired (T1); TU screen
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // True when the power-up has been bought (save data).
-int FPowerupAcquired(int n) {
+int IsPowerupAcquired(int n) {
     CRef ref;
     char ach[0x20];
     CRef tmp;
@@ -1626,7 +1626,7 @@ extern "C" void RefreshGadgetMenuItems(GADGETMENUV *gadgetMenu)
         do {
             GMITEM *pitem = &gadgetMenu->aitem[i++];
             pitem->fAvailable = IsScreenItemUnlocked(pitem->idGadget);
-            pitem->fAcquired = FPowerupAcquired(pitem->idGadget);
+            pitem->fAcquired = IsPowerupAcquired(pitem->idGadget);
         } while (i < gadgetMenu->citem);
     }
 }
@@ -1670,7 +1670,7 @@ int ClipEdgeToSphere(qword point, qword start, qword end, int flags, HIT *hit, f
 void FindClosestPointOnLineSegment(qword point, qword start, qword end, qword *unused, float *along, float *distance);
 void SelectGadgetMenuItem(SELECTOR *sel, int id);
 void CloseScreen(SELECTOR *sel);
-void *PsndStartSound(int id);
+void *CreateSfxSound(int id);
 void SetSndSourceLo(void *sound, int flags);
 void SetGadgetMenuStickDir(SELECTOR *sel, int mode);
 }
@@ -1766,7 +1766,7 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
     if (bestId != -1) {
         SelectGadgetMenuItem(sel, bestId);
         CloseScreen(sel);
-        SetSndSourceLo(PsndStartSound(0x35), 0);
+        SetSndSourceLo(CreateSfxSound(0x35), 0);
     }
 }
 } // namespace M_SetGadgetMenuStickDir
@@ -1986,7 +1986,7 @@ void ClearThiefnet(struct S *p);
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Constructor of the ThiefNet shop screen (widget 0x378, a 64-entry item list). (inferred)
-struct S *ConstructScreen378(struct S *p) {
+struct S *ConstructThiefnetScreen(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D84E8;
     p->widgetOid = 0x378;
@@ -2072,7 +2072,7 @@ void SetCoinCount(void *, int);
 void SetScreenMode(OBJ *, int, int);
 void SetPowerupAcquired(int, int);
 void RefreshThiefnetItems(OBJ *);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void RefreshPlayersAfterPowerupChange(void *);
 void sprintf(char *, const char *, ...);
@@ -2115,7 +2115,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
                     SetCoinCount(D_002DEB30, have - cost);
                     SetPowerupAcquired(p->selectedPowerup, 1);
                     RefreshThiefnetItems(p);
-                    SetSndSourceLo(PsndStartSound(0x29), 0);
+                    SetSndSourceLo(CreateSfxSound(0x29), 0);
                     RefreshPlayersAfterPowerupChange(D_003DD490);
                 } else if (have >= cost) {
                     SetScreenMode(p, 0, 0x34);
@@ -2123,14 +2123,14 @@ extern "C" void UpdateThiefnet(OBJ *p)
                     SetScreenMode(p, 1, 0x35);
                 }
             } else {
-                SetSndSourceLo(PsndStartSound(0x36), 0);
+                SetSndSourceLo(CreateSfxSound(0x36), 0);
             }
         }
         break;
     case 1:
         if (HandleJoyButtons(p->joy, 0x40)) {
             if (p->selectedLoot == -1) {
-                SetSndSourceLo(PsndStartSound(0x36), 0);
+                SetSndSourceLo(CreateSfxSound(0x36), 0);
             } else {
                 CRef r;
                 char buf[32];
@@ -2140,7 +2140,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
                     RefSetSaveVarV(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
                     SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->selectedLoot].sellPrice);
                     RefreshThiefnetItems(p);
-                    SetSndSourceLo(PsndStartSound(0x29), 0);
+                    SetSndSourceLo(CreateSfxSound(0x29), 0);
                 }
             }
         }
@@ -2265,7 +2265,7 @@ extern "C" { extern char D_002A79D8[]; }
 extern "C" int sprintf(char *, const char *, ...);
 extern "C" CRef RefGetSaveVarV(const char *, ...);
 extern "C" int IsScreenItemUnlocked(int);
-extern "C" int FPowerupAcquired(int);
+extern "C" int IsPowerupAcquired(int);
 extern "C" void SelectThiefnetItem(OBJ *, int);
 /** @sly2-annot addr=0x1DBD10
  * Purpose: Rebuild the list: tab 0 power-ups 7..0x2A unlocked by episode and not yet acquired; tab 1 loot
@@ -2291,7 +2291,7 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
         for (i = 7; i < 0x2B; i++) {
             if (!IsScreenItemUnlocked(i))
                 continue;
-            if (FPowerupAcquired(i))
+            if (IsPowerupAcquired(i))
                 continue;
             if (p->itemCount > 0x40)
                 break;
@@ -2473,7 +2473,7 @@ void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
 void SetWidgetRequest(SUB *, int);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void RefreshThiefnetItems(OBJ *);
 void SelectThiefnetItem(OBJ *, int);
@@ -2526,7 +2526,7 @@ void SetThiefnetTab(OBJ *p, int s)
         } else {
             SetWidgetRequest(p->widget, 2);
         }
-        SetSndSourceLo(PsndStartSound(0x35), 0);
+        SetSndSourceLo(CreateSfxSound(0x35), 0);
         break;
     case 1:
         p->widget->pageAnimFirst = 0x49B;
@@ -2538,7 +2538,7 @@ void SetThiefnetTab(OBJ *p, int s)
         } else {
             SetWidgetRequest(p->widget, 2);
         }
-        SetSndSourceLo(PsndStartSound(0x35), 0);
+        SetSndSourceLo(CreateSfxSound(0x35), 0);
         break;
     }
     RefreshThiefnetItems(p);
@@ -2576,7 +2576,7 @@ typedef struct {
 } OBJ;
 void SetThiefnetTab(OBJ *, int);
 void SelectThiefnetItem(OBJ *, int);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 /** @sly2-annot addr=0x1DC4B0
  * Purpose: ThiefNet slot 14: dir 0 -> sell tab, 4 -> buy tab, 1-3 previous row, 5-7 next row (with sounds)
@@ -2606,9 +2606,9 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
     case 3:
         if (p->i > 0) {
             SelectThiefnetItem(p, p->i - 1);
-            SetSndSourceLo(PsndStartSound(0x35), 0);
+            SetSndSourceLo(CreateSfxSound(0x35), 0);
         } else {
-            SetSndSourceLo(PsndStartSound(0x36), 0);
+            SetSndSourceLo(CreateSfxSound(0x36), 0);
         }
         break;
     case 5:
@@ -2616,9 +2616,9 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
     case 7:
         if (p->i < p->c - 1) {
             SelectThiefnetItem(p, p->i + 1);
-            SetSndSourceLo(PsndStartSound(0x35), 0);
+            SetSndSourceLo(CreateSfxSound(0x35), 0);
         } else {
-            SetSndSourceLo(PsndStartSound(0x36), 0);
+            SetSndSourceLo(CreateSfxSound(0x36), 0);
         }
         break;
     }
@@ -2928,7 +2928,7 @@ void ClearJobList(struct S *p);
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Constructor of the job-list screen (widget 0x4E0). (inferred)
-struct S *ConstructScreen4E0(struct S *p) {
+struct S *ConstructJobListScreen(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D8468;
     p->widgetOid = 0x4E0;
@@ -3384,7 +3384,7 @@ typedef struct {
 } OBJ;
 void SetJobListPage(OBJ *, int);
 void SelectJobListItem(OBJ *, int);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 /** @sly2-annot addr=0x1DD558
  * Purpose: Job list slot 14: 0 -> tasks page, 4 -> jobs page, up/down rows
@@ -3412,7 +3412,7 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
     case 3:
         if (p->selectedRow > 0) {
             SelectJobListItem(p, p->selectedRow - 1);
-            SetSndSourceLo(PsndStartSound(0x35), 0);
+            SetSndSourceLo(CreateSfxSound(0x35), 0);
         }
         break;
     case 5:
@@ -3420,7 +3420,7 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
     case 7:
         if (p->selectedRow < p->entryCount - 1) {
             SelectJobListItem(p, p->selectedRow + 1);
-            SetSndSourceLo(PsndStartSound(0x35), 0);
+            SetSndSourceLo(CreateSfxSound(0x35), 0);
         }
         break;
     }
@@ -3857,12 +3857,12 @@ namespace RO_ORDER { extern const char r_D_002A7A70[] __asm__("D_002A7A70") = "\
 namespace M_IdsFromWorld { extern "C" {
 /** @sly2-annot addr=0x1DDD40
  * Purpose: World index 0-8 -> episode name string id 0x6D-0x75
- * Info: proposed name IdsFromWorld (T1); TU screen
+ * Info: proposed name GetWorldNameTextId (T1); TU screen
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Episode-name string id of a world index (0-8).
-int IdsFromWorld(int n) {
+int GetWorldNameTextId(int n) {
     int r = -1;
     switch (n) {
     case 0: r = 0x6D; break;
@@ -3888,7 +3888,7 @@ int IdsFromWorld(int n) {
 // Text callback: the current episode's name.
 extern "C" void BuildJobListWorldText(char *pch)
 {
-    StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, IdsFromWorld(NWorldCur())));
+    StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, GetWorldNameTextId(NWorldCur())));
 }
 
 /** @sly2-annot addr=0x1DDE10

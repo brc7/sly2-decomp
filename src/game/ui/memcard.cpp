@@ -2225,7 +2225,7 @@ extern "C" {
 extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
 extern char D_002E65E0[];
 
-int FScreenShown(void *p);
+int IsScreenShown(void *p);
 int IsPauseMenuOnLoadPageA(void *p);
 void ClearMcDialogState(S *s);
 void SetMcDialogPhase(S *s, int n);
@@ -2253,7 +2253,7 @@ void OnMcDialogChoice(S *dialog)
     case 17: case 18: case 21: case 24:
         {
             void *titleScreen = D_003DA530;
-            if (FScreenShown(titleScreen) && IsPauseMenuOnLoadPageA(D_003D9ED0)) {
+            if (IsScreenShown(titleScreen) && IsPauseMenuOnLoadPageA(D_003D9ED0)) {
                 ClearMcDialogState(dialog);
                 SetMcDialogPhase(dialog, 2);
                 PopPauseMenuToRoot(D_003D9ED0);
@@ -2337,7 +2337,7 @@ void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void ResetSaveGs(struct B *b, int n);
 void StartGameFromSave(struct B *b);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x1AD250
  * Purpose: Menu action slot i: if slot empty (Splice eval) make it current and start (0x1D8D80, 0x165E38)
@@ -2361,7 +2361,7 @@ void StartNewGameInSlot(struct S *item)
         ResetSaveGs(slot, 1);
         StartGameFromSave(D_002E65E0.currentSlot);
     } else {
-        SetSndSourceLo(PsndStartSound(0x36), 0);
+        SetSndSourceLo(CreateSfxSound(0x36), 0);
         if (item)
             item->flags |= 2;
     }
@@ -2663,9 +2663,9 @@ namespace M_func_001AD980 { extern "C" {
 struct G { char pad[0x3A18]; char gameState[1]; };   /* g_sw; +0x3A18: the game-progress object */
 extern struct G D_003DD490;
 extern char D_003DA530[], D_003D4A60[];
-int FScreenShown(void *p);
+int IsScreenShown(void *p);
 void *NEpisodeBest(void);
-int IdsFromWorld(void *p);
+int GetWorldNameTextId(void *p);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
 char *GetCompletionPercent(void *p, void *q);
 void sprintf(char *buf, char *fmt, ...);
@@ -2681,11 +2681,11 @@ void FormatSaveCompletionText(char *buf)
     char *episodeName;
     struct G *world;
     char *fmt;
-    if (FScreenShown(D_003DA530))
+    if (IsScreenShown(D_003DA530))
         return;
     fmt = "%s : %d%%";
     world = &D_003DD490;
-    episodeName = PchzFindSwLangstr__FP2SWi(world, IdsFromWorld(NEpisodeBest()));
+    episodeName = PchzFindSwLangstr__FP2SWi(world, GetWorldNameTextId(NEpisodeBest()));
     sprintf(buf, fmt, episodeName, GetCompletionPercent(world->gameState, D_003D4A60));
 }
 } } // namespace M_func_001AD980
@@ -2795,7 +2795,7 @@ extern "C" {
  void*STACKSCOPE_ctor(void*);
  void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
  void*AllocSaveKey(void*,...);
- int IdsFromWorld(int);
+ int GetWorldNameTextId(int);
  void*PchzFindSwLangstr__FP2SWi(void*,int);
  int GetCompletionPercent(void*,void*);
  int sprintf(char*,const char*,...);
@@ -2820,7 +2820,7 @@ extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
   void*value=AllocSaveKey((char *)"episodeBest",0);
   int tag;
   if(value)tag=GetN(ref,value,pb);else tag=GetN(ref,pg->fallback,pb);
-  sprintf(buf,"%s : %d%%",(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,IdsFromWorld(tag)),GetCompletionPercent(D_003DD490.object,pb));
+  sprintf(buf,"%s : %d%%",(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,GetWorldNameTextId(tag)),GetCompletionPercent(D_003DD490.object,pb));
   STACKSCOPE_ctor_1AE4A0(frame,2);
  }else{
   switch(GetPauseMenuTopPageId(D_003D9ED0)){

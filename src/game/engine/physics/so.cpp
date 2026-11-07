@@ -207,7 +207,7 @@ void ClearSoTreeBoundsDirty(SO *pso);
 void RefreshSoBoundsRecord(SO *pso);
 void RenderSoGlobset(GLOBSET *pglobset, int n, float uAlpha1, float uAlpha2, SOBOUNDS *psobounds);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword qw);
-void SlotUnsettle(SO *pso, XF *pxf);
+void UnsettleXfSlot(SO *pso, XF *pxf);
 void AddSwAaobrObject(SW *psw, SO *pso);
 void SetXfRole(SO *pso, XF *pxf, int n);
 void GetSoConstraintAxis(SO *pso, XF *pxf, CONSTR *pconstr, CONSTR *pconstrSo);
@@ -1819,7 +1819,7 @@ M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void FreeSoContacts(struct P *);
-void SlotUnsettle(struct P *, struct LO *);
+void UnsettleXfSlot(struct P *, struct LO *);
 void UpdateSoPartMatrices(struct P *);
 qword GetLoWorldPos(struct P *);
 struct REGION *FindPathzoneAtPos(qword, int);
@@ -1877,7 +1877,7 @@ void TranslateSoToPos(struct P *so, qword v)
     { int stamp=++D_003DD490.nStampXf;so->positionXf->stamp=stamp; }
     so->pvt[18].pfn((char *)so + so->pvt[18].d);
     FreeSoContacts(so);
-    SlotUnsettle(so, so->positionXf);
+    UnsettleXfSlot(so, so->positionXf);
     UpdateSoPartMatrices(so);
     {
         struct REGION_LINK *link = 0;
@@ -1904,7 +1904,7 @@ extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 extern "C" void FreeSoContacts(P *);
-extern "C" void SlotUnsettle(P *,LO *);
+extern "C" void UnsettleXfSlot(P *,LO *);
 extern "C" void UpdateSoPartMatrices(P *);
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
@@ -1947,7 +1947,7 @@ extern "C" void RotateSoToMat(P *so,const M3 *basis)
         so->object->stamp=stamp;
         so->vt[18].fn((char *)so+so->vt[18].delta);
         FreeSoContacts(so);
-        SlotUnsettle(so,so->object);
+        UnsettleXfSlot(so,so->object);
         UpdateSoPartMatrices(so);
     }
 }
@@ -1982,7 +1982,7 @@ struct P { char pad[0xC]; struct VT *pvt; char pad2[0x58 - 0x10]; struct O *posi
 int IsXfRoleMoving(int);
 void SetXfRole(struct P *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
-void SlotUnsettle(struct P *, struct O *);
+void UnsettleXfSlot(struct P *, struct O *);
 void InvalidateSoAaox(struct P *);
 void WakeSo(struct P *);
 void SetSoBit35Hierarchy(struct P *, int);
@@ -2004,7 +2004,7 @@ void SetSoVelocity(struct P *so, qword q)
     cur = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(cur));
     po->velocity.q = ConvertXfVec(0, po->parent, d);
-    SlotUnsettle(so, po);
+    UnsettleXfSlot(so, po);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -2092,7 +2092,7 @@ struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
-extern "C" void SlotUnsettle(P *,LO *);
+extern "C" void UnsettleXfSlot(P *,LO *);
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
     qword a0=a.r[0].q,a1=a.r[1].q,a2=a.r[2].q;
@@ -2131,7 +2131,7 @@ extern "C" void SetSoAngularVelocity(P *so,qword position)
     NormalizeRotateMatrix3__FP7MATRIX3(&normalized);
     M3 relative=Mul(*rotation,InvertMatrix3Cofactor(&normalized));
     object->velocity.q=ConvertXfVec(0,object->parent,Transform(relative,Sub(position,&origin)));
-    SlotUnsettle(so,object);
+    UnsettleXfSlot(so,object);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so,0);
@@ -2178,7 +2178,7 @@ struct Q { char pad[0x60]; int rootTransform; };
 int IsXfRoleMoving(int);
 void SetXfRole(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
-void SlotUnsettle(void *, struct O *);
+void UnsettleXfSlot(void *, struct O *);
 void InvalidateSoAaox(void *);
 void WakeSo(void *);
 void SetSoBit35Hierarchy(void *, int);
@@ -2195,7 +2195,7 @@ void SetSoPosXfVelocityLocal(struct P *so, qword v)
     if (!IsXfRoleMoving(so->positionXf->role)) SetXfRole(so, so->positionXf, 1);
     po = so->positionXf;
     po->velocity = ConvertXfVec(((struct Q *)so)->rootTransform, po->parent, v);
-    SlotUnsettle(so, so->positionXf);
+    UnsettleXfSlot(so, so->positionXf);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -2212,7 +2212,7 @@ struct Q { char pad[0x60]; int rootTransform; };
 int IsXfRoleMoving(int);
 void SetXfRole(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
-void SlotUnsettle(void *, struct O *);
+void UnsettleXfSlot(void *, struct O *);
 void InvalidateSoAaox(void *);
 void WakeSo(void *);
 void SetSoBit35Hierarchy(void *, int);
@@ -2229,7 +2229,7 @@ void SetSoRotXfVelocityLocal(struct P *so, qword v)
     if (!IsXfRoleMoving(so->rotationXf->role)) SetXfRole(so, so->rotationXf, 1);
     po = so->rotationXf;
     po->velocity = ConvertXfVec(((struct Q *)so)->rootTransform, po->parent, v);
-    SlotUnsettle(so, so->rotationXf);
+    UnsettleXfSlot(so, so->rotationXf);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -2732,7 +2732,7 @@ extern "C" int IsSoFixed(SO *so)
 // 0x1F5078 WakeSo
 /** @sly2-annot addr=0x1F5078
  * Purpose: If the SO is in the broadphase (+0xEC): SetSoGrf(4) (vt47, the awake flag also set by
- *   SlotSetRole/WakeXfSlot) and, if +0xE8, un-settle its position and rotation XF slots (SlotUnsettle
+ *   SlotSetRole/WakeXfSlot) and, if +0xE8, un-settle its position and rotation XF slots (UnsettleXfSlot
  *   0x230598)
  * Info: proposed name WakeSo (T2); TU so
  * Notes: v3: superseded InvalidateSoPhys | top50_round (0.45): Body: vt[47](4) on the SO, then 0x230598 on
@@ -2750,8 +2750,8 @@ extern "C" void WakeSo(SO *so)
     if (so->ptree != 0) {
         ((void (*)(void *, int))PVTE(so)[47].pfn)((char *)so + PVTE(so)[47].d, 4);
         if (so->psophys != 0) {
-            SlotUnsettle(so, so->pxfUnk58);
-            SlotUnsettle(so, so->pxfUnk5c);
+            UnsettleXfSlot(so, so->pxfUnk58);
+            UnsettleXfSlot(so, so->pxfUnk5c);
         }
     }
 }
@@ -5557,7 +5557,7 @@ namespace M_func_001F87C8 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAC]; short unknownAC; };
 struct S { char pad[0x20]; void *so; struct T *transform; };
-void SlotUnsettle(void *, struct T *);
+void UnsettleXfSlot(void *, struct T *);
 /** @sly2-annot addr=0x1F87C8
  * Purpose: XF +0xAC = g*1000, refresh XF kind
  * Info: proposed name SetXfhParamAC (T2); TU so
@@ -5566,7 +5566,7 @@ void SlotUnsettle(void *, struct T *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the XF's field +0xAC (value * 1000) and refreshes its mode.
-void SetXfHandleParamAC(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); SlotUnsettle(p->so, p->transform); }
+void SetXfHandleParamAC(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
 } } // namespace M_func_001F87C8
 
 // 0x1F8808 GetXfHandleParamAE
@@ -5589,7 +5589,7 @@ namespace M_func_001F8830 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAE]; short unknownAE; };
 struct S { char pad[0x20]; void *so; struct T *transform; };
-void SlotUnsettle(void *, struct T *);
+void UnsettleXfSlot(void *, struct T *);
 /** @sly2-annot addr=0x1F8830
  * Purpose: XF +0xAE = g*1000, refresh
  * Info: proposed name SetXfhParamAE (T2); TU so
@@ -5597,7 +5597,7 @@ void SlotUnsettle(void *, struct T *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the XF's field +0xAE (value * 1000) and refreshes its mode.
-void SetXfHandleParamAE(struct S *p, float g) { p->transform->unknownAE = (int)(g * 1000.0f); SlotUnsettle(p->so, p->transform); }
+void SetXfHandleParamAE(struct S *p, float g) { p->transform->unknownAE = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
 } } // namespace M_func_001F8830
 
 // 0x1F8870 GetXfHandleParamAC2
@@ -5623,7 +5623,7 @@ namespace M_func_001F8898 { extern "C" {
 struct T; struct S;
 struct T { char pad[0xAC]; short unknownAC; };
 struct S { char pad[0x20]; void *so; struct T *transform; };
-void SlotUnsettle(void *, struct T *);
+void UnsettleXfSlot(void *, struct T *);
 /** @sly2-annot addr=0x1F8898
  * Purpose: duplicate of 0x1F87C8
  * Info: proposed name SetXfhParamAC2 (T2); TU so
@@ -5631,7 +5631,7 @@ void SlotUnsettle(void *, struct T *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Same as SetXfHandleParamAC for the other handle class.
-void SetXfHandleParamAC2(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); SlotUnsettle(p->so, p->transform); }
+void SetXfHandleParamAC2(struct S *p, float g) { p->transform->unknownAC = (int)(g * 1000.0f); UnsettleXfSlot(p->so, p->transform); }
 } } // namespace M_func_001F8898
 
 // 0x1F88D8 GetXfFromHandle
@@ -5645,7 +5645,7 @@ void SetXfHandleParamAC2(struct S *p, float g) { p->transform->unknownAC = (int)
 extern "C" XF *GetXfFromHandle(XFH *pxfh, int n)
 {
     if (n == 1) {
-        SlotUnsettle(pxfh->pso, pxfh->pxf);
+        UnsettleXfSlot(pxfh->pso, pxfh->pxf);
     }
     return pxfh->pxf;
 }
@@ -5660,7 +5660,7 @@ void RemoveXfAct(void *, struct Q *, struct E *);
 void FreeAct(struct E *);
 void SortXfActs(void *, struct Q *);
 void SetXfRole(void *, struct Q *, int);
-void SlotUnsettle(void *, struct Q *);
+void UnsettleXfSlot(void *, struct Q *);
 /** @sly2-annot addr=0x1F8910
  * Purpose: Find XF actuator of kind k; remove if n==-1, else update and re-prioritize
  * Info: proposed name PactFindXfh (T2); TU so
@@ -5684,7 +5684,7 @@ struct E *FindXfHandleActuator(struct P *handle, int k, int n, int m)
         }
         if (pe == handle->transform->firstAct) {
             SetXfRole(handle->so, handle->transform, n);
-            SlotUnsettle(handle->so, handle->transform);
+            UnsettleXfSlot(handle->so, handle->transform);
         }
         return pe;
     }
