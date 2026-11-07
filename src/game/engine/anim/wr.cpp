@@ -60,16 +60,10 @@ struct LMV
 
 struct SO;
 
-struct XFV
-{
-    MATRIX4V mat;
-    MATRIX4V matWorld;
-};
-
 struct GLOBV
 {
     int oid;
-    XFV *pxf;
+    XF *pxf;
     MATRIX4V *pmatUnk08;
 };
 
@@ -397,7 +391,7 @@ void UpdateWrStateVectors(WRV *warp)
                 *pu = Clamp(clq.g0 + s * (clq.g1 + s * clq.g2), lm.minValue, lm.maxValue);
             }
 
-            MATRIX4V matWorld = ((GLOBV *)group->pglob)->pxf->matWorld;
+            MATRIX4V matWorld = *(MATRIX4V *)&((GLOBV *)group->pglob)->pxf->worldMatrix;
             if (((GLOBV *)group->pglob)->pmatUnk08)
                 matWorld = __ml__FRC7MATRIX4T0(matWorld, *((GLOBV *)group->pglob)->pmatUnk08);
             posWorldBend = ConvertPosBetweenLos(group->pso, 0, posBend);
