@@ -380,39 +380,26 @@ void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BindGlobset {
-struct BONE { char pad[0x40]; MATRIX4 mat; };
-class LO {
-public:
-    int a, b, c;
-#define V(n) virtual void V##n();
-    V(1) V(2) V(3) V(4) V(5) V(6) V(7) V(8) V(9) V(10)
-    V(11) V(12) V(13) V(14) V(15) V(16) V(17) V(18) V(19) V(20)
-    V(21) V(22) V(23) V(24) V(25) V(26) V(27) V(28) V(29) V(30)
-    V(31) V(32) V(33) V(34) V(35) V(36) V(37) V(38) V(39) V(40)
-    V(41) V(42) V(43) V(44) V(45) V(46) V(47) V(48) V(49) V(50)
-#undef V
-    virtual BONE *GetXfFromIndex(int n);
-};
-struct ITEM { int oid; LO *plo; int n8; BONE *pbone; MATRIX4 mat; };
-struct GRP { int a; BONE *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
+struct ITEM { int oid; SO *plo; int n8; XF *pbone; MATRIX4 mat; };
+struct GRP { int a; XF *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
 struct HDR { signed char c0; signed char citem; char pad[0x12]; };
 struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
-struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int unknown4C; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (+0x4C: so.h's unknown4C) */
+struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int relightStamp; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (numPieces, subMeshes, pieces, relightStamp, pwrbgFirst) */
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { 
  }
-extern "C" LO *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
+extern "C" SO *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);   /* the found object is an SO here */
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
 extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-extern "C" void AddWrWarpGroup(LO *plo, X *px);
-// Resolves globset bone references after load: finds each referenced LO by oid, its bone, and computes the relative
+extern "C" void AddWrWarpGroup(SO *plo, X *px);
+// Resolves globset bone references after load: finds each referenced SO by oid, its bone, and computes the relative
 // bind matrix. (inferred)
 extern "C" void BindGlobset(S *p)
 {
-    if (p->unknown4C != -1)
-        p->unknown4C = g_sw.relightStamp;
+    if (p->relightStamp != -1)
+        p->relightStamp = g_sw.relightStamp;
     for (int i = 0; i < p->cgrp; i++) {
         HDR *phdr = &p->ahdr[i];
         GRP *pgrp = &p->agrp[i];
@@ -425,14 +412,14 @@ extern "C" void BindGlobset(S *p)
                 MATRIX4 mat;
                 if (pgrp->pbone) {
                     MATRIX4 matT;
-                    InvertMatrix4Rigid(&matT, &pitem->pbone->mat);
-                    __ml__FRC7MATRIX4T0(&mat, &matT, &pgrp->pbone->mat);
+                    InvertMatrix4Rigid(&matT, &pitem->pbone->worldMatrix);
+                    __ml__FRC7MATRIX4T0(&mat, &matT, &pgrp->pbone->worldMatrix);
                 } else {
-                    InvertMatrix4Rigid(&mat, &pitem->pbone->mat);
+                    InvertMatrix4Rigid(&mat, &pitem->pbone->worldMatrix);
                 }
                 pitem->mat = mat;
             } else if (pgrp->pbone) {
-                pitem->mat = pgrp->pbone->mat;
+                pitem->mat = pgrp->pbone->worldMatrix;
             } else {
                 MATRIX4 *pmat = &pitem->mat;
                 func_002333B4(pmat, 0, sizeof(MATRIX4));
@@ -441,7 +428,7 @@ extern "C" void BindGlobset(S *p)
         }
     }
     for (X *px = p->pxFirst; px; px = px->pxNext) {
-        LO *plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, px->oid, p->pvOwner);
+        SO *plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, px->oid, p->pvOwner);
         if (plo)
             AddWrWarpGroup(plo, px);
     }
