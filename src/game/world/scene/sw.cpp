@@ -1039,19 +1039,16 @@ void LoadSwSharedDataFromBrx(void *world, void *q)
 } } // namespace M_LoadSwSharedDataFromBrx
 
 namespace M_func_0020F710 { extern "C" {
-extern char D_003DD490[];
 extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
-struct E { int widget; int pad[2]; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int clueTotal; };   /* sw.h numCluesCollected, numClues */
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
-void SetWidgetXf(int x, struct L *pl);
+struct WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, int context);
+void SetWidgetXf(struct WIDGET *widget, struct L *pl);
 int CountCollectedClues(void);
 int GetMaxClueCount(void);
 // Finds the four timer HUD objects (oids 0x371, 0x36D, 0x36E, 0x36F), initializes them and records two counters.
 // (inferred)
-void BindSwTimerHud(struct S *world)
+void BindSwTimerHud(SW *world)
 {
     struct L l;
     int i;
@@ -1060,14 +1057,14 @@ void BindSwTimerHud(struct S *world)
     l.d = 1.0f;
     l.a = 1.0f;
     for (i = 0; i < 4; i++) {
-        int widget = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
+        struct WIDGET *widget = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, D_002C3E70[i], 0);
         if (widget) {
             SetWidgetXf(widget, &l);
-            world->ae[i].widget = widget;
+            world->ahudstack[i].widget = widget;
         }
     }
-    world->clueCount = CountCollectedClues();
-    world->clueTotal = GetMaxClueCount();
+    world->numCluesCollected = CountCollectedClues();
+    world->numClues = GetMaxClueCount();
 }
 } } // namespace M_func_0020F710
 
