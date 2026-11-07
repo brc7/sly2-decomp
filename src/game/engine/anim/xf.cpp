@@ -823,7 +823,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //   role 0x12   spring-damper to the rest value (xfk 1: kp = stiffness * 0.015, kd = damping * 0.0025; xfk 6 the same on the angle); settled (phase 2, small speed + distance) -> role 0x13
 //   role 0x15   only keeps the SO awake
 // After the switch the XF's world matrix is parent->worldMatrix * mat (VU0 microprogram 0x60, the T1025 recipe; the stamp is lifted to the parent's) or a copy of mat without a parent.
-// The SO's flag 4 (grfUnk40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
+// The SO's flag 4 (unknown40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
 // HOW IT IS WRITTEN (T1113, each point verified on the diff; scratch decomp/build/scratch/t1113/, cmp.py = aligned diff + sp-offset score):
 //  - every 128-bit read through a cast (`*(qword *)&pxf->velocity`, `*(qword *)&pxf->acceleration`, the position row) is an alias-everything load that cannot move
 //    across the VU_FLOAT home stores: the game reads velocity / the position row BEFORE the VuFloat and acceleration after it (hence the qwV0 / qwPos0 locals);
@@ -1093,8 +1093,8 @@ void UpdateSoSlots(SO *so)
 {
     int fMoving;
     int ixf;
-    int fIdle = (so->psoParent == 0 || !(*(uint *)so->psoParent->grfUnk40 & 4));
-    int fSnap = *(uint *)so->grfUnk40 & 0x10;
+    int fIdle = (so->parent == 0 || !(*(uint *)so->parent->unknown40 & 4));
+    int fSnap = *(uint *)so->unknown40 & 0x10;
     for (ixf = 0; ixf < so->numTransforms; ixf++)
     {
         XF *xf = &so->transforms[ixf];
@@ -1641,24 +1641,24 @@ void UpdateSoSlots(SO *so)
     }
     if (fIdle)
     {
-        if (!(so->grfUnk40 & 1))
+        if (!(so->unknown40 & 1))
         {
-            *(int *)so->grfUnk40 &= ~4;
+            *(int *)so->unknown40 &= ~4;
         }
         else
         {
-            so->grfUnk40 &= ~4;
+            so->unknown40 &= ~4;
         }
     }
     if (fSnap)
     {
-        if (!(so->grfUnk40 & 1))
+        if (!(so->unknown40 & 1))
         {
-            *(int *)so->grfUnk40 &= ~0x10;
+            *(int *)so->unknown40 &= ~0x10;
         }
         else
         {
-            so->grfUnk40 &= ~0x10;
+            so->unknown40 &= ~0x10;
         }
     }
     RefreshSoAfterSlotUpdate(so);

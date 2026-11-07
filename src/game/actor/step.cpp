@@ -90,7 +90,7 @@ void STEP::Init()
 extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 {
     LoadPoFromBrx(step, stream);
-    step->unknown240 = ConvertPosBetweenLos(step->psoParent, step, D_002A2DD0);
+    step->unknown240 = ConvertPosBetweenLos(step->parent, step, D_002A2DD0);
     EnsureSoPhysRegionRecord(step);
 }
 

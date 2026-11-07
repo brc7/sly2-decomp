@@ -1743,7 +1743,7 @@ void UpdateJtAirInput(JTAIR *air)
         nStatePrev = air->state;
         if (air->jumpObject != 0)
         {
-            ulong fWorld = air->jumpObject->fInWorld;
+            ulong fWorld = air->jumpObject->isInWorld;
             if (!fWorld)
                 ReleaseJtAirObject(air);
         }

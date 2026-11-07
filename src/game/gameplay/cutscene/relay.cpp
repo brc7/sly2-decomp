@@ -2750,7 +2750,7 @@ extern "C" {
 // The LO update flags (tagged word, maybe behind a pointer).
 inline int GrfUpdateLo(LO *plo)
 {
-    int grf = plo->grfUnk40;
+    int grf = plo->unknown40;
     if (!(grf & 1))
     {
         return *(int *)grf;
@@ -3110,27 +3110,27 @@ void NextJsgCommand(JSGV *script)
         if (prelaycmd->setClockRate.rate == 0.0f)
         {
             RELAYV *relay = script->relay;
-            int grf = relay->grfUnk40;
+            int grf = relay->unknown40;
             if ((grf ^ 1) & 1)
             {
                 *(int *)grf |= 0x100;
             }
             else
             {
-                relay->grfUnk40 = grf | 0x100;
+                relay->unknown40 = grf | 0x100;
             }
         }
         else
         {
             RELAYV *relay = script->relay;
-            int grf = relay->grfUnk40;
+            int grf = relay->unknown40;
             if ((grf ^ 1) & 1)
             {
                 *(int *)grf &= ~0x100;
             }
             else
             {
-                relay->grfUnk40 = grf & ~0x100;
+                relay->unknown40 = grf & ~0x100;
             }
         }
         break;
@@ -3968,15 +3968,15 @@ namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // since tCommand; Line / StopLine / Unk52 / WaitTimer / ButtonPrompt wait for the dialogue; the camera ones (CamBlendTo, Tween*) for the camera.
 // The result is one variable (the game's s2) assigned in every arm; a command that has several "done at once" exits writes them as `else fComplete = 1`.
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-// Whether the object is in the active world (LO::fInWorld).
+// Whether the object is in the active world (LO::isInWorld).
 inline int FIsLoInWorld(LO *plo)
 {
-    return plo->fInWorld != 0;
+    return plo->isInWorld != 0;
 }
 // The object's update flags (inline when tagged with bit 0, else read through the pointer).
 inline int GrfUpdateLo(LO *plo)
 {
-    int grf = plo->grfUnk40;
+    int grf = plo->unknown40;
     if (!(grf & 1))
     {
         return *(int *)grf;

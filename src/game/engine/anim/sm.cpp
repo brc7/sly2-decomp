@@ -144,7 +144,7 @@ public:
 extern "C" int InitSm(SM *psm)
 {
     InitLo(psm);
-    return psm->grfUnk40 |= 0x40;
+    return psm->unknown40 |= 0x40;
 }
 
 // LoadSmFromBrx__FP2SMP18CBinaryInputStream: ported from Lilly's personal Sly 2 decomp (src/P2/sm.c), reduced to the declarations it needs.
@@ -219,7 +219,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
     InitDl(&dlSma, 0x14);
     STACKSCOPE stackscope;
     CLoadCollectorArray collector;
-    LoadSwObjectsFromBrx(psoParent, pbis, &collector);
+    LoadSwObjectsFromBrx(parent, pbis, &collector);
     for (i = 0; i < collector.m_cplo; i++)
     {
         plo = collector.m_aplo[i];

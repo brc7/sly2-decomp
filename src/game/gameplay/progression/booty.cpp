@@ -68,7 +68,7 @@ struct CID37V
 {
     char pad0[0xC];
     VT *pvt;                /* 0x0C */
-    void *parent;           /* 0x10 LO::psoParent */
+    void *parent;           /* 0x10 LO::parent */
     char pad14[0x180 - 0x14];
     union { int id; unsigned short idShort; };  /* 0x180 */
     int kind;               /* 0x184 */

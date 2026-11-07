@@ -1333,7 +1333,7 @@ void RefreshSoBoundsRecord(struct A *so)
 extern "C" void RenderSoSelf(SO *so)
 {
     float uAlpha;
-    if (so->grfvis & (*(int *)&g_cm.grfvis)) {
+    if (so->visibilityMask & (*(int *)&g_cm.grfvis)) {
         RefreshSoBoundsRecord(so);
         uAlpha = so->opacity;
         RenderSoGlobset(&so->model, 0, uAlpha, uAlpha, so->psobounds);
@@ -2931,7 +2931,7 @@ struct E *FindSoPart(struct S *so, int oid)
 
 inline int FIsLoInWorld(LO *plo)
 {
-    return plo->fInWorld != 0;
+    return plo->isInWorld != 0;
 }
 
 

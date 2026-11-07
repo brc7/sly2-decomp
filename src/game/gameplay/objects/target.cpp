@@ -53,8 +53,8 @@ extern "C" void InitTarget(TARGET *target)
 extern "C" void PostTargetLoad(TARGET *target)
 {
     PostLoLoad(target);
-    if (target->sBusy == 1e10f)
-        target->sBusy = target->radius + D_002C40C0;
+    if (target->busyRadius == 1e10f)
+        target->busyRadius = target->radius + D_002C40C0;
 }
 
 // TARGET vtable slot 22 (OnRemove): leaves the active world and the world's target list.

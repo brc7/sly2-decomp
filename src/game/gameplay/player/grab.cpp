@@ -2363,7 +2363,7 @@ namespace M_AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND
 // Tests one grab spot against the hero (qwPosJt is the hero's position) and, when the hero may take hold of it, puts it into the
 // sorted array of ccandMax candidates: by priority (higher first), then by distance, one entry per group (the nearer spot of a
 // group wins). Objects the hero already holds / just let go of, spots whose mask the hero's flags do not share and objects
-// farther than their own sBusy or than 1000 are skipped.
+// farther than their own busyRadius or than 1000 are skipped.
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
@@ -2400,7 +2400,7 @@ extern "C" { extern float D_002BF664; }
 static inline int IsBeyondBusyRadius(LO *lo, qword pos)
 {
     qword qwDiff = VuSub(PosLoWorld(lo), pos);
-    return lo->sBusy * lo->sBusy < VuToFloat(VuDot(qwDiff, qwDiff));
+    return lo->busyRadius * lo->busyRadius < VuToFloat(VuDot(qwDiff, qwDiff));
 }
 static inline void ZeroJtGrabCand(JTGRABCAND *candidate)
 {
@@ -2415,7 +2415,7 @@ void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo
 void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GRABSPOT *spot, int ccandMax, JTGRABCAND *candidates)
 {
     JTGRABCAND cand;
-    if (lo->psoParent && IsBeyondBusyRadius(lo, qwPosJt))
+    if (lo->parent && IsBeyondBusyRadius(lo, qwPosJt))
         return;
     if (lo == player->jtgrab.grabbedObject)
         return;

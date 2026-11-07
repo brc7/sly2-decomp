@@ -1974,7 +1974,7 @@ struct G { char pad[0xE94]; int numAllowedZones; int allowedZones[84]; int allow
 int CanUsePathlink(void *zoneBsp, struct LO *pathlink, struct G *actor)
 {
     int requiredKinds, i, hasFrom, hasTo, numZones;
-    if (((pathlink->flags >> 60) & 1) == 0) return 0;   /* LO::fInWorld */
+    if (((pathlink->flags >> 60) & 1) == 0) return 0;   /* LO::isInWorld */
     requiredKinds = (pathlink->kind == 1) ? 3 : 2;
     if ((requiredKinds & actor->allowedLinkKinds) != requiredKinds) return 0;
     numZones = actor->numAllowedZones;

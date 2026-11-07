@@ -1607,10 +1607,10 @@ void AddLoToSwUpdateList(struct G *g, struct O *o)
 /* Takes an object off the update list: restores its +0x40 word, clears the entry, counts the hole. */
 extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
-    int n = plo->grfUnk40;
+    int n = plo->unknown40;
     if (((n ^ 1) & 1) != 0) {
         LOUPD *ploupd = (LOUPD *)n;
-        plo->grfUnk40 = ploupd->grf;
+        plo->unknown40 = ploupd->grf;
         ploupd->grf = 0;
         ploupd->plo = 0;
         world->cloupdHole++;

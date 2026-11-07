@@ -1562,7 +1562,7 @@ namespace M_UpdateRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long loBits; char p2[0xE8 - 0x30]; int unknownE8; };   /* loBits bit 60: LO::fInWorld */
+struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long loBits; char p2[0xE8 - 0x30]; int unknownE8; };   /* loBits bit 60: LO::isInWorld */
 struct G { char pad[0x150]; int groupKind; };
 struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float startTime; float duration; char p1[0x70 - 0x1C]; qword currentPosition;
     char p2[0xE0 - 0x80]; struct LO *touchObject; char p3[0xEC - 0xE4]; struct VTE *vt; };

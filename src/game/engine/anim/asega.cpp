@@ -141,7 +141,7 @@ extern "C" void DecrefAsega(ASEGA *player)
     }
 }
 
-static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { unsigned int x = pq->grfUnk40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
+static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { unsigned int x = pq->unknown40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
 static __inline__ void End(G *pg) { ASEGA *po = pg->p; ((void (*)(void *))PVT(po)[2].pfn)((char *)po + PVT(po)[2].d); }
 // Per-frame update of a playing segment: advances local time by speed, wraps or clamps it at the end, dispatches the
 // events crossed this frame, and retracts the player when a non-looping segment finished.

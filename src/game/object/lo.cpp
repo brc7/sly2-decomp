@@ -19,9 +19,9 @@
 #include "sly2/vu0.h"
 
 /* The LO flag word at +0x28 (read as one 64-bit word by the m2c views; lo.h names the bits). */
-#define LO_REMOVED_BIT    0x0100000000000000UL  /* bit 56 (fRemoved): taken out of the world */
+#define LO_REMOVED_BIT    0x0100000000000000UL  /* bit 56 (isRemoved): taken out of the world */
 #define LO_CLEAR_REFS_BIT 0x0800000000000000UL   /* bit 59: clear world references to it on removal */
-#define LO_IN_WORLD_BIT   0x1000000000000000UL   /* bit 60 (fInWorld) */
+#define LO_IN_WORLD_BIT   0x1000000000000000UL   /* bit 60 (isInWorld) */
 #define LO_IN_WORLD_SHIFT 60
 
 /* LO vtable slots the m2c bodies call through (index into the vtable; vt[n]). */
@@ -109,10 +109,10 @@ void LO::Init()
 // in the world's busy and in-world lists.
 extern "C" void EnsureLoroot(LO *plo)
 {
-    if (plo->ploroot == 0) {
+    if (plo->root == 0) {
         LOROOT *ploroot = (LOROOT *)AllocZeroedFromSlotheap(&g_sw.slotheapLoroot);
-        plo->ploroot = ploroot;
-        ploroot->plo = plo;
+        plo->root = ploroot;
+        ploroot->topObject = plo;
     }
 }
 
@@ -258,9 +258,9 @@ extern "C" void SnipLo(LO *plo)
 {
     DL *pdl;
     LO **pploFirst;
-    GetLoChildDl(plo->psoParent, &pdl, (LO **)&pploFirst);
+    GetLoChildDl(plo->parent, &pdl, (LO **)&pploFirst);
     if (*pploFirst == plo) {
-        *pploFirst = (LO *)plo->dleChild.next;
+        *pploFirst = (LO *)plo->siblingLink.next;
     }
     RemoveDlEntry(pdl, plo);
 }
@@ -380,15 +380,15 @@ void LO_SetParent(ALO *object, ALO *newParent, int grf, int unknown)
 /* LO slot UpdateLoroot: share the parent's root, or make one of its own. */
 extern "C" void UpdateLoLoroot(LO *plo, LO *ploRoot, int fRoot)
 {
-    if (plo->psoParent != 0) {
+    if (plo->parent != 0) {
         if (ploRoot == plo && fRoot == 0) {
             FreeLoroot(plo);
         }
-        plo->ploroot = ((LO *)plo->psoParent)->ploroot;
+        plo->root = ((LO *)plo->parent)->root;
         return;
     }
     if (fRoot != 0) {
-        plo->ploroot = 0;
+        plo->root = 0;
         EnsureLoroot(plo);
     }
 }
@@ -465,8 +465,8 @@ extern "C" void DeferLoRemove(LO *plo)
 extern "C" LORUN *AddLoDeferredCallback(LO *plo)
 {
     LORUN *plorun = (LORUN *)AllocSwLoCallbackRecord(&D_003DD490);
-    plorun->plorunNext = plo->plorunFirst;
-    plo->plorunFirst = plorun;
+    plorun->next = plo->firstRunCallback;
+    plo->firstRunCallback = plorun;
     return plorun;
 }
 
@@ -1125,7 +1125,7 @@ void SetLoBusyDistance(struct S *object, float g)
 // Returns the busy kind (signed 4-bit field: 0 busy near the camera, 1 always, 2 never, 3 busy near the hero).
 extern "C" int GetLoBusyKind(LO *plo)
 {
-    return plo->busyk;
+    return plo->busyKind;
 }
 
 namespace M_SetLoBusyk { extern "C" {
@@ -1191,7 +1191,7 @@ void SetLoVisMask(struct O *object, int b)
 // LO's SetVisMask (vtable slot 46): stores the visibility mask byte.
 extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
 {
-    plo->grfvis = grfvis;
+    plo->visibilityMask = grfvis;
 }
 
 namespace M_SetSoVisMask { extern "C" {

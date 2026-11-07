@@ -23,7 +23,7 @@ struct FADEV
     int pad0[3];
     VTE *vtable;              /* +0x0C */
     byte pad10[0x28 - 0x10];
-    unsigned long loFlags;    /* +0x28 bit 60: LO::fInWorld (the fade is running) */
+    unsigned long loFlags;    /* +0x28 bit 60: LO::isInWorld (the fade is running) */
     byte pad30[0x40 - 0x30];
     unsigned int updateFlags; /* +0x40 flags, or (bit 0 clear) a pointer to them */
     byte pad44[0x50 - 0x44];

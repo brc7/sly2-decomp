@@ -384,7 +384,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
         proxy->source = &world->aproxysrc[isrc];
         if (proxy->source->cplo > 0)
         {
-            proxy->sBusy = proxy->source->aplo[proxy->source->cplo * proxy->source->ccopy - 1]->sBusy;
+            proxy->busyRadius = proxy->source->aplo[proxy->source->cplo * proxy->source->ccopy - 1]->busyRadius;
         }
         proxy->numInits = stream->U8Read();
         proxy->inits = (PROXYINIT *)PvAllocSwClear(proxy->numInits * sizeof(PROXYINIT), 0x10);
@@ -437,7 +437,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
         for (int iplo = 0; iplo < listCopy.m_cplo; iplo++)
         {
             LO *plo = listCopy.m_aplo[iplo];
-            if (!plo->fUnk58)
+            if (!plo->unknownFlag28B)
             {
                 SetLoVisMask(plo, grfvis);
             }
@@ -494,7 +494,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
             LO *plo = listNested.m_aplo[iplo];
             plo->SetIdProxy(idProxy, 1);
             plo->ApplyProxy(&mat);
-            if (!plo->fUnk58)
+            if (!plo->unknownFlag28B)
             {
                 SetLoVisMask(plo, grfvis);
             }
@@ -517,7 +517,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
 // 0x001CA118 SetIdProxy__2LOii  (MATCHES Sly 2, T0879)
 // Virtual 24: puts the object in the proxy copy tree under idProxy: the path is the ids from the root
 // down to the object's current node (at most 16, deepest last) with idProxy added at the end. The
-// nodes the object owned (PXR::plo == this) are let go, and the new path's nodes that belong to
+// nodes the object owned (PXR::object == this) are let go, and the new path's nodes that belong to
 // sources of a single object and are not owned yet become the object's. fChildren: the children
 // (GetChildren) follow with the same id, inside a stack allocation scope.
 // How it matched (re/notes/decomp-compiler-quirks.md section 8): one iterator for all three walks, the
@@ -547,39 +547,39 @@ void LO::SetIdProxy(int idProxy, int fChildren)
     int aid[16];
     int cid = 16;
     PXR *ppxrIter;
-    for (ppxrIter = ppxr; ppxrIter; ppxrIter = ppxrIter->ppxrParent)
+    for (ppxrIter = proxyRecord; ppxrIter; ppxrIter = ppxrIter->parent)
     {
-        if (ppxrIter->idProxy == -1)
+        if (ppxrIter->proxyId == -1)
         {
             break;
         }
-        aid[--cid] = ppxrIter->idProxy;
+        aid[--cid] = ppxrIter->proxyId;
     }
     aid[--cid] = idProxy;
     PXR *ppxrNew = FindPxr(D_003DD490.ppxrRoot, 16 - cid, &aid[cid]);
-    for (ppxrIter = ppxr; ppxrIter->idProxy != -1; ppxrIter = ppxrIter->ppxrParent)
+    for (ppxrIter = proxyRecord; ppxrIter->proxyId != -1; ppxrIter = ppxrIter->parent)
     {
-        if (ppxrIter->plo == this)
+        if (ppxrIter->object == this)
         {
-            ppxrIter->plo = 0;
+            ppxrIter->object = 0;
         }
         else
         {
             break;
         }
     }
-    for (ppxrIter = ppxrNew; ppxrIter->idProxy != -1; ppxrIter = ppxrIter->ppxrParent)
+    for (ppxrIter = ppxrNew; ppxrIter->proxyId != -1; ppxrIter = ppxrIter->parent)
     {
-        if (PproxysrcFromIdProxy(ppxrIter->idProxy)->cplo == 1 && !ppxrIter->plo)
+        if (PproxysrcFromIdProxy(ppxrIter->proxyId)->cplo == 1 && !ppxrIter->object)
         {
-            ppxrIter->plo = this;
+            ppxrIter->object = this;
         }
         else
         {
             break;
         }
     }
-    ppxr = ppxrNew;
+    proxyRecord = ppxrNew;
     if (fChildren)
     {
         STACKSCOPE scope;
@@ -786,7 +786,7 @@ extern "C" int RateProxySpare(PROXY *proxy, PROXYSPARE *spare)
     icopy = GetCopyIndexFromProxySpare(proxy, spare);
     for (iplo = 0; iplo < proxy->source->cplo; iplo++) {
         LO *plo = proxy->source->aplo[icopy * proxy->source->cplo + iplo];
-        if ((uchar)plo->fInWorld == 0) nPlo = 3;
+        if ((uchar)plo->isInWorld == 0) nPlo = 3;
         else if (IsLoInWorld(plo)) { n = 1; goto out; }
         else nPlo = 2;
         if (nPlo < n) n = nPlo;

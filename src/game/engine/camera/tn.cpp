@@ -514,9 +514,9 @@ extern "C" void InitTn(TN *p)
     *(int *)&p->requestedState = -1; /*P*/
     p->grftnm = 7; /*P*/
     SetLoBusyKind(p, 1);
-    f = p->grfUnk40;
+    f = p->unknown40;
     if (IsPointer(f)) *(int *)f |= 2;
-    else p->grfUnk40 = f | 2;
+    else p->unknown40 = f | 2;
 }
 
 namespace RO_ORDER { extern const unsigned int r_D_002A96E8[2] __asm__("D_002A96E8") = {0, 0}; }   /* a null callback record */
@@ -580,7 +580,7 @@ extern "C" int TryGetTnShape(TN *p, SHAPE ***pp)
 extern "C" void CloneTn(TN *p)
 {
     CloneXfm(p);
-    p->path = CloneLoWithParent__FP2LOP2SO(p->path, p->psoParent);
+    p->path = CloneLoWithParent__FP2LOP2SO(p->path, p->parent);
 }
 
 // Tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out -> RevokeCmPolicy(8)

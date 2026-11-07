@@ -69,7 +69,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollec
 // XFM initialization (vtable slot 7): LO init, then identity local matrix and a stale world matrix.
 extern "C" void InitXfm(XFM *xfm)
 {
-    float *m; InitLo(xfm); if (xfm->psoParent) xfm->parentTransform = xfm->psoParent->rootTransform; m = &xfm->localMatrix.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(xfm);
+    float *m; InitLo(xfm); if (xfm->parent) xfm->parentTransform = xfm->parent->rootTransform; m = &xfm->localMatrix.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(xfm);
 }
 
 // Loads an XFM from the BRX (vtable slot 14): its parent XF reference and local matrix, then its options.
@@ -99,11 +99,11 @@ extern "C" void XFM_RemapClonedXf(XFM *pxfm, XFM *pxfmBase, XF **ppxf)
     XF *pxfOld = *ppxf;
     if (pxfOld != 0)
     {
-        SO *psoBase = pxfmBase->psoParent;
+        SO *psoBase = pxfmBase->parent;
         int ixf = pxfOld - psoBase->transforms;
         XF *pxf = 0;
         if (ixf >= 0 && ixf < psoBase->numTransforms)
-            pxf = pxfm->psoParent->transforms + ixf;
+            pxf = pxfm->parent->transforms + ixf;
         if (pxf->timeSource == &pxfOld->segmentStartTime)
             pxf->timeSource = &pxf->segmentStartTime;
         if (pxf->speedSource == &pxfOld->segmentEndTime)
@@ -156,8 +156,8 @@ extern "C" void UpdateXfmMatWorld(XFM *xfm)
 extern "C" void InvalidateXfm(XFM *xfm)
 {
     xfm->worldStamp = -1;
-    if (xfm->psoParent == 0 && (uchar)xfm->fInWorld)   /* (uchar): bit extract as the target does */
-        ResortSwBusyEntry(&D_003DD490, xfm->ploroot);
+    if (xfm->parent == 0 && (uchar)xfm->isInWorld)     /* (uchar): bit extract as the target does */
+        ResortSwBusyEntry(&D_003DD490, xfm->root);
 }
 
 // XFM's world matrix (vtable slot 31): brings the cache up to date and returns it.
@@ -227,7 +227,7 @@ extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
 {
     M4 m;
     if (grf & 3) {
-        if ((uchar)xfm->fInWorld) {
+        if ((uchar)xfm->isInWorld) {
             m = *(M4 *)xfm->GetWorldMatrix();
         } else {
             XF *q;
@@ -270,7 +270,7 @@ extern "C" void LoadXfmChildObjectsFromBrx(XFM *xfm, CBinaryInputStream *stream,
 {
     int i;
     PushXfContext(xfm->parentTransform);
-    LoadSwObjectsFromBrx(xfm->psoParent, stream, pl);
+    LoadSwObjectsFromBrx(xfm->parent, stream, pl);
     PopXfContext(xfm->parentTransform);
     for (i = 0; i < pl->c; i++) {
         LO *lo = pl->aplo[i];

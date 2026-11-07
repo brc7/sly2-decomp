@@ -15,8 +15,8 @@
 struct LORUN
 {
       void (*pfn)(LO *plo, void *pv);   /* the callback */
-      void *pv;   /* its argument */
-      LORUN *plorunNext;   /* next record in the LO's list */
+      void *argument; /* its argument */
+      LORUN *next;         /* next record in the LO's list */
 };
 
 /* LOROOT: the record shared by an object hierarchy: its topmost object and the links of the world's root list and
@@ -24,36 +24,36 @@ struct LORUN
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct LOROOT
 {
-      LO *plo;   /* the topmost ancestor of the hierarchy */
-      DLE dle;   /* link in the world's list of hierarchy roots */
-      DLE dleBusy;   /* link in the world's list of busy (active) hierarchies */
+      LO *topObject; /* the topmost ancestor of the hierarchy */
+      DLE rootLink; /* link in the world's list of hierarchy roots */
+      DLE busyLink;  /* link in the world's list of busy (active) hierarchies */
 };
 
 /* LO: the level object, base of everything placed in a level (lights, solids, characters, scripts, cameras...).
    Layout from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (27 copies in Lilly ports) */
 struct LO : public BASIC
 {
-      SO *psoParent;   /* the solid object this one is attached to (0 at top level) */
-      LOROOT *ploroot;   /* the hierarchy root record (LOROOT) shared with the topmost ancestor */
+      SO *parent;      /* the solid object this one is attached to (0 at top level) */
+      LOROOT *root;      /* the hierarchy root record (LOROOT) shared with the topmost ancestor */
       OID oid;   /* object id from the level file (OID enum; names the object to scripts and lookups) */
-      SLE sleOid;   /* link in the world's per-oid hash chain */
-      SLE sleCid;   /* link in the world's per-class list */
-      DLE dleChild;   /* link in the parent's list of children */
+      SLE oidHashLink; /* link in the world's per-oid hash chain */
+      SLE classListLink; /* link in the world's per-class list */
+      DLE siblingLink; /* link in the parent's list of children */
       char cpaloFindSwObjects;   /* count kept by FindSwObject searches (Sly 1 name; meaning not confirmed) */
-      uchar grfvis;   /* visibility flag bits (SetVisMask) */
-      long nUnk48 : 4;
-               long busyk : 4;   /* busy kind: how the object takes part in the busy list */
-               ulong fRemoved : 1;   /* set once the object has been removed from the world */
-               ulong fUnk57 : 1;
-               ulong fUnk58 : 1;
-               ulong fUnk59 : 1;
-               ulong fInWorld : 1;   /* the object is currently in the world (FIsLoInWorld) */
-      float gUnk30;
-      LORUN *plorunFirst;   /* first queued LORUN callback */
-      float sBusy;   /* busy distance: activation radius around the camera/hero (Sly 1 sBusy) */
-      PXR *ppxr;   /* proxy record when the object was spawned from a proxy */
-      int grfUnk40;
-      undefined4 unk_0x44[3];
+      uchar visibilityMask; /* visibility flag bits (SetVisMask) */
+      long unknownBits28A : 4;
+               long busyKind : 4; /* busy kind: how the object takes part in the busy list */
+               ulong isRemoved : 1;  /* set once the object has been removed from the world */
+               ulong unknownFlag28A : 1;
+               ulong unknownFlag28B : 1;
+               ulong unknownFlag28C : 1;
+               ulong isInWorld : 1;  /* the object is currently in the world (FIsLoInWorld) */
+      float unknown30;
+      LORUN *firstRunCallback; /* first queued LORUN callback */
+      float busyRadius; /* busy distance: activation radius around the camera/hero (Sly 1 sBusy) */
+      PXR *proxyRecord; /* proxy record when the object was spawned from a proxy */
+      int unknown40;   /* possibly stateFlags (low-confidence guess: runtime flag word: 2 set by PO::Init, 4 = slots awake, 0x10 = snap (xf.cpp comment); ASEG reuses it as a tagged pointer) */
+      undefined4 unknown44[3];
       virtual void Init() __asm__("InitLo");
     virtual CLASSINFO *GetClassInfo() __asm__("GetLoClassDesc");   /* slot 6 */
       virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleLoSpliceEvent");
@@ -100,30 +100,30 @@ struct LO : public BASIC
       virtual void ClearFlags(int grf) __asm__("ClearLoFlags");
 };
 typedef char assert_LO_size[sizeof(LO) == 0x50 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
-typedef char assert_LO_psoParent[SLY2_OFFSETOF(LO, psoParent) == 0x10 ? 1 : -1];   /* vptr at +0xC precedes it (CONFIRMED runtime, 8162/8162 objects) */
-typedef char assert_LO_ploroot[SLY2_OFFSETOF(LO, ploroot) == 0x14 ? 1 : -1];   /* LOROOT(+0x14)->plo = topmost ancestor (CONFIRMED runtime FINDINGS) */
+typedef char assert_LO_parent[SLY2_OFFSETOF(LO, parent) == 0x10 ? 1 : -1];         /* vptr at +0xC precedes it (CONFIRMED runtime, 8162/8162 objects) */
+typedef char assert_LO_root[SLY2_OFFSETOF(LO, root) == 0x14 ? 1 : -1];         /* LOROOT(+0x14)->plo = topmost ancestor (CONFIRMED runtime FINDINGS) */
 typedef char assert_LO_oid[SLY2_OFFSETOF(LO, oid) == 0x18 ? 1 : -1];   /* matched code (CreateLo 0x13E3C8 family) */
-typedef char assert_LO_sleOid[SLY2_OFFSETOF(LO, sleOid) == 0x1C ? 1 : -1];   /* oid hash SL ibNext 0x1C (CONFIRMED runtime) */
-typedef char assert_LO_sleCid[SLY2_OFFSETOF(LO, sleCid) == 0x20 ? 1 : -1];   /* per-class SL ibNext 0x20 (CONFIRMED runtime) */
-typedef char assert_LO_dleChild[SLY2_OFFSETOF(LO, dleChild) == 0x24 ? 1 : -1];   /* child DL ibDle 0x24 (CONFIRMED runtime) */
+typedef char assert_LO_oidHashLink[SLY2_OFFSETOF(LO, oidHashLink) == 0x1C ? 1 : -1]; /* oid hash SL ibNext 0x1C (CONFIRMED runtime) */
+typedef char assert_LO_classListLink[SLY2_OFFSETOF(LO, classListLink) == 0x20 ? 1 : -1]; /* per-class SL ibNext 0x20 (CONFIRMED runtime) */
+typedef char assert_LO_siblingLink[SLY2_OFFSETOF(LO, siblingLink) == 0x24 ? 1 : -1]; /* child DL ibDle 0x24 (CONFIRMED runtime) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry, EOPID_PMFI) emits them. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
-inline ulong func_00259AE8(LO *plo) { return plo->fInWorld; }   /* get */
+inline ulong func_00259AE8(LO *plo) { return plo->isInWorld; }  /* get */
 
 /* PXR: a proxy record: links an object made from a proxy (PROXY) to its proxy id, its parent record and its siblings.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (26 copies in Lilly ports) */
 struct PXR
 {
-      int idProxy;   /* proxy id */
-      PXR *ppxrParent;   /* record of the parent proxy object */
-      int oidProxy;   /* oid of the proxy */
-      SLE slePxrOid;   /* link in the per-oid list of proxy records */
-      LO *plo;   /* the object this record belongs to */
-      SLE sleSibling;   /* link in the parent record's child list */
-      SL slChild;   /* list of child records */
-      undefined4 unk_0x24;
+      int proxyId;   /* proxy id */
+      PXR *parent;       /* record of the parent proxy object */
+      int proxyOid;   /* oid of the proxy */
+      SLE oidHashLink; /* link in the per-oid list of proxy records */
+      LO *object; /* the object this record belongs to */
+      SLE siblingLink;  /* link in the parent record's child list */
+      SL children;  /* list of child records */
+      undefined4 unknown24;
 };
 
 #endif /* SLY2_LO_H */

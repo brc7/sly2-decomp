@@ -95,7 +95,7 @@ struct SOV
     char pad10[8];
     OID oid;                /* 0x18 */
     char pad1C[0x28 - 0x1C];
-    ulong grfLo;            /* 0x28: bit 60 is LO::fInWorld */
+    ulong grfLo;            /* 0x28: bit 60 is LO::isInWorld */
     char pad30[0x40 - 0x30];
     uint grfDirty;          /* 0x40: tagged word (a pointer to the flags, or the flags with bit 0 set) */
     char pad44[0x60 - 0x44];

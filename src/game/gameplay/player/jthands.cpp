@@ -748,9 +748,9 @@ extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
     ReleaseAct(&hands->pactPos);
     ReleaseAct(&hands->pactHold);
     ReleaseAct(&hands->pactTurn);
-    if (object->psoParent) {
+    if (object->parent) {
         XF *xf = object->GetLocalTransform((MATRIX4 *)&mat);
-        hands->psoHeld->SetParent(object->psoParent, xf, 0xF);
+        hands->psoHeld->SetParent(object->parent, xf, 0xF);
     } else {
         SetLoParent(hands->psoHeld, 0, 0xF);
     }

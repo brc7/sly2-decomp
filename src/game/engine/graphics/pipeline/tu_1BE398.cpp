@@ -52,7 +52,7 @@ typedef char assert_RT_size[sizeof(RT) == 0x28 ? 1 : -1];
 
 /* An object the camera renders (+0xE4 list): LO fields used by AcquireRenderTarget. */
 struct LOROOTV { struct LOV *plo; };
-struct LOV { char pad0[0xC]; VTE *vt; char pad10[4]; LOROOTV *ploroot; char pad18[0x10]; unsigned long loBits; char pad30[0x10]; int flags40; };   /* loBits bit 60: LO::fInWorld; flags40: tagged flag word */
+struct LOV { char pad0[0xC]; VTE *vt; char pad10[4]; LOROOTV *ploroot; char pad18[0x10]; unsigned long loBits; char pad30[0x10]; int flags40; };   /* loBits bit 60: LO::isInWorld; flags40: tagged flag word */
 /* An object of the second list (+0x108). */
 struct RTO { int a, b, c; VTE *vt; char pad[0x15C - 0x10]; int unknown15C; int unknown160; };   /* both set to 1 while shown in a target */
 /* The camera object (an XFM, which ends at +0xE0). */
