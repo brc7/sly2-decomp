@@ -259,7 +259,6 @@ struct GIFS {
     void *max; qword *base,*count,*current; int pad,endPrim; void *vt;
     qword *tag; int registerCount,vertexCount;
 };
-struct O { char pad[0x3EA0]; ulong tex0; };
 extern "C" {
 struct SRC { float ag[3]; float aclr[3][4]; };
 extern int D_002C3680[3];   /* shd's .data starts here (the zero word after it is alignment) */
@@ -277,7 +276,7 @@ void AddPrimEnd__4GIFS(GIFS *);
 void AddDmaEnd__4DMAS(GIFS *);
 void Detach__4DMASPiPP2QW(GIFS *, int *, qword **);
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, qword *);
-void BuildWorldBackgroundImage(O *p, void *pbs);
+void BuildWorldBackgroundImage(SW *p, void *pbs);
 }
 static inline void ClearClr(CLR *pc)
 {
@@ -293,11 +292,11 @@ static inline void StoreColor(CLR *outColor,float *outAlpha,const float *gain,co
     float alpha=*gain*0.003921569f;
     *outAlpha=alpha;outColor->n=rgb;
 }
-// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (tex0 saved at
-// g_sw+0x3EA0) (inferred)
-void BuildWorldBackgroundImage(O *p, void *pbs)
+// Build a GS packet that draws a gradient/solid image from HSV colors into an allocated GS block (the CLUT of
+// SW::tex2Background) (inferred)
+void BuildWorldBackgroundImage(SW *p, void *pbs)
 {
-    if (!pbs && !(p->tex0 & (0x3FFFL << 37)))
+    if (!pbs && !(p->tex2Background & (0x3FFFL << 37)))
         return;
     {
     float ag[3];
@@ -350,11 +349,11 @@ void BuildWorldBackgroundImage(O *p, void *pbs)
     qword aqw[0x80];
     qword *x;
     if (pbs)
-        p->tex0 = ((ulong)IgsAllocGsb__FP3GSBi(pbs, 4) << 37) | 0x2000000001B00000L;
+        p->tex2Background = ((ulong)IgsAllocGsb__FP3GSBi(pbs, 4) << 37) | 0x2000000001B00000L;
     __4GIFS(&dmas);
     AllocStatic__4DMASiP2QW(&dmas, 0x80, aqw);
     AddDmaCnt__4DMAS(&dmas);
-    BuildImageGifs__FiiiiiiP4GIFS((int)((p->tex0 >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &dmas);
+    BuildImageGifs__FiiiiiiP4GIFS((int)((p->tex2Background >> 37) & 0x3FFF), 1, 0, 0x10, 0x10, 0x40, &dmas);
     AddDmaRefs__4DMASiP2QW(&dmas, 0x40, aclr);
     AddPrimPack__4GIFSiiUl(&dmas, 0, 1, 14);
     PackAD__4GIFSll(&dmas, 0x3F, 0);
