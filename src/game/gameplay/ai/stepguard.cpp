@@ -576,11 +576,11 @@ extern float D_002A8610;
 extern int D_002C3CF0;
 struct F { char pad[0xF0]; int unknownF0; int unknownF4; };
 struct S {
-    char p0[0x2DC]; int scriptResumePoint[3]; int patrolScript; char p1[0x330 - 0x2EC]; int isKnockedOut; char p2[0x360 - 0x334]; float pulseStartTime;
-    char p3[0x390 - 0x364]; int forcedTarget; char p4[0x484 - 0x394]; int numLoot, firstLoot, isLootStaged, unknown490; char p5[0x4A0 - 0x494]; int unknown4A0;
-    char p6[0xE94 - 0x4A4]; int unknownE94; char p7[0xF64 - 0xE98]; struct F *detector; int escortObject; char p8[0xF94 - 0xF6C]; int designatedTargetCount;
-    char p9[0xFA8 - 0xF98]; int avoidObjectCount; char p10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char p11[0xFF4 - 0xFD0]; float unknownFF4;
-    char p12[0x1000 - 0xFF8]; int removalMode;
+    char pad0[0x2DC]; int scriptResumePoint[3]; int patrolScript; char pad1[0x330 - 0x2EC]; int isKnockedOut; char pad2[0x360 - 0x334]; float pulseStartTime;
+    char pad3[0x390 - 0x364]; int forcedTarget; char pad4[0x484 - 0x394]; int numLoot, firstLoot, isLootStaged, unknown490; char pad5[0x4A0 - 0x494]; int unknown4A0;
+    char pad6[0xE94 - 0x4A4]; int unknownE94; char pad7[0xF64 - 0xE98]; struct F *detector; int escortObject; char pad8[0xF94 - 0xF6C]; int designatedTargetCount;
+    char pad9[0xFA8 - 0xF98]; int avoidObjectCount; char pad10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char pad11[0xFF4 - 0xFD0]; float unknownFF4;
+    char pad12[0x1000 - 0xFF8]; int removalMode;
 };
 void func_001CB5D0(struct S *p);
 void DetachStepguard(struct S *p);
@@ -2239,7 +2239,7 @@ int GuardEvalInteractMode(struct S *guard, struct PLAYER *player, float *distanc
             indicator = guard->pickpocketIndicator1;
         else
             indicator = guard->pickpocketIndicator0;
-        if (indicator && !!((indicator->loFlags >> 60) & 1) && FCheckVolPoint(indicator, func_001A62E8(player)))
+        if (indicator && !!((indicator->loFlags >> 60) & 1) /* (`!!` needed for the match) */ && FCheckVolPoint(indicator, func_001A62E8(player)))
             return 3;
     }
     angleRange = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
@@ -3414,6 +3414,7 @@ static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j
 // 0x20A818: Engagement token: true if this guard may attack the record's target now (not disabled, no other engaged
 // guard striking; facing kind 0 needs the guard ready, or in view of the camera and within the tolerance of
 // the camera heading as seen from the target; kind 1 within the tolerance of the target's facing).
+// (The failures share one `return 0` inside case 0 through `goto fail`: separate returns do not match.)
 extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
 {
     U scalar;
@@ -3851,6 +3852,7 @@ struct S;
 struct S { char pad[0xF80]; int attachKind; int attachObject; };
 void func_00204F78(struct S *guard, int object, int attach);
 // 0x20B210: Detaches the guard from what it is attached to (no attach kind or object).
+// (One case per attach kind, each with its own call: merging the identical cases changes the jump table.)
 void DetachStepguard(struct S *guard)
 {
     switch (guard->attachKind) {
