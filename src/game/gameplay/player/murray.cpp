@@ -2789,97 +2789,59 @@ void UpdateMurrayAttackVelocity(struct P*murray){
 } } // namespace M_func_001B8B70
 
 namespace M_func_001B8D30 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time,deltaTime; };
-struct CLIP; struct ANIMATION;
-struct COMPONENT_DATA;
-struct COMPONENT { struct COMPONENT_DATA *value; };
-struct SCRIPT { int opaque; struct CLIP *clip; char rest[0x14]; };
+/* MURRAY::unknown1850 (an ASEG arc record) as read here: +0x1C the leap distance behind Murray. */
+struct ARCV { char pad[0x1C]; float sLeap; };
 struct M3 { qword row[3]; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0x40 - 0x10]; qword v40; char rest[0x20]; };
-union V3 { qword q; struct { float x,y,z,w; } value; };
+/* A LEAP (leap.h, no fields yet) as written here: +0x40 its goal position. */
+struct LEAPV { char pad[0x40]; qword posGoal; };
 // Zero the xyz components of pv.
-static __inline__ void Zero(union V3 *pv) { pv->value.z = 0; pv->value.y = 0; pv->value.x = 0; }
-struct P { char pad[0x190]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANIMATION *action; struct COMPONENT x1034;
-    char pad2[0x1840 - 0x1038]; int x1840; float f1844; struct CLIP *x1848; struct CLIP *x184C; struct SCRIPT x1850; float f186C;
-    char pad3[0x1890 - 0x1870]; struct O x1890; struct O *x1900; struct CLIP *x1904; int powerContactTrigger; };
-void StopLeap(struct O *o);
-void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
-qword GetLoWorldPos(struct P *p);
-struct M3 *GetLoWorldMatrix(struct P *p);
-void ReleaseSma(struct COMPONENT *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
+static __inline__ void Zero(VECTOR *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
+void StopLeap(LEAP *o);
+void StartLeap(void *parc, MURRAY *p, int n, LEAP *b);
+qword GetLoWorldPos(MURRAY *p);
+struct M3 *GetLoWorldMatrix(MURRAY *p);
+void ReleaseSma(SMA **ppsma);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, MURRAY *p, float time, float rate, int n, ASEGA **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
-typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
-typedef char COMPONENT_value_Offset[FIELD_OFFSET(COMPONENT,value)==0?1:-1];
-typedef char SCRIPT_clip_Offset[FIELD_OFFSET(SCRIPT,clip)==4?1:-1];
-typedef char M3_row_Offset[FIELD_OFFSET(M3,row)==0?1:-1];
-typedef char VE_d_Offset[FIELD_OFFSET(VE,d)==0?1:-1];
-typedef char VE_pfn_Offset[FIELD_OFFSET(VE,pfn)==4?1:-1];
-typedef char O_vt_Offset[FIELD_OFFSET(O,vt)==12?1:-1];
-typedef char O_v40_Offset[FIELD_OFFSET(O,v40)==64?1:-1];
-typedef char P_v190_Offset[FIELD_OFFSET(P,v190)==400?1:-1];
-typedef char P_x1030_Offset[FIELD_OFFSET(P,action)==4144?1:-1];
-typedef char P_x1034_Offset[FIELD_OFFSET(P,x1034)==4148?1:-1];
-typedef char P_x1840_Offset[FIELD_OFFSET(P,x1840)==6208?1:-1];
-typedef char P_f1844_Offset[FIELD_OFFSET(P,f1844)==6212?1:-1];
-typedef char P_x1848_Offset[FIELD_OFFSET(P,x1848)==6216?1:-1];
-typedef char P_x184C_Offset[FIELD_OFFSET(P,x184C)==6220?1:-1];
-typedef char P_x1850_Offset[FIELD_OFFSET(P,x1850)==6224?1:-1];
-typedef char P_f186C_Offset[FIELD_OFFSET(P,f186C)==6252?1:-1];
-typedef char P_x1890_Offset[FIELD_OFFSET(P,x1890)==6288?1:-1];
-typedef char P_x1900_Offset[FIELD_OFFSET(P,x1900)==6400?1:-1];
-typedef char P_x1904_Offset[FIELD_OFFSET(P,x1904)==6404?1:-1];
-typedef char P_x1908_Offset[FIELD_OFFSET(P,powerContactTrigger)==6408?1:-1];
-typedef char CLOCK_Size[sizeof(struct CLOCK)==8?1:-1];
-typedef char COMPONENT_Size[sizeof(struct COMPONENT)==4?1:-1];
-typedef char SCRIPT_Size[sizeof(struct SCRIPT)==28?1:-1];
-typedef char M3_Size[sizeof(struct M3)==48?1:-1];
-typedef char VE_Size[sizeof(struct VE)==8?1:-1];
-typedef char O_Size[sizeof(struct O)==112?1:-1];
-typedef char P_Size[sizeof(struct P)==6416?1:-1];
-typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char V3_Size[sizeof(union V3)==16?1:-1];
 // State 12 (gadget 20 power move) sub-states: 0 wind-up clip, 1 clip, 2 spawn/launch a script object.
-void SetMurrayPowerSubstate(struct P *murray, int st)
+void SetMurrayPowerSubstate(MURRAY *murray, int st)
 {
-    struct CLIP *o;
+    ASEG *o;
     int n;
-    if (st == murray->x1840) return;
-    if (murray->x1840 == 2) {
-        StopLeap(murray->x1900);
-        ((void (*)())murray->x1900->vt[2].pfn)((char *)murray->x1900 + murray->x1900->vt[2].d);
-        murray->x1900 = 0;
+    if (st == murray->subState) return;
+    if (murray->subState == 2) {
+        StopLeap(murray->pleapPower);
+        murray->pleapPower->Release();
+        murray->pleapPower = 0;
     }
-    murray->x1840 = st;
-    murray->f1844 = D_002DDED0.time;
+    murray->subState = st;
+    murray->subStateTime = D_002DDED0.time;
     o = 0;
     n = 0;
     switch (st) {
     case 0:
-        o = murray->x1848;
-        Zero(&murray->v190);
+        o = murray->pasegPowerA;
+        Zero(&murray->unknown190);
         n = 1;
         break;
     case 1:
-        o = murray->x184C;
+        o = murray->pasegPowerB;
         n = 9;
         break;
     case 2: {
-        struct O *q;
+        LEAP *q;
         qword b;
         struct M3 *px;
         union { qword q; float f[4]; } u, uv, u2;
         murray->powerContactTrigger = 0;
-        murray->x1900 = &murray->x1890;
-        StartLeap(&murray->x1850, murray, 1, &murray->x1890);
-        q = murray->x1900;
+        murray->pleapPower = &murray->leap;
+        StartLeap(murray->unknown1850, murray, 1, &murray->leap);
+        q = murray->pleapPower;
         uv.q = GetLoWorldPos(murray);
-        __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-murray->f186C));
+        __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-((ARCV *)murray->unknown1850)->sLeap));
         u.q = b;
         u2.q = u.q;
         px = GetLoWorldMatrix(murray);
@@ -2888,21 +2850,21 @@ void SetMurrayPowerSubstate(struct P *murray, int st)
             register qword origin __asm__("vf2") = uv.q;
             __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %0, %2x"
                     : "+j"(axis) : "j"(origin), "j"(u2.q));
-            q->v40 = axis;
+            ((LEAPV *)q)->posGoal = axis;
         }
-        murray->v190.q = D_002A2DD0;
+        murray->qwUnknown190 = D_002A2DD0;
         break;
     }
     case 3:
-        o = murray->x1904;
+        o = murray->pasegPowerEnd;
         n = 1;
         break;
     case -1:
         murray->powerContactTrigger = 0;
         return;
     }
-    ReleaseSma(&murray->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->action);
+    ReleaseSma(&murray->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, 0.0f, 1.0f, n, &murray->activeAnimation);
 }
 } } // namespace M_func_001B8D30
 #undef FIELD_OFFSET

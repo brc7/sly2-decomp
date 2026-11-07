@@ -99,11 +99,12 @@ struct MURRAY : public STEPPLAYER
       qword unknown1830;
       int subState;   /* +0x1840 sub-state of Murray's behaviour (BHV198's Update, ai/tu_144B28.cpp: 0 face the player, 1 keep turning) */
       float subStateTime;   /* +0x1844 clock.time subState was set (UpdateMurrayPower timeouts) */
-      undefined4 unk_0x1848[(0x1850 - 0x1848) / 4];
+      ASEG *pasegPowerA;   /* +0x1848 power-move clip of sub-state 0 (SetMurrayPowerSubstate) */
+      ASEG *pasegPowerB;   /* +0x184C power-move clip of sub-state 1 */
       undefined4 unknown1850[0x40 / 4];   /* an ASEG arc record (PostAsegArcLoad) */
       LEAP leap;   /* +0x1890 constructed by MURRAY_ctor (ConstructLeap) */
       struct LEAP *pleapPower;   /* +0x1900 the leap of the power attack (UpdateMurrayPower runs it) */
-      void *unknown1904;
+      ASEG *pasegPowerEnd;   /* +0x1904 power-move clip of sub-state 3 */
       int powerContactTrigger;   /* +0x1908 set on contact during the power attack (AdjustMurrayNewXp; UpdateMurrayPower) */
       struct ASEGA *unknown190C;     /* running animation segment application; possibly animationPlayback (low-confidence guess: header comment: running animation segment application) */
       JTTHROW jtthrowAim;   /* +0x1910 Murray's aimed-throw component (MURRAY_AIMED_THROW; PostJtThrowLoad, SetJtThrowState,
