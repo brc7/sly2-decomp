@@ -313,7 +313,7 @@ void InitJt(JT *jt)
     InitBentleyHelper(&jt->jtrec, jt);
     jt->grfGrabTarget = 1;
     jt->unknown1020 = 200.0f;
-    jt->unknown264 = 0xC7;
+    jt->oidPhys = 0xC7;
     ResetJtHands(&jt->hands);
     D_002E1E40 = jt;
 }

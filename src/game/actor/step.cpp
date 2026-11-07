@@ -63,27 +63,24 @@ enum
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitStep { extern "C" {
-struct S : PO { char pad[0x200 - 0x180]; float unknownRatio200; char p1[0x10]; float stepDownHeight; char p2[8]; float baseRadius; char p3[0x3C]; float gravityRatio; int physPartOid; char p4[4]; char behaviorStack[4]; };
-void InitPo(struct S *p);
-void ScaleStepSpinSpeed(struct S *p, float g);
-void SetStepTargetHeading(struct S *p, float g);
-void InitBhvstk(void *pv, struct S *p);
+void InitPo(PO *ppo);
+void ScaleStepSpinSpeed(STEP *pstep, float r);
+void InitBhvstk(BHVSTK *pbhvstk, STEP *pstep);
 } } // namespace M_InitStep
 // Slot 7 (Init): InitPo, then walking defaults: gravity ratio 1, spin ratio 1 (ScaleStepSpinSpeed), target heading
 // 0, base radius 30, step-down height -50, and the behaviour stack.
 void STEP::Init()
 {
     using namespace M_InitStep;
-    M_InitStep::S *p = (M_InitStep::S *)this;
-    InitPo(p);
-    p->physPartOid = -1;
-    p->gravityRatio = 1.0f;
-    p->unknownRatio200 = 1.0f;
-    ScaleStepSpinSpeed(p, 1.0f);
-    SetStepTargetHeading(p, 0.0f);
-    p->baseRadius = 30.0f;
-    p->stepDownHeight = -50.0f;
-    InitBhvstk(p->behaviorStack, p);
+    InitPo(this);
+    oidPhys = -1;
+    unknown260 = 1.0f;
+    unknown200 = 1.0f;
+    ScaleStepSpinSpeed(this, 1.0f);
+    SetStepTargetHeading(this, 0.0f);
+    baseRadius = 30.0f;
+    stepDownHeight = -50.0f;
+    InitBhvstk(&behaviors, this);
 }
 
 // Slot 14 (LoadFromBrx): LoadPoFromBrx, caches the base position in parent space (+0x240) and ensures the physics
@@ -104,31 +101,28 @@ extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostStepLoad { extern "C" {
-struct S : LO { char pad[0x58 - 0x50]; int childOid0; int childOid1; char pad2[0x294 - 0x60]; int sampledShape; };
-struct O : PO { char pad[0x264 - 0x180]; int oid; void *ownPart; char behaviorStack[0x28]; int sampledShape; };
-void PostSoLoad(struct O *p);
-int NewSampledShape(int a, int b);
-void SetXfRole(struct O *p, int n, int f);
-void *FindSoPart(struct O *p, int oid);
-void BuildStepPhysPart(struct O *p, void *pv);
-void HideSoPart(struct O *p, void *pv);
-void PostBhvstkLoad(void *pv);
-// Slot 15 (PostLoad): PostSoLoad, allocates the step's runtime block, attaches its two child objects by oid and
-// builds the collision ("phys") part from the mesh part named by oid +0x264 (BuildStepPhysPart).
-void PostStepLoad(struct O *step)
+void PostSoLoad(SO *pso);
+void *NewSampledShape(int a, int b);
+void SetXfRole(SO *pso, XF *pxf, int f);
+void BuildStepPhysPart(STEP *pstep, SOPART *ppart);
+void HideSoPart(SO *pso, SOPART *ppart);
+void PostBhvstkLoad(BHVSTK *pbhvstk);
+// Slot 15 (PostLoad): PostSoLoad, allocates the step's sampled shape, gives its two child transforms role 1 and
+// builds the collision ("phys") part from the mesh part named by oidPhys (BuildStepPhysPart).
+void PostStepLoad(STEP *step)
 {
     PostSoLoad(step);
-    step->sampledShape = NewSampledShape(0x2C9, 0x10);
-    SetXfRole(step, ((struct S *)step)->childOid0, 1);
-    SetXfRole(step, ((struct S *)step)->childOid1, 1);
-    if (step->oid != -1) {
-        step->ownPart = FindSoPart(step, step->oid);
-        if (step->ownPart) {
-            BuildStepPhysPart(step, step->ownPart);
-            HideSoPart(step, step->ownPart);
+    step->unknown294 = NewSampledShape(0x2C9, 0x10);
+    SetXfRole(step, step->unknown58, 1);
+    SetXfRole(step, step->unknown5C, 1);
+    if (step->oidPhys != -1) {
+        step->ppartPhysMesh = FindSoPart(step, (OID)step->oidPhys);
+        if (step->ppartPhysMesh) {
+            BuildStepPhysPart(step, step->ppartPhysMesh);
+            HideSoPart(step, step->ppartPhysMesh);
         }
     }
-    PostBhvstkLoad(step->behaviorStack);
+    PostBhvstkLoad(&step->behaviors);
 }
 } } // namespace M_PostStepLoad
 
