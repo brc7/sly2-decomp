@@ -164,6 +164,15 @@ struct ANIMBINDING
       };
       int flags;            /* +0xC [S] start flags passed to StartAnimBinding */
 };
+/* The payload of message 9 (an event label of a playing animation reached; the behaviours' HandleMessage, slot 13,
+   compare the instance with their binding's): the animation instance, the time and the event label. [S] */
+struct ASEGEVENTMSG
+{
+      ASEGA *asega;         /* +0x0 [S] the playing instance (GetAnimBindingInstance) */
+      float time;           /* +0x4 [S] */
+      int event;            /* +0x8 [S] the event label (0x15E root motion, 0x25..0x36 guard events) */
+};
+typedef char assert_ASEGEVENTMSG_event[SLY2_OFFSETOF(ASEGEVENTMSG, event) == 0x8 ? 1 : -1];
 /* The guard's mover (STEPGUARD +0xFD0, 16 bytes; tu_144B28.cpp reads the same bytes as a JTGOAL): the driver (the
    behaviour whose motion update moves the guard: SetStepguardMoverDriver / ResetStepguardMover), a heading lock and
    the owning guard. [S] */

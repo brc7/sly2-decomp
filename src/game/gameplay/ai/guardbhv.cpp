@@ -163,6 +163,8 @@ void StartBhvanim(BHVANIM *behavior);
 void CloseBhvanim(BHVANIM *behavior);
 void SetBhvanimState(BHVANIM *behavior, int nState);
 int IsBhvanimDone(BHVANIM *behavior);
+int HandleBhvanimMessage(BHVANIM *behavior, int msg, ASEGEVENTMSG *pm);
+ASEGA *GetAnimBindingInstance(ANIMBINDING *binding);
 void SetBhvattackState(BHVATTACK *behavior, int nState);
 void SetBhvcombatState(BHVCOMBAT *behavior, int nState);
 CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *ploTarget, void *pvEngage);
@@ -188,21 +190,15 @@ void AdvanceBhvpatrolpathGoal(BHV *behavior, int n);
 }
 
 // 0x174898 GetStepguardFromLo
-namespace M_PstepguardFromLo { extern "C" {
-struct L; struct O;
-struct O;
-struct L { struct O *object; };
-struct O { char pad[0x14]; struct L *root; char pad2[0x1E8]; struct O *owner; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-// 0x174898: Returns the guard that owns an object: the object's root if it is a STEPGUARD, else (for cid 0x4F
-// children such as bombs) the root of its owner (+0x200); NULL otherwise.
-struct O *GetStepguardFromLo(struct O *p) {
+// 0x174898: Returns the guard that owns an object: the object's hierarchy top if it is a STEPGUARD, else (for bombs,
+// cid 0x4F) the hierarchy top of the bomb's thrower; NULL otherwise.
+extern "C" STEPGUARD *GetStepguardFromLo(LO *p) {
     if (!p) return 0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p->root->object, CID_STEPGUARD)) return p->root->object;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, CID_BOMB) && IsBasicDerivedFrom__FP5BASIC3CID(p->owner->root->object, CID_STEPGUARD)) return p->owner->root->object;
+    if (IsBasicDerivedFrom(p->root->topObject, (CID)CID_STEPGUARD)) return (STEPGUARD *)p->root->topObject;
+    if (IsBasicDerivedFrom(p, (CID)CID_BOMB) && IsBasicDerivedFrom(((BOMB *)p)->thrower->root->topObject, (CID)CID_STEPGUARD))
+        return (STEPGUARD *)((BOMB *)p)->thrower->root->topObject;
     return 0;
 }
-} } // namespace M_PstepguardFromLo
 
 // 0x174920 InitBhvanim
 namespace M_InitBhvanim { extern "C" {
@@ -307,72 +303,59 @@ void UpdateBhvanim(BHVANIM *behavior) {
 
 // 0x174BD0 HandleBhvanimMessage
 namespace M_BHVANIM_FHandleMessage { extern "C" {
-struct VTE; struct A; struct O; struct M;
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct G;
-struct ANIMATION;
-extern struct G D_003DD490;
-extern void *D_002F7900;
-extern char D_002DFC00[];
-struct VTE { short d; short pad; void *pfn; };
-struct A {
-    char pad[0xC]; struct VTE *vt; char pad2[0x190 - 0x10]; qword desiredVelocity; char pad3[4]; int animGroundFlag; char pad4[8];
-    qword orientation[3]; char pad5[0xFD0 - 0x1E0]; char mover[4];
-};
-struct O { char pad[0x30]; void *target; char pad2[0x1C]; void *parent; };
-struct M { struct ANIMATION *animation; float time; int event; };
-struct ANIMATION *GetAnimBindingInstance(void *p);
-qword GetStepAsegaTranslation(struct A *a, struct ANIMATION *animation, float f);
-void LockStepguardMover(void *p, BHVANIM *s);
-void UnlockStepguardMover(void *p, BHVANIM *s);
-void SetBhvBusy(BHVANIM *p);
-void ClearBhvBusy(BHVANIM *p);
-struct O *FindStepBehavior(struct A *a, int n);
-void *GetHeroPo(struct G *g);
+extern LO *D_002F7900;          /* one of the three heroes (screen.cpp) */
+extern char D_002DFC00[];       /* g_joy */
+qword GetStepAsegaTranslation(STEP *pstep, ASEGA *asega, float f);
+void LockStepguardMover(GUARDMOVER *pmover, BHVANIM *s);
+void UnlockStepguardMover(GUARDMOVER *pmover, BHVANIM *s);
+BHV *FindStepBehavior(STEP *pstep, int cid);
+LO *GetHeroPo(SW *psw);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
-int IsLoSelfOrDescendantOf(void *n, void *o);
+int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor);
 void JoltCamera(void *p, int n);
-void SetSoZapMode(struct A *a, int n);
+void SetSoZapMode(SO *pso, int n);
+} } // namespace M_BHVANIM_FHandleMessage
 // 0x174BD0: BHVANIM vtable slot 13 (HandleMessage): message 9 carries an ASEG event of the playing animation: 0x15E
 // root-motion translation, 0x25/0x26 lock/unlock the mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, rumble
 // and camera events, and so on; other messages go to the base.
-int HandleBhvanimMessage(BHVANIM *behavior, int msg, struct M *pm) {
-    struct ANIMATION *animation;
+extern "C" int HandleBhvanimMessage(BHVANIM *behavior, int msg, ASEGEVENTMSG *pm) {
+    using namespace M_BHVANIM_FHandleMessage;
+    ASEGA *animation;
     if (msg != 9) return 0;
     if (!behavior->binding) return 0;
     animation = GetAnimBindingInstance(behavior->binding);
-    if (animation != pm->animation) return 0;
+    if (animation != pm->asega) return 0;
     switch (pm->event) {
     case 0x15E:
         {
-            qword v = GetStepAsegaTranslation(((struct A *)behavior->owner), animation, pm->time);
+            qword v = GetStepAsegaTranslation(((STEPGUARD *)behavior->owner), animation, pm->time);
             qword n, r;
             U u;
-            struct A *a;
+            STEPGUARD *a;
             { qword u_q; __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(-1.0f)); u.q = u_q; }
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(v), "j"(u.q));
-            ((struct A *)behavior->owner)->desiredVelocity = n;
-            a = ((struct A *)behavior->owner);
+            ((STEPGUARD *)behavior->owner)->qwUnknown190 = n;
+            a = ((STEPGUARD *)behavior->owner);
             {
-                qword *m = a->orientation;
+                qword *m = a->aqwTarget;
                 __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
                         : "=j"(r) : "j"(m[0]), "j"(m[1]), "j"(m[2]), "j"(v));
             }
-            { struct VTE *entry = &a->vt[0x23]; ((void (*)(void *, qword))entry->pfn)((char *)a + entry->d, r); }
+            a->SetVelocity(r);
         }
         return 1;
     case 0x25:
-        LockStepguardMover(((struct A *)behavior->owner)->mover, behavior);
+        LockStepguardMover(&((STEPGUARD *)behavior->owner)->mover, behavior);
         return 1;
     case 0x26:
-        UnlockStepguardMover(((struct A *)behavior->owner)->mover, behavior);
+        UnlockStepguardMover(&((STEPGUARD *)behavior->owner)->mover, behavior);
         return 1;
     case 0x29:
-        ((struct A *)behavior->owner)->animGroundFlag = 1;
+        ((STEPGUARD *)behavior->owner)->unknown1A4 = 1;
         return 1;
     case 0x2A:
-        ((struct A *)behavior->owner)->animGroundFlag = 0;
+        ((STEPGUARD *)behavior->owner)->unknown1A4 = 0;
         return 1;
     case 0x27:
         SetBhvBusy(behavior);
@@ -382,16 +365,16 @@ int HandleBhvanimMessage(BHVANIM *behavior, int msg, struct M *pm) {
         return 1;
     case 0x2F:
         {
-            struct O *o = FindStepBehavior(((struct A *)behavior->owner), CID_BHVCOMBAT);
+            BHVCOMBAT *o = (BHVCOMBAT *)FindStepBehavior(behavior->owner, CID_BHVCOMBAT);
             if (o && o->target == GetHeroPo(&D_003DD490)) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 8, 1.0f);
         }
         return 0;
     case 0x34:
     case 0x35:
         {
-            void *g = GetHeroPo(&D_003DD490);
-            struct O *o = FindStepBehavior(((struct A *)behavior->owner), CID_BHVHIT);
-            if (o && IsLoSelfOrDescendantOf(o->parent, g) && g == D_002F7900) {
+            LO *g = GetHeroPo(&D_003DD490);
+            BHVHIT *o = (BHVHIT *)FindStepBehavior(behavior->owner, CID_BHVHIT);
+            if (o && IsLoSelfOrDescendantOf(o->attacker, g) && g == D_002F7900) {
                 switch (pm->event) {
                 case 0x35: JoltCamera(&g_cm, 0); break;
                 case 0x34: TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f); break;
@@ -400,31 +383,11 @@ int HandleBhvanimMessage(BHVANIM *behavior, int msg, struct M *pm) {
         }
         return 0;
     case 0x36:
-        SetSoZapMode(((struct A *)behavior->owner), 2);
+        SetSoZapMode(behavior->owner, 2);
         return 0;
     }
     return 0;
 }
-
-typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
-typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_U[(sizeof(U)==16)?1:-1];
-typedef char layout_float[(sizeof(float)==4)?1:-1];
-typedef char layout_VTE[(sizeof(struct VTE)==8)?1:-1];
-typedef char layout_M[(sizeof(struct M)==12)?1:-1];
-typedef char layout_VTE_d[((unsigned)&((struct VTE*)0)->d==0x0)?1:-1];
-typedef char layout_VTE_pfn[((unsigned)&((struct VTE*)0)->pfn==0x4)?1:-1];
-typedef char layout_A_vt[((unsigned)&((struct A*)0)->vt==0xc)?1:-1];
-typedef char layout_A_v190[((unsigned)&((struct A*)0)->desiredVelocity==0x190)?1:-1];
-typedef char layout_A_n1A4[((unsigned)&((struct A*)0)->animGroundFlag==0x1a4)?1:-1];
-typedef char layout_A_orientation[((unsigned)&((struct A*)0)->orientation==0x1b0)?1:-1];
-typedef char layout_A_aFD0[((unsigned)&((struct A*)0)->mover==0xfd0)?1:-1];
-typedef char layout_O_p30[((unsigned)&((struct O*)0)->target==0x30)?1:-1];
-typedef char layout_O_parent[((unsigned)&((struct O*)0)->parent==0x50)?1:-1];
-typedef char layout_M_animation[((unsigned)&((struct M*)0)->animation==0x0)?1:-1];
-typedef char layout_M_f4[((unsigned)&((struct M*)0)->time==0x4)?1:-1];
-typedef char layout_M_n8[((unsigned)&((struct M*)0)->event==0x8)?1:-1];
-} } // namespace M_BHVANIM_FHandleMessage
 
 // 0x174EA0 GetBhvanimGroundProbeFlags
 namespace M_BHVANIM_GrfGroundProbe { extern "C" {
@@ -481,18 +444,11 @@ extern "C" int IsBhvanimDone(BHVANIM *behavior)
 }
 
 // 0x174FC8 InitBhvidle
-namespace M_InitBhvidle { extern "C" {
-struct S;
-struct S { char pad[0x3C]; int sgf; };
-void InitBhvanim(struct S *p);
-} } // namespace M_InitBhvidle
 // 0x174FC8: BHVIDLE vtable slot 7 (OnPush): BHVANIM OnPush with the stand/idle flag (2).
 void BHVIDLE::OnPush()
 {
-    using namespace M_InitBhvidle;
-    M_InitBhvidle::S *p = (M_InitBhvidle::S *)this;
-    InitBhvanim(p);
-    p->sgf = 2;
+    InitBhvanim(this);
+    sgf = 2;
 }
 
 // 0x174FF8 StartBhvidle
@@ -521,48 +477,38 @@ void StartBhvidle(BHVIDLE *behavior) {
 
 // 0x175090 CloseBhvidle
 namespace M_CloseBhvidle { extern "C" {
-struct T; 
-struct T { char pad[0x58]; int xfRolesIdle; int xfRolesUngrounded; };
-void CloseBhvanim(BHVIDLE *p);
-void SetXfRole(struct T *t, int a, int b);
-// 0x175090: BHVIDLE vtable slot 9 (Close): BHVANIM Close and restores the XF roles.
-void CloseBhvidle(BHVIDLE *behavior)
-{
-    CloseBhvanim(behavior);
-    SetXfRole(((struct T *)behavior->owner), ((struct T *)behavior->owner)->xfRolesIdle, 2);
-    if (!behavior->lookAt)
-        SetXfRole(((struct T *)behavior->owner), ((struct T *)behavior->owner)->xfRolesUngrounded, 2);
-}
+void SetXfRole(STEPGUARD *t, XF *a, int b);
 } } // namespace M_CloseBhvidle
+// 0x175090: BHVIDLE vtable slot 9 (Close): BHVANIM Close and restores the XF roles.
+extern "C" void CloseBhvidle(BHVIDLE *behavior)
+{
+    using namespace M_CloseBhvidle;
+    CloseBhvanim(behavior);
+    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown58, 2);
+    if (!behavior->lookAt)
+        SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 2);
+}
 
 // 0x1750E0 HandleBhvidleMessage
-namespace M_BHVIDLE_FHandleMessage { extern "C" {
-struct M; struct T; 
-struct M { int animation; int time; int event; };
-struct T { char pad[0x5C]; int xfRolesUngrounded; char pad2[0x1A4 - 0x60]; int animGroundFlag; };
-int GetAnimBindingInstance(void *p);
-int HandleBhvanimMessage(BHVIDLE *p, int msg, struct M *pm);
-void SetXfRole(struct T *t, int a, int b);
 // 0x1750E0: BHVIDLE vtable slot 13 (HandleMessage): ASEG events 0x29/0x2A toggle the ground flag and the XF role;
 // else the BHVANIM handler.
-int HandleBhvidleMessage(BHVIDLE *behavior, int msg, struct M *pm)
+extern "C" int HandleBhvidleMessage(BHVIDLE *behavior, int msg, ASEGEVENTMSG *pm)
 {
-    if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->animation) {
+    if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->asega) {
         switch (pm->event) {
         case 0x29:
-            ((struct T *)behavior->owner)->animGroundFlag = 1;
-            SetXfRole(((struct T *)behavior->owner), ((struct T *)behavior->owner)->xfRolesUngrounded, 2);
+            ((STEPGUARD *)behavior->owner)->unknown1A4 = 1;
+            M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 2);
             return 1;
         case 0x2A:
-            ((struct T *)behavior->owner)->animGroundFlag = 0;
+            ((STEPGUARD *)behavior->owner)->unknown1A4 = 0;
             if (!behavior->lookAt)
-                SetXfRole(((struct T *)behavior->owner), ((struct T *)behavior->owner)->xfRolesUngrounded, 1);
+                M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 1);
             return 1;
         }
     }
     return HandleBhvanimMessage(behavior, msg, pm);
 }
-} } // namespace M_BHVIDLE_FHandleMessage
 
 // 0x1751C0 InitBhvstrike
 namespace M_InitBhvstrike { extern "C" {
@@ -629,25 +575,20 @@ void CloseBhvstrike(BHVSTRIKE *behavior)
 
 // 0x1752F0 HandleBhvstrikeMessage
 namespace M_BHVSTRIKE_FHandleMessage { extern "C" {
-struct M; struct P; 
-struct M { int animation; int time; int event; };
-struct P { char pad[8]; int payload; };
-int GetAnimBindingInstance(void *p);
-int HandleBhvanimMessage(BHVSTRIKE *p, int msg, struct M *pm);
-void ReleaseLeapConstraint(int n);
+void ReleaseLeapConstraint(void *pleap);
+} } // namespace M_BHVSTRIKE_FHandleMessage
 // 0x1752F0: BHVSTRIKE vtable slot 13 (HandleMessage): ASEG events 0x2D/0x2E open/close the hit window, 0x30
 // releases the leap; else the BHVANIM handler.
-int HandleBhvstrikeMessage(BHVSTRIKE *behavior, int msg, struct M *pm) {
-    if (msg == 9 && ((struct P *)behavior->binding) && GetAnimBindingInstance(((struct P *)behavior->binding)) == pm->animation) {
+extern "C" int HandleBhvstrikeMessage(BHVSTRIKE *behavior, int msg, ASEGEVENTMSG *pm) {
+    if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->asega) {
         switch (pm->event) {
         case 0x2D: ((STEPGUARD *)behavior->owner)->isEngagedBusy = 1; return 1;
         case 0x2E: ((STEPGUARD *)behavior->owner)->isEngagedBusy = 0; return 1;
-        case 0x30: behavior->isLeapEnabled = 0; ReleaseLeapConstraint(((struct P *)behavior->binding)->payload); return 1;
+        case 0x30: behavior->isLeapEnabled = 0; M_BHVSTRIKE_FHandleMessage::ReleaseLeapConstraint(behavior->binding->payload); return 1;
         }
     }
     return HandleBhvanimMessage(behavior, msg, pm);
 }
-} } // namespace M_BHVSTRIKE_FHandleMessage
 
 // 0x1753D8 InitBhvattack
 namespace M_InitBhvattack { extern "C" {
@@ -4794,17 +4735,12 @@ typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
 
 // 0x17AF30 HandleBhvjuggledMessage
 namespace M_BHVJUGGLED_FHandleMessage { extern "C" {
-struct VTE; struct O; struct M; struct X;
-typedef int qword __attribute__((mode(TI)));
-extern SW D_003DD490;
+struct VTE; struct O; struct X;
 extern void *D_002BE6D0[];
 extern int D_002BE6E8[];
 struct VTE { short d; short pad; void *pfn; };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct M { int animation; int pad; int event; int kind; int amount; char pad2[0x30]; int reactFlags; };
 struct X { int a; int pad[7]; qword v; qword pad2; };
-int HandleBhvanimMessage(BHVJUGGLED *p, int msg, struct M *pm);
-int GetAnimBindingInstance(ANIMBINDING *c);
 int IsAnimBindingDone(ANIMBINDING *c);
 void StopAnimBinding(ANIMBINDING *c);
 void StartAnimBinding(ANIMBINDING *c, STEPGUARD *a, int fl, float g);
@@ -4815,13 +4751,14 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(STEPGUARD *a);
 void NewNoise(void *p, qword v, STEPGUARD *a);
 // 0x17AF30: BHVJUGGLED vtable slot 13 (HandleMessage): BHVANIM events; ASEG event 0x3D resets the hit count; a
-// 0x200000 zap while held is an extra hit (animation seek, effect, hit value, noise).
-int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, struct M *pm) {
+// 0x200000 zap while held is an extra hit (animation seek, effect, hit value, noise). The payload is the event
+// (message 9) or the zap (message 0xC).
+int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTMSG *pm) {
     if (HandleBhvanimMessage(behavior, msg, pm)) return 1;
     switch (msg) {
     case 9:
         if (behavior->binding == 0) return 0;
-        if (GetAnimBindingInstance(behavior->binding) != pm->animation) return 0;
+        if (GetAnimBindingInstance(behavior->binding) != pm->asega) return 0;
         if (pm->event == 0x3D) behavior->hitCount = 0;
         return 0;
     case 0xC:
@@ -4831,8 +4768,8 @@ int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, struct M *pm) {
             SW *pg;
             struct O *o;
             STEPGUARD *a;
-            if (pm->kind != 0x200000) return 0;
-            if (!(pm->reactFlags & 8)) return 0;
+            if (((ZPR *)pm)->zpk != 0x200000) return 0;
+            if (!(((ZPR *)pm)->grfzpr & 8)) return 0;
             if (!behavior->juggleState) return 0;
             if (IsAnimBindingDone(behavior->binding)) {
                 StopAnimBinding(behavior->binding);
@@ -4860,7 +4797,7 @@ int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, struct M *pm) {
             }
             a = ((STEPGUARD *)behavior->owner);
             {
-                int m = a->hitPoints + pm->amount;
+                int m = a->hitPoints + ((ZPR *)pm)->dhp;
                 a->hitPoints = m < 5 ? 5 : m;
             }
             NewNoise(D_003DD490.apstimk[2], GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner));
