@@ -101,8 +101,8 @@ extern BIF D_002BBB90[];
 
 CRef RefEval(CPair *expr, CFrame *frame);
 CRef RefEvalLambdaBody(CPair *expr, CFrame *frame);
-CRef RefOpPrint(int c, CRef *aref, CFrame *frame);
-CRef RefOpEqv(int c, CRef *aref, CFrame *frame);
+CRef BuiltinPrint(int c, CRef *aref, CFrame *frame);
+CRef BuiltinEqv(int c, CRef *aref, CFrame *frame);
 
 /* The argument list of a special form: the rest of the list after the keyword. */
 static inline CPair *PpairArgs(CPair *expr) { return ((CPair *)expr->ref.u.pv)->next.p; }
@@ -176,7 +176,7 @@ CRef RefEvalAssert(CPair *expr, CFrame *frame)
     {
         CPair *pargsMsg = PpairArgs(pmsg);
         printf(D_002A43B0);
-        RefOpPrint(1, &pargsMsg->ref, frame);
+        BuiltinPrint(1, &pargsMsg->ref, frame);
     }
     ref.Decref();
     ref.InitTag(0x24);
@@ -322,13 +322,13 @@ CRef RefEvalCond(CPair *expr, CFrame *frame)
 }
 
 /** @sly2-annot addr=0x126BA0
- * Purpose: (case key clauses...): compares via RefOpEqv 0x120548, else clause
+ * Purpose: (case key clauses...): compares via BuiltinEqv 0x120548, else clause
  * Info: proposed name RefEvalCase (T1); TU eval
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
 // (case key ((datum...) body...) ... [else ...]): evaluates key and runs the first clause holding an eqv? datum
-// (RefOpEqv), or the else clause.
+// (BuiltinEqv), or the else clause.
 CRef RefEvalCase(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -357,7 +357,7 @@ CRef RefEvalCase(CPair *expr, CFrame *frame)
             while (pk)
             {
                 arefT[1] = pk->ref;
-                test = RefOpEqv(2, arefT, frame);
+                test = BuiltinEqv(2, arefT, frame);
                 if (test.m_tagk == 0x17 && test.u.n)
                 {
                     f = 1;
