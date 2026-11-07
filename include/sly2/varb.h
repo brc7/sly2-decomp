@@ -1,21 +1,19 @@
 /* include/sly2/varb.h -- CVarb, a Splice variable binding, and CVarbPtr, the counted pointer that links bindings.
  *
- * A binding is {count, GC link word, symbol, value, next} (0x18 bytes, the second engine slot pool); frames and side
- * bags keep their variables as a list of bindings. The next link is a counted pointer: assigning it (0x257450) takes a
+ * A binding is a GC node (sly2/gc.h's CGcObj<CVarb>: count, link word) with a symbol, a value and a next link (0x18
+ * bytes, the second engine slot pool); frames and side bags keep their variables as a list of bindings. The next link is a counted pointer: assigning it (0x257450) takes a
  * reference on the new binding and releases the old one; destroying it (0x257250) releases the binding, which destroys
  * the binding's own link in turn.
  *
  * CVarbPtr is a view of sly2/basic.h's CRefPtr<CVarb>, the binding-list twin of sly2/pair.h's CPairPtr: splice/gc.cpp
  * emits both functions as CRefPtr<CVarb>'s instances (linkonce); the view is an explicit specialization of the template,
- * so its includers' calls name those instances (see pair.h). Owners that release a binding inline (the "SPW" views of CVarb_CloneTo
- * and CSidebag) keep their own views.
+ * so its includers' calls name those instances (see pair.h). Owners that release a binding inline use sly2/sp.h's CRefOwner<CVarb>.
  * See docs/guides/tu-merging.md, "Linkonce copies by family" and "Views unified". */
 #ifndef SLY2_VARB_H
 #define SLY2_VARB_H
 #include "sly2/cref.h"
 #include "sly2/slotheap.h"
-
-extern "C" void Unlink__t6CGcObj1Z5CVarb(void *pv);
+#include "sly2/gc.h"
 
 struct CVarb;
 
@@ -33,19 +31,18 @@ public:
 };
 typedef CRefPtr<CVarb> CVarbPtr;
 
-/* CVarb: a Splice variable binding (symbol, value, next binding). */
-struct CVarb
+/* CVarb: a Splice variable binding (symbol, value, next binding); a GC node of the second engine slot pool. */
+struct CVarb : CGcObj<CVarb>
 {
-      int cref;               /* 0x00 reference count */
-      int x4;                 /* 0x04 GC link word */
       int sym;                /* 0x08 the variable's symbol id */
       CRef ref;               /* 0x0C the value */
       CVarbPtr pnext;         /* 0x14 the next binding */
       // Set the next binding.
       void SetNext(CVarb *pvarb) { pnext = pvarb; }
-      /* Bindings live in the second engine slot pool (slot size 0x18 == sizeof(CVarb)). */
-      void operator delete(void *pv) { Unlink__t6CGcObj1Z5CVarb(pv); FreeSlotheapSlot(&CSlotPool<0x18, 0x800>::s_pool.slotheap, pv); }
 };
+/* emitted by splice/gc.cpp; declared so that includers call them and emit no copy */
+template <> void CGcObj<CVarb>::Unlink();
+template <> CVarb *CGcObj<CVarb>::PtNew();
 typedef char assert_CVarb_size[sizeof(CVarb) == 0x18 ? 1 : -1];
 
 #endif

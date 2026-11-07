@@ -5,6 +5,8 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_callback
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00149FE8
 #include "sly2/pair.h"
+#include "sly2/cframe.h"
+#include "sly2/sp.h"
 #include "sly2/clock.h"
 #include "sly2/basic.h"
 #include "sly2/sw.h"
@@ -32,19 +34,7 @@ struct CALLBACK
 };
 typedef char assert_CALLBACK_size[sizeof(CALLBACK) == 0x14 ? 1 : -1];
 
-extern "C" {
-}
-
-
-struct CFrame { int cref; };
-extern "C" void func_00257078(CFrame *pframe, int flags) __asm__("_$_6CFrame");   /* ~CFrame (linkonce, splice/eval.cpp) */
-struct SPF
-{
-    CFrame *p;
-    SPF(const SPF &frame);
-    // Drop the held frame's reference, freeing it on the last one.
-    ~SPF() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) func_00257078(pframe, 3); }
-};
+typedef CRefOwner<CFrame> SPF;   /* owning pointer to a frame (inline release; ~CFrame is the linkonce 0x257078) */
 struct SPFV { CFrame *p; };
 
 /* A due Splice event callback. */
@@ -64,8 +54,6 @@ void AppendSlEntry(SL *list, CALLBACK *callback);
 void ClearSl(SL *list);
 int IsSlEmpty(SL *list);
 void RemoveSlEntry(SL *list, void *pv);
-int PtNew__t6CGcObj1Z6CFrame();
-SPF Attach__t7CRefPtr1Z6CFrameP6CFrame(int pv);
 void EvalSpliceEventCallback(void *pv, CPair *ppair, CFrame *pframe, int n);
 void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg);
 }
@@ -147,13 +135,12 @@ extern "C" void ProcessSwCallbacks(SW *world)
         }
         else
         {
-            int pv = PtNew__t6CGcObj1Z6CFrame();
-            SPF frame = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
+            SPF frame(CGcObj<CFrame>::PtNew());
             EvalSpliceEventCallback(world, spliceCallback->call, frame.p, 0);
         }
         RemoveSlEntry(&world->slEvent, spliceCallback);
         CPair *ppair = spliceCallback->call;
-        if (--ppair->cref == 0)
+        if (--ppair->m_cref == 0)
             delete ppair;
         FreeSlotheapSlot(&world->slotheapEvent, spliceCallback);
     }

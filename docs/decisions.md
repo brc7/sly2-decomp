@@ -69,6 +69,16 @@ about 35 existing uses read `mat`/`matRot`/`pos` as floats or matrices, or throu
 as they are; the union keeps both spellings available. Existing `*(qword *)&pcm->pos` casts are left alone (their folded form is what those functions
 need). *Status:* permanent rule for new cases; reversible (the union adds no bytes).
 
+**1.9 Two spellings of a Splice counted pointer (decision taken in names/vu-f8-sound-ui-3).** A counted pointer that
+is a link between Splice nodes (a pair's next, a binding's next) is spelled with the CRefPtr<T> specializations whose
+destructor and assignment are out of line (sly2/pair.h, sly2/varb.h, and basic.h's template for CFrame/CProc); a
+counted pointer that owns its object for the length of a function or a record is spelled CRefOwner<T> (sly2/sp.h), the
+same single word with the release inline. *Why:* in the original every one of them was CRefPtr<T>, but used as an owner
+in our sources the real template makes g++ 2.95 emit extra weak copies of the destructor and its helpers in each TU
+that also calls them out of line, so the objects' symbol tables and linkonce sections no longer match. gc.cpp keeps its
+own views of the nodes because it is the TU that must emit the real template. *Status:* permanent for the Splice nodes;
+details and the measurements are in guides/tu-merging.md (Views unified, names/vu-f8-sound-ui-3).
+
 ## 2. Linkage and symbols
 
 **2.1 Asm labels bind declarations to real symbols.** A declaration under a draft, view or Sly 1 name is bound to the
