@@ -187,6 +187,12 @@ void SetBhvpathlinkState(BHVPATHLINK *behavior, int nState);
 void AdvanceBhvpathlink(BHVPATHLINK *behavior);
 void MoveBhvRelocateToPoint(BHV *behavior);
 void AdvanceBhvpatrolpathGoal(BHV *behavior, int n);
+extern qword D_002A2DD0;        /* the zero vector */
+qword GetLoWorldPos(LO *plo);
+void PopBhv(BHV **ppbhv);
+void UpdateBhvMotion(BHV *behavior);
+void SubscribeLoObject(LO *plo, LO *ploSubscriber);
+void UnsubscribeLoObject(LO *plo, LO *ploSubscriber);
 }
 
 // 0x174898 GetStepguardFromLo
@@ -406,35 +412,28 @@ int GetBhvanimGroundProbeFlags(BHVANIM *behavior) {
 
 // 0x174F08 UpdateBhvanimMotion
 namespace M_UpdateBhvanimMotion { extern "C" {
-struct A; 
-typedef int qword __attribute__((mode(TI)));
-struct A { char pad[0x190]; qword desiredVelocity; char pad2[0xFD0 - 0x1A0]; char mover[4]; };
-extern qword D_002A2DD0;
-void UpdateBhvMotion(BHVANIM *p);
-void DriveStepguardFromAnim(void *a, struct A *b);
-qword GetLoWorldPos(void *p);
+void DriveStepguardFromAnim(ANIMBINDING *binding, STEPGUARD *guard);
 float atan2f(float y, float x);
-void SetStepguardMoverRadTarget(void *p, float f);
-// VU0 helper: x component of a vector.
-// VU0 helper: y component of a vector.
+void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float f);
+} } // namespace M_UpdateBhvanimMotion
 // 0x174F08: BHVANIM vtable slot 11 (UpdateMotion): while playing, drives the guard's velocity from the animation's
 // root motion (else zero) and faces the look-at object.
-void UpdateBhvanimMotion(BHVANIM *behavior)
+extern "C" void UpdateBhvanimMotion(BHVANIM *behavior)
 {
+    using namespace M_UpdateBhvanimMotion;
     UpdateBhvMotion(behavior);
     if (behavior->state == 0)
-        DriveStepguardFromAnim(behavior->binding, ((struct A *)behavior->owner));
+        DriveStepguardFromAnim(behavior->binding, ((STEPGUARD *)behavior->owner));
     else
-        ((struct A *)behavior->owner)->desiredVelocity = D_002A2DD0;
+        ((STEPGUARD *)behavior->owner)->qwUnknown190 = D_002A2DD0;
     if (behavior->lookAt) {
         qword a = GetLoWorldPos(behavior->lookAt);
-        qword b = GetLoWorldPos(((struct A *)behavior->owner));
+        qword b = GetLoWorldPos(((STEPGUARD *)behavior->owner));
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        SetStepguardMoverRadTarget(((struct A *)behavior->owner)->mover, atan2f(QwordY(d), QwordX(d)));
+        SetStepguardMoverRadTarget(&((STEPGUARD *)behavior->owner)->mover, atan2f(QwordY(d), QwordX(d)));
     }
 }
-} } // namespace M_UpdateBhvanimMotion
 
 // 0x174FB8 IsBhvanimDone
 // 0x174FB8: True if the animation behaviour has finished (state 1).
@@ -625,57 +624,44 @@ extern "C" void CloseBhvattack(BHVATTACK *behavior)
 
 // 0x175488 SetBhvattackState
 namespace M_SetBhvattackState { extern "C" {
-struct VTE; struct Q; struct O; struct P; struct B;
-typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
-extern qword D_002A2DD0;
-struct VTE { short d; short pad; int (*pfn)(void *, void *); };
-struct Q { char pad[0xC]; struct VTE *vt; };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; struct Q *lookAt; int sgf; int anim; };
-struct P { char pad[0xA0]; int hasAim; char pad2[0x1C]; int anim; };
-void UnsubscribeLoObject(struct Q *q, void *p);
-void SubscribeLoObject(struct Q *q, void *p);
-void SetStepguardAimAct(void *p, void *po, int n, qword v);
-void PopBhv(void *p);
-void ClearBhvBusy(BHVATTACK *p);
-struct O *PushStepBehavior(void *p, int n);
+void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, XF *pxf, qword v);
+BHV *PushStepBehavior(void *pstep, int cid);
+} } // namespace M_SetBhvattackState
 // 0x175488: BHVATTACK state switch: 0 subscribes to the victim and pushes a BHVSTRIKE with the chosen attack and
 // aim; 1 pushes the follow-through animation (flag 4) after a confirmed hit; -1 clears busy.
-void SetBhvattackState(BHVATTACK *behavior, int n) {
+extern "C" void SetBhvattackState(BHVATTACK *behavior, int n) {
+    using namespace M_SetBhvattackState;
     if (n == behavior->state) return;
     if (behavior->state == 0) {
-        UnsubscribeLoObject(((struct Q *)behavior->victim), behavior->owner);
-        ((struct Q *)behavior->victim) = 0;
-        SetStepguardAimAct(behavior->owner, 0, 0, D_002A2DD0);
+        UnsubscribeLoObject(behavior->victim, behavior->owner);
+        behavior->victim = 0;
+        SetStepguardAimAct((STEPGUARD *)behavior->owner, 0, 0, D_002A2DD0);
     }
-    PopBhv((&behavior->pbhvNext));
+    PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0:
         {
-            struct O *o;
-            struct VTE *entry;
-            SubscribeLoObject(((struct Q *)behavior->victim), behavior->owner);
-            o = PushStepBehavior(behavior->owner, CID_BHVSTRIKE);
-            o->lookAt = ((struct Q *)behavior->victim);
-            o->anim = ((struct P *)behavior->attack)->anim;
-            if (((struct P *)behavior->attack)->hasAim) {
-                struct B { char pad[0x30]; qword v; } b;
-                struct Q *q = ((struct Q *)behavior->victim);
-                struct VTE *f = &q->vt[0x20];
-                SetStepguardAimAct(behavior->owner, ((struct P *)behavior->attack), f->pfn((char *)q + f->d, &b), b.v);
+            BHVSTRIKE *o;
+            SubscribeLoObject(behavior->victim, behavior->owner);
+            o = (BHVSTRIKE *)PushStepBehavior(behavior->owner, CID_BHVSTRIKE);
+            o->lookAt = behavior->victim;
+            o->binding = behavior->attack->activeBinding;
+            if (behavior->attack->aimObject) {
+                MATRIX4 b;
+                SetStepguardAimAct((STEPGUARD *)behavior->owner, behavior->attack, ((XFM *)behavior->victim)->GetLocalTransform(&b),
+                                   *(qword *)b.mat[3]);
             }
-            entry = &o->vt[8]; ((void (*)(void *))entry->pfn)((char *)o + entry->d);
+            o->Start();
         }
         break;
     case 1:
         {
-            struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
-            struct VTE *entry;
+            BHVANIM *o = (BHVANIM *)PushStepBehavior(behavior->owner, CID_BHVANIM);
             o->sgf = 4;
-            o->lookAt = ((struct Q *)behavior->victim);
-            entry = &o->vt[8]; ((void (*)(void *))entry->pfn)((char *)o + entry->d);
+            o->lookAt = behavior->victim;
+            o->Start();
         }
         break;
     case -1:
@@ -683,7 +669,6 @@ void SetBhvattackState(BHVATTACK *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvattackState
 
 // 0x175600 UpdateBhvattack
 namespace M_UpdateBhvattack { extern "C" {
@@ -1365,7 +1350,6 @@ BHV *PushStepBehavior(void *p, int n);
 struct PATHLINKENDRAW { qword pv; qword pos; };
 void ClearPointerPair(struct PATHLINKENDRAW *x);
 void SetTargetRecordState(void *p, int n);
-qword GetLoWorldPos(LO *p);
 void SetBhvgotoGoal(BHVGOTO *p, PATHLINKEND *x);
 int FindPathzoneAtPos(qword v, int n);
 void SetDetectorTargetStateById(void *p, LO *a, int b);
@@ -3504,7 +3488,6 @@ void StartBhvhit(struct S *behavior) {
 namespace M_CloseBhvhit { extern "C" {
 struct S;
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
 extern SW D_003DD490;
 struct S { char pad[0x10]; char *guard; };
 void CloseBhvanim(struct S *p);
