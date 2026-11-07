@@ -1798,8 +1798,8 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
 // its callers, so g++ calls it and emits the out-of-line copy (linkonce), as the original did. It keeps its C symbol
 // (bsp, tu_1D1370 and waypoint call it by that name).
 namespace M_func_001A87F0 {
-extern "C" inline VECTOR *func_002564C0(VECTOR *pvec)
+extern "C" { inline VECTOR *func_002564C0(VECTOR *pvec)
 {
     return pvec;
-}
+} }
 } // namespace M_func_001A87F0

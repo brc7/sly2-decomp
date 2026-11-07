@@ -811,7 +811,7 @@ static inline VV Normalize(VV a)
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Closest point on a linear shape to a position, walking segments from a starting parameter.
-extern "C" void FindShapeClosestPointLinearFromU(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
+extern "C" { void FindShapeClosestPointLinearFromU(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue, float initial)
 {
     U segment;
@@ -872,7 +872,7 @@ extern "C" void FindShapeClosestPointLinearFromU(PATH *p, qword point, SPACE *sp
     fraction = (1.0f - fraction) * p->times[index] + fraction * p->times[index + 1];
     if (outTime) *outTime = fraction;
     if (outValue) *outValue = SFromShapeU(p, fraction);
-}
+} }
 } // namespace M_func_001E6A30
 
 namespace M_func_001E6DB8 { extern "C" {
