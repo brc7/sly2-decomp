@@ -23,6 +23,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+#include "sly2/jt.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 
@@ -942,40 +943,27 @@ extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gat
 
 // 0x175D00 CanBhvcombatShoot
 namespace M_FBhvcombatCanShoot { extern "C" {
-struct VTE; struct T; struct A; struct X; struct Y; struct R2; struct R1; struct R; union V;
-typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
-struct G;
-extern struct G D_003DD490;
-struct VTE { short d; short pad; void *pfn; };
-struct T {
-    char pad[0xC]; struct VTE *vt; char pad2[0x18]; unsigned long loFlags /* LO bitfield word: bit 60 fInWorld */; char pad3[0x2DC - 0x30]; int airState;
-    char pad4[0x4C8 - 0x2E0]; int grabState; int unknown4CC; char pad5[0xF54 - 0x4D0]; int unknownF54; char pad6[0x18C8 - 0xF58]; int jts;
-};
-struct A { char pad[0xEC]; int unknownEC; char pad2[0xF00 - 0xF0]; int currentAttack; char pad3[0xF48 - 0xF04]; char shootRange[8]; char shootPan[8]; char shootTilt[8]; char pad4[0xFE8 - 0xF60]; int grfCapability; };
-struct X { int a[4]; };
-struct Y { char pad[0x60]; };
-struct R2 { struct T *object; };
-struct R1 { char pad[0x14]; struct R2 *root; };
-struct R { int pad; struct R1 *hitObject; };
-union V { qword q; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
-qword GetLoWorldPos(void *p);
-float GetStepHeading(struct A *a);
+struct X; struct Y; struct R;
+struct X { int a[4]; };          /* the STACKSCOPE (constructed and destroyed by hand: the out-of-line pair) */
+struct Y { char pad[0x60]; };    /* the line test's hit record */
+struct R { int pad; LO *hitObject; };
+float GetStepHeading(STEP *pstep);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
-int IsWithinLimits__FP2LMf(void *p, float f);
+int IsWithinLimits__FP2LMf(LM *plm, float f);
 float NormalizeAngle__Ff(float f);
-qword *GetLoWorldMatrix(struct A *a);
+qword *GetLoWorldMatrix(LO *plo);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
 void STACKSCOPE_ctor(struct X *x);
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
 int ShouldKeepSoNotSelf(void);
-void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
+void IntersectSwBoundingBox(SW *psw, qword a, qword b, int (*fn)(void), SOTREE *ptree, int *pa, int *pb);
 struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, int d, struct Y *y);
+} } // namespace M_FBhvcombatCanShoot
 // 0x175D00: True if the guard should use its ranged attack now: it can shoot (capability bit 3), no attack is
 // running, the target is inside its range/pan/tilt limits and visible; immediately when the target is out of melee
 // reach (hanging, on a ledge, ...).
-int CanBhvcombatShoot(BHVCOMBAT *behavior) {
+extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
+    using namespace M_FBhvcombatCanShoot;
     struct X x;
     struct Y y;
     float f[4];
@@ -984,46 +972,44 @@ int CanBhvcombatShoot(BHVCOMBAT *behavior) {
     qword d;
     float g;
     int mustShootNow;
-    struct T *t;
-    struct A *a = ((struct A *)behavior->owner);
-    if ((a->grfCapability & 8) == 0 || a->currentAttack || behavior->attack || !((struct T *)behavior->target) || (((int)(((struct T *)behavior->target)->loFlags >> 60) & 1) == 0)) return 0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(((struct T *)behavior->target), CID_PO)) {
-        struct T *q = ((struct T *)behavior->target);
-        struct VTE *entry = &q->vt[0x4D];
-        if (((int (*)(void *))entry->pfn)((char *)q + entry->d) == 2) return 0;
+    JT *t;
+    STEPGUARD *a = ((STEPGUARD *)behavior->owner);
+    if ((a->capabilityFlags & 8) == 0 || a->currentAttack || behavior->attack || !behavior->target || (((int)(*(unsigned long *)((char *)behavior->target + 0x28) >> 60) & 1) == 0)) return 0;
+    if (IsBasicDerivedFrom(behavior->target, (CID)CID_PO)) {
+        if (((PO *)behavior->target)->GetHealthState() == 2) return 0;
     }
     mustShootNow = 0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(((struct T *)behavior->target), CID_STEPPLAYER)) {
-        t = ((struct T *)behavior->target);
-        if (t->unknown4CC != -1) {
-            if (t->grabState < 5) mustShootNow = t->grabState >= 3;
+    if (IsBasicDerivedFrom(behavior->target, (CID)CID_STEPPLAYER)) {
+        t = ((JT *)behavior->target);
+        if (t->jtgrab.kind != -1) {
+            if (t->jtgrab.state < 5) mustShootNow = t->jtgrab.state >= 3;
         }
-        if (t->airState != -1) {
-            if (t->airState == 0x11) mustShootNow = 1;
+        if (t->jtair.state != -1) {
+            if (t->jtair.state == 0x11) mustShootNow = 1;
         }
-        if (t->unknownF54 != -1) mustShootNow = 1;
-        if (IsBasicDerivedFrom__FP5BASIC3CID(t, CID_JT)) {
-            switch (t->jts) {
+        if (t->jtpipe.state != -1) mustShootNow = 1;
+        if (IsBasicDerivedFrom(t, (CID)CID_JT)) {
+            switch (t->state) {
             case 3: case 0x15: case 0x16:
                 mustShootNow = 1;
                 break;
             }
         }
     }
-    pa = GetLoWorldPos(((struct A *)behavior->owner));
-    pb = GetLoWorldPos(((struct T *)behavior->target));
+    pa = GetLoWorldPos(((STEPGUARD *)behavior->owner));
+    pb = GetLoWorldPos(behavior->target);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pb), "j"(pa));
-    g = GetStepHeading(((struct A *)behavior->owner));
+    g = GetStepHeading(behavior->owner);
     GetVectorSphere(d, &f[0], &f[1], &f[2]);
-    if (!IsWithinLimits__FP2LMf(((struct A *)behavior->owner)->shootRange, f[2])) return 0;
+    if (!IsWithinLimits__FP2LMf(&((STEPGUARD *)behavior->owner)->shootRange, f[2])) return 0;
     {
         float h = NormalizeAngle__Ff(f[0] - g);
-        if (!IsWithinLimits__FP2LMf(((struct A *)behavior->owner)->shootPan, h)) return 0;
+        if (!IsWithinLimits__FP2LMf(&((STEPGUARD *)behavior->owner)->shootPan, h)) return 0;
     }
-    CalculateVectorPanTilt(*GetLoWorldMatrix(((struct A *)behavior->owner)), 0, &f[3]);
+    CalculateVectorPanTilt(*GetLoWorldMatrix(((STEPGUARD *)behavior->owner)), 0, &f[3]);
     {
         float h = NormalizeAngle__Ff(f[1] - f[3]);
-        if (!IsWithinLimits__FP2LMf(((struct A *)behavior->owner)->shootTilt, h)) return 0;
+        if (!IsWithinLimits__FP2LMf(&((STEPGUARD *)behavior->owner)->shootTilt, h)) return 0;
     }
     if (!mustShootNow) {
         if (behavior->state == 0) {
@@ -1035,9 +1021,9 @@ int CanBhvcombatShoot(BHVCOMBAT *behavior) {
     {
         struct R *r;
         STACKSCOPE_ctor(&x);
-        IntersectSwBoundingBox(&D_003DD490, pa, pb, ShouldKeepSoNotSelf, ((struct A *)behavior->owner)->unknownEC, &na, &nb);
+        IntersectSwBoundingBox(&D_003DD490, pa, pb, ShouldKeepSoNotSelf, ((STEPGUARD *)behavior->owner)->physicsTree, &na, &nb);
         r = FindFirstObjectHitByLine(0, pa, pb, na, nb, &y);
-        if (r && r->hitObject->root->object != ((struct T *)behavior->target)) {
+        if (r && r->hitObject->root->topObject != behavior->target) {
             STACKSCOPE_ctor_1AE4A0(&x, 2);
             return 0;
         }
@@ -1045,7 +1031,6 @@ int CanBhvcombatShoot(BHVCOMBAT *behavior) {
         return 1;
     }
 }
-} } // namespace M_FBhvcombatCanShoot
 
 // 0x175FF0 TryBhvcombatChooseAttack
 // 0x175FF0: Tries to choose an attack on the target; on failure pushes the attack cooldown forward. Returns whether
