@@ -689,32 +689,33 @@ static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc
 void SetCmPolicy(struct P *p, int prio, struct O *po, int a, int b)
 {
     int i;
-    if (p->policyCount < sizeof(p->policies) / sizeof(p->policies[0])) {
-        for (i = 0; i < p->policyCount; i++) {
-            if (p->policies[i].prio < prio)
-                break;
+    if (p->policyCount >= sizeof(p->policies) / sizeof(p->policies[0]))
+        return;     /* the stack is full */
+    for (i = 0; i < p->policyCount; i++) {
+        if (p->policies[i].prio < prio)
+            break;
+    }
+    Move(&p->policies[i + 1], &p->policies[i], (p->policyCount - i) * sizeof(struct E));
+    p->policies[i].prio = prio;
+    p->policies[i].po = po;
+    p->policies[i].a = a;
+    p->policies[i].b = b;
+    p->policyCount++;
+    {
+        struct VTE *e = &po->vt[4];
+        ((void (*)(void *, int))e->pfn)((char *)po + e->d, b);
+    }
+    if (i == 0) {
+        /* the new top: deactivate the previous top (slot 3), activate this one (slot 2) */
+        if (p->policyCount >= 2) {
+            struct O *o = p->policies[1].po;
+            struct VTE *e = &o->vt[3];
+            ((void (*)(void *, int, int))e->pfn)((char *)o + e->d, p->policies[1].a, p->policies[1].b);
         }
-        Move(&p->policies[i + 1], &p->policies[i], (p->policyCount - i) * sizeof(struct E));
-        p->policies[i].prio = prio;
-        p->policies[i].po = po;
-        p->policies[i].a = a;
-        p->policies[i].b = b;
-        p->policyCount++;
+        p->modeStartTime = D_002DDED0.t;
         {
-            struct VTE *e = &po->vt[4];
-            ((void (*)(void *, int))e->pfn)((char *)po + e->d, b);
-        }
-        if (i == 0) {
-            if (p->policyCount >= 2) {
-                struct O *o = p->policies[1].po;
-                struct VTE *e = &o->vt[3];
-                ((void (*)(void *, int, int))e->pfn)((char *)o + e->d, p->policies[1].a, p->policies[1].b);
-            }
-            p->modeStartTime = D_002DDED0.t;
-            {
-                struct VTE *e = &po->vt[2];
-                ((void (*)(void *, int, int))e->pfn)((char *)po + e->d, a, b);
-            }
+            struct VTE *e = &po->vt[2];
+            ((void (*)(void *, int, int))e->pfn)((char *)po + e->d, a, b);
         }
     }
 }
@@ -727,8 +728,11 @@ struct O { int pad[3]; struct VTE *vt; };
 struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int policyCount; struct E policies[8]; char pad2[0x390 - 0x390]; float modeStartTime; };
 extern struct CLOCK D_002DDED0;
-// Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if top removed:
-// Deactivate it and Activate new top.
+/* which fields of a stack entry a revoke must match */
+enum { REVOKE_BY_PRIO = 1, REVOKE_BY_POLICY = 2, REVOKE_BY_FOCUS = 4, REVOKE_BY_PARAM = 8 };
+// Removes the policy-stack entries that match on every field the mask selects (priority, policy, focus object,
+// parameter), calling each one's Revoke (vtable slot 5); when the top entry went, deactivates it and activates the new
+// top.
 void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
 {
     struct E *peOut;
@@ -742,10 +746,10 @@ void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
     bTop = 0;
     peOut = p->policies;
     for (i = 0, pe = p->policies; i < p->policyCount; i++, pe++) {
-        if ((((grf ^ 1) & 1) || prio == pe->prio) &&
-            (!(grf & 2) || po == pe->po) &&
-            (!(grf & 4) || a == pe->a) &&
-            (!(grf & 8) || b == pe->b)) {
+        if ((!(grf & REVOKE_BY_PRIO) || prio == pe->prio) &&
+            (!(grf & REVOKE_BY_POLICY) || po == pe->po) &&
+            (!(grf & REVOKE_BY_FOCUS) || a == pe->a) &&
+            (!(grf & REVOKE_BY_PARAM) || b == pe->b)) {
             if (i == 0) {
                 poTop = pe->po;
                 aTop = pe->a;
@@ -762,16 +766,17 @@ void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
     }
     p->policyCount = peOut - p->policies;
     if (poTop) {
+        /* the top policy went away: deactivate it (slot 3) and activate the new top (slot 2) */
         struct VTE *v = &poTop->vt[3];
         ((void (*)(void *, int, int))v->pfn)((char *)poTop + v->d, aTop, bTop);
-    if (p->policyCount > 0) {
-        struct O *o;
-        struct VTE *v;
-        p->modeStartTime = D_002DDED0.t;
-        o = p->policies[0].po;
-        v = &o->vt[2];
-        ((void (*)(void *, int, int))v->pfn)((char *)o + v->d, p->policies[0].a, p->policies[0].b);
-    }
+        if (p->policyCount > 0) {
+            struct O *o;
+            struct VTE *v;
+            p->modeStartTime = D_002DDED0.t;
+            o = p->policies[0].po;
+            v = &o->vt[2];
+            ((void (*)(void *, int, int))v->pfn)((char *)o + v->d, p->policies[0].a, p->policies[0].b);
+        }
     }
 }
 } } // namespace M_RevokeCmPolicy
