@@ -3599,16 +3599,12 @@ void InitBhvleap(BHVLEAP *behavior)
 
 // 0x179FA0 StartBhvleap
 namespace M_StartBhvleap {
-union U; struct M3; struct P; struct INFO; struct DRIVER; struct C; union TEMP; struct WORK; struct LIMIT;
+union U; struct M3; struct HND; struct INFO; union TEMP; struct WORK; struct LIMIT;
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
 struct M3{qword r[3];};
-struct CONTROL;
-struct P{char pad[0x124];int kind;char pad128[0x2C0-0x128];unsigned long flags;char pad2C8[0xF80-0x2C8];int mode;P*linked;char padF88[0xFD0-0xF88];char control[0];};
-struct INFO{char pad[0x58];P*target;int reverse;int extra;};
-struct DRIVER{char pad[8];INFO*info;};
-struct C{char pad[0x10];P*guard;char pad14[0x40-0x14];DRIVER*driver;char pad44[0x50-0x44];U point;P*target;int reverse,extra,basisValid;M3 matrix;};
+struct HND{char pad[0x124];int kind;};   /* the CID19 hang handle (no header yet): its kind */
+struct INFO{char pad[0x58];LO*target;int reverse;int extra;};   /* the leap (binding payload; leap.h pads LEAP) */
 union TEMP{struct{U direction;M3 rotation;}first;M3 basis;};
 struct WORK{TEMP temp;float curve;};
 struct LIMIT{float low,high;};
@@ -3618,25 +3614,23 @@ extern "C"{
  extern qword D_002A2DC0;
  extern LIMIT D_002BE6B8;
  unsigned long GetSgfMask(int);
- int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
- qword GetLoWorldPos(P*);
- M3*GetLoWorldMatrix(P*);
- void FindShapeClosestPoint(P*,qword,void*,qword*,qword*,float*,float*);
+ int IsBasicDerivedFrom__FP5BASIC3CID(void*,int);
+ qword GetLoWorldPos(void*);
+ M3*GetLoWorldMatrix(void*);
+ void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*);
  float atan2f(float,float);
  float NormalizeAngle__Ff(float);
  void BuildAxisAngleRotationMatrix(M3*,float,qword);
  M3*BuildOrthonormalMatrixZ(M3*,qword,qword);
- void GetPipeGoalMatrix(P*,int,M3*,float);
- void AdjustBhvleapAttachPoint(C*);
+ void GetPipeGoalMatrix(LO*,int,M3*,float);
+ void AdjustBhvleapAttachPoint(BHVLEAP*);
  int SnapToGround(qword*,float,float,int,int(*)(void));
- void StartBhvanim(C*);
- void SetStepguardMoverRadTarget(CONTROL*,float);
- void SetStepguardMoverTargetMatrix(CONTROL*,M3*);
+ void StartBhvanim(BHVLEAP*);
+ void SetStepguardMoverRadTarget(GUARDMOVER*,float);
+ void SetStepguardMoverTargetMatrix(GUARDMOVER*,M3*);
  void SetLeapTarget(INFO*,qword);
- void SetBhvBusy(C*);
+ void SetBhvBusy(BHVLEAP*);
 }
-// Returns the guard's mover (at +0xFD0).
-static inline CONTROL*Control(P*p){return (CONTROL*)((char*)p+0xFD0);}
 // Heading (atan2) of a vector's xy components.
 static inline float Angle(qword delta)
 {
@@ -3650,25 +3644,25 @@ static inline float Angle(qword delta)
     return atan2f(fy, fx);
 }
 // Matching helper (register-pinned asm): returns current - home and the actor, in the operand order the target uses.
-static inline qword HeadingInputs(C *p, U *home, qword current, P **actor)
+static inline qword HeadingInputs(BHVLEAP *p, U *home, qword current, STEPGUARD **actor)
 {
     register qword a __asm__("vf1"), b __asm__("vf2");
-    P *o;
+    STEPGUARD *o;
     __asm__("qmtc2.ni %3,%1\n\tlw %2,%4\n\tlqc2 %0,%5"
             : "=j"(a), "=j"(b), "=&r"(o)
-            : "r"(current), "m"(p->guard), "m"(home->q));
+            : "r"(current), "m"(p->owner), "m"(home->q));
     __asm__("vsub.xyzw %0,%0,%1" : "+j"(a) : "j"(b));
     *actor = o;
     return a;
 }
 // Matching helper (register-pinned asm): returns home - current and the actor, in the operand order the target uses.
-static inline qword BasisInputs(C *p, U *home, qword current, P **actor)
+static inline qword BasisInputs(BHVLEAP *p, U *home, qword current, STEPGUARD **actor)
 {
     register qword a __asm__("vf1"), b __asm__("vf2");
-    P *o;
+    STEPGUARD *o;
     __asm__("lqc2 %0,%5\n\tqmtc2.ni %3,%1\n\tlw %2,%4"
             : "=j"(a), "=j"(b), "=&r"(o)
-            : "r"(current), "m"(p->guard), "m"(home->q));
+            : "r"(current), "m"(p->owner), "m"(home->q));
     __asm__("vsub.xyzw %0,%1,%0" : "+j"(b) : "j"(a));
     *actor = o;
     return b;
@@ -3677,23 +3671,9 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char TEMP_Size[sizeof(TEMP)==64?1:-1];
 typedef char WORK_Size[sizeof(WORK)==80?1:-1];
-typedef char P_kind_Offset[FIELD_OFFSET(P,kind)==292?1:-1];
-typedef char P_flags_Offset[FIELD_OFFSET(P,flags)==704?1:-1];
-typedef char P_mode_Offset[FIELD_OFFSET(P,mode)==3968?1:-1];
-typedef char P_linked_Offset[FIELD_OFFSET(P,linked)==3972?1:-1];
-typedef char P_control_Offset[FIELD_OFFSET(P,control)==4048?1:-1];
-typedef char C_actor_Offset[FIELD_OFFSET(C,guard)==16?1:-1];
-typedef char C_driver_Offset[FIELD_OFFSET(C,driver)==64?1:-1];
-typedef char C_point_Offset[FIELD_OFFSET(C,point)==80?1:-1];
-typedef char C_target_Offset[FIELD_OFFSET(C,target)==96?1:-1];
-typedef char C_reverse_Offset[FIELD_OFFSET(C,reverse)==100?1:-1];
-typedef char C_extra_Offset[FIELD_OFFSET(C,extra)==104?1:-1];
-typedef char C_basisValid_Offset[FIELD_OFFSET(C,basisValid)==108?1:-1];
-typedef char C_matrix_Offset[FIELD_OFFSET(C,matrix)==112?1:-1];
 typedef char INFO_target_Offset[FIELD_OFFSET(INFO,target)==88?1:-1];
 typedef char INFO_reverse_Offset[FIELD_OFFSET(INFO,reverse)==92?1:-1];
 typedef char INFO_extra_Offset[FIELD_OFFSET(INFO,extra)==96?1:-1];
-typedef char DRIVER_info_Offset[FIELD_OFFSET(DRIVER,info)==8?1:-1];
 typedef char WORK_temp_Offset[FIELD_OFFSET(WORK,temp)==0?1:-1];
 typedef char WORK_curve_Offset[FIELD_OFFSET(WORK,curve)==64?1:-1];
 typedef char TEMP_first_direction_Offset[FIELD_OFFSET(TEMP,first.direction)==0?1:-1];
@@ -3704,7 +3684,7 @@ typedef char LIMIT_high_Offset[FIELD_OFFSET(LIMIT,high)==4?1:-1];
 // 0x179FA0: BHVLEAP vtable slot 8 (Start): aims at the target point/object; landing on a rail, pipe or attachable
 // object raises the matching attach flag (for the animation choice) and builds the attach basis; starts the leap
 // animation and sets the leap target.
-extern "C" void StartBhvleap(C *behavior)
+extern "C" void StartBhvleap(BHVLEAP *behavior)
 {
     WORK work;
     U point, otherPoint, direction;
@@ -3714,82 +3694,82 @@ extern "C" void StartBhvleap(C *behavior)
         D_002DFB70 = a | b | c | d;
     }
     unsigned long mask = D_002DFB70;
-    unsigned long old = behavior->guard->flags & mask;
-    behavior->guard->flags &= ~mask;
+    unsigned long old = ((STEPGUARD *)behavior->owner)->grfsg & mask;
+    ((STEPGUARD *)behavior->owner)->grfsg &= ~mask;
     unsigned long active = 0;
     if (behavior->target) {
         float heading;
         if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_SHAPE)) {
-            P *target = behavior->target;
-            qword position = GetLoWorldPos(behavior->guard);
-            FindShapeClosestPoint(target, position, 0, &behavior->point.q, &work.temp.first.direction.q, 0,
+            LO *target = behavior->target;
+            qword position = GetLoWorldPos(behavior->owner);
+            FindShapeClosestPoint(target, position, 0, &behavior->landingPoint, &work.temp.first.direction.q, 0,
                                   &work.curve);
             heading = atan2f(work.temp.first.direction.f[1], work.temp.first.direction.f[0]);
         } else {
-            behavior->point.q = GetLoWorldPos(behavior->target);
+            behavior->landingPoint = GetLoWorldPos(behavior->target);
             M3 *a = GetLoWorldMatrix(behavior->target);
             M3 *b = GetLoWorldMatrix(behavior->target);
             heading = atan2f(((U *)a->r)->f[1], ((U *)b->r)->f[0]);
         }
         if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_RAIL)) {
             active |= GetSgfMask(SGF_ON_RAIL);
-            if (!behavior->reverse)
+            if (!behavior->isReversed)
                 heading = NormalizeAngle__Ff(heading + 3.1415927410125732421875f);
-            behavior->basisValid = 1;
+            behavior->hasAttachBasis = 1;
             BuildAxisAngleRotationMatrix(&work.temp.first.rotation, heading, D_002A2DC0);
-            behavior->matrix = work.temp.first.rotation;
+            *(M3 *)&behavior->attachBasis = work.temp.first.rotation;
         } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS39)) {
             active |= GetSgfMask(SGF_ON_CLASS39);
         } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_PIPE)) {
             active |= GetSgfMask(SGF_ON_PIPE);
-            behavior->basisValid = 1;
-            GetPipeGoalMatrix(behavior->target, behavior->reverse, &behavior->matrix, work.curve);
+            behavior->hasAttachBasis = 1;
+            GetPipeGoalMatrix(behavior->target, behavior->isReversed, (M3 *)&behavior->attachBasis, work.curve);
             AdjustBhvleapAttachPoint(behavior);
-        } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS19) && behavior->target->kind == 3) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS19) && ((HND *)behavior->target)->kind == 3) {
             active |= GetSgfMask(SGF_ON_CLASS19);
-            behavior->basisValid = 1;
+            behavior->hasAttachBasis = 1;
             M3 *m = GetLoWorldMatrix(behavior->target);
             (void)BuildOrthonormalMatrixZ(&work.temp.basis, m->r[0], D_002A2DC0);
-            behavior->matrix = work.temp.basis;
+            *(M3 *)&behavior->attachBasis = work.temp.basis;
             AdjustBhvleapAttachPoint(behavior);
         } else {
-            (void)SnapToGround(&behavior->point.q, D_002BE6B8.high, D_002BE6B8.low, 1, 0);
+            (void)SnapToGround(&behavior->landingPoint, D_002BE6B8.high, D_002BE6B8.low, 1, 0);
             behavior->target = 0;
         }
     }
-    behavior->guard->flags |= active;
+    ((STEPGUARD *)behavior->owner)->grfsg |= active;
     StartBhvanim(behavior);
-    behavior->guard->flags &= ~active;
-    behavior->guard->flags |= old;
-    if (behavior->driver) {
-        switch (behavior->guard->mode) {
+    ((STEPGUARD *)behavior->owner)->grfsg &= ~active;
+    ((STEPGUARD *)behavior->owner)->grfsg |= old;
+    if (behavior->binding) {
+        switch (((STEPGUARD *)behavior->owner)->attachKind) {
         case -1:
         case 0:
         case 3: {
-            point = behavior->point;
-            qword current = GetLoWorldPos(behavior->guard);
-            P *actor;
+            point.q = behavior->landingPoint;
+            qword current = GetLoWorldPos(behavior->owner);
+            STEPGUARD *actor;
             qword delta = HeadingInputs(behavior, &point, current, &actor);
-            CONTROL *control = Control(actor);
+            GUARDMOVER *control = &actor->mover;
             float angle = Angle(delta);
             SetStepguardMoverRadTarget(control, angle);
             break;
         }
         case 2: {
-            otherPoint = behavior->point;
-            qword current = GetLoWorldPos(behavior->guard);
-            P *actor;
+            otherPoint.q = behavior->landingPoint;
+            qword current = GetLoWorldPos(behavior->owner);
+            STEPGUARD *actor;
             direction.q = BasisInputs(behavior, &otherPoint, current, &actor);
-            M3 *m = GetLoWorldMatrix(actor->linked);
+            M3 *m = GetLoWorldMatrix(actor->attachObject);
             (void)BuildOrthonormalMatrixZ(&work.temp.basis, m->r[0], direction.q);
-            SetStepguardMoverTargetMatrix(Control(behavior->guard), &work.temp.basis);
+            SetStepguardMoverTargetMatrix(&((STEPGUARD *)behavior->owner)->mover, &work.temp.basis);
             break;
         }
         }
-        behavior->driver->info->extra = behavior->extra;
-        behavior->driver->info->target = behavior->target;
-        behavior->driver->info->reverse = behavior->reverse;
-        SetLeapTarget(behavior->driver->info, behavior->point.q);
+        ((INFO *)behavior->binding->payload)->extra = behavior->extra;
+        ((INFO *)behavior->binding->payload)->target = behavior->target;
+        ((INFO *)behavior->binding->payload)->reverse = behavior->isReversed;
+        SetLeapTarget((INFO *)behavior->binding->payload, behavior->landingPoint);
     }
     SetBhvBusy(behavior);
 }
@@ -3823,23 +3803,14 @@ void UpdateBhvleap(BHVLEAP *behavior)
 
 // 0x17A468 AdjustBhvleapAttachPoint
 namespace M_func_0017A468 { extern "C" {
-struct B; struct C; struct O;
-typedef int qword __attribute__((mode(TI)));
-struct B { char pad[0x90]; qword v; };
-struct C { char pad[0x30]; qword v; };
-struct O {
-    char pad[0x10];
-    STEPGUARD *guard;
-    char pad2[0x50 - 0x14];
-    qword landingPoint;
-    char pad3[0x70 - 0x60];
-    qword attachBasis[3];
-};
+struct B; struct C;
+struct B { char pad[0x90]; qword v; };   /* the guard's attach point (STEPGUARD +0xF90, untyped) */
+struct C { char pad[0x30]; qword v; };   /* the root XF */
 // 0x17A468: Offsets the leap landing point by the guard's attach-point offset in the attach basis.
-void AdjustBhvleapAttachPoint(struct O *behavior)
+void AdjustBhvleapAttachPoint(BHVLEAP *behavior)
 {
-    STEPGUARD *a = behavior->guard;
-    qword *attachBasis = behavior->attachBasis;
+    STEPGUARD *a = (STEPGUARD *)behavior->owner;
+    qword *attachBasis = (qword *)&behavior->attachBasis;
     qword d, t;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(behavior->landingPoint), "j"(((struct C *)a->rootTransform)->v));
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
