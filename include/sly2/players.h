@@ -37,11 +37,14 @@ struct MURRAY : public STEPPLAYER
       int unknown13E0;
       int unknown13E4;   /* +0x13E4 nonzero: the flop has landed (UpdateMurrayFlop) */
       int unknown13E8;
-      undefined4 unknown13EC;
+      int fCanLift;   /* +0x13EC lifting is allowed (StartMurrayLiftGrabspot/StartMurrayLiftGuard) */
       LO *ploCarried;   /* +0x13F0 the carry target: a carry grabspot (CID36, classes.h; GRABSPOT36 in grabspot.cpp), set by
-                           StartMurrayLiftGrabspot/StartMurrayLiftGuard; +0x180 of it is the object lifted (the views in
-                           murray.cpp read it there) */
-      undefined4 unk_0x13f4[(0x1410 - 0x13f4) / 4];
+                           StartMurrayLiftGrabspot/StartMurrayLiftGuard; +0x180 of it is the object lifted (CARRYSPOTV in
+                           murray.cpp) */
+      struct ACT *apactCarryA[4];   /* +0x13F4 grip actuators on the carried object (DetachMurrayCarried releases them) */
+      int xfRoleA;   /* +0x1404 transform roles given back to the lifted object on release (SetXfRole, DetachMurrayCarried) */
+      int xfRoleB;
+      undefined4 unknown140C;
       float unknown1410;
       float unknown1414;
       undefined4 unk_0x1418[(0x1420 - 0x1418) / 4];
@@ -51,7 +54,7 @@ struct MURRAY : public STEPPLAYER
       undefined4 unknown1438;
       int unknown143C;
       undefined4 unk_0x1440[(0x144c - 0x1440) / 4];
-      int unknown144C;
+      int liftClip;   /* +0x144C lift animation: 0 grab spot, 1 guard (StartMurrayLiftGrabspot/Guard) */
       int unknown1450;
       undefined4 unknown1454;
       int carryIndex; /* carry slot index */
@@ -69,10 +72,11 @@ struct MURRAY : public STEPPLAYER
       void *unknown15F4;   /* +0x15F4 transform 0x202 (FindSoXf kind 6) */
       void *ikEndB;   /* +0x15F8 ikChainB's end transform */
       void *unknown15FC;   /* +0x15FC transform 0x205 (FindSoXf kind 6) */
-      undefined4 unknown1600[4];
+      struct ACT *apactCarryB[4];   /* +0x1600 more grip actuators (DetachMurrayCarried) */
       PARTLINK *ikChainA;   /* +0x1610 IK chain of transforms 0x200..0x202 (LoadMurrayFromBrx; a hand, inferred) */
       PARTLINK *ikChainB;   /* +0x1614 IK chain of transforms 0x203..0x205 */
-      undefined4 unk_0x1618[(0x1630 - 0x1618) / 4];
+      struct ACT *apactCarryC[4];   /* +0x1618 more grip actuators (DetachMurrayCarried) */
+      undefined4 unk_0x1628[(0x1630 - 0x1628) / 4];
       GAIT gaitD;   /* +0x1630 */
       struct SM *psmStrafeIdle;   /* +0x16E0 the state machine strafe sub-state 0 applies (SetMurrayStrafeSubstate) */
       undefined4 unk_0x16e4[(0x16f0 - 0x16e4) / 4];

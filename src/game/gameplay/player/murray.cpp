@@ -80,7 +80,7 @@ void InitMurray(MURRAY *murray)
     murray->attackSubstate = -1;
     murray->subState = -1;
     murray->state = -1;
-    murray->unknown144C = -1;
+    murray->liftClip = -1;
     murray->unknown1450 = -1;
     murray->carryIndex = -1;
     murray->strafeSubstate = -1;
@@ -1840,37 +1840,37 @@ typedef char WORD_value_Offset[((unsigned int)&(((union WORD*)0)->value))==0?1:-
 } } // namespace M_SetMurrayFlopSubstate
 #undef FIELD_OFFSET
 
+/* The carry target MURRAY::ploCarried points at: a carry grab spot (classes.h CID36, no fields there yet); +0x180 is the
+   object it holds (the one Murray lifts). */
+struct CARRYSPOTV { char pad[0x180]; LO *plo; };
+
 namespace M_StartMurrayLiftGrabspot { extern "C" {
-struct T { char pad[0x180]; int n; };
-struct S { char pad[0x13EC]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
-void SetMurrayState(struct S *p, int n);
-void FaceStepToward(struct S *p, int n);
-// If lifting is allowed (x13EC): the grab spot becomes the carried target, lift clip 0, state 4, face it.
-void StartMurrayLiftGrabspot(struct S *murray, struct T *pt)
+void SetMurrayState(MURRAY *p, int n);
+void FaceStepToward(MURRAY *p, LO *plo);
+// If lifting is allowed: the grab spot becomes the carried target, lift clip 0, state 4, face the object it holds.
+void StartMurrayLiftGrabspot(MURRAY *murray, LO *pspot)
 {
-    if (!murray->f)
+    if (!murray->fCanLift)
         return;
-    murray->pt = pt;
-    murray->g = 0;
+    murray->ploCarried = pspot;
+    murray->liftClip = 0;
     SetMurrayState(murray, MURRAY_LIFT);
-    FaceStepToward(murray, murray->pt->n);
+    FaceStepToward(murray, ((CARRYSPOTV *)murray->ploCarried)->plo);
 }
 } } // namespace M_StartMurrayLiftGrabspot
 
 namespace M_StartMurrayLiftGuard { extern "C" {
-struct T { char pad[0x180]; int n; };
-struct S { char pad[0x13EC]; int f; struct T *pt; char pad2[0x144C - 0x13F4]; int g; };
-void SetMurrayState(struct S *p, int n);
-void FaceStepToward(struct S *p, int n);
+void SetMurrayState(MURRAY *p, int n);
+void FaceStepToward(MURRAY *p, LO *plo);
 // Same as StartMurrayLiftGrabspot with lift clip 1 (the guard-lift clip x1444).
-void StartMurrayLiftGuard(struct S *murray, struct T *pt)
+void StartMurrayLiftGuard(MURRAY *murray, LO *pspot)
 {
-    if (!murray->f)
+    if (!murray->fCanLift)
         return;
-    murray->pt = pt;
-    murray->g = 1;
+    murray->ploCarried = pspot;
+    murray->liftClip = 1;
     SetMurrayState(murray, MURRAY_LIFT);
-    FaceStepToward(murray, murray->pt->n);
+    FaceStepToward(murray, ((CARRYSPOTV *)murray->ploCarried)->plo);
 }
 } } // namespace M_StartMurrayLiftGuard
 
@@ -2249,82 +2249,72 @@ void ThrowMurrayCarriedAt(MURRAY *murray, void *pv)
 } } // namespace M_func_001B7A78
 
 namespace M_func_001B7AE8 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; char pad2[0x18]; unsigned long f28; };
-struct T { char pad[0x180]; struct O *po; };
-struct S { char pad[0x13F0]; struct T *pt; };
+/* The lifted object as read here: bit 60 of its LO flag word at +0x28 (not named in lo.h). */
+struct O { char pad[0x28]; unsigned long f28; };
 extern qword D_002C09D0, D_002A2DD0;
-void DetachMurrayCarried(struct S *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-void StunStepguardThrownOp3(struct O *p);
-qword ConvertVecBetweenLos(struct S *p, int n, qword q);
-void SetSoZapMode(struct O *p, int n);
+void DetachMurrayCarried(MURRAY *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
+void StunStepguardThrownOp3(SO *p);
+qword ConvertVecBetweenLos(MURRAY *p, int n, qword q);
+void SetSoZapMode(SO *p, int n);
 // Release in state 8: detaches, fixed local velocity D_002C09D0, no angular velocity, zap mode 3.
-void TossMurrayCarried(struct S *murray)
+void TossMurrayCarried(MURRAY *murray)
 {
-    struct O *object;
+    SO *object;
     qword q;
     DetachMurrayCarried(murray);
-    object = murray->pt->po;
-    murray->pt = 0;
-    if ((int)(object->f28 >> 60) & 1) {
+    object = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+    murray->ploCarried = 0;
+    if ((int)(((O *)object)->f28 >> 60) & 1) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
         q = ConvertVecBetweenLos(murray, 0, D_002C09D0);
-        ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, q);
-        ((void (*)(void *, qword))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
+        object->SetVelocity(q);
+        object->SetAngularVelocity(D_002A2DD0);
         SetSoZapMode(object, 3);
     }
 }
 } } // namespace M_func_001B7AE8
 
 namespace M_DropMurrayCarried { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pfn)(...); };
-struct X { char pad[0xC]; struct VE *vt; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
-struct P { char pad[0x13D0]; int state; char pad1[0x13F0 - 0x13D4]; struct O *carried; char pad2[0x1450 - 0x13F4]; int x1450; char pad3[0x1530 - 0x1454]; int x1530; };
 extern qword D_002C09E0, D_002A2DD0;
-void SetSmaGoal(int a, int b);
-void DetachMurrayCarried(struct P *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
-void StunStepguardThrownOp2(struct X *x);
-void SetSoZapMode(struct X *x, int n);
-qword ConvertVecBetweenLos(struct P *p, int n, qword q);
+void SetSmaGoal(SMA *psma, int oid);
+void DetachMurrayCarried(MURRAY *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *x, int n);
+void StunStepguardThrownOp2(SO *x);
+void SetSoZapMode(SO *x, int n);
+qword ConvertVecBetweenLos(MURRAY *p, int n, qword q);
 // Aborts carrying on a forced state change: detaches the carried/lifted object and sets its velocity for the current
 // state.
-void DropMurrayCarried(struct P *murray)
+void DropMurrayCarried(MURRAY *murray)
 {
-    struct O *o;
-    struct X *x;
+    LO *o;
+    SO *x;
     if (murray->state == MURRAY_STRUGGLE) {
-        if (murray->x1530) SetSmaGoal(murray->x1530, 0x1CA);
+        if (murray->psmaWork) SetSmaGoal(murray->psmaWork, 0x1CA);
         return;
     }
-    o = murray->carried;
+    o = murray->ploCarried;
     if (!o) return;
-    if (murray->state == MURRAY_LIFT && murray->x1450 == 0) {
-        ((void (*)())o->vt[3].pfn)((char *)o + o->vt[3].d, 6, 0, 0, 0, 0);
-        murray->carried = 0;
+    if (murray->state == MURRAY_LIFT && murray->unknown1450 == 0) {
+        o->HandleSpliceEvent(6, 0, 0, 0, 0);
+        murray->ploCarried = 0;
         return;
     }
     DetachMurrayCarried(murray);
-    x = murray->carried->x180;
+    x = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
     if (IsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) StunStepguardThrownOp2(x);
     else SetSoZapMode(x, 1);
     switch (murray->state) {
-    case MURRAY_CARRY: {
-        struct VE *e = &x->vt[35];
-        ((void (*)(void *, qword))e->pfn)((char *)x + e->d, ConvertVecBetweenLos(murray, 0, D_002C09E0));
+    case MURRAY_CARRY:
+        x->SetVelocity(ConvertVecBetweenLos(murray, 0, D_002C09E0));
         break;
-    }
     case MURRAY_JUMP: case MURRAY_LIFT: case MURRAY_THROW: case MURRAY_TOSS:
-        ((void (*)(void *, qword))x->vt[35].pfn)((char *)x + x->vt[35].d, D_002A2DD0);
+        x->SetVelocity(D_002A2DD0);
         break;
     case MURRAY_FLOP: case MURRAY_STRUGGLE:
         break;
     }
-    murray->carried = 0;
+    murray->ploCarried = 0;
 }
 } } // namespace M_DropMurrayCarried
 
@@ -2332,42 +2322,38 @@ namespace M_DetachMurrayCarried { extern "C" {
 struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
-struct VE { short d; short pad; void (*pfn)(...); };
-struct X { char pad[0x58]; int x58; int x5C; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
-struct P { char pad[0x13F0]; struct O *carried; int a13F4[4]; int x1404; int x1408; char pad2[0x1430 - 0x140C]; struct X *x1430; float f1434; char pad3[0x1600 - 0x1438]; int a1600[4]; int x1610, x1614; int a1618[4]; };
-void ReleaseAct(int *p);
-void SetXfRole(struct X *x, int a, int b);
-void SetSoTreeFlag2(struct X *x, int a);
-void SetLoParent(struct X *x, int a, int b);
-void RefreshSwObjectCollisionFilter(void *g, struct P *p);
+void ReleaseAct(ACT **ppact);
+void SetXfRole(SO *pso, XF *pxf, int n);
+void SetSoTreeFlag2(SO *pso, int a);
+void SetLoParent(SO *pso, int a, int b);
+void RefreshSwObjectCollisionFilter(void *g, MURRAY *p);
 // Frees the 12 grip constraints, notifies the object (message 6), restores its transform roles and tree flags.
-void DetachMurrayCarried(struct P *murray)
+void DetachMurrayCarried(MURRAY *murray)
 {
-    struct O *o;
-    struct X *x;
-    ReleaseAct(&murray->a13F4[0]);
-    ReleaseAct(&murray->a13F4[1]);
-    ReleaseAct(&murray->a13F4[2]);
-    ReleaseAct(&murray->a13F4[3]);
-    ReleaseAct(&murray->a1600[0]);
-    ReleaseAct(&murray->a1600[1]);
-    ReleaseAct(&murray->a1600[2]);
-    ReleaseAct(&murray->a1600[3]);
-    ReleaseAct(&murray->a1618[0]);
-    ReleaseAct(&murray->a1618[1]);
-    ReleaseAct(&murray->a1618[2]);
-    ReleaseAct(&murray->a1618[3]);
-    o = murray->carried;
+    LO *o;
+    SO *x;
+    ReleaseAct(&murray->apactCarryA[0]);
+    ReleaseAct(&murray->apactCarryA[1]);
+    ReleaseAct(&murray->apactCarryA[2]);
+    ReleaseAct(&murray->apactCarryA[3]);
+    ReleaseAct(&murray->apactCarryB[0]);
+    ReleaseAct(&murray->apactCarryB[1]);
+    ReleaseAct(&murray->apactCarryB[2]);
+    ReleaseAct(&murray->apactCarryB[3]);
+    ReleaseAct(&murray->apactCarryC[0]);
+    ReleaseAct(&murray->apactCarryC[1]);
+    ReleaseAct(&murray->apactCarryC[2]);
+    ReleaseAct(&murray->apactCarryC[3]);
+    o = murray->ploCarried;
     if (!o) return;
-    ((void (*)())o->vt[3].pfn)((char *)o + o->vt[3].d, 6, 0, 0, 0, 0);
-    x = murray->carried->x180;
-    SetXfRole(x, x->x58, murray->x1404);
-    SetXfRole(x, x->x5C, murray->x1408);
+    o->HandleSpliceEvent(6, 0, 0, 0, 0);
+    x = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+    SetXfRole(x, x->unknown58, murray->xfRoleA);
+    SetXfRole(x, x->unknown5C, murray->xfRoleB);
     SetSoTreeFlag2(x, 0);
     SetLoParent(x, 0, 0xF);
-    murray->x1430 = x;
-    murray->f1434 = D_002DDED0.time;
+    murray->ploReleased = x;
+    murray->releaseTime = D_002DDED0.time;
     RefreshSwObjectCollisionFilter(D_003DD490, murray);
 }
 } } // namespace M_DetachMurrayCarried
