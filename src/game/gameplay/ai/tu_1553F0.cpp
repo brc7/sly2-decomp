@@ -32,7 +32,6 @@ enum {
 };
 
 typedef int qwordV __attribute__((mode(TI)));
-typedef struct CLOCKV { float t; float dt; } CLOCKV;
 /* g++ 2.95 vtable entry. */
 struct VTE { short d; short pad; void *pfn; };
 typedef struct MSG { int cb; int nKind; } MSG;
@@ -120,7 +119,7 @@ struct FRAME { int a[4]; };
 struct VU_FLOAT { qwordV q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct VU_VECTOR { qwordV q; VU_VECTOR(const qwordV &v) { q = v; } };
 
-extern CLOCKV D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qwordV D_002A2DD0;
 extern int D_002BDC50;   /* tu_1553F0's .data starts here (address order) */
@@ -293,7 +292,7 @@ extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
         behavior->route->isUsed = 1;
     PopBhv(behavior->childSlot);
     behavior->state = k;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (k) {
     case 0: {
         BHVO *child = PushStepBehavior(behavior->guard, CID_BHV181);
@@ -432,7 +431,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         break;
     case 3:
         {
-            float t = D_002DDED0.t;
+            float t = D_002DDED0.time;
             behavior->guard->attackCooldownEnd = t + RandomFloatInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
         }
         behavior->attack = 0;
@@ -440,7 +439,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
     }
     PopBhv(behavior->childSlot);
     behavior->state = k;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (k) {
     case 0: {
         BHVO *child;
@@ -518,7 +517,7 @@ extern "C" void UpdateBhvDimitriAttack(BHVATK *behavior)
                 ((void (*)(void *, qwordV))dimitri->vt[35].pfn)((char *)dimitri + dimitri->vt[35].d, D_002A2DD0);
                 dimitri = behavior->guard;
                 ((void (*)(void *, qwordV))dimitri->vt[36].pfn)((char *)dimitri + dimitri->vt[36].d, D_002A2DD0);
-                behavior->arrivalTime = D_002DDED0.t;
+                behavior->arrivalTime = D_002DDED0.time;
                 SetBhvDimitriAttackState(behavior, 1);
             }
             break;
@@ -527,13 +526,13 @@ extern "C" void UpdateBhvDimitriAttack(BHVATK *behavior)
                 SetBhvDimitriAttackState(behavior, 1);
             break;
         case 1:
-            if (2.5f < D_002DDED0.t - behavior->arrivalTime && 0.1f < D_002DDED0.t - behavior->stateTime) {
+            if (2.5f < D_002DDED0.time - behavior->arrivalTime && 0.1f < D_002DDED0.time - behavior->stateTime) {
                 if ((behavior->attack = (ATKENTRY *)ChooseStepguardAttack(behavior->guard, behavior->target, 0)) != 0)
                     SetBhvDimitriAttackState(behavior, 3);
             }
             break;
         case 3:
-            behavior->lastAttackTime = D_002DDED0.t;
+            behavior->lastAttackTime = D_002DDED0.time;
             if (IsBhvattackDone(behavior->currentChild)) {
                 int k = 1;
                 void *n = ChooseBhvDimitriAttackRouteEnd(behavior);
