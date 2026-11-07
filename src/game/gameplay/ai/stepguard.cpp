@@ -3810,12 +3810,11 @@ void EmitStepguardStimulus(STEPGUARD *guard, void *target)
 
 // 0x20B210 DetachStepguard
 namespace M_func_0020B210 { extern "C" {
-struct S;
-struct S { char pad[0xF80]; int attachKind; int attachObject; };
-void LinkStepAttachment(struct S *guard, int object, int attach);
+
+void LinkStepAttachment(STEPGUARD *guard, LO *object, int attach);
 // 0x20B210: Detaches the guard from what it is attached to (no attach kind or object).
 // (One case per attach kind, each with its own call: merging the identical cases changes the jump table.)
-void DetachStepguard(struct S *guard)
+void DetachStepguard(STEPGUARD *guard)
 {
     switch (guard->attachKind) {
     case 0:
