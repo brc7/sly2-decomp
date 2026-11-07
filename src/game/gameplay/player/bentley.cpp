@@ -551,7 +551,7 @@ struct P {
     char pad4[0x108C - 0x1038]; int x108C; char pad5[0x11B0 - 0x1090]; char thrower[0x1320 - 0x11B0];
     struct ASEGP gaitA; char pad6[0x1374 - 0x1328]; struct ASEG *p1374; char pad7[0x13D0 - 0x1378];
     int state; float t13D4; char pad8[0x14E0 - 0x13D8]; struct ASEG *p14E0; char pad9[0x1600 - 0x14E4];
-    struct ASEGP gaitB; char pad10[0x16D0 - 0x1608]; struct VO *p16D0; struct VO *p16D4;
+    struct ASEGP gaitB; char pad10[0x16D0 - 0x1608]; LO *p16D0; LO *p16D4;
     char pad11[0x181C - 0x16D8]; int x181C; struct ASEG *p1820; char pad12[0x186C - 0x1824]; struct VO *heldObject;
     char pad13[0x1878 - 0x1870]; struct ASEG *p1878;
 };
@@ -559,7 +559,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetXfRole(struct P *, void *, int);
 void ScheduleIdleTimer(struct P *);
-void ExplodeWithDefaults(struct VO *);
+void ExplodeWithDefaults(LO *);
 void SetJtAirState(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
@@ -610,7 +610,7 @@ void SetBentleyState(struct P *p, int k)
         break;
     case BENTLEY_AIR:
         if (p->x108C == 0) {
-            struct VO *object = 0;
+            LO *object = 0;
             if (k >= 0) {
                 if (k < 2) {
                     object = p->p16D0;
@@ -629,9 +629,9 @@ void SetBentleyState(struct P *p, int k)
                 }
             }
             if (object) {
-                VCALL0(object, 8);
+                object->Add();
                 ExplodeWithDefaults(object);
-                VCALL0(object, 9);
+                object->Remove();
             }
         }
         SetJtAirState(p->air, -1, 0);
