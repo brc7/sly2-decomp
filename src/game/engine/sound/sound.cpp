@@ -1031,7 +1031,7 @@ extern "C" void FreeBanksnd(void *pv)
 #define SUKR_QUERY_PLAYING 7       /* (inferred) */
 #define SUKR_QUERY_POSITION 8      /* (inferred) */
 #define SUKR_STOP_ALL 10           /* ResetSndmgr */
-#define SUKR_QUERY_MIC_LEVEL 0xB   /* headset microphone level (UpdateSoundListener; inferred) */
+#define SUKR_QUERY_MIC_LEVEL 0xB   /* headset microphone level (UpdateHeadsetMicrophone; inferred) */
 #define SUKR_QUERY_STATUS 0xC      /* periodic status (PollSoundManagerStatus; meaning unknown) */
 
 namespace M_PstreamsndNew {
@@ -1702,9 +1702,9 @@ struct S { char pad[0x6C]; int isMicLevelQueryBusy; int micLevel; };   /* SNDMGR
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Async callback of the headset microphone level query (SUKR command 0xB, UpdateSoundListener): stores the level and
+// Async callback of the headset microphone level query (SUKR command 0xB, UpdateHeadsetMicrophone): stores the level and
 // clears the busy flag. (inferred)
-void OnSoundManagerQueryResult(int result, long context) { struct S *soundManager = (struct S *)(int)context; soundManager->micLevel = result; soundManager->isMicLevelQueryBusy = 0; }
+void OnMicLevelResult(int result, long context) { struct S *soundManager = (struct S *)(int)context; soundManager->micLevel = result; soundManager->isMicLevelQueryBusy = 0; }
 } } // namespace M_func_001FCF70
 
 namespace M_func_001FCF88 { extern "C" {
@@ -2207,14 +2207,14 @@ extern struct CLOCK D_002DDED0;
 extern int D_002BD4C0;
 extern struct K D_002A8288;
 long TickNow(struct CLOCK *);
-void UpdateSoundListener(struct P *);
+void UpdateHeadsetMicrophone(struct P *);
 void PollSoundManagerStatus(struct P *);
 void ResumeSnd(struct X *);
 void PauseSnd(struct X *);
 void UpdateMusicMix(struct P *);
 void UpdateSoundManagerStub(struct P *);
 void UpdateDialog(struct P *);
-int IsSoundManagerMuted(struct P *);
+int ShouldFadeWhenTimeStops(struct P *);
 float GSmooth__FfffP3SMPPf(float, float, float, struct K *, int);
 void SetSndmgrChannelVolume(struct P *, int, float, int);   /* (manager, channel, volume, category): the float travels in $f12 */
 void UpdateSnd(struct Q *);
@@ -2237,7 +2237,7 @@ void UpdateSndmgr(struct P *soundManager)
     struct Q *sound;
     soundManager->tickLast = soundManager->tickNow;
     soundManager->tickNow = TickNow(&D_002DDED0);
-    UpdateSoundListener(soundManager);
+    UpdateHeadsetMicrophone(soundManager);
     PollSoundManagerStatus(soundManager);
     music = soundManager->musicStackCount > 0 ? *(soundManager->musicStack + soundManager->musicStackCount - 1) : 0;
     /* the long-running sounds stay paused while the disc is busy (inferred: disc errors / reads) */
@@ -2260,7 +2260,7 @@ void UpdateSndmgr(struct P *soundManager)
     UpdateDialog(soundManager);
     smoothing = D_002A8288;
     /* game time stopped (inferred: the pause menu): fade the ambience and music out, cut the dialog */
-    if (IsSoundManagerMuted(soundManager) && D_002DDED0.dt == 0.0f) targetVolume = 0.0f;
+    if (ShouldFadeWhenTimeStops(soundManager) && D_002DDED0.dt == 0.0f) targetVolume = 0.0f;
     fadeVolume = GSmooth__FfffP3SMPPf(soundManager->pauseFadeVolume, targetVolume, D_002DDED0.dtReal, &smoothing, 0);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_AMBIENCE, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_MUSIC, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
@@ -2283,7 +2283,7 @@ struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
 struct P { char pad[0x10]; int isHeadsetEnabled; char pad2[0x6C - 0x14]; int isMicLevelQueryBusy; float micLevel; char micNoise[0xC]; struct CLQ micNoiseRangeCurve; struct CLQ micNoiseHeightCurve; };
 struct SW { char pad[0x4034]; struct O *micNoiseType; };   /* the world's noise type for the headset microphone */
 extern struct SW D_003DD490;
-void OnSoundManagerQueryResult(void);
+void OnMicLevelResult(void);
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
 void *PpoHero(struct SW *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -2302,9 +2302,9 @@ static inline float Eval(struct CLQ *curve, float t)
  * @end-sly2-annot */
 // Headset microphone: with the headset option on, keeps one level query (SUKR command 0xB) in flight; while the hero is
 // a player and the level is above half, the hero makes a noise guards can hear, its range and height growing with the
-// level (ReplaceHeldNoise; with no noise type the held noise is released). The name predates this reading; the
-// function has nothing to do with the 3D listener. (inferred)
-void UpdateSoundListener(struct P *soundManager)
+// level (ReplaceHeldNoise; with no noise type the held noise is released). (inferred; was named UpdateSoundListener,
+// UpdateSndmgrListener in the draft annotation)
+void UpdateHeadsetMicrophone(struct P *soundManager)
 {
     struct O *noiseType;
     qword position;
@@ -2313,7 +2313,7 @@ void UpdateSoundListener(struct P *soundManager)
         soundManager->micLevel = 0.0f;
     } else if (!soundManager->isMicLevelQueryBusy) {
         soundManager->isMicLevelQueryBusy = 1;
-        func_002330D0(SUKR_RPC, SUKR_QUERY_MIC_LEVEL, 0, 0, 0, 0, 0, OnSoundManagerQueryResult, (long)soundManager);
+        func_002330D0(SUKR_RPC, SUKR_QUERY_MIC_LEVEL, 0, 0, 0, 0, 0, OnMicLevelResult, (long)soundManager);
     }
     noiseType = 0;
     hero = PpoHero(&D_003DD490);
@@ -2695,7 +2695,7 @@ void SetSoundManagerFlags(struct S *soundManager, int mask, int isSet) { if (isS
  * @end-sly2-annot */
 // True when both mute-when-stopped flags are set (the default): UpdateSndmgr then fades the ambience and music out
 // while game time is stopped (the pause menu). Cutscenes and a player mode clear a flag to keep them playing.
-extern "C" int IsSoundManagerMuted(SNDMGRV *soundManager)
+extern "C" int ShouldFadeWhenTimeStops(SNDMGRV *soundManager)
 {
     return soundManager->muteWhenStoppedFlags == MUTE_WHEN_STOPPED_ALL;
 }
