@@ -20,7 +20,7 @@ struct VTE { short d; short pad; void *pfn; };
 #define VCALL1(o, n, a1) ((void (*)(void *, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1)
 
 struct CID100V { char pad0[0xC]; VTE *vt; };   /* a tossable (classes.h CID100): its slot 76 is not declared there */
-struct SMV { char pad[0x50]; int stateCount; };      /* state machine: c states */
+struct SMV : LO { int stateCount; };      /* state machine: c states */
 struct SMA;
 
 /* One joystick binding: in state psm-state pvState, button grfBtn fires relay oid (0x378: open the ThiefNet tab). */
