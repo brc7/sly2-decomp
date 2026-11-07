@@ -108,44 +108,44 @@ void SetCmFov__FP2CMf(struct CM *p, float g);
 float GSmoothA__FffffP4SMPAPf(float g, float h, float i, float dt, float *pa, float *pb);
 void RecalcCmFrustrum__FP2CM(struct CM *p);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
-// Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50 GetCpdefi into
-// cm+0x270, ResetCmAdjust/AdjustCmCpdefi, then policy vt6 Update(pcpdefi, joy); then fov smoothing (SetCmFov if nCut
-// else GSmoothA+RecalcCmFrustrum); clears nCut; smooths +0x620.
+// Per-frame camera update: runs the top policy of the stack (vtable slot 6 Update, with the focus object's CPDEFI
+// from its vtable slot 50 and the current joypad), again whenever the update replaced the top policy; then the fov:
+// snapped on a cut, else smoothed toward the target; clears the cut and, in stereo mode, smooths the eye offset.
 void UpdateCmLast__FP2CM(struct CM *p)
 {
-    struct O *po;
-    struct O *poPrev;
-    struct O *poLast;
+    struct O *policy;
+    struct O *lastUpdated;
+    struct O *lastFocus;
     if (p->policyCount > 0) {
-    poPrev = 0;
-    poLast = 0;
-    while ((po = p->policies[0].po) != poPrev) {
-        struct O *poT = p->policies[0].poTarget;
-        void *pv;
-        if (poT) {
-            pv = p->policyDefaults;
-            if (poT != poLast) {
-                struct VTE *e = &poT->vt[50];
-                e->pfn((char *)poT + e->d, pv);
-                if (poPrev || poT != p->adjustSo)
-                    ResetCmAdjust(p, pv);
-                AdjustCmCpdefi(p, poT, pv);
-                p->adjustSo = poT;
-                poLast = poT;
+        lastUpdated = 0;
+        lastFocus = 0;
+        while ((policy = p->policies[0].po) != lastUpdated) {
+            struct O *focus = p->policies[0].poTarget;
+            void *cpdefi;
+            if (focus) {
+                cpdefi = p->policyDefaults;
+                if (focus != lastFocus) {
+                    struct VTE *e = &focus->vt[50];
+                    e->pfn((char *)focus + e->d, cpdefi);
+                    if (lastUpdated || focus != p->adjustSo)
+                        ResetCmAdjust(p, cpdefi);
+                    AdjustCmCpdefi(p, focus, cpdefi);
+                    p->adjustSo = focus;
+                    lastFocus = focus;
+                }
+            } else {
+                p->adjustSo = 0;
+                cpdefi = 0;
+                lastFocus = 0;
             }
-        } else {
-            p->adjustSo = 0;
-            pv = 0;
-            poLast = 0;
+            {
+                struct VTE *e = &policy->vt[6];
+                e->pfn((char *)policy + e->d, cpdefi, (D_002DFBC0 & 1) ? D_002DFC00 : D_002E0D00);
+            }
+            lastUpdated = policy;
+            if (p->policyCount <= 0)
+                break;
         }
-        {
-            struct VTE *e = &po->vt[6];
-            e->pfn((char *)po + e->d, pv, (D_002DFBC0 & 1) ? D_002DFC00 : D_002E0D00);
-        }
-        poPrev = po;
-        if (p->policyCount <= 0)
-            break;
-    }
     }
     if (p->cutCount) {
         SetCmFov__FP2CMf(p, p->targetFov);
@@ -154,7 +154,7 @@ void UpdateCmLast__FP2CM(struct CM *p)
         RecalcCmFrustrum__FP2CM(p);
     }
     p->cutCount = 0;
-    if (D_003DD490.unknown3E38)
+    if (D_003DD490.unknown3E38)   /* stereo mode (draw.cpp) */
         p->stereoEyeOffset = GSmooth__FfffP3SMPPf(p->stereoEyeOffset, p->stereoFocusDistance, g_clock.dtCm, D_002BD810, 0);
 }
 } } // namespace M_UpdateCmLast__FP2CM
