@@ -311,8 +311,8 @@ struct STEPGUARD : public STEP
       int noiseType;        /* +0xE60 [S] */
       int sensesEnabled;    /* +0xE64 [S] */
       int minStimulusLevel; /* +0xE68 [S] weakest stimulus the guard reacts to */
-      LM unknownRangeE6C;   /* +0xE6C [S] (InitStepguard 5.5/6.5) */
-      undefined4 unk_0xe74;
+      LM lookTimes;         /* +0xE6C [S] how long a search looks around (InitStepguard 5.5/6.5; SetBhvSearchLookTimers) */
+      LO *searchTarget;     /* +0xE74 [S] a search ends when its last known position is nearer than this object (HasBhvSearchReachedTarget) */
       int searchMode;       /* +0xE78 [S] */
       float sleepTimeMin;   /* +0xE7C [S] sleep duration range (BHVSLEEP) */
       float sleepTimeMax;   /* +0xE80 [S] */
@@ -432,7 +432,7 @@ typedef char assert_STEPGUARD_attackRange[SLY2_OFFSETOF(STEPGUARD, attackRange) 
 typedef char assert_STEPGUARD_hurtZapMask[SLY2_OFFSETOF(STEPGUARD, hurtZapMask) == 0x350 ? 1 : -1];
 typedef char assert_STEPGUARD_coinCountOverride[SLY2_OFFSETOF(STEPGUARD, coinCountOverride) == 0x3D8 ? 1 : -1];
 typedef char assert_STEPGUARD_unknown3FC[SLY2_OFFSETOF(STEPGUARD, unknown3FC) == 0x3FC ? 1 : -1];
-typedef char assert_STEPGUARD_unknownRangeE6C[SLY2_OFFSETOF(STEPGUARD, unknownRangeE6C) == 0xE6C ? 1 : -1];
+typedef char assert_STEPGUARD_lookTimes[SLY2_OFFSETOF(STEPGUARD, lookTimes) == 0xE6C ? 1 : -1];
 typedef char assert_STEPGUARD_unknownF40[SLY2_OFFSETOF(STEPGUARD, unknownF40) == 0xF40 ? 1 : -1];
 typedef char assert_STEPGUARD_removalMode[SLY2_OFFSETOF(STEPGUARD, removalMode) == 0x1000 ? 1 : -1];
 typedef char assert_STEPGUARD_busyCount[SLY2_OFFSETOF(STEPGUARD, busyCount) == 0xFFC ? 1 : -1]; /* CONFIRMED runtime */

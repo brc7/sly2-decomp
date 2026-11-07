@@ -220,8 +220,8 @@ void STEPGUARD::Init()
     guard->sleepTimeMin = 16.0f;
     guard->sleepTimeMax = 20.0f;
     guard->sleepDartCapacity = 50;
-    guard->unknownRangeE6C.minValue = 5.5f;
-    guard->unknownRangeE6C.maxValue = 6.5f;
+    guard->lookTimes.minValue = 5.5f;
+    guard->lookTimes.maxValue = 6.5f;
     guard->knockdownZapMask = 0x29FF7E;
     guard->unknown364 = 1;
     guard->canInteract = 1;
