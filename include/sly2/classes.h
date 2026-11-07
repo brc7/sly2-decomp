@@ -2362,8 +2362,7 @@ struct WAYPT : SO
 };
 typedef char assert_WAYPT_size[sizeof(WAYPT) == 0x190 ? 1 : -1];
 
-/* 115 WR (0x900); vtable 0x2DCF00, 48 slots */
-/* WR (115, 0x900) is defined in sly2/wr.h (the anim header) with its fields. */
+/* 115 WR (0x900); vtable 0x2DCF00, 48 slots: defined in sly2/wr.h (the anim header) with its fields. */
 struct WR;
 
 #endif /* SLY2_CLASSES_H */

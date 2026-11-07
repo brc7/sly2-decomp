@@ -77,7 +77,7 @@ typedef char assert_WRE_size[sizeof(WRE) == 0xD0 ? 1 : -1];
 enum WREK { WREK_Circle = 0, WREK_Bend = 1 };
 
 /* 115 WR (0x900): a space warp (wr.cpp): up to eight warp entries packed two columns each into four warp/uv matrix
-   pairs, and the warp groups (WRBG) it moves; vtable 0x2DBCE8 (class_registry.cpp constructs it) */
+   pairs, and the warp groups (WRBG) it moves; vtable 0x2DCF00, 48 slots (class_registry.cpp constructs it) */
 struct WR : LO
 {
     float lastUpdateTime;   /* +0x50 clock time of the last matrix update */
