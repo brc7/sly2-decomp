@@ -277,10 +277,7 @@ struct CM : public CMBASE
       float fieldOfView; /* field of view */
       float targetFieldOfView; /* FOV the camera moves toward */
       float dfov;   /* FOV change speed */
-      float unknown2C;
-      float unknown30;
-      float unknown34;
-      float unknown38;
+      SMPA smpaFov;   /* FOV smoothing parameters (SmoothValueWithAccel in UpdateCmLast; InitCm sets 0.5, 0, 0.1, 10) */
       float aspectRatio; /* aspect ratio */
       float tanHalfFovX; /* tan of half the horizontal FOV */
       float tanHalfFovY; /* tan of half the vertical FOV */
@@ -336,9 +333,9 @@ struct CM : public CMBASE
       CPTURRET turretPolicy; /* the turret policy */
       CPTWOSHOT twoShotPolicy; /* the two-shot policy */
       float joltTime; /* time of the last camera jolt (shake) */
-      int unknown61C;
-      float unknown620;
-      float unknown624;
+      int joltKind;   /* kind of the last jolt (InitCm: -1) */
+      float stereoEyeOffset;   /* stereo eye offset along the right axis (BuildStereoEyeViewProj), smoothed in stereo mode */
+      float stereoFocusDistance;   /* its target (ResetCameraPolicies: 10) */
     CM() __asm__("CM_ctor");   /* out of line: camera/cm/CM_ctor.c */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCmClassDesc");   /* slot 6 */
 };

@@ -88,96 +88,78 @@ void SetupCm(CM *pcm)
 }
 
 namespace M_UpdateCmLast__FP2CM { extern "C" {
+/* The focus SO's vtable, called by hand (slot 50, GetCpdefi; so.h is not included here). */
 struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct O { int pad[3]; struct VTE *vt; };
-struct E { int prio; struct O *po; struct O *poTarget; int b; };
-struct CM {
-    char pad[0x20]; float fieldOfView; float targetFov; float fovSpeed; float fovSmoothing;
-    char pad1[0x260 - 0x30]; struct O *adjustSo; char pad2[0x270 - 0x264]; int policyDefaults[36];
-    int cutCount; int pad3[2]; int policyCount; struct E policies[8];
-    char pad4[0x620 - 0x390]; float stereoEyeOffset; float stereoFocusDistance;
-};
 struct G { char pad[0x3E38]; int unknown3E38; };
 extern struct CLOCK D_002DDED0;
 extern int D_002DFBC0;
-extern char D_002DFC00[];
-extern char D_002E0D00[];
+extern JOY D_002DFC00;
+extern JOY D_002E0D00;
 extern struct G D_003DD490;
 extern char D_002BD810[];
-void ResetCmAdjust(struct CM *p, void *pv);
-void AdjustCmCpdefi(struct CM *p, struct O *po, void *pv);
-void SetCmFov__FP2CMf(struct CM *p, float g);
-float SmoothValueWithAccel__FffffP4SMPAPf(float g, float h, float i, float dt, float *pa, float *pb);
-void RecalcCmFrustrum__FP2CM(struct CM *p);
+void ResetCmAdjust(CM *p, CPDEFI *pcpdefi);
+void AdjustCmCpdefi(CM *p, SO *pso, CPDEFI *pcpdefi);
+void SetCmFov__FP2CMf(CM *p, float g);
+float SmoothValueWithAccel__FffffP4SMPAPf(float g, float h, float i, float dt, SMPA *psmpa, float *pb);
 float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 // Per-frame camera update: runs the top policy of the stack (vtable slot 6 Update, with the focus object's CPDEFI
 // from its vtable slot 50 and the current joypad), again whenever the update replaced the top policy; then the fov:
 // snapped on a cut, else smoothed toward the target; clears the cut and, in stereo mode, smooths the eye offset.
-void UpdateCmLast__FP2CM(struct CM *cm)
+void UpdateCmLast__FP2CM(CM *cm)
 {
-    struct O *policy;
-    struct O *lastUpdated;
-    struct O *lastFocus;
-    if (cm->policyCount > 0) {
+    CPLCY *policy;
+    CPLCY *lastUpdated;
+    SO *lastFocus;
+    if (cm->numPolicies > 0) {
         lastUpdated = 0;
         lastFocus = 0;
-        while ((policy = cm->policies[0].po) != lastUpdated) {
-            struct O *focus = cm->policies[0].poTarget;
-            void *cpdefi;
+        while ((policy = cm->policyStack[0].policy) != lastUpdated) {
+            SO *focus = cm->policyStack[0].focus;
+            CPDEFI *cpdefi;
             if (focus) {
-                cpdefi = cm->policyDefaults;
+                cpdefi = &cm->cpdefi;
                 if (focus != lastFocus) {
-                    struct VTE *e = &focus->vt[50];
+                    struct VTE *e = &((struct O *)focus)->vt[50];
                     e->pfn((char *)focus + e->d, cpdefi);
-                    if (lastUpdated || focus != cm->adjustSo)
+                    if (lastUpdated || focus != cm->focus)
                         ResetCmAdjust(cm, cpdefi);
                     AdjustCmCpdefi(cm, focus, cpdefi);
-                    cm->adjustSo = focus;
+                    cm->focus = focus;
                     lastFocus = focus;
                 }
             } else {
-                cm->adjustSo = 0;
+                cm->focus = 0;
                 cpdefi = 0;
                 lastFocus = 0;
             }
-            {
-                struct VTE *e = &policy->vt[6];
-                e->pfn((char *)policy + e->d, cpdefi, (D_002DFBC0 & 1) ? D_002DFC00 : D_002E0D00);
-            }
+            policy->Update(cpdefi, (D_002DFBC0 & 1) ? &D_002DFC00 : &D_002E0D00);
             lastUpdated = policy;
-            if (cm->policyCount <= 0)
+            if (cm->numPolicies <= 0)
                 break;
         }
     }
-    if (cm->cutCount) {
-        SetCmFov__FP2CMf(cm, cm->targetFov);
-    } else if (cm->targetFov != cm->fieldOfView) {
-        cm->fieldOfView = SmoothValueWithAccel__FffffP4SMPAPf(cm->fieldOfView, cm->fovSpeed, cm->targetFov, D_002DDED0.deltaTime, &cm->fovSmoothing, &cm->fovSpeed);
-        RecalcCmFrustrum__FP2CM(cm);
+    if (cm->nCut) {
+        SetCmFov__FP2CMf(cm, cm->targetFieldOfView);
+    } else if (cm->targetFieldOfView != cm->fieldOfView) {
+        cm->fieldOfView = SmoothValueWithAccel__FffffP4SMPAPf(cm->fieldOfView, cm->dfov, cm->targetFieldOfView, D_002DDED0.deltaTime, &cm->smpaFov, &cm->dfov);
+        RecalcCmFrustrum(cm);
     }
-    cm->cutCount = 0;
+    cm->nCut = 0;
     if (D_003DD490.unknown3E38)   /* stereo mode (draw.cpp) */
         cm->stereoEyeOffset = SmoothValue__FfffP3SMPPf(cm->stereoEyeOffset, cm->stereoFocusDistance, g_clock.cameraDeltaTime, D_002BD810, 0);
 }
 } } // namespace M_UpdateCmLast__FP2CM
 
 namespace M_ResetCameraPolicies { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct E { struct O *po; int pad[3]; };
-struct P { char pad[0x30C]; int policyCount; int pad2; struct E policies[8]; char pad3[0x620 - 0x394];
-            int stereoEyeOffset; float stereoFocusDistance; };   /* +0x620 stored as a word (0) here */
-// Calls vtable slot 7 (unknown: reset) on every policy on the stack, then resets the stereo eye offset (0) and focus
+// Calls vtable slot 7 (the policy reset) on every policy on the stack, then resets the stereo eye offset (0) and focus
 // distance (10).
-void ResetCameraPolicies(struct P *p)
+void ResetCameraPolicies(CM *p)
 {
     int i;
-    for (i = 0; i < p->policyCount; i++) {
-        struct O *o = p->policies[i].po;
-        struct VTE *e = &o->vt[7];
-        ((void (*)(void *))e->pfn)((char *)o + e->d);
-    }
-    p->stereoEyeOffset = 0;
+    for (i = 0; i < p->numPolicies; i++)
+        p->policyStack[i].policy->ResetPolicy();
+    p->stereoEyeOffset = 0.0f;
     p->stereoFocusDistance = 10.0f;
 }
 } } // namespace M_ResetCameraPolicies
@@ -1448,7 +1430,7 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
     ((int *)&pm->r[0])[3] = 0;
     ((float *)&pm->r[3])[3] = 1.0f;
 }
-// Builds a view-proj from CM::mat with pos offset along the right axis by +/- unknown620 (k=1/2) via CombineEyeLookAtProj
+// Builds a view-proj from CM::mat with pos offset along the right axis by +/- stereoEyeOffset (k=1/2) via CombineEyeLookAtProj
 // into pm (proj = pv or matProj) (inferred)
 void BuildStereoEyeViewProj(struct CM *cm, int k, void *pv, int n, M4 *pm)
 {
