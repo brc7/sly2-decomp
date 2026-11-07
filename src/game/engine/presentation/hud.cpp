@@ -178,7 +178,7 @@ void BuildClueCountText(void *f)
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-extern struct CLOCK { float time; float deltaTime; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D1: the mission countdown as minutes:seconds (never below zero).
