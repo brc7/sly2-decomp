@@ -166,13 +166,13 @@ void BuildCoinCountText(void *f, int **pp)
 
 // 0x210F50 BuildClueCountText
 namespace M_BuildClueCountText { extern "C" {
-extern struct G { char pad[0x4764]; int a; int b; } D_003DD490;
+extern SW D_003DD490;
 extern char D_002A8AA8[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D0: clue bottles collected / total in this level. Runtime-checked counters SW+0x4764 / +0x4768.
 void BuildClueCountText(void *f)
 {
-    fiprintf(f, D_002A8AA8, D_003DD490.a, D_003DD490.b);
+    fiprintf(f, D_002A8AA8, D_003DD490.numCluesCollected, D_003DD490.numClues);
 }
 } } // namespace M_BuildClueCountText
 
@@ -539,14 +539,14 @@ namespace M_func_00211D38 { extern "C" {
 // Actor update: commit completed state after every noninitial guard path.
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
 struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int isOpen; int keepsGamePaused; };
-extern struct G { char pad[0x3B0C]; void *pausedClockOwner; } D_003DD490;   /* SW+0x3B0C: resumed via func_00162DF8 (inferred) */
+extern SW D_003DD490;   /* SW+0x3B0C: resumed via func_00162DF8 (inferred) */
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int IsWidgetIdle(struct S *p);
 void UpdateWidget(struct S *p);
 int IsScreenShown(void *);
 int HandleJoyButtons(void *, int);
-void DecrementSwHandsOff(struct G *, int);
+void DecrementSwHandsOff(SW *, int);
 void RestartJob(void *);
 // Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
 // resumes the game and hides the box. (inferred)
@@ -558,9 +558,9 @@ void UpdateModalBoxWidget(struct S *widget)
     if (widget->state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - widget->stateTime && !IsScreenShown(D_002E6550)
         && !IsScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0 /* face buttons */)) {
         DecrementSwHandsOff(&D_003DD490, 0);
-        if (widget->keepsGamePaused == 0 && D_003DD490.pausedClockOwner) {
+        if (widget->keepsGamePaused == 0 && D_003DD490.currentJob) {
             D_002DD318++;
-            RestartJob(D_003DD490.pausedClockOwner);
+            RestartJob(D_003DD490.currentJob);
         }
         widget->pvt->pf((char *)widget + widget->pvt->d);   /* HideWidget (slot 50) */
     }
@@ -1121,9 +1121,8 @@ struct S {
     float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
-struct G { char pad[0x3BEC]; int numShownWidgets; };
 struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: as UpdateWidget's: the view keeps &g_clock in a register (address folding) */
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern struct CLOCKIsland D_002DDED0;
 extern int D_002DD318;
 extern int D_002BE538;
@@ -1141,9 +1140,9 @@ void SetWidgetState(struct S *widget, int state)
     /* states >= VISIBLE are on screen */
     if (widget->priority >= 16) {
         if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE)
-            D_003DD490.numShownWidgets++;
+            D_003DD490.unknown3BEC++;
         else if (state < WIDGET_STATE_VISIBLE && widget->state >= WIDGET_STATE_VISIBLE)
-            D_003DD490.numShownWidgets--;
+            D_003DD490.unknown3BEC--;
     }
     if (widget->pausesGame) {
         if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE) {
