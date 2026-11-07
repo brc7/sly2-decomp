@@ -3267,13 +3267,11 @@ int IsPosInSo(SO *so, qword pos)
 
 // 0x1F7410 InflictSoContactZaps
 namespace M_func_001F7410 { extern "C" {
-struct O; struct H; struct N; struct E; struct P; struct M;
+struct H; struct N; struct M;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x14]; short damage; short pad2; int zapKinds; };
-struct H { struct O *part; int pad; void *so; void *object; qword pos; qword posLocal; qword velocity; };
+/* XP as seen from one side (two of them, 0x40 each) and the contact chain. */
+struct H { SOPART *part; int pad; void *so; void *object; qword pos; qword posLocal; qword velocity; };
 struct N { struct H h[2]; char pad[0xAC - 0x80]; struct N *next; };
-struct E { char pad[0x6C]; struct N *zapContacts; };
-struct P { char pad[0xEC]; struct E *tree; };
 struct M { void *source; void *part; void *so; int zapKinds; int damage; int pad[3]; qword posLocal; qword velocity; char pad2[0x60 - 0x40]; };
 struct G;
 extern struct G D_003DD490;
@@ -3283,33 +3281,33 @@ int DeliverZapToSo(struct M *);
 void FreeSwXpList__FP2SWP2XP(struct G *, void *);
 // Slot 74: for each contact whose other part has zap kinds, builds a zap record and delivers it; frees the list.
 // (inferred)
-void InflictSoContactZaps(struct P *so)
+void InflictSoContactZaps(SO *so)
 {
     struct N *pn;
-    for (pn = so->tree->zapContacts; pn; pn = pn->next) {
+    for (pn = (struct N *)so->physicsTree->firstZapContact; pn; pn = pn->next) {
         int i = pn->h[0].so != so;
         struct H *ph = (struct H *)((char *)pn + (i << 6));
-        if (ph->part->zapKinds) {
+        if (ph->part->zapKindFlags) {
             struct H *pot = (struct H *)((char *)pn + ((1 - i) << 6));
-            void *r = FindZapResponder(pot->object, ph->part->zapKinds);
+            void *r = FindZapResponder(pot->object, ph->part->zapKindFlags);
             if (r) {
                 struct M m;
                 func_002333B4(&m, 0, 0x60);
                 m.source = so;
                 m.part = ph->part;
                 m.so = r;
-                m.zapKinds = ph->part->zapKinds;
+                m.zapKinds = ph->part->zapKindFlags;
                 m.damage = ph->part->damage;
                 m.posLocal = pot->pos;
                 m.velocity = ph->velocity;
                 DeliverZapToSo(&m);
-                if (!so->tree) break;
+                if (!so->physicsTree) break;
             }
         }
     }
-    if (so->tree) {
-        FreeSwXpList__FP2SWP2XP(&D_003DD490, so->tree->zapContacts);
-        so->tree->zapContacts = 0;
+    if (so->physicsTree) {
+        FreeSwXpList__FP2SWP2XP(&D_003DD490, so->physicsTree->firstZapContact);
+        so->physicsTree->firstZapContact = 0;
     }
 }
 } } // namespace M_func_001F7410
