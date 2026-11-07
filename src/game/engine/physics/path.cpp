@@ -1782,7 +1782,7 @@ void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
 namespace M_PostPathlinkLoad { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { qword q; int pad[4]; };
-struct S { char pad[0x50]; int c; char pad2[0xC]; struct E a[6]; char pad3[4]; int fromZone; int toZone; int pad4; qword fromPos; qword toPos; };
+struct S : LO { int c; char pad2[0xC]; struct E a[6]; char pad3[4]; int fromZone; int toZone; int pad4; qword fromPos; qword toPos; };
 void PostLoLoad(struct S *p);
 qword GetPathlinkEndpointCenter(struct E *pe);
 int FindPathzoneAtPos(qword q, int n);
