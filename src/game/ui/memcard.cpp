@@ -649,7 +649,6 @@ struct MC {
     int currentSlot; SLOT *newestSlot; int selectedSlot; THR *thr[1];
 };
 struct G { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw: id of the slot-in-use save variable */
-struct CLOCK { char pad[0x3C]; float realTime; };
 struct ST { char pad[0x44]; int phase; };   /* the memcard dialog */
 extern "C" {
 extern G D_003DD490;
@@ -1588,8 +1587,7 @@ extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
 namespace M_func_001ACC38 { extern "C" {
 struct H { char pad[0xFD50]; int currentSlot; };
 extern struct H D_002E65E0;
-struct CLOCK { float time; float deltaTime; char pad[0x34]; float realTime; };
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 struct S { char pad[0x44]; int phase; float tPhase; };
 // Sets the dialog phase and its start time; phases 2 and 3 forget the current slot.
 void SetMcDialogPhase(struct S *dialog, int phase)
@@ -1627,9 +1625,8 @@ struct PMF { short delta; short index; void (*pfn)(void *); };
 struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int selectedSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
-struct CLOCK { char pad[0x3C]; float realTime; };
 extern struct MC D_002E65E0;
-extern struct CLOCK D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
 extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
