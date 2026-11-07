@@ -2350,14 +2350,6 @@ void CollectTaskCascade(TASK *task, int newState, int *count, TASK **collected)
 } } // namespace M_CollectTaskCascade
 
 namespace M_SetTaskStateCascade {
-struct P {
-    char pad[0x54]; int state;
-    char pad58[0x24]; void *job;
-    char pad80[0x14]; int numPrerequisites;
-    char pad98[8]; int numFollowers; P **followers;
-    char padA8[0x48]; int pendingCascadeState; int stateSource, stateRequester;
-};
-struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 struct CRef;
 
@@ -2371,12 +2363,11 @@ extern SW D_003DD490;
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
 void*AllocClearedFromStack(const REQUEST&);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-void CollectTaskCascade(P*,int,int*,P**);
-void SetTaskStatePropagate(P*,int);
+void CollectTaskCascade(TASK*,int,int*,TASK**);
+void SetTaskStatePropagate(TASK*,int);
 int GetCurrentWorld(void);
 int GetEpisodePercentComplete(void*);
-int IsTaskLive(P*);
-void OnJobTaskComplete(void*,P*);
+int IsTaskLive(TASK*);
 void AutosaveGame(void*,int);
 CRef*__4CRefRC4CRef(CRef*,const CRef*);
 void Decref__4CRef(CRef*);
@@ -2384,8 +2375,8 @@ void Decref__4CRef(CRef*);
 static inline void*Allocate(int n){return AllocClearedFromStack(REQUEST(n,16));}
 /* Sets a task's state source / requester for a scope (as in HandleGameEvent). */
 struct OVERRIDE {
-    CONTEXT *context; P *object; int oldSource, oldRequester;
-    OVERRIDE(P *p, int source, int requester) : context(0), object(p)
+    JOB *context; TASK *object; int oldSource, oldRequester;
+    OVERRIDE(TASK *p, int source, int requester) : context(0), object(p)
     {
         if (object) {
             oldSource = object->stateSource; object->stateSource = source;
@@ -2402,11 +2393,11 @@ struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){__4
 extern "C" CRef SetGlobalSaveVar(void*,const CRef&,void*);
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=SetGlobalSaveVar(object,arg,D_003D4A60);}
 static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}
-// The main task state change: propagates to the collected successors, sets the state, updates the episode percent,
+// The main task state change: propagates to the collected prerequisites, sets the state, updates the episode percent,
 // handles job start and end tasks and autosaves.
-extern "C" void SetTaskStateCascade(P *task, int state)
+extern "C" void SetTaskStateCascade(TASK *task, int state)
 {
-    int oldState = task->state;
+    int oldState = task->nState;
     if (state == oldState)
         return;
     if (D_002DEB28)   /* re-entrancy guard: a cascade is already running */
@@ -2421,19 +2412,19 @@ extern "C" void SetTaskStateCascade(P *task, int state)
     if (cascadeState != -1) {
         int i = 0;
         STACKSCOPE scope;
-        P **collected;
+        TASK **collected;
         int count = 0;
-        collected = (P **)Allocate(g_sw.ctask * 4);
-        task->pendingCascadeState = state;
+        collected = (TASK **)Allocate(g_sw.ctask * 4);
+        task->nStatePending = state;
         CollectTaskCascade(task, cascadeState, &count, collected);
         for (; i < count; i++) {
-            P *follower = collected[i];
-            OVERRIDE inherited(follower, task->stateSource, task->stateRequester);
-            SetTaskStatePropagate(follower, follower->pendingCascadeState);
+            TASK *collectedTask = collected[i];
+            OVERRIDE inherited(collectedTask, task->stateSource, task->stateRequester);
+            SetTaskStatePropagate(collectedTask, collectedTask->nStatePending);
         }
         for (int j = 0; j < count; j++)
-            collected[j]->pendingCascadeState = -1;
-        task->pendingCascadeState = -1;
+            collected[j]->nStatePending = -1;
+        task->nStatePending = -1;
     }
     SetTaskStatePropagate(task, state);
     D_002DEB28 = 0;
@@ -2445,16 +2436,16 @@ extern "C" void SetTaskStateCascade(P *task, int state)
     }
     /* A live task that just became complete: its job reacts, else autosave (a gating task only once every follower
        has a job). */
-    if (IsTaskLive(task) && oldState != TASK_STATE_UNSET && oldState < TASK_STATE_DONE && task->state >= TASK_STATE_DONE) {
-        if (task->job) {
-            OnJobTaskComplete(task->job, task);
-            if (task->job)
+    if (IsTaskLive(task) && oldState != TASK_STATE_UNSET && oldState < TASK_STATE_DONE && task->nState >= TASK_STATE_DONE) {
+        if (task->pjob) {
+            OnJobTaskComplete(task->pjob, task);
+            if (task->pjob)
                 return;
         }
-        if (task->numPrerequisites) {
+        if (task->cptaskPrereq) {
             int allHaveJobs = 1;
-            for (int i = 0; i < task->numFollowers; i++) {
-                if (!task->followers[i]->job) {
+            for (int i = 0; i < task->cptaskSucc; i++) {
+                if (!task->aptaskSucc[i]->pjob) {
                     allHaveJobs = 0;
                     break;
                 }
