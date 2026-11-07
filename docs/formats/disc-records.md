@@ -30,30 +30,30 @@ No LCG/WAL-style encryption (that is a PS3 remaster construct) and no `sceCdSear
 
 | Function | Role | Tag |
 |---|---|---|
-| `sceCdRead` 0x242840 | the only sector reader | [C:static] |
-| 0x14BC78 `(lsn, nsect, buf, mode)` | retry wrapper; adds no base offset | [C:static] |
-| `OpenCdSectors__18CBinaryInputStreamUiUi` 0x184D98 | CD-backed input stream: stores sector + size; Fill reads `(cb+0x7FF)>>11` sectors | [C:static] |
-| `OpenSector__18CBinaryAsyncStreamUiUi` 0x132640, `StartSpooling` 0x132710 | async stream for FMVs | [C:static] |
-| 0x184D60 / 0x132600 | open by FLOC (kind 2 -> FOpenSector) | [C:static] |
-| `UpdateCd` 0x14BA38 | disc check: CRC (reflected CRC-32, init 0xFFFFFFFF, no final XOR) of sector `D_002A2E5C + 0xCA0` (1259331) against 0xACDD3EE4 | [C:static]; not run on a real ISO |
-| `GetFileIdName` 0x14B690 | retail stub returning a constant ("fid:#unknown") | [C:static] |
+| `sceCdRead` | the only sector reader | [C:static] |
+| `ReadCdDirect(lsn, nsect, buf, mode)` | retry wrapper; adds no base offset | [C:static] |
+| `CBinaryInputStream::OpenCdSectors` | CD-backed input stream: stores sector + size; Fill reads `(cb+0x7FF)>>11` sectors | [C:static] |
+| `CBinaryAsyncStream::OpenSector`, `StartSpooling` | async stream for FMVs | [C:static] |
+| `OpenStreamFromFileKey` / `OpenBasFromFileKey` | open by FLOC (kind 2 -> FOpenSector) | [C:static] |
+| `UpdateCd` | disc check: CRC (reflected CRC-32, init 0xFFFFFFFF, no final XOR) of sector 1259331 (a sector number stored in the executable plus 0xCA0) against 0xACDD3EE4 | [C:static]; not run on a real ISO |
+| `GetFileIdName` | retail stub returning a constant ("fid:#unknown") | [C:static] |
 
 ## 3. Static records in the ELF
 
-ELF mapping: file offset = vaddr - 0x100000 + 0x80 (map through PT_LOAD to be safe). All 8 decode to plausible extents `[C:verified]`.
+These are ELF data addresses (the records are data of the retail executable, so the addresses are part of the format). ELF mapping: file offset = vaddr - 0x100000 + 0x80 (map through PT_LOAD to be safe). All 8 decode to plausible extents `[C:verified]`.
 
 | vaddr | Used by | What | Decoded | Tag |
 |---|---|---|---|---|
-| 0x2A37E8 | 0x161A58 (vs current world) | world | LBA 350144 = level 1 (intro, episode 1) | [C:verified] |
-| 0x2A3828 | 0x165E38 (world change) | world | same record bytes as 0x2A37E8 | [C:verified] |
-| 0x2A3868 | boot step queue 0x1A4E08 | boot/logo FMV | LBA 959782 | [C:verified] extent |
+| 0x2A37E8 | `HandleGameEvent` (compared with the current world) | world | LBA 350144 = level 1 (intro, episode 1) | [C:verified] |
+| 0x2A3828 | `StartGameFromSave` (world change) | world | same record bytes as 0x2A37E8 | [C:verified] |
+| 0x2A3868 | the boot step queue (`BeginStartupSequence`) | boot/logo FMV | LBA 959782 | [C:verified] extent |
 | 0x2A38A8 | boot step queue (warp oid 0x189) | **boot world** (title/menu), the crawl seed | LBA 335488 = level 0 | [C:verified] |
-| 0x2A38E8 | `load_sly_icon_from_disc` 0x1AC238 | memory-card icon, raw | LBA 1169578, 25,688 B | [C:verified] extent |
-| 0x2A3928 | 0x1B09A8 (warp, flags 0x80) | world (quit to title?) | same as 0x2A37E8 | [C:verified] |
-| 0x2A3968 / 0x2A39A8 | movie player 0x1B3BD0 | FMVs (intro/credits?) | LBA 959782 / 1388808 | [C:verified] extent, role [H] |
-| 0x2A39E8 | 0x20E3C0 | `g_apchzWorld[9]` world-name pointers | intro, nightclub, palace, temple, prison, castle, train, sawmill, blimp | [C:verified] |
+| 0x2A38E8 | `load_sly_icon_from_disc` | memory-card icon, raw | LBA 1169578, 25,688 B | [C:verified] extent |
+| 0x2A3928 | `OnPauseItemReturnToHideout` (warp, flags 0x80) | world (quit to title?) | same as 0x2A37E8 | [C:verified] |
+| 0x2A3968 / 0x2A39A8 | the movie player (`CMpeg::Execute`) | FMVs (intro/credits?) | LBA 959782 / 1388808 | [C:verified] extent, role [H] |
+| 0x2A39E8 | `ResolveSwSaveVars` | `g_apchzWorld[9]` world-name pointers | intro, nightclub, palace, temple, prison, castle, train, sawmill, blimp | [C:verified] |
 
-D_002BFCA0 (.data, passed as a world record by the step queue) is all zero on disc: filled at runtime `[C:verified]`.
+A further world record in `.data` (passed by the step queue) is all zero in the ELF: filled at runtime `[C:verified]`.
 
 ## 4. Records inside world files
 
