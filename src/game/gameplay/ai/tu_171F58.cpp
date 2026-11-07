@@ -32,7 +32,6 @@ enum {
 
 typedef union U { qword q; float f[4]; int i[4]; } U;
 /* g++ 2.95 vtable entry. */
-struct VE { short d; short pad; void (*pfn)(void *); };
 
 /* The guard that runs the behaviour (a STEPGUARD; view of the fields used). */
 struct GUARDV
