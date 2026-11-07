@@ -50,7 +50,6 @@ struct REQUEST{char pad0[0x78];float multiplier;};
 struct AXIS{float weight;int active;char pad8[8];U direction;};
 struct JTV{char pad0[0xC];VTE*vt;char pad10[0x140];CONTROL*control;char pad154[0x3C];U acceleration;char pad1A0[0x10];M3 basis;char pad1E0[0x1C30];AXIS axes[8];REQUEST*request;int pad1F14;MESH*mesh;TRIREF triangle;U points[3];};
 typedef char assert_JT_points[(unsigned int)&((JTV *)0)->points == 0x1F30 ? 1 : -1];
-struct CLOCKV{float time,dt;};
 struct MSG { int cb; int nKind; };
 struct DLV { void *head; void *tail; int ibDle; };
 struct VECTOR;
@@ -68,7 +67,7 @@ extern const float D_002A5690;   /* defined below where the ELF has it (.rodata 
 extern "C" {
 extern const float D_002BE918;
 extern U D_002A2DC0;
-extern CLOCKV D_002DDED0;
+extern CLOCK D_002DDED0;
 /* tu_185130's first .data word, -300 (the code reads it through the extern const declaration above, a codegen
    device: defined here under its asm label, as a plain float, so no function sees a definition). */
 namespace TU_185130_DATA { float r_D_002BE918 __asm__("D_002BE918") = -300.0f; }
@@ -569,9 +568,9 @@ extern "C" void UpdateJtMeshAttachment(JTV*jt){
  qword unit=VuDivByX(surface,VuSqrtX(VuDot(surface,surface)));
  {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);jt->basis.r[0]=m.r[0];jt->basis.r[1]=m.r[1];jt->basis.r[2]=m.r[2];}
  U angular,linear;
- SmoothMatrix(GetLoWorldMatrix(jt),&jt->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
+ SmoothMatrix(GetLoWorldMatrix(jt),&jt->basis,&D_002BE920,0,&angular.q,D_002DDED0.deltaTime*0.5f);
  SetVec(jt,36,angular.q);
- PosSmooth(position,target,&D_002BE930,&linear.q,D_002DDED0.dt*0.5f);
+ PosSmooth(position,target,&D_002BE930,&linear.q,D_002DDED0.deltaTime*0.5f);
  LIST planes;U samples[3];
  for(i=0;i<3;i++)StoreAddRot(&samples[i],target,&jt->basis,&jt->points[i].q);
  ClearMeshContactList(jt->mesh,&planes);
