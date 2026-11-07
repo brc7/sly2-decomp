@@ -3050,11 +3050,9 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct E { char pad[0x14]; int id; };
-struct S { unsigned short numAnims; short pad; E *anims; char pad8[8]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };   /* a sprite group (inferred: the main-track restart state) */
-extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
 // Starts animation k in a reusable sprite slot. (inferred)
-extern "C" void StartSpriteAnimSlot(S *group, int animId, int slot, void *matrix, RGBA c0, RGBA c1)
+extern "C" void StartSpriteAnimSlot(SPRITEGRP *group, int animId, int slot, void *matrix, RGBA c0, RGBA c1)
 {
     float t = 0.0f;
     int i;
@@ -3374,12 +3372,10 @@ extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 
 // 0x218660 StopSpriteSlot
 namespace M_func_00218660 { extern "C" {
-struct E { char pad[8]; short animIndex; short pad2; float time; int isFinished; void *sound; };
-struct S { char pad[8]; struct E *slots; char padc[4]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };
 struct CLOCKIsland { unsigned long ticks; };   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
-void ResetSpriteSlotItems(struct S *p, int i);
+void ResetSpriteSlotItems(SPRITEGRP *p, int i);
 // Stop the sound and drop the reference, if any.
 static inline void Release(void **pp)
 {
@@ -3389,9 +3385,9 @@ static inline void Release(void **pp)
     }
 }
 // Stops a sprite slot's sounds and resets its items. (inferred)
-void StopSpriteSlot(struct S *group, int slot)
+void StopSpriteSlot(SPRITEGRP *group, int slot)
 {
-    struct E *state = (struct E*)(slot*sizeof(struct E)+(int)group->slots);   /* &group->slots[slot] */
+    SPRITESLOT *state = (SPRITESLOT*)(slot*sizeof(SPRITESLOT)+(int)group->slots);   /* &group->slots[slot] */
     if (state->animIndex >= 0) {
         /* remember where it stopped, so a main-track restart this frame resumes it (StartSpriteAnimSlot) */
         float t=state->time;
