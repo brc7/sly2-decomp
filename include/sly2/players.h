@@ -39,7 +39,8 @@ struct MURRAY : public STEPPLAYER
       int flopSubstate;   /* +0x13D8 sub-state of MURRAY_FLOP (UpdateMurrayFlop): 1 waits for landing (no ground probe), 2 impact */
       float unknown13DC;   /* +0x13DC passed to IsJtStuck while flopping */
       int unknown13E0;
-      int unknown13E4;   /* +0x13E4 nonzero: the flop has landed (UpdateMurrayFlop) */
+      struct XP *pxpFlop;   /* +0x13E4 contacts collected during the flop dive (AdjustMurrayNewXp appends); nonzero: landed
+                             (UpdateMurrayFlop); zapped and freed at impact (SetMurrayFlopSubstate) */
       int unknown13E8;
       SO *psoCarryRoot;   /* +0x13EC the object a lifted one is parented to (SetMurrayLiftSubstate); no lift without it
                              (StartMurrayLiftGrabspot/StartMurrayLiftGuard) */

@@ -1532,7 +1532,7 @@ void UpdateMurrayFlop(MURRAY *murray)
         s = murray->flopSubstate;
         if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) SetMurrayState(murray, MURRAY_IDLE);
         else if (murray->flopSubstate == 1) {
-            if (murray->unknown13E4) SetMurrayFlopSubstate(murray, 2);
+            if (murray->pxpFlop) SetMurrayFlopSubstate(murray, 2);
             else if (IsJtStuck(murray, &murray->unknown131C, murray->unknown13DC)) ReturnJtToSafePlace(murray, 0);
         }
         if (murray->flopSubstate == s || murray->flopSubstate == -1) break;
@@ -1606,7 +1606,6 @@ extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
 
 namespace M_SetMurrayFlopSubstate { extern "C" {
 // Update attachment state and projected velocity.
-typedef int qword __attribute__((mode(TI)));
 struct VT { short d; short pad; void *pfn; };
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
@@ -1616,22 +1615,17 @@ union WORD{int bits;float value;};extern union WORD D_002C09A8;
 struct SIDE { int x0; int x4; void *x8; void *xC; qword v10; char pad[0x30 - 0x20]; qword v30; };
 struct LINK { struct SIDE as[2]; char pad[0xAC - 0x80]; struct LINK *pnext; };
 struct MSG { void *x0; int x4; void *x8; int xC; int x10; char pad[0x20 - 0x14]; qword v20; qword v30; char pad2[0x60 - 0x40]; };
-struct Q { char pad[0x14]; void *x14; };
-struct V3 { float x, y, z; };
-struct P {
-    char pad0[0xC]; struct VT *vt; char pad1[0x190 - 0x10]; struct V3 v190; char pad2[0x1030 - 0x19C]; struct Q *action;
-    char pad3[0x131C - 0x1034]; float g131C; char pad4[0x13D8 - 0x1320]; int x13D8; float g13DC; char pad5[0x13E4 - 0x13E0];
-    struct LINK *plink;
-};
-void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
+/* Any BASIC as the register-pinned dive code reads it: the g++ vtable pointer at +0xC. */
+struct VOBJ { char pad[0xC]; struct VT *vt; };
+void FreeSwXpList__FP2SWP2XP(void *pg, XP *pl);
 void *FindZapResponder(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *DeliverZapToSo(struct MSG *pmsg);
 float *FindAsegLabel(void *p, int n);
-void SeekAsega(struct Q *p, int n, float g, float h);
-void RetractAsega(struct Q *p);
+void SeekAsega(ASEGA *p, int n, float g, float h);
+void RetractAsega(ASEGA *p);
 // Zero the xyz components of pv.
-static inline void Zero(struct V3 *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; }
+static inline void Zero(VECTOR *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char WORD_Size[sizeof(union WORD)==4?1:-1];
@@ -1640,9 +1634,6 @@ typedef char CLOCK_Size[sizeof(struct CLOCK)==8?1:-1];
 typedef char SIDE_Size[sizeof(struct SIDE)==64?1:-1];
 typedef char LINK_Size[sizeof(struct LINK)==176?1:-1];
 typedef char MSG_Size[sizeof(struct MSG)==96?1:-1];
-typedef char Q_Size[sizeof(struct Q)==24?1:-1];
-typedef char V3_Size[sizeof(struct V3)==12?1:-1];
-typedef char P_Size[sizeof(struct P)==5096?1:-1];
 typedef char VT_d_Offset[FIELD_OFFSET(VT,d)==0?1:-1];
 typedef char VT_pfn_Offset[FIELD_OFFSET(VT,pfn)==4?1:-1];
 typedef char CLOCK_t_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
@@ -1662,32 +1653,21 @@ typedef char MSG_xC_Offset[FIELD_OFFSET(MSG,xC)==12?1:-1];
 typedef char MSG_x10_Offset[FIELD_OFFSET(MSG,x10)==16?1:-1];
 typedef char MSG_v20_Offset[FIELD_OFFSET(MSG,v20)==32?1:-1];
 typedef char MSG_v30_Offset[FIELD_OFFSET(MSG,v30)==48?1:-1];
-typedef char Q_x14_Offset[FIELD_OFFSET(Q,x14)==20?1:-1];
-typedef char V3_x_Offset[FIELD_OFFSET(V3,x)==0?1:-1];
-typedef char V3_y_Offset[FIELD_OFFSET(V3,y)==4?1:-1];
-typedef char V3_z_Offset[FIELD_OFFSET(V3,z)==8?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_v190_Offset[FIELD_OFFSET(P,v190)==400?1:-1];
-typedef char P_p1030_Offset[FIELD_OFFSET(P,action)==4144?1:-1];
-typedef char P_g131C_Offset[FIELD_OFFSET(P,g131C)==4892?1:-1];
-typedef char P_x13D8_Offset[FIELD_OFFSET(P,x13D8)==5080?1:-1];
-typedef char P_g13DC_Offset[FIELD_OFFSET(P,g13DC)==5084?1:-1];
-typedef char P_plink_Offset[FIELD_OFFSET(P,plink)==5092?1:-1];
 // Flop sub-states: 1 dive (sets downward velocity), 2 impact (zaps every contact and shakes the camera).
-void SetMurrayFlopSubstate(struct P *murray, int s)
+void SetMurrayFlopSubstate(MURRAY *murray, int s)
 {
-    if (murray->x13D8 == s)
+    if (murray->flopSubstate == s)
         return;
-    if (murray->x13D8 == -1)
-        Zero(&murray->v190);
-    murray->x13D8 = s;
-    murray->g13DC = D_002DDED0.time;
+    if (murray->flopSubstate == -1)
+        Zero(&murray->unknown190);
+    murray->flopSubstate = s;
+    murray->unknown13DC = D_002DDED0.time;
     switch (s) {
     case 0:
         break;
     case -1:
-        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->plink);
-        murray->plink = 0;
+        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->pxpFlop);
+        murray->pxpFlop = 0;
         break;
     case 1: {
         union { qword q; float f[4]; } u;
@@ -1697,20 +1677,20 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
         register int delta __asm__("$4");
         register void(*setter)(void*,qword) __asm__("$2");
         register qword argument __asm__("$5");
-        v=((qword(*)(void*))murray->vt[33].pfn)((char*)murray+murray->vt[33].d);
-        __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tlui %2,%5":"=&r"(vt),"=j"(up),"=r"(bits):"m"(murray->vt),"m"(D_002A2DC0),"I"(0x2C));
+        v=murray->GetVelocity();
+        __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tlui %2,%5":"=&r"(vt),"=j"(up),"=r"(bits):"m"(((VOBJ*)murray)->vt),"m"(D_002A2DC0),"I"(0x2C));
         __asm__("vmul.xyz %0,%3,%4\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tlw %2,%5":"=&j"(d),"=&j"(k),"+r"(bits):"j"(v),"j"(up),"m"(((int*)bits)[0x9A8/4]));
         __asm__("vmulx.xyzw %0,%2,%0x\n\tlh %1,%3":"+j"(d),"=r"(delta):"j"(up),"m"(vt[35].d));
         __asm__("qmtc2.ni %5,%1\n\tvsub.xyzw %0,%0,%6\n\tlw %2,%8\n\tvadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %3,%7,%1x\n\tqmfc2.ni %4,%3":"+&j"(v),"=&j"(k),"=r"(setter),"=j"(r),"=r"(argument):"r"(bits),"j"(d),"j"(up),"m"(vt[35].pfn));
         u.q=k;
         setter((char*)murray+delta,argument);
-        murray->g131C = D_002DDED0.time;
+        murray->unknown131C = D_002DDED0.time;
         break;
     }
     case 2: {
         struct LINK *pl;
-        Zero(&murray->v190);
-        for (pl = murray->plink; pl; pl = pl->pnext) {
+        Zero(&murray->unknown190);
+        for (pl = (struct LINK *)murray->pxpFlop; pl; pl = pl->pnext) {
             int i = pl->as[0].x8 != murray;
             struct SIDE *so = &pl->as[1 - i];
             struct SIDE *stateMachine = &pl->as[i];
@@ -1728,14 +1708,14 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
                 (void)DeliverZapToSo(&msg);
             }
         }
-        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->plink);
-        murray->plink = 0;
+        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->pxpFlop);
+        murray->pxpFlop = 0;
         {
-            float *pg = FindAsegLabel(murray->action->x14, 0x1A5);
+            float *pg = FindAsegLabel(murray->activeAnimation->animation, 0x1A5);
             if (pg)
-                SeekAsega(murray->action, 0, *pg, 1.0f);
+                SeekAsega(murray->activeAnimation, 0, *pg, 1.0f);
             else
-                RetractAsega(murray->action);
+                RetractAsega(murray->activeAnimation);
         }
         break;
     }
@@ -2958,7 +2938,7 @@ extern "C" void AdjustMurrayNewXp(MURRAY *murray, X *px, int i)
         break;
     case MURRAY_FLOP:
         if (murray->flopSubstate == 1 && D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
-            AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), &murray->unknown13E4);
+            AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), &murray->pxpFlop);
         }
         break;
     case MURRAY_PIPE: ResetJtPipeAdjust(&murray->jtpipe, px, i); break;
