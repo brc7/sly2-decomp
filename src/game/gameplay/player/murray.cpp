@@ -183,78 +183,41 @@ void PostMurrayLoad(MURRAY *murray)
 
 namespace M_UpdateMurrayStateMachine {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-struct VTE {short delta,pad;void*fn;};
-struct PL {char pad[0x1C];float amount;char pad20[0x10];unsigned flags;};
-struct CONTROL {int word0,state;char pad8[0x14];int count;};
-struct GATE {int word0,word4,mode;};
-struct P {char pad[0xC];VTE*vt;char pad10[0x140];PL*input;char pad154[0xB8];float changed;char pad210[0xB0];CONTROL control;char pad2E0[0x1E0];GATE gate;char pad4CC[0x924];char action[0x110];char altAction[0x50];char physics[0xE0];void*animation;void*other;char pad1038[0x398];int state;char pad13D4[0x14];int pending;void*root;char pad13F0[0x5C];int flag;char pad1450[0x3F0];int kind;char pad1844[0xCC];char extra[1];};
 struct CLOCK {float time,deltaTime;};
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
-typedef char PL_Size[sizeof(PL)==52?1:-1];
-typedef char CONTROL_Size[sizeof(CONTROL)==32?1:-1];
-typedef char GATE_Size[sizeof(GATE)==12?1:-1];
-typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
-typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char PL_amount_Offset[FIELD_OFFSET(PL,amount)==28?1:-1];
-typedef char PL_flags_Offset[FIELD_OFFSET(PL,flags)==48?1:-1];
-typedef char CONTROL_state_Offset[FIELD_OFFSET(CONTROL,state)==4?1:-1];
-typedef char CONTROL_count_Offset[FIELD_OFFSET(CONTROL,count)==28?1:-1];
-typedef char GATE_mode_Offset[FIELD_OFFSET(GATE,mode)==8?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_input_Offset[FIELD_OFFSET(P,input)==336?1:-1];
-typedef char P_changed_Offset[FIELD_OFFSET(P,changed)==524?1:-1];
-typedef char P_control_Offset[FIELD_OFFSET(P,control)==704?1:-1];
-typedef char P_gate_Offset[FIELD_OFFSET(P,gate)==1216?1:-1];
-typedef char P_action_Offset[FIELD_OFFSET(P,action)==3568?1:-1];
-typedef char P_altAction_Offset[FIELD_OFFSET(P,altAction)==3840?1:-1];
-typedef char P_physics_Offset[FIELD_OFFSET(P,physics)==3920?1:-1];
-typedef char P_animation_Offset[FIELD_OFFSET(P,animation)==4144?1:-1];
-typedef char P_other_Offset[FIELD_OFFSET(P,other)==4148?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(P,state)==5072?1:-1];
-typedef char P_pending_Offset[FIELD_OFFSET(P,pending)==5096?1:-1];
-typedef char P_root_Offset[FIELD_OFFSET(P,root)==5100?1:-1];
-typedef char P_flag_Offset[FIELD_OFFSET(P,flag)==5196?1:-1];
-typedef char P_kind_Offset[FIELD_OFFSET(P,kind)==6208?1:-1];
-typedef char P_extra_Offset[FIELD_OFFSET(P,extra)==6416?1:-1];
 extern "C" CLOCK D_002DDED0;
 extern "C" float D_002C08DC,D_002C08E0;
-extern "C" void SetJtAirJump(void*,int,void*,void*);
-extern "C" void StartJtMode(void*,int,void*,void*);
-extern "C" int IsStepplayerNearInteractTarget(P*,int);
-extern "C" void SetMurrayState(P*,int);
-extern "C" unsigned ConsumeButtonsPressedWithin__5POCTLUif(PL*,unsigned,float);
-extern "C" unsigned GetButtonsPressedWithin__5POCTLUif(PL*,unsigned,float);
-extern "C" void ClearPoctlJoyPressed(PL*,int);
-extern "C" int CanMurrayAttack(P*);
-extern "C" void StartMurrayAltAttack(P*);
-extern "C" void StartMurrayPunch(P*);
-extern "C" int TryMurrayTakedown(P*);
-extern "C" int TryGrabJtNearestCandidate(void*,unsigned,int);
-extern "C" void UpdateJtAirInput(void*);
-extern "C" int WillStepplayerLand(P*,float);
-extern "C" void UpdateJtGrabInput(void*);
-extern "C" void UpdateJtHurtInput(void*);
-extern "C" void UpdateMurrayFlop(P*);
-extern "C" void UpdateMurrayCarry(P*);
-extern "C" void UpdateMurrayStruggle(P*);
-extern "C" void UpdateMurrayLift(P*);
-extern "C" int IsAsegaRetracted(void*);
-extern "C" int IsSmaRetracted(void*);
-extern "C" void UpdateMurrayAttack(P*);
-extern "C" void UpdateMurrayStrafe(P*);
-extern "C" void UpdateMurrayPower(P*);
-extern "C" void UpdateJtThrow(void*);
-extern "C" void UpdateJtActivePipe(void*);
-extern "C" int GetGadgetButtonMask(P*,int);
+extern "C" void SetJtAirJump(JTAIR*,int,void*,void*);
+extern "C" void StartJtMode(JTMODE*,int,void*,void*);
+extern "C" int IsStepplayerNearInteractTarget(MURRAY*,int);
+extern "C" void SetMurrayState(MURRAY*,int);
+extern "C" int CanMurrayAttack(MURRAY*);
+extern "C" void StartMurrayAltAttack(MURRAY*);
+extern "C" void StartMurrayPunch(MURRAY*);
+extern "C" int TryMurrayTakedown(MURRAY*);
+extern "C" int TryGrabJtNearestCandidate(JTGRAB*,unsigned,int);
+extern "C" void UpdateJtAirInput(JTAIR*);
+extern "C" int WillStepplayerLand(MURRAY*,float);
+extern "C" void UpdateJtGrabInput(JTGRAB*);
+extern "C" void UpdateJtHurtInput(JTHURT*);
+extern "C" void UpdateMurrayFlop(MURRAY*);
+extern "C" void UpdateMurrayCarry(MURRAY*);
+extern "C" void UpdateMurrayStruggle(MURRAY*);
+extern "C" void UpdateMurrayLift(MURRAY*);
+extern "C" int IsAsegaRetracted(ASEGA*);
+extern "C" int IsSmaRetracted(SMA*);
+extern "C" void UpdateMurrayAttack(MURRAY*);
+extern "C" void UpdateMurrayStrafe(MURRAY*);
+extern "C" void UpdateMurrayPower(MURRAY*);
+extern "C" void UpdateJtThrow(JTTHROW*);
+extern "C" void UpdateJtActivePipe(JTPIPE*);
+extern "C" int GetGadgetButtonMask(MURRAY*,int);
 // Copy the PL pointer through a register move.
-static inline PL*CopyPL(PL*source){PL*result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
-// Ask the actor whether action `kind` is allowed (virtual slot 99).
-static inline int Can(P*p,int kind){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,kind);}
+static inline POCTL *CopyPL(POCTL *source){POCTL *result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
 // Per-frame input-driven state machine (loops until the state is stable): idle/move, jump, attacks, lift/carry/throw,
 // flop, strafe. Pad bit 0x400 is look mode; gadgets are the slot buttons 0x4/0x1/0x2.
-extern "C" void UpdateMurrayStateMachine(P *murray)
+extern "C" void UpdateMurrayStateMachine(MURRAY *murray)
 {
     int state;
     do {
@@ -273,18 +236,18 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
         case MURRAY_SCRIPT_SMA:
         case MURRAY_PIPE: break;
         default:
-            if (D_002DDED0.time - murray->changed > 0.1f) {
+            if (D_002DDED0.time - murray->unknown20C > 0.1f) {
                 switch (murray->state) {
-                case MURRAY_CARRY: SetJtAirJump(&murray->control, 16, 0, 0); break;
+                case MURRAY_CARRY: SetJtAirJump(&murray->jtair, 16, 0, 0); break;
                 case MURRAY_POWER_MOVE:
-                    if (murray->kind == 3)
-                        SetJtAirJump(&murray->control, 11, 0, 0);
+                    if (murray->subState == 3)
+                        SetJtAirJump(&murray->jtair, 11, 0, 0);
                     break;
                 case MURRAY_GRAB:
-                    if (murray->gate.mode != 1 && murray->gate.mode != 12)
-                        SetJtAirJump(&murray->control, 0, 0, 0);
+                    if (murray->jtgrab.state != 1 && murray->jtgrab.state != 12)
+                        SetJtAirJump(&murray->jtair, 0, 0, 0);
                     break;
-                default: SetJtAirJump(&murray->control, 0, 0, 0); break;
+                default: SetJtAirJump(&murray->jtair, 0, 0, 0); break;
                 }
             }
         }
@@ -293,48 +256,48 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
         case MURRAY_IDLE:
         case MURRAY_RUN:
         case MURRAY_WALK: {
-            if (!(murray->input->flags & BUTTON_RUN) && IsStepplayerNearInteractTarget(murray, 0)) {
+            if (!(murray->controller->buttonsHeld & BUTTON_RUN) && IsStepplayerNearInteractTarget(murray, 0)) {
                 SetMurrayState(murray, MURRAY_STRAFE);
                 break;
             }
-            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.1f)) {
-                SetJtAirJump(&murray->control, 1, 0, 0);
+            if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.1f)) {
+                SetJtAirJump(&murray->jtair, 1, 0, 0);
                 break;
             }
-            if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_LOOK, 0.15f) && Can(murray, 3)) {
-                ClearPoctlJoyPressed(murray->input, BUTTON_LOOK);
-                StartJtMode(murray->altAction, 0, 0, 0);
+            if (murray->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && murray->CanUseGadget(3)) {
+                murray->controller->ClearJoyPressed(BUTTON_LOOK);
+                StartJtMode(&murray->jtmode, 0, 0, 0);
                 break;
             }
-            if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK, D_002C08DC)) {
+            if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, D_002C08DC)) {
                 StartMurrayAltAttack(murray);
                 break;
             }
             if (TryMurrayTakedown(murray))
                 break;
-            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ACTION, 0.2f)) {
-                if (!TryGrabJtNearestCandidate(&murray->gate, 0xF8FA, 0) && murray->root) {
-                    murray->flag = 0;
+            if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
+                if (!TryGrabJtNearestCandidate(&murray->jtgrab, 0xF8FA, 0) && murray->psoCarryRoot) {
+                    murray->liftClip = 0;
                     SetMurrayState(murray, MURRAY_LIFT);
                 }
                 break;
             }
-            if (CanMurrayAttack(murray) && ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ATTACK, D_002C08DC)) {
+            if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, D_002C08DC)) {
                 StartMurrayPunch(murray);
                 break;
             }
-            PL *input = murray->input;
-            PL *flagsInput = CopyPL(input);
+            POCTL *input = murray->controller;
+            POCTL *flagsInput = CopyPL(input);
             register int current __asm__("$3") = murray->state;
             // From idle the stick needs a small dead zone before Murray starts moving.
             if (current == MURRAY_IDLE) {
-                if (input->amount > 0.1f)
+                if (input->leftStickDeflection > 0.1f)
                     goto moving;
-            } else if (input->amount > 0.0f)
+            } else if (input->leftStickDeflection > 0.0f)
                 goto moving;
             goto idle;
         moving:
-            if (flagsInput->flags & BUTTON_RUN)
+            if (flagsInput->buttonsHeld & BUTTON_RUN)
 
                 SetMurrayState(murray, MURRAY_RUN);
             else
@@ -342,40 +305,40 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
             break;
         }
         case MURRAY_JUMP:
-            UpdateJtAirInput(&murray->control);
-            switch (murray->control.state) {
+            UpdateJtAirInput(&murray->jtair);
+            switch (murray->jtair.jumpKind) {
             case 0:
             case 11:
             case 15:
             case 16: break;
             default:
-                if (GetButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_ALT_ATTACK | BUTTON_ATTACK, D_002C08DC) && Can(murray, 2) &&
-                    murray->control.count < 6 && murray->control.count > 0 && !WillStepplayerLand(murray, D_002C08E0)) {
-                    ClearPoctlJoyPressed(murray->input, BUTTON_ALT_ATTACK | BUTTON_ATTACK);
-                    murray->pending = 0;
+                if (murray->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK | BUTTON_ATTACK, D_002C08DC) && murray->CanUseGadget(2) &&
+                    murray->jtair.state < 6 && murray->jtair.state > 0 && !WillStepplayerLand(murray, D_002C08E0)) {
+                    murray->controller->ClearJoyPressed(BUTTON_ALT_ATTACK | BUTTON_ATTACK);
+                    murray->unknown13E8 = 0;
                     SetMurrayState(murray, MURRAY_FLOP);
                 }
             }
             break;
-        case MURRAY_GRAB: UpdateJtGrabInput(&murray->gate); break;
-        case MURRAY_HURT: UpdateJtHurtInput(murray->action); break;
+        case MURRAY_GRAB: UpdateJtGrabInput(&murray->jtgrab); break;
+        case MURRAY_HURT: UpdateJtHurtInput(&murray->jthurt); break;
         case MURRAY_FLOP: UpdateMurrayFlop(murray); break;
         case MURRAY_CARRY: UpdateMurrayCarry(murray); break;
         case MURRAY_STRUGGLE: UpdateMurrayStruggle(murray); break;
         case MURRAY_LIFT: UpdateMurrayLift(murray); break;
         case MURRAY_THROW:
-        case MURRAY_TOSS: finished = IsAsegaRetracted(murray->animation); goto checkIdle;
+        case MURRAY_TOSS: finished = IsAsegaRetracted(murray->activeAnimation); goto checkIdle;
         case MURRAY_ATTACK: UpdateMurrayAttack(murray); break;
         case MURRAY_STRAFE: UpdateMurrayStrafe(murray); break;
         case MURRAY_POWER_MOVE: UpdateMurrayPower(murray); break;
-        case MURRAY_AIMED_THROW: UpdateJtThrow(murray->extra); break;
-        case MURRAY_PIPE: UpdateJtActivePipe(murray->physics); break;
+        case MURRAY_AIMED_THROW: UpdateJtThrow(&murray->jtthrowAim); break;
+        case MURRAY_PIPE: UpdateJtActivePipe(&murray->jtpipe); break;
         case MURRAY_SCRIPT_ANIM:
-            if (murray->animation && IsAsegaRetracted(murray->animation))
+            if (murray->activeAnimation && IsAsegaRetracted(murray->activeAnimation))
                 goto idle;
-            if (!murray->other)
+            if (!murray->activeStateMachine)
                 break;
-            finished = IsSmaRetracted(murray->other);
+            finished = IsSmaRetracted(murray->activeStateMachine);
         checkIdle:
             if (!finished)
                 break;
@@ -383,9 +346,9 @@ extern "C" void UpdateMurrayStateMachine(P *murray)
             SetMurrayState(murray, MURRAY_IDLE);
             break;
         case MURRAY_TURNBUCKLE:
-            if (ConsumeButtonsPressedWithin__5POCTLUif(murray->input, BUTTON_JUMP, 0.0f))
-                SetJtAirJump(&murray->control, 13, 0, 0);
-            else if (!(murray->input->flags & GetGadgetButtonMask(murray, 0x10)))
+            if (murray->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.0f))
+                SetJtAirJump(&murray->jtair, 13, 0, 0);
+            else if (!(murray->controller->buttonsHeld & GetGadgetButtonMask(murray, 0x10)))
                 SetMurrayState(murray, MURRAY_IDLE);
             break;
         default: break;
