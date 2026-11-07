@@ -532,8 +532,11 @@ touched headers MATCHes, and each touched object's nm symbol set is unchanged.
 Header changes (names from the views, each with its evidence in the header comment): lo.h LO +0x30 `nextSpliceTime`
 (UpdateLo), bit 58 `keepsOwnVisMask`, bit 59 `clearsPlacesOnRemove`, PXR +0x24 `isCopy`; xfm.h GEOM `positions` is
 `VECTOR4 *` (16-byte vertices), SHAPE `incomingTangents`/`outgoingTangents`/`segmentHint`/`chain`; so.h REGENT +0x10
-`pathzone` (CID17 = PATHZONE), SOPART bit 51 `hasPlaces`, SO `unknownBits148B` int-typed (so.cpp's getter sign-extends
-it as a 32-bit field), SOBOUNDS defined.
+`pathzone` (CID17 = PATHZONE), SOPART bit 51 `hasPlaces`, SO `unknownBits148A`/`unknownBits148B` int-typed (so.cpp's
+getters sign-extend them as 32-bit fields), SOBOUNDS/SUBGLOBX/XPLIST defined.
+
+Measured (scratch metrics.py over src/game): struct/class/union definitions 7,220 -> 6,759; family-named views 541 ->
+322; hand-vptr views 495 -> 406; non-derived views padded over a base (>= 0x50) 1,388 -> 1,257; 70 files, +1,739/-2,941.
 
 Matching-only islands kept (scratch islands.csv): frm.cpp's RAII list iterator `DLIIsland` (InitDli + explicit pop is
 4/98 off), lo.cpp InitLo's `LOIsland` (the parent's in-world bit copied through lo.h's bit-field compiles to a mask,
