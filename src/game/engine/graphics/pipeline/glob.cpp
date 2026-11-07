@@ -1905,20 +1905,17 @@ extern "C" int CompareSortRecs(VERTREC *prec0, VERTREC *prec1)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobInstancesFromBrx { extern "C" {
-struct A { int a[5]; };
-struct B { int a[10]; };
-struct C { int a[6]; };
-void LoadSubglobInstanceFromBrx(void *p, struct A *pa0, struct B *pb0, struct C *pc0, struct A *pa, struct B *pb, struct C *pc, int x, int y, int z, int w);
+void LoadSubglobInstanceFromBrx(GLOBSET *pglobset, SUBGLOB *psubglobBase, GLOB *pglobBase, SUBGLOBX *psubglobxBase, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis);
 // For each extra instance slot of a sub-glob, copies the base descriptor and reads the instance record (0x169AC8)
 // (inferred)
-void LoadSubglobInstancesFromBrx(void *p, struct A *aa, struct B *ab, struct C *ac, int c, int x, int y, int z, int w)
+void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *asubglob, GLOB *aglob, SUBGLOBX *asubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis)
 {
     int i;
-    for (i = 0; i < c; i++) {
-        struct A *pa = &aa[i + 1];
-        struct B *pb = &ab[i + 1];
-        struct C *pcw = ac ? ac + i + 1 : 0;
-        LoadSubglobInstanceFromBrx(p, aa, ab, ac, pa, pb, pcw, x, y, z, w);
+    for (i = 0; i < cSubExtra; i++) {
+        SUBGLOB *psubglob = &asubglob[i + 1];
+        GLOB *pglob = &aglob[i + 1];
+        SUBGLOBX *psubglobx = asubglobx ? asubglobx + i + 1 : 0;
+        LoadSubglobInstanceFromBrx(pglobset, asubglob, aglob, asubglobx, psubglob, pglob, psubglobx, cbatch, acbatch, apbatch, pbis);
     }
 }
 } } // namespace M_LoadSubglobInstancesFromBrx
