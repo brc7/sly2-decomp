@@ -1,7 +1,7 @@
 # Audio files: 989snd banks, VPK streams, VAGp dialogue
 
-Decoder: `reports/audio/sly2_audio.py` (stdlib + numpy; exports WAV with loop points and spectrograms; [guides/asset-tools.md](../guides/asset-tools.md)).
-Engine side: [sound](../engine/sound.md).
+Decoder (research workspace, not in this repo): `reports/audio/sly2_audio.py` (stdlib + numpy; exports WAV with loop points and spectrograms).
+Engine side: [sound](../systems/sound-and-music.md).
 
 Tags: `[C:parse]` = header fields account exactly for the file size or tables; `[C:decode]` = the decoded signal passes plausibility checks (speech formants,
 tonal music, no clipping); `[C:static]` = IOP or EE disassembly; `[H]` = inferred. **Only one sample per kind was decoded**; the other files are presumed to use the
@@ -49,7 +49,7 @@ groups 0-3 (120 s, no loop); `sndfile28` = mono stem (group 0) + two stereo pair
 ## 5. 989snd bank ('SBlk' v3)
 
 File: `u32 3 (type); u32 nchunks (2); nchunks x {u32 offset, u32 size}`: chunk 0 = SBlk header/tables, chunk 1 = SPU sample image; the chunks end at the file size
-`[C:parse]` (same outer header as Sly 1's `Parse989SfxBank`).
+`[C:parse]` (same outer header as Sly 1's 989snd effect banks).
 
 SBlk (offsets relative to chunk 0): `+0 "SBlk"; +4 version 3; +8 4; +0xC bank id; +0x16 u16 nsound (383); +0x18 u16 ngrain (3028); +0x1A u16 nwave (460);
 +0x1C sound table offset; +0x20 grain table offset; +0x24 0x5040 (?); +0x28 sample size; +0x2C SPU RAM size; +0x30 next block; +0x34 grain-data offset; +0x38 names (0)`
@@ -67,15 +67,6 @@ SBlk (offsets relative to chunk 0): `+0 "SBlk"; +4 version 3; +8 4; +0xC bank id
 
 16-byte frames: byte 0 = filter << 4 | shift, byte 1 = flags (bit 0 end, bit 1 repeat, bit 2 loop start), 14 data bytes = 28 nibbles (low first).
 `s = (int16)(nib << 12) >> shift; s += (h1*c0 + h2*c1 + 32) >> 6`, coefficients {0,0},{60,0},{115,-52},{98,-55},{122,-60} `[C:decode]` (bit-exactness vs SPU2 not checked).
-
-## Devtools findings (v3, 2026-11-01)
-
-- [devtools/audio_browser](../guides/devtools.md#audio_browser) decodes every manifest kind (VAGp 1,691, VPK 100, SBlk 43, PSS 2); PSS movie audio = SShd type 0x10 PS-ADPCM, 44.1 kHz,
-  2 ch, interleave 0x20 `[C:decode]` (one movie checked). Signal self-tests 23/23 with negative controls (e.g. a 6-byte misaligned dialogue decode is flagged).
-- Bank L02: 460/460 waves end exactly at their end flag; 383 sounds vs 381 sfx ids mapped `[C:parse]`.
-- 989snd grain types other than 1 (TONE) are not modelled (types 4, 5, 20-31, 39 occur) - open. Odd-rate tones (> 48 kHz from the note-60 formula) `[H]`.
-- Stream "pairs" (8-byte records `{u16 dt, u16 5, u32 0x14FC..0x1501}`) look like lip-sync keys `[H]`.
-- `g50` = stream duration in seconds is now confirmed ([world-file](world-file.md)).
 
 ## 7. Open
 

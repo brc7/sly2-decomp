@@ -22,7 +22,7 @@ floc.isector = (rec->aw[0] ^ rec->aw[13]) + 0xCA0;
 floc.cb      =  rec->aw[1] ^ rec->aw[15];
 return floc.cb != 0;
 ```
-(`func_001AC260`, `func_001B3BD0`, `func_0020E890`, `func_002124F0`, `func_001FC510`, `func_001FD5E8`, ...) `[C:static]`.
+(`load_file_from_disc`, `Execute`, `ExecuteSwTransition`, `LoadWidgetSprites`, `PlayStreamsnd`, `PostSoundLoad`, ...) `[C:static]`.
 Identity: `(a->aw[2]^a->aw[14]) == (b->aw[2]^b->aw[14])`; validity: `aw[1] != aw[15]` `[C:static]`.
 No LCG/WAL-style encryption (that is a PS3 remaster construct) and no `sceCdSearchFile` call `[C:static]`.
 
@@ -32,11 +32,11 @@ No LCG/WAL-style encryption (that is a PS3 remaster construct) and no `sceCdSear
 |---|---|---|
 | `sceCdRead` 0x242840 | the only sector reader | [C:static] |
 | 0x14BC78 `(lsn, nsect, buf, mode)` | retry wrapper; adds no base offset | [C:static] |
-| `FOpenSector__18CBinaryInputStreamUiUi` 0x184D98 | CD-backed input stream: stores sector + size; Fill reads `(cb+0x7FF)>>11` sectors | [C:static] |
-| `FOpenSector__18CBinaryAsyncStreamUiUi` 0x132640, `StartSpooling` 0x132710 | async stream for FMVs | [C:static] |
+| `OpenCdSectors__18CBinaryInputStreamUiUi` 0x184D98 | CD-backed input stream: stores sector + size; Fill reads `(cb+0x7FF)>>11` sectors | [C:static] |
+| `OpenSector__18CBinaryAsyncStreamUiUi` 0x132640, `StartSpooling` 0x132710 | async stream for FMVs | [C:static] |
 | 0x184D60 / 0x132600 | open by FLOC (kind 2 -> FOpenSector) | [C:static] |
 | `UpdateCd` 0x14BA38 | disc check: CRC (reflected CRC-32, init 0xFFFFFFFF, no final XOR) of sector `D_002A2E5C + 0xCA0` (1259331) against 0xACDD3EE4 | [C:static]; not run on a real ISO |
-| `PchzFidName` 0x14B690 | retail stub returning a constant ("fid:#unknown") | [C:static] |
+| `GetFileIdName` 0x14B690 | retail stub returning a constant ("fid:#unknown") | [C:static] |
 
 ## 3. Static records in the ELF
 

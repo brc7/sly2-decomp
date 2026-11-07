@@ -1,14 +1,14 @@
 # World file (BRX) format, Sly 2 PS2 (SCUS-97316)
 
 A world (level) file is one LZSS-compressed stream ([compression-lzss.md](compression-lzss.md)) located by a FILEREC
-([disc-records.md](disc-records.md)) and read front to back by `LoadSwFromBrx` 0x13DA18 ([world-sw.md](../engine/world-sw.md#2-loading-a-level)).
+([disc-records.md](disc-records.md)) and read front to back by `LoadSwFromBrx` 0x13DA18 ([world-sw.md](../engine.md#loading-a-level)).
 Merged from the asset-extraction write-up and the brx/sound/save TU write-ups. Status tags in this page:
 **confirmed** = `[C:verified]` (read from matched code and checked against both sample worlds); **code** = `[C:static]` (read from matched
 code, not exercised by the samples); **hypothesis** = `[H]`.
 
 **Key correction to the original draft:** the "world entries" are **proxy sources**. Each entry's object list is instanced `c8` times at load
-(the original plus `c8-1` `PloCloneLo` clones); the copies form the pool that proxies and spawners draw from (`LoadProxyFromBrx` 0x1C9B08,
-`PspareAcquire` 0x1CAEC8). The current entry index (SW+0x3F10) is the `isrc` in `idProxy = (isrc<<16)|icopy` `[H r2 brx.md, r5 proxy.md]`.
+(the original plus `c8-1` `CloneLoWithParent` clones); the copies form the pool that proxies and spawners draw from (`LoadProxyFromBrx` 0x1C9B08,
+`AcquireProxySpare` 0x1CAEC8). The current entry index (SW+0x3F10) is the `isrc` in `idProxy = (isrc<<16)|icopy` `[H r2 brx.md, r5 proxy.md]`.
 The live Paris hub has 287 entries; entry 0 is `f_nightclub_exterior_vz` with 2 copies `[C:runtime]`.
 
 Status tags:
@@ -27,9 +27,9 @@ The "london" text at the start of `london` is really `abandon_icon` (see section
 
 | Property | Value | Status / source |
 |---|---|---|
-| Location | One extent per file: `lba = (aw0^aw13)+0xCA0`, `size = aw1^aw15` (section 2) | confirmed: the world loader `func_0020E890` builds the FLOC this way |
-| Compression | The whole file is LZSS, with no header and no stored length | confirmed: `func_001179D8` SetDecompress is called before `func_0013DA18` |
-| LZSS | Flag byte, LSB first, bit=1 means a literal. A reference is u16 `v`: ring index `v & 0x1FFF` (absolute index in an 8 KB ring; write cursor = output position mod 0x2000), length `(v>>13)+3` | confirmed: `CBinaryInputStream::Decompress` 0x1179F0 (`src/game/core/binstream/bis.cpp`). Byte-identical to SlyTools `sly_decompress.hpp`. Both samples decode to clean, fully parseable data |
+| Location | One extent per file: `lba = (aw0^aw13)+0xCA0`, `size = aw1^aw15` (section 2) | confirmed: the world loader `ExecuteSwTransition` builds the FLOC this way |
+| Compression | The whole file is LZSS, with no header and no stored length | confirmed: `SetDecompress` is called before `LoadSwFromBrx` |
+| LZSS | Flag byte, LSB first, bit=1 means a literal. A reference is u16 `v`: ring index `v & 0x1FFF` (absolute index in an 8 KB ring; write cursor = output position mod 0x2000), length `(v>>13)+3` | confirmed: `Decompress` 0x1179F0 (`src/game/core/binstream/bis.cpp`). Byte-identical to SlyTools `sly_decompress.hpp`. Both samples decode to clean, fully parseable data |
 | Initial ring | On PS2 the ring is the scratchpad (`0x70000000`), which is not cleared. Tools zero-fill it | code. Both samples parse fine with zero-fill, but no check proves that no early reference points into unwritten ring slots |
 | Endianness | Little-endian throughout | confirmed (`bis.cpp` U16Read/U32Read/S32Read) |
 | Align(n) | Aligns the **absolute offset in the decompressed stream**. The read pointer walks a 0x2000-byte window that starts at an aligned address, and pending bytes are moved to the window start on every refill | code (`bis.cpp` Align + Decompress); confirmed at the head/object boundary (section 9) |
@@ -42,10 +42,10 @@ Reader primitives (`include/bis.h`, `src/game/core/binstream/bis.cpp`):
 | U16Read / S16Read | 0x117C20 / 0x117D50 | 2 bytes |
 | U32Read / S32Read / F32Read | 0x117C80 / 0x117DB8 / 0x117E38 | 4 bytes |
 | Read(cb) / Skip(cb) | 0x117968 / 0x1179B8 | cb bytes. A **negative cb reads nothing** (CbRead's loop doesn't run) |
-| ReadFileRecord | inline Read(0x40) (`func_00118458`) | 64 bytes |
+| ReadFileRecord | inline Read(0x40) (`CBinaryInputStream_ReadCb64`) | 64 bytes |
 | ReadVector4 | 0x117F70 | 16 bytes |
-| string16 | `func_00118380` | `U16 cch; cch bytes`. No NUL on disc. cch=0 means a NULL pointer |
-| skip string16 | `func_00118420` | `U16 cch; skip cch` |
+| string16 | `CBinaryInputStream_ReadStringSw` | `U16 cch; cch bytes`. No NUL on disc. cch=0 means a NULL pointer |
+| skip string16 | `CBinaryInputStream_SkipStringSw` | `U16 cch; skip cch` |
 
 ## 2. FILEREC (64 bytes)
 
@@ -61,22 +61,22 @@ Reader primitives (`include/bis.h`, `src/game/core/binstream/bis.cpp`):
 
 A record is empty when `aw1 == aw15` (size 0). Level 18 of the level table is empty.
 
-## 3. Head layout (`LoadSwFromBrx`, `func_0013DA18`)
+## 3. Head layout (`LoadSwFromBrx`)
 
 Parse order. All offsets are in the decompressed stream.
 
 | # | Section | Reader function | london | boot_world |
 |---|---|---|---|---|
-| 1 | world-entry table | `func_0013DA18` | 0x0000..0x00FE | 0x0000..0x4E6E |
-| 2 | sound section | `func_001FD0E8` | 0x00FE..0x0660 | 0x4E6E..0xAA94 |
-| 3 | save variables | `func_001D7B88` | 0x0660..0x132D5 | 0xAA94..0x1D709 |
-| 4 | level table | `func_0020F318` | 0x132D5..0x13FED | 0x1D709..0x1E421 |
-| 5 | localized strings | `func_0013DF80` | 0x13FED..0x17157 | 0x1E421..0x22628 |
-| 6 | plane tree | `func_0013E0E0` | 0x17157..0x17159 (0 nodes) | 0x22628..0x22936 (39 nodes) |
-| 7 | options of `g_sw` (D_003DD490) | `func_0013F810` | 0x17159..0x1717F | 0x22936..0x22956 |
-| 8 | options of `g_cm` (D_002DDF40) | `func_0013F810` | 0x1717F..0x1718D | 0x22956..0x2297C |
+| 1 | world-entry table | `LoadSwFromBrx` | 0x0000..0x00FE | 0x0000..0x4E6E |
+| 2 | sound section | `LoadSoundSectionFromBrx` | 0x00FE..0x0660 | 0x4E6E..0xAA94 |
+| 3 | save variables | `LoadSaveSchemaFromBrx` | 0x0660..0x132D5 | 0xAA94..0x1D709 |
+| 4 | level table | `LoadLevelTableFromBrx` | 0x132D5..0x13FED | 0x1D709..0x1E421 |
+| 5 | localized strings | `LoadSwLocalizedStringsFromBrx` | 0x13FED..0x17157 | 0x1E421..0x22628 |
+| 6 | plane tree | `LoadSwCellsFromBrx` | 0x17157..0x17159 (0 nodes) | 0x22628..0x22936 (39 nodes) |
+| 7 | options of `g_sw` (D_003DD490) | `LoadOptionsFromBrx` | 0x17159..0x1717F | 0x22936..0x22956 |
+| 8 | options of `g_cm` (D_002DDF40) | `LoadOptionsFromBrx` | 0x1717F..0x1718D | 0x22956..0x2297C |
 | 9 | Align(0x10) | 0x117988 | -> **0x17190** | -> **0x22980** |
-| 10 | per world entry: WE data + objects | loop in `func_0013DA18` | 0x17190..EOF | 0x22980..EOF |
+| 10 | per world entry: WE data + objects | loop in `LoadSwFromBrx` | 0x17190..EOF | 0x22980..EOF |
 
 All of sections 1..9 parse with no leftover bytes and no errors in both samples **[confirmed]**.
 
@@ -96,19 +96,19 @@ cwe x {
 
 | Field | Meaning | Status |
 |---|---|---|
-| block | **Not a disc FILEREC.** In both samples it is ASCII `"FK$X"` followed by a NUL-padded name of up to 60 chars, e.g. `abandon_icon`, `swf_ui`, `dvd_menu`, `jb_intro_vz`, `explode_whack_flash_small`. It is passed only to `PchzFidName` (0x14B690, a retail stub) for the load-spinner label. Probably the dev build's name-form FILEREC | confirmed (data + code) |
+| block | **Not a disc FILEREC.** In both samples it is ASCII `"FK$X"` followed by a NUL-padded name of up to 60 chars, e.g. `abandon_icon`, `swf_ui`, `dvd_menu`, `jb_intro_vz`, `explode_whack_flash_small`. It is passed only to `GetFileIdName` (0x14B690, a retail stub) for the load-spinner label. Probably the dev build's name-form FILEREC | confirmed (data + code) |
 | x5C | If nonzero: `psw->iwe = -1` and the objects are not activated (`cC++`) instead of calling vt[9] (Remove) on each. In `boot_world`, every `jb_intro_*` entry and `jb_shadows` have x5C=1 | code; the meaning ("deferred/spliced scene") is a hypothesis |
 | x60 | Stored only. It is 1 for `abandon_icon` | hypothesis: flag |
-| x10 | Passed to `func_001FF858` as the id of the WE's script/ref table. It equals the **oid of an object in that WE's object list** (e.g. `explode_whack_flash_small` x10=3901, and the objects with cid 6 have oid 3901) | hypothesis (strong): root object oid |
+| x10 | Passed to `LoadSwSpliceFromBrx` as the id of the WE's script/ref table. It equals the **oid of an object in that WE's object list** (e.g. `explode_whack_flash_small` x10=3901, and the objects with cid 6 have oid 3901) | hypothesis (strong): root object oid |
 | x14 | Stored only. Mostly increasing (152701, 152702, ...) | hypothesis: second id |
-| c8 | Instance (copy) count of this proxy source. The object list is cloned `c8-1` times (`PloCloneLo` 0x13E510) into `WE.apo` (`c0*c8` slots). It also sizes `pv18` (c8 x S32, filled with -1) | confirmed (code); values 1..41 |
+| c8 | Instance (copy) count of this proxy source. The object list is cloned `c8-1` times (`CloneLoWithParent` 0x13E510) into `WE.apo` (`c0*c8` slots). It also sizes `pv18` (c8 x S32, filled with -1) | confirmed (code); values 1..41 |
 
 Counts: `london` cwe=3, `boot_world` cwe=239.
 
-### 3.2 Sound section (`LoadSoundSectionFromBrx`, `func_001FD0E8`)
+### 3.2 Sound section (`LoadSoundSectionFromBrx`)
 
 ```
-FILEREC bank                         sound bank -> IOP (func_00231FB0(lba)); kept if fid unchanged
+FILEREC bank                         sound bank -> IOP (snd_BankLoadByLoc(lba)); kept if fid unchanged
 S16 csnd ; csnd x S8 kind            anKind[]
 S16 csfx                             size of the aisnd[] map
 csnd x S16 sfxid                     aisnd[sfxid] = j   (count is csnd, NOT csfx)
@@ -137,16 +137,16 @@ S32 cfile ; cfile x { S16 id ; FILEREC rec }
 | stream.pairs | 30, 29 | 15..119 | hypothesis: lip-sync or subtitle keys. The count grows with g50 (about 7 per second). 8 bytes each, layout unknown |
 | cfile | 2 (ids 34, 35; 2,254,848 B each) | 1 (id 36; 11,696,128 B) | confirmed (records); content type unknown |
 
-### 3.3 Save variables (`func_001D7B88`)
+### 3.3 Save variables (`LoadSaveSchemaFromBrx`)
 
 ```
 U16 n ; n x { U16 value ; string16 name }   -> hash table at psw+0x3A18+8
-U16 c ; c x 10 bytes                        -> blob, then func_001D7C80
+U16 c ; c x 10 bytes                        -> blob, then ResetGsIfSchemaChanged
 ```
 
-Both samples have n=960 symbols and c=5461 trie entries, identical in both files. The 10-byte records are the save-variable trie `{s16 sym; s8 kind; u8 cbits; u16 ib; u16 iChild; u16 iSibling}` mapping names to offsets in the save blob `[C:runtime]` (decoded in RAM: 4,472 variables; see [save-memcard](../engine/save-memcard.md) and [save-variables](../reference/save-variables.md)). The U16 per symbol is its symbol id.
+Both samples have n=960 symbols and c=5461 trie entries, identical in both files. The 10-byte records are the save-variable trie `{s16 sym; s8 kind; u8 cbits; u16 ib; u16 iChild; u16 iSibling}` mapping names to offsets in the save blob `[C:runtime]` (decoded in RAM: 4,472 variables; see [save-memcard](../engine.md#713-save-data-and-memory-card-worldstatesavecpp-uimemcardcpp) and [save-variables](save-variables.md)). The U16 per symbol is its symbol id.
 
-### 3.4 Level table (`LoadLevelTableFromBrx`, `func_0020F318`)
+### 3.4 Level table (`LoadLevelTableFromBrx`)
 
 ```
 U32 clevel                 -> D_003E1C38
@@ -168,21 +168,21 @@ clevel x {
 | world is 0..8 and indexes `g_apchzWorld` (intro, nightclub, palace, temple, prison, castle, train, sawmill, blimp) | confirmed (ELF strings) |
 | episode is 0..29. `nUnused` = 30 = the number of distinct episode values | hypothesis |
 | Episode 7 appears in worlds 2, 3, 4, 5 and 8; episode 4 in worlds 1 and 5; episode 26 in worlds 7 and 8. So "episode" is a level-kind id shared across worlds, not a story episode | hypothesis |
-| `list` always has n=4, shaped `[64, W, 67, L]`. W depends only on the world (65, 74, 80, 84, 85, 87, 95, 100, 106). L is 68 for every hub and otherwise depends only on the episode value. Read via `func_002109B8(i)`; its use is not traced | hypothesis: dependency/package ids |
+| `list` always has n=4, shaped `[64, W, 67, L]`. W depends only on the world (65, 74, 80, 84, 85, 87, 95, 100, 106). L is 68 for every hub and otherwise depends only on the episode value. Read via `GetLevelListEntry(i)`; its use is not traced | hypothesis: dependency/package ids |
 | The 43 valid level sizes sum to 284,382,717 bytes (compressed) | confirmed |
 
 The full table is in the appendix below.
 
-### 3.5 Localized strings (`func_0013DF80`)
+### 3.5 Localized strings (`LoadSwLocalizedStringsFromBrx`)
 
 ```
 U8 clang ; clang x U8 lang
-S16 c ; c x { S16 id ; clang x string16 }   only the g_nLang string is kept; the others are skipped (func_00118420)
+S16 c ; c x { S16 id ; clang x string16 }   only the g_nLang string is kept; the others are skipped (CBinaryInputStream_SkipStringSw)
 ```
 
 `london` has 359 entries: the copyright line, menu text ("New Game...", "Back"), episode titles (ids 109..128: "A Shadow From The Past", ...), loot names, gadget descriptions. Ids are not sorted. **[confirmed]**
 
-### 3.6 Plane tree (`func_0013E0E0`)
+### 3.6 Plane tree (`LoadSwCellsFromBrx`)
 
 ```
 U16 c ; c x { VECTOR4 plane (16 bytes) ; S16 front ; S16 back }
@@ -191,7 +191,7 @@ U16 c ; c x { VECTOR4 plane (16 bytes) ; S16 front ; S16 back }
 A child index >= 0 links to another node. A child of -1 assigns a leaf number `p->n++` (`p->n` leaves total).
 In `boot_world` the planes are axis-aligned normals (1,0,0)/(0,1,0)... with a distance in w. **Hypothesis: a BSP of world regions.** `london` has 0 nodes. **[layout confirmed]**
 
-### 3.7 Options of g_sw and g_cm (`func_0013F810` -> `func_0013E818`)
+### 3.7 Options of g_sw and g_cm (`LoadOptionsFromBrx` -> `LoadOptionFromBrx`)
 
 ```
 repeat { S16 eopid ; if eopid < 0: break ; value by g_aeopid[eopid].otyp }
@@ -212,7 +212,7 @@ Value sizes by otyp:
 | 22 | U16 c + 2c |
 | other | 0 |
 
-A grf with 0x400 set means a method option. Its arguments are U16 otyp (bit 0x8000 = U8 count list) + a `RefFromBrx` 0x13E690 value. The original head parser did not implement them and stopped on 22 of 43 files (head option 934 on g_sw, 44 instances game-wide); the level parser does `[C:parse]`; layout in [level-objects.md](level-objects.md#4-common-building-blocks-cparse).
+A grf with 0x400 set means a method option. Its arguments are U16 otyp (bit 0x8000 = U8 count list) + a `ReadOptionArgFromBrx` 0x13E690 value. The original head parser did not implement them and stopped on 22 of 43 files (head option 934 on g_sw, 44 instances game-wide); the level parser does `[C:parse]`; layout in [level-objects.md](level-objects.md#4-common-building-blocks-cparse).
 
 Samples:
 * `london`: g_sw = {913: 1, 923: RGBA 0x80000000, 914: (230,260,250), 915: 0.0, 916: 95.0}; g_cm = {164: 10.0, 165: 1000.0}.
@@ -235,20 +235,20 @@ Samples:
 
 ## 4. Per-world-entry data (after the head)
 
-> Superseded in detail by [level-objects.md](level-objects.md) (all sub-structures decoded and parse-verified, every class payload) and [textures.md](textures.md) (the `func_001EB748` tables). The text below is the original first walk, kept for its sample offsets.
+> Superseded in detail by [level-objects.md](level-objects.md) (all sub-structures decoded and parse-verified, every class payload) and [textures.md](textures.md) (the `LoadShadersFromBrx` tables). The text below is the original first walk, kept for its sample offsets.
 
-For each WE i in order (loop body of `func_0013DA18`):
+For each WE i in order (loop body of `LoadSwFromBrx`):
 
 ```
-S32 cbBlob ; S32 idBlob            func_0020F5D0 -> D_003E1C30 = cbBlob; "reload" = idBlob != previous idBlob
+S32 cbBlob ; S32 idBlob            LoadSwSharedHeaderFromBrx -> D_003E1C30 = cbBlob; "reload" = idBlob != previous idBlob
 S32 fExtra                         D_003E1C34 (adds 4 x string16 / extra fields in the ref reader)
-U32 cref ; cref x Ref              func_001FF858 (Ref = func_0012A3D8: U8 tag|0x80 next, payload by tag; 0xFF = null)
+U32 cref ; cref x Ref              LoadSwSpliceFromBrx (Ref = DeserializePair: U8 tag|0x80 next, payload by tag; 0xFF = null)
                                    (if fExtra: 3 x string16 after each Ref)
-<func_001EB748>                    U16 n x func_001EA8A8 ; U16 n x func_001EAF50 ; U16 n x func_001ED7A8 ;
-                                   U16 n x func_001EB2F0 (0x2C-byte structs) ;
-                                   func_0020F640: Align(0x10) ; cbBlob bytes (uploaded only if reload, else skipped)
-U32 n ; if n: U32 c8 ; U32 c10 ; n x {U16,U16,U16} ; c8 x VECTOR4 ; c10 x S32        func_001C0EC0/func_001C0F30
---- object list (LoadSwObjectsFromBrx, func_0013FB40) ---
+<LoadShadersFromBrx>                    U16 n x LoadClutFromBrx ; U16 n x LoadBmpFromBrx ; U16 n x LoadSaaFromBrx ;
+                                   U16 n x LoadShdFromBrx (0x2C-byte structs) ;
+                                   LoadSwSharedDataFromBrx: Align(0x10) ; cbBlob bytes (uploaded only if reload, else skipped)
+U32 n ; if n: U32 c8 ; U32 c10 ; n x {U16,U16,U16} ; c8 x VECTOR4 ; c10 x S32        LoadSwZoneBspFromBrx/LoadZoneBspFromBrx
+--- object list (LoadSwObjectsFromBrx, LoadSwObjectsFromBrx) ---
 S16 cobj
 cobj x {
   S8  k                            k>0: k x S16 filter list follows; k=0: always create;
@@ -265,25 +265,25 @@ Per-object record fields (`LoadSwObjectsFromBrx` 0x13FB40, matched) `[C:static]`
 
 | Field | Type | Meaning |
 |---|---|---|
-| k | S8 | filter kind: `k>0` -> `k` S16 filter ids follow, object created only if `FMatchLoadFilter` 0x13FAD0 matches the current level index D_003E1110; `k=0` always; `k=-1/-2` create unless the save state (query 0x805/0x405 on `(oid, IdProxy(iwe))`) says it is gone; `k<-2` reads nothing (stale list) |
+| k | S8 | filter kind: `k>0` -> `k` S16 filter ids follow, object created only if `IsCurrentLevelInList` 0x13FAD0 matches the current level index D_003E1110; `k=0` always; `k=-1/-2` create unless the save state (query 0x805/0x405 on `(oid, MakeProxyId(iwe))`) says it is gone; `k<-2` reads nothing (stale list) |
 | filter ids | k x S16 | level/job filter list |
 | cid | S16 | class id (index into D_002BAAE8); PROXY-derived classes go through `LoadProxyFromBrx` |
 | oid | **S32** | object id (Sly 1: S16) |
-| isplice | S16 | Splice frame index (-1 = none); resolved by `PframeFromIsplice` 0x1FFA40 |
+| isplice | S16 | Splice frame index (-1 = none); resolved by `GetSpliceFrame` 0x1FFA40 |
 | cb | **S32** | byte size of the payload (new in Sly 2): filtered objects are skipped with `Skip(cb)` |
 | payload | cb bytes | consumed by the class's vt14 `LoadFromBrx` (LO base: an options loop `S16 eopid ...`; SO: XF table, GLOBSET, parts, mass) |
 
 JOB/TASK objects (CID 0x84/0x85) are created even when filtered, with +0x50 = 1 `[C:static]`.
 
 Status:
-* The object-record layout is **code** (`func_0013FB40`).
+* The object-record layout is **code** (`LoadSwObjectsFromBrx`).
 * The `cb` size field is **confirmed by walking**: in `london`, WE 0 has 31 objects at 0x179C4. Walking them by cb ends at 0x76E21. Align(0x10) gives 0x76E30, which is exactly where WE 1's header starts (`cbBlob=0x8800, idBlob=0x411C7D26, fExtra=0, cref=1`).
 * In WE 0 of `london`, the header fields line up: cbBlob=48, the 48-byte blob sits at 0x17990 (16-aligned), and `U32 n=0` at 0x179C0 sits right before `S16 cobj=31` at 0x179C4.
-* The sub-structures of `func_001EB748` are now decoded: [textures.md](textures.md).
+* The sub-structures of `LoadShadersFromBrx` are now decoded: [textures.md](textures.md).
 
 Observations:
 * `idBlob` values look like 0x411Cxxxx (0x411C70BF, 0x411C7D26, 0x411C7D54); the blob is re-read only when idBlob changes. The blob is the WE's texture image data (bitmaps + CLUT colours) `[C:parse]` ([textures.md](textures.md)).
-* Class ids in the object lists are 0x03 (XFM), 0x05, 0x06 (PROXY), 0x0E, 0x11 (PATHZONE), 0x1A (EXIT), 0x1F (EXPLG), 0x21 (EXPLS), 0x30 (SO), 0x6D (ASEG), 0x7E (WIDGET), 0x82 (WIDGET subclass) and so on (names: [class-tree](../reference/class-tree.md)). Most objects have `n = -1` (no splice frame). cid 0x84/0x85 objects are always loaded even when filtered. See [class-tree](../reference/class-tree.md) for the mapping.
+* Class ids in the object lists are 0x03 (XFM), 0x05, 0x06 (PROXY), 0x0E, 0x11 (PATHZONE), 0x1A (EXIT), 0x1F (EXPLG), 0x21 (EXPLS), 0x30 (SO), 0x6D (ASEG), 0x7E (WIDGET), 0x82 (WIDGET subclass) and so on (names: [`include/sly2/classes.h`](../../include/sly2/classes.h)). Most objects have `n = -1` (no splice frame). cid 0x84/0x85 objects are always loaded even when filtered. See [`include/sly2/classes.h`](../../include/sly2/classes.h) for the mapping.
 
 ### Relation to Sly 1 (ProjectCane `brx.cpp`)
 
@@ -295,12 +295,10 @@ Observations:
 
 ## 5. Other files referenced
 
-* Sprite/texture files (`func_002124F0`): magic at `D_002A8AE8` = `"ZRB."`, then U16 version 6. Compressed. Their records sit inside object data. **[code; the ELF bytes are confirmed]**
+* Sprite/texture files (`LoadWidgetSprites`): magic at `D_002A8AE8` = `"ZRB."`, then U16 version 6. Compressed. Their records sit inside object data. **[code; the ELF bytes are confirmed]**
 * Disc check (`UpdateCd`): sector `D_002A2E5C + 0xCA0` = 1256099 + 3232 = 1259331, expected CRC `0xACDD3EE4` (reflected CRC-32, no final XOR). `info` and `extract` verify this on a real ISO. **[code; not run, since no ISO is available here]**
 
-
 ## Appendix: level table (identical in both samples) [C:verified]
-
 
 World names come from the ELF's `g_apchzWorld` (D_002A39E8).
 
