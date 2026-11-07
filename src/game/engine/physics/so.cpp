@@ -730,34 +730,30 @@ void RemoveSoHierarchy(SO *so)
 
 // 0x1F2E78 UpdateSoLoroot
 namespace M_UpdateSoLoroot { extern "C" {
-struct VTE; struct O;
-typedef unsigned long ulong;
-struct VTE { short d; short pad; void (*pfn)(void *, void *, void *); };
-struct O { char pad[0xC]; struct VTE *pvt; struct O *parent; char pad2[0x24 - 0x14]; struct O *next; ulong flags; char pad3[0x64 - 0x30]; struct O *firstChild; char pad4[0xE0 - 0x68]; int numParts; };
-void UpdateLoLoroot(struct O *, struct O *, struct O *);
-void RemoveSoParts(struct O *);
-void AddSoParts(struct O *);
-static inline struct O *Find(struct O *x)
+void UpdateLoLoroot(SO *, LO *, SO *);
+void RemoveSoParts(SO *);
+void AddSoParts(SO *);
+static inline LO *Find(LO *x)
 {
-    while (x && !(x->flags & (1L << 56))) x = x->parent;
+    while (x && !x->isRemoved) x = x->parent;
     return x;
 }
 // Slot 13: UpdateLoroot recursively; when the object has parts and its root changed, re-adds them to the new tree.
-void UpdateSoLoroot(struct O *so, struct O *pNew, struct O *pOld)
+void UpdateSoLoroot(SO *so, LO *pNew, SO *pOld)
 {
-    struct O *po;
+    LO *po;
     int unused[4];
     UpdateLoLoroot(so, pNew, pOld);
-    for (po = so->firstChild; po; po = po->next)
-        po->pvt[13].pfn((char *)po + po->pvt[13].d, pNew, pOld);
+    for (po = (LO *)so->children.head; po; po = (LO *)po->siblingLink.next)
+        po->UpdateLoroot(pNew, pOld);
     if (!so->numParts) return;
     for (po = so; ; po = po->parent) {
-        if (po->flags & (1L << 56)) return;
+        if (po->isRemoved) return;
         if (po == pNew) break;
     }
     {
-    struct O *a = Find(pOld);
-    struct O *b = Find(so->parent);
+    LO *a = Find(pOld);
+    LO *b = Find(so->parent);
     if (!a && !b) {
         RemoveSoParts(so);
         AddSoParts(so);
@@ -768,62 +764,49 @@ void UpdateSoLoroot(struct O *so, struct O *pNew, struct O *pOld)
 
 // 0x1F2FE0 SetSoGrf
 namespace M_SetSoGrf { extern "C" {
-struct VTE; struct VT; struct L;
-struct VTE { short d; short p; void (*pfn)(void *, int); };
-struct VT { struct VTE a[48]; };
-struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int flagWord; char pad2[0x64 - 0x44]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; };
 // Slot 47: sets flags in the LO flag word (+0x40) on this object and all children.
-void SetSoGrf(struct L *so, int f)
+void SetSoGrf(SO *so, int f)
 {
-    struct L *q;
+    LO *q;
     int unused[4];
-    int v = so->flagWord;
+    int v = so->unknown40;
     if ((v ^ 1) & 1) *(int *)v |= f;
-    else so->flagWord = v | f;
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
-        q->pvt->a[47].pfn((char *)q + q->pvt->a[47].d, f);
+    else so->unknown40 = v | f;
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
+        q->SetFlags(f);
 }
 } } // namespace M_SetSoGrf
 
 // 0x1F3078 ClearSoGrf
 namespace M_ClearSoGrf { extern "C" {
-struct VTE; struct VT; struct L;
-struct VTE { short d; short p; void (*pfn)(void *, int); };
-struct VT { struct VTE a[49]; };
-struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int flagWord; char pad2[0x64 - 0x44]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; };
 // Slot 48: clears flags in the LO flag word on this object and all children.
-void ClearSoGrf(struct L *so, int f)
+void ClearSoGrf(SO *so, int f)
 {
-    struct L *q;
+    LO *q;
     int unused[4];
-    int v = so->flagWord;
+    int v = so->unknown40;
     if ((v ^ 1) & 1) *(int *)v &= ~f;
-    else so->flagWord = v & ~f;
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
-        q->pvt->a[48].pfn((char *)q + q->pvt->a[48].d, f);
+    else so->unknown40 = v & ~f;
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
+        q->ClearFlags(f);
 }
 } } // namespace M_ClearSoGrf
 
 // 0x1F3118 SetSoBusyDistance
 namespace M_func_001F3118 {
-struct VTE; struct VT; struct L;
-typedef unsigned long ulong;
-struct VTE { short d; short p; void (*pfn)(void *, float); };
-struct VT { VTE a[43]; };
-struct L { char pad[0xC]; VT *pvt; struct L *parent; int root; char pad1[0x24 - 0x18]; struct L *next; ulong lo : 60; ulong isInWorld : 1; ulong hi : 3; float unknown30, runList, busyDistance; char pad2[0x64 - 0x3C]; struct L *firstChild; char pad3[0x140 - 0x68]; int unknown140; };
 struct G;
 extern "C" { extern G D_003DD490; }
-extern "C" void RemoveLoFromRenderTree(L *);
-extern "C" void AddLoToRenderTree(L *);
-extern "C" void ResortSwBusyEntry(G *, int);
+extern "C" void RemoveLoFromRenderTree(SO *);
+extern "C" void AddLoToRenderTree(SO *);
+extern "C" void ResortSwBusyEntry(G *, LOROOT *);
 // Slot 42: stores the busy distance (+0x38), refreshes the object's registration, re-sorts its root in the world
 // and pushes the smaller value to the children (inferred).
-extern "C" void SetSoBusyDistance(L *so, float t)
+extern "C" void SetSoBusyDistance(SO *so, float t)
 {
-    L *q;
+    LO *q;
     int unused[4];
-    so->busyDistance = t;
-    if (so->unknown140 != -1) {
+    so->busyRadius = t;
+    if (so->unknownStamp140 != -1) {
         RemoveLoFromRenderTree(so);
         AddLoToRenderTree(so);
     }
@@ -831,8 +814,8 @@ extern "C" void SetSoBusyDistance(L *so, float t)
         bool f = so->isInWorld;
         if (f) ResortSwBusyEntry(&D_003DD490, so->root);
     }
-    for (q = so->firstChild; q; q = q->next) {
-        if (t < q->busyDistance) q->pvt->a[42].pfn((char *)q + q->pvt->a[42].d, t);
+    for (q = (LO *)so->children.head; q; q = (LO *)q->siblingLink.next) {
+        if (t < q->busyRadius) q->SetBusyDistance(t);
     }
 }
 } // namespace M_func_001F3118
