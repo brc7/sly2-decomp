@@ -2294,77 +2294,64 @@ extern "C" void ResetJobList(SCREEN *screen)
 
 namespace M_ClearJobList { extern "C" {
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
-struct S { char p0[0x40]; int page; float pageTime; char p1[0x11C-0x48]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 // Job list: state -1, time stamp, no animation handles.
-void ClearJobList(struct S *p) {
-    p->page = -1; //P
-    p->pageTime = D_002DDED0.realTime; //P
-    p->popupAnim = -1; //P
-    p->scrollUpAnim = -1; //P
-    p->scrollDownAnim = -1; //P
+void ClearJobList(JOBLIST *p) {
+    p->nPage = -1; //P
+    p->tPage = D_002DDED0.realTime; //P
+    p->idAnimPopup = -1; //P
+    p->idAnimScrollUp = -1; //P
+    p->idAnimScrollDown = -1; //P
 }
 } } // namespace M_ClearJobList
 
 namespace M_UpdateJobList { extern "C" {
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[32]; } VT;
 typedef struct { char pad[0xC]; VT *vt; char pad10[0x58 - 0x10]; int visibility; } W;
-typedef struct {
-    char pad[0x10];
-    void *joy;
-    char pad14[0x24 - 0x14];
-    W *widget;
-    char pad28[0x40 - 0x28];
-    int page;
-    char pad44[4];
-    int entryCount;
-    char pad4c[0x114 - 0x4C];
-    int openedFromJobs;
-} OBJ;
-void UpdateTimedScreen(OBJ *);
+void UpdateTimedScreen(JOBLIST *);
 int AreWidgetLoadsIdle(void);
-void SetWidgetState(W *, int);
-void SetWidgetRequest(W *, int);
+void SetWidgetState(void *, int);
+void SetWidgetRequest(void *, int);
 int HandleJoyButtons(void *, int);
-void SetJobListPage(OBJ *, int);
-void UpdateScreenStickDir(OBJ *);
-void UpdateJobListWidgets(OBJ *);
+void SetJobListPage(JOBLIST *, int);
+void UpdateScreenStickDir(JOBLIST *);
+void UpdateJobListWidgets(JOBLIST *);
 // Per-frame job list: waits for the widget to load; START / circle closes; direction buttons switch between the jobs page
 // and the tasks page.
-void UpdateJobList(OBJ *p)
+void UpdateJobList(JOBLIST *p)
 {
     UpdateTimedScreen(p);
-    if (p->page == -1)
+    if (p->nPage == -1)
         return;
-    if (p->joy == 0)
+    if (p->pjoy == 0)
         return;
-    if (p->widget->visibility == 0) {
+    if (((W *)p->pchild)->visibility == 0) {
         if (!AreWidgetLoadsIdle())
             return;
-        SetWidgetState(p->widget, 1);
-        SetWidgetRequest(p->widget, 2);
-        p->widget->vt->a[16].pfn((char *)p->widget + p->widget->vt->a[16].d);
+        SetWidgetState(p->pchild, 1);
+        SetWidgetRequest(p->pchild, 2);
+        ((W *)p->pchild)->vt->a[16].pfn((char *)p->pchild + ((W *)p->pchild)->vt->a[16].d);
     }
-    if (HandleJoyButtons(p->joy, 0x800)) {
+    if (HandleJoyButtons(p->pjoy, 0x800)) {
         SetJobListPage(p, -1);
         return;
     }
-    switch (p->page) {
+    switch (p->nPage) {
     case 0:
-        if (HandleJoyButtons(p->joy, 0x10)) {
+        if (HandleJoyButtons(p->pjoy, 0x10)) {
             SetJobListPage(p, -1);
             return;
         }
-        if (p->entryCount && HandleJoyButtons(p->joy, 0xF0)) {
+        if (p->centry && HandleJoyButtons(p->pjoy, 0xF0)) {
             SetJobListPage(p, 1);
             return;
         }
         break;
     case 1:
-        if (!p->openedFromJobs && HandleJoyButtons(p->joy, 0x10)) {
+        if (!p->fFromJobs && HandleJoyButtons(p->pjoy, 0x10)) {
             SetJobListPage(p, -1);
             return;
         }
-        if (HandleJoyButtons(p->joy, 0xF0)) {
+        if (HandleJoyButtons(p->pjoy, 0xF0)) {
             SetJobListPage(p, 0);
             return;
         }
@@ -2376,15 +2363,14 @@ void UpdateJobList(OBJ *p)
 } } // namespace M_UpdateJobList
 
 namespace M_SelectJobListItem { extern "C" {
-struct S { char p0[0x48]; int entryCount; char p1[0x118-0x4C]; int selectedRow; };
-void CloseScreen(struct S *p);
+void CloseScreen(JOBLIST *p);
 // Selects a job-list row (clamped).
-void SelectJobListItem(struct S *p, int i) {
-    int entryCount = p->entryCount;
+void SelectJobListItem(JOBLIST *p, int i) {
+    int entryCount = p->centry;
     int n;
     if (entryCount == 0) n = -1;
     else n = ClampInt(i, 0, entryCount - 1);
-    p->selectedRow = n;
+    p->iSelected = n;
     CloseScreen(p);
 }
 } } // namespace M_SelectJobListItem
@@ -2400,20 +2386,6 @@ struct SO {
     char pad70[0x7C - 0x70];
     SO *job;
 };
-struct E { SO *task; int iconAnim; int checkAnim; };
-struct OBJ {
-    char pad0[0x24];
-    void *widget;
-    char pad28[0x40 - 0x28];
-    int page;
-    char pad44[0x48 - 0x44];
-    int entryCount;
-    E entries[0x10];
-    int maxRows;
-    SO *selectedJob;
-    int openedFromJobs;
-    int selectedRow;
-};
 extern "C" {
 void StopWidgetAnim(void *, int);
 void func_002333B4(void *, int, unsigned int) __asm__("memset");
@@ -2422,32 +2394,32 @@ void qsort(void *, int, int, int (*)(const void *, const void *));
 int CompareTasks(const void *, const void *);
 int GetJobState(SO *);
 void memmove(void *, void *, unsigned int);
-void SelectJobListItem(OBJ *, int);
+void SelectJobListItem(JOBLIST *, int);
 }
 // Rebuilds the job list: tasks sorted by dependency then order; page 0 lists started jobs, page 1 the tasks of the
 // selected job up to the first unfinished one.
-extern "C" void RefreshJobListEntries(OBJ *p)
+extern "C" void RefreshJobListEntries(JOBLIST *p)
 {
-    for (int i = 0; i < p->entryCount; i++) {
-        E *e = &p->entries[i];
-        if (e->iconAnim != -1) {
-            StopWidgetAnim(p->widget, e->iconAnim);
-            e->iconAnim = -1;
+    for (int i = 0; i < p->centry; i++) {
+        JLENTRY *e = &p->aentry[i];
+        if (e->idAnimIcon != -1) {
+            StopWidgetAnim(p->pchild, e->idAnimIcon);
+            e->idAnimIcon = -1;
         }
-        if (e->checkAnim != -1) {
-            StopWidgetAnim(p->widget, e->checkAnim);
-            e->checkAnim = -1;
+        if (e->idAnimCheck != -1) {
+            StopWidgetAnim(p->pchild, e->idAnimCheck);
+            e->idAnimCheck = -1;
         }
     }
-    p->selectedRow = 0;
-    p->entryCount = 0;
-    func_002333B4(p->entries, 0, p->entryCount * sizeof(E));
+    p->iSelected = 0;
+    p->centry = 0;
+    func_002333B4(p->aentry, 0, p->centry * sizeof(JLENTRY));
     STACKSCOPE frame;
     int c;
     SO **aso;
     SortTasksTopologically(&c, &aso);
     qsort(aso, c, 4, CompareTasks);
-    switch (p->page) {
+    switch (p->nPage) {
     case 0: {
         SO *last = 0;
         for (int i = 0; i < c; i++) {
@@ -2455,12 +2427,12 @@ extern "C" void RefreshJobListEntries(OBJ *p)
             if (so && last != so) {
                 last = so;
                 if (GetJobState(so) > 0 && so->jobTextId != -1) {
-                    E *e = &p->entries[p->entryCount++];
-                    e->task = so;
-                    e->checkAnim = -1;
-                    e->iconAnim = -1;
-                    if (p->selectedJob == so)
-                        p->selectedRow = e - p->entries;
+                    JLENTRY *e = &p->aentry[p->centry++];
+                    e->ptask = so;
+                    e->idAnimCheck = -1;
+                    e->idAnimIcon = -1;
+                    if (p->pjobSelected == so)
+                        p->iSelected = e - p->aentry;
                 }
             }
         }
@@ -2470,13 +2442,13 @@ extern "C" void RefreshJobListEntries(OBJ *p)
         int flag = 0;
         for (int i = 0; i < c; i++) {
             SO *so = aso[i];
-            if (p->selectedJob == so->job && so->taskTextId != -1) {
+            if (p->pjobSelected == so->job && so->taskTextId != -1) {
                 if (flag && !so->taskState)
                     break;
-                E *e = &p->entries[p->entryCount++];
-                e->task = so;
-                e->checkAnim = -1;
-                e->iconAnim = -1;
+                JLENTRY *e = &p->aentry[p->centry++];
+                e->ptask = so;
+                e->idAnimCheck = -1;
+                e->idAnimIcon = -1;
                 if (so->taskState == 1)
                     flag = 1;
                 if (!so->taskState)
@@ -2486,55 +2458,44 @@ extern "C" void RefreshJobListEntries(OBJ *p)
         break;
     }
     }
-    if (p->entryCount > p->maxRows) {
-        memmove(p->entries, &p->entries[p->entryCount - p->maxRows], p->maxRows * sizeof(E));
-        int d = p->entryCount - p->maxRows;
-        if (d < p->selectedRow)
-            p->selectedRow -= d;
+    if (p->centry > p->centryMax) {
+        memmove(p->aentry, &p->aentry[p->centry - p->centryMax], p->centryMax * sizeof(JLENTRY));
+        int d = p->centry - p->centryMax;
+        if (d < p->iSelected)
+            p->iSelected -= d;
         else
-            p->selectedRow = 0;
-        p->entryCount = p->maxRows;
+            p->iSelected = 0;
+        p->centry = p->centryMax;
     }
-    SelectJobListItem(p, p->selectedRow);
+    SelectJobListItem(p, p->iSelected);
 }
 } // namespace M_RefreshJobListEntries
 
 namespace M_UpdateJobListWidgets { extern "C" {
 typedef struct { char pad[0x58]; int visibility; } W;   /* widget: 2 = fully shown */
-typedef struct { void *p; int a; int b; } ENT;
-typedef struct {
-    char pad[0x24];
-    W *pw;
-    char pad28[0x40 - 0x28];
-    int kind;
-    char pad44[4];
-    int c;
-    ENT ae[17];
-    int sel;
-} OBJ;
-void SwitchWidgetAnim(W *, int, int *);
+void SwitchWidgetAnim(void *, int, int *);
 int IsJobComplete(void *);
 int IsTaskComplete(void *);
 // Drives the job-list row highlights and completion check marks.
-void UpdateJobListWidgets(OBJ *p)
+void UpdateJobListWidgets(JOBLIST *p)
 {
     int i;
-    if (p->pw->visibility != 2)
+    if (((W *)p->pchild)->visibility != 2)
         return;
-    for (i = 0; i < p->c; i++) {
+    for (i = 0; i < p->centry; i++) {
         int f;
-        ENT *pe = &p->ae[i];
-        SwitchWidgetAnim(p->pw, i == p->sel ? i + 0x4FD : i + 0x4E9, &pe->a);
+        JLENTRY *pe = &p->aentry[i];
+        SwitchWidgetAnim(p->pchild, i == p->iSelected ? i + 0x4FD : i + 0x4E9, &pe->idAnimIcon);
         f = 0;
-        switch (p->kind) {
+        switch (p->nPage) {
         case 0:
-            f = IsJobComplete(pe->p);
+            f = IsJobComplete(pe->ptask);
             break;
         case 1:
-            f = IsTaskComplete(pe->p);
+            f = IsTaskComplete(pe->ptask);
             break;
         }
-        SwitchWidgetAnim(p->pw, f ? i + 0x507 : -1, &pe->b);
+        SwitchWidgetAnim(p->pchild, f ? i + 0x507 : -1, &pe->idAnimCheck);
     }
 }
 } } // namespace M_UpdateJobListWidgets
@@ -2551,97 +2512,77 @@ typedef struct SUB {
     int pageAnimFirst;
     int pageAnimThird;
 } SUB;
-typedef struct { int task, x4, x8; } E12;
-typedef struct OBJ {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0x24 - 0x10];
-    SUB *widget;
-    char pad28[0x40 - 0x28];
-    int page;
-    float pageTime;
-    int entryCount;
-    E12 entries[1];
-    char pad58[0x10C - 0x58];
-    int maxRows;
-    int selectedJob;
-    int openedFromJobs;
-    int selectedRow;
-    int popupAnim;
-    int scrollUpAnim;
-    int scrollDownAnim;
-} OBJ;
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
-void SetWidgetState(SUB *, int);
-void SetWidgetRequest(SUB *, int);
-void RefreshJobListEntries(OBJ *);
+void SetWidgetState(void *, int);
+void SetWidgetRequest(void *, int);
+void RefreshJobListEntries(JOBLIST *);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 // Opens the job list on a page (jobs or tasks) or closes it (-1), holding player control while open.
-void SetJobListPage(OBJ *p, int s)
+void SetJobListPage(JOBLIST *p, int s)
 {
     int old;
-    if (!p->widget)
+    if (!p->pchild)
         s = -1;
-    if (s == p->page)
+    if (s == p->nPage)
         return;
-    if (p->page == -1) {
+    if (p->nPage == -1) {
         IncrementSwHandsOff(D_003DD490, 0);
-        VCALL(p, 10);
+        p->Show();
     }
-    old = p->page;
-    p->page = s;
-    p->pageTime = D_002DDED0.realTime;
+    old = p->nPage;
+    p->nPage = s;
+    p->tPage = D_002DDED0.realTime;
     switch (s) {
     case -1:
         DecrementSwHandsOff(D_003DD490, 0);
-        VCALL(p, 11);
-        if (p->widget->visibility > 0)
-            SetWidgetRequest(p->widget, 1);
-        p->popupAnim = s;
-        p->scrollUpAnim = s;
-        p->scrollDownAnim = s;
+        p->Hide();
+        if (((SUB *)p->pchild)->visibility > 0)
+            SetWidgetRequest(p->pchild, 1);
+        p->idAnimPopup = s;
+        p->idAnimScrollUp = s;
+        p->idAnimScrollDown = s;
         break;
     case 0:
-        p->maxRows = 0xA;
-        p->widget->pageAnimSecond = 0x4E3;
-        p->widget->pageAnimThird = 0x4E2;
+        p->centryMax = 0xA;
+        ((SUB *)p->pchild)->pageAnimSecond = 0x4E3;
+        ((SUB *)p->pchild)->pageAnimThird = 0x4E2;
         if (old == 1)
-            p->widget->pageAnimFirst = 0x4E8;
+            ((SUB *)p->pchild)->pageAnimFirst = 0x4E8;
         else
-            p->widget->pageAnimFirst = 0x4E1;
-        if (p->widget->visibility) {
-            SetWidgetState(p->widget, 1);
-            SetWidgetRequest(p->widget, 2);
-            VCALL(p->widget, 16);
+            ((SUB *)p->pchild)->pageAnimFirst = 0x4E1;
+        if (((SUB *)p->pchild)->visibility) {
+            SetWidgetState(p->pchild, 1);
+            SetWidgetRequest(p->pchild, 2);
+            VCALL(((SUB *)p->pchild), 16);
         }
         break;
     case 1: {
-        int i = p->selectedRow;
-        if (i >= 0 && i < p->entryCount)
-            p->selectedJob = p->entries[i].task;
+        int i = p->iSelected;
+        if (i >= 0 && i < p->centry)
+            p->pjobSelected = p->aentry[i].ptask;
         else
-            p->selectedJob = (*(int *)&g_sw.currentJob);
-        p->openedFromJobs = (old == 0);
-        p->maxRows = 4;
-        p->widget->pageAnimSecond = 0x4E6;
-        p->widget->pageAnimThird = 0x4E5;
+            p->pjobSelected = g_sw.currentJob;
+        p->fFromJobs = (old == 0);
+        p->centryMax = 4;
+        ((SUB *)p->pchild)->pageAnimSecond = 0x4E6;
+        ((SUB *)p->pchild)->pageAnimThird = 0x4E5;
         if (old == 0)
-            p->widget->pageAnimFirst = 0x4E7;
+            ((SUB *)p->pchild)->pageAnimFirst = 0x4E7;
         else
-            p->widget->pageAnimFirst = 0x4E4;
-        if (p->widget->visibility) {
-            SetWidgetState(p->widget, 1);
-            SetWidgetRequest(p->widget, 2);
-            VCALL(p->widget, 16);
+            ((SUB *)p->pchild)->pageAnimFirst = 0x4E4;
+        if (((SUB *)p->pchild)->visibility) {
+            SetWidgetState(p->pchild, 1);
+            SetWidgetRequest(p->pchild, 2);
+            VCALL(((SUB *)p->pchild), 16);
         }
         break;
     }
     }
     RefreshJobListEntries(p);
-    ((void (*)(void *, int))p->vt[14].pfn)((char *)p + p->vt[14].d, -1);
+    p->SetMode(-1);
 }
 } } // namespace M_SetJobListPage
 #undef VCALL
@@ -2653,29 +2594,20 @@ namespace RO_ORDER { extern const char r_D_002A7A30[] __asm__("D_002A7A30") = "%
 namespace RO_ORDER { extern const char r_D_002A7A38[] __asm__("D_002A7A38") = "%s: %s. %s"; }
 namespace M_SetJobListStickDir { extern "C" {
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
-typedef struct {
-    char pad[0x28];
-    int state;
-    float stateTime;
-    char pad30[0x48 - 0x30];
-    int entryCount;
-    char pad4c[0x118 - 0x4C];
-    int selectedRow;
-} OBJ;
-void SetJobListPage(OBJ *, int);
-void SelectJobListItem(OBJ *, int);
+void SetJobListPage(JOBLIST *, int);
+void SelectJobListItem(JOBLIST *, int);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 // Job-list stick handler (slot 14): left / right switch pages, up / down move the selection.
-void SetJobListStickDir(OBJ *p, unsigned int n)
+void SetJobListStickDir(JOBLIST *p, unsigned int n)
 {
-    if (n == p->state)
+    if (n == p->nMode)
         return;
-    p->state = n;
-    p->stateTime = D_002DDED0.realTime;
+    p->nMode = n;
+    p->modeStartTime = D_002DDED0.realTime;
     switch (n) {
     case 0:
-        if (p->entryCount)
+        if (p->centry)
             SetJobListPage(p, 1);
         break;
     case 4:
@@ -2684,16 +2616,16 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
     case 1:
     case 2:
     case 3:
-        if (p->selectedRow > 0) {
-            SelectJobListItem(p, p->selectedRow - 1);
+        if (p->iSelected > 0) {
+            SelectJobListItem(p, p->iSelected - 1);
             SetSndSourceLo(CreateSfxSound(0x35), 0);
         }
         break;
     case 5:
     case 6:
     case 7:
-        if (p->selectedRow < p->entryCount - 1) {
-            SelectJobListItem(p, p->selectedRow + 1);
+        if (p->iSelected < p->centry - 1) {
+            SelectJobListItem(p, p->iSelected + 1);
             SetSndSourceLo(CreateSfxSound(0x35), 0);
         }
         break;
@@ -3048,31 +2980,27 @@ extern "C" void BuildJobNameText(char *pch)
 
 namespace M_BuildJobListRowText { extern "C" {
 struct O { char pad[0x6C]; int n; };
-struct E { struct O *po; int a, b; };
-struct G2 { char pad[0x48]; int c; struct E ae[1]; };
-extern struct G2 D_003DA3C0;
+extern JOBLIST D_003DA3C0;
 extern struct G D_003DD490;
 void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(void *p, void *q);
 // Text callback: the job name of row i.
 void BuildJobListRowText(void *p, int i) {
-    struct G2 *pg = &D_003DA3C0;
-    if (i < pg->c) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, pg->ae[i].po->n));
+    JOBLIST *pg = &D_003DA3C0;
+    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, ((struct O *)pg->aentry[i].ptask)->n));
 }
 } } // namespace M_BuildJobListRowText
 
 namespace M_BuildJobListTaskRowText { extern "C" {
 struct O { char pad[0x5C]; int n; };
-struct E { struct O *po; int a, b; };
-struct G2 { char pad[0x48]; int c; struct E ae[1]; };
-extern struct G2 D_003DA3C0;
+extern JOBLIST D_003DA3C0;
 extern struct G D_003DD490;
 void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(void *p, void *q);
 // Text callback: the task name of row i.
 void BuildJobListTaskRowText(void *p, int i) {
-    struct G2 *pg = &D_003DA3C0;
-    if (i < pg->c) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, pg->ae[i].po->n));
+    JOBLIST *pg = &D_003DA3C0;
+    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, ((struct O *)pg->aentry[i].ptask)->n));
 }
 } } // namespace M_BuildJobListTaskRowText
 
