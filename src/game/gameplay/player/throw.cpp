@@ -7,6 +7,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
+#include "sly2/aseg.h"
 #include "player_input.h"
 #include "sly2/util.h"
 
@@ -17,8 +18,6 @@ union V {qword q;float f[4];int n[4];};
 struct RANGE {float lo,hi;};
 struct M3 {V r[3];};
 struct M4 {M3 basis;V position;};
-struct ASEG;
-struct ASEGAV {char pad[0x14];ASEG *definition;char pad18[4];float time;char pad20[0x20];float scale;};
 struct SW;
 struct SO;
 /* g++ 2.95 vtable entry with the call shapes used here. */
@@ -42,7 +41,7 @@ struct O {
  char pad1A8[0x38];V direction;          /* +0x1E0 */
  char pad1F0[0xEC];int airState;         /* +0x2DC the air component state (inferred; 0x12 tested) */
  char pad2E0[0x620];CTRLSEL controller;  /* +0x900 */
- char pad9A4[0x68C];ASEGAV *animation;HANDLE extra;   /* +0x1030 */
+ char pad9A4[0x68C];ASEGA *animation;HANDLE extra;   /* +0x1030 */
  char pad1038[0x398];int mode;           /* +0x13D0 */
  char pad13D4[0x42C];int playerState;    /* +0x1800 */
 };
@@ -108,7 +107,7 @@ float GetStepHeading(O *);
 float NormalizeAngle__Ff(float);
 void SetJtThrowState(JTTHROW *,int);
 void RecalculateAsegBlend(ASEG *);
-int IsAsegaRetracted(ASEGAV *);
+int IsAsegaRetracted(ASEGA *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int ConsumeButtonsPressedWithin__5POCTLUif(CONTROL *,int,float);
 void SetBentleyHoverState(O *,int);
@@ -133,7 +132,7 @@ void SetLoParent(O *,int,int);
 void FadeSoOut(O *,float);
 void ChargeGadgetMp(O *,int);
 void ReleaseSma(HANDLE *);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGAV **);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGA **);
 void SetSoCnstrForce(O *po, int a);
 void SetSoCnstrTorque(O *po, int a);
 qword ConvertVecBetweenLos(void *p, int a, qword q);
@@ -407,7 +406,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
     }
     for (;;) {
         int previous = s->state;
-        ASEGAV *animation = s->owner->animation;
+        ASEGA *animation = s->owner->animation;
         switch (previous) {
         case 0: {
             w.scratch.vector.q = IdleDifference(GetLoWorldPos(s->selected), w.ownerPosition);
@@ -509,10 +508,10 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
     O *owner = s->owner;
     if (owner->movement != 1)
         return;
-    ASEGAV *animation = owner->animation;
-    TRACKREF *reference = animation ? FindAsegChannel(animation->definition, owner, (void *)6, 1) : 0;
+    ASEGA *animation = owner->animation;
+    TRACKREF *reference = animation ? FindAsegChannel(animation->animation, owner, (void *)6, 1) : 0;
     if (reference) {
-        Evaluate(reference->track, 0, &w.scratch.vector, animation->time, animation->scale);
+        Evaluate(reference->track, 0, &w.scratch.vector, animation->time, animation->speed);
         V *direction = &s->owner->direction;
         float height = w.scratch.vector.f[2];
         direction->f[0] = 0.0f;

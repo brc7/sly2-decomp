@@ -13,11 +13,10 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
+#include "sly2/aseg.h"
 #include "player_input.h"
 union U {float f[4];qword q;int bits[4];};   // floats first, so U globals can be initialized
 struct VE{short delta,pad;void*fn;};
-struct ASEG{char pad0[0x74];float duration;};
-struct ASEGA{char pad0[0x1C];float localTime;char pad20[0x40-0x20];float elapsed;char pad44[4];float rate;};
 struct EFFECT;struct ACTION;struct SM;struct COMPONENT;struct ALO;
 struct NODE{char pad0[12];VE*vt;};
 struct TARGET{char pad0[0x130];int exitEffect;};
@@ -509,7 +508,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
         enterEffect = -1;
         __asm__("lwc1 $f1,%2\n\tlwc1 $f2,%3\n\tlwc1 $f0,%4\n\tlwc1 %0,%5\n\tdiv.s %0,%0,$f2\n\tmin.s %1,$f0,$f1"
                 : "=f"(rate), "=f"(start)
-                : "m"(clip->duration), "m"(current->rate), "m"(current->localTime), "m"(current->elapsed)
+                : "m"(clip->duration), "m"(current->masterSpeed), "m"(current->time), "m"(current->speed)
                 : "$f0", "$f1", "$f2");
     } else
         jt->finished = 0;
@@ -557,10 +556,6 @@ typedef char layout_VE[(sizeof(VE)==8)?1:-1];
 typedef char layout_BLEND[(sizeof(BLEND)==0x1C)?1:-1];
 typedef char layout_VE_delta[((unsigned long)&((VE*)0)->delta==0x0)?1:-1];
 typedef char layout_VE_fn[((unsigned long)&((VE*)0)->fn==0x4)?1:-1];
-typedef char layout_ASEG_duration[((unsigned long)&((ASEG*)0)->duration==0x74)?1:-1];
-typedef char layout_ASEGA_localTime[((unsigned long)&((ASEGA*)0)->localTime==0x1c)?1:-1];
-typedef char layout_ASEGA_elapsed[((unsigned long)&((ASEGA*)0)->elapsed==0x40)?1:-1];
-typedef char layout_ASEGA_rate[((unsigned long)&((ASEGA*)0)->rate==0x48)?1:-1];
 typedef char layout_NODE_vt[((unsigned long)&((NODE*)0)->vt==0xc)?1:-1];
 typedef char layout_TARGET_exitEffect[((unsigned long)&((TARGET*)0)->exitEffect==0x130)?1:-1];
 typedef char layout_POINT_position[((unsigned long)&((POINT*)0)->position==0x70)?1:-1];
@@ -607,8 +602,6 @@ typedef char layout_JT_clip19[((unsigned long)&((JT*)0)->clip19==0x1cfc)?1:-1];
 typedef char layout_JT_clip20[((unsigned long)&((JT*)0)->clip20==0x1d00)?1:-1];
 typedef char layout_JT_clip21[((unsigned long)&((JT*)0)->clip21==0x1d04)?1:-1];
 
-typedef char layout_ASEG_prefix_size[(sizeof(ASEG)==0x78)?1:-1];
-typedef char layout_ASEGA_prefix_size[(sizeof(ASEGA)==0x4C)?1:-1];
 typedef char layout_NODE_prefix_size[(sizeof(NODE)==0x10)?1:-1];
 typedef char layout_TARGET_prefix_size[(sizeof(TARGET)==0x134)?1:-1];
 typedef char layout_POINT_prefix_size[(sizeof(POINT)==0x80)?1:-1];
