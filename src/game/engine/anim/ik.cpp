@@ -18,35 +18,20 @@ struct VTE { short delta, pad; void *fn; };
 /* A bone frame (XF view: local matrix, world position at +0x70, parent at +0xA0) and the parent's world matrix. */
 struct A { MATRIX4V m; char pad[0x30]; qwordV worldPos; char pad2[0x20]; void *parent; };
 struct B { char pad[0x40]; MATRIX4V m; };
-/* An IK record (0xE0, allocated by LoadSoIkFromBrx): the target and the two bones with their parent, snapshots of
-   their matrices, the bend axis, two points and the measured bone lengths and rest angle. */
-struct IKREC
-{
-    void *primary;               /* +0x00 */
-    A *current;                  /* +0x04 first bone */
-    A *output;                  /* +0x08 second bone */
-    B *ancestor;                  /* +0x0C parent */
-    MATRIX4V snapshot;            /* +0x10 */
-    MATRIX4V rest;            /* +0x50 */
-    qwordV axis;              /* +0x90 bend axis */
-    qwordV localPoint;              /* +0xA0 */
-    qwordV mappedPoint;              /* +0xB0 */
-    union { float value; int bits; } firstLength, secondLength;     /* +0xC0, +0xC4 */
-    float referenceAngle;              /* +0xC8 rest angle */
-};
-typedef char assert_IKREC_gC8[(unsigned int)&((IKREC *)0)->referenceAngle == 0xC8 ? 1 : -1];
+/* The IK record is sly2/act.h's IKREC; this TU reads its bones through the A/B frame views and its matrices as qword
+   rows (the hand-scheduled VU asm moves them that way). */
+#define IKBONE(pxf) ((A *)(pxf))
+#define IKROWS(mat) (*(MATRIX4V *)&(mat))
+#define XF_REF(pxf) (*(IKREC **)((char *)(pxf) + 0xA8))   /* XF +0xA8 holds the record in an IK bone */
 /* The SO's action list entries (+0x90 of each 0x100 entry) and the SO view (vtable, entries, IK flag bit 36). */
-struct N { int kind; char pad[0xC]; N *next; char pad2[8]; IKREC *ikRecord; };
-struct E { char pad[0x90]; N *actions; char pad2[0x100 - 0x94]; };
+struct E { char pad[0x90]; ACT *actions; char pad2[0x100 - 0x94]; };
 struct SOIK { char pad[0xC]; VTE *vt; char pad10[0x40]; int entryCount; E *entries; char pad58[0x148 - 0x58]; unsigned long flags; };
 typedef char assert_SOIK_grf[(unsigned int)&((SOIK *)0)->flags == 0x148 ? 1 : -1];
-/* The IK action (ACT fields, vtable, the IK record at +0x1C; the frame points back through +0xA8). */
-struct ACTIKV { int ack; void *pso; char *pxf; int nPriority; void *pactNext; int nRole; void *vt; void *pikrec; };
 
 struct MSG { int cb; int nKind; };
 extern "C" {
-void CloneAct(ACTIKV *pact, void *a1, void *a2, void *a3);
-void AttachActBase(ACTIKV *pact);
+void CloneAct(ACT *pact, ACT *pactSrc, ALO *palo, XF *pxf);
+void AttachActBase(ACT *pact);
 int U8Read__18CBinaryInputStream(void *pbis);
 int S16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
@@ -59,10 +44,10 @@ qwordV ConvertXfVec(void *space, void *p, qwordV v);
 
 // Clones an IK action onto a transform (ACT slot 6): generic CloneAct, then takes over the IK record the transform's
 // +0xA8 points at. (inferred)
-extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
+extern "C" void CloneIkAct(ACT7 *pact, ACT *pactSrc, ALO *palo, XF *pxf)
 {
-    CloneAct(pact, a1, a2, a3);
-    pact->pikrec = *(void **)(pact->pxf + 0xA8);
+    CloneAct(pact, pactSrc, palo, pxf);
+    pact->pikrec = XF_REF(pact->pxf);
 }
 
 /* ACT7's slot 1, its key function (sly2/act.h). */
@@ -70,9 +55,8 @@ extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
 // update mode), then points the transform's +0xA8 at this action's IK record.
 void ACT7::Attach()
 {
-    ACTIKV *pact = (ACTIKV *)this;
-    AttachActBase(pact);
-    *(void **)(pact->pxf + 0xA8) = pact->pikrec;
+    AttachActBase(this);
+    XF_REF(pxf) = pikrec;
 }
 
 static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
@@ -97,39 +81,39 @@ extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
         msg.cb = 0xE0;
         msg.nKind = 0x10;
         ikRecord = (IKREC *)AllocClearedFromWorldHeap(&msg);
-        ikRecord->current = (A *)ReadObjectReference(so, stream);
-        ikRecord->output = (A *)ReadObjectReference(so, stream);
-        ikRecord->ancestor = (B *)ReadObjectReference(so, stream);
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->mappedPoint);
-        ikRecord->primary = ReadObjectReference(so, stream);
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->localPoint);
+        ikRecord->pxfUpper = (XF *)ReadObjectReference(so, stream);
+        ikRecord->pxfLower = (XF *)ReadObjectReference(so, stream);
+        ikRecord->pxfEnd = (XF *)ReadObjectReference(so, stream);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->posWrist);
+        ikRecord->pxfGoal = (XF *)ReadObjectReference(so, stream);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->posIkHandle);
         InitIkRecord(ikRecord);
-        NewIkAct(so, ikRecord->current, -1, ikRecord);
-        NewIkAct(so, ikRecord->output, -1, ikRecord);
+        NewIkAct(so, ikRecord->pxfUpper, -1, ikRecord);
+        NewIkAct(so, ikRecord->pxfLower, -1, ikRecord);
     }
 }
 
 // Paired-distance update; volatile on the first two VU asm groups keeps the p4 load between them (Claude agent).
-static inline N*Entry(SOIK*owner,int i){register E*entries asm("$2")=owner->entries;register int offset asm("$3")=i*256;entries=(E*)((int)entries+offset);return entries->actions;}
+static inline ACT*Entry(SOIK*owner,int i){register E*entries asm("$2")=owner->entries;register int offset asm("$3")=i*256;entries=(E*)((int)entries+offset);return entries->actions;}
 
 // For an SO with IK records (flag bit 36), re-measures every IK record's two bone lengths from the current transforms
 // (the parent-space point to the second bone, and the second bone to the first), so animation that scales bones keeps
 // the solver consistent. Hand-scheduled VU0 asm. (inferred)
 extern "C" void UpdateSoIkBoneLengths(SOIK*so){
  if(!(so->flags&(1UL<<36)))return;
- for(int i=0;i<so->entryCount;i++)for(N*node=Entry(so,i);node;node=node->next)if(node->kind==7){
-  register IKREC*ikRecord asm("$4")=node->ikRecord;
-  register B*parent asm("$3")=ikRecord->ancestor;register A*rightOwner asm("$6")=ikRecord->output;register const MATRIX4V*rows asm("$2")=&parent->m;
+ for(int i=0;i<so->entryCount;i++)for(ACT*node=Entry(so,i);node;node=node->pactNext)if(node->ack==7){
+  register IKREC*ikRecord asm("$4")=((ACT7*)node)->pikrec;
+  register B*parent asm("$3")=(B*)ikRecord->pxfEnd;register A*rightOwner asm("$6")=IKBONE(ikRecord->pxfLower);register const MATRIX4V*rows asm("$2")=&parent->m;
   register qwordV transformed asm("vf2"),right asm("vf1");
-  asm volatile("lqc2 %0,%2\n\tlqc2 $vf4,0x20(%3)\n\tlqc2 $vf6,0x30(%3)\n\tlqc2 $vf5,0x10(%3)\n\tlqc2 $vf3,%5\n\tlqc2 %1,%6\n\tvmulax.xyz ACC,%0,$vf3x\n\tvmadday.xyz ACC,$vf5,$vf3y\n\tvmaddaz.xyz ACC,$vf4,$vf3z\n\tvmaddw.xyz %0,$vf6,$vf0w":"=j"(transformed),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(ikRecord->mappedPoint),"m"(rightOwner->worldPos):"vf3","vf4","vf5","vf6");
-  register A*leftOwner asm("$5")=ikRecord->current;
+  asm volatile("lqc2 %0,%2\n\tlqc2 $vf4,0x20(%3)\n\tlqc2 $vf6,0x30(%3)\n\tlqc2 $vf5,0x10(%3)\n\tlqc2 $vf3,%5\n\tlqc2 %1,%6\n\tvmulax.xyz ACC,%0,$vf3x\n\tvmadday.xyz ACC,$vf5,$vf3y\n\tvmaddaz.xyz ACC,$vf4,$vf3z\n\tvmaddw.xyz %0,$vf6,$vf0w":"=j"(transformed),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(ikRecord->posWrist),"m"(rightOwner->worldPos):"vf3","vf4","vf5","vf6");
+  register A*leftOwner asm("$5")=IKBONE(ikRecord->pxfUpper);
   register qwordV one asm("vf4"),left asm("vf3");register int bits asm("$2");
   asm volatile("vsub.xyzw %0,%0,%2\n\tvmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(transformed),"=&j"(one):"j"(right));
   asm("lqc2 %1,%2\n\tvsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(transformed),"=j"(left):"m"(leftOwner->worldPos));
   asm("vsub.xyzw %1,%1,%2\n\tqmfc2.ni %0,%3\n\tvmul.xyz %1,%1,%1\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z":"=r"(bits),"+j"(right),"+j"(left):"j"(transformed));
-  *(int*)&ikRecord->secondLength.value=bits;
+  *(int*)&ikRecord->lowerLength=bits;
   asm("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %1,$vf0,Q\n\tqmfc2.ni %0,%1":"=r"(bits),"+j"(right));
-  *(int*)&ikRecord->firstLength.value=bits;
+  *(int*)&ikRecord->upperLength=bits;
  }
 }
 
@@ -140,9 +124,9 @@ extern "C" void UpdateSoIkBoneLengths(SOIK*so){
 // bone's parent space. (inferred)
 extern "C" void InitIkRecord(IKREC*ikRecord){
  register int bits asm("$2");
- qwordV*axis=&ikRecord->axis;
- register A*leftOwner asm("$5")=ikRecord->current;register A*rightOwner asm("$4")=ikRecord->output;register B*parent asm("$8")=ikRecord->ancestor;
- {register qwordV first asm("$2")=leftOwner->m.r[0];ikRecord->snapshot.r[0]=first;}register const MATRIX4V*rows asm("$7");asm volatile("addiu %0,%1,0x40":"=r"(rows):"r"(parent));register qwordV point asm("vf6");asm volatile("lqc2 %0,%1":"=j"(point):"m"(ikRecord->mappedPoint));ikRecord->snapshot.r[1]=leftOwner->m.r[1];ikRecord->snapshot.r[2]=leftOwner->m.r[2];ikRecord->snapshot.r[3]=leftOwner->m.r[3];ikRecord->rest=rightOwner->m;
+ qwordV*axis=(qwordV*)&ikRecord->elbowAxis;
+ register A*leftOwner asm("$5")=IKBONE(ikRecord->pxfUpper);register A*rightOwner asm("$4")=IKBONE(ikRecord->pxfLower);register B*parent asm("$8")=(B*)ikRecord->pxfEnd;
+ {register qwordV first asm("$2")=leftOwner->m.r[0];IKROWS(ikRecord->matUpperBind).r[0]=first;}register const MATRIX4V*rows asm("$7");asm volatile("addiu %0,%1,0x40":"=r"(rows):"r"(parent));register qwordV point asm("vf6");asm volatile("lqc2 %0,%1":"=j"(point):"m"(ikRecord->posWrist));IKROWS(ikRecord->matUpperBind).r[1]=leftOwner->m.r[1];IKROWS(ikRecord->matUpperBind).r[2]=leftOwner->m.r[2];IKROWS(ikRecord->matUpperBind).r[3]=leftOwner->m.r[3];IKROWS(ikRecord->matLowerBind)=rightOwner->m;
  
  register qwordV a asm("vf2"),right asm("vf1");
  asm volatile("lqc2 $vf5,0x30(%3)\n\tlqc2 $vf4,0x10(%3)\n\tlqc2 $vf3,0x20(%3)\n\tlqc2 %0,%2\n\tlqc2 %1,%5\n\tvmulax.xyz ACC,%0,%6x\n\tvmadday.xyz ACC,$vf4,%6y\n\tvmaddaz.xyz ACC,$vf3,%6z\n\tvmaddw.xyz %0,$vf5,$vf0w\n\tvsub.xyzw %0,%0,%1":"=j"(a),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(rightOwner->worldPos),"j"(point):"vf3","vf4","vf5");
@@ -152,15 +136,16 @@ extern "C" void InitIkRecord(IKREC*ikRecord){
  register qwordV one2 asm("vf6");
  asm("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(left),"=&j"(one2):"j"(right));
  asm("qmfc2.ni %0,%2\n\tvsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %1,$vf0,Q":"=r"(bits),"+j"(left):"j"(first));
- ikRecord->secondLength.bits=bits;
+ *(int*)&ikRecord->lowerLength=bits;
  register qwordV arg0 asm("$4"),arg1 asm("$5");
  asm("qmfc2.ni %0,%3\n\tqmfc2.ni %1,%4\n\tqmfc2.ni %2,%5":"=r"(arg0),"=r"(bits),"=r"(arg1):"j"(right),"j"(left),"j"(a));
- *(volatile int*)&ikRecord->firstLength.bits=bits;ikRecord->referenceAngle=AngleBetweenVectors(arg0,arg1,axis);
- ikRecord->axis=ConvertXfVec(0,ikRecord->output->parent,ikRecord->axis);
+ *(volatile int*)&ikRecord->upperLength=bits;ikRecord->restAngle=AngleBetweenVectors(arg0,arg1,axis);
+ ikRecord->elbowAxis=ConvertXfVec(0,IKBONE(ikRecord->pxfLower)->parent,ikRecord->elbowAxis);
 }
 
 
-/* SolveIk's own views of the IK record (REQUEST) and frames (FRAME): its asm addresses them by offset. */
+/* SolveIk's own views of the IK record (IKRECIsland: sly2/act.h's IKREC with the second bone's bind matrix split into
+   rows and translation, kept because the hand-scheduled asm addresses it by offset) and frames (FRAME). */
 union U{qwordV q;float f[4];int i[4];};
 struct M3{
  U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}
@@ -169,7 +154,7 @@ struct M3{
 struct M4{U r[4];};
 struct FRAME{M4 local,world;char pad80[0x20];FRAME*parent;int stamp;};
 struct CONTROL{VTE*vt;};
-struct REQUEST{
+struct IKRECIsland{
  FRAME*primary,*current,*output,*ancestor;M4 snapshot;M3 rest;
  qwordV translation,axis,localPoint,mappedPoint;float firstLength,secondLength,referenceAngle,twist;
  CONTROL*control;float*parameters;
@@ -181,14 +166,14 @@ struct GAME{char pad[0x3D58];int stamp;};extern "C" GAME D_003DD490;
 extern "C" float acosf(float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qwordV,float);
 extern "C" qwordV*VECTOR_opAssign(qwordV*,qwordV);
-static inline float CopySnapshot(REQUEST*q){float high;register FRAME*d __asm__("$4")=q->current;register qwordV odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->current),"m"(q->snapshot.r[0].q):"at");d->local.r[0].q=odd;even=q->snapshot.r[1].q;d->local.r[1].q=even;odd=q->snapshot.r[2].q;d->local.r[2].q=odd;even=q->snapshot.r[3].q;d->local.r[3].q=even;return high;}
+static inline float CopySnapshot(IKRECIsland*q){float high;register FRAME*d __asm__("$4")=q->current;register qwordV odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->current),"m"(q->snapshot.r[0].q):"at");d->local.r[0].q=odd;even=q->snapshot.r[1].q;d->local.r[1].q=even;odd=q->snapshot.r[2].q;d->local.r[2].q=odd;even=q->snapshot.r[3].q;d->local.r[3].q=even;return high;}
 
 // Two-bone IK solve (the IK action's update): restores the first bone's snapshot, finds the elbow angle from the bone
 // lengths and the distance to the target by the law of cosines (clamped acos), bends the joint about the bend axis,
 // then swings the chain so the end reaches the target and applies an optional twist curve; writes the resulting local
 // matrices and bumps the global transform stamp so world matrices are recomputed.
-extern "C" void SolveIk(void*context,REQUEST*request){
- register REQUEST*q __asm__("$17")=request;
+extern "C" void SolveIk(void*context,IKRECIsland*request){
+ register IKRECIsland*q __asm__("$17")=request;
  WORK w;
  register float low __asm__("$f5")=-1.0f,high __asm__("$f6"),cosine __asm__("$f12");
  register M3*originalBasis __asm__("$20");
@@ -268,7 +253,7 @@ typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
 typedef char VTE_Size[(sizeof(VTE)==8)?1:-1];
-typedef char REQUEST_Size[(sizeof(REQUEST)==0xE0)?1:-1];
+typedef char REQUEST_Size[(sizeof(IKRECIsland)==0xE0)?1:-1];
 typedef char FRAME_Size[(sizeof(FRAME)==0xB0)?1:-1];
 typedef char FRAME_local_Offset[((unsigned)&((FRAME*)0)->local==0)?1:-1];
 typedef char FRAME_world_Offset[((unsigned)&((FRAME*)0)->world==64)?1:-1];
@@ -277,22 +262,22 @@ typedef char FRAME_stamp_Offset[((unsigned)&((FRAME*)0)->stamp==164)?1:-1];
 typedef char VTE_delta_Offset[((unsigned)&((VTE*)0)->delta==0)?1:-1];
 typedef char VTE_fn_Offset[((unsigned)&((VTE*)0)->fn==4)?1:-1];
 typedef char CONTROL_vt_Offset[((unsigned)&((CONTROL*)0)->vt==0)?1:-1];
-typedef char REQUEST_primary_Offset[((unsigned)&((REQUEST*)0)->primary==0)?1:-1];
-typedef char REQUEST_current_Offset[((unsigned)&((REQUEST*)0)->current==4)?1:-1];
-typedef char REQUEST_output_Offset[((unsigned)&((REQUEST*)0)->output==8)?1:-1];
-typedef char REQUEST_ancestor_Offset[((unsigned)&((REQUEST*)0)->ancestor==12)?1:-1];
-typedef char REQUEST_snapshot_Offset[((unsigned)&((REQUEST*)0)->snapshot==16)?1:-1];
-typedef char REQUEST_rest_Offset[((unsigned)&((REQUEST*)0)->rest==80)?1:-1];
-typedef char REQUEST_translation_Offset[((unsigned)&((REQUEST*)0)->translation==128)?1:-1];
-typedef char REQUEST_axis_Offset[((unsigned)&((REQUEST*)0)->axis==144)?1:-1];
-typedef char REQUEST_localPoint_Offset[((unsigned)&((REQUEST*)0)->localPoint==160)?1:-1];
-typedef char REQUEST_mappedPoint_Offset[((unsigned)&((REQUEST*)0)->mappedPoint==176)?1:-1];
-typedef char REQUEST_firstLength_Offset[((unsigned)&((REQUEST*)0)->firstLength==192)?1:-1];
-typedef char REQUEST_secondLength_Offset[((unsigned)&((REQUEST*)0)->secondLength==196)?1:-1];
-typedef char REQUEST_referenceAngle_Offset[((unsigned)&((REQUEST*)0)->referenceAngle==200)?1:-1];
-typedef char REQUEST_twist_Offset[((unsigned)&((REQUEST*)0)->twist==204)?1:-1];
-typedef char REQUEST_control_Offset[((unsigned)&((REQUEST*)0)->control==208)?1:-1];
-typedef char REQUEST_parameters_Offset[((unsigned)&((REQUEST*)0)->parameters==212)?1:-1];
+typedef char REQUEST_primary_Offset[((unsigned)&((IKRECIsland*)0)->primary==0)?1:-1];
+typedef char REQUEST_current_Offset[((unsigned)&((IKRECIsland*)0)->current==4)?1:-1];
+typedef char REQUEST_output_Offset[((unsigned)&((IKRECIsland*)0)->output==8)?1:-1];
+typedef char REQUEST_ancestor_Offset[((unsigned)&((IKRECIsland*)0)->ancestor==12)?1:-1];
+typedef char REQUEST_snapshot_Offset[((unsigned)&((IKRECIsland*)0)->snapshot==16)?1:-1];
+typedef char REQUEST_rest_Offset[((unsigned)&((IKRECIsland*)0)->rest==80)?1:-1];
+typedef char REQUEST_translation_Offset[((unsigned)&((IKRECIsland*)0)->translation==128)?1:-1];
+typedef char REQUEST_axis_Offset[((unsigned)&((IKRECIsland*)0)->axis==144)?1:-1];
+typedef char REQUEST_localPoint_Offset[((unsigned)&((IKRECIsland*)0)->localPoint==160)?1:-1];
+typedef char REQUEST_mappedPoint_Offset[((unsigned)&((IKRECIsland*)0)->mappedPoint==176)?1:-1];
+typedef char REQUEST_firstLength_Offset[((unsigned)&((IKRECIsland*)0)->firstLength==192)?1:-1];
+typedef char REQUEST_secondLength_Offset[((unsigned)&((IKRECIsland*)0)->secondLength==196)?1:-1];
+typedef char REQUEST_referenceAngle_Offset[((unsigned)&((IKRECIsland*)0)->referenceAngle==200)?1:-1];
+typedef char REQUEST_twist_Offset[((unsigned)&((IKRECIsland*)0)->twist==204)?1:-1];
+typedef char REQUEST_control_Offset[((unsigned)&((IKRECIsland*)0)->control==208)?1:-1];
+typedef char REQUEST_parameters_Offset[((unsigned)&((IKRECIsland*)0)->parameters==212)?1:-1];
 typedef char GAME_stamp_Offset[((unsigned)&((GAME*)0)->stamp==15704)?1:-1];
 
 typedef char WORK_Size[(sizeof(WORK)==0x170)?1:-1];

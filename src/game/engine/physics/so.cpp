@@ -133,21 +133,6 @@ struct XFLINK
       undefined4 unk_0x08[2];
 };
 
-struct CHAINLINK
-{
-      undefined1 unk_0x00[0x60];
-      CHAIN *pchain;
-      XF *pxf;
-      undefined4 unk_0x68[2];
-};
-
-struct CHAIN
-{
-      int clink;
-      CHAINLINK *alink;
-      undefined4 unk_0x08[18];
-};
-
 struct VU_VECTOR4
 {
     qword qw;
@@ -3000,15 +2985,15 @@ void SO::Clone(LO *ploBase)
         case 16:
         {
             CHAINLINK *plink = (CHAINLINK *)pxf->reference;
-            CHAIN *pchain = plink->pchain;
-            if (plink == pchain->alink)
+            CHAIN *pchain = plink->chain;
+            if (plink == pchain->links)
             {
                 pchain = (CHAIN *)PvAllocSwCopy(sizeof(CHAIN), pchain);
-                pchain->alink = (CHAINLINK *)PvAllocSwCopy(pchain->clink * sizeof(CHAINLINK), pchain->alink);
-                for (int ilink = 0; ilink < pchain->clink; ilink++)
+                pchain->links = (CHAINLINK *)PvAllocSwCopy(pchain->linkCount * sizeof(CHAINLINK), pchain->links);
+                for (int ilink = 0; ilink < pchain->linkCount; ilink++)
                 {
-                    CHAINLINK *plinkNew = &pchain->alink[ilink];
-                    plinkNew->pchain = pchain;
+                    CHAINLINK *plinkNew = &pchain->links[ilink];
+                    plinkNew->chain = pchain;
                     CloneXfRef(ploBase, &plinkNew->pxf);
                     plinkNew->pxf->reference = (XF *)plinkNew;
                 }

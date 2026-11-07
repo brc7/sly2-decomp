@@ -197,18 +197,71 @@ struct ACTSEG : ACT
 typedef char assert_ACTSEG_size[sizeof(ACTSEG) == 0x2C ? 1 : -1];
 typedef char assert_ACTSEG_pac[SLY2_OFFSETOF(ACTSEG, pac) == 0x1C ? 1 : -1];
 
-/* ACT3 (0x20; vtable 0x2DB338, tail.cpp's): kind 3 */
+/* CHAIN / CHAINLINK: a simulated chain of transforms (tails, ropes), loaded by tail.cpp's LoadSoChainsFromBrx and
+   stepped by UpdateChainLink; each link's XF points back at its link through XF +0xA8 (role 0x10). */
+struct CHAINLINK
+{
+    MATRIX3 restMatrix;     /* +0x00 the XF's rest orientation (copied at load) */
+    qword restSegment;      /* +0x30 the segment to the next link, in link space */
+    qword tipPosition;      /* +0x40 simulated tip (world) */
+    qword tipVelocity;      /* +0x50 */
+    CHAIN *chain;           /* +0x60 */
+    XF *pxf;                /* +0x64 the link's transform */
+    undefined4 unknown68[2];
+};
+typedef char assert_CHAINLINK_size[sizeof(CHAINLINK) == 0x70 ? 1 : -1];   /* the 0x70 link stride (LoadSoChainsFromBrx) */
+
+struct CHAIN
+{
+    int linkCount;
+    CHAINLINK *links;
+    int stepCount;          /* simulation substeps per frame */
+    float bendStiffness;
+    float damping;
+    float relativeDamping;
+    float maxBendAngle;
+    float lastUpdateTime;   /* g_clock time of the last simulation (the first link's call of a frame simulates) */
+    qword gravity;          /* +0x20 */
+    qword lastSegment;      /* +0x30 the last link's continuation */
+    qword previousAnchor;   /* +0x40 */
+};
+typedef char assert_CHAIN_size[sizeof(CHAIN) == 0x50 ? 1 : -1];   /* Alloc(0x50) in LoadSoChainsFromBrx */
+
+/* ACT3 (0x20; vtable 0x2DB338, tail.cpp's): a chain link's act (kind 3, role 0x10), one per CHAINLINK */
 struct ACT3 : ACT
 {
-    int n1C;
+    CHAINLINK *pchainlink;  /* +0x1C the link it drives; Attach stores it into its XF's +0xA8 */
     virtual void Attach() __asm__("AttachChainAct");   /* slot 1 */
     virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneChainAct");   /* slot 6 */
 };
 
-/* ACT7 (0x20; vtable 0x2D2E58, ik.cpp's): kind 7 */
+/* IKREC (0xE0): a two-bone IK record, loaded by ik.cpp's LoadSoIkFromBrx (InitIkRecord measures it) and solved by
+   SolveIk; the two bones' XFs point at it through XF +0xA8 (jt.cpp's RebuildJtXmg reads the leg's). */
+struct IKREC
+{
+    XF *pxfGoal;            /* +0x00 the IK handle the chain reaches for */
+    XF *pxfUpper;           /* +0x04 first bone (shoulder/hip) */
+    XF *pxfLower;           /* +0x08 second bone (elbow/knee) */
+    XF *pxfEnd;             /* +0x0C the end's space: its world matrix maps posWrist */
+    MATRIX4 matUpperBind;   /* +0x10 snapshot of the first bone's local matrix (InitIkRecord) */
+    MATRIX4 matLowerBind;   /* +0x50 the second bone's */
+    qword elbowAxis;        /* +0x90 bend axis, in the second bone's parent space */
+    qword posIkHandle;      /* +0xA0 */
+    qword posWrist;         /* +0xB0 */
+    float upperLength;      /* +0xC0 bone lengths (UpdateSoIkBoneLengths re-measures them) */
+    float lowerLength;      /* +0xC4 */
+    float restAngle;        /* +0xC8 angle between the bones at load */
+    float twistAngle;       /* +0xCC written by pacgTwist */
+    ACG *pacgTwist;         /* +0xD0 optional twist curve: SolveIk evaluates it (slot 2) at *pgTwistParam */
+    float *pgTwistParam;    /* +0xD4 */
+    undefined4 unknownD8[2];
+};
+typedef char assert_IKREC_size[sizeof(IKREC) == 0xE0 ? 1 : -1];   /* LoadSoIkFromBrx allocates 0xE0 */
+
+/* ACT7 (0x20; vtable 0x2D2E58, ik.cpp's): a bone's IK act (kind 7), one per bone of an IKREC */
 struct ACT7 : ACT
 {
-    int n1C;
+    IKREC *pikrec;          /* +0x1C the record it solves; Attach stores it into its XF's +0xA8 */
     virtual void Attach() __asm__("AttachIkAct");   /* slot 1 */
     virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneIkAct");   /* slot 6 */
 };

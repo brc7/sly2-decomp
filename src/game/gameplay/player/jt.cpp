@@ -247,25 +247,6 @@ struct VU_FLOAT
     qword qw;
 };
 
-struct IKREC
-{
-      XF *pxfGoal;
-      XF *pxfS;
-      XF *pxfE;
-      XF *pxfEnd;
-      MATRIX4 matSBind;
-      MATRIX4 matEBind;
-      qword qwAxisElbow;
-      qword qwPosIkh;
-      qword qwPosWrist;
-      float sUpper;
-      float sLower;
-      float radOrig;
-      float radTwist;
-      undefined4 unk_0xd0[2];
-      undefined4 unk_0xd8[2];
-};
-
 struct EDGE
 {
     ushort aipos[2];
@@ -1380,10 +1361,10 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, (XF *)paloHip, jt->rootTransform, &matHip, 0);
     MATRIX4 matIkh;
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->reference) ->pxfGoal, jt->rootTransform, &matIkh, 0);
-    qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->qwPosIkh);
+    qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->posIkHandle);
     qword posSphereCenter = VuAdd(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
     pxmg->spherePosition = posSphereCenter;
-    pxmg->sphereRadius = ((IKREC *)((XF *)( paloHip ))->reference) ->sUpper + ((IKREC *)((XF *)( paloHip ))->reference) ->sLower + 10.0f;
+    pxmg->sphereRadius = ((IKREC *)((XF *)( paloHip ))->reference) ->upperLength + ((IKREC *)((XF *)( paloHip ))->reference) ->lowerLength + 10.0f;
     VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
     VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
     LSG lsgClip;
