@@ -55,7 +55,7 @@ struct LO : public BASIC
       int grfUnk40;
       undefined4 unk_0x44[3];
       virtual void Init() __asm__("InitLo");
-    virtual CLASSINFO *Pclassinfo() __asm__("GetLoClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetLoClassDesc");   /* slot 6 */
       virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleLoSpliceEvent");
       virtual void Add() __asm__("AddLo");
       virtual void Remove() __asm__("RemoveLo");

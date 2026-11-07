@@ -27,7 +27,7 @@ struct DETECTOR : public XFM
       int cUnkFC;           /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp ClearStepguardGeneratedTargets) */
       undefined4 unk_0x100[(0x180 - 0x100) / 4];
     virtual void Update() __asm__("UpdateDetector");   /* slot 16 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetDetectorClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetDetectorClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitDetector");   /* slot 7 */
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
@@ -57,7 +57,7 @@ struct CID120 : LO
 {
     char pad50[0xD0 - 0x50];
     virtual void Init() __asm__("InitGuardAttack");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostGuardAttackLoad");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneGuardAttack");   /* slot 41 */
 };
@@ -120,7 +120,7 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x1000[4];
     STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
     virtual void RemoveHierarchy() __asm__("RemoveStepguardHierarchy");   /* slot 12 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepguardMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepguard");   /* slot 7 */
     virtual void PostLoad() __asm__("PostStepguardLoad");   /* slot 15 */

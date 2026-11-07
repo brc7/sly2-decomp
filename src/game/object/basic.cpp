@@ -15,7 +15,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Hand-made virtual calls: the vtable pointer of a BASIC is at +0xC (slot 3 HandleSpliceEvent, 5 HandleMessage,
-   6 Pclassinfo). Private views throughout: defining BASIC's members here would make this BASIC's key TU. The view of
+   6 GetClassInfo). Private views throughout: defining BASIC's members here would make this BASIC's key TU. The view of
    BASIC is BASICV (sly2/basic.h's BASIC has the vptr implicitly), the signed class id CIDV (basic.h's CID has no
    enumerators, so it is unsigned and the derivation test would compare unsigned); the C++ definitions that name them
    carry their mangled names as asm labels. */
@@ -104,7 +104,7 @@ extern "C" void BASIC_Slot2Default(void) {
 }
 
 /** @sly2-annot addr=0x132B10
- * Purpose: cid range test: Pclassinfo()->cid in [cid, D_002BAAE8[cid].cidMax)
+ * Purpose: cid range test: GetClassInfo()->cid in [cid, D_002BAAE8[cid].cidMax)
  * Info: proposed name IsBasicDerivedFrom (T1); TU basic
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/object-model.md#1-class-descriptors-and-vtables,
@@ -282,7 +282,7 @@ extern "C" void EnsureLoSidebagBasic(LO *plo, int optid)
 }
 
 /** @sly2-annot addr=0x132EA0
- * Purpose: Returns Pclassinfo()->cid (vt6)
+ * Purpose: Returns GetClassInfo()->cid (vt6)
  * Info: proposed name GetBasicCid (T1); TU basic
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0

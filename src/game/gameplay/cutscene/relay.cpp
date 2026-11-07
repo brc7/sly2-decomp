@@ -280,7 +280,7 @@ struct GRABSPOTDATA
 
 struct GRABSPOTV : public GRABSPOTDATA
 {
-    virtual int FGetWrapRange(float *pasRange);
+    virtual int GetGrabRange(float *pasRange);
     virtual void GetClosestParam(JT *pjt, float *psParam);
 };
 

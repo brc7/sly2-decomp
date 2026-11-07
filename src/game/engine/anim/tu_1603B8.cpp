@@ -52,7 +52,7 @@ public:
     V(31) V(32) V(33) V(34) V(35) V(36) V(37) V(38) V(39) V(40)
     V(41) V(42) V(43) V(44) V(45) V(46) V(47) V(48) V(49) V(50)
 #undef V
-    virtual XFV *PloFind(int n);
+    virtual XFV *GetXfFromIndex(int n);
 };
 
 struct G { char pad[0x3D58]; int counter; };
@@ -88,10 +88,10 @@ extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream
         req.cb = 0x10;
         req.nKind = 0x10;
         XFMCONSTR *constraint = (XFMCONSTR *)AllocClearedFromWorldHeap(&req);
-        constraint->source = lo->PloFind(stream->S16Read());
+        constraint->source = lo->GetXfFromIndex(stream->S16Read());
         if (!constraint->source)
             constraint->source = &D_002C44F0;
-        constraint->dest = lo->PloFind(stream->S16Read());
+        constraint->dest = lo->GetXfFromIndex(stream->S16Read());
         constraint->position = stream->S8Read();
         constraint->rotation = stream->S8Read();
         constraint->dest->constraint = constraint;

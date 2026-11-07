@@ -119,7 +119,7 @@ struct GRABSPOTDATA
 
 struct GRABSPOT : public GRABSPOTDATA
 {
-    virtual int FGetWrapRange(float *pasRange);
+    virtual int GetGrabRange(float *pasRange);
     virtual void GetClosestParam(JT *pjt, float *psParam);
     virtual void GetPos(float sParam, JT *pjt, VECTOR *ppos, float *pradTarget);
     virtual void AdjustDist(float *pgDist);
@@ -3147,7 +3147,7 @@ struct LM { float gMin, gMax; };
 struct GRABSPOT
 {
     char pad0[0x20];
-    virtual int FGetWrapRange(float *pasRange);
+    virtual int GetGrabRange(float *pasRange);
     virtual void V2();
     virtual void V3();
     virtual void V4();

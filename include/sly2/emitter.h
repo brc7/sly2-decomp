@@ -6,7 +6,7 @@
  * which uses this EMITTER and EMITB); the rest is padding here.
  *
  * Their linkonce members (LoadFromBrx, Clone, the post-load reference binding, PemitbEnsure, the blip colours and a
- * second Pclassinfo) also exist once per class with the same code (EMITTER 0x2584A8..0x258F30, EXPLO
+ * second GetClassInfo) also exist once per class with the same code (EMITTER 0x2584A8..0x258F30, EXPLO
  * 0x258F40..0x2599C8): function templates as well, instantiated by emitter.cpp.
  *
  * The accessors exist twice in the binary, once per class (EMITTER 0x258898..0x258EC8, EXPLO 0x259330..0x259960),
@@ -96,7 +96,7 @@ struct EMITTER : public XFM
     BLIPG *pblipg;          /* +0x150 sprite group it emits into */
     char pad154[0x160 - 0x154];
     virtual void Init() __asm__("InitEmitter");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetEmitterClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetEmitterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleEmitterMessage__FP7EMITTER5MSGIDPv");   /* slot 5 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx__H1Z7EMITTER_PX01P18CBinaryInputStream_v");   /* slot 14 */
     virtual void PostLoad() __asm__("PostEmitterLoad__FP7EMITTER");   /* slot 15 */
@@ -109,7 +109,7 @@ typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class 
 struct EXPL : public XFM
 {
     virtual void ExplodeExplso() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 (ExplodeExplso); key function (emitter.cpp) */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetExplClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetExplClassDesc");   /* slot 6 */
 };
 typedef char assert_EXPL_size[sizeof(EXPL) == 0xE0 ? 1 : -1];   /* class descriptor cb */
 
@@ -119,7 +119,7 @@ struct EXPLO : public EXPL
     int fDirty;             /* +0xE0 set by an ensure for writing */
     EMITB *pemitb;          /* +0xE4 the emitter block (shared until written) */
     char padE8[0xF0 - 0xE8];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetExploClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetExploClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx__H1Z5EXPLO_PX01P18CBinaryInputStream_v");   /* slot 14 */
     virtual void PostLoad() __asm__("func_002586D8__H1Z5EXPLO_PX01_v");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneEmitter__H1Z5EXPLO_PX01P2LO_v");   /* slot 41 */
@@ -171,7 +171,7 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descript
    They are function templates for the same reason as the accessors below: one body per pair, emitted per instance
    in .gnu.linkonce.t.<symbol>, never inlined into callers. emitter.cpp instantiates both sets explicitly. Each is
    named after its EMITTER copy (the EXPLO copy is the other instance); the virtual slots of EMITTER/EXPLO name the
-   instances (LoadFromBrx, Clone, PostLoad, and the second vtable's Pclassinfo). ---- */
+   instances (LoadFromBrx, Clone, PostLoad, and the second vtable's GetClassInfo). ---- */
 
 /* the class descriptor of each (rows 29 and 32), for GetEmitterClassDesc_linkonce */
 inline CLASSINFO *PclassinfoEmitb(EMITTER *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x244); }
@@ -364,7 +364,7 @@ template <class T> void func_002586D8(T *p)
  *   class_reference hidden-types
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-/* Pclassinfo of the second (never stored) vtable of each class: the class descriptor */
+/* GetClassInfo of the second (never stored) vtable of each class: the class descriptor */
 template <class T> CLASSINFO *GetEmitterClassDesc_linkonce(T *p) { return PclassinfoEmitb(p); }
 
 /* ---- the accessors (g_aeopid records: get +0xC, set +0x14, setUser +0x1C, ensure +0x24) ---- */

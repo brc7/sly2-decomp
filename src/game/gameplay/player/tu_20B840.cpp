@@ -75,7 +75,7 @@ struct VKBLEND : public VECKEY
       MRSGC *amrsgc;
       KEYV **apkey;
       qword qwRest;
-    virtual int NKeyType() { return 5; }
+    virtual int GetKeyType() { return 5; }
 };
 struct SKBLEND : public SCALARKEY
 {

@@ -46,7 +46,7 @@ struct XFM : public LO
                                mostly all-zero here (HYPOTHESIS: not maintained unless used). Note SO positions are NOT here:
                                SO+0x60 pxfRoot is an XF whose world position is at XF+0x70. */
     virtual MATRIX4 *GetWorldMatrix() __asm__("GetXfmWorldMatrix");   /* slot 31 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetXfmClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetXfmClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitXfm");   /* slot 7 */
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetXfmParent");   /* slot 10 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadXfmFromBrx");   /* slot 14 */
@@ -85,7 +85,7 @@ struct SHAPE : public XFM
       struct SHAPERANGES *pranges;   /* per-range data (SHAPERANGES) */
       undefined4 unk_0x184[3];
     virtual void Init() __asm__("InitShape");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetShapeClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetShapeClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadShapeFromBrx");   /* slot 14 */
     virtual void UpdateXfWorld() __asm__("UpdateShapeXfWorld");   /* slot 17 */
     virtual void Clone(LO *ploBase) __asm__("CloneShape");   /* slot 41 */
@@ -103,7 +103,7 @@ struct TARGET : public XFM
       int nUnkF4;
       uint32_t   _pad_22    [ 2 ] ;
     virtual void OnAdd() __asm__("OnTargetAdd");   /* slot 23 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetTargetClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetTargetClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTarget");   /* slot 7 */
     virtual void PostLoad() __asm__("PostTargetLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnTargetRemove");   /* slot 22 */
@@ -122,7 +122,7 @@ struct VOL : public XFM
       float sRadius2;   /* squared radius of the bounding sphere (inferred from the 2) */
       undefined4 unk_0x124[3];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVolFromBrx");   /* slot 14 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetVolClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetVolClassDesc");   /* slot 6 */
 };
 typedef char assert_VOL_size[sizeof(VOL) == 0x130 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -138,7 +138,7 @@ struct PROXY : public XFM
       PROXYINIT *ainit;   /* init records applied to each new copy */
       undefined4 unk_0xf4[3];
     virtual void Init() __asm__("InitProxy");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetProxyClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetProxyClassDesc");   /* slot 6 */
     virtual void OnAdd() __asm__("OnProxyAdd");   /* slot 23 */
     virtual void ReleaseSpares() __asm__("PROXY_ReleaseSpares");   /* slot 24 */
     virtual void Clone(LO *ploBase) __asm__("CloneProxy");   /* slot 41 */
@@ -187,7 +187,7 @@ struct TN : public XFM
       LM lmPull;   /* pull limits */
       undefined4 unk_0x1b8[(0x1c0 - 0x1b8) / 4];
     virtual void OnRemove() __asm__("OnTnRemove");   /* slot 22 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetTnClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetTnClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTn");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveTnHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadTnFromBrx");   /* slot 14 */

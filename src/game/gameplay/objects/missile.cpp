@@ -38,7 +38,7 @@ struct BOMB : public SO
       undefined4 unk_0x1f8[2];
       RWM *prwmOwner;
       undefined4 unk_0x204[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBombClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetBombClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBombMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBomb");   /* slot 7 */
     virtual void PostLoad() __asm__("PostBombLoad");   /* slot 15 */
@@ -67,7 +67,7 @@ struct MISSILE : public BOMB
       ACT *flightAction;             /* +0x268 */
       float flightActionParam;            /* +0x26C the action's parameter (1.0) */
     virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetMissileClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetMissileClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
@@ -83,7 +83,7 @@ struct ACCMISS : public MISSILE
       float speedChangeRate;
       undefined4 unk_0x278[2];
     virtual void PresetAccel() __asm__("PresetAccmissAccel");
-    virtual CLASSINFO *Pclassinfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAccmiss__FP7ACCMISS");   /* slot 7 */
 };
 /* CID82: the class-registry name of Sly 1's SPLMISS (its vtable is _vt$5CID82). This TU is the key TU of MISSILE,
@@ -97,7 +97,7 @@ struct CID82 : public MISSILE
       undefined4 unk_0x27C;
       qword targetVelocity;     /* +0x280 velocity at the target */
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
     virtual void PresetAccel() __asm__("PresetSplmissAccel");   /* slot 70 */
     virtual void Fire() __asm__("FireSplmiss");   /* slot 78 */
 };

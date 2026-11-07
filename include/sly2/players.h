@@ -99,7 +99,7 @@ struct MURRAY : public STEPPLAYER
       undefined4 unk_0x1ad0[(0x1b00 - 0x1ad0) / 4];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
     virtual int IsFreeMoving() __asm__("IsMurrayFreeMoving");   /* slot 94 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleMurrayMessage");   /* slot 5 */
     virtual void Init() __asm__("InitMurray");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMurrayFromBrx");   /* slot 14 */
@@ -185,7 +185,7 @@ struct BENTLEY : public STEPPLAYER
       int nUnk1874;
       undefined4 unk_0x1878[(0x1880 - 0x1878) / 4];
     virtual void OnGadgetsChanged() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBentleyClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetBentleyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBentleyMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBentley");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadBentleyFromBrx");   /* slot 14 */

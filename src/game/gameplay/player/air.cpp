@@ -90,7 +90,7 @@ struct GRABSPOTDATA
 
 struct GRABSPOTV : public GRABSPOTDATA
 {
-    virtual int FGetWrapRange(float *pasRange);
+    virtual int GetGrabRange(float *pasRange);
 };
 
 extern "C" void SetStepTargetHeadingFromVector(STEP *pstep, qword dpos);

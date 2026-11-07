@@ -26,7 +26,7 @@ struct AREQT : AREQV { AREQT(int c, int a) { cb = c; cbAlign = a; } };
 struct AC
 {
     virtual void Load(CBinaryInputStream *pbis);
-    virtual void VUnk2();
+    virtual void Prepare();
     virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
 };
 

@@ -429,7 +429,7 @@ public:
     V(31) V(32) V(33) V(34) V(35) V(36) V(37) V(38) V(39) V(40)
     V(41) V(42) V(43) V(44) V(45) V(46) V(47) V(48) V(49) V(50)
 #undef V
-    virtual BONE *PboneFind(int n);
+    virtual BONE *GetXfFromIndex(int n);
 };
 struct ITEM { int oid; LO *plo; int n8; BONE *pbone; MATRIX4 mat; };
 struct GRP { int a; BONE *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
@@ -458,7 +458,7 @@ extern "C" void BindGlobset(S *p)
             ITEM *pitem = &pgrp->aitem[j];
             pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pitem->oid, p->pvOwner);
             if (pitem->plo)
-                pitem->pbone = pitem->plo->PboneFind(pitem->n8);
+                pitem->pbone = pitem->plo->GetXfFromIndex(pitem->n8);
             if (pitem->pbone) {
                 MATRIX4 mat;
                 if (pgrp->pbone) {

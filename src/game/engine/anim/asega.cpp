@@ -46,7 +46,7 @@ struct SO { char pad0[0x50]; int cxf; XF *axf; };
 struct ACV
 {
     virtual void Load(CBinaryInputStream *pbis);
-    virtual void VUnk2();
+    virtual void Prepare();
     virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
 };
 struct ACTSEGV { int kind; LO *plo; XF *pxf; int nPriority; int pad10; int role; VTE *pvt; ACV *pac; ACV *pacRot; ASEGA *pasega; ACTSEGV *pactsegNext; };

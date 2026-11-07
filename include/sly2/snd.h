@@ -13,7 +13,7 @@ struct CID151 : BASIC
 {
     char pad10[0x60 - 0x10];
     virtual void Start() __asm__("StartSnd");   /* slot 7 (the first new virtual); key function (sound.cpp) */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid151ClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetCid151ClassDesc");   /* slot 6 */
     virtual void GetKind() __asm__("__pure_virtual");   /* slot 8 (pure) */
     virtual void Play() __asm__("__pure_virtual");   /* slot 9 (pure) */
     virtual void Stop() __asm__("__pure_virtual");   /* slot 10 (pure) */

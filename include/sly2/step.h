@@ -22,7 +22,7 @@ struct BHV : public BASIC
       int cBusyAbove;       /* +0x20 [R] number of busy behaviours above this one in the stack */
       undefined4 unk_0x24[3];
       virtual void OnPush() __asm__("InitBhv");
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBhvClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetBhvClassDesc");   /* slot 6 */
       virtual void Start() __asm__("StartBhv");
     virtual void Close() __asm__("CloseBhv");   /* slot 9: named from its overrides (inferred) */
     virtual void Update() __asm__("UpdateBhv");   /* slot 10: named from its overrides (inferred) */
@@ -83,7 +83,7 @@ struct STEP : public PO
       undefined4 unk_0x29c;
       int acUnk2a0[6];
     virtual void Init() __asm__("InitStep");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetStepClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
     virtual void PostLoad() __asm__("PostStepLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateStep");   /* slot 16 */

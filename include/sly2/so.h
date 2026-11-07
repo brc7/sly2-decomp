@@ -199,7 +199,7 @@ struct SO : public LO
                 ulong fUnk35 : 1;
                 ulong fHasIkLimbs : 1;   /* the object has IK limbs */
     virtual MATRIX4 *GetWorldMatrix() __asm__("GetSoWorldMatrix");   /* slot 31 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetSoClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetSoClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSo");   /* slot 7 */
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetSoParent");   /* slot 10 */
     virtual void AddHierarchy() __asm__("AddSoHierarchy");   /* slot 11 */
@@ -322,7 +322,7 @@ struct CID148 : public BASIC
 {
       undefined4 unk_0x10[4];
     virtual void AddRef() __asm__("IncrefXfHandle");   /* slot 1; key function (so.cpp) */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid148ClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetCid148ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("DecrefXfHandle");   /* slot 2 */
 };
 typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class descriptor cb */
@@ -332,7 +332,7 @@ typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class des
 struct CID149 : CID148
 {
     char pad20[0x30 - 0x20];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid149ClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetCid149ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID149_size[sizeof(CID149) == 0x30 ? 1 : -1];
 struct CID150 : public CID148
@@ -340,7 +340,7 @@ struct CID150 : public CID148
       SO *pso;              /* +0x20 */
       SOPART *psopart;      /* +0x24 */
       undefined4 unk_0x28[2];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid150ClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetCid150ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID150_size[sizeof(CID150) == 0x30 ? 1 : -1];   /* class descriptor cb */
 

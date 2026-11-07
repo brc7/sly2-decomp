@@ -27,7 +27,7 @@ struct JOB : public LO
       void *psvName;        /* +0xD4 [R] */
       undefined4 unk_0xd8[(0x100 - 0xd8) / 4];
     virtual void Init() __asm__("InitJob");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetJobClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetJobClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadJobFromBrx");   /* slot 14 */
     virtual void PostLoad() __asm__("PostJobLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateJob");   /* slot 16 */
@@ -57,7 +57,7 @@ struct TASK : public LO
       int nMode;            /* +0xF4 [R] */
       undefined4 unk_0xf8[(0x110 - 0xf8) / 4];
     virtual void Init() __asm__("InitTask");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetTaskClassDesc");   /* slot 6 */
+    virtual CLASSINFO *GetClassInfo() __asm__("GetTaskClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadTaskFromBrx");   /* slot 14 */
     virtual void PostLoad() __asm__("PostTaskLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateTask");   /* slot 16 */
