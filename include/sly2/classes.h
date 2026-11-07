@@ -177,7 +177,7 @@ struct SAA : BASIC
     short unknown2A;
     int isDirty;            /* +0x2C [S] */
     void *owner;            /* +0x30 [S] */
-    SL instances;           /* +0x34 [S] the instances (shdanim.cpp SAIE) */
+    SL instances;           /* +0x34 [S] its copy records (shd.h COPYREC, linked through pcopyrecNext) */
     SAA *next;              /* +0x40 [S] next in g_sw.slSaa */
     int cqwMain;            /* +0x44 [S] (glob.cpp SAAFIELDS) */
     void *pvMain;           /* +0x48 [S] */
