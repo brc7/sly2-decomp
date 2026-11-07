@@ -2270,7 +2270,6 @@ extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
    memcard's): a SCREEN with its own Update (slot 7) and SetMode (slot 14, the key function). */
 struct CMcStatus : SCREEN
 {
-    char pad30[0x40 - 0x30];
     CMcStatus() __asm__("CMcStatus_ctor");
     virtual void SetMode(int nMode) __asm__("CMcStatus_SetMode");   /* slot 14 */
     virtual void Update() __asm__("CMcStatus_Update");   /* slot 7 */

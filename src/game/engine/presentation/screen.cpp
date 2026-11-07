@@ -21,6 +21,7 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/joy.h"
 #include "sly2/screen.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -84,12 +85,18 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct SCRCHILD { char pad0[0xB0]; int unknownB0; };
 /* The notice screen keeps an object at +0x28 instead of a mode. */
 #define PLONOTICE(screen) (*(LO **)&(screen)->nMode)
-/* A gadget menu item (0x20 bytes): gadget id and flags. */
+/* A gadget menu item (0x20 bytes, the per-hero tables D_002C2DE8/D_002C3028/D_002C3148): gadget id, its highlight
+   animations, its place on the page and flags. */
 struct GMITEM
 {
-    int idGadget;
-    char pad4[0x1C - 4];
-    uint f0 : 1;
+    int idGadget;           /* +0x00 the power-up id */
+    int idAnimUnlocked;     /* +0x04 highlight animations (SelectGadgetMenuItem) */
+    int idAnimAcquired;     /* +0x08 */
+    int idAnimSelected;     /* +0x0C */
+    int idAnimCur;          /* +0x10 the one playing (-1 none) */
+    float x;                /* +0x14 position on the page */
+    float y;                /* +0x18 */
+    uint fEquippable : 1;   /* +0x1C bit 0: can go in a slot (the info / slot buttons) */
     uint fAvailable : 1;    /* +0x1C bit 1 */
     uint fAcquired : 1;     /* +0x1C bit 2 */
     uint fRest : 29;
@@ -97,32 +104,62 @@ struct GMITEM
 /* screen.cpp's screens on sly2/screen.h's SCREEN (DRAFT names after their functions and constructors; vtables
  * 0x2D8568..0x2D8368). Defined in the reverse of their emission order: g++ emits a TU's vtables in the reverse order
  * of their classes' definitions, and the ELF has them in ascending order TITLE .. GADGETMENU, SCREEN, HUDMETER,
- * SCREENBASE. The views above keep the names the m2c bodies use (SCREEN, GADGETMENU). */
+ * SCREENBASE. Field names DRAFT (from the bodies). */
 struct GADGETMENU : SCREEN
 {
-    char pad30[0x40 - 0x30];
-    int nState;             /* +0x40 */
+    int nState;             /* +0x40 the page shown (GadgetMenuPage) */
     float tState;           /* +0x44 */
-    char pad48[4];
+    int idSelected;         /* +0x48 the selected item's gadget id */
     int citem;              /* +0x4C */
-    GMITEM *aitem;          /* +0x50 */
+    GMITEM *aitem;          /* +0x50 the page's items */
+    int unknown54[3];
     virtual void Reset() __asm__("ResetGadgetMenu");   /* slot 13; key function */
     virtual void Update() __asm__("UpdateGadgetMenu");   /* slot 7 */
     virtual void SetMode(int mode) __asm__("SetGadgetMenuStickDir");   /* slot 14 */
 };
+typedef char assert_GADGETMENU_size[sizeof(GADGETMENU) == 0x60 ? 1 : -1];
+/* A job-list row: the job or task object and its two animations. */
+struct JLENTRY { void *ptask; int idAnimIcon; int idAnimCheck; };
+/* A ThiefNet list row: the power-up (buy tab) or loot kind (sell tab), and its icon animation. */
+struct TNITEM { int id; int idAnimIcon; };
 struct THIEFNET : SCREEN
 {
+    int nTab;               /* +0x40 0 buy, 1 sell, -1 closed */
+    float tTab;             /* +0x44 */
+    int citem;              /* +0x48 */
+    TNITEM aitem[64];       /* +0x4C */
+    int iSelected;          /* +0x24C the selected row */
+    int iFirstVisible;      /* +0x250 the first row shown */
+    int idPowerupSelected;  /* +0x254 */
+    int idLootSelected;     /* +0x258 */
+    int idAnimPopup;        /* +0x25C */
+    int idAnimScrollUp;     /* +0x260 */
+    int idAnimScrollDown;   /* +0x264 */
+    int unknown268[2];
     virtual void Reset() __asm__("ResetThiefnet");   /* slot 13; key function */
     virtual void Update() __asm__("UpdateThiefnet");   /* slot 7 */
     virtual void SetMode(int mode) __asm__("SetThiefnetStickDir");   /* slot 14 */
 };
 struct JOBLIST : SCREEN
 {
+    int nPage;              /* +0x40 0 jobs, 1 the selected job's tasks, -1 closed */
+    float tPage;            /* +0x44 */
+    int centry;             /* +0x48 */
+    JLENTRY aentry[16];     /* +0x4C */
+    int centryMax;          /* +0x10C rows of the page */
+    void *pjobSelected;     /* +0x110 the job whose tasks page 1 lists (D_003DA4D0 in the global) */
+    int fFromJobs;          /* +0x114 page 1 was opened from page 0 */
+    int iSelected;          /* +0x118 the selected row */
+    int idAnimPopup;        /* +0x11C */
+    int idAnimScrollUp;     /* +0x120 */
+    int idAnimScrollDown;   /* +0x124 */
     virtual void PostLoad() __asm__("PostJobListLoad");   /* slot 12; key function */
     virtual void Update() __asm__("UpdateJobList");   /* slot 7 */
     virtual void Reset() __asm__("ResetJobList");   /* slot 13 */
     virtual void SetMode(int mode) __asm__("SetJobListStickDir");   /* slot 14 */
 };
+typedef char assert_THIEFNET_size[sizeof(THIEFNET) == 0x270 ? 1 : -1];
+typedef char assert_JOBLIST_size[sizeof(JOBLIST) == 0x128 ? 1 : -1];   /* the global is 0x110 plus the selected job's slot and more (s_jobselslot) */
 struct SCRN52D : SCREEN   /* the screen of text 0x52D (ConstructScreen52D constructs it) */
 {
     virtual void PostLoad() __asm__("PostLoadScreen52D");   /* slot 12; key function */

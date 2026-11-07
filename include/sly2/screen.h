@@ -45,13 +45,18 @@ typedef char assert_HUDMETER_size[sizeof(HUDMETER) == 0x50 ? 1 : -1];
 /* SCREEN: a UI screen or dialog: the text it shows, the widget object and a mode with its entry time. */
 struct SCREEN : SCREENBASE
 {
-    char pad10[0x18 - 0x10];
+    JOY *pjoy;              /* +0x10 the joypad it reads (only while focused: UpdateScreenFocus) */
+    int unknown14;          /* +0x14 */
     int idText;             /* +0x18 id of the text shown */
-    char pad1C[4];
+    int unknown1C;          /* +0x1C */
     int idTextQueued;       /* +0x20 text to show next; for widget screens the widget oid */
-    void *pchild;           /* +0x24 the widget object */
-    int nMode;              /* +0x28 screen mode (-1 after ResetMode) */
+    void *pchild;           /* +0x24 the widget object (WIDGET; the bodies read it through their WIDGET views) */
+    int nMode;              /* +0x28 screen mode (-1 after ResetMode); the stick direction of the menus (slot 14) */
     float modeStartTime;    /* +0x2C time the mode was entered */
+    int nPopup;             /* +0x30 the message popup (SetScreenMode): -1 none, 0 a prompt, 1 a timed message */
+    float tPopupEnd;        /* +0x34 when the popup closes (UpdateTimedScreen) */
+    int idsPopup;           /* +0x38 the popup's text id */
+    int unknown3C;          /* +0x3C */
     SCREEN() __asm__("ConstructScreen");        /* out of line: screen.cpp */
     void ResetMode() __asm__("ResetScreenMode");   /* mode -1, time now (screen.cpp; DRAFT name ResetScreenMode) */
     virtual void PostLoad() __asm__("PostLoadScreen");   /* slot 12 (screen.cpp: resolves the widget); key function (screen.cpp) */
@@ -59,5 +64,6 @@ struct SCREEN : SCREENBASE
     virtual void Reset() __asm__("ResetScreen");   /* slot 13 */
     virtual void SetMode(int nMode) __asm__("__pure_virtual");   /* slot 14 (pure) */
 };
+typedef char assert_SCREEN_size[sizeof(SCREEN) == 0x40 ? 1 : -1];
 
 #endif
