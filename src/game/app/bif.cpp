@@ -79,23 +79,22 @@ void CancelSwSpliceCallback(char *psw, int n);
 
 // 0x11F440 BuiltinAdd__FiP4CRefP6CFrame
 namespace M_BuiltinAdd__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4; struct NODE;
+struct VECTOR; struct MATRIX4;
 // (Claude agent, lane A9, 2026-10-23) script `+` builtin (probably). The first node is read through an inline accessor in an
 // if/else: the inline blocks jump.c's "x = b; if (c) x = a" rewrite, so `pn = 0` is laid out after the branch and
 // reorg steals it into the beqz delay slot as in the original.
 typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
-struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args);
 
-static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
+static inline CPair *NodeFromRef(CRef *p) { return p->u.ppair; }
 // Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion).
 CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
     int tagk = args[0].m_tagk;
-    NODE *pn;
+    CPair *pn;
     if (args[1].m_tagk)
         pn = NodeFromRef(&args[1]);
     else
@@ -112,7 +111,7 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
             g = args[0].u.g;
             fInt = 0;
         }
-        for (; pn; pn = pn->pnext) {
+        for (; pn; pn = pn->next.p) {
             if (pn->ref.m_tagk == TAGK_S32) {
                 g += (float)pn->ref.u.n;
             } else {
@@ -128,7 +127,7 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
     }
     case TAGK_VECTOR:
         ref.SetVector((const ::VECTOR *)args[0].u.pv);
-        for (; pn; pn = pn->pnext) {
+        for (; pn; pn = pn->next.p) {
             qword *pq = (qword *)ref.u.pv;
             qword a = *pq, b = *(qword *)pn->ref.u.pv, r;
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
@@ -137,7 +136,7 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
         break;
     case TAGK_MATRIX:
         ref.SetMatrix((const ::MATRIX4 *)args[0].u.pv);
-        for (; pn; pn = pn->pnext) {
+        for (; pn; pn = pn->next.p) {
             MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
             MATRIX4 *pmB = (MATRIX4 *)pn->ref.u.pv;
             pm->m[0][0] += pmB->m[0][0]; pm->m[0][1] += pmB->m[0][1]; pm->m[0][2] += pmB->m[0][2]; pm->m[0][3] += pmB->m[0][3];
@@ -153,22 +152,21 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
 
 // 0x11F6D0 BuiltinSubtract__FiP4CRefP6CFrame
 namespace M_BuiltinSubtract__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4; struct NODE;
+struct VECTOR; struct MATRIX4;
 // (Claude agent, lane A9, 2026-10-23) script `-` builtin (probably), same shape as BuiltinAdd: the inline accessor in the
 // if/else keeps `pn = 0` after the branch (no jump.c rewrite), so reorg puts it in the beqz delay slot.
 typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
-struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args);
 
-static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
+static inline CPair *NodeFromRef(CRef *p) { return p->u.ppair; }
 // Splice builtin "-": n-ary subtract, same shape as +.
 CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
     int tagk = args[0].m_tagk;
-    NODE *pn;
+    CPair *pn;
     if (args[1].m_tagk)
         pn = NodeFromRef(&args[1]);
     else
@@ -185,7 +183,7 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
             g = args[0].u.g;
             fInt = 0;
         }
-        for (; pn; pn = pn->pnext) {
+        for (; pn; pn = pn->next.p) {
             if (pn->ref.m_tagk == TAGK_S32) {
                 g -= (float)pn->ref.u.n;
             } else {
@@ -201,7 +199,7 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
     }
     case TAGK_VECTOR:
         ref.SetVector((const ::VECTOR *)args[0].u.pv);
-        for (; pn; pn = pn->pnext) {
+        for (; pn; pn = pn->next.p) {
             qword *pq = (qword *)ref.u.pv;
             qword a = *pq, b = *(qword *)pn->ref.u.pv, r;
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
@@ -210,7 +208,7 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
         break;
     case TAGK_MATRIX:
         ref.SetMatrix((const ::MATRIX4 *)args[0].u.pv);
-        for (; pn; pn = pn->pnext) {
+        for (; pn; pn = pn->next.p) {
             MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
             MATRIX4 *pmB = (MATRIX4 *)pn->ref.u.pv;
             pm->m[0][0] -= pmB->m[0][0]; pm->m[0][1] -= pmB->m[0][1]; pm->m[0][2] -= pmB->m[0][2]; pm->m[0][3] -= pmB->m[0][3];
@@ -226,7 +224,7 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
 
 // 0x11F960 BuiltinMultiply__FiP4CRefP6CFrame
 namespace M_BuiltinMultiply__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_M; struct VU_FLOAT_V; struct VU_FLOAT_I; struct VU_FLOAT_D; struct VU_FLOAT_F; struct VU_FLOAT_X; struct VU_VECTOR; struct NODE;
+struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_M; struct VU_FLOAT_V; struct VU_FLOAT_I; struct VU_FLOAT_D; struct VU_FLOAT_F; struct VU_FLOAT_X; struct VU_VECTOR;
 // BuiltinMultiply MATCH (Claude agent, lane A12, 2026-10-23), from fresh4 (6): 0x1A/0x16 MulVectorR builds the VU float from the int bits with ONE commented pin ($17, pr's register, as the target), and MulMatrix (0x1B/0x16) has a commented volatile empty asm that keeps &mat after the mtc1. The other old pins were removed.
 typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
@@ -260,7 +258,6 @@ struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v) __asm__("__9VU_VECTORRC6V
 qword operator*(VU_FLOAT_X f, VU_VECTOR v) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
 extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
 extern "C" { MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b); }
-struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
 extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);   /* CRef = VU_VECTOR (tag 0x1A) */
 extern "C" CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args);
@@ -344,11 +341,11 @@ CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args)
         ref = CRef_CloneTo(&args[0], 0, 0);
         break;
     }
-    NODE *node = 0;
+    CPair *node = 0;
     int bits;
     if (args[1].m_tagk)
-        node = (NODE *)args[1].u.pv;
-    for (; node; node = node->pnext) {
+        node = args[1].u.ppair;
+    for (; node; node = node->next.p) {
         CRef *operand = &node->ref;
         switch (ref.m_tagk) {
         case TAGK_F32:
@@ -442,7 +439,7 @@ CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args)
 
 // 0x11FEC8 BuiltinDivide__FiP4CRefP6CFrame
 namespace M_BuiltinDivide__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_X; struct VU_VECTOR; struct NODE; struct VU_FLOAT_V;
+struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_X; struct VU_VECTOR; struct VU_FLOAT_V;
 // `/` script builtin (Claude agent). The int-matrix path builds its VU_FLOAT temp in the caller, before the inline scale
 // helper frame, so the temp reuses the freed CRef slot at sp+0x10 as in the original.
 typedef int qword __attribute__((mode(TI)));
@@ -458,7 +455,6 @@ struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f) __asm__("__8VU_FLOATf"); };
 struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v) __asm__("__9VU_VECTORRC6VECTOR"); };
 qword operator*(VU_FLOAT_X f, VU_VECTOR v) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
 extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
-struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
 extern "C" CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args);
 
@@ -508,10 +504,10 @@ CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args)
         ref = CRef_CloneTo(&args[0], 0, 0);
         break;
     }
-    NODE *pn = 0;
+    CPair *pn = 0;
     if (args[1].m_tagk)
-        pn = (NODE *)args[1].u.pv;
-    for (; pn; pn = pn->pnext) {
+        pn = args[1].u.ppair;
+    for (; pn; pn = pn->next.p) {
         CRef *pr = &pn->ref;
         switch (ref.m_tagk) {
         case TAGK_F32: {
@@ -1065,7 +1061,7 @@ CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     sp->ref = args[0];
     CRef *pref = &args[1];
     if (pref->m_tagk == TAGK_PAIR)
-        sp->next = (CPair *)pref->u.pv;
+        sp->next = pref->u.ppair;
     return CRef(sp.p);
 }
 } // namespace M_BuiltinCons__FiP4CRefP6CFrame
@@ -1186,8 +1182,7 @@ CRefData *BuiltinNth__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *ar
 
 // 0x120E10 BuiltinIsMember__FiP4CRefP6CFrame
 namespace M_BuiltinIsMember__FiP4CRefP6CFrame {
-struct NODE;
-struct NODE { int x0, x4; CRef ref; NODE *pnext; };
+
 extern "C" {
 CRef BuiltinEqual__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
 CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
@@ -1200,9 +1195,9 @@ CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
     CRef res(false);
     CRef *pres = &res;
     if (args[1].m_tagk == TAGK_PAIR) {
-        NODE *p;
+        CPair *p;
         arefT[0] = args[0];
-        for (p = (NODE *)args[1].u.pv; p; p = p->pnext) {
+        for (p = args[1].u.ppair; p; p = p->next.p) {
             arefT[1] = p->ref;
             ref = BuiltinEqual__FiP4CRefP6CFrame(2, arefT, pctx);
             if (ref.m_tagk == TAGK_BOOL && ref.u.n) {
@@ -1391,13 +1386,13 @@ SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2)
     CRef *pref1 = &pn1->ref;
     *pref1 = PtNew__t6CGcObj1Z5CPair();
     pn1->SetNext(PtNew__t6CGcObj1Z5CPair());
-    CPair *pn2 = (CPair *)pref1->u.pv;
+    CPair *pn2 = pref1->u.ppair;
     pn2->ref.Retag(TAGK_QUOTE);
     pn2->SetNext(PtNew__t6CGcObj1Z5CPair());
     *ppref1 = &pn2->next.p->ref;
     CRef *pref2 = &pn1->next.p->ref;
     *pref2 = PtNew__t6CGcObj1Z5CPair();
-    CPair *pn3 = (CPair *)pref2->u.pv;
+    CPair *pn3 = pref2->u.ppair;
     pn3->ref.Retag(TAGK_QUOTE);
     pn3->SetNext(PtNew__t6CGcObj1Z5CPair());
     *ppref2 = &pn3->next.p->ref;
@@ -1439,7 +1434,7 @@ CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
     *procSlot = args[0];
     CPair *tail;
     CPair *element;
-    element = (CPair *)args[1].u.pv;
+    element = args[1].u.ppair;
     while (element) {
         *elementSlot = element->ref;
         SPN newPair;
@@ -1554,7 +1549,7 @@ CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
         CPair *pn;
         BuildCallListForTwoArgs(&sp, &pa, &pb);
         *pa = args[0];
-        pn = (CPair *)args[1].u.pv;
+        pn = args[1].u.ppair;
         while (pn) {
             *pb = pn->ref;
             CRef ref = EvalExpression__FP5CPairP6CFrame(sp.p, callArgs);
@@ -1595,9 +1590,8 @@ CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 
 // 0x121DD8 BuiltinVector__FiP4CRefP6CFrame
 namespace M_BuiltinVector__FiP4CRefP6CFrame {
-struct VECTOR; struct NODE;
+struct VECTOR;
 struct VECTOR { float x, y, z; };
-struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
 extern "C" {
 CRef CRef_CoerceF32(CRef *pref);
 CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref);
@@ -1607,9 +1601,9 @@ CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
 {
     CRef ref(TAGK_VECTOR);
     VECTOR *pv = (VECTOR *)ref.u.pv;
-    NODE *pn;
+    CPair *pn;
     if (c > 0)
-        pn = (NODE *)pref->u.pv;
+        pn = pref->u.ppair;
     switch (c) {
     case 0:
         pv->z = 0.0f;
@@ -1631,7 +1625,7 @@ CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
             CRef r = CRef_CoerceF32(&pn->ref);
             *pg = r.u.g;
             pg++;
-            pn = pn->pnext;
+            pn = pn->next.p;
         }
         break;
     }
@@ -1642,10 +1636,9 @@ CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
 
 // 0x121F00 BuiltinMatrix__FiP4CRefP6CFrame
 namespace M_BuiltinMatrix__FiP4CRefP6CFrame {
-struct MATRIX4; struct NODE;
+struct MATRIX4;
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { float m[4][4]; };
-struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" {
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 CRef CRef_CoerceF32(CRef *pref);
@@ -1656,9 +1649,9 @@ CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
 {
     CRef ref(TAGK_MATRIX);
     MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
-    NODE *pn;
+    CPair *pn;
     if (carg > 0)
-        pn = (NODE *)pref->u.pv;
+        pn = pref->u.ppair;
     func_002333B4(pm, 0, sizeof(*pm));
     pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
     switch (carg) {
@@ -1672,7 +1665,7 @@ CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
         int i;
         for (i = 0; i < carg; i++) {
             *(qword *)pm->m[i] = *(qword *)pn->ref.u.pv;
-            pn = pn->pnext;
+            pn = pn->next.p;
         }
         break;
     }
@@ -1684,7 +1677,7 @@ CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
             for (j = 0; j < n; j++) {
                 CRef r = CRef_CoerceF32(&pn->ref);
                 pm->m[i][j] = r.u.g;
-                pn = pn->pnext;
+                pn = pn->next.p;
             }
         }
         break;
@@ -2693,17 +2686,16 @@ CRefData *BuiltinAbs__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *ar
 
 // 0x123788 BuiltinMaximum__FiP4CRefP6CFrame
 namespace M_BuiltinMaximum__FiP4CRefP6CFrame {
-struct NODE;
+
 // same shape as BuiltinMinimum (max instead of min): list pointer reuses the args parameter variable
-struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 // Splice builtin "max": max over varargs.
 CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref(args[0]);
     if (args[1].m_tagk != 0) args = (CRef *)args[1].u.pv; else args = 0;
-    NODE *pn = (NODE *)args;
-    for (; pn; pn = pn->pnext) {
+    CPair *pn = (CPair *)args;
+    for (; pn; pn = pn->next.p) {
         if (ref.m_tagk == TAGK_S32) {
             if (pn->ref.m_tagk == TAGK_S32) {
                 CRef *p = &pn->ref;
@@ -2732,17 +2724,16 @@ CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x1238B0 BuiltinMinimum__FiP4CRefP6CFrame
 namespace M_BuiltinMinimum__FiP4CRefP6CFrame {
-struct NODE;
+
 // pn reuses the args parameter variable (if/else, tag != 0 arm first) -> beql s0=0
-struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 // Splice builtin "min": min over varargs.
 CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref(args[0]);
     if (args[1].m_tagk != 0) args = (CRef *)args[1].u.pv; else args = 0;
-    NODE *pn = (NODE *)args;
-    for (; pn; pn = pn->pnext) {
+    CPair *pn = (CPair *)args;
+    for (; pn; pn = pn->next.p) {
         if (ref.m_tagk == TAGK_S32) {
             if (pn->ref.m_tagk == TAGK_S32) {
                 CRef *p = &pn->ref;
@@ -3174,7 +3165,7 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
     CPair *head = PtNew__t6CGcObj1Z5CPair();
     list.Set(head);
     CPair *tail;
-    CPair *oidPair = (CPair *)args[0].u.pv;
+    CPair *oidPair = args[0].u.ppair;
     while (oidPair) {
         SPN newPair;
         CPair *pair = PtNew__t6CGcObj1Z5CPair();
@@ -3672,26 +3663,25 @@ CRefData *BuiltinStartRumble__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRef
 
 // 0x1252D0 FillAsFromPair
 namespace M_FillAsFromPair { extern "C" {
-struct AREQ; struct NODE; struct ARR;
+struct AREQ; struct ARR;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-typedef struct NODE { int pad[2]; CRefData ref; struct NODE *pnext; } NODE;
 typedef struct ARR { int c; short *a; } ARR;
 short *AllocFromStack(AREQ *preq);
 // Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements (save-var path).
-void FillAsFromPair(NODE *pnode, ARR *parr)
+void FillAsFromPair(CPair *pnode, ARR *parr)
 {
-    NODE *p;
+    CPair *p;
     int i;
     parr->c = 0;
     parr->a = 0;
-    for (p = pnode; p; p = p->pnext)
+    for (p = pnode; p; p = p->next.p)
         parr->c++;
     if (parr->c) {
         AREQ req;
         req.cb = parr->c * 2;
         req.cbAlign = 0x10;
         parr->a = AllocFromStack(&req);
-        for (p = pnode, i = 0; p; p = p->pnext, i++) {
+        for (p = pnode, i = 0; p; p = p->next.p, i++) {
             if (p->ref.m_tagk == TAGK_S32 || p->ref.m_tagk == TAGK_SYMID)
                 { int n = p->ref.u.n; parr->a[i] = n; }
         }
