@@ -82,7 +82,7 @@ void InitMurray(MURRAY *murray)
     murray->state = -1;
     murray->liftClip = -1;
     murray->liftSubstate = -1;
-    murray->carryIndex = -1;
+    murray->carrySubstate = -1;
     murray->strafeSubstate = -1;
     murray->unknown1410 = 1500.0f;
     murray->throwSpeed = 3500.0f;
@@ -682,53 +682,18 @@ void UpdateMurrayCarry(struct P *murray)
 
 namespace M_SetMurrayCarrySubstate { extern "C" {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
-typedef struct A { ASEGA *pb; } A;
-typedef struct C { void *x; } C;
-typedef struct P {
-    char pad0[0x58];
-    void *x58, *x5C;
-    char pad60[0x190 - 0x60];
-    qword x190;
-    float x1A0;
-    char pad1A4[0x1030 - 0x1A4];
-    A a;
-    C c;
-    char pad1038[0x1320 - 0x1038];
-    char x1320[0x1458 - 0x1320];
-    int carrySubstate;
-    float x145C;
-    int pad1460;
-    ASEG *x1464;
-    char pad1468[0x1510 - 0x1468];
-    void *x1510;
-    char pad1514[0x151C - 0x1514];
-    ASEG *x151C;
-} P;
 typedef struct { float t,dt; } CLOCK;
 extern CLOCK D_002DDED0;
-typedef char P_x58_Offset[FIELD_OFFSET(P,x58)==88?1:-1];
-typedef char P_x5C_Offset[FIELD_OFFSET(P,x5C)==92?1:-1];
-typedef char P_x190_Offset[FIELD_OFFSET(P,x190)==400?1:-1];
-typedef char P_x1A0_Offset[FIELD_OFFSET(P,x1A0)==416?1:-1];
-typedef char P_a_Offset[FIELD_OFFSET(P,a)==4144?1:-1];
-typedef char P_c_Offset[FIELD_OFFSET(P,c)==4148?1:-1];
-typedef char P_x1320_Offset[FIELD_OFFSET(P,x1320)==4896?1:-1];
-typedef char P_x1458_Offset[FIELD_OFFSET(P,carrySubstate)==5208?1:-1];
-typedef char P_x145C_Offset[FIELD_OFFSET(P,x145C)==5212?1:-1];
-typedef char P_x1464_Offset[FIELD_OFFSET(P,x1464)==5220?1:-1];
-typedef char P_x1510_Offset[FIELD_OFFSET(P,x1510)==5392?1:-1];
-typedef char P_x151C_Offset[FIELD_OFFSET(P,x151C)==5404?1:-1];
 extern qword D_002A2DD0;
-void SetXfRole(P *p, void *x, int k);
+void SetXfRole(MURRAY *p, XF *pxf, int k);
 void ResetGaitFeet(void *p);
-void ReleaseAsega(A *pa);
-void ReleaseSma(C *pc);
-void ReplaceCurrentAseg(ASEG *pr, P *p, float f, float g, int k, A *pa) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
-void ReplaceSma(void *pv, P *p, int a, int k, C *pc);
+void ReleaseAsega(ASEGA **ppasega);
+void ReleaseSma(SMA **ppsma);
+void ReplaceCurrentAseg(ASEG *pr, MURRAY *p, float f, float g, int k, ASEGA **ppasega) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+void ReplaceSma(void *pv, MURRAY *p, int a, int k, SMA **ppsma);
 
-// Carry sub-state (x1458): 0 stand, 1 walk (blend x1460), 2 run (clip x151C); restarts the animation.
-void SetMurrayCarrySubstate(P *murray, int k)
+// Carry sub-state: 0 stand, 1 walk (gaitB), 2 run (pasegCarryRun); restarts the animation.
+void SetMurrayCarrySubstate(MURRAY *murray, int k)
 {
     ASEG *pr;
     void *pv;
@@ -739,18 +704,18 @@ void SetMurrayCarrySubstate(P *murray, int k)
         return;
     switch (murray->carrySubstate) {
     case 0:
-        SetXfRole(murray, murray->x58, 2);
-        SetXfRole(murray, murray->x5C, 2);
+        SetXfRole(murray, murray->unknown58, 2);
+        SetXfRole(murray, murray->unknown5C, 2);
         murray->carrySubstate = k;
         break;
     case 1:
-    case 2: murray->x1A0 = murray->a.pb->time / murray->a.pb->animation->duration;
+    case 2: murray->gaitBlend = murray->activeAnimation->time / murray->activeAnimation->animation->duration;
     default: murray->carrySubstate = k; break;
     }
     __asm__("daddu %0,$%5,$zero\n\tdaddu %1,$%5,$zero\n\tlwc1 %2,%6\n\taddiu %3,$zero,%7\n\tmtc1 $%5,%4"
             : "=&r"(pr), "=&r"(pv), "=f"(now), "=r"(n), "=f"(f)
             : "J"(0), "m"(D_002DDED0.t), "I"(1));
-    murray->x145C = now;
+    murray->carrySubstateTime = now;
     if (k == n)
         goto state1;
     if (k < 2) {
@@ -762,26 +727,26 @@ void SetMurrayCarrySubstate(P *murray, int k)
         goto state2;
     goto done;
 state0:
-    SetXfRole(murray, murray->x58, 1);
-    SetXfRole(murray, murray->x5C, 1);
-    pv = murray->x1510;
-    murray->x190 = D_002A2DD0;
+    SetXfRole(murray, murray->unknown58, 1);
+    SetXfRole(murray, murray->unknown5C, 1);
+    pv = murray->psmCarryStand;
+    murray->qwUnknown190 = D_002A2DD0;
     goto done;
 state1:
-    pr = murray->x1464;
-    f = murray->x1A0 * pr->duration;
-    ResetGaitFeet(murray->x1320);
+    pr = murray->gaitB.blendedAnimation;
+    f = murray->gaitBlend * pr->duration;
+    ResetGaitFeet(&murray->gaitA);
     n = 9;
     goto done;
 state2:
-    pr = murray->x151C;
+    pr = murray->pasegCarryRun;
     n = 9;
-    f = murray->x1A0 * pr->duration;
+    f = murray->gaitBlend * pr->duration;
 done:
-    ReleaseAsega(&murray->a);
-    ReleaseSma(&murray->c);
-    ReplaceCurrentAseg(pr, murray, f, 1.0f, n, &murray->a);
-    ReplaceSma(pv, murray, -1, n, &murray->c);
+    ReleaseAsega(&murray->activeAnimation);
+    ReleaseSma(&murray->activeStateMachine);
+    ReplaceCurrentAseg(pr, murray, f, 1.0f, n, &murray->activeAnimation);
+    ReplaceSma(pv, murray, -1, n, &murray->activeStateMachine);
 }
 } } // namespace M_SetMurrayCarrySubstate
 #undef FIELD_OFFSET
@@ -1472,52 +1437,27 @@ void PresetMurrayAccel(MURRAY *murray)
 } } // namespace M_PresetMurrayAccel
 
 namespace M_HandleMurrayMessage { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef struct MSG { void *x0; int x4; int x8; } MSG;
-typedef struct P {
-    char pad0[0x1030];
-    void *action;
-    void *x1034;
-    char pad1038[0x13D0 - 0x1038];
-    int state;
-    char pad13D4[0x1448 - 0x13D4];
-    int x1448;
-    int pad144C;
-    int x1450;
-    char pad1454[0x1524 - 0x1454];
-    float x1524;
-    float x1528;
-    int x152C;
-    char pad1530[4];
-    int x1534;
-    char pad1538[0x1818 - 0x1538];
-    int x1818;
-    int x181C;
-    int comboWindow;
-    char pad1824[0x190C - 0x1824];
-    void *x190C;
-    char x1910[0x10];
-} P;
 extern char D_003DD490[];
 extern float D_002C0990[];
 extern float D_002C099C;
-void HandleStepplayerMessage(P *p, int msg, MSG *pm);
-void SetMurrayFlopSubstate(P *p, int k);
-qword GetLoWorldPos(P *p);
-void EmitSwNoise(void *g, int z, qword q, P *p);
-void ThrowMurrayCarried(P *p);
-void TossMurrayCarried(P *p);
+void HandleStepplayerMessage(MURRAY *p, int msg, MSG *pm);
+void SetMurrayFlopSubstate(MURRAY *p, int k);
+qword GetLoWorldPos(MURRAY *p);
+void EmitSwNoise(void *g, int z, qword q, MURRAY *p);
+void ThrowMurrayCarried(MURRAY *p);
+void TossMurrayCarried(MURRAY *p);
 void ReleaseJtThrowObject(void *p);
-void SetMurrayLiftSubstate(P *p, int k);
-void SetMurrayState(P *p, int s);
+void SetMurrayLiftSubstate(MURRAY *p, int k);
+void SetMurrayState(MURRAY *p, int s);
 
 // MURRAY message handler (slot 5): base, then animation events from his own animations (0x1A4 flop dive, ...).
-void HandleMurrayMessage(P *murray, int msg, MSG *pm)
+void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
 {
     HandleStepplayerMessage(murray, msg, pm);
     switch (msg) {
     case 9:
-        if (pm->x0 != murray->action && pm->x0 != murray->x190C) return;
+        if (pm->x0 != murray->activeAnimation && pm->x0 != murray->unknown190C) return;
         switch (pm->x8) {
         case 0x1A4:
             SetMurrayFlopSubstate(murray, 1);
@@ -1534,27 +1474,27 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
                 TossMurrayCarried(murray);
                 break;
             case MURRAY_AIMED_THROW:
-                ReleaseJtThrowObject(murray->x1910);
+                ReleaseJtThrowObject(&murray->jtthrowAim);
                 break;
             }
             break;
         case 0x1C6:
-            murray->x1448 = 1;
+            murray->fLiftGrabbed = 1;
             break;
         case 0x1C8:
-            if (!murray->x1450) {
+            if (!murray->liftSubstate) {
                 EmitSwNoise(D_003DD490, 0, GetLoWorldPos(murray), murray);
                 SetMurrayLiftSubstate(murray, 1);
             }
             break;
         case 0x1C7:
-            if (murray->x1450 == 1) SetMurrayLiftSubstate(murray, 2);
+            if (murray->liftSubstate == 1) SetMurrayLiftSubstate(murray, 2);
             break;
         case 0x240:
-            murray->x1818 = 1;
+            murray->unknown1818 = 1;
             break;
         case 0x241:
-            murray->x181C = 1;
+            murray->unknown181C = 1;
             break;
         case 0x242:
             murray->comboWindow = 1;
@@ -1562,7 +1502,7 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
         }
         break;
     case 10:
-        if (pm->x0 != murray->x1034) return;
+        if (pm->x0 != murray->activeStateMachine) return;
         if (murray->state != MURRAY_STRUGGLE) return;
         if (pm->x8 == pm->x4) return;
         switch (pm->x8) {
@@ -1575,9 +1515,9 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
         case 0x1CD:
         case 0x1CE:
         case 0x1CF: {
-            float f = D_002C0990[murray->x1534];
-            murray->x1524 = murray->x1528 = f;
-            murray->x152C = (int)(D_002C099C * f);
+            float f = D_002C0990[murray->workAction];
+            murray->struggleTimeLeft = murray->lastMashTime = f;
+            murray->mashesLeft = (int)(D_002C099C * f);
             break;
         }
         }
@@ -2415,7 +2355,7 @@ void ApplyMurrayStateStepParams(MURRAY *murray)
         if (murray->ploCarried) v = murray->aprecCarry[3];
         else v = GetJtAirAdjustRecord(&murray->jtair, &k);
         break;
-    case MURRAY_CARRY: v = murray->aprecCarry[murray->carryIndex]; break;
+    case MURRAY_CARRY: v = murray->aprecCarry[murray->carrySubstate]; break;
     default: v = murray->aprecState[murray->state]; break;
     }
     if (!v) v = murray->unknown268;

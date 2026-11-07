@@ -58,10 +58,13 @@ struct MURRAY : public STEPPLAYER
       int liftClip;   /* +0x144C lift animation: 0 grab spot, 1 guard (StartMurrayLiftGrabspot/Guard) */
       int liftSubstate;   /* +0x1450 sub-state of MURRAY_LIFT: 0, 1 reaching (aborts if the object left the world), 2 lifting, -1 none */
       undefined4 unknown1454;
-      int carryIndex; /* carry slot index */
-      undefined4 unknown145C;
+      int carrySubstate;   /* +0x1458 carry sub-state: 0 stand, 1 walk (gaitB), 2 run (pasegCarryRun); indexes aprecCarry (SetMurrayCarrySubstate) */
+      float carrySubstateTime;   /* +0x145C clock.time carrySubstate was set */
       GAIT gaitB;   /* +0x1460 */
-      undefined4 unk_0x1510[(0x1524 - 0x1510) / 4];
+      struct SM *psmCarryStand;   /* +0x1510 the state machine carry sub-state 0 applies (SetMurrayCarrySubstate) */
+      undefined4 unk_0x1514[(0x151c - 0x1514) / 4];
+      ASEG *pasegCarryRun;   /* +0x151C the clip of carry sub-state 2 */
+      undefined4 unknown1520;
       float struggleTimeLeft;   /* +0x1524 counts down during a struggle (UpdateMurrayStruggle) */
       float lastMashTime;   /* +0x1528 struggleTimeLeft at the last face-button press */
       int mashesLeft;   /* +0x152C presses still needed to win the struggle */
