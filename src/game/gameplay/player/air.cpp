@@ -2984,18 +2984,12 @@ static inline qword Add(qword a, qword b)
     return a;
 }
 static inline qword Len(qword v) { return VuSqrtX(VuDot(v, v)); }
-static inline qword Div(qword v, qword l)
-{
-    qword r;
-    __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
-    return r;
-}
 static inline qword Normalize(qword v, qword fallback)
 {
     qword l = Len(v);
     if (QwordX(l) < 1.0e-4f)
         return fallback;
-    return Div(v, l);
+    return VuDivByX(v, l);
 }
 
 /** @sly2-annot addr=0x1999D0

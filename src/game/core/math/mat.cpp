@@ -383,12 +383,6 @@ static inline qword Div1(qword v, qword l)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v), "j"(l));
     return r;
 }
-static inline qword Div(qword v, qword l)
-{
-    qword r;
-    __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
-    return r;
-}
 // 0x11B828: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x70");
 
@@ -417,7 +411,7 @@ M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
     l2 = LenZ(z);
     outMatrix->r[0] = xn;
     { qword t[1]; t[0] = z; } /* dead stack copy of z (the target's sqc2 vf1,0(sp)) */
-    outMatrix->r[1] = Div(z, l2);
+    outMatrix->r[1] = VuDivByX(z, l2);
     if (QwordX(l2) < 1.0e-4f)
         outMatrix->r[1] = GetNormalVector(xn);
     outMatrix->r[2] = VuCross(outMatrix->r[0], outMatrix->r[1]);

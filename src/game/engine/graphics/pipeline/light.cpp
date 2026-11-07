@@ -645,9 +645,10 @@ static inline VV ToVF(qword v) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : 
 // Same idiom as sly2/vu0.h VuSub; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
-static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
+// Same idiom as sly2/vu0.h VuDivByX; kept local because the shared template changes DoesSphereHitSpheres (41/135 instructions off).
+static inline VV VuDivByX(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 static inline VV Divide(VV v, VU_FLOAT g) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
-static inline VV Normalize(VV v) { return DivideQ(v, Length(v)); }
+static inline VV Normalize(VV v) { return VuDivByX(v, Length(v)); }
 /* f1 * v1 + f2 * v2 */
 static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
 {

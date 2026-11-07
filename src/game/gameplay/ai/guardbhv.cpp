@@ -2943,7 +2943,8 @@ static inline qword VuLengthXY(qword v)
     return qw;
 }
 // VU0 helper: v divided by a given length.
-static inline qword VuDivideByLength(qword v, qword qwLen)
+// Same idiom as sly2/vu0.h VuDivByX; kept local because its callers pass mixed operand types (the template wants one).
+static inline qword VuDivByX(qword v, qword qwLen)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qw) : "j"(qwLen), "j"(v));
@@ -2962,14 +2963,14 @@ static inline VV NormalizeSafeN(VV v, VV fallback)
     qword len = VuLength(v);
     if (QwordX(len) < 0.0001f)
         return fallback;
-    return VuDivideByLength(v, len);
+    return VuDivByX(v, len);
 }
 // VU0 helper: v / len, or `fallback` when the length is zero.
 static inline VV DivSafe(VV v, VV len, VV fallback)
 {
     if (QwordX(len) < 0.0001f)
         return fallback;
-    return VuDivideByLength(v, len);
+    return VuDivByX(v, len);
 }
 // VU0 helper: vector scaled by the x of a VU float.
 static inline qword VuScaleByX(qword v, const VU_FLOAT &g)
@@ -3203,7 +3204,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             if (QwordX(qwLen) < 0.0001f)
                 normal.qw = *pqwZeroHere;
             else
-                normal.qw = VuDivideByLength(normalCopy, qwLen);
+                normal.qw = VuDivByX(normalCopy, qwLen);
             float sGap = VuGetXKeepInVf(qwLen);
             sGap = MaxFloat(0.0f, sGap - pbodyOther->sRadius - pbodySelf->sRadius);
             float gMass = pbodyOther->gMass / (pbodyOther->gMass + pbodySelf->gMass);
@@ -3254,7 +3255,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             if (QwordX(qwLen) < 0.0001f)
                 normal.qw = *pqwZero;
             else
-                normal.qw = VuDivideByLength(normal.qw, qwLen);
+                normal.qw = VuDivByX(normal.qw, qwLen);
             if (D_002BE690 < VuGetXClobberA0A1(qwLen))
             {
                 float gClose = VuGetXKeepInVf(VuDotProduct(vNew, normal.qw));

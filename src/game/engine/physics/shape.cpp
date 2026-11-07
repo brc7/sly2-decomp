@@ -1870,7 +1870,8 @@ static inline VV VuDot(VV a, VV b)
     return r;
 }
 static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
-static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
+// Same idiom as sly2/vu0.h VuDivByX; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuDivByX(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Same idiom as sly2/vu0.h VuScaleByX; kept local because its callers pass mixed operand types (the template wants one).
 static inline VV VuScaleByX(VV v, VV g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g)); return r; }
 /* base + v * g */
@@ -1936,7 +1937,7 @@ static inline float Normalize(U *pv, const qword &fallback)
     if (VuToFloat(len) < 0.0001f)
         pv->q = fallback;
     else
-        pv->q = DivideQ(pv->q, len);
+        pv->q = VuDivByX(pv->q, len);
     return QwordX(len);
 }
 /* Normalize for a vector re-read from memory after a join (dir2): the game loads it into a GPR (lq) and reload copies it into
@@ -1952,7 +1953,7 @@ static inline float NormalizeV(U *pv, const qword &fallback, float prev)
     if (VuToFloat(len) < 0.0001f)
         pv->q = fallback;
     else
-        pv->q = DivideQ(vf, len);
+        pv->q = VuDivByX(vf, len);
     return QwordX(len);
 }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
@@ -2182,7 +2183,6 @@ static inline VV DotVf1(VV a, VV b)
     return r;
 }
 static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
-static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 /* base + v * g */
 static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
 {
@@ -2196,7 +2196,7 @@ static inline VV NormalizeSafe(VV v, VV fallback)
     VV len = Length(v);
     if (VuToFloat(len) < 0.0001f)
         return fallback;
-    return DivideQ(v, len);
+    return VuDivByX(v, len);
 }
 /* base + v1 * g1 + v2 * g2 */
 static inline VV VecCombo3(VV base, VU_FLOAT g1, VV v1, VU_FLOAT g2, VV v2)

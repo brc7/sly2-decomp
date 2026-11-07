@@ -1005,15 +1005,13 @@ static inline float Length2D(VV v)
 }
 // Distance in the xy plane.
 static inline float Dist2D(VV a, VV b) { return Length2D(VuSub(a, b)); }
-// Helpers Sqrt, DivideQ (small asm wrappers/accessors shaped for the match).
-static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = VuSqrtX(VuDot(v, v));
     if (QwordX(len) < 0.0001f)
         return fallback;
-    return DivideQ(v, len);
+    return VuDivByX(v, len);
 }
 // A float's bit pattern into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "rV"(n)); return v; }
@@ -1309,7 +1307,8 @@ static inline VV InverseRotate(const M3 &m, VV v)
     return r;
 }
 // Helpers Divide, Evaluate, Clamp, ClampTo, Min, Abs (small asm wrappers/accessors shaped for the match).
-static inline VV Divide(VV v, VV scalar) { qword r; __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(scalar), "j"(v)); return r; }
+// Same idiom as sly2/vu0.h VuDivByX; kept local because its callers pass mixed operand types (the template wants one).
+static inline VV VuDivByX(VV v, VV scalar) { qword r; __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(scalar), "j"(v)); return r; }
 static inline float Evaluate(const POLY &p, float t) { return p.a + t * (p.b + t * p.c); }
 static inline float Clamp(float v, float low, float high) { if (v < low) return low; else if (high < v) return high; else return v; }
 static inline float ClampTo(float v, const LIMITS &l) { return Clamp(v, l.low, l.high); }
@@ -1387,7 +1386,7 @@ extern "C" void PresetRobottankAccel(P *tank)
         maximum = tank->reverseLimit;
     }
     dtv.q = TimeStep(D_002DDED0);
-    phase.impulse.acceleration.q = Divide(VuSub(desired.q, velocity.q), dtv.q);
+    phase.impulse.acceleration.q = VuDivByX(VuSub(desired.q, velocity.q), dtv.q);
     phase.impulse.acceleration.bits[2] = 0;
     phase.impulse.acceleration.f[0] = Clamp(phase.impulse.acceleration.f[0], minimum, maximum);
     phase.impulse.limited.q = LimitVectorLength(budget, phase.impulse.acceleration.q);
@@ -2036,14 +2035,13 @@ static inline VV VuDot(VV a, VV b)
 }
 // Helpers Length, GFromQw, DivideQ (small asm wrappers/accessors shaped for the match).
 static inline VV Length(VV v) { return VuSqrtX(VuDot(v, v)); }
-static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
 // Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = Length(v);
     if (QwordX(len) < 0.0001f)
         return fallback;
-    return DivideQ(v, len);
+    return VuDivByX(v, len);
 }
 /* v * g with the scale (x) first */
 static inline VV ScaleV(VV g, VV v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(g), "j"(v)); return r; }
