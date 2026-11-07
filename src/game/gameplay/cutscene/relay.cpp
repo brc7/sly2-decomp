@@ -1855,43 +1855,31 @@ void HandleJsgMessage(S *script, int a, M *m)
 
 // 0x1E1C40 UpdateRelayScript
 namespace M_func_001E1C40 {
-struct VTE; struct E; struct P; class LOCK;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct E { int n0; int n4; };
-struct P { int pad[3]; VTE *vt; char pad2[0x28 - 0x10]; E *peFirst; E *peMax; E *peCur; };
-class LOCK {
-public:
-    P *m_p;
-    // Scope guard: call the object's virtual slot 1 on entry and slot 2 on exit (reference bracket).
-    LOCK(P *p) : m_p(p) { p->vt[1].pfn((char *)p + p->vt[1].d); }
-    // Close the bracket (virtual slot 2).
-    ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
-};
 extern "C" {
-void NextJsgCommand__FP3JSG(P *p);
-int IsJsgRemoved(P *p);
-void ReleaseJsgJtIfComplete(P *p);
-int IsJsgCommandComplete__FP3JSGP8RELAYCMD(P *p, E *pe);
-void RemoveJsg(P *p);
-void UpdateRelayScript(P *p);
+void NextJsgCommand__FP3JSG(RELAYJSG *p);
+int IsJsgRemoved(RELAYJSG *p);
+void ReleaseJsgJtIfComplete(RELAYJSG *p);
+int IsJsgCommandComplete__FP3JSGP8RELAYCMD(RELAYJSG *p, RELAYCMD *pe);
+void RemoveJsg(RELAYJSG *p);
+void UpdateRelayScript(RELAYJSG *p);
 }
 // Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command
 // is fAsync or complete (IsJsgCommandComplete); release JT if done; remove the JSG past the block end.
-void UpdateRelayScript(P *script)
+void UpdateRelayScript(RELAYJSG *script)
 {
-    LOCK lock(script);
-    if (!script->peCur) {
-        script->peCur = script->peFirst;
+    JSGREF hold(script);
+    if (!script->prelaycmdCur) {
+        script->prelaycmdCur = script->prelaycmdFirst;
         NextJsgCommand__FP3JSG(script);
         if (IsJsgRemoved(script)) return;
     }
-    while (script->peCur <= script->peMax && (script->peCur->n4 || IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->peCur))) {
+    while (script->prelaycmdCur <= script->prelaycmdLast && (script->prelaycmdCur->fAsync || IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->prelaycmdCur))) {
         ReleaseJsgJtIfComplete(script);
         NextJsgCommand__FP3JSG(script);
         if (IsJsgRemoved(script)) return;
     }
     ReleaseJsgJtIfComplete(script);
-    if (script->peCur > script->peMax) RemoveJsg(script);
+    if (script->prelaycmdCur > script->prelaycmdLast) RemoveJsg(script);
 }
 } // namespace M_func_001E1C40
 
@@ -4241,29 +4229,25 @@ extern "C" void SetRelayScriptActor(RELAYJSG *script, RELAYCMD *prelaycmdJt, LO 
 
 // 0x1E4F20 SetJsgTunnel
 namespace M_SetJsgTunnel { extern "C" {
-struct VTE; struct O; struct P;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int pad[3]; struct VTE *vt; char pad2[0x28 - 0x10]; unsigned long flPad : 60; unsigned int fBit60 : 1; char pad3[0xE0 - 0x30]; void *pvE0; };
 extern SW D_003DD490;
-struct P { char pad[0x24]; void *p24; char pad2[0x6C - 0x28]; struct O *po; int fActive; };
-void SetTnTnsOverride(struct O *po, int n);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void *GetCurrentPo(SW *pg);
+void SetTnTnsOverride(TN *po, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
+LO *GetCurrentPo(SW *pg);
 // Switch the script's active tunnel (ptnCur +0x6C): release/hide old (SetTnTnsOverride(tn,-1), vt9), attach/show new (vt8)
 // with owner = actor or current PO. (inferred)
-void SetJsgTunnel(struct P *script, struct O *po)
+void SetJsgTunnel(RELAYJSG *script, TN *po)
 {
-    if (script->po) {
-        SetTnTnsOverride(script->po, -1);
-        script->po->pvE0 = 0;
-        if (script->fActive) script->po->vt[9].pfn((char *)script->po + script->po->vt[9].d);
-        script->po = 0;
+    if (script->ptnCur) {
+        SetTnTnsOverride(script->ptnCur, -1);
+        script->ptnCur->hero = 0;
+        if (script->fHideTn) script->ptnCur->Remove();
+        script->ptnCur = 0;
     }
     if (!po) return;
-    script->po = po;
-    script->fActive = (uchar)po->fBit60 == 0;
-    if (script->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
-    po->pvE0 = (script->p24 && IsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x30)) ? script->p24 : GetCurrentPo(&D_003DD490);
+    script->ptnCur = po;
+    script->fHideTn = (uchar)po->isInWorld == 0;
+    if (script->fHideTn) po->Add();
+    po->hero = (script->ploActor && IsBasicDerivedFrom__FP5BASIC3CID(script->ploActor, 0x30)) ? script->ploActor : GetCurrentPo(&D_003DD490);
     SetTnTnsOverride(po, 1);
 }
 } } // namespace M_SetJsgTunnel
@@ -4328,66 +4312,50 @@ if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == scri
 
 // 0x1E51A0 AddJsgStepHold
 namespace M_AddJsgStepHold { extern "C" {
-struct VTE; struct O; struct P;
-struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
-struct O { int pad[3]; struct VTE *vt; };
-struct P { char pad[0xA4]; int c; struct O *apo[4]; int aB8[4]; int aC8[4]; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
 // Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
-void AddJsgStepHold(struct P *script, struct O *po, int a, int b)
+void AddJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
 {
     int i;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for (i = 0; i < script->c; i++)
-        if (script->apo[i] == po) return;
-    if ((unsigned)script->c >= 4) return;
-    script->aB8[script->c] = a;
-    script->aC8[script->c] = b;
-    script->apo[script->c] = po;
-    script->c++;
-    po->vt[0x53].pfn((char *)po + po->vt[0x53].d, a, b);
+    for (i = 0; i < script->cstepHold; i++)
+        if (script->apstepHold[i] == po) return;
+    if ((unsigned)script->cstepHold >= 4) return;
+    script->anHold5[script->cstepHold] = a;
+    script->anHold6[script->cstepHold] = b;
+    script->apstepHold[script->cstepHold] = po;
+    script->cstepHold++;
+    po->AddDialogSmRefs(a, b);
 }
 } } // namespace M_AddJsgStepHold
 
 // 0x1E5280 RemoveJsgStepHold
 namespace M_RemoveJsgStepHold { extern "C" {
-struct VTE; struct O; struct P;
-struct VTE { short d; short pad; void (*pfn)(void *, int, int); };
-struct O { int pad[3]; struct VTE *vt; };
-struct P { char pad[0xA4]; int c; struct O *apo[4]; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
 // index * 4 in $a0 (shapes the register choice).
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
-void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
+void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
 {
     int i;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for(i=0;i<script->c;i++) {
-        if(script->apo[i]==po)break;
+    for(i=0;i<script->cstepHold;i++) {
+        if(script->apstepHold[i]==po)break;
     }
-    if (i >= script->c) return;
+    if (i >= script->cstepHold) return;
     {
         register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)script;
         unsigned int dest;
         __asm__("daddu %0,%1,$zero":"=r"(dest):"r"(addr));
-        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(script->c-i)*4-4);
+        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(script->cstepHold-i)*4-4);
     }
-    script->c--;
-    po->vt[0x54].pfn((char *)po + po->vt[0x54].d, a, b);
+    script->cstepHold--;
+    po->RemoveDialogSmRefs(a, b);
 }
 
-typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
-typedef char layout_int[(sizeof(int)==4)?1:-1];
-typedef char layout_VTE[(sizeof(struct VTE)==8)?1:-1];
-typedef char layout_O_prefix[(sizeof(struct O)==16)?1:-1];
-typedef char layout_P_array_prefix[(sizeof(struct P)==0xB8)?1:-1];
-typedef char layout_VTE_delta[((unsigned)&((struct VTE*)0)->d==0)?1:-1];
-typedef char layout_VTE_function[((unsigned)&((struct VTE*)0)->pfn==4)?1:-1];
-typedef char layout_O_vtable[((unsigned)&((struct O*)0)->vt==0xC)?1:-1];
-typedef char layout_P_count[((unsigned)&((struct P*)0)->c==0xA4)?1:-1];
-typedef char layout_P_array[((unsigned)&((struct P*)0)->apo==0xA8)?1:-1];
+typedef char layout_JSGV_count[SLY2_OFFSETOF(RELAYJSG, cstepHold) == 0xA4 ? 1 : -1];
+typedef char layout_JSGV_array[SLY2_OFFSETOF(RELAYJSG, apstepHold) == 0xA8 ? 1 : -1];
 } } // namespace M_RemoveJsgStepHold
 
 // 0x1E5370 ClearJsgAseg
@@ -4511,48 +4479,34 @@ void AbortJsgMove(struct P *script)
 
 // 0x1E5628 RemoveJsg
 namespace M_RemoveJsg {
-struct VTE; struct Q; struct P; class LOCK; 
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct Q { char pad[0x5C]; int dl; };
-struct P { int pad[3]; VTE *vt; int pad10; Q *pq; char pad2[0x9C - 0x18]; int isCamBlending; char pad3[0xEC - 0xA0]; void *sound; };
-class LOCK {
-public:
-    P *m_p;
-    // Scope guard: call the object's virtual slot 1 on entry and slot 2 on exit (reference bracket).
-    LOCK(P *p) : m_p(p) { p->vt[1].pfn((char *)p + p->vt[1].d); }
-    // Close the bracket (virtual slot 2).
-    ~LOCK() { m_p->vt[2].pfn((char *)m_p + m_p->vt[2].d); }
-};
 extern "C" {
 extern CLOCK D_002DDED0;
-int IsJsgRemoved(P *p);
-void RemoveDlEntry__FP2DLPv(int *pdl, P *p);
-void ClearJsgAseg(P *p);
-void ClearJsgRelayWait(P *p);
-void ClearJsgSma(P *p);
-void ClearJsgWidget(P *p);
-void ClearJsgJtMode(P *p);
-void ClearJsgStepHolds(P *p);
-void AbortJsgMove(P *p);
+int IsJsgRemoved(RELAYJSG *p);
+void RemoveDlEntry__FP2DLPv(DL *pdl, RELAYJSG *p);
+void ClearJsgAseg(RELAYJSG *p);
+void ClearJsgSma(RELAYJSG *p);
+void ClearJsgWidget(RELAYJSG *p);
+void ClearJsgStepHolds(RELAYJSG *p);
+void AbortJsgMove(RELAYJSG *p);
 void SetClockRate(CLOCK *pclock, int n, float g);
-void SetRelayScriptActor(P *p, int a, int b);
-void SetJsgTunnel(P *p, void *po);
-void SetRelayScriptFocus(P *p, int a);
-void SetRelayScriptHandsOff(P *p, int a, int b);
+void SetRelayScriptActor(RELAYJSG *p, int a, int b);
+void SetJsgTunnel(RELAYJSG *p, void *po);
+void SetRelayScriptFocus(RELAYJSG *p, int a);
+void SetRelayScriptHandsOff(RELAYJSG *p, int a, int b);
 void StopSnd(void *pv, float g);
 void RcPtr_Assign(void **ppv, int n);
-void EndJsgCamBlend(P *p, int n);
-void RemoveJsg(P *p);
+void EndJsgCamBlend(RELAYJSG *p, int n);
+void RemoveJsg(RELAYJSG *p);
 }
 // Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA, widget, JT mode,
 // step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera blend), then drop the relay's
 // reference. (inferred)
-void RemoveJsg(P *script)
+void RemoveJsg(RELAYJSG *script)
 {
     if (IsJsgRemoved(script)) return;
-    LOCK lock(script);
-    void **ppv = &script->sound;
-    RemoveDlEntry__FP2DLPv(&script->pq->dl, script);
+    JSGREF hold(script);
+    void **ppv = (void **)&script->psnd;   /* the counted sound pointer, for the untyped store helper */
+    RemoveDlEntry__FP2DLPv(&script->relay->dlJsg, script);
     ClearJsgAseg(script);
     ClearJsgRelayWait(script);
     ClearJsgSma(script);
@@ -4569,8 +4523,8 @@ void RemoveJsg(P *script)
         StopSnd(*ppv, 0.0f);
         RcPtr_Assign(ppv, 0);
     }
-    if (script->isCamBlending) EndJsgCamBlend(script, 1);
-    script->vt[2].pfn((char *)script + script->vt[2].d);
+    if (script->fUnk9c) EndJsgCamBlend(script, 1);
+    script->Release();
 }
 } // namespace M_RemoveJsg
 

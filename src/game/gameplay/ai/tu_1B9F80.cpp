@@ -46,10 +46,8 @@ struct MOTION{char pad[0x20];qword angles;};
 struct VOLUME;
 struct ASEGA;
 struct L { char pad[0x30]; qword unknown30; };
-/* g++ 2.95 vtable entry and a behaviour/part object called through it. */
-struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; VTE *vt; char pad1[0x38 - 0x10]; void *target; char pad3C[4]; void *unknown40; };
-#define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
+/* A behaviour on Neela's stack (pushed or found by class): +0x38 its target, +0x40 class-specific. */
+struct O : BHV { char pad30[0x38 - 0x30]; void *target; char pad3C[4]; void *unknown40; };
 /* The guard's vision detector: near and far volumes. */
 struct DETECTORV { char pad[0xE8]; VOLUME *nearVolume; VOLUME *farVolume; char padF0[8]; int options; };
 /* Distance curve of the guard (clamped quadratic) and the behaviour's timeout. */
@@ -66,7 +64,7 @@ struct NEELAV{
  void*id;ASEGA*animation;NEELAV*target;MOTION*motion;   /* +0x1020 */
  void*unknown1030;NODE*node;                 /* +0x1030 */
  char pad1038[8];qword axis;            /* +0x1040 */
- O*prop;                                  /* +0x1050 */
+ LO*prop;                                 /* +0x1050 */
  char pad1054[0xC];int unknown1060;int pad1064[2];int unknown106C;   /* +0x1060 */
  POLY poly;                             /* +0x1070 */
  int useChaseBehavior;char resumeState[0xC];                /* +0x108C */
@@ -181,13 +179,11 @@ extern "C" void PostNeelaLoad(NEELAV *neela)
 // slot 9).
 extern "C" void ResetNeelaToHome(NEELAV *neela)
 {
-    O *po;
+    LO *po;
     ResetStepguardToHome(neela);
     po = neela->prop;
-    if (po) {
-        VTE *entry = &po->vt[9];
-        ((void (*)(void *))entry->pfn)((char *)po + entry->d);
-    }
+    if (po)
+        po->Remove();
 }
 
 // 0x1BA100: Box-query filter: accepts only cid 0x62 objects.
@@ -305,7 +301,7 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
     if (st == neela->state) return;
     if (neela->state == 1) {
         RetractAsega(neela->animation);
-        VCALL0((O *)neela->animation, 2);
+        neela->animation->Release();
         neela->animation = 0;
         ReleaseAct(&neela->motion);
         neela->motion = 0;
@@ -317,7 +313,7 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
     neela->stateTime = D_002DDED0.time;
     if (st != 1) return;
     ApplyAsegCore(neela->id, neela, 1, &neela->animation, 0.0f, 1.0f);
-    VCALL0((O *)neela->animation, 1);
+    neela->animation->AddRef();
     neela->motion = NewPositionAct(neela, neela->node, 5, 8, 3, D_002A2DD0);
     if (StepguardHasSgf(neela, SGF_IDLE)) {
         FindStepBehavior(neela, CID_BHVIDLE)->target = neela->target;
@@ -419,19 +415,19 @@ extern "C" void SetBhvNeelaChaseState(NBHV *behavior, int st)
     case 0: {
         O *o = PushStepBehavior(behavior->guard, CID_BHV169);
         SetBhvScriptScript(o, behavior->script, 0, behavior->guard->resumeState);
-        VCALL0(o, 8);
+        o->Start();
         break;
     }
     case 1: {
         O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
         o->target = D_002E1E40;
-        VCALL0(o, 8);
+        o->Start();
         break;
     }
     case 2: {
         O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
         o->unknown40 = &behavior->guard->unknown1060;
-        VCALL0(o, 8);
+        o->Start();
         BroadcastGameEvent(D_002DEB30, 0x33, behavior->guard);
         break;
     }

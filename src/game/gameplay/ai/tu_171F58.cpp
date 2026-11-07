@@ -32,7 +32,6 @@ enum {
 
 typedef union U { qword q; float f[4]; int i[4]; } U;
 /* g++ 2.95 vtable entry. */
-struct VE { short d; short pad; void (*pfn)(void *); };
 
 /* The guard that runs the behaviour (a STEPGUARD; view of the fields used). */
 struct GUARDV
@@ -49,11 +48,9 @@ struct GUARDV
 typedef char assert_GUARDV_capabilities[(unsigned int)&((GUARDV *)0)->capabilities == 0xFE8 ? 1 : -1];
 
 /* A sub-behaviour started by SetBhvSearchState (PushStepBehavior finds it on the guard; vtable slot 8 starts it). */
-struct BHVO { char pad[0xC]; VE *vt; char pad10[0x2C]; int sgf; char pad40[0xC0 - 0x40]; int gotoAllowPartialRoute; };   // +0x3C BHVANIM/BHVIDLE guard flag; +0xC0 BHVGOTO allow partial routes
-// Starts a freshly pushed child behaviour: its Start (vtable slot 8) through the this-adjusting vtable entry.
-template <class T> static inline void StartPushedBhv(T *child) { child->vt[8].pfn((char *)child + child->vt[8].d); }
+struct BHVO : BHV { char pad30[0x3C - 0x30]; int sgf; char pad40[0xC0 - 0x40]; int gotoAllowPartialRoute; };   // +0x3C BHVANIM/BHVIDLE guard flag; +0xC0 BHVGOTO allow partial routes
 /* The watched perception record (+0x44; vtable slots 1/2 are incref/decref). */
-struct WATCH { char pad[0xC]; VE *vt; char pad10[0x10]; qword firstPosition; qword secondPosition; char pad40[4]; GUARDV *guard; char pad48[0xC]; int mode; };
+struct WATCH : BASIC { char pad10[0x20 - 0x10]; qword firstPosition; qword secondPosition; char pad40[4]; GUARDV *guard; char pad48[0xC]; int mode; };
 
 /* One search point: the candidate (pulled 200 out from the guard) and the original hiding place. */
 typedef struct PAIR { U candidate, original; } PAIR;
@@ -274,7 +271,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
         {
             BHVO *child = PushStepBehavior(behavior->guard, CID_BHVANIM);
             child->sgf = 0xC;
-            StartPushedBhv(child);
+            child->Start();
         }
         break;
     case 1:
@@ -287,7 +284,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             ClearPointerPair(&goal);
             goal.v = v;
             SetBhvgotoGoal(child, &goal);
-            StartPushedBhv(child);
+            child->Start();
             behavior->lookEndTime = D_002A5398;
         }
         break;
@@ -300,7 +297,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(QwordY(d), QwordX(d)));
             {
                 BHVO *child = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-                StartPushedBhv(child);
+                child->Start();
             }
             SetBhvSearchLookTimers(behavior);
         }
@@ -311,14 +308,14 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             child->gotoAllowPartialRoute = 1;
             ChooseBhvSearchPoints(behavior);
             StepBhvSearchPoint(behavior);
-            StartPushedBhv(child);
+            child->Start();
         }
         break;
     case 4:
         {
             BHVO *child = PushStepBehavior(behavior->guard, CID_BHVANIM);
             child->sgf = 0xE;
-            StartPushedBhv(child);
+            child->Start();
         }
         SetBhvSearchWatched(behavior, 0);
         behavior->needsReplan = 0;
@@ -327,7 +324,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
         {
             BHVO *child = PushStepBehavior(behavior->guard, CID_BHVIDLE);
             child->sgf = 1;
-            StartPushedBhv(child);
+            child->Start();
         }
         break;
     }
@@ -352,9 +349,9 @@ extern "C" void SetBhvSearchLookTimers(BHV171V *behavior) {
 // flags a re-plan.
 extern "C" void SetBhvSearchWatched(BHV171V *behavior, WATCH *watched) {
     if (watched == behavior->watched) return;
-    if (behavior->watched) { VE *entry = &behavior->watched->vt[2]; entry->pfn((char *)behavior->watched + entry->d); }
+    if (behavior->watched) behavior->watched->Release();
     behavior->watched = watched;
-    if (watched) { VE *entry = &watched->vt[1]; entry->pfn((char *)watched + entry->d); }
+    if (watched) watched->AddRef();
     behavior->needsReplan = 1;
 }
 

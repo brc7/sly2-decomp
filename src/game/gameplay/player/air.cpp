@@ -3239,11 +3239,8 @@ struct WORK{U u0,v10,v20,s;float at;U uq;qword incoming;U sum;};
 struct C { char pad[0x88]; float g88; };
 struct B { char pad[0xE8]; struct C *pc; };
 struct S { struct B *pb; };
-struct SPACE;
-typedef struct { short d; short pad; struct SPACE *(*pfn)(void *, void *); } VTE;
-struct O { char pad[0xC]; VTE *vt; };
 qword GetLoWorldPos(void *p);
-qword GetXfVelocity(struct SPACE *p, struct SPACE *stop, qword q);
+qword GetXfVelocity(XF *p, XF *stop, qword q);
 int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
 // XY length of v, in $2.
@@ -3266,7 +3263,7 @@ static __inline__ unsigned LenXY1(qword v)
 }
 // Predicts a jump from Sly's position and velocity to a point on a (possibly moving) object: time, cost, and the
 // predicted position and velocity at landing.
-void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
+void MeasureJtJumpToTarget(struct S *p, qword aInput, LO *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
 {
     struct WORK w;
     register qword q __asm__("$16");
@@ -3274,12 +3271,12 @@ void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput,
     register qword b __asm__("$17"),a __asm__("$19"),pos __asm__("$18");
     int solved;
     register float time __asm__("$f1");
-    struct SPACE*x;
+    XF *x;
     __asm__("por %0,$zero,%1":"=r"(b):"r"(bInput));
     __asm__("por %0,$zero,%1":"=r"(a):"r"(aInput));
     w.incoming=c;
     __asm__("por %0,$zero,%1":"=r"(pos):"r"(GetLoWorldPos(p->pb)));
-    x=o->vt[32].pfn((char*)o+o->vt[32].d,0);
+    x=o->GetLocalTransform(0);
     { register qword got __asm__("$2")=GetXfVelocity(x, 0, b);
       register struct S*receiver __asm__("$4");
       register qword initial __asm__("$5"),velocity __asm__("$6");
@@ -3363,11 +3360,6 @@ typedef char B_physics[OFF(struct B,pc)==0xE8?1:-1];
 typedef char B_size[sizeof(struct B)==0xEC?1:-1];
 typedef char S_body[OFF(struct S,pb)==0?1:-1];
 typedef char S_size[sizeof(struct S)==4?1:-1];
-typedef char VTE_size[sizeof(VTE)==8?1:-1];
-typedef char VTE_delta[OFF(VTE,d)==0?1:-1];
-typedef char VTE_function[OFF(VTE,pfn)==4?1:-1];
-typedef char O_vtable[OFF(struct O,vt)==0xC?1:-1];
-typedef char O_prefix[sizeof(struct O)==0x10?1:-1];
 typedef char WORK_size[sizeof(struct WORK)==0x80?1:-1];
 typedef char WORK_alignment[__alignof__(struct WORK)==16?1:-1];
 typedef char WORK_u0[OFF(struct WORK,u0)==0x00?1:-1];

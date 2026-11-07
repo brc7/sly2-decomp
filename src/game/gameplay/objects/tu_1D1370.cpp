@@ -1744,11 +1744,6 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddRobottankCustomXps { extern "C" {
-typedef struct VT { struct { short d; short pad; int (*pfn)(void *); } a[64]; } VT;
-typedef struct { char pad[0xC]; VT *vt; } VOBJ;
-typedef struct { char pad[0x60]; VOBJ *p; } C;
-typedef struct { char pad[0xEC]; C *pc; } B;
-typedef struct { int pad; B *pb; } A;
 typedef struct { char a[8]; char b[0x58]; } ENT;
 typedef struct {
     char pad[0x190];
@@ -1757,18 +1752,18 @@ typedef struct {
     ENT ae[8];
 } OBJ;
 void AddSoCustomXps(void);
-void func_001D3450(OBJ *, ENT *, A *, int, int, int, void *);
-// CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62
-// test. (inferred)
-void AddRobottankCustomXps(OBJ *tank, A *pa, int x, int y, int z)
+void func_001D3450(OBJ *, ENT *, SOPART *, int, int, int, void *);
+// CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel when the other part's physics root
+// IsFixed (slot 62). (inferred)
+void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
 {
     int i;
-    VOBJ *po;
+    SO *psoRoot;
     AddSoCustomXps();
-    po = pa->pb->pc->p;
-    if (po->vt->a[62].pfn((char *)po + po->vt->a[62].d)) {
+    psoRoot = ppart->owner->physicsTree->root;
+    if (psoRoot->IsFixed()) {
         for (i = 0; i < tank->c; i++)
-            func_001D3450(tank, &tank->ae[i], pa, x, y, z, tank->ae[i].b);
+            func_001D3450(tank, &tank->ae[i], ppart, x, y, z, tank->ae[i].b);
     }
 }
 } } // namespace M_AddRobottankCustomXps
@@ -2121,11 +2116,7 @@ namespace M_SetRobottankState { extern "C" {
 extern CLOCK D_002DDED0;
 typedef struct VT1 { struct { short d; short pad; void (*pfn)(void *, int); } a[64]; } VT1;
 typedef struct { char pad[0xC]; VT1 *vt; } W;
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int, int, int, int, int); } a[8]; } VT;
-typedef struct OBJ {
-    char pad[0xC];
-    VT *vt;
-    char pad10[0x180 - 0x10];
+struct OBJ : PO {
     int state;
     float t;
     char pad188[0x568 - 0x188];
@@ -2135,7 +2126,7 @@ typedef struct OBJ {
     char pad574[0x598 - 0x574];
     void *engineSound;
     int engineSoundId;
-} OBJ;
+};
 extern int D_002C2208[];
 void PlayWidgetAnim(W *, int);
 void UpdateRobottankHealthMeter(OBJ *);
@@ -2194,7 +2185,7 @@ void SetRobottankState(OBJ *tank, int n)
         SetRobottankTactic(tank, 0);
         break;
     case 3:
-        tank->vt->a[3].pfn((char *)tank + tank->vt->a[3].d, 5, 0, 0, 0, 0);
+        tank->HandleSpliceEvent(5, 0, 0, 0, 0);
         break;
     }
     if (tank->sma && tank->state != -1)

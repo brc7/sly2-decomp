@@ -751,13 +751,13 @@ int IsWidgetAnimPlaying(struct S *widget, int animId)
 namespace M_LoadWidgetFromBrx { extern "C" {
 typedef struct { int cb; int cbAlign; } AREQ;
 struct O { char pad[0x40]; void *owner; };
-struct S {
-    char pad[0x50]; int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
+struct S : LO {
+    int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
     char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteHeap;   /* duration: +0x90; the visible timeout UpdateWidget checks is +0x8C (see SetWidgetState's view) */
 };
 extern char D_003E1C70[], D_003E1C80[];
 
-void LoadLoFromBrx(struct S *p, void *pbis);
+void LoadLoFromBrx(LO *plo, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 int U32Read__18CBinaryInputStream(void *pbis);
@@ -854,7 +854,7 @@ typedef struct S S;
 /* A deferred load record (0x50 bytes, g_sw.slWidgetDeferred): four key words read from the BRX, the widget, the
    load priorities. */
 typedef struct N {int key0,key1;char pad8[0x2C];int key2;int pad38;int key3;S *owner;int priority,lastPriority;struct N *next;} N;
-struct S {char pad[0x50];int spriteCount;void *sprites;int state;char pad5c[4];int stateFrame;char pad64[0x5C];N *deferredLoad;};
+struct S : LO {int spriteCount;void *sprites;int state;char pad5c[4];int stateFrame;char pad64[0x5C];N *deferredLoad;};
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -1445,15 +1445,14 @@ int IsWidgetObscured(struct S *widget)
 
 // 0x213830 StartWidgetMainAnim
 namespace M_StartWidgetMainAnim { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x6C]; int mainAnimId; char pad3[4]; void *spriteGroups; char pad4[0x24]; int isExclusive; };
+struct S : LO { char pad50[0x7C - 0x50]; int mainAnimId; char pad3[4]; void *spriteGroups; char pad4[0x24]; int isExclusive; };
 void StartSpriteAnimById(void *p);
 void SetWidgetExclusive(struct S *p, int a);
 // Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
 void StartWidgetMainAnim(struct S *widget, int animId)
 {
     StartSpriteAnimById(widget->spriteGroups);
-    widget->vt[21].pf((char *)widget + widget->vt[21].d, 1);   /* slot 21 (1 = on) */
+    widget->SetFlag8(1);
     if (widget->isExclusive)
         SetWidgetExclusive(widget, 0);
     widget->mainAnimId = animId;

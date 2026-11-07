@@ -951,20 +951,14 @@ void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespa
 }
 
 namespace M_DeactivateCpcamblend { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };   /* the CAMEVENT, called through its vtable pointer at +0x0C */
 void DeactivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b);
-// CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent vt2 (end event); pcammove=0. (inferred)
+// CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent->Release() (end event); pcammove=0. (inferred)
 void DeactivateCpcamblend(CPCAMBLEND *a, int n, CAMMOVE *b)
 {
-    struct O *o;
-    struct VTE *e;
     DeactivateCplcy(a, n, b);
     if (b->fCutOnLeave)
         CutCm(&g_cm);
-    o = (struct O *)a->pcammove->pevent;
-    e = &o->vt[2];
-    e->pfn((char *)o + e->d);
+    ((BASIC *)a->pcammove->pevent)->Release();
     a->pcammove = 0;
 }
 } } // namespace M_DeactivateCpcamblend

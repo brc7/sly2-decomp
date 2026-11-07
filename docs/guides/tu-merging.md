@@ -777,6 +777,37 @@ namespace; the task/job views of game.cpp (sly2/task.h); the header-less player 
 NODE = LO with Add/Remove/MatchTransform, its ALO target list = TARGET, its POCTL view = po.h POCTL; hang NODE;
 pipe_jt PATH and INPUT = POCTL), left to the player family's pass on those files to keep the merge simple.
 
+### Views unified (names/vu-f1-base-3): base family, round 3
+
+Same rules and checks as round 2 (every touched object MATCHes with identical nm symbols and relocations compared by
+symbol name; at the end all 210 src/game sources). This round went after the hand-made vtable calls first.
+
+| change | where | how |
+|---|---|---|
+| reference-counted holders | sm.cpp (four `Lock` copies), relay.cpp (`LOCK` in UpdateRelayScript/RemoveJsg) | one file-scope `SMAHOLD` (AddRef in the constructor, Release in the destructor) on aseg.h SMA; relay uses its existing `JSGREF` on JSGV |
+| SMA/SM/SMRT views in sm.cpp | SetSmaSvt, SeekSma, SnapSma, HandleSmaMessage (now `(SMA *, MSGID, void *)`), SkipSma, RetractSma, NotifySmaSpliceOnEnterState, Replace/ReleaseSma, GetSmStateOid, FindSmDistanceTable, CountSmTransitionHops | aseg.h SMA/SM/ASEGA and sm.cpp's SMS/SMRT; real AddRef/Release/SendMessage/HandleSpliceEvent |
+| behaviours pushed with PushStepBehavior | tu_144B28 (follow, walk-to), tu_171F58, tu_1553F0, tu_1B9F80, tu_14A008, stepplayer (StartStepplayerFollow) | the views derive from step.h BHV (`struct O : BHV { ... }`, `owner` for the old `guard` word); `child->Start()` replaces the slot-8 calls and tu_171F58's `StartPushedBhv` template |
+| LO/SO/PO objects called by hand | stepplayer, murray (carried object, hit effect), bentley (dart, explosion objects), jt (contact objects, sub-objects), air, hurt, relay (JSG tunnel = TN, step holds = STEP slots 83/84), cm (policy reset), cplcy, sound (CID151/STREAMSND/BASIC), tu_17F090 (hack enemies : PO), tu_1D1370 (robot tank : PO, part's physics root IsFixed), hud (widgets : LO), bif (find builtins on LO/SW) | real virtual calls on the shared classes; `isInWorld` for the bit-60 tests |
+| emitter.cpp SetEmitterParticleCount | its EMITTERV | emitter.h EMITTER (k, c, fDirty) |
+
+Header change: basic.h declares `~BASIC()` (never defined; DestroyBasic 0x258348 is its body, emitted by screen.cpp over
+its own view). Its symbol is `_$_5BASIC`: g++ 2.95 rejects an asm-labelled destructor here (PO()'s base cleanup in
+classes.h then finds no `BASIC::__dt`), so an object that destroys a BASIC-derived object binds it with
+`// SLY2_ALIAS: _$_5BASIC=DestroyBasic`. A scratch TU defining `SW g;` references only `SW_ctor` and `_$_5BASIC`. All
+210 sources compile to identical objects with the declaration.
+
+Measured (scratch metrics.py over src/game): struct/class/union definitions 6,627 -> 6,510; family-named views
+312 -> 309; hand-vptr views 379 -> 330; non-derived views padded over a base 1,189 -> 1,172; 22 files, +365/-577 before this section.
+
+Left, with the reason: the CID36 carry spot's +0x180 carried object (murray: classes.h pads it); CPLCY Set/Revoke are
+called with the stack entry's argument (cm.cpp SetCmPolicy/RevokeCmPolicy) but cm.h declares them without one; SMT is
+incomplete (sm.cpp SetSmaGoal reads its +0xC flags), ALO is only forward-declared (SendSmaMessage calls slot 5 on the
+SMA's root); hand vtable stores (ApplySmCore, NewRelayJsg) need the views; murray SpawnMurrayHitEffectUnchecked passes
+an int where TranslateToPos takes a quadword (a real call changes the code); the classes.h signatures listed in
+round 2 (RenderAll, RotateToMat, IsPosInside, WIDGET Show) block rip UpdateRip, stepplayer PostLoadStepplayer and the
+widget Show calls in game.cpp/tu_1D1370/screen; the qword-representation SHAPE/XF views (shape.cpp, tail.cpp) and the
+hand-tuned player functions (murray, bentley, jt, hurt, grab) whose P views are STEPPLAYER layouts.
+
 ### Views unified (names/vu-f5-camera): the camera family
 
 The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,

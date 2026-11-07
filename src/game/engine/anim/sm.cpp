@@ -42,6 +42,15 @@ int IsSmaRetracted(SMA *psma);
 int IsEntryInDl(DL *pdl, void *pv);
 int FindSmStateOptional(SM *psm, OID oid);
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
+
+/* SMAHOLD: holds a reference on an activation for a scope (AddRef now, Release at scope exit): the state changes below
+   run under it, so a listener that releases the activation cannot free it midway. */
+struct SMAHOLD
+{
+      SMA *psma;
+      SMAHOLD(SMA *p) { psma = p; psma->AddRef(); }
+      ~SMAHOLD() { psma->Release(); }
+};
 extern "C" {
 void PostLoLoad(LO *plo);
 void ApplySmToObject(SM *psm, ALO *palo, OID oid, GRFAPL grfapl);   /* PsmaApplySm */
@@ -481,7 +490,7 @@ int CountSmTransitionHops(SM *p, int n, int y, int x)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_OidFromSmIsms { extern "C" {
 // OID of the state at an index, or -1 when out of range.
-int GetSmStateOid(SM *p, int n) { if (n < 0 || n >= p->csms) return -1; return p->asms[n].oid; }
+OID GetSmStateOid(SM *p, int n) { if (n < 0 || n >= p->csms) return (OID)-1; return p->asms[n].oid; }
 } } // namespace M_OidFromSmIsms
 
 // Adds a reference to the activation (slot 1).
@@ -507,6 +516,7 @@ extern "C" void DecrefSma(SMA *psma)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001F0598 { extern "C" {
+struct DL;
 void RetractAsega(void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 // Stops an activation: drops its running animation, unlinks it from the machine's and the world's lists, sends the
@@ -605,17 +615,11 @@ int GetSmaNext(SMA *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaSvt {
 extern "C" void SetAsegaSpeed__FP5ASEGAf(void *, float);
-struct Lock {
-    SMA *p;
-    // Scope guard: hold a reference (AddRef on entry, Release on exit).
-    Lock(SMA *pp) { p = pp; p->AddRef(); }
-    ~Lock() { p->Release(); }
-};
 // Sets the activation's playback speed and passes it to the running animation.
 extern "C" void SetSmaSvt(SMA *p, float g)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
+        SMAHOLD hold(p);
         p->svtLocal = g;
         if (p->pasegaCur) SetAsegaSpeed__FP5ASEGAf(p->pasegaCur, g);
     }
@@ -645,17 +649,11 @@ void AbortSmaTransition(SMA *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SeekSma {
 extern "C" int FindSmStateRequired(void *, int);
-struct Lock {
-    SMA *p;
-    // Scope guard: hold a reference (AddRef on entry, Release on exit).
-    Lock(SMA *pp) { p = pp; p->AddRef(); }
-    ~Lock() { p->Release(); }
-};
 // Sets a goal and immediately re-chooses (aborting the running transition), so the machine heads for it right away.
 extern "C" void SeekSma(SMA *p, int n)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
+        SMAHOLD hold(p);
         p->goalState = FindSmStateRequired(p->stateMachine, n);
         AbortSmaTransition(p);
         ChooseSmaTransition(p, 1);
@@ -667,18 +665,12 @@ extern "C" void SeekSma(SMA *p, int n)
 namespace M_SnapSma {
 extern "C" int FindSmStateRequired(void *, int);
 extern "C" void RetractAsega(void *);
-struct Lock {
-    SMA *p;
-    // Scope guard: hold a reference (AddRef on entry, Release on exit).
-    Lock(SMA *pp) { p = pp; p->AddRef(); }
-    ~Lock() { p->Release(); }
-};
 // Jumps straight to a state without animating: stops the running animation, sets current and goal, notifies the state
 // entry and chooses the next transition.
 extern "C" void SnapSma(SMA *p, int n)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
+        SMAHOLD hold(p);
         int m = FindSmStateRequired(p->stateMachine, n);
         if (p->currentState == m && (p->goalState == m || p->goalState == -1)) return;
         {
@@ -906,18 +898,12 @@ extern "C" void SendSmaMessage(SMA *p, int a, int b)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleSmaMessage {
-struct Lock {
-    SMA *p;
-    // Scope guard: hold a reference (AddRef on entry, Release on exit).
-    Lock(SMA *pp) { p = pp; p->AddRef(); }
-    ~Lock() { p->Release(); }
-};
 // Reacts to "animation finished" (message 2) from the running transition's player: ends the transition and chooses the
 // next one.
-extern "C" void HandleSmaMessage(SMA *p, int k, void *pv)
+extern "C" void HandleSmaMessage(SMA *p, MSGID msgid, void *pv)
 {
-    if (k == 2 && pv == p->pasegaCur) {
-        Lock l(p);
+    if (msgid == 2 && pv == p->pasegaCur) {
+        SMAHOLD hold(p);
         EndSmaTransition(p);
         ChooseSmaTransition(p, 0);
     }
@@ -928,17 +914,11 @@ extern "C" void HandleSmaMessage(SMA *p, int k, void *pv)
 namespace M_SkipSma {
 extern "C" void RetractAsega(ASEGA *);
 extern "C" void SeekAsega(ASEGA *, int, float, float);
-struct Lock {
-    SMA *p;
-    // Scope guard: hold a reference (AddRef on entry, Release on exit).
-    Lock(SMA *pp) { p = pp; p->AddRef(); }
-    ~Lock() { p->Release(); }
-};
 // Skips the activation forward by t seconds, through as many transitions as that covers.
 extern "C" void SkipSma(SMA *p, float t)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
+        SMAHOLD hold(p);
         ASEGA *q;
         while ((q = p->pasegaCur) != 0) {
             float d = q->animation->duration - q->time;
@@ -1025,7 +1005,7 @@ int GetSmStateOid(void *, int);
 void NotifySmaSpliceOnEnterState(SMA *p, int a, int b)
 {
     struct L l;
-    int *ap[2];
+    void *ap[2];
     l.p = p;
     l.a = GetSmStateOid(p->stateMachine, a);
     l.b = GetSmStateOid(p->stateMachine, b);
@@ -1079,16 +1059,14 @@ void ReplaceSmaEx(void *pv, int a, int b, int c, int d, SMA **ppx)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ReleaseSma { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int a[3]; struct VTE *vt; };
-struct S { struct O *po; };
-void RetractSma(struct O *);
+struct S { SMA *po; };
+void RetractSma(SMA *);
 // Retracts the activation in a slot, releases it and clears the slot.
 void ReleaseSma(struct S *p)
 {
     if (p->po) {
         RetractSma(p->po);
-        { struct O *po = p->po; po->vt[2].pfn((char *)po + po->vt[2].d); }
+        p->po->Release();
         p->po = 0;
     }
 }

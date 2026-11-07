@@ -282,6 +282,13 @@ struct BASIC
          inline in sly2/classes.h (its definition makes g++ instantiate the CRefPtr destructors, whose pointees are
          incomplete in most includers; only class_registry constructs classes). */
       BASIC();
+      /* Destruction: releases the side bag and then the frame, and frees the object when the in-charge flag's bit 0
+         is set: the function DestroyBasic (0x258348, a linkonce copy screen.cpp emits over its own view; the static
+         objects of sw/cm/sound/memcard/screen call it as their base destructor with g++'s in-charge flag 2).
+         Declared, never defined, so the symbol is _$_5BASIC: an object that destroys a BASIC-derived object binds it
+         to the config name with `// SLY2_ALIAS: _$_5BASIC=DestroyBasic`. An asm label (`__asm__("DestroyBasic")`)
+         is not accepted: g++ 2.95 then cannot find the destructor for PO()'s base cleanup (classes.h). */
+      ~BASIC();
       virtual void AddRef() __asm__("BASIC_Slot1Default");
       virtual void Release() __asm__("BASIC_Slot2Default");
       virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleBasicSpliceEvent");

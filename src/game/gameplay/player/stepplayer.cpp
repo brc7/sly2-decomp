@@ -1148,13 +1148,10 @@ extern "C" void StopStepplayerGadget()
 }
 
 namespace M_func_00141E30 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; };
 // Slot 104: sends Splice event 0x1A to itself (after a power-up purchase, see RefreshPlayersAfterPowerupChange).
-void SendStepplayerPowerupEvent(struct O *player)
+void SendStepplayerPowerupEvent(STEPPLAYER *player)
 {
-    struct VTE *e = &player->vt[3];
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)player + e->d, 0x1A, 0, 0, 0, 0);
+    player->HandleSpliceEvent(0x1A, 0, 0, 0, 0);
 }
 } } // namespace M_func_00141E30
 
@@ -1903,18 +1900,15 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 namespace M_GetStepplayerStunHold { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct VTE { short d; short pad; qword (*pfn)(void *); };
-struct O { int pad[3]; struct VTE *vt; };
 struct S { int k; float g4; float g8; int pad; qword pos; qword dir; };
 extern qword D_002A2DC0;
-qword GetLoWorldPos(struct O *p);
+qword GetLoWorldPos(LO *p);
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.
-void GetStepplayerStunHold(struct O *player, struct S *ps, float g)
+void GetStepplayerStunHold(STEPPLAYER *player, struct S *ps, float g)
 {
-    struct VTE *e = &player->vt[33];
     qword v, h, pos, s, r;
     VU u;
-    v = e->pfn((char *)player + e->d);
+    v = player->GetVelocity();
     {
         qword d, one, up = D_002A2DC0;
         __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(d), "=&j"(one) : "j"(v), "j"(up));

@@ -154,8 +154,8 @@ void UpdateCmLast__FP2CM(CM *cm)
 } } // namespace M_UpdateCmLast__FP2CM
 
 namespace M_ResetCameraPolicies { extern "C" {
-// Calls vtable slot 7 (the policy reset) on every policy on the stack, then resets the stereo eye offset (0) and focus
-// distance (10).
+// Calls ResetPolicy (vtable slot 7) on every policy on the stack, then resets the stereo eye offset (+0x620: 0) and
+// focus distance (+0x624: 10).
 void ResetCameraPolicies(CM *p)
 {
     int i;
