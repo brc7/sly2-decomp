@@ -237,15 +237,11 @@ void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 }
 
 namespace M_OnRipgRemove__FP4RIPG {
-struct DL { void *head; void *tail; int linkOffset; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
-struct RIP;
-struct RIPGV { char pad[0x10]; int psoParent; char p1[0xEC - 0x14]; void *aaobrEntry; char p2[0x15C - 0xF0]; DL dl; };
 struct SW { char pad[0x403C]; char pool[0x30]; RIPGV *defaultRipGroup; };
 extern "C" { extern SW D_003DD490; }
 extern "C" {
-void RemoveRip__FP3RIP(RIP *rip);
 void RemoveSoHierarchy(RIPGV *p);
 void RemoveObjectFromBroadPhase(SW *psw, void *pv);
 void SnipLo(RIPGV *p);
@@ -276,18 +272,18 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
     DLI dli;
     RIP *rip;
     SW *psw;
-    InitDli(&dli, &ripGroup->dl);
-    while ((rip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(rip);
+    InitDli(&dli, &ripGroup->ripList);
+    while ((rip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip(rip);
     psw = &D_003DD490;
     if (ripGroup == psw->defaultRipGroup) psw->defaultRipGroup = 0;
     RemoveSoHierarchy(ripGroup);
-    if (ripGroup->aaobrEntry) {
-        RemoveObjectFromBroadPhase(psw, ripGroup->aaobrEntry);
-        ripGroup->aaobrEntry = 0;
+    if (ripGroup->physicsTree) {
+        RemoveObjectFromBroadPhase(psw, ripGroup->physicsTree);
+        ripGroup->physicsTree = 0;
     }
     SnipLo(ripGroup);
     RemoveSlEntry(GetSwClassList(psw, 0x57), ripGroup);
-    if (!ripGroup->psoParent) FreeLoroot(ripGroup);
+    if (!ripGroup->parent) FreeLoroot(ripGroup);
     FreeSlotheapSlot(psw->pool, ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
