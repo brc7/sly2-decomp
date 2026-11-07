@@ -473,7 +473,7 @@ float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 void SetStepTargetHeading(struct LO *po, float g);
 int IsJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
-static inline float GClamp(float g, float lo, float hi)
+static inline float ClampF(float g, float lo, float hi)
 {
     float r;
     if (g < lo) r = lo;
@@ -509,8 +509,8 @@ void UpdateJtActiveZap(struct S *s)
             u = 0.0f;
         }
         w = cosf((D_002DDED0.t - s->x94) * 10.0f);
-        a = GClamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
-        s->po->xD0 = a * GClamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
+        a = ClampF(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
+        s->po->xD0 = a * ClampF(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
     }
 done:
     switch (s->x4) {

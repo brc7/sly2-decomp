@@ -343,7 +343,7 @@ inline void SetMatrix4Identity(MATRIX4 *matrix)
     matrix->mat[0][0] = 1.0f;
 }
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
-inline qword QwTransformPos(MATRIX4 *matrix, qword pos)
+inline qword VecTransformPos(MATRIX4 *matrix, qword pos)
 {
     qword result;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -357,18 +357,18 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
+void *AllocFromWorldHeap(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 extern "C" void MeasureShape(SHAPE *pshape);
-inline void *PvAllocSw(int cb, int alignment)
+inline void *AllocFromWorldHeapAligned(int cb, int alignment)
 {
     SWALLOC swalloc;
     swalloc.cb = cb;
     SWALLOC *allocator = &swalloc;
     allocator->cbAlign = alignment;
-    return PvAllocSwImpl(allocator);
+    return AllocFromWorldHeap(allocator);
 }
 
 /** @sly2-annot addr=0x1CC5E8
@@ -406,9 +406,9 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
             SHAPE *shape = (SHAPE *)PloNew((CID)10, hands->pso, (OID)0xB2, -1);
             shape->crvk = (CRVK)0;
             shape->ccv = D_002C1ED0;
-            shape->mpicvu = (float *)PvAllocSw(D_002C1ED0 << 2, 16);
-            shape->mpicvs = (float *)PvAllocSw(D_002C1ED0 << 2, 16);
-            shape->mpicvpos = (VECTOR4 *)PvAllocSw(D_002C1ED0 << 4, 16);
+            shape->mpicvu = (float *)AllocFromWorldHeapAligned(D_002C1ED0 << 2, 16);
+            shape->mpicvs = (float *)AllocFromWorldHeapAligned(D_002C1ED0 << 2, 16);
+            shape->mpicvpos = (VECTOR4 *)AllocFromWorldHeapAligned(D_002C1ED0 << 4, 16);
             MATRIX4 matSample;
             XF *pxfEffect;
             if (j == 0)
@@ -427,7 +427,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
                 float u = (float)k / (float)(D_002C1ED0 - 1);
                 PredictAsegEffect(u * aseg->tMax, aseg, hands->pso, 0.0f, pxfEffect, hands->pso->pxfRoot, &matOut, 0);
                 shape->mpicvu[k] = u;
-                qword pos = QwTransformPos(&matOut, *(qword *)matSample.mat[3]);
+                qword pos = VecTransformPos(&matOut, *(qword *)matSample.mat[3]);
                 shape->mpicvpos[k] = *(VECTOR4 *)&pos;
             }
             shape->Remove();

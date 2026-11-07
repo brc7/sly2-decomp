@@ -342,13 +342,13 @@ extern "C" { extern CLOCK D_002DDED0; }
 
 
 
-static inline qword QwAdd(qword qw0, qword qw1)
+static inline qword VecAdd(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline qword QwDot(qword a, qword b)
+static inline qword VecDot(qword a, qword b)
 {
     qword qw;
     qword vfOne;
@@ -356,7 +356,7 @@ static inline qword QwDot(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float GZOfQw(qword qw)
+static inline float VecZ(qword qw)
 {
     float z;
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
@@ -376,9 +376,9 @@ extern "C" { extern float D_002BF764; }
 extern "C" { extern float D_002BF76C; }
 extern "C" { extern float D_002BF730; }
 extern "C" { extern float D_002BF768; }
-static inline qword QwProjectOut(qword v, qword n)
+static inline qword VecProjectOut(qword v, qword n)
 {
-    qword qwDot = QwDot(v, n);
+    qword qwDot = VecDot(v, n);
     qword qw;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwDot), "j"(n));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(v), "j"(qw));
@@ -449,7 +449,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
                 qword dvel;
                 air->nUnk40 = 3;
                 dvel = SetVectorCylind(air->pstepplayer->radTarget, D_002BF754, 0.0f);
-                air->pstepplayer->SetVelocity(QwAdd(vel, dvel));
+                air->pstepplayer->SetVelocity(VecAdd(vel, dvel));
             }
             SetJtAirState(air, 0, lo);
             air->fCanDoubleJump = 1;
@@ -516,7 +516,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
                 qword dvel;
                 air->nUnk40 = 3;
                 dvel = SetVectorCylind(air->pstepplayer->pctl->radLeft, D_002BF730 * gRatio, 0.0f);
-                air->pstepplayer->SetVelocity(QwAdd(vel, dvel));
+                air->pstepplayer->SetVelocity(VecAdd(vel, dvel));
             }
             break;
         }
@@ -560,7 +560,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
         case 0x11:
             if (air->nState == -1)
             {
-                air->pstepplayer->SetVelocity(QwAdd(QwProjectOut(velWall, D_002A2DC0), D_002BF770));
+                air->pstepplayer->SetVelocity(VecAdd(VecProjectOut(velWall, D_002A2DC0), D_002BF770));
                 air->fCanDoubleJump = 1;
             }
             SetJtAirState(air, 0x16, 0);
@@ -576,7 +576,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
         air->fUnk2c = air->fCanDoubleJump;
     if (FIsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
         ((JT *)air->pstepplayer)->janim.nUnk10 = -1;
-    air->zStart = GZOfQw(PosLoWorld(air->pstepplayer));
+    air->zStart = VecZ(PosLoWorld(air->pstepplayer));
 }
 } // namespace M_func_00195A00
 
@@ -1804,11 +1804,11 @@ extern "C" int FPowerUpAcquired(int ipowerup) __asm__("FPowerupAcquired");
 extern "C" uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
 extern "C" void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot);
 extern "C" qword QwPosOfJtPlace(float dt, STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("GetJtPlacePosition");
-static inline float GMinOf(float a, float b)
+static inline float MinOf(float a, float b)
 {
     return (a < b) ? a : b;
 }
-static inline qword QwScale(qword vec, VU_FLOAT scale)
+static inline qword VecScale(qword vec, VU_FLOAT scale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(scale.qw), "j"(vec));
@@ -2007,7 +2007,7 @@ void UpdateJtAirInput(JTAIR *air)
                         SetJtAirState(air, 4, 0);
                         break;
                     }
-                    SetStepTargetHeadingFromVector(air->pstepplayer, QwScale(air->normalEdge, VuFloat(-1.0f)));
+                    SetStepTargetHeadingFromVector(air->pstepplayer, VecScale(air->normalEdge, VuFloat(-1.0f)));
                     if (pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->FCanUseGadget(3))
                     {
                         pctl->ClearJoyPressed(BUTTON_LOOK);
@@ -2073,7 +2073,7 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 if (air->placeTarget.pspot != 0 || air->placeTarget.ppart != 0)
                 {
-                    qword targetPos = QwPosOfJtPlace(GMinOf(0.7f, air->pact8->tEnd - D_002DDED0.t), air->pstepplayer, &air->placeTarget);
+                    qword targetPos = QwPosOfJtPlace(MinOf(0.7f, air->pact8->tEnd - D_002DDED0.t), air->pstepplayer, &air->placeTarget);
                     air->pact8->SetGoal(ConvertXfPos(0, air->pstepplayer->pxfUnk58->pxfParent, targetPos), air->pact8->qwGoalVel);
                 }
                 break;
@@ -2107,8 +2107,8 @@ namespace M_UpdateJtActiveJump {
 //     real object is unknown.
 //  2. FloatUse(vel.f[2], actor): empty asm giving the `actor` pseudo of the post-search Make argument a 3rd reference, so local-alloc
 //     gives it v0 and the physics pointer v1 like the target (physics = 2 refs over a shorter life would otherwise be allocated first).
-// Other allocation-shaping asm helpers: VuFloatMemBits (lw into a TI GPR pseudo), QwAddScaled2/QwScale2 (VU_FLOAT listed twice),
-// GFromQw users. See notes/190000-1F0000_lanes.md "UpdateJtActiveJump - T1862" and the T1870 note.
+// Other allocation-shaping asm helpers: VuFloatMemBits (lw into a TI GPR pseudo), VecAddScaled2/VecScale2 (VU_FLOAT listed twice),
+// VecXGpr users. See notes/190000-1F0000_lanes.md "UpdateJtActiveJump - T1862" and the T1870 note.
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
 struct EMPTY { ~EMPTY() {} };
@@ -2185,15 +2185,15 @@ void SetStepplayerTnOverride(ACTOR *, void *);
 
 static inline qword GetVelocity(void *p) { VTE &v = ((SOURCE *)p)->vt[33]; return ((qword (*)(void *))v.fn)((char *)p + v.delta); }
 static inline SPACE *GetFrame(void *p) { VTE &v = ((SOURCE *)p)->vt[32]; return ((SPACE * (*)(void *, void *))v.fn)((char *)p + v.delta, 0); }
-static inline int FFacing(ACTOR *p) { VTE &v = p->vt[92]; return ((int (*)(void *))v.fn)((char *)p + v.delta); }
+static inline int IsFacing(ACTOR *p) { VTE &v = p->vt[92]; return ((int (*)(void *))v.fn)((char *)p + v.delta); }
 
 static inline VU_FLOAT VuFloatHomed(float g) { union { volatile qword home; } u; qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g)); u.home = q; VU_FLOAT v; v.q = q; return v; }
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 
 static inline VU_FLOAT VuFloatMemBits(const float &g) { VU_FLOAT v; __asm__("lw %0,%1" : "=r"(v.q) : "m"(g)); return v; }
-static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-static inline qword QwAddScaled(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(g.q)); return r; }
-static inline qword QwAddScaled2(qword a, qword b, VU_FLOAT g)
+static inline qword VecSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+static inline qword VecAddScaled(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(g.q)); return r; }
+static inline qword VecAddScaled2(qword a, qword b, VU_FLOAT g)
 {
     qword r;
     __asm__("vadda.xyzw $ACC,%1,$vf0\n"
@@ -2202,28 +2202,28 @@ static inline qword QwAddScaled2(qword a, qword b, VU_FLOAT g)
             : "j"(a), "j"(g.q), "j"(b), "j"(g.q));
     return r;
 }
-static inline qword QwScale2(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g.q), "j"(a), "j"(g.q)); return r; }
-static inline qword QwScale(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
-static inline float GFromVf(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
+static inline qword VecScale2(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g.q), "j"(a), "j"(g.q)); return r; }
+static inline qword VecScale(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
+static inline float VecX(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-static inline float GLengthSqXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromVf(r); }
+static inline float VecLengthSqXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VecX(r); }
 static inline float FloatUse(float g, void *a) { __asm__("" : "+f"(g) : "r"(a)); return g; }
-static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
-static inline float GLengthSqXYQ(qword v)
+static inline float VecXGpr(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
+static inline float VecLengthSqXYGpr(qword v)
 {
     qword r;
     __asm__("vmul.xy %0,%1,%1\n"
             "\tvaddy.x %0,%0,%0y"
             : "=j"(r)
             : "j"(v));
-    return GFromQw(r);
+    return VecXGpr(r);
 }
-static inline qword QwSqrt(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
-static inline float GLengthXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromVf(QwSqrt(r)); }
-static inline qword QwDot(qword a, qword b) { qword r, one; __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(r), "=j"(one) : "j"(a), "j"(b)); return r; }
-static inline float GLengthQ(qword v) { return GFromQw(QwSqrt(QwDot(v, v))); }
-static inline float GLength(qword v) { return GFromVf(QwSqrt(QwDot(v, v))); }
-static inline float GMin(float a, float b) { return b < a ? b : a; }
+static inline qword VecSqrt(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
+static inline float VecLengthXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return VecX(VecSqrt(r)); }
+static inline qword VecDot(qword a, qword b) { qword r, one; __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(r), "=j"(one) : "j"(a), "j"(b)); return r; }
+static inline float VecLengthGpr(qword v) { return VecXGpr(VecSqrt(VecDot(v, v))); }
+static inline float VecLength(qword v) { return VecX(VecSqrt(VecDot(v, v))); }
+static inline float MinF(float a, float b) { return b < a ? b : a; }
 
 static inline qword Make(float x, float y, float z)
 {
@@ -2251,26 +2251,26 @@ static inline qword RotateTranspose(const M3 &m, qword v)
             : "=j"(q), "=&j"(one), "=&j"(a), "=&j"(b), "=&j"(c) : "j"(m.r[1]), "j"(m.r[2]), "j"(v), "0"(m.r[0]));
     return q;
 }
-static inline qword QwScaleQ(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g)); return r; }
-static inline qword QwCombine(qword a, qword b, VU_FLOAT g0, qword c, VU_FLOAT g1)
+static inline qword VecScaleByVec(qword a, qword g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g)); return r; }
+static inline qword VecCombine(qword a, qword b, VU_FLOAT g0, qword c, VU_FLOAT g1)
 {
     qword r;
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%3x\n\tvmaddx.xyzw %0,%4,%5x" : "=j"(r) : "j"(a), "j"(b), "j"(g0.q), "j"(c), "j"(g1.q));
     return r;
 }
-static inline qword QwDivQ(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
-static inline float GNormalize(U &v, const qword &vDefault)
+static inline qword VecDiv(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
+static inline float VecNormalizeInPlace(U &v, const qword &vDefault)
 {
-    qword l = QwSqrt(QwDot(v.q, v.q));
-    if (GFromVf(l) < 0.0001f)
+    qword l = VecSqrt(VecDot(v.q, v.q));
+    if (VecX(l) < 0.0001f)
         v.q = vDefault;
     else
-        v.q = QwDivQ(v.q, l);
-    return GFromQw(l);
+        v.q = VecDiv(v.q, l);
+    return VecXGpr(l);
 }
-static inline float GLerp(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }
-static inline float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
-static inline int FMoving(qword v) { return D_002BF848 < GLengthXY(v); }
+static inline float LerpRange(const LM &lm, float u) { return (1.0f - u) * lm.low + u * lm.high; }
+static inline float ClampF(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
+static inline int IsMoving(qword v) { return D_002BF848 < VecLengthXY(v); }
 
 /** @sly2-annot addr=0x197F98
  * Purpose: jts 2 per-frame update on +0x2C0: stick combo timers, jump-target intercept search over
@@ -2328,21 +2328,21 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             if (src->state != 0)
                 continue;
             qword posSrc = GetLoWorldPos(src);
-            if (360000.0f < GLengthSqXY(QwSub(posSrc, pos.q)))
+            if (360000.0f < VecLengthSqXY(VecSub(posSrc, pos.q)))
                 continue;
             if (GetZ(posSrc) + src->height < pos.f[2])
                 continue;
-            MeasureJtJumpToTarget(p, vel.q, src, QwSub(posSrc, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
+            MeasureJtJumpToTarget(p, vel.q, src, VecSub(posSrc, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
             if (scoreBest < score)
                 continue;
             float alpha, dist;
             U delta;
-            delta.q = QwSub(pos.q, posSrc);
+            delta.q = VecSub(pos.q, posSrc);
             qword v = vel.q;
             U rel;
-            rel.q = QwSub(v, GetVelocity(src));
+            rel.q = VecSub(v, GetVelocity(src));
             U end;
-            end.q = QwAddScaled(delta.q, rel.q, VuFloat(GMin(0.25f, t)));
+            end.q = VecAddScaled(delta.q, rel.q, VuFloat(MinF(0.25f, t)));
 
             delta.f[2] = end.f[2] = 0.0f;
             FindClosestPointOnLineSegment(D_002A2DD0, delta.q, end.q, 0, &alpha, &dist);
@@ -2359,20 +2359,20 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         for (OBJECT *obj = (*(OBJECT * *)&g_sw.dlCid40); obj; obj = obj->next) {
             U posObj;
             posObj.q = GetLoWorldPos(obj);
-            if (D_002BF840 * D_002BF840 < GLengthSqXYQ(QwSub(pos.q, posObj.q)))
+            if (D_002BF840 * D_002BF840 < VecLengthSqXYGpr(VecSub(pos.q, posObj.q)))
                 continue;
-            MeasureJtJumpToTarget(p, vel.q, obj, QwSub(posObj.q, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
+            MeasureJtJumpToTarget(p, vel.q, obj, VecSub(posObj.q, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
             if (scoreBest < score)
                 continue;
             float alpha, dist;
             U velObj;
             velObj.q = GetXfVelocity(GetFrame(obj), 0, posObj.q);
             U delta;
-            delta.q = QwSub(pos.q, posObj.q);
+            delta.q = VecSub(pos.q, posObj.q);
             U rel;
-            rel.q = QwSub(vel.q, velObj.q);
+            rel.q = VecSub(vel.q, velObj.q);
             U end;
-            end.q = QwAddScaled(delta.q, rel.q, VuFloat(GMin(0.25f, t)));
+            end.q = VecAddScaled(delta.q, rel.q, VuFloat(MinF(0.25f, t)));
 
             delta.f[2] = end.f[2] = 0.0f;
 
@@ -2409,7 +2409,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
 
     switch (p->mode) {
     case 6: case 8:
-        point.q = QwSub(GetLoWorldPos(p->source), p->actor->offset.q);
+        point.q = VecSub(GetLoWorldPos(p->source), p->actor->offset.q);
     predict: {
         BODY *body = p->actor->body;
         float dt = body->deadline - D_002DDED0.t;
@@ -2452,7 +2452,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         U accel0, accel1;
         EvaluateBezierPos(dt, 0.0f, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel0.q);
         EvaluateBezierPos(dt, dt, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel1.q);
-        if (D_002BF844 < (GLengthQ(accel0.q) + GLengthQ(accel1.q)) * 0.5f * dt)
+        if (D_002BF844 < (VecLengthGpr(accel0.q) + VecLengthGpr(accel1.q)) * 0.5f * dt)
 
             SetJtAirState(p, 4, 0);
         break;
@@ -2478,11 +2478,11 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         float mix = (forward + 1.0f) * 0.5f;
         if (p->scriptFocus) {
             DATA *data = p->scriptFocus->data;
-            data->amount = GSmooth__FfffP3SMPPf(data->amount, GLerp(D_002BF798, mix), D_002DDED0.dt, &D_002BF860, 0);
+            data->amount = GSmooth__FfffP3SMPPf(data->amount, LerpRange(D_002BF798, mix), D_002DDED0.dt, &D_002BF860, 0);
         }
-        float turn = GLerp(D_002BF870, mix) * lateral * D_002DDED0.dt;
-        p->blend0 = GLerp(D_002BF850, mix);
-        p->blend1 = GLerp(D_002BF858, mix);
+        float turn = LerpRange(D_002BF870, mix) * lateral * D_002DDED0.dt;
+        p->blend0 = LerpRange(D_002BF850, mix);
+        p->blend1 = LerpRange(D_002BF858, mix);
 
         p->scriptedGain = 1.0f - input->amount;
         heading = headingOld + turn;
@@ -2519,7 +2519,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             target.q = GetLoWorldPos(p->source);
         if (p->actor != D_002E1E40)
             UpdateJtHands(&AsStepplayer(p->actor)->jtgrab.hands);
-        SetStepTargetHeadingFromVector(p->actor, QwSub(target.q, pos.q));
+        SetStepTargetHeadingFromVector(p->actor, VecSub(target.q, pos.q));
         heading = p->actor->heading;
         break;
     }
@@ -2530,16 +2530,16 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             ACTOR *actor = p->actor;
             actor->velocity.q = SetVectorCylind(input->heading + 3.14159265f, input->amount * D_002BF87C, D_002BF880);
         }
-        if (FMoving(vel.q))
+        if (IsMoving(vel.q))
             p->actor->heading = atan2f(vel.f[1], vel.f[0]) + offset;
         VU_FLOAT half = VuFloatHomed(0.5f);
         VU_FLOAT halfNeg = VuFloatHomed(-0.5f);
         qword up = D_002A2DC0;
         qword a = vel.q;
         qword b = p->actor->velocity.q;
-        a = QwSub(a, QwScaleQ(up, QwDot(a, up)));
-        b = QwSub(b, QwScaleQ(up, QwDot(b, up)));
-        basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, QwCombine(D_002BF890, a, half, b, halfNeg));
+        a = VecSub(a, VecScaleByVec(up, VecDot(a, up)));
+        b = VecSub(b, VecScaleByVec(up, VecDot(b, up)));
+        basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, VecCombine(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
         actor->local = MulM3(basis, BuildAxisAngleRotationMatrix(D_002A2DC0, actor->heading));
@@ -2548,9 +2548,9 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
     case 17: case 19:
         break;
     default:
-        if (FFacing(p->actor))
+        if (IsFacing(p->actor))
             heading = p->actor->heading;
-        else if (FMoving(vel.q))
+        else if (IsMoving(vel.q))
             heading = atan2f(vel.f[1], vel.f[0]) + offset;
 
         break;
@@ -2567,7 +2567,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             break;
         case 5:
             if (0.2f < input->amount) {
-                p->blend = GClamp(cosf(input->heading - p->lastHeading), 0.0f, p->blend);
+                p->blend = ClampF(cosf(input->heading - p->lastHeading), 0.0f, p->blend);
 
             }
             if (D_002BF730 < p->speedLimit)
@@ -2583,24 +2583,24 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         U desired;
         desired.q = SetVectorCylind(input->heading, input->amount * speed, 0.0f);
         ACTOR *actor = p->actor;
-        actor->velocity.q = QwScale2(RotateTranspose(actor->local, desired.q), VuFloat(-1.0f));
+        actor->velocity.q = VecScale2(RotateTranspose(actor->local, desired.q), VuFloat(-1.0f));
         if ((p->mode != 0 || p->combo == 3) && !p->jump) {
             U dir;
             dir.q = GetVelocity(p->actor);
             dir.f[2] = 0.0f;
-            float g = GNormalize(dir, D_002A2DA0);
+            float g = VecNormalizeInPlace(dir, D_002A2DA0);
 
             U perp;
             float proj = func_0011E290(desired.q, dir.q, 0, &perp.q);
             if (proj < g && g * -0.25f < proj) {
-                desired.q = QwAddScaled(perp.q, dir.q, VuFloat(g));
+                desired.q = VecAddScaled(perp.q, dir.q, VuFloat(g));
                 desired.q = LimitVectorLength(desired.q, speed);
             }
         }
         if (p->velocitySource) {
             qword d0 = desired.q;
             VU_FLOAT k = VuFloatMemBits(p->velocityScale);
-            desired.q = QwAddScaled2(d0, GetVelocity(p->velocitySource), k);
+            desired.q = VecAddScaled2(d0, GetVelocity(p->velocitySource), k);
         }
         p->desired = desired;
         break;
@@ -3561,7 +3561,7 @@ static __inline__ unsigned LenXY1(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(bits) : "j"(v));
     return bits;
 }
-static inline float GMax(float a, float b) { return a > b ? a : b; }
+static inline float MaxF(float a, float b) { return a > b ? a : b; }
 /** @sly2-annot addr=0x19A4A0
  * Purpose: Predict a jump from Sly's pos/velocity to a target point on (moving) object: time, cost g,
  *   predicted pos/velocity
@@ -3598,7 +3598,7 @@ void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput,
         float g = p->pb->pc->g88;
         float t1 = -dz / g;
         float h;
-        t1 = GMax(0.0f, t1);
+        t1 = MaxF(0.0f, t1);
         { register float height __asm__("$f6") = GetZ(pos);
           register float end __asm__("$f4") = GetZ(b);
           float th = t1 * 0.5f;
@@ -3701,7 +3701,7 @@ namespace M_func_0019A750 {
 //   0, 5, 8, 0xA - 0xC, 0x10, 0x11: nothing (z stays)
 // Returns the velocity (the callers SetVelocity it).
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-static inline float GEvaluateClq(CLQ *clq, float x)
+static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
@@ -3717,21 +3717,21 @@ int CSolveQuadratic(float a, float b, float c, float *ax) __asm__("CSolveQuadrat
 
 
 
-static inline float GZOfQw(qword qw)
+static inline float VecZ(qword qw)
 {
     float z;
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
     return z;
 }
-static inline float GMaxOf(float a, float b)
+static inline float MaxOf(float a, float b)
 {
     return (a > b) ? a : b;
 }
-static inline float GMinOf(float a, float b)
+static inline float MinOf(float a, float b)
 {
     return (a < b) ? a : b;
 }
-static inline float GLimitRange(float g, float minValue, float maxValue)
+static inline float ClampToRange(float g, float minValue, float maxValue)
 {
     if (g < minValue)
         return minValue;
@@ -3739,12 +3739,12 @@ static inline float GLimitRange(float g, float minValue, float maxValue)
         return maxValue;
     return g;
 }
-static inline float GEvaluateClqLm(CLQ *clq, LM *range, float x)
+static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
 {
-    float g = GEvaluateClq(clq, x);
+    float g = EvaluateClq(clq, x);
     float minValue = range->gMin;
     float maxValue = range->gMax;
-    return GLimitRange(g, minValue, maxValue);
+    return ClampToRange(g, minValue, maxValue);
 }
 extern "C" { extern float D_002BF8C8; }
 extern "C" { extern float D_002BF8CC; }
@@ -3816,18 +3816,18 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
                     sApex = D_002BF738;
                     break;
             }
-            vzNew = SqrtfEarly(GMaxOf((g + g) * (((VECTOR4 *)air->pstepplayer->pqwUnk218)->z - ((VECTOR4 *)&air->pstepplayer->qwUnk230)->z - sApex), 0.0f));
+            vzNew = SqrtfEarly(MaxOf((g + g) * (((VECTOR4 *)air->pstepplayer->pqwUnk218)->z - ((VECTOR4 *)&air->pstepplayer->qwUnk230)->z - sApex), 0.0f));
             break;
         }
         case 4:
-            vzNew = GEvaluateClqLm(&D_002BF8B0, &D_002BF8C0, vel.z);
+            vzNew = EvaluateClqClamped(&D_002BF8B0, &D_002BF8C0, vel.z);
             break;
         case 6:
         {
             float vJump = SqrtfEarly(g * -2.0f * D_002BF738);
             float tApex = -vJump / g;
-            float vzMin = GZOfQw(air->pstepplayer->GetVelocity());
-            vzMin = GMinOf(vzMin, vJump);
+            float vzMin = VecZ(air->pstepplayer->GetVelocity());
+            vzMin = MinOf(vzMin, vJump);
             float tElapsed = (vzMin - vJump) / g;
             float h = tElapsed * (vJump + g * 0.5f * tElapsed);
             float ax[4];
@@ -3850,7 +3850,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
             vzNew = vel.z;
             break;
     }
-    vel.z = GMaxOf(vel.z, vzNew);
+    vel.z = MaxOf(vel.z, vzNew);
     return *(qword *)&vel;
 }
 } // namespace M_func_0019A750
@@ -4218,7 +4218,7 @@ namespace M_JtbsChooseJtLanding {
 //  - `g >= D_002BF8E0` (not `D_002BF8E0 <= g`) everywhere except the 13C0 curves: the operand order decides whether
 //    the hi of D_002BF8E0 is hoisted (and later rematerialized by reload in round-robin registers).
 //  - The search bounds are the literals -FLT_MAX/FLT_MAX (this function's constant pool at 0x2A65B8).
-//  - GMinOf(a, b) = a < b ? a : b comes out as min.s with the operands swapped, so the order varies per loop.
+//  - MinOf(a, b) = a < b ? a : b comes out as min.s with the operands swapped, so the order varies per loop.
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 #define FLT_MAX 3.40282347e+38f
@@ -4384,7 +4384,7 @@ static inline float Length(qword v)
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(l));
     return r;
 }
-static inline float GMinOf(float a, float b) { return a < b ? a : b; }
+static inline float MinOf(float a, float b) { return a < b ? a : b; }
 
 /** @sly2-annot addr=0x19B110
  * Purpose: Choose the jump target/landing among all candidate lists ((*(HOOK * *)&g_sw.dlTarget)..(*(MESH * *)&g_sw.dlCid9)), scoring with
@@ -4437,7 +4437,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             vBest = vHit;
             kind = 9;
             ploBest = shape;
-            bestScore = GMinOf(g, bestScore);
+            bestScore = MinOf(g, bestScore);
             tBest = t;
         }
 
@@ -4474,7 +4474,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                                                            pos.q, vLaunch.q, posHit.q, vHit.q, 0))
                 continue;
             ploBest = curve;
-            bestScore = GMinOf(g, bestScore);
+            bestScore = MinOf(g, bestScore);
             kind = 10;
             posBest = posHit;
             vBest = vHit;
@@ -4522,7 +4522,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ploBest = phook;
             posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
-            bestScore = GMinOf(bestScore, g);
+            bestScore = MinOf(bestScore, g);
             tBest = t;
         }
 
@@ -4557,7 +4557,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ploBest = pmesh;
             posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
-            bestScore = GMinOf(bestScore, gMesh);
+            bestScore = MinOf(bestScore, gMesh);
             tBest = t;
             tri = triHit;
         }
@@ -4589,7 +4589,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         kind = 18;
         ploBest = D_002F7900->ploPartnerTarget;
         tBest = t;
-        bestScore = GMinOf(g, bestScore);
+        bestScore = MinOf(g, bestScore);
     }
 LPartnerDone:
 
@@ -4631,7 +4631,7 @@ LPartnerDone:
         ploBest = curve;
         posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
         vBest = vHit;
-        bestScore = GMinOf(bestScore, gCurve);
+        bestScore = MinOf(bestScore, gCurve);
         tBest = t;
         sBest = s;
     }
@@ -4671,7 +4671,7 @@ LPartnerDone:
         ploBest = shape;
         posBest = posHit;
         vBest = vHit;
-        bestScore = GMinOf(bestScore, g);
+        bestScore = MinOf(bestScore, g);
         tBest = t;
         sBest = u;
     }
@@ -4709,7 +4709,7 @@ LPartnerDone:
         ploBest = curve;
         posBest = posHit;
         vBest = vHit;
-        bestScore = GMinOf(bestScore, g);
+        bestScore = MinOf(bestScore, g);
         tBest = t;
         sBest = u;
     }
@@ -4734,7 +4734,7 @@ LPartnerDone:
         }
         kind = 13;
         ploBest = shape;
-        bestScore = GMinOf(g, bestScore);
+        bestScore = MinOf(g, bestScore);
         posBest = posHit;
         vBest = vHit;
         tBest = t;

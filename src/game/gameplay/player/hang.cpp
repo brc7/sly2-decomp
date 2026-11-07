@@ -264,38 +264,38 @@ extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *in
 }
 #undef FIELD_OFFSET
 
-// CalculateJtHangAccel MATCH (Claude agent lane H15), from laneH15v4 + a "memory" clobber on the dt empty asm with base assigned after it (orders the point/spin loads after the dt spill store). laneH15v4: laneH14v1 + "0V" on the dt empty asm (input stays a MEM, reload lw goes straight into the output reg), allocation-only 2nd "j" on the radius scale, QwDivideBy(g first) for the final divide, and the 2nd clamp written out in the body (g=g0; g+=...; lo/hi locals; if/else-if in place): aligned 1.
-// CalculateJtHangAccel laneH14v1 (Claude agent lane H14): laneH11v1 with `state.rotation=BuildRotationMatrixFromVector(...)` assigned directly (no M3 rotation local) and QwRotateVec(&state.rotation,...): the 11B570 return temp at 0x190 is then freed and reused by the later VU_FLOAT temps like the target (0x1C0 before). Still aligned 30 (those stores still differ in vf number: rotation rows vf9/8/7 vs target vf10/9/8).
-// CalculateJtHangAccel laneH11v1 (Claude agent lane H11): laneH10v3 + `speed*0.5f*speed`, p->other block dt as a GPR qword via an empty asm, QwAddScaled2Q(qword k) with allocation-only extra "j"(k), base declared before dt (47 -> 30).
-// CalculateJtHangAccel laneH10v3 (Claude agent lane H10): laneH10v2 + GMinOf/GMaxOf written (b<a)?b:a / (b>a)?b:a (min.s/max.s operand order): aligned 47.
-// CalculateJtHangAccel laneH9v1 (Claude agent lane H9): laneH8v1 + const-ref QwDivide, QwSub, QwProjectOut and QwCombo(a) (134 -> 75).
+// CalculateJtHangAccel MATCH (Claude agent lane H15), from laneH15v4 + a "memory" clobber on the dt empty asm with base assigned after it (orders the point/spin loads after the dt spill store). laneH15v4: laneH14v1 + "0V" on the dt empty asm (input stays a MEM, reload lw goes straight into the output reg), allocation-only 2nd "j" on the radius scale, VecDivBy(g first) for the final divide, and the 2nd clamp written out in the body (g=g0; g+=...; lo/hi locals; if/else-if in place): aligned 1.
+// CalculateJtHangAccel laneH14v1 (Claude agent lane H14): laneH11v1 with `state.rotation=BuildRotationMatrixFromVector(...)` assigned directly (no M3 rotation local) and VecRotate(&state.rotation,...): the 11B570 return temp at 0x190 is then freed and reused by the later VU_FLOAT temps like the target (0x1C0 before). Still aligned 30 (those stores still differ in vf number: rotation rows vf9/8/7 vs target vf10/9/8).
+// CalculateJtHangAccel laneH11v1 (Claude agent lane H11): laneH10v3 + `speed*0.5f*speed`, p->other block dt as a GPR qword via an empty asm, VecAddScaled2Q(qword k) with allocation-only extra "j"(k), base declared before dt (47 -> 30).
+// CalculateJtHangAccel laneH10v3 (Claude agent lane H10): laneH10v2 + MinOf/MaxOf written (b<a)?b:a / (b>a)?b:a (min.s/max.s operand order): aligned 47.
+// CalculateJtHangAccel laneH9v1 (Claude agent lane H9): laneH8v1 + const-ref VecDiv, QwSub, VecProjectOut and VecCombine(a) (134 -> 75).
 /* laneH8v1 (Claude agent): fresh Lilly-style rewrite of CalculateJtHangAccel, aligned 134 (old .cpp 162), frame 0x2A0 exact, no pins, VU helper asms only. */
 struct VUF{qword qw;};   /* (VUF in the per-function file; AnticipateJtForce has its own VUF class) */
 static inline VUF VuFloat(float g){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VUF VufFromMemWord(int n){VUF v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
-static inline qword QwScaleX(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
-static inline qword QwAddScaled(qword base,qword vec,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
-static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
-static inline qword QwDivide(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
-static inline qword QwDivideBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
-static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
-static inline qword QwCross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword QwRotateVec(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
-static inline qword QwCombo(const qword&a,const qword&b,VUF ka,VUF kb){qword r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
-static inline qword QwAddScaled2(qword base,qword a,qword b,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
-static inline qword QwScaleXK(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */
-static inline qword QwProjectOut(const qword&v,const qword&axis){VUF d;d.qw=VuDot(v,axis);return VuSubRef(v,QwScaleX(axis,d));}
-static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
-static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=QwSqrt(VuDot(pv->q,pv->q));if(GXOfVf(len)<0.0001f)*pv=*pfallback;else pv->q=QwDivide(pv->q,len);return len;}
-static inline float GLength(qword v){return GXOfQw(QwSqrt(VuDot(v,v)));}
-static inline float GEvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
-static inline float GMinOf(float a,float b){return(b<a)?b:a;}
-static inline float GMaxOf(float a,float b){return(b>a)?b:a;}
-static inline qword QwVelocity(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
+static inline qword VecScaleX(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw));return r;}
+static inline qword VecAddScaled(qword base,qword vec,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(vec),"j"(k.qw));return r;}
+static inline qword VecSqrt(qword a){qword r;__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(r):"j"(a));return r;}
+static inline qword VecDiv(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=j"(r):"j"(a),"j"(g));return r;}
+static inline qword VecDivBy(const qword&a,const qword&g){qword r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(g),"j"(a));return r;}
+static inline float VecXGpr(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
+static inline qword VecCross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"j"(b));return r;}
+static inline qword VecRotate(const M3*m,qword v){qword r;r = VuMulMatrix3(m->r[0].q, m->r[1].q, m->r[2].q, v);return r;}
+static inline qword VecCombine(const qword&a,const qword&b,VUF ka,VUF kb){qword r;__asm__("vmulax.xyzw $ACC,%3,%1x\n\tvmaddx.xyzw %0,%4,%2x":"=j"(r):"j"(ka.qw),"j"(kb.qw),"j"(a),"j"(b));return r;}
+static inline qword VecAddScaled2(qword base,qword a,qword b,VUF k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k.qw));return r;}
+static inline qword VecScaleXK(qword a,VUF g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(g.qw),"j"(g.qw));return r;} /* second "j"(g) is allocation-only */
+static inline qword VecProjectOut(const qword&v,const qword&axis){VUF d;d.qw=VuDot(v,axis);return VuSubRef(v,VecScaleX(axis,d));}
+static inline float VecXKeepVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
+static inline qword NormalizeAt(U*pv,const U*pfallback){qword len=VecSqrt(VuDot(pv->q,pv->q));if(VecXKeepVf(len)<0.0001f)*pv=*pfallback;else pv->q=VecDiv(pv->q,len);return len;}
+static inline float VecLength(qword v){return VecXGpr(VecSqrt(VuDot(v,v)));}
+static inline float EvaluateClq(CLQ*p,float x){return p->g0+x*(p->g1+x*p->g2);}
+static inline float MinOf(float a,float b){return(b<a)?b:a;}
+static inline float MaxOf(float a,float b){return(b>a)?b:a;}
+static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
 static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->fn)((char*)p+e->delta,0);}
-static inline qword QwNormalize(qword v,qword fallback){qword len=QwSqrt(VuDot(v,v));qword r;if(GXOfQw(len)<0.0001f)r=fallback;else r=QwDivide(v,len);return r;}
+static inline qword VecNormalize(qword v,qword fallback){qword len=VecSqrt(VuDot(v,v));qword r;if(VecXGpr(len)<0.0001f)r=fallback;else r=VecDiv(v,len);return r;}
 static inline CLOCK*Addr(CLOCK*p){return p;}
-static inline qword QwAddScaled2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
+static inline qword VecAddScaled2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
 /** @sly2-annot addr=0x18FC60
  * Purpose: Compute swing acceleration while hanging from a hook (pendulum around the HND, GSmoothA on angle,
  *   LoadRotateMatrix) and call AnticipateJtForce
@@ -314,29 +314,29 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     axis.q = VuSubRef(GetLoWorldPos(jt), anchor.q);
     displacement = axis;
     qword length = NormalizeAt(&axis, &D_002A2DC0);
-    float distance = GXOfVf(length);
+    float distance = VecXKeepVf(length);
     U relative, perpendicular, parallel;
-    relative.q = VuSubRef(QwVelocity(jt), anchorVelocity.q);
+    relative.q = VuSubRef(GetVelocityOf(jt), anchorVelocity.q);
     float radial = func_0011E290(relative.q, axis.q, &parallel.q, &perpendicular.q);
     U firstAxis, angularFirst;
-    firstAxis.q = QwNormalize(QwCross(axis.q, perpendicular.q), D_002A2DA0.q);
-    float ratio = GLength(perpendicular.q) / distance;
-    angularFirst.q = QwScaleX(firstAxis.q, VuFloat(ratio));
+    firstAxis.q = VecNormalize(VecCross(axis.q, perpendicular.q), D_002A2DA0.q);
+    float ratio = VecLength(perpendicular.q) / distance;
+    angularFirst.q = VecScaleX(firstAxis.q, VuFloat(ratio));
     U projected;
-    projected.q = QwProjectOut(jt->accel->value.q, axis.q);
+    projected.q = VecProjectOut(jt->accel->value.q, axis.q);
     U secondAxis, angularSecond;
-    secondAxis.q = QwNormalize(QwCross(axis.q, projected.q), D_002A2DB0.q);
-    angularSecond.q = QwScaleX(secondAxis.q, VuFloat(GLength(projected.q) / distance));
-    float drag = GClamp(GEvaluateClq(&D_002BF4F0, ratio), D_002BF500.gMin, D_002BF500.gMax);
+    secondAxis.q = VecNormalize(VecCross(axis.q, projected.q), D_002A2DB0.q);
+    angularSecond.q = VecScaleX(secondAxis.q, VuFloat(VecLength(projected.q) / distance));
+    float drag = GClamp(EvaluateClq(&D_002BF4F0, ratio), D_002BF500.gMin, D_002BF500.gMax);
     float bias;
     if (jt->state == 0 || jt->state == 2)
         bias = D_002BF508;
     else
         bias = D_002BF50C;
     U angular, parallelAngular, perpendicularAngular;
-    angular.q = QwAddScaled(angularFirst.q, angularSecond.q, VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt));
+    angular.q = VecAddScaled(angularFirst.q, angularSecond.q, VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt));
     func_0011E290(angular.q, anchorBasis.r[1].q, &parallelAngular.q, &perpendicularAngular.q);
-    angular.q = QwCombo(parallelAngular.q, perpendicularAngular.q, VuFloat(drag * Addr(&D_002DDED0)->dt + 1.0f),
+    angular.q = VecCombine(parallelAngular.q, perpendicularAngular.q, VuFloat(drag * Addr(&D_002DDED0)->dt + 1.0f),
                         VuFloat(bias * Addr(&D_002DDED0)->dt + 1.0f));
     if ((jt->state == 0 || jt->state == 2) && D_002DDED0.t - jt->changed < D_002BF510) {
         float amount = Addr(&D_002DDED0)->dt * D_002BF514;
@@ -345,7 +345,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         if (jt->flipped)
             amount = -amount;
         float down = -jt->accel->value.f[2];
-        float speed = GLength(perpendicular.q);
+        float speed = VecLength(perpendicular.q);
         float t = (down * displacement.f[2] + speed * 0.5f * speed) / down;
         float g = D_002BF520.g0;
         g += t * (D_002BF520.g1 + t * D_002BF520.g2);
@@ -355,12 +355,12 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         else if (hi < g)
             g = hi;
         amount *= g;
-        angular.q = QwAddScaled(angular.q, anchorBasis.r[1].q, VuFloat(amount));
+        angular.q = VecAddScaled(angular.q, anchorBasis.r[1].q, VuFloat(amount));
     }
     float speedOut;
     float next = GSmoothA__FffffP4SMPAPf(distance, radial, D_002BF544 - jt->target->property, Addr(&D_002DDED0)->dt,
                                          &D_002BF530, &speedOut);
-    angular.q = QwScaleX(angular.q, VuFloat(GMinOf(D_002BF544, distance) / GMaxOf(D_002BF540, next)));
+    angular.q = VecScaleX(angular.q, VuFloat(MinOf(D_002BF544, distance) / MaxOf(D_002BF540, next)));
     U velocity;
     STATE state;
     if (jt->link) {
@@ -380,18 +380,18 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         state.position = D_002A2DD0;
         state.velocity.q = dt;
         qword arm = VuSubRef(point, GetLoWorldPos(object));
-        velocity.q = QwAddScaled2Q(base, spin, QwCross(spin, arm), dt);
+        velocity.q = VecAddScaled2Q(base, spin, VecCross(spin, arm), dt);
     } else
         velocity = anchorVelocity;
-    state.rotation = BuildRotationMatrixFromVector(QwScaleX(VuAdd(angularFirst.q, angular.q), VuFloat(Addr(&D_002DDED0)->dt * 0.5f)));
-    state.direction.q = QwRotateVec(&state.rotation, axis.q);
-    qword radius = QwScaleXK(state.direction.q, VuFloat(next));
+    state.rotation = BuildRotationMatrixFromVector(VecScaleX(VuAdd(angularFirst.q, angular.q), VuFloat(Addr(&D_002DDED0)->dt * 0.5f)));
+    state.direction.q = VecRotate(&state.rotation, axis.q);
+    qword radius = VecScaleXK(state.direction.q, VuFloat(next));
     state.position.q = VuAdd(anchor.q, radius);
-    qword final = VuAdd(VuAdd(velocity.q, QwCross(angular.q, radius)),
-                        QwScaleX(state.direction.q, VufFromMemWord(*(int *)&speedOut)));
+    qword final = VuAdd(VuAdd(velocity.q, VecCross(angular.q, radius)),
+                        VecScaleX(state.direction.q, VufFromMemWord(*(int *)&speedOut)));
     state.velocity.q = final;
-    qword current = QwVelocity(jt);
-    projected.q = VuSubRef(QwDivideBy(VuSubRef(final, current), VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt).qw),
+    qword current = GetVelocityOf(jt);
+    projected.q = VuSubRef(VecDivBy(VuSubRef(final, current), VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt).qw),
                            jt->accel->value.q);
     if (jt->link)
         AnticipateJtForce((NODE *)jt, jt->link->object, &anchor.q, (float *)&projected.q, jt->response);
