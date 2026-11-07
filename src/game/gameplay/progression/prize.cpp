@@ -547,17 +547,11 @@ extern "C" void CheckDprizeBounce(P *prize)
 namespace M_FCheckDprizeCollect { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d,pad; void (*fn)(void *,int); };
-struct POS { char pad[0x70]; qword pos; };
-struct SHAPE {
-    struct POS *pos; int pad4; float radius; int padC;
-    unsigned long flags; char pad18[0xB0-0x18];
-};
-struct SO { char pad[0xE0]; int count; struct SHAPE *shapes; };
 struct S { char pad[0xC]; struct VTE *vt; char pad10[0x1DC-0x10]; float radius; };
-struct Q { int enabled,pad4; float radius; struct SO *so; };
+struct Q { int enabled,pad4; float radius; SO *so; };
 extern float D_002C0D7C;
 qword GetLoWorldPos(void *);
-int IntersectSphereBsp(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
+int IntersectSphereBsp(qword,SOPART *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
 // Sets the prize to state 1 through vtable slot 76 (SetDprizes); used when a zap collects it. (inferred)
 static inline void Trigger(struct S *p)
 {
@@ -597,13 +591,13 @@ int TryCollectDprize(struct S *prize,struct Q *q)
         Trigger(prize);
         return 1;
     }
-    for(i=0;i<q->so->count;i++) {
-        struct SHAPE *s=&q->so->shapes[i];
-        if(s->flags&(1UL<<50))continue;
-        if(s->flags&(1UL<<49)) {
+    for(i=0;i<q->so->numParts;i++) {
+        SOPART *s=&q->so->parts[i];
+        if(s->isHidden)continue;
+        if(s->unknownFlag10B) {
             float r=prize->radius+s->radius;
             qword here=GetLoWorldPos(prize);
-            if(LenSq(VuSub(here,s->pos->pos))<r*r) {
+            if(LenSq(VuSub(here,*(qword *)s->transform->worldMatrix.mat[3]))<r*r) {
                 Trigger(prize);
                 return 1;
             }
@@ -619,7 +613,7 @@ int TryCollectDprize(struct S *prize,struct Q *q)
 }
 
 #define OFF(t,m) ((unsigned int)&((t*)0)->m)
-typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(unsigned long)==8 && sizeof(struct VTE)==8 && OFF(struct VTE,d)==0 && OFF(struct VTE,fn)==4 && OFF(struct POS,pos)==0x70 && sizeof(struct SHAPE)==0xB0 && OFF(struct SHAPE,pos)==0 && OFF(struct SHAPE,radius)==8 && OFF(struct SHAPE,flags)==0x10 && OFF(struct SO,count)==0xE0 && OFF(struct SO,shapes)==0xE4 && OFF(struct S,vt)==0xC && OFF(struct S,radius)==0x1DC && sizeof(struct Q)==0x10 && OFF(struct Q,enabled)==0 && OFF(struct Q,radius)==8 && OFF(struct Q,so)==0xC)?1:-1];
+typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(unsigned long)==8 && sizeof(struct VTE)==8 && OFF(struct VTE,d)==0 && OFF(struct VTE,fn)==4 && OFF(struct S,vt)==0xC && OFF(struct S,radius)==0x1DC && sizeof(struct Q)==0x10 && OFF(struct Q,enabled)==0 && OFF(struct Q,radius)==8 && OFF(struct Q,so)==0xC)?1:-1];
 } } // namespace M_FCheckDprizeCollect
 #undef OFF
 

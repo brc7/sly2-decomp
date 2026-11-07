@@ -1225,8 +1225,6 @@ typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[4]; };
 struct R { char pad[0x40]; struct M4 m; };
 struct BUF { qword a[4]; };
-struct VTE { short d; short pad; struct R *(*pfn)(void *, struct BUF *); };
-struct SO { char pad[0xC]; struct VTE *vt; };
 struct Y { int pad0, pad4, velocityKind; };   /* Sly 1's EMITVK: 0 relative, 1 relative + spin, 2 no relative velocity, 3 world */
 struct E { int pad0, pad4; struct SO **ppso; int padC; struct Y y; };   /* EMITB (ppso: the resolved objects, [0] the reference) */
 void __ml__FRC7MATRIX4T0(struct M4 *pm, struct M4 *pa, struct BUF *pb);
@@ -1244,7 +1242,7 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
     struct M4 m;
     struct R *r;
     if (!pso) return;
-    r = pso->vt[32].pfn((char *)pso + pso->vt[32].d, &buf);
+    r = (struct R *)pso->GetLocalTransform((MATRIX4 *)&buf);
     __ml__FRC7MATRIX4T0(&m, &r->m, &buf);
     *pv = ConvertMatPos(&m, 0, *pv);
     if (py->velocityKind != EMIT_VELOCITY_WORLD) {

@@ -720,7 +720,6 @@ struct PATHZONE;
 struct D { char pad[0x10]; struct PATHZONE *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
 struct GUARD { char pad[0xE8]; struct C *physics; };
-struct SO { char pad[0x18]; int oid; };
 struct LEADER { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct GUARD *guard; char pad2[0x30 - 0x14]; struct LEADER *leader; char pad3[0x80 - 0x34]; qword landingPoint; };
 struct SO *GetBhvfollowLeaderGround(struct P *behavior);
