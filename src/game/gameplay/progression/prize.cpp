@@ -226,7 +226,6 @@ struct P {
 union FLOATWORD { float value; int bits; };
 struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 struct CAMERA { char pad90[0x90]; qword position; };
-struct SW { char pad3D58[0x3D58]; int stamp; };
 extern "C" {
 extern CLOCKIsland D_002DDED0;
 extern CAMERA D_002DDF40;
@@ -313,7 +312,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
     VECTOR_opAssign(&channel->position, newPosition);
     *(float *)((char *)channel + 0x3C) = 1.0f;
     prize->position->velocity = prize->velocity;
-    { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
+    { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
     if (prize->holder && prize->holder->animation) {
         ANIM *animation = prize->holder->animation;
         ACTION *action = animation->action;
@@ -344,7 +343,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
                 *(float *)((char *)channel + 0x3C) = 1.0f;
                 CHANNEL *current = prize->position;
                 current->velocity = VuAdd(current->velocity, RotateVec(frame, velocity.q));
-                { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
+                { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
             }
             if (orientationMotion) {
                 Sample(orientationMotion, animation, &angles.q, &angularVelocity.q);
@@ -354,7 +353,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
                 current->matrix.values[3] = 0.0f; current->matrix.values[7] = 0.0f; current->matrix.values[11] = 0.0f;
                 CHANNEL *spin = prize->orientation;
                 spin->velocity = RotateVec(frame, angularVelocity.q);
-                { int stamp = ++D_003DD490.stamp; prize->orientation->stamp = stamp; }
+                { int stamp = ++D_003DD490.transformStamp; prize->orientation->stamp = stamp; }
             }
         }
     }
@@ -2474,21 +2473,20 @@ typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,time)==0 &
 #undef OFF
 
 namespace M_func_001C8AF0 { extern "C" {
-struct G { char pad[0x4764]; int cluesCollected; int cluesRequired; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct H;
 extern struct H D_003DD040;
 struct S { char pad[0x190]; int user; char pad2[0x64]; int notEnoughCluesDialog; };
 void SetVaultState(struct S *vault, int n);
-void RestartHudWidget2(struct G *pg);
+void RestartHudWidget2(SW *pg);
 void StartDialog(struct H *ph, int n, int m);
 // Splice entry, when the player uses the vault: with enough clue bottles collected (g_sw counters at +0x4764/+0x4768)
 // it remembers the user and starts the intro (state 1); otherwise it shows the clue count HUD and plays the
 // not-enough-clues dialog. (inferred)
 void TriggerVault(struct S *vault, int n)
 {
-    struct G *pg = &D_003DD490;
-    if (pg->cluesCollected >= pg->cluesRequired) {
+    SW *pg = &D_003DD490;
+    if (pg->numCluesCollected >= pg->numClues) {
         vault->user = n;
         SetVaultState(vault, 1);
     } else {
