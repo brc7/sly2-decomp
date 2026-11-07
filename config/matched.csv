@@ -1664,9 +1664,9 @@ StaticInit_booty,0x13D400,77,match,src/game/gameplay/progression/booty.cpp
 func_0013D538,0x13D538,8,match,src/game/gameplay/progression/booty.cpp
 Init__10CByteQueueiPv,0x13D558,9,match,src/game/core/containers/bq.cpp
 Reset__10CByteQueue,0x13D580,8,match,src/game/core/containers/bq.cpp
-CbFill__10CByteQueueiP11CQueueInput,0x13D5A0,66,match,src/game/core/containers/bq.cpp
+FillFromInput__10CByteQueueiP11CQueueInput,0x13D5A0,66,match,src/game/core/containers/bq.cpp
 DrainToOutput__10CByteQueueiP12CQueueOutput,0x13D6A8,74,match,src/game/core/containers/bq.cpp
-CbFill__10CByteQueueiPUc,0x13D7D0,18,match,src/game/core/containers/bq.cpp
+FillFromMemory__10CByteQueueiPUc,0x13D7D0,18,match,src/game/core/containers/bq.cpp
 FreeDrain__10CByteQueuei,0x13D818,13,match,src/game/core/containers/bq.cpp
 CbRead__17CQueueInputMemoryiPv,0x13D850,26,match,src/game/core/containers/bq.cpp
 CbRead__15CQueueInputFileiPv,0x13D8B8,2,match,src/game/core/containers/bq.cpp

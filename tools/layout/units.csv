@@ -1673,9 +1673,9 @@ StaticInit_booty,0x13D400,booty
 func_0013D538,0x13D538,booty
 Init__10CByteQueueiPv,0x13D558,bq
 Reset__10CByteQueue,0x13D580,bq
-CbFill__10CByteQueueiP11CQueueInput,0x13D5A0,bq
+FillFromInput__10CByteQueueiP11CQueueInput,0x13D5A0,bq
 DrainToOutput__10CByteQueueiP12CQueueOutput,0x13D6A8,bq
-CbFill__10CByteQueueiPUc,0x13D7D0,bq
+FillFromMemory__10CByteQueueiPUc,0x13D7D0,bq
 FreeDrain__10CByteQueuei,0x13D818,bq
 CbRead__17CQueueInputMemoryiPv,0x13D850,bq
 CbRead__15CQueueInputFileiPv,0x13D8B8,bq
