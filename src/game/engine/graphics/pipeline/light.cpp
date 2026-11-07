@@ -116,9 +116,6 @@ struct M3R { qword r[3]; };
 struct SPHERE { qword pos; float sRadius; int pad[3]; };
 
 extern SWL D_003DD490;
-/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
-   codegen (reads at base &g_cm + 0x60..0x90; a cast of CM::mat/CM::pos folds the offset into the base). */
-struct CMIsland { char pad[0x60]; qword amatRow[3]; qword pos; };
 extern "C" {
 extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
 extern VIFS D_002DEA28;
@@ -859,7 +856,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             spheres[1].sRadius = p->limit * extent / dist;
             spheres[2].pos = AddScaledQ(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].sRadius = 0;
-            packet.kind = DoesSphereHitSpheres(((CMIsland *)&g_cm)->pos, g_cm.nearCornerDistance, 3, spheres);
+            packet.kind = DoesSphereHitSpheres(g_cm.matq.pos, g_cm.nearCornerDistance, 3, spheres);
             {
                 uchar *pb = D_002DEA28.m_pb;
                 p->pbBasis = pb;

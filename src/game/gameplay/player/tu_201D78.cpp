@@ -99,9 +99,6 @@ extern PLAYER *D_002E1E40;
 extern char D_003DD040[], D_002DEB30[];
 
 extern int D_002C3588[];
-/* CMIsland: g_cm's position as a qword member at +0x90; this form exists to reproduce the original codegen
-   (FadeReconTargetMarkers reads it at base &g_cm + 0x90; a cast of CM::pos folds the offset into the base). */
-struct CMIsland { char pad[0x90]; qword pos; };
 #undef D_002DDFA0
 extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");   /* g_cm+0x60, a separate symbol to g++: the base+offset form changes UpdateReconTargetVisibility (offset folding) */
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
@@ -263,7 +260,7 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
         if (!o->plo100)
             continue;
         a = GetLoWorldPos(o);
-        __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(((CMIsland *)&g_cm)->pos));
+        __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(g_cm.matq.pos));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
         if (o->rFade < f && ((o->plo100->fl28 >> 60) & 1) == 0)
             FadeSoIn(o->plo100, 0.25f);

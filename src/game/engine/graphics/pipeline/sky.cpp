@@ -27,9 +27,6 @@ struct SKYV
     int followCameraZ;      /* +0x150 nonzero: also follow the camera's height */
 };
 
-/* CMIsland: the camera position read as a member at +0x30 of the camera matrix (g_cm.mat, row 3); this form exists
-   to reproduce the original codegen (base &g_cm.mat, lq at 0x30; g_cm.pos and every array spelling fold to one address). */
-struct CMIsland { char pad[0x30]; qword pos; };
 
 extern "C" {
 void PostSoLoad(SKYV *pso);
@@ -56,11 +53,14 @@ void SKY::PostLoad()
 
 // Per-frame update (vtable slot 16): SO update, then moves the sky to the camera position (vtable slot 29, translate),
 // keeping its own height unless followCameraZ is set.
+// The position row of a camera matrix, through a pointer to the matrix: the original reads it at base &g_cm.mat,
+// offset 0x30 (g_cm.matq.pos folds to base &g_cm, offset 0x90).
+static inline qword PosOfCmMatq(CMMATQ *pmatq) { return pmatq->pos; }
 extern "C" void UpdateSky(SKYV *sky)
 {
     union V target;
     UpdateSo(sky);
-    target.q = (*(CMIsland *)&g_cm.mat).pos;
+    target.q = PosOfCmMatq(&g_cm.matq);
     if (!sky->followCameraZ) target.f[2] = QwordZ(GetLoWorldPos(sky));
     sky->vtable[29].function((char *)sky + sky->vtable[29].delta, target.q);
 }
