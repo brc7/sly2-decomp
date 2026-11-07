@@ -1170,24 +1170,19 @@ typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
-struct CM;
-extern "C" CM D_002DDF40;
 struct CLQ { float g0, g1, g2, pad; };
 struct LM { float minValue, maxValue; int pad[2]; };
 extern "C" float D_002BDACC;
 extern "C" CLQ D_002BDAD0, D_002BDAF0, D_002BDB10, D_002BDB30;
 extern "C" LM D_002BDAE0, D_002BDB00, D_002BDB20, D_002BDB40;
 extern "C" qword D_002A2DC0;
-struct ALO;
-struct X { char pad[0x10]; ALO *owner; ALO *hero2; };
 extern "C" {
-void UpdateCplcy(X *p);
-qword GetLoWorldPos(ALO *p);
+void UpdateCplcy(CPTWOSHOT *p);
+qword GetLoWorldPos(LO *p);
 M3 *LoadLookAtMatrix(M3 *pm, qword v);
 qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(CM *p, M4 *m);
-void SetCmFov__FP2CMf(CM *p, float g);
-void UpdateCptwoshot(X *p);
+void UpdateCptwoshot(CPTWOSHOT *p);
 }
 static inline float GFromClq(const CLQ &c, float g) { return c.g0 + g * (c.g1 + g * c.g2); }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); } VU_FLOAT(const float &f, int) { __asm__("lw %0, %1" : "=r"(q) : "m"(f)); } };
@@ -1227,19 +1222,19 @@ static inline qword Normalize(qword a)
 struct VU_FLOATJ { qword q; VU_FLOATJ(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 static inline qword Scale(qword a, VU_FLOATJ s) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s.q)); return r; }
 
-static inline void Cm1(M4 *pm) { SetCmMat4(&D_002DDF40, pm); }
-static inline void Cm2(float g) { SetCmFov__FP2CMf(&D_002DDF40, g); }
+static inline void Cm1(M4 *pm) { SetCmMat4(&g_cm, pm); }
+static inline void Cm2(float g) { SetCmFov(&g_cm, g); }
 // Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by distance curves,
 // look-at matrix, fov from distance curve. (inferred)
-void UpdateCptwoshot(X *p)
+void UpdateCptwoshot(CPTWOSHOT *p)
 {
     U d;
     UpdateCplcy(p);
-    d.q = VuSub(GetLoWorldPos(p->owner), GetLoWorldPos(p->hero2));
+    d.q = VuSub(GetLoWorldPos(p->ploOwner), GetLoWorldPos(p->ploHero));
     d.f[2] = 0.0f;
     float dist = Length(d.q);
     U focus;
-    focus.q = VecCombo(VU_FLOAT(D_002BDACC, 0), VU_VECTOR(GetLoWorldPos(p->owner)), VU_FLOAT(1.0f - D_002BDACC), VU_VECTOR(GetLoWorldPos(p->hero2)));
+    focus.q = VecCombo(VU_FLOAT(D_002BDACC, 0), VU_VECTOR(GetLoWorldPos(p->ploOwner)), VU_FLOAT(1.0f - D_002BDACC), VU_VECTOR(GetLoWorldPos(p->ploHero)));
     focus.f[2] = 150.0f;
     U pos;
     pos.q = focus.q;
