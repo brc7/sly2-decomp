@@ -187,7 +187,7 @@ extern "C" SW *SW_ctor(SW *world)
     hsv->y=255.0f;
     hsv->z=255.0f;
     world->loadFilter=-1;
-    world->lightScale=90.0f;
+    world->midtone=90.0f;
     world->agShdLight[0]=128.0f;
     world->agShdLight[1]=96.0f;
     world->agShdLight[2]=160.0f;
@@ -196,7 +196,7 @@ extern "C" SW *SW_ctor(SW *world)
     world->fAaoxUnsorted=1;
     world->lmGuardScale.minValue=upper;
     world->isrcLoading=-2;
-    world->midtone=0;
+    world->shadow=0;
     range->maxValue=lower;
     float slope=(upper-lower)/(end-start);
     float intercept=(end*lower-start*upper)/(end-start);
@@ -815,25 +815,23 @@ extern "C" int IsSwInputLocked(SW *world)
 namespace M_UpdateSwIllum { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-typedef struct { float x, y, z; } V3;
-typedef union { qword q; V3 v; } UV;
+typedef union { qword q; VECTOR v; } UV;
 extern char D_002BBB60[];
-struct S { char pad[0x3D5C]; int illumChangeCount; char pad2[0x3E10 - 0x3D60]; V3 hsv; int pad3; float midtone; float shadow; V3 rgb; float shadowScale; int isShadowLimited; };
-void ConvertUserRgbToUserHsv(V3 *pin, UV *pout);
+void ConvertUserRgbToUserHsv(VECTOR *pin, UV *pout);
 void ColorCorrectVector(UV *pv);
 float ClampToLimits__FP2LMf(void *p, float g);
 // Recomputes the ambient light colour from the world's HSV colour scaled by the midtone and shadow levels and bumps
 // the illumination change counter.
-void UpdateSwIllum(struct S *world)
+void UpdateSwIllum(SW *world)
 {
     float k = 1.0f / 255.0f;
-    V3 c;
+    VECTOR c;
     UV out;
     U u;
     qword r;
-    c.x = world->hsv.x;
-    c.y = world->hsv.y * k;
-    c.z = world->hsv.z * k;
+    c.x = world->hsvLight.x;
+    c.y = world->hsvLight.y * k;
+    c.z = world->hsvLight.z * k;
     ConvertUserRgbToUserHsv(&c, &out);
     {
         qword qwuqOut;
@@ -843,11 +841,11 @@ void UpdateSwIllum(struct S *world)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;
     ColorCorrectVector(&out);
-    world->rgb = out.v;
+    world->vecLightRgb = out.v;
     world->shadowScale = world->shadow * k;
-    if (world->isShadowLimited)
+    if (world->unknown3E38)
         world->shadowScale = ClampToLimits__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
-    world->illumChangeCount++;
+    world->relightStamp++;
 }
 } } // namespace M_UpdateSwIllum
 
@@ -861,14 +859,14 @@ extern "C" void SetSwIllumHsv(SW *world, qword hsv)
 // Sets the illumination shadow level and recomputes the ambient light.
 extern "C" void SetSwIllumShadow(SW *world, float g)
 {
-    world->midtone = g;
+    world->shadow = g;
     UpdateSwIllum(world);
 }
 
 // Sets the illumination midtone (default 90) and recomputes the ambient light.
 extern "C" void SetSwIllum(SW *world, float g)
 {
-    world->lightScale = g;
+    world->midtone = g;
     UpdateSwIllum(world);
 }
 

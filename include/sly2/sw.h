@@ -234,12 +234,13 @@ struct SW : public BASIC
       RGBA rgbaClear;   /* frame clear colour */
       uint32_t   _pad_272    [ 3 ] ;
       VECTOR4 hsvLight;   /* global light colour (hue, saturation, value) */
-      float lightScale;    /* global light intensity scale */
-      float midtone;    /* midtone level */
-      VECTOR vecLightRgb;   /* global light colour (RGB) */
-      float midtoneBlend; /* midtone blend, 0..1 */
+      float midtone;        /* +0x3E20 illumination midtone level, 0..255 (default 90; SetSwIllum); was lightScale */
+      float shadow;         /* +0x3E24 illumination shadow level, 0..255 (SetSwIllumShadow); was midtone */
+      VECTOR vecLightRgb;   /* +0x3E28 ambient light colour (RGB): hsvLight scaled by the midtone, colour corrected (UpdateSwIllum) */
+      float shadowScale;    /* +0x3E34 shadow / 255, clamped when unknown3E38 is set (UpdateSwIllum); was midtoneBlend */
       int unknown3E38;      /* +0x3E38 [S] draw.cpp calls it the stereo flag (it doubles the render passes; cm.cpp, shd.cpp,
-                               frm.cpp test it too); SW_ctor sets it to 1 */
+                               frm.cpp test it too; shd.cpp reads it as colour correction on; UpdateSwIllum clamps
+                               shadowScale when set); SW_ctor sets it to 1 */
       int fForceClear;      /* +0x3E3C [S] clear the frame even when the render list is not empty (draw.cpp); was _pad_279 */
       int unknown3E40;      /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
       SLOTHEAP slotheapSobounds;   /* SO bounds records */
