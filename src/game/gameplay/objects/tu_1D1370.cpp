@@ -3,9 +3,10 @@
 // (AddRobottankWheel/Weapon/Attachment, SetRobottankAmmo, SetRobottankTactic...) and the pickup callback
 // CollectRobottankPickup. TU 0x1D1370..0x1D5150 (44 functions, address order).
 //
-// Types: ROBOTTANK, RCPICKUP and small XP/XPLIST views are TU-private, written for the 9 m2c bodies (aseg.h SMA, SMS
-// and SM for the animation machine); the other functions keep the per-function views they were matched with, each
-// in a namespace named after it (as vec.cpp and mark.cpp do).
+// Types: ROBOTTANK (with ROBOTTANKWHEEL/SIDE/AMMO) and CID108 from sly2/tank.h, and a small XP view; the larger
+// hand-tuned functions (PostRobottankLoad, UpdateRobottank, UpdateRobottankAi, PresetRobottankAccel, the wheel
+// contact generator, RenderRobottankSelf, TakeRobottankDamage, SetRobottankState) and the weapon (JSG) functions still
+// keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp do).
 // func_001D3450 is the known path-hash case ("Path-hash quirk" in docs/guides/tu-merging.md): its namespace keeps
 // the verbatim `#line 13 "<its per-function path>"` pin, and the `#line` after it restores this file's name.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1D1370
@@ -16,6 +17,7 @@
 #include "sly2/stackscope.h"
 #define SLY2_KEY_TU_ROBOTTANK   /* this TU is the class's key TU: see sly2/classes.h */
 #include "sly2/classes.h"
+#include "sly2/tank.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/sw.h"
@@ -2347,26 +2349,22 @@ extern "C" void CopyRobottankWeapon(char *pvDst, char *pvSrc)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4E08 { extern "C" {
-struct E { int count; int a; int b; };
-struct O { char pad[0x574]; struct E ammoSlots[1]; };
-struct S { char p0[0x10]; struct O *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };
+struct S { char p0[0x10]; ROBOTTANK *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };   /* the weapon (JSG) */
 // ammo of the weapon's slot >= its cost. (inferred)
 int HasRobottankWeaponAmmo(struct S *weapon) {
-    return weapon->owner->ammoSlots[weapon->ammoSlot].count >= weapon->ammoCost;
+    return weapon->owner->aammo[weapon->ammoSlot].cAmmo >= weapon->ammoCost;
 }
 } } // namespace M_func_001D4E08
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4E30 { extern "C" {
-struct E { int count; int a; int b; };
-struct O { char pad[0x574]; struct E ammoSlots[1]; };
-struct S { char p0[0x10]; struct O *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };
+struct S { char p0[0x10]; ROBOTTANK *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };   /* the weapon (JSG) */
 // Subtract weapon cost from its slot, clamp 0. (inferred)
 void UseRobottankWeaponAmmo(struct S *weapon) {
-    struct E *slot = &weapon->owner->ammoSlots[weapon->ammoSlot];
-    int count = slot->count - weapon->ammoCost;
+    ROBOTTANKAMMO *slot = &weapon->owner->aammo[weapon->ammoSlot];
+    int count = slot->cAmmo - weapon->ammoCost;
     if (count < 0) count = 0;
-    slot->count = count;
+    slot->cAmmo = count;
 }
 } } // namespace M_func_001D4E30
 
@@ -2405,20 +2403,13 @@ extern "C" void ResetRobottankPickup(CID108 *pickup)
     SetRcPickupState(pickup, 0);
 }
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateRcPickup { extern "C" {
-struct O { char pad[0x98]; short h98; };
-struct S { char p0[0x58]; struct O *po; char p1[0x150-0x5C]; int n150; };
-void UpdateSo(struct S *p);
-void SetRcPickupState(struct S *p, int n);
-// CID 108 vtable slot 16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3. (inferred)
-} } // namespace M_UpdateRcPickup
-// CID 108 update: SO update, then switch from state 0 to state 1 once the owner's h98 is 3.
-void CID108::Update() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p = (M_UpdateRcPickup::S *)this;
-    UpdateSo(p);
-    if (p->n150 == 0 && p->po->h98 == 3) SetRcPickupState(p, 1);
+// CID 108 vtable slot 16: UpdateSo; in state 0 go to state 1 once its transform's role is 3. (inferred)
+extern "C" void UpdateSo(SO *pso);
+void CID108::Update()
+{
+    UpdateSo(this);
+    if (state == 0 && unknown58->role == 3) SetRcPickupState(this, 1);
 }
-
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRcPickupState { extern "C" {
 extern CLOCK D_002DDED0;
