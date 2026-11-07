@@ -901,7 +901,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 // What it does, in order:
 //  1. UpdateCameraLineOfSight; the tunnel's flags (grftnm: 1 forward view allowed, 2 backward view, 4 the player may turn; no tunnel = 4 only);
 //     UpdateCmProgress + CalcCpdFocus give the focus; a player character whose grab record focuses (jtgrab.jtfock Focus, STEPPLAYER+0x4F4: sliding along a
-//     hide outline in the grab's own tunnel, SetJtHfdk 0x1940B0) springs g_cm.dposFocus toward (jtgrab.qwPosFocus (+0x500) - focus);
+//     hide outline in the grab's own tunnel, SetJtHfdk 0x1940B0) springs g_cm.dposFocus toward (jtgrab.focusPosition (+0x500) - focus);
 //     posHang = focus + g_cm.dposFocus is what the camera looks at.
 //  2. uTunnel (how much the tunnel steers) smooths toward CPD::uTunnel, or 0 while the focus is not moving by itself (CPDEFI bit 1; a tunnel with
 //     ploPull forces the bit off); tMoveLast keeps the focus's latest tMoveLast.
@@ -965,7 +965,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     VECTOR4 posFocus;
     CalcCpdFocus(pcpd, pcpdefi, (qword *)&posFocus, ptnCur);
     if (ploPlayer != 0 && ((STEPPLAYER *)ploPlayer)->jtgrab.jtfock == JTFOCK_Focus)
-        SpringCm(&D_002DDF40, &D_002DDF40.dposFocus, &D_002DDF40.vFocus, VuSub(((STEPPLAYER *)ploPlayer)->jtgrab.qwPosFocus, *(qword *)&posFocus), 8.0f, -6.0f);
+        SpringCm(&D_002DDF40, &D_002DDF40.dposFocus, &D_002DDF40.vFocus, VuSub(((STEPPLAYER *)ploPlayer)->jtgrab.focusPosition, *(qword *)&posFocus), 8.0f, -6.0f);
     VECTOR4 posHang;
     qword *pdposFocus = &D_002DDF40.dposFocus;
     *(qword *)&posHang = VuAdd(*(qword *)&posFocus, *pdposFocus);

@@ -53,13 +53,13 @@ struct ARCFRAME {float t,gValid,s;M4 mat;};
 /* The aim marker (EFFECT in the state code; Lilly's ploMarker): vtable, active flag, its ring of arc frames. */
 struct EFFECT {char pad[0xC];VE *vt;char pad10[0x144];int active,cframe;ARCFRAME *aframe;int reset;};
 /* JTTHROW blend entry (Lilly's JTAIRBL). */
-struct BL {float gWeight;ASEG *pasegbl;int unk8;};
+struct BL {float weight;ASEG *pasegbl;int unk8;};
 /* JTTHROW (per-file names; Lilly's in brackets). */
 struct JTTHROW {
  O *owner;                  /* +0x000 [pstepplayer] */
  int state;float time;
  O *peer,*selected;         /* +0x00C, +0x010 [ploCarried] */
- float idleThreshold,activeThreshold;   /* +0x014 [radTurnHold, radTurnAim] */
+ float idleThreshold,activeThreshold;   /* +0x014 [holdTurnAngle, aimTurnAngle] */
  RANGE bounds;              /* +0x01C [lmAim] */
  float tPredict,scale;      /* +0x024 */
  int pad2C;V launchOffset;  /* +0x030 */
@@ -69,7 +69,7 @@ struct JTTHROW {
  ASEG *animation4,*animation5,*animation6;                /* +0x098 [pasegblB] */
  BL ablC[2];                /* +0x0A4 */
  ASEG *animation7;          /* +0x0BC [pasegblC] */
- V targetLocal,secondary,targetWorld,velocity;            /* +0x0C0 [vUnkC0, vLaunchLocal, posHold, vLaunch] */
+ V targetLocal,secondary,targetWorld,velocity;            /* +0x0C0 [unknownC0, vLaunchLocal, holdPosition, vLaunch] */
  V transitionBegin,transitionEnd;                         /* +0x100 */
  float transitionStart,transitionDuration;int transitioning;
  EFFECT *effect;            /* +0x12C [ploMarker] */
@@ -537,7 +537,7 @@ extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 // arc are line-tested (PsoHitTestLineObjects); at the first hit the flight time is the closest non-negative root of the vertical
 // motion (SolveQuadratic). The flight time may change by at most 3 * dt per frame; up to 30 points of the arc are written
 // back to front into the marker's ring of frames (matrix along the arc, BuildOrthonormalMatrixZ), and the four-clip / two-clip
-// blends get the distance (lmAim) and heading-error (radTurnAim) weights, rate limited by 2 * dt when fUpdateBlends.
+// blends get the distance (lmAim) and heading-error (aimTurnAngle) weights, rate limited by 2 * dt when fUpdateBlends.
 // How it matched (Lilly's agent, T1604): fresh8's stack layout plus
 // - the scope is an empty STACKSCOPE with its real out-of-line ctor/dtor (a sized FRAME takes the freed 0x0 home slot);
 // - the VU_FLOAT homes are by-value parameters of the arc helper (all share sp+0x0; the hit block's at 0x260 is moved
@@ -713,11 +713,11 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     rad = NormalizeAngle__Ff(rad - radHero);
     float uTurn = Clamp(rad / thrower->activeThreshold, -1.0f, 1.0f) * 0.5f + 0.5f;
     if (fUpdateBlends) {
-        float uFarOld = thrower->ablC[1].gWeight, uTurnOld;
+        float uFarOld = thrower->ablC[1].weight, uTurnOld;
         if (uFarOld > 0.5f)
-            uTurnOld = thrower->ablB[3].gWeight / uFarOld;
+            uTurnOld = thrower->ablB[3].weight / uFarOld;
         else
-            uTurnOld = thrower->ablB[1].gWeight / (1.0f - uFarOld);
+            uTurnOld = thrower->ablB[1].weight / (1.0f - uFarOld);
         float dtFrame = D_002DDED0.dt;
         float du = D_002C4104 * dtFrame;
         uFar = Clamp(uFar, uFarOld - du, uFarOld + du);
@@ -725,13 +725,13 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
     }
     float uTurnOpp = 1.0f - uTurn;
     float uNear = 1.0f - uFar;
-    thrower->ablB[0].gWeight = uTurnOpp * uNear;
-    thrower->ablB[1].gWeight = uTurn * uNear;
-    thrower->ablB[2].gWeight = uTurnOpp * uFar;
-    thrower->ablB[3].gWeight = uTurn * uFar;
+    thrower->ablB[0].weight = uTurnOpp * uNear;
+    thrower->ablB[1].weight = uTurn * uNear;
+    thrower->ablB[2].weight = uTurnOpp * uFar;
+    thrower->ablB[3].weight = uTurn * uFar;
     RecalculateAsegBlend(thrower->animation4);
-    thrower->ablC[0].gWeight = uNear;
-    thrower->ablC[1].gWeight = uFar;
+    thrower->ablC[0].weight = uNear;
+    thrower->ablC[1].weight = uFar;
     RecalculateAsegBlend(thrower->animation7);
 }
 #include "sly2/vu0.h" // here, not at the top: declared before UpdateJtThrowArc, the helpers change its code (355 of 517 off)

@@ -566,10 +566,10 @@ extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
     STEPPLAYER *pstepplayerHero = GetHeroPo(&D_003DD490);
     if (pstepplayerHero != player)
         return;
-    if (pstepplayerHero->ptnUnk1024 != 0) {
-        SetTnTnsOverride(pstepplayerHero->ptnUnk1024, 0);
+    if (pstepplayerHero->unknown1024 != 0) {
+        SetTnTnsOverride(pstepplayerHero->unknown1024, 0);
     }
-    pstepplayerHero->ptnUnk1024 = tn;
+    pstepplayerHero->unknown1024 = tn;
     if (tn != 0) {
         SetTnTnsOverride(tn, 1);
     }
@@ -595,7 +595,7 @@ void STEPPLAYER::AdjustXps()   /* key function: STEPPLAYER's vtable comes out he
 {
     STEPPLAYER *player = this;
     AdjustStepXps(player);
-    if (player->jtair.nState != -1) {
+    if (player->jtair.state != -1) {
         FreeJtWallRunXps(&player->jtair);
     }
 }
@@ -754,12 +754,12 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         if (pv == F(void *, player, 0x1030) ||
             (F(void *, player, 0x1034) != 0 && pv == F(void *, F(void *, player, 0x1034), 0x30))) {
             F(int, player, 0x1038) = -1;
-            int hurtState = AsStepplayer(player)->jthurt.nState;
+            int hurtState = AsStepplayer(player)->jthurt.state;
             if (hurtState >= 8 && hurtState <= 12) {   // hurt states with a pending callback (inferred)
 
                 RunJtHurtCallback(&AsStepplayer(player)->jthurt);
             } else {
-                switch (AsStepplayer(player)->jtthrow.nState) {
+                switch (AsStepplayer(player)->jtthrow.state) {
                 case 5:
                 case 6: SetJtThrowState(&AsStepplayer(player)->jtthrow, 4); break;
                 case 1:
@@ -809,15 +809,15 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             break;
         }
         case 0x27B:
-            if (AsStepplayer(player)->jtthrow.nState != -1)
+            if (AsStepplayer(player)->jtthrow.state != -1)
                 ReleaseJtThrowObject(&AsStepplayer(player)->jtthrow);
             break;
         case 0x27C:
-            if (AsStepplayer(player)->jtgrab.nState == 0xB) {
+            if (AsStepplayer(player)->jtgrab.state == 0xB) {
                 void *object;
                 int n;
-                if (AsStepplayer(player)->jtgrab.plo != 0 && IsBasicDerivedFrom__FP5BASIC3CID(AsStepplayer(player)->jtgrab.plo, 100)) {
-                    object = AsStepplayer(player)->jtgrab.plo;
+                if (AsStepplayer(player)->jtgrab.grabbedObject != 0 && IsBasicDerivedFrom__FP5BASIC3CID(AsStepplayer(player)->jtgrab.grabbedObject, 100)) {
+                    object = AsStepplayer(player)->jtgrab.grabbedObject;
                     if (IsTossableActive(object))
                         TriggerTossable(object);
                 }
@@ -860,13 +860,13 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             }
             break;
         case 0x1C8:
-            if (AsStepplayer(player)->jtgrab.nState == 0xC)
-                StartJtHandsCarry(&AsStepplayer(player)->jtgrab.hands, AsStepplayer(player)->jtgrab.plo);
+            if (AsStepplayer(player)->jtgrab.state == 0xC)
+                StartJtHandsCarry(&AsStepplayer(player)->jtgrab.hands, AsStepplayer(player)->jtgrab.grabbedObject);
             break;
         case 0x1C7:
-            if (AsStepplayer(player)->jtgrab.nState == 0xC) {
+            if (AsStepplayer(player)->jtgrab.state == 0xC) {
                 SetAsegaSpeed__FP5ASEGAf(F(void *, player, 0x1030), 1.0f);
-                AttachJtHandsObject(&AsStepplayer(player)->jtgrab.hands, AsStepplayer(player)->jtgrab.plo);
+                AttachJtHandsObject(&AsStepplayer(player)->jtgrab.hands, AsStepplayer(player)->jtgrab.grabbedObject);
             }
             break;
         }
@@ -900,9 +900,9 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         break;
     }
     case 1:
-        if (AsStepplayer(player)->jtgrab.nState == 0xB && AsStepplayer(player)->jtgrab.plo == pv) {
+        if (AsStepplayer(player)->jtgrab.state == 0xB && AsStepplayer(player)->jtgrab.grabbedObject == pv) {
             UnsubscribeLoObject(pv, player);
-            AsStepplayer(player)->jtgrab.plo = 0;
+            AsStepplayer(player)->jtgrab.grabbedObject = 0;
         }
         break;
     case 11:
@@ -1048,7 +1048,7 @@ extern "C" void RemoveStepplayerHierarchy(STEPPLAYER *player)
 {
     RemoveSoHierarchy(player);
     ReleaseAsega(&PASEGAHURT(player));
-    ReleaseAsega(&player->jtmode.pasega);
+    ReleaseAsega(&player->jtmode.animationPlayback);
     ClearBhvstk(&player->bhvstk);
 }
 
@@ -1155,19 +1155,19 @@ int STEPPLAYER::CanUseGadget(int gadgetId)
 // Changes a gadget slot's state: leaving 1 stops the gadget (slot 102); stamps the time.
 extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int state)
 {
-    if (pslot->nState == state)
+    if (pslot->state == state)
         return;
-    if (pslot->nState == 1) {
+    if (pslot->state == 1) {
         /* slot 101 (stepplayer.h's declaration order puts OnActive elsewhere): a hand-made vtable call */
         VTESP *vtable = *(VTESP **)((char *)player + 0xC);
         ((void (*)(void *, int))vtable[102].pfn)((char *)player + vtable[102].d, pslot->idGadget);
     }
-    pslot->nState = state;
-    pslot->tState = D_002DDED0.t;
+    pslot->state = state;
+    pslot->stateStartTime = D_002DDED0.t;
     switch (state) {
     case 2:
         player->StartGadget(pslot->idGadget);  /* slot 99 */
-        pslot->nState = 0;
+        pslot->state = 0;
         return;
     case 1:
         player->StartGadget(pslot->idGadget);
@@ -1196,7 +1196,7 @@ extern "C" void StartStepplayerGadget(STEPPLAYER *player, int gadgetId)
     case 14:
     case 21:
     case 23:
-        player->jtgrab.nUnk4fc = gadgetId;
+        player->jtgrab.gadgetId = gadgetId;
         SetJtGrabState(&player->jtgrab, 0xB, 0, 0);
         return;
     case 12:
@@ -1359,7 +1359,7 @@ extern "C" void SetStepplayerGrabTarget(STEPPLAYER *player, LO *lo)
 {
     if (lo != 0) {
         SetJtGrabState(&player->jtgrab, 5, lo, 0);
-    } else if (player->jtgrab.nState == 5) {
+    } else if (player->jtgrab.state == 5) {
         player->SetPlayerState(0);
     }
 }
@@ -1381,7 +1381,7 @@ extern "C" void SetStepplayerGrabTargetAlt(STEPPLAYER *player, LO *lo)
     if (lo != 0) {
         SetJtGrabState(&player->jtgrab, 5, lo, 0);
         SetJtHandsTargetAttached(&player->jtgrab.hands, lo);
-    } else if (player->jtgrab.nState == 5) {
+    } else if (player->jtgrab.state == 5) {
         player->SetPlayerState(0);
     }
 }
@@ -1438,7 +1438,7 @@ extern "C" void SetStepplayerGrabState9(STEPPLAYER *player, LO *lo)
 {
     if (lo != 0) {
         SetJtGrabState(&player->jtgrab, 9, lo, 0);
-    } else if (player->jtgrab.nState == 9) {
+    } else if (player->jtgrab.state == 9) {
         player->SetPlayerState(0);
     }
 }
@@ -1498,30 +1498,30 @@ int IsStepplayerGrabReady(struct P *player)
 // Splice predicate: the throw controller is idle (state -1).
 extern "C" int IsStepplayerNotThrowing(STEPPLAYER *player)
 {
-    return ~player->jtthrow.nState == 0;
+    return ~player->jtthrow.state == 0;
 }
 
 // Splice predicate: grab state != 9.
 extern "C" int IsStepplayerNotInGrabState9(STEPPLAYER *player)
 {
-    return player->jtgrab.nState != 9;
+    return player->jtgrab.state != 9;
 }
 
 // Enters grab state 0xC with the given (or default) parameter.
 extern "C" void StartStepplayerGrabStateC(STEPPLAYER *player, ASEG *aseg, LO *lo, int n)
 {
     if (aseg == 0) {
-        aseg = (ASEG *)player->jtgrab.pasegUnk508;
+        aseg = (ASEG *)player->jtgrab.unknown508;
     }
     *(ASEG **)&player->jtgrab.pasegPhase0xC = aseg;
     SetJtGrabState(&player->jtgrab, 0xC, lo, 0);
-    player->nUnk1318 = n;
+    player->unknown1318 = n;
 }
 
 // Splice predicate: grab state != 0xC.
 extern "C" int IsStepplayerNotInGrabStateC(STEPPLAYER *player)
 {
-    return player->jtgrab.nState != 0xC;
+    return player->jtgrab.state != 0xC;
 }
 
 namespace M_StartStepplayerFollow { extern "C" {
@@ -1636,14 +1636,14 @@ void AttachStepplayerToStartMarker(struct P *player, int x)
 // Sets the lean target object (+0x10F8) and lean kind (+0x10FC); restarts the idle timer on a new target.
 extern "C" void SetStepplayerLeanTarget(STEPPLAYER *player, int nLeanKind, LO *ploLean)
 {
-    if (!(ploLean != player->ploLean || nLeanKind != player->nLeanKind))
+    if (!(ploLean != player->ploLean || nLeanKind != player->leanKind))
         return;
-    player->nLeanKind = nLeanKind;
+    player->leanKind = nLeanKind;
     player->ploLean = ploLean;
     if (ploLean == 0)
         return;
-    if (player->tIdle != D_002A4D60) {
-        player->nIdleKind = 1;
+    if (player->idleStartTime != D_002A4D60) {
+        player->idleKind = 1;
         UnlockStepplayerLeanTarget(player);
     }
 }
@@ -1703,7 +1703,7 @@ namespace M_HeroInteractDistance {
 // Globals: D_002BD280 (D_002BD280), D_002BD290 (D_002BD290), D_002BD2A0 (D_002BD2A0), D_002BD2B0 (D_002BD2B0), D_002BBB60 (g_lmZeroOne)
 // 0x001428D8 GetHeroInteractDistance  (T1414, our name)
 // How far an object is from the hero as the interact pickers rank it: *psDist = the xy distance |hero - plo| plus a bias, *pdz = the height difference (hero - plo)
-// plus a bias (both optional). Callers: GuardEvalInteractMode 0x208E70 (plo = a guard, *pploCur = &hero->ploInteract, *pdz is tested against the guard's height window;
+// plus a bias (both optional). Callers: GuardEvalInteractMode 0x208E70 (plo = a guard, *pploCur = &hero->interactTarget, *pdz is tested against the guard's height window;
 // HeroPickInteractGuard minimises *psDist) and the interact-target pick 0x142AF8 (three calls, *pploCur = &hero->ploLean).
 // The biases are CLQs (c0 + c1 d + c2 d^2) from 0x2BD280: (1) for the current target: xy D_002BD280(d) = -200 - 0.2 d, height D_002BD290(dz) = -0.2 dz (hysteresis: the
 // target already chosen looks nearer). (2) while the hero is steered (pctl) and d > 0.0001: rAway = (stick . (hero - plo)) / d with the stick vector = SetVectorCylind
@@ -2096,9 +2096,9 @@ int GetStepplayerLeanFlags(struct P *player)
 extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 {
     BHV *pbhv;
-    if (player->ploInteract == 0)
+    if (player->interactTarget == 0)
         return;
-    pbhv = FindBhvInBhvstk((BHVSTK *)((char *)player->ploInteract + 0x26C), 0xB1);
+    pbhv = FindBhvInBhvstk((BHVSTK *)((char *)player->interactTarget + 0x26C), 0xB1);
     if (pbhv != 0 && *(STEPPLAYER **)((char *)pbhv + 0x5C) == player) {
         *(int *)((char *)pbhv + 0x60) = 0;
     }
@@ -2646,8 +2646,8 @@ void BindStepplayerHpMp(struct P *player, int f)
 // Sets hp, clamped to the maximum.
 extern "C" void SetStepplayerHp(STEPPLAYER *player, int hp)
 {
-    int hpMax = player->jthurt.nHpMax;
-    *player->jthurt.php = (hp >= hpMax) ? hpMax : hp;
+    int hpMax = player->jthurt.maxHitPoints;
+    *player->jthurt.hitPoints = (hp >= hpMax) ? hpMax : hp;
 }
 
 namespace M_MpStepplayerCur { extern "C" {
@@ -2663,9 +2663,9 @@ int GetStepplayerMp(char *player)
 // Sets MP, clamped to the maximum.
 extern "C" void SetStepplayerMp(STEPPLAYER *player, int mp)
 {
-    int *pmp = player->pmpCur;
+    int *pmp = player->gadgetPower;
     if (pmp != 0) {
-        int mpMax = player->mpMax;
+        int mpMax = player->maxGadgetPower;
         *pmp = (mp >= mpMax) ? mpMax : mp;
     }
 }
@@ -2751,25 +2751,25 @@ void ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 // Whether a look mode is active (state 0..2).
 extern "C" int IsStepplayerInJtMode(STEPPLAYER *player)
 {
-    return (unsigned int)player->jtmode.nState < 3;
+    return (unsigned int)player->jtmode.state < 3;
 }
 
 // Whether the requested look mode is kind 0 (binocucom).
 extern "C" int IsStepplayerJtModeBinocucom(STEPPLAYER *player)
 {
-    return player->jtmode.nKind == 0;
+    return player->jtmode.kind == 0;
 }
 
 // Whether the requested look mode is kind 1 (recon).
 extern "C" int IsStepplayerJtModeRecon(STEPPLAYER *player)
 {
-    return player->jtmode.nKind == 1;
+    return player->jtmode.kind == 1;
 }
 
 // Whether the requested look mode is kind 2.
 extern "C" int IsStepplayerJtModeKind2(STEPPLAYER *player)
 {
-    return player->jtmode.nKind == 2;
+    return player->jtmode.kind == 2;
 }
 
 namespace M_func_00144418 { extern "C" {

@@ -55,11 +55,11 @@ extern SW D_003DD490;
 // count of 0x28.
 extern "C" void InitJtHurt(JTHURT *hurt, STEPPLAYER *player)
 {
-    hurt->pstepplayer = player;
-    hurt->nState = -1;
-    hurt->nUnk90 = -1;
-    hurt->gUnk9c = 2.0f;
-    hurt->nHpMax = 0x28;
+    hurt->player = player;
+    hurt->state = -1;
+    hurt->postHitMode = -1;
+    hurt->unknown9C = 2.0f;
+    hurt->maxHitPoints = 0x28;
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -397,7 +397,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
 }
 } // namespace M_PresetJtAccelZap
 
-/* Runs the hurt callback each time the player's current animation (pasegaUnk1030) has retracted, until the state
+/* Runs the hurt callback each time the player's current animation (activeAnimation) has retracted, until the state
    stops changing (or is -1). */
 // When the owner's current animation has retracted, runs the pending post-hurt callback (RunJtHurtCallback),
 // repeating while the state keeps changing. (inferred)
@@ -405,10 +405,10 @@ extern "C" void UpdateJtHurtInput(JTHURT *hurt)
 {
     int state;
     do {
-        state = hurt->nState;
-        if (IsAsegaRetracted(hurt->pstepplayer->pasegaUnk1030))
+        state = hurt->state;
+        if (IsAsegaRetracted(hurt->player->activeAnimation))
             RunJtHurtCallback(hurt);
-    } while (hurt->nState != -1 && hurt->nState != state);
+    } while (hurt->state != -1 && hurt->state != state);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -515,7 +515,7 @@ void RunJtHurtCallback(struct S *s)
 // Callback thunk: ReturnJtToSafePlace(owner, null).
 extern "C" void ReturnJtToSafePlaceCallback(JTHURT *hurt)
 {
-    ReturnJtToSafePlace(hurt->pstepplayer, 0);
+    ReturnJtToSafePlace(hurt->player, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -875,7 +875,7 @@ sound:
 // Callback: back to hurt state 0 if health remains, else state 8 (dead).
 extern "C" void JtHurtEndCallback(JTHURT *hurt)
 {
-    if (*hurt->php > 0) {
+    if (*hurt->hitPoints > 0) {
         SetJtHurtState(hurt, 0);
         return;
     }
@@ -888,11 +888,11 @@ extern "C" void JtHurtEndCallback(JTHURT *hurt)
 // a fall (SetJtAirJump kind 11); dead -> death state.
 extern "C" void JtHurtFallCallback(JTHURT *hurt)
 {
-    if (*hurt->php > 0) {
+    if (*hurt->hitPoints > 0) {
         if (hurt->zpr.ploSource && ((SO *)hurt->zpr.ploSource)->hurtRespawnsHero)
             ReturnJtToSafePlaceCallback(hurt);
         else
-            SetJtAirJump(&hurt->pstepplayer->jtair, 11, 0, 0);
+            SetJtAirJump(&hurt->player->jtair, 11, 0, 0);
     } else {
         SetJtHurtState(hurt, 8);
     }
@@ -920,11 +920,11 @@ extern "C" void JtHurtShockCallback(JTHURT *hurt)
 // Same body as JtHurtFallCallback, for another hazard kind.
 extern "C" void JtHurtFallCallback2(JTHURT *hurt)
 {
-    if (*hurt->php > 0) {
+    if (*hurt->hitPoints > 0) {
         if (hurt->zpr.ploSource && ((SO *)hurt->zpr.ploSource)->hurtRespawnsHero)
             ReturnJtToSafePlaceCallback(hurt);
         else
-            SetJtAirJump(&hurt->pstepplayer->jtair, 11, 0, 0);
+            SetJtAirJump(&hurt->player->jtair, 11, 0, 0);
     } else {
         SetJtHurtState(hurt, 8);
     }
@@ -942,7 +942,7 @@ extern const unsigned int r_D_002A6790[2] __asm__("D_002A6790") = {0xFFFF0000, (
 // values. (inferred)
 extern "C" void AdjustJtHurtXp(JTHURT *hurt, XP *xp)
 {
-    switch (hurt->nState) {
+    switch (hurt->state) {
     case 4: case 12:
         xp->gFriction = D_002BFB20;
         xp->gElasticity = 0;
@@ -998,14 +998,14 @@ extern "C" int IsJtInvulnerable(JT *jt, int zpk)
 // hurt/grab/air sub-states.
 extern "C" int ShouldStepplayerIgnoreZap(JTHURT *hurt, int zpk)
 {
-    if (hurt->pstepplayer->nUnk298)
+    if (hurt->player->nUnk298)
         return 1;
     if (zpk == 0x2000 || zpk == 0x4000) {
-        switch (hurt->pstepplayer->jthurt.nState) {
+        switch (hurt->player->jthurt.state) {
         case -1:
-            switch (hurt->pstepplayer->jtgrab.nState) {
+            switch (hurt->player->jtgrab.state) {
             case -1:
-                switch (hurt->pstepplayer->jtair.nState) {
+                switch (hurt->player->jtair.state) {
                 case -1: goto ret0;
                 case 8:
                 case 9:
@@ -1040,9 +1040,9 @@ extern "C" int ShouldStepplayerIgnoreZap(JTHURT *hurt, int zpk)
         }
         goto ret0;
     }
-    if (hurt->nState != -1)
+    if (hurt->state != -1)
         return 1;
-    if (hurt->nUnk90 == 1)
+    if (hurt->postHitMode == 1)
         return 1;
     if (D_002E1E00 & 1)
         return 1;
@@ -1058,7 +1058,7 @@ ret0:
 // Returns the owner's damage veto (vtable slot 86) for the record.
 extern "C" int ShouldJtVetoDamage(JTHURT *hurt, ZPR *damage)
 {
-    return hurt->pstepplayer->IsZapLethal(damage);
+    return hurt->player->IsZapLethal(damage);
 }
 
 // JT vtable slot 93 (hero died): closes Sly's eyes, then the STEPPLAYER base.
@@ -1072,8 +1072,8 @@ extern "C" void OnJtDeath(STEPPLAYER *player)
 // 0 none, 1 hurt, 2 dead (health <= 0) while in a hurt state; otherwise whether the status is 1.
 extern "C" int GetJtHurtStatus(JTHURT *hurt)
 {
-    if (hurt->nState != -1) return *hurt->php <= 0 ? 2 : 1;
-    return hurt->nUnk90 == 1;
+    if (hurt->state != -1) return *hurt->hitPoints <= 0 ? 2 : 1;
+    return hurt->postHitMode == 1;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

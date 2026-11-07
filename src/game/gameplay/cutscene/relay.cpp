@@ -3217,8 +3217,8 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            pstepplayer->qwUnk1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(pstepplayer->nUnk1048));
-            if (!prelaycmd->teleportTo.fAir && pstepplayer->cUnk12f4 == 0)
+            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(pstepplayer->unknown1048));
+            if (!prelaycmd->teleportTo.fAir && pstepplayer->unknown12F4 == 0)
             {
                 SetJtAirJump(&pstepplayer->jtair, 0xB, 0, 0);
                 ClearSoXps(pstepplayer);
@@ -3253,14 +3253,14 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            if (pstepplayer->jtpipe.nState == -1)
+            if (pstepplayer->jtpipe.state == -1)
             {
                 break;
             }
             VECTOR4 pos;
             LO *plo = PloFindJsgObject(script, prelaycmd->pipeTo.oidTarget);
             GetJsgLocation(script, plo, (qword *)&pos, 0);
-            FindShapeClosestPointAll(pstepplayer->jtpipe.pshape, *(qword *)&pos, 0, 0, 0, 0, &script->sPipe);
+            FindShapeClosestPointAll(pstepplayer->jtpipe.pipeCurve, *(qword *)&pos, 0, 0, 0, 0, &script->sPipe);
             SetJsgJt(script, prelaycmd, pstepplayer);
         }
         break;
@@ -3420,10 +3420,10 @@ void NextJsgCommand(JSGV *script)
                     }
                     ChooseJtGrabTarget(&pstepplayer->jtgrab, grf, (int)plo);
                 }
-                if (pstepplayer->jtgrab.nKind != -1 && pstepplayer->jtgrab.nState == 3)
+                if (pstepplayer->jtgrab.kind != -1 && pstepplayer->jtgrab.state == 3)
                 {
                     VECTOR4 pos;
-                    SHAPE *pshape = (SHAPE *)pstepplayer->jtgrab.plo;
+                    SHAPE *pshape = (SHAPE *)pstepplayer->jtgrab.grabbedObject;
                     GetJsgLocation(script, plo, (qword *)&pos, 0);
                     FindShapeClosestPointAll(pshape, *(qword *)&pos, 0, 0, 0, &script->sGoTo, 0);
                 }
@@ -3496,9 +3496,9 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            if (pstepplayer->jtgrab.nKind != -1)
+            if (pstepplayer->jtgrab.kind != -1)
             {
-                if (pstepplayer->jtgrab.nState != 8)
+                if (pstepplayer->jtgrab.state != 8)
                 {
                     break;
                 }
@@ -3519,31 +3519,31 @@ void NextJsgCommand(JSGV *script)
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
             {
-                place.qwPos = VuAdd(PosLoWorld(pstepplayer), pstepplayer->qwUnk240);
+                place.position = VuAdd(PosLoWorld(pstepplayer), pstepplayer->qwUnk240);
             }
             else
             {
                 GRABSPOTV *pspot = PspotFromLo(plo);
-                place.pspot = (GRABSPOT *)pspot;
+                place.grabSpot = (GRABSPOT *)pspot;
                 if (pspot)
                 {
-                    if (pstepplayer->jtpipe.nState != -1 && (LO *)pstepplayer->jtpipe.pshape == plo)
+                    if (pstepplayer->jtpipe.state != -1 && (LO *)pstepplayer->jtpipe.pipeCurve == plo)
                     {
                         break;
                     }
-                    pspot->GetClosestParam((JT *)pstepplayer, (float *)&place.qwPos);
-                    place.plo = plo;
+                    pspot->GetClosestParam((JT *)pstepplayer, (float *)&place.position);
+                    place.object = plo;
                 }
                 else
                 {
-                    GetJsgLocation(script, plo, &place.qwPos, 0);
-                    GuardSpawnerGroundSnap(&place.qwPos, 0, 0, 100.0f, -150.0f);
+                    GetJsgLocation(script, plo, &place.position, 0);
+                    GuardSpawnerGroundSnap(&place.position, 0, 0, 100.0f, -150.0f);
                 }
             }
             RespawnAtSafeSpot(pstepplayer, &place);
             if (prelaycmd->respawn.nUnk5 == 1)
             {
-                pstepplayer->jtair.fCanDoubleJump = prelaycmd->respawn.nUnk5;
+                pstepplayer->jtair.canDoubleJump = prelaycmd->respawn.nUnk5;
             }
             if (IsBasicDerivedFrom(pstepplayer, (CID)53))
             {
@@ -3885,7 +3885,7 @@ void NextJsgCommand(JSGV *script)
             LO *plo = PloFindJsgObject(script, prelaycmd->unk58.oidShip);
             if (plo && IsBasicDerivedFrom(plo, (CID)54))
             {
-                SetJtAirJump(&pbentley->jtair, (pbentley->jtair.nState == 0x11) ? 3 : 1, 0, 0);
+                SetJtAirJump(&pbentley->jtair, (pbentley->jtair.state == 0x11) ? 3 : 1, 0, 0);
                 SetJsgJt(script, prelaycmd, pbentley);
             }
         }
@@ -4156,11 +4156,11 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            if (pstepplayer->jtair.nState >= 0xB && pstepplayer->jtair.nState <= 0xD)
+            if (pstepplayer->jtair.state >= 0xB && pstepplayer->jtair.state <= 0xD)
             {
                 fComplete = 0;
             }
-            else if (pstepplayer->jtgrab.nKind != -1 && (pstepplayer->jtgrab.nState == 0 || pstepplayer->jtgrab.nState == 0xD))
+            else if (pstepplayer->jtgrab.kind != -1 && (pstepplayer->jtgrab.state == 0 || pstepplayer->jtgrab.state == 0xD))
             {
                 pstepplayer->SetPlayerState(0);
                 fComplete = 1;
@@ -4323,7 +4323,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
     case RELAYCK_StepCmd29:
     {
         STEPPLAYER *pstepplayer = (STEPPLAYER *)script->pjt;
-        if (pstepplayer && pstepplayer->jtgrab.nKind != -1 && pstepplayer->jtgrab.nState == 8)
+        if (pstepplayer && pstepplayer->jtgrab.kind != -1 && pstepplayer->jtgrab.state == 8)
         {
             LO *plo = PloFindJsgObject(script, prelaycmd->stepCmd29.oidTarget);
             if (plo)
@@ -4346,7 +4346,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
     case RELAYCK_Respawn:
         if (script->pjt)
         {
-            fComplete = ((STEPPLAYER *)script->pjt)->jtair.nState == -1;
+            fComplete = ((STEPPLAYER *)script->pjt)->jtair.state == -1;
         }
         else
         {
@@ -4356,7 +4356,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
     case RELAYCK_LaunchTo:
         if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            fComplete = ((STEPPLAYER *)script->ploActor)->jtair.nState == -1;
+            fComplete = ((STEPPLAYER *)script->ploActor)->jtair.state == -1;
         }
         else
         {
@@ -4404,7 +4404,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
     case RELAYCK_StartJtMode:
         if (script->pstepplayerMode)
         {
-            fComplete = script->pstepplayerMode->jtmode.hud.nState == 1;
+            fComplete = script->pstepplayerMode->jtmode.hud.state == 1;
         }
         else
         {
@@ -4414,7 +4414,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
     case RELAYCK_EndJtMode:
         if (script->pstepplayerMode)
         {
-            fComplete = script->pstepplayerMode->jtmode.hud.nState == -1;
+            fComplete = script->pstepplayerMode->jtmode.hud.state == -1;
         }
         else
         {
@@ -4518,7 +4518,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
             }
             else if (prelaycmd->unk4F.nUnk7 != -1)
             {
-                fComplete = GetSmaCur(pmurrayActor->psmaUnk1034) == prelaycmd->unk4F.nUnk7;
+                fComplete = GetSmaCur(pmurrayActor->activeStateMachine) == prelaycmd->unk4F.nUnk7;
             }
         }
         break;
@@ -4606,7 +4606,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
                 {
                     pmurray->SetPlayerState(0);
                 }
-                fComplete = ((STEPPLAYER *)prelaycmd->unk5A.nUnk6)->jtair.nState == -1;
+                fComplete = ((STEPPLAYER *)prelaycmd->unk5A.nUnk6)->jtair.state == -1;
             }
             else
             {

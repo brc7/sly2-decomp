@@ -13,7 +13,7 @@
 struct GSCHAR
 {
       int hpCur;            /* +0x0 [R] current hp (JT jthurt.php points here; sly.hpCur 37 -> 40 between S10 and S11) */
-      int mpCur;            /* +0x4 [R] current gadget power (STEPPLAYER::pmpCur points here) */
+      int mpCur;            /* +0x4 [R] current gadget power (STEPPLAYER::gadgetPower points here) */
       int oidBooty;         /* +0x8 [S] booty (treasure) object (inferred from the name) */
       int apukCur[3];       /* +0xC [S] equipped power-ups (gadget ids) per slot */
 };

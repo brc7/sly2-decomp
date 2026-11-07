@@ -361,98 +361,98 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     qword velWall;
     float t;
     if (kind != 6)
-        air->nKind = kind;
-    air->n2 = n2;
-    air->pstepplayer->SetPlayerState(1);
+        air->jumpKind = kind;
+    air->unknown08 = n2;
+    air->player->SetPlayerState(1);
     if (kind != 6)
     {
-        air->nUnk40 = 0;
+        air->unknown40 = 0;
         t = D_002DDED0.t;
-        air->tUnk4c = t;
-        air->tUnk48 = t;
-        air->tUnk44 = t;
+        air->unknown4C = t;
+        air->unknown48 = t;
+        air->unknown44 = t;
     }
     if (kind == 9)
     {
-        air->rGravitySaved = air->pstepplayer->rUnk260;
-        SetStepGravityRatio(air->pstepplayer, D_002BF750);
+        air->rGravitySaved = air->player->rUnk260;
+        SetStepGravityRatio(air->player, D_002BF750);
     }
     vel = JtPlanLaunchVz(air, kind);
-    air->pstepplayer->SetVelocity(vel);
+    air->player->SetVelocity(vel);
     t = D_002DDED0.t;
-    air->pstepplayer->tUnk131c = t;
+    air->player->unknown131C = t;
     if (kind != 6)
-        air->tStart = D_002DDED0.t;
+        air->startTime = D_002DDED0.t;
     switch (kind)
     {
         case 0:
             SetJtAirState(air, 4, lo);
-            air->fCanDoubleJump = 1;
-            air->fUnk24 = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
+            air->canDoubleJump = 1;
+            air->unknown24 = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
             break;
         case 0xB:
             SetJtAirState(air, 4, lo);
-            air->fUnk24 = 1;
-            air->fCanDoubleJump = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
+            air->unknown24 = 1;
+            air->canDoubleJump = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
             break;
         case 3:
-            if (air->pstepplayer->pctl->sLeft < 0.2f)
+            if (air->player->pctl->sLeft < 0.2f)
             {
                 qword dvel;
-                air->nUnk40 = 3;
-                dvel = SetVectorCylind(air->pstepplayer->radTarget, D_002BF754, 0.0f);
-                air->pstepplayer->SetVelocity(VuAdd(vel, dvel));
+                air->unknown40 = 3;
+                dvel = SetVectorCylind(air->player->radTarget, D_002BF754, 0.0f);
+                air->player->SetVelocity(VuAdd(vel, dvel));
             }
             SetJtAirState(air, 0, lo);
-            air->fCanDoubleJump = 1;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 0.6f;
-            air->fUnk24 = 0;
+            air->canDoubleJump = 1;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 0.6f;
+            air->unknown24 = 0;
             break;
         case 1:
         case 2:
         case 0x12:
             SetJtAirState(air, 0, lo);
-            air->fCanDoubleJump = 1;
-            air->fUnk24 = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
+            air->canDoubleJump = 1;
+            air->unknown24 = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
             break;
         case 9:
             SetJtAirState(air, 0, lo);
-            air->fUnk24 = 0;
-            air->fCanDoubleJump = 1;
-            SetPlayerTn(air->pstepplayer, air->ptnLaunch);
-            air->gSpeedRatio = D_002BF758;
-            air->gUnk34 = D_002BF75C;
-            air->fGravityChanged = 1;
+            air->unknown24 = 0;
+            air->canDoubleJump = 1;
+            SetPlayerTn(air->player, air->ptnLaunch);
+            air->speedRatio = D_002BF758;
+            air->unknown34 = D_002BF75C;
+            air->isGravityChanged = 1;
             break;
         case 7:
             SetJtAirState(air, 7, lo);
-            air->fCanDoubleJump = 1;
-            air->fUnk24 = 0;
-            air->gSpeedRatio = 1.0f;
-            air->gUnk34 = 1.0f;
+            air->canDoubleJump = 1;
+            air->unknown24 = 0;
+            air->speedRatio = 1.0f;
+            air->unknown34 = 1.0f;
             break;
         case 8:
             SetJtAirState(air, 5, lo);
-            air->fUnk24 = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
-            air->fCanDoubleJump = 1;
-            DecomposeCylind(vel, &air->radSmash, &air->sSmash, 0);
-            air->gUnkb4 = 1.0f;
+            air->unknown24 = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
+            air->canDoubleJump = 1;
+            DecomposeCylind(vel, &air->smashAngle, &air->smashDistance, 0);
+            air->unknownB4 = 1.0f;
             break;
         case 6:
         {
             int state = 2;
-            if (air->nKind < 0xF)
+            if (air->jumpKind < 0xF)
             {
-                if (air->nKind > 0xC)
+                if (air->jumpKind > 0xC)
                     state = 3;
             }
             SetJtAirState(air, state, lo);
@@ -463,76 +463,76 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
             float gRatio;
             SetJtAirState(air, 1, lo);
             gRatio = D_002BF760;
-            air->fCanDoubleJump = 1;
-            air->gUnk34 = D_002BF764;
-            air->fUnk24 = 0;
-            air->gSpeedRatio = gRatio;
-            if (air->pstepplayer->pctl->sLeft < 0.2f)
+            air->canDoubleJump = 1;
+            air->unknown34 = D_002BF764;
+            air->unknown24 = 0;
+            air->speedRatio = gRatio;
+            if (air->player->pctl->sLeft < 0.2f)
             {
                 qword dvel;
-                air->nUnk40 = 3;
-                dvel = SetVectorCylind(air->pstepplayer->pctl->radLeft, D_002BF730 * gRatio, 0.0f);
-                air->pstepplayer->SetVelocity(VuAdd(vel, dvel));
+                air->unknown40 = 3;
+                dvel = SetVectorCylind(air->player->pctl->radLeft, D_002BF730 * gRatio, 0.0f);
+                air->player->SetVelocity(VuAdd(vel, dvel));
             }
             break;
         }
         case 0xD:
             SetJtAirState(air, 1, lo);
-            air->fCanDoubleJump = 1;
-            air->gSpeedRatio = D_002BF768;
-            air->gUnk34 = D_002BF76C;
-            air->fUnk24 = 0;
+            air->canDoubleJump = 1;
+            air->speedRatio = D_002BF768;
+            air->unknown34 = D_002BF76C;
+            air->unknown24 = 0;
             break;
         case 0xA:
-            air->nUnk40 = -1;
+            air->unknown40 = -1;
             SetJtAirState(air, 0x15, lo);
-            air->fUnk24 = 0;
-            air->fCanDoubleJump = 0;
-            air->gUnk34 = 0.0f;
-            air->gSpeedRatio = 0.0f;
+            air->unknown24 = 0;
+            air->canDoubleJump = 0;
+            air->unknown34 = 0.0f;
+            air->speedRatio = 0.0f;
             break;
         case 0xC:
             SetJtAirState(air, 1, lo);
-            air->nUnk40 = 3;
-            air->fCanDoubleJump = 1;
-            air->fUnk24 = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
+            air->unknown40 = 3;
+            air->canDoubleJump = 1;
+            air->unknown24 = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
             break;
         case 0x10:
             SetJtAirState(air, 4, lo);
-            air->fUnk24 = 0;
-            air->fCanDoubleJump = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
+            air->unknown24 = 0;
+            air->canDoubleJump = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
             break;
         case 0xF:
             SetJtAirState(air, 0, lo);
-            air->fUnk24 = 0;
-            air->fCanDoubleJump = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
+            air->unknown24 = 0;
+            air->canDoubleJump = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
             break;
         case 0x11:
-            if (air->nState == -1)
+            if (air->state == -1)
             {
-                air->pstepplayer->SetVelocity(VuAdd(ProjectOutVec(velWall, D_002A2DC0), D_002BF770));
-                air->fCanDoubleJump = 1;
+                air->player->SetVelocity(VuAdd(ProjectOutVec(velWall, D_002A2DC0), D_002BF770));
+                air->canDoubleJump = 1;
             }
             SetJtAirState(air, 0x16, 0);
-            air->fUnk24 = 0;
-            air->fUnk2c = 0;
-            air->gUnk34 = 1.0f;
-            air->gSpeedRatio = 1.0f;
+            air->unknown24 = 0;
+            air->unknown2C = 0;
+            air->unknown34 = 1.0f;
+            air->speedRatio = 1.0f;
             break;
     }
     if (kind == 6)
         return;
     if (kind != 0x11)
-        air->fUnk2c = air->fCanDoubleJump;
-    if (IsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
-        ((JT *)air->pstepplayer)->janim.nUnk10 = -1;
-    air->zStart = QwordZ(PosLoWorld(air->pstepplayer));
+        air->unknown2C = air->canDoubleJump;
+    if (IsBasicDerivedFrom(air->player, (CID)0x35))
+        ((JT *)air->player)->janim.nUnk10 = -1;
+    air->zStart = QwordZ(PosLoWorld(air->player));
 }
 } // namespace M_func_00195A00
 
@@ -1732,22 +1732,22 @@ void UpdateJtAirInput(JTAIR *air)
     int fFloor = 0;
     XP *pxpFloor;
     POCTL *pctl;
-    *(qword *)&posHero = PosLoWorld(air->pstepplayer);
-    *(qword *)&vel = air->pstepplayer->GetVelocity();
-    pctl = air->pstepplayer->pctl;
-    pxpFloor = air->pstepplayer->pxpFloor;
+    *(qword *)&posHero = PosLoWorld(air->player);
+    *(qword *)&vel = air->player->GetVelocity();
+    pctl = air->player->pctl;
+    pxpFloor = air->player->pxpFloor;
     if (pxpFloor != 0 && pxpFloor->normal.z > 0.7f)
         fFloor = 1;
     do
     {
-        nStatePrev = air->nState;
-        if (air->plo != 0)
+        nStatePrev = air->state;
+        if (air->jumpObject != 0)
         {
-            ulong fWorld = air->plo->fInWorld;
+            ulong fWorld = air->jumpObject->fInWorld;
             if (!fWorld)
                 ReleaseJtAirObject(air);
         }
-        switch (air->nState)
+        switch (air->state)
         {
             case 9:
             case 0xA:
@@ -1765,55 +1765,55 @@ void UpdateJtAirInput(JTAIR *air)
             case 0x16:
                 break;
             default:
-            if (air->fCanDoubleJump && pctl->GetButtonsPressedWithin(BUTTON_JUMP, 0.0f) &&
-                !FJtLandsWithin(0.075f, air->pstepplayer))
+            if (air->canDoubleJump && pctl->GetButtonsPressedWithin(BUTTON_JUMP, 0.0f) &&
+                !FJtLandsWithin(0.075f, air->player))
             {
                 pctl->ClearJoyPressed(BUTTON_JUMP);
-                SetJtAirJump(air, 6, air->n2, 0);
+                SetJtAirJump(air, 6, air->unknown08, 0);
             }
             if (pctl->GetButtonsPressedWithin(BUTTON_ACTION, 0.0f))
             {
-                int state = air->nState;
+                int state = air->state;
                 TryJtAirGrab(air, 0);
-                if (air->nState != state)
+                if (air->state != state)
                     pctl->ClearJoyPressed(BUTTON_ACTION);
             }
             if (pctl->GetButtonsPressedWithin(BUTTON_RUN, 0.0f) &&
-                air->pstepplayer == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, air->pstepplayer))
+                air->player == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, air->player))
             {
-                ChargeGadgetMp(air->pstepplayer, 0x1B);
+                ChargeGadgetMp(air->player, 0x1B);
                 pctl->ClearJoyPressed(BUTTON_RUN);
                 D_002E1E40->StartGadget(0x1B);
             }
             break;
         }
-        switch (air->nState)
+        switch (air->state)
         {
             case 0:
-                if (D_002DDED0.t - air->tState > D_002BF818)
+                if (D_002DDED0.t - air->stateStartTime > D_002BF818)
                 {
-                    if (!(pctl->grfbtn & 0x40) && air->nUnk40 != 3)
-                        air->fUnk24 = 1;
-                    SetJtAirState(air, 1, air->plo);
+                    if (!(pctl->grfbtn & 0x40) && air->unknown40 != 3)
+                        air->unknown24 = 1;
+                    SetJtAirState(air, 1, air->jumpObject);
                 }
-                else if (!air->fUnk30 && pctl->sLeft > 0.5f)
+                else if (!air->unknown30 && pctl->sLeft > 0.5f)
                     SteerJtAirClip(air);
                 break;
             case 2:
-                if (D_002DDED0.t - air->tState > D_002BF81C)
-                    SetJtAirState(air, 3, air->plo);
-                else if (!air->fUnk30 && pctl->sLeft > 0.5f)
+                if (D_002DDED0.t - air->stateStartTime > D_002BF81C)
+                    SetJtAirState(air, 3, air->jumpObject);
+                else if (!air->unknown30 && pctl->sLeft > 0.5f)
                     SteerJtAirClip(air);
                 break;
             case 1:
             case 7:
                 if (vel.z < 0.0f)
-                    SetJtAirState(air, 4, air->plo);
+                    SetJtAirState(air, 4, air->jumpObject);
                 break;
             case 6:
-                if (((CID88 *)air->plo)->nUnk17c == 3)
+                if (((CID88 *)air->jumpObject)->nUnk17c == 3)
                     SetJtAirState(air, 4, 0);
-                else if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
+                else if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
                     StartJtGrabForAirKind(air);
                 break;
             case 9:
@@ -1824,44 +1824,44 @@ void UpdateJtAirInput(JTAIR *air)
             case 0xE:
             case 0xF:
             case 0x10:
-                if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
+                if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
                     StartJtGrabForAirKind(air);
                 break;
             case 0x12:
             {
                 float tLabel = TFindAsegLabel(D_002F7900->moverec.pasegUnk64, (OID)0x1C7);
-                float t = *(float *)&air->pstepplayer->unknown58->reference;
+                float t = *(float *)&air->player->unknown58->reference;
                 t -= tLabel;
                 if (t <= D_002DDED0.t && D_002F7900->moverec.nState != 3)
                 {
                     SetJtThrowState((JTTHROW *)&D_002F7900->moverec, 3);
                     break;
                 }
-                if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
+                if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
                     StartJtGrabForAirKind(air);
                 break;
             }
             case 8:
-                if (*(float *)&air->pstepplayer->unknown58->reference < D_002DDED0.t)
-                    SetJtAirState(air, 4, air->plo);
+                if (*(float *)&air->player->unknown58->reference < D_002DDED0.t)
+                    SetJtAirState(air, 4, air->jumpObject);
                 break;
             case 5:
-                if (D_002DDED0.t - air->tState > 0.25f && fFloor)
+                if (D_002DDED0.t - air->stateStartTime > 0.25f && fFloor)
                 {
-                    air->pstepplayer->SetPlayerState(0);
+                    air->player->SetPlayerState(0);
                     break;
                 }
-                if (FJtAirWedged(air->tState, air->pstepplayer, &air->pstepplayer->tUnk131c))
-                    ReturnJtToSafePlace(air->pstepplayer, 0);
+                if (FJtAirWedged(air->stateStartTime, air->player, &air->player->unknown131C))
+                    ReturnJtToSafePlace(air->player, 0);
                 break;
             case 3:
             case 4:
                 if (fFloor)
                 {
-                    if (air->nKind == 0xE)
-                        SetJtGrabState(&air->pstepplayer->jtgrab, 0xA, 0, 0);
+                    if (air->jumpKind == 0xE)
+                        SetJtGrabState(&air->player->jtgrab, 0xA, 0, 0);
                     else
-                        air->pstepplayer->SetPlayerState(0);
+                        air->player->SetPlayerState(0);
                     break;
                 }
                 else
@@ -1870,60 +1870,60 @@ void UpdateJtAirInput(JTAIR *air)
                     if (xp != 0)
                     {
                         XPD *pxpd = &xp->axpd[1 - ixpd];
-                        air->pedge = (JTEDGE *)pxpd->ppart;
-                        air->posEdge = ConvertXfPos(0, air->pedge->pxf, pxpd->pos);
-                        air->nUnk100 = xp->xpk;
-                        air->nUnk104 = (ixpd == 0) ? (int)xp->pv1 : (int)xp->pv0;
+                        air->edge = (JTEDGE *)pxpd->ppart;
+                        air->edgePosition = ConvertXfPos(0, air->edge->pxf, pxpd->pos);
+                        air->unknown100 = xp->xpk;
+                        air->unknown104 = (ixpd == 0) ? (int)xp->pv1 : (int)xp->pv0;
                         air->normalEdge = *(qword *)&vec;
                         SetJtAirState(air, 0x11, 0);
                         break;
                     }
                 }
-                if (FJtAirWedged(air->tState, air->pstepplayer, &air->pstepplayer->tUnk131c))
-                    ReturnJtToSafePlace(air->pstepplayer, 0);
+                if (FJtAirWedged(air->stateStartTime, air->player, &air->player->unknown131C))
+                    ReturnJtToSafePlace(air->player, 0);
                 break;
             case 0x11:
-                if (D_002DDED0.t - air->tState > 0.25f && pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
+                if (D_002DDED0.t - air->stateStartTime > 0.25f && pctl->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                 {
                     SetJtAirJump(air, 3, 0, 0);
                     break;
                 }
-                if (((SO *)air->pedge->plo)->physicsTree == 0)
+                if (((SO *)air->edge->plo)->physicsTree == 0)
                     SetJtAirState(air, 4, 0);
                 else
                 {
-                    STEPPLAYER *player = air->pstepplayer;
-                    player->dposUnk1010 = PosSmooth(player->dposUnk1010, D_002A2DD0, D_002DDED0.dt, &D_002BF820, 0);
-                    *(qword *)&vec = ConvertXfPos(air->pedge->pxf, 0, air->posEdge);
-                    if (D_002DDED0.t - air->tState > 0.03f &&
-                        !FCheckJtEdgeGrab(air, (SOPART *)air->pedge, *(qword *)&vec, air->nUnk100, (void *)air->nUnk104, &air->normalEdge))
+                    STEPPLAYER *player = air->player;
+                    player->unknown1010 = PosSmooth(player->unknown1010, D_002A2DD0, D_002DDED0.dt, &D_002BF820, 0);
+                    *(qword *)&vec = ConvertXfPos(air->edge->pxf, 0, air->edgePosition);
+                    if (D_002DDED0.t - air->stateStartTime > 0.03f &&
+                        !FCheckJtEdgeGrab(air, (SOPART *)air->edge, *(qword *)&vec, air->unknown100, (void *)air->unknown104, &air->normalEdge))
                     {
                         SetJtAirState(air, 4, 0);
                         break;
                     }
-                    SetStepTargetHeadingFromVector(air->pstepplayer, ScaleVec(air->normalEdge, VuFloat(-1.0f)));
-                    if (pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->CanUseGadget(3))
+                    SetStepTargetHeadingFromVector(air->player, ScaleVec(air->normalEdge, VuFloat(-1.0f)));
+                    if (pctl->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && air->player->CanUseGadget(3))
                     {
                         pctl->ClearJoyPressed(BUTTON_LOOK);
-                        StartJtMode(&air->pstepplayer->jtmode, 0, 0, 0);
+                        StartJtMode(&air->player->jtmode, 0, 0, 0);
                     }
                 }
                 break;
             case 0x13:
             case 0x14:
-                if (PxpFirstOfTree(air->pstepplayer->physicsTree) != 0)
+                if (PxpFirstOfTree(air->player->physicsTree) != 0)
                 {
                     SetJtAirState(air, 4, 0);
                     break;
                 }
-                if (!(pctl->grfbtn & (GrfMatchingSlots(air->pstepplayer, 0x1B) | 8)))
+                if (!(pctl->grfbtn & (GrfMatchingSlots(air->player, 0x1B) | 8)))
                 {
                     SetJtAirState(air, 4, 0);
                     break;
                 }
-                if (air->nState == 0x13)
+                if (air->state == 0x13)
                 {
-                    ASEGA *asega = air->pstepplayer->pasegaUnk1030;
+                    ASEGA *asega = air->player->activeAnimation;
                     if (asega == 0 || IsAsegaRetracted(asega))
                         SetJtAirState(air, 0x14, 0);
                 }
@@ -1933,58 +1933,58 @@ void UpdateJtAirInput(JTAIR *air)
                 {
                     JT *jt = 0;
                     int nUnk10;
-                    if (IsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
+                    if (IsBasicDerivedFrom(air->player, (CID)0x35))
                     {
-                        jt = (JT *)air->pstepplayer;
+                        jt = (JT *)air->player;
                         nUnk10 = jt->janim.nUnk10;
                     }
-                    *(qword *)&vec = air->pstepplayer->GetVelocity();
+                    *(qword *)&vec = air->player->GetVelocity();
                     vec.x = vec.y = 0.0f;
-                    air->pstepplayer->SetVelocity(*(qword *)&vec);
+                    air->player->SetVelocity(*(qword *)&vec);
                     SetJtAirJump(air, 0xB, 0, 0);
                     if (jt != 0)
                         jt->janim.nUnk10 = nUnk10;
                     break;
                 }
-                if (air->placeTarget.pspot != 0 && air->pact8->tEnd < D_002DDED0.t + 0.25f)
+                if (air->placeTarget.grabSpot != 0 && air->pact8->tEnd < D_002DDED0.t + 0.25f)
                 {
-                    if (IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x13) || IsBasicDerivedFrom(air->placeTarget.plo, (CID)0xB) ||
-                        IsBasicDerivedFrom(air->placeTarget.plo, (CID)0xD) || IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x27) ||
-                        IsBasicDerivedFrom(air->placeTarget.plo, (CID)0xC) || IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x22) ||
-                        IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x26))
+                    if (IsBasicDerivedFrom(air->placeTarget.object, (CID)0x13) || IsBasicDerivedFrom(air->placeTarget.object, (CID)0xB) ||
+                        IsBasicDerivedFrom(air->placeTarget.object, (CID)0xD) || IsBasicDerivedFrom(air->placeTarget.object, (CID)0x27) ||
+                        IsBasicDerivedFrom(air->placeTarget.object, (CID)0xC) || IsBasicDerivedFrom(air->placeTarget.object, (CID)0x22) ||
+                        IsBasicDerivedFrom(air->placeTarget.object, (CID)0x26))
                     {
                         SetJtAirJump(air, 0xB, 0, 0);
-                        TryJtAirGrab(air, air->placeTarget.plo);
+                        TryJtAirGrab(air, air->placeTarget.object);
                         break;
                     }
                 }
-                if (air->fCanDoubleJump && air->pstepplayer->unknown58->velocity.z < 0.0f)
+                if (air->canDoubleJump && air->player->unknown58->velocity.z < 0.0f)
                 {
-                    ReplaceCurrentAseg(air->apasegDoubleJump[0], (ALO *)air->pstepplayer, 0.0f, 1.0f, 1, &air->pstepplayer->pasegaUnk1030);
-                    air->fCanDoubleJump = 0;
-                    air->pstepplayer->SetVelocity(JtPlanLaunchVz(air, 6));
+                    ReplaceCurrentAseg(air->apasegDoubleJump[0], (ALO *)air->player, 0.0f, 1.0f, 1, &air->player->activeAnimation);
+                    air->canDoubleJump = 0;
+                    air->player->SetVelocity(JtPlanLaunchVz(air, 6));
                     break;
                 }
-                if (air->placeTarget.pspot != 0 || air->placeTarget.ppart != 0)
+                if (air->placeTarget.grabSpot != 0 || air->placeTarget.part != 0)
                 {
-                    qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->tEnd - D_002DDED0.t), air->pstepplayer, &air->placeTarget);
-                    air->pact8->SetGoal(ConvertXfPos(0, air->pstepplayer->unknown58->parent, targetPos), air->pact8->qwGoalVel);
+                    qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->tEnd - D_002DDED0.t), air->player, &air->placeTarget);
+                    air->pact8->SetGoal(ConvertXfPos(0, air->player->unknown58->parent, targetPos), air->pact8->qwGoalVel);
                 }
                 break;
             case 0x16:
-                if (GetStepplayerMp(air->pstepplayer) <= 0)
+                if (GetStepplayerMp(air->player) <= 0)
                     SetJtAirState(air, 4, 0);
-                else if (D_002DDED0.t - air->tState > D_002BF82C && fFloor)
-                    air->pstepplayer->SetPlayerState(0);
-                else if (D_002DDED0.t - air->tState > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(air->pstepplayer, 0xC)))
+                else if (D_002DDED0.t - air->stateStartTime > D_002BF82C && fFloor)
+                    air->player->SetPlayerState(0);
+                else if (D_002DDED0.t - air->stateStartTime > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(air->player, 0xC)))
                     SetJtAirState(air, 4, 0);
-                else if (D_002DDED0.t - air->tState > D_002BF830)
+                else if (D_002DDED0.t - air->stateStartTime > D_002BF830)
                     SetJtAirState(air, 4, 0);
                 break;
         }
-        if (air->nState == nStatePrev)
+        if (air->state == nStatePrev)
             break;
-    } while (air->nState != -1);
+    } while (air->state != -1);
 }
 } // namespace M_UpdateJtAirInput
 
@@ -3513,9 +3513,9 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
     VECTOR4 vel;
     float g;
     float vzNew;
-    *(qword *)&pos = PosLoWorld(air->pstepplayer);
-    *(qword *)&vel = air->pstepplayer->GetVelocity();
-    g = air->pstepplayer->physics->gravity.z;
+    *(qword *)&pos = PosLoWorld(air->player);
+    *(qword *)&vel = air->player->GetVelocity();
+    g = air->player->physics->gravity.z;
     switch (kind)
     {
         case 2:
@@ -3550,7 +3550,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
                     sApex = D_002BF738;
                     break;
             }
-            vzNew = SqrtfEarly(Max((g + g) * (((VECTOR4 *)air->pstepplayer->pqwUnk218)->z - ((VECTOR4 *)&air->pstepplayer->qwUnk230)->z - sApex), 0.0f));
+            vzNew = SqrtfEarly(Max((g + g) * (((VECTOR4 *)air->player->pqwUnk218)->z - ((VECTOR4 *)&air->player->qwUnk230)->z - sApex), 0.0f));
             break;
         }
         case 4:
@@ -3560,7 +3560,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
         {
             float vJump = SqrtfEarly(g * -2.0f * D_002BF738);
             float tApex = -vJump / g;
-            float vzMin = QwordZ(air->pstepplayer->GetVelocity());
+            float vzMin = QwordZ(air->player->GetVelocity());
             vzMin = Min(vzMin, vJump);
             float tElapsed = (vzMin - vJump) / g;
             float h = tElapsed * (vJump + g * 0.5f * tElapsed);
@@ -3844,13 +3844,13 @@ int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qwo
 } // namespace M_FFindJtObstruction
 
 //////// 0x19B088 AdjustJtLandingScore
-/* A landing score plus the bonus D_002BF900 for the object the air state prefers (ploUnk37c). */
+/* A landing score plus the bonus D_002BF900 for the object the air state prefers (unknownBC). */
 // Landing score adjustment: adds the bonus D_002BF900 for the object the air state prefers (inferred).
 extern "C" float AdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
 {
     float gScore;
     gScore = g + dg;
-    if (lo == air->ploUnk37c) {
+    if (lo == air->unknownBC) {
         gScore += D_002BF900;
     }
     return gScore;
@@ -3950,7 +3950,7 @@ struct STEPPLAYER : LO
 
 struct JTAIR
 {
-    STEPPLAYER *pstepplayer;
+    STEPPLAYER *player;
     char pad4[0x10 - 0x4];
     float uTarget;              // 0x10
     float sTarget;              // 0x14
@@ -4068,30 +4068,30 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
     VECTOR vLaunch, posTarget;
     float t, g;
 
-    pos.q = GetLoWorldPos(air->pstepplayer);
-    v.q = air->pstepplayer->GetVelocity();
-    uint grf = air->pstepplayer->grfTarget;
+    pos.q = GetLoWorldPos(air->player);
+    v.q = air->player->GetVelocity();
+    uint grf = air->player->grfTarget;
     func_002333B4(&tri, 0, sizeof(tri));
     float bestScore = forcedTarget ? -FLT_MAX : FLT_MAX;
     vLaunch.q = PlanJtLaunchVelocity(air, 4);
     float tBest = 0.0f;
 
-    if (IsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x35)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(air->player, 0x35)) {
         for (SHAPE *shape = (*(SHAPE **)&g_sw.dlCid39); shape; shape = shape->pshapeNext) {
             if (!(shape->grf & grf))
                 continue;
-            shape->GetPoint(air->pstepplayer, &posTarget, 0, 0.0f);
+            shape->GetPoint(air->player, &posTarget, 0, 0.0f);
             if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
                 continue;
             MeasureJtJumpToTarget(air, vLaunch, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
+            vHit.f[2] = vLaunch.f[2] + t * air->player->psophys->gravity.f[2];
             if (shape != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
                 g = AdjustJtLandingScore(air, shape, g, D_002BF8E4);
                 if (bestScore <= g)
                     continue;
-                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t, pos.q, vLaunch.q,
                                       posHit.q, vHit.q, 0))
                     continue;
             }
@@ -4107,14 +4107,14 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (!(curve->grf & grf))
                 continue;
             if (curve != forcedTarget) {
-                FindShapeClosestPoint(curve, *air->pstepplayer->pqwUnk218, 0, &posTarget, 0, 0, 0);
+                FindShapeClosestPoint(curve, *air->player->pqwUnk218, 0, &posTarget, 0, 0, 0);
                 if (curve->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
             }
             CURVECTX ctx;
             float uStart, u;
-            ctx.pjtcontrol = air->pstepplayer->jtcontrol;
-            ctx.pjtair = air->pstepplayer->jtair;
+            ctx.pjtcontrol = air->player->jtcontrol;
+            ctx.pjtair = air->player->jtair;
             ctx.pcurve = curve;
             ctx.v = vLaunch.q;
             FindShapeBestVertex(curve, MeasureJumpToRail, &ctx, 0, 0, &uStart, 0);
@@ -4131,8 +4131,8 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             VECTOR dpos;
             GetJtRailLanding(ctx.pjtcontrol, curve, &posTarget, &dpos, u);
             MeasureJtJumpToTarget(air, vLaunch, curve, posTarget, dpos, &t, 0, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
-            if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
+            vHit.f[2] = vLaunch.f[2] + t * air->player->psophys->gravity.f[2];
+            if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
                                                            pos.q, vLaunch.q, posHit.q, vHit.q, 0))
                 continue;
             ploBest = curve;
@@ -4176,13 +4176,13 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 g = AdjustJtLandingScore(air, phook, g, D_002BF8EC);
                 if (bestScore <= g)
                     continue;
-                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t, pos.q, v.q, posHit.q,
                                       vHit.q, &posTarget))
                     continue;
             }
             kind = 14;
             ploBest = phook;
-            posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
+            posBest.q = VuAdd(posHit.q, air->player->qwUnk240);
             vBest = vHit;
             bestScore = Min(bestScore, g);
             tBest = t;
@@ -4210,14 +4210,14 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 if (bestScore <= gMesh)
                     continue;
             }
-            PredictMeshContact(pmesh, pos.q, vLaunch.q, air->pstepplayer->psophys->gravity.q, air->pstepplayer->sRadius, t,
+            PredictMeshContact(pmesh, pos.q, vLaunch.q, air->player->psophys->gravity.q, air->player->sRadius, t,
                           &triHit, &posHit, &vHit);
-            if (pmesh != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
+            if (pmesh != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
                                                            pos.q, v.q, posHit.q, vHit.q, 0))
                 continue;
             kind = 16;
             ploBest = pmesh;
-            posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
+            posBest.q = VuAdd(posHit.q, air->player->qwUnk240);
             vBest = vHit;
             bestScore = Min(bestScore, gMesh);
             tBest = t;
@@ -4225,12 +4225,12 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         }
     }
 
-    if (IsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
+    if (IsBasicDerivedFrom__FP5BASIC3CID(air->player, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
         !D_002F7900->fPartnerBusy) {
         posTarget.q = GetLoWorldPos(D_002F7900->ploPartnerTarget);
         MeasureJtJumpToTarget(air, vLaunch, D_002F7900->ploPartnerTarget, posTarget, D_002A2DD0, &t, &g, &posHit,
                               &vHit);
-        vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
+        vHit.f[2] = vLaunch.f[2] + t * air->player->psophys->gravity.f[2];
         if (D_002F7900->ploPartnerTarget != forcedTarget) {
             if (g >= D_002BF8E0)
                 goto LPartnerDone;
@@ -4239,7 +4239,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 goto LPartnerDone;
             void *apso[2];
             SOLIST solist;
-            apso[0] = air->pstepplayer->psoCollide;
+            apso[0] = air->player->psoCollide;
             apso[1] = D_002F7900->psoCollide;
             solist.cpso = 2;
             solist.apso = apso;
@@ -4256,7 +4256,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
 LPartnerDone:
 
     for (CURVE *curve = (*(CURVE **)&g_sw.dlCid11); curve; curve = curve->pcurveNext) {
-        if (!(curve->grf & air->pstepplayer->grfTarget))
+        if (!(curve->grf & air->player->grfTarget))
             continue;
         float sCur;
         FindShapeClosestPoint(curve, pos.q, 0, &posTarget, 0, 0, &sCur);
@@ -4286,12 +4286,12 @@ LPartnerDone:
         ctx.v = ConvertPosBetweenLos(0, curve, posTarget.q);
         MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
-        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
+        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
                                                        pos.q, v.q, posHit.q, vHit.q, &posTarget))
             continue;
         kind = 15;
         ploBest = curve;
-        posBest.q = VuAdd(posHit.q, air->pstepplayer->qwUnk240);
+        posBest.q = VuAdd(posHit.q, air->player->qwUnk240);
         vBest = vHit;
         bestScore = Min(bestScore, gCurve);
         tBest = t;
@@ -4323,10 +4323,10 @@ LPartnerDone:
                 continue;
         }
         VECTOR posPoint;
-        shape->GetPoint(air->pstepplayer, &posPoint, 0, u);
+        shape->GetPoint(air->player, &posPoint, 0, u);
         MeasureJtJumpToTarget(air, v, shape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
-        if (shape != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
+        vHit.f[2] = v.f[2] + t * air->player->psophys->gravity.f[2];
+        if (shape != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
                                                        pos.q, v.q, posHit.q, vHit.q, 0))
             continue;
         kind = 12;
@@ -4361,10 +4361,10 @@ LPartnerDone:
                 continue;
         }
         VECTOR posPoint;
-        curve->GetPoint(air->pstepplayer, &posPoint, 0, u);
+        curve->GetPoint(air->player, &posPoint, 0, u);
         MeasureJtJumpToTarget(air, v, curve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
-        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,
+        vHit.f[2] = v.f[2] + t * air->player->psophys->gravity.f[2];
+        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
                                                        pos.q, v.q, posHit.q, vHit.q, 0))
             continue;
         kind = 11;
@@ -4379,18 +4379,18 @@ LPartnerDone:
     for (SHAPE *shape = (*(SHAPE **)&g_sw.dlCid38); shape; shape = shape->pshapeNext) {
         if (!(shape->grf & grf))
             continue;
-        shape->GetPoint(air->pstepplayer, &posTarget, 0, 0.0f);
+        shape->GetPoint(air->player, &posTarget, 0, 0.0f);
         if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
             continue;
         MeasureJtJumpToTarget(air, v, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->gravity.f[2];
+        vHit.f[2] = v.f[2] + t * air->player->psophys->gravity.f[2];
         if (shape != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
             g = AdjustJtLandingScore(air, shape, g, D_002BF8FC);
             if (bestScore <= g)
                 continue;
-            if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t, pos.q, v.q, posHit.q,
                                   vHit.q, 0))
                 continue;
         }
@@ -4404,9 +4404,9 @@ LPartnerDone:
 
     if (kind == -1)
         return;
-    XF *xf = air->pstepplayer->pxf;
+    XF *xf = air->player->pxf;
     xf->tGoal = D_002DDED0.t + tBest;
-    xf->posGoal = VuSub(posBest.q, air->pstepplayer->qwUnk240);
+    xf->posGoal = VuSub(posBest.q, air->player->qwUnk240);
     xf->vGoal = vBest.q;
     air->uTarget = uBest;
     air->sTarget = sBest;
@@ -4720,7 +4720,7 @@ void GrabJtAirTarget(struct P *p)
 // Lands: a wall run (kind 0x11) becomes a jump (SetJtAirJump kind 3), otherwise air state 4.
 extern "C" void LandJtAir(JTAIR *air)
 {
-    if (air->nState == 0x11) {
+    if (air->state == 0x11) {
         SetJtAirJump(air, 3, 0, 0);
         return;
     }
@@ -4748,7 +4748,7 @@ int GetJtAirAdjustRecord(struct S *s, int *pn) {
 // Camera-definition hook: ORs the air flags into *flags when +0x28 is set. (inferred)
 extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 {
-    if (air->fCanDoubleJump != 0) {
+    if (air->canDoubleJump != 0) {
         *pgrf |= 1;
     }
 }

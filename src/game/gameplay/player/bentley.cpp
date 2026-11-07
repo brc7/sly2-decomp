@@ -832,8 +832,8 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
 {
     int state;
     state = bentley->nState;
-    if (state != 0 && (state != 9) && (bentley->jtgrab.nKind != 0)) {
-        *(float *)&bentley->unk_0x1080 = D_002DDED0.t;
+    if (state != 0 && (state != 9) && (bentley->jtgrab.kind != 0)) {
+        *(float *)&bentley->unknown1080 = D_002DDED0.t;
     }
     GetStepplayerCpdefi(bentley, pcpdefi);
     switch (bentley->nState) {
@@ -1795,7 +1795,7 @@ extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
     BENTLEY *bentley;
     LO *lo;
     bentley = blends->pbentley;
-    lo = bentley->ploInteract;
+    lo = bentley->interactTarget;
     if (lo != 0) {
         FaceStepToward(bentley, lo);
     }

@@ -265,7 +265,7 @@ generic player states 5 and 6) and controller hand-off (`SetCtlState` on another
   broad-phase box follow.
 - **`JTS_Max` sizes an array in JT.** JT holds one record per movement state indexed by `jts`; adding a state means
   that array grows and JT's layout changes (fine in a port, not in the matching build).
-- **Hurt gates input.** While the hurt component is active (`nState` not -1), `UpdateStepplayer` skips the AI input and
+- **Hurt gates input.** While the hurt component is active (`state` not -1), `UpdateStepplayer` skips the AI input and
   the walk-to goal.
 - **Hands-off means invulnerable** (`IsPoInvulnerable`), and `IsJtgoalHolding` freezes the behaviour stack.
 - **Becoming current clears the behaviour stack** (`SetStepplayerCtlState`), so do not keep state in a partner

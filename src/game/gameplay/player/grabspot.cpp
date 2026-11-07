@@ -638,10 +638,10 @@ extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
     int grf = ShouldSoIgnoreIntersection(barrel, lo);
     if (IsBasicDerivedFrom(lo, (CID)0x34) != 0) {
         STEPPLAYER *player = (STEPPLAYER *)lo;
-        if (player->jtgrab.nState == 1 && barrel == (BARRELV *)player->jtgrab.plo) {
+        if (player->jtgrab.state == 1 && barrel == (BARRELV *)player->jtgrab.grabbedObject) {
             grf = MaxInt(grf, 1);
         }
-        if ((unsigned int)(player->jtair.nState - 6) < 2 && barrel == (BARRELV *)player->jtair.plo) {
+        if ((unsigned int)(player->jtair.state - 6) < 2 && barrel == (BARRELV *)player->jtair.jumpObject) {
             grf = MaxInt(grf, 1);
         }
     }

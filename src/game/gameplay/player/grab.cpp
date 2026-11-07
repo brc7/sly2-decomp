@@ -388,10 +388,10 @@ struct PROXYINIT
 // blend blocks.
 extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
 {
-    grab->pstepplayer = player;
-    grab->nState = -1;
-    grab->nKind = -1;
-    grab->nUnk4fc = -1;
+    grab->player = player;
+    grab->state = -1;
+    grab->kind = -1;
+    grab->gadgetId = -1;
     InitGait(&grab->gaitA, player, 0x6F);
     InitGait(&grab->gaitB, player, 0x6F);
     ResetJtHands(&grab->hands);
@@ -403,15 +403,15 @@ extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
 // directional blends (InitDirectionalBlend).
 extern "C" void PostLoadJtGrab(JTGRAB *grab)
 {
-    grab->ptn = (TN *)CreateLo__F3CIDP2SO3OIDi((CID)0xF, 0, (OID)0x148, -1);
-    SetTnTnsOverride(grab->ptn, 0);
+    grab->cameraTunnel = (TN *)CreateLo__F3CIDP2SO3OIDi((CID)0xF, 0, (OID)0x148, -1);
+    SetTnTnsOverride(grab->cameraTunnel, 0);
     ResetJtGrabTnParams(grab);
-    InitDirectionalBlend(grab->pstepplayer, grab->abldirA, &grab->pasegblA);
-    InitDirectionalBlend(grab->pstepplayer, grab->abldirB, &grab->pasegblB);
+    InitDirectionalBlend(grab->player, grab->abldirA, &grab->pasegblA);
+    InitDirectionalBlend(grab->player, grab->abldirB, &grab->pasegblB);
     PostJtLoadGait(&grab->gaitA);
     PostJtLoadGait(&grab->gaitB);
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(grab->pstepplayer, 0xC, 3, grab->ablC, 0, 0, 0, &grab->pasegblC);
-    InitJtHands__FP7JTHANDSP2SOPP5ASEGA(&grab->hands, grab->pstepplayer, &grab->pstepplayer->pasegaUnk1030);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(grab->player, 0xC, 3, grab->ablC, 0, 0, 0, &grab->pasegblC);
+    InitJtHands__FP7JTHANDSP2SOPP5ASEGA(&grab->hands, grab->player, &grab->player->activeAnimation);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -2072,7 +2072,7 @@ extern "C" void SetJtHideFacingKind__FP2JT4HFDK(JTGRAB *grab, HFDK hfdk)
         grab->jtfock = (JTFOCK)1;
         break;
     case 1: case 2:
-        if (grab->pstepplayer->ptnUnk1024 == grab->ptn) grab->jtfock = (JTFOCK)2;
+        if (grab->player->unknown1024 == grab->cameraTunnel) grab->jtfock = (JTFOCK)2;
         else grab->jtfock = (JTFOCK)0;
         break;
     }
@@ -2272,25 +2272,25 @@ void RecordJtGrabPlace(struct P *grab)
 }
 } } // namespace M_func_001942F0
 
-/* The grab's record for its state and kind (precUnk54/58/60/64); *pfFlip set in state 8 for kinds 9 and 10. */
+/* The grab's record for its state and kind (unknown54/58/60/64); *pfFlip set in state 8 for kinds 9 and 10. */
 // The adjust record for the grab kind and a flag.
 extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
 {
     int fFlip = 0;
     void *record;
-    switch (grab->nState) {
+    switch (grab->state) {
     case 0:
-        if (grab->nKind == 5)
-            record = grab->precUnk60;
+        if (grab->kind == 5)
+            record = grab->unknown60;
         else
-            record = grab->precUnk54;
+            record = grab->unknown54;
         break;
-    case 1: record = grab->precUnk58; break;
+    case 1: record = grab->unknown58; break;
     case 8:
-        switch (grab->nKind) {
+        switch (grab->kind) {
         case 9:
         case 10:
-            record = grab->precUnk64;
+            record = grab->unknown64;
             fFlip = 1;
             break;
         default: record = 0; break;
@@ -2309,7 +2309,7 @@ int IsCameraPolicyActive__FP5CPLCY(void *pcplcy);
 static inline int IsGrabCameraFree(JTGRAB *grab)
 {
     int f = 0;
-    if (grab->pstepplayer->nUnk12f0 && (D_002DFBC0 & 2)) f = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+    if (grab->player->unknown12F0 && (D_002DFBC0 & 2)) f = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
     return f;
 }
 /* Whether input n is allowed in the current grab state (n 3: only in states 0, 1, 3, 4 and 13 with the camera
@@ -2318,13 +2318,13 @@ static inline int IsGrabCameraFree(JTGRAB *grab)
 extern "C" int CanJtUseGadgetInGrab(JTGRAB *grab, int n)
 {
     if (n == 3) {
-        switch (grab->nState) {
+        switch (grab->state) {
         case 0: case 1: case 3: case 4: case 13:
             return IsGrabCameraFree(grab);
         }
         return 0;
     }
-    switch (grab->nState) {
+    switch (grab->state) {
     case 1: case 8: case 11: case 12:
         return 0;
     case 3: case 4: {
@@ -2338,11 +2338,11 @@ extern "C" int CanJtUseGadgetInGrab(JTGRAB *grab, int n)
 
 /* Whether the grab makes the player immune to zaps (state 12; state 8 with kinds 9 and 10). */
 // True for grab kind 0xC, or kind 8 when the helper says so (the grab makes the player immune to zaps).
-static inline int IsGrabFlipping(JTGRAB *grab) { return grab->nKind == 9 || grab->nKind == 10; }
+static inline int IsGrabFlipping(JTGRAB *grab) { return grab->kind == 9 || grab->kind == 10; }
 // True for grab kind 0xC, or kind 8 when the helper says so.
 extern "C" int IsJtGrabBusy(JTGRAB *grab)
 {
-    switch (grab->nState) {
+    switch (grab->state) {
     case 8:
         if (IsGrabFlipping(grab))
             return 1;
@@ -2417,15 +2417,15 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     JTGRABCAND cand;
     if (lo->psoParent && IsBeyondBusyRadius(lo, qwPosJt))
         return;
-    if (lo == player->jtgrab.plo)
+    if (lo == player->jtgrab.grabbedObject)
         return;
-    if (lo == player->jtair.plo)
+    if (lo == player->jtair.jumpObject)
         return;
-    if (spot->nGroup && player->jtgrab.pspot && spot->nGroup == player->jtgrab.pspot->nGroup)
+    if (spot->nGroup && player->jtgrab.grabSpot && spot->nGroup == player->jtgrab.grabSpot->nGroup)
         return;
-    if (lo == player->jtair.ploUnk37c)
+    if (lo == player->jtair.unknownBC)
         return;
-    if (lo == (LO *)player->jtpipe.pshape)
+    if (lo == (LO *)player->jtpipe.pipeCurve)
         return;
     if (player == (STEPPLAYER *)D_002E1E40)
     {
@@ -2434,13 +2434,13 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
         if (lo == ((JT *)player)->ploUnk1f18)
             return;
     }
-    if (!(player->grfUnk1000 & spot->grfUnk1c))
+    if (!(player->unknown1000 & spot->grfUnk1c))
         return;
     if (D_002E1E4C)
     {
-        if (player->jtgrab.plo)
+        if (player->jtgrab.grabbedObject)
             return;
-        if (player->jtpipe.pshape)
+        if (player->jtpipe.pipeCurve)
             return;
         if (player == (STEPPLAYER *)D_002E1E40)
         {

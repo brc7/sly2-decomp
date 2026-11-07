@@ -198,10 +198,10 @@ LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                        
 
 // Initializes a gait record (walk/run locomotion): owner, footstep sound id, walk volume 0.6, run volume 1.0.
 extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
-  p->pstepplayer = pstepplayer;
+  p->player = pstepplayer;
   p->sfxidStep = sfxid;
-  p->gVolRun = 1.0f;
-  p->gVolWalk = 0.6f;
+  p->runVolume = 1.0f;
+  p->walkVolume = 0.6f;
 }
 
 // 0x0020B868 PostJtLoadGait__FP4GAIT  (our name)
@@ -218,17 +218,17 @@ void PostJtLoadGait(GAIT *pgait) __asm__("PostJtLoadGait");
 // Gait post-load: foot markers, root velocity per clip and the dynamic walk/run blend.
 void PostJtLoadGait(GAIT *gait)
 {
-    if (gait->abl[0].paseg == 0)
+    if (gait->abl[0].animation == 0)
         return;
     FillBlendSyncTables(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
     FillBlendSyncTables(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
     for (uint ibl = 0; ibl < 2; ibl++)
     {
         BLGAIT *pblgait = &gait->abl[ibl];
-        ASEG *aseg = pblgait->paseg;
+        ASEG *aseg = pblgait->animation;
         if (aseg != 0)
         {
-            CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->pstepplayer, 1, 1);
+            CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->player, 1, 1);
             VECTOR4 vStart, vEnd;
             ((VECKEY *)pchn->pkey)->GetValue(0.0f, 1.0f, (qword *)&vStart, 0);
             ((VECKEY *)pchn->pkey)->GetValue(aseg->tMax, 1.0f, (qword *)&vEnd, 0);
@@ -238,10 +238,10 @@ void PostJtLoadGait(GAIT *gait)
             pblgait->vRoot = DivVec(qwDiff, vuT);
         }
     }
-    EnsureAsegBlendDynamic((ALO *)gait->pstepplayer, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->pasegbl);
-    for (int ichn = 0; ichn < gait->pasegbl->cchn; ichn++)
+    EnsureAsegBlendDynamic((ALO *)gait->player, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->blendedAnimation);
+    for (int ichn = 0; ichn < gait->blendedAnimation->cchn; ichn++)
     {
-        CHN *pchn = &gait->pasegbl->achn[ichn];
+        CHN *pchn = &gait->blendedAnimation->achn[ichn];
         VKBLEND *pvkblend;
         SKBLEND *pskblend;
         if (pchn->fScalar)
@@ -256,16 +256,16 @@ void PostJtLoadGait(GAIT *gait)
         }
         SO *so;
         XF *xf;
-        FindAsegChannelTarget(gait->pasegbl, (ALO *)gait->pstepplayer, pchn, &so, &xf);
+        FindAsegChannelTarget(gait->blendedAnimation, (ALO *)gait->player, pchn, &so, &xf);
         switch (xf->oid)
         {
             case 0x10:
             case 0x12:
             case 0x14:
                 if (pvkblend != 0)
-                    pvkblend->amrsgc = &gait->pasegbl->amrsgc[1];
+                    pvkblend->amrsgc = &gait->blendedAnimation->amrsgc[1];
                 if (pskblend != 0)
-                    pskblend->amrsgc = &gait->pasegbl->amrsgc[1];
+                    pskblend->amrsgc = &gait->blendedAnimation->amrsgc[1];
                 break;
             case 0x11:
             case 0x13:
@@ -279,13 +279,13 @@ void PostJtLoadGait(GAIT *gait)
                 break;
         }
     }
-    ReblendAsegbl(gait->pasegbl);
+    ReblendAsegbl(gait->blendedAnimation);
 }
 
 // The weighted root velocity of the two gait clips.
 qword GetGaitRootVelocity(GAIT *gait)
 {
-    MRSGC *pb = gait->pasegbl->amrsgc;
+    MRSGC *pb = gait->blendedAnimation->amrsgc;
     float denominator=pb->amrsg->dt;
     qword acc = D_002A2DD0;
     BLGAIT *pe = gait->abl;
@@ -293,7 +293,7 @@ qword GetGaitRootVelocity(GAIT *gait)
     for (i = 0; i < 2; i++) {
         U u;
         qword u_q;
-        __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(pe->gWeight * (pe->amrsgFoot0[0].dt / denominator)));
+        __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(pe->weight * (pe->amrsgFoot0[0].dt / denominator)));
         u.q = u_q;
         __asm__("vadda.xyzw $ACC, %0, $vf0\n\tvmaddx.xyzw %0, %1, %2x" : "+j"(acc) : "j"(pe->vRoot), "j"(u.q));
         pe++;
@@ -303,7 +303,7 @@ qword GetGaitRootVelocity(GAIT *gait)
 
 // Returns the value at +0x50 of the gait's blend (+4). (inferred)
 ASEGA *GetGaitBlendValue(GAIT *gait) {
-    return (ASEGA *)gait->pasegbl->dlAsega.head;
+    return (ASEGA *)gait->blendedAnimation->dlAsega.head;
 }
 
 static inline void InitScalar(U *value,int bits) {
@@ -326,15 +326,15 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
     STEPPLAYER *pt;
     U b, a;
     qword q, r1, r2;
-    if (gait->abl[1].paseg == 0) {
-        gait->abl[1].gWeight = 0.0f;
-        gait->abl[0].gWeight = 1.0f;
+    if (gait->abl[1].animation == 0) {
+        gait->abl[1].weight = 0.0f;
+        gait->abl[0].weight = 1.0f;
     } else {
-        gait->abl[1].gWeight = g;
-        gait->abl[0].gWeight = 1.0f - g;
+        gait->abl[1].weight = g;
+        gait->abl[0].weight = 1.0f - g;
     }
-    RecalculateAsegBlend(gait->pasegbl);
-    pt = gait->pstepplayer;
+    RecalculateAsegBlend(gait->blendedAnimation);
+    pt = gait->player;
     InitScalar(&a,*(int *)&GetGaitBlendValue(gait)->svt);
     b = a;
     q = GetGaitRootVelocity(gait);
@@ -346,22 +346,22 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
 // Plays the footstep sound when a foot goes down, volume interpolated between walk and run, audible range 500/2000.
 extern "C" void UpdateGaitFootsteps(GAIT *gait)
 {
-    ASEGA *x = (ASEGA *)gait->pasegbl->dlAsega.head;
+    ASEGA *x = (ASEGA *)gait->blendedAnimation->dlAsega.head;
     float g = x->tLocal;
     int i;
     for (i = 0; i < 2; i++) {
-        ASEGBL *y = gait->pasegbl;
+        ASEGBL *y = gait->blendedAnimation;
         MRSG *z = y->amrsgc[i].amrsg;
         int f = z->dt <= ModPositive__Fff(g - z->t, y->tMax);
         if (f == gait->afFootDown[i])
             continue;
         if (!f) {
-            float t = gait->abl[1].gWeight;
+            float t = gait->abl[1].weight;
             void *h;
             {
                 float u = 1.0f - t;
-                t *= gait->gVolRun;
-                t += u * gait->gVolWalk;
+                t *= gait->runVolume;
+                t += u * gait->walkVolume;
             }
             h = CreateSfxSound(gait->sfxidStep);
             SetSndSourceLo(h, 0);
