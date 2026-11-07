@@ -48,7 +48,7 @@ struct ESC
 };
 typedef char assert_ESC_size[sizeof(ESC) == 0x24 ? 1 : -1];
 /* The path shape of the attack behaviour (+0x294 of the guard). */
-struct PATHV { char pad[0xE8]; int pointCount; char pad1[0xF4 - 0xEC]; qwordV *points; };
+struct PATHV : XFM { char pad[0xE8 - 0xE0]; int pointCount; char pad1[0xF4 - 0xEC]; qwordV *points; };
 /* Dimitri (a STEPGUARD, which ends at +0x1010): view of the fields used. */
 struct DIMITRIV
 {
@@ -77,7 +77,7 @@ struct BHVO : BHV { void *target; int pad34; union { void *route; void *lookAt; 
 typedef char assert_BHVO_walkLookAt[(unsigned int)&((BHVO *)0)->walkLookAt == 0xC8 ? 1 : -1];
 struct BHVY { char pad[0x30]; int unknown30; };
 /* An attack entry chosen by ChooseStepguardAttack (+0x60 the hide time range). */
-struct ATKENTRY { char pad[0x60]; LM cooldown; };
+struct ATKENTRY : LO { char pad[0x60 - 0x50]; LM cooldown; };
 /* The two behaviours (BHV header: +0x10 the guard, +0x18 the running sub-behaviour / the stack, +0x30 state). */
 struct BHVESC
 {
