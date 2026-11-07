@@ -2279,56 +2279,38 @@ extern "C" void AddRelayStopSound(RELAYV *relay, int idSnd)
 }
 
 // 0x1E1238 AddRelayCamBlendFrom
-namespace M_AddRelayCamBlendFrom { extern "C" {
-struct CMD;
-typedef int qword __attribute__((mode(TI)));
-struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-// Splice builtin: append a RELAYCK 0x38 (CamBlendFrom) command to the relay (AddRelayCommand(prelay,0x38,fAsync)) and
-// fill its args. (inferred)
-void AddRelayCamBlendFrom(void *pq, qword a, qword v, int n, float f, float g)
+// Lanes x, y and z of a 128-bit EE register as floats (the camera builders take angles in degrees as a vector).
+static __inline__ float GetVectorX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+static __inline__ float GetVectorY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+static __inline__ float GetVectorZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
+// Splice builtin: appends a CamBlendFrom command (RELAYCK 0x38): the camera starts from position qwPos with angles
+// (degrees, stored in radians) and field of view gFov, blending over dtBlend; oidAseg names an animation. (inferred)
+extern "C" void AddRelayCamBlendFrom(RELAYV *relay, qword qwPos, qword angles, OID oidAseg, float gFov, float dtBlend)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x38, 1);
-    p->q = a;
-    p->x = GetX(v) * 0.017453294f;
-    p->y = GetY(v) * 0.017453294f;
-    p->z = GetZ(v) * 0.017453294f;
-    p->f = f;
-    p->u40.g = g;
-    p->n44 = n;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_CamBlendFrom, 1);
+    prelaycmd->camBlendFrom.qwPos = qwPos;
+    prelaycmd->camBlendFrom.radX = GetVectorX(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radY = GetVectorY(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendFrom.gFov = gFov;
+    prelaycmd->camBlendFrom.dtBlend = dtBlend;
+    prelaycmd->camBlendFrom.oidAseg = oidAseg;
 }
-} } // namespace M_AddRelayCamBlendFrom
 
 // 0x1E12E0 AddRelayCamBlendTo
-namespace M_AddRelayCamBlendTo { extern "C" {
-struct CMD;
-typedef int qword __attribute__((mode(TI)));
-struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; int pad3[3]; union { float g; int n; } u40; int n44; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-// Splice builtin: append a RELAYCK 0x39 (CamBlendTo) command to the relay (AddRelayCommand(prelay,0x39,fAsync)) and
-// fill its args. (inferred)
-void AddRelayCamBlendTo(void *pq, qword a, qword v, int m, int n, float f)
+// Splice builtin: appends a CamBlendTo command (RELAYCK 0x39): the camera blends to position qwPos with angles (degrees,
+// stored in radians) and field of view gFov. (inferred)
+extern "C" void AddRelayCamBlendTo(RELAYV *relay, qword qwPos, qword angles, int nUnk16, int nUnk17, float gFov)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x39, 1);
-    p->q = a;
-    p->x = GetX(v) * 0.017453294f;
-    p->y = GetY(v) * 0.017453294f;
-    p->z = GetZ(v) * 0.017453294f;
-    p->f = f;
-    p->u40.n = m;
-    p->n44 = n;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_CamBlendTo, 1);
+    prelaycmd->camBlendTo.qwPos = qwPos;
+    prelaycmd->camBlendTo.radX = GetVectorX(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radY = GetVectorY(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->camBlendTo.gFov = gFov;
+    prelaycmd->camBlendTo.nUnk16 = nUnk16;
+    prelaycmd->camBlendTo.nUnk17 = nUnk17;
 }
-} } // namespace M_AddRelayCamBlendTo
 
 // 0x1E1388 AddRelayCommand3A
 // Splice builtin: append a RELAYCK 0x3A (Unk3A) command to the relay (AddRelayCommand(prelay,0x3A,fAsync)) and fill
@@ -2371,28 +2353,17 @@ extern "C" void AddRelayTweenAimObj(RELAYV *relay, OID oidObj, int fAsync)
 }
 
 // 0x1E1488 AddRelayTweenTarget
-namespace M_AddRelayTweenTarget { extern "C" {
-struct CMD;
-typedef int qword __attribute__((mode(TI)));
-struct CMD { char pad[0x10]; qword q; float x, y, z; int pad2; float f; };
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Inline helpers GetX, GetY, GetZ: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
-static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
-static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-// Splice builtin: append a RELAYCK 0x3F (TweenTarget) command to the relay (AddRelayCommand(prelay,0x3F,fAsync)) and
-// fill its args. (inferred)
-void AddRelayTweenTarget(void *pq, qword a, qword v, float f)
+// Splice builtin: appends a TweenTarget command (RELAYCK 0x3F): the camera tween's target position, angles (degrees,
+// stored in radians) and field of view. (inferred)
+extern "C" void AddRelayTweenTarget(RELAYV *relay, qword qwPos, qword angles, float gFov)
 {
-    struct CMD *p = AddRelayCommand(pq, 0x3F, 1);
-    p->q = a;
-    p->x = GetX(v) * 0.017453294f;
-    p->y = GetY(v) * 0.017453294f;
-    p->z = GetZ(v) * 0.017453294f;
-    p->f = f;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_TweenTarget, 1);
+    prelaycmd->tweenTarget.qwPos = qwPos;
+    prelaycmd->tweenTarget.radX = GetVectorX(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radY = GetVectorY(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.radZ = GetVectorZ(angles) * 0.017453294f;
+    prelaycmd->tweenTarget.gFov = gFov;
 }
-} } // namespace M_AddRelayTweenTarget
 
 // 0x1E1510 AddRelayTweenTime
 // Splice builtin: append a RELAYCK 0x40 (TweenTime) command to the relay (AddRelayCommand(prelay,0x40,fAsync)) and
