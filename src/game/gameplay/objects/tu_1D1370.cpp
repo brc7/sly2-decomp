@@ -40,27 +40,25 @@ void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitRobottank { extern "C" {
-struct V { float x, y, z; };
-struct S : PO { int state; char p1[0x51C-0x184]; float maxDrive; struct V unknown520; int pad; int unknown530; struct V unknown534;
-    char p2[0x55C-0x540]; int maxHealth; char p3[0x578-0x560]; int unknown578; char p4[8]; int unknown584; char p5[8]; int unknown590; char p6[8]; int engineSoundId; };
-void InitPo(struct S *p);
-// Sets x, y, z of a vector.
-static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
-// CID 77 vtable slot 7 Init: InitPo, max health 100, ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
-void InitRobottank(struct S *tank) {
+void InitPo(PO *ppo);
+// Sets the three coefficients of a quadratic.
+static inline void SetVector(CLQ *pclq, float x, float y, float z) { pclq->g0 = x; pclq->g1 = y; pclq->g2 = z; }
+// CID 77 vtable slot 7 Init: InitPo, drive 500, traction 1500 - 1000 x, speed limits 0..1500, reverse 2500, max
+// health 100, ammo maxima 30, state -1. (inferred)
+void InitRobottank(ROBOTTANK *tank) {
     InitPo(tank);
-    tank->maxDrive = 500.0f; //P
+    tank->driveMax = 500.0f; //P
     tank->state = -1; //P
-    SetVector(&tank->unknown520, 1500.0f, -1000.0f, 0.0f); //P
-    tank->engineSoundId = -1; //P
-    tank->unknown534.x = 1500.0f;
-    tank->unknown534.y = 2500.0f;
-    tank->unknown534.z = 1.0f;
-    tank->maxHealth = 100;
-    tank->unknown590 = 30;
-    tank->unknown584 = 30;
-    tank->unknown578 = 30;
-    tank->unknown530 = 0;
+    SetVector(&tank->clqTraction, 1500.0f, -1000.0f, 0.0f); //P
+    tank->sfxidEngine = -1; //P
+    tank->lmSpeed.maxValue = 1500.0f;
+    tank->sReverseMax = 2500.0f;
+    tank->gContactScale = 1.0f;
+    tank->cHealthMax = 100;
+    tank->aammo[2].cAmmoMax = 30;
+    tank->aammo[1].cAmmoMax = 30;
+    tank->aammo[0].cAmmoMax = 30;
+    tank->lmSpeed.minValue = 0.0f;
 }
 } } // namespace M_InitRobottank
 
@@ -755,42 +753,35 @@ namespace RO_ORDER { extern const float r_D_002A7810 __asm__("D_002A7810") = 3.4
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D22D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { char pad[0x158]; int pickupKind; } SO;
-typedef struct { float f; int a, b; } E12;
-typedef struct {
-    char pad0[0x57C];
-    E12 pickupBias[5];
-    char pad5b8[0x5B8 - 0x57C - 60];
-    SO *lastPickup;
-} OBJ;
 extern char D_003DD490[];
 extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C20C0[3];
-qword GetLoWorldPos(void *);
-int FindSwObjectsByClass(void *, int, int, int, int, SO **);
-// Nearest object of class 0x6C (CID 108 ammo pickup) via FindSwObjectsByClass. (inferred)
-SO *FindNearestRobottankPickup(OBJ *pickup)
+qword GetLoWorldPos(LO *plo);
+int FindSwObjectsByClass(void *, int, int, int, int, CID108 **);
+// Nearest ammo pickup (class 0x6C, CID108) via FindSwObjectsByClass, biased by its ammo slot (and against the last
+// one chosen). (inferred)
+CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
 {
-    SO *best = 0;
-    SO *aso[16];
-    qword pos = GetLoWorldPos(pickup);
-    int n = FindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
+    CID108 *best = 0;
+    CID108 *apickup[16];
+    qword pos = GetLoWorldPos(tank);
+    int n = FindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, apickup);
     float fMin = D_002A7810;
     int i;
     for (i = 0; i < n; i++) {
-        SO *so = aso[i];
+        CID108 *pickup = apickup[i];
         qword d;
         float f;
-        qword q = GetLoWorldPos(so);
+        qword q = GetLoWorldPos(pickup);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(pos));
         __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
-        if (so == pickup->lastPickup)
+        if (pickup == tank->psoSelected)
             f = D_002C20C0[0] + f * (D_002C20C0[1] + f * D_002C20C0[2]);
-        f += pickup->pickupBias[so->pickupKind].f;
+        f += tank->aammo[pickup->iammo].gPickupBias;
         if (f < fMin) {
             fMin = f;
-            best = so;
+            best = pickup;
         }
     }
     return best;
@@ -800,19 +791,15 @@ SO *FindNearestRobottankPickup(OBJ *pickup)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D2420 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-// Lane z as a float.
-struct E { float x, y, z, w; };
-struct O { char pad[0xE8]; int c; int a, b; struct E *ae; };
-struct S { char pad[0x5AC]; struct O *po; int n5B0; };
-qword GetLoWorldPos(struct S *p);
-// Clear x5B0 and set every wheel record's z to the car's height. (inferred)
-void ResetRobottankWheelHeights(struct S *tank) {
+qword GetLoWorldPos(LO *plo);
+// Restart at the path's start and put every control vertex of the path at the tank's height. (inferred)
+void ResetRobottankWheelHeights(ROBOTTANK *tank) {
     qword q;
     int i;
-    tank->n5B0 = 0;
+    tank->sPath = 0;
     q = GetLoWorldPos(tank);
-    for (i = 0; i < tank->po->c; i++) {
-        tank->po->ae[i].z = QwordZ(q);
+    for (i = 0; i < tank->pshapePath->numControlVertices; i++) {
+        tank->pshapePath->vertexPositions[i].z = QwordZ(q);
     }
 }
 } } // namespace M_func_001D2420
@@ -1750,15 +1737,13 @@ void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D3F30 { extern "C" {
-struct E { int a[2]; char b[0x58]; };
-struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
-void OnSoContactFreed(struct S *p, void *q);
-void RemoveSoContactsWith(struct S *p, void *q, void *pe);
+void OnSoContactFreed(SO *pso, SO *psoOther);
+void RemoveSoContactsWith(SO *pso, SO *psoOther, XP **ppxpFirst);
 // CID 77 vtable slot 54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
-void RemoveRobottankContactsWith(struct S *tank, void *q) {
+void RemoveRobottankContactsWith(ROBOTTANK *tank, SO *psoOther) {
     int i;
-    OnSoContactFreed(tank, q);
-    for (i = 0; i < tank->c; i++) RemoveSoContactsWith(tank, q, tank->ae[i].b);
+    OnSoContactFreed(tank, psoOther);
+    for (i = 0; i < tank->cwheel; i++) RemoveSoContactsWith(tank, psoOther, &tank->awheel[i].pxpFirst);
 }
 } } // namespace M_func_001D3F30
 
@@ -1779,18 +1764,13 @@ struct O *FindRobottankWeapon(struct S *tank, int id) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D3FF0 { extern "C" {
-struct E { int n; int nMax; int b; };
-struct Q { char pad[0x574]; struct E ae[1]; };
-struct S : SO { int n150; int a; int i; int d; };
-void SetRcPickupState(struct S *p, int n);
-// The smaller of two values.
-// Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup
-// state 2. (inferred)
-void CollectRobottankPickup(struct Q *q, struct S *pickup) {
-    if (pickup->n150 != 2) {
-        struct E *pe = &q->ae[pickup->i];
-        int n = pe->n + pickup->d;
-        pe->n = MinInt(pe->nMax, n);
+// Pickup callback: if the pickup is not collected yet, add its ammo to the tank's slot (clamped to the max) and set
+// the pickup's state 2. (inferred)
+void CollectRobottankPickup(ROBOTTANK *tank, CID108 *pickup) {
+    if (pickup->state != 2) {
+        ROBOTTANKAMMO *pammo = &tank->aammo[pickup->iammo];
+        int n = pammo->cAmmo + pickup->cAmmo;
+        pammo->cAmmo = MinInt(pammo->cAmmoMax, n);
         SetRcPickupState(pickup, 2);
     }
 }
@@ -1846,18 +1826,16 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankBounds { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct E { int a[8]; float g20; int b[11]; qword q50; };
-struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
-void UpdateSoTreeBounds(struct S *p);
-qword ConvertPosBetweenLos(struct S *p, int n, qword q);
-void ExtendSoTreeBounds(struct S *p, qword q, float g);
+void UpdateSoTreeBounds(SO *pso);
+qword ConvertPosBetweenLos(LO *plo, int n, qword q);
+void ExtendSoTreeBounds(SO *pso, qword q, float g);
 // CID 77 vtable slot 49: SO tree bounds then extend by each wheel sphere. (inferred)
-void UpdateRobottankBounds(struct S *tank) {
+void UpdateRobottankBounds(ROBOTTANK *tank) {
     int i;
     UpdateSoTreeBounds(tank);
-    for (i = 0; i < tank->c; i++) {
-        struct E *pe = &tank->ae[i];
-        ExtendSoTreeBounds(tank, ConvertPosBetweenLos(tank, 0, pe->q50), pe->g20);
+    for (i = 0; i < tank->cwheel; i++) {
+        ROBOTTANKWHEEL *pwheel = &tank->awheel[i];
+        ExtendSoTreeBounds(tank, ConvertPosBetweenLos(tank, 0, pwheel->posBottom), pwheel->sRadius);
     }
 }
 } } // namespace M_UpdateRobottankBounds
@@ -2185,16 +2163,13 @@ extern "C" void SetRobottankTactic(ROBOTTANK *tank, int nState)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4B48 { extern "C" {
-struct K { int a, b; };
-struct E { int n; int a[7]; float g; struct K k; int pad[13]; };
-struct S { char pad[0x190]; unsigned int c; int pad2[3]; struct E ae[8]; };
-// Append wheel record (id, radius, ...) if fewer than 8. (inferred)
-void AddRobottankWheel(struct S *tank, int n, struct K *pk, float g) {
-    if (tank->c < 8) {
-        struct E *pe = &tank->ae[tank->c++];
-        pe->n = n;
-        pe->g = g;
-        pe->k = *pk;
+// Append a wheel (oid, radius, travel) if fewer than 8. (inferred)
+void AddRobottankWheel(ROBOTTANK *tank, OID oid, LM *plm, float sRadius) {
+    if ((unsigned int)tank->cwheel < 8) {
+        ROBOTTANKWHEEL *pwheel = &tank->awheel[tank->cwheel++];
+        pwheel->oid = oid;
+        pwheel->sRadius = sRadius;
+        pwheel->lmTravel = *plm;
     }
 }
 } } // namespace M_func_001D4B48
@@ -2274,42 +2249,36 @@ typedef char native_layout_15[(OFF(OBJ,weapons)==0x4FC)?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4C48 { extern "C" {
-struct K { int a, b; };
-struct E { int n; int a, b; struct K k; };
-struct S { char pad[0x4A4]; unsigned int c; struct E ae[4]; };
-// Append (id, data) record if fewer than 4. (inferred)
-void AddRobottankAttachment(struct S *tank, int n, struct K *pk) {
-    if (tank->c < 4) {
-        struct E *pe = &tank->ae[tank->c++];
-        pe->n = n;
-        pe->k = *pk;
+// Append a side attachment (oid, angle limits) if fewer than 4. (inferred)
+void AddRobottankAttachment(ROBOTTANK *tank, OID oid, LM *plm) {
+    if ((unsigned int)tank->cside < 4) {
+        ROBOTTANKSIDE *pside = &tank->aside[tank->cside++];
+        pside->oid = oid;
+        pside->lmAngle = *plm;
     }
 }
 } } // namespace M_func_001D4C48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankHealthMeter { extern "C" {
-struct S { char p0[0x55C]; int n55C, n560, f564; void *p568; };
-void SetWidgetAnimPhase(void *p, int n, float g);
-// Set meter value 0x34F = health/max (inverted if x564). (inferred)
-void UpdateRobottankHealthMeter(struct S *tank) {
-    if (tank->p568) {
-        float g = (float)tank->n560 / (float)tank->n55C;
-        if (tank->f564) g = 1.0f - g;
-        SetWidgetAnimPhase(tank->p568, 0x34F, g);
+void SetWidgetAnimPhase(WIDGET *pwidget, int n, float g);
+// Set meter value 0x34F = health/max (inverted if fHealthMeterInverted). (inferred)
+void UpdateRobottankHealthMeter(ROBOTTANK *tank) {
+    if (tank->pwidgetHealth) {
+        float g = (float)tank->cHealth / (float)tank->cHealthMax;
+        if (tank->fHealthMeterInverted) g = 1.0f - g;
+        SetWidgetAnimPhase(tank->pwidgetHealth, 0x34F, g);
     }
 }
 } } // namespace M_UpdateRobottankHealthMeter
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4CE0 { extern "C" {
-struct E { int a; int n; float g; };
-struct S { char pad[0x574]; struct E ae[1]; };
-// Set ammo slot i (count, max). (inferred)
-void SetRobottankAmmo(struct S *tank, int i, float g, int n) {
-    struct E *pe = &tank->ae[i];
-    pe->n = n;
-    pe->g = g;
+// Set ammo slot i's pickup bias and maximum. (inferred)
+void SetRobottankAmmo(ROBOTTANK *tank, int i, float gPickupBias, int cAmmoMax) {
+    ROBOTTANKAMMO *pammo = &tank->aammo[i];
+    pammo->cAmmoMax = cAmmoMax;
+    pammo->gPickupBias = gPickupBias;
 }
 } } // namespace M_func_001D4CE0
 
@@ -2403,30 +2372,27 @@ void UseRobottankWeaponAmmo(struct S *weapon) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitRcPickup { extern "C" {
-struct S { char p0[0x40]; int taggedFlags; char p1[0x150-0x44]; int state; int a[2]; int ammoAmount; };
-void InitSo(struct S *p);
+void InitSo(SO *pso);
 // CID 108 vtable slot 7 Init: InitSo, ammo amount 30, state -1. (inferred)
-void InitRcPickup(struct S *pickup) {
+void InitRcPickup(CID108 *pickup) {
     int v;
     InitSo(pickup);
-    pickup->ammoAmount = 0x1E;
+    pickup->cAmmo = 0x1E;
     pickup->state = -1;
-    v = pickup->taggedFlags;
+    v = pickup->unknown40;
     if ((v ^ 1) & 1) *(int *)v |= 2;
-    else pickup->taggedFlags = v | 2;
+    else pickup->unknown40 = v | 2;
 }
 } } // namespace M_InitRcPickup
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostRcPickupLoad { extern "C" {
-struct S : SO { char pad150[0x160 - 0x150]; void *smaSource; int sma; };
-void PostSoLoad(struct S *p);
-void ReplaceSma(void *a, struct S *p, int b, int c, int *pn);
-void SetRcPickupState(struct S *p, int n);
+void PostSoLoad(SO *pso);
+void ReplaceSma(SM *psm, LO *plo, int b, int c, SMA **ppsma);
 // CID 108 vtable slot 15: PostSoLoad, SMA binding, state 0. (inferred)
-void PostRcPickupLoad(struct S *pickup) {
+void PostRcPickupLoad(CID108 *pickup) {
     PostSoLoad(pickup);
-    ReplaceSma(pickup->smaSource, pickup, -1, 0, &pickup->sma);
+    ReplaceSma(pickup->psm, pickup, -1, 0, &pickup->psma);
     SetRcPickupState(pickup, 0);
 }
 } } // namespace M_PostRcPickupLoad
@@ -2457,14 +2423,13 @@ void CID108::Update() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p
 namespace M_SetRcPickupState { extern "C" {
 extern CLOCK D_002DDED0;
 extern int D_002C2248[];
-struct S : SO { int n150; float g154; char p1[0x164-0x158]; void *p164; };
-void SetSmaGoalIfReachable(void *p, int n);
-// Pickup state x150 with time; SMA goal from D_002C2248[state]. (inferred)
-void SetRcPickupState(struct S *pickup, int n) {
-    if (n == pickup->n150) return;
-    pickup->n150 = n;
-    pickup->g154 = D_002DDED0.time;
-    if (pickup->p164 && n != -1) SetSmaGoalIfReachable(pickup->p164, D_002C2248[n]);
+void SetSmaGoalIfReachable(SMA *psma, int n);
+// Pickup state with time; SMA goal from D_002C2248[state]. (inferred)
+void SetRcPickupState(CID108 *pickup, int n) {
+    if (n == pickup->state) return;
+    pickup->state = n;
+    pickup->stateTime = D_002DDED0.time;
+    if (pickup->psma && n != -1) SetSmaGoalIfReachable(pickup->psma, D_002C2248[n]);
 }
 } } // namespace M_SetRcPickupState
 
