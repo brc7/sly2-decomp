@@ -2279,7 +2279,7 @@ struct TEXF
 };
 struct TEX : public TEXF
 {
-    ushort unknown06;
+    ushort numFrames;          /* +0x06 (low byte: shd.cpp reads the frame count there) */
     SHD *pshd;
     BMP **apbmp;
     CLUT **apclut;
