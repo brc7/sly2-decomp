@@ -367,7 +367,12 @@ namespace M_RecalcCmFrustrum__FP2CM {
 #include "sly2/cm.h"
 // sqrt.s as volatile inline asm (as in other matched cm/util code): it orders the stores like the original.
 extern "C" float tanf(float);
-static inline float sqrtf(float x){float r; __asm__ __volatile__("sqrt.s %0,%1":"=&f"(r):"f"(x)); return r;}
+static inline float sqrtf(float x)
+{
+    float r;
+    __asm__ __volatile__("sqrt.s %0,%1" : "=&f"(r) : "f"(x));
+    return r;
+}
 void BuildProj(void *p, float a, float b, float c, float d, float e, float f) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 void SetCmLookAt(CM *p, float g, void *pv) __asm__("BuildCmFgfn");
 void RecalcCm(CM *p) __asm__("UpdateCmMat4__FP2CM");

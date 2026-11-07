@@ -13,8 +13,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
 #include "sly2/classes.h"
-#define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-struct VTE { short d; short pad; void *pfn; };
+#define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
+struct VTE {
+    short d;
+    short pad;
+    void *pfn;
+};
 struct V3 { float x, y, z; };
 struct LMK { int a, b; };
 extern "C" void *func_002564B8(void *);            /* vector init, returns its receiver */
@@ -928,16 +932,16 @@ extern "C" void BuildLightPackets(void *a0, int n, LIGHTV **ap, LIGHTQ *o)
     for (i = 0; i < n; i++) {
         LIGHTV *p = ap[i];
         RebuildLight(p);
-        uint tag=0x6C03C000 | (i*3+0x15);
-        uint*d=Write(&D_002DEA28,tag);
-        Copy(d,p->payload.words,12);
+        uint tag = 0x6C03C000 | (i * 3 + 0x15);
+        uint *d = Write(&D_002DEA28, tag);
+        Copy(d, p->payload.words, 12);
         D_002DEA28.m_pb += 48;
     }
     for (; i < 4; i++) {
         VIFS *g = &D_002DEA28;
         const uint *src = D_002BFC60.words;
-        uint*d=Write(g,0x6C03C000 | (i*3+0x15));
-        Copy(d,src,12);
+        uint *d = Write(g, 0x6C03C000 | (i * 3 + 0x15));
+        Copy(d, src, 12);
         g->m_pb += 48;
     }
     o->cqwPacket = ((char *)D_002DEA28.m_pb - (char *)o->pbPacket) >> 4;
