@@ -261,13 +261,6 @@ struct TRI3
     int a, b, c;
 };
 
-struct SURFLOC
-{
-    int itri;
-    float u;
-    float v;
-};
-
 struct CLIMBSURF : public XFM
 {
       int cvtx;
@@ -3700,7 +3693,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 OnGameEvent(&D_002DEB30, 0x37, jt);
                 break;
             case JTS_SurfaceClimb:
-                ((CLIMBSURF *)jt->unknown1F18)->FindClosestPoint(PosLoWorld(jt), 0, (SURFLOC *)&jt->unk_0x1f1c, 0, 0);
+                ((CLIMBSURF *)jt->unknown1F18)->FindClosestPoint(PosLoWorld(jt), 0, &jt->surflocMesh, 0, 0);
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
@@ -3802,7 +3795,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 stateMachine = jt->unknown1F14;
                 break;
             case JTBS_11:
-                aseg = jt->unknown1F10;
+                aseg = jt->pasegblMesh;
                 grfapl = 9;
                 break;
             case JTBS_12:

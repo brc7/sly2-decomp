@@ -68,6 +68,15 @@ struct JTSWEEPBL
 };
 typedef char assert_JTSWEEPBL_size[sizeof(JTSWEEPBL) == 0x1C ? 1 : -1];
 
+/* SURFLOC: a location on a sticky mesh (CID 8/9): a triangle index and barycentric coordinates in it (Sly 1 name;
+   FindMeshClosestPoint hint/result; tu_185130.cpp, jt.cpp). */
+struct SURFLOC
+{
+      int itri;   /* triangle index */
+      float u;
+      float v;
+};
+
 /* JT: Sly Cooper (the player character class inherited from Sly 1's name JT).
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct JT : public STEPPLAYER
@@ -173,11 +182,14 @@ struct JT : public STEPPLAYER
       undefined4 unknown1D38[2];
       int unknown1D40;
       undefined4 unk_0x1d44[(0x1e10 - 0x1d44) / 4];
-      undefined4 unknown1E10[0x100 / 4];
-      ASEGBL *unknown1F10;
+      BLDIR abldirMesh[8];   /* +0x1E10 directional blends while attached to a sticky mesh (InitJt; tu_185130.cpp UpdateJtMeshAttachment) */
+      ASEGBL *pasegblMesh;   /* +0x1F10 their blended segment (masterSpeed scales the mesh movement) */
       SM *unknown1F14;
-      LO *unknown1F18;   /* possibly climbSurface (low-confidence guess: cast to CLIMBSURF for FindClosestPoint; sent splice event 6 on detach; compared in grab candidates) */
-      undefined4 unk_0x1f1c[(0x1f60 - 0x1f1c) / 4];
+      LO *unknown1F18;   /* the sticky mesh (CID 8/9; possibly climbSurface) attached to: jt.cpp casts it to CLIMBSURF, tu_185130.cpp to MESH; sent splice event 6 on detach; compared in grab candidates */
+      SURFLOC surflocMesh;   /* +0x1F1C the location on that mesh (FindMeshClosestPoint hint and result) */
+      undefined4 unk_0x1f28[(0x1f30 - 0x1f28) / 4];
+      qword aposMeshProbe[3];   /* +0x1F30 the three mesh probe points in the body frame (SetJtMeshProbePoints); [0].x is the
+                                   distance kept from the surface */
       undefined4 unknown1F60[0x30 / 4];
       ASEGBL *unknown1F90;
       float unknown1F94;   /* possibly curvePosition (low-confidence guess: -1..1 position mapped onto a shape and an angle) */
@@ -242,6 +254,7 @@ typedef char assert_JT_stateStartTime[SLY2_OFFSETOF(JT, stateStartTime) == 0x18C
 typedef char assert_JT_animState[SLY2_OFFSETOF(JT, animState) == 0x18D8 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_JT_attachedTo[SLY2_OFFSETOF(JT, attachedTo) == 0x18C0 ? 1 : -1];     /* CONFIRMED runtime */
 typedef char assert_JT_hangForce[SLY2_OFFSETOF(JT, janim.hangForce) == 0x1910 ? 1 : -1];
+typedef char assert_JT_aposMeshProbe[SLY2_OFFSETOF(JT, aposMeshProbe) == 0x1F30 ? 1 : -1];
 typedef char assert_JT_ablSweep[SLY2_OFFSETOF(JT, ablSweep[3].pasegbl) == 0x1A70 ? 1 : -1];
 typedef char assert_JT_pactHand[SLY2_OFFSETOF(JT, pactHand) == 0x1A00 ? 1 : -1];
 typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */
