@@ -1579,13 +1579,13 @@ extern "C" int GetLoBusyk(LO *plo)
 namespace M_SetLoBusyk { extern "C" {
 struct O {
     char pad[0x10];
-    struct O *pParent;
-    void *pv14;
+    struct O *parent;
+    void *root;
     char pad2[0x10];
-    unsigned long b0 : 52;
-    long n52 : 4;
-    unsigned int b56 : 4;
-    unsigned int f60 : 1;
+    unsigned long lowBits : 52;
+    long busyk : 4;
+    unsigned int removedBits : 4;
+    unsigned int isInWorld : 1;
 };
 extern char D_003DD490[];
 void ResortSwBusyEntry(void *, void *);
@@ -1603,12 +1603,12 @@ void ResortSwBusyEntry(void *, void *);
  * @end-sly2-annot */
 // Sets the busy kind (0 busy within the busy distance of the camera, 1 always busy, 2 never busy, 3 busy within the
 // busy distance of the hero) and re-sorts the root in the world's busy list when it is in the world.
-void SetLoBusyk(struct O *object, int n)
+void SetLoBusyk(struct O *object, int busyk)
 {
-    if (n != object->n52) {
-        object->n52 = n;
-        if (!object->pParent && (unsigned char)object->f60 != 0)
-            ResortSwBusyEntry(D_003DD490, object->pv14);
+    if (busyk != object->busyk) {
+        object->busyk = busyk;
+        if (!object->parent && (unsigned char)object->isInWorld != 0)
+            ResortSwBusyEntry(D_003DD490, object->root);
     }
 }
 } } // namespace M_SetLoBusyk
@@ -1617,19 +1617,19 @@ namespace M_func_001A6D28 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct ALO {
     char pad[0x28];
-    unsigned long b0 : 52;
-    long n52 : 4;
-    unsigned int b56 : 4;
-    unsigned int f60 : 1;
+    unsigned long lowBits : 52;
+    long busyk : 4;
+    unsigned int removedBits : 4;
+    unsigned int isInWorld : 1;
 };
-struct SW { struct ALO *palo; };
+struct LOROOT { struct ALO *rootObject; };
 struct O {
     char pad[0xC];
     struct VTE *vt;
-    struct O *pNext;
-    struct SW *world;
+    struct O *parent;
+    struct LOROOT *root;
     char pad2[0x15];
-    unsigned char b2D;
+    unsigned char visMask;   /* grfvis */
 };
 extern char D_003DD490[];
 void ResortSwBusyEntry(void *, void *);
@@ -1640,18 +1640,18 @@ void ResortSwBusyEntry(void *, void *);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Sets the visibility mask: re-sorts the root, sets the mask through slot 46 and ORs it into the following siblings.
+// Sets the visibility mask: re-sorts the root, sets the mask through slot 46 and ORs it into every ancestor.
 void SetLoVisMask(struct O *object, int b)
 {
-    struct O *q;
-    if ((unsigned char)object->world->palo->f60)
-        ResortSwBusyEntry(D_003DD490, object->world);
+    struct O *ancestor;
+    if ((unsigned char)object->root->rootObject->isInWorld)
+        ResortSwBusyEntry(D_003DD490, object->root);
     {
-        struct VTE *e = &object->vt[46];
-        ((void (*)(void *, int))e->pfn)((char *)object + e->d, b);
+        struct VTE *entry = &object->vt[46];
+        ((void (*)(void *, int))entry->pfn)((char *)object + entry->d, b);
     }
-    for (q = object->pNext; q; q = q->pNext)
-        q->b2D |= b;
+    for (ancestor = object->parent; ancestor; ancestor = ancestor->parent)
+        ancestor->visMask |= b;
 }
 } } // namespace M_func_001A6D28
 

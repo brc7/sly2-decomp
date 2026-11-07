@@ -553,6 +553,13 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   (FindBitmapInHash), and `goto set` chains that all reach one call -> a single `&&` condition (SetTnTns gate).
 - Declaring a helper as `(..., float, int)` instead of `(..., int, float)`: float and int arguments go to separate register
   files, so fixing a view's argument order is free.
+- A `goto` into a shared "set flag" block (`if (p) { if (N(p) >= 100) goto setf; } if (cheat) { setf: f = 1; }`) ->
+  `if ((p && N(p) >= 100) || cheat) f = 1;` (UpdateEpisodeMenu).
+- Inlined SetLoFlags / ClearLoFlags bodies (the tagged LO flag word) moved into a `static inline` helper; minified
+  one-line bodies re-laid out; extra brace scopes around a CRef temp; anonymous unions naming one offset two ways (a JOB's
+  +0x7C start count vs a TASK's job pointer); enum constants in `case` labels.
+- The `_GLOBAL_$I$<file><hash>` constructor stub's suffix follows the file text, so every edit changes it (aliased by
+  wildcard; ignore it in nm comparisons).
 
 **Not free** (reverted):
 - Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
