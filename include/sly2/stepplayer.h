@@ -108,11 +108,16 @@ struct BLLEAN : public BL
 struct JTPLACE
 {
       LO *object; /* object */
-      GRABSPOT *grabSpot; /* grab spot */
-      SOPART *part;    /* collision part */
+      GRABSPOT *grabSpot; /* grab spot (a hang/grab curve: its GetGrabPos virtual evaluates the place) */
+      SOPART *part;    /* collision part the place is on (its transform holds the position) */
       float rememberedTime; /* time it was remembered */
-      qword position; /* position */
+      union   /* selected by grabSpot (places.cpp GetJtPlacePosition) */
+      {
+            qword position; /* no grabSpot: position (in part->transform's space when part is set) */
+            float grabSpotParam; /* grabSpot set: the distance along the grab spot's curve */
+      };
 };
+typedef char assert_JTPLACE_size[sizeof(JTPLACE) == 0x20 ? 1 : -1];
 
 /* JTPLACES: the hero's list of remembered landing/grab spots (up to 32).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
