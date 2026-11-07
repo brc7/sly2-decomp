@@ -184,7 +184,7 @@ extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
     *(V *)&missile->targetPos = v;
     ReplaceCurrentAseg(missile->flightAnim, (ALO *)missile, 0.0f, 1.0f, 8, &missile->flightAnimState);
     if (missile->hasFlightAction)
-        missile->flightAction = NewPathAct(missile, missile->unknown5C, 0, 5, missile->flightActionParam, 0.0f);
+        missile->flightAction = NewPathAct(missile, missile->rotationXf, 0, 5, missile->flightActionParam, 0.0f);
 }
 
 // MISSILE vtable slot 77 (thrown/launched): the BOMB behaviour, then stops the flight action. (inferred)
@@ -298,7 +298,7 @@ void ACCMISS::PresetAccel()
         SMP smp = { speedChangeRate, 0.0f, 1.0f };
         float svNew = SmoothValue(sv, cruiseSpeed, D_002DDED0.deltaTime, &smp, 0);
         qword qwDv = QwDivBits(VuSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.deltaTime);
-        AddSoAcceleration(this, ApplyConstr((CONSTR *)((char *)physics + 0xB0), unknown58, qwDv));
+        AddSoAcceleration(this, ApplyConstr((CONSTR *)((char *)physics + 0xB0), positionXf, qwDv));
     }
 }
 

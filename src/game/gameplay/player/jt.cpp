@@ -3369,8 +3369,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ShowSoPart(jt, jt->unknown1A90);
                 break;
             case JTS_Stand:
-                SlotSetRole(jt, jt->unknown58, 2);
-                SlotSetRole(jt, jt->unknown5C, 2);
+                SlotSetRole(jt, jt->positionXf, 2);
+                SlotSetRole(jt, jt->rotationXf, 2);
                 switch (jt->animState)
                 {
                     case 6:
@@ -3411,8 +3411,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Unk12:
             case JTS_Unk13:
             case JTS_Unk14:
-                SlotSetRole(jt, jt->unknown58, 2);
-                SlotSetRole(jt, jt->unknown5C, 2);
+                SlotSetRole(jt, jt->positionXf, 2);
+                SlotSetRole(jt, jt->rotationXf, 2);
                 break;
             case JTS_SurfaceClimb:
                 SetSoCnstrForce(jt, 0);
@@ -3445,8 +3445,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Stand:
             {
                 stateMachine = jt->unknown1028;
-                SlotSetRole(jt, jt->unknown58, 1);
-                SlotSetRole(jt, jt->unknown5C, 1);
+                SlotSetRole(jt, jt->positionXf, 1);
+                SlotSetRole(jt, jt->rotationXf, 1);
                 jt->unknown1514 = 0;
                 switch (jt->state)
                 {
@@ -3634,19 +3634,19 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Unk12:
                 stateMachine = jt->unknown102C;
-                SlotSetRole(jt, jt->unknown58, 1);
-                SlotSetRole(jt, jt->unknown5C, 1);
+                SlotSetRole(jt, jt->positionXf, 1);
+                SlotSetRole(jt, jt->rotationXf, 1);
                 ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
             case JTS_Unk13:
-                SlotSetRole(jt, jt->unknown58, 1);
-                SlotSetRole(jt, jt->unknown5C, 1);
+                SlotSetRole(jt, jt->positionXf, 1);
+                SlotSetRole(jt, jt->rotationXf, 1);
                 ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk14:
-                SlotSetRole(jt, jt->unknown58, 2);
-                SlotSetRole(jt, jt->unknown5C, 2);
+                SlotSetRole(jt, jt->positionXf, 2);
+                SlotSetRole(jt, jt->rotationXf, 2);
                 ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
                 break;

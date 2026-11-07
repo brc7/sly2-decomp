@@ -204,7 +204,7 @@ int TakeHackDamage(HACKV*hack,struct MSG*m){
  {float *a=&hack->knockbackBase;t=-m->delta;g=Clamp(hack->knockbackBase+t*(a[1]+t*a[2]),hack->knockbackMin,hack->knockbackMax);}
  v=hack->GetVelocity();
  v=LimitVectorLength(AddScaled(v,dir,g),hack->knockbackMax);
- v=ApplyConstr(&hack->physics->constrForce,hack->unknown58,v);
+ v=ApplyConstr(&hack->physics->constrForce,hack->positionXf,v);
  hack->SetVelocity(v);
  return 1;
 }
@@ -366,7 +366,7 @@ namespace M_func_0017F850 { extern "C" {
 void SetXfRole(SO *p, XF *pxf, int role);
 void BindHackshipParts(HACKSHIPV *p);
 // vtable slot 15: PostCid47Load, bind entries and parts. (inferred)
-void PostHackshipLoad(HACKSHIPV *p) { PostHackLoad((HACKV *)p); p->SetCtlState(0); SetXfRole(p, p->unknown58, 2); SetXfRole(p, p->unknown5C, 2); BindHackshipParts(p); BindHackAnimEntries((HACKV *)p, 5, p->ahacke); }
+void PostHackshipLoad(HACKSHIPV *p) { PostHackLoad((HACKV *)p); p->SetCtlState(0); SetXfRole(p, p->positionXf, 2); SetXfRole(p, p->rotationXf, 2); BindHackshipParts(p); BindHackAnimEntries((HACKV *)p, 5, p->ahacke); }
 } } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 { extern "C" {
@@ -1060,7 +1060,7 @@ void PresetHackenemyAccel(struct O *enemy)
         MATRIX3 mat;
         mat = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->heading);
         if (enemy->state != 3)
-            mat = ConvertXfMat(enemy->unknown5C->parent, 0, &mat);
+            mat = ConvertXfMat(enemy->rotationXf->parent, 0, &mat);
         AccelSoTowardMatBounded(enemy, &mat, enemy->scale);
     }
     if (enemy->state == 3) {

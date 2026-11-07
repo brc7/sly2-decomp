@@ -1018,14 +1018,14 @@ void UpdateSoXfWorld(SO *so)
         if (pe->plvo) UpdateSoPartMesh(pe, D_002DDED0.deltaTime);
     }
     if (so->physics) {
-        if (so->unknown58) so->physics->velocity = *(qword *)&so->unknown58->velocity;
-        if (so->unknown5C) so->physics->angularVelocity = *(qword *)&so->unknown5C->velocity;
-        if ((unsigned short)(so->unknown58->role - 1) < 2 || so->unknown5C->role == 1 || so->unknown5C->role == 2) {
-            if (IsXfRoleVelocity(so->unknown58->role)) {
-                Clear((int *)&so->unknown58->acceleration);
+        if (so->positionXf) so->physics->velocity = *(qword *)&so->positionXf->velocity;
+        if (so->rotationXf) so->physics->angularVelocity = *(qword *)&so->rotationXf->velocity;
+        if ((unsigned short)(so->positionXf->role - 1) < 2 || so->rotationXf->role == 1 || so->rotationXf->role == 2) {
+            if (IsXfRoleVelocity(so->positionXf->role)) {
+                Clear((int *)&so->positionXf->acceleration);
             }
-            if (IsXfRoleVelocity(so->unknown5C->role)) {
-                Clear((int *)&so->unknown5C->acceleration);
+            if (IsXfRoleVelocity(so->rotationXf->role)) {
+                Clear((int *)&so->rotationXf->acceleration);
             }
             so->PresetAccel();
         }
@@ -1379,7 +1379,7 @@ typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 qword GetXfVelocity(XF *, int, qword);
 // Slot 33: world-space velocity of the position XF (when it is dynamic), else zero.
-qword GetSoVelocity(SO *p) { XF *pt = p->unknown58; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, *(qword *)pt->worldMatrix.mat[3]); }
+qword GetSoVelocity(SO *p) { XF *pt = p->positionXf; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, *(qword *)pt->worldMatrix.mat[3]); }
 } } // namespace M_GetSoVelocity
 
 // 0x1F4488 SetSoVelocity
@@ -1391,7 +1391,7 @@ void WakeSo(SO *);
 // Slot 35: sets the position XF's velocity so the world velocity becomes v, then refreshes and marks the physics.
 void SetSoVelocity(SO *so, qword q)
 {
-    XF *po = so->unknown58;
+    XF *po = so->positionXf;
     qword cur, d;
     if (!po || po->kind != 1) return;
     if (!IsXfRoleMoving(po->role)) SetXfRole(so, po, 1);
@@ -1451,7 +1451,7 @@ MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) __asm__("GetXfAngularVelocity")
 // Slot 34: world-space angular velocity of the rotation XF (when it is dynamic), else zero (Lilly port).
 qword SO::GetAngularVelocity()
 {
-    XF *pxf = unknown5C;
+    XF *pxf = rotationXf;
     if (!pxf || pxf->kind != 6)
     {
         return D_002A2DD0;
@@ -1538,7 +1538,7 @@ extern "C" void SetSoAngularVelocity(P *so,qword position)
 extern "C" void GetSoPosXfVelocityLocal(SO *so)
 {
     XF *pxf;
-    pxf = so->unknown58;
+    pxf = so->positionXf;
     ConvertXfVec(pxf->parent, so->rootTransform, *(qword *)&pxf->velocity);
 }
 
@@ -1547,7 +1547,7 @@ extern "C" void GetSoPosXfVelocityLocal(SO *so)
 extern "C" void GetSoRotXfVelocityLocal(SO *so)
 {
     XF *pxf;
-    pxf = so->unknown5C;
+    pxf = so->rotationXf;
     ConvertXfVec(pxf->parent, so->rootTransform, *(qword *)&pxf->velocity);
 }
 
@@ -1565,10 +1565,10 @@ void SetSoBit35Hierarchy(void *, int);
 void SetSoPosXfVelocityLocal(SO *so, qword v)
 {
     XF *po;
-    if (!IsXfRoleMoving(so->unknown58->role)) SetXfRole(so, so->unknown58, 1);
-    po = so->unknown58;
+    if (!IsXfRoleMoving(so->positionXf->role)) SetXfRole(so, so->positionXf, 1);
+    po = so->positionXf;
     *(qword *)&po->velocity = ConvertXfVec(so->rootTransform, po->parent, v);
-    UnsettleXfSlot(so, so->unknown58);
+    UnsettleXfSlot(so, so->positionXf);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -1589,10 +1589,10 @@ void SetSoBit35Hierarchy(void *, int);
 void SetSoRotXfVelocityLocal(SO *so, qword v)
 {
     XF *po;
-    if (!IsXfRoleMoving(so->unknown5C->role)) SetXfRole(so, so->unknown5C, 1);
-    po = so->unknown5C;
+    if (!IsXfRoleMoving(so->rotationXf->role)) SetXfRole(so, so->rotationXf, 1);
+    po = so->rotationXf;
     *(qword *)&po->velocity = ConvertXfVec(so->rootTransform, po->parent, v);
-    UnsettleXfSlot(so, so->unknown5C);
+    UnsettleXfSlot(so, so->rotationXf);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -1960,8 +1960,8 @@ extern "C" void WakeSo(SO *so)
     if (so->physicsTree != 0) {
         ((void (*)(void *, int))PVTE(so)[47].pfn)((char *)so + PVTE(so)[47].d, 4);
         if (so->physics != 0) {
-            UnsettleXfSlot(so, so->unknown58);
-            UnsettleXfSlot(so, so->unknown5C);
+            UnsettleXfSlot(so, so->positionXf);
+            UnsettleXfSlot(so, so->rotationXf);
         }
     }
 }
@@ -2288,7 +2288,7 @@ extern "C" void SetSoCnstrForce(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
     if (so->physics != 0) {
-        pxf = so->unknown58;
+        pxf = so->positionXf;
         if ((pxf->firstActuator == 0) && (pxf->role != 2)) {
             SetXfRole(so, pxf, 1);
         }
@@ -2306,7 +2306,7 @@ extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
     if (so->physics != 0) {
-        pxf = so->unknown5C;
+        pxf = so->rotationXf;
         if ((pxf->firstActuator == 0) && (pxf->role != 2)) {
             SetXfRole(so, pxf, 1);
         }
@@ -2333,7 +2333,7 @@ typedef int qword __attribute__((mode(TI)));
 void SetSoGravity(SO *so, qword q)
 {
     if (so->physics) {
-        XF *po = so->unknown58;
+        XF *po = so->positionXf;
         if (po->firstActuator == 0 && po->role != 2) SetXfRole(so, po, 1);
         *(qword *)&so->physics->gravity = q;   /* gravity written as a quadword */
         WakeSo(so);
@@ -2766,8 +2766,8 @@ void SO::Clone(LO *ploBase)
             }
         }
     }
-    CloneXfRef(ploBase, &unknown58);
-    CloneXfRef(ploBase, &unknown5C);
+    CloneXfRef(ploBase, &positionXf);
+    CloneXfRef(ploBase, &rotationXf);
     CloneXfRef(ploBase, &rootTransform);
     CloneGlobset(&model, this, ploBase);
     int cpartExtra = GetExtraPartCount();

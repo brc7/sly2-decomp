@@ -134,7 +134,7 @@ extern "C" void ReturnJtToSafePlace(STEPPLAYER *jt, JTPLACE *q)
         q = &e;
         if (jt == GetHeroPo(&D_003DD490)) {
             qword r = GetJtPlacePosition(jt, &e, 0.0f);
-            float g = ComputeMaxBallisticTime(VuSub(r, *(qword *)jt->unknown58->worldMatrix.mat[3]), *(qword *)&jt->physics->gravity, 1000.0f, -1000.0f, 1.0f, -1.0f);
+            float g = ComputeMaxBallisticTime(VuSub(r, *(qword *)jt->positionXf->worldMatrix.mat[3]), *(qword *)&jt->physics->gravity, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
                 int save = jt->jtplaces.cplace;
                 jt->TranslateToPos(VuSub(r, jt->pivotOffset));

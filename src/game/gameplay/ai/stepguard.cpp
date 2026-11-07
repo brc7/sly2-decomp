@@ -303,8 +303,8 @@ void STEPGUARD::PostLoad()
     STEP::PostLoad();
     BindLoOidTable(guard, 1, D_002C3CF8);
     SetStepGravityRatio(guard, guard->unknown260);
-    SetXfRole(guard, guard->unknown58, 2);
-    SetXfRole(guard, guard->unknown5C, 2);
+    SetXfRole(guard, guard->positionXf, 2);
+    SetXfRole(guard, guard->rotationXf, 2);
     ResolveStepguardAnimBindings(guard);
     ResolveStepguardAttacks(guard);
     guard->stuckWatch = func_001AE4F8(0x10);

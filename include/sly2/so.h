@@ -171,8 +171,8 @@ struct SO : public LO
 {
       int numTransforms; /* number of transforms */
       XF *transforms; /* the transforms (XF) of the model hierarchy */
-      XF *unknown58;   /* possibly motionTransform (low-confidence guess: XF put in velocity roles 1/2 by jt.cpp; missile ApplyConstr on it) */
-      XF *unknown5C;   /* possibly actuatorTransform (low-confidence guess: XF driven by actuators (missile func_0012DCA0, SlotUnsettle)) */
+      XF *positionXf;   /* +0x58 the transform that carries the position (TranslateSoToPos writes it; solve.cpp's pxfPos; velocity roles 1/2 in jt.cpp) */
+      XF *rotationXf;   /* +0x5C the transform that carries the orientation (RotateSoToMat writes its matrix; solve.cpp's pxfRot) */
       XF *rootTransform; /* root transform; its world matrix holds the object's position (XF+0x70) */
       DL children;  /* child objects attached to this one */
       LO *ploRemovedFirst;   /* first removed child (kept for re-adding, inferred) */

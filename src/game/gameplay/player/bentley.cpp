@@ -546,15 +546,15 @@ void SetBentleyState(BENTLEY *p, int k)
         return;
     switch (p->state) {
     case BENTLEY_IDLE:
-        SetXfRole(p, p->unknown58, 2);
-        SetXfRole(p, p->unknown5C, 2);
+        SetXfRole(p, p->positionXf, 2);
+        SetXfRole(p, p->rotationXf, 2);
         ScheduleIdleTimer(p);
         break;
     case BENTLEY_PLAYER_STATE_4:
     case BENTLEY_SCRIPT_ANIM:
     case BENTLEY_SCRIPT_SMA:
-        SetXfRole(p, p->unknown58, 2);
-        SetXfRole(p, p->unknown5C, 2);
+        SetXfRole(p, p->positionXf, 2);
+        SetXfRole(p, p->rotationXf, 2);
         break;
     case BENTLEY_AIR:
         if (p->pwater == 0) {
@@ -624,8 +624,8 @@ void SetBentleyState(BENTLEY *p, int k)
     p->stateTime = D_002DDED0.time;
     switch (k) {
     case BENTLEY_IDLE:
-        SetXfRole(p, p->unknown58, 1);
-        SetXfRole(p, p->unknown5C, 1);
+        SetXfRole(p, p->positionXf, 1);
+        SetXfRole(p, p->rotationXf, 1);
         if (p->unknown181C) {
             asega = p->unknown1820;
             n = 9;
@@ -674,8 +674,8 @@ void SetBentleyState(BENTLEY *p, int k)
         jt = p->unknown102C;
     case BENTLEY_SCRIPT_ANIM:
     case BENTLEY_SCRIPT_SMA:
-        SetXfRole(p, p->unknown58, 1);
-        SetXfRole(p, p->unknown5C, 1);
+        SetXfRole(p, p->positionXf, 1);
+        SetXfRole(p, p->rotationXf, 1);
         p->qwUnknown190 = D_002A2DD0;
         break;
     case BENTLEY_ADRENALINE:
@@ -1243,8 +1243,8 @@ void SetBentleyHoverState(BENTLEY *bentley, int k)
         bentley->jtplaces.cplace = save;
         ReleaseAct(&bentley->apactHover[0]);
         ReleaseAct(&bentley->apactHover[1]);
-        SetXfRole(bentley, bentley->unknown58, 2);
-        SetXfRole(bentley, bentley->unknown5C, 2);
+        SetXfRole(bentley, bentley->positionXf, 2);
+        SetXfRole(bentley, bentley->rotationXf, 2);
         break;
     }
     case 1:
@@ -1271,7 +1271,7 @@ void SetBentleyHoverState(BENTLEY *bentley, int k)
         XF *pxf;
         SO *pq = (SO *)D_002F7900->jtthrowAim.ploHoldParent;
         pxf = pq->GetLocalTransform((MATRIX4 *)&m);
-        { M4 t = GetRelativeXfMatrix(bentley->transforms->parent, bentley->unknown58->parent, &m); m = t; }
+        { M4 t = GetRelativeXfMatrix(bentley->transforms->parent, bentley->positionXf->parent, &m); m = t; }
         {
             int save = bentley->jtplaces.cplace;
             bentley->SetParent(D_002F7900, pxf, 3);
@@ -1279,8 +1279,8 @@ void SetBentleyHoverState(BENTLEY *bentley, int k)
         }
         bentley->SetVelocity(D_002A2DD0);
         bentley->SetAngularVelocity(D_002A2DD0);
-        bentley->apactHover[0] = NewPositionAct(bentley, bentley->unknown58, 1, 7, 2, m.pos);
-        bentley->apactHover[1] = NewPositionAct(bentley, bentley->unknown5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
+        bentley->apactHover[0] = NewPositionAct(bentley, bentley->positionXf, 1, 7, 2, m.pos);
+        bentley->apactHover[1] = NewPositionAct(bentley, bentley->rotationXf, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
         break;
     }
     case 1:

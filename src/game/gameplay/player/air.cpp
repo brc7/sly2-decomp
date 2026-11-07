@@ -1700,7 +1700,7 @@ void UpdateJtAirInput(JTAIR *air)
             case 6:
                 if (((CID88 *)air->jumpObject)->nUnk17c == 3)
                     SetJtAirState(air, 4, 0);
-                else if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
+                else if (*(float *)&air->player->positionXf->reference < D_002DDED0.time)
                     StartJtGrabForAirKind(air);
                 break;
             case 9:
@@ -1711,25 +1711,25 @@ void UpdateJtAirInput(JTAIR *air)
             case 0xE:
             case 0xF:
             case 0x10:
-                if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
+                if (*(float *)&air->player->positionXf->reference < D_002DDED0.time)
                     StartJtGrabForAirKind(air);
                 break;
             case 0x12:
             {
                 float tLabel = TFindAsegLabel(D_002F7900->jtthrowAim.unknown64, (OID)0x1C7);
-                float t = *(float *)&air->player->unknown58->reference;
+                float t = *(float *)&air->player->positionXf->reference;
                 t -= tLabel;
                 if (t <= D_002DDED0.time && D_002F7900->jtthrowAim.state != 3)
                 {
                     SetJtThrowState(&D_002F7900->jtthrowAim, 3);
                     break;
                 }
-                if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
+                if (*(float *)&air->player->positionXf->reference < D_002DDED0.time)
                     StartJtGrabForAirKind(air);
                 break;
             }
             case 8:
-                if (*(float *)&air->player->unknown58->reference < D_002DDED0.time)
+                if (*(float *)&air->player->positionXf->reference < D_002DDED0.time)
                     SetJtAirState(air, 4, air->jumpObject);
                 break;
             case 5:
@@ -1845,7 +1845,7 @@ void UpdateJtAirInput(JTAIR *air)
                         break;
                     }
                 }
-                if (air->canDoubleJump && air->player->unknown58->velocity.z < 0.0f)
+                if (air->canDoubleJump && air->player->positionXf->velocity.z < 0.0f)
                 {
                     ReplaceCurrentAseg(air->apasegDoubleJump[0], (ALO *)air->player, 0.0f, 1.0f, 1, &air->player->activeAnimation);
                     air->canDoubleJump = 0;
@@ -1855,7 +1855,7 @@ void UpdateJtAirInput(JTAIR *air)
                 if (air->placeTarget.grabSpot != 0 || air->placeTarget.part != 0)
                 {
                     qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->arrivalTime - D_002DDED0.time), air->player, &air->placeTarget);
-                    air->pact8->SetGoal(ConvertXfPos(0, air->player->unknown58->parent, targetPos), air->pact8->goalVelocity);
+                    air->pact8->SetGoal(ConvertXfPos(0, air->player->positionXf->parent, targetPos), air->pact8->goalVelocity);
                 }
                 break;
             case 0x16:

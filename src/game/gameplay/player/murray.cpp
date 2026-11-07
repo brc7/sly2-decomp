@@ -603,8 +603,8 @@ void SetMurrayCarrySubstate(MURRAY *murray, int k)
         return;
     switch (murray->carrySubstate) {
     case 0:
-        SetXfRole(murray, murray->unknown58, 2);
-        SetXfRole(murray, murray->unknown5C, 2);
+        SetXfRole(murray, murray->positionXf, 2);
+        SetXfRole(murray, murray->rotationXf, 2);
         murray->carrySubstate = k;
         break;
     case 1:
@@ -626,8 +626,8 @@ void SetMurrayCarrySubstate(MURRAY *murray, int k)
         goto state2;
     goto done;
 state0:
-    SetXfRole(murray, murray->unknown58, 1);
-    SetXfRole(murray, murray->unknown5C, 1);
+    SetXfRole(murray, murray->positionXf, 1);
+    SetXfRole(murray, murray->rotationXf, 1);
     pv = murray->psmCarryStand;
     murray->qwUnknown190 = D_002A2DD0;
     goto done;
@@ -813,8 +813,8 @@ void SetMurrayStrafeSubstate(MURRAY *murray, int st)
     int n;
     if (st == murray->strafeSubstate) return;
     if (murray->strafeSubstate == 0) {
-        SetXfRole(murray, murray->unknown58, 2);
-        SetXfRole(murray, murray->unknown5C, 2);
+        SetXfRole(murray, murray->positionXf, 2);
+        SetXfRole(murray, murray->rotationXf, 2);
     }
     murray->strafeSubstate = st;
     murray->strafeStartTime = D_002DDED0.time;
@@ -823,8 +823,8 @@ void SetMurrayStrafeSubstate(MURRAY *murray, int st)
     n = 1;
     switch (st) {
     case 0:
-        SetXfRole(murray, murray->unknown58, 1);
-        SetXfRole(murray, murray->unknown5C, 1);
+        SetXfRole(murray, murray->positionXf, 1);
+        SetXfRole(murray, murray->rotationXf, 1);
         x = murray->psmStrafeIdle;
         murray->qwUnknown190 = D_002A2DD0;
         break;
@@ -1822,7 +1822,7 @@ void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation,float*dura
  qword end;
  switch(owner->liftClip){
  case 0:{
-  struct XFV*parent=((XFV*)((SO*)((CARRYSPOTV*)owner->ploCarried)->plo)->unknown58)->parent;
+  struct XFV*parent=((XFV*)((SO*)((CARRYSPOTV*)owner->ploCarried)->plo)->positionXf)->parent;
   qword first=ConvertXfVec(0,parent,Scale(D_002A2DC0,2500.0f,&roots));
   {
    register struct XFV*space __asm__("$4");register int bits __asm__("$2");
@@ -1844,7 +1844,7 @@ void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation,float*dura
    {
     register struct XFV*lo __asm__("$2");register SOPHYS*source __asm__("$5");
     register qword velocity __asm__("$3"),argument __asm__("$6");
-    __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->unknown58),"m"(object->physics));
+    __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->positionXf),"m"(object->physics));
     __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velocity),"m"(*(qword*)&source->gravity),"m"(lo->pos));
     v.q=velocity;
     acceleration=ConvertXfVec(0,lo->parent,argument);
@@ -2054,8 +2054,8 @@ void DetachMurrayCarried(MURRAY *murray)
     if (!o) return;
     o->HandleSpliceEvent(6, 0, 0, 0, 0);
     x = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
-    SetXfRole(x, x->unknown58, murray->xfRoleA);
-    SetXfRole(x, x->unknown5C, murray->xfRoleB);
+    SetXfRole(x, x->positionXf, murray->xfRoleA);
+    SetXfRole(x, x->rotationXf, murray->xfRoleB);
     SetSoTreeFlag2(x, 0);
     SetLoParent(x, 0, 0xF);
     murray->ploReleased = x;
@@ -2848,8 +2848,8 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             goto failed;
     attach:
         SetSoCnstrForce(owner, 0);
-        murray->xfRoleA = owner->unknown58->role;
-        murray->xfRoleB = owner->unknown5C->role;
+        murray->xfRoleA = owner->positionXf->role;
+        murray->xfRoleB = owner->rotationXf->role;
         SetLoParent(owner, 0, 15);
         SetSoTreeFlag2(owner, 1);
         M4 predicted;
@@ -2864,9 +2864,9 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             SendStepguardRootBhvMode6(owner, (int)murray);
         ComputeMurrayLiftLaunch(murray, work.row[1].q, &event->time, &duration, &work.row[2].q, &work.row[3].q);
         murray->apactCarryA[2] =
-            NewBezierAct(owner, owner->unknown58, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
-        owner->SetVelocity(ConvertXfVec(owner->unknown58->parent, 0, work.row[2].q));
-        murray->apactCarryA[3] = NewPositionAct(owner, owner->unknown5C, (void *)5, 7, 2, work.row[0].q);
+            NewBezierAct(owner, owner->positionXf, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
+        owner->SetVelocity(ConvertXfVec(owner->positionXf->parent, 0, work.row[2].q));
+        murray->apactCarryA[3] = NewPositionAct(owner, owner->rotationXf, (void *)5, 7, 2, work.row[0].q);
         break;
     }
     case 2: {
@@ -2887,8 +2887,8 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
         U position, rotation;
         M4 frame;
         GetMurrayGripFrame(murray, root->rootTransform, &D_002A2D30, &rotation.q, &position.q);
-        murray->apactCarryA[1] = NewPositionAct(owner, owner->unknown5C, (void *)5, 7, 2, rotation.q);
-        murray->apactCarryA[0] = NewPositionAct(owner, owner->unknown58, (void *)5, 7, 2, position.q);
+        murray->apactCarryA[1] = NewPositionAct(owner, owner->rotationXf, (void *)5, 7, 2, rotation.q);
+        murray->apactCarryA[0] = NewPositionAct(owner, owner->positionXf, (void *)5, 7, 2, position.q);
         if (((CARRYSPOTV *)murray->ploCarried)->psoGoalA) {
             SO *goal = ((CARRYSPOTV *)murray->ploCarried)->psoGoalA;
             PARTLINK *stretch = murray->ikChainA;

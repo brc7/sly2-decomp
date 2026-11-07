@@ -132,8 +132,8 @@ extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(prize, pbis);
     *(int *)((char *)EnsureSoInSwList187(prize) + 0xF0) = 1;
-    SetXfRole(prize, prize->unknown58, 0x15);
-    SetXfRole(prize, prize->unknown5C, 0x15);
+    SetXfRole(prize, prize->positionXf, 0x15);
+    SetXfRole(prize, prize->rotationXf, 0x15);
     BindLoOidTable(prize, 1, D_002C0D40);
 }
 
@@ -822,7 +822,7 @@ void SetDprizeDprizes(struct S *prize, int n)
     if (n != DPRIZE_STATE_IDLE && n != DPRIZE_STATE_VANISHING)
         SetLoParent(prize, 0, 0);
     if (prize->state == DPRIZE_STATE_NONE || prize->state == DPRIZE_STATE_GONE) {
-        struct O *o = (struct O *)prize->unknown58;
+        struct O *o = (struct O *)prize->positionXf;
         prize->position = o->position;
         prize->velocity = o->velocity;
     }
@@ -1252,8 +1252,8 @@ void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2
     SetLoParent(prize, 0, 0);
     prize->TranslateToPos(q1);
     prize->RotateToMat((MATRIX3 *)D_002A2D00);   /* the identity */
-    Zero(&prize->unknown58->velocity);
-    Zero(&prize->unknown5C->velocity);
+    Zero(&prize->positionXf->velocity);
+    Zero(&prize->rotationXf->velocity);
     prize->animSkipTime = f1;
     prize->hasBoosted = 0;
     prize->SetState(3);

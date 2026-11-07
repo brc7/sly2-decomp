@@ -514,8 +514,8 @@ void StartBhvidle(BHVIDLE *behavior) {
         ResetDetectorTargets(((STEPGUARD *)behavior->owner)->pdetector);
         if (((STEPGUARD *)behavior->owner)->handsOffLookAt) behavior->lookAt = ((STEPGUARD *)behavior->owner)->handsOffLookAt;
     }
-    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown58, 1);
-    if (!behavior->lookAt) SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 1);
+    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->positionXf, 1);
+    if (!behavior->lookAt) SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 1);
 }
 } } // namespace M_StartBhvidle
 
@@ -4659,7 +4659,7 @@ void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
         ((void (*)(void *, struct R *, float))entry->pfn)((char *)o + entry->d, &r, ((struct U *)behavior->holdAct)->endTime - D_002DDED0.time);
     }
     if (!r.isValid) { behavior->unknown60 = 0; return; }
-    w = ((struct W *)((STEPGUARD *)behavior->owner)->unknown58);
+    w = ((struct W *)((STEPGUARD *)behavior->owner)->positionXf);
     CalculateBhvjuggledHoldPoint(behavior, &r, &holdPoint, &holdDirection);
     a = TransformXfPos(0, w->unknownA0, holdPoint);
     SetRestActPose(((struct U *)behavior->holdAct), a, ConvertXfVec(0, w->unknownA0, holdDirection));
