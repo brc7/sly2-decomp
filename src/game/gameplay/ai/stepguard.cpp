@@ -555,13 +555,14 @@ void STEPGUARD::OnProxyRelease(LO *plo)
 
 // 0x206820 RestartStepguard
 namespace M_func_00206820 { extern "C" {
-struct S; struct REQUEST;
+struct STEPGUARDIsland; struct REQUEST;
 typedef struct { short d; short pad; void *pfn; } VTE;
-struct S { char pad[0xC]; VTE *vt; };
+/* island: the vtable pointer pinned to $3 across the first call (real virtual calls: 2/45 off, request store scheduled after the slot load) */
+struct STEPGUARDIsland { char pad[0xC]; VTE *vt; };
 #define VT(p, n, T) ((T)(p)->vt[n].pfn)
 struct REQUEST { int value; int *pointer; };
 // 0x206820: Restarts the guard: clear state (slot 27), message 0xF, reset to home (slot 26), message 0xE.
-void RestartStepguard(struct S *guard)
+void RestartStepguard(struct STEPGUARDIsland *guard)
 {
     struct REQUEST request;
     register VTE *initialTable __asm__("$3");
