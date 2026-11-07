@@ -301,9 +301,7 @@ void UpdateStepplayer(struct P *player)
         UpdateJtgoal(pl);
         if (!IsJtgoalHolding(pl)) {
             if (player->c270 > 0) {
-                struct O *object = player->a274[player->c270 - 1];
-                struct VTE *e = &object->vt[14];
-                e->pfn((char *)object + e->d, player->controller);
+                ((BHV *)player->a274[player->c270 - 1])->UpdateSteering((POCTL *)player->controller);
             } else if (player->ride) {
                 UpdateJsgJtControl(player->ride, player->controller);
             }
