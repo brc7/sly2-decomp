@@ -1380,21 +1380,18 @@ extern "C" void UpdateJobSaveVars(JOB *job)
 }
 } // namespace M_UpdateJobSaveVars
 
-namespace M_InitTask { extern "C" {
-struct S { char pad[0x54]; int state; float stateChangeTime; int objectiveTextId; char p2[0xB8-0x60]; int warpOid; int level; int playerOid; char p3[0xF0-0xC4]; int pendingCascadeState; int stateSource; };
-extern SW D_003DD490;
-void InitLo(struct S *p);
 // TASK initialization (slot 7): LO init, no ids, counted in the world's task count.
-} } // namespace M_InitTask
-void TASK::Init() { using namespace M_InitTask; using M_InitTask::D_003DD490; M_InitTask::S *p = (M_InitTask::S *)this;
-    InitLo(p);
-    p->state = -1;
-    p->pendingCascadeState = -1;
-    p->objectiveTextId = -1;
-    p->warpOid = -1;
-    p->level = -1;
-    p->playerOid = -1;
-    p->stateSource = 0;
+void TASK::Init()
+{
+    TASK *task = this;
+    InitLo(task);
+    task->nState = -1;
+    task->nStatePending = -1;
+    task->objectiveTextId = -1;
+    task->warpOid = -1;
+    task->level = -1;
+    task->nCharacter = -1;
+    task->stateSource = 0;
     D_003DD490.ctask++;
 }
 
@@ -1405,12 +1402,11 @@ public:
     int U8Read() __asm__("U8Read__18CBinaryInputStream");
     int S32Read() __asm__("S32Read__18CBinaryInputStream");
 };
-struct S { char pad[0x90]; int *prerequisiteOids; int numPrerequisites; void *prerequisites; int *followerOids; int numFollowers; void *followers; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
 extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 extern "C" void *AllocFromWorldHeap(ALLOCREQ *preq);
-extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *stream);
+extern "C" void LoadLoFromBrx(LO *p, CBinaryInputStream *stream);
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
@@ -1438,69 +1434,64 @@ static inline void *PvAllocB(ALLOCREQ *preq, int cb, int nKind)
 }
 // Loads a TASK from the BRX: visibility and rsmg arrays, then its prerequisite and successor oid lists.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadTaskFromBrx(S *task, CBinaryInputStream *stream)
+extern "C" void LoadTaskFromBrx(TASK *task, CBinaryInputStream *stream)
 {
     int i = 0;
     STACKSCOPE fr;
     ALLOCREQ req;
-    task->visibility = PvAllocReq(&req, 0x200, 0x10);
-    task->rsmgs = PvAllocReq(&req, 0x300, 0x10);
+    task->avis = (STATEVIS *)PvAllocReq(&req, 0x200, 0x10);
+    task->arsmg = (STATERSMG *)PvAllocReq(&req, 0x300, 0x10);
     LoadLoFromBrx(task, stream);
-    task->visibility = PvShrinkReq(&req, task->numVisibility * 16, 0x10, task->visibility);
-    task->rsmgs = PvShrinkReq(&req, task->numRsmgs * 0x18, 0x10, task->rsmgs);
-    task->numPrerequisites = stream->U8Read();
-    task->prerequisites = PvAllocA(&req, task->numPrerequisites * 4, 0x10);
-    task->prerequisiteOids = (int *)PvAllocB(&req, task->numPrerequisites * 4, 0x10);
-    for (; i < task->numPrerequisites; i++)
-        task->prerequisiteOids[i] = stream->S32Read();
-    task->numFollowers = stream->U8Read();
-    task->followers = PvAllocA(&req, task->numFollowers * 4, 0x10);
-    task->followerOids = (int *)PvAllocB(&req, task->numFollowers * 4, 0x10);
-    for (int j = 0; j < task->numFollowers; j++)
-        task->followerOids[j] = stream->S32Read();
+    task->avis = (STATEVIS *)PvShrinkReq(&req, task->cvis * 16, 0x10, task->avis);
+    task->arsmg = (STATERSMG *)PvShrinkReq(&req, task->crsmg * 0x18, 0x10, task->arsmg);
+    task->cptaskPrereq = stream->U8Read();
+    task->aptaskPrereq = (TASK **)PvAllocA(&req, task->cptaskPrereq * 4, 0x10);
+    task->aoidPrereq = (int *)PvAllocB(&req, task->cptaskPrereq * 4, 0x10);
+    for (; i < task->cptaskPrereq; i++)
+        task->aoidPrereq[i] = stream->S32Read();
+    task->cptaskSucc = stream->U8Read();
+    task->aptaskSucc = (TASK **)PvAllocA(&req, task->cptaskSucc * 4, 0x10);
+    task->aoidSucc = (int *)PvAllocB(&req, task->cptaskSucc * 4, 0x10);
+    for (int j = 0; j < task->cptaskSucc; j++)
+        task->aoidSucc[j] = stream->S32Read();
     CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadTaskFromBrx
 
 namespace M_FTaskLive { extern "C" {
-struct S { char pad[0x50]; int isDisabled; char pad2[0xF4 - 0x54]; int stateSource; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 // True when the task is enabled, its state source is not 2/3 and no world transition is in progress.
-int IsTaskLive(struct S *task)
+int IsTaskLive(TASK *task)
 {
-    if (task->isDisabled == 0 && task->stateSource != STATE_SOURCE_GO_TO_TASK && task->stateSource != STATE_SOURCE_LOAD_RESET)
+    if (task->fDisabled == 0 && task->stateSource != STATE_SOURCE_GO_TO_TASK && task->stateSource != STATE_SOURCE_LOAD_RESET)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
 } } // namespace M_FTaskLive
 
 namespace M_func_00163838 { extern "C" {
-struct E { int object, context, stateMask, level; };
-struct S { char pad[0x50]; int isDisabled; char pad2[0xA8 - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateMaskFromSplice(void *p);
 // Splice: adds a visibility record (state mask from a Splice list) to the task.
-void AddTaskStateVisibility(struct S *task, int object, void *states, int context, int level)
+void AddTaskStateVisibility(TASK *task, int object, void *states, int context, int level)
 {
-    if (task->isDisabled == 0 && task->numVisibility < 32) {
-        struct E *pe = &task->visibility[task->numVisibility++];
-        pe->object = object;
-        pe->context = context;
-        pe->stateMask = GetStateMaskFromSplice(states);
+    if (task->fDisabled == 0 && task->cvis < 32) {
+        STATEVIS *pe = &task->avis[task->cvis++];
+        pe->oidObject = object;
+        pe->oidContext = context;
+        pe->grfState = GetStateMaskFromSplice(states);
         pe->level = level;
     }
 }
 } } // namespace M_func_00163838
 
 namespace M_func_001638A0 { extern "C" {
-struct E { int state, root, stateMachine, goal, restoreOnly, level; };   /* as PostTaskLoad's E24 */
-struct S { char pad[0x50]; int isDisabled; char pad2[0xB0 - 0x54]; int numRsmgs; struct E *rsmgs; };
 // Splice: adds a state rsmg record to the task.
-void AddTaskStateRsmg(struct S *task, int state, int root, int stateMachine, int goal, int restoreOnly, int level)
+void AddTaskStateRsmg(TASK *task, int state, int root, int stateMachine, int goal, int restoreOnly, int level)
 {
-    if (task->isDisabled == 0 && task->numRsmgs < 32) {
-        struct E *pe = &task->rsmgs[task->numRsmgs++];
-        pe->state = state; pe->root = root; pe->stateMachine = stateMachine; pe->goal = goal; pe->restoreOnly = restoreOnly; pe->level = level;
+    if (task->fDisabled == 0 && task->crsmg < 32) {
+        STATERSMG *pe = &task->arsmg[task->crsmg++];
+        pe->nState = state; pe->oidRoot = root; pe->oidSm = stateMachine; pe->oidGoal = goal; pe->fRestoreOnly = restoreOnly; pe->level = level;
     }
 }
 } } // namespace M_func_001638A0
