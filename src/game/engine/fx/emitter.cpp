@@ -1796,9 +1796,7 @@ struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VEC { int x, y, z, w; } __attribute__((aligned(16)));
 struct XF { qword pos; MATRIX3 localMatrix; VEC v; VEC w; };
-/* EXPLSO: what to explode with (EXPLSO_* flags say which fields are set) */
-struct P { int fl; void *reference; float scale, radius; qword vector, origin; int touch; XF *pxf; int count, pad3C; };
-struct VTE { short d; short pad; void (*pfn)(void *, P *); };
+struct VTE { short d; short pad; void (*pfn)(void *, EXPLSO *); };
 struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
 extern "C" { MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm); }
@@ -1830,28 +1828,28 @@ inline qword QwRotateVec(const MATRIX3 *pmat, qword qwVec)
             : "j"(pmat->r[0]), "j"(pmat->r[1]), "j"(pmat->r[2]), "j"(qwVec));
     return qwResult;
 }
-extern "C" void ExplodeExplgExplso(S *p, P *pp);
+extern "C" void ExplodeExplgExplso(S *p, EXPLSO *pp);
 // EXPLG explode: explodes every child explosion (vtable slot 51) with a copy of the EXPLSO whose transform is the
 // child's placement relative to the group, composed with the caller's transform when it gave one; the group is the
 // reference object unless the caller set one.
-void ExplodeExplgExplso(S *group, P *explso)
+void ExplodeExplgExplso(S *group, EXPLSO *explso)
 {
-    P childExplso = *explso;
+    EXPLSO childExplso = *explso;
     XF xf;
-    childExplso.pxf = &xf;
-    childExplso.fl |= EXPLSO_HAS_XF;
-    if (childExplso.fl & EXPLSO_HAS_REFERENCE) {
+    childExplso.pxf = (::XF *)&xf;   /* this function's XF view */
+    childExplso.grf |= EXPLSO_HAS_XF;
+    if (childExplso.grf & EXPLSO_HAS_REFERENCE) {
     } else {
-        childExplso.reference = group;
-        childExplso.fl |= EXPLSO_HAS_REFERENCE;
+        childExplso.ploReference = (LO *)group;
+        childExplso.grf |= EXPLSO_HAS_REFERENCE;
     }
     for (int i = 0; i < group->c; i++) {
         O *child = group->apo[i];
         MATRIX4 mRel;
         mRel = InvertMatrix4Rigid(&group->mat) * child->mat;
         MATRIX3 &m3 = *(MATRIX3 *)&mRel;
-        if (explso->fl & EXPLSO_HAS_XF) {
-            XF *px = explso->pxf;
+        if (explso->grf & EXPLSO_HAS_XF) {
+            XF *px = (XF *)explso->pxf;
             xf.localMatrix = px->localMatrix * m3;
             xf.pos = VuAdd(px->pos, QwRotateVec(&px->localMatrix, mRel.r[3]));
             xf.v = px->v;
@@ -1923,7 +1921,6 @@ typedef struct EMITTERV {
     int keepsGroups;            /* +0xFC emit into the EXPLS's own rip / blip groups (and subscribe it) */
     int pripg; int pblipg;      /* +0x100 */
 } EMITTERV;
-typedef struct EMITO { int grf; int reference; float scale; float radius; qword vector; qword origin; int touch; int pxf; int count; } EMITO;   /* EXPLSO */
 typedef struct EMITR { int *ppblipg; int *ppripg; EMITTERV *subscriber; } EMITR;   /* EMITG */
 
 extern char D_002BDEC0[];
@@ -1947,7 +1944,7 @@ extern void SetSndPitch(void *p, float g);
 // (reference, direction, origin point or transform, touch object, count); a scaled explosion scales the count
 // (capped at half the maximum), speed and blip size. Then plays the EXPLS's sound at the origin's centre (by
 // origin kind, through the local transform, then into world space from the reference object).
-void FireExplsExplso(EMITTERV *expls, EMITO *explso)
+void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
 {
     EMITP emitp;
     EMITB emitb;
@@ -1965,14 +1962,14 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
     else
         count = (int)RandomFloatInRange__Fff(expls->countMin, expls->countMax);
     if (explso->grf & EXPLSO_HAS_REFERENCE)
-        emitp.reference = explso->reference;
+        emitp.reference = (int)explso->ploReference;
     if (explso->grf & EXPLSO_HAS_VECTOR)
         emitb.emito.direction = explso->vector;
     if (explso->grf & EXPLSO_HAS_ORIGIN) {
         emitb.emito.posPoint = explso->origin;
         emitb.emito.originKind = EMIT_ORIGIN_POINT;
     } else if (explso->grf & EXPLSO_HAS_XF) {
-        emitb.emito.pxfOrigin = (XF *)explso->pxf;
+        emitb.emito.pxfOrigin = explso->pxf;
     }
     if ((explso->grf & EXPLSO_HAS_SCALE) && emitb.particleKind == 0)   /* blips */ {
         float scale;
@@ -1999,7 +1996,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
         if (explso->grf & EXPLSO_HAS_RIP_SCALE)
             emitb.v.lmScale.maxValue = emitb.v.lmScale.minValue = explso->scale;
         if (explso->grf & EXPLSO_HAS_TOUCH)
-            ((EMITP *)emitb.aploRef)->touch = explso->touch;
+            ((EMITP *)emitb.aploRef)->touch = (int)explso->ploTouch;
     }
     if (expls->keepsGroups) {
         emitg.ppblipg = &expls->pblipg;
