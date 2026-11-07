@@ -597,42 +597,12 @@ extern "C" {
 extern struct CLOCK D_002DDED0;
 extern float D_002C0D50;
 }
-class LOB {
-public:
-    int a[3];
-    virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5();
-    virtual void V6(); virtual void V7(); virtual void V8(); virtual void V9(); virtual void V10();
-    virtual void V11(); virtual void V12(); virtual void V13(); virtual void V14(); virtual void V15();
-    virtual void V16(); virtual void V17(); virtual void V18(); virtual void V19(); virtual void V20();
-    virtual void V21(); virtual void V22(); virtual void V23(); virtual void V24(); virtual void V25();
-    virtual void V26(); virtual void V27(); virtual void V28(); virtual void V29(); virtual void V30();
-    virtual void V31(); virtual void V32(); virtual void V33(); virtual void V34(); virtual void V35();
-    virtual void V36(); virtual void V37(); virtual void V38(); virtual void V39(); virtual void V40();
-    virtual void V41(); virtual void V42(); virtual void V43(); virtual void V44(); virtual void V45();
-    virtual void V46(); virtual void V47(); virtual void V48(); virtual void V49(); virtual void V50();
-    virtual void V51(); virtual void V52(); virtual void V53(); virtual void V54(); virtual void V55();
-    virtual void V56(); virtual void V57(); virtual void V58(); virtual void V59(); virtual void V60();
-    virtual void V61(); virtual void V62(); virtual void V63(); virtual void V64(); virtual void V65();
-    virtual void V66(); virtual void V67(); virtual void V68(); virtual void V69(); virtual void V70();
-    virtual void V71(); virtual void V72(); virtual void V73(); virtual void V74(); virtual void V75();
-    virtual void SetState(int n);
-};
-class P : public LOB {
-public:
-    char pad[0x150 - 0x10];
-    int state;
-    float stateTime;
-    char pad2[0x180 - 0x158];
-    qword velocity;
-    char pad3[0x1C4 - 0x190];
-    int hasBoosted;
-};
 extern "C" {
-void UpdateSo(P *p);
-void EmitDprizeGlint(P *p);
-void CheckDprizeBounce(P *p);
-void CheckDprizeCollect(P *p);
-void UpdateDprize(P *p);
+void UpdateSo(DPRIZE *p);
+void EmitDprizeGlint(DPRIZE *p);
+void CheckDprizeBounce(DPRIZE *p);
+void CheckDprizeCollect(DPRIZE *p);
+void UpdateDprize(DPRIZE *p);
 }
 // Squared length of a vector.
 static inline float LenSq(qword v)
@@ -644,7 +614,7 @@ static inline float LenSq(qword v)
     return r;
 }
 // DPRIZE vtable slot 16 Update: base update, sparkle (EmitDprizeGlint), bounce, collect.
-void UpdateDprize(P *prize)
+void UpdateDprize(DPRIZE *prize)
 {
     UpdateSo(prize);
     EmitDprizeGlint(prize);
@@ -685,24 +655,22 @@ struct V { float x, y, z, w; } __attribute__((aligned(16)));
 struct VTE { short d; short pad; void (*pf)(); };
 struct OBJ { VTE *vt; };
 struct H { int x0; OBJ *pobj; };
-struct R { char pad[0x30]; ASEGA *currentSegment; };
-struct LO { char pad[0x12C]; float unknown12C; char p1[0x150 - 0x130]; int state; char p2[0x168 - 0x154]; R *sma; };
 extern "C" {
-H *FindAsegChannel(void *p, LO *plo, int a, int b);
-qword GetLoWorldPos(LO *plo);
-void *GetLoWorldMatrix(LO *plo);
-void RenderSoSelf(LO *plo);
-void RenderDprizeSelf(LO *p);
+H *FindAsegChannel(void *p, DPRIZE *plo, int a, int b);
+qword GetLoWorldPos(DPRIZE *plo);
+void *GetLoWorldMatrix(DPRIZE *plo);
+void RenderSoSelf(DPRIZE *plo);
+void RenderDprizeSelf(DPRIZE *p);
 }
 extern "C" { M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec); }
-extern "C" { void RenderLoAtMatrix(LO *plo, M4 m, float a, float b); }
+extern "C" { void RenderLoAtMatrix(DPRIZE *plo, M4 m, float a, float b); }
 // DPRIZE vtable slot 19 RenderSelf (bob/spin then SO render).
-void RenderDprizeSelf(LO *prize)
+void RenderDprizeSelf(DPRIZE *prize)
 {
     ASEGA *q;
     H *ph;
     if (prize->state == 2) return;
-    if (prize->sma && (q = prize->sma->currentSegment) != 0) {
+    if (prize->sma && (q = prize->sma->pasegaCur) != 0) {
         ph = FindAsegChannel(q->animation, prize, 0xC, 1);
         if (ph) {
             V v;
@@ -710,7 +678,7 @@ void RenderDprizeSelf(LO *prize)
             ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->time, q->speed);
             M4 m;
             m = LoadMatrixFromPosRotScale(GetLoWorldPos(prize), GetLoWorldMatrix(prize), &v);
-            RenderLoAtMatrix(prize, m, prize->unknown12C, prize->unknown12C);
+            RenderLoAtMatrix(prize, m, prize->opacity, prize->opacity);
         } else {
             RenderSoSelf(prize);
         }
