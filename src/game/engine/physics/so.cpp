@@ -2691,28 +2691,22 @@ void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCo
 
 // 0x1F5FF8 FindSoGlob
 namespace M_func_001F5FF8 { extern "C" {
-struct E; struct S;
-struct E { int oid; char pad[0x24]; };
-struct S { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 // Finds a glob in the object's glob set by oid.
-struct E *FindSoGlob(struct S *so, int oid)
+GLOB *FindSoGlob(SO *so, int oid)
 {
     int i;
-    for (i = 0; i < so->numGlobs; i++) { struct E *pe = &so->globs[i]; if (pe->oid == oid) return pe; }
+    for (i = 0; i < so->model.numPieces; i++) { GLOB *pe = &so->model.pieces[i]; if (pe->oid == oid) return pe; }
     return 0;
 }
 } } // namespace M_func_001F5FF8
 
 // 0x1F6030 FindSoPart
 namespace M_PsopartFindSo { extern "C" {
-struct E; struct S;
-struct E { int a[3]; int oid; char pad[0xA0]; };
-struct S { char pad[0xE0]; int numParts; struct E *parts; };
 // Finds a part by oid (Sly 1 PsopartFindSo).
-struct E *FindSoPart(struct S *so, int oid)
+SOPART *FindSoPart(SO *so, int oid)
 {
     int i;
-    for (i = 0; i < so->numParts; i++) { struct E *pe = &so->parts[i]; if (pe->oid == oid) return pe; }
+    for (i = 0; i < so->numParts; i++) { SOPART *pe = &so->parts[i]; if (pe->oid == oid) return pe; }
     return 0;
 }
 } } // namespace M_PsopartFindSo
@@ -2949,11 +2943,12 @@ struct N *FindLiveSma(int n, int m)
 
 // 0x1F6838 GetSoTreeFlag2
 namespace M_func_001F6838 { extern "C" {
-struct T; struct S;
-struct T { char pad[0x70]; ulong flags; };
-struct S { char pad[0xEC]; struct T *tree; };
 // Bit 2 of the tree flags; 1 when the object has no tree. (inferred)
-int GetSoTreeFlag2(struct S *p) { if (!p->tree) return 1; return (int)((long)(p->tree->flags << 30) >> 32) & 1; }
+/* SOTREEIsland / SOIsland: the tree flag word and the SO as whole words (matching-only island: the shift pair of the
+   original is a sign-extending read of the word; the so.h bit-field reads with a logical shift, 7/10 off). */
+struct SOTREEIsland { char pad[0x70]; ulong flags; };
+struct SOIsland { char pad[0xEC]; struct SOTREEIsland *tree; };
+int GetSoTreeFlag2(struct SOIsland *p) { if (!p->tree) return 1; return (int)((long)(p->tree->flags << 30) >> 32) & 1; }
 } } // namespace M_func_001F6838
 
 // 0x1F6860 SetSoTreeFlag2
@@ -2970,52 +2965,42 @@ extern "C" void SetSoTreeFlag2(SO *so, int f)
 
 // 0x1F68A8 SetSoPartsBit48
 namespace M_func_001F68A8 { extern "C" {
-struct E; struct P;
-typedef unsigned long ulong;
-struct E { char pad[0x10]; ulong lo : 48; ulong bit48 : 1; ulong hi : 15; char pad2[0xB0 - 0x18]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
 // Sets (f = 1) bit 48 in the flag word of every part. (inferred)
-void SetSoPartsBit48(struct P *so, int f)
+void SetSoPartsBit48(SO *so, int f)
 {
     int i;
-    for (i = 0; i < so->numParts; i++) so->parts[i].bit48 = f;
+    for (i = 0; i < so->numParts; i++) so->parts[i].unknownFlag10A = f;
 }
 } } // namespace M_func_001F68A8
 
 // 0x1F6918 SetSoIgnoreFixed
 namespace M_func_001F6918 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong a:26; int b:1; ulong c:37; };
 struct G;
 extern struct G D_003DD490;
-void RefreshSwObjectCollisionFilter(struct G *, struct S *);
+void RefreshSwObjectCollisionFilter(struct G *, SO *);
 // Sets the ignore-fixed flag (+0x148 bit 26, so.h fIgnoreFixed) and refreshes the broad-phase pairs.
-void SetSoIgnoreFixed(struct S *p, int f) { p->b = f; RefreshSwObjectCollisionFilter(&D_003DD490, p); }
+void SetSoIgnoreFixed(SO *p, int f) { p->fIgnoreFixed = f; RefreshSwObjectCollisionFilter(&D_003DD490, p); }
 } } // namespace M_func_001F6918
 
 // 0x1F6960 GetSoIgnoreFixed
 namespace M_func_001F6960 { extern "C" {
-struct S;
-struct S { char pad[0x148]; ulong flags; };
 // Returns the ignore-fixed flag.
-int GetSoIgnoreFixed(struct S *p) { return (int)((long)(p->flags << 6) >> 32) & 1; }
+/* SOIsland: the +0x148 word whole (matching-only island: sign-extending shift pair, 4/5 off with the bit-field). */
+struct SOIsland { char pad[0x148]; ulong flags; };
+int GetSoIgnoreFixed(struct SOIsland *p) { return (int)((long)(p->flags << 6) >> 32) & 1; }
 } } // namespace M_func_001F6960
 
 // 0x1F6978 ShowSoGlobsById
 namespace M_ShowSoGlobsById { extern "C" {
-struct Q; struct E; struct P;
-struct Q { char pad[0x10]; ulong flags; };
-struct E { int oid; int pad[2]; int flags; int pad2[5]; struct Q *part; };
-struct P { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 // Shows every glob with id k and the part linked to it.
-void ShowSoGlobsById(struct P *so, int k)
+void ShowSoGlobsById(SO *so, int k)
 {
     int i;
-    for (i = 0; i < so->numGlobs; i++) {
-        struct E *pe = &so->globs[i];
+    for (i = 0; i < so->model.numPieces; i++) {
+        GLOB *pe = &so->model.pieces[i];
         if (pe->oid == k) {
-            pe->flags &= ~0x800;
-            if (pe->part) pe->part->flags &= ~(1L << 50);
+            pe->isHidden = 0;
+            if (pe->ppose) pe->ppose->isHidden = 0;
         }
     }
 }
@@ -3023,19 +3008,15 @@ void ShowSoGlobsById(struct P *so, int k)
 
 // 0x1F69F8 HideSoGlobsById
 namespace M_HideSoGlobsById { extern "C" {
-struct Q; struct E; struct P;
-struct Q { char pad[0x10]; ulong flags; };
-struct E { int oid; int pad[2]; int flags; int pad2[5]; struct Q *part; };
-struct P { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 // Hides every glob with id k and the part linked to it.
-void HideSoGlobsById(struct P *so, int k)
+void HideSoGlobsById(SO *so, int k)
 {
     int i;
-    for (i = 0; i < so->numGlobs; i++) {
-        struct E *pe = &so->globs[i];
+    for (i = 0; i < so->model.numPieces; i++) {
+        GLOB *pe = &so->model.pieces[i];
         if (pe->oid == k) {
-            pe->flags |= 0x800;
-            if (pe->part) pe->part->flags |= (1L << 50);
+            pe->isHidden = 1;
+            if (pe->ppose) pe->ppose->isHidden = 1;
         }
     }
 }
@@ -3046,63 +3027,49 @@ SLY2_SCRAP("nop");
 
 // 0x1F6A68 HideSoAllGlobs
 namespace M_func_001F6A68 { extern "C" {
-struct C; struct E; struct A;
-typedef unsigned long ulong;
-struct C { char pad[0x10]; ulong flags; };
-struct E { char pad[0xC]; int flags; char pad2[0x14]; struct C *part; };
-struct A { char pad[0xB8]; int numGlobs; int pad2; struct E *globs; };
 // Hides every glob and its linked part.
-void HideSoAllGlobs(struct A *so)
+void HideSoAllGlobs(SO *so)
 {
     int i;
-    for (i = 0; i < so->numGlobs; i++) {
-        struct E *pe = &so->globs[i];
-        pe->flags |= 0x800;
-        if (pe->part)
-            pe->part->flags |= 1L << 50;
+    for (i = 0; i < so->model.numPieces; i++) {
+        GLOB *pe = &so->model.pieces[i];
+        pe->isHidden = 1;
+        if (pe->ppose)
+            pe->ppose->isHidden = 1;
     }
 }
 } } // namespace M_func_001F6A68
 
 // 0x1F6AC8 ShowSoPartsById
 namespace M_ShowSoPartsById { extern "C" {
-struct E; struct P;
-struct E { int pad[3]; int oid; char pad2[0xB0 - 0x10]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
-void ShowSoPart(struct P *, struct E *);
+void ShowSoPart(SO *, SOPART *);
 // Shows the parts whose id is k.
-void ShowSoPartsById(struct P *so, int k)
+void ShowSoPartsById(SO *so, int k)
 {
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i]; if (pe->oid == k) ShowSoPart(so, pe);
+        SOPART *pe = &so->parts[i]; if (pe->oid == k) ShowSoPart(so, pe);
     }
 }
 } } // namespace M_ShowSoPartsById
 
 // 0x1F6B48 HideSoPartsById
 namespace M_func_001F6B48 { extern "C" {
-struct E; struct P;
-struct E { int pad[3]; int oid; char pad2[0xB0 - 0x10]; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
-void HideSoPart(struct P *, struct E *);
+void HideSoPart(SO *, SOPART *);
 // Hides the parts whose id is k.
-void HideSoPartsById(struct P *so, int k)
+void HideSoPartsById(SO *so, int k)
 {
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i]; if (pe->oid == k) HideSoPart(so, pe);
+        SOPART *pe = &so->parts[i]; if (pe->oid == k) HideSoPart(so, pe);
     }
 }
 } } // namespace M_func_001F6B48
 
 // 0x1F6BC8 SetSoPartsZapKindsById
 namespace M_func_001F6BC8 { extern "C" {
-struct E; struct S;
-struct E { int a[3]; int oid; int b[2]; int zapKinds; char pad[0x94]; };
-struct S { char pad[0xE0]; int numParts; struct E *parts; };
 // Sets the zap kinds (+0x18) of the parts whose id is n.
-void SetSoPartsZapKindsById(struct S *p, int n, int x) { int i; for (i = 0; i < p->numParts; i++) { struct E *pe = &p->parts[i]; if (pe->oid == n) pe->zapKinds = x; } }
+void SetSoPartsZapKindsById(SO *p, int n, int x) { int i; for (i = 0; i < p->numParts; i++) { SOPART *pe = &p->parts[i]; if (pe->oid == n) pe->zapKindFlags = x; } }
 } } // namespace M_func_001F6BC8
 
 // 0x1F6C08 EnsureSoPartMesh
