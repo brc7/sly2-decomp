@@ -6619,10 +6619,9 @@ namespace RO_ORDER { extern const float r_D_002A55FC __asm__("D_002A55FC") = 3.4
 namespace RO_ORDER { extern const float r_D_002A5600 __asm__("D_002A5600") = 3.40282347e+38f; }
 // 0x17D360 InitBhvgoto
 namespace M_InitBhvgoto { extern "C" {
-struct T; struct G; struct S;
+struct T; struct S;
 struct T { char pad[0x28]; int version; };
-struct G { char pad[0x45CC]; struct T *pathGraph; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct S { char pad[0x30]; int state; int pad2; int sgf; char pad3[0x64]; float planTime; int pathGraphVersion; };
 void InitBhv(struct S *p);
 // 0x17D360: BHVGOTO vtable slot 7 (OnPush): no flag, state -1, stamps the path-graph version.
@@ -6632,7 +6631,7 @@ void InitBhvgoto(struct S *behavior)
     behavior->state = -1;
     behavior->sgf = -1;
     behavior->planTime = -3.40282346638528859812e+38f;
-    behavior->pathGraphVersion = D_003DD490.pathGraph->version;
+    behavior->pathGraphVersion = ((struct T *)D_003DD490.pregtree)->version;
 }
 } } // namespace M_InitBhvgoto
 
@@ -6818,13 +6817,12 @@ int SnapPositionToSurfaceAbove(qword *ppos)
 
 // 0x17D6C8 UpdateBhvgoto
 namespace M_UpdateBhvgoto { extern "C" {
-struct W; struct G; struct T; struct V; struct A; struct S;
+struct W; struct T; struct V; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 extern float D_002BE758, D_002BE75C;
 struct W { int pad[0x28 / 4]; int version; };
-struct G { char pad[0x45CC]; struct W *pathGraph; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct T { char pad[0x30]; void *shape; float pathParam; };
 struct V { int pad[2]; float z; };
 struct A { char pad[0x218]; struct V *unknown218; char pad2[0xFE8 - 0x21C]; int capabilities; };
@@ -6857,7 +6855,7 @@ void UpdateBhvgoto(struct S *behavior) {
                 struct T *t = behavior->child;
                 if (s == 2 && IsBhvpathAtEnd(t)) {
                     SetBhvgotoState(behavior, 3);
-                } else if (D_002DDED0.time - behavior->planTime > D_002BE758 || behavior->pathGraphVersion != D_003DD490.pathGraph->version) {
+                } else if (D_002DDED0.time - behavior->planTime > D_002BE758 || behavior->pathGraphVersion != ((struct W *)D_003DD490.pregtree)->version) {
                     PlanBhvgoto(behavior);
                 } else if (IsBhvwalkpathStuck(t)) {
                     float f = t->pathParam + D_002BE75C;
@@ -6958,12 +6956,11 @@ void FindBhvgotoRoute(struct S *behavior) {
 
 // 0x17DA28 PlanBhvgoto
 namespace M_PlanBhvgoto { extern "C" {
-struct W; struct G; struct X; struct Q; struct B; struct D; struct C; struct A; struct S;
+struct W; struct X; struct Q; struct B; struct D; struct C; struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 struct W { int pad[0x28 / 4]; int version; };
-struct G { char pad[0x45CC]; struct W *pathGraph; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct X { qword a; qword v; };
 struct Q { char pad[0x60]; struct X start; struct X end; char pad2[0x120 - 0xA0]; int kind; };
 struct B { char pad[0xE8]; int numPoints; char pad2[8]; qword *points; };
@@ -7046,7 +7043,7 @@ void PlanBhvgoto(struct S *behavior) {
     }
     SetBhvgotoState(behavior, nextState);
     behavior->planTime = D_002DDED0.time;
-    behavior->pathGraphVersion = D_003DD490.pathGraph->version;
+    behavior->pathGraphVersion = ((struct W *)D_003DD490.pregtree)->version;
 }
 } } // namespace M_PlanBhvgoto
 
