@@ -101,7 +101,9 @@ array destruction is the `if (pa) { e = pa + 8; while (pa != e) Release(--e); }`
 Naming a pool in code (for example a class-specific `operator delete` that frees into
 `CSlotPool<0x18, 0x800>::s_pool`) instantiates that pool at that point. If the explicit instantiation comes later,
 the pool's init block moves to the front of `StaticInit_<tu>`: varb showed a 4-instruction diff (two `li` pairs
-swapped). Instantiating all six right after the includes keeps the order.
+swapped). Instantiating all six right after the includes keeps the order. A template member that names the pool (the
+GC nodes' `operator delete`, CGcObj<T>'s since names/vu-f8-sound-ui-3) instantiates it only where it is used, so its
+header may come first.
 
 ### The pools are real allocators
 
@@ -577,6 +579,68 @@ CFrame/CProc/CSidebag/CPair/CVarb views and SP* owners of frame.cpp, eval.cpp, r
 sidebag.cpp (tied to gc.cpp's linkonce instances, the next step); callback.cpp's one-field CFrame view (including
 cframe.h there clashes: basic.h's SL, gc.h's PtNew against its C declaration); CRichText/CFont (font.cpp's classes
 need RGBA/QW/GIFS/TEX0 in a header; mpeg.cpp's and tu_2275B8's views).
+
+### Views unified, continued (names/vu-f8-sound-ui-3): the Splice nodes and their counted pointers
+
+Round 3 of the sound / UI / Splice family (from fdc4f2e9), splice/ and the files that share its headers. Every
+function and data symbol of the 45 objects compiled from splice/, callback.cpp and every includer of the changed
+headers MATCHes, and each object is identical to the branch start's (allocated section bytes, relocations by symbol
+name, the symbol table with binding and section, so every linkonce section name too). The family's views of the six
+GC node kinds and their counted pointers (CPair/CVarb/CFrame/CProc/CSidebag/CMethod, SPW/SPO/SPF/SPZ/SPX/SPY/SPS/
+SPN/SPREL/SPPAIR/SPFRAME, FRAMEV/GCHDR/GCNODE/METHOD): 61 -> 23. Struct/class/union definitions in the 12 touched
+.cpp files: 159 -> 121.
+
+| type | header | change | views removed |
+|---|---|---|---:|
+| CPair, CVarb | sly2/pair.h, varb.h | the nodes derive from `CGcObj<T>` (count `m_cref`, link word; deleting one runs CGcObj's unlink and frees into the pool, the code the hand-written `operator delete` gave); PtNew/Unlink declared as specializations | pair.cpp's, varb.cpp's |
+| CRefOwner<T>, CRefPtrFns<T> | sly2/sp.h (new) | the inline-release owner (`T *p`; destructor `if (p && --p->m_cref == 0) delete p`; `Set` is CRefPtr<T>::Attach and `operator=` its assignment, called by symbol through CRefPtrFns<T>; `CRefOwner(spNull)` starts cleared) | 16 owner views in pair, varb, frame, sidebag, proc, eval, ref, serialize, splicemap, spliceobj, callback |
+| CFrame | sly2/cframe.h | complete: declared `~CFrame()`, AssignBinding/FindBinding, SetSingleParent/AddParent/RemoveParent (frame.cpp's former C functions, now members by their C symbols), the binding link as varb.h's CVarbPtr (cframe.h includes varb.h first), MakeRoot/PtNew/Unlink specializations | frame, eval, ref, callback, splicemap (FRAMEV) |
+| CProc | sly2/proc.h (new) | `CGcObj<CProc>` with CRefOwner links (ref.cpp's inline `~CProc` releases all three inline) and a declared destructor | proc, eval, ref (with SPX/SPY/SPZ/SPREL) |
+| CSidebag | sly2/sidebag.h (new) | `CGcObj<CSidebag>` with a CRefOwner<CVarb> binding link; `CSidebag_AddBinding` declared | sidebag (with GCHDR), spliceobj |
+| CMethod | sly2/method.h (new) | spliceobj.cpp's class moved; its own `operator delete` dropped (CGcObj's) | ref (CMethod, GCNODE), eval (METHOD), spliceobj |
+
+**Where the linkonce copies come from.** g++ 2.95 emits an inline function or a template member, weak, in
+`.gnu.linkonce.t.<symbol>`, in every TU that needs an out-of-line copy: an explicit instantiation, a call it does not
+inline, or an address taken. Here splice/gc.cpp emits every instance (the CGcObj<T> members of the six kinds,
+CRefPtr<T>'s attach for five kinds and its destructor and assignment for pairs, bindings and frames, and the frame
+destructor), splice/ref.cpp the proc destructor (an `inline` body defined after its callers), object/spliceobj.cpp
+CRefPtr<CMethod>'s attach; every other object only references them, and the per-object symbol tables must stay so.
+A TU that only calls a member keeps calling it when it sees one of: an explicit specialization declaration of the
+member (`template <> CPair *CGcObj<CPair>::PtNew();`: same symbol, no body, no copy), an explicit specialization of
+the class whose members are declared only (pair.h's and varb.h's CRefPtr<CPair>/<CVarb>), or a destructor that is
+declared and never defined (CFrame, CProc). g++'s `extern template` extension does not stop the emission in this
+compiler (measured). Whether a call is inlined depends on order: a body is inlined only if it was compiled before the
+caller (implicit destructors are synthesized when first needed, so ~CFrame, synthesized while ~CRefPtr<CFrame> is
+compiled, is called from it and emitted; ~CProc, defined at the end of ref.cpp, is called from the functions above it).
+
+**Why two counted-pointer spellings.** In the original every link and every owner was CRefPtr<T>, one template with an
+inline destructor. A TU that inlined it in an owner and also called it out of line (the release of a list's next link
+inside the inlined node destructor) emitted its own copy, which the linker dropped. Measured on pair.cpp: the real
+template as CloneTo's owner emits weak copies of the destructor, PtNew, the constructor, PushFront and Attach. So the
+headers spell the link (destructor and assignment out of line: the class specializations of pair.h/varb.h, basic.h's
+template with the declared destructors of CFrame/CProc) separately from the owner (sp.h's CRefOwner<T>, the same one
+word with the template's inline destructor); gc.cpp keeps its own views of the six nodes because it is the TU that
+must see the real template and the implicit destructors to emit them.
+
+Spellings that matched on the first compile: C declarations of the instances' mangled names (`CPair
+*PtNew__t6CGcObj1Z5CPair();`) are "ambiguous" with the static member once the class template is instantiated in the
+TU (g++ compares assembler names), so the calls are `CGcObj<CPair>::PtNew()`; the method release `if (--p->m_cref ==
+0) delete p` gives the former null test, unlink and free; `world->scriptFrame = CGcObj<CFrame>::PtNew()` and
+`->MakeRoot()` for splicemap's FramePtr_Assign/MakeRoot calls; callback.cpp's `PtNew` + `Attach` returning an owner
+as `SPF frame(CGcObj<CFrame>::PtNew())` (this removed its clash with gc.h; its SL view is basic.h's SL). EvalApply's
+8-byte owners and spliceobj's 16-byte-aligned ones are local derived structs of CRefOwner<T> (a pad word; an
+`aligned(16)` attribute) with an `operator=` forwarding to the base's (a derived class's implicit assignment hides
+it). Watch for: spliceobj's `list.Set(0)` was the assignment, and CRefOwner's `Set` is the attach: matchtool masks
+call targets, the relocation comparison caught it. With the nodes' `operator delete` now CGcObj's (a template member,
+instantiated where it is used), pair.h/varb.h/sidebag.h may be included before SLY2_INSTANTIATE_SLOT_POOLS(); a
+non-template class whose inline `operator delete` names a pool still moves that pool's initializer first (spliceobj's
+CMethod as first moved to method.h: 11 words off).
+
+Kept (noted for their owners): gc.cpp's six node views (above); bif.cpp's 14 SPN/SP owner views (candidates:
+`typedef CRefOwner<CPair>`, the `int pad[3]` ones as derived structs); proxy.cpp's M_CloneProxy frame views (RC/SP in
+a union with the allocation size); callback.cpp's SPFV (a frame slot read through, owner unknown); the CSidebag release
+views outside splice/ (lo.cpp's RF, screen.cpp's DestroyBasic, asega.cpp's homed CRefPtr<CSidebag> assignment);
+basic.h's comment that frame.cpp/eval.cpp define their own CFrame views is stale.
 
 ### Vtables emitted (data/vtables)
 
