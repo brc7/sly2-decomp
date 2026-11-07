@@ -10,6 +10,7 @@
 #include "sly2/vu0.h"
 #include "sly2/cm.h"
 #include "sly2/aseg.h"
+#include "sly2/act.h"
 #include "player_input.h"
 #include "sly2/stepplayer.h"
 #include "sly2/jt.h"
@@ -31,13 +32,12 @@ typedef char PATH_releaseEffectId_Offset[FIELD_OFFSET(PATH,releaseEffectId)==0x1
 struct SMPV{float maximum,minimum,duration;};struct LMV{float low,high;};
 struct WORK{U ahead,behind;union{U input;SMPV smooth;}reuse;LMV limit;};
 struct WORKB{U ahead,behind;LMV limit;U point,world,target;};
-struct TRACK { struct { short d; short pad; void (*pfn)(void *, float, float, VECTORA *, int); } *vt; };
-struct TRACKREF { int x0; TRACK *x4; };
+/* the clip channel FindAsegChannel returns: aseg.h CHN, its curve act.h AC */
 struct PIPE;
 extern "C"{
 extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;SMPV D_002BF928={1500.0f,0.0f,0.5f};extern STEPPLAYER*D_002E1E40;
 extern int D_002DFBC0;
-TRACKREF *FindAsegChannel(ASEG *o, STEPPLAYER *a, int b, int c);
+CHN *FindAsegChannel(ASEG *o, STEPPLAYER *a, int b, int c);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *a, int b, int c, void *d, int e, int f, int g, void *h);
 void GetPipeGoalMatrix(PATH *a, float g, int b, M3 *pm);
 M3 *GetLoWorldMatrix(STEPPLAYER *o);
@@ -90,10 +90,10 @@ extern "C" void PostJtLoadPipe(JTPIPE *pipe)
     for (i = 0, e = pipe->abl; i < 2; i++, e++) {
         ASEG *o = e->animation;
         if (o) {
-            TRACKREF *r = FindAsegChannel(o, pipe->player, 1, 1);
+            CHN *r = FindAsegChannel(o, pipe->player, 1, 1);
             if (r) {
-                r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, 0.0f, 1.0f, &v0, 0);
-                r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, o->duration, 1.0f, &v1, 0);
+                r->pac->Evaluate(0.0f, 1.0f, &v0, 0);
+                r->pac->Evaluate(o->duration, 1.0f, &v1, 0);
                 e->speed = (v0.z - v1.z) / o->duration;
             }
         }
