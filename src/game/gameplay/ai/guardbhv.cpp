@@ -5235,20 +5235,14 @@ void BHV183::Start()
 
 // 0x17C6D0 UpdateBhvEscort
 namespace M_func_0017C6D0 { extern "C" {
-struct X; struct P;
 /* UpdateBhvEscort (Claude agent): state-machine controller. pos is a plain qword (spilled pseudo) so p->v60=pos goes qmfc2+sq; the goto loop + explicit 250.0f local stops loop.c hoisting the case-1 constant. */
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
-struct X {qword header,v;};
-struct P {char pad10[0x10];void*guard;int pad14;void*child;char pad1C[4];int pending;char pad24[12];void*escorted;char pad34[0x40-0x34];qword localOffset;int state;float time;int pad58[2];qword lastGoalPosition;};
-void UpdateBhv(struct P*);
-int IsBhvBusyAbove(struct P*);
+void UpdateBhv(BHV183*);
+int IsBhvBusyAbove(BHV183*);
 qword GetLoWorldPos(void*);
 qword ConvertPosBetweenLos(void*,void*,qword);
 int IsStepguardHandsOff(void*);
-void SetBhvEscortState(struct P*,int);
-void ClearPointerPair(struct X*);
-void SetBhvgotoGoal(void*,const struct X*);
+void SetBhvgotoGoal(BHVGOTO*,PATHLINKEND*);
 // VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: a -= b.
@@ -5264,22 +5258,21 @@ static inline float LenXY(qword v)
 }
 // 0x17C6D0: Escort behaviour vtable slot 10 (Update): follows the escorted object at a local offset: walks when
 // within 700, runs (state 1) beyond 1000, re-goals after the object moves 250.
-void UpdateBhvEscort(struct P *behavior)
+void UpdateBhvEscort(BHV183 *behavior)
 {
-    struct X x;
     qword pos;
     float dist;
     int state;
     float lim = 250.0f;
     UpdateBhv(behavior);
     pos = GetLoWorldPos(behavior->escorted);
-    dist = LenXY(Sub(pos, GetLoWorldPos(behavior->guard)));
+    dist = LenXY(Sub(pos, GetLoWorldPos(behavior->owner)));
     goto test;
 top: {
     state = behavior->state;
     switch (state) {
     case 0:
-        if (IsStepguardHandsOff(behavior->guard))
+        if (IsStepguardHandsOff(behavior->owner))
             SetBhvEscortState(behavior, 2);
         else if (1000.0f < dist)
             SetBhvEscortState(behavior, 1);
@@ -5287,25 +5280,25 @@ top: {
             qword v;
             behavior->lastGoalPosition = pos;
             v = ConvertPosBetweenLos(behavior->escorted, 0, behavior->localOffset);
-            ClearPointerPair(&x);
-            x.v = v;
-            SetBhvgotoGoal(behavior->child, &x);
+            PATHLINKEND x;
+            x.pos = v;
+            SetBhvgotoGoal((BHVGOTO *)behavior->pbhvNext, &x);
         }
         break;
     case 1:
-        if (IsStepguardHandsOff(behavior->guard))
+        if (IsStepguardHandsOff(behavior->owner))
             SetBhvEscortState(behavior, 2);
         else if (dist < 700.0f)
             SetBhvEscortState(behavior, 0);
         else if (lim < LenXY(SubIn(behavior->lastGoalPosition, pos))) {
             behavior->lastGoalPosition = pos;
-            ClearPointerPair(&x);
-            x.v = pos;
-            SetBhvgotoGoal(behavior->child, &x);
+            PATHLINKEND x;
+            x.pos = pos;
+            SetBhvgotoGoal((BHVGOTO *)behavior->pbhvNext, &x);
         }
         break;
     case 2:
-        if (!IsStepguardHandsOff(behavior->guard))
+        if (!IsStepguardHandsOff(behavior->owner))
             SetBhvEscortState(behavior, 0);
         break;
     }
@@ -5320,19 +5313,7 @@ test:
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_U[(sizeof(U)==16)?1:-1];
-typedef char layout_X[(sizeof(struct X)==32)?1:-1];
-typedef char layout_P[(sizeof(struct P)==0x70)?1:-1];
 typedef char layout_float[(sizeof(float)==4)?1:-1];
-typedef char layout_P_guard[((unsigned)&((struct P*)0)->guard==0x10)?1:-1];
-typedef char layout_P_child[((unsigned)&((struct P*)0)->child==0x18)?1:-1];
-typedef char layout_P_pending[((unsigned)&((struct P*)0)->pending==0x20)?1:-1];
-typedef char layout_P_p30[((unsigned)&((struct P*)0)->escorted==0x30)?1:-1];
-typedef char layout_P_v40[((unsigned)&((struct P*)0)->localOffset==0x40)?1:-1];
-typedef char layout_P_state[((unsigned)&((struct P*)0)->state==0x50)?1:-1];
-typedef char layout_P_time[((unsigned)&((struct P*)0)->time==0x54)?1:-1];
-typedef char layout_P_v60[((unsigned)&((struct P*)0)->lastGoalPosition==0x60)?1:-1];
-typedef char layout_X_header[((unsigned)&((struct X*)0)->header==0x0)?1:-1];
-typedef char layout_X_v[((unsigned)&((struct X*)0)->v==0x10)?1:-1];
 } } // namespace M_func_0017C6D0
 
 // 0x17C928 SetBhvEscortState
