@@ -1605,62 +1605,26 @@ void RenderFlying(S *p)
 
 namespace M_CreateStuck {
 // Emit an oriented particle in the supplied parent space.
-typedef int qword __attribute__((mode(TI)));
 union U {
     qword q;
     float f[4];
 };
-struct M3 {qword r[3];};
-struct LO {
-    char pad158[0x158];
-    float height;
-};
-struct POLY {
-    float a, b, c;
-};
-struct EMIT {
-    char pad8[8];
-    LO *owner;
-    char padC[8];
-    float start, duration;
-    char pad1C[4];
-    POLY size;
-};
-struct O;
-struct VE {
-    short delta, pad;
-    void (*fn)(void *, qword, int, float);
-};
-struct O {
-    char pad18[0x18];
-    float duration;
-    LO *visual;
-    char pad20[8];
-    float spin;
-    char pad2C[0x14];
-    M3 matrix;
-    U position;
-    char pad80[0x10];
-    U velocity;
-    char padA0[0x4C];
-    VE *vt;
-    LO *space;
-};
+typedef RIPM3 M3;
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003DD490[]; }
 extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
 extern "C" {
-O *NewRipInGroup(void*,void*,void*);
+STUCK *NewRipInGroup(void*,void*,void*);
 qword TransformXfPos(void*,LO*,qword);
 float RandomFloatInRange__Fff(float,float);
 void GetNormalVectors(qword,qword,qword,qword*);
 M3 LoadRotateMatrixEuler(qword);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
-O *CreateStuck(EMIT*,LO*,LO*,qword,qword);
+STUCK *CreateStuck(FLYING*,LO*,LO*,qword,qword);
 }
-static inline float Polynomial(POLY *p, float t)
+static inline float Polynomial(CLQ *pclq, float t)
 {
-    return p->a + t * (p->b + t * p->c);
+    return pclq->g0 + t * (pclq->g1 + t * pclq->g2);
 }
 static inline float Dot(qword a, qword b)
 {
@@ -1701,22 +1665,22 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
             : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
 // Spawn a STUCK rip (NewRipInGroup) attached to the hit object at the contact point/orientation. (inferred)
-O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
+STUCK *CreateStuck(FLYING *p, LO *visual, LO *space, qword position, qword direction)
 {
-    O *object = 0;
+    STUCK *object = 0;
     if (visual) {
         object = NewRipInGroup(D_003DD490, (void *)10, 0);
         if (object) {
             float zero = 0.0f;
             U local;
             local.q = TransformXfPos(0, space, position);
-            float size = Polynomial(&p->size, (D_002DDED0.time - p->start) / p->duration);
+            float size = Polynomial(&p->clqScale, (D_002DDED0.time - p->startTime) / p->duration);
             size *= RandomFloatInRange__Fff(0.8f, 1.4f);
-            object->vt[1].fn((char *)object + object->vt[1].delta, local.q, 0, size);
-            object->visual = visual;
+            object->Init(local.q, size, 0);
+            object->renderObject = visual;
             object->duration = 5.0f;
-            object->spin = -size;
-            object->space = space;
+            object->scaleCurve = -size;
+            object->ploHost = space;
             M3 frame;
             frame.r[2] = direction;
             GetNormalVectors(direction, D_002A2DA0, D_002A2DB0, frame.r);
@@ -1728,7 +1692,7 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
             rotation = LoadRotateMatrixEuler(angles.q);
             {
                 M3 orient = Mul(frame, rotation);
-                object->matrix = orient;
+                object->orientation = orient;
             }
             qword *up = &D_002A2DC0;
             if (__builtin_fabsf(Dot(direction, *up)) < 0.7f) {
@@ -1738,9 +1702,9 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
                 M3 tilt;
                 tilt = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(flat.q, direction);
                 U home;
-                object->velocity.q = Transform(tilt, Scale(*up, -50.0f, home));
+                object->velocity = Transform(tilt, Scale(*up, -50.0f, home));
             }
-            object->position.f[2] += p->owner->height;
+            ((float *)&object->currentPosition)[2] += ((RIPGV *)p->ripGroup)->emitScale;
         }
     }
     return object;

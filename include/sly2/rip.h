@@ -30,6 +30,7 @@ struct RIP
     union
     {
         qword scale;           /* +0x20 the scale curve as one quadword */
+        CLQ clqScale;          /* +0x20 the same as a quadratic in the rip's age fraction (CreateStuck evaluates it) */
         struct
         {
             float scaleStart;  /* +0x20 its coefficients: the initial scale, */
