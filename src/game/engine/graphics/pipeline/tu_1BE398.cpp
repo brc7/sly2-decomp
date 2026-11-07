@@ -67,7 +67,7 @@ struct RTCAM
     int numShown;      /* +0x104 objects shown only in the target */
     RTO *shown[4];
     RTCAM *parent;     /* +0x118 */
-    float fov, clipFar, clipNear;
+    float fov, clipNear, clipFar;
     RT *prt;           /* +0x128 the claimed target */
 };
 typedef char assert_RTCAM_prt[(unsigned int)&((RTCAM *)0)->prt == 0x128 ? 1 : -1];
@@ -209,15 +209,15 @@ extern "C" void SetupRenderTargetView(RT*p,VIFS*vifs){
  aspect=slope*aspect;
  slope*=4096.0f;
  aspect*=4096.0f;
- BuildSimpleProjectionMatrix((float)p->dx/aspect,(float)p->dy/slope,0.0f,0.0f,p->camera->clipFar,p->camera->clipNear,(MATRIX4*)&projection);
+ BuildSimpleProjectionMatrix((float)p->dx/aspect,(float)p->dy/slope,0.0f,0.0f,p->camera->clipNear,p->camera->clipFar,(MATRIX4*)&projection);
  CombineEyeLookAtProj(pv,&projection,&product);
  {RTCAM*camera=p->camera;
-  float z=(camera->clipFar+camera->clipNear)/(camera->clipFar-camera->clipNear);
+  float z=(camera->clipNear+camera->clipFar)/(camera->clipNear-camera->clipFar);
   float k=1.0f-z;
   planes[0].normal=D_002C1F00;
-  planes[0].distance=1.0f/(camera->clipFar*k);
+  planes[0].distance=1.0f/(camera->clipNear*k);
   planes[1].normal=D_002C1F10;
-  planes[1].distance=-z/(camera->clipFar*k);
+  planes[1].distance=-z/(camera->clipNear*k);
  }
  vifs->AddDmaCnt();
  vifs->AddVifFlush();
@@ -252,8 +252,8 @@ void CID45::Init()
     RTCAM *pcam = (RTCAM *)this;
     InitXfm(pcam);
     pcam->fov = 1.0f;
-    pcam->clipFar = 4.0f;
-    pcam->clipNear = 1000.0f;
+    pcam->clipNear = 4.0f;
+    pcam->clipFar = 1000.0f;
 }
 
 // Loads an RTCAM from the level file (vtable slot 14): just its transform.
