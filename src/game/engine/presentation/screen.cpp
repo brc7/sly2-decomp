@@ -24,6 +24,7 @@
 #include "sly2/screen.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/cref.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -1276,25 +1277,24 @@ int IsScreenItemUnlocked(int i) {
 } } // namespace M_func_001DAE58
 
 namespace M_FPowerupAcquired { extern "C" {
-typedef struct CRef { int tagk; int tag; } CRef;
 extern char D_002A79A0[], D_002A79A8[], D_002A79B8[];
 void sprintf(char *pch, char *fmt, int n);
-void GetSaveVarByName(CRef *pref, char *a, char *b, char *c, int d);
-void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
-void Decref__4CRef(CRef *pref);
+void GetSaveVarByName(CRefData *pref, char *a, char *b, char *c, int d);
+void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRef");
+void Decref__4CRef(CRefData *pref);
 // True when the power-up has been bought (save data).
 int IsPowerupAcquired(int n) {
-    CRef ref;
+    CRefData ref;
     char ach[0x20];
-    CRef tmp;
+    CRefData tmp;
     int r;
     if (n == -1) return 0;
-    ref.tagk = -1;
+    ref.m_tagk = -1;
     sprintf(ach, D_002A79A0, n);
     GetSaveVarByName(&tmp, D_002A79A8, D_002A79B8, ach, 0);
     func_00129658(&ref, &tmp);
     Decref__4CRef(&tmp);
-    r = ref.tag;
+    r = ref.u.n;
     Decref__4CRef(&ref);
     return r;
 }

@@ -26,6 +26,7 @@
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/cref.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -1279,12 +1280,11 @@ namespace M_LoadStepplayerGadgets { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct E { int id; int a, b; };
 struct P { char pad[0xC]; struct VTE *vt; char pad2[0x1180 - 0x10]; struct E ae[3]; };
-struct CRef { int tagk; int tag; };
 extern char D_002A4D50[];
 extern char D_002A4D58[];
 int sprintf(char *, const char *, ...);
-void GetSaveVarByName(struct CRef *r, void *a, void *b, char *c, int d);
-void Decref__4CRef(struct CRef *r);
+void GetSaveVarByName(CRefData *r, void *a, void *b, char *c, int d);
+void Decref__4CRef(CRefData *r);
 // 0x141EF0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
 
@@ -1294,12 +1294,12 @@ void LoadStepplayerGadgets(struct P *player)
     int i;
     for (i = 0; i < 3; i++) {
         char ach[16];
-        struct CRef r;
+        CRefData r;
         struct VTE *e;
         sprintf(ach, D_002A4D50, i);
         e = &player->vt[103];
         GetSaveVarByName(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4D58, ach, 0);
-        player->ae[i].id = r.tag;
+        player->ae[i].id = r.u.n;
         Decref__4CRef(&r);
     }
     {
@@ -2435,20 +2435,19 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
 namespace M_func_00143BD8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct CRef { int tagk; int tag; };
 extern char D_002A4DB0[];
-void GetSaveVarByName(struct CRef *r, void *a, void *b, int c);
-void Decref__4CRef(struct CRef *r);
+void GetSaveVarByName(CRefData *r, void *a, void *b, int c);
+void Decref__4CRef(CRefData *r);
 void ClearStepplayerBootySave(struct O *p, int n);
 void SpawnStepplayerBootyMarker(struct O *p, int n);
 // On load: restores or clears the carried booty depending on the transition flags.
 void RestoreStepplayerBooty(struct O *player)
 {
-    struct CRef r;
+    CRefData r;
     int n;
     struct VTE *e = &player->vt[103];
     GetSaveVarByName(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4DB0, 0);
-    n = r.tag;
+    n = r.u.n;
     Decref__4CRef(&r);
     if ((unsigned int)(n + 1) < 2) return;
     if ((*(int *)&g_sw.grfTransition) & 0x40) ClearStepplayerBootySave(player, n);
