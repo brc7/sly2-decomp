@@ -1113,47 +1113,33 @@ extern "C" void ClearGadgetMenu(GADGETMENU *gadgetMenu)
 enum GadgetMenuPage { GADGETMENU_CLOSED = -1, GADGETMENU_SLY, GADGETMENU_BENTLEY, GADGETMENU_MURRAY };
 
 namespace M_UpdateGadgetMenu { extern "C" {
-typedef struct { char pad[0x1C]; int flags; } R;
-typedef struct {
-    char pad[0x10];
-    void *joy;
-    char pad14[0x24 - 0x14];
-    void *widget;
-    char pad28[0x30 - 0x28];
-    int timerKind;
-    char pad34[0x40 - 0x34];
-    int state;
-    char pad44[4];
-    int selectedGadget;
-} OBJ;
 extern struct G D_003DD490;
 extern int D_002C3258[];
-void UpdateTimedScreen(OBJ *);
+void UpdateTimedScreen(GADGETMENU *);
 int HandleJoyButtons(void *, int);
 void *GetHeroPo(struct G *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void SetGadgetMenuState(OBJ *, int);
-void UpdateScreenStickDir(OBJ *);
-R *FindScreenEntry(OBJ *, int);
-void SetScreenMode(OBJ *, int, int);
+void UpdateScreenStickDir(GADGETMENU *);
+GMITEM *FindScreenEntry(GADGETMENU *, int);
+void SetScreenMode(GADGETMENU *, int, int);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void SetStepplayerGadget(void *, int, int);
 // Per-frame gadget menu: circle closes, the info button shows a message, and the three slot buttons assign the selected
 // power-up (if owned) to that slot.
-void UpdateGadgetMenu(OBJ *p)
+void UpdateGadgetMenu(GADGETMENU *p)
 {
     void *hero;
-    R *r;
+    GMITEM *r;
     int i;
     UpdateTimedScreen(p);
-    if (p->widget == 0)
+    if (p->pchild == 0)
         return;
-    if (p->state == -1)
+    if (p->nState == -1)
         return;
-    if (p->joy == 0)
+    if (p->pjoy == 0)
         return;
-    if (p->timerKind && HandleJoyButtons(p->joy, 0x10)) {
+    if (p->nPopup && HandleJoyButtons(p->pjoy, 0x10)) {
         SetGadgetMenuState(p, GADGETMENU_CLOSED);
         return;
     }
@@ -1163,24 +1149,24 @@ void UpdateGadgetMenu(OBJ *p)
         return;
     }
     UpdateScreenStickDir(p);
-    if (HandleJoyButtons(p->joy, 0x7E8)) {
-        r = FindScreenEntry(p, p->selectedGadget);
-        if (r == 0 || ((r->flags & 1) == 0))
+    if (HandleJoyButtons(p->pjoy, 0x7E8)) {
+        r = FindScreenEntry(p, p->idSelected);
+        if (r == 0 || !r->fEquippable)
             SetScreenMode(p, 1, 0xE2);
         else
             SetScreenMode(p, 1, 0x31);
     }
     for (i = 0; i < 3; i++) {
-        if (!HandleJoyButtons(p->joy, D_002C3258[i]))
+        if (!HandleJoyButtons(p->pjoy, D_002C3258[i]))
             continue;
-        r = FindScreenEntry(p, p->selectedGadget);
-        if (r == 0 || !(r->flags & 4)) {
+        r = FindScreenEntry(p, p->idSelected);
+        if (r == 0 || !r->fAcquired) {
             SetScreenMode(p, 1, 0x32);
-        } else if (((r->flags & 1) == 0)) {
+        } else if (!r->fEquippable) {
             SetScreenMode(p, 1, 0x33);
         } else {
             SetSndSourceLo(CreateSfxSound(0x34), 0);
-            SetStepplayerGadget(hero, i, p->selectedGadget);
+            SetStepplayerGadget(hero, i, p->idSelected);
         }
     }
 }
@@ -1191,14 +1177,6 @@ typedef struct { float x, y, dx, dy; char pad[0x10]; } TXT;
 typedef struct { char ab[0xA0]; } FONT;
 typedef struct { int n; int a; int b; } SLOT;
 typedef struct { char pad[0x1180]; SLOT gadgetSlots[3]; } Q;
-typedef struct { int n; char pad[0x10]; float x; float y; char pad1c[4]; } ENT;
-typedef struct {
-    char pad[0x24];
-    void *widget;
-    char pad28[0x4C - 0x28];
-    int itemCount;
-    ENT *items;
-} OBJ;
 extern struct G D_003DD490;
 extern float D_002C3264;
 extern int D_002C3268[];
@@ -1215,24 +1193,24 @@ void DrawRichText2(FONT *, TXT *, int);
 static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;}
 // While the gadget menu is visible, draws the slot button glyph next to each power-up that is equipped in a slot.
 // (inferred)
-void DrawGadgetMenuSlotLabels(OBJ *p)
+void DrawGadgetMenuSlotLabels(GADGETMENU *p)
 {
     Q *hero;
     int i;
-    if (p->widget == 0)
+    if (p->pchild == 0)
         return;
-    if (!IsWidgetVisible(p->widget))
+    if (!IsWidgetVisible(p->pchild))
         return;
     hero = GetHeroPo(&D_003DD490);
     if (hero == 0)
         return;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
         return;
-    for (i = 0; i < p->itemCount; i++) {
-        ENT *pe = &p->items[i];
+    for (i = 0; i < p->citem; i++) {
+        GMITEM *pe = &p->aitem[i];
         int j;
         for (j = 0; j < 3; j++) {
-            if (pe->n == hero->gadgetSlots[j].n) {
+            if (pe->idGadget == hero->gadgetSlots[j].n) {
                 TXT txt;
                 unsigned int rgba[2];
                 FONT font;
@@ -1471,47 +1449,30 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
 } // namespace M_SetGadgetMenuStickDir
 
 namespace M_SelectGadgetMenuItem { extern "C" {
-typedef struct {
-    int gadgetId;
-    int unlockedAnim;
-    int acquiredAnim;
-    int selectedAnim;
-    int currentAnim;
-    int pad[2];
-    int flags;
-} E;
-typedef struct {
-    char pad0[0x24];
-    void *widget;
-    char pad28[0x48 - 0x28];
-    int selectedGadget;
-    int itemCount;
-    E *items;
-} OBJ;
 void StopWidgetAnim(void *, int);
 void PlayWidgetAnim(void *, int);
 // Selects an item and sets every item's highlight animation (selected / acquired / unlocked).
-void SelectGadgetMenuItem(OBJ *p, int gadgetId)
+void SelectGadgetMenuItem(GADGETMENU *p, int gadgetId)
 {
     int i;
-    p->selectedGadget = gadgetId;
-    for (i = 0; i < p->itemCount; i++) {
-        E *e = &p->items[i];
+    p->idSelected = gadgetId;
+    for (i = 0; i < p->citem; i++) {
+        GMITEM *e = &p->aitem[i];
         int v;
-        if (e->gadgetId == gadgetId)
-            v = e->selectedAnim;
-        else if (e->flags & 4)
-            v = e->acquiredAnim;
-        else if (e->flags & 2)
-            v = e->unlockedAnim;
+        if (e->idGadget == gadgetId)
+            v = e->idAnimSelected;
+        else if (e->fAcquired)
+            v = e->idAnimAcquired;
+        else if (e->fAvailable)
+            v = e->idAnimUnlocked;
         else
             v = -1;
-        if (v != e->currentAnim) {
-            if (p->widget && e->currentAnim != -1)
-                StopWidgetAnim(p->widget, e->currentAnim);
-            e->currentAnim = v;
-            if (p->widget && v != -1)
-                PlayWidgetAnim(p->widget, v);
+        if (v != e->idAnimCur) {
+            if (p->pchild && e->idAnimCur != -1)
+                StopWidgetAnim(p->pchild, e->idAnimCur);
+            e->idAnimCur = v;
+            if (p->pchild && v != -1)
+                PlayWidgetAnim(p->pchild, v);
         }
     }
 }
