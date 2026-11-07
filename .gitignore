@@ -1,15 +1,15 @@
 # Game files: never commit (bring your own disc, see SETUP.md)
-disc/
+/disc
 asm/
 *.iso
 *.bin
 *.elf
 SCUS_*
 # Third-party compiler binaries (download per SETUP.md)
-tools/compilers/
+/tools/compilers
 tools/cc/
-tools/wibo-i686
-tools/wibo-macos
+/tools/wibo-i686
+/tools/wibo-macos
 # Build output / caches
 build/*
 __pycache__/
