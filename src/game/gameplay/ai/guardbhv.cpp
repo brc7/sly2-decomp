@@ -5249,30 +5249,27 @@ int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, struct M *pm) {
 
 // 0x17B750 SetBhvshootState
 namespace M_SetBhvshootState { extern "C" {
-struct CLOCK; struct VTE; struct O; struct T; struct S;
+struct CLOCK; struct VTE; 
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; int sgf; };
-struct T { char pad[0xF60]; int firingWindow; };
-struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int target; };
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
+BHVANIM *PushStepBehavior(void *p, int n);
 // 0x17B750: BHVSHOOT state change: 0 pushes the shooting animation (flag 0x11) aimed at the target and opens the
 // firing state.
-void SetBhvshootState(struct S *behavior, int n) {
+void SetBhvshootState(BHVSHOOT *behavior, int n) {
     if (n == behavior->state) return;
-    PopBhv(behavior->childSlot);
-    if (!behavior->state) behavior->guard->firingWindow = 0;
+    PopBhv((&behavior->pbhvNext));
+    if (!behavior->state) ((STEPGUARD *)behavior->owner)->firingWindow = 0;
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     if (n)
         return;
-    struct O *o = PushStepBehavior(behavior->guard, CID_BHVANIM);
+    BHVANIM *o = PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVANIM);
     o->sgf = 0x11;
     o->lookAt = behavior->target;
     StartPushedBhv(o);
-    behavior->guard->firingWindow = 1;
+    ((STEPGUARD *)behavior->owner)->firingWindow = 1;
 }
 } } // namespace M_SetBhvshootState
 
