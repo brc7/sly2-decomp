@@ -2709,7 +2709,6 @@ struct JTGRABCAND {
     float dsParam;
     qword position;
 };
-struct SW { char pad0[0x4678]; int cjtgrabcand; JTGRABCAND ajtgrabcand[4]; };
 struct STEPPLAYER { char pad0[0x9C4]; int idUnk9C4; };
 
 extern "C" {
@@ -2742,9 +2741,9 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
         if (candidates->grabSpot->nUnk14 != -1)
             candidates->priority = 1;
     }
-    JTGRABCAND *ajtgrabcandOld = world->ajtgrabcand;
+    JTGRABCAND *ajtgrabcandOld = ((JTGRABCAND *)world->ajtgrabcand);
     for (i = world->cjtgrabcand; --i >= 0; ) {
-        oldCandidate = &world->ajtgrabcand[i];
+        oldCandidate = &((JTGRABCAND *)world->ajtgrabcand)[i];
         // Search the new candidates from the end; the drop code sits in the loop's exit test (its calls stop gcc
         // from duplicating the test in front of the loop, giving the original's jump-to-test entry).
         j = ccand;
@@ -2819,7 +2818,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                 break;
             pcand->unknown10 = plo;
         }
-        world->ajtgrabcand[world->cjtgrabcand++] = *pcand;
+        ((JTGRABCAND *)world->ajtgrabcand)[world->cjtgrabcand++] = *pcand;
         BroadcastGameEvent(D_002DEB30, 0x3D, pcand->object);
     }
     qsort(ajtgrabcandOld, world->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
