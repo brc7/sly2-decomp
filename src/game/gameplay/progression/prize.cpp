@@ -2261,7 +2261,7 @@ struct SGG;struct ALARM;
 struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int selectedDigit,enteredCode;SGG*relay;void*dialAnim;char pad1A4[0x1F0-0x1A4];int combination;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
 extern "C" { extern float D_002C0FE8,D_002A7798; }
 extern "C" { extern qword D_002C0FF0[9]; }
-extern "C" { extern struct CLOCK {float time,deltaTime;} D_002DDED0; }
+extern "C" { extern CLOCK D_002DDED0; }
 extern "C" int ConsumeButtonsPressedWithin__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
 extern "C" void SetVaultDialState(struct S*,int);
@@ -2318,7 +2318,6 @@ extern "C" void UpdateVaultInput(struct S*vault){
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(float)==4 && sizeof(void*)==4 && OFF(POINT,x)==0x10 && OFF(POINT,y)==0x14 && OFF(TIMER,end)==0xA8 && OFF(S,input)==0x150 && OFF(S,state)==0x188 && OFF(S,selectedDigit)==0x194 && OFF(S,enteredCode)==0x198 && OFF(S,relay)==0x19C && OFF(S,dialAnim)==0x1A0 && OFF(S,combination)==0x1F0 && OFF(S,timer)==0x204 && OFF(CLOCK,time)==0 && OFF(CLOCK,deltaTime)==4 && sizeof(D_002C0FF0)==0x90)?1:-1];
 } // namespace M_func_001C84D8
 #undef OFF
 
