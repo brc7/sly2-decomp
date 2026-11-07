@@ -195,15 +195,15 @@ struct JT : public STEPPLAYER
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleJtMessage");   /* slot 5 */
     virtual void Init() __asm__("InitJt");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadJtFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostJtLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateJt");   /* slot 16 */
-    virtual void VUnk16() __asm__("UpdateJtWorldTransform");   /* slot 17 */
+    virtual void PostLoad() __asm__("PostJtLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateJt");   /* slot 16 */
+    virtual void UpdateXfWorld() __asm__("UpdateJtWorldTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderJtSelf");   /* slot 19 */
-    virtual void VUnk48() __asm__("UpdateJtExtraEntries");   /* slot 49 */
+    virtual void UpdateBounds() __asm__("UpdateJtExtraEntries");   /* slot 49 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetJtCpdefi");   /* slot 50 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustJtXp");   /* slot 55 */
-    virtual void VUnk56(XP *pxp, int ixpd) __asm__("AdjustJtXpVelocity");   /* slot 57 */
-    virtual void VUnk69() __asm__("PresetJtAccel");   /* slot 70 */
+    virtual void AdjustXpVelocity(XP *pxp, int ixpd) __asm__("AdjustJtXpVelocity");   /* slot 57 */
+    virtual void PresetAccel() __asm__("PresetJtAccel");   /* slot 70 */
     virtual int FInvulnerable(ZPK zpk) __asm__("IsJtInvulnerable");   /* slot 76 */
     virtual void OnActive(int fActive) __asm__("OnJtActive");   /* slot 78 */
     virtual int VUnk84() __asm__("GetJtModeCode");   /* slot 85 */

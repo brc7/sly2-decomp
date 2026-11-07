@@ -357,7 +357,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                 jtMode->pasegaHold = player->psmaUnk1034->pasegaCur;
             if (jtMode->pasegaHold)
             {
-                jtMode->pasegaHold->VUnk00();
+                jtMode->pasegaHold->AddRef();
                 SetAsegaSpeed(jtMode->pasegaHold, 0.0f);
             }
             jtMode->nState = state;
@@ -434,7 +434,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
             if (jtMode->pasegaHold)
             {
                 SetAsegaSpeed(jtMode->pasegaHold, 1.0f);
-                jtMode->pasegaHold->VUnk01();
+                jtMode->pasegaHold->Release();
                 jtMode->pasegaHold = 0;
             }
             jtMode->nKind = -1;

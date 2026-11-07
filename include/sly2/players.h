@@ -103,12 +103,12 @@ struct MURRAY : public STEPPLAYER
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleMurrayMessage");   /* slot 5 */
     virtual void Init() __asm__("InitMurray");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMurrayFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostMurrayLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateMurray");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostMurrayLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateMurray");   /* slot 16 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetMurrayCpdefi");   /* slot 50 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustMurrayNewXp");   /* slot 55 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldMurrayIgnoreIntersection");   /* slot 61 */
-    virtual void VUnk69() __asm__("PresetMurrayAccel");   /* slot 70 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMurrayIgnoreIntersection");   /* slot 61 */
+    virtual void PresetAccel() __asm__("PresetMurrayAccel");   /* slot 70 */
     virtual int FInvulnerable(ZPK zpk) __asm__("IsMurrayInvulnerable");   /* slot 76 */
     virtual int VUnk84() __asm__("GetMurrayModeCode");   /* slot 85 */
     virtual void VUnk86(int fOn) __asm__("SetMurrayPlayable");   /* slot 87 */
@@ -189,11 +189,11 @@ struct BENTLEY : public STEPPLAYER
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBentleyMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBentley");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadBentleyFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostBentleyLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateBentley");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostBentleyLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateBentley");   /* slot 16 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetBentleyCpdefi");   /* slot 50 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustBentleyXp");   /* slot 55 */
-    virtual void VUnk69() __asm__("PresetBentleyAccel");   /* slot 70 */
+    virtual void PresetAccel() __asm__("PresetBentleyAccel");   /* slot 70 */
     virtual int FInvulnerable(ZPK zpk) __asm__("IsBentleyInvulnerable");   /* slot 76 */
     virtual int VUnk84() __asm__("GetBentleyModeCode");   /* slot 85 */
     virtual void VUnk87(int n) __asm__("SetBentleyPlayerState");   /* slot 88 */

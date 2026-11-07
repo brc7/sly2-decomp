@@ -66,7 +66,7 @@ void ClearLootPouchLoot(SPRAYER *);
 
 // CID99 vtable slot 15 (PostLoad): finishes the SO load, binds the snip table (its SMA, proxy, held item and attach
 // frame by oid) and starts the SMA.
-void CID99::VUnk14()
+void CID99::PostLoad()
 {
     SPRAYER *pouch = (SPRAYER *)this;
     PostSoLoad(pouch);

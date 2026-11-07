@@ -128,7 +128,7 @@ extern "C" void PostAmbLoad(AMB *amb)
 }
 
 /** @sly2-annot addr=0x12ED20
- * Purpose: slot 23: LO::Unfreeze then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange)
+ * Purpose: slot 23: LO::OnAdd then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange)
  * Info: proposed name OnCid43Add (T2); class CID43 slot23; TU amb
  * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
  *   proximity activation) (was CID43_Unfreeze)
@@ -153,7 +153,7 @@ extern "C" void OnAmbAdd(AMB *amb)
 }
 
 /** @sly2-annot addr=0x12EDE8
- * Purpose: slot 22: LO::Freeze then StopSnd
+ * Purpose: slot 22: LO::OnRemove then StopSnd
  * Info: proposed name OnCid43Remove (T2); class CID43 slot22; TU amb
  * Notes: names_v2 C proposed FIsAloStatic__FP3ALO (0.438) | slot 22 OnRemove resolved by arbitration
  *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was CID43_Freeze)

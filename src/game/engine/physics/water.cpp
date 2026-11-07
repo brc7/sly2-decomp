@@ -221,7 +221,7 @@ extern "C" void InitWaterPhysics(SOW *water)
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
 // Slot 15 (PostLoad): only the SO post-load.
-void WATER::VUnk14()
+void WATER::PostLoad()
 {
     SOW *p = (SOW *)this;
     PostSoLoad(p);

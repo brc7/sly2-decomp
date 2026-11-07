@@ -691,7 +691,7 @@ extern "C" void UpdateTn(TN *p)
 }
 
 // OnLoRemove then SetTnTns(Out)
-void TN::Freeze()
+void TN::OnRemove()
 {
     TN *p = (TN *)this;
     OnLoRemove(p);

@@ -194,7 +194,7 @@ struct LOV : BASICV {
     virtual void V25(); virtual void V26(); virtual void V27(); virtual void V28(); virtual void V29();
     virtual void RotateToMat(MATRIX3V *pmat);                    // 30
     virtual void V31();
-    virtual XFV *PxfLocal(MATRIX4V *pmatLocal);                   // 32
+    virtual XFV *GetLocalTransform(MATRIX4V *pmatLocal);                   // 32
     virtual void V33(); virtual void V34();
     virtual void SetVelocity(qwordV v);                           // 35
     virtual void SetAngularVelocity(qwordV w);                    // 36
@@ -356,7 +356,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     SOV *psoSource = plaunch->psoSource;
     XFV *pxf;
     if (psoSource)
-        pxf = psoSource->PxfLocal(&matParent);
+        pxf = psoSource->GetLocalTransform(&matParent);
     else {
         pxf = &D_002C44F0;
         LoadIdentity(&matParent);

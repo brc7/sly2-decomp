@@ -130,7 +130,7 @@ float ModPositive(float a, float b);                   /* ModPositive__Fff */
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
 // Adds a reference to the player (slot 1).
-void ASEGA::VUnk00()   /* key function: ASEGA's vtable comes out here */
+void ASEGA::AddRef()   /* key function: ASEGA's vtable comes out here */
 {
     ASEGA *p = this;
     p->cref = p->cref + 1;
@@ -337,7 +337,7 @@ void SyncAsegaEventCursor(ASEGA *player)
 // MATCH (Claude agent laneB9, 2026-10-23): the t copy pinned to $f1 (one commented register pin) declared inside an `if (i < pq->c)` block, take-branch ends with continue (reorg puts the mov.s in the bc1t delay slot).
 // fresh1 (Claude agent, 2026-10-23): aligned 16 -> 15: pq->ae[i] indexed in the compare, then (pe = &pq->ae[i], 1) as in HandleAsegaEventsFastForward (fixes addu order). Left: target t in f2 plus a mov.s f1,f2 copy used only by c.eq.s (bc1t delay slot).
 /* The begin/end bracket the event handlers hold while they run (real virtual calls of BASIC slots 1 and 2). */
-struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->VUnk00(); } ~GV() { p->VUnk01(); } };
+struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->AddRef(); } ~GV() { p->Release(); } };
 /** @sly2-annot addr=0x130F88
  * Purpose: Dispatches events crossed during the frame (calls HandleAsegaEvent)
  * Info: proposed name HandleAsegaEvents (T1); TU asega

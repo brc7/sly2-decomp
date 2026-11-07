@@ -339,7 +339,7 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void SetLoVisMask(LO *plo, uint grfvis) __asm__("SetLoVisMask");
 
 
-XF *PxfFromIxf(int ixf, SO *psoParent, SO *pso) __asm__("ResolveXfId");
+XF *GetXfFromIndex(int ixf, SO *psoParent, SO *pso) __asm__("ResolveXfId");
 void PushXf(XF *pxf) __asm__("PushXfContext");
 void PopXf(XF *pxf) __asm__("PopXfContext");
 void InvalidateXfmWorld(XFM *pxfm) __asm__("InvalidateXfm");
@@ -404,7 +404,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
     int idSource = stream->S32Read();
     int mode = stream->S8Read();
     int ixf = stream->S16Read();
-    XF *pxf = PxfFromIxf(ixf, psoParent, 0);
+    XF *pxf = GetXfFromIndex(ixf, psoParent, 0);
     MATRIX4 mat;
     stream->ReadMatrix4(&mat);
     uint grfvis = stream->U32Read();
@@ -560,7 +560,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
 // down to the object's current node (at most 16, deepest last) with idProxy added at the end. The
 // nodes the object owned (PXR::plo == this) are let go, and the new path's nodes that belong to
 // sources of a single object and are not owned yet become the object's. fChildren: the children
-// (CploChildren) follow with the same id, inside a stack allocation scope.
+// (GetChildren) follow with the same id, inside a stack allocation scope.
 // How it matched (re/notes/decomp-compiler-quirks.md section 8): one iterator for all three walks, the
 // release and claim walks as `for (...; id != -1; step) { if (...) ...; else break; }`, and the first walk
 // testing idProxy in the body and reading it again for the store (gcc's PRE turns that into the copy).
@@ -625,7 +625,7 @@ void LO::SetIdProxy(int idProxy, int fChildren)
     {
         STACKSCOPE scope;
         LO **aplo;
-        int cplo = CploChildren(&aplo);
+        int cplo = GetChildren(&aplo);
         for (int iplo = 0; iplo < cplo; iplo++)
         {
             aplo[iplo]->SetIdProxy(idProxy, 1);
@@ -831,7 +831,7 @@ extern "C" void AcquireProxy(PROXY *proxy)
 }
 
 /** @sly2-annot addr=0x1CA8E0
- * Purpose: PROXY vt23: LO::Unfreeze then 0x149AB8
+ * Purpose: PROXY vt23: LO::OnAdd then 0x149AB8
  * Info: proposed name OnProxyAdd (T1); class PROXY slot23; TU proxy
  * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
  *   proximity activation) (was PROXY_Unfreeze)
@@ -913,7 +913,7 @@ out:
 // Globals: D_002A2DD0 (g_qwZero)
 // 0x001CAA60 ReleaseProxySpare__FP5PROXYP10PROXYSPARE  (MATCHES Sly 2, T0861)
 // Takes the copy away from the proxy that holds it and puts it back in the pool: out of the proxy's list, the
-// PROXYINIT splice frames undone (CFrame::RemoveParent), then for every object VUnk26(proxy), splice event 0xF
+// PROXYINIT splice frames undone (CFrame::RemoveParent), then for every object OnProxyRelease(proxy), splice event 0xF
 // to both, Remove, moved back by the inverse of the matrix it was placed with, into the world without a parent,
 // and an SO is put back where the source had it (with zero velocities) when it has the XFs for that.
 extern "C" {
@@ -1008,7 +1008,7 @@ void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare)
             }
             pinit->plo = 0;
         }
-        plo->VUnk26(proxy);
+        plo->OnProxyRelease(proxy);
         void *apvArgs[1];
         apvArgs[0] = &plo;
         proxy->HandleSpliceEvent(0xF, 0, 1, apvArgs, 0);
@@ -1466,7 +1466,7 @@ void ReleaseProxySpare__FP5PROXYP10PROXYSPARE(struct S *p, void *q);
 int IsEntryInDl__FP2DLPv(struct SL *pl, void *pv);
 void RemoveDlEntry__FP2DLPv(struct SL *pl, void *pv);
 /** @sly2-annot addr=0x1CB6D8
- * Purpose: PROXY vt24: release all held spares; unregister from SW list (*(struct SL *)&g_sw.dlBusy) and Freeze
+ * Purpose: PROXY vt24: release all held spares; unregister from SW list (*(struct SL *)&g_sw.dlBusy) and OnRemove
  * Info: proposed name PROXY_VUnk24 (T2); class PROXY slot24; TU proxy
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
  * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,

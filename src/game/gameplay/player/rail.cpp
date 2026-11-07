@@ -2,7 +2,7 @@
 // list: init/load/add/remove/clone, its range, closest point and a random point/direction on it. VU0 and EE asm.
 // TU 0x1CB908..0x1CBEB0 (11 functions, address order); RAIL's GRABSPOT owner getter func_00259B08 is an inline
 // function in sly2/xfm.h.
-// Entry points: InitRail/PostRailLoad/CloneRail, the world rail list (RAIL::Unfreeze, OnRailRemove) and the
+// Entry points: InitRail/PostRailLoad/CloneRail, the world rail list (RAIL::OnAdd, OnRailRemove) and the
 // GRABSPOT virtuals (GetRailWrapRange, GetRailClosestParam, GetRailGrabPosition, GetRailSparklePosition).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CBE90
@@ -99,7 +99,7 @@ extern "C" void PostRailLoad(RAILV *rail)
  * @end-sly2-annot */
 // RAIL slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's rail list
 // (g_sw.dlCid13) so the player's grab search sees it.
-void RAIL::Unfreeze()
+void RAIL::OnAdd()
 {
     RAILV *rail = (RAILV *)this;
     OnLoAdd(rail);

@@ -513,20 +513,20 @@ struct STEPPLAYER : public STEP
       int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
       int nUnk1318;
       float tUnk131c;
-    virtual void VUnk57() __asm__("func_00140D70");   /* slot 58; key function (stepplayer.cpp) */
+    virtual void AdjustXps() __asm__("func_00140D70");   /* slot 58; key function (stepplayer.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepplayerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepplayerMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepplayer");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveStepplayerHierarchy");   /* slot 12 */
-    virtual void VUnk14() __asm__("PostLoadStepplayer");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateStepplayer");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostLoadStepplayer");   /* slot 15 */
+    virtual void Update() __asm__("UpdateStepplayer");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderStepplayerSelf");   /* slot 19 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepplayerToPos");   /* slot 29 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetStepplayerCpdefi");   /* slot 50 */
-    virtual void VUnk58() __asm__("AddStepplayerComponentXps");   /* slot 59 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
-    virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("HandleStepplayerContactImpulse");   /* slot 68 */
-    virtual void VUnk71() __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
+    virtual void AddExtraXps() __asm__("AddStepplayerComponentXps");   /* slot 59 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
+    virtual void CalculateContactResponse(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("HandleStepplayerContactImpulse");   /* slot 68 */
+    virtual void AddWaterAcceleration() __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
     virtual void VUnk87(int n) __asm__("__pure_virtual");
     virtual int VUnk88() __asm__("__pure_virtual");
     virtual void VUnk89() __asm__("__pure_virtual");
@@ -542,7 +542,7 @@ struct STEPPLAYER : public STEP
       virtual void StartGadget(int idGadget) __asm__("StartStepplayerGadget");
     virtual void SetCtlState(int nState) __asm__("SetStepplayerCtlState");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void OnActive(int fActive) __asm__("OnStepplayerActive");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeStepplayerDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeStepplayerDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int FInvulnerable(ZPK zpk) __asm__("IsStepplayerInvulnerable");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int JthsCurrent() __asm__("GetStepplayerHealthState__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepplayerAxisXps");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */

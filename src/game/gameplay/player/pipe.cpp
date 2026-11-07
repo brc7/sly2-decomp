@@ -102,7 +102,7 @@ extern "C" void InitPipe(PIPEV *pipe)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
 // PIPE slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's pipe list (g_sw.dlCid11).
-void PIPE::Unfreeze()
+void PIPE::OnAdd()
 {
     PIPEV *pipe = (PIPEV *)this;
     OnLoAdd(pipe);

@@ -203,7 +203,7 @@ extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
 }
 
 // BOOTY (cid 0x67) vtable slot 15: PostSoLoad then SetBootyState(0). (inferred)
-void BOOTY::VUnk14() { BOOTYV *booty = (BOOTYV *)this;
+void BOOTY::PostLoad() { BOOTYV *booty = (BOOTYV *)this;
     PostSoLoad(booty);
     SetBootyState(booty, 0);
 }
@@ -657,7 +657,7 @@ extern "C" void InitBootyContainer(CID37V *container) {
 }
 
 // cid 0x25 vtable slot 15: base 0x183F50, unique id from a g_sw counter. (inferred)
-void CID37::VUnk14() { CID37V *container = (CID37V *)this; PostTriggerGrabspotLoad(container); container->id = g_sw.cCid37++; }
+void CID37::PostLoad() { CID37V *container = (CID37V *)this; PostTriggerGrabspotLoad(container); container->id = g_sw.cCid37++; }
 
 // If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its
 // entry, link and set state 1. (inferred)

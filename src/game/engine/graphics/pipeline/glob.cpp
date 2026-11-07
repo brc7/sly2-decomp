@@ -160,7 +160,7 @@ GLOBSET::GLOBSET()
 //   s8 fCompact (0 = every sub-glob also has a bounds record), vec3 posCenter, f32 sRadius,
 //   u8 cpsaa + that many PsaaLoadFromBrx (shader animations), u8 + that many s32, s16 cglob (the number of SLOTS: a sub-glob with cSubExtra instances uses 1 + cSubExtra of them),
 //   then per sub-glob: s8 cfilter (non-zero: cfilter x s16 ids + s32 byte count; when the level being loaded is not one of the ids the record is skipped and cglob drops by one),
-//   s8 type, u16 cSubExtra, s16 XF number (SO::PxfFromIxf), s8 bUnk00, f32 gUnk04 (v * |v|), f32 -> SUBGLOBLOAD, s32 oid, s8 -> SUBGLOBLOAD, s8 fHide,
+//   s8 type, u16 cSubExtra, s16 XF number (SO::GetXfFromIndex), s8 bUnk00, f32 gUnk04 (v * |v|), f32 -> SUBGLOBLOAD, s32 oid, s8 -> SUBGLOBLOAD, s8 fHide,
 //   [fCompact == 0: vec3 posCenter, f32 sRadius, u32 grf, f32 gUnk10 (FLT_MAX = a default by type)], then the body by type (0 geometry, 1 / 2 cel border edges, 3 shadow volume),
 //   and last LoadPoseSetsFromBrx. The scratch record sgl (12 bytes, zeroed per sub-glob) is handed to the body loader.
 extern "C" {
@@ -244,7 +244,7 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
         }
         psubglob->type = pbis->S8Read();
         ushort cSubExtra = pbis->U16Read();
-        pglob->pxf = pso->PxfFromIxf(pbis->S16Read());
+        pglob->pxf = pso->GetXfFromIndex(pbis->S16Read());
         psubglob->bUnk00 = pbis->S8Read();
         float g = pbis->F32Read();
         if (g == 3.4028235e+38f)

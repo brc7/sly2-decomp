@@ -2505,7 +2505,7 @@ void UpdateSo(struct S *p);
 void SetRcPickupState(struct S *p, int n);
 // CID 108 vtable slot 16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3. (inferred)
 } } // namespace M_UpdateRcPickup
-void CID108::VUnk15() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p = (M_UpdateRcPickup::S *)this;
+void CID108::Update() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p = (M_UpdateRcPickup::S *)this;
     UpdateSo(p);
     if (p->n150 == 0 && p->po->h98 == 3) SetRcPickupState(p, 1);
 }

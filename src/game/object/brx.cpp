@@ -238,7 +238,7 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
     if ((uchar)plo->fInWorld)   /* (uchar): extract the bit as the target does ((int) adds a sign extension) */
         plo->AddHierarchy();
     if (IsLoInWorld(plo))
-        plo->Unfreeze();
+        plo->OnAdd();
     if (world->pploNew)
         *world->pploNew++ = plo;
     return plo;

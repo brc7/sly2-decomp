@@ -82,10 +82,10 @@ extern "C" void PostBarrierLoad(BARRIERV *barrier)
         RefreshSwObjectCollisionFilter(D_003DD490, barrier);
 }
 
-// BARRIER vtable slot 61 (FIgnoreIntersection): decides how the barrier collides with another object. The other
+// BARRIER vtable slot 61 (ShouldIgnoreIntersection): decides how the barrier collides with another object. The other
 // object "is named" when it matches one of the barrier's object names or derives from one of its classes. With
 // letsNamedThrough set, named objects get 3 (pass) and others the SO default; otherwise named objects get 2 and others 1.
-// Return codes follow SO::FIgnoreIntersection (0/1 = collide, higher = ignore in some way). (inferred)
+// Return codes follow SO::ShouldIgnoreIntersection (0/1 = collide, higher = ignore in some way). (inferred)
 extern "C" int ShouldBarrierIgnoreIntersection(BARRIERV *barrier, void *other)
 {
     int i, j;

@@ -168,7 +168,7 @@ extern "C" NOISE *NewNoise(NOISETYPE *type, qword pos, int loudness)
 }
 
 // 0x1566B8: Noise (CID147) vtable slot 1: adds a reference.
-void CID147::VUnk00()   /* key function: CID147's vtable comes out here */
+void CID147::AddRef()   /* key function: CID147's vtable comes out here */
 {
     NOISE *noise = (NOISE *)this;
     noise->refCount++;

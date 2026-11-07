@@ -248,7 +248,7 @@ extern "C" void PostAsegLoadCallback(ASEG *segment, ASEGSTART *pasegstart)
  * @end-sly2-annot */
 // After-load hook (slot 15): base PostLoLoad, then, if the segment has an auto-start record, posts PostAsegLoadCallback
 // to the world's callback queue.
-void ASEG::VUnk14()
+void ASEG::PostLoad()
 {
     ASEG *segment = (ASEG *)this;
     PostLoLoad(segment);

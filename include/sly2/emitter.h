@@ -99,8 +99,8 @@ struct EMITTER : public XFM
     virtual CLASSINFO *Pclassinfo() __asm__("GetEmitterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleEmitterMessage__FP7EMITTER5MSGIDPv");   /* slot 5 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx__H1Z7EMITTER_PX01P18CBinaryInputStream_v");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostEmitterLoad__FP7EMITTER");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateEmitter__FP7EMITTERf");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostEmitterLoad__FP7EMITTER");   /* slot 15 */
+    virtual void Update() __asm__("UpdateEmitter__FP7EMITTERf");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneEmitter__H1Z7EMITTER_PX01P2LO_v");   /* slot 41 */
 };
 typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class descriptor cb */
@@ -108,7 +108,7 @@ typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class 
 /* EXPL: the explosion base class (an XFM; no own fields known here). */
 struct EXPL : public XFM
 {
-    virtual void VSlot51() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 (ExplodeExplso); key function (emitter.cpp) */
+    virtual void ExplodeExplso() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 (ExplodeExplso); key function (emitter.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetExplClassDesc");   /* slot 6 */
 };
 typedef char assert_EXPL_size[sizeof(EXPL) == 0xE0 ? 1 : -1];   /* class descriptor cb */
@@ -121,7 +121,7 @@ struct EXPLO : public EXPL
     char padE8[0xF0 - 0xE8];
     virtual CLASSINFO *Pclassinfo() __asm__("GetExploClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx__H1Z5EXPLO_PX01P18CBinaryInputStream_v");   /* slot 14 */
-    virtual void VUnk14() __asm__("func_002586D8__H1Z5EXPLO_PX01_v");   /* slot 15 */
+    virtual void PostLoad() __asm__("func_002586D8__H1Z5EXPLO_PX01_v");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneEmitter__H1Z5EXPLO_PX01P2LO_v");   /* slot 41 */
 };
 typedef char assert_EXPLO_size[sizeof(EXPLO) == 0xF0 ? 1 : -1];   /* class descriptor cb */
@@ -171,7 +171,7 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descript
    They are function templates for the same reason as the accessors below: one body per pair, emitted per instance
    in .gnu.linkonce.t.<symbol>, never inlined into callers. emitter.cpp instantiates both sets explicitly. Each is
    named after its EMITTER copy (the EXPLO copy is the other instance); the virtual slots of EMITTER/EXPLO name the
-   instances (LoadFromBrx, Clone, VUnk14, and the second vtable's Pclassinfo). ---- */
+   instances (LoadFromBrx, Clone, PostLoad, and the second vtable's Pclassinfo). ---- */
 
 /* the class descriptor of each (rows 29 and 32), for GetEmitterClassDesc_linkonce */
 inline CLASSINFO *PclassinfoEmitb(EMITTER *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x244); }
@@ -297,7 +297,7 @@ template <class T> void func_002586D8(T *p)
     int oid1;
     int oid2 = -1;
 
-    p->LO::VUnk14();
+    p->LO::PostLoad();
     {
         EMITB *pemitb0 = p->pemitb;
         oid1 = pemitb0->oidEmito;

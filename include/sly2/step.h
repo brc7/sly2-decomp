@@ -85,20 +85,20 @@ struct STEP : public PO
     virtual void Init() __asm__("InitStep");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostStepLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateStep");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostStepLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateStep");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderStepSelf");   /* slot 19 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepToPos");   /* slot 29 */
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateStepToMat");   /* slot 30 */
-    virtual void VUnk37(LO *plo) __asm__("MatchStepXf");   /* slot 38 */
+    virtual void MatchTransform(LO *plo) __asm__("MatchStepXf");   /* slot 38 */
     virtual void Clone(LO *ploBase) __asm__("CloneStep");   /* slot 41 */
-    virtual void VUnk53(SO *pso) __asm__("OnStepSoContactFreed");   /* slot 54 */
+    virtual void OnContactFreed(SO *pso) __asm__("OnStepSoContactFreed");   /* slot 54 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustStepNewXp");   /* slot 55 */
-    virtual void VUnk56(XP *pxp, int ixpd) __asm__("AdjustStepXpVelocity");   /* slot 57 */
-    virtual void VUnk57() __asm__("AdjustStepXps");   /* slot 58 */
-    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
-    virtual int CpartExtra() __asm__("GetStepExtraPartCount");   /* slot 63 */
-    virtual void VUnk69() __asm__("PresetStepAccel");   /* slot 70 */
+    virtual void AdjustXpVelocity(XP *pxp, int ixpd) __asm__("AdjustStepXpVelocity");   /* slot 57 */
+    virtual void AdjustXps() __asm__("AdjustStepXps");   /* slot 58 */
+    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
+    virtual int GetExtraPartCount() __asm__("GetStepExtraPartCount");   /* slot 63 */
+    virtual void PresetAccel() __asm__("PresetStepAccel");   /* slot 70 */
       virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");
       virtual void VUnk82(uint grf, int fCount) __asm__("AddStepDialogSmRefs");
       virtual void VUnk83(uint grf, int fCount) __asm__("RemoveStepDialogSmRefs");

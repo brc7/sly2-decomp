@@ -682,9 +682,9 @@ namespace M_func_001C5DF0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; char pad[0x1B8]; int isCollectable; };
 struct Q { char pad[0x44]; int grf; };
-// DPRIZE::FTakeDamage (new virtual slot 75): a collectable prize hit by a zap with flag 8 counts as collected.
+// DPRIZE::TakeDamage (new virtual slot 75): a collectable prize hit by a zap with flag 8 counts as collected.
 } } // namespace M_func_001C5DF0
-int DPRIZE::FTakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here (the namespace's views) */
+int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here (the namespace's views) */
 {
     using namespace M_func_001C5DF0;
     struct O *p = (struct O *)this;
@@ -1033,7 +1033,7 @@ extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // COIN Update: UpdateDprize, then while idle counts the lifetime down and starts vanishing at zero.
 } } // namespace M_func_001C6588
-void COIN::VUnk15() { using namespace M_func_001C6588; M_func_001C6588::O *p = (M_func_001C6588::O *)this;
+void COIN::Update() { using namespace M_func_001C6588; M_func_001C6588::O *p = (M_func_001C6588::O *)this;
     UpdateDprize(p);
     if (!p->state) {
         p->lifetimeLeft -= D_002DDED0.dt;
@@ -1147,7 +1147,7 @@ extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // MEDICINE Update: as COIN's (lifetime countdown while idle, then vanish).
 } } // namespace M_func_001C6880
-void MEDICINE::VUnk15() { using namespace M_func_001C6880; M_func_001C6880::O *p = (M_func_001C6880::O *)this;
+void MEDICINE::Update() { using namespace M_func_001C6880; M_func_001C6880::O *p = (M_func_001C6880::O *)this;
     UpdateDprize(p);
     if (!p->state) {
         p->lifetimeLeft -= D_002DDED0.dt;
@@ -1696,7 +1696,7 @@ extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // LOOT Update: as COIN's (lifetime countdown while idle, then vanish).
 } } // namespace M_func_001C7778
-void LOOT::VUnk15() { using namespace M_func_001C7778; M_func_001C7778::O *p = (M_func_001C7778::O *)this;
+void LOOT::Update() { using namespace M_func_001C7778; M_func_001C7778::O *p = (M_func_001C7778::O *)this;
     UpdateDprize(p);
     if (!p->state) {
         p->lifetimeLeft -= D_002DDED0.dt;
@@ -2097,7 +2097,7 @@ void PostLoLoad(struct O *p);
 int IsClueCollected(int n);
 // CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
 } } // namespace M_func_001C8030
-void CLUEPROXY::VUnk14() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
+void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
     PostLoLoad(p);
     p->clueIndex = D_003DD490.nextClueIndex++;
     if (IsClueCollected(p->clueIndex)) { struct VTE *e = &p->vt[9]; e->pfn((char *)p + e->d); }
@@ -2229,7 +2229,7 @@ void InitVault(struct S *vault)
 
 // VAULT vtable slot 15 (PostLoad): binds its parts by oid, finds the dial timer frame, and starts closed (state 0) or
 // already opened (state 5) from the save.
-void VAULT::VUnk14()
+void VAULT::PostLoad()
 {
     VAULTV *vault = (VAULTV *)this;
     PostSoLoad(vault);

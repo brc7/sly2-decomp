@@ -1,5 +1,5 @@
 // sky.cpp -- SKY (cid 0x61), the sky dome: a solid object re-centred on the camera every frame so it always surrounds
-// the view (it keeps its own height unless followCameraZ is set). Entry points: SKY::VUnk14 (post-load), UpdateSky.
+// the view (it keeps its own height unless followCameraZ is set). Entry points: SKY::PostLoad (post-load), UpdateSky.
 // TU 0x1EF850..0x1EFA90 (4 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sky
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001EFA70
@@ -39,7 +39,7 @@ static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(
 
 // Post-load hook (vtable slot 15): SO post-load, busy level 1, sets flag bit 1 in the +0x40 flags (through the pointer
 // when it holds one) and clears SO flag bit 35, which keeps the sky out of the collision sphere tree (inferred).
-void SKY::VUnk14()
+void SKY::PostLoad()
 {
     SKYV *sky = (SKYV *)this;
     int flagsWord;

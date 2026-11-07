@@ -26,7 +26,7 @@ struct DETECTOR : public XFM
       undefined4 unk_0xf0[(0xfc - 0xf0) / 4];
       int cUnkFC;           /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp ClearStepguardGeneratedTargets) */
       undefined4 unk_0x100[(0x180 - 0x100) / 4];
-    virtual void VUnk15() __asm__("UpdateDetector");   /* slot 16 */
+    virtual void Update() __asm__("UpdateDetector");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDetectorClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitDetector");   /* slot 7 */
 };
@@ -58,7 +58,7 @@ struct CID120 : LO
     char pad50[0xD0 - 0x50];
     virtual void Init() __asm__("func_0020AD38");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostGuardAttackLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostGuardAttackLoad");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneGuardAttack");   /* slot 41 */
 };
 typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
@@ -123,17 +123,17 @@ struct STEPGUARD : public STEP
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepguardMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepguard");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostStepguardLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateStepguard");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostStepguardLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateStepguard");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderStepguardSelf");   /* slot 19 */
-    virtual void Freeze() __asm__("OnStepguardRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnStepguardAdd");   /* slot 23 */
-    virtual void VUnk25(LO *plo) __asm__("ResetStepguardToHome");   /* slot 26 */
-    virtual void VUnk26(LO *plo) __asm__("ClearStepguardState");   /* slot 27 */
+    virtual void OnRemove() __asm__("OnStepguardRemove");   /* slot 22 */
+    virtual void OnAdd() __asm__("OnStepguardAdd");   /* slot 23 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetStepguardToHome");   /* slot 26 */
+    virtual void OnProxyRelease(LO *plo) __asm__("ClearStepguardState");   /* slot 27 */
     virtual void Clone(LO *ploBase) __asm__("CloneStepguard");   /* slot 41 */
-    virtual void VUnk58() __asm__("AddStepguardAttachContacts");   /* slot 59 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldStepguardIgnoreIntersection");   /* slot 61 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeStepguardDamage");   /* slot 75 */
+    virtual void AddExtraXps() __asm__("AddStepguardAttachContacts");   /* slot 59 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldStepguardIgnoreIntersection");   /* slot 61 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeStepguardDamage");   /* slot 75 */
     virtual int FInvulnerable(ZPK zpk) __asm__("IsStepguardInvulnerable");   /* slot 76 */
     virtual int JthsCurrent() __asm__("GetStepguardHealthState");   /* slot 77 */
     virtual int VUnk84() __asm__("GetStepguardGroundProbeFlags");   /* slot 85 */

@@ -135,7 +135,7 @@ extern "C" void *CloneTurret(TURRETV *turret, TURRETV *source)
 
 // TURRET vtable slot 15 (PostLoad): finishes the SO load and, if the level marked it active, activates it
 // (SetTurretActive). (inferred)
-void TURRET::VUnk14()
+void TURRET::PostLoad()
 {
     TURRETV *turret = (TURRETV *)this;
     PostSoLoad(turret);

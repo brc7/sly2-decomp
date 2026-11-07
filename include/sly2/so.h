@@ -198,7 +198,7 @@ struct SO : public LO
                 ulong fTreeRoot : 1;   /* the object is the root of its physics tree */
                 ulong fUnk35 : 1;
                 ulong fHasIkLimbs : 1;   /* the object has IK limbs */
-    virtual MATRIX4 *PmatWorld() __asm__("SO_PmatWorld");   /* slot 31 */
+    virtual MATRIX4 *GetWorldMatrix() __asm__("SO_PmatWorld");   /* slot 31 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSoClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSo");   /* slot 7 */
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetSoParent");   /* slot 10 */
@@ -206,59 +206,59 @@ struct SO : public LO
     virtual void RemoveHierarchy() __asm__("RemoveSoHierarchy");   /* slot 12 */
     virtual void UpdateLoroot(LO *plo, SO *psoOld) __asm__("UpdateSoLoroot");   /* slot 13 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSoFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostSoLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateSo");   /* slot 16 */
-    virtual void VUnk16() __asm__("UpdateSoXfWorld");   /* slot 17 */
+    virtual void PostLoad() __asm__("PostSoLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateSo");   /* slot 16 */
+    virtual void UpdateXfWorld() __asm__("UpdateSoXfWorld");   /* slot 17 */
     virtual void UpdateXfWorldHierarchy() __asm__("UpdateSoXfWorldHierarchy");   /* slot 18 */
     virtual void RenderSelf() __asm__("RenderSoSelf");   /* slot 19 */
-    virtual void VUnk19() __asm__("RenderSoAll");   /* slot 20 */
-    virtual void VUnk20(int fOn) __asm__("SetSoGrfBit8");   /* slot 21 */
-    virtual void Freeze() __asm__("OnSoRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnSoAdd");   /* slot 23 */
+    virtual void RenderAll() __asm__("RenderSoAll");   /* slot 20 */
+    virtual void SetFlag8(int fOn) __asm__("SetSoGrfBit8");   /* slot 21 */
+    virtual void OnRemove() __asm__("OnSoRemove");   /* slot 22 */
+    virtual void OnAdd() __asm__("OnSoAdd");   /* slot 23 */
     virtual void SetIdProxy(int idProxy, int fChildren) __asm__("SetSoIdProxy");   /* slot 25 */
-    virtual void VUnk25(LO *plo) __asm__("SO_ResetForProxy");   /* slot 26 */
-    virtual void VUnk26(LO *plo) __asm__("SO_Slot27");   /* slot 27 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("SO_ResetForProxy");   /* slot 26 */
+    virtual void OnProxyRelease(LO *plo) __asm__("SO_Slot27");   /* slot 27 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateSoToPos");   /* slot 29 */
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateSoToMat");   /* slot 30 */
-    virtual XF *PxfLocal(MATRIX4 *pmatLocal) __asm__("GetSoLocalXf");   /* slot 32 */
+    virtual XF *GetLocalTransform(MATRIX4 *pmatLocal) __asm__("GetSoLocalXf");   /* slot 32 */
     virtual qword GetVelocity() __asm__("GetSoVelocity");   /* slot 33 */
     virtual void SetVelocity(qword qwVel) __asm__("SetSoVelocity");   /* slot 35 */
     virtual void SetAngularVelocity(qword qwW) __asm__("SetSoAngularVelocity");   /* slot 36 */
     virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("ApplySoProxy");   /* slot 37 */
-    virtual void VUnk37(LO *plo) __asm__("MatchSoXf");   /* slot 38 */
-    virtual void VUnk38() __asm__("SetSoXf");   /* slot 39 */
+    virtual void MatchTransform(LO *plo) __asm__("MatchSoXf");   /* slot 38 */
+    virtual void SetTransformFromXf() __asm__("SetSoXf");   /* slot 39 */
     virtual void CloneHierarchy(LO *ploBase) __asm__("CloneSoHierarchy");   /* slot 40 */
-    virtual void VUnk41(float sBusy) __asm__("SetSoBusyDistance");   /* slot 42 */
+    virtual void SetBusyDistance(float sBusy) __asm__("SetSoBusyDistance");   /* slot 42 */
     virtual void SetVisMask(uint grfvis) __asm__("SetSoVisMask");   /* slot 46 */
-    virtual void VUnk46(int grf) __asm__("SetSoGrf");   /* slot 47 */
-    virtual void VUnk47(int grf) __asm__("ClearSoGrf");   /* slot 48 */
-      virtual void VUnk48() __asm__("UpdateSoTreeBounds");
+    virtual void SetFlags(int grf) __asm__("SetSoGrf");   /* slot 47 */
+    virtual void ClearFlags(int grf) __asm__("ClearSoGrf");   /* slot 48 */
+      virtual void UpdateBounds() __asm__("UpdateSoTreeBounds");
       virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetSoCameraDefaults");
-      virtual XF *PxfFromIxf(int ixf) __asm__("ResolveXfIdInSo");
+      virtual XF *GetXfFromIndex(int ixf) __asm__("ResolveXfIdInSo");
       virtual void CloneXfRef(LO *ploBase, XF **ppxf) __asm__("CloneSoXfRef");
-      virtual SOTREE *VUnk52() __asm__("NewSoTree");
-      virtual void VUnk53(SO *pso) __asm__("OnSoContactFreed");
+      virtual SOTREE *NewTree() __asm__("NewSoTree");
+      virtual void OnContactFreed(SO *pso) __asm__("OnSoContactFreed");
       virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustSoNewXp");
-      virtual void VUnk55() __asm__("IgnoreSoSlot56");
-      virtual void VUnk56(XP *pxp, int ixpd) __asm__("AdjustSoXpVelocity");
-      virtual void VUnk57() __asm__("AdjustSoXps");
-      virtual void VUnk58() __asm__("IgnoreSoSlot59");
-      virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddSoCustomXps");
-      virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldSoIgnoreIntersection");
-      virtual int VUnk61() __asm__("IsSoFixed");
-      virtual int CpartExtra() __asm__("GetSoExtraPartCount");
+      virtual void UnknownSlot56() __asm__("IgnoreSoSlot56");   /* slot 56: empty in every class that has it; meaning not known */
+      virtual void AdjustXpVelocity(XP *pxp, int ixpd) __asm__("AdjustSoXpVelocity");
+      virtual void AdjustXps() __asm__("AdjustSoXps");
+      virtual void AddExtraXps() __asm__("IgnoreSoSlot59");   /* slot 59: adds class-specific contacts (STEPPLAYER components, STEPGUARD attachments); SO: nothing (inferred) */
+      virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddSoCustomXps");
+      virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldSoIgnoreIntersection");
+      virtual int IsFixed() __asm__("IsSoFixed");   /* slot 62 (inferred from IsSoFixed / CanRipgStayAsleep) */
+      virtual int GetExtraPartCount() __asm__("GetSoExtraPartCount");
       virtual void InitPhys() __asm__("InitSoPhysics");
-      virtual void VUnk64() __asm__("ApplySoRestingContactVelocity");
-      virtual void VUnk65() __asm__("ApplySoImpactVelocity");
-      virtual void VUnk66() __asm__("ApplySoContactShift");
-      virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("CalculateSoContactResponse");
-      virtual void VUnk68(FX *pfx, qword qwPos, VECTOR4 *pvecDv) __asm__("GetSoVelocityAtPos");
-      virtual void VUnk69() __asm__("PresetSoAccel");
-      virtual void VUnk70() __asm__("AddSoExternalAccelerations");
-      virtual void VUnk71() __asm__("AddSoWaterAcceleration");
-      virtual void VUnk72() __asm__("IsPosInSo");
-      virtual void ProcessSoZapContacts() __asm__("InflictSoContactZaps");
-      virtual int FTakeDamage(ZPR *pzpr) __asm__("CanSoTakeDamage");
+      virtual void ApplyRestingContactVelocity() __asm__("ApplySoRestingContactVelocity");
+      virtual void ApplyImpactVelocity() __asm__("ApplySoImpactVelocity");
+      virtual void ApplyContactShift() __asm__("ApplySoContactShift");
+      virtual void CalculateContactResponse(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("CalculateSoContactResponse");
+      virtual void GetVelocityAtPos(FX *pfx, qword qwPos, VECTOR4 *pvecDv) __asm__("GetSoVelocityAtPos");
+      virtual void PresetAccel() __asm__("PresetSoAccel");
+      virtual void AddExternalAccelerations() __asm__("AddSoExternalAccelerations");
+      virtual void AddWaterAcceleration() __asm__("AddSoWaterAcceleration");
+      virtual void IsPosInside() __asm__("IsPosInSo");
+      virtual void InflictContactZaps() __asm__("InflictSoContactZaps");
+      virtual int TakeDamage(ZPR *pzpr) __asm__("CanSoTakeDamage");
     virtual qword GetAngularVelocity() __asm__("GetSoAngularVelocity");   /* override declared in GetSoAngularVelocity.cpp */
     virtual void Clone(LO *ploBase) __asm__("CloneSo");   /* override declared in CloneSo.cpp */
 };
@@ -321,9 +321,9 @@ struct SOPART
 struct CID148 : public BASIC
 {
       undefined4 unk_0x10[4];
-    virtual void VUnk00() __asm__("func_001F8730");   /* slot 1; key function (so.cpp) */
+    virtual void AddRef() __asm__("func_001F8730");   /* slot 1; key function (so.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid148ClassDesc");   /* slot 6 */
-    virtual void VUnk01() __asm__("DecrefXfHandle");   /* slot 2 */
+    virtual void Release() __asm__("DecrefXfHandle");   /* slot 2 */
 };
 typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class descriptor cb */
 /* 149 CID149 (0x30): Splice XF handle; vtable 0x2CA2C0, 6 slots. Moved here from sly2/classes.h: class_registry, its

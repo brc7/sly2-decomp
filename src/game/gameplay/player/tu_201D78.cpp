@@ -999,7 +999,7 @@ extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Recon target post-load: LO base and registration with its task (+0xEC).
-void CID46::VUnk14()
+void CID46::PostLoad()
 {
     RECONTGT *p = (RECONTGT *)this;
     LINK *link;

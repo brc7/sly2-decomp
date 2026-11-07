@@ -90,7 +90,7 @@ void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // BASIC's default for vtable slot 1 (empty); inherited by about 190 classes. Its role is not known.
-void BASIC::VUnk00() {
+void BASIC::AddRef() {
 }
 
 /** @sly2-annot addr=0x132B08

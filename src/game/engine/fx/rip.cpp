@@ -575,7 +575,7 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *ripGroup, CM *pcm, RO *pr
 
 // RIPG vtable slot 62: returns ripgState != 1. Slot 62 is the SO predicate whose false result makes
 // RemoveSoPartFromTree wake the object, hence the name (inferred).
-int RIPG::VUnk61()
+int RIPG::IsFixed()
 {
     RIPGV *ripGroup = (RIPGV *)this;
     return ripGroup->ripgState != 1;

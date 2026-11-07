@@ -1249,7 +1249,7 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT s)
     return r;
 }
 
-// Camera follows turret object's world matrix (plo->vt31 PmatWorld), smoothing rotation/position unless cut; fov from
+// Camera follows turret object's world matrix (plo->vt31 GetWorldMatrix), smoothing rotation/position unless cut; fov from
 // turret +0x1BC. (inferred)
 void UpdateCpturret(X *p)
 {

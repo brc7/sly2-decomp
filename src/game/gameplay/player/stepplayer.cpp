@@ -712,7 +712,7 @@ void AddStepplayerComponentXps(char *player)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 // Slot 58: STEP base, then FreeJtWallRunXps when in the air. (inferred: frees component contacts)
-void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here */
+void STEPPLAYER::AdjustXps()   /* key function: STEPPLAYER's vtable comes out here */
 {
     STEPPLAYER *player = this;
     AdjustStepXps(player);
@@ -742,7 +742,7 @@ extern int D_002F7900;
 int IsStepplayerPushing(struct P *p);
 void CalculateSoContactResponse(struct P *p, void *a, struct S *s, void *b, int i);
 /** @sly2-annot addr=0x140DB0
- * Purpose: vt68 (SO VUnk67 contact impulse): when the other body is the current player/D_002DD5BC/D_002F7900
+ * Purpose: vt68 (SO CalculateContactResponse contact impulse): when the other body is the current player/D_002DD5BC/D_002F7900
  *   and the player is not controlled or is pushing (0x144068), scale the contact velocity by 0.01 before
  *   calling base 0x1FAD00
  * Info: proposed name STEPPLAYER_VUnk67 (T2); class STEPPLAYER slot68; TU stepplayer

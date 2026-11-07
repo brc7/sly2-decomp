@@ -1182,7 +1182,7 @@ int TakeHackenemyDamage(struct S *enemy, void *message)
 
 // Reset health and state. (inferred)
 /* HACKENEMY slot 83: reset. */
-void HACKENEMY::VSlot83()
+void HACKENEMY::Reset()
 {
     HACKENEMYV *enemy = (HACKENEMYV *)this;
     ResetHack((HACKV *)enemy);
@@ -1990,7 +1990,7 @@ void AdjustHackwallNewXp(struct S *wall, struct E *ae, int i)
 }
 } } // namespace M_func_00182700
 
-// HACKWALL vtable slot 63 (CpartExtra): one extra collision part, for the wall segments. (inferred)
+// HACKWALL vtable slot 63 (GetExtraPartCount): one extra collision part, for the wall segments. (inferred)
 /* HACKWALL slot 63. */
 extern "C" int GetHackwallExtraPartCount()
 {

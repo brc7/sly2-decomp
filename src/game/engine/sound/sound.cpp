@@ -974,7 +974,7 @@ void SetBankSoundCulled(struct P *sound, int isCulled)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Adds a reference to a bank sound (slot 1).
-void BANKSND::VUnk00()   /* key function: BANKSND's vtable comes out here */
+void BANKSND::AddRef()   /* key function: BANKSND's vtable comes out here */
 {
     SNDV *sound = (SNDV *)this;
     sound->refCount++;
@@ -1538,7 +1538,7 @@ void OnStreamsndStatus(int hasStopped, long context)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Adds a reference to a streamed sound (slot 1).
-void STREAMSND::VUnk00()   /* key function: STREAMSND's vtable comes out here */
+void STREAMSND::AddRef()   /* key function: STREAMSND's vtable comes out here */
 {
     SNDV *sound = (SNDV *)this;
     sound->refCount++;

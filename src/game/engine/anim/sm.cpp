@@ -375,7 +375,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
 /* After load: with an init record, applies the machine to its root object in its initial state (ApplySmToObject). */
 // After-load hook (slot 15): base PostLoLoad; if the machine has an auto-apply record, finds its root object by OID and
 // starts the machine on it.
-void SM::VUnk14()
+void SM::PostLoad()
 {
     SM *psm = (SM *)this;
     PostLoLoad(psm);
@@ -628,7 +628,7 @@ int GetSmStateOid(struct S *p, int n) { if (n < 0 || n >= p->c) return -1; retur
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 // Adds a reference to the activation (slot 1).
-void SMA::VUnk00()
+void SMA::AddRef()
 {
     SMA *psma = (SMA *)this;
     psma->cref = psma->cref + 1;

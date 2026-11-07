@@ -239,13 +239,13 @@ extern "C" void RemoveLightHierarchy(LIGHTV *light) {
     InvalidateLight(light);
 }
 
-// LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot)
+// LIGHT vt22: LO OnRemove then RemoveLightFromSw (free tree slot)
 extern "C" void OnLightRemove(LIGHTV *light) {
     OnLoRemove(light);
     RemoveLightFromSw(&D_003DD490, light);
 }
 
-// LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree)
+// LIGHT vt23: LO OnAdd then AddLightToSw (alloc slot, insert into light tree)
 extern "C" void OnLightAdd(LIGHTV *light) {
     OnLoAdd(light);
     AddLightToSw(&D_003DD490, light);

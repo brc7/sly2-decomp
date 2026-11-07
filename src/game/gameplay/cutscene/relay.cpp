@@ -35,8 +35,8 @@
    its vtable before RELAY's. */
 struct RELAYJSG : BASIC
 {
-    virtual void VUnk00() __asm__("AddJsgRef");   /* slot 1; key function */
-    virtual void VUnk01() __asm__("ReleaseJsg");   /* slot 2 */
+    virtual void AddRef() __asm__("AddJsgRef");   /* slot 1; key function */
+    virtual void Release() __asm__("ReleaseJsg");   /* slot 2 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleJsgMessage");   /* slot 5 */
 };
 
@@ -430,11 +430,11 @@ struct JSGREF
     JSGREF(JSGV *pjsgHold)
     {
         script = pjsgHold;
-        script->VUnk00();
+        script->AddRef();
     }
     ~JSGREF()
     {
-        script->VUnk01();
+        script->Release();
     }
 };
 
@@ -2614,7 +2614,7 @@ extern "C" void AddRelayMurrayMoveToAndControl(RELAYV *relay, OID oidShip, OID o
 
 // 0x1E1B58 AddJsgRef
 // cref++ (+0x10). (inferred)
-void RELAYJSG::VUnk00()   /* key function: RELAYJSG's vtable comes out here */
+void RELAYJSG::AddRef()   /* key function: RELAYJSG's vtable comes out here */
 {
     JSGV *script = (JSGV *)this;
     script->cref = script->cref + 1;
@@ -3054,7 +3054,7 @@ void NextJsgCommand(JSGV *script)
             if (!prelaycmd->fAsync)
             {
                 script->pasegaCur = pasega;
-                pasega->VUnk00();
+                pasega->AddRef();
             }
         }
         break;
@@ -4163,7 +4163,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         {
             if (script->pasegaCur && FAsegaStopped(script->pasegaCur))
             {
-                script->pasegaCur->VUnk01();
+                script->pasegaCur->Release();
                 script->pasegaCur = 0;
             }
             fComplete = script->pasegaCur == 0;

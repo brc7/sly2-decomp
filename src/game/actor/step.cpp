@@ -635,7 +635,7 @@ extern "C" void RotateStepToMat(STEP *step, MATRIX3 *matrix)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-// Slot 63 (so.h CpartExtra): a STEP has one extra part, the phys part built by BuildStepPhysPart; the SO
+// Slot 63 (so.h GetExtraPartCount): a STEP has one extra part, the phys part built by BuildStepPhysPart; the SO
 // default (GetSoExtraPartCount) answers 0 (inferred from the slot name).
 extern "C" int GetStepExtraPartCount()
 {

@@ -324,7 +324,7 @@ extern "C" void RecalcSwXpMovement(SW *world, int count, XP **contacts)
         for (j = 0; j < 2; j++) {
             SO *pso = pxp->axps[j].pso;
             if (pso)
-                pso->VUnk56(pxp, j);
+                pso->AdjustXpVelocity(pxp, j);
         }
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pxp->axps[0].v), "j"(pxp->axps[1].v));
@@ -1612,7 +1612,7 @@ extern "C" void AddZapResponderXps(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, S
 {
     XP *pxpFirst = 0;
     XP *pxp;
-    ptree->psoRoot->VUnk59(ppart, cbsp, (int)absp, pbsp, ppart->grfzpk ? &pxpFirst : ppxpFirst);
+    ptree->psoRoot->AddCustomXps(ppart, cbsp, (int)absp, pbsp, ppart->grfzpk ? &pxpFirst : ppxpFirst);
     if (pxpFirst) { pxp = pxpFirst; do {
         if (FindZapResponder(pxp->axps[IxpsOther(pxp, ppart)].pso, ppart->grfzpk)) {
             XP *pxpNew = (XP *)AllocZeroedFromSlotheap(&psw->slotheapXp);

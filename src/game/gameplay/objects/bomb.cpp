@@ -480,7 +480,7 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
 }
-// BOMB vt75 FTakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
+// BOMB vt75 TakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
 extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
 {
     int r;

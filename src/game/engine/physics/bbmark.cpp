@@ -304,7 +304,7 @@ static __inline__ int Call(LO *po, LO *poOther)
     return ((int (*)(void *, LO *))po->vt[61].pfn)((char *)po + po->vt[61].d, poOther);
 }
 /** @sly2-annot addr=0x133D08
- * Purpose: AABB overlap on 3 axes, then both objects' FIgnoreIntersection (vt61) combined by max; pair unless
+ * Purpose: AABB overlap on 3 axes, then both objects' ShouldIgnoreIntersection (vt61) combined by max; pair unless
  *   result is 1 or 3
  * Info: proposed name FSwShouldPairObjects (T2); TU bbmark
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r2b_rest

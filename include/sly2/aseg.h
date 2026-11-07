@@ -69,7 +69,7 @@ struct ASEG : public LO
       EA *aeaEnd;   /* events fired when the segment ends */
       ASEGSTART *pasegstart;   /* start parameters */
       uint32_t   _pad_273    [ 3 ] ;
-    virtual void VUnk14() __asm__("PostAsegLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostAsegLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetAsegClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAseg");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAsegFromBrx");   /* slot 14 */
@@ -112,7 +112,7 @@ struct SM : public LO
       SMRT *asmrt;   /* the routes */
       DL dlSma;   /* running applications (SMA) of this machine */
       SMINIT *psminit;   /* initial state record */
-    virtual void VUnk14() __asm__("PostSmLoad__FP2SM");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostSmLoad__FP2SM");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSmClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSm");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSmFromBrx__FP2SMP18CBinaryInputStream");
@@ -138,9 +138,9 @@ struct SMA : public BASIC
       float svtLocal;   /* playback speed */
       int grfRoute;   /* route flag bits */
     undefined4 unk_0x4c;      /* HYPOTHESIS: Lilly SMA ends at 0x4C but the class descriptor says 0x50 */
-    virtual void VUnk00() __asm__("IncrefSma");   /* slot 1 */
+    virtual void AddRef() __asm__("IncrefSma");   /* slot 1 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSmaClassDesc");   /* slot 6 */
-    virtual void VUnk01() __asm__("DecrefSma");   /* slot 2 */
+    virtual void Release() __asm__("DecrefSma");   /* slot 2 */
     virtual void SendMessage(MSGID msgid, void *pv) __asm__("SendSmaMessage");   /* slot 4 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleSmaMessage");   /* slot 5 */
 };
@@ -168,9 +168,9 @@ struct ASEGA : public BASIC
       int ieaEnd;   /* end of the timed events */
       int nWorldHold;   /* world hold count */
       CRefPtr<SND> psnd;   /* sound started by the segment */
-    virtual void VUnk00() __asm__("IncrefAsega");   /* slot 1; key function (asega.cpp) */
+    virtual void AddRef() __asm__("IncrefAsega");   /* slot 1; key function (asega.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetAsegaClassDesc");   /* slot 6 */
-    virtual void VUnk01() __asm__("DecrefAsega");   /* slot 2 */
+    virtual void Release() __asm__("DecrefAsega");   /* slot 2 */
     virtual void SendMessage(MSGID msgid, void *pv) __asm__("SendAsegaMessage");   /* slot 4 */
 };
 typedef char assert_ASEGA_size[sizeof(ASEGA) == 0x60 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

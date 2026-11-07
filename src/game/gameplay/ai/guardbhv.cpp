@@ -1013,8 +1013,8 @@ struct POLY { float a, b, c; };
 struct CLOCK { float time, dt; };
 struct BASIC {
     char pad0[0xC];
-    virtual void VUnk00();
-    virtual void VUnk01();
+    virtual void AddRef();
+    virtual void Release();
     virtual void HandleSpliceEvent(unsigned symidEvent, int fPost, int cargs, void **ppvargs, CREF *pref);
 };
 extern "C" {

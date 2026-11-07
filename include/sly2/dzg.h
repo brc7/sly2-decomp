@@ -43,7 +43,7 @@ struct DZG
 typedef char assert_DZG_size[sizeof(DZG) == 0x50 ? 1 : -1];   /* SolveInequalities' stack frame (match) */
 
 /* One side of a contact row: the change of the side object's linear and angular velocity per unit impulse along the
- * row. Filled by the object's SO slot 67 (VUnk67(DZ *, DZX *, int, int)), read back through slot 68 (VUnk68(FX *,
+ * row. Filled by the object's SO slot 67 (CalculateContactResponse(DZ *, DZX *, int, int)), read back through slot 68 (GetVelocityAtPos(FX *,
  * qword, VECTOR4 *)), applied by ApplyDzg. HYPOTHESIS: Sly 1's name for it is FX (so.h's slot 68 takes an FX *). */
 struct FX
 {

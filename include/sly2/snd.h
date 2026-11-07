@@ -29,8 +29,8 @@ typedef char assert_CID151_size[sizeof(CID151) == 0x60 ? 1 : -1];
 /* BANKSND: a sound played from a loaded sound bank (DRAFT name). */
 struct BANKSND : CID151
 {
-    virtual void VUnk00() __asm__("IncrefBanksnd");   /* slot 1; key function (sound.cpp) */
-    virtual void VUnk01() __asm__("DecrefBanksnd");   /* slot 2 */
+    virtual void AddRef() __asm__("IncrefBanksnd");   /* slot 1; key function (sound.cpp) */
+    virtual void Release() __asm__("DecrefBanksnd");   /* slot 2 */
     virtual void VSlot8() __asm__("GetBanksndKind");   /* slot 8 */
     virtual void VSlot9() __asm__("PlayBanksnd");   /* slot 9 */
     virtual void VSlot10() __asm__("StopBanksnd");   /* slot 10 */
@@ -44,8 +44,8 @@ struct BANKSND : CID151
 /* STREAMSND: a sound streamed from disc (DRAFT name). */
 struct STREAMSND : CID151
 {
-    virtual void VUnk00() __asm__("IncrefStreamsnd");   /* slot 1; key function (sound.cpp) */
-    virtual void VUnk01() __asm__("DecrefStreamsnd");   /* slot 2 */
+    virtual void AddRef() __asm__("IncrefStreamsnd");   /* slot 1; key function (sound.cpp) */
+    virtual void Release() __asm__("DecrefStreamsnd");   /* slot 2 */
     virtual void Start() __asm__("StartStreamsnd");   /* slot 7 */
     virtual void VSlot8() __asm__("GetStreamSoundKind");   /* slot 8 */
     virtual void VSlot9() __asm__("PlayStreamsnd");   /* slot 9 */

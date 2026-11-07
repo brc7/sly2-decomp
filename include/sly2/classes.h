@@ -122,7 +122,7 @@ struct SENSOR : SO
     char pad150[0x190 - 0x150];
     virtual void Init() __asm__("InitSensor");   /* slot 7; key function (sensor.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSensorClassDesc");   /* slot 6 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldSensorIgnoreIntersection");   /* slot 61 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldSensorIgnoreIntersection");   /* slot 61 */
 };
 typedef char assert_SENSOR_size[sizeof(SENSOR) == 0x190 ? 1 : -1];
 
@@ -130,16 +130,16 @@ typedef char assert_SENSOR_size[sizeof(SENSOR) == 0x190 ? 1 : -1];
 struct DPRIZE : SO
 {
     char pad150[0x230 - 0x150];
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeDprizeDamage");   /* slot 75; key function (prize.cpp) */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeDprizeDamage");   /* slot 75; key function (prize.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDprizeClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleDprizeMessage");   /* slot 5 */
     virtual void Init() __asm__("InitDprize");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDprizeFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostDprizeLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateDprize");   /* slot 16 */
-    virtual void VUnk16() __asm__("ProjectDprizeTransform");   /* slot 17 */
+    virtual void PostLoad() __asm__("PostDprizeLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateDprize");   /* slot 16 */
+    virtual void UpdateXfWorld() __asm__("ProjectDprizeTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderDprizeSelf");   /* slot 19 */
-    virtual void VSlot76() __asm__("SetDprizeDprizes");   /* slot 76 */
+    virtual void SetState() __asm__("SetDprizeDprizes");   /* slot 76 */
 };
 typedef char assert_DPRIZE_size[sizeof(DPRIZE) == 0x230 ? 1 : -1];
 
@@ -151,10 +151,10 @@ struct WIDGET : LO
     virtual void RenderSelf() __asm__("RenderWidget");   /* slot 19; key function (hud.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidgetClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadWidgetFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostWidgetLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateWidget");   /* slot 16 */
-    virtual void VSlot49() __asm__("ShowWidget");   /* slot 49 */
-    virtual void VSlot50() __asm__("HideWidget");   /* slot 50 */
+    virtual void PostLoad() __asm__("PostWidgetLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateWidget");   /* slot 16 */
+    virtual void Show() __asm__("ShowWidget");   /* slot 49 */
+    virtual void Hide() __asm__("HideWidget");   /* slot 50 */
 };
 typedef char assert_WIDGET_size[sizeof(WIDGET) == 0x110 ? 1 : -1];
 
@@ -190,10 +190,10 @@ struct CID44 : XFM
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid44ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCameraHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveCameraHierarchy");   /* slot 12 */
-    virtual void VUnk14() __asm__("PostCameraLoad");   /* slot 15 */
-    virtual void *VUnk42(int id) __asm__("GetCameraFocalLengthField");   /* slot 43 */
-    virtual void VUnk43(int id) __asm__("IncrementCameraFovRequests");   /* slot 44 */
-    virtual void VUnk44(int id) __asm__("DecrementCameraFovRequests");   /* slot 45 */
+    virtual void PostLoad() __asm__("PostCameraLoad");   /* slot 15 */
+    virtual void *GetAnimatedField(int id) __asm__("GetCameraFocalLengthField");   /* slot 43 */
+    virtual void AcquireAnimatedField(int id) __asm__("IncrementCameraFovRequests");   /* slot 44 */
+    virtual void ReleaseAnimatedField(int id) __asm__("DecrementCameraFovRequests");   /* slot 45 */
 };
 typedef char assert_CID44_size[sizeof(CID44) == 0x140 ? 1 : -1];
 
@@ -204,9 +204,9 @@ struct CID43 : XFM
     virtual void Init() __asm__("InitAmb");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid43ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAmbFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostAmbLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnAmbRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnAmbAdd");   /* slot 23 */
+    virtual void PostLoad() __asm__("PostAmbLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnAmbRemove");   /* slot 22 */
+    virtual void OnAdd() __asm__("OnAmbAdd");   /* slot 23 */
 };
 typedef char assert_CID43_size[sizeof(CID43) == 0x100 ? 1 : -1];
 
@@ -216,9 +216,9 @@ struct BARRIER : SO
     char pad150[0x180 - 0x150];
     virtual void Init() __asm__("InitBarrier");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBarrierClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostBarrierLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostBarrierLoad");   /* slot 15 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("NotifyBarrierImpact");   /* slot 55 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrierIgnoreIntersection");   /* slot 61 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrierIgnoreIntersection");   /* slot 61 */
 };
 typedef char assert_BARRIER_size[sizeof(BARRIER) == 0x180 ? 1 : -1];
 
@@ -226,14 +226,14 @@ typedef char assert_BARRIER_size[sizeof(BARRIER) == 0x180 ? 1 : -1];
 struct BLIPG : XFM
 {
     BLIP ablip[32];
-    virtual void VUnk01() __asm__("ReleaseBlipg");   /* slot 2 */
+    virtual void Release() __asm__("ReleaseBlipg");   /* slot 2 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBlipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBlipg__FP5BLIPG");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnBlipgRemove__FP5BLIPG");   /* slot 12 */
-    virtual void VUnk15() __asm__("UpdateBlipg");   /* slot 16 */
-    virtual void VUnk16() __asm__("ProjectBlipgTransform");   /* slot 17 */
+    virtual void Update() __asm__("UpdateBlipg");   /* slot 16 */
+    virtual void UpdateXfWorld() __asm__("ProjectBlipgTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderBlipgSelf");   /* slot 19 */
-    virtual void VSlot51() __asm__("SubscribeBlipgObject");   /* slot 51 */
+    virtual void SubscribeObject() __asm__("SubscribeBlipgObject");   /* slot 51 */
 };
 typedef char assert_BLIPG_size[sizeof(BLIPG) == 0x460 ? 1 : -1];
 
@@ -244,15 +244,15 @@ struct BOMB : SO
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBombMessage");   /* slot 5 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBombClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBomb");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostBombLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateBomb");   /* slot 16 */
-    virtual void VUnk25(LO *plo) __asm__("ResetBomb");   /* slot 26 */
-    virtual void VUnk57() __asm__("HandleBombContact");   /* slot 58 */
-    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
-    virtual void VSlot76() __asm__("CloneBomb");   /* slot 76 */
-    virtual void VSlot77() __asm__("ApplyBombThrow");   /* slot 77 */
+    virtual void PostLoad() __asm__("PostBombLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateBomb");   /* slot 16 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetBomb");   /* slot 26 */
+    virtual void AdjustXps() __asm__("HandleBombContact");   /* slot 58 */
+    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
+    virtual void CopyFromSource() __asm__("CloneBomb");   /* slot 76 */
+    virtual void ApplyThrow() __asm__("ApplyBombThrow");   /* slot 77 */
 };
 typedef char assert_BOMB_size[sizeof(BOMB) == 0x210 ? 1 : -1];
 
@@ -260,17 +260,17 @@ typedef char assert_BOMB_size[sizeof(BOMB) == 0x210 ? 1 : -1];
 struct BOOTY : SO
 {
     char pad150[0x190 - 0x150];
-    virtual void VUnk14() __asm__("PostBootyLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostBootyLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBootyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBootyMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBooty");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadBootyFromBrx");   /* slot 14 */
-    virtual void VUnk15() __asm__("UpdateBooty");   /* slot 16 */
+    virtual void Update() __asm__("UpdateBooty");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderBootySelf");   /* slot 19 */
-    virtual void VUnk26(LO *plo) __asm__("ClearBootyState");   /* slot 27 */
+    virtual void OnProxyRelease(LO *plo) __asm__("ClearBootyState");   /* slot 27 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustBootyNewXp");   /* slot 55 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBootyIgnoreIntersection");   /* slot 61 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeBootyDamage");   /* slot 75 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBootyIgnoreIntersection");   /* slot 61 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeBootyDamage");   /* slot 75 */
 };
 typedef char assert_BOOTY_size[sizeof(BOOTY) == 0x190 ? 1 : -1];
 
@@ -278,11 +278,11 @@ typedef char assert_BOOTY_size[sizeof(BOOTY) == 0x190 ? 1 : -1];
 struct CID104 : SO
 {
     char pad150[0x180 - 0x150];
-    virtual void VUnk14() __asm__("PostFrameCaptureLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostFrameCaptureLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid104ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleFrameCaptureMessage");   /* slot 5 */
     virtual void Init() __asm__("InitFrameCapture");   /* slot 7 */
-    virtual void VUnk15() __asm__("UpdateFrameCapture");   /* slot 16 */
+    virtual void Update() __asm__("UpdateFrameCapture");   /* slot 16 */
 };
 typedef char assert_CID104_size[sizeof(CID104) == 0x180 ? 1 : -1];
 
@@ -295,9 +295,9 @@ struct BUTTON : SO
     virtual void Init() __asm__("InitButton");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveButtonHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadButtonFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostButtonLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateButton");   /* slot 16 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeButtonDamage");   /* slot 75 */
+    virtual void PostLoad() __asm__("PostButtonLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateButton");   /* slot 16 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeButtonDamage");   /* slot 75 */
 };
 typedef char assert_BUTTON_size[sizeof(BUTTON) == 0x300 ? 1 : -1];
 
@@ -310,8 +310,8 @@ struct VOLBTN : VOL
     virtual void Init() __asm__("InitVolbtn");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveVolbtnHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVolbtnFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostVolbtnLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateVolbtn");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostVolbtnLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateVolbtn");   /* slot 16 */
 };
 typedef char assert_VOLBTN_size[sizeof(VOLBTN) == 0x2D0 ? 1 : -1];
 
@@ -334,7 +334,7 @@ typedef char assert_CID20_size[sizeof(CID20) == 0xF0 ? 1 : -1];
 struct CID123 : LO
 {
     char pad50[0x60 - 0x50];
-    virtual void VUnk14() __asm__("func_0014A0A8");   /* slot 15 */
+    virtual void PostLoad() __asm__("func_0014A0A8");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid123ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRouteFromBrx");   /* slot 14 */
 };
@@ -359,7 +359,7 @@ struct CARMELITA : STEPGUARD
     virtual void Init() __asm__("func_0014B1A0");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCarmelitaClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCarmelitaMessage");   /* slot 5 */
-    virtual void VUnk14() __asm__("PostCarmelitaLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostCarmelitaLoad");   /* slot 15 */
     virtual int VUnk85(ZPR *pzpr) __asm__("IsCarmelitaZapLethal");   /* slot 86 */
     virtual void VSlot87() __asm__("ChooseCarmelitaTarget");   /* slot 88 */
 };
@@ -370,7 +370,7 @@ struct CONTESSA : STEPGUARD
 {
     virtual void Init() __asm__("func_0014FAC8");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetContessaClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateContessa");   /* slot 16 */
+    virtual void Update() __asm__("UpdateContessa");   /* slot 16 */
 };
 typedef char assert_CONTESSA_size[sizeof(CONTESSA) == 0x1010 ? 1 : -1];
 
@@ -378,11 +378,11 @@ typedef char assert_CONTESSA_size[sizeof(CONTESSA) == 0x1010 ? 1 : -1];
 struct DANCER : STEP
 {
     char pad2C0[0x410 - 0x2C0];
-    virtual void VUnk14() __asm__("PostDancerLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostDancerLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDancerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleDancerMessage");   /* slot 5 */
     virtual void RemoveHierarchy() __asm__("RemoveDancerHierarchy");   /* slot 12 */
-    virtual void VUnk15() __asm__("UpdateDancer");   /* slot 16 */
+    virtual void Update() __asm__("UpdateDancer");   /* slot 16 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetDancerCpdefi");   /* slot 50 */
 };
 typedef char assert_DANCER_size[sizeof(DANCER) == 0x410 ? 1 : -1];
@@ -391,10 +391,10 @@ typedef char assert_DANCER_size[sizeof(DANCER) == 0x410 ? 1 : -1];
 struct CID121 : LO
 {
     char pad50[0x10B0 - 0x50];
-    virtual void VUnk14() __asm__("PostRhythmManagerLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostRhythmManagerLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid121ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRhythmMgr");   /* slot 7 */
-    virtual void VUnk15() __asm__("UpdateRhythmMgr");   /* slot 16 */
+    virtual void Update() __asm__("UpdateRhythmMgr");   /* slot 16 */
     virtual void RenderSelf() __asm__("DrawRhythmMgr");   /* slot 19 */
 };
 typedef char assert_CID121_size[sizeof(CID121) == 0x10B0 ? 1 : -1];
@@ -412,7 +412,7 @@ typedef char assert_CID122_size[sizeof(CID122) == 0x60 ? 1 : -1];
 struct DIMITRI : GUARD
 {
     char pad1010[0x1020 - 0x1010];
-    virtual void VUnk14() __asm__("PostDimitriLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostDimitriLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDimitriClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDimitriFromBrx");   /* slot 14 */
 };
@@ -455,9 +455,9 @@ typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
 struct CID147 : BASIC
 {
     char pad10[0x60 - 0x10];
-    virtual void VUnk00() __asm__("func_001566B8");   /* slot 1; key function (noise.cpp) */
+    virtual void AddRef() __asm__("func_001566B8");   /* slot 1; key function (noise.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
-    virtual void VUnk01() __asm__("ReleaseNoise");   /* slot 2 */
+    virtual void Release() __asm__("ReleaseNoise");   /* slot 2 */
 };
 typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
 
@@ -469,7 +469,7 @@ struct CID47 : XFM
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid47ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitListener");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveListenerHierarchy");   /* slot 12 */
-    virtual void VUnk15() __asm__("UpdateListener");   /* slot 16 */
+    virtual void Update() __asm__("UpdateListener");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneListener");   /* slot 41 */
 };
 typedef char assert_CID47_size[sizeof(CID47) == 0x110 ? 1 : -1];
@@ -478,11 +478,11 @@ typedef char assert_CID47_size[sizeof(CID47) == 0x110 ? 1 : -1];
 struct EXPLG : EXPL
 {
     char padE0[0xF0 - 0xE0];
-    virtual int CploChildren(LO ***paplo) __asm__("CploExplgChildren");   /* slot 28 */
+    virtual int GetChildren(LO ***paplo) __asm__("CploExplgChildren");   /* slot 28 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetExplgClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExplgFromBrx");   /* slot 14 */
     virtual void Clone(LO *ploBase) __asm__("CloneExplg");   /* slot 41 */
-    virtual void VSlot51() __asm__("ExplodeExplgExplso");   /* slot 51 */
+    virtual void ExplodeExplso() __asm__("ExplodeExplgExplso");   /* slot 51 */
 };
 typedef char assert_EXPLG_size[sizeof(EXPLG) == 0xF0 ? 1 : -1];
 
@@ -492,8 +492,8 @@ struct EXPLS : EXPLO
     char padF0[0x110 - 0xF0];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleExplsMessage");   /* slot 5 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetExplsClassDesc");   /* slot 6 */
-    virtual void VSlot51() __asm__("ExplodeExplsExplso");   /* slot 51 */
-    virtual void VSlot52() __asm__("FireExplsExplso");   /* slot 52 */
+    virtual void ExplodeExplso() __asm__("ExplodeExplsExplso");   /* slot 51 */
+    virtual void FireExplso() __asm__("FireExplsExplso");   /* slot 52 */
 };
 typedef char assert_EXPLS_size[sizeof(EXPLS) == 0x110 ? 1 : -1];
 
@@ -503,8 +503,8 @@ struct WIDGET131 : WIDGET
     char pad110[0x140 - 0x110];
     virtual void Init() __asm__("InitEpisodeMenu");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget131ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostEpisodeMenuLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateEpisodeMenu");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostEpisodeMenuLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateEpisodeMenu");   /* slot 16 */
 };
 typedef char assert_WIDGET131_size[sizeof(WIDGET131) == 0x140 ? 1 : -1];
 
@@ -514,7 +514,7 @@ struct CID116 : LO
     char pad50[0x70 - 0x50];
     virtual void Init() __asm__("InitScreenFade");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid116ClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateScreenFade");   /* slot 16 */
+    virtual void Update() __asm__("UpdateScreenFade");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderScreenFade");   /* slot 19 */
 };
 typedef char assert_CID116_size[sizeof(CID116) == 0x70 ? 1 : -1];
@@ -531,7 +531,7 @@ typedef char assert_GOMER_size[sizeof(GOMER) == 0x1010 ? 1 : -1];
 struct CID113 : LO
 {
     char pad50[0x60 - 0x50];
-    virtual void VUnk14() __asm__("func_00170A28");   /* slot 15 */
+    virtual void PostLoad() __asm__("func_00170A28");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid113ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitGuardScript");   /* slot 7 */
 };
@@ -569,8 +569,8 @@ struct CID119 : LO
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid119ClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("RemoveSpawnerHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSpawnerFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostSpawnerLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateSpawner");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostSpawnerLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateSpawner");   /* slot 16 */
 };
 typedef char assert_CID119_size[sizeof(CID119) == 0xB0 ? 1 : -1];
 
@@ -1031,12 +1031,12 @@ struct HACK : PO
     virtual void RemoveHierarchy() __asm__("RemoveHackHierarchy");   /* slot 12 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHack");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostHackLoad");   /* slot 15 */
-    virtual void VUnk25(LO *plo) __asm__("ResetHackHealth");   /* slot 26 */
+    virtual void PostLoad() __asm__("PostHackLoad");   /* slot 15 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetHackHealth");   /* slot 26 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackNewXp");   /* slot 55 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeHackDamage");   /* slot 75 */
-    virtual void VSlot82() __asm__("KillHack");   /* slot 82 */
-    virtual void VSlot83() __asm__("ResetHack");   /* slot 83 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackDamage");   /* slot 75 */
+    virtual void Kill() __asm__("KillHack");   /* slot 82 */
+    virtual void Reset() __asm__("ResetHack");   /* slot 83 */
 };
 typedef char assert_HACK_size[sizeof(HACK) == 0x1C0 ? 1 : -1];
 
@@ -1050,12 +1050,12 @@ struct HACKSHIP : HACK
     virtual void RemoveHierarchy() __asm__("RemoveHackshipHierarchy");   /* slot 12 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackshipClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHackship");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostHackshipLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateHackship");   /* slot 16 */
-    virtual void VUnk69() __asm__("PresetHackshipAccel");   /* slot 70 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeHackshipDamage");   /* slot 75 */
+    virtual void PostLoad() __asm__("PostHackshipLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateHackship");   /* slot 16 */
+    virtual void PresetAccel() __asm__("PresetHackshipAccel");   /* slot 70 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackshipDamage");   /* slot 75 */
     virtual void OnActive(int fActive) __asm__("OnHackshipActive");   /* slot 78 */
-    virtual void VSlot83() __asm__("ResetHackship");   /* slot 83 */
+    virtual void Reset() __asm__("ResetHackship");   /* slot 83 */
 };
 typedef char assert_HACKSHIP_size[sizeof(HACKSHIP) == 0x2B0 ? 1 : -1];
 /* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
@@ -1071,9 +1071,9 @@ struct HACKBULLET : HACK
     char pad1C0[0x1E0 - 0x1C0];
     virtual void Init() __asm__("InitHackbullet");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackbulletClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateHackbullet");   /* slot 16 */
+    virtual void Update() __asm__("UpdateHackbullet");   /* slot 16 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackbulletNewXp");   /* slot 55 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldHackbulletIgnoreIntersection");   /* slot 61 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldHackbulletIgnoreIntersection");   /* slot 61 */
 };
 typedef char assert_HACKBULLET_size[sizeof(HACKBULLET) == 0x1E0 ? 1 : -1];
 
@@ -1081,17 +1081,17 @@ typedef char assert_HACKBULLET_size[sizeof(HACKBULLET) == 0x1E0 ? 1 : -1];
 struct HACKENEMY : HACK
 {
     char pad1C0[0x390 - 0x1C0];
-    virtual void VSlot83() __asm__("ResetHackenemy");   /* slot 83 */
+    virtual void Reset() __asm__("ResetHackenemy");   /* slot 83 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackenemyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleHackenemyMessage");   /* slot 5 */
     virtual void Init() __asm__("InitHackenemy");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveHackenemyHierarchy");   /* slot 12 */
-    virtual void VUnk14() __asm__("PostHackenemyLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateHackenemy");   /* slot 16 */
-    virtual void VUnk25(LO *plo) __asm__("ResetHackenemyState");   /* slot 26 */
+    virtual void PostLoad() __asm__("PostHackenemyLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateHackenemy");   /* slot 16 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetHackenemyState");   /* slot 26 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackenemyNewXp");   /* slot 55 */
-    virtual void VUnk69() __asm__("PresetHackenemyAccel");   /* slot 70 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeHackenemyDamage");   /* slot 75 */
+    virtual void PresetAccel() __asm__("PresetHackenemyAccel");   /* slot 70 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackenemyDamage");   /* slot 75 */
 };
 typedef char assert_HACKENEMY_size[sizeof(HACKENEMY) == 0x390 ? 1 : -1];
 
@@ -1101,9 +1101,9 @@ struct HACKLOCK : HACK
     char pad1C0[0x250 - 0x1C0];
     virtual void Init() __asm__("InitHacklock");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHacklockClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostHacklockLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateHacklock");   /* slot 16 */
-    virtual void VSlot83() __asm__("ResetHacklock");   /* slot 83 */
+    virtual void PostLoad() __asm__("PostHacklockLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateHacklock");   /* slot 16 */
+    virtual void Reset() __asm__("ResetHacklock");   /* slot 83 */
 };
 typedef char assert_HACKLOCK_size[sizeof(HACKLOCK) == 0x250 ? 1 : -1];
 
@@ -1113,16 +1113,16 @@ struct HACKWALL : HACK
     char pad1C0[0x2A0 - 0x1C0];
     virtual void Init() __asm__("InitHackwall");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackwallClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostHackwallLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateHackwall");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostHackwallLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateHackwall");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderHackwallSelf");   /* slot 19 */
-    virtual void VUnk48() __asm__("UpdateHackwallTreeBounds");   /* slot 49 */
+    virtual void UpdateBounds() __asm__("UpdateHackwallTreeBounds");   /* slot 49 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackwallNewXp");   /* slot 55 */
-    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddHackwallXps");   /* slot 60 */
-    virtual int CpartExtra() __asm__("GetHackwallExtraPartCount");   /* slot 63 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeHackwallDamage");   /* slot 75 */
-    virtual void VSlot82() __asm__("KillHackwall");   /* slot 82 */
-    virtual void VSlot83() __asm__("ResetHackwall");   /* slot 83 */
+    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddHackwallXps");   /* slot 60 */
+    virtual int GetExtraPartCount() __asm__("GetHackwallExtraPartCount");   /* slot 63 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackwallDamage");   /* slot 75 */
+    virtual void Kill() __asm__("KillHackwall");   /* slot 82 */
+    virtual void Reset() __asm__("ResetHackwall");   /* slot 83 */
 };
 typedef char assert_HACKWALL_size[sizeof(HACKWALL) == 0x2A0 ? 1 : -1];
 
@@ -1130,11 +1130,11 @@ typedef char assert_HACKWALL_size[sizeof(HACKWALL) == 0x2A0 ? 1 : -1];
 struct CID12 : SHAPE, GRABSPOT
 {
     char pad1B4[0x1C0 - 0x1B4];
-    virtual void Unfreeze() __asm__("func_00182EB8");   /* slot 23 */
+    virtual void OnAdd() __asm__("func_00182EB8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid12ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWallGrabspot");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostWallGrabspotLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnWallGrabspotRemove");   /* slot 22 */
+    virtual void PostLoad() __asm__("PostWallGrabspotLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnWallGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneWallGrabspot");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("GetWallGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam() __asm__("GetWallGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -400) */
@@ -1148,11 +1148,11 @@ typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
 struct CID34 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
-    virtual void Unfreeze() __asm__("func_00183370");   /* slot 23 */
+    virtual void OnAdd() __asm__("func_00183370");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid34ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPoleGrabspot");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostPoleGrabspotLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnPoleGrabspotRemove");   /* slot 22 */
+    virtual void PostLoad() __asm__("PostPoleGrabspotLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnPoleGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePoleGrabspot");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("GetPoleGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -224) */
     virtual void GetClosestParam() __asm__("GetPoleGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -224) */
@@ -1166,11 +1166,11 @@ typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
 struct CID38 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
-    virtual void Unfreeze() __asm__("func_001836F8");   /* slot 23 */
+    virtual void OnAdd() __asm__("func_001836F8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid38ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHoldGrabspot");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostHoldGrabspotLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnHoldGrabspotRemove");   /* slot 22 */
+    virtual void PostLoad() __asm__("PostHoldGrabspotLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnHoldGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneHoldGrabspot");   /* slot 41 */
     virtual void GetGrabPos() __asm__("GetHoldGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void VtF() __asm__("func_00259A10__FP5CID38");   /* GRABSPOT slot 6 (delta -224) */
@@ -1181,15 +1181,15 @@ typedef char assert_CID38_size[sizeof(CID38) == 0x110 ? 1 : -1];
 struct BARREL : SO, GRABSPOT
 {
     char pad174[0x1A0 - 0x174];
-    virtual void Unfreeze() __asm__("OnBarrelAdd");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnBarrelAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBarrelClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBarrel");   /* slot 7 */
-    virtual void Freeze() __asm__("OnBarrelRemove");   /* slot 22 */
-    virtual void VUnk25(LO *plo) __asm__("ResetBarrel");   /* slot 26 */
+    virtual void OnRemove() __asm__("OnBarrelRemove");   /* slot 22 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetBarrel");   /* slot 26 */
     virtual void Clone(LO *ploBase) __asm__("CloneBarrel");   /* slot 41 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrelIgnoreIntersection");   /* slot 61 */
-    virtual void VUnk69() __asm__("PresetBarrelAccel");   /* slot 70 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("HandleBarrelZap");   /* slot 75 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrelIgnoreIntersection");   /* slot 61 */
+    virtual void PresetAccel() __asm__("PresetBarrelAccel");   /* slot 70 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("HandleBarrelZap");   /* slot 75 */
     virtual void VtF() __asm__("func_00259A20__FP6BARREL");   /* GRABSPOT slot 6 (delta -336) */
 };
 typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
@@ -1198,15 +1198,15 @@ typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
 struct CID35 : XFM, GRABSPOT
 {
     char pad104[0x180 - 0x104];
-    virtual void Unfreeze() __asm__("func_00183FB8");   /* slot 23 */
+    virtual void OnAdd() __asm__("func_00183FB8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid35ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTriggerGrabspot");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostTriggerGrabspotLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnTriggerGrabspotRemove");   /* slot 22 */
+    virtual void PostLoad() __asm__("PostTriggerGrabspotLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnTriggerGrabspotRemove");   /* slot 22 */
     virtual void GetGrabPos() __asm__("GetTriggerGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void AdjustScore() __asm__("AdjustTriggerGrabspotScore");   /* GRABSPOT slot 4 (delta -224) */
     virtual void VtF() __asm__("func_00259A30__FP5CID35");   /* GRABSPOT slot 6 (delta -224) */
-    virtual void VSlot51() __asm__("FireTriggerGrabspot");   /* slot 51 */
+    virtual void OnTriggered() __asm__("FireTriggerGrabspot");   /* slot 51 */
 };
 typedef char assert_CID35_size[sizeof(CID35) == 0x180 ? 1 : -1];
 
@@ -1214,11 +1214,11 @@ typedef char assert_CID35_size[sizeof(CID35) == 0x180 ? 1 : -1];
 struct CID37 : CID35
 {
     char pad180[0x1A0 - 0x180];
-    virtual void VUnk14() __asm__("PostBootyContainerLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostBootyContainerLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid37ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBootyContainer");   /* slot 7 */
-    virtual void Unfreeze() __asm__("OnBootyContainerAdd");   /* slot 23 */
-    virtual void VSlot51() __asm__("OnBootyContainerTouched");   /* slot 51 */
+    virtual void OnAdd() __asm__("OnBootyContainerAdd");   /* slot 23 */
+    virtual void OnTriggered() __asm__("OnBootyContainerTouched");   /* slot 51 */
 };
 typedef char assert_CID37_size[sizeof(CID37) == 0x1A0 ? 1 : -1];
 
@@ -1226,10 +1226,10 @@ typedef char assert_CID37_size[sizeof(CID37) == 0x1A0 ? 1 : -1];
 struct CID36 : CID35
 {
     char pad180[0x1A0 - 0x180];
-    virtual void VUnk14() __asm__("func_001842B0");   /* slot 15 */
+    virtual void PostLoad() __asm__("func_001842B0");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid36ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitCarryGrabspot");   /* slot 7 */
-    virtual void VSlot51() __asm__("OnTriggerGrabspotGrabbed");   /* slot 51 */
+    virtual void OnTriggered() __asm__("OnTriggerGrabspotGrabbed");   /* slot 51 */
 };
 typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
 
@@ -1237,11 +1237,11 @@ typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
 struct CID27 : VOL, GRABSPOT
 {
     char pad154[0x160 - 0x154];
-    virtual void Unfreeze() __asm__("func_001844A0");   /* slot 23 */
+    virtual void OnAdd() __asm__("func_001844A0");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid27ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTableGrabspot");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostTableGrabspotLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnTableGrabspotRemove");   /* slot 22 */
+    virtual void PostLoad() __asm__("PostTableGrabspotLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnTableGrabspotRemove");   /* slot 22 */
     virtual void GetGrabPos() __asm__("GetTableGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -304) */
     virtual void GetSparklePos() __asm__("GetTableGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -304) */
     virtual void VtF() __asm__("func_00259A40__FP5CID27");   /* GRABSPOT slot 6 (delta -304) */
@@ -1277,7 +1277,7 @@ struct CID9 : CID8
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid9ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCid9Hierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveCid9Hierarchy");   /* slot 12 */
-    virtual void VUnk14() __asm__("PostCid9Load");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostCid9Load");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneCid9");   /* slot 41 */
 };
 typedef char assert_CID9_size[sizeof(CID9) == 0x120 ? 1 : -1];
@@ -1302,10 +1302,10 @@ struct LIGHT : XFM
     virtual CLASSINFO *Pclassinfo() __asm__("GetLightClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddLightHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveLightHierarchy");   /* slot 12 */
-    virtual void VUnk14() __asm__("PostLightLoad");   /* slot 15 */
-    virtual void VUnk16() __asm__("ProjectLightTransform");   /* slot 17 */
-    virtual void Freeze() __asm__("OnLightRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnLightAdd");   /* slot 23 */
+    virtual void PostLoad() __asm__("PostLightLoad");   /* slot 15 */
+    virtual void UpdateXfWorld() __asm__("ProjectLightTransform");   /* slot 17 */
+    virtual void OnRemove() __asm__("OnLightRemove");   /* slot 22 */
+    virtual void OnAdd() __asm__("OnLightAdd");   /* slot 23 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateLightToPos");   /* slot 29 */
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateLightToMat");   /* slot 30 */
 };
@@ -1321,12 +1321,12 @@ struct CID96 : SO
     virtual void Init() __asm__("InitCritter");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveCritterHierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCritterFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostCritterLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateCritter");   /* slot 16 */
-    virtual void VUnk16() __asm__("UpdateCritterXfWorld");   /* slot 17 */
-    virtual void VUnk25(LO *plo) __asm__("ResetCritterFromProxy");   /* slot 26 */
-    virtual void VUnk69() __asm__("PresetCritterAccel");   /* slot 70 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeCritterDamage");   /* slot 75 */
+    virtual void PostLoad() __asm__("PostCritterLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateCritter");   /* slot 16 */
+    virtual void UpdateXfWorld() __asm__("UpdateCritterXfWorld");   /* slot 17 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetCritterFromProxy");   /* slot 26 */
+    virtual void PresetAccel() __asm__("PresetCritterAccel");   /* slot 70 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeCritterDamage");   /* slot 75 */
 };
 typedef char assert_CID96_size[sizeof(CID96) == 0x250 ? 1 : -1];
 
@@ -1338,9 +1338,9 @@ struct MISSILE : BOMB
     virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
-    virtual void VSlot77() __asm__("ApplyMissileThrow");   /* slot 77 */
-    virtual void VSlot78() __asm__("FireMissile");   /* slot 78 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
+    virtual void ApplyThrow() __asm__("ApplyMissileThrow");   /* slot 77 */
+    virtual void Fire() __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
 
@@ -1350,7 +1350,7 @@ struct ACCMISS : MISSILE
     char pad270[0x280 - 0x270];
     virtual CLASSINFO *Pclassinfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAccmiss__FP7ACCMISS");   /* slot 7 */
-    virtual void VUnk69() __asm__("PresetAccmissAccel");   /* slot 70 */
+    virtual void PresetAccel() __asm__("PresetAccmissAccel");   /* slot 70 */
 };
 typedef char assert_ACCMISS_size[sizeof(ACCMISS) == 0x280 ? 1 : -1];
 
@@ -1360,8 +1360,8 @@ struct CID82 : MISSILE
     char pad270[0x290 - 0x270];
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
-    virtual void VUnk69() __asm__("PresetSplmissAccel");   /* slot 70 */
-    virtual void VSlot78() __asm__("FireSplmiss");   /* slot 78 */
+    virtual void PresetAccel() __asm__("PresetSplmissAccel");   /* slot 70 */
+    virtual void Fire() __asm__("FireSplmiss");   /* slot 78 */
 };
 typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
 
@@ -1392,9 +1392,9 @@ struct NEELA : STEPGUARD
     char pad1010[0x10A0 - 0x1010];
     virtual void Init() __asm__("InitNeela");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetNeelaClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostNeelaLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateNeela");   /* slot 16 */
-    virtual void VUnk25(LO *plo) __asm__("ResetNeelaToHome");   /* slot 26 */
+    virtual void PostLoad() __asm__("PostNeelaLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateNeela");   /* slot 16 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetNeelaToHome");   /* slot 26 */
 };
 typedef char assert_NEELA_size[sizeof(NEELA) == 0x10A0 ? 1 : -1];
 
@@ -1402,14 +1402,14 @@ typedef char assert_NEELA_size[sizeof(NEELA) == 0x10A0 ? 1 : -1];
 struct CID98 : SO
 {
     char pad150[0x180 - 0x150];
-    virtual void VUnk57() __asm__("HandleBreakableContacts");   /* slot 58 */
+    virtual void AdjustXps() __asm__("HandleBreakableContacts");   /* slot 58 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid98ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBreakable");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadBreakableFromBrx");   /* slot 14 */
-    virtual void Freeze() __asm__("OnBreakableRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnBreakableAdd");   /* slot 23 */
-    virtual void VUnk25(LO *plo) __asm__("ResetBreakable");   /* slot 26 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("AcceptBreakableZap");   /* slot 75 */
+    virtual void OnRemove() __asm__("OnBreakableRemove");   /* slot 22 */
+    virtual void OnAdd() __asm__("OnBreakableAdd");   /* slot 23 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetBreakable");   /* slot 26 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("AcceptBreakableZap");   /* slot 75 */
 };
 typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];
 
@@ -1422,7 +1422,7 @@ struct CID14 : SHAPE
     virtual void AddHierarchy() __asm__("AddCid14Hierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveCid14Hierarchy");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCid14FromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostCid14Load");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostCid14Load");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneCid14");   /* slot 41 */
 };
 typedef char assert_CID14_size[sizeof(CID14) == 0x1F0 ? 1 : -1];
@@ -1458,7 +1458,7 @@ struct PATHLINK : LO
     virtual CLASSINFO *Pclassinfo() __asm__("GetPathlinkClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddPathlinkHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemovePathlinkHierarchy");   /* slot 12 */
-    virtual void VUnk14() __asm__("PostPathlinkLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostPathlinkLoad");   /* slot 15 */
 };
 typedef char assert_PATHLINK_size[sizeof(PATHLINK) == 0x160 ? 1 : -1];
 
@@ -1466,7 +1466,7 @@ typedef char assert_PATHLINK_size[sizeof(PATHLINK) == 0x160 ? 1 : -1];
 struct CID99 : SO
 {
     char pad150[0x170 - 0x150];
-    virtual void VUnk14() __asm__("PostLootPouchLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostLootPouchLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid99ClassDesc");   /* slot 6 */
     virtual void RenderSelf() __asm__("RenderLootPouchSelf");   /* slot 19 */
 };
@@ -1476,11 +1476,11 @@ typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1];
 struct PIPE : SHAPE, GRABSPOT
 {
     char pad1B4[0x1E0 - 0x1B4];
-    virtual void Unfreeze() __asm__("OnPipeAdd");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnPipeAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetPipeClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPipe");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostPipeLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnPipeRemove");   /* slot 22 */
+    virtual void PostLoad() __asm__("PostPipeLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnPipeRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePipe");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("GetPipeWrapRange");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam() __asm__("GetPipeClosestParam");   /* GRABSPOT slot 2 (delta -400) */
@@ -1494,10 +1494,10 @@ typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
 struct COIN : DPRIZE
 {
     char pad230[0x240 - 0x230];
-    virtual void VUnk15() __asm__("UpdateCoin");   /* slot 16 */
+    virtual void Update() __asm__("UpdateCoin");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCoinClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitCoin");   /* slot 7 */
-    virtual void VSlot76() __asm__("SetCoinDprizes");   /* slot 76 */
+    virtual void SetState() __asm__("SetCoinDprizes");   /* slot 76 */
 };
 typedef char assert_COIN_size[sizeof(COIN) == 0x240 ? 1 : -1];
 
@@ -1505,10 +1505,10 @@ typedef char assert_COIN_size[sizeof(COIN) == 0x240 ? 1 : -1];
 struct MEDICINE : DPRIZE
 {
     char pad230[0x250 - 0x230];
-    virtual void VUnk15() __asm__("UpdateMedicine");   /* slot 16 */
+    virtual void Update() __asm__("UpdateMedicine");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetMedicineClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitMedicine");   /* slot 7 */
-    virtual void VSlot76() __asm__("SetMedicineDprizes");   /* slot 76 */
+    virtual void SetState() __asm__("SetMedicineDprizes");   /* slot 76 */
 };
 typedef char assert_MEDICINE_size[sizeof(MEDICINE) == 0x250 ? 1 : -1];
 
@@ -1518,7 +1518,7 @@ struct KEY : DPRIZE
     char pad230[0x240 - 0x230];
     virtual void Init() __asm__("InitKey");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetKeyClassDesc");   /* slot 6 */
-    virtual void VSlot76() __asm__("SetKeyDprizes");   /* slot 76 */
+    virtual void SetState() __asm__("SetKeyDprizes");   /* slot 76 */
 };
 typedef char assert_KEY_size[sizeof(KEY) == 0x240 ? 1 : -1];
 
@@ -1526,11 +1526,11 @@ typedef char assert_KEY_size[sizeof(KEY) == 0x240 ? 1 : -1];
 struct LOOT : DPRIZE
 {
     char pad230[0x250 - 0x230];
-    virtual void VUnk15() __asm__("UpdateLoot");   /* slot 16 */
+    virtual void Update() __asm__("UpdateLoot");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetLootClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLoot");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLootFromBrx");   /* slot 14 */
-    virtual void VSlot76() __asm__("SetLootDprizes");   /* slot 76 */
+    virtual void SetState() __asm__("SetLootDprizes");   /* slot 76 */
 };
 typedef char assert_LOOT_size[sizeof(LOOT) == 0x250 ? 1 : -1];
 
@@ -1539,9 +1539,9 @@ struct CLUE : DPRIZE
 {
     virtual void Init() __asm__("InitClue");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetClueClassDesc");   /* slot 6 */
-    virtual void VUnk25(LO *plo) __asm__("ResetClue");   /* slot 26 */
-    virtual void VUnk26(LO *plo) __asm__("ClearClueState");   /* slot 27 */
-    virtual void VSlot76() __asm__("SetClueDprizes");   /* slot 76 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetClue");   /* slot 26 */
+    virtual void OnProxyRelease(LO *plo) __asm__("ClearClueState");   /* slot 27 */
+    virtual void SetState() __asm__("SetClueDprizes");   /* slot 76 */
 };
 typedef char assert_CLUE_size[sizeof(CLUE) == 0x230 ? 1 : -1];
 
@@ -1549,7 +1549,7 @@ typedef char assert_CLUE_size[sizeof(CLUE) == 0x230 ? 1 : -1];
 struct CLUEPROXY : PROXY
 {
     char pad100[0x110 - 0x100];
-    virtual void VUnk14() __asm__("PostClueproxyLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostClueproxyLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetClueproxyClassDesc");   /* slot 6 */
 };
 typedef char assert_CLUEPROXY_size[sizeof(CLUEPROXY) == 0x110 ? 1 : -1];
@@ -1558,10 +1558,10 @@ typedef char assert_CLUEPROXY_size[sizeof(CLUEPROXY) == 0x110 ? 1 : -1];
 struct VAULT : PO
 {
     char pad180[0x230 - 0x180];
-    virtual void VUnk14() __asm__("PostVaultLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostVaultLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetVaultClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitVault");   /* slot 7 */
-    virtual void VUnk15() __asm__("UpdateVault");   /* slot 16 */
+    virtual void Update() __asm__("UpdateVault");   /* slot 16 */
 };
 typedef char assert_VAULT_size[sizeof(VAULT) == 0x230 ? 1 : -1];
 
@@ -1569,11 +1569,11 @@ typedef char assert_VAULT_size[sizeof(VAULT) == 0x230 ? 1 : -1];
 struct RAIL : SHAPE, GRABSPOT
 {
     char pad1B4[0x1D0 - 0x1B4];
-    virtual void Unfreeze() __asm__("OnRailAdd");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnRailAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRailClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRail");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostRailLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnRailRemove");   /* slot 22 */
+    virtual void PostLoad() __asm__("PostRailLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnRailRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneRail");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("GetRailWrapRange");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam() __asm__("GetRailClosestParam");   /* GRABSPOT slot 2 (delta -400) */
@@ -1598,14 +1598,14 @@ typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
 struct RIPG : SO
 {
     char pad150[0x1B0 - 0x150];
-    virtual int VUnk61() __asm__("CanRipgStayAsleep");   /* slot 62 */
+    virtual int IsFixed() __asm__("CanRipgStayAsleep");   /* slot 62 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRipg__FP4RIPG");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnRipgRemove__FP4RIPG");   /* slot 12 */
-    virtual void VUnk15() __asm__("UpdateRipg");   /* slot 16 */
-    virtual void VUnk16() __asm__("ProjectRipgTransform");   /* slot 17 */
+    virtual void Update() __asm__("UpdateRipg");   /* slot 16 */
+    virtual void UpdateXfWorld() __asm__("ProjectRipgTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderRipgSelf__FP4RIPGP2CMP2RO");   /* slot 19 */
-    virtual void VUnk48() __asm__("UpdateRipgBounds");   /* slot 49 */
+    virtual void UpdateBounds() __asm__("UpdateRipgBounds");   /* slot 49 */
 };
 typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 
@@ -1619,17 +1619,17 @@ struct ROBOTTANK : PO
     virtual void OnActive(int fActive) __asm__("OnRobottankActive");   /* slot 78 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRobottankClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRobottank");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostRobottankLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateRobottank");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostRobottankLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateRobottank");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderRobottankSelf");   /* slot 19 */
-    virtual void VUnk25(LO *plo) __asm__("ResetRobottank");   /* slot 26 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetRobottank");   /* slot 26 */
     virtual void Clone(LO *ploBase) __asm__("CloneRobottank");   /* slot 41 */
-    virtual void VUnk48() __asm__("UpdateRobottankBounds");   /* slot 49 */
-    virtual void VUnk53(SO *pso) __asm__("RemoveRobottankContactsWith");   /* slot 54 */
+    virtual void UpdateBounds() __asm__("UpdateRobottankBounds");   /* slot 49 */
+    virtual void OnContactFreed(SO *pso) __asm__("RemoveRobottankContactsWith");   /* slot 54 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustRobottankNewXp");   /* slot 55 */
-    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddRobottankCustomXps");   /* slot 60 */
-    virtual void VUnk69() __asm__("PresetRobottankAccel");   /* slot 70 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeRobottankDamage");   /* slot 75 */
+    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddRobottankCustomXps");   /* slot 60 */
+    virtual void PresetAccel() __asm__("PresetRobottankAccel");   /* slot 70 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeRobottankDamage");   /* slot 75 */
 };
 typedef char assert_ROBOTTANK_size[sizeof(ROBOTTANK) == 0x5D0 ? 1 : -1];
 /* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
@@ -1643,11 +1643,11 @@ inline ROBOTTANK::ROBOTTANK() { nUnk598 = 0; }
 struct CID108 : SO
 {
     char pad150[0x170 - 0x150];
-    virtual void VUnk15() __asm__("UpdateRcPickup");   /* slot 16 */
+    virtual void Update() __asm__("UpdateRcPickup");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid108ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRcPickup");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostRcPickupLoad");   /* slot 15 */
-    virtual void VUnk25(LO *plo) __asm__("ResetRobottankPickup");   /* slot 26 */
+    virtual void PostLoad() __asm__("PostRcPickupLoad");   /* slot 15 */
+    virtual void OnProxyAcquire(LO *plo) __asm__("ResetRobottankPickup");   /* slot 26 */
 };
 typedef char assert_CID108_size[sizeof(CID108) == 0x170 ? 1 : -1];
 
@@ -1666,8 +1666,8 @@ struct SAFEHOUSE : PO
     char pad180[0x240 - 0x180];
     virtual void Init() __asm__("func_001D7238");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSafehouseClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostSafehouseLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateSafehouse");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostSafehouseLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateSafehouse");   /* slot 16 */
     virtual void SetCtlState(int nState) __asm__("HandleSafehouseMessage");   /* slot 79 */
 };
 typedef char assert_SAFEHOUSE_size[sizeof(SAFEHOUSE) == 0x240 ? 1 : -1];
@@ -1676,16 +1676,16 @@ typedef char assert_SAFEHOUSE_size[sizeof(SAFEHOUSE) == 0x240 ? 1 : -1];
 struct LASEN : SENSOR
 {
     char pad190[0x1D0 - 0x190];
-    virtual void VUnk14() __asm__("PostLasenLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostLasenLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetLasenClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLasen");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLasenFromBrx");   /* slot 14 */
-    virtual void VUnk15() __asm__("UpdateLasen");   /* slot 16 */
+    virtual void Update() __asm__("UpdateLasen");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderLasenSelf");   /* slot 19 */
     virtual void Clone(LO *ploBase) __asm__("CloneLasen");   /* slot 41 */
-    virtual SOTREE *VUnk52() __asm__("NewLasenTree");   /* slot 53 */
-    virtual void VUnk53(SO *pso) __asm__("RemoveLasenContactsWith");   /* slot 54 */
-    virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddLasenBeamXps");   /* slot 60 */
+    virtual SOTREE *NewTree() __asm__("NewLasenTree");   /* slot 53 */
+    virtual void OnContactFreed(SO *pso) __asm__("RemoveLasenContactsWith");   /* slot 54 */
+    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddLasenBeamXps");   /* slot 60 */
 };
 typedef char assert_LASEN_size[sizeof(LASEN) == 0x1D0 ? 1 : -1];
 
@@ -1696,7 +1696,7 @@ struct RELAY : LO
     virtual void Init() __asm__("InitRelay");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRelayClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRelayFromBrx");   /* slot 14 */
-    virtual void VUnk15() __asm__("UpdateRelay");   /* slot 16 */
+    virtual void Update() __asm__("UpdateRelay");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneRelay");   /* slot 41 */
 };
 typedef char assert_RELAY_size[sizeof(RELAY) == 0xB0 ? 1 : -1];
@@ -1707,7 +1707,7 @@ struct CID106 : SO
     char pad150[0x160 - 0x150];
     virtual void RenderSelf() __asm__("func_001E9AC0");   /* slot 19 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid106ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostCid106Load");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostCid106Load");   /* slot 15 */
 };
 typedef char assert_CID106_size[sizeof(CID106) == 0x160 ? 1 : -1];
 
@@ -1780,9 +1780,9 @@ typedef char assert_CIRCLER_size[sizeof(CIRCLER) == 0x60 ? 1 : -1];
 struct SKY : SO
 {
     char pad150[0x160 - 0x150];
-    virtual void VUnk14() __asm__("PostSkyLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostSkyLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSkyClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateSky");   /* slot 16 */
+    virtual void Update() __asm__("UpdateSky");   /* slot 16 */
 };
 typedef char assert_SKY_size[sizeof(SKY) == 0x160 ? 1 : -1];
 
@@ -1792,9 +1792,9 @@ struct CID39 : XFM, GRABSPOT
     char pad104[0x110 - 0x104];
     virtual void Init() __asm__("InitGrabSpotXfm");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid39ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostGrabSpotXfmLoad");   /* slot 15 */
-    virtual void Freeze() __asm__("OnGrabSpotXfmRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnGrabSpotXfmAdd");   /* slot 23 */
+    virtual void PostLoad() __asm__("PostGrabSpotXfmLoad");   /* slot 15 */
+    virtual void OnRemove() __asm__("OnGrabSpotXfmRemove");   /* slot 22 */
+    virtual void OnAdd() __asm__("OnGrabSpotXfmAdd");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("CloneGrabSpotXfm");   /* slot 41 */
     virtual void GetGrabPos() __asm__("GetOffsetToObjectPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void VtF() __asm__("func_00259C08__FP5CID39");   /* GRABSPOT slot 6 (delta -224) */
@@ -1805,7 +1805,7 @@ typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
 struct CID46 : XFM
 {
     char padE0[0x120 - 0xE0];
-    virtual void VUnk14() __asm__("PostReconTargetLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostReconTargetLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid46ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleReconTargetMessage");   /* slot 5 */
     virtual void Init() __asm__("InitReconTarget");   /* slot 7 */
@@ -1819,8 +1819,8 @@ struct CID125 : LO
     char pad50[0x60 - 0x50];
     virtual void Init() __asm__("func_0020B4A8");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid125ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("PostGuardManagerLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateGuardManager");   /* slot 16 */
+    virtual void PostLoad() __asm__("PostGuardManagerLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateGuardManager");   /* slot 16 */
 };
 typedef char assert_CID125_size[sizeof(CID125) == 0x60 ? 1 : -1];
 
@@ -1828,9 +1828,9 @@ typedef char assert_CID125_size[sizeof(CID125) == 0x60 ? 1 : -1];
 struct WIDGET129 : WIDGET
 {
     char pad110[0x220 - 0x110];
-    virtual void VUnk14() __asm__("PostLoadItemCounterWidget");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostLoadItemCounterWidget");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget129ClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateItemCounterWidget");   /* slot 16 */
+    virtual void Update() __asm__("UpdateItemCounterWidget");   /* slot 16 */
 };
 typedef char assert_WIDGET129_size[sizeof(WIDGET129) == 0x220 ? 1 : -1];
 
@@ -1840,8 +1840,8 @@ struct WIDGET127 : WIDGET
     char pad110[0x120 - 0x110];
     virtual void Init() __asm__("InitModalBoxWidget");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget127ClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateModalBoxWidget");   /* slot 16 */
-    virtual void VSlot49() __asm__("ShowModalBoxWidget");   /* slot 49 */
+    virtual void Update() __asm__("UpdateModalBoxWidget");   /* slot 16 */
+    virtual void Show() __asm__("ShowModalBoxWidget");   /* slot 49 */
 };
 typedef char assert_WIDGET127_size[sizeof(WIDGET127) == 0x120 ? 1 : -1];
 
@@ -1860,9 +1860,9 @@ struct CID105 : SO
     virtual void AddHierarchy() __asm__("AddTrailHierarchy");   /* slot 11 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid105ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTrail");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostTrailLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateTrail");   /* slot 16 */
-    virtual void VUnk16() __asm__("ProjectTrailTransform");   /* slot 17 */
+    virtual void PostLoad() __asm__("PostTrailLoad");   /* slot 15 */
+    virtual void Update() __asm__("UpdateTrail");   /* slot 16 */
+    virtual void UpdateXfWorld() __asm__("ProjectTrailTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderTrail");   /* slot 19 */
 };
 typedef char assert_CID105_size[sizeof(CID105) == 0x1A0 ? 1 : -1];
@@ -1871,10 +1871,10 @@ typedef char assert_CID105_size[sizeof(CID105) == 0x1A0 ? 1 : -1];
 struct CID21 : XFM
 {
     char padE0[0x100 - 0xE0];
-    virtual void Unfreeze() __asm__("OnLookTargetAdd");   /* slot 23 */
+    virtual void OnAdd() __asm__("OnLookTargetAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid21ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLookTarget");   /* slot 7 */
-    virtual void Freeze() __asm__("OnLookTargetRemove");   /* slot 22 */
+    virtual void OnRemove() __asm__("OnLookTargetRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneLookTarget");   /* slot 41 */
 };
 typedef char assert_CID21_size[sizeof(CID21) == 0x100 ? 1 : -1];
@@ -1889,13 +1889,13 @@ struct CID100 : SO
     virtual void Init() __asm__("InitTossable");   /* slot 7 */
     virtual void AddHierarchy() __asm__("AddTossableHierarchy");   /* slot 11 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadTossableFromBrx");   /* slot 14 */
-    virtual void VUnk15() __asm__("UpdateTossable");   /* slot 16 */
+    virtual void Update() __asm__("UpdateTossable");   /* slot 16 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustTossableNewXp");   /* slot 55 */
-    virtual void VUnk57() __asm__("UpdateTossableContacts");   /* slot 58 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldTossableIgnoreIntersection");   /* slot 61 */
-    virtual void VUnk69() __asm__("OrientTossableToTarget");   /* slot 70 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeTossableDamage");   /* slot 75 */
-    virtual void VSlot76() __asm__("SetTossableState");   /* slot 76 */
+    virtual void AdjustXps() __asm__("UpdateTossableContacts");   /* slot 58 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldTossableIgnoreIntersection");   /* slot 61 */
+    virtual void PresetAccel() __asm__("OrientTossableToTarget");   /* slot 70 */
+    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeTossableDamage");   /* slot 75 */
+    virtual void SetState() __asm__("SetTossableState");   /* slot 76 */
 };
 typedef char assert_CID100_size[sizeof(CID100) == 0x1B0 ? 1 : -1];
 
@@ -1967,9 +1967,9 @@ struct CID102 : CID100
     char pad1B0[0x1D0 - 0x1B0];
     virtual void Init() __asm__("InitGuardTrap");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid102ClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateGuardTrap");   /* slot 16 */
-    virtual void VUnk70() __asm__("PushGuardTrapAway");   /* slot 71 */
-    virtual void VSlot76() __asm__("SelectGuardTrapTarget");   /* slot 76 */
+    virtual void Update() __asm__("UpdateGuardTrap");   /* slot 16 */
+    virtual void AddExternalAccelerations() __asm__("PushGuardTrapAway");   /* slot 71 */
+    virtual void SetState() __asm__("SelectGuardTrapTarget");   /* slot 76 */
 };
 typedef char assert_CID102_size[sizeof(CID102) == 0x1D0 ? 1 : -1];
 
@@ -1977,12 +1977,12 @@ typedef char assert_CID102_size[sizeof(CID102) == 0x1D0 ? 1 : -1];
 struct TURRET : PO
 {
     char pad180[0x1E0 - 0x180];
-    virtual void VUnk14() __asm__("PostTurretLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostTurretLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetTurretClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTurret");   /* slot 7 */
-    virtual void VUnk15() __asm__("UpdateTurret");   /* slot 16 */
+    virtual void Update() __asm__("UpdateTurret");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneTurret");   /* slot 41 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("FilterTurretProxySource");   /* slot 61 */
+    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("FilterTurretProxySource");   /* slot 61 */
     virtual void OnActive(int fActive) __asm__("OnTurretActive");   /* slot 78 */
 };
 typedef char assert_TURRET_size[sizeof(TURRET) == 0x1E0 ? 1 : -1];
@@ -2001,9 +2001,9 @@ typedef char assert_CID5_size[sizeof(CID5) == 0x120 ? 1 : -1];
 struct CID23 : VOL
 {
     char pad130[0x140 - 0x130];
-    virtual void Unfreeze() __asm__("func_00227E20");   /* slot 23 */
+    virtual void OnAdd() __asm__("func_00227E20");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid23ClassDesc");   /* slot 6 */
-    virtual void Freeze() __asm__("FreezeVol");   /* slot 22 */
+    virtual void OnRemove() __asm__("FreezeVol");   /* slot 22 */
 };
 typedef char assert_CID23_size[sizeof(CID23) == 0x140 ? 1 : -1];
 
@@ -2022,7 +2022,7 @@ struct EXIT : VOL
     virtual void Init() __asm__("InitExit");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetExitClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExitFromBrx");   /* slot 14 */
-    virtual void VUnk15() __asm__("UpdateExit");   /* slot 16 */
+    virtual void Update() __asm__("UpdateExit");   /* slot 16 */
 };
 typedef char assert_EXIT_size[sizeof(EXIT) == 0x190 ? 1 : -1];
 
@@ -2039,16 +2039,16 @@ typedef char assert_WARP_size[sizeof(WARP) == 0x180 ? 1 : -1];
 struct WATER : SO
 {
     char pad150[0x190 - 0x150];
-    virtual void VUnk14() __asm__("PostWaterLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostWaterLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWaterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleWaterMessage");   /* slot 5 */
     virtual void Init() __asm__("InitWater");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("RemoveWaterHierarchy");   /* slot 12 */
-    virtual void VUnk15() __asm__("UpdateWater");   /* slot 16 */
-    virtual void VUnk48() __asm__("UpdateWaterBounds");   /* slot 49 */
+    virtual void Update() __asm__("UpdateWater");   /* slot 16 */
+    virtual void UpdateBounds() __asm__("UpdateWaterBounds");   /* slot 49 */
     virtual void InitPhys() __asm__("InitWaterPhysics");   /* slot 64 */
-    virtual void VUnk70() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
-    virtual void VUnk72() __asm__("IsPosInWater");   /* slot 73 */
+    virtual void AddExternalAccelerations() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
+    virtual void IsPosInside() __asm__("IsPosInWater");   /* slot 73 */
 };
 typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 
@@ -2056,10 +2056,10 @@ typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 struct WAYPT : SO
 {
     char pad150[0x190 - 0x150];
-    virtual void VUnk14() __asm__("PostWayptLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostWayptLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWayptClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWaypt");   /* slot 7 */
-    virtual void VUnk15() __asm__("UpdateWaypt");   /* slot 16 */
+    virtual void Update() __asm__("UpdateWaypt");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderWaypt");   /* slot 19 */
 };
 typedef char assert_WAYPT_size[sizeof(WAYPT) == 0x190 ? 1 : -1];
@@ -2070,7 +2070,7 @@ struct WR : LO
     char pad50[0x900 - 0x50];
     virtual void Init() __asm__("InitWr");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWrClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("UpdateWrMatrixes__FP2WR");   /* slot 16 */
+    virtual void Update() __asm__("UpdateWrMatrixes__FP2WR");   /* slot 16 */
 };
 typedef char assert_WR_size[sizeof(WR) == 0x900 ? 1 : -1];
 

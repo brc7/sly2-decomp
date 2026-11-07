@@ -137,7 +137,7 @@ extern "C" void InitFrameCapture(CAPTUREV *capture)
 
 // CID104 vtable slot 15 (PostLoad): finishes the SO load, binds its snip table (the two placing objects), goes idle
 // and removes itself from the world until started.
-void CID104::VUnk14()
+void CID104::PostLoad()
 {
     CAPTUREV *capture = (CAPTUREV *)this;
     VTE *entry;
