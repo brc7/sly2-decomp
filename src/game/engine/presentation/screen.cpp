@@ -471,27 +471,17 @@ typedef struct {
     char padE04[0x1300 - 0xE04];
     int maxPower;
 } Q;
-typedef struct {
-    char pad[0x20];
-    float shownHealth;
-    float health;
-    float shownPower;
-    float power;
-    int state;
-    Q *hero;
-    W *widget;
-    int anims[5];
-} OBJ;
+#define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
 extern struct G D_003DD490;
-W *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 Q *GetHeroPo(struct G *);
 int IsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
 int GetStepplayerMp(Q *);
-void PlayWidgetAnim(W *, int);
-void SetWidgetAnimPhase(W *, int, float);
+void PlayWidgetAnim(WIDGET *, int);
+void SetWidgetAnimPhase(WIDGET *, int, float);
 // Post-load of the health / gadget-power meter: finds its widget, reads the hero's health and power fractions and picks
 // the per-character animations.
-void PostHudMeterLoad(OBJ *p)
+void PostHudMeterLoad(HUDMETER *p)
 {
     Q *hero;
     W *widget;
@@ -500,36 +490,36 @@ void PostHudMeterLoad(OBJ *p)
     p->hero = 0;
     hero = GetHeroPo(&D_003DD490);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
-        p->hero = hero;
+        p->hero = (STEPPLAYER *)hero;
     if (p->hero == 0) {
         p->shownHealth = p->health = 0.0f;
         p->shownPower = p->power = 0.0f;
         return;
     }
-    p->shownHealth = p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
-    p->shownPower = p->power = (float)GetStepplayerMp(p->hero) / (float)p->hero->maxPower;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
-            p->anims[0] = 0x347;
-            p->anims[1] = 0x348;
-            p->anims[2] = 0x349;
-            p->anims[3] = 0x34A;
-            p->anims[4] = 0x34B;
-    } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
-            p->anims[0] = 0x342;
-            p->anims[1] = 0x343;
-            p->anims[2] = 0x344;
-            p->anims[3] = 0x345;
-            p->anims[4] = 0x346;
+    p->shownHealth = p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
+    p->shownPower = p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(HERO(p), 0x37)) {
+            p->idAnimSteady = 0x347;
+            p->idAnimDamage = 0x348;
+            p->idAnimHide = 0x349;
+            p->idAnimState6 = 0x34A;
+            p->idAnimState7 = 0x34B;
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(HERO(p), 0x36)) {
+            p->idAnimSteady = 0x342;
+            p->idAnimDamage = 0x343;
+            p->idAnimHide = 0x344;
+            p->idAnimState6 = 0x345;
+            p->idAnimState7 = 0x346;
     } else {
-            p->anims[0] = 0x33D;
-            p->anims[1] = 0x33E;
-            p->anims[2] = 0x33F;
-            p->anims[3] = 0x340;
-            p->anims[4] = 0x341;
+            p->idAnimSteady = 0x33D;
+            p->idAnimDamage = 0x33E;
+            p->idAnimHide = 0x33F;
+            p->idAnimState6 = 0x340;
+            p->idAnimState7 = 0x341;
     }
-    widget = p->widget;
+    widget = (W *)p->widget;
     if (widget) {
-        widget->vt->a[49].pfn((char *)widget + widget->vt->a[49].d, p->anims[0]);
+        widget->vt->a[49].pfn((char *)widget + widget->vt->a[49].d, p->idAnimSteady);
         PlayWidgetAnim(p->widget, 0x34F);
         PlayWidgetAnim(p->widget, 0x350);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
@@ -550,32 +540,17 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 typedef struct { char pad0[0xC]; VTE *vt; } SUB;
 typedef struct { int key; int pad[7]; } E;
 typedef struct { int a, b, c, powerCost; int pad[4]; } REC;
-typedef struct OBJ {
-    char pad0[0x20];
-    float shownHealth;
-    char pad24[0x28 - 0x24];
-    float shownPower;
-    char pad2c[0x30 - 0x2C];
-    int state;
-    void *hero;
-    SUB *widget;
-    int steadyAnim;
-    int damageAnim;
-    int hideAnim;
-    int state6Anim;
-    int state7Anim;
-} OBJ;
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern REC D_002BCD00[];
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int IsPowerupAcquired(int);
-void PlayWidgetAnim(SUB *, int);
-void StopWidgetAnim(SUB *, int);
-void SetWidgetAnimPhase(SUB *, int, float);
+void PlayWidgetAnim(WIDGET *, int);
+void StopWidgetAnim(WIDGET *, int);
+void SetWidgetAnimPhase(WIDGET *, int, float);
 #define VCALL1(o, n, a) ((void (*)(void *, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a)
 // Switches the meter's state: hide / appear animations, steady (health gauge, plus the power gauge only if the character
 // owns a power-up that costs power), damage, and the alternate animations.
-void SetHudMeterState(OBJ *p, int s)
+void SetHudMeterState(HUDMETER *p, int s)
 {
     int old = p->state;
     if (old == s)
@@ -583,19 +558,19 @@ void SetHudMeterState(OBJ *p, int s)
     if (!p->widget)
         return;
     if (old == HUDMETER_DAMAGE || old == HUDMETER_STATE6)
-        VCALL1(p->widget, 49, p->steadyAnim);
+        VCALL1(((SUB *)p->widget), 49, p->idAnimSteady);
     p->state = s;
     switch (s) {
     case HUDMETER_HIDDEN:
     case HUDMETER_SWITCH_HERO:
-        VCALL1(p->widget, 49, p->hideAnim);
+        VCALL1(((SUB *)p->widget), 49, p->idAnimHide);
         break;
     case HUDMETER_STEADY: {
         int n = 0;
         E *tbl = 0;
         int found;
         int i;
-        VCALL1(p->widget, 49, p->steadyAnim);
+        VCALL1(((SUB *)p->widget), 49, p->idAnimSteady);
         PlayWidgetAnim(p->widget, 0x34F);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
         if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
@@ -628,13 +603,13 @@ void SetHudMeterState(OBJ *p, int s)
         break;
     }
     case HUDMETER_DAMAGE:
-        VCALL1(p->widget, 49, p->damageAnim);
+        VCALL1(((SUB *)p->widget), 49, p->idAnimDamage);
         break;
     case HUDMETER_STATE6:
-        VCALL1(p->widget, 49, p->state6Anim);
+        VCALL1(((SUB *)p->widget), 49, p->idAnimState6);
         break;
     case HUDMETER_STATE7:
-        VCALL1(p->widget, 49, p->state7Anim);
+        VCALL1(((SUB *)p->widget), 49, p->idAnimState7);
         break;
     }
 }
@@ -654,32 +629,17 @@ typedef struct Q {
     char pad3[0x1300 - 0x10F0];
     int maxPower;
 } Q;
-typedef struct OBJ {
-    char pad0[0x20];
-    float shownHealth;
-    float health;
-    float shownPower;
-    float power;
-    int state;
-    Q *hero;
-    SUB *widget;
-    int steadyAnim;
-    int damageAnim;
-    int hideAnim;
-    int state6Anim;
-    int state7Anim;
-} OBJ;
+#define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
 extern struct G D_003DD490;
 extern struct { float t; float dt; } D_002DDED0;
 extern char D_002C3248[];
 Q *GetHeroPo(struct G *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void SetHudMeterState(OBJ *, int);
 int GetStepplayerMp(Q *);
 int AreFloatsNear__Ffff(float, float, float);
 float SmoothValue__FfffP3SMPPf(void *, int, float, float, float);
-int IsWidgetAnimPlaying(SUB *, int);
-void SetWidgetAnimPhase(SUB *, int, float);
+int IsWidgetAnimPlaying(WIDGET *, int);
+void SetWidgetAnimPhase(WIDGET *, int, float);
 } } // namespace M_UpdateHudMeter
 // Per-frame meter update (slot 7): follows the current hero, animates health drain / fill and power changes smoothly,
 // flashes on damage and plays special animations.
@@ -688,16 +648,16 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
     using namespace M_UpdateHudMeter;
     using M_UpdateHudMeter::D_003DD490;
     using M_UpdateHudMeter::D_002DDED0;
-    OBJ *p = (OBJ *)this;
+    HUDMETER *p = this;
     Q *old;
     Q *q;
     if (!p->widget)
         return;
-    old = p->hero;
+    old = HERO(p);
     p->hero = 0;
     q = GetHeroPo(&D_003DD490);
     if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
-        p->hero = q;
+        p->hero = (STEPPLAYER *)q;
     if (!p->hero) {
         p->shownHealth = p->health = 0;
         p->shownPower = p->power = 0;
@@ -705,28 +665,28 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_HIDDEN);
         return;
     }
-    if (old != p->hero) {
+    if (old != HERO(p)) {
         if (!old)
             SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         else
             SetHudMeterState(p, HUDMETER_SWITCH_HERO);
-        if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
-            p->steadyAnim = 0x33D; p->damageAnim = 0x33E; p->hideAnim = 0x33F; p->state6Anim = 0x340; p->state7Anim = 0x341;
-        } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
-            p->steadyAnim = 0x347; p->damageAnim = 0x348; p->hideAnim = 0x349; p->state6Anim = 0x34A; p->state7Anim = 0x34B;
-        } else if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
-            p->steadyAnim = 0x342; p->damageAnim = 0x343; p->hideAnim = 0x344; p->state6Anim = 0x345; p->state7Anim = 0x346;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(HERO(p), 0x35)) {
+            p->idAnimSteady = 0x33D; p->idAnimDamage = 0x33E; p->idAnimHide = 0x33F; p->idAnimState6 = 0x340; p->idAnimState7 = 0x341;
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(HERO(p), 0x37)) {
+            p->idAnimSteady = 0x347; p->idAnimDamage = 0x348; p->idAnimHide = 0x349; p->idAnimState6 = 0x34A; p->idAnimState7 = 0x34B;
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(HERO(p), 0x36)) {
+            p->idAnimSteady = 0x342; p->idAnimDamage = 0x343; p->idAnimHide = 0x344; p->idAnimState6 = 0x345; p->idAnimState7 = 0x346;
         }
-        p->shownHealth = p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
-        p->shownPower = p->power = (float)GetStepplayerMp(p->hero) / (float)p->hero->maxPower;
+        p->shownHealth = p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
+        p->shownPower = p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
     }
     switch (p->state) {
     case HUDMETER_STEADY:
     case HUDMETER_STATE6:
     case HUDMETER_STATE7:
-        p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
-        p->power = (float)GetStepplayerMp(p->hero) / (float)p->hero->maxPower;
-        if (*p->hero->healthPtr <= 0) {
+        p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
+        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
+        if (*HERO(p)->healthPtr <= 0) {
             SetHudMeterState(p, HUDMETER_HIDDEN);
         } else if (p->shownHealth > p->health) {
             SetHudMeterState(p, HUDMETER_DAMAGE);
@@ -734,25 +694,25 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         } else if (!AreFloatsNear__Ffff(p->shownPower, p->power, 0.0001f)) {
             SetHudMeterState(p, HUDMETER_POWER_CHANGE);
-        } else if (p->hero->unknown10EC == 4) {
+        } else if (HERO(p)->unknown10EC == 4) {
             SetHudMeterState(p, HUDMETER_STATE7);
-        } else if (p->hero->unknown10C8 != -1) {
+        } else if (HERO(p)->unknown10C8 != -1) {
             SetHudMeterState(p, HUDMETER_STATE6);
         } else {
             SetHudMeterState(p, HUDMETER_STEADY);
         }
         break;
     case HUDMETER_DAMAGE:
-        if (!IsWidgetAnimPlaying(p->widget, p->damageAnim))
+        if (!IsWidgetAnimPlaying(p->widget, p->idAnimDamage))
             SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         break;
     case HUDMETER_SWITCH_HERO:
-        if (!IsWidgetAnimPlaying(p->widget, p->hideAnim))
+        if (!IsWidgetAnimPlaying(p->widget, p->idAnimHide))
             SetHudMeterState(p, HUDMETER_STEADY);
         break;
     case HUDMETER_HIDDEN:
-        p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
-        p->power = (float)GetStepplayerMp(p->hero) / (float)p->hero->maxPower;
+        p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
+        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
         if (p->shownHealth < p->health) {
             p->shownHealth = p->health;
             SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
@@ -762,7 +722,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         }
         break;
     case HUDMETER_HEALTH_FILL:
-        p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
+        p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
         if (p->shownHealth < p->health)
             p->shownHealth = p->health;
         else
@@ -772,7 +732,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_STEADY);
         break;
     case HUDMETER_POWER_CHANGE:
-        p->power = (float)GetStepplayerMp(p->hero) / (float)p->hero->maxPower;
+        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
         if (p->shownPower < p->power)
             p->shownPower = p->power;
         else

@@ -37,7 +37,11 @@ struct HUDMETER : SCREENBASE
     int state;              /* +0x30 */
     STEPPLAYER *hero;       /* +0x34 */
     WIDGET *widget;         /* +0x38 */
-    int anims[5];           /* +0x3C the per-character animations */
+    int idAnimSteady;       /* +0x3C the per-character animations: steady, damage flash, hide, the alternate */
+    int idAnimDamage;       /* +0x40    steady states 6 and 7 (SetHudMeterState) */
+    int idAnimHide;         /* +0x44 */
+    int idAnimState6;       /* +0x48 */
+    int idAnimState7;       /* +0x4C */
     virtual void Update() __asm__("UpdateHudMeter");   /* slot 7; key function (screen.cpp) */
 };
 typedef char assert_HUDMETER_size[sizeof(HUDMETER) == 0x50 ? 1 : -1];
