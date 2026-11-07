@@ -82,7 +82,7 @@ struct MURRAY : public STEPPLAYER
       int unknown1810;
       undefined4 unk_0x1814[(0x1830 - 0x1814) / 4];
       qword unknown1830;
-      int unknown1840;
+      int subState;   /* +0x1840 sub-state of Murray's behaviour (BHV198's Update, ai/tu_144B28.cpp: 0 face the player, 1 keep turning) */
       undefined4 unk_0x1844[(0x1850 - 0x1844) / 4];
       undefined4 unknown1850[0x40 / 4];
       LEAP leap;   /* +0x1890 constructed by MURRAY_ctor (ConstructLeap) */
@@ -92,7 +92,7 @@ struct MURRAY : public STEPPLAYER
       undefined4 unk_0x1a40[(0x1a58 - 0x1a40) / 4];
       SOPART *aprecState[0x16];   /* per-state records */
       SOPART *aprecCarry[4];   /* per-carry-slot records */
-      undefined4 unknown1AC0;
+      int isBehaviorActive;   /* +0x1AC0 1 while Murray's behaviour (BHV198) runs: set by its Start, cleared by its Close (inferred) */
       int unknown1AC4;
       float unknown1AC8;
       struct ACT1 *pact1Unk1acc;

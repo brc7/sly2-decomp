@@ -63,8 +63,6 @@ struct WAYPTV
     void *jobCondition;     /* +0x188 shown only while this job condition holds */
 };
 typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPTV *)0)->jobCondition == 0x188 ? 1 : -1];
-/* View of the hero (vtable slot 77, +0x2DC). */
-struct JTV { char pad[0xC]; VTE *vt; char pad1[0x2DC - 0x10]; int state; };
 
 /* World, camera and clock views (the fields used in this TU). The world fields' meanings are unknown: unknown3B0C
    switches waypoint modes 0/1/2; unknown4750/4754 are times the waypoints fade in after; mode-2 waypoints hide while
@@ -80,8 +78,8 @@ qwordV GetLoWorldPos(void *plo);     /* PosLoWorld */
 void InitSo(WAYPTV *p);
 void PostSoLoad(WAYPTV *p);
 void UpdateSo(WAYPTV *p);
-JTV *GetHeroPo(SW *psw);
-int IsBasicDerivedFrom__FP5BASIC3CID(JTV *pj, int k);
+STEPPLAYER *GetHeroPo(SW *psw);
+int IsBasicDerivedFrom__FP5BASIC3CID(STEPPLAYER *pj, int k);
 }
 
 // WAYPT (cid 107) vtable slot 7 (Init): SO init; triggered by class 50 within 300 (500 once active); no clip frame or
@@ -141,11 +139,11 @@ static inline void SendSpliceEvent(WAYPTV *waypoint, int event)
 }
 enum { SPLICE_EVENT_ACTIVATE = 5, SPLICE_EVENT_DEACTIVATE = 6 };
 // WAYPT vtable slot 16 (Update): the waypoint is active while a hero of triggerClass is within the activation radius
-// (and the mode allows it); a hero of CID 0x34 that is busy (a state set, or vtable slot 77 answering 2) keeps the
+// (and the mode allows it); a hero of CID 0x34 that is busy (in an air state, or GetHealthState answering 2) keeps the
 // current activity. Changes send Splice event 5 (activate) or 6 (deactivate).
 extern "C" void UpdateWaypt(WAYPTV *waypoint)
 {
-    JTV *hero;
+    STEPPLAYER *hero;
     int isInRange;
     float radius;
     UpdateSo(waypoint);
@@ -157,7 +155,7 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
     if ((waypoint->mode == 0 || waypoint->mode == 2) && D_003DD490.unknown3B0C)
         isInRange = 0;
     if (isInRange && IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34) &&
-        (hero->state != -1 || ((int (*)(void *))hero->vt[77].pfn)((char *)hero + hero->vt[77].d) == 2))
+        (hero->jtair.state != -1 || hero->GetHealthState() == 2))
         isInRange = waypoint->isActive;
     if (isInRange != waypoint->isActive) {
         waypoint->isActive = isInRange;

@@ -94,7 +94,7 @@ enum BUTTON_PRESS_KIND
     PRESS_CONTACT = 0,      /* an allowed object touching it */
     PRESS_WORKER = 1,       /* an allowed worker hit (TakeButtonDamage) */
     PRESS_WORKER_TOGGLE = 2,/* a worker hit toggles it up/down */
-    PRESS_SLY_INTERACTION = 3 /* Sly in interaction kind 3 with slyInteractionId */
+    PRESS_SLY_INTERACTION = 3 /* Sly hanging (JTS_Hang) from the button's handle phndPress */
 };
 
 /* Contact graph of a solid object (as in barrier.cpp; inferred: SO contact lists). */
@@ -119,7 +119,7 @@ struct BUTTONV
     LOV *pushObjects[8];
     int numPushClasses;         /* +0x2D0 classes that may press it (none: any) */
     CIDV pushClasses[8];
-    int slyInteractionId;       /* +0x2F4 compared with Sly's interactionId (inferred) */
+    CID19 *phndPress;           /* +0x2F4 the hang handle (HND) Sly presses it by hanging from (compared with JT::hangHandle) */
     LOV *pusher;                /* +0x2F8 the object pressing it */
 };
 typedef char assert_BUTTON_size[sizeof(BUTTONV) == 0x2FC ? 1 : -1];
@@ -149,10 +149,6 @@ enum { WKR_FLAG_NO_PRESS = 4 };   /* (inferred: hits with this flag never press 
 /* The pressing hero (CID 0x34) as UpdateButtonPlayerPush sees it. */
 struct PUSHER { char pad[0x2C4]; int unknown2C4; char pad2C8[0x2DC - 0x2C8]; int state; float stateTime; };
 
-/* Sly (the hero 0x2E1E40 points to): an interaction kind and id (inferred). */
-struct SLYV { char pad[0x18C4]; int interactionId; int interactionKind; };
-enum { SLY_INTERACTION_BUTTON = 3 };   /* (inferred) */
-
 /* EnsureSwCallback takes an 8-byte struct by value in one register: pass it as a long read through a packed view
    (pilot blocker B4, caller side; see barrier.cpp). Here the global itself is declared with the packed type: a cast
    of its address (barrier's spelling) schedules the high part of the address after the store before the call. */
@@ -161,7 +157,7 @@ struct LONGU { long l; } __attribute__((packed));
 extern SW D_003DD490;           /* g_sw */
 extern char D_002DEB30[];
 extern CLOCK D_002DDED0;        /* g_clock */
-extern SLYV *D_002E1E40;
+extern JT *D_002E1E40;            /* the hero (Sly) */
 extern const LONGU D_002A4E80;   /* callback kind: an 8-byte struct, read as one long */
 
 LOV *FindSwObject(SW *psw, int grffso, OID oid, LOV *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
@@ -475,8 +471,8 @@ extern "C" void UpdateButton(BUTTONV *button, float dt)
     {
     case BTN_PRESSED:
     {
-        SLYV *sly = D_002E1E40;
-        if (sly && sly->interactionKind == SLY_INTERACTION_BUTTON && sly->interactionId == button->slyInteractionId)
+        JT *sly = D_002E1E40;
+        if (sly && sly->state == JTS_Hang && sly->hangHandle == button->phndPress)
             button->btn.stateTime = D_002DDED0.time;
         if (0.0f <= button->btn.resetDelay && button->btn.resetDelay < D_002DDED0.time - button->btn.stateTime)
             SetButtonButtons(button, BTN_RESETTING);
@@ -514,10 +510,10 @@ extern "C" void UpdateButton(BUTTONV *button, float dt)
             break;
         case PRESS_SLY_INTERACTION:
         {
-            SLYV *sly = D_002E1E40;
+            JT *sly = D_002E1E40;
             newState = BTN_UP;
-            if (sly && sly->interactionKind == SLY_INTERACTION_BUTTON)
-                newState = sly->interactionId == button->slyInteractionId;
+            if (sly && sly->state == JTS_Hang)
+                newState = sly->hangHandle == button->phndPress;
             break;
         }
         foundPusher:   /* reached from the contact loop below; a FindContactPusher helper instead changes the frame */

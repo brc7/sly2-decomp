@@ -1529,22 +1529,20 @@ void BHV198::Start()
 {
     BHVB *behavior = (BHVB *)this;
     StartBhv(behavior);
-    ((MURRAY *)behavior->owner)->unknown1AC0 = 1;
+    ((MURRAY *)behavior->owner)->isBehaviorActive = 1;
     SetMurrayState((MURRAY *)behavior->owner, 0xC);
     SetMurrayPowerSubstate((MURRAY *)behavior->owner, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146EE0 { extern "C" {
-struct MURRAYV { char pad[0x1AC0]; int unknown1AC0; };
-struct BHVMURRAYV { char pad[0x10]; struct MURRAYV *owner; };
+struct BHVMURRAYV { char pad[0x10]; MURRAY *owner; };
 void CloseBhv(struct BHVMURRAYV *behavior);
-void SetMurrayState(struct MURRAYV *murray, int state);
 // 0x146EE0: Murray behaviour vtable slot 9 (Close): clears +0x1AC0, Murray state 0.
 void CloseBhvMurray(struct BHVMURRAYV *behavior)
 {
     CloseBhv(behavior);
-    behavior->owner->unknown1AC0 = 0;
+    behavior->owner->isBehaviorActive = 0;
     SetMurrayState(behavior->owner, 0);
 }
 } } // namespace M_func_00146EE0
@@ -1552,19 +1550,18 @@ void CloseBhvMurray(struct BHVMURRAYV *behavior)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146F18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct MURRAYV { char pad[0x1A8]; float targetHeading; char pad2[0x1840 - 0x1AC]; int subState; };
-struct P { char pad[0x10]; struct MURRAYV *murray; char pad2[0x30 - 0x14]; float startHeading; };
+struct P { char pad[0x10]; MURRAY *murray; char pad2[0x30 - 0x14]; float startHeading; };
 extern struct CLOCK D_002DDED0;
 extern void *D_002E1E40;
 float D_002BD374 = 0.5f, D_002BD378 = 15.0f;   /* heading window (rad), turn rate (rad/s) */
 void UpdateBhv(struct P *behavior);
 qword GetLoWorldPos(void *object);
-void SetStepTargetHeadingFromVector(struct MURRAYV *step, qword direction);
+void SetStepTargetHeadingFromVector(MURRAY *step, qword direction);
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
-float GetStepHeading(struct MURRAYV *step);
+float GetStepHeading(MURRAY *step);
 float ClampAbs__Fff(float g, float dg);
-void SetStepTargetHeading(struct MURRAYV *step, float heading);
+void SetStepTargetHeading(MURRAY *step, float heading);
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
 // 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840): in 0 he faces D_002E1E40
