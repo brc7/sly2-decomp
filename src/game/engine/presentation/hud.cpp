@@ -19,6 +19,7 @@
 #include "gifs.h"
 #include "vifs.h"
 #include "sly2/render.h"
+#include "sly2/shd.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
 #include "sly2/cref.h"
@@ -2154,8 +2155,7 @@ namespace M_func_002155C0 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-struct X { char pad[0x14]; unsigned long *tex0; };   /* a texture: its GS TEX0 register value */
-X *FindShaderById(int);
+SHDBLIP *FindShaderById(int oid);
 }
 struct P { char pad[0xC4]; HEAP *spriteHeap; };
 /* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
@@ -2168,12 +2168,12 @@ void BuildSpritePictureTexPacket(P *owner, Q *sprite)
     if (sprite->kind == SPRITE_KIND_PICTURE) {
         sprite->texPacketCount = 0;
         sprite->texPacket = 0;
-        X *texture = FindShaderById(sprite->textureId);
+        SHDBLIP *texture = FindShaderById(sprite->textureId);
         if (texture) {
             GIFS gifs;
             gifs.AllocSw(0x10);
             gifs.AddPrimPack(0, 1, 0xE);
-            gifs.PackAD(6, *texture->tex0);   /* TEX0_1 */
+            gifs.PackAD(6, *texture->atex0);  /* TEX0_1: its first frame's */
             gifs.PackAD(0x14, 0x60);          /* TEX1_1 */
             gifs.PackAD(8, 5);                /* CLAMP_1 */
             gifs.AddPrimEnd();
