@@ -114,16 +114,17 @@ typedef char O_x14_Offset[FIELD_OFFSET(LIGHTQ,cqwPacket)==20?1:-1];
 typedef char O_x18_Offset[FIELD_OFFSET(LIGHTQ,pbPacket)==24?1:-1];
 struct M3R { qword r[3]; };
 struct SPHERE { qword pos; float sRadius; int pad[3]; };
-struct CAMERA { char pad[0x48]; float radius; char pad4C[0x90 - 0x4C]; qword position; };
 
 extern SWL D_003DD490;
+/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
+   codegen (reads at base &g_cm + 0x60..0x90; a cast of CM::mat/CM::pos folds the offset into the base). */
+struct CMIsland { char pad[0x60]; qword amatRow[3]; qword pos; };
 extern "C" {
 extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
 extern VIFS D_002DEA28;
 /* light's .data (address order): the default light block (three qwords), the point-light pull-back distance and limit scale. */
 BLOCK D_002BFC60 = {{{0, 0, 0x3F000000, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};   /* word 2 = 0.5f */
 float D_002BFC90 = 1000.0f, D_002BFC94 = 2.5f;
-extern CAMERA D_002DDF40;
 
 LIGHTV *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void BuildOrthonormalMatrixZ(M3R *pm, qword v, qword w);     /* the hidden result pointer passed by hand */
@@ -858,7 +859,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             spheres[1].sRadius = p->limit * extent / dist;
             spheres[2].pos = AddScaledQ(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].sRadius = 0;
-            packet.kind = DoesSphereHitSpheres(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
+            packet.kind = DoesSphereHitSpheres(((CMIsland *)&g_cm)->pos, g_cm.nearCornerDistance, 3, spheres);
             {
                 uchar *pb = D_002DEA28.m_pb;
                 p->pbBasis = pb;

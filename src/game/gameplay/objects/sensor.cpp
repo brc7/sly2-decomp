@@ -245,8 +245,6 @@ extern CLOCK D_002DDED0;
 extern qword D_002A2DF0, D_002A2E00;   /* initial bounding-box min / max (not const: see BuildLasenBeams) */
 float D_002C3610 = 100.0f; /* sensor's .data (0x2C3610; the next 12 bytes are 0): ramp length of the mode-16 profile */
 extern qword D_002A2DC0;   /* up vector for the beam basis (not const: see RenderLasenSelf) */
-struct CAMERA { char pad0[0x90]; U position; };
-extern CAMERA D_002DDF40;
 
 typedef void (LASENV::*PFNLASEN)(int);
 
@@ -862,7 +860,7 @@ struct VU_FLOAT {
     VU_FLOAT(const float *laser, int) { __asm__ __volatile__("" : "=r"(q) : "0"(*(const int *)laser)); }
 };
 extern "C" {
-int IsInCameraFrustum(CAMERA *pcm, qword pos, VU_FLOAT sRadius);
+int IsInCameraFrustum(CM *pcm, qword pos, VU_FLOAT sRadius);
 void RenderLoAlongSegment(ALO *palo, qword posA, qword posB, float a, float b);
 M3 BuildOrthonormalMatrixZ(qword dir, qword up);
 M4 LoadMatrixFromPosRotScale(qword pos, const M3 *pmat, const U *pscale);
@@ -901,10 +899,10 @@ extern "C" void RenderLasenSelf(LASENV *laser)
     RenderSoSelf(laser);
     SOTREEV *bound = laser->ptree;
     if (!bound) return;
-    CAMERA *cam = &D_002DDF40;
+    CM *cam = &g_cm;
     qword boundPosition = bound->qwCenter.q;
     VU_FLOAT radius(&bound->sRadius, 0);
-    qword relativePosition = VuSub(boundPosition, cam->position.q);
+    qword relativePosition = VuSub(boundPosition, *(qword *)&cam->pos);
     if (!IsInCameraFrustum(cam, relativePosition, radius)) return;
     U points[2];
     M3 basis;

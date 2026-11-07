@@ -75,6 +75,10 @@ struct VAULTV : public DPRIZEV
     XF *dialTimer;          /* +0x204: the dial timer frame (as SetVaultDialState names it) */
 };
 struct OIDT;
+/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
+   codegen (reads at base &g_cm + 0x60..0x90; a cast of CM::mat/CM::pos folds the offset into the base). */
+typedef int qwordI __attribute__((mode(TI)));   /* the signed quadword the namespaces below use */
+struct CMIsland { char pad[0x60]; qwordI amatRow[3]; qwordI pos; };
 extern "C" {
 extern OIDT D_002C0D40[];   /* DPRIZE oid table */
 extern OIDT D_002C0EC8[];   /* VAULT oid table (0x18 entries) */
@@ -225,11 +229,9 @@ struct P {
 };
 union FLOATWORD { float value; int bits; };
 struct CLOCK { float time; FLOATWORD deltaTime; };
-struct CAMERA { char pad90[0x90]; qword position; };
 struct SW { char pad3D58[0x3D58]; int stamp; };
 extern "C" {
 extern CLOCK D_002DDED0;
-extern CAMERA D_002DDF40;
 extern SW D_003DD490;
 extern float D_002C0D4C;
 extern qword D_002A2DC0;
@@ -334,7 +336,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
         if (positionMotion || orientationMotion) {
             U dir, position, velocity, angles, angularVelocity;
             M3 frame, rot;
-            dir.q = VuSub(D_002DDF40.position, prize->position->position);
+            dir.q = VuSub(((CMIsland *)&g_cm)->pos, prize->position->position);
             dir.words[2] = 0;
             frame = BuildOrthonormalMatrixZ(dir.q, D_002A2DC0);
             if (positionMotion) {
@@ -907,8 +909,6 @@ struct S {
     int pad1AC; void *left; int pad1B4; void *right; int previous; float last;
 };
 struct Q { char pad[0x18]; float duration; void *owner; char pad20[0xEC-0x20]; struct VTE *vt; void *emit; };
-struct CAMERA { char pad[0x60]; qword a,b; };
-extern struct CAMERA D_002DDF40;
 extern struct CLOCK D_002DDED0;
 extern qword D_002C0D80;
 extern float D_002C0D90;
@@ -943,11 +943,11 @@ void EmitDprizeGlint(struct S *prize)
     struct Q *q;
     if(!prize->owner||prize->probability<=0)return;
     direction=ConvertVecBetweenLos(prize,0,D_002C0D80);
-    side=Dot(direction,D_002DDF40.b)<0;
+    side=Dot(direction,((CMIsland *)&g_cm)->amatRow[1])<0;
     if(side!=prize->previous) {
         if(RandomFloatInRange__Fff(0,1)<prize->probability) {
             if(D_002C0D90<D_002DDED0.time-prize->last) {
-                if(Dot(direction,D_002DDF40.a)<0)emitter=prize->left;
+                if(Dot(direction,((CMIsland *)&g_cm)->amatRow[0])<0)emitter=prize->left;
                 else emitter=prize->right;
                 if(!emitter)goto changed;
                 q=NewRipInGroup(&D_003DD490,(void *)4,0);

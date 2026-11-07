@@ -431,11 +431,12 @@ void RemoveSndFromDirtyList(struct X *sound)
 namespace M_CalculateSndVolPan { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} V;
+/* CMIsland: g_cm's camera-matrix rows and position as qword members; this form exists to reproduce the original
+   codegen (reads at base &g_cm + 0x60..0x90; a cast of CM::mat/CM::pos folds the offset into the base). */
+struct CMIsland { char pad[0x60]; qword amatRow[3]; qword pos; };
 struct RANGE {float low,high;};
 struct M3 {qword r[3];};
-struct CAMERA {char pad[0x90];qword position;};
 extern char D_003DD490[],D_002BBB60[];
-extern struct CAMERA D_002DDF40;
 void *GetCurrentPo(void*);
 qword GetLoWorldPos(void*);
 qword ConvertMatVec(const struct M3*,const struct M3*,qword);
@@ -462,7 +463,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
  source.q=point;
  player=GetCurrentPo(D_003DD490);
  if(player)reference=GetLoWorldPos(player);
- else reference=D_002DDF40.position;
+ else reference=((CMIsland *)&g_cm)->pos;
  high=limits->high;low=limits->low;
  {register qword input __asm__("vf2")=source.q;
   distance=Length(Sub(input,reference),&delta);}
