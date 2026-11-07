@@ -1511,25 +1511,21 @@ namespace M_func_001821C0 {
 // The do/while(0) gives the real loop notes (alignment nop, fall-in entry) while the goto back edge keeps loop.c from hoisting the 0x30 stride.
 // One pin (epsilon in $f1).
 
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} U;
 struct M3 {qword r[3];};
 struct M4 {U r[4];};
-struct N {qword pos,dir;char pad20[0x50-0x20];float lateral,roll;char pad58[8];N*next;};
-struct E {char pad[0x10];N*first;char pad14[0x1C];};
-struct P : PO { char pad180[0x1C4 - 0x180];void*model;int count;E entries[1];};
 extern "C" { extern qword D_002A2DC0; }
-extern "C" void RenderSoSelf(P*);
+extern "C" void RenderSoSelf(SO*);
 extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
-extern "C" void RenderLoAtMatrix(void*,M4*,float,float);
+extern "C" void RenderLoAtMatrix(LO*,M4*,float,float);
 // Helpers Load, Cross, AddLateral (small asm wrappers/accessors shaped for the match).
 static inline qword Load(const qword*p){return *p;}
 // Cross product a x b.
 static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz ACC,%0,%1\n\tvopmsub.xyz %0,%1,%0":"+j"(up):"j"(dir));return up;}
 // Return a plus the node's lateral vector scaled by f.
-static inline qword AddLateral(qword a,N*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
+static inline qword AddLateral(qword a,HACKWALLPIECE*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
 // 3x3 matrix product.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
@@ -1543,16 +1539,16 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 }
 
 // vtable slot 19: RenderSoSelf then draw each segment piece with its own matrix. (inferred)
-extern "C" void RenderHackwallSelf(P*wall){
+extern "C" void RenderHackwallSelf(HACKWALL*wall){
  int i,count;M3 m;M4 mm;qword pos;
  RenderSoSelf(wall);
- if(!wall->model)return;
- count=wall->count;i=0;
+ if(!wall->ploPiece)return;
+ count=wall->cseg;i=0;
  do {
   if(count<=0) goto done;
  top:
   {
-  N*n=((N**)((int)wall+i*0x30))[0x1DC/4];
+  HACKWALLPIECE*n=(HACKWALLPIECE*)wall->aseg[i].dlPiece.head;
   while(n){M4*pm=&mm;
    pos=Load(&n->pos);
    m=BuildOrthonormalMatrixZ(n->dir,D_002A2DC0);
@@ -1562,12 +1558,12 @@ extern "C" void RenderHackwallSelf(P*wall){
    pm->r[0].q=m.r[0];pm->r[1].q=m.r[1];pm->r[2].q=m.r[2];
    mm.r[0].i[3]=mm.r[1].i[3]=mm.r[2].i[3]=0;
    pm->r[3].f[3]=1.0f;
-   RenderLoAtMatrix(wall->model,pm,1.0f,1.0f);
-   n=n->next;
+   RenderLoAtMatrix(wall->ploPiece,pm,1.0f,1.0f);
+   n=(HACKWALLPIECE*)n->dle.next;
   }
  }
 
-  count=wall->count;
+  count=wall->cseg;
   ++i;
   if(i<count) goto top;
  } while(0);
@@ -1582,19 +1578,6 @@ typedef char U_Align[(__alignof__(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
 typedef char M3_Align[(__alignof__(M3)==16)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
-typedef char N_Prefix_Size[(sizeof(N)==0x70)?1:-1];
-typedef char N_Align[(__alignof__(N)==16)?1:-1];
-typedef char E_Size[(sizeof(E)==0x30)?1:-1];
-typedef char N_position_Offset[((unsigned)&((N*)0)->pos==0)?1:-1];
-typedef char N_direction_Offset[((unsigned)&((N*)0)->dir==0x10)?1:-1];
-typedef char N_lateral_Offset[((unsigned)&((N*)0)->lateral==0x50)?1:-1];
-typedef char N_roll_Offset[((unsigned)&((N*)0)->roll==0x54)?1:-1];
-typedef char N_next_Offset[((unsigned)&((N*)0)->next==0x60)?1:-1];
-typedef char E_first_Offset[((unsigned)&((E*)0)->first==0x10)?1:-1];
-typedef char P_model_Offset[((unsigned)&((P*)0)->model==0x1c4)?1:-1];
-typedef char P_count_Offset[((unsigned)&((P*)0)->count==0x1c8)?1:-1];
-typedef char P_entries_Offset[((unsigned)&((P*)0)->entries==0x1cc)?1:-1];
-typedef char P_first_Offset[((unsigned)&((P*)0)->entries[0].first==0x1dc)?1:-1];
 typedef char M3_row0_Offset[((unsigned)&((M3*)0)->r[0]==0)?1:-1];
 typedef char M3_row1_Offset[((unsigned)&((M3*)0)->r[1]==0x10)?1:-1];
 typedef char M3_row2_Offset[((unsigned)&((M3*)0)->r[2]==0x20)?1:-1];
