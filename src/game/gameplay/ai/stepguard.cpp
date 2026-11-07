@@ -3821,12 +3821,12 @@ struct STIMULUS; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
 extern float D_002C3DB8;
-extern struct { char pad[0x4030]; int defaultNoiseType; } D_003DD490;
+extern SW D_003DD490;
 struct STIMULUS { char pad[0x30]; qword targetPos; char pad2[4]; void *subject; char pad3[0xC]; int level; };
 struct S { char pad[0xE60]; int noiseType; char pad2[0xF44 - 0xE64]; float alertCooldownEnd; /* (inferred) */ };
 qword GetLoWorldPos(void *p);
 void CreateNoise(int noiseType, qword pos, struct S *source, struct STIMULUS **result);
-struct STIMULUS *NewNoise(int noiseType, qword pos, struct S *source);
+struct STIMULUS *NewNoise(STIMK *pstimk, qword pos, struct S *source);
 // 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
 // and remembers when (+0xF44).
 void EmitStepguardStimulus(struct S *guard, void *target)
@@ -3837,7 +3837,7 @@ void EmitStepguardStimulus(struct S *guard, void *target)
     if (guard->noiseType)
         CreateNoise(guard->noiseType, GetLoWorldPos(guard), guard, &stimulus);
     else
-        stimulus = NewNoise(D_003DD490.defaultNoiseType, GetLoWorldPos(guard), guard);
+        stimulus = NewNoise(D_003DD490.apstimk[4], GetLoWorldPos(guard), guard);
     stimulus->targetPos = targetPos;
     stimulus->subject = target;
     stimulus->level = 4;
