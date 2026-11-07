@@ -592,9 +592,25 @@ typedef char assert_BHV169_animBinding[SLY2_OFFSETOF(BHV169, animBinding) == 0x5
 typedef char assert_BHV169_size[sizeof(BHV169) == 0x60 ? 1 : -1];
 
 /* 171 BHV171 (0xE0): suspicious/search mode (flag 0x1F); vtable 0x2CFA10, 14 slots */
+/* One search point of BHV171: the candidate (pulled 200 out from the guard) and the original hiding place. */
+struct BHV171POINT
+{
+    qword candidate;        /* +0x00 */
+    qword original;         /* +0x10 */
+};
 struct BHV171 : BHV
 {
-    char pad30[0xE0 - 0x30];
+    int state;              /* +0x30 -1 idle, 0..5 (UpdateBhvSearch) */
+    float stateTime;        /* +0x34 */
+    float lookEndTime;      /* +0x38 */
+    float nextTime;         /* +0x3C give-up time in state 2, next search point time in state 3 */
+    float unknown40;
+    STIMULUS *watched;      /* +0x44 the stimulus being investigated (SetBhvSearchWatched; counted: slots 1/2) */
+    int needsReplan;        /* +0x48 */
+    int unknown4C;
+    BHV171POINT searchPoints[4]; /* +0x50 (ChooseBhvSearchPoints) */
+    unsigned int searchPointIndex; /* +0xD0 */
+    int unknownD4[3];
     virtual void Start() __asm__("StartBhvSearch");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv171ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvSearch");   /* slot 7 */
@@ -906,7 +922,7 @@ struct BHVCOMBAT : BHV
     float stateTime;        /* +0x38 */
     CID120 *attack;         /* +0x3C the chosen attack */
     int isHitConfirmed;     /* +0x40 */
-    int region;             /* +0x44 */
+    struct CID17 *pathzone; /* +0x44 the path zone of the target position the pursuit was last goaled at */
     int unknown48[2];
     qword cachedPosition;   /* +0x50 */
     virtual void Close() __asm__("CloseBhvcombat");   /* slot 9 */
@@ -924,7 +940,7 @@ struct BHVPATROL : BHV
     float pauseEndTime;     /* +0x34 */
     int state;              /* +0x38 */
     float stateTime;        /* +0x3C */
-    int script;             /* +0x40 the patrol script being run */
+    CID113 *script;         /* +0x40 the patrol script being run */
     int unknown44[3];
     virtual void Close() __asm__("CloseBhvpatrol");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpatrolClassDesc");   /* slot 6 */

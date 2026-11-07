@@ -91,10 +91,6 @@ enum {
     BINDING_DIRANIM = 3,    /* a four-animation payload, played on the guard's DIRANIM (+0xE20) */
 };
 
-/* LO's flag word read whole (the 8 bytes at +0x28; bit 60 = LO::isInWorld). lo.h declares the bits as bitfields of a
-   long unit sharing bytes with siblingLink, and the bitfield test compiles to a mask test where these functions shift:
-   a matching-only spelling until lo.h's +0x28 layout is settled (other family). */
-#define LO_FLAGS28(plo) (*(ulong *)((char *)(plo) + 0x28))
 #define PMOVER(guard) ((GUARDMOVER *)((char *)(guard) + 0xFD0))
 /* The sub-behaviour of the guard's root behaviour in mode 0x10, as SetStepguardEscortPoint fills it. */
 struct BHVARG : public BHV
@@ -220,8 +216,8 @@ void STEPGUARD::Init()
     guard->sleepTimeMin = 16.0f;
     guard->sleepTimeMax = 20.0f;
     guard->sleepDartCapacity = 50;
-    guard->unknownRangeE6C.minValue = 5.5f;
-    guard->unknownRangeE6C.maxValue = 6.5f;
+    guard->lookTimes.minValue = 5.5f;
+    guard->lookTimes.maxValue = 6.5f;
     guard->knockdownZapMask = 0x29FF7E;
     guard->unknown364 = 1;
     guard->canInteract = 1;
@@ -963,7 +959,7 @@ void STEPGUARD::Update()
     using namespace M_UpdateStepguard;
     STEPGUARD *guard = this;
     STEP::Update();
-    if (((LO_FLAGS28(guard) >> 60) & 1) == 0)
+    if (((int)guard->isInWorld & 1) == 0)
         return;
     if (guard->specialState == SPECIAL_TEMPORAL_LOCK)
         return;
@@ -1551,7 +1547,7 @@ LO *STEPGUARD::ChooseTarget()
     using namespace M_PloChooseStepguardTarget;
     STEPGUARD *guard = this;
     LO *best = 0;
-    if (guard->forcedTarget && (((unsigned int)(LO_FLAGS28(guard->forcedTarget) >> 60)) & 1)) {
+    if (guard->forcedTarget && ((int)((LO *)guard->forcedTarget)->isInWorld & 1)) {
         best = guard->forcedTarget;   // keep the forced target while it is in the world
         goto done;               // (single exit: a direct return does not match)
     }
@@ -1940,7 +1936,7 @@ int STEPGUARD::CanSenseStimulus(STIMULUS *stimulus)
         return IsPositionInNoise(stimulus, GetLoWorldPos(guard));
     case 1: {
         VOL *nearVolume = guard->pdetector->pvolNear;
-        if (!nearVolume || ((LO_FLAGS28(nearVolume) >> 60) & 1) == 0)
+        if (!nearVolume || ((int)nearVolume->isInWorld & 1) == 0)
             return 0;
         if (!IsPointInVol(nearVolume, stimulusPos))
             return 0;
@@ -2023,7 +2019,7 @@ int GuardEvalInteractMode(STEPGUARD *guard, struct PLAYER *player, float *distan
             indicator = guard->pickpocketIndicator1;
         else
             indicator = guard->pickpocketIndicator0;
-        if (indicator && !!((LO_FLAGS28(indicator) >> 60) & 1) /* (`!!` needed for the match) */ && IsPointInVol(indicator, GetLoWorldPos(player)))
+        if (indicator && !!((int)indicator->isInWorld & 1) /* (`!!` needed for the match) */ && IsPointInVol(indicator, GetLoWorldPos(player)))
             return 3;
     }
     angleRange = StepguardHasSgf(guard, SGF_JUGGLED) ? &guard->closeAngleRangeHeld : &guard->closeAngleRange;
@@ -2683,19 +2679,17 @@ void STEPGUARD::AddExtraXps()
 
 // 0x209E28 SendStepguardRootBhvMode6
 namespace M_func_00209E28 { extern "C" {
-struct MODEREC;
-struct MODEREC { int kind; int pad[3]; int value; int rest[0x17]; };   /* BHVGUARD's mode record */
 void *FindStepBehavior(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
-void SetBhvguardMode(void *bhv, struct MODEREC *mode);
-// 0x209E28: Sends mode record 6 with `value` to the guard's root behaviour (BHVGUARD).
-void SendStepguardRootBhvMode6(void *guard, int value)
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
+// 0x209E28: Sends mode record 6 (thrown) with `value` as its object to the guard's root behaviour (BHVGUARD).
+void SendStepguardRootBhvMode6(void *guard, void *value)
 {
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
-    struct MODEREC mode;
+    BHVGUARDRECDATA mode;
     func_002333B4(&mode, 0, sizeof mode);
     mode.kind = 6;
-    mode.value = value;
+    mode.arg.object = value;
     SetBhvguardMode(bhv, &mode);
 }
 } } // namespace M_func_00209E28
@@ -2940,12 +2934,10 @@ extern "C" void AddStepguardAllowedPathZone(STEPGUARD *guard, int zone)
 
 // 0x20A540 SetStepguardPatrolScript
 namespace M_func_0020A540 { extern "C" {
-struct MODEREC;
-struct MODEREC { int kind; int rest[27]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(BHV156 *bhv, struct MODEREC *mode);
+void SetBhvguardMode(BHV156 *bhv, BHVGUARDRECDATA *mode);
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
-void SetStepguardPatrolScript(STEPGUARD *guard, int script)
+void SetStepguardPatrolScript(STEPGUARD *guard, CID113 *script)
 {
     if (guard->patrolScript == script)
         return;
@@ -2956,7 +2948,7 @@ void SetStepguardPatrolScript(STEPGUARD *guard, int script)
     if (bhv) {
         int modeKind = bhv->mode;
         if (modeKind == 1) {   /* patrolling: leave the mode and re-enter it so the new script starts */
-            struct MODEREC mode;
+            BHVGUARDRECDATA mode;
             func_002333B4(&mode, 0, sizeof(mode));
             mode.kind = -1;
             SetBhvguardMode(bhv, &mode);
@@ -3298,18 +3290,18 @@ void CID120::Init()
 {
     CID120 *attack = this;
     LO::Init();
-    attack->unknown50 = 0;
-    attack->range = 300.0f;
-    attack->heightMin = -5000.0f;
-    attack->heightMax = 5000.0f;
+    attack->distance.minValue = 0;
+    attack->distance.maxValue = 300.0f;
+    attack->height.minValue = -5000.0f;
+    attack->height.maxValue = 5000.0f;
     attack->cooldownMin = 0.2f;
     attack->cooldownMax = 0.5f;
     attack->angle = 0.17453295f;   /* 10 degrees */
-    attack->unknownA8 = 1;
+    attack->isEnabled = 1;
     attack->aimObjectOid = -1;
     attack->effectorOid = -1;
     attack->strikeLabel = -1;
-    attack->unknown6C = M_func_0020AD38::D_002A88C8;
+    attack->minLineOfSight = M_func_0020AD38::D_002A88C8;
     ReleaseAnimBinding(&attack->binding, attack->guard);
 }
 
@@ -3604,11 +3596,10 @@ void CID125::PostLoad()
 
 // 0x20B590 UpdateGuardManager
 namespace M_func_0020B590 { extern "C" {
-struct MODEREC { int kind; int rest[27]; };
 extern float D_002C3DBC;
 extern const float D_002A88CC;
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *bhv, struct MODEREC *mode);
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
 void ResetDetectorTargets(DETECTOR *detector);
 } }
 // 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
@@ -3624,7 +3615,7 @@ void CID125::Update()
     guards = manager->guards;
     for (i = 0; i < count; i++) {
         STEPGUARD *guard = guards[i];
-        if (((int)(LO_FLAGS28(guard) >> 60) & 1) && D_002DDED0.time - guard->removalTime > D_002C3DBC) {
+        if (((int)guard->isInWorld & 1) && D_002DDED0.time - guard->removalTime > D_002C3DBC) {
             switch (guard->removalMode) {
             case 0:
                 break;
@@ -3634,7 +3625,7 @@ void CID125::Update()
             case 2: {
                 void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
                 if (bhv) {
-                    struct MODEREC mode;
+                    BHVGUARDRECDATA mode;
                     func_002333B4(&mode, 0, sizeof(mode));
                     mode.kind = 1;
                     SetBhvguardMode(bhv, &mode);
