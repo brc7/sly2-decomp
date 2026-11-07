@@ -90,7 +90,7 @@ void SetLoBusyk(CAPTUREV *p, int n);
 void PostSoLoad(CAPTUREV *p);
 void BindLoOidTable(CAPTUREV *p, int n, void *q);
 void DropAsegaRef(ASEGA **ppasega);
-int FAsegaRetracted(ASEGA *pasega);
+int IsAsegaRetracted(ASEGA *pasega);
 int IsDialogPlaying(void *p, int n);
 void HandleBasicMessage(CAPTUREV *p, int kind, MSG *message);
 void SetSoundManagerFlags(void *p, int a, int b);
@@ -164,7 +164,7 @@ extern "C" void UpdateFrameCapture(CAPTUREV *capture)
         return;
     case CAPTURE_SHOWING:
         ASEGA *anim = capture->segmentAnim;
-        if (anim == 0 || FAsegaRetracted(anim) != 0) {
+        if (anim == 0 || IsAsegaRetracted(anim) != 0) {
             DropAsegaRef(&capture->segmentAnim);
             SetFrameCaptureState(capture, CAPTURE_IDLE);
         }

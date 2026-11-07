@@ -146,7 +146,7 @@ float GetWaterSubmergedFraction(SOW *, SOW *, qwordV *, qwordV *);
 N *AllocSwXa(WORLD *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOW *, int);
 int ClipEdgeToObjects(qwordV, qwordV, int, COLL **, int, LSG *);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, SOW *);
 void SetSndRange(void *, float, float);
 void SetSndVolume(void *, float);
@@ -354,7 +354,7 @@ extern "C" void UpdateWater(SOW *water){
     qwordV normal;
     float fall=Min(-work.scratch.velocity.f[2],600.0f)*(1.0f/600.0f);
     float radius=((object->state->maximum.f[0]-object->state->minimum.f[0])+(object->state->maximum.f[1]-object->state->minimum.f[1]))*0.5f;
-    void *effect=PsndStartSound(0x13);
+    void *effect=CreateSfxSound(0x13);
     SetSndSourceLo(effect,object);
     SetSndRange(effect,100.0f,1000.0f);
     SetSndVolume(effect,fall);

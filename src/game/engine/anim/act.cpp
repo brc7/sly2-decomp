@@ -1265,7 +1265,7 @@ static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) 
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
-void SlotUnsettle(void *pv, void *px);
+void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword positionGoal; };
 extern qword D_002A2DD0;
@@ -1295,7 +1295,7 @@ void SetActPositionGoal(struct P *p, qword v)
     p->positionGoal = v;
     if (p->xf->activeAct == p && !FVecsNear(D_002A2DD0, dv)) {
         p->xf->goalValue = v;
-        SlotUnsettle(p->object, p->xf);
+        UnsettleXfSlot(p->object, p->xf);
     }
 }
 } } // namespace M_SetActPositionGoal
@@ -1794,7 +1794,7 @@ static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) 
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 int FFloatsNear__Ffff(float a, float b, float eps);
-void SlotUnsettle(void *pv, void *px);
+void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
 struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword rotationGoal; };
 extern qword D_002A2DD0;
@@ -1827,7 +1827,7 @@ void SetActRotationGoal(struct P *p, qword v)
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(p->xf->segmentEnd), "j"(dv));
             p->xf->segmentEnd = shiftedEnd;
         }
-        SlotUnsettle(p->object, p->xf);
+        UnsettleXfSlot(p->object, p->xf);
     }
 }
 } } // namespace M_func_0012DA30

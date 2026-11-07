@@ -123,7 +123,7 @@ extern LMV D_002BBB60;
 void RemoveSoHierarchy(DANCERV *p);
 void PostStepLoad(DANCERV *o);
 void UpdateStep(DANCERV *p);
-int FAsegaRetracted(ASEGAV *pa);
+int IsAsegaRetracted(ASEGAV *pa);
 void SetXfRole(DANCERV *p, void *pv, int n);
 qwordV GetStepAsegaTranslation(DANCERV *p, void *pa, float g);
 void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
@@ -139,10 +139,10 @@ void PostSwCallback(SW *psw, RHYTHMMGR *p, long k, int n);
 void ReplaceSma(void *o2, void *o, int k, int n, void **ppo);
 float GRandInRange__Fff(float a, float b);
 void UpdateLo(RHYTHMMGR *);
-float TMusicCur(void *);
+float GetMusicTime(void *);
 void BroadcastGameEvent(void *, int, RHYTHMMGR *);
 float GSmooth__FfffP3SMPPf(void *, float, float, float, int);
-int FSmaRetracted(void *o);
+int IsSmaRetracted(void *o);
 void SetSmaGoal(void *o, int n);
 void IncrementSwHandsOff(SW *psw, int n);
 void DecrementSwHandsOff(SW *psw, int n);
@@ -202,7 +202,7 @@ extern "C" void UpdateDancer(DANCERV *dancer)
 {
     int managerState;
     UpdateStep(dancer);
-    if (!dancer->segmentAnim || FAsegaRetracted(dancer->segmentAnim)) {
+    if (!dancer->segmentAnim || IsAsegaRetracted(dancer->segmentAnim)) {
         SetXfRole(dancer, dancer->unknown58, 1);
         SetXfRole(dancer, dancer->unknown5C, 1);
         dancer->isPerforming = 0;
@@ -440,7 +440,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
     int i, j;
     CUE *cue;
     UpdateLo(manager);
-    musicTime = TMusicCur(D_003DD040);
+    musicTime = GetMusicTime(D_003DD040);
     switch (manager->state) {
     case RHYTHM_DEMONSTRATE:
         for (j = 0; j < manager->numCues; j++) {
@@ -491,7 +491,7 @@ void UpdateRhythmManagerGrades(RHYTHMMGR *manager)
         SMAE *grade = &manager->grades[i];
         if (!grade->sma)
             continue;
-        if (FSmaRetracted(grade->sma)) {
+        if (IsSmaRetracted(grade->sma)) {
             ReplaceSma(0, 0, -1, 0, &grade->sma);
             grade->gradeIndex = -1;
         } else {
@@ -559,7 +559,7 @@ extern "C" {
 extern const SZ D_002A5018 = {"&2T&."};
 void RenderLoSelf(RHYTHMMGR *p);
 FONT *CRichText_ctor(FONT *pf, const char *sz, float scale);
-float CRichText_Dx(FONT *pf);
+float CRichText_GetWidth(FONT *pf);
 void DrawRichText2(FONT *pf, TB *ptb, int grf);
 void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, qwordV p1, qwordV v1, qwordV *ppos, qwordV *pvel, qwordV *pacc);
 }
@@ -572,7 +572,7 @@ static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
 {
     RenderLoSelf(manager);
-    float t = TMusicCur(D_003DD040);
+    float t = GetMusicTime(D_003DD040);
     if (manager->state < 3) if (manager->state > 0) if (manager->numNotes != 0) {   /* demonstrating or playing */
         FONT fontA;     /* the pending-note glyph '?' */
         CRichText_ctor(&fontA, D_002BDB60, D_002BDB58);
@@ -585,15 +585,15 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
         u.s = D_002A5018;
         FONT fontBig;
         CRichText_ctor(&fontBig, u.s.a, D_002BDB50);
-        float dxBig = CRichText_Dx(&fontBig);
+        float dxBig = CRichText_GetWidth(&fontBig);
         float dyBig = fontBig.dy;
         FONT fontSmall;
         CRichText_ctor(&fontSmall, u.s.a, D_002BDB54);
-        float dxSmall = CRichText_Dx(&fontSmall);
+        float dxSmall = CRichText_GetWidth(&fontSmall);
         float dySmall = fontSmall.dy;
-        float dxA = CRichText_Dx(&fontA);
+        float dxA = CRichText_GetWidth(&fontA);
         float dyA = fontA.dy;
-        float dxB = CRichText_Dx(&fontB);
+        float dxB = CRichText_GetWidth(&fontB);
         float dyB = fontB.dy;
         int i;
         for (i = 0; i < manager->numNotes; i++) {
@@ -720,7 +720,7 @@ extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCERV *dancer, int ke
     cue->key = key;
     cue->nextKey = nextKey;
     cue->time = time;
-    cue->timeAdded = TMusicCur(D_003DD040);
+    cue->timeAdded = GetMusicTime(D_003DD040);
     cue->hasPlayed = 0;
     cue->hasPrompted = 0;
     cue->wasPressed = 0;
@@ -745,7 +745,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
         if (cue->isExpired)
             continue;
         BroadcastGameEvent(D_002DEB30, GAME_EVENT_RHYTHM_PRESS, manager);
-        if (TMusicCur(D_003DD040) < cue->time - manager->earlyWindow) {
+        if (GetMusicTime(D_003DD040) < cue->time - manager->earlyWindow) {
             PlayDancerMove(dancer, ANY_KEY, ANY_KEY, MOVE_CLIP_FAIL);
             AddRhythmScore(manager, manager->earlyPressScore);
             return;
@@ -780,7 +780,7 @@ static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t
 // the score range D_002BBB60 (exactly on time gives its maximum).
 float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *cue)
 {
-    float musicTime = TMusicCur(D_003DD040);
+    float musicTime = GetMusicTime(D_003DD040);
     float lateness;
     if (musicTime < cue->time) {
         lateness = (cue->time - musicTime) / manager->earlyWindow;

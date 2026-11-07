@@ -49,7 +49,7 @@ struct GAME
       int oidTaskPending;
 };
 extern GAME D_002DEB30;
-extern "C" SND *PsndStartSound(int sfxid);
+extern "C" SND *CreateSfxSound(int sfxid);
 extern "C" void SetSndSourceLo(SND *psnd, LO *ploOwner);
 extern CLOCK D_002DDED0;
 struct EDGE
@@ -1140,7 +1140,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     {
         if (nMode != 4)
         {
-            SND *psnd = PsndStartSound(3);
+            SND *psnd = CreateSfxSound(3);
             SetSndSourceLo(psnd, 0);
         }
         if (pjoy->sRight > 0.0f)

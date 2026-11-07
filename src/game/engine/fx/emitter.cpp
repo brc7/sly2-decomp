@@ -931,7 +931,7 @@ int NRandInRange__Fii(int lo, int hi);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
 void SetSndVolume(void *p, float g);
 void StopSnd(void *p, float g);
-void *PsndStartSound(int id);
+void *CreateSfxSound(int id);
 void SetSndSourceLo(void *p, SO *pso);
 void SetSndRange(void *p, float a, float b);
 void RcPtr_Assign(void *pp, void *p);
@@ -992,7 +992,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
             if (soundObject->wakeSound) {
                 SetSndVolume(soundObject->wakeSound, volume);
             } else {
-                void *sound = PsndStartSound(D_002BDEB0[NRandInRange__Fii(0, 3)]);
+                void *sound = CreateSfxSound(D_002BDEB0[NRandInRange__Fii(0, 3)]);
                 SetSndSourceLo(sound, (SO *)soundObject);
                 SetSndRange(sound, 100.0f, 1000.0f);
                 SetSndVolume(sound, volume);
@@ -2238,7 +2238,7 @@ extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
 extern void VECTOR_opAssign(qword *pv, qword a);
 extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pb, EMITR *pr);
 extern qword ConvertAloPos(int x, int y, qword v);
-extern void *PsndStartSound(int id);
+extern void *CreateSfxSound(int id);
 extern void SetSndSourceLo(void *p, void *pso);
 extern void SetSndSourcePos(void *p, qword v);
 extern void SetSndRange(void *p, float a, float b);
@@ -2360,7 +2360,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
             pos.q = v;
         }
         pos.q = ConvertAloPos(emitp.reference, 0, pos.q);
-        sound = PsndStartSound(expls->psnd->id);
+        sound = CreateSfxSound(expls->psnd->id);
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, pos.q);
         SetSndRange(sound, expls->psnd->rangeMin, expls->psnd->rangeMax);

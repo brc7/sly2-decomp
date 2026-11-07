@@ -78,19 +78,19 @@ void UpdateWidget(EPMENU *widget);
 void SetWidgetRequest(EPMENU *widget, int n);
 void SetWidgetState(EPMENU *widget, int n);
 void PlayWidgetAnim(EPMENU *widget, int n);
-int FWidgetAnimPlaying(EPMENU *widget, int n);
-int FScreenShown(void *pscreen);
+int IsWidgetAnimPlaying(EPMENU *widget, int n);
+int IsScreenShown(void *pscreen);
 int GetJoySelectionStepY(void *pjoy);
 int GetJoySelectionStepX(void *pjoy);
 int HandleJoyButtons(void *pjoy, int grf);
 void CMpeg_QueueMovie(void *pmpeg, int n);
 void WipeToWorldWarp(SWV *world, int a, int b, int c, int d, int e);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetExitExits(void *pexit, int n);
 void TakeExit(void *pexit);
 int PrecWorldEntry(int n);
-int FPowerupAcquired(void *p);
+int IsPowerupAcquired(void *p);
 void AutosaveGame(void *p, int n);
 float fmodf(float a, float b);
 int sprintf(char *pch, const char *fmt, ...);
@@ -140,7 +140,7 @@ static inline int GetSaveInt(void *pkey)
 }
 static inline void PlaySound(int n)
 {
-    SetSndSourceLo(PsndStartSound(n), 0);
+    SetSndSourceLo(CreateSfxSound(n), 0);
 }
 
 /** @sly2-annot addr=0x15CD68
@@ -220,11 +220,11 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
 {
     int labelOid;
     UpdateWidget(menu);
-    if (FScreenShown(D_003D9ED0))
+    if (IsScreenShown(D_003D9ED0))
         return;
-    if (FScreenShown(D_002E6550))
+    if (IsScreenShown(D_002E6550))
         return;
-    if (FScreenShown(D_003DA4F0))
+    if (IsScreenShown(D_003DA4F0))
         return;
     labelOid = GetEpisodeMenuLabelOid(menu);
     switch (menu->state) {
@@ -323,13 +323,13 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
         }
         case 1:
         case 2:
-            if (!FWidgetAnimPlaying(menu, labelOid))
+            if (!IsWidgetAnimPlaying(menu, labelOid))
                 SetEpisodeMenuMode(menu, EPMENU_CHAPTERS, 0);
             return;
         }
         return;
     case EPMENU_START:
-        if (!FWidgetAnimPlaying(menu, labelOid)) {
+        if (!IsWidgetAnimPlaying(menu, labelOid)) {
             /* A never-played episode starts through its exit (the intro), otherwise by a warp into its world. */
             int isNew = 0;
             void *pkey = D_003DD490.episodePlayTimeVars[menu->episode];
@@ -356,7 +356,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
         }
         return;
     default:
-        if (!FWidgetAnimPlaying(menu, labelOid)) {
+        if (!IsWidgetAnimPlaying(menu, labelOid)) {
             int nextState = D_002BE278[menu->state];
             int sub = -1;
             if (nextState == EPMENU_CHAPTERS && menu->episode == 0) {
@@ -501,7 +501,7 @@ extern "C" void FormatEpisodePercent(char *pch)
     if (world->pepmenu && (pkey = world->episodePercentVars[world->pepmenu->episode]) != 0) {
         int n = GetSaveInt(pkey);
         n = n * 95 / 100;
-        if (FPowerupAcquired(D_002BE2F8[world->pepmenu->episode]))
+        if (IsPowerupAcquired(D_002BE2F8[world->pepmenu->episode]))
             n += 5;
         sprintf(pch, D_002A5160, n);
     }

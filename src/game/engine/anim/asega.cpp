@@ -73,7 +73,7 @@ void RemoveXfAct(LO *plo, XF *pxf, ACTSEGV *channel);
 void FreeAct(ACTSEGV *channel);
 void FreeOvra(OVRA *povra);
 int IsActCurrent(ACTSEGV *channel);
-void SlotUnsettle(LO *plo, XF *pxf);
+void UnsettleXfSlot(LO *plo, XF *pxf);
 void EvaluateXfSlotValue(ASEGA *p, int n);
 void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
@@ -102,13 +102,13 @@ float fmodf(float a, float b);
 
 void ApplyAsegCore(ASEG *segment, ALO *palo, int applyFlags, float t, float svt, ASEGA **playerSlot);   /* ApplyAseg */
 void HandleAsegaEvents(ASEGA *p);
-void HandleAsegaEventsFF(ASEGA *p);
+void HandleAsegaEventsFastForward(ASEGA *p);
 void HandleAsegaEvent(ASEGA *p, EA *label);
 void RetractAsega(ASEGA *p);
 void SeekAsega(ASEGA *p, int k, float g, float s);
 LO *GetAsegaEventTarget(ASEGA *player);
-int FWrapAsegaTime(ASEGA *p, float *pt, float *pdt);
-int FAsegaRetracted(ASEGA *p);
+int WrapAsegaTime(ASEGA *p, float *pt, float *pdt);
+int IsAsegaRetracted(ASEGA *p);
 void SetAsegaHandsOff(ASEGA *p, int f);
 void DetachXfActById(void *pvId, SO *pso, XF *pxf);
 void AssignSidebagRef(struct R4 **pp, struct R4 *p);
@@ -185,20 +185,20 @@ extern "C" void UpdateAsega(ASEGA *player)
         else
             player->tLocal = player->tLocal + player->svt * D_002DDED0.dt;
         HandleAsegaEvents(player);
-        if (FAsegaRetracted(player))
+        if (IsAsegaRetracted(player))
             { End(&g); return; }
-        f = FWrapAsegaTime(player, &player->tLocal, &player->svt);
+        f = WrapAsegaTime(player, &player->tLocal, &player->svt);
         if (f) {
             if (player->grfapl & 8)
                 player->iea = player->svt <= 0.0f ? player->paseg->ceaFrame : 0;
         }
         if (f) {
             ((void (*)(void *, int, ASEGA *))PVT(player)[4].pfn)((char *)player + PVT(player)[4].d, 3, player);
-            if (FAsegaRetracted(player))
+            if (IsAsegaRetracted(player))
                 { End(&g); return; }
         }
         HandleAsegaEvents(player);
-        if (FAsegaRetracted(player))
+        if (IsAsegaRetracted(player))
             { End(&g); return; }
         if (f && !(player->grfapl & 0x38))
             RetractAsega(player);
@@ -220,7 +220,7 @@ extern "C" void UpdateAsega(ASEGA *player)
 // overrides, notifies its owner and drops the list's reference.
 void RetractAsega(ASEGA *player)
 {
-    if (FAsegaRetracted(player))
+    if (IsAsegaRetracted(player))
         return;
     {
         G g;
@@ -232,7 +232,7 @@ void RetractAsega(ASEGA *player)
         for (; player->ieaEnd < player->paseg->ceaEnd; player->ieaEnd++) {
             { register EA *pe __asm__("$5") = player->paseg->aeaEnd; pe += player->ieaEnd; pe->tLocal = player->tLocal;
             HandleAsegaEvent(player, pe); }
-            if (FAsegaRetracted(player))
+            if (IsAsegaRetracted(player))
                 { End(&g); return; }
         }
         SetAsegaHandsOff(player, 0);
@@ -274,7 +274,7 @@ struct R80 { char pad[0x80]; float gMin; float gMax; float *pg; };
 void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
 {
     float t;
-    if (FAsegaRetracted(player))
+    if (IsAsegaRetracted(player))
         return;
     player->svtRate = speed;
     player->svt = speed * player->svtMaster * player->svtSuck;
@@ -286,7 +286,7 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
     if (t != player->tLocal) {
         ACTSEGV *ps;
         player->tLocal = t;
-        FWrapAsegaTime(player, &player->tLocal, &player->svt);
+        WrapAsegaTime(player, &player->tLocal, &player->svt);
         UpdateAsegaIeaCur(player);
         for (ps = (ACTSEGV *)player->pactsegFirst; ps; ps = ps->pactsegNext) {
             if (IsActCurrent(ps)) {
@@ -294,7 +294,7 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
                 float v = *pr->pg;
                 if (v < pr->gMin || pr->gMax < v)
                     ((void (*)(void *))ps->pvt[4].pfn)((char *)ps + ps->pvt[4].d);
-                SlotUnsettle(ps->plo, ps->pxf);
+                UnsettleXfSlot(ps->plo, ps->pxf);
             }
         }
         EvaluateXfSlotValue(player, 0);
@@ -335,7 +335,7 @@ void UpdateAsegaIeaCur(ASEGA *player)
 }
 
 // MATCH (Claude agent laneB9, 2026-10-23): the t copy pinned to $f1 (one commented register pin) declared inside an `if (i < pq->c)` block, take-branch ends with continue (reorg puts the mov.s in the bc1t delay slot).
-// fresh1 (Claude agent, 2026-10-23): aligned 16 -> 15: pq->ae[i] indexed in the compare, then (pe = &pq->ae[i], 1) as in HandleAsegaEventsFF (fixes addu order). Left: target t in f2 plus a mov.s f1,f2 copy used only by c.eq.s (bc1t delay slot).
+// fresh1 (Claude agent, 2026-10-23): aligned 16 -> 15: pq->ae[i] indexed in the compare, then (pe = &pq->ae[i], 1) as in HandleAsegaEventsFastForward (fixes addu order). Left: target t in f2 plus a mov.s f1,f2 copy used only by c.eq.s (bc1t delay slot).
 /* The begin/end bracket the event handlers hold while they run (real virtual calls of BASIC slots 1 and 2). */
 struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->VUnk00(); } ~GV() { p->VUnk01(); } };
 /** @sly2-annot addr=0x130F88
@@ -350,7 +350,7 @@ void HandleAsegaEvents(ASEGA *player)
     if (player->paseg->ceaFrame) {
     GV g(player);
     player->tPrev = player->tLocal;
-    while (!FAsegaRetracted(player)) {
+    while (!IsAsegaRetracted(player)) {
         ASEG *pq = player->paseg;
         int i = player->iea;
         float t = player->tPrev;
@@ -376,19 +376,19 @@ void HandleAsegaEvents(ASEGA *player)
 
 /** @sly2-annot addr=0x131100
  * Purpose: Fast-forward event dispatch used when applying at t>0
- * Info: proposed name HandleAsegaEventsFF (T1); TU asega
+ * Info: proposed name HandleAsegaEventsFastForward (T1); TU asega
  * Notes: names_v2 v1 proposed HandleAsegaEvents__FP5ASEGAP4ASEGPi (0.000)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
 // Fast-forward dispatch used when a segment starts at t > 0: replays the events up to the start time that must take
 // effect (state-changing ones) without their transient effects.
-void HandleAsegaEventsFF(ASEGA *player)
+void HandleAsegaEventsFastForward(ASEGA *player)
 {
     if (player->paseg->ceaFrame) {
     GV g(player);
     player->tPrev = player->tLocal;
-    while (!FAsegaRetracted(player)) {
+    while (!IsAsegaRetracted(player)) {
         ASEG *pq = player->paseg;
         int i = player->iea;
         float t = player->tPrev;
@@ -585,7 +585,7 @@ static __inline__ void PingPong(ASEGA *p, float *pt, float *pdt, float tMax, flo
 }
 /** @sly2-annot addr=0x1317D8
  * Purpose: Wraps/ping-pongs the ASEGA time at segment end (fmodf, GModPositive)
- * Info: proposed name FWrapAsegaTime (T1); TU asega
+ * Info: proposed name WrapAsegaTime (T1); TU asega
  * Notes: names_v2 v1 proposed RetractAsega__FP5ASEGA (0.171)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
  * See: docs/engine/animation.md#7-key-functions,
@@ -593,7 +593,7 @@ static __inline__ void PingPong(ASEGA *p, float *pt, float *pdt, float tMax, flo
  * @end-sly2-annot */
 // Wraps (loop) or reflects (ping-pong) a player's time at the end of its segment; returns whether it wrapped and updates
 // the time delta.
-int FWrapAsegaTime(ASEGA *player, float *time, float *deltaTime)
+int WrapAsegaTime(ASEGA *player, float *time, float *deltaTime)
 {
     float tMax = player->paseg->tMax;
     float t = *time;
@@ -630,13 +630,13 @@ int FWrapAsegaTime(ASEGA *player, float *time, float *deltaTime)
 
 /** @sly2-annot addr=0x131968
  * Purpose: True if the ASEGA is not on the live list g_sw.dlAsega
- * Info: proposed name FAsegaRetracted (T1); TU asega
+ * Info: proposed name IsAsegaRetracted (T1); TU asega
  * Notes: names_v2 B proposed AdaptAsega__FP5ASEGA (0.856)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
 // True when the player is no longer on the world's live player list.
-int FAsegaRetracted(ASEGA *player)
+int IsAsegaRetracted(ASEGA *player)
 {
     return FFindDlEntry(&g_sw.dlAsega, player) == 0;
 }
@@ -652,7 +652,7 @@ int FAsegaRetracted(ASEGA *player)
 // Turns the player's hands-off hold on or off (while on, the world's hands-off count keeps player control disabled).
 void SetAsegaHandsOff(ASEGA *player, int isHandsOff)
 {
-    if ((FAsegaRetracted(player) == 0) && (isHandsOff != player->nWorldHold)) {
+    if ((IsAsegaRetracted(player) == 0) && (isHandsOff != player->nWorldHold)) {
         if (isHandsOff != 0) {
             IncrementSwHandsOff(&D_003DD490, 3);
         } else {
@@ -851,7 +851,7 @@ extern "C" void GetActsegGoal(ACTSEGV *p, qword *pq1, qword *pq2, float g) {
         float t, dt;
         dt = po->svt;
         t = po->tLocal + g * dt;
-        FWrapAsegaTime(po, &t, &dt);
+        WrapAsegaTime(po, &t, &dt);
         p->pac->Eval(t, dt, pq1, pq2);
     } else {
         GetActGoalDefault(p, pq1, pq2);

@@ -67,7 +67,7 @@ struct MRSGC
 void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("ResolveAsegChannelTarget");
 CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("FindAsegChannel");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
-void FillBlAmrsg(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
+void FillBlendSyncTables(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
 void ReblendAsegbl(ASEGBL *pasegbl) __asm__("RecalculateAsegBlend");
 struct VKBLEND : public VECKEY
 {
@@ -154,7 +154,7 @@ extern void *D_002DA9D0[] __asm__("_vt$6CID146");
 
 void RecalculateAsegBlend(ASEGBL *);
 float GModPositive__Fff(float a, float b);
-void *PsndStartSound(int h);
+void *CreateSfxSound(int h);
 void SetSndSourceLo(void *p, void *source);
 qword GetLoWorldPos(void *p);
 void SetSndSourcePos(void *p, qword q);
@@ -176,7 +176,7 @@ void SetSoGravity(ALO *,qword);
 void SeekAsega(ASEGA *,int,float,float);
 void AttachStepguard(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
-int FAsegaRetracted(ASEGA *);
+int IsAsegaRetracted(ASEGA *);
 int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
 void ReleaseAct(ACT **);
 void SetXfRole(ALO *o, XF *pxf, int m);
@@ -210,7 +210,7 @@ extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
 }
 
 // 0x0020B868 PostJtLoadGait__FP4GAIT  (our name)
-// After the level load (JT::VUnk14, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlAmrsg), each clip's root movement per second
+// After the level load (JT::VUnk14, for the gaits at JT+0x1320 and +0x1C30): the foot markers of both clips (FillBlendSyncTables), each clip's root movement per second
 // ((position at the end - position at the start) / length), the blend (EnsureAsegBlendDynamic with the two marker arrays). Then every blended channel is told
 // which marker array keeps it in step: XFs with oid 0x10 / 0x12 / 0x14 the second foot's (amrsgc[1]), 0x11 / 0x13 / 0x15 the first's (the default), any other none.
 static inline qword QwSub(qword qw0, qword qw1)
@@ -237,8 +237,8 @@ void PostJtLoadGait(GAIT *gait)
 {
     if (gait->abl[0].paseg == 0)
         return;
-    FillBlAmrsg(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
-    FillBlAmrsg(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
+    FillBlendSyncTables(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
+    FillBlendSyncTables(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
     for (uint ibl = 0; ibl < 2; ibl++)
     {
         BLGAIT *pblgait = &gait->abl[ibl];
@@ -408,7 +408,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
                 t *= gait->gVolRun;
                 t += u * gait->gVolWalk;
             }
-            h = PsndStartSound(gait->sfxidStep);
+            h = CreateSfxSound(gait->sfxidStep);
             SetSndSourceLo(h, 0);
             SetSndSourcePos(h, GetLoWorldPos(x->paloRoot));
             SetSndRange(h, 500.0f, 2000.0f);
@@ -610,7 +610,7 @@ extern "C" void UpdateLeap(LEAPV *leap)
             }
             break;
         case 3:
-            if (FAsegaRetracted(leap->job))
+            if (IsAsegaRetracted(leap->job))
                 SetLeapState(leap, 4);
             break;
         }

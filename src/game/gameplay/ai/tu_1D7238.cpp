@@ -70,7 +70,7 @@ int CploFindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, S
 void DeliverStepplayerBooty(SOV *object);
 void BindStepplayerHpMp(SOV *object, int n);
 CRef RefGetSaveVarV(const char *pchz, ...);
-int OidFromSmIsms(SMV *psm, int isms);
+int GetSmStateOid(SMV *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
 CRef SetValuesFromSpliceList(void *pv, int a, int b, int *pc, void **apv);
 int FindSmStateRequired(SMV *psm, void *pv);
@@ -80,7 +80,7 @@ void StepCharSelect(SAFEHOUSEV *safehouse, int d);
 }
 int FActiveCplcy(CPLCY *pcplcy);
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
-int IsmsFindSmOptional(SM *psm, OID oid);
+int FindSmStateOptional(SM *psm, OID oid);
 
 // 0x1D7238: SAFEHOUSE vtable slot 7 (Init): PO Init, then registers itself as the world's safehouse (D_003D4A54).
 void SAFEHOUSE::Init()
@@ -195,8 +195,8 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
             VCALL(objects4F[i2], 9);
         if (safehouse->stateMachine) {
             int savedOid = RefGetSaveVarV(D_002A7878, 0).u.n;
-            if (IsmsFindSmOptional((SM *)safehouse->stateMachine, (OID)savedOid) == -1)
-                initialState = OidFromSmIsms(safehouse->stateMachine, 0);
+            if (FindSmStateOptional((SM *)safehouse->stateMachine, (OID)savedOid) == -1)
+                initialState = GetSmStateOid(safehouse->stateMachine, 0);
             else
                 initialState = savedOid;
         } else {
@@ -245,7 +245,7 @@ extern "C" void StepCharSelect(SAFEHOUSEV *safehouse, int delta)
             index = safehouse->stateMachine->stateCount - 1;
         else if (index >= safehouse->stateMachine->stateCount)
             index = 0;
-        stateOid = (void *)OidFromSmIsms(safehouse->stateMachine, index);
+        stateOid = (void *)GetSmStateOid(safehouse->stateMachine, index);
         for (choiceIndex = 0; choiceIndex < safehouse->choiceCount; choiceIndex++) {
             if (safehouse->choices[choiceIndex] == stateOid) {
                 SetSmaGoal(safehouse->stateMachineAnim, stateOid);

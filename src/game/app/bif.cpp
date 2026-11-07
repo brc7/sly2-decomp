@@ -5056,7 +5056,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void CRef_ctor_BASIC(CRef *pref, void *p);
 /** @sly2-annot addr=0x1251E8
@@ -5070,7 +5070,7 @@ void CRef_ctor_BASIC(CRef *pref, void *p);
 CRef *RefOpStartSound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     int n = args[1].m_tag;
-    void *p = PsndStartSound(args[0].m_tag);
+    void *p = CreateSfxSound(args[0].m_tag);
     SetSndSourceLo(p, n);
     CRef_ctor_BASIC(ret, p);
     return ret;
@@ -5398,11 +5398,11 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_SetBool(CRef *pref, int f);
-int FPowerupAcquired(int n);
+int IsPowerupAcquired(int n);
 /** @sly2-annot addr=0x1256E0
  * Purpose: Bool: save var powerUps.mppukfAcquired[n] via 0x1DAEA8
  * Info: proposed name RefOpIsPowerUpAcquired (T1); TU bif
- * Notes: splice builtin 138 power-up-acquired?~ -> power-up-acquired?~ (0.80): Body Bool(FPowerupAcquired(n))
+ * Notes: splice builtin 138 power-up-acquired?~ -> power-up-acquired?~ (0.80): Body Bool(IsPowerupAcquired(n))
  *   = save var powerUps.mppukfAcquired[n]. Scripts: (if (power-up-acquired?~ 27) ...)
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 138)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
@@ -5412,7 +5412,7 @@ CRef *RefOpIsPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     ref.m_tagk = -1;
-    CRef_SetBool(&ref, FPowerupAcquired(args->m_tag) != 0);
+    CRef_SetBool(&ref, IsPowerupAcquired(args->m_tag) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

@@ -1194,7 +1194,7 @@ struct LOUPD
       LO *plo;
 };
 
-int FAsegaStopped(ASEGA *pasega) __asm__("FAsegaRetracted");
+int FAsegaStopped(ASEGA *pasega) __asm__("IsAsegaRetracted");
 
 int FBhv193AtGoal(BHV193V *pbhv) __asm__("IsBhvWalkToDone");
 
@@ -2761,7 +2761,7 @@ inline int GrfUpdateLo(LO *plo)
 }
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 SMA *PsmaFindOnAlo(ALO *paloRoot, OID oidSm) __asm__("FindLiveSma");
-int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
+int FIsSmaRetracted(SMA *psma) __asm__("IsSmaRetracted");
 OID GetSmaCur(SMA *psma) __asm__("GetSmaCurrentState");
 
 
@@ -3998,7 +3998,7 @@ inline int GrfUpdateLo(LO *plo)
     return grf;
 }
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
+int FIsSmaRetracted(SMA *psma) __asm__("IsSmaRetracted");
 OID GetSmaCur(SMA *psma) __asm__("GetSmaCurrentState");
 int FFloatsNear(float g1, float g2, float gEpsilon) __asm__("FFloatsNear__Ffff");
 float GLimitLm(LM *plm, float g) __asm__("GLimitLm__FP2LMf");
@@ -4101,10 +4101,10 @@ extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("HasLoOid");
 extern "C" int IsWidgetIdle(LO *plo);
 extern "C" void ClearJsgWidget(JSGV *script);
 extern "C" int HandleJoyButtons(JOY *pjoy, uint grfbtn);
-extern "C" int FScreenShown(void *pv);
+extern "C" int IsScreenShown(void *pv);
 extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("IsDialogPlaying");
 extern "C" float GetDialogTime(SNDMGR *psndmgr);
-extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr) __asm__("TMusicCur");
+extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr) __asm__("GetMusicTime");
 extern "C" void ClearBhvstk(BHVSTK *pbhvstk) __asm__("ClearBhvstk__FP6BHVSTK");
 extern "C" { extern float D_002BD850; }
 extern "C" { extern float D_002C3620; }
@@ -4526,7 +4526,7 @@ int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StopLine:
-        fComplete = FScreenShown(D_003DA530) == 0;
+        fComplete = IsScreenShown(D_003DA530) == 0;
         break;
     case RELAYCK_Line:
         fComplete = FCurrentIdMatches(&D_003DD040, prelaycmd->line.idLine) == 0;
@@ -4694,7 +4694,7 @@ struct O *FindJsgObject(struct C *script, int n);
 float GetDifficulty(struct G *pg);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int oid, int b);
 void *FindLiveSma(void *p, int n);
-float DtSmaToState(void *p, int n);
+float EstimateSmaTimeToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
 // Clamps g to [lo, hi].
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
@@ -4720,7 +4720,7 @@ float GetJsgCommandDuration(struct C *script, struct P *command)
             void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->u10.n, script->context);
             if (px) {
                 void *py = FindLiveSma(px, command->u14.n);
-                if (py) g = DtSmaToState(py, command->targetState);
+                if (py) g = EstimateSmaTimeToState(py, command->targetState);
             }
         }
         break;

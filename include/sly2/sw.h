@@ -134,7 +134,7 @@ struct SW : public BASIC
       SVPATH *apsvpEpisodeDt[9];   /* save vars: play time per episode (inferred) */
       SVPATH *apsvpEpisodePercent[9];   /* +0x3B7C summed by GetCompletionPercent (save.cpp) */
       HUDSTACK ahudstack[4];   /* the HUD widget stacks */
-      DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (FWidgetObscured, hud.cpp); was _pad_228 */
+      DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (IsWidgetObscured, hud.cpp); was _pad_228 */
       SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
       uint32_t   _pad_228    [ 1 ] ;
       int fUnk3bec;

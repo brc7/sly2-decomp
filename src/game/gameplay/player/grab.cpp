@@ -492,7 +492,7 @@ int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
 void ClearPoctlJoyPressed(JOY *, uint);
 void SetJtAirJump(void *, int, int, ACTOR *);
 void StartJtMode(void *, int, int, int);
-int FAsegaRetracted(ASEGA *);
+int IsAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
 void *AllocFromStack(SWALLOC *);                         // stack allocation in the current STACKSCOPE
 qword GetLoWorldPos(ACTOR *);                           // world position
@@ -646,11 +646,11 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
         case 8:
             switch (grab->step) {
             case 7:
-                if (FAsegaRetracted(grab->pactor->pasega))
+                if (IsAsegaRetracted(grab->pactor->pasega))
                     SetJtGrabKind(grab, 9);
                 break;
             case 8:
-                if (FAsegaRetracted(grab->pactor->pasega))
+                if (IsAsegaRetracted(grab->pactor->pasega))
                     SetControl(grab->pactor, 0);
                 break;
             default:
@@ -665,7 +665,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
             }
             break;
         case 10:
-            if (!grab->pactor->pasega || FAsegaRetracted(grab->pactor->pasega)) {
+            if (!grab->pactor->pasega || IsAsegaRetracted(grab->pactor->pasega)) {
                 SetControl(grab->pactor, 0);
             } else if (D_002BF5B8 < D_002DDED0.t - grab->tStamp) {
                 if (0.0f < grab->pactor->pjoy->amount || (grab->pactor->pjoy->grfbtn & 0xD0)) {
@@ -676,7 +676,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
             break;
         case 11:
         case 12:
-            if (!grab->pactor->pasega || FAsegaRetracted(grab->pactor->pasega))
+            if (!grab->pactor->pasega || IsAsegaRetracted(grab->pactor->pasega))
                 SetControl(grab->pactor, 0);
             break;
         case 5:
@@ -1408,7 +1408,7 @@ void SubscribeLoObject(SOURCE *, ACTOR *);
 void UnsubscribeLoObject(SOURCE *, ACTOR *);
 void LinkStepAttachment(ACTOR *, SOURCE *, int);
 void EvaluateShapeU(SOURCE *, float, qword *, qword *);
-EFFECT *PsndStartSound(int);
+EFFECT *CreateSfxSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void RcPtr_Assign(EFFECT **, EFFECT *);
 void FaceStepToward(ACTOR *, SOURCE *);
@@ -1567,7 +1567,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             break;
         }
         case 2: {
-            EFFECT *effect = PsndStartSound(0x5C);
+            EFFECT *effect = CreateSfxSound(0x5C);
             SetSndSourceLo(effect, 0);
             RcPtr_Assign(&D_002E1E40->effect, effect);
             break;

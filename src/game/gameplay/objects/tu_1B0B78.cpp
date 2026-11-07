@@ -128,7 +128,7 @@ float UMaxShape(SHAPE *);
 float UWrapShape(SHAPE *, float);
 void EvaluateShapeU(SHAPE *, float, qwordV *, qwordV *);
 LOV *FindClosestSwPo(SW *, qwordV);
-EFFECT *PsndStartSound(int);
+EFFECT *CreateSfxSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
 qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
@@ -536,7 +536,7 @@ void SetCritterState(CID96V *critter, int next)
         break;
     }
     case CRITTER_HIT: {
-        EFFECT *sound = PsndStartSound(0x14);
+        EFFECT *sound = CreateSfxSound(0x14);
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, GetLoWorldPos(critter));
         SprayDifficultyPrizes(D_002DE578, ConvertAloPos(critter, 0, critter->damageOffset.q), critter->amount, -100, critter);

@@ -1694,7 +1694,7 @@ namespace M_UpdateJob { extern "C" {
 struct S { char pad[0xB0]; int introLabel; int outroLabel; void *completionWidget; void *widget379; void *nextTask; int completionPhase; char pad2[0xCC - 0xC8]; void *exitObject; };
 enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };   /* as SetJobCompletionPhase */
 void UpdateLo(struct S *p);
-int FWidgetAnimPlaying(void *p, int n);
+int IsWidgetAnimPlaying(void *p, int n);
 void FinishJob(struct S *p);
 void ContinueAfterJob(struct S *p);
 void SetJobCompletionPhase(struct S *p, int n);
@@ -1714,7 +1714,7 @@ void UpdateJob(struct S *job)
     UpdateLo(job);
     switch (job->completionPhase) {
     case PHASE_INTRO:
-        if (!FWidgetAnimPlaying(job->completionWidget, job->introLabel)) {
+        if (!IsWidgetAnimPlaying(job->completionWidget, job->introLabel)) {
             FinishJob(job);
             if (job->nextTask || job->exitObject)
                 SetJobCompletionPhase(job, PHASE_SHARED_WIDGET);
@@ -1723,13 +1723,13 @@ void UpdateJob(struct S *job)
         }
         break;
     case PHASE_OUTRO:
-        if (!FWidgetAnimPlaying(job->completionWidget, job->outroLabel)) {
+        if (!IsWidgetAnimPlaying(job->completionWidget, job->outroLabel)) {
             ContinueAfterJob(job);
             SetJobCompletionPhase(job, PHASE_NONE);
         }
         break;
     case PHASE_SHARED_WIDGET:
-        if (!FWidgetAnimPlaying(job->widget379, 0x30F))
+        if (!IsWidgetAnimPlaying(job->widget379, 0x30F))
             ContinueAfterJob(job);
         break;
     }
@@ -4073,7 +4073,7 @@ extern char D_003DA530[];
 extern char D_002A3828[];
 CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
-int FScreenShown(void *p);
+int IsScreenShown(void *p);
 void ResetRumbleSaveVar(void);
 void HideTitleScreen(void *p);
 void *PrecWorldEntry(int n);
@@ -4099,7 +4099,7 @@ void StartGameFromSave(void *pv)
     RefGetGlobalSaveVar(&ref, D_003DD490.playTimeVar, pv);
     playTime = *(float *)&ref.m_tag;
     Decref__4CRef(&ref);
-    if (FScreenShown(D_003DA530) && playTime == 0.0f) {
+    if (IsScreenShown(D_003DA530) && playTime == 0.0f) {
         ResetRumbleSaveVar();
         HideTitleScreen(D_003DA530);
         return;

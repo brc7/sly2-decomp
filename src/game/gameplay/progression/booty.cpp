@@ -156,7 +156,7 @@ void func_00183FB8(CID37V *);
 void FireTriggerGrabspot(CID37V *, HERO *);
 BOOTYV *AcquireProxyObject(void *, int);
 void PostNotice(void *pv, int n, float g);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *pv, int n);
 void UpdateStepplayerBootySave(HERO *q, int n, CID37V *p);
 short FindSaveSymbol(void *, const char *);
@@ -696,7 +696,7 @@ extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
         return;
     if (ppa && g_sw.ploJobCur && !ppa->pbootyeCur->allowedDuringJob) {
         PostNotice(D_003DA0C0, 0x124, 15.0f);
-        SetSndSourceLo(PsndStartSound(0x36), 0);
+        SetSndSourceLo(CreateSfxSound(0x36), 0);
         return;
     }
     if (container->isLocked || (pqa && pqa->pbootyeCur->containerKind != container->acceptedKind)) {
@@ -704,7 +704,7 @@ extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
         return;
     }
     if (container->pbooty)
-        SetSndSourceLo(PsndStartSound(0x27), 0);
+        SetSndSourceLo(CreateSfxSound(0x27), 0);
     UpdateStepplayerBootySave(q, 0, container);
     if (q->pbooty && container->pbooty) {
         q->pbooty->pcont = container;

@@ -259,11 +259,11 @@ void StartHackAnim(struct S *hack, struct R *r) {
 
 namespace M_func_0017F550 { extern "C" {
 struct S { char pad[0x194]; void *asega; void *sma; };
-int FAsegaRetracted(void *p);
+int IsAsegaRetracted(void *p);
 int GetSmaCurrentState(void *p);
 int GetSmaGoal(void *p);
 // True when the current ASEGA retracted or the SM reached its end state. (inferred)
-int IsHackAnimDone(struct S *p) { if (p->asega) return FAsegaRetracted(p->asega); { int f = 1; if (p->sma) f = GetSmaCurrentState(p->sma) == GetSmaGoal(p->sma); return f; } }
+int IsHackAnimDone(struct S *p) { if (p->asega) return IsAsegaRetracted(p->asega); { int f = 1; if (p->sma) f = GetSmaCurrentState(p->sma) == GetSmaGoal(p->sma); return f; } }
 } } // namespace M_func_0017F550
 
 namespace M_func_0017F5B0 { extern "C" {
@@ -543,7 +543,7 @@ struct S {
 extern "C" {
 void PlayWidgetAnim(struct O *o, int n);
 void UpdateHackshipHealthBar(struct S *p);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void RcPtr_Assign(void **pp, void *q);
 void PauseSnd(void *p);
@@ -575,7 +575,7 @@ void SetHackshipState(struct S *ship, int n) {
                 PlayWidgetAnim(ship->healthWidget, 0x34F);
                 UpdateHackshipHealthBar(ship);
                 if (ship->engineSoundId != old) {
-                    void *r = PsndStartSound(ship->engineSoundId);
+                    void *r = CreateSfxSound(ship->engineSoundId);
                     SetSndSourceLo(r, 0);
                     RcPtr_Assign(&ship->engineSound, r);
                     PauseSnd(ship->engineSound);

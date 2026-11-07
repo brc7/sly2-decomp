@@ -448,7 +448,7 @@ static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value)
 // derivative; SetXfRole reads velocities off it)
 // Proposed name: EvaluateXfSlotMatrixDerivative (rename later with tools/rename.py; callers: itself, the second
 // evaluator in this file, SetXfRole's view).
-extern "C" M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po)
+extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po)
 {
     M4 m, m2;
     switch (po->role) {
@@ -460,7 +460,7 @@ extern "C" M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po)
         case 0: case 2: case 3: case 13: case 15:
             break;
         case 8: case 14: {
-            EvaluateXfSlotMatrix(&m, po->source.object);
+            EvaluateXfSlotMatrixDerivative(&m, po->source.object);
             func_0023320C(pr, &m, 0x40);
             pr->m[3][0] = -pr->m[3][0];
             pr->m[3][1] = -pr->m[3][1];
@@ -560,7 +560,7 @@ void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po);
+M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, struct O *po);
 static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
 {
     int i;
@@ -589,7 +589,7 @@ M4 *GetXfAngularVelocity(M4 *pm, struct O *po, struct O *poStop)
             break;
         default: {
             
-            EvaluateXfSlotMatrix(&mA, p);
+            EvaluateXfSlotMatrixDerivative(&mA, p);
             { qword d = mA.r[3], a = mA.r[0], b = mA.r[1], c = mA.r[2]; mB.r[0] = a; mB.r[1] = b; mB.r[2] = c; mB.r[3] = d; }
             
             if (p->pParent) {
@@ -635,7 +635,7 @@ struct O {M4 local,world;float t0,t1;float *time,*dt;JOB *hook;int kind;short mo
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 M4 InvertMatrix4Rigid(const M4 *);
-M4 EvaluateXfSlotMatrix(O *);
+M4 EvaluateXfSlotMatrixDerivative(O *);
 void UpdateXfJobRange(void *,O *);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
 }
@@ -696,7 +696,7 @@ extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
             }
             default: {
                 if(p->hook)UpdateXfJobRange(p->hook->owner,p);
-                m=EvaluateXfSlotMatrix(p);
+                m=EvaluateXfSlotMatrixDerivative(p);
                 O *parent=p->parent;
                 if(parent) {
                     M4 inverse=InvertMatrix4Rigid(&p->world);
@@ -2361,12 +2361,12 @@ static inline void SetV(V *pv, float x, float y, float z) { pv->x = x; pv->y = y
 int IsXfRoleMoving(int);
 int IsXfRoleAtRest(int);
 int IsXfRoleVelocity(int);
-M4 EvaluateXfSlotMatrix(P *);
+M4 EvaluateXfSlotMatrixDerivative(P *);
 M4 InvertMatrix4Rigid(P *);
 M4 __ml__FRC7MATRIX4T0(M4 *, M4 *);
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
-void func_0022CDC0P(M4 *pm, P *p) __asm__("EvaluateXfSlotMatrix");
+void func_0022CDC0P(M4 *pm, P *p) __asm__("EvaluateXfSlotMatrixDerivative");
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
 void ResetXfValueRef(S *, P *);
 
@@ -2439,7 +2439,7 @@ namespace M_SlotUnsettle { extern "C" {
 typedef struct { char pad[0x98]; unsigned short role; } B;
 void SetXfRole(void *, B *, int);
 // Puts a settled slot back into motion (inferred: the counterpart of SettleXfSlot).
-void SlotUnsettle(void *a, B *b)
+void UnsettleXfSlot(void *a, B *b)
 {
     switch ((short)b->role) {
     case 6: case 10: SetXfRole(a, b, 7); break;
@@ -2732,7 +2732,7 @@ typedef struct A { char pad0[0x1C]; float localTime; char pad20[0x34 - 0x20]; C 
 typedef struct G { char pad[0x3D58]; int worldStampCounter; } G;
 extern G D_003DD490;
 extern qword D_002A2DD0;
-int FAsegaRetracted(A *);
+int IsAsegaRetracted(A *);
 int IsActCurrent(C *);
 void UpdateXfJobRange(LO *, P *);
 qword GetXfValueFromMatrix(P *, P *);
@@ -2755,7 +2755,7 @@ void EvaluateXfSlotValue(A *a, int flag)
     int i;
     struct { float f[4]; } __attribute__((aligned(16))) out;
 
-    if (FAsegaRetracted(a))
+    if (IsAsegaRetracted(a))
         return;
     n = 0;
     for (c = a->firstActSeg; c; c = c->nextActSeg) {

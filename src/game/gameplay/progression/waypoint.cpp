@@ -459,7 +459,7 @@ LMV D_002C44D0 = {1.0f, 5.0f};
 float D_002C44D8 = 300.0f;
 extern "C" {
 void RenderSoSelf(WAYPTV *waypoint);
-int FPowerupAcquired(int ipuk);
+int IsPowerupAcquired(int ipuk);
 int IsJobComplete(void *pcond);
 void CalculateWayptCurtainDz(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
@@ -548,7 +548,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
         break;
     case 2:
         if (D_003DD490.unknown4764 < D_003DD490.unknown4768 || D_003DD490.unknown3B0C ||
-            (waypoint->requiredPowerup != -1 && FPowerupAcquired(waypoint->requiredPowerup)) ||
+            (waypoint->requiredPowerup != -1 && IsPowerupAcquired(waypoint->requiredPowerup)) ||
             (waypoint->jobCondition && !IsJobComplete(waypoint->jobCondition)))
             showAlpha = labelAlpha = 0.0f;
         break;

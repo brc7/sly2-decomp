@@ -472,18 +472,18 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkAsegENSURE (was src/game/app/splice_thunks/RefThunkAsegENSURE.cpp) ----
 namespace T_RefThunkAsegENSURE {
-extern "C" { void * PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(void *p, int, int, float, float, int); CRef RefThunkAsegENSURE(void *p, int c, void *aref); }
+extern "C" { void * EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi(void *p, int, int, float, float, int); CRef RefThunkAsegENSURE(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x101A88
  * Purpose: Splice option thunk: optid 216 on ASEG (g_aeopid[108] thunkFn, returns 0x2086, crefReq 5); unpacks
  *   5 args (0x2030, 0x100C, Float, Float, 0x100B) -> 0x2086 via RefSetArgsFromSplice then calls
- *   PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi (0x130598)
+ *   EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi (0x130598)
  * Info: proposed name RefThunkAsegENSURE (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 216 on ASEG (g_aeopid[108], thunkFn): unpacks the script's 5 arguments (0x2030, 0x100C,
-// Float, Float, 0x100B) with RefSetArgsFromSplice, calls PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi and returns a value
+// Float, Float, 0x100B) with RefSetArgsFromSplice, calls EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi and returns a value
 // of type 0x2086 to the script.
 CRef RefThunkAsegENSURE(void *object, int argCount, void *args)
 {
@@ -494,7 +494,7 @@ CRef RefThunkAsegENSURE(void *object, int argCount, void *args)
     float v3;
     int v4;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
-    ref = PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(object, v0, v1, v2, v3, v4);
+    ref = EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunkAsegENSURE
@@ -1087,17 +1087,17 @@ CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunk_PsmaApplySmEx (was src/game/app/splice_thunks/RefThunk_PsmaApplySmEx.cpp) ----
 namespace T_RefThunk_PsmaApplySmEx {
-extern "C" { void * PsmaApplySmEx(void *p, int, int, int, int); CRef RefThunk_PsmaApplySmEx(void *p, int c, void *aref); }
+extern "C" { void * ApplySmWithKind(void *p, int, int, int, int); CRef RefThunk_PsmaApplySmEx(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x1048F0
  * Purpose: Splice option thunk: optid 477 on SM (g_aeopid[369] thunkFn, returns 0x2088, crefReq 4); unpacks 4
- *   args (0x2030, Oid, 0x100B, 0x1054) -> 0x2088 via RefSetArgsFromSplice then calls PsmaApplySmEx (0x1F03A8)
+ *   args (0x2030, Oid, 0x100B, 0x1054) -> 0x2088 via RefSetArgsFromSplice then calls ApplySmWithKind (0x1F03A8)
  * Info: proposed name RefThunk_PsmaApplySmEx (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
 // Splice binding for option 477 on SM (g_aeopid[369], thunkFn): unpacks the script's 4 arguments (0x2030, Oid,
-// 0x100B, 0x1054) with RefSetArgsFromSplice, calls PsmaApplySmEx and returns a value of type 0x2088 to the script.
+// 0x100B, 0x1054) with RefSetArgsFromSplice, calls ApplySmWithKind and returns a value of type 0x2088 to the script.
 CRef RefThunk_PsmaApplySmEx(void *object, int argCount, void *args)
 {
     int argTypes[4] = {0x2030, 0x6, 0x100b, 0x1054};
@@ -1106,7 +1106,7 @@ CRef RefThunk_PsmaApplySmEx(void *object, int argCount, void *args)
     int v2;
     int v3;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, args, argTypes, &v0, &v1, &v2, &v3);
-    ref = PsmaApplySmEx(object, v0, v1, v2, v3);
+    ref = ApplySmWithKind(object, v0, v1, v2, v3);
     return ref;
 }
 } // namespace T_RefThunk_PsmaApplySmEx

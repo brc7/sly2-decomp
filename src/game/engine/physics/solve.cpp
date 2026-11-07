@@ -121,7 +121,7 @@ int IsXfRoleAtRest(int);
 int IsXfRoleVelocity(int);
 int FFloatsNear__Ffff(float, float, float);
 void ApplySoExternalAccelerations(SO *pso);
-void SlotUnsettle(SO *pso, XF *pxf);
+void UnsettleXfSlot(SO *pso, XF *pxf);
 qword ConvertXfVec(XF *pxf, XF *pxfParent, qword v);
 void InvalidateSoAaox(SO *pso);
 qword *VECTOR_opAssign(qword *, qword);
@@ -575,7 +575,7 @@ static inline float ZP(qword q){register float f __asm__("$2");__asm__("pextuw %
 static inline int NearFlag(int code){register int r __asm__("$21");__asm__("sltu %0,$zero,%1":"=r"(r):"r"(code));return r;}
 static inline void NearP(int *out,qword a,qword b){if(FFloatsNear__Ffff(X(a),X(b),0.0001f))if(FFloatsNear__Ffff(YP(a),YP(b),0.0001f))*out=NearFlag(FFloatsNear__Ffff(ZP(a),ZP(b),0.0001f));}
 static inline qword Zero(){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
-static inline void ConsumeOut(SO *p,XF *object,U &pending,qword*out){SlotUnsettle(p,object);qword world=ConvertXfVec(0,object->pxfParent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
+static inline void ConsumeOut(SO *p,XF *object,U &pending,qword*out){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->pxfParent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
 static inline float YFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tprot3w %0,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 static inline float ZFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tpextuw %0,$zero,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 static inline void NearVector(int *out,const qword &first,const qword &b){register const qword *address __asm__("$2")=&first;register qword a __asm__("$16");__asm__("lq %0,0(%1)":"=r"(a):"r"(address),"m"(first));register qword bits __asm__("$2");register float ax __asm__("$f12"),bx __asm__("$f13");__asm__("lq %0,%4\n\tmtc1 %3,%1\n\tmtc1 %0,%2":"=&r"(bits),"=f"(ax),"=f"(bx):"r"(a),"m"(b));if(FFloatsNear__Ffff(ax,bx,0.0001f))if(FFloatsNear__Ffff(YP(a),YFromHome(b),0.0001f))*out=FFloatsNear__Ffff(ZP(a),ZFromHome(b),0.0001f)!=0;}
@@ -681,7 +681,7 @@ extern "C" void ApplySoImpactVelocity(SO *object)
             XF *transform=object->pxfPos;
             U *force=&object->qwDv;
             qword increment;
-            SlotUnsettle(object,transform);
+            UnsettleXfSlot(object,transform);
             increment=ConvertXfVec(0,transform->pxfParent,object->qwDv.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&transform->v,increment);
@@ -693,7 +693,7 @@ extern "C" void ApplySoImpactVelocity(SO *object)
             XF *transform=object->pxfRot;
             U *force=&object->qwDw;
             qword increment;
-            SlotUnsettle(object,transform);
+            UnsettleXfSlot(object,transform);
             increment=ConvertXfVec(0,transform->pxfParent,object->qwDw.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&transform->v,increment);
@@ -712,7 +712,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
-static inline qword Consume(SO*p,XF*object,U&pending){SlotUnsettle(p,object);qword world=ConvertXfVec(0,object->pxfParent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
+static inline qword Consume(SO*p,XF*object,U&pending){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->pxfParent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
 /** @sly2-annot addr=0x1FA528
  * Purpose: Apply queued translation and rotation (shift/turn) to SO then refresh changed objects
  * Info: proposed name ApplySoContactShift (T2); class SO slot67; TU solve

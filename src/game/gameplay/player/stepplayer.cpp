@@ -259,7 +259,7 @@ int NWorldCur(void);
 void RestartHudWidget1(void *p);
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
 void RestartHudWidget2(void *p);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x140338
  * Purpose: On a POCTL button press (mask 0x200, Select?): if 0x210AE0 allows, calls 0x161868/0x1618B0 on g_sw
@@ -275,7 +275,7 @@ void AcknowledgeStepplayerHint(void)
         return;
     RestartHudWidget1(D_003DD490);
     if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
-    SetSndSourceLo(PsndStartSound(0x32), 0);
+    SetSndSourceLo(CreateSfxSound(0x32), 0);
     *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
     D_002DDF40.n4A4++;
 }
@@ -308,7 +308,7 @@ void UpdateStepplayerInteractCandidates(struct P *p);
 void UpdateStepplayerWater(struct P *p);
 void UpdateStepplayerHideBlend(struct P *p);
 void PickHeroInteractTarget(struct P *p);
-int FAsegaRetracted(int x);
+int IsAsegaRetracted(int x);
 void DropAsegaRef(int *px);
 int FActiveCplcy__FP5CPLCY(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
@@ -350,7 +350,7 @@ void UpdateStepplayer(struct P *player)
     UpdateStepplayerWater(player);
     UpdateStepplayerHideBlend(player);
     PickHeroInteractTarget(player);
-    if (player->xEFC && FAsegaRetracted(player->xEFC))
+    if (player->xEFC && IsAsegaRetracted(player->xEFC))
         DropAsegaRef(&player->xEFC);
     if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GrfPressedWithin__5POCTLUif(player->controller, BUTTON_GADGET_MENU, 0.0f)) {
 
@@ -1316,7 +1316,7 @@ extern struct CLOCK D_002DDED0;
 extern int D_002C3258[];
 extern struct T D_002BCD00[];
 int GrfConsumePressed__5POCTLUif(struct X150 *p, int mask, float g);
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 int GetStepplayerMp(struct P *p);
 void SetGadgetSlotState(struct P *p, struct E *pe, int n);
@@ -1346,11 +1346,11 @@ void UpdateStepplayerGadgets(struct P *player)
         case 0:
             if (GrfConsumePressed__5POCTLUif(player->controller, mask, 0.15f)) {
                 if (!player->vt[99].pfn((char *)player + player->vt[99].d, id)) {
-                    SetSndSourceLo(PsndStartSound(0x2E), 0);
+                    SetSndSourceLo(CreateSfxSound(0x2E), 0);
                 } else {
                     int n = GetStepplayerMp(player);
                     if (n < D_002BCD00[id].xC) {
-                        SetSndSourceLo(PsndStartSound(0x2E), 0);
+                        SetSndSourceLo(CreateSfxSound(0x2E), 0);
                         player->t1304 = D_002DDED0.t;
                     } else {
                         SetGadgetSlotState(player, pe, D_002BCD00[id].x0);

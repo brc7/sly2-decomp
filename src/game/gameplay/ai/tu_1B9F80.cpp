@@ -94,7 +94,7 @@ qword GetLoWorldPos(void*);
 qword ConvertAloPos(NEELAV*,void*,qword);
 int IsPointInVol(VOLUME*,qword);
 void SetNeelaState(NEELAV*,int);
-int FAsegaRetracted(ASEGA*);
+int IsAsegaRetracted(ASEGA*);
 qword TransformXfPos(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword DecomposeRotationMatrixToEuler(M3*);
@@ -279,7 +279,7 @@ extern "C" void UpdateNeela(NEELAV *neela)
         break;
     }
     case 1: {
-        if (FAsegaRetracted(neela->animation)) {
+        if (IsAsegaRetracted(neela->animation)) {
             SetNeelaState(neela, 0);
             break;
         }

@@ -92,7 +92,7 @@ void *AllocOvra(unsigned int);
 void SetAsegaHandsOff(ASEGA *, int);
 void HandleAsegaEvent(ASEGA *, EA *);
 void EvaluateXfSlotValue(ASEGA *, int);
-void HandleAsegaEventsFF(ASEGA *);
+void HandleAsegaEventsFastForward(ASEGA *);
 void UpdateAsegaIeaCur__FP5ASEGA(ASEGA *);
 M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
 M4 BuildXfValueMatrix(XFV *pxf, qword q);
@@ -113,7 +113,7 @@ void AppendDlEntry(DL *pdl, void *pv);                                          
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);                    /* LoadOptionsFromBrx__FPvP18CBinaryInputStream */
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                     /* PloFindSwObject__FP2SWi3OIDP2LO */
 void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime, int *pcea, EA **paea);
-ASEGA *PasegaFindAseg(ASEG *segment, ALO *palo);
+ASEGA *FindAsegPlayerForObject(ASEG *segment, ALO *palo);
 /* ApplyAsegCore with the parameter order ApplyAsegCur and PostAsegLoadCallback pass (the floats first) */
 extern "C" void ApplyAseg(ASEG *segment, ALO *root, float t, float svt, int applyFlags, ASEGA **playerSlot) __asm__("ApplyAsegCore");
 void EnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags, ASEGA **playerSlot);
@@ -392,7 +392,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     if (grf & 2) {
         if (p->svt < 0.0f)
             p->iea = pt->ceaFrame;
-        HandleAsegaEventsFF(p);
+        HandleAsegaEventsFastForward(p);
     } else {
         UpdateAsegaIeaCur__FP5ASEGA(p);
     }
@@ -595,7 +595,7 @@ extern "C" ASEGA *ApplyAsegToObject(ASEG *segment, ALO *palo, int grf, float t, 
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
 // Returns the segment's player that is bound to the given root object, or 0.
-ASEGA *PasegaFindAseg(ASEG *segment, ALO *palo)
+ASEGA *FindAsegPlayerForObject(ASEG *segment, ALO *palo)
 {
     DLI dli;            /* unused, but it keeps the 16-byte frame of the target (an inlined iterator's slot) */
     ASEGA *p;
@@ -615,7 +615,7 @@ void EnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int app
 {
     ASEGA *player;
     if (!playerSlot) playerSlot = &player;
-    player = PasegaFindAseg(segment, root);
+    player = FindAsegPlayerForObject(segment, root);
     if (player) *playerSlot = player;
     else ApplyAsegCore(segment, root, applyFlags, 0.0f, 1.0f, playerSlot);
     SeekAsega(*playerSlot, seek, t, svt);
@@ -627,7 +627,7 @@ void EnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int app
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
 // EnsureAseg, returning the player.
-ASEGA *PasegaEnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags)
+ASEGA *EnsureAsegPlayer(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags)
 { ASEGA *player; EnsureAseg(segment, root, seek, t, svt, applyFlags, &player); return player; }
 
 /** @sly2-annot addr=0x1305B8

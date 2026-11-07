@@ -257,7 +257,7 @@ struct PARTLINK
       undefined4 unk_0x10[0xD0 / 4];
 };
 
-extern "C" int FAsegaRetracted(ASEGA *pasega);
+extern "C" int IsAsegaRetracted(ASEGA *pasega);
 
 struct VU_FLOAT
 {
@@ -1800,7 +1800,7 @@ extern "C" int FCheckJtEdgeGrab(JTAIR *pjtair, SOPART *ppart, qword posHold, int
 extern "C" void StartJtGrabForAirKind(JTAIR *pjtair) __asm__("GrabJtAirTarget");
 extern "C" void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, JTPLACE *pplace);
 extern "C" void SetJtThrowState(JTTHROW *pjtthrow, int nState);
-extern "C" int FPowerUpAcquired(int ipowerup) __asm__("FPowerupAcquired");
+extern "C" int FPowerUpAcquired(int ipowerup) __asm__("IsPowerupAcquired");
 extern "C" uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
 extern "C" void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot);
 extern "C" qword QwPosOfJtPlace(float dt, STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("GetJtPlacePosition");
@@ -2030,7 +2030,7 @@ void UpdateJtAirInput(JTAIR *air)
                 if (air->nState == 0x13)
                 {
                     ASEGA *asega = air->pstepplayer->pasegaUnk1030;
-                    if (asega == 0 || FAsegaRetracted(asega))
+                    if (asega == 0 || IsAsegaRetracted(asega))
                         SetJtAirState(air, 0x14, 0);
                 }
                 break;

@@ -34,7 +34,7 @@ struct XP { char pad[0x94]; float gFriction; float gElasticity; };
 extern "C" {
 extern float D_002BFB20;    /* hurt contact friction (defined below, in address order) */
 extern float D_002BFB24;    /* hurt contact elasticity */
-int FAsegaRetracted(ASEGA *pasega);
+int IsAsegaRetracted(ASEGA *pasega);
 void RunJtHurtCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlaceCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, int n);
@@ -449,7 +449,7 @@ extern "C" void UpdateJtHurtInput(JTHURT *hurt)
     int state;
     do {
         state = hurt->nState;
-        if (FAsegaRetracted(hurt->pstepplayer->pasegaUnk1030))
+        if (IsAsegaRetracted(hurt->pstepplayer->pasegaUnk1030))
             RunJtHurtCallback(hurt);
     } while (hurt->nState != -1 && hurt->nState != state);
 }
@@ -777,7 +777,7 @@ extern "C"{
  void StartJtKnockback(C*);
  void SetJtHurtState(C*,int);
  int GetBasicCid(P*);
- void*PsndStartSound(int);
+ void*CreateSfxSound(int);
  void SetSndSourceLo(void*,P*);
  qword GetLoWorldPos(P*);
  void*NewNoise(int,qword,P*);
@@ -917,7 +917,7 @@ notify: {
             case 0x37: effect = 0x83; break;
             }
             P *actor = p->actor;
-            void *created = PsndStartSound(effect);
+            void *created = CreateSfxSound(effect);
             SetSndSourceLo(created, actor);
         }
         SetJtHurtCallback(p, &C::Reaction);
@@ -1023,14 +1023,14 @@ struct LONGU { long l; } __attribute__((packed));
 extern "C" {
 extern const LONGU D_002A6790;
 // Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
-void *PsndStartSound(int n);
+void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void func_001A15B0L(JTHURT *pjthurt, long cb) __asm__("SetJtHurtCallback");   /* sets the hurt callback (+0x1C) */
 }
 // Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
 extern "C" void JtHurtShockCallback(JTHURT *hurt)
 {
-    SetSndSourceLo(PsndStartSound(0x6A), 0);
+    SetSndSourceLo(CreateSfxSound(0x6A), 0);
     SetJtHurtState(hurt, 6);
     func_001A15B0L(hurt, D_002A6790.l);
 }

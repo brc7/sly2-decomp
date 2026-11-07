@@ -125,12 +125,12 @@ void ResetCplookZoom(void *);
 void *StartDialog(void *, int, int);
 void StartFrameCapture(void *, int, int);
 void BroadcastGameEvent(void *, int, void *);
-void *PsndStartSound(int);
+void *CreateSfxSound(int);
 void SetSndSourceLo(void *, void *);
 void SetWidgetAnimPhase(WIDGETV *, int, float);
 void SetWidgetState(WIDGETV *, int);
 void SetWidgetRequest(WIDGETV *, int);
-int FWidgetAnimPlaying(WIDGETV *, int);
+int IsWidgetAnimPlaying(WIDGETV *, int);
 void EndJtMode(MODEL *);
 qword ConvertCmWorldToScreen(CMV *, qword);
 int GrfConsumePressed__5POCTLUif(void *, int, float);
@@ -666,7 +666,7 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
         SetWidgetAnimPhase(reconSel->secondary, 0x35A, 0.0f);
         break;
     case 7:
-        SetSndSourceLo(PsndStartSound(0x52), 0);
+        SetSndSourceLo(CreateSfxSound(0x52), 0);
         reconSel->selected = reconSel->actor->id;
         PlayWidgetAnim(reconSel->primary, 0x356);
         PlayWidgetAnim(reconSel->secondary, 0x356);
@@ -869,7 +869,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
             SetReconSelState(reconSel, 2);
         break;
     case 8:
-        if (!FWidgetAnimPlaying(reconSel->primary, 0x358)) {
+        if (!IsWidgetAnimPlaying(reconSel->primary, 0x358)) {
             int changed = 0;
             if (reconSel->actor && reconSel->actor->state == 1 && reconSel->proximity >= 1.0f &&
                 reconSel->sizeGain >= 1.0f - reconSel->actor->threshold) {
@@ -906,7 +906,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
         }
         break;
     case 9:
-        if (!FWidgetAnimPlaying(reconSel->primary, 0x35C)) {
+        if (!IsWidgetAnimPlaying(reconSel->primary, 0x35C)) {
             int ready = 1;
             SetReconSelState(reconSel, 2);
             for (int i = 0; i < reconSel->count; i++) {
@@ -924,11 +924,11 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
         }
         break;
     case 10:
-        if (!FWidgetAnimPlaying(reconSel->primary, 0x314))
+        if (!IsWidgetAnimPlaying(reconSel->primary, 0x314))
             SetReconSelState(reconSel, -1);
         break;
     case 0:
-        if (FWidgetAnimPlaying(reconSel->primary, 0x314))
+        if (IsWidgetAnimPlaying(reconSel->primary, 0x314))
             SetReconSelState(reconSel, 1);
         break;
     case 1:

@@ -329,7 +329,7 @@ struct CID19 : public TARGET, public GRABSPOT
 
 void SetJtState(JT *pjt, JTS jts, JTBS jtbs);
 
-int FAsegaStopped(ASEGA *pasega) __asm__("FAsegaRetracted");
+int FAsegaStopped(ASEGA *pasega) __asm__("IsAsegaRetracted");
 
 void SeekAsega(ASEGA *pasega, SEEK seek, float dtLocal, float svtLocal) __asm__("SeekAsega");
 
@@ -400,7 +400,7 @@ extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
 void RemoveNodeBySlot(SO *pso, XF *pxf, ACT *pact) __asm__("RemoveXfAct");
 
-extern "C" SND *PsndStartSound(int sfxid);
+extern "C" SND *CreateSfxSound(int sfxid);
 
 extern "C" void SetSndSourceLo(SND *psnd, LO *ploOwner);
 
@@ -1764,7 +1764,7 @@ float GLimitAbs__Fff(float g, float h);
 void SetStepTargetHeading(struct S *p, float g);
 void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
 int TryMatchJtXmg(struct S *p, void *pv, int n);
-int IsmsFindSmOptional__FP2SM3OID(void *p, int n);
+int FindSmStateOptional__FP2SM3OID(void *p, int n);
 void SnapSma(void *p, int n);
 /** @sly2-annot addr=0x18A0C8
  * Purpose: Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620),
@@ -1793,7 +1793,7 @@ void UpdateJtStand(struct S *jt)
     RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
     if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
         !jt->x1514 && jt->x1028) {
-        if (IsmsFindSmOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
+        if (FindSmStateOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
         jt->x1514 = 1;
     }
 }
@@ -2205,7 +2205,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos) __asm__("ConvertAloPos");
 MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
-int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
+int FIsSmaRetracted(SMA *psma) __asm__("IsSmaRetracted");
 
 
 extern "C" { extern CLOCK D_002DDED0; }
@@ -3106,7 +3106,7 @@ void UpdateGaitBlend(void *, float);
 void FaceStepToward(struct P *, void *);
 qword SetVectorCylind(float, float, float);
 qword ConvertAloVec(void *, void *, qword);
-int FPowerupAcquired(int);
+int IsPowerupAcquired(int);
 void UpdateJtFaceTarget(struct P *);
 qword GetStepAsegaTranslation(struct P *, struct MODEL *, float);
 void SetAsegaSpeed__FP5ASEGAf(struct MODEL *, float);
@@ -3117,7 +3117,7 @@ float GLimitAbs__Fff(float, float);
 void RecalculateAsegBlend(void *);
 void UpdateJtActiveZap(void *);
 void UpdateJtPlaces(struct P *);
-int FAsegaRetracted(void *);
+int IsAsegaRetracted(void *);
 void DropAsegaRef(void **);
 static inline void *At(struct P *p, int offset)
 {
@@ -3279,7 +3279,7 @@ void UpdateJtPre(struct P *jt)
         }
         break;
     case 16:
-        if (FPowerupAcquired(0x1C))
+        if (IsPowerupAcquired(0x1C))
             UpdateJtFaceTarget(jt);
         else if (jt->enabled) {
             struct BINDING *b = FindAsegChannel(jt->table, jt, (void *)1, 1);
@@ -3342,7 +3342,7 @@ void UpdateJtPre(struct P *jt)
     }
     UpdateJtActiveZap(&AsStepplayer(jt)->jthurt);
     UpdateJtPlaces(jt);
-    if (jt->animation && FAsegaRetracted(jt->animation)) {
+    if (jt->animation && IsAsegaRetracted(jt->animation)) {
         DropAsegaRef(&jt->animation);
         jt->animationKind = -1;
     }
@@ -3643,8 +3643,8 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 extern "C" { extern GAME D_002DEB30; }
 extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("PsmaApplySmEx");
-int IsmsFindSmOptional(SM *psm, OID oid) __asm__("IsmsFindSmOptional__FP2SM3OID");
+SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("ApplySmWithKind");
+int FindSmStateOptional(SM *psm, OID oid) __asm__("FindSmStateOptional__FP2SM3OID");
 void RetractSma(SMA *psma) __asm__("RetractSma");
 float RadNormalize(float rad) __asm__("RadNormalize__Ff");
 
@@ -3724,7 +3724,7 @@ extern "C" {
 void RollHeroIdleTimer(STEPPLAYER *pstepplayer) __asm__("ScheduleIdleTimer");
 }
 extern "C" {
-int FPowerUpAcquired(int ipowerup) __asm__("FPowerupAcquired");
+int FPowerUpAcquired(int ipowerup) __asm__("IsPowerupAcquired");
 }
 extern "C" {
 void UnsubscribeLoObject(void *pvTarget, void *pvRef);
@@ -3880,7 +3880,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                             break;
                     default:
                     {
-                        SND *sound = PsndStartSound(0x3D);
+                        SND *sound = CreateSfxSound(0x3D);
                         SetSndSourceLo(sound, jt);
                         SetSndVolume(sound, 0.7f);
                         SetSndRange(sound, 500.0f, 1000.0f);
@@ -4066,7 +4066,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                         oid = (OID)0x175;
                         break;
                 }
-                if (IsmsFindSmOptional(stateMachine, oid) < 0)
+                if (FindSmStateOptional(stateMachine, oid) < 0)
                     oid = OID_Nil;
                 grfRoute = GrfJtLeanMask(jt);
                 ClearXyz(&jt->vUnk190);
@@ -4384,7 +4384,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
     SetJtChannelMask(jt, grf);
     if (sfxid != -1)
     {
-        SND *sound = PsndStartSound(sfxid);
+        SND *sound = CreateSfxSound(sfxid);
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, PosLoWorld(jt));
     }
@@ -4715,7 +4715,7 @@ extern float D_002BF3F0;
 extern void BroadcastGameEvent(void *p, int n, void *pv);
 extern void ChargeGadgetMp(void *p, int n);
 extern void SetClockRate(void *p, int n, float g);
-extern void *PsndStartSound(int n);
+extern void *CreateSfxSound(int n);
 extern void SetSndSourceLo(void *p, int n);
 extern void RcPtr_Assign(void *p, void *pv);
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
@@ -4750,7 +4750,7 @@ void UseJtGadget(char *p, int n)
         ChargeGadgetMp(p, n);
         SetClockRate(D_002DDED0, 1, D_002BF3EC);
         g_sw.gUnk475c = -1.0f;
-        pv = PsndStartSound(0x67);
+        pv = CreateSfxSound(0x67);
         SetSndSourceLo(pv, 0);
         RcPtr_Assign(A(0x2044), pv);
         break;
@@ -4760,7 +4760,7 @@ void UseJtGadget(char *p, int n)
         ChargeGadgetMp(p, n);
         SetClockRate(D_002DDED0, 1, D_002BF3F0);
         g_sw.gUnk475c = 0.7f;
-        pv = PsndStartSound(0x66);
+        pv = CreateSfxSound(0x66);
         SetSndSourceLo(pv, 0);
         RcPtr_Assign(A(0x2044), pv);
         break;
