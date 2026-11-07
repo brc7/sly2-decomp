@@ -814,26 +814,23 @@ void OnEmitterValuesChanged(EMITTERV *pemitter)
 }
 
 namespace M_SetEmitterParticleCount__FP7EMITTERi {
-struct EMITTERV { char pad[0xE0]; int isDirty; char pad2[0xC]; int emitMode; int particleCount; };
-void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
-void UnpauseEmitter(EMITTERV *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
 // Sets the emitter's particle count; in continuous mode, 0 pauses it and -1 unpauses it.
-extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTERV *pemitter, int c)
+extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTER *pemitter, int c)
 {
-    switch (pemitter->emitMode) {
+    switch (pemitter->k) {
     case EMIT_MODE_CONTINUOUS:
         if (c == 0)
             PauseEmitterIndefinite(pemitter);
         else if (c == -1)
             UnpauseEmitter(pemitter);
         else
-            pemitter->particleCount = c;
+            pemitter->c = c;
         break;
     case EMIT_MODE_UNSET:
-        pemitter->particleCount = c;
+        pemitter->c = c;
         break;
     }
-    pemitter->isDirty = 1;
+    pemitter->fDirty = 1;
 }
 } // namespace M_SetEmitterParticleCount__FP7EMITTERi
 
