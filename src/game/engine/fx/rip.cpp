@@ -370,8 +370,9 @@ int RIPG::IsFixed()
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A77D0 __asm__("D_002A77D0") = 3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A77D4 __asm__("D_002A77D4") = -3.40282347e+38f; }
-namespace M_PvtripFromRipt { extern "C" {
-struct X { int k; char pad[0xEC - 4]; void *vt; };
+/* RIP's vtable pointer follows its fields (+0xEC); the kinds' constructors are inlined by hand here. */
+#define RIPVPTR(p) (*(char **)((char *)(p) + 0xEC))
+extern "C" {
 extern char D_002D7738[] __asm__("_vt$6FLYING");
 extern char D_002D76E8[] __asm__("_vt$5STUCK");
 extern char D_002D7698[] __asm__("_vt$8SHRAPNEL");
@@ -383,100 +384,91 @@ extern char D_002D7558[] __asm__("_vt$5RIPT1");
 extern char D_002D7508[] __asm__("_vt$5RIPT0");
 extern char D_002D7788[] __asm__("_vt$3RIP");
 extern char D_002D7468[] __asm__("_vt$5REMIT");
-void *func_002333B4(void *p, int c, int cb) __asm__("memset");
+}
 // Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's vtable (11 types,
 // vtables 0x2D7468..0x2D7788) (inferred)
-struct X *PvtripFromRipt(struct X *p, unsigned int k)
+extern "C" RIP *PvtripFromRipt(RIP *p, unsigned int k)
 {
-    struct X *px;
+    RIP *px;
     switch (k) {
     case 3:
         func_002333B4(p, 0, 0x100);
-        p->vt = D_002D7738;
+        RIPVPTR(p) = D_002D7738;
         px = p;
         break;
     case 10:
         func_002333B4(p, 0, 0x100);
-        p->vt = D_002D76E8;
+        RIPVPTR(p) = D_002D76E8;
         px = p;
         break;
     case 8:
         func_002333B4(p, 0, 0x100);
-        p->vt = D_002D7698;
+        RIPVPTR(p) = D_002D7698;
         px = p;
         break;
     case 6:
         func_002333B4(p, 0, 0x110);
-        p->vt = D_002D7648;
+        RIPVPTR(p) = D_002D7648;
         px = p;
         break;
     case 4:
         func_002333B4(p, 0, 0x100);
-        p->vt = D_002D75F8;
+        RIPVPTR(p) = D_002D75F8;
         px = p;
         break;
     case 9:
         func_002333B4(p, 0, 0x110);
-        p->vt = D_002D75A8;
+        RIPVPTR(p) = D_002D75A8;
         px = p;
         break;
     case 5:
         func_002333B4(p, 0, 0xF0);
-        p->vt = D_002D74B8;
+        RIPVPTR(p) = D_002D74B8;
         px = p;
         break;
     case 1:
         func_002333B4(p, 0, 0x100);
-        p->vt = D_002D7558;
+        RIPVPTR(p) = D_002D7558;
         px = p;
         break;
     case 0:
         func_002333B4(p, 0, 0xF0);
-        p->vt = D_002D7508;
+        RIPVPTR(p) = D_002D7508;
         px = p;
         break;
     case 7:
         func_002333B4(p, 0, 0xF0);
-        p->vt = D_002D7788;
+        RIPVPTR(p) = D_002D7788;
         px = p;
         break;
     case 2:
         func_002333B4(p, 0, 0x100);
-        p->vt = D_002D7468;
+        RIPVPTR(p) = D_002D7468;
         px = p;
         break;
     }
-    px->k = k;
+    px->kind = k;
     return px;
 }
-} } // namespace M_PvtripFromRipt
-
-namespace M_NewRipInGroup { extern "C" {
-struct R { int a, b; void *p8; };
-struct Q { char pad[0x15C]; char dl[4]; };
-extern char D_003DD490[];
-struct Q *NewRipGroup(void *pg, int n);
-void *AllocZeroedFromSlotheap(void *pool);
-struct R *PvtripFromRipt(void *pv, void *a);
-void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
-void AddRipRef__FP3RIP(struct R *r);
-// Allocate a RIP from the rip pool (g_sw.slotheapRefnode?), construct by type, link into RIPG dlRip, AddRipRef.
-struct R *NewRipInGroup(SW *p, void *a, struct Q *q)
+void AppendDlEntry(DL *pdl, void *pv);
+void AddRipRef(RIP *prip);
+// Allocate a RIP from the SW's rip pool, construct it by kind (PvtripFromRipt), link it into the group's rip list
+// (the world's shared group when none is given) and take a reference.
+extern "C" RIP *NewRipInGroup(SW *p, int ript, RIPG *q)
 {
     void *pv;
-    struct R *r;
-    if (!q) q = NewRipGroup(D_003DD490, 0);
+    RIP *r;
+    if (!q) q = NewRipGroup(&g_sw, 0);
     if (!q) return 0;
     pv = AllocZeroedFromSlotheap(&p->slotheapRip);
     if (pv) {
-    r = PvtripFromRipt(pv, a);
-    r->p8 = q;
-    AppendDlEntry__FP2DLPv(q->dl, r);
-    AddRipRef__FP3RIP(r);
+    r = PvtripFromRipt((RIP *)pv, ript);
+    r->ripGroup = q;
+    AppendDlEntry(&q->ripList, r);
+    AddRipRef(r);
     return r; }
     return 0;
 }
-} } // namespace M_NewRipInGroup
 
 namespace M_InitRip { extern "C" {
 extern float D_002DDED0;   /* g_clock.time as a bare float: reading g_clock.time schedules the stores differently (10/23 off) */
