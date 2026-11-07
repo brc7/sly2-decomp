@@ -1068,31 +1068,27 @@ void LO_ResetForProxy(LO *object, LO *pa)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB518 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x24 - 0x10]; struct LO *nextSibling; };
-struct Q { char pad[0xDC]; int needsPathzone; };   /* (inferred) */
-struct S { char pad[0x64]; struct LO *firstChild; char p1[0xCC - 0x68]; int unknownCC; char p2[0xE8 - 0xD0]; struct Q *physics; };
-void LO_ResetForProxy(struct S *p, int n);
-void SetSoZapMode(struct S *p, int n);
+void LO_ResetForProxy(SO *p, LO *plo);
+void SetSoZapMode(SO *p, int n);
 qword GetLoWorldPos(void *p);
 void *FindPathzoneAtPos(qword q, int n);
-void SetSoPhysRegion(struct S *p, void *pv);
+void SetSoPhysRegion(SO *p, void *pv);
 // SO's ResetForProxy (vtable slot 26): LO's version, zap mode off, clears a state word, re-picks the physics region
 // from the position when needed, then the same on every child.
-void SO_ResetForProxy(struct S *object, int n)
+void SO_ResetForProxy(SO *object, LO *n)
 {
-    struct LO *plo;
-    int needsPathzone;
+    LO *plo;
+    REGENT *pregent;
     LO_ResetForProxy(object, n);
     SetSoZapMode(object, 0);
-    object->unknownCC = -1;
-    needsPathzone = 0;
-    if (object->physics) needsPathzone = object->physics->needsPathzone;
-    if (needsPathzone) {
+    object->model.unknown4C = -1;
+    pregent = 0;
+    if (object->physics) pregent = object->physics->pregent;
+    if (pregent) {
         SetSoPhysRegion(object, FindPathzoneAtPos(GetLoWorldPos(object), 1));
     }
-    for (plo = object->firstChild; plo; plo = plo->nextSibling)
-        ((void (*)(void *, int))plo->vt[26].pf)((char *)plo + plo->vt[26].d, n);
+    for (plo = (LO *)object->children.head; plo; plo = (LO *)plo->siblingLink.next)
+        plo->OnProxyAcquire(n);
 }
 } } // namespace M_func_001CB518
 
