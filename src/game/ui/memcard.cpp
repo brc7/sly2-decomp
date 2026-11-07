@@ -597,17 +597,9 @@ struct CRef {
     ~CRef() { Decref__4CRef(this); }
 };
 struct PMF { short delta; short pad; int (*pfn)(void *); };
-struct SLOT { char pad[0x5408]; char info[0x5C]; };   /* SAVEINFO at +0x5408 */
-struct THR;
-struct MC {
-    int port; int slot; int state; int nextState; float tStateChanged; char pad[0x24 - 0x14];
-    SLOT aslot[3];
-    int currentSlot; SLOT *newestSlot; int selectedSlot; THR *thr[1];
-};
-struct G { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw: id of the slot-in-use save variable */
 struct ST { char pad[0x44]; int phase; };   /* the memcard dialog */
 extern "C" {
-extern G D_003DD490;
+extern SW D_003DD490;
 extern CLOCK D_002DDED0;
 extern ST D_002E6550;
 extern char D_002E65A0[];
@@ -615,21 +607,20 @@ void SetMcDialogPhase(ST *, int);
 int IsMcStatusVisible(void *);
 void SetMcDialogState(ST *, int);
 void HideMcDialogWidget(void *);
-int CompareSaves__FP4SAVET0(char *, char *);
-void ResetSaveGs(SLOT *, int);
-void SetSaveState(MC *saveManager, int state);
+void ResetSaveGs(SAVESLOT *, int);
+void SetSaveState(SAVE *saveManager, int state);
 }
-CRef Eval(int, SLOT *) __asm__("GetGlobalSaveVar");
-static inline float GetF(int k, SLOT *p) { return Eval(k, p).u.g; }
+CRef Eval(SVPATH *, SAVESLOT *) __asm__("GetGlobalSaveVar");
+static inline float GetF(SVPATH *k, SAVESLOT *p) { return Eval(k, p).u.g; }
 
 // Changes the save state, with per-state actions on the three slots (Splice evaluations), UI updates and a GS reset
 // on load.
-void SetSaveState(MC *saveManager, int state)
+void SetSaveState(SAVE *saveManager, int state)
 {
     int i;
-    if (state == saveManager->state)
+    if (state == saveManager->nState)
         return;
-    if (saveManager->state == 6) {
+    if (saveManager->nState == 6) {
         saveManager->newestSlot = 0;
         if (saveManager->currentSlot) {
             ST *dialog = &D_002E6550;
@@ -647,18 +638,18 @@ void SetSaveState(MC *saveManager, int state)
     switch (state) {
     case 0:
     case 1:
-        CreateMemcardThreadJob(&saveManager->thr, &MCJOB::GetInfo);
+        CreateMemcardThreadJob(&saveManager->memcard, &MCJOB::GetInfo);
         break;
     case 3:
-        CreateMemcardThreadJob(&saveManager->thr, &MCJOB::GetDir);
+        CreateMemcardThreadJob(&saveManager->memcard, &MCJOB::GetDir);
         break;
     case 6:
         saveManager->newestSlot = &saveManager->aslot[0];
         for (i = 0; i < 3; i++) {
-            SLOT *pslot = &saveManager->aslot[i];
-            float isUsed = GetF(D_003DD490.saveVarIsUsed, pslot);
+            SAVESLOT *pslot = &saveManager->aslot[i];
+            float isUsed = GetF(D_003DD490.psvpDt, pslot);
             if (isUsed != 0.0f) {
-                if (CompareSaves__FP4SAVET0(saveManager->newestSlot->info, pslot->info) < 0)
+                if (CompareSaves__FP4SAVET0(&saveManager->newestSlot->info, &pslot->info) < 0)
                     saveManager->newestSlot = pslot;
             } else {
                 ResetSaveGs(pslot, 0);
@@ -666,7 +657,7 @@ void SetSaveState(MC *saveManager, int state)
         }
         break;
     }
-    saveManager->state = state;
+    saveManager->nState = state;
     saveManager->tStateChanged = D_002DDED0.realTime;
 }
 } // namespace M_SetSaveState
