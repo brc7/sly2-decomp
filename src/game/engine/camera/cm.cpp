@@ -813,24 +813,22 @@ extern "C" void ResetCmAdjust(CM *pcm)
 
 namespace M_GetCmCpdefi { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { qword a[5]; };
-struct VTE { short d; short pad; void (*pfn)(void *, struct S *); };
+struct VTE { short d; short pad; void (*pfn)(void *, CPDEFI *); };   /* the SO's vtable (slot 50, GetCpdefi), by hand */
 struct O { int pad[3]; struct VTE *vt; };
-struct P { char pad[0x260]; struct O *po; int pad2[3]; struct S s; };
-qword CalcCmAdjust(struct P *p, struct S *ps);
+qword CalcCmAdjust(CM *p, CPDEFI *ps);
 // If pso == focus(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and adjustedPosition = basePosition +
 // CalcCmAdjust.
-void GetCmCpdefi(struct P *p, struct O *po, struct S *ps)
+void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
 {
-    if (po == p->po) {
-        *ps = p->s;
+    if ((SO *)po == p->focus) {
+        *ps = p->cpdefi;
     } else {
         struct VTE *e = &po->vt[50];
         qword q, r;
         e->pfn((char *)po + e->d, ps);
         q = CalcCmAdjust(p, ps);
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(ps->a[1]), "j"(q));
-        ps->a[4] = r;
+        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(*(qword *)&ps->basePosition), "j"(q));
+        *(qword *)&ps->adjustedPosition = r;
     }
 }
 } } // namespace M_GetCmCpdefi
@@ -1148,7 +1146,6 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
 namespace M_ConvertCmScreenToWorld { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-struct CM { char pad[0x40]; float sx, sy; char pad2[0x18]; M4 mat; };
 static __inline__ qword Mul(M4 *pm, qword v)
 {
     qword o;
@@ -1157,7 +1154,7 @@ static __inline__ qword Mul(M4 *pm, qword v)
     return o;
 }
 // Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat.
-qword ConvertCmScreenToWorld(struct CM *cm, qword v)
+qword ConvertCmScreenToWorld(CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
     float x = QwordX(v);
@@ -1170,9 +1167,9 @@ qword ConvertCmScreenToWorld(struct CM *cm, qword v)
         r.f[1] = -x * z;
         r.f[2] = y * z;
     }
-    r.f[1] *= cm->sx;
-    r.f[2] *= cm->sy;
-    return Mul(&cm->mat, r.q);
+    r.f[1] *= cm->tanHalfFovX;
+    r.f[2] *= cm->tanHalfFovY;
+    return Mul((M4 *)&cm->mat, r.q);
 }
 } } // namespace M_ConvertCmScreenToWorld
 
@@ -1180,15 +1177,14 @@ namespace M_ConvertCmWorldToScreen { extern "C" {
 
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-struct CM { char pad[0x40]; float sx, sy; char pad2[0x18]; M4 mat; };
 void InvertMatrix4Rigid(M4 *pm, M4 *pn);
 // World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4)
-qword ConvertCmWorldToScreen(struct CM *cm, qword v)
+qword ConvertCmWorldToScreen(CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
     M4 m;
     float x, y, z;
-    InvertMatrix4Rigid(&m, &cm->mat);
+    InvertMatrix4Rigid(&m, (M4 *)&cm->mat);
     {
         qword qwrqOut;
         __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w"
@@ -1199,8 +1195,8 @@ qword ConvertCmWorldToScreen(struct CM *cm, qword v)
     y = r.f[1];
     z = r.f[2];
     r.f[2] = x;
-    r.f[0] = -y / cm->sx;
-    r.f[1] = z / cm->sy;
+    r.f[0] = -y / cm->tanHalfFovX;
+    r.f[1] = z / cm->tanHalfFovY;
     if (x > 1e-4f) {
         r.f[0] = r.f[0] / x;
         r.f[1] = r.f[1] / x;
@@ -1215,13 +1211,12 @@ SLY2_SCRAP("addiu $sp, $sp, 0x40");
 namespace M_SetCmPos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { struct { qword r[4]; } q; float af[4][4]; } M4;
-struct CM { char pad[0x60]; M4 mat; };
 qword *VECTOR_opAssign(qword *p, qword v);
-void SetCmMat4(struct CM *p, M4 *m);
+void SetCmMat4(CM *p, M4 *m);
 // Option setter (g_aeopid[171], otyp 2 vector): keep rotation, set CM::mat pos row, SetCmMat4.
-void SetCmPos(struct CM *cm, qword pos)
+void SetCmPos(CM *cm, qword pos)
 {
-    M4 m = cm->mat;
+    M4 m = *(M4 *)&cm->mat;
     VECTOR_opAssign(&m.q.r[3], pos);
     m.af[3][3] = 1.0f;
     SetCmMat4(cm, &m);
@@ -1261,11 +1256,10 @@ static __inline__ qword Make(float x, float y, float z)
 qword DecomposeRotationMatrixToEuler(void *p);
 // Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees.
 #define DEGREES_PER_RADIAN 57.295776f
-struct CMR { char pad[0x60]; char mat[0x40]; };   /* CM::mat */
-qword GetCmRotDeg(struct CMR *p)
+qword GetCmRotDeg(CM *p)
 {
     union { qword q; float f; } r;
-    qword v = DecomposeRotationMatrixToEuler(p->mat);
+    qword v = DecomposeRotationMatrixToEuler(&p->mat);
     r.q = Make(QwordX(v) * DEGREES_PER_RADIAN, QwordY(v) * DEGREES_PER_RADIAN, QwordZ(v) * DEGREES_PER_RADIAN);
     return r.q;
 }
@@ -1286,13 +1280,12 @@ static __inline__ qword Make(float x, float y, float z)
 }
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
-struct CM { char pad[0x60]; M4 mat; };
 void LoadRotateMatrixEuler(M3 *pm, qword v);
-void SetCmMat4(struct CM *p, M4 *m);
+void SetCmMat4(CM *p, M4 *m);
 // Option setter (g_aeopid[173]): degrees -> radians, rotation matrix 0x11B628, keep pos, SetCmMat4. (inferred)
-void SetCmRotDeg(struct CM *cm, qword v)
+void SetCmRotDeg(CM *cm, qword v)
 {
-    M4 mat = cm->mat;
+    M4 mat = *(M4 *)&cm->mat;
     union { qword q; float f; } r;
     M3 m;
 #define RADIANS_PER_DEGREE 0.017453294f
@@ -1307,16 +1300,14 @@ void SetCmRotDeg(struct CM *cm, qword v)
 } } // namespace M_SetCmRotDeg
 
 namespace M_SetCmFov__FP2CMf { extern "C" {
-struct CM { char pad[0x20]; float fieldOfView, targetFov; int fovSpeed; };
-void RecalcCmFrustrum__FP2CM(struct CM *p);
 // Fov(+0x20)=targetFieldOfView(+0x24)=f, dfov=0; RecalcCmFrustrum if changed > 1e-4.
-void SetCmFov__FP2CMf(struct CM *cm, float f)
+void SetCmFov__FP2CMf(CM *cm, float f)
 {
     int fChanged = __builtin_fabsf(f - cm->fieldOfView) > 0.0001f;
     cm->fieldOfView = f;
-    cm->targetFov = f;
-    cm->fovSpeed = 0;
-    if (fChanged) RecalcCmFrustrum__FP2CM(cm);
+    cm->targetFieldOfView = f;
+    cm->dfov = 0.0f;
+    if (fChanged) RecalcCmFrustrum(cm);
 }
 } } // namespace M_SetCmFov__FP2CMf
 
@@ -1379,15 +1370,13 @@ void SetCmUFogMax(CM *pcm, float g)
 
 namespace M_SetCmRgbaFog__FP2CMP4RGBA { extern "C" {
 struct S4 { char a[4]; };
-struct CM { char pad[0x24C]; struct S4 s; };
 void ColorCorrectRgba(void *p);
-void RecalcCmFrustrum__FP2CM(struct CM *p);
 // RgbaFog(+0x24C)=*prgba; 0x1ED278 on it; RecalcCmFrustrum.
-void SetCmRgbaFog__FP2CMP4RGBA(struct CM *cm, struct S4 *s)
+void SetCmRgbaFog__FP2CMP4RGBA(CM *cm, struct S4 *s)
 {
-    cm->s = *s;
-    ColorCorrectRgba(&cm->s);
-    RecalcCmFrustrum__FP2CM(cm);
+    *(struct S4 *)&cm->rgbaFog = *s;
+    ColorCorrectRgba(&cm->rgbaFog);
+    RecalcCmFrustrum(cm);
 }
 } } // namespace M_SetCmRgbaFog__FP2CMP4RGBA
 
@@ -1400,9 +1389,8 @@ void SetCmMrdRatio(CM *pcm, float g)
 
 namespace M_JoltCamera { extern "C" {
 extern float D_002DDED0;
-struct CMJ { char pad[0x618]; float joltTime; int joltKind; };
 // Starts a camera shake of the given kind now (joltTime, +0x618; joltKind, +0x61C); UpdateCmMat4 applies it for 0.5 s.
-void JoltCamera(struct CMJ *p, int a)
+void JoltCamera(CM *p, int a)
 {
     p->joltTime = D_002DDED0;
     p->joltKind = a;
