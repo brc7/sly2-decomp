@@ -2156,17 +2156,10 @@ void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 struct X { char pad[0x14]; unsigned long *tex0; };   /* a texture: its GS TEX0 register value */
 X *FindShaderById(int);
-void __4GIFS(void *);
-void AllocSw__4DMASi(void *, int);
-void AddPrimPack__4GIFSiiUl(void *, int, int, int);
-void PackAD__4GIFSll(void *, int, unsigned long);
-void AddPrimEnd__4GIFS(void *);
-void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *) __asm__("DetachCopySw__4DMASP4HEAPPiPP2QWT3");   /* DMAS::DetachCopySw(HEAP *, ...) (dmas.cpp) */
 }
-struct BUF { int a[12]; };
-struct P { char pad[0xC4]; int spriteHeap; };
+struct P { char pad[0xC4]; HEAP *spriteHeap; };
 /* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
-struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; int texPacket; };
+struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; QW *texPacket; };
 extern "C" void BuildSpritePictureTexPacket(P *p, Q *q);
 // Picture-sprite callback: the GIF packet that selects its texture. (inferred)
 void BuildSpritePictureTexPacket(P *owner, Q *sprite)
@@ -2177,15 +2170,14 @@ void BuildSpritePictureTexPacket(P *owner, Q *sprite)
         sprite->texPacket = 0;
         X *texture = FindShaderById(sprite->textureId);
         if (texture) {
-            BUF gifs;
-            __4GIFS(&gifs);
-            AllocSw__4DMASi(&gifs, 0x10);
-            AddPrimPack__4GIFSiiUl(&gifs, 0, 1, 0xE);
-            PackAD__4GIFSll(&gifs, 6, *texture->tex0);   /* TEX0_1 */
-            PackAD__4GIFSll(&gifs, 0x14, 0x60);          /* TEX1_1 */
-            PackAD__4GIFSll(&gifs, 8, 5);                /* CLAMP_1 */
-            AddPrimEnd__4GIFS(&gifs);
-            DetachCopySw__4DMASPiPP2QWT2i(&gifs, owner->spriteHeap, &sprite->texPacketCount, 0, &sprite->texPacket);
+            GIFS gifs;
+            gifs.AllocSw(0x10);
+            gifs.AddPrimPack(0, 1, 0xE);
+            gifs.PackAD(6, *texture->tex0);   /* TEX0_1 */
+            gifs.PackAD(0x14, 0x60);          /* TEX1_1 */
+            gifs.PackAD(8, 5);                /* CLAMP_1 */
+            gifs.AddPrimEnd();
+            gifs.DetachCopySw(owner->spriteHeap, &sprite->texPacketCount, 0, &sprite->texPacket);
         }
     }
 }
