@@ -394,6 +394,7 @@ void RcPtr_Assign(void **pp, int n);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void SetCmCut(void *p, float a, float b);
 void DeactivateCplcy(struct A *a, int n, void *b);
+// Stop the sound (fading over g) and drop the reference, if any.
 static inline void Release(void **pp, float g)
 {
     if (pp && *pp) {
@@ -464,6 +465,7 @@ qword GetLoWorldPos(void *p);
 qword PosCpzoomCenter(struct X *p);
 float atan2f(float y, float x);
 void LoadRotateMatrixPanTilt(M3 *pm, float a, float b);
+// Length of the xyz part of v (x lane).
 static inline qword Len(qword v)
 {
     qword d, one;
@@ -471,12 +473,14 @@ static inline qword Len(qword v)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(d) : "j"(d));
     return d;
 }
+// Unit vector along v.
 static inline qword Normalize(qword v)
 {
     qword l = Len(v), r;
     __asm__("vdiv Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
+// Return v scaled by g.
 static inline qword VecMul(qword v, float g)
 {
     qword r;
@@ -487,6 +491,7 @@ static inline qword VecMul(qword v, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
     return r;
 }
+// Rotate v by the 3x3 matrix pm.
 static inline qword MulM3(M3 *pm, qword v)
 {
     qword r;
@@ -595,6 +600,7 @@ qword PosCpzoomCenter(struct X *p);
 void SetCameraLookAt(struct CM *p, qword a, qword b, float c, float d);
 
 
+// Fraction of g between a and b ((g - a) / (b - a)); 0 when a == b.
 static __inline__ float GFrac(float g, float a, float b)
 {
     if (a == b) return 0.0f;
@@ -742,6 +748,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { int pad[8]; qword smoothedFocus; qword smoothedEye; };
 qword PosCpzoomCenter(struct S *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
+// True when a and b are within 0.0001.
 static __inline__ int FNear(float a, float b) { return AreFloatsNear__Ffff(a, b, 0.0001f); }
 // Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis. (inferred)
 int HasZoomCenterArrived(struct S *p)
@@ -762,6 +769,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { int pad[8]; qword smoothedFocus; qword smoothedEye; };
 qword PosCpzoomEye(struct S *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
+// True when a and b are within 0.0001.
 static __inline__ int FNear(float a, float b) { return AreFloatsNear__Ffff(a, b, 0.0001f); }
 // Smoothed eye (+0x30) == PosCpzoomEye within 1e-4. (inferred)
 int HasZoomEyeArrived(struct S *p)
@@ -797,6 +805,7 @@ void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
 void CutCm__FP2CM(void *p);
 void DeactivateCplcy(struct A *a, int n, void *b);
+// Stop the sound (fading over g) and drop the reference, if any.
 static inline void Release(void **pp, float g)
 {
     if (pp && *pp) {
@@ -891,8 +900,11 @@ void SetActPositionGoal(TGT *p, qword pos);
 void SetCmMat4(CM *p, int *pm);
 void UpdateCphang(X *p, void *pv, JOY *pjoy);
 }
+// Evaluate the quadratic g0 + g1*g + g2*g^2.
 static inline float GFromClq(const CLQ &c, float g) { return c.g0 + g * (c.g1 + g * c.g2); }
+// Random float in the range [gMin, gMax].
 static inline float GRand(const LM &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
+// Pack x, y, z into a 128-bit GPR value.
 static inline qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -900,22 +912,29 @@ static inline qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
+// Zero vector.
 static inline qword Zero() { qword q; __asm__ __volatile__("vsub.xyzw %0, $vf0, $vf0" : "=j"(q)); return q; }
+// Float broadcast into a VU0 register, from a value or from memory.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" alternative: allocation-only */ };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Return a - b.
 static inline qword Sub(VU_VECTOR a, VU_VECTOR b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a.q), "j"(b.q)); return d; }
+// Return v1*f1 + v2*f2.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return r;
 }
+// Return a + b * s.
 static inline qword AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT s)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a.q), "j"(b.q), "j"(s.q));
     return r;
 }
+// Return a + (b + c) * s.
 static inline qword AddScaled2(VU_VECTOR a, VU_VECTOR b, VU_VECTOR c, VU_FLOAT s)
 {
     qword r;
@@ -1046,6 +1065,7 @@ void SetCmMat4(struct CM *p, M4 *m);
 void SetCmFov__FP2CMf(struct CM *p, float g);
 
 
+// Dot product of the xyz parts of a and b as a float.
 static __inline__ float Dot(qword a, qword b)
 {
     qword d, one;
@@ -1058,8 +1078,11 @@ static __inline__ float Dot(qword a, qword b)
     return g;
 }
 
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Return v1*f1 + v2*f2.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
@@ -1164,6 +1187,7 @@ void SetCmMat4(CM *p, M4 *m);
 void SetCmFov__FP2CMf(CM *p, float g);
 void UpdateCpturret(X *p);
 }
+// Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
     qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
@@ -1174,7 +1198,9 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
         : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Length of the xyz part of a as a float.
 static inline float Length(qword a)
 {
     qword d, one;
@@ -1185,6 +1211,7 @@ static inline float Length(qword a)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Return a + b * s.
 static inline qword AddScaled(qword a, qword b, VU_FLOAT s)
 {
     qword r;
@@ -1272,15 +1299,20 @@ void SetCmMat4(CM *p, M4 *m);
 void SetCmFov__FP2CMf(CM *p, float g);
 void UpdateCptwoshot(X *p);
 }
+// Evaluate the quadratic g0 + g1*g + g2*g^2.
 static inline float GFromClq(const CLQ &c, float g) { return c.g0 + g * (c.g1 + g * c.g2); }
+// Float carried in a GPR qword (mfc1), or loaded from memory.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); } VU_FLOAT(const float &f, int) { __asm__("lw %0, %1" : "=r"(q) : "m"(f)); } };
+// Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
+// Return v1*f1 + v2*f2.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q), "j"(f1.q), "j"(f2.q)); /* extra unused operands: allocation only */
     return r;
 }
+// Length of the xyz part of a as a float.
 static inline float Length(qword a)
 {
     qword d, one;
@@ -1291,12 +1323,14 @@ static inline float Length(qword a)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Cross product a x b.
 static inline qword Cross(qword a, qword b)
 {
     qword r;
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b), "j"(a)); /* extra operand: allocation only */
     return r;
 }
+// Unit vector along a.
 static inline qword Normalize(qword a)
 {
     qword d, one, r;
@@ -1307,10 +1341,14 @@ static inline qword Normalize(qword a)
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(a), "j"(l));
     return r;
 }
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOATJ { qword q; VU_FLOATJ(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+// Return a scaled by s.
 static inline qword Scale(qword a, VU_FLOATJ s) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s.q)); return r; }
 
+// Set the main camera's matrix.
 static inline void Cm1(M4 *pm) { SetCmMat4(&D_002DDF40, pm); }
+// Set the main camera's field of view.
 static inline void Cm2(float g) { SetCmFov__FP2CMf(&D_002DDF40, g); }
 // Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by distance curves,
 // look-at matrix, fov from distance curve. (inferred)
@@ -1354,6 +1392,7 @@ void UpdateCptwoshot(X *p)
 namespace M_RcPtr_Assign { extern "C" {
 typedef struct { int pad[2]; short d1; short p1; void (*f1)(void *); short d2; short p2; void (*f2)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
+// Reference-counted pointer assignment: add a reference to o, release the old target, store o.
 inline void RcPtr_Assign(O **pp, O *o)
 {
     if (o) o->vt->f1((char *)o + o->vt->d1);

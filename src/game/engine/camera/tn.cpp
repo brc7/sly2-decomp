@@ -28,6 +28,7 @@ qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 extern "C" qword ConvertVecBetweenLos(LO *ploFrom, LO *ploTo, qword qwVec);
 MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
 void DecomposeRotateMatrixPanTilt(MATRIX3 *pmat, float *pradPan, float *pradTilt);
+// Evaluate the quadratic g0 + g1*x + g2*x^2.
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -176,12 +177,14 @@ struct VU_FLOAT
 {
     qword qw;
 };
+// Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// Length of v (x lane), with the squared length kept in its own register.
 static inline qword QwLengthUntied(qword v)
 {
     qword qwSq;
@@ -218,6 +221,7 @@ void CalculateTnPos(TN *ptn, VECTOR4 *pdposCrv, float sBase, float dsOffset, CLQ
 extern "C" {
 float atanf(float x);
 }
+// Return qwRow scaled by gScale.
 static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 {
     qword qw;
@@ -239,6 +243,7 @@ extern qword D_002A2DC0q __asm__("D_002A2DC0");
 extern qword D_002A2DD0;
 struct KEYV
 {
+    // Allocate the object zeroed, 16-byte aligned, from the world heap.
     static void *operator new(uint cb)
     {
         SWALLOC swalloc;
@@ -327,12 +332,14 @@ extern LM D_002C41B0;
 extern float D_002C41E4;
 extern float D_002C41E8;
 extern float D_002C41EC;
+// Move a 128-bit GPR value into a VU0 register.
 static inline qword MoveToVu(qword qw)
 {
     qword qwOut;
     __asm__("qmtc2 %1, %0" : "=j"(qwOut) : "r"(qw));
     return qwOut;
 }
+// Evaluate the quadratic and clamp it to the limit [gMin, gMax].
 static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
 {
     float g = GEvaluateClq(pclq, x);
@@ -344,6 +351,7 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
         g = gMax;
     return g;
 }
+// Smoothstep: 3u^2 - 2u^3.
 static inline float SmoothStep(float u)
 {
     return u * u * (3.0f - (u + u));
@@ -608,6 +616,7 @@ extern "C" void SetTnTnsOverride(TN *p, int x)
     if (x != p->tnsWant) { p->tnsWant = (TNS)x; UpdateTnCallbackA(p, 0); }
 }
 
+// The constant -1 materialised in a register (the "automatic" sentinel).
 static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"(value));return value;}
 // Current player (0x1C4A48 GetCurrentPo); retarget; inside test via tunnel BSP (0x118FB0) unless override; switch unless
 // jumping.
@@ -648,6 +657,7 @@ void TN::OnRemove()
 // The tunnel's path basis: ProjectPointOntoTnPath projects a world point into it and returns the path direction; EvaluateTnPathPos evaluates
 // a clamped path offset, then rotates and translates it into world space.
 static inline qword CrossTied(qword a,qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "0"(a),"j"(b));return r; }
+// Cross product a x b (early-clobber output).
 static inline qword CrossEarly(qword a,qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=&j"(r) : "j"(a),"j"(b));return r; }
 // The VU helper receives vf1 and reuses its length temporary for the result.
 static inline qword Normalize(qword arg) { qword d,one,r;
@@ -657,6 +667,7 @@ __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvm
 __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(len));
 __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(v),"0"(len));
 return r; }
+// Rotate v by the transpose of m (three dot products).
 static inline qword InverseRotate(const M3 &m, qword v) {
     qword one,a,b,c;
     __asm__("vmul.xyzw %2,%5,%0\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%0\n\tvmul.xyzw %4,%7,%0\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y" : "+j"(v),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2]));
@@ -683,6 +694,7 @@ void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
     }
 }
 
+// Rotate v by the 3x3 matrix m.
 static inline qword Rotate(const M3 &m,qword v) {
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z" : "+j"(v) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2])); return v;
 }
@@ -1607,14 +1619,21 @@ float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n)
    cylindrical offsets around begin -> end, squished against the camera hulls (SquishCmEye with GetPlaneDistance).
    (Claude agent) MATCH: the loop's SetVectorCylind result is a plain qword local; gcc emits the qmtc2 itself and schedules it. */
 struct CAMS {void *object;char pad[0x30];int state;};
+// Stack-allocation scope: opens a STACKSCOPE on construction and releases it on destruction.
 struct SCOPEW {SCOPEW(){(void)STACKSCOPE_ctor((MARK *)this);}~SCOPEW(){STACKSCOPE_ctor_1AE4A0((MARK *)this,2);}};
 union V {qword q;float f[4];};
 struct WORK {V minimum,maximum,origin,candidate;SCOPEW mark;V offset,rayEnd,best,scalar;int count;SOPART **objects;float low,high,phase,radius,height;};
+// Return a - b.
 static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
+// Move a 128-bit GPR value into a VU0 register.
 static inline qword ToVF(qword q){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(q));return r;}
+// Broadcast value into home and return it.
 static inline qword ScalarHome(V &home,float value){home.q=VuFromFloat<qword>(value);return home.q;}
+// Return a*left + b*right, computed in a's register.
 static inline qword Blend(qword a,qword b,qword left,qword right){__asm__("vmulax.xyzw ACC,%0,%2x\n\tvmaddx.xyzw %0,%1,%3x":"+j"(a):"j"(b),"j"(left),"j"(right));return a;}
+// Return a*left + b*right, computed in b's register.
 static inline qword BlendToRight(qword a,qword b,qword left,qword right){__asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x":"+j"(b):"j"(a),"j"(left),"j"(right));return b;}
+// Store a VU0 register to *p.
 static inline void StoreVF(qword *p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
 namespace RO_ORDER { extern const float r_D_002A9700 __asm__("D_002A9700") = 3.40282347e+38f; }
 // Camera segment avoidance (objects in box, UpdateCmFade) (inferred)
