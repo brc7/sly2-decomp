@@ -364,27 +364,18 @@ CRef EvalBegin(CPair *expr, CFrame *frame)
 }
 
 /* EvalApply's owning pointers carry a padding word: the original's are 8 bytes in its stack frame (the frame size
-   and the slot of every local depend on it). HYPOTHESIS: a second member not used here. */
-struct SPPAIR
+   and the slot of every local depend on it). HYPOTHESIS: a second member not used here. A local derived struct of
+   sly2/sp.h's owner (the same code; the copies start cleared). */
+template <class T>
+struct CRefOwnerPad : CRefOwner<T>
 {
-    CPair *p;
     int pad;
-    void Set(CPair *expr) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    SPPAIR() { p = 0; }
-    SPPAIR(CPair *expr) { Set(expr); }
-    ~SPPAIR() { CPair *expr = p; if (expr && --expr->m_cref == 0) delete expr; }
-    void Assign(CPair *expr) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
-    SPPAIR &operator=(CPair *expr) { Assign(expr); return *this; }
-    CPair *operator->() { return p; }
+    CRefOwnerPad() : CRefOwner<T>(spNull) {}
+    CRefOwnerPad(T *pt) : CRefOwner<T>(pt) {}
+    void operator=(T *pt) { CRefOwner<T>::operator=(pt); }
 };
-struct SPFRAME
-{
-    CFrame *p;
-    int pad;
-    void Set(CFrame *frame) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
-    SPFRAME(CFrame *frame) { Set(frame); }
-    ~SPFRAME() { CFrame *frame = p; if (frame && --frame->m_cref == 0) delete frame; }
-};
+typedef CRefOwnerPad<CPair> SPPAIR;
+typedef CRefOwnerPad<CFrame> SPFRAME;
 
 // Function application: evaluates the operator and the operands, then calls a built-in (tag 0x19, the
 // D_002BBB90 table of {function, minimum arguments, rest flag}), a native object method (tag 0x22), or a lambda (new
