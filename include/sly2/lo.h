@@ -123,7 +123,7 @@ struct PXR
       LO *object; /* the object this record belongs to */
       SLE siblingLink;  /* link in the parent record's child list */
       SL children;  /* list of child records */
-      undefined4 unknown24;
+      int isCopy;   /* +0x24 the record belongs to a copy made from the proxy (inferred: GetProxyCopyValue) */
 };
 
 #endif /* SLY2_LO_H */

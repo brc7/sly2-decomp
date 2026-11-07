@@ -127,6 +127,55 @@ struct VOL : public XFM
 };
 typedef char assert_VOL_size[sizeof(VOL) == 0x130 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
+/* PROXYINIT: one record of what a proxy changes about each copy it places (LoadProxyFromBrx reads them): a kind, the
+   class it applies to, a Splice frame, an option block and the object it targets.
+   Moved from object/proxy.cpp and gameplay/player/grab.cpp (identical Lilly-ported copies). */
+struct PROXYINIT
+{
+      int kind;
+      CID cid;
+      CFrame *pframe;   /* Splice frame of the record's script */
+      int cb;   /* size of the option block */
+      void *pvOptions;   /* the option block */
+      LO *plo;   /* the object it applies to */
+};
+
+/* PROXYSPARE: a spare (pre-built, unused) copy of a proxy source: its owner while held, the next spare, a lock and the
+   placement matrix. Moved from object/proxy.cpp and gameplay/player/grab.cpp. */
+struct PROXYSPARE
+{
+      struct PROXY *proxy;   /* the proxy holding it (0 when free) */
+      PROXYSPARE *pspareNext;   /* next spare */
+      int fLocked;   /* locked by its holder */
+      undefined4 unk_0xc;
+      MATRIX4 mat;   /* where it is placed */
+};
+
+/* PROXYREST: the rest pose of one object of a proxy copy. Moved from object/proxy.cpp. */
+struct PROXYREST
+{
+      qword pos;
+      MATRIX3 mat;
+};
+
+/* PROXYSRC: a proxy source (g_sw's table): the template's objects, its copies (in use and spare), the per-object
+   rest poses and the spare array. Moved from object/proxy.cpp. */
+struct PROXYSRC
+{
+      int cplo;   /* objects per copy */
+      LO **aplo;   /* the objects of every copy (ccopy * cplo) */
+      int ccopy;   /* number of copies */
+      int icopyNext;   /* next copy to place (copies from it on are spares) */
+      int id;
+      int nUnk14;
+      OID *aoid;
+      char achzName[0x40];
+      int nUnk5c;
+      int fUnk60;
+      PROXYREST *aposRest;   /* rest pose of each object */
+      PROXYSPARE *aspare;   /* the spares */
+};
+
 /* PROXY: a proxy: a spawner that clones a template hierarchy (its PROXYSRC) into the world on demand, keeping spare
    copies.
    Layout from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (3 copies in Lilly ports) */

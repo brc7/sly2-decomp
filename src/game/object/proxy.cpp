@@ -53,46 +53,7 @@ struct SUBGLOBX
       uint grfUnk14;
 };
 
-struct PROXYSPARE
-{
-      struct PROXY *proxy;
-      PROXYSPARE *pspareNext;
-      int fLocked;
-      undefined4 unk_0xc;
-      MATRIX4 mat;
-};
 
-struct PROXYREST
-{
-      qword pos;
-      MATRIX3 mat;
-};
-
-struct PROXYSRC
-{
-      int cplo;
-      LO **aplo;
-      int ccopy;
-      int icopyNext;
-      int id;
-      int nUnk14;
-      OID *aoid;
-      char achzName[0x40];
-      int nUnk5c;
-      int fUnk60;
-      PROXYREST *aposRest;
-      PROXYSPARE *aspare;
-};
-
-struct PROXYINIT
-{
-      int kind;
-      CID cid;
-      CFrame *pframe;
-      int cb;
-      void *pvOptions;
-      LO *plo;
-};
 
 struct SLOT
 {
@@ -707,29 +668,28 @@ void PROXY::Init()
 namespace M_CloneProxy { extern "C" {
 struct RC { int cRef; };
 struct E { int unknown0; int unknown4; struct RC *frame; int pad[3]; };   /* a PROXYINIT record; frame: its Splice frame */
-struct S { char pad[0xEC]; int c; struct E *ae; };
 struct AL { int cb; int cbAlign; };
 struct SP { struct RC *p; };
-void CloneXfm(struct S *p, struct S *q);
+void CloneXfm(PROXY *p, PROXY *q);
 struct E *AllocCopyFromWorldHeap(struct AL *pal, struct E *pv);
-void CFrame_CloneTo(struct SP *pret, struct RC *p, struct S *ps);
+void CFrame_CloneTo(struct SP *pret, struct RC *p, PROXY *ps);
 void func_00257078(struct RC *p, int n) __asm__("_$_6CFrame");
 void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p);
 // PROXY's Clone (vtable slot 41): clones the XFM part and copies the init records.
-void CloneProxy(struct S *proxy, struct S *source)
+void CloneProxy(PROXY *proxy, PROXY *source)
 {
     int i;
     union { struct AL al; struct SP sp; } u;
     CloneXfm(proxy, source);
-    for (i = 0; i < proxy->c; i++) {
-        struct E *pe = &proxy->ae[i];
+    for (i = 0; i < proxy->numInits; i++) {
+        struct E *pe = &((struct E *)proxy->inits)[i];
         struct RC *prc;
         if (!pe->frame) continue;
-        if (proxy->ae == source->ae) {
-            u.al.cb = proxy->c * sizeof(struct E);
+        if (proxy->inits == source->inits) {
+            u.al.cb = proxy->numInits * sizeof(struct E);
             u.al.cbAlign = 0x10;
-            proxy->ae = AllocCopyFromWorldHeap(&u.al, proxy->ae);
-            pe = &proxy->ae[i];
+            proxy->inits = (PROXYINIT *)AllocCopyFromWorldHeap(&u.al, (struct E *)proxy->inits);
+            pe = &((struct E *)proxy->inits)[i];
         }
         CFrame_CloneTo(&u.sp, pe->frame, proxy);
         pe->frame = u.sp.p;
@@ -917,23 +877,20 @@ void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CADE0 { extern "C" {
-struct T { int unknown0; int unknown4; int c; int i0; };   /* the proxy source: copy count and first spare index */
-struct S { char pad[0xE0]; struct T *pt; int isPlaced; void *currentSpare; };   /* PROXY; isPlaced (inferred) */
-int RateProxySpare(struct S *p, void *pa);
-void *GetProxySpareFromCopyIndex(struct S *p, int i);
+int RateProxySpare(PROXY *p, void *pa);
 // Picks the best-rated spare with a rating of at least minRating (keeping the current one when it qualifies); null
 // when none does.
-void *ChooseProxySpare(struct S *proxy, int minRating)
+void *ChooseProxySpare(PROXY *proxy, int minRating)
 {
     int i, v, vBest;
     void *pv, *pvBest;
-    if (proxy->isPlaced == 0 && proxy->currentSpare) {
-        if (RateProxySpare(proxy, proxy->currentSpare) < 3) return 0;
-        pvBest = proxy->currentSpare;
+    if (proxy->unknownE4 == 0 && proxy->firstSpare) {
+        if (RateProxySpare(proxy, proxy->firstSpare) < 3) return 0;
+        pvBest = proxy->firstSpare;
     } else {
         vBest = minRating;
         pvBest = 0;
-        for (i = proxy->pt->i0; i < proxy->pt->c; i++) {
+        for (i = proxy->source->icopyNext; i < proxy->source->ccopy; i++) {
             pv = GetProxySpareFromCopyIndex(proxy, i);
             v = RateProxySpare(proxy, pv);
             if (v >= vBest) {
@@ -1112,14 +1069,12 @@ extern "C" void UnlockProxyObject(PROXY *proxy, LO *plo)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB4E0 { extern "C" {
-struct A { char pad[0x2D]; unsigned char b; };
-struct S { char pad[0x28]; unsigned long fl; };
-void SetLoVisMask(struct S *p, int n);
+void SetLoVisMask(LO *p, int n);
 // LO's ResetForProxy (vtable slot 26, run when a spare copy is placed): copies the proxy's visibility mask onto the
 // object unless it keeps its own.
-void LO_ResetForProxy(struct S *object, struct A *pa)
+void LO_ResetForProxy(LO *object, LO *pa)
 {
-    if (pa && !(object->fl & (1UL << 58))) SetLoVisMask(object, pa->b);
+    if (pa && !object->keepsOwnVisMask) SetLoVisMask(object, pa->visibilityMask);
 }
 } } // namespace M_func_001CB4E0
 
@@ -1201,21 +1156,20 @@ void SO_Slot27(LO *object, int n)
 namespace M_func_001CB658 { extern "C" {
 struct F { int v; char pad[0x4C]; };
 struct E { int pad[3]; int iFirst; char p2[0x68 - 0x10]; struct F *af; };
-struct A { int id; int pad[8]; int isCopy; };   /* the proxy id record; isCopy (inferred) */
-struct S { char pad[0x3C]; struct A *pa; };
+
 int GetSourceIndexFromProxyId__Fi(int id);
 int GetCopyIndexFromProxyId(int id);
 // Returns the per-copy value stored in the proxy source table for the object's proxy id (0 when the object is not a
 // proxy copy). (inferred)
-int GetProxyCopyValue(struct S *proxy)
+int GetProxyCopyValue(LO *proxy)
 {
-    struct A *pa = proxy->pa;
+    PXR *pa = proxy->proxyRecord;
     int i, j;
     struct E *pe;
     struct F *pf;
     if (!pa || !pa->isCopy) return 0;
-    i = GetSourceIndexFromProxyId__Fi(pa->id);
-    j = GetCopyIndexFromProxyId(proxy->pa->id);
+    i = GetSourceIndexFromProxyId__Fi(pa->proxyId);
+    j = GetCopyIndexFromProxyId(proxy->proxyRecord->proxyId);
     pe = &(*(struct E * *)&g_sw.aproxysrc)[i];
     pf = &pe->af[j - pe->iFirst];
     return pf->v;

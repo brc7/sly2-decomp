@@ -365,24 +365,7 @@ struct CID35 : public XFM, public GRABSPOT
       TASKPAIR ataskpair[4];
 };
 
-struct PROXYSPARE
-{
-      struct PROXY *pproxy;
-      PROXYSPARE *pspareNext;
-      int fLocked;
-      undefined4 unk_0xc;
-      MATRIX4 mat;
-};
 
-struct PROXYINIT
-{
-      int kind;
-      CID cid;
-      CFrame *pframe;
-      int cb;
-      void *pvOptions;
-      LO *plo;
-};
 
 // Initializes the player's grab/action context (STEPPLAYER+0x4C0): owner, state -1, kind -1, and the two directional
 // blend blocks.
