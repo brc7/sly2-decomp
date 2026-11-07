@@ -1730,16 +1730,15 @@ typedef char WORK_one_Offset[((unsigned)&((WORK*)0)->one==272)?1:-1];
 } } // namespace M_func_001823C8
 
 namespace M_func_00182700 { extern "C" {
-struct E { int a; int b; int x8; int xc; char pad[0x30]; };
-struct S : PO { char pad180[0x188 - 0x180]; int n; };
-void AdjustHackNewXp(struct S *p, struct E *ae, int i);
+struct E { int a; int b; int x8; int xc; char pad[0x30]; };   /* an XP contact side (0x40) */
+void AdjustHackNewXp(HACK *hack, struct E *ae, int i);
 int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n);
-void StartHackDying(struct S *p, int n);
-// vtable slot 55: base then start dying. (inferred)
-void AdjustHackwallNewXp(struct S *wall, struct E *ae, int i)
+void StartHackDying(HACK *hack, int n);
+// vtable slot 55: base, then start dying on contact with a hack object. (inferred)
+void AdjustHackwallNewXp(HACKWALL *wall, struct E *ae, int i)
 {
     AdjustHackNewXp(wall, ae, i);
-    if (wall->n) {
+    if (wall->cDamage) {
         struct E *pe = &ae[1 - i];
         int oid = pe->xc;
         if (IsBasicDerivedFrom__FP5BASIC3CID(oid, 0x47))
@@ -1757,97 +1756,88 @@ extern "C" int GetHackwallExtraPartCount()
 
 namespace M_func_00182780 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct E { int a; int b; int c; char p[0x10]; int x1c; float g; int x24; int p2; float h; };
-struct S : PO { char pad180[0x1C8 - 0x180]; int c; struct E ae[4]; };
-void UpdateSoTreeBounds(struct S *p);
-void GetShapeBounds(int n, qword *pa, qword *pb);
-void ExtendSoTreeBounds(struct S *p, qword q, float g);
+void UpdateSoTreeBounds(SO *pso);
+void GetShapeBounds(SHAPE *pshape, qword *pa, qword *pb);
+void ExtendSoTreeBounds(SO *pso, qword q, float g);
 // HACKWALL vtable slot 49 (tree bounds update): the SO bounds, extended to cover both ends of every wall segment
-// (with the segment radius).
-void UpdateHackwallTreeBounds(struct S *wall)
+// (with the piece radius).
+void UpdateHackwallTreeBounds(HACKWALL *wall)
 {
     int i;
     UpdateSoTreeBounds(wall);
-    for (i = 0; i < wall->c; i++) {
-        struct E *pe = &wall->ae[i];
+    for (i = 0; i < wall->cseg; i++) {
+        HACKWALLSEG *pseg = &wall->aseg[i];
         qword a, b;
-        GetShapeBounds(pe->x24, &a, &b);
-        ExtendSoTreeBounds(wall, a, pe->g);
-        ExtendSoTreeBounds(wall, b, pe->g);
+        GetShapeBounds(pseg->pshape, &a, &b);
+        ExtendSoTreeBounds(wall, a, pseg->sRadius);
+        ExtendSoTreeBounds(wall, b, pseg->sRadius);
     }
 }
 } } // namespace M_func_00182780
 
 namespace M_func_00182810 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Q { qword pos; char pad[0x50]; struct Q *next; };
-struct E { int oid; int c; int c8; int d; struct Q *pqFirst; struct Q *pqLast; int ib; int x1c; float g20; int x24; float g28; float g2c; };
-struct O : PO { char pad180[0x1C8 - 0x180]; int ce; struct E ae[4]; };
-// Nearest segment record to a world position. (inferred)
-struct Q *FindNearestHackwallSegment(struct O *po, qword pos)
+// The piece nearest to a world position. (inferred)
+HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword pos)
 {
     int i;
-    struct Q *pqBest = 0;
+    HACKWALLPIECE *ppieceBest = 0;
     float gBest = 3.4028235e38f;
-    for (i = 0; i < po->ce; i++) {
-        struct Q *pq;
-        struct E *pe = &po->ae[i];
-        for (pq = pe->pqFirst; pq; pq = pq->next) {
+    for (i = 0; i < wall->cseg; i++) {
+        HACKWALLPIECE *ppiece;
+        HACKWALLSEG *pseg = &wall->aseg[i];
+        for (ppiece = (HACKWALLPIECE *)pseg->dlPiece.head; ppiece; ppiece = (HACKWALLPIECE *)ppiece->dle.next) {
             qword b;
             register qword a __asm__("vf1");
             register qword one __asm__("vf2");
             float g;
             __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(pos));
-            a = pq->pos;
+            a = ppiece->pos;
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(a) : "j"(a), "j"(b));
             __asm__("vmul.xyz %0, %1, %1" : "=j"(a) : "j"(a));
             __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one), "+j"(a));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
             if (g < gBest) {
                 gBest = g;
-                pqBest = pq;
+                ppieceBest = ppiece;
             }
         }
     }
-    return pqBest;
+    return ppieceBest;
 }
 } } // namespace M_func_00182810
 
 namespace M_func_001828A8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Q { qword pos; qword v10; char pad[0x4C - 0x20]; int n4C; char pad2[0x58 - 0x50]; float g58; float g5C; };
-struct M { char pad[0x10]; int n10; char pad1[0x20 - 0x14]; qword v20; qword v30; char pad2[0x44 - 0x40]; int n44; };
-struct O : PO { char pad180[0x190 - 0x180]; void *p190; };
-extern struct Q *FindNearestHackwallSegment(struct O *po, qword pos);
+extern HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword pos);
 extern float RandomFloatInRange__Fff(float a, float b);
-extern void SetHackwallSegmentState(struct O *po, struct Q *pq, int n);
-extern void ExplodeExplParams(void *p, int k, int n, qword a, qword b, float g, float h);
+extern void ExplodeExplParams(EXPL *pexpl, int k, int n, qword a, qword b, float g, float h);
 extern float D_002BE8A8;
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
-// vtable slot 75: damage the segment nearest the hit; when it breaks, random explosion (ExplodeExplParams) and segment state
-// change. (inferred)
-int TakeHackwallDamage(struct O *po, struct M *pm)
+// vtable slot 75: damage the piece nearest the hit; while it holds, kick its wobble (state 1); when it breaks, play
+// the explosion there and break it (state 2). (inferred)
+int TakeHackwallDamage(HACKWALL *wall, ZPR *pzpr)
 {
-    struct Q *pq;
-    if (!(pm->n44 & 8))
+    HACKWALLPIECE *ppiece;
+    if (!(pzpr->grfzpr & 8))
         return 0;
-    pq = FindNearestHackwallSegment(po, pm->v20);
-    if (pq) {
-        pq->n4C += pm->n10;
-        if (pq->n4C > 0) {
+    ppiece = FindNearestHackwallSegment(wall, pzpr->position);
+    if (ppiece) {
+        ppiece->cHealth += pzpr->dhp;
+        if (ppiece->cHealth > 0) {
             qword c, d, one;
             float g;
-            __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(D_002A2DC0), "j"(pq->v10));
-            __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(pm->v30), "j"(c));
+            __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(D_002A2DC0), "j"(ppiece->dir));
+            __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(pzpr->velocity), "j"(c));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
-            pq->g58 = g * D_002BE8A8;
-            pq->g5C = RandomFloatInRange__Fff(-15.0f, 15.0f);
-            SetHackwallSegmentState(po, pq, 1);
+            ppiece->dLateral = g * D_002BE8A8;
+            ppiece->dRoll = RandomFloatInRange__Fff(-15.0f, 15.0f);
+            SetHackwallSegmentState(wall, ppiece, 1);
         } else {
-            if (po->p190)
-                ExplodeExplParams(po->p190, 4, 0, D_002A2DD0, pq->pos, 0.0f, 0.0f);
-            SetHackwallSegmentState(po, pq, 2);
+            if (wall->pexpl)
+                ExplodeExplParams(wall->pexpl, 4, 0, D_002A2DD0, ppiece->pos, 0.0f, 0.0f);
+            SetHackwallSegmentState(wall, ppiece, 2);
         }
     }
     return 1;
@@ -1856,52 +1846,48 @@ int TakeHackwallDamage(struct O *po, struct M *pm)
 
 namespace M_func_001829D8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Q { qword pos; };
-struct S : PO { char pad180[0x188 - 0x180]; int x188; int x18c; void *x190; };
-struct CTX { struct S *p; int x4; void *pv; int xc; int x10; int pad[3]; qword q; char rest[0x30]; };
 extern qword D_002A2DD0;
-qword GetLoWorldPos(void *p);
-struct Q *FindNearestHackwallSegment(struct S *p, qword q);
+qword GetLoWorldPos(LO *plo);
+HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword q);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
-int DeliverZapToSo(struct CTX *pctx);
-void ExplodeExplParams(void *p, int a, int b, qword q1, qword q2, float g, float h);
-void SetHackwallSegmentState(struct S *p, struct Q *q, int n);
-// vtable slot 82: area damage (InflictZap) and explosion at the segment nearest the killer, segment state change. (inferred)
-void KillHackwall(struct S *wall, void *pv)
+int DeliverZapToSo(ZPR *pzpr);
+void ExplodeExplParams(EXPL *pexpl, int a, int b, qword q1, qword q2, float g, float h);
+// vtable slot 82: area damage (credited to the killer) at the piece nearest the killer; if it lands, the explosion
+// there and the piece breaks. (inferred)
+void KillHackwall(HACKWALL *wall, LO *ploKiller)
 {
-    struct Q *q;
-    struct CTX ctx;
-    if (!pv || !wall->x188) return;
-    q = FindNearestHackwallSegment(wall, GetLoWorldPos(pv));
-    func_002333B4(&ctx, 0, 0x60);
-    ctx.pv = pv;
-    ctx.p = wall;
-    ctx.q = q->pos;
-    ctx.xc = 0x100;
-    ctx.x10 = -wall->x188;
-    if (DeliverZapToSo(&ctx)) {
-        if (wall->x190) ExplodeExplParams(wall->x190, 4, 0, D_002A2DD0, q->pos, 0.0f, 0.0f);
-        SetHackwallSegmentState(wall, q, 2);
+    HACKWALLPIECE *ppiece;
+    ZPR zpr;
+    if (!ploKiller || !wall->cDamage) return;
+    ppiece = FindNearestHackwallSegment(wall, GetLoWorldPos(ploKiller));
+    func_002333B4(&zpr, 0, 0x60);
+    zpr.unknown08 = ploKiller;
+    zpr.ploSource = wall;
+    zpr.position = ppiece->pos;
+    zpr.zpk = 0x100;
+    zpr.dhp = -wall->cDamage;
+    if (DeliverZapToSo(&zpr)) {
+        if (wall->pexpl) ExplodeExplParams(wall->pexpl, 4, 0, D_002A2DD0, ppiece->pos, 0.0f, 0.0f);
+        SetHackwallSegmentState(wall, ppiece, 2);
     }
-    wall->x18c = 0;
+    wall->fDying = 0;
 }
 } } // namespace M_func_001829D8
 
 namespace M_func_00182AB8 { extern "C" {
-struct E { int a; int b; int c; char p[0x10]; int x1c; float g; int p2[2]; float h; };
-struct S : PO { char pad180[0x1C8 - 0x180]; unsigned int c; struct E ae[4]; };
 extern int D_002BE8AC;
-// Append a segment record (max 4) {a,b,c,g}. (inferred)
-void AddHackwallSegment(struct S *wall, int a, int b, int c, float g)
+// Append a segment (max 4): shape oid, piece count, pieces side by side at most, piece radius; default piece health
+// (30), no retarget time yet. (inferred)
+void AddHackwallSegment(HACKWALL *wall, OID oid, int cpiece, int cpieceMax, float sRadius)
 {
-    if (wall->c < 4) {
-        struct E *pe = &wall->ae[wall->c++];
-        pe->a = a;
-        pe->b = b;
-        pe->c = c;
-        pe->g = g;
-        pe->h = -1.0f;
-        pe->x1c = D_002BE8AC;
+    if ((unsigned int)wall->cseg < 4) {
+        HACKWALLSEG *pseg = &wall->aseg[wall->cseg++];
+        pseg->oid = oid;
+        pseg->cpiece = cpiece;
+        pseg->cpieceMax = cpieceMax;
+        pseg->sRadius = sRadius;
+        pseg->tRetarget = -1.0f;
+        pseg->cPieceHealth = D_002BE8AC;
     }
 }
 } } // namespace M_func_00182AB8
