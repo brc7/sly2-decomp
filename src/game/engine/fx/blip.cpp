@@ -44,8 +44,7 @@ static inline void *PvNextDli(DLI *pdli)
 }
 
 /* sly2/basic.h CLOCK (t, dt, ..., dtReal at +0x40); a private view because basic.h's VECTOR/DL do not fit this TU. */
-struct CLOCKV { float t; float dt; char pad08[0x40 - 0x08]; float dtReal; };
-extern "C" CLOCKV D_002DDED0;
+extern "C" CLOCK D_002DDED0;
 
 struct CMV { char pad[0x90]; qwordV pos; char padA0[0x100 - 0xA0]; float projScaleX; char pad104[0x114 - 0x104]; float projScaleY; };   /* CM: matProj[0][0], [1][1] */
 extern "C" CMV D_002DDF40;
@@ -503,7 +502,7 @@ static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb
     register qwordV v22 __asm__("vf22");
     register qwordV v23 __asm__("vf23");
     register qwordV v24 __asm__("vf24");
-    float t = D_002DDED0.t;
+    float t = D_002DDED0.time;
     int cDead = 0;
     int j = -1;
     int i;
@@ -552,7 +551,7 @@ struct VU_FLOATA { qwordV qw; VU_FLOATA(float f) { __asm__("qmtc2.ni %1, %0" : "
 static inline VU_FLOATM VuFloatDt()
 {
     VU_FLOATM v;
-    __asm__("lw %0, %1" : "=r"(v.qw) : "m"(D_002DDED0.dt));
+    __asm__("lw %0, %1" : "=r"(v.qw) : "m"(D_002DDED0.deltaTime));
     return v;
 }
 static inline char *GetScratchpadBuffer(int i)
@@ -691,8 +690,8 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
         iNext = (pq->i + 1) & 1;
         pbn = &pq->abuf[iNext];
         for (i = 0; i < pq->c; i++) {
-            CLOCKV *pclock = &D_002DDED0;
-            float t = D_002DDED0.t;
+            CLOCK *pclock = &D_002DDED0;
+            float t = D_002DDED0.time;
             float tEnd = pb->b[i].v.w;
             if (tEnd <= t) {
                 cDead++;
@@ -702,18 +701,18 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
             case 0: {
                 qwordV v = MulPoint(&m, pb->b[i].q);
                 pbn->b[j].q = v;
-                pbn->a[j].q = AddScaled(pb->a[i].q, v, VU_FLOATT(pclock->dt));
+                pbn->a[j].q = AddScaled(pb->a[i].q, v, VU_FLOATT(pclock->deltaTime));
                 break;
             }
             case 1: {
                 qwordV v = pb->b[i].q;
                 pbn->b[j].q = v;
-                pbn->a[j].q = AddScaled(pb->a[i].q, v, VU_FLOATT(pclock->dt));
+                pbn->a[j].q = AddScaled(pb->a[i].q, v, VU_FLOATT(pclock->deltaTime));
                 break;
             }
             case 2: {
                 float rem = tEnd - t;
-                float dt = pclock->dt;
+                float dt = pclock->deltaTime;
                 EvaluateBezierPos(rem, dt < rem ? dt : rem, 1.0f, pb->a[i].q, pb->b[i].q, pq->ae[i].v0, pq->ae[i].v10, &pbn->a[j].q, &pbn->b[j].q, 0);
                 if (j != i)
                     pq->ae[j] = pq->ae[i];
@@ -727,7 +726,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
             CB(pcd)[0].v.w = CB(pcs)[0].v.w;
             *pcd = *pcs;
             if (blipGroup->renderKind == 2)
-                pcd->v.w = NormalizeAngle(pcs->v.w + pcs->v.z * pclock->dt);
+                pcd->v.w = NormalizeAngle(pcs->v.w + pcs->v.z * pclock->deltaTime);
             *(qwordV *)&vMin = Min(*(qwordV *)&vMin, CA(pcd)[0].q);
             *(qwordV *)&vMax = Max(*(qwordV *)&vMax, CA(pcd)[0].q);
             }
@@ -928,20 +927,20 @@ extern "C" void AddBlipgVuParams(BLIPGV *blipGroup)
     float *pg;
     int *pn;
     VIFS *pdma = &D_002DEA28;
-    CLOCKV *pclock;
+    CLOCK *pclock;
     UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 5, 0, &pg);
     pclock = &D_002DDED0;
     pg[0] = D_002DDF40.projScaleX;
     pg[1] = D_002DDF40.projScaleY;
     pg[2] = blipGroup->flyingScale;
-    pg[3] = D_002DDED0.t;
+    pg[3] = D_002DDED0.time;
     UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 6, 0, &pn);
     pn[0] = 0;
     if (blipGroup->hasColorRanges)
         pn[0] |= 1;
     pn[1] = blipGroup->numColors;
     pn[2] = blipGroup->numFrames;
-    *(float *)&pn[3] = pclock->dtReal;
+    *(float *)&pn[3] = pclock->realDeltaTime;
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, blipGroup->numColors, blipGroup->colors, 0x30 - blipGroup->numColors);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->alphaCurve, 1);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->poly, 2);
