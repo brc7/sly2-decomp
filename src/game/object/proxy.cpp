@@ -45,13 +45,6 @@ int GetSourceIndexFromProxyId(int id);
 int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare);
 extern SW D_003DD490;
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 
 

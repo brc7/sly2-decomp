@@ -27,7 +27,6 @@ struct CONTROL {char pad[0x10];float x,y;char pad18[8];float z;float zoom;};
 struct SHAPEV {char pad[0x30];float radius;};
 /* The aim target. */
 struct O {char pad[0x60];void *component;char pad64[0x88];SHAPEV *shape;};
-struct PROXYSRC {char pad[0x3C];int kind;};
 /* View of the turret (a PO). */
 struct TURRETV
 {
@@ -46,7 +45,7 @@ struct TURRETV
     LM pitchRange;      /* +0x1A4 */
     LM range;           /* +0x1AC zoom range */
     float blend, velocity, strength;  /* +0x1B4 */
-    PROXYSRC *projectileProxy;   /* +0x1C0 what it fires (AcquireProxyObject) */
+    LO *projectileProxy;   /* +0x1C0 what it fires (AcquireProxyObject) */
     void *launcher;     /* +0x1C4 */
     void *lastLaunched; /* +0x1C8 last object fired */
     int isActRunning;   /* +0x1CC the rotation act is running */
@@ -90,7 +89,7 @@ CRef GetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
 int POCTL_ConsumeAnyPressed(CONTROL *x, int a);
-void *AcquireProxyObject(PROXYSRC *y, int a);
+void *AcquireProxyObject(LO *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
 void *ShouldSoIgnoreIntersection(TURRETV *p);
 void *MaxInt(void *v, int a);
@@ -296,12 +295,12 @@ extern "C" void UpdateTurretFire(TURRETV *turret)
     }
 }
 
-// Proxy-source filter: the SO default, plus an extra flag when the candidate's kind matches the turret's projectile
-// (so the turret ignores its own shots). (inferred)
-extern "C" void *FilterTurretProxySource(TURRETV *turret, PROXYSRC *proxySource)
+// Intersection filter (slot 61): the SO default, plus ignoring objects made from the same proxy as the turret's
+// projectile (so the turret ignores its own shots). (inferred)
+extern "C" void *FilterTurretProxySource(TURRETV *turret, LO *other)
 {
     void *v = ShouldSoIgnoreIntersection(turret);
-    if (turret->projectileProxy && proxySource->kind == turret->projectileProxy->kind) v = MaxInt(v, 1);
+    if (turret->projectileProxy && other->proxyRecord == turret->projectileProxy->proxyRecord) v = MaxInt(v, 1);
     return v;
 }
 

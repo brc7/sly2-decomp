@@ -65,30 +65,8 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *pstepplayer, i
 void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(JTHANDS *phands, STEPPLAYER *pstepplayer, ASEGA **ppasega);
 }
 
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
 
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
 
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 
 struct BND
 {
@@ -99,13 +77,6 @@ struct BND
       MATRIX4 matInv;
 };
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct GRABSPOTDATA
 {

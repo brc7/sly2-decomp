@@ -68,13 +68,6 @@ void FaceStepToward(STEP *pstep, LO *plo);
 }
 void SetJtCaneState(JT *pjt, int jtcs);
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct CAMEVENT
 {
@@ -187,14 +180,6 @@ int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("CanJtUseGadgetOn
 
 bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("IsStepplayerInJtMode");
 
-struct PROXYSPARE
-{
-      struct PROXY *pproxy;
-      PROXYSPARE *pspareNext;
-      int fLocked;
-      undefined4 unk_0xc;
-      MATRIX4 mat;
-};
 
 PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("ChooseProxySpare");
 
@@ -359,23 +344,7 @@ struct IKREC
       undefined4 unk_0xd8[2];
 };
 
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
 
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
 
 struct LSG
 {
@@ -410,12 +379,6 @@ void SetSndVolume(SND *psnd, float gVolume) __asm__("SetSndVolume");
 
 extern "C" void SetSndRange(SND *psnd, float sNear, float sFar);
 
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 
 struct EXPL : public XFM
 {
@@ -474,13 +437,6 @@ int FFindInOwnerChain(ACT *pact) __asm__("IsActAttached");
 
 void SetAct1ValueKeepOffset(ACT1 *pact1, qword qwNew) __asm__("SetActRotationGoal");
 
-struct XPLIST
-{
-      XP *pxpFirst;
-      XPLIST *pxplistNext;
-      XP **ppxpHead;
-      SO *psoOther;
-};
 
 extern "C" float GetShapeMinDistance(SHAPE *pshape);
 

@@ -159,9 +159,8 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
 // camera->source XY distance) as po->height. Matched by Lilly's agent (T1643); history of the drafts in notes/220000.md.
 typedef unsigned short ushort;
 union UQ { qwordV q; float f[4]; };
-/* The BSP of a solid object, as func_00118D08 walks it: edges (two vertex indices and the face on their other side),
-   faces (plane, edge list, a visit flag), nodes, and the tree. */
-struct EDGE { ushort vertexA, vertexB, pad4, faceIndex; EDGE *next; };
+/* The BSP of a solid object, as func_00118D08 walks it: edges (xfm.h EDGE), faces (xfm.h SURF read with the plane as one
+   quadword and its flags as a visit mark), nodes, and the tree. */
 struct FACE { qwordV plane; EDGE *firstEdge; int unknown14; int flags; int unknown1C; };
 enum { FACE_FLAG_CANDIDATE = 0x4000 };   /* set on the faces func_00118D08 collects; cleared after the edge test */
 struct NODE { NODE *left, *right; FACE *face; };
@@ -378,12 +377,12 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
             int jx = j;
             __asm__("" : "+r"(jx) : "r"(edge));
             int nextJ = jx + 1;
-            for (; edge; edge = edge->next) {
-                FACE *face = &object->faces[edge->faceIndex];
+            for (; edge; edge = edge->pedgeNext) {
+                FACE *face = &object->faces[edge->aisurf[1]];
                 if (!(face->flags & FACE_FLAG_CANDIDATE))
                     continue;
-                int indexA = edge->vertexA;
-                int indexB = edge->vertexB;
+                int indexA = edge->aipos[0];
+                int indexB = edge->aipos[1];
                 P4 *vertices = (P4 *)object->vertices;
                 P4 *vertexPtrA = (P4 *)(((int)indexA << 4) + (int)vertices);   /* integer address sums: &vertices[i] schedules differently */
                 P4 *vertexPtrB = (P4 *)(((int)indexB << 4) + (int)vertices);

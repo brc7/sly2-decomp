@@ -11,6 +11,35 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
+/* EDGE: an edge of a GEOM: its two vertices, the two surfaces it bounds and the links of the two surfaces' edge lists.
+   Moved from the identical Lilly-ported copies (tn, mode, jt, so, glob, relay, grab, mark). */
+struct EDGE
+{
+    ushort aipos[2];   /* the two vertex indices */
+    ushort aisurf[2];   /* the two surface indices */
+    EDGE *pedgeNext;   /* next edge of the first surface */
+    EDGE *pedgeOtherNext;   /* next edge of the second surface */
+};
+
+/* SURF: a surface (face) of a GEOM: its plane (normal, distance), its edge lists, flags and a vertex. */
+struct SURF
+{
+    VECTOR normal;
+    float gDot;   /* plane distance */
+    EDGE *pedge;
+    EDGE *pedgeOther;
+    int grf;   /* signed: mark.cpp's clearing masks are built with addiu (uint gives lui/ori) */
+    int ipos;
+};
+
+/* BSP: a node of a BSPC: the two subtrees and the splitting surface. */
+struct BSP
+{
+    BSP *pbspNeg;
+    BSP *pbspPos;
+    SURF *psurf;
+};
+
 /* GEOM: a collision/geometry mesh: vertex positions, surfaces (faces) and edges.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (10 copies in Lilly ports) */
 struct GEOM

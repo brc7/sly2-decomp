@@ -31,35 +31,6 @@ struct CMVIEW { char pad[0x460]; float lookHeading; int p1[3]; float lookZoom; c
 struct SELECTOR;
 extern qword D_002A2DD0;
 extern CLOCK D_002DDED0;
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 struct CAMEVENT
 {
       uint32_t   _pad_376    [ 3 ] ;

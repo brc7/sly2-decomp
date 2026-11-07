@@ -51,34 +51,12 @@ CPQ D_003DD020 = MakeCpq();
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 // Types of the Lilly ports (merged copies)
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
 
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
 
 void CloneGeom(GEOM *pgeomSrc, MATRIX4 *pdmat, GEOM *pgeomDst);
 
 void ClearDle(DLE *pdle);
 
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 
 struct ACT
 {
@@ -96,21 +74,7 @@ extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
 ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf) __asm__("NewActFromParams");
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
-struct XPLIST
-{
-      XP *pxpFirst;
-      XPLIST *pxplistNext;
-      XP **ppxpHead;
-      SO *psoOther;
-};
 
 void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 

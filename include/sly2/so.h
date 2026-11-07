@@ -81,6 +81,16 @@ struct POSESET
     POSE apose[4];
 };
 
+/* SUBGLOBX: the per-sub-mesh extra data of a GLOBSET: bounding sphere, render distance and flags. Moved from the
+   identical Lilly-ported copies (names from glob.cpp's). */
+struct SUBGLOBX
+{
+      VECTOR posCenter;
+      float sRadius;
+      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
+      uint flags;
+};
+
 /* GLOBSET: an SO's model: its GLOBs and sub-meshes, poses, shader animations and bounding sphere.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct GLOBSET
@@ -393,6 +403,16 @@ struct SOTREE
                ulong wasTouched : 1; /* touched this frame */
                ulong isDone : 1;  /* processed this frame */
                ulong unknownBits70A : 59;
+};
+
+/* XPLIST: the contacts between a physics tree and one other object (SOTREE::pxplistFirst chains them). Moved from the
+   identical copies in so.cpp, glob.cpp and jt.cpp. */
+struct XPLIST
+{
+      XP *pxpFirst;
+      XPLIST *pxplistNext;
+      XP **ppxpHead;
+      SO *psoOther;
 };
 
 /* XF: a transform of an SO's hierarchy: local and world matrix, the actuators that animate it and its parent.

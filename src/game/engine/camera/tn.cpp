@@ -53,35 +53,6 @@ extern GAME D_002DEB30;
 extern "C" SND *CreateSfxSound(int sfxid);
 extern "C" void SetSndSourceLo(SND *psnd, LO *ploOwner);
 extern CLOCK D_002DDED0;
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 struct RUMINS
 {
       byte fHighSpeedMotor;

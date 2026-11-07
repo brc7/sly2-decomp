@@ -41,30 +41,8 @@ void EndRpGlobV(VIFS *pvifs) __asm__("EndRpGlob");
 void AddVifDirectFlushed(VIFS *pvifs, int cqw, QW *aqw);
 }
 
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
 
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
 
-struct BSP
-{
-    BSP *pbspNeg;
-    BSP *pbspPos;
-    SURF *psurf;
-};
 
 class CBinaryStreamBase
 {
@@ -119,13 +97,6 @@ struct BND
       MATRIX4 matInv;
 };
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
-      uint flags;
-};
 
 struct SUBGLOBLOAD
 {
@@ -134,13 +105,6 @@ struct SUBGLOBLOAD
     int batchMode;          /* 0 / 1 / 2: batch header flag 0x100 / 0x200 / 0x400 */
 };
 
-struct XPLIST
-{
-      XP *pxpFirst;
-      XPLIST *pxplistNext;
-      XP **ppxpHead;
-      SO *psoOther;
-};
 
 struct SWALLOC
 {
@@ -2462,13 +2426,6 @@ struct SUBGLOB
       void *pvLit;
       int iqwBone;
       int cqw;
-};
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
-      uint flags;
 };
 struct POSE
 {
