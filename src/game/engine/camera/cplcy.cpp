@@ -919,47 +919,41 @@ extern "C" CPCAMBLEND *CPCAMBLEND_ctor(CPCAMBLEND *pcpcamblend)
 
 namespace M_ActivateCpcamblend { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };
-struct B { int pad[5]; struct O *po; };
-struct A { int pad[4]; struct B *pb; };
-void ActivateCplcy(struct A *a, int n, struct B *b);
+struct O { int a[3]; struct VTE *vt; };   /* the CAMEVENT, called through its vtable pointer at +0x0C */
+void ActivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b);
 } } // namespace M_ActivateCpcamblend
 // Pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event)
 void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
     using namespace M_ActivateCpcamblend;
-    struct A *a = (struct A *)this;
+    CPCAMBLEND *a = this;
     int n = (int)pvHero;
-    struct B *b = (struct B *)pv;
+    CAMMOVE *b = (CAMMOVE *)pv;
     struct O *o;
     struct VTE *e;
     M_ActivateCpcamblend::ActivateCplcy(a, n, b);
-    a->pb = b;
-    o = b->po;
+    a->pcammove = b;
+    o = (struct O *)b->pevent;
     e = &o->vt[1];
     e->pfn((char *)o + e->d);
 }
 
 namespace M_DeactivateCpcamblend { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };
-struct B { int pad[3]; int nC; int pad10; struct O *po; };
-struct A { int pad[4]; struct B *pb; };
-extern char D_002DDF40[];
-void DeactivateCplcy(struct A *a, int n, struct B *b);
-void CutCm__FP2CM(void *p);
+struct O { int a[3]; struct VTE *vt; };   /* the CAMEVENT, called through its vtable pointer at +0x0C */
+void DeactivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b);
 // CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent vt2 (end event); pcammove=0. (inferred)
-void DeactivateCpcamblend(struct A *a, int n, struct B *b)
+void DeactivateCpcamblend(CPCAMBLEND *a, int n, CAMMOVE *b)
 {
     struct O *o;
     struct VTE *e;
     DeactivateCplcy(a, n, b);
-    if (b->nC)
-        CutCm__FP2CM(D_002DDF40);
-    o = a->pb->po;
+    if (b->fCutOnLeave)
+        CutCm(&g_cm);
+    o = (struct O *)a->pcammove->pevent;
     e = &o->vt[2];
     e->pfn((char *)o + e->d);
-    a->pb = 0;
+    a->pcammove = 0;
 }
 } } // namespace M_DeactivateCpcamblend
 
