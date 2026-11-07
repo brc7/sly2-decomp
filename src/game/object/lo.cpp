@@ -989,15 +989,15 @@ int IsLoSelfOrDescendantOf(LO *a, LO *b)
 } } // namespace M_FFindLoParent
 
 namespace M_func_001A6B30 { extern "C" {
-struct M { float a[16]; };
-extern struct M D_002C44F0;
+extern XF D_002C44F0;   /* a static identity transform */
 void func_002333B4(void *p, int c, int n) __asm__("memset");
-// LO's local transform (vtable slot 32): writes the identity into *matrix when given and returns a static identity.
-struct M *LO_GetLocalTransform(void *unused, struct M *pm)
+// LO's local transform (vtable slot 32): writes the identity into *matrix when given and returns a static identity
+// transform.
+XF *LO_GetLocalTransform(LO *unused, MATRIX4 *pm)
 {
     if (pm) {
         func_002333B4(pm, 0, 0x40);
-        pm->a[0] = pm->a[5] = pm->a[10] = pm->a[15] = 1.0f;
+        pm->mat[0][0] = pm->mat[1][1] = pm->mat[2][2] = pm->mat[3][3] = 1.0f;
     }
     return &D_002C44F0;
 }
