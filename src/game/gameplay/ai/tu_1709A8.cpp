@@ -114,7 +114,7 @@ void PostLoLoad(SSG *script);
 void InitSl(DL *pdl, int ibDle);       /* InitDl */
 void AppendSlEntry(DL *pdl, void *pv);        /* AppendDlEntry */
 void PrepareGuardScriptTargets(SSG *script);
-SSGE *PssgeAppend(SSG *script, int kind, int id) __asm__("AddGuardScriptCommand");
+SSGE *AppendGuardScriptCommand(SSG *script, int kind, int id) __asm__("AddGuardScriptCommand");
 void StartGuardScript(LO *object, SSG *script);
 void InitBhv(BHVSSG *behavior);
 void CloseBhv(BHVSSG *behavior);
@@ -192,7 +192,7 @@ void PrepareGuardScriptTargets(struct S *context)
 // 0x170B40: Splice option: appends command kind 0, set the lookup context object (oid).
 extern "C" void AddGuardScriptSetContext(SSG *script, int id)
 {
-    PssgeAppend(script, SSGK_SET_CONTEXT, id);
+    AppendGuardScriptCommand(script, SSGK_SET_CONTEXT, id);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -216,19 +216,19 @@ void AddGuardScriptSetPauseTimes(void *script, struct RANGE *range) { AddGuardSc
 // 0x170BE0: Splice option: appends command kind 3, teleport the guard to a target (oid).
 extern "C" void AddGuardScriptTeleport(SSG *script, int id)
 {
-    PssgeAppend(script, SSGK_TELEPORT, id);
+    AppendGuardScriptCommand(script, SSGK_TELEPORT, id);
 }
 
 // 0x170C00: Splice option: appends command kind 4, send the guard message 4 with an argument.
 extern "C" void AddGuardScriptMessage(SSG *script, int id)
 {
-    PssgeAppend(script, SSGK_MESSAGE, id);
+    AppendGuardScriptCommand(script, SSGK_MESSAGE, id);
 }
 
 // 0x170C20: Splice option: appends command kind 5, wait/idle for a time.
 extern "C" void AddGuardScriptWait(SSG *script, float g)
 {
-    PssgeAppend(script, SSGK_WAIT, -1)->g = g;
+    AppendGuardScriptCommand(script, SSGK_WAIT, -1)->g = g;
 }
 
 // 0x170C50: Appends command kind 6, follow a path target (oid): BHVPATROLPATH on a patrol path with `pathArg` and an
@@ -236,7 +236,7 @@ extern "C" void AddGuardScriptWait(SSG *script, float g)
 extern "C" void AddGuardScriptFollowPath(SSG *script, int id, int pathArg, int secondOid)
 {
     SSGE *command;
-    command = PssgeAppend(script, SSGK_FOLLOW_PATH, id);
+    command = AppendGuardScriptCommand(script, SSGK_FOLLOW_PATH, id);
     command->n = pathArg;
     command->secondOid = secondOid;
 }
@@ -246,7 +246,7 @@ extern "C" void AddGuardScriptFollowPath(SSG *script, int id, int pathArg, int s
 extern "C" void AddGuardScriptGoto(SSG *script, int id, int lookAtOid, float gotoParam)
 {
     SSGE *command;
-    command = PssgeAppend(script, SSGK_GOTO, id);
+    command = AppendGuardScriptCommand(script, SSGK_GOTO, id);
     command->gotoParam = gotoParam;
     command->lookAtOid = lookAtOid;
 }
@@ -254,51 +254,51 @@ extern "C" void AddGuardScriptGoto(SSG *script, int id, int lookAtOid, float got
 // 0x170CD0: Splice option: appends command kind 8, play the animation of a target (oid).
 extern "C" void AddGuardScriptAnim(SSG *script, int id)
 {
-    PssgeAppend(script, SSGK_ANIM, id);
+    AppendGuardScriptCommand(script, SSGK_ANIM, id);
 }
 
 // 0x170CF0: Splice option: appends command kind 9, a label.
 extern "C" void AddGuardScriptLabel(SSG *script, int id)
 {
-    PssgeAppend(script, SSGK_LABEL, id);
+    AppendGuardScriptCommand(script, SSGK_LABEL, id);
 }
 
 // 0x170D10: Splice option: appends command kind 10, jump to a label.
 extern "C" void AddGuardScriptJump(SSG *script, int id)
 {
-    PssgeAppend(script, SSGK_JUMP, id);
+    AppendGuardScriptCommand(script, SSGK_JUMP, id);
 }
 
 // 0x170D30: Splice option: appends command kind 11, behaviour busy on (also suspends target selection and
 // nearest-command resume).
 extern "C" void AddGuardScriptBusyOn(SSG *script, int n1, int n2)
 {
-    PssgeAppend(script, SSGK_BUSY_ON, -1);
+    AppendGuardScriptCommand(script, SSGK_BUSY_ON, -1);
 }
 
 // 0x170D50: Splice option: appends command kind 12, behaviour busy off.
 extern "C" void AddGuardScriptBusyOff(SSG *script, int n1, int n2)
 {
-    PssgeAppend(script, SSGK_BUSY_OFF, -1);
+    AppendGuardScriptCommand(script, SSGK_BUSY_OFF, -1);
 }
 
 // 0x170D70: Splice option: appends command kind 13, leap at a target (oid) with an int argument (BHVLEAP, cid 0xAC).
 extern "C" void AddGuardScriptLeap(SSG *script, int id, int n)
 {
-    PssgeAppend(script, SSGK_LEAP, id)->n = n;
+    AppendGuardScriptCommand(script, SSGK_LEAP, id)->n = n;
 }
 
 // 0x170DA0: Splice option: appends command kind 14, play the behaviour's own animation binding (BHVANIM, cid 0x9D)
 // with an int argument and a sensor block.
 extern "C" void AddGuardScriptPlayBinding(SSG *script, int id, int n)
 {
-    PssgeAppend(script, SSGK_PLAY_BINDING, id)->n = n;
+    AppendGuardScriptCommand(script, SSGK_PLAY_BINDING, id)->n = n;
 }
 
 // 0x170DD0: Splice option: appends command kind 15, ensure the relay alarm of a target.
 extern "C" void AddGuardScriptEnsureRelayAlarm(SSG *script, int id, int n)
 {
-    PssgeAppend(script, SSGK_RELAY_ALARM, id)->n = n;
+    AppendGuardScriptCommand(script, SSGK_RELAY_ALARM, id)->n = n;
 }
 
 // 0x170E00: Allocates a command node from the script pool, sets its kind and argument and appends it to the

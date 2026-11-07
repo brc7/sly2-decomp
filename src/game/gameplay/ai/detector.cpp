@@ -381,7 +381,7 @@ extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
 }
 
 // 0x1545F0: True if the line from the detector's eye to the target is blocked by a world object
-// (PsoHitTestLineObjects over the objects in the line's bounding box, using one of the filters above).
+// (FindFirstObjectHitByLine over the objects in the line's bounding box, using one of the filters above).
 extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
 {
     STACKSCOPE stackScope;

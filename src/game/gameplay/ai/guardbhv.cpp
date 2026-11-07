@@ -6931,7 +6931,7 @@ struct EDGE; struct SURF; struct LSG; struct VU_FLOAT;
 // Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), D_002A2DC0 (g_normalZ)
 // 0x0017D608 FSnapPosToSurfaceAbove__FPUx  (our name; was FUN_0017D608)
 // A line from the position straight up (5000 long) against the world's objects: when it hits one, the position is moved to the end of the
-// hit piece and 1 is returned. BHV191::Start (0x17E9B0) tries it when GuardSpawnerGroundSnap finds no floor under the target.
+// hit piece and 1 is returned. MoveBhvRelocateToPoint (0x17E9B0) tries it when SnapToGround finds no floor under the point.
 struct EDGE
 {
     ushort aipos[2];
@@ -6977,7 +6977,7 @@ extern "C" {
 void CollectVisibleMsGlobs(int *pcpso, SOPART ***papso);
 }
 extern "C" {
-SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("FindFirstObjectHitByLine");
+SOPART *HitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("FindFirstObjectHitByLine");
 }
 // VU0 helper: base + vector * scale.
 static inline qword VuMulAdd(qword qwBase, qword qwVec, VU_FLOAT gScale)
@@ -6997,7 +6997,7 @@ int SnapPositionToSurfaceAbove(qword *ppos)
     qword posBottom = VuMulAdd(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE750));
     qword posTop = VuMulAdd(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE754));
     LSG lsg;
-    if (PsoHitTestLineObjects(0, posBottom, posTop, cpso, apso, &lsg))
+    if (HitTestLineObjects(0, posBottom, posTop, cpso, apso, &lsg))
     {
         *ppos = lsg.apos[1];
         return 1;
