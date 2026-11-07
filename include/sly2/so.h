@@ -158,6 +158,21 @@ struct REGENT
       undefined4 unknown20[20];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
 };
 
+/* SOBOUNDS: the bounds/lighting record an SO hierarchy shares (pool g_sw.slotheapSobounds, reference counted; 0x30
+   bytes: RenderSoAll copies it). The lighting stamp is compared with the world's light stamp by RefreshSoBoundsRecord
+   (so.cpp) before the light packets are rebuilt. */
+struct SOBOUNDS
+{
+      SO *pso;   /* +0x00 the owner (SetSoBoundsScale keeps scale in step only for it) */
+      undefined4 unknown04;
+      int refCount;   /* +0x08 objects sharing it */
+      int lightStamp;   /* +0x0C world light stamp of the last BuildSoLightPackets */
+      undefined4 unknown10[4];
+      float scale;   /* +0x20 */
+      undefined4 unknown24[3];
+};
+typedef char assert_SOBOUNDS_size[sizeof(SOBOUNDS) == 0x30 ? 1 : -1];
+
 /* SO: the solid object: an LO with transforms, a model, collision parts and (optionally) physics.
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (23 copies in Lilly ports) */
 struct SO : public LO

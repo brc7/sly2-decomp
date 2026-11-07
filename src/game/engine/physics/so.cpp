@@ -165,13 +165,6 @@ struct VU_VECTOR4
     qword qw;
 };
 
-/* The bounds record of an SO (SO::psobounds): its owner and one float the owner keeps in step (SetSoBoundsScale). */
-struct SOBOUNDS
-{
-    SO *pso;                /* +0x00 */
-    int pad4[7];
-    float scale;            /* +0x20 */
-};
 /* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
 struct SOWATCH { char pad0[0x44]; int unknown44; char pad48[0x6C]; int animIndex; };
 /* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
@@ -331,23 +324,20 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int fl
 
 // 0x1F2468 ReleaseSoBoundsHierarchy
 namespace M_ReleaseSoBoundsHierarchy { extern "C" {
-struct R; struct L;
-struct R { int pad[2]; int refCount; };
-struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0x134 - 0x74]; struct R *bounds; };
 struct Pool;
-void FreeSlotheapSlot(struct Pool *, struct R *);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
+void FreeSlotheapSlot(struct Pool *, SOBOUNDS *);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *, int);
 // Drops this object's (and its SO children's) reference to the shared bounds record (+0x134, refcounted pool).
-void ReleaseSoBoundsHierarchy(struct L *so)
+void ReleaseSoBoundsHierarchy(SO *so)
 {
-    struct L *q;
-    struct R *pr = so->bounds;
+    LO *q;
+    SOBOUNDS *pr = so->psobounds;
     if (pr) {
         if (--pr->refCount == 0) FreeSlotheapSlot(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
-        so->bounds = 0;
+        so->psobounds = 0;
     }
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) {
-        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) ReleaseSoBoundsHierarchy(q);
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) ReleaseSoBoundsHierarchy((SO *)q);
     }
 }
 } } // namespace M_ReleaseSoBoundsHierarchy
@@ -454,17 +444,14 @@ extern "C" void SetSoBoundsScale(SO *so, float g)
 
 // 0x1F26A8 EnsureSoBoundsHierarchy
 namespace M_EnsureSoBoundsHierarchy { extern "C" {
-struct L;
-struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; };
-void EnsureSoBounds(struct L *);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *, int);
 // EnsureSoBounds on this object and recursively on its SO children.
-void EnsureSoBoundsHierarchy(struct L *so)
+void EnsureSoBoundsHierarchy(SO *so)
 {
-    struct L *q;
+    LO *q;
     EnsureSoBounds(so);
-    for (q = so->first; q != so->end; q = q->next) {
-        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) EnsureSoBoundsHierarchy(q);
+    for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) EnsureSoBoundsHierarchy((SO *)q);
     }
 }
 } } // namespace M_EnsureSoBoundsHierarchy
@@ -1070,23 +1057,16 @@ extern "C" void UpdateSoPartGeom(SOPART *part)
 
 // 0x1F3900 UpdateSoPartMatrices
 namespace M_UpdateSoPartMatrices { extern "C" {
-struct M; struct O; struct E; struct P;
-typedef unsigned long ulong;
-typedef int qword __attribute__((mode(TI)));
-struct M { qword a[4]; };
-struct O { char pad[0x40]; struct M matWorld; char pad2[0xA4 - 0x80]; int stamp; };
-struct E { struct O *transform; int pad[3]; ulong flags; int pad2[2]; struct M matWorld; char pad3[0xAC - 0x60]; int worldStamp; };
-struct P { char pad[0xE0]; int numParts; struct E *parts; };
 // Copies each visible part's XF world matrix and stamp into the part.
-void UpdateSoPartMatrices(struct P *so)
+void UpdateSoPartMatrices(SO *so)
 {
     int i;
     for (i = 0; i < so->numParts; i++) {
-        struct E *pe = &so->parts[i];
-        if (!(pe->flags & (1L << 50))) {
-            struct O *po = pe->transform;
-            pe->matWorld = po->matWorld;
-            pe->worldStamp = po->stamp;
+        SOPART *pe = &so->parts[i];
+        if (!pe->isHidden) {
+            XF *po = pe->transform;
+            pe->matWorld = po->worldMatrix;
+            pe->worldStamp = po->worldStamp;
         }
     }
 }
@@ -1211,16 +1191,14 @@ namespace M_func_001F3C10 { extern "C" {
 struct G; struct Q; struct A;
 struct G { char pad[0x3D60]; int nStampLights; };
 extern struct G D_003DD490;
-struct Q { char pad[0xC]; int stamp; };
-struct A { char pad[0x134]; struct Q *bounds; };
-void BuildSoLightPackets(struct G *pg, int n, struct Q *pq);
+void BuildSoLightPackets(struct G *pg, int n, SOBOUNDS *pq);
 // Recomputes the shared bounds record when its stamp is older than the world's current stamp. (inferred)
-void RefreshSoBoundsRecord(struct A *so)
+void RefreshSoBoundsRecord(SO *so)
 {
-    struct Q *pq = so->bounds;
-    if (pq && pq->stamp != D_003DD490.nStampLights) {
+    SOBOUNDS *pq = so->psobounds;
+    if (pq && pq->lightStamp != D_003DD490.nStampLights) {
         BuildSoLightPackets(&D_003DD490, 0, pq);
-        so->bounds->stamp = D_003DD490.nStampLights;
+        so->psobounds->lightStamp = D_003DD490.nStampLights;
     }
 }
 } } // namespace M_func_001F3C10
@@ -1320,15 +1298,12 @@ MATRIX4 * SO::GetWorldMatrix()
 
 // 0x1F3FB0 GetSoLocalXf
 namespace M_func_001F3FB0 { extern "C" {
-struct A;
-struct A { char pad[0x60]; int rootTransform; };
-void func_002333B4(void *p, int c, int cb) __asm__("memset");
 // Slot 32: the root XF, optionally writing an identity matrix to the output.
-int GetSoLocalXf(struct A *so, float *pm)
+XF *GetSoLocalXf(SO *so, MATRIX4 *pm)
 {
     if (pm) {
         func_002333B4(pm, 0, 0x40);
-        pm[0] = pm[5] = pm[10] = pm[15] = 1.0f;
+        pm->mat[0][0] = pm->mat[1][1] = pm->mat[2][2] = pm->mat[3][3] = 1.0f;
     }
     return so->rootTransform;
 }
