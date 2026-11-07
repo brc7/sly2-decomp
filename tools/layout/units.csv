@@ -1314,8 +1314,8 @@ DeserializePair__FP18CBinaryInputStream,0x12A3D8,serialize
 StaticInit_serialize,0x12A828,serialize
 func_0012A960,0x12A960,serialize
 CSidebag_AddBinding,0x12A980,sidebag
-RefSetBinding__8CSidebagiP4CRef,0x12AA70,sidebag
-FFindBinding__8CSidebagiP4CRef,0x12AB28,sidebag
+AssignSidebagBinding__8CSidebagiP4CRef,0x12AA70,sidebag
+FindSidebagBinding__8CSidebagiP4CRef,0x12AB28,sidebag
 CSidebag_CloneTo,0x12AB78,sidebag
 StaticInit_sidebag,0x12ACC0,sidebag
 func_0012ADF8,0x12ADF8,sidebag
@@ -3368,10 +3368,10 @@ SetLoFlag8,0x1A6E80,lo
 LO_Slot43Default,0x1A6EE8,lo
 LO_Slot44Default,0x1A6EF0,lo
 LO_Slot45Default,0x1A6EF8,lo
-ConvertAloPos,0x1A6F00,lo
-ConvertAloVec,0x1A6FC0,lo
-ConvertAloMat,0x1A7050,lo
-ConvertAloMat4,0x1A71B0,lo
+ConvertPosBetweenLos,0x1A6F00,lo
+ConvertVecBetweenLos,0x1A6FC0,lo
+ConvertMatBetweenLos,0x1A7050,lo
+ConvertMat4BetweenLos,0x1A71B0,lo
 ConvertMatPos,0x1A72D0,lo
 ConvertMatVec,0x1A7348,lo
 StaticInit_lo,0x1A73C0,lo
@@ -3421,7 +3421,7 @@ CompareSaves__FP4SAVET0,0x1AB398,memcard
 SetSaveState,0x1AB418,memcard
 ReloadSaveSlots,0x1AB630,memcard
 McJobFormat,0x1AB6C0,memcard
-FOpenSaveIconFile,0x1AB750,memcard
+GetDiscFileEntrySize,0x1AB750,memcard
 CreateSaveDir,0x1AB7D0,memcard
 McJobCreateSave,0x1AB868,memcard
 McJobGetDir,0x1ABA10,memcard

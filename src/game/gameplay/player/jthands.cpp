@@ -87,8 +87,8 @@ qword GetLoWorldPos(LO *plo);
 void FindShapeClosestPointFromS(void *pshape, qword pos, void *p, qword *ppos, qword *pdir, float *pu, float *ps, float s);
 void FindShapeClosestPoint(LO *pshape, qword pos, int a, int b, int c, int d, float *ps);
 M4 InvertMatrix4Rigid(const MATRIX4 *pmat);
-qword ConvertAloPos(LO *ploFrom, LO *ploTo, qword pos);
-M4 ConvertAloMat4(LO *ploFrom, LO *ploTo, const M4 *pmat);
+qword ConvertPosBetweenLos(LO *ploFrom, LO *ploTo, qword pos);
+M4 ConvertMat4BetweenLos(LO *ploFrom, LO *ploTo, const M4 *pmat);
 M3 *ConvertXfMat(M3 *pmatOut, XF *pxfFrom, XF *pxfTo, const M3 *pmat);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword vec);
 qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);
@@ -296,7 +296,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
     }
     w.stage.late.context.phands = hands;
     {
-        qword raw = ConvertAloPos(0, hands->pso, w.position.q);
+        qword raw = ConvertPosBetweenLos(0, hands->pso, w.position.q);
         register qword point __asm__("vf1");
         __asm__("qmtc2.ni %1,%0" : "=j"(point) : "r"(raw));
         qword length = LengthXY(point);
@@ -305,7 +305,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
         StoreX(&w.stage.late.local.f[0], length);
     }
 
-    w.stage.late.context.pos = ConvertAloPos(hands->pso, 0, w.stage.late.local.q);
+    w.stage.late.context.pos = ConvertPosBetweenLos(hands->pso, 0, w.stage.late.local.q);
     if (hands->nKind == 2) {
         MinimizeRange((float (*)(void *, float))EvaluateJtHandsCurveB, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
         GetClosestPointOnJtHandsCurveB(hands, w.stage.late.context.pos, &w.projection, 0, w.t);
@@ -658,7 +658,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero"
                 : "=&r"(counterArgument), "=r"(counterSpace)
                 : "r"(counterMatrix), "r"(object));
-        new (product) M4(ConvertAloMat4(0, counterSpace, counterArgument));
+        new (product) M4(ConvertMat4BetweenLos(0, counterSpace, counterArgument));
         register M4 *inverse __asm__("$16");
         {
             register qword row1 __asm__("$6"), row2 __asm__("$3"), row3 __asm__("$2"), row0 __asm__("$7");
@@ -801,7 +801,7 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
     CID20 *pcid = FindJtHandsTarget((JTV *)hands->pso, object);
     if (pcid) {
         M4 u;
-        M4 t = ConvertAloMat4(0, object, (M4 *)pcid->PmatWorld());
+        M4 t = ConvertMat4BetweenLos(0, object, (M4 *)pcid->PmatWorld());
         u = t;
         M4 w = InvertMatrix4RigidV(u);
         MulMatrix4RetV(&t, &m, &w);

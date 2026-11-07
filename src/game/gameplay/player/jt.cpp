@@ -1689,7 +1689,7 @@ struct M { char pad[0x4]; int x4; char pad1[0x10 - 0x8]; qword v10; char pad2[0x
     char pad3[0x08]; float g48; };
 struct O { char pad[0xEC]; int xEC; char pad1[0x208 - 0xF0]; int x208; };
 extern "C" {
-qword ConvertAloPos(void *p, void *q, qword v);
+qword ConvertPosBetweenLos(void *p, void *q, qword v);
 void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, int n, int *pn0, int *pn1);
 int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, int n1, HIT *phit);
 void SetActRotationGoal(void *p, qword v);
@@ -1719,9 +1719,9 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
         } u;
         int n0, n1;
         qword a, b, c;
-        a = ConvertAloPos(jt, 0, pm->v30);
-        b = ConvertAloPos(jt, 0, pm->v40);
-        c = ConvertAloPos(jt, 0, pm->v50);
+        a = ConvertPosBetweenLos(jt, 0, pm->v30);
+        b = ConvertPosBetweenLos(jt, 0, pm->v40);
+        c = ConvertPosBetweenLos(jt, 0, pm->v50);
         IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC,
                                &n0, &n1);
         if ((FindFirstObjectHitByLine(0, a, b, n0, n1, &hit) ||
@@ -1729,7 +1729,7 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
             hit.v0 = VSub(hit.v0, D_002A2DC0);
-            w = ConvertAloPos(0, jt, hit.v0);
+            w = ConvertPosBetweenLos(0, jt, hit.v0);
             u.q = w;
             SetActRotationGoal(px, VSub(w, pm->v10));
             return 1;
@@ -2203,7 +2203,7 @@ inline qword QwTransformPos(MATRIX4 *matrix, qword pos)
 }
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos) __asm__("ConvertAloPos");
+qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos) __asm__("ConvertPosBetweenLos");
 MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
 
@@ -3105,7 +3105,7 @@ void UpdateJtAttachCorrection(struct P *);
 void UpdateGaitBlend(void *, float);
 void FaceStepToward(struct P *, void *);
 qword SetVectorCylind(float, float, float);
-qword ConvertAloVec(void *, void *, qword);
+qword ConvertVecBetweenLos(void *, void *, qword);
 int FPowerupAcquired(int);
 void UpdateJtFaceTarget(struct P *);
 qword GetStepAsegaTranslation(struct P *, struct MODEL *, float);
@@ -3274,7 +3274,7 @@ void UpdateJtPre(struct P *jt)
         case 8:
         case 9:
             phase.direction = SetVectorCylind(jt->state->heading + 3.14159265f, jt->state->amount * D_002BF3C0, 0.0f);
-            jt->velocity = ConvertAloVec(0, jt, phase.direction);
+            jt->velocity = ConvertVecBetweenLos(0, jt, phase.direction);
             break;
         }
         break;
@@ -5005,7 +5005,7 @@ extern "C" M4*GetLoWorldMatrix(P*);
 extern "C" qword GetLoWorldPos(P*);
 extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
 extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
-extern "C" qword ConvertAloVec(O*,O*,qword);
+extern "C" qword ConvertVecBetweenLos(O*,O*,qword);
 extern "C" void RecalculateAsegBlend(ANIM*);
 static inline qword Make(float x,float y,float z){qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));return q;}
 static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
@@ -5142,7 +5142,7 @@ extern "C" void UpdateJtSmoothing(P *jt)
         __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2"
                 : "+j"(rotated), "=&r"(object), "=m"(scratch.q)
                 : "j"(axis0), "j"(axis1), "j"(axis2), "m"(jt->object), "r"(local));
-        relative = ConvertAloVec(root, object, rotated);
+        relative = ConvertVecBetweenLos(root, object, rotated);
     }
     qword normalized = Normalize(relative, &negative, &scratch);
     register float zero __asm__("$f2");

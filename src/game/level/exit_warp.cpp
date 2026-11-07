@@ -109,7 +109,7 @@ void UpdateLo(EXITV *exitVolume, float dt);
 void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
 void WipeToWorldWarp(SW *world, void *pvWorld, int a, int b, int grf, int c);
 qwordV GetLoWorldPos(LO *object);
-qwordV ConvertAloPos(int a, EXITV *exitVolume, qwordV pos);
+qwordV ConvertPosBetweenLos(int a, EXITV *exitVolume, qwordV pos);
 int FindBspLeafContainingPointFast(void *pbsp, int n, qwordV pos);
 void TriggerRsmg(SW *world, int crsmg, RSMG *arsmg, WARPV *warp, int fOn);
 
@@ -443,7 +443,7 @@ extern "C" void UpdateExit(EXITV *exitVolume, float dt)
         int isInside;
         if (!hero)
             return;
-        u.q = ConvertAloPos(0, exitVolume, GetLoWorldPos(hero));
+        u.q = ConvertPosBetweenLos(0, exitVolume, GetLoWorldPos(hero));
         isInside = FindBspLeafContainingPointFast(exitVolume->bspTree, 0x7FFFFFFF, u.q) != 0;
         switch (exitVolume->state)
         {

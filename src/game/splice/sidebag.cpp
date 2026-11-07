@@ -2,7 +2,7 @@
 // sidebag pool's GC members are CGcObj<CSidebag>'s (sly2/gc.h) and its counted-pointer copies CRefPtr<T>'s
 // (sly2/basic.h), all emitted by splice/gc.cpp.
 // TU 0x12A980..0x12AE18 (6 functions, address order).
-// Entry points: CSidebag_AddBinding / RefSetBinding / FFindBinding (object options outside the
+// Entry points: CSidebag_AddBinding / AssignSidebagBinding / FindSidebagBinding (object options outside the
 // built-in table), CSidebag_CloneTo.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sidebag
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012ADF8
@@ -60,8 +60,8 @@ public:
     /* 0x04 */ int gcLink;              /* GC link word (GCHDR) */
     /* 0x08 */ SPW firstBinding;   /* inline release: deleting a bag releases its bindings inline */
 
-    CRef RefSetBinding(int sym, CRef *pref);
-    int FFindBinding(int sym, CRef *pref);
+    CRef AssignSidebagBinding(int sym, CRef *pref);
+    int FindSidebagBinding(int sym, CRef *pref);
     void SetBinding(CVarb *binding) { firstBinding = binding; }
     /* Sidebags live in the fifth engine slot pool (slot size 0xC == sizeof(CSidebag)). */
     void operator delete(void *pv) { Unlink__t6CGcObj1Z8CSidebag((GCHDR *)pv); FreeSlotheapSlot(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
@@ -113,7 +113,7 @@ extern "C" CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref)
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
 // Assigns a new value to the sidebag's existing binding of sym (nothing happens when unbound); returns Void.
-CRef CSidebag::RefSetBinding(int sym, CRef *pref)
+CRef CSidebag::AssignSidebagBinding(int sym, CRef *pref)
 {
     CVarb *pb;
     for (pb = firstBinding.p; pb; pb = pb->pnext.p) {
@@ -139,7 +139,7 @@ CRef CSidebag::RefSetBinding(int sym, CRef *pref)
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
 // Looks sym up in the sidebag and copies its value into *pref when pref is non-null; returns whether it was found.
-int CSidebag::FFindBinding(int sym, CRef *pref)
+int CSidebag::FindSidebagBinding(int sym, CRef *pref)
 {
     for (CVarb *p = firstBinding.p; p; p = p->pnext.p) {
         if (p->sym == sym) {

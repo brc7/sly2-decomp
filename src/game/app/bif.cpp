@@ -4919,18 +4919,18 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_ctor(CRef *pref, TI vec);
-TI ConvertAloPos(int a, int b, TI v);
+TI ConvertPosBetweenLos(int a, int b, TI v);
 /** @sly2-annot addr=0x125000
- * Purpose: Splice builtin "convert-object-position": ConvertAloPos 0x1A6F00
+ * Purpose: Splice builtin "convert-object-position": ConvertPosBetweenLos 0x1A6F00
  * Info: proposed name RefOpConvertObjectPosition (T1); TU bif
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "convert-object-position": ConvertAloPos 0x1A6F00.
+// Splice builtin "convert-object-position": ConvertPosBetweenLos 0x1A6F00.
 CRef *RefOpConvertObjectPosition__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
-    CRef_ctor(&ref, ConvertAloPos(args[0].m_tag, args[1].m_tag, *(TI *)args[2].m_tag));
+    CRef_ctor(&ref, ConvertPosBetweenLos(args[0].m_tag, args[1].m_tag, *(TI *)args[2].m_tag));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -4945,23 +4945,23 @@ typedef struct CRef { int m_tagk; void *m_p; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
-TI ConvertAloVec(void *a, void *b, TI v);
+TI ConvertVecBetweenLos(void *a, void *b, TI v);
 /** @sly2-annot addr=0x125060
- * Purpose: Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0
+ * Purpose: Splice builtin "convert-object-vector": ConvertVecBetweenLos 0x1A6FC0
  * Info: proposed name RefOpConvertObjectVector (T1); TU bif
  * Notes: names_v2 B proposed RefOpHitTestObjectsFirst__FiP4CRefP6CFrame (0.923)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "convert-object-vector": ConvertAloVec 0x1A6FC0.
+// Splice builtin "convert-object-vector": ConvertVecBetweenLos 0x1A6FC0.
 CRef *RefOpConvertObjectVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
     TI *pv;
     SetTag__4CRef4TAGK(&ref, 0x1A);
     pv = (__typeof__(pv))ref.m_p;
-    *pv = ConvertAloVec(args[0].m_p, args[1].m_p, *(TI *)args[2].m_p);
+    *pv = ConvertVecBetweenLos(args[0].m_p, args[1].m_p, *(TI *)args[2].m_p);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -4975,17 +4975,17 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct MATRIX4 { qword a[4]; } MATRIX4;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
-void ConvertAloMat4(MATRIX4 *pmat, int a, int b, int c);
+void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1250D8
- * Purpose: Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0
+ * Purpose: Splice builtin "convert-object-matrix": ConvertMatBetweenLos 0x1A71B0
  * Info: proposed name RefOpConvertObjectMatrix (T1); TU bif
  * Notes: names_v2 B proposed RefOpConvertObjectPosition__FiP4CRefP6CFrame (0.779)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0.
+// Splice builtin "convert-object-matrix": ConvertMatBetweenLos 0x1A71B0.
 CRef *RefOpConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;
@@ -4993,7 +4993,7 @@ CRef *RefOpConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
     MATRIX4 *pmat;
     SetTag__4CRef4TAGK(&ref, 0x1B);
     pmat = (MATRIX4 *)ref.m_tag;
-    ConvertAloMat4(&mat, args[0].m_tag, args[1].m_tag, args[2].m_tag);
+    ConvertMat4BetweenLos(&mat, args[0].m_tag, args[1].m_tag, args[2].m_tag);
     *pmat = mat;
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);

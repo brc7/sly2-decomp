@@ -913,9 +913,9 @@ struct K { int sector; int size; int mode; char pad[0x104];
 };
 /** @sly2-annot addr=0x1AB750
  * Purpose: Build a disc FLOC (lba=(w0^w13)+0xCA0,size=w1^w15) for a file entry and open it via 0x14B670
- * Info: proposed name FOpenSaveIconFile (EXISTING); TU memcard
- * Notes: agent/verifier proposes FOpenSaveIconFile for this existing name (see existing_name_changes.csv) |
- *   arbitration: draft replacement (not re-derived) | RENAME proposed -> FOpenSaveIconFile
+ * Info: proposed name GetDiscFileEntrySize (EXISTING); TU memcard
+ * Notes: agent/verifier proposes GetDiscFileEntrySize for this existing name (see existing_name_changes.csv) |
+ *   arbitration: draft replacement (not re-derived) | RENAME proposed -> GetDiscFileEntrySize
  *   (existing_name_changes.csv)
  * Confidence: high [EXISTING 0.35] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
  *   r4_17F090+arbitration
@@ -923,7 +923,7 @@ struct K { int sector; int size; int mode; char pad[0x104];
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Opens the save icon file on the disc (a FLOC built from the file entry); returns false when the entry is not set.
-extern "C" { int FOpenSaveIconFile(S *entry)
+extern "C" { int GetDiscFileEntrySize(S *entry)
 {
     K key;
     bool isSet = key.FSet(entry);
@@ -966,7 +966,7 @@ struct S { int port; int slot; int state; int nextState; int tStateChanged, tNex
 extern char D_002A38E8[], D_002E6550[];
 int sceMcGetEntSpace(int a, int b, char *c);
 int McSyncResult(void *p, int a, int b, int *c);
-int FOpenSaveIconFile(void *p);
+int GetDiscFileEntrySize(void *p);
 int CreateSaveDir(struct S *s);
 int WriteSaveSlotFileReset(struct S *s, struct B *b);
 void BuildSaveFilePath(struct S *s, struct B *b, char *path);
@@ -995,7 +995,7 @@ int McJobCreateSave(struct S *saveManager)
         if (!entrySpace)
             clustersNeeded = 2;
         clustersNeeded += 5;
-        clustersNeeded += (FOpenSaveIconFile(D_002A38E8) + 0x3FF) / 0x400;
+        clustersNeeded += (GetDiscFileEntrySize(D_002A38E8) + 0x3FF) / 0x400;
         clustersNeeded += 0x42;
         if (saveManager->freeClusters < clustersNeeded) {
             r = 1;
@@ -2965,7 +2965,7 @@ extern "C" inline void InitFileKey(FILEKEY *pfk)
 // functions' own literals, pooled per TU, so they are spelled as literals where they are used (tu-merging.md
 // "Phase 6: one link mode"); the pointer-to-member records are defined among the functions (RO_ORDER).
 
-// ---- memcard's .rodata.early (tu-merging.md "Phase 6"): the FILEREC key of the save icon file (FOpenSaveIconFile,
+// ---- memcard's .rodata.early (tu-merging.md "Phase 6"): the FILEREC key of the save icon file (GetDiscFileEntrySize,
 // load_file_from_disc), between tu_1A4E08's keys and menu's in TU order. Asm-labelled: the declarations above stay.
 namespace MEMCARD_KEYS {
 extern const unsigned int r_D_002A38E8[16] __asm__("D_002A38E8") __attribute__((section(".rodata.early"))) = {0xBD87DF12, 0xE9F4E46C, 0x0E45625C, 0x8F049FCC, 0x478171EA, 0x9B7A071D, 0x844C0FEE, 0x53E2403F, 0xC179D2D6, 0xD52DEF52, 0x5842CD0B, 0x2190978E, 0xC22AC32F, 0xBD961318, 0x0E456593, 0xE9F48034};

@@ -39,7 +39,7 @@ void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pgeom);   /* linker 
 void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 qword VecMinArray(int c, qword *points);
 qword VecMaxArray(int c, qword *points);
-qword ConvertAloPos(int a, VOLV *p, qword q);
+qword ConvertPosBetweenLos(int a, VOLV *p, qword q);
 int FindBspLeafContainingPointFast(int a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
@@ -109,7 +109,7 @@ void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
 // zones, buttons and the splice option CHECK_POINT.
 extern "C" int IsPointInVol(VOLV *vol, qword point)
 {
-    qword localPoint = ConvertAloPos(0, vol, point), offset, distanceSquared;
+    qword localPoint = ConvertPosBetweenLos(0, vol, point), offset, distanceSquared;
     float distanceSquaredValue;
     int isOutsideSphere;
     offset = VuSub(localPoint, vol->center);
@@ -151,7 +151,7 @@ extern "C" int IsSphereInVol(VOLV *vol, qword center, float radius)
             leaves = AllocFromStack(requestPtr);
         }
         {
-            int result = PruneBspBySphere((void *)vol->bspc.nodes, 0x7FFFFFFF, ConvertAloPos(0, vol, center), &numLeaves, &leaves, radius);
+            int result = PruneBspBySphere((void *)vol->bspc.nodes, 0x7FFFFFFF, ConvertPosBetweenLos(0, vol, center), &numLeaves, &leaves, radius);
             if (result == 0 || result == 2) isInside = 1;
         }
         STACKSCOPE_ctor_1AE4A0(&scope, 2);

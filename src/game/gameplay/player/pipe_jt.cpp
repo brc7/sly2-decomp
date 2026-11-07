@@ -80,7 +80,7 @@ void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtP
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
 void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
 float fabsf(float);
-qword ConvertAloPos(void*,void*,qword);qword GetLoWorldPos(void*);
+qword ConvertPosBetweenLos(void*,void*,qword);qword GetLoWorldPos(void*);
 void AddJtPlaceOnCurve(void *pplaces, void *pso, float g);
 void SubscribeLoObject(PATH*,JT*);void UnsubscribeLoObject(PATH*,JT*);
 void LinkStepAttachment(JT*,PATH*,int);
@@ -445,7 +445,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
 extern "C" void UpdateJtInternalXpsPipe(JTPIPE *pipe) {
     U a, b, u;
     EvaluateShapeS(pipe->path, pipe->distance, &a, &b);
-    u.q = ConvertAloPos(pipe->actor, 0, pipe->offset.q);
+    u.q = ConvertPosBetweenLos(pipe->actor, 0, pipe->offset.q);
     { JT *o = pipe->actor; VE *e = &o->vt[82]; ((void (*)(void *, int, PATH *, qword, qword, qword))e->fn)((char *)o + e->delta, 7, pipe->path, a.q, b.q, u.q); }
 }
 
@@ -598,7 +598,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         GetJtPipeDistanceRange(pipe, &w.limit);
         pipe->distance = GLimitLm__FP2LMf(&w.limit, pipe->distance);
         EvaluateShapeS(pipe->path, pipe->distance, &w.point, 0);
-        qword offset = Vector(ConvertAloPos(pipe->actor, 0, pipe->offset.q));
+        qword offset = Vector(ConvertPosBetweenLos(pipe->actor, 0, pipe->offset.q));
         JT *owner;
         qword point = WorldInputs(pipe, &w.point, &w.world, offset, owner);
         owner->offset.q = VuSub(point, offset);

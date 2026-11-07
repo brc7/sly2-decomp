@@ -131,7 +131,7 @@ LOV *FindClosestSwPo(SW *, qwordV);
 EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
-qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
+qwordV ConvertPosBetweenLos(CID96V *, CID96V *, qwordV);
 void SprayDifficultyPrizes(void *, qwordV, int, int, CID96V *);
 M3 BuildAxisAngleRotationMatrix(qwordV v, float g);
 float atan2f(float y, float x);
@@ -539,7 +539,7 @@ void SetCritterState(CID96V *critter, int next)
         EFFECT *sound = PsndStartSound(0x14);
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, GetLoWorldPos(critter));
-        SprayDifficultyPrizes(D_002DE578, ConvertAloPos(critter, 0, critter->damageOffset.q), critter->amount, -100, critter);
+        SprayDifficultyPrizes(D_002DE578, ConvertPosBetweenLos(critter, 0, critter->damageOffset.q), critter->amount, -100, critter);
         Call(critter, 9);
         break;
     }

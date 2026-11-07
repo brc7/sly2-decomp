@@ -619,7 +619,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
 qword LimitVectorLength(qword,float);
 qword GetLoWorldPos(struct O*);
 struct M3*GetLoWorldMatrix(struct O*);
-qword ConvertAloVec(struct O*,struct O*,qword);
+qword ConvertVecBetweenLos(struct O*,struct O*,qword);
 void SetJtHurtState(struct P*,int);
 static inline float Max(float a,float b){return a>b?a:b;}
 static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
@@ -690,9 +690,9 @@ void StartJtKnockback(struct P*p){
             {qword k=Word(-150.0f);scratch.q=k;negative.q=k;}
             basis=GetLoWorldMatrix(target);
             delta=Intercept(&selfPosition,&targetPosition,basis,&negative);
-            local=ConvertAloVec(0,target,delta);
-            if(Z(local)>0.0f)output.q=ConvertAloVec(target,0,D_002BFAE0.q);
-            else output.q=ConvertAloVec(target,0,D_002BFAF0.q);
+            local=ConvertVecBetweenLos(0,target,delta);
+            if(Z(local)>0.0f)output.q=ConvertVecBetweenLos(target,0,D_002BFAE0.q);
+            else output.q=ConvertVecBetweenLos(target,0,D_002BFAF0.q);
         }
         break;
     case 0x100:

@@ -1791,13 +1791,13 @@ void InvertMatrix4Rigid(M4 *pm, M4 *pn);
 /** @sly2-annot addr=0x1A6F00
  * Purpose: Transform a point from paloFrom space to world (PmatWorld) then into paloTo space (inverse);
  *   vector by value
- * Info: proposed name ConvertAloPos (T1); TU lo
+ * Info: proposed name ConvertPosBetweenLos (T1); TU lo
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a point from one object's space to another's (through world space; a null object means world space).
-qword ConvertAloPos(struct LO *a, struct LO *b, qword v)
+qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 {
     if (a) {
         M4 *pm = a->vt[31].pfn((struct LO *)((char *)a + a->vt[31].d));
@@ -1821,13 +1821,13 @@ M3 *GetLoWorldMatrix(void *p);
 void InvertMatrix3Cofactor(M3 *pm, M3 *pn);
 /** @sly2-annot addr=0x1A6FC0
  * Purpose: Same for direction vectors (rotation only, M3)
- * Info: proposed name ConvertAloVec (T1); TU lo
+ * Info: proposed name ConvertVecBetweenLos (T1); TU lo
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a direction vector from one object's space to another's (rotation only).
-qword ConvertAloVec(void *a, void *b, qword v)
+qword ConvertVecBetweenLos(void *a, void *b, qword v)
 {
     if (a) {
         M3 *pm = GetLoWorldMatrix(a);
@@ -1861,12 +1861,12 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 }
 /** @sly2-annot addr=0x1A7050
  * Purpose: Same for a 3x3 matrix
- * Info: proposed name ConvertAloMat (T1); TU lo
+ * Info: proposed name ConvertMatBetweenLos (T1); TU lo
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a 3x3 matrix from one object's space to another's.
-extern "C" { M3 ConvertAloMat(void *a, void *b, const M3 *m)
+extern "C" { M3 ConvertMatBetweenLos(void *a, void *b, const M3 *m)
 {
     M3 result;
     if (a) result = Mul(*GetLoWorldMatrix(a), *m);
@@ -1887,13 +1887,13 @@ void InvertMatrix4Rigid(M4 *out, void *in);
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
 /** @sly2-annot addr=0x1A71B0
  * Purpose: Same for a 4x4 matrix (vt31 + inverse 0x11C318)
- * Info: proposed name ConvertAloMat4 (T1); TU lo
+ * Info: proposed name ConvertMat4BetweenLos (T1); TU lo
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Converts a 4x4 matrix from one object's space to another's.
-M4 ConvertAloMat4(struct O *o1, struct O *o2, M4 *m)
+M4 ConvertMat4BetweenLos(struct O *o1, struct O *o2, M4 *m)
 {
     M4 t;
     M4 r;

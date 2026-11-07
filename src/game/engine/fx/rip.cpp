@@ -2821,7 +2821,7 @@ typedef struct { char pad[0x40]; M3 orientation; } R;   /* the new STUCK */
 typedef struct { char pad[0x1C]; void *renderObject; } OBJ;   /* the LEAF */
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 R *CreateStuck(OBJ *, void *, void *, qword, qword);
-void ConvertAloMat(M3 *, int, void *, M3 *);
+void ConvertMatBetweenLos(M3 *, int, void *, M3 *);
 void RemoveRip__FP3RIP(OBJ *);
 // LEAF FBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
 // orientation taken into the hit body's space, and removes the leaf.
@@ -2833,7 +2833,7 @@ int StickLeafOnBounce(OBJ *object, S *s, qword a, qword b)
     stuck = CreateStuck(object, object->renderObject, s->hitObject, a, b);
     if (stuck) {
         M3 m;
-        ConvertAloMat(&m, 0, s->hitBody, &stuck->orientation);
+        ConvertMatBetweenLos(&m, 0, s->hitBody, &stuck->orientation);
         stuck->orientation = m;
     }
     RemoveRip__FP3RIP(object);

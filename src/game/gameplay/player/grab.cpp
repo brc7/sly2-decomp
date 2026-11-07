@@ -1422,7 +1422,7 @@ void ReleaseJtHandsActs(void *);
 void StopSnd(EFFECT *, float);
 void SetStepplayerTnOverride(ACTOR *, void *);
 void ResetJtGrabTnParams(CONTEXT *);
-qword ConvertAloPos(void *, void *, qword);
+qword ConvertPosBetweenLos(void *, void *, qword);
 void ResetGaitFeet(PROGRAM_ITEM *);
 void ReleaseAsega(ANIMATION **);
 void ReleaseSma(COMPONENT *);
@@ -1763,7 +1763,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
                         ResetJtGrabTnParams(grab);
                         grab->aux->enabled = 1;
                         AUX *aux = grab->aux;
-                        aux->position = ConvertAloPos(0, grab->aux, GetLoWorldPos(source));
+                        aux->position = ConvertPosBetweenLos(0, grab->aux, GetLoWorldPos(source));
                         grab->aux->value = source->parameter;
                         SetStepplayerTnOverride(grab->pactor, grab->aux);
                     }
@@ -2006,7 +2006,7 @@ float SMinShape(struct O *o);
 float SMaxShape(struct O *o);
 float GModPositive__Fff(float g, float hi);
 void EvaluateShapeS(struct O *o, float g, U *pv, int n);
-qword ConvertAloPos(int n, struct P *p, qword q);
+qword ConvertPosBetweenLos(int n, struct P *p, qword q);
 int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
 static __inline__ float GClamp(float g, float lo, float hi)
 {
@@ -2046,7 +2046,7 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
     else
         t = GClamp(grab->x4e0 + g, lo, hi);
     EvaluateShapeS(o, t, &v, 0);
-    v.q = ConvertAloPos(0, grab, v.q);
+    v.q = ConvertPosBetweenLos(0, grab, v.q);
     if (ClipEdgeToSphere(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(hit.b.q), "j"(q->x10.q));
         SetActRotationGoal(r, d);

@@ -109,7 +109,7 @@ extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
 void HideSoPart(JT*,ACTION*);void InvalidateSoAaox(JT*);void SetJtHandsTarget(void*,int);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
-qword GetLoWorldPos(void*);qword ConvertAloPos(void*,void*,qword);
+qword GetLoWorldPos(void*);qword ConvertPosBetweenLos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int IsmsFindSmOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
@@ -121,7 +121,7 @@ static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((ch
 
 extern "C" {
 qword GetLoWorldPos(void *);
-qword ConvertAloPos(void *, void *, qword);
+qword ConvertPosBetweenLos(void *, void *, qword);
 float atan2f(float, float);
 float RadNormalize__Ff(float);
 void UpdateJtHands(void *);
@@ -220,14 +220,14 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
 
     case 3: {
         WORK work;
-        register qword first __asm__("$2") = ConvertAloPos(0, jt, GetLoWorldPos(jt->pointObject));
+        register qword first __asm__("$2") = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->pointObject));
         register POINT *point __asm__("$3");
         register void *world __asm__("$4");
         register JT *receiver __asm__("$5");
         __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero"
                 : "=r"(point), "=r"(world), "=r"(receiver), "=m"(work.first.q)
                 : "m"(jt->point), "r"(first), "r"(jt));
-        register qword second __asm__("$2") = ConvertAloPos(world, receiver, point->position.q);
+        register qword second __asm__("$2") = ConvertPosBetweenLos(world, receiver, point->position.q);
         register qword average __asm__("vf2");
         register int mode __asm__("$3");
         __asm__(".set noat\n\tlui $1,0x3f00\n\tmtc1 $1,$f0\n\t.set at\n\tqmtc2.ni %3,$vf4\n\tlqc2 $vf3,%4\n\tmfc1 "
@@ -661,8 +661,8 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     qword a, b, s, d;
     float t;
     int f;
-    a = ConvertAloPos(0, jt, GetLoWorldPos(jt->pointObject));
-    b = ConvertAloPos(0, jt, jt->point->position.q);
+    a = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->pointObject));
+    b = ConvertPosBetweenLos(0, jt, jt->point->position.q);
     t = 0.5f;
     s = VuFromFloat<qword>(t);
     u.q = s;
@@ -878,7 +878,7 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
     position = GetLoWorldPos(jt);
     VU_FLOAT scalar = VuFloatBits(dt);
     origin.q = AddScaled(position, GetVelocity(jt), scalar);
-    reference.q = ConvertAloPos(jt, 0, offset->q);
+    reference.q = ConvertPosBetweenLos(jt, 0, offset->q);
     target.q = VuAdd(Rotate(rotation, offset->q), origin.q);
     delta.q = VuSubRef(target.q, reference.q);
     for (ALO *node = (*(ALO **)&g_sw.dlTarget); node; node = node->next) {

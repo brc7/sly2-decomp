@@ -1343,7 +1343,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
+qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -1429,7 +1429,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
         __asm__("sq %3,%0\n\tdaddu %1,$zero,$zero\n\tlw %2,%4"
                 : "=m"(w.turn.original.q), "=r"(empty), "=r"(actor)
                 : "r"(original), "m"(p->actor));
-        w.turn.local.q = ConvertAloVec(empty, actor, original);
+        w.turn.local.q = ConvertVecBetweenLos(empty, actor, original);
         register unsigned clockWord __asm__("$16");
         register float updatedX __asm__("$f0"), updatedY __asm__("$f0");
         register M3 *rotationOutput __asm__("$4");
@@ -4001,7 +4001,7 @@ struct CONTEXT; struct OBJECT;
 struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
 void EvaluateShapeS(struct OBJECT *, float, V *, V *);
-qword ConvertAloPos(struct OBJECT *, struct OBJECT *, qword);
+qword ConvertPosBetweenLos(struct OBJECT *, struct OBJECT *, qword);
 float MeasureJumpTargetAtTime(void *, float);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
@@ -4026,7 +4026,7 @@ float MeasureJumpToPipe(struct S *s, float parameter) {
     EvaluateShapeS(b, parameter, &v, 0);
     t.a = s->a;
     t.b = b;
-    t.q = ConvertAloPos(0, b, v.q);
+    t.q = ConvertPosBetweenLos(0, b, v.q);
     MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
     return r;
 }
@@ -4356,7 +4356,7 @@ void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg,
 void FindMeshClosestPoint(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
 int PredictMeshContact(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
 void EvaluateShapeS(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
-qword ConvertAloPos(void *pvFrom, void *pvTo, qword pos);
+qword ConvertPosBetweenLos(void *pvFrom, void *pvTo, qword pos);
 float atan2f(float y, float x);                                 // atan2f
 void SetJtAirState(JTAIR *pjtair, int nKind, void *plo);
 }
@@ -4621,7 +4621,7 @@ LPartnerDone:
         ctx.pjtair = air;
         ctx.plo = curve;
         EvaluateShapeS(curve, s, &posTarget, 0);
-        ctx.v = ConvertAloPos(0, curve, posTarget.q);
+        ctx.v = ConvertPosBetweenLos(0, curve, posTarget.q);
         MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
         if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t,

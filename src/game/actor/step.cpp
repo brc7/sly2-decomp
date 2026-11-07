@@ -32,7 +32,7 @@ void LoadPoFromBrx(PO *ppo, CBinaryInputStream *pbis);
 void ClonePo(PO *ppo, PO *ppoBase);
 void CloneBhvstk(BHVSTK *pbhvstk, STEP *pstep);
 void RenderSoSelf(SO *pso, void *pcm, void *pro);
-qword ConvertAloPos(SO *psoFrom, SO *psoTo, qword pos);
+qword ConvertPosBetweenLos(SO *psoFrom, SO *psoTo, qword pos);
 int EnsureSoPhysRegionRecord(STEP *pstep);   /* its int result decides the scheduling around the call (the v0 rule) */
 SOPART *FindSoPart(SO *pso, OID oid);
 void SetStepPhys(STEP *pstep, SOPART *ppart, int n);
@@ -93,7 +93,7 @@ void STEP::Init()
 }
 
 /** @sly2-annot addr=0x2039C0
- * Purpose: STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300
+ * Purpose: STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertPosBetweenLos(parent,this,0)), 0x1F8300
  * Info: proposed name LoadStepFromBrx (T1); class STEP slot14; TU step
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+parse-verified
@@ -105,7 +105,7 @@ void STEP::Init()
 extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 {
     LoadPoFromBrx(step, stream);
-    step->qwUnk240 = ConvertAloPos(step->psoParent, step, D_002A2DD0);
+    step->qwUnk240 = ConvertPosBetweenLos(step->psoParent, step, D_002A2DD0);
     EnsureSoPhysRegionRecord(step);
 }
 
@@ -607,7 +607,7 @@ void PresetStepAccel(struct S *step)
 extern "C" void TranslateStepToPos(STEP *step, qword pos)
 {
     TranslateSoToPos(step, pos);
-    step->qwUnk230 = ConvertAloPos(step, 0, step->qwUnk240);
+    step->qwUnk230 = ConvertPosBetweenLos(step, 0, step->qwUnk240);
 }
 
 /** @sly2-annot addr=0x2041F8

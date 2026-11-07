@@ -50,7 +50,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int state);
 int ShouldKeepSoNotSelfSlot62(void *context, FPAIR *watch);
 int FilterStuckProbe(void *context, FPAIR *watch);
 int StepguardHasSgf(GUARDV *object, int state);
-qword ConvertAloPos(GUARDV *object, int a, qword v);
+qword ConvertPosBetweenLos(GUARDV *object, int a, qword v);
 int SnapToGround(qword *context, float f, float g, int a, int (*pfn)(void *, FPAIR *));
 void *func_002333B4(void *context, int c, int cb) __asm__("memset");
 void DeliverZapToSo(WMSG *zap);
@@ -121,7 +121,7 @@ extern "C" int IsGuardStuck(STUCKWATCH *watch)
         return 0;
     probeIndex = 0;
     do {
-        qword probe = ConvertAloPos(watch->guard, 0, D_002C3E00[probeIndex].q);
+        qword probe = ConvertPosBetweenLos(watch->guard, 0, D_002C3E00[probeIndex].q);
         if (SnapToGround(&probe, D_002C3E50, D_002C3E54, 1, FilterStuckProbe))
             break;
         probeIndex++;

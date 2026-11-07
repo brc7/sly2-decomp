@@ -2237,7 +2237,7 @@ extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
 extern void VECTOR_opAssign(qword *pv, qword a);
 extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pb, EMITR *pr);
-extern qword ConvertAloPos(int x, int y, qword v);
+extern qword ConvertPosBetweenLos(int x, int y, qword v);
 extern void *PsndStartSound(int id);
 extern void SetSndSourceLo(void *p, void *pso);
 extern void SetSndSourcePos(void *p, qword v);
@@ -2359,7 +2359,7 @@ void FireExplsExplso(EMITTERV *expls, EMITO *explso)
             }
             pos.q = v;
         }
-        pos.q = ConvertAloPos(emitp.reference, 0, pos.q);
+        pos.q = ConvertPosBetweenLos(emitp.reference, 0, pos.q);
         sound = PsndStartSound(expls->psnd->id);
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, pos.q);

@@ -1027,7 +1027,7 @@ int DoesTargetRecordAllowGuard(void *, P *);
 qword GetLoWorldPos(P *);
 unsigned GetSourceIndexFromProxyId__Fi(unsigned);
 int IsWithinLimits__FP2LMf(LM *, float);
-qword ConvertAloPos(P *, P *, qword);
+qword ConvertPosBetweenLos(P *, P *, qword);
 float atan2f(float, float);
 int FilterAttackLineOfSightHit(void *, void *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
@@ -1155,7 +1155,7 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
         if (!IsWithinLimits__FP2LMf(&entry->height, height))
             continue;
         {
-            qword local = ConvertAloPos(0, guard, to);
+            qword local = ConvertPosBetweenLos(0, guard, to);
             angle = __builtin_fabsf(atan2f(GYOfQw(local), GXOfQw(local)));
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
@@ -1955,7 +1955,7 @@ extern CLOCK D_002DDED0;extern float D_002BE620;
 void*func_002333B4(void*,int,unsigned) __asm__("memset");
 void SetBhvguardMode(S*,STATE*);
 qword GetLoWorldPos(void*);M4*GetLoWorldMatrix(void*);
-qword ConvertAloVec(void*,void*,qword);
+qword ConvertVecBetweenLos(void*,void*,qword);
 int IsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void SpawnMurrayHitEffectUnchecked(OBJECT*,qword);
 void SpawnMurrayHitEffect(OBJECT*,qword);
@@ -2217,9 +2217,9 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                     qword direction = w.delta.q;
                     if (special && selected->data.object->state == 12) {
                         OBJECT *object = selected->data.object;
-                        *(qword *)&w.scalar = ConvertAloVec(0, object, direction);
+                        *(qword *)&w.scalar = ConvertVecBetweenLos(0, object, direction);
                         w.scalar.f[0] *= 0.25f;
-                        direction = ConvertAloVec(object, 0, w.scalar.q);
+                        direction = ConvertVecBetweenLos(object, 0, w.scalar.q);
                     }
                     qword normalized = Normalize(direction);
                     *(qword *)&w.scalar = Scalar(500.0f);
@@ -4073,7 +4073,7 @@ int GetZapKindIndex(int mask);
 void StartBhvhit(struct S *p);
 void *GetHeroPo(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
-qword ConvertAloPos(struct A *source, void *target, qword v);
+qword ConvertPosBetweenLos(struct A *source, void *target, qword v);
 void SprayDifficultyPrizes(void *a, qword v, int n, int m, struct A *p);
 void RecalcSwOxfFilterForObject(struct G *g, struct A *p);
 void ResetDetectorTargets(void *p);
@@ -4114,7 +4114,7 @@ void StartBhvko(struct S *behavior) {
         qword v;
         /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
         __asm__ __volatile__("" : : : "memory");
-        v = ConvertAloPos(behavior->guard, 0, q);
+        v = ConvertPosBetweenLos(behavior->guard, 0, q);
         SprayDifficultyPrizes(D_002DE578, v, n, behavior->guard->unknown3F0, behavior->guard);
     }
     RecalcSwOxfFilterForObject(&D_003DD490, behavior->guard);
@@ -6270,7 +6270,7 @@ struct P {char pad10[0x10];void*guard;int pad14;void*child;char pad1C[4];int pen
 void UpdateBhv(struct P*);
 int IsBhvBusyAbove(struct P*);
 qword GetLoWorldPos(void*);
-qword ConvertAloPos(void*,void*,qword);
+qword ConvertPosBetweenLos(void*,void*,qword);
 int IsStepguardHandsOff(void*);
 void SetBhvEscortState(struct P*,int);
 void ClearPointerPair(struct X*);
@@ -6312,7 +6312,7 @@ top: {
         else if (lim < LenXY(SubIn(behavior->lastGoalPosition, pos))) {
             qword v;
             behavior->lastGoalPosition = pos;
-            v = ConvertAloPos(behavior->escorted, 0, behavior->localOffset);
+            v = ConvertPosBetweenLos(behavior->escorted, 0, behavior->localOffset);
             ClearPointerPair(&x);
             x.v = v;
             SetBhvgotoGoal(behavior->child, &x);
@@ -6378,7 +6378,7 @@ struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; void *es
 void PopBhv(void *p);
 struct O *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
-qword ConvertAloPos(void *p, int n, qword v);
+qword ConvertPosBetweenLos(void *p, int n, qword v);
 void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 // 0x17C928: Escort behaviour state change: 0 go to the offset point, 1 run to the object (flag 0x1C), 2 hands-off
@@ -6418,7 +6418,7 @@ void SetBhvEscortState(struct S *behavior, int n) {
             struct O *o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
             qword v;
             behavior->lastGoalPosition = GetLoWorldPos(behavior->escorted);
-            v = ConvertAloPos(behavior->escorted, 0, behavior->localOffset);
+            v = ConvertPosBetweenLos(behavior->escorted, 0, behavior->localOffset);
             o->gotoAllowPartialRoute = 1;
             ClearPointerPair(&x);
             x.v = v;

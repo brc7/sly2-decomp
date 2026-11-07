@@ -884,7 +884,7 @@ void UpdateSo(P*);
 int IsHackAnimDone(P*);
 void SetHackenemyState(P*,int);
 qword GetLoWorldPos(void*);
-qword ConvertAloVec(void*,void*,qword);
+qword ConvertVecBetweenLos(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
 float atan2f(float,float);
 float RadNormalize__Ff(float);
@@ -953,7 +953,7 @@ extern "C" void UpdateHackenemy(P*enemy){
   qword target=GetLoWorldPos(enemy->target);
   qword delta=QwSub(target,GetLoWorldPos(enemy));
   float distance=Length(delta);
-  float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,enemy,delta)));
+  float heading=RadNormalize__Ff(Heading(ConvertVecBetweenLos(0,enemy,delta)));
   int accept;
   if(!rule->distanceEnabled)accept=rule->angleEnabled;else accept=IsWithinLimits__FP2LMf(&rule->stayDistance,distance);
   if(accept){
@@ -1007,7 +1007,7 @@ dispatch:
    unit.q=QwNormalizeSafe(d,D_002A2DD0,eps);
   }
   float remaining=SMaxShape(enemy->curve)-enemy->progress;
-  float turn=Heading(ConvertAloVec(0,enemy,unit.q));
+  float turn=Heading(ConvertVecBetweenLos(0,enemy,unit.q));
   float response=GetDifficulty(D_002DE578);
   float speed=Limit(Evaluate(&enemy->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&enemy->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*enemy->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));

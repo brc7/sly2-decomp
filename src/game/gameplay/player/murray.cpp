@@ -2553,7 +2553,7 @@ extern qword D_002C09D0, D_002A2DD0;
 void DetachMurrayCarried(struct S *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 void StunStepguardThrownOp3(struct O *p);
-qword ConvertAloVec(struct S *p, int n, qword q);
+qword ConvertVecBetweenLos(struct S *p, int n, qword q);
 void SetSoZapMode(struct O *p, int n);
 /** @sly2-annot addr=0x1B7AE8
  * Purpose: Release in state 8: detach, velocity = fixed local vector D_002C09D0, zero angular velocity,
@@ -2572,7 +2572,7 @@ void TossMurrayCarried(struct S *murray)
     murray->pt = 0;
     if ((int)(object->f28 >> 60) & 1) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
-        q = ConvertAloVec(murray, 0, D_002C09D0);
+        q = ConvertVecBetweenLos(murray, 0, D_002C09D0);
         ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, q);
         ((void (*)(void *, qword))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
         SetSoZapMode(object, 3);
@@ -2592,7 +2592,7 @@ void DetachMurrayCarried(struct P *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
 void StunStepguardThrownOp2(struct X *x);
 void SetSoZapMode(struct X *x, int n);
-qword ConvertAloVec(struct P *p, int n, qword q);
+qword ConvertVecBetweenLos(struct P *p, int n, qword q);
 /** @sly2-annot addr=0x1B7BA8
  * Purpose: Abort carrying (on forced state change): detach the carried/lifted object and set its velocity per
  *   current state
@@ -2624,7 +2624,7 @@ void DropMurrayCarried(struct P *murray)
     switch (murray->state) {
     case MURRAY_CARRY: {
         struct VE *e = &x->vt[35];
-        ((void (*)(void *, qword))e->pfn)((char *)x + e->d, ConvertAloVec(murray, 0, D_002C09E0));
+        ((void (*)(void *, qword))e->pfn)((char *)x + e->d, ConvertVecBetweenLos(murray, 0, D_002C09E0));
         break;
     }
     case MURRAY_JUMP: case MURRAY_LIFT: case MURRAY_THROW: case MURRAY_TOSS:
@@ -3020,7 +3020,7 @@ struct T { char pad[0x14]; int x14; };
 struct P { char pad[0x10DC]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; char pad2[0x190C - 0x1808]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
 qword GetLoWorldPos(void *p);
-qword ConvertAloVec(void *a, void *b, qword q);
+qword ConvertVecBetweenLos(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 /** @sly2-annot addr=0x1B8508
@@ -3040,7 +3040,7 @@ void StartMurrayPunch(struct P *murray)
         if (v == murray->x17FC || v == murray->x1804) k = 1;
         else k = 0;
     } else if (murray->interactTarget) {
-        if (GetY(ConvertAloVec(0, murray, Sub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 0;
+        if (GetY(ConvertVecBetweenLos(0, murray, Sub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 0;
         else k = 1;
     } else
         k = 1;
@@ -3055,7 +3055,7 @@ struct T { char pad[0x14]; int x14; };
 struct P { char pad[0x10DC]; void *interactTarget; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; int x1808; char pad2[0x190C - 0x180C]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
 qword GetLoWorldPos(void *p);
-qword ConvertAloVec(void *a, void *b, qword q);
+qword ConvertVecBetweenLos(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 /** @sly2-annot addr=0x1B85D0
@@ -3077,7 +3077,7 @@ void StartMurrayAltAttack(struct P *murray)
         if (v == murray->x17FC || v == murray->x1804) k = 3;
         else k = 2;
     } else if (murray->interactTarget) {
-        if (GetY(ConvertAloVec(0, murray, Sub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 2;
+        if (GetY(ConvertVecBetweenLos(0, murray, Sub(GetLoWorldPos(murray->interactTarget), GetLoWorldPos(murray)))) > 0.0f) k = 2;
         else k = 3;
     } else
         k = 3;
@@ -3291,7 +3291,7 @@ extern struct LIMIT D_002BBB60;
 qword GetStepAsegaTranslation(struct P*,struct Q*,float);
 struct PARAM *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
-qword ConvertAloVec(void*,void*,qword);
+qword ConvertVecBetweenLos(void*,void*,qword);
 void FaceStepToward(struct P*,void*);
 static inline float Clamp(float f,float lo,float hi){if(f<lo)return lo;if(hi<f)return hi;return f;}
 static inline float Polynomial(struct POLY*p,float t){return p->a+t*(p->b+t*p->c);}
@@ -3360,7 +3360,7 @@ void UpdateMurrayAttackVelocity(struct P*murray){
             float t=(murray->source->time-start->value)/(end->value-start->value);
             float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
             qword desired=OrbitVector(murray);
-            desired=ConvertAloVec(0,murray,desired);
+            desired=ConvertVecBetweenLos(0,murray,desired);
             Blend(desired,blend,&murray->velocity,&scalar);
             }
         }
@@ -3806,7 +3806,7 @@ extern "C" void SetLoParent(OWNER*,int,int);
 extern "C" void SetSoTreeFlag2(OWNER*,int);
 extern "C" EVENT*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
-extern "C" M4 ConvertAloMat4(void*,void*,M4*);
+extern "C" M4 ConvertMat4BetweenLos(void*,void*,M4*);
 extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
 extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
 extern "C" void SendStepguardRootBhvMode6(OWNER*,int);
@@ -3860,7 +3860,7 @@ extern "C" void SetMurrayLiftSubstate(P *murray, int state)
         EVENT *event = FindAsegLabel(murray->anim->clip, 0x1C7);
         duration = (event->time - murray->anim->time) / murray->anim->rate;
         LoadIdentityMatrix4(murray->root->node, murray->node, &predicted, 0, duration);
-        M4 work = ConvertAloMat4(murray, 0, &predicted);
+        M4 work = ConvertMat4BetweenLos(murray, 0, &predicted);
         predicted = work;
         GetMurrayGripFrame(murray, 0, &predicted, &work.row[0].q, &work.row[1].q);
         if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))

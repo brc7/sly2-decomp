@@ -24,7 +24,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* Declarations of UpdateCptn (ported from Lilly's personal Sly 2 decomp, src/P2/cplcy.c), used by the whole TU. */
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-extern "C" qword ConvertAloVec(LO *ploFrom, LO *ploTo, qword qwVec);
+extern "C" qword ConvertVecBetweenLos(LO *ploFrom, LO *ploTo, qword qwVec);
 MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
 void DecomposeRotateMatrixPanTilt(MATRIX3 *pmat, float *pradPan, float *pradTilt);
 static inline float GEvaluateClq(CLQ *pclq, float x)
@@ -453,7 +453,7 @@ void SetCmPolicy(CM *pcm, int nPriority, CMPART2 *pcplcy, LO *plo, TN *ptn);
 void RevokeCmPolicy(CM *pcm, int a, int b, int c, int d, TN *ptn);
 POX *GetCurrentPo(SW *psw);
 qword GetLoWorldPos(void *plo);
-qword ConvertAloPos(void *source, void *p, qword q);
+qword ConvertPosBetweenLos(void *source, void *p, qword q);
 BSP *FindBspLeafContainingPointFast(BSP *p, unsigned int limit, qword v);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void UpdateLo(TN *p);
@@ -675,7 +675,7 @@ void UpdateTnCallback(TN *p)
     }
     int initial=p->tnsWant;
     int sentinel=AutomaticSentinel();
-    if(initial==sentinel) f=FindBspLeafContainingPointFast(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, GetLoWorldPos(po))) != 0;
+    if(initial==sentinel) f=FindBspLeafContainingPointFast(p->bspc.absp, 0x7FFFFFFF, ConvertPosBetweenLos(0, p, GetLoWorldPos(po))) != 0;
     else f=initial;
     if (!p->nUnk124 && IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34) && po->unknown2DC != -1 && !D_002DE240
         && p->tnsWant == -1)
@@ -734,7 +734,7 @@ void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
         *out=InverseRotate(m,Sub(v,pos.q));
     } else {
         *normal=Normalize(GetLoWorldMatrix(p)->r[0]);
-        *out=ConvertAloPos(0,p,v);
+        *out=ConvertPosBetweenLos(0,p,v);
     }
 }
 
@@ -775,7 +775,7 @@ void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qwor
     } else {
         center.i[0]=center.i[1]=center.i[2]=0;
         pos.f[0]+=delta;
-        rotated.q=ConvertAloPos(p,0,pos.q);
+        rotated.q=ConvertPosBetweenLos(p,0,pos.q);
     }
     *out=Add(center.q,rotated.q);
 }
@@ -930,7 +930,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
     if (ps->pshape) {
         FindShapeClosestPointFromS(ps->pshape, q, ps->uProgress, 0, 0, 0, 0, &ps->uProgress);
     } else {
-        qword v = ConvertAloPos(0, ps, q), d;
+        qword v = ConvertPosBetweenLos(0, ps, q), d;
         float g;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(*(qword *)&ps->posCenter));
         g = atan2f(GetY(d), GetX(d));
@@ -981,7 +981,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 //     limited to 2.5, times uTunnel, times CLQ {1,-2,-2}(left stick y) in 1..2, times the ramp 0..1 of the seconds since the player let go, times dt.
 //     The tilt eases back into CPD::lmTilt (RadSmooth, SMP {0.75,0,2} x speed) once the hero moves faster than 60 u/s (speed / 600 capped at 1 > 0.1).
 //     With tunnel views: the view to pull toward is the forward one (plain zones, mode 1; the player's own tunnel +0x528 with blend 3.0), the backward
-//     one (mode 2), else by the hero's facing (PmatLoWorld row 0, z dropped) against the tunnel's direction (ConvertAloVec): blend = g^2 (3 - 2|g|),
+//     one (mode 2), else by the hero's facing (PmatLoWorld row 0, z dropped) against the tunnel's direction (ConvertVecBetweenLos): blend = g^2 (3 - 2|g|),
 //     backward when the backward view is allowed and g <= 0. The pull strength = (speed / 600, or / 200 while +0x4CC == -1 / +0x4C8, capped at 1)
 //     x CPD::gTurn; fPullIdle raises it to gPullIdle x ramps of (idle 0.75 s, no player turn 10 s) over dtPullIdle; fPullEnter (until fArrived) to
 //     gPullEnter x the ramp since the tunnel was entered (tTns) over dtPullEnter. The pulled pan / tilt = RadSmooth toward the view (SMP {0.5,0,0.5} x
@@ -1320,7 +1320,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwHeading) : "j"(qwHeadingRaw));
                 }
                 *(qword *)&vecHeading = qwHeading;
-                *(qword *)&vecTangent = ConvertAloVec(ptnCur, 0, *(qword *)&vecTangent);
+                *(qword *)&vecTangent = ConvertVecBetweenLos(ptnCur, 0, *(qword *)&vecTangent);
                 float gAlong = GFromVf(QwDot(*(qword *)&vecHeading, *(qword *)&vecTangent));
                 gBlend = gAlong * gAlong * (3.0f - (fabsf(gAlong) + fabsf(gAlong)));
                 if ((grftnm & 2) == 0 || 0.0f < gAlong)

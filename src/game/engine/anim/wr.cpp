@@ -167,7 +167,7 @@ extern "C"
 {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                       // memset
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);         // CopyAb
-qwordV ConvertAloPos(SO *psoFrom, SO *psoTo, qwordV pos);              // ConvertLoPos
+qwordV ConvertPosBetweenLos(SO *psoFrom, SO *psoTo, qwordV pos);              // ConvertLoPos
 float RadNormalize__Ff(float rad);                                      // RadNormalize
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);           // CalculateSinCos
 MATRIX4V InvertMatrix4Rigid(const MATRIX4V *pmat);                          // the inverse of a 4x4 matrix
@@ -444,7 +444,7 @@ void UpdateWrStateVectors(WRV *warp)
             MATRIX4V matWorld = group->glob->pxf->matWorld;
             if (group->glob->pmatUnk08)
                 matWorld = __ml__FRC7MATRIX4T0(matWorld, *group->glob->pmatUnk08);
-            posWorldBend = ConvertAloPos(group->pso, 0, posBend);
+            posWorldBend = ConvertPosBetweenLos(group->pso, 0, posBend);
 
             // the state vectors of every warp entry
             for (int iwre = 0; iwre < warp->entryCount; iwre++)

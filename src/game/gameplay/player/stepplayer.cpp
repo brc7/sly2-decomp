@@ -2379,7 +2379,7 @@ int IsWithinLimits__FP2LMf(void *p, float g);
 void AttachAct(Q *pq);
 void DetachAct(Q *pq);
 qword GetLoWorldPos(void *p);
-qword ConvertAloPos(int n, P *p, qword q);
+qword ConvertPosBetweenLos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
 float ClampAngleToRange(LM *plm, float g);
 M3 LoadRotateMatrixPanTilt(float a, float b);
@@ -2495,7 +2495,7 @@ void PickHeroInteractTarget(P *p)
             return;
         }
         AttachAct(p->pq);
-        CalculateVectorPanTilt(ConvertAloPos(0, p, GetLoWorldPos(p->leanTarget)), &pan, &tilt);
+        CalculateVectorPanTilt(ConvertPosBetweenLos(0, p, GetLoWorldPos(p->leanTarget)), &pan, &tilt);
         pan = ClampAngleToRange(&p->lmPan, pan);
         tilt = ClampAngleToRange(&p->lmTilt, tilt);
         {
@@ -2547,7 +2547,7 @@ struct P { char pad[0x10F8]; void *leanTarget; int x10FC; };
 extern float D_002BD2C0;
 extern float D_002BD2C4;
 qword GetLoWorldPos(void *p);
-qword ConvertAloPos(void *pm, struct P *p, qword v);
+qword ConvertPosBetweenLos(void *pm, struct P *p, qword v);
 float atan2f(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -2566,7 +2566,7 @@ int GetStepplayerLeanFlags(struct P *player)
     int n;
     int r;
     if (player->leanTarget) {
-        qword v = ConvertAloPos(0, player, GetLoWorldPos(player->leanTarget));
+        qword v = ConvertPosBetweenLos(0, player, GetLoWorldPos(player->leanTarget));
         float g = atan2f(GetY(v), GetX(v));
         float a = __builtin_fabsf(g);
         if (a < D_002BD2C0) n = 0;

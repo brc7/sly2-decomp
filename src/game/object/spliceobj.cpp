@@ -37,8 +37,8 @@ template <> void CGcObj<CMethod>::Unlink();
 /* The sidebag calls (sidebag.cpp's CSidebag, by its linker names). */
 struct CSidebag
 {
-    int FFindBinding(int sym, CRef *pref);
-    CRef RefSetBinding(int sym, CRef *pref);
+    int FindSidebagBinding(int sym, CRef *pref);
+    CRef AssignSidebagBinding(int sym, CRef *pref);
 };
 extern "C" CRef CSidebag_AddBinding(CSidebag *psidebag, int sym, CRef *pref);
 void EnsureBasicSidebag(BASIC *object);
@@ -363,7 +363,7 @@ CRef GetBasicOption(BASIC *object, int optionId)
         return GetOptionRecordValue(object, FindOptionRecord(object, optionId));
     }
     CRef ref;
-    object->psidebag->FFindBinding(optionId, &ref);
+    object->psidebag->FindSidebagBinding(optionId, &ref);
     return ref;
 }
 
@@ -377,7 +377,7 @@ CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     if (optionId < 0x4D1)
         return SetOptionRecordValue(object, FindOptionRecord(object, optionId), pref);
-    return object->psidebag->RefSetBinding(optionId, pref);
+    return object->psidebag->AssignSidebagBinding(optionId, pref);
 }
 
 /** @sly2-annot addr=0x200CA8
@@ -401,8 +401,8 @@ CRef AddBasicOption(BASIC *object, int optionId, CRef *pref)
 CRef EnsureBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
-    if (object->psidebag->FFindBinding(optionId, 0))
-        return object->psidebag->RefSetBinding(optionId, pref);
+    if (object->psidebag->FindSidebagBinding(optionId, 0))
+        return object->psidebag->AssignSidebagBinding(optionId, pref);
     return CSidebag_AddBinding(object->psidebag, optionId, pref);
 }
 

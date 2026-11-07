@@ -1232,7 +1232,7 @@ void *FindNavTriangleQuick(void*,qword,int);
 qword ClosestPointOnCgt(void*,qword);
 int FindPathzoneObstacles(struct S*,void*,qword,qword,int,void**);
 int IsPosInCnvo(void*,qword);
-qword ConvertAloPos(void*,void*,qword);
+qword ConvertPosBetweenLos(void*,void*,qword);
 int ClipEdgeToPathzone(struct S*,qword,qword,int,struct HIT*,int);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 int FindPathzoneClosestPoint(struct S*,qword,qword*,int);
@@ -1266,11 +1266,11 @@ int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  if(!poly){*out=projected;return 1;}
  best.i[2]=0;best.i[1]=0;best.i[0]=0;
  bestDistance=D_002A76DC;
- first=ConvertAloPos(poly,0,poly->vertices[0]);
+ first=ConvertPosBetweenLos(poly,0,poly->vertices[0]);
  z=InitialEndpoint(&a,first,projected);
  i=1;if(i<InitialCount(poly)){do{
   int c;qword*h;
-  b.q=ConvertAloPos(poly,0,poly->vertices[i]);b.f[2]=z;
+  b.q=ConvertPosBetweenLos(poly,0,poly->vertices[i]);b.f[2]=z;
   c=ClipEdgeToPathzone(zone,a.q,b.q,1,hits,2);
   {int k;h=&hits[0].pos[1];for(k=0;k<c;k++){
    FindClosestPointOnLineSegment(projected,h[-1],h[0],&nearest.q,0,&distance);

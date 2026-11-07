@@ -113,7 +113,7 @@ int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
 void SetBentleyHoverState(O *,int);
 TRACKREF *FindAsegChannel(ASEG *,O *,void *,int);
 int ShouldKeepSoPair(void *a, SOPAIR *b);
-qword ConvertAloPos(void *,void *,qword);
+qword ConvertPosBetweenLos(void *,void *,qword);
 qword CalculateBallisticLaunchVelocity(qword,qword,qword,float); // CalculateLaunchVelocity
 void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SOPAIR *),void *,int *,SO ***); // FindSwObjectsInBox
 int FilterJtThrowArcObject(void *,SOPAIR *);
@@ -135,7 +135,7 @@ void ReleaseSma(HANDLE *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *,O *,float,float,int,ASEGAV **);
 void SetSoCnstrForce(O *po, int a);
 void SetSoCnstrTorque(O *po, int a);
-qword ConvertAloVec(void *p, int a, qword q);
+qword ConvertVecBetweenLos(void *p, int a, qword q);
 }
 
 static inline void SetV(V3 *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
@@ -642,7 +642,7 @@ namespace RO_ORDER { extern const float r_D_002A96A0 __asm__("D_002A96A0") = 3.4
 // marker ring and updates the aim blends.
 extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
 {
-    qword posLaunch = ConvertAloPos(thrower->owner, 0, thrower->secondary.q);
+    qword posLaunch = ConvertPosBetweenLos(thrower->owner, 0, thrower->secondary.q);
     qword posHold = thrower->targetWorld.q;
     qword vAccel = thrower->selected->pgravity->vAccel.q;
     qword posHero = GetLoWorldPos(thrower->owner);
@@ -941,7 +941,7 @@ extern "C" void ReleaseJtThrowObject(JTTHROW *thrower)
         object = thrower->selected;
         pve = &object->vt[36];
         object = (O *)((char *)object + pve->delta);
-        pve->f.vector(object, ConvertAloVec(thrower->owner, 0, thrower->launchOffset.q));
+        pve->f.vector(object, ConvertVecBetweenLos(thrower->owner, 0, thrower->launchOffset.q));
     }
     if (IsBasicDerivedFrom__FP5BASIC3CID(thrower->selected, 100))
         thrower->selected->vt[76].f.integer((char *)thrower->selected + thrower->selected->vt[76].delta, 1);
@@ -1172,7 +1172,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
         }
         if (previous != 5 && previous != 6) {
             s->distance = 0.0f;
-            s->targetWorld.q = ConvertAloPos(s->owner, 0, s->targetLocal.q);
+            s->targetWorld.q = ConvertPosBetweenLos(s->owner, 0, s->targetLocal.q);
             UpdateJtThrowArc(s, 0);
         }
         animation = s->animation4;

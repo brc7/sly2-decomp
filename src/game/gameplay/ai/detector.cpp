@@ -105,7 +105,7 @@ void memmove(void *dst, void *src, int cb);
 SOV *GetHeroPo(void *object);
 int IsLoInWorld(SOV *object);
 int IsSwInputLocked(void *object);
-qword ConvertAloPos(void *plo0, void *plo1, qword v);
+qword ConvertPosBetweenLos(void *plo0, void *plo1, qword v);
 int func_00118668(void *object, int mask, qword a, qword b, int n, BUF *pbuf);
 int IsPointInVol(void *object, qword v);
 int ShouldKeepSoNotSelf(void *context, HITV *hit);
@@ -309,8 +309,8 @@ extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, in
     else
         targetPos = GetLoWorldPos(target);
     for (occluder = *(WVOL **)&g_sw.dlCid23; occluder; occluder = occluder->next) {
-        qword eyeLocal = ConvertAloPos(0, occluder, GetDetectorEyePosition(detector));
-        qword targetLocal = ConvertAloPos(0, occluder, targetPos);
+        qword eyeLocal = ConvertPosBetweenLos(0, occluder, GetDetectorEyePosition(detector));
+        qword targetLocal = ConvertPosBetweenLos(0, occluder, targetPos);
         if (func_00118668(occluder->bsp, 0x7FFFFFFF, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = TARGET_UNSEEN; goto done; }
     }
     switch (state) {
@@ -394,7 +394,7 @@ extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
     qword boxMax = eyePos;
     qword boxMin = eyePos;
     for (i = 0; i < 1; i++) {
-        qword point = ConvertAloPos(target, 0, localPoints[i]);
+        qword point = ConvertPosBetweenLos(target, 0, localPoints[i]);
         points[i] = point;
         __asm__("vmini.xyz %0, %0, %1" : "+j"(boxMin) : "j"(point));
         __asm__("vmax.xyz %0, %0, %1" : "+j"(boxMax) : "j"(point));

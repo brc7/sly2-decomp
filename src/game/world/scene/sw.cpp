@@ -2309,7 +2309,7 @@ extern "C" LEVELLIST8 *GetLevelListEntry(int ilevel)
 }
 
 namespace M_func_002109D0 { extern "C" {
-struct X { char pad[8]; int sectorKey; char padc[0x2C]; int sectorXor; };   /* a file record: obfuscated sector (cf. FOpenSaveIconFile) */
+struct X { char pad[8]; int sectorKey; char padc[0x2C]; int sectorXor; };   /* a file record: obfuscated sector (cf. GetDiscFileEntrySize) */
 extern int D_003E1C38;
 struct X *GetLevelFileRecord(int i);
 static inline int FEqual(struct X *a, struct X *b)

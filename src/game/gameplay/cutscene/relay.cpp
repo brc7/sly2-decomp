@@ -4771,7 +4771,7 @@ void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
 void SetStepTargetHeading(ACTOR*,float);
 void EvaluateShapeU(PATH*,float,qword*,qword*);
 qword GetLoWorldPos(ACTOR*);
-qword ConvertAloVec(void*,ACTOR*,qword);
+qword ConvertVecBetweenLos(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
 int FFloatsNear__Ffff(float,float,float);
 }
@@ -4934,7 +4934,7 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
     :"m"(work.second),"r"(actorPosition),"r"(actor),"rJ"(sourceSpace));
    work.to.f[2]=0.0f;
    float speed;
-   work.normal.q=NormalizeDirection(ConvertAloVec(sourceInput,targetInput,work.to.q),speed,out->speed);
+   work.normal.q=NormalizeDirection(ConvertVecBetweenLos(sourceInput,targetInput,work.to.q),speed,out->speed);
    out->y=work.normal.f[0]*speed;out->x=-work.normal.f[1]*speed;
   }
   break;

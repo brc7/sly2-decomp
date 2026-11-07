@@ -1305,8 +1305,8 @@ DeserializePair__FP18CBinaryInputStream,0x12A3D8,276,match,src/game/splice/seria
 StaticInit_serialize,0x12A828,77,match,src/game/splice/serialize.cpp
 func_0012A960,0x12A960,8,match,src/game/splice/serialize.cpp
 CSidebag_AddBinding,0x12A980,59,match,src/game/splice/sidebag.cpp
-RefSetBinding__8CSidebagiP4CRef,0x12AA70,46,match,src/game/splice/sidebag.cpp
-FFindBinding__8CSidebagiP4CRef,0x12AB28,20,match,src/game/splice/sidebag.cpp
+AssignSidebagBinding__8CSidebagiP4CRef,0x12AA70,46,match,src/game/splice/sidebag.cpp
+FindSidebagBinding__8CSidebagiP4CRef,0x12AB28,20,match,src/game/splice/sidebag.cpp
 CSidebag_CloneTo,0x12AB78,81,match,src/game/splice/sidebag.cpp
 StaticInit_sidebag,0x12ACC0,77,match,src/game/splice/sidebag.cpp
 func_0012ADF8,0x12ADF8,8,match,src/game/splice/sidebag.cpp
@@ -3357,10 +3357,10 @@ SetLoFlag8,0x1A6E80,25,match,src/game/object/lo.cpp
 LO_Slot43Default,0x1A6EE8,2,match,src/game/object/lo.cpp
 LO_Slot44Default,0x1A6EF0,2,match,src/game/object/lo.cpp
 LO_Slot45Default,0x1A6EF8,2,match,src/game/object/lo.cpp
-ConvertAloPos,0x1A6F00,47,match,src/game/object/lo.cpp
-ConvertAloVec,0x1A6FC0,36,match,src/game/object/lo.cpp
-ConvertAloMat,0x1A7050,87,match,src/game/object/lo.cpp
-ConvertAloMat4,0x1A71B0,72,match,src/game/object/lo.cpp
+ConvertPosBetweenLos,0x1A6F00,47,match,src/game/object/lo.cpp
+ConvertVecBetweenLos,0x1A6FC0,36,match,src/game/object/lo.cpp
+ConvertMatBetweenLos,0x1A7050,87,match,src/game/object/lo.cpp
+ConvertMat4BetweenLos,0x1A71B0,72,match,src/game/object/lo.cpp
 ConvertMatPos,0x1A72D0,30,match,src/game/object/lo.cpp
 ConvertMatVec,0x1A7348,26,match,src/game/object/lo.cpp
 StaticInit_lo,0x1A73C0,77,match,src/game/object/lo.cpp
@@ -3410,7 +3410,7 @@ CompareSaves__FP4SAVET0,0x1AB398,31,match,src/game/ui/memcard.cpp
 SetSaveState,0x1AB418,134,match,src/game/ui/memcard.cpp
 ReloadSaveSlots,0x1AB630,35,match,src/game/ui/memcard.cpp
 McJobFormat,0x1AB6C0,33,match,src/game/ui/memcard.cpp
-FOpenSaveIconFile,0x1AB750,32,match,src/game/ui/memcard.cpp
+GetDiscFileEntrySize,0x1AB750,32,match,src/game/ui/memcard.cpp
 CreateSaveDir,0x1AB7D0,37,match,src/game/ui/memcard.cpp
 McJobCreateSave,0x1AB868,106,match,src/game/ui/memcard.cpp
 McJobGetDir,0x1ABA10,63,match,src/game/ui/memcard.cpp

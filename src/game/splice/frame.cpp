@@ -2,7 +2,7 @@
 // with lookup, binding and cloning. TU 0x127B18..0x128138 (10 functions, address order). The binding pool's GC
 // members are CGcObj<CVarb>'s (sly2/gc.h) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by
 // splice/gc.cpp.
-// Entry points: CFrame::FindBindingPtr / FFindBinding (symbol lookup), CFrame_AddBinding (define).
+// Entry points: CFrame::FindBindingPtr / FindSidebagBinding (symbol lookup), CFrame_AddBinding (define).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_frame
 // SLY2_ALIAS: _GLOBAL_$I$*=_GLOBAL_$I$g_gc
 #include "sly2/cref.h"

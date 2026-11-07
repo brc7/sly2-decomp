@@ -1407,7 +1407,7 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x38]; float g38; char pad2[0x110 - 0x3C]; qword pos; };
 extern void PostLoLoad(struct O *p);
 extern qword GetLoWorldPos(void *p);
-extern qword ConvertAloPos(void *p, void *q, qword v);
+extern qword ConvertPosBetweenLos(void *p, void *q, qword v);
 extern float D_002BE904;
 static __inline__ float GDist(qword a, qword b)
 {
@@ -1431,7 +1431,7 @@ void PostTableGrabspotLoad(struct O *table)
 {
     PostLoLoad(table);
     if (table->g38 == 1e10f) {
-        table->g38 = GDist(GetLoWorldPos(table), ConvertAloPos(table, 0, table->pos)) + D_002BE904;
+        table->g38 = GDist(GetLoWorldPos(table), ConvertPosBetweenLos(table, 0, table->pos)) + D_002BE904;
     }
 }
 } } // namespace M_func_001843F0
@@ -1477,7 +1477,7 @@ struct S { char pad[0x110]; qword q110; char p1[0x3C]; void *p15c; };
 extern int D_002DFB84;
 extern float D_002BE908;
 qword GetLoWorldPos(void *p);
-qword ConvertAloPos(struct S *p, int n, qword q);
+qword ConvertPosBetweenLos(struct S *p, int n, qword q);
 static __inline__ float GetZ(qword q)
 {
     float z;
@@ -1500,7 +1500,7 @@ void GetTableGrabspotGrabPosition(struct S *table, int unused, UV *pv)
         pv->q = GetLoWorldPos(table->p15c);
         pv->v.z = pv->v.z + D_002BE908;
     } else {
-        pv->q = ConvertAloPos(table, 0, table->q110);
+        pv->q = ConvertPosBetweenLos(table, 0, table->q110);
         pv->v.z = GetZ(GetLoWorldPos(table->p15c)) + D_002BE908;
     }
 }
@@ -1509,7 +1509,7 @@ void GetTableGrabspotGrabPosition(struct S *table, int unused, UV *pv)
 namespace M_func_001845A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x110]; qword pos; };
-extern qword ConvertAloPos(void *p, void *q, qword v);
+extern qword ConvertPosBetweenLos(void *p, void *q, qword v);
 extern qword SetVectorCylind(float a, float b, float c);
 extern float GRandInRange__Fff(float a, float b);
 extern float D_002BE90C;
@@ -1526,7 +1526,7 @@ void GetTableGrabspotSparklePosition(struct O *table, qword *pv, qword *pdv)
 {
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = GRandInRange__Fff(0.0f, D_002BE90C);
-    *pv = VAdd(ConvertAloPos(table, 0, table->pos), SetVectorCylind(gPan, gR, 0.0f));
+    *pv = VAdd(ConvertPosBetweenLos(table, 0, table->pos), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_001845A0

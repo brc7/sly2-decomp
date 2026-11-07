@@ -131,7 +131,7 @@ void RemoveSoHierarchy(SOW *p);
 void HandleBasicMessage(SOW *p, int k, SOW *q);
 void InitSoPhysics(SOW *p);
 void SetSoPartsBit48(SOW *p, int a);
-qwordV ConvertAloPos(int a, SOW *p, qwordV q);
+qwordV ConvertPosBetweenLos(int a, SOW *p, qwordV q);
 V *VECTOR_opAssign(V *pv, qwordV q);
 void AccumulateXfChainVelocityStub(void *p, int a, M4 *pm1, M4 *pm2);
 qwordV DecomposeRotationMatrixToVector(M4 *pm);
@@ -241,7 +241,7 @@ extern "C" void CalculateWaterCurrent(SOW *water, qwordV pos, qwordV *velocityOu
     M4 localMatrix(Uninitialized);
     M3 *identity;
     M4 *localMatrixPtr;
-    localPos.q = ConvertAloPos(0, water, pos);
+    localPos.q = ConvertPosBetweenLos(0, water, pos);
     localPos.f[2] = 0.0f;
     identity = &D_002A2D00;
     localMatrixPtr = &localMatrix;

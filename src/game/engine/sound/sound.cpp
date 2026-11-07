@@ -452,7 +452,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0x28]; ulong fl; };
 struct P { char pad[0xC]; struct VTE *vtable; float volume; char pad1[0x1C - 0x14]; struct O *source; qword position; char range[0x14]; float effectiveVolume; };
 void StopSnd(struct P *, float);
-qword ConvertAloPos(struct O *, int, qword);
+qword ConvertPosBetweenLos(struct O *, int, qword);
 void CalculateSndVolPan(struct P *, qword, void *, float *, int *);
 void SetSndFlags(struct P *, int, int);
 void SetSndPan(struct P *, int);
@@ -474,7 +474,7 @@ void UpdateSndPositional(struct P *sound)
         StopSnd(sound, 0.0f);
         return;
     }
-    CalculateSndVolPan(sound, ConvertAloPos(sound->source, 0, sound->position), sound->range, &fade, &panAngle);
+    CalculateSndVolPan(sound, ConvertPosBetweenLos(sound->source, 0, sound->position), sound->range, &fade, &panAngle);
     volume = sound->volume * fade;
     if ((int)(volume * 1024.0f) != (int)(sound->effectiveVolume * 1024.0f)) {
         if (sound->effectiveVolume == 0.0f) sound->vtable[15].pfn((char *)sound + sound->vtable[15].d, 0);

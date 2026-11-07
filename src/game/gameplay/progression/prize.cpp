@@ -940,7 +940,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002C0D80;
 extern float D_002C0D90;
 extern struct G D_003DD490;
-qword ConvertAloVec(struct S *,void *,qword);
+qword ConvertVecBetweenLos(struct S *,void *,qword);
 float GRandInRange__Fff(float,float);
 struct Q *PripNewRipg(struct G *,void *,void *);
 qword GetLoWorldPos(void *);
@@ -969,7 +969,7 @@ void EmitDprizeGlint(struct S *prize)
     void *emitter;
     struct Q *q;
     if(!prize->owner||prize->probability<=0)return;
-    direction=ConvertAloVec(prize,0,D_002C0D80);
+    direction=ConvertVecBetweenLos(prize,0,D_002C0D80);
     side=Dot(direction,D_002DDF40.b)<0;
     if(side!=prize->previous) {
         if(GRandInRange__Fff(0,1)<prize->probability) {
@@ -2453,7 +2453,7 @@ extern qword D_002C1080;
 extern qword D_002C1090;
 void DropAsegaRef(void *vault);
 void SetStepplayerGrabTarget(void *vault, void *q);
-qword ConvertAloVec(void *vault, void *frame, qword q);
+qword ConvertVecBetweenLos(void *vault, void *frame, qword q);
 qword ConvertXfVec(void *frame, void *vault, qword q);
 qword GetLoWorldPos(void *vault);
 qword TransformXfPos(void *frame, void *vault, qword q);
@@ -2487,13 +2487,13 @@ void SetVaultDialState(struct S *vault, int n)
         SetStepplayerGrabTarget(vault->user, vault->dialCenter);
         vault->dialTimer->endTime = D_002DDED0.t + 0.25f;
         px = vault->dialTimer;
-        q = ConvertXfVec(0, px->parentFrame, ConvertAloVec(vault->user, 0, D_002C1080));
+        q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1080));
         px->startPoint = q;
         {int selected;Selection(vault,&selected,&px);
         q=TransformXfPos(0,px->parentFrame,GetLoWorldPos(vault->digitTargets[selected]));}
         px->digitPoint = q;
         px = vault->dialTimer;
-        q = ConvertXfVec(0, px->parentFrame, ConvertAloVec(vault->user, 0, D_002C1090));
+        q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1090));
         px->endPoint = q;
         SetXfRole(vault, vault->dialTimer, 0x11);
         break;
