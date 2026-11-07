@@ -10,6 +10,7 @@
 #include "sly2/step.h"
 #include "sly2/xfm.h"
 
+struct CID113;  /* the guard script class (classes.h) */
 struct NOISE;   /* a noise event heard by the guards' listeners (noise.cpp) */
 
 /* one pickpocket-able loot entry carried by a guard (16 bytes) */
@@ -110,7 +111,7 @@ struct STEPGUARD : public STEP
       int scriptResumePoint; /* +0x2DC [S] where a patrol script resumes (BHVPATROL) */
       undefined4 unk_0x2e0[2];
       int patrolScript;     /* +0x2E8 [S] the patrol script (BHVPATROL) */
-      int altPatrolScript;  /* +0x2EC [S] the alternative patrol script */
+      CID113 *altPatrolScript; /* +0x2EC [S] the alternative patrol script (PostStepguardLoad creates it) */
       void *homeRecord;     /* +0x2F0 [S] the home marker the guard returns to (ResetStepguardToHome) */
       undefined4 unk_0x2f4[3];
       qword homePosition;   /* +0x300 [S] */

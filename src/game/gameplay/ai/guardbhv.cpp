@@ -3884,7 +3884,7 @@ void StartBhvpatrol(BHVPATROL *behavior) {
     StartBhv(behavior);
     t = ((STEPGUARD *)behavior->owner);
     if (t->patrolScript) behavior->script = t->patrolScript;
-    else if (t->capabilityFlags & 2) behavior->script = t->altPatrolScript;
+    else if (t->capabilityFlags & 2) behavior->script = (int)t->altPatrolScript;
     else { behavior->script = 0; SetBhvpatrolState(behavior, 2); return; }
     if (((STEPGUARD *)behavior->owner)->scriptResumePoint) ChooseGuardScriptNearestCommand(behavior->script, GetLoWorldPos(((STEPGUARD *)behavior->owner)), &((STEPGUARD *)behavior->owner)->scriptResumePoint);
     if (IsStepguardHandsOff(((STEPGUARD *)behavior->owner))) SetBhvpatrolState(behavior, 3); else SetBhvpatrolState(behavior, 0);

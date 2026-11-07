@@ -301,69 +301,57 @@ extern "C" void ResetStepguardFromScript(O *guard)
 } // namespace M_func_00206170
 
 // 0x2061D8 PostStepguardLoad
-namespace M_PostStepguardLoad { extern "C" {
-struct VE; struct O; struct C3; struct K; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; char pad2[0x50 - 0x10]; int unknown50; };
-struct C3 { char pad[0x24]; int unknown24; };
-struct K { long l; } __attribute__((packed));
-struct S {
-    char pad0[0x18]; int oid; char pad1[0x3C - 0x1C]; struct C3 *unknown3C; char pad2[0x58 - 0x40]; int xfRolesIdle; int xfRolesUngrounded;
-    char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int unknown2F0;
-    char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *stuckWatch; void *hazardWatch;
-    char pad7[0xFC4 - 0x4A0]; void *scaleAct;
-};
-extern char D_002C3CF8[];
+/* an unaligned long constant (the original loads it with ldl/ldr) */
+struct LONGU { long l; } __attribute__((packed));
+extern int D_002C3CF8[3];
 extern char D_003DD490[];
-extern const struct K D_002A8608;
+extern const LONGU D_002A8608;
 extern qword D_002A2DE0;
-void PostStepLoad(struct S *p);
-void BindLoOidTable(struct S *p, int n, void *pv);
-void SetStepGravityRatio(struct S *p, float f);
-void SetXfRole(struct S *p, int n, int m);
-void ResolveStepguardAnimBindings(struct S *p);
-void ResolveStepguardAttacks(struct S *p);
+extern "C" {
+void BindLoOidTable(STEPGUARD *guard, int n, void *pv);
+void SetStepGravityRatio(STEPGUARD *guard, float f);
+void SetXfRole(STEPGUARD *guard, XF *pxf, int n);
+void ResolveStepguardAnimBindings(STEPGUARD *guard);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
-void InitStuckWatch(void *pv, struct S *p);
-void InitHazardWatch(void *pv, struct S *p);
-void PostSwCallback(void *g, struct S *p, long k, int n);
-struct O *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
-void AddGuardScriptGoto(struct O *po, int a, int b, float f);
-void *FindSoXf(struct S *p, int n, int m);
-void *NewPositionAct(struct S *p, void *x, int a, int b, int c, qword q);
+void InitStuckWatch(void *pv, STEPGUARD *guard);
+void InitHazardWatch(void *pv, STEPGUARD *guard);
+void PostSwCallback(void *g, STEPGUARD *guard, long k, int n);
+void AddGuardScriptGoto(LO *po, int a, int b, float f);
+void *FindSoXf(STEPGUARD *root, int oid, int b);
+}
+void *NewPositionAct(STEPGUARD *guard, void *x, int a, int b, int c, qword q) __asm__("NewPositionAct");
 
 // 0x2061D8: STEPGUARD vtable slot 15 (PostLoad): step post-load, binds its oid table, gravity ratio, attaches
 // children, resolves animation bindings and attack oids, and creates its stuck and hazard watches (+0x498/+0x49C).
-void PostStepguardLoad(struct S *guard)
+void STEPGUARD::PostLoad()
 {
+    STEPGUARD *guard = this;
     void *x;
-    PostStepLoad(guard);
+    STEP::PostLoad();
     BindLoOidTable(guard, 1, D_002C3CF8);
-    SetStepGravityRatio(guard, guard->gravityRatio);
-    SetXfRole(guard, guard->xfRolesIdle, 2);
-    SetXfRole(guard, guard->xfRolesUngrounded, 2);
+    SetStepGravityRatio(guard, guard->unknown260);
+    SetXfRole(guard, guard->unknown58, 2);
+    SetXfRole(guard, guard->unknown5C, 2);
     ResolveStepguardAnimBindings(guard);
     ResolveStepguardAttacks(guard);
     guard->stuckWatch = func_001AE4F8(0x10);
     InitStuckWatch(guard->stuckWatch, guard);
     guard->hazardWatch = func_001AE4F8(0x14);
     InitHazardWatch(guard->hazardWatch, guard);
-    if (!guard->unknown3C->unknown24)
+    if (!guard->proxyRecord->unknown24)
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
-    guard->alternatePatrolScript = CreateLo__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
-    AddGuardScriptGoto(guard->alternatePatrolScript, -1, -1, 40.0f);
-    guard->unknown2F0 = guard->alternatePatrolScript->unknown50;
-    guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
+    guard->altPatrolScript = (CID113 *)CreateLo((CID)0x71, 0, (OID)0x2CB, -1);
+    AddGuardScriptGoto(guard->altPatrolScript, -1, -1, 40.0f);
+    guard->homeRecord = guard->altPatrolScript->firstCommand;
+    guard->altPatrolScript->Remove();
     if (guard->pickpocketIndicator0)
-        guard->pickpocketIndicator0->vt[9].pf((char *)guard->pickpocketIndicator0 + guard->pickpocketIndicator0->vt[9].d);
+        guard->pickpocketIndicator0->Remove();
     if (guard->pickpocketIndicator1)
-        guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
+        guard->pickpocketIndicator1->Remove();
     x = FindSoXf(guard, guard->oid, 0xC);
     if (x)
-        guard->scaleAct = NewPositionAct(guard, x, 0, 7, 2, D_002A2DE0);
+        guard->scale = NewPositionAct(guard, x, 0, 7, 2, D_002A2DE0);
 }
-} } // namespace M_PostStepguardLoad
 
 // 0x206378 GetStepguardDetector
 // 0x206378: Returns the guard's vision detector.
@@ -3632,7 +3620,6 @@ struct S { char pad[0x10]; STEPGUARD *parent; int pad14; int oid; char pad2[0x7C
 void PostLoLoad(struct S *attack);
 int IsBasicDerivedFrom__FP5BASIC3CID(STEPGUARD *object, int cid);
 void ResolveAnimBinding(void *binding, STEPGUARD *guard);
-void *FindSoXf(STEPGUARD *root, int oid, int b);
 float *FindAsegLabel(int aseg, int label);
 void PredictAsegTransform(int aseg, STEPGUARD *root, int so, int relativeTo, struct EVAL *result, int c, float t, float g);
 // 0x20AE18: Guard attack vtable slot 15 (PostLoad): LO post-load, finds its owning guard up the parent chain,
