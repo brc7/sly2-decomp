@@ -5,8 +5,8 @@
 // Entry points: PacNewKind / PacNewKind2 (curve factories, from ASEG loading), the New*Act creators (position, path,
 // IK, matrix, Bezier, offset acts), AttachAct / DetachAct / ReleaseAct, and the curve and act vtable slots.
 //
-// Types: TU-private views for the m2c bodies (ACT and two act kinds, two constant curves, the curve object of
-// NewActFromParams), sly2/so.h's XF for the transform they drive, and the two CBinaryInputStream readers they call.
+// Types: sly2/act.h's act and curve classes for the m2c bodies, sly2/so.h's XF for the transform they drive, and the
+// two CBinaryInputStream readers they call.
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does),
 // their C++-named definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_act
@@ -29,36 +29,6 @@ struct CBinaryInputStream
     void Read(int cb, void *pv);
     float F32Read();
 };
-/* An act: the object (+0x4) and the transform it drives (+0x8). */
-struct ACTV
-{
-    int kind;
-    ALO *object;              /* +0x04 */
-    XF *xf;                /* +0x08 */
-    char padC[0x14 - 0xC];
-    int role;                /* +0x14 */
-    char pad18[0x1C - 0x18];
-};
-/* The act of vtable 0x2CA830: a phase and a rest position. */
-struct ACTPHASE : public ACTV
-{
-    unsigned short nPhase;  /* +0x1C */
-    char pad1E[0x20 - 0x1E];
-    qword pos;              /* +0x20 */
-};
-/* The act of vtable 0x2CA6F0: an arrival time, a rest pose and a velocity (a Bezier toward the pose). */
-struct ACTREST : public ACTV
-{
-    float arrivalTime;      /* +0x1C: absolute time (copied to XF +0xA8 by ACT8::Update) */
-    qword pos;              /* +0x20 */
-    qword v;                /* +0x30 */
-};
-/* Constant curves: a vector or a float after the vtable pointer. */
-struct ACVEC { void *vtable; VECTOR vec; };
-struct ACFLOAT { void *vtable; float g; };
-/* The curve object of NewActFromParams: hand-made vtable at +0x18 ({delta, pfn} entries). */
-struct VTEAC { short d; short pad; void (*pfn)(...); };
-struct ACOBJ { char pad0[0x18]; VTEAC *pvt; };
 
 extern "C" {
 extern qword D_002A2DD0;    /* (0, 0, 0) */
@@ -67,12 +37,12 @@ void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* frees into the pool *
 void SetXfRole(ALO *object, XF *xf, int n);
 void WakeXfOwner(ALO *object, XF *xf);
 qword GetXfValueFromMatrix(XF *xf, XF *pxf2);
-int IsActAttached(ACTV *act);
-void AddXfAct(ALO *object, XF *xf, ACTV *act);
-void RemoveXfAct(ALO *object, XF *xf, ACTV *act);
+int IsActAttached(ACT *act);
+void AddXfAct(ALO *object, XF *xf, ACT *act);
+void RemoveXfAct(ALO *object, XF *xf, ACT *act);
 void ResetXfValueRef(ALO *object, XF *xf);
-ACOBJ *InitActOfKind(int n);
-void DetachAct(ACTV *act);
+ACT *InitActOfKind(int n);
+void DetachAct(ACT *act);
 void FreeAct(void *pv);   /* frees an act record into its pool */
 }
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
@@ -119,8 +89,7 @@ void AC::LoadFromBrx(CBinaryInputStream *)
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void AC0::LoadFromBrx(CBinaryInputStream *stream)
 {
-    ACVEC *curve = (ACVEC *)this;
-    stream->Read(0xC, &curve->vec);
+    stream->Read(0xC, &vec);
 }
 
 namespace M_func_0012B520 { extern "C" {
@@ -160,7 +129,7 @@ void PrepareConstCurveSegment(S *curve, T *xf)
 
 /* Evaluates a constant vector curve: the value, and a zero derivative. */
 // Evaluates a constant vector curve (slot 3): the constant, and a zero derivative. (inferred)
-extern "C" void EvaluateConstCurve(ACVEC *curve, VECTOR *pvec, VECTOR *pdvec)
+extern "C" void EvaluateConstCurve(AC0 *curve, VECTOR *pvec, VECTOR *pdvec)
 {
     if (pvec != 0) {
         CopyAb(pvec, &curve->vec, 0xC);
@@ -763,13 +732,12 @@ void ACG::LoadFromBrx(CBinaryInputStream *)
 // Loads a constant float curve: one float. Layout parse-verified: a parser following it reads every byte of 4 levels.
 void ACG0::LoadFromBrx(CBinaryInputStream *stream)
 {
-    ACFLOAT *curve = (ACFLOAT *)this;
-    curve->g = stream->F32Read();
+    g = stream->F32Read();
 }
 
 /* Evaluates a constant float curve: the value, and a zero derivative. */
 // Evaluates a constant float curve: the value, and a zero derivative. (inferred)
-extern "C" void EvaluateConstFloatCurve(ACFLOAT *curve, float *pg, int *pdg)
+extern "C" void EvaluateConstFloatCurve(ACG0 *curve, float *pg, int *pdg)
 {
     if (pg != 0) {
         *pg = curve->g;
@@ -851,9 +819,8 @@ extern "C" void FreeOvra(void *pv)
 // Base act attach (slot 1): sets the driven transform's role and wakes its owner so the act takes effect.
 void ACT::Attach()
 {
-    ACTV *act = (ACTV *)this;
-    SetXfRole(act->object, act->xf, act->role);
-    WakeXfOwner(act->object, act->xf);
+    SetXfRole(palo, pxf, nRole);
+    WakeXfOwner(palo, pxf);
 }
 
 /* empty vtable slot */
@@ -892,10 +859,10 @@ extern "C" void UpdateActDefault()
 }
 
 // Base act goal (slot 5): the transform's current value, and zero velocity. (inferred)
-extern "C" void GetActGoalDefault(ACTV *act, qword *ppos, VECTOR *pdvec)
+extern "C" void GetActGoalDefault(ACT *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
-        XF *xf = act->xf;
+        XF *xf = act->pxf;
         *ppos = GetXfValueFromMatrix(xf, xf);
     }
     if (pdvec != 0) {
@@ -919,18 +886,18 @@ void CloneAct(T *t, T *src, int b, int c)
 } } // namespace M_CloneAct
 
 // Inserts the act into its transform's action list unless it is already there. (inferred)
-extern "C" void AttachAct(ACTV *act)
+extern "C" void AttachAct(ACT *act)
 {
     if (IsActAttached(act) == 0) {
-        AddXfAct(act->object, act->xf, act);
+        AddXfAct(act->palo, act->pxf, act);
     }
 }
 
 // Removes the act from its transform's action list if it is there. (inferred)
-extern "C" void DetachAct(ACTV *act)
+extern "C" void DetachAct(ACT *act)
 {
     if (IsActAttached(act) != 0) {
-        RemoveXfAct(act->object, act->xf, act);
+        RemoveXfAct(act->palo, act->pxf, act);
     }
 }
 
@@ -955,19 +922,18 @@ int IsActAttached(T *p)
 // Position act update (slot 4).
 void ACT1::Update()
 {
-    ACTPHASE *act = (ACTPHASE *)this;
-    act->xf->restValue = act->pos;
-    act->xf->rate = D_002A2DD0;
-    act->xf->phase = act->nPhase;
-    ResetXfValueRef(act->object, act->xf);
+    pxf->restValue = goalPosition;
+    pxf->rate = D_002A2DD0;
+    pxf->phase = phase;
+    ResetXfValueRef(palo, pxf);
 }
 
 /* vtable 0x2CA830 slot 5. */
 // Position act goal (slot 5): its stored position, and zero velocity. (inferred)
-extern "C" void GetPhaseActGoal(ACTPHASE *act, qword *ppos, VECTOR *pdvec)
+extern "C" void GetPhaseActGoal(ACT1 *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
-        *ppos = act->pos;
+        *ppos = act->goalPosition;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1137,13 +1103,12 @@ void UpdateActLookAt(struct P *p)
 // Look-at act goal (slot 5).
 void ACT2::GetGoal(qword *ppos, VECTOR *pdvec)
 {
-    ACTV *act = (ACTV *)this;
     qword *pv = (qword *)pdvec;
     if (ppos != 0) {
-        *ppos = act->xf->restValue;
+        *ppos = pxf->restValue;
     }
     if (pv != 0) {
-        *pv = act->xf->rate;
+        *pv = pxf->rate;
     }
 }
 
@@ -1605,9 +1570,8 @@ void UpdateMatrixAct(XX *x)
 // Matrix act goal (slot 5).
 void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 {
-    ACTV *act = (ACTV *)this;
     if (ppos != 0) {
-        *ppos = act->xf->restValue;
+        *ppos = pxf->restValue;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1618,12 +1582,11 @@ void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 // Bezier act update (slot 4).
 void ACT8::Update()
 {
-    ACTREST *act = (ACTREST *)this;
-    *(float *)&act->xf->reference = act->arrivalTime; /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
-    act->xf->restValue = act->pos;
-    act->xf->rate = act->v;
-    act->xf->phase = 2;
-    ResetXfValueRef(act->object, act->xf);
+    *(float *)&pxf->reference = arrivalTime; /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
+    pxf->restValue = goalPosition;
+    pxf->rate = goalVelocity;
+    pxf->phase = 2;
+    ResetXfValueRef(palo, pxf);
 }
 
 namespace M_func_0012E060 { extern "C" {
@@ -1648,14 +1611,14 @@ void GetBezierActGoal(P *p, qword *ppos, qword *pvel, float dt)
 } } // namespace M_func_0012E060
 
 // Sets a rest act's pose and velocity; if it is in effect, also the transform's rest values. (inferred)
-extern "C" void SetRestActPose(ACTREST *act, qword pos, qword v)
+extern "C" void SetRestActPose(ACT8 *act, qword pos, qword v)
 {
-    XF *xf = act->xf;
-    act->pos = pos;
-    act->v = v;
-    if (act == (ACTREST *)xf->firstActuator) {
+    XF *xf = act->pxf;
+    act->goalPosition = pos;
+    act->goalVelocity = v;
+    if (act == (ACT8 *)xf->firstActuator) {
         xf->restValue = pos;
-        act->xf->rate = v;
+        act->pxf->rate = v;
     }
 }
 
@@ -1741,7 +1704,7 @@ ACT *InitActOfKind(int k)
     ACT *p;
     switch (k) {
     case 0: { ACTSEG *act = SLY2_NEW_ACT(ACTSEG); act->ack = 0; p = act; break; }
-    case 1: { ACT1 *act = SLY2_NEW_ACT(ACT1); act->ack = 1; act->nPhase = 2; p = act; break; }
+    case 1: { ACT1 *act = SLY2_NEW_ACT(ACT1); act->ack = 1; act->phase = 2; p = act; break; }
     case 2: { ACT2 *act = SLY2_NEW_ACT(ACT2); act->ack = 2; p = act; break; }
     case 3: { ACT3 *act = SLY2_NEW_ACT(ACT3); act->ack = 3; p = act; break; }
     case 4: { ACT4 *act = SLY2_NEW_ACT(ACT4); act->ack = 4; p = act; break; }
@@ -1763,22 +1726,20 @@ ACT *InitActOfKind(int k)
 #undef SLY2_NEW_ACT
 } // namespace M_func_0012E238
 
-/* Calls slot 6 of the curve object made for *pn (a callback; no direct callers). */
-// Creates an act of the kind given by a parameter record and lets it read the record (slot 6); no direct callers.
-// (inferred)
-extern "C" ACOBJ *NewActFromParams(int *pn, int n1, int n2)
+// Makes a copy of an act for another object and transform: an act of the same kind, filled by its slot 6 (Clone).
+// SO cloning calls it for each act on a cloned transform (so.cpp's PactNewClone).
+extern "C" ACT *NewActFromParams(ACT *pactSrc, ALO *palo, XF *pxf)
 {
-    ACOBJ *curve = InitActOfKind(*pn);
-    VTEAC *pvt = curve->pvt;
-    pvt[6].pfn((char *)curve + pvt[6].d, pn, n1, n2);
-    return curve;
+    ACT *act = InitActOfKind(pactSrc->ack);
+    act->Clone(pactSrc, palo, pxf);
+    return act;
 }
 
 // Detaches and frees the act in a slot, and clears the slot.
 // The owning-pointer release around Sly 1's RetractAct (the detach).
-extern "C" void ReleaseAct(ACTV **ppact)
+extern "C" void ReleaseAct(ACT **ppact)
 {
-    ACTV *act = *ppact;
+    ACT *act = *ppact;
     if (act != 0) {
         DetachAct(act);
         FreeAct(act);

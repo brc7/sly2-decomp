@@ -29,6 +29,7 @@
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/act.h"
 
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
@@ -143,25 +144,6 @@ struct CID100 : public SO
       undefined4 unk_0x160[3];
       LO *ploUnk16c;
       undefined4 unk_0x170[16];
-};
-
-struct ACT
-{
-      int ack;
-      SO *pso;
-      XF *pxf;
-      int nPriority;
-      ACT *pactNext;
-      int nRole;
-    ACT() {}
-    ACT(int ack) : ack(ack) {}
-};
-
-struct ACT5 : public ACT
-{
-      ACT *pactCur;
-      qword qwOffset;
-    ACT5() { ack = 5; }
 };
 
 struct GRABSPOTDATA
@@ -315,13 +297,6 @@ struct LSG
 };
 
 EA *PeaFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("FindAsegLabel");
-
-struct ACT1 : public ACT
-{
-      int nPhase;
-      qword qwRest;
-    ACT1() { ack = 1; nPhase = 2; }
-};
 
 extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
@@ -3652,7 +3627,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 svt = 0.0f;
                 jt->janim.hangStartTime = D_002DDED0.time;
                 aseg = jt->pasegHang;
-                ClearXyz((VECTOR *)&pact1->qwRest);
+                ClearXyz((VECTOR *)&pact1->goalPosition);
                 tStart = 0.5f;
                 AddXfAct(jt, (XF *)jt->unknown19C0, (ACT *)jt->unknown1A00);
                 qword posHand = PosLoWorld(jt->unknown19A4);

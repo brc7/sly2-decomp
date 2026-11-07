@@ -26,7 +26,7 @@ struct AC
 /* AC0 (0x10; vtable 0x2CA9A0): constant vector curve */
 struct AC0 : AC
 {
-    int an[3];
+    VECTOR vec;             /* +0x04 the constant value */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcConstFromBrx");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("PrepareConstCurveSegment");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateConstCurve");   /* slot 3 */
@@ -106,17 +106,20 @@ struct ACT
     virtual void SwitchTarget() __asm__("ActSlot3Default");   /* slot 3 */
     virtual void Update() __asm__("UpdateActDefault");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActGoalDefault");   /* slot 5 */
-    virtual void Clone() __asm__("CloneAct");   /* slot 6 */
+    virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneAct");   /* slot 6: copy pactSrc's fields onto
+                               this act for another object/transform (CloneAct); NewActFromParams passes a parameter record */
 };
+typedef char assert_ACT_size[sizeof(ACT) == 0x1C ? 1 : -1];
 
-/* ACT1 (0x30; vtable 0x2CA820): a phase and a rest position (act.cpp's ACTPHASE view) */
+/* ACT1 (0x30; vtable 0x2CA820): holds its transform at a goal position with a phase (UpdatePositionAct) */
 struct ACT1 : ACT
 {
-    int nPhase;             /* +0x1C (2 at construction) */
-    char pad20[0x30 - 0x20];
+    int phase;              /* +0x1C copied to XF::phase by Update (2 at construction) */
+    qword goalPosition;     /* +0x20 the rest value Update stores; SetActPositionGoal moves it */
     virtual void Update() __asm__("UpdatePositionAct");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetPhaseActGoal");   /* slot 5 */
 };
+typedef char assert_ACT1_size[sizeof(ACT1) == 0x30 ? 1 : -1];
 
 /* ACT2 (0x80; vtable 0x2CA7E0): look-at act (UpdateActLookAt) */
 struct ACT2 : ACT
@@ -154,13 +157,18 @@ struct ACT6 : ACT
     virtual void Update() __asm__("UpdateMatrixAct");   /* slot 4 */
 };
 
-/* ACT8 (0x40; vtable 0x2CA6E0): a scale and a rest position (act.cpp's ACTREST view) */
+/* ACT8 (0x40; vtable 0x2CA6E0): moves its transform along a Bezier to a goal pose by an arrival time (UpdateBezierAct,
+   SetRestActPose) */
 struct ACT8 : ACT
 {
-    char pad1C[0x40 - 0x1C];
+    float arrivalTime;      /* +0x1C absolute time (copied to XF +0xA8 by Update) */
+    qword goalPosition;     /* +0x20 */
+    qword goalVelocity;     /* +0x30 */
+    void SetGoal(qword pos, qword vel) __asm__("SetRestActPose");   /* act.cpp's C definition */
     virtual void Update() __asm__("UpdateBezierAct");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetBezierActGoal");   /* slot 5 */
 };
+typedef char assert_ACT8_size[sizeof(ACT8) == 0x40 ? 1 : -1];
 
 /* ACT9 (0x30; vtable 0x2CA6A0) */
 struct ACT9 : ACT
@@ -194,7 +202,7 @@ struct ACT3 : ACT
 {
     int n1C;
     virtual void Attach() __asm__("AttachChainAct");   /* slot 1 */
-    virtual void Clone() __asm__("CloneChainAct");   /* slot 6 */
+    virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneChainAct");   /* slot 6 */
 };
 
 /* ACT7 (0x20; vtable 0x2D2E58, ik.cpp's): kind 7 */
@@ -202,7 +210,7 @@ struct ACT7 : ACT
 {
     int n1C;
     virtual void Attach() __asm__("AttachIkAct");   /* slot 1 */
-    virtual void Clone() __asm__("CloneIkAct");   /* slot 6 */
+    virtual void Clone(ACT *pactSrc, ALO *palo, XF *pxf) __asm__("CloneIkAct");   /* slot 6 */
 };
 
 /* AC5 (0x20; vtable 0x2CB5A8, emitted by blend.cpp, which declares AC/AC5/ACG/ACG2 itself with its own parameter

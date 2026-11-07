@@ -24,6 +24,7 @@
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/act.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -45,28 +46,6 @@ void RemoveLoHierarchy(LO *plo);
 }
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
-
-struct ACT
-{
-      int ack;
-      SO *pso;
-      XF *pxf;
-      int nPriority;
-      ACT *pactNext;
-      int nRole;
-    ACT() {}
-    ACT(int ack) : ack(ack) {}
-    virtual void Deactivate();
-};
-
-struct ACT8 : public ACT
-{
-      float tEnd;
-      qword qwGoalPos;
-      qword qwGoalVel;
-    ACT8() { ack = 8; }
-    void SetGoal(qword qwPos, qword qwVel) __asm__("SetRestActPose");
-};
 
 struct SUBGLOBX
 {
@@ -1863,7 +1842,7 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 break;
             case 0x15:
-                if (air->pact8->tEnd < D_002DDED0.time)
+                if (air->pact8->arrivalTime < D_002DDED0.time)
                 {
                     JT *jt = 0;
                     int nUnk10;
@@ -1880,7 +1859,7 @@ void UpdateJtAirInput(JTAIR *air)
                         jt->janim.unknown10 = nUnk10;
                     break;
                 }
-                if (air->placeTarget.grabSpot != 0 && air->pact8->tEnd < D_002DDED0.time + 0.25f)
+                if (air->placeTarget.grabSpot != 0 && air->pact8->arrivalTime < D_002DDED0.time + 0.25f)
                 {
                     if (IsBasicDerivedFrom(air->placeTarget.object, (CID)0x13) || IsBasicDerivedFrom(air->placeTarget.object, (CID)0xB) ||
                         IsBasicDerivedFrom(air->placeTarget.object, (CID)0xD) || IsBasicDerivedFrom(air->placeTarget.object, (CID)0x27) ||
@@ -1901,8 +1880,8 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 if (air->placeTarget.grabSpot != 0 || air->placeTarget.part != 0)
                 {
-                    qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->tEnd - D_002DDED0.time), air->player, &air->placeTarget);
-                    air->pact8->SetGoal(ConvertXfPos(0, air->player->unknown58->parent, targetPos), air->pact8->qwGoalVel);
+                    qword targetPos = QwPosOfJtPlace(Min(0.7f, air->pact8->arrivalTime - D_002DDED0.time), air->player, &air->placeTarget);
+                    air->pact8->SetGoal(ConvertXfPos(0, air->player->unknown58->parent, targetPos), air->pact8->goalVelocity);
                 }
                 break;
             case 0x16:

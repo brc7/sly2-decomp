@@ -26,6 +26,7 @@
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
 #include "sly2/vu0.h"
+#include "sly2/act.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -77,18 +78,6 @@ struct BSP
     BSP *pbspNeg;
     BSP *pbspPos;
     SURF *psurf;
-};
-
-struct ACT
-{
-      int ack;
-      SO *pso;
-      XF *pxf;
-      int nPriority;
-      ACT *pactNext;
-      int nRole;
-    ACT() {}
-    ACT(int ack) : ack(ack) {}
 };
 
 extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
