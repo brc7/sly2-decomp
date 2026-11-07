@@ -863,7 +863,7 @@ typedef struct S S;
 /* A deferred load record (0x50 bytes, g_sw.slWidgetDeferred): four key words read from the BRX, the widget, the
    load priorities. */
 typedef struct N {int key0,key1;char pad8[0x2C];int key2;int pad38;int key3;S *owner;int priority,lastPriority;struct N *next;} N;
-struct S {char pad[0x50];int spriteCount;void *sprites;int state;char pad5c[4];int stateFrame;char pad64[0x5C];N *deferredLoad;};
+struct S : LO {int spriteCount;void *sprites;int state;char pad5c[4];int stateFrame;char pad64[0x5C];N *deferredLoad;};
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
