@@ -678,7 +678,7 @@ void BHVSTRIKE::Start()
 {
     BHVANIMV *behavior = (BHVANIMV *)this;
     ANIMREF *panim;
-    ((STEPGUARD *)behavior->owner)->fUnkF3C = 1;
+    ((STEPGUARD *)behavior->owner)->unknownF3C = 1;
     StartBhvanim(behavior);
     panim = behavior->panim;
     if (panim->kind == 2) {
@@ -1286,8 +1286,8 @@ extern "C" int TryBhvcombatChooseAttack(BHVCOMBATV *behavior)
         return 1;
     }
     guard = (STEPGUARD *)behavior->owner;
-    if (guard->tAttackNext < D_002DDED0.time) {
-        guard->tAttackNext = D_002DDED0.time + D_002BE610;
+    if (guard->nextAttackTime < D_002DDED0.time) {
+        guard->nextAttackTime = D_002DDED0.time + D_002BE610;
     }
     return 0;
 }
@@ -2627,7 +2627,7 @@ extern "C" int HasBhvguardTargetList(BHV *behavior)
     int f;
     guard = (STEPGUARD *)behavior->owner;
     f = 0;
-    if ((guard->cUnkFA8 != 0) || (guard->cUnkF94 != 0)) {
+    if ((guard->unknownFA8 != 0) || (guard->unknownF94 != 0)) {
         f = 1;
     }
     return f;

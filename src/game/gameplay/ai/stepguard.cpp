@@ -440,12 +440,12 @@ int ShouldStepguardIgnoreIntersection(struct S *guard, struct SOV *other)
 } } // namespace M_FIgnoreStepguardIntersection
 
 // 0x206458 GetStepguardMaxHitPoints
-// 0x206458: Splice getter: maximum hit points as the level sees them ((hpMax - 1) / 10, at least 0).
-/* The max-hp level: (hpMax - 1) / 10, at least 0. */
+// 0x206458: Splice getter: maximum hit points as the level sees them ((maxHitPoints - 1) / 10, at least 0).
+/* The max-hp level: (maxHitPoints - 1) / 10, at least 0. */
 extern "C" int GetStepguardMaxHitPoints(STEPGUARD *guard)
 {
     int hp;
-    hp = guard->hpMax - 1;
+    hp = guard->maxHitPoints - 1;
     return ((hp <= -1) ? 0 : hp) / 10;
 }
 
@@ -453,7 +453,7 @@ extern "C" int GetStepguardMaxHitPoints(STEPGUARD *guard)
 // 0x206488: Splice setter: maximum hit points (stored as (n + 1) * 10).
 extern "C" void SetStepguardMaxHitPoints(STEPGUARD *guard, int nLevel)
 {
-    guard->hpMax = (nLevel + 1) * 10;
+    guard->maxHitPoints = (nLevel + 1) * 10;
 }
 
 // 0x2064A0 GetStepguardHpLevel
@@ -462,7 +462,7 @@ extern "C" void SetStepguardMaxHitPoints(STEPGUARD *guard, int nLevel)
 extern "C" int GetStepguardHpLevel(STEPGUARD *guard)
 {
     int hp;
-    hp = guard->hp - 1;
+    hp = guard->hitPoints - 1;
     return ((hp <= -1) ? 0 : hp) + 1;
 }
 
@@ -470,7 +470,7 @@ extern "C" int GetStepguardHpLevel(STEPGUARD *guard)
 // 0x2064C0: Splice setter: the current hit points (stored as (n + 1) * 10).
 extern "C" void SetStepguardHpLevel(STEPGUARD *guard, int nLevel)
 {
-    guard->hp = (nLevel + 1) * 10;
+    guard->hitPoints = (nLevel + 1) * 10;
 }
 
 // 0x2064D8 RemoveStepguardHierarchy
@@ -482,7 +482,7 @@ void STEPGUARD::RemoveHierarchy()
     RemoveSoHierarchyV();
     SetStepguardTarget(guard, 0);
     ClearBhvstk(&guard->behaviors);
-    ReleaseAsega(&guard->pasega);
+    ReleaseAsega(&guard->heldAnimation);
 }
 
 // 0x206518 ResetStepguardToHome
@@ -1412,7 +1412,7 @@ extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, int oid, 
     ANIMBINDING *binding;
     binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     binding->h = oid;
-    binding->nC = flags;
+    binding->unknown0C = flags;
 }
 
 // 0x207BC8 SetAndResolveStepguardAnimBinding
@@ -1782,7 +1782,7 @@ done:
 // 0x208538: Splice setter: sets the forced target (+0x390).
 extern "C" void SetStepguardForcedTarget(STEPGUARD *guard, int n)
 {
-    guard->nUnk390 = n;
+    guard->unknown390 = n;
 }
 
 // 0x208540 SetStepguardTarget
@@ -1793,14 +1793,14 @@ extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
 {
     LO *ploOld;
     TARGETREC *record;
-    ploOld = guard->ploTarget;
+    ploOld = guard->target;
     if (ploTarget == ploOld)
         return;
     if (ploOld != 0) {
         RemoveTargetRecordGuard((TARGETREC *)guard->pvEngage, guard);
         guard->pvEngage = 0;
     }
-    guard->ploTarget = ploTarget;
+    guard->target = ploTarget;
     if (ploTarget != 0) {
         record = EnsureTargetRecordById(ploTarget);
         guard->pvEngage = record;
@@ -1932,9 +1932,9 @@ extern "C" void ClearStepguardGeneratedTargets(STEPGUARD *guard)
 {
     DETECTOR *detector;
     detector = guard->pdetector;
-    detector->cUnkFC = detector->cUnkFC - guard->cUnk3A4;
-    guard->nUnk394 = 0;
-    guard->cUnk3A4 = 0;
+    detector->unknownFC = detector->unknownFC - guard->unknown3A4;
+    guard->unknown394 = 0;
+    guard->unknown3A4 = 0;
 }
 
 // 0x2087E8 IsStepguardPreferClass
@@ -1981,9 +1981,9 @@ void RemoveStepguardDetectTarget(struct S *guard)
 // 0x2088E0: Clears the detector targets and the preferred, generated, ignored and forced lists.
 extern "C" void ClearStepguardTargetLists(STEPGUARD *guard)
 {
-    guard->pdetector->cUnkFC = 0;
-    guard->nUnk394 = 0;
-    guard->cUnk3A4 = 0;
+    guard->pdetector->unknownFC = 0;
+    guard->unknown394 = 0;
+    guard->unknown3A4 = 0;
     ClearStepguardIgnoreClasses(guard);
     ClearStepguardForceClasses(guard);
 }
@@ -2018,7 +2018,7 @@ void RemoveStepguardIgnoreClass(struct S *guard, int cid)
 // 0x2089E8: Clears the ignored-class list.
 extern "C" void ClearStepguardIgnoreClasses(STEPGUARD *guard)
 {
-    guard->nUnk3A8 = 0;
+    guard->unknown3A8 = 0;
 }
 
 // 0x2089F0 IsStepguardIgnoreClass
@@ -2067,7 +2067,7 @@ void RemoveStepguardForceClass(struct S *guard, int cid)
 // 0x208B30: Clears the forced-class list.
 extern "C" void ClearStepguardForceClasses(STEPGUARD *guard)
 {
-    guard->nUnk3C0 = 0;
+    guard->unknown3C0 = 0;
 }
 
 // 0x208B38 IsStepguardForceClass
@@ -3082,16 +3082,16 @@ extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, int n, qword qw)
     BHV156 *behavior;
     int nCur;
     BHVARG *pbhvSub;
-    guard->nUnkF68 = n;
-    guard->qwUnkF70 = qw;
+    guard->unknownF68 = n;
+    guard->unknownF70 = qw;
     behavior = (BHV156 *)FindBhvInBhvstk(&guard->behaviors, CID_BHVGUARD);
     if (behavior == 0)
         return;
-    nCur = guard->nUnkF68;
-    if ((nCur != 0) && (behavior->nMode == 0x10)) {
+    nCur = guard->unknownF68;
+    if ((nCur != 0) && (behavior->mode == 0x10)) {
         pbhvSub = (BHVARG *)behavior->pbhvNext;
         pbhvSub->n = nCur;
-        pbhvSub->qw = guard->qwUnkF70;
+        pbhvSub->qw = guard->unknownF70;
     }
 }
 
@@ -3747,7 +3747,7 @@ extern "C" void SetGuardAttackBinding(ANIMLO *attack, int oid, int flags)
 {
     ReleaseAnimBinding(&attack->binding, attack->guard);
     attack->binding.h = oid;
-    attack->binding.nC = flags;
+    attack->binding.unknown0C = flags;
 }
 
 // 0x20AF88 SetAndResolveGuardAttackBinding
@@ -3758,7 +3758,7 @@ extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *attack, int oid, int fla
     binding = &attack->binding;
     ReleaseAnimBinding(binding, attack->guard);
     attack->binding.h = oid;
-    attack->binding.nC = flags;
+    attack->binding.unknown0C = flags;
     ResolveAnimBinding(binding, attack->guard);
 }
 
@@ -3933,11 +3933,11 @@ int GetStepguardHealthState(struct S *guard)
 extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 {
     int count;
-    if (guard->cBusy == 0) {
+    if (guard->busyCount == 0) {
         SetLoBusyKind(guard, 1);
     }
-    count = guard->cBusy + 1;
-    guard->cBusy = count;
+    count = guard->busyCount + 1;
+    guard->busyCount = count;
     return count;
 }
 
@@ -3946,8 +3946,8 @@ extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 {
     int count;
-    count = guard->cBusy - 1;
-    guard->cBusy = count;
+    count = guard->busyCount - 1;
+    guard->busyCount = count;
     if (count == 0) {
         SetLoBusyKind(guard, 0);
     }
