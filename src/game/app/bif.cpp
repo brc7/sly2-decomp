@@ -1044,13 +1044,11 @@ struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
 extern "C" CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args);
@@ -1058,7 +1056,7 @@ extern "C" CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
-    sp.Set(PtNew__t6CGcObj1Z5CPair());
+    sp.Set(CGcObj<CPair>::PtNew());
     sp->ref = args[0];
     CRef *pref = &args[1];
     if (pref->m_tagk == TAGK_PAIR)
@@ -1227,14 +1225,12 @@ struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 int RandomIntInRange__Fii(int nLo, int nHi);
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
     int pad[3];
@@ -1279,7 +1275,7 @@ CRef BuiltinShuffle(void *pbasic, CRef *args)
     CPairPtr *psp = pspHead;
     int i;
     for (i = 0; i < c; i++) {
-        *psp = PtNew__t6CGcObj1Z5CPair();
+        *psp = CGcObj<CPair>::PtNew();
         CPair *pnNew = psp->p;
         pnNew->ref = *apref[i];
         psp = &pnNew->next;
@@ -1294,7 +1290,7 @@ CRef BuiltinShuffle(void *pbasic, CRef *args)
         }
         if (spRes.p != pnLast) {
             SPN sp;
-            CPair *pnNew = PtNew__t6CGcObj1Z5CPair();
+            CPair *pnNew = CGcObj<CPair>::PtNew();
             sp.Set(pnNew);
             sp->ref = CRef(0);
             InsertAfter(&pnLast->next, sp);
@@ -1311,14 +1307,12 @@ struct SP;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SP {
     CPair *p;
     SP() { p = 0; }
     SP(const SP &);
-    ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SP() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
 };
@@ -1342,7 +1336,7 @@ CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
             piece = argPair->ref.u.ppair;
         }
         if (!result.p) {
-            result = PtNew__t6CGcObj1Z5CPair();
+            result = CGcObj<CPair>::PtNew();
             result->ref = piece.p;
         } else {
             tail->next = piece.p;
@@ -1364,8 +1358,6 @@ struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
@@ -1373,7 +1365,7 @@ struct SPN {
     SPN() {}
     SPN(CPair *pn) { Set(pn); }
     SPN(const SPN &);
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
 extern "C" SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2);
@@ -1381,21 +1373,21 @@ extern "C" SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2);
 SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2)
 {
     SPN sp;
-    sp.Set(PtNew__t6CGcObj1Z5CPair());
-    sp->ref = PtNew__t6CGcObj1Z5CPair();
+    sp.Set(CGcObj<CPair>::PtNew());
+    sp->ref = CGcObj<CPair>::PtNew();
     CPair *pn1 = (CPair *)sp->ref.u.pv;
     CRef *pref1 = &pn1->ref;
-    *pref1 = PtNew__t6CGcObj1Z5CPair();
-    pn1->SetNext(PtNew__t6CGcObj1Z5CPair());
+    *pref1 = CGcObj<CPair>::PtNew();
+    pn1->SetNext(CGcObj<CPair>::PtNew());
     CPair *pn2 = pref1->u.ppair;
     pn2->ref.Retag(TAGK_QUOTE);
-    pn2->SetNext(PtNew__t6CGcObj1Z5CPair());
+    pn2->SetNext(CGcObj<CPair>::PtNew());
     *ppref1 = &pn2->next.p->ref;
     CRef *pref2 = &pn1->next.p->ref;
-    *pref2 = PtNew__t6CGcObj1Z5CPair();
+    *pref2 = CGcObj<CPair>::PtNew();
     CPair *pn3 = pref2->u.ppair;
     pn3->ref.Retag(TAGK_QUOTE);
-    pn3->SetNext(PtNew__t6CGcObj1Z5CPair());
+    pn3->SetNext(CGcObj<CPair>::PtNew());
     *ppref2 = &pn3->next.p->ref;
     return SPN(sp.p);
 }
@@ -1408,13 +1400,11 @@ struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -1427,7 +1417,7 @@ CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
     if (args[1].m_tagk == 0)
         return args[1];
     SPN result;
-    result.Set(PtNew__t6CGcObj1Z5CPair());
+    result.Set(CGcObj<CPair>::PtNew());
     SPN call;   /* (proc 'element) */
     CRef *procSlot;
     CRef *elementSlot;
@@ -1439,7 +1429,7 @@ CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
     while (element) {
         *elementSlot = element->ref;
         SPN newPair;
-        CPair *pair = PtNew__t6CGcObj1Z5CPair();
+        CPair *pair = CGcObj<CPair>::PtNew();
         newPair.Set(pair);
         newPair->ref = EvalExpression__FP5CPairP6CFrame(call.p, callArgs);
         if (result->ref.m_tagk != TAGK_PAIR)
@@ -1461,21 +1451,19 @@ struct SP; struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SP {
     CPair *p;
     SP() { p = 0; }
     SP(const SP &);
-    ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SP() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
 };
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -1500,11 +1488,11 @@ CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
         CRef keep = EvalExpression__FP5CPairP6CFrame(call.p, callArgs);
         if (keep.m_tagk == TAGK_BOOL && keep.u.n) {
             SPN newPair;
-            CPair *pair = PtNew__t6CGcObj1Z5CPair();
+            CPair *pair = CGcObj<CPair>::PtNew();
             newPair.Set(pair);
             newPair->ref = element->ref;
             if (!result.p) {
-                CPair *head = PtNew__t6CGcObj1Z5CPair();
+                CPair *head = CGcObj<CPair>::PtNew();
                 result = head;
                 result->ref = newPair.p;
             } else {
@@ -1528,13 +1516,11 @@ struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn);
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
 extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
@@ -1568,13 +1554,11 @@ struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
@@ -1583,7 +1567,7 @@ extern "C" CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *ar
 CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 {
     SPN sp;
-    sp.Set(PtNew__t6CGcObj1Z5CPair());
+    sp.Set(CGcObj<CPair>::PtNew());
     sp->ref = *pref;
     return EvalExpression__FP5CPairP6CFrame(sp.p, args);
 }
@@ -2251,13 +2235,11 @@ typedef int qword __attribute__((mode(TI)));
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
 extern "C" float AngleBetweenVectors(qword a, qword b, void *pvec);
@@ -2266,8 +2248,8 @@ extern "C" CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *
 CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
-    sp.Set(PtNew__t6CGcObj1Z5CPair());
-    sp->SetNext(PtNew__t6CGcObj1Z5CPair());
+    sp.Set(CGcObj<CPair>::PtNew());
+    sp->SetNext(CGcObj<CPair>::PtNew());
     CRef *pref = &sp->next.p->ref;
     pref->Retag(TAGK_VECTOR);
     sp->ref.SetF32(AngleBetweenVectors(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, pref->u.pv));
@@ -2411,13 +2393,11 @@ struct SPN;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec);
@@ -2427,8 +2407,8 @@ CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *
 {
     SPN sp;
     struct { float g, h, i; } g;
-    sp.Set(PtNew__t6CGcObj1Z5CPair());
-    sp->SetNext(PtNew__t6CGcObj1Z5CPair());
+    sp.Set(CGcObj<CPair>::PtNew());
+    sp->SetNext(CGcObj<CPair>::PtNew());
     CRef *pref = &sp->next.p->ref;
     pref->Retag(TAGK_VECTOR);
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(args[0].u.pv, &g.g, pref->u.pv);
@@ -2871,15 +2851,13 @@ extern "C" { extern CLOCK D_002DDED0; }
 struct R { char pad[0xC]; int handle; };   /* a scheduled callback: its handle at +0xC */
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 CRef CRef_CoerceF32(CRef *pref);
 R *ScheduleSwSpliceCallback(G *pg, int n, CPair *pnode, float t);
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
 extern "C" CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args);
@@ -2889,21 +2867,21 @@ CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
     CRef result(-1, TAGK_S32);
     SPN body;                                   /* the callback body: a one-expression list */
     OBJ *proc = (OBJ *)args[1].u.pv;
-    CPair *bodyPair = PtNew__t6CGcObj1Z5CPair();
+    CPair *bodyPair = CGcObj<CPair>::PtNew();
     body.Set(bodyPair);
-    body->ref = PtNew__t6CGcObj1Z5CPair();
+    body->ref = CGcObj<CPair>::PtNew();
     CPair *call = body->ref.u.ppair;            /* (proc 'arg ...) */
     call->ref.SetProc((CProc *)proc);
     if (c >= 3) {
         CPair *tail = call;
         for (CPair *arg = args[2].u.ppair; arg; arg = arg->next.p) {
-            tail->SetNext(PtNew__t6CGcObj1Z5CPair());
+            tail->SetNext(CGcObj<CPair>::PtNew());
             tail = tail->next.p;
             CRef *element = &tail->ref;
-            *element = PtNew__t6CGcObj1Z5CPair();
+            *element = CGcObj<CPair>::PtNew();
             CPair *quoted = element->u.ppair;   /* (quote arg): the argument is passed unevaluated */
             quoted->ref.Retag(TAGK_QUOTE);
-            quoted->SetNext(PtNew__t6CGcObj1Z5CPair());
+            quoted->SetNext(CGcObj<CPair>::PtNew());
             quoted->next.p->ref = arg->ref;
         }
     }
@@ -3030,7 +3008,6 @@ CRefData *BuiltinGetOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cr
 // 0x124078 BuildListFromObjects__FiPP2LO
 namespace M_BuildListFromObjects__FiPP2LO {
 extern "C" {
-CPair *PtNew__t6CGcObj1Z5CPair();
 CRef BuildListFromObjects__FiPP2LO(int c, LO **apo);
 }
 // Builds a Splice list of CRef(BASIC*) from an LO* array.
@@ -3042,7 +3019,7 @@ CRef BuildListFromObjects__FiPP2LO(int c, LO **apo)
     CPair *pprev = 0;
     int i;
     for (i = 0; i < c; i++) {
-        CPair *p = PtNew__t6CGcObj1Z5CPair();
+        CPair *p = CGcObj<CPair>::PtNew();
         if (pprev)
             pprev->next = p;
         else
@@ -3133,13 +3110,11 @@ struct SPN; struct SW; struct OW; struct G;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -3163,13 +3138,13 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
     else
         context = (SW *)root;
     SPN list;
-    CPair *head = PtNew__t6CGcObj1Z5CPair();
+    CPair *head = CGcObj<CPair>::PtNew();
     list.Set(head);
     CPair *tail;
     CPair *oidPair = args[0].u.ppair;
     while (oidPair) {
         SPN newPair;
-        CPair *pair = PtNew__t6CGcObj1Z5CPair();
+        CPair *pair = CGcObj<CPair>::PtNew();
         newPair.Set(pair);
         int oid = oidPair->ref.u.n;
         newPair->ref.SetBasic((BASIC *)FindSwObjectInProxyScope(&D_003DD490, root ? 1 : 5, oid, root,
@@ -3398,14 +3373,12 @@ struct LO;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void FreeSlotheapSlot(void *pheap, void *pv);
-void Unlink__t6CGcObj1Z5CPair(void *pv);
-CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN(CPair *pn) { Set(pn); }
-    ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
+    ~SPN() { CPair *pn = p; if (pn && --pn->m_cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
     int pad;
@@ -3456,13 +3429,13 @@ extern "C" CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, 
                 if (ClipEdgeToObject(pso, *(qword *)prefFrom->u.pv, *(qword *)prefTo->u.pv, 1, &hit) <= 0)
                     continue;
                 {
-                    SPN spLo(PtNew__t6CGcObj1Z5CPair());
-                    SPN spPos(PtNew__t6CGcObj1Z5CPair());
+                    SPN spLo(CGcObj<CPair>::PtNew());
+                    SPN spPos(CGcObj<CPair>::PtNew());
                     spLo->ref.SetBasic((BASIC *)plo);
                     spLo->next = spPos.p;
                     if (pv == 0x7B) {
-                        SPN spNormal(PtNew__t6CGcObj1Z5CPair());
-                        SPN spItem(PtNew__t6CGcObj1Z5CPair());
+                        SPN spNormal(CGcObj<CPair>::PtNew());
+                        SPN spItem(CGcObj<CPair>::PtNew());
                         spPos->ref.SetVector((VECTOR *)&hit.pos);
                         spPos->next = spNormal.p;
                         spNormal->ref.SetVector((VECTOR *)&hit.normal);

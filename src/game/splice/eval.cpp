@@ -13,7 +13,6 @@ struct CFrame;
 struct CProc;
 
 extern "C" {
-CPair *PtNew__t6CGcObj1Z5CPair();
 CFrame *PtNew__t6CGcObj1Z6CFrame();
 CProc *PtNew__t6CGcObj1Z5CProc();
 CRef CFrame_AddBinding(CFrame *frame, int sym, CRef *pref);
@@ -439,7 +438,7 @@ struct SPPAIR
     void Set(CPair *expr) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPPAIR() { p = 0; }
     SPPAIR(CPair *expr) { Set(expr); }
-    ~SPPAIR() { CPair *expr = p; if (expr && --expr->cref == 0) delete expr; }
+    ~SPPAIR() { CPair *expr = p; if (expr && --expr->m_cref == 0) delete expr; }
     void Assign(CPair *expr) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     SPPAIR &operator=(CPair *expr) { Assign(expr); return *this; }
     CPair *operator->() { return p; }
@@ -501,7 +500,7 @@ CRef EvalApply(CPair *expr, CFrame *frame)
         SPPAIR spList;
         while (spCur.p)
         {
-            SPPAIR spNew(PtNew__t6CGcObj1Z5CPair());
+            SPPAIR spNew(CGcObj<CPair>::PtNew());
             spNew->ref = EvalExpression(spCur.p, frame);
             if (spLast.p)
             {

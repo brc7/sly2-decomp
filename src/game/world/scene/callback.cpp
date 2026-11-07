@@ -161,7 +161,7 @@ extern "C" void ProcessSwCallbacks(SW *world)
         }
         RemoveSlEntry(&world->spliceCallbacks, spliceCallback);
         CPair *ppair = spliceCallback->call;
-        if (--ppair->cref == 0)
+        if (--ppair->m_cref == 0)
             delete ppair;
         FreeSlotheapSlot(&world->spliceCallbackPool, spliceCallback);
     }
