@@ -331,36 +331,34 @@ extern "C" void RestartHudWidget2(SW *world)
 namespace M_func_001618F8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x8C - 0x10]; int unknown8C; };
-struct SW { char pad[0x3BC4]; struct O *countdownWidget; char pad2[0x476C - 0x3BC8]; float hideTime; };
 extern struct CLOCK D_002DDED0;
 // Shows the HUD widget of ahudstack[3] and hides it again after dt seconds (g_sw+0x476C); UpdateSwTimerHud plays the
 // tick/tock sounds while that countdown runs, so this is the countdown display. (inferred)
-void ShowCountdownHud(struct SW *world, float dt)
+void ShowCountdownHud(SW *world, float dt)
 {
-    struct O *widget = world->countdownWidget;
+    struct O *widget = (struct O *)world->ahudstack[3].widget;
     if (widget) {
         struct VTE *entry;
         widget->unknown8C = 0;
         entry = &widget->vt[49];
         entry->pfn((char *)widget + entry->d, -1);
     }
-    world->hideTime = D_002DDED0.time + dt;
+    world->hudTimerEndTime = D_002DDED0.time + dt;
 }
 } } // namespace M_func_001618F8
 
 namespace M_func_00161958 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct SW { char pad[0x3BC4]; struct O *countdownWidget; char pad2[0x476C - 0x3BC8]; int hideTime; };
 // Hides the HUD widget of ahudstack[3] and clears its hide time.
-void HideCountdownHud(struct SW *world)
+void HideCountdownHud(SW *world)
 {
-    struct O *widget = world->countdownWidget;
+    struct O *widget = (struct O *)world->ahudstack[3].widget;
     if (widget) {
         struct VTE *entry = &widget->vt[50];
         entry->pfn((char *)widget + entry->d);
     }
-    world->hideTime = 0;
+    world->hudTimerEndTime = 0;
 }
 } } // namespace M_func_00161958
 
