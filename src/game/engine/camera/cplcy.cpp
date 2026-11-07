@@ -277,7 +277,7 @@ typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
 struct CM { char pad[0x20]; float fov; };
 extern struct CM D_002DDF40;
-struct G { char pad[0x3B4C]; void *p3B4C; char pad2[0x4750 - 0x3B50]; float g4750; };
+struct G { char pad[0x3B4C]; void *saveVars; char pad2[0x4750 - 0x3B50]; float tLookLast; };   /* SW: the global save variables (inferred), sw.h's tLookLast */
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 struct POLY { float c0, c1, c2; };
@@ -289,7 +289,7 @@ extern struct LM D_002BD9B0;
 extern char D_002BBB60[], D_002BBB68[];
 struct CRef { int m_tagk; int m_n; };
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
-struct JOY { char pad[0x103C]; float g103C; float g1040; char pad2[0x1074 - 0x1044]; float g1074; };
+struct JOY { char pad[0x103C]; float dxLeft; float dyLeft; char pad2[0x1074 - 0x1044]; float dyRight; };   /* sticks (joy.h's JOY) */
 struct X {
     char pad0[0x10]; float panAngle; float tiltAngle; float panSpeed; float tiltSpeed; float zoom; float zoomSpeed; int pad28; float zoomFov; float wideFov;
     struct SND *zoomSound; int pad38; float panMin; float panMax; float tiltMin; float tiltMax;
@@ -333,7 +333,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     struct CRef ref;
     UpdateCplcy(p, pv, pjoy);
     x = p->zoom;
-    p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->g1074 * __builtin_fabsf(pjoy->g1074);
+    p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
     x += p->zoomSpeed * D_002DDED0.dt;
     p->zoom = x = GClamp2(x, 0.0f, 1.0f);
     if (p->zoomSpeed != 0.0f && 0.0f < x && x < 1.0f) {
@@ -349,9 +349,9 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     }
     u = 1.0f - p->zoom;
     SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
-    gPan = -__builtin_fabsf(pjoy->g103C) * pjoy->g103C * D_002BD990;
-    gTilt = -__builtin_fabsf(pjoy->g1040) * pjoy->g1040 * D_002BD994;
-    RefGetGlobalSaveVar(&ref, D_003DD490.p3B4C, D_003D4A60);
+    gPan = -__builtin_fabsf(pjoy->dxLeft) * pjoy->dxLeft * D_002BD990;
+    gTilt = -__builtin_fabsf(pjoy->dyLeft) * pjoy->dyLeft * D_002BD994;
+    RefGetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
     f = ref.m_n;
     Decref__4CRef(&ref);
     if (f)
@@ -376,7 +376,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     if (6.2831855f <= p->panMax - p->panMin)
         p->panAngle = RadNormalize__Ff(p->panAngle);
     SetCameraLookAt(&D_002DDF40, PosCplookEye(p), PosCplookAnchor(p), 0.0f, 0.0f);
-    D_003DD490.g4750 = D_002DDED0.t;
+    D_003DD490.tLookLast = D_002DDED0.t;
 }
 } } // namespace M_UpdateCplook
 
@@ -924,7 +924,7 @@ extern "C" CLQ D_002BDA30;
 extern "C" LM D_002BDA40;
 extern "C" LM D_002BDA48, D_002BDA50, D_002BDA58;
 extern "C" float D_002BDA60, D_002BDA64;
-struct JOY { char pad[0x1070]; float x; float y; float g; };
+struct JOY { char pad[0x1070]; float dxRight; float dyRight; float sRight; };   /* the right stick: deflection and its magnitude */
 struct GS { char pad[0x4CC]; int unknown4CC; };
 struct TGT { char pad[0x20]; qword pos; };
 struct OBJ { char pad[0x40]; int m40; };
@@ -979,16 +979,16 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
 {
     qword pos, v;
     UpdateCplcy(p, pv, pjoy);
-    if (0.0f < pjoy->g) {
+    if (0.0f < pjoy->sRight) {
         float sx, sy;
         sx = 1.0f;
-        if (0.0f < pjoy->x)
+        if (0.0f < pjoy->dxRight)
             sx = -1.0f;
         sy = -1.0f;
-        if (0.0f < pjoy->y)
+        if (0.0f < pjoy->dyRight)
             sy = 1.0f;
-        float ax = sx * GClampR(GFromClq(D_002BDA10, __builtin_fabsf(pjoy->x)), D_002BDA20.gMin, D_002BDA20.gMax);
-        float ay = GClamp(GFromClq(D_002BDA30, __builtin_fabsf(pjoy->y)), D_002BDA40.gMin, D_002BDA40.gMax);
+        float ax = sx * GClampR(GFromClq(D_002BDA10, __builtin_fabsf(pjoy->dxRight)), D_002BDA20.gMin, D_002BDA20.gMax);
+        float ay = GClamp(GFromClq(D_002BDA30, __builtin_fabsf(pjoy->dyRight)), D_002BDA40.gMin, D_002BDA40.gMax);
         float y = sy * ay;
         v = Zero();
         union { qword q; } u;
