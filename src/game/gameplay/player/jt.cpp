@@ -1277,15 +1277,6 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline qword LengthInX(qword v)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 static inline qword LengthXYInX(qword v)
 {
     qword qw;
@@ -1312,7 +1303,7 @@ static inline qword NormalizeVecViaDot(qword v)
 }
 static inline qword NormalizeVec(qword v)
 {
-    qword qw = LengthInX(v);
+    qword qw = VuLength(v);
     qword qwNormal;
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwNormal) : "j"(qw), "j"(v));
     return qwNormal;

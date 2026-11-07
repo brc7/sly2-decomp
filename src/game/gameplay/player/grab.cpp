@@ -2574,18 +2574,9 @@ extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPv
 
 
 
-static inline qword LengthInX(qword v)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 static inline float LengthOf(qword v)
 {
-    return VuToFloat(LengthInX(v));
+    return VuToFloat(VuLength(v));
 }
 extern "C" void *memmove(void *pvDst, const void *pvSrc, size_t cb);
 extern "C" { extern JT *D_002E1E40; }
@@ -2750,18 +2741,9 @@ extern "C" { extern SW D_003DD490; }
 
 
 PROXY *PproxyFromLo(LO *plo) __asm__("GetProxyCopyValue");
-static inline qword LengthInX(qword v)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 static inline float LengthOf(qword v)
 {
-    return VuToFloat(LengthInX(v));
+    return VuToFloat(VuLength(v));
 }
 extern "C" {
 int IsPoCurrent(STEPPLAYER *pstepplayer);

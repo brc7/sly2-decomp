@@ -1813,8 +1813,7 @@ int ShouldKeepSoNotSelfSlot62(void *,void *);
 int SnapToGround(qword *,float,float,int,void *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *);
 }
-static inline qword QwLength(qword v){qword qw;qword vfOne;__asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z":"=j"(qw),"=j"(vfOne):"j"(v));__asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qw):"0"(qw));return qw;}
-static inline float GLength(qword v){return VuToFloat(QwLength(v));}
+static inline float GLength(qword v){return VuToFloat(VuLength(v));}
 static inline qword QwLengthUntied(qword v){qword qwSq,vfOne,qwLen;__asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z":"=j"(qwSq),"=j"(vfOne):"j"(v));__asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qwSq));return qwLen;}
 static inline qword QwTransformPos(MATRIX4 *pmat,qword qwPos)
 {

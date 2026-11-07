@@ -1044,15 +1044,6 @@ static inline qword VuLengthXY(qword v)
     return qw;
 }
 // VU0 helper: length of a vector (in x).
-static inline qword VuLength(qword v)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // VU0 helper: the x component of a VU register as a float.
 // VU0 helper: horizontal (xy) length of a vector.
 static inline float VectorLengthXY(qword v)
@@ -3537,15 +3528,6 @@ static inline qword VuProjectOut(qword v, qword n)
     return ac;
 }
 // VU0 helper: length of a vector (in x).
-static inline qword VuLength(qword v)
-{
-    qword qw;
-    qword vfOne;
-    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
-            : "=j"(qw), "=j"(vfOne) : "j"(v));
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
-}
 // VU0 helper: horizontal (xy) length of a vector.
 static inline qword VuLengthXY(qword v)
 {
