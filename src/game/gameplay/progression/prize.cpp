@@ -1407,30 +1407,11 @@ typedef int qword __attribute__((mode(TI)));
 union VECTOR4 { qword q; float f[4]; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
-struct LINK { char pad0[0x10]; REGION *pregion; };
-struct EXT { char pad0[0xDC]; LINK *plink; };
 struct CANDIDATE;
-struct BASIC {
-    void *pv0, *pv4, *pv8;
-    virtual void V01(); virtual void V02(); virtual void V03(); virtual void V04(); virtual void V05(); virtual void V06();
-};
-struct LO : BASIC {
-    char pad10[0xE8 - 0x10];
-    EXT *pext;                      // 0xE8
-    char padEC[0x1D8 - 0xEC];
+/* A sprayed prize (classes.h DPRIZE : SO): its radius and its slot 76, the state setter. */
+struct DPRIZEV : SO {
+    char pad150[0x1D8 - 0x150];
     float sRadius;                  // 0x1D8
-    virtual void V07(); virtual void V08(); virtual void V09(); virtual void V10(); virtual void V11(); virtual void V12();
-    virtual void V13(); virtual void V14(); virtual void V15(); virtual void V16(); virtual void V17(); virtual void V18();
-    virtual void V19(); virtual void V20(); virtual void V21(); virtual void V22(); virtual void V23(); virtual void V24();
-    virtual void V25(); virtual void V26(); virtual void V27(); virtual void V28(); virtual void V29(); virtual void V30();
-    virtual void V31(); virtual void V32(); virtual void V33(); virtual void V34(); virtual void V35(); virtual void V36();
-    virtual void V37(); virtual void V38(); virtual void V39(); virtual void V40(); virtual void V41(); virtual void V42();
-    virtual void V43(); virtual void V44(); virtual void V45(); virtual void V46(); virtual void V47(); virtual void V48();
-    virtual void V49(); virtual void V50(); virtual void V51(); virtual void V52(); virtual void V53(); virtual void V54();
-    virtual void V55(); virtual void V56(); virtual void V57(); virtual void V58(); virtual void V59(); virtual void V60();
-    virtual void V61(); virtual void V62(); virtual void V63(); virtual void V64(); virtual void V65(); virtual void V66();
-    virtual void V67(); virtual void V68(); virtual void V69(); virtual void V70(); virtual void V71(); virtual void V72();
-    virtual void V73(); virtual void V74(); virtual void V75();
     virtual void SetState(int state);                  // 76
 };
 extern "C" { extern char D_003DD490[]; }
@@ -1442,20 +1423,20 @@ extern "C" { extern LM D_002C0EB0; }
 extern "C" { extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4; }
 extern "C" {
 int FindDprizeLanding(float, float, float, qword, int, CANDIDATE **, qword *);
-LO *GetHeroPo(void *);
+SO *GetHeroPo(void *);
 REGION *FindPathzoneAtPos(qword, int);
 int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
 int IsEdgeBlockedByPathzone(REGION *, qword, qword, int);
-qword GetLoWorldPos(LO *);
+qword GetLoWorldPos(SO *);
 void *AllocFromStack(ALLOCREQ *);
-int NewSprayedDprize(void *, int, int, LO **);
+int NewSprayedDprize(void *, int, int, DPRIZEV **);
 int IsDprizeCollisionCandidate(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
 float RandomFloatInRange__Fff(float, float);
 float NormalizeAngle__Ff(float);
 qword SetVectorCylind(float, float, float);
 float ComputeMaxBallisticTime(qword, qword, float, float, float, float);
-void LaunchSprayedDprize(LO *, qword, qword, float, float);
+void LaunchSprayedDprize(DPRIZEV *, qword, qword, float, float);
 }
 struct VU_FLOAT {
     qword q;
@@ -1519,12 +1500,12 @@ static inline qword Combine(qword a, VU_FLOAT ga, qword b, VU_FLOAT gb)
 // Helpers GFromClq, GClampR, GClamp (small asm wrappers/accessors shaped for the match).
 static inline float GFromClq(const CLQ &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
 static inline float GClamp(float g, const LM &lm) { return Clamp(g, lm.minValue, lm.maxValue); }
-// The region an object stands in, through its extension's link (or null).
-static inline REGION *PregionFromLo(LO *plo)
+// The region (path zone) an object stands in, through its physics record's REGENT (or null).
+static inline REGION *PregionFromLo(SO *plo)
 {
-    EXT *pext = plo->pext;
-    LINK *plink = pext ? pext->plink : 0;
-    return plink ? plink->pregion : 0;
+    SOPHYS *physics = plo->physics;
+    REGENT *pregent = physics ? physics->pregent : 0;
+    return pregent ? (REGION *)pregent->pcid17 : 0;
 }
 // Is g beyond gMax?
 static inline int FFartherThan(float g, float gMax) { return gMax < g; }
@@ -1535,7 +1516,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     VECTOR4 posOrig;
     if (!FindDprizeLanding(0.0f, 300.0f, D_002A775C, posSeed, 0, 0, &posOrig.q))
         return;
-    LO *plo = GetHeroPo(pworld);
+    SO *plo = GetHeroPo(pworld);
     REGION *pregion = 0;
     if (plo)
         pregion = PregionFromLo(plo);
@@ -1555,7 +1536,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     if (!FindDprizeLanding(-250.0f, 1500.0f, D_002A775C, posSnap.q, 0, 0, &posSnap.q))
         return;
     STACKSCOPE frame;
-    LO **aplo = (LO **)PvAllocFrame(cRequested * sizeof(LO *), 0x10);
+    DPRIZEV **aplo = (DPRIZEV **)PvAllocFrame(cRequested * sizeof(DPRIZEV *), 0x10);
     int clo = NewSprayedDprize(pworld, kind, cRequested, aplo);
     if (!clo)
         return;
@@ -1583,7 +1564,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
             float t = ComputeMaxBallisticTime(VuSub(posTarget, posOrig.q), D_002C0D60, D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC0);
             t += cLaunched * D_002C0EC4;
             qword v = Combine(VuSub(posTarget, posOrig.q), VU_FLOAT(1.0f / t), D_002C0D60, VU_FLOAT(-0.5f * t));
-            LO *ploLaunch = aplo[cLaunched++];
+            DPRIZEV *ploLaunch = aplo[cLaunched++];
             LaunchSprayedDprize(ploLaunch, posOrig.q, v, cLaunched * D_002C0D70, D_002A7760);
         }
         gAngle = NormalizeAngle__Ff(gAngle + D_002C0E94);
