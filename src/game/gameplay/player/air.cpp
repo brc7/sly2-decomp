@@ -85,12 +85,6 @@ void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverrid
 
 extern "C" int GetStepplayerMp(STEPPLAYER *pstepplayer);
 
-struct JTEDGE
-{
-      struct XF *pxf;
-      LO *plo;
-};
-
 extern "C" void ChargeGadgetMp(STEPPLAYER *pstepplayer, int idGadget);
 
 struct XPD
@@ -1757,8 +1751,8 @@ void UpdateJtAirInput(JTAIR *air)
                     if (xp != 0)
                     {
                         XPD *pxpd = &xp->axpd[1 - ixpd];
-                        air->edge = (JTEDGE *)pxpd->ppart;
-                        air->edgePosition = ConvertXfPos(0, air->edge->pxf, pxpd->pos);
+                        air->edge = pxpd->ppart;
+                        air->edgePosition = ConvertXfPos(0, air->edge->transform, pxpd->pos);
                         air->unknown100 = xp->xpk;
                         air->unknown104 = (ixpd == 0) ? (int)xp->pv1 : (int)xp->pv0;
                         air->normalEdge = *(qword *)&vec;
@@ -1775,15 +1769,15 @@ void UpdateJtAirInput(JTAIR *air)
                     SetJtAirJump(air, 3, 0, 0);
                     break;
                 }
-                if (((SO *)air->edge->plo)->physicsTree == 0)
+                if (air->edge->owner->physicsTree == 0)
                     SetJtAirState(air, 4, 0);
                 else
                 {
                     STEPPLAYER *player = air->player;
                     player->unknown1010 = PosSmooth(player->unknown1010, D_002A2DD0, D_002DDED0.deltaTime, &D_002BF820, 0);
-                    *(qword *)&vec = ConvertXfPos(air->edge->pxf, 0, air->edgePosition);
+                    *(qword *)&vec = ConvertXfPos(air->edge->transform, 0, air->edgePosition);
                     if (D_002DDED0.time - air->stateStartTime > 0.03f &&
-                        !FCheckJtEdgeGrab(air, (SOPART *)air->edge, *(qword *)&vec, air->unknown100, (void *)air->unknown104, &air->normalEdge))
+                        !FCheckJtEdgeGrab(air, air->edge, *(qword *)&vec, air->unknown100, (void *)air->unknown104, &air->normalEdge))
                     {
                         SetJtAirState(air, 4, 0);
                         break;
@@ -2439,112 +2433,37 @@ void AddJtWallRunXps(struct P *p)
 
 //////// 0x199298 FreeJtWallRunXps
 namespace M_func_00199298 {
-struct Y {
-    int a0, a4, a8;
-    virtual void v1();
-    virtual void v2();
-    virtual void v3();
-    virtual void v4();
-    virtual void v5();
-    virtual void v6();
-    virtual void v7();
-    virtual void v8();
-    virtual void v9();
-    virtual void v10();
-    virtual void v11();
-    virtual void v12();
-    virtual void v13();
-    virtual void v14();
-    virtual void v15();
-    virtual void v16();
-    virtual void v17();
-    virtual void v18();
-    virtual void v19();
-    virtual void v20();
-    virtual void v21();
-    virtual void v22();
-    virtual void v23();
-    virtual void v24();
-    virtual void v25();
-    virtual void v26();
-    virtual void v27();
-    virtual void v28();
-    virtual void v29();
-    virtual void v30();
-    virtual void v31();
-    virtual void v32();
-    virtual void v33();
-    virtual void v34();
-    virtual void v35();
-    virtual void v36();
-    virtual void v37();
-    virtual void v38();
-    virtual void v39();
-    virtual void v40();
-    virtual void v41();
-    virtual void v42();
-    virtual void v43();
-    virtual void v44();
-    virtual void v45();
-    virtual void v46();
-    virtual void v47();
-    virtual void v48();
-    virtual void v49();
-    virtual void v50();
-    virtual void v51();
-    virtual void v52();
-    virtual void v53();
-    virtual void v54();
-    virtual void v55();
-    virtual void v56();
-    virtual void v57();
-    virtual void v58();
-    virtual void v59();
-    virtual void v60();
-    virtual void v61();
-    virtual int F();
-};
-struct SL { Y *x8; char pad[0x3C]; };
-struct X { int x0; int x4; SL a[2]; char pad[0x9C-0x88]; int x9c; char pad2[0xAC-0xA0]; X *xac; };
-struct L { X *x0; L *x4; X **x8; };
-struct EC { char pad[0x60]; Y *x60; L *x64; };
-struct C4 { char pad[0xEC]; EC *xec; };
-struct C8 { int x0; C4 *x4; };
-struct P0 { char pad[0xEC]; EC *xec; };
-struct P { P0 *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; C8 *xc8; };
-struct G;
-extern "C" { extern G D_003DD490; }
-extern "C" void FreeSwXpList__FP2SWP2XP(G *g, X *x);
+extern "C" void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
 // During a wall run (kind 0x11) frees the wall-run contact list.
-extern "C" void FreeJtWallRunXps(P *p)
+extern "C" void FreeJtWallRunXps(JTAIR *p)
 {
-    EC *ec;
-    if (p->x1c != 0x11 || !(ec = p->xc8->x4->xec))
+    SOTREE *ptree;
+    if (p->state != 0x11 || !(ptree = p->edge->owner->physicsTree))
         return;
-    X *head = 0;
-    Y *y = ec->x60;
-    int f = y->F();
-    for (L *l = p->x0->xec->x64; l; l = l->x4) {
-        X **pp = &l->x0;
-        X *x;
+    XP *head = 0;
+    SO *y = ptree->root;
+    int f = y->IsFixed();
+    for (XPLIST *l = p->player->physicsTree->pxplistFirst; l; l = l->pxplistNext) {
+        XP **pp = &l->pxpFirst;
+        XP *x;
         while ((x = *pp)) {
-            Y *a;
-            if (x->x9c == 11) {
-                pp = &x->xac;
+            SO *a;
+            if (x->xpk == 11) {
+                pp = &x->pxpNext;
                 continue;
             }
             {
-                int i = p->x0 != (P0 *)x->a[0].x8;
-                a = x->a[1 - i].x8;
+                int i = p->player != x->axpd[0].psoRoot;
+                a = x->axpd[1 - i].psoRoot;
             }
-            if (f ? a->F() : a == y) {
-                *pp = x->xac;
-                x->xac = head;
+            if (f ? a->IsFixed() : a == y) {
+                *pp = x->pxpNext;
+                x->pxpNext = head;
                 head = x;
             } else
-                pp = &x->xac;
+                pp = &x->pxpNext;
         }
-        *l->x8 = l->x0;
+        *l->ppxpHead = l->pxpFirst;
     }
     FreeSwXpList__FP2SWP2XP(&D_003DD490, head);
 }
