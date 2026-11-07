@@ -16,6 +16,7 @@
 #include "sly2/xfm.h"
 #include "sly2/so.h"
 #include "sly2/glob.h"
+#include "sly2/render.h"
 #include "sly2/cm.h"
 #include "vifs.h"
 #include "gifs.h"
@@ -738,12 +739,6 @@ struct DMA
     char pad[0xC];
     uchar *pb;
 };
-struct RPL
-{
-    int kind, pad4;
-    uchar *pb;
-    void *chain;
-};
 struct G
 {
     char pad[0x3D5C];
@@ -856,10 +851,10 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
         *(ulong *)D_002DEA28.pb = 0x60000000;
         D_002DEA28.pb += 0x10;
         RPL *prpl = AllocRenderListEntry();
-        prpl->pb = (uchar *)ptag;
+        prpl->pbCall = (uchar *)ptag;
         prpl->kind = 0;
-        prpl->pad4 = 0;
-        prpl->chain = descriptor->chain;
+        *(int *)&prpl->depth = 0;   /* an int store of 0.0f */
+        prpl->pvCall = descriptor->chain;
     }
     p->tick = D_003DD490.tick;
 }
@@ -1037,7 +1032,7 @@ namespace M_RenderSoGlobset {
 //   Left: cull 1 load/sq order + registers (target: radius lw after gain, regs v1/a0/v0/a2), cull 2 radius/range registers swapped (target radius v1, range a0),
 //   cull-2 tail `sw v1,0x1A4` / `swc1 f0,0x158` (sched1 puts the i+1 PRE insn before the swc1, so reload's spill store wins the sched2 luid tie).
 // laneH21v2 (Claude agent): aligned 30. laneI9v1 + CopyQws as `do { } while (0);` + for-k copy loop (no asm barrier; 31) + cull 2 through GetSphereVisibilitySync (vcallms and the cfc2.i sync as separate asms: target mtc1 zero / qmfc2 order) with a commented dead-$3 clobber on its qmfc2 (30).
-// laneI9v1 (Claude agent): aligned 31. laneI8v1 + final dist qmfc2 written straight to prpl->dist via "=r,m" : "j,!r" (never-chosen m alternative keeps the MEM; the qmfc2 output reload in v0 advances reload's round robin, so the pbStart reload gets v1 as in the target).
+// laneI9v1 (Claude agent): aligned 31. laneI8v1 + final dist qmfc2 written straight to prpl->depth via "=r,m" : "j,!r" (never-chosen m alternative keeps the MEM; the qmfc2 output reload in v0 advances reload's round robin, so the pbStart reload gets v1 as in the target).
 // laneI8v1 (Claude agent): aligned 33. laneI7v2 + KindOf as (ulong)(psub->grf & 0xF8) >> 3 (target lbu + dsrl in the final switch, 35 -> 33).
 // laneI7v2 (Claude agent): aligned 35. laneI6v2 + params (pmodel, pmatWorld, gFirst, gSecond, pshd) (entry pshd spill order, 51 -> 48) + case-3 SqDist returns float straight from qmfc2 (48 -> 35).
 // laneI6v2 (Claude agent): aligned 51. laneI5v4 + final GetSquaredLengthBits with qwOne as operand 0, case 3 GBitsSqDist (old order), fAlt kind as (x != 1.0f) ? 23 : 22.
@@ -1173,13 +1168,6 @@ struct DMA
 {
     char pad[0xC];
     uchar *pb;
-};
-struct RPL
-{
-    int kind;
-    float dist;
-    uchar *pb;
-    char *pv;
 };
 extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern G D_003DD490; }
@@ -1567,11 +1555,11 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             break;
         }
         if (psub->grf & 0x400)
-            prpl->dist = pdesc->dist;
+            prpl->depth = pdesc->dist;
         else
-            StoreSquaredLengthBits(*(int *)&prpl->dist, dposSub);
-        prpl->pb = pbStart;
-        prpl->pv = psub->pb;
+            StoreSquaredLengthBits(*(int *)&prpl->depth, dposSub);
+        prpl->pbCall = pbStart;
+        prpl->pvCall = psub->pb;
     }
 }
 } // namespace M_RenderSoGlobset
@@ -1685,13 +1673,6 @@ struct DMA
 {
     char pad[0xC];
     uchar *pb;
-};
-struct RPL
-{
-    int kind;
-    float dist;
-    uchar *pb;
-    char *pv;
 };
 struct G;
 extern "C" { extern DMA D_002DEA28; }
@@ -1910,11 +1891,11 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         RPL *prpl = AllocRenderListEntry();
         prpl->kind = kind;
         if (psub->grf & 0x400)
-            prpl->dist = pdesc->dist;
+            prpl->depth = pdesc->dist;
         else
-            StoreSquaredLengthBits(*(int *)&prpl->dist, dpos);
-        prpl->pb = pbStart;
-        prpl->pv = psub->pb;
+            StoreSquaredLengthBits(*(int *)&prpl->depth, dpos);
+        prpl->pbCall = pbStart;
+        prpl->pvCall = psub->pb;
     }
 }
 } // namespace M_BuildModelDrawPackets
