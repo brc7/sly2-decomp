@@ -4328,11 +4328,7 @@ namespace M_EndRpProjVolume {
 struct COMMAND {
     short kind, index;
 };
-struct GAME {
-    char pad[0x3E38];
-    int ready;
-};
-extern "C" { extern GAME D_003DD490; }
+extern "C" { extern SW D_003DD490; }
 extern "C" { extern int D_002DEB70[2]; }
 extern "C" { 
  }
@@ -4349,7 +4345,6 @@ typedef char DMAS_m_ab_Offset[FIELD_OFFSET(DMAS,m_ab)==4?1:-1];
 typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
 typedef char GIFS_m_ab_Offset[FIELD_OFFSET(GIFS,m_ab)==4?1:-1];
 typedef char GIFS_m_pb_Offset[FIELD_OFFSET(GIFS,m_pb)==12?1:-1];
-typedef char GAME_ready_Offset[FIELD_OFFSET(GAME,ready)==15928?1:-1];
 typedef char COMMAND_kind_Offset[FIELD_OFFSET(COMMAND,kind)==0?1:-1];
 typedef char COMMAND_index_Offset[FIELD_OFFSET(COMMAND,index)==2?1:-1];
 // Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 g_sw.tex2ProjVolume) with alpha blend
@@ -4427,8 +4422,8 @@ extern "C" void EndRpProjVolume(VIFS *input, int first, int mode)
         vifs->AddVifMscal(program);
     }
     vifs->AddVifFlusha();
-    GAME *game = &D_003DD490;
-    if (game->ready) {
+    SW *game = &D_003DD490;
+    if (game->unknown3E38) {
         if (D_002DEA4C == D_002DEA50)
             vifs->AddDmaCall(D_002DF940);
         else
@@ -4444,7 +4439,6 @@ extern "C" void EndRpProjVolume(VIFS *input, int first, int mode)
 
 typedef char UINT_Size[sizeof(uint)==4?1:-1];
 typedef char ULONG_Size[sizeof(ulong)==8?1:-1];
-typedef char GAME_Size[sizeof(GAME)==0x3E3C?1:-1];
 } // namespace M_EndRpProjVolume
 
 // Keeps its per-function views in a namespace of its own (see the file header).

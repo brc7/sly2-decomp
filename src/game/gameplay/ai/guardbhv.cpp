@@ -1900,7 +1900,7 @@ struct OFFSETINPUTS{qword own,other,copy;};
 extern "C"{
 extern OBJECT*D_002F7900;
 
-extern void*D_003E14B8;struct GAMESTATE{char pad[0x4028];void*context;};extern GAMESTATE D_003DD490;
+extern void*D_003E14B8;extern SW D_003DD490;
 extern CLOCK D_002DDED0;extern float D_002BE620;
 void*func_002333B4(void*,int,unsigned) __asm__("memset");
 void SetBhvguardMode(S*,STATE*);
@@ -2053,7 +2053,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                     int limited = 4 < reserve ? reserve : 5;
                     behavior->guard->reserve = limited;
                 }
-                (void)NewNoise(D_003DD490.context, GetLoWorldPos(behavior->guard), behavior->guard);
+                (void)NewNoise(D_003DD490.apstimk[2], GetLoWorldPos(behavior->guard), behavior->guard);
                 Clear(&w.next);
                 w.next.kind = GUARD_MODE_JUGGLED;
                 w.next.msg.data.object = msg->data.object;
