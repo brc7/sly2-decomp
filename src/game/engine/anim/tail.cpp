@@ -181,7 +181,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
             : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)matR.mat[2])->qw));
     *(VU_VECTOR4 *)mat.mat[2] = v2;
 }
-inline qword QwRotateVec(MATRIX3 *pmat, qword qwVec)
+inline qword RotateVector(MATRIX3 *pmat, qword qwVec)
 {
     qword qwResult;
     qwResult = VuMulMatrix3(*(qword *)pmat->mat[0], *(qword *)pmat->mat[1], *(qword *)pmat->mat[2], qwVec);
@@ -242,20 +242,20 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-static inline float GFromVf(qword qw)
+static inline float FloatFromVu(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
-static inline qword QwLength(qword v)
+static inline qword VuLength(qword v)
 {
     qword qw;
     qw = VuDot(v, v);
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
-static inline qword QwLengthUntied(qword v)
+static inline qword VuLengthUntied(qword v)
 {
     qword qwSq;
     qword qwLen;
@@ -263,7 +263,7 @@ static inline qword QwLengthUntied(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qwSq));
     return qwLen;
 }
-static inline qword QwCross(qword a, qword b)
+static inline qword VuCross(qword a, qword b)
 {
     qword qw;
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
@@ -273,32 +273,32 @@ extern "C" qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 extern "C" float RadBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 extern qword D_002A2DA0;
-static inline qword QwAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)
+static inline qword VuAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
     return qw;
 }
-static inline qword QwDivVf(qword qwVec, VU_FLOAT g)
+static inline qword VuDivByFloat(qword qwVec, VU_FLOAT g)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qw) : "j"(g.qw), "j"(qwVec));
     return qw;
 }
-static inline qword QwScaleX(qword qwVec, qword qwScale)
+static inline qword VuScaleByX(qword qwVec, qword qwScale)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(qwScale));
     return qw;
 }
-static inline qword QwChainVel(qword qwVel, VU_FLOAT gA, qword qwVelRel, VU_FLOAT gB, qword qwPerp, VU_FLOAT gK, qword gravity, VU_FLOAT gDt)
+static inline qword CombineChainVelocity(qword qwVel, VU_FLOAT gA, qword qwVelRel, VU_FLOAT gB, qword qwPerp, VU_FLOAT gK, qword gravity, VU_FLOAT gDt)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddax.xyzw $ACC, %3, %4x\n\tvmaddax.xyzw $ACC, %5, %6x\n\tvmaddx.xyzw %0, %7, %8x"
             : "=j"(qw) : "j"(qwVel), "j"(gA.qw), "j"(qwVelRel), "j"(gB.qw), "j"(qwPerp), "j"(gK.qw), "j"(gravity), "j"(gDt.qw));
     return qw;
 }
-static inline float GMaxOf(float a, float b)
+static inline float MaxFloat(float a, float b)
 {
     return (a > b) ? a : b;
 }
@@ -337,11 +337,11 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
             }
             else
             {
-                *(qword *)&velocity = QwDivVf(VuSub(position, chain->previousAnchor), VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
+                *(qword *)&velocity = VuDivByFloat(VuSub(position, chain->previousAnchor), VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
             }
             chain->previousAnchor = anchor;
             MATRIX3 parentRotation = *(MATRIX3 *)&parentXf->matWorld * chainLink->restMatrix;
-            previousDirection = QwRotateVec(&parentRotation, chainLink->restSegment);
+            previousDirection = RotateVector(&parentRotation, chainLink->restSegment);
         }
         else
         {
@@ -370,7 +370,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
         {
             int j = chainLink - chain->links;
             float timeOffset = (step - chain->stepCount + 1) * stepDt;
-            qword basePosition = QwAddScaledA(position, *(qword *)&velocity, VuFloat(timeOffset));
+            qword basePosition = VuAddScaledA(position, *(qword *)&velocity, VuFloat(timeOffset));
             qword baseVelocity = *(qword *)&velocity;
             qword previousSegment = previousDirection;
             for (; j < chain->linkCount; j++)
@@ -386,12 +386,12 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 if (chain->maxBendAngle < bendAngle)
                 {
                     mat = LoadRotateMatrixRad(bendAngle - chain->maxBendAngle, *(qword *)&direction);
-                    segment = QwRotateVec(&mat, segment);
+                    segment = RotateVector(&mat, segment);
                     tip = VuAdd(basePosition, segment);
                 }
                 qword defaultDirection = D_002A2DA0;
-                float dampingFactor = GMaxOf(-chain->damping * stepDt, -1.0f) + 1.0f;
-                float relativeDampingFactor = GMaxOf(-chain->relativeDamping * stepDt, -1.0f);
+                float dampingFactor = MaxFloat(-chain->damping * stepDt, -1.0f) + 1.0f;
+                float relativeDampingFactor = MaxFloat(-chain->relativeDamping * stepDt, -1.0f);
                 float bendFactor = chain->bendStiffness * bendAngle * stepDt;
                 VU_FLOAT dampingVu = VuFloat(dampingFactor);
                 VU_FLOAT relativeDampingVu = VuFloat(relativeDampingFactor);
@@ -399,13 +399,13 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 VU_FLOAT stepDtVu = VuFloat(stepDt);
                 qword gravityVector = *(qword *)&chain->gravity;
                 qword bendDirection = *(qword *)&direction;
-                bendDirection = QwCross(bendDirection, segment);
-                velocityAtTip = QwChainVel(velocityAtTip, dampingVu, relativeVelocity, relativeDampingVu, bendDirection, bendVu, gravityVector, stepDtVu);
-                tip = QwAddScaledA(tip, velocityAtTip, stepDtVu);
+                bendDirection = VuCross(bendDirection, segment);
+                velocityAtTip = CombineChainVelocity(velocityAtTip, dampingVu, relativeVelocity, relativeDampingVu, bendDirection, bendVu, gravityVector, stepDtVu);
+                tip = VuAddScaledA(tip, velocityAtTip, stepDtVu);
                 qword newSegment = VuSub(tip, basePosition);
-                qword newLength = QwLengthUntied(newSegment);
+                qword newLength = VuLengthUntied(newSegment);
                 qword unitSegment;
-                if (GFromVf(newLength) < 0.0001f)
+                if (FloatFromVu(newLength) < 0.0001f)
                 {
                     unitSegment = defaultDirection;
                 }
@@ -417,9 +417,9 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 *(qword *)&direction = unitSegment;
                 qword alongVelocity = VuDot(velocityAtTip, unitSegment);
                 qword alongBaseVelocity = VuDot(baseVelocity, unitSegment);
-                velocityAtTip = VuAdd(QwScaleX(unitSegment, alongBaseVelocity), VuSub(velocityAtTip, QwScaleX(unitSegment, alongVelocity)));
+                velocityAtTip = VuAdd(VuScaleByX(unitSegment, alongBaseVelocity), VuSub(velocityAtTip, VuScaleByX(unitSegment, alongVelocity)));
                 link->tipVelocity = velocityAtTip;
-                qword restLength = QwLength(link->restSegment);
+                qword restLength = VuLength(link->restSegment);
                 tip = VuAddScaled(basePosition, unitSegment, restLength);
                 baseVelocity = velocityAtTip;
                 link->tipPosition = tip;
@@ -431,7 +431,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
     }
     qword tipInParent = ConvertXfPos(0, parentXf, chainLink->tipPosition);
     qword toTip = VuSub(tipInParent, *(qword *)xf->mat.mat[3]);
-    qword restDirection = QwRotateVec(&chainLink->restMatrix, chainLink->restSegment);
+    qword restDirection = RotateVector(&chainLink->restMatrix, chainLink->restSegment);
     MATRIX3 rotation;
     rotation = BuildRotateVectorsMatrix(restDirection, toTip);
     *(MATRIX3 *)&xf->mat = rotation * chainLink->restMatrix;
