@@ -2598,7 +2598,7 @@ extern "C" int HasBhvguardTargetList(BHV *behavior)
     int f;
     guard = (STEPGUARD *)behavior->owner;
     f = 0;
-    if ((guard->unknownFA8 != 0) || (guard->unknownF94 != 0)) {
+    if ((guard->avoidObjectCount != 0) || (guard->designatedTargetCount != 0)) {
         f = 1;
     }
     return f;
@@ -4536,47 +4536,44 @@ void UpdateBhvSleep(struct S *behavior) {
 
 // 0x17A6F8 InitBhvThrown
 namespace M_func_0017A6F8 { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHV176 *p);
 void AddStepguardSgf(void *p, int n);
 // 0x17A6F8: Thrown behaviour (BHV176) vtable slot 7 (OnPush): raises flag 0x16 (thrown), state -1.
-void InitBhvThrown(struct S *behavior)
+void InitBhvThrown(BHV176 *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x16);
+    AddStepguardSgf(behavior->owner, 0x16);
     behavior->state = -1;
 }
 } } // namespace M_func_0017A6F8
 
 // 0x17A730 StartBhvThrown
 namespace M_func_0017A730 { extern "C" {
-struct T; struct S;
+
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0xF64]; void *detector; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x28]; int thrower; };
-void StartBhv(struct S *p);
-void SetBhvThrownState(struct S *p, int n);
-void DetachStepguard(struct T *t);
-void SetStepguardAttack(struct T *t, int a, int b, qword q);
-void FreeSoContacts(struct T *t);
-void SetBhvBusy(struct S *p);
+void StartBhv(BHV176 *p);
+void SetBhvThrownState(BHV176 *p, int n);
+void DetachStepguard(STEPGUARD *t);
+void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q);
+void FreeSoContacts(STEPGUARD *t);
+void SetBhvBusy(BHV176 *p);
 void ResetDetectorTargets(void *p);
 void SetDetectorTargetStateById(void *p, int a, int b);
 // 0x17A730: Thrown behaviour vtable slot 8 (Start): state 0; detaches, cancels the attack, frees contacts, busy,
 // resets the detector and marks the thrower.
-void StartBhvThrown(struct S *behavior)
+void StartBhvThrown(BHV176 *behavior)
 {
     StartBhv(behavior);
     SetBhvThrownState(behavior, 0);
-    DetachStepguard(behavior->guard);
-    SetStepguardAttack(behavior->guard, 0, 0, D_002A2DD0);
-    FreeSoContacts(behavior->guard);
+    DetachStepguard(((STEPGUARD *)behavior->owner));
+    SetStepguardAttack(((STEPGUARD *)behavior->owner), 0, 0, D_002A2DD0);
+    FreeSoContacts(((STEPGUARD *)behavior->owner));
     SetBhvBusy(behavior);
-    ResetDetectorTargets(behavior->guard->detector);
+    ResetDetectorTargets(((STEPGUARD *)behavior->owner)->pdetector);
     if (behavior->thrower)
-        SetDetectorTargetStateById(behavior->guard->detector, behavior->thrower, 2);
+        SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->thrower, 2);
 }
 } } // namespace M_func_0017A730
 
@@ -4592,7 +4589,7 @@ void BHV176::Close()
 
 // 0x17A7F8 UpdateBhvThrown
 namespace M_func_0017A7F8 { extern "C" {
-struct CLOCK; struct G; struct R; struct T; struct S;
+struct CLOCK; struct G; struct R; 
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
@@ -4600,26 +4597,24 @@ extern float D_002BE6C0;
 struct G { char pad[0x4020]; void *yellNoise; };
 extern struct G D_003DD490;
 struct R { char pad[0x54]; int noiseType; };
-struct T { char pad[0x208]; int isOnGround; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; int state; int pad3; float lastYellTime; };
-void UpdateBhv(struct S *p);
-void SetBhvThrownState(struct S *p, int n);
+void UpdateBhv(BHV176 *p);
+void SetBhvThrownState(BHV176 *p, int n);
 qword GetLoWorldPos(void *p);
-struct R *NewNoise(void *p, qword q, struct T *t);
+struct R *NewNoise(void *p, qword q, STEPGUARD *t);
 // 0x17A7F8: Thrown behaviour vtable slot 10 (Update): ends after landing (states 2/3); emits a yelling noise
 // periodically while airborne.
-void UpdateBhvThrown(struct S *behavior) {
+void UpdateBhvThrown(BHV176 *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
         s = behavior->state;
-        if (s < 4) { if (s >= 2 && behavior->guard->isOnGround) SetBhvThrownState(behavior, -1); }
+        if (s < 4) { if (s >= 2 && ((STEPGUARD *)behavior->owner)->floorContact) SetBhvThrownState(behavior, -1); }
     } while (s != behavior->state);
     if (s == 1 || s == 4) {
         if (D_002DDED0.time - behavior->lastYellTime > D_002BE6C0) {
             struct G *g = &D_003DD490;
             behavior->lastYellTime = D_002DDED0.time;
-            NewNoise(g->yellNoise, GetLoWorldPos(behavior->guard), behavior->guard)->noiseType = 3;
+            NewNoise(g->yellNoise, GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner))->noiseType = 3;
         }
     }
 }
@@ -5420,15 +5415,14 @@ extern "C" int IsBhvshootDone(BHVSTATE *behavior)
 
 // 0x17B808 InitBhvTargets
 namespace M_func_0017B808 { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHV178 *p);
 void AddStepguardSgf(void *p, int n);
 // 0x17B808: Targets behaviour (BHV178) vtable slot 7 (OnPush): raises flag 0x20, state -1.
-void InitBhvTargets(struct S *behavior)
+void InitBhvTargets(BHV178 *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x20);
+    AddStepguardSgf(behavior->owner, 0x20);
     behavior->state = -1;
 }
 } } // namespace M_func_0017B808
@@ -5683,21 +5677,20 @@ typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 
 // 0x17BD78 UpdateBhvTargets
 namespace M_func_0017BD78 { extern "C" {
-struct T; struct S;
+struct T; 
 struct T { char pad[0x30]; int target; };
-struct S { char pad[0x10]; void *guard; int pad2; struct T *child; char pad3[0x14]; int state; char pad4[0xC]; int chosenTarget; };
-void UpdateBhv(struct S *p);
+void UpdateBhv(BHV178 *p);
 int IsStepguardHandsOff(void *p);
-void ChooseBhvTargetsTarget(struct S *p);
-int IsBhvBusyAbove(struct S *p);
-void SetBhvTargetsState(struct S *p, int n);
+void ChooseBhvTargetsTarget(BHV178 *p);
+int IsBhvBusyAbove(BHV178 *p);
+void SetBhvTargetsState(BHV178 *p, int n);
 int IsBhvcombatDone(struct T *p);
 // 0x17BD78: Targets behaviour vtable slot 10 (Update): re-chooses and (re)engages the designated targets; pauses
 // while hands-off.
-void UpdateBhvTargets(struct S *behavior) {
+void UpdateBhvTargets(BHV178 *behavior) {
     int f, s;
     UpdateBhv(behavior);
-    f = IsStepguardHandsOff(behavior->guard);
+    f = IsStepguardHandsOff(behavior->owner);
     ChooseBhvTargetsTarget(behavior);
     while (!IsBhvBusyAbove(behavior)) {
         s = behavior->state;
@@ -5709,8 +5702,8 @@ void UpdateBhvTargets(struct S *behavior) {
         case 1:
             if (f) SetBhvTargetsState(behavior, 2);
             else if (!behavior->chosenTarget) SetBhvTargetsState(behavior, 0);
-            else if (behavior->chosenTarget != behavior->child->target) { SetBhvTargetsState(behavior, -1); SetBhvTargetsState(behavior, 1); }
-            else if (IsBhvcombatDone(behavior->child)) SetBhvTargetsState(behavior, 0);
+            else if (behavior->chosenTarget != ((struct T *)behavior->pbhvNext)->target) { SetBhvTargetsState(behavior, -1); SetBhvTargetsState(behavior, 1); }
+            else if (IsBhvcombatDone(((struct T *)behavior->pbhvNext))) SetBhvTargetsState(behavior, 0);
             break;
         case 2:
             if (!f) SetBhvTargetsState(behavior, 0);
@@ -5724,15 +5717,14 @@ void UpdateBhvTargets(struct S *behavior) {
 
 // 0x17BED0 InitBhvCircle
 namespace M_func_0017BED0 { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHV179 *p);
 void AddStepguardSgf(void *p, int n);
 // 0x17BED0: Circle behaviour (BHV179) vtable slot 7 (OnPush): raises flag 0x19, state -1.
-void InitBhvCircle(struct S *behavior)
+void InitBhvCircle(BHV179 *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x19);
+    AddStepguardSgf(behavior->owner, 0x19);
     behavior->state = -1;
 }
 } } // namespace M_func_0017BED0
@@ -5916,7 +5908,7 @@ extern "C" qword ChooseBhvCirclePosition(P *behavior, void *region, qword origin
 
 // 0x17C3E8 UpdateBhvCircle
 namespace M_func_0017C3E8 { extern "C" {
-struct D; struct C; struct B; struct K; struct A; struct T; struct S;
+struct D; struct C; struct B; struct K; struct A; struct T; 
 typedef int qword __attribute__((mode(TI)));
 extern float D_002BE748;
 struct D { char pad[0x10]; void *pathzone; };
@@ -5925,19 +5917,18 @@ struct B { char pad[0xE8]; int numPoints; char pad2[8]; qword *points; };
 struct K { char pad[0xC]; void *target; char pad2[8]; float facingTolerance; };
 struct A { char pad[0xE8]; struct C *unknownE8; char pad2[0x294 - 0xEC]; struct B *pathShape; char pad3[0x324 - 0x298]; char circleDistance[0xA8]; struct K *engagement; };
 struct T { char pad[0x70]; float unknown70; };
-struct S { char pad[0x10]; struct A *guard; int pad2; struct T *child; char pad3[0x14]; int state; };
-void UpdateBhv(struct S *p);
+void UpdateBhv(BHV179 *p);
 float GetTargetRecordFacing(struct K *engagement);
 qword GetLoWorldPos(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
 float NormalizeAngle__Ff(float f);
 int IsWithinLimits__FP2LMf(void *p, float f);
-qword ChooseBhvCirclePosition(struct S *p, void *pathzone, float f, qword v);
+qword ChooseBhvCirclePosition(BHV179 *p, void *pathzone, float f, qword v);
 void FindPathzonePathCurve(void *pathzone, qword a, qword b, struct B *c);
 void SetBhvpathShape(struct T *walk, struct B *b, int n);
 // 0x17C3E8: Circle behaviour vtable slot 10 (Update): when out of the distance band or off-heading relative to the
 // target, re-paths to a new spacing point.
-void UpdateBhvCircle(struct S *behavior) {
+void UpdateBhvCircle(BHV179 *behavior) {
     struct A *a;
     struct C *c;
     struct D *d;
@@ -5953,7 +5944,7 @@ void UpdateBhvCircle(struct S *behavior) {
     d = 0;
     if (behavior->state == 0)
         return;
-    a = behavior->guard;
+    a = ((struct A *)behavior->owner);
     c = a->unknownE8;
     b = a->pathShape;
     if (c) d = c->unknownDC;
@@ -5962,7 +5953,7 @@ void UpdateBhvCircle(struct S *behavior) {
     targetObject = engagement->target;
     targetFacing = GetTargetRecordFacing(engagement);
     pos = GetLoWorldPos(targetObject);
-    walk = behavior->child;
+    walk = ((struct T *)behavior->pbhvNext);
     if (walk->unknown70 > D_002BE748) goto repath;   // (a float test inverted into an if-block compiles as c.le/bc1f: no match)
     {
         qword dv;
@@ -5970,10 +5961,10 @@ void UpdateBhvCircle(struct S *behavior) {
         GetVectorCylind(dv, &cylinder[0], &cylinder[1], 0);
     }
     if (__builtin_fabsf(NormalizeAngle__Ff(cylinder[0] - targetFacing)) > engagement->facingTolerance) goto repath;
-    if (IsWithinLimits__FP2LMf(behavior->guard->circleDistance, cylinder[1])) return;
+    if (IsWithinLimits__FP2LMf(((struct A *)behavior->owner)->circleDistance, cylinder[1])) return;
 repath:
     {
-        qword v = GetLoWorldPos(behavior->guard);
+        qword v = GetLoWorldPos(((struct A *)behavior->owner));
         FindPathzonePathCurve(pathzone, v, ChooseBhvCirclePosition(behavior, pathzone, targetFacing, pos), b);
     }
     SetBhvpathShape(walk, b, 0);
@@ -7055,15 +7046,14 @@ void SetBhvgotoGoal(struct S *behavior, struct Q2 *pq)
 
 // 0x17DD70 InitBhvStalk
 namespace M_func_0017DD70 { extern "C" {
-struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int state; };
-void InitBhv(struct S *p);
+
+void InitBhv(BHV189 *p);
 void AddStepguardSgf(void *p, int n);
 // 0x17DD70: Stalk behaviour (BHV189) vtable slot 7 (OnPush): raises flag 0x2B, state -1.
-void InitBhvStalk(struct S *behavior)
+void InitBhvStalk(BHV189 *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x2B);
+    AddStepguardSgf(behavior->owner, 0x2B);
     behavior->state = -1;
 }
 } } // namespace M_func_0017DD70
@@ -7108,7 +7098,7 @@ extern "C" int IsBhvStalkDone(BHVTARGET *behavior)
 
 // 0x17DE50 UpdateBhvStalk
 namespace M_func_0017DE50 { extern "C" {
-struct CLOCK; struct VTE; struct X; struct T; struct A; struct S;
+struct CLOCK; struct VTE; struct X; struct T; struct A; 
 typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; float deltaTime; };
 extern struct CLOCK D_002DDED0;
@@ -7117,17 +7107,16 @@ struct VTE { short d; short pad; void *pfn; };
 struct X { qword a; qword v; };
 struct T { char pad[0x40]; struct X goal; };
 struct A { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x10]; struct A *guard; int pad2; struct T *child; char pad3[0x14]; int state; int pad4; void *target; float lastRegoalTime; float forcedDelay; };
-void UpdateBhv(struct S *p);
-int IsBhvBusyAbove(struct S *p);
+void UpdateBhv(BHV189 *p);
+int IsBhvBusyAbove(BHV189 *p);
 int IsBhvanimDone(void *p);
 int IsStepguardHandsOff(void *p);
-void SetBhvStalkState(struct S *p, int n);
+void SetBhvStalkState(BHV189 *p, int n);
 int IsStepguardForceClass(struct A *a, void *o);
 float GetRandomStepguardDelay(struct A *a);
 qword GetLoWorldPos(void *p);
 qword GetPathlinkEndpointPos(struct X *s, qword v);
-void RegoalBhvStalk(struct S *p);
+void RegoalBhvStalk(BHV189 *p);
 // VU0 helper: distance between two points.
 static __inline__ float Dist(qword a, qword b) {
     qword d;
@@ -7140,28 +7129,28 @@ static __inline__ float Dist(qword a, qword b) {
 }
 // 0x17DE50: Stalk behaviour vtable slot 10 (Update): after the alert animation, runs near the forced-class target
 // and keeps re-positioning; leaves when the delay expires and the target is no longer forced.
-void UpdateBhvStalk(struct S *behavior) {
+void UpdateBhvStalk(BHV189 *behavior) {
     int s;
     UpdateBhv(behavior);
     while (s = behavior->state, !IsBhvBusyAbove(behavior)) {
         switch (behavior->state) {
         case 0:
-            if (IsBhvanimDone(behavior->child)) SetBhvStalkState(behavior, 1);
+            if (IsBhvanimDone(((struct T *)behavior->pbhvNext))) SetBhvStalkState(behavior, 1);
             break;
         case 1:
-            if (IsStepguardHandsOff(behavior->guard)) {
+            if (IsStepguardHandsOff(((struct A *)behavior->owner))) {
                 SetBhvStalkState(behavior, 2);
             } else {
                 { float dt = D_002DDED0.deltaTime; behavior->forcedDelay -= dt; }
                 if (behavior->forcedDelay <= 0.0f) {
                     void *o;
                     {
-                        struct A *a = behavior->guard;
+                        struct A *a = ((struct A *)behavior->owner);
                         struct VTE *entry = &a->vt[0x58];
                         o = ((void *(*)(void *))entry->pfn)((char *)a + entry->d);
                     }
-                    if (o == behavior->target && IsStepguardForceClass(behavior->guard, o)) {
-                        behavior->forcedDelay = GetRandomStepguardDelay(behavior->guard);
+                    if (o == behavior->target && IsStepguardForceClass(((struct A *)behavior->owner), o)) {
+                        behavior->forcedDelay = GetRandomStepguardDelay(((struct A *)behavior->owner));
                     } else {
                         SetBhvStalkState(behavior, -1);
                     }
@@ -7169,22 +7158,22 @@ void UpdateBhvStalk(struct S *behavior) {
             }
             break;
         case 2:
-            if (!IsStepguardHandsOff(behavior->guard)) SetBhvStalkState(behavior, 1);
+            if (!IsStepguardHandsOff(((struct A *)behavior->owner))) SetBhvStalkState(behavior, 1);
             break;
         }
         if (behavior->state != s) continue;
         break;
     }
     if (behavior->state == 1) {
-        struct T *t = behavior->child;
+        struct T *t = ((struct T *)behavior->pbhvNext);
         if (D_002DDED0.time - behavior->lastRegoalTime > D_002BE760) {
         struct X *x = &t->goal;
-        qword pos = GetLoWorldPos(behavior->guard);
+        qword pos = GetLoWorldPos(((struct A *)behavior->owner));
         int f = 0;
         qword q = GetPathlinkEndpointPos(x, pos);
-        if (Dist(GetLoWorldPos(behavior->guard), q) < D_002BE764) {
+        if (Dist(GetLoWorldPos(((struct A *)behavior->owner)), q) < D_002BE764) {
             f = 1;
-        } else if (Dist(GetLoWorldPos(behavior->guard), GetLoWorldPos(behavior->target)) < D_002BE768) {
+        } else if (Dist(GetLoWorldPos(((struct A *)behavior->owner)), GetLoWorldPos(behavior->target)) < D_002BE768) {
             f = 1;
         }
         if (f) RegoalBhvStalk(behavior);

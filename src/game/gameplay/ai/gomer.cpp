@@ -17,5 +17,5 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 void GOMER::Init()
 {
       STEPGUARD::Init();
-      unk_0x488[(0xE78 - 0x488) / 4] = 1;   /* +0xE78: GOMER flag (not yet named in guard.h) */
+      searchMode = 1;   /* +0xE78: GOMER flag */
 }

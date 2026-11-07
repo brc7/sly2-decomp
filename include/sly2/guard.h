@@ -110,33 +110,57 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x2e0[2];
       int patrolScript;     /* +0x2E8 [S] the patrol script (BHVPATROL) */
       int altPatrolScript;  /* +0x2EC [S] the alternative patrol script */
-      undefined4 unk_0x2f0[(0x32c - 0x2f0) / 4];
+      void *homeRecord;     /* +0x2F0 [S] the home marker the guard returns to (ResetStepguardToHome) */
+      undefined4 unk_0x2f4[3];
+      qword homePosition;   /* +0x300 [S] */
+      float homeHeading;    /* +0x310 [S] */
+      undefined4 unk_0x314[(0x32c - 0x314) / 4];
       int isInvulnerable32C; /* +0x32C [S] */
       int isKnockedOut;     /* +0x330 [R] knocked out */
       undefined4 unknown334;
       int maxHitPoints;     /* +0x338 [R] max hp */
       int hitPoints;        /* +0x33C [R] current hp */
-      undefined4 unk_0x340[(0x34c - 0x340) / 4];
+      int staggerCapacity;  /* +0x340 [S] flinches absorbed before a stagger */
+      int staggerProgress;  /* +0x344 [S] */
+      undefined4 unk_0x348;
       ASEGA *heldAnimation; /* +0x34C [S] an animation the guard holds (released with ReleaseAsega(&pasega)) */
       undefined4 unk_0x350[(0x35c - 0x350) / 4];
       NOISE *heldNoise;     /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
-      undefined4 unk_0x360[(0x38c - 0x360) / 4];
+      float pulseStartTime; /* +0x360 [S] */
+      int unknown364;       /* +0x364 [S] */
+      LM closeAngleRangeHeld; /* +0x368 [S] interaction angle range while held (GuardEvalInteractMode) */
+      LM closeAngleRange;   /* +0x370 [S] */
+      float closeRange;     /* +0x378 [S] */
+      int canInteract;      /* +0x37C [S] */
+      LM interactAngleRange; /* +0x380 [S] */
+      float interactRange;  /* +0x388 [S] */
       LO *target;           /* +0x38C [R] current target (Sly while chasing) */
-      int unknown390;       /* +0x390 [S] */
-      int unknown394;       /* +0x394 [S] cleared with nUnk3A4 */
-      undefined4 unk_0x398[(0x3a4 - 0x398) / 4];
-      int unknown3A4;       /* +0x3A4 [S] the guard's contribution to pdetector->unknownFC; possibly detectorContribution (low-confidence guess: [S] the guard's contribution to pdetector->unknownFC) */
-      int unknown3A8;       /* +0x3A8 [S] */
-      undefined4 unk_0x3ac[(0x3c0 - 0x3ac) / 4];
-      int unknown3C0;       /* +0x3C0 [S] */
-      undefined4 unk_0x3c4[(0x3cc - 0x3c4) / 4];
+      int forcedTarget;     /* +0x390 [S] target forced on the guard (ChooseStepguardTarget) */
+      int preferClassCount; /* +0x394 [S] classes the guard prefers as targets (AddStepguardPreferClass, at most 3) */
+      int preferClasses[3]; /* +0x398 [S] */
+      int generatedTargetCount; /* +0x3A4 [S] detector targets the guard generated (its contribution to pdetector->unknownFC) */
+      int ignoreClassCount; /* +0x3A8 [S] classes the guard ignores (AddStepguardIgnoreClass, at most 5) */
+      int ignoreClasses[5]; /* +0x3AC [S] */
+      int forceClassCount;  /* +0x3C0 [S] classes forced as targets (AddStepguardForceClass, at most 2) */
+      int forceClasses[2];  /* +0x3C4 [S] */
       void *pvEngage;       /* +0x3CC [R] engagement record (non-zero while in combat) [H type] */
-      undefined4 unk_0x3d0;
+      int unknown3D0;       /* +0x3D0 [S] */
       int unknown3D4;       /* +0x3D4 [S] read with pvEngage (FBhvcombatLostTarget) */
-      undefined4 unk_0x3d8[(0x404 - 0x3d8) / 4];
+      undefined4 unk_0x3d8[(0x3f4 - 0x3d8) / 4];
+      VOL *pickpocketIndicator0; /* +0x3F4 [S] */
+      VOL *pickpocketIndicator1; /* +0x3F8 [S] */
+      undefined4 unk_0x3fc[2];
       GUARDLOOT loot[8];    /* +0x404 [R] pickpocket loot list */
       int numLoot;          /* +0x484 [R] entries used in aloot */
-      undefined4 unk_0x488[(0x4b0 - 0x488) / 4];
+      int firstLoot;        /* +0x488 [S] */
+      int isLootStaged;     /* +0x48C [S] */
+      int unknown490;       /* +0x490 [S] */
+      int lootEnabled;      /* +0x494 [S] */
+      void *stuckWatch;     /* +0x498 [S] */
+      void *hazardWatch;    /* +0x49C [S] */
+      int unknown4A0;       /* +0x4A0 [S] */
+      int tracksRelocatePoint; /* +0x4A4 [S] */
+      undefined4 unk_0x4a8[2];
       qword relocatePoint;  /* +0x4B0 [S] where BHVRELOCATE moves the guard */
       int cbindingrec;      /* +0x4C0 [S] entries used in abindingrec */
       undefined4 unknown4C4[3];
@@ -146,17 +170,35 @@ struct STEPGUARD : public STEP
       ANIMBINDING koReactions[26];        /* +0xC10 [S] KO */
       LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (ConstructLeap) */
       CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
-      undefined4 unk_0xe60[(0xe7c - 0xe60) / 4];
+      int noiseType;        /* +0xE60 [S] */
+      int sensesEnabled;    /* +0xE64 [S] */
+      int minStimulusLevel; /* +0xE68 [S] weakest stimulus the guard reacts to */
+      undefined4 unk_0xe6c[3];
+      int searchMode;       /* +0xE78 [S] */
       float sleepTimeMin;   /* +0xE7C [S] sleep duration range (BHVSLEEP) */
       float sleepTimeMax;   /* +0xE80 [S] */
-      undefined4 unk_0xe84[(0xedc - 0xe84) / 4];
+      int sleepDartCapacity; /* +0xE84 [S] sleep darts absorbed before sleeping */
+      int sleepDartProgress; /* +0xE88 [S] */
+      undefined4 unk_0xe8c[2];
+      int numAllowedZones;  /* +0xE94 [S] path zones the guard may use */
+      int allowedZones[8];  /* +0xE98 [S] */
+      int attackOids[8];    /* +0xEB8 [S] oids of the attack definitions (resolved into attacks) */
+      int attackOidCount;   /* +0xED8 [S] */
       CID120 *attacks[8];   /* +0xEDC [S] the guard's attack definitions (ChooseStepguardAttack) */
       int numAttacks;       /* +0xEFC [S] */
       CID120 *currentAttack; /* +0xF00 [S] the attack being run */
       float nextAttackTime; /* +0xF04 [S] earliest time of the next attack choice (guardbhv TryBhvcombatChooseAttack) */
-      undefined4 unk_0xf08[(0xf3c - 0xf08) / 4];
+      CID120 *aimAttack;    /* +0xF08 [S] the attack being aimed */
+      ACT *aimAct;          /* +0xF0C [S] */
+      int aimTarget;        /* +0xF10 [S] */
+      undefined4 unk_0xf14[3];
+      qword aimOffset;      /* +0xF20 [S] */
+      int ignoresBusyGuards; /* +0xF30 [S] */
+      int ready;            /* +0xF34 [S] */
+      undefined4 unk_0xf38;
       int isEngagedBusy;    /* +0xF3C [S] set by StartBhvstrike, cleared by CloseBhvstrike (inferred: a strike is in progress) */
-      undefined4 unk_0xf40[2];
+      undefined4 unk_0xf40;
+      float alertCooldownEnd; /* +0xF44 [S] */
       LM shootRange;        /* +0xF48 [S] distance range of a shot (FBhvcombatCanShoot) */
       LM shootPan;          /* +0xF50 [S] pan (yaw) range of a shot */
       LM shootTilt;         /* +0xF58 [S] tilt (pitch) range of a shot */
@@ -165,19 +207,19 @@ struct STEPGUARD : public STEP
       LO *escortObject;     /* +0xF68 [S] escort object, copied with escortPos into the root behaviour's sub-behaviour in mode 0x10 (SetStepguardEscortPoint) */
       undefined4 unknownF6C;
       qword escortPos;      /* +0xF70 [S] escort point */
-      undefined4 unk_0xf80;
+      int attachKind;       /* +0xF80 [S] what the guard is attached to (rail, pipe, ...) */
       LO *attachObject;     /* +0xF84 [S] the object the guard is attached to (rail/pipe behaviours) */
       float attachParam;    /* +0xF88 [S] position along it */
       int isMovingForward;  /* +0xF8C [S] */
       void *attachPoint;    /* +0xF90 [S] */
-      int unknownF94;       /* +0xF94 [S] HasBhvguardTargetList: non-zero with unknownFA8 means a target list; possibly numTargetListA (low-confidence guess: [S] FBhvguardHasTargetList) */
-      undefined4 unk_0xf98[(0xfa8 - 0xf98) / 4];
-      int unknownFA8;       /* +0xFA8 [S]; possibly numTargetListB (low-confidence guess: [S] FBhvguardHasTargetList) */
-      undefined4 unk_0xfac[(0xfbc - 0xfac) / 4];
+      int designatedTargetCount; /* +0xF94 [S] targets designated by script (SetStepguardTargetLists); with avoidObjectCount, non-zero means a target list (FBhvguardHasTargetList) */
+      int designatedTargets[4]; /* +0xF98 [S] */
+      int avoidObjectCount; /* +0xFA8 [S] objects to avoid (SetStepguardTargetLists) */
+      int avoidObjects[4];  /* +0xFAC [S] */
       int specialState;     /* +0xFBC [S] */
-      undefined4 unk_0xfc0;
+      float specialStartTime; /* +0xFC0 [S] */
       void *scale;          /* +0xFC4 [S] a scale record (value at +0x20) */
-      undefined4 unk_0xfc8;
+      int isHandsOff;       /* +0xFC8 [S] (IsStepguardHandsOff) */
       int handsOffLookAt;   /* +0xFCC [S] */
       GUARDMOVER mover;     /* +0xFD0 [S] movement arbiter */
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
@@ -185,7 +227,7 @@ struct STEPGUARD : public STEP
       void *knockdownHelper; /* +0xFEC [S] */
       float walkPhase;      /* +0xFF0 [S] walk-cycle phase saved by BHVANIM when its walk animation stops */
       float walkPhaseTime;  /* +0xFF4 [S] the time it was saved */
-      undefined4 unk_0xff8;
+      float removalTime;    /* +0xFF8 [S] time the guard was removed from the world (OnStepguardRemove) */
       int busyCount;        /* +0xFFC [R] busy count */
       undefined4 unknown1000[4];
     STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
@@ -222,7 +264,14 @@ typedef char assert_STEPGUARD_abindingrec[SLY2_OFFSETOF(STEPGUARD, abindingrec) 
 typedef char assert_STEPGUARD_knockdownReactions[SLY2_OFFSETOF(STEPGUARD, knockdownReactions) == 0x8D0 ? 1 : -1];   /* stepguard.cpp */
 typedef char assert_STEPGUARD_koReactions[SLY2_OFFSETOF(STEPGUARD, koReactions) == 0xC10 ? 1 : -1];
 typedef char assert_STEPGUARD_nextAttackTime[SLY2_OFFSETOF(STEPGUARD, nextAttackTime) == 0xF04 ? 1 : -1]; /* guardbhv.cpp */
-typedef char assert_STEPGUARD_unknownFA8[SLY2_OFFSETOF(STEPGUARD, unknownFA8) == 0xFA8 ? 1 : -1]; /* guardbhv.cpp */
+typedef char assert_STEPGUARD_avoidObjectCount[SLY2_OFFSETOF(STEPGUARD, avoidObjectCount) == 0xFA8 ? 1 : -1]; /* guardbhv.cpp */
+typedef char assert_STEPGUARD_homePosition[SLY2_OFFSETOF(STEPGUARD, homePosition) == 0x300 ? 1 : -1];
+typedef char assert_STEPGUARD_forceClasses[SLY2_OFFSETOF(STEPGUARD, forceClasses) == 0x3C4 ? 1 : -1];
+typedef char assert_STEPGUARD_pickpocketIndicator1[SLY2_OFFSETOF(STEPGUARD, pickpocketIndicator1) == 0x3F8 ? 1 : -1];
+typedef char assert_STEPGUARD_tracksRelocatePoint[SLY2_OFFSETOF(STEPGUARD, tracksRelocatePoint) == 0x4A4 ? 1 : -1];
+typedef char assert_STEPGUARD_attackOidCount[SLY2_OFFSETOF(STEPGUARD, attackOidCount) == 0xED8 ? 1 : -1];
+typedef char assert_STEPGUARD_aimOffset[SLY2_OFFSETOF(STEPGUARD, aimOffset) == 0xF20 ? 1 : -1];
+typedef char assert_STEPGUARD_removalTime[SLY2_OFFSETOF(STEPGUARD, removalTime) == 0xFF8 ? 1 : -1];
 typedef char assert_STEPGUARD_escortPos[SLY2_OFFSETOF(STEPGUARD, escortPos) == 0xF70 ? 1 : -1]; /* stepguard.cpp */
 typedef char assert_STEPGUARD_walkTimeMin[SLY2_OFFSETOF(STEPGUARD, walkTimeMin) == 0x2CC ? 1 : -1];
 typedef char assert_STEPGUARD_isInvulnerable32C[SLY2_OFFSETOF(STEPGUARD, isInvulnerable32C) == 0x32C ? 1 : -1];
