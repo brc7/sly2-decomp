@@ -1567,41 +1567,36 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
 
 //////// 0x197370 StartJtAirTurn
 namespace M_func_00197370 { extern "C" {
-struct S60 { char pad[0x40]; float x40; float x44; };
-struct S150 { char pad[0x18]; float x18; };
-struct S1030 { char pad[0x1C]; float x1c; char pad2[0x40-0x20]; float x40; };
-struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct S1030 *action; char x1034[4]; };
-struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
 void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, void *b, float g, float h);
-#define Get(p, i) ((p)->x1c == 2 ? (p)->a134[i] : (p)->a120[i])
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, STEPPLAYER *o, int n, ASEGA **b, float g, float h);
+#define Get(p, i) ((p)->state == 2 ? (p)->apasegDoubleJump[i] : (p)->apasegJump[i])
 // Marks a mid-air turn and starts the turn/flip clip chosen from the heading difference.
-void StartJtAirTurn(struct P *p)
+void StartJtAirTurn(JTAIR *p)
 {
     float d, ad;
-    struct S1030 *s;
-    void *pv;
-    p->x30 = 1;
-    d = NormalizeAngle__Ff(p->x0->controller->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
+    ASEGA *s;
+    ASEG *pv;
+    p->unknown30 = 1;
+    d = NormalizeAngle__Ff(p->player->controller->leftStickAngle - atan2f(p->player->rootTransform->worldMatrix.mat[0][1], p->player->rootTransform->worldMatrix.mat[0][0]));
     ad = __builtin_fabsf(d);
     if (ad < 1.0995574f)
-        p->x8 = 3;
+        p->unknown08 = 3;
     else if (ad > 2.0420351f)
-        p->x8 = 4;
+        p->unknown08 = 4;
     else if (d > 0.0f)
-        p->x8 = 2;
+        p->unknown08 = 2;
     else
-        p->x8 = 1;
-    s = p->x0->action;
-    pv = Get(p, p->x8);
+        p->unknown08 = 1;
+    s = p->player->activeAnimation;
+    pv = Get(p, p->unknown08);
     if (!pv)
         pv = Get(p, 0);
     if (!pv)
-        pv = p->a120[0];
-    ReleaseSma(p->x0->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->x1c, s->x40);
+        pv = p->apasegJump[0];
+    ReleaseSma(&p->player->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->player, 1, &p->player->activeAnimation, s->time, s->speed);
 }
 } } // namespace M_func_00197370
 
