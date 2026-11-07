@@ -2721,7 +2721,7 @@ void SO::Clone(LO *ploBase)
         }
         case 16:
         {
-            CHAINLINK *plink = (CHAINLINK *)pxf->reference;
+            CHAINLINK *plink = pxf->plink;
             CHAIN *pchain = plink->chain;
             if (plink == pchain->links)
             {
@@ -2732,7 +2732,7 @@ void SO::Clone(LO *ploBase)
                     CHAINLINK *plinkNew = &pchain->links[ilink];
                     plinkNew->chain = pchain;
                     CloneXfRef(ploBase, &plinkNew->pxf);
-                    plinkNew->pxf->reference = (XF *)plinkNew;
+                    plinkNew->pxf->plink = plinkNew;
                 }
             }
             break;

@@ -421,15 +421,40 @@ struct XF
       OID oid;   /* oid of the transform */
       XF *parent;      /* parent transform */
       int worldStamp;    /* frame stamp of the last world-matrix update */
-      XF *reference; /* reference transform */
+      union   /* +0xA8: what the transform's role (update mode) attaches */
+      {
+            XF *reference;   /* the reference transform (the default roles) */
+            float arrivalTime;   /* roles 9 and 0x11: the absolute arrival time (ACT8::Update; asega.cpp: blend weight) */
+            struct CHAINLINK *plink;   /* a chain role: the chain link (so.cpp UpdateSoChains, xf.cpp UpdateChainLink) */
+            struct IKREC *pikrec;   /* the IK role: the IK record (ik.cpp) */
+            struct XFMCONSTR *pconstr;   /* role 0xF (constrained): the constraint (tu_1603B8.cpp) */
+      };
       short stiffness;
       short damping;
       VECTOR4 velocity;
-      qword restValue; /* rest position (inferred) */
-      qword rate;
-      qword unknownE0;   /* possibly restValue2 (low-confidence guess: second rest/Hermite end value (role-dependent, xf.cpp comment)) */
-      qword acceleration;
+      union   /* +0xC0..+0xFF: the segment block, by role and phase */
+      {
+            struct
+            {
+                  qword restValue;   /* rest / goal value (act.cpp goalValue) */
+                  qword rate;   /* +0xD0 its rate (act.cpp goalVelocity; asega.cpp: a rotation channel's curve word) */
+                  qword unknownE0;
+                  qword acceleration;
+            };
+            struct   /* phase 1: the cubic (Bezier/Hermite) segment's four control values (act.cpp) */
+            {
+                  qword segmentStart;
+                  qword segmentStartTangent;
+                  qword segmentEnd;
+                  qword segmentEndTangent;
+            };
+            qword rotationRows[4];   /* rotation roles: the rows of a rotation basis */
+      };
 };
+typedef char assert_XF_reference[SLY2_OFFSETOF(XF, reference) == 0xA8 ? 1 : -1];
+typedef char assert_XF_restValue[SLY2_OFFSETOF(XF, restValue) == 0xC0 ? 1 : -1];
+typedef char assert_XF_segmentEndTangent[SLY2_OFFSETOF(XF, segmentEndTangent) == 0xF0 ? 1 : -1];
+typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
 
 /* XA: an attachment between two SOs, kept in two lists: the source's and the target's (inferred from the links).
    Layout from src/game/gameplay/player/jt/SetJtState__FP2JT3JTS4JTBS.cpp (4 copies in Lilly ports) */
