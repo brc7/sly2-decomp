@@ -51,6 +51,7 @@ struct CRef
       CRef(int tagk) { InitTag(tagk); }
       CRef(const CRef &r);
       CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }            /* a word with its tag, no retain (bif's builtins) */
+      CRef(bool f) { m_tagk = 0x17; u.n = f; }                       /* a boolean, inline (the predicates' results) */
       CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: EvalLambda) */
       CRef(CPair *ppair) __asm__("CRef_ctor_CPair");
       CRef(const VECTOR *pvec) __asm__("CRef_ctor_VECTOR");           /* the payload types own a heap each (CSpliceHeap, sly2/slotheap.h) */
@@ -63,9 +64,12 @@ struct CRef
       CRef &operator=(const CRef &r);
       CRef &operator=(bool f) __asm__("CRef_SetBool");            /* a boolean (tag 0x17) */
       CRef &operator=(CPair *ppair) __asm__("CRef_SetPair");      /* a list (tag 0x1F) */
+      CRef &operator=(int n) __asm__("SetS32__4CRefi");           /* a number (tag 0x15); SetS32 below */
+      CRef &operator=(float g) __asm__("SetF32__4CReff");         /* a number (tag 0x16); SetF32 below */
       /* the other setters of splice/ref.cpp, as named members (operator= overloads would change how includers that
          assign through the converting constructors compile) */
       CRef &SetVector(const VECTOR *pvec) __asm__("CRef_SetVector"); /* tag 0x1A */
+      CRef &SetMatrix(const MATRIX4 *pmat) __asm__("CRef_SetMatrix"); /* tag 0x1B */
       CRef &SetProc(CProc *pproc) __asm__("CRef_SetProc");           /* tag 0x20 */
       CRef &SetBasic(BASIC *pbasic) __asm__("CRef_SetBasic");        /* tag 0x21 */
       bool operator==(const CRef &ref);
