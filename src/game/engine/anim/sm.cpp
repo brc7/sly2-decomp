@@ -507,26 +507,23 @@ extern "C" void FindSmStateRequired(SM *psm, OID oid)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmdFindSm { extern "C" {
-struct E { int fl; int b; };
-struct S { char pad[0x60]; int c; struct E *ae; };
 // Returns the first distance-table record whose mask intersects the given mask, or null.
-struct E *FindSmDistanceTable(struct S *p, int m)
+SMRT *FindSmDistanceTable(SM *p, int m)
 {
     int i;
-    for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->fl & m) return pe; }
+    for (i = 0; i < p->csmrt; i++) { SMRT *pe = &p->asmrt[i]; if (pe->grf & m) return pe; }
     return 0;
 }
 } } // namespace M_PsmdFindSm
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CsmtDistanceSm { extern "C" {
-struct Q { int a; char *ab; };
-struct Q *FindSmDistanceTable(SM *p, int n);
+SMRT *FindSmDistanceTable(SM *p, int n);
 // Number of transitions (hops) from one state to another using only transitions allowed by the mask (precomputed
 // table).
 int CountSmTransitionHops(SM *p, int n, int y, int x)
 {
-    struct Q *pq = FindSmDistanceTable(p, n);
+    SMRT *pq = FindSmDistanceTable(p, n);
     int r = 0;
     if (pq)
         r = pq->ab[y * p->csms + x];
