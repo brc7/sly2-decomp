@@ -893,8 +893,6 @@ namespace M_SetActPositionGoal { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
-struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
-#define XFV(p) ((struct X *)(p)->transform)
 extern qword D_002A2DD0;
 // True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
@@ -909,12 +907,11 @@ void SetActPositionGoal(ACT1 *p, qword v)
     qword dv;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->goalValue));
     p->goalValue = v;
-    if (XFV(p)->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
-        XFV(p)->goalValue = v;
+    if (p->transform->firstActuator == p && !AreVectorsNear(D_002A2DD0, dv)) {
+        p->transform->restValue = v;
         UnsettleXfSlot(p->animatedObject, p->transform);
     }
 }
-#undef XFV
 } } // namespace M_SetActPositionGoal
 
 namespace M_func_0012D210 { extern "C" {
@@ -1333,8 +1330,6 @@ namespace M_func_0012DA30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
-struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
-#define XFV(p) ((struct X *)(p)->transform)
 extern qword D_002A2DD0;
 // True when a and b are equal within 1e-4 on x, y and z.
 static __inline__ int AreVectorsNear(qword a, qword b)
@@ -1349,21 +1344,20 @@ void SetActRotationGoal(ACT1 *p, qword v)
     qword dv;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->goalValue));
     p->goalValue = v;
-    if (XFV(p)->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
+    if (p->transform->firstActuator == p && !AreVectorsNear(D_002A2DD0, dv)) {
         {
             qword shiftedStart;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedStart) : "j"(XFV(p)->segmentStart), "j"(dv), "j"(dv));
-            XFV(p)->segmentStart = shiftedStart;
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedStart) : "j"(p->transform->restValue), "j"(dv), "j"(dv));
+            p->transform->restValue = shiftedStart;
         }
         {
             qword shiftedEnd;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(XFV(p)->segmentEnd), "j"(dv));
-            XFV(p)->segmentEnd = shiftedEnd;
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(p->transform->unknownE0), "j"(dv));
+            p->transform->unknownE0 = shiftedEnd;
         }
         UnsettleXfSlot(p->animatedObject, p->transform);
     }
 }
-#undef XFV
 } } // namespace M_func_0012DA30
 
 namespace M_func_0012DB50 { extern "C" {
