@@ -3086,15 +3086,11 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; void *unknown14; };
-struct F { char pad[0x18]; };
-struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
 // Compose two 2x3 affine matrices (q then n).
-static inline M23 Mul(const M23 &q, const M23 &n)
+static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
-    M23 r;
+    SPRITEXF r;
     r.a[0] = m0 * n.a[0] + m1 * n.a[2];
     r.a[1] = m0 * n.a[1] + m1 * n.a[3];
     r.a[2] = m2 * n.a[0] + m3 * n.a[2];
@@ -3103,17 +3099,17 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void AdvanceSpriteAnim(float,F *pf, int z, M23 *pm, RGBA c0, RGBA c1);
+extern "C" void AdvanceSpriteAnim(float,SPRITEANIM *pf, int z, SPRITEXF *pm, RGBA c0, RGBA c1);
 // Starts a sprite animation at a given frame / time and draws it. (inferred)
-extern "C" void StartSpriteAnimAt(S *group, int animIndex, int slot, M23 *matrix, float t, RGBA c0, RGBA c1)
+extern "C" void StartSpriteAnimAt(SPRITEGRP *group, int animIndex, int slot, SPRITEXF *matrix, float t, RGBA c0, RGBA c1)
 {
-    E *state = &group->slots[slot];
-    M23 m;
+    SPRITESLOT *state = &group->slots[slot];
+    SPRITEXF m;
     state->animIndex = animIndex;
     state->isFinished = 0;
     state->time = t;
     state->keyIndex = 0;
-    M23 *pmUse;
+    SPRITEXF *pmUse;
     if (group->xform) {
         m = Mul(*matrix, *group->xform);
         pmUse = &m;
@@ -3139,18 +3135,15 @@ extern "C" int FindFreeSpriteSlot(SPRITEGRP *group)
 
 // 0x217F38 ResetSpriteSlotItems
 namespace M_func_00217F38 { extern "C" {
-struct Y { char pad[0x30]; void *descriptor; char pad2[0x3C]; };   /* a frame item */
-struct F { int numItems; struct Y *items; char pad[0x10]; };
-struct S { int counts; int anims; struct F *slots; };
-void ReleaseSpriteItem(void *p, struct Y *y);
-void InitSpriteItem(struct Y *y);
+void ReleaseSpriteItem(void *p, SPRITEITEM *y);
+void InitSpriteItem(SPRITEITEM *y);
 // Release each item's sprite descriptor.
-static inline void ReleaseItems(int n, struct Y *items)
+static inline void ReleaseItems(int n, SPRITEITEM *items)
 {
-    int k; for (k = 0; k < n; k++) { struct Y *item = &items[k]; if (item->descriptor) ReleaseSpriteItem(item->descriptor, item); else InitSpriteItem(item); }
+    int k; for (k = 0; k < n; k++) { SPRITEITEM *item = &items[k]; if (item->descriptor) ReleaseSpriteItem(item->descriptor, item); else InitSpriteItem(item); }
 }
 // Resets / releases every item of sprite slot i. (inferred)
-void ResetSpriteSlotItems(struct S *group, int slot)
+void ResetSpriteSlotItems(SPRITEGRP *group, int slot)
 {
     ReleaseItems(group->slots[slot].numItems, group->slots[slot].items);
 }
@@ -3170,12 +3163,9 @@ extern "C" void SetSpriteDefaultPhase(SPRITEGRP *group)
 
 // 0x217FE0 SetSpriteAnimPhase
 namespace M_func_00217FE0 { extern "C" {
-struct E { char pad[8]; short animIndex; char pad2[14]; };
-struct F { char pad[8]; float duration; char pad2[12]; };
-struct S { int counts; struct F *anims; struct E *slots; };
-void SetSpriteAnimTime(struct S *p, int i, int j, float f);
+void SetSpriteAnimTime(SPRITEGRP *p, int i, int j, float f);
 // Seeks a sprite animation to a fraction (clamped to 0..1) of its duration. (inferred)
-void SetSpriteAnimPhase(struct S *group, int slot, int item, float phase)
+void SetSpriteAnimPhase(SPRITEGRP *group, int slot, int item, float phase)
 {
     int animIndex;
     float clamped = 0.0f;
@@ -3301,15 +3291,11 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; int sound; };
-struct F {char pad[8];float duration;char padC[0xC];};
-struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
 // Compose two 2x3 affine matrices (q then n).
-static inline M23 Mul(const M23 &q, const M23 &n)
+static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
-    M23 r;
+    SPRITEXF r;
     r.a[0] = m0 * n.a[0] + m1 * n.a[2];
     r.a[1] = m0 * n.a[1] + m1 * n.a[3];
     r.a[2] = m2 * n.a[0] + m3 * n.a[2];
@@ -3318,15 +3304,15 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void InterpolateSpriteSlot(float,F *,int,M23 *,RGBA,RGBA);
-extern "C" void AdvanceSpriteAnim(float,F *,int,M23 *,RGBA,RGBA);
+extern "C" void InterpolateSpriteSlot(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA);
+extern "C" void AdvanceSpriteAnim(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA);
 // Forwards a sprite slot's update to the reusable or the full animation path. (inferred)
-extern "C" void UpdateSpriteSlot(S *group,int slot,M23 *matrix,float dt,RGBA c0,RGBA c1) {
-    E *state=&group->slots[slot];
+extern "C" void UpdateSpriteSlot(SPRITEGRP *group,int slot,SPRITEXF *matrix,float dt,RGBA c0,RGBA c1) {
+    SPRITESLOT *state=&group->slots[slot];
     int animIndex=state->animIndex;
     if(animIndex<0)return;
-    M23 m;
-    M23 *pmUse;
+    SPRITEXF m;
+    SPRITEXF *pmUse;
     if(group->xform) {
         m=Mul(*matrix,*group->xform);
         pmUse=&m;
