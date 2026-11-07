@@ -252,21 +252,19 @@ typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
 struct G;
 extern struct G D_003DD490;
-struct E { int xfOid; int objectOid; int xf; int actuator; int object; int sma; };   /* a ship part, 0x18 bytes */
-struct S : PO { char pad180[0x230 - 0x180]; int partCount; struct E parts[1]; };
-int FindSoXf(struct S *p, int a, int b);
-int FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
-int NewPositionAct(struct S *p, int xf, int a, int b, int d, qword q);
-int ApplySmToObject(int e, struct S *p, int a, int b);
-// Look up child XFs / objects for entries and create vector actuators. (inferred)
-void BindHackshipParts(struct S *ship) {
+XF *FindSoXf(SO *pso, OID oid, int n);
+LO *FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, OID oid, LO *plo);
+ACT *NewPositionAct(SO *pso, XF *pxf, int a, int b, int d, qword q);
+SMA *ApplySmToObject(LO *plo, SO *pso, int a, int b);
+// Look up the parts' transforms and objects; a position actuator on each transform, the state machine on each object. (inferred)
+void BindHackshipParts(HACKSHIP *ship) {
     int i;
-    for (i = 0; i < ship->partCount; i++) {
-        struct E *pe = &ship->parts[i];
-        pe->xf = FindSoXf(ship, pe->xfOid, 6);
-        pe->object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->objectOid, ship);
-        if (pe->xf) pe->actuator = NewPositionAct(ship, pe->xf, 0, 7, 2, D_002A2DD0);
-        if (pe->object) pe->sma = ApplySmToObject(pe->object, ship, -1, 0);
+    for (i = 0; i < ship->cpart; i++) {
+        HACKSHIPPART *ppart = &ship->apart[i];
+        ppart->pxf = FindSoXf(ship, ppart->oidXf, 6);
+        ppart->plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, ppart->oidObject, ship);
+        if (ppart->pxf) ppart->pact = NewPositionAct(ship, ppart->pxf, 0, 7, 2, D_002A2DD0);
+        if (ppart->plo) ppart->psma = ApplySmToObject(ppart->plo, ship, -1, 0);
     }
 }
 } } // namespace M_func_0017F770
@@ -281,10 +279,9 @@ void PostHackshipLoad(HACKSHIP *p) { PostHackLoad(p); p->SetCtlState(0); SetXfRo
 namespace M_func_0017F8C8 { extern "C" {
 /* LO's flag word as one 64-bit value: lo.h's isInWorld bit-field compiles to a different test (matching-only). */
 struct LOIsland { char pad[0x28]; unsigned long fl; };
-void OnPoActive(LOIsland *p, int f);
-void SetHackshipState(LOIsland *p, int f);
-// vtable slot 78: base then SetCid48State. (inferred)
-void OnHackshipActive(LOIsland *p, int f) { OnPoActive(p, f); if (f) SetHackshipState(p, 1); else if ((int)(p->fl >> 60) & 1) SetHackshipState(p, 0); }
+void OnPoActive(PO *ppo, int f);
+// vtable slot 78: base then SetHackshipState. (inferred)
+void OnHackshipActive(HACKSHIP *ship, int f) { OnPoActive(ship, f); if (f) SetHackshipState(ship, 1); else if ((int)(((LOIsland *)ship)->fl >> 60) & 1) SetHackshipState(ship, 0); }
 } } // namespace M_func_0017F8C8
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -293,37 +290,24 @@ void OnHackshipActive(LOIsland *p, int f) { OnPoActive(p, f); if (f) SetHackship
 namespace RO_ORDER { extern const unsigned int r_D_002A5630[2] __asm__("D_002A5630") = {0x530000, 0xC}; }
 namespace RO_ORDER { extern const unsigned int r_D_002A5638[2] __asm__("D_002A5638") = {0, 0}; }
 namespace M_func_0017F930 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
 extern float D_002BE7E8;
 extern char D_002BE7F0[];
-struct T { char pad[0x18]; float heading; float speed; char pad2[8]; float height; float unknown2C; };
-struct E { char pad[0xC]; void *actuator; char pad2[4]; void *sma; };
-struct M { char pad[0x4E]; short pauseCount; };
-struct S {
-    char pad[0x150]; struct T *params;
-    char pad1[0x1C0 - 0x154]; int state;
-    char pad2[0x218 - 0x1C4]; float heading;
-    char pad3[4]; qword desiredVelocity;
-    int partCount; struct E parts[1];
-    char pad4[0x2A4 - 0x234 - 0x18]; struct M *engineSound; int pad5; float engineVolume;
-};
-void UpdateSo(struct S *p);
-int IsHackAnimDone(struct S *p);
-void SetHackshipState(struct S *p, int n);
+void UpdateSo(SO *pso);
+int IsHackAnimDone(HACK *hack);
 qword SetVectorCylind(float a, float b, float c);
-void SetActPositionGoal(void *p, qword q);
-void SetSmaGoal(void *p, int n);
+void SetActPositionGoal(ACT *pact, qword q);
+void SetSmaGoal(SMA *psma, int n);
 float SmoothValue__FfffP3SMPPf(void *, int, float, float, float);
-void SetSndVolume(struct M *p, float g);
-void ResumeSnd(struct M *p);
-void PauseSnd(struct M *p);
+void SetSndVolume(CID151 *psnd, float g);
+void ResumeSnd(CID151 *psnd);
+void PauseSnd(CID151 *psnd);
 struct V3 { float x, y, z; };
-// Packs three floats into a vector.
 // Zeroes the x, y, z of a vector (w untouched).
 static __inline__ void ZeroVector(qword *pq) { struct V3 *pv = (struct V3 *)pq; pv->z = 0; pv->y = 0; pv->x = 0; }
-// vtable slot 16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals. (inferred)
-void UpdateHackship(struct S *ship) {
+// vtable slot 16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals from the controller's
+// sticks (POCTL's names: left stick = heading and speed, right stick = height and the parts' goal). (inferred)
+void UpdateHackship(HACKSHIP *ship) {
     int s;
     UpdateSo(ship);
     do {
@@ -338,31 +322,31 @@ void UpdateHackship(struct S *ship) {
     case 3: ZeroVector(&ship->desiredVelocity); break;
     case 4: ZeroVector(&ship->desiredVelocity); break;
     case 1: {
-        struct T *t = ship->params;
+        POCTL *pctl = ship->controller;
         union { qword q; } u; qword v;
         int i;
-        ship->heading = t->heading;
-        ship->desiredVelocity = SetVectorCylind(t->heading, t->speed * D_002BE7E8, 0.0f);
-        v = QwordFromFloats<qword>(0.0f, 0.0f, ship->params->height); u.q = v;
-        for (i = 0; i < ship->partCount; i++) {
-            struct E *e = &ship->parts[i];
-            if (e->actuator) SetActPositionGoal(e->actuator, v);
-            if (e->sma) {
-                if (0.0f < ship->params->unknown2C) SetSmaGoal(e->sma, 0x68);
-                else SetSmaGoal(e->sma, 0x66);
+        ship->heading = pctl->leftStickAngle;
+        ship->desiredVelocity = SetVectorCylind(pctl->leftStickAngle, pctl->leftStickDeflection * D_002BE7E8, 0.0f);
+        v = QwordFromFloats<qword>(0.0f, 0.0f, ship->controller->rightStickAngle); u.q = v;
+        for (i = 0; i < ship->cpart; i++) {
+            HACKSHIPPART *ppart = &ship->apart[i];
+            if (ppart->pact) SetActPositionGoal(ppart->pact, v);
+            if (ppart->psma) {
+                if (0.0f < ship->controller->rightStickDeflection) SetSmaGoal(ppart->psma, 0x68);
+                else SetSmaGoal(ppart->psma, 0x66);
             }
         }
         break;
     }
     }
-    if (ship->engineSound) {
-        float g = (ship->state == 1) ? ship->params->speed : 0.0f;
-        ship->engineVolume = SmoothValue__FfffP3SMPPf(D_002BE7F0, 0, ship->engineVolume, g, D_002DDED0.deltaTime);
-        SetSndVolume(ship->engineSound, ship->engineVolume);
-        if (0.0f < ship->engineVolume) {
-            if (ship->engineSound->pauseCount > 0) ResumeSnd(ship->engineSound);
+    if (ship->psndEngine) {
+        float g = (ship->state == 1) ? ship->controller->leftStickDeflection : 0.0f;
+        ship->uVolEngine = SmoothValue__FfffP3SMPPf(D_002BE7F0, 0, ship->uVolEngine, g, D_002DDED0.deltaTime);
+        SetSndVolume(ship->psndEngine, ship->uVolEngine);
+        if (0.0f < ship->uVolEngine) {
+            if (ship->psndEngine->pauseCount > 0) ResumeSnd(ship->psndEngine);
         } else {
-            if (ship->engineSound->pauseCount <= 0) PauseSnd(ship->engineSound);
+            if (ship->psndEngine->pauseCount <= 0) PauseSnd(ship->psndEngine);
         }
     }
 }
@@ -371,17 +355,16 @@ void UpdateHackship(struct S *ship) {
 namespace M_func_0017FB50 {
 #include "mat.h"
 typedef int qword __attribute__((mode(TI)));
-struct S : PO { char pad180[0x1C0 - 0x180]; int state; char pad2[0x54]; float heading; int pad3; qword desiredVelocity; };
 extern "C" {
 extern qword D_002A2DC0, D_002A2DD0;
 extern char D_002BE800[], D_002BE810[];
 MATRIX3 BuildAxisAngleRotationMatrix(qword q, float g);
-void AccelSoTowardMatBounded(S *p, MATRIX3 *pm, void *pv);
-void AccelSoTowardPosSpring(S *p, qword a, int b, qword c, void *pv);
-void PresetHackshipAccel(S *p);
+void AccelSoTowardMatBounded(SO *pso, MATRIX3 *pm, void *pv);
+void AccelSoTowardPosSpring(SO *pso, qword a, int b, qword c, void *pv);
+void PresetHackshipAccel(HACKSHIP *ship);
 }
 // vtable slot 70 override. (inferred)
-void PresetHackshipAccel(S *ship) {
+void PresetHackshipAccel(HACKSHIP *ship) {
     if (ship->state == 3) return;
     MATRIX3 m; m = BuildAxisAngleRotationMatrix(D_002A2DC0, ship->heading);
     AccelSoTowardMatBounded(ship, &m, D_002BE800);
@@ -390,24 +373,18 @@ void PresetHackshipAccel(S *ship) {
 } // namespace M_func_0017FB50
 
 namespace M_HACKSHIP_TakeDamage { extern "C" {
-extern SW D_003DD490;
 extern int D_002E1E00;
-extern char D_002DEB30[];
-struct S : PO { char pad180[0x184 - 0x180]; int health; char pad2[0x38]; int state; };
 int IsSwHandsOff(SW *g);
-int TakeHackDamage(struct S *p, int *pn);
-void UpdateHackshipHealthBar(struct S *p);
-void BroadcastGameEvent(void *g, int n, int m);
-void SetHackshipState(struct S *p, int n);
-// vtable slot 75: ignored in states 2-4 / hands-off / global flag; CID47::TakeDamage, update health bar, game event 0xF and
-// state 2 (hit) or 4 (defeated). (inferred)
-int TakeHackshipDamage(struct S *ship, int *pn) {
+int TakeHackDamage(HACK *hack, ZPR *pzpr);
+// vtable slot 75: ignored in states 2-4 / hands-off / global flag; HACK's TakeDamage, update the health bar, game event
+// 0xF and state 2 (hit) or 4 (defeated). (inferred)
+int TakeHackshipDamage(HACKSHIP *ship, ZPR *pzpr) {
     if (ship->state < 5) { if (ship->state >= 2) return 0; }
     if (IsSwHandsOff(&D_003DD490)) return 0;
     if (D_002E1E00 & 1) return 0;
-    if (!TakeHackDamage(ship, pn)) return 0;
+    if (!TakeHackDamage(ship, pzpr)) return 0;
     UpdateHackshipHealthBar(ship);
-    if (ship->health > 0) { BroadcastGameEvent(D_002DEB30, 0xF, *pn); SetHackshipState(ship, 2); }
+    if (ship->cHealth > 0) { BroadcastGameEvent(D_002DEB30, 0xF, pzpr->ploSource); SetHackshipState(ship, 2); }
     else SetHackshipState(ship, 4);
     return 1;
 }
