@@ -1415,14 +1415,11 @@ extern "C" void RotateSoToMat(P *so,const M3 *basis)
 
 // 0x1F4440 GetSoVelocity
 namespace M_GetSoVelocity { extern "C" {
-struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct T { char pad[0x70]; qword position; char pad2[0x14]; int kind; };
-struct S { char pad[0x58]; struct T *positionXf; };
-qword GetXfVelocity(struct T *, int, qword);
+qword GetXfVelocity(XF *, int, qword);
 // Slot 33: world-space velocity of the position XF (when it is dynamic), else zero.
-qword GetSoVelocity(struct S *p) { struct T *pt = p->positionXf; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, pt->position); }
+qword GetSoVelocity(SO *p) { XF *pt = p->unknown58; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, *(qword *)pt->worldMatrix.mat[3]); }
 } } // namespace M_GetSoVelocity
 
 // 0x1F4488 SetSoVelocity
@@ -1907,27 +1904,24 @@ void FreeSoContacts(SO *so)
 
 // 0x1F4F10 AdjustSoXps
 namespace M_func_001F4F10 { extern "C" {
-struct S8; struct N; struct E; struct P;
+struct S8;
 typedef unsigned long ulong;
 struct S8 { long l; } __attribute__((packed));
-struct N { int contacts; struct N *next; };
-struct E { char pad[0x64]; struct N *contactLists; int pad2; int zapContacts; };
-struct P { char pad[0xEC]; struct E *tree; char pad2[0x148 - 0xF0]; ulong flags; };
 struct G;
 extern struct G D_003DD490;
 extern const struct S8 D_002A8278;
-void EnsureSwCallback(struct G *, struct P *, long, int);
+void EnsureSwCallback(struct G *, SO *, long, int);
 // Slot 58 (contact adjustment after marking): when the tree has touch flags, schedules the touch-zap callback
 // (HandleSoTouchZaps). (inferred)
-void AdjustSoXps(struct P *so)
+void AdjustSoXps(SO *so)
 {
-    struct E *pe = so->tree;
-    struct N *pn;
-    if (pe->zapContacts) {
+    SOTREE *pe = so->physicsTree;
+    XPLIST *pn;
+    if (pe->firstZapContact) {
         EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
-    } else if (so->flags & 0x3000000) {
-        for (pn = pe->contactLists; pn; pn = pn->next) {
-            if (pn->contacts) {
+    } else if (so->zapMode) {
+        for (pn = pe->pxplistFirst; pn; pn = pn->pxplistNext) {
+            if (pn->pxpFirst) {
                 EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
                 break;
             }
@@ -2205,28 +2199,25 @@ typedef char layout_tree_first[((unsigned)&((SOTREE*)0)->ppartFirst==0x34)?1:-1]
 
 // 0x1F5480 ExtendSoTreeBounds
 namespace M_ExtendSoTreeBounds { extern "C" {
-struct B; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct B { qword min; qword max; qword center; float radius; };
-struct P { char pad[0xEC]; struct B *tree; };
 // Grows the tree's box and radius to include a sphere (centre c, radius r).
-void ExtendSoTreeBounds(struct P *so, qword c, float r)
+void ExtendSoTreeBounds(SO *so, qword c, float r)
 {
     qword rr, lo, hi, d, t, one;
     float dist;
     __asm__("pextlw %0, %1, %1\n\tpextlw %0, %0, %0" : "=r"(rr) : "r"(r));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(lo) : "j"(c), "j"(rr));
     qword mn;
-    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(so->tree->min), "j"(lo));
-    so->tree->min = mn;
+    __asm__("vmini.xyz %0, %1, %2" : "=j"(mn) : "j"(so->physicsTree->boundsMin), "j"(lo));
+    so->physicsTree->boundsMin = mn;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(hi) : "j"(c), "j"(rr));
     qword mx;
-    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(so->tree->max), "j"(hi));
-    so->tree->max = mx;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(so->tree->center));
+    __asm__("vmax.xyz %0, %1, %2" : "=j"(mx) : "j"(so->physicsTree->boundsMax), "j"(hi));
+    so->physicsTree->boundsMax = mx;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "0"(c), "j"(so->physicsTree->boundsCenter));
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d), "=&j"(one) : "0"(c));
     __asm__("qmfc2.ni %0, %1" : "=r"(dist) : "j"(d));
-    if (so->tree->radius < dist) so->tree->radius = dist;
+    if (so->physicsTree->boundsRadius < dist) so->physicsTree->boundsRadius = dist;
 }
 } } // namespace M_ExtendSoTreeBounds
 
@@ -2361,20 +2352,14 @@ qword GetSoGravity(SO *p) { if (!p->physics) return D_002A2DD0; return *(qword *
 
 // 0x1F5880 SetSoGravity
 namespace M_SetSoDvGravity { extern "C" {
-struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x90]; int firstAct; char pad2[4]; short role; };
-struct E { char pad[0x80]; qword gravity; };
-struct P { char pad[0x58]; struct O *positionXf; char pad2[0xE8 - 0x5C]; struct E *physics; };
-void SetXfRole(struct P *, struct O *, int);
-void WakeSo(struct P *);
 // Sets the object's gravity vector (making the position XF dynamic if needed) and invalidates its box.
-void SetSoGravity(struct P *so, qword q)
+void SetSoGravity(SO *so, qword q)
 {
     if (so->physics) {
-        struct O *po = so->positionXf;
-        if (po->firstAct == 0 && po->role != 2) SetXfRole(so, po, 1);
-        so->physics->gravity = q;
+        XF *po = so->unknown58;
+        if (po->firstActuator == 0 && po->role != 2) SetXfRole(so, po, 1);
+        *(qword *)&so->physics->gravity = q;   /* gravity written as a quadword */
         WakeSo(so);
     }
 }
