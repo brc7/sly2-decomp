@@ -550,6 +550,45 @@ tu_114AE0's constructor-initialized CLUT/BMP (a constructor in shd.h's CLUT woul
 vtable calls of rip.cpp's hand-tuned functions (BounceRipgRips, UpdateRipg, RenderRipgSelf, HandleRipBounce, the
 Render* bodies).
 
+### Views unified, round 2 (names/vu-f6-render-2): shaders, packet streams, light packets, rip calls
+
+The namespaced Lilly / per-function views of the render family's records in shd, glob, blip, light, tu_1147D8 and
+tu_114AE0 (and so.cpp's views of the light record), and the hand-made vtable calls of rip.cpp, replaced by shared types
+and real calls. Every function and data symbol of each touched file and of every includer of a changed header MATCHes,
+and each object's nm symbol set is unchanged.
+
+| change | header | views removed | files |
+|---|---|---:|---|
+| CLUT/BMP constructors from a header (`CLUT(void *pvHeader)` calls CopyClutHeader; likewise BMP), CLUT/BMP `clevel` (+0x05, the level filter) and BMP `cb` (+0x10) | sly2/shd.h | 4 | tu_1147D8, tu_114AE0 |
+| TEX (0x14: grftex +0x04, cbmp +0x06 = the frame count, cclut +0x07; glob's Lilly TEXF had cibmp/ciclut at +4/+5, the loaders show otherwise), SHDP (upload record), SHD (0x2C), SHDBLIP (the compact record blips use, linked on SW::slShd; our name) | sly2/shd.h | shd 30 (SHDV, the loaders' X/Y/E/Z/E20/E28, LoadShdFromBrx's L/C/ENT, BuildShaderTex0List's Src/S3/Dst, BuildShaderGifPackets' ENTRY/PACKET/RGBA/TEXTURE, the upload functions' E1/E2/T1/T2/BS/X/DMAS/M, the hash functions' S); blip 1 | shd, blip |
+| the frame's VIF1 stream D_002DEA28 as vifs.h's VIFS | (vifs.h) | glob 4 DMA, blip VIFS | glob, blip |
+| render-list entry | sly2/render.h RPL | blip DMA | blip |
+| SOBOUNDS, the per-object light packets (SO::psobounds, only declared by so.h) | new sly2/light.h | light LIGHTQ, glob 2 SHD (the "SHD" of RenderSoGlobset / BuildModelDrawPackets is this record), so.cpp SOBOUNDS/Q/B | light, glob, so |
+
+Real calls that match: blip's VIFS/DMAS members (all but one AddVifUnpack that passes a fifth word: 4 instructions move
+as a member call), GIFS::PackAD in PackTexGifs, VIFS::AddVifUnpack in AddShaderVifUnpack, UploadPermShaders' GIFS/VIFS
+locals with member calls and a STACKSCOPE local (the views were 0x30 bytes; the real 0x28/0x24-byte classes give the
+same frame; `result = 0` must sit between the two constructors), BuildUploadBitmapGifs a C++ function again
+(`BuildUploadBitmapGifs__FiP3GSBP4GIFS` from the real GSB/GIFS types). rip.cpp: RIP::Update and SO::Remove in UpdateRipg,
+RIP::Render in RenderRipgSelf, RIP::HandleBounce in BounceRipgRips, RIP::Project in ProjectRipgTransform, RIP::Init in
+UpdateRipt1 (the hand call's (float, qword, pointer) order is the same register assignment as Init's (qword, float,
+pointer)). For these rip.h's `Update()` and `Render()` lost their parameters: the dispatchers pass none, UpdateRip and
+RenderRip take only the rip, and no override reads a time step or camera (Sly 1's `RenderShrapnel__FP8SHRAPNELP2CM`
+symbol still names a CM). SHDBLIP's colour is a union with a channel array: PropagateBlipgShader indexes it, and only an
+array member keeps the colour's address in a register (9/85 off through a cast).
+
+Inventory (inv.py render-family names in src/game .cpp): 82 -> 60; struct/class/union definitions in src/game .cpp/.inc
+(`grep -E '^\s*(typedef\s+)?(struct|class|union)\s+\w*\s*(:[^{;]*)?\{'`): 6938 -> 6873.
+
+Not converted, and why: LIGHT (light.cpp's LIGHTV) and SAA (shdanim's SAAV/SAAF/SAACLS, glob's SAAVIRT/SAAFIELDS) need
+fields in sly2/classes.h (LIGHT +0xE0..0x170 and SAA +0x10..0x50 are padding there; not this family's header);
+glob's M_LoadSubglobType0FromBrx (a 1450-line Lilly port with its own QW/VECTOR/RGBA/OID/SAA/LO/SO universe) keeps its
+DMAS/VIFS/TEX/SHD/CLUT copies until that universe gives way to the shared headers; glob's relight PACKET/PACKETS and
+light.cpp's PACKET are different records (no shared evidence); shd.cpp's CopyClutHeader/CopyBitmapHeader (file
+headers, not CLUT/BMP objects), BuildWorldBackgroundImage's GIFS view, AddShaderVifUnpackQword, SHDREC; rip.cpp's
+remaining hand calls (BounceRipgRips' slot-9 Remove on the P view, UpdateRip's slots 7/73, ReleaseRip's slots 3/5,
+CreateStuck's Init on its O view, MATCH's slot 8, REMIT's slot 51) sit on views that would need RIPG/SO/STUCK fields.
+
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key
