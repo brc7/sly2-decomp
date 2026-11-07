@@ -72,15 +72,6 @@ static inline int IsFileRefSet(FILEREF *fileRef)
     return fileRef->checkA != fileRef->checkB;
 }
 
-/** @sly2-annot addr=0x1A4E08
- * Purpose: Reset the step queue (count 0, cursor 0), queue a movie (D_002A3868), a memcard step (5), a world
- *   warp to D_002A38A8 oid 0x189, then run the first step
- * Info: proposed name StartBootSequence (T2); TU tu_1A4E08
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/rendering.md#12-source-files,
- *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
- *   docs/engine/world-sw.md#9-source-files
- * @end-sly2-annot */
 // Fills the queue with the boot sequence (intro movie D_002A3868, memory-card check, warp to the level
 // D_002A38A8 at object 0x189) and runs its first step.
 extern "C" void BeginStartupSequence(STEPQ *queue)
@@ -96,26 +87,12 @@ extern "C" void BeginStartupSequence(STEPQ *queue)
 // 0x1A4E68: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
 
-/** @sly2-annot addr=0x1A4E70
- * Purpose: cursor (+0x1C4) < count
- * Info: proposed name FBootSequencePending (T2); TU tu_1A4E08
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
- * @end-sly2-annot */
 // Returns whether steps remain to be run.
 extern "C" int HasPendingStartupSteps(STEPQ *queue)
 {
     return queue->next < queue->count;
 }
 
-/** @sly2-annot addr=0x1A4E80
- * Purpose: Pop the next queued step and run it: movie (CMpeg::QueueMovie), world warp (WipeToWorldWarp), task
- *   (StartTaskByOid), memcard UI phase (SetMcUiPhase); recurses for instant steps
- * Info: proposed name RunNextBootStep (T2); TU tu_1A4E08
- * Notes: names_v2 C proposed SetupBulkDataFromBrx__FiP18CBinaryInputStream (0.638)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
- * @end-sly2-annot */
 // Runs the next step: a movie is queued on the movie player (kind 1 also sets its +0x108 flag) and the world warps
 // to the empty level that plays it; a warp wipes to its level; kind 3 calls func_001651D8 with the step's two
 // arguments; kind 5 puts the memory-card UI in phase 1 (unless it is busy) and runs the following step at once.
@@ -152,13 +129,6 @@ extern "C" void RunNextStartupStep(STEPQ *queue)
 }
 
 /* c is signed in HasPendingStartupSteps (slt) and compared unsigned here (sltiu). */
-/** @sly2-annot addr=0x1A4FB0
- * Purpose: Append a zeroed step of kind k to the 16-entry queue (overflow returns dummy D_002E1E68)
- * Info: proposed name PbootstepAdd (T2); TU tu_1A4E08
- * Notes: names_v2 C proposed ProcessSwCallbacks__FP2SW (0.200)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
- * @end-sly2-annot */
 // Appends a zeroed step of `kind` and returns it; when the queue is full returns a dummy step instead.
 extern "C" STEPE *AddStartupStep(STEPQ *queue, int kind)
 {
@@ -171,12 +141,6 @@ extern "C" STEPE *AddStartupStep(STEPQ *queue, int kind)
     return step;
 }
 
-/** @sly2-annot addr=0x1A5020
- * Purpose: If valid, queue kind 0 with movie pointer
- * Info: proposed name AddBootMovie (T2); TU tu_1A4E08
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
- * @end-sly2-annot */
 // Queues a movie step if the file reference is set.
 extern "C" void AddStartupMovieStep(STEPQ *queue, FILEREF *fileRef)
 {
@@ -186,13 +150,6 @@ extern "C" void AddStartupMovieStep(STEPQ *queue, FILEREF *fileRef)
 // 0x1A5070: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");
 
-/** @sly2-annot addr=0x1A5078
- * Purpose: Queue kind 2 {so, oid, flag}
- * Info: proposed name AddBootWorldWarp (T2); TU tu_1A4E08
- * Notes: names_v2 C proposed InitSwAoxa__FP2SW (0.200)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
- * @end-sly2-annot */
 // Queues a warp step to the level fileRef (object oid, warp flags) if the file reference is set.
 extern "C" void AddStartupWarpStep(STEPQ *queue, FILEREF *fileRef, int oid, int flags)
 {
@@ -208,13 +165,6 @@ extern "C" void AddStartupWarpStep(STEPQ *queue, FILEREF *fileRef, int oid, int 
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x1A50F8
- * Purpose: Queue kind 5
- * Info: proposed name AddBootMemcardStep (T2); TU tu_1A4E08
- * Notes: names_v2 v1 proposed SetLightShadowStrength__FP5LIGHTf (0.000)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
- * @end-sly2-annot */
 // Queues a memory-card step.
 extern "C" void AddStartupMemcardStep(STEPQ *queue)
 {

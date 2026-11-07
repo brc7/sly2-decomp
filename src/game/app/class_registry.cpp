@@ -89,12 +89,6 @@ extern "C" {
 // ---- crt0 fragments (hand-written assembly in the original crt0, like _start) ----
 
 /* 0x100218: after _start. */
-/** @sly2-annot addr=0x100218
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Info: TU crt0_splicewrap
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * See: docs/guides/port-plan.md#11-known-facts-that-drive-the-design
- * @end-sly2-annot */
 // crt0's _exit: jumps to the kernel Exit syscall wrapper (0x2398D0); libc exit() ends here. Never returns.
 __asm__(
     ".set noreorder\n"
@@ -111,12 +105,6 @@ __asm__(
 );
 
 /* 0x100220: ExitThread syscall tail. */
-/** @sly2-annot addr=0x100220
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Info: TU crt0_splicewrap
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * See: docs/guides/port-plan.md#11-known-facts-that-drive-the-design
- * @end-sly2-annot */
 // crt0's thread root (the entry SetupThread is given in _start): calls the ExitThread syscall (0x23).
 __asm__(
     ".set noreorder\n"
@@ -139,15 +127,6 @@ CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, int *an);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref);
 }
-/** @sly2-annot addr=0x100228
- * Purpose: Splice option thunk (just BEFORE the requested span): optid 3 on BASIC (g_aeopid[2] thunkFn,
- *   returns Bool, crefReq 1); unpacks 1 arg (Cid) and returns IsBasicDerivedFrom(pbasic, cid) via
- *   CRef_SetBool
- * Info: proposed name RefThunkBasicDERIVED_FROMQ (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 3 on BASIC (g_aeopid[2], thunkFn): unpacks the script's 1 argument (Cid) with
 // RefSetArgsFromSplice, calls IsBasicDerivedFrom and returns a bool to the script.
 CRef RefThunkBasicDERIVED_FROMQ(void *object, int argCount, void *args)
@@ -173,14 +152,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkBasicCUSTOM_CLQ_PROPERTY (was src/game/app/splice_thunks/RefThunkBasicCUSTOM_CLQ_PROPERTY.cpp) ----
 namespace T_RefThunkBasicCUSTOM_CLQ_PROPERTY {
 extern "C" { void EnsureLoSidebagClq__FP2LO5OPTIDP3CLQ(void *p, int n, void *pu); CRef RefThunkBasicCUSTOM_CLQ_PROPERTY(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1004A0
- * Purpose: Splice option thunk: optid 7 on BASIC (g_aeopid[6] thunkFn/thunkUser, returns Void, crefReq 2);
- *   unpacks 2 args (Basic?, Clq) -> Void via RefSetArgsFromSplice then calls EnsureLoSidebagClq (0x132CC8)
- * Info: proposed name RefThunkBasicCUSTOM_CLQ_PROPERTY (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 7 on BASIC (g_aeopid[6], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
 // Clq) with RefSetArgsFromSplice, calls EnsureLoSidebagClq and returns nothing to the script.
 CRef RefThunkBasicCUSTOM_CLQ_PROPERTY(void *object, int argCount, void *args)
@@ -199,14 +170,6 @@ CRef RefThunkBasicCUSTOM_CLQ_PROPERTY(void *object, int argCount, void *args)
 // ---- splice thunk RefThunkBasicCUSTOM_LM_PROPERTY (was src/game/app/splice_thunks/RefThunkBasicCUSTOM_LM_PROPERTY.cpp) ----
 namespace T_RefThunkBasicCUSTOM_LM_PROPERTY {
 extern "C" { void EnsureLoSidebagLm__FP2LO5OPTIDP2LM(void *p, int n, void *pu); CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x100558
- * Purpose: Splice option thunk: optid 8 on BASIC (g_aeopid[7] thunkFn/thunkUser, returns Void, crefReq 2);
- *   unpacks 2 args (Basic?, Lm) -> Void via RefSetArgsFromSplice then calls EnsureLoSidebagLm (0x132D28)
- * Info: proposed name RefThunkBasicCUSTOM_LM_PROPERTY (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 8 on BASIC (g_aeopid[7], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
 // Lm) with RefSetArgsFromSplice, calls EnsureLoSidebagLm and returns nothing to the script.
 CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *object, int argCount, void *args)
@@ -229,15 +192,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkBasicCUSTOM_VECTOR_PROPERTY (was src/game/app/splice_thunks/RefThunkBasicCUSTOM_VECTOR_PROPERTY.cpp) ----
 namespace T_RefThunkBasicCUSTOM_VECTOR_PROPERTY {
 extern "C" { void EnsureLoSidebagVector(void *p, int n, qword q); CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1006B8
- * Purpose: Splice option thunk: optid 10 on BASIC (g_aeopid[9] thunkFn/thunkUser, returns Void, crefReq 2);
- *   unpacks 2 args (Basic?, Vector) -> Void via RefSetArgsFromSplice then calls EnsureLoSidebagVector
- *   (0x132DE0)
- * Info: proposed name RefThunkBasicCUSTOM_VECTOR_PROPERTY (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 10 on BASIC (g_aeopid[9], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
 // Vector) with RefSetArgsFromSplice, calls EnsureLoSidebagVector and returns nothing to the script.
 CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *object, int argCount, void *args)
@@ -290,14 +244,6 @@ extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak
 struct VT { short d; short pad; void *pfn; };
 struct LO { char pad[0xC]; VT *pvt; };
 extern "C" CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *p, int c, void *aref);
-/** @sly2-annot addr=0x100C80
- * Purpose: Splice option thunk: optid 108 on SO (g_aeopid[43] thunkFn, returns Bool, crefReq 1); unpacks 1
- *   args (Vector) -> Bool via RefSetArgsFromSplice then calls virtual SO slot 73 -> FPosInSo (0x1F72F8)
- * Info: proposed name RefThunkSoPOINT_IN_BSP_QUICK (T1); TU crt0_splicewrap
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 108 on SO (g_aeopid[43], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls virtual and returns a bool to the script.
 CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *object, int argCount, void *args)
@@ -355,15 +301,6 @@ SLY2_SPLICEWRAP_BEGIN(func_00101468)
 SLY2_SPLICEWRAP_END
 
 extern "C" void *NewSoXfHandle(void *p, int a, int b);
-/** @sly2-annot addr=0x1014E8
- * Purpose: Splice option thunk: optid 194 on SO (g_aeopid[77] thunkFn, returns 0x2095, crefReq 2); unpacks 2
- *   args (Oid, 0x104C) -> 0x2095 via RefSetArgsFromSplice then calls PxfhNewSo (0x1F8510)
- * Info: proposed name RefThunk_PxfhNewSo (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x1F8510 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 194 on SO (g_aeopid[77], thunkFn): unpacks the script's 2 arguments (Oid, 0x104C) with
 // RefSetArgsFromSplice, calls NewSoXfHandle and returns a value of type 0x2095 to the script.
 extern "C" CRef RefThunk_NewSoXfHandle(void *p, int c, void *aref)
@@ -380,15 +317,6 @@ SLY2_SPLICEWRAP_BEGIN(func_00101588)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetSoTargetRecordParams(void *p, int, void *);
-/** @sly2-annot addr=0x101608
- * Purpose: Splice option thunk: optid 196 on SO (g_aeopid[79] thunkFn/thunkUser, returns Void, crefReq 2);
- *   unpacks 2 args (0x104D, Lm) -> Void via RefSetArgsFromSplice then calls SetSoSideRecordParams (0x1F82B8)
- * Info: proposed name RefThunk_SetSoSideRecordParams (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x1F82B8 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 196 on SO (g_aeopid[79], thunkFn/thunkUser): unpacks the script's 2 arguments (0x104D,
 // Lm) with RefSetArgsFromSplice, calls SetSoTargetRecordParams and returns nothing to the script.
 extern "C" CRef RefThunk_SetSoTargetRecordParams(void *p, int c, void *aref)
@@ -408,16 +336,6 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_SetScrollerMasterSpeeds)
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddAmbSound(void *p, int, int, int, float, float);
-/** @sly2-annot addr=0x101768
- * Purpose: Splice option thunk: optid 207 on CID43 (g_aeopid[99] thunkUser, returns Void, crefReq 5); unpacks
- *   5 args (0xE, Int, Int, Float, Float) -> Void via RefSetArgsFromSplice then calls SetCid43SoundParam
- *   (0x12EEE0)
- * Info: proposed name RefThunk_SetCid43SoundParam (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x12EEE0 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 207 on CID43 (g_aeopid[99], thunkUser): unpacks the script's 5 arguments (0xE, Int, Int,
 // Float, Float) with RefSetArgsFromSplice, calls AddAmbSound and returns nothing to the script.
 extern "C" CRef RefThunk_AddAmbSound(void *p, int c, void *aref)
@@ -442,15 +360,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkAsegAPPLY (was src/game/app/splice_thunks/RefThunkAsegAPPLY.cpp) ----
 namespace T_RefThunkAsegAPPLY {
 extern "C" { void * ApplyAsegToObject(void *p, int, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x101910
- * Purpose: Splice option thunk: optid 214 on ASEG (g_aeopid[106] thunkFn, returns 0x2086, crefReq 4); unpacks
- *   4 args (0x2030, Float, Float, 0x100B) -> 0x2086 via RefSetArgsFromSplice then calls PasegaApplyAseg
- *   (0x130488)
- * Info: proposed name RefThunkAsegAPPLY (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 214 on ASEG (g_aeopid[106], thunkFn): unpacks the script's 4 arguments (0x2030, Float,
 // Float, 0x100B) with RefSetArgsFromSplice, calls ApplyAsegToObject and returns a value of type 0x2086 to the script.
 CRef RefThunkAsegAPPLY(void *object, int argCount, void *args)
@@ -473,15 +382,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkAsegENSURE (was src/game/app/splice_thunks/RefThunkAsegENSURE.cpp) ----
 namespace T_RefThunkAsegENSURE {
 extern "C" { void * EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi(void *p, int, int, float, float, int); CRef RefThunkAsegENSURE(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x101A88
- * Purpose: Splice option thunk: optid 216 on ASEG (g_aeopid[108] thunkFn, returns 0x2086, crefReq 5); unpacks
- *   5 args (0x2030, 0x100C, Float, Float, 0x100B) -> 0x2086 via RefSetArgsFromSplice then calls
- *   EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi (0x130598)
- * Info: proposed name RefThunkAsegENSURE (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 216 on ASEG (g_aeopid[108], thunkFn): unpacks the script's 5 arguments (0x2030, 0x100C,
 // Float, Float, 0x100B) with RefSetArgsFromSplice, calls EnsureAsegPlayer and returns a value
 // of type 0x2086 to the script.
@@ -530,14 +430,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_StartDialog (was src/game/app/splice_thunks/RefThunk_StartDialog.cpp) ----
 namespace T_RefThunk_StartDialog {
 extern "C" { void *StartDialog(void *p, int a, int b); CRef RefThunk_StartDialog(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x102038
- * Purpose: Splice option thunk: optid 264 on CID152 (g_aeopid[137] thunkFn, returns 0x2097, crefReq 2);
- *   unpacks 2 args (0x10, 0x105D) -> 0x2097 via RefSetArgsFromSplice then calls StartDialog (0x1FE5F0)
- * Info: proposed name RefThunk_StartDialog (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 264 on CID152 (g_aeopid[137], thunkFn): unpacks the script's 2 arguments (0x10, 0x105D)
 // with RefSetArgsFromSplice, calls StartDialog and returns a value of type 0x2097 to the script.
 CRef RefThunk_StartDialog(void *object, int argCount, void *args)
@@ -609,16 +501,6 @@ SLY2_SPLICEWRAP_BEGIN(func_00102A10)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepguardAnimBinding(void *p, void *, int, int);
-/** @sly2-annot addr=0x102A88
- * Purpose: Splice option thunk: optid 369 on STEPGUARD (g_aeopid[243] thunkUser, returns Void, crefReq 3);
- *   unpacks 3 args (0x9010, Oid, 0x100B) -> Void via RefSetArgsFromSplice then calls SetStepguardAnimBinding
- *   (0x207B70)
- * Info: proposed name RefThunk_SetStepguardAnimBinding (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x207B70 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 369 on STEPGUARD (g_aeopid[243], thunkUser): unpacks the script's 3 arguments (0x9010,
 // Oid, 0x100B) with RefSetArgsFromSplice, calls SetStepguardAnimBinding and returns nothing to the script.
 extern "C" CRef RefThunk_SetStepguardAnimBinding(void *p, int c, void *aref)
@@ -635,16 +517,6 @@ extern "C" CRef RefThunk_SetStepguardAnimBinding(void *p, int c, void *aref)
 }
 
 extern "C" void SetAndResolveStepguardAnimBinding(void *p, void *, int, int);
-/** @sly2-annot addr=0x102B60
- * Purpose: Splice option thunk: optid 369 on STEPGUARD (g_aeopid[243] thunkFn, returns Void, crefReq 3);
- *   unpacks 3 args (0x9010, Oid, 0x100B) -> Void via RefSetArgsFromSplice then calls
- *   SetStepguardAnimBindingResolve (0x207BC8)
- * Info: proposed name RefThunk_SetStepguardAnimBindingResolve (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x207BC8 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 369 on STEPGUARD (g_aeopid[243], thunkFn): unpacks the script's 3 arguments (0x9010,
 // Oid, 0x100B) with RefSetArgsFromSplice, calls SetAndResolveStepguardAnimBinding and returns nothing to the script.
 extern "C" CRef RefThunk_SetAndResolveStepguardAnimBinding(void *p, int c, void *aref)
@@ -661,16 +533,6 @@ extern "C" CRef RefThunk_SetAndResolveStepguardAnimBinding(void *p, int c, void 
 }
 
 extern "C" void SetStepguardAnimBindingKind3(void *p, void *, int, int, int, int);
-/** @sly2-annot addr=0x102C38
- * Purpose: Splice option thunk: optid 370 on STEPGUARD (g_aeopid[244] thunkUser, returns Void, crefReq 5);
- *   unpacks 5 args (0x9010, Oid, Oid, Oid, Oid) -> Void via RefSetArgsFromSplice then calls
- *   SetStepguardAnimBindingK3 (0x207C48)
- * Info: proposed name RefThunk_SetStepguardAnimBindingK3 (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x207C48 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 370 on STEPGUARD (g_aeopid[244], thunkUser): unpacks the script's 5 arguments (0x9010,
 // Oid, Oid, Oid, Oid) with RefSetArgsFromSplice, calls SetStepguardAnimBindingKind3 and returns nothing to the script.
 extern "C" CRef RefThunk_SetStepguardAnimBindingKind3(void *p, int c, void *aref)
@@ -689,16 +551,6 @@ extern "C" CRef RefThunk_SetStepguardAnimBindingKind3(void *p, int c, void *aref
 }
 
 extern "C" void SetAndResolveStepguardAnimBindingKind3(void *p, void *, int, int, int, int);
-/** @sly2-annot addr=0x102D30
- * Purpose: Splice option thunk: optid 370 on STEPGUARD (g_aeopid[244] thunkFn, returns Void, crefReq 5);
- *   unpacks 5 args (0x9010, Oid, Oid, Oid, Oid) -> Void via RefSetArgsFromSplice then calls
- *   SetStepguardAnimBindingK3Resolve (0x207CF8)
- * Info: proposed name RefThunk_SetStepguardAnimBindingK3Resolve (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x207CF8 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 370 on STEPGUARD (g_aeopid[244], thunkFn): unpacks the script's 5 arguments (0x9010,
 // Oid, Oid, Oid, Oid) with RefSetArgsFromSplice, calls SetAndResolveStepguardAnimBindingKind3 and returns nothing to the
 // script.
@@ -718,16 +570,6 @@ extern "C" CRef RefThunk_SetAndResolveStepguardAnimBindingKind3(void *p, int c, 
 }
 
 extern "C" void SetStepguardAnimBindingKind2(void *p, void *, int, float, float, float, float);
-/** @sly2-annot addr=0x102E28
- * Purpose: Splice option thunk: optid 371 on STEPGUARD (g_aeopid[245] thunkUser, returns Void, crefReq 6);
- *   unpacks 6 args (0x9010, Oid, Float, Float, Float, Float) -> Void via RefSetArgsFromSplice then calls
- *   SetStepguardAnimBindingK2 (0x207D98)
- * Info: proposed name RefThunk_SetStepguardAnimBindingK2 (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x207D98 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 371 on STEPGUARD (g_aeopid[245], thunkUser): unpacks the script's 6 arguments (0x9010,
 // Oid, Float, Float, Float, Float) with RefSetArgsFromSplice, calls SetStepguardAnimBindingKind2 and returns nothing to
 // the script.
@@ -748,16 +590,6 @@ extern "C" CRef RefThunk_SetStepguardAnimBindingKind2(void *p, int c, void *aref
 }
 
 extern "C" void SetAndResolveStepguardAnimBindingKind2(void *p, void *, int, float, float, float, float);
-/** @sly2-annot addr=0x102F38
- * Purpose: Splice option thunk: optid 371 on STEPGUARD (g_aeopid[245] thunkFn, returns Void, crefReq 6);
- *   unpacks 6 args (0x9010, Oid, Float, Float, Float, Float) -> Void via RefSetArgsFromSplice then calls
- *   SetStepguardAnimBindingK2Resolve (0x207E08)
- * Info: proposed name RefThunk_SetStepguardAnimBindingK2Resolve (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x207E08 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 371 on STEPGUARD (g_aeopid[245], thunkFn): unpacks the script's 6 arguments (0x9010,
 // Oid, Float, Float, Float, Float) with RefSetArgsFromSplice, calls SetAndResolveStepguardAnimBindingKind2 and returns
 // nothing to the script.
@@ -836,16 +668,6 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_StepguardHasSgf)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepguardTargetLists(void *p, void *, void *);
-/** @sly2-annot addr=0x103B38
- * Purpose: Splice option thunk: optid 426 on STEPGUARD (g_aeopid[302] thunkFn, returns Void, crefReq 2);
- *   unpacks 2 args (0xA002, 0xA002) -> Void via RefSetArgsFromSplice then calls SetStepguardCRefPair
- *   (0x20A058)
- * Info: proposed name RefThunk_SetStepguardCRefPair (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x20A058 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 426 on STEPGUARD (g_aeopid[302], thunkFn): unpacks the script's 2 arguments (0xA002,
 // 0xA002) with RefSetArgsFromSplice, calls SetStepguardTargetLists and returns nothing to the script.
 extern "C" CRef RefThunk_SetStepguardTargetLists(void *p, int c, void *aref)
@@ -880,16 +702,6 @@ SLY2_SPLICEWRAP_BEGIN(func_00103EC0)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepguardEscortPoint(void *p, int n, qword q);
-/** @sly2-annot addr=0x103F40
- * Purpose: Splice option thunk: optid 446 on STEPGUARD (g_aeopid[322] thunkFn, returns Void, crefReq 2);
- *   unpacks 2 args (0x2002, Vector) -> Void via RefSetArgsFromSplice then calls SetStepguardRootBhvPoint
- *   (0x20A100)
- * Info: proposed name RefThunk_SetStepguardRootBhvPoint (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x20A100 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 446 on STEPGUARD (g_aeopid[322], thunkFn): unpacks the script's 2 arguments (0x2002,
 // Vector) with RefSetArgsFromSplice, calls SetStepguardEscortPoint and returns nothing to the script.
 extern "C" CRef RefThunk_SetStepguardEscortPoint(void *p, int c, void *aref)
@@ -917,15 +729,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_CalculateDetectorTargetState (was src/game/app/splice_thunks/RefThunk_CalculateDetectorTargetState.cpp) ----
 namespace T_RefThunk_CalculateDetectorTargetState {
 extern "C" { int CalculateDetectorTargetState(void *p, int, int); CRef RefThunk_CalculateDetectorTargetState(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x104188
- * Purpose: Splice option thunk: optid 466 on DETECTOR (g_aeopid[347] thunkFn, returns 0x106B, crefReq 2);
- *   unpacks 2 args (0x2002, 0x106B) -> 0x106B via RefSetArgsFromSplice then calls CalculateDetectorTargetState
- *   (0x1541D8)
- * Info: proposed name RefThunk_CalculateDetectorTargetState (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 466 on DETECTOR (g_aeopid[347], thunkFn): unpacks the script's 2 arguments (0x2002,
 // 0x106B) with RefSetArgsFromSplice, calls CalculateDetectorTargetState and returns a value of type 0x106B to the
 // script.
@@ -957,16 +760,6 @@ SLY2_SPLICEWRAP_BEGIN(func_001044B0)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetGuardAttackBindingKind2(void *p, int, float, float, float, float);
-/** @sly2-annot addr=0x104558
- * Purpose: Splice option thunk: optid 371 on CID120 (g_aeopid[365] thunkUser, returns Void, crefReq 5);
- *   unpacks 5 args (Oid, Float, Float, Float, Float) -> Void via RefSetArgsFromSplice then calls
- *   SetCid120AttackBindingK2 (0x20AFF0)
- * Info: proposed name RefThunk_SetCid120AttackBindingK2 (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x20AFF0 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 371 on CID120 (g_aeopid[365], thunkUser): unpacks the script's 5 arguments (Oid, Float,
 // Float, Float, Float) with RefSetArgsFromSplice, calls SetGuardAttackBindingKind2 and returns nothing to the script.
 extern "C" CRef RefThunk_SetGuardAttackBindingKind2(void *p, int c, void *aref)
@@ -985,16 +778,6 @@ extern "C" CRef RefThunk_SetGuardAttackBindingKind2(void *p, int c, void *aref)
 }
 
 extern "C" void SetAndResolveGuardAttackBindingKind2(void *p, int, float, float, float, float);
-/** @sly2-annot addr=0x104638
- * Purpose: Splice option thunk: optid 371 on CID120 (g_aeopid[365] thunkFn, returns Void, crefReq 5); unpacks
- *   5 args (Oid, Float, Float, Float, Float) -> Void via RefSetArgsFromSplice then calls
- *   SetCid120AttackBindingK2Resolve (0x20B060)
- * Info: proposed name RefThunk_SetCid120AttackBindingK2Resolve (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x20B060 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 371 on CID120 (g_aeopid[365], thunkFn): unpacks the script's 5 arguments (Oid, Float,
 // Float, Float, Float) with RefSetArgsFromSplice, calls SetAndResolveGuardAttackBindingKind2 and returns nothing to the
 // script.
@@ -1020,14 +803,6 @@ CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *a0)
 int IsPointInVol(void *p, qword q);
 CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref);
 }
-/** @sly2-annot addr=0x104718
- * Purpose: Splice option thunk: optid 108 on VOL (g_aeopid[366] thunkFn, returns Bool, crefReq 1); unpacks 1
- *   args (Vector) -> Bool via RefSetArgsFromSplice then calls IsPointInVol (0x227C90)
- * Info: proposed name RefThunkVolCHECK_POINT (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 108 on VOL (g_aeopid[366], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls IsPointInVol and returns a bool to the script.
 CRef RefThunkVolCHECK_POINT(void *object, int argCount, void *args)
@@ -1041,15 +816,6 @@ CRef RefThunkVolCHECK_POINT(void *object, int argCount, void *args)
 } // namespace T_RefThunkVolCHECK_POINT
 
 extern "C" int IsSphereInVol(void *p, qword q, float g);
-/** @sly2-annot addr=0x1047A0
- * Purpose: Splice option thunk: optid 474 on VOL (g_aeopid[367] thunkFn, returns Bool, crefReq 2); unpacks 2
- *   args (Vector, Float) -> Bool via RefSetArgsFromSplice then calls FCheckVolSphere (0x227D20)
- * Info: proposed name RefThunk_FCheckVolSphere (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x227D20 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 474 on VOL (g_aeopid[367], thunkFn): unpacks the script's 2 arguments (Vector, Float)
 // with RefSetArgsFromSplice, calls IsSphereInVol and returns a bool to the script.
 extern "C" CRef RefThunk_IsSphereInVol(void *p, int c, void *aref)
@@ -1065,14 +831,6 @@ extern "C" CRef RefThunk_IsSphereInVol(void *p, int c, void *aref)
 // ---- splice thunk RefThunkSmAPPLY (was src/game/app/splice_thunks/RefThunkSmAPPLY.cpp) ----
 namespace T_RefThunkSmAPPLY {
 extern "C" { void *ApplySmToObject(void *p, int a, int b, int c); CRef RefThunkSmAPPLY(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x104840
- * Purpose: Splice option thunk: optid 214 on SM (g_aeopid[368] thunkFn, returns 0x2088, crefReq 3); unpacks 3
- *   args (0x2030, Oid, 0x100B) -> 0x2088 via RefSetArgsFromSplice then calls PsmaApplySm (0x1F0380)
- * Info: proposed name RefThunkSmAPPLY (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 214 on SM (g_aeopid[368], thunkFn): unpacks the script's 3 arguments (0x2030, Oid,
 // 0x100B) with RefSetArgsFromSplice, calls ApplySmToObject and returns a value of type 0x2088 to the script.
 CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
@@ -1088,14 +846,6 @@ CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
 // ---- splice thunk RefThunk_ApplySmWithKind (was src/game/app/splice_thunks/RefThunk_ApplySmWithKind.cpp) ----
 namespace T_RefThunk_PsmaApplySmEx {
 extern "C" { void * ApplySmWithKind(void *p, int, int, int, int); CRef RefThunk_ApplySmWithKind(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1048F0
- * Purpose: Splice option thunk: optid 477 on SM (g_aeopid[369] thunkFn, returns 0x2088, crefReq 4); unpacks 4
- *   args (0x2030, Oid, 0x100B, 0x1054) -> 0x2088 via RefSetArgsFromSplice then calls ApplySmWithKind (0x1F03A8)
- * Info: proposed name RefThunk_ApplySmWithKind (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 477 on SM (g_aeopid[369], thunkFn): unpacks the script's 4 arguments (0x2030, Oid,
 // 0x100B, 0x1054) with RefSetArgsFromSplice, calls ApplySmWithKind and returns a value of type 0x2088 to the script.
 CRef RefThunk_ApplySmWithKind(void *object, int argCount, void *args)
@@ -1144,15 +894,6 @@ namespace T_RefThunk_FireMissile {
 struct VTE { short d; short pad; void (*pfn)(void *, int, void *); };
 struct LO { char pad[0xC]; VTE *pvt; };
 extern "C" { CRef RefThunk_FireMissile(LO *p, int c, void *aref); }
-/** @sly2-annot addr=0x104E80
- * Purpose: Splice option thunk: optid 508 on MISSILE (g_aeopid[405] thunkFn, returns Void, crefReq 2);
- *   unpacks 2 args (0x2030, Vector) -> Void via RefSetArgsFromSplice then calls virtual MISSILE slot 78 ->
- *   FireMissile (0x1B1E88)
- * Info: proposed name RefThunk_FireMissile (T1); TU crt0_splicewrap
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 508 on MISSILE (g_aeopid[405], thunkFn): unpacks the script's 2 arguments (0x2030,
 // Vector) with RefSetArgsFromSplice, calls virtual slot 78 (FireMissile) and returns nothing to the script.
 CRef RefThunk_FireMissile(LO *object, int argCount, void *args)
@@ -1209,15 +950,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_AddLasenBeam (was src/game/app/splice_thunks/RefThunk_AddLasenBeam.cpp) ----
 namespace T_RefThunk_AddLasenBeam {
 extern "C" { void AddLasenBeam(void *p, int, float, float, float, int, int, float, float, float, int); CRef RefThunk_AddLasenBeam(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1056A0
- * Purpose: Splice option thunk: optid 541 on CID85 (g_aeopid[455] thunkUser, returns Void, crefReq 10);
- *   unpacks 10 args (Oid, Float, Float, Float, 0x100B, Oid, Float, Float, Float, 0x100B) -> Void via
- *   RefSetArgsFromSplice then calls AddLasenBeam (0x1DF908)
- * Info: proposed name RefThunk_AddLasenBeam (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 541 on CID85 (g_aeopid[455], thunkUser): unpacks the script's 10 arguments (Oid, Float,
 // Float, Float, 0x100B, Oid, Float, Float, Float, 0x100B) with RefSetArgsFromSplice, calls AddLasenBeam and returns
 // nothing to the script.
@@ -1270,15 +1002,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkExplEXPLODE_OVR (was src/game/app/splice_thunks/RefThunkExplEXPLODE_OVR.cpp) ----
 namespace T_RefThunkExplEXPLODE_OVR {
 extern "C" { void ExplodeExplParams(void *p, int, int, qword, qword, float, float); CRef RefThunkExplEXPLODE_OVR(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x105BE0
- * Purpose: Splice option thunk: optid 616 on EXPL (g_aeopid[535] thunkFn, returns Void, crefReq 6); unpacks 6
- *   args (0x1026, 0x2002, Vector, Vector, Float, Float) -> Void via RefSetArgsFromSplice then calls
- *   ExplodeExplParams (0x15C198)
- * Info: proposed name RefThunkExplEXPLODE_OVR (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 616 on EXPL (g_aeopid[535], thunkFn): unpacks the script's 6 arguments (0x1026, 0x2002,
 // Vector, Vector, Float, Float) with RefSetArgsFromSplice, calls ExplodeExplParams and returns nothing to the
 // script.
@@ -1307,15 +1030,6 @@ SLY2_SPLICEWRAP_BEGIN(func_00105D58)
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddGuardScriptSetWalkTimes(void *p, void *pv);
-/** @sly2-annot addr=0x105DE0
- * Purpose: Splice option thunk: optid 623 on CID113 (g_aeopid[596] thunkFn/thunkUser, returns Void, crefReq
- *   1); unpacks 1 args (Lm) -> Void via RefSetArgsFromSplice then calls AddCid113CmdSetK2CC (0x170B60)
- * Info: proposed name RefThunk_AddCid113CmdSetK2CC (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x170B60 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 623 on CID113 (g_aeopid[596], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
 // with RefSetArgsFromSplice, calls AddGuardScriptSetWalkTimes and returns nothing to the script.
 extern "C" CRef RefThunk_AddGuardScriptSetWalkTimes(void *p, int c, void *aref)
@@ -1330,15 +1044,6 @@ extern "C" CRef RefThunk_AddGuardScriptSetWalkTimes(void *p, int c, void *aref)
 }
 
 extern "C" void AddGuardScriptSetPauseTimes(void *p, void *pv);
-/** @sly2-annot addr=0x105E70
- * Purpose: Splice option thunk: optid 624 on CID113 (g_aeopid[597] thunkFn/thunkUser, returns Void, crefReq
- *   1); unpacks 1 args (Lm) -> Void via RefSetArgsFromSplice then calls AddCid113CmdSetK2D4 (0x170BA0)
- * Info: proposed name RefThunk_AddCid113CmdSetK2D4 (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x170BA0 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 624 on CID113 (g_aeopid[597], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
 // with RefSetArgsFromSplice, calls AddGuardScriptSetPauseTimes and returns nothing to the script.
 extern "C" CRef RefThunk_AddGuardScriptSetPauseTimes(void *p, int c, void *aref)
@@ -1428,14 +1133,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_AddRelayWaitBlocks (was src/game/app/splice_thunks/RefThunk_AddRelayWaitBlocks.cpp) ----
 namespace T_RefThunk_AddRelayWaitBlocks {
 extern "C" { void AddRelayWaitBlocks(void *p, CRef *pref); CRef RefThunk_AddRelayWaitBlocks(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x106C08
- * Purpose: Splice option thunk: optid 651 on RELAY (g_aeopid[628] thunkFn/thunkUser, returns Void, crefReq
- *   1); unpacks 1 args (0x8006) -> Void via RefSetArgsFromSplice then calls AddRelayWaitBlocks (0x1E0310)
- * Info: proposed name RefThunk_AddRelayWaitBlocks (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 651 on RELAY (g_aeopid[628], thunkFn/thunkUser): unpacks the script's 1 argument
 // (0x8006) with RefSetArgsFromSplice, calls AddRelayWaitBlocks and returns nothing to the script.
 CRef RefThunk_AddRelayWaitBlocks(void *object, int argCount, void *args)
@@ -1481,15 +1178,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkRelaySET_SM_GOAL (was src/game/app/splice_thunks/RefThunkRelaySET_SM_GOAL.cpp) ----
 namespace T_RefThunkRelaySET_SM_GOAL {
 extern "C" { void AddRelayApplySm(void *p, int, int, int, int, int); CRef RefThunkRelaySET_SM_GOAL(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x107220
- * Purpose: Splice option thunk: optid 526 on RELAY (g_aeopid[638] thunkFn/thunkUser, returns Void, crefReq
- *   5); unpacks 5 args (Oid, Oid, Oid, Bool, Bool) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayApplySm (0x1E05A0)
- * Info: proposed name RefThunkRelaySET_SM_GOAL (T1); TU crt0_splicewrap
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 526 on RELAY (g_aeopid[638], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Oid, Oid, Bool, Bool) with RefSetArgsFromSplice, calls AddRelayApplySm and returns nothing to the script.
 CRef RefThunkRelaySET_SM_GOAL(void *object, int argCount, void *args)
@@ -1596,15 +1284,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_AddRelayStepCarryTo (was src/game/app/splice_thunks/RefThunk_AddRelayStepCarryTo.cpp) ----
 namespace T_RefThunk_AddRelayStepCmd29 {
 extern "C" { void AddRelayStepCarryTo(void *p, int, float, float, int, int); CRef RefThunk_AddRelayStepCarryTo(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1085F0
- * Purpose: Splice option thunk: optid 675 on RELAY (g_aeopid[667] thunkFn/thunkUser, returns Void, crefReq
- *   5); unpacks 5 args (Oid, Float, Float, Bool, Oid) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayStepCarryTo (0x1E0DB8)
- * Info: proposed name RefThunk_AddRelayStepCarryTo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 675 on RELAY (g_aeopid[667], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayStepCarryTo and returns nothing to the script.
 CRef RefThunk_AddRelayStepCarryTo(void *object, int argCount, void *args)
@@ -1626,15 +1305,6 @@ CRef RefThunk_AddRelayStepCarryTo(void *object, int argCount, void *args)
 // ---- splice thunk RefThunk_AddRelayRespawn (was src/game/app/splice_thunks/RefThunk_AddRelayRespawn.cpp) ----
 namespace T_RefThunk_AddRelayRespawn {
 extern "C" { void AddRelayRespawn(void *p, int, int, int, int, int); CRef RefThunk_AddRelayRespawn(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1086D0
- * Purpose: Splice option thunk: optid 628 on RELAY (g_aeopid[668] thunkFn/thunkUser, returns Void, crefReq
- *   5); unpacks 5 args (Oid, 0x102E, 0x102F, Bool, Oid) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayRespawn (0x1E0E18)
- * Info: proposed name RefThunk_AddRelayRespawn (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 628 on RELAY (g_aeopid[668], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // 0x102E, 0x102F, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayRespawn and returns nothing to the script.
 CRef RefThunk_AddRelayRespawn(void *object, int argCount, void *args)
@@ -1656,15 +1326,6 @@ CRef RefThunk_AddRelayRespawn(void *object, int argCount, void *args)
 // ---- splice thunk RefThunk_AddRelayLaunchTo (was src/game/app/splice_thunks/RefThunk_AddRelayLaunchTo.cpp) ----
 namespace T_RefThunk_AddRelayLaunchTo {
 extern "C" { void AddRelayLaunchTo(void *p, int, float, float, int, int); CRef RefThunk_AddRelayLaunchTo(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1087B0
- * Purpose: Splice option thunk: optid 676 on RELAY (g_aeopid[669] thunkFn/thunkUser, returns Void, crefReq
- *   5); unpacks 5 args (Oid, Float, Float, Bool, Oid) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayLaunchTo (0x1E0E78)
- * Info: proposed name RefThunk_AddRelayLaunchTo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 676 on RELAY (g_aeopid[669], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayLaunchTo and returns nothing to the script.
 CRef RefThunk_AddRelayLaunchTo(void *object, int argCount, void *args)
@@ -1717,15 +1378,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_AddRelaySound (was src/game/app/splice_thunks/RefThunk_AddRelaySound.cpp) ----
 namespace T_RefThunk_AddRelaySound {
 extern "C" { void AddRelaySound(void *p, int, int, int, int, float, float, float); CRef RefThunk_AddRelaySound(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x108F80
- * Purpose: Splice option thunk: optid 231 on RELAY (g_aeopid[680] thunkFn/thunkUser, returns Void, crefReq
- *   7); unpacks 7 args (0xE, Oid, Int, Int, Float, Float, Float) -> Void via RefSetArgsFromSplice then calls
- *   AddRelaySound (0x1E1178)
- * Info: proposed name RefThunk_AddRelaySound (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 231 on RELAY (g_aeopid[680], thunkFn/thunkUser): unpacks the script's 7 arguments (0xE,
 // Oid, Int, Int, Float, Float, Float) with RefSetArgsFromSplice, calls AddRelaySound and returns nothing to the
 // script.
@@ -1754,15 +1406,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_AddRelayCamBlendFrom (was src/game/app/splice_thunks/RefThunk_AddRelayCamBlendFrom.cpp) ----
 namespace T_RefThunk_AddRelayCamBlendFrom {
 extern "C" { void AddRelayCamBlendFrom(void *p, qword, qword, float, float, int); CRef RefThunk_AddRelayCamBlendFrom(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x109110
- * Purpose: Splice option thunk: optid 677 on RELAY (g_aeopid[682] thunkFn/thunkUser, returns Void, crefReq
- *   5); unpacks 5 args (Vector, Vector, Float, Float, 0x106D) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayCamBlendFrom (0x1E1238)
- * Info: proposed name RefThunk_AddRelayCamBlendFrom (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 677 on RELAY (g_aeopid[682], thunkFn/thunkUser): unpacks the script's 5 arguments
 // (Vector, Vector, Float, Float, 0x106D) with RefSetArgsFromSplice, calls AddRelayCamBlendFrom and returns nothing
 // to the script.
@@ -1785,15 +1428,6 @@ CRef RefThunk_AddRelayCamBlendFrom(void *object, int argCount, void *args)
 // ---- splice thunk RefThunk_AddRelayCamBlendTo (was src/game/app/splice_thunks/RefThunk_AddRelayCamBlendTo.cpp) ----
 namespace T_RefThunk_AddRelayCamBlendTo {
 extern "C" { void AddRelayCamBlendTo(void *p, qword, qword, float, int, int); CRef RefThunk_AddRelayCamBlendTo(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1091F0
- * Purpose: Splice option thunk: optid 678 on RELAY (g_aeopid[683] thunkFn/thunkUser, returns Void, crefReq
- *   5); unpacks 5 args (Vector, Vector, Float, Bool, Bool) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayCamBlendTo (0x1E12E0)
- * Info: proposed name RefThunk_AddRelayCamBlendTo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 678 on RELAY (g_aeopid[683], thunkFn/thunkUser): unpacks the script's 5 arguments
 // (Vector, Vector, Float, Bool, Bool) with RefSetArgsFromSplice, calls AddRelayCamBlendTo and returns nothing to the
 // script.
@@ -1832,15 +1466,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_AddRelayTweenTarget (was src/game/app/splice_thunks/RefThunk_AddRelayTweenTarget.cpp) ----
 namespace T_RefThunk_AddRelayTweenTarget {
 extern "C" { void AddRelayTweenTarget(void *p, qword, qword, float); CRef RefThunk_AddRelayTweenTarget(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x1095E8
- * Purpose: Splice option thunk: optid 684 on RELAY (g_aeopid[689] thunkFn/thunkUser, returns Void, crefReq
- *   3); unpacks 3 args (Vector, Vector, Float) -> Void via RefSetArgsFromSplice then calls
- *   AddRelayTweenTarget (0x1E1488)
- * Info: proposed name RefThunk_AddRelayTweenTarget (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 684 on RELAY (g_aeopid[689], thunkFn/thunkUser): unpacks the script's 3 arguments
 // (Vector, Vector, Float) with RefSetArgsFromSplice, calls AddRelayTweenTarget and returns nothing to the script.
 CRef RefThunk_AddRelayTweenTarget(void *object, int argCount, void *args)
@@ -1940,16 +1565,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010A6D8)
 SLY2_SPLICEWRAP_END
 
 extern "C" void LaunchStepplayer(void *p, qword, float, float);
-/** @sly2-annot addr=0x10A790
- * Purpose: Splice option thunk: optid 720 on STEPPLAYER (g_aeopid[730] thunkFn, returns Void, crefReq 3);
- *   unpacks 3 args (Vector, Float, Float) -> Void via RefSetArgsFromSplice then calls LaunchStepplayer
- *   (0x141968)
- * Info: proposed name RefThunk_LaunchStepplayer (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x141968 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 720 on STEPPLAYER (g_aeopid[730], thunkFn): unpacks the script's 3 arguments (Vector,
 // Float, Float) with RefSetArgsFromSplice, calls LaunchStepplayer and returns nothing to the script.
 extern "C" CRef RefThunk_LaunchStepplayer(void *p, int c, void *aref)
@@ -1975,17 +1590,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_StartStepplayerFollow (was src/game/app/splice_thunks/RefThunk_StartStepplayerFollow.cpp) ----
 namespace T_RefThunk_StartStepplayerFollow {
 extern "C" { void StartStepplayerFollow(void *p, int n, qword q); CRef RefThunk_StartStepplayerFollow(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x10A940
- * Purpose: Splice option thunk: optid 446 on STEPPLAYER (g_aeopid[733] thunkFn, returns Void, crefReq 2);
- *   unpacks 2 args (0x2002, Vector) -> Void via RefSetArgsFromSplice then calls StartStepplayerBhvC2
- *   (0x142540)
- * Info: proposed name RefThunk_StartStepplayerFollow (T1); TU crt0_splicewrap
- * Notes: v3 thunk renamed with its native 0x142540: StartStepplayerBhvC2 -> StartStepplayerFollow | v3:
- *   native 0x142540 now T1 -> thunk T1
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 446 on STEPPLAYER (g_aeopid[733], thunkFn): unpacks the script's 2 arguments (0x2002,
 // Vector) with RefSetArgsFromSplice, calls StartStepplayerFollow and returns nothing to the script.
 CRef RefThunk_StartStepplayerFollow(void *object, int argCount, void *args)
@@ -2027,16 +1631,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010ADB8)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepplayerIdleParams(void *p, void *, void *, void *);
-/** @sly2-annot addr=0x10AE28
- * Purpose: Splice option thunk: optid 249 on STEPPLAYER (g_aeopid[743] thunkFn, returns Void, crefReq 3);
- *   unpacks 3 args (Lm, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetStepplayerIdleParams
- *   (0x143090)
- * Info: proposed name RefThunk_SetStepplayerIdleParams (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x143090 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 249 on STEPPLAYER (g_aeopid[743], thunkFn): unpacks the script's 3 arguments (Lm, Lm,
 // Lm) with RefSetArgsFromSplice, calls SetStepplayerIdleParams and returns nothing to the script.
 extern "C" CRef RefThunk_SetStepplayerIdleParams(void *p, int c, void *aref)
@@ -2072,16 +1666,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010B1B8)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepplayerThrowParams(void *p, float, float, void *, float, float, qword, qword);
-/** @sly2-annot addr=0x10B230
- * Purpose: Splice option thunk: optid 743 on STEPPLAYER (g_aeopid[760] thunkFn/thunkUser, returns Void,
- *   crefReq 7); unpacks 7 args (Float, Float, Lm, Float, Float, Vector, Vector) -> Void via
- *   RefSetArgsFromSplice then calls SetStepplayerThrowParams (0x142310)
- * Info: proposed name RefThunk_SetStepplayerThrowParams (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x142310 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 743 on STEPPLAYER (g_aeopid[760], thunkFn/thunkUser): unpacks the script's 7 arguments
 // (Float, Float, Lm, Float, Float, Vector, Vector) with RefSetArgsFromSplice, calls SetStepplayerThrowParams and
 // returns nothing to the script.
@@ -2103,16 +1687,6 @@ extern "C" CRef RefThunk_SetStepplayerThrowParams(void *p, int c, void *aref)
 }
 
 extern "C" void SetJtPipeVectors(void *p, qword a, qword b);
-/** @sly2-annot addr=0x10B340
- * Purpose: Splice option thunk: optid 749 on STEPPLAYER (g_aeopid[766] thunkFn/thunkUser, returns Void,
- *   crefReq 2); unpacks 2 args (Vector, Vector) -> Void via RefSetArgsFromSplice then calls SetJtPipeVectors
- *   (0x19EAA0)
- * Info: proposed name RefThunk_SetJtPipeVectors (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x19EAA0 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 749 on STEPPLAYER (g_aeopid[766], thunkFn/thunkUser): unpacks the script's 2 arguments
 // (Vector, Vector) with RefSetArgsFromSplice, calls SetJtPipeVectors and returns nothing to the script.
 extern "C" CRef RefThunk_SetJtPipeVectors(void *p, int c, void *aref)
@@ -2141,16 +1715,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010B598)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetJtMeshProbePoints(void *p, qword, qword, qword);
-/** @sly2-annot addr=0x10B618
- * Purpose: Splice option thunk: optid 754 on JT (g_aeopid[771] thunkFn/thunkUser, returns Void, crefReq 3);
- *   unpacks 3 args (Vector, Vector, Vector) -> Void via RefSetArgsFromSplice then calls SetMeshVectors
- *   (0x185E30)
- * Info: proposed name RefThunk_SetMeshVectors (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x185E30 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 754 on JT (g_aeopid[771], thunkFn/thunkUser): unpacks the script's 3 arguments (Vector,
 // Vector, Vector) with RefSetArgsFromSplice, calls SetJtMeshProbePoints and returns nothing to the script.
 extern "C" CRef RefThunk_SetJtMeshProbePoints(void *p, int c, void *aref)
@@ -2167,15 +1731,6 @@ extern "C" CRef RefThunk_SetJtMeshProbePoints(void *p, int c, void *aref)
 }
 
 extern "C" void SetJtUnknown1FA0(void *p, qword q);
-/** @sly2-annot addr=0x10B6D0
- * Purpose: Splice option thunk: optid 755 on JT (g_aeopid[772] thunkFn/thunkUser, returns Void, crefReq 1);
- *   unpacks 1 args (Vector) -> Void via RefSetArgsFromSplice then calls SetJtX1FA0 (0x18DF58)
- * Info: proposed name RefThunk_SetJtX1FA0 (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x18DF58 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 755 on JT (g_aeopid[772], thunkFn/thunkUser): unpacks the script's 1 argument (Vector)
 // with RefSetArgsFromSplice, calls SetJtUnknown1FA0 and returns nothing to the script.
 extern "C" CRef RefThunk_SetJtUnknown1FA0(void *p, int c, void *aref)
@@ -2239,14 +1794,6 @@ CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an)
 void *FindClosestSwPo(void *p, qword q);
 CRef RefThunk_FindClosestSwPo(void *p, int c, void *aref);
 }
-/** @sly2-annot addr=0x10BF70
- * Purpose: Splice option thunk: optid 847 on SW (g_aeopid[929] thunkFn, returns 0x2032, crefReq 1); unpacks 1
- *   args (Vector) -> 0x2032 via RefSetArgsFromSplice then calls FindClosestSwPo (0x1C4AF8)
- * Info: proposed name RefThunk_FindClosestSwPo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 847 on SW (g_aeopid[929], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls FindClosestSwPo and returns a value of type 0x2032 to the script.
 CRef RefThunk_FindClosestSwPo(void *object, int argCount, void *args)
@@ -2262,15 +1809,6 @@ CRef RefThunk_FindClosestSwPo(void *object, int argCount, void *args)
 // ---- splice thunk RefThunk_EmitSwNoise (was src/game/app/splice_thunks/RefThunk_EmitSwNoise.cpp) ----
 namespace T_RefThunk_EmitSwNoise {
 extern "C" { void *EmitSwNoise(void *p, int a, qword q, int b); CRef RefThunk_EmitSwNoise(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x10BFF8
- * Purpose: Splice option thunk: optid 850 on SW (g_aeopid[932] thunkFn, returns 0x2093, crefReq 3); unpacks 3
- *   args (0x1046, Vector, 0x2002) -> 0x2093 via RefSetArgsFromSplice then calls EmitSwNoise (0x156B98)
- * Info: proposed name RefThunk_EmitSwNoise (T1); TU crt0_splicewrap
- * Notes: v3: native 0x156B98 now T1 -> thunk T1
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 850 on SW (g_aeopid[932], thunkFn): unpacks the script's 3 arguments (0x1046, Vector,
 // 0x2002) with RefSetArgsFromSplice, calls EmitSwNoise and returns a value of type 0x2093 to the script.
 CRef RefThunk_EmitSwNoise(void *object, int argCount, void *args)
@@ -2415,14 +1953,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010D798)
 SLY2_SPLICEWRAP_END
 
 extern "C" void * NewNoise(void *p, qword, int);
-/** @sly2-annot addr=0x10D840
- * Purpose: Splice option thunk: optid 214 on CID117 (g_aeopid[1095] thunkFn, returns 0x2093, crefReq 2);
- *   unpacks 2 args (Vector, 0x2002) -> 0x2093 via RefSetArgsFromSplice then calls PnoiseEmit (0x156698)
- * Info: proposed name RefThunkCid117APPLY (T2); TU crt0_splicewrap
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 214 on CID117 (g_aeopid[1095], thunkFn): unpacks the script's 2 arguments (Vector,
 // 0x2002) with RefSetArgsFromSplice, calls NewNoise and returns a value of type 0x2093 to the script.
 extern "C" CRef RefThunk_NewNoise(void *p, int c, void *aref)
@@ -2469,14 +1999,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_ShowWidgetArgsFromSplice (was src/game/app/splice_thunks/RefThunk_ShowWidgetArgsFromSplice.cpp) ----
 namespace T_RefThunk_ShowWidgetArgsFromSplice {
 extern "C" { void ShowWidgetArgsFromSplice(void *p, CRef *pref); CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x10DE58
- * Purpose: Splice option thunk: optid 984 on WIDGET (g_aeopid[1132] thunkFn, returns Void, crefReq 1);
- *   unpacks 1 args (0x8010) -> Void via RefSetArgsFromSplice then calls ShowWidgetArgsFromSplice (0x212828)
- * Info: proposed name RefThunk_ShowWidgetArgsFromSplice (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 984 on WIDGET (g_aeopid[1132], thunkFn): unpacks the script's 1 argument (0x8010) with
 // RefSetArgsFromSplice, calls ShowWidgetArgsFromSplice and returns nothing to the script.
 CRef RefThunk_ShowWidgetArgsFromSplice(void *object, int argCount, void *args)
@@ -2529,15 +2051,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010E4A8)
 SLY2_SPLICEWRAP_END
 
 extern "C" qword GetShapeClosestPoint(void *p, qword q);
-/** @sly2-annot addr=0x10E550
- * Purpose: Splice option thunk: optid 1057 on SHAPE (g_aeopid[1223] thunkFn, returns Vector, crefReq 1);
- *   unpacks 1 args (Vector) -> Vector via RefSetArgsFromSplice then calls PosFindShapeClosest (0x1E77B0)
- * Info: proposed name RefThunk_PosFindShapeClosest (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x1E77B0 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1057 on SHAPE (g_aeopid[1223], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls GetShapeClosestPoint and returns a vector to the script.
 extern "C" CRef RefThunk_GetShapeClosestPoint(void *p, int c, void *aref)
@@ -2550,16 +2063,6 @@ extern "C" CRef RefThunk_GetShapeClosestPoint(void *p, int c, void *aref)
 }
 
 extern "C" void SetXfHandleActuator1World(void *p, int, int, qword);
-/** @sly2-annot addr=0x10E5D8
- * Purpose: Splice option thunk: optid 1060 on CID149 (g_aeopid[1228] thunkFn, returns Void, crefReq 3);
- *   unpacks 3 args (0x100D, Int, Vector) -> Void via RefSetArgsFromSplice then calls SetXfhActuator1World
- *   (0x1F8A78)
- * Info: proposed name RefThunk_SetXfhActuator1World (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x1F8A78 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1060 on CID149 (g_aeopid[1228], thunkFn): unpacks the script's 3 arguments (0x100D, Int,
 // Vector) with RefSetArgsFromSplice, calls SetXfHandleActuator1World and returns nothing to the script.
 extern "C" CRef RefThunk_SetXfHandleActuator1World(void *p, int c, void *aref)
@@ -2577,16 +2080,6 @@ extern "C" CRef RefThunk_SetXfHandleActuator1World(void *p, int c, void *aref)
 
 extern "C" void SetXfHandleActuator1Mat(void *p, int a, int b, void *ps); 
 struct BIG { qword aq[4]; };
-/** @sly2-annot addr=0x10E690
- * Purpose: Splice option thunk: optid 1061 on CID149 (g_aeopid[1229] thunkFn, returns Void, crefReq 3);
- *   unpacks 3 args (0x100D, Int, 0x4) -> Void via RefSetArgsFromSplice then calls SetXfhActuator1Mat
- *   (0x1F8AD8)
- * Info: proposed name RefThunk_SetXfhActuator1Mat (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x1F8AD8 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1061 on CID149 (g_aeopid[1229], thunkFn): unpacks the script's 3 arguments (0x100D, Int,
 // 0x4) with RefSetArgsFromSplice, calls SetXfHandleActuator1Mat and returns nothing to the script.
 extern "C" CRef RefThunk_SetXfHandleActuator1Mat(void *p, int c, void *aref)
@@ -2606,16 +2099,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010E758)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetXfHandleKind16Params(void *p, int, float, float, float, float, qword);
-/** @sly2-annot addr=0x10E820
- * Purpose: Splice option thunk: optid 1063 on CID149 (g_aeopid[1231] thunkFn, returns Void, crefReq 6);
- *   unpacks 6 args (Int, Float, Float, Float, Float, Vector) -> Void via RefSetArgsFromSplice then calls
- *   SetXfhKind16Params (0x1F8BF0)
- * Info: proposed name RefThunk_SetXfhKind16Params (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x1F8BF0 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1063 on CID149 (g_aeopid[1231], thunkFn): unpacks the script's 6 arguments (Int, Float,
 // Float, Float, Float, Vector) with RefSetArgsFromSplice, calls SetXfHandleKind16Params and returns nothing to the
 // script.
@@ -2660,15 +2143,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunkJobSET_SM_GOAL (was src/game/app/splice_thunks/RefThunkJobSET_SM_GOAL.cpp) ----
 namespace T_RefThunkJobSET_SM_GOAL {
 extern "C" { void AddJobStateRsmg(void *p, int, int, int, int, int); CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x10ECC8
- * Purpose: Splice option thunk: optid 526 on JOB (g_aeopid[1256] thunkUser, returns Void, crefReq 5); unpacks
- *   5 args (0x1050, Oid, Oid, Oid, 0xF) -> Void via RefSetArgsFromSplice then calls AddJobStateRsmg
- *   (0x162728)
- * Info: proposed name RefThunkJobSET_SM_GOAL (T1); TU crt0_splicewrap
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 526 on JOB (g_aeopid[1256], thunkUser): unpacks the script's 5 arguments (0x1050, Oid,
 // Oid, Oid, 0xF) with RefSetArgsFromSplice, calls AddJobStateRsmg and returns nothing to the script.
 CRef RefThunkJobSET_SM_GOAL(void *object, int argCount, void *args)
@@ -2701,16 +2175,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010EFB0)
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddTaskStateVisibility(void *p, int, void *, int, int);
-/** @sly2-annot addr=0x10F030
- * Purpose: Splice option thunk: optid 1108 on TASK (g_aeopid[1287] thunkUser, returns Void, crefReq 4);
- *   unpacks 4 args (Oid, 0x9050, Oid, 0xF) -> Void via RefSetArgsFromSplice then calls AddTaskStateLo
- *   (0x163838)
- * Info: proposed name RefThunk_AddTaskStateLo (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x163838 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1108 on TASK (g_aeopid[1287], thunkUser): unpacks the script's 4 arguments (Oid, 0x9050,
 // Oid, 0xF) with RefSetArgsFromSplice, calls AddTaskStateVisibility and returns nothing to the script.
 extern "C" CRef RefThunk_AddTaskStateVisibility(void *p, int c, void *aref)
@@ -2758,14 +2222,6 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_SetPoChoices (was src/game/app/splice_thunks/RefThunk_SetPoChoices.cpp) ----
 namespace T_RefThunk_SetPoChoices {
 extern "C" { void SetPoChoices(void *p, CRef *pref); CRef RefThunk_SetPoChoices(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x10F648
- * Purpose: Splice option thunk: optid 1154 on CID70 (g_aeopid[1339] thunkFn/thunkUser, returns Void, crefReq
- *   1); unpacks 1 args (0x8006) -> Void via RefSetArgsFromSplice then calls SetPoChoices (0x1D7780)
- * Info: proposed name RefThunk_SetPoChoices (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1154 on CID70 (g_aeopid[1339], thunkFn/thunkUser): unpacks the script's 1 argument
 // (0x8006) with RefSetArgsFromSplice, calls SetPoChoices and returns nothing to the script.
 CRef RefThunk_SetPoChoices(void *object, int argCount, void *args)
@@ -2785,15 +2241,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010F6E8)
 SLY2_SPLICEWRAP_END
 
 extern "C" qword ChooseEscapePosition(void *p, qword q);
-/** @sly2-annot addr=0x10F7B0
- * Purpose: Splice option thunk: optid 1156 on CID59 (g_aeopid[1341] thunkFn, returns Vector, crefReq 1);
- *   unpacks 1 args (Vector) -> Vector via RefSetArgsFromSplice then calls PosChooseEscape (0x155FB0)
- * Info: proposed name RefThunk_PosChooseEscape (T2); TU crt0_splicewrap
- * Notes: T2 forced: thunk name is only as good as its native (0x155FB0 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1156 on CID59 (g_aeopid[1341], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls ChooseEscapePosition and returns a vector to the script.
 extern "C" CRef RefThunk_ChooseEscapePosition(void *p, int c, void *aref)
@@ -2808,15 +2255,6 @@ extern "C" CRef RefThunk_ChooseEscapePosition(void *p, int c, void *aref)
 // ---- splice thunk RefThunk_AddDancerMove (was src/game/app/splice_thunks/RefThunk_AddDancerMove.cpp) ----
 namespace T_RefThunk_AddDancerMove {
 extern "C" { void AddDancerMove(void *p, int, int, int, int, int); CRef RefThunk_AddDancerMove(void *p, int c, void *aref); }
-/** @sly2-annot addr=0x10F838
- * Purpose: Splice option thunk: optid 1158 on CID68 (g_aeopid[1343] thunkUser, returns Void, crefReq 5);
- *   unpacks 5 args (0x103C, Oid, 0x100B, Oid, Oid) -> Void via RefSetArgsFromSplice then calls AddDancerMove
- *   (0x1524D8)
- * Info: proposed name RefThunk_AddDancerMove (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1158 on CID68 (g_aeopid[1343], thunkUser): unpacks the script's 5 arguments (0x103C,
 // Oid, 0x100B, Oid, Oid) with RefSetArgsFromSplice, calls AddDancerMove and returns nothing to the script.
 CRef RefThunk_AddDancerMove(void *object, int argCount, void *args)
@@ -2867,17 +2305,6 @@ SLY2_SPLICEWRAP_BEGIN(func_0010FE60)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetHackenemyEntryVectors(void *p, int, void *, void *);
-/** @sly2-annot addr=0x10FF18
- * Purpose: Splice option thunk: optid 1182 on CID73 (g_aeopid[1380] thunkFn/thunkUser, returns Void, crefReq
- *   3); unpacks 3 args (0x105F, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetCid73EntryVectors
- *   (0x181330)
- * Info: proposed name RefThunk_SetHackenemyEntryVectors (T2); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: RefThunk_SetCid73EntryVectors ->
- *   RefThunk_SetHackenemyEntryVectors | T2 forced: thunk name is only as good as its native (0x181330 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1182 on CID73 (g_aeopid[1380], thunkFn/thunkUser): unpacks the script's 3 arguments
 // (0x105F, Lm, Lm) with RefSetArgsFromSplice, calls SetHackenemyEntryVectors and returns nothing to the script.
 extern "C" CRef RefThunk_SetHackenemyEntryVectors(void *p, int c, void *aref)
@@ -2894,17 +2321,6 @@ extern "C" CRef RefThunk_SetHackenemyEntryVectors(void *p, int c, void *aref)
 }
 
 extern "C" void SetHackenemyEntrySecondVectors(void *p, int, void *, void *);
-/** @sly2-annot addr=0x10FFE8
- * Purpose: Splice option thunk: optid 1183 on CID73 (g_aeopid[1381] thunkFn/thunkUser, returns Void, crefReq
- *   3); unpacks 3 args (0x105F, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetCid73EntryVectors2
- *   (0x181378)
- * Info: proposed name RefThunk_SetHackenemyEntrySecondVectors (T2); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: RefThunk_SetCid73EntryVectors2 ->
- *   RefThunk_SetHackenemyEntrySecondVectors | T2 forced: thunk name is only as good as its native (0x181378 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1183 on CID73 (g_aeopid[1381], thunkFn/thunkUser): unpacks the script's 3 arguments
 // (0x105F, Lm, Lm) with RefSetArgsFromSplice, calls SetHackenemyEntrySecondVectors and returns nothing to the script.
 extern "C" CRef RefThunk_SetHackenemyEntrySecondVectors(void *p, int c, void *aref)
@@ -2943,16 +2359,6 @@ SLY2_SPLICEWRAP_BEGIN(func_00110478)
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddRobottankWheel(void *p, int n, void *pu, float g);
-/** @sly2-annot addr=0x1104F0
- * Purpose: Splice option thunk: optid 1215 on CID77 (g_aeopid[1419] thunkUser, returns Void, crefReq 3);
- *   unpacks 3 args (Oid, Float, Lm) -> Void via RefSetArgsFromSplice then calls AddRcCarWheel (0x1D4B48)
- * Info: proposed name RefThunk_AddRobottankWheel (T2); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: RefThunk_AddRcCarWheel ->
- *   RefThunk_AddRobottankWheel | T2 forced: thunk name is only as good as its native (0x1D4B48 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1215 on CID77 (g_aeopid[1419], thunkUser): unpacks the script's 3 arguments (Oid, Float,
 // Lm) with RefSetArgsFromSplice, calls AddRobottankWheel and returns nothing to the script.
 extern "C" CRef RefThunk_AddRobottankWheel(void *p, int c, void *aref)
@@ -2973,16 +2379,6 @@ SLY2_SPLICEWRAP_BEGIN(func_001105B8)
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddRobottankAttachment(void *p, int n, void *pu);
-/** @sly2-annot addr=0x110680
- * Purpose: Splice option thunk: optid 1178 on CID77 (g_aeopid[1421] thunkUser, returns Void, crefReq 2);
- *   unpacks 2 args (Oid, Lm) -> Void via RefSetArgsFromSplice then calls AddRcCarAttachment (0x1D4C48)
- * Info: proposed name RefThunk_AddRobottankAttachment (T2); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: RefThunk_AddRcCarAttachment ->
- *   RefThunk_AddRobottankAttachment | T2 forced: thunk name is only as good as its native (0x1D4C48 T2)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
- *   D_002AC880)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 // Splice binding for option 1178 on CID77 (g_aeopid[1421], thunkUser): unpacks the script's 2 arguments (Oid, Lm)
 // with RefSetArgsFromSplice, calls AddRobottankAttachment and returns nothing to the script.
 extern "C" CRef RefThunk_AddRobottankAttachment(void *p, int c, void *aref)
@@ -3026,1922 +2422,378 @@ SLY2_SPLICEWRAP_END
 
 
 // ---- Factories (pfnNew, CID order) ----
+// The factories and getters were checked against the descriptor table D_002BAAE8 (pfnNew and size for all 185
+// constructible classes, slot 6 for all 199). The guard behaviour classes were confirmed on live guards at runtime;
+// runtime observation also identified BHV168 = BHVWALKGOAL, BHV173 = BHVSHOOT and BHV194 = BHVFOLLOW.
 
-/** @sly2-annot addr=0x110AB0
- * Purpose: pfnNew factory for SW (cid 1): allocates 0x4790 bytes (operator new 0x1AE4F8), calls ctor SW_ctor
- * Info: proposed name NewSw (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/engine/object-model.md#1-class-descriptors-and-vtables,
- *   docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SW *NewSw() { return new SW; }
 
-/** @sly2-annot addr=0x110AD8
- * Purpose: pfnNew factory for LO (cid 2): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2D3540 at +0xC
- * Info: proposed name NewLo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" LO *NewLo() { return new LO; }
 
-/** @sly2-annot addr=0x110B10
- * Purpose: pfnNew factory for XFM (cid 3): allocates 0xE0 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2DD090 at +0xC
- * Info: proposed name NewXfm (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" XFM *NewXfm() { return new XFM; }
 
-/** @sly2-annot addr=0x110B48
- * Purpose: pfnNew factory for LIGHT (cid 4): allocates 0x170 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D33A0 at +0xC
- * Info: proposed name NewLight (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" LIGHT *NewLight() { return new LIGHT; }
 
-/** @sly2-annot addr=0x110B80
- * Purpose: pfnNew factory for CID5 (cid 5): allocates 0x120 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2DC070 at +0xC
- * Info: proposed name NewCid5 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID5 *NewCid5() { return new CID5; }
 
-/** @sly2-annot addr=0x110BB8
- * Purpose: pfnNew factory for PROXY (cid 6): allocates 0x100 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D6E08 at +0xC
- * Info: proposed name NewProxy (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" PROXY *NewProxy() { return new PROXY; }
 
-/** @sly2-annot addr=0x110BF0
- * Purpose: pfnNew factory for CID7 (cid 7): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2D5DC8 at +0xC
- * Info: proposed name NewClueproxy (T1); TU crt0_splicewrap
- * Notes: v3 class identity: NewCid7 -> NewClueproxy
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLUEPROXY *NewClueproxy() { return new CLUEPROXY; }
 
-/** @sly2-annot addr=0x110C28
- * Purpose: pfnNew factory for CID8 (cid 8): allocates 0x100 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2D2CB8 at +0xC
- * Info: proposed name NewCid8 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID8 *NewCid8() { return new CID8; }
 
-/** @sly2-annot addr=0x110C60
- * Purpose: pfnNew factory for CID9 (cid 9): allocates 0x120 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2D2B18 at +0xC
- * Info: proposed name NewCid9 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID9 *NewCid9() { return new CID9; }
 
-/** @sly2-annot addr=0x110C98
- * Purpose: pfnNew factory for SHAPE (cid 10): allocates 0x190 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D9040 at +0xC
- * Info: proposed name NewShape (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SHAPE *NewShape() { return new SHAPE; }
 
-/** @sly2-annot addr=0x110CD0
- * Purpose: pfnNew factory for PIPE (cid 11): allocates 0x1E0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D56F8 at +0xC
- * Info: proposed name NewPipe (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" PIPE *NewPipe() { return new PIPE; }
 
-/** @sly2-annot addr=0x110D18
- * Purpose: pfnNew factory for CID12 (cid 12): allocates 0x1C0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D2738 at +0xC
- * Info: proposed name NewCid12 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID12 *NewCid12() { return new CID12; }
 
-/** @sly2-annot addr=0x110D60
- * Purpose: pfnNew factory for RAIL (cid 13): allocates 0x1D0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D6FE8 at +0xC
- * Info: proposed name NewRail (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" RAIL *NewRail() { return new RAIL; }
 
-/** @sly2-annot addr=0x110DA8
- * Purpose: pfnNew factory for CID14 (cid 14): allocates 0x1F0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D4DE0 at +0xC
- * Info: proposed name NewCid14 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID14 *NewCid14() { return new CID14; }
 
-/** @sly2-annot addr=0x110DE0
- * Purpose: pfnNew factory for TN (cid 15): allocates 0x1C0 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2DB6B8 at +0xC
- * Info: proposed name NewTn (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" TN *NewTn() { return new TN; }
 
-/** @sly2-annot addr=0x110E18
- * Purpose: pfnNew factory for DETECTOR (cid 16): allocates 0x180 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CDBA0 at +0xC
- * Info: proposed name NewDetector (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" DETECTOR *NewDetector() { return new DETECTOR; }
 
-/** @sly2-annot addr=0x110E50
- * Purpose: pfnNew factory for PATHZONE (cid 17): allocates 0x130 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D52B0 at +0xC
- * Info: proposed name NewPathzone (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" PATHZONE *NewPathzone() { return new PATHZONE; }
 
-/** @sly2-annot addr=0x110E88
- * Purpose: pfnNew factory for TARGET (cid 18): allocates 0x100 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DB518 at +0xC
- * Info: proposed name NewTarget (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" TARGET *NewTarget() { return new TARGET; }
 
-/** @sly2-annot addr=0x110EC0
- * Purpose: pfnNew factory for CID19 (cid 19): allocates 0x140 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D2978 at +0xC
- * Info: proposed name NewHnd (T1); TU crt0_splicewrap
- * Notes: v3 class identity: NewCid19 -> NewHnd
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" HND *NewHnd() { return new HND; }
 
-/** @sly2-annot addr=0x110F08
- * Purpose: pfnNew factory for CID20 (cid 20): allocates 0xF0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2C9A80 at +0xC
- * Info: proposed name NewCid20 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID20 *NewCid20() { return new CID20; }
 
-/** @sly2-annot addr=0x110F40
- * Purpose: pfnNew factory for CID21 (cid 21): allocates 0x100 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DB378 at +0xC
- * Info: proposed name NewCid21 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID21 *NewCid21() { return new CID21; }
 
-/** @sly2-annot addr=0x110F78
- * Purpose: pfnNew factory for VOL (cid 22): allocates 0x130 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2DC3B0 at +0xC
- * Info: proposed name NewVol (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" VOL *NewVol() { return new VOL; }
 
-/** @sly2-annot addr=0x110FB0
- * Purpose: pfnNew factory for CID23 (cid 23): allocates 0x140 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DC210 at +0xC
- * Info: proposed name NewCid23 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID23 *NewCid23() { return new CID23; }
 
-/** @sly2-annot addr=0x110FE8
- * Purpose: pfnNew factory for CID24 (cid 24): allocates 0x2D0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC7B0 at +0xC
- * Info: proposed name NewVolbtn (T1); TU crt0_splicewrap
- * Notes: v3 class identity: NewCid24 -> NewVolbtn
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" VOLBTN *NewVolbtn() { return new VOLBTN; }
 
-/** @sly2-annot addr=0x111020
- * Purpose: pfnNew factory for CID25 (cid 25): allocates 0x2D0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2C9C20 at +0xC
- * Info: proposed name NewCid25 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID25 *NewCid25() { return new CID25; }
 
-/** @sly2-annot addr=0x111058
- * Purpose: pfnNew factory for EXIT (cid 26): allocates 0x190 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DC6F0 at +0xC
- * Info: proposed name NewExit (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" EXIT *NewExit() { return new EXIT; }
 
-/** @sly2-annot addr=0x111090
- * Purpose: pfnNew factory for CID27 (cid 27): allocates 0x160 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D1B60 at +0xC
- * Info: proposed name NewCid27 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID27 *NewCid27() { return new CID27; }
 
-/** @sly2-annot addr=0x1110D8
- * Purpose: pfnNew factory for BLIPG (cid 28): allocates 0x460 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CB5D8 at +0xC
- * Info: proposed name NewBlipg (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BLIPG *NewBlipg() { return new BLIPG; }
 
-/** @sly2-annot addr=0x111138
- * Purpose: pfnNew factory for EMITTER (cid 29): allocates 0x160 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CEB78 at +0xC
- * Info: proposed name NewEmitter (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" EMITTER *NewEmitter() { return new EMITTER; }
 
-/** @sly2-annot addr=0x111170
- * Purpose: pfnNew factory for EXPLG (cid 31): allocates 0xF0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CE828 at +0xC
- * Info: proposed name NewExplg (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" EXPLG *NewExplg() { return new EXPLG; }
 
-/** @sly2-annot addr=0x1111A8
- * Purpose: pfnNew factory for EXPLO (cid 32): allocates 0xF0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CA098 at +0xC
- * Info: proposed name NewExplo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" EXPLO *NewExplo() { return new EXPLO; }
 
-/** @sly2-annot addr=0x1111E0
- * Purpose: pfnNew factory for EXPLS (cid 33): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CE4D0 at +0xC
- * Info: proposed name NewExpls (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" EXPLS *NewExpls() { return new EXPLS; }
 
-/** @sly2-annot addr=0x111218
- * Purpose: pfnNew factory for CID34 (cid 34): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D2558 at +0xC
- * Info: proposed name NewCid34 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID34 *NewCid34() { return new CID34; }
 
-/** @sly2-annot addr=0x111260
- * Purpose: pfnNew factory for CID35 (cid 35): allocates 0x180 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D1EE8 at +0xC
- * Info: proposed name NewCid35 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID35 *NewCid35() { return new CID35; }
 
-/** @sly2-annot addr=0x1112A8
- * Purpose: pfnNew factory for CID36 (cid 36): allocates 0x1A0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D1D00 at +0xC
- * Info: proposed name NewCid36 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID36 *NewCid36() { return new CID36; }
 
-/** @sly2-annot addr=0x1112F0
- * Purpose: pfnNew factory for CID37 (cid 37): allocates 0x1A0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CB9F8 at +0xC
- * Info: proposed name NewCid37 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID37 *NewCid37() { return new CID37; }
 
-/** @sly2-annot addr=0x111338
- * Purpose: pfnNew factory for CID38 (cid 38): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D2378 at +0xC
- * Info: proposed name NewCid38 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID38 *NewCid38() { return new CID38; }
 
-/** @sly2-annot addr=0x111380
- * Purpose: pfnNew factory for CID39 (cid 39): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D9DD0 at +0xC
- * Info: proposed name NewCid39 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID39 *NewCid39() { return new CID39; }
 
-/** @sly2-annot addr=0x1113C8
- * Purpose: pfnNew factory for CID40 (cid 40): allocates 0xF0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D3200 at +0xC
- * Info: proposed name NewCid40 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID40 *NewCid40() { return new CID40; }
 
-/** @sly2-annot addr=0x111400
- * Purpose: pfnNew factory for CID41 (cid 41): allocates 0xE0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DC890 at +0xC
- * Info: proposed name NewCid41 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID41 *NewCid41() { return new CID41; }
 
-/** @sly2-annot addr=0x111438
- * Purpose: pfnNew factory for WARP (cid 42): allocates 0x180 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DC550 at +0xC
- * Info: proposed name NewWarp (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WARP *NewWarp() { return new WARP; }
 
-/** @sly2-annot addr=0x111470
- * Purpose: pfnNew factory for CID43 (cid 43): allocates 0x100 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CABD8 at +0xC
- * Info: proposed name NewCid43 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID43 *NewCid43() { return new CID43; }
 
-/** @sly2-annot addr=0x1114A8
- * Purpose: pfnNew factory for CID44 (cid 44): allocates 0x140 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CA9F0 at +0xC
- * Info: proposed name NewCid44 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID44 *NewCid44() { return new CID44; }
 
-/** @sly2-annot addr=0x1114E0
- * Purpose: pfnNew factory for CID45 (cid 45): allocates 0x130 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D4F80 at +0xC
- * Info: proposed name NewCid45 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID45 *NewCid45() { return new CID45; }
 
-/** @sly2-annot addr=0x111518
- * Purpose: pfnNew factory for CID46 (cid 46): allocates 0x120 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D9F70 at +0xC
- * Info: proposed name NewCid46 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID46 *NewCid46() { return new CID46; }
 
-/** @sly2-annot addr=0x111550
- * Purpose: pfnNew factory for CID47 (cid 47): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CE118 at +0xC
- * Info: proposed name NewCid47 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID47 *NewCid47() { return new CID47; }
 
-/** @sly2-annot addr=0x111588
- * Purpose: pfnNew factory for SO (cid 48): allocates 0x150 bytes (operator new 0x1AE4F8), calls ctor GLOBSET
- * Info: proposed name NewSo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SO *NewSo() { return new SO; }
 
-/** @sly2-annot addr=0x1115D0
- * Purpose: pfnNew factory for MS (cid 49): allocates 0x150 bytes (operator new 0x1AE4F8), calls ctor GLOBSET
- * Info: proposed name NewMs (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" MS *NewMs() { return new MS; }
 
-/** @sly2-annot addr=0x111628
- * Purpose: pfnNew factory for PO (cid 50): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor GLOBSET
- * Info: proposed name NewPo (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" PO *NewPo() { return new PO; }
 
-/** @sly2-annot addr=0x111680
- * Purpose: pfnNew factory for STEP (cid 51): allocates 0x2C0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewStep (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" STEP *NewStep() { return new STEP; }
 
-/** @sly2-annot addr=0x1116D8
- * Purpose: pfnNew factory for JT (cid 53): allocates 0x2060 bytes (operator new 0x1AE4F8), calls ctor
- *   JT_ctor
- * Info: proposed name NewJt (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" JT *NewJt() { return new JT; }
 
-/** @sly2-annot addr=0x111700
- * Purpose: pfnNew factory for MURRAY (cid 54): allocates 0x1B00 bytes (operator new 0x1AE4F8), calls ctor
- *   MURRAY_ctor
- * Info: proposed name NewMurray (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" MURRAY *NewMurray() { return new MURRAY; }
 
-/** @sly2-annot addr=0x111728
- * Purpose: pfnNew factory for BENTLEY (cid 55): allocates 0x1880 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewBentley (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BENTLEY *NewBentley() { return new BENTLEY; }
 
-/** @sly2-annot addr=0x111780
- * Purpose: pfnNew factory for STEPGUARD (cid 56): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewStepguard (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" STEPGUARD *NewStepguard() { return new STEPGUARD; }
 
-/** @sly2-annot addr=0x1117A8
- * Purpose: pfnNew factory for GOMER (cid 57): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewGomer (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" GOMER *NewGomer() { return new GOMER; }
 
-/** @sly2-annot addr=0x1117E8
- * Purpose: pfnNew factory for CID58 (cid 58): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewGuard (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid58 -> NewGuard
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" GUARD *NewGuard() { return new GUARD; }
 
-/** @sly2-annot addr=0x111828
- * Purpose: pfnNew factory for CID59 (cid 59): allocates 0x1020 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewDimitri (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid59 -> NewDimitri
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" DIMITRI *NewDimitri() { return new DIMITRI; }
 
-/** @sly2-annot addr=0x111868
- * Purpose: pfnNew factory for CID60 (cid 60): allocates 0x10A0 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewNeela (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid60 -> NewNeela
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" NEELA *NewNeela() { return new NEELA; }
 
-/** @sly2-annot addr=0x1118A8
- * Purpose: pfnNew factory for CID61 (cid 61): allocates 0x1020 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewRajan (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid61 -> NewRajan
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" RAJAN *NewRajan() { return new RAJAN; }
 
-/** @sly2-annot addr=0x1118E8
- * Purpose: pfnNew factory for CID62 (cid 62): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewJeanbison (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid62 -> NewJeanbison
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" JEANBISON *NewJeanbison() { return new JEANBISON; }
 
-/** @sly2-annot addr=0x111928
- * Purpose: pfnNew factory for CID63 (cid 63): allocates 0x1020 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewCarmelita (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid63 -> NewCarmelita
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CARMELITA *NewCarmelita() { return new CARMELITA; }
 
-/** @sly2-annot addr=0x111968
- * Purpose: pfnNew factory for CID64 (cid 64): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewContessa (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid64 -> NewContessa
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CONTESSA *NewContessa() { return new CONTESSA; }
 
-/** @sly2-annot addr=0x1119A8
- * Purpose: pfnNew factory for CID65 (cid 65): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewArpeggio (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid65 -> NewArpeggio
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" ARPEGGIO *NewArpeggio() { return new ARPEGGIO; }
 
-/** @sly2-annot addr=0x1119E8
- * Purpose: pfnNew factory for CID66 (cid 66): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewBear (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid66 -> NewBear
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BEAR *NewBear() { return new BEAR; }
 
-/** @sly2-annot addr=0x111A28
- * Purpose: pfnNew factory for CID67 (cid 67): allocates 0x1010 bytes (operator new 0x1AE4F8), calls ctor
- *   STEPGUARD_ctor
- * Info: proposed name NewBearcub (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid67 -> NewBearcub
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BEARCUB *NewBearcub() { return new BEARCUB; }
 
-/** @sly2-annot addr=0x111A68
- * Purpose: pfnNew factory for CID68 (cid 68): allocates 0x410 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewDancer (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid68 -> NewDancer
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" DANCER *NewDancer() { return new DANCER; }
 
-/** @sly2-annot addr=0x111AC0
- * Purpose: pfnNew factory for CID69 (cid 69): allocates 0x1E0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewTurret (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid69 -> NewTurret
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" TURRET *NewTurret() { return new TURRET; }
 
-/** @sly2-annot addr=0x111B18
- * Purpose: pfnNew factory for CID70 (cid 70): allocates 0x240 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewSafehouse (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid70 -> NewSafehouse
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SAFEHOUSE *NewSafehouse() { return new SAFEHOUSE; }
 
-/** @sly2-annot addr=0x111B70
- * Purpose: pfnNew factory for CID71 (cid 71): allocates 0x1C0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewHack (T1); TU crt0_splicewrap
- * Notes: v3 class identity: NewCid71 -> NewHack
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" HACK *NewHack() { return new HACK; }
 
-/** @sly2-annot addr=0x111BC8
- * Purpose: pfnNew factory for CID72 (cid 72): allocates 0x2B0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewHackship (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid72 -> NewHackship
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" HACKSHIP *NewHackship() { return new HACKSHIP; }
 
-/** @sly2-annot addr=0x111C28
- * Purpose: pfnNew factory for CID73 (cid 73): allocates 0x390 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewHackenemy (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid73 -> NewHackenemy
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" HACKENEMY *NewHackenemy() { return new HACKENEMY; }
 
-/** @sly2-annot addr=0x111C80
- * Purpose: pfnNew factory for CID74 (cid 74): allocates 0x1E0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewHackbullet (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid74 -> NewHackbullet
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" HACKBULLET *NewHackbullet() { return new HACKBULLET; }
 
-/** @sly2-annot addr=0x111CD8
- * Purpose: pfnNew factory for CID75 (cid 75): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewHacklock (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid75 -> NewHacklock
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" HACKLOCK *NewHacklock() { return new HACKLOCK; }
 
-/** @sly2-annot addr=0x111D30
- * Purpose: pfnNew factory for CID76 (cid 76): allocates 0x2A0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewHackwall (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid76 -> NewHackwall
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" HACKWALL *NewHackwall() { return new HACKWALL; }
 
-/** @sly2-annot addr=0x111D88
- * Purpose: pfnNew factory for CID77 (cid 77): allocates 0x5D0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewRobottank (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid77 -> NewRobottank
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" ROBOTTANK *NewRobottank() { return new ROBOTTANK; }
 
-/** @sly2-annot addr=0x111DE8
- * Purpose: pfnNew factory for CID78 (cid 78): allocates 0x230 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewVault (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid78 -> NewVault
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" VAULT *NewVault() { return new VAULT; }
 
-/** @sly2-annot addr=0x111E40
- * Purpose: pfnNew factory for BOMB (cid 79): allocates 0x210 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewBomb (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BOMB *NewBomb() { return new BOMB; }
 
-/** @sly2-annot addr=0x111E98
- * Purpose: pfnNew factory for MISSILE (cid 80): allocates 0x270 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewMissile (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" MISSILE *NewMissile() { return new MISSILE; }
 
-/** @sly2-annot addr=0x111EF0
- * Purpose: pfnNew factory for ACCMISS (cid 81): allocates 0x280 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewAccmiss (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" ACCMISS *NewAccmiss() { return new ACCMISS; }
 
-/** @sly2-annot addr=0x111F48
- * Purpose: pfnNew factory for CID82 (cid 82): allocates 0x290 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid82 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID82 *NewCid82() { return new CID82; }
 
-/** @sly2-annot addr=0x111FA0
- * Purpose: pfnNew factory for CID83 (cid 83): allocates 0x300 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewButton (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid83 -> NewButton
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BUTTON *NewButton() { return new BUTTON; }
 
-/** @sly2-annot addr=0x111FF8
- * Purpose: pfnNew factory for CID85 (cid 85): allocates 0x1D0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewLasen (T1); TU crt0_splicewrap
- * Notes: v3 class identity: NewCid85 -> NewLasen
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" LASEN *NewLasen() { return new LASEN; }
 
-/** @sly2-annot addr=0x112050
- * Purpose: pfnNew factory for BARRIER (cid 86): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewBarrier (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BARRIER *NewBarrier() { return new BARRIER; }
 
-/** @sly2-annot addr=0x1120A8
- * Purpose: pfnNew factory for RIPG (cid 87): allocates 0x1B0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewRipg (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" RIPG *NewRipg() { return new RIPG; }
 
-/** @sly2-annot addr=0x112100
- * Purpose: pfnNew factory for CID88 (cid 88): allocates 0x1A0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewBarrel (T1); TU crt0_splicewrap
- * Notes: v3 class identity: NewCid88 -> NewBarrel
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BARREL *NewBarrel() { return new BARREL; }
 
-/** @sly2-annot addr=0x112160
- * Purpose: pfnNew factory for WATER (cid 89): allocates 0x190 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewWater (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WATER *NewWater() { return new WATER; }
 
-/** @sly2-annot addr=0x1121B8
- * Purpose: pfnNew factory for COIN (cid 91): allocates 0x240 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCoin (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" COIN *NewCoin() { return new COIN; }
 
-/** @sly2-annot addr=0x112210
- * Purpose: pfnNew factory for CID92 (cid 92): allocates 0x240 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewKey (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid92 -> NewKey
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" KEY *NewKey() { return new KEY; }
 
-/** @sly2-annot addr=0x112268
- * Purpose: pfnNew factory for CID93 (cid 93): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewMedicine (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid93 -> NewMedicine
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" MEDICINE *NewMedicine() { return new MEDICINE; }
 
-/** @sly2-annot addr=0x1122C0
- * Purpose: pfnNew factory for LOOT (cid 94): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewLoot (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" LOOT *NewLoot() { return new LOOT; }
 
-/** @sly2-annot addr=0x112318
- * Purpose: pfnNew factory for CLUE (cid 95): allocates 0x230 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewClue (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLUE *NewClue() { return new CLUE; }
 
-/** @sly2-annot addr=0x112370
- * Purpose: pfnNew factory for CID96 (cid 96): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid96 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID96 *NewCid96() { return new CID96; }
 
-/** @sly2-annot addr=0x1123C8
- * Purpose: pfnNew factory for CID97 (cid 97): allocates 0x160 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewSky (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewCid97 -> NewSky
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SKY *NewSky() { return new SKY; }
 
-/** @sly2-annot addr=0x112420
- * Purpose: pfnNew factory for CID98 (cid 98): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid98 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID98 *NewCid98() { return new CID98; }
 
-/** @sly2-annot addr=0x112478
- * Purpose: pfnNew factory for CID99 (cid 99): allocates 0x170 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid99 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID99 *NewCid99() { return new CID99; }
 
-/** @sly2-annot addr=0x1124D0
- * Purpose: pfnNew factory for CID100 (cid 100): allocates 0x1B0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid100 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID100 *NewCid100() { return new CID100; }
 
-/** @sly2-annot addr=0x112528
- * Purpose: pfnNew factory for CID101 (cid 101): allocates 0x1B0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid101 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID101 *NewCid101() { return new CID101; }
 
-/** @sly2-annot addr=0x112580
- * Purpose: pfnNew factory for CID102 (cid 102): allocates 0x1D0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid102 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID102 *NewCid102() { return new CID102; }
 
-/** @sly2-annot addr=0x1125D8
- * Purpose: pfnNew factory for ALARM (cid 103): allocates 0x190 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewBooty (T1); TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: NewAlarm -> NewBooty
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BOOTY *NewBooty() { return new BOOTY; }
 
-/** @sly2-annot addr=0x112630
- * Purpose: pfnNew factory for CID104 (cid 104): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid104 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID104 *NewCid104() { return new CID104; }
 
-/** @sly2-annot addr=0x112688
- * Purpose: pfnNew factory for CID105 (cid 105): allocates 0x1A0 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid105 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID105 *NewCid105() { return new CID105; }
 
-/** @sly2-annot addr=0x1126E0
- * Purpose: pfnNew factory for CID106 (cid 106): allocates 0x160 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid106 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID106 *NewCid106() { return new CID106; }
 
-/** @sly2-annot addr=0x112738
- * Purpose: pfnNew factory for WAYPT (cid 107): allocates 0x190 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewWaypt (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WAYPT *NewWaypt() { return new WAYPT; }
 
-/** @sly2-annot addr=0x112790
- * Purpose: pfnNew factory for CID108 (cid 108): allocates 0x170 bytes (operator new 0x1AE4F8), calls ctor
- *   GLOBSET
- * Info: proposed name NewCid108 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID108 *NewCid108() { return new CID108; }
 
-/** @sly2-annot addr=0x1127E8
- * Purpose: pfnNew factory for ASEG (cid 109): allocates 0xC0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CAD78 at +0xC
- * Info: proposed name NewAseg (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" ASEG *NewAseg() { return new ASEG; }
 
-/** @sly2-annot addr=0x112820
- * Purpose: pfnNew factory for ASEGBL (cid 110): allocates 0xE0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CA300 at +0xC
- * Info: proposed name NewAsegbl (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" ASEGBL *NewAsegbl() { return new ASEGBL; }
 
-/** @sly2-annot addr=0x112858
- * Purpose: pfnNew factory for SM (cid 111): allocates 0x80 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2D97A8 at +0xC
- * Info: proposed name NewSm (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SM *NewSm() { return new SM; }
 
-/** @sly2-annot addr=0x112890
- * Purpose: pfnNew factory for CID112 (cid 112): allocates 0xC0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D7F40 at +0xC
- * Info: proposed name NewCid112 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID112 *NewCid112() { return new CID112; }
 
-/** @sly2-annot addr=0x1128C8
- * Purpose: pfnNew factory for CID113 (cid 113): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CF880 at +0xC
- * Info: proposed name NewCid113 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID113 *NewCid113() { return new CID113; }
 
-/** @sly2-annot addr=0x112900
- * Purpose: pfnNew factory for RELAY (cid 114): allocates 0xB0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D8C48 at +0xC
- * Info: proposed name NewRelay (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" RELAY *NewRelay() { return new RELAY; }
 
-/** @sly2-annot addr=0x112938
- * Purpose: pfnNew factory for WR (cid 115): allocates 0x900 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2DCF00 at +0xC
- * Info: proposed name NewWr (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WR *NewWr() { return new WR; }
 
-/** @sly2-annot addr=0x112970
- * Purpose: pfnNew factory for CID116 (cid 116): allocates 0x70 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CF058 at +0xC
- * Info: proposed name NewCid116 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID116 *NewCid116() { return new CID116; }
 
-/** @sly2-annot addr=0x1129A8
- * Purpose: pfnNew factory for CID117 (cid 117): allocates 0x70 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CE2F8 at +0xC
- * Info: proposed name NewCid117 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID117 *NewCid117() { return new CID117; }
 
-/** @sly2-annot addr=0x1129E0
- * Purpose: pfnNew factory for CID118 (cid 118): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2C94E0 at +0xC
- * Info: proposed name NewCid118 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID118 *NewCid118() { return new CID118; }
 
-/** @sly2-annot addr=0x112A18
- * Purpose: pfnNew factory for CID119 (cid 119): allocates 0xB0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFA90 at +0xC
- * Info: proposed name NewCid119 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID119 *NewCid119() { return new CID119; }
 
-/** @sly2-annot addr=0x112A50
- * Purpose: pfnNew factory for CID120 (cid 120): allocates 0xD0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DA840 at +0xC
- * Info: proposed name NewCid120 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID120 *NewCid120() { return new CID120; }
 
-/** @sly2-annot addr=0x112A88
- * Purpose: pfnNew factory for CID121 (cid 121): allocates 0x10B0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CD5B8 at +0xC
- * Info: proposed name NewCid121 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID121 *NewCid121() { return new CID121; }
 
-/** @sly2-annot addr=0x112AC0
- * Purpose: pfnNew factory for CID122 (cid 122): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CDA10 at +0xC
- * Info: proposed name NewCid122 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID122 *NewCid122() { return new CID122; }
 
-/** @sly2-annot addr=0x112AF8
- * Purpose: pfnNew factory for CID123 (cid 123): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CCF10 at +0xC
- * Info: proposed name NewCid123 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID123 *NewCid123() { return new CID123; }
 
-/** @sly2-annot addr=0x112B30
- * Purpose: pfnNew factory for CID124 (cid 124): allocates 0x160 bytes (operator new 0x1AE4F8), calls ctor
- *   ClearPointerPair
- * Info: proposed name NewPathlink (T1); TU crt0_splicewrap
- * Notes: v3 class identity: NewCid124 -> NewPathlink
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" PATHLINK *NewPathlink() { return new PATHLINK; }
 
-/** @sly2-annot addr=0x112BB0
- * Purpose: pfnNew factory for CID125 (cid 125): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DA3D8 at +0xC
- * Info: proposed name NewCid125 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID125 *NewCid125() { return new CID125; }
 
-/** @sly2-annot addr=0x112BE8
- * Purpose: pfnNew factory for WIDGET (cid 126): allocates 0x110 bytes (operator new 0x1AE4F8), calls ctor
- *   WIDGET_ctor
- * Info: proposed name NewWidget (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WIDGET *NewWidget() { return new WIDGET; }
 
-/** @sly2-annot addr=0x112C10
- * Purpose: pfnNew factory for WIDGET127 (cid 127): allocates 0x120 bytes (operator new 0x1AE4F8), calls ctor
- *   WIDGET_ctor
- * Info: proposed name NewWidget127 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WIDGET127 *NewWidget127() { return new WIDGET127; }
 
-/** @sly2-annot addr=0x112C50
- * Purpose: pfnNew factory for WIDGET128 (cid 128): allocates 0x110 bytes (operator new 0x1AE4F8), calls ctor
- *   WIDGET_ctor
- * Info: proposed name NewWidget128 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WIDGET128 *NewWidget128() { return new WIDGET128; }
 
-/** @sly2-annot addr=0x112C90
- * Purpose: pfnNew factory for WIDGET129 (cid 129): allocates 0x220 bytes (operator new 0x1AE4F8), calls ctor
- *   WIDGET_ctor
- * Info: proposed name NewWidget129 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WIDGET129 *NewWidget129() { return new WIDGET129; }
 
-/** @sly2-annot addr=0x112CD0
- * Purpose: pfnNew factory for WIDGET130 (cid 130): allocates 0x130 bytes (operator new 0x1AE4F8), calls ctor
- *   WIDGET130_ctor
- * Info: proposed name NewWidget130 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WIDGET130 *NewWidget130() { return new WIDGET130; }
 
-/** @sly2-annot addr=0x112CF8
- * Purpose: pfnNew factory for WIDGET131 (cid 131): allocates 0x140 bytes (operator new 0x1AE4F8), calls ctor
- *   WIDGET_ctor
- * Info: proposed name NewWidget131 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" WIDGET131 *NewWidget131() { return new WIDGET131; }
 
-/** @sly2-annot addr=0x112D38
- * Purpose: pfnNew factory for JOB (cid 132): allocates 0x100 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CF378 at +0xC
- * Info: proposed name NewJob (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" JOB *NewJob() { return new JOB; }
 
-/** @sly2-annot addr=0x112D70
- * Purpose: pfnNew factory for TASK (cid 133): allocates 0x110 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CF1E8 at +0xC
- * Info: proposed name NewTask (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" TASK *NewTask() { return new TASK; }
 
-/** @sly2-annot addr=0x112DA8
- * Purpose: pfnNew factory for CM (cid 135): allocates 0x630 bytes (operator new 0x1AE4F8), calls ctor CM_ctor
- * Info: proposed name NewCm (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CM *NewCm() { return new CM; }
 
-/** @sly2-annot addr=0x112DD0
- * Purpose: pfnNew factory for SMA (cid 136): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2D9768 at +0xC
- * Info: proposed name NewSma (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SMA *NewSma() { return new SMA; }
 
-/** @sly2-annot addr=0x112E08
- * Purpose: pfnNew factory for LOOP (cid 139): allocates 0x70 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D93C0 at +0xC
- * Info: proposed name NewLoop (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" LOOP *NewLoop() { return new LOOP; }
 
-/** @sly2-annot addr=0x112E40
- * Purpose: pfnNew factory for PINGPONG (cid 140): allocates 0x70 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D9360 at +0xC
- * Info: proposed name NewPingpong (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" PINGPONG *NewPingpong() { return new PINGPONG; }
 
-/** @sly2-annot addr=0x112E78
- * Purpose: pfnNew factory for SHUFFLE (cid 141): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D9300 at +0xC
- * Info: proposed name NewShuffle (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SHUFFLE *NewShuffle() { return new SHUFFLE; }
 
-/** @sly2-annot addr=0x112EB0
- * Purpose: pfnNew factory for EYES (cid 142): allocates 0x80 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D92A0 at +0xC
- * Info: proposed name NewEyes (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" EYES *NewEyes() { return new EYES; }
 
-/** @sly2-annot addr=0x112EE8
- * Purpose: pfnNew factory for SCROLLER (cid 143): allocates 0x70 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D9240 at +0xC
- * Info: proposed name NewScroller (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" SCROLLER *NewScroller() { return new SCROLLER; }
 
-/** @sly2-annot addr=0x112F20
- * Purpose: pfnNew factory for CIRCLER (cid 144): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D91E0 at +0xC
- * Info: proposed name NewCircler (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CIRCLER *NewCircler() { return new CIRCLER; }
 
-/** @sly2-annot addr=0x112F58
- * Purpose: pfnNew factory for LEAP (cid 145): allocates 0x70 bytes (operator new 0x1AE4F8), calls ctor
- *   ConstructLeap
- * Info: proposed name NewLeap (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" LEAP *NewLeap() { return new LEAP; }
 
-/** @sly2-annot addr=0x112F80
- * Purpose: pfnNew factory for CID146 (cid 146): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2DA9D0 at +0xC
- * Info: proposed name NewCid146 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID146 *NewCid146() { return new CID146; }
 
-/** @sly2-annot addr=0x112FB8
- * Purpose: pfnNew factory for JSG (cid 153): allocates 0xB0 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2C94A0 at +0xC
- * Info: proposed name NewJsg (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" JSG *NewJsg() { return new JSG; }
 
-/** @sly2-annot addr=0x112FF0
- * Purpose: pfnNew factory for CID154 (cid 154): allocates 0x30 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CA490 at +0xC
- * Info: proposed name NewCid154 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CID154 *NewCid154() { return new CID154; }
 
-/** @sly2-annot addr=0x113028
- * Purpose: pfnNew factory for BHV (cid 155): allocates 0x30 bytes (operator new 0x1AE4F8), inline ctor stores
- *   vtable 0x2D9480 at +0xC
- * Info: proposed name NewBhv (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV *NewBhv() { return new BHV; }
 
-/** @sly2-annot addr=0x113060
- * Purpose: pfnNew factory for BHV156 (cid 156): allocates 0xB0 bytes (operator new 0x1AE4F8), calls ctor
- *   memset
- * Info: proposed name NewBhvguard (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv156 -> NewBhvguard | runtime2/4 confirmed the BHVGUARD role on live
- *   guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVGUARD *NewBhvguard() { return new BHVGUARD; }
 
-/** @sly2-annot addr=0x1130B0
- * Purpose: pfnNew factory for BHV157 (cid 157): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0AB0 at +0xC
- * Info: proposed name NewBhvanim (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv157 -> NewBhvanim | runtime2/4 confirmed the BHVANIM role on live
- *   guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVANIM *NewBhvanim() { return new BHVANIM; }
 
-/** @sly2-annot addr=0x1130E8
- * Purpose: pfnNew factory for BHV158 (cid 158): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0A30 at +0xC
- * Info: proposed name NewBhvidle (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv158 -> NewBhvidle | runtime2/4 confirmed the BHVIDLE role on live
- *   guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVIDLE *NewBhvidle() { return new BHVIDLE; }
 
-/** @sly2-annot addr=0x113120
- * Purpose: pfnNew factory for BHV159 (cid 159): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D07B0 at +0xC
- * Info: proposed name NewBhvstrike (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv159 -> NewBhvstrike | runtime2/4 confirmed the BHVSTRIKE role on
- *   live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVSTRIKE *NewBhvstrike() { return new BHVSTRIKE; }
 
-/** @sly2-annot addr=0x113158
- * Purpose: pfnNew factory for BHV160 (cid 160): allocates 0xC0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D09B0 at +0xC
- * Info: proposed name NewBhvhit (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv160 -> NewBhvhit
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVHIT *NewBhvhit() { return new BHVHIT; }
 
-/** @sly2-annot addr=0x113190
- * Purpose: pfnNew factory for BHV161 (cid 161): allocates 0xC0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0930 at +0xC
- * Info: proposed name NewBhv161 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV161 *NewBhv161() { return new BHV161; }
 
-/** @sly2-annot addr=0x1131C8
- * Purpose: pfnNew factory for BHV162 (cid 162): allocates 0xC0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0830 at +0xC
- * Info: proposed name NewBhv162 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV162 *NewBhv162() { return new BHV162; }
 
-/** @sly2-annot addr=0x113200
- * Purpose: pfnNew factory for BHV163 (cid 163): allocates 0xC0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D08B0 at +0xC
- * Info: proposed name NewBhvko (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv163 -> NewBhvko | runtime2/4 confirmed the BHVKO role on live
- *   guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVKO *NewBhvko() { return new BHVKO; }
 
-/** @sly2-annot addr=0x113238
- * Purpose: pfnNew factory for BHV164 (cid 164): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0620 at +0xC
- * Info: proposed name NewBhvattack (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv164 -> NewBhvattack | runtime2/4 confirmed the BHVATTACK role on
- *   live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVATTACK *NewBhvattack() { return new BHVATTACK; }
 
-/** @sly2-annot addr=0x113270
- * Purpose: pfnNew factory for BHV165 (cid 165): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D05A0 at +0xC
- * Info: proposed name NewBhvcombat (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv165 -> NewBhvcombat | runtime2/4 confirmed the BHVCOMBAT role on
- *   live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVCOMBAT *NewBhvcombat() { return new BHVCOMBAT; }
 
-/** @sly2-annot addr=0x1132A8
- * Purpose: pfnNew factory for BHV166 (cid 166): allocates 0xC0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0728 at +0xC
- * Info: proposed name NewBhvpath (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv166 -> NewBhvpath
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVPATH *NewBhvpath() { return new BHVPATH; }
 
-/** @sly2-annot addr=0x1132E0
- * Purpose: pfnNew factory for BHV167 (cid 167): allocates 0xF0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D06A0 at +0xC
- * Info: proposed name NewBhvwalkpath (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv167 -> NewBhvwalkpath | runtime2/4 confirmed the BHVWALKPATH role
- *   on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVWALKPATH *NewBhvwalkpath() { return new BHVWALKPATH; }
 
-/** @sly2-annot addr=0x113318
- * Purpose: pfnNew factory for BHV168 (cid 168): allocates 0xE0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC4C0 at +0xC
- * Info: proposed name NewBhvwalkgoal (T1); TU crt0_splicewrap
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): NewBhv168 ->
- *   NewBhvwalkgoal
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVWALKGOAL *NewBhvwalkgoal() { return new BHVWALKGOAL; }
 
-/** @sly2-annot addr=0x113350
- * Purpose: pfnNew factory for BHV169 (cid 169): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CF7F8 at +0xC
- * Info: proposed name NewBhv169 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV169 *NewBhv169() { return new BHV169; }
 
-/** @sly2-annot addr=0x113388
- * Purpose: pfnNew factory for BHV170 (cid 170): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0520 at +0xC
- * Info: proposed name NewBhvpatrol (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv170 -> NewBhvpatrol | runtime2/4 confirmed the BHVPATROL role on
- *   live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVPATROL *NewBhvpatrol() { return new BHVPATROL; }
 
-/** @sly2-annot addr=0x1133C0
- * Purpose: pfnNew factory for BHV171 (cid 171): allocates 0xE0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFA10 at +0xC
- * Info: proposed name NewBhv171 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV171 *NewBhv171() { return new BHV171; }
 
-/** @sly2-annot addr=0x1133F8
- * Purpose: pfnNew factory for BHV172 (cid 172): allocates 0xA0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0320 at +0xC
- * Info: proposed name NewBhvleap (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv172 -> NewBhvleap | runtime2/4 confirmed the BHVLEAP role on live
- *   guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVLEAP *NewBhvleap() { return new BHVLEAP; }
 
-/** @sly2-annot addr=0x113430
- * Purpose: pfnNew factory for BHV173 (cid 173): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0220 at +0xC
- * Info: proposed name NewBhvshoot (T1); TU crt0_splicewrap
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): NewBhv173 ->
- *   NewBhvshoot (BHV173 = BHVSHOOT, runtime7a)
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVSHOOT *NewBhvshoot() { return new BHVSHOOT; }
 
-/** @sly2-annot addr=0x113468
- * Purpose: pfnNew factory for BHV174 (cid 174): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D4AF8 at +0xC
- * Info: proposed name NewBhv174 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV174 *NewBhv174() { return new BHV174; }
 
-/** @sly2-annot addr=0x1134A0
- * Purpose: pfnNew factory for BHV175 (cid 175): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D02A0 at +0xC
- * Info: proposed name NewBhv175 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV175 *NewBhv175() { return new BHV175; }
 
-/** @sly2-annot addr=0x1134D8
- * Purpose: pfnNew factory for BHV176 (cid 176): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0420 at +0xC
- * Info: proposed name NewBhv176 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV176 *NewBhv176() { return new BHV176; }
 
-/** @sly2-annot addr=0x113510
- * Purpose: pfnNew factory for BHV177 (cid 177): allocates 0x70 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D03A0 at +0xC
- * Info: proposed name NewBhvjuggled (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv177 -> NewBhvjuggled | runtime2/4 confirmed the BHVJUGGLED role on
- *   live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVJUGGLED *NewBhvjuggled() { return new BHVJUGGLED; }
 
-/** @sly2-annot addr=0x113548
- * Purpose: pfnNew factory for BHV178 (cid 178): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D01A0 at +0xC
- * Info: proposed name NewBhv178 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV178 *NewBhv178() { return new BHV178; }
 
-/** @sly2-annot addr=0x113580
- * Purpose: pfnNew factory for BHV179 (cid 179): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0120 at +0xC
- * Info: proposed name NewBhv179 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV179 *NewBhv179() { return new BHV179; }
 
-/** @sly2-annot addr=0x1135B8
- * Purpose: pfnNew factory for BHV180 (cid 180): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CDDC0 at +0xC
- * Info: proposed name NewBhv180 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV180 *NewBhv180() { return new BHV180; }
 
-/** @sly2-annot addr=0x1135F0
- * Purpose: pfnNew factory for BHV181 (cid 181): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CDD40 at +0xC
- * Info: proposed name NewBhv181 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV181 *NewBhv181() { return new BHV181; }
 
-/** @sly2-annot addr=0x113628
- * Purpose: pfnNew factory for BHV182 (cid 182): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CCE90 at +0xC
- * Info: proposed name NewBhv182 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV182 *NewBhv182() { return new BHV182; }
 
-/** @sly2-annot addr=0x113660
- * Purpose: pfnNew factory for BHV183 (cid 183): allocates 0x70 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D00A0 at +0xC
- * Info: proposed name NewBhv183 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV183 *NewBhv183() { return new BHV183; }
 
-/** @sly2-annot addr=0x113698
- * Purpose: pfnNew factory for BHV184 (cid 184): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2D0020 at +0xC
- * Info: proposed name NewBhvrail (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv184 -> NewBhvrail
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVRAIL *NewBhvrail() { return new BHVRAIL; }
 
-/** @sly2-annot addr=0x1136D0
- * Purpose: pfnNew factory for BHV185 (cid 185): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFFA0 at +0xC
- * Info: proposed name NewBhvpipe (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv185 -> NewBhvpipe
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVPIPE *NewBhvpipe() { return new BHVPIPE; }
 
-/** @sly2-annot addr=0x113708
- * Purpose: pfnNew factory for BHV186 (cid 186): allocates 0xD0 bytes (operator new 0x1AE4F8), calls ctor
- *   ClearPointerPair, ClearPointerPair, ClearPointerPair
- * Info: proposed name NewBhvgoto (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv186 -> NewBhvgoto | runtime2/4 confirmed the BHVGOTO role on live
- *   guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVGOTO *NewBhvgoto() { return new BHVGOTO; }
 
-/** @sly2-annot addr=0x113760
- * Purpose: pfnNew factory for BHV187 (cid 187): allocates 0x30 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFF20 at +0xC
- * Info: proposed name NewBhv187 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV187 *NewBhv187() { return new BHV187; }
 
-/** @sly2-annot addr=0x113798
- * Purpose: pfnNew factory for BHV188 (cid 188): allocates 0x30 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFEA0 at +0xC
- * Info: proposed name NewBhv188 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV188 *NewBhv188() { return new BHV188; }
 
-/** @sly2-annot addr=0x1137D0
- * Purpose: pfnNew factory for BHV189 (cid 189): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFD20 at +0xC
- * Info: proposed name NewBhv189 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV189 *NewBhv189() { return new BHV189; }
 
-/** @sly2-annot addr=0x113808
- * Purpose: pfnNew factory for BHV190 (cid 190): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFCA0 at +0xC
- * Info: proposed name NewBhvpathlink (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv190 -> NewBhvpathlink | runtime2/4 confirmed the BHVPATHLINK role
- *   on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVPATHLINK *NewBhvpathlink() { return new BHVPATHLINK; }
 
-/** @sly2-annot addr=0x113840
- * Purpose: pfnNew factory for BHV191 (cid 191): allocates 0x50 bytes (operator new 0x1AE4F8), calls ctor
- *   ClearPointerPair
- * Info: proposed name NewBhv191 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV191 *NewBhv191() { return new BHV191; }
 
-/** @sly2-annot addr=0x113888
- * Purpose: pfnNew factory for BHV192 (cid 192): allocates 0x60 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CFDA0 at +0xC
- * Info: proposed name NewBhvpatrolpath (T1); TU crt0_splicewrap
- * Notes: BHV class word normalised: NewBhv192 -> NewBhvpatrolpath | runtime2/4 confirmed the BHVPATROLPATH
- *   role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVPATROLPATH *NewBhvpatrolpath() { return new BHVPATROLPATH; }
 
-/** @sly2-annot addr=0x1138C0
- * Purpose: pfnNew factory for BHV193 (cid 193): allocates 0x50 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC440 at +0xC
- * Info: proposed name NewBhv193 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV193 *NewBhv193() { return new BHV193; }
 
-/** @sly2-annot addr=0x1138F8
- * Purpose: pfnNew factory for BHV194 (cid 194): allocates 0xA0 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC3C0 at +0xC
- * Info: proposed name NewBhvfollow (T1); TU crt0_splicewrap
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): NewBhv194 ->
- *   NewBhvfollow
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHVFOLLOW *NewBhvfollow() { return new BHVFOLLOW; }
 
-/** @sly2-annot addr=0x113930
- * Purpose: pfnNew factory for BHV195 (cid 195): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC340 at +0xC
- * Info: proposed name NewBhv195 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV195 *NewBhv195() { return new BHV195; }
 
-/** @sly2-annot addr=0x113968
- * Purpose: pfnNew factory for BHV196 (cid 196): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC2C0 at +0xC
- * Info: proposed name NewBhv196 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV196 *NewBhv196() { return new BHV196; }
 
-/** @sly2-annot addr=0x1139A0
- * Purpose: pfnNew factory for BHV197 (cid 197): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC240 at +0xC
- * Info: proposed name NewBhv197 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV197 *NewBhv197() { return new BHV197; }
 
-/** @sly2-annot addr=0x1139D8
- * Purpose: pfnNew factory for BHV198 (cid 198): allocates 0x40 bytes (operator new 0x1AE4F8), inline ctor
- *   stores vtable 0x2CC1C0 at +0xC
- * Info: proposed name NewBhv198 (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/engine/object-model.md#1-class-descriptors-and-vtables,
- *   docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" BHV198 *NewBhv198() { return new BHV198; }
 
 
@@ -4955,2065 +2807,402 @@ struct CLASSDESC : CLASSINFO
 typedef char assert_CLASSDESC_size[sizeof(CLASSDESC) == 0x14 ? 1 : -1];
 extern CLASSDESC D_002BAAE8[199];
 
-/** @sly2-annot addr=0x113A10
- * Purpose: vtable slot 6 of BASIC (cid 0): returns &D_002BAAE8[0], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBasicClassDesc (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/engine/object-model.md#1-class-descriptors-and-vtables,
- *   docs/engine/object-model.md#devtools-findings-v3-2026-11-01, docs/guides/devtools.md#symbols_export
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBasicClassDesc() { return &D_002BAAE8[0]; }
 
-/** @sly2-annot addr=0x113A20
- * Purpose: vtable slot 6 of SW (cid 1): returns &D_002BAAE8[1], the class descriptor {pcdParent, cid, cidEnd,
- *   cb, pfnNew}
- * Info: proposed name GetSwClassDesc (T1); class SW slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSwClassDesc() { return &D_002BAAE8[1]; }
 
-/** @sly2-annot addr=0x113A30
- * Purpose: vtable slot 6 of LO (cid 2): returns &D_002BAAE8[2], the class descriptor {pcdParent, cid, cidEnd,
- *   cb, pfnNew}
- * Info: proposed name GetLoClassDesc (T1); class LO slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetLoClassDesc() { return &D_002BAAE8[2]; }
 
-/** @sly2-annot addr=0x113A40
- * Purpose: vtable slot 6 of XFM (cid 3): returns &D_002BAAE8[3], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetXfmClassDesc (T1); class XFM slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetXfmClassDesc() { return &D_002BAAE8[3]; }
 
-/** @sly2-annot addr=0x113A50
- * Purpose: vtable slot 6 of LIGHT (cid 4): returns &D_002BAAE8[4], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetLightClassDesc (T1); class LIGHT slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetLightClassDesc() { return &D_002BAAE8[4]; }
 
-/** @sly2-annot addr=0x113A60
- * Purpose: vtable slot 6 of CID5 (cid 5): returns &D_002BAAE8[5], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid5ClassDesc (T1); class CID5 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid5ClassDesc() { return &D_002BAAE8[5]; }
 
-/** @sly2-annot addr=0x113A70
- * Purpose: vtable slot 6 of PROXY (cid 6): returns &D_002BAAE8[6], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetProxyClassDesc (T1); class PROXY slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetProxyClassDesc() { return &D_002BAAE8[6]; }
 
-/** @sly2-annot addr=0x113A80
- * Purpose: vtable slot 6 of CID7 (cid 7): returns &D_002BAAE8[7], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetClueproxyClassDesc (T1); class CLUEPROXY slot6; TU crt0_splicewrap
- * Notes: v3 class identity: GetCid7ClassDesc -> GetClueproxyClassDesc
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetClueproxyClassDesc() { return &D_002BAAE8[7]; }
 
-/** @sly2-annot addr=0x113A90
- * Purpose: vtable slot 6 of CID8 (cid 8): returns &D_002BAAE8[8], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid8ClassDesc (T1); class CID8 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid8ClassDesc() { return &D_002BAAE8[8]; }
 
-/** @sly2-annot addr=0x113AA0
- * Purpose: vtable slot 6 of CID9 (cid 9): returns &D_002BAAE8[9], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid9ClassDesc (T1); class CID9 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid9ClassDesc() { return &D_002BAAE8[9]; }
 
-/** @sly2-annot addr=0x113AB0
- * Purpose: vtable slot 6 of SHAPE (cid 10): returns &D_002BAAE8[10], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetShapeClassDesc (T1); class SHAPE slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetShapeClassDesc() { return &D_002BAAE8[10]; }
 
-/** @sly2-annot addr=0x113AC0
- * Purpose: vtable slot 6 of PIPE (cid 11): returns &D_002BAAE8[11], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetPipeClassDesc (T1); class PIPE slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetPipeClassDesc() { return &D_002BAAE8[11]; }
 
-/** @sly2-annot addr=0x113AD0
- * Purpose: vtable slot 6 of CID12 (cid 12): returns &D_002BAAE8[12], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid12ClassDesc (T1); class CID12 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid12ClassDesc() { return &D_002BAAE8[12]; }
 
-/** @sly2-annot addr=0x113AE0
- * Purpose: vtable slot 6 of RAIL (cid 13): returns &D_002BAAE8[13], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetRailClassDesc (T1); class RAIL slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetRailClassDesc() { return &D_002BAAE8[13]; }
 
-/** @sly2-annot addr=0x113AF0
- * Purpose: vtable slot 6 of CID14 (cid 14): returns &D_002BAAE8[14], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid14ClassDesc (T1); class CID14 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid14ClassDesc() { return &D_002BAAE8[14]; }
 
-/** @sly2-annot addr=0x113B00
- * Purpose: vtable slot 6 of TN (cid 15): returns &D_002BAAE8[15], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetTnClassDesc (T1); class TN slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetTnClassDesc() { return &D_002BAAE8[15]; }
 
-/** @sly2-annot addr=0x113B10
- * Purpose: vtable slot 6 of DETECTOR (cid 16): returns &D_002BAAE8[16], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetDetectorClassDesc (T1); class DETECTOR slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetDetectorClassDesc() { return &D_002BAAE8[16]; }
 
-/** @sly2-annot addr=0x113B20
- * Purpose: vtable slot 6 of PATHZONE (cid 17): returns &D_002BAAE8[17], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetPathzoneClassDesc (T1); class PATHZONE slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetPathzoneClassDesc() { return &D_002BAAE8[17]; }
 
-/** @sly2-annot addr=0x113B30
- * Purpose: vtable slot 6 of TARGET (cid 18): returns &D_002BAAE8[18], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetTargetClassDesc (T1); class TARGET slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetTargetClassDesc() { return &D_002BAAE8[18]; }
 
-/** @sly2-annot addr=0x113B40
- * Purpose: vtable slot 6 of CID19 (cid 19): returns &D_002BAAE8[19], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetHndClassDesc (T1); class HND slot6; TU crt0_splicewrap
- * Notes: v3 class identity: GetCid19ClassDesc -> GetHndClassDesc
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetHndClassDesc() { return &D_002BAAE8[19]; }
 
-/** @sly2-annot addr=0x113B50
- * Purpose: vtable slot 6 of CID20 (cid 20): returns &D_002BAAE8[20], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid20ClassDesc (T1); class CID20 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID20::GetClassInfo() { return &D_002BAAE8[20]; }
 
-/** @sly2-annot addr=0x113B60
- * Purpose: vtable slot 6 of CID21 (cid 21): returns &D_002BAAE8[21], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid21ClassDesc (T1); class CID21 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid21ClassDesc() { return &D_002BAAE8[21]; }
 
-/** @sly2-annot addr=0x113B70
- * Purpose: vtable slot 6 of VOL (cid 22): returns &D_002BAAE8[22], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetVolClassDesc (T1); class VOL slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetVolClassDesc() { return &D_002BAAE8[22]; }
 
-/** @sly2-annot addr=0x113B80
- * Purpose: vtable slot 6 of CID23 (cid 23): returns &D_002BAAE8[23], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid23ClassDesc (T1); class CID23 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid23ClassDesc() { return &D_002BAAE8[23]; }
 
-/** @sly2-annot addr=0x113B90
- * Purpose: vtable slot 6 of CID24 (cid 24): returns &D_002BAAE8[24], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetVolbtnClassDesc (T1); class VOLBTN slot6; TU crt0_splicewrap
- * Notes: v3 class identity: GetCid24ClassDesc -> GetVolbtnClassDesc
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetVolbtnClassDesc() { return &D_002BAAE8[24]; }
 
-/** @sly2-annot addr=0x113BA0
- * Purpose: vtable slot 6 of CID25 (cid 25): returns &D_002BAAE8[25], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid25ClassDesc (T1); class CID25 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID25::GetClassInfo() { return &D_002BAAE8[25]; }
 
-/** @sly2-annot addr=0x113BB0
- * Purpose: vtable slot 6 of EXIT (cid 26): returns &D_002BAAE8[26], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetExitClassDesc (T1); class EXIT slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetExitClassDesc() { return &D_002BAAE8[26]; }
 
-/** @sly2-annot addr=0x113BC0
- * Purpose: vtable slot 6 of CID27 (cid 27): returns &D_002BAAE8[27], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid27ClassDesc (T1); class CID27 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid27ClassDesc() { return &D_002BAAE8[27]; }
 
-/** @sly2-annot addr=0x113BD0
- * Purpose: vtable slot 6 of BLIPG (cid 28): returns &D_002BAAE8[28], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBlipgClassDesc (T1); class BLIPG slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBlipgClassDesc() { return &D_002BAAE8[28]; }
 
-/** @sly2-annot addr=0x113BE0
- * Purpose: vtable slot 6 of EMITTER (cid 29): returns &D_002BAAE8[29], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetEmitterClassDesc (T1); class EMITTER slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetEmitterClassDesc() { return &D_002BAAE8[29]; }
 
-/** @sly2-annot addr=0x113BF0
- * Purpose: vtable slot 6 of EXPL (cid 30): returns &D_002BAAE8[30], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetExplClassDesc (T1); class EXPL slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetExplClassDesc() { return &D_002BAAE8[30]; }
 
-/** @sly2-annot addr=0x113C00
- * Purpose: vtable slot 6 of EXPLG (cid 31): returns &D_002BAAE8[31], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetExplgClassDesc (T1); class EXPLG slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetExplgClassDesc() { return &D_002BAAE8[31]; }
 
-/** @sly2-annot addr=0x113C10
- * Purpose: vtable slot 6 of EXPLO (cid 32): returns &D_002BAAE8[32], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetExploClassDesc (T1); class EXPLO slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *EXPLO::GetClassInfo() { return &D_002BAAE8[32]; }
 
-/** @sly2-annot addr=0x113C20
- * Purpose: vtable slot 6 of EXPLS (cid 33): returns &D_002BAAE8[33], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetExplsClassDesc (T1); class EXPLS slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetExplsClassDesc() { return &D_002BAAE8[33]; }
 
-/** @sly2-annot addr=0x113C30
- * Purpose: vtable slot 6 of CID34 (cid 34): returns &D_002BAAE8[34], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid34ClassDesc (T1); class CID34 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid34ClassDesc() { return &D_002BAAE8[34]; }
 
-/** @sly2-annot addr=0x113C40
- * Purpose: vtable slot 6 of CID35 (cid 35): returns &D_002BAAE8[35], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid35ClassDesc (T1); class CID35 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid35ClassDesc() { return &D_002BAAE8[35]; }
 
-/** @sly2-annot addr=0x113C50
- * Purpose: vtable slot 6 of CID36 (cid 36): returns &D_002BAAE8[36], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid36ClassDesc (T1); class CID36 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid36ClassDesc() { return &D_002BAAE8[36]; }
 
-/** @sly2-annot addr=0x113C60
- * Purpose: vtable slot 6 of CID37 (cid 37): returns &D_002BAAE8[37], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid37ClassDesc (T1); class CID37 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid37ClassDesc() { return &D_002BAAE8[37]; }
 
-/** @sly2-annot addr=0x113C70
- * Purpose: vtable slot 6 of CID38 (cid 38): returns &D_002BAAE8[38], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid38ClassDesc (T1); class CID38 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid38ClassDesc() { return &D_002BAAE8[38]; }
 
-/** @sly2-annot addr=0x113C80
- * Purpose: vtable slot 6 of CID39 (cid 39): returns &D_002BAAE8[39], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid39ClassDesc (T1); class CID39 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid39ClassDesc() { return &D_002BAAE8[39]; }
 
-/** @sly2-annot addr=0x113C90
- * Purpose: vtable slot 6 of CID40 (cid 40): returns &D_002BAAE8[40], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid40ClassDesc (T1); class CID40 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid40ClassDesc() { return &D_002BAAE8[40]; }
 
-/** @sly2-annot addr=0x113CA0
- * Purpose: vtable slot 6 of CID41 (cid 41): returns &D_002BAAE8[41], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid41ClassDesc (T1); class CID41 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid41ClassDesc() { return &D_002BAAE8[41]; }
 
-/** @sly2-annot addr=0x113CB0
- * Purpose: vtable slot 6 of WARP (cid 42): returns &D_002BAAE8[42], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetWarpClassDesc (T1); class WARP slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWarpClassDesc() { return &D_002BAAE8[42]; }
 
-/** @sly2-annot addr=0x113CC0
- * Purpose: vtable slot 6 of CID43 (cid 43): returns &D_002BAAE8[43], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid43ClassDesc (T1); class CID43 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid43ClassDesc() { return &D_002BAAE8[43]; }
 
-/** @sly2-annot addr=0x113CD0
- * Purpose: vtable slot 6 of CID44 (cid 44): returns &D_002BAAE8[44], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid44ClassDesc (T1); class CID44 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid44ClassDesc() { return &D_002BAAE8[44]; }
 
-/** @sly2-annot addr=0x113CE0
- * Purpose: vtable slot 6 of CID45 (cid 45): returns &D_002BAAE8[45], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid45ClassDesc (T1); class CID45 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid45ClassDesc() { return &D_002BAAE8[45]; }
 
-/** @sly2-annot addr=0x113CF0
- * Purpose: vtable slot 6 of CID46 (cid 46): returns &D_002BAAE8[46], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid46ClassDesc (T1); class CID46 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid46ClassDesc() { return &D_002BAAE8[46]; }
 
-/** @sly2-annot addr=0x113D00
- * Purpose: vtable slot 6 of CID47 (cid 47): returns &D_002BAAE8[47], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid47ClassDesc (T1); class CID47 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid47ClassDesc() { return &D_002BAAE8[47]; }
 
-/** @sly2-annot addr=0x113D10
- * Purpose: vtable slot 6 of SO (cid 48): returns &D_002BAAE8[48], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetSoClassDesc (T1); class SO slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSoClassDesc() { return &D_002BAAE8[48]; }
 
-/** @sly2-annot addr=0x113D20
- * Purpose: vtable slot 6 of MS (cid 49): returns &D_002BAAE8[49], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetMsClassDesc (T1); class MS slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetMsClassDesc() { return &D_002BAAE8[49]; }
 
-/** @sly2-annot addr=0x113D30
- * Purpose: vtable slot 6 of PO (cid 50): returns &D_002BAAE8[50], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetPoClassDesc (T1); class PO slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetPoClassDesc() { return &D_002BAAE8[50]; }
 
-/** @sly2-annot addr=0x113D40
- * Purpose: vtable slot 6 of STEP (cid 51): returns &D_002BAAE8[51], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetStepClassDesc (T1); class STEP slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetStepClassDesc() { return &D_002BAAE8[51]; }
 
-/** @sly2-annot addr=0x113D50
- * Purpose: vtable slot 6 of STEPPLAYER (cid 52): returns &D_002BAAE8[52], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetStepplayerClassDesc (T1); class STEPPLAYER slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetStepplayerClassDesc() { return &D_002BAAE8[52]; }
 
-/** @sly2-annot addr=0x113D60
- * Purpose: vtable slot 6 of JT (cid 53): returns &D_002BAAE8[53], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetJtClassDesc (T1); class JT slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetJtClassDesc() { return &D_002BAAE8[53]; }
 
-/** @sly2-annot addr=0x113D70
- * Purpose: vtable slot 6 of MURRAY (cid 54): returns &D_002BAAE8[54], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetMurrayClassDesc (T1); class MURRAY slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetMurrayClassDesc() { return &D_002BAAE8[54]; }
 
-/** @sly2-annot addr=0x113D80
- * Purpose: vtable slot 6 of BENTLEY (cid 55): returns &D_002BAAE8[55], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBentleyClassDesc (T1); class BENTLEY slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBentleyClassDesc() { return &D_002BAAE8[55]; }
 
-/** @sly2-annot addr=0x113D90
- * Purpose: vtable slot 6 of STEPGUARD (cid 56): returns &D_002BAAE8[56], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetStepguardClassDesc (T1); class STEPGUARD slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetStepguardClassDesc() { return &D_002BAAE8[56]; }
 
-/** @sly2-annot addr=0x113DA0
- * Purpose: vtable slot 6 of GOMER (cid 57): returns &D_002BAAE8[57], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetGomerClassDesc (T1); class GOMER slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetGomerClassDesc() { return &D_002BAAE8[57]; }
 
-/** @sly2-annot addr=0x113DB0
- * Purpose: vtable slot 6 of CID58 (cid 58): returns &D_002BAAE8[58], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetGuardClassDesc (T1); class GUARD slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid58ClassDesc -> GetGuardClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *GUARD::GetClassInfo() { return &D_002BAAE8[58]; }
 
-/** @sly2-annot addr=0x113DC0
- * Purpose: vtable slot 6 of CID59 (cid 59): returns &D_002BAAE8[59], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetDimitriClassDesc (T1); class DIMITRI slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid59ClassDesc -> GetDimitriClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetDimitriClassDesc() { return &D_002BAAE8[59]; }
 
-/** @sly2-annot addr=0x113DD0
- * Purpose: vtable slot 6 of CID60 (cid 60): returns &D_002BAAE8[60], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetNeelaClassDesc (T1); class NEELA slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid60ClassDesc -> GetNeelaClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetNeelaClassDesc() { return &D_002BAAE8[60]; }
 
-/** @sly2-annot addr=0x113DE0
- * Purpose: vtable slot 6 of CID61 (cid 61): returns &D_002BAAE8[61], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetRajanClassDesc (T1); class RAJAN slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid61ClassDesc -> GetRajanClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetRajanClassDesc() { return &D_002BAAE8[61]; }
 
-/** @sly2-annot addr=0x113DF0
- * Purpose: vtable slot 6 of CID62 (cid 62): returns &D_002BAAE8[62], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetJeanbisonClassDesc (T1); class JEANBISON slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid62ClassDesc -> GetJeanbisonClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *JEANBISON::GetClassInfo() { return &D_002BAAE8[62]; }
 
-/** @sly2-annot addr=0x113E00
- * Purpose: vtable slot 6 of CID63 (cid 63): returns &D_002BAAE8[63], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCarmelitaClassDesc (T1); class CARMELITA slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid63ClassDesc -> GetCarmelitaClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCarmelitaClassDesc() { return &D_002BAAE8[63]; }
 
-/** @sly2-annot addr=0x113E10
- * Purpose: vtable slot 6 of CID64 (cid 64): returns &D_002BAAE8[64], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetContessaClassDesc (T1); class CONTESSA slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid64ClassDesc -> GetContessaClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetContessaClassDesc() { return &D_002BAAE8[64]; }
 
-/** @sly2-annot addr=0x113E20
- * Purpose: vtable slot 6 of CID65 (cid 65): returns &D_002BAAE8[65], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetArpeggioClassDesc (T1); class ARPEGGIO slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid65ClassDesc -> GetArpeggioClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *ARPEGGIO::GetClassInfo() { return &D_002BAAE8[65]; }
 
-/** @sly2-annot addr=0x113E30
- * Purpose: vtable slot 6 of CID66 (cid 66): returns &D_002BAAE8[66], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBearClassDesc (T1); class BEAR slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid66ClassDesc -> GetBearClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *BEAR::GetClassInfo() { return &D_002BAAE8[66]; }
 
-/** @sly2-annot addr=0x113E40
- * Purpose: vtable slot 6 of CID67 (cid 67): returns &D_002BAAE8[67], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBearcubClassDesc (T1); class BEARCUB slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid67ClassDesc -> GetBearcubClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *BEARCUB::GetClassInfo() { return &D_002BAAE8[67]; }
 
-/** @sly2-annot addr=0x113E50
- * Purpose: vtable slot 6 of CID68 (cid 68): returns &D_002BAAE8[68], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetDancerClassDesc (T1); class DANCER slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid68ClassDesc -> GetDancerClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetDancerClassDesc() { return &D_002BAAE8[68]; }
 
-/** @sly2-annot addr=0x113E60
- * Purpose: vtable slot 6 of CID69 (cid 69): returns &D_002BAAE8[69], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetTurretClassDesc (T1); class TURRET slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid69ClassDesc -> GetTurretClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetTurretClassDesc() { return &D_002BAAE8[69]; }
 
-/** @sly2-annot addr=0x113E70
- * Purpose: vtable slot 6 of CID70 (cid 70): returns &D_002BAAE8[70], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetSafehouseClassDesc (T1); class SAFEHOUSE slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid70ClassDesc -> GetSafehouseClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSafehouseClassDesc() { return &D_002BAAE8[70]; }
 
-/** @sly2-annot addr=0x113E80
- * Purpose: vtable slot 6 of CID71 (cid 71): returns &D_002BAAE8[71], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetHackClassDesc (T1); class HACK slot6; TU crt0_splicewrap
- * Notes: v3 class identity: GetCid71ClassDesc -> GetHackClassDesc
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetHackClassDesc() { return &D_002BAAE8[71]; }
 
-/** @sly2-annot addr=0x113E90
- * Purpose: vtable slot 6 of CID72 (cid 72): returns &D_002BAAE8[72], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetHackshipClassDesc (T1); class HACKSHIP slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid72ClassDesc -> GetHackshipClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetHackshipClassDesc() { return &D_002BAAE8[72]; }
 
-/** @sly2-annot addr=0x113EA0
- * Purpose: vtable slot 6 of CID73 (cid 73): returns &D_002BAAE8[73], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetHackenemyClassDesc (T1); class HACKENEMY slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid73ClassDesc -> GetHackenemyClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetHackenemyClassDesc() { return &D_002BAAE8[73]; }
 
-/** @sly2-annot addr=0x113EB0
- * Purpose: vtable slot 6 of CID74 (cid 74): returns &D_002BAAE8[74], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetHackbulletClassDesc (T1); class HACKBULLET slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid74ClassDesc -> GetHackbulletClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetHackbulletClassDesc() { return &D_002BAAE8[74]; }
 
-/** @sly2-annot addr=0x113EC0
- * Purpose: vtable slot 6 of CID75 (cid 75): returns &D_002BAAE8[75], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetHacklockClassDesc (T1); class HACKLOCK slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid75ClassDesc -> GetHacklockClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetHacklockClassDesc() { return &D_002BAAE8[75]; }
 
-/** @sly2-annot addr=0x113ED0
- * Purpose: vtable slot 6 of CID76 (cid 76): returns &D_002BAAE8[76], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetHackwallClassDesc (T1); class HACKWALL slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid76ClassDesc -> GetHackwallClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetHackwallClassDesc() { return &D_002BAAE8[76]; }
 
-/** @sly2-annot addr=0x113EE0
- * Purpose: vtable slot 6 of CID77 (cid 77): returns &D_002BAAE8[77], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetRobottankClassDesc (T1); class ROBOTTANK slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid77ClassDesc -> GetRobottankClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetRobottankClassDesc() { return &D_002BAAE8[77]; }
 
-/** @sly2-annot addr=0x113EF0
- * Purpose: vtable slot 6 of CID78 (cid 78): returns &D_002BAAE8[78], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetVaultClassDesc (T1); class VAULT slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid78ClassDesc -> GetVaultClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetVaultClassDesc() { return &D_002BAAE8[78]; }
 
-/** @sly2-annot addr=0x113F00
- * Purpose: vtable slot 6 of BOMB (cid 79): returns &D_002BAAE8[79], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBombClassDesc (T1); class BOMB slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBombClassDesc() { return &D_002BAAE8[79]; }
 
-/** @sly2-annot addr=0x113F10
- * Purpose: vtable slot 6 of MISSILE (cid 80): returns &D_002BAAE8[80], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetMissileClassDesc (T1); class MISSILE slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetMissileClassDesc() { return &D_002BAAE8[80]; }
 
-/** @sly2-annot addr=0x113F20
- * Purpose: vtable slot 6 of ACCMISS (cid 81): returns &D_002BAAE8[81], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetAccmissClassDesc (T1); class ACCMISS slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetAccmissClassDesc() { return &D_002BAAE8[81]; }
 
-/** @sly2-annot addr=0x113F30
- * Purpose: vtable slot 6 of CID82 (cid 82): returns &D_002BAAE8[82], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid82ClassDesc (T1); class CID82 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid82ClassDesc() { return &D_002BAAE8[82]; }
 
-/** @sly2-annot addr=0x113F40
- * Purpose: vtable slot 6 of CID83 (cid 83): returns &D_002BAAE8[83], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetButtonClassDesc (T1); class BUTTON slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid83ClassDesc -> GetButtonClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetButtonClassDesc() { return &D_002BAAE8[83]; }
 
-/** @sly2-annot addr=0x113F50
- * Purpose: vtable slot 6 of SENSOR (cid 84): returns &D_002BAAE8[84], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetSensorClassDesc (T1); class SENSOR slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSensorClassDesc() { return &D_002BAAE8[84]; }
 
-/** @sly2-annot addr=0x113F60
- * Purpose: vtable slot 6 of CID85 (cid 85): returns &D_002BAAE8[85], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetLasenClassDesc (T1); class LASEN slot6; TU crt0_splicewrap
- * Notes: v3 class identity: GetCid85ClassDesc -> GetLasenClassDesc
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetLasenClassDesc() { return &D_002BAAE8[85]; }
 
-/** @sly2-annot addr=0x113F70
- * Purpose: vtable slot 6 of BARRIER (cid 86): returns &D_002BAAE8[86], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBarrierClassDesc (T1); class BARRIER slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBarrierClassDesc() { return &D_002BAAE8[86]; }
 
-/** @sly2-annot addr=0x113F80
- * Purpose: vtable slot 6 of RIPG (cid 87): returns &D_002BAAE8[87], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetRipgClassDesc (T1); class RIPG slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetRipgClassDesc() { return &D_002BAAE8[87]; }
 
-/** @sly2-annot addr=0x113F90
- * Purpose: vtable slot 6 of CID88 (cid 88): returns &D_002BAAE8[88], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBarrelClassDesc (T1); class BARREL slot6; TU crt0_splicewrap
- * Notes: v3 class identity: GetCid88ClassDesc -> GetBarrelClassDesc
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBarrelClassDesc() { return &D_002BAAE8[88]; }
 
-/** @sly2-annot addr=0x113FA0
- * Purpose: vtable slot 6 of WATER (cid 89): returns &D_002BAAE8[89], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetWaterClassDesc (T1); class WATER slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWaterClassDesc() { return &D_002BAAE8[89]; }
 
-/** @sly2-annot addr=0x113FB0
- * Purpose: vtable slot 6 of DPRIZE (cid 90): returns &D_002BAAE8[90], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetDprizeClassDesc (T1); class DPRIZE slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetDprizeClassDesc() { return &D_002BAAE8[90]; }
 
-/** @sly2-annot addr=0x113FC0
- * Purpose: vtable slot 6 of COIN (cid 91): returns &D_002BAAE8[91], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCoinClassDesc (T1); class COIN slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCoinClassDesc() { return &D_002BAAE8[91]; }
 
-/** @sly2-annot addr=0x113FD0
- * Purpose: vtable slot 6 of CID92 (cid 92): returns &D_002BAAE8[92], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetKeyClassDesc (T1); class KEY slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid92ClassDesc -> GetKeyClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetKeyClassDesc() { return &D_002BAAE8[92]; }
 
-/** @sly2-annot addr=0x113FE0
- * Purpose: vtable slot 6 of CID93 (cid 93): returns &D_002BAAE8[93], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetMedicineClassDesc (T1); class MEDICINE slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid93ClassDesc -> GetMedicineClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetMedicineClassDesc() { return &D_002BAAE8[93]; }
 
-/** @sly2-annot addr=0x113FF0
- * Purpose: vtable slot 6 of LOOT (cid 94): returns &D_002BAAE8[94], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetLootClassDesc (T1); class LOOT slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetLootClassDesc() { return &D_002BAAE8[94]; }
 
-/** @sly2-annot addr=0x114000
- * Purpose: vtable slot 6 of CLUE (cid 95): returns &D_002BAAE8[95], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetClueClassDesc (T1); class CLUE slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetClueClassDesc() { return &D_002BAAE8[95]; }
 
-/** @sly2-annot addr=0x114010
- * Purpose: vtable slot 6 of CID96 (cid 96): returns &D_002BAAE8[96], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid96ClassDesc (T1); class CID96 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid96ClassDesc() { return &D_002BAAE8[96]; }
 
-/** @sly2-annot addr=0x114020
- * Purpose: vtable slot 6 of CID97 (cid 97): returns &D_002BAAE8[97], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetSkyClassDesc (T1); class SKY slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetCid97ClassDesc -> GetSkyClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSkyClassDesc() { return &D_002BAAE8[97]; }
 
-/** @sly2-annot addr=0x114030
- * Purpose: vtable slot 6 of CID98 (cid 98): returns &D_002BAAE8[98], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid98ClassDesc (T1); class CID98 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid98ClassDesc() { return &D_002BAAE8[98]; }
 
-/** @sly2-annot addr=0x114040
- * Purpose: vtable slot 6 of CID99 (cid 99): returns &D_002BAAE8[99], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid99ClassDesc (T1); class CID99 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid99ClassDesc() { return &D_002BAAE8[99]; }
 
-/** @sly2-annot addr=0x114050
- * Purpose: vtable slot 6 of CID100 (cid 100): returns &D_002BAAE8[100], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid100ClassDesc (T1); class CID100 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid100ClassDesc() { return &D_002BAAE8[100]; }
 
-/** @sly2-annot addr=0x114060
- * Purpose: vtable slot 6 of CID101 (cid 101): returns &D_002BAAE8[101], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid101ClassDesc (T1); class CID101 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID101::GetClassInfo() { return &D_002BAAE8[101]; }
 
-/** @sly2-annot addr=0x114070
- * Purpose: vtable slot 6 of CID102 (cid 102): returns &D_002BAAE8[102], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid102ClassDesc (T1); class CID102 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid102ClassDesc() { return &D_002BAAE8[102]; }
 
-/** @sly2-annot addr=0x114080
- * Purpose: vtable slot 6 of ALARM (cid 103): returns &D_002BAAE8[103], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBootyClassDesc (T1); class BOOTY slot6; TU crt0_splicewrap
- * Notes: class identity from whole_game WE names/object strings: GetAlarmClassDesc -> GetBootyClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+whole_game(class identity)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBootyClassDesc() { return &D_002BAAE8[103]; }
 
-/** @sly2-annot addr=0x114090
- * Purpose: vtable slot 6 of CID104 (cid 104): returns &D_002BAAE8[104], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid104ClassDesc (T1); class CID104 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid104ClassDesc() { return &D_002BAAE8[104]; }
 
-/** @sly2-annot addr=0x1140A0
- * Purpose: vtable slot 6 of CID105 (cid 105): returns &D_002BAAE8[105], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid105ClassDesc (T1); class CID105 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid105ClassDesc() { return &D_002BAAE8[105]; }
 
-/** @sly2-annot addr=0x1140B0
- * Purpose: vtable slot 6 of CID106 (cid 106): returns &D_002BAAE8[106], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid106ClassDesc (T1); class CID106 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid106ClassDesc() { return &D_002BAAE8[106]; }
 
-/** @sly2-annot addr=0x1140C0
- * Purpose: vtable slot 6 of WAYPT (cid 107): returns &D_002BAAE8[107], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetWayptClassDesc (T1); class WAYPT slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWayptClassDesc() { return &D_002BAAE8[107]; }
 
-/** @sly2-annot addr=0x1140D0
- * Purpose: vtable slot 6 of CID108 (cid 108): returns &D_002BAAE8[108], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid108ClassDesc (T1); class CID108 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid108ClassDesc() { return &D_002BAAE8[108]; }
 
-/** @sly2-annot addr=0x1140E0
- * Purpose: vtable slot 6 of ASEG (cid 109): returns &D_002BAAE8[109], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetAsegClassDesc (T1); class ASEG slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetAsegClassDesc() { return &D_002BAAE8[109]; }
 
-/** @sly2-annot addr=0x1140F0
- * Purpose: vtable slot 6 of ASEGBL (cid 110): returns &D_002BAAE8[110], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetAsegblClassDesc (T1); class ASEGBL slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *ASEGBL::GetClassInfo() { return &D_002BAAE8[110]; }
 
-/** @sly2-annot addr=0x114100
- * Purpose: vtable slot 6 of SM (cid 111): returns &D_002BAAE8[111], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetSmClassDesc (T1); class SM slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSmClassDesc() { return &D_002BAAE8[111]; }
 
-/** @sly2-annot addr=0x114110
- * Purpose: vtable slot 6 of CID112 (cid 112): returns &D_002BAAE8[112], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid112ClassDesc (T1); class CID112 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid112ClassDesc() { return &D_002BAAE8[112]; }
 
-/** @sly2-annot addr=0x114120
- * Purpose: vtable slot 6 of CID113 (cid 113): returns &D_002BAAE8[113], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid113ClassDesc (T1); class CID113 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid113ClassDesc() { return &D_002BAAE8[113]; }
 
-/** @sly2-annot addr=0x114130
- * Purpose: vtable slot 6 of RELAY (cid 114): returns &D_002BAAE8[114], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetRelayClassDesc (T1); class RELAY slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetRelayClassDesc() { return &D_002BAAE8[114]; }
 
-/** @sly2-annot addr=0x114140
- * Purpose: vtable slot 6 of WR (cid 115): returns &D_002BAAE8[115], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetWrClassDesc (T1); class WR slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWrClassDesc() { return &D_002BAAE8[115]; }
 
-/** @sly2-annot addr=0x114150
- * Purpose: vtable slot 6 of CID116 (cid 116): returns &D_002BAAE8[116], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid116ClassDesc (T1); class CID116 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid116ClassDesc() { return &D_002BAAE8[116]; }
 
-/** @sly2-annot addr=0x114160
- * Purpose: vtable slot 6 of CID117 (cid 117): returns &D_002BAAE8[117], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid117ClassDesc (T1); class CID117 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid117ClassDesc() { return &D_002BAAE8[117]; }
 
-/** @sly2-annot addr=0x114170
- * Purpose: vtable slot 6 of CID118 (cid 118): returns &D_002BAAE8[118], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid118ClassDesc (T1); class CID118 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID118::GetClassInfo() { return &D_002BAAE8[118]; }
 
-/** @sly2-annot addr=0x114180
- * Purpose: vtable slot 6 of CID119 (cid 119): returns &D_002BAAE8[119], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid119ClassDesc (T1); class CID119 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid119ClassDesc() { return &D_002BAAE8[119]; }
 
-/** @sly2-annot addr=0x114190
- * Purpose: vtable slot 6 of CID120 (cid 120): returns &D_002BAAE8[120], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid120ClassDesc (T1); class CID120 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid120ClassDesc() { return &D_002BAAE8[120]; }
 
-/** @sly2-annot addr=0x1141A0
- * Purpose: vtable slot 6 of CID121 (cid 121): returns &D_002BAAE8[121], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid121ClassDesc (T1); class CID121 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid121ClassDesc() { return &D_002BAAE8[121]; }
 
-/** @sly2-annot addr=0x1141B0
- * Purpose: vtable slot 6 of CID122 (cid 122): returns &D_002BAAE8[122], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid122ClassDesc (T1); class CID122 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid122ClassDesc() { return &D_002BAAE8[122]; }
 
-/** @sly2-annot addr=0x1141C0
- * Purpose: vtable slot 6 of CID123 (cid 123): returns &D_002BAAE8[123], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid123ClassDesc (T1); class CID123 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid123ClassDesc() { return &D_002BAAE8[123]; }
 
-/** @sly2-annot addr=0x1141D0
- * Purpose: vtable slot 6 of CID124 (cid 124): returns &D_002BAAE8[124], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetPathlinkClassDesc (T1); class PATHLINK slot6; TU crt0_splicewrap
- * Notes: v3 class identity: GetCid124ClassDesc -> GetPathlinkClassDesc
- * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)+class_review(master_names_v2_1)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetPathlinkClassDesc() { return &D_002BAAE8[124]; }
 
-/** @sly2-annot addr=0x1141E0
- * Purpose: vtable slot 6 of CID125 (cid 125): returns &D_002BAAE8[125], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid125ClassDesc (T1); class CID125 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid125ClassDesc() { return &D_002BAAE8[125]; }
 
-/** @sly2-annot addr=0x1141F0
- * Purpose: vtable slot 6 of WIDGET (cid 126): returns &D_002BAAE8[126], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetWidgetClassDesc (T1); class WIDGET slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWidgetClassDesc() { return &D_002BAAE8[126]; }
 
-/** @sly2-annot addr=0x114200
- * Purpose: vtable slot 6 of WIDGET127 (cid 127): returns &D_002BAAE8[127], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetWidget127ClassDesc (T1); class WIDGET127 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWidget127ClassDesc() { return &D_002BAAE8[127]; }
 
-/** @sly2-annot addr=0x114210
- * Purpose: vtable slot 6 of WIDGET128 (cid 128): returns &D_002BAAE8[128], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetWidget128ClassDesc (T1); class WIDGET128 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWidget128ClassDesc() { return &D_002BAAE8[128]; }
 
-/** @sly2-annot addr=0x114220
- * Purpose: vtable slot 6 of WIDGET129 (cid 129): returns &D_002BAAE8[129], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetWidget129ClassDesc (T1); class WIDGET129 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWidget129ClassDesc() { return &D_002BAAE8[129]; }
 
-/** @sly2-annot addr=0x114230
- * Purpose: vtable slot 6 of WIDGET130 (cid 130): returns &D_002BAAE8[130], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetWidget130ClassDesc (T1); class WIDGET130 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *WIDGET130::GetClassInfo() { return &D_002BAAE8[130]; }
 
-/** @sly2-annot addr=0x114240
- * Purpose: vtable slot 6 of WIDGET131 (cid 131): returns &D_002BAAE8[131], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetWidget131ClassDesc (T1); class WIDGET131 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetWidget131ClassDesc() { return &D_002BAAE8[131]; }
 
-/** @sly2-annot addr=0x114250
- * Purpose: vtable slot 6 of JOB (cid 132): returns &D_002BAAE8[132], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetJobClassDesc (T1); class JOB slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetJobClassDesc() { return &D_002BAAE8[132]; }
 
-/** @sly2-annot addr=0x114260
- * Purpose: vtable slot 6 of TASK (cid 133): returns &D_002BAAE8[133], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetTaskClassDesc (T1); class TASK slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetTaskClassDesc() { return &D_002BAAE8[133]; }
 
-/** @sly2-annot addr=0x114270
- * Purpose: vtable slot 6 of ASEGA (cid 134): returns &D_002BAAE8[134], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetAsegaClassDesc (T1); class ASEGA slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetAsegaClassDesc() { return &D_002BAAE8[134]; }
 
-/** @sly2-annot addr=0x114280
- * Purpose: vtable slot 6 of CM (cid 135): returns &D_002BAAE8[135], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCmClassDesc (T1); class CM slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CM::GetClassInfo() { return &D_002BAAE8[135]; }
 
-/** @sly2-annot addr=0x114290
- * Purpose: vtable slot 6 of SMA (cid 136): returns &D_002BAAE8[136], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetSmaClassDesc (T1); class SMA slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSmaClassDesc() { return &D_002BAAE8[136]; }
 
-/** @sly2-annot addr=0x1142A0
- * Purpose: vtable slot 6 of POCTL (cid 137): returns &D_002BAAE8[137], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetPoctlClassDesc (T1); class POCTL slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *POCTL::GetClassInfo() { return &D_002BAAE8[137]; }
 
-/** @sly2-annot addr=0x1142B0
- * Purpose: vtable slot 6 of SAA (cid 138): returns &D_002BAAE8[138], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetSaaClassDesc (T1); class SAA slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetSaaClassDesc() { return &D_002BAAE8[138]; }
 
-/** @sly2-annot addr=0x1142C0
- * Purpose: vtable slot 6 of LOOP (cid 139): returns &D_002BAAE8[139], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetLoopClassDesc (T1); class LOOP slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetLoopClassDesc() { return &D_002BAAE8[139]; }
 
-/** @sly2-annot addr=0x1142D0
- * Purpose: vtable slot 6 of PINGPONG (cid 140): returns &D_002BAAE8[140], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetPingpongClassDesc (T1); class PINGPONG slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetPingpongClassDesc() { return &D_002BAAE8[140]; }
 
-/** @sly2-annot addr=0x1142E0
- * Purpose: vtable slot 6 of SHUFFLE (cid 141): returns &D_002BAAE8[141], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetShuffleClassDesc (T1); class SHUFFLE slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetShuffleClassDesc() { return &D_002BAAE8[141]; }
 
-/** @sly2-annot addr=0x1142F0
- * Purpose: vtable slot 6 of EYES (cid 142): returns &D_002BAAE8[142], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetEyesClassDesc (T1); class EYES slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetEyesClassDesc() { return &D_002BAAE8[142]; }
 
-/** @sly2-annot addr=0x114300
- * Purpose: vtable slot 6 of SCROLLER (cid 143): returns &D_002BAAE8[143], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetScrollerClassDesc (T1); class SCROLLER slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetScrollerClassDesc() { return &D_002BAAE8[143]; }
 
-/** @sly2-annot addr=0x114310
- * Purpose: vtable slot 6 of CIRCLER (cid 144): returns &D_002BAAE8[144], the class descriptor {pcdParent,
- *   cid, cidEnd, cb, pfnNew}
- * Info: proposed name GetCirclerClassDesc (T1); class CIRCLER slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCirclerClassDesc() { return &D_002BAAE8[144]; }
 
-/** @sly2-annot addr=0x114320
- * Purpose: vtable slot 6 of LEAP (cid 145): returns &D_002BAAE8[145], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetLeapClassDesc (T1); class LEAP slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetLeapClassDesc() { return &D_002BAAE8[145]; }
 
-/** @sly2-annot addr=0x114330
- * Purpose: vtable slot 6 of CID146 (cid 146): returns &D_002BAAE8[146], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid146ClassDesc (T1); class CID146 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid146ClassDesc() { return &D_002BAAE8[146]; }
 
-/** @sly2-annot addr=0x114340
- * Purpose: vtable slot 6 of CID147 (cid 147): returns &D_002BAAE8[147], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid147ClassDesc (T1); class CID147 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid147ClassDesc() { return &D_002BAAE8[147]; }
 
-/** @sly2-annot addr=0x114350
- * Purpose: vtable slot 6 of CID148 (cid 148): returns &D_002BAAE8[148], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid148ClassDesc (T1); class CID148 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid148ClassDesc() { return &D_002BAAE8[148]; }
 
-/** @sly2-annot addr=0x114360
- * Purpose: vtable slot 6 of CID149 (cid 149): returns &D_002BAAE8[149], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid149ClassDesc (T1); class CID149 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID149::GetClassInfo() { return &D_002BAAE8[149]; }
 
-/** @sly2-annot addr=0x114370
- * Purpose: vtable slot 6 of CID150 (cid 150): returns &D_002BAAE8[150], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid150ClassDesc (T1); class CID150 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID150::GetClassInfo() { return &D_002BAAE8[150]; }
 
-/** @sly2-annot addr=0x114380
- * Purpose: vtable slot 6 of CID151 (cid 151): returns &D_002BAAE8[151], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid151ClassDesc (T1); TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetCid151ClassDesc() { return &D_002BAAE8[151]; }
 
-/** @sly2-annot addr=0x114390
- * Purpose: vtable slot 6 of CID152 (cid 152): returns &D_002BAAE8[152], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid152ClassDesc (T1); class CID152 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID152::GetClassInfo() { return &D_002BAAE8[152]; }
 
-/** @sly2-annot addr=0x1143A0
- * Purpose: vtable slot 6 of JSG (cid 153): returns &D_002BAAE8[153], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetJsgClassDesc (T1); class JSG slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *JSG::GetClassInfo() { return &D_002BAAE8[153]; }
 
-/** @sly2-annot addr=0x1143B0
- * Purpose: vtable slot 6 of CID154 (cid 154): returns &D_002BAAE8[154], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetCid154ClassDesc (T1); class CID154 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 CLASSINFO *CID154::GetClassInfo() { return &D_002BAAE8[154]; }
 
-/** @sly2-annot addr=0x1143C0
- * Purpose: vtable slot 6 of BHV (cid 155): returns &D_002BAAE8[155], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvClassDesc (T1); class BHV slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvClassDesc() { return &D_002BAAE8[155]; }
 
-/** @sly2-annot addr=0x1143D0
- * Purpose: vtable slot 6 of BHV156 (cid 156): returns &D_002BAAE8[156], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvguardClassDesc (T1); class BHVGUARD slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv156ClassDesc -> GetBhvguardClassDesc | runtime2/4 confirmed the
- *   BHVGUARD role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvguardClassDesc() { return &D_002BAAE8[156]; }
 
-/** @sly2-annot addr=0x1143E0
- * Purpose: vtable slot 6 of BHV157 (cid 157): returns &D_002BAAE8[157], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvanimClassDesc (T1); class BHVANIM slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv157ClassDesc -> GetBhvanimClassDesc | runtime2/4 confirmed the
- *   BHVANIM role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvanimClassDesc() { return &D_002BAAE8[157]; }
 
-/** @sly2-annot addr=0x1143F0
- * Purpose: vtable slot 6 of BHV158 (cid 158): returns &D_002BAAE8[158], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvidleClassDesc (T1); class BHVIDLE slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv158ClassDesc -> GetBhvidleClassDesc | runtime2/4 confirmed the
- *   BHVIDLE role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvidleClassDesc() { return &D_002BAAE8[158]; }
 
-/** @sly2-annot addr=0x114400
- * Purpose: vtable slot 6 of BHV159 (cid 159): returns &D_002BAAE8[159], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvstrikeClassDesc (T1); class BHVSTRIKE slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv159ClassDesc -> GetBhvstrikeClassDesc | runtime2/4 confirmed the
- *   BHVSTRIKE role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvstrikeClassDesc() { return &D_002BAAE8[159]; }
 
-/** @sly2-annot addr=0x114410
- * Purpose: vtable slot 6 of BHV160 (cid 160): returns &D_002BAAE8[160], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvhitClassDesc (T1); class BHVHIT slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv160ClassDesc -> GetBhvhitClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvhitClassDesc() { return &D_002BAAE8[160]; }
 
-/** @sly2-annot addr=0x114420
- * Purpose: vtable slot 6 of BHV161 (cid 161): returns &D_002BAAE8[161], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv161ClassDesc (T1); class BHV161 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv161ClassDesc() { return &D_002BAAE8[161]; }
 
-/** @sly2-annot addr=0x114430
- * Purpose: vtable slot 6 of BHV162 (cid 162): returns &D_002BAAE8[162], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv162ClassDesc (T1); class BHV162 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv162ClassDesc() { return &D_002BAAE8[162]; }
 
-/** @sly2-annot addr=0x114440
- * Purpose: vtable slot 6 of BHV163 (cid 163): returns &D_002BAAE8[163], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvkoClassDesc (T1); class BHVKO slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv163ClassDesc -> GetBhvkoClassDesc | runtime2/4 confirmed the BHVKO
- *   role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvkoClassDesc() { return &D_002BAAE8[163]; }
 
-/** @sly2-annot addr=0x114450
- * Purpose: vtable slot 6 of BHV164 (cid 164): returns &D_002BAAE8[164], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvattackClassDesc (T1); class BHVATTACK slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv164ClassDesc -> GetBhvattackClassDesc | runtime2/4 confirmed the
- *   BHVATTACK role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvattackClassDesc() { return &D_002BAAE8[164]; }
 
-/** @sly2-annot addr=0x114460
- * Purpose: vtable slot 6 of BHV165 (cid 165): returns &D_002BAAE8[165], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvcombatClassDesc (T1); class BHVCOMBAT slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv165ClassDesc -> GetBhvcombatClassDesc | runtime2/4 confirmed the
- *   BHVCOMBAT role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvcombatClassDesc() { return &D_002BAAE8[165]; }
 
-/** @sly2-annot addr=0x114470
- * Purpose: vtable slot 6 of BHV166 (cid 166): returns &D_002BAAE8[166], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvpathClassDesc (T1); class BHVPATH slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv166ClassDesc -> GetBhvpathClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvpathClassDesc() { return &D_002BAAE8[166]; }
 
-/** @sly2-annot addr=0x114480
- * Purpose: vtable slot 6 of BHV167 (cid 167): returns &D_002BAAE8[167], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvwalkpathClassDesc (T1); class BHVWALKPATH slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv167ClassDesc -> GetBhvwalkpathClassDesc | runtime2/4 confirmed the
- *   BHVWALKPATH role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvwalkpathClassDesc() { return &D_002BAAE8[167]; }
 
-/** @sly2-annot addr=0x114490
- * Purpose: vtable slot 6 of BHV168 (cid 168): returns &D_002BAAE8[168], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvwalkgoalClassDesc (T1); class BHVWALKGOAL slot6; TU crt0_splicewrap
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): GetBhv168ClassDesc ->
- *   GetBhvwalkgoalClassDesc
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvwalkgoalClassDesc() { return &D_002BAAE8[168]; }
 
-/** @sly2-annot addr=0x1144A0
- * Purpose: vtable slot 6 of BHV169 (cid 169): returns &D_002BAAE8[169], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv169ClassDesc (T1); class BHV169 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv169ClassDesc() { return &D_002BAAE8[169]; }
 
-/** @sly2-annot addr=0x1144B0
- * Purpose: vtable slot 6 of BHV170 (cid 170): returns &D_002BAAE8[170], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvpatrolClassDesc (T1); class BHVPATROL slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv170ClassDesc -> GetBhvpatrolClassDesc | runtime2/4 confirmed the
- *   BHVPATROL role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvpatrolClassDesc() { return &D_002BAAE8[170]; }
 
-/** @sly2-annot addr=0x1144C0
- * Purpose: vtable slot 6 of BHV171 (cid 171): returns &D_002BAAE8[171], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv171ClassDesc (T1); class BHV171 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv171ClassDesc() { return &D_002BAAE8[171]; }
 
-/** @sly2-annot addr=0x1144D0
- * Purpose: vtable slot 6 of BHV172 (cid 172): returns &D_002BAAE8[172], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvleapClassDesc (T1); class BHVLEAP slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv172ClassDesc -> GetBhvleapClassDesc | runtime2/4 confirmed the
- *   BHVLEAP role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvleapClassDesc() { return &D_002BAAE8[172]; }
 
-/** @sly2-annot addr=0x1144E0
- * Purpose: vtable slot 6 of BHV173 (cid 173): returns &D_002BAAE8[173], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvshootClassDesc (T1); class BHVSHOOT slot6; TU crt0_splicewrap
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): GetBhv173ClassDesc ->
- *   GetBhvshootClassDesc (BHV173 = BHVSHOOT, runtime7a)
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvshootClassDesc() { return &D_002BAAE8[173]; }
 
-/** @sly2-annot addr=0x1144F0
- * Purpose: vtable slot 6 of BHV174 (cid 174): returns &D_002BAAE8[174], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv174ClassDesc (T1); class BHV174 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv174ClassDesc() { return &D_002BAAE8[174]; }
 
-/** @sly2-annot addr=0x114500
- * Purpose: vtable slot 6 of BHV175 (cid 175): returns &D_002BAAE8[175], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv175ClassDesc (T1); class BHV175 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv175ClassDesc() { return &D_002BAAE8[175]; }
 
-/** @sly2-annot addr=0x114510
- * Purpose: vtable slot 6 of BHV176 (cid 176): returns &D_002BAAE8[176], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv176ClassDesc (T1); class BHV176 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv176ClassDesc() { return &D_002BAAE8[176]; }
 
-/** @sly2-annot addr=0x114520
- * Purpose: vtable slot 6 of BHV177 (cid 177): returns &D_002BAAE8[177], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvjuggledClassDesc (T1); class BHVJUGGLED slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv177ClassDesc -> GetBhvjuggledClassDesc | runtime2/4 confirmed the
- *   BHVJUGGLED role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvjuggledClassDesc() { return &D_002BAAE8[177]; }
 
-/** @sly2-annot addr=0x114530
- * Purpose: vtable slot 6 of BHV178 (cid 178): returns &D_002BAAE8[178], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv178ClassDesc (T1); class BHV178 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv178ClassDesc() { return &D_002BAAE8[178]; }
 
-/** @sly2-annot addr=0x114540
- * Purpose: vtable slot 6 of BHV179 (cid 179): returns &D_002BAAE8[179], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv179ClassDesc (T1); class BHV179 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv179ClassDesc() { return &D_002BAAE8[179]; }
 
-/** @sly2-annot addr=0x114550
- * Purpose: vtable slot 6 of BHV180 (cid 180): returns &D_002BAAE8[180], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv180ClassDesc (T1); class BHV180 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv180ClassDesc() { return &D_002BAAE8[180]; }
 
-/** @sly2-annot addr=0x114560
- * Purpose: vtable slot 6 of BHV181 (cid 181): returns &D_002BAAE8[181], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv181ClassDesc (T1); class BHV181 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv181ClassDesc() { return &D_002BAAE8[181]; }
 
-/** @sly2-annot addr=0x114570
- * Purpose: vtable slot 6 of BHV182 (cid 182): returns &D_002BAAE8[182], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv182ClassDesc (T1); class BHV182 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv182ClassDesc() { return &D_002BAAE8[182]; }
 
-/** @sly2-annot addr=0x114580
- * Purpose: vtable slot 6 of BHV183 (cid 183): returns &D_002BAAE8[183], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv183ClassDesc (T1); class BHV183 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv183ClassDesc() { return &D_002BAAE8[183]; }
 
-/** @sly2-annot addr=0x114590
- * Purpose: vtable slot 6 of BHV184 (cid 184): returns &D_002BAAE8[184], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvrailClassDesc (T1); class BHVRAIL slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv184ClassDesc -> GetBhvrailClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvrailClassDesc() { return &D_002BAAE8[184]; }
 
-/** @sly2-annot addr=0x1145A0
- * Purpose: vtable slot 6 of BHV185 (cid 185): returns &D_002BAAE8[185], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvpipeClassDesc (T1); class BHVPIPE slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv185ClassDesc -> GetBhvpipeClassDesc
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvpipeClassDesc() { return &D_002BAAE8[185]; }
 
-/** @sly2-annot addr=0x1145B0
- * Purpose: vtable slot 6 of BHV186 (cid 186): returns &D_002BAAE8[186], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvgotoClassDesc (T1); class BHVGOTO slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv186ClassDesc -> GetBhvgotoClassDesc | runtime2/4 confirmed the
- *   BHVGOTO role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvgotoClassDesc() { return &D_002BAAE8[186]; }
 
-/** @sly2-annot addr=0x1145C0
- * Purpose: vtable slot 6 of BHV187 (cid 187): returns &D_002BAAE8[187], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv187ClassDesc (T1); class BHV187 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv187ClassDesc() { return &D_002BAAE8[187]; }
 
-/** @sly2-annot addr=0x1145D0
- * Purpose: vtable slot 6 of BHV188 (cid 188): returns &D_002BAAE8[188], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv188ClassDesc (T1); class BHV188 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv188ClassDesc() { return &D_002BAAE8[188]; }
 
-/** @sly2-annot addr=0x1145E0
- * Purpose: vtable slot 6 of BHV189 (cid 189): returns &D_002BAAE8[189], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv189ClassDesc (T1); class BHV189 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv189ClassDesc() { return &D_002BAAE8[189]; }
 
-/** @sly2-annot addr=0x1145F0
- * Purpose: vtable slot 6 of BHV190 (cid 190): returns &D_002BAAE8[190], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvpathlinkClassDesc (T1); class BHVPATHLINK slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv190ClassDesc -> GetBhvpathlinkClassDesc | runtime2/4 confirmed the
- *   BHVPATHLINK role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvpathlinkClassDesc() { return &D_002BAAE8[190]; }
 
-/** @sly2-annot addr=0x114600
- * Purpose: vtable slot 6 of BHV191 (cid 191): returns &D_002BAAE8[191], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv191ClassDesc (T1); class BHV191 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv191ClassDesc() { return &D_002BAAE8[191]; }
 
-/** @sly2-annot addr=0x114610
- * Purpose: vtable slot 6 of BHV192 (cid 192): returns &D_002BAAE8[192], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvpatrolpathClassDesc (T1); class BHVPATROLPATH slot6; TU crt0_splicewrap
- * Notes: BHV class word normalised: GetBhv192ClassDesc -> GetBhvpatrolpathClassDesc | runtime2/4 confirmed
- *   the BHVPATROLPATH role on live guards (S02-S41)
- * Confidence: high [T1 0.97] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvpatrolpathClassDesc() { return &D_002BAAE8[192]; }
 
-/** @sly2-annot addr=0x114620
- * Purpose: vtable slot 6 of BHV193 (cid 193): returns &D_002BAAE8[193], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv193ClassDesc (T1); class BHV193 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv193ClassDesc() { return &D_002BAAE8[193]; }
 
-/** @sly2-annot addr=0x114630
- * Purpose: vtable slot 6 of BHV194 (cid 194): returns &D_002BAAE8[194], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhvfollowClassDesc (T1); class BHVFOLLOW slot6; TU crt0_splicewrap
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): GetBhv194ClassDesc ->
- *   GetBhvfollowClassDesc
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); sources:
- *   r0_thunks+table-verified(D_002BAAE8 pfnNew/size 185/185; vt slot6 199/199)+runtime(class role)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhvfollowClassDesc() { return &D_002BAAE8[194]; }
 
-/** @sly2-annot addr=0x114640
- * Purpose: vtable slot 6 of BHV195 (cid 195): returns &D_002BAAE8[195], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv195ClassDesc (T1); class BHV195 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv195ClassDesc() { return &D_002BAAE8[195]; }
 
-/** @sly2-annot addr=0x114650
- * Purpose: vtable slot 6 of BHV196 (cid 196): returns &D_002BAAE8[196], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv196ClassDesc (T1); class BHV196 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv196ClassDesc() { return &D_002BAAE8[196]; }
 
-/** @sly2-annot addr=0x114660
- * Purpose: vtable slot 6 of BHV197 (cid 197): returns &D_002BAAE8[197], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv197ClassDesc (T1); class BHV197 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv197ClassDesc() { return &D_002BAAE8[197]; }
 
-/** @sly2-annot addr=0x114670
- * Purpose: vtable slot 6 of BHV198 (cid 198): returns &D_002BAAE8[198], the class descriptor {pcdParent, cid,
- *   cidEnd, cb, pfnNew}
- * Info: proposed name GetBhv198ClassDesc (T1); class BHV198 slot6; TU crt0_splicewrap
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
- *   pfnNew/size 185/185; vt slot6 199/199)
- * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
- * @end-sly2-annot */
 extern "C" CLASSINFO *GetBhv198ClassDesc() { return &D_002BAAE8[198]; }
 
 // ---- Out-of-line constructors from the linkonce area (0x256360..0x256498) ----
@@ -7027,34 +3216,15 @@ extern "C" CLASSINFO *GetBhv198ClassDesc() { return &D_002BAAE8[198]; }
 // definition. Left as is (integrate/round9): the definitions' attributes give them what an out-of-line inline copy
 // gets, a weak symbol in .gnu.linkonce.t.<symbol>, emitted by this object only.
 
-/** @sly2-annot addr=0x256360
- * Purpose: inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game
- *   linkonce (inline/template)]
- * Info: proposed name STEPGUARD_ctor (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // STEPGUARD's constructor (out-of-line copy of the inline one): base constructors, then the STEPGUARD vtable
 // and its LEAP sub-object.
 __attribute__((weak, section(".gnu.linkonce.t.STEPGUARD_ctor")))
 STEPGUARD::STEPGUARD() {}
 
-/** @sly2-annot addr=0x2563E8
- * Purpose: inline constructor (vtable 0x2D2E98) [game linkonce (inline/template)]
- * Info: proposed name JT_ctor (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // JT's (Sly's player class) constructor (out-of-line inline copy): clears the gadget sound reference and +0x2048.
 __attribute__((weak, section(".gnu.linkonce.t.JT_ctor")))
 JT::JT() : psndGadget(refptrNull) { unk_0x2048 = 0; }
 
-/** @sly2-annot addr=0x256440
- * Purpose: inline constructor (vtable 0x2D44C8) [game linkonce (inline/template)]
- * Info: proposed name MURRAY_ctor (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // MURRAY's constructor (out-of-line inline copy).
 __attribute__((weak, section(".gnu.linkonce.t.MURRAY_ctor")))
 MURRAY::MURRAY() {}

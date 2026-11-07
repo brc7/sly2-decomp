@@ -47,14 +47,6 @@ int IsCdCommandComplete(int f);
 void SetPhase(PHASE phase);
 void StartupGs();
 
-/** @sly2-annot addr=0x1A7518
- * Purpose: Program entry: store argc/argv, Startup(), StartGame-like init 0x1613A8, then the infinite frame
- *   loop (see tu_docs/main.md)
- * Info: proposed name main (T1); TU main
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6+verdicts_A2
- * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
- *   docs/engine/main-loop-startup.md#7-source-files, docs/engine/main-loop-startup.md#8-key-functions
- * @end-sly2-annot */
 // The program's main (crt0 calls it; naming it main would make g++ insert a second __main call, so it keeps
 // another name). Saves argc/argv, runs the boot stages and the game start-up, then loops forever, one iteration per
 // frame: pending world transition, pad, disc poll, camera setup, clock tick, world update, UI update (D_003D9E70),
@@ -117,15 +109,6 @@ static inline int CopyLimit(int value)
     return copy;
 }
 
-/** @sly2-annot addr=0x1A7630
- * Purpose: IOP bring-up: sceSifInitRpc, reboot IOP with ioprp300.img unless D_002E2058, sceCdInit/SetCdMmode,
- *   sceFsReset, alloc IOP heap and sceSifLoadModuleBuffer for each embedded IRX in table
- *   D_004E5D80..D_004E5E38
- * Info: proposed name StartupSif (T1); TU main
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4_17F090+verdicts_A2
- * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
- *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
- * @end-sly2-annot */
 // Boot stage: brings up the IOP. Initialises SIF RPC and the CD (hanging if the disc is not a PS2 DVD), reboots
 // the IOP with cdrom0:\IOPRP300.IMG;1 (unless D_002E2058 is set) and re-initialises, then copies each IRX module
 // embedded in the ELF (table D_004E5D80..D_004E5E38) into an IOP heap buffer by SIF DMA in <= 0xFFC0-byte pieces
@@ -230,14 +213,6 @@ void sceDmaSend(int *pch, void *p);
 void sceDmaSync(int *pch, int a, int b);
 }
 
-/** @sly2-annot addr=0x1A7890
- * Purpose: DMA VU0 microcode (D_00259DF0) via sceDmaSend/sceDmaSync
- * Info: proposed name StartupVU0__Fv (EXISTING); TU main
- * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
- *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
- * @end-sly2-annot */
 // Boot stage: uploads the VU0 microcode by VIF0 DMA (chain D_00259DF0).
 void StartupVU0()
 {
@@ -248,14 +223,6 @@ void StartupVU0()
     *D_002DE590 &= ~0x40;
 }
 
-/** @sly2-annot addr=0x1A7900
- * Purpose: DMA VU1 microcode (D_0025E050)
- * Info: proposed name StartupVU1__Fv (EXISTING); TU main
- * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r4_17F090+verdicts_tu_r4r6
- * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
- *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
- * @end-sly2-annot */
 // Boot stage: uploads the VU1 microcode by VIF1 DMA (chain D_0025E050).
 void StartupVU1()
 {
@@ -289,14 +256,6 @@ void ClearPhase(int n);
 }
 
 /* Run the 19 initialization stages with CProg color and remaining-count updates. */
-/** @sly2-annot addr=0x1A7970
- * Purpose: Run the 19-entry startup table D_002BFCE0 with a CProg progress bar (shown only after StartupGs),
- *   MarkClockTick(g_clock,1) per stage; prints build "0813.0032"/"america"
- * Info: proposed name Startup (T1); TU main
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r4_17F090+verdicts_A2+verify_side
- * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
- *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
- * @end-sly2-annot */
 // Runs the 19 boot stages in order with a progress bar (shown once the GS is up, i.e. after StartupGs), ticking the
 // clock before each; prints the build banner ("P3: 0813.0032 america").
 void Startup()

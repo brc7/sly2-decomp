@@ -15,14 +15,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    (copy constructor, then the destructor of the local). The builtins' own parameters are not used, so none are
    declared. */
 
-/** @sly2-annot addr=0x1258F0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub140 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/engine/splice-scripting.md#6-source-files,
- *   docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 140 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub140()
 {
@@ -30,12 +22,6 @@ extern "C" CRef BuiltinStub140()
     return ref;
 }
 
-/** @sly2-annot addr=0x125930
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub141 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 141 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub141()
 {
@@ -43,12 +29,6 @@ extern "C" CRef BuiltinStub141()
     return ref;
 }
 
-/** @sly2-annot addr=0x125970
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub142 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 142 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub142()
 {
@@ -56,12 +36,6 @@ extern "C" CRef BuiltinStub142()
     return ref;
 }
 
-/** @sly2-annot addr=0x1259B0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub143 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 143 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub143()
 {
@@ -69,12 +43,6 @@ extern "C" CRef BuiltinStub143()
     return ref;
 }
 
-/** @sly2-annot addr=0x1259F0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub144 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 144 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub144()
 {
@@ -82,12 +50,6 @@ extern "C" CRef BuiltinStub144()
     return ref;
 }
 
-/** @sly2-annot addr=0x125A30
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub145 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 145 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub145()
 {
@@ -95,12 +57,6 @@ extern "C" CRef BuiltinStub145()
     return ref;
 }
 
-/** @sly2-annot addr=0x125A70
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub146 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 146 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub146()
 {
@@ -108,12 +64,6 @@ extern "C" CRef BuiltinStub146()
     return ref;
 }
 
-/** @sly2-annot addr=0x125AB0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub147 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 147 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub147()
 {
@@ -121,12 +71,6 @@ extern "C" CRef BuiltinStub147()
     return ref;
 }
 
-/** @sly2-annot addr=0x125AF0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub148 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 148 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub148()
 {
@@ -134,12 +78,6 @@ extern "C" CRef BuiltinStub148()
     return ref;
 }
 
-/** @sly2-annot addr=0x125B30
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub149 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 149 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub149()
 {
@@ -147,12 +85,6 @@ extern "C" CRef BuiltinStub149()
     return ref;
 }
 
-/** @sly2-annot addr=0x125B70
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub150 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 150 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub150()
 {
@@ -160,12 +92,6 @@ extern "C" CRef BuiltinStub150()
     return ref;
 }
 
-/** @sly2-annot addr=0x125BB0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub151 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 151 (takes at least 1 argument): returns nil.
 extern "C" CRef BuiltinStub151()
 {
@@ -173,12 +99,6 @@ extern "C" CRef BuiltinStub151()
     return ref;
 }
 
-/** @sly2-annot addr=0x125BF0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub152 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 152 (takes at least 1 argument): returns nil.
 extern "C" CRef BuiltinStub152()
 {
@@ -186,12 +106,6 @@ extern "C" CRef BuiltinStub152()
     return ref;
 }
 
-/** @sly2-annot addr=0x125C30
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub153 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 153 (takes at least 1 argument): returns nil.
 extern "C" CRef BuiltinStub153()
 {
@@ -199,12 +113,6 @@ extern "C" CRef BuiltinStub153()
     return ref;
 }
 
-/** @sly2-annot addr=0x125C70
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub154 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 154 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub154()
 {
@@ -212,12 +120,6 @@ extern "C" CRef BuiltinStub154()
     return ref;
 }
 
-/** @sly2-annot addr=0x125CB0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub155 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 155 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub155()
 {
@@ -225,12 +127,6 @@ extern "C" CRef BuiltinStub155()
     return ref;
 }
 
-/** @sly2-annot addr=0x125CF0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub156 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 156 (takes at least 3 arguments): returns nil.
 extern "C" CRef BuiltinStub156()
 {
@@ -238,12 +134,6 @@ extern "C" CRef BuiltinStub156()
     return ref;
 }
 
-/** @sly2-annot addr=0x125D30
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub157 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 157 (takes at least 1 argument): returns nil.
 extern "C" CRef BuiltinStub157()
 {
@@ -251,12 +141,6 @@ extern "C" CRef BuiltinStub157()
     return ref;
 }
 
-/** @sly2-annot addr=0x125D70
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub158 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 158 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub158()
 {
@@ -264,12 +148,6 @@ extern "C" CRef BuiltinStub158()
     return ref;
 }
 
-/** @sly2-annot addr=0x125DB0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub159 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 159 (takes at least 1 argument): returns nil.
 extern "C" CRef BuiltinStub159()
 {
@@ -277,12 +155,6 @@ extern "C" CRef BuiltinStub159()
     return ref;
 }
 
-/** @sly2-annot addr=0x125DF0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub160 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 160 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub160()
 {
@@ -290,12 +162,6 @@ extern "C" CRef BuiltinStub160()
     return ref;
 }
 
-/** @sly2-annot addr=0x125E30
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub161 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 161 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub161()
 {
@@ -303,12 +169,6 @@ extern "C" CRef BuiltinStub161()
     return ref;
 }
 
-/** @sly2-annot addr=0x125E70
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub162 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 162 (takes at least 3 arguments): returns nil.
 extern "C" CRef BuiltinStub162()
 {
@@ -316,12 +176,6 @@ extern "C" CRef BuiltinStub162()
     return ref;
 }
 
-/** @sly2-annot addr=0x125EB0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub163 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 163 (takes at least 2 arguments): returns nil.
 extern "C" CRef BuiltinStub163()
 {
@@ -329,12 +183,6 @@ extern "C" CRef BuiltinStub163()
     return ref;
 }
 
-/** @sly2-annot addr=0x125EF0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub164 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 164 (takes at least 1 argument): returns nil.
 extern "C" CRef BuiltinStub164()
 {
@@ -342,12 +190,6 @@ extern "C" CRef BuiltinStub164()
     return ref;
 }
 
-/** @sly2-annot addr=0x125F30
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub165 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 165 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub165()
 {
@@ -355,12 +197,6 @@ extern "C" CRef BuiltinStub165()
     return ref;
 }
 
-/** @sly2-annot addr=0x125F70
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub166 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 166 (takes at least 2 arguments): returns nil.
 extern "C" CRef BuiltinStub166()
 {
@@ -368,12 +204,6 @@ extern "C" CRef BuiltinStub166()
     return ref;
 }
 
-/** @sly2-annot addr=0x125FB0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub167 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 167 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub167()
 {
@@ -381,12 +211,6 @@ extern "C" CRef BuiltinStub167()
     return ref;
 }
 
-/** @sly2-annot addr=0x125FF0
- * Purpose: Stubbed Splice builtin: returns Nil (tagk -1); one of 29 identical 60-byte stubs
- * Info: proposed name BuiltinStub168 (T2); TU bif2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
- * @end-sly2-annot */
 // Compiled-out Splice builtin, table slot 168 (takes at least 0 arguments): returns nil.
 extern "C" CRef BuiltinStub168()
 {

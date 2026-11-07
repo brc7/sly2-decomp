@@ -112,13 +112,6 @@ struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args);
 
 static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
-/** @sly2-annot addr=0x11F440
- * Purpose: Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion)
- * Info: proposed name BuiltinAdd (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/core-library.md#core-library-memory-containers-math-streams-cd-threads-text,
- *   docs/engine/core-library.md#6-source-files, docs/engine/splice-scripting.md#1-layout-of-the-runtime
- * @end-sly2-annot */
 // Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion).
 CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
@@ -205,12 +198,6 @@ struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args);
 
 static inline NODE *NodeFromRef(CRef *p) { return (NODE *)p->u.pv; }
-/** @sly2-annot addr=0x11F6D0
- * Purpose: Splice builtin "-": n-ary subtract, same shape as +
- * Info: proposed name BuiltinSubtract (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "-": n-ary subtract, same shape as +.
 CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
@@ -386,12 +373,6 @@ static inline void Mul2(V8 *p, float d)
     p->x *= d;
     p->y *= d;
 }
-/** @sly2-annot addr=0x11F960
- * Purpose: Splice builtin "*": n-ary multiply incl. vector*scalar, matrix*matrix (VU)
- * Info: proposed name BuiltinMultiply (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "*": n-ary multiply incl. vector*scalar, matrix*matrix (VU).
 CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
@@ -567,12 +548,6 @@ static inline void DivMatrix(MATRIX4 *pm, float d)
     *pm = mat;
 }
 
-/** @sly2-annot addr=0x11FEC8
- * Purpose: Splice builtin "/": n-ary divide incl. int-matrix path
- * Info: proposed name BuiltinDivide (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "/": n-ary divide incl. int-matrix path.
 CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
@@ -661,12 +636,6 @@ CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args)
 } // namespace M_BuiltinDivide__FiP4CRefP6CFrame
 
 // 0x1202D0 BuiltinPrint__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x1202D0
- * Purpose: Splice builtin "print": returns Void (tag 0x24): print compiled out
- * Info: proposed name BuiltinPrint (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "print": returns Void (tag 0x24): print compiled out.
 extern "C" CREFV *BuiltinPrint__FiP4CRefP6CFrame(CREFV *pref)
 {
@@ -675,12 +644,6 @@ extern "C" CREFV *BuiltinPrint__FiP4CRefP6CFrame(CREFV *pref)
 }
 
 // 0x120300 BuiltinPrintFrame__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120300
- * Purpose: Splice builtin "print-frame": returns Void
- * Info: proposed name BuiltinPrintFrame (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "print-frame": returns Void.
 extern "C" CREFV *BuiltinPrintFrame__FiP4CRefP6CFrame(CREFV *pref)
 {
@@ -694,12 +657,6 @@ struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
-/** @sly2-annot addr=0x120330
- * Purpose: Splice builtin "print-sidebag": returns Void (local CRef then InitTag 0x24)
- * Info: proposed name BuiltinPrintSidebag (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "print-sidebag": returns Void (local CRef then InitTag 0x24).
 CRef *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRef *ret)
 {
@@ -715,16 +672,8 @@ CRef *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRef *ret)
 namespace M_BuiltinIntEqual__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120370
- * Purpose: Splice builtin "=": bool(tag0==tag1 payload ints equal)
- * Info: proposed name BuiltinIntEqual (T1); TU bif
- * Notes: verifier: purpose partly wrong: BIF entry 7 = Sly 1 '=' (BuiltinIntEqual). Purpose implies tag0==tag1,
- *   but the code compares only the two payload words (xor+sltiu) and never checks tags.
- * Confidence: high [T1 0.93] - evidence: Sly 1 / Lilly reference; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "=": bool(tag0==tag1 payload ints equal).
+// Compares only the two payload words, never the tags (Sly 1's '=').
 CRef *BuiltinIntEqual__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     int a = args[0].m_tag;
@@ -739,13 +688,6 @@ CRef *BuiltinIntEqual__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 namespace M_CompareNumericArgs__FP4CRef4CMPK { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
-/** @sly2-annot addr=0x120398
- * Purpose: Numeric compare of aref[0],aref[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool
- * Info: proposed name CompareNumericArgs (T1); TU bif
- * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Numeric compare of args[0],args[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool.
 CRef *CompareNumericArgs__FP4CRef4CMPK(CRef *ret, CRef *args, int op)
 {
@@ -779,13 +721,6 @@ CRef *CompareNumericArgs__FP4CRef4CMPK(CRef *ret, CRef *args, int op)
 } } // namespace M_CompareNumericArgs__FP4CRef4CMPK
 
 // 0x120488 BuiltinLess__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120488
- * Purpose: Splice builtin "<": CompareNumericArgs(aref,0) <
- * Info: proposed name BuiltinLess (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "<": CompareNumericArgs(args,0) <.
 extern "C" CREFV *BuiltinLess__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -794,13 +729,6 @@ extern "C" CREFV *BuiltinLess__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *ar
 }
 
 // 0x1204B8 BuiltinLessOrEqual__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x1204B8
- * Purpose: Splice builtin "<=": CompareNumericArgs(aref,1) <=
- * Info: proposed name BuiltinLessOrEqual (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "<=": CompareNumericArgs(args,1) <=.
 extern "C" CREFV *BuiltinLessOrEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -809,13 +737,6 @@ extern "C" CREFV *BuiltinLessOrEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CR
 }
 
 // 0x1204E8 BuiltinGreater__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x1204E8
- * Purpose: Splice builtin ">": CompareNumericArgs(aref,2) >
- * Info: proposed name BuiltinGreater (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin ">": CompareNumericArgs(args,2) >.
 extern "C" CREFV *BuiltinGreater__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -824,13 +745,6 @@ extern "C" CREFV *BuiltinGreater__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV 
 }
 
 // 0x120518 BuiltinGreaterOrEqual__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120518
- * Purpose: Splice builtin ">=": CompareNumericArgs(aref,3) >=
- * Info: proposed name BuiltinGreaterOrEqual (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin ">=": CompareNumericArgs(args,3) >=.
 extern "C" CREFV *BuiltinGreaterOrEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -848,14 +762,6 @@ struct CRef {
     CRef(int n, int tagk) { m_tag = n; m_tagk = tagk; }
 };
 extern "C" CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x120548
- * Purpose: Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare
- * Info: proposed name BuiltinEqv (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
- *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
- * @end-sly2-annot */
 // Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare.
 CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -905,13 +811,6 @@ struct W { int cref; int n4; int n8; CRef ref; int n14; NODE *pnext; };
 struct X { int cref; int n4; int n8; int nC; };
 
 extern "C" CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b);
-/** @sly2-annot addr=0x1205B8
- * Purpose: Recursive structural equality (lists, vectors, matrices) -> Bool
- * Info: proposed name AreRefsStructurallyEqual (T1); TU bif
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Recursive structural equality (lists, vectors, matrices) -> Bool.
 CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b)
 {
@@ -986,13 +885,6 @@ CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b)
 } // namespace M_AreRefsStructurallyEqual__FP4CRefT0
 
 // 0x1207F0 BuiltinEqual__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x1207F0
- * Purpose: Splice builtin "equal?": calls AreRefsStructurallyEqual (recursive)
- * Info: proposed name BuiltinEqual (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "equal?": calls AreRefsStructurallyEqual (recursive).
 extern "C" CREFV *BuiltinEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -1004,12 +896,6 @@ extern "C" CREFV *BuiltinEqual__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *a
 namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120820
- * Purpose: Splice builtin "boolean?": tag==0x17
- * Info: proposed name BuiltinIsBoolean (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "boolean?": tag==0x17.
 CRef *BuiltinIsBoolean__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1024,12 +910,6 @@ CRef *BuiltinIsBoolean__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsNum__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120840
- * Purpose: Splice builtin "number?": tag==0x15||0x16
- * Info: proposed name BuiltinIsNum (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "number?": tag==0x15||0x16.
 CRef *BuiltinIsNum__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1044,12 +924,6 @@ CRef *BuiltinIsNum__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsFloat__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120860
- * Purpose: Splice builtin "float?": tag==0x16 (F32)
- * Info: proposed name BuiltinIsFloat (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "float?": tag==0x16 (F32).
 CRef *BuiltinIsFloat__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1064,12 +938,6 @@ CRef *BuiltinIsFloat__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsInteger__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120880
- * Purpose: Splice builtin "integer?": tag==0x15 (S32)
- * Info: proposed name BuiltinIsInteger (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "integer?": tag==0x15 (S32).
 CRef *BuiltinIsInteger__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1084,13 +952,6 @@ CRef *BuiltinIsInteger__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x1208A0
- * Purpose: Splice builtin "symbol?": tag==0x18
- * Info: proposed name BuiltinIsSymbol (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "symbol?": tag==0x18.
 CRef *BuiltinIsSymbol__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1105,12 +966,6 @@ CRef *BuiltinIsSymbol__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsVector__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x1208C0
- * Purpose: Splice builtin "vector?": tag==0x1A
- * Info: proposed name BuiltinIsVector (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector?": tag==0x1A.
 CRef *BuiltinIsVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1125,12 +980,6 @@ CRef *BuiltinIsVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x1208E0
- * Purpose: Splice builtin "matrix?": tag==0x1B
- * Info: proposed name BuiltinIsMatrix (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix?": tag==0x1B.
 CRef *BuiltinIsMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1145,12 +994,6 @@ CRef *BuiltinIsMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsClq__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120900
- * Purpose: Splice builtin "clq?": tag==0x1C
- * Info: proposed name BuiltinIsClq (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "clq?": tag==0x1C.
 CRef *BuiltinIsClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1165,12 +1008,6 @@ CRef *BuiltinIsClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsLm__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120920
- * Purpose: Splice builtin "lm?": tag==0x1D
- * Info: proposed name BuiltinIsLm (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "lm?": tag==0x1D.
 CRef *BuiltinIsLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1185,12 +1022,6 @@ CRef *BuiltinIsLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsSmp__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120940
- * Purpose: Splice builtin "smp?": tag==0x1E
- * Info: proposed name BuiltinIsSmp (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "smp?": tag==0x1E.
 CRef *BuiltinIsSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1213,12 +1044,6 @@ struct CRef {
 };
 extern "C" CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref);
 
-/** @sly2-annot addr=0x120960
- * Purpose: Splice builtin "list?": tag==0x1F||tag==0
- * Info: proposed name BuiltinIsList (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "list?": tag==0x1F||tag==0.
 CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 {
@@ -1231,12 +1056,6 @@ CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 namespace M_BuiltinIsNull__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120990
- * Purpose: Splice builtin "null?": tag==0
- * Info: proposed name BuiltinIsNull (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "null?": tag==0.
 CRef *BuiltinIsNull__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1251,12 +1070,6 @@ CRef *BuiltinIsNull__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 namespace M_BuiltinIsObject__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x1209B0
- * Purpose: Splice builtin "object?": tag==0x21
- * Info: proposed name BuiltinIsObject (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "object?": tag==0x21.
 CRef *BuiltinIsObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1268,12 +1081,6 @@ CRef *BuiltinIsObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 } } // namespace M_BuiltinIsObject__FiP4CRefP6CFrame
 
 // 0x1209D0 BuiltinIsNullObj__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x1209D0
- * Purpose: Splice builtin "null-obj?": tag==0x21 && ptr==NULL
- * Info: proposed name BuiltinIsNullObj (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "null-obj?": tag==0x21 && ptr==NULL.
 /* (null-object? x): x is an object reference (tag 0x21) holding no object. */
 extern "C" CREFV *BuiltinIsNullObj__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
@@ -1292,12 +1099,6 @@ extern "C" CREFV *BuiltinIsNullObj__FiP4CRefP6CFrame(CREFV *pref, int cref, CREF
 namespace M_BuiltinIsMethod__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x120A00
- * Purpose: Splice builtin "method?": tag==0x22
- * Info: proposed name BuiltinIsMethod (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "method?": tag==0x22.
 CRef *BuiltinIsMethod__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *pref)
 {
@@ -1320,13 +1121,6 @@ struct CRef {
 };
 extern "C" CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref);
 
-/** @sly2-annot addr=0x120A20
- * Purpose: Splice builtin "procedure?": tag==0x20||0x19
- * Info: proposed name BuiltinIsProcedure (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "procedure?": tag==0x20||0x19.
 CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 {
@@ -1340,13 +1134,6 @@ namespace M_BuiltinAreNear__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 int AreFloatsNear__Ffff(float a, float b, float c);
-/** @sly2-annot addr=0x120A58
- * Purpose: Splice builtin "near?": AreFloatsNear(a,b,eps)
- * Info: proposed name BuiltinAreNear (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "near?": AreFloatsNear(a,b,eps).
 CRef *BuiltinAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -1365,12 +1152,6 @@ CRef *BuiltinAreNear__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 } } // namespace M_BuiltinAreNear__FiP4CRefP6CFrame
 
 // 0x120AE0 BuiltinNot__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120AE0
- * Purpose: Splice builtin "not": true iff arg is Bool false
- * Info: proposed name BuiltinNot (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "not": true iff arg is Bool false.
 /* (not x): true only for the boolean false. */
 extern "C" CREFV *BuiltinNot__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
@@ -1402,13 +1183,6 @@ struct SPN {
     CPair *operator->() { return p; }
 };
 extern "C" CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x120B08
- * Purpose: Splice builtin "cons": new pair node (ref=a0, next=a1 if list)
- * Info: proposed name BuiltinCons (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "cons": new pair node (ref=a0, next=a1 if list).
 CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -1423,12 +1197,6 @@ CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinCons__FiP4CRefP6CFrame
 
 // 0x120BD0 BuiltinCar__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120BD0
- * Purpose: Splice builtin "car": copy of node->ref
- * Info: proposed name BuiltinCar (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verify_side
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "car": copy of node->ref.
 extern "C" CREFV *BuiltinCar__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -1437,13 +1205,6 @@ extern "C" CREFV *BuiltinCar__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *arg
 }
 
 // 0x120C00 BuiltinCdr__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120C00
- * Purpose: Splice builtin "cdr": CRef(node->pnext) or Nil
- * Info: proposed name BuiltinCdr (T1); TU bif
- * Notes: names_v2 C proposed BuiltinCar__FiP4CRefP6CFrame (0.638)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918+verify_side
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "cdr": CRef(node->pnext) or Nil.
 extern "C" CREFV *BuiltinCdr__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -1464,13 +1225,6 @@ typedef struct CRef { int m_tagk; void *m_p; } CRef;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 void PairPtr_Assign(void *p, void *q) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
-/** @sly2-annot addr=0x120C48
- * Purpose: Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void
- * Info: proposed name BuiltinSetCadr (T1); TU bif
- * Notes: names_v2 B proposed BuiltinCdr__FiP4CRefP6CFrame (0.866)
- * Confidence: high [T1 0.90] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void.
 CRef *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, CRef *args, int cref, int k)
 {
@@ -1491,13 +1245,6 @@ namespace M_BuiltinSetCar__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
-/** @sly2-annot addr=0x120CC8
- * Purpose: Splice builtin "set-car!": BuiltinSetCadr(...,0x23)
- * Info: proposed name BuiltinSetCar (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "set-car!": BuiltinSetCadr(...,0x23).
 CRef *BuiltinSetCar__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
@@ -1511,13 +1258,6 @@ namespace M_BuiltinSetCdr__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
-/** @sly2-annot addr=0x120CF8
- * Purpose: Splice builtin "set-cdr!": BuiltinSetCadr(...,0x24)
- * Info: proposed name BuiltinSetCdr (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "set-cdr!": BuiltinSetCadr(...,0x24).
 CRef *BuiltinSetCdr__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
@@ -1527,12 +1267,6 @@ CRef *BuiltinSetCdr__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *a
 } } // namespace M_BuiltinSetCdr__FiP4CRefP6CFrame
 
 // 0x120D28 BuiltinLength__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120D28
- * Purpose: Splice builtin "length": count of list nodes -> S32
- * Info: proposed name BuiltinLength (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verify_side
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "length": count of list nodes -> S32.
 extern "C" CREFV *BuiltinLength__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -1562,12 +1296,6 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x120D78
- * Purpose: Splice builtin "nth": walk list to index a1
- * Info: proposed name BuiltinNth (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verify_side
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "nth": walk list to index a1.
 CRef *BuiltinNth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -1608,13 +1336,6 @@ extern "C" {
 CRef BuiltinEqual__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
 CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
 }
-/** @sly2-annot addr=0x120E10
- * Purpose: Splice builtin "member?": loop calling BuiltinEqual on each element
- * Info: proposed name BuiltinIsMember (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "member?": loop calling BuiltinEqual on each element.
 CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
 {
@@ -1639,13 +1360,6 @@ CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
 } // namespace M_BuiltinIsMember__FiP4CRefP6CFrame
 
 // 0x120F80 BuiltinList__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x120F80
- * Purpose: Splice builtin "list": returns the arg list itself (varargs)
- * Info: proposed name BuiltinList (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "list": returns the arg list itself (varargs).
 extern "C" CREFV *BuiltinList__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -1676,19 +1390,8 @@ struct SPN {
 extern "C" CRef BuiltinShuffle(void *pbasic, CRef *args);
 static inline void SetSpn(SPN *psp, CPair *pn) { *psp = pn; }
 static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->next = psp->p; *psp = sp.p; }
-/** @sly2-annot addr=0x120FB0
- * Purpose: Random permutation of a list (Fisher-Yates via RandomIntInRange 0x11D3F8), guarantees first element
- *   changes; Nil entry pins tail
- * Info: proposed name BuiltinShuffle (T1); TU bif
- * Notes: splice builtin 41 shuffle~ -> shuffle~ (0.75): Body: Fisher-Yates over list elements with
- *   RandomIntInRange, forces a different first element, keeps a nil marker position. Scripts reshuffle dialog
- *   line lists befo
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r1_116918+top50_round(splice
- *   builtin 41)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Random permutation of a list (Fisher-Yates via RandomIntInRange 0x11D3F8), guarantees first element changes; Nil entry
-// pins tail.
+// pins tail. Scripts use it to reshuffle dialogue line lists.
 CRef BuiltinShuffle(void *pbasic, CRef *args)
 {
     if (args[0].m_tagk == 0) return CRef(0);
@@ -1769,13 +1472,6 @@ struct SP {
 };
 extern "C" SP CPair_CloneTo(CPair *src, void *a, void *b);
 extern "C" CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x1212F8
- * Purpose: Splice builtin "append": concatenates list args (copies all but last)
- * Info: proposed name BuiltinAppend (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "append": concatenates list args (copies all but last).
 CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -1829,15 +1525,6 @@ struct SPN {
     CPair *operator->() { return p; }
 };
 extern "C" SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2);
-/** @sly2-annot addr=0x121578
- * Purpose: Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for
- *   map/filter/for-each
- * Info: proposed name SpnNewApplyList2 (T2); TU bif
- * Notes: names_v2 B proposed BuiltinMatrix__FiP4CRefP6CFrame (0.897)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r1_116918
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for map/filter/for-each.
 SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2)
 {
@@ -1882,14 +1569,6 @@ struct SPN {
 extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
 extern "C" CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
-/** @sly2-annot addr=0x121710
- * Purpose: Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects
- *   results
- * Info: proposed name BuiltinMap (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results.
 CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
@@ -1951,13 +1630,6 @@ struct SPN {
 extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
 extern "C" CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
-/** @sly2-annot addr=0x121938
- * Purpose: Splice builtin "filter": same, keeps elems where result true
- * Info: proposed name BuiltinFilter (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "filter": same, keeps elems where result true.
 CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
@@ -2016,13 +1688,6 @@ struct SPN {
 extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
 extern "C" CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
-/** @sly2-annot addr=0x121C20
- * Purpose: Splice builtin "for-each": same, discards results
- * Info: proposed name BuiltinForEach (T1); TU bif
- * Notes: names_v2 C proposed BuiltinClq__FiP4CRefP6CFrame (0.638)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "for-each": same, discards results.
 CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
@@ -2062,13 +1727,6 @@ struct SPN {
 };
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
 extern "C" CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args);
-/** @sly2-annot addr=0x121D20
- * Purpose: Splice builtin "eval": wraps arg in list and applies 0x127838
- * Info: proposed name BuiltinEval (T1); TU bif
- * Notes: names_v2 B proposed BuiltinLm__FiP4CRefP6CFrame (0.856)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "eval": wraps arg in list and applies 0x127838.
 CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 {
@@ -2099,13 +1757,6 @@ extern "C" {
 CRef CRef_CoerceF32(CRef *pref);
 CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref);
 }
-/** @sly2-annot addr=0x121DD8
- * Purpose: Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs)
- * Info: proposed name BuiltinVector (T1); TU bif
- * Notes: names_v2 B proposed BuiltinSmp__FiP4CRefP6CFrame (0.967)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs).
 CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
 {
@@ -2165,13 +1816,6 @@ void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 CRef CRef_CoerceF32(CRef *pref);
 CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref);
 }
-/** @sly2-annot addr=0x121F00
- * Purpose: Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based
- * Info: proposed name BuiltinMatrix (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based.
 CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
 {
@@ -2223,13 +1867,6 @@ void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
-/** @sly2-annot addr=0x1220B8
- * Purpose: Splice builtin "clq": 3 floats -> tag 0x1C
- * Info: proposed name BuiltinClq (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "clq": 3 floats -> tag 0x1C.
 CRef *BuiltinClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2258,13 +1895,6 @@ void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
-/** @sly2-annot addr=0x122168
- * Purpose: Splice builtin "lm": 2 floats -> tag 0x1D
- * Info: proposed name BuiltinLm (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B+verify_side
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "lm": 2 floats -> tag 0x1D.
 CRef *BuiltinLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2293,13 +1923,6 @@ void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
-/** @sly2-annot addr=0x122218
- * Purpose: Splice builtin "smp": 3 floats -> tag 0x1E
- * Info: proposed name BuiltinSmp (T1); TU bif
- * Notes: names_v2 B proposed ApplyUnaryFloatOp__FP4CRef4UFOK (0.980)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918+verify_side
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "smp": 3 floats -> tag 0x1E.
 CRef *BuiltinSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2333,12 +1956,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 CRef *SetF32__4CReff(CRef *pref, float g);
 CRef *CRef_SetVector(CRef *pref, VECTOR *pv);
-/** @sly2-annot addr=0x1222C8
- * Purpose: Splice builtin "get-element": element of vector/matrix by index list
- * Info: proposed name BuiltinGetElement (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "get-element": element of vector/matrix by index list.
 CRef *BuiltinGetElement__FiP4CRefP6CFrame(CRef *ret, int carg, CRef *args)
 {
@@ -2404,12 +2021,6 @@ int RandomIntInRange__Fii(int a, int b);
 float RandomFloatInRange__Fff(float a, float b);
 CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x1223C0
- * Purpose: Splice builtin "random": RandomIntInRange for ints else RandomFloatInRange
- * Info: proposed name BuiltinRandom (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "random": RandomIntInRange for ints else RandomFloatInRange.
 CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2434,13 +2045,6 @@ extern PFNG D_002BBB70[];
 void SetF32__4CReff(CRef *pref, float g);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x1224A8
- * Purpose: Unary float op dispatcher (sqrt, sin, cos, tan, asin, acos, atan, rad-normalize by UFOK 0..7)
- * Info: proposed name ApplyUnaryFloatOp (T1); TU bif
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/splice-scripting.md#4-builtin-table-d_002bbb90,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Unary float op dispatcher (sqrt, sin, cos, tan, asin, acos, atan, rad-normalize by UFOK 0..7).
 CRef *ApplyUnaryFloatOp__FP4CRef4UFOK(CRef *ret, CRef *parg, int i)
 {
@@ -2460,13 +2064,6 @@ CRef *ApplyUnaryFloatOp__FP4CRef4UFOK(CRef *ret, CRef *parg, int i)
 } } // namespace M_ApplyUnaryFloatOp__FP4CRef4UFOK
 
 // 0x122530 BuiltinSqrt__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122530
- * Purpose: Splice builtin "sqrt": ApplyUnaryFloatOp(arg,0)
- * Info: proposed name BuiltinSqrt (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "sqrt": ApplyUnaryFloatOp(arg,0).
 extern "C" CREFV *BuiltinSqrt__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2475,13 +2072,6 @@ extern "C" CREFV *BuiltinSqrt__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *ar
 }
 
 // 0x122560 BuiltinSin__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122560
- * Purpose: Splice builtin "sin": ApplyUnaryFloatOp(arg,1)
- * Info: proposed name BuiltinSin (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "sin": ApplyUnaryFloatOp(arg,1).
 extern "C" CREFV *BuiltinSin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2490,13 +2080,6 @@ extern "C" CREFV *BuiltinSin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *arg
 }
 
 // 0x122590 BuiltinCos__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122590
- * Purpose: Splice builtin "cos": ApplyUnaryFloatOp(arg,2)
- * Info: proposed name BuiltinCos (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "cos": ApplyUnaryFloatOp(arg,2).
 extern "C" CREFV *BuiltinCos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2505,13 +2088,6 @@ extern "C" CREFV *BuiltinCos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *arg
 }
 
 // 0x1225C0 BuiltinTan__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x1225C0
- * Purpose: Splice builtin "tan": ApplyUnaryFloatOp(arg,3)
- * Info: proposed name BuiltinTan (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "tan": ApplyUnaryFloatOp(arg,3).
 extern "C" CREFV *BuiltinTan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2520,13 +2096,6 @@ extern "C" CREFV *BuiltinTan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *arg
 }
 
 // 0x1225F0 BuiltinAsin__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x1225F0
- * Purpose: Splice builtin "asin": ApplyUnaryFloatOp(arg,4)
- * Info: proposed name BuiltinAsin (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "asin": ApplyUnaryFloatOp(arg,4).
 extern "C" CREFV *BuiltinAsin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2535,13 +2104,6 @@ extern "C" CREFV *BuiltinAsin__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *ar
 }
 
 // 0x122620 BuiltinAcos__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122620
- * Purpose: Splice builtin "acos": ApplyUnaryFloatOp(arg,5)
- * Info: proposed name BuiltinAcos (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "acos": ApplyUnaryFloatOp(arg,5).
 extern "C" CREFV *BuiltinAcos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2550,13 +2112,6 @@ extern "C" CREFV *BuiltinAcos__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *ar
 }
 
 // 0x122650 BuiltinAtan__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122650
- * Purpose: Splice builtin "atan": ApplyUnaryFloatOp(arg,6)
- * Info: proposed name BuiltinAtan (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "atan": ApplyUnaryFloatOp(arg,6).
 extern "C" CREFV *BuiltinAtan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2565,13 +2120,6 @@ extern "C" CREFV *BuiltinAtan__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *ar
 }
 
 // 0x122680 BuiltinRadNormalize__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122680
- * Purpose: Splice builtin "rad-normalize": ApplyUnaryFloatOp(arg,7)
- * Info: proposed name BuiltinRadNormalize (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "rad-normalize": ApplyUnaryFloatOp(arg,7).
 extern "C" CREFV *BuiltinRadNormalize__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -2584,13 +2132,6 @@ namespace M_BuiltinAtan2__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 float atan2f(float y, float x);
-/** @sly2-annot addr=0x1226B0
- * Purpose: Splice builtin "atan2": atan2f(a0,a1)
- * Info: proposed name BuiltinAtan2 (T1); TU bif
- * Notes: names_v2 B proposed BuiltinVectorDotProduct__FiP4CRefP6CFrame (0.994)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "atan2": atan2f(a0,a1).
 CRef *BuiltinAtan2__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2626,13 +2167,6 @@ static __inline__ int DotProduct3(qword *pa, qword *pb)
     __asm__ ("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
 }
-/** @sly2-annot addr=0x122730
- * Purpose: Splice builtin "vector-dot-product": VU dot xyz
- * Info: proposed name BuiltinVectorDotProduct (T1); TU bif
- * Notes: names_v2 C proposed BuiltinVectorCrossProduct__FiP4CRefP6CFrame (0.167)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-dot-product": VU dot xyz.
 CRef *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2651,12 +2185,6 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x122770
- * Purpose: Splice builtin "vector-cross-product": VU outer product (cross)
- * Info: proposed name BuiltinVectorCrossProduct (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-cross-product": VU outer product (cross).
 CRef *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2693,12 +2221,6 @@ static __inline__ int VectorLength3(qword *pa)
     __asm__ ("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
 }
-/** @sly2-annot addr=0x1227D0
- * Purpose: Splice builtin "vector-lth": VU length
- * Info: proposed name BuiltinVectorLength (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-lth": VU length.
 CRef *BuiltinVectorLength__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2747,12 +2269,6 @@ static inline float SDist(qword *pa, qword *pb)
     __asm__ ("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
 }
-/** @sly2-annot addr=0x122810
- * Purpose: Splice builtin "vector-distance": distance to a1 or origin
- * Info: proposed name BuiltinVectorDistance (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-distance": distance to a1 or origin.
 CRef BuiltinVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2803,13 +2319,6 @@ static inline float SDistSq(qword *pa, qword *pb)
     __asm__ ("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
 }
-/** @sly2-annot addr=0x1228F0
- * Purpose: Splice builtin "vector-distance-squared": squared distance
- * Info: proposed name BuiltinVectorDistanceSquared (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-distance-squared": squared distance.
 CRef BuiltinVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2878,12 +2387,6 @@ static __inline__ void Normalize1(qword *pv, qword *pdef)
         *pv = rn;
     }
 }
-/** @sly2-annot addr=0x1229B8
- * Purpose: Splice builtin "vector-normalize": normalize with 1e-4 guard/default
- * Info: proposed name BuiltinVectorNormalize (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-normalize": normalize with 1e-4 guard/default.
 CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2904,12 +2407,6 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x122B08
- * Purpose: Splice builtin "vector-project-normal": (a.b)b
- * Info: proposed name BuiltinVectorProjectNormal (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-project-normal": (a.b)b.
 CRef *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2937,12 +2434,6 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x122B70
- * Purpose: Splice builtin "vector-project-tangent": a-(a.b)b
- * Info: proposed name BuiltinVectorProjectTangent (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-project-tangent": a-(a.b)b.
 CRef *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -2988,13 +2479,6 @@ CRef CRef_CoerceF32(CRef *pref);
 qword CalculateBallisticLaunchVelocity(qword a, qword b, qword c, float g);
 CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x122BE0
- * Purpose: Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with
- *   gravity (0,0,-1750) or object xfm
- * Info: proposed name BuiltinVectorBallisticVelocity (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with gravity (0,0,-1750)
 // or object xfm.
 CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args)
@@ -3034,12 +2518,6 @@ struct SPN {
 };
 extern "C" float AngleBetweenVectors(qword a, qword b, void *pvec);
 extern "C" CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x122CE0
- * Purpose: Splice builtin "vector-radian-normal": list (rad vector) from AngleBetweenVectors-like 0x11E4B0
- * Info: proposed name BuiltinVectorRadianNormal (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "vector-radian-normal": list (rad vector) from AngleBetweenVectors-like 0x11E4B0.
 CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3063,13 +2541,6 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 typedef struct MATRIX4 { float m[4][4]; } __attribute__((aligned(16))) MATRIX4;
 void TransposeMatrix4(MATRIX4 *pmat, int n);
 void CRef_ctor_MATRIX4(CRef *pref, MATRIX4 *pmat);
-/** @sly2-annot addr=0x122DE0
- * Purpose: Splice builtin "matrix-transpose": 0x11C1D8
- * Info: proposed name BuiltinMatrixTranspose (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_B
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-transpose": 0x11C1D8.
 CRef *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3084,12 +2555,6 @@ CRef *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *ar
 } } // namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame
 
 // 0x122E40 BuiltinMatrixInvert__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122E40
- * Purpose: Splice builtin "matrix-invert": 0x11C2F0
- * Info: proposed name BuiltinMatrixInvert (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-invert": 0x11C2F0.
 extern "C" CREFV *BuiltinMatrixInvert__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -3102,12 +2567,6 @@ extern "C" CREFV *BuiltinMatrixInvert__FiP4CRefP6CFrame(CREFV *pref, int cref, C
 }
 
 // 0x122EA0 BuiltinMatrixCalculateDmat__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x122EA0
- * Purpose: Splice builtin "matrix-calculate-dmat": 0x11C3D0 (CalculateDmat)
- * Info: proposed name BuiltinMatrixCalculateDmat (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-calculate-dmat": 0x11C3D0 (CalculateDmat).
 extern "C" CREFV *BuiltinMatrixCalculateDmat__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -3158,12 +2617,6 @@ static inline M3 MulM3(const M3 &a, M3 *pb) return m
     m.r[2] = r2; t.r[2] = r2;
 }
 extern "C" CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args);
-/** @sly2-annot addr=0x122F00
- * Purpose: Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500)
- * Info: proposed name BuiltinMatrixInterpolateRotate (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500).
 CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
@@ -3181,12 +2634,6 @@ CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
 } // namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame
 
 // 0x123038 BuiltinMatrixDecomposeToTranslate__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x123038
- * Purpose: Splice builtin "matrix-decompose-to-translate": translation column -> vector
- * Info: proposed name BuiltinMatrixDecomposeToTranslate (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-translate": translation column -> vector.
 extern "C" CREFV *BuiltinMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -3198,12 +2645,6 @@ extern "C" CREFV *BuiltinMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CREFV *pre
 }
 
 // 0x123080 BuiltinMatrixDecomposeToRotate__FiP4CRefP6CFrame
-/** @sly2-annot addr=0x123080
- * Purpose: Splice builtin "matrix-decompose-to-rotate": rotation part -> matrix
- * Info: proposed name BuiltinMatrixDecomposeToRotate (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-rotate": rotation part -> matrix.
 extern "C" CREFV *BuiltinMatrixDecomposeToRotate__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *args)
 {
@@ -3223,12 +2664,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_ctor(CRef *pref, TI vec);
 TI DecomposeRotationMatrixToEuler(int n);
-/** @sly2-annot addr=0x1230C8
- * Purpose: Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler
- * Info: proposed name BuiltinMatrixDecomposeToEuler (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler.
 CRef *BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3258,13 +2693,6 @@ struct SPN {
 };
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec);
 extern "C" CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x123118
- * Purpose: Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad
- * Info: proposed name BuiltinMatrixDecomposeToRadianNormal (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad.
 CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3309,12 +2737,6 @@ static inline qword SubtractVectors(qword *pb, qword *pa)
     __asm__ ("vsub.xyzw %0, %0, %1" : "+j"(b) : "j"(a));
     return b;
 }
-/** @sly2-annot addr=0x123208
- * Purpose: Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default D_002A2DC0
- * Info: proposed name BuiltinMatrixLookAt (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default D_002A2DC0.
 CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3358,12 +2780,6 @@ void TiltMatUpright(XF *pxf, int f, MATRIX3 *pmat);
 VECTOR *VECTOR_opAssign(VECTOR *pv, qword q);
 CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x1232D0
- * Purpose: Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright
- * Info: proposed name BuiltinMatrixTiltUpright (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright.
 CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3387,12 +2803,6 @@ struct CRef;
 typedef struct CRef { int m_tagk; union { int n; float g; void *p; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
-/** @sly2-annot addr=0x123380
- * Purpose: Splice builtin "clq-evaluate": a0+t(a1+t a2)
- * Info: proposed name BuiltinClqEvaluate (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "clq-evaluate": a0+t(a1+t a2).
 CRef *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3416,13 +2826,6 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct LM { float gMin; float gMax; } LM;
 void Decref__4CRef(CRef *pref);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
-/** @sly2-annot addr=0x1233F0
- * Purpose: Splice builtin "clq-evaluate-lm": clq eval clamped to lm
- * Info: proposed name BuiltinClqEvaluateLm (T1); TU bif
- * Notes: names_v2 C proposed BuiltinClqEvaluate__FiP4CRefP6CFrame (0.638)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "clq-evaluate-lm": clq eval clamped to lm.
 CRef *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3458,13 +2861,6 @@ CRef CRef_CoerceF32(CRef *pref);
 void FitClq__FffffP3CLQ(void *pv, float a, float b, float c, float d);
 CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x123498
- * Purpose: Splice builtin "clq-fit": FitClq
- * Info: proposed name BuiltinClqFit (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "clq-fit": FitClq.
 CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3490,12 +2886,6 @@ typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 float ClampToLimits__FP2LMf(int n, float g);
-/** @sly2-annot addr=0x1235A8
- * Purpose: Splice builtin "lm-limit": ClampToLimits
- * Info: proposed name BuiltinLmLimit (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "lm-limit": ClampToLimits.
 CRef *BuiltinLmLimit__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3518,13 +2908,6 @@ typedef struct CRef { int m_tagk; union { int n; float g; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 int IsWithinLimits__FP2LMf(int n, float g);
-/** @sly2-annot addr=0x123608
- * Purpose: Splice builtin "lm-check?": IsWithinLimits
- * Info: proposed name BuiltinLmCheck (T1); TU bif
- * Notes: names_v2 B proposed BuiltinFloor__FiP4CRefP6CFrame (0.969)
- * Confidence: high [T1 0.93] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "lm-check?": FCheckLm.
 CRef *BuiltinLmCheck__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3544,12 +2927,6 @@ CRef *BuiltinLmCheck__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 namespace M_BuiltinFloor__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
-/** @sly2-annot addr=0x123668
- * Purpose: Splice builtin "floor": (int)g
- * Info: proposed name BuiltinFloor (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "floor": (int)g.
 CRef *BuiltinFloor__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3564,13 +2941,6 @@ CRef *BuiltinFloor__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 namespace M_BuiltinCeiling__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
-/** @sly2-annot addr=0x123688
- * Purpose: Splice builtin "ceiling": (int)(g+1)
- * Info: proposed name BuiltinCeiling (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "ceiling": (int)(g+1).
 CRef *BuiltinCeiling__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3585,12 +2955,6 @@ CRef *BuiltinCeiling__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 namespace M_BuiltinRound__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
-/** @sly2-annot addr=0x1236B0
- * Purpose: Splice builtin "round": (int)(g+0.5)
- * Info: proposed name BuiltinRound (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "round": (int)(g+0.5).
 CRef *BuiltinRound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3605,12 +2969,6 @@ CRef *BuiltinRound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 namespace M_BuiltinTruncate__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
-/** @sly2-annot addr=0x1236D8
- * Purpose: Splice builtin "truncate": (int)g
- * Info: proposed name BuiltinTruncate (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "truncate": (int)g.
 CRef *BuiltinTruncate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3629,13 +2987,6 @@ void SetS32__4CRefi(CRef *pref, int n);
 void SetF32__4CReff(CRef *pref, float g);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x1236F8
- * Purpose: Splice builtin "abs": abs int/float
- * Info: proposed name BuiltinAbs (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "abs": abs int/float.
 CRef *BuiltinAbs__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3672,12 +3023,6 @@ struct CRef {
 };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x123788
- * Purpose: Splice builtin "max": max over varargs
- * Info: proposed name BuiltinMaximum (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "max": max over varargs.
 CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3728,12 +3073,6 @@ struct CRef {
 };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
 extern "C" CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x1238B0
- * Purpose: Splice builtin "min": min over varargs
- * Info: proposed name BuiltinMinimum (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "min": min over varargs.
 CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3771,12 +3110,6 @@ CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 namespace M_BuiltinModulo__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-/** @sly2-annot addr=0x1239D8
- * Purpose: Splice builtin "modulo": int %
- * Info: proposed name BuiltinModulo (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "modulo": int %.
 CRef *BuiltinModulo__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -3792,12 +3125,6 @@ namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 extern float D_002DDED0;
-/** @sly2-annot addr=0x123A08
- * Purpose: Splice builtin "current-time": F32 = g_clock.t (D_002DDED0)
- * Info: proposed name BuiltinCurrentTime (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "current-time": F32 = g_clock.t (D_002DDED0).
 CRef *BuiltinCurrentTime__FiP4CRefP6CFrame(CRef *ret)
 {
@@ -3808,17 +3135,8 @@ CRef *BuiltinCurrentTime__FiP4CRefP6CFrame(CRef *ret)
 } } // namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame
 
 // 0x123A28 BuiltinCurrentLevel
-/** @sly2-annot addr=0x123A28
- * Purpose: S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by IsCurrentLevelInList
- * Info: proposed name BuiltinCurrentLevel (T1); TU bif
- * Notes: v3: superseded RefOpGetLoadFilterCur | splice builtin 97 load-filter~ -> current-level~ (0.70): Body
- *   returns CRef Int(GetCurrentLevelIndex()) = D_003E1110 (current level index; siblings GetCurrentEpisode/GetCurrentWorld).
- *   Scripts: (case (load-filter~) ...) and (= (load-filter~)
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r1_116918+top50_round(splice
- *   builtin 97)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by IsCurrentLevelInList.
+// That is the current level index (GetCurrentLevelIndex); scripts switch on it.
 extern "C" CREFV *BuiltinCurrentLevel(CREFV *pref)
 {
     pref->u.n = GetCurrentLevelIndex();
@@ -3827,17 +3145,8 @@ extern "C" CREFV *BuiltinCurrentLevel(CREFV *pref)
 }
 
 // 0x123A60 BuiltinCurrentEpisode
-/** @sly2-annot addr=0x123A60
- * Purpose: S32 = table D_003E1C48[cur] (0x210A98) or -1
- * Info: proposed name BuiltinCurrentEpisode (T1); TU bif
- * Notes: v3: superseded RefOpGetLoadFilterMappedA | splice builtin 98 load-filter-world-episode~ ->
- *   current-episode~ (0.65): Body returns Int(GetCurrentEpisode()) = g_anEpisodeOfLevel[GetCurrentLevelIndex()] or -1. Not
- *   used by retail scripts
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round(splice
- *   builtin 98)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // S32 = table D_003E1C48[cur] (0x210A98) or -1.
+// That is the current episode (g_anEpisodeOfLevel[level]) or -1; unused by retail scripts.
 extern "C" CREFV *BuiltinCurrentEpisode(CREFV *pref)
 {
     pref->u.n = GetCurrentEpisode();
@@ -3846,17 +3155,7 @@ extern "C" CREFV *BuiltinCurrentEpisode(CREFV *pref)
 }
 
 // 0x123A98 BuiltinCurrentWorld
-/** @sly2-annot addr=0x123A98
- * Purpose: S32 = table D_003E1C44[cur] (0x210AE0) or -1
- * Info: proposed name BuiltinCurrentWorld (T1); TU bif
- * Notes: v3: superseded RefOpGetLoadFilterMappedB | splice builtin 99 load-filter-world~ -> current-world~
- *   (0.65): Body returns Int(GetCurrentWorld()) = g_anWorldOfLevel[GetCurrentLevelIndex()] or -1. Scripts: (case
- *   (load-filter-world~) ((1) 33) ((2) 34) ...) and (= (load-filter-world~) -1)
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round(splice
- *   builtin 99)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
-// S32 = table D_003E1C44[cur] (0x210AE0) or -1.
+// S32 = table D_003E1C44[cur] (0x210AE0) or -1. That is the current world (g_anWorldOfLevel[level]) or -1.
 extern "C" CREFV *BuiltinCurrentWorld(CREFV *pref)
 {
     pref->u.n = GetCurrentWorld();
@@ -3865,17 +3164,7 @@ extern "C" CREFV *BuiltinCurrentWorld(CREFV *pref)
 }
 
 // 0x123AD0 BuiltinFindCurrentJob
-/** @sly2-annot addr=0x123AD0
- * Purpose: CRef(BASIC*) of g_sw slot D_003E0F9C
- * Info: proposed name BuiltinFindCurrentJob (T1); TU bif
- * Notes: v3: superseded RefOpFindPlayerObject0 | splice builtin 100 find-player-object-0~ ->
- *   find-current-job~ (0.80): Body CRef(BASIC*) of g_sw+0x3B0C, documented current JOB slot (IsCurrentJob
- *   0x1633E8 tests the same slot; NULL in free roam at runtime). Scripts call job metho
- * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r1_116918+top50_round(splice builtin 100)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
-// CRef(BASIC*) of g_sw slot D_003E0F9C.
+// CRef(BASIC*) of g_sw slot D_003E0F9C. That slot is the current JOB (null in free roam).
 extern "C" CREFV *BuiltinFindCurrentJob(CREFV *pref)
 {
     CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploJobCur);
@@ -3883,16 +3172,7 @@ extern "C" CREFV *BuiltinFindCurrentJob(CREFV *pref)
 }
 
 // 0x123B00 BuiltinFindCurrentTask
-/** @sly2-annot addr=0x123B00
- * Purpose: CRef(BASIC*) of D_003E0FA0
- * Info: proposed name BuiltinFindCurrentTask (T1); TU bif
- * Notes: v3: superseded RefOpFindPlayerObject1 | splice builtin 101 find-player-object-1~ ->
- *   find-current-task~ (0.80): Body CRef of g_sw+0x3B10 (current TASK, IsCurrentTask 0x164018). Scripts:
- *   ((geto (find-player-object-1~) 'RequestTaskState:1104) 2 self), (eqv? (find-player-ob
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 101)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
-// CRef(BASIC*) of D_003E0FA0.
+// CRef(BASIC*) of D_003E0FA0. That slot is the current TASK.
 extern "C" CREFV *BuiltinFindCurrentTask(CREFV *pref)
 {
     CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploTaskCur);
@@ -3900,17 +3180,8 @@ extern "C" CREFV *BuiltinFindCurrentTask(CREFV *pref)
 }
 
 // 0x123B30 BuiltinFindPendingTask
-/** @sly2-annot addr=0x123B30
- * Purpose: CRef(BASIC*) of D_003E0FA4
- * Info: proposed name BuiltinFindPendingTask (T1); TU bif
- * Notes: v3: superseded RefOpFindPlayerObject2 | splice builtin 102 find-player-object-2~ ->
- *   find-pending-task~ (0.65): Body CRef of g_sw+0x3B14 (pending task, RestartJob 0x162DF8 prefers it).
- *   Scripts compare it with a task and call RequestTaskState on it
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round(splice
- *   builtin 102)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // CRef(BASIC*) of D_003E0FA4.
+// That slot is the pending TASK (RestartJob prefers it); scripts call RequestTaskState on it.
 extern "C" CREFV *BuiltinFindPendingTask(CREFV *pref)
 {
     CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploTaskPending);
@@ -3918,18 +3189,8 @@ extern "C" CREFV *BuiltinFindPendingTask(CREFV *pref)
 }
 
 // 0x123B60 BuiltinGetDifficulty
-/** @sly2-annot addr=0x123B60
- * Purpose: F32 = 0x154C90(&D_002DE578): D_003E0F9C->pg value or average of 3 Splice values
- * Info: proposed name BuiltinGetDifficulty (T1); TU bif
- * Notes: names_v2 C proposed BuiltinCurrentTime__FiP4CRefP6CFrame (0.638) | v3: superseded RefOpGetFloat103 |
- *   splice builtin 103 get-float-103~ -> difficulty~ (0.70): Body Float(GetDifficulty(&D_002DE578)). Scripts
- *   scale numbers with it: (+ 10 (* (get-float-103~) 5)), (clq-evaluate #clq(1.0 -0.3 0.0) (get-float-103~))
- *   - dyna
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; static naming pass; sources:
- *   r1_116918+top50_round(splice builtin 103)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // F32 = 0x154C90(&D_002DE578): D_003E0F9C->pg value or average of 3 Splice values.
+// That is the difficulty scale (GetDifficulty); scripts scale numbers by it.
 extern "C" CREFV *BuiltinGetDifficulty(CREFV *pref)
 {
     pref->u.g = GetDifficulty(D_002DE578);
@@ -3938,16 +3199,6 @@ extern "C" CREFV *BuiltinGetDifficulty(CREFV *pref)
 }
 
 // 0x123BA0 BuiltinGetDevFlag
-/** @sly2-annot addr=0x123BA0
- * Purpose: S32 = 0x210B68() which always returns 0
- * Info: proposed name RefOpIsDemo (T2); TU bif
- * Notes: v3: superseded RefOpGetStub104 | splice builtin 104 zero-104~ -> demo?~ (0.25): Body Int(FSwStub0())
- *   - FSwStub0 0x210B68 always returns 0 in retail. Scripts gate extra HUD hint tickers on (= (zero-104~) 1)
- *   (texts 749-754). A build flag that
- * Confidence: low (draft) [T2 0.25] - evidence: semantic review; sources: r1_116918+top50_round(splice
- *   builtin 104)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin slot 104: returns func_00210B68() as an integer, which is 0 in the retail build. Scripts gate extra
 // HUD hint tickers on it, so it reads as a development/build flag (name inferred).
 extern "C" CREFV *BuiltinGetDevFlag(CREFV *pref)
@@ -3981,13 +3232,6 @@ struct SPN {
     CPair *operator->() { return p; }
 };
 extern "C" CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args);
-/** @sly2-annot addr=0x123BD8
- * Purpose: Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32
- *   handle
- * Info: proposed name BuiltinScheduleCallback (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32 handle.
 CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
 {
@@ -4021,15 +3265,6 @@ CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
 } // namespace M_BuiltinScheduleCallback__FiP4CRefP6CFrame
 
 // 0x123DD8 BuiltinCancelCallback
-/** @sly2-annot addr=0x123DD8
- * Purpose: Cancels a scheduled callback by handle: 0x133130(g_sw, id) unlinks and frees; returns Void
- * Info: proposed name BuiltinCancelCallback (T1); TU bif
- * Notes: splice builtin 106 cancel-callback~ -> cancel-callback~ (0.85): Body CancelSwSpliceCallback(g_sw,
- *   handle) and returns Void. Scripts store the handle returned by schedule-callback and later
- *   (cancel-callback~ s1221) (set! s122
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 106)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Cancels a scheduled callback by handle: 0x133130(g_sw, id) unlinks and frees; returns Void.
 extern "C" CREFV *BuiltinCancelCallback(CREFV *pref, int cref, CREFV *args)
 {
@@ -4047,12 +3282,6 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 extern float D_002DDED0;
-/** @sly2-annot addr=0x123E18
- * Purpose: Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt
- * Info: proposed name BuiltinDeferObjectUpdate (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt.
 CRef *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -4093,14 +3322,6 @@ CRef SetBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
 CRef GetBasicOption__FP5BASICi(void *a, void *b);
 CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op);
 }
-/** @sly2-annot addr=0x123EB0
- * Purpose: Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
- *   AddBasicOption/EnsureBasicOption/SetBasicOption/GetBasicOption
- * Info: proposed name BuiltinObjectOption (T1); TU bif
- * Confidence: high [T1 0.95] - evidence: static analysis; sources: r1_116918+verdicts_B
- * See: docs/engine/splice-scripting.md#7-key-functions, docs/formats/splice-scripts.md#3-names,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
 // AddBasicOption/EnsureBasicOption/SetBasicOption/GetBasicOption.
 CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op)
@@ -4131,13 +3352,6 @@ namespace M_BuiltinAddOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
-/** @sly2-annot addr=0x123FB8
- * Purpose: Splice builtin "addo": BuiltinObjectOption(op 0x6C) -> AddBasicOption
- * Info: proposed name BuiltinAddOption (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "addo": BuiltinObjectOption(op 0x6C) -> AddBasicOption.
 CRef *BuiltinAddOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
@@ -4151,13 +3365,6 @@ namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
-/** @sly2-annot addr=0x123FE8
- * Purpose: Splice builtin "ensureo": op 0x6D EnsureBasicOption
- * Info: proposed name BuiltinEnsureOption (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "ensureo": op 0x6D EnsureBasicOption.
 CRef *BuiltinEnsureOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
@@ -4171,13 +3378,6 @@ namespace M_BuiltinSetOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
-/** @sly2-annot addr=0x124018
- * Purpose: Splice builtin "seto!": op 0x6E SetBasicOption
- * Info: proposed name BuiltinSetOption (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "seto!": op 0x6E SetBasicOption.
 CRef *BuiltinSetOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
@@ -4191,13 +3391,6 @@ namespace M_BuiltinGetOption__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
-/** @sly2-annot addr=0x124048
- * Purpose: Splice builtin "geto": op 0x6F GetBasicOption
- * Info: proposed name BuiltinGetOption (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "geto": op 0x6F GetBasicOption.
 CRef *BuiltinGetOption__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
@@ -4229,12 +3422,6 @@ NODE *PtNew__t6CGcObj1Z5CPair();
 void PairPtr_Assign(NODE **pp, NODE *p) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 CRef BuildListFromObjects__FiPP2LO(int c, O **apo);
 }
-/** @sly2-annot addr=0x124078
- * Purpose: Builds a Splice list of CRef(BASIC*) from an LO* array
- * Info: proposed name BuildListFromObjects (T1); TU bif
- * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Builds a Splice list of CRef(BASIC*) from an LO* array.
 CRef BuildListFromObjects__FiPP2LO(int c, O **apo)
 {
@@ -4267,12 +3454,6 @@ void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x124150
- * Purpose: Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root
- * Info: proposed name BuiltinFindObject (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root.
 CRef *BuiltinFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -4320,12 +3501,6 @@ int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void 
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x1241E8
- * Purpose: Splice builtin "find-objects": 0x15E678 + BuildListFromObjects
- * Info: proposed name BuiltinFindObjects (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-objects": 0x15E678 + BuildListFromObjects.
 CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -4375,17 +3550,6 @@ struct G { char pad[0x3F0C]; int n3F0C; };
 extern "C" { extern G D_003DD490; }
 extern "C" LO *FindSwObjectInProxyScope(G *pg, int kind, int n, void *pv, int n2);
 extern "C" CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args);
-/** @sly2-annot addr=0x1242B8
- * Purpose: Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as
- *   find-object)
- * Info: proposed name BuiltinFindObjectsFromOids (T1); TU bif
- * Notes: splice builtin 114 find-objects-from-oids~ -> find-objects-from-oids~ (0.75): Body maps a list of
- *   oids to objects with FindSwObject (same root/optional context arg as find-object). Scripts:
- *   (find-objects-from-oids~ '(60278 60279 60280)
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r1_116918+top50_round(splice
- *   builtin 114)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
 CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
 {
@@ -4435,12 +3599,6 @@ void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x1244E8
- * Purpose: Splice builtin "find-nearest-object": like find-object with k=4
- * Info: proposed name BuiltinFindNearestObject (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-nearest-object": like find-object with k=4.
 CRef *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -4487,13 +3645,6 @@ int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void 
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x124578
- * Purpose: Splice builtin "find-nearest-objects": 0x15E678 k=4 + BuildListFromObjects
- * Info: proposed name BuiltinFindNearestObjects (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-nearest-objects": 0x15E678 k=4 + BuildListFromObjects.
 CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -4526,13 +3677,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_SetBasic(CRef *pref, void *p);
 extern char D_003DD490[];
-/** @sly2-annot addr=0x124640
- * Purpose: Splice builtin "find-world-object": CRef(BASIC*) of &D_003DD490 (g_sw)
- * Info: proposed name BuiltinFindWorldObject (T1); TU bif
- * Notes: names_v2 C proposed RefOpFindPlayerObject__FiP4CRefP6CFrame (0.200)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-world-object": CRef(BASIC*) of &D_003DD490 (g_sw).
 CRef *BuiltinFindWorldObject__FiP4CRefP6CFrame(CRef *ret)
 {
@@ -4553,19 +3697,8 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_SetBasic(CRef *pref, void *p);
 extern char D_003DD040[];
-/** @sly2-annot addr=0x124690
- * Purpose: CRef(BASIC*) of static object D_003DD040 (the object LoadSwFromBrx passes to 0x1FD0E8
- *   sound-section loader)
- * Info: proposed name BuiltinFindSoundObject (T1); TU bif
- * Notes: names_v2 C proposed BuiltinFindWorldObject__FiP4CRefP6CFrame (0.200) | splice builtin 118
- *   find-sound-object~ -> find-sound-object~ (0.65): Body CRef(BASIC*) of g_sndmgr D_003DD040 (sound.md:
- *   built by sound.cpp static init). Methods called on it: StartDialog:264, FDialogPlaying:266,
- *   SetSndmgrChannel
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; static naming pass; sources:
- *   r1_116918+top50_round(splice builtin 118)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // CRef(BASIC*) of static object D_003DD040 (the object LoadSwFromBrx passes to 0x1FD0E8 sound-section loader).
+// The object is the sound manager g_sndmgr; scripts call StartDialog and its other methods on it.
 CRef *BuiltinFindSoundObject(CRef *ret)
 {
     CRef ref;
@@ -4585,12 +3718,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_SetBasic(CRef *pref, void *p);
 extern char D_002DDF40[];
-/** @sly2-annot addr=0x1246E0
- * Purpose: Splice builtin "find-camera-object": CRef(BASIC*) of &D_002DDF40 (g_cm)
- * Info: proposed name BuiltinFindCameraObject (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-camera-object": CRef(BASIC*) of &D_002DDF40 (g_cm).
 CRef *BuiltinFindCameraObject__FiP4CRefP6CFrame(CRef *ret)
 {
@@ -4620,12 +3747,6 @@ int FindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap);
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x124730
- * Purpose: Splice builtin "find-class-objects": 0x15E9C8 by class + BuildListFromObjects
- * Info: proposed name BuiltinFindClassObjects (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-class-objects": 0x15E9C8 by class + BuildListFromObjects.
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -4660,12 +3781,6 @@ void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
 CRef BuildListFromObjects__FiPP2LO(int c, void *ap);
 CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x1247D8
- * Purpose: Splice builtin "find-objects-in-bounding-box": 0x20FAA0 box query + 0x20FDC8 filter
- * Info: proposed name BuiltinFindObjectsInBoundingBox (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-objects-in-bounding-box": 0x20FAA0 box query + 0x20FDC8 filter.
 CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -4704,12 +3819,6 @@ void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
 CRef BuildListFromObjects__FiPP2LO(int c, void *ap);
 CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x1248B0
- * Purpose: Splice builtin "find-objects-in-bounding-sphere": 0x20FC60 sphere query + 0x20FDC8
- * Info: proposed name BuiltinFindObjectsInBoundingSphere (T1); TU bif
- * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "find-objects-in-bounding-sphere": 0x20FC60 sphere query + 0x20FDC8.
 CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -4773,13 +3882,6 @@ extern "C" int ClipEdgeToObject(SO *pso, qword pos0, qword pos1, int f, HIT *phi
 
 /* Script builtin: ray-cast segment aref[1]->aref[2] against every SO of each LO in list aref[0].
    pv == 0x7B: return list of (lo pos normal) for all hits; otherwise return (lo normal) of the first hit. */
-/** @sly2-annot addr=0x1249A8
- * Purpose: Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C
- *   returns first hit
- * Info: proposed name BuiltinHitTestObjectsImpl (T1); TU bif
- * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Line hit test vs objects (0x14C6A0); BIFK 0x7B returns list of (lo pos normal) for all hits, 0x7C returns first
 // hit.
 extern "C" CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CRef *args)
@@ -4855,14 +3957,6 @@ extern "C" {
 CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
 CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c);
 }
-/** @sly2-annot addr=0x124F00
- * Purpose: Splice builtin "hit-test-objects": BuiltinHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos
- *   normal)
- * Info: proposed name BuiltinHitTestObjects (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "hit-test-objects": BuiltinHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal).
 CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c)
 {
@@ -4887,13 +3981,6 @@ extern "C" {
 CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
 CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c);
 }
-/** @sly2-annot addr=0x124F80
- * Purpose: Splice builtin "hit-test-objects-first": Impl(0x7C) -> first hit
- * Info: proposed name BuiltinHitTestObjectsFirst (T1); TU bif
- * Notes: names_v2 C proposed BuiltinHitTestObjects__FiP4CRefP6CFrame (0.638)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "hit-test-objects-first": Impl(0x7C) -> first hit.
 CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c)
 {
@@ -4913,12 +4000,6 @@ CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_ctor(CRef *pref, TI vec);
 TI ConvertPosBetweenLos(int a, int b, TI v);
-/** @sly2-annot addr=0x125000
- * Purpose: Splice builtin "convert-object-position": ConvertPosBetweenLos 0x1A6F00
- * Info: proposed name BuiltinConvertObjectPosition (T1); TU bif
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "convert-object-position": ConvertPosBetweenLos 0x1A6F00.
 CRef *BuiltinConvertObjectPosition__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -4939,14 +4020,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 TI ConvertVecBetweenLos(void *a, void *b, TI v);
-/** @sly2-annot addr=0x125060
- * Purpose: Splice builtin "convert-object-vector": ConvertVecBetweenLos 0x1A6FC0
- * Info: proposed name BuiltinConvertObjectVector (T1); TU bif
- * Notes: names_v2 B proposed BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame (0.923)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/splice-scripting.md#7-key-functions,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "convert-object-vector": ConvertVecBetweenLos 0x1A6FC0.
 CRef *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -4971,13 +4044,6 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
-/** @sly2-annot addr=0x1250D8
- * Purpose: Splice builtin "convert-object-matrix": ConvertMatBetweenLos 0x1A71B0
- * Info: proposed name BuiltinConvertObjectMatrix (T1); TU bif
- * Notes: names_v2 B proposed BuiltinConvertObjectPosition__FiP4CRefP6CFrame (0.779)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "convert-object-matrix": ConvertMatBetweenLos 0x1A71B0.
 CRef *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -5012,13 +4078,6 @@ static __inline__ void SetVector(VECTOR *pv, float x, float y, float z)
     __asm__ ("pcpyld %0, %1, %2" : "=r"(t) : "r"(iz), "r"(t));
     *(qword *)pv = t;
 }
-/** @sly2-annot addr=0x125168
- * Purpose: Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix
- * Info: proposed name BuiltinNearClipCenter (T1); TU bif
- * Notes: names_v2 B proposed BuiltinConvertObjectVector__FiP4CRefP6CFrame (0.856)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix.
 CRef *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRef *ret)
 {
@@ -5052,13 +4111,6 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
 void CRef_ctor_BASIC(CRef *pref, void *p);
-/** @sly2-annot addr=0x1251E8
- * Purpose: Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound
- * Info: proposed name BuiltinStartSound (T1); TU bif
- * Notes: names_v2 C proposed BuiltinConvertObjectMatrix__FiP4CRefP6CFrame (0.200)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound.
 CRef *BuiltinStartSound__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -5080,13 +4132,6 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float g);
 extern char D_002DFC00[];
-/** @sly2-annot addr=0x125248
- * Purpose: Splice builtin "start-rumble": TriggerJoyRumbleRumk-like 0x187E28
- * Info: proposed name BuiltinStartRumble (T1); TU bif
- * Notes: names_v2 B proposed BuiltinNearClipCenter__FiP4CRefP6CFrame (0.923)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin "start-rumble": TriggerJoyRumbleRumk-like 0x187E28.
 CRef *BuiltinStartRumble__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
@@ -5111,16 +4156,6 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct NODE { int pad[2]; CRef ref; struct NODE *pnext; } NODE;
 typedef struct ARR { int c; short *a; } ARR;
 short *AllocFromStack(AREQ *preq);
-/** @sly2-annot addr=0x1252D0
- * Purpose: Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements
- *   (save-var path)
- * Info: proposed name FillAsFromPair (T1); TU bif
- * Notes: names_v2 B proposed BuiltinStartSound__FiP4CRefP6CFrame (0.977) | splice_scripts format doc cites this
- *   function by this name (CONFIRMED(code) in the doc)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources:
- *   r1_116918+format-doc:splice_scripts
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements (save-var path).
 void FillAsFromPair(NODE *pnode, ARR *parr)
 {
@@ -5162,18 +4197,6 @@ void FillAsFromPair(void *pv, X *px);
 CRef GetSaveVar(void *a, X *px, void *b);
 CRef BuiltinGetSaveVar(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x125398
- * Purpose: Converts path list to U16 array (0x1252D0) and returns GetSaveVar(D_003E0EA8,..)
- * Info: proposed name BuiltinGetSaveVar (T1); TU bif
- * Notes: names_v2 B proposed BuiltinStartRumble__FiP4CRefP6CFrame (0.923) | splice_scripts format doc cites
- *   this function by this name (CONFIRMED(code) in the doc) | splice builtin 131 get-save-var~ ->
- *   get-save-var~ (0.85): Body converts the quoted path list to a key array (FillAsFromPair) and returns
- *   GetSaveVar(D_003E0EA8, key, D_003D4A60). Scripts: (get-save-var~ '(oidPoCurren
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources:
- *   r1_116918+format-doc:splice_scripts+top50_round(splice builtin 131)
- * See: docs/formats/splice-scripts.md#3-names,
- *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Converts path list to U16 array (0x1252D0) and returns GetSaveVar(D_003E0EA8,..).
 CRef BuiltinGetSaveVar(void *pbasic, CRef *args)
 {
@@ -5205,15 +4228,7 @@ void FillAsFromPair(void *pv, X *px);
 CRef SetSaveVar(void *a, X *px, CRef *pref, void *b);
 CRef BuiltinSetSaveVar(void *pbasic, CRef *args);
 }
-/** @sly2-annot addr=0x125450
- * Purpose: Path list + value -> SetSaveVar 0x1D80C8
- * Info: proposed name BuiltinSetSaveVar (T1); TU bif
- * Notes: splice builtin 132 set-save-var!~ -> set-save-var!~ (0.80): Body pair of 131 (SetSaveVar). Unused
- *   by retail scripts
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 132)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
-// Path list + value -> SetSaveVar 0x1D80C8.
+// Path list + value -> SetSaveVar 0x1D80C8. Unused by retail scripts.
 CRef BuiltinSetSaveVar(void *pbasic, CRef *args)
 {
     CRef ref;
@@ -5244,18 +4259,6 @@ struct O { int pad[2]; int kind; O *parent; int pad2[5]; int isObjectFrame; };  
 enum { BIFK_NOOP = 0x86 };   /* builtin 134, noop~ */
 class CFrame { public: CRef *FindBindingPtr(unsigned int sym, int fRecurse) __asm__("FindBindingPtr__6CFrameUii"); };
 extern "C" CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, O *po);
-/** @sly2-annot addr=0x125510
- * Purpose: Looks up a symbol in the calling object frame chain (CFrame::FindBindingPtr(sym,1)); if unbound
- *   returns Bifk 0x86 (slot 134 no-op builtin)
- * Info: proposed name BuiltinFindBindingOrNoop (T1); TU bif
- * Notes: names_v2 B proposed RefOpEmitSmokeCloud__FiP4CRefP6CFrame (0.856) | splice builtin 133
- *   find-binding-or-noop~ -> find-binding-or-noop~ (0.70): Body walks the caller frame chain to the object
- *   frame and returns FindBindingPtr(sym,1), else a CRef of builtin 0x86 = 134 noop~. Scripts call optional
- *   handler
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; static naming pass; sources:
- *   r1_116918+top50_round(splice builtin 133)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Looks up a symbol in the calling object frame chain (CFrame::FindBindingPtr(sym,1)); if unbound returns Bifk 0x86
 // (slot 134 no-op builtin).
 CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, O *frame)
@@ -5278,12 +4281,6 @@ unbound:
 } // namespace M_BuiltinFindBindingOrNoop
 
 // 0x1255C0 BuiltinNoop
-/** @sly2-annot addr=0x1255C0
- * Purpose: Varargs builtin that returns Void
- * Info: proposed name BuiltinNoop (T1); TU bif
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918+verdicts_B
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Varargs builtin that returns Void.
 extern "C" CREFV *BuiltinNoop(CREFV *pref)
 {
@@ -5292,14 +4289,6 @@ extern "C" CREFV *BuiltinNoop(CREFV *pref)
 }
 
 // 0x1255F0 BuiltinBitAnd
-/** @sly2-annot addr=0x1255F0
- * Purpose: Bitwise AND of all S32 list args (init -1)
- * Info: proposed name BuiltinBitAnd (T1); TU bif
- * Notes: splice builtin 135 bit-and~ -> bit-and~ (0.80): Body: bitwise AND of the int arguments (variadic).
- *   Scripts: (not (= (bit-and~ a b) 0)), (bit-and~ (geto x 'CID98+0x168:935) 1)
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 135)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Bitwise AND of all S32 list args (init -1).
 extern "C" CREFV *BuiltinBitAnd(CREFV *pref, int cref, CREFV *args)
 {
@@ -5323,14 +4312,6 @@ extern "C" CREFV *BuiltinBitAnd(CREFV *pref, int cref, CREFV *args)
 }
 
 // 0x125640 BuiltinBitOr
-/** @sly2-annot addr=0x125640
- * Purpose: Bitwise OR of all S32 list args (init 0)
- * Info: proposed name BuiltinBitOr (T1); TU bif
- * Notes: splice builtin 136 bit-or~ -> bit-or~ (0.80): Body: bitwise OR (variadic). Script: (seto! bentley
- *   'PO+0x154:811 (bit-or~ s2046 16))
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 136)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Bitwise OR of all S32 list args (init 0).
 extern "C" CREFV *BuiltinBitOr(CREFV *pref, int cref, CREFV *args)
 {
@@ -5361,16 +4342,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_SetBasic(CRef *pref, void *p);
 extern char D_003DA0C0[];
-/** @sly2-annot addr=0x125690
- * Purpose: CRef(BASIC*) of static object D_003DA0C0 (used by save TU 0x1D94B0)
- * Info: proposed name BuiltinFindHintboxObject (T2); TU bif
- * Notes: v3: superseded RefOpFindGameObject | splice builtin 137 find-ticker-object~ -> find-hintbox-object~
- *   (0.55): Body CRef(BASIC*) of static D_003DA0C0. Lilly-derived code calls ClearIfSlotId(HINTBOX *phintbox,
- *   ...) with &D_003DA0C0 (func_00194A40.cpp:1518, idHintGrab), r7
- * Confidence: low (draft) [T2 0.55] - evidence: Sly 1 / Lilly reference; semantic review; sources:
- *   r1_116918+top50_round(splice builtin 137)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Splice builtin slot 137: returns a reference to the static object D_003DA0C0, which Lilly-derived code treats as a
 // HINTBOX (ClearIfSlotId) and the save TU uses; hence the name (inferred).
 CRef *BuiltinFindHintboxObject(CRef *ret)
@@ -5392,14 +4363,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_SetBool(CRef *pref, int f);
 int IsPowerupAcquired(int n);
-/** @sly2-annot addr=0x1256E0
- * Purpose: Bool: save var powerUps.mppukfAcquired[n] via 0x1DAEA8
- * Info: proposed name BuiltinIsPowerUpAcquired (T1); TU bif
- * Notes: splice builtin 138 power-up-acquired?~ -> power-up-acquired?~ (0.80): Body Bool(IsPowerupAcquired(n))
- *   = save var powerUps.mppukfAcquired[n]. Scripts: (if (power-up-acquired?~ 27) ...)
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 138)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Bool: save var powerUps.mppukfAcquired[n] via 0x1DAEA8.
 CRef *BuiltinIsPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
 {
@@ -5420,15 +4383,6 @@ void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void SetPowerupAcquired(int a, int b);
-/** @sly2-annot addr=0x125738
- * Purpose: Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on D_002DEB30 when set)
- * Info: proposed name BuiltinSetPowerUpAcquired (T1); TU bif
- * Notes: splice builtin 139 set-power-up-acquired!~ -> set-power-up-acquired!~ (0.80): Body
- *   SetPowerupAcquired(n,f) (fires game event 0x3B when set). Scripts: (set-power-up-acquired!~ 31 #t) then
- *   SetStepplayerGadget:750 2 31
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 139)
- * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
- * @end-sly2-annot */
 // Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on D_002DEB30 when set).
 CRef *BuiltinSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
 {
@@ -5451,20 +4405,10 @@ CRef *BuiltinSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *args)
 // changes the Builtin* code. Its declaration gives it what g++ gives an inline function's out-of-line copy: a weak
 // symbol in .gnu.linkonce.t.<symbol>.
 // 0x256CE8 __8VU_FLOATf
-/** @sly2-annot addr=0x256CE8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // VU_FLOAT constructor: moves a float into a VU quadword's x (an out-of-line inline copy in the linkonce area).
 inline VU_FLOAT::VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
 
 // 0x256D08 __9VU_VECTORRC6VECTOR
-/** @sly2-annot addr=0x256D08
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // VU_VECTOR constructor: loads a 16-byte vector into a VU quadword (out-of-line inline copy).
 inline VU_VECTOR::VU_VECTOR(const VECTORQ &vec)
 {
@@ -5472,11 +4416,6 @@ inline VU_VECTOR::VU_VECTOR(const VECTORQ &vec)
 }
 
 // 0x256D28 __ml__FG8VU_FLOATG9VU_VECTOR
-/** @sly2-annot addr=0x256D28
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // Scales a VU vector by a VU float (out-of-line inline copy of the operator).
 qword operator*(VU_FLOAT f, VU_VECTOR v) __attribute__((weak, section(".gnu.linkonce.t.__ml__FG8VU_FLOATG9VU_VECTOR")));
 qword operator*(VU_FLOAT f, VU_VECTOR v)

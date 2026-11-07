@@ -150,14 +150,6 @@ EMB *PemitbEnsureEmitter(EMITX *p, int x) __asm__("PemitbEnsure__H1Z7EMITTER_PX0
 /* LoadRotateMatrixPanTilt as this caller sees it: returning the matrix. */
 MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) __asm__("LoadRotateMatrixPanTilt");
 
-/** @sly2-annot addr=0x1C3D70
- * Purpose: PO::Init (vt slot 7): InitSo; pzi.fCollectEnabled(+0x15C)=1; pzi.paloCollect(+0x168)=this; set
- *   flag 2 in grfUnk40
- * Info: proposed name InitPo (T1); class PO slot7; TU po
- * Confidence: high [T1 0.88] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
 // Slot 7 (Init): InitSo, enables collection in the PO's pickup info (pzi) with itself as collector, and sets
 // flag 2 in the LO flags.
 extern "C" void InitPo(POV *po)
@@ -170,40 +162,16 @@ extern "C" void InitPo(POV *po)
     if ((flags ^ 1) & 1) *(int *)flags |= 2; else po->loFlags = flags | 2;
 }
 
-/** @sly2-annot addr=0x1C3DC8
- * Purpose: PO::LoadFromBrx (vt slot 14): LoadSoFromBrx (0x1F31E0) then one stream helper 0x118420
- * Info: proposed name LoadPoFromBrx (T1); class PO slot14; TU po
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+parse-verified
- * See: docs/engine/player.md#11-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Slot 14 (LoadFromBrx): LoadSoFromBrx, then one more stream record.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void PO::LoadFromBrx(CBinaryInputStream *b_m) { POV *a = (POV *)this; void *b = (void *)b_m; LoadSoFromBrx(a, b); CBinaryInputStream_SkipStringSw(b); }
 
-/** @sly2-annot addr=0x1C3DF8
- * Purpose: PO::Clone (vt slot 41): base clone 0x1F6068 then pzi.paloCollect(+0x168)=this
- * Info: proposed name ClonePo (T1); class PO slot41; TU po
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Slot 41 (Clone): base SO clone, then points the clone's pickup collector at the clone itself.
 extern "C" void ClonePo(POV *po) {
     CloneSo(po);
     po->collector = po;
 }
 
-/** @sly2-annot addr=0x1C3E20
- * Purpose: PO::HandleMessage (vt slot 5): HandleLoMessage base, then on msgid 5 stop the wake ambient sound
- *   at +0x174 and release it
- * Info: proposed name HandlePoMessage (T1); class PO slot5; TU po
- * Notes: names_v2 C proposed RovtsNextRov__FP3ROV (0.638)
- * Confidence: high [T1 0.88] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
 // Slot 5 (HandleMessage): base LO handling; on message 5 stops and releases the wake ambient sound (+0x174).
 extern "C" void HandlePoMessage(POV *po, int message)
 {
@@ -217,40 +185,14 @@ extern "C" void HandlePoMessage(POV *po, int message)
     }
 }
 
-/** @sly2-annot addr=0x1C3E90
- * Purpose: PO virtual slot 76: true if invulnerability cheat bit (D_002E1E00&1) or world hands-off
- *   (IsSwHandsOff(&g_sw))
- * Info: proposed name IsPoInvulnerable (T1); class PO slot76; TU po
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
- *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Slot 76: returns 1 when the PO cannot be hurt: the invulnerability cheat bit or the world's hands-off state.
 extern "C" int IsPoInvulnerable(void) { /*B*/if ((D_002E1E00 & 1) || IsSwHandsOff(&D_003DD490)) return 1; return 0;/*E*/ }
 
-/** @sly2-annot addr=0x1C3ED0
- * Purpose: PO virtual slot 77: returns 0 (JTHS_Normal)
- * Info: proposed name GetPoHealthState (T1); class PO slot77; TU po
- * Notes: names_v2 B proposed FIsRovSoundBase__FP3ROV (0.856)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
- *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Slot 77: the PO's JT hold state; a plain PO is always 0 (normal).
 extern "C" int GetPoHealthState(void) {
     return 0;
 }
 
-/** @sly2-annot addr=0x1C3ED8
- * Purpose: PO virtual slot 79 (Lilly SetCtlState): on first use register PO in g_sw PO list (+0x3EB8, max 16)
- *   and allocate its POCTL (+0x150, 0xE0); state 1 makes it the current PO (old one gets SetCtlState(0)),
- *   0/-1 drop it; then POCTL::SetState
- * Info: proposed name SetPoCtlState (T1); class PO slot79; TU po
- * Notes: names_v2 B proposed DestroyedRobRoc__FP3ROBP3ROC (0.856)
- * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50,
- *   docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
- * @end-sly2-annot */
 // Slot 79: sets the controller state. On first use registers the PO in the world's PO list (max 16) and creates its
 // POCTL; state -1 means not controllable.
 extern "C" void SetPoCtlState(POV *po, int state)
@@ -282,14 +224,6 @@ extern "C" void SetPoCtlState(POV *po, int state)
     SetPoctlStateValue(po->poctl, state);
 }
 
-/** @sly2-annot addr=0x1C3FF0
- * Purpose: PO virtual slot 78 (Lilly OnActive(int)): if PO has its own camera TN (+0x16C) (de)activate it,
- *   else SetCmPolicy / RevokeCmPolicy on g_cm
- * Info: proposed name OnPoActive (T1); class PO slot78; TU po
- * Notes: names_v2 B proposed DroppedRobRoh__FP3ROBP3ROH (0.923)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Slot 78: the PO became (fOn=1) or stopped being (0) the active player: (de)activates its own camera tunnel when it
 // has one, otherwise sets or revokes the camera policy.
 extern "C" void OnPoActive(POV *po, int isActive)
@@ -303,13 +237,6 @@ extern "C" void OnPoActive(POV *po, int isActive)
     }
 }
 
-/** @sly2-annot addr=0x1C4080
- * Purpose: Returns pctl->nState (+0x80) or -1 if PO has no POCTL
- * Info: proposed name GetPoCtlState (T1); TU po
- * Notes: names_v2 C proposed AdjustRobDifficulty__FP3ROBf (0.638)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns the POCTL state (+0x80), or -1 when the PO has no controller.
 int GetPoCtlState(POV *po) {
     POCTLV *ppoctl = po->poctl;
@@ -320,48 +247,21 @@ int GetPoCtlState(POV *po) {
     return n;
 }
 
-/** @sly2-annot addr=0x1C4098
- * Purpose: True if GetPoCtlState != -1
- * Info: proposed name FPlayablePo (T2); TU po
- * Notes: names_v2 B proposed ReturnedRobRoh__FP3ROBP3ROH (0.856)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns 1 when the PO has a controller state other than -1, i.e. it can be played.
 extern "C" int IsPoPlayable(POV *po) {
     return ~GetPoCtlState(po) != 0;
 }
 
-/** @sly2-annot addr=0x1C40C0
- * Purpose: True if PO == g_sw current PO (+0x3EFC)
- * Info: proposed name IsPoCurrent (T1); TU po
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns 1 when the PO is the world's current PO (+0x3EFC).
 extern "C" int IsPoCurrent(POV *po) {
     return po == GetHeroPo(&D_003DD490);
 }
 
-/** @sly2-annot addr=0x1C40F8
- * Purpose: True if PO == effective current PO (override +0x3F00 else +0x3EFC)
- * Info: proposed name IsPoActive (T1); TU po
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns 1 when the PO is the effective current PO (the override at +0x3F00 if set, otherwise the current PO).
 extern "C" int IsPoActive(POV *po) {
     return po == GetCurrentPo(&D_003DD490);
 }
 
-/** @sly2-annot addr=0x1C4130
- * Purpose: Set PO camera TN (+0x16C, Lilly ptnCam): deactivate old TN, store new, tn+0x128=-1, unparent
- *   (0x1A58D0(tn,0,0)), activate it if this PO is the effective current
- * Info: proposed name SetPoTnCam (T1); TU po
- * Notes: names_v2 B proposed ChooseRobWanderLocation__FP3ROBP3ROH (0.856)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Sets the PO's camera tunnel (+0x16C): deactivates the old one, unparents the new one and activates it when this
 // PO is active.
 extern "C" void SetPoTnCam(POV *po, TNV *tunnel) {
@@ -385,14 +285,6 @@ struct CRef {
     int tagk; int tag;
 };
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int, void *, int, void **, CRef *); };
-/** @sly2-annot addr=0x1C41B8
- * Purpose: PO virtual slot 80 (Lilly CanBeHealed): sends message 0xD with a bool CRef (default 1) and
- *   returns the answer
- * Info: proposed name CanPoBeHealed (T1); class PO slot80; TU po
- * Notes: names_v2 C proposed InitRoh__FP3ROH (0.638)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Slot 80: asks the PO (message 0xD with a bool reply, default yes) whether it can be healed.
 extern "C" int CanPoBeHealed(OBase *po)
 {
@@ -406,14 +298,6 @@ extern "C" int CanPoBeHealed(OBase *po)
     return f;
 }
 
-/** @sly2-annot addr=0x1C4228
- * Purpose: Virtual slot 81 (Lilly AddHpMp(dhp,dmp)): forwards (dhp,dmp) as message 0xC through vt slot 3
- * Info: proposed name AddPoHpMp (T1); class PO slot81; TU po
- * Notes: names_v2 B proposed LoadRohFromBrx__FP3ROHP18CBinaryInputStream (0.923)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Slot 81: forwards a health/magic change (dhp, dmp) to the PO as message 0xC.
 extern "C" void AddPoHpMp(POV *po, int dhp, int dmp)
 {
@@ -423,15 +307,6 @@ extern "C" void AddPoHpMp(POV *po, int dhp, int dmp)
     { VTE *e = &po->vt[3]; ((int (*)(void *, int, int, int, void **, int))e->pf)((char *)po + e->d, 0xC, 0, 2, apv, 0); }
 }
 
-/** @sly2-annot addr=0x1C4280
- * Purpose: POCTL ctor: vptr D_002CA240, Reset, ppo(+0x7C)=ppo, nState(+0x80)=-1, append to g_sw POCTL list
- *   D_003E133C
- * Info: proposed name POCTL_ctor (T1); class POCTL; TU po
- * Notes: names_v2 C proposed CloneRoh__FP3ROHT0 (0.438) | C++ signature hint (PO*) | mangled dropped (base
- *   does not match final name): __5POCTLP2PO
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // POCTL constructor: vtable, Reset, owner PO, state -1, and registration in the world's POCTL list.
 POCTLV *POCTL_ctor(POCTLV *poctl, POV *po)
 {
@@ -445,13 +320,6 @@ POCTLV *POCTL_ctor(POCTLV *poctl, POV *po)
     return poctl;
 }
 
-/** @sly2-annot addr=0x1C42E8
- * Purpose: Zero stick values (dx/dy/rad/s left+right), grfbtn=0, ClearJoyPressed(0xFFFF)
- * Info: proposed name ResetPoctl (T1); class POCTL; TU po
- * Notes: names_v2 B proposed PostRohLoad__FP3ROH (0.793)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Clears both sticks (dx/dy/angle/length), the held buttons and every pressed timestamp.
 void ResetPoctl(POCTLV *poctl)
 {
@@ -460,13 +328,6 @@ void ResetPoctl(POCTLV *poctl)
     ClearPoctlJoyPressed(poctl, 0xFFFF);
 }
 
-/** @sly2-annot addr=0x1C4330
- * Purpose: Static helper: stick (dx,dy) -> length + camera-relative angle with hysteresis (hold radius decays
- *   0.2); below hold radius keeps previous angle
- * Info: proposed name ConvertPoctlStick (T2); TU po
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Converts a stick deflection (dx, dy) into length and camera-relative angle. Below a hold radius (which decays by
 // 0.2 per update) the previous angle is kept, so a stick returning to centre does not snap the heading.
 void ConvertPoctlStick(POCTLV *poctl, float cameraAngle, float *dxInOut, float *dyInOut, float *angleInOut, float *lengthOut, float *holdRadiusInOut)
@@ -492,14 +353,6 @@ extern int D_002DFBC0;
 extern J D_002DFC00;
 extern J D_002E0D00;
 }
-/** @sly2-annot addr=0x1C4468
- * Purpose: Per-frame controller update: state 0 reset; state 1 read g_joy (or alt joy D_002E0D00)
- *   sticks+buttons (grfbtn = held & ~mask | ppo->grfbtnForce), build matPanTilt from camera, polar sticks,
- *   update press times
- * Info: proposed name UpdatePoctl (T1); class POCTL; TU po
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Per-frame controller update: state 0 clears it; state 1 reads the pad (or the alternate pad), masks the buttons,
 // converts both sticks with ConvertPoctlStick and records press times (UpdatePoctlPressed).
 extern "C" void UpdatePoctl(POCTLV *poctl)
@@ -528,14 +381,6 @@ extern "C" void UpdatePoctl(POCTLV *poctl)
     UpdatePoctlPressed(poctl);
 }
 
-/** @sly2-annot addr=0x1C45A8
- * Purpose: Record g_clock.t into atPressed[i] for newly pressed buttons, and per-stick direction timestamps
- *   (atLeftStick/atRightStick)
- * Info: proposed name UpdatePoctlPressed (T1); class POCTL; TU po
- * Notes: names_v2 B proposed PostRocLoad__FP3ROC (0.947)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Stores the current time for every newly pressed button and for each stick direction that was just pushed.
 void UpdatePoctlPressed(POCTLV *poctl)
 {
@@ -551,14 +396,6 @@ void UpdatePoctlPressed(POCTLV *poctl)
     poctl->rightStickTimes[poctl->rightLength > 0.0f] = t;
 }
 
-/** @sly2-annot addr=0x1C4640
- * Purpose: nState=n; when becoming active (1) set grfPressed=0xFFFF so already-held buttons don't count as
- *   presses
- * Info: proposed name SetPoctlStateValue (T1); class POCTL; TU po
- * Notes: names_v2 C proposed AdjustRocNewXp__FP3ROCP2XPi (0.200)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Sets the controller state; when it becomes active (1) all held buttons are marked as already pressed so they do
 // not count as new presses.
 void SetPoctlStateValue(POCTLV *poctl, int state) {
@@ -568,13 +405,6 @@ void SetPoctlStateValue(POCTLV *poctl, int state) {
     }
 }
 
-/** @sly2-annot addr=0x1C4660
- * Purpose: Mask of buttons in grf pressed within the last dt seconds (t - atPressed[i] <= dt)
- * Info: proposed name POCTL_GrfPressedWithin (T1); class POCTL; TU po
- * Notes: names_v2 B proposed RocsNextRoc__FP3ROC (0.923)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // POCTL method: mask of the buttons in grf pressed within the last dt seconds. Sly 1 name: GrfPressedWithin.
 int GetButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt)
 {
@@ -592,12 +422,6 @@ int GetButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, floa
     return grfRet;
 }
 
-/** @sly2-annot addr=0x1C46C0
- * Purpose: GetButtonsPressedWithin then ClearJoyPressed on the result (consume the press)
- * Info: proposed name POCTL_GrfConsumePressed (T1); class POCTL; TU po
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // POCTL method: GetButtonsPressedWithin, then clears the returned presses so each press is consumed once. Sly 1 name: GrfConsumePressed.
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, float dt) {
     int grfRet = GetButtonsPressedWithin__5POCTLUif(poctl, buttons, dt);
@@ -605,37 +429,14 @@ int ConsumeButtonsPressedWithin__5POCTLUif(POCTLV *poctl, unsigned int buttons, 
     return grfRet;
 }
 
-/** @sly2-annot addr=0x1C4700
- * Purpose: ConsumeButtonsPressedWithin(grf 0.0) != 0
- * Info: proposed name POCTL_ConsumeAnyPressed (T1); class POCTL; TU po
- * Notes: names_v2 C proposed InitRost__FP4ROST (0.638)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550,
- *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns 1 if any button in grf was pressed this frame, consuming the press.
 extern "C" int POCTL_ConsumeAnyPressed(POCTLV *p, unsigned int grf) { return ConsumeButtonsPressedWithin__5POCTLUif(p, grf, 0.0f) != 0; }
 
-/** @sly2-annot addr=0x1C4728
- * Purpose: (grfbtn(+0x30) & grf) != 0 (held test)
- * Info: proposed name POCTL_IsButtonDown (T1); class POCTL; TU po
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns 1 if any button in grf is held down.
 extern "C" int POCTL_IsButtonDown(POCTLV *poctl, int buttons) {
     return (poctl->buttons & buttons) != 0;
 }
 
-/** @sly2-annot addr=0x1C4738
- * Purpose: Set atPressed[i] = -FLT_MAX for every bit in grf
- * Info: proposed name ClearPoctlJoyPressed (T1); class POCTL; TU po
- * Notes: names_v2 B proposed LoadRostFromBrx__FP4ROSTP18CBinaryInputStream (0.965) | mangled dropped (base
- *   does not match final name): ClearJoyPressed__5POCTLi
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Forgets the presses of the buttons in grf (their press time becomes -FLT_MAX).
 void ClearPoctlJoyPressed(POCTLV *poctl, int buttons)
 {
@@ -668,12 +469,6 @@ static inline qword Norm(qword v, qword fallback)
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(d));
     return r;
 }
-/** @sly2-annot addr=0x1C4768
- * Purpose: Transform a direction into matPanTilt frame, take (-y,z,0), normalize (fallback D_002A2DB0)
- * Info: proposed name POCTL_VecLateral (T2); class POCTL; TU po
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns a unit lateral direction for the controller: the input direction taken into the camera pan/tilt frame,
 // reduced to (-y, z, 0) and normalised, with a fixed fallback when degenerate (inferred).
 extern "C" qword GetPoctlLateralVector(POCTLV *poctl, qword dir)
@@ -686,27 +481,12 @@ extern "C" qword GetPoctlLateralVector(POCTLV *poctl, qword dir)
     return Norm(v.q, D_002A2DB0);
 }
 
-/** @sly2-annot addr=0x1C4840
- * Purpose: Returns g_sw current PO (SW+0x3EFC)
- * Info: proposed name GetHeroPo (T1); TU po
- * Notes: verify r3r5: 0x1C4840 returns SW+0x3EFC (the hero), distinct from effective GetCurrentPo 0x1C4A48;
- *   integrator name (was GetCurrentPo) | runtime3: g_pjt is always Sly, not the current player (GetHeroPo confirmed)
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
- * See: docs/engine/player.md#1-class-chain, docs/engine/player.md#11-key-functions,
- *   docs/guides/devtools.md#code_explorer
- * @end-sly2-annot */
 // Returns the world's current PO (the hero being played).
+// Runtime-checked: SW+0x3EFC follows the character being played (Murray in his levels), while g_pjt is always Sly.
 POV *GetHeroPo(SWP *world) {
     return world->currentPo;
 }
 
-/** @sly2-annot addr=0x1C4848
- * Purpose: Append LO to SW 4-entry list (+0x4778) and give its sidebag/record (0x258658) a 0x14-byte block
- * Info: proposed name AddSwPoFollower (T2); TU po
- * Notes: names_v2 B proposed PostRostLoad__FP4ROST (0.923)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Adds an LO to the world's follower list (max 4) and gives it a 0x14-byte follower record. (inferred)
 extern "C" void AddSwPoFollower(SWP *world, EMITX *follower)
 {
@@ -723,14 +503,6 @@ extern "C" void AddSwPoFollower(SWP *world, EMITX *follower)
     }
 }
 
-/** @sly2-annot addr=0x1C48C0
- * Purpose: For each LO in SW+0x4778 list: store current PO into its record and re-parent it to the current PO
- *   (0x1A58D0)
- * Info: proposed name UpdateSwPoFollowers (T2); TU po
- * Notes: names_v2 B proposed PostRopLoad__FP3ROP (0.964)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // For each follower: stores the current PO in its record and re-parents it to the current PO. (inferred)
 void UpdateSwPoFollowers(SWP *world)
 {
@@ -745,14 +517,6 @@ void UpdateSwPoFollowers(SWP *world)
 struct CREF4 { int m_tagk; int m_tag; int pad[2]; };
 extern "C" CREF4 *SetSaveVarByName(CREF4 *pret, CREF4 *pref, const char *s, int n);
 void Decref4(CREF4 *p) __asm__("Decref__4CRef");
-/** @sly2-annot addr=0x1C4940
- * Purpose: Make PO current: OnActive(0) on old effective PO, set SW+0x3EFC, OnActive(1) on new; if STEPPLAYER
- *   set Splice var "oidPoCurrent"; update grab candidates and followers
- * Info: proposed name SwitchToPo (T1); TU po
- * Notes: names_v2 C proposed SetRopRops__FP3ROP4ROPS (0.638)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Makes ppo the current PO: deactivates the old effective PO, activates the new one, publishes its oid in the
 // splice variable oidPoCurrent for player characters, and updates the followers.
 void SwitchToPo(SWP *world, POV *po)
@@ -775,16 +539,6 @@ void SwitchToPo(SWP *world, POV *po)
     UpdateSwPoFollowers(world);
 }
 
-/** @sly2-annot addr=0x1C4A48
- * Purpose: Effective current PO: override SW+0x3F00 if set else SW+0x3EFC
- * Info: proposed name GetCurrentPo (T1); TU po
- * Notes: verifier CORRECT: PpoActive -> GetCurrentPo | runtime3: SW+0x3EFC is the current player (Murray in
- *   S32-S35)
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
- *   r5_1AE130+verdicts_tu_r3r5+runtime
- * See: docs/engine/camera.md#5-key-functions, docs/engine/player.md#11-key-functions,
- *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
 // Returns the effective current PO: the override if set, otherwise the current PO.
 POV *GetCurrentPo(SWP *world) {
     POV *ppo = world->overridePo;
@@ -794,14 +548,6 @@ POV *GetCurrentPo(SWP *world) {
     return ppo;
 }
 
-/** @sly2-annot addr=0x1C4A60
- * Purpose: Set override PO (SW+0x3F00) with OnActive(0/1) on old/new effective PO
- * Info: proposed name SetSwPoOverride (T2); TU po
- * Notes: names_v2 C proposed RopsNextRop__FP3ROP (0.638)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50,
- *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
- * @end-sly2-annot */
 // Sets (or clears, with 0) the override PO, deactivating the old effective PO and activating the new one. (inferred)
 extern "C" void SetSwPoOverride(SWP *world, POV *po)
 {
@@ -823,13 +569,6 @@ static inline float LenSq(qword a) {
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7708 __asm__("D_002A7708") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1C4AF8
- * Purpose: Nearest PO in the SW PO list (+0x3EB8) to a position, among POs with LO flag bit 60
- * Info: proposed name FindClosestSwPo (T1); TU po
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8,
- *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Returns the PO from the world's PO list nearest to a position, among POs that are in the world.
 extern "C" POV *FindClosestSwPo(SWP *world,qword pos) {
     POV *best=0; int i=0;
@@ -844,13 +583,6 @@ extern "C" POV *FindClosestSwPo(SWP *world,qword pos) {
     return best;
 }
 
-/** @sly2-annot addr=0x1C4BD8
- * Purpose: Fill up to cMax PZI pointers: current PO's pzi (+0x15C) or default pzi D_002C0D18, plus other
- *   in-world STEPPLAYERs from table D_002C0D28 passing check 0xC2; returns count
- * Info: proposed name CppziCur (T2); TU po
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
- * @end-sly2-annot */
 // Fills up to maxCount pickup-info (PZI) pointers: the current PO's, or the default one, followed by those of the
 // other in-world player characters that pass the check. Returns the count (used by the HUD, inferred).
 extern "C" int CollectActivePickupInfos(SWP *world, int maxCount, void **pzis)
