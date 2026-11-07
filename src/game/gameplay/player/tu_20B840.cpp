@@ -95,7 +95,7 @@ struct VU_FLOAT
 struct ALO { char pad0[0xC]; VTE *pvt; char pad10[0x48]; XF *space; char pad5C[0xEC]; unsigned long flags; char pad150[0x208 - 0x150];
     int n208; char pad20C[0x498 - 0x20C]; void *control; };
 typedef char assert_ALO_size[sizeof(ALO) == 0x4A0 ? 1 : -1];
-#define POSITION(pxf) (*(qword *)(pxf)->matWorld.mat[3])
+#define POSITION(pxf) (*(qword *)(pxf)->worldMatrix.mat[3])
 
 /* A leap's tuning and the leap itself (0x70 bytes, vtable D_002DAA10 at +0xC). */
 struct LEAPTUNE { int unused0; ASEG *animation; int unused8; float afterStart, afterEnd, flightTime, minimumTime; int unused1C; U acceleration; };
@@ -198,10 +198,10 @@ LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                        
 
 // Initializes a gait record (walk/run locomotion): owner, footstep sound id, walk volume 0.6, run volume 1.0.
 extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
-  p->pstepplayer = pstepplayer;
+  p->player = pstepplayer;
   p->sfxidStep = sfxid;
-  p->gVolRun = 1.0f;
-  p->gVolWalk = 0.6f;
+  p->runVolume = 1.0f;
+  p->walkVolume = 0.6f;
 }
 
 // 0x0020B868 PostJtLoadGait__FP4GAIT  (our name)
@@ -218,30 +218,30 @@ void PostJtLoadGait(GAIT *pgait) __asm__("PostJtLoadGait");
 // Gait post-load: foot markers, root velocity per clip and the dynamic walk/run blend.
 void PostJtLoadGait(GAIT *gait)
 {
-    if (gait->abl[0].paseg == 0)
+    if (gait->abl[0].animation == 0)
         return;
     FillBlendSyncTables(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
     FillBlendSyncTables(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
     for (uint ibl = 0; ibl < 2; ibl++)
     {
         BLGAIT *pblgait = &gait->abl[ibl];
-        ASEG *aseg = pblgait->paseg;
+        ASEG *aseg = pblgait->animation;
         if (aseg != 0)
         {
-            CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->pstepplayer, 1, 1);
+            CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->player, 1, 1);
             VECTOR4 vStart, vEnd;
             ((VECKEY *)pchn->pkey)->GetValue(0.0f, 1.0f, (qword *)&vStart, 0);
-            ((VECKEY *)pchn->pkey)->GetValue(aseg->tMax, 1.0f, (qword *)&vEnd, 0);
+            ((VECKEY *)pchn->pkey)->GetValue(aseg->duration, 1.0f, (qword *)&vEnd, 0);
             qword qwDiff = VuSub(*(qword *)&vEnd, *(qword *)&vStart);
             VU_FLOAT vuT;
-            __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&aseg->tMax )) ;
+            __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&aseg->duration )) ;
             pblgait->vRoot = DivVec(qwDiff, vuT);
         }
     }
-    EnsureAsegBlendDynamic((ALO *)gait->pstepplayer, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->pasegbl);
-    for (int ichn = 0; ichn < gait->pasegbl->cchn; ichn++)
+    EnsureAsegBlendDynamic((ALO *)gait->player, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->blendedAnimation);
+    for (int ichn = 0; ichn < gait->blendedAnimation->cchn; ichn++)
     {
-        CHN *pchn = &gait->pasegbl->achn[ichn];
+        CHN *pchn = &gait->blendedAnimation->achn[ichn];
         VKBLEND *pvkblend;
         SKBLEND *pskblend;
         if (pchn->fScalar)
@@ -256,16 +256,16 @@ void PostJtLoadGait(GAIT *gait)
         }
         SO *so;
         XF *xf;
-        FindAsegChannelTarget(gait->pasegbl, (ALO *)gait->pstepplayer, pchn, &so, &xf);
+        FindAsegChannelTarget(gait->blendedAnimation, (ALO *)gait->player, pchn, &so, &xf);
         switch (xf->oid)
         {
             case 0x10:
             case 0x12:
             case 0x14:
                 if (pvkblend != 0)
-                    pvkblend->amrsgc = &gait->pasegbl->amrsgc[1];
+                    pvkblend->amrsgc = &gait->blendedAnimation->amrsgc[1];
                 if (pskblend != 0)
-                    pskblend->amrsgc = &gait->pasegbl->amrsgc[1];
+                    pskblend->amrsgc = &gait->blendedAnimation->amrsgc[1];
                 break;
             case 0x11:
             case 0x13:
@@ -279,13 +279,13 @@ void PostJtLoadGait(GAIT *gait)
                 break;
         }
     }
-    ReblendAsegbl(gait->pasegbl);
+    ReblendAsegbl(gait->blendedAnimation);
 }
 
 // The weighted root velocity of the two gait clips.
 qword GetGaitRootVelocity(GAIT *gait)
 {
-    MRSGC *pb = gait->pasegbl->amrsgc;
+    MRSGC *pb = gait->blendedAnimation->amrsgc;
     float denominator=pb->amrsg->dt;
     qword acc = D_002A2DD0;
     BLGAIT *pe = gait->abl;
@@ -293,7 +293,7 @@ qword GetGaitRootVelocity(GAIT *gait)
     for (i = 0; i < 2; i++) {
         U u;
         qword u_q;
-        __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(pe->gWeight * (pe->amrsgFoot0[0].dt / denominator)));
+        __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(pe->weight * (pe->amrsgFoot0[0].dt / denominator)));
         u.q = u_q;
         __asm__("vadda.xyzw $ACC, %0, $vf0\n\tvmaddx.xyzw %0, %1, %2x" : "+j"(acc) : "j"(pe->vRoot), "j"(u.q));
         pe++;
@@ -303,7 +303,7 @@ qword GetGaitRootVelocity(GAIT *gait)
 
 // Returns the value at +0x50 of the gait's blend (+4). (inferred)
 ASEGA *GetGaitBlendValue(GAIT *gait) {
-    return (ASEGA *)gait->pasegbl->dlAsega.head;
+    return (ASEGA *)gait->blendedAnimation->dlAsega.head;
 }
 
 static inline void InitScalar(U *value,int bits) {
@@ -326,46 +326,46 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
     STEPPLAYER *pt;
     U b, a;
     qword q, r1, r2;
-    if (gait->abl[1].paseg == 0) {
-        gait->abl[1].gWeight = 0.0f;
-        gait->abl[0].gWeight = 1.0f;
+    if (gait->abl[1].animation == 0) {
+        gait->abl[1].weight = 0.0f;
+        gait->abl[0].weight = 1.0f;
     } else {
-        gait->abl[1].gWeight = g;
-        gait->abl[0].gWeight = 1.0f - g;
+        gait->abl[1].weight = g;
+        gait->abl[0].weight = 1.0f - g;
     }
-    RecalculateAsegBlend(gait->pasegbl);
-    pt = gait->pstepplayer;
-    InitScalar(&a,*(int *)&GetGaitBlendValue(gait)->svt);
+    RecalculateAsegBlend(gait->blendedAnimation);
+    pt = gait->player;
+    InitScalar(&a,*(int *)&GetGaitBlendValue(gait)->speed);
     b = a;
     q = GetGaitRootVelocity(gait);
     r1=Negate(q,&b);
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(a.q), "j"(r1));
-    *(qword *)&pt->vUnk190 = r2;
+    *(qword *)&pt->unknown190 = r2;
 }
 
 // Plays the footstep sound when a foot goes down, volume interpolated between walk and run, audible range 500/2000.
 extern "C" void UpdateGaitFootsteps(GAIT *gait)
 {
-    ASEGA *x = (ASEGA *)gait->pasegbl->dlAsega.head;
-    float g = x->tLocal;
+    ASEGA *x = (ASEGA *)gait->blendedAnimation->dlAsega.head;
+    float g = x->time;
     int i;
     for (i = 0; i < 2; i++) {
-        ASEGBL *y = gait->pasegbl;
+        ASEGBL *y = gait->blendedAnimation;
         MRSG *z = y->amrsgc[i].amrsg;
-        int f = z->dt <= ModPositive__Fff(g - z->t, y->tMax);
+        int f = z->dt <= ModPositive__Fff(g - z->t, y->duration);
         if (f == gait->afFootDown[i])
             continue;
         if (!f) {
-            float t = gait->abl[1].gWeight;
+            float t = gait->abl[1].weight;
             void *h;
             {
                 float u = 1.0f - t;
-                t *= gait->gVolRun;
-                t += u * gait->gVolWalk;
+                t *= gait->runVolume;
+                t += u * gait->walkVolume;
             }
             h = CreateSfxSound(gait->sfxidStep);
             SetSndSourceLo(h, 0);
-            SetSndSourcePos(h, GetLoWorldPos(x->paloRoot));
+            SetSndSourcePos(h, GetLoWorldPos(x->rootObject));
             SetSndRange(h, 500.0f, 2000.0f);
             SetSndVolume(h, t);
         }
@@ -410,9 +410,9 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
     pc = FindAsegLabel(p->paseg, 0x24);
     if (!pc)
         return;
-    p->a = pa->tLocal;
-    p->b = pb->tLocal;
-    p->c = pc->tLocal;
+    p->a = pa->time;
+    p->b = pb->time;
+    p->c = pc->time;
     p->cb = p->c - p->b;
     p->ca = p->c - p->a;
     c = FindAsegChannel(p->paseg, arg, 1, 1);
@@ -534,7 +534,7 @@ void SetLeapState(LEAPV *leap, int state)
             DetachStepguard(subject);
             DisableStuckWatch(subject->control);
         }
-        float playbackRate = leap->job->svt;
+        float playbackRate = leap->job->speed;
         register ALO *motionSubject __asm__("$3") = leap->subject;
         register XF *motionSpace __asm__("$4");
         register LEAPTUNE *motionTuning __asm__("$3");
@@ -601,8 +601,8 @@ void SetLeapState(LEAPV *leap, int state)
             __asm__("sqc2 %4,%0\n\tlw %1,%5\n\tsqc2 %3,%2"
                     : "=m"(finalVelocity.q), "=r"(parentSpace), "=m"(scalar.q)
                     : "j"(timeScalar), "j"(motionVelocity), "m"(launchSubject->space));
-            qword position = TransformXfPos(0, parentSpace->pxfParent, target);
-            qword speed = ConvertXfVec(0, leap->subject->space->pxfParent, finalVelocity.q);
+            qword position = TransformXfPos(0, parentSpace->parent, target);
+            qword speed = ConvertXfVec(0, leap->subject->space->parent, finalVelocity.q);
             leap->constraint = NewBezierAct(leap->subject, leap->subject->space, 5, position, speed, leap->arrival);
             leap->subject->flags |= 0x04000000ul;
             RefreshSwObjectCollisionFilter(&D_003DD490, leap->subject);
@@ -636,7 +636,7 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
     case 2:
         if (leap->ballistic) {
             ACTPOS *pd = (ACTPOS *)leap->constraint;
-            pd->v = TransformXfPos(0, leap->subject->space->pxfParent, v);
+            pd->v = TransformXfPos(0, leap->subject->space->parent, v);
         }
         break;
     }
@@ -686,9 +686,9 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
             continue;
         c = FindAsegChannel(o, arg, 1, 1);
         ((VECKEY *)c->pkey)->GetValue(0.0f, 1.0f, &v0.q, 0);
-        ((VECKEY *)c->pkey)->GetValue(o->tMax, 1.0f, &v1.q, 0);
+        ((VECKEY *)c->pkey)->GetValue(o->duration, 1.0f, &v1.q, 0);
         {
-            register int bits __asm__("$17") = *(int *)&o->tMax;
+            register int bits __asm__("$17") = *(int *)&o->duration;
             __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5"
                     : "=j"(scalar), "=j"(start), "=j"(end)
                     : "r"(bits), "m"(v0.q), "m"(v1.q));
@@ -816,7 +816,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             ASEG *animation = entry->animation;
             if (animation) {
                 float score = VuToFloat(DotReuse(scoringDirection, NormalizeEntry(entry->velocity)));
-                if (animation == dirAnims->active->paseg)
+                if (animation == dirAnims->active->animation)
                     score *= bias;
                 if (maximum < score) {
                     maximum = score;
@@ -840,7 +840,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             }
             tag = FindAsegLabel(animation, id);
             if (tag)
-                time = tag->tLocal;
+                time = tag->time;
             ReplaceCurrentAseg(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
             SubscribeLoObject(dirAnims->active, dirAnims);
             dirAnims->best = best;

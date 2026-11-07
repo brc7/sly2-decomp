@@ -38,14 +38,14 @@ void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
 
 // TARGET vtable slot 7 (Init): XFM defaults, busy kind 3, the default target-kind flags (0x17E), a 25-unit target
-// radius and nUnkF4 = -1.
+// radius and unknownF4 = -1.
 extern "C" void InitTarget(TARGET *target)
 {
     InitXfm(target);
     SetLoBusyKind(target, 3);
-    target->grftak = 0x17E;
-    target->sRadiusTarget = 25.0f;
-    target->nUnkF4 = -1;
+    target->targetKindFlags = 0x17E;
+    target->radius = 25.0f;
+    target->unknownF4 = -1;
 }
 
 // TARGET vtable slot 15 (PostLoad): finishes the LO load; if the level left the busy radius at its "unset" value
@@ -53,8 +53,8 @@ extern "C" void InitTarget(TARGET *target)
 extern "C" void PostTargetLoad(TARGET *target)
 {
     PostLoLoad(target);
-    if (target->sBusy == 1e10f)
-        target->sBusy = target->sRadiusTarget + D_002C40C0;
+    if (target->busyRadius == 1e10f)
+        target->busyRadius = target->radius + D_002C40C0;
 }
 
 // TARGET vtable slot 22 (OnRemove): leaves the active world and the world's target list.
@@ -75,9 +75,9 @@ void TARGET::OnAdd()
 // TARGET vtable slot 41 (Clone): copies the source XFM but keeps this object's own target-list link.
 extern "C" void CloneTarget(TARGET *target)
 {
-    DLE listLink = target->dleTarget;
+    DLE listLink = target->targetListLink;
     CloneXfm(target);
-    target->dleTarget = listLink;
+    target->targetListLink = listLink;
 }
 
 // CID21 vtable slot 7 (Init): XFM defaults; noticed within 2000 units, range -800..800, priority 1. (inferred)

@@ -53,7 +53,7 @@ time by oid (`find-object` and friends) and pass them around.
   entry (`GetSpliceFrame`) to the object's `pframe`. The index is local to the world entry being loaded, and **all
   objects with the same index share one frame**, so a `define` executed at run time in a handler is visible to every
   object of that entry.
-- **Sidebags** (`CSidebag`, `BASIC::psidebag`): per-object extra bindings, used for script-defined custom properties.
+- **Sidebags** (`CSidebag`, `BASIC::scriptVariables`): per-object extra bindings, used for script-defined custom properties.
   `EnsureBasicSidebag` creates one; the `EnsureLoSidebag*` helpers in `basic.cpp` set typed defaults only when no value
   exists yet.
 - **Proxies** add the frames of their init records as extra parents of a copy's frames and remove them when the copy is

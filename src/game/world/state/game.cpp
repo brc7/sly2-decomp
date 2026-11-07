@@ -3,7 +3,7 @@
 // completion phases) and tasks (current / pending, go to task, announce), game events.
 // TU 0x1613A8..0x166270 (101 functions with the linkonce copies at 0x2581xx.., address order).
 //
-// Types: sly2/sw.h's SW (ploJobCur / ploTaskCur / ploTaskPending, ahudstack; the m2c bodies' globals D_003E0F9C /
+// Types: sly2/sw.h's SW (currentJob / currentTask / pendingTask, ahudstack; the m2c bodies' globals D_003E0F9C /
 // D_003E0FA0 / D_003E0FA4 are those SW fields of g_sw) and TU-private JOB / TASK views over lo.h's LO. The
 // hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does),
 // their C++-named definitions as C-linkage definitions of their literal symbols there.
@@ -173,7 +173,7 @@ struct G {
     char pad10[0xC]; OPT *playTimeVar;
     char pad20[0x38]; OPT *episodePlayTimeVars[9];
 };
-struct CLOCK { float time, dt; };
+struct CLOCK { float time, deltaTime; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003D4A60[], D_002DE578[]; }
@@ -202,20 +202,20 @@ extern "C" void UpdateGameTimers()
     if (!D_003DD490.playTimeVar)
         return;
     float playTime = GetFloat(D_003DD490.playTimeVar, D_003D4A60);
-    SetPlayTimeFloat(D_003DD490.playTimeVar, playTime + D_002DDED0.dt, D_003D4A60);
+    SetPlayTimeFloat(D_003DD490.playTimeVar, playTime + D_002DDED0.deltaTime, D_003D4A60);
     unsigned int episode = GetCurrentWorld();
     if (episode < 9) {
         OPT *var = D_003DD490.episodePlayTimeVars[episode];
         if (var) {
             float episodeTime = GetFloat(var, D_003D4A60);
-            SetFloat(var, episodeTime + D_002DDED0.dt, D_003D4A60);
+            SetFloat(var, episodeTime + D_002DDED0.deltaTime, D_003D4A60);
         }
     }
     JOBTIME *job = D_003DD490.currentJob;
     if (job && (float)g_joy.dtIdle < 10.0f) {   /* only while the player is not idle */
-        job->elapsed += D_002DDED0.dt;
+        job->elapsed += D_002DDED0.deltaTime;
         if (job->start < job->elapsed)
-            ChangeDifficulty(D_002DE578, D_002DDED0.dt / (job->end - job->start));
+            ChangeDifficulty(D_002DE578, D_002DDED0.deltaTime / (job->end - job->start));
     }
 }
 
@@ -246,7 +246,7 @@ typedef char G_EpisodePlayTimeVars[FIELD_OFFSET(G,episodePlayTimeVars)==0x3B58?1
 typedef char G_EpisodeCount[sizeof(((G*)0)->episodePlayTimeVars)/sizeof(OPT*)==9?1:-1];
 typedef char Clock_Size[sizeof(CLOCK)==8?1:-1];
 typedef char Clock_Time[FIELD_OFFSET(CLOCK,time)==0?1:-1];
-typedef char Clock_Delta[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+typedef char Clock_Delta[FIELD_OFFSET(CLOCK,deltaTime)==4?1:-1];
 } // namespace M_UpdateGameTimers
 #undef FIELD_OFFSET
 
@@ -349,7 +349,7 @@ extern "C" void SetCoinCount(void *pv, int n)
 /* Restarts the HUD widget of ahudstack[1]: Show(-1) (slot 49) and its timer. */
 extern "C" void RestartHudWidget1(SW *world)
 {
-    WIDGETV *widget = (WIDGETV *)world->ahudstack[1].pwidget;
+    WIDGETV *widget = (WIDGETV *)world->ahudstack[1].widget;
     if (widget != 0) {
         VTEW *vtable = widget->vtable;
         vtable[49].pfn((char *)widget + vtable[49].d, -1);
@@ -361,7 +361,7 @@ extern "C" void RestartHudWidget1(SW *world)
 /* Restarts the HUD widget of ahudstack[2]: Show(-1) (slot 49) and its timer. */
 extern "C" void RestartHudWidget2(SW *world)
 {
-    WIDGETV *widget = (WIDGETV *)world->ahudstack[2].pwidget;
+    WIDGETV *widget = (WIDGETV *)world->ahudstack[2].widget;
     if (widget != 0) {
         VTEW *vtable = widget->vtable;
         vtable[49].pfn((char *)widget + vtable[49].d, -1);
@@ -385,7 +385,7 @@ void ShowCountdownHud(struct SW *world, float dt)
         entry = &widget->vt[49];
         entry->pfn((char *)widget + entry->d, -1);
     }
-    world->hideTime = D_002DDED0.t + dt;
+    world->hideTime = D_002DDED0.time + dt;
 }
 } } // namespace M_func_001618F8
 
@@ -540,7 +540,7 @@ extern "C" void HandleGameEvent(P *game, int action)
 {
     switch (action) {
     case 1: {   /* world teardown: in the hub level, each step player keeps its booty widget */
-        if (Same((CHECK *)&g_sw.filerecDest, &D_002A37E8)) {
+        if (Same((CHECK *)&g_sw.destinationLevel, &D_002A37E8)) {
             P *players[3];
             int found = FindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
             if (found > 0) {
@@ -1002,8 +1002,8 @@ extern "C" void JobOptionNoOp()
 extern "C" void SetCurrentJob(JOBV *job)
 {
     if (IsCurrentJob(job) == 0) {
-        if (D_003DD490.ploJobCur != 0) {
-            EndCurrentJob((JOBV *)D_003DD490.ploJobCur);
+        if (D_003DD490.currentJob != 0) {
+            EndCurrentJob((JOBV *)D_003DD490.currentJob);
         }
         BeginJob(job);
     }
@@ -1226,8 +1226,8 @@ extern "C" void SignalJobComplete(JOBV *job)
 /* Go to the pending task, else to the job's start task. */
 extern "C" void RestartJob(JOBV *job)
 {
-    if (D_003DD490.ploTaskPending != 0) {
-        GoToTask((TASKV *)D_003DD490.ploTaskPending);
+    if (D_003DD490.pendingTask != 0) {
+        GoToTask((TASKV *)D_003DD490.pendingTask);
         return;
     }
     GoToTask(job->ptaskStart);
@@ -1265,7 +1265,7 @@ void AbortJob(struct S *job)
 {
     ResetJobTasks(job);
     SetTaskStateCascade(job->startTask, TASK_STATE_AVAILABLE);
-    struct T *currentTask = (struct T *)g_sw.ploTaskCur;
+    struct T *currentTask = (struct T *)g_sw.currentTask;
     if (currentTask && currentTask->job == job)
         DeactivateTask(currentTask);
     BroadcastGameEvent(D_002DEB30, 0x1F, job);
@@ -1452,7 +1452,7 @@ void SetJobCompletionPhase(struct X *job, int phase)
         IncrementSwHandsOff(D_003DD490, 2);
     }
     job->completionPhase = phase;
-    job->completionPhaseTime = D_002DDED0.t;
+    job->completionPhaseTime = D_002DDED0.time;
     switch (phase) {
     case PHASE_NONE: {
         if (job->widget379) HideWidget(job->widget379);
@@ -1479,7 +1479,7 @@ void SetJobCompletionPhase(struct X *job, int phase)
 // True when the job is the current job.
 extern "C" int IsCurrentJob(JOBV *job)
 {
-    return D_003DD490.ploJobCur == job;
+    return D_003DD490.currentJob == job;
 }
 
 // True when the job's end task is complete.
@@ -1815,14 +1815,14 @@ void UpdateTask(struct S *task)
     struct O *marker;
     UpdateLo(task);
     if (task->state == TASK_STATE_AVAILABLE && task->timeLimit > 0.0f) {
-        float elapsed = D_002DDED0.t - task->stateChangeTime;
-        if (elapsed < task->timeLimit && task->timeLimit + D_002DDED0.dt <= elapsed)
+        float elapsed = D_002DDED0.time - task->stateChangeTime;
+        if (elapsed < task->timeLimit && task->timeLimit + D_002DDED0.deltaTime <= elapsed)
             SendTaskTimeout(task, 0);
     }
     marker = task->marker;
     if (marker) {
         int isShown = task->state == TASK_STATE_AVAILABLE;
-        if (g_sw.ploJobCur)
+        if (g_sw.currentJob)
             isShown = 0;
         if (isShown) {
             struct VTE *entry = &marker->vt[8];
@@ -2043,7 +2043,7 @@ extern "C" void EndTask(O *task)
 // True when the task is the current task.
 extern "C" int IsCurrentTask(TASKV *task)
 {
-    return D_003DD490.ploTaskCur == task;
+    return D_003DD490.currentTask == task;
 }
 
 namespace M_FTaskComplete { extern "C" {
@@ -3120,7 +3120,7 @@ public:
     char pad5[0xF4 - 0xB8];
     int stateSource;
 };
-struct DL { void *pvFirst; void *pvLast; int ibDle; };
+struct DL { void *pvFirst; void *pvLast; int linkOffset; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { 
  }
@@ -3172,7 +3172,7 @@ extern "C" void SetTaskState(O *task, int n)
         break;
     }
     task->state = n;
-    task->stateChangeTime = D_002DDED0.t;
+    task->stateChangeTime = D_002DDED0.time;
     UpdateTaskSaveVars(task);
     if (IsTaskLive(task)) {
         BroadcastGameEvent(D_002DEB30, 0x25, task);
@@ -3344,7 +3344,7 @@ extern "C" void SortTasksTopologically(int *count, void **order)
 // Stores the current job in the world and its oid in g_game.
 extern "C" void SetSwJobCur(SW *world, LO *plo)
 {
-    world->ploJobCur = plo;
+    world->currentJob = plo;
     if (plo != 0) {
         D_002DEB40 = plo->oid;
         return;
@@ -3355,7 +3355,7 @@ extern "C" void SetSwJobCur(SW *world, LO *plo)
 // Stores the current task in the world and its oid in g_game.
 extern "C" void SetSwTaskCur(SW *world, LO *plo)
 {
-    world->ploTaskCur = plo;
+    world->currentTask = plo;
     if (plo != 0) {
         D_002DEB44 = plo->oid;
         return;
@@ -3366,7 +3366,7 @@ extern "C" void SetSwTaskCur(SW *world, LO *plo)
 // Stores the pending task in the world and its oid in g_game.
 extern "C" void SetSwTaskPending(SW *world, LO *plo)
 {
-    world->ploTaskPending = plo;
+    world->pendingTask = plo;
     if (plo != 0) {
         D_002DEB48 = plo->oid;
         return;

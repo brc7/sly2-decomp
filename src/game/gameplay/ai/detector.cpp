@@ -219,7 +219,7 @@ extern "C" void ResetDetectorTargets(DETECTORV *detector)
     int i;
     for (i = 0; i < detector->targetCount; i++) {
         detector->targets[i].state = 0;
-        detector->targets[i].stateTime = D_002DDED0.t;
+        detector->targets[i].stateTime = D_002DDED0.time;
     }
 }
 
@@ -242,14 +242,14 @@ extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newS
     if (!entry || newState == entry->state)
         return;
     if (entry->state == TARGET_UNSEEN)
-        entry->detectTime = D_002DDED0.t;
+        entry->detectTime = D_002DDED0.time;
     args.entry = entry;
     args.oldState = &entry->state;
     args.newState = &newState;
     vtableEntry = &detector->vt[3];
     ((void (*)(...))vtableEntry->pfn)((char *)detector + vtableEntry->d, 0x1C, 0, 3, &args, 0);
     entry->state = newState;
-    entry->stateTime = D_002DDED0.t;
+    entry->stateTime = D_002DDED0.time;
     if (newState == TARGET_SEEN) {
         void *parent = detector->parent;
         if (parent && IsBasicDerivedFrom__FP5BASIC3CID(parent, CID_STEP))

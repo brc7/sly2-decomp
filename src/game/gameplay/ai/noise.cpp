@@ -148,7 +148,7 @@ extern "C" void CreateNoise(NOISETYPE *type, qword pos, int loudness, NOISE **ou
     noise->vt = D_002CE2B8;
     noise->loudness = loudness;
     noise->serial = ++D_003DD490.noiseCount;
-    noise->startTime = D_002DDED0.t;
+    noise->startTime = D_002DDED0.time;
     noise->unknown54 = type->unknown64;
     AppendDlEntry(D_003DD490.stimulusList, noise);
     VCALL0(noise, 1);
@@ -194,7 +194,7 @@ extern "C" void ExpireNoise(NOISE *noise)
 {
     float duration = noise->type->duration;
     if (duration >= 0.0f) {
-        if ((noise->startTime + duration) < D_002DDED0.t) {
+        if ((noise->startTime + duration) < D_002DDED0.time) {
             RemoveNoise(noise);
         }
     }
@@ -236,7 +236,7 @@ extern "C" float GetNoiseRadius(NOISE *noise)
     float rampTime, progress;
     if (0.0f < type->duration) {
         rampTime = Min(D_002BDCE0, type->duration);
-        progress = Min((D_002DDED0.t - noise->startTime) / rampTime, 1.0f);
+        progress = Min((D_002DDED0.time - noise->startTime) / rampTime, 1.0f);
         return type->range * (D_002BDCF0[0] + progress * (D_002BDCF0[1] + progress * D_002BDCF0[2]));
     }
     return type->range;

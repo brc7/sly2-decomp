@@ -56,7 +56,7 @@ struct JT{
  TARGET * target;
  int mode;
  int x18cc;
- int jtbs;
+ int bodyState;
  char pad18d4[0x4];
  int state;
  float stateTime;
@@ -205,7 +205,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
         start = duration * half;
         InvalidateSoAaox(receiver);
         sharedDelay = 0.1f;
-        sharedDeadline = D_002DDED0.t;
+        sharedDeadline = D_002DDED0.time;
         goto deadline_add;
     }
 
@@ -678,7 +678,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
             }
         }
     }
-    if (jt->jtbs == 5) {
+    if (jt->bodyState == 5) {
         float *pa = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
         float *pb = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
         float d = NormalizeAngle__Ff(jt->pt->stickAngle - atan2f(pa[1], pb[0]));
@@ -742,7 +742,7 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
         if (jt->grabState < 5) f = jt->grabState >= 3;
         break;
     case 5:
-        switch (jt->jtbs) {
+        switch (jt->bodyState) {
         case 6: case 7:
             if (!(jt->pt->fl & 0x80)) {
                 if (jt->unknown18E8) SetJtState__FP2JT3JTS4JTBS(jt, 5, 8);

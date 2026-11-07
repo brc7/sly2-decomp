@@ -23,7 +23,7 @@ struct FADEV
     int pad0[3];
     VTE *vtable;              /* +0x0C */
     byte pad10[0x28 - 0x10];
-    unsigned long loFlags;    /* +0x28 bit 60: LO::fInWorld (the fade is running) */
+    unsigned long loFlags;    /* +0x28 bit 60: LO::isInWorld (the fade is running) */
     byte pad30[0x40 - 0x30];
     unsigned int updateFlags; /* +0x40 flags, or (bit 0 clear) a pointer to them */
     byte pad44[0x50 - 0x44];
@@ -70,7 +70,7 @@ void CID116::Init()
 extern "C" void UpdateScreenFade(FADEV *fade, float dt)
 {
     UpdateLo(fade, dt);
-    if (D_002DDED0.t - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
+    if (D_002DDED0.time - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
         VTE *entry = &fade->vtable[9];
         ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
     }
@@ -99,7 +99,7 @@ extern "C" void RenderScreenFade(FADEV *fade)
     RGBAV color;
     RGBAV from, to;
     float phaseTime;
-    float elapsed = D_002DDED0.t - fade->startTime;
+    float elapsed = D_002DDED0.time - fade->startTime;
     R *dma;
     int dmaStart;
     Q *entry;
@@ -153,7 +153,7 @@ extern "C" void StartScreenFade(FADEV *fade)
 {
     if (((int)(fade->loFlags >> 60) & 1) == 0) {
         VTE *entry = &fade->vtable[8];
-        fade->startTime = D_002DDED0.t;
+        fade->startTime = D_002DDED0.time;
         ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
     }
 }

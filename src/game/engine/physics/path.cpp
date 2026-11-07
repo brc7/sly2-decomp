@@ -1808,7 +1808,7 @@ namespace M_FindPathlinkRoute {
 // never-touched RAII-style object (inline empty dtor) or a volatile. Rest of the code is lilly4 (StoreX estimate).
 typedef int qword __attribute__((mode(TI)));
 struct MSG { int cb; int nKind; };
-struct DL { void *pvFirst; void *pvLast; int ibDle; };
+struct DL { void *pvFirst; void *pvLast; int linkOffset; };
 struct NAV { char pad[0x124]; int index; };
 struct EDGE { char pad[0x128]; NAV *pnavDest; int pad12C; qword posBegin; qword posEnd; };
 struct ADJ { int cedge; int *aiedge; };
@@ -1974,7 +1974,7 @@ struct G { char pad[0xE94]; int numAllowedZones; int allowedZones[84]; int allow
 int CanUsePathlink(void *zoneBsp, struct LO *pathlink, struct G *actor)
 {
     int requiredKinds, i, hasFrom, hasTo, numZones;
-    if (((pathlink->flags >> 60) & 1) == 0) return 0;   /* LO::fInWorld */
+    if (((pathlink->flags >> 60) & 1) == 0) return 0;   /* LO::isInWorld */
     requiredKinds = (pathlink->kind == 1) ? 3 : 2;
     if ((requiredKinds & actor->allowedLinkKinds) != requiredKinds) return 0;
     numZones = actor->numAllowedZones;

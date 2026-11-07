@@ -58,7 +58,7 @@ void *AllocZeroedFromSlotheap(SLOTHEAP *pool)
       slot = pool->pslotFree;
       pool->pslotFree = slot->pslotNext;
       func_002333B4(slot, 0, pool->cb);
-      pool->cAlloc++;
+      pool->numAllocated++;
       return slot;
 }
 
@@ -67,7 +67,7 @@ void FreeSlotheapSlot(SLOTHEAP *pool, void *slotMemory)
 {
       SLOT *slot = (SLOT *)slotMemory;
 
-      pool->cAlloc--;
+      pool->numAllocated--;
       slot->pslotNext = pool->pslotFree;
       pool->pslotFree = slot;
 }
@@ -76,7 +76,7 @@ void FreeSlotheapSlot(SLOTHEAP *pool, void *slotMemory)
 void ResetSlotheap(SLOTHEAP *pool)
 {
       pool->ab = 0;
-      pool->cAlloc = 0;
+      pool->numAllocated = 0;
       pool->pslotFree = 0;
 }
 

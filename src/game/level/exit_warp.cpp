@@ -257,7 +257,7 @@ extern "C" void SetExitExits(EXITV *exitVolume, int newState)
             D_003DD490.exitBeingTaken = exitVolume;
         }
         exitVolume->state = newState;
-        exitVolume->stateTime = D_002DDED0.t;
+        exitVolume->stateTime = D_002DDED0.time;
     }
 }
 
@@ -280,7 +280,7 @@ extern "C" void TakeExit(EXITV *exitVolume)
     RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x450, 0, 0);
     RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x520, 0, 0);
     SetExitExits(exitVolume, 4);
-    exitVolume->wipeTime = D_002DDED0.t + exitVolume->wipeDelay;
+    exitVolume->wipeTime = D_002DDED0.time + exitVolume->wipeDelay;
     ((void (*)(void *, int, int, int, int, int))exitVolume->vtable[3].pfn)((char *)exitVolume + exitVolume->vtable[3].d, 5, 0, 0, 0, 0);
 }
 
@@ -306,7 +306,7 @@ extern "C" void UpdateExit(EXITV *exitVolume, float dt)
     switch (exitVolume->state)
     {
     case 4:
-        if (0.0f < exitVolume->wipeTime && exitVolume->wipeTime <= D_002DDED0.t)
+        if (0.0f < exitVolume->wipeTime && exitVolume->wipeTime <= D_002DDED0.time)
         {
             int i;
             for (i = 0; i < exitVolume->movieCount; i++)
@@ -335,7 +335,7 @@ extern "C" void UpdateExit(EXITV *exitVolume, float dt)
         case 1:
             if (isInside)
                 SetExitExits(exitVolume, 0);
-            else if (D_002DDED0.t - exitVolume->stateTime > exitVolume->rearmDelay)
+            else if (D_002DDED0.time - exitVolume->stateTime > exitVolume->rearmDelay)
                 SetExitExits(exitVolume, 3);
             break;
         case 0:

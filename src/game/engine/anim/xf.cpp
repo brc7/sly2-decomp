@@ -808,43 +808,43 @@ void UpdateXfJobRange(void *pa, struct S *p)
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002DDED0 (g_clock), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0022DE88 UpdateSoSlots__FP2SO (our name, was FUN_0022DE88; SO::Update 0x1F3980 calls it right after the SO's own update). THE per-frame step of an SO's XF slots:
-// for every XF it runs SlotRefresh and then, by the XF's role (nRole, see SlotRefresh / SlotSetRole), moves the XF's local matrix `mat` and stamps it (nStampWorld = ++g_sw.nStampXf):
-//   roles 1 2   constant acceleration qwUnkF0 on the velocity vUnkB0: xfk 1 moves the position row (trapezoid: pos += (v_old + v_new) * dt / 2), xfk 6 turns the rotation by the
+// for every XF it runs SlotRefresh and then, by the XF's role (role, see SlotRefresh / SlotSetRole), moves the XF's local matrix `mat` and stamps it (worldStamp = ++g_sw.transformStamp):
+//   roles 1 2   constant `acceleration` on the `velocity`: xfk 1 moves the position row (trapezoid: pos += (v_old + v_new) * dt / 2), xfk 6 turns the rotation by the
 //               same angular step (LoadRotateMatrix, renormalized); when the new and the old velocity are both ~0 the velocity is cleared and role 1 -> 3 (role 2 stays awake)
-//   role 0x14   xfk 6: continuous rotation, angle in qwRestUnkE0.x += rate (qwUnkD0.x) * dt about the axis qwRest
-//   role 4      the position row = minus the position row of the reference XF (pxfRef), same stamp
-//   roles 5 6   the actuator's value (GetSlotValue: phase 0 rest value, 1 Hermite segment, 2 3 4 qwRest, 5 the 3 rows of a rotation in qwRest/D0/E0) is stored (SlotStoreValue); role 6 + phase 2 -> role 10
-//   roles 7 8 9 0xB  CHASE the actuator's value: delta = value - current, the distance is eased with SmoothValue under an SMP built from the XF's speed limit nUnkAc (+ the target
-//               speed along the direction); role 9 must arrive by the time stored in pxfRef (as a float); role 0xB also limits the change of velocity (nUnkAc * gain per second);
+//   role 0x14   xfk 6: continuous rotation, angle in unknownE0.x += rate (rate.x) * dt about the axis restValue
+//   role 4      the position row = minus the position row of the reference XF (reference), same stamp
+//   roles 5 6   the actuator's value (GetSlotValue: phase 0 rest value, 1 Hermite segment, 2 3 4 restValue, 5 the 3 rows of a rotation in restValue/D0/E0) is stored (SlotStoreValue); role 6 + phase 2 -> role 10
+//   roles 7 8 9 0xB  CHASE the actuator's value: delta = value - current, the distance is eased with SmoothValue under an SMP built from the XF's speed limit (the `stiffness` field) (+ the target
+//               speed along the direction); role 9 must arrive by the time stored in `reference` (as a float); role 0xB also limits the change of velocity (stiffness * gain per second);
 //               xfk 6 / 7 do the same with rotations (MulMatrix3Matrix3 -> axis + angle, LoadRotateMatrixRad about the axis) and angular velocities (QwRotRateFromEulerRate);
 //               on arrival role 7/9 stay, 0xB phase 2 -> 0xC, phase 1 -> 6, phase 2 -> 10; the velocity becomes the target's rate
-//   roles 0xD 0xF 0x10  call the class loaders' update functions 0x186A50 / 0x1604E8 / 0x21CB18 with (pso, pxfRef)
-//   role 0x11   position row: Hermite from the current value + velocity to qwRest at the time pxfRef (as float), then qwRest
-//   role 0x12   spring-damper to the rest value (xfk 1: kp = nUnkAc * 0.015, kd = nUnkAe * 0.0025; xfk 6 the same on the angle); settled (phase 2, small speed + distance) -> role 0x13
+//   roles 0xD 0xF 0x10  call the class loaders' update functions 0x186A50 / 0x1604E8 / 0x21CB18 with (pso, reference)
+//   role 0x11   position row: Hermite from the current value + velocity to restValue at the time `reference` (as float), then restValue
+//   role 0x12   spring-damper to the rest value (xfk 1: kp = stiffness * 0.015, kd = damping * 0.0025; xfk 6 the same on the angle); settled (phase 2, small speed + distance) -> role 0x13
 //   role 0x15   only keeps the SO awake
-// After the switch the XF's world matrix is parent->matWorld * mat (VU0 microprogram 0x60, the T1025 recipe; the stamp is lifted to the parent's) or a copy of mat without a parent.
-// The SO's flag 4 (grfUnk40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
+// After the switch the XF's world matrix is parent->worldMatrix * mat (VU0 microprogram 0x60, the T1025 recipe; the stamp is lifted to the parent's) or a copy of mat without a parent.
+// The SO's flag 4 (unknown40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
 // HOW IT IS WRITTEN (T1113, each point verified on the diff; scratch decomp/build/scratch/t1113/, cmp.py = aligned diff + sp-offset score):
-//  - every 128-bit read through a cast (`*(qword *)&pxf->vUnkB0`, `*(qword *)&pxf->qwUnkF0`, the position row) is an alias-everything load that cannot move
-//    across the VU_FLOAT home stores: the game reads vUnkB0 / the position row BEFORE the VuFloat and qwUnkF0 after it (hence the qwV0 / qwPos0 locals);
+//  - every 128-bit read through a cast (`*(qword *)&pxf->velocity`, `*(qword *)&pxf->acceleration`, the position row) is an alias-everything load that cannot move
+//    across the VU_FLOAT home stores: the game reads velocity / the position row BEFORE the VuFloat and acceleration after it (hence the qwV0 / qwPos0 locals);
 //  - the value / rate switches are open-coded (macros below, as in SlotCurrentMatrix) with the T1074 join-copy trick (`qword qw0 = qw` + `qwVel = qw = g_qwZero`);
 //    their Hermite arms call tiny inline helpers (EvaluateHermitePos/Vel) so the VECTOR4 lives in an inline frame whose address is a pseudo - otherwise gcse CSEs it
 //    with the SlotStoreValue temporary at the same offset (s0 = sp+0xD0 in the 0x12 rotation arm);
 //  - the chase arms (roles 7 8 9 0xB) leave the limited case of role 0xB with `goto LChaseDone` (no flag in the game; inline functions with `return` match
 //    the code too but their frames do not share stack slots like the game's);
 //  - locals of the rotation arms are declared at the top of the arm in the game's frame order (matOld 0x00, matDmat/matTarget 0x30, matNew 0x60/0x90, vecAxis);
-//  - xfk 11/12 tests are nested ifs with the shared else duplicated (two slti), SMP fields assigned svFast, svSlow, dtFast; gMin is an if/else and gOut is set
-//    before dgNext; ClearXyz stores z, y, x; case 1's "else" is `if (nRole != 2) SlotSetRole(..3) else fIdle = 0` (case 6 too); fIdle = 0 after SlotSetRole(10).
+//  - xfk 11/12 tests are nested ifs with the shared else duplicated (two slti), SMP fields assigned fastSpeed, slowSpeed, fastDuration; gMin is an if/else and gOut is set
+//    before dgNext; ClearXyz stores z, y, x; case 1's "else" is `if (role != 2) SlotSetRole(..3) else fIdle = 0` (case 6 too); fIdle = 0 after SlotSetRole(10).
 //  (T1137, each verified on the diff; scratch decomp/build/scratch/t1137/ - var.py/opperm.py/rtlsum.py/pri.py, notes re/notes/decomp-compiler-quirks.md section 62)
 //  - case 5/6 FALLS THROUGH into case 0x15 (`fIdle = 0; break;`): one `fIdle = 0` fewer = n_refs 21 instead of 23 = global.c priority 1157 < the g_qwZero hi copy's 1200,
 //    which gives the copy $s7 and fIdle $fp like the game (the "knife-edge" of T1113 was a missing fall-through);
 //  - the asm OPERAND ORDER decides which input local-alloc ties the output to (the first local input that dies): the scalar first for the rotation chase's VuMulAddX
 //    (VuSMulAddX), (S, A, B, T) for the 0x12 rotation arm's VuMulXMulX; an output that is also an input variable (`qwDir = qwDir / g`, `qwDV = SubtractVectors(qwDV, ..)`, the limited
 //    `qwDV = VuMulAddX(qwV0, qwDV, ..)`) is ONE pseudo set twice = global, gets a vf register from global alloc instead of being tied (pos chase);
-//  - the position chase reads vUnkB0 before its VU_FLOAT only in the limited path (qwV0), the rotation chase's gMax is computed first; `MATRIX3 matRot; matRot = LoadRotateMatrix(..);`
+//  - the position chase reads velocity before its VU_FLOAT only in the limited path (qwV0), the rotation chase's gMax is computed first; `MATRIX3 matRot; matRot = LoadRotateMatrix(..);`
 //    then `matTurn = matRot * matOld` gives the game's frame slots and the copy of the rows to 0xB0; pointers `pmatTarget` / `pmatStored` make the rows 1 and 2 load through a0 / s0;
 //  - `int ixf;` declared before fSnap (frame slots 0x190 / 0x194), qwRate before qwOmega0 in the 0x12 rotation arm, qwTurn as a separate statement there, ClearXyz in role 0x11,
-//    the tail keeps `pxfParent` but reads `pxf->pxfParent->nStampWorld` again, gDist = FloatOfVf(VuLength(..)) (the bits are not CSE'd: the game has a fresh mfc1 before the divide).
+//    the tail keeps `parent` but reads `pxf->parent->worldStamp` again, gDist = FloatOfVf(VuLength(..)) (the bits are not CSE'd: the game has a fresh mfc1 before the divide).
 // MATCH (T1641, Lilly's team decomp). The personal draft (xf.c, #if 0) was 14 lines off; with the team toolchain it took three changes to close it:
 //  - Near()'s Y word is ONE float-out asm (`prot3w %0,%1` "=r"(float)) like the X/Z words, not a TI temp + asm mtc1: that alone moved the z `pextuw` pairs to $a0/$a1;
 //  - the position chase's distance goes through VuGetX(VuLength(..)) (compiler qmfc2 + asm mtc1): the divide gets a fresh `mfc1 v1,f21` and a plain bc1f;
@@ -989,25 +989,25 @@ static inline qword VuMulXMulXSwapped(qword q1, qword q2, qword q3, qword q4)
 static inline qword GetSlotValue(XF *xf)
 {
     qword qw;
-    switch (xf->nPhase)
+    switch (xf->phase)
     {
         case 0:
-            qw = SlotRestValue(xf, &xf->mat);
+            qw = SlotRestValue(xf, &xf->localMatrix);
             break;
         case 1:
         {
             VECTOR4 vec;
-            EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, &vec, 0, 0);
+            EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->unknownE0, xf->acceleration, &vec, 0, 0);
             qw = *(qword *)&vec;
             break;
         }
         case 2:
         case 3:
         case 4:
-            qw = xf->qwRest;
+            qw = xf->restValue;
             break;
         case 5:
-            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&xf->qwRest);
+            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&xf->restValue);
             break;
         default:
             qw = D_002A2DD0;
@@ -1018,21 +1018,21 @@ static inline qword GetSlotValue(XF *xf)
 static inline qword EvaluateHermitePos(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, &vec, 0, 0);
+    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->unknownE0, xf->acceleration, &vec, 0, 0);
     return *(qword *)&vec;
 }
 static inline qword EvaluateHermiteVel(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, 0, &vec, 0);
+    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->unknownE0, xf->acceleration, 0, &vec, 0);
     return *(qword *)&vec;
 }
 // The value / rate switches of an XF's actuator, open-coded (the game does not use a helper; see SlotCurrentMatrix in the personal xf.c).
 #define SLOT_VALUE_SWITCH(xf, qw) \
-    switch ((xf)->nPhase) \
+    switch ((xf)->phase) \
     { \
         case 0: \
-            qw = SlotRestValue(xf, &(xf)->mat); \
+            qw = SlotRestValue(xf, &(xf)->localMatrix); \
             break; \
         case 1: \
             qw = EvaluateHermitePos(xf); \
@@ -1040,21 +1040,21 @@ static inline qword EvaluateHermiteVel(XF *xf)
         case 2: \
         case 3: \
         case 4: \
-            qw = (xf)->qwRest; \
+            qw = (xf)->restValue; \
             break; \
         case 5: \
-            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&(xf)->qwRest); \
+            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&(xf)->restValue); \
             break; \
         default: \
             qw = D_002A2DD0; \
             break; \
     }
 #define SLOT_RATE_SWITCH(xf, qw, qwVel) \
-    switch ((xf)->nPhase) \
+    switch ((xf)->phase) \
     { \
         case 3: \
         case 4: \
-            qwVel = (xf)->qwUnkD0; \
+            qwVel = (xf)->rate; \
             break; \
         case 1: \
             qwVel = EvaluateHermiteVel(xf); \
@@ -1080,10 +1080,10 @@ static inline void TurnSlotMat(XF *xf, MATRIX3 *pmatFrom, qword qwTurn)
     MATRIX3 matNew;
     matNew = LoadRotateMatrix(qwTurn) * *pmatFrom;
     NormalizeRotateMatrix3(&matNew);
-    *(MATRIX3 *)&xf->mat = matNew;
-    xf->mat.mat[2][3] = 0.0f;
-    xf->mat.mat[1][3] = 0.0f;
-    xf->mat.mat[0][3] = 0.0f;
+    *(MATRIX3 *)&xf->localMatrix = matNew;
+    xf->localMatrix.mat[2][3] = 0.0f;
+    xf->localMatrix.mat[1][3] = 0.0f;
+    xf->localMatrix.mat[0][3] = 0.0f;
 }
 MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) __asm__("BuildAxisAngleRotationMatrix");
 void UpdateSoSlots(SO *so) __asm__("UpdateSoSlots");
@@ -1093,47 +1093,47 @@ void UpdateSoSlots(SO *so)
 {
     int fMoving;
     int ixf;
-    int fIdle = (so->psoParent == 0 || !(*(uint *)so->psoParent->grfUnk40 & 4));
-    int fSnap = *(uint *)so->grfUnk40 & 0x10;
-    for (ixf = 0; ixf < so->cxf; ixf++)
+    int fIdle = (so->parent == 0 || !(*(uint *)so->parent->unknown40 & 4));
+    int fSnap = *(uint *)so->unknown40 & 0x10;
+    for (ixf = 0; ixf < so->numTransforms; ixf++)
     {
-        XF *xf = &so->axf[ixf];
+        XF *xf = &so->transforms[ixf];
         SlotRefresh(so, xf);
-        switch (xf->nRole)
+        switch (xf->role)
         {
             case 0:
                 break;
             case 1:
             case 2:
             {
-                switch (xf->xfk)
+                switch (xf->kind)
                 {
                 case 1:
                 {
-                    float dt = D_002DDED0.dt;
-                    qword qwV0 = *(qword *)&xf->vUnkB0;
+                    float dt = D_002DDED0.deltaTime;
+                    qword qwV0 = *(qword *)&xf->velocity;
                     VU_FLOAT vfDt = VuFloat(dt);
-                    qword qwF0 = *(qword *)&xf->qwUnkF0;
+                    qword qwF0 = *(qword *)&xf->acceleration;
                     qword qwVel = VuMulAddX(qwV0, qwF0, vfDt.qw);
                     fMoving = 0;
-                    if (!(AreVectorsNearXyz(D_002A2DD0, qwVel) && AreVectorsNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
+                    if (!(AreVectorsNearXyz(D_002A2DD0, qwVel) && AreVectorsNearXyz(D_002A2DD0, *(qword *)&xf->velocity)))
                         fMoving = 1;
                     if (fMoving)
                     {
                         fIdle = 0;
-                        qword qwPos0 = *(qword *)xf->mat.mat[3];
+                        qword qwPos0 = *(qword *)xf->localMatrix.mat[3];
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = VuAdd(qwVel, *(qword *)&xf->vUnkB0);
+                        qword qwSum = VuAdd(qwVel, *(qword *)&xf->velocity);
                         qword qwPos = VuMulAddX(qwPos0, qwSum, vfHalf.qw);
-                        VECTOR_opAssign(xf->mat.mat[3], qwPos);
-                        *(qword *)&xf->vUnkB0 = qwVel;
-                        xf->mat.mat[3][3] = 1.0f;
-                        xf->nStampWorld = ++D_003DD490.nStampXf;
+                        VECTOR_opAssign(xf->localMatrix.mat[3], qwPos);
+                        *(qword *)&xf->velocity = qwVel;
+                        xf->localMatrix.mat[3][3] = 1.0f;
+                        xf->worldStamp = ++D_003DD490.transformStamp;
                     }
                     else
                     {
-                        ClearXyz(&xf->vUnkB0);
-                        if (xf->nRole != 2)
+                        ClearXyz(&xf->velocity);
+                        if (xf->role != 2)
                             SlotSetRole(so, xf, 3);
                         else
                             fIdle = 0;
@@ -1142,27 +1142,27 @@ void UpdateSoSlots(SO *so)
                 }
                 case 6:
                 {
-                    float dt = D_002DDED0.dt;
-                    qword qwV0 = *(qword *)&xf->vUnkB0;
+                    float dt = D_002DDED0.deltaTime;
+                    qword qwV0 = *(qword *)&xf->velocity;
                     VU_FLOAT vfDt = VuFloat(dt);
-                    qword qwF0 = *(qword *)&xf->qwUnkF0;
+                    qword qwF0 = *(qword *)&xf->acceleration;
                     qword qwVel = VuMulAddX(qwV0, qwF0, vfDt.qw);
                     fMoving = 0;
-                    if (!(AreVectorsNearXyz(D_002A2DD0, qwVel) && AreVectorsNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
+                    if (!(AreVectorsNearXyz(D_002A2DD0, qwVel) && AreVectorsNearXyz(D_002A2DD0, *(qword *)&xf->velocity)))
                         fMoving = 1;
                     if (fMoving)
                     {
                         fIdle = 0;
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = VuAdd(*(qword *)&xf->vUnkB0, qwVel);
-                        TurnSlotMat(xf, (MATRIX3 *)&xf->mat, VuScaleByX(qwSum, vfHalf.qw));
-                        *(qword *)&xf->vUnkB0 = qwVel;
-                        xf->nStampWorld = ++D_003DD490.nStampXf;
+                        qword qwSum = VuAdd(*(qword *)&xf->velocity, qwVel);
+                        TurnSlotMat(xf, (MATRIX3 *)&xf->localMatrix, VuScaleByX(qwSum, vfHalf.qw));
+                        *(qword *)&xf->velocity = qwVel;
+                        xf->worldStamp = ++D_003DD490.transformStamp;
                     }
                     else
                     {
-                        ClearXyz(&xf->vUnkB0);
-                        if (xf->nRole != 2)
+                        ClearXyz(&xf->velocity);
+                        if (xf->role != 2)
                             SlotSetRole(so, xf, 3);
                         else
                             fIdle = 0;
@@ -1173,43 +1173,43 @@ void UpdateSoSlots(SO *so)
                 break;
             }
             case 0x14:
-                if (xf->xfk == 6)
+                if (xf->kind == 6)
                 {
                     fIdle = 0;
-                    float gAngle = NormalizeAngle(*(float *)&xf->qwRestUnkE0 + D_002DDED0.dt * *(float *)&xf->qwUnkD0);
-                    *(float *)&xf->qwRestUnkE0 = gAngle;
-                    MATRIX3 matRot = LoadRotateMatrixRad(gAngle, xf->qwRest);
-                    *(MATRIX3 *)&xf->mat = matRot;
-                    xf->mat.mat[1][3] = 0.0f;
-                    xf->mat.mat[2][3] = 0.0f;
-                    xf->mat.mat[0][3] = 0.0f;
-                    xf->nStampWorld = ++D_003DD490.nStampXf;
+                    float gAngle = NormalizeAngle(*(float *)&xf->unknownE0 + D_002DDED0.deltaTime * *(float *)&xf->rate);
+                    *(float *)&xf->unknownE0 = gAngle;
+                    MATRIX3 matRot = LoadRotateMatrixRad(gAngle, xf->restValue);
+                    *(MATRIX3 *)&xf->localMatrix = matRot;
+                    xf->localMatrix.mat[1][3] = 0.0f;
+                    xf->localMatrix.mat[2][3] = 0.0f;
+                    xf->localMatrix.mat[0][3] = 0.0f;
+                    xf->worldStamp = ++D_003DD490.transformStamp;
                 }
                 break;
             case 4:
-                xf->mat.mat[3][0] = -xf->pxfRef->mat.mat[3][0];
-                xf->mat.mat[3][1] = -xf->pxfRef->mat.mat[3][1];
-                xf->mat.mat[3][2] = -xf->pxfRef->mat.mat[3][2];
-                xf->nStampWorld = xf->pxfRef->nStampWorld;
+                xf->localMatrix.mat[3][0] = -xf->reference->localMatrix.mat[3][0];
+                xf->localMatrix.mat[3][1] = -xf->reference->localMatrix.mat[3][1];
+                xf->localMatrix.mat[3][2] = -xf->reference->localMatrix.mat[3][2];
+                xf->worldStamp = xf->reference->worldStamp;
                 break;
             case 5:
             case 6:
             {
-                if (xf->nPhase == 5)
+                if (xf->phase == 5)
                 {
-                    MATRIX3 *pmatTarget = (MATRIX3 *)&xf->qwRest;
-                    *(MATRIX3 *)&xf->mat = *pmatTarget;
-                    xf->mat.mat[1][3] = 0.0f;
-                    xf->mat.mat[2][3] = 0.0f;
-                    xf->mat.mat[0][3] = 0.0f;
+                    MATRIX3 *pmatTarget = (MATRIX3 *)&xf->restValue;
+                    *(MATRIX3 *)&xf->localMatrix = *pmatTarget;
+                    xf->localMatrix.mat[1][3] = 0.0f;
+                    xf->localMatrix.mat[2][3] = 0.0f;
+                    xf->localMatrix.mat[0][3] = 0.0f;
                 }
                 else
                 {
                     qword qwVal = GetSlotValue(xf);
-                    xf->mat = SlotStoreValue(xf, qwVal);
+                    xf->localMatrix = SlotStoreValue(xf, qwVal);
                 }
-                xf->nStampWorld = ++D_003DD490.nStampXf;
-                if (xf->nRole == 6 && xf->nPhase == 2)
+                xf->worldStamp = ++D_003DD490.transformStamp;
+                if (xf->role == 6 && xf->phase == 2)
                     SlotSetRole(so, xf, 10);
             }
             case 0x15:
@@ -1220,24 +1220,24 @@ void UpdateSoSlots(SO *so)
             case 9:
             case 0xb:
             {
-                switch (xf->xfk)
+                switch (xf->kind)
                 {
                 case 6:
                 case 7:
                 {
-                    MATRIX3 matOld = *(MATRIX3 *)&xf->mat;
+                    MATRIX3 matOld = *(MATRIX3 *)&xf->localMatrix;
                     qword qwRotRate;
                     MATRIX3 matDmat;
                     MATRIX3 matNew;
                     float gAngle;
                     VECTOR4 vecAxis;
-                    if (xf->nPhase == 5)
+                    if (xf->phase == 5)
                     {
-                        MATRIX3 *pmatTarget = (MATRIX3 *)&xf->qwRest;
-                        *(MATRIX3 *)&xf->mat = *pmatTarget;
-                        xf->mat.mat[1][3] = 0.0f;
-                        xf->mat.mat[2][3] = 0.0f;
-                        xf->mat.mat[0][3] = 0.0f;
+                        MATRIX3 *pmatTarget = (MATRIX3 *)&xf->restValue;
+                        *(MATRIX3 *)&xf->localMatrix = *pmatTarget;
+                        xf->localMatrix.mat[1][3] = 0.0f;
+                        xf->localMatrix.mat[2][3] = 0.0f;
+                        xf->localMatrix.mat[0][3] = 0.0f;
                         qwRotRate = D_002A2DD0;
                     }
                     else
@@ -1247,24 +1247,24 @@ void UpdateSoSlots(SO *so)
                         qword qwEuler = qw;
                         qword qwEulerRate;
                         SLOT_RATE_SWITCH(xf, qw, qwEulerRate)
-                        xf->mat = SlotStoreValue(xf, qwEuler);
+                        xf->localMatrix = SlotStoreValue(xf, qwEuler);
                         qwRotRate = QwRotRateFromEulerRate(qwEuler, qwEulerRate);
                     }
-                    matDmat = MulMatrix3Matrix3(&matOld, (MATRIX3 *)&xf->mat);
+                    matDmat = MulMatrix3Matrix3(&matOld, (MATRIX3 *)&xf->localMatrix);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
                     float gRateAlong = VuToFloat(VuDot(qwRotRate, *(qword *)&vecAxis));
                     SMP smp;
-                    if (xf->nPhase == 3)
+                    if (xf->phase == 3)
                     {
-                        smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svFast;
-                        smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svSlow;
-                        smp.dtFast = s_smpChaseRot.dtFast;
+                        smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.fastSpeed;
+                        smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.slowSpeed;
+                        smp.fastDuration = s_smpChaseRot.fastDuration;
                     }
                     else
                     {
-                        smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svFast + fabsf(gRateAlong);
-                        smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svSlow + fabsf(gRateAlong);
-                        smp.dtFast = s_smpChaseRot.dtFast;
+                        smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.fastSpeed + fabsf(gRateAlong);
+                        smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.slowSpeed + fabsf(gRateAlong);
+                        smp.fastDuration = s_smpChaseRot.fastDuration;
                     }
                     float gOut;
                     float dgNext;
@@ -1274,29 +1274,29 @@ void UpdateSoSlots(SO *so)
                     }
                     else
                     {
-                        gOut = SmoothValue(0.0f, gAngle, D_002DDED0.dt, &smp, &dgNext);
-                        switch (xf->nRole)
+                        gOut = SmoothValue(0.0f, gAngle, D_002DDED0.deltaTime, &smp, &dgNext);
+                        switch (xf->role)
                         {
                             case 0xb:
                             {
-                                float gMax = (float)(ushort)xf->nUnkAc * s_gAccelRot;
+                                float gMax = (float)(ushort)xf->stiffness * s_gAccelRot;
                                 qword qwNewOmega = VuSMulAddX(VuFloat(dgNext - gRateAlong).qw, *(qword *)&vecAxis, qwRotRate);
-                                qword qwV0 = *(qword *)&xf->vUnkB0;
+                                qword qwV0 = *(qword *)&xf->velocity;
                                 qword qwDOmega = VuSub(qwNewOmega, qwV0);
-                                float gNeed = VectorLength(qwDOmega) / D_002DDED0.dt;
+                                float gNeed = VectorLength(qwDOmega) / D_002DDED0.deltaTime;
                                 if (gMax < gNeed)
                                 {
                                     qword qwLimited = VuMulAddX(qwV0, qwDOmega, VuFloat(gMax / gNeed).qw);
                                     MATRIX3 matRot;
                                     MATRIX3 matTurn;
-                                    matRot = LoadRotateMatrix(VuXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, VuAdd(*(qword *)&xf->vUnkB0, qwLimited)));
+                                    matRot = LoadRotateMatrix(VuXMul(VuFloat(D_002DDED0.deltaTime * 0.5f).qw, VuAdd(*(qword *)&xf->velocity, qwLimited)));
                                     matTurn = matRot * matOld;
                                     NormalizeRotateMatrix3(&matTurn);
-                                    *(qword *)&xf->vUnkB0 = qwLimited;
-                                    *(MATRIX3 *)&xf->mat = matTurn;
-                                    xf->mat.mat[2][3] = 0.0f;
-                                    xf->mat.mat[1][3] = 0.0f;
-                                    xf->mat.mat[0][3] = 0.0f;
+                                    *(qword *)&xf->velocity = qwLimited;
+                                    *(MATRIX3 *)&xf->localMatrix = matTurn;
+                                    xf->localMatrix.mat[2][3] = 0.0f;
+                                    xf->localMatrix.mat[1][3] = 0.0f;
+                                    xf->localMatrix.mat[0][3] = 0.0f;
                                     goto LChaseDone;
                                 }
                                 break;
@@ -1304,14 +1304,14 @@ void UpdateSoSlots(SO *so)
                             case 9:
                             {
                                 float gMin;
-                                if (D_002DDED0.t < *(float *)&xf->pxfRef)
-                                    gMin = gAngle * D_002DDED0.dt / ((*(float *)&xf->pxfRef - D_002DDED0.t) + D_002DDED0.dt);
+                                if (D_002DDED0.time < *(float *)&xf->reference)
+                                    gMin = gAngle * D_002DDED0.deltaTime / ((*(float *)&xf->reference - D_002DDED0.time) + D_002DDED0.deltaTime);
                                 else
                                     gMin = gAngle;
                                 if (gOut < gMin)
                                 {
                                     gOut = gMin;
-                                    dgNext = gOut / D_002DDED0.dt;
+                                    dgNext = gOut / D_002DDED0.deltaTime;
                                 }
                                 break;
                             }
@@ -1320,30 +1320,30 @@ void UpdateSoSlots(SO *so)
                     {
                         if (gAngle <= gOut)
                         {
-                            if (xf->nRole != 8)
+                            if (xf->role != 8)
                             {
-                                if (xf->nRole == 0xb)
+                                if (xf->role == 0xb)
                                 {
-                                    if (xf->nPhase == 2)
+                                    if (xf->phase == 2)
                                         SlotSetRole(so, xf, 0xc);
                                 }
-                                else if (xf->nPhase == 1)
+                                else if (xf->phase == 1)
                                     SlotSetRole(so, xf, 6);
-                                else if (xf->nPhase == 2)
+                                else if (xf->phase == 2)
                                     SlotSetRole(so, xf, 10);
                             }
-                            *(qword *)&xf->vUnkB0 = qwRotRate;
+                            *(qword *)&xf->velocity = qwRotRate;
                         }
                         else
                         {
                             matNew = LoadRotateMatrixRad(gOut, *(qword *)&vecAxis) * matOld;
                             NormalizeRotateMatrix3(&matNew);
-                            *(MATRIX3 *)&xf->mat = matNew;
-                            xf->mat.mat[1][3] = 0.0f;
-                            xf->mat.mat[2][3] = 0.0f;
-                            xf->mat.mat[0][3] = 0.0f;
+                            *(MATRIX3 *)&xf->localMatrix = matNew;
+                            xf->localMatrix.mat[1][3] = 0.0f;
+                            xf->localMatrix.mat[2][3] = 0.0f;
+                            xf->localMatrix.mat[0][3] = 0.0f;
                             VU_FLOAT vfRate = VuFloat(dgNext - gRateAlong);
-                            *(qword *)&xf->vUnkB0 = VuMulAddX(qwRotRate, *(qword *)&vecAxis, vfRate.qw);
+                            *(qword *)&xf->velocity = VuMulAddX(qwRotRate, *(qword *)&vecAxis, vfRate.qw);
                         }
                     }
                     break;
@@ -1358,7 +1358,7 @@ void UpdateSoSlots(SO *so)
                     SLOT_RATE_SWITCH(xf, qw, qwR)
                     qwTargetVel = PassQ(qwR);
                     __asm__("" : : ); // schedule only: puts the spill store ahead of the call's argument moves (no instruction)
-                    qword qwCur = SlotRestValue(xf, &xf->mat);
+                    qword qwCur = SlotRestValue(xf, &xf->localMatrix);
                     qword qwDir = VuSub(qwTarget, qwCur);
                     float gDist = QwordX(VuLength(qwDir));
                     if (gDist > 0.0001f)
@@ -1371,26 +1371,26 @@ void UpdateSoSlots(SO *so)
                     }
                     float gVelAlong = VuToFloat(VuDot(qwTargetVel, qwDir));
                     SMP smp;
-                    if (xf->xfk < 13)
+                    if (xf->kind < 13)
                     {
-                        if (xf->xfk >= 11)
+                        if (xf->kind >= 11)
                         {
-                            smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChaseScale.svFast + fabsf(gVelAlong);
-                            smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChaseScale.svSlow + fabsf(gVelAlong);
-                            smp.dtFast = s_smpChaseScale.dtFast;
+                            smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChaseScale.fastSpeed + fabsf(gVelAlong);
+                            smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChaseScale.slowSpeed + fabsf(gVelAlong);
+                            smp.fastDuration = s_smpChaseScale.fastDuration;
                         }
                         else
                         {
-                            smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChasePos.svFast + fabsf(gVelAlong);
-                            smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChasePos.svSlow + fabsf(gVelAlong);
-                            smp.dtFast = s_smpChasePos.dtFast;
+                            smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.fastSpeed + fabsf(gVelAlong);
+                            smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.slowSpeed + fabsf(gVelAlong);
+                            smp.fastDuration = s_smpChasePos.fastDuration;
                         }
                     }
                     else
                     {
-                        smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChasePos.svFast + fabsf(gVelAlong);
-                        smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChasePos.svSlow + fabsf(gVelAlong);
-                        smp.dtFast = s_smpChasePos.dtFast;
+                        smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.fastSpeed + fabsf(gVelAlong);
+                        smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.slowSpeed + fabsf(gVelAlong);
+                        smp.fastDuration = s_smpChasePos.fastDuration;
                     }
                     float gOut;
                     float dgNext;
@@ -1400,34 +1400,34 @@ void UpdateSoSlots(SO *so)
                     }
                     else
                     {
-                        gOut = SmoothValue(0.0f, gDist, D_002DDED0.dt, &smp, &dgNext);
-                        switch (xf->nRole)
+                        gOut = SmoothValue(0.0f, gDist, D_002DDED0.deltaTime, &smp, &dgNext);
+                        switch (xf->role)
                         {
                             case 0xb:
                             {
                                 VU_FLOAT vfRate = VuFloat(dgNext - gVelAlong);
                                 qword qwDV = VuMulAddX(qwTargetVel, qwDir, vfRate.qw);
-                                qwDV = VuSub(qwDV, *(qword *)&xf->vUnkB0);
-                                float gNeed = VectorLength(qwDV) / D_002DDED0.dt;
+                                qwDV = VuSub(qwDV, *(qword *)&xf->velocity);
+                                float gNeed = VectorLength(qwDV) / D_002DDED0.deltaTime;
                                 float gMax;
-                                if (xf->xfk < 13)
+                                if (xf->kind < 13)
                                 {
-                                    if (xf->xfk >= 11)
-                                        gMax = (float)(ushort)xf->nUnkAc * s_gAccelScale;
+                                    if (xf->kind >= 11)
+                                        gMax = (float)(ushort)xf->stiffness * s_gAccelScale;
                                     else
-                                        gMax = (float)(ushort)xf->nUnkAc * s_gAccelPos;
+                                        gMax = (float)(ushort)xf->stiffness * s_gAccelPos;
                                 }
                                 else
-                                    gMax = (float)(ushort)xf->nUnkAc * s_gAccelPos;
+                                    gMax = (float)(ushort)xf->stiffness * s_gAccelPos;
                                 if (gMax < gNeed)
                                 {
-                                    qword qwV0 = *(qword *)&xf->vUnkB0;
+                                    qword qwV0 = *(qword *)&xf->velocity;
                                     VU_FLOAT vfLimit = VuFloat(gMax / gNeed);
-                                    VU_FLOAT vfHalf = VuFloat(D_002DDED0.dt * 0.5f);
+                                    VU_FLOAT vfHalf = VuFloat(D_002DDED0.deltaTime * 0.5f);
                                     qwDV = VuMulAddX(qwV0, qwDV, vfLimit.qw);
-                                    qword qwSum = VuAdd(*(qword *)&xf->vUnkB0, qwDV);
-                                    *(qword *)&xf->vUnkB0 = qwDV;
-                                    xf->mat = SlotStoreValue(xf, VuMulAddX(qwCur, qwSum, vfHalf.qw));
+                                    qword qwSum = VuAdd(*(qword *)&xf->velocity, qwDV);
+                                    *(qword *)&xf->velocity = qwDV;
+                                    xf->localMatrix = SlotStoreValue(xf, VuMulAddX(qwCur, qwSum, vfHalf.qw));
                                     goto LChaseDone;
                                 }
                                 break;
@@ -1435,14 +1435,14 @@ void UpdateSoSlots(SO *so)
                             case 9:
                             {
                                 float gMin;
-                                if (D_002DDED0.t < *(float *)&xf->pxfRef)
-                                    gMin = gDist * D_002DDED0.dt / ((*(float *)&xf->pxfRef - D_002DDED0.t) + D_002DDED0.dt);
+                                if (D_002DDED0.time < *(float *)&xf->reference)
+                                    gMin = gDist * D_002DDED0.deltaTime / ((*(float *)&xf->reference - D_002DDED0.time) + D_002DDED0.deltaTime);
                                 else
                                     gMin = gDist;
                                 if (gOut < gMin)
                                 {
                                     gOut = gMin;
-                                    dgNext = gOut / D_002DDED0.dt;
+                                    dgNext = gOut / D_002DDED0.deltaTime;
                                 }
                                 break;
                             }
@@ -1450,22 +1450,22 @@ void UpdateSoSlots(SO *so)
                     }
                     {
                         VU_FLOAT vfOut = VuFloat(gOut);
-                        xf->mat = SlotStoreValue(xf, VuMulAddX(qwCur, qwDir, vfOut.qw));
+                        xf->localMatrix = SlotStoreValue(xf, VuMulAddX(qwCur, qwDir, vfOut.qw));
                         if (gDist <= gOut)
                         {
-                            if (xf->nRole != 8)
+                            if (xf->role != 8)
                             {
-                                if (xf->nPhase == 1)
+                                if (xf->phase == 1)
                                     SlotSetRole(so, xf, 6);
-                                else if (xf->nPhase == 2)
+                                else if (xf->phase == 2)
                                     SlotSetRole(so, xf, 10);
                             }
-                            *(qword *)&xf->vUnkB0 = qwTargetVel;
+                            *(qword *)&xf->velocity = qwTargetVel;
                         }
                         else
                         {
                             VU_FLOAT vfRate = VuFloat(dgNext - gVelAlong);
-                            *(qword *)&xf->vUnkB0 = VuMulAddX(qwTargetVel, qwDir, vfRate.qw);
+                            *(qword *)&xf->velocity = VuMulAddX(qwTargetVel, qwDir, vfRate.qw);
                         }
                     }
                     break;
@@ -1473,41 +1473,41 @@ void UpdateSoSlots(SO *so)
                 }
             LChaseDone:
                 fIdle = 0;
-                xf->nStampWorld = ++D_003DD490.nStampXf;
+                xf->worldStamp = ++D_003DD490.transformStamp;
                 break;
             }
             case 0xd:
-                SolveIk(so, xf->pxfRef);
+                SolveIk(so, xf->reference);
                 break;
             case 0xf:
-                ApplyXfmConstraint(so, (struct XFLOCK *)xf->pxfRef);
+                ApplyXfmConstraint(so, (struct XFLOCK *)xf->reference);
                 break;
             case 0x10:
-                UpdateChainLink(so, (struct CHAINLINK *)xf->pxfRef);
+                UpdateChainLink(so, (struct CHAINLINK *)xf->reference);
                 break;
             case 0x11:
             {
                 VECTOR4 vecPos;
                 VECTOR4 vecVel;
-                if (*(float *)&xf->pxfRef <= D_002DDED0.t)
+                if (*(float *)&xf->reference <= D_002DDED0.time)
                 {
-                    *(qword *)&vecPos = xf->qwRest;
+                    *(qword *)&vecPos = xf->restValue;
                     ClearXyz(&vecVel);
                 }
                 else
                 {
-                    EvaluateBezierPos((*(float *)&xf->pxfRef - D_002DDED0.t) + D_002DDED0.dt, D_002DDED0.dt, 1.0f, *(qword *)xf->mat.mat[3], *(qword *)&xf->vUnkB0, xf->qwRest, xf->qwUnkD0, &vecPos, &vecVel, 0);
+                    EvaluateBezierPos((*(float *)&xf->reference - D_002DDED0.time) + D_002DDED0.deltaTime, D_002DDED0.deltaTime, 1.0f, *(qword *)xf->localMatrix.mat[3], *(qword *)&xf->velocity, xf->restValue, xf->rate, &vecPos, &vecVel, 0);
                 }
                 fIdle = 0;
-                VECTOR_opAssign(xf->mat.mat[3], *(qword *)&vecPos);
-                xf->mat.mat[3][3] = 1.0f;
-                *(qword *)&xf->vUnkB0 = *(qword *)&vecVel;
-                xf->nStampWorld = ++D_003DD490.nStampXf;
+                VECTOR_opAssign(xf->localMatrix.mat[3], *(qword *)&vecPos);
+                xf->localMatrix.mat[3][3] = 1.0f;
+                *(qword *)&xf->velocity = *(qword *)&vecVel;
+                xf->worldStamp = ++D_003DD490.transformStamp;
                 break;
             }
             case 0x12:
             {
-                switch (xf->xfk)
+                switch (xf->kind)
                 {
                 case 1:
                 {
@@ -1516,16 +1516,16 @@ void UpdateSoSlots(SO *so)
                     qword qwTarget = qw;
                     qword qwTargetVel;
                     SLOT_RATE_SWITCH(xf, qw, qwTargetVel)
-                    float gKp = (float)(ushort)xf->nUnkAc * s_gKpPos;
-                    float gKd = (float)(ushort)xf->nUnkAe * s_gKdPos;
-                    float dt = D_002DDED0.dt;
-                    qword qwV0 = *(qword *)&xf->vUnkB0;
+                    float gKp = (float)(ushort)xf->stiffness * s_gKpPos;
+                    float gKd = (float)(ushort)xf->damping * s_gKdPos;
+                    float dt = D_002DDED0.deltaTime;
+                    qword qwV0 = *(qword *)&xf->velocity;
                     qword qwDV = VuSub(qwTargetVel, qwV0);
-                    qword qwDPos = VuSub(qwTarget, *(qword *)xf->mat.mat[3]);
+                    qword qwDPos = VuSub(qwTarget, *(qword *)xf->localMatrix.mat[3]);
                     qword qwAccel = VuMulXMulX(qwDPos, VuFloat(gKp).qw, qwDV, VuFloat(gKd).qw);
                     qword qwV1 = VuMulAddX(qwV0, qwAccel, VuFloat(dt).qw);
                     int fSettled = 0;
-                    if (xf->nPhase == 2)
+                    if (xf->phase == 2)
                     {
                         if (VuToFloat(VuDot(qwV1, qwV1)) < 25.0f)
                         {
@@ -1538,26 +1538,26 @@ void UpdateSoSlots(SO *so)
                         qwV1 = VuZero<qword>();
                         SlotSetRole(so, xf, 0x13);
                     }
-                    qword qwPos0 = *(qword *)xf->mat.mat[3];
-                    VECTOR_opAssign(xf->mat.mat[3], VuAddMulXMulX(qwPos0, qwV0, qwV1, VuFloat(dt * 0.5f).qw));
-                    *(qword *)&xf->vUnkB0 = qwV1;
-                    xf->mat.mat[3][3] = 1.0f;
+                    qword qwPos0 = *(qword *)xf->localMatrix.mat[3];
+                    VECTOR_opAssign(xf->localMatrix.mat[3], VuAddMulXMulX(qwPos0, qwV0, qwV1, VuFloat(dt * 0.5f).qw));
+                    *(qword *)&xf->velocity = qwV1;
+                    xf->localMatrix.mat[3][3] = 1.0f;
                     break;
                 }
                 case 6:
                 {
-                    float dt = D_002DDED0.dt;
-                    MATRIX3 matOld = *(MATRIX3 *)&xf->mat;
+                    float dt = D_002DDED0.deltaTime;
+                    MATRIX3 matOld = *(MATRIX3 *)&xf->localMatrix;
                     MATRIX3 matTarget;
                     MATRIX3 matDmat;
                     MATRIX3 matNew;
                     VECTOR4 vecAxis;
                     float gAngle;
                     qword qwRate;
-                    qword qwOmega0 = *(qword *)&xf->vUnkB0;
-                    if (xf->nPhase == 5)
+                    qword qwOmega0 = *(qword *)&xf->velocity;
+                    if (xf->phase == 5)
                     {
-                        MATRIX3 *pmatTarget = (MATRIX3 *)&xf->qwRest;
+                        MATRIX3 *pmatTarget = (MATRIX3 *)&xf->restValue;
                         matTarget = *pmatTarget;
                         qwRate = D_002A2DD0;
                     }
@@ -1573,15 +1573,15 @@ void UpdateSoSlots(SO *so)
                         matTarget = *pmatTarget;
                         qwRate = QwRotRateFromEulerRate(qwEuler, qwEulerRate);
                     }
-                    matDmat = MulMatrix3Matrix3((MATRIX3 *)&xf->mat, &matTarget);
+                    matDmat = MulMatrix3Matrix3((MATRIX3 *)&xf->localMatrix, &matTarget);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
-                    float gKp = (float)(ushort)xf->nUnkAc * s_gKpRot;
-                    float gKd = (float)(ushort)xf->nUnkAe * s_gKdRot;
+                    float gKp = (float)(ushort)xf->stiffness * s_gKpRot;
+                    float gKd = (float)(ushort)xf->damping * s_gKdRot;
                     qword qwDV = VuSub(qwRate, qwOmega0);
                     qword qwAccel = VuMulXMulXSwapped(*(qword *)&vecAxis, VuFloat(gKp * gAngle).qw, qwDV, VuFloat(gKd).qw);
                     qword qwOmega1 = VuMulAddX(qwOmega0, qwAccel, VuFloat(dt).qw);
                     int fSettled = 0;
-                    if (xf->nPhase == 2)
+                    if (xf->phase == 2)
                     {
                         if (VuToFloat(VuDot(qwOmega1, qwOmega1)) < 0.0025000001f && gAngle < 0.01f)
                             fSettled = 1;
@@ -1594,35 +1594,35 @@ void UpdateSoSlots(SO *so)
                     qword qwTurn = VuMulXAddMulX(qwOmega0, qwOmega1, VuFloat(dt * 0.5f).qw);
                     matNew = LoadRotateMatrix(qwTurn) * matOld;
                     NormalizeRotateMatrix3(&matNew);
-                    *(MATRIX3 *)&xf->mat = matNew;
-                    xf->mat.mat[1][3] = 0.0f;
-                    xf->mat.mat[2][3] = 0.0f;
-                    xf->mat.mat[0][3] = 0.0f;
-                    *(qword *)&xf->vUnkB0 = qwOmega1;
+                    *(MATRIX3 *)&xf->localMatrix = matNew;
+                    xf->localMatrix.mat[1][3] = 0.0f;
+                    xf->localMatrix.mat[2][3] = 0.0f;
+                    xf->localMatrix.mat[0][3] = 0.0f;
+                    *(qword *)&xf->velocity = qwOmega1;
                     break;
                 }
                 }
                 fIdle = 0;
-                xf->nStampWorld = ++D_003DD490.nStampXf;
+                xf->worldStamp = ++D_003DD490.transformStamp;
                 break;
             }
         }
-        XF *parentXf = xf->pxfParent;
+        XF *parentXf = xf->parent;
         if (parentXf != 0)
         {
-            // matWorld = parent->matWorld * mat through VU0 microprogram 0x60 (VU0 mem: parent rows in vf1-vf4, ours in vf5-vf8, result back in vf5-vf8).
+            // worldMatrix = parent->worldMatrix * mat through VU0 microprogram 0x60 (VU0 mem: parent rows in vf1-vf4, ours in vf5-vf8, result back in vf5-vf8).
             // The loads and vcallms are one asm WITHOUT outputs: a volatile asm with no outputs makes cse forget everything, so the stamp
-            // compare below reads pxf->pxfParent again and gcse keeps the game's copy of the parent pointer ($a0).
-            MATRIX4 *pmatParent = &parentXf->matWorld;
+            // compare below reads pxf->parent again and gcse keeps the game's copy of the parent pointer ($a0).
+            MATRIX4 *pmatParent = &parentXf->worldMatrix;
             __asm__ __volatile__("lqc2 vf1, 0x40(%0)\n\tlqc2 vf4, 0x30(%1)\n\tlqc2 vf2, 0x10(%1)\n\tlqc2 vf3, 0x20(%1)\n\t"
                                  "lqc2 vf5, 0x0(%2)\n\tlqc2 vf6, 0x10(%2)\n\tlqc2 vf7, 0x20(%2)\n\tlqc2 vf8, 0x30(%2)\n\tvcallms 0x60"
                                  : : "r"(parentXf), "r"(pmatParent), "r"(xf));
-            int nStamp = xf->nStampWorld;
-            if (nStamp <= xf->pxfParent->nStampWorld)
-                nStamp = xf->pxfParent->nStampWorld;
-            xf->nStampWorld = nStamp;
+            int nStamp = xf->worldStamp;
+            if (nStamp <= xf->parent->worldStamp)
+                nStamp = xf->parent->worldStamp;
+            xf->worldStamp = nStamp;
             // cfc2.i waits for the microprogram; its four "=j" outputs are the result rows still sitting in vf5-vf8 (vf1-vf4 are clobbered,
-            // so the allocator hands out vf5 and up). Row 0 is the one pin: without it the row stored twice (stack temp and matWorld) lands in vf8.
+            // so the allocator hands out vf5 and up). Row 0 is the one pin: without it the row stored twice (stack temp and worldMatrix) lands in vf8.
             int nWait;
             register qword qwRow0 __asm__("vf5"); // pin: result row 0 is the microprogram's vf5
             qword qwRow1, qwRow2, qwRow3;
@@ -1632,33 +1632,33 @@ void UpdateSoSlots(SO *so)
             *(qword *)matWorldNew.mat[1] = qwRow1;
             *(qword *)matWorldNew.mat[2] = qwRow2;
             *(qword *)matWorldNew.mat[3] = qwRow3;
-            xf->matWorld = matWorldNew;
+            xf->worldMatrix = matWorldNew;
         }
         else
         {
-            xf->matWorld = xf->mat;
+            xf->worldMatrix = xf->localMatrix;
         }
     }
     if (fIdle)
     {
-        if (!(so->grfUnk40 & 1))
+        if (!(so->unknown40 & 1))
         {
-            *(int *)so->grfUnk40 &= ~4;
+            *(int *)so->unknown40 &= ~4;
         }
         else
         {
-            so->grfUnk40 &= ~4;
+            so->unknown40 &= ~4;
         }
     }
     if (fSnap)
     {
-        if (!(so->grfUnk40 & 1))
+        if (!(so->unknown40 & 1))
         {
-            *(int *)so->grfUnk40 &= ~0x10;
+            *(int *)so->unknown40 &= ~0x10;
         }
         else
         {
-            so->grfUnk40 &= ~0x10;
+            so->unknown40 &= ~0x10;
         }
     }
     RefreshSoAfterSlotUpdate(so);

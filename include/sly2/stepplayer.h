@@ -18,19 +18,19 @@
 struct ZPR
 {
       LO *ploSource;   /* object that delivered the zap */
-      SOPART *ppart;   /* part that was hit */
-      LO *ploUnk08;
+      SOPART *part;    /* part that was hit */
+      LO *unknown08;
       int zpk;   /* zap kind (damage type) */
       int dhp;   /* hit points removed */
-      undefined4 unk_0x14[3];
-      qword qwPos;   /* hit position */
-      qword qwVel;   /* velocity at the hit */
-      undefined4 unk_0x40;
+      undefined4 unknown14[3];
+      qword position; /* hit position */
+      qword velocity; /* velocity at the hit */
+      undefined4 unknown40;
       uint grfzpr;   /* zap flag bits */
       SO *psoHit;   /* solid object that was hit */
-      float tHit;   /* time of the hit */
+      float hitTime; /* time of the hit */
       DLE dle;   /* link in the world's zap-hit list */
-      undefined4 unk_0x58[2];
+      undefined4 unknown58[2];
 };
 
 /* MRSG: a time window (start and duration) in an animation, used for foot-contact ranges (inferred).
@@ -45,15 +45,15 @@ struct MRSG
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BL
 {
-      float gWeight;   /* blend weight */
-      ASEG *paseg;   /* the animation segment */
+      float weight;    /* blend weight */
+      ASEG *animation; /* the animation segment */
 };
 
 /* BLGAIT: a gait blend entry with root motion and foot-contact windows.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BLGAIT : public BL
 {
-      char abUnk08[8];
+      char unknown08[8];
       qword vRoot;   /* root velocity of the segment */
       MRSG amrsgFoot0[2];   /* contact windows of the first foot */
       MRSG amrsgFoot1[2];   /* contact windows of the second foot */
@@ -63,22 +63,22 @@ struct BLGAIT : public BL
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct GAIT
 {
-      STEPPLAYER *pstepplayer;   /* owner */
-      ASEGBL *pasegbl;   /* the blended segment */
-      char abUnk08[8];
+      STEPPLAYER *player;        /* owner */
+      ASEGBL *blendedAnimation; /* the blended segment */
+      char unknown08[8];
       BLGAIT abl[2];   /* the two gait blends (walk, run) */
       int sfxidStep;   /* footstep sound */
-      float gVolWalk;   /* footstep volume walking */
-      float gVolRun;   /* footstep volume running */
+      float walkVolume; /* footstep volume walking */
+      float runVolume; /* footstep volume running */
       int afFootDown[2];   /* each foot is on the ground */
-      char abUnkA4[0xc];
+      char unknownA4[0xc];
 };
 
 /* BLDIR: a directional blend entry (one of eight directions) with its root velocity.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLDIR : public BL
 {
-      char abUnk08[8];
+      char unknown08[8];
       qword vRoot;   /* root velocity of the segment */
 };
 
@@ -86,27 +86,27 @@ struct BLDIR : public BL
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLLEAN : public BL
 {
-      char abUnk08[4];
+      char unknown08[4];
 };
 
 /* JTPLACE: a remembered landing/grab spot (object, spot, part and position) and when it was remembered.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACE
 {
-      LO *plo;   /* object */
-      GRABSPOT *pspot;   /* grab spot */
-      SOPART *ppart;   /* collision part */
-      float tRemembered;   /* time it was remembered */
-      qword qwPos;   /* position */
+      LO *object; /* object */
+      GRABSPOT *grabSpot; /* grab spot */
+      SOPART *part;    /* collision part */
+      float rememberedTime; /* time it was remembered */
+      qword position; /* position */
 };
 
 /* JTPLACES: the hero's list of remembered landing/grab spots (up to 32).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACES
 {
-      STEPPLAYER *pstepplayer;   /* owner */
+      STEPPLAYER *player;        /* owner */
       int cplace;   /* number of spots */
-      undefined4 unk_0x08[2];
+      undefined4 unknown08[2];
       JTPLACE aplace[32];   /* the spots */
 };
 
@@ -115,12 +115,12 @@ struct JTPLACES
 struct JTMODEHUD
 {
       JTMODE *pjtmode;   /* the mode */
-      int nState;   /* HUD state */
+      int state;    /* HUD state */
       struct WIDGET *pwidgetHud;   /* the mode's HUD widget */
       struct WIDGET *pwidgetDefault;   /* the default widget */
       struct WIDGET *pwidgetCur;   /* the widget shown */
-      int *pnUnk14;
-      float uZoom;   /* zoom shown on the HUD, 0..1 */
+      int *unknown14;   /* possibly reconValue (low-confidence guess: hud.cpp reads it as pnRecon; mode.cpp switches on *it) */
+      float zoom;    /* zoom shown on the HUD, 0..1 */
     void SetState(int nState) __asm__("SetJtModeHudState");
     void SetWidgetCur(struct WIDGET *pwidget) __asm__("SetJtModeHudOverride");
 };
@@ -129,28 +129,28 @@ struct JTMODEHUD
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTMODE
 {
-      STEPPLAYER *pstepplayer;   /* owner */
-      int nState;   /* mode state */
-      float tEnter;   /* time the mode was entered */
+      STEPPLAYER *player;        /* owner */
+      int state;    /* mode state */
+      float enterTime; /* time the mode was entered */
       struct ASEG *pasegStart;   /* enter animation */
       struct ASEG *pasegEnd;   /* exit animation */
-      struct ASEGA *pasega;   /* running animation */
+      struct ASEGA *animationPlayback; /* running animation */
       struct ASEGA *pasegaHold;   /* hold animation */
-      undefined4 unk_0x1c;
-      int nKind;   /* mode kind (1 = recon) */
+      undefined4 unknown1C;
+      int kind;    /* mode kind (1 = recon) */
       JTMODEHUD hud;   /* the mode HUD */
       STEP *pstepOther;   /* other character involved */
       struct WIDGET *ploHudOverride;   /* widget that overrides the HUD */
-      undefined4 unk_0x48[2];
+      undefined4 unknown48[2];
 };
 
 /* JTHANDBL: a hand blend entry: weight, segment and the two shapes it follows.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDBL
 {
-      float uWeight;   /* blend weight, 0..1 */
-      struct ASEG *paseg;   /* segment */
-      undefined4 unk_0x08;
+      float weight;    /* blend weight, 0..1 */
+      struct ASEG *animation; /* segment */
+      undefined4 unknown08;
       struct SHAPE *pshapeA;   /* first shape */
       struct SHAPE *pshapeB;   /* second shape */
 };
@@ -159,56 +159,56 @@ struct JTHANDBL
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDS
 {
-      SO *pso;   /* owner */
+      SO *owner; /* owner */
       struct ASEGA **ppasega;
       JTHANDBL abl[2];   /* the two hand blends */
-      struct ASEGBL *pasegbl;   /* blended segment */
+      struct ASEGBL *blendedAnimation; /* blended segment */
       LO *ploHand;   /* object in hand */
-      struct XF *pxf;   /* hand transform */
-      undefined4 unk_0x3c;
+      struct XF *handTransform; /* hand transform */
+      undefined4 unknown3C;
       MATRIX4 matChain;   /* chain matrix */
       struct ACT *pact1Euler;
       LO *ploTarget;   /* object reached for */
-      float sParam;   /* position along the target */
+      float distanceAlong; /* position along the target */
       LO *ploRef;   /* reference object */
-      int nKind;   /* hold kind */
+      int holdKind; /* hold kind */
       struct ACT *pactPos;   /* position actuator */
       struct ACT *pactHold;   /* hold actuator */
       struct ACT *pactTurn;   /* turn actuator */
       SO *psoHeld;   /* held object */
-      int nMode;   /* hand mode */
-      float tMode;   /* time the mode was entered */
-      undefined4 unk_0xac;
+      int mode;    /* hand mode */
+      float modeStartTime; /* time the mode was entered */
+      undefined4 unknownAC;
 };
 
 /* JTGRAB: the grab/climb subsystem: the spot being grabbed, its parameters and the climb/hang animation blends.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGRAB
 {
-      STEPPLAYER *pstepplayer;   /* owner */
-      float tEnter;   /* time the grab started */
-      int nState;   /* grab state */
-      int nKind;   /* grab kind */
-      undefined4 unk_0x10;
-      LO *plo;   /* grabbed object */
-      GRABSPOT *pspot;   /* grabbed spot */
-      float uParam;   /* position along the spot, 0..1 */
-      float sParam;   /* position along the spot (distance) */
-      int fFlip;   /* facing flipped */
-      undefined4 unk_0x28;
+      STEPPLAYER *player;        /* owner */
+      float enterTime; /* time the grab started */
+      int state;    /* grab state */
+      int kind;    /* grab kind */
+      undefined4 unknown10;
+      LO *grabbedObject; /* grabbed object */
+      GRABSPOT *grabSpot; /* grabbed spot */
+      float spotParam; /* position along the spot, 0..1 */
+      float spotDistance; /* position along the spot (distance) */
+      int isFlipped; /* facing flipped */
+      undefined4 unknown28;
       HFDK hfdk;   /* hand-foot kind (inferred) */
       float tHfdk;   /* time hfdk was set */
       JTFOCK jtfock;   /* focus kind */
       undefined4 unk_0x38[(0x40 - 0x38) / 4];
-      qword qwPosFocus;   /* focus position */
+      qword focusPosition; /* focus position */
       float uFlattenClamp;
-      SOPART *precUnk54;
-      SOPART *precUnk58;
-      undefined4 unk_0x5c;
-      SOPART *precUnk60;
-      SOPART *precUnk64;
-      struct TN *ptn;   /* camera tunnel of the grab */
-      undefined4 unk_0x6c;
+      SOPART *unknown54;
+      SOPART *unknown58;
+      undefined4 unknown5C;
+      SOPART *unknown60;
+      SOPART *unknown64;
+      struct TN *cameraTunnel; /* camera tunnel of the grab */
+      undefined4 unknown6C;
       BLDIR abldirA[8];   /* first directional blends */
       struct ASEGBL *pasegblA;
       undefined4 unk_0x174[(0x180 - 0x174) / 4];
@@ -217,7 +217,7 @@ struct JTGRAB
       GAIT gaitB;   /* second gait */
       BLLEAN ablC[3];   /* lean blends */
       struct ASEGBL *pasegblC;
-      float gLean;   /* lean amount */
+      float leanAmount; /* lean amount */
       float dgLean;   /* lean speed */
       undefined4 unk_0x320[(0x330 - 0x320) / 4];
       BLDIR abldirB[8];   /* second directional blends */
@@ -225,10 +225,10 @@ struct JTGRAB
       undefined4 unk_0x434[(0x440 - 0x434) / 4];
       JTHANDS hands;   /* hand state */
       undefined4 unk_0x4f0[(0x4fc - 0x4f0) / 4];
-      int nUnk4fc;
-      int fUnk500;
+      int gadgetId;
+      int unknown500;
       struct PROXY *pproxyMarker;   /* marker proxy */
-      struct ASEG *pasegUnk508;
+      struct ASEG *unknown508;
       struct ASEG *pasegPhase0xC;
       undefined4 unk_0x510[(0x520 - 0x510) / 4];
 };
@@ -237,28 +237,28 @@ struct JTGRAB
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPEBL
 {
-      float gWeight;   /* blend weight */
-      struct ASEG *paseg;   /* segment */
-      undefined4 unk_0x08;
-      float gSpeed;   /* playback speed */
+      float weight;    /* blend weight */
+      struct ASEG *animation; /* segment */
+      undefined4 unknown08;
+      float speed;    /* playback speed */
 };
 
 /* JTPIPE: the pipe-climb subsystem: the pipe shape, position and speed along it, and the climb animations.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPE
 {
-      struct STEPPLAYER *pstepplayer;   /* owner */
-      int nState;   /* state */
-      float tState;   /* time the state was entered */
-      SHAPE *pshape;   /* pipe curve */
+      struct STEPPLAYER *player;        /* owner */
+      int state;    /* state */
+      float stateStartTime; /* time the state was entered */
+      SHAPE *pipeCurve; /* pipe curve */
       float s;   /* position along the pipe */
-      float gSpeed;   /* climb speed */
-      int fReversed;   /* climbing against the curve direction */
-      float gVel;   /* velocity along the pipe */
-      int nStick;   /* stick direction */
+      float climbSpeed; /* climb speed */
+      int isReversed;  /* climbing against the curve direction */
+      float velocityAlong; /* velocity along the pipe */
+      int stickDirection; /* stick direction */
       undefined4 unk_0x24[(0x30 - 0x24) / 4];
-      qword qwPosHand;   /* hand position */
-      qword qwUnk40;
+      qword handPosition; /* hand position */
+      qword unknown40;
       JTPIPEBL abl[2];   /* climb blends */
       struct ASEGBL *pasegbl;
       struct ASEG *pasegMount;   /* mount animation */
@@ -270,77 +270,77 @@ struct JTPIPE
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIRBL
 {
-      float gWeight;   /* blend weight */
-      struct ASEG *paseg;   /* segment */
-      undefined4 unk_0x08;
+      float weight;    /* blend weight */
+      struct ASEG *animation; /* segment */
+      undefined4 unknown08;
 };
 
 /* JTAIR: the air subsystem: jumps, double jumps, launches, edge catches and smashes.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIR
 {
-      STEPPLAYER *pstepplayer;   /* owner */
-      int nKind;   /* jump kind */
-      int n2;
-      struct LO *plo;   /* object jumped from/to */
-      undefined4 unk_0x010[2];
-      float tStart;   /* time the jump started */
-      int nState;   /* air state */
-      float tState;   /* time the state was entered */
-      int fUnk24;
-      int fCanDoubleJump;   /* a double jump is still allowed */
-      int fUnk2c;
-      int fUnk30;
-      float gUnk34;
-      float gSpeedRatio;   /* horizontal speed ratio */
+      STEPPLAYER *player;        /* owner */
+      int jumpKind; /* jump kind */
+      int unknown08;   /* possibly jumpParam (low-confidence guess: third argument of SetJtAirJump, stored by it) */
+      struct LO *jumpObject; /* object jumped from/to */
+      undefined4 unknown10[2];
+      float startTime; /* time the jump started */
+      int state;    /* air state */
+      float stateStartTime; /* time the state was entered */
+      int unknown24;
+      int canDoubleJump;    /* a double jump is still allowed */
+      int unknown2C;
+      int unknown30;
+      float unknown34;
+      float speedRatio;    /* horizontal speed ratio */
       float zStart;   /* height at take-off */
-      int nUnk40;
-      float tUnk44;
-      float tUnk48;
-      float tUnk4c;
+      int unknown40;
+      float unknown44;
+      float unknown48;
+      float unknown4C;
       undefined4 unk_0x050[(0xa0 - 0x50) / 4];
-      qword qwUnkA0;
-      float radSmash;   /* smash attack angle */
-      float gUnkb4;
-      float sSmash;   /* smash distance */
-      struct LO *ploUnk37c;
-      struct SO *psoUnkc0;
-      struct SO *psoUnkc4;
-      struct JTEDGE *pedge;   /* edge being caught */
-      undefined4 unk_0x0cc;
-      qword posEdge;   /* edge position */
+      qword unknownA0;
+      float smashAngle; /* smash attack angle */
+      float unknownB4;
+      float smashDistance; /* smash distance */
+      struct LO *unknownBC;   /* possibly ignoredHangObject (low-confidence guess: set from phndHang / JT+0x1F18 when leaving a hang; air/grab skip that object) */
+      struct SO *unknownC0;
+      struct SO *unknownC4;
+      struct JTEDGE *edge;    /* edge being caught */
+      undefined4 unknownCC;
+      qword edgePosition; /* edge position */
       qword normalEdge;   /* edge normal */
       qword dposEdge;   /* offset from the edge */
-      int nUnk100;
-      int nUnk104;
-      float gUnk108;
-      float gUnk10c;
-      float gUnk110;
-      float gUnk114;
-      float gUnk118;
-      float gUnk11c;
+      int unknown100;   /* possibly edgeContactKind (low-confidence guess: copied from XP::xpk, passed to FCheckJtEdgeGrab) */
+      int unknown104;   /* possibly edgeContactObject (low-confidence guess: XP::pv0/pv1 of the edge contact, passed to FCheckJtEdgeGrab) */
+      float unknown108;
+      float unknown10C;
+      float unknown110;
+      float unknown114;
+      float unknown118;
+      float unknown11C;
       struct ASEG *apasegJump[5];   /* jump animations */
       struct ASEG *apasegDoubleJump[5];   /* double-jump animations */
       struct ASEG *pasegLaunch;   /* launch animation */
       struct ASEG *pasegLaunch10;
-      undefined4 unk_0x150;
+      undefined4 unknown150;
       struct ASEG *pasegEdge;   /* edge catch animation */
       struct ASEG *pasegKindE;
       struct ASEG *pasegKindEDouble;
-      undefined4 unk_0x160;
-      float gUnk164;
+      undefined4 unknown160;
+      float unknown164;
       float rGravitySaved;   /* gravity scale saved while changed */
       struct TN *ptnLaunch;   /* camera tunnel of the launch */
-      undefined4 unk_0x170;
-      int fGravityChanged;   /* gravity scale is changed */
-      struct ASEG *pasegUnk178;
+      undefined4 unknown170;
+      int isGravityChanged;  /* gravity scale is changed */
+      struct ASEG *unknown178;
       JTAIRBL abl[5];   /* air blends */
-      struct ASEGBL *pasegbl;   /* blended segment */
-      struct TN *ptnUnk1bc;
-      float sUnk1c0;
-      float sUnk1c4;
-      struct ASEG *pasegUnk1c8;
-      undefined4 unk_0x1cc;
+      struct ASEGBL *blendedAnimation; /* blended segment */
+      struct TN *unknown1BC;
+      float unknown1C0;
+      float unknown1C4;
+      struct ASEG *unknown1C8;
+      undefined4 unknown1CC;
       JTPLACE placeTarget;   /* landing target */
       struct ACT8 *pact8;
       undefined4 unk_0x1f4[(0x200 - 0x1f4) / 4];
@@ -356,20 +356,20 @@ struct HURTEND
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTHURT
 {
-      struct STEPPLAYER *pstepplayer;   /* owner */
-      int nState;           /* +0x04 [R] hurt state machine */
-      undefined4 unk_0x008;
-      int nHpMax;   /* maximum hit points */
-      int *php;   /* current hit points (points at the save variable) */
+      struct STEPPLAYER *player;        /* owner */
+      int state;            /* +0x04 [R] hurt state machine */
+      undefined4 unknown08;
+      int maxHitPoints; /* maximum hit points */
+      int *hitPoints; /* current hit points (points at the save variable) */
       undefined4 unk_0x014[(0x1c - 0x14) / 4];
       HURTEND hurtend;
       undefined4 unk_0x024[(0x30 - 0x24) / 4];
       ZPR zpr;   /* the last zap received */
-      int nUnk90;           /* +0x90 [R] post-hit mode: 1 = damage forced to 0 (ram_inspector) */
-      undefined4 unk_0x094[2];
-      float gUnk9c;
+      int postHitMode;      /* +0x90 [R] post-hit mode: 1 = damage forced to 0 (ram_inspector) */
+      undefined4 unknown94[2];
+      float unknown9C;
       undefined4 unk_0x0a0[(0x10c - 0xa0) / 4];
-      struct ASEGA *pasegaUnk10c;
+      struct ASEGA *unknown10C;
 };
 
 /* GADGETSLOT: an equipped gadget: id and its state.
@@ -377,40 +377,40 @@ struct JTHURT
 struct GADGETSLOT
 {
       int idGadget;   /* gadget id */
-      int nState;   /* state */
-      float tState;   /* time the state was entered */
+      int state;    /* state */
+      float stateStartTime; /* time the state was entered */
 };
 
 /* JTGOAL: a move-to goal: target position, distance and hold flag.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGOAL
 {
-      STEPPLAYER *pstepplayer;   /* owner */
-      undefined4 unk_0x04[3];
-      qword qwGoal;   /* goal position */
-      float sDist;   /* distance to the goal */
-      float tCheck;   /* time of the last check */
-      int fHold;   /* hold at the goal */
-      undefined4 unk_0x2c;
+      STEPPLAYER *player;        /* owner */
+      undefined4 unknown04[3];
+      qword goalPosition; /* goal position */
+      float distance; /* distance to the goal */
+      float lastCheckTime; /* time of the last check */
+      int shouldHold; /* hold at the goal */
+      undefined4 unknown2C;
 };
 
 /* JTTHROW: the carry/throw subsystem: carried object, aiming and the throw blends.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTTHROW
 {
-      struct STEPPLAYER *pstepplayer;   /* owner */
-      int nState;   /* state */
-      float tState;   /* time the state was entered */
-      undefined4 unk_0x0c;
+      struct STEPPLAYER *player;        /* owner */
+      int state;    /* state */
+      float stateStartTime; /* time the state was entered */
+      undefined4 unknown0C;
       struct LO *ploCarried;   /* carried object */
-      float radTurnHold;   /* turn while holding */
-      float radTurnAim;   /* turn while aiming */
+      float holdTurnAngle; /* turn while holding */
+      float aimTurnAngle; /* turn while aiming */
       LM lmAim;   /* aim limits */
-      float gUnk24;
-      float svAim;   /* aim speed */
-      undefined4 unk_0x2c;
-      VECTOR vUnk30;
-      undefined4 unk_0x3c;
+      float unknown24;
+      float aimSpeed; /* aim speed */
+      undefined4 unknown2C;
+      VECTOR unknown30;
+      undefined4 unknown3C;
       JTAIRBL abl[2];   /* first blends */
       struct ASEGBL *pasegbl;
       undefined4 unk_0x5c[(0x68 - 0x5c) / 4];
@@ -419,19 +419,19 @@ struct JTTHROW
       undefined4 unk_0x9c[(0xa4 - 0x9c) / 4];
       JTAIRBL ablC[2];   /* third blends */
       struct ASEGBL *pasegblC;
-      VECTOR vUnkC0;
-      undefined4 unk_0xcc;
-      VECTOR vUnkD0;
-      undefined4 unk_0xdc;
-      qword posHold;   /* hold position */
+      VECTOR unknownC0;
+      undefined4 unknownCC;
+      VECTOR unknownD0;
+      undefined4 unknownDC;
+      qword holdPosition; /* hold position */
       undefined4 unk_0xf0[(0x100 - 0xf0) / 4];
-      qword posBlendFrom;   /* blend start position */
-      qword posBlendTo;   /* blend end position */
-      float tBlend;   /* blend start time */
-      float dtBlend;   /* blend duration */
-      int fBlending;   /* a blend is running */
+      qword blendFromPosition; /* blend start position */
+      qword blendToPosition; /* blend end position */
+      float blendStartTime; /* blend start time */
+      float blendDuration; /* blend duration */
+      int isBlending;  /* a blend is running */
       struct LO *ploMarker;   /* aim marker */
-      int nUnk130;
+      int unknown130;
       undefined4 unk_0x134[(0x140 - 0x134) / 4];
 };
 
@@ -442,77 +442,77 @@ struct STEPPLAYER : public STEP
       JTAIR jtair;   /* jumping/falling */
       JTGRAB jtgrab;   /* grabbing/climbing */
       JTPLACES jtplaces;   /* remembered landing spots */
-      JTHURT jthurt;        /* +0xDF0 [R] damage/health: +0x4 nState, +0xC nHpMax (40), +0x10 php -> save var <char>.hpCur,
+      JTHURT jthurt;        /* +0xDF0 [R] damage/health: +0x4 state, +0xC maxHitPoints (40), +0x10 hitPoints -> save var <char>.hpCur,
                                +0x30 zpr (last zap: source/kind/dhp), +0x90 post-hit mode */
       JTMODE jtmode;   /* gadget/recon modes */
       JTPIPE jtpipe;   /* pipe climbing */
       JTGOAL jtgoal;   /* move-to goal */
-      uint grfUnk1000;
+      uint unknown1000;   /* possibly grabSpotMask (low-confidence guess: ANDed with GRABSPOT::grfUnk1c to filter spots) */
       undefined4 unk_0x1004[(0x1010 - 0x1004) / 4];
-      qword dposUnk1010;
-      float gUnk1020;
-      struct TN *ptnUnk1024;
-      struct SM *psmUnk1028;
-      struct SM *psmUnk102c;
-      struct ASEGA *pasegaUnk1030;
-      struct SMA *psmaUnk1034;
-      int nUnk1038;
-      float gUnk103c;
-      int nUnk1040;
-      int fUnk1044;
-      int nUnk1048;
-      float gUnk104c;
-      float gUnk1050;
+      qword unknown1010;   /* possibly smoothedOffset (low-confidence guess: PosSmooth-ed toward zero each frame in air.cpp) */
+      float unknown1020;
+      struct TN *unknown1024;   /* possibly currentTunnel (low-confidence guess: compared with grab/attach-object tunnels (camera TN)) */
+      struct SM *unknown1028;
+      struct SM *unknown102C;
+      struct ASEGA *activeAnimation;
+      struct SMA *activeStateMachine;
+      int unknown1038;
+      float unknown103C;
+      int unknown1040;
+      int unknown1044;
+      int unknown1048;
+      float unknown104C;
+      float unknown1050;
       undefined4 unk_0x1054[(0x1060 - 0x1054) / 4];
-      qword qwUnk1060;
-      qword qwUnk1070;
-      undefined4 unk_0x1080;
+      qword unknown1060;
+      qword unknown1070;
+      undefined4 unknown1080;
       struct JSG *pjsgScript;   /* script (JSG) controlling the hero */
-      void *pvUnk1088;
-      int nUnk108c;
-      LOREF *aplorefUnk1090;
-      int cplorefUnk1094;
-      float agUnk1098[4];
-      SMPA smpaUnk10a8;
-      void *precUnk10b8;
+      void *unknown1088;
+      int unknown108C;
+      LOREF *unknown1090;
+      int unknown1094;
+      float unknown1098[4];
+      SMPA unknown10A8;
+      void *unknown10B8;
       undefined4 unk_0x10bc[(0x10c8 - 0x10bc) / 4];
-      int nUnk10c8;
+      int unknown10C8;
       undefined4 unk_0x10cc[(0x10d4 - 0x10cc) / 4];
-      float gUnk10d4;
-      float gUnk10d8;
-      LO *ploInteract;      /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
-      int grfUnk10e0;
+      float unknown10D4;
+      float unknown10D8;
+      LO *interactTarget;   /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
+      int unknown10E0;
       int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in ChooseJtGroundState). Not
-                               renamed: STEPPLAYER already has an nInteractMode member further down */
+                               renamed: STEPPLAYER already has an interactMode member further down */
 
 
       LO *ploFightTarget;   /* fight target */
-      int nInteractMode;   /* interaction mode */
-      int nUnk10f0;
-      undefined4 unk_0x10f4;
+      int interactMode;    /* interaction mode */
+      int unknown10F0;
+      undefined4 unknown10F4;
       LO *ploLean;   /* object leaned on */
-      int nLeanKind;   /* lean kind */
+      int leanKind;    /* lean kind */
       undefined4 unk_0x1100[(0x1120 - 0x1100) / 4];
       RAW8 araw1120[3];
       float agdtIdle[4];   /* idle animation durations */
-      int nIdleKind;   /* idle kind */
-      float tIdle;   /* time idle started */
+      int idleKind;    /* idle kind */
+      float idleStartTime; /* time idle started */
       undefined4 unk_0x1150[(0x1180 - 0x1150) / 4];
-      GADGETSLOT agadgetslot[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, nState, tState} (L1/R1/R2 slots) */
+      GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
       undefined4 unk_0x11a4[(0x11b0 - 0x11a4) / 4];
       JTTHROW jtthrow;   /* carry/throw */
-      int nUnk12f0;
-      int cUnk12f4;
+      int unknown12F0;
+      int unknown12F4;
       struct EMITTER *pemitterGrab;   /* grab effect emitter */
-      int *pmpCur;          /* +0x12FC [R] -> save var <char>.mpCur (gadget power) */
-      int mpMax;            /* +0x1300 [R] max gadget power */
-      float tGadgetUsed;    /* +0x1304 [R] clock.t of the last gadget use */
-      float gMpFrac;        /* +0x1308 [R] fractional mp drain accumulator */
-      int nUnk130c;
+      int *gadgetPower;     /* +0x12FC [R] -> save var <char>.mpCur (gadget power) */
+      int maxGadgetPower;   /* +0x1300 [R] max gadget power */
+      float lastGadgetUseTime; /* +0x1304 [R] clock.time of the last gadget use */
+      float gadgetPowerDrainRemainder; /* +0x1308 [R] fractional mp drain accumulator */
+      int unknown130C;
       struct ASEGA *pasegaGadgetOverlay;   /* +0x1310 [R] ASEGA of the gadget overlay animation; was pasegaUnk1310 */
       int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
-      int nUnk1318;
-      float tUnk131c;
+      int unknown1318;
+      float unknown131C;   /* possibly wedgedTime (low-confidence guess: set at jump start, passed to FJtAirWedged) */
     virtual void AdjustXps() __asm__("AdjustStepplayerXps");   /* slot 58; key function (stepplayer.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetStepplayerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepplayerMessage");   /* slot 5 */
@@ -559,25 +559,25 @@ struct STEPPLAYER : public STEP
     virtual void OnGadgetsChanged() __asm__("OnStepplayerGadgetsChanged");   /* slot 105: named from its overrides (inferred) */
 };
 typedef char assert_STEPPLAYER_size[sizeof(STEPPLAYER) == 0x1320 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
-typedef char assert_STEPPLAYER_jthurt_nHpMax[SLY2_OFFSETOF(STEPPLAYER, jthurt.nHpMax) == 0xDFC ? 1 : -1];   /* JT+0xDFC = 40 = max health (CONFIRMED runtime) */
-typedef char assert_STEPPLAYER_jthurt_php[SLY2_OFFSETOF(STEPPLAYER, jthurt.php) == 0xE00 ? 1 : -1];   /* JT+0xE00 -> g_gs+0x50 sly.hpCur (CONFIRMED runtime) */
-typedef char assert_STEPPLAYER_jtair_nState[SLY2_OFFSETOF(STEPPLAYER, jtair.nState) == 0x2DC ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_jtair_fCanDoubleJump[SLY2_OFFSETOF(STEPPLAYER, jtair.fCanDoubleJump) == 0x2E8 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_jtgrab_nState[SLY2_OFFSETOF(STEPPLAYER, jtgrab.nState) == 0x4C8 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_jtgrab_plo[SLY2_OFFSETOF(STEPPLAYER, jtgrab.plo) == 0x4D4 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jthurt_nHpMax[SLY2_OFFSETOF(STEPPLAYER, jthurt.maxHitPoints) == 0xDFC ? 1 : -1]; /* JT+0xDFC = 40 = max health (CONFIRMED runtime) */
+typedef char assert_STEPPLAYER_jthurt_php[SLY2_OFFSETOF(STEPPLAYER, jthurt.hitPoints) == 0xE00 ? 1 : -1]; /* JT+0xE00 -> g_gs+0x50 sly.hpCur (CONFIRMED runtime) */
+typedef char assert_STEPPLAYER_jtair_nState[SLY2_OFFSETOF(STEPPLAYER, jtair.state) == 0x2DC ? 1 : -1];    /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtair_fCanDoubleJump[SLY2_OFFSETOF(STEPPLAYER, jtair.canDoubleJump) == 0x2E8 ? 1 : -1];    /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtgrab_nState[SLY2_OFFSETOF(STEPPLAYER, jtgrab.state) == 0x4C8 ? 1 : -1];    /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtgrab_plo[SLY2_OFFSETOF(STEPPLAYER, jtgrab.grabbedObject) == 0x4D4 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtplaces_cplace[SLY2_OFFSETOF(STEPPLAYER, jtplaces.cplace) == 0x9E4 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_jthurt_nState[SLY2_OFFSETOF(STEPPLAYER, jthurt.nState) == 0xDF4 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jthurt_nState[SLY2_OFFSETOF(STEPPLAYER, jthurt.state) == 0xDF4 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jthurt_zpr_zpk[SLY2_OFFSETOF(STEPPLAYER, jthurt.zpr.zpk) == 0xE2C ? 1 : -1];   /* last zap kind, CONFIRMED runtime */
-typedef char assert_STEPPLAYER_jtmode_nKind[SLY2_OFFSETOF(STEPPLAYER, jtmode.nKind) == 0xF20 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_jtpipe_pshape[SLY2_OFFSETOF(STEPPLAYER, jtpipe.pshape) == 0xF5C ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_ploInteract[SLY2_OFFSETOF(STEPPLAYER, ploInteract) == 0x10DC ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_agadgetslot[SLY2_OFFSETOF(STEPPLAYER, agadgetslot) == 0x1180 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_STEPPLAYER_pmpCur[SLY2_OFFSETOF(STEPPLAYER, pmpCur) == 0x12FC ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtmode_nKind[SLY2_OFFSETOF(STEPPLAYER, jtmode.kind) == 0xF20 ? 1 : -1];    /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_jtpipe_pshape[SLY2_OFFSETOF(STEPPLAYER, jtpipe.pipeCurve) == 0xF5C ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_interactTarget[SLY2_OFFSETOF(STEPPLAYER, interactTarget) == 0x10DC ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_gadgetSlots[SLY2_OFFSETOF(STEPPLAYER, gadgetSlots) == 0x1180 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_STEPPLAYER_gadgetPower[SLY2_OFFSETOF(STEPPLAYER, gadgetPower) == 0x12FC ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_idGadgetOverlay[SLY2_OFFSETOF(STEPPLAYER, idGadgetOverlay) == 0x1314 ? 1 : -1];   /* CONFIRMED runtime */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
-inline int func_00258280(STEPPLAYER *pstepplayer) { return *pstepplayer->jthurt.php; }   /* get; its set is SetStepplayerHp */
+inline int func_00258280(STEPPLAYER *pstepplayer) { return *pstepplayer->jthurt.hitPoints; } /* get; its set is SetStepplayerHp */
 
 #endif /* SLY2_STEPPLAYER_H */

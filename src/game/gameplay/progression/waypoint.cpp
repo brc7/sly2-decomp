@@ -534,9 +534,9 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
 {
     RenderSoSelf(waypoint);
     float fadeStart = Max(D_003DD490.unknown4750 + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
-    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.time - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
     fadeStart = D_003DD490.unknown4750 + D_002C449C;
-    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.t - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
+    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.time - fadeStart), D_002BBB60.gMin, D_002BBB60.gMax);
     switch (waypoint->mode)
     {
     case 0:

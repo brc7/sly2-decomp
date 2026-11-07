@@ -333,7 +333,7 @@ namespace M_SetSwTransition { extern "C" {
 typedef struct TRANS { int a[0x4C / 4]; } TRANS;   /* the request: flags, destination FILEREC, warp oid, warp context oid */
 typedef struct SWT { char pad[0x3BF0]; int fTransitionPending; TRANS request; } SWT;   /* SW +0x3BF0, +0x3BF4.. */
 void SetSwTransition(SWT *world, TRANS *request) __asm__("SetSwTransition");
-// Posts a level transition: sets fTransitionPending and copies the request to SW +0x3BF4.. for ExecuteSwTransition.
+// Posts a level transition: sets isTransitionPending and copies the request to SW +0x3BF4.. for ExecuteSwTransition.
 void SetSwTransition(SWT *world, TRANS *request)
 {
     world->fTransitionPending = 1;
@@ -344,7 +344,7 @@ void SetSwTransition(SWT *world, TRANS *request)
 namespace M_func_0020E040 { extern "C" {
 extern int D_00443740;
 // True while a level transition is pending or the wipe is wiping out (D_00443740 state 1).
-int IsSwTransitionBusy(void) { if (g_sw.fTransitionPending != 0) return 1; return D_00443740 == 1; }
+int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) return 1; return D_00443740 == 1; }
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
@@ -900,14 +900,14 @@ void DecrementSwHandsOff(struct S *world, int grf)
 // True while the player has no control (hands-off count > 0).
 extern "C" int IsSwHandsOff(SW *world)
 {
-    return world->cHandsOff > 0;
+    return world->handsOffCount > 0;
 }
 
 // Disables pausing (counted; used by cutscene hands-off and the recon mode).
 // Lilly's jtmode.c port calls it IncrementSwNoPause too.
 extern "C" void IncrementSwNoPause(SW *world)
 {
-    if (++world->cNoPause == 1) {
+    if (++world->noPauseCount == 1) {
         AddGrfusr(4);
     }
 }
@@ -915,7 +915,7 @@ extern "C" void IncrementSwNoPause(SW *world)
 // Re-enables pausing (counted).
 extern "C" void DecrementSwNoPause(SW *world)
 {
-    if (--world->cNoPause == 0) {
+    if (--world->noPauseCount == 0) {
         RemoveGrfusr(4);
     }
 }
@@ -926,7 +926,7 @@ SLY2_SCRAP("slt $2, $zero, $2");
 // Shows the letterbox bars (counted; the first call hides the subtitles and shows the letterbox object).
 extern "C" void AcquireSwLetterbox(SW *world)
 {
-    if (++world->cUnk3d80 == 1) {
+    if (++world->unknownCount3D80 == 1) {
         ShowLetterbox(D_002E1E60);
     }
 }
@@ -934,7 +934,7 @@ extern "C" void AcquireSwLetterbox(SW *world)
 // Hides the letterbox bars when the last user releases them.
 extern "C" void ReleaseSwLetterbox(SW *world)
 {
-    if (--world->cUnk3d80 == 0) {
+    if (--world->unknownCount3D80 == 0) {
         HideLetterbox(D_002E1E60);
     }
 }
@@ -945,19 +945,19 @@ SLY2_SCRAP("slt $2, $zero, $2");
 // Locks player input (counted). (inferred)
 extern "C" void IncrementSwInputLock(SW *world)
 {
-    world->cUnk3d84++;
+    world->unknown3D84++;
 }
 
 // Unlocks player input (counted). (inferred)
 extern "C" void DecrementSwInputLock(SW *world)
 {
-    world->cUnk3d84--;
+    world->unknown3D84--;
 }
 
 // True while player input is locked. (inferred)
 extern "C" int IsSwInputLocked(SW *world)
 {
-    return world->cUnk3d84 > 0;
+    return world->unknown3D84 > 0;
 }
 
 namespace M_UpdateSwIllum { extern "C" {
@@ -1009,14 +1009,14 @@ extern "C" void SetSwIllumHsv(SW *world, qword hsv)
 // Sets the illumination shadow level and recomputes the ambient light.
 extern "C" void SetSwIllumShadow(SW *world, float g)
 {
-    world->gMidtone = g;
+    world->midtone = g;
     UpdateSwIllum(world);
 }
 
 // Sets the illumination midtone (default 90) and recomputes the ambient light.
 extern "C" void SetSwIllum(SW *world, float g)
 {
-    world->gLightScale = g;
+    world->lightScale = g;
     UpdateSwIllum(world);
 }
 
@@ -1189,7 +1189,7 @@ extern char D_003DD490[];
 extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
 struct E { int widget; int pad[2]; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int clueTotal; };   /* sw.h cClue, cClueTotal */
+struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int clueTotal; };   /* sw.h numCluesCollected, numClues */
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
@@ -1547,18 +1547,18 @@ void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
 /* The next 12-byte record of the array at +0x39D0. */
 extern "C" void *AllocSwLoCallbackRecord(SW *world)
 {
-    int i = world->cUnk39d4;
-    world->cUnk39d4 = i + 1;
-    return (char *)world->aUnk39d0 + i * 0xC;
+    int i = world->unknown39D4;
+    world->unknown39D4 = i + 1;
+    return (char *)world->unknown39D0 + i * 0xC;
 }
 
 // Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).
 /* The next 12-byte record of the array at +0x39D8. */
 extern "C" void *AllocSwPostLoadRecord(SW *world)
 {
-    int i = world->cUnk39dc;
-    world->cUnk39dc = i + 1;
-    return (char *)world->aUnk39d8 + i * 0xC;
+    int i = world->unknown39DC;
+    world->unknown39DC = i + 1;
+    return (char *)world->unknown39D8 + i * 0xC;
 }
 
 namespace M_func_00210140 { extern "C" {
@@ -1607,10 +1607,10 @@ void AddLoToSwUpdateList(struct G *g, struct O *o)
 /* Takes an object off the update list: restores its +0x40 word, clears the entry, counts the hole. */
 extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
-    int n = plo->grfUnk40;
+    int n = plo->unknown40;
     if (((n ^ 1) & 1) != 0) {
         LOUPD *ploupd = (LOUPD *)n;
-        plo->grfUnk40 = ploupd->grf;
+        plo->unknown40 = ploupd->grf;
         ploupd->grf = 0;
         ploupd->plo = 0;
         world->cloupdHole++;
@@ -1863,7 +1863,7 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 // locked on (booty.cpp).
 extern "C" void BindSwBootyProxy(SW *world)
 {
-    world->ploUnk4638 = FindSwObject(world, 5, (OID)0x620, 0);
+    world->bootyProxySource = FindSwObject(world, 5, (OID)0x620, 0);
 }
 
 // Stores n in the world's unnamed word +0x3EA8 when n is 1; returns the world. (inferred)
@@ -1920,7 +1920,7 @@ int FindLevelIndexByFileRecord(struct X *px)
 // Returns the current level index.
 int GetCurrentLevelIndex()
 {
-    return g_sw.nLoadFilter;
+    return g_sw.loadFilter;
 }
 
 namespace M_NEpisodeCur { extern "C" {

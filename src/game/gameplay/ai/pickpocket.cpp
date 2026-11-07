@@ -62,8 +62,8 @@ struct P
     VO *indicator1;        /* +0x3F8 */
     int pickpocketState;         /* +0x3FC pickpocket state (-1..2) */
     float stateTime;       /* +0x400 time the state was entered */
-    ITEM loot[8];      /* +0x404 STEPGUARD::aloot */
-    int lootCount;          /* +0x484 STEPGUARD::cloot */
+    ITEM loot[8];      /* +0x404 STEPGUARD::loot */
+    int lootCount;          /* +0x484 STEPGUARD::numLoot */
     int nextLoot;          /* +0x488 next item to hand out */
     int isStaged;        /* +0x48C the next item is staged */
     int isLootFixed;           /* +0x490 loot fixed (no generation) */
@@ -160,7 +160,7 @@ extern "C" void SetStepguardPickpocketState(P *guard, int state)
     void *stateMachine;
     if (state == guard->pickpocketState) return;
     guard->pickpocketState = state;
-    guard->stateTime = D_002DDED0.t;
+    guard->stateTime = D_002DDED0.time;
     switch (state) {
     case PICKPOCKET_NONE:
     case PICKPOCKET_ALERT:

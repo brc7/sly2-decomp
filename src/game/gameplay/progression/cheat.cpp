@@ -44,7 +44,7 @@ static inline void InitSli(SLI *psli, SL *psl)
 {
     psli->m_psl = psl;
     psli->m_ppv = (void **)psl;
-    psli->m_ibSle = psl->ibSle;
+    psli->m_ibSle = psl->linkOffset;
     psli->m_psliNext = D_002DD2F8;
     D_002DD2F8 = psli;
 }
@@ -94,7 +94,7 @@ extern "C" int AddCode(CODES *codes, CODE *pcode)
     int r = IsEntryInSl(codes, pcode);
     if (r) return r;
     AppendSlEntry(codes, pcode);
-    if (*pcode->buttons == (*(int *)&g_joy.grfbtn)) pcode->numMatched = 1;
+    if (*pcode->buttons == (*(int *)&g_joy.buttonsHeld)) pcode->numMatched = 1;
     else pcode->numMatched = 0;
 }
 

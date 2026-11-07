@@ -16,12 +16,12 @@
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct EA
 {
-      float tLocal;   /* segment time (s) the event fires at */
-      EAK eak;   /* event kind (selects the payload member) */
+      float time;     /* segment time (s) the event fires at */
+      EAK kind;  /* event kind (selects the payload member) */
     union
     {
-          int n8;
-          float g8;
+          int intArg;
+          float floatArg;
           OID oid;
           EASND *pesnd;
           EA17 *pea17;
@@ -30,8 +30,8 @@ struct EA
     };
     union
     {
-          int nC;
-          float gC;
+          int intArg2;
+          float floatArg2;
     };
 };
 
@@ -39,7 +39,7 @@ struct EA
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGSTART
 {
-      float tLocal;   /* start time (s) */
+      float startTime; /* start time (s) */
       float svtLocal;   /* playback speed */
       GRFAPL grfapl;   /* apply flag bits */
 };
@@ -54,10 +54,10 @@ struct ASEG : public LO
       CHN *achn;   /* the channels (one per animated transform) */
       int covr;   /* number of overrides */
       OVR *aovr;   /* the overrides */
-      int nPriority;   /* priority against other segments on the same object */
+      int priority;    /* priority against other segments on the same object */
       int nWorldHold;   /* world hold count (inferred: keeps the world busy while playing) */
-      float tMax;           /* +0x74 [R] clip length (s) (anim_lab: 0.833 for 0x11D, parse) */
-      float svtMaster;      /* +0x78 [R] playback-speed multiplier copied into ASEGA::svtMaster (option 109 HYPOTHESIS) */
+      float duration;       /* +0x74 [R] clip length (s) (anim_lab: 0.833 for 0x11D, parse) */
+      float masterSpeed;    /* +0x78 [R] playback-speed multiplier copied into ASEGA::masterSpeed (option 109 HYPOTHESIS) */
       uint32_t   _pad_263    [ 1 ] ;
       CLQ clqMasterSuck;   /* speed curve of the master "suck" (inferred) */
       LM lmMasterSuck;   /* its limits */
@@ -95,7 +95,7 @@ typedef char assert_ASEGBL_size[sizeof(ASEGBL) == 0xE0 ? 1 : -1];   /* class des
 /* SND: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (13 copies in Lilly ports) */
 struct SND
 {
-      undefined4 unk_0x00[3];
+      undefined4 unknown00[3];
 };
 
 /* SM before SMA: g++ emits a TU's vtables in the reverse order of their classes' definitions, and sm.cpp emits
@@ -116,7 +116,7 @@ struct SM : public LO
     virtual CLASSINFO *GetClassInfo() __asm__("GetSmClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSm");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSmFromBrx__FP2SMP18CBinaryInputStream");
-    undefined4 unk_0x78[2];   /* HYPOTHESIS: Lilly SM ends at 0x78 but the class descriptor says 0x80 */
+    undefined4 unknown78[2];  /* HYPOTHESIS: Lilly SM ends at 0x78 but the class descriptor says 0x80 */
 };
 typedef char assert_SM_size[sizeof(SM) == 0x80 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
@@ -127,17 +127,17 @@ struct SMA : public BASIC
       int cref;   /* reference count */
       DLE dleSm;   /* link in the machine's application list */
       DLE dleSw;   /* link in the world's SMA list */
-      SM *psm;   /* the machine */
+      SM *stateMachine; /* the machine */
       ALO *paloRoot;   /* root object animated */
       int grfapl;   /* apply flag bits */
       ASEGA *pasegaCur;   /* segment application of the current state */
-      int ismsCur;   /* current state */
-      int ismsNext;   /* next state */
-      int ismsGoal;   /* goal state */
+      int currentState; /* current state */
+      int nextState;  /* next state */
+      int goalState;  /* goal state */
       SMT *psmtCur;   /* transition in progress */
       float svtLocal;   /* playback speed */
-      int grfRoute;   /* route flag bits */
-    undefined4 unk_0x4c;      /* HYPOTHESIS: Lilly SMA ends at 0x4C but the class descriptor says 0x50 */
+      int routeFlags; /* route flag bits */
+    undefined4 unknown4C;     /* HYPOTHESIS: Lilly SMA ends at 0x4C but the class descriptor says 0x50 */
     virtual void AddRef() __asm__("IncrefSma");   /* slot 1 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSmaClassDesc");   /* slot 6 */
     virtual void Release() __asm__("DecrefSma");   /* slot 2 */
@@ -151,23 +151,23 @@ typedef char assert_SMA_size[sizeof(SMA) == 0x50 ? 1 : -1];   /* class descripto
 struct ASEGA : public BASIC
 {
       int cref;             /* +0x10 [S] reference count (ASEGA is refcounted) */
-      ASEG *paseg;          /* +0x14 [R] the clip being played (anim_lab S68) */
-      ALO *paloRoot;        /* +0x18 [R] root object animated */
-      float tLocal;         /* +0x1C [R] local clip time (s); decoded curves at tLocal == the XF matrices (S68) */
-      float tPrev;   /* local time of the previous update (events between tPrev and tLocal fire) */
+      ASEG *animation;      /* +0x14 [R] the clip being played (anim_lab S68) */
+      ALO *rootObject;      /* +0x18 [R] root object animated */
+      float time;           /* +0x1C [R] local clip time (s); decoded curves at `time` == the XF matrices (S68) */
+      float prevTime; /* local time of the previous update (events between prevTime and time fire) */
       DLE dleSw;            /* +0x24 [R] link in SW::dlAsega (SW+0x3D88, ibDle 0x24 in all 73 states, 8250 ASEGAs walked); was _pad_35[2] */
       DLE dleAseg;   /* link in the segment's application list */
       ACTSEG *pactsegFirst;   /* first actuator segment it drives */
       OVRA *povraFirst;   /* first override application */
       GRFAPL grfapl;   /* apply flag bits */
-      float svt;            /* +0x40 [R] effective speed = svtRate * svtMaster (all 8250 live ASEGAs, 73 states) */
-      float svtRate;        /* +0x44 [R] speed */
-      float svtMaster;      /* +0x48 [R] master speed, copied from ASEG::svtMaster (ApplyAseg; CONFIRMED code+runtime) */
+      float speed;          /* +0x40 [R] effective speed = rate * masterSpeed (all 8250 live ASEGAs, 73 states) */
+      float rate;           /* +0x44 [R] speed */
+      float masterSpeed;    /* +0x48 [R] master speed, copied from ASEG::masterSpeed (ApplyAseg; CONFIRMED code+runtime) */
       float svtSuck;        /* +0x4C [R offset] anim_lab calls it "k" */
       int iea;   /* next timed event to fire */
       int ieaEnd;   /* end of the timed events */
       int nWorldHold;   /* world hold count */
-      CRefPtr<SND> psnd;   /* sound started by the segment */
+      CRefPtr<SND> sound;  /* sound started by the segment */
     virtual void AddRef() __asm__("IncrefAsega");   /* slot 1; key function (asega.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetAsegaClassDesc");   /* slot 6 */
     virtual void Release() __asm__("DecrefAsega");   /* slot 2 */
@@ -175,11 +175,11 @@ struct ASEGA : public BASIC
 };
 typedef char assert_ASEGA_size[sizeof(ASEGA) == 0x60 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_ASEGA_dleSw[SLY2_OFFSETOF(ASEGA, dleSw) == 0x24 ? 1 : -1];   /* CONFIRMED runtime (SW::dlAsega ibDle) */
-typedef char assert_ASEGA_paseg[SLY2_OFFSETOF(ASEGA, paseg) == 0x14 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_ASEGA_tLocal[SLY2_OFFSETOF(ASEGA, tLocal) == 0x1C ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_ASEGA_svt[SLY2_OFFSETOF(ASEGA, svt) == 0x40 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_ASEGA_svtMaster[SLY2_OFFSETOF(ASEGA, svtMaster) == 0x48 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_ASEG_svtMaster[SLY2_OFFSETOF(ASEG, svtMaster) == 0x78 ? 1 : -1];   /* ApplyAseg copies it (CONFIRMED code+runtime) */
-typedef char assert_ASEG_tMax[SLY2_OFFSETOF(ASEG, tMax) == 0x74 ? 1 : -1];   /* clip 0x11D tMax 0.833 (anim_lab, CONFIRMED parse) */
+typedef char assert_ASEGA_animation[SLY2_OFFSETOF(ASEGA, animation) == 0x14 ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_ASEGA_time[SLY2_OFFSETOF(ASEGA, time) == 0x1C ? 1 : -1];       /* CONFIRMED runtime */
+typedef char assert_ASEGA_speed[SLY2_OFFSETOF(ASEGA, speed) == 0x40 ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_ASEGA_masterSpeed[SLY2_OFFSETOF(ASEGA, masterSpeed) == 0x48 ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_ASEG_masterSpeed[SLY2_OFFSETOF(ASEG, masterSpeed) == 0x78 ? 1 : -1]; /* ApplyAseg copies it (CONFIRMED code+runtime) */
+typedef char assert_ASEG_duration[SLY2_OFFSETOF(ASEG, duration) == 0x74 ? 1 : -1]; /* clip 0x11D duration 0.833 (anim_lab, CONFIRMED parse) */
 
 #endif /* SLY2_ASEG_H */

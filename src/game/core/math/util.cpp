@@ -49,8 +49,8 @@ float ClampAbs(float value, float limit)
 
 /* SmoothValue (Sly 1 util.c). Code-identical except ONE toolchain nop: target has `sub.s; nop; div.s` at 0x11D0B8
    (div.s is the 2nd insn of a basic block -> original assembler pads it to position 2 with 1 nop; asfix only pads position 0). */
-// Moves `current` toward `target` over dt: at params->svFast while far away, then decelerating linearly to
-// params->svSlow over the final stretch (the distance covered while slowing for params->dtFast seconds), never
+// Moves `current` toward `target` over dt: at params->fastSpeed while far away, then decelerating linearly to
+// params->slowSpeed over the final stretch (the distance covered while slowing for params->fastDuration seconds), never
 // overshooting. Returns the new value and optionally its rate of change. The engine's standard easing.
 float SmoothValue(float current, float target, float dt, SMP *params, float *outRate)
 {
@@ -63,7 +63,7 @@ float SmoothValue(float current, float target, float dt, SMP *params, float *out
     int rootCount;
     float timeLeft;
     isBelowTarget = 0;
-    if (params->svFast == 0.0f) {
+    if (params->fastSpeed == 0.0f) {
         if (outRate)
             *outRate = 0.0f;
         return current;
@@ -73,26 +73,26 @@ float SmoothValue(float current, float target, float dt, SMP *params, float *out
         distance = -distance;
         isBelowTarget = 1;
     }
-    slowdownDistance = (params->svSlow + params->svFast) * params->dtFast * 0.5f;
+    slowdownDistance = (params->slowSpeed + params->fastSpeed) * params->fastDuration * 0.5f;
     if (slowdownDistance <= distance) {
-        float fastTime = (distance - slowdownDistance) / params->svFast;
+        float fastTime = (distance - slowdownDistance) / params->fastSpeed;
         if (dt <= fastTime) {
-            newDistance = distance - params->svFast * dt;
-            newRate = -params->svFast;
+            newDistance = distance - params->fastSpeed * dt;
+            newRate = -params->fastSpeed;
             goto LDone;
         }
         dt -= fastTime;
         distance = slowdownDistance;
     }
-    rootCount = SolveQuadratic((params->svFast - params->svSlow) / (params->dtFast + params->dtFast), params->svSlow, -distance, roots);
+    rootCount = SolveQuadratic((params->fastSpeed - params->slowSpeed) / (params->fastDuration + params->fastDuration), params->slowSpeed, -distance, roots);
     timeLeft = roots[rootCount - 1] - dt;
     if (0.0f < timeLeft) {
-        float b = params->svSlow;
-        newDistance = (params->svFast - b) * timeLeft * timeLeft / (params->dtFast + params->dtFast) + b * timeLeft;
-        newRate = -(b + (params->svFast - b) * timeLeft / params->dtFast);
+        float b = params->slowSpeed;
+        newDistance = (params->fastSpeed - b) * timeLeft * timeLeft / (params->fastDuration + params->fastDuration) + b * timeLeft;
+        newRate = -(b + (params->fastSpeed - b) * timeLeft / params->fastDuration);
     } else {
         newDistance = 0.0f;
-        newRate = -params->svSlow;
+        newRate = -params->slowSpeed;
     }
 LDone:
     if (isBelowTarget) {
@@ -107,22 +107,22 @@ LDone:
     return newDistance;
 }
 
-// SmoothValue with an acceleration limit: the new rate may differ from currentRate by at most smoothParams->sdvMax
+// SmoothValue with an acceleration limit: the new rate may differ from currentRate by at most smoothParams->maxSpeedChange
 // * dt, and the value follows the constant-acceleration path when the limit applies. (Sly 1-derived name: GSmoothA.)
 float SmoothValueWithAccel(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float nextRate;
     float g = SmoothValue(current, target, dt, (SMP *)params, &nextRate);
-    if (params->sdvMax > 0.0f) {
-        float maxRateChange = params->sdvMax * dt;
+    if (params->maxSpeedChange > 0.0f) {
+        float maxRateChange = params->maxSpeedChange * dt;
         float maxRate = currentRate + maxRateChange;
         float minRate = currentRate - maxRateChange;
         if (nextRate > maxRate) {
             nextRate = maxRate;
-            g = current + currentRate * dt + 0.5f * params->sdvMax * dt * dt;
+            g = current + currentRate * dt + 0.5f * params->maxSpeedChange * dt * dt;
         } else if (nextRate < minRate) {
             nextRate = minRate;
-            g = current + currentRate * dt - 0.5f * params->sdvMax * dt * dt;
+            g = current + currentRate * dt - 0.5f * params->maxSpeedChange * dt * dt;
         }
     }
     if (outRate)
@@ -330,7 +330,7 @@ int IsWithinLimits(LM *range, float value)
 {
     int isInside;
     isInside = 0;
-    if ((range->gMin < value) && (value < range->gMax)) {
+    if ((range->minValue < value) && (value < range->maxValue)) {
         isInside = 1;
     }
     return isInside;
@@ -342,11 +342,11 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
 // Clamps value into the range [min, max]. (Sly 1-derived name: GLimitLm.)
 float ClampToLimits(LM *range, float value)
 {
-    if (value < range->gMin) {
-        return range->gMin;
+    if (value < range->minValue) {
+        return range->minValue;
     }
-    if (value > range->gMax) {
-        return range->gMax;
+    if (value > range->maxValue) {
+        return range->maxValue;
     }
     return value;
 }
@@ -354,8 +354,8 @@ float ClampToLimits(LM *range, float value)
 // Clamps an angle into an angular range, measuring around the range's midpoint so wrap-around is handled.
 extern "C" float ClampAngleToRange(LM *range, float rad)
 {
-    float radMid = (range->gMax + range->gMin) * 0.5f;
-    float radHalf = (range->gMax - range->gMin) * 0.5f;
+    float radMid = (range->maxValue + range->minValue) * 0.5f;
+    float radHalf = (range->maxValue - range->minValue) * 0.5f;
     return NormalizeAngle(radMid + ClampAbs(NormalizeAngle(rad - radMid), radHalf));
 }
 
@@ -428,18 +428,18 @@ SLY2_SCRAP("addiu $sp, $sp, 0xc0");
 // Converts RGBA bytes to four floats in 0..1 (each byte / 255).
 extern "C" void ConvertRgbaToFloats(RGBA *rgba, float *outFloats)
 {
-    outFloats[0] = rgba->bRed * (1.0f / 255.0f);
-    outFloats[1] = rgba->bGreen * (1.0f / 255.0f);
-    outFloats[2] = rgba->bBlue * (1.0f / 255.0f);
+    outFloats[0] = rgba->red * (1.0f / 255.0f);
+    outFloats[1] = rgba->green * (1.0f / 255.0f);
+    outFloats[2] = rgba->blue * (1.0f / 255.0f);
 }
 
 // Converts a float colour vector (0..1) to RGBA bytes (x 255, rounded), with the given alpha byte.
 extern "C" void ConvertVectorToRgba(VECTOR *color, int a, RGBA *outRgba)
 {
-    outRgba->bRed = (int)(color->x * 255.0f + 0.5f);
-    outRgba->bGreen = (int)(color->y * 255.0f + 0.5f);
-    outRgba->bBlue = (int)(color->z * 255.0f + 0.5f);
-    outRgba->bAlpha = a;
+    outRgba->red = (int)(color->x * 255.0f + 0.5f);
+    outRgba->green = (int)(color->y * 255.0f + 0.5f);
+    outRgba->blue = (int)(color->z * 255.0f + 0.5f);
+    outRgba->alpha = a;
 }
 
 // Despite its (Sly 1) name, converts HSV to RGB: hsv = (hue in degrees 0..360, negative for none, saturation 0..1,

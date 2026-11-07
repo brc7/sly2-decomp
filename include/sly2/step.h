@@ -15,12 +15,12 @@
    Layout from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (9 copies in Lilly ports) */
 struct BHV : public BASIC
 {
-      STEP *pstep;          /* +0x10 [R] owner STEP (== the guard/partner whose bhvstk holds it, all states) */
+      STEP *owner;          /* +0x10 [R] owner STEP (== the guard/partner whose bhvstk holds it, all states) */
       BHV *pbhvPrev;        /* +0x14 [S] */
       BHV *pbhvNext;        /* +0x18 [S] */
-      int fBusy;            /* +0x1C [R] behaviour busy (shown with '*' in ram_inspector stacks) */
-      int cBusyAbove;       /* +0x20 [R] number of busy behaviours above this one in the stack */
-      undefined4 unk_0x24[3];
+      int isBusy;           /* +0x1C [R] behaviour busy (shown with '*' in ram_inspector stacks) */
+      int numBusyAbove;     /* +0x20 [R] number of busy behaviours above this one in the stack */
+      undefined4 unknown24[3];
       virtual void OnPush() __asm__("InitBhv");
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvClassDesc");   /* slot 6 */
       virtual void Start() __asm__("StartBhv");
@@ -37,9 +37,9 @@ typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descripto
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BHVSTK
 {
-      STEP *pstep;          /* +0x00 [R] owner (STEP+0x26C) */
-      int cpbhv;            /* +0x04 [R] depth, 1..8 (STEP+0x270) */
-      BHV *apbhv[8];        /* +0x08 [R] apbhv[0] = root behaviour (guards: BHV156, mode at +0x30) (STEP+0x274) */
+      STEP *owner;          /* +0x00 [R] owner (STEP+0x26C) */
+      int depth;            /* +0x04 [R] depth, 1..8 (STEP+0x270) */
+      BHV *behaviors[8];    /* +0x08 [R] apbhv[0] = root behaviour (guards: BHV156, mode at +0x30) (STEP+0x274) */
 };
 
 
@@ -47,41 +47,41 @@ struct BHVSTK
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (15 copies in Lilly ports) */
 struct STEP : public PO
 {
-      float gUnk180;
-      undefined4 unk_0x184[3];
-      VECTOR vUnk190;
-      undefined4 unk_0x19c;
-      float uGait;   /* gait blend, 0..1 (walk to run, inferred) */
-      int nUnk1a4;
-      float radTarget;   /* target heading (radians) */
-      undefined4 unk_0x1ac;
+      float unknown180;
+      undefined4 unknown184[3];
+      VECTOR unknown190;   /* possibly localVelocity (low-confidence guess: rotated by the step matrix in step.cpp; modes clear it) */
+      undefined4 unknown19C;
+      float gaitBlend; /* gait blend, 0..1 (walk to run, inferred) */
+      int unknown1A4;
+      float targetHeading; /* target heading (radians) */
+      undefined4 unknown1AC;
       MATRIX3 matTarget;   /* target orientation */
-      qword qwUnk1e0;
+      qword unknown1E0;
       float rSpin;   /* spin rate */
       VECTOR vSpin;   /* spin axis */
-      float rUnk200;
-      int nUnk204;
-      XP *pxpFloor;   /* contact with the floor (0 when airborne) */
-      float tUnk20c;
-      float gUnk210;
-      float gUnk214;
-      qword *pqwUnk218;
-      qword *pqwUnk21c;
-      float gUnk220;
-      undefined4 unk_0x224[3];
-      qword qwUnk230;
-      qword qwUnk240;
-      undefined4 unk_0x250[2];
-      SOPART *ppartUnk258;
-      undefined4 unk_0x25c;
-      float rUnk260;
-      int idUnk264;
-      SOPART *precUnk268;
-      BHVSTK bhvstk;   /* the behaviour stack */
-      void *pvUnk294;
-      int nUnk298;
-      undefined4 unk_0x29c;
-      int acUnk2a0[6];
+      float unknown200;
+      int unknown204;
+      XP *floorContact; /* contact with the floor (0 when airborne) */
+      float unknown20C;
+      float unknown210;
+      float unknown214;
+      qword *unknown218;
+      qword *unknown21C;
+      float unknown220;
+      undefined4 unknown224[3];
+      qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, unknown240)) */
+      qword unknown240;   /* possibly parentOffset (low-confidence guess: ConvertAloPos(psoParent, step, 0)) */
+      undefined4 unknown250[2];
+      SOPART *unknown258;
+      undefined4 unknown25C;
+      float unknown260;   /* possibly massScale (low-confidence guess: SetSoMass(m * unknown260 / r)) */
+      int unknown264;
+      SOPART *unknown268;
+      BHVSTK behaviors; /* the behaviour stack */
+      void *unknown294;
+      int unknown298;
+      undefined4 unknown29C;
+      int unknown2A0[6];
     virtual void Init() __asm__("InitStep");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
@@ -107,7 +107,7 @@ struct STEP : public PO
       virtual void SetPlayable(int fOn) __asm__("IgnoreStepSlot87");
 };
 typedef char assert_STEP_size[sizeof(STEP) == 0x2C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
-typedef char assert_STEP_bhvstk[SLY2_OFFSETOF(STEP, bhvstk) == 0x26C ? 1 : -1];   /* guard behaviour stack at STEP+0x26C (CONFIRMED runtime) */
+typedef char assert_STEP_behaviors[SLY2_OFFSETOF(STEP, behaviors) == 0x26C ? 1 : -1]; /* guard behaviour stack at STEP+0x26C (CONFIRMED runtime) */
 
 /* Option accessor (inline): a g_aeopid setter (the set PMF of the record at 0x2AEC48); the record takes its address,
  * which emits the out-of-line copy in class_registry, see docs/guides/tu-merging.md "Inline functions and linkonce

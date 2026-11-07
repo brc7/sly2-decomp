@@ -178,13 +178,13 @@ void BuildClueCountText(void *f)
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-extern struct CLOCK { float t; float dt; } D_002DDED0;
+extern struct CLOCK { float time; float deltaTime; } D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D1: the mission countdown as minutes:seconds (never below zero).
 void BuildTimerText(void *f)
 {
-    float t = -D_002DDED0.t + g_sw.tHudTimerEnd; int n; t = (t < 0.0f) ? 0.0f : t;
+    float t = -D_002DDED0.time + g_sw.hudTimerEndTime; int n; t = (t < 0.0f) ? 0.0f : t;
     n = (int)t;
     {
         int q = n / 60;
@@ -195,7 +195,7 @@ void BuildTimerText(void *f)
 
 // 0x210FE0 BuildBinocularReadoutText
 namespace M_func_00210FE0 { extern "C" {
-struct X { char pad[0xF20]; int modeKind; char padf24[0x18]; float hudZoom; };   /* STEPPLAYER jtmode.nKind (0 look, 1 zoom), jtmode.hud.uZoom */
+struct X { char pad[0xF20]; int modeKind; char padf24[0x18]; float hudZoom; };   /* STEPPLAYER jtmode.kind (0 look, 1 zoom), jtmode.hud.zoom */
 extern char D_003DD490[];
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
 struct X *GetHeroPo(void *);
@@ -242,7 +242,7 @@ extern "C" void BuildReconSelectionText(char *text, int which)
     JT *hero = (JT *)GetHeroPo(&D_003DD490);
     if (!hero || !IsBasicDerivedFrom((BASIC *)hero, (CID)CID_STEPPLAYER))
         return;
-    int *reconSelector = hero->jtmode.hud.pnUnk14;
+    int *reconSelector = hero->jtmode.hud.unknown14;
     char *reconText = 0;
     if (reconSelector) {
         if (which != 0) {
@@ -262,7 +262,7 @@ struct G;
 extern struct G D_003DD490;
 struct Z { char pad[0xF8]; int nameTextId; };
 struct Y { char pad[0x74]; int numTargets; struct Z *targets[1]; };
-struct X { char pad[0xF38]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.pnUnk14 */
+struct X { char pad[0xF38]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.unknown14 */
 struct X *GetHeroPo(struct G *g);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 char *FindSwLocalizedString__FP2SWi(struct G *g, int id);
@@ -351,7 +351,7 @@ struct E { char *name; int nameTextId; int sellPrice; };
 extern struct E D_002C3288[];   /* the loot table (screen.cpp's Thiefnet screens) */
 struct Z { int unknown0; int lootIndex; };
 struct Y { char pad[0x224]; int keyTextId; char pad228[0x1C]; struct Z *loot; };
-/* STEPPLAYER: jtgrab.nState, the grabbed object (inferred), the default text id (inferred) */
+/* STEPPLAYER: jtgrab.state, the grabbed object (inferred), the default text id (inferred) */
 struct X { char pad[0x4C8]; int grabState; char pad4cc[0x9A0 - 0x4CC]; struct Y *heldObject; char pad9a4[0x1318 - 0x9A4]; int heldTextId; };
 enum { GRAB_STATE_HOLDING = 0xC };   /* (inferred) */
 extern char D_003DD490[];

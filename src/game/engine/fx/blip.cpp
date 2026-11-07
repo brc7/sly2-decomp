@@ -635,7 +635,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
 
 struct VU_FLOATT { qwordV q; VU_FLOATT(float f) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,m"(f), "i,r"(0)); } };
 // ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->motionKind != 0 or D_002BC9C0 is set). For every particle
-// batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
+// batch in the DLI list at p->dl it copies the live particles (b.w > clock.time) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
 // velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; renderKind == 2 updates c.w through
 // NormalizeAngle. It accumulates the bounding box in vMin/vMax and sets p->boundsCenter = centre, p->boundsRadius = radius + p->maxSize (or calls
 // virtual slot 9 when p->numLiveParticles drops to 0).

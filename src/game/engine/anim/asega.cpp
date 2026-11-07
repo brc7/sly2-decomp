@@ -23,22 +23,22 @@ struct ACTV { int kind; int pad4[2]; int nPriority; ACTV *pactNext; int pad14[4]
 struct XF
 {
     char pad0[0x88];
-    float *pgUnk88;         /* 0x88 */
-    float *pgUnk8c;         /* 0x8C */
-    ACTV *pactFirst;         /* 0x90 */
-    int xfk;                /* 0x94 */
-    short nRole;            /* 0x98 */
-    short nPhase;           /* 0x9A */
+    float *timeSource;      /* 0x88 */
+    float *speedSource;     /* 0x8C */
+    ACTV *firstActuator;     /* 0x90 */
+    int kind;               /* 0x94 */
+    short role;             /* 0x98 */
+    short phase;            /* 0x9A */
     int oid;                /* 0x9C */
     char padA0[8];
-    union { XF *pxfRef; float blendWeight; };   /* 0xA8: the reference slot, or the blend weight in role 9 */
+    union { XF *reference; float blendWeight; }; /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
     int rotationCurve;      /* 0xD0: the ACV * of a rotation channel (ACTSEG::Attach) */
     float *rotationTimePtr; /* 0xD4: the ASEGA local time */
     char padD8[0x100 - 0xD8];
 };
 typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
-struct SO { char pad0[0x50]; int cxf; XF *axf; };
+struct SO { char pad0[0x50]; int numTransforms; XF *transforms; };
 
 /* What ApplyAseg (aseg.cpp) attaches to an ASEGA: the channel actions and the overrides. TU-private copies of
    aseg.cpp's views, identical; they move to sly2/aseg.h once the per-function Lilly ports that define their own
@@ -135,19 +135,19 @@ extern "C" void DecrefAsega(ASEGA *player)
     player->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(player, 0);
-        AssignSidebagRef((struct R4 **)&player->psidebag, 0);
+        AssignSidebagRef((struct R4 **)&player->scriptVariables, 0);
         UnsubscribeLoAll(player);
         FreeSlotheapSlot(&g_sw.slotheapAsega, player);
     }
 }
 
-static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { unsigned int x = pq->grfUnk40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
+static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { unsigned int x = pq->unknown40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
 static __inline__ void End(G *pg) { ASEGA *po = pg->p; ((void (*)(void *))PVT(po)[2].pfn)((char *)po + PVT(po)[2].d); }
 // Per-frame update of a playing segment: advances local time by speed, wraps or clamps it at the end, dispatches the
 // events crossed this frame, and retracts the player when a non-looping segment finished.
 extern "C" void UpdateAsega(ASEGA *player)
 {
-    if (__builtin_fabsf(player->svt) < 1e-4f)
+    if (__builtin_fabsf(player->speed) < 1e-4f)
         return;
     {
         G g;
@@ -156,17 +156,17 @@ extern "C" void UpdateAsega(ASEGA *player)
         g.p = player;
         __asm__ __volatile__("" : : "r"(&g) : "memory");
         ((void (*)(void *))PVT(player)[1].pfn)((char *)player + PVT(player)[1].d);
-        if (ResolveAsegFlags(player->paseg) & 0x100)
-            player->tLocal = player->tLocal + player->svt * D_002DDED0.realDeltaTime;
+        if (ResolveAsegFlags(player->animation) & 0x100)
+            player->time = player->time + player->speed * D_002DDED0.realDeltaTime;
         else
-            player->tLocal = player->tLocal + player->svt * D_002DDED0.dt;
+            player->time = player->time + player->speed * D_002DDED0.deltaTime;
         HandleAsegaEvents(player);
         if (IsAsegaRetracted(player))
             { End(&g); return; }
-        f = WrapAsegaTime(player, &player->tLocal, &player->svt);
+        f = WrapAsegaTime(player, &player->time, &player->speed);
         if (f) {
             if (player->grfapl & 8)
-                player->iea = player->svt <= 0.0f ? player->paseg->ceaFrame : 0;
+                player->iea = player->speed <= 0.0f ? player->animation->ceaFrame : 0;
         }
         if (f) {
             ((void (*)(void *, int, ASEGA *))PVT(player)[4].pfn)((char *)player + PVT(player)[4].d, 3, player);
@@ -179,7 +179,7 @@ extern "C" void UpdateAsega(ASEGA *player)
         if (f && !(player->grfapl & 0x38))
             RetractAsega(player);
         for (pl = player->povraFirst; pl; pl = pl->povraNext)
-            ((void (*)(void *, int, int, float, float))(*(VTE **)pl->pac)[2].pfn)((char *)pl->pac + (*(VTE **)pl->pac)[2].d, pl->targetIndex, 0, player->tLocal, player->svt);
+            ((void (*)(void *, int, int, float, float))(*(VTE **)pl->pac)[2].pfn)((char *)pl->pac + (*(VTE **)pl->pac)[2].d, pl->targetIndex, 0, player->time, player->speed);
         End(&g);
     }
 }
@@ -197,15 +197,15 @@ void RetractAsega(ASEGA *player)
         g.p = player;
         __asm__ __volatile__("" : : "r"(&g) : "memory");
         ((void (*)(void *))PVT(player)[1].pfn)((char *)player + PVT(player)[1].d);
-        for (; player->ieaEnd < player->paseg->ceaEnd; player->ieaEnd++) {
-            { register EA *pe __asm__("$5") = player->paseg->aeaEnd; pe += player->ieaEnd; pe->tLocal = player->tLocal;
+        for (; player->ieaEnd < player->animation->ceaEnd; player->ieaEnd++) {
+            { register EA *pe __asm__("$5") = player->animation->aeaEnd; pe += player->ieaEnd; pe->time = player->time;
             HandleAsegaEvent(player, pe); }
             if (IsAsegaRetracted(player))
                 { End(&g); return; }
         }
         SetAsegaHandsOff(player, 0);
         RemoveDlEntry(&g_sw.dlAsega, player);
-        RemoveDlEntry(&player->paseg->dlAsega, player);
+        RemoveDlEntry(&player->animation->dlAsega, player);
         for (pl1 = (ACTSEGV *)player->pactsegFirst; pl1; pl1 = pl1Next) {
             pl1Next = pl1->pactsegNext;
             RemoveXfAct(pl1->plo, pl1->pxf, pl1);
@@ -219,10 +219,10 @@ void RetractAsega(ASEGA *player)
             FreeOvra(pl2);
         }
         player->povraFirst = 0;
-        RcPtr_Assign(&player->psnd, 0);
+        RcPtr_Assign(&player->sound, 0);
         ((void (*)(void *, int, int, int, int, int))PVT(player)[3].pfn)((char *)player + PVT(player)[3].d, 3, 0, 0, 0, 0);
-        if (player->paloRoot)
-            ((void (*)(void *, int, ASEGA *))PVT(player->paloRoot)[5].pfn)((char *)player->paloRoot + PVT(player->paloRoot)[5].d, 2, player);
+        if (player->rootObject)
+            ((void (*)(void *, int, ASEGA *))PVT(player->rootObject)[5].pfn)((char *)player->rootObject + PVT(player->rootObject)[5].d, 2, player);
         SendLoMessage(player, 2, player);
         ((void (*)(void *))PVT(player)[2].pfn)((char *)player + PVT(player)[2].d);
         End(&g);
@@ -236,17 +236,17 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
     float t;
     if (IsAsegaRetracted(player))
         return;
-    player->svtRate = speed;
-    player->svt = speed * player->svtMaster * player->svtSuck;
+    player->rate = speed;
+    player->speed = speed * player->masterSpeed * player->svtSuck;
     switch (seekKind) {
     case 0: t = time; break;
-    case 1: t = player->tLocal + time; break;
-    case 2: t = player->paseg->tMax + time; break;
+    case 1: t = player->time + time; break;
+    case 2: t = player->animation->duration + time; break;
     }
-    if (t != player->tLocal) {
+    if (t != player->time) {
         ACTSEGV *ps;
-        player->tLocal = t;
-        WrapAsegaTime(player, &player->tLocal, &player->svt);
+        player->time = t;
+        WrapAsegaTime(player, &player->time, &player->speed);
         SyncAsegaEventCursor(player);
         for (ps = (ACTSEGV *)player->pactsegFirst; ps; ps = ps->pactsegNext) {
             if (IsActCurrent(ps)) {
@@ -259,32 +259,32 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
         }
         EvaluateXfSlotValue(player, 0);
     }
-    player->tPrev = player->tLocal;
+    player->prevTime = player->time;
 }
 
 // Matched by Claude agent (2026-10-23). Both searches are real loops that re-read pasega->paseg / pasega->t (only the
 // loads before the loop's first exit test get hoisted, which gives the target's paseg/cea copies). The `== 0` keeps
 // fast-math from folding !(a <= b) into a < b.
-// Types: include/sly2/aseg.h (ASEG::ceaFrame/aeaFrame at 0xA0/0xA4, ASEGA::tLocal/svt/iea at 0x1C/0x40/0x50).
+// Types: include/sly2/aseg.h (ASEG::ceaFrame/aeaFrame at 0xA0/0xA4, ASEGA::time/svt/iea at 0x1C/0x40/0x50).
 // Resynchronizes the player's event cursor to the first event at or after its current local time.
 // (Sly 1-derived name: UpdateAsegaIeaCur.)
 void SyncAsegaEventCursor(ASEGA *player)
 {
-    ASEG *segment = player->paseg;
+    ASEG *segment = player->animation;
     int cea = segment->ceaFrame;
     int iea;
     if (cea == 0)
         return;
-    if (player->svt >= 0.0f) {
-        for (iea = 0; iea < player->paseg->ceaFrame; iea++)
-            if (player->tLocal <= player->paseg->aeaFrame[iea].tLocal)
+    if (player->speed >= 0.0f) {
+        for (iea = 0; iea < player->animation->ceaFrame; iea++)
+            if (player->time <= player->animation->aeaFrame[iea].time)
                 break;
         player->iea = iea;
     } else {
         iea = cea;
         do
             iea--;
-        while (iea >= 0 && (player->paseg->aeaFrame[iea].tLocal <= player->tLocal) == 0);
+        while (iea >= 0 && (player->animation->aeaFrame[iea].time <= player->time) == 0);
         player->iea = iea + 1;
     }
 }
@@ -296,27 +296,27 @@ struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->AddRef(); } ~GV() { p->Release(
 // Dispatches every event between the player's previous and current time this frame (HandleAsegaEvent).
 void HandleAsegaEvents(ASEGA *player)
 {
-    if (player->paseg->ceaFrame) {
+    if (player->animation->ceaFrame) {
     GV g(player);
-    player->tPrev = player->tLocal;
+    player->prevTime = player->time;
     while (!IsAsegaRetracted(player)) {
-        ASEG *pq = player->paseg;
+        ASEG *pq = player->animation;
         int i = player->iea;
-        float t = player->tPrev;
+        float t = player->prevTime;
         EA *pe;
         if (i < pq->ceaFrame) {
             register float tc __asm__("$f1") = t; /* register pin: t copy in f1 for the == test */
-            if ((pq->aeaFrame[i].tLocal < t || (tc == pq->aeaFrame[i].tLocal && 0.0f < player->svt)) && (pe = &pq->aeaFrame[i], 1)) {
+            if ((pq->aeaFrame[i].time < t || (tc == pq->aeaFrame[i].time && 0.0f < player->speed)) && (pe = &pq->aeaFrame[i], 1)) {
                 player->iea = i + 1;
                 HandleAsegaEvent(player, pe);
                 continue;
             }
         }
-        if (player->iea > 0 && (t < player->paseg->aeaFrame[player->iea - 1].tLocal || (t == player->paseg->aeaFrame[player->iea - 1].tLocal && player->svt < 0.0f))) {
+        if (player->iea > 0 && (t < player->animation->aeaFrame[player->iea - 1].time || (t == player->animation->aeaFrame[player->iea - 1].time && player->speed < 0.0f))) {
             player->iea = player->iea - 1;
-            HandleAsegaEvent(player, &player->paseg->aeaFrame[player->iea]);
+            HandleAsegaEvent(player, &player->animation->aeaFrame[player->iea]);
         } else {
-            player->tLocal = t;
+            player->time = t;
             break;
         }
     }
@@ -327,24 +327,24 @@ void HandleAsegaEvents(ASEGA *player)
 // effect (state-changing ones) without their transient effects.
 void HandleAsegaEventsFastForward(ASEGA *player)
 {
-    if (player->paseg->ceaFrame) {
+    if (player->animation->ceaFrame) {
     GV g(player);
-    player->tPrev = player->tLocal;
+    player->prevTime = player->time;
     while (!IsAsegaRetracted(player)) {
-        ASEG *pq = player->paseg;
+        ASEG *pq = player->animation;
         int i = player->iea;
-        float t = player->tPrev;
+        float t = player->prevTime;
         EA *pe;
-        if (i < pq->ceaFrame && pq->aeaFrame[i].tLocal <= t && (pe = &pq->aeaFrame[i], 1) && 0.0f <= player->svt) {
+        if (i < pq->ceaFrame && pq->aeaFrame[i].time <= t && (pe = &pq->aeaFrame[i], 1) && 0.0f <= player->speed) {
             player->iea = i + 1;
-        } else if (player->iea > 0 && t <= player->paseg->aeaFrame[player->iea - 1].tLocal && player->svt < 0.0f) {
+        } else if (player->iea > 0 && t <= player->animation->aeaFrame[player->iea - 1].time && player->speed < 0.0f) {
             player->iea = player->iea - 1;
-            pe = &player->paseg->aeaFrame[player->iea];
+            pe = &player->animation->aeaFrame[player->iea];
         } else {
-            player->tLocal = t;
+            player->time = t;
             break;
         }
-        switch (pe->eak) {
+        switch (pe->kind) {
         case 7: case 8: case 11: case 13: case 14: case 15: case 16:
         case 21: case 22: case 23: case 24:
             HandleAsegaEvent(player, pe);
@@ -355,7 +355,7 @@ void HandleAsegaEventsFastForward(ASEGA *player)
 }
 
 // The object events of this player act on: its root object if bound, otherwise the segment itself. (inferred)
-LO *GetAsegaEventTarget(ASEGA *player) { if (player->paloRoot) return (LO *)player->paloRoot; return player->paseg; }
+LO *GetAsegaEventTarget(ASEGA *player) { if (player->rootObject) return (LO *)player->rootObject; return player->animation; }
 
 struct MSG { ASEGA *p; float g; int n; };
 // Executes one segment event: sounds, rumble, hands-off, applying / seeking / retracting other segments, splice script
@@ -367,26 +367,26 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
     void *pv;
     ASEG *pq;
     int f;
-    player->tLocal = event->tLocal;
-    pq = player->paseg;
+    player->time = event->time;
+    pq = player->animation;
     f = 0;
-    if (player->svt < 0.0f && event >= pq->aeaFrame)
+    if (player->speed < 0.0f && event >= pq->aeaFrame)
         f = event < pq->aeaFrame + pq->ceaFrame;
-    switch ((unsigned int)event->eak) {
+    switch ((unsigned int)event->kind) {
     case 0: {
         LO *v = GetAsegaEventTarget(player);
         EASND *pa = event->pesnd;
-        StartSwAsegSound(&D_003DD490, pa->sfxId, pa->oid, pa->rangeNear, pa->rangeFar, player->paloRoot, v, pq, &player->psnd, pa->pitch, pa->doppler, pa->volume);
+        StartSwAsegSound(&D_003DD490, pa->sfxId, pa->oid, pa->rangeNear, pa->rangeFar, player->rootObject, v, pq, &player->sound, pa->pitch, pa->doppler, pa->volume);
         break;
     }
     case 1:
-        StopSwAsegSound(&D_003DD490, event->pesnd, pq, &player->psnd);
+        StopSwAsegSound(&D_003DD490, event->pesnd, pq, &player->sound);
         break;
     case 2:
         JoltCamera(D_002DDF40, event->pesnd);
         break;
     case 3:
-        TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, event->pesnd, event->gC);
+        TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, event->pesnd, event->floatArg2);
         break;
     case 4: {
         LO *po = FindSwObject(&D_003DD490, 4, event->oid, GetAsegaEventTarget(player));
@@ -403,7 +403,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
         break;
     }
     case 5:
-        SeekAsega(player, 0, event->g8, event->gC);
+        SeekAsega(player, 0, event->floatArg, event->floatArg2);
         break;
     case 6:
         RetractAsega(player);
@@ -411,27 +411,27 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
     case 9:
     case 10:
         {
-            int fT = (event->eak == 9);
+            int fT = (event->kind == 9);
             fT ^= f;
             SetAsegaHandsOff(player, fT);
         }
         break;
     case 7:
     case 8: {
-        int fT = (event->eak == 7);
+        int fT = (event->kind == 7);
         fT ^= f;
-        ShowSwAsegObject(&D_003DD490, fT, event->pesnd, GetAsegaEventTarget(player), pq, event->gC);
+        ShowSwAsegObject(&D_003DD490, fT, event->pesnd, GetAsegaEventTarget(player), pq, event->floatArg2);
         break;
     }
     case 11: {
         msg.p = player;
-        msg.g = event->tLocal;
-        msg.n = event->n8;
+        msg.g = event->time;
+        msg.n = event->intArg;
         player->SendMessage((MSGID)9, &msg);
         break;
     }
     case 12: {
-        { void **ppv = &pv; *ppv = &event->n8; player->HandleSpliceEvent(4, 0, 1, ppv, 0); }
+        { void **ppv = &pv; *ppv = &event->intArg; player->HandleSpliceEvent(4, 0, 1, ppv, 0); }
         break;
     }
     case 17: {
@@ -441,20 +441,20 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
     }
     case 13:
     case 14: {
-        int fT = (event->eak == 13);
+        int fT = (event->kind == 13);
         fT ^= f;
-        ShowSwAsegGlobs(&D_003DD490, fT, event->pesnd, event->nC, player->paloRoot, GetAsegaEventTarget(player), pq);
+        ShowSwAsegGlobs(&D_003DD490, fT, event->pesnd, event->intArg2, player->rootObject, GetAsegaEventTarget(player), pq);
         break;
     }
     case 15:
     case 16: {
-        int fT = (event->eak == 15);
+        int fT = (event->kind == 15);
         fT ^= f;
-        ShowSwAsegParts(&D_003DD490, fT, event->pesnd, event->nC, player->paloRoot, GetAsegaEventTarget(player), pq);
+        ShowSwAsegParts(&D_003DD490, fT, event->pesnd, event->intArg2, player->rootObject, GetAsegaEventTarget(player), pq);
         break;
     }
     case 18:
-        ShowCountdownHud(&D_003DD490, player->tLocal);
+        ShowCountdownHud(&D_003DD490, player->time);
         break;
     case 19:
         HideCountdownHud(&D_003DD490);
@@ -465,18 +465,18 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
         break;
     }
     case 21:
-        EvaluateXfSlotValue(player, event->n8);
+        EvaluateXfSlotValue(player, event->intArg);
         break;
     case 22:
-        SetSoAnimIndex(player->paloRoot, event->n8);
+        SetSoAnimIndex(player->rootObject, event->intArg);
         break;
     case 23:
-        SetSoAnimIndex(player->paloRoot, -1);
+        SetSoAnimIndex(player->rootObject, -1);
         break;
     case 24:
-        if (player->paloRoot && IsBasicDerivedFrom((BASIC *)player->paloRoot, (CID)0x34)) {
+        if (player->rootObject && IsBasicDerivedFrom((BASIC *)player->rootObject, (CID)0x34)) {
             char *pb = (char *)event->pea24;
-            SetStepplayerIdleParams(player->paloRoot, pb, pb + 8, pb + 0x10);
+            SetStepplayerIdleParams(player->rootObject, pb, pb + 8, pb + 0x10);
         }
         break;
     }
@@ -489,7 +489,7 @@ extern "C" void SendAsegaMessage(ASEGA *player, int message, ASEGA *argument) {
     GVOL volatile g;
     g.po = player;
     ((void (*)(void *))PVT(player)[1].pfn)((char *)player + PVT(player)[1].d);
-    if (player->paloRoot) ((void (*)(void *, int, ASEGA *))PVT(player->paloRoot)[5].pfn)((char *)player->paloRoot + PVT(player->paloRoot)[5].d, message, argument);
+    if (player->rootObject) ((void (*)(void *, int, ASEGA *))PVT(player->rootObject)[5].pfn)((char *)player->rootObject + PVT(player->rootObject)[5].d, message, argument);
     SendLoMessage(player, message, argument);
     { ASEGA *po = g.po; ((void (*)(void *))PVT(po)[2].pfn)((char *)po + PVT(po)[2].d); }
 }
@@ -497,18 +497,18 @@ extern "C" void SendAsegaMessage(ASEGA *player, int message, ASEGA *argument) {
 static __inline__ void PingPong(ASEGA *p, float *pt, float *pdt, float tMax, float t2)
 {
     *pdt = __builtin_fabsf(*pdt);
-    p->svtRate = __builtin_fabsf(p->svtRate);
+    p->rate = __builtin_fabsf(p->rate);
     if (tMax <= *pt) {
         *pt = t2 - *pt;
         *pdt = -*pdt;
-        p->svtRate = -p->svtRate;
+        p->rate = -p->rate;
     }
 }
 // Wraps (loop) or reflects (ping-pong) a player's time at the end of its segment; returns whether it wrapped and updates
 // the time delta.
 int WrapAsegaTime(ASEGA *player, float *time, float *deltaTime)
 {
-    float tMax = player->paseg->tMax;
+    float tMax = player->animation->duration;
     float t = *time;
     int f = 0;
     if (tMax <= t) {
@@ -563,15 +563,15 @@ void SetAsegaHandsOff(ASEGA *player, int isHandsOff)
 // Sets the player's own speed; its effective speed is speed x master speed.
 void SetAsegaSpeed(ASEGA *player, float speed)
 {
-    player->svtRate = speed;
-    player->svt = speed * player->svtMaster * player->svtSuck;
+    player->rate = speed;
+    player->speed = speed * player->masterSpeed * player->svtSuck;
 }
 
 // Sets the player's master speed (from its segment); recomputes the effective speed.
 extern "C" void SetAsegaMasterSpeed(ASEGA *player, float masterSpeed)
 {
-    player->svtMaster = masterSpeed;
-    player->svt = player->svtRate * masterSpeed * player->svtSuck;
+    player->masterSpeed = masterSpeed;
+    player->speed = player->rate * masterSpeed * player->svtSuck;
 }
 
 // Sets the priority of all the player's channel actions, so it can override (or yield to) other animations on the same
@@ -594,7 +594,7 @@ void SetAsegaPriority(ASEGA *player, int priority)
 extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
     ACTSEGV *pn;
     for (pn = (ACTSEGV *)player->pactsegFirst; pn; pn = pn->pactsegNext) {
-        if (IsActCurrent(pn) && pn->pxf->nRole == 7) {
+        if (IsActCurrent(pn) && pn->pxf->role == 7) {
             SetXfRole(pn->plo, pn->pxf, 9);
             pn->pxf->blendWeight = weight;
         }
@@ -603,7 +603,7 @@ extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
 
 // Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform. (inferred)
 void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
-    ACTV *act = pxf->pactFirst;
+    ACTV *act = pxf->firstActuator;
     for (;;) {   /* top-tested on purpose: a while / for loop is rotated to a bottom test and no longer matches */
         if (!act)
             return;
@@ -621,11 +621,11 @@ struct OIDXFK { int oid; int xfk; };
 // (inferred)
 extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
     int i, j;
-    for (i = 0; i < p->cxf; i++) {
-        XF *pe = &p->axf[i];
+    for (i = 0; i < p->numTransforms; i++) {
+        XF *pe = &p->transforms[i];
         for (j = 0; j < cp; j++) {
             OIDXFK *pp = &ap[j];
-            if ((pe->oid == pp->oid || pp->oid == -1) && (pe->xfk == pp->xfk || pp->xfk == -1)) {
+            if ((pe->oid == pp->oid || pp->oid == -1) && (pe->kind == pp->xfk || pp->xfk == -1)) {
                 DetachXfActById(pv, p, pe);
                 break;
             }
@@ -641,8 +641,8 @@ void ACTSEG::Attach() {
     ACV *pac;
     pac = p->pacRot;
     if (pac != 0) {
-        p->pxf->pxfRef->rotationCurve = (int)pac;
-        p->pxf->pxfRef->rotationTimePtr = &p->pasega->tLocal;
+        p->pxf->reference->rotationCurve = (int)pac;
+        p->pxf->reference->rotationTimePtr = &p->pasega->time;
         return;
     }
     AttachActBase(p, p);
@@ -651,8 +651,8 @@ void ACTSEG::Attach() {
 // Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach. (inferred)
 extern "C" void DetachActseg(ACTSEGV *p) {
     if (p->pacRot != 0) {
-        p->pxf->pxfRef->rotationCurve = 0;
-        p->pxf->pxfRef->rotationTimePtr = 0;
+        p->pxf->reference->rotationCurve = 0;
+        p->pxf->reference->rotationTimePtr = 0;
         return;
     }
     DetachActBase(p);
@@ -663,12 +663,12 @@ extern "C" void DetachActseg(ACTSEGV *p) {
 extern "C" void UpdateActseg(ACTSEGV *p) {
     if (p->pac) {
         ACV *pc;
-        p->pxf->pgUnk88 = &p->pasega->tLocal;
-        p->pxf->pgUnk8c = &p->pasega->svt;
+        p->pxf->timeSource = &p->pasega->time;
+        p->pxf->speedSource = &p->pasega->speed;
         pc = p->pac;
         ((void (*)(void *, XF *))(*(VTE **)pc)[2].pfn)((char *)pc + (*(VTE **)pc)[2].d, p->pxf);
     } else {
-        p->pxf->nPhase = 0;
+        p->pxf->phase = 0;
         SetXfRole(p->plo, p->pxf, 0);
         ResetXfValueRef(p->plo, p->pxf);
     }
@@ -680,8 +680,8 @@ extern "C" void GetActsegGoal(ACTSEGV *p, qword *pq1, qword *pq2, float g) {
     if (p->pac) {
         ASEGA *po = p->pasega;
         float t, dt;
-        dt = po->svt;
-        t = po->tLocal + g * dt;
+        dt = po->speed;
+        t = po->time + g * dt;
         WrapAsegaTime(po, &t, &dt);
         p->pac->Eval(t, dt, pq1, pq2);
     } else {

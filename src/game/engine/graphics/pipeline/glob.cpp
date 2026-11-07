@@ -152,7 +152,7 @@ struct SWALLOC
 /* GLOBSET's constructor (sly2/so.h; it was kept as a C function under the symbol __4CRef before). */
 GLOBSET::GLOBSET()
 {
-    nUnk4c = -1;
+    unknown4C = -1;
 }
 
 // LoadGlobsetFromBrx: ported from Lilly's personal Sly 2 decomp (src/P2/glob.c), reduced to the declarations it needs.
@@ -162,8 +162,8 @@ GLOBSET::GLOBSET()
 //   s8 fCompact (0 = every sub-glob also has a bounds record), vec3 posCenter, f32 sRadius,
 //   u8 cpsaa + that many PsaaLoadFromBrx (shader animations), u8 + that many s32, s16 cglob (the number of SLOTS: a sub-glob with cSubExtra instances uses 1 + cSubExtra of them),
 //   then per sub-glob: s8 cfilter (non-zero: cfilter x s16 ids + s32 byte count; when the level being loaded is not one of the ids the record is skipped and cglob drops by one),
-//   s8 type, u16 cSubExtra, s16 XF number (SO::GetXfFromIndex), s8 bUnk00, f32 gUnk04 (v * |v|), f32 -> SUBGLOBLOAD, s32 oid, s8 -> SUBGLOBLOAD, s8 fHide,
-//   [fCompact == 0: vec3 posCenter, f32 sRadius, u32 grf, f32 gUnk10 (FLT_MAX = a default by type)], then the body by type (0 geometry, 1 / 2 cel border edges, 3 shadow volume),
+//   s8 type, u16 cSubExtra, s16 XF number (SO::GetXfFromIndex), s8 unknown00, f32 unknown04 (v * |v|), f32 -> SUBGLOBLOAD, s32 oid, s8 -> SUBGLOBLOAD, s8 isHidden,
+//   [fCompact == 0: vec3 posCenter, f32 sRadius, u32 grf, f32 unknown10 (FLT_MAX = a default by type)], then the body by type (0 geometry, 1 / 2 cel border edges, 3 shadow volume),
 //   and last LoadPoseSetsFromBrx. The scratch record sgl (12 bytes, zeroed per sub-glob) is handed to the body loader.
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
@@ -199,34 +199,34 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis) __
 // Reads an SO model (GLOBSET): bounds, shader animations (SAA), sub-globs and their per-type geometry.
 void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
 {
-    pglobset->pso = pso;
+    pglobset->owner = pso;
     int fCompact = pbis->S8Read();
-    pbis->ReadVector(&pglobset->posCenter);
-    pglobset->sRadius = pbis->F32Read();
+    pbis->ReadVector(&pglobset->boundsCenter);
+    pglobset->boundsRadius = pbis->F32Read();
     pglobset->cpsaa = pbis->U8Read();
     pglobset->apsaa = (SAA **)PvAllocSwClear(pglobset->cpsaa * sizeof(SAA *));
     for (int i = 0; i < pglobset->cpsaa; i++)
     {
         pglobset->apsaa[i] = PsaaLoadFromBrx((void *)1, pbis);
     }
-    pglobset->cnUnk2c = pbis->U8Read();
-    pglobset->anUnk30 = (int *)PvAllocSwClear(pglobset->cnUnk2c * sizeof(int));
-    pglobset->nUnk34 = 0;
-    for (int i = 0; i < pglobset->cnUnk2c; i++)
+    pglobset->unknown2C = pbis->U8Read();
+    pglobset->unknown30 = (int *)PvAllocSwClear(pglobset->unknown2C * sizeof(int));
+    pglobset->unknown34 = 0;
+    for (int i = 0; i < pglobset->unknown2C; i++)
     {
-        pglobset->anUnk30[i] = pbis->S32Read();
+        pglobset->unknown30[i] = pbis->S32Read();
     }
-    pglobset->cglob = pbis->S16Read();
-    pglobset->asubglob = (SUBGLOB *)PvAllocSwClear(pglobset->cglob * sizeof(SUBGLOB));
-    pglobset->aglob = (GLOB *)PvAllocSwClear(pglobset->cglob * sizeof(GLOB));
+    pglobset->numPieces = pbis->S16Read();
+    pglobset->subMeshes = (SUBGLOB *)PvAllocSwClear(pglobset->numPieces * sizeof(SUBGLOB));
+    pglobset->pieces = (GLOB *)PvAllocSwClear(pglobset->numPieces * sizeof(GLOB));
     if (fCompact == 0)
     {
-        pglobset->asubglobx = (SUBGLOBX *)PvAllocSwClear(pglobset->cglob * sizeof(SUBGLOBX));
+        pglobset->asubglobx = (SUBGLOBX *)PvAllocSwClear(pglobset->numPieces * sizeof(SUBGLOBX));
     }
-    for (int i = 0; i < pglobset->cglob; i++)
+    for (int i = 0; i < pglobset->numPieces; i++)
     {
-        SUBGLOB *psubglob = &pglobset->asubglob[i];
-        GLOB *pglob = &pglobset->aglob[i];
+        SUBGLOB *psubglob = &pglobset->subMeshes[i];
+        GLOB *pglob = &pglobset->pieces[i];
         SUBGLOBX *psubglobx = pglobset->asubglobx ? &pglobset->asubglobx[i] : 0;
         SUBGLOBLOAD sgl;
         memset(&sgl, 0, sizeof(sgl));
@@ -240,23 +240,23 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
             {
                 pbis->Skip(cbSkip);
                 i--;
-                pglobset->cglob--;
+                pglobset->numPieces--;
                 continue;
             }
         }
         psubglob->type = pbis->S8Read();
         ushort cSubExtra = pbis->U16Read();
-        pglob->pxf = pso->GetXfFromIndex(pbis->S16Read());
-        psubglob->bUnk00 = pbis->S8Read();
+        pglob->transform = pso->GetXfFromIndex(pbis->S16Read());
+        psubglob->unknown00 = pbis->S8Read();
         float g = pbis->F32Read();
         if (g == 3.4028235e+38f)
-            psubglob->gUnk04 = 3.4028235e+38f;
+            psubglob->unknown04 = 3.4028235e+38f;
         else
-            psubglob->gUnk04 = g * fabsf(g);
+            psubglob->unknown04 = g * fabsf(g);
         sgl.fogIntensity = pbis->F32Read();
         pglob->oid = (OID)pbis->S32Read();
         sgl.batchMode = pbis->S8Read();
-        pglob->fHide = pbis->S8Read() & 1;
+        pglob->isHidden = pbis->S8Read() & 1;
         if (fCompact == 0)
         {
             pbis->ReadVector(&psubglobx->posCenter);
@@ -279,8 +279,8 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
             }
         }
         pglob->grfglobType = psubglob->type;
-        pglob->iUnk0c3 = psubglob->bUnk00;
-        if (psubglob->gUnk04 != 3.4028235e+38f)
+        pglob->unknownBits0CA = psubglob->unknown00;
+        if (psubglob->unknown04 != 3.4028235e+38f)
             pglob->fLimit = 1;
         switch (psubglob->type)
         {
@@ -431,7 +431,7 @@ struct ITEM { int oid; LO *plo; int n8; BONE *pbone; MATRIX4 mat; };
 struct GRP { int a; BONE *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
 struct HDR { signed char c0; signed char citem; char pad[0x12]; };
 struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
-struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int unknown4C; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (+0x4C: so.h's nUnk4c) */
+struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int unknown4C; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (+0x4C: so.h's unknown4C) */
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { 
@@ -446,7 +446,7 @@ extern "C" void AddWrWarpGroup(LO *plo, X *px);
 extern "C" void BindGlobset(S *p)
 {
     if (p->unknown4C != -1)
-        p->unknown4C = g_sw.nUnk3d5c;
+        p->unknown4C = g_sw.unknown3D5C;
     for (int i = 0; i < p->cgrp; i++) {
         HDR *phdr = &p->ahdr[i];
         GRP *pgrp = &p->agrp[i];
@@ -1067,7 +1067,7 @@ struct VECTOR4
 struct XF
 {
     char pad[0x40];
-    MATRIX4 mat;
+    MATRIX4 localMatrix;
 };
 struct VTENT
 {
@@ -1166,7 +1166,7 @@ struct VIEW
 };
 struct CLOCK
 {
-    float t, dt;
+    float time, deltaTime;
 };
 struct G
 {
@@ -1374,7 +1374,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
 {
     SUBDESC *pdesc;
     qword posCam = D_002DDF40.posCam;
-    qword pos = TransformPointRef(pmodel->powner->pxf->mat, *(qword *)&pmodel->posCenter);
+    qword pos = TransformPointRef(pmodel->powner->pxf->localMatrix, *(qword *)&pmodel->posCenter);
     float sRadius = pmodel->rad;
     if (pmatWorld)
     {
@@ -1387,7 +1387,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     float gVis = GetSphereVisibility(posCam, pos, &pmodel->powner->sph, sRadius, &dpos);
     if (gVis == 0.0f)
         return;
-    pmodel->t = D_002DDED0.t;
+    pmodel->t = D_002DDED0.time;
     if (pmodel->nStamp != D_003DD490.nStamp)
         SubmitGlobsetRelight(pmodel);
     int i;
@@ -1422,7 +1422,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         {
             MATRIX4 *pmatParent = psub->pmatParent;
             MATRIX4 mat;
-            CopyMat(mat, psub->pxf->mat);
+            CopyMat(mat, psub->pxf->localMatrix);
             if (pmatParent)
                 CopyMat(mat, MulMat(mat, *pmatParent));
             if (pmatWorld)
@@ -1604,7 +1604,7 @@ struct VECTOR4
 struct XF
 {
     char pad[0x40];
-    MATRIX4 mat;
+    MATRIX4 localMatrix;
 };
 struct VTENT
 {
@@ -1829,7 +1829,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         {
             MATRIX4 *pmatParent = psub->pmatParent;
             MATRIX4 mat;
-            CopyMat(mat, psub->pxf->mat);
+            CopyMat(mat, psub->pxf->localMatrix);
             if (pmatParent)
                 CopyMat(mat, MulMat(mat, *pmatParent));
             matModel = mat;
@@ -1872,7 +1872,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
                 BONE *pbone = &psub->abone[ibone];
                 MATRIX4 mat;
                 if (pbone->pxf)
-                    mat = MulMat(pbone->pxf->mat, pbone->mat);
+                    mat = MulMat(pbone->pxf->localMatrix, pbone->mat);
                 else
                     mat = pbone->mat;
                 UnpackQws((ibone * 4 + pdesc->ib) | 0x6C04C000, (uint *)&mat, 16);
@@ -2235,16 +2235,16 @@ struct LO;
 struct SO;
 struct SAA;
 struct RGBA {
-    uchar bRed;
-    uchar bGreen;
-    uchar bBlue;
-    uchar bAlpha;
+    uchar red;
+    uchar green;
+    uchar blue;
+    uchar alpha;
     inline void operator=(const int rgba)
     {
-        bRed = (rgba >> 24) & 0xFF;
-        bGreen = (rgba >> 16) & 0xFF;
-        bBlue = (rgba >> 8) & 0xFF;
-        bAlpha = rgba & 0xFF;
+        red = (rgba >> 24) & 0xFF;
+        green = (rgba >> 16) & 0xFF;
+        blue = (rgba >> 8) & 0xFF;
+        alpha = rgba & 0xFF;
     }
 };
 struct VECTOR
@@ -2331,7 +2331,7 @@ struct SL
 {
     void *head;
     void *tail;
-    int ibSle;
+    int linkOffset;
 };
 void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
@@ -2428,26 +2428,26 @@ struct BND
 struct GLOB
 {
       OID oid;
-      XF *pxf;
-      MATRIX4 *pmatUnk08;
+      XF *transform;
+      MATRIX4 *unknown08;
       union
     {
         uint grf;
         struct
         {
             uint grfglobType : 3;
-            uint iUnk0c3 : 5;
-            uint unk_0x0d : 2;
+            uint unknownBits0CA : 5;
+            uint unknownBits0CB : 2;
             uint fLimit : 1;
-            uint fHide : 1;
+            uint isHidden : 1;
             uint fBakedMat : 1;
             uint iUnkFirst : 9;
             uint iUnkEnd : 9;
-            uint unk_0x1f : 1;
+            uint unknownFlag0CA : 1;
         };
     };
-      void *pvUnk10;
-      void *pvUnk14;
+      void *unknown10;
+      void *unknown14;
       BND *abnd;
       WRBG *pwrbg;
       struct SAA *psaa;
@@ -2455,11 +2455,11 @@ struct GLOB
 };
 struct SUBGLOB
 {
-      char bUnk00;
+      char unknown00;
       char cbnd;
-      int bUnk02 : 8;
+      int unknown02 : 8;
       char type;
-      float gUnk04;
+      float unknown04;
       void *pvLit;
       int iqwBone;
       int cqw;
@@ -2479,7 +2479,7 @@ struct POSE
       long nKind : 4;
     ulong count : 8;
     ulong channel : 6;
-    ulong fHide : 1;
+    ulong isHidden : 1;
     long iglob : 13;
       void *link;
       undefined4 pad1C;
@@ -2615,33 +2615,33 @@ struct SUBGLOBLOAD
 };
 struct GLOBSET
 {
-      SO *pso;
-      float tUnk04;
-      undefined4 unk_0x08[2];
-      VECTOR posCenter;
-      undefined4 unk_0x1c;
-      float sRadius;
+      SO *owner;
+      float unknown04;
+      undefined4 unknown08[2];
+      VECTOR boundsCenter;
+      undefined4 unknown1C;
+      float boundsRadius;
       int cpsaa;
       SAA **apsaa;
-      int cnUnk2c;
-      int *anUnk30;
-      int nUnk34;
-      int cglob;
-      SUBGLOB *asubglob;
-      GLOB *aglob;
+      int unknown2C;
+      int *unknown30;
+      int unknown34;
+      int numPieces;
+      SUBGLOB *subMeshes;
+      GLOB *pieces;
       SUBGLOBX *asubglobx;
       POSESET *aposeset;
-      int nUnk4c;
+      int unknown4C;
       union
     {
-        float gUnk50;
+        float unknown50;
         struct
         {
-            ulong unk_0x50 : 32;
-            ulong fBoundsUnk32 : 1;
-            ulong fBoundsUnk33 : 1;
-            ulong fUnk34 : 1;
-            ulong unk_0x54 : 29;
+            ulong unknownBits50A : 32;
+            ulong unknownBoundsFlag50 : 1;
+            ulong unknownBoundsFlag50B : 1;
+            ulong ignoreLocked : 1;
+            ulong unknownBits50B : 29;
         };
     };
       WRBG *pwrbgFirst;
@@ -2651,27 +2651,27 @@ struct ACT;
 struct CM;
 struct XF
 {
-      MATRIX4 mat;
-      MATRIX4 matWorld;
-      float gUnk80;
-      float gUnk84;
-      float *pgUnk88;
-      float *pgUnk8c;
-      ACT *pactFirst;
-      int xfk;
-      short nRole;
-      short nPhase;
+      MATRIX4 localMatrix;
+      MATRIX4 worldMatrix;
+      float segmentStartTime;
+      float segmentEndTime;
+      float *timeSource;
+      float *speedSource;
+      ACT *firstActuator;
+      int kind;
+      short role;
+      short phase;
       OID oid;
-      XF *pxfParent;
-      int nStampWorld;
-      XF *pxfRef;
-      short nUnkAc;
-      short nUnkAe;
-      VECTOR4 vUnkB0;
-      qword qwRest;
-      qword qwUnkD0;
-      qword qwRestUnkE0;
-      qword qwUnkF0;
+      XF *parent;
+      int worldStamp;
+      XF *reference;
+      short stiffness;
+      short damping;
+      VECTOR4 velocity;
+      qword restValue;
+      qword rate;
+      qword unknownE0;
+      qword acceleration;
 };
 extern "C" { extern CM D_002DDF40; }
 void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
@@ -2845,13 +2845,13 @@ namespace RO_ORDER { extern const float r_D_002A52A0 __asm__("D_002A52A0") = 3.4
 // Sub-glob type 0 loader: textured lit triangle strips (the visible mesh); builds VIF batches.
 void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis)
 {
-    psubglob->bUnk02 = pbis->U8Read();
+    psubglob->unknown02 = pbis->U8Read();
     int isaa = pbis->S16Read();
     if (isaa >= 0)
         pglob->psaa = pglobset->apsaa[isaa];
-    if (psubglob->bUnk02 & 1)
+    if (psubglob->unknown02 & 1)
         pglob->grf |= 0x100;
-    if (psubglob->bUnk02 & 2)
+    if (psubglob->unknown02 & 2)
         pglob->grf |= 0x200;
 
     STACKSCOPE scopeOuter;
@@ -2860,16 +2860,16 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     vifs.AllocStack(0x2000);
     QW *pqwChain = (QW *)vifs.m_pb;
     pglob->iUnkFirst = D_003DA790;
-    if (psubglob->bUnk02 & 1)
+    if (psubglob->unknown02 & 1)
     {
         vifs.AddDmaCnt();
-        pglobset->fBoundsUnk32 = 1;
+        pglobset->unknownBoundsFlag50 = 1;
     }
     else
     {
         vifsAux.AllocStack(0x800);
-        if (IsBasicDerivedFrom((BASIC *)pglobset->pso, (CID)0x31) && !(psubglob->bUnk02 & 4) && (uchar)(psubglob->bUnk00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
-            psubglob->gUnk04 == D_002A52A0 && g_sw.fUnk3e40 == 0)
+        if (IsBasicDerivedFrom((BASIC *)pglobset->owner, (CID)0x31) && !(psubglob->unknown02 & 4) && (uchar)(psubglob->unknown00 - 7) >= 2 /* not 7 or 8: the unsigned range test is what compiles to the target */ &&
+            psubglob->unknown04 == D_002A52A0 && g_sw.unknown3E40 == 0)
         {
             QW qwOne;
             qwOne.ag[0] = 1.0f;
@@ -2878,7 +2878,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             qwOne.ag[3] = 0.0f;
             pglob->grf |= 0x1000;
             vifsAux.AddDmaCnt();
-            vifsAux.AddVifUnpack(UPK_V4_32, 4, &pglob->pxf->matWorld, 0);
+            vifsAux.AddVifUnpack(UPK_V4_32, 4, &pglob->transform->worldMatrix, 0);
             vifsAux.AddVifUnpack(UPK_V4_32, 1, &qwOne, 8);
             vifsAux.EndDmaCnt();
         }
@@ -2895,7 +2895,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         pbnd->oid = (OID)pbis->S32Read();
         pbnd->ixf = pbis->S16Read();
     }
-    int iqwBase = (psubglob->bUnk02 & 1) ? 0x21 : 0x15;
+    int iqwBase = (psubglob->unknown02 & 1) ? 0x21 : 0x15;
     if (psubglob->cbnd != 0)
     {
         psubglob->iqwBone = iqwBase;
@@ -2910,10 +2910,10 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         pbis->ReadVector(&spec.vec);
         spec.unknown00[1] *= 0.007874016f;
         spec.unknown00[2] *= 6.200012e-05f;
-        spec.fMode = psubglob->bUnk02 & 1;
+        spec.fMode = psubglob->unknown02 & 1;
     }
     CLUTSET *pclutset = LoadClutSetFromBrx(pglobset, pbis);
-    if (psubglob->bUnk02 & 4)
+    if (psubglob->unknown02 & 4)
     {
         WRBG wrbg;
         memset(&wrbg, 0, sizeof(WRBG));
@@ -2931,7 +2931,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         wrbg.fDpos = pbis->U8Read();
         wrbg.fDuv = pbis->U8Read();
         WRBG *pwrbg = (WRBG *)PvAllocSwCopy(sizeof(WRBG), &wrbg);
-        pwrbg->pso = pglobset->pso;
+        pwrbg->pso = pglobset->owner;
         pwrbg->pglob = pglob;
         pwrbg->grf = pwrbg->cmat;
         if (pwrbg->fDpos != 0)
@@ -2951,7 +2951,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     int cbatch = pbis->S16Read();
     int nLit = 0;
     VIFS vifsLit;
-    if (!(psubglob->bUnk02 & 1))
+    if (!(psubglob->unknown02 & 1))
     {
         vifsLit.AllocStack(0x2000);
         vifsLit.AddDmaCnt();
@@ -2996,9 +2996,9 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
         }
         phdr->oid = (ushort)pglob->oid;
-        if (psubglob->bUnk02 & 1)
+        if (psubglob->unknown02 & 1)
             phdr->grf.grf |= 2;
-        if (psubglob->bUnk02 & 0x10)
+        if (psubglob->unknown02 & 0x10)
             phdr->grf.grf |= 0x80;
         if (pglob->pwrbg != 0)
         {
@@ -3067,8 +3067,8 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         for (RGBA *prgba = argbaFile; prgba < argbaFile + cvtxFile; prgba++)
             FixupRgba(prgba);
         int fAlpha = pbis->S8Read();
-        if (psubglob->bUnk00 < 9)
-            fAlpha = (psubglob->bUnk00 < 3) ? fAlpha : 1;
+        if (psubglob->unknown00 < 9)
+            fAlpha = (psubglob->unknown00 < 3) ? fAlpha : 1;
         void *pvWeights;
         if (psubglob->cbnd != 0)
         {
@@ -3090,19 +3090,19 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         uint *aunBits = (uint *)AllocFromStack16(cbBits);
         pbis->Read(cbBits, aunBits);
         punBits = aunBits;
-        if ((psubglob->bUnk02 & 5) || psubglob->cbnd != 0 || spec.iSpec != -1)
+        if ((psubglob->unknown02 & 5) || psubglob->cbnd != 0 || spec.iSpec != -1)
             fMulti = 1;
         int fNoSaa = !fMulti && abatch[0].psaa == 0 && abatch[1].psaa == 0;
         int iqw = iqwBase;
         phdr->iqwBase = iqw;
         VERTREC *arec;
-        if (psubglob->cbnd == 0 && !(psubglob->bUnk02 & 1) && spec.iSpec == -1)
+        if (psubglob->cbnd == 0 && !(psubglob->unknown02 & 1) && spec.iSpec == -1)
         {
             arec = 0;
         }
         else
         {
-            if (psubglob->bUnk02 & 8)
+            if (psubglob->unknown02 & 8)
             {
                 uchar *pbV = pbVtx;
                 arec = (VERTREC *)AllocFromStack16(cvtxTotal * sizeof(VERTREC));
@@ -3196,11 +3196,11 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             {
                 if (ppart->aiqwShdp[ishdp] == 0 && ((pbatch->grf >> ishdp) & 1))
                 {
-                    if (psubglob->bUnk02 & 2)
+                    if (psubglob->unknown02 & 2)
                     {
-                        int ioid = pglobset->cnUnk2c;
+                        int ioid = pglobset->unknown2C;
                         while (--ioid >= 0)
-                            iqw += AddShaderVifUnpackQword(FindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
+                            iqw += AddShaderVifUnpackQword(FindShader(pglobset->unknown30[ioid]), ishdp, iqw, &vifs);
                     }
                     ppart->aiqwShdp[ishdp] = iqw;
                     iqw += AddVifUnpackShdp(pbatch->pshd, ishdp, iqw, &vifs);
@@ -3235,7 +3235,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             {
                 ppart->iqwWeights = iqw;
                 iqw += pbatch->cvtx - pbatch->ivtxOwn;
-                if (psubglob->bUnk02 & 1)
+                if (psubglob->unknown02 & 1)
                     phdr->grf.grf |= 0x20;
                 else
                     phdr->grf.grf |= 0x10;
@@ -3252,7 +3252,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             }
             if (spec.iSpec != -1)
             {
-                if (psubglob->bUnk02 & 1)
+                if (psubglob->unknown02 & 1)
                 {
                     ppart->iqwUvLink = ppart->iqwOwn + 1;
                 }
@@ -3272,11 +3272,11 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 iqw += cqwWarp;
             }
             vifs.AddVifStcycl(1, 4);
-            if ((psubglob->bUnk02 & 1) || psubglob->cbnd != 0 || spec.iSpec != -1)
+            if ((psubglob->unknown02 & 1) || psubglob->cbnd != 0 || spec.iSpec != -1)
                 vifs.UnpackHelper((UPK)0x19, pbatch->cvtx, ppart->iqwVtx, 0, (uint **)&pbatch->pvUvLink);
             else
                 vifs.UnpackHelper((UPK)0x15, pbatch->cvtx, ppart->iqwVtx, 0, (uint **)&pbatch->pvUv);
-            if (psubglob->bUnk02 & 1)
+            if (psubglob->unknown02 & 1)
             {
                 if (pbatch->ivtxOwn < pbatch->cvtx)
                 {
@@ -3332,7 +3332,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     iqwW += pbatch->cvtx;
                 }
             }
-            if (!(psubglob->bUnk02 & 1))
+            if (!(psubglob->unknown02 & 1))
             {
                 int shdk = pbatch->pshd->shdk;
                 if (shdk != 1 && shdk != 7)
@@ -3343,12 +3343,12 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         RGBA rgbaA = argbaFile[pbVtxCur[iv]];
                         RGBA rgbaB = pbatch->pshd->rgba;
-                        uchar a = (rgbaA.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                        uchar a = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                         RGBA5551 *pc = pcol++;
                         RGBA5551 col;
-                        col.g = (uchar)((rgbaA.bGreen * rgbaB.bGreen + 0xff) / 256) >> 3;
-                        col.r = (uchar)((rgbaA.bRed * rgbaB.bRed + 0xff) / 256) >> 3;
-                        col.b = (uchar)((rgbaA.bBlue * rgbaB.bBlue + 0xff) / 256) >> 3;
+                        col.g = (uchar)((rgbaA.green * rgbaB.green + 0xff) / 256) >> 3;
+                        col.r = (uchar)((rgbaA.red * rgbaB.red + 0xff) / 256) >> 3;
+                        col.b = (uchar)((rgbaA.blue * rgbaB.blue + 0xff) / 256) >> 3;
                         col.a = a >> 7;
                         *pc = col;
                         if (pbAlpha != 0)
@@ -3398,10 +3398,10 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                                     *pvPos++ = aposFile[ivtxFile];
                                     RGBA rgba = argbaFile[ivtxFile];
                                     RGBA rgbaB = pbatch->pshd->rgba;
-                                    rgba.bRed = (rgba.bRed * rgbaB.bRed + 0xff) / 256;
-                                    rgba.bGreen = (rgba.bGreen * rgbaB.bGreen + 0xff) / 256;
-                                    rgba.bBlue = (rgba.bBlue * rgbaB.bBlue + 0xff) / 256;
-                                    rgba.bAlpha = (rgba.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                                    rgba.red = (rgba.red * rgbaB.red + 0xff) / 256;
+                                    rgba.green = (rgba.green * rgbaB.green + 0xff) / 256;
+                                    rgba.blue = (rgba.blue * rgbaB.blue + 0xff) / 256;
+                                    rgba.alpha = (rgba.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                                     *prgbaCol++ = rgba;
                                 }
                             }
@@ -3455,7 +3455,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         RGBA rgbaA = argbaFile[ivtxFile];
                         RGBA rgbaB = pbatch->pshd->rgba;
-                        pbatch->pbAlpha[iv] = (rgbaA.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                        pbatch->pbAlpha[iv] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                     }
                 }
             }
@@ -3465,7 +3465,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 if (ib == 0)
                 {
                     vifs.AddVifMscal(D_00000000);
-                    if (psubglob->bUnk00 == 0xb || psubglob->bUnk00 == 0xd)
+                    if (psubglob->unknown00 == 0xb || psubglob->unknown00 == 0xd)
                     {
                         vifs.AddVifMscal(D_00003628);
                     }
@@ -3487,7 +3487,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                         vifs.AddVifMscal(pvMscal);
                     }
                 }
-                else if (psubglob->bUnk00 == 0xb || psubglob->bUnk00 == 0xd)
+                else if (psubglob->unknown00 == 0xb || psubglob->unknown00 == 0xd)
                 {
                     vifs.AddVifMscal(D_000037A8);
                 }
@@ -3500,7 +3500,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         if (fMulti)
         {
             vifs.AddVifMscal(D_00000000);
-            if (psubglob->bUnk00 == 0xb || psubglob->bUnk00 == 0xd)
+            if (psubglob->unknown00 == 0xb || psubglob->unknown00 == 0xd)
             {
                 vifs.AddVifMscal(D_00003628);
                 vifs.AddVifMscal(D_000037A8);
@@ -3557,9 +3557,9 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 BATCH *pbatchFirst = prec->pbatchFirst;
                 int ivtxFirst = prec->ivtxFirst;
                 RGBA rgbaA = argbaFile[ivtxFile];
-                int bRed = rgbaA.bRed;
-                int bGreen = rgbaA.bGreen;
-                int bBlue = rgbaA.bBlue;
+                int bRed = rgbaA.red;
+                int bGreen = rgbaA.green;
+                int bBlue = rgbaA.blue;
                 int bMax;
                 if (bRed > bGreen && bRed > bBlue)
                 {
@@ -3583,10 +3583,10 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 {
                     RGBA rgbaB = pbatchFirst->pshd->rgba;
                     uchar *pbC = pbatchFirst->pbRgb + (ivtxFirst - pbatchFirst->ivtxOwn) * 4;
-                    pbC[0] = (rgbaA.bRed * rgbaB.bRed + 0xff) / 512;
-                    pbC[1] = (rgbaA.bGreen * rgbaB.bGreen + 0xff) / 512;
-                    pbC[2] = (rgbaA.bBlue * rgbaB.bBlue + 0xff) / 512;
-                    pbC[3] = (rgbaA.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                    pbC[0] = (rgbaA.red * rgbaB.red + 0xff) / 512;
+                    pbC[1] = (rgbaA.green * rgbaB.green + 0xff) / 512;
+                    pbC[2] = (rgbaA.blue * rgbaB.blue + 0xff) / 512;
+                    pbC[3] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                 }
                 if (psubglob->cbnd != 0)
                 {
@@ -3603,13 +3603,13 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     int cqwMain;
     char *pbOld;
     char *pbNew;
-    if (psubglob->bUnk02 & 1)
+    if (psubglob->unknown02 & 1)
     {
         vifs.EndDmaCnt();
         vifs.AddDmaRet();
         vifs.DetachCopySw(&cqwMain, (QW **)&pbOld, (QW **)&pbNew);
         psubglob->cqw = cqwMain;
-        pglob->pvUnk10 = pbNew;
+        pglob->unknown10 = pbNew;
     }
     else
     {
@@ -3633,7 +3633,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
     }
     if (pclutset != 0)
-        pglobset->nUnk4c = g_sw.nUnk3d5c;
+        pglobset->unknown4C = g_sw.unknown3D5C;
     pglob->iUnkEnd = D_003DA790;
     RelocateShaderUploadRecords(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
     if (pglob->pwrbg != 0)
@@ -3645,7 +3645,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 RelocPpv(pbOld, cqwMain << 4, pbNew, (char **)&pwb->apvWarp[imat]);
         }
     }
-    if (psubglob->bUnk02 & 8)
+    if (psubglob->unknown02 & 8)
     {
         int cbatchAll = 0;
         for (int i = 0; i < cbatch; i++)
@@ -4290,7 +4290,7 @@ extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
 {
     EnsureVu1Code__FP4VIFSPvT1(pvifs, D_0025C1C0, D_0025E040);
     pvifs->AddDmaCnt();
-    if (n2 != 7 && g_sw.fUnk3e38) {
+    if (n2 != 7 && g_sw.unknown3E38) {
         pvifs->AddVifFlush();
         pvifs->AddDmaCall(D_002DF800);
         pvifs->AddVifBaseOffset(0x32, 0x1E7);

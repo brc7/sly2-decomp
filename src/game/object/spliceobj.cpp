@@ -331,7 +331,7 @@ CRef GetBasicOption(BASIC *object, int optionId)
         return GetOptionRecordValue(object, FindOptionRecord(object, optionId));
     }
     CRef ref;
-    object->psidebag->FindSidebagBinding(optionId, &ref);
+    object->scriptVariables->FindSidebagBinding(optionId, &ref);
     return ref;
 }
 
@@ -341,7 +341,7 @@ CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     if (optionId < 0x4D1)
         return SetOptionRecordValue(object, FindOptionRecord(object, optionId), pref);
-    return object->psidebag->AssignSidebagBinding(optionId, pref);
+    return object->scriptVariables->AssignSidebagBinding(optionId, pref);
 }
 
 // Adds an option value: for built-in options a call of the record's add form, else a new sidebag binding.
@@ -349,7 +349,7 @@ CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
 CRef AddBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
-    return CSidebag_AddBinding(object->psidebag, optionId, pref);
+    return CSidebag_AddBinding(object->scriptVariables, optionId, pref);
 }
 
 // Sets an option only when it has no value yet (built-in or sidebag); the EnsureLoSidebag* helpers use it.
@@ -357,9 +357,9 @@ CRef AddBasicOption(BASIC *object, int optionId, CRef *pref)
 CRef EnsureBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
-    if (object->psidebag->FindSidebagBinding(optionId, 0))
-        return object->psidebag->AssignSidebagBinding(optionId, pref);
-    return CSidebag_AddBinding(object->psidebag, optionId, pref);
+    if (object->scriptVariables->FindSidebagBinding(optionId, 0))
+        return object->scriptVariables->AssignSidebagBinding(optionId, pref);
+    return CSidebag_AddBinding(object->scriptVariables, optionId, pref);
 }
 
 /* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:

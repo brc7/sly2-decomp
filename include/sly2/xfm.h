@@ -15,32 +15,32 @@
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (10 copies in Lilly ports) */
 struct GEOM
 {
-      int cpos;   /* number of vertex positions */
-      VECTOR *apos;   /* vertex positions */
-      int csurf;   /* number of surfaces (faces) */
-      SURF *asurf;   /* the surfaces */
-      int cedge;   /* number of edges */
-      EDGE *aedge;   /* the edges */
+      int numPositions; /* number of vertex positions */
+      VECTOR *positions; /* vertex positions */
+      int numSurfaces; /* number of surfaces (faces) */
+      SURF *surfaces; /* the surfaces */
+      int numEdges; /* number of edges */
+      EDGE *edges;   /* the edges */
 };
 
 /* BSPC: a BSP container: the binary space partition nodes used to classify points against a GEOM.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (10 copies in Lilly ports) */
 struct BSPC
 {
-      int cbsp;   /* number of BSP nodes used */
-      int cbspFull;   /* number of nodes allocated */
-      int nUnk08;
-      BSP *absp;   /* the nodes */
+      int numNodes; /* number of BSP nodes used */
+      int numNodesAllocated; /* number of nodes allocated */
+      int unknown08;
+      BSP *nodes;  /* the nodes */
 };
 
 /* XFM: the transform object: an LO with a local matrix relative to its parent XF and a world matrix.
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
 struct XFM : public LO
 {
-      XF *pxfParent;   /* the transform of the parent this object is placed in */
-      int nStampWorld;   /* frame stamp of the last world-matrix update (inferred: recompute when stale) */
-      undefined4 unk_0x58[2];
-      MATRIX4 mat;          /* +0x60 [S] local matrix */
+      XF *parentTransform; /* the transform of the parent this object is placed in */
+      int worldStamp;    /* frame stamp of the last world-matrix update (inferred: recompute when stale) */
+      undefined4 unknown58[2];
+      MATRIX4 localMatrix;  /* +0x60 [S] local matrix */
       MATRIX4 matWorld;     /* +0xA0 [R] world matrix, row 3 (+0xD0) = translation: holds for every LIGHT (CID 4,
                                3504 instances / 73 states: w = 1; rows 0-2 unit length in 3492, 12 scaled). Plain XFM/PROXY/TARGET instances are
                                mostly all-zero here (HYPOTHESIS: not maintained unless used). Note SO positions are NOT here:
@@ -68,22 +68,22 @@ typedef char assert_XFM_matWorld[SLY2_OFFSETOF(XFM, matWorld) == 0xA0 ? 1 : -1];
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (3 copies in Lilly ports) */
 struct SHAPE : public XFM
 {
-      CRVK crvk;   /* curve kind (linear, cubic, ...) */
-      int fClosed;   /* the curve loops back to its first vertex */
-      int ccv;   /* number of control vertices */
-      float *mpicvu;   /* parameter value at each control vertex */
-      float *mpicvs;   /* arc length at each control vertex */
-      VECTOR4 *mpicvpos;   /* control vertex positions (local) */
-      undefined4 unk_0xf8[2];
+      CRVK curveKind; /* curve kind (linear, cubic, ...) */
+      int isClosed;  /* the curve loops back to its first vertex */
+      int numControlVertices; /* number of control vertices */
+      float *vertexParams; /* parameter value at each control vertex */
+      float *vertexArcLengths; /* arc length at each control vertex */
+      VECTOR4 *vertexPositions; /* control vertex positions (local) */
+      undefined4 unknownF8[2];
       MATRIX4 matWorldCache;   /* world matrix the cached world positions were computed with (inferred) */
       VECTOR4 *mpicvposA;   /* per-vertex positions, first cache (inferred) */
       VECTOR4 *mpicvposB;   /* per-vertex positions, second cache (inferred) */
-      int nUnk148;
-      float agsSeg[11];   /* per-segment lengths (inferred from the name: g = float, s = distance) */
-      int nUnk178;
-      void *pvUnk17c;
+      int unknown148;
+      float segmentLengths[11]; /* per-segment lengths (inferred from the name: g = float, s = distance) */
+      int unknown178;
+      void *unknown17C;   /* possibly chain (low-confidence guess: cast to SHAPECHAIN in shape.cpp) */
       struct SHAPERANGES *pranges;   /* per-range data (SHAPERANGES) */
-      undefined4 unk_0x184[3];
+      undefined4 unknown184[3];
     virtual void Init() __asm__("InitShape");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetShapeClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadShapeFromBrx");   /* slot 14 */
@@ -96,11 +96,11 @@ typedef char assert_SHAPE_size[sizeof(SHAPE) == 0x190 ? 1 : -1];   /* class desc
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (5 copies in Lilly ports) */
 struct TARGET : public XFM
 {
-      DLE dleTarget;   /* link in the world's target list */
-      int grftak;   /* target kind flag bits (which systems may use it) */
-      float sRadiusTarget;   /* target radius */
-      int fHitTest;   /* test line-of-sight/collision before using the target (inferred) */
-      int nUnkF4;
+      DLE targetListLink; /* link in the world's target list */
+      int targetKindFlags; /* target kind flag bits (which systems may use it) */
+      float radius;          /* target radius */
+      int needsHitTest; /* test line-of-sight/collision before using the target (inferred) */
+      int unknownF4;
       uint32_t   _pad_22    [ 2 ] ;
     virtual void OnAdd() __asm__("OnTargetAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetTargetClassDesc");   /* slot 6 */
@@ -117,10 +117,10 @@ struct VOL : public XFM
 {
       BSPC bspc;   /* BSP of the volume mesh (point inside/outside test) */
       GEOM geom;   /* the volume mesh */
-      undefined4 unk_0x108[2];
-      qword posCenter;   /* centre of the bounding sphere */
-      float sRadius2;   /* squared radius of the bounding sphere (inferred from the 2) */
-      undefined4 unk_0x124[3];
+      undefined4 unknown108[2];
+      qword boundsCenter; /* centre of the bounding sphere */
+      float boundsRadiusSquared; /* squared radius of the bounding sphere (inferred from the 2) */
+      undefined4 unknown124[3];
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVolFromBrx");   /* slot 14 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetVolClassDesc");   /* slot 6 */
 };
@@ -131,12 +131,12 @@ typedef char assert_VOL_size[sizeof(VOL) == 0x130 ? 1 : -1];   /* class descript
    Layout from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (3 copies in Lilly ports) */
 struct PROXY : public XFM
 {
-      PROXYSRC *psrc;   /* the template (proxy source) to clone */
-      int nUnkE4;
-      PROXYSPARE *pspareFirst;   /* first spare (pre-built, unused) copy */
-      int cinit;   /* number of init records */
-      PROXYINIT *ainit;   /* init records applied to each new copy */
-      undefined4 unk_0xf4[3];
+      PROXYSRC *source; /* the template (proxy source) to clone */
+      int unknownE4;
+      PROXYSPARE *firstSpare;    /* first spare (pre-built, unused) copy */
+      int numInits; /* number of init records */
+      PROXYINIT *inits;   /* init records applied to each new copy */
+      undefined4 unknownF4[3];
     virtual void Init() __asm__("InitProxy");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetProxyClassDesc");   /* slot 6 */
     virtual void OnAdd() __asm__("OnProxyAdd");   /* slot 23 */
@@ -150,37 +150,37 @@ typedef char assert_PROXY_size[sizeof(PROXY) == 0x100 ? 1 : -1];   /* class desc
    Layout from src/game/engine/camera/tn/UpdateCptn.cpp */
 struct TN : public XFM
 {
-      LO *ploHero;   /* the hero object the tunnel tracks */
+      LO *hero;      /* the hero object the tunnel tracks */
       GEOM geom;   /* the tunnel volume mesh */
       BSPC bspc;   /* its BSP */
-      SHAPE *pshape;   /* path through the tunnel, if any */
-      int ccpd;   /* number of camera definitions */
-      CPD *acpd;   /* the camera definitions */
-      CPD *pcpd;   /* the active camera definition */
-      int fCpdsLoaded;   /* the camera definitions are loaded */
+      SHAPE *path;     /* path through the tunnel, if any */
+      int numCameraDefinitions; /* number of camera definitions */
+      CPD *cameraDefinitions; /* the camera definitions */
+      CPD *activeCameraDefinition; /* the active camera definition */
+      int areCameraDefinitionsLoaded; /* the camera definitions are loaded */
       int fCylind;   /* the tunnel is a cylinder around its path (inferred) */
-      int nUnk124;
-      int nPriorityTn;   /* priority among overlapping tunnels */
+      int unknown124;
+      int priority;      /* priority among overlapping tunnels */
       int fCircle;   /* circular tunnel (inferred) */
-      float radPanLimit;   /* pan limit (radians) */
-      TNS tns;   /* tunnel state */
-      float tTns;   /* time the current state was entered */
-      TNS tnsWant;   /* requested state */
-      float uProgress;   /* progress along the tunnel, 0..1 */
+      float panLimitAngle; /* pan limit (radians) */
+      TNS state; /* tunnel state */
+      float stateStartTime; /* time the current state was entered */
+      TNS requestedState; /* requested state */
+      float progress;    /* progress along the tunnel, 0..1 */
       undefined4 unk_0x144[(0x150 - 0x144) / 4];
-      VECTOR4 posCenter;   /* centre (circular tunnels) */
-      float sRadius;   /* radius */
+      VECTOR4 centerPosition; /* centre (circular tunnels) */
+      float radius;    /* radius */
       int grftnm;   /* tunnel mode flag bits */
-      int fPullEnter;   /* pull the camera on entry */
-      int fPullIdle;   /* pull the camera while idle */
-      float dtPullEnter;   /* duration of the entry pull (s) */
-      float gPullEnter;   /* strength of the entry pull */
-      float dtPullIdle;   /* duration of the idle pull (s) */
-      float gPullIdle;   /* strength of the idle pull */
-      int nTurnAxis;   /* axis the camera turns about */
-      int nUnk184;
-      float radFov;   /* camera field of view (radians) */
-      int fNoCamClip;   /* disable camera collision inside */
+      int pullsOnEnter; /* pull the camera on entry */
+      int pullsWhileIdle; /* pull the camera while idle */
+      float enterPullDuration; /* duration of the entry pull (s) */
+      float enterPullStrength; /* strength of the entry pull */
+      float idlePullDuration; /* duration of the idle pull (s) */
+      float idlePullStrength; /* strength of the idle pull */
+      int turnAxis;    /* axis the camera turns about */
+      int unknown184;
+      float fieldOfView; /* camera field of view (radians) */
+      int disablesCameraCollision; /* disable camera collision inside */
       LO *ploPull;   /* object the camera is pulled toward */
       undefined4 unk_0x194[(0x1a0 - 0x194) / 4];
       CLQ clqPull;   /* pull curve */

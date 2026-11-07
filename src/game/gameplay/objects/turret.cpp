@@ -191,12 +191,12 @@ extern "C" void UpdateTurretAim(TURRETV *turret)
             if (ay * turret->vyaw <= 0.0f) turret->vyaw = 0.0f;
             CLOCK *clock = &D_002DDED0;
             const float *damping = D_002C4408;
-            turret->vpitch = SmoothValue__FfffP3SMPPf(turret->vpitch, 0.0f, clock->dt, damping, 0);
-            turret->vyaw = SmoothValue__FfffP3SMPPf(turret->vyaw, 0.0f, clock->dt, damping, 0);
-            turret->vpitch = ClampAbs__Fff(turret->vpitch + ax * clock->dt, limit * 0.9f);
-            turret->vyaw = ClampAbs__Fff(turret->vyaw + ay * clock->dt, limit * 0.8f);
-            turret->pitch += turret->vpitch * clock->dt;
-            turret->yaw += turret->vyaw * clock->dt;
+            turret->vpitch = SmoothValue__FfffP3SMPPf(turret->vpitch, 0.0f, clock->deltaTime, damping, 0);
+            turret->vyaw = SmoothValue__FfffP3SMPPf(turret->vyaw, 0.0f, clock->deltaTime, damping, 0);
+            turret->vpitch = ClampAbs__Fff(turret->vpitch + ax * clock->deltaTime, limit * 0.9f);
+            turret->vyaw = ClampAbs__Fff(turret->vyaw + ay * clock->deltaTime, limit * 0.8f);
+            turret->pitch += turret->vpitch * clock->deltaTime;
+            turret->yaw += turret->vyaw * clock->deltaTime;
         }
     }
     turret->pitch = ClampToLimits__FP2LMf(&turret->pitchRange, turret->pitch);
@@ -242,7 +242,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         angle = angle + angle;
         CLOCK *clock = &D_002DDED0;
         angle = Max(angle, turret->range.lo);
-        LoadIdentityMatrix4(turret->target->component, 0, &m, 0, clock->dt);
+        LoadIdentityMatrix4(turret->target->component, 0, &m, 0, clock->deltaTime);
         scratch.q = LoadVF(m.r[3]);
         future.q = scratch.q;
         offset.q = VuSub(scratch.q, GetLoWorldPos(turret->target));
@@ -255,7 +255,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         swapped.f[2] = local.f[0];
         float desired;
         if (local.f[0] > 0.0001f) {
-            float horizontal = atanf((Abs(swapped.f[0]) + extent) / (swapped.f[2] * g_cm.rAspect));
+            float horizontal = atanf((Abs(swapped.f[0]) + extent) / (swapped.f[2] * g_cm.aspectRatio));
             horizontal = horizontal + horizontal;
             float vertical = atanf((Abs(swapped.f[1]) + extent) / swapped.f[2]);
             vertical = vertical + vertical;
@@ -270,12 +270,12 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         spring.d *= rate;
         spring.a *= rate;
         spring.b *= rate;
-        turret->blend = SmoothValueWithAccel__FffffP4SMPAPf(turret->blend, turret->velocity, target, D_002DDED0.dt, &spring, &turret->velocity);
+        turret->blend = SmoothValueWithAccel__FffffP4SMPAPf(turret->blend, turret->velocity, target, D_002DDED0.deltaTime, &spring, &turret->velocity);
     } else {
         if (turret->control) {
             float blend = turret->blend, zoom = turret->control->zoom;
             turret->velocity = (D_002C4420[0] + blend * (D_002C4420[1] + blend * D_002C4420[2])) * zoom * Abs(zoom);
-            turret->blend = ClampToLimits__FP2LMf(&D_002BBB60, blend + turret->velocity * D_002DDED0.dt);
+            turret->blend = ClampToLimits__FP2LMf(&D_002BBB60, blend + turret->velocity * D_002DDED0.deltaTime);
         }
     }
     turret->strength = Blend(&turret->range, 1.0f - turret->blend);

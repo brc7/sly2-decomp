@@ -45,7 +45,7 @@ struct BOMBV
     int grfUnk40;
     char pad44[0xE4 - 0x44];
     XE4 *pxa;                  /* +0xE4 */
-    int physics;               /* +0xE8 SO::psophys (non-zero: has physics) */
+    int physics;               /* +0xE8 SO::physics (non-zero: has physics) */
     XEC *pxp;                  /* +0xEC */
     char padF0[0x150 - 0xF0];
     int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, TakeBombDamage) */
@@ -214,7 +214,7 @@ static __inline__ float GLength(qword v)
 extern "C" void UpdateBomb(BOMBV *bomb)
 {
     UpdateSo(bomb);
-    if (bomb->tDetonate <= D_002DDED0.t)
+    if (bomb->tDetonate <= D_002DDED0.time)
         goto out;
     {
         VTE *vt;
@@ -557,7 +557,7 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 }
 
 // tDetonate = min(tDetonate, now + dt).
-void PrimeBomb(BOMBV *bomb, float f) { bomb->tDetonate = (bomb->tDetonate < D_002DDED0.t + f) ? bomb->tDetonate : D_002DDED0.t + f; }
+void PrimeBomb(BOMBV *bomb, float f) { bomb->tDetonate = (bomb->tDetonate < D_002DDED0.time + f) ? bomb->tDetonate : D_002DDED0.time + f; }
 
 // (Claude agent) IntersectSphereBsp takes its float before the HIT* (see AGENT_GUIDE "Float vs. int parameter order").
 // Radius: fold turns `b >= a ? b : a` into MAX(b, a) only with both values in locals (a loaded first).

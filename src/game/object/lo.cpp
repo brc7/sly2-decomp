@@ -19,9 +19,9 @@
 #include "sly2/vu0.h"
 
 /* The LO flag word at +0x28 (read as one 64-bit word by the m2c views; lo.h names the bits). */
-#define LO_REMOVED_BIT    0x0100000000000000UL  /* bit 56 (fRemoved): taken out of the world */
+#define LO_REMOVED_BIT    0x0100000000000000UL  /* bit 56 (isRemoved): taken out of the world */
 #define LO_CLEAR_REFS_BIT 0x0800000000000000UL   /* bit 59: clear world references to it on removal */
-#define LO_IN_WORLD_BIT   0x1000000000000000UL   /* bit 60 (fInWorld) */
+#define LO_IN_WORLD_BIT   0x1000000000000000UL   /* bit 60 (isInWorld) */
 #define LO_IN_WORLD_SHIFT 60
 
 /* LO vtable slots the m2c bodies call through (index into the vtable; vt[n]). */
@@ -109,10 +109,10 @@ void LO::Init()
 // in the world's busy and in-world lists.
 extern "C" void EnsureLoroot(LO *plo)
 {
-    if (plo->ploroot == 0) {
+    if (plo->root == 0) {
         LOROOT *ploroot = (LOROOT *)AllocZeroedFromSlotheap(&g_sw.slotheapLoroot);
-        plo->ploroot = ploroot;
-        ploroot->plo = plo;
+        plo->root = ploroot;
+        ploroot->topObject = plo;
     }
 }
 
@@ -228,7 +228,7 @@ void RemoveLo(struct S *object)
         e = &object->vt[LO_SLOT_ON_REMOVE];
         ((void (*)(void *))e->pfn)((char *)object + e->d);
         if (!object->parent)
-            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), (void *)object->root);
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.busyRoots), (void *)object->root);
     }
     if (!object->parent)
         RemoveFromSwBusyList(D_003DD490, object->root);
@@ -258,9 +258,9 @@ extern "C" void SnipLo(LO *plo)
 {
     DL *pdl;
     LO **pploFirst;
-    GetLoChildDl(plo->psoParent, &pdl, (LO **)&pploFirst);
+    GetLoChildDl(plo->parent, &pdl, (LO **)&pploFirst);
     if (*pploFirst == plo) {
-        *pploFirst = (LO *)plo->dleChild.next;
+        *pploFirst = (LO *)plo->siblingLink.next;
     }
     RemoveDlEntry(pdl, plo);
 }
@@ -350,7 +350,7 @@ void LO_SetParent(ALO *object, ALO *newParent, int grf, int unknown)
     if (IsLoInWorld(object)) {
         VFN(object, LO_SLOT_ON_REMOVE, void (*)(ALO *))(VTHIS(object, LO_SLOT_ON_REMOVE));
         if (*object->root == object)
-            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), object->root);
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.busyRoots), object->root);
     }
     oldParent = object->parent;
     object->parent = newParent;
@@ -380,15 +380,15 @@ void LO_SetParent(ALO *object, ALO *newParent, int grf, int unknown)
 /* LO slot UpdateLoroot: share the parent's root, or make one of its own. */
 extern "C" void UpdateLoLoroot(LO *plo, LO *ploRoot, int fRoot)
 {
-    if (plo->psoParent != 0) {
+    if (plo->parent != 0) {
         if (ploRoot == plo && fRoot == 0) {
             FreeLoroot(plo);
         }
-        plo->ploroot = ((LO *)plo->psoParent)->ploroot;
+        plo->root = ((LO *)plo->parent)->root;
         return;
     }
     if (fRoot != 0) {
-        plo->ploroot = 0;
+        plo->root = 0;
         EnsureLoroot(plo);
     }
 }
@@ -465,8 +465,8 @@ extern "C" void DeferLoRemove(LO *plo)
 extern "C" LORUN *AddLoDeferredCallback(LO *plo)
 {
     LORUN *plorun = (LORUN *)AllocSwLoCallbackRecord(&D_003DD490);
-    plorun->plorunNext = plo->plorunFirst;
-    plo->plorunFirst = plorun;
+    plorun->next = plo->firstRunCallback;
+    plo->firstRunCallback = plorun;
     return plorun;
 }
 
@@ -661,7 +661,7 @@ struct S { char pad[0x14]; void *root; char pad2[0x10]; ulong fl; };
 int IsLoInWorld(struct S *object)
 {
     int r = 0;
-    if ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.dlBusy, object->root) != 0;
+    if ((int)(object->fl >> LO_IN_WORLD_SHIFT) & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.busyRoots, object->root) != 0;
     return r;
 }
 } } // namespace M_func_001A61A0
@@ -1098,7 +1098,7 @@ extern "C" void MoveLoToObject(LO *plo, LO *ploOther)
 // vtable slot 39: moves the object to the transform held in an XF record.
 extern "C" void SetLoTransformFromXf(LO *plo, XF *pxf)
 {
-    SetLoXfFromMat(plo, &pxf->matWorld);
+    SetLoXfFromMat(plo, &pxf->worldMatrix);
 }
 
 // Moves the object to a world matrix: TranslateToPos (slot 29) to its position, then RotateToMat (slot 30).
@@ -1125,7 +1125,7 @@ void SetLoBusyDistance(struct S *object, float g)
 // Returns the busy kind (signed 4-bit field: 0 busy near the camera, 1 always, 2 never, 3 busy near the hero).
 extern "C" int GetLoBusyKind(LO *plo)
 {
-    return plo->busyk;
+    return plo->busyKind;
 }
 
 namespace M_SetLoBusyk { extern "C" {
@@ -1191,7 +1191,7 @@ void SetLoVisMask(struct O *object, int b)
 // LO's SetVisMask (vtable slot 46): stores the visibility mask byte.
 extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
 {
-    plo->grfvis = grfvis;
+    plo->visibilityMask = grfvis;
 }
 
 namespace M_SetSoVisMask { extern "C" {

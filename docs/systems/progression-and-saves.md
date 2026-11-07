@@ -17,7 +17,7 @@ world file).
   variables (`t<N>_<name>`).
 - **The game record** `g_game` (`world/state/game.cpp`): the oids of the current job, task and pending task, the game
   event handler (`HandleGameEvent`), and the startup sequence queue. The world mirrors the pointers
-  (`SW::ploJobCur`, `ploTaskCur`, `ploTaskPending`; set through `SetSwJobCur`, `SetSwTaskCur`, `SetSwTaskPending`) and
+  (`SW::currentJob`, `currentTask`, `pendingTask`; set through `SetSwJobCur`, `SetSwTaskCur`, `SetSwTaskPending`) and
   keeps the list of tasks in the active state (`SW::dlTaskActive`).
 - **The save blob** `g_gs` (`include/sly2/save.h`, type `GS`): one flat block of memory holding every persistent
   variable. Its layout is not fixed in code: it comes from the **save-variable schema** loaded from every world file

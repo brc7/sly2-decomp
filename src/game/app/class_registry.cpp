@@ -3223,7 +3223,7 @@ STEPGUARD::STEPGUARD() {}
 
 // JT's (Sly's player class) constructor (out-of-line inline copy): clears the gadget sound reference and +0x2048.
 __attribute__((weak, section(".gnu.linkonce.t.JT_ctor")))
-JT::JT() : psndGadget(refptrNull) { unk_0x2048 = 0; }
+JT::JT() : psndGadget(refptrNull) { unknown2048 = 0; }
 
 // MURRAY's constructor (out-of-line inline copy).
 __attribute__((weak, section(".gnu.linkonce.t.MURRAY_ctor")))

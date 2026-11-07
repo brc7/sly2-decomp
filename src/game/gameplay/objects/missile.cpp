@@ -183,7 +183,7 @@ extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
     *(V *)&missile->targetPos = v;
     ReplaceCurrentAseg(missile->flightAnim, (ALO *)missile, 0.0f, 1.0f, 8, &missile->flightAnimState);
     if (missile->hasFlightAction)
-        missile->flightAction = NewPathAct(missile, missile->pxfUnk5c, 0, 5, missile->flightActionParam, 0.0f);
+        missile->flightAction = NewPathAct(missile, missile->unknown5C, 0, 5, missile->flightActionParam, 0.0f);
 }
 
 // MISSILE vtable slot 77 (thrown/launched): the BOMB behaviour, then stops the flight action. (inferred)
@@ -295,9 +295,9 @@ void ACCMISS::PresetAccel()
         float sv = GLength(qwVel);
         qword qwDir = QwDivFloat(qwVel, sv);
         SMP smp = { speedChangeRate, 0.0f, 1.0f };
-        float svNew = SmoothValue(sv, cruiseSpeed, D_002DDED0.dt, &smp, 0);
-        qword qwDv = QwDivBits(VuSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.dt);
-        AddSoAcceleration(this, ApplyConstr((CONSTR *)((char *)psophys + 0xB0), pxfUnk58, qwDv));
+        float svNew = SmoothValue(sv, cruiseSpeed, D_002DDED0.deltaTime, &smp, 0);
+        qword qwDv = QwDivBits(VuSub(QwMulX(qwDir, VuFloat(svNew)), qwVel), *(int *)&D_002DDED0.deltaTime);
+        AddSoAcceleration(this, ApplyConstr((CONSTR *)((char *)physics + 0xB0), unknown58, qwDv));
     }
 }
 
@@ -318,7 +318,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
  WORKF w;
  w.pos.q=*(qword*)point;
  FireMissile(missile,source,(V*)&w.pos);
- if(missile->flightTime>0.0f)missile->arrivalTime=D_002DDED0.t+missile->flightTime;
+ if(missile->flightTime>0.0f)missile->arrivalTime=D_002DDED0.time+missile->flightTime;
  else{
   func_001B2398Ret((V*)&w.velocity,missile,0.5f);
   register qword copied __asm__("$2");register VE*table __asm__("$3");register float negative __asm__("$f0");
@@ -351,7 +351,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
   register float hi __asm__("$f3")=w.hit.t1;
   __asm__("max.s %0,%1,%2":"=f"(max):"f"(lo),"f"(hi));
   register float duration __asm__("$f2")=1.0f/max;
-  missile->arrivalTime=D_002DDED0.t+duration;
+  missile->arrivalTime=D_002DDED0.time+duration;
  }
 }
 
@@ -393,8 +393,8 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  if(missile->thrower)return;
  WORKA w;
  float remaining;
- {register float deadline __asm__("$f1")=missile->arrivalTime;register float now __asm__("$f2")=D_002DDED0.t;
- deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.dt;remaining=Max(deadline,0.0f)+frameStep;}
+ {register float deadline __asm__("$f1")=missile->arrivalTime;register float now __asm__("$f2")=D_002DDED0.time;
+ deadline-=now;register float frameStep __asm__("$f3")=D_002DDED0.deltaTime;remaining=Max(deadline,0.0f)+frameStep;}
  func_001B2398Ret(&w.output,missile,Min(remaining,0.5f));
  int stationary=CaptureDestinationAndEqual(missile,&w.output,&w.destination);
  if(stationary){
@@ -413,7 +413,7 @@ extern "C" void PresetSplmissAccel(CID82*missile){
   *(qword*)&w.output=result;
  }else *(qword*)&w.output=missile->targetVelocity;
  register CLOCK*clock __asm__("$17")=&D_002DDED0;
- float frameDt=clock->dt;
+ float frameDt=clock->deltaTime;
  qword position=GetLoWorldPos(missile);
  qword velocity=Velocity(missile);
  register float tension __asm__("$f14");
@@ -425,7 +425,7 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].pfn),"m"(table[33].d));
  qword current=method((char*)missile+displacement);
  register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register CID82*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
- __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(missile),"r"(current),"m"(clock->dt));
+ __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(missile),"r"(current),"m"(clock->deltaTime));
  register qword difference __asm__("vf2"),dt __asm__("vf1"),acceleration __asm__("vf4");
  __asm__("vsub.xyzw %0,%3,%4\n\tqmtc2.ni %5,%1\n\tvdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %2,%0,Q":"=j"(difference),"=j"(dt),"=j"(acceleration):"j"(copied),"j"(actualCurrent),"r"(dtWord));
  w.step.q=dt;

@@ -96,11 +96,11 @@ struct ACG0 : ACG
 struct ACT
 {
     int ack;                /* +0x00 kind: InitActOfKind's switch */
-    ALO *palo;              /* +0x04 the animated object */
-    XF *pxf;                /* +0x08 the transform the act drives */
-    int nPriority;          /* +0x0C priority among the acts on the same transform */
-    ACT *pactNext;          /* +0x10 next act on the same transform (XF::pactFirst list) */
-    int nRole;              /* +0x14 role of the transform the act drives (inferred, as XF::nRole) */
+    ALO *animatedObject;    /* +0x04 the animated object */
+    XF *transform;          /* +0x08 the transform the act drives */
+    int priority;           /* +0x0C priority among the acts on the same transform */
+    ACT *pactNext;          /* +0x10 next act on the same transform (XF::firstActuator list) */
+    int role;               /* +0x14 role of the transform the act drives (inferred, as XF::role) */
     virtual void Attach() __asm__("AttachActBase");   /* slot 1 */
     virtual void Detach() __asm__("DetachActBase");   /* slot 2 */
     virtual void SwitchTarget() __asm__("ActSlot3Default");   /* slot 3 */
@@ -112,7 +112,7 @@ struct ACT
 /* ACT1 (0x30; vtable 0x2CA820): a phase and a rest position (act.cpp's ACTPHASE view) */
 struct ACT1 : ACT
 {
-    int nPhase;             /* +0x1C (2 at construction) */
+    int phase;              /* +0x1C (2 at construction) */
     char pad20[0x30 - 0x20];
     virtual void Update() __asm__("UpdatePositionAct");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetPhaseActGoal");   /* slot 5 */
@@ -148,7 +148,7 @@ struct ACT5 : ACT
 /* ACT6 (0x60; vtable 0x2CA720): a matrix (identity at construction) */
 struct ACT6 : ACT
 {
-    int n1C;
+    int unknown1C;
     float mat[4][4];        /* +0x20 the matrix applied */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetMatrixActGoal");   /* slot 5 */
     virtual void Update() __asm__("UpdateMatrixAct");   /* slot 4 */
@@ -185,7 +185,7 @@ struct ACTSEG : ACT
 /* ACT3 (0x20; vtable 0x2DB338, tail.cpp's): kind 3 */
 struct ACT3 : ACT
 {
-    int n1C;
+    int unknown1C;
     virtual void Attach() __asm__("AttachChainAct");   /* slot 1 */
     virtual void Clone() __asm__("CloneChainAct");   /* slot 6 */
 };
@@ -193,7 +193,7 @@ struct ACT3 : ACT
 /* ACT7 (0x20; vtable 0x2D2E58, ik.cpp's): kind 7 */
 struct ACT7 : ACT
 {
-    int n1C;
+    int unknown1C;
     virtual void Attach() __asm__("AttachIkAct");   /* slot 1 */
     virtual void Clone() __asm__("CloneIkAct");   /* slot 6 */
 };

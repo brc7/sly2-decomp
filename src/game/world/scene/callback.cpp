@@ -145,7 +145,7 @@ extern "C" void ProcessSwCallbacks(SW *world)
     EVCB *spliceCallback;
     while ((spliceCallback = (EVCB *)world->spliceCallbacks.first) != 0)
     {
-        if (D_002DDED0.t < spliceCallback->time)
+        if (D_002DDED0.time < spliceCallback->time)
             break;
         spliceCallback->id = -1;
         SPFV *frameSlot = spliceCallback->frameSlot;

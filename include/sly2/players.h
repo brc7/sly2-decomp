@@ -17,20 +17,20 @@
    Layout from src/game/gameplay/player/air.cpp (UpdateJtAirInput) (3 copies in Lilly ports) */
 struct MOVEREC
 {
-      int nUnk00;
-      int nState;   /* state of the move */
+      int unknown00;
+      int state;    /* state of the move */
       undefined4 unk_0x08[(0x28 - 0x08) / 4];
-      float gScale;   /* scale applied to the move */
+      float scale;    /* scale applied to the move */
       undefined4 unk_0x2c[(0x64 - 0x2c) / 4];
-      struct ASEG *pasegUnk64;
+      struct ASEG *unknown64;
       undefined4 unk_0x68[(0xe0 - 0x68) / 4];
-      qword qwPosOld;   /* position before the move */
+      qword oldPosition; /* position before the move */
       undefined4 unk_0xf0[(0x100 - 0xf0) / 4];
-      qword qwStart;   /* start position */
-      qword qwPosNew;   /* end position */
-      float tStart;   /* start time */
-      float gRatio;   /* progress ratio */
-      int fStarted;   /* the move has started */
+      qword startPosition; /* start position */
+      qword newPosition; /* end position */
+      float startTime; /* start time */
+      float progress; /* progress ratio */
+      int hasStarted; /* the move has started */
 };
 
 /* MURRAY: Murray, the strong partner: carrying/throwing objects, work animations and an embedded LEAP helper.
@@ -38,63 +38,63 @@ struct MOVEREC
 struct MURRAY : public STEPPLAYER
 {
       undefined4 unk_0x1320[(0x13d0 - 0x1320) / 4];
-      int nState;   /* Murray's state */
-      undefined4 unk_0x13d4;
-      int nUnk13d8;
+      int state;    /* Murray's state */
+      undefined4 unknown13D4;
+      int unknown13D8;
       undefined4 unk_0x13dc[(0x13e8 - 0x13dc) / 4];
-      int nUnk13e8;
-      undefined4 unk_0x13ec;
+      int unknown13E8;
+      undefined4 unknown13EC;
       LO *ploCarried;   /* object being carried */
       undefined4 unk_0x13f4[(0x1410 - 0x13f4) / 4];
-      float gUnk1410;
-      float gUnk1414;
+      float unknown1410;
+      float unknown1414;
       undefined4 unk_0x1418[(0x1430 - 0x1418) / 4];
-      LO *ploUnk1430;
-      float tUnk1434;
-      undefined4 unk_0x1438;
-      int nUnk143c;
+      LO *unknown1430;
+      float unknown1434;
+      undefined4 unknown1438;
+      int unknown143C;
       undefined4 unk_0x1440[(0x144c - 0x1440) / 4];
-      int nUnk144c;
-      int nUnk1450;
-      undefined4 unk_0x1454;
-      int iCarry;   /* carry slot index */
-      undefined4 unk_0x145c;
-      undefined4 unk_0x1460[0xb0 / 4];
+      int unknown144C;
+      int unknown1450;
+      undefined4 unknown1454;
+      int carryIndex; /* carry slot index */
+      undefined4 unknown145C;
+      undefined4 unknown1460[0xb0 / 4];
       undefined4 unk_0x1510[(0x1530 - 0x1510) / 4];
       struct SMA *psmaWork;   /* state machine application of the current work action */
-      int nWork;   /* current work action */
+      int workAction; /* current work action */
       undefined4 unk_0x1538[(0x1540 - 0x1538) / 4];
       undefined4 unk_0x1540[(0x15f0 - 0x1540) / 4];
-      void *precUnk15f0;
-      void *precUnk15f4;
-      void *precUnk15f8;
-      void *precUnk15fc;
-      undefined4 unk_0x1600[4];
-      PARTLINK *ppartlinkUnk1610;
-      PARTLINK *ppartlinkUnk1614;
+      void *unknown15F0;
+      void *unknown15F4;
+      void *unknown15F8;
+      void *unknown15FC;
+      undefined4 unknown1600[4];
+      PARTLINK *unknown1610;
+      PARTLINK *unknown1614;
       undefined4 unk_0x1618[(0x1630 - 0x1618) / 4];
-      undefined4 unk_0x1630[0xb0 / 4];
+      undefined4 unknown1630[0xb0 / 4];
       undefined4 unk_0x16e0[(0x16f0 - 0x16e0) / 4];
-      BLDIR abldirUnk16f0[8];   /* directional animation blends */
-      ASEGBL *pasegblUnk17f0;
-      int nUnk17f4;
+      BLDIR unknown16F0[8];     /* directional animation blends */
+      ASEGBL *unknown17F0;
+      int unknown17F4;
       undefined4 unk_0x17f8[(0x1810 - 0x17f8) / 4];
-      int nUnk1810;
+      int unknown1810;
       undefined4 unk_0x1814[(0x1830 - 0x1814) / 4];
-      qword qwUnk1830;
-      int nUnk1840;
+      qword unknown1830;
+      int unknown1840;
       undefined4 unk_0x1844[(0x1850 - 0x1844) / 4];
-      undefined4 unk_0x1850[0x40 / 4];
+      undefined4 unknown1850[0x40 / 4];
       LEAP leap;   /* +0x1890 constructed by MURRAY_ctor (ConstructLeap) */
       undefined4 unk_0x1900[(0x190c - 0x1900) / 4];
-      struct ASEGA *pasegaUnk190c;   /* running animation segment application */
+      struct ASEGA *unknown190C;     /* running animation segment application; possibly animationPlayback (low-confidence guess: header comment: running animation segment application) */
       MOVEREC moverec;   /* the scripted move */
       undefined4 unk_0x1a40[(0x1a58 - 0x1a40) / 4];
       SOPART *aprecState[0x16];   /* per-state records */
       SOPART *aprecCarry[4];   /* per-carry-slot records */
-      undefined4 unk_0x1ac0;
-      int nUnk1ac4;
-      float tUnk1ac8;
+      undefined4 unknown1AC0;
+      int unknown1AC4;
+      float unknown1AC8;
       struct ACT1 *pact1Unk1acc;
       undefined4 unk_0x1ad0[(0x1b00 - 0x1ad0) / 4];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
@@ -130,7 +130,7 @@ typedef char assert_MURRAY_size[sizeof(MURRAY) == 0x1B00 ? 1 : -1];   /* class d
 struct BTBLEND
 {
       JTAIRBL abl[2];   /* the two blends */
-      struct ASEGBL *pasegbl;   /* the blended segment */
+      struct ASEGBL *blendedAnimation; /* the blended segment */
 };
 
 /* BTBLENDS: Bentley's blend set: six BTBLENDs and the rest position.
@@ -138,11 +138,11 @@ struct BTBLEND
 struct BTBLENDS
 {
       struct BENTLEY *pbentley;   /* owner */
-      int nUnk04;
+      int unknown04;
       undefined4 unk_0x08[(0x20 - 0x08) / 4];
-      qword qwRest;   /* rest position */
-      float gUnk30;
-      undefined4 unk_0x34;
+      qword restPosition; /* rest position */
+      float unknown30;
+      undefined4 unknown34;
       BTBLEND abtblend[6];   /* the blends */
 };
 
@@ -151,7 +151,7 @@ struct BTBLENDS
 struct BENTLEY : public STEPPLAYER
 {
       undefined4 unk_0x1320[(0x13d0 - 0x1320) / 4];
-      int nState;   /* Bentley's state */
+      int state;    /* Bentley's state */
       undefined4 unk_0x13d4[(0x13e0 - 0x13d4) / 4];
       BLDIR abldirA[8];   /* first set of directional blends */
       ASEGBL *pasegblA;   /* its blended segment */
@@ -160,29 +160,29 @@ struct BENTLEY : public STEPPLAYER
       ASEGBL *pasegblB;   /* its blended segment */
       undefined4 unk_0x15f4[(0x1600 - 0x15f4) / 4];
       undefined4 unk_0x1600[(0x16b0 - 0x1600) / 4];
-      int nUnk16b0;
+      int unknown16B0;
       JTPOCKET *ppocketCur;   /* the current gadget slot */
-      undefined4 unk_0x16b8;
-      int nUnk16bc;
+      undefined4 unknown16B8;
+      int unknown16BC;
       undefined4 unk_0x16c0[(0x1710 - 0x16c0) / 4];
       BTBLENDS btblends;   /* blend set */
       undefined4 unk_0x17f0[(0x1800 - 0x17f0) / 4];
-      int nUnk1800;
+      int unknown1800;
       undefined4 unk_0x1804[(0x1818 - 0x1804) / 4];
     union
     {
-          long lUnk1818;
+          long unknown1818Wide;
         struct
         {
-              int nUnk1818;
-              int nUnk181c;
+              int unknown1818;
+              int unknown181C;
         };
     };
-      undefined4 unk_0x1820;
+      undefined4 unknown1820;
       JTPOCKET apocket[6];   /* the gadget slots */
-      undefined4 unk_0x186c;
-      int nUnk1870;
-      int nUnk1874;
+      undefined4 unknown186C;
+      int unknown1870;
+      int unknown1874;
       undefined4 unk_0x1878[(0x1880 - 0x1878) / 4];
     virtual void OnGadgetsChanged() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBentleyClassDesc");   /* slot 6 */

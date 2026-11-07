@@ -211,7 +211,7 @@ extern "C" void *InitScreenList(void *pv)
 }
 
 namespace M_func_001D9408 { extern "C" {
-typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
+typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 extern int D_002DD318;
@@ -232,7 +232,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -314,7 +314,7 @@ void UpdateScreenFocus(struct S *list) {
 } } // namespace M_func_001D95B8
 
 namespace M_func_001D9648 { extern "C" {
-extern struct CLOCK { float t; float dt; float g; } D_002DDED0;
+extern struct CLOCK { float time; float deltaTime; float g; } D_002DDED0;
 typedef struct { char pad[0x100C]; int unknown100C; } PAD;
 extern int D_002DFBC0;
 extern int D_002DFBC4;
@@ -344,7 +344,7 @@ void UpdateScreens(void *pdl)
 {
     PAD *pad;
     if (D_002DFBC4 & 8) {
-        if (D_002DDED0.g == 0.0f || 0.1f < D_002DDED0.t / D_002DDED0.g)
+        if (D_002DDED0.g == 0.0f || 0.1f < D_002DDED0.time / D_002DDED0.g)
             RemoveGrfusr__Fi(8);
     }
     if (D_002DFBC0 & 2)
@@ -357,7 +357,7 @@ void UpdateScreens(void *pdl)
     } else if (D_002DFBC0 & 2) {
         int r = IsDlEmpty__FP2DL(pdl);
         int f = 0;
-        if (pad->unknown100C == 1 && 5.0f <= D_002DDED0.t)
+        if (pad->unknown100C == 1 && 5.0f <= D_002DDED0.time)
             f = 1;
         if (r && f)
             TryOpenPauseMenu(0);
@@ -779,7 +779,7 @@ extern "C" void ResetNotice(SCREENV *screen)
 }
 
 namespace M_UpdateNotice { extern "C" {
-extern struct CLOCK { float stateTime; float dt; } D_002DDED0;
+extern struct CLOCK { float stateTime; float deltaTime; } D_002DDED0;
 typedef struct { char pad[0x58]; int visibility; } W;
 typedef struct {
     char pad[0x10];
@@ -814,7 +814,7 @@ void UpdateNotice(OBJ *p)
             SetNoticeState(p, NOTICE_HIDING);
         } else if (0.0f < p->duration) {
             if (p->widget && !IsWidgetVisible(p->widget))
-                p->stateTime += D_002DDED0.dt;
+                p->stateTime += D_002DDED0.deltaTime;
         }
         break;
     case NOTICE_HIDING:
@@ -903,7 +903,7 @@ extern "C" int GetCurrentNoticeTextId(SCREENV *screen)
 }
 
 namespace M_SetNoticeState { extern "C" {
-extern struct CLOCK { float stateTime; float dt; } D_002DDED0;
+extern struct CLOCK { float stateTime; float deltaTime; } D_002DDED0;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[64]; } VT;
 typedef struct { char pad[0xC]; VT *vt; } LO;
 typedef struct {
@@ -2836,7 +2836,7 @@ void SetJobListPage(OBJ *p, int s)
         if (i >= 0 && i < p->entryCount)
             p->selectedJob = p->entries[i].task;
         else
-            p->selectedJob = (*(int *)&g_sw.ploJobCur);
+            p->selectedJob = (*(int *)&g_sw.currentJob);
         p->openedFromJobs = (old == 0);
         p->maxRows = 4;
         p->widget->pageAnimSecond = 0x4E6;

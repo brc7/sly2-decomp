@@ -144,7 +144,7 @@ public:
 extern "C" int InitSm(SM *psm)
 {
     InitLo(psm);
-    return psm->grfUnk40 |= 0x40;
+    return psm->unknown40 |= 0x40;
 }
 
 // LoadSmFromBrx__FP2SMP18CBinaryInputStream: ported from Lilly's personal Sly 2 decomp (src/P2/sm.c), reduced to the declarations it needs.
@@ -219,7 +219,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
     InitDl(&dlSma, 0x14);
     STACKSCOPE stackscope;
     CLoadCollectorArray collector;
-    LoadSwObjectsFromBrx(psoParent, pbis, &collector);
+    LoadSwObjectsFromBrx(parent, pbis, &collector);
     for (i = 0; i < collector.m_cplo; i++)
     {
         plo = collector.m_aplo[i];
@@ -548,8 +548,8 @@ extern "C" void DecrefSma(SMA *psma)
     int cref = psma->cref - 1;
     psma->cref = cref;
     if (cref <= 0) {
-        FramePtr_Assign(&psma->pframe, 0);
-        AssignSidebagRef(&psma->psidebag, 0);
+        FramePtr_Assign(&psma->scriptFrame, 0);
+        AssignSidebagRef(&psma->scriptVariables, 0);
         UnsubscribeLoAll(psma);
         FreeSlotheapSlot(&D_003DD490.slotheapSma, psma);
     }
@@ -642,14 +642,14 @@ void SetSmaGoalIfReachable(struct P *p, int n)
 // OID of the activation's goal state.
 extern "C" OID GetSmaGoal(SMA *psma)
 {
-    return GetSmStateOid(psma->psm, psma->ismsGoal);
+    return GetSmStateOid(psma->stateMachine, psma->goalState);
 }
 
 /* The oid of the current state. */
 // OID of the activation's current state.
 extern "C" OID GetSmaCurrentState(SMA *psma)
 {
-    return GetSmStateOid(psma->psm, psma->ismsCur);
+    return GetSmStateOid(psma->stateMachine, psma->currentState);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -990,10 +990,10 @@ extern "C" void EndSmaTransition(SMA *psma)
     int ismsNext;
     int ismsPrev;
     psma->pasegaCur = 0;
-    ismsNext = psma->ismsNext;
-    ismsPrev = psma->ismsCur;
-    psma->ismsNext = -1;
-    psma->ismsCur = ismsNext;
+    ismsNext = psma->nextState;
+    ismsPrev = psma->currentState;
+    psma->nextState = -1;
+    psma->currentState = ismsNext;
     NotifySmaSpliceOnEnterState(psma, ismsPrev, ismsNext);
 }
 
@@ -1139,7 +1139,7 @@ float EstimateSmaTimeToState(struct P *p, int k)
 // and re-chooses.
 extern "C" void SetSmaMask(SMA *psma, int grfRoute)
 {
-    psma->grfRoute = grfRoute;
+    psma->routeFlags = grfRoute;
     if ((psma->pasegaCur != 0) && (psma->psmtCur->grfsmtBreak & grfRoute)) {
         AbortSmaTransition(psma);
         ChooseSmaTransition(psma, 0);

@@ -142,7 +142,7 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
     case WIPE_TRANSITION:
         return;
     }
-    if (IsSameFileRecord(&D_003DD490.filerecCur, &transition->fileRecord))
+    if (IsSameFileRecord(&D_003DD490.currentLevel, &transition->fileRecord))
         transition->flags |= TRANS_SAME_LEVEL;
     else
         transition->flags &= ~TRANS_SAME_LEVEL;
@@ -175,7 +175,7 @@ extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
 extern "C" void WipeToWorldWarp(SW *world, FILEREC *fileRecord, int warpOid, int warpContextOid, int flags, int wipeWidgetOid)
 {
     TRANS trans;
-    FILEREC *currentRecord = &world->filerecCur;
+    FILEREC *currentRecord = &world->currentLevel;
     FILEREC *targetRecord = &trans.fileRecord;
     *targetRecord = *(fileRecord ? fileRecord : currentRecord);
     trans.warpOid = warpOid;

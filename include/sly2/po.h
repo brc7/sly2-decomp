@@ -16,22 +16,22 @@ struct POCTL : public BASIC
 {
       float dxLeft;   /* left stick x, -1..1 */
       float dyLeft;   /* left stick y, -1..1 */
-      float radLeft;   /* left stick angle (radians) */
-      float sLeft;   /* left stick deflection, 0..1 */
+      float leftStickAngle; /* left stick angle (radians) */
+      float leftStickDeflection; /* left stick deflection, 0..1 */
       float dxRight;   /* right stick x, -1..1 */
       float dyRight;   /* right stick y, -1..1 */
-      float radRight;   /* right stick angle (radians) */
-      float sRight;   /* right stick deflection, 0..1 */
-      uint grfbtn;   /* buttons held (bit mask) */
+      float rightStickAngle; /* right stick angle (radians) */
+      float rightStickDeflection; /* right stick deflection, 0..1 */
+      uint buttonsHeld; /* buttons held (bit mask) */
       uint32_t   _pad_67    [ 3 ] ;
       MATRIX3 matPanTilt;   /* camera pan/tilt rotation the sticks are interpreted in (inferred) */
       float sLeftHold;   /* left stick deflection held (inferred) */
       float sRightHold;   /* right stick deflection held (inferred) */
-      int grfPressed;   /* buttons newly pressed and not yet consumed */
-      PO *ppo;   /* the controlled object */
-      int nState;   /* controller state */
-      void *pvUnk84;
-      float atPressed[16];   /* time each button was last pressed (GetButtonsPressedWithin) */
+      int buttonsPressed; /* buttons newly pressed and not yet consumed */
+      PO *controlled; /* the controlled object */
+      int state;    /* controller state */
+      void *next;
+      float pressTimes[16];  /* time each button was last pressed (GetButtonsPressedWithin) */
       float atLeftStick[2];   /* times of the last left stick flicks (inferred) */
       float atRightStick[2];   /* times of the last right stick flicks (inferred) */
       uint32_t   _pad_78    [ 2 ] ;
@@ -47,18 +47,18 @@ typedef char assert_POCTL_size[sizeof(POCTL) == 0xE0 ? 1 : -1];   /* class descr
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (15 copies in Lilly ports) */
 struct PO : public SO
 {
-      POCTL *pctl;   /* the controller */
+      POCTL *controller; /* the controller */
       uint grfbtnForce;   /* buttons forced on by scripts (inferred) */
-      undefined4 unk_0x158;
-      int nUnk15c;
-      undefined4 unk_0x160[2];
-      PO *ppoUnk168;
-      TN *ptnCam;   /* camera tunnel the object is in */
-      undefined4 unk_0x170;
-      void *pvUnk174;
-      undefined4 unk_0x178;
-      int nUnk17c;
-    PO();   /* sets pvUnk174 = 0; defined inline in sly2/classes.h (as BASIC's constructor) */
+      undefined4 unknown158;
+      int unknown15C;
+      undefined4 unknown160[2];
+      PO *unknown168;
+      TN *cameraTunnel; /* camera tunnel the object is in */
+      undefined4 unknown170;
+      void *unknown174;
+      undefined4 unknown178;
+      int unknown17C;
+    PO();   /* sets unknown174 = 0; defined inline in sly2/classes.h (as BASIC's constructor) */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPoFromBrx");   /* slot 14 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPoClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandlePoMessage");   /* slot 5 */

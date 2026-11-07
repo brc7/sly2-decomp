@@ -27,14 +27,14 @@ struct SOTREEV { char pad[0x64]; CONTACTL *contactLists; };
 /* BARRIER : SO (sizeof(SO) == 0x150). The SO part is a view of the fields used here, not the sly2/so.h class. */
 struct BARRIERV
 {
-    void *frame;                        /* +0x0 BASIC::pframe (the Splice frame holding script bindings) */
+    void *frame;                        /* +0x0 BASIC::scriptFrame (the Splice frame holding script bindings) */
     char pad04[0xC - 0x4];
     VT *vtable;                         /* +0xC */
     char pad10[0xE8 - 0x10];
-    int hasPhysics;                     /* +0xE8 SO::psophys != 0 (inferred) */
+    int hasPhysics;                     /* +0xE8 SO::physics != 0 (inferred) */
     SOTREEV *tree;                      /* +0xEC */
     char padF0[0x148 - 0xF0];
-    unsigned long flags;                /* +0x148 SO flag word; bit 34 is SO::fTreeRoot in sly2/so.h */
+    unsigned long flags;                /* +0x148 SO flag word; bit 34 is SO::isTreeRoot in sly2/so.h */
     int numObjects;                     /* +0x150 objects named by the barrier */
     OID objects[4];                     /* +0x154 */
     int numClasses;                     /* +0x164 classes named by the barrier */

@@ -104,16 +104,16 @@ struct VECTOR
    Layout from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (13 copies in Lilly ports) */
 struct RGBA
 {
-    uchar bRed;   /* red, 0..255 */
-    uchar bGreen;   /* green, 0..255 */
-    uchar bBlue;   /* blue, 0..255 */
-    uchar bAlpha;   /* alpha (opacity), 0..255 */
+    uchar red;    /* red, 0..255 */
+    uchar green;    /* green, 0..255 */
+    uchar blue;    /* blue, 0..255 */
+    uchar alpha;    /* alpha (opacity), 0..255 */
     inline void operator=(const int rgba)
     {
-        bRed = (rgba >> 24) & 0xFF;
-        bGreen = (rgba >> 16) & 0xFF;
-        bBlue = (rgba >> 8) & 0xFF;
-        bAlpha = rgba & 0xFF;
+        red = (rgba >> 24) & 0xFF;
+        green = (rgba >> 16) & 0xFF;
+        blue = (rgba >> 8) & 0xFF;
+        alpha = rgba & 0xFF;
     }
 };
 
@@ -143,19 +143,19 @@ struct MATRIX3
    Layout from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (4 copies in Lilly ports) */
 struct SMP
 {
-    float svFast;   /* speed (units/s) when far from the target */
-    float svSlow;   /* speed (units/s) when close to the target */
-    float dtFast;   /* time scale (s) over which the fast speed applies */
+    float fastSpeed; /* speed (units/s) when far from the target */
+    float slowSpeed; /* speed (units/s) when close to the target */
+    float fastDuration; /* time scale (s) over which the fast speed applies */
 };
 
 /* SMPA: SMP with an acceleration limit: smoothing parameters for a value with a capped change of speed (Sly 1 SMPA).
    Layout from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (16 copies in Lilly ports) */
 struct SMPA
 {
-    float svFast;   /* speed (units/s) when far from the target */
-    float svSlow;   /* speed (units/s) when close to the target */
-    float dtFast;   /* time scale (s) over which the fast speed applies */
-    float sdvMax;   /* largest change of speed per second */
+    float fastSpeed; /* speed (units/s) when far from the target */
+    float slowSpeed; /* speed (units/s) when close to the target */
+    float fastDuration; /* time scale (s) over which the fast speed applies */
+    float maxSpeedChange; /* largest change of speed per second */
 };
 
 /* CLQ: a quadratic curve c0 + c1*x + c2*x^2 read from level data (Sly 1 CLQ, evaluated by GEvaluateClq).
@@ -166,24 +166,24 @@ struct CLQ
     {
         struct
         {
-            float g0, g1, g2, gUnused;
+            float g0, g1, g2, unused;
         };
-        float ag[4];   /* the same coefficients as an array */
+        float coefficients[4]; /* the same coefficients as an array */
     };
 };
 
-/* LM: a float range [gMin, gMax] ("limits"), read from level data and used to clamp or randomise values.
+/* LM: a float range [minValue, maxValue] ("limits"), read from level data and used to clamp or randomise values.
    Layout from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (24 copies in Lilly ports) */
 struct LM
 {
-	float gMin, gMax;   /* lower and upper bound */
+	float minValue, maxValue; /* lower and upper bound */
 };
 
 /* RAW8: eight raw bytes: a placeholder for an 8-byte member whose type is not recovered.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct RAW8
 {
-    char ach[8];
+    char bytes[8];
 };
 
 /* SLE: the link of a singly linked intrusive list (SL): pointer to the next element, embedded in the element.
@@ -200,7 +200,7 @@ struct DL
 {
     void *head;   /* first element */
     void *tail;   /* last element */
-    int ibDle;   /* byte offset of the DLE link inside an element */
+    int linkOffset; /* byte offset of the DLE link inside an element */
 };
 
 /* DLE: the link of a doubly linked intrusive list (DL), embedded in each element.
@@ -267,9 +267,9 @@ template <class T> void CRefPtr<T>::Attach(T *p)
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (29 copies in Lilly ports) */
 struct BASIC
 {
-      CRefPtr<CFrame> pframe;   /* the Splice environment frame of this object's scripts */
-      CRefPtr<CSidebag> psidebag;   /* the Splice "side bag": script variables attached to this object */
-      struct REFNODE *prefnodeFirst;   /* first reference node: objects/scripts that refer to (subscribe to) this one (inferred) */
+      CRefPtr<CFrame> scriptFrame; /* the Splice environment frame of this object's scripts */
+      CRefPtr<CSidebag> scriptVariables;   /* the Splice "side bag": script variables attached to this object */
+      struct REFNODE *firstSubscriber; /* first reference node: objects/scripts that refer to (subscribe to) this one (inferred) */
       /* Construction: both counted pointers cleared by their member constructors, then the vptr (+0xC). Defined
          inline in sly2/classes.h (its definition makes g++ instantiate the CRefPtr destructors, whose pointees are
          incomplete in most includers; only class_registry constructs classes). */
@@ -288,10 +288,10 @@ typedef char assert_BASIC_size[sizeof(BASIC) == 0x10 ? 1 : -1];   /* class descr
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (19 copies in Lilly ports) */
 struct CLASSINFO
 {
-      CLASSINFO *pclassinfoSuper;   /* descriptor of the parent class */
+      CLASSINFO *parentClass;       /* descriptor of the parent class */
       CID cid;   /* this class's id */
-      CID cidMax;   /* last class id of this class's subtree (derived classes have ids in cid..cidMax) */
-      int cb;   /* instance size in bytes */
+      CID lastDescendantCid; /* last class id of this class's subtree (derived classes have ids in cid..lastDescendantCid) */
+      int instanceSize; /* instance size in bytes */
 };
 
 /* CLOCK: sly2/clock.h (included above). */
@@ -303,7 +303,7 @@ struct SL
 {
     void *head;   /* first element */
     void *tail;   /* last element */
-    int ibSle;   /* byte offset of the SLE link inside an element */
+    int linkOffset; /* byte offset of the SLE link inside an element */
 };
 
 #endif /* SLY2_BASIC_H */

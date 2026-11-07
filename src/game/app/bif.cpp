@@ -2823,7 +2823,7 @@ CRef *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct LM;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
-typedef struct LM { float gMin; float gMax; } LM;
+typedef struct LM { float minValue; float maxValue; } LM;
 void Decref__4CRef(CRef *pref);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 // Splice builtin "clq-evaluate-lm": clq eval clamped to lm.
@@ -2835,7 +2835,7 @@ CRef *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args
     float g;
     CRef_CoerceF32(&ref, &args[2]);
     g = ref.u.g;
-    ret->u.g = Clamp(c[0] + g * (c[1] + g * c[2]), plm->gMin, plm->gMax);
+    ret->u.g = Clamp(c[0] + g * (c[1] + g * c[2]), plm->minValue, plm->maxValue);
     ret->m_tagk = TAGK_F32;
     Decref__4CRef(&ref);
     return ret;
@@ -3125,7 +3125,7 @@ namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; float m_g; } CRef;
 extern float D_002DDED0;
-// Splice builtin "current-time": F32 = g_clock.t (D_002DDED0).
+// Splice builtin "current-time": F32 = g_clock.time (D_002DDED0).
 CRef *BuiltinCurrentTime__FiP4CRefP6CFrame(CRef *ret)
 {
     ret->m_tagk = TAGK_F32;
@@ -3167,7 +3167,7 @@ extern "C" CREFV *BuiltinCurrentWorld(CREFV *pref)
 // CRef(BASIC*) of g_sw slot D_003E0F9C. That slot is the current JOB (null in free roam).
 extern "C" CREFV *BuiltinFindCurrentJob(CREFV *pref)
 {
-    CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploJobCur);
+    CRef_ctor_BASIC(pref, (BASIC *)g_sw.currentJob);
     return pref;
 }
 
@@ -3175,7 +3175,7 @@ extern "C" CREFV *BuiltinFindCurrentJob(CREFV *pref)
 // CRef(BASIC*) of D_003E0FA0. That slot is the current TASK.
 extern "C" CREFV *BuiltinFindCurrentTask(CREFV *pref)
 {
-    CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploTaskCur);
+    CRef_ctor_BASIC(pref, (BASIC *)g_sw.currentTask);
     return pref;
 }
 
@@ -3184,7 +3184,7 @@ extern "C" CREFV *BuiltinFindCurrentTask(CREFV *pref)
 // That slot is the pending TASK (RestartJob prefers it); scripts call RequestTaskState on it.
 extern "C" CREFV *BuiltinFindPendingTask(CREFV *pref)
 {
-    CRef_ctor_BASIC(pref, (BASIC *)g_sw.ploTaskPending);
+    CRef_ctor_BASIC(pref, (BASIC *)g_sw.pendingTask);
     return pref;
 }
 
@@ -3257,7 +3257,7 @@ CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
         }
     }
     G *sw = &D_003DD490;
-    float now = D_002DDED0.t;
+    float now = D_002DDED0.time;
     R *callback = ScheduleSwSpliceCallback(sw, 0, body.p, now + CRef_CoerceF32(args).u.g);
     result.SetS32(callback->handle);
     return result;
@@ -3282,7 +3282,7 @@ void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 extern float D_002DDED0;
-// Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt.
+// Splice builtin "defer-object-update": obj+0x30 = g_clock.time + dt.
 CRef *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 {
     CRef ref;

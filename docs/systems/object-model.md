@@ -45,7 +45,7 @@ layout.
 
 Each class has a numeric class id (`CID`) and a descriptor:
 
-- `CLASSINFO` (`basic.h`): parent descriptor, `cid`, `cidMax` (end of the class's subtree), instance size `cb`. The
+- `CLASSINFO` (`basic.h`): parent descriptor (`parentClass`), `cid`, `lastDescendantCid` (end of the class's subtree), instance size `instanceSize`. The
   registry's table extends it with the factory (`CLASSDESC` in `app/class_registry.cpp`: `CLASSINFO` + `pfnNew`). The
   table is indexed by CID.
 - **Factories** `New<Class>` (one per constructible class) allocate the instance with `new` (which takes zeroed memory
@@ -58,7 +58,7 @@ Each class has a numeric class id (`CID`) and a descriptor:
   generated wrappers in `src/generated/splicewrap/`).
 
 **Type tests.** CIDs are numbered in pre-order of the class tree, so a subtree occupies a contiguous CID range.
-`IsBasicDerivedFrom(object, cid)` (`object/basic.cpp`) is a range test against the base's `cidMax`;
+`IsBasicDerivedFrom(object, cid)` (`object/basic.cpp`) is a range test against the base's `lastDescendantCid`;
 `IsCidDerivedFrom(cid, cidBase)` (`object/find.cpp`) walks the parent chain instead. `GetBasicCid` returns an object's
 CID. Level files name classes by CID, so CIDs are part of the data format.
 
@@ -191,13 +191,13 @@ survive a level change lives in the save blob ([progression-and-saves.md](progre
 
 ## 5. Hierarchy, lookup and communication
 
-**Hierarchy.** `psoParent` points to the parent SO (null for a top-level object); children live in the parent's child
-list (top-level objects in the world's child list), linked through `dleChild`. `LOROOT` is shared by a whole
+**Hierarchy.** `parent` points to the parent SO (null for a top-level object); children live in the parent's child
+list (top-level objects in the world's child list), linked through `siblingLink`. `LOROOT` is shared by a whole
 hierarchy: it names the topmost ancestor and links the hierarchy into the world's root and busy lists. Reparenting goes
 through slot 10 `SetParent` (`LO_SetParent`, wrapped by `SetLoParent`), which keeps the in-world state consistent,
 updates the root record (slot 13) and fires the activation callbacks as needed.
 
-**Lookup.** The world keeps an oid hash and one list per CID (`SW::aslOid`, `SW::aslCid`; hash and bucket helpers in
+**Lookup.** The world keeps an oid hash and one list per CID (`SW::objectsByOid`, `SW::objectsByClass`; hash and bucket helpers in
 `object/find.cpp`).
 
 - `FindSwObject(world, grf, oid, ploContext)` returns the first match; `FindSwObjects` collects several. The low
@@ -246,7 +246,7 @@ which is which only by inference).
   `ReleaseProxySpare` undoes all of it (removes the objects, restores the rest pose, detaches the proxy's frames).
   `AcquireProxyObject` returns the single object of a one-object source; `LockProxyObject` /
   `UnlockProxyObject` pin a copy. Thrown objects, coin sprays and respawning enemies come from here.
-- Each object that came from a proxy keeps a proxy record (`PXR`, `LO::ppxr`): a node in a tree of proxy ids rooted at
+- Each object that came from a proxy keeps a proxy record (`PXR`, `LO::proxyRecord`): a node in a tree of proxy ids rooted at
   `SW::ppxrRoot`, which is what scoped lookup matches against. `SetIdProxy` (slot 25) moves an object (and optionally
   its children) to a new place in that tree.
 
@@ -270,7 +270,7 @@ which is which only by inference).
   table tolerates holes and compacts itself when adding, so do not cache entry indices.
 - `IsBasicDerivedFrom` relies on pre-order CID numbering. A class whose CID lies outside its parent's range (for
   example one appended after all existing CIDs) fails that test even though `IsCidDerivedFrom` succeeds.
-- `fRemoved` and "not live" are different states: a live object's parent can still be removed later, and a removed
+- `isRemoved` and "not live" are different states: a live object's parent can still be removed later, and a removed
   object keeps its frame, sidebag and fields for when it is added again.
 - Option-based oid references are resolved only at post-load; reading such a pointer field in `LoadFromBrx` or `Init`
   gives null.

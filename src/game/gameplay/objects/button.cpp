@@ -40,7 +40,7 @@ struct SW
 {
     char pad[0x3EB8];
     unsigned int cpo;       /* +0x3EB8 player objects */
-    LOV *apo[16];
+    LOV *playerObjects[16];
 };
 struct RSMG { int a[4]; };
 struct TASKSTATE { int a[2]; };
@@ -387,7 +387,7 @@ extern "C" void SetBtnButtons(BTN *btn, int state)
     shouldTrigger = oldState == BTN_UP && state == BTN_DOWN;
     shouldUntrigger = oldState != BTN_UNINITIALIZED && state == BTN_UP;
     btn->state = state;
-    btn->stateTime = D_002DDED0.t;
+    btn->stateTime = D_002DDED0.time;
     if (shouldTrigger)
         TriggerBtn(btn);
     if (shouldUntrigger)
@@ -477,8 +477,8 @@ extern "C" void UpdateButton(BUTTONV *button, float dt)
     {
         SLYV *sly = D_002E1E40;
         if (sly && sly->interactionKind == SLY_INTERACTION_BUTTON && sly->interactionId == button->slyInteractionId)
-            button->btn.stateTime = D_002DDED0.t;
-        if (0.0f <= button->btn.resetDelay && button->btn.resetDelay < D_002DDED0.t - button->btn.stateTime)
+            button->btn.stateTime = D_002DDED0.time;
+        if (0.0f <= button->btn.resetDelay && button->btn.resetDelay < D_002DDED0.time - button->btn.stateTime)
             SetButtonButtons(button, BTN_RESETTING);
         break;
     }
@@ -571,7 +571,7 @@ extern "C" void *TakeButtonDamage(BUTTONV *button, WKR *hit)
         case PRESS_WORKER_TOGGLE:
             if (button->btn.state == BTN_UP)
             {
-                if (button->btn.resetDelay <= D_002DDED0.t - button->btn.stateTime)
+                if (button->btn.resetDelay <= D_002DDED0.time - button->btn.stateTime)
                     SetButtonButtons(button, BTN_DOWN);
             }
             else if (button->btn.state == BTN_DOWN)
@@ -591,7 +591,7 @@ extern "C" void UpdateButtonPlayerPush(BUTTONV *button)
     if (IsBasicDerivedFrom((BASIC *)button->pusher, (CIDV)0x34))
     {
         PUSHER *hero = (PUSHER *)button->pusher;
-        if (hero->state == 0x11 || (hero->unknown2C4 == 3 && D_002DDED0.t - hero->stateTime < 0.15f))
+        if (hero->state == 0x11 || (hero->unknown2C4 == 3 && D_002DDED0.time - hero->stateTime < 0.15f))
         {
             button->pusher = 0;
             return;
@@ -751,7 +751,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
     state = volumeButton->btn.state;
     if (state == BTN_PRESSED)
     {
-        if (0.0f <= volumeButton->btn.resetDelay && volumeButton->btn.resetDelay < D_002DDED0.t - volumeButton->btn.stateTime)
+        if (0.0f <= volumeButton->btn.resetDelay && volumeButton->btn.resetDelay < D_002DDED0.time - volumeButton->btn.stateTime)
             SetVolbtnButtons(volumeButton, BTN_DOWN);
     }
     else if (state < BTN_LOCKED) if (state >= BTN_UP)   /* two tests: a combined range test becomes one unsigned compare */
@@ -772,7 +772,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
                                                       0x40 - numCandidates, &candidates[numCandidates]);
         if (volumeButton->numPushObjects == 0 && volumeButton->numPushClasses == 0)
         {
-            CopyAb(&candidates[numCandidates], D_003DD490.apo, D_003DD490.cpo * 4);
+            CopyAb(&candidates[numCandidates], D_003DD490.playerObjects, D_003DD490.cpo * 4);
             numCandidates += D_003DD490.cpo;
         }
         volumeButton->btn.relayArg = 0;

@@ -110,10 +110,10 @@ void UpdateGrfjoytFromGrfusr()
 void InitJoy(JOY *joy, int port, int slot)
 {
     SetJoyJoys(joy, (JOYS)1, (JOYK)0);
-    joy->nPort = port;
-    joy->nSlot = slot;
+    joy->port = port;
+    joy->slot = slot;
     scePadPortOpen(port, slot, joy);
-    joy->fRumbleEnabled = 1;
+    joy->isRumbleEnabled = 1;
     joy->uDpad = 1.0f;
 }
 
@@ -135,14 +135,14 @@ void UpdateJoy(JOY *joy)
     if (joy->joys == 0)
         return;
 
-    state = scePadGetState_243388(joy->nPort, joy->nSlot);
+    state = scePadGetState_243388(joy->port, joy->slot);
     if (state == 6 || state == 2)
 
         isReady = 1;
 
 
     if (joy->joys != 3 && joy->joyk != 0) {
-        if (D_002DDED0.realTime - joy->tJoys >= 2.0f)
+        if (D_002DDED0.realTime - joy->stateStartTime >= 2.0f)
             state = 0;
     }
 
@@ -164,10 +164,10 @@ void UpdateJoy(JOY *joy)
         case 0: {
 
             int m;
-            int n = scePadInfoMode(joy->nPort, joy->nSlot, 1, 0);
+            int n = scePadInfoMode(joy->port, joy->slot, 1, 0);
             if (n == 0)
                 break;
-            m = scePadInfoMode(joy->nPort, joy->nSlot, 2, 0);
+            m = scePadInfoMode(joy->port, joy->slot, 2, 0);
             if (m > 0)
                 n = m;
             if (n == 4 || n == 7) {
@@ -179,7 +179,7 @@ void UpdateJoy(JOY *joy)
         }
         case 1:
 
-            if (scePadSetMainMode(joy->nPort, joy->nSlot, 1, 3) == 1)
+            if (scePadSetMainMode(joy->port, joy->slot, 1, 3) == 1)
                 joys = 2;
 
             break;
@@ -187,38 +187,38 @@ void UpdateJoy(JOY *joy)
             unsigned char ab[6];
             int i;
 
-            x = scePadInfoAct(joy->nPort, joy->nSlot, -1, 0);
+            x = scePadInfoAct(joy->port, joy->slot, -1, 0);
             if (x != 2 ||
 
-                scePadInfoAct(joy->nPort, joy->nSlot, 0, 1) != 1 ||
-                scePadInfoAct(joy->nPort, joy->nSlot, 0, 2) != 2 ||
-                scePadInfoAct(joy->nPort, joy->nSlot, 0, 3) != 0 ||
-                scePadInfoAct(joy->nPort, joy->nSlot, 1, 1) != 1 ||
-                scePadInfoAct(joy->nPort, joy->nSlot, 1, 2) != 1 ||
-                scePadInfoAct(joy->nPort, joy->nSlot, 1, 3) != 1) {
+                scePadInfoAct(joy->port, joy->slot, 0, 1) != 1 ||
+                scePadInfoAct(joy->port, joy->slot, 0, 2) != 2 ||
+                scePadInfoAct(joy->port, joy->slot, 0, 3) != 0 ||
+                scePadInfoAct(joy->port, joy->slot, 1, 1) != 1 ||
+                scePadInfoAct(joy->port, joy->slot, 1, 2) != 1 ||
+                scePadInfoAct(joy->port, joy->slot, 1, 3) != 1) {
                 joys = 3;
                 break;
             }
             func_002333B4(ab, 0xFF, 6);
             for (i = 0; i < x; i++)
                 ab[i] = i;
-            if (scePadSetActAlign(joy->nPort, joy->nSlot, ab) == 1)
+            if (scePadSetActAlign(joy->port, joy->slot, ab) == 1)
                 joys = 2;
             break;
 #undef x
         }
         case 3:
-            if (scePadInfoPressMode(joy->nPort, joy->nSlot) != 1) {
+            if (scePadInfoPressMode(joy->port, joy->slot) != 1) {
                 joys = 3;
                 break;
             }
-            if (scePadEnterPressMode(joy->nPort, joy->nSlot) == 1)
+            if (scePadEnterPressMode(joy->port, joy->slot) == 1)
                 joys = x;
             break;
         }
         break;
     case 2:
-        switch (scePadGetState(joy->nPort, joy->nSlot)) {
+        switch (scePadGetState(joy->port, joy->slot)) {
         case 1:
             joys = 1;
             break;
@@ -250,7 +250,7 @@ void UpdateJoy(JOY *joy)
         break;
     case 3:
         if (ReadJoy(joy)) {
-            if (joy->fRumbleEnabled && joy->joyk >= 3)
+            if (joy->isRumbleEnabled && joy->joyk >= 3)
                 UpdateRumble((RUMBLE *)&joy->rumble);
         } else {
             joys = 1;
@@ -272,33 +272,33 @@ void SetJoyJoys(JOY *joy, JOYS state, JOYK kind)
         joy->term = 0;
         state = (JOYS)1;
     }
-    if (joy->joyk < 3 && kind >= 3) InitRumble((RUMBLE *)&joy->rumble, joy->nPort, joy->nSlot);
+    if (joy->joyk < 3 && kind >= 3) InitRumble((RUMBLE *)&joy->rumble, joy->port, joy->slot);
     if (joy->joyk == 4 ? kind != 4 : kind == 4) func_002333B4(joy->mpbtnpb, 0, 0xC);
     if (joy->joys == 3 ? state != 3 : state == 3) {
         joy->grfbtnLatched = 0xFFFF;
-        joy->tRead = 0.0f;
-        joy->fStickMovedRight = 0;
-        joy->fStickMovedLeft = 0;
-        joy->grfbtnPressed = 0;
-        joy->grfbtn = 0;
+        joy->lastReadTime = 0.0f;
+        joy->hasRightStickMoved = 0;
+        joy->hasLeftStickMoved = 0;
+        joy->buttonsPressed = 0;
+        joy->buttonsHeld = 0;
         func_002333B4(joy->mpbtnpb, 0, 0xC);
         joy->dirY = 0;
-        joy->dxLeft = joy->dyLeft = joy->uDeflectLeft = 0.0f;
-        joy->dxRight = joy->dyRight = joy->sRight = 0.0f;
+        joy->leftStickX = joy->leftStickY = joy->leftStickDeflection = 0.0f;
+        joy->dxRight = joy->dyRight = joy->rightStickDeflection = 0.0f;
         joy->dxdtLeft = joy->dydtLeft = 0.0f;
         joy->dydtRight = 0.0f;
         joy->dxdtRight = 0.0f;
         joy->dirX = 0;
         for (i = 0; i < 4; i++) {
-            joy->almDeflect2[i].gMin = -0.75f;
-            joy->almDeflect[i].gMin = -0.75f;
-            joy->almDeflect2[i].gMax = 0.75f;
-            joy->almDeflect[i].gMax = 0.75f;
+            joy->almDeflect2[i].minValue = -0.75f;
+            joy->almDeflect[i].minValue = -0.75f;
+            joy->almDeflect2[i].maxValue = 0.75f;
+            joy->almDeflect[i].maxValue = 0.75f;
         }
     }
     joy->joys = state;
     joy->joyk = kind;
-    joy->tJoys = D_002DDED0.realTime;
+    joy->stateStartTime = D_002DDED0.realTime;
 }
 
 static inline float SqrtF(float g) { float r; __asm__ volatile("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
@@ -311,7 +311,7 @@ void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *ou
     unsigned int i;
     if (!*outActive) {
         int fActive = 0;
-        if (joy->tRead != 0.0f &&
+        if (joy->lastReadTime != 0.0f &&
             (rawX != *prevRawX || rawY != *prevRawY || rawX < 0x60 || rawX > 0xA0 || rawY < 0x60 || rawY > 0xA0))
             fActive = 1;
         *outActive = fActive;
@@ -326,11 +326,11 @@ void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *ou
     for (i = 0; i < 4; i++) {
         g = x * D_002BE950[i].x + y * D_002BE950[i].y;
         if (g >= 0.0f) {
-            if (ranges[i].gMax < g) ranges[i].gMax = g;
-            r = g / ranges[i].gMax;
+            if (ranges[i].maxValue < g) ranges[i].maxValue = g;
+            r = g / ranges[i].maxValue;
         } else {
-            if (g < ranges[i].gMin) ranges[i].gMin = g;
-            r = g / ranges[i].gMin;
+            if (g < ranges[i].minValue) ranges[i].minValue = g;
+            r = g / ranges[i].minValue;
         }
         if (gMax < r) gMax = r;
     }
@@ -361,62 +361,62 @@ extern "C" int ReadJoy(JOY *joy)
     float prevLeftX, prevLeftY, prevRightX, prevRightY;
 
     func_002333B4(padData, 0, 0x40);
-    if (scePadRead(joy->nPort, joy->nSlot, padData) > 0) {
+    if (scePadRead(joy->port, joy->slot, padData) > 0) {
         buttons = ((padData[2] << 8) | padData[3]) ^ 0xFFFF;
-        prevButtons = joy->grfbtn;
-        joy->grfbtnPressed = buttons & ~prevButtons & ~joy->grfbtnLatched;
+        prevButtons = joy->buttonsHeld;
+        joy->buttonsPressed = buttons & ~prevButtons & ~joy->grfbtnLatched;
         joy->grfbtnLatched = joy->grfbtnLatched & buttons;
-        joy->grfbtn = buttons;
+        joy->buttonsHeld = buttons;
         if (joy->term != 0 && joy->term != padData[1])
             result = 0;
         joy->term = padData[1];
         if (joy->joyk == 4)
             CopyAb(joy->mpbtnpb, &padData[8], 0xC);
-        prevLeftX = joy->dxLeft;
-        prevLeftY = joy->dyLeft;
+        prevLeftX = joy->leftStickX;
+        prevLeftY = joy->leftStickY;
         prevRightX = joy->dxRight;
         prevRightY = joy->dyRight;
         if (joy->joyk >= 2) {
-            GetJoyXYDeflection(joy, padData[6], padData[7], &joy->dxLeft, &joy->dyLeft, &joy->uDeflectLeft, &joy->bXLeft, &joy->bYLeft, &joy->fStickMovedLeft, joy->almDeflect);
-            GetJoyXYDeflection(joy, padData[4], padData[5], &joy->dxRight, &joy->dyRight, &joy->sRight, &joy->bXRight, &joy->bYRight, &joy->fStickMovedRight, joy->almDeflect2);
+            GetJoyXYDeflection(joy, padData[6], padData[7], &joy->leftStickX, &joy->leftStickY, &joy->leftStickDeflection, &joy->bXLeft, &joy->bYLeft, &joy->hasLeftStickMoved, joy->almDeflect);
+            GetJoyXYDeflection(joy, padData[4], padData[5], &joy->dxRight, &joy->dyRight, &joy->rightStickDeflection, &joy->bXRight, &joy->bYRight, &joy->hasRightStickMoved, joy->almDeflect2);
         } else {
 
 
-            joy->dxLeft = joy->dyLeft = joy->uDeflectLeft = 0.0f;
-            joy->dyRight = joy->sRight = 0.0f;
+            joy->leftStickX = joy->leftStickY = joy->leftStickDeflection = 0.0f;
+            joy->dyRight = joy->rightStickDeflection = 0.0f;
             joy->dxRight = 0.0f;
 
 
         }
         if (D_002DDF40.policyCount == 0 || D_002DDF40.firstPolicy != &D_002DDF40.followPolicy) {   /* the d-pad steers like the left stick except under the default follow camera (inferred) */
-            if (joy->grfbtn & 0xF000) {
+            if (joy->buttonsHeld & 0xF000) {
 
-                joy->dxLeft = joy->dyLeft = joy->uDeflectLeft = 0.0f;
+                joy->leftStickX = joy->leftStickY = joy->leftStickDeflection = 0.0f;
 
-                if (joy->grfbtn & 0x8000)
-                    joy->dxLeft = -joy->uDpad;
-                else if (joy->grfbtn & 0x2000)
-                    joy->dxLeft = joy->uDpad;
-                if (joy->grfbtn & 0x1000)
-                    joy->dyLeft = joy->uDpad;
-                else if (joy->grfbtn & 0x4000)
-                    joy->dyLeft = -joy->uDpad;
-                if (joy->dxLeft * joy->dyLeft != 0.0f) {
+                if (joy->buttonsHeld & 0x8000)
+                    joy->leftStickX = -joy->uDpad;
+                else if (joy->buttonsHeld & 0x2000)
+                    joy->leftStickX = joy->uDpad;
+                if (joy->buttonsHeld & 0x1000)
+                    joy->leftStickY = joy->uDpad;
+                else if (joy->buttonsHeld & 0x4000)
+                    joy->leftStickY = -joy->uDpad;
+                if (joy->leftStickX * joy->leftStickY != 0.0f) {
 
-                    joy->dxLeft = joy->dxLeft * SqrtFloat(0.5f);
-                    joy->dyLeft = joy->dyLeft * SqrtFloat(0.5f);
+                    joy->leftStickX = joy->leftStickX * SqrtFloat(0.5f);
+                    joy->leftStickY = joy->leftStickY * SqrtFloat(0.5f);
 
                 }
-                joy->uDeflectLeft = 1.0f;
+                joy->leftStickDeflection = 1.0f;
             }
         }
-        joy->dxdtLeft = (joy->dxLeft - prevLeftX) / D_002DDED0.realDeltaTime;
-        joy->dydtLeft = (joy->dyLeft - prevLeftY) / D_002DDED0.realDeltaTime;
+        joy->dxdtLeft = (joy->leftStickX - prevLeftX) / D_002DDED0.realDeltaTime;
+        joy->dydtLeft = (joy->leftStickY - prevLeftY) / D_002DDED0.realDeltaTime;
         joy->dxdtRight = (joy->dxRight - prevRightX) / D_002DDED0.realDeltaTime;
         joy->dydtRight = (joy->dyRight - prevRightY) / D_002DDED0.realDeltaTime;
         MatchCheatCodePress(D_002DDEC0, joy, prevButtons & 0xFFFF);
-        joy->tRead = D_002DDED0.realTime;
-        if (joy->grfbtn != 0 || joy->uDeflectLeft != 0.0f || joy->sRight != 0.0f) {
+        joy->lastReadTime = D_002DDED0.realTime;
+        if (joy->buttonsHeld != 0 || joy->leftStickDeflection != 0.0f || joy->rightStickDeflection != 0.0f) {
 
             joy->tActive = D_002DDED0.realTime;
             joy->dtIdle = 0;
@@ -429,7 +429,7 @@ extern "C" int ReadJoy(JOY *joy)
             joy->dtIdle = (int)(D_002DDED0.realTime - joy->tActive);
         }
     } else {
-        if (D_002DDED0.realTime - joy->tRead >= 2.0f)
+        if (D_002DDED0.realTime - joy->lastReadTime >= 2.0f)
             result = 0;
     }
     return result;
@@ -446,28 +446,28 @@ extern "C" int HandleJoyButtons(JOY *joy, int mask)
 // Returns the buttons in `mask` pressed this frame.
 extern "C" int GetJoyButtonsPressed(JOY *joy, int mask)
 {
-    return joy->grfbtnPressed & mask;
+    return joy->buttonsPressed & mask;
 }
 
 // Marks the buttons in `mask` handled: clears them from the pressed mask and remembers them as held-and-handled.
 extern "C" void SetJoyBtnHandled(JOY *joy, int mask)
 {
-    joy->grfbtnPressed &= ~mask;
-    joy->grfbtnLatched |= joy->grfbtn & mask;
+    joy->buttonsPressed &= ~mask;
+    joy->grfbtnLatched |= joy->buttonsHeld & mask;
 }
 
 // Forgets the buttons in `mask`: clears them from the held and handled masks.
 extern "C" void ClearJoyButtons(JOY *joy, int mask)
 {
     int grfKeep = ~mask;
-    joy->grfbtn &= grfKeep;
+    joy->buttonsHeld &= grfKeep;
     joy->grfbtnLatched &= grfKeep;
 }
 
 // Plays a predefined rumble pattern on the controller if it is a ready DualShock and vibration is enabled.
 void TriggerJoyRumbleRumk(JOY *joy, RUMK kind, float duration)
 {
-    if (joy->fRumbleEnabled != 0 && joy->joyk >= 3 && joy->joys == 3) {
+    if (joy->isRumbleEnabled != 0 && joy->joyk >= 3 && joy->joys == 3) {
         TriggerRumbleRumk((RUMBLE *)&joy->rumble, kind, duration);
     }
 }
@@ -491,32 +491,32 @@ extern "C" int GetJoySelectionStepX(JOY *joy)
         int grf = HandleJoyButtons(joy, 0xA000);
         if (grf & 0x8000) joy->dirX = -1;
         else if (grf & 0x2000) joy->dirX = 1;
-        else if (joy->uDeflectLeft >= 0.8f && __builtin_fabsf(joy->dxLeft) > __builtin_fabsf(joy->dyLeft)) {
-            if (joy->dxLeft < 0.0f) joy->dirX = -1;
+        else if (joy->leftStickDeflection >= 0.8f && __builtin_fabsf(joy->leftStickX) > __builtin_fabsf(joy->leftStickY)) {
+            if (joy->leftStickX < 0.0f) joy->dirX = -1;
             else joy->dirX = 1;
         }
         if (joy->dirX) {
             g = 0.3333f;
-            joy->tRepX = g;
-            joy->tNextX = D_002DDED0.realTime + g;
+            joy->repeatIntervalX = g;
+            joy->nextRepeatTimeX = D_002DDED0.realTime + g;
         }
     } else {
         int fHeld = 0;
         if (joy->dirX < 0) {
-            if (joy->grfbtn & 0x8000) fHeld = 1;
-            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dxLeft) > __builtin_fabsf(joy->dyLeft) && joy->dxLeft < 0.0f)
+            if (joy->buttonsHeld & 0x8000) fHeld = 1;
+            else if (joy->leftStickDeflection >= 0.25f && __builtin_fabsf(joy->leftStickX) > __builtin_fabsf(joy->leftStickY) && joy->leftStickX < 0.0f)
                 fHeld = 1;
         } else {
-            if (joy->grfbtn & 0x2000) fHeld = 1;
-            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dxLeft) > __builtin_fabsf(joy->dyLeft) && 0.0f < joy->dxLeft)
+            if (joy->buttonsHeld & 0x2000) fHeld = 1;
+            else if (joy->leftStickDeflection >= 0.25f && __builtin_fabsf(joy->leftStickX) > __builtin_fabsf(joy->leftStickY) && 0.0f < joy->leftStickX)
                 fHeld = 1;
         }
         if (!fHeld) {
             joy->dirX = 0;
-        } else if (joy->tNextX <= D_002DDED0.realTime) {
-            g = Clamp(2.0f * joy->tRepX / 3.0f, 0.1f, 0.3333f);
-            joy->tRepX = g;
-            joy->tNextX = D_002DDED0.realTime + g;
+        } else if (joy->nextRepeatTimeX <= D_002DDED0.realTime) {
+            g = Clamp(2.0f * joy->repeatIntervalX / 3.0f, 0.1f, 0.3333f);
+            joy->repeatIntervalX = g;
+            joy->nextRepeatTimeX = D_002DDED0.realTime + g;
         } else {
             return 0;
         }
@@ -532,32 +532,32 @@ extern "C" int GetJoySelectionStepY(JOY *joy)
         int grf = HandleJoyButtons(joy, 0x5000);
         if (grf & 0x1000) joy->dirY = -1;
         else if (grf & 0x4000) joy->dirY = 1;
-        else if (joy->uDeflectLeft >= 0.8f && __builtin_fabsf(joy->dyLeft) > __builtin_fabsf(joy->dxLeft)) {
-            if (0.0f < joy->dyLeft) joy->dirY = -1;
+        else if (joy->leftStickDeflection >= 0.8f && __builtin_fabsf(joy->leftStickY) > __builtin_fabsf(joy->leftStickX)) {
+            if (0.0f < joy->leftStickY) joy->dirY = -1;
             else joy->dirY = 1;
         }
         if (joy->dirY) {
             g = 0.3333f;
-            joy->tRepY = g;
-            joy->tNextY = D_002DDED0.realTime + g;
+            joy->repeatIntervalY = g;
+            joy->nextRepeatTimeY = D_002DDED0.realTime + g;
         }
     } else {
         int fHeld = 0;
         if (joy->dirY < 0) {
-            if (joy->grfbtn & 0x1000) fHeld = 1;
-            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dyLeft) > __builtin_fabsf(joy->dxLeft) && 0.0f < joy->dyLeft)
+            if (joy->buttonsHeld & 0x1000) fHeld = 1;
+            else if (joy->leftStickDeflection >= 0.25f && __builtin_fabsf(joy->leftStickY) > __builtin_fabsf(joy->leftStickX) && 0.0f < joy->leftStickY)
                 fHeld = 1;
         } else {
-            if (joy->grfbtn & 0x4000) fHeld = 1;
-            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dyLeft) > __builtin_fabsf(joy->dxLeft) && joy->dyLeft < 0.0f)
+            if (joy->buttonsHeld & 0x4000) fHeld = 1;
+            else if (joy->leftStickDeflection >= 0.25f && __builtin_fabsf(joy->leftStickY) > __builtin_fabsf(joy->leftStickX) && joy->leftStickY < 0.0f)
                 fHeld = 1;
         }
         if (!fHeld) {
             joy->dirY = 0;
-        } else if (joy->tNextY <= D_002DDED0.realTime) {
-            g = Clamp(2.0f * joy->tRepY / 3.0f, 0.1f, 0.3333f);
-            joy->tRepY = g;
-            joy->tNextY = D_002DDED0.realTime + g;
+        } else if (joy->nextRepeatTimeY <= D_002DDED0.realTime) {
+            g = Clamp(2.0f * joy->repeatIntervalY / 3.0f, 0.1f, 0.3333f);
+            joy->repeatIntervalY = g;
+            joy->nextRepeatTimeY = D_002DDED0.realTime + g;
         } else {
             return 0;
         }

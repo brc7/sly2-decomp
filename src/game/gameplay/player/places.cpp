@@ -331,7 +331,7 @@ extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
     places->entries[0].lo = ((LO *(*)(void *))s->vt[6].function)((char *)s + s->vt[6].delta);
     e->shape = s;
     e->v.f[0] = g;
-    e->t = D_002DDED0.t;
+    e->t = D_002DDED0.time;
     places->entries[0].lo->fl |= 1L << 59;
 }
 
@@ -374,7 +374,7 @@ extern "C" void AddJtPlaceAtPosition(JTPLACES *places, PLACESPOT *s, qword q)
         s->flags |= 1L << 51;
     }
     places->entries[0].v.q = q;
-    e->t = D_002DDED0.t;
+    e->t = D_002DDED0.time;
 }
 
 // Compacts the place table, dropping entries that reference the given object.

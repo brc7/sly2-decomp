@@ -49,8 +49,8 @@ void SHAPE::Init()
 {
     SHAPE *pshape = (SHAPE *)this;
     InitXfm(pshape);
-    pshape->nUnk148 = -1;
-    pshape->nUnk178 = 1;
+    pshape->unknown148 = -1;
+    pshape->unknown178 = 1;
 }
 
 namespace M_CloneShape { extern "C" {
@@ -272,8 +272,8 @@ void MeasureShape(struct S *shape)
 // Invalidates the segment cache (search hint 0, cached segment -1).
 extern "C" void InvalidateShapeCache(SHAPE *shape)
 {
-    shape->nUnk178 = 0;
-    shape->nUnk148 = -1;
+    shape->unknown178 = 0;
+    shape->unknown148 = -1;
 }
 
 namespace M_func_001E6340 { extern "C" {
@@ -379,25 +379,25 @@ float GetShapeParamAtDistance(struct X *shape, float distance)
 // First point's parameter.
 extern "C" float GetShapeMinParam(SHAPE *shape)
 {
-    return shape->mpicvu[0];
+    return shape->vertexParams[0];
 }
 
 // First point's distance.
 extern "C" float GetShapeMinDistance(SHAPE *shape)
 {
-    return shape->mpicvs[0];
+    return shape->vertexArcLengths[0];
 }
 
 // Last point's parameter.
 extern "C" float GetShapeMaxParam(SHAPE *shape)
 {
-    return shape->mpicvu[shape->ccv - 1];
+    return shape->vertexParams[shape->numControlVertices - 1];
 }
 
 // Last point's distance: the shape's total length.
 extern "C" float GetShapeMaxDistance(SHAPE *shape)
 {
-    return shape->mpicvs[shape->ccv - 1];
+    return shape->vertexArcLengths[shape->numControlVertices - 1];
 }
 
 namespace M_UWrapShape { extern "C" {
@@ -762,7 +762,7 @@ void FindShapeClosestPointCurveFromParam(struct X *shape, qword pos, struct SPAC
 // Dispatches on the shape's mode to the linear or curve closest-point search from a starting parameter.
 extern "C" void FindShapeClosestPointFromParam(SHAPE *shape, qword pos, SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
 {
-    if (shape->crvk == 0) {
+    if (shape->curveKind == 0) {
         FindShapeClosestPointLinearFromParam(shape, pos, space, posOut, dirOut, paramOut, distanceOut, startParam);
         return;
     }
@@ -1390,7 +1390,7 @@ typedef char radius_basis_prefix_align[(__alignof__(struct BASIS3)==16)?1:-1];
 // The chain's simulation mode, or -1 without a chain.
 extern "C" int GetShapeChainMode(SHAPE *shape)
 {
-    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->pvUnk17c;
+    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->unknown17C;
     int n = -1;
     if (pchain != 0) {
         n = pchain->mode;
@@ -1686,7 +1686,7 @@ void StepChainRk4(CHAIN *chain)
     CopyAb__FPvT0Ui(accV, chain->velocity, count * 16);
     for (int pass = 0; pass < 4; pass++) {
         float w = D_002C3658[pass];
-        float h = w * D_002DDED0.dt;
+        float h = w * D_002DDED0.deltaTime;
         Blend(&newP[0], &chain->position[0], start, w);
         Blend(&newV[0], &chain->velocity[0], startVel, w);
         Blend(&newP[count - 1], &chain->position[count - 1], end, w);
@@ -1741,7 +1741,7 @@ void StepChainRk4(CHAIN *chain)
                 F = VecCombo3(F, VU_FLOAT(chain->shape * (len - amplitude * r4 * (1.0f - r))), dir.q, VU_FLOAT(&chain->shapeDamping), proj.q);
             }
             float wk = D_002C3668[pass];
-            float k = wk * D_002DDED0.dt;
+            float k = wk * D_002DDED0.deltaTime;
             Store(&accV[i], AddScaled(accV[i].q, VU_FLOAT(k), F));
             Store(&accP[i], AddScaled2I(accP[i].q, VU_FLOAT(k * 0.5f), chain->velocity[i].q, newV[i].q));
             Store(&force[i], F);
@@ -1909,7 +1909,7 @@ static inline VV VecCombo3(VV base, VU_FLOAT g1, VV v1, VU_FLOAT g2, VV v2)
 // One Verlet-style step of the rope chain with distance constraints and pinned ends.
 void StepChain(CHAIN *chain)
 {
-    float dt = D_002DDED0.dt;
+    float dt = D_002DDED0.deltaTime;
     VV prev = TransformPoint(chain->first->matrix, chain->start);
     int n = chain->path->count;
     chain->position[0].q = prev;
@@ -2090,7 +2090,7 @@ refresh:
 extern "C" void SyncChainDistances(SHAPECHAIN *chain)
 {
     SHAPE *pshape = chain->pshape;
-    CopyAb(chain->as, pshape->mpicvs, pshape->ccv * 4);
+    CopyAb(chain->as, pshape->vertexArcLengths, pshape->numControlVertices * 4);
 }
 
 namespace M_func_001E9858 {
@@ -2544,7 +2544,7 @@ void BuildShapeValidRanges(struct S *shape)
 } } // namespace M_func_001EA000
 
 namespace M_func_001EA3B0 { extern "C" {
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 struct S { char pad[0xC]; int c; struct LM alm[1]; };
 // Returns the {min, max} range containing g, or 0.
 struct LM *FindRangeContaining(struct S *table, float value)
@@ -2553,7 +2553,7 @@ struct LM *FindRangeContaining(struct S *table, float value)
     struct LM *alm = table->alm;
     for (i = 0; i < table->c; i++) {
         struct LM *plm = &alm[i];
-        if (plm->gMin <= value && value <= plm->gMax) return plm;
+        if (plm->minValue <= value && value <= plm->maxValue) return plm;
     }
     return 0;
 }

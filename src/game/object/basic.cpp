@@ -41,7 +41,7 @@ struct CPAIR;
 struct SPAIR { CPAIR *p; };
 struct CPAIR { int cref; int x4; CREFV ref; SPAIR sp; };
 
-/* A deferred Splice callback (SW::slEvent list +0x39F0, SW::slotheapEvent heap +0x39FC, ids from SW::cEventWorld). */
+/* A deferred Splice callback (SW::slEvent list +0x39F0, SW::slotheapEvent heap +0x39FC, ids from SW::lastEventId). */
 struct DLV { struct SWCB *head; struct SWCB *tail; int ibDle; };   /* SW::slEvent as the callback list */
 struct SWCB { float t; BASICV *pbasic; CPAIR *pair; int id; SWCB *pnext; };
 
@@ -267,7 +267,7 @@ SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *a, CPAIR *pc, float t) {
     pc->cref++;
     pn = (SWCB *)AllocZeroedFromSlotheap(&world->slotheapEvent);
     pn->pbasic = a;
-    if (!a) pn->id = ++g_sw.cEventWorld;
+    if (!a) pn->id = ++g_sw.lastEventId;
     else pn->id = -1;
     pn->pair = pc;
     pn->t = t;
@@ -313,7 +313,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int 
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
         BuildSpliceEventCall(&sp, object, k, &ref);
         if (f)
-            ScheduleSwSpliceCallback(&g_sw, object, sp.p, D_002DDED0.t);
+            ScheduleSwSpliceCallback(&g_sw, object, sp.p, D_002DDED0.time);
         else
             EvalSpliceEventCallback(object, sp.p, object->frame, z);
         {

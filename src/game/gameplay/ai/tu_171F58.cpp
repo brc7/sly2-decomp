@@ -209,9 +209,9 @@ extern "C" void UpdateBhvSearch(BHV171V *behavior) {
                     SetBhvSearchState(behavior, 1);
                 }
                 behavior->needsReplan = 0;
-            } else if (behavior->lookEndTime < D_002DDED0.t || IsBhvanimDone(behavior->currentChild)) {
+            } else if (behavior->lookEndTime < D_002DDED0.time || IsBhvanimDone(behavior->currentChild)) {
                 SetBhvSearchState(behavior, 4);
-            } else if (D_002DDED0.t > behavior->nextTime) {
+            } else if (D_002DDED0.time > behavior->nextTime) {
                 SetBhvSearchState(behavior, 3);
             } else {
                 qword a = GetBhvSearchLastKnownPosition(behavior);
@@ -231,7 +231,7 @@ extern "C" void UpdateBhvSearch(BHV171V *behavior) {
                     SetBhvSearchState(behavior, 1);
                 }
                 behavior->needsReplan = 0;
-            } else if (behavior->lookEndTime < D_002DDED0.t) {
+            } else if (behavior->lookEndTime < D_002DDED0.time) {
                 SetBhvSearchState(behavior, 4);
             } else {
                 StepBhvSearchPoint(behavior);
@@ -268,7 +268,7 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0:
         {
@@ -342,9 +342,9 @@ extern "C" int IsBhvSearchIdle(BHV171V *behavior)
 // 0x172560: Arms the look timers: a random look duration from the guard's range (+0xE6C..+0xE70); the second
 // (give-up) timer only for guards with +0xE78 == 1.
 extern "C" void SetBhvSearchLookTimers(BHV171V *behavior) {
-    float t = D_002DDED0.t;
+    float t = D_002DDED0.time;
     behavior->lookEndTime = t + RandomFloatInRange(behavior->guard->lookTimeMin, behavior->guard->lookTimeMax);
-    if (behavior->guard->searchMode == 1) behavior->nextTime = D_002DDED0.t + D_002BE5A0;
+    if (behavior->guard->searchMode == 1) behavior->nextTime = D_002DDED0.time + D_002BE5A0;
     else behavior->nextTime = 3.40282346638528859812e+38f;
 }
 
@@ -623,9 +623,9 @@ extern "C" void StepBhvSearchPoint(BHV171V *behavior) {
     if (behavior->searchPointIndex >= 4) return;
     pbhvCur = behavior->currentChild;
     if (behavior->nextTime == D_002A53D4) {
-        if (HasBhvgotoArrived(pbhvCur)) behavior->nextTime = D_002DDED0.t + 1.0f;
+        if (HasBhvgotoArrived(pbhvCur)) behavior->nextTime = D_002DDED0.time + 1.0f;
     }
-    if (D_002DDED0.t < behavior->nextTime) return;
+    if (D_002DDED0.time < behavior->nextTime) return;
     pe = &behavior->searchPoints[behavior->searchPointIndex++];
     if (behavior->searchPointIndex >= 4) behavior->searchPointIndex = 0;
     ClearPointerPair(&goal);

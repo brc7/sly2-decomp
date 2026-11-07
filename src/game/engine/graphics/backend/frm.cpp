@@ -49,7 +49,7 @@ struct DLI {
     void *previous;
     DLI(DL *owner)
     {
-        int offset = owner->ibDle;
+        int offset = owner->linkOffset;
         previous = D_002DD2FC;
         D_002DD2FC = this;
         list = owner;
@@ -268,9 +268,9 @@ void ClearPendingFrame(FRM *frame)
         DLI iter(&frame->freeList);
         for (Y *object = (Y *)iter.Next(); object; object = (Y *)iter.Next()) {
             if (object->storage)
-                FreeSlotheapSlot(&g_sw.slotheapUnk40a0, object->storage);
+                FreeSlotheapSlot(&g_sw.unknown40A0, object->storage);
             RemoveDlEntry__FP2DLPv(&frame->freeList, object);
-            FreeSlotheapSlot(&g_sw.slotheapUnk4088, object);
+            FreeSlotheapSlot(&g_sw.unknown4088, object);
         }
         ClearDl__FP2DL(&frame->freeList);
     }
@@ -330,7 +330,7 @@ static inline ulong Tex0FromDisp(ulong disp)
 // (motion-blur/frame blend), unless disabled by D_002DEB24/D_003E12C8.
 void BlendPrevFrame()
 {
-    if (D_002DEB24 || g_sw.fUnk3e38)
+    if (D_002DEB24 || g_sw.unknown3E38)
         return;
     GIFS gifs;
     QW aqw[0x64];

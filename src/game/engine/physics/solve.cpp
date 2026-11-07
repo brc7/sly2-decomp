@@ -27,26 +27,26 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct M3 { qword r[3]; };
 struct M3C { U r[3]; M3C() {} M3C(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; }
     M3C &operator=(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; return *this; } };
-#define MATC(pxf) (*(M3C *)&(pxf)->mat)
+#define MATC(pxf) (*(M3C *)&(pxf)->localMatrix)
 
-/* An object transform (sly2/so.h XF: mat, matWorld, role, parent, stamp, velocity...), as the solver reads it. */
+/* An object transform (sly2/so.h XF: mat, worldMatrix, role, parent, stamp, velocity...), as the solver reads it. */
 struct XF
 {
-    M3 mat;                 /* 0x00 */
+    M3 localMatrix;         /* 0x00 */
     U pos;                  /* 0x30 */
-    M3 matWorld;            /* 0x40 */
+    M3 worldMatrix;         /* 0x40 */
     U posWorld;             /* 0x70 */
     char pad80[0x98 - 0x80];
-    short nRole;            /* 0x98 */
-    short nPhase;
+    short role;             /* 0x98 */
+    short phase;
     int oid;
-    XF *pxfParent;          /* 0xA0 */
-    int nStampWorld;        /* 0xA4 */
+    XF *parent;             /* 0xA0 */
+    int worldStamp;         /* 0xA4 */
     char padA8[8];
     U v;                    /* 0xB0 velocity */
-    qword qwRest;
-    qword qwUnkD0;
-    qword qwRestUnkE0;
+    qword restValue;
+    qword rate;
+    qword unknownE0;
     U a;                    /* 0xF0 acceleration */
 };
 typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
@@ -54,7 +54,7 @@ typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
 /* A velocity constraint: an axis and a kind (1 remove the axis, 2 keep only the axis, 3 lock). */
 struct CONSTR { qword v; int k; };
 
-/* SO::psophys (+0xE8) as far as the solver reads it. */
+/* SO::physics (+0xE8) as far as the solver reads it. */
 struct SOPHYS
 {
     char pad0[0x30];
@@ -72,7 +72,7 @@ struct XP;
 /* The touching-object links of a tree (SOTREE::ptlFirst). */
 struct TL { XP *pxp; TL *ptlNext; int pad; SO *pso; };
 struct NODE { char pad10[0x10]; unsigned long flags; char pad18[0x48]; NODE *next; };
-/* SO::ptree (+0xEC); the SW also chains the trees (+0x40) with their root object (+0x60). */
+/* SO::physicsTree (+0xEC); the SW also chains the trees (+0x40) with their root object (+0x60). */
 struct SOTREE { char pad0[0x34]; NODE *first; char pad38[8]; SOTREE *ptreeNext; char pad44[0x1C]; SO *pso; TL *ptlFirst; XP *pxpFirst; };
 
 struct SO
@@ -83,8 +83,8 @@ struct SO
     XF *pxfPos;             /* 0x58 */
     XF *pxfRot;             /* 0x5C */
     char pad60[0x88];
-    SOPHYS *psophys;        /* 0xE8 */
-    SOTREE *ptree;          /* 0xEC */
+    SOPHYS *physics;        /* 0xE8 */
+    SOTREE *physicsTree;    /* 0xEC */
     U qwDv;                 /* 0xF0 queued velocity change */
     U qwDw;                 /* 0x100 queued angular velocity change */
     char pad110[0x138 - 0x110];
@@ -174,13 +174,13 @@ void BuildContactGroup(SW *world, SO *object, int *count, SO **group)
     object->grf |= 0x8000000;
     group[*count] = object;
     (*count)++;
-    for (link = object->ptree->ptlFirst; link; link = link->ptlNext) {
+    for (link = object->physicsTree->ptlFirst; link; link = link->ptlNext) {
         SO *other;
         SOPHYS *physics;
         if (!link->pxp) continue;
         other = link->pso;
         if (other->grf & 0x8000000) continue;
-        physics = other->psophys;
+        physics = other->physics;
         if (!physics) continue;
         if (physics->constrPos.k == 3 && physics->constrRot.k == 3) continue;
         BuildContactGroup(world, other, count, group);
@@ -198,17 +198,17 @@ void SolveSwContactGroups(SW *world, int flags)
     for (tree = world->ptreeFirst; tree; tree = tree->ptreeNext) {
         SOPHYS *physics;
         root = tree->pso;
-        physics = root->psophys;
+        physics = root->physics;
         if (!physics) continue;
         if (root->grf & 0x8000000) continue;
         if (physics->constrPos.k == 3 && physics->constrRot.k == 3) continue;
         {
             register SO *receiver asm("a1")=root;
             if(flags&1){
-                int first=IsXfRoleAtRest(root->pxfPos->nRole);
+                int first=IsXfRoleAtRest(root->pxfPos->role);
                 receiver=root;
                 if(first){
-                    int second=IsXfRoleAtRest(root->pxfRot->nRole);
+                    int second=IsXfRoleAtRest(root->pxfRot->role);
                     if(second)continue;
                     receiver=root;
                 }
@@ -235,14 +235,14 @@ int BuildGroupXpArray(SW *world, int flags, int numObjects, SO **objects, int ma
         SO *object = objects[i];
         TL *link;
         object->grf |= 0x10000000;
-        link = object->ptree->ptlFirst;
+        link = object->physicsTree->ptlFirst;
         while (1) {
             XP *contact;
         again:
             if (link) {
                 if (link->pso->grf & 0x10000000) { link = link->ptlNext; goto again; }
                 contact = link->pxp;
-            } else contact = object->ptree->pxpFirst;
+            } else contact = object->physicsTree->pxpFirst;
             for (; contact; contact = contact->pxpNext) {
                 if (contact->kind == 0xD) continue;
                 if (contact->kind == 0xE) {
@@ -324,7 +324,7 @@ static inline float Dot(qword a,qword b){qword one;float f;__asm__("vmul.xyz %0,
 // "memory": the game re-reads p->pxfRot after this dot product.
 static inline float LengthSquared(qword v){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(v),"=&j"(one): :"memory");__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
-static inline float ClockDt(){return D_002DDED0.dt;}
+static inline float ClockDt(){return D_002DDED0.deltaTime;}
 static inline void Callback(SO *p,int slot){VTE *vt=p->pvt;vt[slot].pfn((char *)p+vt[slot].d);}
 // Solves one contact group: one DZG row per contact, target velocities from restitution and penetration, the DZG
 // and friction solve, impulses applied to the objects, then the objects are notified (slots 65-67).
@@ -336,32 +336,32 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
     InitDzgXp(&group,contactCount,contacts,objectCount,objects);
     for(i=0;i<contactCount;i++){
         contact=contacts[i];
-        row=&group.adz[i];
+        row=&group.rows[i];
         DZX *state=&group.adzx[i];
-        state->pxp=contact;
-        state->qwNormal=contact->normal.q;
+        state->contact=contact;
+        state->normal=contact->normal.q;
         switch(contact->kind){
         case 11:
-            row->nKind=1;
-            row->gMin=-FLT_MAX;
+            row->kind=1;
+            row->minValue=-FLT_MAX;
             // Shares the default's upper limit (the game's code jumps into it; a separate store does not match).
             goto unbounded;
         case 14:
             if(flags&1){
-                row->gMin=contact->start*ClockDt();
-                row->gMax=contact->end*ClockDt();
-                row->nKind=contact->start<0.0f;
+                row->minValue=contact->start*ClockDt();
+                row->maxValue=contact->end*ClockDt();
+                row->kind=contact->start<0.0f;
             }else{
-                row->gMin=0.0f;
-                row->gMax=FLT_MAX;
-                row->nKind=0;
+                row->minValue=0.0f;
+                row->maxValue=FLT_MAX;
+                row->kind=0;
             }
             break;
         default:
-            row->nKind=0;
-            row->gMin=0.0f;
+            row->kind=0;
+            row->minValue=0.0f;
         unbounded:
-            row->gMax=FLT_MAX;
+            row->maxValue=FLT_MAX;
             break;
         }
         AppendDzgDz(&group,row,state);
@@ -371,8 +371,8 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
         maximum=0.0f;
         for(i=0;i<contactCount;i++){
             contact=contacts[i];
-            row=&group.adz[i];
-            if(row->nKind==1)row->g10=contact->value;else row->g10=contact->value+1.0f;
+            row=&group.rows[i];
+            if(row->kind==1)row->residual=contact->value;else row->residual=contact->value+1.0f;
             float magnitude=__builtin_fabsf(contact->value);
             if(maximum<magnitude)maximum=magnitude;
         }
@@ -392,19 +392,19 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
         RecalcSwXpMovement(game,contactCount,contacts);
         int n;for(n=0;n<contactCount;n++){
             contact=contacts[n];
-            row=&group.adz[n];
+            row=&group.rows[n];
             // The game stores the dot product's bits from the GPR (sw): written through an int view of the float
             // target (a float result goes through the FPU, mtc1/swc1). This form exists to reproduce the original codegen.
-            *(int *)&row->g10=DotQ(contact->velocity.q,contact->normal.q);
+            *(int *)&row->residual=DotQ(contact->velocity.q,contact->normal.q);
             float magnitude=LengthSquared(contact->velocity.q);
             if(maximum<magnitude)maximum=magnitude;
         }
     }else{
         for(;j<contactCount;j++){
             contact=contacts[j];
-            row=&group.adz[j];
+            row=&group.rows[j];
             float factor=1.0f+contact->elasticity*RandomFloatInRange__Fff(0.9f,1.1f);
-            row->g10=Dot(contact->velocity.q,contact->normal.q)*factor;
+            row->residual=Dot(contact->velocity.q,contact->normal.q)*factor;
             float magnitude=LengthSquared(contact->velocity.q);
             if(maximum<magnitude)maximum=magnitude;
         }
@@ -417,9 +417,9 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
         for(k=0;k<objectCount;k++)Callback(objects[k],65);
         for(k=0;k<objectCount;k++){
             SO *p=objects[k];
-            if(p->pxfPos->nRole==2||p->pxfRot->nRole==2)break;
+            if(p->pxfPos->role==2||p->pxfRot->role==2)break;
             XF *second=p->pxfRot;
-            SOPHYS *motion=p->psophys;
+            SOPHYS *motion=p->physics;
             int moving=LengthSquared(p->pxfPos->v.q)>25.0f || Dot(second->v.q,p->pxfRot->v.q)>0.0025000002f || LengthSquared(motion->linear.q)>25.0f || LengthSquared(motion->angular.q)>0.0025000002f;
             if(moving)break;
         }
@@ -443,9 +443,9 @@ static inline int FNear(qword a, qword b)
 extern "C" void PresetSoAccel(SO *p)
 {
     int fUpd = 0;
-    int fNear = FNear(D_002A2DD0, p->psophys->constantAccel);
-    if (!fNear) fUpd = p->psophys->constrPos.k != 3;
-    if (fUpd) AddSoAcceleration(p, ApplyConstr(&p->psophys->constrPos, p->pxfPos, p->psophys->constantAccel));
+    int fNear = FNear(D_002A2DD0, p->physics->constantAccel);
+    if (!fNear) fUpd = p->physics->constrPos.k != 3;
+    if (fUpd) AddSoAcceleration(p, ApplyConstr(&p->physics->constrPos, p->pxfPos, p->physics->constantAccel));
     if (p->externalAccelList) ApplySoExternalAccelerations(p);
 }
 
@@ -478,21 +478,21 @@ void IntegrateSoGroupTransforms(SO *p)
     SettleXfSlot(p,rotation);
     clock=&D_002DDED0;
     {qword point=position->pos.q;
-    qword k=Scalar(clock->dt*coefficient,&scalar);
+    qword k=Scalar(clock->deltaTime*coefficient,&scalar);
     VECTOR_opAssign(&position->pos.q,AddScaledE(point,position->v.q,k));}
     position->pos.f[3]=1.0f;
     global=&D_003DD490;
-    position->nStampWorld=++global->stamp;
+    position->worldStamp=++global->stamp;
     Clear(positionVelocity);
-    frame=MulC(BuildRotation(ScaleE(rotation->v.q,Scalar(clock->dt*coefficient,&scalar))),MATC(rotation));
+    frame=MulC(BuildRotation(ScaleE(rotation->v.q,Scalar(clock->deltaTime*coefficient,&scalar))),MATC(rotation));
     NormalizeRotateMatrix3__FP7MATRIX3(&frame);
     {M3C *dest=&MATC(rotation);*dest=frame;dest->r[1].i[3]=0;dest->r[2].i[3]=0;dest->r[0].i[3]=0;}
-    rotation->nStampWorld=++global->stamp;
+    rotation->worldStamp=++global->stamp;
     Clear(rotationVelocity);
     p->pvt[18].pfn((char*)p+p->pvt[18].d);
     UpdateSoPartMatrices(p);
-    if(p->ptree){
-        for(node=p->ptree->first;node;node=node->next){
+    if(p->physicsTree){
+        for(node=p->physicsTree->first;node;node=node->next){
             if(!(node->flags&(1UL<<50)))UpdateSoPartGeom(node);
         }
     }
@@ -506,14 +506,14 @@ static inline float ZP(qword q){register float f __asm__("$2");__asm__("pextuw %
 static inline int NearFlag(int code){register int r __asm__("$21");__asm__("sltu %0,$zero,%1":"=r"(r):"r"(code));return r;}
 static inline void NearP(int *out,qword a,qword b){if(AreFloatsNear__Ffff(QwordX(a),QwordX(b),0.0001f))if(AreFloatsNear__Ffff(YP(a),YP(b),0.0001f))*out=NearFlag(AreFloatsNear__Ffff(ZP(a),ZP(b),0.0001f));}
 static inline qword Zero(){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
-static inline void ConsumeOut(SO *p,XF *object,U &pending,qword*out){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->pxfParent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
+static inline void ConsumeOut(SO *p,XF *object,U &pending,qword*out){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
 static inline float YFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tprot3w %0,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 static inline float ZFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tpextuw %0,$zero,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 static inline void NearVector(int *out,const qword &first,const qword &b){register const qword *address __asm__("$2")=&first;register qword a __asm__("$16");__asm__("lq %0,0(%1)":"=r"(a):"r"(address),"m"(first));register qword bits __asm__("$2");register float ax __asm__("$f12"),bx __asm__("$f13");__asm__("lq %0,%4\n\tmtc1 %3,%1\n\tmtc1 %0,%2":"=&r"(bits),"=f"(ax),"=f"(bx):"r"(a),"m"(b));if(AreFloatsNear__Ffff(ax,bx,0.0001f))if(AreFloatsNear__Ffff(YP(a),YFromHome(b),0.0001f))*out=AreFloatsNear__Ffff(ZP(a),ZFromHome(b),0.0001f)!=0;}
 static inline void AddVector(U *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
 static inline qword*PointAddress(XF*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,0x30\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->pos));*value=point;return address;}
 static inline float HalfAndDelta(float dt,float half,const qword&source,qword*delta){register float product __asm__("$f0");register qword d __asm__("vf3");__asm__("mul.s %0,%2,%3\n\tlqc2 %1,%4":"=f"(product),"=j"(d):"f"(dt),"f"(half),"m"(source));*delta=d;return product;}
-// Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (qwDv/qwDw,
+// Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (SO::contactVelocityChange / contactAngularVelocityChange,
 // accumulated by ApplyDzg) to the position and rotation XFs' velocities and advances the position and rotation by
 // half a step with them, then clears the deltas.
 extern "C" void ApplySoRestingContactVelocity(SO *input)
@@ -524,7 +524,7 @@ extern "C" void ApplySoRestingContactVelocity(SO *input)
     M3C frame;
     qword shift,turn;
     register void*enabled __asm__("$2");
-    __asm__("lw %0,0xE8(%1)":"=r"(enabled):"r"(p),"m"(p->psophys));
+    __asm__("lw %0,0xE8(%1)":"=r"(enabled):"r"(p),"m"(p->physics));
     if(enabled){
         qword value;__asm__("lq %0,0xF0(%1)":"=r"(value):"r"(p),"m"(p->qwDv.q));
         qword reference=D_002A2DD0;
@@ -551,21 +551,21 @@ extern "C" void ApplySoRestingContactVelocity(SO *input)
             int incrementNear=0;NearVector(&incrementNear,D_002A2DD0,shift);
             if(!incrementNear){
                 qword point;qword *positionAddress=PointAddress(position,&point);
-                qword delta;float halfDt=HalfAndDelta(D_002DDED0.dt,0.5f,shift,&delta);
+                qword delta;float halfDt=HalfAndDelta(D_002DDED0.deltaTime,0.5f,shift,&delta);
                 qword k=Scalar(halfDt,&scalar);
                 VECTOR_opAssign(positionAddress,AddScaledIn(point,delta,k));
                 position->pos.f[3]=1.0f;
-                position->nStampWorld=++D_003DD490.stamp;
+                position->worldStamp=++D_003DD490.stamp;
             }
             incrementNear=0;NearVector(&incrementNear,D_002A2DD0,turn);
             if(!incrementNear){
-                frame=MulC(BuildRotation(ScaleIn(turn,Scalar(D_002DDED0.dt*0.5f,&scalar))),MATC(rotation));
+                frame=MulC(BuildRotation(ScaleIn(turn,Scalar(D_002DDED0.deltaTime*0.5f,&scalar))),MATC(rotation));
                 NormalizeRotateMatrix3__FP7MATRIX3(&frame);
                 MATC(rotation)=frame;
                 MATC(rotation).r[1].i[3]=0;
                 MATC(rotation).r[2].i[3]=0;
                 MATC(rotation).r[0].i[3]=0;
-                rotation->nStampWorld=++D_003DD490.stamp;
+                rotation->worldStamp=++D_003DD490.stamp;
             }
             p->pvt[18].pfn((char *)p+p->pvt[18].d);
         }
@@ -591,7 +591,7 @@ static __inline__ void AddTo(U *out,qword q)
 // position and rotation XFs' velocities (converted into their parent space) and clears them.
 extern "C" void ApplySoImpactVelocity(SO *object)
 {
-    if(object->psophys){
+    if(object->physics){
         qword value=object->qwDv.q;
         qword reference=D_002A2DD0;
         if(!NearV(value,reference)){
@@ -599,7 +599,7 @@ extern "C" void ApplySoImpactVelocity(SO *object)
             U *force=&object->qwDv;
             qword increment;
             UnsettleXfSlot(object,transform);
-            increment=ConvertXfVec(0,transform->pxfParent,object->qwDv.q);
+            increment=ConvertXfVec(0,transform->parent,object->qwDv.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&transform->v,increment);
             InvalidateSoAaox(object);
@@ -611,7 +611,7 @@ extern "C" void ApplySoImpactVelocity(SO *object)
             U *force=&object->qwDw;
             qword increment;
             UnsettleXfSlot(object,transform);
-            increment=ConvertXfVec(0,transform->pxfParent,object->qwDw.q);
+            increment=ConvertXfVec(0,transform->parent,object->qwDw.q);
             force->f[2]=0;force->f[1]=0;force->f[0]=0;
             AddTo(&transform->v,increment);
             InvalidateSoAaox(object);
@@ -629,7 +629,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
-static inline qword Consume(SO*p,XF*object,U&pending){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->pxfParent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
+static inline qword Consume(SO*p,XF*object,U&pending){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
 // Slot 67, called by SolveSwGroup after the penetration (position) pass: applies the solver's deltas directly as
 // a translation and a rotation of the XFs (pushing interpenetrating objects apart), then updates the transform
 // hierarchy and the broad-phase box.
@@ -637,7 +637,7 @@ extern "C" void ApplySoContactShift(SO*object)
 {
     M3 final;
     int changed=0;
-    if(object->psophys){
+    if(object->physics){
         int near=0;
         NearR(&near,D_002A2DD0,object->qwDv.q);
         if(!near){
@@ -647,7 +647,7 @@ extern "C" void ApplySoContactShift(SO*object)
             object->qwDv.i[0]=0;
             VECTOR_opAssign(&transform->pos.q,AddR(transform->pos.q,shift));
             transform->pos.f[3]=1.0f;
-            transform->nStampWorld=++D_003DD490.stamp;
+            transform->worldStamp=++D_003DD490.stamp;
         }
         near=0;NearR(&near,D_002A2DD0,object->qwDw.q);
         if(!near){
@@ -655,12 +655,12 @@ extern "C" void ApplySoContactShift(SO*object)
             changed=1;
             qword turn=Consume(object,transform,object->qwDw);
             object->qwDw.i[0]=0;
-            final=Mul(func_0011B570R(turn),transform->mat);
-            transform->mat=final;
-            ((int*)&transform->mat.r[1])[3]=0;
-            ((int*)&transform->mat.r[2])[3]=0;
-            ((int*)&transform->mat.r[0])[3]=0;
-            transform->nStampWorld=++D_003DD490.stamp;
+            final=Mul(func_0011B570R(turn),transform->localMatrix);
+            transform->localMatrix=final;
+            ((int*)&transform->localMatrix.r[1])[3]=0;
+            ((int*)&transform->localMatrix.r[2])[3]=0;
+            ((int*)&transform->localMatrix.r[0])[3]=0;
+            transform->worldStamp=++D_003DD490.stamp;
         }
         if(changed){object->pvt[18].pfn((char*)object+object->pvt[18].d);InvalidateSoAaox(object);}
     }
@@ -699,11 +699,11 @@ qword ApplyConstr(CONSTR *constraint, XF *transform, qword vector)
         __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(vector));
         break;
     case 2:
-        if (transform->pxfParent) { qword axis = constraint->v; MulMVIn(&transform->pxfParent->matWorld, &axis); axis = Normalize(axis); vector = Proj(vector, axis); }
+        if (transform->parent) { qword axis = constraint->v; MulMVIn(&transform->parent->worldMatrix, &axis); axis = Normalize(axis); vector = Proj(vector, axis); }
         else vector = Proj(vector, constraint->v);
         break;
     case 1:
-        if (transform->pxfParent) { qword axis = constraint->v; MulMVIn(&transform->pxfParent->matWorld, &axis); axis = Normalize(axis); vector = Rej(vector, axis); }
+        if (transform->parent) { qword axis = constraint->v; MulMVIn(&transform->parent->worldMatrix, &axis); axis = Normalize(axis); vector = Rej(vector, axis); }
         else vector = Rej(vector, constraint->v);
         break;
     }
@@ -740,9 +740,9 @@ qword GetSoImpulseLinearDelta(SO *objectArg,qword impulse) {
     register CONSTR *projection __asm__("$4");
     U scalar;
     register qword impulseVf __asm__("vf3")=impulse; register qword mass __asm__("vf2"); register qword result __asm__("vf1");
-    register int massWord __asm__("$3")=object->psophys->mass.bits;
+    register int massWord __asm__("$3")=object->physics->mass.bits;
     __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(mass) : "r"(massWord));
-    projection=&object->psophys->constrPos;
+    projection=&object->physics->constrPos;
     __asm__ __volatile__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(result) : "j"(mass),"j"(impulseVf));
     scalar.q=mass;
     return ApplyConstr(projection,object->pxfPos,Get(result));
@@ -787,10 +787,10 @@ qword ApplySoInverseInertia(SO *object, qword torque)
     XF *rotation = object->pxfRot;
     M3 inverseRotation;
     qword row;
-    InvertMatrix3Cofactor(&inverseRotation, &rotation->matWorld);
+    InvertMatrix3Cofactor(&inverseRotation, &rotation->worldMatrix);
     MulMVInP(&inverseRotation, &torque);
-    row=MulMVRow(&object->psophys->m,&torque);
-    return ApplyConstr(&object->psophys->constrRot, object->pxfRot, MulMVR(&rotation->matWorld, torque, row));
+    row=MulMVRow(&object->physics->m,&torque);
+    return ApplyConstr(&object->physics->constrRot, object->pxfRot, MulMVR(&rotation->worldMatrix, torque, row));
 }
 
 // Velocity of a point of the object for a linear/angular velocity pair (v, w): v + w x (pos - centre).
@@ -807,7 +807,7 @@ qword CalculateSoPointVelocity(SO *object, qword *velocities, qword pos)
 static inline void AddAccel(XF *po, qword d)
 {
     qword a = po->a.q;
-    qword r = ConvertXfVec(0, po->pxfParent, d);
+    qword r = ConvertXfVec(0, po->parent, d);
     qword s;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(a), "j"(r));
     po->a.q = s;
@@ -825,10 +825,10 @@ extern "C" void ApplySoImpulse(SO *object, qword pos, qword impulse)
 // converted into the transform's parent space. Sly 1: AddSoAcceleration.
 void AddSoAcceleration(SO *object, qword acceleration)
 {
-    if (IsXfRoleVelocity(object->pxfPos->nRole)) {
+    if (IsXfRoleVelocity(object->pxfPos->role)) {
         XF *transform = object->pxfPos;
         qword current = transform->a.q;
-        qword local = ConvertXfVec(0, transform->pxfParent, acceleration);
+        qword local = ConvertXfVec(0, transform->parent, acceleration);
         qword sum;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(sum) : "j"(current), "j"(local));
         transform->a.q = sum;
@@ -838,10 +838,10 @@ void AddSoAcceleration(SO *object, qword acceleration)
 // The rotational twin of AddSoAcceleration: adds an angular acceleration to the rotation transform.
 extern "C" void AddSoAngularAcceleration(SO *object, qword acceleration)
 {
-    if (IsXfRoleVelocity(object->pxfRot->nRole)) {
+    if (IsXfRoleVelocity(object->pxfRot->role)) {
         XF *transform = object->pxfRot;
         qword current = transform->a.q;
-        qword local = ConvertXfVec(0, transform->pxfParent, acceleration);
+        qword local = ConvertXfVec(0, transform->parent, acceleration);
         qword sum;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(sum) : "j"(current), "j"(local));
         transform->a.q = sum;
@@ -856,7 +856,7 @@ struct S2 { struct Pr ap[2]; qword normal; struct Q2 *aq; };
 // motion is locked. Called by FillDzgDz for both sides of every contact.
 extern "C" void CalculateSoContactResponse(SO *object, int unused1, S2 *rowContact, int unused3, int side)
 {
-    SOPHYS *physics = object->psophys;
+    SOPHYS *physics = object->physics;
     qword normal;
     struct Pr *effect;
     if (!physics) return;
@@ -878,6 +878,6 @@ struct V4 { int x, y, z, w; };
 // or zero when the object has no physics block (+0xE8). Used by FillDzgDz to couple constraint rows.
 extern "C" void GetSoVelocityAtPos(SO *object, qword *effect, qword pos, V4 *velocityOut)
 {
-    if (!object->psophys) { velocityOut->z = 0; velocityOut->y = 0; velocityOut->x = 0; }
+    if (!object->physics) { velocityOut->z = 0; velocityOut->y = 0; velocityOut->x = 0; }
     else *(qword *)velocityOut = CalculateSoPointVelocity(object, effect, pos);
 }

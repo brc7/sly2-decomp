@@ -60,7 +60,7 @@ namespace M_ActivateCplcy { extern "C" {
 struct G { char pad[0x24]; float targetFov; char pad2[0x24]; float nearClip; };
 extern struct G D_002DDF40;
 struct T { int a; float b; float c; };
-// Default slot 2 Activate(psoFocus, pv): pvHero(+0)=psoFocus; save g_cm fovTarget (+4) and sNearClip (+8)
+// Default slot 2 Activate(focus, pv): pvHero(+0)=focus; save g_cm targetFieldOfView (+4) and nearClip (+8)
 void ActivateCplcy(struct T *p, int a)
 {
     p->a = a;
@@ -69,12 +69,12 @@ void ActivateCplcy(struct T *p, int a)
 }
 } } // namespace M_ActivateCplcy
 
-// Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); fovTarget=saved.
+// Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); targetFieldOfView=saved.
 extern "C" void DeactivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 {
     pcplcy->pvHero = 0;
-    SetCmNearClip(&D_002DDF40, pcplcy->sNearClipSaved);
-    D_002DDF40.fovTarget = pcplcy->gFovTargetSaved;
+    SetCmNearClip(&D_002DDF40, pcplcy->savedNearClip);
+    D_002DDF40.targetFieldOfView = pcplcy->savedTargetFieldOfView;
 }
 
 // Default (empty) slot 4: called by SetCmPolicy with pv on every insert. (inferred)
@@ -123,24 +123,24 @@ extern "C" void UpdateCmpart1(CMPART1 *pcmpart1, void *pv, JOY *pjoy)
     UpdateCplcy(pcmpart1, pv, pjoy);
 }
 
-// CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndUnk38 = 0.
+// CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/unknown38 = 0.
 extern "C" CPLOOK *CPLOOK_ctor(CPLOOK *pcplook)
 {
     CPLCY_ctor(pcplook);
     PVTCPLCY(pcplook) = D_002CD4E0;
     pcplook->rZoomMax = 7.0f;
     pcplook->psndZoom.m_p = 0;
-    pcplook->psndUnk38.m_p = 0;
+    pcplook->unknown38.m_p = 0;
     return pcplook;
 }
 
 // Resets the look policy's zoom: zoom amount and its speed to 0, and the camera field of view back to the policy's
-// zoom field of view (radFovZoom).
+// zoom field of view (zoomedFieldOfView).
 extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 {
-    pcplook->uZoom = 0.0f;
+    pcplook->zoom = 0.0f;
     pcplook->svuZoom = 0.0f;
-    SetCmFov(&D_002DDF40, pcplook->radFovZoom);
+    SetCmFov(&D_002DDF40, pcplook->zoomedFieldOfView);
 }
 
 namespace M_PosCplookAnchor { extern "C" {
@@ -179,7 +179,7 @@ struct X { int a[4]; float panAngle; float tiltAngle; };
 extern qword D_002A5000;
 void LoadRotateMatrixPanTiltP(M3 *pm, float x, float y) __asm__("LoadRotateMatrixPanTilt");
 qword PosCplookAnchor(struct X *p);
-// Eye = anchor + RotMatrix(radPan +0x10, radTilt +0x14) * D_002A5000 offset. (inferred)
+// Eye = anchor + RotMatrix(panAngle +0x10, tiltAngle +0x14) * D_002A5000 offset. (inferred)
 qword PosCplookEye(struct X *p)
 {
     M3 m;
@@ -226,7 +226,7 @@ float ClampToLimits__FP2LMf(F2 *, float);
 void SetCmNearClip__FP2CMf(struct G *, float);
 
 // Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus), pan/tilt limits,
-// uZoom=0, fov zoom range, near clip 49, cEnter++.
+// zoom=0, fov zoom range, near clip 49, numActivations++.
 void ActivateCplook(struct X *p)
 {
     struct G *pg;
@@ -277,13 +277,13 @@ void ActivateCplook(struct X *p)
 namespace M_UpdateCplook { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
-struct CM { char pad[0x20]; float fov; };
+struct CM { char pad[0x20]; float fieldOfView; };
 extern struct CM D_002DDF40;
 struct G { char pad[0x3B4C]; void *saveVars; char pad2[0x4750 - 0x3B50]; float tLookLast; };   /* SW: the global save variables (inferred), sw.h's tLookLast */
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 struct POLY { float c0, c1, c2; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 extern struct POLY D_002BD980;
 extern float D_002BD990, D_002BD994, D_002BD998, D_002BD99C;
 extern char D_002BD9A0[];
@@ -291,7 +291,7 @@ extern struct LM D_002BD9B0;
 extern char D_002BBB60[], D_002BBB68[];
 struct CRef { int m_tagk; int m_n; };
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
-struct JOY { char pad[0x103C]; float dxLeft; float dyLeft; char pad2[0x1074 - 0x1044]; float dyRight; };   /* sticks (joy.h's JOY) */
+struct JOY { char pad[0x103C]; float leftStickX; float leftStickY; char pad2[0x1074 - 0x1044]; float dyRight; }; /* sticks (joy.h's JOY) */
 struct X {
     char pad0[0x10]; float panAngle; float tiltAngle; float panSpeed; float tiltSpeed; float zoom; float zoomSpeed; int pad28; float zoomFov; float wideFov;
     struct SND *zoomSound; int pad38; float panMin; float panMax; float tiltMin; float tiltMax;
@@ -331,7 +331,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     UpdateCplcy(p, pv, pjoy);
     x = p->zoom;
     p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
-    x += p->zoomSpeed * D_002DDED0.dt;
+    x += p->zoomSpeed * D_002DDED0.deltaTime;
     p->zoom = x = ClampLocal(x, 0.0f, 1.0f);
     if (p->zoomSpeed != 0.0f && 0.0f < x && x < 1.0f) {
         struct SND *ps = p->zoomSound;
@@ -346,16 +346,16 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     }
     u = 1.0f - p->zoom;
     SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
-    gPan = -__builtin_fabsf(pjoy->dxLeft) * pjoy->dxLeft * D_002BD990;
-    gTilt = -__builtin_fabsf(pjoy->dyLeft) * pjoy->dyLeft * D_002BD994;
+    gPan = -__builtin_fabsf(pjoy->leftStickX) * pjoy->leftStickX * D_002BD990;
+    gTilt = -__builtin_fabsf(pjoy->leftStickY) * pjoy->leftStickY * D_002BD994;
     GetGlobalSaveVar(&ref, D_003DD490.saveVars, D_003D4A60);
     f = ref.m_n;
     Decref__4CRef(&ref);
     if (f)
         gTilt = -gTilt;
-    gPan = p->panSpeed + ClampAbs__Fff(gPan - p->panSpeed, D_002BD998 * D_002DDED0.dt);
-    gTilt = p->tiltSpeed + ClampAbs__Fff(gTilt - p->tiltSpeed, D_002BD99C * D_002DDED0.dt);
-    dt = D_002DDED0.dt * 0.5f;
+    gPan = p->panSpeed + ClampAbs__Fff(gPan - p->panSpeed, D_002BD998 * D_002DDED0.deltaTime);
+    gTilt = p->tiltSpeed + ClampAbs__Fff(gTilt - p->tiltSpeed, D_002BD99C * D_002DDED0.deltaTime);
+    dt = D_002DDED0.deltaTime * 0.5f;
     {
         float gMin, gMax;
         SmoothValue__FfffP3SMPPf(p->panAngle, p->panMin, dt, D_002BD9A0, &gMin);
@@ -366,23 +366,23 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
         p->tiltSpeed = Clamp(gTilt, gMin, gMax);
     }
     {
-        float k = (1.0f - D_002DDF40.fov) * D_002BD9B0.gMin + D_002DDF40.fov * D_002BD9B0.gMax;
-        p->panAngle += k * p->panSpeed * D_002DDED0.dt;
-        p->tiltAngle += k * p->tiltSpeed * D_002DDED0.dt;
+        float k = (1.0f - D_002DDF40.fieldOfView) * D_002BD9B0.minValue + D_002DDF40.fieldOfView * D_002BD9B0.maxValue;
+        p->panAngle += k * p->panSpeed * D_002DDED0.deltaTime;
+        p->tiltAngle += k * p->tiltSpeed * D_002DDED0.deltaTime;
     }
     if (6.2831855f <= p->panMax - p->panMin)
         p->panAngle = NormalizeAngle__Ff(p->panAngle);
     SetCameraLookAt(&D_002DDF40, PosCplookEye(p), PosCplookAnchor(p), 0.0f, 0.0f);
-    D_003DD490.tLookLast = D_002DDED0.t;
+    D_003DD490.tLookLast = D_002DDED0.time;
 }
 } } // namespace M_UpdateCplook
 
 // ResetCplook (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
-// sound references psndUnk38 and psndZoom. (inferred)
+// sound references unknown38 and psndZoom. (inferred)
 void CPLOOK::ResetPolicy()   /* key function */
 {
     CPLOOK *pcplook = this;
-    RcPtr_Assign(&pcplook->psndUnk38, 0);
+    RcPtr_Assign(&pcplook->unknown38, 0);
     RcPtr_Assign(&pcplook->psndZoom, 0);
 }
 
@@ -414,15 +414,15 @@ void DeactivateCplook(struct A *a, int n, void *b)
 }
 } } // namespace M_DeactivateCplook
 
-// CPZOOM ctor (vtable D_002CD498): rZoomMax(+0xB4)=7.0, uZoomTarget(+0x18)=-1, sounds 0.
+// CPZOOM ctor (vtable D_002CD498): rZoomMax(+0xB4)=7.0, zoomTarget(+0x18)=-1, sounds 0.
 extern "C" CPZOOM *CPZOOM_ctor(CPZOOM *pcpzoom)
 {
     CPLCY_ctor(pcpzoom);
     PVTCPLCY(pcpzoom) = D_002CD498;
     pcpzoom->rZoomMax = 7.0f;
-    pcpzoom->uZoomTarget = -1.0f;
+    pcpzoom->zoomTarget = -1.0f;
     pcpzoom->psndZoom.m_p = 0;
-    pcpzoom->psndUnkc4.m_p = 0;
+    pcpzoom->unknownC4.m_p = 0;
     return pcpzoom;
 }
 
@@ -493,8 +493,8 @@ static inline qword MulM3(M3 *pm, qword v)
     __asm__("vmulax.xyz ACC, %2, %1x\n\tvmadday.xyz ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(r) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]));
     return r;
 }
-// Eye: if ploFocus(+0x14), behind center looking at focus (updates radPan +0xA4); else center +
-// Rot(radPan,radTilt)*offset. (inferred)
+// Eye: if ploFocus(+0x14), behind center looking at focus (updates panAngle +0xA4); else center +
+// Rot(panAngle,tiltAngle)*offset. (inferred)
 qword PosCpzoomEye(struct X *p)
 {
     qword r;
@@ -515,9 +515,9 @@ qword PosCpzoomEye(struct X *p)
 } } // namespace M_PosCpzoomEye
 
 namespace M_ActivateCpzoom { extern "C" {
-typedef struct CLOCK { float t; float dt; } CLOCK;
+typedef struct CLOCK { float time; float deltaTime; } CLOCK;
 extern CLOCK D_002DDED0;
-struct G { char pad[0x24]; float targetFov; char pad2[0x60 - 0x28]; char matrix[0x4A4 - 0x60]; int lookEnterCount;  /* g_cm.cplook.cEnter */ };
+struct G { char pad[0x24]; float targetFov; char pad2[0x60 - 0x28]; char matrix[0x4A4 - 0x60]; int lookEnterCount;  /* g_cm.cplook.numActivations */ };
 extern struct G D_002DDF40;
 struct A { char pad[0xA4]; float panAngle; float tiltAngle; int zoom; int zoomSpeed; float maxZoom; float zoomFov; float wideFov; void *zoomSound; void *zoomStopSound; };
 void ActivateCplcy(struct A *a, int n);
@@ -529,7 +529,7 @@ void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pmat, float *pa, float *
 void SetCmNearClip__FP2CMf(struct G *pg, float g);
 void SnapCpzoom(struct A *a);
 // Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49, SnapCpzoom, shares
-// cEnter counter (g_cm+0x4A4)
+// numActivations counter (g_cm+0x4A4)
 void ActivateCpzoom(struct A *a, int n)
 {
     void *p;
@@ -553,7 +553,7 @@ void ActivateCpzoom(struct A *a, int n)
     SetCmNearClip__FP2CMf(pg, 49.0f);
     SnapCpzoom(a);
     pg->lookEnterCount++;
-    g_sw.tLookLast = D_002DDED0.t;
+    g_sw.tLookLast = D_002DDED0.time;
 }
 } } // namespace M_ActivateCpzoom
 
@@ -601,16 +601,16 @@ static __inline__ float GFrac(float g, float a, float b)
     return (g - a) / (b - a);
 }
 
-// Smooth uZoom toward uZoomTarget with sounds; if posed (fPose +0x40) blend pos/eul/fov to target pose, else smooth
+// Smooth zoom toward zoomTarget with sounds; if posed (hasPose +0x40) blend pos/eul/fov to target pose, else smooth
 // center/eye and SetCmLookAt.
 void UpdateCpzoom(struct X *p)
 {
     UpdateCplcy(p);
-    if (D_002DDED0.dt == 0.0f)
+    if (D_002DDED0.deltaTime == 0.0f)
         return;
     if (0.0f <= p->targetZoom) {
-        float g = Clamp(SmoothValue__FfffP3SMPPf(D_002BD9B8, 0, p->zoom, p->targetZoom, D_002DDED0.dt), 0.0f, 1.0f);
-        p->zoomSpeed = (g - p->zoom) / D_002DDED0.dt;
+        float g = Clamp(SmoothValue__FfffP3SMPPf(D_002BD9B8, 0, p->zoom, p->targetZoom, D_002DDED0.deltaTime), 0.0f, 1.0f);
+        p->zoomSpeed = (g - p->zoom) / D_002DDED0.deltaTime;
         p->zoom = g;
     }
     if (p->zoomSpeed != 0.0f) {
@@ -628,14 +628,14 @@ void UpdateCpzoom(struct X *p)
         M3 m0, m30, m60, m90;
         M4 m4;
         float u;
-        p->posePosition = PosSmooth(p->posePosition, p->targetPosition, D_002DDED0.dt, D_002BD9C8, 0);
+        p->posePosition = PosSmooth(p->posePosition, p->targetPosition, D_002DDED0.deltaTime, D_002BD9C8, 0);
         LoadRotateMatrixEuler(&m90, p->poseAngles);
         m0 = m90;
         LoadRotateMatrixEuler(&m90, p->targetAngles);
         m30 = m90;
-        SmoothMatrix(&m0, &m30, D_002BD9D8, &m60, 0, D_002DDED0.dt);
+        SmoothMatrix(&m0, &m30, D_002BD9D8, &m60, 0, D_002DDED0.deltaTime);
         p->poseAngles = DecomposeRotationMatrixToEuler(&m60);
-        p->poseFov = SmoothAngle__FfffP3SMPPf(D_002BD9E8, 0, p->poseFov, p->targetFov, D_002DDED0.dt);
+        p->poseFov = SmoothAngle__FfffP3SMPPf(D_002BD9E8, 0, p->poseFov, p->targetFov, D_002DDED0.deltaTime);
         {
         M4 *pm4 = &m4;
         VECTOR_opAssign(&pm4->q.r[3], p->posePosition);
@@ -656,63 +656,63 @@ void UpdateCpzoom(struct X *p)
         SetCmFov__FP2CMf(&D_002DDF40, (1.0f - u) * p->zoomFov + u * p->wideFov);
         {
             qword a = p->smoothedEye;
-            p->smoothedEye = PosSmooth(a, PosCpzoomEye(p), D_002DDED0.dt, D_002BD9F8, 0);
+            p->smoothedEye = PosSmooth(a, PosCpzoomEye(p), D_002DDED0.deltaTime, D_002BD9F8, 0);
         }
         {
             qword a = p->smoothedFocus;
-            p->smoothedFocus = PosSmooth(a, PosCpzoomCenter(p), D_002DDED0.dt, D_002BD9F8, 0);
+            p->smoothedFocus = PosSmooth(a, PosCpzoomCenter(p), D_002DDED0.deltaTime, D_002BD9F8, 0);
         }
         SetCameraLookAt(&D_002DDF40, p->smoothedEye, p->smoothedFocus, 0.0f, 0.0f);
     }
-    g_sw.tLookLast = D_002DDED0.t;
+    g_sw.tLookLast = D_002DDED0.time;
 }
 } } // namespace M_UpdateCpzoom
 
 // ResetCpzoom (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
-// sound references psndUnkc4 (+0xC4) and psndZoom (+0xC0). (inferred)
+// sound references unknownC4 (+0xC4) and psndZoom (+0xC0). (inferred)
 void CPZOOM::ResetPolicy()   /* key function */
 {
     CPZOOM *pcpzoom = this;
-    RcPtr_Assign(&pcpzoom->psndUnkc4, 0);
+    RcPtr_Assign(&pcpzoom->unknownC4, 0);
     RcPtr_Assign(&pcpzoom->psndZoom, 0);
 }
 
-// PloOwner(+0x10)=plo; if posed, SnapCpzoom; fPose=0. (inferred)
+// PloOwner(+0x10)=plo; if posed, SnapCpzoom; hasPose=0. (inferred)
 extern "C" void SetCpzoomOwner(CPZOOM *pcpzoom, LO *plo)
 {
     pcpzoom->ploOwner = plo;
-    if (pcpzoom->fPose != 0) {
+    if (pcpzoom->hasPose != 0) {
         SnapCpzoom(pcpzoom);
     }
-    pcpzoom->fPose = 0;
+    pcpzoom->hasPose = 0;
 }
 
-// PloFocus(+0x14)=plo; if posed, SnapCpzoom; fPose=0. (inferred)
+// PloFocus(+0x14)=plo; if posed, SnapCpzoom; hasPose=0. (inferred)
 extern "C" void SetCpzoomFocus(CPZOOM *pcpzoom, LO *plo)
 {
     pcpzoom->ploFocus = plo;
-    if (pcpzoom->fPose != 0) {
+    if (pcpzoom->hasPose != 0) {
         SnapCpzoom(pcpzoom);
     }
-    pcpzoom->fPose = 0;
+    pcpzoom->hasPose = 0;
 }
 
-// PosTarget(+0x80), eulTarget(+0x90), radFovTarget(+0xA0); if not posed SnapCpzoom; fPose=1. (inferred)
+// PosTarget(+0x80), eulTarget(+0x90), targetFieldOfView(+0xA0); if not posed SnapCpzoom; hasPose=1. (inferred)
 extern "C" void SetCpzoomPose(CPZOOM *pcpzoom, qword pos, qword eul, float radFov)
 {
-    *(qword *)&pcpzoom->posTarget = pos;
+    *(qword *)&pcpzoom->targetEyePosition = pos;
     *(qword *)&pcpzoom->eulTarget = eul;
-    pcpzoom->radFovTarget = radFov;
-    if (pcpzoom->fPose == 0) {
+    pcpzoom->targetFieldOfView = radFov;
+    if (pcpzoom->hasPose == 0) {
         SnapCpzoom(pcpzoom);
     }
-    pcpzoom->fPose = 1;
+    pcpzoom->hasPose = 1;
 }
 
 // UZoomTarget(+0x18)=g.
 extern "C" void SetCpzoomUZoomTarget(CPZOOM *pcpzoom, float uZoomTarget)
 {
-    pcpzoom->uZoomTarget = uZoomTarget;
+    pcpzoom->zoomTarget = uZoomTarget;
 }
 
 namespace M_SnapCpzoom { extern "C" {
@@ -724,7 +724,7 @@ struct S {
 };
 qword PosCpzoomCenter(struct S *p);
 qword PosCpzoomEye(struct S *p);
-// Reset smoothed center/eye to current targets, uZoom=uZoomTarget (if >=0), pose = target pose.
+// Reset smoothed center/eye to current targets, zoom=zoomTarget (if >=0), pose = target pose.
 void SnapCpzoom(struct S *p)
 {
     p->smoothedFocus = PosCpzoomCenter(p);
@@ -780,7 +780,7 @@ int HasZoomEyeArrived(struct S *p)
 namespace M_HasZoomReachedTarget { extern "C" {
 struct S { int pad[6]; float targetZoom; char pad2[0xAC - 0x1C]; float zoom; };
 int AreFloatsNear__Ffff(float a, float b, float eps);
-// UZoomTarget < 0 or uZoom ~= uZoomTarget (0.01) (inferred)
+// UZoomTarget < 0 or zoom ~= zoomTarget (0.01) (inferred)
 int HasZoomReachedTarget(struct S *p)
 {
     int f = 0;
@@ -804,7 +804,7 @@ static inline void Release(void **pp, float g)
         RcPtr_Assign(pp, 0);
     }
 }
-// Release sounds, clear owner/focus/pose, uZoomTarget=-1, CutCm, CPLCY::Deactivate.
+// Release sounds, clear owner/focus/pose, zoomTarget=-1, CutCm, CPLCY::Deactivate.
 void DeactivateCpzoom(struct A *a, int n, void *b)
 {
     Release(&a->zoomSound, 0.0f);
@@ -835,7 +835,7 @@ void ActivateCplcy(struct A *a, int n, void *b);
 void SetCmNearClip__FP2CMf(void *pg, float g);
 void SetCmFov__FP2CMf(void *pg, float g);
 int NewPositionAct(int n, void *pb, int a, int b, int c, qword q);
-// Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), tNext=-1. (inferred)
+// Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), nextSwayTime=-1. (inferred)
 void ActivateCphang(struct A *a, int n, void *b)
 {
     void *pg;
@@ -869,14 +869,14 @@ extern "C" CLOCK D_002DDED0;
 struct CM;
 extern "C" CM D_002DDF40;
 struct CLQ { float g0, g1, g2, pad; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 extern "C" CLQ D_002BDA10;
 extern "C" LM D_002BDA20;
 extern "C" CLQ D_002BDA30;
 extern "C" LM D_002BDA40;
 extern "C" LM D_002BDA48, D_002BDA50, D_002BDA58;
 extern "C" float D_002BDA60, D_002BDA64;
-struct JOY { char pad[0x1070]; float dxRight; float dyRight; float sRight; };   /* the right stick: deflection and its magnitude */
+struct JOY { char pad[0x1070]; float dxRight; float dyRight; float rightStickDeflection; }; /* the right stick: deflection and its magnitude */
 struct GS { char pad[0x4CC]; int unknown4CC; };
 struct TGT { char pad[0x20]; qword pos; };
 struct OBJ { char pad[0x40]; int matrix; };   /* the camera XF: its matrix at +0x40 */
@@ -892,7 +892,7 @@ void SetCmMat4(CM *p, int *pm);
 void UpdateCphang(X *p, void *pv, JOY *pjoy);
 }
 static inline float GFromClq(const CLQ &c, float g) { return c.g0 + g * (c.g1 + g * c.g2); }
-static inline float GRand(const LM &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
+static inline float GRand(const LM &lm) { return RandomFloatInRange__Fff(lm.minValue, lm.maxValue); }
 static inline qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -929,7 +929,7 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
 {
     qword pos, v;
     UpdateCplcy(p, pv, pjoy);
-    if (0.0f < pjoy->sRight) {
+    if (0.0f < pjoy->rightStickDeflection) {
         float sx, sy;
         sx = 1.0f;
         if (0.0f < pjoy->dxRight)
@@ -937,8 +937,8 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
         sy = -1.0f;
         if (0.0f < pjoy->dyRight)
             sy = 1.0f;
-        float ax = sx * Clamp(GFromClq(D_002BDA10, __builtin_fabsf(pjoy->dxRight)), D_002BDA20.gMin, D_002BDA20.gMax);
-        float ay = Clamp(GFromClq(D_002BDA30, __builtin_fabsf(pjoy->dyRight)), D_002BDA40.gMin, D_002BDA40.gMax);
+        float ax = sx * Clamp(GFromClq(D_002BDA10, __builtin_fabsf(pjoy->dxRight)), D_002BDA20.minValue, D_002BDA20.maxValue);
+        float ay = Clamp(GFromClq(D_002BDA30, __builtin_fabsf(pjoy->dyRight)), D_002BDA40.minValue, D_002BDA40.maxValue);
         float y = sy * ay;
         v = Zero();
         union { qword q; } u;
@@ -949,17 +949,17 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
         pos = zero;
         v = pos;
     } else {
-        if (p->nextSwayTime < D_002DDED0.t) {
+        if (p->nextSwayTime < D_002DDED0.time) {
             float y = GRand(D_002BDA48);
             float z = GRand(D_002BDA50);
             float *pf = p->pos.f;
             pf[0] = 0.0f;
             pf[1] = y;
             pf[2] = z;
-            float t = D_002DDED0.t;
+            float t = D_002DDED0.time;
             p->nextSwayTime = t + GRand(D_002BDA58);
         }
-        float dt = D_002DDED0.dt;
+        float dt = D_002DDED0.deltaTime;
         qword accel = VecCombo(VU_FLOAT(&D_002BDA60), Sub(p->pos.q, p->act->pos), VU_FLOAT(-D_002BDA64), p->v);
         v = AddScaled(p->v, accel, VU_FLOAT(dt));
         pos = AddScaled2(p->act->pos, p->v, v, VU_FLOAT(dt * 0.5f));
@@ -1068,7 +1068,7 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 }
 
 }
-// T=(clock.t - tModeStart)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov between the two
+// T=(clock.time - modeStartTime)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov between the two
 // CAMPOSEs; SetCmMat4 + SetCmFov.
 extern "C" void UpdateCpcamblend(struct X *p)
 {
@@ -1078,7 +1078,7 @@ extern "C" void UpdateCpcamblend(struct X *p)
     U c;
     struct PATH *ppath;
     UpdateCplcy(p);
-    u = D_002DDED0.t - D_002DDF40.modeStartTime;
+    u = D_002DDED0.time - D_002DDF40.modeStartTime;
     t = Clamp(u / p->ppath->dt, 0.0f, 1.0f);
     u = t;
     c.f[1] = u * u;
@@ -1124,7 +1124,7 @@ struct B { char pad[0x1BC]; float turretFov; };
 void ActivateCplcy(void *a, struct B *b);
 void SetCmNearClip__FP2CMf(struct G *pg, float g);
 } } // namespace M_ActivateCpturret
-// CPLCY::Activate; near clip 49; fovTarget = turret +0x1BC. (inferred)
+// CPLCY::Activate; near clip 49; targetFieldOfView = turret +0x1BC. (inferred)
 void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
     using namespace M_ActivateCpturret;
@@ -1143,7 +1143,7 @@ struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
 extern "C" CLOCK D_002DDED0;
 struct CM {
-    char pad0[0x20]; float fov; float targetFov; char pad1[0x60 - 0x28];
+    char pad0[0x20]; float fieldOfView; float targetFov; char pad1[0x60 - 0x28];
     M3 mat; qword pos; char pad2[0x300 - 0xA0]; int cutCount;
 };
 extern "C" CM D_002DDF40;
@@ -1210,7 +1210,7 @@ void UpdateCpturret(X *p)
         if (rad < 0.0001f) {
             mNew = m.m3;
         } else {
-            float g = SmoothValue__FfffP3SMPPf(rad, 0.0f, D_002DDED0.dt, D_002BDAB0, 0);
+            float g = SmoothValue__FfffP3SMPPf(rad, 0.0f, D_002DDED0.deltaTime, D_002BDAB0, 0);
             mNew = Mul(BuildAxisAngleRotationMatrix(axis.q, g), m.m3);
         }
         qword d = VuSub(D_002DDF40.pos, m.q.r[3]);
@@ -1219,7 +1219,7 @@ void UpdateCpturret(X *p)
         if (dist < 0.0001f)
             pos = m.q.r[3];
         else
-            pos = AddScaled(m.q.r[3], d, VU_FLOAT(SmoothValue__FfffP3SMPPf(dist, 0.0f, D_002DDED0.dt, D_002BDAC0, 0) / dist));
+            pos = AddScaled(m.q.r[3], d, VU_FLOAT(SmoothValue__FfffP3SMPPf(dist, 0.0f, D_002DDED0.deltaTime, D_002BDAC0, 0) / dist));
         VECTOR_opAssign(&m.q.r[3], pos);
         m.m3 = mNew;
         m.af[3][3] = 1.0f;
@@ -1228,14 +1228,14 @@ void UpdateCpturret(X *p)
         m.af[0][3] = 0.0f;
     }
     SetCmMat4(&D_002DDF40, &m);
-    if (D_002DDF40.targetFov != D_002DDF40.fov)
+    if (D_002DDF40.targetFov != D_002DDF40.fieldOfView)
         D_002DDF40.targetFov = py->turretFov;
     else
         SetCmFov__FP2CMf(&D_002DDF40, py->turretFov);
 }
 } // namespace M_UpdateCpturret
 
-// CPLCY::Activate; +0x14=psoFocus arg, +0x10=pv arg. (inferred)
+// CPLCY::Activate; +0x14=focus arg, +0x10=pv arg. (inferred)
 void CPTWOSHOT::Activate(void *pvHero, void *pv)   /* key function */
 {
     CPTWOSHOT *pcptwoshot = this;
@@ -1256,7 +1256,7 @@ union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
 struct CM;
 extern "C" CM D_002DDF40;
 struct CLQ { float g0, g1, g2, pad; };
-struct LM { float gMin, gMax; int pad[2]; };
+struct LM { float minValue, maxValue; int pad[2]; };
 extern "C" float D_002BDACC;
 extern "C" CLQ D_002BDAD0, D_002BDAF0, D_002BDB10, D_002BDB30;
 extern "C" LM D_002BDAE0, D_002BDB00, D_002BDB20, D_002BDB40;
@@ -1326,12 +1326,12 @@ void UpdateCptwoshot(X *p)
     focus.f[2] = 150.0f;
     U pos;
     pos.q = focus.q;
-    pos.f[2] += Clamp(GFromClq(D_002BDAD0, dist), D_002BDAE0.gMin, D_002BDAE0.gMax);
+    pos.f[2] += Clamp(GFromClq(D_002BDAD0, dist), D_002BDAE0.minValue, D_002BDAE0.maxValue);
     qword n = Normalize(Cross(d.q, D_002A2DC0));
-    float g = Clamp(GFromClq(D_002BDAF0, dist), D_002BDB00.gMin, D_002BDB00.gMax);
+    float g = Clamp(GFromClq(D_002BDAF0, dist), D_002BDB00.minValue, D_002BDB00.maxValue);
     U pos2;
     pos2.q = VuAdd(focus.q, Scale(n, VU_FLOATJ(g)));
-    pos2.f[2] += Clamp(GFromClq(D_002BDB10, dist), D_002BDB20.gMin, D_002BDB20.gMax);
+    pos2.f[2] += Clamp(GFromClq(D_002BDB10, dist), D_002BDB20.minValue, D_002BDB20.maxValue);
     {
         M4 m4;
         M3 m3;
@@ -1347,7 +1347,7 @@ void UpdateCptwoshot(X *p)
         pm4->af[3][3] = 1.0f;
         Cm1( pm4);
     }
-    Cm2( Clamp(GFromClq(D_002BDB30, dist), D_002BDB40.gMin, D_002BDB40.gMax));
+    Cm2( Clamp(GFromClq(D_002BDB30, dist), D_002BDB40.minValue, D_002BDB40.maxValue));
 }
 } // namespace M_UpdateCptwoshot
 

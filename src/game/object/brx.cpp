@@ -127,8 +127,8 @@ typedef char assert_CLoadCollectorArray_size[sizeof(CLoadCollectorArray) == 0x10
 struct CLoadCollectorProxy : CLoadCollector
 {
     virtual void Add(int cAdd, LO **aploAdd) __asm__("CLoadCollectorProxy_Add");   /* key function */
-    int nUnk48;    /* stored into each object's LO::nUnk48 (and its children's) */
-    int idProxy;   /* -1, or set on each object with LO::SetIdProxy(idProxy, 1) */
+    int nUnk48;    /* stored into each object's LO::unknownBits28A (and its children's) */
+    int idProxy;   /* -1, or set on each object with LO::SetIdProxy(proxyId, 1) */
 };
 
 /* Class descriptor table (D_002BAAE8, 0x14-byte records indexed by CID; IsCidDerivedFrom walks it): +0x10 the factory. */
@@ -209,14 +209,14 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
 {
     SW *world;
     LO *plo = (D_002BAAE8 + cid)->pfnNew();
-    plo->psoParent = psoParent;
+    plo->parent = psoParent;
     plo->oid = oid;
     world = &D_003DD490;
     FramePtr_Assign(plo, GetSpliceFrame(world, isplice, plo));
     AppendSlEntry(GetSwOidBucket(world, oid), plo);
     AppendSlEntry(GetSwClassList(world, cid), plo);
     plo->Init();
-    if ((uchar)plo->fInWorld)   /* (uchar): extract the bit as the target does ((int) adds a sign extension) */
+    if ((uchar)plo->isInWorld)  /* (uchar): extract the bit as the target does ((int) adds a sign extension) */
         plo->AddHierarchy();
     if (IsLoInWorld(plo))
         plo->OnAdd();
@@ -486,7 +486,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                     poidfield->oid = (OID)oid;
                     poidfield->ib = pf - (char *)pvStruct;
                     LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
-                    plorun->pv = poidfield;
+                    plorun->argument = poidfield;
                     plorun->pfn = PostLoadOidField;
                     return;
                 }
@@ -533,8 +533,8 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
     case 10:
     {
         LM lm;
-        lm.gMin = stream->F32Read();
-        lm.gMax = stream->F32Read();
+        lm.minValue = stream->F32Read();
+        lm.maxValue = stream->F32Read();
         (pbasic->*(void (BASIC::*)(LM *))pmfSet)(&lm);
         break;
     }
@@ -556,9 +556,9 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
         float g0 = stream->F32Read();
         float g1 = stream->F32Read();
         float g2 = stream->F32Read();
-        smp.svFast = g0;
-        smp.svSlow = g1;
-        smp.dtFast = g2;
+        smp.fastSpeed = g0;
+        smp.slowSpeed = g1;
+        smp.fastDuration = g2;
         (pbasic->*(void (BASIC::*)(SMP *))pmfSet)(&smp);
         break;
     }
@@ -587,10 +587,10 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
         float g1 = stream->F32Read();
         float g2 = stream->F32Read();
         float g3 = stream->F32Read();
-        smpa.svFast = g0;
-        smpa.svSlow = g1;
-        smpa.dtFast = g2;
-        smpa.sdvMax = g3;
+        smpa.fastSpeed = g0;
+        smpa.slowSpeed = g1;
+        smpa.fastDuration = g2;
+        smpa.maxSpeedChange = g3;
         (pbasic->*(void (BASIC::*)(SMPA *))pmfSet)(&smpa);
         break;
     }
@@ -664,7 +664,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                 poidsetter->oid = (OID)oid;
                 poidsetter->setter = peopid->setFile;
                 LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
-                plorun->pv = poidsetter;
+                plorun->argument = poidsetter;
                 plorun->pfn = PostLoadOidSetter;
                 return;
             }
@@ -728,10 +728,10 @@ void CLoadCollectorArray::Add(int cAdd, LO **aploAdd)
 extern "C" void SetLoTagHierarchy(LO *plo, int n)
 {
     LO *ploChild;
-    plo->nUnk48 = n;
+    plo->unknownBits28A = n;
     if (IsBasicDerivedFrom(plo, (CID)0x30))
     {
-        for (ploChild = (LO *)((SO *)plo)->dlChild.head; ploChild; ploChild = (LO *)ploChild->dleChild.next)
+        for (ploChild = (LO *)((SO *)plo)->children.head; ploChild; ploChild = (LO *)ploChild->siblingLink.next)
             SetLoTagHierarchy(ploChild, n);
     }
 }
@@ -752,7 +752,7 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
     }
 }
 
-// True when no load filter is active (GetCurrentLevelIndex() = g_sw.nLoadFilter, D_003E1110, is -1) or it is in the list.
+// True when no load filter is active (GetCurrentLevelIndex() = g_sw.loadFilter, D_003E1110, is -1) or it is in the list.
 int IsCurrentLevelInList(int c, short *aid)
 {
     int ilevel = GetCurrentLevelIndex();

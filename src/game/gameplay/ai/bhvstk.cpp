@@ -336,7 +336,7 @@ extern "C" int HandleBhvMessage(BHVV *behavior, int messageId, int payload)
 }
 
 // 0x1EF0C0: BHV vtable slot 14, base version: resets a steering record (clears its +0x1C word and sets its +0x18
-// heading to the owner step's target heading, STEP::radTarget at +0x1A8) (inferred).
+// heading to the owner step's target heading, STEP::targetHeading at +0x1A8) (inferred).
 extern "C" void ResetBhvSteering(BHVV *behavior, BHVTIMER *steering)
 {
     steering->unknown1C = 0;

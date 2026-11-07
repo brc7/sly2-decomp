@@ -314,7 +314,7 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
         ScaleStepSpinSpeed(neela, 1.0f);
     }
     neela->state = st;
-    neela->stateTime = D_002DDED0.t;
+    neela->stateTime = D_002DDED0.time;
     if (st != 1) return;
     ApplyAsegCore(neela->id, neela, 1, &neela->animation, 0.0f, 1.0f);
     VCALL0((O *)neela->animation, 1);
@@ -383,7 +383,7 @@ extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
             DETECTORV *detector = behavior->guard->detector;
             if (IsPointInVol(detector->nearVolume, GetLoWorldPos(D_002E1E40)))
                 SetBhvNeelaChaseState(behavior, 0);
-            else if (behavior->guard->poly.dt < D_002DDED0.t - behavior->stateTime)
+            else if (behavior->guard->poly.dt < D_002DDED0.time - behavior->stateTime)
                 SetBhvNeelaChaseState(behavior, 2);
             break;
         }
@@ -414,7 +414,7 @@ extern "C" void SetBhvNeelaChaseState(NBHV *behavior, int st)
     if (behavior->state == 0) SaveBhvScriptResumeState(behavior->childSlot, behavior->guard->resumeState);
     PopBhv(&behavior->childSlot);
     behavior->state = st;
-    behavior->stateTime = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.time;
     switch (st) {
     case 0: {
         O *o = PushStepBehavior(behavior->guard, CID_BHV169);

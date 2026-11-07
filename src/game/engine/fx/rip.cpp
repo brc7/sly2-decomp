@@ -228,7 +228,7 @@ void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 }
 
 namespace M_OnRipgRemove__FP4RIPG {
-struct DL { void *head; void *tail; int ibDle; };
+struct DL { void *head; void *tail; int linkOffset; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 struct RIP;
@@ -249,7 +249,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
     pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->ibDle;
+    pdli->m_ibDle = pdl->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -289,7 +289,7 @@ namespace M_ProjectRipgTransform { extern "C" {
 // min/max of their two corner vectors, optionally grow by the object's size, then derive the center and radius and notify.
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
-typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
+typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[16]; } VT;
 typedef struct S {
@@ -305,7 +305,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -373,16 +373,16 @@ void ProjectRipgTransform(S *p)
 /* RIPG slot 49. */
 extern "C" void UpdateRipgBounds(RIPGV *ripGroup)
 {
-    ((qword *)ripGroup->ptree)[0] = ripGroup->boundsData[0];
-    ((qword *)ripGroup->ptree)[1] = ripGroup->boundsData[1];
-    ((qword *)ripGroup->ptree)[2] = ripGroup->boundsData[2];
-    ((float *)ripGroup->ptree)[12] = ripGroup->boundsRadius;
+    ((qword *)ripGroup->physicsTree)[0] = ripGroup->boundsData[0];
+    ((qword *)ripGroup->physicsTree)[1] = ripGroup->boundsData[1];
+    ((qword *)ripGroup->physicsTree)[2] = ripGroup->boundsData[2];
+    ((float *)ripGroup->physicsTree)[12] = ripGroup->boundsRadius;
     g_sw.fAaoxUnsorted = 1;
     ClearSoTreeBoundsDirty(ripGroup);
 }
 
 namespace M_UpdateRipg { extern "C" {
-typedef struct DL { void *head; void *tail; int ibDle; } DL;
+typedef struct DL { void *head; void *tail; int linkOffset; } DL;
 typedef struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; struct DLI *m_pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 extern struct CLOCK D_002DDED0;
@@ -398,7 +398,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
     pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->ibDle;
+    pdli->m_ibDle = pdl->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -415,7 +415,7 @@ void UpdateRipg(struct RIPGV *ripGroup)
     struct RIP *prip;
     InitDli(&dli, &ripGroup->dl);
     while ((prip = (struct RIP *)PvNextDli(&dli)) != 0) {
-        if (D_002DDED0.t <= prip->tStart) continue;
+        if (D_002DDED0.time <= prip->tStart) continue;
         AddRipRef__FP3RIP(prip);
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         ReleaseRip__FP3RIP(prip);
@@ -514,7 +514,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                     Init(&phase.rip, &p->rips);
                     RIP *rip;
                     for (rip = (RIP *)Next(&phase.rip); rip; rip = (RIP *)Next(&phase.rip)) {
-                        if (D_002DDED0.t <= rip->start) continue;
+                        if (D_002DDED0.time <= rip->start) continue;
                         int count = ClipEdgeToObjectPruned(shape, entries, rip->extra, rip->position, 4, contacts);
                         int i = 0;
                         if (i < count) do {
@@ -535,7 +535,7 @@ void BounceRipgRips__FP4RIPG(P *p)
 } // namespace M_BounceRipgRips__FP4RIPG
 
 namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO {
-struct DL { void *head; void *tail; int ibDle; };
+struct DL { void *head; void *tail; int linkOffset; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 extern "C" { extern CLOCK D_002DDED0; }
@@ -548,7 +548,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
     pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->ibDle;
+    pdli->m_ibDle = pdl->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -565,7 +565,7 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *ripGroup, CM *pcm, RO *pr
     RIP *prip;
     InitDli(&dli, &ripGroup->dl);
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) {
-        if (D_002DDED0.t <= prip->tStart) continue;
+        if (D_002DDED0.time <= prip->tStart) continue;
             ((void (*)(void *))prip->vt[6].pf)((char *)prip + prip->vt[6].d);
     }
     D_002DD2FC = dli.m_pdliNext;
@@ -755,7 +755,7 @@ void ReleaseRip__FP3RIP(struct S *p)
             FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
         }
         p->pn = 0;
-        FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapUnk4054), p);
+        FreeSlotheapSlot((*(char (*)[])&g_sw.unknown4054), p);
     }
 }
 } } // namespace M_ReleaseRip__FP3RIP
@@ -774,11 +774,11 @@ extern "C" { extern CLOCK D_002DDED0; }
 // Start fade.
 extern "C" void ForceRipFade__FP3RIPf(RIP *prip, float dt)
 {
-    float t = prip->duration - (D_002DDED0.t - prip->startTime);
+    float t = prip->duration - (D_002DDED0.time - prip->startTime);
     if (dt < t) {
         float u = t / prip->duration;
         prip->duration = dt / u;
-        prip->startTime = D_002DDED0.t - (1.0f - u) * prip->duration;
+        prip->startTime = D_002DDED0.time - (1.0f - u) * prip->duration;
     }
 }
 } // namespace M_ForceRipFade__FP3RIPf
@@ -814,7 +814,7 @@ struct SHAPE {
     void *owner;
 };
 struct CLOCK {
-    float time, dt;
+    float time, deltaTime;
 };
 struct PROX {
     float fraction, distance;
@@ -1234,7 +1234,7 @@ typedef char layout_ceb08_17[((unsigned)&((RIP*)0)->friction==0xF8)?1:-1];
 typedef char layout_ceb08_18[((unsigned)&((SHAPE*)0)->frame==0x0)?1:-1];
 typedef char layout_ceb08_19[((unsigned)&((SHAPE*)0)->owner==0x4)?1:-1];
 typedef char layout_ceb08_20[((unsigned)&((CLOCK*)0)->time==0x0)?1:-1];
-typedef char layout_ceb08_21[((unsigned)&((CLOCK*)0)->dt==0x4)?1:-1];
+typedef char layout_ceb08_21[((unsigned)&((CLOCK*)0)->deltaTime==0x4)?1:-1];
 typedef char layout_ceb08_22[((unsigned)&((PROX*)0)->fraction==0x0)?1:-1];
 typedef char layout_ceb08_23[((unsigned)&((PROX*)0)->distance==0x4)?1:-1];
 typedef char layout_ceb08_24[((unsigned)&((WORK*)0)->temporary==0x0)?1:-1];
@@ -1382,7 +1382,7 @@ extern "C" {
 extern struct CLOCK {
     float time;
     union {
-        float dt;
+        float deltaTime;
         int dtbits;
     };
 } D_002DDED0;
@@ -1497,12 +1497,12 @@ void ProjectRipTransform(S *p)
 {
     WORK w;
     if (!IsVectorNearlyZero(p->omega)) {
-        qword omega = VuScaleByX(p->omega, Broadcast(&w.shared.math.first, p->angularDamping * D_002DDED0.dt + 1.0f));
+        qword omega = VuScaleByX(p->omega, Broadcast(&w.shared.math.first, p->angularDamping * D_002DDED0.deltaTime + 1.0f));
         p->omega = omega;
         float length = QwordX(Sqrt(Sq(omega)));
         if (0.0001f < length) {
             w.shared.math.first.q = Normalize(omega, length, &w.shared.math.second);
-            BuildAxisAngleRotationMatrix((M3 *)&w.rotation, w.shared.math.first.q, length * D_002DDED0.dt);
+            BuildAxisAngleRotationMatrix((M3 *)&w.rotation, w.shared.math.first.q, length * D_002DDED0.deltaTime);
             Multiply(&w.shared.math.scratch, &w.product, &w.rotation, p->mat);
             PublishBasisStart(p, w.product.r[0].q, w.product.r[1].q);
             p->mat.r[2] = w.shared.math.scratch.r[2];
@@ -1544,7 +1544,7 @@ typedef char layout_cf0a0_19[((unsigned)&((S*)0)->omega==0xD0)?1:-1];
 typedef char layout_cf0a0_20[((unsigned)&((S*)0)->touchWord==0xE0)?1:-1];
 typedef char layout_cf0a0_21[((unsigned)&((S*)0)->angularDamping==0xE4)?1:-1];
 typedef char layout_cf0a0_22[((unsigned)&((CLOCK*)0)->time==0x0)?1:-1];
-typedef char layout_cf0a0_23[((unsigned)&((CLOCK*)0)->dt==0x4)?1:-1];
+typedef char layout_cf0a0_23[((unsigned)&((CLOCK*)0)->deltaTime==0x4)?1:-1];
 typedef char layout_cf0a0_24[((unsigned)&((CLOCK*)0)->dtbits==0x4)?1:-1];
 typedef char layout_cf0a0_25[((unsigned)&((MATH*)0)->first==0x0)?1:-1];
 typedef char layout_cf0a0_26[((unsigned)&((MATH*)0)->second==0x10)?1:-1];
@@ -1562,7 +1562,7 @@ namespace M_UpdateRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long loBits; char p2[0xE8 - 0x30]; int unknownE8; };   /* loBits bit 60: LO::fInWorld */
+struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long loBits; char p2[0xE8 - 0x30]; int unknownE8; };   /* loBits bit 60: LO::isInWorld */
 struct G { char pad[0x150]; int groupKind; };
 struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float startTime; float duration; char p1[0x70 - 0x1C]; qword currentPosition;
     char p2[0xE0 - 0x80]; struct LO *touchObject; char p3[0xEC - 0xE4]; struct VTE *vt; };
@@ -1574,7 +1574,7 @@ void UpdateRip(struct S *p)
 {
     struct LO *touch;
     int isInside;
-    if (D_002DDED0.t - p->startTime > p->duration) {
+    if (D_002DDED0.time - p->startTime > p->duration) {
         RemoveRip__FP3RIP(p);
         return;
     }
@@ -1612,7 +1612,7 @@ struct S {
 };
 struct G { char pad[0x90]; qword pos; };
 extern "C" { extern G D_002DDF40; }
-extern "C" { extern struct CLOCK { float t,dt; } D_002DDED0; }
+extern "C" { extern struct CLOCK { float time,deltaTime; } D_002DDED0; }
 extern "C" { extern struct LIMIT { float lo,hi; } D_002BBB60; }
 extern "C" {
 int IsInCameraFrustum(G*,qword,qword);
@@ -1645,7 +1645,7 @@ int RenderRipAtPose(S *p, qword pos, const M3 &mat)
 
     float proj;
     qword delta;
-    float t = (D_002DDED0.t - p->start) / p->duration;
+    float t = (D_002DDED0.time - p->start) / p->duration;
     float alpha = Clamp(Poly(&p->alpha, t), D_002BBB60.lo, D_002BBB60.hi);
     float size = Poly(&p->size, t);
     G *pg = &D_002DDF40;
@@ -1854,7 +1854,7 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
             float zero = 0.0f;
             U local;
             local.q = TransformXfPos(0, space, position);
-            float size = Polynomial(&p->size, (D_002DDED0.t - p->start) / p->duration);
+            float size = Polynomial(&p->size, (D_002DDED0.time - p->start) / p->duration);
             size *= RandomFloatInRange__Fff(0.8f, 1.4f);
             object->vt[1].fn((char *)object + object->vt[1].delta, local.q, 0, size);
             object->visual = visual;
@@ -1946,7 +1946,7 @@ void RenderStuck(S *p)
 namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB {
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 struct SHRAPNEL {
     char pad[0x18]; float duration;
     char pad2[0x90 - 0x1C]; qword v;
@@ -1997,20 +1997,20 @@ extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemi
     float len, g;
     int i;
     PostRipEmit(psh, pemitb);
-    float gain = RandomFloatInRange__Fff(D_002C1F78.gMin, D_002C1F78.gMax);
+    float gain = RandomFloatInRange__Fff(D_002C1F78.minValue, D_002C1F78.maxValue);
     float life = psh->duration * gain;
     qword lengthValue = VLen(psh->v);
     char *page;
     LM *limits;
     len = ReadLengthAndPublish(lengthValue, &page, &limits, &psh->duration, life);
     CopyDirection(psh, pemitb);
-    g = Clamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->gMax) * 10.0f;
+    g = Clamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->maxValue) * 10.0f;
     for (i = 0; i < 3; i++)
         psh->ag[i] = RandomFloatInRange__Fff(-g, g);
 }
 
 #define OFF(t,m) ((unsigned)&((t*)0)->m)
-typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,gMin)==0 && OFF(LM,gMax)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
+typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,minValue)==0 && OFF(LM,maxValue)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
 } // namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB
 #undef OFF
 
@@ -2209,7 +2209,7 @@ struct S {
     char pad[0x14]; float start, duration; X *x; char pad20[0x40 - 0x20];
     M3 mat; qword pos, prev, vel, accel; char padB0[0xF0 - 0xB0]; qword axis; float angle;
 };
-extern "C" { extern struct CLOCK { float t, dt; } D_002DDED0; }
+extern "C" { extern struct CLOCK { float time, deltaTime; } D_002DDED0; }
 extern "C" {
 void LoadIdentityMatrix4(void *, int, M4 *, M4 *, float);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
@@ -2239,18 +2239,18 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r {
 void ProjectMatchTransform(S *p)
 {
     CLOCK *clock = &D_002DDED0;
-    if (clock->t < p->start) return;
+    if (clock->time < p->start) return;
     M4 m;
     M3 spin;
     p->prev = p->pos;
-    float remain = StdMax(clock->dt, p->start + p->duration - clock->t);
+    float remain = StdMax(clock->deltaTime, p->start + p->duration - clock->time);
     LoadIdentityMatrix4(p->x->data, 0, &m, 0, remain);
     qword delta = VuSub(m.r[3], p->pos);
     qword w1 = Splat(1.5f / remain);
     qword w2 = Splat(-0.5f);
     qword w3 = Splat(0.25f);
     qword dt = Splat(remain);
-    float cdt = clock->dt;
+    float cdt = clock->deltaTime;
     qword v = p->vel;
     qword endvel = Blend(delta, v, Scale(p->accel, dt), w1, w2, w3);
     EvaluateBezierPos(remain, cdt, 1.0f, p->pos, v, m.r[3], endvel, &p->pos, &p->vel, 0);
@@ -2259,7 +2259,7 @@ void ProjectMatchTransform(S *p)
 }
 
 #define OFF(t, m) ((int)&((t *)0)->m)
-typedef char follow_layout[(sizeof(qword) == 16 && sizeof(M3) == 0x30 && sizeof(M4) == 0x40 && sizeof(U) == 16 && OFF(CLOCK, t) == 0 && OFF(CLOCK, dt) == 4 &&
+typedef char follow_layout[(sizeof(qword) == 16 && sizeof(M3) == 0x30 && sizeof(M4) == 0x40 && sizeof(U) == 16 && OFF(CLOCK, time) == 0 && OFF(CLOCK, deltaTime) == 4 &&
                             OFF(X, data) == 0x60 && OFF(S, start) == 0x14 && OFF(S, duration) == 0x18 && OFF(S, x) == 0x1C && OFF(S, mat) == 0x40 && OFF(S, pos) == 0x70 &&
                             OFF(S, prev) == 0x80 && OFF(S, vel) == 0x90 && OFF(S, accel) == 0xA0 && OFF(S, axis) == 0xF0 && OFF(S, angle) == 0x100) ? 1 : -1];
 } // namespace M_ProjectMatchTransform
@@ -2268,7 +2268,7 @@ typedef char follow_layout[(sizeof(qword) == 16 && sizeof(M3) == 0x30 && sizeof(
 namespace M_UpdateMatch { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
-extern struct CLOCK { float t; } D_002DDED0;
+extern struct CLOCK { float time; } D_002DDED0;
 struct S { char p0[0x14]; float startTime; float duration; struct O *renderObject; char p1[0x104-0x20]; int shouldLaunch; };
 void LaunchMatch__FP5MATCH(struct S *p);
 void RemoveRip__FP3RIP(struct S *p);
@@ -2279,8 +2279,8 @@ void MATCH::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateMatch;
     M_UpdateMatch::S *p = (M_UpdateMatch::S *)this;
-    if (D_002DDED0.t >= p->startTime && p->shouldLaunch) LaunchMatch__FP5MATCH(p);
-    if (D_002DDED0.t - p->startTime > p->duration) {
+    if (D_002DDED0.time >= p->startTime && p->shouldLaunch) LaunchMatch__FP5MATCH(p);
+    if (D_002DDED0.time - p->startTime > p->duration) {
         struct O *po = p->renderObject;
         struct VTE *e = &po->vt[8];
         ((void (*)(void *))e->pfn)((char *)po + e->d);
@@ -2289,12 +2289,12 @@ void MATCH::Update(float dt)   /* key function (the namespace's views) */
 }
 
 namespace M_RenderMatch { extern "C" {
-extern struct CLOCK { float t; } D_002DDED0;
+extern struct CLOCK { float time; } D_002DDED0;
 struct S { char pad[0x14]; float startTime; };
 void RenderRip(struct S *p);
 // MATCH Render: wraps RenderRip. (inferred)
 void RenderMatch(struct S *p) {
-    if (D_002DDED0.t < p->startTime) return;
+    if (D_002DDED0.time < p->startTime) return;
     RenderRip(p);
 }
 } } // namespace M_RenderMatch
@@ -2352,7 +2352,7 @@ struct CAMERA {
     qword position;
 };
 struct CLOCK {
-    float time, dt;
+    float time, deltaTime;
 };
 extern "C" { extern CAMERA D_002DDF40; }
 extern "C" { extern CLOCK D_002DDED0; }
@@ -2545,7 +2545,7 @@ struct S {
     qword pos;
 };
 extern "C" { extern G D_002DDF40; }
-extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
+extern "C" { extern struct CLOCK {float time,deltaTime;} D_002DDED0; }
 extern "C" {
 qword ConvertCmScreenToWorld(G*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
@@ -2576,7 +2576,7 @@ void RenderSmack(S *p)
     qword view = ConvertCmScreenToWorld(pg, p->pos);
     camera = MulMatrix3Matrix3(p->mat, pg->mat);
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&camera, &angle, &axis.q);
-    float t = (D_002DDED0.t - p->start) / p->duration;
+    float t = (D_002DDED0.time - p->start) / p->duration;
     fade = BuildAxisAngleRotationMatrix(axis.q, angle * t);
     spin = BuildAxisAngleRotationMatrix(p->spin->axis, (t + t) * 3.14159274f);
     render = Mul(Mul(fade, spin), p->mat);
@@ -2667,7 +2667,7 @@ namespace M_ProjectLeafTransform {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct P { char pad0[0x40]; M3 matrix; char pad70[0x20]; qword vel; char padA0[0x24]; float drag; };
-struct CLOCK { float time, dt; };
+struct CLOCK { float time, deltaTime; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002C2010[3], D_002C2020[2], D_002C2028, D_002C202C;
@@ -2747,7 +2747,7 @@ extern "C" void ProjectLeafTransform(P *p)
     qword axis = p->matrix.r[1];
     float g = Dot(p->vel, row0);
     float t = GClamp(D_002C2010[0] + g * (D_002C2010[1] + g * D_002C2010[2]), D_002C2020);
-    M3 rot = BuildAxisAngleRotationMatrix(axis, t * D_002DDED0.dt);
+    M3 rot = BuildAxisAngleRotationMatrix(axis, t * D_002DDED0.deltaTime);
     p->vel = Rotate(rot, p->vel);
     p->matrix = Multiply(rot, p->matrix);
     float drag = p->drag;
@@ -2755,7 +2755,7 @@ extern "C" void ProjectLeafTransform(P *p)
     struct { qword along, across; } w;
     SplitVectorAlongAxis(p->vel, row0, &w.along, &w.across);
     qword len = NormalizeSafe(&w.along, &D_002A2DA0);
-    float dt = D_002DDED0.dt;
+    float dt = D_002DDED0.deltaTime;
     g = QwordX(len);
     float gAlong = D_002C2028 + (D_002C202C * dt + 1.0f) * (g - D_002C2028);
     float gAcross = drag * dt + 1.0f;
@@ -2913,7 +2913,7 @@ union FLOATWORD {
 };
 struct CLOCK {
     float time;
-    union FLOATWORD dt;
+    union FLOATWORD deltaTime;
 };
 void ProjectRipTransform(struct S*);
 float RandomFloatInRange__Fff(float,float);
@@ -3038,7 +3038,7 @@ typedef char layout_owner_position[(MIX_OFF(struct S,pos)==0x70)?1:-1];
 typedef char layout_owner_velocity[(MIX_OFF(struct S,vel)==0x90)?1:-1];
 typedef char layout_word_size[(sizeof(union FLOATWORD)==4)?1:-1];
 typedef char layout_clock_size[(sizeof(struct CLOCK)==8)?1:-1];
-typedef char layout_clock_dt[(MIX_OFF(struct CLOCK,dt)==4)?1:-1];
+typedef char layout_clock_dt[(MIX_OFF(struct CLOCK,deltaTime)==4)?1:-1];
 typedef char layout_int_size[(sizeof(int)==4)?1:-1];
 typedef char layout_float_size[(sizeof(float)==4)?1:-1];
 typedef char layout_state_size[(sizeof(struct MIX_STATE)==32)?1:-1];

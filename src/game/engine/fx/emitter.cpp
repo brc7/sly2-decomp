@@ -292,7 +292,7 @@ extern "C" void AddEmitterToHeroFollowers(EMITTERV *pemitter)
 
 namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {
 struct K { short a; short b; int c; };
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct EMITO { void *palo; };
 struct EMITBV {
@@ -377,24 +377,24 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
     switch (pemitter->emitMode) {
     case EMIT_MODE_BURST:
         pemitter->rateRedrawTime = D_002A5148;
-        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.minValue, pemitter->rate.maxValue);
         if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
         else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
-            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
+            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.minValue, pemitter->pauseTime.maxValue));
         break;
     case EMIT_MODE_INTERMITTENT:
         pemitter->rateRedrawTime = D_002A5148;
-        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax) * 60.0f;
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.minValue, pemitter->rate.maxValue) * 60.0f;
         if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
         else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
-            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
+            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.minValue, pemitter->pauseTime.maxValue));
         break;
     case EMIT_MODE_CONTINUOUS:
     case EMIT_MODE_CONSTANT_COUNT:
         pemitter->rateRedrawInterval = pemitter->rateRedrawTime = 1.0f;
-        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.minValue, pemitter->rate.maxValue);
         break;
     }
     pemitter->density = 1.0f;
@@ -666,7 +666,7 @@ LActive:   /* near the camera (or not tied to a parent) */
     int numToEmit = 0;
     switch (emitter->emitMode) {
     case EMIT_MODE_INTERMITTENT: {
-        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.dt;
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.deltaTime;
         numToEmit = (int)accumulated;
         emitter->particleFraction = accumulated - (float)numToEmit;
         if (1.0f < (float)numToEmit) {
@@ -702,7 +702,7 @@ LActive:   /* near the camera (or not tied to a parent) */
         break;
     }
     case EMIT_MODE_CONTINUOUS: {
-        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.dt;
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.deltaTime;
         numToEmit = (int)accumulated;
         emitter->particleFraction = accumulated - (float)numToEmit;
         if (numToEmit != 0) {
@@ -746,9 +746,9 @@ LActive:   /* near the camera (or not tied to a parent) */
         emitter->pemitb->pemito->referenceObject = savedReference;
     }
 
-    if (D_002DDED0.t >= emitter->rateRedrawTime) {
+    if (D_002DDED0.time >= emitter->rateRedrawTime) {
         emitter->currentRate = RandomFloatInRange__Fff(emitter->rateMin, emitter->rateMax);
-        emitter->rateRedrawTime = D_002DDED0.t + emitter->rateRedrawInterval;
+        emitter->rateRedrawTime = D_002DDED0.time + emitter->rateRedrawInterval;
     }
     ModifyEmitterParticles(emitter);
 }
@@ -758,7 +758,7 @@ void PauseEmitter(EMITTERV *pemitter, float dt) __asm__("PauseEmitter__FP7EMITTE
 // Pauses the emitter for dt seconds (until the clock passes tUnpause).
 void PauseEmitter(EMITTERV *pemitter, float dt)
 {
-    pemitter->tUnpause = D_002DDED0.t + dt;
+    pemitter->tUnpause = D_002DDED0.time + dt;
 }
 
 void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
@@ -782,7 +782,7 @@ struct EMITTERV { char pad[0xF0]; int emitMode; int particleCount; char pad2[0x1
 // emit.
 extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
 {
-    if (D_002DDED0.t < pemitter->tUnpause)
+    if (D_002DDED0.time < pemitter->tUnpause)
         return 1;
     switch (pemitter->emitMode) {
     case EMIT_MODE_CONTINUOUS:
@@ -807,9 +807,9 @@ void OnEmitterValuesChanged(EMITTERV *pemitter)
         SetRipgEmitb(pemitter->pripg, pemitter->pemitb);
     }
     if (pemitter->k == 3) {
-        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax) * 60.0f;
+        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.minValue, pemitter->lmRate.maxValue) * 60.0f;
     } else {
-        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax);
+        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.minValue, pemitter->lmRate.maxValue);
     }
 }
 
@@ -865,8 +865,8 @@ typedef int qword __attribute__((mode(TI)));
 
 // Sly 1 util.h CLQ: quadratic g0 + x*(g1 + x*g2).
 union CLQ {
-    struct { float g0, g1, g2, gUnused; };
-    float ag[4];
+    struct { float g0, g1, g2, unused; };
+    float coefficients[4];
 };
 
 // 16-byte float views; the field names are unknown (same type as in StaticInit_emitter).
@@ -973,9 +973,9 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
         if (!shouldWake) {
             interval = 1.0f - strength * (1.0f - minIntervalFrac);
             if (soundObject) {
-                shouldWake = interval < D_002DDED0.t - soundObject->lastWakeTime;
+                shouldWake = interval < D_002DDED0.time - soundObject->lastWakeTime;
             } else {
-                float now = D_002DDED0.t;
+                float now = D_002DDED0.time;
                 int periodNow = (int)(now / interval);
                 int periodNext = (int)((now + dt) / interval);
                 shouldWake = periodNow != periodNext;
@@ -990,7 +990,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                 ripple->scaleSlope = scale * 0.6f;
                 ripple->renderObject = water->rippleObject;
                 if (soundObject)
-                    soundObject->lastWakeTime = D_002DDED0.t;
+                    soundObject->lastWakeTime = D_002DDED0.time;
                 if (500.0f < distance && water->splashObject) {
                     EMITP emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
                     EMITV emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, so->motion->velocity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
@@ -1034,7 +1034,7 @@ struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; fl
 struct BOXE { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct MESHO { char pad[0xE8]; int numLengths; int padEC; float *cumulativeLength; };   /* the curve shape */
 struct EMITO { void *referenceObject; MESHO *shapeObject; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 /* the origin record (EMITB+0x10) */
 struct EP {
     int kind;               /* EMIT_ORIGIN */
@@ -1217,7 +1217,7 @@ normalize:
         VU_VECTOR dir = Normalize(*pdir);
         *pdir = dir.q;
         qword pos = *ppos;
-        *ppos = VuAdd(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.gMin, offset->gMax)), dir));
+        *ppos = VuAdd(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.minValue, offset->maxValue)), dir));
     }
 }
 } // namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3
@@ -1258,7 +1258,7 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
 } } // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
 
 namespace M_CalculateEmitvx__FiP2LMiP6EMITVX {
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 struct EMITVX { int c; float dg; float drad; float g; float rad; };
 float NormalizeAngle(float rad) asm("NormalizeAngle__Ff");
 float RandomFloatInRange(float gMin, float gMax) asm("RandomFloatInRange__Fff");
@@ -1273,10 +1273,10 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
     else
         pemitvx->c = cMax;
     n = (cMax + (pemitvx->c - 1)) / pemitvx->c;
-    dg = NormalizeAngle(plm->gMax - plm->gMin);
+    dg = NormalizeAngle(plm->maxValue - plm->minValue);
     pemitvx->drad = 6.2831855f / pemitvx->c;
     pemitvx->dg = dg / n;
-    pemitvx->g = plm->gMin + pemitvx->dg * 0.5f;
+    pemitvx->g = plm->minValue + pemitvx->dg * 0.5f;
     pemitvx->rad = RandomFloatInRange(0.0f, 6.2831855f);
 }
 } // namespace M_CalculateEmitvx__FiP2LMiP6EMITVX
@@ -1286,7 +1286,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
 float RandomFloatInRange__Fff(float a, float b);
@@ -1313,7 +1313,7 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, floa
     }
     tilt = NormalizeAngle__Ff(tilt + 1.5707964f);
     pan = NormalizeAngle__Ff(pan);
-    v.q = SetVectorSphere(pan, tilt, RandomFloatInRange__Fff(plm->gMin, plm->gMax));
+    v.q = SetVectorSphere(pan, tilt, RandomFloatInRange__Fff(plm->minValue, plm->maxValue));
     v.f[2] *= sv;
     m.r[2] = *pnormal;
     GetNormalVectors(*pnormal, D_002A2DA0, D_002A2DB0, &m);
@@ -1347,7 +1347,7 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(struct P *e
 {
     float birthTime, skip;
     ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(pemitvx, emitv->randomRadius, emitv->zSpeedRatio, emitv, pv, index, pvel);
-    birthTime = D_002DDED0.t;
+    birthTime = D_002DDED0.time;
     birthTime = birthTime - RandomFloatInRange__Fff(emitv->birthMin, emitv->birthMax);
     *ptBirth = birthTime;
     *ptDeath = birthTime + emitv->lifetime;
@@ -1502,7 +1502,7 @@ struct PRG {
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
 };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 /* EMITB, the blip-related fields (the record at +0xC0 as blips use it; Sly 1's EMITBLIP) */
 struct EMITTERV {
     char pad[0xC8];
@@ -1535,7 +1535,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 
-static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->gMin, plm->gMax); }
+static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValue, plm->maxValue); }
 
 // Spawns `c` blips into the emitter's BLIPG (creating it and handing it the subscriber on first use), filling the
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
@@ -1605,7 +1605,7 @@ namespace M_OriginateParticles__FiP5EMITBP7EMITGEN {
 typedef int qword __attribute__((mode(TI)));
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
-struct XF { qword pos; MATRIX3 mat; qword v; qword w; };
+struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
 /* EMITB: the origin's local transform, and EMITV's ring count and tilt range */
 struct EMITTERV { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int particlesPerRing; char pad2[0x90 - 0x88]; char tilt[1]; };
@@ -1645,11 +1645,11 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *emitb, BUF *gen)
             {
                 register qword *ppos __asm__("$2"); // register pin (target loads gen->apos into v0 and forms &apos[i] there)
                 ppos = gen->apos;
-                ppos[i] = VuAdd(MulRow(pxf->mat, ppos[i]), pxf->pos);
+                ppos[i] = VuAdd(MulRow(pxf->localMatrix, ppos[i]), pxf->pos);
             }
             qword d = VuSub(gen->apos[i], pxf->pos);
             qword x = VuCross(pxf->w, d);
-            qword t = VuAdd(MulRow(pxf->mat, gen->av[i]), pxf->v);
+            qword t = VuAdd(MulRow(pxf->localMatrix, gen->av[i]), pxf->v);
             gen->av[i] = VuAdd(t, x);
         }
         if (gen->convertToWorld)
@@ -1723,7 +1723,7 @@ void OriginateSplineSinkParticles(int c, EMITTERV *emitb, TIMES *ptimes, BUF *ge
     pv = target->pvt->pfn((ALO *)((char *)target + target->pvt->d), &mWorld);
     mBase = mWorld;
     for (i = 0; i < c; i++) {
-        float tNow = D_002DDED0.t;
+        float tNow = D_002DDED0.time;
         float t = ptimes->atDeath[i] - tNow;
         int velocityKind = target->pemitb->velocityKind;
         if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
@@ -1903,11 +1903,11 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
     MATRIX4 *pmRot = &mRot;
     if (emitdv->curlRate != 0.0f) {
         MATRIX3 m3;
-        BuildAxisAngleRotationMatrix(&m3, emitdv->curlRate * D_002DDED0.dt, emitdv->axis);
+        BuildAxisAngleRotationMatrix(&m3, emitdv->curlRate * D_002DDED0.deltaTime, emitdv->axis);
         *(MATRIX3 *)pmRot = m3;
     }
     MATRIX4 mD;
-    mD = *pmRot * mScale * VU_FLOAT(D_002DDED0.dt);
+    mD = *pmRot * mScale * VU_FLOAT(D_002DDED0.deltaTime);
     return *pmRot + mD;
 }
 } // namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4
@@ -2032,7 +2032,7 @@ typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VEC { int x, y, z, w; } __attribute__((aligned(16)));
-struct XF { qword pos; MATRIX3 mat; VEC v; VEC w; };
+struct XF { qword pos; MATRIX3 localMatrix; VEC v; VEC w; };
 /* EXPLSO: what to explode with (EXPLSO_* flags say which fields are set) */
 struct P { int fl; void *reference; float scale, radius; qword vector, origin; int touch; XF *pxf; int count, pad3C; };
 struct VTE { short d; short pad; void (*pfn)(void *, P *); };
@@ -2089,12 +2089,12 @@ void ExplodeExplgExplso(S *group, P *explso)
         MATRIX3 &m3 = *(MATRIX3 *)&mRel;
         if (explso->fl & EXPLSO_HAS_XF) {
             XF *px = explso->pxf;
-            xf.mat = px->mat * m3;
-            xf.pos = VuAdd(px->pos, QwRotateVec(&px->mat, mRel.r[3]));
+            xf.localMatrix = px->localMatrix * m3;
+            xf.pos = VuAdd(px->pos, QwRotateVec(&px->localMatrix, mRel.r[3]));
             xf.v = px->v;
             xf.w = px->w;
         } else {
-            xf.mat = m3;
+            xf.localMatrix = m3;
             xf.pos = mRel.r[3];
             xf.v.x = xf.v.y = xf.v.z = 0;
             xf.w.x = xf.w.y = xf.w.z = 0;

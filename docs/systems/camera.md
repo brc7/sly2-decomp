@@ -53,7 +53,7 @@ Header: `include/sly2/cm.h` (CM, CPDEFI, CPR and every policy class). Code: `src
 2. Call the top policy's **Update(cpdefi, joy)**. The policy computes an eye and a target (or a full pose) and writes it
    with `SetCameraLookAt` / `SetCmMat4` / `SetCmFov`.
 3. If that Update changed which policy is on top (a policy may push or revoke), repeat with the new top.
-4. Smooth fov toward `fovTarget` (snapped on a cut), recompute the frustum when it moved, clear the cut counter.
+4. Smooth fov toward `targetFieldOfView` (snapped on a cut), recompute the frustum when it moved, clear the cut counter.
 
 `SetCmMat4` -> `UpdateCmMat4` rebuilds the view-projection (plus the camera jolt shake for half a second after
 `JoltCamera`), its inverse, the normal and wide frustum planes, the VU0 cull rows, and then `UpdateCmVisZone` picks the
@@ -109,7 +109,7 @@ The camera does not use the physics solver. It has its own queries against each 
 
 - `ClipCameraEye`: estimates the eye velocity, gathers camera-colliding SOs in a box around the previous eye, and
   `SquishCmEye` pushes the eye out with a smoothed constraint (`SvSquishCmEyeConstraint`) that keeps the near-plane
-  corners clear (`sNearCorner`).
+  corners clear (`nearCornerDistance`).
 - `FindCameraClearInterval`: clips a segment against the SOs and returns the first clear gap; `FindCmClosestClearPos`
   samples tilts and pans around a point for the closest clear eye (used on cuts).
 
@@ -168,9 +168,9 @@ Almost nothing here is hardware-specific. The exceptions:
 
 - VU0 inline asm in the matrix code (`UpdateCmMat4`, `UpdateCpcamera`, the CPTN helpers) and the transposed VU0 cull rows
   used by the renderer's sphere test: plain C++/SIMD.
-- `BuildCmFgfn` produces a GS fog function; a port evaluates fog in its shader from `sNearFog`/`sFarFog`/`uFogMax`.
+- `BuildCmFgfn` produces a GS fog function; a port evaluates fog in its shader from `nearFogDistance`/`farFogDistance`/`maxFog`.
 - The projection is built for the PS2's 512x224 field buffer and its pixel aspect; a widescreen or high-resolution port
-  changes `rAspect` and the projection in `RecalcCmFrustrum`.
+  changes `aspectRatio` and the projection in `RecalcCmFrustrum`.
 
 ## 11. Where to look
 

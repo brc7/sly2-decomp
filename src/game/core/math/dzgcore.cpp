@@ -46,20 +46,20 @@ extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
 {
     MSG msg;
 
-    dzg->cdzMax = maxConstraints;
-    dzg->cdzA = 0;
-    dzg->cdz = 0;
+    dzg->maxRows = maxConstraints;
+    dzg->numActiveRows = 0;
+    dzg->numRows = 0;
     msg.cb = maxConstraints * 0x28;
     msg.nKind = 0x10;
-    dzg->adz = (DZ *)AllocClearedFromStack(&msg);
-    func_002333B4(&dzg->dlA, 0, sizeof(DL));
-    func_002333B4(&dzg->dlB, 0, sizeof(DL));
-    func_002333B4(&dzg->dlC, 0, sizeof(DL));
-    func_002333B4(&dzg->dlD, 0, sizeof(DL));
-    InitDl(&dzg->dlA, 0x20);
-    InitDl(&dzg->dlB, 0x20);
-    InitDl(&dzg->dlC, 0x20);
-    InitDl(&dzg->dlD, 0x20);
+    dzg->rows = (DZ *)AllocClearedFromStack(&msg);
+    func_002333B4(&dzg->activeRows, 0, sizeof(DL));
+    func_002333B4(&dzg->rowsAtLowerBound, 0, sizeof(DL));
+    func_002333B4(&dzg->rowsAtUpperBound, 0, sizeof(DL));
+    func_002333B4(&dzg->freeRows, 0, sizeof(DL));
+    InitDl(&dzg->activeRows, 0x20);
+    InitDl(&dzg->rowsAtLowerBound, 0x20);
+    InitDl(&dzg->rowsAtUpperBound, 0x20);
+    InitDl(&dzg->freeRows, 0x20);
     msg.cb = maxConstraints * maxConstraints * 4;
     msg.nKind = 0x10;
     dzg->agMat = (float *)AllocFromStack(&msg);
@@ -68,7 +68,7 @@ extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
     dzg->agLu = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * 4;
     msg.nKind = 0x10;
-    dzg->agB = (float *)AllocFromStack(&msg);
+    dzg->rightHandSide = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * 4;
     msg.nKind = 0x10;
     dzg->agX = (float *)AllocFromStack(&msg);
@@ -80,17 +80,17 @@ void ClearDzgSolution(DZG *dzg)
 {
     int i;
 
-    dzg->cdzA = 0;
-    ClearDl(&dzg->dlA);
-    ClearDl(&dzg->dlB);
-    ClearDl(&dzg->dlC);
-    ClearDl(&dzg->dlD);
+    dzg->numActiveRows = 0;
+    ClearDl(&dzg->activeRows);
+    ClearDl(&dzg->rowsAtLowerBound);
+    ClearDl(&dzg->rowsAtUpperBound);
+    ClearDl(&dzg->freeRows);
 
-    for (i = 0; i < dzg->cdz; i++) {
-        DZ *pdzs = &dzg->adz[i];
-        pdzs->gC = pdzs->g10 = 0.0f;
+    for (i = 0; i < dzg->numRows; i++) {
+        DZ *pdzs = &dzg->rows[i];
+        pdzs->solution = pdzs->residual = 0.0f;
         ClearDle(&pdzs->dle);
-        AppendDlEntry(&dzg->dlD, pdzs);
+        AppendDlEntry(&dzg->freeRows, pdzs);
     }
 }
 
@@ -106,9 +106,9 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
 {
     int iter;
     if (dz) {
-        RemoveDlEntry(&dzg->dlD, dz);
-        AppendDlEntry(&dzg->dlA, dz);
-        dzg->cdzA++;
+        RemoveDlEntry(&dzg->freeRows, dz);
+        AppendDlEntry(&dzg->activeRows, dz);
+        dzg->numActiveRows++;
     }
     for (iter = 0; iter < 10; iter++) {
         DZ *pdzI, *pdzJ, *pdzK, *pdzBest;
@@ -117,27 +117,27 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
         float gMin;
 
         float *pgMat = dzg->agMat;
-        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
-            for (pdzJ = (DZ *)dzg->dlA.head; pdzJ; pdzJ = (DZ *)pdzJ->dle.next)
-                *pgMat++ = pdzI->ag[pdzJ - dzg->adz];
-        CroutDecomp(dzg->cdzA, dzg->agMat, dzg->agLu);
-        float *pgB = dzg->agB;
-        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
-            *pgB++ = -pdzI->g10;
-        CroutSolve(dzg->cdzA, dzg->agLu, dzg->agB, dzg->agX);
-        for (i = 0; i < dzg->cdz; i++) {
+        for (pdzI = (DZ *)dzg->activeRows.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+            for (pdzJ = (DZ *)dzg->activeRows.head; pdzJ; pdzJ = (DZ *)pdzJ->dle.next)
+                *pgMat++ = pdzI->ag[pdzJ - dzg->rows];
+        CroutDecomp(dzg->numActiveRows, dzg->agMat, dzg->agLu);
+        float *pgB = dzg->rightHandSide;
+        for (pdzI = (DZ *)dzg->activeRows.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+            *pgB++ = -pdzI->residual;
+        CroutSolve(dzg->numActiveRows, dzg->agLu, dzg->rightHandSide, dzg->agX);
+        for (i = 0; i < dzg->numRows; i++) {
             float g = 0.0f;
             float *pgX = dzg->agX;
-            for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+            for (pdzI = (DZ *)dzg->activeRows.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
                 g += *pgX++ * pdzI->ag[i];
-            dzg->adz[i].g14 = g;
+            dzg->rows[i].residualSlope = g;
         }
 
         pdzBest = 0;
         gMin = 1.0f;
         k = 0;
         pg = dzg->agX;
-        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next) {
+        for (pdzI = (DZ *)dzg->activeRows.head; pdzI; pdzI = (DZ *)pdzI->dle.next) {
             float x = *pg++;
             if (x > 1e-4f) {
                 // Empty asm, allocation-only operands (emits nothing): two extra uses of the +-1e-4 constants
@@ -145,8 +145,8 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
                 // REG_EQUIV-less pseudos otherwise win (local-alloc doubles the constants' live length), so
                 // the constants get f5/f4 and the globals f7/f6 as in the target.
                 __asm__("" : : "f"(1e-4f), "f"(-1e-4f));
-                if (pdzI->gMax != D_002A4120) {
-                    float t = (pdzI->gMax - pdzI->gC) / x;
+                if (pdzI->maxValue != D_002A4120) {
+                    float t = (pdzI->maxValue - pdzI->solution) / x;
                     if (t < gMin) {
                         gMin = t;
                         pdzBest = pdzI;
@@ -154,8 +154,8 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
                     }
                 }
             } else if (x < -1e-4f) {
-                if (pdzI->gMin != D_002A4124) {
-                    float t = (pdzI->gMin - pdzI->gC) / x;
+                if (pdzI->minValue != D_002A4124) {
+                    float t = (pdzI->minValue - pdzI->solution) / x;
                     if (t < gMin) {
                         gMin = t;
                         pdzBest = pdzI;
@@ -164,9 +164,9 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
                 }
             }
         }
-        for (pdzK = (DZ *)dzg->dlB.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
-            if (pdzK->g14 > -1e-4f) {} else {
-                float t = -pdzK->g10 / pdzK->g14;
+        for (pdzK = (DZ *)dzg->rowsAtLowerBound.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
+            if (pdzK->residualSlope > -1e-4f) {} else {
+                float t = -pdzK->residual / pdzK->residualSlope;
                 if (t < gMin) {
                     gMin = t;
                     pdzBest = pdzK;
@@ -174,9 +174,9 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
                 }
             }
         }
-        for (pdzK = (DZ *)dzg->dlC.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
-            if (pdzK->g14 < 1e-4f) {} else {
-                float t = -pdzK->g10 / pdzK->g14;
+        for (pdzK = (DZ *)dzg->rowsAtUpperBound.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
+            if (pdzK->residualSlope < 1e-4f) {} else {
+                float t = -pdzK->residual / pdzK->residualSlope;
                 if (t < gMin) {
                     gMin = t;
                     pdzBest = pdzK;
@@ -184,40 +184,40 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
                 }
             }
         }
-        for (i = 0; i < dzg->cdz; i++) {
-            DZ *pdzT = &dzg->adz[i];
-            pdzT->g10 += gMin * pdzT->g14;
+        for (i = 0; i < dzg->numRows; i++) {
+            DZ *pdzT = &dzg->rows[i];
+            pdzT->residual += gMin * pdzT->residualSlope;
         }
         pg = dzg->agX;
-        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
-            pdzI->gC += gMin * *pg++;
+        for (pdzI = (DZ *)dzg->activeRows.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+            pdzI->solution += gMin * *pg++;
 
         switch (k) {
         case 0:
             return;
         case 2:
-            dzg->cdzA--;
-            RemoveDlEntry(&dzg->dlA, pdzBest);
-            AppendDlEntry(&dzg->dlB, pdzBest);
+            dzg->numActiveRows--;
+            RemoveDlEntry(&dzg->activeRows, pdzBest);
+            AppendDlEntry(&dzg->rowsAtLowerBound, pdzBest);
             if (pdzBest == dz)
                 return;
             break;
         case 1:
-            dzg->cdzA++;
-            RemoveDlEntry(&dzg->dlB, pdzBest);
-            AppendDlEntry(&dzg->dlA, pdzBest);
+            dzg->numActiveRows++;
+            RemoveDlEntry(&dzg->rowsAtLowerBound, pdzBest);
+            AppendDlEntry(&dzg->activeRows, pdzBest);
             break;
         case 4:
-            dzg->cdzA--;
-            RemoveDlEntry(&dzg->dlA, pdzBest);
-            AppendDlEntry(&dzg->dlC, pdzBest);
+            dzg->numActiveRows--;
+            RemoveDlEntry(&dzg->activeRows, pdzBest);
+            AppendDlEntry(&dzg->rowsAtUpperBound, pdzBest);
             if (pdzBest == dz)
                 return;
             break;
         case 3:
-            dzg->cdzA++;
-            RemoveDlEntry(&dzg->dlC, pdzBest);
-            AppendDlEntry(&dzg->dlA, pdzBest);
+            dzg->numActiveRows++;
+            RemoveDlEntry(&dzg->rowsAtUpperBound, pdzBest);
+            AppendDlEntry(&dzg->activeRows, pdzBest);
             break;
         }
     }
@@ -227,7 +227,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = g_pdliFirst;
     g_pdliFirst = pdli;
 }
@@ -246,12 +246,12 @@ extern "C" void SolveDzgFilled(DZG *dzg)
     DLI dli;
     DZ *pdz;
 
-    InitDli(&dli, &dzg->dlD);
+    InitDli(&dli, &dzg->freeRows);
     while ((pdz = (DZ *)NextDliEntry(&dli)) != 0) {
-        if (pdz->nKind == 1) {
-            RemoveDlEntry(&dzg->dlD, pdz);
-            AppendDlEntry(&dzg->dlA, pdz);
-            dzg->cdzA++;
+        if (pdz->kind == 1) {
+            RemoveDlEntry(&dzg->freeRows, pdz);
+            AppendDlEntry(&dzg->activeRows, pdz);
+            dzg->numActiveRows++;
         }
     }
     EnforceDzgDz(dzg, 0);
@@ -261,9 +261,9 @@ extern "C" void SolveDzgFilled(DZG *dzg)
         DZ *pdzMin = 0;
         float gMin = -0.01f;
         DZ *pdzT;
-        for (pdzT = (DZ *)dzg->dlD.head; pdzT; pdzT = (DZ *)pdzT->dle.next) {
-            if (pdzT->g10 < gMin) {
-                gMin = pdzT->g10;
+        for (pdzT = (DZ *)dzg->freeRows.head; pdzT; pdzT = (DZ *)pdzT->dle.next) {
+            if (pdzT->residual < gMin) {
+                gMin = pdzT->residual;
                 pdzMin = pdzT;
             }
         }
@@ -288,17 +288,17 @@ extern "C" void SolveInequalities(int count, float *matrix, float *rhs, float *o
     STACKSCOPE_ctor(&frame);
     InitDzg(&solver, count);
     for (i = 0; i < count; i++) {
-        DZ *dz = &solver.adz[i];
-        dz->gMax = maxValue;
+        DZ *dz = &solver.rows[i];
+        dz->maxValue = maxValue;
         dz->ag = (float *)AllocStackBlock(&msg, count * sizeof(float), 0x10);
         CopyAb(dz->ag, matrix + i * count, count * sizeof(float));
-        dz->g10 = rhs[i];
-        AppendDlEntry(&solver.dlD, dz);
+        dz->residual = rhs[i];
+        AppendDlEntry(&solver.freeRows, dz);
     }
-    solver.cdz = count;
+    solver.numRows = count;
     SolveDzgFilled(&solver);
     for (i = 0; i < count; i++) {
-        outX[i] = solver.adz[i].gC;
+        outX[i] = solver.rows[i].solution;
     }
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }

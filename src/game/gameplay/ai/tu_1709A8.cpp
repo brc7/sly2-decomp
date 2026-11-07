@@ -624,7 +624,7 @@ int IsBhvScriptCommandBusy(struct S *behavior) {
         }
         break;
     case SSGK_WAIT:
-        if (behavior->currentCommand->duration < D_002DDED0.t - behavior->commandStartTime) behavior->isCommandBusy = 0;
+        if (behavior->currentCommand->duration < D_002DDED0.time - behavior->commandStartTime) behavior->isCommandBusy = 0;
         break;
     case SSGK_LEAP: case SSGK_PLAY_BINDING:
         if (IsBhvanimDone(behavior->child)) behavior->isCommandBusy = 0;
@@ -846,7 +846,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
         func_001E0020(FindBhvScriptTarget(behavior, command->id), command->u.s.arg);
         break;
     }
-    behavior->commandStartTime = D_002DDED0.t;
+    behavior->commandStartTime = D_002DDED0.time;
 }
 } // namespace M_func_001715F0
 

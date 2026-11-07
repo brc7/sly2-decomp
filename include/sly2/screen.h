@@ -41,7 +41,7 @@ struct SCREEN : SCREENBASE
     int idTextQueued;       /* +0x20 text to show next; for widget screens the widget oid */
     void *pchild;           /* +0x24 the widget object */
     int nMode;              /* +0x28 screen mode (-1 after ResetMode) */
-    float tMode;            /* +0x2C time the mode was entered */
+    float modeStartTime;    /* +0x2C time the mode was entered */
     SCREEN() __asm__("ConstructScreen");        /* out of line: screen.cpp */
     void ResetMode() __asm__("ResetScreenMode");   /* mode -1, time now (screen.cpp; DRAFT name ResetScreenMode) */
     virtual void PostLoad() __asm__("PostLoadScreen");   /* slot 12 (screen.cpp: resolves the widget); key function (screen.cpp) */

@@ -72,7 +72,7 @@ void SW::Update()
     SWVIEW *world = (SWVIEW *)this;
     ProcessSwCallbacks(world);
     UpdateSwBusyList(world);
-    if (D_002DDED0.dt <= 0.0f) {
+    if (D_002DDED0.deltaTime <= 0.0f) {
         UpdateSwObjects(world);
     } else {
         LOPOCTL *lo;

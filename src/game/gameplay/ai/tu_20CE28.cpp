@@ -92,7 +92,7 @@ extern "C" void UpdateStuckWatch(STUCKWATCH *watch)
         case 1:
             if (!isStuck)
                 SetStuckWatchState(watch, 0);
-            else if (D_002DDED0.t - watch->stateTime > D_002C3DF0 && !((int (*)(void *, int))watch->guard->vt[76].function)((char *)watch->guard + watch->guard->vt[76].d, 0x4000))
+            else if (D_002DDED0.time - watch->stateTime > D_002C3DF0 && !((int (*)(void *, int))watch->guard->vt[76].function)((char *)watch->guard + watch->guard->vt[76].d, 0x4000))
                 SetStuckWatchState(watch, 2);
             break;
         case 2:
@@ -134,7 +134,7 @@ extern "C" void SetStuckWatchState(STUCKWATCH *watch, int state)
 {
     if (watch->state == state) return;
     watch->state = state;
-    watch->stateTime = D_002DDED0.t;
+    watch->stateTime = D_002DDED0.time;
     if (state != 2)
         return;
     WMSG zap;
@@ -209,7 +209,7 @@ extern "C" void UpdateHazardWatch(VOLWATCH *watch)
         case 1:
             if (!watch->volume)
                 SetHazardWatchState(watch, 0);
-            else if (D_002DDED0.t - watch->stateTime > D_002C3E58 &&
+            else if (D_002DDED0.time - watch->stateTime > D_002C3E58 &&
                      !((int (*)(void *, void *))watch->guard->vt[76].function)((char *)watch->guard + watch->guard->vt[76].d, (void *)watch->volume->zapKind))
                 SetHazardWatchState(watch, 2);
             break;
@@ -228,7 +228,7 @@ extern "C" void SetHazardWatchState(VOLWATCH *watch, int state)
     if (state == watch->state)
         return;
     watch->state = state;
-    watch->stateTime = D_002DDED0.t;
+    watch->stateTime = D_002DDED0.time;
     if (state == 2) {
         WMSG zap;
         func_002333B4(&zap, 0, sizeof(zap));
