@@ -539,14 +539,51 @@ instructions off), and through a pointer the cast also changes scheduling (blip:
 the read goes through a small file-local `CMIsland` (a struct with qword members at the CM offsets) and everything
 else uses CM: sound, light, prize, lo, busy, waypoint, emitter, blip, cplcy, tu_201D78 (one read each or two); sky
 (base `&g_cm.mat`, offset 0x30) and tu_173158 (the old view, renamed: its asm reads the rows from base `&g_cm`).
-Revisit: a qword-typed position/row member in CM (e.g. CM::pos as qword) would remove all twelve; that is a header type
-decision (most other users already cast `*(qword *)&pcm->pos`), not taken here.
+Revisited in names/vu-f5-camera-2 (below): CM::matq, a qword-row view in the matrix union, removed all twelve.
 
 Not converted: render.cpp and places.cpp (their private qword/RGBA/LM/VECTOR types clash with basic.h, so they
 cannot include cm.h), tu_12E600's CID44 view (classes.h names no CID44 fields; not this family's header), rip, hud,
 relay (G views at +0x500/+0x510 and the matrix), glob/tu_1D57A8 (VIEW: the frustum planes, g_cm read as a culling
 view), bif's CM, tu_1BE398's RTCAM, and the `char D_002DDF40[]` + offset spellings (exit_warp, turret, relay,
-asega, guardbhv, tu_1BAB50, tu_14A008, bentley).
+asega, guardbhv, tu_1BAB50, tu_14A008, bentley). All but tu_12E600's CID44 view and tu_1BE398's RTCAM (an XFM-derived render-target
+camera object, not CM) were converted in names/vu-f5-camera-2.
+
+### Views unified (names/vu-f5-camera-2): the camera family, round 2
+
+Every function and data symbol of every touched file and of every includer of cm.h/classes.h (and every user of
+`D_002DDF40`, 123 files) MATCHes, and each object's nm symbol set is unchanged against the branch start.
+
+| change | header | views removed | files |
+|---|---|---:|---:|
+| CM::matq: the matrix as quadword rows (`CMMATQ { qword rot[3]; qword pos; }`) in CM's matrix union; the CMIsland views go (docs/decisions.md 1.8) | cm.h | 12 CMIsland | 12 |
+| rip, relay, hud, bif, render, places, glob, tu_1D57A8: CM/CAMPOSE/CAMMOVE/g_cm in place of their camera views | — | 15 (rip G x3, CAMERA; relay T, SUB, G, G2; glob VIEW, ENV; tu_1D57A8 VIEW; bif CM; render CM; places D; hud's opaque G) | 8 |
+| `char D_002DDF40[]` + offset and opaque handles (MANAGER/CAMERA in grab) replaced by `&g_cm` and its policy members (cplook, cpzoom, cpcamblend, hangPolicy, turretPolicy, part3a0) | — | 19 declarations | 16 |
+| tu_201D78's `D_002DDFA0 __asm__("D_002DDF40+0x60")` separate-symbol alias | — | 1 | 1 |
+
+How the original's address forms come out with CM's members (all g++ 2.95, checked per function):
+
+| original access | spelling |
+|---|---|
+| `lq 0x90(base)`, base `&g_cm` (position) / `0x60+0x10*i` (rows) | `g_cm.matq.pos`, `g_cm.matq.rot[i]` |
+| `lq 0x30(base)`, base `&g_cm.mat` (sky, relay; tu_201D78's row 1 at `0x10`) | `CMMATQ *pmatq = &g_cm.matq; pmatq->pos` (a local pointer stays the base) |
+| `lq 0(base)`, base `&g_cm + 0x90` (folded: emitter, tn, stepguard...) | `*(qword *)&g_cm.pos` (unchanged) |
+| the frustum's transposed plane normals as three qwords (CullSceneRenderList, glob's StartCull) | `(qword *)g_cm.agFrustumXyz` (a pointer value only; a union member did not change codegen either, but cost nothing to avoid) |
+
+Things learned: (1) an inline helper in cm.h, even unused, shifts g++'s local label numbers in every includer (cm.cpp's
+function-static `s_rgba.87` became `.90`: nm differs, code does not); a template is compiled only where called, but
+the local pointer made the helper unnecessary. (2) Template helpers of sly2/vu0.h deduce one quadword type: where a
+file's signed `qword` meets cm.h's (basic.h's unsigned `qword`), the call names it (`VuSub<qword>(a, g_cm.matq.pos)`).
+
+render.cpp, places.cpp, tu_1D57A8.cpp, bif.cpp, asega.cpp, brx_sw.cpp, update.cpp, sw.cpp now include cm.h. The clashes
+with basic.h were resolved in the files (Representation decisions 1.6): their own `typedef int qword` dropped for
+basic.h's (no codegen change in any of them), render's private RGBA/LO/SW/LM views renamed RGBAV/LOV/SWV/LMV, places'
+LO/JT/CLQ/LM renamed LOV/JTV/CLQV/LMV and vec.h's 16-byte aligned VECTOR kept as a local `VECTORV` (basic.h's VECTOR
+has no alignment). Struct definitions in src/game .cpp: 26 camera views and 19 handle declarations removed (render's
+and places' renamed views are not counted); no island remains in the family.
+
+Left: tu_12E600's CID44 camera-object view (classes.h; not this family), tu_1BE398's RTCAM (render-target camera
+object, an XFM; no header), main.cpp's `extern CM D_002DDF40` (a typed handle; main does not include cm.h), and the
+inventory's false positives in cm.cpp/cplcy.cpp (CMG, the g_cm definition wrapper; SW/ACT/STEPPLAYER views).
 
 ### Vtables emitted (data/vtables)
 

@@ -57,6 +57,18 @@ defines, and classes are declared in emission order, so each key TU emits its vt
 constructors that must not be seen by the key TU sit under `#ifndef SLY2_KEY_TU_<CLASS>`. *Status:* temporary in form:
 labels become plain members as functions become real members.
 
+**1.8 Quadword views of VU0 data (decision taken in names/vu-f5-camera-2; stylistic, reversible).** Data the game moves
+as 128-bit VU0 registers but the headers declare as floats gets a quadword member in a union with the float members,
+not a cast at each use. First case: `CM::matq` (`sly2/cm.h` `CMMATQ { qword rot[3]; qword pos; }`), unioned with
+`CM::mat` / `matRot` / `pos`. *Why:* the original reads these rows as members (`lq 0x90(base)` with base `&g_cm`); a
+cast of the float member (`*(qword *)&g_cm.pos`) makes g++ 2.95 fold the offset into the address constant, which forced
+twelve file-local `CMIsland` views in names/vu-f5-camera; with the qword member all twelve went away and every includer
+still matches. Where the original reads a row at base `&g_cm.mat` (offset 0x30 for the position), the code takes a
+local `CMMATQ *` first (sky, relay, tu_201D78). The alternative (CM::pos and the rows themselves as qwords) was not taken:
+about 35 existing uses read `mat`/`matRot`/`pos` as floats or matrices, or through `*(qword *)&...pos` casts that match
+as they are; the union keeps both spellings available. Existing `*(qword *)&pcm->pos` casts are left alone (their folded form is what those functions
+need). *Status:* permanent rule for new cases; reversible (the union adds no bytes).
+
 ## 2. Linkage and symbols
 
 **2.1 Asm labels bind declarations to real symbols.** A declaration under a draft, view or Sly 1 name is bound to the
