@@ -528,3 +528,13 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
   rewrite (register choice changes); RenderBlipgSelf's `top:/next:` list walk changes the frame size as a `for`/`do-while`.
 - Plain search loops (`loop: p = t[i]; if (!p || p->id == id) return p; i = (i+1) % N; goto loop;`) and `goto set` chains that
   all reach one call do convert to `for (;;)` / a single `&&` condition with identical code (FindBitmapInHash, SetTnTns gate).
+
+## 2026-11-06 (r3 readability pass, graphics/fx/font/camera): what stays byte-identical and what does not
+- Identical: a nested `if (d == 0) { ... }` comparator chain as early returns (CompareSortRecs); `if (n < cap) { body }` as
+  `if (n >= cap) return;` + body (SetCmPolicy); `{int j; for (j = 0, p = a; j < n; j++, p++) f(p->k);}` as
+  `for (int j = 0; j < n; j++) f(a[j].k);` (CprplPartitionArpl); byte-offset stores `*(int *)((char *)p + 0x620)` as
+  view fields; magic numbers as `#define`d constants; clang-format whitespace changes.
+- Not identical: factoring a repeated block (UpdateEmitter's particle-count clamp) into a `static inline` helper, even
+  once (register allocation changes); `int f = 0 < d; if (f) c = d;` written `if (d > 0) c = d;` (loses slt/movn);
+  folding `if (!a(p)) continue; if (b(p)) goto found;` into `if (a(p) && b(p)) ...` through an inline predicate.
+- nm comparison: `_GLOBAL_$I$<file>` symbols carry a per-compile random suffix; strip it before diffing symbol sets.
