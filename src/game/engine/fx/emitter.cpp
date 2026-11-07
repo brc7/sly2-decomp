@@ -479,18 +479,16 @@ namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
 extern "C" { extern CLOCK D_002DDED0; }
-struct RIPG { char pad[0x15C]; int ripList; };
-struct BLIPG { char pad[0x444]; int numBlips; };
-struct EMITX { BLIPG **ppblipg; RIPG **ppripg; EMITTERV *pemitter; };   /* EMITG */
+struct BLIPG { char pad[0x444]; int numBlips; };   /* classes.h's BLIPG names no fields yet */
 extern "C" {
 void UpdateLo(EMITTERV *p);
 int IsDlEmpty__FP2DL(DL *pdl);
 int IsLoInWorld(EMITTERV *p);
 qword GetLoWorldPos(void *p);
 float RandomFloatInRange__Fff(float gMin, float gMax);
-int CountDlEntries__FP2DL(int *pdl);
+int CountDlEntries__FP2DL(DL *pdl);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
+void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITG *pemitg);
 }
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 int IsEmitterPaused(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
@@ -605,7 +603,7 @@ LActive:   /* near the camera (or not tied to a parent) */
         if (!emitter->pemitb->particleKind)
             numAlive = emitter->pblipg ? ((BLIPG *)emitter->pblipg)->numBlips : 0;
         else
-            numAlive = emitter->pripg ? CountDlEntries__FP2DL(&((RIPG *)emitter->pripg)->ripList) : 0;
+            numAlive = emitter->pripg ? CountDlEntries__FP2DL(&emitter->pripg->ripList) : 0;
         int shortfall = numWanted - numAlive;
         numToEmit = 0;
         int hasShortfall = 0 < shortfall;   /* a flag temp: `if (shortfall > 0)` compiles differently */
@@ -617,11 +615,11 @@ LActive:   /* near the camera (or not tied to a parent) */
 
     if (numToEmit) {
         int unused[4];
-        EMITX emitg;
+        EMITG emitg;
         func_002333B4(&emitg, 0, sizeof(emitg));
-        emitg.pemitter = emitter;
-        emitg.ppblipg = (BLIPG **)&emitter->pblipg;
-        emitg.ppripg = (RIPG **)&emitter->pripg;
+        emitg.ploSubscriber = emitter;
+        emitg.ppblipg = &emitter->pblipg;
+        emitg.ppripg = &emitter->pripg;
         LO **aploRef = emitter->pemitb->aploRef;
         LO *savedReference = aploRef[EMITREF_Reference];
         if (!savedReference && !aploRef[EMITREF_Shape])
