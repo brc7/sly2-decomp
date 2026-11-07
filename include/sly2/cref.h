@@ -59,6 +59,7 @@ struct CRef : CRefData
       CRef(const CRef &r);
       CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }            /* a word with its tag, no retain (bif's builtins) */
       CRef(bool f) { m_tagk = 0x17; u.n = f; }                       /* a boolean, inline (the predicates' results) */
+      CRef(float g) { m_tagk = 0x16; u.g = g; }                      /* a number, inline (the save-variable writes) */
       CRef(CProc *pproc) __asm__("CRef_ctor_CProc");                 /* a procedure value (eval: EvalLambda) */
       CRef(CPair *ppair) __asm__("CRef_ctor_CPair");
       CRef(const VECTOR *pvec) __asm__("CRef_ctor_VECTOR");           /* the payload types own a heap each (CSpliceHeap, sly2/slotheap.h) */

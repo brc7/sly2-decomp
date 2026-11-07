@@ -161,12 +161,6 @@ extern "C" void ClearGameDifficulty()
 
 namespace M_UpdateGameTimers {
 extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
-struct CRefData { int tag; union { int n; float g; }; };
-struct CRef : CRefData {
-    CRef(float x) { tag = 0x16; g = x; }
-    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
-    ~CRef() { Decref__4CRef(this); }
-};
 struct OPT;
 struct JOBTIME { char pad[0x9C]; float start, end, elapsed; };   /* a JOB's difficulty-ease window and elapsed time */
 struct G {
@@ -182,7 +176,7 @@ extern "C" CRef GetGlobalSaveVar(OPT *, void *);
 extern "C" CRef SetGlobalSaveVar(OPT *, const CRefData &, void *);
 extern "C" int GetCurrentWorld();
 extern "C" void ChangeDifficulty(void *, float);
-static inline float GetFloat(OPT *p, void *context) { const CRef &r = GetGlobalSaveVar(p, context); return r.g; }
+static inline float GetFloat(OPT *p, void *context) { const CRef &r = GetGlobalSaveVar(p, context); return r.u.g; }
 static inline void SetPv(OPT *p, const CRef &r, void *context) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(p, arg, context); }
 static inline void SetFloat(OPT *p, float x, void *context) { CRef r(x); SetPv(p, r, context); }
 struct CRefCopy : CRefData {
@@ -224,18 +218,6 @@ extern "C" void UpdateGameTimers()
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
 typedef char Integer_Size[sizeof(int)==4?1:-1];
 typedef char Float_Size[sizeof(float)==4?1:-1];
-typedef char CRefData_Size[sizeof(CRefData)==8?1:-1];
-typedef char CRef_Size[sizeof(CRef)==8?1:-1];
-typedef char CRefCopy_Size[sizeof(CRefCopy)==8?1:-1];
-typedef char CRefData_Alignment[__alignof__(CRefData)==4?1:-1];
-typedef char CRef_Alignment[__alignof__(CRef)==4?1:-1];
-typedef char CRefCopy_Alignment[__alignof__(CRefCopy)==4?1:-1];
-typedef char CRefData_Tag[FIELD_OFFSET(CRefData,tag)==0?1:-1];
-typedef char CRefData_Float[FIELD_OFFSET(CRefData,g)==4?1:-1];
-typedef char CRef_Tag[FIELD_OFFSET(CRef,tag)==0?1:-1];
-typedef char CRef_Float[FIELD_OFFSET(CRef,g)==4?1:-1];
-typedef char CRefCopy_Tag[FIELD_OFFSET(CRefCopy,tag)==0?1:-1];
-typedef char CRefCopy_Float[FIELD_OFFSET(CRefCopy,g)==4?1:-1];
 typedef char H_Size[sizeof(JOBTIME)==0xA8?1:-1];
 typedef char H_Start[FIELD_OFFSET(JOBTIME,start)==0x9C?1:-1];
 typedef char H_End[FIELD_OFFSET(JOBTIME,end)==0xA0?1:-1];
@@ -315,16 +297,6 @@ int GetCoinCount(void)
 } } // namespace M_func_00161798
 
 namespace M_func_001617E0 {
-extern "C" {void*__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
-class CRef {
-public:
-    int m_tagk;
-    int m_tag;
-    CRef(int n) { m_tagk = 0x15; m_tag = n; }
-    CRef(const CRef &ref) { __4CRefRC4CRef(this,&ref); }
-    ~CRef() { Decref__4CRef(this); }
-
-};
 struct O;
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(O *, const CRef &, void *);
@@ -338,7 +310,7 @@ extern "C" void SetCoinCount(void *pv, int n)
     G *pg = &D_003DD490;
     {
         O *var = pg->coinCountVar;
-        CRef ref(n);
+        CRef ref(n, 0x15);
         SetPv(var, ref, D_003D4A60);
     }
     RestartHudWidget1(pg);
@@ -447,7 +419,6 @@ struct BANK{
  char pad0[8];int mode;char pad1[0xFD50-12];int selectedSlot;void*currentSlotData;
 };
 struct LEASE;
-struct CRef;
 extern "C"{
  extern G D_003DD490;
 extern BANK D_002E65E0;
@@ -476,8 +447,6 @@ extern BANK D_002E65E0;
  void BeginTask(P*);
  void AnnounceTaskJob(P*);
  void WipeToWorldWarp(G*,CHECK*,int,int,int,int);
- CRef*__4CRefRC4CRef(CRef*,const CRef*);
- void Decref__4CRef(CRef*);
 }
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 /* Sets a task's state source / requester for a scope (the CONTEXT pointer is the unused JOB-layout half). */
@@ -496,9 +465,8 @@ struct OVERRIDE {
         if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
     }
 };
-struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef GetGlobalSaveVar(void*,void*);
-static inline float GetFloat(void*p,void*context){const CRef&r=GetGlobalSaveVar(p,context);return r.g;}
+static inline float GetFloat(void*p,void*context){const CRef&r=GetGlobalSaveVar(p,context);return r.u.g;}
 static inline int Same(CHECK*a,CHECK*b){
  if(a==b)return 1;
  if(!a||!b)return 0;
@@ -506,7 +474,6 @@ static inline int Same(CHECK*a,CHECK*b){
 }
 typedef char CHECK_Size[sizeof(CHECK)==64?1:-1];
 typedef char OVERRIDE_Size[sizeof(OVERRIDE)==16?1:-1];
-typedef char CRef_Size[sizeof(CRef)==8?1:-1];
 typedef char LEASE_Size[sizeof(LEASE)==1?1:-1];
 typedef char P_selections_Offset[FIELD_OFFSET(P,savedOids)==16?1:-1];
 typedef char P_startTask_Offset[FIELD_OFFSET(P,startTask)==100?1:-1];
@@ -531,8 +498,6 @@ typedef char OVERRIDE_context_Offset[FIELD_OFFSET(OVERRIDE,context)==0?1:-1];
 typedef char OVERRIDE_object_Offset[FIELD_OFFSET(OVERRIDE,object)==4?1:-1];
 typedef char OVERRIDE_oldX_Offset[FIELD_OFFSET(OVERRIDE,oldSource)==8?1:-1];
 typedef char OVERRIDE_oldY_Offset[FIELD_OFFSET(OVERRIDE,oldRequester)==12?1:-1];
-typedef char CRef_kind_Offset[FIELD_OFFSET(CRef,kind)==0?1:-1];
-typedef char CRef_g_Offset[FIELD_OFFSET(CRef,g)==4?1:-1];
 // The game record's event handler: world teardown (1) saves widget state, reset (3) applies the pending save data and
 // reloads the slots, load (4) restores the tasks, 5 re-resolves the current job, task and pending task from the saved
 // oids.
@@ -1505,23 +1470,13 @@ int GetJobState(struct S *job)
 } } // namespace M_func_00163430
 
 namespace M_UpdateJobSaveVars {
-extern "C" {void*__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
-struct CRef{
- int m_tagk;
- union{int m_tag;float m_g;};
- CRef(int n){m_tagk=0x15;m_tag=n;}
- CRef(bool f){m_tagk=0x17;m_tag=f;}
- CRef(float g){m_tagk=0x16;m_g=g;}
- CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
- ~CRef(){Decref__4CRef(this);}
-};
 struct OPT{int kind,value;};
 struct S{char pad[0x7C];int startCount;char pad80[0x24];float elapsedTime;char padA8[0x28];OPT startCountVar,completeVar,elapsedTimeVar;};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsJobComplete(S*);
 static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
-static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
+static inline void SetInt(OPT*p,int n){CRef r(n,0x15);SetPv(p,r);}
 static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
 // Writes the job's count, complete flag and elapsed time into its save variables.
 extern "C" void UpdateJobSaveVars(S *job)
@@ -2192,15 +2147,6 @@ void RestoreTaskState(struct X *task)
 } } // namespace M_RestoreTaskState
 
 namespace M_UpdateTaskSaveVars {
-extern "C" {void *__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
-struct CRef {
- int tag;
- union {int n;float g;};
- CRef(int x){tag=0x15;n=x;}
- CRef(bool x){tag=0x17;n=x;}
- CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
- ~CRef(){Decref__4CRef(this);}
-};
 struct OPT{int kind,value;};
 struct S{char pad[0x54];int state;char pad58[0xC];int startCount,completionCount;char pad6C[0x10];void*job;char pad80[0x48];OPT startCountVar,completionCountVar,completeVar,stateVar,interruptedVar;int pendingCascadeState,stateSource;};
 extern "C" { extern char D_003D4A60[]; }
@@ -2208,7 +2154,7 @@ extern "C" CRef SetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsTaskComplete(S*);
 extern "C" void UpdateJobSaveVars(void*);
 static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,D_003D4A60);}
-static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
+static inline void SetInt(OPT*p,int n){CRef r(n,0x15);SetPv(p,r);}
 // Writes the task's fields into its save variables and refreshes its job's.
 extern "C" void UpdateTaskSaveVars(S *task)
 {
@@ -2697,7 +2643,6 @@ struct P {
 struct CONTEXT{char pad[0xF0];int stateSource,stateRequester;};
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 struct G{char pad[0x3B7C];void*episodePercentVars[9];};
-struct CRef;
 
 extern "C"{
 extern int D_002DEB28;
@@ -2716,8 +2661,6 @@ int GetEpisodePercentComplete(void*);
 int IsTaskLive(P*);
 void OnJobTaskComplete(void*,P*);
 void AutosaveGame(void*,int);
-CRef*__4CRefRC4CRef(CRef*,const CRef*);
-void Decref__4CRef(CRef*);
 }
 static inline void*Allocate(int n){return AllocClearedFromStack(REQUEST(n,16));}
 /* Sets a task's state source / requester for a scope (as in HandleGameEvent). */
@@ -2736,10 +2679,9 @@ struct OVERRIDE {
         if (object) { object->stateSource = oldSource; object->stateRequester = oldRequester; }
     }
 };
-struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef SetGlobalSaveVar(void*,const CRef&,void*);
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=SetGlobalSaveVar(object,arg,D_003D4A60);}
-static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}
+static inline void SetValue(void*object,int n){CRef r(n,0x15);SetPv(object,r,D_003D4A60);}
 // The main task state change: propagates to the collected successors, sets the state, updates the episode percent,
 // handles job start and end tasks and autosaves.
 extern "C" void SetTaskStateCascade(P *task, int state)
