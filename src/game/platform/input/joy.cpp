@@ -11,6 +11,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00188468
 #include "sly2/basic.h"
 #include "sly2/joy.h"
+#include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/util.h"
 #include "sly2/scrap.h"
@@ -21,9 +22,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The four stick axes the deflection is measured against. */
 struct VEC2 { float x; float y; };
-/* g_cm (D_002DDF40, camera manager; docs/systems/camera.md section 3) as ReadJoy reads it: the policy-stack depth and
-   its first entry {priority, policy}, and the embedded default follow policy (CMPART1); and the event timer at D_002DEB30. */
-struct CMV { char pad[0x30C]; int policyCount; int firstPolicyPriority; void *firstPolicy; char pad318[0x3A0 - 0x318]; int followPolicy; };
+/* The event timer at D_002DEB30 as ReadJoy reads it. */
 struct SNDV { float t; };
 
 extern CLOCK D_002DDED0;
@@ -33,7 +32,6 @@ extern JOY D_002DFC00;     /* g_joy (declared after the two words: .bss is emitt
 extern char D_002DDEC0[];  /* the cheat codes */
 VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
 unsigned short D_002BE970[12] = {0x2000, 0x8000, 0x1000, 0x4000, 0x10, 0x20, 0x40, 0x80, 0x4, 0x8, 0x1, 0x2};   /* pad button bits (d-pad, then the shape buttons, then L/R), named by no code (joy's .data) */
-extern CMV D_002DDF40;
 extern SNDV D_002DEB30;
 extern char D_003DD490[];
 extern "C" {
@@ -388,7 +386,7 @@ extern "C" int ReadJoy(JOY *joy)
 
 
         }
-        if (D_002DDF40.policyCount == 0 || D_002DDF40.firstPolicy != &D_002DDF40.followPolicy) {   /* the d-pad steers like the left stick except under the default follow camera (inferred) */
+        if (g_cm.numPolicies == 0 || g_cm.policyStack[0].policy != &g_cm.part3a0) {   /* the d-pad steers like the left stick except under the default follow camera (inferred) */
             if (joy->buttonsHeld & 0xF000) {
 
                 joy->leftStickX = joy->leftStickY = joy->leftStickDeflection = 0.0f;
