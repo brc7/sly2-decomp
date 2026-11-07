@@ -119,7 +119,7 @@ struct MURRAY : public STEPPLAYER
     virtual int VUnk91() __asm__("TryFaceMurrayAttachedObject");   /* slot 92 */
     virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetMurrayStunHold");   /* slot 96 */
     virtual int VUnk97() __asm__("MurrayVirtual98");   /* slot 98 */
-    virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__6MURRAYi");   /* slot 99 */
+    virtual int FCanUseGadget(int idGadget) __asm__("CanMurrayUseGadget__6MURRAYi");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("UseMurrayGadget");   /* slot 100 */
     virtual void VSlot103() __asm__("GetMurraySaveVarRoot");   /* slot 103 */
 };

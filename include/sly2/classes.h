@@ -88,7 +88,7 @@ struct GRABSPOT
     virtual void GetGrabPos() __asm__("GetGrabspotGrabPosition");              /* slot 3 */
     virtual void AdjustScore() __asm__("AdjustGrabspotScore");             /* slot 4 */
     virtual void GetSparklePos() __asm__("GetGrabspotSparklePosition");           /* slot 5 */
-    virtual void VtF() __asm__("GrabspotSlotFDefault");                     /* slot 6 */
+    virtual void VtF() __asm__("GetGrabspotOwner");                     /* slot 6 */
 };
 
 /* BLIPG's 32 records (0x1C bytes each) with an empty inline constructor: g++ still emits the 32-step loop. */

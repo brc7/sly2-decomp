@@ -1712,14 +1712,14 @@ HandleStepplayerContactImpulse,0x140DB0,64,match,src/game/gameplay/player/steppl
 OnStepplayerHeroDied,0x140EB0,10,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerInvulnerable,0x140ED8,30,match,src/game/gameplay/player/stepplayer.cpp
 TakeStepplayerDamage,0x140F50,7,match,src/game/gameplay/player/stepplayer.cpp
-JthsCurrent__10STEPPLAYER,0x140F70,7,match,src/game/gameplay/player/stepplayer.cpp
+GetStepplayerHealthState__10STEPPLAYER,0x140F70,7,match,src/game/gameplay/player/stepplayer.cpp
 HandleStepplayerMessage,0x140F90,382,match,src/game/gameplay/player/stepplayer.cpp
 GetStepplayerCameraFocusPosition,0x141588,46,match,src/game/gameplay/player/stepplayer.cpp
 GetStepplayerCpdefi,0x141640,186,match,src/game/gameplay/player/stepplayer.cpp
 RemoveStepplayerHierarchy,0x141928,15,match,src/game/gameplay/player/stepplayer.cpp
 LaunchStepplayer,0x141968,57,match,src/game/gameplay/player/stepplayer.cpp
 UpdateStepplayerGadgets,0x141A50,107,match,src/game/gameplay/player/stepplayer.cpp
-FCanUseGadget__10STEPPLAYERi,0x141C00,2,match,src/game/gameplay/player/stepplayer.cpp
+CanStepplayerUseGadget__10STEPPLAYERi,0x141C00,2,match,src/game/gameplay/player/stepplayer.cpp
 SetGadgetSlotState,0x141C08,49,match,src/game/gameplay/player/stepplayer.cpp
 ChargeGadgetMp,0x141CD0,26,match,src/game/gameplay/player/stepplayer.cpp
 StartStepplayerGadget,0x141D38,37,match,src/game/gameplay/player/stepplayer.cpp
@@ -1771,7 +1771,7 @@ PlayStepplayerScriptAnim,0x143EE0,70,match,src/game/gameplay/player/stepplayer.c
 StopStepplayerScriptAnim,0x143FF8,16,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerInScriptState,0x144038,12,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerPushing,0x144068,9,match,src/game/gameplay/player/stepplayer.cpp
-FCanBeHealed__10STEPPLAYER,0x144090,15,match,src/game/gameplay/player/stepplayer.cpp
+CanStepplayerBeHealed__10STEPPLAYER,0x144090,15,match,src/game/gameplay/player/stepplayer.cpp
 BindStepplayerHpMp,0x1440D0,46,match,src/game/gameplay/player/stepplayer.cpp
 SetStepplayerHp,0x144188,6,match,src/game/gameplay/player/stepplayer.cpp
 GetStepplayerMp,0x1441A0,7,match,src/game/gameplay/player/stepplayer.cpp
@@ -1780,7 +1780,7 @@ DrainStepplayerMp,0x1441E8,32,match,src/game/gameplay/player/stepplayer.cpp
 AddStepplayerHpMp,0x144268,25,match,src/game/gameplay/player/stepplayer.cpp
 StepplayerVirtual83,0x1442D0,26,match,src/game/gameplay/player/stepplayer.cpp
 StepplayerVirtual84,0x144338,20,match,src/game/gameplay/player/stepplayer.cpp
-FIgnoreIntersection__10STEPPLAYERP2SO,0x144388,20,match,src/game/gameplay/player/stepplayer.cpp
+ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO,0x144388,20,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerInJtMode,0x1443D8,3,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerJtModeBinocucom,0x1443E8,3,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerJtModeRecon,0x1443F8,4,match,src/game/gameplay/player/stepplayer.cpp
@@ -2891,7 +2891,7 @@ GetGrabspotGrabPosition,0x182CD0,2,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotPositionNear,0x182CD8,38,match,src/game/gameplay/player/grabspot.cpp
 AdjustGrabspotScore,0x182D70,2,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotSparklePosition,0x182D78,64,match,src/game/gameplay/player/grabspot.cpp
-GrabspotSlotFDefault,0x182E78,2,match,src/game/gameplay/player/grabspot.cpp
+GetGrabspotOwner,0x182E78,2,match,src/game/gameplay/player/grabspot.cpp
 InitWallGrabspot,0x182E80,13,match,src/game/gameplay/player/grabspot.cpp
 func_00182EB8,0x182EB8,13,match,src/game/gameplay/player/grabspot.cpp
 OnWallGrabspotRemove,0x182EF0,13,match,src/game/gameplay/player/grabspot.cpp
@@ -3043,7 +3043,7 @@ SetJtPlayerState,0x18D568,46,match,src/game/gameplay/player/jt.cpp
 GetJtPlayerState,0x18D620,30,match,src/game/gameplay/player/jt.cpp
 SetGadgetRecordObject,0x18D698,24,match,src/game/gameplay/player/jt.cpp
 GetJtGadgetRecord,0x18D6F8,26,match,src/game/gameplay/player/jt.cpp
-FCanUseGadget__2JTi,0x18D760,185,match,src/game/gameplay/player/jt.cpp
+CanJtUseGadget__2JTi,0x18D760,185,match,src/game/gameplay/player/jt.cpp
 UseJtGadget,0x18DA48,203,match,src/game/gameplay/player/jt.cpp
 EndJtGadget,0x18DD78,35,match,src/game/gameplay/player/jt.cpp
 GetJtSaveVarRoot,0x18DE08,3,match,src/game/gameplay/player/jt.cpp
@@ -3139,7 +3139,7 @@ MeasureJumpTargetAtTime,0x19ABB8,14,match,src/game/gameplay/player/air.cpp
 MeasureJumpToPipe,0x19ABF0,37,match,src/game/gameplay/player/air.cpp
 MeasureJumpAlongPath,0x19AC88,93,match,src/game/gameplay/player/air.cpp
 FindJtObstruction,0x19AE00,161,match,src/game/gameplay/player/air.cpp
-GAdjustJtLandingScore,0x19B088,8,match,src/game/gameplay/player/air.cpp
+AdjustJtLandingScore,0x19B088,8,match,src/game/gameplay/player/air.cpp
 FilterJtObstruction,0x19B0A8,26,match,src/game/gameplay/player/air.cpp
 ChooseJtLanding,0x19B110,1147,match,src/game/gameplay/player/air.cpp
 MeasureJtJumpToTargetAtTime,0x19C300,226,match,src/game/gameplay/player/air.cpp
@@ -3669,7 +3669,7 @@ AdjustMurrayNewXp,0x1B9130,114,match,src/game/gameplay/player/murray.cpp
 UpdateMurrayLift,0x1B92F8,60,match,src/game/gameplay/player/murray.cpp
 SetMurrayLiftSubstate,0x1B93E8,294,match,src/game/gameplay/player/murray.cpp
 EnterMurrayThrowAim,0x1B9880,7,match,src/game/gameplay/player/murray.cpp
-FCanUseGadget__6MURRAYi,0x1B98A0,89,match,src/game/gameplay/player/murray.cpp
+CanMurrayUseGadget__6MURRAYi,0x1B98A0,89,match,src/game/gameplay/player/murray.cpp
 UseMurrayGadget,0x1B9A08,86,match,src/game/gameplay/player/murray.cpp
 GetMurraySaveVarRoot,0x1B9B60,3,match,src/game/gameplay/player/murray.cpp
 GetMurrayStunHold,0x1B9B70,36,match,src/game/gameplay/player/murray.cpp

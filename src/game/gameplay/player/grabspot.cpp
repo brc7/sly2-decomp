@@ -219,7 +219,7 @@ void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // GRABSPOT default for virtual slot 0xF: returns 0 (meaning not identified).
-extern "C" int GrabspotSlotFDefault()
+extern "C" int GetGrabspotOwner()
 {
     return 0;
 }

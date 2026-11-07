@@ -1721,14 +1721,14 @@ HandleStepplayerContactImpulse,0x140DB0,stepplayer
 OnStepplayerHeroDied,0x140EB0,stepplayer
 IsStepplayerInvulnerable,0x140ED8,stepplayer
 TakeStepplayerDamage,0x140F50,stepplayer
-JthsCurrent__10STEPPLAYER,0x140F70,stepplayer
+GetStepplayerHealthState__10STEPPLAYER,0x140F70,stepplayer
 HandleStepplayerMessage,0x140F90,stepplayer
 GetStepplayerCameraFocusPosition,0x141588,stepplayer
 GetStepplayerCpdefi,0x141640,stepplayer
 RemoveStepplayerHierarchy,0x141928,stepplayer
 LaunchStepplayer,0x141968,stepplayer
 UpdateStepplayerGadgets,0x141A50,stepplayer
-FCanUseGadget__10STEPPLAYERi,0x141C00,stepplayer
+CanStepplayerUseGadget__10STEPPLAYERi,0x141C00,stepplayer
 SetGadgetSlotState,0x141C08,stepplayer
 ChargeGadgetMp,0x141CD0,stepplayer
 StartStepplayerGadget,0x141D38,stepplayer
@@ -1780,7 +1780,7 @@ PlayStepplayerScriptAnim,0x143EE0,stepplayer
 StopStepplayerScriptAnim,0x143FF8,stepplayer
 IsStepplayerInScriptState,0x144038,stepplayer
 IsStepplayerPushing,0x144068,stepplayer
-FCanBeHealed__10STEPPLAYER,0x144090,stepplayer
+CanStepplayerBeHealed__10STEPPLAYER,0x144090,stepplayer
 BindStepplayerHpMp,0x1440D0,stepplayer
 SetStepplayerHp,0x144188,stepplayer
 GetStepplayerMp,0x1441A0,stepplayer
@@ -1789,7 +1789,7 @@ DrainStepplayerMp,0x1441E8,stepplayer
 AddStepplayerHpMp,0x144268,stepplayer
 StepplayerVirtual83,0x1442D0,stepplayer
 StepplayerVirtual84,0x144338,stepplayer
-FIgnoreIntersection__10STEPPLAYERP2SO,0x144388,stepplayer
+ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO,0x144388,stepplayer
 IsStepplayerInJtMode,0x1443D8,stepplayer
 IsStepplayerJtModeBinocucom,0x1443E8,stepplayer
 IsStepplayerJtModeRecon,0x1443F8,stepplayer
@@ -2902,7 +2902,7 @@ GetGrabspotGrabPosition,0x182CD0,grabspot
 GetGrabspotPositionNear,0x182CD8,grabspot
 AdjustGrabspotScore,0x182D70,grabspot
 GetGrabspotSparklePosition,0x182D78,grabspot
-GrabspotSlotFDefault,0x182E78,grabspot
+GetGrabspotOwner,0x182E78,grabspot
 InitWallGrabspot,0x182E80,grabspot
 func_00182EB8,0x182EB8,grabspot
 OnWallGrabspotRemove,0x182EF0,grabspot
@@ -3054,7 +3054,7 @@ SetJtPlayerState,0x18D568,jt
 GetJtPlayerState,0x18D620,jt
 SetGadgetRecordObject,0x18D698,jt
 GetJtGadgetRecord,0x18D6F8,jt
-FCanUseGadget__2JTi,0x18D760,jt
+CanJtUseGadget__2JTi,0x18D760,jt
 UseJtGadget,0x18DA48,jt
 EndJtGadget,0x18DD78,jt
 GetJtSaveVarRoot,0x18DE08,jt
@@ -3150,7 +3150,7 @@ MeasureJumpTargetAtTime,0x19ABB8,air
 MeasureJumpToPipe,0x19ABF0,air
 MeasureJumpAlongPath,0x19AC88,air
 FindJtObstruction,0x19AE00,air
-GAdjustJtLandingScore,0x19B088,air
+AdjustJtLandingScore,0x19B088,air
 FilterJtObstruction,0x19B0A8,air
 ChooseJtLanding,0x19B110,air
 MeasureJtJumpToTargetAtTime,0x19C300,air
@@ -3680,7 +3680,7 @@ AdjustMurrayNewXp,0x1B9130,murray
 UpdateMurrayLift,0x1B92F8,murray
 SetMurrayLiftSubstate,0x1B93E8,murray
 EnterMurrayThrowAim,0x1B9880,murray
-FCanUseGadget__6MURRAYi,0x1B98A0,murray
+CanMurrayUseGadget__6MURRAYi,0x1B98A0,murray
 UseMurrayGadget,0x1B9A08,murray
 GetMurraySaveVarRoot,0x1B9B60,murray
 GetMurrayStunHold,0x1B9B70,murray

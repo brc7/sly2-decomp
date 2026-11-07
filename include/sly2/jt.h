@@ -220,7 +220,7 @@ struct JT : public STEPPLAYER
     virtual void StartGadget(int idGadget) __asm__("UseJtGadget");   /* slot 100 */
     virtual void VSlot102() __asm__("EndJtGadget");   /* slot 102 */
     virtual void VSlot103() __asm__("GetJtSaveVarRoot");   /* slot 103 */
-    virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__2JTi");   /* override declared in FCanUseGadget__2JTi.cpp */
+    virtual int FCanUseGadget(int idGadget) __asm__("CanJtUseGadget__2JTi");   /* override declared in CanJtUseGadget__2JTi.cpp */
     virtual void VSlot106() __asm__("JtVirtual106");   /* slot 106: not yet identified */
     virtual void VSlot107() __asm__("AddJtExternalAccelerations");   /* slot 107: not yet identified */
 };

@@ -3422,7 +3422,7 @@ void GetJtHandsIgnoreFlags(void *p, int a, int b);
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // Slot 61: SO base flags, then the throw controller (AdjustJtThrowFindFlags) and grab component add theirs.
-void FIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
+void ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 {
     int x = ShouldSoIgnoreIntersection(p, a);
     x = AdjustJtThrowFindFlags(p + 0x11B0, a, x);

@@ -51,7 +51,7 @@ struct CPLCY : public CPLCYDATA
     virtual void Revoke() __asm__("CPLCY_Revoke");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplcy");
     virtual void VSlot7() __asm__("ResetCplcy");
-    int FIsTop() __asm__("FActiveCplcy__FP5CPLCY");   /* from FCanUseGadget__2JTi.cpp */
+    int FIsTop() __asm__("FActiveCplcy__FP5CPLCY");   /* from CanJtUseGadget__2JTi.cpp */
 };
 
 /* CMPART1: an embedded camera policy of CM at +0x3A0 (role not identified; placeholder name).

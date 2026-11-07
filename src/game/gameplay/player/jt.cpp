@@ -4544,10 +4544,10 @@ void *GetJtGadgetRecord(char *p, int n)
 }
 } } // namespace M_PgadrecFromJtGadget
 
-// FCanUseGadget__2JTi: ported from Lilly's personal Sly 2 decomp (src/P2/jtgadget.c), reduced to the declarations it needs.
+// CanJtUseGadget__2JTi: ported from Lilly's personal Sly 2 decomp (src/P2/jtgadget.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF3EC (g_SheetMiscVariablesStatesThiefReflexesClock), D_002BF3F0 (g_SheetMiscVariablesStatesTimeRushClock), D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002DFBC0 (g_grfjoyt)
-// 0x0018D760 FCanUseGadget__2JTi  (T1329)  Virtual 98: may Sly use the gadget in the state he is in? Nothing while the look mode runs (FJtModeActive). Thief reflexes (0x1D) and time rush (0x2A)
+// 0x0018D760 CanJtUseGadget__2JTi  (T1329)  Virtual 98: may Sly use the gadget in the state he is in? Nothing while the look mode runs (FJtModeActive). Thief reflexes (0x1D) and time rush (0x2A)
 // work in every state but jts 4 (hurt), and only while the clock's power-up rate is 1 (nothing runs) or is this gadget's own rate (the press that ends it). Else the state decides: the
 // air / grab / pipe records say (FJtairCanUseGadget, FJtgrabCanUseGadget, FJtpipeCanUseGadget), hang (3) allows only the look mode, the ground states (0, 1, 5, 10, 0xC) allow the
 // gadget tests below, the throw state (0x17, aiming) allows only the pocket item he carries; every other state allows nothing. The gadget tests: 1, 2, 0x19, 0x1E, 0x1F, 0x21, 0x22,

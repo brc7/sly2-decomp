@@ -2971,7 +2971,7 @@ int IsMurrayInvulnerable(struct P *murray, int k)
 
 namespace M_MURRAY_FIgnoreIntersection { extern "C" {
 struct P { char pad[0x13D0]; int state; char pad1[0x1430 - 0x13D4]; void *p1430; char pad2[0x1910 - 0x1434]; int a1910[1]; };
-int FIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
+int ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
 int IsLoSelfOrDescendantOf(void *pv, void *p1);
 int MaxInt(int n, int k);
 int AdjustJtThrowFindFlags(int *pn, void *pv, int n);
@@ -2988,7 +2988,7 @@ int AdjustJtThrowFindFlags(int *pn, void *pv, int n);
 // MURRAY slot 61: base flags, plus bit 3 for an object that is (part of) the carried object.
 int ShouldMurrayIgnoreIntersection(struct P *murray, void *pv)
 {
-    int n = FIgnoreIntersection__10STEPPLAYERP2SO(murray, pv);
+    int n = ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(murray, pv);
     if (murray->p1430 && IsLoSelfOrDescendantOf(pv, murray->p1430))
         n = MaxInt(n, 3);
     else if (murray->state == MURRAY_AIMED_THROW)
@@ -3969,7 +3969,7 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // MURRAY slot 99: whether gadget/power k can be used in the current state (per-state allow lists, components).
-int FCanUseGadget__6MURRAYi(struct P *p, int k)
+int CanMurrayUseGadget__6MURRAYi(struct P *p, int k)
 {
     if (IsStepplayerInJtMode(p)) return 0;
     switch (p->state) {

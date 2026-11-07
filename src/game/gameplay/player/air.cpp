@@ -4155,19 +4155,19 @@ int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qwo
 }
 } // namespace M_FFindJtObstruction
 
-//////// 0x19B088 GAdjustJtLandingScore
+//////// 0x19B088 AdjustJtLandingScore
 /** @sly2-annot addr=0x19B088
  * Purpose: g + gPenalty, + D_002BF900 if candidate is the jump source
- * Info: proposed name GAdjustJtLandingScore (EXISTING); TU air
- * Notes: agent/verifier proposes GAdjustJtLandingScore for this existing name (see existing_name_changes.csv)
- *   | RENAME proposed -> GAdjustJtLandingScore (existing_name_changes.csv)
+ * Info: proposed name AdjustJtLandingScore (EXISTING); TU air
+ * Notes: agent/verifier proposes AdjustJtLandingScore for this existing name (see existing_name_changes.csv)
+ *   | RENAME proposed -> AdjustJtLandingScore (existing_name_changes.csv)
  * Confidence: high [EXISTING 0.65] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
  *   r4b_rest+arbitration
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 /* A landing score plus the bonus D_002BF900 for the object the air state prefers (ploUnk37c). */
 // Landing score adjustment: adds the bonus D_002BF900 for the object the air state prefers (inferred).
-extern "C" float GAdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
+extern "C" float AdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
 {
     float gScore;
     gScore = g + dg;
@@ -4206,7 +4206,7 @@ namespace M_JtbsChooseJtLanding {
 // ChooseJtLanding: chooses the jump target of the player (JTAIR, the family of Lilly's jtair.c: PlanJtLaunchVelocity is
 // JtPlanLaunchVz). Every candidate list (D_003E13B4..D_003E142C are 12-byte DL heads) is scanned; a candidate is
 // scored with MinimizeRange (a 1-D minimizer over the matched MeasureJumpToRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
-// biased by GAdjustJtLandingScore and checked for a clear path with FindJtObstruction unless it is the forced target. The best one
+// biased by AdjustJtLandingScore and checked for a clear path with FindJtObstruction unless it is the forced target. The best one
 // is published in pstepplayer->pxf (+0xA8 landing time, +0xC0 position, +0xD0 velocity) and SetJtAirState starts the
 // jump of that kind (9 shapes, 10 curves, 14 hooks, 16 meshes, 18 the partner's target, 15/11 curves, 12/13 shapes).
 //
@@ -4333,7 +4333,7 @@ qword PlanJtLaunchVelocity(JTAIR *pjtair, int nKind);                         //
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,
                    VECTOR *ppos, VECTOR *pv);
-float GAdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
+float AdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
 int FindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
                   VECTOR *ppos);
 void ShouldKeepSoPair();
@@ -4388,7 +4388,7 @@ static inline float GMinOf(float a, float b) { return a < b ? a : b; }
 
 /** @sly2-annot addr=0x19B110
  * Purpose: Choose the jump target/landing among all candidate lists ((*(HOOK * *)&g_sw.dlTarget)..(*(MESH * *)&g_sw.dlCid9)), scoring with
- *   MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FindJtObstruction; then
+ *   MinimizeRange over the GMeasure* callbacks, AdjustJtLandingScore and FindJtObstruction; then
  *   SetJtAirState
  * Info: proposed name ChooseJtLanding (T1); TU air
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
@@ -4426,7 +4426,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (shape != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = GAdjustJtLandingScore(air, shape, g, D_002BF8E4);
+                g = AdjustJtLandingScore(air, shape, g, D_002BF8E4);
                 if (bestScore <= g)
                     continue;
                 if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
@@ -4462,7 +4462,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (curve != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = GAdjustJtLandingScore(air, curve, g, D_002BF8E8);
+                g = AdjustJtLandingScore(air, curve, g, D_002BF8E8);
                 if (bestScore <= g)
                     continue;
             }
@@ -4511,7 +4511,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (phook != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = GAdjustJtLandingScore(air, phook, g, D_002BF8EC);
+                g = AdjustJtLandingScore(air, phook, g, D_002BF8EC);
                 if (bestScore <= g)
                     continue;
                 if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
@@ -4544,7 +4544,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             if (pmesh != forcedTarget) {
                 if (gMesh >= D_002BF8E0)
                     continue;
-                gMesh = GAdjustJtLandingScore(air, pmesh, gMesh, D_002BF908);
+                gMesh = AdjustJtLandingScore(air, pmesh, gMesh, D_002BF908);
                 if (bestScore <= gMesh)
                     continue;
             }
@@ -4572,7 +4572,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         if (D_002F7900->ploPartnerTarget != forcedTarget) {
             if (g >= D_002BF8E0)
                 goto LPartnerDone;
-            g = GAdjustJtLandingScore(air, D_002F7900, g, D_002BF904);
+            g = AdjustJtLandingScore(air, D_002F7900, g, D_002BF904);
             if (bestScore <= g)
                 goto LPartnerDone;
             void *apso[2];
@@ -4613,7 +4613,7 @@ LPartnerDone:
         if (curve != forcedTarget) {
             if (D_002BF8E0 <= gCurve)
                 continue;
-            gCurve = GAdjustJtLandingScore(air, curve, gCurve, D_002BF8F0);
+            gCurve = AdjustJtLandingScore(air, curve, gCurve, D_002BF8F0);
             if (bestScore <= gCurve)
                 continue;
         }
@@ -4656,7 +4656,7 @@ LPartnerDone:
         if (shape != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
-            g = GAdjustJtLandingScore(air, shape, g, D_002BF8F8);
+            g = AdjustJtLandingScore(air, shape, g, D_002BF8F8);
             if (bestScore <= g)
                 continue;
         }
@@ -4694,7 +4694,7 @@ LPartnerDone:
         if (curve != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
-            g = GAdjustJtLandingScore(air, curve, g, D_002BF8F4);
+            g = AdjustJtLandingScore(air, curve, g, D_002BF8F4);
             if (bestScore <= g)
                 continue;
         }
@@ -4725,7 +4725,7 @@ LPartnerDone:
         if (shape != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
-            g = GAdjustJtLandingScore(air, shape, g, D_002BF8FC);
+            g = AdjustJtLandingScore(air, shape, g, D_002BF8FC);
             if (bestScore <= g)
                 continue;
             if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
