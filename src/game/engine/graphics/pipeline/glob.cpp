@@ -2141,6 +2141,41 @@ void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int f
 } } // namespace M_CopyRelocateDmaChain
 
 // Keeps its per-function views in a namespace of its own (see the file header).
+// The warp/bend record of a GLOB (GLOB::pwrbg, GLOBSET::pwrbgFirst; ::WRBG is only declared by sly2/basic.h), completed
+// here for LoadSubglobType0FromBrx; wr.cpp keeps a view of the same 0x9C-byte layout under its own names. Not in a
+// shared header yet (no render-family header owns it).
+struct WR;
+enum WEK
+{
+};
+struct WEKI
+{
+    WEK wek;
+    float sInner;
+    float uInner;
+    float sOuter;
+    float uOuter;
+    undefined1 unknown[12];
+    MATRIX4 dmat;
+};
+struct WRBG
+{
+    SO *pso;
+    GLOB *pglob;
+    OID oid;
+    WR *pwr;
+    int cmat;
+    int fDpos;
+    int fDuv;
+    ushort grf;
+    int iqw;
+    undefined1 unknown[12];
+    WEKI weki;
+    SL slBatch;
+    WRBG *pwrbgNextGlobset;
+    WRBG *pwrbgNextWr;
+};
+
 namespace M_LoadSubglobType0FromBrx {
 // LoadSubglobType0FromBrx = LoadSubglobType0FromBrx (name from Lilly's personal decomp, decomp/src/P2/glob.c T1082 draft). MATCH (T1701).
 // Built on lilly4 (T1697) / lilly3 (T1693); see notes/160000.md for the tricks that matched it, the last ones being:
@@ -2155,79 +2190,10 @@ inline void AddDmaIntStore(DMAS *pdmas, int val)
     *(int *)pdmas->m_pb = val;
     pdmas->m_pb += 4;
 }
-extern "C" {
-void* memset(void* ptr, int value, size_t num);
-}
 void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 struct BASIC;
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-struct XF;
-struct WRBG;
-struct BND
-{
-      OID oid;
-      LO *plo;
-      int ixf;
-      XF *pxf;
-      MATRIX4 matInv;
-};
-struct GLOB
-{
-      OID oid;
-      XF *transform;
-      MATRIX4 *unknown08;
-      union
-    {
-        uint grf;
-        struct
-        {
-            uint grfglobType : 3;
-            uint unknownBits0CA : 5;
-            uint unknownBits0CB : 2;
-            uint fLimit : 1;
-            uint isHidden : 1;
-            uint fBakedMat : 1;
-            uint iUnkFirst : 9;
-            uint iUnkEnd : 9;
-            uint unknownFlag0CA : 1;
-        };
-    };
-      void *unknown10;
-      void *unknown14;
-      BND *abnd;
-      WRBG *pwrbg;
-      struct SAA *psaa;
-      struct POSE *ppose;
-};
-struct SUBGLOB
-{
-      char unknown00;
-      char cbnd;
-      int unknown02 : 8;
-      char type;
-      float unknown04;
-      void *pvLit;
-      int iqwBone;
-      int cqw;
-};
-struct POSE
-{
-      VECTOR pos;
-      float radius;           /* +0x0C (LoadPoseSetsFromBrx: position, radius, then the bitfield word) */
-      float limit;            /* +0x10 */
-      long nKind : 4;
-    ulong count : 8;
-    ulong channel : 6;
-    ulong isHidden : 1;
-    long iglob : 13;
-      void *link;
-      undefined4 pad1C;
-};
-struct POSESET
-{
-    POSE apose[4];
-};
 struct BATCH
 {
       int cvtx;
@@ -2347,66 +2313,6 @@ struct CLUTSET
     CLUTPAL *apal;
     int *aipal;
 };
-struct GLOBSET
-{
-      SO *owner;
-      float unknown04;
-      undefined4 unknown08[2];
-      VECTOR boundsCenter;
-      undefined4 unknown1C;
-      float boundsRadius;
-      int cpsaa;
-      SAA **apsaa;
-      int unknown2C;
-      int *unknown30;
-      int unknown34;
-      int numPieces;
-      SUBGLOB *subMeshes;
-      GLOB *pieces;
-      SUBGLOBX *asubglobx;
-      POSESET *aposeset;
-      int unknown4C;
-      union
-    {
-        float unknown50;
-        struct
-        {
-            ulong unknownBits50A : 32;
-            ulong unknownBoundsFlag50 : 1;
-            ulong unknownBoundsFlag50B : 1;
-            ulong ignoreLocked : 1;
-            ulong unknownBits50B : 29;
-        };
-    };
-      WRBG *pwrbgFirst;
-      void *pbatchrecsFirst;
-};
-struct ACT;
-struct CM;
-struct XF
-{
-      MATRIX4 localMatrix;
-      MATRIX4 worldMatrix;
-      float segmentStartTime;
-      float segmentEndTime;
-      float *timeSource;
-      float *speedSource;
-      ACT *firstActuator;
-      int kind;
-      short role;
-      short phase;
-      OID oid;
-      XF *parent;
-      int worldStamp;
-      XF *reference;
-      short stiffness;
-      short damping;
-      VECTOR4 velocity;
-      qword restValue;
-      qword rate;
-      qword unknownE0;
-      qword acceleration;
-};
 extern "C" { extern CM D_002DDF40; }
 void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 struct SWALLOCC
@@ -2427,37 +2333,6 @@ extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPv
 struct UVF
 {
     float u, v;
-};
-struct WR;
-enum WEK
-{
-};
-struct WEKI
-{
-    WEK wek;
-    float sInner;
-    float uInner;
-    float sOuter;
-    float uOuter;
-    undefined1 unknown[12];
-    MATRIX4 dmat;
-};
-struct WRBG
-{
-    SO *pso;
-    GLOB *pglob;
-    OID oid;
-    WR *pwr;
-    int cmat;
-    int fDpos;
-    int fDuv;
-    ushort grf;
-    int iqw;
-    undefined1 unknown[12];
-    WEKI weki;
-    SL slBatch;
-    WRBG *pwrbgNextGlobset;
-    WRBG *pwrbgNextWr;
 };
 extern "C" { extern char D_00000000[]; }
 extern "C" {
