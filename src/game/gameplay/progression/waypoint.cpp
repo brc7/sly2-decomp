@@ -26,23 +26,12 @@ struct RGBAV
     RGBAV(uint bits) { *(uint *)this = bits; }
 };
 
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short d; short pad; int (*pfn)(); };
-struct LO;
 struct TASKV { char pad[0x6C]; int labelNameId; };    /* the job: its name plate string (-1: none) */
 struct ATTACH { char pad[0x7C]; TASKV *task; };
 /* View of an SO: LO flags word (or a pointer to it, bit 0 clear) at +0x40, bounding radius at +0xA0. */
-struct SOV { char pad[0x40]; int taggedFlags; char pad44[0x5C]; float radius; };
-typedef char assert_SO_radius[(unsigned int)&((SOV *)0)->radius == 0xA0 ? 1 : -1];
 /* The waypoint (an SO). */
-struct WAYPTV
+struct WAYPTV : SO
 {
-    char pad0[0xC];
-    VTE *vt;                /* +0x00C (slot 3: HandleSpliceEvent) */
-    char pad10[0x30];
-    int taggedFlags;        /* +0x040 */
-    char pad44[0x104];
-    ulong soFlags;          /* +0x148 */
     int mode;               /* +0x150 when it shows: 0 unless unknown3B0C, 1 only with unknown3B0C, 2 for a job */
     int triggerClass;       /* +0x154 class of hero that activates it */
     float inactiveRadius;   /* +0x158 activation radius while inactive */
@@ -50,9 +39,9 @@ struct WAYPTV
     ATTACH *attachment;     /* +0x160 the job it marks */
     int isActive;           /* +0x164 */
     LO *source;             /* +0x168 the marked object (the beam stands on it) */
-    SOV *marker;            /* +0x16C the marker at the top */
-    SOV *beam;              /* +0x170 */
-    SOV *base;              /* +0x174 */
+    SO *marker;            /* +0x16C the marker at the top */
+    SO *beam;              /* +0x170 */
+    SO *base;              /* +0x174 */
     int clipFrame;          /* +0x178 camera frame of the last height clip */
     int hasCurtainHit;      /* +0x17C */
     float height;           /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainExtraHeight) */
@@ -61,7 +50,7 @@ struct WAYPTV
 };
 typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPTV *)0)->jobCondition == 0x188 ? 1 : -1];
 /* View of the hero (vtable slot 77, +0x2DC). */
-struct JTV { char pad[0xC]; VTE *vt; char pad1[0x2DC - 0x10]; int state; };
+struct JTV : PO { char pad180[0x2DC - 0x180]; int state; };
 
 /* World, camera and clock views (the fields used in this TU). The world fields' meanings are unknown: unknown3B0C
    switches waypoint modes 0/1/2; unknown4750/4754 are times the waypoints fade in after; mode-2 waypoints hide while
@@ -87,25 +76,25 @@ extern "C" void InitWaypt(WAYPTV *waypoint)
 {
     int flags;
     InitSo(waypoint);
-    flags = waypoint->taggedFlags;
+    flags = waypoint->unknown40;
     waypoint->triggerClass = 50;
     waypoint->inactiveRadius = 300.0f;
     waypoint->activeRadius = 500.0f;
     waypoint->clipFrame = -1;
     waypoint->requiredPowerup = -1;
     if (IsPointer(flags)) *(int *)flags |= 0xA;
-    else waypoint->taggedFlags = flags | 0xA;
-    waypoint->soFlags &= ~(1L << 35);
+    else waypoint->unknown40 = flags | 0xA;
+    waypoint->unknownFlag148A = 0;
 }
 
 // Clears LO flag 8 (in the tagged flag word) on a child part, so it is not drawn by itself.
-static __inline__ void ClearBit(SOV *part)
+static __inline__ void ClearBit(SO *part)
 {
-    int flags = part->taggedFlags;
+    int flags = part->unknown40;
     if ((flags ^ 1) & 1) {
         *(int *)flags &= ~8;
     } else {
-        part->taggedFlags = flags & ~8;
+        part->unknown40 = flags & ~8;
     }
 }
 // WAYPT vtable slot 15 (PostLoad): SO post-load; the marker, beam and base are drawn by RenderWaypt, not by themselves.
@@ -134,7 +123,7 @@ static __inline__ float GDist(qwordV a, qwordV b)
 // Calls the waypoint's vtable slot 3 (HandleSpliceEvent) with an event and no arguments.
 static inline void SendSpliceEvent(WAYPTV *waypoint, int event)
 {
-    ((void (*)(void *, int, int, int, int, int))waypoint->vt[3].pfn)((char *)waypoint + waypoint->vt[3].d, event, 0, 0, 0, 0);
+    waypoint->HandleSpliceEvent(event, 0, 0, 0, 0);
 }
 enum { SPLICE_EVENT_ACTIVATE = 5, SPLICE_EVENT_DEACTIVATE = 6 };
 // WAYPT vtable slot 16 (Update): the waypoint is active while a hero of triggerClass is within the activation radius
@@ -154,7 +143,7 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
     if ((waypoint->mode == 0 || waypoint->mode == 2) && D_003DD490.unknown3B0C)
         isInRange = 0;
     if (isInRange && IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34) &&
-        (hero->state != -1 || ((int (*)(void *))hero->vt[77].pfn)((char *)hero + hero->vt[77].d) == 2))
+        (hero->state != -1 || hero->GetHealthState() == 2))
         isInRange = waypoint->isActive;
     if (isInRange != waypoint->isActive) {
         waypoint->isActive = isInRange;
@@ -456,10 +445,10 @@ int IsPowerupAcquired(int ipuk);
 int IsJobComplete(void *pcond);
 void CalculateWayptCurtainExtraHeight(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
-MATRIX4V *GetLoWorldMatrix(SOV *pso);
+MATRIX4V *GetLoWorldMatrix(SO *pso);
 VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qwordV qw);
-void RenderLoAtMatrix(SOV *pso, MATRIX4V *pmat, float a, float b);
-void RenderLoAlongSegment(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
+void RenderLoAtMatrix(SO *pso, MATRIX4V *pmat, float a, float b);
+void RenderLoAlongSegment(SO *pso, qwordV pos0, qwordV pos1, float s, float a);
 char *FindSwLocalizedString__FP2SWi(SW *psw, int id);
 void DrawWorldLabel(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
@@ -593,7 +582,7 @@ extern "C" void RenderWaypt(WAYPTV *waypoint)
 
     if (0.0f < labelAlpha && waypoint->attachment && waypoint->attachment->task && waypoint->attachment->task->labelNameId != -1)
     {
-        float labelOffset = waypoint->marker ? scale * waypoint->marker->radius : 0.0f;
+        float labelOffset = waypoint->marker ? scale * waypoint->marker->model.boundsRadius : 0.0f;
         qwordV posLabel = QwAddScaledG(posEnd, D_002A2DC0, VuFloat(labelOffset));
         RGBAV backColor(0x80603030);
         RGBAV textColor(0xFFC0C0C0);
