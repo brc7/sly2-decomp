@@ -137,12 +137,6 @@ enum {
 struct STRIKE { char pad0[0x60]; int unknown60; int unknown64; };
 /* A message carrying an object (HandleBhvattackMessage, message 0xB). */
 struct MSGLO { int n0; LO *plo; };
-/* The CID 0x3C guard (a STEPGUARD with more fields; ShouldBhvguardUseNeelaBehavior reads +0x108C). */
-struct STEPGUARD3C : public STEPGUARD
-{
-    char pad1010[0x7C];
-    int useChaseBehavior;   /* +0x108C */
-};
 
 extern SW D_003DD490;           /* g_sw */
 extern CLOCK D_002DDED0;        /* g_clock */
@@ -2440,64 +2434,53 @@ extern "C" void UpdateBhvguard(C *behavior)
 
 // 0x177BA0 ResumeBhvguard
 namespace M_ResumeBhvguard { extern "C" {
-struct VTE; struct A; struct S; struct F;
 typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD490;
 extern float D_002A54D0;
-struct VTE { short d; short pad; void *(*pfn)(void *); };
-struct A { char pad[0xC]; struct VTE *vt; char pad2[0xFBC - 0x10]; int specialState; char pad3[0x1010 - 0xFC0]; int unknown1010; };
-struct S { char pad[0x10]; struct A *guard; char pad2[0x1C]; int state; };
-struct F { int kind; int pad[3]; void *arg; float argFloat; int rest[0x16]; };
-void *func_002333B4(void *p, int c, int n) __asm__("memset");
-int IsBasicDerivedFrom__FP5BASIC3CID(struct A *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(STEPGUARD *p, int n);
 void *GetHeroPo(struct G *g);
-int HasBhvguardTargetList(struct S *p);
-int ShouldBhvguardUseNeelaBehavior(struct S *p);
-int IsStepguardForceClass(struct A *p, void *q);
-float GetRandomStepguardDelay(struct A *p);
-qword GetLoWorldPos(struct A *p);
-void *EmitSwNoise(struct G *g, int n, qword v, struct A *p);
-void SetBhvguardMode(struct S *p, struct F *f);
+int HasBhvguardTargetList(BHVGUARD *p);
+int ShouldBhvguardUseNeelaBehavior(BHV *p);
+int IsStepguardForceClass(STEPGUARD *p, void *q);
+float GetRandomStepguardDelay(STEPGUARD *p);
+qword GetLoWorldPos(STEPGUARD *p);
+void *EmitSwNoise(struct G *g, int n, qword v, STEPGUARD *p);
+void SetBhvguardMode(BHVGUARD *p, BHVGUARDREC *f);
 // 0x177BA0: Picks the mode to resume after an interrupting mode ends: flee (Dimitri), stalk the hero (special
 // 0x15), the target list, Neela's chase, combat or stalk on the current target, investigate its own position after
 // being hit, else patrol.
-void ResumeBhvguard(struct S *behavior) {
-    struct F f;
-    func_002333B4(&f, 0, sizeof f);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_DIMITRI) && behavior->guard->unknown1010 > 0) {
+void ResumeBhvguard(BHVGUARD *behavior) {
+    BHVGUARDREC f;   /* cleared by its constructor (memset) */
+    if (IsBasicDerivedFrom__FP5BASIC3CID((STEPGUARD *)behavior->owner, CID_DIMITRI) && ((DIMITRI *)behavior->owner)->fleeCount > 0) {
         f.kind = GUARD_MODE_FLEE;
-        f.arg = GetHeroPo(&D_003DD490);
-    } else if (behavior->guard->specialState == 0x15) {
+        f.arg.object = GetHeroPo(&D_003DD490);
+    } else if (((STEPGUARD *)behavior->owner)->specialState == 0x15) {
         f.kind = GUARD_MODE_STALK;
-        f.arg = GetHeroPo(&D_003DD490);
-        f.argFloat = D_002A54D0;
+        f.arg.object = GetHeroPo(&D_003DD490);
+        f.arg.amount = D_002A54D0;
     } else if (HasBhvguardTargetList(behavior)) {
         f.kind = GUARD_MODE_TARGET_LIST;
     } else if (ShouldBhvguardUseNeelaBehavior(behavior)) {
         f.kind = GUARD_MODE_NEELA_CHASE;
     } else {
         void *q;
-        {
-            struct A *a = behavior->guard;
-            struct VTE *entry = &a->vt[0x58];
-            q = entry->pfn((char *)a + entry->d);
-        }
+        q = ((STEPGUARD *)behavior->owner)->ChooseTarget();
         if (q) {
-            if (IsStepguardForceClass(behavior->guard, q)) {
+            if (IsStepguardForceClass(((STEPGUARD *)behavior->owner), q)) {
                 f.kind = GUARD_MODE_STALK;
-                f.arg = q;
-                f.argFloat = GetRandomStepguardDelay(behavior->guard);
+                f.arg.object = q;
+                f.arg.amount = GetRandomStepguardDelay(((STEPGUARD *)behavior->owner));
             } else {
                 f.kind = GUARD_MODE_ALERT;
-                f.arg = q;
+                f.arg.object = q;
             }
         } else {
-            int n = behavior->state;
+            int n = behavior->mode.kind;
             if (n < 11) {
                 if (n >= 6) {
                     f.kind = GUARD_MODE_SUSPICIOUS;
-                    f.arg = EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(behavior->guard), behavior->guard);
+                    f.arg.object = EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner));
                 } else {
                     f.kind = GUARD_MODE_CALM;
                 }
@@ -2547,7 +2530,7 @@ extern "C" int ShouldBhvguardUseNeelaBehavior(BHV *behavior)
     int f;
     f = 0;
     if (IsBasicDerivedFrom(behavior->owner, (CID)0x3C) != 0) {
-        f = ((STEPGUARD3C *)behavior->owner)->useChaseBehavior != 0;
+        f = ((NEELA *)behavior->owner)->useChaseBehavior != 0;
     }
     return f;
 }

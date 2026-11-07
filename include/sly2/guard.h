@@ -252,8 +252,8 @@ struct STEPGUARD : public STEP
     virtual int GetGroundProbeFlags() __asm__("GetStepguardGroundProbeFlags");   /* slot 85 */
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepguardZapLethal");   /* slot 86 */
     virtual void SetPlayable(int fOn) __asm__("SetStepguardPlayable");   /* slot 87 */
-    virtual void ChooseTarget() __asm__("ChooseStepguardTarget");   /* slot 87: STEPGUARD adds 2 slots to STEP's 87; named from its overrides (inferred) */
-    virtual void CanSenseStimulus() __asm__("CanStepguardSenseStimulus");   /* slot 88: named from its overrides (inferred) */
+    virtual LO *ChooseTarget() __asm__("ChooseStepguardTarget");   /* slot 88: STEPGUARD adds 2 slots to STEP's 0..87; returns the target to pursue (ResumeBhvguard) */
+    virtual int CanSenseStimulus(struct STIMULUS *pstim) __asm__("CanStepguardSenseStimulus");   /* slot 89 (stepguard.cpp calls vtable entry 89 with the stimulus) */
 };
 typedef char assert_STEPGUARD_size[sizeof(STEPGUARD) == 0x1010 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_STEPGUARD_grfsg[SLY2_OFFSETOF(STEPGUARD, grfsg) == 0x2C0 ? 1 : -1];   /* CONFIRMED runtime */

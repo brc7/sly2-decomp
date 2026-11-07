@@ -111,10 +111,19 @@ struct PATHLINKEND
     PATHLINKEND() __asm__("ClearPointerPair");
 };
 
-/* BHVGUARD's 0x70-byte record at +0x30 (awareness mode at +0x30: BHVGUARD.md); its inline constructor clears it. */
+/* BHVGUARD's mode record (0x70, at +0x30; BHVGUARD.md): the awareness mode and its argument, or for the zap modes the
+   zap. SetBhvguardMode copies it whole; IsBhvguardModeSame compares two. Its inline constructor clears it. */
 struct BHVGUARDREC
 {
-    char ab[0x70];
+    int kind;               /* +0x00 the mode (GUARD_MODE_*, guardbhv.cpp) */
+    int unknown4[3];
+    union {
+        struct {
+            void *object;   /* +0x10 what the mode is about: the target, the noise, the hero, the escorted object */
+            float amount;   /* +0x14 a time or amount (stalk delay, watch time) */
+        } arg;
+        qword zap[6];       /* +0x10 hurt/knockdown/KO modes: the zap that caused them */
+    };
     BHVGUARDREC() { memset(this, 0, sizeof(*this)); }
 };
 
@@ -363,7 +372,7 @@ struct CARMELITA : STEPGUARD
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCarmelitaMessage");   /* slot 5 */
     virtual void PostLoad() __asm__("PostCarmelitaLoad");   /* slot 15 */
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsCarmelitaZapLethal");   /* slot 86 */
-    virtual void ChooseTarget() __asm__("ChooseCarmelitaTarget");   /* slot 88 */
+    virtual LO *ChooseTarget() __asm__("ChooseCarmelitaTarget");   /* slot 88 */
 };
 typedef char assert_CARMELITA_size[sizeof(CARMELITA) == 0x1020 ? 1 : -1];
 
@@ -413,7 +422,8 @@ typedef char assert_CID122_size[sizeof(CID122) == 0x60 ? 1 : -1];
 /* 59 DIMITRI (0x1020); vtable 0x2CDE40, 89 slots */
 struct DIMITRI : GUARD
 {
-    char pad1010[0x1020 - 0x1010];
+    int fleeCount;          /* +0x1010 > 0: ResumeBhvguard flees from the hero (inferred) */
+    int unknown1014[3];
     virtual void PostLoad() __asm__("PostDimitriLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetDimitriClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDimitriFromBrx");   /* slot 14 */
@@ -869,8 +879,10 @@ typedef char assert_BHVPATROL_size[sizeof(BHVPATROL) == 0x50 ? 1 : -1];
 /* 156 BHVGUARD (0xB0): guard root: awareness mode +0x30; vtable 0x2D04A0, 14 slots */
 struct BHVGUARD : BHV
 {
-    BHVGUARDREC rec;
-    char padA0[0xB0 - 0xA0];
+    BHVGUARDREC mode;       /* +0x30 the current mode */
+    float modeTime;         /* +0xA0 when the mode was entered */
+    float watchEndTime;     /* +0xA4 */
+    int unknownA8[2];
     virtual void OnPush() __asm__("InitBhvguard");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvguardClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvguard");   /* slot 8 */
@@ -1520,7 +1532,9 @@ typedef char assert_BHV174_size[sizeof(BHV174) == 0x40 ? 1 : -1];
 /* 60 NEELA (0x10A0); vtable 0x2D4820, 89 slots */
 struct NEELA : STEPGUARD
 {
-    char pad1010[0x10A0 - 0x1010];
+    char pad1010[0x108C - 0x1010];
+    int useChaseBehavior;   /* +0x108C her option: chase (BHV174) instead of combat (ShouldBhvguardUseNeelaBehavior) */
+    char pad1090[0x10A0 - 0x1090];
     virtual void Init() __asm__("InitNeela");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetNeelaClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostNeelaLoad");   /* slot 15 */
@@ -1721,7 +1735,7 @@ struct RAJAN : STEPGUARD
     char pad1010[0x1020 - 0x1010];
     virtual void Init() __asm__("InitRajan");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRajanClassDesc");   /* slot 6 */
-    virtual void CanSenseStimulus() __asm__("CanRajanSenseStimulus");   /* slot 89 */
+    virtual int CanSenseStimulus(struct STIMULUS *pstim) __asm__("CanRajanSenseStimulus");   /* slot 89 */
     virtual void SetCameraFocus() __asm__("SetRajanCameraFocus");   /* slot 90 */
 };
 typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
