@@ -391,16 +391,13 @@ void ShowCountdownHud(struct SW *world, float dt)
 } } // namespace M_func_001618F8
 
 namespace M_func_00161958 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct SW { char pad[0x3BC4]; struct O *countdownWidget; char pad2[0x476C - 0x3BC8]; int hideTime; };
+struct SW { char pad[0x3BC4]; WIDGET *countdownWidget; char pad2[0x476C - 0x3BC8]; int hideTime; };
 // Hides the HUD widget of ahudstack[3] and clears its hide time.
 void HideCountdownHud(struct SW *world)
 {
-    struct O *widget = world->countdownWidget;
+    WIDGET *widget = world->countdownWidget;
     if (widget) {
-        struct VTE *entry = &widget->vt[50];
-        entry->pfn((char *)widget + entry->d);
+        widget->Hide();
     }
     world->hideTime = 0;
 }
@@ -1798,9 +1795,7 @@ typedef char layout_S_fd0[(((unsigned)&((struct S*)0)->completionCountKey==0xd0)
 } } // namespace M_PostTaskLoad
 
 namespace M_UpdateTask { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x54]; int state; float stateChangeTime; char pad2[0x78 - 0x5C]; float timeLimit; struct S *job; struct O *marker; };
+struct S { char pad[0x54]; int state; float stateChangeTime; char pad2[0x78 - 0x5C]; float timeLimit; struct S *job; LO *marker; };
 extern struct CLOCK D_002DDED0;
 void UpdateLo(struct S *p);
 void SendTaskTimeout(struct S *p, int n);
@@ -1808,7 +1803,7 @@ void SendTaskTimeout(struct S *p, int n);
 // it is available and no job is current.
 void UpdateTask(struct S *task)
 {
-    struct O *marker;
+    LO *marker;
     UpdateLo(task);
     if (task->state == TASK_STATE_AVAILABLE && task->timeLimit > 0.0f) {
         float elapsed = D_002DDED0.time - task->stateChangeTime;
@@ -1821,11 +1816,9 @@ void UpdateTask(struct S *task)
         if (g_sw.currentJob)
             isShown = 0;
         if (isShown) {
-            struct VTE *entry = &marker->vt[8];
-            entry->pfn((char *)marker + entry->d);
+            marker->Add();
         } else {
-            struct VTE *entry = &marker->vt[9];
-            entry->pfn((char *)marker + entry->d);
+            marker->Remove();
         }
     }
 }
