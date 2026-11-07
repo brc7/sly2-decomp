@@ -2500,7 +2500,7 @@ static inline MATRIX3 MakeBasis(qword vector) return r
 }
 } // namespace M_PostLeafEmit
 // LEAF (RIPT 5) PostEmit: random initial orientation. (inferred)
-void LEAF::PostEmit(void *pv) /* key function (the namespace's views) */
+void LEAF::PostEmit(EMITB *pemitb) /* key function (the namespace's views) */
 {
     using namespace M_PostLeafEmit;
     M_PostLeafEmit::OBJ *p = (M_PostLeafEmit::OBJ *)this;
@@ -2939,18 +2939,13 @@ void RIPT0::Touch(int f)   /* key function: RIPT0's vtable comes out here */
     TouchRip(prip, f == 0);
 }
 
-namespace M_PostRemitEmit { extern "C" {
-struct O { char p0[8]; int *refs; char p1[0xF0-0xC]; int expls; float rate; };   /* the REMIT, and the EMITB (refs; +0xF0 the EXPLS OID, +0xF4 rate) */
-extern struct G D_003DD490;
-void PostRipEmit(struct O *p, struct O *q);
-int FindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int oid, int n);
 // REMIT (RIPT 2) PostEmit: finds the explosion it re-emits (by OID, near the reference object) and copies the rate.
-void PostRemitEmit(struct O *p, struct O *q) {
-    PostRipEmit(p, q);
-    p->expls = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->expls, *q->refs);
-    p->rate = q->rate;
+void REMIT::PostEmit(EMITB *pemitb)
+{
+    PostRipEmit(this, pemitb);
+    pexpls = (EXPLO *)PloFindSwObjectE(&g_sw, 4, (OID)pemitb->v.u.remit.oidExpls, pemitb->aploRef[EMITREF_Reference]);
+    rate = pemitb->v.u.remit.rate;
 }
-} } // namespace M_PostRemitEmit
 
 namespace M_UpdateRemit { extern "C" {
 typedef int qword __attribute__((mode(TI)));

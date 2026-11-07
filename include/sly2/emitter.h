@@ -30,6 +30,7 @@ enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 struct EMITV2 { float a[2]; };
 struct EMITV3 { float a[3]; };
 struct EMITV4 { float a[4]; };
+struct EMITREMIT { int oidExpls; float rate; };   /* re-emitting rips (RIPT 2): the explosion they re-emit, per second */
 struct EMITROLL { int rollKind; int hasRandomRoll; LM lmRollSpeed; };   /* rolling blips (render kind 2): rollKind 0
                                                     mirrors the roll for blips moving away from the camera; random
                                                     start angle; roll speed range (EmitBlips) */
@@ -80,6 +81,7 @@ struct EMITV
         EMITV3 v3;
         EMITV4 v4;
         EMITROLL roll;
+        EMITREMIT remit;
     } u;                    /* +0x30 the payload (shape given by k; blips: flying scale, shrapnel: direction) */
 } __attribute__((aligned(16)));
 typedef char assert_EMITV_oid14[SLY2_OFFSETOF(EMITV, oid14) == 0x14 ? 1 : -1];

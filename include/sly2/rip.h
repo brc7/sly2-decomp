@@ -4,7 +4,7 @@
 #ifndef SLY2_RIP_H
 #define SLY2_RIP_H
 #include "sly2/basic.h"
-struct RIPG;
+struct RIPG; struct EMITB; struct EXPLO;
 
 /* A subscription node (pool D_003E1144). */
 struct RIPSUB
@@ -50,7 +50,7 @@ struct RIP
     char padE4[4];
     RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitRip");   /* slot 1; key function (parameter order from Sly 1's InitMatch symbol) */
-    virtual void PostEmit(void *pv) __asm__("PostRipEmit");   /* slot 2 */
+    virtual void PostEmit(EMITB *pemitb) __asm__("PostRipEmit");   /* slot 2 */
     virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
     virtual void Project() __asm__("ProjectRipTransform");   /* slot 4 */
     virtual void Update(float dt) __asm__("UpdateRip");   /* slot 5 */
@@ -74,7 +74,7 @@ struct RIPF : RIP
 struct FLYING : RIP   /* RIPT 3 */
 {
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostFlyingEmit");
+    virtual void PostEmit(EMITB *pemitb) __asm__("PostFlyingEmit");
     virtual void Render(CM *pcm) __asm__("RenderFlying");
 };
 struct STUCK : RIP   /* RIPT 10 */
@@ -86,7 +86,7 @@ struct SHRAPNEL : RIP   /* RIPT 8 */
 {
     VECTOR dir;                /* +0xF0 the emitter record's direction (PostShrapnelEmit) */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleShrapnelBounce");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
+    virtual void PostEmit(EMITB *pemitb) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
     virtual void Render(CM *pcm) __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
 };
 struct MATCH : RIP   /* RIPT 6 */
@@ -112,7 +112,7 @@ struct SMACK : RIP   /* RIPT 9 */
 struct RIPT1 : RIP   /* RIPT 1 */
 {
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitRipt1");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostRipt1Emit");
+    virtual void PostEmit(EMITB *pemitb) __asm__("PostRipt1Emit");
     virtual void Touch(int fRemove) __asm__("UpdateRipt1");
 };
 struct RIPT0 : RIP   /* RIPT 0 */
@@ -123,13 +123,16 @@ struct RIPT0 : RIP   /* RIPT 0 */
 };
 struct LEAF : RIP   /* RIPT 5 */
 {
-    virtual void PostEmit(void *pv) __asm__("PostLeafEmit");   /* key function */
+    virtual void PostEmit(EMITB *pemitb) __asm__("PostLeafEmit");   /* key function */
     virtual void Project() __asm__("ProjectLeafTransform");
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("StickLeafOnBounce");
 };
 struct REMIT : RIP   /* RIPT 2 */
 {
+    EXPLO *pexpls;             /* +0xF0 the explosion it re-emits (an EXPLS) */
+    float rate;                /* +0xF4 explosions per second */
+    float accumulated;         /* +0xF8 explosions owed (fractional) */
     virtual void Update(float dt) __asm__("UpdateRemit");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("PostRemitEmit");
+    virtual void PostEmit(EMITB *pemitb) __asm__("PostRemitEmit");
 };
 #endif
