@@ -185,7 +185,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
 /* Event payloads read into the EA unions. */
 struct L0 { int n; int a, b, c; float x, y, z; };
 struct L20 { int a, b; float g; };
-static __inline__ void *PvAlloc(int cb) { AREQV req; req.cb = cb; req.cbAlign = 0x10; return AllocClearedFromWorldHeap(&req); }
+static __inline__ void *AllocWorldHeapBlock(int cb) { AREQV req; req.cb = cb; req.cbAlign = 0x10; return AllocClearedFromWorldHeap(&req); }
 /** @sly2-annot addr=0x12F590
  * Purpose: Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays
  * Info: proposed name LoadAsegEventsFromBrx (T1); TU aseg
@@ -201,7 +201,7 @@ static __inline__ void *PvAlloc(int cb) { AREQV req; req.cb = cb; req.cbAlign = 
 void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime, int *pc, EA **pa) { int i; int c; EA *aent;
  c = U8Read__18CBinaryInputStream(stream);
  *pc = c;
- aent = (EA *)PvAlloc(c * 16);
+ aent = (EA *)AllocWorldHeapBlock(c * 16);
  *pa = aent;
  for (i = 0; i < c; i++) {
    EA *pe = &aent[i];
@@ -215,7 +215,7 @@ void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime,
    case 5: pe->g8 = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->gC = F32Read__18CBinaryInputStream(stream); break;
    case 7: case 8: pe->n8 = S32Read__18CBinaryInputStream(stream); pe->gC = F32Read__18CBinaryInputStream(stream); break;
    case 13: case 14: case 15: case 16: pe->n8 = S32Read__18CBinaryInputStream(stream); pe->nC = S32Read__18CBinaryInputStream(stream); break;
-   case 17: { pe->pea17 = (EA17 *)PvAlloc(0x10);
+   case 17: { pe->pea17 = (EA17 *)AllocWorldHeapBlock(0x10);
        ((int *)pe->pea17)[0] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[1] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[2] = S32Read__18CBinaryInputStream(stream); ((float *)pe->pea17)[3] = F32Read__18CBinaryInputStream(stream); break; }
    case 20: { L20 t; AREQV req; AREQV *preq; t.a = S32Read__18CBinaryInputStream(stream); t.b = S32Read__18CBinaryInputStream(stream); t.g = F32Read__18CBinaryInputStream(stream);
        preq = &req; req.cb = 0xC; preq->cbAlign = 0x10; pe->pea20 = (EA20 *)AllocCopyFromWorldHeap(preq, &t); break; }
@@ -299,8 +299,8 @@ extern "C" float GetAsegLabelTime(ASEG *segment, int n)
 /* The new ASEGA is built by hand (memset, vtable store), so its slots are called through PVT. */
 struct G { ASEGA *p; G(ASEGA *pp) : p(pp) { ((void (*)(ASEGA *))PVT(p)[1].pfn)((ASEGA *)((char *)p + PVT(p)[1].d)); }
     ~G() { ((void (*)(ASEGA *))PVT(p)[2].pfn)((ASEGA *)((char *)p + PVT(p)[2].d)); } };
-static inline float GClampA(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
-static inline float GEval(CLQ *pclq, float t) { return pclq->g0 + t * (pclq->g1 + t * pclq->g2); }
+static inline float ClampFloat(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
+static inline float EvaluateQuadratic(CLQ *pclq, float t) { return pclq->g0 + t * (pclq->g1 + t * pclq->g2); }
 /** @sly2-annot addr=0x12F9B8
  * Purpose: Core of applying an animation segment to an ALO hierarchy: allocates an ASEGA from the pool, links
  *   it, binds channels, sets speed, fast-forwards events, UpdateAsegaIeaCur
@@ -330,7 +330,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     p->grfapl = grf;
     p->svtMaster = pt->svtMaster;
     {
-        p->svtSuck = GClampA(GEval(&pt->clqMasterSuck, GetDifficulty(D_002DE578)), pt->lmMasterSuck.gMin, pt->lmMasterSuck.gMax);
+        p->svtSuck = ClampFloat(EvaluateQuadratic(&pt->clqMasterSuck, GetDifficulty(D_002DE578)), pt->lmMasterSuck.gMin, pt->lmMasterSuck.gMax);
     }
     SetAsegaSpeed__FP5ASEGAf(p, g1);
     AppendDlEntry((DL *)(*(char (*)[])&g_sw.dlAsega), p);
