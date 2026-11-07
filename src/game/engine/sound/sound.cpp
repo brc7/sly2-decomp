@@ -2161,34 +2161,32 @@ extern "C" int ShouldFadeWhenTimeStops(SNDMGRV *soundManager)
 }
 
 namespace M_StartDialog {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; VTE *vtable; };
 struct Ref;
-extern "C" void AssignSoundRef(Ref *, X *);
+extern "C" void AssignSoundRef(Ref *, BASIC *);
 struct Ref {
-    X *px;
-    Ref &operator=(X *sound) { AssignSoundRef(this, sound); return *this; }
-    operator X *() { return px; }
+    BASIC *px;
+    Ref &operator=(BASIC *sound) { AssignSoundRef(this, sound); return *this; }
+    operator BASIC *() { return px; }
 };
 struct D { char pad[0x48]; int speakerId; char pad2[0x54 - 0x4C]; int numEvents; };   /* SNDSTREAM */
 /* SNDMGR (layout: see SNDMGRV) */
-struct P { char pad[0x200]; Ref dialogSound; char pad2[0x22C - 0x204]; X *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; int dialogElapsed; };
+struct P { char pad[0x200]; Ref dialogSound; char pad2[0x22C - 0x204]; BASIC *dialogRoleObjects[6]; int dialogEventIndex; int dialogEventTime; int dialogElapsed; };
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_004435F0[]; }
 extern "C" {
 void StopDialog(P *, int);
 D *FindDialogStream(P *, int);
-X *PstreamsndNew(D *, int);
+BASIC *PstreamsndNew(D *, int);
 void SetSubtitle(void *, int, int);
-X *FindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
+BASIC *FindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
 int GetDialogRoleSmOid(P *, int);
-X *FindLiveSma(X *, int);
+BASIC *FindLiveSma(BASIC *, int);
 }
 // Starts a dialog line: stops the current one, creates its stream, shows its subtitle (unless noSubtitle) and, when the
 // line has events and a speaker, binds the six lip-sync roles: role 3 is the speaker object, the others the state
 // machines GetDialogRoleSmOid names on it. Each bound object is counted (vtable slot 1). Returns the stream.
-extern "C" X *StartDialog(P *soundManager, int id, int noSubtitle)
+extern "C" BASIC *StartDialog(P *soundManager, int id, int noSubtitle)
 {
     D *record;
     StopDialog(soundManager, id);
@@ -2200,17 +2198,16 @@ extern "C" X *StartDialog(P *soundManager, int id, int noSubtitle)
     soundManager->dialogElapsed = 0;
     if (!noSubtitle) SetSubtitle(D_004435F0, id, record->speakerId);
     if (record->speakerId != -1 && record->numEvents) {
-        register X *speaker __asm__("$19")=FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
+        register BASIC *speaker __asm__("$19")=FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
         if (speaker) {
             register int role __asm__("$18")=0;
             register int speakerRole __asm__("$20")=3;
-            register X **slot __asm__("$16")=soundManager->dialogRoleObjects;
+            register BASIC **slot __asm__("$16")=soundManager->dialogRoleObjects;
             for(;role<6;role++,slot++) {
                 if(role==speakerRole)soundManager->dialogRoleObjects[3]=speaker;
                 else *slot=FindLiveSma(speaker,GetDialogRoleSmOid(soundManager,role));
-                { X *current=*slot;
-                  if(current) { VTE &entry=current->vtable[1];
-                    entry.pfn((char *)current+entry.d); } }
+                { BASIC *current=*slot;
+                  if(current) current->AddRef(); }
             }
         }
     }
