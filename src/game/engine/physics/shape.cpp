@@ -2539,7 +2539,7 @@ void BuildShapeValidRanges(struct S *shape)
         }
     }
     shape->cC = n;
-    shape->n98 = ++D_003DD490.unknown3D70;
+    shape->n98 = ++D_003DD490.pathzoneVersion;
 }
 } } // namespace M_func_001EA000
 

@@ -1386,7 +1386,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     }
     int fAlt = 0;
     if (pmodel->grf & 0x400000000UL)
-        fAlt = D_003DD490.unknown3BEC == 0;
+        fAlt = D_003DD490.numShownWidgets == 0;
     for (i = 0; i < pmodel->csub; i++)
     {
         pdesc = &pmodel->asubdesc[i];

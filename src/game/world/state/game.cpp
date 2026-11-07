@@ -582,7 +582,7 @@ extern "C" void HandleGameEvent(P *game, int action)
     case 16: {   /* no job: back to the return warp */
         SW *world = &D_003DD490;
         if (!world->currentJob)
-            WipeToWorldWarp(world, 0, world->unknown3C88, world->unknown3C8C, world->unknown3E38 ? 0x20 : 0, 0x30A);
+            WipeToWorldWarp(world, 0, world->returnWarpOid, world->returnWarpContext, world->unknown3E38 ? 0x20 : 0, 0x30A);
         break;
     }
     case 2: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15:

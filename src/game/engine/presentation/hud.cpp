@@ -1140,9 +1140,9 @@ void SetWidgetState(struct S *widget, int state)
     /* states >= VISIBLE are on screen */
     if (widget->priority >= 16) {
         if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE)
-            D_003DD490.unknown3BEC++;
+            D_003DD490.numShownWidgets++;
         else if (state < WIDGET_STATE_VISIBLE && widget->state >= WIDGET_STATE_VISIBLE)
-            D_003DD490.unknown3BEC--;
+            D_003DD490.numShownWidgets--;
     }
     if (widget->pausesGame) {
         if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE) {

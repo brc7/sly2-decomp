@@ -273,8 +273,8 @@ extern "C" BLIPGV *NewBlipGroup(SW *psw)
 {
     BLIPGV *p;
     int i;
-    if (!psw->unknown4070.pslotFree && psw->unknown4070.ab) return 0;
-    p = (BLIPGV *)AllocZeroedFromSlotheap(&psw->unknown4070);
+    if (!psw->slotheapBlipg.pslotFree && psw->slotheapBlipg.ab) return 0;
+    p = (BLIPGV *)AllocZeroedFromSlotheap(&psw->slotheapBlipg);
     func_002333B4(p, 0, 0x460);
     p->basic0 = 0;
     p->basic4 = 0;
@@ -325,7 +325,7 @@ void BLIPG::Release()
 {
     BLIPGV *p = (BLIPGV *)this;
     RemoveSlEntry(GetSwClassList(&D_003DD490, CID_1C), p);
-    FreeSlotheapSlot(&D_003DD490.unknown4070, p);
+    FreeSlotheapSlot(&D_003DD490.slotheapBlipg, p);
 }
 
 /* MATCH (Claude agent, laneC16 2026-10-23), from v6 (3): the c-copy empty asm made volatile. A non-volatile asm stayed between the li a0,1 and the branch, which stops reorg backward search; volatile it is a sched barrier so the li follows it. One pin (px) + two commented empty asms. */

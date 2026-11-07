@@ -137,7 +137,7 @@ struct SW : public BASIC
       DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (IsWidgetObscured, hud.cpp); was _pad_228 */
       SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
       uint32_t   _pad_228    [ 1 ] ;
-      int unknown3BEC;
+      int numShownWidgets;
       /* Level-transition request (written by the warp/exit code, consumed by ExecuteSwTransition 0x20E890). */
       int isTransitionPending;  /* +0x3BF0 [R+S] non-zero -> ExecuteSwTransition runs next frame; 0 in every save state
                                    (request already consumed); was fUnk3bf0 */
@@ -150,8 +150,8 @@ struct SW : public BASIC
       FILEREC currentLevel;     /* +0x3C40 [R] current level FILEREC (equal to destinationLevel in every state); was _pad_235[16] */
       int loadFilter;    /* filter applied to objects while loading (inferred) */
       int unknown3C84;
-      int unknown3C88;
-      int unknown3C8C;
+      int returnWarpOid;
+      int returnWarpContext;
       SLOTHEAP slotheapCallback;   /* scheduled callback records */
       SL slCallback;   /* scheduled callbacks */
       SLOTHEAP slotheapRefnode;   /* reference node records (BASIC::firstSubscriber) */
@@ -171,7 +171,7 @@ struct SW : public BASIC
       uint32_t   _pad_256    [ 1 ] ;
       int stimulusSerial;    /* serial number of the last stimulus (inferred) */
       int lastEventId;      /* +0x3D6C [S] last callback id handed out (basic.cpp pre-increments it: its cCallbackId) */
-      int unknown3D70;
+      int pathzoneVersion;
       int unknown3D74;
       int handsOffCount;    /* +0x3D78 [R] hands-off counter (1 during the safehouse char-select; runtime6 FINDINGS) */
       int noPauseCount; /* pause-disable counter (pausing is blocked while non-zero) */
@@ -239,7 +239,7 @@ struct SW : public BASIC
       SLOTHEAP unknown403C;
       SLOTHEAP unknown4054;
       uint32_t   _pad_318    [ 1 ] ;
-      SLOTHEAP unknown4070;
+      SLOTHEAP slotheapBlipg;
       SLOTHEAP unknown4088; /* +0x4088 [S] draft: the frame dl40 records come from it (frm.cpp ClearPendingFrame) */
       SLOTHEAP unknown40A0; /* +0x40A0 [S] draft: ClearPendingFrame frees a frame's storage to it (frm.cpp); was _pad_321 */
       SLOTHEAP slotheapSsge;   /* SSGE records */
