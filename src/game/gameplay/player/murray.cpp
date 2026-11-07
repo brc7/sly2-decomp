@@ -2974,68 +2974,52 @@ void SetMurrayPowerSubstate(struct P *murray, int st)
 #undef FIELD_OFFSET
 
 namespace M_func_001B8EC0 { extern "C" {
-typedef struct T { char pad[0x1C]; float x1C; char pad2[0x80 - 0x20]; int x80; } T;
-typedef struct P {
-    char pad0[0x150];
-    T *controller;
-    char pad154[0x1030 - 0x154];
-    void *action;
-    char pad1034[0x1840 - 0x1034];
-    int x1840;
-    float x1844;
-    char pad1848[0x1900 - 0x1848];
-    void *x1900;
-    int pad1904;
-    int powerContactTrigger;
-    char pad190C[0x1AC0 - 0x190C];
-    int x1AC0;
-} P;
 extern float D_002DDED0;
 extern float D_002C0A30;
 extern float D_002C0A34;
-int IsAsegaRetracted(void *p);
-void SetMurrayState(P *p, int s);
-void SetMurrayPowerSubstate(P *p, int s);
-int IsLeapDone(void *p);
-void UpdateLeap(void *p);
+int IsAsegaRetracted(ASEGA *p);
+void SetMurrayState(MURRAY *p, int s);
+void SetMurrayPowerSubstate(MURRAY *p, int s);
+int IsLeapDone(LEAP *p);
+void UpdateLeap(LEAP *p);
 
 // State 12 update: advances sub-states on animation end, the contact trigger x1908 (set in AdjustMurrayNewXp) or a
 // timeout.
-void UpdateMurrayPower(P *murray)
+void UpdateMurrayPower(MURRAY *murray)
 {
     int s;
     for (;;) {
-        s = murray->x1840;
+        s = murray->subState;
         switch (s) {
         case 0:
-            if (!murray->action || IsAsegaRetracted(murray->action)) SetMurrayPowerSubstate(murray, 1);
+            if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) SetMurrayPowerSubstate(murray, 1);
             break;
         case 1:
-            if (!murray->action || IsAsegaRetracted(murray->action)) {
+            if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) {
                 SetMurrayState(murray, MURRAY_IDLE);
             } else if (murray->powerContactTrigger) {
                 SetMurrayPowerSubstate(murray, 2);
-            } else if (!murray->x1AC0 && D_002DDED0 - murray->x1844 > D_002C0A30) {
+            } else if (!murray->isBehaviorActive && D_002DDED0 - murray->subStateTime > D_002C0A30) {
                 SetMurrayPowerSubstate(murray, 3);
             }
             break;
         case 2:
-            if (!murray->x1900 || IsLeapDone(murray->x1900)) {
-                if (murray->x1AC0) SetMurrayPowerSubstate(murray, 0);
+            if (!murray->pleapPower || IsLeapDone(murray->pleapPower)) {
+                if (murray->isBehaviorActive) SetMurrayPowerSubstate(murray, 0);
                 else SetMurrayState(murray, MURRAY_IDLE);
             } else {
-                UpdateLeap(murray->x1900);
+                UpdateLeap(murray->pleapPower);
             }
             break;
         case 3:
-            if (!murray->action || IsAsegaRetracted(murray->action)) {
+            if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) {
                 SetMurrayState(murray, MURRAY_IDLE);
-            } else if (D_002DDED0 - murray->x1844 > D_002C0A34 && murray->controller->x80 == 1 && 0.0f < murray->controller->x1C) {
+            } else if (D_002DDED0 - murray->subStateTime > D_002C0A34 && murray->controller->state == 1 && 0.0f < murray->controller->leftStickDeflection) {
                 SetMurrayState(murray, MURRAY_IDLE);
             }
             break;
         }
-        if (murray->x1840 == s || murray->x1840 == -1) break;
+        if (murray->subState == s || murray->subState == -1) break;
     }
 }
 } } // namespace M_func_001B8EC0
@@ -3565,39 +3549,34 @@ extern "C" void StartMurrayFlop(MURRAY *murray, int n, void *pv)
 }
 
 namespace M_func_001B9D28 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int pad[3]; struct VTE *vt; int pad1[6]; unsigned long f28; };
-struct P { char pad[0x1AD0]; struct O *po; int n1AD4; };
 int IsPowerupAcquired(int n);
-void ApplyAsegCore(int n, struct O *po, int a, int b, float g0, float g1);
+void ApplyAsegCore(ASEG *paseg, SO *pso, int a, int b, float g0, float g1);
 // If power-up 0x11 is owned: places the hit effect object at the point and plays its animation.
-void SpawnMurrayHitEffect(struct P *murray, qword q)
+void SpawnMurrayHitEffect(MURRAY *murray, qword q)
 {
     if (!IsPowerupAcquired(0x11))
         return;
-    struct O *object = murray->po;
-    if (!((((object->f28 >> 60) & 1) == 0)))
+    SO *object = murray->psoHitEffect;
+    if (!((((object->isInWorld) & 1) == 0)))
         return;
-    struct VTE *e = &object->vt[29];
-    ((void (*)(void *, qword))e->pfn)((char *)object + e->d, q);
-    ApplyAsegCore(murray->n1AD4, murray->po, 0, 0, 0.0f, 1.0f);
+    object->TranslateToPos(q);
+    ApplyAsegCore(murray->pasegHitEffect, murray->psoHitEffect, 0, 0, 0.0f, 1.0f);
 }
 } } // namespace M_func_001B9D28
 
 namespace M_func_001B9DB8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; char pad[0x18]; unsigned long fl; };
-struct S { char pad[0x1AD8]; struct O *po; void *pv; };
-void ApplyAsegCore(void *a, struct O *po, int c, int d, float f, float g);
+/* The effect object's vtable as called here: slot 29 (TranslateToPos) is passed an int, so the call stays by hand. */
+struct OV { int a, b, c; struct VTE *vt; };
+void ApplyAsegCore(ASEG *paseg, SO *pso, int c, int d, float f, float g);
 // Same as SpawnMurrayHitEffect without the power-up check (event 0x40000 from Murray).
-void SpawnMurrayHitEffectUnchecked(struct S *murray, int x)
+void SpawnMurrayHitEffectUnchecked(MURRAY *murray, int x)
 {
-    if (!((((int)(murray->po->fl >> 60) & 1) == 0)))
+    if (!((((int)murray->psoHitEffectB->isInWorld & 1) == 0)))
         return;
-    struct VTE *e = &murray->po->vt[29];
-    ((void (*)(void *, int))e->pfn)((char *)murray->po + e->d, x);
-    ApplyAsegCore(murray->pv, murray->po, 0, 0, 0.0f, 1.0f);
+    struct VTE *e = &((OV *)murray->psoHitEffectB)->vt[29];
+    ((void (*)(void *, int))e->pfn)((char *)murray->psoHitEffectB + e->d, x);
+    ApplyAsegCore(murray->pasegHitEffectB, murray->psoHitEffectB, 0, 0, 0.0f, 1.0f);
 }
 } } // namespace M_func_001B9DB8
 
