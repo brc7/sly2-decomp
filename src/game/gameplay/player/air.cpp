@@ -3483,8 +3483,8 @@ int SolveQuadratic(float a, float b, float c, float *ax) __asm__("SolveQuadratic
 static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
 {
     float g = EvaluateClq(clq, x);
-    float minValue = range->gMin;
-    float maxValue = range->gMax;
+    float minValue = range->minValue;
+    float maxValue = range->maxValue;
     return Clamp(g, minValue, maxValue);
 }
 extern "C" { extern float D_002BF8C8; }

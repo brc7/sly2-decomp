@@ -726,7 +726,7 @@ struct JOY { char pad0[0x10]; float x, y, heading, amount; };
 struct ANIM { char pad0[0x14]; void *table; char pad18[4]; float phase; char pad20[0x20]; float rate; };
 struct COMPONENT { VTE *vt; };
 struct BINDING { int key; COMPONENT *component; };
-struct SMP { float svFast, svSlow, dtFast; };
+struct SMP { float fastSpeed, slowSpeed, fastDuration; };
 struct HEIGHT { float min, max; };
 struct ENTRY { float weight; int active; char pad8[8]; U direction; };
 struct PROGRAM { void *owner; void *clip; char pad8[0x18]; float x20; char pad24[0x3C]; float x60; char pad64[0x40]; };
@@ -865,9 +865,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             speedMax = LengthOf(ctx->axes[4].direction.q) * ctx->actor->anim->rate;
         goal.f[2] = pos.f[2];
         SMP smp;
-        smp.svFast = speedMax;
-        smp.svSlow = 0.0f;
-        smp.dtFast = 0.3f;
+        smp.fastSpeed = speedMax;
+        smp.slowSpeed = 0.0f;
+        smp.fastDuration = 0.3f;
         U vel;
         PosSmooth(pos.q, goal.q, D_002DDED0.deltaTime, &smp, &vel);
         float lateral;
@@ -1022,18 +1022,18 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         } else {
             SMP smp;
             float limit;
-            smp.svSlow = ctx->program240.x20;
-            smp.svFast = ctx->program240.x60;
-            smp.dtFast = D_002BF5C8;
+            smp.slowSpeed = ctx->program240.x20;
+            smp.fastSpeed = ctx->program240.x60;
+            smp.fastDuration = D_002BF5C8;
             if (focus->cyclic) {
-                limit = smp.svFast;
+                limit = smp.fastSpeed;
             } else if (ctx->reversed) {
                 SmoothValue__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.deltaTime, &smp, &limit);
                 limit = -limit;
             } else {
                 SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 50.0f, D_002DDED0.deltaTime, &smp, &limit);
             }
-            float ratio = (limit - smp.svSlow) / (smp.svFast - smp.svSlow);
+            float ratio = (limit - smp.slowSpeed) / (smp.fastSpeed - smp.slowSpeed);
             float amount = joy->amount;
             if (amount < 0.0f)
                 g = 0.0f;
@@ -2863,7 +2863,7 @@ struct VU_VECTOR
     VU_VECTOR(const VECTOR &v) { q = v.q; }
 };
 
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 struct GRABSPOT
 {
     char pad0[0x20];
@@ -2922,7 +2922,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *p
 }
 void OnEmitterValuesChanged(EMITTER *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 
-static inline float RandomInRange(LM *range) { return RandomFloatInRange__Fff(range->gMin, range->gMax); }
+static inline float RandomInRange(LM *range) { return RandomFloatInRange__Fff(range->minValue, range->maxValue); }
 static inline VU_VECTOR operator*(VU_FLOAT g, VU_VECTOR v)
 {
     __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(v.q) : "j"(g.q));
@@ -2983,7 +2983,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
             tBirth -= RandomInRange(&pemitp->lmAge);
             atBirth[cpart] = tBirth;
             atDeath[cpart] = tBirth + pemitp->dtLife;
-            if (pemitp->lmOffset.gMin != pemitp->lmOffset.gMax) {
+            if (pemitp->lmOffset.minValue != pemitp->lmOffset.maxValue) {
                 VU_VECTOR posOld = pos;
                 s = VU_FLOAT(RandomInRange(&pemitp->lmOffset));
                 pos.q = AddScaled(posOld, vScaled, s).q;

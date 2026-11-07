@@ -533,8 +533,8 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
     case 10:
     {
         LM lm;
-        lm.gMin = stream->F32Read();
-        lm.gMax = stream->F32Read();
+        lm.minValue = stream->F32Read();
+        lm.maxValue = stream->F32Read();
         (pbasic->*(void (BASIC::*)(LM *))pmfSet)(&lm);
         break;
     }
@@ -556,9 +556,9 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
         float g0 = stream->F32Read();
         float g1 = stream->F32Read();
         float g2 = stream->F32Read();
-        smp.svFast = g0;
-        smp.svSlow = g1;
-        smp.dtFast = g2;
+        smp.fastSpeed = g0;
+        smp.slowSpeed = g1;
+        smp.fastDuration = g2;
         (pbasic->*(void (BASIC::*)(SMP *))pmfSet)(&smp);
         break;
     }
@@ -587,10 +587,10 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
         float g1 = stream->F32Read();
         float g2 = stream->F32Read();
         float g3 = stream->F32Read();
-        smpa.svFast = g0;
-        smpa.svSlow = g1;
-        smpa.dtFast = g2;
-        smpa.sdvMax = g3;
+        smpa.fastSpeed = g0;
+        smpa.slowSpeed = g1;
+        smpa.fastDuration = g2;
+        smpa.maxSpeedChange = g3;
         (pbasic->*(void (BASIC::*)(SMPA *))pmfSet)(&smpa);
         break;
     }

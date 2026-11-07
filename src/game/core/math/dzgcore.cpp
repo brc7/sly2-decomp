@@ -227,7 +227,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = g_pdliFirst;
     g_pdliFirst = pdli;
 }

@@ -2823,7 +2823,7 @@ CRef *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args)
 namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame { extern "C" {
 struct CRef; struct LM;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
-typedef struct LM { float gMin; float gMax; } LM;
+typedef struct LM { float minValue; float maxValue; } LM;
 void Decref__4CRef(CRef *pref);
 void CRef_CoerceF32(CRef *pref, CRef *prefSrc);
 // Splice builtin "clq-evaluate-lm": clq eval clamped to lm.
@@ -2835,7 +2835,7 @@ CRef *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *args
     float g;
     CRef_CoerceF32(&ref, &args[2]);
     g = ref.u.g;
-    ret->u.g = Clamp(c[0] + g * (c[1] + g * c[2]), plm->gMin, plm->gMax);
+    ret->u.g = Clamp(c[0] + g * (c[1] + g * c[2]), plm->minValue, plm->maxValue);
     ret->m_tagk = TAGK_F32;
     Decref__4CRef(&ref);
     return ret;

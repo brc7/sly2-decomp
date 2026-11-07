@@ -336,8 +336,8 @@ static inline qword MoveToVu(qword qw)
 static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
 {
     float g = GEvaluateClq(pclq, x);
-    float gMin = plm->gMin;
-    float gMax = plm->gMax;
+    float gMin = plm->minValue;
+    float gMax = plm->maxValue;
     if (g < gMin)
         g = gMin;
     else if (gMax < g)
@@ -458,12 +458,12 @@ namespace RO_ORDER { extern const float r_D_002A96E4 __asm__("D_002A96E4") = 3.4
 // If both angles are the sentinel, set both to ClampToLimits(atan2(h, len)) (inferred)
 void InitTnDefaultAngles(CPD *p)
 {
-    if (p->lmTilt.gMin == D_002A96E0 && p->lmTilt.gMax == D_002A96E4) {
+    if (p->lmTilt.minValue == D_002A96E0 && p->lmTilt.maxValue == D_002A96E4) {
         float a = p->dsOffset + p->aclqOffset[0].g0;
         float f = atan2f(p->aclqOffset[2].g0, SqrtFloat(a * a + p->aclqOffset[1].g0 * p->aclqOffset[1].g0));
         f = ClampToLimits(&D_002C41B0, f);
-        p->lmTilt.gMax = f;
-        p->lmTilt.gMin = f;
+        p->lmTilt.maxValue = f;
+        p->lmTilt.minValue = f;
     }
 }
 
@@ -798,8 +798,8 @@ namespace RO_ORDER { extern const float r_D_002A96FC __asm__("D_002A96FC") = 3.4
 extern "C" void InitCptn(CMPART2 *p)
 {
     InitCplcy(p);
-    D_002C41A8.gMin = D_002A96F8;
-    D_002C41A8.gMax = D_002A96FC;
+    D_002C41A8.minValue = D_002A96F8;
+    D_002C41A8.maxValue = D_002A96FC;
     p->ptn = 0;
     p->pcpd = 0;
 }
@@ -909,7 +909,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 //     frame limited by TN::panLimitAngle); CalculateTnPos with the CPD's offsets (ahead by dsOffset / behind) gives the two views as pan / tilt /
 //     distance from posHang (GetVectorSphere) -> radPanFwd.. / radPanRev..
 //  4. A cut (g_cm.nCut): nCut 2 (CutCmPanTilt) continues from g_cm.radCutPan / radCutTilt (less the framing tilt); outside a tunnel view the pan is
-//     CPDEFI::radHome (the hero's heading) and the tilt CPD::lmTilt.gMin; else the nearer tunnel view becomes the mode (1 / 2). A mode its tunnel
+//     CPDEFI::radHome (the hero's heading) and the tilt CPD::lmTilt.minValue; else the nearer tunnel view becomes the mode (1 / 2). A mode its tunnel
 //     does not allow falls back to 4 (free).
 //  5. vFocus = the focus's velocity (CPDEFI::vBase), or for a tunnel with ploPull the unit direction to that object (z dropped) scaled by
 //     clqPull(distance) limited by lmPull.
@@ -1024,7 +1024,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         {
             nMode = 4;
             radPan = pcpdefi->radHome;
-            radTilt = pcpd->lmTilt.gMin;
+            radTilt = pcpd->lmTilt.minValue;
         }
         else if ((grftnm & 2) == 0)
         {
@@ -1192,16 +1192,16 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         float gTurn = ClampAbs(VuToFloat(VuDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
         float dradPanFree = gTurn * uTunnel;
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
-        dradPanFree *= Clamp(GEvaluateClq(&D_002C4220, D_002DDED0.time - tManual), D_002BBB60.gMin, D_002BBB60.gMax);
+        dradPanFree *= Clamp(GEvaluateClq(&D_002C4220, D_002DDED0.time - tManual), D_002BBB60.minValue, D_002BBB60.maxValue);
         float radPanFree = NormalizeAngle(radPanNew + dradPanFree * D_002DDED0.deltaTime);
         float uSpeed = Min(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
         float radTiltFree;
         SMP smp;
         if (uSpeed > 0.1f)
         {
-            smp.svFast = D_002C4260.svFast * uSpeed;
-            smp.svSlow = D_002C4260.svSlow * uSpeed;
-            smp.dtFast = D_002C4260.dtFast;
+            smp.fastSpeed = D_002C4260.fastSpeed * uSpeed;
+            smp.slowSpeed = D_002C4260.slowSpeed * uSpeed;
+            smp.fastDuration = D_002C4260.fastDuration;
             radTiltFree = SmoothAngle(radTiltNew, ClampToLimits(&pcpd->lmTilt, radTiltNew), D_002DDED0.deltaTime, &smp, 0);
         }
         else
@@ -1321,9 +1321,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 }
             }
             SMP smpPull;
-            smpPull.svFast = D_002C4208.svFast * gPull;
-            smpPull.svSlow = D_002C4208.svSlow * gPull;
-            smpPull.dtFast = D_002C4208.dtFast;
+            smpPull.fastSpeed = D_002C4208.fastSpeed * gPull;
+            smpPull.slowSpeed = D_002C4208.slowSpeed * gPull;
+            smpPull.fastDuration = D_002C4208.fastDuration;
             float radPanPull = SmoothAngle(radPanNew, NormalizeAngle(radPanNew + NormalizeAngle(radPanView - radPanNew)), D_002DDED0.deltaTime, &smpPull, 0);
             float radTiltPull = SmoothAngle(radTiltNew, NormalizeAngle(radTiltNew + NormalizeAngle(radTiltView - radTiltNew)), D_002DDED0.deltaTime, &smpPull, 0);
             if (fabsf(NormalizeAngle(radPanView - radPanPull)) > fabsf(NormalizeAngle(radPanView - radPanFree)))

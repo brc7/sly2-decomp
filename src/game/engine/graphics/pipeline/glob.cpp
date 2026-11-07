@@ -2235,16 +2235,16 @@ struct LO;
 struct SO;
 struct SAA;
 struct RGBA {
-    uchar bRed;
-    uchar bGreen;
-    uchar bBlue;
-    uchar bAlpha;
+    uchar red;
+    uchar green;
+    uchar blue;
+    uchar alpha;
     inline void operator=(const int rgba)
     {
-        bRed = (rgba >> 24) & 0xFF;
-        bGreen = (rgba >> 16) & 0xFF;
-        bBlue = (rgba >> 8) & 0xFF;
-        bAlpha = rgba & 0xFF;
+        red = (rgba >> 24) & 0xFF;
+        green = (rgba >> 16) & 0xFF;
+        blue = (rgba >> 8) & 0xFF;
+        alpha = rgba & 0xFF;
     }
 };
 struct VECTOR
@@ -2331,7 +2331,7 @@ struct SL
 {
     void *head;
     void *tail;
-    int ibSle;
+    int linkOffset;
 };
 void InitSl(SL *psl, int ibSle) __asm__("InitSl");
 void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
@@ -3343,12 +3343,12 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         RGBA rgbaA = argbaFile[pbVtxCur[iv]];
                         RGBA rgbaB = pbatch->pshd->rgba;
-                        uchar a = (rgbaA.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                        uchar a = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                         RGBA5551 *pc = pcol++;
                         RGBA5551 col;
-                        col.g = (uchar)((rgbaA.bGreen * rgbaB.bGreen + 0xff) / 256) >> 3;
-                        col.r = (uchar)((rgbaA.bRed * rgbaB.bRed + 0xff) / 256) >> 3;
-                        col.b = (uchar)((rgbaA.bBlue * rgbaB.bBlue + 0xff) / 256) >> 3;
+                        col.g = (uchar)((rgbaA.green * rgbaB.green + 0xff) / 256) >> 3;
+                        col.r = (uchar)((rgbaA.red * rgbaB.red + 0xff) / 256) >> 3;
+                        col.b = (uchar)((rgbaA.blue * rgbaB.blue + 0xff) / 256) >> 3;
                         col.a = a >> 7;
                         *pc = col;
                         if (pbAlpha != 0)
@@ -3398,10 +3398,10 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                                     *pvPos++ = aposFile[ivtxFile];
                                     RGBA rgba = argbaFile[ivtxFile];
                                     RGBA rgbaB = pbatch->pshd->rgba;
-                                    rgba.bRed = (rgba.bRed * rgbaB.bRed + 0xff) / 256;
-                                    rgba.bGreen = (rgba.bGreen * rgbaB.bGreen + 0xff) / 256;
-                                    rgba.bBlue = (rgba.bBlue * rgbaB.bBlue + 0xff) / 256;
-                                    rgba.bAlpha = (rgba.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                                    rgba.red = (rgba.red * rgbaB.red + 0xff) / 256;
+                                    rgba.green = (rgba.green * rgbaB.green + 0xff) / 256;
+                                    rgba.blue = (rgba.blue * rgbaB.blue + 0xff) / 256;
+                                    rgba.alpha = (rgba.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                                     *prgbaCol++ = rgba;
                                 }
                             }
@@ -3455,7 +3455,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         RGBA rgbaA = argbaFile[ivtxFile];
                         RGBA rgbaB = pbatch->pshd->rgba;
-                        pbatch->pbAlpha[iv] = (rgbaA.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                        pbatch->pbAlpha[iv] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                     }
                 }
             }
@@ -3557,9 +3557,9 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 BATCH *pbatchFirst = prec->pbatchFirst;
                 int ivtxFirst = prec->ivtxFirst;
                 RGBA rgbaA = argbaFile[ivtxFile];
-                int bRed = rgbaA.bRed;
-                int bGreen = rgbaA.bGreen;
-                int bBlue = rgbaA.bBlue;
+                int bRed = rgbaA.red;
+                int bGreen = rgbaA.green;
+                int bBlue = rgbaA.blue;
                 int bMax;
                 if (bRed > bGreen && bRed > bBlue)
                 {
@@ -3583,10 +3583,10 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 {
                     RGBA rgbaB = pbatchFirst->pshd->rgba;
                     uchar *pbC = pbatchFirst->pbRgb + (ivtxFirst - pbatchFirst->ivtxOwn) * 4;
-                    pbC[0] = (rgbaA.bRed * rgbaB.bRed + 0xff) / 512;
-                    pbC[1] = (rgbaA.bGreen * rgbaB.bGreen + 0xff) / 512;
-                    pbC[2] = (rgbaA.bBlue * rgbaB.bBlue + 0xff) / 512;
-                    pbC[3] = (rgbaA.bAlpha * rgbaB.bAlpha + 0xff) / 0x1fe;
+                    pbC[0] = (rgbaA.red * rgbaB.red + 0xff) / 512;
+                    pbC[1] = (rgbaA.green * rgbaB.green + 0xff) / 512;
+                    pbC[2] = (rgbaA.blue * rgbaB.blue + 0xff) / 512;
+                    pbC[3] = (rgbaA.alpha * rgbaB.alpha + 0xff) / 0x1fe;
                 }
                 if (psubglob->cbnd != 0)
                 {

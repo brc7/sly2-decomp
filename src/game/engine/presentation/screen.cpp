@@ -211,7 +211,7 @@ extern "C" void *InitScreenList(void *pv)
 }
 
 namespace M_func_001D9408 { extern "C" {
-typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
+typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 extern int D_002DD318;
@@ -232,7 +232,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }

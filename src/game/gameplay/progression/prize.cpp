@@ -1413,8 +1413,8 @@ namespace M_SprayDprizes {
 //  * posBase is read before the SetVectorCylind call, so it is a spilled pseudo at sp+0x80 like the game.
 typedef int qword __attribute__((mode(TI)));
 union VECTOR4 { qword q; float f[4]; };
-struct CLQ { float g0, g1, g2, gUnused; };
-struct LM { float gMin, gMax; };
+struct CLQ { float g0, g1, g2, unused; };
+struct LM { float minValue, maxValue; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
 struct LINK { char pad0[0x10]; REGION *pregion; };
@@ -1528,7 +1528,7 @@ static inline qword Combine(qword a, VU_FLOAT ga, qword b, VU_FLOAT gb)
 }
 // Helpers GFromClq, GClampR, GClamp (small asm wrappers/accessors shaped for the match).
 static inline float GFromClq(const CLQ &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
-static inline float GClamp(float g, const LM &lm) { return Clamp(g, lm.gMin, lm.gMax); }
+static inline float GClamp(float g, const LM &lm) { return Clamp(g, lm.minValue, lm.maxValue); }
 // The region an object stands in, through its extension's link (or null).
 static inline REGION *PregionFromLo(LO *plo)
 {

@@ -942,7 +942,7 @@ namespace M_UpdateRobottankAi {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct M3 { U rows[3]; };
-struct LM { float min, max; };
+struct LM { float min, maxValue; };
 struct BINDING { char pad0[0x28]; float pitch; };
 struct P;
 struct ATTACH {
@@ -1153,7 +1153,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                 continue;
             if (attach->constraint && !IsPointInVol(attach->constraint, target))
                 continue;
-            if (0.0f < attach->enterRange.max && tank->state != 1)
+            if (0.0f < attach->enterRange.maxValue && tank->state != 1)
                 continue;
             if (attach->mesh) {
                 M3 m = *GetLoWorldMatrix(attach->anchor);
@@ -1166,7 +1166,7 @@ extern "C" void UpdateRobottankAi(P *tank)
             }
             SetSmaGoal(attach->binding, 0x68);
             float t = D_002DDED0.time;
-            tank->nextAttack = t + RandomFloatInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
+            tank->nextAttack = t + RandomFloatInRange__Fff(attach->fireInterval.min, attach->fireInterval.maxValue);
         }
     }
 }

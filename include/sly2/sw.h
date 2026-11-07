@@ -154,7 +154,7 @@ struct SW : public BASIC
       int nUnk3c8c;
       SLOTHEAP slotheapCallback;   /* scheduled callback records */
       SL slCallback;   /* scheduled callbacks */
-      SLOTHEAP slotheapRefnode;   /* reference node records (BASIC::prefnodeFirst) */
+      SLOTHEAP slotheapRefnode;   /* reference node records (BASIC::firstSubscriber) */
       int fAaoxUnsorted;
       int caaox;
       struct AAOX *aaaox[3];

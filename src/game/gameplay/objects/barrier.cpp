@@ -27,7 +27,7 @@ struct SOTREEV { char pad[0x64]; CONTACTL *contactLists; };
 /* BARRIER : SO (sizeof(SO) == 0x150). The SO part is a view of the fields used here, not the sly2/so.h class. */
 struct BARRIERV
 {
-    void *frame;                        /* +0x0 BASIC::pframe (the Splice frame holding script bindings) */
+    void *frame;                        /* +0x0 BASIC::scriptFrame (the Splice frame holding script bindings) */
     char pad04[0xC - 0x4];
     VT *vtable;                         /* +0xC */
     char pad10[0xE8 - 0x10];

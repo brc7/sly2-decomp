@@ -66,7 +66,7 @@ template <> CRefPtr<SND>::~CRefPtr();
 /* BASIC (sly2/basic.h): both counted pointers cleared by member constructors, then the vptr. As member
    constructors, not stores in the body: STEPGUARD_ctor's embedded CID146 addresses its +0x4 clear from the
    enclosing object (s0-based) only this way. */
-inline BASIC::BASIC() : pframe(refptrNull), psidebag(refptrNull) {}
+inline BASIC::BASIC() : scriptFrame(refptrNull), scriptVariables(refptrNull) {}
 /* PO (sly2/po.h): the one PO field construction sets. */
 inline PO::PO() { pvUnk174 = 0; }
 

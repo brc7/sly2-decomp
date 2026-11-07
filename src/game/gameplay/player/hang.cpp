@@ -36,7 +36,7 @@ struct ANIMATION{char pad0[0x74];float gain;};
 /* An IK joint record (+0x19C0, +0x19C4, +0x19CC): position, world matrix, owner frame, stamp, chain. */
 struct IKJ { char pad[0x30]; qword localPos; M4 worldMatrix; char pad80[0x20]; char *parent; int stamp; int ikData; };
 struct CLQ{float g0,g1,g2;};
-struct LM{float gMin,gMax;};
+struct LM{float minValue,maxValue;};
 struct SMP{float values[3];};
 struct SMPA{float a,b,duration,limit;};
 struct STATE{U direction,position,velocity;M3 rotation;};
@@ -300,7 +300,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     U secondAxis, angularSecond;
     secondAxis.q = NormalizeVec(VuCross(axis.q, projected.q), D_002A2DB0.q);
     angularSecond.q = ScaleVecX(secondAxis.q, VuFloat(LengthOf(projected.q) / distance));
-    float drag = Clamp(EvaluateClq(&D_002BF4F0, ratio), D_002BF500.gMin, D_002BF500.gMax);
+    float drag = Clamp(EvaluateClq(&D_002BF4F0, ratio), D_002BF500.minValue, D_002BF500.maxValue);
     float bias;
     if (jt->state == 0 || jt->state == 2)
         bias = D_002BF508;
@@ -322,7 +322,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         float t = (down * displacement.f[2] + speed * 0.5f * speed) / down;
         float g = D_002BF520.g0;
         g += t * (D_002BF520.g1 + t * D_002BF520.g2);
-        float lo = D_002BBB60.gMin, hi = D_002BBB60.gMax;
+        float lo = D_002BBB60.minValue, hi = D_002BBB60.maxValue;
         if (g < lo)
             g = lo;
         else if (hi < g)

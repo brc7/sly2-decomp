@@ -290,10 +290,10 @@ void SetJoyJoys(JOY *joy, JOYS state, JOYK kind)
         joy->dxdtRight = 0.0f;
         joy->dirX = 0;
         for (i = 0; i < 4; i++) {
-            joy->almDeflect2[i].gMin = -0.75f;
-            joy->almDeflect[i].gMin = -0.75f;
-            joy->almDeflect2[i].gMax = 0.75f;
-            joy->almDeflect[i].gMax = 0.75f;
+            joy->almDeflect2[i].minValue = -0.75f;
+            joy->almDeflect[i].minValue = -0.75f;
+            joy->almDeflect2[i].maxValue = 0.75f;
+            joy->almDeflect[i].maxValue = 0.75f;
         }
     }
     joy->joys = state;
@@ -326,11 +326,11 @@ void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *ou
     for (i = 0; i < 4; i++) {
         g = x * D_002BE950[i].x + y * D_002BE950[i].y;
         if (g >= 0.0f) {
-            if (ranges[i].gMax < g) ranges[i].gMax = g;
-            r = g / ranges[i].gMax;
+            if (ranges[i].maxValue < g) ranges[i].maxValue = g;
+            r = g / ranges[i].maxValue;
         } else {
-            if (g < ranges[i].gMin) ranges[i].gMin = g;
-            r = g / ranges[i].gMin;
+            if (g < ranges[i].minValue) ranges[i].minValue = g;
+            r = g / ranges[i].minValue;
         }
         if (gMax < r) gMax = r;
     }

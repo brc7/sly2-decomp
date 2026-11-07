@@ -45,7 +45,7 @@ layout.
 
 Each class has a numeric class id (`CID`) and a descriptor:
 
-- `CLASSINFO` (`basic.h`): parent descriptor, `cid`, `cidMax` (end of the class's subtree), instance size `cb`. The
+- `CLASSINFO` (`basic.h`): parent descriptor (`parentClass`), `cid`, `lastDescendantCid` (end of the class's subtree), instance size `instanceSize`. The
   registry's table extends it with the factory (`CLASSDESC` in `app/class_registry.cpp`: `CLASSINFO` + `pfnNew`). The
   table is indexed by CID.
 - **Factories** `New<Class>` (one per constructible class) allocate the instance with `new` (which takes zeroed memory
@@ -58,7 +58,7 @@ Each class has a numeric class id (`CID`) and a descriptor:
   generated wrappers in `src/generated/splicewrap/`).
 
 **Type tests.** CIDs are numbered in pre-order of the class tree, so a subtree occupies a contiguous CID range.
-`IsBasicDerivedFrom(object, cid)` (`object/basic.cpp`) is a range test against the base's `cidMax`;
+`IsBasicDerivedFrom(object, cid)` (`object/basic.cpp`) is a range test against the base's `lastDescendantCid`;
 `IsCidDerivedFrom(cid, cidBase)` (`object/find.cpp`) walks the parent chain instead. `GetBasicCid` returns an object's
 CID. Level files name classes by CID, so CIDs are part of the data format.
 

@@ -2837,7 +2837,7 @@ struct CLQ
 };
 struct LM
 {
-    float gMin, gMax;
+    float minValue, maxValue;
 };
 struct CLOCK
 {
@@ -2983,8 +2983,8 @@ static inline qword VuIntegrateStep(qword pos, qword v, const VU_FLOAT &g1, qwor
 static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
-    float gMin = plm->gMin;
-    float gMax = plm->gMax;
+    float gMin = plm->minValue;
+    float gMax = plm->maxValue;
     if (g < gMin)
         g = gMin;
     else if (gMax < g)
@@ -3458,7 +3458,7 @@ struct MATRIX3; struct CLQ; struct LM; struct ACTOR; struct MODEL; struct CONTRO
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { float mat[3][4]; };
 struct CLQ { float g0, g1, g2; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 struct ACTOR { char pad[0xFD0]; char control[1]; };
 struct MODEL { char pad[0x10]; qword velocity; };
 struct CONTROL { char pad[0x24]; void *animation; };
@@ -3551,8 +3551,8 @@ static inline qword VuDotMatrixRows(MATRIX3 *pmat, qword qwV)
 static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
-    float gMin = plm->gMin;
-    float gMax = plm->gMax;
+    float gMin = plm->minValue;
+    float gMax = plm->maxValue;
     if (g < gMin)
         return gMin;
     if (gMax < g)

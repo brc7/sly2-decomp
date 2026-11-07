@@ -245,7 +245,7 @@ extern "C" OID GetOidFromProxyId(int id)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C99D8 { extern "C" {
-struct DL { void *head; void *tail; int ibDle; };
+struct DL { void *head; void *tail; int linkOffset; };
 struct N { int id; struct N *pnParent; int oid; int unknownC; int unknown10; struct N *pnNext; struct DL dl; int pad; };
 struct AL { int cb; int cbAlign; };
 extern char D_003DD490[];
@@ -400,7 +400,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
             }
             if (pinit->kind == 5)
             {
-                proxy->pframe = pinit->pframe;
+                proxy->scriptFrame = pinit->pframe;
                 int cb = stream->U16Read();
                 if (!IsBasicDerivedFrom(proxy, pinit->cid))
                 {
@@ -468,11 +468,11 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
             if (plo && isplice != -1)
             {
                 CFrame *pframe = PframeFromIsplice(world, isplice, plo);
-                if (plo->pframe)
+                if (plo->scriptFrame)
                 {
-                    pframe->AddParent(plo->pframe);
+                    pframe->AddParent(plo->scriptFrame);
                 }
-                plo->pframe = pframe;
+                plo->scriptFrame = pframe;
             }
             int cb = stream->U16Read();
             if (plo)
@@ -878,12 +878,12 @@ void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare)
                 LO *ploInit = pinit->plo;
                 if (pframe->m_cpframeParent)
                 {
-                    ploInit->pframe = pframe->m_apframeParent[0];
-                    pframe->RemoveParent(ploInit->pframe);
+                    ploInit->scriptFrame = pframe->m_apframeParent[0];
+                    pframe->RemoveParent(ploInit->scriptFrame);
                 }
                 else
                 {
-                    ploInit->pframe = 0;
+                    ploInit->scriptFrame = 0;
                 }
             }
             pinit->plo = 0;

@@ -111,7 +111,7 @@ extern "C" void InitSwSpliceFrame(SW *world)
 {
     world->fUnk3a14 = 1;
     FramePtr_Assign(world, PtNew__t6CGcObj1Z6CFrame());
-    MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)world->pframe.m_p);
+    MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)world->scriptFrame.m_p);
 }
 
 // Clears the world's Splice table pointer before a level load. (inferred)

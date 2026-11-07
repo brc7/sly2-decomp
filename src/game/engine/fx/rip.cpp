@@ -228,7 +228,7 @@ void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 }
 
 namespace M_OnRipgRemove__FP4RIPG {
-struct DL { void *head; void *tail; int ibDle; };
+struct DL { void *head; void *tail; int linkOffset; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 struct RIP;
@@ -249,7 +249,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
     pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->ibDle;
+    pdli->m_ibDle = pdl->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -289,7 +289,7 @@ namespace M_ProjectRipgTransform { extern "C" {
 // min/max of their two corner vectors, optionally grow by the object's size, then derive the center and radius and notify.
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
-typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
+typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[16]; } VT;
 typedef struct S {
@@ -305,7 +305,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -382,7 +382,7 @@ extern "C" void UpdateRipgBounds(RIPGV *ripGroup)
 }
 
 namespace M_UpdateRipg { extern "C" {
-typedef struct DL { void *head; void *tail; int ibDle; } DL;
+typedef struct DL { void *head; void *tail; int linkOffset; } DL;
 typedef struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; struct DLI *m_pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 extern struct CLOCK D_002DDED0;
@@ -398,7 +398,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
     pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->ibDle;
+    pdli->m_ibDle = pdl->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -535,7 +535,7 @@ void BounceRipgRips__FP4RIPG(P *p)
 } // namespace M_BounceRipgRips__FP4RIPG
 
 namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO {
-struct DL { void *head; void *tail; int ibDle; };
+struct DL { void *head; void *tail; int linkOffset; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 extern "C" { extern CLOCK D_002DDED0; }
@@ -548,7 +548,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
     pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->ibDle;
+    pdli->m_ibDle = pdl->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -1946,7 +1946,7 @@ void RenderStuck(S *p)
 namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB {
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 struct SHRAPNEL {
     char pad[0x18]; float duration;
     char pad2[0x90 - 0x1C]; qword v;
@@ -1997,20 +1997,20 @@ extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemi
     float len, g;
     int i;
     PostRipEmit(psh, pemitb);
-    float gain = RandomFloatInRange__Fff(D_002C1F78.gMin, D_002C1F78.gMax);
+    float gain = RandomFloatInRange__Fff(D_002C1F78.minValue, D_002C1F78.maxValue);
     float life = psh->duration * gain;
     qword lengthValue = VLen(psh->v);
     char *page;
     LM *limits;
     len = ReadLengthAndPublish(lengthValue, &page, &limits, &psh->duration, life);
     CopyDirection(psh, pemitb);
-    g = Clamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->gMax) * 10.0f;
+    g = Clamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->maxValue) * 10.0f;
     for (i = 0; i < 3; i++)
         psh->ag[i] = RandomFloatInRange__Fff(-g, g);
 }
 
 #define OFF(t,m) ((unsigned)&((t*)0)->m)
-typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,gMin)==0 && OFF(LM,gMax)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
+typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,minValue)==0 && OFF(LM,maxValue)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
 } // namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB
 #undef OFF
 

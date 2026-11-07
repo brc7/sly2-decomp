@@ -693,7 +693,7 @@ namespace M_HandleStepplayerMessage { extern "C" {
 // The -1.0f VU_FLOAT's home store (s.q = sv) goes last, so sv stays live in vf5 across the transform and the earlyclobber output lands
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
 typedef int qword __attribute__((mode(TI)));
-typedef struct DL { void *head; void *tail; int ibDle; } DL;
+typedef struct DL { void *head; void *tail; int linkOffset; } DL;
 typedef struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; struct DLI *m_pdliNext; } DLI;
 extern DLI *D_002DD2FC;     /* g_pdliFirst */
 struct VT { struct { short d; short pad; void (*pfn)(...); } a[64]; };
@@ -735,7 +735,7 @@ static inline void InitDli(DLI *pdli, DL *list)
 {
     pdli->m_pdl = list;
     pdli->m_ppv = (void **)list;
-    pdli->m_ibDle = list->ibDle;
+    pdli->m_ibDle = list->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -1830,8 +1830,8 @@ static inline float LaneXKeepVf(qword qw)
 static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
 {
     float g = clq->g0 + x * (clq->g1 + x * clq->g2);
-    float minValue = range->gMin;
-    float maxValue = range->gMax;
+    float minValue = range->minValue;
+    float maxValue = range->maxValue;
     if (g < minValue)
         return minValue;
     if (maxValue < g)
@@ -1882,7 +1882,7 @@ namespace M_func_00142AF8 {
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 struct R { char pad[0x40]; M3 m40; char pad1[0xA0 - 0x70]; void *pA0; };
 struct Q { char pad[8]; R *p8; };
 struct S {
@@ -1956,7 +1956,7 @@ void PickHeroInteractTarget(P *p)
     if (p->pq == 0)
         return;
     f = 0;
-    if (p->lmPan.gMin < p->lmPan.gMax || p->lmTilt.gMin < p->lmTilt.gMax)
+    if (p->lmPan.minValue < p->lmPan.maxValue || p->lmTilt.minValue < p->lmTilt.maxValue)
         f = 1;
     if (p->jtModeState != -1)
         f = 0;
@@ -2022,10 +2022,10 @@ void PickHeroInteractTarget(P *p)
         tilt = ClampAngleToRange(&p->lmTilt, tilt);
         {
             float t;
-            if (p->lmPan.gMax == p->lmPan.gMin)
+            if (p->lmPan.maxValue == p->lmPan.minValue)
                 t = 0.5f;
             else
-                t = (pan - p->lmPan.gMin) / (p->lmPan.gMax - p->lmPan.gMin);
+                t = (pan - p->lmPan.minValue) / (p->lmPan.maxValue - p->lmPan.minValue);
             float u = t * __builtin_fabsf(t);
             g = (1.0f - u) * p->g1130 + u * p->g1134;
         }

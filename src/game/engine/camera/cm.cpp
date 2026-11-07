@@ -66,8 +66,8 @@ void SetCmNearClip(CM *pcm, float sNearClip);
 extern "C" CM *CM_ctor(CM *pcm)
 {
     CPTWOSHOT *pcptwoshot = &pcm->part600;
-    pcm->pframe.m_p = 0;
-    pcm->psidebag.m_p = 0;
+    pcm->scriptFrame.m_p = 0;
+    pcm->scriptVariables.m_p = 0;
     PVTCM(pcm) = D_002CA4D0;
     CMPART1_ctor(&pcm->part3a0);
     CPTN_ctor(&pcm->part3b0);
@@ -468,8 +468,8 @@ static inline VU_FLOAT VuFloatOfFloat(float g)
 static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
-    float gMin = plm->gMin;
-    float gMax = plm->gMax;
+    float gMin = plm->minValue;
+    float gMax = plm->maxValue;
     if (g < gMin)
         return gMin;
     if (gMax < g)

@@ -44,7 +44,7 @@ static inline void InitSli(SLI *psli, SL *psl)
 {
     psli->m_psl = psl;
     psli->m_ppv = (void **)psl;
-    psli->m_ibSle = psl->ibSle;
+    psli->m_ibSle = psl->linkOffset;
     psli->m_psliNext = D_002DD2F8;
     D_002DD2F8 = psli;
 }

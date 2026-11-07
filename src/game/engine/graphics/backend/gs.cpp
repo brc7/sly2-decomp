@@ -41,7 +41,7 @@ struct GSBB { int start; int end; GSBB *next; };   /* a free run of GS blocks [s
 struct GSB { int first; int top; int limit; GSBB *freeRuns[8]; int numRuns; GSBB runs[1]; };   /* first..limit: the GS block range; top: next free block */
 
 struct RGBA {
-    uchar bRed; uchar bGreen; uchar bBlue; uchar bAlpha;
+    uchar red; uchar green; uchar blue; uchar alpha;
     RGBA(const RGBA &rgba);
 };
 
@@ -332,8 +332,8 @@ void BuildClearGifs(QW *aqw, RGBA rgba, int n)
 {
     GIFS gifs;
     gifs.AllocStatic(0x25, aqw);
-    gifs.AddPrimPack(rgba.bAlpha < 0x80 ? 0x46 : 6, 1, 0xE);
-    gifs.PackAD(1, (ulong)rgba.bRed | ((ulong)rgba.bGreen << 8) | ((ulong)rgba.bBlue << 16) | ((ulong)rgba.bAlpha << 24));
+    gifs.AddPrimPack(rgba.alpha < 0x80 ? 0x46 : 6, 1, 0xE);
+    gifs.PackAD(1, (ulong)rgba.red | ((ulong)rgba.green << 8) | ((ulong)rgba.blue << 16) | ((ulong)rgba.alpha << 24));
     ulong test;
     switch (n) {
     case 1: test = 0x31001; break;

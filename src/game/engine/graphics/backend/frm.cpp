@@ -49,7 +49,7 @@ struct DLI {
     void *previous;
     DLI(DL *owner)
     {
-        int offset = owner->ibDle;
+        int offset = owner->linkOffset;
         previous = D_002DD2FC;
         D_002DD2FC = this;
         list = owner;

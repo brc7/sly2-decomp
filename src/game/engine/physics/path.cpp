@@ -1808,7 +1808,7 @@ namespace M_FindPathlinkRoute {
 // never-touched RAII-style object (inline empty dtor) or a volatile. Rest of the code is lilly4 (StoreX estimate).
 typedef int qword __attribute__((mode(TI)));
 struct MSG { int cb; int nKind; };
-struct DL { void *pvFirst; void *pvLast; int ibDle; };
+struct DL { void *pvFirst; void *pvLast; int linkOffset; };
 struct NAV { char pad[0x124]; int index; };
 struct EDGE { char pad[0x128]; NAV *pnavDest; int pad12C; qword posBegin; qword posEnd; };
 struct ADJ { int cedge; int *aiedge; };

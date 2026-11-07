@@ -135,7 +135,7 @@ extern "C" void DecrefAsega(ASEGA *player)
     player->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(player, 0);
-        AssignSidebagRef((struct R4 **)&player->psidebag, 0);
+        AssignSidebagRef((struct R4 **)&player->scriptVariables, 0);
         UnsubscribeLoAll(player);
         FreeSlotheapSlot(&g_sw.slotheapAsega, player);
     }

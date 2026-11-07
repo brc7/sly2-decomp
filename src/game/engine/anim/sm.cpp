@@ -548,8 +548,8 @@ extern "C" void DecrefSma(SMA *psma)
     int cref = psma->cref - 1;
     psma->cref = cref;
     if (cref <= 0) {
-        FramePtr_Assign(&psma->pframe, 0);
-        AssignSidebagRef(&psma->psidebag, 0);
+        FramePtr_Assign(&psma->scriptFrame, 0);
+        AssignSidebagRef(&psma->scriptVariables, 0);
         UnsubscribeLoAll(psma);
         FreeSlotheapSlot(&D_003DD490.slotheapSma, psma);
     }

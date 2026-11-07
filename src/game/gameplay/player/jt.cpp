@@ -1336,7 +1336,7 @@ lComputeLean:
     *(qword *)&vecLocal = MulMatrixRows(&jt->matTarget, *(qword *)&vecDir);
     float gLen = LengthXYOf(*(qword *)&vecLocal);
     if (gLen > 0.0001f) {
-        float k = Clamp(EvaluateClq(&D_002BF310, Min(gLen / D_002BF300, 1.0f)), D_002BBB60.gMin, D_002BBB60.gMax);
+        float k = Clamp(EvaluateClq(&D_002BF310, Min(gLen / D_002BF300, 1.0f)), D_002BBB60.minValue, D_002BBB60.maxValue);
         float gX = vecLocal.x * D_002BF2D8 * k / gLen;
         float gY = vecLocal.y * D_002BF2D8 * k / gLen;
         float gR = ({

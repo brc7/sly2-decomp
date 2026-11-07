@@ -735,7 +735,7 @@ void AddSoHierarchy(struct L *so)
 namespace M_RemoveSoHierarchy { extern "C" {
 struct DL; struct DLI; struct VTE; struct O; struct E; struct P; struct K;
 typedef unsigned long ulong;
-typedef struct DL { void *head; void *tail; int ibDle; } DL;
+typedef struct DL { void *head; void *tail; int linkOffset; } DL;
 typedef struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; struct DLI *m_pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 struct VTE { short d; short pad; void (*pfn)(void *); };
@@ -754,7 +754,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->m_pdl = pdl;
     pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->ibDle;
+    pdli->m_ibDle = pdl->linkOffset;
     pdli->m_pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -3711,7 +3711,7 @@ struct O *DeliverZapToSo(struct K *pk)
 // 0x1F77C0 ExpireSwZapRecords
 namespace M_ExpireSwZapRecords { extern "C" {
 struct DL; struct DLI; struct E; struct P;
-struct DL { void *pvFirst; void *pvLast; int ibDle; };
+struct DL { void *pvFirst; void *pvLast; int linkOffset; };
 struct DLI { struct DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; };
 extern struct DLI *D_002DD2FC;
 extern struct CLOCK D_002DDED0;
@@ -3723,7 +3723,7 @@ static inline void InitDli(struct DLI *pdli, struct DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -4382,8 +4382,8 @@ extern "C" void DecrefXfHandle(XFH *pxfh)
     cref = pxfh->cref - 1;
     pxfh->cref = cref;
     if (cref <= 0) {
-        FramePtr_Assign(&pxfh->pframe, 0);
-        AssignSidebagRef(&pxfh->psidebag, 0);
+        FramePtr_Assign(&pxfh->scriptFrame, 0);
+        AssignSidebagRef(&pxfh->scriptVariables, 0);
         UnsubscribeLoAll(pxfh);
         FreeSlotheapSlot(&g_sw.slotheapXfh, pxfh);
     }

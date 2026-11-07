@@ -833,7 +833,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //  - the chase arms (roles 7 8 9 0xB) leave the limited case of role 0xB with `goto LChaseDone` (no flag in the game; inline functions with `return` match
 //    the code too but their frames do not share stack slots like the game's);
 //  - locals of the rotation arms are declared at the top of the arm in the game's frame order (matOld 0x00, matDmat/matTarget 0x30, matNew 0x60/0x90, vecAxis);
-//  - xfk 11/12 tests are nested ifs with the shared else duplicated (two slti), SMP fields assigned svFast, svSlow, dtFast; gMin is an if/else and gOut is set
+//  - xfk 11/12 tests are nested ifs with the shared else duplicated (two slti), SMP fields assigned fastSpeed, slowSpeed, fastDuration; gMin is an if/else and gOut is set
 //    before dgNext; ClearXyz stores z, y, x; case 1's "else" is `if (role != 2) SlotSetRole(..3) else fIdle = 0` (case 6 too); fIdle = 0 after SlotSetRole(10).
 //  (T1137, each verified on the diff; scratch decomp/build/scratch/t1137/ - var.py/opperm.py/rtlsum.py/pri.py, notes re/notes/decomp-compiler-quirks.md section 62)
 //  - case 5/6 FALLS THROUGH into case 0x15 (`fIdle = 0; break;`): one `fIdle = 0` fewer = n_refs 21 instead of 23 = global.c priority 1157 < the g_qwZero hi copy's 1200,
@@ -1256,15 +1256,15 @@ void UpdateSoSlots(SO *so)
                     SMP smp;
                     if (xf->phase == 3)
                     {
-                        smp.svFast = (float)(ushort)xf->stiffness * s_smpChaseRot.svFast;
-                        smp.svSlow = (float)(ushort)xf->stiffness * s_smpChaseRot.svSlow;
-                        smp.dtFast = s_smpChaseRot.dtFast;
+                        smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.fastSpeed;
+                        smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.slowSpeed;
+                        smp.fastDuration = s_smpChaseRot.fastDuration;
                     }
                     else
                     {
-                        smp.svFast = (float)(ushort)xf->stiffness * s_smpChaseRot.svFast + fabsf(gRateAlong);
-                        smp.svSlow = (float)(ushort)xf->stiffness * s_smpChaseRot.svSlow + fabsf(gRateAlong);
-                        smp.dtFast = s_smpChaseRot.dtFast;
+                        smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.fastSpeed + fabsf(gRateAlong);
+                        smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChaseRot.slowSpeed + fabsf(gRateAlong);
+                        smp.fastDuration = s_smpChaseRot.fastDuration;
                     }
                     float gOut;
                     float dgNext;
@@ -1375,22 +1375,22 @@ void UpdateSoSlots(SO *so)
                     {
                         if (xf->kind >= 11)
                         {
-                            smp.svFast = (float)(ushort)xf->stiffness * s_smpChaseScale.svFast + fabsf(gVelAlong);
-                            smp.svSlow = (float)(ushort)xf->stiffness * s_smpChaseScale.svSlow + fabsf(gVelAlong);
-                            smp.dtFast = s_smpChaseScale.dtFast;
+                            smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChaseScale.fastSpeed + fabsf(gVelAlong);
+                            smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChaseScale.slowSpeed + fabsf(gVelAlong);
+                            smp.fastDuration = s_smpChaseScale.fastDuration;
                         }
                         else
                         {
-                            smp.svFast = (float)(ushort)xf->stiffness * s_smpChasePos.svFast + fabsf(gVelAlong);
-                            smp.svSlow = (float)(ushort)xf->stiffness * s_smpChasePos.svSlow + fabsf(gVelAlong);
-                            smp.dtFast = s_smpChasePos.dtFast;
+                            smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.fastSpeed + fabsf(gVelAlong);
+                            smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.slowSpeed + fabsf(gVelAlong);
+                            smp.fastDuration = s_smpChasePos.fastDuration;
                         }
                     }
                     else
                     {
-                        smp.svFast = (float)(ushort)xf->stiffness * s_smpChasePos.svFast + fabsf(gVelAlong);
-                        smp.svSlow = (float)(ushort)xf->stiffness * s_smpChasePos.svSlow + fabsf(gVelAlong);
-                        smp.dtFast = s_smpChasePos.dtFast;
+                        smp.fastSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.fastSpeed + fabsf(gVelAlong);
+                        smp.slowSpeed = (float)(ushort)xf->stiffness * s_smpChasePos.slowSpeed + fabsf(gVelAlong);
+                        smp.fastDuration = s_smpChasePos.fastDuration;
                     }
                     float gOut;
                     float dgNext;

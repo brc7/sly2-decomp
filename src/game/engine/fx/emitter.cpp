@@ -292,7 +292,7 @@ extern "C" void AddEmitterToHeroFollowers(EMITTERV *pemitter)
 
 namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {
 struct K { short a; short b; int c; };
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct EMITO { void *palo; };
 struct EMITBV {
@@ -377,24 +377,24 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
     switch (pemitter->emitMode) {
     case EMIT_MODE_BURST:
         pemitter->rateRedrawTime = D_002A5148;
-        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.minValue, pemitter->rate.maxValue);
         if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
         else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
-            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
+            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.minValue, pemitter->pauseTime.maxValue));
         break;
     case EMIT_MODE_INTERMITTENT:
         pemitter->rateRedrawTime = D_002A5148;
-        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax) * 60.0f;
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.minValue, pemitter->rate.maxValue) * 60.0f;
         if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
         else if (RandomFloatInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
-            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
+            PauseEmitter__FP7EMITTERf(pemitter, RandomFloatInRange__Fff(pemitter->pauseTime.minValue, pemitter->pauseTime.maxValue));
         break;
     case EMIT_MODE_CONTINUOUS:
     case EMIT_MODE_CONSTANT_COUNT:
         pemitter->rateRedrawInterval = pemitter->rateRedrawTime = 1.0f;
-        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
+        pemitter->currentRate = RandomFloatInRange__Fff(pemitter->rate.minValue, pemitter->rate.maxValue);
         break;
     }
     pemitter->density = 1.0f;
@@ -807,9 +807,9 @@ void OnEmitterValuesChanged(EMITTERV *pemitter)
         SetRipgEmitb(pemitter->pripg, pemitter->pemitb);
     }
     if (pemitter->k == 3) {
-        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax) * 60.0f;
+        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.minValue, pemitter->lmRate.maxValue) * 60.0f;
     } else {
-        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.gMin, pemitter->lmRate.gMax);
+        pemitter->tNext = RandomFloatInRange(pemitter->lmRate.minValue, pemitter->lmRate.maxValue);
     }
 }
 
@@ -865,8 +865,8 @@ typedef int qword __attribute__((mode(TI)));
 
 // Sly 1 util.h CLQ: quadratic g0 + x*(g1 + x*g2).
 union CLQ {
-    struct { float g0, g1, g2, gUnused; };
-    float ag[4];
+    struct { float g0, g1, g2, unused; };
+    float coefficients[4];
 };
 
 // 16-byte float views; the field names are unknown (same type as in StaticInit_emitter).
@@ -1034,7 +1034,7 @@ struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; fl
 struct BOXE { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct MESHO { char pad[0xE8]; int numLengths; int padEC; float *cumulativeLength; };   /* the curve shape */
 struct EMITO { void *referenceObject; MESHO *shapeObject; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 /* the origin record (EMITB+0x10) */
 struct EP {
     int kind;               /* EMIT_ORIGIN */
@@ -1217,7 +1217,7 @@ normalize:
         VU_VECTOR dir = Normalize(*pdir);
         *pdir = dir.q;
         qword pos = *ppos;
-        *ppos = VuAdd(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.gMin, offset->gMax)), dir));
+        *ppos = VuAdd(pos, Scale(VU_FLOAT(RandomFloatInRange__Fff(origin->offset.minValue, offset->maxValue)), dir));
     }
 }
 } // namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3
@@ -1258,7 +1258,7 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
 } } // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
 
 namespace M_CalculateEmitvx__FiP2LMiP6EMITVX {
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 struct EMITVX { int c; float dg; float drad; float g; float rad; };
 float NormalizeAngle(float rad) asm("NormalizeAngle__Ff");
 float RandomFloatInRange(float gMin, float gMax) asm("RandomFloatInRange__Fff");
@@ -1273,10 +1273,10 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
     else
         pemitvx->c = cMax;
     n = (cMax + (pemitvx->c - 1)) / pemitvx->c;
-    dg = NormalizeAngle(plm->gMax - plm->gMin);
+    dg = NormalizeAngle(plm->maxValue - plm->minValue);
     pemitvx->drad = 6.2831855f / pemitvx->c;
     pemitvx->dg = dg / n;
-    pemitvx->g = plm->gMin + pemitvx->dg * 0.5f;
+    pemitvx->g = plm->minValue + pemitvx->dg * 0.5f;
     pemitvx->rad = RandomFloatInRange(0.0f, 6.2831855f);
 }
 } // namespace M_CalculateEmitvx__FiP2LMiP6EMITVX
@@ -1286,7 +1286,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; };
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
 float RandomFloatInRange__Fff(float a, float b);
@@ -1313,7 +1313,7 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, floa
     }
     tilt = NormalizeAngle__Ff(tilt + 1.5707964f);
     pan = NormalizeAngle__Ff(pan);
-    v.q = SetVectorSphere(pan, tilt, RandomFloatInRange__Fff(plm->gMin, plm->gMax));
+    v.q = SetVectorSphere(pan, tilt, RandomFloatInRange__Fff(plm->minValue, plm->maxValue));
     v.f[2] *= sv;
     m.r[2] = *pnormal;
     GetNormalVectors(*pnormal, D_002A2DA0, D_002A2DB0, &m);
@@ -1502,7 +1502,7 @@ struct PRG {
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
 };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 /* EMITB, the blip-related fields (the record at +0xC0 as blips use it; Sly 1's EMITBLIP) */
 struct EMITTERV {
     char pad[0xC8];
@@ -1535,7 +1535,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 
-static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->gMin, plm->gMax); }
+static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValue, plm->maxValue); }
 
 // Spawns `c` blips into the emitter's BLIPG (creating it and handing it the subscriber on first use), filling the
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,

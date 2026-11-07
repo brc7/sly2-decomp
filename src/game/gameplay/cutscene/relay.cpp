@@ -1327,7 +1327,7 @@ void CloneRelay(struct S *relay) {
 // 0x1DFC50 UpdateRelay
 namespace M_UpdateRelay { extern "C" {
 struct DL; struct DLI;
-typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
+typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 extern struct CLOCK { float time; float deltaTime; float pad8[14]; float realDeltaTime; float pad44[3]; } D_002DDED0;
 extern DLI *D_002DD2FC;
@@ -1349,7 +1349,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -1396,7 +1396,7 @@ void UpdateRelay(OBJ *relay)
 // 0x1DFD58 FireRelay
 namespace M_FireRelay { extern "C" {
 struct DL; struct VT; struct OBJ;
-typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
+typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct OBJ OBJ;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int, int, int, int, int); } a[8]; } VT;
 struct OBJ {
@@ -1481,7 +1481,7 @@ extern "C" void FireRelayFromPlayer(RELAYV *relay)
 // 0x1DFEB8 StopRelay
 namespace M_StopRelay { extern "C" {
 struct DL; struct DLI; struct VT; struct OBJ;
-typedef struct DL { void *pvFirst; void *pvLast; int ibDle; } DL;
+typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 typedef struct OBJ OBJ;
@@ -1516,7 +1516,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
     pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->ibDle;
+    pdli->ibDle = pdl->linkOffset;
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
@@ -2627,8 +2627,8 @@ extern "C" void ReleaseJsg(JSGV *script)
     cref = script->cref - 1;
     script->cref = cref;
     if (cref <= 0) {
-        FramePtr_Assign(&script->pframe, 0);
-        AssignSidebagRef(&script->psidebag, 0);
+        FramePtr_Assign(&script->scriptFrame, 0);
+        AssignSidebagRef(&script->scriptVariables, 0);
         UnsubscribeLoAll(script);
         FreeSlotheapSlot(&g_sw.slotheapJsg, script);
     }

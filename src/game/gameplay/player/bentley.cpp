@@ -350,7 +350,7 @@ namespace M_UpdateBentley { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VUF;
 struct M3 { qword r[3]; };
-struct LM { float gMin; float gMax; };
+struct LM { float minValue; float maxValue; };
 struct POLY { float a; float b; float c; };
 struct S150 { char pad[0x18]; float g18; float g1C; };
 struct S1030 { char pad[0x1C]; float g1C; char pad20[0x20]; float g40; };
@@ -394,8 +394,8 @@ void UpdateJtActiveZap(void *pv);
 static __inline__ float EvaluatePoly(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 static __inline__ float ClampF(float g, struct LM *range)
 {
-    float lo = range->gMin;
-    float hi = range->gMax;
+    float lo = range->minValue;
+    float hi = range->maxValue;
     if (g < lo) return lo;
     if (hi < g) return hi;
     return g;

@@ -3120,7 +3120,7 @@ public:
     char pad5[0xF4 - 0xB8];
     int stateSource;
 };
-struct DL { void *pvFirst; void *pvLast; int ibDle; };
+struct DL { void *pvFirst; void *pvLast; int linkOffset; };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { 
  }

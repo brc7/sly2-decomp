@@ -131,8 +131,8 @@ extern "C" void InitAseg(ASEG *segment)
     segment->clqMasterSuck.g0 = 1.0f;
     *(int *)&pclq->g1 = 0;
     *(int *)&pclq->g2 = 0;
-    segment->lmMasterSuck.gMax = 1.0f;
-    *(int *)&segment->lmMasterSuck.gMin = 0;
+    segment->lmMasterSuck.maxValue = 1.0f;
+    *(int *)&segment->lmMasterSuck.minValue = 0;
     segment->grfUnk40 |= 0x40;
 }
 
@@ -260,8 +260,8 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     ASEGA *p = (ASEGA *)AllocZeroedFromSlotheap(&g_sw.slotheapAsega);
     int i, j, k;
     func_002333B4(p, 0, 0x60);
-    p->pframe.m_p = 0;
-    p->psidebag.m_p = 0;
+    p->scriptFrame.m_p = 0;
+    p->scriptVariables.m_p = 0;
     PVT(p) = D_002CAF48;
     p->psnd.m_p = 0;
     p->paseg = pt;
@@ -270,14 +270,14 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     p->grfapl = grf;
     p->svtMaster = pt->svtMaster;
     {
-        p->svtSuck = Clamp(EvaluateQuadratic(&pt->clqMasterSuck, GetDifficulty(D_002DE578)), pt->lmMasterSuck.gMin, pt->lmMasterSuck.gMax);
+        p->svtSuck = Clamp(EvaluateQuadratic(&pt->clqMasterSuck, GetDifficulty(D_002DE578)), pt->lmMasterSuck.minValue, pt->lmMasterSuck.maxValue);
     }
     SetAsegaSpeed__FP5ASEGAf(p, g1);
     AppendDlEntry((DL *)(*(char (*)[])&g_sw.dlAsega), p);
     AppendDlEntry(&pt->dlAsega, p);
     ((void (*)(ASEGA *))PVT(p)[1].pfn)((ASEGA *)((char *)p + PVT(p)[1].d));
     G g(p);
-    FramePtr_Assign(p, pt->pframe.m_p);
+    FramePtr_Assign(p, pt->scriptFrame.m_p);
     if (pp)
         *pp = p;
     for (i = 0; i < pt->cchn; i++) {

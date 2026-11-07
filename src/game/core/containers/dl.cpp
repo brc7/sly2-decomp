@@ -1,5 +1,5 @@
 // dl.cpp -- intrusive singly (SL) and doubly (DL) linked lists: the link lives inside each element at a fixed offset.
-// A list records that offset (SL::ibSle / DL::ibDle), so one element type can sit in several lists through different
+// A list records that offset (SL::linkOffset / DL::linkOffset), so one element type can sit in several lists through different
 // link fields. Removal patches any live safe iterator (SLI here, DLI in sly2/dli.h) that points at the removed link,
 // which is what lets game code remove objects while it walks a list.
 // Entry points: InitSl/InitDl, Append/Prepend/Insert/Remove{Sl,Dl}Entry, IsEntryInSl, IsEntryInDl, CountDlEntries.
@@ -22,8 +22,8 @@ struct SLI { SL *list; void **link; int linkOffset; SLI *next; };
 /* D_002DD2F8 (g_psliFirst, declared above) and D_002DD2FC (g_pdliFirst): defined in app/commons.cpp. */
 
 
-#define PPVNEXT(list, entry) ((void **)((char *)(entry) + (list)->ibSle))
-#define PDLE(list, entry) ((DLE *)((char *)(entry) + (list)->ibDle))
+#define PPVNEXT(list, entry) ((void **)((char *)(entry) + (list)->linkOffset))
+#define PDLE(list, entry) ((DLE *)((char *)(entry) + (list)->linkOffset))
 
 extern "C" {
 void PrependSlEntry(SL *list, void *entry);
@@ -33,7 +33,7 @@ void AppendSlEntry(SL *list, void *entry);
 // Sets up a singly linked list whose elements keep their next pointer linkOffset bytes in.
 extern "C" void InitSl(SL *list, int linkOffset)
 {
-    list->ibSle = linkOffset;
+    list->linkOffset = linkOffset;
 }
 
 // Clears one singly linked element's next pointer.
@@ -103,7 +103,7 @@ extern "C" void RemoveSlEntry(SL *list, void *entry)
     if (list->head == 0) {
         list->tail = 0;
     } else if (*prevLink == 0) {
-        list->tail = (char *)prevLink - list->ibSle;
+        list->tail = (char *)prevLink - list->linkOffset;
     }
     *entryLink = 0;
 }
@@ -127,7 +127,7 @@ extern "C" int IsSlEmpty(SL *list)
 // Sets up a doubly linked list whose elements keep their DLE link linkOffset bytes in.
 void InitDl(DL *list, int linkOffset)
 {
-    list->ibDle = linkOffset;
+    list->linkOffset = linkOffset;
 }
 
 // Empties a doubly linked list (does not touch the elements).

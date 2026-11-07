@@ -283,7 +283,7 @@ struct G { char pad[0x3B4C]; void *saveVars; char pad2[0x4750 - 0x3B50]; float t
 extern struct G D_003DD490;
 extern char D_003D4A60[];
 struct POLY { float c0, c1, c2; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 extern struct POLY D_002BD980;
 extern float D_002BD990, D_002BD994, D_002BD998, D_002BD99C;
 extern char D_002BD9A0[];
@@ -366,7 +366,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
         p->tiltSpeed = Clamp(gTilt, gMin, gMax);
     }
     {
-        float k = (1.0f - D_002DDF40.fov) * D_002BD9B0.gMin + D_002DDF40.fov * D_002BD9B0.gMax;
+        float k = (1.0f - D_002DDF40.fov) * D_002BD9B0.minValue + D_002DDF40.fov * D_002BD9B0.maxValue;
         p->panAngle += k * p->panSpeed * D_002DDED0.deltaTime;
         p->tiltAngle += k * p->tiltSpeed * D_002DDED0.deltaTime;
     }
@@ -869,7 +869,7 @@ extern "C" CLOCK D_002DDED0;
 struct CM;
 extern "C" CM D_002DDF40;
 struct CLQ { float g0, g1, g2, pad; };
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 extern "C" CLQ D_002BDA10;
 extern "C" LM D_002BDA20;
 extern "C" CLQ D_002BDA30;
@@ -892,7 +892,7 @@ void SetCmMat4(CM *p, int *pm);
 void UpdateCphang(X *p, void *pv, JOY *pjoy);
 }
 static inline float GFromClq(const CLQ &c, float g) { return c.g0 + g * (c.g1 + g * c.g2); }
-static inline float GRand(const LM &lm) { return RandomFloatInRange__Fff(lm.gMin, lm.gMax); }
+static inline float GRand(const LM &lm) { return RandomFloatInRange__Fff(lm.minValue, lm.maxValue); }
 static inline qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -937,8 +937,8 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
         sy = -1.0f;
         if (0.0f < pjoy->dyRight)
             sy = 1.0f;
-        float ax = sx * Clamp(GFromClq(D_002BDA10, __builtin_fabsf(pjoy->dxRight)), D_002BDA20.gMin, D_002BDA20.gMax);
-        float ay = Clamp(GFromClq(D_002BDA30, __builtin_fabsf(pjoy->dyRight)), D_002BDA40.gMin, D_002BDA40.gMax);
+        float ax = sx * Clamp(GFromClq(D_002BDA10, __builtin_fabsf(pjoy->dxRight)), D_002BDA20.minValue, D_002BDA20.maxValue);
+        float ay = Clamp(GFromClq(D_002BDA30, __builtin_fabsf(pjoy->dyRight)), D_002BDA40.minValue, D_002BDA40.maxValue);
         float y = sy * ay;
         v = Zero();
         union { qword q; } u;
@@ -1256,7 +1256,7 @@ union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
 struct CM;
 extern "C" CM D_002DDF40;
 struct CLQ { float g0, g1, g2, pad; };
-struct LM { float gMin, gMax; int pad[2]; };
+struct LM { float minValue, maxValue; int pad[2]; };
 extern "C" float D_002BDACC;
 extern "C" CLQ D_002BDAD0, D_002BDAF0, D_002BDB10, D_002BDB30;
 extern "C" LM D_002BDAE0, D_002BDB00, D_002BDB20, D_002BDB40;
@@ -1326,12 +1326,12 @@ void UpdateCptwoshot(X *p)
     focus.f[2] = 150.0f;
     U pos;
     pos.q = focus.q;
-    pos.f[2] += Clamp(GFromClq(D_002BDAD0, dist), D_002BDAE0.gMin, D_002BDAE0.gMax);
+    pos.f[2] += Clamp(GFromClq(D_002BDAD0, dist), D_002BDAE0.minValue, D_002BDAE0.maxValue);
     qword n = Normalize(Cross(d.q, D_002A2DC0));
-    float g = Clamp(GFromClq(D_002BDAF0, dist), D_002BDB00.gMin, D_002BDB00.gMax);
+    float g = Clamp(GFromClq(D_002BDAF0, dist), D_002BDB00.minValue, D_002BDB00.maxValue);
     U pos2;
     pos2.q = VuAdd(focus.q, Scale(n, VU_FLOATJ(g)));
-    pos2.f[2] += Clamp(GFromClq(D_002BDB10, dist), D_002BDB20.gMin, D_002BDB20.gMax);
+    pos2.f[2] += Clamp(GFromClq(D_002BDB10, dist), D_002BDB20.minValue, D_002BDB20.maxValue);
     {
         M4 m4;
         M3 m3;
@@ -1347,7 +1347,7 @@ void UpdateCptwoshot(X *p)
         pm4->af[3][3] = 1.0f;
         Cm1( pm4);
     }
-    Cm2( Clamp(GFromClq(D_002BDB30, dist), D_002BDB40.gMin, D_002BDB40.gMax));
+    Cm2( Clamp(GFromClq(D_002BDB30, dist), D_002BDB40.minValue, D_002BDB40.maxValue));
 }
 } // namespace M_UpdateCptwoshot
 

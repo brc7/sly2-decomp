@@ -466,7 +466,7 @@ namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.4
 namespace M_UpdateBhvfollow { extern "C" {
 // UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline ClampInPlace.
 typedef int qword __attribute__((mode(TI)));
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 struct D { char pad[0x10]; void *pathZone; };
 struct C { char pad[0xDC]; struct D *region; };
 struct PO { char pad[0xE8]; struct C *physics; char pad2[0x2DC - 0xEC]; int airState; char pad3[0x1030 - 0x2E0]; void *locomotionAsega; };
@@ -1390,7 +1390,7 @@ struct POCTL { char pad[0x18]; float heading; float speed; char pad2[0x30 - 0x20
 struct PO { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
-struct LM { float gMin, gMax; };
+struct LM { float minValue, maxValue; };
 extern struct CLOCK D_002DDED0;
 void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
@@ -1411,7 +1411,7 @@ static __inline__ float EvaluateQuadratic(float g, struct CLQ *pclq) { return pc
 // Clamps g to an LM range.
 static __inline__ float ClampToLimits(struct LM *plm, float g)
 {
-    float gMin = plm->gMin, gMax = plm->gMax;
+    float gMin = plm->minValue, gMax = plm->maxValue;
     if (g < gMin)
         return gMin;
     if (gMax < g)
