@@ -298,7 +298,8 @@ struct SW : public BASIC
       int areGuardsFrozen; /* guards are frozen */
       float guardsFrozenTime; /* time the guards were frozen */
       float tLookLast;   /* time of the last look-around (inferred) */
-      uint32_t   _pad_352    [ 1 ] ;
+      float unknown4754;    /* +0x4754 [S] a game time like tLookLast: both start at -60 (SW_ctor) and RenderWaypt fades the
+                               waypoints in from the later of the two (waypoint.cpp); was _pad_352 */
       float unknown4758;    /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.time (guardbhv.cpp) */
       float unknown475C;
       uint32_t   _pad_354    [ 1 ] ;
