@@ -14,6 +14,19 @@ struct FILEREC
     uint aw[16];
 };
 
+/* DIALOGEVENT: a lip-sync / gesture event of a dialog line (frames at 60 per second since the previous event; the role
+   it drives and the value: a state for the speaker's state machines or a gesture weight). */
+struct DIALOGEVENT
+{
+    short framesAfterPrevious;  /* +0x0 */
+    short role;                 /* +0x2 */
+    union
+    {
+        int smState;
+        float gesture;
+    } value;                    /* +0x4 */
+};
+
 /* SNDSTREAM: a dialog line. */
 struct SNDSTREAM
 {
@@ -24,7 +37,7 @@ struct SNDSTREAM
     int excludeFromHeadset;    /* +0x4C PlayStreamsnd: 0 = plays through the headset when it is enabled (inferred) */
     float duration;            /* +0x50 seconds (subtitles, UpdateDialog) */
     int numEvents;             /* +0x54 */
-    ulong *events;             /* +0x58 lip-sync / gesture events: {frames since the previous event, role, value} */
+    DIALOGEVENT *events;       /* +0x58 lip-sync / gesture events */
 };
 
 /* SNDFILE: a music track. */

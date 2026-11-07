@@ -1428,7 +1428,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
             }
         }
         dialogStream->numEvents = input->S32Read();
-        dialogStream->events = (ulong *)AllocWorldHeapBlock(dialogStream->numEvents * 8, 0x10);
+        dialogStream->events = (DIALOGEVENT *)AllocWorldHeapBlock(dialogStream->numEvents * 8, 0x10);
         input->Read(dialogStream->numEvents * 8, dialogStream->events);
         dialogStream->next = soundManager->firstDialogStream;
         soundManager->firstDialogStream = dialogStream;
@@ -1551,37 +1551,32 @@ void ResetSndmgr(struct P *soundManager)
 } } // namespace M_ResetSndmgr
 
 namespace M_UpdateSndmgr { extern "C" {
-struct X;
-struct Q { char pad[0x38]; struct Q *nextDirty; };   /* a sound on the dirty list */
 struct K { float fastSpeed, slowSpeed, fastTime; };   /* SMP */
-/* SNDMGR (layout: sly2/sndmgr.h); +0x15C is volumes[2][0], the pause-fade category's weight on the ambience channel */
-struct P { char pad[0x4C]; struct Q *firstDirty; char pad1[0x58 - 0x50]; int isPaused; char pad2[0x15C - 0x5C]; float pauseFadeVolume; char pad3[0x1F0 - 0x160];
-    long tickNow; long tickLast; struct X *dialogSound; int musicStackCount; struct X *musicStack[8]; struct X *ambienceSound; };
 struct CLOCK { float time; float deltaTime; char pad[0x40 - 8]; float realDeltaTime; };
 extern struct CLOCK D_002DDED0;
 extern int D_002BD4C0;
 extern struct K D_002A8288;
 long TickNow(struct CLOCK *);
-void UpdateHeadsetMicrophone(struct P *);
-void PollSoundManagerStatus(struct P *);
-void ResumeSnd(struct X *);
-void PauseSnd(struct X *);
-void UpdateMusicMix(struct P *);
-void UpdateSoundManagerStub(struct P *);
-void UpdateDialog(struct P *);
-int ShouldFadeWhenTimeStops(struct P *);
+void UpdateHeadsetMicrophone(SNDMGR *);
+void PollSoundManagerStatus(SNDMGR *);
+void ResumeSnd(CID151 *);
+void PauseSnd(CID151 *);
+void UpdateMusicMix(SNDMGR *);
+void UpdateSoundManagerStub(SNDMGR *);
+void UpdateDialog(SNDMGR *);
+int ShouldFadeWhenTimeStops(SNDMGR *);
 float SmoothValue__FfffP3SMPPf(float, float, float, struct K *, int);
-void SetSndmgrChannelVolume(struct P *, int, float, int);   /* (manager, channel, volume, category): the float travels in $f12 */
-void UpdateSnd(struct Q *);
+void SetSndmgrChannelVolume(SNDMGR *, int, float, int);   /* (manager, channel, volume, category): the float travels in $f12 */
+void UpdateSnd(CID151 *);
 int snd_FlushSoundCommands(void);
 // Per-frame sound update: timing, IOP status polls, global pause while the game is paused, music mix, dialog events,
 // master fades, then flushes every dirty sound and the 989snd command queue.
-void UpdateSndmgr(struct P *soundManager)
+void UpdateSndmgr(SNDMGR *soundManager)
 {
-    struct X *music;
+    STREAMSND *music;
     float fadeVolume, targetVolume;
     struct K smoothing;
-    struct Q *sound;
+    CID151 *sound;
     soundManager->tickLast = soundManager->tickNow;
     soundManager->tickNow = TickNow(&D_002DDED0);
     UpdateHeadsetMicrophone(soundManager);
@@ -1608,12 +1603,12 @@ void UpdateSndmgr(struct P *soundManager)
     smoothing = D_002A8288;
     /* game time stopped (inferred: the pause menu): fade the ambience and music out, cut the dialog */
     if (ShouldFadeWhenTimeStops(soundManager) && D_002DDED0.deltaTime == 0.0f) targetVolume = 0.0f;
-    fadeVolume = SmoothValue__FfffP3SMPPf(soundManager->pauseFadeVolume, targetVolume, D_002DDED0.realDeltaTime, &smoothing, 0);
+    fadeVolume = SmoothValue__FfffP3SMPPf(soundManager->volumes[VOLUME_CATEGORY_PAUSE_FADE][VOLUME_CHANNEL_AMBIENCE], targetVolume, D_002DDED0.realDeltaTime, &smoothing, 0);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_AMBIENCE, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_MUSIC, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_DIALOG, targetVolume, VOLUME_CATEGORY_PAUSE_FADE);
-    for (sound = soundManager->firstDirty; sound;) {
-        struct Q *next = sound->nextDirty;
+    for (sound = (CID151 *)soundManager->dirtySounds.head; sound;) {
+        CID151 *next = (CID151 *)sound->dleDirty.next;
         UpdateSnd(sound);
         sound = next;
     }
@@ -1762,20 +1757,14 @@ extern "C" void UpdateSoundManagerStub()
 
 namespace M_func_001FDEC8 { extern "C" {
 typedef unsigned long ulong;
-/* the dialog STREAMSND */
-struct X { char pad[0x40]; int voiceHandle; char pad2[0x4E - 0x44]; short pauseCount; unsigned short flags; unsigned short playState; char pad3[0x60 - 0x54]; struct S *record; char pad4[0x68 - 0x64]; ulong playTime; };
-struct Ent { short framesAfterPrevious; short role; int value; };   /* a dialog event */
-struct S { char pad[0x50]; float duration; int numEvents; struct Ent *events; };   /* SNDSTREAM */
-/* SNDMGR (layout: sly2/sndmgr.h) */
-struct P { char pad[0x200]; struct X *dialogSound; char pad2[0x244 - 0x204]; int dialogEventIndex; float dialogEventTime; float dialogElapsed; };
-void StopDialog(struct P *);
-void ApplyDialogEvent(struct P *, struct Ent *);
+void StopDialog(SNDMGR *);
+void ApplyDialogEvent(SNDMGR *, DIALOGEVENT *);
 // Advances the current dialog: fires its lip-sync / animation events as the stream's play time passes them and stops the
 // dialog at its end. (inferred)
-void UpdateDialog(struct P *soundManager)
+void UpdateDialog(SNDMGR *soundManager)
 {
-    struct X *dialog = soundManager->dialogSound;
-    struct S *record;
+    STREAMSND *dialog = soundManager->dialogSound;
+    SNDSTREAM *record;
     int hasEnded;
     if (!dialog) return;
     {
@@ -1784,7 +1773,7 @@ void UpdateDialog(struct P *soundManager)
     }
     dialog = soundManager->dialogSound;
     if (dialog->pauseCount > 0) return;
-    record = dialog->record;
+    record = dialog->record.psndstream;
     soundManager->dialogElapsed += g_clock.realDeltaTime;
     /* no voice and not starting: the stream is over (or never started) */
     hasEnded = 0;
@@ -1799,7 +1788,7 @@ void UpdateDialog(struct P *soundManager)
     }
     /* fire every event whose time (frames at 60 per second, relative to the previous one) the stream has reached */
     while (soundManager->dialogEventIndex < record->numEvents) {
-        struct Ent *event = &record->events[soundManager->dialogEventIndex];
+        DIALOGEVENT *event = &record->events[soundManager->dialogEventIndex];
         float delay = (float)event->framesAfterPrevious * 0.016666668f;
         if ((float)soundManager->dialogSound->playTime / PLAY_TIME_TICKS_PER_SECOND < soundManager->dialogEventTime + delay) return;
         ApplyDialogEvent(soundManager, event);
