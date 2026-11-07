@@ -149,7 +149,7 @@ void *AllocFromStack(AI *pa);
 void *AllocCopyFromWorldHeap(AI *pa, void *pv);
 void *AllocClearedFromWorldHeap(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
-void AddGuardScriptGoto(SCRIPTV *o, int a, int b, int c);
+void AddGuardScriptFollowPath(SCRIPTV *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
@@ -302,7 +302,7 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
                 SCRIPTV *script;
                 selector->object = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
                 script = PloNew(0x71, 0, 0x2CB, -1);
-                AddGuardScriptGoto(script, selector->oid, 1, -1);
+                AddGuardScriptFollowPath(script, selector->oid, 1, -1);
                 selector->scriptCommand = script->firstCommand;
                 selector->script = script;
             }

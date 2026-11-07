@@ -671,7 +671,7 @@ void GetStepguardHpLevel() __asm__("GetStepguardHpLevel");
 void SetStepguardForcedTarget() __asm__("SetStepguardForcedTarget");
 void GetStepguardSgfRefList() __asm__("GetStepguardSgfRefList");
 void GetStepguardJuggledValue() __asm__("GetStepguardJuggledValue");
-void AddStepguardClassE94() __asm__("AddStepguardClassE94");
+void AddStepguardAllowedPathZone() __asm__("AddStepguardAllowedPathZone");
 void SetStepguardPatrolScript() __asm__("SetStepguardPatrolScript");
 void GetStepguardDefaultAttack() __asm__("GetStepguardDefaultAttack");
 void SetGuardAttackAngleDegrees() __asm__("SetGuardAttackAngleDegrees");
@@ -1031,7 +1031,7 @@ EOPIDROW D_002AC880[1449] = {
     {0xA, 0x92, EOPID_INT(0xF48), EOPID_INT(0xF48), EOPID_INT(0xF48), EOPID_NONE}, /* [298] opt 422, STEPGUARD (+11) */
     {0xA, 0x92, EOPID_INT(0xF50), EOPID_INT(0xF50), EOPID_INT(0xF50), EOPID_NONE}, /* [299] opt 423, STEPGUARD (+11) */
     {0xA, 0x92, EOPID_INT(0xF58), EOPID_INT(0xF58), EOPID_INT(0xF58), EOPID_NONE}, /* [300] opt 424, STEPGUARD (+11) */
-    {0x2011, 0x120, EOPID_NONE, EOPID_PMF(AddStepguardClassE94), EOPID_PMF(AddStepguardClassE94), EOPID_NONE}, /* [301] opt 425, STEPGUARD (+11) */
+    {0x2011, 0x120, EOPID_NONE, EOPID_PMF(AddStepguardAllowedPathZone), EOPID_PMF(AddStepguardAllowedPathZone), EOPID_NONE}, /* [301] opt 425, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00103B38), EOPID_INT(2), EOPID_NONE}, /* [302] opt 426, STEPGUARD (+11) */
     {0x2016, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [303] opt 427, STEPGUARD (+11) */
     {0x2016, 0x92, EOPID_INT(0x3F4), EOPID_INT(0x3F4), EOPID_INT(0x3F4), EOPID_NONE}, /* [304] opt 428, STEPGUARD (+11) */

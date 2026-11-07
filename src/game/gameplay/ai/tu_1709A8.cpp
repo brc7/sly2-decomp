@@ -231,8 +231,9 @@ extern "C" void AddGuardScriptWait(SSG *script, float g)
     PssgeAppend(script, SSGK_WAIT, -1)->g = g;
 }
 
-// 0x170C50: Appends command kind 6, go to / follow a target (oid) with two arguments.
-extern "C" void AddGuardScriptGoto(SSG *script, int id, int pathArg, int secondOid)
+// 0x170C50: Appends command kind 6, follow a path target (oid): BHVPATROLPATH on a patrol path with `pathArg` and an
+// optional second target, or BHVRAIL/BHVPIPE when the guard is attached to a rail or pipe.
+extern "C" void AddGuardScriptFollowPath(SSG *script, int id, int pathArg, int secondOid)
 {
     SSGE *command;
     command = PssgeAppend(script, SSGK_FOLLOW_PATH, id);
@@ -240,7 +241,8 @@ extern "C" void AddGuardScriptGoto(SSG *script, int id, int pathArg, int secondO
     command->secondOid = secondOid;
 }
 
-// 0x170C90: Appends command kind 7, face/look at a target (oid, int, float).
+// 0x170C90: Appends command kind 7, go to a target (oid; a point when -1) with BHVGOTO, optionally looking at
+// `lookAtOid` (-1 for none); `gotoParam` is copied to BHVGOTO +0xB0 (meaning unknown).
 extern "C" void AddGuardScriptLookAt(SSG *script, int id, int lookAtOid, float gotoParam)
 {
     SSGE *command;
@@ -280,15 +282,15 @@ extern "C" void AddGuardScriptBusyOff(SSG *script, int n1, int n2)
     PssgeAppend(script, SSGK_BUSY_OFF, -1);
 }
 
-// 0x170D70: Splice option: appends command kind 13 (target + int; runs BHV172, cid 0xAC).
-extern "C" void AddGuardScriptKind13(SSG *script, int id, int n)
+// 0x170D70: Splice option: appends command kind 13, leap at a target (oid) with an int argument (BHVLEAP, cid 0xAC).
+extern "C" void AddGuardScriptLeap(SSG *script, int id, int n)
 {
     PssgeAppend(script, SSGK_LEAP, id)->n = n;
 }
 
-// 0x170DA0: Splice option: appends command kind 14 (two ints; runs an animation behaviour, cid 0x9D, with a sensor
-// block).
-extern "C" void AddGuardScriptKind14(SSG *script, int id, int n)
+// 0x170DA0: Splice option: appends command kind 14, play the behaviour's own animation binding (BHVANIM, cid 0x9D)
+// with an int argument and a sensor block.
+extern "C" void AddGuardScriptPlayBinding(SSG *script, int id, int n)
 {
     PssgeAppend(script, SSGK_PLAY_BINDING, id)->n = n;
 }

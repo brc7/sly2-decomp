@@ -2561,15 +2561,15 @@ AddGuardScriptSetPauseTimes,0x170BA0,tu_1709A8
 AddGuardScriptTeleport,0x170BE0,tu_1709A8
 AddGuardScriptMessage,0x170C00,tu_1709A8
 AddGuardScriptWait,0x170C20,tu_1709A8
-AddGuardScriptGoto,0x170C50,tu_1709A8
+AddGuardScriptFollowPath,0x170C50,tu_1709A8
 AddGuardScriptLookAt,0x170C90,tu_1709A8
 AddGuardScriptAnim,0x170CD0,tu_1709A8
 AddGuardScriptLabel,0x170CF0,tu_1709A8
 AddGuardScriptJump,0x170D10,tu_1709A8
 AddGuardScriptBusyOn,0x170D30,tu_1709A8
 AddGuardScriptBusyOff,0x170D50,tu_1709A8
-AddGuardScriptKind13,0x170D70,tu_1709A8
-AddGuardScriptKind14,0x170DA0,tu_1709A8
+AddGuardScriptLeap,0x170D70,tu_1709A8
+AddGuardScriptPlayBinding,0x170DA0,tu_1709A8
 AddGuardScriptEnsureRelayAlarm,0x170DD0,tu_1709A8
 AddGuardScriptCommand,0x170E00,tu_1709A8
 StartGuardScriptOnGuard,0x170E68,tu_1709A8
@@ -5205,7 +5205,7 @@ UnlockStepguardMover,0x2097D8,stepguard
 UpdateStepguardMover,0x2097E0,stepguard
 SetStepguardMoverRadTarget,0x209818,stepguard
 SetStepguardMoverTargetMatrix,0x209840,stepguard
-SetStepguardGrfsgf,0x209870,stepguard
+SetStepguardSgfMask,0x209870,stepguard
 AddStepguardSgf,0x209890,stepguard
 RemoveStepguardSgf,0x209970,stepguard
 MaskHasSgf,0x2099F0,stepguard
@@ -5228,7 +5228,7 @@ CompareStepguardStimuli,0x20A168,stepguard
 IsStepguardTargetValid,0x20A298,stepguard
 IsStepguardTargetValidEx,0x20A378,stepguard
 ChooseStepguardStimulus,0x20A408,stepguard
-AddStepguardClassE94,0x20A518,stepguard
+AddStepguardAllowedPathZone,0x20A518,stepguard
 SetStepguardPatrolScript,0x20A540,stepguard
 InitTargetRecord,0x20A5F8,stepguard
 FindTargetRecordGuardIndex,0x20A658,stepguard
