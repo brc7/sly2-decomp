@@ -58,6 +58,7 @@ struct CGc
       /* 0x14 */ int cClo;            /* closures (procedures) to visit */
       /* 0x18 */ CProc **apClo;
 
+      // Construct the collector through CGc_ctor.
       CGc() { CGc_ctor(this); }
       void MarkLiveObjects();
       void Collect();
@@ -88,7 +89,9 @@ public:
       unsigned m_fMark : 1;         /*      live when equal to g_gc.fMark */
 
       CGcObj();
+      // Unlink the node from its kind's GC list.
       ~CGcObj() { Unlink(); }
+      // Drop a reference, deleting the node on the last one.
       void Release()
       {
             if (--m_cref == 0)
@@ -115,6 +118,7 @@ public:
       static T *s_aptPage[4];
 
       typedef typename CGcPool<T>::POOL POOL;
+      // The slot heap of this node kind's pool.
       static SLOTHEAP *Pslotheap() { return &POOL::s_pool.slotheap; }
       /* the (index, block) handle of a node; (0, 0) for none or a node outside the pool */
       static void GetHandle(T *pt, int *pi, int *pipage)
@@ -132,6 +136,7 @@ public:
             *pi = 0;
             *pipage = 0;
       }
+      // The node for handle (i, ipage); null for (0, 0).
       static T *PtFromHandle(unsigned int i, unsigned int ipage)
       {
             if (i == 0 && ipage == 0)

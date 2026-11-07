@@ -95,6 +95,7 @@ struct GRABSPOT
 struct BLIP
 {
     char ab[0x1C];
+    // Uninitialised blip.
     BLIP() {}
 };
 
@@ -113,6 +114,7 @@ struct PATHLINKEND
 struct BHVGUARDREC
 {
     char ab[0x70];
+    // Zero the whole guard behaviour record.
     BHVGUARDREC() { memset(this, 0, sizeof(*this)); }
 };
 
@@ -1062,6 +1064,7 @@ typedef char assert_HACKSHIP_size[sizeof(HACKSHIP) == 0x2B0 ? 1 : -1];
    its key TU (as global functions the ELF does not have), so the key TU defines SLY2_KEY_TU_HACKSHIP and sees
    only the declaration. */
 #ifndef SLY2_KEY_TU_HACKSHIP
+// HACKSHIP constructor: clears nUnk2a4.
 inline HACKSHIP::HACKSHIP() { nUnk2a4 = 0; }
 #endif
 
@@ -1636,6 +1639,7 @@ typedef char assert_ROBOTTANK_size[sizeof(ROBOTTANK) == 0x5D0 ? 1 : -1];
    its key TU (as global functions the ELF does not have), so the key TU defines SLY2_KEY_TU_ROBOTTANK and sees
    only the declaration. */
 #ifndef SLY2_KEY_TU_ROBOTTANK
+// ROBOTTANK constructor: clears nUnk598.
 inline ROBOTTANK::ROBOTTANK() { nUnk598 = 0; }
 #endif
 

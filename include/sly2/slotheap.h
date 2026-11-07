@@ -48,6 +48,7 @@ struct CSlotPool
 {
       enum { cb = CB, c = C };   /* slot size, slots per block */
       SLOTHEAP slotheap;
+      // Initialise the pool's slot heap: C slots of CB bytes, 16-byte aligned.
       CSlotPool() { InitSlotheap(&slotheap, CB, C, 16); }
       static CSlotPool s_pool;
 };
@@ -72,6 +73,7 @@ template <int CB, int C>
 struct CSpliceHeap
 {
       SLOTHEAP slotheap;
+      // Initialise the Splice heap's slot heap: C slots of CB bytes, 16-byte aligned.
       CSpliceHeap() { InitSlotheap(&slotheap, CB, C, 16); }
       static CSpliceHeap s_heap;
 };

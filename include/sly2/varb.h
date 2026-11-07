@@ -41,6 +41,7 @@ struct CVarb
       int sym;                /* 0x08 the variable's symbol id */
       CRef ref;               /* 0x0C the value */
       CVarbPtr pnext;         /* 0x14 the next binding */
+      // Set the next binding.
       void SetNext(CVarb *pvarb) { pnext = pvarb; }
       /* Bindings live in the second engine slot pool (slot size 0x18 == sizeof(CVarb)). */
       void operator delete(void *pv) { Unlink__t6CGcObj1Z5CVarb(pv); FreeSlotheapSlot(&CSlotPool<0x18, 0x800>::s_pool.slotheap, pv); }

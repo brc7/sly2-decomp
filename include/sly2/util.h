@@ -12,13 +12,18 @@
 #ifndef SLY2_UTIL_H
 #define SLY2_UTIL_H
 
+// Smaller of a and b.
 inline float Min(float a, float b) { return a < b ? a : b; }
+// Larger of a and b.
 inline float Max(float a, float b) { return a > b ? a : b; }
+// Smaller of two ints.
 inline int MinInt(int a, int b) { return a < b ? a : b; }
 
 /* std::min / std::max's spelling (see above) */
 inline float StdMin(float a, float b) { return b < a ? b : a; }
+// Larger of a and b (std::max operand order).
 inline float StdMax(float a, float b) { return a < b ? b : a; }
+// Larger of two ints (std::max operand order).
 inline int StdMaxInt(int a, int b) { return a < b ? b : a; }
 
 /* value limited to [low, high] (the early-return form; the if/else-if and in-place spellings fold into it too) */
@@ -41,6 +46,7 @@ inline int ClampInt(int value, int low, int high)
     return value;
 }
 
+// Absolute value.
 inline float Abs(float value) { return __builtin_fabsf(value); }
 
 /* a word that holds either a pointer (low bit clear) or a tagged value (low bit set): is it the pointer? */
