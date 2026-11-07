@@ -63,7 +63,7 @@ char *strchr(const char *p, int ch);
 int vprintf(char *fmt, va_list args);
 int s1_vsprintf(char *dest, char *fmt, va_list args);
 }
-double GTrunc(double g);
+double TruncateDouble(double g);
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
 int ParseDecimalInt(char *str, int *outValue);
 int ParseFormatSpec(char *format, TFT *spec, char **args);
@@ -481,8 +481,8 @@ unsigned char GetDecimalDigitChar(double g, int position, int precision)
     if (position < precision || position - 15 >= precision)
         digit = 0;
     else {
-        shifted = GTrunc(dpmul(g, pow(10.0, litodp(-precision))));
-        digit = dptoli(dpsub(shifted, dpmul(GTrunc(dpmul(shifted, 0.1)), 10.0)));
+        shifted = TruncateDouble(dpmul(g, pow(10.0, litodp(-precision))));
+        digit = dptoli(dpsub(shifted, dpmul(TruncateDouble(dpmul(shifted, 0.1)), 10.0)));
     }
     return D_002C40C8[digit];
 }

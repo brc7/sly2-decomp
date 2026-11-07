@@ -117,7 +117,7 @@ extern float D_002BBB60[2];
 extern QW D_002DF260[];
 extern "C" {
 void ClearFrameBuffers__Fv(void);
-float GTrunc__Ff(float g);
+float TruncateFloat__Ff(float g);
 void FillScreenRect(RGBA *pc, GIFS *pgs, float x0, float y0, float x1, float y1);
 int func_00234A60(int) __asm__("WaitSema");
 int func_00234A40(int) __asm__("SignalSema");
@@ -217,7 +217,7 @@ void CProg::Draw()
     width = (int)((float)totalCount * 620.0f / (float)maxCount);
     doneWidth = (int)((float)width * ((float)(totalCount - remaining) / (float)totalCount));
     color = doneColor;
-    FillScreenRect(&color, &gifs, 10.0f, GTrunc__Ff(412.909088f) * 1.1f, (float)(doneWidth + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
+    FillScreenRect(&color, &gifs, 10.0f, TruncateFloat__Ff(412.909088f) * 1.1f, (float)(doneWidth + 10), TruncateFloat__Ff(412.909088f) * 1.1f + 6.6000004f);
     if (repeatCount <= 0)
         color = todoColor;
     else if (repeatCount == 1)
@@ -226,7 +226,7 @@ void CProg::Draw()
         color = todoColorStuck;
     {
         RGBA colorCopy = color;
-        FillScreenRect(&colorCopy, &gifs, (float)(doneWidth + 10), GTrunc__Ff(412.909088f) * 1.1f, (float)(width + 10), GTrunc__Ff(412.909088f) * 1.1f + 6.6000004f);
+        FillScreenRect(&colorCopy, &gifs, (float)(doneWidth + 10), TruncateFloat__Ff(412.909088f) * 1.1f, (float)(width + 10), TruncateFloat__Ff(412.909088f) * 1.1f + 6.6000004f);
     }
     gifs.AddPrimEnd();
     gifs.AddDmaEnd();

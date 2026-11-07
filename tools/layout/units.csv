@@ -1008,8 +1008,8 @@ AreFloatsNear__Ffff,0x11D4D0,util
 SolveQuadratic__FfffPf,0x11D508,util
 PrescaleClq__FP3CLQffT0,0x11D5B0,util
 CalculateSinCos__FfPfT1,0x11D608,util
-GTrunc__Fd,0x11D740,util
-GTrunc__Ff,0x11D7F0,util
+TruncateDouble__Fd,0x11D740,util
+TruncateFloat__Ff,0x11D7F0,util
 ModPositive__Fff,0x11D898,util
 FitClq__FffffP3CLQ,0x11D8D8,util
 IsWithinLimits__FP2LMf,0x11D910,util

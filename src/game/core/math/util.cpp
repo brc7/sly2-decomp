@@ -345,7 +345,7 @@ union DBL {
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Truncates a double toward zero by masking mantissa bits (with a carry fix when all masked bits are set).
-double GTrunc(double g)
+double TruncateDouble(double g)
 {
     DBL *pconv = (DBL *)&g;
     int exp = pconv->bits.exp - 0x3FF;
@@ -367,15 +367,15 @@ double GTrunc(double g)
 
 /** @sly2-annot addr=0x11D7F0
  * Purpose: Truncate a float toward zero via exponent bit manipulation
- * Info: proposed name GTrunc (T1); TU util
- * Notes: agent qualifier: float | C++ overload of existing GTrunc__Fd (distinct mangled names) | overload of
- *   GTrunc at 0x11D740 (distinct mangled symbols)
+ * Info: proposed name TruncateFloat (T1); TU util
+ * Notes: Sly 1 named both truncations GTrunc (overloads GTrunc__Fd / GTrunc__Ff); renamed apart to TruncateDouble /
+ *   TruncateFloat (0x11D740 is the double one)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Truncates a float toward zero by masking mantissa bits.
-float GTrunc(float g)
+float TruncateFloat(float g)
 {
     uint u = *(uint *)&g;
     int exp = ((u >> 23) & 0xFF) - 0x7F;

@@ -999,8 +999,8 @@ AreFloatsNear__Ffff,0x11D4D0,14,match,src/game/core/math/util.cpp
 SolveQuadratic__FfffPf,0x11D508,41,match,src/game/core/math/util.cpp
 PrescaleClq__FP3CLQffT0,0x11D5B0,22,match,src/game/core/math/util.cpp
 CalculateSinCos__FfPfT1,0x11D608,77,match,src/game/core/math/util.cpp
-GTrunc__Fd,0x11D740,44,match,src/game/core/math/util.cpp
-GTrunc__Ff,0x11D7F0,42,match,src/game/core/math/util.cpp
+TruncateDouble__Fd,0x11D740,44,match,src/game/core/math/util.cpp
+TruncateFloat__Ff,0x11D7F0,42,match,src/game/core/math/util.cpp
 ModPositive__Fff,0x11D898,15,match,src/game/core/math/util.cpp
 FitClq__FffffP3CLQ,0x11D8D8,13,match,src/game/core/math/util.cpp
 IsWithinLimits__FP2LMf,0x11D910,12,match,src/game/core/math/util.cpp
