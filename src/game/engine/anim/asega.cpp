@@ -157,7 +157,7 @@ extern "C" void DecrefAsega(ASEGA *player)
     }
 }
 
-static __inline__ unsigned int GrfQ(ASEG *pq) { unsigned int x = pq->grfUnk40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
+static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { unsigned int x = pq->grfUnk40; return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
 static __inline__ void End(G *pg) { ASEGA *po = pg->p; ((void (*)(void *))PVT(po)[2].pfn)((char *)po + PVT(po)[2].d); }
 /** @sly2-annot addr=0x130918
  * Purpose: Per-frame advance: time wrap (0x1317D8), event dispatch (0x130F88), retract when finished
@@ -180,7 +180,7 @@ extern "C" void UpdateAsega(ASEGA *player)
         g.p = player;
         __asm__ __volatile__("" : : "r"(&g) : "memory");
         ((void (*)(void *))PVT(player)[1].pfn)((char *)player + PVT(player)[1].d);
-        if (GrfQ(player->paseg) & 0x100)
+        if (ResolveAsegFlags(player->paseg) & 0x100)
             player->tLocal = player->tLocal + player->svt * D_002DDED0.realDeltaTime;
         else
             player->tLocal = player->tLocal + player->svt * D_002DDED0.dt;
