@@ -39,14 +39,15 @@ typedef char assert_FRM_size[sizeof(FRM) == 0x50 ? 1 : -1];
 struct sceDmaChan;
 /* The records on freeList. */
 struct Y { char pad[0x1088]; void *storage; };
-/* The list iterator as this TU spells it (sly2/dli.h DLI with a constructor and destructor). */
+/* DLIIsland: sly2/dli.h's DLI with a constructor and destructor (matching-only island: InitDli/PvNextDli plus an
+   explicit pop puts ClearPendingFrame 4/98 instructions off, scheduling). */
 extern void *D_002DD2FC;
-struct DLI {
+struct DLIIsland {
     DL *list;
     void **next;
     int linkOffset;
     void *previous;
-    DLI(DL *owner)
+    DLIIsland(DL *owner)
     {
         int offset = owner->linkOffset;
         previous = D_002DD2FC;
@@ -55,7 +56,7 @@ struct DLI {
         next = (void **)owner;
         linkOffset = offset;
     }
-    ~DLI() { D_002DD2FC = previous; }
+    ~DLIIsland() { D_002DD2FC = previous; }
     void *Next()
     {
         void *value = *next;
@@ -255,7 +256,7 @@ void RenderFrame(FRM *frame, int renderGifs)
 void ClearPendingFrame(FRM *frame)
 {
     if (!IsDlEmpty__FP2DL(&frame->releaseList)) {
-        DLI iter(&frame->releaseList);
+        DLIIsland iter(&frame->releaseList);
         for (LO *object = (LO *)iter.Next(); object; object = (LO *)iter.Next()) {
             RemoveDlEntry__FP2DLPv(&frame->releaseList, object);
             object->Release();
@@ -263,7 +264,7 @@ void ClearPendingFrame(FRM *frame)
         ClearDl__FP2DL(&frame->releaseList);
     }
     if (!IsDlEmpty__FP2DL(&frame->freeList)) {
-        DLI iter(&frame->freeList);
+        DLIIsland iter(&frame->freeList);
         for (Y *object = (Y *)iter.Next(); object; object = (Y *)iter.Next()) {
             if (object->storage)
                 FreeSlotheapSlot(&g_sw.unknown40A0, object->storage);
@@ -277,11 +278,11 @@ void ClearPendingFrame(FRM *frame)
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
 typedef char Integer_Size[sizeof(int)==4&&sizeof(unsigned int)==4?1:-1];
 typedef char DL_Size[sizeof(DL)==12?1:-1];
-typedef char DLI_Size[sizeof(DLI)==16?1:-1];
-typedef char DLI_List[FIELD_OFFSET(DLI,list)==0?1:-1];
-typedef char DLI_Next[FIELD_OFFSET(DLI,next)==4?1:-1];
-typedef char DLI_LinkOffset[FIELD_OFFSET(DLI,linkOffset)==8?1:-1];
-typedef char DLI_Previous[FIELD_OFFSET(DLI,previous)==12?1:-1];
+typedef char DLI_Size[sizeof(DLIIsland)==16?1:-1];
+typedef char DLI_List[FIELD_OFFSET(DLIIsland,list)==0?1:-1];
+typedef char DLI_Next[FIELD_OFFSET(DLIIsland,next)==4?1:-1];
+typedef char DLI_LinkOffset[FIELD_OFFSET(DLIIsland,linkOffset)==8?1:-1];
+typedef char DLI_Previous[FIELD_OFFSET(DLIIsland,previous)==12?1:-1];
 typedef char Y_Storage[FIELD_OFFSET(Y,storage)==0x1088?1:-1];
 typedef char FR_FirstList[FIELD_OFFSET(FRM,releaseList)==0x34?1:-1];
 typedef char FR_SecondList[FIELD_OFFSET(FRM,freeList)==0x40?1:-1];
