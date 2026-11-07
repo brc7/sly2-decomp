@@ -1,8 +1,8 @@
 // tu_1848A8.cpp -- CStreamBis, the file/CD-sector subclass of CBinaryInputStream (vtable D_002D2918): constructor,
-// destructor, spooled CD refill, file refill, Close, FOpenSector. TU 0x1848A8..0x184F50 (10 functions, address order).
+// destructor, spooled CD refill, file refill, Close, OpenCdSectors. TU 0x1848A8..0x184F50 (10 functions, address order).
 // A CD-sector stream splits its spool buffer into bufferCount sub-buffers (at least 2, one per MB of spool) and keeps
 // one CD read in flight into the next free sub-buffer while the reader consumes the oldest full one; a failed read is
-// reissued from where it stopped. Entry points: CStreamBis_ctor, OpenStreamFromFileKey / FOpenSector, Fill (vtable
+// reissued from where it stopped. Entry points: CStreamBis_ctor, OpenStreamFromFileKey / OpenCdSectors, Fill (vtable
 // slot 1: RefillStreamFromCd or RefillStreamFromFile), CStreamBis_Close, the destructor.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1848A8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00184F30
@@ -16,11 +16,11 @@ typedef unsigned int uint;
 
 /* TU-private view of the stream object (0x70 bytes, see ui/memcard/load_file_from_disc.cpp). The base part (0x00..0x33)
  * is sly2's include/bis.h CBinaryInputStream; that header's class is abstract with virtuals, while this TU calls the base
- * constructor by its C name and defines the mangled member FOpenSector, so the whole object is one plain view here. */
+ * constructor by its C name and defines the mangled member OpenCdSectors, so the whole object is one plain view here. */
 class CBinaryInputStream
 {
 public:
-    int FOpenSector(uint sector, uint size);
+    int OpenCdSectors(uint sector, uint size);
 
     int flags;                /* 0x00 m_grfbis */
     char pad04[0x0C];
@@ -247,7 +247,7 @@ extern "C" void CStreamBis_Close(CBinaryInputStream *stream)
 }
 
 /** @sly2-annot addr=0x184D60
- * Purpose: If the file record kind is 2 (disc sector), FOpenSector(rec sector, size)
+ * Purpose: If the file record kind is 2 (disc sector), OpenCdSectors(rec sector, size)
  * Info: proposed name FOpenStreamFileRec (T2); TU tu_1848A8
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/formats/disc-records.md#2-the-read-path,
@@ -258,7 +258,7 @@ extern "C" int OpenStreamFromFileKey(CBinaryInputStream *stream, SECTORKEY *key)
 {
     int opened = 0;
     if (key->kind == 2)
-        opened = stream->FOpenSector(key->sector, key->size);
+        opened = stream->OpenCdSectors(key->sector, key->size);
     return opened;
 }
 
@@ -271,7 +271,7 @@ extern "C" int OpenStreamFromFileKey(CBinaryInputStream *stream, SECTORKEY *key)
  * @end-sly2-annot */
 // Opens a CD-sector stream on `size` bytes from `firstSector`: resets the read state and divides the spool buffer
 // into max(2, spoolSize / 1 MB) sub-buffers. Returns 1.
-int CBinaryInputStream::FOpenSector(uint firstSector, uint size)
+int CBinaryInputStream::OpenCdSectors(uint firstSector, uint size)
 {
     sector = firstSector;
     fileBytesLeft = size;

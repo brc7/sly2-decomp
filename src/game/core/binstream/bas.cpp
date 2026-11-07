@@ -1,8 +1,8 @@
 // bas.cpp -- CBinaryAsyncStream: double-buffered asynchronous reads from the host file system or the CD.
 // The spool buffer is used in two halves: one is being read by the consumer (current, currentSize, position currentPos) while the
 // next is read asynchronously into the other. When the consumer has used the current half, FinishSpooling swaps in the
-// completed one. Entry points: the constructor, OpenBasFromFileKey / FOpenSector, Close, StartSpooling, FSpooling,
-// FSpoolingComplete, FinishSpooling, Spool, Skip. TU 0x132570..0x132B00 (13 functions, address order).
+// completed one. Entry points: the constructor, OpenBasFromFileKey / OpenSector, Close, StartSpooling, IsSpooling,
+// IsSpoolingComplete, FinishSpooling, Spool, Skip. TU 0x132570..0x132B00 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bas
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00132AE0
 #include "sly2/slotheap.h"
@@ -33,7 +33,7 @@ public:
     int bytesNotRead;  /* 0x28 */
     int fileSize;       /* 0x2c */
     ~CBinaryAsyncStream();
-    int FOpenSector(uint isector, uint cb);
+    int OpenSector(uint isector, uint cb);
     void Close();
     void StartSpooling();
     bool IsSpooling();
@@ -87,7 +87,7 @@ extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *stre
 CBinaryAsyncStream::~CBinaryAsyncStream() { Close(); }
 
 /** @sly2-annot addr=0x132600
- * Purpose: If the file record kind (+8) == 2 open the async stream on its sector range (FOpenSector(+0,+4)),
+ * Purpose: If the file record kind (+8) == 2 open the async stream on its sector range (OpenSector(+0,+4)),
  *   else 0
  * Info: proposed name FOpenBasFromCdFile (T2); TU bas
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
@@ -99,7 +99,7 @@ extern "C" int OpenBasFromFileKey(CBinaryAsyncStream *stream, CDFILE *fileKey)
 {
     int opened = 0;
     if (fileKey->kind == 2)
-        opened = stream->FOpenSector(fileKey->sector, fileKey->size);
+        opened = stream->OpenSector(fileKey->sector, fileKey->size);
     return opened;
 }
 
@@ -113,7 +113,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
 // Opens the stream on `size` bytes starting at disc sector `sector` and starts the first read; returns 1.
-int CBinaryAsyncStream::FOpenSector(uint firstSector, uint size)
+int CBinaryAsyncStream::OpenSector(uint firstSector, uint size)
 {
     sector = firstSector;
     fileSize = size;

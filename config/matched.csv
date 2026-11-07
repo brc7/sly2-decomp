@@ -1477,7 +1477,7 @@ func_00132550,0x132550,8,match,src/game/gameplay/objects/barrier.cpp
 __18CBinaryAsyncStreamPv,0x132570,17,match,src/game/core/binstream/bas.cpp
 _$_18CBinaryAsyncStream,0x1325B8,17,match,src/game/core/binstream/bas.cpp
 OpenBasFromFileKey,0x132600,14,match,src/game/core/binstream/bas.cpp
-FOpenSector__18CBinaryAsyncStreamUiUi,0x132640,17,match,src/game/core/binstream/bas.cpp
+OpenSector__18CBinaryAsyncStreamUiUi,0x132640,17,match,src/game/core/binstream/bas.cpp
 Close__18CBinaryAsyncStream,0x132688,34,match,src/game/core/binstream/bas.cpp
 StartSpooling__18CBinaryAsyncStream,0x132710,47,match,src/game/core/binstream/bas.cpp
 IsSpooling__18CBinaryAsyncStream,0x1327D0,3,match,src/game/core/binstream/bas.cpp
@@ -1665,7 +1665,7 @@ func_0013D538,0x13D538,8,match,src/game/gameplay/progression/booty.cpp
 Init__10CByteQueueiPv,0x13D558,9,match,src/game/core/containers/bq.cpp
 Reset__10CByteQueue,0x13D580,8,match,src/game/core/containers/bq.cpp
 CbFill__10CByteQueueiP11CQueueInput,0x13D5A0,66,match,src/game/core/containers/bq.cpp
-CbDrain__10CByteQueueiP12CQueueOutput,0x13D6A8,74,match,src/game/core/containers/bq.cpp
+DrainToOutput__10CByteQueueiP12CQueueOutput,0x13D6A8,74,match,src/game/core/containers/bq.cpp
 CbFill__10CByteQueueiPUc,0x13D7D0,18,match,src/game/core/containers/bq.cpp
 FreeDrain__10CByteQueuei,0x13D818,13,match,src/game/core/containers/bq.cpp
 CbRead__17CQueueInputMemoryiPv,0x13D850,26,match,src/game/core/containers/bq.cpp
@@ -2957,7 +2957,7 @@ RefillStreamFromFile,0x184C60,15,match,src/game/core/binstream/tu_1848A8.cpp
 CStreamBis_Refill,0x184CA0,19,match,src/game/core/binstream/tu_1848A8.cpp
 CStreamBis_Close,0x184CF0,27,match,src/game/core/binstream/tu_1848A8.cpp
 OpenStreamFromFileKey,0x184D60,14,match,src/game/core/binstream/tu_1848A8.cpp
-FOpenSector__18CBinaryInputStreamUiUi,0x184D98,24,match,src/game/core/binstream/tu_1848A8.cpp
+OpenCdSectors__18CBinaryInputStreamUiUi,0x184D98,24,match,src/game/core/binstream/tu_1848A8.cpp
 StaticInit_tu_1848A8,0x184DF8,77,match,src/game/core/binstream/tu_1848A8.cpp
 func_00184F30,0x184F30,8,match,src/game/core/binstream/tu_1848A8.cpp
 InitHnd,0x184F50,17,match,src/game/gameplay/player/hnd.cpp

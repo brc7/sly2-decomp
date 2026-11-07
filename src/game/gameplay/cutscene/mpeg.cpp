@@ -159,7 +159,7 @@ void Reset__10CByteQueue(CByteQueue *p);
 void snd_CloseMovieSound(void);
 void snd_ContinueAllSoundsInGroup(unsigned int m);
 int CbFill__10CByteQueueiPUc(CByteQueue *p, int cb, void *pb);
-int CbDrain__10CByteQueueiP12CQueueOutput(CByteQueue *p, int cb, void *pout);
+int DrainToOutput__10CByteQueueiP12CQueueOutput(CByteQueue *p, int cb, void *pout);
 void FreeDrain__10CByteQueuei(CByteQueue *p, int n);
 void snd_StartMovieSound(int a, int b, int c, int d, int e);
 void PushScaling__5CFontff(void *pf, float sx, float sy);
@@ -505,7 +505,7 @@ void Update__10CMpegAudio(CMpegAudio *audio)
 {
     switch (audio->state) {
     case 2:
-        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
+        DrainToOutput__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
         if (audio->out.freeBytes == 0) {
             if (audio->out.format == 0x10) snd_StartMovieSound(audio->out.iopBuffer, 0x1000, 0, audio->out.sampleRate, audio->out.channelCount);
             else snd_StartMovieSound(audio->out.iopBuffer, audio->out.bufferSize, audio->out.iopBuffer, 0, 0);
@@ -514,7 +514,7 @@ void Update__10CMpegAudio(CMpegAudio *audio)
         break;
     case 3:
         CQueueOutputIop_Update(&audio->out);
-        CbDrain__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
+        DrainToOutput__10CByteQueueiP12CQueueOutput(&audio->qData, audio->out.freeBytes, &audio->out);
         break;
     }
 }
@@ -549,7 +549,7 @@ int FMpegDecodeVideo__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG *pla
     }
     buf[0] = D_002D4220;
     FreeDrain__10CByteQueuei(&player->qVideo, 0);
-    CbDrain__10CByteQueueiP12CQueueOutput(&player->qVideo, 0, buf);
+    DrainToOutput__10CByteQueueiP12CQueueOutput(&player->qVideo, 0, buf);
     return 1;
 }
 

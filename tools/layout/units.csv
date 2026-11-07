@@ -1486,7 +1486,7 @@ func_00132550,0x132550,barrier
 __18CBinaryAsyncStreamPv,0x132570,bas
 _$_18CBinaryAsyncStream,0x1325B8,bas
 OpenBasFromFileKey,0x132600,bas
-FOpenSector__18CBinaryAsyncStreamUiUi,0x132640,bas
+OpenSector__18CBinaryAsyncStreamUiUi,0x132640,bas
 Close__18CBinaryAsyncStream,0x132688,bas
 StartSpooling__18CBinaryAsyncStream,0x132710,bas
 IsSpooling__18CBinaryAsyncStream,0x1327D0,bas
@@ -1674,7 +1674,7 @@ func_0013D538,0x13D538,booty
 Init__10CByteQueueiPv,0x13D558,bq
 Reset__10CByteQueue,0x13D580,bq
 CbFill__10CByteQueueiP11CQueueInput,0x13D5A0,bq
-CbDrain__10CByteQueueiP12CQueueOutput,0x13D6A8,bq
+DrainToOutput__10CByteQueueiP12CQueueOutput,0x13D6A8,bq
 CbFill__10CByteQueueiPUc,0x13D7D0,bq
 FreeDrain__10CByteQueuei,0x13D818,bq
 CbRead__17CQueueInputMemoryiPv,0x13D850,bq
@@ -2968,7 +2968,7 @@ RefillStreamFromFile,0x184C60,tu_1848A8
 CStreamBis_Refill,0x184CA0,tu_1848A8
 CStreamBis_Close,0x184CF0,tu_1848A8
 OpenStreamFromFileKey,0x184D60,tu_1848A8
-FOpenSector__18CBinaryInputStreamUiUi,0x184D98,tu_1848A8
+OpenCdSectors__18CBinaryInputStreamUiUi,0x184D98,tu_1848A8
 StaticInit_tu_1848A8,0x184DF8,tu_1848A8
 func_00184F30,0x184F30,tu_1848A8
 InitHnd,0x184F50,hnd
