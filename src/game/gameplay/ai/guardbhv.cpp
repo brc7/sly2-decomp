@@ -3612,7 +3612,7 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
 
 // 0x1791C8 SetBhvwalkpathState
 namespace M_SetBhvwalkpathState { extern "C" {
- struct O; struct S;
+struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern float D_002BE694;
 struct O : BHV { char pad2[0x38 - 0x30]; int lookAt; int sgf; };
@@ -3878,7 +3878,7 @@ void StartBhvKnockdown(struct S *behavior) {
 
 // 0x179820 CloseBhvKnockdown
 namespace M_func_00179820 { extern "C" {
- struct O; struct T; struct S;
+struct O; struct T; struct S;
 struct O : BHV { };
 struct T : STEP { char pad[0xFEC - 0x2C0]; struct O *knockdownHelper; };
 struct S { char pad[0x10]; struct T *guard; };
@@ -6047,7 +6047,7 @@ repath:
 
 // 0x17C550 SetBhvCircleState
 namespace M_func_0017C550 { extern "C" {
- struct O; struct X; struct T; struct S;
+struct O; struct X; struct T; struct S;
 struct O : BHV { char pad2[0x38 - 0x30]; int lookAt; char pad3[0xC0 - 0x3C]; int animSgf; int pad4; int lookAtTarget; };
 struct X { char pad[0xC]; int target; };
 struct T : PO { char pad[0x294 - 0x180]; int pathShape; char pad2[0x3CC - 0x298]; struct X *engagement; };
@@ -6621,7 +6621,7 @@ void BHV188::OnPush()
 
 // 0x17D2E0 StartBhvAttachCid39
 namespace M_func_0017D2E0 { extern "C" {
- struct O; struct S;
+struct O; struct S;
 struct O : BHV { char pad2[0x3C - 0x30]; int sgf; };
 struct S { char pad[0x10]; void *guard; };
 void StartBhv(struct S *p);
@@ -7508,7 +7508,7 @@ int IsBhvpathlinkAtSegmentEnd(struct S *behavior)
 
 // 0x17E628 PushBhvpathlinkLeap
 namespace M_PushBhvpathlinkLeap { extern "C" {
- struct O; struct S;
+struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct O : BHV { char pad2[0x50 - 0x30]; qword landingPoint; char pad3[8]; int unknown68; };
 struct SEG { qword a; qword b; };
@@ -7713,7 +7713,7 @@ extern "C" void InitBhvpatrolpath(BHVPATROLPATHV *behavior)
 
 // 0x17EB88 StartBhvpatrolpath
 namespace M_StartBhvpatrolpath { extern "C" {
- struct O; struct S;
+struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
