@@ -343,15 +343,15 @@ extern "C" float AdjustTossableNewXp(CID100V *gadget, XP *contact, int end) {
 // Update actor contacts and select the neighboring actor.
 /* The contact graph (as in button.cpp): each contact has two ends; an end names its tree's owner and object. */
 struct SIDE { struct { int unknown0; SOV *owner; } *tree; int unknown4; SOV *object; SOV *otherObject; char pad[0x30]; };
-struct EDGE { SIDE as[2]; qwordV normal; char pad[0xC]; int contactKind; char pad2[0xC]; EDGE *next; };
-struct LN { EDGE *firstEdge; LN *next; };
+struct CONTACT { SIDE as[2]; qwordV normal; char pad[0xC]; int contactKind; char pad2[0xC]; CONTACT *next; };
+struct LN { CONTACT *firstEdge; LN *next; };
 struct SCALAR {qwordV q;};
 // Asm accessors of UpdateTossableContacts (each pins one load or address computation the target has): a scalar
 // loaded into a VU register, a vector scaled by it, the other end's object, an end by index, a table entry address.
 static inline void InitScalar(SCALAR &home,const float &f){int bits;asm("lw %0,0(%1)":"=r"(bits):"0"(&f),"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(home.q):"r"(bits));}
 static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV result;__asm__("vmulx.xyzw %0,%1,%0x":"=j"(result):"j"(direction),"0"(scalar.q));return result;}
 static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.otherObject));return value;}
-static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
+static inline const SIDE *SideAt(const CONTACT *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
 // CID100 contact update: after the SO update (and not in the first D_002C42E0 seconds after being picked up), each
 // contact this gadget owns is examined: a sticky gadget touching a free surface (not contact kind 8, no blocking class
@@ -360,7 +360,7 @@ static inline const float *CoefficientAt(const float *table,int index){const flo
 extern "C" void UpdateTossableContacts(CID100V *gadget)
 {
     SOV *other;
-    EDGE *pe;
+    CONTACT *pe;
     LN *contactList;
     SOV *ownObject;
     AdjustSoXps(gadget);
