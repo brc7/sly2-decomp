@@ -656,15 +656,8 @@ namespace M_LoadSoXfsFromBrx {
 // Read transform records and their optional animation jobs from a binary stream.
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
-struct V {float f[4];} __attribute__((aligned(16)));
-struct M4 {V r[4];};
-struct S;struct E;
-struct RESOURCE {char pad[0x30];float position[3];};
-struct VE {short delta,pad;RESOURCE *(*get)(void *,int);};
 /* The acts made here (act.h ACT1/ACT2/ACT4/ACT9) are built by hand: AllocAct, then the vtable store at +0x18. */
 #define ACT_VPTR(p) (*(void **)((char *)(p) + 0x18))
-struct E {M4 matrix;char pad40[0x50];ACT *jobs;int kind,pad98,tag;RESOURCE *reference;int padA4;RESOURCE *origin;short lo,hi;char padB0[0x10];qword current;char padD0[0x10];qword previous;char padF0[0x10];};
-struct S {char pad0[0xC];VE *vt;char pad10[0x30];int flags;char pad44[0xC];int count;E *records;RESOURCE *a,*b,*c;};
 struct REQ {int size,kind;};
 extern "C" { extern char D_002CA820[] __asm__("_vt$4ACT1"),D_002CA7E0[] __asm__("_vt$4ACT2"),D_002CA7A0[] __asm__("_vt$4ACT4"),D_002CA6A0[] __asm__("_vt$4ACT9"); }
 extern "C" {
@@ -676,17 +669,17 @@ float F32Read__18CBinaryInputStream(void *);
 void ReadCb12__18CBinaryInputStreamPv(void *,void *);
 void ReadCb8__18CBinaryInputStreamPv(void *,void *);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *,void *);
-void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,M4 *);
+void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,MATRIX4 *);
 void *AllocClearedFromWorldHeap(REQ *);
 void *AllocAct(int);
 void *func_002333B4(void *,int,int) __asm__("memset");
-qword GetXfValueFromMatrix(E *,E *);
-void ResetXfValueRef(S *,E *);
-void AddXfAct(S *,E *,ACT *);
-void UpdateSoXfWorldMatrices(S *);
-void LoadSoIkFromBrx(S *,void *);
-void LoadXfmConstraintsFromBrx(S *,void *);
-void LoadSoChainsFromBrx(S *,void *);
+qword GetXfValueFromMatrix(XF *,MATRIX4 *);
+void ResetXfValueRef(SO *,XF *);
+void AddXfAct(SO *,XF *,ACT *);
+void UpdateSoXfWorldMatrices(SO *);
+void LoadSoIkFromBrx(SO *,void *);
+void LoadXfmConstraintsFromBrx(SO *,void *);
+void LoadSoChainsFromBrx(SO *,void *);
 }
 // Allocate and set up an act of kind 1 (vtable D_002CA820, selector 2).
 static inline ACT1 *CreateJ1(){ACT1 *j;j=(ACT1 *)AllocAct(sizeof(ACT1));ACT_VPTR(j)=D_002CA820;j->ack=1;j->phase=2;return j;}
@@ -696,31 +689,33 @@ static inline ACT2 *CreateJ2(){ACT2 *j;j=(ACT2 *)AllocAct(sizeof(ACT2));j->ack=2
 static inline ACT4 *CreateJ4(){ACT4 *j;j=(ACT4 *)AllocAct(sizeof(ACT4));j->ack=4;ACT_VPTR(j)=D_002CA7A0;return j;}
 // Allocate and set up an act of kind 9 (vtable D_002CA6A0, id 20).
 static inline ACT9 *CreateJ9(){ACT9 *j;j=(ACT9 *)AllocAct(sizeof(ACT9));ACT_VPTR(j)=D_002CA6A0;j->ack=9;j->role=20;return j;}
-// Resolve resource id through the object's lookup virtual (vtable slot 51).
-static inline RESOURCE *Lookup(S *p,int id){VE *ve=&p->vt[51];return ve->get((char *)p+ve->delta,id);}
 // Truncate f to int.
 static inline int ToInt(float f){return (int)f;}
 // Set m to the identity matrix.
-static inline void Identity(M4 *m){func_002333B4(m,0,sizeof(*m));m->r[3].f[3]=1.0f;m->r[2].f[2]=1.0f;m->r[1].f[1]=1.0f;m->r[0].f[0]=1.0f;}
-// Clear flag 0x20: on p->flags when bit 0 is set, otherwise on the word p->flags points to.
-static inline void ClearFlag(S *p){int f=p->flags;if((f^1)&1)*(int *)f&=~0x20;else p->flags=f&~0x20;}
+// SO::GetXfFromIndex (slot 51) through the vtable by hand: the real virtual call puts the loop variables in other
+// registers and grows the frame (349 words off). This form exists to reproduce the original codegen.
+struct VE {short delta,pad;XF *(*get)(void *,int);};
+static inline XF *Lookup(SO *p,int id){VE *ve=&(*(VE **)((char *)p+0xC))[51];return ve->get((char *)p+ve->delta,id);}
+static inline void Identity(MATRIX4 *m){func_002333B4(m,0,sizeof(*m));m->mat[3][3]=1.0f;m->mat[2][2]=1.0f;m->mat[1][1]=1.0f;m->mat[0][0]=1.0f;}
+// Clear flag 0x20: on LO::unknown40 when bit 0 is set, otherwise on the word it points to.
+static inline void ClearFlag(SO *p){int f=p->unknown40;if((f^1)&1)*(int *)f&=~0x20;else p->unknown40=f&~0x20;}
 // Loads an SO's transforms from the level stream: per transform its kind, role, matrices and limits, plus optional
 // animation jobs (springs, chases, chains via LoadSoChainsFromBrx).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
+extern "C" void LoadSoXfsFromBrx(SO *p,void *stream){
  int i=0;
- p->count=S16Read__18CBinaryInputStream(stream);
- REQ request;request.size=p->count*sizeof(E);request.kind=16;
- p->records=(E *)AllocClearedFromWorldHeap(&request);
- for(;i<p->count;i++){
-  E *e=&p->records[i];
-  e->reference=Lookup(p,S16Read__18CBinaryInputStream(stream));
+ p->numTransforms=S16Read__18CBinaryInputStream(stream);
+ REQ request;request.size=p->numTransforms*sizeof(XF);request.kind=16;
+ p->transforms=(XF *)AllocClearedFromWorldHeap(&request);
+ for(;i<p->numTransforms;i++){
+  XF *e=&p->transforms[i];
+  e->parent=Lookup(p,S16Read__18CBinaryInputStream(stream));
   e->kind=S16Read__18CBinaryInputStream(stream);
-  e->tag=S32Read__18CBinaryInputStream(stream);
+  e->oid=(OID)S32Read__18CBinaryInputStream(stream);
   int flags=U8Read__18CBinaryInputStream(stream);
-  if(flags&1){e->lo=ToInt(F32Read__18CBinaryInputStream(stream)*1000.0f);e->hi=1000;}
-  else if(flags&2){float thousand=1000.0f;e->lo=ToInt(F32Read__18CBinaryInputStream(stream)*thousand);e->hi=ToInt(F32Read__18CBinaryInputStream(stream)*thousand);}
-  else{e->lo=1000;e->hi=1000;}
+  if(flags&1){e->stiffness=ToInt(F32Read__18CBinaryInputStream(stream)*1000.0f);e->damping=1000;}
+  else if(flags&2){float thousand=1000.0f;e->stiffness=ToInt(F32Read__18CBinaryInputStream(stream)*thousand);e->damping=ToInt(F32Read__18CBinaryInputStream(stream)*thousand);}
+  else{e->stiffness=1000;e->damping=1000;}
   ACT1 *j1;ACT2 *j2;ACT4 *j4;ACT9 *j9;
   int has1=flags&4;
   if(has1){j1=CreateJ1();j1->role=S8Read__18CBinaryInputStream(stream);}
@@ -731,23 +726,23 @@ extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
   flags&=32;
   if(flags){j9=CreateJ9();ReadVector__18CBinaryInputStreamP6VECTOR(stream,&j9->velocity);}
   switch(e->kind){
-  case 0:case 13:case 15:ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->matrix);break;
-  case 8:case 14:{Identity(&e->matrix);e->origin=Lookup(p,S16Read__18CBinaryInputStream(stream));e->matrix.r[3].f[0]=-e->origin->position[0];e->matrix.r[3].f[1]=-e->origin->position[1];e->matrix.r[3].f[2]=-e->origin->position[2];break;}
+  case 0:case 13:case 15:ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->localMatrix);break;
+  case 8:case 14:{Identity(&e->localMatrix);e->reference=Lookup(p,S16Read__18CBinaryInputStream(stream));e->localMatrix.mat[3][0]=-e->reference->localMatrix.mat[3][0];e->localMatrix.mat[3][1]=-e->reference->localMatrix.mat[3][1];e->localMatrix.mat[3][2]=-e->reference->localMatrix.mat[3][2];break;}
   case 1:case 2:case 3:case 4:case 5:case 6:case 7:case 9:case 10:case 11:case 12:default:
-   ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->matrix);e->current=e->previous=GetXfValueFromMatrix(e,e);break;
+   ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->localMatrix);e->restValue=e->unknownE0=GetXfValueFromMatrix(e,&e->localMatrix);break;
   }
   ResetXfValueRef(p,e);
-  if(has1){j1->animatedObject=(ALO *)p;j1->transform=(XF *)e;j1->priority=-1;j1->goalValue=GetXfValueFromMatrix(e,e);AddXfAct(p,e,j1);}
-  if(has2){j2->animatedObject=(ALO *)p;j2->transform=(XF *)e;j2->priority=j2->farPriority;j2->restAim=GetXfValueFromMatrix(e,e);AddXfAct(p,e,j2);}
-  if(has4){j4->animatedObject=(ALO *)p;j4->transform=(XF *)e;j4->priority=-1;AddXfAct(p,e,j4);}
-  if(flags){j9->animatedObject=(ALO *)p;j9->transform=(XF *)e;j9->priority=-1;AddXfAct(p,e,j9);}
+  if(has1){j1->animatedObject=(ALO *)p;j1->transform=e;j1->priority=-1;j1->goalValue=GetXfValueFromMatrix(e,&e->localMatrix);AddXfAct(p,e,j1);}
+  if(has2){j2->animatedObject=(ALO *)p;j2->transform=e;j2->priority=j2->farPriority;j2->restAim=GetXfValueFromMatrix(e,&e->localMatrix);AddXfAct(p,e,j2);}
+  if(has4){j4->animatedObject=(ALO *)p;j4->transform=e;j4->priority=-1;AddXfAct(p,e,j4);}
+  if(flags){j9->animatedObject=(ALO *)p;j9->transform=e;j9->priority=-1;AddXfAct(p,e,j9);}
  }
  UpdateSoXfWorldMatrices(p);
  LoadSoIkFromBrx(p,stream);
  LoadXfmConstraintsFromBrx(p,stream);
  LoadSoChainsFromBrx(p,stream);
- p->a=Lookup(p,S16Read__18CBinaryInputStream(stream));p->b=Lookup(p,S16Read__18CBinaryInputStream(stream));p->c=Lookup(p,S16Read__18CBinaryInputStream(stream));
- if(p->count>0)ClearFlag(p);
+ p->unknown58=Lookup(p,S16Read__18CBinaryInputStream(stream));p->unknown5C=Lookup(p,S16Read__18CBinaryInputStream(stream));p->rootTransform=Lookup(p,S16Read__18CBinaryInputStream(stream));
+ if(p->numTransforms>0)ClearFlag(p);
 }
 } // namespace M_LoadSoXfsFromBrx
 
