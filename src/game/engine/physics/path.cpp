@@ -660,7 +660,7 @@ static inline qword AddScaled(qword a, qword b, float g)
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Closest point of a navigation triangle to p (clamped to an edge, or projected vertically inside it).
-qword ClosestPointOnCgt(T *triangle, qword pos)
+extern "C" { qword ClosestPointOnCgt(T *triangle, qword pos)
 {
     U result;
     qword a = *triangle->a, b = *triangle->b, c = *triangle->c;
@@ -678,7 +678,7 @@ qword ClosestPointOnCgt(T *triangle, qword pos)
         result.q = AddScaled(pos, D_002A2DC0, g);
     }
     return result.q;
-}
+} }
 } // namespace M_ClosestPointOnCgt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
