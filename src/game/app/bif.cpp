@@ -16,6 +16,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/pair.h"
+#include "sly2/cframe.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
 #include "sly2/util.h"
@@ -3735,23 +3736,20 @@ CRef BuiltinSetSaveVar(void *pbasic, CRef *args)
 
 // 0x125510 BuiltinFindBindingOrNoop
 namespace M_BuiltinFindBindingOrNoop {
-struct O; class CFrame;
-struct O { int pad[2]; int kind; O *parent; int pad2[5]; int isObjectFrame; };   /* a call frame (inferred field meanings) */
 enum { BIFK_NOOP = 0x86 };   /* builtin 134, noop~ */
-class CFrame { public: CRef *FindBindingPtr(unsigned int sym, int fRecurse) __asm__("FindBindingPtr__6CFrameUii"); };
-extern "C" CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, O *po);
+extern "C" CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, CFrame *pframe);
 // Looks up a symbol in the calling object frame chain (CFrame::FindBindingPtr(sym,1)); if unbound returns Bifk 0x86
 // (slot 134 no-op builtin).
-CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, O *frame)
+CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, CFrame *frame)
 {
-    if (frame && frame->kind == 1) {
-        while (!frame->isObjectFrame) {
-            frame = frame->parent;
-            if (!frame || frame->kind != 1)
+    if (frame && frame->m_cpframeParent == 1) {
+        while (!frame->m_fObjectFrame) {
+            frame = frame->m_apframeParent[0].m_p;
+            if (!frame || frame->m_cpframeParent != 1)
                 goto unbound;   /* one shared tail; a second `return CRef(...)` here does not match */
         }
         {
-            CRef *binding = ((CFrame *)frame->parent)->FindBindingPtr(args[0].u.n, 1);
+            CRef *binding = frame->m_apframeParent[0].m_p->FindBindingPtr(args[0].u.n, 1);
             if (binding)
                 return *binding;
         }
