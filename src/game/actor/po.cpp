@@ -459,7 +459,6 @@ void ResetPoctl(POCTLV *poctl)
     ClearPoctlJoyPressed(poctl, 0xFFFF);
 }
 
-static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x1C4330
  * Purpose: Static helper: stick (dx,dy) -> length + camera-relative angle with hysteresis (hold radius decays
@@ -473,7 +472,7 @@ static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 void ConvertPoctlStick(POCTLV *poctl, float cameraAngle, float *dxInOut, float *dyInOut, float *angleInOut, float *lengthOut, float *holdRadiusInOut)
 {
     float sine, cosine;
-    *lengthOut = sqrtf_(*dxInOut * *dxInOut + *dyInOut * *dyInOut);
+    *lengthOut = SqrtFloat(*dxInOut * *dxInOut + *dyInOut * *dyInOut);
     *holdRadiusInOut = GMaxR(*holdRadiusInOut - 0.2f, 0.0f);
     if (*lengthOut < *holdRadiusInOut || *lengthOut == 0.0f) {
         CalculateSinCos__FfPfT1(*angleInOut - cameraAngle + 1.5707964f, &sine, &cosine);

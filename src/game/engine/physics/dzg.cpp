@@ -301,7 +301,6 @@ static inline qword QwDivX(qword v, VU_FLOAT g)
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v), "j"(g.qw));
     return qw;
 }
-static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
 union VEC4 { qword q; float f[4]; };
 
 /** @sly2-annot addr=0x158B20
@@ -359,7 +358,7 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
         DZX *rowContact = &group->adzx[group->cdz];
         row->pdzOther = pairedRow;
         pairedRow->pdzOther = row;
-        row->g10 = -SqrtF(bestPushSquared);
+        row->g10 = -SqrtFloat(bestPushSquared);
         rowContact->pxp = bestContact;
         rowContact->qwNormal = QwDivX(bestPush.q, VuFloatFromMemWord((const int *)&row->g10));
         row->nKind = 1;

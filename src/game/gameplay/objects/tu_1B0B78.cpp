@@ -551,7 +551,6 @@ void SetCritterState(CID96V *critter, int next)
 }
 
 /* SetCid96SpinRatio (docs/engine/gameplay-objects.md): the symbol still says STEP. */
-static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
 // Spin spring parameters: D_002C0248 {25, 0, 0.25} scaled by (ratio, ratio, 1/sqrt(ratio)); a larger ratio turns faster.
 void SetStepSpinRatio(STEP *pstep, float ratio)
 {
@@ -559,7 +558,7 @@ void SetStepSpinRatio(STEP *pstep, float ratio)
     critter->spinScale = D_002C0248;
     critter->spinScale.x *= ratio;
     critter->spinScale.y *= ratio;
-    critter->spinScale.z *= 1.0f / SqrtF(ratio);
+    critter->spinScale.z *= 1.0f / SqrtFloat(ratio);
     critter->spinRatio = ratio;
 }
 

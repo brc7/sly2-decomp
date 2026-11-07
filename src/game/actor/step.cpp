@@ -1231,7 +1231,6 @@ void FixStepAngularVelocity(struct S *step)
 namespace M_func_00204D48 { extern "C" {
 typedef struct VECTOR { float x, y, z; } VECTOR;
 extern VECTOR D_002C3CB8;   /* the default spin smoothing */
-static __inline__ float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
 struct S { char pad[0x1F0]; float g; VECTOR v; };
 /** @sly2-annot addr=0x204D48
  * Purpose: smpSpin = default D_002C3CB8 with svFast/svSlow *r and dtFast /sqrt(r); store r at +0x1F0
@@ -1246,7 +1245,7 @@ void ScaleStepSpinSpeed(struct S *step, float g)
     step->v = D_002C3CB8;
     step->v.x *= g;
     step->v.y *= g;
-    step->v.z *= 1.0f / SqrtF(g);
+    step->v.z *= 1.0f / SqrtFloat(g);
     step->g = g;
 }
 } } // namespace M_func_00204D48

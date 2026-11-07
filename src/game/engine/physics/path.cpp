@@ -984,7 +984,6 @@ struct VS D_002C0C10[4] = {
     {{{-100000.0f, 100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
 };
 struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
-static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 void *AllocClearedFromWorldHeap(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
 void ComputeCgEdgeCosts(int *p);
@@ -1033,7 +1032,7 @@ void InitDefaultPathzoneCg(struct S *zone)
     a.align = 0x10;
     pp = (__typeof__(pp))AllocClearedFromWorldHeap(&a);
     zone->bspNodes = pp;
-    g = sqrtf_(2.0f) * 0.5f;
+    g = SqrtFloat(2.0f) * 0.5f;
     pp->c = 0xC001;
     pp->d = 0xC000;
     pp->z = 0;

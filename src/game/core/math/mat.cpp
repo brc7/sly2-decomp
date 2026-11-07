@@ -590,7 +590,6 @@ M3 *MulMatrix3Matrix3(M3 *outMatrix, M3 *a, M3 *b)
     return outMatrix;
 }
 
-static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /** @sly2-annot addr=0x11BC88
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -600,10 +599,9 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 void DecomposeRotateMatrixPanTilt(MATRIX3 *matrix, float *outPan, float *outTilt)
 {
     *outPan = atan2f(matrix->mat[0][1], matrix->mat[0][0]);
-    *outTilt = atan2f(matrix->mat[0][2], sqrtf_(matrix->mat[0][0] * matrix->mat[0][0] + matrix->mat[0][1] * matrix->mat[0][1]));
+    *outTilt = atan2f(matrix->mat[0][2], SqrtFloat(matrix->mat[0][0] * matrix->mat[0][0] + matrix->mat[0][1] * matrix->mat[0][1]));
 }
 
-static inline float SqrtF(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /** @sly2-annot addr=0x11BCF8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Info: proposed name DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR (EXISTING); TU mat
@@ -630,10 +628,10 @@ void DecomposeRotateMatrixRad(MATRIX3 *matrix, float *outRad, VECTOR *outAxis)
             gAbs = gRem;
         else if (gAbs < 0.0f)
             gAbs = 0.0f;
-        (&outAxis->x)[i] = SqrtF(gAbs);
+        (&outAxis->x)[i] = SqrtFloat(gAbs);
         gRem -= gAbs;
     }
-    outAxis->z = SqrtF(gRem);
+    outAxis->z = SqrtFloat(gRem);
     if (c < -0.9999f) {
         *outRad = 3.14159265f;
         float x = outAxis->x;

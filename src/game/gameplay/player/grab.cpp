@@ -873,7 +873,6 @@ static inline qword MulM3Vec(M3 *pm, qword v)
     return r;
 }
 static inline void SetXYZ(U *p, float x, float y, float z) { p->f[0] = x; p->f[1] = y; p->f[2] = z; }
-static inline float SqrtF(float x) { float r; __asm__ __volatile__("sqrt.s %0,%1" : "=&f"(r) : "f"(x)); return r; }
 static inline float ClampF(float g, float lo, float hi) { if (g < lo) return lo; else if (hi < g) return hi; else return g; }
 static inline float MinF(float a, float b) { return b < a ? b : a; }
 static inline float MaxF(float a, float b) { return a < b ? b : a; }
@@ -939,7 +938,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             if (__builtin_fabsf(g) < 0.2f)
                 g = 0.0f;
             lateral = g * speedMax;
-            lateral = MinF(SqrtF(speedMax * speedMax - QwordX(DotVec(vel.q, vel.q))), lateral);
+            lateral = MinF(SqrtFloat(speedMax * speedMax - QwordX(DotVec(vel.q, vel.q))), lateral);
             float s;
             FOCUS *focus;
             if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {

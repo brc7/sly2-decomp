@@ -425,7 +425,6 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
 //////// 0x11E958 CalculateVectorPanTilt
 namespace V_CalculateVectorPanTilt {
 typedef int qword __attribute__((mode(TI)));
-static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /** @sly2-annot addr=0x11E958
  * Purpose: pan = atan2(y,x), tilt = atan2(z, |xy|), each RadNormalized, optional outputs
  * Info: proposed name CalculateVectorPanTilt (T1); TU vec
@@ -439,7 +438,7 @@ extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
     if (outPan)
         *outPan = NormalizeAngle__Ff(atan2f(QwordY(v), QwordX(v)));
     if (outTilt)
-        *outTilt = NormalizeAngle__Ff(atan2f(QwordZ(v), sqrtf_(QwordX(v) * QwordX(v) + QwordY(v) * QwordY(v))));
+        *outTilt = NormalizeAngle__Ff(atan2f(QwordZ(v), SqrtFloat(QwordX(v) * QwordX(v) + QwordY(v) * QwordY(v))));
 }
 }
 

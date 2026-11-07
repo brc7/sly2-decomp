@@ -1696,7 +1696,6 @@ extern int D_002C3650;
 float GetShapeMaxDistance(struct P *);
 float RandomFloatInRange__Fff(float, float);
 float WrapShapeDistance(struct P *, float);
-static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 static inline float GClamp(float x, float lo, float hi)
 {
     if (x < lo) return lo;
@@ -1745,8 +1744,8 @@ float GetRandomShapeDistanceInRange(struct P *shape, float center, float range)
         t = upper;
         break;
     case 3:
-        if (0.0f < t) upper = sqrtf_(t);
-        else upper = -sqrtf_(-t);
+        if (0.0f < t) upper = SqrtFloat(t);
+        else upper = -SqrtFloat(-t);
         t = upper;
         break;
     }
@@ -1969,7 +1968,6 @@ static inline float NormalizeV(U *pv, const qword &fallback, float prev)
         pv->q = DivideQ(vf, len);
     return QwordX(len);
 }
-static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 static inline int FWithin(VV a, VV b, float s) { return QwordX(Length(VuSub(a, b))) < s; }
 
@@ -2013,7 +2011,7 @@ void StepChainRk4(CHAIN *chain)
         float scale = 0.75f - 0.25f / (count - 2);
         float rest = chain->distance[count - 1];
         VV chord = SubP(&newP[0], &newP[count - 1]);
-        float amplitude = scale * SqrtF(GMax(rest * rest - QwordX(Dot(chord, chord)), 0.0f));
+        float amplitude = scale * SqrtFloat(GMax(rest * rest - QwordX(Dot(chord, chord)), 0.0f));
         for (i = 1; i < count - 1; i++) {
             VV F = AddScaled(chain->force, VU_FLOAT(-chain->damping), newV[i].q);
             if (chain->stretch != 0.0f || chain->stretchDamping != 0.0f) {

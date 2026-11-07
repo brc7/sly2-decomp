@@ -27,7 +27,6 @@ extern qwordV D_002A2DC0, D_002A2DD0;
 
 /* ---- 0x1D6848: ballistic launch velocity (pitch blend g, from start to end under acceleration acc) ---- */
 union U { qwordV q; float a[4]; };
-static inline float Sqrt(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 /* As C++ the per-file `void Bc(union U *out, float f)` (asm output straight into out->q) costs an extra union
    temporary (frame 0xB0 instead of 0xA0); assigning the qword VuFromFloat returns matches. */
 static inline float Dot(const qwordV *a, qwordV b) {
@@ -81,7 +80,7 @@ extern "C" qwordV CalculateBallisticLaunchVelocity(float elevationBlend, qwordV 
     elevation = directAngle + (1.57079637051f-directAngle)*elevation;
     speed=speed/((height-horizontalDistance*tanf(elevation))*2.0f);
     if (speed<=0.0f) return D_002A2DD0;
-    speed=Sqrt(speed);
+    speed=SqrtFloat(speed);
     numerator=horizontalDistance*speed;
     speed=numerator/cosf(elevation);
     velocity.q=delta.q;

@@ -4160,7 +4160,6 @@ __asm__("sqc2 %5,%1\n\tvadda.xyzw $ACC,%2,$vf0\n\tvmaddax.xyzw $ACC,%3,%5x\n\tvm
 static inline float LengthSquared(qword q){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"j"(q));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
-static inline float Root(float x){float r;__asm__ __volatile__("sqrt.s %0,%1":"=f"(r):"f"(x));return r;}
 static inline qword *VelocityCursor(qword *p){register qword *initial __asm__("$2")=p;register qword *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(initial));return r;}
 static inline int PlaneLess(int a,int b){register int r __asm__("$2");__asm__("slt %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
 /** @sly2-annot addr=0x1F6EF8
@@ -4205,7 +4204,7 @@ void UpdateSoPartMesh(struct P*so,float dt)
      limit=so->count;
    }while(++velocityCursor,++position,++acceleration,++vertexIndex<limit);
  }
- so->maximum=Root(maximum);
+ so->maximum=SqrtFloat(maximum);
  {
    struct TRI*firstTri=so->mesh->triangles;
    char *firstPlane=(char*)so->planes;

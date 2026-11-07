@@ -670,7 +670,6 @@ static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(r) : "j"(base), "j"(g.q), "j"(v));
     return r;
 }
-static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 // True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones)
 int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
 {
@@ -695,7 +694,7 @@ int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
         VV u = Divide(axis, VU_FLOAT(sLen));
         float s = (ps0->sRadius - ps1->sRadius) / sLen;
         VV perp = Normalize(VuCross(u, c1));
-        float root = SqrtF(1.0f - s * s);
+        float root = SqrtFloat(1.0f - s * s);
         VV n = VecCombo(VU_FLOAT(s), u, VU_FLOAT(root), perp);
         VV posA = AddScaled(ps0->pos, VU_FLOAT(ps0->sRadius), n);
         VV pa = VuSub(p, posA);

@@ -473,7 +473,6 @@ extern "C" void UpdateTnCallback(TN *p);
 void UpdateTnCallbackA(TN *p, int a) __asm__("UpdateTnCallback");
 void func_00221940I(TN *p, int id) __asm__("ClearTnCpd");
 
-static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
@@ -484,7 +483,7 @@ void InitTnDefaultAngles(CPD *p)
 {
     if (p->lmTilt.gMin == D_002A96E0 && p->lmTilt.gMax == D_002A96E4) {
         float a = p->dsOffset + p->aclqOffset[0].g0;
-        float f = atan2f(p->aclqOffset[2].g0, sqrtf_(a * a + p->aclqOffset[1].g0 * p->aclqOffset[1].g0));
+        float f = atan2f(p->aclqOffset[2].g0, SqrtFloat(a * a + p->aclqOffset[1].g0 * p->aclqOffset[1].g0));
         f = ClampToLimits(&D_002C41B0, f);
         p->lmTilt.gMax = f;
         p->lmTilt.gMin = f;

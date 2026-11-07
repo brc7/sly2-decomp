@@ -79,7 +79,6 @@ extern "C" int ClipEdgeToObjectPruned(SOCLIP *object, int bsp, qword start, qwor
 // (no function-top a/b): a's pseudo is then lower than b's, so global-alloc gives a f4 / b f5 (equal priority, lower number first);
 // (3) by-value SubQ for the prologue subtracts and const-ref Sub in the loop (0x20/0x30 homes); (4) D_002A2DA0 read into a local
 // before the Normalize test (lq + qmtc2 in the b slot); (5) the loop's Sub before the apos store.
-static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return a > b ? a : b; }
 static inline qword Combo(const VU_FLOAT &f1, const qword &v1, const VU_FLOAT &f2, const qword &v2)
@@ -128,7 +127,7 @@ extern "C" int ClipEdgeToSphere(qword center, float radius, qword start, qword e
     float discriminant = bTerm * bTerm - 4.0f * aTerm * cTerm;
     if (discriminant < 1e-4f)
         return 0;
-    discriminant = SqrtF(discriminant);
+    discriminant = SqrtFloat(discriminant);
     {
         float param0 = (-bTerm - discriminant) / (2.0f * aTerm);
         float param1 = (-bTerm + discriminant) / (2.0f * aTerm);
