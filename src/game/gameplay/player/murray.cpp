@@ -2353,22 +2353,21 @@ void TossMurrayCarried(struct S *murray)
 namespace M_DropMurrayCarried { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VE { short d; short pad; void (*pfn)(...); };
-struct X { char pad[0xC]; struct VE *vt; };
-struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
+struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; SO *x180; };   /* the carry grab spot (classes.h CID36): +0x180 the carried object */
 struct P { char pad[0x13D0]; int state; char pad1[0x13F0 - 0x13D4]; struct O *carried; char pad2[0x1450 - 0x13F4]; int x1450; char pad3[0x1530 - 0x1454]; int x1530; };
 extern qword D_002C09E0, D_002A2DD0;
 void SetSmaGoal(int a, int b);
 void DetachMurrayCarried(struct P *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
-void StunStepguardThrownOp2(struct X *x);
-void SetSoZapMode(struct X *x, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *x, int n);
+void StunStepguardThrownOp2(SO *x);
+void SetSoZapMode(SO *x, int n);
 qword ConvertVecBetweenLos(struct P *p, int n, qword q);
 // Aborts carrying on a forced state change: detaches the carried/lifted object and sets its velocity for the current
 // state.
 void DropMurrayCarried(struct P *murray)
 {
     struct O *o;
-    struct X *x;
+    SO *x;
     if (murray->state == MURRAY_STRUGGLE) {
         if (murray->x1530) SetSmaGoal(murray->x1530, 0x1CA);
         return;
@@ -2386,12 +2385,11 @@ void DropMurrayCarried(struct P *murray)
     else SetSoZapMode(x, 1);
     switch (murray->state) {
     case MURRAY_CARRY: {
-        struct VE *e = &x->vt[35];
-        ((void (*)(void *, qword))e->pfn)((char *)x + e->d, ConvertVecBetweenLos(murray, 0, D_002C09E0));
+        x->SetVelocity(ConvertVecBetweenLos(murray, 0, D_002C09E0));
         break;
     }
     case MURRAY_JUMP: case MURRAY_LIFT: case MURRAY_THROW: case MURRAY_TOSS:
-        ((void (*)(void *, qword))x->vt[35].pfn)((char *)x + x->vt[35].d, D_002A2DD0);
+        x->SetVelocity(D_002A2DD0);
         break;
     case MURRAY_FLOP: case MURRAY_STRUGGLE:
         break;
@@ -2563,30 +2561,28 @@ int MURRAY::IsFreeMoving() { using namespace M_func_001B8180; M_func_001B8180::S
 }
 
 namespace M_func_001B81B8 { extern "C" {
-struct VE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VE *vt; };
-struct T { char pad[0x180]; struct O *po; };
-struct P { char pad[0xF1C]; struct O *xF1C; char pad2[0x13F0 - 0xF20]; struct T *carried; };
+struct T { char pad[0x180]; SO *po; };   /* the carry grab spot (classes.h CID36): +0x180 the carried object */
+struct P { char pad[0xF1C]; SO *xF1C; char pad2[0x13F0 - 0xF20]; struct T *carried; };
 void IgnoreStepSlot87(struct P *p, int b);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-#define VCALL(o, n, ...) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, __VA_ARGS__)
-// MURRAY slot 87 (playable flag): STEP base, then propagates to the carried object.
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int n);
+// MURRAY slot 87 (playable flag): STEP base, then propagates to the carried object (SetFlag8; SetPlayable when it is
+// a STEP, CID 0x33).
 void SetMurrayPlayable(struct P *p, int b)
 {
-    struct O *o;
+    SO *o;
     IgnoreStepSlot87(p, b);
     if (b) {
         if (!p->carried) return;
         o = p->carried->po;
         if (!o) return;
         p->xF1C = o;
-        VCALL(o, 21, 0);
-        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, b);
+        o->SetFlag8(0);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) ((STEP *)p->xF1C)->SetPlayable(b);
     } else {
         o = p->xF1C;
         if (!o) return;
-        VCALL(o, 21, 1);
-        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, 0);
+        o->SetFlag8(1);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) ((STEP *)p->xF1C)->SetPlayable(0);
         p->xF1C = 0;
     }
 }
