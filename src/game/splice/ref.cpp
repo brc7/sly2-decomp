@@ -144,7 +144,7 @@ extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *vector)
 {
     VALVECTOR *p;
     pref->m_tagk = 0x1A;
-    p = (VALVECTOR *)PvAllocSlotheapClear(HEAP_VECTOR);
+    p = (VALVECTOR *)AllocZeroedFromSlotheap(HEAP_VECTOR);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -165,7 +165,7 @@ extern "C" CRef *CRef_ctor(CRef *pref, qword vec)
 {
     VALVECTOR *p;
     pref->m_tagk = 0x1A;
-    p = (VALVECTOR *)PvAllocSlotheapClear(HEAP_VECTOR);
+    p = (VALVECTOR *)AllocZeroedFromSlotheap(HEAP_VECTOR);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -186,7 +186,7 @@ extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *matrix)
 {
     VALMATRIX *p;
     pref->m_tagk = 0x1B;
-    p = (VALMATRIX *)PvAllocSlotheapClear(HEAP_MATRIX);
+    p = (VALMATRIX *)AllocZeroedFromSlotheap(HEAP_MATRIX);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -207,7 +207,7 @@ extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *clq)
 {
     VALCLQ *p;
     pref->m_tagk = 0x1C;
-    p = (VALCLQ *)PvAllocSlotheapClear(HEAP_CLQ);
+    p = (VALCLQ *)AllocZeroedFromSlotheap(HEAP_CLQ);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -228,7 +228,7 @@ extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *lm)
 {
     VALLM *p;
     pref->m_tagk = 0x1D;
-    p = (VALLM *)PvAllocSlotheapClear(HEAP_LM);
+    p = (VALLM *)AllocZeroedFromSlotheap(HEAP_LM);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -249,7 +249,7 @@ extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *smp)
 {
     VALSMP *p;
     pref->m_tagk = 0x1E;
-    p = (VALSMP *)PvAllocSlotheapClear(HEAP_SMP);
+    p = (VALSMP *)AllocZeroedFromSlotheap(HEAP_SMP);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -419,7 +419,7 @@ extern "C" CRef *CRef_SetVector(CRef *pref, const qword *vector)
     VALVECTOR *p;
     pref->Decref();
     pref->m_tagk = 0x1A;
-    p = (VALVECTOR *)PvAllocSlotheapClear(HEAP_VECTOR);
+    p = (VALVECTOR *)AllocZeroedFromSlotheap(HEAP_VECTOR);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -441,7 +441,7 @@ extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
     VALVECTOR *p;
     pref->Decref();
     pref->m_tagk = 0x1A;
-    p = (VALVECTOR *)PvAllocSlotheapClear(HEAP_VECTOR);
+    p = (VALVECTOR *)AllocZeroedFromSlotheap(HEAP_VECTOR);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -461,7 +461,7 @@ extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
     VALMATRIX *p;
     pref->Decref();
     pref->m_tagk = 0x1B;
-    p = (VALMATRIX *)PvAllocSlotheapClear(HEAP_MATRIX);
+    p = (VALMATRIX *)AllocZeroedFromSlotheap(HEAP_MATRIX);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -482,7 +482,7 @@ extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
     VALCLQ *p;
     pref->Decref();
     pref->m_tagk = 0x1C;
-    p = (VALCLQ *)PvAllocSlotheapClear(HEAP_CLQ);
+    p = (VALCLQ *)AllocZeroedFromSlotheap(HEAP_CLQ);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -502,7 +502,7 @@ extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
     VALLM *p;
     pref->Decref();
     pref->m_tagk = 0x1D;
-    p = (VALLM *)PvAllocSlotheapClear(HEAP_LM);
+    p = (VALLM *)AllocZeroedFromSlotheap(HEAP_LM);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -522,7 +522,7 @@ extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
     VALSMP *p;
     pref->Decref();
     pref->m_tagk = 0x1E;
-    p = (VALSMP *)PvAllocSlotheapClear(HEAP_SMP);
+    p = (VALSMP *)AllocZeroedFromSlotheap(HEAP_SMP);
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
@@ -843,7 +843,7 @@ void CRef::SetTag(TAGK tagk)
     {
     case 0x1A:
     {
-        VALVECTOR *p = (VALVECTOR *)PvAllocSlotheapClear(HEAP_VECTOR);
+        VALVECTOR *p = (VALVECTOR *)AllocZeroedFromSlotheap(HEAP_VECTOR);
         p->cref = 0;
         u.pv = p;
         p->cref++;
@@ -851,7 +851,7 @@ void CRef::SetTag(TAGK tagk)
     }
     case 0x1B:
     {
-        VALMATRIX *p = (VALMATRIX *)PvAllocSlotheapClear(HEAP_MATRIX);
+        VALMATRIX *p = (VALMATRIX *)AllocZeroedFromSlotheap(HEAP_MATRIX);
         p->cref = 0;
         u.pv = p;
         p->cref++;
@@ -859,7 +859,7 @@ void CRef::SetTag(TAGK tagk)
     }
     case 0x1C:
     {
-        VALCLQ *p = (VALCLQ *)PvAllocSlotheapClear(HEAP_CLQ);
+        VALCLQ *p = (VALCLQ *)AllocZeroedFromSlotheap(HEAP_CLQ);
         p->cref = 0;
         u.pv = p;
         p->cref++;
@@ -867,7 +867,7 @@ void CRef::SetTag(TAGK tagk)
     }
     case 0x1D:
     {
-        VALLM *p = (VALLM *)PvAllocSlotheapClear(HEAP_LM);
+        VALLM *p = (VALLM *)AllocZeroedFromSlotheap(HEAP_LM);
         p->cref = 0;
         u.pv = p;
         p->cref++;
@@ -875,7 +875,7 @@ void CRef::SetTag(TAGK tagk)
     }
     case 0x1E:
     {
-        VALSMP *p = (VALSMP *)PvAllocSlotheapClear(HEAP_SMP);
+        VALSMP *p = (VALSMP *)AllocZeroedFromSlotheap(HEAP_SMP);
         p->cref = 0;
         u.pv = p;
         p->cref++;

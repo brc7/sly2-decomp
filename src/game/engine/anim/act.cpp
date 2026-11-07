@@ -60,7 +60,7 @@ struct ACOBJ { char pad0[0x18]; VTEAC *pvt; };
 
 extern "C" {
 extern qword D_002A2DD0;    /* (0, 0, 0) */
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* frees into the pool */
 void SetXfRole(ALO *object, XF *xf, int n);
 void WakeXfOwner(ALO *object, XF *xf);
@@ -1033,7 +1033,7 @@ void EvaluateKeyedFloatCurve(T *t, float *pg, float *pdg, float g, float dtScale
 } } // namespace M_func_0012CDA0
 
 /** @sly2-annot addr=0x12CE50
- * Purpose: Allocates an ACT-family object from its slot pool (PvAllocSlotheapClear)
+ * Purpose: Allocates an ACT-family object from its slot pool (AllocZeroedFromSlotheap)
  * Info: proposed name PactAlloc (T2); TU act
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
@@ -1041,7 +1041,7 @@ void EvaluateKeyedFloatCurve(T *t, float *pg, float *pdg, float g, float dtScale
 // Allocates an override application record (OVRA) from the world's pool, cleared. (inferred)
 extern "C" void *AllocOvra()
 {
-    return PvAllocSlotheapClear(&g_sw.slotheapOvra);
+    return AllocZeroedFromSlotheap(&g_sw.slotheapOvra);
 }
 
 /** @sly2-annot addr=0x12CE70
@@ -2174,7 +2174,7 @@ void ACT9::VSlot1()
 // Allocates an act from the world's act pool, cleared. (inferred)
 extern "C" void *AllocAct()
 {
-    return PvAllocSlotheapClear(&g_sw.slotheapAct);
+    return AllocZeroedFromSlotheap(&g_sw.slotheapAct);
 }
 
 /** @sly2-annot addr=0x12E210

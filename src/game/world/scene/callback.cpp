@@ -91,7 +91,7 @@ void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg);
 // once in ProcessSwCallbacks.
 extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 {
-    CALLBACK *callback = (CALLBACK *)PvAllocSlotheapClear(&world->callbackPool);
+    CALLBACK *callback = (CALLBACK *)AllocZeroedFromSlotheap(&world->callbackPool);
     callback->object = object;
     callback->method = method;
     callback->argument = arg;

@@ -1,7 +1,7 @@
 // slotheap.cpp -- fixed-size slot allocator. TU 0x11CCA8..0x11CF60 (7 functions, address order).
 // A SLOTHEAP hands out slots of one size from a block of `count` slots allocated from the level heap on first use;
 // freed slots go on an intrusive free list. Every TU instantiates the six engine pools (sly2/slotheap.h), which is
-// why each file ends with the same static initializer. Entry points: InitSlotheap, PvAllocSlotheapClear,
+// why each file ends with the same static initializer. Entry points: InitSlotheap, AllocZeroedFromSlotheap,
 // FreeSlotheapSlot, ResetSlotheap, PrimeSlotheap.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_slotheap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011CF40
@@ -43,7 +43,7 @@ SLOTHEAP *InitSlotheap(SLOTHEAP *pool, int slotSize, int count, int alignment)
 /** @sly2-annot addr=0x11CCC0
  * Purpose: Pops a slot (allocating c*cb from the level heap 0x1AE1D0 and threading the free list on first
  *   use), increments count, memsets to 0
- * Info: proposed name PvAllocSlotheapClear (T1); TU slotheap
+ * Info: proposed name AllocZeroedFromSlotheap (T1); TU slotheap
  * Notes: names_v2 C proposed StartAloSound__FP3ALO5SFXIDfffP2LM (0.167)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
@@ -51,7 +51,7 @@ SLOTHEAP *InitSlotheap(SLOTHEAP *pool, int slotSize, int count, int alignment)
  * @end-sly2-annot */
 // Takes a zero-filled slot from the free list, allocating the pool's block from the level heap and threading the
 // free list through it on first use.
-void *PvAllocSlotheapClear(SLOTHEAP *pool)
+void *AllocZeroedFromSlotheap(SLOTHEAP *pool)
 {
       SLOT *slot;
 
@@ -128,5 +128,5 @@ SLY2_SCRAP("nop");
 // level heap) rather than on first use.
 void PrimeSlotheap(SLOTHEAP *pool)
 {
-      FreeSlotheapSlot(pool, PvAllocSlotheapClear(pool));
+      FreeSlotheapSlot(pool, AllocZeroedFromSlotheap(pool));
 }

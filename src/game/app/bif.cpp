@@ -3031,15 +3031,15 @@ struct SPN {
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
-extern "C" float RadBetweenVectors(qword a, qword b, void *pvec);
+extern "C" float AngleBetweenVectors(qword a, qword b, void *pvec);
 extern "C" CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 /** @sly2-annot addr=0x122CE0
- * Purpose: Splice builtin "vector-radian-normal": list (rad vector) from RadBetweenVectors-like 0x11E4B0
+ * Purpose: Splice builtin "vector-radian-normal": list (rad vector) from AngleBetweenVectors-like 0x11E4B0
  * Info: proposed name RefOpVectorRadianNormal (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "vector-radian-normal": list (rad vector) from RadBetweenVectors-like 0x11E4B0.
+// Splice builtin "vector-radian-normal": list (rad vector) from AngleBetweenVectors-like 0x11E4B0.
 CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
@@ -3047,7 +3047,7 @@ CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     sp->SetNext(PtNew__t6CGcObj1Z5CPair());
     CRef *pref = &sp->next.p->ref;
     pref->Retag(TAGK_VECTOR);
-    sp->ref.SetF32(RadBetweenVectors(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, pref->u.pv));
+    sp->ref.SetF32(AngleBetweenVectors(*(qword *)args[0].u.pv, *(qword *)args[1].u.pv, pref->u.pv));
     return CRef(sp.p);
 }
 } // namespace M_RefOpVectorRadianNormal__FiP4CRefP6CFrame

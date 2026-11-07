@@ -96,7 +96,7 @@ void InvalidateSoAaox(LO *);
 // inserts its min/max endpoints into all three axis arrays (two more endpoints per axis). Returns the AAOBR.
 extern "C" X *AddSwAaobrObject(SW *world, LO *object) {
     int axis;
-    X *aaobr = (X *)PvAllocSlotheapClear(&world->poolAaobr);
+    X *aaobr = (X *)AllocZeroedFromSlotheap(&world->poolAaobr);
     InitDl__FP2DLi(&aaobr->unknown34List, 0x60);
     aaobr->object = object;
     AppendDlEntry__FP2DLPv(&world->aaobrList, aaobr);
@@ -266,7 +266,7 @@ extern "C" void UpdateSwPox(SW *world, X *aaobrA, X *aaobrB, int mode)
 // Allocates a pair link from the world pool for px1 with px2 as the other side and pushes it on px1's pair list.
 extern "C" L *AddSwObjectPair(SW *world, X *aaobr, X *otherAaobr)
 {
-    L *pair = (L *)PvAllocSlotheapClear(&world->pairPool);
+    L *pair = (L *)AllocZeroedFromSlotheap(&world->pairPool);
     pair->object = otherAaobr->object;
     pair->next = aaobr->pairs;
     aaobr->pairs = pair;

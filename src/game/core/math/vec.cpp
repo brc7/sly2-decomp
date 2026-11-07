@@ -88,7 +88,7 @@ extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 }
 }
 
-//////// 0x11E290 func_0011E290
+//////// 0x11E290 SplitVectorAlongAxis
 namespace V_func_0011E290 {
 typedef int qword __attribute__((mode(TI)));
 /** @sly2-annot addr=0x11E290
@@ -99,7 +99,7 @@ typedef int qword __attribute__((mode(TI)));
  * @end-sly2-annot */
 // Splits a along the unit vector b: returns a . b, and optionally the parallel part (a . b) b and the
 // perpendicular part a - (a . b) b.
-extern "C" float func_0011E290(qword a, qword b, qword *outParallel, qword *outPerpendicular)
+extern "C" float SplitVectorAlongAxis(qword a, qword b, qword *outParallel, qword *outPerpendicular)
 {
     qword d, p;
     float g;
@@ -243,9 +243,9 @@ extern "C" qword GetNormalVector(qword v)
 }
 }
 
-//////// 0x11E4B0 RadBetweenVectors
+//////// 0x11E4B0 AngleBetweenVectors
 namespace V_RadBetweenVectors {
-/* RadBetweenVectors (Claude agent): angle between vectors + optional normalized axis. Length's float comes from an mtc1 asm fed by gcc's own qmfc2 ("r"(qword)), and the axis length vector (pinned vf1) is passed as a GPR qword to the qmtc2, so the move is shared like the original. */
+/* AngleBetweenVectors (Claude agent): angle between vectors + optional normalized axis. Length's float comes from an mtc1 asm fed by gcc's own qmfc2 ("r"(qword)), and the axis length vector (pinned vf1) is passed as a GPR qword to the qmtc2, so the move is shared like the original. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 static inline float Length(qword v)
@@ -288,14 +288,14 @@ static inline qword Scale(qword v, qword g)
 }
 /** @sly2-annot addr=0x11E4B0
  * Purpose: Angle between two vectors (acosf) and optional normalised rotation axis
- * Info: proposed name RadBetweenVectors (T1); TU vec
+ * Info: proposed name AngleBetweenVectors (T1); TU vec
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Returns the angle between a and b (acos of the normalised dot product) and optionally the unit rotation axis
 // a x b.
-extern "C" float RadBetweenVectors(qword a, qword b, qword *outAxis)
+extern "C" float AngleBetweenVectors(qword a, qword b, qword *outAxis)
 {
     float la = Length(a);
     float lb = Length(b);
@@ -521,9 +521,9 @@ extern "C" qword LimitVectorLength(qword v, float maxLength)
 }
 }
 
-//////// 0x11EA60 func_0011EA60
+//////// 0x11EA60 ClosestPointsOfLines
 namespace V_func_0011EA60 {
-/* func_0011EA60 (Claude agent, lane A28, 2026-10-24): from fresh9 (13). ba via a vsub without the "memory" clobber (qmtc2 b order), and every dot readback via F3, a mtc1 asm with an allocation-only "j"(q) input next to the "r"(q) one, so the dot result stays a VU pseudo and gcc emits the qmfc2 itself. No pins. */
+/* ClosestPointsOfLines (Claude agent, lane A28, 2026-10-24): from fresh9 (13). ba via a vsub without the "memory" clobber (qmtc2 b order), and every dot readback via F3, a mtc1 asm with an allocation-only "j"(q) input next to the "r"(q) one, so the dot result stays a VU pseudo and gcc emits the qmfc2 itself. No pins. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 static inline qword Sub(qword a, qword b)
@@ -575,7 +575,7 @@ static inline float DotS(qword a, qword b)
 // Closest points of the infinite lines through a, b and c, d: writes the two line parameters to outParams[0..1]
 // and the unit common normal (oriented away from a towards c) to outNormal; returns 0 if the lines are parallel.
 // Used for edge/edge contacts (mark.cpp).
-extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *outParams, qword *outNormal)
+extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *outParams, qword *outNormal)
 {
     qword ca = Sub(c, a);
     qword ba = VuSub(b, a);
@@ -618,7 +618,7 @@ extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *outParam
 }
 }
 
-//////// 0x11EBB0 FIntersectRayTriangle
+//////// 0x11EBB0 IntersectRayTriangle
 namespace V_FIntersectRayTriangle {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
@@ -653,13 +653,13 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 /** @sly2-annot addr=0x11EBB0
  * Purpose: Moller-Trumbore ray/triangle test (det eps 1e-6), outputs t and (u,v)
- * Info: proposed name FIntersectRayTriangle (T1); TU vec
+ * Info: proposed name IntersectRayTriangle (T1); TU vec
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
 // Ray/triangle intersection (Moller-Trumbore, determinant epsilon 1e-6): returns whether the ray from orig along
 // dir hits triangle v0 v1 v2, with the ray parameter in *outT and barycentrics in outUv.
-extern "C" int FIntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, qword v2, float *outT, float *outUv)
+extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, qword v2, float *outT, float *outUv)
 {
     V e1, e2, pvec, tvec, qvec;
     float det, inv, u, v, t;
@@ -987,7 +987,7 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 }
 }
 
-//////// 0x11F198 func_0011F198
+//////// 0x11F198 GetCosineBetweenVectors
 namespace V_func_0011F198 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
@@ -1017,7 +1017,7 @@ static inline qword QF(float g) { U u; qword u_q; __asm__("mfc1 %0, %1" : "=r"(u
  * @end-sly2-annot */
 // Returns the cosine of the angle between a and b (dot / (|a| |b|)) as a quadword; 0 if either is shorter than
 // 1e-4.
-extern "C" qword func_0011F198(qword a, qword b)
+extern "C" qword GetCosineBetweenVectors(qword a, qword b)
 {
     float cosine, lengthB;
     cosine = Len(a);   /* |a| until the division */

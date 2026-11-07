@@ -1700,7 +1700,7 @@ typedef union {qword q;float f[4];int i[4];} V;
 struct P {char pad[0x208];int enabled;};
 extern qword D_002A2DC0;
 void BuildStepFootprint(struct P*,V*);
-int FIntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
+int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Scale(qword a,float f,V *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;}
@@ -1735,7 +1735,7 @@ int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
  length=Normal(&d,&D_002A2DC0);
  distanceOut=&distance;third=&tri[2];t=tri;end=tri+6;
  do{
-   int hit=FIntersectRayTriangle(d.q,from,*(qword*)((int)third-32),*(qword*)((int)third-16),third->q,distanceOut,0);
+   int hit=IntersectRayTriangle(d.q,from,*(qword*)((int)third-32),*(qword*)((int)third-16),third->q,distanceOut,0);
    if(distance<=length && (hit&1)){
       *out=Add(from,Scale(d.q,distance,&k));return 1;
    }

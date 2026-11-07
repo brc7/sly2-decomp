@@ -692,7 +692,7 @@ void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAcc
 void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void CorrectBentleyRideVelocity(void*);
 qword GetStepAsegaTranslation(P*,MODEL*,float);float GetAsegLabelTime(void*,int);
 void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
-M4*GetLoWorldMatrix(P*);float func_0011E290(qword,qword,qword*,qword*);
+M4*GetLoWorldMatrix(P*);float SplitVectorAlongAxis(qword,qword,qword*,qword*);
 M3 BuildAxisAngleRotationMatrix(qword,float);
 }
 struct VU_FLOAT{qword qw;};
@@ -762,7 +762,7 @@ extern "C" void PresetJtAccel(P *jt)
             basis.r[0] = m->r[0];
             basis.r[1] = m->r[1];
             basis.r[2] = m->r[2];
-            float projection = func_0011E290(position, basis.r[0].q, &w.a.q, &w.b.q);
+            float projection = SplitVectorAlongAxis(position, basis.r[0].q, &w.a.q, &w.b.q);
             float dt = D_002DDED0.dt;
             float gAlong = projection - D_002BF290 * dt;
             float gPerp = 1.0f - D_002BF294 * dt;
@@ -1354,7 +1354,7 @@ static inline qword QwCross(qword a, qword b)
     return qw;
 }
 extern "C" { qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos); }
-extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("func_0011E290");
+extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("SplitVectorAlongAxis");
 extern "C" { extern qword D_002A2DC0; }
 extern "C" float D_002BF2D0;
 extern "C" float D_002BF2D4;

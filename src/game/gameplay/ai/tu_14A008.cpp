@@ -163,7 +163,7 @@ void SetStepguardTarget(GUARDV *pw, void *p);
 int IsBreakableDone(SOV *p);
 int CploFindSwObjectsByClass(SW *pg, int a, int b, void *c, int d, SOV **apso);
 qword SetVectorSphere(float a, float b, float c);
-float RadBetweenVectors(qword a, qword b, void *p);
+float AngleBetweenVectors(qword a, qword b, void *p);
 float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
 void FindShapeClosestPoint(SHAPEV *, qword, int, int, int, int, float *);
@@ -471,7 +471,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
                     pos = posT;
                     goto moveMarker;
                 }
-                float g = RadBetweenVectors(d, entry, 0);
+                float g = AngleBetweenVectors(d, entry, 0);
                 if (!(__builtin_fabsf(g) * 57.295776f <= D_002BD47C)) {
                     pos = posT;
                     goto moveMarker;

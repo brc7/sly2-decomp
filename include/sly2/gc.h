@@ -211,13 +211,13 @@ template <class T> T *CGcObj<T>::PtNew()
                   g_gc.Collect();
             if (Pslotheap()->pslotFree == 0)
             {
-                  void *pv = PvAllocSlotheapClear(Pslotheap());
+                  void *pv = AllocZeroedFromSlotheap(Pslotheap());
                   if (s_cpage)
                         FreeSlotheapSlot(Pslotheap(), pv);
                   s_aptPage[s_cpage++] = (T *)pv;
             }
       }
-      return new (PvAllocSlotheapClear(Pslotheap())) T;
+      return new (AllocZeroedFromSlotheap(Pslotheap())) T;
 }
 
 /* 0x2574E0..0x257508: called for each kind before marking; nothing to do (flipping g_gc.fMark unmarks every node). */

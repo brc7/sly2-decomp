@@ -535,7 +535,7 @@ extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
  * @end-sly2-annot */
 // Allocates a leap object from the world's leap slot heap.
 extern "C" LEAPV *AllocLeap(void) {
-    return (LEAPV *)PvAllocSlotheapClear(&g_sw.slotheapLeap);
+    return (LEAPV *)AllocZeroedFromSlotheap(&g_sw.slotheapLeap);
 }
 
 /** @sly2-annot addr=0x20C030
@@ -891,7 +891,7 @@ extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
  * @end-sly2-annot */
 // Allocates a directional-animation object from the world's slot heap.
 extern "C" DIRACT *AllocDirAnim(void) {
-    return (DIRACT *)PvAllocSlotheapClear(&g_sw.slotheapDiract);
+    return (DIRACT *)AllocZeroedFromSlotheap(&g_sw.slotheapDiract);
 }
 
 /** @sly2-annot addr=0x20CA20

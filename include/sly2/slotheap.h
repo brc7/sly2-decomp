@@ -29,7 +29,7 @@ typedef char assert_SLOTHEAP_size[sizeof(SLOTHEAP) == 0x18 ? 1 : -1];
  * names; the proposed names are in the comments. */
 extern "C" {
 SLOTHEAP *InitSlotheap(SLOTHEAP *pslotheap, int cb, int c, int cbAlign);   /* InitSlotheap */
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);                          /* FreeSlotheapPv */
 void ResetSlotheap(SLOTHEAP *pslotheap);
 void PrimeSlotheap(SLOTHEAP *pslotheap);                                    /* PrimeSlotheap */

@@ -3633,7 +3633,7 @@ extern "C" char D_003DD490[];
 extern "C" void AdjustStepNewXp(P *p, X *px, int i);
 extern "C" void AdjustJtHurtXp(void *p, X *px, int i);
 extern "C" void ResetJtPipeAdjust(void *p, X *px, int i);
-extern "C" qword func_0011F198(qword a, qword b);
+extern "C" qword GetCosineBetweenVectors(qword a, qword b);
 extern "C" int CloneXpList(void *g, X *px);
 extern "C" void AppendXpList(void *g, int r, void *p);
 
@@ -3658,7 +3658,7 @@ extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
             Q *pq = *(Q **)((char *)px + ((n - i) << 6) + 0xC);
             if (((int (*)(void *))pq->vt[62].pfn)((char *)pq + pq->vt[62].d) && *(float *)((char *)px + 0x88) < 0.7f) {
                 qword v = ((qword(*)(void *))murray->vt[33].pfn)((char *)murray + murray->vt[33].d);
-                qword r = func_0011F198(v, px->x80);
+                qword r = GetCosineBetweenVectors(v, px->x80);
                 float g;
                 __asm__("mtc1 %1,%0" : "=f"(g) : "r"(r));
                 int f = g < D_002C0A38;

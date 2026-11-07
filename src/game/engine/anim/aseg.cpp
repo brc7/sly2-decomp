@@ -317,7 +317,7 @@ static inline float GEval(CLQ *pclq, float t) { return pclq->g0 + t * (pclq->g1 
 // action, applies overrides, sets the speed, fast-forwards events up to the start time and returns the player.
 void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
 {
-    ASEGA *p = (ASEGA *)PvAllocSlotheapClear(&g_sw.slotheapAsega);
+    ASEGA *p = (ASEGA *)AllocZeroedFromSlotheap(&g_sw.slotheapAsega);
     int i, j, k;
     func_002333B4(p, 0, 0x60);
     p->pframe.m_p = 0;

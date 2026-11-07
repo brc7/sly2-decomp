@@ -390,7 +390,7 @@ struct Node {
  int unused138;float scale;
  char pad140[8];ulong state;
 };
-struct Stats *PvAllocSlotheapClear(void *);
+struct Stats *AllocZeroedFromSlotheap(void *);
 qword GetLoWorldPos(struct Node *);
 static inline float Distance(qword a,qword b) {
  qword d,one;
@@ -430,7 +430,7 @@ void EnsureSoBounds(struct Node *so) {
      register char*pool __asm__("$4");
      struct Stats *s;
      __asm__("lui %0,0x3e":"=r"(pool));
-     s=PvAllocSlotheapClear(pool+0x12D4);
+     s=AllocZeroedFromSlotheap(pool+0x12D4);
      top->stats=s;
      so->stats=s;
      s->origin=&top->reference->pos;
@@ -4465,7 +4465,7 @@ struct M3 { struct K *zpr; };
 extern float D_002DDED0;
 struct O *GetSoFromLo(void *);
 int GetSoZapResponseFlags(struct O *, int);
-struct K *PvAllocSlotheapClear(void *);
+struct K *AllocZeroedFromSlotheap(void *);
 void ClearDle__FP3DLE(void *);
 void AppendDlEntry__FP2DLPv(void *, void *);
 
@@ -4501,7 +4501,7 @@ struct O *DeliverZapToSo(struct K *pk)
         if (VCALL(po, 75, int (*)(void *, struct K *)), pk)) {
             struct K *pkNew;
             pk->responder = po;
-            pkNew = PvAllocSlotheapClear((*(char (*)[])&g_sw.slotheapZprHit));
+            pkNew = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapZprHit));
             *pkNew = *pk;
             pkNew->time = D_002DDED0;
             ClearDle__FP3DLE(pkNew->dle);
@@ -5401,7 +5401,7 @@ struct E { char pad[0x94]; int kind; int pad2; int oid; char pad3[0x100 - 0xA0];
 struct P { char pad[0x50]; int numTransforms; struct E *transforms; };
 extern char D_002CA2C0[] __asm__("_vt$6CID149");
 struct Pool;
-struct Q *PvAllocSlotheapClear(struct Pool *);
+struct Q *AllocZeroedFromSlotheap(struct Pool *);
 void func_002333B4(void *, int, int) __asm__("memset");
 /** @sly2-annot addr=0x1F8510
  * Purpose: Create a 0x30 handle object (pool (*(struct Pool *)&g_sw.slotheapXfh), vtable 0x2CA2C0 = CID 0x95) for the XF matching
@@ -5417,7 +5417,7 @@ struct Q *NewSoXfHandle(struct P *so, int k, int m)
     for (i = 0; i < so->numTransforms; i++) {
         struct E *pe = &so->transforms[i];
         if (pe->kind == m && (k == -1 || pe->oid == k)) {
-            struct Q *q = PvAllocSlotheapClear(&(*(struct Pool *)&g_sw.slotheapXfh));
+            struct Q *q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
             func_002333B4(q, 0, 0x30);
             q->pvt = D_002CA2C0;
             q->so = so;
@@ -5438,7 +5438,7 @@ struct Q { int a, b, c; void *pvt; int pad[4]; void *object; void *part; int pad
 extern char D_002CA280[] __asm__("_vt$6CID150");
 struct Pool;
 void *FindSoPart(void *);
-struct Q *PvAllocSlotheapClear(struct Pool *);
+struct Q *AllocZeroedFromSlotheap(struct Pool *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 /** @sly2-annot addr=0x1F85E0
  * Purpose: Create a 0x30 handle object (vtable 0x2CA280 = CID 0x96) for the SOPART with given oid
@@ -5453,7 +5453,7 @@ struct Q *NewSoPartHandle(void *pa)
     void *r = FindSoPart(pa);
     struct Q *q;
     if (!r) return 0;
-    q = PvAllocSlotheapClear(&(*(struct Pool *)&g_sw.slotheapXfh));
+    q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
     func_002333B4(q, 0, 0x30);
     q->object = pa;
     q->part = r;

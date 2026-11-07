@@ -5540,7 +5540,7 @@ struct C { char pad[0x18]; int context; };
 struct S { int unknown0; int unknown4; int pad8; struct VTE *pvt; int pad10; struct A *relay; int context; int block; int pad20[2]; struct E *firstCommand; struct E *lastCommand; char pad30[0xEC - 0x30]; int unknownEC; };
 extern char D_003DD490[];
 extern struct VTE D_002D8C08[] __asm__("_vt$8RELAYJSG");
-struct S *PvAllocSlotheapClear(void *);
+struct S *AllocZeroedFromSlotheap(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void PrependDlEntry__FP2DLPv(void *, void *);
@@ -5569,7 +5569,7 @@ static inline void SetBlockEnd(struct S *script, struct E *first, struct E *last
 // (find matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef. (inferred)
 struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
 {
-    struct S *p = PvAllocSlotheapClear((*(char (*)[])&g_sw.slotheapJsg));
+    struct S *p = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapJsg));
     struct E *peLast;
     func_002333B4(p, 0, 0xF0);
     p->unknown0 = 0;

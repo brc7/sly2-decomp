@@ -68,7 +68,7 @@ extern "C"{
 qword GetLoWorldPos(void*);
 M4*GetLoWorldMatrix(void*);
 qword GetXfVelocity(void*,void*,qword);
-float func_0011E290(qword,qword,qword*,qword*);
+float SplitVectorAlongAxis(qword,qword,qword*,qword*);
 float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
 M3 BuildRotationMatrixFromVector(qword);
 void AnticipateJtForce(NODE*,NODE*,qword*,float*,DELTA*);
@@ -317,7 +317,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     float distance = GXOfVf(length);
     U relative, perpendicular, parallel;
     relative.q = VuSubRef(QwVelocity(jt), anchorVelocity.q);
-    float radial = func_0011E290(relative.q, axis.q, &parallel.q, &perpendicular.q);
+    float radial = SplitVectorAlongAxis(relative.q, axis.q, &parallel.q, &perpendicular.q);
     U firstAxis, angularFirst;
     firstAxis.q = QwNormalize(QwCross(axis.q, perpendicular.q), D_002A2DA0.q);
     float ratio = GLength(perpendicular.q) / distance;
@@ -335,7 +335,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         bias = D_002BF50C;
     U angular, parallelAngular, perpendicularAngular;
     angular.q = QwAddScaled(angularFirst.q, angularSecond.q, VufFromMemWord(*(int *)&Addr(&D_002DDED0)->dt));
-    func_0011E290(angular.q, anchorBasis.r[1].q, &parallelAngular.q, &perpendicularAngular.q);
+    SplitVectorAlongAxis(angular.q, anchorBasis.r[1].q, &parallelAngular.q, &perpendicularAngular.q);
     angular.q = QwCombo(parallelAngular.q, perpendicularAngular.q, VuFloat(drag * Addr(&D_002DDED0)->dt + 1.0f),
                         VuFloat(bias * Addr(&D_002DDED0)->dt + 1.0f));
     if ((jt->state == 0 || jt->state == 2) && D_002DDED0.t - jt->changed < D_002BF510) {

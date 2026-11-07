@@ -2178,7 +2178,7 @@ M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
 M3 BuildAxisAngleRotationMatrix(qword, float);
 float atan2f(float, float);
 float cosf(float);
-float func_0011E290(qword, qword, qword *, qword *);
+float SplitVectorAlongAxis(qword, qword, qword *, qword *);
 qword LimitVectorLength(qword, float);
 void SetStepplayerTnOverride(ACTOR *, void *);
 }
@@ -2591,7 +2591,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             float g = GNormalize(dir, D_002A2DA0);
 
             U perp;
-            float proj = func_0011E290(desired.q, dir.q, 0, &perp.q);
+            float proj = SplitVectorAlongAxis(desired.q, dir.q, 0, &perp.q);
             if (proj < g && g * -0.25f < proj) {
                 desired.q = QwAddScaled(perp.q, dir.q, VuFloat(g));
                 desired.q = LimitVectorLength(desired.q, speed);

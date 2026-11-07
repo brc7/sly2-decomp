@@ -156,7 +156,7 @@ int AreFloatsNear__Ffff(float a, float b, float eps);
 qwordV ApplyConstr(CONSTRAINT *, NODE *, qwordV);
 void AddSoAcceleration(SOW *, qwordV);
 void CalculateWaterCurrent(SOW *, qwordV, qwordV *, qwordV *);
-float func_0011E290(qwordV, qwordV, qwordV *, qwordV *);
+float SplitVectorAlongAxis(qwordV, qwordV, qwordV *, qwordV *);
 void AccelSoTowardPosSpring(SOW *, qwordV, const COEF *, qwordV, const COEF *);
 void AccelSoTowardMatSpring(SOW *, const M3 *, const COEF *, qwordV, const COEF *);
 M4B *GetLoWorldMatrix(SOW *);
@@ -544,7 +544,7 @@ extern "C" void UpdateWaterBounds(SOW *water)
 // Allocates a cleared XA node from the world's pool (Sly 1 PxaAllocSw).
 extern "C" N *AllocSwXa(WORLD *world)
 {
-    return (N *)PvAllocSlotheapClear(&world->slotheapN);
+    return (N *)AllocZeroedFromSlotheap(&world->slotheapN);
 }
 
 /** @sly2-annot addr=0x2296C0
@@ -671,7 +671,7 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
  if(friction!=0.0f){
   CalculateWaterCurrent(water,GetLoWorldPos(object),&work.velocity.q,&work.phase.vectors[0].q);
   qwordV linear=Get(object,33);qwordV relative=VuSub(work.velocity.q,linear);
-  float dot=func_0011E290(relative,work.normal.q,&work.phase.vectors[1].q,&work.phase.vectors[2].q);
+  float dot=SplitVectorAlongAxis(relative,work.normal.q,&work.phase.vectors[1].q,&work.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;
   if(IsXfRoleVelocity(object->body->kind)){
    COEF *coefficients=&work.axis.coefficients;
@@ -684,7 +684,7 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
    qwordV angular=Get(object,34);
    qwordV k;
    qwordV negative=NegativeAngular(angular,-1.0f,k);
-   work.scalar.q=k;func_0011E290(negative,work.normal.q,&work.angularNormal.q,&work.angularTangent.q);
+   work.scalar.q=k;SplitVectorAlongAxis(negative,work.normal.q,&work.angularNormal.q,&work.angularTangent.q);
    COEF *coefficients=&work.axis.coefficients;
    GAIN2(D_002C4480,span,friction);
    AccelSoTowardMatSpring(object,&D_002A2D00,0,AddNormal(angular,work.angularNormal),coefficients);

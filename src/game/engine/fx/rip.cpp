@@ -143,7 +143,7 @@ struct REMIT : RIP   /* RIPT 2 */
 extern "C" {
 extern qword D_002C1F90, D_002C1FA0, D_002C1F40;
 void ClearSoTreeBoundsDirty(SO *pso);
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void UpdateRip(RIP *prip, float dt);
 void InitRip(RIP *prip);
 void PostRipEmit(RIP *prip, void *pv);
@@ -160,7 +160,7 @@ struct O { int basic0; int basic4; int basic8; struct VTE *vt; char p1[0x80 - 0x
 struct G { char pad[0x403C]; char pool[0x30]; struct O *defaultRipGroup; };   /* SW: the RIPG slot pool and the shared kind-0 group */
 extern struct VTE D_002D9978[] __asm__("_vt$2SO");
 extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
-void *PvAllocSlotheapClear(void *pool);
+void *AllocZeroedFromSlotheap(void *pool);
 void *func_002333B4(void *sw, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
 void *GetSwClassList(struct G *sw, int n);
@@ -173,7 +173,7 @@ struct O *PripgNew(struct G *sw, int kind)
 {
     struct O *ripGroup;
     if (!kind && sw->defaultRipGroup) return sw->defaultRipGroup;
-    ripGroup = (__typeof__(ripGroup))PvAllocSlotheapClear(sw->pool);
+    ripGroup = (__typeof__(ripGroup))AllocZeroedFromSlotheap(sw->pool);
     if (!ripGroup) return 0;
     func_002333B4(ripGroup, 0, 0x1B0);
     ripGroup->basic0 = 0;
@@ -673,7 +673,7 @@ struct G { char pad[0x4054]; char pool[4]; };
 struct Q { char pad[0x15C]; char dl[4]; };
 extern char D_003DD490[];
 struct Q *PripgNew(void *pg, int n);
-void *PvAllocSlotheapClear(void *pool);
+void *AllocZeroedFromSlotheap(void *pool);
 struct R *PvtripFromRipt(void *pv, void *a);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void AddRipRef__FP3RIP(struct R *r);
@@ -684,7 +684,7 @@ struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
     struct R *r;
     if (!q) q = PripgNew(D_003DD490, 0);
     if (!q) return 0;
-    pv = PvAllocSlotheapClear(p->pool);
+    pv = AllocZeroedFromSlotheap(p->pool);
     if (pv) {
     r = PvtripFromRipt(pv, a);
     r->p8 = q;
@@ -1711,7 +1711,7 @@ extern "C" void OnRipRemove(RIP *prip)
 // Push {plo} subscription node (pool g_sw.slotheapRefnode) onto rip->(+0xE8) list. (inferred)
 extern "C" void SubscribeRipObject(RIP *prip, LO *plo)
 {
-    RIPSUB *psub = (RIPSUB *)PvAllocSlotheapClear(&g_sw.slotheapRefnode);
+    RIPSUB *psub = (RIPSUB *)AllocZeroedFromSlotheap(&g_sw.slotheapRefnode);
     psub->plo = plo;
     psub->pnext = prip->firstSubscription;
     prip->firstSubscription = psub;
@@ -2720,7 +2720,7 @@ extern CLOCK D_002DDED0;
 extern float D_002C2010[3], D_002C2020[2], D_002C2028, D_002C202C;
 extern qword D_002A2DA0;
 M3 BuildAxisAngleRotationMatrix(qword, float);
-float func_0011E290(qword, qword, qword *, qword *);
+float SplitVectorAlongAxis(qword, qword, qword *, qword *);
 void ProjectRipTransform(P *);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -2801,7 +2801,7 @@ extern "C" void ProjectLeafTransform(P *p)
     float drag = p->drag;
     p->drag = 0.0f;
     struct { qword along, across; } w;
-    func_0011E290(p->vel, row0, &w.along, &w.across);
+    SplitVectorAlongAxis(p->vel, row0, &w.along, &w.across);
     qword len = NormalizeSafe(&w.along, &D_002A2DA0);
     float dt = D_002DDED0.dt;
     g = GetX(len);

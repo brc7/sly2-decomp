@@ -167,7 +167,7 @@ void *PvAllocBanksnd(int cb);
 int *PsndFromSfxid(SNDMGRV *soundManager, int sfxId);
 void snd_PauseSound(int voiceHandle);
 void snd_ContinueSound(int voiceHandle);
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void func_00233088(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
 STREAMREC *FindDialogStream(int id);
@@ -1003,7 +1003,7 @@ void DecrefBanksnd(struct S *sound) { if (--sound->refCount == 0 && sound) { Des
 // Allocates a bank sound from the manager's pool.
 extern "C" void *PvAllocBanksnd(int cb)
 {
-    return PvAllocSlotheapClear(&G_SNDMGR.bankSoundPool);
+    return AllocZeroedFromSlotheap(&G_SNDMGR.bankSoundPool);
 }
 
 /** @sly2-annot addr=0x1FC110
@@ -1573,7 +1573,7 @@ void DecrefStreamsnd(struct S *sound)
 // Allocates a streamed sound from the manager's pool.
 extern "C" void *PvAllocStreamsnd(int cb)
 {
-    return PvAllocSlotheapClear(&G_SNDMGR.streamSoundPool);
+    return AllocZeroedFromSlotheap(&G_SNDMGR.streamSoundPool);
 }
 
 /** @sly2-annot addr=0x1FCD10

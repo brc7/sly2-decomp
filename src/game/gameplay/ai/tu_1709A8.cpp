@@ -305,7 +305,7 @@ extern "C" void AddGuardScriptEnsureRelayAlarm(SSG *script, int id, int n)
 extern "C" SSGE *AddGuardScriptCommand(SSG *script, int kind, int id)
 {
     SSGE *command;
-    command = (SSGE *)PvAllocSlotheapClear(&D_003DD490.slotheapSsge);
+    command = (SSGE *)AllocZeroedFromSlotheap(&D_003DD490.slotheapSsge);
     command->kind = kind;
     command->id = id;
     AppendSlEntry(&script->commands, command);

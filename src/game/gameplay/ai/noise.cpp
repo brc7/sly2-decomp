@@ -138,7 +138,7 @@ struct Lock {
 // sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
 extern "C" void CreateNoise(NOISETYPE *type, qword pos, int loudness, NOISE **outNoise)
 {
-    NOISE *noise = (NOISE *)PvAllocSlotheapClear(&D_003DD490.pool);
+    NOISE *noise = (NOISE *)AllocZeroedFromSlotheap(&D_003DD490.pool);
     func_002333B4(noise, 0, 0x60);
     noise->frame = 0;
     noise->sidebag = 0;

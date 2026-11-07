@@ -419,7 +419,7 @@ qword GetLoWorldPos(P *);
 int FFilterDprizeObjects(void *, SOPART *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
 int IntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
-float func_0011E290(qword, qword, qword *, qword *);
+float SplitVectorAlongAxis(qword, qword, qword *, qword *);
 }
 
 struct VU_FLOAT {
@@ -542,7 +542,7 @@ extern "C" void CheckDprizeBounce(P *prize)
         {
             U primary;
             if (normal.g[2] > 0.7f && prize->state == 4) {
-                float gNormal = func_0011E290(prize->v, D_002A2DC0, 0, &primary.qw);
+                float gNormal = SplitVectorAlongAxis(prize->v, D_002A2DC0, 0, &primary.qw);
                 float gSpeed = GFromVf(QwNormalizeInto(&primary.qw, D_002A2DD0));
                 float gTangent = GMin(prize->gTangentResponse.g * gSpeed, D_002C0D74);
                 gNormal = GMin(-prize->gNormalResponse * gNormal, D_002C0D78);
@@ -556,7 +556,7 @@ extern "C" void CheckDprizeBounce(P *prize)
                 }
             } else {
                 U secondary;
-                func_0011E290(prize->v, normal.qw, &primary.qw, &secondary.qw);
+                SplitVectorAlongAxis(prize->v, normal.qw, &primary.qw, &secondary.qw);
                 response.qw = QwCombo(VU_FLOAT(-prize->gNormalResponse), primary.qw, VU_FLOAT(prize->gTangentResponse.bits), secondary.qw);
             }
         }

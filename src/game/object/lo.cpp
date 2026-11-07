@@ -49,7 +49,7 @@ extern SW D_003DD490;
 extern "C" {
 extern qword D_002A2DD0;        /* (0, 0, 0) */
 extern MATRIX4 D_002A2D30;      /* identity */
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
+void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeLoroot(LO *plo);
 void GetLoChildDl(SO *psoParent, DL **ppdl, LO **pploFirst);
 LORUN *AddLoDeferredCallback(LO *plo);
@@ -127,7 +127,7 @@ void LO::Init()
 extern "C" void EnsureLoroot(LO *plo)
 {
     if (plo->ploroot == 0) {
-        LOROOT *ploroot = (LOROOT *)PvAllocSlotheapClear(&g_sw.slotheapLoroot);
+        LOROOT *ploroot = (LOROOT *)AllocZeroedFromSlotheap(&g_sw.slotheapLoroot);
         plo->ploroot = ploroot;
         ploroot->plo = plo;
     }

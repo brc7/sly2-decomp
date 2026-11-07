@@ -435,7 +435,7 @@ struct SW { char pad[0x3DDC]; char dl[0xC]; char pool[0x10]; };
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern VT D_002D9768 __asm__("_vt$3SMA"); }
 extern "C" {
-S *PvAllocSlotheapClear(void *);
+S *AllocZeroedFromSlotheap(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void AppendDlEntry__FP2DLPv(void *, S *);
 void FramePtr_Assign(S *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
@@ -461,7 +461,7 @@ struct Lock {
 // transition.
 extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
 {
-    S *ps = PvAllocSlotheapClear(D_003DD490.pool);
+    S *ps = AllocZeroedFromSlotheap(D_003DD490.pool);
     *pps = ps;
     func_002333B4(ps, 0, 0x50);
     ps->vtable = &D_002D9768;

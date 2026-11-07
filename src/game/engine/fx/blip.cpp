@@ -250,10 +250,10 @@ void StartupBlips()
 extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
 {
     SLOTHEAP *pslotheap = &psw->slotheapBlip;
-    BLIPV *pblip = (BLIPV *)PvAllocSlotheapClear(pslotheap);
+    BLIPV *pblip = (BLIPV *)AllocZeroedFromSlotheap(pslotheap);
     if (!pblip) return 0;
     if (pblipg->motionKind == 2) {
-        pblip->ae = (BEZ *)PvAllocSlotheapClear(&psw->slotheapBez);
+        pblip->ae = (BEZ *)AllocZeroedFromSlotheap(&psw->slotheapBez);
         if (!pblip->ae) { FreeSlotheapSlot(pslotheap, pblip); return 0; }
     }
     pblip->pblipg = pblipg;
@@ -275,7 +275,7 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     BLIPGV *p;
     int i;
     if (!psw->slotheapBlipg.pslotFree && psw->slotheapBlipg.ab) return 0;
-    p = (BLIPGV *)PvAllocSlotheapClear(&psw->slotheapBlipg);
+    p = (BLIPGV *)AllocZeroedFromSlotheap(&psw->slotheapBlipg);
     func_002333B4(p, 0, 0x460);
     p->basic0 = 0;
     p->basic4 = 0;

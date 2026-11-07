@@ -381,7 +381,7 @@ SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *a, CPAIR *pc, float t) {
     SWCB *pnPrev;
     SWCB *pnCur;
     pc->cref++;
-    pn = (SWCB *)PvAllocSlotheapClear(&world->slotheapEvent);
+    pn = (SWCB *)AllocZeroedFromSlotheap(&world->slotheapEvent);
     pn->pbasic = a;
     if (!a) pn->id = ++g_sw.cEventWorld;
     else pn->id = -1;
@@ -501,7 +501,7 @@ extern "C" void SubscribeLoObject(LO *object, LO *id) {
         if (pe->plo == id) { pe->cref++; return; }
     }
     {
-        register REFNODE *peNew __asm__("$3") = (REFNODE *)PvAllocSlotheapClear(&g_sw.slotheapRefnode);
+        register REFNODE *peNew __asm__("$3") = (REFNODE *)AllocZeroedFromSlotheap(&g_sw.slotheapRefnode);
         __asm__("" : "+r"(peNew));
         peNew->plo = id;
         { register int one __asm__("$2") = 1; __asm__("" : "+r"(one)); peNew->cref = one; }
