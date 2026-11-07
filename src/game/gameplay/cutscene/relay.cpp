@@ -1278,8 +1278,7 @@ extern "C" { void *func_001AE1D0(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
-// Inline helper Max: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// The larger of two values.
 static inline int Max(int a, int b) { return a < b ? b : a; }
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
@@ -1313,8 +1312,7 @@ struct MSG { int cb; int nKind; };
 struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
 void *func_001AE238(struct MSG *pmsg, void *pv);
-// Inline helper PvReallocMsg: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// Resizes a world-heap block (request size and kind, then reallocate).
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
@@ -2751,8 +2749,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP
 extern "C" {
 /* memset: sly2/classes.h's declaration */
 }
-// Inline helper GrfUpdateLo: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// The LO update flags (tagged word, maybe behind a pointer).
 inline int GrfUpdateLo(LO *plo)
 {
     int grf = plo->grfUnk40;
@@ -4695,14 +4692,13 @@ struct C { char pad[0x18]; int context; };
 struct O { char pad[0x74]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
 struct O *FindJsgObject(struct C *script, int n);
 float GGetDifficulty(struct G *pg);
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int speedByDifficulty, int b);
+void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int oid, int b);
 void *func_001F67E0(void *p, int n);
 float DtSmaToState(void *p, int n);
 float func_001FCFD0(struct G *pg, int n);
-// Inline helper GClamp: speedByDifficulty few VU0/EE instructions in asm (or speedByDifficulty small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Clamps g to [lo, hi].
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
-// Seconds speedByDifficulty command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
+// Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
 float GetJsgCommandDuration(struct C *script, struct P *command)
@@ -4779,9 +4775,7 @@ qword ConvertAloVec(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
 int FFloatsNear__Ffff(float,float,float);
 }
-// Inline helpers Sub, ToVU, X, Y, Z, Root, LengthXY: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 static inline float X(qword a){float r;__asm__("mtc1 %1,%0":"=f"(r):"r"(a));return r;}
@@ -5216,8 +5210,7 @@ struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
-// Inline helper ByteOffset: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// index * 4 in $a0 (shapes the register choice).
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
 void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
@@ -5464,8 +5457,7 @@ qword func_0011BFF0(void *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
-// Inline helpers X, Y, Z: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so the
-// compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers X, Y, Z (small asm wrappers/accessors shaped for the match).
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }

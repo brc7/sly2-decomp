@@ -182,9 +182,7 @@ extern qword D_002A2DC0,D_002A2DA0;
 qword func_001A62E8(struct P*);
 qword LimitVectorLength(qword,float);
 qword ApplyConstr(struct SPS*,struct O*,qword);
-// Inline helpers Sub, Reject, Normal, AddScaled, Clamp: small vector/scalar wrappers (a few VU0/EE instructions in asm,
-// or accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers Sub, Reject, Normal, AddScaled, Clamp (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));return Sub(a,d);}
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
@@ -415,8 +413,7 @@ void func_001FB1F8(struct M *p, float g);
 void ResumeSnd(struct M *p);
 void PauseSnd(struct M *p);
 struct V3 { float x, y, z; };
-// Inline helper Make: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Packs three floats into a vector.
 static __inline__ qword Make(float x, float y, float z) { qword q, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z)); return q; }
@@ -722,8 +719,7 @@ extern "C" float atan2f(float,float);
 extern "C" float RadNormalize__Ff(float);
 extern "C" float GLimitAbs__Fff(float,float);
 extern "C" M3 func_0011B500(qword,float);
-// Inline helpers Sub, X, Y, Transform: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Sub, X, Y, Transform (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float X(qword v){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Y(qword v){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(v));return f;}
@@ -900,17 +896,13 @@ float GGetDifficulty(void*);
 int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
 }
-// Inline helpers VuFloat, VuFloatFromMemWord, QwSub, QwSubC: small vector/scalar wrappers (a few VU0/EE instructions in
-// asm, or accessors) written so the compiler's register and instruction choice matches the original; the names say what
-// they compute.
+// Helpers VuFloat, VuFloatFromMemWord, QwSub, QwSubC (small asm wrappers/accessors shaped for the match).
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword QwSubC(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b):"vf3");return r;} /* clobber of the dead vf3 */
 static inline qword QwDot(qword a,qword b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(a),"j"(b));return r;}
-// Inline helpers QwSqrt, QwDivide, QwAddScaled, QwScaleX, GXOfQw, GXOfVf: small vector/scalar wrappers (a few VU0/EE
-// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
-// the names say what they compute.
+// Helpers QwSqrt, QwDivide, QwAddScaled, QwScaleX, GXOfQw, GXOfVf (small asm wrappers/accessors shaped for the match).
 static inline qword QwSqrt(qword a){qword r;__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(r):"j"(a));return r;}
 static inline qword QwDivide(qword v,qword len){qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"j"(len));return r;}
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
@@ -918,8 +910,7 @@ static inline qword QwScaleX(qword v,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,
 static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
 static inline float GYOfQw(qword qw){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(qw));return GXOfQw(r);}
-// Inline helpers Length, Heading: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written
-// so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Length, Heading (small asm wrappers/accessors shaped for the match).
 static inline float Length(qword v){return GXOfQw(QwSqrt(QwDot(v,v)));}
 static inline float Heading(qword v){return atan2f(GYOfQw(v),GXOfQw(v));}
 // Unit vector of v, or the fallback when its length is below eps.
@@ -928,9 +919,7 @@ static inline qword QwNormalizeSafe(qword v,qword fallback,float eps){
  __asm__("mtc1 %1,%0":"=f"(x):"r"(r),"r"(fallback)); /* allocation-only "r"(fallback): the fallback is held in a GPR */
  if(x<eps)r=fallback;else r=QwDivide(v,r);
  return r;}
-// Inline helpers NormalizeInPlace, RSub, RDot, RAddScaled, REvaluate, RLimit, RGXOfQw, RGXOfVf: small vector/scalar
-// wrappers (a few VU0/EE instructions in asm, or accessors) written so the compiler's register and instruction choice
-// matches the original; the names say what they compute.
+// Helpers NormalizeInPlace, RSub, RDot, RAddScaled, REvaluate, RLimit, RGXOfQw, RGXOfVf (small asm wrappers/accessors shaped for the match).
 static inline qword NormalizeInPlace(U*pv,const qword*pfallback,void*own){float eps=0.0001f;qword g=pv->q;qword v;qword d,one;
  __asm__("":"=j"(v):"0"(g),"r"(own)); /* empty asm: v is a VF copy of the GPR load g; allocation-only "r"(own) keeps p ahead of the rule giv in global-alloc priority */
 
@@ -947,9 +936,7 @@ static inline float RLimit(float f,const LM&p){float low=p.low,high=p.high,r;if(
 static inline float RGXOfQw(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 static inline float RGXOfVf(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
 static inline VU_FLOAT RVuFloat(const float&g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
-// Inline helpers Alive, Evaluate, Limit, Clamp: small vector/scalar wrappers (a few VU0/EE instructions in asm, or
-// accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// Helpers Alive, Evaluate, Limit, Clamp (small asm wrappers/accessors shaped for the match).
 static inline ulong Alive(NODE*p){return (p->flags>>60)&1;}
 static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
 static inline float Limit(float f,LM*p){float low=p->low,high=p->high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
@@ -1058,8 +1045,7 @@ extern "C" MATRIX3 func_0011B500(qword v, float g);
 extern "C" MATRIX3 ConvertXfMat(void *pv, int n, MATRIX3 *pm);
 extern "C" void func_001F59A0(struct O *p, MATRIX3 *pm, void *pv);
 extern "C" void AddSoAcceleration(struct O *p, qword v);
-// Inline helpers VSub, Bc: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors) written so the
-// compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers VSub, Bc (small asm wrappers/accessors shaped for the match).
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory"); return r; }
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 extern "C" void PresetHackenemyAccel(struct O *p);
@@ -1782,8 +1768,7 @@ extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
 extern "C" void func_001A5EE8(void*,M4*,float,float);
-// Inline helpers Load, Cross, AddLateral: small vector/scalar wrappers (a few VU0/EE instructions in asm, or accessors)
-// written so the compiler's register and instruction choice matches the original; the names say what they compute.
+// Helpers Load, Cross, AddLateral (small asm wrappers/accessors shaped for the match).
 static inline qword Load(const qword*p){return *p;}
 static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz ACC,%0,%1\n\tvopmsub.xyz %0,%1,%0":"+j"(up):"j"(dir));return up;}
 static inline qword AddLateral(qword a,N*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
@@ -1881,9 +1866,7 @@ extern qword*func_002564B8(qword*);
 extern int func_0014C748(qword,float,qword,qword,int,SEGMENT*);
 extern void PxpAdd(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
 
-// Inline helpers Sub, Broadcast, BroadcastBits, Scalar, MAdd, MAdd2, Point: small vector/scalar wrappers (a few VU0/EE
-// instructions in asm, or accessors) written so the compiler's register and instruction choice matches the original;
-// the names say what they compute.
+// Helpers Sub, Broadcast, BroadcastBits, Scalar, MAdd, MAdd2, Point (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 static inline qword Broadcast(float f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword BroadcastBits(int b){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(b));return r;}
@@ -1902,8 +1885,7 @@ static inline float Planar(U*p){
  else{__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(d):"j"(dv),"j"(root));p->q=d;}
  return Scalar(root);
 }
-// Inline helper GX: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Lane x as a float.
 static inline float GX(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
 // Signed distance of a point from a plane, returning the VU temporaries.
 static inline float Distance(U*dot,U*one,qword plane,qword point){

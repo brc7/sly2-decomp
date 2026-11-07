@@ -187,8 +187,7 @@ extern "C" void InitBooty(BOOTYV *booty) {
     else booty->taggedFlags = x | 2;
 }
 
-// Inline helper SetReq: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Fills an allocation request.
 static inline REQ *SetReq(REQ *pr, int cb, int cbAlign) { pr->cb = cb; pr->cbAlign = cbAlign; return pr; }
 // BOOTY (cid 0x67) vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to
 // SW heap. (inferred)
@@ -790,8 +789,7 @@ int GetSavedBootyContainerKind(CID37V *container) {
     return n;
 }
 
-// Inline helper SetPv: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
-// instruction choice matches the original; its name says what it computes.
+// Stores a CRef into a global save variable.
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60); }
 // Splice: reset current booty, save kind n, and spawn if n != -1. (inferred)
 extern "C" void SetBootyContainerKind(CID37V *container, int n)
