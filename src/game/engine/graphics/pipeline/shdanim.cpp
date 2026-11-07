@@ -45,7 +45,7 @@ struct SAAF
     int a, b;
     unsigned short c, d;
     union { struct { LMV lm1, lm2; }; float ag[4]; };   /* 0x0C */
-    union { unsigned short cLoop; int n1C; };          /* 0x1C */
+    union { unsigned short cLoop; int cLoopWord; };    /* 0x1C (also read as a whole word) */
 };
 struct LOOPV : SAAV { LMV loopTimeRange; LMV pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
 struct PINGPONGV : SAAV { LMV loopTimeRange; LMV pauseTimeRange; float frameRate; float frame; float pauseTime; float pauseRemaining; };
@@ -358,7 +358,7 @@ void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
 extern "C" void InitEyes(EYESV *p, SAAF *psaaf)
 {
     func_001ED8E0(p, psaaf);
-    p->unknown60=psaaf->n1C;
+    p->unknown60=psaaf->cLoopWord;
     p->blinkTime=psaaf->ag[0];
     { float a=psaaf->ag[1]; float b=psaaf->ag[2]; p->openTimeMin=a; p->openTimeMax=b; }
     p->doubleBlinkChance=psaaf->ag[3];
