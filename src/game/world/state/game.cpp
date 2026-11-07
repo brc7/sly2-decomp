@@ -1498,126 +1498,83 @@ void AddTaskStateRsmg(TASK *task, int state, int root, int stateMachine, int goa
 
 namespace M_PostTaskLoad { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
-struct E16 {int object,context,stateMask,level;};
-struct E24 {int state,root,stateMachine,goal,restoreOnly,level;};
-struct SL {void*first;void*last;int nextOffset;};
-struct BF { unsigned long pad:52; long busyk:4; unsigned long pad2:8; };
-struct S {
-    char pad[0x28]; struct BF bf;
-    char pad0[0x40 - 0x30]; int flags;
-    char pad1[0x64 - 0x44]; int startCount; int completionCount;
-    char pad2[0x78 - 0x6C]; float timeLimit; struct S *job; struct SL children;
-    char pad3[0x90 - 0x8C]; int *prerequisiteOids; int numPrerequisites; void **prerequisites; int *followerOids; int numFollowers; void **followers; int numVisibility;struct E16*visibility;int numRsmgs;struct E24*rsmgs;
-    char pad4[0xC8 - 0xB8]; int startCountKey; int completeKey; int completionCountKey;
-};
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
-static inline void SetLoFlagsInline(struct S *plo, int bits)
+static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->flags;
+    int v = plo->grfUnk40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
-        plo->flags = v | bits;
+        plo->grfUnk40 = v | bits;
 }
 extern char D_003D4A60[];
 extern char D_003DD490[];
-void PostLoLoad(struct S *p);
-void AppendSlEntry(struct SL *psl, struct S *p);
+void PostLoLoad(LO *p);
+void AppendSlEntry(SL *psl, TASK *p);
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
-int IsCurrentTask(struct S *p);
-int IsTaskLive(struct S *p);
-void ApplyStateLoVisibility(struct S *p, int n, int c, struct E16 *a);
-void TriggerStateRsmgs(struct S *p, int n, int c, struct E24 *a, int b);
+int IsTaskLive(TASK *p);
+void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
+void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
 CRef *GetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
-void SetLoBusyKind(struct S *p, int n);
+void SetLoBusyKind(LO *p, int n);
 // TASK post-load (slot 15): links it into its job, resolves the prerequisite and successor oids, applies the
 // inactive visuals when live, restores its save variables and makes it busy when timed or marked.
-void PostTaskLoad(struct S *task)
+void PostTaskLoad(TASK *task)
 {
     CRef ref;
     int i;
     register int j asm("$16"); /* allocation: i/j tie in global alloc */
-    int *startCountKeyPtr;
-    int *completionCountKeyPtr;
+    SVKEY *startCountKeyPtr;
+    SVKEY *completionCountKeyPtr;
     PostLoLoad(task);
-    if (task->job)
-        AppendSlEntry(&task->job->children, task);
+    if (task->pjob)
+        AppendSlEntry(&task->pjob->sltask, task);
     i = 0;
     j = 0;
-    startCountKeyPtr = &task->startCountKey;
-    completionCountKeyPtr = &task->completionCountKey;
-    if (task->numPrerequisites > 0) {
+    startCountKeyPtr = &task->svkStart;
+    completionCountKeyPtr = &task->svkCompletionCount;
+    if (task->cptaskPrereq > 0) {
         do {
-            void *pv = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->prerequisiteOids[i], 0);
+            void *pv = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->aoidPrereq[i], 0);
             if (pv)
-                task->prerequisites[j++] = pv;
-        } while (++i < task->numPrerequisites);
+                task->aptaskPrereq[j++] = (TASK *)pv;
+        } while (++i < task->cptaskPrereq);
     }
-    task->numPrerequisites = j;
+    task->cptaskPrereq = j;
     j = 0;
-    for (i = 0; i < task->numFollowers; i++) {
-        void *pv = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->followerOids[i], 0);
+    for (i = 0; i < task->cptaskSucc; i++) {
+        void *pv = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->aoidSucc[i], 0);
         if (pv)
-            task->followers[j++] = pv;
+            task->aptaskSucc[j++] = (TASK *)pv;
     }
-    task->numFollowers = j;
+    task->cptaskSucc = j;
     if (IsCurrentTask(task) == 0 && IsTaskLive(task)) {
-        ApplyStateLoVisibility(task, 5, task->numVisibility, task->visibility);
-        TriggerStateRsmgs(task, 5, task->numRsmgs, task->rsmgs, 1);
+        ApplyStateLoVisibility(task, 5, task->cvis, task->avis);
+        TriggerStateRsmgs(task, 5, task->crsmg, task->arsmg, 1);
     }
-    if (task->startCountKey) {
+    if (task->svkStart.c) {
         int n;
         GetGlobalSaveVar(&ref, startCountKeyPtr, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        task->startCount = n;
+        task->cStart = n;
     }
-    if (task->completionCountKey) {
+    if (task->svkCompletionCount.c) {
         int n;
         GetGlobalSaveVar(&ref, completionCountKeyPtr, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
         task->completionCount = n;
     }
-    if (task->timeLimit != 0.0f || task->children.first) {
-        if ((int)task->bf.busyk == 2)
+    if (task->dtLimit != 0.0f || task->ploMarker) {
+        if ((int)task->busyk == 2)
             SetLoBusyKind(task, 0);
         SetLoFlagsInline(task, 2);
     }
 }
 
-typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
-typedef char layout_int[(sizeof(int)==4)?1:-1];
-typedef char layout_ulong[(sizeof(unsigned long)==8)?1:-1];
 typedef char layout_CRef[(sizeof(CRef)==8)?1:-1];
-typedef char layout_BF[(sizeof(struct BF)==8)?1:-1];
-typedef char layout_SL[(sizeof(struct SL)==12)?1:-1];
-typedef char layout_E16[(sizeof(struct E16)==16)?1:-1];
-typedef char layout_E24[(sizeof(struct E24)==24)?1:-1];
-typedef char layout_S_prefix[(sizeof(struct S)==0xD8)?1:-1];
-typedef char layout_S_bf[(((unsigned)&((struct S*)0)->bf==0x28))?1:-1];
-typedef char layout_S_fl[(((unsigned)&((struct S*)0)->flags==0x40))?1:-1];
-typedef char layout_S_f64[(((unsigned)&((struct S*)0)->startCount==0x64))?1:-1];
-typedef char layout_S_f68[(((unsigned)&((struct S*)0)->completionCount==0x68))?1:-1];
-typedef char layout_S_f78[(((unsigned)&((struct S*)0)->timeLimit==0x78))?1:-1];
-typedef char layout_S_f7c[(((unsigned)&((struct S*)0)->job==0x7c))?1:-1];
-typedef char layout_S_children[(((unsigned)&((struct S*)0)->children==0x80))?1:-1];
-typedef char layout_S_a90[(((unsigned)&((struct S*)0)->prerequisiteOids==0x90))?1:-1];
-typedef char layout_S_c94[(((unsigned)&((struct S*)0)->numPrerequisites==0x94))?1:-1];
-typedef char layout_S_a98[(((unsigned)&((struct S*)0)->prerequisites==0x98))?1:-1];
-typedef char layout_S_a9C[(((unsigned)&((struct S*)0)->followerOids==0x9c))?1:-1];
-typedef char layout_S_cA0[(((unsigned)&((struct S*)0)->numFollowers==0xa0))?1:-1];
-typedef char layout_S_aA4[(((unsigned)&((struct S*)0)->followers==0xa4))?1:-1];
-typedef char layout_S_fa8[(((unsigned)&((struct S*)0)->numVisibility==0xa8))?1:-1];
-typedef char layout_S_fac[(((unsigned)&((struct S*)0)->visibility==0xac))?1:-1];
-typedef char layout_S_fb0[(((unsigned)&((struct S*)0)->numRsmgs==0xb0))?1:-1];
-typedef char layout_S_fb4[(((unsigned)&((struct S*)0)->rsmgs==0xb4))?1:-1];
-typedef char layout_S_fc8[(((unsigned)&((struct S*)0)->startCountKey==0xc8))?1:-1];
-typedef char layout_S_fd0[(((unsigned)&((struct S*)0)->completionCountKey==0xd0))?1:-1];
-typedef char layout_SL_first[(((unsigned)&((struct SL*)0)->first==0))?1:-1];
-typedef char layout_SL_last[(((unsigned)&((struct SL*)0)->last==4))?1:-1];
-typedef char layout_SL_nextOffset[(((unsigned)&((struct SL*)0)->nextOffset==8))?1:-1];
 } } // namespace M_PostTaskLoad
 
 namespace M_UpdateTask { extern "C" {
