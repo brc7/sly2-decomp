@@ -164,7 +164,7 @@ void LoadClutFromBrx(void *pbis, CLUT *pclut)
 {
     union { short aw[0x80]; struct AR ar; } u;
     unsigned int cb;
-    Read__18CBinaryInputStreamiPv(pbis, 0x10, pclut);
+    Read__18CBinaryInputStreamiPv(pbis, sizeof(CLUTHDR), pclut);
     cb = pclut->ccolor * sizeof(SHDRGBA);
     if (pclut->clevel > 0) {
         Read__18CBinaryInputStreamiPv(pbis, pclut->clevel * 2, u.aw);
@@ -312,22 +312,16 @@ void BuildWorldBackgroundImage(O *p, void *pbs)
 }
 } // namespace M_BuildWorldBackgroundImage
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_CopyClutHeader { extern "C" {
-struct H { int a; int b; unsigned short c; unsigned short d; int *ap; };
-struct S { struct H h; unsigned int cqw; };
-void ColorCorrectRgba(int *p);
 // Copy a CLUT header, color-correct its colors, compute qword count. (inferred)
-struct S *CopyClutHeader(struct S *p, struct H *ph)
+extern "C" CLUT *CopyClutHeader(CLUT *pclut, CLUTHDR *pcluthdr)
 {
-    int *pn;
-    p->h = *ph;
-    for (pn = p->h.ap; pn < p->h.ap + p->h.c; pn++)
-        ColorCorrectRgba(pn);
-    p->cqw = (p->h.c * sizeof(int) + 15) >> 4;
-    return p;
+    SHDRGBA *prgba;
+    *(CLUTHDR *)pclut = *pcluthdr;
+    for (prgba = pclut->argba; prgba < pclut->argba + pclut->ccolor; prgba++)
+        ColorCorrectRgba(prgba);
+    pclut->cqwPal = (pclut->ccolor * sizeof(SHDRGBA) + 15) >> 4;
+    return pclut;
 }
-} } // namespace M_CopyClutHeader
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
 namespace M_LoadColorTablesFromBrx__FP18CBinaryInputStream { extern "C" {
@@ -365,7 +359,7 @@ void *AllocFromWorldHeap(struct AR *par);
 void LoadBmpFromBrx(void *pbis, BMP *pbmp)
 {
     union { short aw[0x80]; struct AR ar; } u;
-    Read__18CBinaryInputStreamiPv(pbis, 0x18, pbmp);
+    Read__18CBinaryInputStreamiPv(pbis, sizeof(BMPHDR), pbmp);
     if (pbmp->clevel > 0) {
         Read__18CBinaryInputStreamiPv(pbis, pbmp->clevel * 2, u.aw);
         if (!IsCurrentLevelInList__FiPs(pbmp->clevel, u.aw)) {
@@ -393,18 +387,13 @@ void LoadBmpFromBrx(void *pbis, BMP *pbmp)
 }
 } } // namespace M_LoadBmpFromBrx
 
-// Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_CopyBitmapHeader { extern "C" {
-struct S { int a, b, c, d; unsigned int byteCount; int unknown14; unsigned int qwordCount; };
-struct T { int a, b, c, d; unsigned int byteCount; int unknown14; };
 // Copies a bitmap header and derives its size in qwords (bytes rounded up to 16).
-struct S *CopyBitmapHeader(struct S *p, struct T *q)
+extern "C" BMP *CopyBitmapHeader(BMP *pbmp, BMPHDR *pbmphdr)
 {
-    *(struct T *)p = *q;
-    p->qwordCount = (p->byteCount + 15) >> 4;
-    return p;
+    *(BMPHDR *)pbmp = *pbmphdr;
+    pbmp->cqw = (pbmp->cb + 15) >> 4;
+    return pbmp;
 }
-} } // namespace M_CopyBitmapHeader
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
 namespace M_LoadBitmapsFromBrx__FP18CBinaryInputStream { extern "C" {
