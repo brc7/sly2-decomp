@@ -51,6 +51,7 @@ struct ANIMBINDING
       union {
             int instance;   /* +0x8 [S] before ResolveAnimBinding */
             ASEGA *asega;   /* +0x8 [S] kind 0: the playing instance */
+            void *payload;  /* +0x8 [S] kinds 1/2: the state machine application (kind 1) or the leap (kind 2) */
       };
       int flags;            /* +0xC [S] start flags passed to StartAnimBinding */
 };

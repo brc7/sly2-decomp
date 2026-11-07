@@ -892,13 +892,11 @@ struct BHV176 : BHV
 };
 typedef char assert_BHV176_size[sizeof(BHV176) == 0x40 ? 1 : -1];
 
-/* 177 BHVJUGGLED (0x70): juggled / carried (flag 0x17); vtable 0x2D03A0, 14 slots */
-struct BHVJUGGLED : BHV
+/* 177 BHVJUGGLED (0x70): juggled / carried (flag 0x17); vtable 0x2D03A0, 14 slots. A BHVANIM: its OnPush/Start/Close/
+   Update call the BHVANIM ones and slot 11 is BHVANIM's UpdateBhvanimMotion. */
+struct BHVJUGGLED : BHVANIM
 {
-    int unknown30[4];
-    ANIMBINDING *binding;   /* +0x40 */
-    int unknown44[3];
-    int state;              /* +0x50 */
+    int juggleState;        /* +0x50 own sub-state (-1 before Start; the BHVANIM state is +0x30) */
     float stateTime;        /* +0x54 */
     int hitCount;           /* +0x58 */
     LO *holder;             /* +0x5C the object holding the guard */
@@ -910,40 +908,35 @@ struct BHVJUGGLED : BHV
     virtual void OnPush() __asm__("InitBhvjuggled");   /* slot 7 */
     virtual void Start() __asm__("StartBhvjuggled");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvjuggled");   /* slot 10 */
-    virtual void UpdateMotion() __asm__("UpdateBhvanimMotion");   /* slot 11 */
     virtual void GetGroundProbeFlags() __asm__("GetBhvjuggledGroundProbeFlags");   /* slot 12 */
     virtual void HandleBehaviorMessage() __asm__("HandleBhvjuggledMessage");   /* slot 13 */
 };
 typedef char assert_BHVJUGGLED_size[sizeof(BHVJUGGLED) == 0x70 ? 1 : -1];
 
-/* 172 BHVLEAP (0xA0): leap (flag 0xF); vtable 0x2D0320, 14 slots */
-struct BHVLEAP : BHV
+/* 172 BHVLEAP (0xA0): leap (flag 0xF); vtable 0x2D0320, 14 slots. A BHVANIM: OnPush/Start/Close/Update call the
+   BHVANIM ones and slots 11-13 are BHVANIM's. The binding's payload (+0x8) is the leap driver. */
+struct BHVLEAP : BHVANIM
 {
-    int state;              /* +0x30 */
-    int unknown34[2];
-    int sgf;                /* +0x3C */
-    ANIMBINDING *binding;   /* +0x40 */
-    int unknown44[10];
+    qword landingPoint;     /* +0x50 the point leapt to (snapped to the ground, or the attach point) */
+    LO *target;             /* +0x60 the object leapt onto (shape/rail/pipe/attachable; NULL: the ground) */
+    int isReversed;         /* +0x64 (rail/pipe direction) */
+    int extra;              /* +0x68 passed to the leap driver */
     int hasAttachBasis;     /* +0x6C */
-    int attachBasis[4];     /* +0x70 */
-    int unknown80[8];
+    MATRIX3 attachBasis;    /* +0x70 orientation on the target */
     virtual void Close() __asm__("CloseBhvleap");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvleapClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvleap");   /* slot 7 */
     virtual void Start() __asm__("StartBhvleap");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvleap");   /* slot 10 */
-    virtual void UpdateMotion() __asm__("UpdateBhvanimMotion");   /* slot 11 */
-    virtual void GetGroundProbeFlags() __asm__("GetBhvanimGroundProbeFlags");   /* slot 12 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvanimMessage");   /* slot 13 */
 };
 typedef char assert_BHVLEAP_size[sizeof(BHVLEAP) == 0xA0 ? 1 : -1];
 
-/* 175 BHV175 (0x60); vtable 0x2D02A0, 14 slots */
-struct BHV175 : BHV
+/* 175 BHV175 (0x60): sleep; vtable 0x2D02A0, 14 slots. A BHVANIM: OnPush/Start/Close/Update call the BHVANIM ones and
+   slots 11-13 are BHVANIM's. */
+struct BHV175 : BHVANIM
 {
-    int unknown30[8];
-    int state;              /* +0x50 sub-state (-1 before Start) */
-    int unknown54;
+    int sleepState;         /* +0x50 own sub-state: 0 asleep, 1 waking (-1 before Start) */
+    int unknown54;          /* +0x54 written with the sub-state */
     float wakeTime;         /* +0x58 */
     int unknown5C;
     virtual void OnPush() __asm__("InitBhvSleep");   /* slot 7 */
@@ -951,9 +944,6 @@ struct BHV175 : BHV
     virtual void Start() __asm__("StartBhvSleep");   /* slot 8 */
     virtual void Close() __asm__("CloseBhvSleep");   /* slot 9 */
     virtual void Update() __asm__("UpdateBhvSleep");   /* slot 10 */
-    virtual void UpdateMotion() __asm__("UpdateBhvanimMotion");   /* slot 11 */
-    virtual void GetGroundProbeFlags() __asm__("GetBhvanimGroundProbeFlags");   /* slot 12 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvanimMessage");   /* slot 13 */
 };
 typedef char assert_BHV175_size[sizeof(BHV175) == 0x60 ? 1 : -1];
 
@@ -1004,7 +994,13 @@ typedef char assert_BHV179_size[sizeof(BHV179) == 0x40 ? 1 : -1];
 /* 183 BHV183 (0x70); vtable 0x2D00A0, 14 slots */
 struct BHV183 : BHV
 {
-    char pad30[0x70 - 0x30];
+    LO *escorted;           /* +0x30 the object escorted */
+    int unknown34[3];
+    qword localOffset;      /* +0x40 the escort position in the escorted object's frame */
+    int state;              /* +0x50 */
+    float stateTime;        /* +0x54 */
+    int unknown58[2];
+    qword lastGoalPosition; /* +0x60 */
     virtual void Start() __asm__("StartBhvEscort");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv183ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvEscort");   /* slot 7 */
@@ -1584,7 +1580,8 @@ typedef char assert_PATHZONE_size[sizeof(PATHZONE) == 0x130 ? 1 : -1];
 /* 124 PATHLINK (0x160): BHVPATHLINK walks it; REVIEW; vtable 0x2D5120, 48 slots */
 struct PATHLINK : LO
 {
-    char pad50[0x60 - 0x50];
+    int numEnds;            /* +0x50 the number of link segments (BHVPATHLINK walks 0..numEnds-1) */
+    int unknown54[3];
     PATHLINKEND aend[6];
     char pad120[0x160 - 0x120];
     virtual void Init() __asm__("InitPathlink");   /* slot 7 */
