@@ -252,9 +252,8 @@ void BHV193::OnPush()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144E68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int usesStraightPath; char pad3[0x64 - 0x44]; float arrivalRadius; char pad4[0xCC - 0x68]; int forcesButton8; float speedScale; };
-struct P { char pad[0x10]; void *guard; char pad2[0x30 - 0x14]; int usesStraightPath; float arrivalRadius; int forcesButton8; float speedScale; qword goal; };
+struct O : BHV { char pad2[0x40 - 0x30]; int usesStraightPath; char pad3[0x64 - 0x44]; float arrivalRadius; char pad4[0xCC - 0x68]; int forcesButton8; float speedScale; };
+struct P : BHV { int usesStraightPath; float arrivalRadius; int forcesButton8; float speedScale; qword goal; };
 void StartBhv(void *behavior);
 struct O *PushStepBehavior(void *guard, int cid);
 void SetBhvWalkToGoal(struct P *behavior, qword goal);
@@ -263,16 +262,14 @@ void SetBhvWalkToGoal(struct P *behavior, qword goal);
 void StartBhvWalkTo(struct P *behavior)
 {
     struct O *child;
-    struct VTE *entry;
     StartBhv(behavior);
-    child = PushStepBehavior(behavior->guard, CID_BHV168);
+    child = PushStepBehavior(behavior->owner, CID_BHV168);
     child->usesStraightPath = behavior->usesStraightPath;
     child->arrivalRadius = behavior->arrivalRadius;
     child->forcesButton8 = behavior->forcesButton8;
     child->speedScale = behavior->speedScale;
     SetBhvWalkToGoal(behavior, behavior->goal);
-    entry = &child->vt[8];
-    ((void (*)(void *))entry->pfn)((char *)child + entry->d);   /* Start */
+    child->Start();
 }
 } } // namespace M_func_00144E68
 
