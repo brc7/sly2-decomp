@@ -1441,15 +1441,14 @@ int IsWidgetObscured(struct S *widget)
 
 // 0x213830 StartWidgetMainAnim
 namespace M_StartWidgetMainAnim { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x6C]; int mainAnimId; char pad3[4]; void *spriteGroups; char pad4[0x24]; int isExclusive; };
+struct S : LO { char pad50[0x7C - 0x50]; int mainAnimId; char pad3[4]; void *spriteGroups; char pad4[0x24]; int isExclusive; };
 void StartSpriteAnimById(void *p);
 void SetWidgetExclusive(struct S *p, int a);
 // Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
 void StartWidgetMainAnim(struct S *widget, int animId)
 {
     StartSpriteAnimById(widget->spriteGroups);
-    widget->vt[21].pf((char *)widget + widget->vt[21].d, 1);   /* slot 21 (1 = on) */
+    widget->SetFlag8(1);
     if (widget->isExclusive)
         SetWidgetExclusive(widget, 0);
     widget->mainAnimId = animId;
