@@ -52,20 +52,6 @@ struct VECKEY : public KEYV
 struct SCALARKEY : public KEYV
 {
 };
-struct CHN
-{
-      int oid : 20;
-      int ixf : 10;
-      uint fStripped : 1;
-      uint fScalar : 1;
-      KEYV *pkey;
-};
-struct MRSGC
-{
-      int ib;
-      int cmrsg;
-      MRSG *amrsg;
-};
 void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("ResolveAsegChannelTarget");
 CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("FindAsegChannel");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
@@ -230,8 +216,8 @@ void PostJtLoadGait(GAIT *gait)
         {
             CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->player, 1, 1);
             VECTOR4 vStart, vEnd;
-            ((VECKEY *)pchn->pkey)->GetValue(0.0f, 1.0f, (qword *)&vStart, 0);
-            ((VECKEY *)pchn->pkey)->GetValue(aseg->duration, 1.0f, (qword *)&vEnd, 0);
+            ((VECKEY *)pchn->pac)->GetValue(0.0f, 1.0f, (qword *)&vStart, 0);
+            ((VECKEY *)pchn->pac)->GetValue(aseg->duration, 1.0f, (qword *)&vEnd, 0);
             qword qwDiff = VuSub(*(qword *)&vEnd, *(qword *)&vStart);
             VU_FLOAT vuT;
             __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&aseg->duration )) ;
@@ -244,14 +230,14 @@ void PostJtLoadGait(GAIT *gait)
         CHN *pchn = &gait->blendedAnimation->achn[ichn];
         VKBLEND *pvkblend;
         SKBLEND *pskblend;
-        if (pchn->fScalar)
+        if (pchn->u.isScalar)
         {
             pvkblend = 0;
-            pskblend = (SKBLEND *)pchn->pkey;
+            pskblend = (SKBLEND *)pchn->pac;
         }
         else
         {
-            pvkblend = (VKBLEND *)pchn->pkey;
+            pvkblend = (VKBLEND *)pchn->pac;
             pskblend = 0;
         }
         SO *so;
@@ -417,8 +403,8 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
     p->ca = p->c - p->a;
     c = FindAsegChannel(p->paseg, arg, 1, 1);
     if (c) {
-        CURVECALL((CV *)c->pkey, &v0.q, 0, p->a, 1.0f);
-        CURVECALL((CV *)c->pkey, &v1.q, 0, p->c, 1.0f);
+        CURVECALL((CV *)c->pac, &v0.q, 0, p->a, 1.0f);
+        CURVECALL((CV *)c->pac, &v1.q, 0, p->c, 1.0f);
         __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4" : "=j"(d), "=f"(start) : "j"(v0.q), "j"(v1.q), "m"(p->a));
         h = p->c;
         __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tdaddu "
@@ -428,7 +414,7 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
         h *= 0.5f;
         __asm__("qmfc2.ni %0,%3\n\tsw %0,%1\n\tlw %2,%4"
                 : "=&r"(n), "=m"(p->dist.bits), "=r"(thirdCurve)
-                : "j"(d), "m"(c->pkey));
+                : "j"(d), "m"(c->pac));
         CURVECALL(thirdCurve, &v2.q, derivative, start + h, 1.0f);
         {
             V3 *pv = &p->v;
@@ -685,8 +671,8 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
         if (!o)
             continue;
         c = FindAsegChannel(o, arg, 1, 1);
-        ((VECKEY *)c->pkey)->GetValue(0.0f, 1.0f, &v0.q, 0);
-        ((VECKEY *)c->pkey)->GetValue(o->duration, 1.0f, &v1.q, 0);
+        ((VECKEY *)c->pac)->GetValue(0.0f, 1.0f, &v0.q, 0);
+        ((VECKEY *)c->pac)->GetValue(o->duration, 1.0f, &v1.q, 0);
         {
             register int bits __asm__("$17") = *(int *)&o->duration;
             __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5"

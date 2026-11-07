@@ -31,26 +31,8 @@ struct AC
     virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
 };
 
-/* ASEG::achn entry: the target object (OID, 20 bits) and the sub-object index of the animated XF (10 bits), two flags
-   (bit 30: skip in the stand-alone evaluation; bit 31: rotation curve), and the curve. The per-function files read the
-   key word three ways, kept as a union. */
-struct CHN
-{
-    union
-    {
-        struct { unsigned n : 20; unsigned k : 10; unsigned skipStandalone : 1; unsigned isRotationCurve : 1; } u;
-        struct { int id : 20; int sub : 10; unsigned skipStandalone : 1; unsigned isRotationCurve : 1; } s;  /* signed reads */
-        unsigned int grf;
-    };
-    union { AC *pac; int n4; };
-};
-
-/* ASEG::aovr entry: value, target OID, curve. */
-struct OVR { int slot; int oid; union { AC *pac; int curveBits; }; };
-
 /* What ASEGA::pactsegFirst / povraFirst link (built by ApplyAsegCore). */
 struct ACTSEG { int kind; LO *plo; void *pv; int priority; int pad10; int role; VTE *pvt; int curve; int rotationCurve; ASEGA *pasega; ACTSEG *pactsegNext; };
-struct OVRA { int curve; int targetIndex; LO *plo; int slot; OVRA *povraNext; };
 
 /* The XF a channel animates, as PredictAsegTransform reads it. */
 struct M4 { qword a[4]; };
@@ -146,13 +128,13 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
  px->achn = (CHN *)AllocFromWorldHeap(&req);
  for (i = 0; i < px->cchn; i++) {
    CHN *pe = &px->achn[i];
-   pe->u.n = S32Read__18CBinaryInputStream(stream);
-   pe->u.k = S16Read__18CBinaryInputStream(stream);
+   pe->u.oid = S32Read__18CBinaryInputStream(stream);
+   pe->u.subIndex = S16Read__18CBinaryInputStream(stream);
    int id = S8Read__18CBinaryInputStream(stream);
-   if (id != -1) { pe->pac = PacNewKind(id); pe->pac->Load(stream); pe->u.isRotationCurve = 0; }
+   if (id != -1) { pe->pac = PacNewKind(id); pe->pac->Load(stream); pe->u.isScalar = 0; }
    id = S8Read__18CBinaryInputStream(stream);
-   if (id != -1) { pe->pac = PacNewKind2(id); pe->pac->Load(stream); pe->u.isRotationCurve = 1; }
-   pe->u.skipStandalone = U8Read__18CBinaryInputStream(stream) != 0;
+   if (id != -1) { pe->pac = PacNewKind2(id); pe->pac->Load(stream); pe->u.isScalar = 1; }
+   pe->u.isStripped = U8Read__18CBinaryInputStream(stream) != 0;
  }
  px->covr = U8Read__18CBinaryInputStream(stream);
  req.cbAlign = 0x10; req.cb = px->covr * 12;
@@ -160,7 +142,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
  for (i = 0; i < px->covr; i++) {
    OVR *pe = &px->aovr[i];
    pe->slot = U8Read__18CBinaryInputStream(stream);
-   pe->oid = S32Read__18CBinaryInputStream(stream);
+   pe->oid = (OID)S32Read__18CBinaryInputStream(stream);
    pe->pac = PacNewKind2(S8Read__18CBinaryInputStream(stream));
    pe->pac->Load(stream);
  }
@@ -292,9 +274,9 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
                 pn->pvt = D_002CAF08;
                 pn->kind = 0;
                 if (pe->grf & 0x80000000)
-                    pn->rotationCurve = pe->n4;
+                    pn->rotationCurve = pe->curveBits;
                 else
-                    pn->curve = pe->n4;
+                    pn->curve = pe->curveBits;
                 pn->plo = a;
                 pn->pv = b;
                 pn->priority = pt->priority;
@@ -313,7 +295,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         ResolveAsegOverrideTarget(pt, x, pe, &a, &b);
         if (b) {
             OVRA *pn = (OVRA *)AllocOvra(0x14);
-            pn->curve = pe->curveBits;
+            pn->curveBits = pe->curveBits;
             pn->targetIndex = b;
             pn->plo = a;
             pn->slot = pe->slot;
@@ -358,13 +340,13 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
 void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
-        *ppo = FindSwObject(&D_003DD490, 1, (OID)pk->s.id, (LO *)b);
+        *ppo = FindSwObject(&D_003DD490, 1, (OID)pk->s.oid, (LO *)b);
     else
-        *ppo = FindSwObject(&D_003DD490, 4, (OID)pk->s.id, a);
+        *ppo = FindSwObject(&D_003DD490, 4, (OID)pk->s.oid, a);
     if (!*ppo)
         *pn = 0;
     else
-        *pn = ((void *(*)(LO *, int))PVT(*ppo)[51].pfn)((LO *)((char *)*ppo + PVT(*ppo)[51].d), pk->s.sub);
+        *pn = ((void *(*)(LO *, int))PVT(*ppo)[51].pfn)((LO *)((char *)*ppo + PVT(*ppo)[51].d), pk->s.subIndex);
 }
 
 // Finds the segment's channel that animates the given object and transform component; optionally only channels with the
@@ -374,13 +356,13 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
     int i;
     for (i = 0; i < t->cchn; i++) {
         CHN *pe = &t->achn[i];
-        if (fCheck && !pe->s.skipStandalone)
+        if (fCheck && !pe->s.isStripped)
             continue;
-        if (pe->s.id != po->oid)
+        if (pe->s.oid != po->oid)
             continue;
-        if (pe->s.isRotationCurve)
+        if (pe->s.isScalar)
             continue;
-        if (((R94 *(*)(LO *, int))PVT(po)[51].pfn)((LO *)((char *)po + PVT(po)[51].d), pe->s.sub)->pv == pv)
+        if (((R94 *(*)(LO *, int))PVT(po)[51].pfn)((LO *)((char *)po + PVT(po)[51].d), pe->s.subIndex)->pv == pv)
             return pe;
     }
     return 0;
@@ -429,7 +411,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
     apy = (XFV **)AllocFromStack(AREQT(px->cchn * 4, 0x10));
     for (i = 0; i < px->cchn; i++) {
         pe = &px->achn[i];
-        if (pe->u.skipStandalone) {
+        if (pe->u.isStripped) {
             apy[i] = 0;
         } else {
             LO *n;
@@ -439,7 +421,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
     for (py = pyFirst; py != pyLast; py = py->pxfNext) {
         for (i = 0; i < px->cchn; i++) {
             pe = &px->achn[i];
-            if (py == apy[i] && !pe->u.isRotationCurve) {
+            if (py == apy[i] && !pe->u.isScalar) {
                 pe->pac->Eval(f, g, &aq[0], &aq[1]);
                 mA = BuildXfValueMatrix(py, aq[0]);
                 switch (py->valueKind) {

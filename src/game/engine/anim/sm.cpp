@@ -5,8 +5,8 @@
 // Entry points: SM::LoadFromBrx (level loading), ApplySmCore and its wrappers / ReplaceSma (start a machine on an
 // object), SetSmaGoal / SeekSma / SnapSma / SkipSma / SetSmaMask (drive it), HandleSmaMessage (transition end).
 //
-// Types: aseg.h SM/SMA, sw.h SW, lo.h LO; the file-scope types after the includes are LoadSmFromBrx's Lilly
-// declarations (SMT, SMS, SMINIT, its CBinaryInputStream...). The m2c bodies and the three C++-named functions are
+// Types: aseg.h SM/SMA/SMS/SMT/SMRT/SMINIT, sw.h SW, lo.h LO; the file-scope types after the includes are LoadSmFromBrx's Lilly
+// declarations (its CBinaryInputStream, SWALLOC...). The m2c bodies and the three C++-named functions are
 // written on them; the other functions keep the per-function views they were matched with, each in a namespace
 // named after it (as vec.cpp and mark.cpp do). SM::LoadFromBrx (its first virtual) is defined here, so this is SM's
 // key TU (with -fno-rtti g++ emits no typeinfo function __tf2SM for it any more).
@@ -44,43 +44,6 @@ extern "C" {
 void PostLoLoad(LO *plo);
 void ApplySmToObject(SM *psm, ALO *palo, OID oid, GRFAPL grfapl);   /* PsmaApplySm */
 }
-
-struct SMRT
-{
-      int grf;
-      signed char *ab;
-};
-
-struct SMINIT
-{
-      OID oidRoot;
-      OID oidInitialState;
-      GRFAPL grfapl;
-};
-
-struct SMT
-{
-    union
-    {
-          int fAseg;
-          ASEG *paseg;
-    };
-      int ismsFrom;
-      int ismsTo;
-      GRFSMT grfsmt;
-      GRFSMT grfsmtBreak;
-      float gProbability;
-};
-
-struct SMS
-{
-      OID oid;
-    union
-    {
-          OID oidNext;
-          int ismsNext;
-    };
-};
 
 class CBinaryStreamBase
 {

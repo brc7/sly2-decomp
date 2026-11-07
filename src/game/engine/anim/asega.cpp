@@ -50,12 +50,7 @@ struct ACV
     virtual void Eval(float t, float svt, qword *pq1, qword *pq2);
 };
 struct ACTSEGV { int kind; LO *plo; XF *pxf; int nPriority; int pad10; int role; VTE *pvt; ACV *pac; ACV *pacRot; ASEGA *pasega; ACTSEGV *pactsegNext; };
-struct OVRA { ACV *pac; int targetIndex; LO *plo; int slot; OVRA *povraNext; };
 
-/* The event payloads (EA::pesnd, pea17, pea20). */
-struct EASND { int sfxId; int oid; int rangeNear; int rangeFar; float pitch; float doppler; float volume; };   /* StartSwAsegSound (sw.cpp) */
-struct EA17 { int oid; int oid1; int oid2; float value; };   /* func_00210538 (sw.cpp) */
-struct EA20 { int id0; int id1; float value; };   /* func_00210678 (sw.cpp) */
 
 struct G { ASEGA *p; };
 
