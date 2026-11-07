@@ -24,6 +24,7 @@
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 #include "sly2/jt.h"
+#include "sly2/players.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 
@@ -1566,74 +1567,41 @@ extern "C" void InflictBhvguardZap(BHVGUARD *behavior, int amount, LO *source)
 
 // 0x176BE8 HandleBhvguardMessage
 namespace M_BHVGUARD_FHandleMessage {
-union U; struct VE; struct OBJECT; struct MSGDATA; union MSG; struct STATE; struct HELPER; struct S; struct SLOT; struct M4; struct WORK; struct OFFSETINPUTS;
+union U; struct WORK; struct OFFSETINPUTS;
 // Handle movement-state response events.
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
-struct VE{short delta,pad;void*fn;};
-struct ASEG;struct ASEGA;struct TUNE;
-struct OBJECT{
- char pad0[0xC];VE*vt;
- char pad10[0x28C];int suppressAmount;
- char pad2A0[0x9C];int reserve,capacity,progress;ASEG*clip;ASEGA*animation;
- unsigned mask9,mask10,mask11;char pad35C[4];float animationTime;
- char pad364[0x28];OBJECT*selected;
- char pad390[0x3C];TUNE*tuning;
- char pad3D0[0xD4];int extraGate;
- char pad4A8[0x9DC];int otherCapacity,otherProgress;ASEG*otherClip;ASEGA*otherAnimation;
- char padE94[0x128];int mode;
- char padFC0[0x410];int state;
- char pad13D4[0x68];int notifyEnabled;
-};
-struct MSGDATA{
- OBJECT*object;int word4,word8;unsigned kind;int amount;
- char pad14[0x1C];qword direction;int word40;int flags;char pad48[0x18];
-};
-union MSG{qword q[6];MSGDATA data;};
-struct STATE{int kind,pad4,pad8,padC;MSG msg;};
-struct HELPER{char pad0[0x58];float until;unsigned flags;};
-struct S{char pad0[0x10];OBJECT*guard;int pad14;HELPER*helper;char pad1C[0x14];STATE current;};
-struct SLOT{int kind;char pad4[0xC];};
-struct M4{qword r[4];};
-struct WORK{STATE next;U scalar,own,other,copy,delta;};
+struct WORK{BHVGUARDRECDATA next;U scalar,own,other,copy,delta;};
 struct OFFSETINPUTS{qword own,other,copy;};
 extern "C"{
-extern OBJECT*D_002F7900;
-
-extern void*D_003E14B8;extern SW D_003DD490;
-extern CLOCK D_002DDED0;extern float D_002BE620;
+extern MURRAY*D_002F7900;
+extern float D_002BE620;
 void*func_002333B4(void*,int,unsigned) __asm__("memset");
-void SetBhvguardMode(S*,STATE*);
-qword GetLoWorldPos(void*);M4*GetLoWorldMatrix(void*);
-qword ConvertVecBetweenLos(void*,void*,qword);
-int IsBasicDerivedFrom__FP5BASIC3CID(void*,int);
-void SpawnMurrayHitEffectUnchecked(OBJECT*,qword);
-void SpawnMurrayHitEffect(OBJECT*,qword);
-OBJECT*NewNoise(void*,qword,OBJECT*);
-void SetStepguardSpecial(OBJECT*,int);
-void SetSoZapMode(OBJECT*,int);
-unsigned GetSoZapResponseFlags(OBJECT*,unsigned);
+MATRIX4*GetLoWorldMatrix(LO*);
+qword ConvertVecBetweenLos(LO*,LO*,qword);
+void SpawnMurrayHitEffectUnchecked(MURRAY*,qword);
+void SpawnMurrayHitEffect(MURRAY*,qword);
+LO*NewNoise(void*,qword,STEPGUARD*);
+void SetStepguardSpecial(STEPGUARD*,int);
+void SetSoZapMode(SO*,int);
+unsigned GetSoZapResponseFlags(SO*,unsigned);
 int GetZapKindIndex(unsigned);
-void SetTargetRecordState(TUNE*,int);
-void SetBhvSleepState(HELPER*,int);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,OBJECT*,float,float,int,ASEGA**);
+void SetTargetRecordState(TARGETREC*,int);
+void SetBhvSleepState(BHV175*,int);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,STEPGUARD*,float,float,int,ASEGA**);
 unsigned long GetSgfMask(int);
-int IsStepguardTargetValidEx(OBJECT*,OBJECT*,unsigned long);
-int IsStepguardTargetValid(OBJECT*,OBJECT*,unsigned long);
-void*FindBestAnimBinding(OBJECT*,unsigned long);
-int HandleBhvMessage(S*,int,MSG*);
+int IsStepguardTargetValidEx(STEPGUARD*,LO*,unsigned long);
+int IsStepguardTargetValid(STEPGUARD*,LO*,unsigned long);
+void*FindBestAnimBinding(STEPGUARD*,unsigned long);
 }
 // Clears a mode record.
-static __inline__ void Clear(STATE*s){(void)func_002333B4(s,0,sizeof(*s));}
-// Asks the object whether it accepts a zap (its vtable slot 86).
-static __inline__ int Accept(OBJECT*p,MSG*m){VE&v=p->vt[86];return((int(*)(void*,MSG*))v.fn)((char*)p+v.delta,m);}
+static __inline__ void Clear(BHVGUARDRECDATA*s){(void)func_002333B4(s,0,sizeof(*s));}
 // The guard's zap-reaction binding tables (STEPGUARD::knockdownReactions and hurtReactions), indexed by zap kind.
-enum { KNOCKDOWN_REACTIONS = 0x8D0, HURT_REACTIONS = 0xA70 };
+enum { KNOCKDOWN_REACTIONS = SLY2_OFFSETOF(STEPGUARD, knockdownReactions), HURT_REACTIONS = SLY2_OFFSETOF(STEPGUARD, hurtReactions) };
 // Returns the per-kind slot of an object's table.
-static __inline__ SLOT *Slot(OBJECT *p, unsigned kind, int offset)
+static __inline__ ANIMBINDING *Slot(STEPGUARD *p, unsigned kind, int offset)
 {
     int index = GetZapKindIndex(kind);
-    return (SLOT *)((char *)p + offset + index * sizeof(SLOT));
+    return (ANIMBINDING *)((char *)p + offset + index * sizeof(ANIMBINDING));
 }
 // The larger of two values.
 static __inline__ float Max(float a,float b){register float right __asm__("$f1")=b;__asm__("max.s %0,%0,%1":"+f"(a):"f"(right));return a;}
@@ -1667,131 +1635,131 @@ enum KINDENUM{KIND_NONE=-1,KIND_MAX=0x7fffffff};
 // 0x176BE8: BHVGUARD vtable slot 13 (HandleMessage): message 12 (zap) picks hurt, knockdown or KO from the zap
 // kind, the reaction tables and the hit points; special zaps put it to sleep (0x80000), grab it (0x200000, held),
 // throw it, and so on; other messages switch modes (alert, script, ...).
-extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
+extern "C" int HandleBhvguardMessage(BHV156 *behavior, int event, ZPR *msg)
 {
     WORK w;
     int flags;
     int originalFlags;
     if (event == 12) {
-        MSG *selected = msg;
-        if (Accept(behavior->guard, msg)) {
-            if (D_002F7900 && msg->data.object == D_002F7900 && msg->data.kind == 0x40000
-                && msg->data.object->notifyEnabled)
-                SpawnMurrayHitEffectUnchecked(D_002F7900, GetLoWorldPos(behavior->guard));
-            if (msg->data.kind == 0x40000) {
+        ZPR *selected = msg;
+        if (((STEPGUARD *)behavior->owner)->IsZapLethal(msg)) {
+            if (D_002F7900 && msg->ploSource == D_002F7900 && msg->zpk == 0x40000
+                && ((MURRAY *)msg->ploSource)->unknown143C)
+                SpawnMurrayHitEffectUnchecked(D_002F7900, GetLoWorldPos(((STEPGUARD *)behavior->owner)));
+            if (msg->zpk == 0x40000) {
                 void *context = (*(void **)&g_sw.apstimk[3]);
-                qword position = GetLoWorldPos(behavior->guard);
-                (void)NewNoise(context, position, behavior->guard);
+                qword position = GetLoWorldPos(((STEPGUARD *)behavior->owner));
+                (void)NewNoise(context, position, ((STEPGUARD *)behavior->owner));
             }
             Clear(&w.next);
             w.next.kind = GUARD_MODE_KO;
-            w.next.msg = *msg;
-            w.next.msg.data.flags = REACT_KO;
+            w.next.zap = *msg;
+            w.next.zap.grfzpr = REACT_KO;
             SetBhvguardMode(behavior, &w.next);
             return 1;
         }
-        switch (behavior->guard->mode) {
+        switch (((STEPGUARD *)behavior->owner)->specialState) {
         case 14:
-            SetStepguardSpecial(behavior->guard, -1);
+            SetStepguardSpecial(((STEPGUARD *)behavior->owner), -1);
             break;
         case 8:
         case 13:
-            msg->data.amount <<= 2;
+            msg->dhp <<= 2;
             break;
         }
-        if (behavior->guard->suppressAmount)
-            msg->data.amount = 0;
-        if (behavior->guard->extraGate && behavior->current.kind != GUARD_MODE_KO && behavior->current.kind != GUARD_MODE_SCRIPT
-            && (msg->data.kind == ZAP_STUCK_WATCH || msg->data.kind == ZAP_WATER)) {
-            SetSoZapMode(behavior->guard, 0);
+        if (((STEPGUARD *)behavior->owner)->unknown29C)
+            msg->dhp = 0;
+        if (((STEPGUARD *)behavior->owner)->tracksRelocatePoint && behavior->modeRec.kind != GUARD_MODE_KO && behavior->modeRec.kind != GUARD_MODE_SCRIPT
+            && (msg->zpk == ZAP_STUCK_WATCH || msg->zpk == ZAP_WATER)) {
+            SetSoZapMode(((STEPGUARD *)behavior->owner), 0);
             Clear(&w.next);
             w.next.kind = GUARD_MODE_RELOCATE;
             SetBhvguardMode(behavior, &w.next);
             return 1;
         }
-        switch ((KINDENUM)behavior->current.kind) {
+        switch ((KINDENUM)behavior->modeRec.kind) {
         case GUARD_MODE_HURT:
-            if (!(GetSoZapResponseFlags(behavior->guard, msg->data.kind) & 0x40)) {
-                if (!(msg->data.kind & behavior->guard->mask9) || (behavior->helper->flags & behavior->guard->mask9))
+            if (!(GetSoZapResponseFlags(((STEPGUARD *)behavior->owner), msg->zpk) & 0x40)) {
+                if (!(msg->zpk & ((STEPGUARD *)behavior->owner)->hurtZapMask) || (((BHVHIT *)behavior->pbhvNext)->zapKind & ((STEPGUARD *)behavior->owner)->hurtZapMask))
                     return 1;
             }
             break;
         case GUARD_MODE_KNOCKDOWN:
-            if (!(msg->data.kind & behavior->guard->mask10))
+            if (!(msg->zpk & ((STEPGUARD *)behavior->owner)->knockdownZapMask))
                 return 1;
             break;
         case GUARD_MODE_KO:
-            if (!(msg->data.kind & behavior->guard->mask11))
+            if (!(msg->zpk & ((STEPGUARD *)behavior->owner)->koZapMask))
                 return 1;
-            if (behavior->helper->flags & behavior->guard->mask11)
+            if (((BHVHIT *)behavior->pbhvNext)->zapKind & ((STEPGUARD *)behavior->owner)->koZapMask)
                 return 1;
             break;
         }
-        if (behavior->guard->selected == msg->data.object)
-            SetTargetRecordState(behavior->guard->tuning, 5);
-        if (msg->data.kind == ZAP_SLEEP_DART && (msg->data.flags & 8)) {
-            if (behavior->current.kind == GUARD_MODE_SLEEP) {
-                HELPER *h = behavior->helper;
+        if (((STEPGUARD *)behavior->owner)->target == msg->ploSource)
+            SetTargetRecordState(((STEPGUARD *)behavior->owner)->pvEngage, 5);
+        if (msg->zpk == ZAP_SLEEP_DART && (msg->grfzpr & 8)) {
+            if (behavior->modeRec.kind == GUARD_MODE_SLEEP) {
+                BHV175 *h = (BHV175 *)behavior->pbhvNext;
                 SetBhvSleepState(h, 0);
-                h->until = Max(D_002DDED0.time + D_002BE620, h->until);
+                h->wakeTime = Max(D_002DDED0.time + D_002BE620, h->wakeTime);
             } else {
-                behavior->guard->otherProgress += msg->data.amount;
-                if (behavior->guard->otherProgress <= 0) {
-                    behavior->guard->otherProgress = behavior->guard->otherCapacity;
+                ((STEPGUARD *)behavior->owner)->sleepDartProgress += msg->dhp;
+                if (((STEPGUARD *)behavior->owner)->sleepDartProgress <= 0) {
+                    ((STEPGUARD *)behavior->owner)->sleepDartProgress = ((STEPGUARD *)behavior->owner)->sleepDartCapacity;
                     Clear(&w.next);
                     w.next.kind = GUARD_MODE_SLEEP;
                     SetBhvguardMode(behavior, &w.next);
                 } else
-                    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->otherClip, behavior->guard, 0.0f, 1.0f, 1,
-                                                          &behavior->guard->otherAnimation);
+                    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(((STEPGUARD *)behavior->owner)->sleepDartAseg, ((STEPGUARD *)behavior->owner), 0.0f, 1.0f, 1,
+                                                          &((STEPGUARD *)behavior->owner)->sleepDartAsega);
             }
-        } else if (msg->data.kind == ZAP_JUGGLE && (msg->data.flags & 8)
-                   && IsStepguardTargetValidEx(behavior->guard, msg->data.object, GetSgfMask(6))) {
+        } else if (msg->zpk == ZAP_JUGGLE && (msg->grfzpr & 8)
+                   && IsStepguardTargetValidEx(((STEPGUARD *)behavior->owner), msg->ploSource, GetSgfMask(6))) {
             {
                 {
-                    int reserve = behavior->guard->reserve + msg->data.amount;
+                    int reserve = ((STEPGUARD *)behavior->owner)->hitPoints + msg->dhp;
                     int limited = 4 < reserve ? reserve : 5;
-                    behavior->guard->reserve = limited;
+                    ((STEPGUARD *)behavior->owner)->hitPoints = limited;
                 }
-                (void)NewNoise(D_003DD490.apstimk[2], GetLoWorldPos(behavior->guard), behavior->guard);
+                (void)NewNoise(D_003DD490.apstimk[2], GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner));
                 Clear(&w.next);
                 w.next.kind = GUARD_MODE_JUGGLED;
-                w.next.msg.data.object = msg->data.object;
+                w.next.arg.object = msg->ploSource;
                 SetBhvguardMode(behavior, &w.next);
             }
-        } else if (msg->data.kind == 0x1000000 && (msg->data.flags & 8)) {
+        } else if (msg->zpk == 0x1000000 && (msg->grfzpr & 8)) {
             Clear(&w.next);
-            if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
+            if (IsStepguardTargetValid(((STEPGUARD *)behavior->owner), msg->ploSource, GetSgfMask(SGF_JUGGLED)))
                 w.next.kind = GUARD_MODE_KNOCKDOWN;
             else
                 w.next.kind = GUARD_MODE_HURT;
-            w.next.msg = *msg;
-            behavior->current.kind = GUARD_MODE_NONE;
+            w.next.zap = *msg;
+            behavior->modeRec.kind = GUARD_MODE_NONE;
             SetBhvguardMode(behavior, &w.next);
-            SetStepguardSpecial(behavior->guard, 8);
-        } else if (msg->data.kind == 0x2000000 && (msg->data.flags & 8)) {
+            SetStepguardSpecial(((STEPGUARD *)behavior->owner), 8);
+        } else if (msg->zpk == 0x2000000 && (msg->grfzpr & 8)) {
             Clear(&w.next);
-            if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
+            if (IsStepguardTargetValid(((STEPGUARD *)behavior->owner), msg->ploSource, GetSgfMask(SGF_JUGGLED)))
                 w.next.kind = GUARD_MODE_KNOCKDOWN;
             else
                 w.next.kind = GUARD_MODE_HURT;
-            w.next.msg = *msg;
-            behavior->current.kind = GUARD_MODE_NONE;
+            w.next.zap = *msg;
+            behavior->modeRec.kind = GUARD_MODE_NONE;
             SetBhvguardMode(behavior, &w.next);
-            SetStepguardSpecial(behavior->guard, 0x22);
-        } else if ((originalFlags = msg->data.flags) & REACT_ANY) {
+            SetStepguardSpecial(((STEPGUARD *)behavior->owner), 0x22);
+        } else if ((originalFlags = msg->grfzpr) & REACT_ANY) {
             flags = originalFlags;
             Clear(&w.next);
             {
-                void *context = msg->data.kind == 0x40000 ? (*(void **)&g_sw.apstimk[3]) : (*(void **)&g_sw.apstimk[0]);
-                qword position = GetLoWorldPos(behavior->guard);
-                (void)NewNoise(context, position, behavior->guard);
+                void *context = msg->zpk == 0x40000 ? (*(void **)&g_sw.apstimk[3]) : (*(void **)&g_sw.apstimk[0]);
+                qword position = GetLoWorldPos(((STEPGUARD *)behavior->owner));
+                (void)NewNoise(context, position, ((STEPGUARD *)behavior->owner));
             }
-            if (Below(behavior->current.kind, GUARD_MODE_KO) && !Below(behavior->current.kind, GUARD_MODE_SLEEP)
-                && IsBasicDerivedFrom__FP5BASIC3CID(msg->data.object, CID_CLASS101)
+            if (Below(behavior->modeRec.kind, GUARD_MODE_KO) && !Below(behavior->modeRec.kind, GUARD_MODE_SLEEP)
+                && IsBasicDerivedFrom(msg->ploSource, (CID)CID_CLASS101)
                 && (originalFlags & (REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN)))
                 flags = originalFlags | REACT_KO;
-            if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
+            if (IsStepguardTargetValid(((STEPGUARD *)behavior->owner), msg->ploSource, GetSgfMask(SGF_JUGGLED)))
                 flags |= REACT_KNOCKDOWN;
             if (flags & REACT_KO)
                 flags &= ~(REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN);
@@ -1799,91 +1767,91 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                 flags &= ~REACT_FLINCH;
             if (flags & REACT_KNOCKDOWN) {
                 flags &= ~REACT_HURT;
-                int type = Slot(behavior->guard, msg->data.kind, KNOCKDOWN_REACTIONS)->kind;
-                if (type == -1 && Slot(behavior->guard, msg->data.kind, HURT_REACTIONS)->kind != type) {
+                int type = Slot(((STEPGUARD *)behavior->owner), msg->zpk, KNOCKDOWN_REACTIONS)->kind;
+                if (type == -1 && Slot(((STEPGUARD *)behavior->owner), msg->zpk, HURT_REACTIONS)->kind != type) {
                     flags &= ~REACT_KNOCKDOWN;
                     flags |= REACT_HURT;
                 }
-                if (Slot(behavior->guard, msg->data.kind, KNOCKDOWN_REACTIONS)->kind == -1
-                    && !FindBestAnimBinding(behavior->guard, GetSgfMask(6))) {
+                if (Slot(((STEPGUARD *)behavior->owner), msg->zpk, KNOCKDOWN_REACTIONS)->kind == -1
+                    && !FindBestAnimBinding(((STEPGUARD *)behavior->owner), GetSgfMask(6))) {
                     flags &= ~REACT_KNOCKDOWN;
                     flags |= REACT_HURT;
                 }
             }
             if (flags & REACT_FLINCH) {
-                if (behavior->guard->capacity > 0) {
-                    behavior->guard->progress += msg->data.amount;
-                    if (behavior->guard->progress > 0) {
-                        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->clip, behavior->guard, 0.0f, 1.0f, 1,
-                                                              &behavior->guard->animation);
-                        behavior->guard->animationTime = D_002DDED0.time;
+                if (((STEPGUARD *)behavior->owner)->staggerCapacity > 0) {
+                    ((STEPGUARD *)behavior->owner)->staggerProgress += msg->dhp;
+                    if (((STEPGUARD *)behavior->owner)->staggerProgress > 0) {
+                        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(((STEPGUARD *)behavior->owner)->staggerAseg, ((STEPGUARD *)behavior->owner), 0.0f, 1.0f, 1,
+                                                              &((STEPGUARD *)behavior->owner)->heldAnimation);
+                        ((STEPGUARD *)behavior->owner)->pulseStartTime = D_002DDED0.time;
                     } else
                         flags |= REACT_HURT;
                 } else
                     flags |= REACT_HURT;
             }
             if (flags & (REACT_HURT | REACT_KNOCKDOWN)) {
-                behavior->guard->progress = behavior->guard->capacity;
-                int delta = behavior->guard->capacity > 0 ? -behavior->guard->capacity : msg->data.amount;
-                int reserve = behavior->guard->reserve + delta;
-                behavior->guard->reserve = reserve < 0 ? 0 : reserve;
-                if (behavior->guard->reserve > 0) {
+                ((STEPGUARD *)behavior->owner)->staggerProgress = ((STEPGUARD *)behavior->owner)->staggerCapacity;
+                int delta = ((STEPGUARD *)behavior->owner)->staggerCapacity > 0 ? -((STEPGUARD *)behavior->owner)->staggerCapacity : msg->dhp;
+                int reserve = ((STEPGUARD *)behavior->owner)->hitPoints + delta;
+                ((STEPGUARD *)behavior->owner)->hitPoints = reserve < 0 ? 0 : reserve;
+                if (((STEPGUARD *)behavior->owner)->hitPoints > 0) {
                     w.next.kind = (flags & REACT_KNOCKDOWN) ? GUARD_MODE_KNOCKDOWN : GUARD_MODE_HURT;
-                    w.next.msg = *msg;
-                    selected = &w.next.msg;
+                    w.next.zap = *msg;
+                    selected = &w.next.zap;
                 } else
                     flags |= REACT_KO;
             }
             if (flags & REACT_KO) {
                 w.next.kind = GUARD_MODE_KO;
-                w.next.msg = *selected;
-                selected = &w.next.msg;
+                w.next.zap = *selected;
+                selected = &w.next.zap;
             }
             if (flags & (REACT_HURT | REACT_KO | REACT_KNOCKDOWN)) {
-                if (IsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPPLAYER)) {
-                    qword own = GetLoWorldPos(behavior->guard);
-                    OBJECT *otherObject = selected->data.object;
+                if (IsBasicDerivedFrom(selected->ploSource, (CID)CID_STEPPLAYER)) {
+                    qword own = GetLoWorldPos(((STEPGUARD *)behavior->owner));
+                    LO *otherObject = selected->ploSource;
                     w.own.q = own;
                     w.other.q = GetLoWorldPos(otherObject);
                     qword scalar = Raw(-150.0f);
                     w.copy.q = scalar;
-                    OBJECT *frameObject = selected->data.object;
+                    LO *frameObject = selected->ploSource;
                     w.scalar.q = scalar;
-                    M4 *frame = GetLoWorldMatrix(frameObject);
+                    MATRIX4 *frame = GetLoWorldMatrix(frameObject);
                     int special;
                     {
                         register qword axis __asm__("vf1"), origin __asm__("vf2"), delta __asm__("vf3");
-                        register OBJECT *receiver __asm__("$4");
+                        register LO *receiver __asm__("$4");
                         register int queryKind __asm__("$5");
                         const int targetKind = 0x36;
                         const OFFSETINPUTS &inputs = *(const OFFSETINPUTS *)&w.own;
                         __asm__("lqc2 %0,%5\n\taddiu %4,$zero,%8\n\tlqc2 %1,16+%6\n\tlqc2 %2,32+%6\n\tvadda.xyzw "
                                 "$ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x\n\tlw %3,%7\n\tlqc2 %1,%6\n\tvsub.xyzw %2,%1,%0"
                                 : "=&j"(axis), "=&j"(origin), "=&j"(delta), "=&r"(receiver), "=&r"(queryKind)
-                                : "m"(frame->r[0]), "m"(inputs), "m"(selected->data.object), "i"(targetKind));
+                                : "m"(*(qword *)frame->mat[0]), "m"(inputs), "m"(selected->ploSource), "i"(targetKind));
                         w.delta.q = delta;
-                        special = IsBasicDerivedFrom__FP5BASIC3CID(receiver, queryKind);
+                        special = IsBasicDerivedFrom(receiver, (CID)queryKind);
                     }
                     qword direction = w.delta.q;
-                    if (special && selected->data.object->state == 12) {
-                        OBJECT *object = selected->data.object;
+                    if (special && ((MURRAY *)selected->ploSource)->state == 12) {
+                        LO *object = selected->ploSource;
                         *(qword *)&w.scalar = ConvertVecBetweenLos(0, object, direction);
                         w.scalar.f[0] *= 0.25f;
                         direction = ConvertVecBetweenLos(object, 0, w.scalar.q);
                     }
                     qword normalized = Normalize(direction);
                     *(qword *)&w.scalar = Scalar(500.0f);
-                    selected->data.direction = ScaleInPlace(normalized, w.scalar.q);
-                } else if (behavior->guard->mode == -1 && IsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPGUARD)
-                           && selected->data.object->mode == 0x22)
-                    SetStepguardSpecial(behavior->guard, 0x22);
-                behavior->current.kind = GUARD_MODE_NONE;
+                    selected->velocity = ScaleInPlace(normalized, w.scalar.q);
+                } else if (((STEPGUARD *)behavior->owner)->specialState == -1 && IsBasicDerivedFrom(selected->ploSource, (CID)CID_STEPGUARD)
+                           && ((STEPGUARD *)selected->ploSource)->specialState == 0x22)
+                    SetStepguardSpecial(((STEPGUARD *)behavior->owner), 0x22);
+                behavior->modeRec.kind = GUARD_MODE_NONE;
                 SetBhvguardMode(behavior, &w.next);
             }
         }
         // every zap ends here
-        if (D_002F7900 && selected->data.kind == 0x20000)
-            SpawnMurrayHitEffect(D_002F7900, GetLoWorldPos(behavior->guard));
+        if (D_002F7900 && selected->zpk == 0x20000)
+            SpawnMurrayHitEffect(D_002F7900, GetLoWorldPos(((STEPGUARD *)behavior->owner)));
         return 1;
     }
     return HandleBhvMessage(behavior, event, msg);
@@ -1893,55 +1861,10 @@ typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_mask[(sizeof(unsigned long)==8)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_U[(sizeof(U)==16)?1:-1];
-typedef char layout_VE[(sizeof(VE)==8)?1:-1];
-typedef char layout_MSGDATA[(sizeof(MSGDATA)==0x60)?1:-1];
-typedef char layout_MSG[(sizeof(MSG)==0x60)?1:-1];
-typedef char layout_STATE[(sizeof(STATE)==0x70)?1:-1];
-typedef char layout_HELPER[(sizeof(HELPER)==0x60)?1:-1];
-typedef char layout_SLOT[(sizeof(SLOT)==0x10)?1:-1];
-typedef char layout_M4[(sizeof(M4)==0x40)?1:-1];
 typedef char layout_U_q[((unsigned long)&((U*)0)->q==0x0)?1:-1];
 typedef char layout_U_f[((unsigned long)&((U*)0)->f==0x0)?1:-1];
-typedef char layout_VE_delta[((unsigned long)&((VE*)0)->delta==0x0)?1:-1];
-typedef char layout_VE_fn[((unsigned long)&((VE*)0)->fn==0x4)?1:-1];
-typedef char layout_MSGDATA_object[((unsigned long)&((MSGDATA*)0)->object==0x0)?1:-1];
-typedef char layout_MSGDATA_kind[((unsigned long)&((MSGDATA*)0)->kind==0xc)?1:-1];
-typedef char layout_MSGDATA_amount[((unsigned long)&((MSGDATA*)0)->amount==0x10)?1:-1];
-typedef char layout_MSGDATA_direction[((unsigned long)&((MSGDATA*)0)->direction==0x30)?1:-1];
-typedef char layout_MSGDATA_flags[((unsigned long)&((MSGDATA*)0)->flags==0x44)?1:-1];
-typedef char layout_MSG_q[((unsigned long)&((MSG*)0)->q==0x0)?1:-1];
-typedef char layout_MSG_data[((unsigned long)&((MSG*)0)->data==0x0)?1:-1];
-typedef char layout_STATE_kind[((unsigned long)&((STATE*)0)->kind==0x0)?1:-1];
-typedef char layout_STATE_msg[((unsigned long)&((STATE*)0)->msg==0x10)?1:-1];
-typedef char layout_HELPER_until[((unsigned long)&((HELPER*)0)->until==0x58)?1:-1];
-typedef char layout_HELPER_flags[((unsigned long)&((HELPER*)0)->flags==0x5c)?1:-1];
-typedef char layout_S_actor[((unsigned long)&((S*)0)->guard==0x10)?1:-1];
-typedef char layout_S_helper[((unsigned long)&((S*)0)->helper==0x18)?1:-1];
-typedef char layout_S_current[((unsigned long)&((S*)0)->current==0x30)?1:-1];
-typedef char layout_SLOT_kind[((unsigned long)&((SLOT*)0)->kind==0x0)?1:-1];
 typedef char layout_WORK_next[((unsigned long)&((WORK*)0)->next==0x0)?1:-1];
 typedef char layout_WORK_scalar[((unsigned long)&((WORK*)0)->scalar==0x70)?1:-1];
-typedef char layout_OBJECT_vt[((unsigned long)&((OBJECT*)0)->vt==0xc)?1:-1];
-typedef char layout_OBJECT_suppressAmount[((unsigned long)&((OBJECT*)0)->suppressAmount==0x29c)?1:-1];
-typedef char layout_OBJECT_reserve[((unsigned long)&((OBJECT*)0)->reserve==0x33c)?1:-1];
-typedef char layout_OBJECT_capacity[((unsigned long)&((OBJECT*)0)->capacity==0x340)?1:-1];
-typedef char layout_OBJECT_progress[((unsigned long)&((OBJECT*)0)->progress==0x344)?1:-1];
-typedef char layout_OBJECT_clip[((unsigned long)&((OBJECT*)0)->clip==0x348)?1:-1];
-typedef char layout_OBJECT_animation[((unsigned long)&((OBJECT*)0)->animation==0x34c)?1:-1];
-typedef char layout_OBJECT_mask9[((unsigned long)&((OBJECT*)0)->mask9==0x350)?1:-1];
-typedef char layout_OBJECT_mask10[((unsigned long)&((OBJECT*)0)->mask10==0x354)?1:-1];
-typedef char layout_OBJECT_mask11[((unsigned long)&((OBJECT*)0)->mask11==0x358)?1:-1];
-typedef char layout_OBJECT_animationTime[((unsigned long)&((OBJECT*)0)->animationTime==0x360)?1:-1];
-typedef char layout_OBJECT_selected[((unsigned long)&((OBJECT*)0)->selected==0x38c)?1:-1];
-typedef char layout_OBJECT_tuning[((unsigned long)&((OBJECT*)0)->tuning==0x3cc)?1:-1];
-typedef char layout_OBJECT_extraGate[((unsigned long)&((OBJECT*)0)->extraGate==0x4a4)?1:-1];
-typedef char layout_OBJECT_otherCapacity[((unsigned long)&((OBJECT*)0)->otherCapacity==0xe84)?1:-1];
-typedef char layout_OBJECT_otherProgress[((unsigned long)&((OBJECT*)0)->otherProgress==0xe88)?1:-1];
-typedef char layout_OBJECT_otherClip[((unsigned long)&((OBJECT*)0)->otherClip==0xe8c)?1:-1];
-typedef char layout_OBJECT_otherAnimation[((unsigned long)&((OBJECT*)0)->otherAnimation==0xe90)?1:-1];
-typedef char layout_OBJECT_mode[((unsigned long)&((OBJECT*)0)->mode==0xfbc)?1:-1];
-typedef char layout_OBJECT_state[((unsigned long)&((OBJECT*)0)->state==0x13d0)?1:-1];
-typedef char layout_OBJECT_notifyEnabled[((unsigned long)&((OBJECT*)0)->notifyEnabled==0x143c)?1:-1];
 
 typedef char layout_WORK_size[(sizeof(WORK)==0xC0)?1:-1];
 

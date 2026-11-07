@@ -254,8 +254,8 @@ struct STEPGUARD : public STEP
       int hitPoints;        /* +0x33C [R] current hp */
       int staggerCapacity;  /* +0x340 [S] flinches absorbed before a stagger */
       int staggerProgress;  /* +0x344 [S] */
-      undefined4 unk_0x348;
-      ASEGA *heldAnimation; /* +0x34C [S] an animation the guard holds (released with ReleaseAsega(&pasega)) */
+      ASEG *staggerAseg;    /* +0x348 [S] the flinch animation played while the stagger meter absorbs a zap (HandleBhvguardMessage) */
+      ASEGA *heldAnimation; /* +0x34C [S] the flinch animation's instance (ReplaceCurrentAseg; released with ReleaseAsega(&pasega)) */
       int hurtZapMask;      /* +0x350 [S] zap kinds that hurt (InitStepguard) */
       int knockdownZapMask; /* +0x354 [S] zap kinds that knock down */
       int koZapMask;        /* +0x358 [S] zap kinds that knock out */
@@ -317,7 +317,8 @@ struct STEPGUARD : public STEP
       float sleepTimeMax;   /* +0xE80 [S] */
       int sleepDartCapacity; /* +0xE84 [S] sleep darts absorbed before sleeping */
       int sleepDartProgress; /* +0xE88 [S] */
-      undefined4 unk_0xe8c[2];
+      ASEG *sleepDartAseg;  /* +0xE8C [S] the animation a sleep dart that does not yet put the guard to sleep plays */
+      ASEGA *sleepDartAsega; /* +0xE90 [S] its instance */
       int numAllowedZones;  /* +0xE94 [S] path zones the guard may use */
       int allowedZones[8];  /* +0xE98 [S] */
       int attackOids[8];    /* +0xEB8 [S] oids of the attack definitions (resolved into attacks) */
