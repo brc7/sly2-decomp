@@ -162,18 +162,22 @@ struct BENTLEY : public STEPPLAYER
       undefined4 unk_0x13d4[(0x13e0 - 0x13d4) / 4];
       BLDIR abldirA[8];   /* first set of directional blends */
       ASEGBL *pasegblA;   /* its blended segment */
-      undefined4 unk_0x14e4[(0x14f0 - 0x14e4) / 4];
+      ASEG *pasegSubState0;   /* +0x14E4 animation of sub-state 0 (SetBentleySubState) */
+      ASEG *pasegSubState2;   /* +0x14E8 animation of sub-state 2 (falls back to abldirB[7]'s) */
+      undefined4 unk_0x14ec;
       BLDIR abldirB[8];   /* second set of directional blends */
       ASEGBL *pasegblB;   /* its blended segment */
       undefined4 unk_0x15f4[(0x1600 - 0x15f4) / 4];
       GAIT gaitB;   /* +0x1600 */
-      int unknown16B0;
+      int subState;   /* +0x16B0 (SetBentleySubState: 0 stand, 1 the second directional blend, 2) */
       JTPOCKET *ppocketCur;   /* the current gadget slot */
       undefined4 unknown16B8;
-      int unknown16BC;
-      undefined4 unk_0x16c0[(0x16f0 - 0x16c0) / 4];
+      int aimState;   /* +0x16BC binocucom dart aim state: -1 outside look mode, 0 ready, 1 cooling down (UpdateBentleyAim) */
+      float aimStateTime;   /* +0x16C0 clock.time aimState was set (SetBentleyAimState) */
+      undefined4 unk_0x16c4[(0x16f0 - 0x16c4) / 4];
       qword aimPoint;   /* +0x16F0 where the crosshair ray hits (UpdateBentleyAimPoint); darts fly there */
-      undefined4 unk_0x1700[(0x1710 - 0x1700) / 4];
+      float lastDartTime;   /* +0x1700 clock.time of the last dart (FireBentleyDart) */
+      undefined4 unk_0x1704[(0x1710 - 0x1704) / 4];
       BTBLENDS btblends;   /* blend set */
       undefined4 unk_0x17f0[(0x1800 - 0x17f0) / 4];
       int unknown1800;   /* +0x1800 a small state: 1 waits for floor contact, then Bentley goes idle and takes control (UpdateBentleyStateMisc) */
@@ -189,7 +193,7 @@ struct BENTLEY : public STEPPLAYER
     };
       undefined4 unknown1820;
       JTPOCKET apocket[6];   /* the gadget slots */
-      undefined4 unknown186C;
+      LO *ploHeld;   /* +0x186C the proxy object Bentley holds (bentley.cpp) */
       int unknown1870;
       int unknown1874;
       undefined4 unk_0x1878[(0x1880 - 0x1878) / 4];
