@@ -697,7 +697,7 @@ struct BHVPATH : BHV
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpathClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvpath");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvpath");   /* slot 10 */
-    virtual void SetPathState() __asm__("SetBhvpathState");   /* slot 15 */
+    virtual void SetPathState(int nState) __asm__("SetBhvpathState");   /* slot 15 */
 };
 typedef char assert_BHVPATH_size[sizeof(BHVPATH) == 0xC0 ? 1 : -1];
 
@@ -808,7 +808,7 @@ struct BHVWALKPATH : BHVPATH
     virtual void OnPush() __asm__("InitBhvwalkpath");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvwalkpathClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateBhvwalkpath");   /* slot 10 */
-    virtual void SetPathState() __asm__("SetBhvwalkpathState");   /* slot 15 */
+    virtual void SetPathState(int nState) __asm__("SetBhvwalkpathState");   /* slot 15 */
 };
 typedef char assert_BHVWALKPATH_size[sizeof(BHVWALKPATH) == 0xF0 ? 1 : -1];
 

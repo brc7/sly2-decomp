@@ -2599,27 +2599,23 @@ void BHVPATH::OnPush()
 
 // 0x177EF0 StartBhvpath
 namespace M_StartBhvpath { extern "C" {
-struct VTE; struct S;
+
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct S { char pad[0xC]; struct VTE *vt; void *guard; char pad2[0x50]; float arrivalRadius; float nearRadius; float farRadius; char pad3[0x10]; qword startPosition; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
-void StartBhv(struct S *p);
+void StartBhv(BHVPATH *p);
 qword GetLoWorldPos(void *p);
 // The larger of two values.
 // The smaller of two values.
 // 0x177EF0: BHVPATH vtable slot 8 (Start): remembers the start position, clamps the radii from the speed, state 0.
-void StartBhvpath(struct S *behavior) {
-    struct VTE *entry;
+void StartBhvpath(BHVPATH *behavior) {
     float g;
     StartBhv(behavior);
-    behavior->startPosition = GetLoWorldPos(behavior->guard);
+    behavior->startPosition = GetLoWorldPos(behavior->owner);
     g = Max(behavior->arrivalRadius, D_002BE62C);
     behavior->arrivalRadius = g;
     behavior->nearRadius = Min(g * 0.25f, D_002BE624);
     behavior->farRadius = Min(g, D_002BE628);
-    entry = &behavior->vt[0xF];
-    entry->pfn((char *)behavior + entry->d, 0);
+    behavior->SetPathState(0);
 }
 } } // namespace M_StartBhvpath
 
