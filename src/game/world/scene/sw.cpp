@@ -1998,9 +1998,9 @@ namespace M_func_00210BE0 { extern "C" {
 typedef struct { char *pch; char *pchOut; } ENT;
 typedef struct { int c; ENT *a; int heapSize; int heapBuffer; } TBL;
 typedef struct { int a[4]; } ALLOC;
-extern struct G { char pad[0x4640]; int isLocalized; } D_003DD490;   /* (inferred) nonzero when a language table is loaded */
+extern SW D_003DD490;   /* (inferred) nonzero when a language table is loaded */
 extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
-extern char *FindSwLocalizedString__FP2SWi(struct G *, char *);
+extern char *FindSwLocalizedString__FP2SWi(SW *, char *);
 extern int strlen_(char *) __asm__("strlen");
 extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 
@@ -2009,7 +2009,7 @@ void LocalizeSwStringTable(TBL *table)
 {
     ALLOC heap;
     int i;
-    if (D_003DD490.isLocalized == 0)
+    if (D_003DD490.clangstr == 0)
         return;
     __11CLinearHeapiPUc(&heap, table->heapSize, table->heapBuffer);
     for (i = 0; i < table->c; i++) {
