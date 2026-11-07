@@ -1964,15 +1964,15 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C26E0 { extern "C" {
-struct LO { char pad[0x28]; unsigned long flags; char p1[0x120 - 0x30]; int kind; int fromZone; int toZone; };
+struct PATHLINKV : LO { char pad50[0x120 - 0x50]; int kind; int fromZone; int toZone; };   /* classes.h PATHLINK : LO */
 /* The actor asking (inferred: a guard-like object): the zones it may enter and the link kinds it may use. */
 struct G { char pad[0xE94]; int numAllowedZones; int allowedZones[84]; int allowedLinkKinds; };
 // Returns 1 when the actor may traverse the path link: the link is in the world, the actor allows its kind (kind 1
 // needs bit 0 as well as bit 1), and, when the actor has a zone list, both end zones are on it. (inferred)
-int CanUsePathlink(void *zoneBsp, struct LO *pathlink, struct G *actor)
+int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct G *actor)
 {
     int requiredKinds, i, hasFrom, hasTo, numZones;
-    if (((pathlink->flags >> 60) & 1) == 0) return 0;   /* LO::isInWorld */
+    if ((pathlink->isInWorld & 1) == 0) return 0;
     requiredKinds = (pathlink->kind == 1) ? 3 : 2;
     if ((requiredKinds & actor->allowedLinkKinds) != requiredKinds) return 0;
     numZones = actor->numAllowedZones;
