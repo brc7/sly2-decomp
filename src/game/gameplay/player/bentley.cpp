@@ -313,20 +313,8 @@ namespace M_UpdateBentley { extern "C" {
 /* v4 (Claude agent, laneB5, 2026-10-23): aligned 17 -> 16. LenXY as asm1 = vmul.xy+vaddy.x fused, asm2 = vsqrt+vwaitq+vaddq.x (fixes case 6 lw p1030 placement). Case 5 lw p150 still after vmul. MulT r[0] vf1 (target vf3): "=j"(r)+"0"(r[0]) last, r[1]/r[2] operand swaps, r0 local: no change (16-17). Pull by-value VF helpers: 30. */
 /* v3 (Claude agent, laneB4, 2026-10-23): aligned 37 -> 17. LenXY as two asms: vmul.xy alone, then vaddy.x+vsqrt+vwaitq+vaddq.x fused (fixes the extra-instruction offset). */
 /* v2 (Claude agent, 2026-10-23): aligned 42 -> 37. MulT asm operand order: outputs (r, one, t0, t1, t2), inputs (v, r[2], r[1]) gives the target's temp VF numbers (t0 vf7, one vf8, t1 vf6, t2 vf5). Left: r = r[0] lands in vf1 (target vf3; "0"(r[0]) tie same), LenXY: target loads p150 before the vmul and p1030 after vaddq (fused LenXY asm worse, 46-54), the mtc1/add.s nop in case 6. */
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VUF;
-struct M3 { qword r[3]; };
 struct POLY { float a; float b; float c; };
-struct S150 { char pad[0x18]; float g18; float g1C; };
-struct P {
-    char pad0[0x28]; unsigned long ul28; char pad30[0x150 - 0x30]; struct S150 *controller; char pad154[0x190 - 0x154];
-    qword v190; char pad1A0[8]; float g1A8; char pad1AC[4]; struct M3 m1B0; char pad1E0[0x2C0 - 0x1E0];
-    char air[0x4C0 - 0x2C0]; char grab[0xDF0 - 0x4C0]; char hurt[0x1030 - 0xDF0]; struct ASEGA *action; int x1034;
-    int x1038; char pad103C[0x10DC - 0x103C]; int interactTarget; char pad10E0[0x1320 - 0x10E0]; char gaitA[0x13D0 - 0x1320];
-    int state; char pad13D4[0x13E0 - 0x13D4]; char x13E0[0x1410 - 0x13E0]; qword v1410; char pad1420[0x14E0 - 0x1420];
-    int x14E0; char pad14E4[0x14F0 - 0x14E4]; char x14F0[0x1520 - 0x14F0]; qword v1520; char pad1530[0x15F0 - 0x1530];
-    int x15F0; char pad15F4[0x1600 - 0x15F4]; char gaitB[0x16B0 - 0x1600]; int subState; char pad16B4[0x181C - 0x16B4]; int x181C;
-};
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern struct LM D_002BBB60;
@@ -334,26 +322,26 @@ extern float D_002BC934;
 extern struct POLY D_002BC940;
 extern struct POLY D_002BC950;
 extern float D_002BC960;
-void UpdateStepplayer(struct P *p);
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *pv, struct P *p, int n);
-void UpdateBentleyJtMode(struct P *p);
-void UpdateBentleyStateMachine(struct P *p);
-void SetStepTargetHeading(struct P *p, float g);
-int GetStepplayerLeanFlags(struct P *p);
-void SetSmaMask(int a, int b);
-void UpdateGaitBlend(void *pv, float g);
-void UpdateGaitFootsteps(void *pv);
-void UpdateJtActiveJump(void *pv);
-void UpdateJtActiveHide(void *pv);
-void FaceStepToward(struct P *p, int n);
+void UpdateStepplayer(BENTLEY *p);
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *pv, BENTLEY *p, int n);
+void UpdateBentleyJtMode(BENTLEY *p);
+void UpdateBentleyStateMachine(BENTLEY *p);
+void SetStepTargetHeading(BENTLEY *p, float g);
+int GetStepplayerLeanFlags(BENTLEY *p);
+void SetSmaMask(SMA *a, int b);
+void UpdateGaitBlend(GAIT *pv, float g);
+void UpdateGaitFootsteps(GAIT *pv);
+void UpdateJtActiveJump(JTAIR *pv);
+void UpdateJtActiveHide(JTGRAB *pv);
+void FaceStepToward(BENTLEY *p, LO *plo);
 qword SetVectorCylind(float a, float b, float c);
-void UpdateDirectionalBlend(struct P *p, void *pv, int n);
-qword GetStepAsegaTranslation(struct P *p, struct ASEGA *px, float g);
+void UpdateDirectionalBlend(BENTLEY *p, BLDIR *pv, ASEGBL *n);
+qword GetStepAsegaTranslation(BENTLEY *p, struct ASEGA *px, float g);
 void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *px, float g);
 float NormalizeAngle__Ff(float g);
 float ClampAbs__Fff(float g, float dg);
-void UpdateBentleyPlaces(struct P *p);
-void UpdateJtActiveZap(void *pv);
+void UpdateBentleyPlaces(BENTLEY *p);
+void UpdateJtActiveZap(JTHURT *pv);
 
 // Evaluate the quadratic a + b*t + c*t^2.
 static __inline__ float EvaluatePoly(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
@@ -377,7 +365,7 @@ static __inline__ float LenXY(qword v)
     return g;
 }
 // XY length of v as a float (pa and pb only influence register allocation).
-static __inline__ float LenXY5(qword v, struct S150 *pa, struct ASEGA *pb)
+static __inline__ float LenXY5(qword v, POCTL *pa, struct ASEGA *pb)
 {
     qword l;
     float g;
@@ -387,83 +375,84 @@ static __inline__ float LenXY5(qword v, struct S150 *pa, struct ASEGA *pb)
     return g;
 }
 // Rotate v by the transpose of the 3x3 matrix pm (result pinned to vf3).
-static __inline__ qword MulT(struct M3 *pm, qword v)
+static __inline__ qword MulT(qword *pm, qword v)
 {
     register qword r __asm__("vf3");  /* register pin: VF allocation tie, target keeps the result in vf3 */
     qword t0, t1, t2, one;
-    r = pm->r[0];
+    r = pm[0];
     __asm__("vmul.xyzw %2, %0, %5\n\tvmaxw.xyzw %1, $vf0, $vf0w\n\tvmul.xyzw %3, %6, %5\n\tvmul.xyzw %4, %7, %5\n\tvadday.x $ACC, %2, %2y\n\tvmaddz.x %0, %1, %2z\n\tvaddax.y $ACC, %3, %3x\n\tvmaddz.y %0, %1, %3z\n\tvaddax.z $ACC, %4, %4x\n\tvmaddy.z %0, %1, %4y"
-            : "+j"(r), "=&j"(one), "=&j"(t0), "=&j"(t1), "=&j"(t2) : "j"(v), "j"(pm->r[1]), "j"(pm->r[2]));
+            : "+j"(r), "=&j"(one), "=&j"(t0), "=&j"(t1), "=&j"(t2) : "j"(v), "j"(pm[1]), "j"(pm[2]));
     return r;
 }
-// Set the actor's v190 velocity to v rotated by its m1B0 basis, reset x1038 and update the directional blend.
-static __inline__ void SetVel(struct P *p, qword v, void *pv, int n)
+// Set the actor's qwUnknown190 velocity to v rotated by its target orientation, reset blendSide and update the
+// directional blend.
+static __inline__ void SetVel(BENTLEY *p, qword v, BLDIR *pv, ASEGBL *n)
 {
-    p->v190 = v;
-    p->v190 = MulT(&p->m1B0, v);
-    p->x1038 = -1;
+    p->qwUnknown190 = v;
+    p->qwUnknown190 = MulT(p->aqwTarget, v);
+    p->blendSide = -1;
     UpdateDirectionalBlend(p, pv, n);
 }
 // Set v190 to the negated step-animation translation of the current action.
-static __inline__ void Pull(struct P *p)
+static __inline__ void Pull(BENTLEY *p)
 {
     VUF u;
-    qword v = GetStepAsegaTranslation(p, p->action, p->action->time);
+    qword v = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
     qword r;
     qword uq;
     __asm__("qmtc2.ni %1, %0" : "=j"(uq) : "r"(-1.0f));
     u.q = uq;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(u.q));
-    p->v190 = r;
+    p->qwUnknown190 = r;
 }
 // Set v190 to the negated step-animation translation of the current action (volatile stores keep the original order).
-static __inline__ void PullB(struct P *p)
+static __inline__ void PullB(BENTLEY *p)
 {
     VUF u;
-    qword v = GetStepAsegaTranslation(p, p->action, p->action->time);
+    qword v = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
     qword r, t;
     __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(-1.0f));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(t));
-    *(volatile qword *)&p->v190 = r;
+    *(volatile qword *)&p->qwUnknown190 = r;
     *(volatile qword *)&u.q = t;
 }
 // Update the gait blend by g and then the footsteps.
-static __inline__ void Kick(void *pv, float g)
+static __inline__ void Kick(GAIT *pv, float g)
 {
     UpdateGaitBlend(pv, g);
     UpdateGaitFootsteps(pv);
 }
 
 // BENTLEY Update (slot 16): UpdateStepplayer, then (if in the world) the state machine and per-state actions.
-void UpdateBentley(struct P *bentley)
+void UpdateBentley(BENTLEY *bentley)
 {
     UpdateStepplayer(bentley);
-    if (((bentley->ul28 >> 60) & 1) == 0)
+    if (((bentley->isInWorld) & 1) == 0)
         return;
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490, bentley, 0xF8FE);
     UpdateBentleyJtMode(bentley);
     UpdateBentleyStateMachine(bentley);
     switch (bentley->state) {
     case BENTLEY_IDLE:
-        if (bentley->x181C) {
+        if (bentley->unknown181C) {
             SetStepTargetHeading(bentley, D_002BC934);
             break;
         }
-        SetSmaMask(bentley->x1034, GetStepplayerLeanFlags(bentley));
+        SetSmaMask(bentley->activeStateMachine, GetStepplayerLeanFlags(bentley));
         break;
     case BENTLEY_RUN:
-        SetStepTargetHeading(bentley, bentley->controller->g18);
-        Kick(bentley->gaitA, 1.0f);
+        SetStepTargetHeading(bentley, bentley->controller->leftStickAngle);
+        Kick(&bentley->gaitA, 1.0f);
         break;
     case BENTLEY_WALK:
-        SetStepTargetHeading(bentley, bentley->controller->g18);
-        Kick(bentley->gaitB, bentley->controller->g1C);
+        SetStepTargetHeading(bentley, bentley->controller->leftStickAngle);
+        Kick(&bentley->gaitB, bentley->controller->leftStickDeflection);
         break;
     case BENTLEY_AIR:
-        UpdateJtActiveJump(bentley->air);
+        UpdateJtActiveJump(&bentley->jtair);
         break;
     case BENTLEY_GRAB:
-        UpdateJtActiveHide(bentley->grab);
+        UpdateJtActiveHide(&bentley->jtgrab);
         break;
     case BENTLEY_HURT:
     case BENTLEY_HOVER:
@@ -474,21 +463,21 @@ void UpdateBentley(struct P *bentley)
     case BENTLEY_NEAR_TARGET:
         FaceStepToward(bentley, bentley->interactTarget);
         {
-            struct S150 *pa = bentley->controller;
-            struct ASEGA *pb = bentley->action;
-            SetVel(bentley, SetVectorCylind(pa->g18 + 3.1415927f, pa->g1C * LenXY5(bentley->v1410, pa, pb) * pb->speed, 0.0f), bentley->x13E0, bentley->x14E0);
+            POCTL *pa = bentley->controller;
+            struct ASEGA *pb = bentley->activeAnimation;
+            SetVel(bentley, SetVectorCylind(pa->leftStickAngle + 3.1415927f, pa->leftStickDeflection * LenXY5(bentley->abldirA[1].vRoot, pa, pb) * pb->speed, 0.0f), bentley->abldirA, bentley->pasegblA);
         }
         break;
     case BENTLEY_GADGET:
         if (bentley->subState == 1) {
-            float g0 = ClampF(EvaluatePoly(&D_002BC940, bentley->controller->g1C), &D_002BBB60);
-            float g1 = ClampF(EvaluatePoly(&D_002BC950, bentley->controller->g1C), &D_002BBB60);
+            float g0 = ClampF(EvaluatePoly(&D_002BC940, bentley->controller->leftStickDeflection), &D_002BBB60);
+            float g1 = ClampF(EvaluatePoly(&D_002BC950, bentley->controller->leftStickDeflection), &D_002BBB60);
             float z = 0.0f;
-            if (z < bentley->controller->g1C) {
-                float d = NormalizeAngle__Ff(bentley->controller->g18 - bentley->g1A8);
-                SetStepTargetHeading(bentley, bentley->g1A8 + ClampAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.deltaTime));
+            if (z < bentley->controller->leftStickDeflection) {
+                float d = NormalizeAngle__Ff(bentley->controller->leftStickAngle - bentley->targetHeading);
+                SetStepTargetHeading(bentley, bentley->targetHeading + ClampAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.deltaTime));
             }
-            SetVel(bentley, SetVectorCylind(bentley->controller->g18 + 3.1415927f, g0 * LenXY(bentley->v1520) * bentley->action->speed, z), bentley->x14F0, bentley->x15F0);
+            SetVel(bentley, SetVectorCylind(bentley->controller->leftStickAngle + 3.1415927f, g0 * LenXY(bentley->abldirB[1].vRoot) * bentley->activeAnimation->speed, z), bentley->abldirB, bentley->pasegblB);
         }
         break;
     case BENTLEY_SCRIPT_ANIM:
@@ -496,16 +485,16 @@ void UpdateBentley(struct P *bentley)
         break;
     case BENTLEY_SCRIPT_SMA:
         PullB(bentley);
-        SetAsegaSpeed__FP5ASEGAf(bentley->action, bentley->controller->g1C);
-        SetStepTargetHeading(bentley, bentley->controller->g18);
+        SetAsegaSpeed__FP5ASEGAf(bentley->activeAnimation, bentley->controller->leftStickDeflection);
+        SetStepTargetHeading(bentley, bentley->controller->leftStickAngle);
         break;
     case BENTLEY_ADRENALINE:
         Pull(bentley);
-        SetStepTargetHeading(bentley, bentley->controller->g18);
+        SetStepTargetHeading(bentley, bentley->controller->leftStickAngle);
         break;
     }
     UpdateBentleyPlaces(bentley);
-    UpdateJtActiveZap(bentley->hurt);
+    UpdateJtActiveZap(&bentley->jthurt);
 }
 } } // namespace M_UpdateBentley
 
