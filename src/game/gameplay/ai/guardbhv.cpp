@@ -6482,21 +6482,15 @@ void PushBhvpathlinkLeap(BHVPATHLINK *behavior) {
 
 // 0x17E6B0 SetBhvpathlinkState
 namespace M_SetBhvpathlinkState { extern "C" {
-struct VTE; struct SEG; struct O; struct B; struct P; 
-typedef int qword __attribute__((mode(TI)));
+struct SEG;
 extern CLOCK D_002DDED0;
 extern float D_002BE7B0, D_002BE7B4;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct SEG { qword a; qword b; };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; qword goalRef; union { qword goalPos; int ignoresBlockers; }; char pad3[0x14]; float arrivalRadius; };
-struct B { char pad[0xE8]; int numPoints; char pad2[8]; qword *points; };
-struct P { char pad[0x60]; struct SEG segments[(0x120 - 0x60) / 32]; int kind; };
+struct SEG { qword a; qword b; };   /* a PATHLINKEND as two quadwords (the relocate goal is copied so) */
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
+BHV *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(struct SEG *s, qword v);
-void MeasureShape(struct B *b);
-void SetBhvpathShape(struct O *o, struct B *b, int n);
+qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v);
+void MeasureShape(SHAPE *b);
 void PushBhvpathlinkLeap(BHVPATHLINK *p);
 // 0x17E6B0: BHVPATHLINK state change: 0 the segment (a two-point walk with a timeout, or a leap), 1 relocate.
 void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
@@ -6506,13 +6500,13 @@ void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 0:
-        switch (((struct P *)behavior->pathlink)->kind) {
+        switch (behavior->pathlink->kind) {
         case 0:
             {
-                struct O *o = PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHVWALKPATH);
-                struct B *b = ((struct B *)((STEPGUARD *)behavior->owner)->unknown294);
+                BHVWALKPATH *o = (BHVWALKPATH *)PushStepBehavior(behavior->owner, CID_BHVWALKPATH);
+                SHAPE *b = (SHAPE *)behavior->owner->unknown294;
                 qword pos = GetLoWorldPos(((STEPGUARD *)behavior->owner));
-                qword q = GetPathlinkEndpointPos(&((struct P *)behavior->pathlink)->segments[behavior->segmentIndex], pos);
+                qword q = GetPathlinkEndpointPos(&behavior->pathlink->aend[behavior->segmentIndex], pos);
                 qword d;
                 float len;
                 float t = D_002DDED0.time;
@@ -6524,9 +6518,9 @@ void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
                     float g = len / D_002BE7B0;
                     behavior->segmentTimeout = t + (g < D_002BE7B4 ? D_002BE7B4 : g);
                 }
-                b->numPoints = 2;
-                b->points[0] = pos;
-                b->points[1] = q;
+                b->numControlVertices = 2;
+                *(qword *)&b->vertexPositions[0] = pos;
+                *(qword *)&b->vertexPositions[1] = q;
                 MeasureShape(b);
                 o->ignoresBlockers = 1;
                 o->arrivalRadius = 10.0f;
@@ -6541,11 +6535,11 @@ void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
         break;
     case 1:
         {
-            struct O *o = PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV191);
-            /* segments[segmentIndex] (sg[3] == +0x60); the int arithmetic keeps the target's address computation */
-            struct SEG *sg = (struct SEG *)(behavior->segmentIndex * 32 + (int)((struct P *)behavior->pathlink));
-            o->goalRef = sg[3].a;
-            o->goalPos = sg[3].b;
+            BHV191 *o = (BHV191 *)PushStepBehavior(behavior->owner, CID_BHV191);
+            /* aend[segmentIndex] (sg[3] == +0x60); the int arithmetic keeps the target's address computation */
+            struct SEG *sg = (struct SEG *)(behavior->segmentIndex * 32 + (int)behavior->pathlink);
+            *(qword *)&o->end = sg[3].a;
+            o->end.pos = sg[3].b;
             StartPushedBhv(o);
         }
         break;
@@ -6580,76 +6574,66 @@ extern "C" void CloseBhvRelocate(BHV *behavior)
 
 // 0x17E918 UpdateBhvRelocate
 namespace M_func_0017E918 { extern "C" {
-struct T; struct S;
-struct T { char pad[0xFE8]; int capabilities; };
-struct S { char pad[0x10]; struct T *guard; int pad2; void *child; char pad3[0x14]; int point[4]; };
-void UpdateBhv(struct S *p);
+void UpdateBhv(BHV191 *p);
 int IsBhvanimDone(void *p);
 int IsNearPathlinkEndpoint(void *pe, void *p, float g);
-void MoveBhvRelocateToPoint(struct S *p);
+void MoveBhvRelocateToPoint(BHV191 *p);
 // 0x17E918: Relocate behaviour vtable slot 10 (Update): retries until within 25 of the point.
-void UpdateBhvRelocate(struct S *behavior) {
+void UpdateBhvRelocate(BHV191 *behavior) {
     UpdateBhv(behavior);
-    if (behavior->guard->capabilities & 1) {
-        if (IsBhvanimDone(behavior->child) && !IsNearPathlinkEndpoint(behavior->point, behavior->guard, 25.0f)) MoveBhvRelocateToPoint(behavior);
-    } else if (!IsNearPathlinkEndpoint(behavior->point, behavior->guard, 25.0f)) MoveBhvRelocateToPoint(behavior);
+    if (((STEPGUARD *)behavior->owner)->capabilityFlags & 1) {
+        if (IsBhvanimDone(behavior->pbhvNext) && !IsNearPathlinkEndpoint(&behavior->end, behavior->owner, 25.0f)) MoveBhvRelocateToPoint(behavior);
+    } else if (!IsNearPathlinkEndpoint(&behavior->end, behavior->owner, 25.0f)) MoveBhvRelocateToPoint(behavior);
 }
 } } // namespace M_func_0017E918
 
 // 0x17E9B0 MoveBhvRelocateToPoint
 namespace M_func_0017E9B0 { extern "C" {
-struct VTE; struct O; struct S;
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword landingPoint; char pad3[8]; int unknown68; char pad4[0x240 - 0x6C]; qword pos; char pad5[0xFE8 - 0x250]; int capabilities; };
-struct S { char pad[0x10]; struct O *guard; int pad2; char childSlot[0x18]; char point[0x10]; };
 void PopBhv(void *p);
-qword GetLoWorldPos(struct O *p);
+qword GetLoWorldPos(void *p);
 qword GetPathlinkEndpointPos(void *p, qword q);
 int SnapToGround(qword *pq, float a, float b, int n, void *pfn);
 void SnapPositionToSurfaceAbove(qword *pq);
-struct O *PushStepBehavior(struct O *p, int n);
-void DetachStepguard(struct O *p);
+BHV *PushStepBehavior(void *p, int n);
+void DetachStepguard(STEPGUARD *p);
 // 0x17E9B0: Snaps the relocation point to the ground (or the surface above), then leaps there (capability bit 0) or
 // teleports (detach, set the position, zero the velocities).
-void MoveBhvRelocateToPoint(struct S *behavior) {
+void MoveBhvRelocateToPoint(BHV191 *behavior) {
     union { qword q; float a[4]; } u;
-    PopBhv(behavior->childSlot);
-    u.q = GetPathlinkEndpointPos(behavior->point, GetLoWorldPos(behavior->guard));
+    PopBhv(&behavior->pbhvNext);
+    u.q = GetPathlinkEndpointPos(&behavior->end, GetLoWorldPos(behavior->owner));
     if (!SnapToGround(&u.q, 150.0f, -250.0f, 1, 0)) SnapPositionToSurfaceAbove(&u.q);
-    if (behavior->guard->capabilities & 1) {
-        struct O *o = PushStepBehavior(behavior->guard, CID_BHVLEAP);
+    if (((STEPGUARD *)behavior->owner)->capabilityFlags & 1) {
+        BHVLEAP *o = (BHVLEAP *)PushStepBehavior(behavior->owner, CID_BHVLEAP);
         o->landingPoint = u.q;
-        o->unknown68 = 1;
+        o->extra = 1;
         StartPushedBhv(o);
     } else {
-        DetachStepguard(behavior->guard);
+        DetachStepguard((STEPGUARD *)behavior->owner);
         {
-            struct O *o = behavior->guard;
-            { qword u_q; __asm__("vsub.xyzw %0, %1, %2" : "=j"(u_q) : "j"(u.q), "j"(o->pos)); u.q = u_q; }
-            o->vt[29].pfn((char *)o + o->vt[29].d, u.q);
+            STEP *o = behavior->owner;
+            { qword u_q; __asm__("vsub.xyzw %0, %1, %2" : "=j"(u_q) : "j"(u.q), "j"(o->pivotOffset)); u.q = u_q; }
+            o->TranslateToPos(u.q);
         }
-        { struct O *o = behavior->guard; o->vt[35].pfn((char *)o + o->vt[35].d, D_002A2DD0); }
-        { struct O *o = behavior->guard; o->vt[36].pfn((char *)o + o->vt[36].d, D_002A2DD0); }
+        behavior->owner->SetVelocity(D_002A2DD0);
+        behavior->owner->SetAngularVelocity(D_002A2DD0);
     }
 }
 } } // namespace M_func_0017E9B0
 
 // 0x17EAE8 IsBhvRelocateDone
 namespace M_func_0017EAE8 { extern "C" {
-struct S;
-struct S { char pad[0x10]; STEPGUARD *guard; int pad2; void *child; char pad3[0x14]; int point[4]; };
 int IsBhvanimDone(void *p);
 int IsNearPathlinkEndpoint(void *pe, void *p, float g);
 // 0x17EAE8: True if the relocation is complete: the leap (if any) finished and the guard is within 25 of the point.
-int IsBhvRelocateDone(struct S *behavior)
+int IsBhvRelocateDone(BHV191 *behavior)
 {
-    if (behavior->guard->capabilityFlags & 1) {
-        if (!IsBhvanimDone(behavior->child))
+    if (((STEPGUARD *)behavior->owner)->capabilityFlags & 1) {
+        if (!IsBhvanimDone(behavior->pbhvNext))
             return 0;
     }
-    return IsNearPathlinkEndpoint(behavior->point, behavior->guard, 25.0f);
+    return IsNearPathlinkEndpoint(&behavior->end, behavior->owner, 25.0f);
 }
 } } // namespace M_func_0017EAE8
 
@@ -6664,34 +6648,29 @@ extern "C" void InitBhvpatrolpath(BHVPATROLPATH *behavior)
 
 // 0x17EB88 StartBhvpatrolpath
 namespace M_StartBhvpatrolpath { extern "C" {
-struct VTE; struct O; struct S;
-typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0xA8 - 0x10]; int lookAtTarget; int unknownAC; char pad3[0xC]; int isDirect; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int shape; int pad3; float pathParam; int pad4; char goal[0x10]; int lookAtTarget; int unknownAC; int isDirect; };
-void StartBhv(struct S *p);
+void StartBhv(BHVPATROLPATH *p);
 qword GetLoWorldPos(void *p);
-void FindShapeClosestPointFromDistance(int a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-void FindShapeClosestPoint(int a, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-struct O *PushStepBehavior(void *p, int n);
-void AdvanceBhvpatrolpathGoal(struct S *p, int n);
+void FindShapeClosestPointFromDistance(SHAPE *a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+void FindShapeClosestPoint(SHAPE *a, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+BHV *PushStepBehavior(void *p, int n);
+void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *p, int n);
 // 0x17EB88: BHVPATROLPATH vtable slot 8 (Start): starts at the closest parameter on the path shape, pushes the goto
 // child and its first goal.
-void StartBhvpatrolpath(struct S *behavior) {
-    struct O *o;
+void StartBhvpatrolpath(BHVPATROLPATH *behavior) {
+    BHVGOTO *o;
     StartBhv(behavior);
     if (behavior->pathParam >= 0.0f)
-        FindShapeClosestPointFromDistance(behavior->shape, behavior->pathParam, GetLoWorldPos(behavior->guard), &D_003DD020, behavior->goal, 0, 0, &behavior->pathParam);
+        FindShapeClosestPointFromDistance(behavior->shape, behavior->pathParam, GetLoWorldPos(behavior->owner), &D_003DD020, &behavior->goal, 0, 0, &behavior->pathParam);
     else
-        FindShapeClosestPoint(behavior->shape, GetLoWorldPos(behavior->guard), &D_003DD020, behavior->goal, 0, 0, &behavior->pathParam);
-    o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
+        FindShapeClosestPoint(behavior->shape, GetLoWorldPos(behavior->owner), &D_003DD020, &behavior->goal, 0, 0, &behavior->pathParam);
+    o = (BHVGOTO *)PushStepBehavior(behavior->owner, CID_BHVGOTO);
     o->lookAtTarget = behavior->lookAtTarget;
-    o->unknownAC = behavior->unknownAC;
+    o->unknownAC = behavior->unknown54;
     o->isDirect = behavior->isDirect;
     AdvanceBhvpatrolpathGoal(behavior, 1);
-    o->vt[8].pfn((char *)o + o->vt[8].d);
+    o->Start();
 }
 } } // namespace M_StartBhvpatrolpath
 
@@ -6716,28 +6695,26 @@ extern "C" void UpdateBhvpatrolpath(BHV *behavior)
 
 // 0x17ECF0 AdvanceBhvpatrolpathGoal
 namespace M_AdvanceBhvpatrolpathGoal { extern "C" {
-struct R; struct B; struct X; struct S;
-typedef int qword __attribute__((mode(TI)));
+struct R;
 extern float D_002BE7BC, D_002BE7C0, D_002BE7C4;
 struct R { float start; float end; };
-struct B { char pad[0xE4]; int isClosed; char pad2[0x180 - 0xE8]; void *blockedRanges; };
-struct X { qword a; qword v; };
-struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; struct B *shape; int isForward; float pathParam; int pad4; qword goal; char pad5[8]; int isDirect; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-float GetShapeMinDistance(struct B *b);
-float GetShapeMaxDistance(struct B *b);
-float WrapShapeDistance(struct B *b, float f);
+float GetShapeMinDistance(SHAPE *b);
+float GetShapeMaxDistance(SHAPE *b);
+float WrapShapeDistance(SHAPE *b, float f);
 void BuildShapeValidRanges(void *p);
 struct R *FindRangeContaining(void *p, float f);
-void EvaluateShapeAtDistance(struct B *b, float f, qword *pv, int n);
-void ClearPointerPair(struct X *x);
-void SetBhvgotoGoal(void *p, struct X *x);
+void EvaluateShapeAtDistance(SHAPE *b, float f, qword *pv, int n);
+/* PATHLINKEND cleared by an explicit ClearPointerPair call (block scope): its constructor at that point changes the
+   schedule (2 instructions). */
+struct PATHLINKENDIsland { qword a; qword v; };
+void ClearPointerPair(PATHLINKENDIsland *x);
 // 0x17ECF0: Steps the shape parameter by a class-dependent distance in the travel direction (clamping or wrapping,
 // skipping invalid ranges) and sends it to the goto child.
-void AdvanceBhvpatrolpathGoal(struct S *behavior, int force) {
+void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) {
     float d;
     float t;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_GUARD)) d = D_002BE7BC; else d = D_002BE7C0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_GUARD)) d = D_002BE7BC; else d = D_002BE7C0;
     if (behavior->isForward == 0) d = -d;
     t = behavior->pathParam + d;
     if (behavior->shape->isClosed == 0) {
@@ -6750,20 +6727,20 @@ void AdvanceBhvpatrolpathGoal(struct S *behavior, int force) {
     }
     if (behavior->isDirect == 0) {
         struct R *r;
-        BuildShapeValidRanges(behavior->shape->blockedRanges);
-        r = FindRangeContaining(behavior->shape->blockedRanges, t);
+        BuildShapeValidRanges(behavior->shape->pranges);
+        r = FindRangeContaining(behavior->shape->pranges, t);
         if (r) t = WrapShapeDistance(behavior->shape, behavior->isForward != 0 ? r->end : r->start);
     }
     if (force == 0 && __builtin_fabsf(behavior->pathParam - t) < D_002BE7C4) return;
     {
-        void *q;
-        struct X x;
+        BHVGOTO *q;
+        PATHLINKENDIsland x;
         behavior->pathParam = t;
         EvaluateShapeAtDistance(behavior->shape, t, &behavior->goal, 0);
-        q = behavior->child;
+        q = (BHVGOTO *)behavior->pbhvNext;
         ClearPointerPair(&x);
         x.v = behavior->goal;
-        SetBhvgotoGoal(q, &x);
+        SetBhvgotoGoal(q, (PATHLINKEND *)&x);
     }
 }
 } } // namespace M_AdvanceBhvpatrolpathGoal
@@ -6783,16 +6760,14 @@ int IsBhvpatrolpathDone(BHVPATROLPATH *behavior)
 
 // 0x17EEB8 IsBhvpatrolpathAtEnd
 namespace M_FBhvpatrolpathAtEnd { extern "C" {
-struct O; 
-struct O { char pad[0xE4]; int isClosed; };
 extern float D_002BE7B8;
-float GetShapeMaxDistance(struct O *p);
-float GetShapeMinDistance(struct O *p);
+float GetShapeMaxDistance(SHAPE *p);
+float GetShapeMinDistance(SHAPE *p);
 // 0x17EEB8: True if the shape is open and the parameter is within tolerance of its end.
 int IsBhvpatrolpathAtEnd(BHVPATROLPATH *behavior) {
     float g;
-    if (((struct O *)behavior->shape)->isClosed) return 0;
-    if (behavior->isForward) g = GetShapeMaxDistance(((struct O *)behavior->shape)); else g = GetShapeMinDistance(((struct O *)behavior->shape));
+    if (behavior->shape->isClosed) return 0;
+    if (behavior->isForward) g = GetShapeMaxDistance(behavior->shape); else g = GetShapeMinDistance(behavior->shape);
     if (D_002BE7B8 < __builtin_fabsf(behavior->pathParam - g)) return 0;
     return 1;
 }
