@@ -5318,66 +5318,59 @@ typedef char layout_float[(sizeof(float)==4)?1:-1];
 
 // 0x17C928 SetBhvEscortState
 namespace M_func_0017C928 { extern "C" {
-struct VTE; struct X; struct O; struct S;
-typedef int qword __attribute__((mode(TI)));
 extern CLOCK D_002DDED0;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct X { qword a; qword v; };
-/* The pushed child: a BHVGOTO or a BHVIDLE. */
-struct O {
-    char pad[0xC]; struct VTE *vt; char pad2[0x28]; union { int gotoSgf; int lookAt; }; int sgf; char pad3[0xA8 - 0x40];
-    void *gotoLookAt; int gotoUnknownAC; char pad4[0x10]; int gotoAllowPartialRoute;
-};
-struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; void *escorted; char pad3[0xC]; qword localOffset; int state; float stateTime; char pad4[8]; qword lastGoalPosition; };
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
+BHV *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
 qword ConvertPosBetweenLos(void *p, int n, qword v);
-void ClearPointerPair(struct X *x);
-void SetBhvgotoGoal(void *p, struct X *x);
+/* PATHLINKEND cleared by an explicit ClearPointerPair call at function scope: its constructor (a scoped PATHLINKEND)
+   swaps two instructions in case 0 (scheduling). */
+struct PATHLINKENDIsland { qword a; qword v; };
+void ClearPointerPair(PATHLINKENDIsland *x);
+void SetBhvgotoGoal(BHVGOTO *p, PATHLINKENDIsland *x);
 // 0x17C928: Escort behaviour state change: 0 go to the offset point, 1 run to the object (flag 0x1C), 2 hands-off
 // idle.
-void SetBhvEscortState(struct S *behavior, int n) {
-    struct X x;
+void SetBhvEscortState(BHV183 *behavior, int n) {
+    PATHLINKENDIsland x;
     if (n == behavior->state) return;
-    PopBhv(behavior->childSlot);
+    PopBhv(&behavior->pbhvNext);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.time;
     switch (n) {
     case 1:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
+            BHVGOTO *o = (BHVGOTO *)PushStepBehavior(behavior->owner, CID_BHVGOTO);
             qword v = GetLoWorldPos(behavior->escorted);
             behavior->lastGoalPosition = v;
-            o->gotoAllowPartialRoute = 1;
-            o->gotoLookAt = behavior->escorted;
-            o->gotoUnknownAC = 1;
+            o->allowPartialRoute = 1;
+            o->lookAtTarget = behavior->escorted;
+            o->unknownAC = 1;
             ClearPointerPair(&x);
             x.v = v;
             SetBhvgotoGoal(o, &x);
-            o->gotoSgf = 0x1C;
+            o->sgf = 0x1C;
             StartPushedBhv(o);
         }
         break;
     case 2:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVIDLE);
-            o->lookAt = (int)behavior->escorted;
+            BHVIDLE *o = (BHVIDLE *)PushStepBehavior(behavior->owner, CID_BHVIDLE);
+            o->lookAt = behavior->escorted;
             o->sgf = 1;
             StartPushedBhv(o);
         }
         break;
     case 0:
         {
-            struct O *o = PushStepBehavior(behavior->guard, CID_BHVGOTO);
+            BHVGOTO *o = (BHVGOTO *)PushStepBehavior(behavior->owner, CID_BHVGOTO);
             qword v;
             behavior->lastGoalPosition = GetLoWorldPos(behavior->escorted);
             v = ConvertPosBetweenLos(behavior->escorted, 0, behavior->localOffset);
-            o->gotoAllowPartialRoute = 1;
+            o->allowPartialRoute = 1;
             ClearPointerPair(&x);
             x.v = v;
             SetBhvgotoGoal(o, &x);
-            o->gotoLookAt = behavior->escorted;
+            o->lookAtTarget = behavior->escorted;
             StartPushedBhv(o);
         }
         break;
