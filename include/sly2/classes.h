@@ -714,7 +714,12 @@ typedef char assert_BHVPATH_size[sizeof(BHVPATH) == 0xC0 ? 1 : -1];
 /* 168 BHVWALKGOAL (0xE0): player walk-to-goal (writes POCTL stick); vtable 0x2CC4C0, 15 slots */
 struct BHVWALKGOAL : BHVPATH
 {
-    char padC0[0xE0 - 0xC0];
+    POCTL *mirrorPoctl;     /* +0xC0 controller whose buttons are mirrored (UpdateBhvwalkgoalPoctl) */
+    int mirrorButtonMask;   /* +0xC4 */
+    float mirrorDelay;      /* +0xC8 */
+    int forcesButton8;      /* +0xCC */
+    float speedScale;       /* +0xD0 */
+    int unknownD4[3];
     virtual void OnPush() __asm__("InitBhvwalkgoal");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvwalkgoalClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvwalkgoal");   /* slot 8 */
@@ -726,7 +731,11 @@ typedef char assert_BHVWALKGOAL_size[sizeof(BHVWALKGOAL) == 0xE0 ? 1 : -1];
 /* 193 BHV193 (0x50): player scripted go-to; vtable 0x2CC440, 14 slots */
 struct BHV193 : BHV
 {
-    char pad30[0x50 - 0x30];
+    int usesStraightPath;   /* +0x30 */
+    float arrivalRadius;    /* +0x34 */
+    int forcesButton8;      /* +0x38 */
+    float speedScale;       /* +0x3C */
+    qword goal;             /* +0x40 */
     virtual void OnPush() __asm__("InitBhvWalkTo");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv193ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvWalkTo");   /* slot 8 */
@@ -736,7 +745,21 @@ typedef char assert_BHV193_size[sizeof(BHV193) == 0x50 ? 1 : -1];
 /* 194 BHVFOLLOW (0xA0): player follow leader (StartStepplayerFollow); vtable 0x2CC3C0, 14 slots */
 struct BHVFOLLOW : BHV
 {
-    char pad30[0xA0 - 0x30];
+    PO *leader;             /* +0x30 the followed player */
+    int unknown34[3];
+    qword followOffset;     /* +0x40 */
+    qword followPoint;      /* +0x50 */
+    int state;              /* +0x60 */
+    float stateTime;        /* +0x64 */
+    float velocityLeadTime; /* +0x68 */
+    float distanceNear;     /* +0x6C */
+    float distanceFar;      /* +0x70 */
+    float speedNear;        /* +0x74 */
+    float speedFar;         /* +0x78 */
+    int unknown7C;
+    qword landingPoint;     /* +0x80 */
+    SO *threat;             /* +0x90 the object the interact behaviour is pushed against */
+    int unknown94[3];
     virtual void Start() __asm__("StartBhvfollow");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvfollowClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvfollow");   /* slot 7 */
