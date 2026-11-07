@@ -1596,19 +1596,17 @@ void THIEFNET::Reset()   /* key function */
 
 namespace M_ClearThiefnet { extern "C" {
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
-struct P { int id, iconAnim; };
-struct S { char p0[0x40]; int tab; float tabTime; int pad; struct P items[64]; char p1[0x25C-0x24C]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 // ThiefNet: state -1, empty item list, no animation handles.
-void ClearThiefnet(struct S *p) {
+void ClearThiefnet(THIEFNET *p) {
     unsigned int i;
-    p->tab = -1;
-    p->tabTime = D_002DDED0.realTime;
-    p->popupAnim = -1;
-    p->scrollUpAnim = -1;
-    p->scrollDownAnim = -1;
+    p->nTab = -1;
+    p->tTab = D_002DDED0.realTime;
+    p->idAnimPopup = -1;
+    p->idAnimScrollUp = -1;
+    p->idAnimScrollDown = -1;
     for (i = 0; i < 64; i++) {
-        p->items[i].id = -1;
-        p->items[i].iconAnim = -1;
+        p->aitem[i].id = -1;
+        p->aitem[i].idAnimIcon = -1;
     }
 }
 } } // namespace M_ClearThiefnet
@@ -1616,63 +1614,52 @@ void ClearThiefnet(struct S *p) {
 namespace M_UpdateThiefnet {
 struct REC { int a, b, price; int pad[5]; };
 struct REC12 { int sellPrice, x4, price; };
-struct OBJ {
-    char pad0[0x10];
-    void *joy;
-    char pad14[0x30 - 0x14];
-    int timerKind;
-    char pad34[0x40 - 0x34];
-    int tab;
-    char pad44[0x254 - 0x44];
-    int selectedPowerup;
-    int selectedLoot;
-};
 extern "C" {
 extern REC D_002BCD00[];
 extern REC12 D_002C3288[];
 extern char D_002DEB30[];
 extern char D_003DD490[];
 extern char D_002A79A0[], D_002A79D0[], D_002A79D8[];
-void UpdateTimedScreen(OBJ *);
+void UpdateTimedScreen(THIEFNET *);
 int HandleJoyButtons(void *, int);
-void SetThiefnetTab(OBJ *, int);
+void SetThiefnetTab(THIEFNET *, int);
 int GetCoinCount(void *);
 void SetCoinCount(void *, int);
-void SetScreenMode(OBJ *, int, int);
+void SetScreenMode(THIEFNET *, int, int);
 void SetPowerupAcquired(int, int);
-void RefreshThiefnetItems(OBJ *);
+void RefreshThiefnetItems(THIEFNET *);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void RefreshPlayersAfterPowerupChange(void *);
 void sprintf(char *, const char *, ...);
 CRef GetSaveVarByName(const char *, ...);
 CRef SetSaveVarByName(const CRef &, const char *, ...);
-void UpdateScreenStickDir(OBJ *);
-void UpdateThiefnetWidgets(OBJ *);
+void UpdateScreenStickDir(THIEFNET *);
+void UpdateThiefnetWidgets(THIEFNET *);
 }
 // Per-frame ThiefNet: on the buy tab buys the selected power-up (coin check, confirmation, payment, notification); on the
 // sell tab sells one loot item.
-extern "C" void UpdateThiefnet(OBJ *p)
+extern "C" void UpdateThiefnet(THIEFNET *p)
 {
     UpdateTimedScreen(p);
-    if (p->tab == -1)
+    if (p->nTab == -1)
         return;
-    if (!p->joy)
+    if (!p->pjoy)
         return;
-    if (p->timerKind && HandleJoyButtons(p->joy, 0x10)) {
+    if (p->nPopup && HandleJoyButtons(p->pjoy, 0x10)) {
         SetThiefnetTab(p, -1);
         return;
     }
-    switch (p->tab) {
+    switch (p->nTab) {
     case 0:
-        if (HandleJoyButtons(p->joy, 0x40)) {
-            if (p->selectedPowerup != -1) {
-                int cost = D_002BCD00[p->selectedPowerup].price;
+        if (HandleJoyButtons(p->pjoy, 0x40)) {
+            if (p->idPowerupSelected != -1) {
+                int cost = D_002BCD00[p->idPowerupSelected].price;
                 int have = GetCoinCount(D_002DEB30);
-                if (!p->timerKind) {
+                if (!p->nPopup) {
                     SetScreenMode(p, -1, -1);
                     SetCoinCount(D_002DEB30, have - cost);
-                    SetPowerupAcquired(p->selectedPowerup, 1);
+                    SetPowerupAcquired(p->idPowerupSelected, 1);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(CreateSfxSound(0x29), 0);
                     RefreshPlayersAfterPowerupChange(D_003DD490);
@@ -1687,17 +1674,17 @@ extern "C" void UpdateThiefnet(OBJ *p)
         }
         break;
     case 1:
-        if (HandleJoyButtons(p->joy, 0x40)) {
-            if (p->selectedLoot == -1) {
+        if (HandleJoyButtons(p->pjoy, 0x40)) {
+            if (p->idLootSelected == -1) {
                 SetSndSourceLo(CreateSfxSound(0x36), 0);
             } else {
                 CRef r;
                 char buf[32];
-                sprintf(buf, D_002A79A0, p->selectedLoot);
+                sprintf(buf, D_002A79A0, p->idLootSelected);
                 r = GetSaveVarByName(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.u.n > 0) {
                     SetSaveVarByName(CRef(r.u.n - 1, 0x15), D_002A79D0, D_002A79D8, buf, 0);
-                    SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->selectedLoot].sellPrice);
+                    SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->idLootSelected].sellPrice);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(CreateSfxSound(0x29), 0);
                 }
@@ -1705,13 +1692,13 @@ extern "C" void UpdateThiefnet(OBJ *p)
         }
         break;
     }
-    if (!p->timerKind && HandleJoyButtons(p->joy, 0x10))
+    if (!p->nPopup && HandleJoyButtons(p->pjoy, 0x10))
         SetScreenMode(p, -1, -1);
-    if (HandleJoyButtons(p->joy, 0x80)) {
+    if (HandleJoyButtons(p->pjoy, 0x80)) {
         SetScreenMode(p, -1, -1);
-        SetThiefnetTab(p, p->tab == 0);
+        SetThiefnetTab(p, p->nTab == 0);
     }
-    if (p->timerKind)
+    if (p->nPopup)
         UpdateScreenStickDir(p);
     UpdateThiefnetWidgets(p);
 }
@@ -1720,74 +1707,54 @@ extern "C" void UpdateThiefnet(OBJ *p)
 namespace M_func_001DBBA0 { extern "C" {
 extern int D_002C35B4;
 extern int D_003DA570;
-struct S { char p0[0x48]; int itemCount; char p1[0x250-0x4C]; int firstVisibleRow; };
 // Index just past the last visible row of the scrolling list (window size adjusted for the scroll arrows). (inferred)
-int GetThiefnetRowEnd(struct S *p) {
-    int n = p->firstVisibleRow + D_002C35B4;
+int GetThiefnetRowEnd(THIEFNET *p) {
+    int n = p->iFirstVisible + D_002C35B4;
     if (D_003DA570) {
-        n -= (p->firstVisibleRow > 0);
-        n -= (n < p->itemCount);
+        n -= (p->iFirstVisible > 0);
+        n -= (n < p->citem);
     }
     return n;
 }
 } } // namespace M_func_001DBBA0
 
 namespace M_SelectThiefnetItem { extern "C" {
-typedef struct { int id; int iconAnim; } ENT;
-typedef struct {
-    char pad[0x48];
-    int itemCount;
-    ENT items[64];
-    int selectedRow;
-    int firstVisibleRow;
-    int selectedPowerup;
-    int selectedLoot;
-} OBJ;
 extern int D_003DA570;
 extern int D_002C35B4;
-int GetThiefnetRowEnd(OBJ *);
-void CloseScreen(OBJ *);
+int GetThiefnetRowEnd(THIEFNET *);
+void CloseScreen(THIEFNET *);
 // Selects iconAnim row (clamped), scrolls the window to it and records the selected power-up / loot id.
-void SelectThiefnetItem(OBJ *p, int row)
+void SelectThiefnetItem(THIEFNET *p, int row)
 {
-    if (p->itemCount == 0) {
-        p->firstVisibleRow = 0;
-        p->selectedRow = -1;
-        p->selectedPowerup = -1;
-        p->selectedLoot = -1;
+    if (p->citem == 0) {
+        p->iFirstVisible = 0;
+        p->iSelected = -1;
+        p->idPowerupSelected = -1;
+        p->idLootSelected = -1;
     } else {
-        row = ClampInt(row, 0, p->itemCount - 1);
-        p->selectedRow = row;
+        row = ClampInt(row, 0, p->citem - 1);
+        p->iSelected = row;
         if (D_003DA570) {
-            if (row < p->firstVisibleRow) {
-                p->firstVisibleRow = row;
+            if (row < p->iFirstVisible) {
+                p->iFirstVisible = row;
             } else {
-                while (GetThiefnetRowEnd(p) - 1 < p->selectedRow)
-                    p->firstVisibleRow++;
+                while (GetThiefnetRowEnd(p) - 1 < p->iSelected)
+                    p->iFirstVisible++;
             }
-            if (p->firstVisibleRow == 1)
-                p->firstVisibleRow = 0;
+            if (p->iFirstVisible == 1)
+                p->iFirstVisible = 0;
         } else {
-            int id = ClampInt(p->firstVisibleRow, StdMaxInt(row - D_002C35B4 + 1, 0), row);
-            p->firstVisibleRow = id;
+            int id = ClampInt(p->iFirstVisible, StdMaxInt(row - D_002C35B4 + 1, 0), row);
+            p->iFirstVisible = id;
         }
-        p->selectedPowerup = p->items[p->selectedRow].id;
-        p->selectedLoot = p->items[p->selectedRow].id;
+        p->idPowerupSelected = p->aitem[p->iSelected].id;
+        p->idLootSelected = p->aitem[p->iSelected].id;
     }
     CloseScreen(p);
 }
 } } // namespace M_SelectThiefnetItem
 
 namespace M_RefreshThiefnetItems {
-struct ENT { int id; int iconAnim; };
-struct OBJ {
-    char pad[0x40];
-    int tab;
-    int pad44;
-    unsigned int itemCount;
-    ENT items[0x40];
-    int selectedRow;
-};
 extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79D0[]; }
 extern "C" { extern char D_002A79D8[]; }
@@ -1795,17 +1762,17 @@ extern "C" int sprintf(char *, const char *, ...);
 extern "C" CRef GetSaveVarByName(const char *, ...);
 extern "C" int IsScreenItemUnlocked(int);
 extern "C" int IsPowerupAcquired(int);
-extern "C" void SelectThiefnetItem(OBJ *, int);
+extern "C" void SelectThiefnetItem(THIEFNET *, int);
 // Rebuilds the ThiefNet list: buy tab = unlocked power-ups not yet bought; sell tab = loot kinds the player owns.
-extern "C" void RefreshThiefnetItems(OBJ *p)
+extern "C" void RefreshThiefnetItems(THIEFNET *p)
 {
     {
         int j;
-        for (j = 0; j < (int)p->itemCount; j++)
-            p->items[j].id = -1;
+        for (j = 0; j < p->citem; j++)
+            p->aitem[j].id = -1;
     }
-    p->itemCount = 0;
-    switch (p->tab) {
+    p->citem = 0;
+    switch (p->nTab) {
     case 0: {
         int i;
         for (i = 7; i < 0x2B; i++) {
@@ -1813,9 +1780,9 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
                 continue;
             if (IsPowerupAcquired(i))
                 continue;
-            if (p->itemCount > 0x40)
+            if ((unsigned int)p->citem > 0x40   /* the view's unsigned count */)
                 break;
-            p->items[p->itemCount++].id = i;
+            p->aitem[p->citem++].id = i;
         }
         break;
     }
@@ -1828,14 +1795,14 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
             ref = GetSaveVarByName(D_002A79D0, D_002A79D8, ach, 0);
             if (ref.u.n == 0)
                 continue;
-            if (p->itemCount > 0x40)
+            if ((unsigned int)p->citem > 0x40   /* the view's unsigned count */)
                 break;
-            p->items[p->itemCount++].id = i;
+            p->aitem[p->citem++].id = i;
         }
         break;
     }
     }
-    SelectThiefnetItem(p, p->selectedRow);
+    SelectThiefnetItem(p, p->iSelected);
 }
 } // namespace M_RefreshThiefnetItems
 
@@ -1843,114 +1810,95 @@ namespace M_UpdateThiefnetWidgets { extern "C" {
 typedef struct { float a[8]; } M2;
 typedef struct { int visibility; } SUBX;
 typedef struct { char pad[0x58]; int visibility; } SUB;
-typedef struct { int id; int iconAnim; } E8;
 typedef struct { int a, category; int pad[6]; } REC;
-typedef struct OBJ {
-    char pad0[0x24];
-    SUB *widget;
-    char pad28[0x30 - 0x28];
-    int timerKind;
-    char pad34[0x40 - 0x34];
-    int tab;
-    char pad44[0x48 - 0x44];
-    int itemCount;
-    E8 items[(0x24C - 0x4C) / 8];
-    int selectedRow;
-    int firstVisibleRow;
-    int selectedPowerup;
-    int selectedLoot;
-    int popupAnim;
-    int scrollUpAnim;
-    int scrollDownAnim;
-} OBJ;
 extern int D_003DA570;
 extern float D_002C35B0;
 extern int D_002C3588[];
 extern REC D_002BCD00[];
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-int GetThiefnetRowEnd(OBJ *);
-void SetWidgetAnimXf(SUB *, int, M2 *);
-void SwitchWidgetAnim(SUB *, int, int *);
-void PlayWidgetAnimWithArg(SUB *, int, int);
-void PlayWidgetAnimsWithArg(SUB *, int, int);
-void PlayWidgetAnim(SUB *, int);
-void StopWidgetAnim(SUB *, int);
+int GetThiefnetRowEnd(THIEFNET *);
+void SetWidgetAnimXf(void *, int, M2 *);
+void SwitchWidgetAnim(void *, int, int *);
+void PlayWidgetAnimWithArg(void *, int, int);
+void PlayWidgetAnimsWithArg(void *, int, int);
+void PlayWidgetAnim(void *, int);
+void StopWidgetAnim(void *, int);
 // Drives the ThiefNet widget animations: scroll arrows, row icons by item kind, cursor and popup.
-void UpdateThiefnetWidgets(OBJ *p)
+void UpdateThiefnetWidgets(THIEFNET *p)
 {
     M2 m;
     int end;
     int i;
-    if (p->widget->visibility != 2)
+    if (((SUB *)p->pchild)->visibility != 2)
         return;
     func_002333B4(&m, 0, sizeof(m));
     m.a[3] = 1.0f;
     m.a[0] = 1.0f;
     end = GetThiefnetRowEnd(p);
-    if (p->firstVisibleRow > 0) {
-        int id = p->tab == 0 ? 0x4DA : 0x4A1;
+    if (p->iFirstVisible > 0) {
+        int id = p->nTab == 0 ? 0x4DA : 0x4A1;
         if (D_003DA570) {
-            SetWidgetAnimXf(p->widget, id, &m);
+            SetWidgetAnimXf(p->pchild, id, &m);
             m.a[5] += D_002C35B0;
         }
-        SwitchWidgetAnim(p->widget, id, &p->scrollUpAnim);
+        SwitchWidgetAnim(p->pchild, id, &p->idAnimScrollUp);
     } else {
-        SwitchWidgetAnim(p->widget, -1, &p->scrollUpAnim);
+        SwitchWidgetAnim(p->pchild, -1, &p->idAnimScrollUp);
     }
-    for (i = p->firstVisibleRow; i < end; i++) {
-        E8 *e = &p->items[i];
-        int k = D_002C3588[i - p->firstVisibleRow];
-        switch (p->tab) {
+    for (i = p->iFirstVisible; i < end; i++) {
+        TNITEM *e = &p->aitem[i];
+        int k = D_002C3588[i - p->iFirstVisible];
+        switch (p->nTab) {
         case 0:
             if (e->id != -1) {
                 switch (D_002BCD00[e->id].category) {
                 case 7:
-                    e->iconAnim = 0x456;
+                    e->idAnimIcon = 0x456;
                     break;
                 case 9:
-                    e->iconAnim = 0x458;
+                    e->idAnimIcon = 0x458;
                     break;
                 case 8:
-                    e->iconAnim = 0x457;
+                    e->idAnimIcon = 0x457;
                     break;
                 }
-                PlayWidgetAnimWithArg(p->widget, 0x455, k);
-                PlayWidgetAnimWithArg(p->widget, e->iconAnim, k);
+                PlayWidgetAnimWithArg(p->pchild, 0x455, k);
+                PlayWidgetAnimWithArg(p->pchild, e->idAnimIcon, k);
             } else {
-                PlayWidgetAnimsWithArg(p->widget, 0x455, k);
-                PlayWidgetAnimsWithArg(p->widget, e->iconAnim, k);
-                e->iconAnim = -1;
+                PlayWidgetAnimsWithArg(p->pchild, 0x455, k);
+                PlayWidgetAnimsWithArg(p->pchild, e->idAnimIcon, k);
+                e->idAnimIcon = -1;
             }
             break;
         case 1:
             if (e->id != -1)
-                PlayWidgetAnimWithArg(p->widget, 0x455, k);
+                PlayWidgetAnimWithArg(p->pchild, 0x455, k);
             else
-                PlayWidgetAnimsWithArg(p->widget, 0x455, k);
+                PlayWidgetAnimsWithArg(p->pchild, 0x455, k);
             break;
         }
     }
-    if (p->selectedRow >= 0) {
-        PlayWidgetAnim(p->widget, 0x437);
+    if (p->iSelected >= 0) {
+        PlayWidgetAnim(p->pchild, 0x437);
         func_002333B4(&m, 0, sizeof(m));
         m.a[3] = 1.0f;
         m.a[0] = 1.0f;
-        m.a[5] = D_002C35B0 * (float)(p->selectedRow - p->firstVisibleRow);
-        SetWidgetAnimXf(p->widget, 0x437, &m);
+        m.a[5] = D_002C35B0 * (float)(p->iSelected - p->iFirstVisible);
+        SetWidgetAnimXf(p->pchild, 0x437, &m);
     } else {
-        StopWidgetAnim(p->widget, 0x437);
+        StopWidgetAnim(p->pchild, 0x437);
     }
-    if (end < p->itemCount) {
-        int id = p->tab == 0 ? 0x4DD : 0x4A4;
+    if (end < p->citem) {
+        int id = p->nTab == 0 ? 0x4DD : 0x4A4;
         if (D_003DA570) {
-            SetWidgetAnimXf(p->widget, id, &m);
+            SetWidgetAnimXf(p->pchild, id, &m);
             m.a[5] += D_002C35B0;
         }
-        SwitchWidgetAnim(p->widget, id, &p->scrollDownAnim);
+        SwitchWidgetAnim(p->pchild, id, &p->idAnimScrollDown);
     } else {
-        SwitchWidgetAnim(p->widget, -1, &p->scrollDownAnim);
+        SwitchWidgetAnim(p->pchild, -1, &p->idAnimScrollDown);
     }
-    SwitchWidgetAnim(p->widget, (p->timerKind != -1) ? 0x43B : 0x439, &p->popupAnim);
+    SwitchWidgetAnim(p->pchild, (p->nPopup != -1) ? 0x43B : 0x439, &p->idAnimPopup);
 }
 } } // namespace M_UpdateThiefnetWidgets
 
@@ -1966,88 +1914,75 @@ typedef struct SUB {
     int pageAnimFirst;
     int pageAnimThird;
 } SUB;
-typedef struct OBJ {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0x24 - 0x10];
-    SUB *widget;
-    char pad28[0x40 - 0x28];
-    int tab;
-    float tabTime;
-    char pad48[0x25C - 0x48];
-    int popupAnim;
-    int scrollUpAnim;
-    int scrollDownAnim;
-} OBJ;
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 void SetClockRate(struct CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
-void SetWidgetState(SUB *, int);
-void SetWidgetRequest(SUB *, int);
+void SetWidgetState(void *, int);
+void SetWidgetRequest(void *, int);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
-void RefreshThiefnetItems(OBJ *);
-void SelectThiefnetItem(OBJ *, int);
+void RefreshThiefnetItems(THIEFNET *);
+void SelectThiefnetItem(THIEFNET *, int);
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 // Opens ThiefNet on a tab (buy or sell) or closes it (-1), freezing / resuming the clock and player control.
-void SetThiefnetTab(OBJ *p, int s)
+void SetThiefnetTab(THIEFNET *p, int s)
 {
     int old;
-    if (!p->widget)
+    if (!p->pchild)
         s = -1;
-    if (s == p->tab)
+    if (s == p->nTab)
         return;
-    if (p->tab == -1) {
+    if (p->nTab == -1) {
         SetClockRate(&D_002DDED0, 0.0f, 0);
         IncrementSwHandsOff(D_003DD490, 0);
-        VCALL(p, 10);
-        SetWidgetState(p->widget, 1);
+        p->Show();
+        SetWidgetState(p->pchild, 1);
     }
-    old = p->tab;
-    p->tab = s;
-    p->tabTime = D_002DDED0.realTime;
+    old = p->nTab;
+    p->nTab = s;
+    p->tTab = D_002DDED0.realTime;
     switch (s) {
     case -1:
-        VCALL(p->widget, 50);
+        VCALL(((SUB *)p->pchild), 50);
         SetClockRate(&D_002DDED0, 1.0f, 0);
         DecrementSwHandsOff(D_003DD490, 0);
-        VCALL(p, 11);
-        if (p->widget->visibility > 0)
-            SetWidgetRequest(p->widget, 1);
-        p->popupAnim = s;
-        p->scrollUpAnim = s;
-        p->scrollDownAnim = s;
+        p->Hide();
+        if (((SUB *)p->pchild)->visibility > 0)
+            SetWidgetRequest(p->pchild, 1);
+        p->idAnimPopup = s;
+        p->idAnimScrollUp = s;
+        p->idAnimScrollDown = s;
         break;
     case 0:
-        p->widget->pageAnimFirst = 0x4D4;
-        p->widget->pageAnimSecond = 0x4D5;
-        p->widget->pageAnimThird = 0x4D6;
+        ((SUB *)p->pchild)->pageAnimFirst = 0x4D4;
+        ((SUB *)p->pchild)->pageAnimSecond = 0x4D5;
+        ((SUB *)p->pchild)->pageAnimThird = 0x4D6;
         if (old == 1) {
-            SetWidgetState(p->widget, 1);
-            SetWidgetState(p->widget, 2);
+            SetWidgetState(p->pchild, 1);
+            SetWidgetState(p->pchild, 2);
         } else {
-            SetWidgetRequest(p->widget, 2);
+            SetWidgetRequest(p->pchild, 2);
         }
         SetSndSourceLo(CreateSfxSound(0x35), 0);
         break;
     case 1:
-        p->widget->pageAnimFirst = 0x49B;
-        p->widget->pageAnimSecond = 0x49C;
-        p->widget->pageAnimThird = 0x49D;
+        ((SUB *)p->pchild)->pageAnimFirst = 0x49B;
+        ((SUB *)p->pchild)->pageAnimSecond = 0x49C;
+        ((SUB *)p->pchild)->pageAnimThird = 0x49D;
         if (old == 0) {
-            SetWidgetState(p->widget, 1);
-            SetWidgetState(p->widget, 2);
+            SetWidgetState(p->pchild, 1);
+            SetWidgetState(p->pchild, 2);
         } else {
-            SetWidgetRequest(p->widget, 2);
+            SetWidgetRequest(p->pchild, 2);
         }
         SetSndSourceLo(CreateSfxSound(0x35), 0);
         break;
     }
     RefreshThiefnetItems(p);
     SelectThiefnetItem(p, 0);
-    ((void (*)(void *, int))p->vt[14].pfn)((char *)p + p->vt[14].d, -1);
+    p->SetMode(-1);
 }
 } } // namespace M_SetThiefnetTab
 #undef VCALL
@@ -2069,26 +2004,17 @@ namespace RO_ORDER { extern const char r_D_002A79D0[] __asm__("D_002A79D0") = "l
 namespace RO_ORDER { extern const char r_D_002A79D8[] __asm__("D_002A79D8") = "mplootkc"; }
 namespace M_func_001DC4B0 { extern "C" {
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
-typedef struct {
-    char pad[0x28];
-    int state;
-    float t;
-    char pad30[0x48 - 0x30];
-    int c;
-    char pad4c[0x24C - 0x4C];
-    int i;
-} OBJ;
-void SetThiefnetTab(OBJ *, int);
-void SelectThiefnetItem(OBJ *, int);
+void SetThiefnetTab(THIEFNET *, int);
+void SelectThiefnetItem(THIEFNET *, int);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 // ThiefNet stick handler (slot 14): left / right switch tabs, up / down move the selection (with sounds). (inferred)
-void SetThiefnetStickDir(OBJ *p, unsigned int n)
+void SetThiefnetStickDir(THIEFNET *p, unsigned int n)
 {
-    if (n == p->state)
+    if (n == p->nMode)
         return;
-    p->state = n;
-    p->t = D_002DDED0.realTime;
+    p->nMode = n;
+    p->modeStartTime = D_002DDED0.realTime;
     switch (n) {
     case 0:
         SetThiefnetTab(p, 1);
@@ -2099,8 +2025,8 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
     case 1:
     case 2:
     case 3:
-        if (p->i > 0) {
-            SelectThiefnetItem(p, p->i - 1);
+        if (p->iSelected > 0) {
+            SelectThiefnetItem(p, p->iSelected - 1);
             SetSndSourceLo(CreateSfxSound(0x35), 0);
         } else {
             SetSndSourceLo(CreateSfxSound(0x36), 0);
@@ -2109,8 +2035,8 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
     case 5:
     case 6:
     case 7:
-        if (p->i < p->c - 1) {
-            SelectThiefnetItem(p, p->i + 1);
+        if (p->iSelected < p->citem - 1) {
+            SelectThiefnetItem(p, p->iSelected + 1);
             SetSndSourceLo(CreateSfxSound(0x35), 0);
         } else {
             SetSndSourceLo(CreateSfxSound(0x36), 0);
@@ -2165,9 +2091,7 @@ void BuildGadgetMenuInfoText(char *out)
 } } // namespace M_BuildGadgetMenuInfoText
 
 namespace M_BuildThiefnetPowerupNameText { extern "C" {
-struct E { int n; int a; };
-struct G2 { char pad[0x4C]; struct E ae[0x40]; int nPad; int i; };
-extern struct G2 D_003DA150;
+extern THIEFNET D_003DA150;
 struct T { int a[5]; int id; int b[2]; };
 extern struct T D_002BCD00[];
 extern struct G D_003DD490;
@@ -2175,8 +2099,8 @@ void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(char *p, void *q);
 // Text callback: the power-up name of list row i.
 void BuildThiefnetPowerupNameText(char *pch, int i) {
-    struct G2 *pg = &D_003DA150;
-    unsigned int n = pg->ae[pg->i + i].n;
+    THIEFNET *pg = &D_003DA150;
+    unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     int id = -1;
     if (n < 0x2B) id = D_002BCD00[n].id;
     if (id != -1) strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, id));
@@ -2185,17 +2109,15 @@ void BuildThiefnetPowerupNameText(char *pch, int i) {
 } } // namespace M_BuildThiefnetPowerupNameText
 
 namespace M_func_001DC820 { extern "C" {
-struct E { int n; int a; };
-struct G2 { char pad[0x4C]; struct E ae[0x40]; int nPad; int i; };
-extern struct G2 D_003DA150;
+extern THIEFNET D_003DA150;
 struct T { int a[2]; char *pch; int b[5]; };
 extern struct T D_002BCD00[];
 extern char D_002A79A0[];
 void sprintf(char *pch, char *fmt, char *s);
 // Text callback: the power-up cost of list row i. (inferred)
 void BuildThiefnetPowerupCostText(char *pch, int i) {
-    struct G2 *pg = &D_003DA150;
-    unsigned int n = pg->ae[pg->i + i].n;
+    THIEFNET *pg = &D_003DA150;
+    unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     char *s = 0;
     if (n < 0x2B) s = D_002BCD00[n].pch;
     if (s) sprintf(pch, D_002A79A0, s);
@@ -2204,17 +2126,10 @@ void BuildThiefnetPowerupCostText(char *pch, int i) {
 } } // namespace M_func_001DC820
 
 namespace M_BuildThiefnetLootNameText {
-struct ENT { int n; int a; };
-struct TBL {
-    char pad[0x4C];
-    ENT ae[0x40];
-    int i;
-    int first;
-};
 struct REC { char *name; int ids; int pad; };
 struct G;
 extern "C" { extern G D_003DD490; }
-extern "C" { extern TBL D_003DA150; }
+extern "C" { extern THIEFNET D_003DA150; }
 extern "C" { extern REC D_002C3288[]; }
 extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79D0[]; }
@@ -2229,7 +2144,7 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
 {
     int ids = -1;
     int c = 0;
-    unsigned int i = D_003DA150.ae[D_003DA150.first + k].n;
+    unsigned int i = D_003DA150.aitem[D_003DA150.iFirstVisible + k].id;
     if (i < 0x40) {
         CRef ref;
         char ach[0x20];
@@ -2249,17 +2164,15 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
 } // namespace M_BuildThiefnetLootNameText
 
 namespace M_func_001DC9C0 { extern "C" {
-struct E { int n; int a; };
-struct G2 { char pad[0x4C]; struct E ae[0x40]; int nPad; int i; };
-extern struct G2 D_003DA150;
+extern THIEFNET D_003DA150;
 struct T { char *pch; int b[2]; };
 extern struct T D_002C3288[];
 extern char D_002A79A0[];
 void sprintf(char *pch, char *fmt, char *s);
 // Text callback: the loot sale price of list row i. (inferred)
 void BuildThiefnetLootPriceText(char *pch, int i) {
-    struct G2 *pg = &D_003DA150;
-    unsigned int n = pg->ae[pg->i + i].n;
+    THIEFNET *pg = &D_003DA150;
+    unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     char *s = 0;
     if (n < 0x40) s = D_002C3288[n].pch;
     if (s) sprintf(pch, D_002A79A0, s);
@@ -2268,7 +2181,7 @@ void BuildThiefnetLootPriceText(char *pch, int i) {
 } } // namespace M_func_001DC9C0
 
 namespace M_func_001DCA30 { extern "C" {
-#undef D_003DA180
+extern THIEFNET D_003DA150;
 #define D_003DA180 (*(int *)((char *)base_D_003DA150 + 0x30))   /* screen's object+0x30 */
 extern struct G D_003DD490;
 void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
@@ -2276,7 +2189,7 @@ void strcpy(char *p, void *q);
 // Text callback: the popup prompt text for the popup mode. (inferred)
 void BuildThiefnetPromptText(char *pch) {
     int id;
-    switch (D_003DA180) {
+    switch (D_003DA150.nPopup) {
     case -1: id = 0xDE; break;
     case 0: id = 0xDF; break;
     case 1: id = 0xE0; break;
@@ -2290,13 +2203,7 @@ void BuildThiefnetPromptText(char *pch) {
 namespace M_BuildThiefnetInfoText { extern "C" {
 typedef struct { int unknown0,category,cost,powerCost,unlockEpisode,nameTextId,detailTextId,descriptionTextId; } REC;   /* a power-up (D_002BCD00) */
 typedef struct { char *name; int ids,pad; } REC2;
-typedef struct {
-    char pad[0x30];
-    int timerKind,pad34,modeArg,pad3C,tab;
-    char pad44[0x254-0x44];
-    int selectedPowerup,selectedLoot;
-} TBL;
-extern TBL D_003DA150;
+extern THIEFNET D_003DA150;
 extern REC D_002BCD00[];
 extern REC2 D_002C3288[];
 extern struct G D_003DD490;
@@ -2313,16 +2220,16 @@ static inline void CopyId(char *p,int id)
 // line.
 void BuildThiefnetInfoText(char *pch)
 {
-    TBL *pt=&D_003DA150;
-    if(pt->timerKind!=-1) {
-        CopyId(pch,pt->modeArg);
+    THIEFNET *pt=&D_003DA150;
+    if(pt->nPopup!=-1) {
+        CopyId(pch,pt->idsPopup);
         return;
     } else {
-        switch(pt->tab) {
+        switch(pt->nTab) {
         case 0: {
-            unsigned int i=pt->selectedPowerup;
+            unsigned int i=pt->idPowerupSelected;
             if(i<0x2B) {
-                if(D_002BCD00[i].detailTextId!=pt->timerKind) {   /* timerKind is -1 here: "has a detail text" */
+                if(D_002BCD00[i].detailTextId!=pt->nPopup) {   /* timerKind is -1 here: "has a detail text" */
                     int *pc=&D_002BCD00[i].cost;
                     int count=GetCoinCount(D_002DEB30);
                     int idsT=count<*pc?0xD9:0xDA;
@@ -2338,7 +2245,7 @@ void BuildThiefnetInfoText(char *pch)
             return;
         }
         case 1: {
-            unsigned int i=pt->selectedLoot;
+            unsigned int i=pt->idLootSelected;
             if(i<0x40) {
                 sprintf(pch,FindSwLocalizedString__FP2SWi(&D_003DD490,0xDB),D_002C3288[i].name);
                 return;
