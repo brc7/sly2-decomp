@@ -254,8 +254,9 @@ extern "C" void ColorCorrectRgba(RGBA *prgba);
 int BisU8Read(CBinaryInputStream *pbis) __asm__("U8Read__18CBinaryInputStream");
 int BisU16Read(CBinaryInputStream *pbis) __asm__("U16Read__18CBinaryInputStream");
 int BisU32Read(CBinaryInputStream *pbis) __asm__("U32Read__18CBinaryInputStream");
-extern "C" void *memset(void *pv, int b, unsigned int cb);
-extern "C" int memcmp(const void *pv1, const void *pv2, unsigned int cb);
+/* memset / memcmp under labels, so that includers' own (namespaced) C declarations of them do not become ambiguous */
+void *EmitbMemset(void *pv, int b, unsigned int cb) __asm__("memset");
+int EmitbMemcmp(const void *pv1, const void *pv2, unsigned int cb) __asm__("memcmp");
 /* EMITVX: an even grid of emission directions for one burst (CalculateEmitvx; ChooseEmitVelocity picks cell i) */
 struct EMITVX
 {
@@ -385,7 +386,7 @@ template <class T> void func_002586D8(T *p)
         if (pemitb0->emito.originKind == 2)
             oid2 = pemitb0->emito.pvEmito;
     }
-    memset(aplo, 0, 0x14);
+    EmitbMemset(aplo, 0, 0x14);
     if (oid1 != -1)
         aplo[0] = PloFindSwObjectE(&g_sw, 4, (OID)oid1, p);
     if (oid2 != -1)
@@ -417,7 +418,7 @@ template <class T> void func_002586D8(T *p)
     }
     if (p->pemitb->aploRef == 0)
         p->pemitb->aploRef = (LO **)PvEmitbRefsNull(p);
-    if (memcmp(p->pemitb->aploRef, aplo, 0x14))
+    if (EmitbMemcmp(p->pemitb->aploRef, aplo, 0x14))
     {
         PemitbEnsure(p, ENSK_Set);
         preq = &req;
