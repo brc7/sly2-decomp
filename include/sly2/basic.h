@@ -211,7 +211,7 @@ struct DLE
     void *prev;   /* previous element */
 };
 
-/* CRefPtr: from src/game/object/spliceobj/RefGetPeopid.cpp (30 copies in Lilly ports) */
+/* CRefPtr: from src/game/object/spliceobj/GetOptionRecordValue.cpp (30 copies in Lilly ports) */
 enum REFPTRNULL { refptrNull };
 template <class T>
 /* CRefPtr: a counted (reference-holding) pointer to a Splice GC node: assignment takes a reference on the new pointee

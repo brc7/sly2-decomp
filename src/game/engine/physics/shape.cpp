@@ -1269,7 +1269,7 @@ struct P { char pad[0x40]; int flags; char pad2[0x17C - 0x44]; void *chain; };
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void *InitChain(void *pv, struct P *p);
 void MeasureShape(struct P *p);
-void SetLoBusyk(struct P *p, int n);
+void SetLoBusyKind(struct P *p, int n);
 /** @sly2-annot addr=0x1E7840
  * Purpose: Create (0x90 bytes, 0x1E81C0) the shape's chain if missing, measure, set LO busy flags; f==1
  *   re-arms an existing one; returns it
@@ -1284,11 +1284,11 @@ void *EnsureShapeChain(struct P *shape, int rearm)
     if (!shape->chain) {
         shape->chain = InitChain(func_001AE4F8(0x90), shape);
         MeasureShape(shape);
-        SetLoBusyk(shape, 0);
+        SetLoBusyKind(shape, 0);
         { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->flags = v & ~0x20; }
         { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->flags = v | 0xC; }
     } else if (rearm == 1) {
-        SetLoBusyk(shape, 0);
+        SetLoBusyKind(shape, 0);
         { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0x4; else shape->flags = v | 0x4; }
     }
     return shape->chain;
@@ -1367,7 +1367,7 @@ namespace M_SetShapeChainMode { extern "C" {
 struct Q { char pad[0x4C]; int mode; };
 struct P { char pad[0x40]; int flags; char pad2[0x17C - 0x44]; struct Q *chain; };
 void *EnsureShapeChain(struct P *p, int f);
-void SetLoBusyk(struct P *p, int n);
+void SetLoBusyKind(struct P *p, int n);
 /** @sly2-annot addr=0x1E7A28
  * Purpose: n!=-1: ensure chain and enable updates (LO flags); -1: disable; store mode in chain +0x4C
  * Info: proposed name SetShapeChainMode (T1); TU shape
@@ -1380,11 +1380,11 @@ void SetShapeChainMode(struct P *shape, int mode)
 {
     if (mode != -1) {
         EnsureShapeChain(shape, 1);
-        SetLoBusyk(shape, 0);
+        SetLoBusyKind(shape, 0);
         { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->flags = v & ~0x20; }
         { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->flags = v | 0xC; }
     } else {
-        SetLoBusyk(shape, 0);
+        SetLoBusyKind(shape, 0);
         { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0x20; else shape->flags = v | 0x20; }
         { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0xC; else shape->flags = v & ~0xC; }
     }
@@ -2326,7 +2326,7 @@ namespace M_func_001E94B0 { extern "C" {
 struct AR { int cb; int cbAlign; };
 typedef struct { float m[4][4]; } MATRIX4;
 struct X { char pad[0x60]; MATRIX4 mat; char pad2[0xE0 - 0xA0]; int mode; int isClosed; int numPoints; float *times; float *distances; void *points; };
-struct X *PloNew__F3CIDP2SO3OIDi(int k, int n, void *pv, int m);
+struct X *CreateLo__F3CIDP2SO3OIDi(int k, int n, void *pv, int m);
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
 void *AllocFromWorldHeap(struct AR *par);
 /** @sly2-annot addr=0x1E94B0
@@ -2341,7 +2341,7 @@ struct X *NewSampledShape(void *pv, int count)
 {
     struct AR ar;
     int i;
-    struct X *p = PloNew__F3CIDP2SO3OIDi(10, 0, pv, -1);
+    struct X *p = CreateLo__F3CIDP2SO3OIDi(10, 0, pv, -1);
     MATRIX4 *pm;
     p->mode = 0;
     p->isClosed = 0;

@@ -137,7 +137,7 @@ RTE *AllocCopyFromWorldHeap(ALLOCREQ *preq, RTE *pv);
 void LoadLoFromBrx(ROUTE *proute, void *pbis);
 void PostLoLoad(ROUTE *proute);
 SHAPEV *NewSampledShape(int oid, int c);
-void *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *object);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *object);
 qword GetLoWorldPos(void *p);
 void MeasureShape(SHAPEV *shape);
 void InitBhv(BHVRT *p);
@@ -158,10 +158,10 @@ int IsBhvanimDone(void *p);
 int IsBhvattackDone(void *p);
 int SnapToGround(qword *pq, int a, int b, float f, float g);
 int IsSwHandsOff(SW *pg);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void SetStepguardTarget(GUARDV *pw, void *p);
 int IsBreakableDone(SOV *p);
-int CploFindSwObjectsByClass(SW *pg, int a, int b, void *c, int d, SOV **apso);
+int FindSwObjectsByClass(SW *pg, int a, int b, void *c, int d, SOV **apso);
 qword SetVectorSphere(float a, float b, float c);
 float RadBetweenVectors(qword a, qword b, void *p);
 float atan2f(float y, float x);
@@ -192,7 +192,7 @@ void SetBhvRouteState(BHVRT *p, int n);
 float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
 int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
-LOV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
+LOV *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
 static inline void InitS(ALLOCREQ *ps, int a, int b)
 {
@@ -225,7 +225,7 @@ void CID123::VUnk14()
     route->shape->pointCount = route->stationCount;
     for (i = 0; i < route->stationCount; i++) {
         RTE *e = &route->stations[i];
-        void *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, route);
+        void *o = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, route);
         e->object = o;
         if (o) {
             qword *pq = (qword *)((i << 4) + (int)route->shape->pointPositions);   // (byte arithmetic: an indexed store does not match)
@@ -427,7 +427,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
         behavior->lastFastHeroTime = D_002DDED0.t;
     float dt = D_002DDED0.t - behavior->lastFastHeroTime;
     if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !IsSwHandsOff(pg)) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && hero->state == 0x11) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && hero->state == 0x11) {
             PATH *ppath = hero->path;
             pos = GetLoWorldPos(hero);
             int c = ppath->c;
@@ -449,7 +449,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
                 posT = object->hidingInfo->pos;
                 r = object->hidingInfo->radius;
             }
-            int c = CploFindSwObjectsByClass(&D_003DD490, 1, 0x12, object, 8, apso);
+            int c = FindSwObjectsByClass(&D_003DD490, 1, 0x12, object, 8, apso);
             int k = 0;
             for (int i = 0; i < c; i++) {
                 if (apso[i]->flags & 0x17E)
@@ -692,7 +692,7 @@ void CARMELITA::Init()
 extern "C" void PostCarmelitaLoad(GUARDV *guard)
 {
     PostStepguardLoad(guard);
-    guard->marker = PloNew(3, 0, 0x62B, -1);
+    guard->marker = CreateLo(3, 0, 0x62B, -1);
 }
 
 // 0x14B218: CARMELITA vtable slot 5 (HandleMessage): STEPGUARD handler; message 0xB about herself while not on her
@@ -750,9 +750,9 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
         float g;
         if (!pe->state)
             continue;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->object, CID_STEPPLAYER))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(pe->object, CID_STEPPLAYER))
             k = 0;
-        else if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->object, CID_GUARD))
+        else if (IsBasicDerivedFrom__FP5BASIC3CID(pe->object, CID_GUARD))
             k = 1;
         else
             k = 2;

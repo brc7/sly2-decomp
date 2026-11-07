@@ -141,14 +141,14 @@ void LoadLoFromBrx(CID119V *p, void *pbis);
 void PostLoLoad(CID119V *p);
 void UpdateLo(CID119V *p);
 void RemoveLoHierarchy(CID119V *p);
-void SetLoBusyk(CID119V *p, int n);
+void SetLoBusyKind(CID119V *p, int n);
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
 void *AllocClearedFromStack(AI *pa);
 void *AllocFromStack(AI *pa);
 void *AllocCopyFromWorldHeap(AI *pa, void *pv);
 void *AllocClearedFromWorldHeap(AI *pa);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void AddGuardScriptGoto(SCRIPTV *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
@@ -183,7 +183,7 @@ GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *selector, qwordV *position,
 }
 float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
-SCRIPTV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
+SCRIPTV *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
 // 0x173158: Spawner (CID119) vtable slot 7 (Init): LO Init, then the defaults: spawn distance 5500, capacity/counts
 // 1, respawn delays 30 and 50 s.
@@ -300,8 +300,8 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
             {
                 // A curve spawn walks its guard along the curve: a script (cid 0x71) with one goto command.
                 SCRIPTV *script;
-                selector->object = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
-                script = PloNew(0x71, 0, 0x2CB, -1);
+                selector->object = (LOV *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
+                script = CreateLo(0x71, 0, 0x2CB, -1);
                 AddGuardScriptGoto(script, selector->oid, 1, -1);
                 selector->scriptCommand = script->firstCommand;
                 selector->script = script;
@@ -309,14 +309,14 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
             break;
         case SELECTOR_SPOT:
         case SELECTOR_SMALL_SPOT:
-            selector->object = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
+            selector->object = (LOV *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, selector->oid, 0);
             break;
         }
     }
     al.cb = spawner->entryCapacity * sizeof(ENTRY);
     al.align = 0x10;
     spawner->entries = (ENTRY *)AllocClearedFromWorldHeap(&al);
-    SetLoBusyk(spawner, 1);
+    SetLoBusyKind(spawner, 1);
     f = spawner->objectFlags;
     if (!(f & 1)) *(int *)f |= 2;   // (bit 0 clear: the word is a pointer to the real flags)
     else spawner->objectFlags = f | 2;

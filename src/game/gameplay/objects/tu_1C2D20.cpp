@@ -44,7 +44,7 @@ void BindLoOidTable(SPRAYER *p, int n, void *q);
 void ReplaceSma(void *a, SPRAYER *p, int b, int c, int *pn);
 void RenderSoSelf(SPRAYER *p);
 void RenderLoAtMatrix(void *p, void *q, float a, float b);
-int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *AcquireProxyObject(void *plo, int n);
 void SelectLootEntry(SOV *plo, int id);
 SOV *FindSoXf(SPRAYER *p, void *pv, int n);
@@ -91,20 +91,20 @@ extern "C" int StageLootPouchLoot(SPRAYER *pouch, SOV *item, int id, void *attac
 {
     if (pouch->heldItem) return 0;
     pouch->itemProxy = 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(item, 6)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(item, 6)) {
         pouch->itemProxy = item;
         pouch->heldItem = AcquireProxyObject(item, 0);
         if (!pouch->heldItem) {
             pouch->itemProxy = 0;
             return 1;
         }
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(item, 0x30)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(item, 0x30)) {
         pouch->heldItem = item;
     } else {
         return 2;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5E)) SelectLootEntry(pouch->heldItem, id);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5A))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5E)) SelectLootEntry(pouch->heldItem, id);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(pouch->heldItem, 0x5A))
         ((void (*)(void *, int))pouch->heldItem->vt[76].fn)((char *)pouch->heldItem + pouch->heldItem->vt[76].delta, 2);
     else
         ((void (*)(void *))pouch->heldItem->vt[9].fn)((char *)pouch->heldItem + pouch->heldItem->vt[9].delta);
@@ -187,7 +187,7 @@ extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
             node = pouch->heldItem;
         else {
             node = AcquireProxyObject(pouch->itemProxy, 0);
-            if (node && FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A))
+            if (node && IsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A))
                 SetState(node, 2);
         }
         if (!node)
@@ -204,9 +204,9 @@ extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
         mat = BuildOrthonormalMatrixZ(Normalize(side, D_002A2DA0), D_002A2DC0);
         qwordV dest = VuAdd(target, Transform(mat, offset));
         qwordV velocity = CalculateVelocityToReachPos(start, dest, D_002C0D60, Rand(D_002C0CE0));
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A)) {
             float lifetime;
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5B) || FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5D))
+            if (IsBasicDerivedFrom__FP5BASIC3CID(node, 0x5B) || IsBasicDerivedFrom__FP5BASIC3CID(node, 0x5D))
                 lifetime = (float)i * D_002C0CEC;
             else
                 lifetime = D_002A76E8;

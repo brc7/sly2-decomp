@@ -1,7 +1,7 @@
 // find.cpp -- finding world objects by oid or class: the SW hash lists and the scoped search (MatchSwObject).
 // TU 0x15E380..0x15EF00 (13 functions, address order).
-// Entry points: PloFindSwObject / FindSwObjects (by oid, with search flags: low byte = scope 1..5,
-// 0x100 in-world only, 0x200 unclamped count, 0x400 ignore proxy chains), CploFindSwObjectsByClass, IsCidDerivedFrom.
+// Entry points: FindSwObject / FindSwObjects (by oid, with search flags: low byte = scope 1..5,
+// 0x100 in-world only, 0x200 unclamped count, 0x400 ignore proxy chains), FindSwObjectsByClass, IsCidDerivedFrom.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_find
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0015EEE0
 #include "sly2/slotheap.h"
@@ -58,10 +58,10 @@ void MatchSwObject(void *world, LO *candidate, CH *candidateChain, unsigned int 
 int FindSwObjectsInProxyScope(void *world, int flags, int oid, LO *context, void *contextChain, int maxCount, LO **results);
 LO *FindSwObjectInProxyScope(SW *world, int flags, int oid, LO *context, void *contextChain);
 int IsCidDerivedFrom(int cid, int cidBase);
-int CploFindSwObjectsByClass(void *world, int flags, int cid, LO *context, int maxCount, LO **results);
+int FindSwObjectsByClass(void *world, int flags, int cid, LO *context, int maxCount, LO **results);
 }
-int IsrcFromIdProxy(int id);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int GetSourceIndexFromProxyId(int id);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 /** @sly2-annot addr=0x15E380
  * Purpose: Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF
@@ -128,7 +128,7 @@ extern "C" void MatchSwObject(void *world, LO *candidate, CH *candidateChain, un
             while (1) {
                 if (!link)
                     return;
-                if (IsrcFromIdProxy((int)link->id) == IsrcFromIdProxy((int)candidateChain->id))
+                if (GetSourceIndexFromProxyId((int)link->id) == GetSourceIndexFromProxyId((int)candidateChain->id))
                     break;
                 if (flags & 0x800)
                     return;
@@ -284,22 +284,22 @@ extern "C" int FindSwObjectsInProxyScope(void *world, int flags, int oid, LO *co
 
 /** @sly2-annot addr=0x15E938
  * Purpose: Returns the first LO matching grffso/oid relative to a context LO (or NULL)
- * Info: proposed name PloFindSwObject (T1); TU find
+ * Info: proposed name FindSwObject (T1); TU find
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r3_1539A8
  * See: docs/engine/object-model.md#6-finding-objects, docs/engine/object-model.md#9-key-functions,
  *   docs/engine/overview.md#6-subsystem-map
  * @end-sly2-annot */
 // Returns the first object matching the flags and oid relative to a context object, or null.
-LO *PloFindSwObject(SW *world, int flags, OID oid, LO *context)
+LO *FindSwObject(SW *world, int flags, OID oid, LO *context)
 {
     return FindSwObjectInProxyScope(world, flags, oid, context, 0);
 }
 
 /** @sly2-annot addr=0x15E958
- * Purpose: PloFindSwObject overload with the extra Sly 2 parameter: CploFindSwObjects(grffso|0x200, ..., 1,
+ * Purpose: FindSwObject overload with the extra Sly 2 parameter: CploFindSwObjects(grffso|0x200, ..., 1,
  *   &plo)
  * Info: proposed name FindSwObjectInProxyScope (T1); TU find
- * Notes: names_v2 v1 proposed FUN_0015c188 (0.000) | COLLISION: PloFindSwObject already used (same name
+ * Notes: names_v2 v1 proposed FUN_0015c188 (0.000) | COLLISION: FindSwObject already used (same name
  *   proposed for 0x15E938); renamed to FindSwObjectInProxyScope
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/reference/functions/object-model.md#find-0x15e380-0x15ef00,
@@ -335,13 +335,13 @@ extern "C" int IsCidDerivedFrom(int cid, int cidBase)
 
 /** @sly2-annot addr=0x15E9C8
  * Purpose: Collects up to cploMax LOs of a class (or derived) relative to a context
- * Info: proposed name CploFindSwObjectsByClass (T1); TU find
+ * Info: proposed name FindSwObjectsByClass (T1); TU find
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
  * See: docs/engine/camera.md#5-key-functions, docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
  * @end-sly2-annot */
 // Collects up to maxCount objects of a class (or a derived class) relative to a context object; returns the count.
-extern "C" int CploFindSwObjectsByClass(void *world, int flags, int cid, LO *context, int maxCount, LO **results)
+extern "C" int FindSwObjectsByClass(void *world, int flags, int cid, LO *context, int maxCount, LO **results)
 {
     volatile int unused;
     int count;
@@ -357,7 +357,7 @@ extern "C" int CploFindSwObjectsByClass(void *world, int flags, int cid, LO *con
     case 3:
         f = flags & 0x200;
         for (p = context->parent; p; p = p->parent) {
-            if (!FIsBasicDerivedFrom(p, (CID)cid))
+            if (!IsBasicDerivedFrom(p, (CID)cid))
                 continue;
             if ((flags & 0x100) && (int)p->isInWorld == 0)
                 continue;
@@ -372,7 +372,7 @@ extern "C" int CploFindSwObjectsByClass(void *world, int flags, int cid, LO *con
             childEnd = context->childEnd;
         f = flags & 0x200;
         for (p = context->firstChild; p != childEnd; p = p->nextSibling) {
-            if (!FIsBasicDerivedFrom(p, (CID)cid))
+            if (!IsBasicDerivedFrom(p, (CID)cid))
                 continue;
             if (count < maxCount)
                 results[count] = p;
@@ -430,17 +430,17 @@ extern "C" int CploFindSwObjectsByClass(void *world, int flags, int cid, LO *con
 }
 
 /** @sly2-annot addr=0x15ED78
- * Purpose: First LO of a class: CploFindSwObjectsByClass(grffso|0x200, cid, ctx, 1, &plo)
- * Info: proposed name PloFindSwObjectByClass (T1); TU find
+ * Purpose: First LO of a class: FindSwObjectsByClass(grffso|0x200, cid, ctx, 1, &plo)
+ * Info: proposed name FindSwObjectByClass (T1); TU find
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
 // Returns the first object of a class relative to a context object, or null.
-LO *PloFindSwObjectByClass(SW *world, int flags, CID cid, LO *context)
+LO *FindSwObjectByClass(SW *world, int flags, CID cid, LO *context)
 {
     LO *result;
-    if (!CploFindSwObjectsByClass(world, flags | 0x200, cid, context, 1, &result))
+    if (!FindSwObjectsByClass(world, flags | 0x200, cid, context, 1, &result))
         return 0;
     return result;
 }

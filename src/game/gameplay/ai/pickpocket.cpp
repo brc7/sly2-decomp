@@ -113,9 +113,9 @@ void ClearLootPouchLoot(OWNER *);
 int StageLootPouchLoot(OWNER *, OBJECT *, int, int);
 void *LaunchLootPouchLootAtPlayer(OWNER *, int);
 int NWorldCur(void);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
-OBJECT *PloFindSwObject__FP2SWi3OIDP2LO(G *, int, int, OWNER *);
+OBJECT *FindSwObject__FP2SWi3OIDP2LO(G *, int, int, OWNER *);
 int IsTaskComplete(void *);
 float GRandInRange__Fff(float, float);
 int NRandInRange__Fii(int, int);
@@ -216,15 +216,15 @@ extern "C" void GenerateStepguardLoot(P *guard)
     world = NWorldCur();
     if (world == -1)
         world = 1;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD))
         table = &D_002C3968[world];
     else
         table = &D_002C3748[world];
     func_002333B4(&reward, 0, sizeof(reward));
     if (guard->lootCount > 0) {
         // A level-given first entry: dropped once its key's task is complete.
-        OBJECT *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, guard->loot[0].oid, guard->pouch);
-        if (object && FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_KEY) && object->state && IsTaskComplete(object->state))
+        OBJECT *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, guard->loot[0].oid, guard->pouch);
+        if (object && IsBasicDerivedFrom__FP5BASIC3CID(object, CID_KEY) && object->state && IsTaskComplete(object->state))
             guard->lootCount = 0;
     }
     if (guard->lootCount > 0) {
@@ -290,12 +290,12 @@ extern "C" void StageStepguardLoot(P *guard)
     guard->isStaged = 0;
     for (; guard->nextLoot < guard->lootCount; guard->nextLoot++) {
         ITEM *entry = &guard->loot[guard->nextLoot];
-        OBJECT *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, entry->oid, guard->pouch);
+        OBJECT *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, entry->oid, guard->pouch);
         int key, launchKind;
         if (!object) continue;
         key = entry->key;
         launchKind = LAUNCH_OBJECT;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_KEY)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, CID_KEY)) {
             OBJECT::OSTATE *objectState = object->state;
             if (objectState) {
                 int taskState = objectState->taskState;

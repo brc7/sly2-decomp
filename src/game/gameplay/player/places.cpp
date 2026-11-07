@@ -83,7 +83,7 @@ float ComputeMaxBallisticTime(qword a, qword b, float c, float d, float e, float
 void SetStepTargetHeadingFromVector(JT *p, qword q);
 void CutCm__FP2CM(D *d);
 void SetJtAirJump(void *p, int a, int b, int c);
-int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
 void UpdateSoBusy(G *g, LO *a);
 void ChooseJtLanding(void *p, LO *a);
 void StartScreenFade(int a);
@@ -97,7 +97,7 @@ VQ D_002BF950[8] = {{{40.0f, 0.0f, 0.0f, 0.0f}}, {{28.3f, 28.3f, 0.0f, 0.0f}}, {
     {{-40.0f, 0.0f, 0.0f, 0.0f}}, {{-28.3f, -28.3f, 0.0f, 0.0f}}, {{0.0f, -40.0f, 0.0f, 0.0f}}, {{28.3f, -28.3f, 0.0f, 0.0f}}};   /* 8 probe offsets */
 CLQ D_002BF9D0 = {400.0f, -1.0f, 0.0f};
 LM D_002BF9E0 = {0.0f, 1000.0f};
-int CploFindSwObjectsByClass(G *g, int k, int n, int m, int c, LO2 **apv);
+int FindSwObjectsByClass(G *g, int k, int n, int m, int c, LO2 **apv);
 float ScoreJtPlace(JTPLACES *p, PLACE *e, int c, LO2 **apv);
 qword GetLoWorldPos(void *p);
 void AddJtPlaceAtPosition(JTPLACES *p, PLACESPOT *a, qword q);
@@ -208,9 +208,9 @@ extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
                 CutCm__FP2CM(&D_002DDF40);
                 SetJtAirJump(jt->air, 0xB, 0, 0);
                 if (e.shape) {
-                    if (FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xD) ||
-                        FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x27) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xC) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x22) ||
-                        FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x26)) {
+                    if (IsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x13) || IsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xB) || IsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xD) ||
+                        IsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x27) || IsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xC) || IsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x22) ||
+                        IsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x26)) {
                         UpdateSoBusy(&D_003DD490, e.lo);
                         ChooseJtLanding(jt->air, e.lo);
                     }
@@ -302,7 +302,7 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
     int c, i;
     float best;
     PLACE *e;
-    c = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x33, 0, 0x10, apv);
+    c = FindSwObjectsByClass(&D_003DD490, 0x505, 0x33, 0, 0x10, apv);
     best = D_002A66A0;
     for (i = 0; i < places->count; i++) {
         float g;

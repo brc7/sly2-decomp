@@ -91,9 +91,9 @@ void FramePtr_Assign(NOISE *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *pointer, int value);
 void UnsubscribeLoAll(NOISE *noise);
 int IsWithinLimits__FP2LMf(void *object, float z);
-NOISETYPE *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+NOISETYPE *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void InitXfm(LISTENER *object);
-void SetLoBusyk(LISTENER *object, int value);
+void SetLoBusyKind(LISTENER *object, int value);
 void AddLoHierarchy(LISTENER *object);
 void RemoveLoHierarchy(LISTENER *object);
 void CloneXfm(LISTENER *object, LISTENER *source);
@@ -266,27 +266,27 @@ static inline void Init(NOISETYPE *type) { VTE *entry = &type->vt[9]; ((void (*)
 extern "C" void CreateSwNoiseTypes(SWN *world)
 {
     {
-        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
         type->isMuted = 0;
         world->types[0] = type;
         Init(type);
     }
     {
-        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
         type->isMuted = 1;
         type->duration = D_002BDD00;
         world->types[1] = type;
         Init(type);
     }
     {
-        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
         type->isMuted = 0;
         type->range = D_002BDD04;
         world->types[2] = type;
         Init(type);
     }
     {
-        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C5, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C5, -1);
         type->range = D_002BDD08;
         type->duration = D_002BDD0C;
         type->isMuted = 0;
@@ -294,7 +294,7 @@ extern "C" void CreateSwNoiseTypes(SWN *world)
         Init(type);
     }
     {
-        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C7, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C7, -1);
         type->unknown64 = 3;
         type->duration = -1.0f;
         type->isMuted = 0;
@@ -302,7 +302,7 @@ extern "C" void CreateSwNoiseTypes(SWN *world)
         Init(type);
     }
     {
-        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C6, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C6, -1);
         type->range = D_002BDD10;
         type->duration = D_002BDD14;
         type->isMuted = 0;
@@ -310,7 +310,7 @@ extern "C" void CreateSwNoiseTypes(SWN *world)
         Init(type);
     }
     {
-        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
         type->isMuted = 0;
         type->range = D_002BDD18;
         world->types[6] = type;
@@ -370,7 +370,7 @@ extern "C" void InitListener(LISTENER *listener)
 {
     unsigned int flags;
     InitXfm(listener);
-    SetLoBusyk(listener, 0);
+    SetLoBusyKind(listener, 0);
     flags = listener->grfUnk40;
     if (!(flags & 1)) *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else listener->grfUnk40 = flags | 2;

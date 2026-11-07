@@ -147,14 +147,14 @@ typedef union { qword q; float f; } U;
 struct X { void *po; };
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 // Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER. (inferred)
 qword PosCplookAnchor(struct X *p)
 {
     U s;
     U pos;
     pos.q = GetLoWorldPos(p->po);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) {
         register qword rs __asm__("vf2");
         register qword rp __asm__("vf3");
         register qword rd __asm__("vf1");
@@ -218,7 +218,7 @@ void SetSndSourceLo(void *, int);
 void RcPtr_Assign(int *, void *);
 void PauseSnd(int);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *, float *, float *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(int, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(int, int);
 void *GetLoWorldMatrix(int);
 float GLimitLm__FP2LMf(F2 *, float);
 void SetCmNearClip__FP2CMf(struct G *, float);
@@ -242,7 +242,7 @@ void ActivateCplook(struct X *p)
     PauseSnd(p->zoomSound);
     pg = &D_002DDF40;
     DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&pg->matrix, &p->panAngle, &p->tiltAngle);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x34)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x34)) {
         p->panLimits = D_002BD950;
         p->tiltLimits = D_002BD958;
     } else {
@@ -394,7 +394,7 @@ struct A { void *hero; int pad[3]; float panAngle; float tiltAngle; int pad2[7];
 extern char D_002DDF40[];
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void SetCmCut(void *p, float a, float b);
 void DeactivateCplcy(struct A *a, int n, void *b);
 static inline void Release(void **pp, float g)
@@ -409,7 +409,7 @@ void DeactivateCplook(struct A *a, int n, void *b)
 {
     Release(&a->zoomSound, 0.0f);
     Release(&a->zoomStopSound, 0.5f);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(a->hero, 0x34))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(a->hero, 0x34))
         SetCmCut(D_002DDF40, a->panAngle + 3.1415927f, -a->tiltAngle);
     else
         SetCmCut(D_002DDF40, a->startPan + 3.1415927f, -a->startTilt);

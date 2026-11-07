@@ -209,7 +209,7 @@ struct X { int id; unsigned char b4; signed char cch; char pad[2]; unsigned shor
 struct Y { char pad[0xC]; int *pv; };
 void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 void Skip__18CBinaryInputStreami(void *pbis, int cb);
-int FMatchLoadFilter__FiPs(int cch, void *pw);
+int IsCurrentLevelInList__FiPs(int cch, void *pw);
 struct Y *FindClutInHash(int id);
 void *AllocFromWorldHeap(struct AR *par);
 void ColorCorrectRgba(int *p);
@@ -223,7 +223,7 @@ void LoadClutFromBrx(void *pbis, struct X *px)
     cb = px->c * sizeof(int);
     if (px->cch > 0) {
         Read__18CBinaryInputStreamiPv(pbis, px->cch * 2, u.aw);
-        if (!FMatchLoadFilter__FiPs(px->cch, u.aw)) {
+        if (!IsCurrentLevelInList__FiPs(px->cch, u.aw)) {
             if (px->b4 != 1)
                 Skip__18CBinaryInputStreami(pbis, cb);
             px->b4 = 0;
@@ -419,7 +419,7 @@ struct X { int id; unsigned char b4; signed char cch; char pad[0x10 - 6]; unsign
 struct Y { char pad[0x14]; void *pv; };
 void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 void Skip__18CBinaryInputStreami(void *pbis, int cb);
-int FMatchLoadFilter__FiPs(int cch, void *pw);
+int IsCurrentLevelInList__FiPs(int cch, void *pw);
 struct Y *FindBitmapInHash(int id);
 void *AllocFromWorldHeap(struct AR *par);
 // Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
@@ -429,7 +429,7 @@ void LoadBmpFromBrx(void *pbis, struct X *px)
     Read__18CBinaryInputStreamiPv(pbis, 0x18, px);
     if (px->cch > 0) {
         Read__18CBinaryInputStreamiPv(pbis, px->cch * 2, u.aw);
-        if (!FMatchLoadFilter__FiPs(px->cch, u.aw)) {
+        if (!IsCurrentLevelInList__FiPs(px->cch, u.aw)) {
             if (px->b4 != 1) {
                 Skip__18CBinaryInputStreami(pbis, px->cb);
                 px->pv = 0;

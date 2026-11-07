@@ -146,23 +146,23 @@ struct S {
 };
 extern char D_003DD490[];
 void PostSoLoad(struct S *p);
-struct LO *PloFindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
+struct LO *FindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
 // DPRIZE vtable slot 15 PostLoad: base + resolve linked objects via SW lookup.
 void PostDprizeLoad(struct S *prize)
 {
     struct LO *plo;
     PostSoLoad(prize);
-    plo = PloFindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, prize);
+    plo = FindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, prize);
     prize->target = plo;
     if (plo)
         ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
-    if (prize->glintOwnerOid != -1) prize->glintOwner = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->glintOwnerOid, prize);
-    if (prize->leftEmitterOid != -1) prize->leftEmitter = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->leftEmitterOid, prize);
-    if (prize->rightEmitterOid != -1) prize->rightEmitter = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->rightEmitterOid, prize);
-    if (prize->linkedOid204 != -1) prize->linked208 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->linkedOid204, prize);
-    if (prize->collectListenerOid != -1) prize->collectListener = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->collectListenerOid, prize);
-    if (prize->vanishListenerOid != -1) prize->vanishListener = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->vanishListenerOid, prize);
+    if (prize->glintOwnerOid != -1) prize->glintOwner = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->glintOwnerOid, prize);
+    if (prize->leftEmitterOid != -1) prize->leftEmitter = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->leftEmitterOid, prize);
+    if (prize->rightEmitterOid != -1) prize->rightEmitter = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->rightEmitterOid, prize);
+    if (prize->linkedOid204 != -1) prize->linked208 = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->linkedOid204, prize);
+    if (prize->collectListenerOid != -1) prize->collectListener = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->collectListenerOid, prize);
+    if (prize->vanishListenerOid != -1) prize->vanishListener = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->vanishListenerOid, prize);
     ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, prize->initialState);
 }
 } } // namespace M_PostDprizeLoad
@@ -377,12 +377,12 @@ namespace M_FFilterDprizeObjects { extern "C" {
 struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // collision filter callback (FIsCidDerived test). (inferred)
 int FFilterDprizeObjects(void *prize, struct Q *q)
 {
     void *s;
-    /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
+    /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (IsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || IsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
 }
 } } // namespace M_FFilterDprizeObjects
 
@@ -657,7 +657,7 @@ extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x1C8 - 0x10]; int isCollectable; float expireTime; };
 int CollectActivePzis(void *pg, int c, void **ap);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 int TryCollectDprize(struct S *p, void *pv);
 // for each collector PZI (CppziCur) check collection. (inferred)
 void CheckDprizeCollect(struct S *prize)
@@ -672,7 +672,7 @@ void CheckDprizeCollect(struct S *prize)
     n = CollectActivePzis(D_003DD490, 0x10, ap);
     for (i = 0; ; i++) {
         if (i >= n) break;
-        if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(prize, 0x5B)) break;
+        if (i > 0 && !IsBasicDerivedFrom__FP5BASIC3CID(prize, 0x5B)) break;
         if (TryCollectDprize(prize, ap[i])) break;
     }
 }
@@ -1313,7 +1313,7 @@ void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2
 namespace M_PdprizeNewSpray { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
 struct LO *AcquireProxyObject(void *pg, int n);
 void LockProxyObject(void *pg, struct LO *plo);
 // make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject). (inferred)
@@ -1328,7 +1328,7 @@ int NewSprayedDprize(void *prize, int kind, int n, struct LO **aplo)
     case 0x5D: id = 0x2B4; break;
     default: return 0;
     }
-    pg = PloFindSwObject__FP2SWi3OIDP2LO(prize, 5, id, 0);
+    pg = FindSwObject__FP2SWi3OIDP2LO(prize, 5, id, 0);
     if (!pg) return 0;
     c = 0;
     for (i = 0; ; i++) {
@@ -2048,12 +2048,12 @@ void SetSndSourceLo(void *p, int n);
 qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
 struct LO *GetProxyCopyValue(struct S *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 void SetClueCollected(int n, int f);
 void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
 // Does the object's GetProxyCopyValue owner derive from class 7?
-static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
 void SetClueDprizes(struct S *clue, int n)
 {
@@ -2077,7 +2077,7 @@ void SetClueDprizes(struct S *clue, int n)
         EmitSwNoise(pg, 0, qv, clue);
         ((void (*)(void *, int, int, int, int, int))clue->vt[3].pf)((char *)clue + clue->vt[3].d, 5, 0, 0, 0, 0);
         q = GetProxyCopyValue(clue);
-        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
+        if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
             struct LO *plo = GetProxyCopyValue(clue);
             SetClueCollected(plo->clueIndex, 1);
             ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);

@@ -108,7 +108,7 @@ float RadNormalize__Ff(float);
 void SetJtThrowState(JTTHROW *,int);
 void RecalculateAsegBlend(ASEG *);
 int FAsegaRetracted(ASEGAV *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
 void SetBentleyHoverState(O *,int);
 TRACKREF *FindAsegChannel(ASEG *,O *,void *,int);
@@ -467,7 +467,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
         case 4:
         case 5:
         case 6: {
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64) && s->selected->sentinel != -1) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64) && s->selected->sentinel != -1) {
                 IntCall(s->owner, 88, 0);
                 break;
             }
@@ -557,7 +557,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
 // Object filter for the arc's box search: rejects objects with flag 0x59, otherwise defers to the default filter.
 extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 {
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(b->p, 0x59))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(b->p, 0x59))
         return 1;
     return ShouldKeepSoPair(a, b);
 }
@@ -943,7 +943,7 @@ extern "C" void ReleaseJtThrowObject(JTTHROW *thrower)
         object = (O *)((char *)object + pve->delta);
         pve->f.vector(object, ConvertAloVec(thrower->owner, 0, thrower->launchOffset.q));
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(thrower->selected, 100))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(thrower->selected, 100))
         thrower->selected->vt[76].f.integer((char *)thrower->selected + thrower->selected->vt[76].delta, 1);
 tail:
     if (thrower->effect)
@@ -1079,7 +1079,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     case -1:
         if (s->selected != D_002DD5BC)
             AttachJtHandsObject(&s->owner->controller, s->selected);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64))
             IntCall(s->selected, 76, 0);
         ZeroXYZ(s->owner->target);
         break;
@@ -1138,7 +1138,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
             SetBentleyHoverState(receiver, flag);
             VectorCall(D_002DD5BC, 35, w.velocity.q);
         } else if (s->selected->id == s->peer->id) {
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64))
+            if (IsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64))
                 IntCall(s->selected, 76, 4);
             else {
                 SetLoParent(s->selected, 0, 0xF);
@@ -1183,7 +1183,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     case 6: animation = s->animation6; break;
     case 7:
         animation = s->animation7;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(s->selected, 0x64))
             ChargeGadgetMp(s->owner, s->selected->actorId);
         break;
     }

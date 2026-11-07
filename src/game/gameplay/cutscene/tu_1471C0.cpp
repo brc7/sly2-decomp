@@ -86,7 +86,7 @@ extern float D_002BD3F0[8];   /* corner UVs */
 union M4F { float af[16]; M4 m; };   /* floats first, so the matrix can be initialized */
 extern M4F D_002BD410;
 void InitSo(CAPTUREV *p);
-void SetLoBusyk(CAPTUREV *p, int n);
+void SetLoBusyKind(CAPTUREV *p, int n);
 void PostSoLoad(CAPTUREV *p);
 void BindLoOidTable(CAPTUREV *p, int n, void *q);
 void DropAsegaRef(ASEGA **ppasega);
@@ -100,7 +100,7 @@ void DecrementSwHandsOff(void *p, int a);
 int IsLoInWorld(CAPTUREV *p);
 void AppendDlEntry__FP2DLPv(void *p, LOROOTV *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
 void CaptureFramebufferToTexture(CAPTUREV *p);
 void SetFrameCaptureState(CAPTUREV *p, int n);
@@ -131,7 +131,7 @@ extern "C" void InitFrameCapture(CAPTUREV *capture)
 {
     InitSo(capture);
     capture->state = CAPTURE_IDLE;
-    SetLoBusyk(capture, 1);
+    SetLoBusyKind(capture, 1);
     SetTaggedFlags(&capture->taggedFlags, 0x102);
 }
 
@@ -399,7 +399,7 @@ extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
     capture->drawQuad2 = 1;
     capture->drawQuad1 = 1;
     capture->drawQuad0 = 1;
-    segment = (CAPTUREV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
+    segment = (CAPTUREV *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
     if (segment) {
         SetTaggedFlags(&segment->taggedFlags, 0x100);
         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);

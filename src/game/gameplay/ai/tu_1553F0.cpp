@@ -131,7 +131,7 @@ extern "C" {
 void *AllocClearedFromWorldHeap(MSG *message);
 void LoadStepFromBrx(DIMITRIV *p, void *pbis);
 void PostStepguardLoad(DIMITRIV *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, DIMITRIV *p);
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, DIMITRIV *p);
 void InitBhv(void *behavior);
 void StartBhv(void *behavior);
 void CloseBhv(void *behavior);
@@ -205,10 +205,10 @@ void DIMITRI::VUnk14()
     PostStepguardLoad(dimitri);
     for (i = 0; i < dimitri->routeCount; i++) {
         ESC *route = &dimitri->routes[i];
-        route->first = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidFirst, dimitri);
-        route->firstVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidFirstVolume, dimitri);
-        route->second = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidSecond, dimitri);
-        route->secondVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidSecondVolume, dimitri);
+        route->first = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidFirst, dimitri);
+        route->firstVolume = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidFirstVolume, dimitri);
+        route->second = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidSecond, dimitri);
+        route->secondVolume = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidSecondVolume, dimitri);
     }
 }
 

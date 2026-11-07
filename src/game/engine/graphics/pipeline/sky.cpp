@@ -29,7 +29,7 @@ struct CMV { char pad[0x30]; qword pos; };
 
 extern "C" {
 void PostSoLoad(SKYV *pso);
-void SetLoBusyk(SKYV *plo, int busyk);
+void SetLoBusyKind(SKYV *plo, int busyk);
 void UpdateSo(SKYV *pso);
 qword GetLoWorldPos(SKYV *pso);
 }
@@ -44,7 +44,7 @@ void SKY::VUnk14()
     SKYV *sky = (SKYV *)this;
     int flagsWord;
     PostSoLoad(sky);
-    SetLoBusyk(sky, 1);
+    SetLoBusyKind(sky, 1);
     flagsWord = sky->flagsOrPointer;
     if ((flagsWord ^ 1) & 1) *(int *)flagsWord |= 2;
     else sky->flagsOrPointer = flagsWord | 2;

@@ -116,8 +116,8 @@ void AssignSidebagRef(struct R4 **pp, struct R4 *p);
 void UpdateAsegaIeaCur(ASEGA *player);
 int FFindDlEntry(DL *pdl, void *pv);                    /* FFindDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);                  /* RemoveDlEntry__FP2DLPv */
-LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);     /* PloFindSwObject__FP2SWi3OIDP2LO */
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);        /* FIsBasicDerivedFrom__FP5BASIC3CID */
+LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);     /* FindSwObject__FP2SWi3OIDP2LO */
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);        /* IsBasicDerivedFrom__FP5BASIC3CID */
 float GModPositive(float a, float b);                   /* GModPositive__Fff */
 
 /** @sly2-annot addr=0x1308A8
@@ -462,7 +462,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
         TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, event->pesnd, event->gC);
         break;
     case 4: {
-        LO *po = PloFindSwObject(&D_003DD490, 4, event->oid, GetAsegaEventTarget(player));
+        LO *po = FindSwObject(&D_003DD490, 4, event->oid, GetAsegaEventTarget(player));
         if (po) {
             switch (GetBasicCid(po)) {
             case 0x6D:
@@ -547,7 +547,7 @@ void HandleAsegaEvent(ASEGA *player, EA *event)
         SetSoAnimIndex(player->paloRoot, -1);
         break;
     case 24:
-        if (player->paloRoot && FIsBasicDerivedFrom((BASIC *)player->paloRoot, (CID)0x34)) {
+        if (player->paloRoot && IsBasicDerivedFrom((BASIC *)player->paloRoot, (CID)0x34)) {
             char *pb = (char *)event->pea24;
             SetStepplayerIdleParams(player->paloRoot, pb, pb + 8, pb + 0x10);
         }

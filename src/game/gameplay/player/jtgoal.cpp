@@ -57,7 +57,7 @@ void ReturnJtToPosition(PO *, qword);
 }
 struct BASIC;
 enum CID { CID_38 = 0x38 };
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);   /* FIsBasicDerivedFrom__FP5BASIC3CID */
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);   /* IsBasicDerivedFrom__FP5BASIC3CID */
 
 /** @sly2-annot addr=0x144638
  * Purpose: JTGOAL init: store owning STEPPLAYER at +0
@@ -124,7 +124,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
             for (contact = link->contact; contact; contact = contact->next) {
                 int i = GetPlayerEndIndex(goal->player, contact);
                 T *object = (T *)contact->ends[1 - i].object;
-                if (FIsBasicDerivedFrom((BASIC *)object, CID_38)) {
+                if (IsBasicDerivedFrom((BASIC *)object, CID_38)) {
                     R *behavior = FindStepBehavior(object, 0xA9);
                     if (!behavior || !behavior->value) {
                         if (0.0f <= object->unknown130)

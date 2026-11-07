@@ -2470,7 +2470,7 @@ struct LO { char pad[0xC]; struct VT *vt; char pad2[0x28 - 0x10]; unsigned long 
 struct T { char pad[0x180]; struct LO *po; };
 struct P { char pad[0x13F0]; struct T *carried; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword throwGoal; };
 void DetachMurrayCarried(struct P *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void StunStepguardThrownOp3(struct LO *p);
 qword GetLoWorldPos(struct LO *p);
 qword GetSoGravity(struct LO *p);
@@ -2505,7 +2505,7 @@ void ThrowMurrayCarried(struct P *murray)
     if ((int)(object->x28 >> 60) & 1) {
         float t;
         qword v;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x38))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38))
             StunStepguardThrownOp3(object);
         t = Dist(GetLoWorldPos(object), murray->throwGoal) / murray->g1414;
         v = CalculateVelocityToReachPos(GetLoWorldPos(object), murray->throwGoal, GetSoGravity(object), t);
@@ -2551,7 +2551,7 @@ struct T { char pad[0x180]; struct O *po; };
 struct S { char pad[0x13F0]; struct T *pt; };
 extern qword D_002C09D0, D_002A2DD0;
 void DetachMurrayCarried(struct S *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 void StunStepguardThrownOp3(struct O *p);
 qword ConvertAloVec(struct S *p, int n, qword q);
 void SetSoZapMode(struct O *p, int n);
@@ -2571,7 +2571,7 @@ void TossMurrayCarried(struct S *murray)
     object = murray->pt->po;
     murray->pt = 0;
     if ((int)(object->f28 >> 60) & 1) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
         q = ConvertAloVec(murray, 0, D_002C09D0);
         ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, q);
         ((void (*)(void *, qword))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
@@ -2589,7 +2589,7 @@ struct P { char pad[0x13D0]; int state; char pad1[0x13F0 - 0x13D4]; struct O *ca
 extern qword D_002C09E0, D_002A2DD0;
 void SetSmaGoal(int a, int b);
 void DetachMurrayCarried(struct P *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
 void StunStepguardThrownOp2(struct X *x);
 void SetSoZapMode(struct X *x, int n);
 qword ConvertAloVec(struct P *p, int n, qword q);
@@ -2619,7 +2619,7 @@ void DropMurrayCarried(struct P *murray)
     }
     DetachMurrayCarried(murray);
     x = murray->carried->x180;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) StunStepguardThrownOp2(x);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) StunStepguardThrownOp2(x);
     else SetSoZapMode(x, 1);
     switch (murray->state) {
     case MURRAY_CARRY: {
@@ -2859,7 +2859,7 @@ struct O { char pad[0xC]; struct VE *vt; };
 struct T { char pad[0x180]; struct O *po; };
 struct P { char pad[0xF1C]; struct O *xF1C; char pad2[0x13F0 - 0xF20]; struct T *carried; };
 void IgnoreStepSlot87(struct P *p, int b);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 #define VCALL(o, n, ...) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, __VA_ARGS__)
 /** @sly2-annot addr=0x1B81B8
  * Purpose: MURRAY vt87(p,f): STEP base 0x205D10, then propagate to carried object (vt21(!f), and vt87 if it
@@ -2879,12 +2879,12 @@ void SetMurrayPlayable(struct P *p, int b)
         if (!o) return;
         p->xF1C = o;
         VCALL(o, 21, 0);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, b);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, b);
     } else {
         o = p->xF1C;
         if (!o) return;
         VCALL(o, 21, 1);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, 0);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->xF1C, 0x33)) VCALL(p->xF1C, 87, 0);
         p->xF1C = 0;
     }
 }
@@ -3808,7 +3808,7 @@ extern "C" EVENT*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertAloMat4(void*,void*,M4*);
 extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
-extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
+extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
 extern "C" void SendStepguardRootBhvMode6(OWNER*,int);
 extern "C" void StunStepguardThrownOp1(OWNER*);
 extern "C" void ComputeMurrayLiftLaunch(P*,qword,float*,float*,qword*,qword*);
@@ -3863,7 +3863,7 @@ extern "C" void SetMurrayLiftSubstate(P *murray, int state)
         M4 work = ConvertAloMat4(murray, 0, &predicted);
         predicted = work;
         GetMurrayGripFrame(murray, 0, &predicted, &work.row[0].q, &work.row[1].q);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             SendStepguardRootBhvMode6(owner, (int)murray);
         ComputeMurrayLiftLaunch(murray, work.row[1].q, &event->time, &duration, &work.row[2].q, &work.row[3].q);
         murray->m13FC =
@@ -3917,7 +3917,7 @@ extern "C" void SetMurrayLiftSubstate(P *murray, int state)
             murray->m160C =
                 NewMatrixAct(murray, murray->targetSecond, (void *)5, (void *)5, (int)stretch->frame, &frame);
         }
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             StunStepguardThrownOp1(owner);
         ClearXYZ(&murray->velocity);
         break;
@@ -3959,7 +3959,7 @@ int IsStepplayerInJtMode(struct P *p);
 int CanJtUseGadgetInAir(void *p, int k);
 int CanJtUseGadgetInGrab(void *p, int k);
 int CanJtUseGadgetOnPipe(void *p, int k);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int FActiveCplcy__FP5CPLCY(void *p);
 /** @sly2-annot addr=0x1B98A0
  * Purpose: MURRAY vt99: can gadget/power k be used in the current state (per-state allow lists, components
@@ -3986,7 +3986,7 @@ int FCanUseGadget__6MURRAYi(struct P *p, int k)
         break;
     case MURRAY_CARRY:
         if (k == 3) return 1;
-        if (k == 19) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p->carried->x180, 0x38)) return 1; }
+        if (k == 19) { if (IsBasicDerivedFrom__FP5BASIC3CID(p->carried->x180, 0x38)) return 1; }
         return 0;
     default:
         return 0;

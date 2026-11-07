@@ -35,7 +35,7 @@ extern G D_003DD040;
 
 extern "C" {
 void InitXfm(XFM *pxfm);
-void SetLoBusyk(LO *plo, int busyk);
+void SetLoBusyKind(LO *plo, int busyk);
 void *AllocClearedFromStack(AREQV *preq);
 void *AllocCopyFromWorldHeap(AREQV *preq, void *pv);
 void **AllocClearedFromWorldHeap(AREQV *preq);
@@ -56,7 +56,7 @@ void AddAmbSound(AMB *amb, int soundId, int minDistance, int maxDistance, float 
 }
 
 /** @sly2-annot addr=0x12EB48
- * Purpose: slot 7 of class cid 0x2B (XFM child, 0x100 B): InitXfm + SetLoBusyk
+ * Purpose: slot 7 of class cid 0x2B (XFM child, 0x100 B): InitXfm + SetLoBusyKind
  * Info: proposed name InitCid43 (T2); class CID43 slot7; TU amb
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/engine/animation.md#6-source-files, docs/engine/animation.md#open-questions,
@@ -67,7 +67,7 @@ void CID43::Init()
 {
     AMB *amb = (AMB *)this;
     InitXfm(amb);
-    SetLoBusyk(amb, 0);
+    SetLoBusyKind(amb, 0);
 }
 
 /** @sly2-annot addr=0x12EB78

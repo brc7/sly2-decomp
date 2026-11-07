@@ -839,7 +839,7 @@ extern "C" float D_002BF4B8;
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
-extern "C" int PloFindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
+extern "C" int FindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
 extern "C" float RadNormalize__Ff(float);
 struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloatBits(float g){VU_FLOAT v;__asm__("mfc1 %0,%1":"=r"(v.qw):"f"(g));return v;} static inline qword QwFromF(float g){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(g):"memory");return q;}
@@ -850,7 +850,7 @@ static inline qword Transform(const M4&m,qword v){qword q;q = VuMulMatrix4(m.r[0
 static inline qword GetVelocity(ALO*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
 static inline void*GetFrame(ALO*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
-static inline int IsBonus(ALO*const &n){return PloFindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
+static inline int IsBonus(ALO*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
 /** @sly2-annot addr=0x18F2B0
  * Purpose: Search the target list (*(ALO * *)&g_sw.dlTarget) (flags&mask) for the best TARGET within 300 of Sly's projected
  *   position (pos+v*dt + rotated offset) and heading cone dradMax; outputs target and local delta

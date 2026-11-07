@@ -175,7 +175,7 @@ MATRIX4V __ml__FRC7MATRIX4T0(const MATRIX4V &matL, const MATRIX4V &matR);     //
 void InitLo(WRV *warp);
 void InitSl(void *pdl, int ibDle);
 void AppendSlEntry(void *pdl, void *pv);
-void SetLoBusyk(WRV *warp, int busyk);
+void SetLoBusyKind(WRV *warp, int busyk);
 void UpdateLo(WRV *warp);
 M3 BuildAxisAngleRotationMatrix(qwordV,float);
 }
@@ -207,7 +207,7 @@ void WR::Init()
     p->currentEntryIndex = -1;
     p->lastUpdateTime = -1.0f;
     InitSl(&p->warpGroups, 0xA0);
-    SetLoBusyk(p, 1);
+    SetLoBusyKind(p, 1);
     f = p->flags;
     if (FIsPtr(f)) *(int *)f |= 2;
     else p->flags = f | 2;

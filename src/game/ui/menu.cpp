@@ -128,7 +128,7 @@ float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
-POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
+POOL *FindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
 void ScreenSlot9Default(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void ShowScreen(void);
@@ -154,7 +154,7 @@ void ApplyGsSettings(void *);
 int FScreenShown(void *p);
 int IsSwTransitionBusy(SWM *g);
 char *GetHeroPo(SWM *g);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
 int AreWidgetLoadsIdle(void);
 int NWorldCur(void);
@@ -191,7 +191,7 @@ void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("RefGetGlobalSaveVar
  * @end-sly2-annot */
 // Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
 extern "C" void InitPauseMenu(PMENU *menu) {
-    menu->pool = (POOL *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
+    menu->pool = (POOL *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
     menu->pending = -1;
     menu->state = 0;
 }
@@ -918,7 +918,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
     if (IsSwTransitionBusy(&D_003DD490)) return 0;
     if (FScreenShown(&D_002E6550)) return 0;
     pl = GetHeroPo(&D_003DD490);
-    if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
+    if (pl && IsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
     if (!AreWidgetLoadsIdle()) return 0;
     psrc = D_002C00E8;
     pdst = D_002F65D0;

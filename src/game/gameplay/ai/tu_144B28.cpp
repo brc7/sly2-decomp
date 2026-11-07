@@ -95,7 +95,7 @@ void StartBhvpath(BHVB *behavior);
 void UpdateBhvpath(BHVB *behavior);
 void SetJtgoal(JTGOAL *pjtgoal, qword pos);
 void SetBhvfollowState(BHVB *behavior, int state);
-int FIsBasicDerivedFrom__FP5BASIC3CID(SO *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *object, int cid);
 CID17 *FindPathzoneAtPos(qword pos, int n);
 qword GetLoWorldPos(SO *object);
 void SetMurrayState(MURRAY *murray, int state);
@@ -144,7 +144,7 @@ float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
 void ResetBhvSteering(struct P *behavior, struct POCTL *poctl);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *object, int cid);
 void UpdatePoctlPressed(struct POCTL *poctl);
 // VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -229,7 +229,7 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct POCTL *poctl)
             __asm__("qmtc2.ni %1, %0" : "=j"(other) : "r"(GetLoWorldPos(leader)));
             if (FFar(own, other))
                 poctl->grfbtn |= 8;
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(leader, CID_STEPPLAYER))
+            if (IsBasicDerivedFrom__FP5BASIC3CID(leader, CID_STEPPLAYER))
                 mirror = leader->vt->pfn((struct O *)((char *)leader + leader->vt->d)) != 0;   /* PO slot 89 */
             if (mirror) {
                 poctl->grfbtn |= behavior->mirrorPoctl->grfbtn & behavior->mirrorButtonMask;
@@ -635,7 +635,7 @@ extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
 M3 *GetLoWorldMatrix(void *p);
 M3 BuildAxisAngleRotationMatrix(qword axis, float g);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 PATHZONE *GetBhvfollowLeaderGround(P *behavior);
 int FindPathzonePathCurve(PATHZONE *pathZone, qword start, qword goal, SHAPE *path);
 void MeasureShape(SHAPE *shape);
@@ -690,7 +690,7 @@ void UpdateBhvfollowPosition(P *behavior)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
     behavior->followPoint = GetLoWorldPos(behavior->leader);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEP)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEP)) {
         O *leader = behavior->leader;
         u.s.m = BuildAxisAngleRotationMatrix(D_002A2DC0, leader->heading);
         u.s.pos = AddScaled(behavior->followPoint, VU_FLOAT(-behavior->velocityLeadTime), MulM3(u.s.m, leader->velocity));
@@ -733,7 +733,7 @@ struct SO { char pad[0x18]; int oid; };
 struct LEADER { char pad[0x2DC]; int airState; };
 struct P { char pad[0x10]; struct GUARD *guard; char pad2[0x30 - 0x14]; struct LEADER *leader; char pad3[0x80 - 0x34]; qword landingPoint; };
 struct SO *GetBhvfollowLeaderGround(struct P *behavior);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 qword GetLoWorldPos(void *p);
 int IsPosFreeInPathzone(struct SO *ground, qword pos, int n);
 int SnapToGround(qword *pos, float above, float below, int c, int d);
@@ -753,7 +753,7 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
         return 0;
     if (ground->oid == 0x2CA)
         return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEPPLAYER) && behavior->leader->airState != -1)
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEPPLAYER) && behavior->leader->airState != -1)
         return 0;   /* still in the air */
     pos = GetLoWorldPos(behavior->leader);
     if (!IsPosFreeInPathzone(ground, pos, 0))
@@ -770,7 +770,7 @@ int IsBhvfollowLeaderOnNewGround(struct P *behavior)
    at its position. */
 extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 {
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_SO)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_SO)) {
         SOPHYS *physics = behavior->leader->psophys;
         REGENT *region = physics ? physics->pregent : 0;
         return region ? region->pcid17 : 0;
@@ -791,7 +791,7 @@ struct P {
 extern struct CLOCK D_002DDED0;
 void PopBhv(void *slot);
 struct O *PushStepBehavior(void *guard, int cid);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 float GRandInRange__Fff(float a, float b);
 void UpdateBhvfollowPosition(struct P *behavior);
 void ReturnJtToPosition(void *guard, qword pos);
@@ -816,7 +816,7 @@ void SetBhvfollowState(struct P *behavior, int state)
     switch (state) {
     case 0: {
         struct O *child = PushStepBehavior(behavior->guard, CID_BHV168);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_PO)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_PO)) {
             child->mirrorPoctl = behavior->leader->poctl;   /* copy the leader's button 8 after 0.1..0.3 s */
             child->mirrorButtonMask = 8;
             child->mirrorDelay = GRandInRange__Fff(0.1f, 0.3f);

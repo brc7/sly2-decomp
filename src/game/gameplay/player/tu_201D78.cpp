@@ -104,7 +104,7 @@ extern int D_002C3588[];
 extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");   /* g_cm+0x60, a separate symbol to g++: the base+offset form changes UpdateReconTargetVisibility (offset folding) */
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
-int CploFindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);
+int FindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);
 int IsPointInVol(LOV *pvol, qword v);
 qword GetLoWorldPos(void *p);
 void FadeSoIn(LOV *plo, float f);
@@ -160,9 +160,9 @@ void SetReconTargetDone(RECONTGT *p, int n);
 int IsReconTargetDone(RECONTGT *p);
 int IsReconTargetSelectable(RECONTGT *p);
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);                    /* FIsBasicDerivedFrom__FP5BASIC3CID */
-LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");         /* PloFindSwObject__FP2SWi3OIDP2LO */
-const char *PchzFindSwLangstr(SW *psw, int oid);                    /* PchzFindSwLangstr__FP2SWi */
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                    /* IsBasicDerivedFrom__FP5BASIC3CID */
+LOV *FindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("FindSwObject__FP2SWi3OIDP2LO");         /* FindSwObject__FP2SWi3OIDP2LO */
+const char *FindSwLocalizedString(SW *psw, int oid);                    /* FindSwLocalizedString__FP2SWi */
 int FActiveCplcy(CPLCY *pcplcy);                                    /* FActiveCplcy__FP5CPLCY */
 
 #define BIT60(o) ((int)((o)->fl28 >> 60) & 1)
@@ -200,12 +200,12 @@ extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 // (CID 0x2E, at most 16).
 extern "C" void PostReconSelLoad(RECONSEL *reconSel)
 {
-    if (FIsBasicDerivedFrom((BASIC *)reconSel->model->plo, CID_35)) {
-        reconSel->primary = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x362, 0);
-        reconSel->secondary = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x365, 0);
+    if (IsBasicDerivedFrom((BASIC *)reconSel->model->plo, CID_35)) {
+        reconSel->primary = (WIDGETV *)FindSwObject(&D_003DD490, 0x405, (OID)0x362, 0);
+        reconSel->secondary = (WIDGETV *)FindSwObject(&D_003DD490, 0x405, (OID)0x365, 0);
     }
-    reconSel->resource = PloFindSwObject(&D_003DD490, 0x405, (OID)0x602, 0);
-    reconSel->count = CploFindSwObjectsByClass(&D_003DD490, 0x405, CID_2E, 0, 16, reconSel->items);
+    reconSel->resource = FindSwObject(&D_003DD490, 0x405, (OID)0x602, 0);
+    reconSel->count = FindSwObjectsByClass(&D_003DD490, 0x405, CID_2E, 0, 16, reconSel->items);
     ResetReconTargets(reconSel);
 }
 
@@ -256,7 +256,7 @@ void UpdateReconSelInVolume(RECONSEL *reconSel)
     LOV *a[16];
     int n, i;
     reconSel->visible = 0;
-    n = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_19, 0, 16, (RECONTGT **)a);
+    n = FindSwObjectsByClass(&D_003DD490, 0x505, CID_19, 0, 16, (RECONTGT **)a);
     for (i = 0; i < n; i++) {
         if (IsPointInVol(a[i], reconSel->position.q)) {
             reconSel->visible = 1;
@@ -541,7 +541,7 @@ void SelectReconTarget(RECONSEL *reconSel)
  *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // The localized string of the pending-target label (+0xC0).
-extern "C" const char *GetReconPendingText(RECONSEL *reconSel) { if (reconSel->pending == -1) return 0; return PchzFindSwLangstr(&D_003DD490, reconSel->pending); }
+extern "C" const char *GetReconPendingText(RECONSEL *reconSel) { if (reconSel->pending == -1) return 0; return FindSwLocalizedString(&D_003DD490, reconSel->pending); }
 
 /** @sly2-annot addr=0x202730
  * Purpose: langstr of P+0xBC
@@ -552,7 +552,7 @@ extern "C" const char *GetReconPendingText(RECONSEL *reconSel) { if (reconSel->p
  *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // The localized string of the selected-target label (+0xBC).
-extern "C" const char *GetReconSelectedText(RECONSEL *reconSel) { if (reconSel->selected == -1) return 0; return PchzFindSwLangstr(&D_003DD490, reconSel->selected); }
+extern "C" const char *GetReconSelectedText(RECONSEL *reconSel) { if (reconSel->selected == -1) return 0; return FindSwLocalizedString(&D_003DD490, reconSel->selected); }
 
 static inline void Post(WIDGETV *x,int n){VTE *entry=&x->pvt[49];((void (*)(void *,int))entry->pfn)((char *)x+entry->d,n);}
 static inline void Clear(WIDGETV *x){VTE *entry=&x->pvt[50];((void (*)(void *))entry->pfn)((char *)x+entry->d);}
@@ -1023,7 +1023,7 @@ extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
     HandleBasicMessage(target, msg, pm);
     if (msg != 0x11) return;
     o = GetHeroPo(&D_003DD490);
-    if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34) && o->preconsel) {
+    if (o && IsBasicDerivedFrom((BASIC *)o, CID_34) && o->preconsel) {
         RefreshReconPendingTargets(o->preconsel);
         UpdateReconChecklist(o->preconsel);
     }
@@ -1043,7 +1043,7 @@ void SetReconTargetDone(RECONTGT *target, int n)
         PLAYER *o;
         RequestTaskState(target->link, 2, target);
         o = GetHeroPo(&D_003DD490);
-        if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(o->abF24);
+        if (o && IsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(o->abF24);
     } else target->fDone = n;
 }
 

@@ -604,7 +604,7 @@ extern void CacheJtRestPose(void *p);
 extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g);
 extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b);
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void SetLoBusyk(void *p, int a);
+extern void SetLoBusyKind(void *p, int a);
 extern int ApplySmToObject(int a, int b, int c, int d);
 extern char D_002BF1B0[];
 extern qword D_002A2DD0;
@@ -662,7 +662,7 @@ void PostJtLoad(char *p)
     F(int, 0x1804) = F(int, 0x19A4);
     InitJtHands__FP7JTHANDSP2SOPP5ASEGA(A(0x17D0), p, A(0x18E0));
     SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
-    SetLoBusyk(p, 1);
+    SetLoBusyKind(p, 1);
     if (F(int, 0x1D24))
         F(int, 0x1D28) = ApplySmToObject(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
 }
@@ -942,8 +942,8 @@ extern void DetachXfActById(void *a, void *p, int c);
 extern void DetachSoActsMatching(void *a, void *p, int c, void *d);
 extern qword GetLoWorldPos(void *p);
 extern void *PickpocketStepguard(void *a, qword q);
-extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-extern int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
+extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+extern int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
 extern void StartStepplayerGrabStateC(void *p, int oid, void *pv, int n);
 extern void *FindStepBehavior(void *p, int n);
 extern void SetBhvjuggledState(void *p, int n);
@@ -1022,9 +1022,9 @@ void HandleJtMessage(char *p, int msg, void *pv)
             case 0x167:
                 if (AsJt(p)->ploInteract && F(int, 0x1BD4)) {
                     void *object = PickpocketStepguard(AsJt(p)->ploInteract, GetLoWorldPos(p));
-                    if (object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) &&
-                        !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
-                        int oid = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
+                    if (object && !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) &&
+                        !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
+                        int oid = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
                         F(void *, 0x1BCC) = object;
                         StartStepplayerGrabStateC(p, oid, object, -1);
                     }
@@ -1962,7 +1962,7 @@ extern "C" CLOCK D_002DDED0;
 extern "C" SMP D_002BF348;
 
 extern "C" float GetStepHeading(A *p);
-extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
+extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
 extern "C" float SMaxShape(B *p);
 extern "C" float SMinShape(B *p);
 extern "C" void EvaluateShapeS(B *p, qword *pv, qword *direction, float g);
@@ -2017,7 +2017,7 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
     goto tail;
     {
     a12:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC)) {
             B *pb = ps->p14;
             if (ps->x2C == 1) {
                 g = ps->g20 + (ps->g50 * 125.0f) * ps->g50;
@@ -2080,7 +2080,7 @@ c0:
 liftValue:
     ((float *)&ps->v40)[2] = height + lift;
 tail:
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC) && ps->p14->xE4 == 0) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC) && ps->p14->xE4 == 0) {
         float k;
         float c = 30.0f;
         register float h __asm__("$f0") = SMaxShape(ps->p14) - c;
@@ -2201,7 +2201,7 @@ inline qword QwTransformPos(MATRIX4 *matrix, qword pos)
               "j"(pos));
     return result;
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos) __asm__("ConvertAloPos");
 MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
@@ -2573,7 +2573,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     {
                         VECTOR4 vTarget;
                         LO *ploTarget = jt->phndHang->ploUnk138;
-                        if (ploTarget && FIsBasicDerivedFrom(ploTarget, (CID)10))
+                        if (ploTarget && IsBasicDerivedFrom(ploTarget, (CID)10))
                         {
                             SHAPE *shape = (SHAPE *)jt->phndHang->ploUnk138;
                             EvaluateShapeS(shape, SMaxShape(shape) * (0.5f - jt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
@@ -3419,7 +3419,7 @@ extern void RebuildJtXmg(void *p, void *a, float g, void *geometry, void *respon
 
 extern int TryMatchJtXmg(void *p, void *a, void *response);
 extern void UpdateJtCane__FP2JT(void *p);
-extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern void FindShapeClosestPointFromS(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern qword GetLoWorldPos(void *p);
@@ -3503,13 +3503,13 @@ void UpdateJt(char *p)
     }
     UpdateJtCane__FP2JT(p);
     if (AsJt(p)->jtas == 0) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0xB)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0xB)) {
             void *po2 = AsJt(p)->hands.ploTarget;
             for (i = 0; i < 3; i++)
                 FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, AsJt(p)->hands.sParam);
         } else {
             qword q;
-            if (!FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13))
+            if (!IsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13))
                 goto end;
             q = GetLoWorldPos(AsJt(p)->hands.ploTarget);
             av[2] = q;
@@ -3521,7 +3521,7 @@ void UpdateJt(char *p)
             FindClosestPointBetweenLineSegments(aq[i - 1], aq[i], av[i - 1], av[i], u.f, ag, &w.q);
 
             if (ag[0] < F(float, 0x19AC)) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13)) {
+                if (IsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13)) {
                     object = F(struct X1854 *, 0x1854);
                     F(struct X1854 *, 0x18C4) = object;
                     if (object->x124 == 3)
@@ -5289,7 +5289,7 @@ void UpdateJtFaceTarget(struct O *jt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018E330 { extern "C" {
 extern char D_003DD490[];
-int CploFindSwObjectsByClass(void *g, int a, int b, int c, int cMax, void **ap);
+int FindSwObjectsByClass(void *g, int a, int b, int c, int cMax, void **ap);
 void UpdateStepguardPickpocket(void *p);
 /** @sly2-annot addr=0x18E330
  * Purpose: Find up to 32 objects (0x15E9C8 g_sw,0x505,0x38) and call 0x1F1900 on each
@@ -5302,7 +5302,7 @@ void UpdateAllGuardsPickpocket(void)
 {
     void *ap[32];
     int c, i;
-    c = CploFindSwObjectsByClass(D_003DD490, 0x505, 0x38, 0, 0x20, ap);
+    c = FindSwObjectsByClass(D_003DD490, 0x505, 0x38, 0, 0x20, ap);
     for (i = 0; i < c; i++)
         UpdateStepguardPickpocket(ap[i]);
 }

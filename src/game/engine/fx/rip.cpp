@@ -196,7 +196,7 @@ namespace M_InitRipg__FP4RIPG { extern "C" {
 struct S { char p0[0x40]; int flags40; char p1[0x148 - 0x44]; unsigned long renderFlags; int groupKind; char p2[0x15C - 0x154]; char ripList[4]; };   /* RIPG */
 void InitSo(struct S *ripGroup);
 void InitDl__FP2DLi(void *pdl, int n);
-void SetLoBusyk(struct S *ripGroup, int n);
+void SetLoBusyKind(struct S *ripGroup, int n);
 void EnsureSoTree(struct S *ripGroup);
 void SetSoTreeFlag2(struct S *ripGroup, int n);
 static inline int FPtr(int flags) { return !(flags & 1); }
@@ -208,7 +208,7 @@ void InitRipg__FP4RIPG(struct S *ripGroup)
     int flags;
     InitSo(ripGroup);
     InitDl__FP2DLi(ripGroup->ripList, 0xC);
-    SetLoBusyk(ripGroup, 1);
+    SetLoBusyKind(ripGroup, 1);
     flags = ripGroup->flags40;
     if (FPtr(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else ripGroup->flags40 = (flags & 1) | 0xE;
     ripGroup->renderFlags &= ~(1UL << 35);
@@ -469,7 +469,7 @@ void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(const REQ *);
 int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
 int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int IsDlEmpty__FP2DL(DL *);
 void BounceRipgRips__FP4RIPG(P *);
 }
@@ -487,7 +487,7 @@ void BounceRipgRips__FP4RIPG(P *p)
         NODE *node;
         for (node = p->state->nodes; node; node = node->next) {
             if (node->object->state->flags & 4) continue;
-            int special = FIsBasicDerivedFrom__FP5BASIC3CID(node->object->state->subject, 0x59);
+            int special = IsBasicDerivedFrom__FP5BASIC3CID(node->object->state->subject, 0x59);
             DLI shapes;
             Init(&shapes, &node->object->state->shapes);
             SHAPE *shape;
@@ -830,7 +830,7 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002C1F60,D_002C1F64,D_002C1F68,D_002C1F6C;
 extern qw D_002A2DA0,D_002A2DD0;
-int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void CalculateWaterCurrent(void*,qw,qw*,qw*);
 qw GetXfVelocity(void*,void*,qw);
 void ForceRipFade__FP3RIPf(RIP*,float);
@@ -963,7 +963,7 @@ int HandleRipBounce(RIP *rip, SHAPE *incomingShape, qw point, qw normal)
         radius *= Evaluate(&rip->scale, (D_002DDED0.time - rip->start) / rip->duration);
         owner = OwnerAndNormal(shape, w, incomingNormal);
     }
-    int special = FIsBasicDerivedFrom__FP5BASIC3CID(owner, 0x59);
+    int special = IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x59);
     register qw sampledNormal __asm__("vf8") = w.normal.q;
     if (special) {
         qw *output;
@@ -1919,7 +1919,7 @@ typedef int qword __attribute__((mode(TI)));
 struct A { void *hitObject; void *hitBody; };   /* the bounce contact (inferred) */
 struct S { char pad[0xF0]; void *stuckVisual; };   /* FLYING */
 extern int D_002C1F70[1];
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
 void RemoveRip__FP3RIP(struct S *p);
 } } // namespace M_FBounceLeaf
@@ -1932,9 +1932,9 @@ int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the names
     M_FBounceLeaf::A *pa = (M_FBounceLeaf::A *)pa_m;
     unsigned int i;
     for (i = 0; i < sizeof(D_002C1F70) / sizeof(D_002C1F70[0]); i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, D_002C1F70[i])) return 0;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, D_002C1F70[i])) return 0;
     }
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, 0x59)) CreateStuck(p, p->stuckVisual, pa->hitObject, q0, q1);
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, 0x59)) CreateStuck(p, p->stuckVisual, pa->hitObject, q0, q1);
     RemoveRip__FP3RIP(p);
     return 1;
 }
@@ -2048,7 +2048,7 @@ typedef int qword __attribute__((mode(TI)));
 struct C { char pad[0x60]; void *unknown60; };
 struct B { char pad[0xEC]; struct C *unknownEC; };   /* the hit body */
 struct A { int x0; struct B *pb; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
 void RemoveRip__FP3RIP(void *p);
 } } // namespace M_FBounceShrapnel
@@ -2059,8 +2059,8 @@ int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the nam
     void *p = this;
     M_FBounceShrapnel::A *pa = (M_FBounceShrapnel::A *)pa_m;
     void *plo = pa->pb->unknownEC->unknown60;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x32)) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x59)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(plo, 0x32)) return 0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(plo, 0x59)) {
         RemoveRip__FP3RIP(p);
         return 1;
     }
@@ -2819,7 +2819,7 @@ typedef struct { qword a[3]; } M3;
 typedef struct { void *hitObject; void *hitBody; } S;   /* the bounce contact */
 typedef struct { char pad[0x40]; M3 orientation; } R;   /* the new STUCK */
 typedef struct { char pad[0x1C]; void *renderObject; } OBJ;   /* the LEAF */
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 R *CreateStuck(OBJ *, void *, void *, qword, qword);
 void ConvertAloMat(M3 *, int, void *, M3 *);
 void RemoveRip__FP3RIP(OBJ *);
@@ -2828,7 +2828,7 @@ void RemoveRip__FP3RIP(OBJ *);
 int StickLeafOnBounce(OBJ *object, S *s, qword a, qword b)
 {
     R *stuck;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(s->hitBody, 0x33))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(s->hitBody, 0x33))
         return 0;
     stuck = CreateStuck(object, object->renderObject, s->hitObject, a, b);
     if (stuck) {
@@ -3124,11 +3124,11 @@ namespace M_PostRemitEmit { extern "C" {
 struct O { char p0[8]; int *refs; char p1[0xF0-0xC]; int expls; float rate; };   /* the REMIT, and the EMITB (refs; +0xF0 the EXPLS OID, +0xF4 rate) */
 extern struct G D_003DD490;
 void PostRipEmit(struct O *p, struct O *q);
-int PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int oid, int n);
+int FindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int oid, int n);
 // REMIT (RIPT 2) PostEmit: finds the explosion it re-emits (by OID, near the reference object) and copies the rate.
 void PostRemitEmit(struct O *p, struct O *q) {
     PostRipEmit(p, q);
-    p->expls = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->expls, *q->refs);
+    p->expls = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->expls, *q->refs);
     p->rate = q->rate;
 }
 } } // namespace M_PostRemitEmit

@@ -79,7 +79,7 @@ FILEREC *PrecWorldEntry(int nWorld);
 }
 void AddGrfusr(int grf);
 void RemoveGrfusr(int grf);
-LO *PloFindSwObject(SW *world, int grffso, OID oid, LO *plo);
+LO *FindSwObject(SW *world, int grffso, OID oid, LO *plo);
 
 namespace M_SW_ctor {
 struct DL {void *oidBuckets,*last;int offset;};
@@ -494,7 +494,7 @@ void InitSwLoadBuffers(struct S *world)
 namespace M_func_0020E2B0 { extern "C" {
 struct O { char pad[0xB8]; int priority; char p2[0xC]; int unknownC8; };   /* an MS object; priority (inferred): the largest wins */
 struct S { char pad[0x3E5C]; int mainMsUnknownC8; };
-int CploFindSwObjectsByClass(struct S *p, int a, int b, int c, int cMax, struct O **apo);
+int FindSwObjectsByClass(struct S *p, int a, int b, int c, int cMax, struct O **apo);
 void SetLoVisMask(struct O *o, int n);
 /** @sly2-annot addr=0x20E2B0
  * Purpose: Find up to 16 objects of class MS (0x31); keep the one with largest +0xB8, store its +0xC8 and
@@ -508,7 +508,7 @@ void SetLoVisMask(struct O *o, int n);
 void SelectSwMainMs(struct S *world)
 {
     struct O *found[16];
-    int numFound = CploFindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
+    int numFound = FindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
     int maxPriority = 0;
     struct O *best = 0;
     int i;
@@ -530,9 +530,9 @@ class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual
  virtual void V6(); virtual void V7(); virtual void V8(); virtual void V9(); };
 class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int flags; char p2[8]; float param60; float param64; int unknown68; int unknown6C; };
 struct S { char pad[0x3E60]; O *screenTint; };
-extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
+extern "C" O *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 /** @sly2-annot addr=0x20E338
- * Purpose: PloNew(cid 0x74) with params 0.1/0.25, flags 0x80200000, then vt9 (add); stored at SW+0x3E60
+ * Purpose: CreateLo(cid 0x74) with params 0.1/0.25, flags 0x80200000, then vt9 (add); stored at SW+0x3E60
  * Info: proposed name CreateSwDefaultObject74 (T2); TU sw
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
@@ -541,7 +541,7 @@ extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 // 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
 extern "C" void CreateSwScreenTint(S *world)
 {
-    world->screenTint = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
+    world->screenTint = CreateLo__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
     world->screenTint->param60 = 0.1f;
     world->screenTint->param64 = 0.25f;
     world->screenTint->flags = 0x80200000;
@@ -825,8 +825,8 @@ void TriggerWarp(CONTEXT *);
 ACTOR *GetHeroPo(SW *);
 ACTOR *GetCurrentPo(SW *);
 void Decref__4CRef(REF *);
-ACTOR *PloFindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
+ACTOR *FindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
+int IsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
 int GetPoCtlState(ACTOR *);
 int NWorldCur(void);
 void SetWidgetState(WIDGET *,int);
@@ -913,7 +913,7 @@ extern "C" void ExecuteSwTransition(SW *world)
         ACTOR *selected=0;
         int actorId;
         {REF value=RefGetSaveVarV("oidPoCurrent",0);actorId=value.value;}
-        if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(world,5,actorId,0);
+        if(actorId!=-1)selected=FindSwObject__FP2SWi3OIDP2LO(world,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
         if(!selected)selected=D_002F7900;
@@ -927,13 +927,13 @@ extern "C" void ExecuteSwTransition(SW *world)
             }
             for(int i=0;i<world->actorCount;i++){
                 ACTOR *actor=world->actors[i];
-                if(actor!=selected&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&!GetPoCtlState(actor))Hide(actor);
+                if(actor!=selected&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&!GetPoCtlState(actor))Hide(actor);
             }
         }
     }
     if(!NWorldCur()){
         ACTOR *actor=GetHeroPo(world);
-        if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
+        if(actor&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
     UpdateCmLast__FP2CM(D_002DDF40);
     CutCm__FP2CM(D_002DDF40);
@@ -1407,7 +1407,7 @@ struct L { float a; int b; int c; float d; int e[4]; };
 struct E { int widget; int pad[2]; };
 struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int clueTotal; };   /* sw.h cClue, cClueTotal */
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
+int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
 int CountCollectedClues(void);
 int GetMaxClueCount(void);
@@ -1429,7 +1429,7 @@ void BindSwTimerHud(struct S *world)
     l.d = 1.0f;
     l.a = 1.0f;
     for (i = 0; i < 4; i++) {
-        int widget = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
+        int widget = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
         if (widget) {
             SetWidgetXf(widget, &l);
             world->ae[i].widget = widget;
@@ -1792,7 +1792,7 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 struct Y { char pad[0xC]; VTE *vt; };
 struct D { int a; int b; int c; int d; };
 int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 struct Y *FindLiveSma(void *o, int b);
 void SubscribeLoObject(struct Y *y, int x);
 void SeekSma(struct Y *y, int id);
@@ -1816,7 +1816,7 @@ void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
         *ppy = 0;
     if (FindSwObjects(p, 0x204, pd->a, b, 1, &o) != 1)
         return;
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x30))
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(o, 0x30))
         return;
     y = FindLiveSma(o, pd->b);
     if (!y)
@@ -1993,8 +1993,8 @@ namespace M_ShowSwAsegObject {
 struct X { char pad[0xC];
   virtual void v1(); virtual void v2(); virtual void v3(); virtual void v4();
   virtual void v5(); virtual void v6(); virtual void v7(); virtual void v8(); virtual void v9(); };
-extern "C" X *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
-extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+extern "C" X *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
+extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 extern "C" void FadeSoIn(X *p, float f);
 extern "C" void FadeSoOut(X *p, float f);
 /** @sly2-annot addr=0x210338
@@ -2009,9 +2009,9 @@ extern "C" void FadeSoOut(X *p, float f);
 // removing it.
 extern "C" X *ShowSwAsegObject(void *pv, int fOn, int id, float g)
 {
-    X *p = PloFindSwObject__FP2SWi3OIDP2LO(pv, 4, id);
+    X *p = FindSwObject__FP2SWi3OIDP2LO(pv, 4, id);
     if (p) {
-        if (g != 0.0f && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) {
+        if (g != 0.0f && IsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) {
             if (fOn)
                 FadeSoIn(p, g);
             else
@@ -2028,8 +2028,8 @@ extern "C" X *ShowSwAsegObject(void *pv, int fOn, int id, float g)
 } // namespace M_ShowSwAsegObject
 
 namespace M_func_00210408 { extern "C" {
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void ShowSoGlobsById(void *p, void *q);
 void HideSoGlobsById(void *p, void *q);
 /** @sly2-annot addr=0x210408
@@ -2046,8 +2046,8 @@ void ShowSwAsegGlobs(void *pv, int f, int id, void *q, void *pdef, void *ctx)
     if (id == -1)
         p = pdef;
     else
-        p = PloFindSwObject__FP2SWi3OIDP2LO(pv, 4, id, ctx);
-    if (p && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) {
+        p = FindSwObject__FP2SWi3OIDP2LO(pv, 4, id, ctx);
+    if (p && IsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) {
         if (f)
             ShowSoGlobsById(p, q);
         else
@@ -2057,8 +2057,8 @@ void ShowSwAsegGlobs(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 } } // namespace M_func_00210408
 
 namespace M_func_002104A0 { extern "C" {
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void ShowSoPartsById(void *p, void *q);
 void HideSoPartsById(void *p, void *q);
 /** @sly2-annot addr=0x2104A0
@@ -2074,8 +2074,8 @@ void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
     if (id == -1)
         p = pdef;
     else
-        p = PloFindSwObject__FP2SWi3OIDP2LO(pv, 4, id, ctx);
-    if (p && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) {
+        p = FindSwObject__FP2SWi3OIDP2LO(pv, 4, id, ctx);
+    if (p && IsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) {
         if (f)
             ShowSoPartsById(p, q);
         else
@@ -2088,7 +2088,7 @@ namespace M_func_00210538 { extern "C" {
 struct VT { char pad[0x198]; short d; short pd; void (*pf)(void *, void *); };
 struct X { char pad[0xC]; struct VT *vtable; };
 struct MSG { unsigned int grf; struct X *p4; float g8; char padc[0x24]; struct X *p30; char pad34[0xC]; };
-struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
+struct X *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
 /** @sly2-annot addr=0x210538
  * Purpose: ASEG event 17: find object and two optional others, build a message (grf bits 1/0x20/0x18) and
  *   send via vt
@@ -2099,13 +2099,13 @@ struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
 // Animation event 17: finds the object and up to two others and sends them a message.
 void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *ctx)
 {
-    struct X *x = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid, ctx);
+    struct X *x = FindSwObject__FP2SWi3OIDP2LO(world, 4, oid, ctx);
     struct MSG msg;
     if (!x)
         return;
     msg.grf = 0;
     if (oid1 != -1) {
-        struct X *y = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid1, ctx);
+        struct X *y = FindSwObject__FP2SWi3OIDP2LO(world, 4, oid1, ctx);
         if (y) {
             msg.p4 = y;
             msg.grf |= 1;
@@ -2119,7 +2119,7 @@ void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *
         }
     }
     if (oid2 != -1) {
-        struct X *z = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid2, ctx);
+        struct X *z = FindSwObject__FP2SWi3OIDP2LO(world, 4, oid2, ctx);
         if (z) {
             msg.p30 = z;
             msg.grf |= 0x20;
@@ -2134,9 +2134,9 @@ void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *
 } } // namespace M_func_00210538
 
 namespace M_func_00210678 { extern "C" {
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
 void *FindShaderAnimById(int id);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void SetSoEyesClosed(void *p, float f);
 void SetEyesClosed(void *p, float f);
 /** @sly2-annot addr=0x210678
@@ -2153,13 +2153,13 @@ void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
     void *p1 = 0;
     void *p2 = 0;
     if (id1 != -1) {
-        void *q = PloFindSwObject__FP2SWi3OIDP2LO(pv, 4, id1);
-        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30))
+        void *q = FindSwObject__FP2SWi3OIDP2LO(pv, 4, id1);
+        if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30))
             p1 = q;
     }
     if (id2 != -1) {
         p2 = FindShaderAnimById(id2);
-        if (p2 && !FIsBasicDerivedFrom__FP5BASIC3CID(p2, 0x8E))
+        if (p2 && !IsBasicDerivedFrom__FP5BASIC3CID(p2, 0x8E))
             p2 = 0;
     }
     if (p1)
@@ -2179,8 +2179,8 @@ struct O { char pad[0xFC4]; struct C *curve; };
 struct G { char pad[0x475C]; float offset; };
 extern float D_002C3EA0[3];
 extern float D_002C3EB0[2];
-struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, void *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
+struct O *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, void *);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
 struct M *PsndStartSound(int);
 void SetSndSourceLo(struct M *, struct O *);
 void SetSndRange(struct M *, float, float);
@@ -2206,9 +2206,9 @@ void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id
     if (id == -1)
         return;
     __asm__ volatile("" : : : "$4");
-    if(oid!=-1)fallback=PloFindSwObject__FP2SWi3OIDP2LO(p,4,oid,owner);
+    if(oid!=-1)fallback=FindSwObject__FP2SWi3OIDP2LO(p,4,oid,owner);
     o=SelectedValue(fallback);
-    if (o && FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x38) && o->curve) {
+    if (o && IsBasicDerivedFrom__FP5BASIC3CID(o, 0x38) && o->curve) {
         float v = o->curve->value;
         float f = D_002C3EA0[0] + v * (D_002C3EA0[1] + v * D_002C3EA0[2]);
         Clamp(&f, D_002C3EB0);
@@ -2251,7 +2251,7 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 } } // namespace M_StopSwAsegSound
 
 /** @sly2-annot addr=0x210940
- * Purpose: SW+0x4638 = PloFindSwObject(psw,5,oid 0x620,0)
+ * Purpose: SW+0x4638 = FindSwObject(psw,5,oid 0x620,0)
  * Info: proposed name BindSwBootyProxy (T2); TU sw
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
@@ -2260,7 +2260,7 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 // locked on (booty.cpp).
 extern "C" void BindSwBootyProxy(SW *world)
 {
-    world->ploUnk4638 = PloFindSwObject(world, 5, (OID)0x620, 0);
+    world->ploUnk4638 = FindSwObject(world, 5, (OID)0x620, 0);
 }
 
 /** @sly2-annot addr=0x210978
@@ -2478,7 +2478,7 @@ typedef struct { int c; ENT *a; int heapSize; int heapBuffer; } TBL;
 typedef struct { int a[4]; } ALLOC;
 extern struct G { char pad[0x4640]; int isLocalized; } D_003DD490;   /* (inferred) nonzero when a language table is loaded */
 extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
-extern char *PchzFindSwLangstr__FP2SWi(struct G *, char *);
+extern char *FindSwLocalizedString__FP2SWi(struct G *, char *);
 extern int strlen_(char *) __asm__("strlen");
 extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 
@@ -2498,7 +2498,7 @@ void LocalizeSwStringTable(TBL *table)
     __11CLinearHeapiPUc(&heap, table->heapSize, table->heapBuffer);
     for (i = 0; i < table->c; i++) {
         ENT *e = &table->a[i];
-        e->pchOut = PchzFindSwLangstr__FP2SWi(&D_003DD490, e->pch);
+        e->pchOut = FindSwLocalizedString__FP2SWi(&D_003DD490, e->pch);
         if (strlen_(e->pchOut))
             e->pchOut = PchzAllocCopy__FP4HEAPPci(&heap, e->pchOut, 4);
         else

@@ -111,7 +111,7 @@ void ResolveAsegOverrideTarget(ASEG *segment, ALO *palo, OVR *povr, LO **pplo, i
 void InitDl(DL *pdl, int ibDle);                                                /* InitDl__FP2DLi */
 void AppendDlEntry(DL *pdl, void *pv);                                          /* AppendDlEntry__FP2DLPv */
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);                    /* LoadOptionsFromBrx__FPvP18CBinaryInputStream */
-LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                     /* PloFindSwObject__FP2SWi3OIDP2LO */
+LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                     /* FindSwObject__FP2SWi3OIDP2LO */
 void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime, int *pcea, EA **paea);
 ASEGA *PasegaFindAseg(ASEG *segment, ALO *palo);
 /* ApplyAsegCore with the parameter order ApplyAsegCur and PostAsegLoadCallback pass (the floats first) */
@@ -420,7 +420,7 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
 }
 
 /** @sly2-annot addr=0x12FE58
- * Purpose: Resolves a channel key: PloFindSwObject(oid) under the root (or world), then the object's
+ * Purpose: Resolves a channel key: FindSwObject(oid) under the root (or world), then the object's
  *   sub-target via its virtual Get
  * Info: proposed name ResolveAsegKeyObject (T2); TU aseg
  * Notes: names_v2 B proposed PostAsegLoad__FP4ASEG (0.856)
@@ -432,9 +432,9 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
 void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
-        *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pk->s.id, (LO *)b);
+        *ppo = FindSwObject(&D_003DD490, 1, (OID)pk->s.id, (LO *)b);
     else
-        *ppo = PloFindSwObject(&D_003DD490, 4, (OID)pk->s.id, a);
+        *ppo = FindSwObject(&D_003DD490, 4, (OID)pk->s.id, a);
     if (!*ppo)
         *pn = 0;
     else
@@ -474,7 +474,7 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
 }
 
 /** @sly2-annot addr=0x130010
- * Purpose: Event target resolution via PloFindSwObject (root-relative or world)
+ * Purpose: Event target resolution via FindSwObject (root-relative or world)
  * Info: proposed name ResolveAsegEventObject (T2); TU aseg
  * Notes: verifier: purpose partly wrong: Finds object by oid (grffso 1 under q, else 4 from p) and also
  *   stores po->vt43(pa->f0) into *pn (0 if not found); purpose omits that second output. | names_v2 C
@@ -484,8 +484,8 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
  * @end-sly2-annot */
 // Resolves the object an override (OVR) refers to, relative to the root or in the world. (inferred)
 void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
-    if (q) *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pa->oid, (LO *)q);
-    else *ppo = PloFindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
+    if (q) *ppo = FindSwObject(&D_003DD490, 1, (OID)pa->oid, (LO *)q);
+    else *ppo = FindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
     if (!*ppo) *pn = 0;
     else { LO *po = *ppo; *pn = ((int (*)(void *, int))PVT(po)[43].pfn)((char *)po + PVT(po)[43].d, pa->slot); }
 }

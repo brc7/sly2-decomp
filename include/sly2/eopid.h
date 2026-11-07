@@ -51,7 +51,7 @@ struct EOPID
             int ibSet;
             PMF pmfSet;
             PFNTHUNK pfnthunk;
-            void (BASIC::*pmfSetB)(int);    /* int, not long: a DImode argument stops the arms' shared tail (RefSetPeopid) */
+            void (BASIC::*pmfSetB)(int);    /* int, not long: a DImode argument stops the arms' shared tail (SetOptionRecordValue) */
             void (BASIC::*pmfSetF)(float);
             void (BASIC::*pmfSetQ)(qword);
             void (BASIC::*pmfSetN)(int);
@@ -66,7 +66,7 @@ struct EOPID
 };
 typedef char assert_EOPID_size[sizeof(EOPID) == 0x28 ? 1 : -1];
 
-/* The record as RefGetPeopid / RefSetPeopid take it (the Sly 2 symbols name PVREC: RefSetPeopid__FPvP5PVRECP4CRef). */
+/* The record as GetOptionRecordValue / SetOptionRecordValue take it (the Sly 2 symbols name PVREC: RefSetPeopid__FPvP5PVRECP4CRef). */
 struct PVREC : public EOPID
 {
 };

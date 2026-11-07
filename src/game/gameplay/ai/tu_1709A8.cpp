@@ -131,14 +131,14 @@ void *FindStepBehavior(LO *object, int cid);
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001709A8 { extern "C" {
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // 0x1709A8: Classifies a script target for moving along it: 0 for a rail-like object (cid 0xD), 1 for a pipe-like
 // object (cid 0xB), else -1 (inferred nouns).
 int GetShapeMoveKind(void *p)
 {
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_RAIL))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, CID_RAIL))
         return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, CID_PIPE))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, CID_PIPE))
         return 1;
     return -1;
 }
@@ -165,7 +165,7 @@ struct G;
 extern struct G D_003DD490;
 struct N { int kind; int id; char pad[0x10]; struct N *next; };
 struct S { char pad[0x50]; struct N *head; };
-struct S *PloFindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, struct S *context);
+struct S *FindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, struct S *context);
 int GetShapeMoveKind(struct S *object);
 void EnsureShapeVolumeSegments(struct S *shape);
 // 0x170A58: Walks the command list resolving targets: set-context commands (kind 0) change the lookup context;
@@ -176,13 +176,13 @@ void PrepareGuardScriptTargets(struct S *context)
     for (command = context->head; command; command = command->next) {   /* context starts as the script itself */
         switch (command->kind) {
         case SSGK_FOLLOW_PATH: {
-            struct S *shape = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->id, context);
+            struct S *shape = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, command->id, context);
             if (shape && GetShapeMoveKind(shape) == -1)
                 EnsureShapeVolumeSegments(shape);
             break;
         }
         case SSGK_SET_CONTEXT:
-            context = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, context ? 4 : 5, command->id, context);
+            context = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, context ? 4 : 5, command->id, context);
             break;
         }
     }
@@ -333,7 +333,7 @@ struct P{char pad[0x50];struct N*head;};
 struct CHOICE{struct N*node;struct P*object;float value;};
 extern char D_003DD490[];
 extern const float D_002A52B0;   /* defined below where the ELF has it (.rodata order) */
-struct P*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
+struct P*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
 void GetGuardScriptTargetPose(struct P*,qword,struct P*,qword*,float*);
 void FindShapeClosestPoint(struct P*,qword,void*,qword*,qword*,float*,float*);
 void FindShapeClosestPointFromS(struct P*,qword,void*,qword*,qword*,float*,float*,float);
@@ -376,7 +376,7 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
             if (stopped)
                 break;
             if (node->tag != -1) {
-                struct P *object = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
+                struct P *object = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
                 GetGuardScriptTargetPose(root, pos, object, &hit.q, 0);
             } else if (node->position)
                 hit.q = *node->position;
@@ -393,7 +393,7 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
             if (stopped)
                 break;
             {
-                struct P *object = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
+                struct P *object = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
                 if (out && out->node == node)
                     FindShapeClosestPointFromS(object, pos, 0, &hit.q, 0, 0, &value, out->value);
                 else
@@ -413,7 +413,7 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
             int kind = 5;
             if (current)
                 kind = 4;
-            current = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, kind, node->tag, current);
+            current = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, kind, node->tag, current);
             break;
         }
         case SSGK_SET_WALK_TIMES:
@@ -437,7 +437,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; };
 struct VTE { short d; short pad; float *(*pfn)(void *); };
 struct TARGET { char pad[0xC]; struct VTE *vt; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct TARGET *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct TARGET *object, int cid);
 void FindShapeClosestPoint(struct TARGET *shape, qword pos, int a, qword *point, struct VEC *tangent, int b, int c);
 float atan2f(float y, float x);
 qword GetLoWorldPos(struct TARGET *object);
@@ -450,7 +450,7 @@ void GetGuardScriptTargetPose(void *script, qword pos, struct TARGET *target, qw
     struct VEC tangent;
     float heading;
     if (target) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) {
             FindShapeClosestPoint(target, pos, 0, &q, &tangent, 0, 0);
             heading = atan2f(tangent.y, tangent.x);
         } else {
@@ -638,13 +638,13 @@ namespace M_func_001715B8 { extern "C" {
 struct S { char pad[0x34]; int context; };
 struct G { int a; };
 extern struct G D_003DD490;
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, int context);
+void *FindSwObject__FP2SWi3OIDP2LO(struct G *sw, int findKind, int oid, int context);
 // 0x1715B8: Finds a world object by oid relative to the script's current context object.
 void *FindBhvScriptTarget(struct S *behavior, int oid)
 {
     int context = behavior->context;
     int findKind = context ? 4 : 5;
-    return PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, findKind, oid, context);
+    return FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, findKind, oid, context);
 }
 } } // namespace M_func_001715B8
 
@@ -677,7 +677,7 @@ extern "C" { void SetBhvpipeGoal(void *bhv, int goal); }
 extern "C" { void ClearPointerPair(struct GOAL *goal); }
 // Default constructor: both pointers cleared (ClearPointerPair).
 inline GOAL::GOAL() { ClearPointerPair(this); }
-extern "C" { int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid); }
+extern "C" { int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid); }
 extern "C" { void SetBhvgotoGoal(void *bhv, struct GOAL *goal); }
 extern "C" { void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float speed); }
 extern "C" { void *FindGuardScriptLabel(void *script, int id); }
@@ -784,7 +784,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *command)
             void *target = FindBhvScriptTarget(behavior, point->id);
             if (target) {
                 GetBhvScriptTargetPose(behavior, target, 0, &behavior->heading);
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) goal.shape = target;
+                if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) goal.shape = target;
                 else goal.object = target;
             }
         }

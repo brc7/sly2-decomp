@@ -201,7 +201,7 @@ void InitSave(SAVE *saveManager, int n0, int n1);
 int SemaCreate(int cInit, int cMax);
 int FMemcardThreadValid(MEMCARD *worker);
 void SetMemcardThreadHighPrio(MEMCARD *worker);
-char *PchzFindSwLangstr(SW *world, int id);
+char *FindSwLocalizedString(SW *world, int id);
 
 /* libc functions the per-function files declared: at file scope, so that g++ treats them as its builtins
    (declared inside a namespace they are ordinary functions: a strcpy of a constant or fabsf becomes a call). */
@@ -2606,7 +2606,7 @@ void SetSaveSlotLabel(struct S *item)
 /* Dynamic text: the card name. */
 extern "C" void FormatMcCardNameText(char *pch)
 {
-    strcpy(pch, PchzFindSwLangstr(&D_003DD490, ::D_002E6550.state));
+    strcpy(pch, FindSwLocalizedString(&D_003DD490, ::D_002E6550.state));
 }
 
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
@@ -2620,7 +2620,7 @@ extern const unsigned int r_D_002A6E90[2] __asm__("D_002A6E90") = {0xFFFF0000, (
 namespace M_func_001AD820 { extern "C" {
 extern char D_002E6550[], D_003DD490[];
 int GetMcDialogButtonKind(void *p);
-char *PchzFindSwLangstr__FP2SWi(void *p, int n);
+char *FindSwLocalizedString__FP2SWi(void *p, int n);
 void strcpy1(char *a, const char *b);
 /** @sly2-annot addr=0x1AD820
  * Purpose: Dynamic text provider (0x2F3) depending on dialog state
@@ -2634,13 +2634,13 @@ void FormatMcDialogText(char *buf)
     switch (GetMcDialogButtonKind(D_002E6550)) {
     case 1:
         strcpy(buf, "&2S&.: ");
-        strcpy1(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0x38));
+        strcpy1(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0x38));
         break;
     case 2:
         strcpy(buf, "&2S&. : ");
-        strcpy1(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0x36));
+        strcpy1(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0x36));
         strcpy1(buf, "       ");
-        strcpy1(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0x37));
+        strcpy1(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0x37));
         strcpy1(buf, " : &2T&.");
         break;
     }
@@ -2656,7 +2656,7 @@ void FormatMcDialogText(char *buf)
 // Dynamic text (string 0x5CB) of the save page. (inferred: content not identified)
 extern "C" void FormatSavePageTextA(char *pch)
 {
-    strcpy(pch, PchzFindSwLangstr(&D_003DD490, GetPauseMenuTopPageId(D_003D9ED0)));
+    strcpy(pch, FindSwLocalizedString(&D_003DD490, GetPauseMenuTopPageId(D_003D9ED0)));
 }
 
 namespace M_func_001AD980 { extern "C" {
@@ -2666,7 +2666,7 @@ extern char D_003DA530[], D_003D4A60[];
 int FScreenShown(void *p);
 void *NEpisodeBest(void);
 int IdsFromWorld(void *p);
-char *PchzFindSwLangstr__FP2SWi(void *p, int n);
+char *FindSwLocalizedString__FP2SWi(void *p, int n);
 char *GetCompletionPercent(void *p, void *q);
 void sprintf(char *buf, char *fmt, ...);
 /** @sly2-annot addr=0x1AD980
@@ -2685,7 +2685,7 @@ void FormatSaveCompletionText(char *buf)
         return;
     fmt = "%s : %d%%";
     world = &D_003DD490;
-    episodeName = PchzFindSwLangstr__FP2SWi(world, IdsFromWorld(NEpisodeBest()));
+    episodeName = FindSwLocalizedString__FP2SWi(world, IdsFromWorld(NEpisodeBest()));
     sprintf(buf, fmt, episodeName, GetCompletionPercent(world->gameState, D_003D4A60));
 }
 } } // namespace M_func_001AD980
@@ -2705,7 +2705,7 @@ int IsPauseMenuOnSavePage(struct G *g);
 int GetPauseMenuTopPageId(struct G *g);
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
-char *PchzFindSwLangstr__FP2SWi(void *p, int n);
+char *FindSwLocalizedString__FP2SWi(void *p, int n);
 char *strcpy(char *d, const char *s);
 char *strcpy1(char *d, const char *s);
 /** @sly2-annot addr=0x1ADA20
@@ -2733,21 +2733,21 @@ void FormatSavePageTextB(char *buf)
     switch (GetPauseMenuTopPageId(menu)) {
     case 0x1E:
         if (isUsed != 0.0f)
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x25));
+            strcpy(buf, FindSwLocalizedString__FP2SWi(world, 0x25));
         else
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x26));
+            strcpy(buf, FindSwLocalizedString__FP2SWi(world, 0x26));
         break;
     case 0x1F:
         if (isUsed != 0.0f)
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x27));
+            strcpy(buf, FindSwLocalizedString__FP2SWi(world, 0x27));
         else
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x26));
+            strcpy(buf, FindSwLocalizedString__FP2SWi(world, 0x26));
         break;
     case 0x19:
-        strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x29));
+        strcpy(buf, FindSwLocalizedString__FP2SWi(world, 0x29));
         if (isUsed != 0.0f) {
             strcpy1(buf, "\n");
-            strcpy1(buf, PchzFindSwLangstr__FP2SWi(world, 0x25));
+            strcpy1(buf, FindSwLocalizedString__FP2SWi(world, 0x25));
         }
         break;
     }
@@ -2758,7 +2758,7 @@ void FormatSavePageTextB(char *buf)
 namespace M_func_001ADBB8 { extern "C" {
 extern char D_003D9ED0[], D_003DD490[];
 int GetPauseMenuTopPageId(void *p);
-void *PchzFindSwLangstr__FP2SWi(void *p, int n);
+void *FindSwLocalizedString__FP2SWi(void *p, int n);
 void strcpy(void *s, void *q);
 void strcpy1(void *s, void *q);
 /** @sly2-annot addr=0x1ADBB8
@@ -2774,7 +2774,7 @@ void FormatSaveTimeText(void *s)
     case 0x19:
     case 0x1E:
     case 0x1F:
-        strcpy(s, PchzFindSwLangstr__FP2SWi(D_003DD490, 0x40));
+        strcpy(s, FindSwLocalizedString__FP2SWi(D_003DD490, 0x40));
         strcpy1(s, (char *)" : &2T&.");
         break;
     }
@@ -2796,7 +2796,7 @@ extern "C" {
  void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
  void*AllocSaveKey(void*,...);
  int IdsFromWorld(int);
- void*PchzFindSwLangstr__FP2SWi(void*,int);
+ void*FindSwLocalizedString__FP2SWi(void*,int);
  int GetCompletionPercent(void*,void*);
  int sprintf(char*,const char*,...);
  char*strcpy(char*,const char*);
@@ -2820,12 +2820,12 @@ extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
   void*value=AllocSaveKey((char *)"episodeBest",0);
   int tag;
   if(value)tag=GetN(ref,value,pb);else tag=GetN(ref,pg->fallback,pb);
-  sprintf(buf,"%s : %d%%",(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,IdsFromWorld(tag)),GetCompletionPercent(D_003DD490.object,pb));
+  sprintf(buf,"%s : %d%%",(char*)FindSwLocalizedString__FP2SWi(&D_003DD490,IdsFromWorld(tag)),GetCompletionPercent(D_003DD490.object,pb));
   STACKSCOPE_ctor_1AE4A0(frame,2);
  }else{
   switch(GetPauseMenuTopPageId(D_003D9ED0)){
-   case 0x1E:case 0x1F:strcpy(buf,(char*)PchzFindSwLangstr__FP2SWi(pg,0x44));break;
-   case 0x19:strcpy(buf,(char*)PchzFindSwLangstr__FP2SWi(pg,0x45));break;
+   case 0x1E:case 0x1F:strcpy(buf,(char*)FindSwLocalizedString__FP2SWi(pg,0x44));break;
+   case 0x19:strcpy(buf,(char*)FindSwLocalizedString__FP2SWi(pg,0x45));break;
   }
  }
 }

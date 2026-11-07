@@ -66,7 +66,7 @@ void FireRelay(SAFEHOUSEV *prelay, int n);
 void SetPoCtlState(SAFEHOUSEV *ppo, int n);
 void ReplaceSma(SMV *psm, SAFEHOUSEV *object, int isms, int n, SMA **ppsma);
 void FailJob(SUBV *p);
-int CploFindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
+int FindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
 void DeliverStepplayerBooty(SOV *object);
 void BindStepplayerHpMp(SOV *object, int n);
 CRef RefGetSaveVarV(const char *pchz, ...);
@@ -79,7 +79,7 @@ void SetCharSelectState(SAFEHOUSEV *safehouse, int state);
 void StepCharSelect(SAFEHOUSEV *safehouse, int d);
 }
 int FActiveCplcy(CPLCY *pcplcy);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
+LO *FindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
 int IsmsFindSmOptional(SM *psm, OID oid);
 
 // 0x1D7238: SAFEHOUSE vtable slot 7 (Init): PO Init, then registers itself as the world's safehouse (D_003D4A54).
@@ -137,7 +137,7 @@ extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
                 SetThiefnetTab(D_003DA150, 0);
                 break;
             }
-            relay = (SAFEHOUSEV *)PloFindSwObject((SW *)&D_003DD490, 4, (OID)binding->oid, (LO *)safehouse);
+            relay = (SAFEHOUSEV *)FindSwObject((SW *)&D_003DD490, 4, (OID)binding->oid, (LO *)safehouse);
             if (relay) {
                 FireRelay(relay, 0);
                 return;
@@ -181,16 +181,16 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
         int initialState;
         if (D_003DD490.currentJob && !D_003DD490.currentJob->unknown74)
             FailJob(D_003DD490.currentJob);
-        count = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
+        count = FindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
         for (int i0 = 0; i0 < count; i0++) {
             SOV *player = players[i0];
             DeliverStepplayerBooty(player);
             BindStepplayerHpMp(player, 1);
         }
-        count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x64, 0, 0x20, objects64);
+        count = FindSwObjectsByClass(&D_003DD490, 0x105, 0x64, 0, 0x20, objects64);
         for (int i1 = 0; i1 < count; i1++)
             VCALL1(objects64[i1], 76, 4);
-        count = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x4F, 0, 0x20, objects4F);
+        count = FindSwObjectsByClass(&D_003DD490, 0x105, 0x4F, 0, 0x20, objects4F);
         for (int i2 = 0; i2 < count; i2++)
             VCALL(objects4F[i2], 9);
         if (safehouse->stateMachine) {

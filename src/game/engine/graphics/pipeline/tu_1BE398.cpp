@@ -102,8 +102,8 @@ int IgsAllocGsb(GSB *pgsb, int cb);
 uint NLog2(uint n);
 void BuildSimpleProjectionMatrix(float, float, float, float, float, float, MATRIX4 *pmat);
 void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
+LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 
 static inline int PackNext(GIFS &gifs, int x, int y)
 {
@@ -369,7 +369,7 @@ extern "C" void RenderRtcam(RTCAM *rtcam)
     }
 }
 
-static __inline__ POV *Get(POV *po) { return (po && FIsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->controlled : po; }
+static __inline__ POV *Get(POV *po) { return (po && IsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->controlled : po; }
 // Finds the object to show in a render target by id: ids 0x2AE and 0x2AF are searched relative to the hero (the
 // player object, or what it controls), others in the whole world. (inferred)
 extern "C" void FindObjectForRenderTarget(int id)
@@ -377,14 +377,14 @@ extern "C" void FindObjectForRenderTarget(int id)
     switch (id) {
     case 0x2AE:{
         POV*object=Get(GetHeroPo(&D_003DD490));
-        (void)PloFindSwObject(&D_003DD490,1,(OID)id,(LO *)object);
+        (void)FindSwObject(&D_003DD490,1,(OID)id,(LO *)object);
         break;
     }
     case 0x2AF:
-        (void)PloFindSwObject(&D_003DD490, 1, (OID)0x2AF, (LO *)GetHeroPo(&D_003DD490));
+        (void)FindSwObject(&D_003DD490, 1, (OID)0x2AF, (LO *)GetHeroPo(&D_003DD490));
         break;
     default:
-        (void)PloFindSwObject(&D_003DD490, 0x405, (OID)id, 0);
+        (void)FindSwObject(&D_003DD490, 0x405, (OID)id, 0);
         break;
     }
 }

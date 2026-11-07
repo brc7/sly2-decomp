@@ -300,7 +300,7 @@ void SetEmitterParticleCount__FP7EMITTERi() __asm__("SetEmitterParticleCount__FP
 void SetExitExits() __asm__("SetExitExits");
 void SetEyesClosed() __asm__("SetEyesClosed");
 void SetLightKind() __asm__("SetLightKind");
-void SetLoBusyk() __asm__("SetLoBusyk");
+void SetLoBusyKind() __asm__("SetLoBusyKind");
 void SetPoTnCam() __asm__("SetPoTnCam");
 void SetRhythmMgrState() __asm__("SetRhythmMgrState");
 void SetRobottankState() __asm__("SetRobottankState");
@@ -589,7 +589,7 @@ void GetLoWorldPos() __asm__("GetLoWorldPos");
 void GetLoWorldMatrix() __asm__("GetLoWorldMatrix");
 void GetLoEulerDegrees() __asm__("GetLoEulerDegrees");
 void SetLoEulerDegrees() __asm__("SetLoEulerDegrees");
-void GetLoBusyk() __asm__("GetLoBusyk");
+void GetLoBusyKind() __asm__("GetLoBusyKind");
 void SetLoOwnVisMask() __asm__("SetLoOwnVisMask");
 void HasLoOwnVisMask() __asm__("HasLoOwnVisMask");
 void SetCritterState() __asm__("SetCritterState");
@@ -744,7 +744,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(func_001007E8), EOPID_NONE, EOPID_NONE}, /* [11] opt 12, BASIC (+198) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00100860), EOPID_NONE, EOPID_NONE}, /* [12] opt 13, BASIC (+198) */
     {1, 0x122, EOPID_INT(0x38), EOPID_VPMF(0x2B, 0xC), EOPID_VPMF(0x2B, 0xC), EOPID_NONE}, /* [13] opt 14, LO (+131) */
-    {0x1008, 0x124, EOPID_PMF(GetLoBusyk), EOPID_PMF(SetLoBusyk), EOPID_PMF(SetLoBusyk), EOPID_NONE}, /* [14] opt 15, LO (+131) */
+    {0x1008, 0x124, EOPID_PMF(GetLoBusyKind), EOPID_PMF(SetLoBusyKind), EOPID_PMF(SetLoBusyKind), EOPID_NONE}, /* [14] opt 15, LO (+131) */
     {6, 2, EOPID_INT(0x18), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [15] opt 28, LO (+131) */
     {6, 4, EOPID_PMF(GetLoProxyOid), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [16] opt 29, LO (+131) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunkLoMATCHES_NAMEQ), EOPID_INT(1), EOPID_NONE}, /* [17] opt 30, LO (+131) */

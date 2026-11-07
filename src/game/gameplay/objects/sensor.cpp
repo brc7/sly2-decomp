@@ -251,7 +251,7 @@ typedef void (LASENV::*PFNLASEN)(int);
 extern "C" {
 void InitSo(SOV *pso);
 int HasLoOid(SOV *pso, OID oid);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *pbasic, CID cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *pbasic, CID cid);
 int MaxInt(int n, int nMax);   /* NMaxIgnore */
 void *AllocClearedFromStack(ALLOCREQ *preq);
 void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
@@ -262,14 +262,14 @@ void PostSoLoad(SOV *pso);
 SOTREEV *NewSoTree(SOV *pso);   /* SO::PtreeNew */
 void RemoveSoParts(SOV *pso);
 void AddSoParts(SOV *pso);
-LO *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, OID oid, LO *ploContext);
+LO *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, OID oid, LO *ploContext);
 float SMaxShape(SHAPEV *pshape);
 void EvaluateShapeS(SHAPEV *pshape, qword *ppos, qword *pdir, float s);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 qword GetLoWorldPos(void *pso);   /* object position */
 qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one XF space to another (0: world) */
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEOMV *pgeom, const M4 *pmat, GEOMV *pgeomOut);
-void CploFindSwObjectsByClass(SW *psw, int grffso, CID cid, ALO *palo, int cploMax, ASEGV **apaseg);
+void FindSwObjectsByClass(SW *psw, int grffso, CID cid, ALO *palo, int cploMax, ASEGV **apaseg);
 ASEGAV *FindAsegaByOid(ALO *palo, OID oid);
 ASEGAV *ApplyAsegToObject(ASEGV *paseg, ALO *palo, int grf, float t, float svt);
 CHNV *FindAsegChannel(ASEGV *paseg, ALO *palo, int n, int f);
@@ -311,7 +311,7 @@ extern "C" int FIgnoreSensorIntersection(SENSORV *sensor, SOV *pso)
             r = MaxInt(r, 2);
     }
     for (j = 0; j < sensor->numNoTriggerClasses; j++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, sensor->noTriggerClasses[j]))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(pso, sensor->noTriggerClasses[j]))
             r = MaxInt(r, 2);
     }
     return r;
@@ -437,9 +437,9 @@ extern "C" void BuildLasenBeams(LASENV *laser)
             BEAMEND *end = &beam->ends[j];
             end->kind = -1;
             if (end->oid != -1) {
-                LO *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, end->oid, (LO *)laser);
+                LO *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, end->oid, (LO *)laser);
                 if (object) {
-                    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, (CID)10)) {
+                    if (IsBasicDerivedFrom__FP5BASIC3CID(object, (CID)10)) {
                         SHAPEV *path = (SHAPEV *)object;
                         BEAMPARAMS params = end->track.params;
                         int reverse = 0;
@@ -552,7 +552,7 @@ extern "C" void BuildLasenBeams(LASENV *laser)
                             }
                             SetDirty(laser);
                         }
-                    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(object, (CID)3) || FIsBasicDerivedFrom__FP5BASIC3CID(object, (CID)0x30)) {
+                    } else if (IsBasicDerivedFrom__FP5BASIC3CID(object, (CID)3) || IsBasicDerivedFrom__FP5BASIC3CID(object, (CID)0x30)) {
                         end->kind = 0;
                         end->pos = GetLoWorldPos(object);
                     }
@@ -618,7 +618,7 @@ extern "C" void BindLasenAnimations(LASENV *laser)
         CHNV *pchn;
         if (palo == 0)
             continue;
-        CploFindSwObjectsByClass(&D_003DD490, 2, (CID)0x6D, palo, 1, &pcap->paseg);
+        FindSwObjectsByClass(&D_003DD490, 2, (CID)0x6D, palo, 1, &pcap->paseg);
         paseg = pcap->paseg;
         if (paseg == 0)
             continue;
@@ -742,7 +742,7 @@ extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a
         GetLasenBeamEnds(laser, e->ends, seg, 0);
         if (!ClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
             SOV *so = *q->psub->ppso;
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(so, (CID)0x33))
+            if (IsBasicDerivedFrom__FP5BASIC3CID(so, (CID)0x33))
                 found = IntersectStepFootprint(so, seg[0], seg[1], &pos.q);
         } else {
             found = 1;

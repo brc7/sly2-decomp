@@ -100,8 +100,8 @@ void SetEpisodeMenuMode(EPMENU *p, int state, int sub);
 int GetEpisodeMenuItemCount(EPMENU *p);
 void SetEpisodeMenuHighlight(EPMENU *p, int f);
 }
-void *PloFindSwObject(struct SW *world, int grffso, int oid, struct LO *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
-char *PchzFindSwLangstr(struct SW *world, int n);
+void *FindSwObject(struct SW *world, int grffso, int oid, struct LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+char *FindSwLocalizedString(struct SW *world, int n);
 void StartJoySelection(struct JOY *pjoy);
 
 /* Menu states (menu->state); the in-between states advance through D_002BE278 when their label finishes. */
@@ -341,7 +341,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
                     isNew = 0;
             }
             if (isNew) {
-                void *pexit = PloFindSwObject((struct SW *)&D_003DD490, 5, D_002BE2A8[menu->episode], 0);
+                void *pexit = FindSwObject((struct SW *)&D_003DD490, 5, D_002BE2A8[menu->episode], 0);
                 if (pexit) {
                     SetExitExits(pexit, 3);
                     TakeExit(pexit);
@@ -547,10 +547,10 @@ extern "C" void FormatEpisodeMenuPageText(char *pch, int f)
         k = pepmenu->chapter;
     switch (k) {
     case 1: case 3: case 5: case 7: case 9: case 11: case 13: case 15:
-        strcpy(pch, PchzFindSwLangstr((struct SW *)&D_003DD490, 0x77));
+        strcpy(pch, FindSwLocalizedString((struct SW *)&D_003DD490, 0x77));
         break;
     case 2: case 4: case 6: case 8: case 10: case 12: case 14: case 16:
-        strcpy(pch, PchzFindSwLangstr((struct SW *)&D_003DD490, 0x78));
+        strcpy(pch, FindSwLocalizedString((struct SW *)&D_003DD490, 0x78));
         break;
     }
 }

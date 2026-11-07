@@ -101,8 +101,8 @@ void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
 SO *GetSoFromLo(LO *plo);
 int MaxInt(int grf, int n);   /* NMaxIgnore */
-int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
-int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
+int FindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
 qword GetXfValueFromMatrix(XF *pxfA, XF *pxfB);
 ACT *NewPositionAct(LO *plo, XF *pxf, int a, int b, int c, qword qw);
 ACT *NewBezierAct(LO *plo, XF *pxf, int n, float t, qword pos, qword vel);
@@ -359,7 +359,7 @@ struct SWALLOC
 };
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
-LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
+LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice);
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 extern "C" void MeasureShape(SHAPE *pshape);
 inline void *PvAllocSw(int cb, int alignment)
@@ -403,7 +403,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
         cHands++;
         for (int j = 0; j < 2; j++)
         {
-            SHAPE *shape = (SHAPE *)PloNew((CID)10, hands->pso, (OID)0xB2, -1);
+            SHAPE *shape = (SHAPE *)CreateLo((CID)10, hands->pso, (OID)0xB2, -1);
             shape->crvk = (CRVK)0;
             shape->ccv = D_002C1ED0;
             shape->mpicvu = (float *)PvAllocSw(D_002C1ED0 << 2, 16);
@@ -488,7 +488,7 @@ extern "C" void UpdateJtHandsCallback(void *pv, JTHANDS *hands)
 extern "C" CID20 *FindJtHandsTarget(JTV *jt, LO *lo)
 {
     CID20 *apcid[4];
-    int c = CploFindSwObjectsByClass(&D_003DD490, 0x401, 0x14, lo, 4, (LO **)apcid);
+    int c = FindSwObjectsByClass(&D_003DD490, 0x401, 0x14, lo, 4, (LO **)apcid);
     int i;
     for (i = 0; i < c; i++) {
         if (apcid[i]->grfHand & jt->grfHandTarget) return apcid[i];
@@ -520,13 +520,13 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
     case 1:
         hands->ploRef = hands->ploTarget;
         hands->nKind = 1;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 10)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 10)) {
             LO *shape = hands->ploTarget;
             FindShapeClosestPoint(shape, GetLoWorldPos(hands->pso), 0, 0, 0, 0, &hands->sParam);
             hands->nKind = 0;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((JTV *)hands->pso)->grfHandTarget)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((JTV *)hands->pso)->grfHandTarget)) {
             hands->nKind = 2;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x30)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x30)) {
             CID20 *pcid = FindJtHandsTarget((JTV *)hands->pso, hands->ploTarget);
             if (pcid) {
                 hands->ploRef = pcid;

@@ -67,7 +67,7 @@ void SprayDprizes(SW *world, int cid, qword position, void *source, int c);
 }
 float GLimitLm(LM *plm, float g);
 int NRandInRange(int nMin, int nMax);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 static inline void Set(SVKEY *key, CRef ref) { RefSetGlobalSaveVar(key, ref, &D_003D4A60); }
 static inline void SetG(SVKEY *key, float g) { CRef ref; ref.m_tagk = 0x16; ref.u.g = g; Set(key, ref); }
@@ -212,7 +212,7 @@ extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, in
         difficulty->countdownB = NRandInRange(nMin, nMax);
     }
     {
-        int d = FIsBasicDerivedFrom((BASIC *)source, (CID)0x38) ? -2 : -1;
+        int d = IsBasicDerivedFrom((BASIC *)source, (CID)0x38) ? -2 : -1;
         difficulty->countdownA += d;
         difficulty->countdownB += dn;
     }

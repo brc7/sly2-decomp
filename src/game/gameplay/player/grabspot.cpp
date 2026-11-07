@@ -80,14 +80,14 @@ void StartMurrayLiftGrabspot(LO *plo, GRABSPOT36 *p);
 }
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *plo);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
+LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
 
 namespace M_InitGrabspot { extern "C" {
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct S { char pad[8]; float g; char p1[8]; int x14; int p2; int x1c; struct VTE *vt; };
 extern float D_002A5680;
-void SetLoBusyk(void *p, int n);
+void SetLoBusyKind(void *p, int n);
 /** @sly2-annot addr=0x182C70
  * Purpose: Init the GRABSPOT mix-in sub-object: x14=-1, sBusy-like g=D_002A5680, player mask 7, owner (vt6)
  *   busyk 3
@@ -105,7 +105,7 @@ void InitGrabspot(struct S *grabspot)
     grabspot->g = D_002A5680;
     grabspot->x1c = 7;
     e = &grabspot->vt[6];
-    SetLoBusyk(e->pfn((char *)grabspot + e->d), 3);
+    SetLoBusyKind(e->pfn((char *)grabspot + e->d), 3);
 }
 } } // namespace M_InitGrabspot
 
@@ -909,7 +909,7 @@ void CloneBarrel(struct S *barrel)
 extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *barrel, LO *lo)
 {
     int grf = ShouldSoIgnoreIntersection(barrel, lo);
-    if (FIsBasicDerivedFrom(lo, (CID)0x34) != 0) {
+    if (IsBasicDerivedFrom(lo, (CID)0x34) != 0) {
         STEPPLAYER *player = (STEPPLAYER *)lo;
         if (player->jtgrab.nState == 1 && barrel == (BARRELV *)player->jtgrab.plo) {
             grf = MaxInt(grf, 1);
@@ -1333,7 +1333,7 @@ carry->playerMask = 4;
 } } // namespace M_func_00184268
 
 /** @sly2-annot addr=0x1842B0
- * Purpose: CID 0x24 vt15: PostCid35Load and resolve three oids (PloFindSwObject kind 4)
+ * Purpose: CID 0x24 vt15: PostCid35Load and resolve three oids (FindSwObject kind 4)
  * Info: proposed name PostCid36Load (T2); class CID36 slot15; TU grabspot
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
@@ -1344,9 +1344,9 @@ void CID36::VUnk14()
 {
     GRABSPOT36 *p = (GRABSPOT36 *)this;
     PostTriggerGrabspotLoad(p);
-    p->plo1 = PloFindSwObject(&D_003DD490, 4, p->oid1, p);
-    p->plo2 = PloFindSwObject(&D_003DD490, 4, p->oid2, p);
-    p->plo3 = PloFindSwObject(&D_003DD490, 4, p->oid3, p);
+    p->plo1 = FindSwObject(&D_003DD490, 4, p->oid1, p);
+    p->plo2 = FindSwObject(&D_003DD490, 4, p->oid2, p);
+    p->plo3 = FindSwObject(&D_003DD490, 4, p->oid3, p);
 }
 
 /** @sly2-annot addr=0x184330
@@ -1361,7 +1361,7 @@ void CID36::VUnk14()
 extern "C" void OnTriggerGrabspotGrabbed(GRABSPOT36 *trigger, LO *lo)
 {
     FireTriggerGrabspot(trigger, lo);
-    if (FIsBasicDerivedFrom(lo, (CID)0x36) != 0) {
+    if (IsBasicDerivedFrom(lo, (CID)0x36) != 0) {
         StartMurrayLiftGrabspot(lo, trigger);
     }
 }
@@ -1532,7 +1532,7 @@ void GetTableGrabspotSparklePosition(struct O *table, qword *pv, qword *pdv)
 } } // namespace M_func_001845A0
 
 namespace M_PgrabspotFromLo { extern "C" {
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 /** @sly2-annot addr=0x184670
  * Purpose: Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0,
  *   CID12 +0x190, ...) or NULL
@@ -1545,15 +1545,15 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void *GetGrabspotFromLo(char *p)
 {
     if (!p) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return p + 0x150;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x1B)) return p + 0x130;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x22)) return p + 0xE0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xC)) return p + 0x190;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x23)) return p + 0xE0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x13)) return p + 0x100;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return p + 0x190;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) return p + 0x190;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x27)) return p + 0xE0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return p + 0x150;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x1B)) return p + 0x130;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x22)) return p + 0xE0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xC)) return p + 0x190;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x23)) return p + 0xE0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x13)) return p + 0x100;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return p + 0x190;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) return p + 0x190;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x27)) return p + 0xE0;
     return 0;
 }
 } } // namespace M_PgrabspotFromLo

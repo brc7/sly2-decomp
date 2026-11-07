@@ -135,7 +135,7 @@ void ClearPointerPair(REFV *);
 BHVV *ConstructBhv(int kind, void *memory);
 void PopBhv(BHVV **slot);
 void DecrementBhvstk(BHVSTKV *stack);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
 void IncrementStepguardBusy(OWNERV *owner);
 void DecrementStepguardBusy(OWNERV *owner);
 }
@@ -251,7 +251,7 @@ extern "C" BHVV *FindBhvInBhvstk(BHVSTKV *stack, int cid)
     int i;
     for (i = 0; i < stack->depth; i++) {
         BHVV *behavior = stack->slots[i];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior, cid)) return behavior;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(behavior, cid)) return behavior;
     }
     return 0;
 }
@@ -301,7 +301,7 @@ extern "C" void SetBhvBusy(BHVV *behavior)
         return;
     BHVV *lower;
     behavior->isBusy = 1;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
         IncrementStepguardBusy(behavior->owner);
     }
     for (lower = behavior->below; lower; lower = lower->below)
@@ -316,7 +316,7 @@ extern "C" void ClearBhvBusy(BHVV *behavior)
         return;
     BHVV *lower;
     behavior->isBusy = 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_STEPGUARD)) {
         DecrementStepguardBusy(behavior->owner);
     }
     for (lower = behavior->below; lower; lower = lower->below)

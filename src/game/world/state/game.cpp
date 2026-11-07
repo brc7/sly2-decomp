@@ -97,7 +97,7 @@ int IsTaskComplete(TASKV *task);
 void EndTask(TASKV *task);
 int IsCurrentTask(TASKV *task);
 }
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 /* Task states (docs/engine/game-progression.md "Task states"); 4 and 5 are only requests (RequestTaskState). */
 enum TASKSTATE {
@@ -289,7 +289,7 @@ struct X { char pad[0x54]; int state; char pad2[0xA0 - 0x58]; int numFollowers; 
 struct G { char pad[0x3AFC]; int numTasks; };
 extern "C" { extern G D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
+extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
@@ -316,7 +316,7 @@ extern "C" int GetEpisodePercentComplete()
     ALLOCREQ req;
     G *pg = &D_003DD490;
     X **tasks = (X **)PvAllocReq(&req, pg->numTasks * 4, 0x10);
-    int numFound = CploFindSwObjectsByClass(pg, 5, 0x85, 0, pg->numTasks, (void **)tasks);
+    int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->numTasks, (void **)tasks);
     for (int i = 0; i < numFound; i++) {
         X *task = tasks[i];
         if (task->numFollowers) {
@@ -549,7 +549,7 @@ extern BANK D_002E65E0;
  extern CHECK D_002A37E8;
 
  extern char D_003D4A60[];
- int CploFindSwObjectsByClass(G*,int,int,P*,int,P**);
+ int FindSwObjectsByClass(G*,int,int,P*,int,P**);
  int GetCurrentBootyEntryId(void*);
  void*ClearStepplayerBootySave(P*,int);
  void InitGame(P*);
@@ -563,7 +563,7 @@ extern BANK D_002E65E0;
  void SortTasksTopologically(int*,P***);
  void RestoreTaskState(P*);
  void UpdateTaskSaveVars(P*);
- P*PloFindSwObject__FP2SWi3OIDP2LO(G*,int,int,P*);
+ P*FindSwObject__FP2SWi3OIDP2LO(G*,int,int,P*);
  void SetSwJobCur(G*,P*);
  void SetSwTaskCur(G*,P*);
  void SetSwTaskPending(G*,P*);
@@ -646,7 +646,7 @@ extern "C" void HandleGameEvent(P *game, int action)
     case 1: {   /* world teardown: in the hub level, each step player keeps its booty widget */
         if (Same((CHECK *)&g_sw.filerecDest, &D_002A37E8)) {
             P *players[3];
-            int found = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
+            int found = FindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, players);
             if (found > 0) {
                 P **cursor = players;
                 int count = found;
@@ -693,9 +693,9 @@ extern "C" void HandleGameEvent(P *game, int action)
             RestoreTaskState(task);
         }
         G *world = &D_003DD490;
-        SetSwJobCur(world, PloFindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[0], 0));
-        SetSwTaskCur(world, PloFindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[1], 0));
-        SetSwTaskPending(world, PloFindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[2], 0));
+        SetSwJobCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[0], 0));
+        SetSwTaskCur(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[1], 0));
+        SetSwTaskPending(world, FindSwObject__FP2SWi3OIDP2LO(world, 0x105, game->savedOids[2], 0));
         if (world->currentJob)
             BeginJob(world->currentJob);
         if (world->currentTask)
@@ -755,10 +755,10 @@ int AppendBoundedPair(int x, struct E *ae, int cMax, int *pc, int a, int b)
 namespace M_ApplyTaskStates { extern "C" {
 struct E { int oid; int n; };
 extern char D_003DD490[];
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
 void RequestTaskState(void *p, int n, void *owner);
 /** @sly2-annot addr=0x161F48
- * Purpose: For each (oid,state) pair finds the TASK (PloFindSwObject grffso 0x105) and requests that state
+ * Purpose: For each (oid,state) pair finds the TASK (FindSwObject grffso 0x105) and requests that state
  *   (RequestTaskState)
  * Info: proposed name ApplyTaskStates (T1); TU game
  * Notes: names_v2 C proposed SetStepguardTargetHeading__FP9STEPGUARDff (0.438)
@@ -771,7 +771,7 @@ void ApplyTaskStates(void *pv, int c, struct E *ae, void *owner)
 {
     int i;
     for (i = 0; i < c; i++) {
-        void *p = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, ae[i].oid, owner);
+        void *p = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, ae[i].oid, owner);
         if (p)
             RequestTaskState(p, ae[i].n, owner);
     }
@@ -858,7 +858,7 @@ extern "C" { extern G D_003DD490; }
 extern "C" int GetStateBit(int n);
 extern "C" int GetStateMask(int numRecords, int *states);
 extern "C" int IlevelCur__Fv();
-extern "C" void *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
+extern "C" void *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 /** @sly2-annot addr=0x1620B0
  * Purpose: For a job/task state change: for each {oidLo, oidContext, grfStates, level} record whose mask
  *   covers the state group (0-3 or 4-5) and level matches, AddLo (vt8) if the state bit is set else RemoveLo
@@ -887,8 +887,8 @@ extern "C" void ApplyStateLoVisibility(void *object, int nState, int numRecords,
             continue;
         if (record->level != -1 && record->level != IlevelCur__Fv())
             continue;
-        void *contextObject = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, record->context, 0);
-        LO *plo = (LO *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, contextObject ? 4 : 5, record->object, contextObject);
+        void *contextObject = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, record->context, 0);
+        LO *plo = (LO *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, contextObject ? 4 : 5, record->object, contextObject);
         if (!plo)
             continue;
         if (record->stateMask & stateBit)
@@ -905,7 +905,7 @@ struct G;
 extern struct G D_003DD490;
 int IlevelCur__Fv(void);
 int FindSwObjects(struct G *pg, int kind, int oid, int a, int c, void **apv);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *pv, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int n);
 void *FindLiveSma(void *pv, int n);
 void SeekSma(void *p, int goal);
 void SetSmaGoal(void *p, int goal);
@@ -927,7 +927,7 @@ void TriggerStateRsmg(void *pvUnused, struct E *record, int newState, int source
     if (record->restoreOnly && source == STATE_SOURCE_GAMEPLAY) return;
     if (record->level != -1 && record->level != IlevelCur__Fv()) return;
     if (FindSwObjects(&D_003DD490, 0x205, record->root, 0, 1, &root) != 1) return;
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(root, 0x30)) return;
+    if (!IsBasicDerivedFrom__FP5BASIC3CID(root, 0x30)) return;
     sma = FindLiveSma(root, record->stateMachine);
     if (!sma) return;
     goal = record->goal;
@@ -1185,7 +1185,7 @@ void TriggerStateRsmgs(struct S *p, int n, int c, int a, int b);
 void RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
 void *GetSaveVarAddress(void *p, void *q, void *r);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
 /** @sly2-annot addr=0x162780
  * Purpose: JOB PostLoad: if not current and live apply 'inactive' (state 5) visibility/RSMGs; restore start
  *   count and elapsed time from save vars; resolve a save var; find its completion widget (+0xAC) and the
@@ -1224,8 +1224,8 @@ void PostJobLoad(struct S *job)
     }
     job->stateSaveVar = GetSaveVarAddress(D_003DD490.saveVars, &job->stateKey, D_003D4A60);
     if (job->completionWidgetOid != -1)
-        job->completionWidget = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
-    job->widget379 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
+        job->completionWidget = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
+    job->widget379 = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
 }
 } } // namespace M_PostJobLoad
 
@@ -1512,7 +1512,7 @@ extern "C" void ActivateJob(JOBV *job)
     if (IsCurrentJob(job) == 0) {
         BroadcastGameEvent(D_002DEB30, 0x1C, job);
         ploHero = GetHeroPo(&D_003DD490);
-        if (ploHero != 0 && FIsBasicDerivedFrom(ploHero, (CID)0x34) != 0) {
+        if (ploHero != 0 && IsBasicDerivedFrom(ploHero, (CID)0x34) != 0) {
             DropStepplayerBooty(ploHero);
         }
         SetCurrentJob(job);
@@ -1769,7 +1769,7 @@ static inline void ClearLoFlagsInline(struct X *plo, int bits)
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 int IsTaskComplete(struct X *p);
-void SetLoBusyk(struct X *p, int n);
+void SetLoBusyKind(struct X *p, int n);
 void IncrementSwHandsOff(void *pg, int n);
 void DecrementSwHandsOff(void *pg, int n);
 void PlayWidgetAnim(struct O *po, int n);
@@ -1817,7 +1817,7 @@ void SetJobCompletionPhase(struct X *job, int phase)
                 }
             }
         }
-        SetLoBusyk(job, 1);
+        SetLoBusyKind(job, 1);
         SetLoFlagsInline(job, 0x102);
         IncrementSwHandsOff(D_003DD490, 2);
     }
@@ -1827,7 +1827,7 @@ void SetJobCompletionPhase(struct X *job, int phase)
     case PHASE_NONE: {
         if (job->widget379) HideWidget(job->widget379);
         if (job->completionWidget) HideWidget(job->completionWidget);
-        SetLoBusyk(job, 2);
+        SetLoBusyKind(job, 2);
         ClearLoFlagsInline(job, 0x102);
         DecrementSwHandsOff(D_003DD490, 2);
         break;
@@ -2139,14 +2139,14 @@ extern char D_003D4A60[];
 extern char D_003DD490[];
 void PostLoLoad(struct S *p);
 void AppendSlEntry(struct SL *psl, struct S *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
 int IsCurrentTask(struct S *p);
 int IsTaskLive(struct S *p);
 void ApplyStateLoVisibility(struct S *p, int n, int c, struct E16 *a);
 void TriggerStateRsmgs(struct S *p, int n, int c, struct E24 *a, int b);
 CRef *RefGetGlobalSaveVar(CRef *pref, void *a, void *b);
 void Decref__4CRef(CRef *pref);
-void SetLoBusyk(struct S *p, int n);
+void SetLoBusyKind(struct S *p, int n);
 /** @sly2-annot addr=0x1638F8
  * Purpose: TASK PostLoad: link into its job's task list, resolve prerequisite and successor oids to TASK
  *   pointers, apply inactive visuals if live, restore two save vars, busy-flag it if timed or it has a marker
@@ -2176,7 +2176,7 @@ void PostTaskLoad(struct S *task)
     completionCountKeyPtr = &task->completionCountKey;
     if (task->numPrerequisites > 0) {
         do {
-            void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->prerequisiteOids[i], 0);
+            void *pv = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->prerequisiteOids[i], 0);
             if (pv)
                 task->prerequisites[j++] = pv;
         } while (++i < task->numPrerequisites);
@@ -2184,7 +2184,7 @@ void PostTaskLoad(struct S *task)
     task->numPrerequisites = j;
     j = 0;
     for (i = 0; i < task->numFollowers; i++) {
-        void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->followerOids[i], 0);
+        void *pv = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->followerOids[i], 0);
         if (pv)
             task->followers[j++] = pv;
     }
@@ -2209,7 +2209,7 @@ void PostTaskLoad(struct S *task)
     }
     if (task->timeLimit != 0.0f || task->children.first) {
         if ((int)task->bf.busyk == 2)
-            SetLoBusyk(task, 0);
+            SetLoBusyKind(task, 0);
         SetLoFlagsInline(task, 2);
     }
 }
@@ -3028,7 +3028,7 @@ namespace M_UpdateCurrentJob { extern "C" {
 struct X { char pad[0x64]; void *startTask; void *completeTask; };
 struct G { char pad[0x3B0C]; struct X *currentJob; };
 extern struct G D_003DD490;
-int CploFindSwObjectsByClass(struct G *pg, int kind, int n, int m, int c, void **apv);
+int FindSwObjectsByClass(struct G *pg, int kind, int n, int m, int c, void **apv);
 int IsTaskComplete(void *p);
 void EndCurrentJob(struct X *p);
 void SetCurrentJob(struct X *p);
@@ -3043,7 +3043,7 @@ void UpdateCurrentJob(void)
 {
     struct X *jobs[256];
     struct X *found = 0;
-    int numJobs = CploFindSwObjectsByClass(&D_003DD490, 5, 0x84, 0, 0x100, (void **)jobs);
+    int numJobs = FindSwObjectsByClass(&D_003DD490, 5, 0x84, 0, 0x100, (void **)jobs);
     int i;
     for (i = 0; i < numJobs; i++) {
         struct X *job = jobs[i];
@@ -3466,7 +3466,7 @@ struct G;
 struct Q { char pad[0x10]; int currentJobOid; int currentTaskOid; int pendingTaskOid; };
 extern struct G D_003DD490;
 extern struct Q D_002DEB30;
-void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, void *owner);
+void *FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, void *owner);
 void SetSwTaskPending(struct G *pg, void *p);
 void GoToTask(void *p);
 void WipeToWorldWarp(struct G *pg, int n, int a, int b, int c, int d);
@@ -3481,7 +3481,7 @@ void WipeToWorldWarp(struct G *pg, int n, int a, int b, int c, int d);
 void StartTaskByOid(void *pv, int worldEntry, int oid)
 {
     struct G *pg = &D_003DD490;
-    void *task = PloFindSwObject__FP2SWi3OIDP2LO(pg, 0x105, oid, 0);
+    void *task = FindSwObject__FP2SWi3OIDP2LO(pg, 0x105, oid, 0);
     if (task) {
         SetSwTaskPending(pg, task);
         GoToTask(task);
@@ -3553,7 +3553,7 @@ extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_002A5238[]; }
 extern "C" void SortTasksTopologically(int *pc, X ***papx);
 extern "C" void RestoreTaskState(X *p);
-extern "C" X *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
+extern "C" X *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void SetTaskStateCascade(X *p, int n);
 extern "C" void RefSetSaveVarV(CRef *pref, CRef *parg, void *pv, int n);
 extern "C" void Decref__4CRef(CRef *pref);
@@ -3581,7 +3581,7 @@ extern "C" void RestoreTasksAfterLoad(SS *game)
         StateSourceScope scope(restored, STATE_SOURCE_LOAD_RESET, 0);
         RestoreTaskState(restored);
     }
-    X *pending = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x105, game->pendingTaskOid, 0);
+    X *pending = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x105, game->pendingTaskOid, 0);
     game->currentJobOid = pending->job->oid;
     game->currentTaskOid = pending->oid;
     StateSourceScope scope(pending, STATE_SOURCE_LOAD_RESET, 0);
@@ -3979,7 +3979,7 @@ struct X { char pad[0x94]; int numPrerequisites; char pad2[0xFC - 0x98]; int vis
 struct G { char pad[0x3AFC]; int numTasks; };
 extern "C" { extern G D_003DD490; }
 extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
+extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void VisitTaskTopo(X *px, int *count, void *pv, int a, int b);
 /** @sly2-annot addr=0x165C98
  * Purpose: Returns all TASKs in prerequisite order (VisitTaskTopo from every root)
@@ -4000,7 +4000,7 @@ extern "C" void SortTasksTopologically(int *count, void **order)
     req.cb = pg->numTasks * 4;
     req.nKind = 0x10;
     X **tasks = (X **)AllocClearedFromStack(&req);
-    int numFound = CploFindSwObjectsByClass(pg, 5, 0x85, 0, pg->numTasks, (void **)tasks);
+    int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->numTasks, (void **)tasks);
     int i;
     for (i = 0; i < numFound; i++)
         tasks[i]->visitCount = 0;

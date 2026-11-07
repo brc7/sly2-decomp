@@ -81,7 +81,7 @@ void InitSo(WAYPTV *p);
 void PostSoLoad(WAYPTV *p);
 void UpdateSo(WAYPTV *p);
 JTV *GetHeroPo(SW *psw);
-int FIsBasicDerivedFrom__FP5BASIC3CID(JTV *pj, int k);
+int IsBasicDerivedFrom__FP5BASIC3CID(JTV *pj, int k);
 }
 
 // WAYPT (cid 107) vtable slot 7 (Init): SO init; triggered by class 50 within 300 (500 once active); no clip frame or
@@ -150,13 +150,13 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
     float radius;
     UpdateSo(waypoint);
     hero = GetHeroPo(&D_003DD490);
-    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, waypoint->triggerClass)) {
+    if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, waypoint->triggerClass)) {
         radius = waypoint->isActive ? waypoint->activeRadius : waypoint->inactiveRadius;
         isInRange = GDist(GetLoWorldPos(hero), GetLoWorldPos(waypoint)) < radius;
     } else isInRange = 0;
     if ((waypoint->mode == 0 || waypoint->mode == 2) && D_003DD490.unknown3B0C)
         isInRange = 0;
-    if (isInRange && FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34) &&
+    if (isInRange && IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34) &&
         (hero->state != -1 || ((int (*)(void *))hero->vt[77].pfn)((char *)hero + hero->vt[77].d) == 2))
         isInRange = waypoint->isActive;
     if (isInRange != waypoint->isActive) {
@@ -467,11 +467,11 @@ MATRIX4V *GetLoWorldMatrix(SOV *pso);
 VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
 void RenderLoAtMatrix(SOV *pso, MATRIX4V *pmat, float a, float b);
 void RenderLoAlongSegment(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
-char *PchzFindSwLangstr__FP2SWi(SW *psw, int id);
+char *FindSwLocalizedString__FP2SWi(SW *psw, int id);
 void DrawWorldLabel(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
 // Draws the job-name plate text at pos.
-static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { DrawWorldLabel(pos, s, PchzFindSwLangstr__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
+static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { DrawWorldLabel(pos, s, FindSwLocalizedString__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
 
 // Evaluates the quadratic g0 + g1 x + g2 x^2.
 static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }

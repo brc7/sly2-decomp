@@ -327,7 +327,7 @@ namespace M_func_00195A00 {
 // 3 / 0xE add a push along the facing when the stick is at rest, 0x11 (wall run) flattens it and adds 400 up. Then the sub-state (SetJtAirState) and the
 // per-kind ratios.
 extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 extern "C" { extern CLOCK D_002DDED0; }
 
@@ -574,7 +574,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
         return;
     if (kind != 0x11)
         air->fUnk2c = air->fCanDoubleJump;
-    if (FIsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
+    if (IsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
         ((JT *)air->pstepplayer)->janim.nUnk10 = -1;
     air->zStart = GZOfQw(PosLoWorld(air->pstepplayer));
 }
@@ -595,7 +595,7 @@ struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
 void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
-qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -992,8 +992,8 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
                 : "r"(air), "m"(air->actor), "m"(air->query.object)
                 : "$2", "at", "memory");
         w.bodyPosition.q = bodyPosition;
-        if (queryObject && (FIsBasicDerivedFrom__FP5BASIC3CID(queryObject, 19) ||
-                            FIsBasicDerivedFrom__FP5BASIC3CID(air->query.object, 11))) {
+        if (queryObject && (IsBasicDerivedFrom__FP5BASIC3CID(queryObject, 19) ||
+                            IsBasicDerivedFrom__FP5BASIC3CID(air->query.object, 11))) {
             minimum = 0.0f;
             maximum = 500.0f;
         }
@@ -1746,7 +1746,7 @@ namespace M_UpdateJtAirInput {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF818 (D_002BF818), D_002BF81C (D_002BF81C), D_002BF820 (D_002BF820), D_002BF82C (D_002BF82C), D_002F7900 (g_SheetGangMurray), D_002E1E40 (g_SheetGangSly), D_002BF830 (g_SheetMovementMiscHoverPackDuration), D_002DDED0 (g_clock), D_002A2DD0 (g_qwZero)
 // 0x00197500 UpdateJtAirInput (our name; KB FUN_00197500)
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 extern "C" { qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, VECTOR *pv); }
 
@@ -2039,7 +2039,7 @@ void UpdateJtAirInput(JTAIR *air)
                 {
                     JT *jt = 0;
                     int nUnk10;
-                    if (FIsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
+                    if (IsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
                     {
                         jt = (JT *)air->pstepplayer;
                         nUnk10 = jt->janim.nUnk10;
@@ -2054,10 +2054,10 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 if (air->placeTarget.pspot != 0 && air->pact8->tEnd < D_002DDED0.t + 0.25f)
                 {
-                    if (FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x13) || FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0xB) ||
-                        FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0xD) || FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x27) ||
-                        FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0xC) || FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x22) ||
-                        FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x26))
+                    if (IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x13) || IsBasicDerivedFrom(air->placeTarget.plo, (CID)0xB) ||
+                        IsBasicDerivedFrom(air->placeTarget.plo, (CID)0xD) || IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x27) ||
+                        IsBasicDerivedFrom(air->placeTarget.plo, (CID)0xC) || IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x22) ||
+                        IsBasicDerivedFrom(air->placeTarget.plo, (CID)0x26))
                     {
                         SetJtAirJump(air, 0xB, 0, 0);
                         TryJtAirGrab(air, air->placeTarget.plo);
@@ -4330,7 +4330,7 @@ extern float D_002BF90C, D_002BF914, D_002BF918;
 qword GetLoWorldPos(void *plo);                                         // PosLoWorld
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                         // memset
 qword PlanJtLaunchVelocity(JTAIR *pjtair, int nKind);                         // JtPlanLaunchVz
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,
                    VECTOR *ppos, VECTOR *pv);
 float GAdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
@@ -4414,7 +4414,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
     vLaunch.q = PlanJtLaunchVelocity(air, 4);
     float tBest = 0.0f;
 
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x35)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x35)) {
         for (SHAPE *shape = (*(SHAPE **)&g_sw.dlCid39); shape; shape = shape->pshapeNext) {
             if (!(shape->grf & grf))
                 continue;
@@ -4489,7 +4489,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                     continue;
                 if ((phook->grfHook & 1) == 0)
                     continue;
-                if (!FIsBasicDerivedFrom__FP5BASIC3CID(phook, 0x13))
+                if (!IsBasicDerivedFrom__FP5BASIC3CID(phook, 0x13))
                     continue;
             }
             if (!(phook->grf & grf))
@@ -4563,7 +4563,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         }
     }
 
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
+    if (IsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
         !D_002F7900->fPartnerBusy) {
         posTarget.q = GetLoWorldPos(D_002F7900->ploPartnerTarget);
         MeasureJtJumpToTarget(air, vLaunch, D_002F7900->ploPartnerTarget, posTarget, D_002A2DD0, &t, &g, &posHit,

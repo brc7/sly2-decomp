@@ -39,7 +39,7 @@ struct R { char pad[0xC]; int cursor; };                    /* the frame DMA cha
 extern R D_002DEA28;
 extern "C" {
 void InitLo(FADEV *p);
-void SetLoBusyk(FADEV *p, int n);
+void SetLoBusyKind(FADEV *p, int n);
 void UpdateLo(FADEV *p, float dt);
 void BuildClearGifs__FP2QWG4RGBAi(BUF *pbuf, RGBAV *prgba, int n);
 void AddDmaCnt__4DMAS(R *);
@@ -57,7 +57,7 @@ void CID116::Init()
     unsigned int flags;
 
     InitLo(fade);
-    SetLoBusyk(fade, 1);
+    SetLoBusyKind(fade, 1);
     flags = fade->updateFlags;
     if ((flags ^ 1) & 1)
         *(int *)flags |= 0xA;

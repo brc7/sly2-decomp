@@ -125,7 +125,7 @@ void RemovePathzoneObstacle(void *ppathzone, CID14V *p);
 int FindPathzoneObstacles(void *a, void *b, qword q2, qword q3, int c, CID14V **buf);
 void InitPlaneFromNormalPos(qword *pplane, qword n, qword pos);
 void FindShapeClosestPoint(CID14V *x, qword q, void *g, int a, int b, int c, float *pf);
-CID14V *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+CID14V *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_002333B4(void *p, int c, int n) __asm__("memset");
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 void CopyAb__FPvT0Ui(void *dst, const void *src, int cb);
@@ -928,7 +928,7 @@ extern "C" int DoCnvosOverlap(CID14V *polygonA, CID14V *polygonB)
 }
 
 /** @sly2-annot addr=0x1BDA00
- * Purpose: Create merged obstacle object (PloNew) holding member polygons
+ * Purpose: Create merged obstacle object (CreateLo) holding member polygons
  * Info: proposed name PcnvoNewMerged (T2); TU tu_1BC050
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
@@ -943,7 +943,7 @@ CID14V *NewMergedCid14Obstacle(void)
     p = (CID14V *)((DLV *)&g_sw.dlCid14Free)->pvFirst;
     if (!p) {
         for (i = 0; i < 16; i++) {
-            CID14V *q = PloNew__F3CIDP2SO3OIDi(0xE, 0, 0x2CD, -1);
+            CID14V *q = CreateLo__F3CIDP2SO3OIDi(0xE, 0, 0x2CD, -1);
             q->curveMode = 0;
             q->isClosed = 1;
             q->isMerged = 1;

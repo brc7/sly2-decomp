@@ -164,10 +164,10 @@ extern CLOCK D_002DDED0;        /* g_clock */
 extern SLYV *D_002E1E40;
 extern const LONGU D_002A4E80;   /* callback kind: an 8-byte struct, read as one long */
 
-LOV *PloFindSwObject(SW *psw, int grffso, OID oid, LOV *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
+LOV *FindSwObject(SW *psw, int grffso, OID oid, LOV *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 ASEGV *PasegaEnsureAseg(ASEGV *paseg, ALO *palo, SEEK seek, float t, float segmentSpeed, int x) __asm__("PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi");
 int FAddRsmg(SW *psw, RSMG *rsmgs, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
-int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
 extern "C" {
 void *PsndStartSound(int n);
@@ -185,7 +185,7 @@ void RemoveSoHierarchy(BUTTONV *pbutton);
 void EnsureSwCallback(SW *psw, void *pv, long k, int n);
 void *CanSoTakeDamage(BUTTONV *pbutton, WKR *pwkr);
 void InitXfm(VOLBTNV *pvolbtn);
-void SetLoBusyk(VOLBTNV *pvolbtn, int busyk);
+void SetLoBusyKind(VOLBTNV *pvolbtn, int busyk);
 void LoadVolFromBrx(VOLBTNV *pvolbtn, void *pbis);
 void PostLoLoad(VOLBTNV *pvolbtn);
 void CloneXfm(VOLBTNV *pvolbtn, VOLBTNV *pvolbtnBase);
@@ -194,7 +194,7 @@ void RemoveLoHierarchy(VOLBTNV *pvolbtn);
 int AllocFromWorldHeap(int *pn);
 void STACKSCOPE_ctor(int *pctx);
 void STACKSCOPE_ctor_1AE4A0(int *pctx, int n) __asm__("_$_10STACKSCOPE");
-int CploFindSwObjectsByClass(SW *psw, int grffso, CIDV cid, int x, int cploMax, LOV **aplo);
+int FindSwObjectsByClass(SW *psw, int grffso, CIDV cid, int x, int cploMax, LOV **aplo);
 int IsLoInWorld(LOV *plo);
 qwordV GetLoWorldPos(LOV *plo);
 int IsPointInVol(VOLBTNV *pvolbtn, qwordV pos);
@@ -252,7 +252,7 @@ enum
     MESSAGE_BUTTON_TRIGGERED = 6,
     MESSAGE_BUTTON_UNTRIGGERED = 7,
     SOUND_BUTTON_CLICK = 2,
-    FIND_OBJECT_ANY = 4                 /* PloFindSwObject search flags used for segment lookups */
+    FIND_OBJECT_ANY = 4                 /* FindSwObject search flags used for segment lookups */
 };
 enum { SEEK_FROM_START = 0, SEEK_CURRENT = 1, SEEK_FROM_END = 2 };   /* SEEK values (as in Sly 1) */
 
@@ -274,7 +274,7 @@ extern "C" void PostAshLoad(ASH *animList, LOV *context)
     int i;
     for (i = 0; i < animList->count; i++)
     {
-        LOV *segment = PloFindSwObject(&D_003DD490, FIND_OBJECT_ANY, animList->entries[i].u.oid, context);
+        LOV *segment = FindSwObject(&D_003DD490, FIND_OBJECT_ANY, animList->entries[i].u.oid, context);
         if (segment)
         {
             VT *entry;
@@ -353,7 +353,7 @@ extern "C" void RunBtnAsegs(BTN *btn, int listIndex)
         if (btn->plo->oid == oid)
             target = btn->plo;
         else if (oid != -1)
-            target = PloFindSwObject(&D_003DD490, FIND_OBJECT_ANY, (OID)oid, btn->plo);
+            target = FindSwObject(&D_003DD490, FIND_OBJECT_ANY, (OID)oid, btn->plo);
         else
             target = 0;
         if (btn->seeksBySpeedSign)
@@ -588,7 +588,7 @@ extern "C" void *FAbsorbButtonWkr(BUTTONV *button, WKR *hit)
 // hero (CID 0x34) in state 0x11 or just entered body state 3 (less than 0.15 s ago), which drops the pusher. (inferred)
 extern "C" void UpdateButtonPlayerPush(BUTTONV *button)
 {
-    if (FIsBasicDerivedFrom((BASIC *)button->pusher, (CIDV)0x34))
+    if (IsBasicDerivedFrom((BASIC *)button->pusher, (CIDV)0x34))
     {
         PUSHER *hero = (PUSHER *)button->pusher;
         if (hero->state == 0x11 || (hero->unknown2C4 == 3 && D_002DDED0.t - hero->stateTime < 0.15f))
@@ -634,7 +634,7 @@ extern "C" int CanObjectPushButton(BUTTONV *button, LOV *object)
     if (button->numPushClasses > 0)
     {
         for (j = 0; j < button->numPushClasses; j++)
-            if (FIsBasicDerivedFrom((BASIC *)object, button->pushClasses[j]))
+            if (IsBasicDerivedFrom((BASIC *)object, button->pushClasses[j]))
                 break;
         if (j >= button->numPushClasses)
             return 0;
@@ -694,7 +694,7 @@ extern "C" void InitVolbtn(VOLBTNV *volumeButton)
     InitXfm(volumeButton);
     InitBtn(&volumeButton->btn);
     volumeButton->btn.isSilent = 1;
-    SetLoBusyk(volumeButton, 0);
+    SetLoBusyKind(volumeButton, 0);
     SetTaggedFlags(&volumeButton->taggedFlags, 2);
 }
 
@@ -768,7 +768,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
         CopyAb(candidates, volumeButton->pushObjects, volumeButton->numPushObjects * 4);
         numCandidates = volumeButton->numPushObjects;
         for (; i < volumeButton->numPushClasses; i++)
-            numCandidates += CploFindSwObjectsByClass(&D_003DD490, 0x505, volumeButton->pushClasses[i], 0,
+            numCandidates += FindSwObjectsByClass(&D_003DD490, 0x505, volumeButton->pushClasses[i], 0,
                                                       0x40 - numCandidates, &candidates[numCandidates]);
         if (volumeButton->numPushObjects == 0 && volumeButton->numPushClasses == 0)
         {

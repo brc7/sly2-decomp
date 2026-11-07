@@ -135,8 +135,8 @@ extern ulong D_003DD480;        /* declared first: .bss is emitted in first-decl
 extern int D_003DD488;
 extern LO *D_003DD48C;          /* the guard manager */
 extern LO *D_002DD648;
-LO *PloNew(CID cid, SO *psoParent, OID oid, int n);
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+LO *CreateLo(CID cid, SO *psoParent, OID oid, int n);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
 void ClearBhvstk(BHVSTK *stack);
@@ -145,7 +145,7 @@ void CloneStep(STEPGUARD *guard, STEPGUARD *pstepguardBase);
 void CloneLoV() __asm__("CloneLo");                      /* a0/a1 passed through */
 void RemoveSoHierarchyV() __asm__("RemoveSoHierarchy");  /* a0 passed through */
 void ReleaseAsega(ASEGA **ppasega);
-void SetLoBusyk(STEPGUARD *guard, int busyk);
+void SetLoBusyKind(STEPGUARD *guard, int busyk);
 int MaskHasSgf(unsigned long grfsg, int sgf);
 void UpdateStepguardPickpocket(STEPGUARD *guard);
 int TryAddStepguardDetectTarget(STEPGUARD *guard, LO *object, int n);
@@ -188,7 +188,7 @@ void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard);
 extern "C" void EnsureStepguardManager(void)
 {
     if (D_003DD48C == 0) {
-        D_003DD48C = PloNew((CID)0x7D, 0, (OID)0x656, -1);
+        D_003DD48C = CreateLo((CID)0x7D, 0, (OID)0x656, -1);
     }
 }
 
@@ -217,8 +217,8 @@ extern float D_002A8604;
 extern int D_002C3CF0;
 void InitStep(struct S *p);
 void EnsureStepguardManager(void);
-struct F64 *PloNew__F3CIDP2SO3OIDi(int a, void *b, int c, int d);
-void SetLoBusyk(struct F64 *p, int n);
+struct F64 *CreateLo__F3CIDP2SO3OIDi(int a, void *b, int c, int d);
+void SetLoBusyKind(struct F64 *p, int n);
 void ReleaseStepguardZapReactions(struct S *p);
 void InitStepguardMover(struct BLOCK *p, struct S *s);
 
@@ -230,8 +230,8 @@ void InitStepguard(struct S *guard)
     float a, b, limit, medium, high, extent;
     InitStep(guard);
     EnsureStepguardManager();
-    guard->detector = PloNew__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
-    SetLoBusyk(guard->detector, 2);
+    guard->detector = CreateLo__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
+    SetLoBusyKind(guard->detector, 2);
     v = guard->detector->unknownFlags40;
     if (!(v & 1))
         *(int *)v &= -3;
@@ -356,7 +356,7 @@ void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void InitStuckWatch(void *pv, struct S *p);
 void InitHazardWatch(void *pv, struct S *p);
 void PostSwCallback(void *g, struct S *p, long k, int n);
-struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+struct O *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void AddGuardScriptLookAt(struct O *po, int a, int b, float f);
 void *FindSoXf(struct S *p, int n, int m);
 void *NewPositionAct(struct S *p, void *x, int a, int b, int c, qword q);
@@ -379,7 +379,7 @@ void PostStepguardLoad(struct S *guard)
     InitHazardWatch(guard->hazardWatch, guard);
     if (!guard->unknown3C->unknown24)
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
-    guard->alternatePatrolScript = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
+    guard->alternatePatrolScript = CreateLo__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
     AddGuardScriptLookAt(guard->alternatePatrolScript, -1, -1, 40.0f);
     guard->unknown2F0 = guard->alternatePatrolScript->unknown50;
     guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
@@ -678,7 +678,7 @@ extern ulong D_003DD480;
 extern float D_002A8614;
 extern float D_002C3D04,D_002C3D08,D_002C3D0C;
 ulong GetSgfMask(int);
-int CploFindSwObjectsByClass(struct GAME *,int,int,int,int,struct P **);
+int FindSwObjectsByClass(struct GAME *,int,int,int,int,struct P **);
 qword GetLoWorldPos(struct P *);
 void qsort(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
 int CompareGuardCandidateDistance(const void *,const void *);
@@ -741,7 +741,7 @@ void UpdateStepguardDetectTargets(struct P *guard)
         int kind;
         for (kind = 0; kind < guard->kindCount; kind++) {
             int *source = &guard->kinds[kind];
-            int objectCount = CploFindSwObjectsByClass(&D_003DD490, 0x505, *source, 0, 256, objects);
+            int objectCount = FindSwObjectsByClass(&D_003DD490, 0x505, *source, 0, 256, objects);
             int i = 0;
             if (objectCount > 0) {
                 float initialStamp = D_002A8614;
@@ -823,14 +823,14 @@ void UpdateStepguardDetectTargets(struct P *guard)
 // 0x206D48 IsStepguardRageImmune
 namespace M_func_00206D48 { extern "C" {
 extern int D_002C3D10[];
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // 0x206D48: True if the guard derives from one of the five boss classes (cids 0x3B, 0x40, 0x3D, 0x3E, 0x41) that
 // rage does not affect.
 int IsStepguardRageImmune(void *p)
 {
     unsigned int i;
     for (i = 0; i < 5; i++)
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p, D_002C3D10[i]))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p, D_002C3D10[i]))
             return 1;
     return 0;
 }
@@ -840,7 +840,7 @@ int IsStepguardRageImmune(void *p)
 namespace M_func_00206DB0 { extern "C" {
 extern int D_002C3D10[];
 extern char D_003DD490[];
-int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
+int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
 void AddStepguardIgnoreClass(void *p, int n);
 // 0x206DB0: Adds those five boss classes (when present in the world) to the ignored-class list.
 void AddStepguardRageIgnoreClasses(void *p)
@@ -848,7 +848,7 @@ void AddStepguardRageIgnoreClasses(void *p)
     unsigned int i;
     for (i = 0; i < 5; i++) {
         int n = D_002C3D10[i];
-        if (CploFindSwObjectsByClass(D_003DD490, 0x605, n, 0, 0, 0))
+        if (FindSwObjectsByClass(D_003DD490, 0x605, n, 0, 0, 0))
             AddStepguardIgnoreClass(p, n);
     }
 }
@@ -885,7 +885,7 @@ struct X { char pad[0x4C]; int isScriptBusy; /* (inferred) */ };
 int StepguardHasSgf(void *p, int n);
 struct X *FindStepBehavior(void *p, int n);
 int IsStepguardRageImmune(void *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 
 // 0x206EB0: True if special state `special` may be entered now (rules per state: never while dead or script-busy;
 // some states not for bosses or rage-immune guards).
@@ -905,14 +905,14 @@ int CanSetStepguardSpecial(void *guard, int special)
     case SPECIAL_TEMPORAL_LOCK:
         return 1;
     case SPECIAL_GUTTURAL_ROAR:
-        return !(FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
+        return !(IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
     case SPECIAL_INSANITY_STRIKE:
     case SPECIAL_RAGE_BOMB:
         return !IsStepguardRageImmune(guard);
     case SPECIAL_GADGET_0B:
-        return !(FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_DIMITRI) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_RAJAN) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CONTESSA) ||
-                 FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_ARPEGGIO) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CARMELITA) ||
-                 FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_NEELA) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
+        return !(IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_DIMITRI) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_RAJAN) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CONTESSA) ||
+                 IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_JEANBISON) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_ARPEGGIO) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_CARMELITA) ||
+                 IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_NEELA) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEAR) || IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_BEARCUB));
     }
     return 0;
 }
@@ -1123,7 +1123,7 @@ struct LOROOTED { char pad[0x14]; void *root; };
 struct BOMB { char pad[0x200]; struct LOROOTED *thrower; };
 struct ZAP { struct BOMB *source; int pad[2]; int kind; };
 struct S { char pad[0xC]; VTE *vt; char pad2[4]; void *root; char pad3[0x26C - 0x18]; char behaviorStack[4]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct BOMB *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct BOMB *object, int cid);
 int CanSoTakeDamage(struct S *p, struct ZAP *zap);
 void HandleBhvstkMessage(void *stack, int message, struct ZAP *zap);
 // 0x207468: STEPGUARD vtable slot 75 (take damage): unless the zap is lethal, ignores it when invulnerable, from
@@ -1133,7 +1133,7 @@ int TakeStepguardDamage(struct S *guard, struct ZAP *zap)
     if (!((int (*)(void *))guard->vt[86].pfn)((char *)guard + guard->vt[86].d)) {
         if (((int (*)(void *, int))guard->vt[76].pfn)((char *)guard + guard->vt[76].d, zap->kind))
             return 1;
-        if (zap->source && FIsBasicDerivedFrom__FP5BASIC3CID(zap->source, CID_BOMB) && zap->source->thrower->root == guard->root)
+        if (zap->source && IsBasicDerivedFrom__FP5BASIC3CID(zap->source, CID_BOMB) && zap->source->thrower->root == guard->root)
             return 1;
         if (!CanSoTakeDamage(guard, zap))
             return 0;
@@ -1700,7 +1700,7 @@ struct DETECTORV {char padFC[0xFC];int count;ENTRY entries[1];};
 struct P {char pad38C[0x38C];O *currentTarget,*forcedTarget;char pad394[0xBD0];DETECTORV *detector;char padF68[0x54];int special;};
 extern "C" { extern float D_002A886C,D_002C3D70[3],D_002C3D80[3]; }
 extern "C" qword GetLoWorldPos(void *);
-extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
+extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 extern "C" int IsStepguardIgnoreClass(P *,O *);
 extern "C" int IsStepguardForceClass(P *,O *);
 extern "C" int IsStepguardPreferClass(P *,O *);
@@ -1746,7 +1746,7 @@ extern "C" O *ChooseStepguardTarget(P *guard)
                 continue;
             if (!entry->state
                 && (!(guard->special == SPECIAL_INSANITY_STRIKE || guard->special == SPECIAL_RAGE_BOMB)
-                    || !FIsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD)))
+                    || !IsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD)))
                 continue;
             if (IsStepguardIgnoreClass(guard, candidate))
                 continue;
@@ -1758,7 +1758,7 @@ extern "C" O *ChooseStepguardTarget(P *guard)
             if (candidate == currentTarget)
                 distance = Weight(distance, D_002C3D70);
             if ((guard->special == SPECIAL_INSANITY_STRIKE || guard->special == SPECIAL_RAGE_BOMB)
-                && FIsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD))
+                && IsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD))
                 distance = Weight(distance, D_002C3D80);
             if (IsStepguardPreferClass(guard, candidate)) {
                 if (best && !IsStepguardPreferClass(guard, best)) {
@@ -1943,13 +1943,13 @@ extern "C" void ClearStepguardGeneratedTargets(STEPGUARD *guard)
 namespace M_func_002087E8 { extern "C" {
 struct S;
 struct S { char pad[0x394]; int classCount; int classes[1]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 // 0x2087E8: True if the object derives from a preferred class.
 int IsStepguardPreferClass(struct S *guard, void *object)
 {
     int i;
     for (i = 0; i < guard->classCount; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
@@ -2027,13 +2027,13 @@ extern "C" void ClearStepguardIgnoreClasses(STEPGUARD *guard)
 namespace M_func_002089F0 { extern "C" {
 struct S;
 struct S { char pad[0x3A8]; int classCount; int classes[1]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 // 0x2089F0: True if the object derives from an ignored class.
 int IsStepguardIgnoreClass(struct S *guard, void *object)
 {
     int i;
     for (i = 0; i < guard->classCount; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
@@ -2076,13 +2076,13 @@ extern "C" void ClearStepguardForceClasses(STEPGUARD *guard)
 namespace M_func_00208B38 { extern "C" {
 struct S;
 struct S { char pad[0x3C0]; int classCount; int classes[1]; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 // 0x208B38: True if the object derives from a forced class.
 int IsStepguardForceClass(struct S *guard, void *object)
 {
     int i;
     for (i = 0; i < guard->classCount; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
@@ -2197,7 +2197,7 @@ void GetHeroInteractDistance(struct PLAYER *player, struct S *guard, void *targe
 unsigned long GetSgfMask(int n);
 int StepguardHasSgf(struct S *p, int n);
 struct BHVHOLD *FindStepBehavior(struct S *p, int n);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword GetLoWorldPos(void *p);
 int IsPointInVol(struct VOL *volume, qword pos);
 int IsWithinLimits__FP2LMf(void *p, float f);
@@ -2231,7 +2231,7 @@ int GuardEvalInteractMode(struct S *guard, struct PLAYER *player, float *distanc
             if (opponent) {
                 if (opponent == player)
                     return 4;
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(opponent, CID_STEPPLAYER))
+                if (IsBasicDerivedFrom__FP5BASIC3CID(opponent, CID_STEPPLAYER))
                     return 4;
             }
         }
@@ -2302,7 +2302,7 @@ struct E { int kind; union PAYLOAD value; int instance, flags; };
 extern char D_003DD490[];
 void PostAsegArcLoad(struct LEAPPAYLOAD *, void *);
 void InitDirAnims(struct DIRANIMPAYLOAD *, void *);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
+void *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
 int GetBasicCid(void *);
 struct MARKER *FindAsegLabel(void *, int);
 struct LEAPPAYLOAD *AllocLeap(int);
@@ -2322,7 +2322,7 @@ void ResolveAnimBinding(struct E *binding, void *context)
         PostAsegArcLoad(binding->value.leap, context);
         return;
     }
-    resource = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, binding->value.oid, context);
+    resource = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, binding->value.oid, context);
     if (!resource) {
         binding->kind = BINDING_NONE;
         return;
@@ -3149,7 +3149,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DAC;
 struct ENTRY { void *object; int state; float stateTime; float lastSeenTime; /* (inferred) */ };
 struct S { char pad[0x2C0]; long grfsg; char pad2[0x3D0 - 0x2C8]; int unknown3D0; char pad3[0xF64 - 0x3D4]; void *detector; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 long GetSgfMask(int n);
 struct ENTRY *FindDetectorTarget(void *detector, void *object);
 // 0x20A298: True if a target is still valid for this guard (Murray special case, detector entry age and mask)
@@ -3160,7 +3160,7 @@ int IsStepguardTargetValid(struct S *guard, void *target, long mask)
     // (Shared return labels: direct returns reorder the blocks and do not match.)
     if (guard->unknown3D0)
         goto ret0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, CID_MURRAY) && !FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD) && !(guard->grfsg & GetSgfMask(6)))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_MURRAY) && !IsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD) && !(guard->grfsg & GetSgfMask(6)))
         goto ret1;
     entry = FindDetectorTarget(guard->detector, target);
     if (!entry)
@@ -3180,8 +3180,8 @@ ret0:
 // 0x20A378: IsStepguardTargetValid with extra cases for Murray and cids 0x3A/0x3D.
 extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 {
-    if ((FIsBasicDerivedFrom((BASIC *)ploOther, (CID)0x36) != 0) && (FIsBasicDerivedFrom((BASIC *)object, (CID)0x3A) == 0) &&
-        (FIsBasicDerivedFrom((BASIC *)object, (CID)0x3D) == 0) && (object != D_002DD648)) {
+    if ((IsBasicDerivedFrom((BASIC *)ploOther, (CID)0x36) != 0) && (IsBasicDerivedFrom((BASIC *)object, (CID)0x3A) == 0) &&
+        (IsBasicDerivedFrom((BASIC *)object, (CID)0x3D) == 0) && (object != D_002DD648)) {
         return 1;
     }
     return IsStepguardTargetValid(object, ploOther, n);
@@ -3484,7 +3484,7 @@ void SetTargetRecordState(struct TARGETREC *record, int state)
 namespace M_func_0020A9C0 { extern "C" {
 struct S;
 struct S { char pad[0xEB8]; int attackOids[8]; int attackOidCount; int attacks[8]; int attackCount; };
-int PloNew__F3CIDP2SO3OIDi(int cid, struct S *parent, int oid, int n);
+int CreateLo__F3CIDP2SO3OIDi(int cid, struct S *parent, int oid, int n);
 // Appends an attack (oid and resolved object) to the guard's two attack lists.
 static __inline__ void Push(struct S *guard, int oid, int attack)
 {
@@ -3496,7 +3496,7 @@ int GetStepguardDefaultAttack(struct S *guard)
 {
     int attack;
     if (guard->attackOidCount == 0) {
-        attack = PloNew__F3CIDP2SO3OIDi(0x78, guard, OID_DEFAULT_ATTACK, -1);
+        attack = CreateLo__F3CIDP2SO3OIDi(0x78, guard, OID_DEFAULT_ATTACK, -1);
         Push(guard, OID_DEFAULT_ATTACK, attack);
     } else {
         attack = guard->attacks[0];
@@ -3532,14 +3532,14 @@ namespace M_func_0020AAA8 { extern "C" {
 struct S;
 extern char D_003DD490[];
 struct S { char pad[0xEB8]; int attackOids[8]; int attackOidCount; int attacks[8]; int attackCount; };
-int PloFindSwObject__FP2SWi3OIDP2LO(void *sw, int k, int oid, struct S *context);
+int FindSwObject__FP2SWi3OIDP2LO(void *sw, int k, int oid, struct S *context);
 // 0x20AAA8: Resolves the attack oids into attack objects.
 void ResolveStepguardAttacks(struct S *guard)
 {
     int i;
     guard->attackCount = 0;
     for (i = 0; i < guard->attackOidCount; i++) {
-        int attack = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, guard->attackOids[i], guard);
+        int attack = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, guard->attackOids[i], guard);
         if (attack)
             guard->attacks[guard->attackCount++] = attack;
     }
@@ -3688,7 +3688,7 @@ struct EVAL { char pad[0x30]; qword pos; };
 struct S { char pad[0x10]; struct LOV *parent; int pad14; int oid; char pad2[0x7C - 0x1C]; int aimObjectOid, effectorOid, strikeLabel; char pad3[0x90 - 0x88]; qword strikeOffset;
            struct SOV *aimObject; int effector; int pad4[1]; struct LOV *guard; char binding[4]; int bindingResource; char pad5[0xC0 - 0xB8]; void *activeBinding; };
 void PostLoLoad(struct S *attack);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct LOV *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct LOV *object, int cid);
 void ResolveAnimBinding(void *binding, struct LOV *guard);
 void *FindSoXf(struct LOV *root, int oid, int b);
 float *FindAsegLabel(int aseg, int label);
@@ -3700,7 +3700,7 @@ void PostGuardAttackLoad(struct S *attack)
 {
     struct LOV *object;
     PostLoLoad(attack);
-    for (object = attack->parent; object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_STEPGUARD); object = object->parent)
+    for (object = attack->parent; object && !IsBasicDerivedFrom__FP5BASIC3CID(object, CID_STEPGUARD); object = object->parent)
         ;
     attack->guard = object;
     ResolveAnimBinding(attack->binding, object);
@@ -3880,7 +3880,7 @@ struct ATTACHOBJ; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct ATTACHOBJ { char pad[0x124]; int unknown124; };
 struct S { char pad[0xF80]; int attachKind; struct ATTACHOBJ *attachObject; int attachParam; int attachArg; void *attachAnchor; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct ATTACHOBJ *object, int cid);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct ATTACHOBJ *object, int cid);
 qword GetLoWorldPos(void *p);
 void FindShapeClosestPoint(struct ATTACHOBJ *shape, qword pos, int a, int b, int c, int d, int *param);
 void LinkStepAttachment(struct S *guard, struct ATTACHOBJ *object, int attach);
@@ -3891,18 +3891,18 @@ void AttachStepguard(struct S *guard, struct ATTACHOBJ *object, int arg)
 {
     guard->attachObject = object;
     guard->attachArg = arg;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_PIPE)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(object, CID_PIPE)) {
         guard->attachKind = 1;
         FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard->attachAnchor), 0, 0, 0, 0, &guard->attachParam);
         LinkStepAttachment(guard, guard->attachObject, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_RAIL)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_RAIL)) {
         guard->attachKind = 0;
         FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard), 0, 0, 0, 0, &guard->attachParam);
         LinkStepAttachment(guard, guard->attachObject, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && guard->attachObject->unknown124 == 3) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && guard->attachObject->unknown124 == 3) {
         guard->attachKind = 2;
         LinkStepAttachment(guard, guard->attachObject, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS39)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS39)) {
         guard->attachKind = 3;
         LinkStepAttachment(guard, guard->attachObject, 1);
     } else {
@@ -3934,7 +3934,7 @@ extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 {
     int count;
     if (guard->cBusy == 0) {
-        SetLoBusyk(guard, 1);
+        SetLoBusyKind(guard, 1);
     }
     count = guard->cBusy + 1;
     guard->cBusy = count;
@@ -3949,7 +3949,7 @@ extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
     count = guard->cBusy - 1;
     guard->cBusy = count;
     if (count == 0) {
-        SetLoBusyk(guard, 0);
+        SetLoBusyKind(guard, 0);
     }
 }
 
@@ -3958,7 +3958,7 @@ namespace M_func_0020B4A8 { extern "C" {
 struct S;
 struct S { char pad[0x40]; int flags40; };
 void InitLo(struct S *manager);
-void SetLoBusyk(struct S *manager, int busyk);
+void SetLoBusyKind(struct S *manager, int busyk);
 } } // namespace M_func_0020B4A8
 // 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
 void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *manager = (M_func_0020B4A8::S *)this;
@@ -3969,7 +3969,7 @@ void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *manag
         *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else
         manager->flags40 = flags | 2;
-    SetLoBusyk(manager, 1);
+    SetLoBusyKind(manager, 1);
 }
 
 // 0x20B500 PostGuardManagerLoad
@@ -3980,18 +3980,18 @@ extern struct G D_003DD490;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
 struct S { char pad[0x50]; int guardCount; void **guards; };
 void PostLoLoad(struct S *manager);
-int CploFindSwObjectsByClass(struct G *sw, int a, int cid, int c, int maxCount, void **objects);
+int FindSwObjectsByClass(struct G *sw, int a, int cid, int c, int maxCount, void **objects);
 void *AllocFromWorldHeap(ALLOCREQ *request);
 // 0x20B500: Guard manager vtable slot 15 (PostLoad): lists every guard (cid 0x38) in the world.
 void PostGuardManagerLoad(struct S *manager)
 {
     ALLOCREQ request;
     PostLoLoad(manager);
-    manager->guardCount = CploFindSwObjectsByClass(&D_003DD490, 0x605, CID_STEPGUARD, 0, 0, 0);
+    manager->guardCount = FindSwObjectsByClass(&D_003DD490, 0x605, CID_STEPGUARD, 0, 0, 0);
     request.cb = manager->guardCount * 4;
     request.nKind = 0x10;
     manager->guards = (__typeof__(manager->guards))AllocFromWorldHeap(&request);
-    CploFindSwObjectsByClass(&D_003DD490, 0x405, CID_STEPGUARD, 0, manager->guardCount, manager->guards);
+    FindSwObjectsByClass(&D_003DD490, 0x405, CID_STEPGUARD, 0, manager->guardCount, manager->guards);
 }
 } } // namespace M_func_0020B500
 

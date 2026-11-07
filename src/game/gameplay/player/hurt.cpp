@@ -103,7 +103,7 @@ extern "C" U D_002BFA10;
  extern "C" POLY D_002BFA20;
  extern LIMIT D_002BBB60;
 extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rodata order) */
- int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
+ int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  float atan2f(float,float);
  float RadNormalize__Ff(float);
  void SetStepTargetHeading(P*,float);
@@ -224,7 +224,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
         return;
     switch (hurt->mode) {
     case -1:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
             P *actor = hurt->actor;
             actor->first->inner->value->value = D_002BFA00;
             actor->second->inner->value->value = D_002BFA00;
@@ -236,7 +236,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
         break;
     case 3:
     case 10:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
             hurt->actor->first->inner->value->value.Clear();
         break;
     }
@@ -244,7 +244,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
     int flags = 1;
     switch (next) {
     case -1:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
             P *actor = hurt->actor;
             actor->first->inner->value->value.Clear();
             actor->second->inner->value->value.Clear();
@@ -296,7 +296,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
         flags = 0x21;
     case 3:
         clip = hurt->clips[next];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
             hurt->actor->first->inner->value->value = D_002BFA10;
         break;
     case 5:
@@ -615,7 +615,7 @@ extern U D_002BFAF0;
 extern F D_002BFB00;
 extern F D_002BFB04;
 extern U D_002A2DA0,D_002A2DC0;
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
 qword LimitVectorLength(qword,float);
 qword GetLoWorldPos(struct O*);
 struct M3*GetLoWorldMatrix(struct O*);
@@ -671,7 +671,7 @@ void StartJtKnockback(struct P*p){
     switch(p->mode){
     case 0x200:
     case 0x8000:
-        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x33)){
+        if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x33)){
             qword k=Scalar(D_002BFACC.value+1.0f);
             qword v=Scale(p->velocity.q,k);
             scratch.q=k;
@@ -681,7 +681,7 @@ void StartJtKnockback(struct P*p){
         }
         break;
     case 0x40:
-        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x36)){
+        if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x36)){
             struct O*target=p->target;
             struct M3*basis;
             qword delta,local;
@@ -696,10 +696,10 @@ void StartJtKnockback(struct P*p){
         }
         break;
     case 0x100:
-        if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x4F)){
+        if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x4F)){
             struct O*target=p->target;
             qword n,a,b,mixed,z;
-            if(FIsBasicDerivedFrom__FP5BASIC3CID(target,0x51)){
+            if(IsBasicDerivedFrom__FP5BASIC3CID(target,0x51)){
                 struct VT*vt=target->vt;
                 struct M3*basis=((struct M3*(*)(void*))vt[31].fn)((char*)target+vt[31].delta);
                 scratch=basis->row[0];
@@ -770,7 +770,7 @@ extern "C"{
  int ShouldJtVetoDamage(C*,RECORD*);
  int ScaleByDifficulty(void*,int);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
- int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
+ int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  void DropStepplayerBooty(P*);
  void BroadcastGameEvent(void*,int,P*);
  void SetJtHurtCallback(C*,ACTION);
@@ -886,7 +886,7 @@ extern "C" int TakeJtDamage(C *p, RECORD *input)
                 : "=m"(accepted.b), "=m"(accepted.c), "=m"(accepted.a)
                 : "r"(&accepted.a));
     }
-    if (input->object && FIsBasicDerivedFrom__FP5BASIC3CID(input->object, 0x38)) {
+    if (input->object && IsBasicDerivedFrom__FP5BASIC3CID(input->object, 0x38)) {
         if (input->object->state == 8 || input->object->state == 13)
             delta /= 2;
     }

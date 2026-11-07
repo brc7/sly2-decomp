@@ -122,7 +122,7 @@ float RadNormalize__Ff(float g);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pv, float *pa, float *pb);
 EMB *AllocCopyFromWorldHeap(MSG *, EMB *);
 void *AllocClearedFromWorldHeap(MSG *pmsg);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(struct CRef *p);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SWP *p, int a, int b, int c);
 qword GetLoWorldPos(POV *);
@@ -763,7 +763,7 @@ void SwitchToPo(SWP *world, POV *po)
     if (cur != nw && cur) VCALL(cur, 78, 0);
     world->currentPo = po;
     if (cur != nw && nw) VCALL(nw, 78, 1);
-    if (po && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
+    if (po && IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
         CREF4 ret, ref;
         ref.m_tagk = 0x15;
         ref.m_tag = po->oid;
@@ -864,7 +864,7 @@ extern "C" int CollectActivePzis(SWP *world, int maxCount, void **pzis)
     plo = GetHeroPo(world);
     if (plo) {
     *pzis = &plo->collectEnabled;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x34)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(plo, 0x34)) {
         for (j = 0; j < sizeof(D_002C0D28) / sizeof(D_002C0D28[0]) && c < maxCount; j++) {
             plo2 = *D_002C0D28[j];
             if (!plo2 || plo2 == plo || !FindBhvInBhvstk(plo2->behaviorStack, 0xC2)) continue;

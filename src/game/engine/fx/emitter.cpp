@@ -183,7 +183,7 @@ struct S {
 };
 void InitXfm(void *p);
 void InitDl__FP2DLi(void *pdl, int ib);
-void SetLoBusyk(void *p, int n);
+void SetLoBusyKind(void *p, int n);
 } } // namespace M_InitEmitter
 // EMITTER::Init: XFM init, then "unset" defaults (mode and count -1, no group, 10 particles per second, not paused),
 // an empty slaved-emitter list linked through +0x128, busy level 0, and LO flag bit 2 set.
@@ -199,7 +199,7 @@ void EMITTER::Init()
     emitter->rateMin = 10.0f;
     emitter->unpauseTime = -1.0f;
     M_InitEmitter::InitDl__FP2DLi(emitter->groupList, 0x128);
-    M_InitEmitter::SetLoBusyk(emitter, 0);
+    M_InitEmitter::SetLoBusyKind(emitter, 0);
     flags = emitter->flags40;
     if ((flags ^ 1) & 1)
         *(int *)flags |= 2;     /* bit 0 clear: the word points at the shared flags */
@@ -346,10 +346,10 @@ void PostSwCallback(void *pg, struct EMITTERV *p, long k, int n);
 float GRandInRange__Fff(float gMin, float gMax);
 void PauseEmitterIndefinite__FP7EMITTER(struct EMITTERV *p);
 void PauseEmitter__FP7EMITTERf(struct EMITTERV *p, float g);
-struct EMITTERV *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
-struct EMITTERV *PloNew__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
+struct EMITTERV *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
+struct EMITTERV *CreateLo__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
 void *AllocCopyFromWorldHeap(struct ALLOCREQ *preq, void *pv);
-void SetLoBusyk(struct EMITTERV *p, int n);
+void SetLoBusyKind(struct EMITTERV *p, int n);
 void *GetLoWorldMatrix(struct EMITTERV *p);
 void AppendDlEntry__FP2DLPv(void *pv, struct EMITTERV *p);
 
@@ -428,11 +428,11 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
         }
     }
     if (pemitter->groupOid != -1) {
-        struct EMITTERV *group = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490 /* g_sw */, 5, pemitter->groupOid, 0);
+        struct EMITTERV *group = FindSwObject__FP2SWi3OIDP2LO(D_003DD490 /* g_sw */, 5, pemitter->groupOid, 0);
         if (!group) {
             struct VTE *pvte;
             void *pthis;
-            group = PloNew__F3CIDP2SO3OIDi(0x1D /* CID_EMITTER */, 0, pemitter->groupOid, -1);
+            group = CreateLo__F3CIDP2SO3OIDi(0x1D /* CID_EMITTER */, 0, pemitter->groupOid, -1);
             group->pemitb = (__typeof__(group->pemitb))PvAllocCopy(0x100, pemitter->pemitb);
             group->pemitb->cref = 1;
             if (pemitter->pemitb->pemito->palo) {
@@ -448,7 +448,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
             group->pauseTime = pemitter->pauseTime;
             group->constantCount = pemitter->constantCount;
             group->autoPause = pemitter->autoPause;
-            SetLoBusyk(group, 1);
+            SetLoBusyKind(group, 1);
             pvte = &group->pvt[30];     /* place it at this emitter's transform (func_001A6318) */
             pthis = (char *)group + pvte->delta;
             pvte->pfn(pthis, GetLoWorldMatrix(pemitter));
@@ -928,7 +928,7 @@ extern qword D_002A2DC0;
 extern char D_003DD490[];
 float GRandInRange__Fff(float lo, float hi);
 int NRandInRange__Fii(int lo, int hi);
-int FIsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
 void SetSndVolume(void *p, float g);
 void StopSnd(void *p, float g);
 void *PsndStartSound(int id);
@@ -981,7 +981,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
     SND *soundObject;
     float strength, interval;
     soundObject = 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x32))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x32))
         soundObject = (SND *)so;
     if (distance > 10.0f || shouldWake) {
         interval = (distance - 10.0f) * 0.0012658228f;  /* 1/790: full strength at 800 units */
@@ -2018,7 +2018,7 @@ void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void LoadXfmFromBrx(struct S *p, void *q);
 void CLoadCollectorArray_ctor(struct DA *pda);
 void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // EXPLG::LoadFromBrx: XFM load, then its child objects; the explosions (CID 0x1E and derived) become the group's
 // children, anything else gets vtable slot 9 (inferred: removal). Every child is flagged (LO bit 57).
 void LoadExplgFromBrx(struct S *p, void *q)
@@ -2035,7 +2035,7 @@ void LoadExplgFromBrx(struct S *p, void *q)
     for (i = 0; i < da.c; i++) {
         struct O *o = da.a[i];
         o->fl |= 0x200000000000000L;
-        if (!FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x1E)) {
+        if (!IsBasicDerivedFrom__FP5BASIC3CID(o, 0x1E)) {
             struct VTE *e = &o->vt[9];
             e->pfn((char *)o + e->d);
         } else {
@@ -2060,7 +2060,7 @@ void *AllocCopyFromWorldHeap(MSG *pmsg, void *pv);
 static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 struct S { int pad[4]; void *psoParent; char pad2[0xE0 - 0x14]; int numChildren; void **children; };   /* EXPLG */
 void CloneXfm(struct S *p, void *pv);
-void *PloCloneLo__FP2LOP2SO(void *pv, void *p10);
+void *CloneLoWithParent__FP2LOP2SO(void *pv, void *p10);
 // EXPLG clone: XFM clone, then a private copy of the child array with each child cloned under the same parent.
 void CloneExplg(struct S *p, void *pv)
 {
@@ -2069,7 +2069,7 @@ void CloneExplg(struct S *p, void *pv)
     CloneXfm(p, pv);
     p->children = (__typeof__(p->children))PvReallocMsg(&msg, p->children, p->numChildren * 4, 0x10);
     for (i = 0; i < p->numChildren; i++)
-        p->children[i] = PloCloneLo__FP2LOP2SO(p->children[i], p->psoParent);
+        p->children[i] = CloneLoWithParent__FP2LOP2SO(p->children[i], p->psoParent);
 }
 } } // namespace M_CloneExplg
 

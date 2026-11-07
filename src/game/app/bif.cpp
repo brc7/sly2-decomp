@@ -3816,7 +3816,7 @@ CRef *RefOpCurrentTime__FiP4CRefP6CFrame(CRef *ret)
 
 // 0x123A28 RefOpCurrentLevel
 /** @sly2-annot addr=0x123A28
- * Purpose: S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by FMatchLoadFilter
+ * Purpose: S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by IsCurrentLevelInList
  * Info: proposed name RefOpCurrentLevel (T1); TU bif
  * Notes: v3: superseded RefOpGetLoadFilterCur | splice builtin 97 load-filter~ -> current-level~ (0.70): Body
  *   returns CRef Int(IlevelCur()) = D_003E1110 (current level index; siblings NEpisodeCur/NWorldCur).
@@ -3825,7 +3825,7 @@ CRef *RefOpCurrentTime__FiP4CRefP6CFrame(CRef *ret)
  *   builtin 97)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by FMatchLoadFilter.
+// S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by IsCurrentLevelInList.
 extern "C" CREFV *RefOpCurrentLevel(CREFV *pref)
 {
     pref->u.n = IlevelCur();
@@ -4094,22 +4094,22 @@ struct CRef {
     CRef &operator=(float g);
 };
 extern "C" {
-CRef RefAddOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
-CRef RefEnsureOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
-CRef RefSetOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
-CRef RefGetOption__FP5BASICi(void *a, void *b);
+CRef AddBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
+CRef EnsureBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
+CRef SetBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
+CRef GetBasicOption__FP5BASICi(void *a, void *b);
 CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op);
 }
 /** @sly2-annot addr=0x123EB0
  * Purpose: Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
- *   RefAddOption/RefEnsureOption/RefSetOption/RefGetOption
+ *   AddBasicOption/EnsureBasicOption/SetBasicOption/GetBasicOption
  * Info: proposed name RefOpObjectOption (T1); TU bif
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r1_116918+verdicts_B
  * See: docs/engine/splice-scripting.md#7-key-functions, docs/formats/splice-scripts.md#3-names,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
-// RefAddOption/RefEnsureOption/RefSetOption/RefGetOption.
+// AddBasicOption/EnsureBasicOption/SetBasicOption/GetBasicOption.
 CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op)
 {
     CRef ref;
@@ -4117,16 +4117,16 @@ CRef RefOpObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv
     void *b = args[1].u.pv;
     switch (op) {
     case 0x6C:
-        ref = RefAddOption__FP5BASICiP4CRef(a, b, &args[2]);
+        ref = AddBasicOption__FP5BASICiP4CRef(a, b, &args[2]);
         break;
     case 0x6D:
-        ref = RefEnsureOption__FP5BASICiP4CRef(a, b, &args[2]);
+        ref = EnsureBasicOption__FP5BASICiP4CRef(a, b, &args[2]);
         break;
     case 0x6E:
-        ref = RefSetOption__FP5BASICiP4CRef(a, b, &args[2]);
+        ref = SetBasicOption__FP5BASICiP4CRef(a, b, &args[2]);
         break;
     case 0x6F:
-        ref = RefGetOption__FP5BASICi(a, b);
+        ref = GetBasicOption__FP5BASICi(a, b);
         break;
     }
     return ref;
@@ -4139,13 +4139,13 @@ struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x123FB8
- * Purpose: Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption
+ * Purpose: Splice builtin "addo": RefOpObjectOption(op 0x6C) -> AddBasicOption
  * Info: proposed name RefOpAddO (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2+verdicts_A1
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "addo": RefOpObjectOption(op 0x6C) -> RefAddOption.
+// Splice builtin "addo": RefOpObjectOption(op 0x6C) -> AddBasicOption.
 CRef *RefOpAddO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
     RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6C);
@@ -4159,13 +4159,13 @@ struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x123FE8
- * Purpose: Splice builtin "ensureo": op 0x6D RefEnsureOption
+ * Purpose: Splice builtin "ensureo": op 0x6D EnsureBasicOption
  * Info: proposed name RefOpEnsureO (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "ensureo": op 0x6D RefEnsureOption.
+// Splice builtin "ensureo": op 0x6D EnsureBasicOption.
 CRef *RefOpEnsureO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
     RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6D);
@@ -4179,13 +4179,13 @@ struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x124018
- * Purpose: Splice builtin "seto!": op 0x6E RefSetOption
+ * Purpose: Splice builtin "seto!": op 0x6E SetBasicOption
  * Info: proposed name RefOpSetO (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "seto!": op 0x6E RefSetOption.
+// Splice builtin "seto!": op 0x6E SetBasicOption.
 CRef *RefOpSetO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
     RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6E);
@@ -4199,13 +4199,13 @@ struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void RefOpObjectOption__FiP4CRefP6CFrame4BIFK(CRef *ret, void *pbasic, int cref, CRef *args, int k);
 /** @sly2-annot addr=0x124048
- * Purpose: Splice builtin "geto": op 0x6F RefGetOption
+ * Purpose: Splice builtin "geto": op 0x6F GetBasicOption
  * Info: proposed name RefOpGetO (T1); TU bif
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918+verdicts_A1
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// Splice builtin "geto": op 0x6F RefGetOption.
+// Splice builtin "geto": op 0x6F GetBasicOption.
 CRef *RefOpGetO__FiP4CRefP6CFrame(CRef *ret, void *pbasic, int cref, CRef *args)
 {
     RefOpObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6F);
@@ -4387,7 +4387,7 @@ extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *args);
  *   find-object)
  * Info: proposed name RefOpFindObjectsFromOids (T1); TU bif
  * Notes: splice builtin 114 find-objects-from-oids~ -> find-objects-from-oids~ (0.75): Body maps a list of
- *   oids to objects with PloFindSwObject (same root/optional context arg as find-object). Scripts:
+ *   oids to objects with FindSwObject (same root/optional context arg as find-object). Scripts:
  *   (find-objects-from-oids~ '(60278 60279 60280)
  * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r1_116918+top50_round(splice
  *   builtin 114)
@@ -4623,7 +4623,7 @@ struct CRef {
 };
 extern "C" { extern char D_003DD490[]; }
 extern "C" {
-int CploFindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap);
+int FindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
 CRef RefOpFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
 }
@@ -4639,7 +4639,7 @@ CRef RefOpFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     CRef ref;
     void *ap[0x180];
     int b = args[1].u.n;
-    int c = CploFindSwObjectsByClass(D_003DD490, b ? 0x401 : 0x405, args[0].u.pv, b, 0x180, ap);
+    int c = FindSwObjectsByClass(D_003DD490, b ? 0x401 : 0x405, args[0].u.pv, b, 0x180, ap);
     ref = RefPairFromAplo__FiPP2LO(c, ap);
     return ref;
 }

@@ -188,11 +188,11 @@ struct VTE { short d; short pad; void (*pfn)(); };
 #define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
 
 extern SW D_003DD490;           /* g_sw */
-int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
+int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
-LO *PloNew(CID cid, SO *psoParent, OID oid, int n);
+LO *FindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
+LO *CreateLo(CID cid, SO *psoParent, OID oid, int n);
 extern "C" {
 SO *FindSoPhysRoot(SO *pso);
 void RecalcSwOxfFilterForObject(SW *psw, SO *pso);
@@ -232,10 +232,10 @@ struct F { ulong lo : 35; ulong bit35 : 1; ulong hi : 28; };
 struct P { char pad[0x10]; struct P *parent; char pad1[0x12C - 0x14]; float alpha; char pad2[0x13C - 0x130]; float boundsScale; int unknown140; int unknown144; union { struct { signed char hitDamage0, hitDamage1; } c; struct F f; } u; };
 extern float D_002C3B90;
 void InitLo(struct P *);
-void SetLoBusyk(struct P *, int);
+void SetLoBusyKind(struct P *, int);
 void InitDl__FP2DLi(void *, int);
 /** @sly2-annot addr=0x1F2108
- * Purpose: SO vt7 Init: InitLo, SetLoBusyk(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20,
+ * Purpose: SO vt7 Init: InitLo, SetLoBusyKind(0), clear DL +0x64, dhp bytes +0x148/+0x149 = -10/-20,
  *   gAlpha(+0x12C)=1, +0x13C=D_002C3B90, inherit +0x148 bit35 from parent, +0x140=-1
  * Info: proposed name InitSo (T1); class SO slot7; TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
@@ -247,7 +247,7 @@ void InitDl__FP2DLi(void *, int);
 void InitSo(struct P *so)
 {
     InitLo(so);
-    SetLoBusyk(so, 0);
+    SetLoBusyKind(so, 0);
     InitDl__FP2DLi((char *)so + 0x64, 0x24);
     so->u.c.hitDamage0 = -10;
     so->u.c.hitDamage1 = -20;
@@ -351,7 +351,7 @@ struct R { int pad[2]; int refCount; };
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0x134 - 0x74]; struct R *bounds; };
 struct Pool;
 void FreeSlotheapSlot(struct Pool *, struct R *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
 /** @sly2-annot addr=0x1F2468
  * Purpose: Drop the shared bounds record (+0x134, refcounted, pool (*(struct Pool *)&g_sw.slotheapSobounds)) of this SO and all SO children
  * Info: proposed name ReleaseSoBoundsHierarchy (T1); TU so
@@ -368,7 +368,7 @@ void ReleaseSoBoundsHierarchy(struct L *so)
         so->bounds = 0;
     }
     for (q = so->firstChild; q != so->firstRemovedChild; q = q->next) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) ReleaseSoBoundsHierarchy(q);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) ReleaseSoBoundsHierarchy(q);
     }
 }
 } } // namespace M_ReleaseSoBoundsHierarchy
@@ -491,7 +491,7 @@ namespace M_EnsureSoBoundsHierarchy { extern "C" {
 struct L;
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; };
 void EnsureSoBounds(struct L *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
 /** @sly2-annot addr=0x1F26A8
  * Purpose: EnsureSoBounds on this SO and recursively on SO children
  * Info: proposed name EnsureSoBoundsHierarchy (T1); TU so
@@ -504,7 +504,7 @@ void EnsureSoBoundsHierarchy(struct L *so)
     struct L *q;
     EnsureSoBounds(so);
     for (q = so->first; q != so->end; q = q->next) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) EnsureSoBoundsHierarchy(q);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) EnsureSoBoundsHierarchy(q);
     }
 }
 } } // namespace M_EnsureSoBoundsHierarchy
@@ -3072,7 +3072,7 @@ struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong flags; 
 struct G;
 extern struct G D_003DD490;
 struct O *FindSoPhysRoot(struct O *);
-int CploFindSwObjectsByClass(struct G *, int, int, struct O *, int, struct O **);
+int FindSwObjectsByClass(struct G *, int, int, struct O *, int, struct O **);
 void RemoveSoParts(struct O *);
 void RecalcSwOxfFilterForObject(struct G *, struct O *);
 void AddSoParts(struct O *);
@@ -3092,7 +3092,7 @@ void RebuildSoPhysHook(struct O *so)
     int n;
     if (((so->flags >> 60) & 1) == 0) return;
     if (FindSoPhysRoot(so) != so->tree->rootSo) {
-        n = CploFindSwObjectsByClass(&D_003DD490, 1, 0x30, so, 0x40, ap);
+        n = FindSwObjectsByClass(&D_003DD490, 1, 0x30, so, 0x40, ap);
         for (i = 0; i < n; i++) {
             {
                 struct O *po = ap[i];
@@ -3758,9 +3758,9 @@ struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[42]; };
 struct A { char pad[0xC]; struct VT *pvt; };
 struct L { char pad[0x24]; struct L *next; ulong flags; char pad2[0x64 - 0x30]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; };
-void PloCloneLo__FP2LOP2SO(struct L *, struct A *);
+void CloneLoWithParent__FP2LOP2SO(struct L *, struct A *);
 /** @sly2-annot addr=0x1F66F0
- * Purpose: SO vt40: vt41 Clone then PloCloneLo each non-removed child
+ * Purpose: SO vt40: vt41 Clone then CloneLoWithParent each non-removed child
  * Info: proposed name CloneSoHierarchy (T1); class SO slot40; TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
@@ -3772,7 +3772,7 @@ void CloneSoHierarchy(struct A *pa, struct L *so)
     struct L *q;
     pa->pvt->a[41].pfn((char *)pa + pa->pvt->a[41].d);
     for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
-        if (!(q->flags & (1L << 57))) PloCloneLo__FP2LOP2SO(q, pa);
+        if (!(q->flags & (1L << 57))) CloneLoWithParent__FP2LOP2SO(q, pa);
 }
 } } // namespace M_CloneSoHierarchy
 
@@ -4650,7 +4650,7 @@ extern struct G2 D_002F7900;
 void SetSoZapMode(struct P *, int);
 void func_002333B4(void *, int, int) __asm__("memset");
 qword GetLoWorldPos(struct P *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void DeliverZapToSo(struct M *);
 /** @sly2-annot addr=0x1F7950
  * Purpose: Deferred callback: process contact zaps (vt74) then emit self zap depending on zap mode (+0x148
@@ -4675,7 +4675,7 @@ void HandleSoTouchZaps(struct P *so)
     m.target = so;
     m.pos = GetLoWorldPos(so);
     m.velocity = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
-    if (k == 3 && FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x38)) {
+    if (k == 3 && IsBasicDerivedFrom__FP5BASIC3CID(so, 0x38)) {
         m.zapKinds = 0x40000; m.damage = -50; m.source = D_002F7900.p;
     } else {
         m.source = so; m.zapKinds = 0x20000; m.damage = so->u.c.hitDamage1;
@@ -4802,8 +4802,8 @@ extern "C" int GetSoHitDamage2(SO *so)
 // Adds the object to world list 0x187 if it is not in it yet (meaning of the list unknown). (inferred)
 extern "C" void EnsureSoInSwList187(SO *so)
 {
-    if (PloFindSwObject(&D_003DD490, 2, (OID)0x187, so) == 0) {
-        PloNew((CID)0x12, so, (OID)0x187, -1);
+    if (FindSwObject(&D_003DD490, 2, (OID)0x187, so) == 0) {
+        CreateLo((CID)0x12, so, (OID)0x187, -1);
     }
 }
 
@@ -4889,7 +4889,7 @@ void FadeSoIn(struct P *so, float f)
 extern "C" void SetSoAlpha(SO *so, float uAlpha)
 {
     if (uAlpha <= 0.0f) {
-        if (FIsBasicDerivedFrom(so, (CID)0x69) == 0) {
+        if (IsBasicDerivedFrom(so, (CID)0x69) == 0) {
             so->Remove();
         }
     } else {
@@ -5037,7 +5037,7 @@ void SetSoTreeRoot(struct A *so, long f)
 namespace M_func_001F7FA0 { extern "C" {
 struct P;
 struct P { char pad[0xA4]; int numSaas; void **saas; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetScrollerMasterSpeeds__FP8SCROLLERff(void *, float, float);
 /** @sly2-annot addr=0x1F7FA0
  * Purpose: SetScrollerMasterSpeeds(f,g) on every SCROLLER (CID 0x8F) in SO SAA list (+0xA4)
@@ -5052,7 +5052,7 @@ void SetSoScrollerSpeeds(struct P *so, float f, float g)
     int i;
     for (i = 0; i < so->numSaas; i++) {
         void *q = so->saas[i];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetScrollerMasterSpeeds__FP8SCROLLERff(q, f, g);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetScrollerMasterSpeeds__FP8SCROLLERff(q, f, g);
     }
 }
 } } // namespace M_func_001F7FA0
@@ -5061,7 +5061,7 @@ void SetSoScrollerSpeeds(struct P *so, float f, float g)
 namespace M_func_001F8038 { extern "C" {
 struct P;
 struct P { char pad[0xA4]; int numSaas; void **saas; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetSaiDuDv(void *, float, float);
 /** @sly2-annot addr=0x1F8038
  * Purpose: 0x1EDAD8(f,g) on every CID 0x8F SAA
@@ -5076,7 +5076,7 @@ void SetSoSaaParams(struct P *so, float f, float g)
     int i;
     for (i = 0; i < so->numSaas; i++) {
         void *q = so->saas[i];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetSaiDuDv(q, f, g);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x8F)) SetSaiDuDv(q, f, g);
     }
 }
 } } // namespace M_func_001F8038
@@ -5085,7 +5085,7 @@ void SetSoSaaParams(struct P *so, float f, float g)
 namespace M_func_001F80D0 { extern "C" {
 struct L;
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xA4 - 0x74]; int numSaas; void **saas; };
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetEyesClosed(void *, float);
 /** @sly2-annot addr=0x1F80D0
  * Purpose: SetEyesClosed(f) on EYES (CID 0x8E) SAAs, recursively through SO children
@@ -5103,10 +5103,10 @@ void SetSoEyesClosed(struct L *so, float f)
     struct L *q;
     for (i = 0; i < so->numSaas; i++) {
         void *pv = so->saas[i];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x8E)) SetEyesClosed(pv, f);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(pv, 0x8E)) SetEyesClosed(pv, f);
     }
     for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoEyesClosed(q, f);
+        if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoEyesClosed(q, f);
 }
 } } // namespace M_func_001F80D0
 
@@ -5233,7 +5233,7 @@ struct E { char pad[0xDC]; struct Q *region; };
 struct P { char pad[0xE8]; struct E *physics; };
 struct CB { int cb; int n; };
 void *AllocClearedFromWorldHeap(struct CB *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return AllocClearedFromWorldHeap(pcb); }
 /** @sly2-annot addr=0x1F8300
  * Purpose: Ensure 0x70-byte SOPHYS+0xDC record {pso, g4, unknown8=75 (150 for CID 0x34), unknownC=1}
@@ -5253,7 +5253,7 @@ struct Q *EnsureSoPhysRegionRecord(struct P *so)
         struct CB cb;
         struct Q *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
         q->so = so;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown8 = 150.0f;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown8 = 150.0f;
         else q->unknown8 = 75.0f;
         q->unknownC = 1.0f;
         so->physics->region = q;
@@ -5473,7 +5473,7 @@ struct G { char pad[0x3E5C]; int unknown3E5C; };
 extern struct G D_003DD490;
 void AddLoToRenderTree(struct L *);
 void RemoveLoFromRenderTree(struct L *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 /** @sly2-annot addr=0x1F8668
  * Purpose: Set +0x148 bit35 recursively; when g_sw+0x3E5C and enabling register (0x1D6378)
  * Info: proposed name SetSoFlag35Hierarchy (T2); TU so
@@ -5492,7 +5492,7 @@ void SetSoBit35Hierarchy(struct L *so, long f)
             else RemoveLoFromRenderTree(so);
         }
         for (q = so->firstChild; q; q = q->next)
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoBit35Hierarchy(q, f);
+            if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoBit35Hierarchy(q, f);
     }
 }
 } } // namespace M_func_001F8668

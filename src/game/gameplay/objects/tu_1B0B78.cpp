@@ -150,7 +150,7 @@ void ResolveCritterLinks(CID96V *p);
 }
 void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA */
 float RadNormalize(float r);                                                                  /* RadNormalize__Ff */
-LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
+LOV *FindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("FindSwObject__FP2SWi3OIDP2LO");                                   /* FindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
 
 // CID96 vtable slot 7 (Init): SO init; startle distances 400/800, idle 2-6 s, walk 6-10 s, fade 1 s; no animations yet
@@ -660,7 +660,7 @@ extern "C" void SetCritterLink(CID96V *critter, int state, OID oid, int applyFla
 ASEG *FindCritterLinkObject(CID96V *critter, OID oid)
 {
     LOV *object;
-    object = PloFindSwObject(&D_003DD490, 1, oid, (LOV *)critter);
+    object = FindSwObject(&D_003DD490, 1, oid, (LOV *)critter);
     if (object != 0) {
         VTE *vt = object->pvt;
         ((void (*)(void *))vt[9].pfn)((char *)object + vt[9].d);

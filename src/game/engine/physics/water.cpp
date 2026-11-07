@@ -144,7 +144,7 @@ int GetSoTreeFlag2(SOW *);
 int IsXfRoleVelocity(int);
 float GetWaterSubmergedFraction(SOW *, SOW *, qwordV *, qwordV *);
 N *AllocSwXa(WORLD *);
-int FIsBasicDerivedFrom__FP5BASIC3CID(SOW *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(SOW *, int);
 int ClipEdgeToObjects(qwordV, qwordV, int, COLL **, int, LSG *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, SOW *);
@@ -347,7 +347,7 @@ extern "C" void UpdateWater(SOW *water){
    work.origin.q=D_002A2DD0;
    work.start.q=VuSub(collider->position.q,work.origin.q);
    work.end.q=VuSub(collider->source->position.q,work.origin.q);
-   if(FIsBasicDerivedFrom__FP5BASIC3CID(object,0x33))dz=object->height;
+   if(IsBasicDerivedFrom__FP5BASIC3CID(object,0x33))dz=object->height;
    else dz=object->state->minimum.f[2]-collider->source->position.f[2];
    work.start.f[2]+=dz;work.end.f[2]+=dz;
    if(ClipEdgeToObjects(work.start.q,work.end.q,work.count,objects,16,work.intervals)>0){
@@ -480,7 +480,7 @@ extern "C" float GetWaterSubmergedFraction(SOW *water, SOW *object, qwordV *surf
     int numParts;
     float fraction;
     work.a.q = work.b.q = GetLoWorldPos(object);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x33)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x33)) {
         work.a.f[2] = work.a.f[2] + object->height;
         if (object->hasHeightFloor)
             work.a.f[2] = work.a.f[2] > object->heightFloor ? work.a.f[2] : object->heightFloor;
@@ -704,7 +704,7 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
   float radius=((object->state->maximum.f[0]-object->state->minimum.f[0])+(object->state->maximum.f[1]-object->state->minimum.f[1]))*0.25f;
   WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(object,(WATER *)water,g_clock.dt,work.velocity.q,work.point.q,0.1f,radius);
  }
- else if(FIsBasicDerivedFrom__FP5BASIC3CID(object,0x32))Clear(&object->emitter);
+ else if(IsBasicDerivedFrom__FP5BASIC3CID(object,0x32))Clear(&object->emitter);
 }
 
 /** @sly2-annot addr=0x229D60

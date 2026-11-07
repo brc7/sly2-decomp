@@ -92,7 +92,7 @@ extern const float D_002A4AF0;   /* defined below where the ELF has it (.rodata 
 extern char D_002C44E0[];
 extern qword D_002A2DD0;
 extern "C" {
-ASEG *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
+ASEG *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
 void *AllocFromWorldHeap(const AREQ &req);
 void *AllocCopyFromWorldHeap(const AREQ &req, void *pv);
 void *AllocClearedFromStack(const AREQ &req);
@@ -150,7 +150,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
     if (!pxFirst) { *ppx = 0; return; }
     {
         STACKSCOPE frame;
-        ASEG *pxNew = PloNew__F3CIDP2SO3OIDi(0x6E, p, -1, -1);
+        ASEG *pxNew = CreateLo__F3CIDP2SO3OIDi(0x6E, p, -1, -1);
         pxNew->Init();
         pxNew->cb = cb;
         pxNew->elementCount = c;

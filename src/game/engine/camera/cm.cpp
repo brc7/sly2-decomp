@@ -583,7 +583,7 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x110]; int k; };
 struct CM { char pad[0x90]; qword pos; };
 extern char D_003DD490[];
-int CploFindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap);
+int FindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap);
 void UpdateVisInside(struct O *po, qword pos);
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 int CompareCameraVisZones(const void *a, const void *b);
@@ -594,7 +594,7 @@ void UpdateCmVisZone__FP2CM(struct CM *cm)
 {
     struct O *apo[32];
     qword pos = cm->pos;
-    int n = CploFindSwObjectsByClass(D_003DD490, 0x105, 5, 0, 0x20, apo);
+    int n = FindSwObjectsByClass(D_003DD490, 0x105, 5, 0, 0x20, apo);
     int i;
     for (i = 0; i < n; i++)
         UpdateVisInside(apo[i], pos);
@@ -849,14 +849,14 @@ struct O { char pad[0x4F4]; int stepMode; };
 struct S { qword a; qword b; qword c[2]; qword d; };
 extern qword D_002A2DD0;
 qword CalcCmAdjust(struct P *p, struct S *ps);
-int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k);
 void ApplyCameraSpring(struct P *p, qword *ppos, qword *pvel, qword target, float k1, float k2);
 // Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4 (0/1/2) different
 // gains; writes cpdefi.posAdjust = posBase + dposAdjust.
 void AdjustCmCpdefi(struct P *p, struct O *po, struct S *ps)
 {
     qword q = CalcCmAdjust(p, ps);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
         switch (po->stepMode) {
         case 0:
             ApplyCameraSpring(p, &p->adjustOffset, &p->adjustVelocity, q, 5.0f, -3.5f);

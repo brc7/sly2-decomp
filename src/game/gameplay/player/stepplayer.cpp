@@ -257,7 +257,7 @@ struct G { char pad[0x4A4]; int n4A4; };
 extern struct G D_002DDF40;
 int NWorldCur(void);
 void RestartHudWidget1(void *p);
-int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
+int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
 void RestartHudWidget2(void *p);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
@@ -274,7 +274,7 @@ void AcknowledgeStepplayerHint(void)
     if (!NWorldCur())
         return;
     RestartHudWidget1(D_003DD490);
-    if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
+    if (FindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
     SetSndSourceLo(PsndStartSound(0x32), 0);
     *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
     D_002DDF40.n4A4++;
@@ -591,7 +591,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct P { char pad[0x10E4]; int interactKind; void *p10E8; int interactMode; };
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x140AF8
  * Purpose: True when interact mode (+0x10EC)==4 and kind!=3 and the target (+0x10E8) is within an xy distance
@@ -610,7 +610,7 @@ int IsStepplayerNearInteractTarget(struct P *player, int fX)
     float g;
     int f;
     if (player->interactMode != 4 || player->interactKind == 3) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(player->p10E8, 0x3A)) gDist = D_002BCC7C;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(player->p10E8, 0x3A)) gDist = D_002BCC7C;
     else gDist = D_002BCC80;
     minValue = D_002BCC84;
     maxValue = D_002BCC88;
@@ -870,7 +870,7 @@ void SetJtThrowState(void *p, int n);
 qword GetStepAsegaTranslation(void *p, struct SO *pso, float g);
 qword GetLoWorldPos(void *p);
 void ReleaseJtThrowObject(void *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsTossableActive(void *p);
 void TriggerTossable(void *p);
 void ReleaseAsega(void *p);
@@ -988,7 +988,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             if (AsStepplayer(player)->jtgrab.nState == 0xB) {
                 void *object;
                 int n;
-                if (AsStepplayer(player)->jtgrab.plo != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(AsStepplayer(player)->jtgrab.plo, 100)) {
+                if (AsStepplayer(player)->jtgrab.plo != 0 && IsBasicDerivedFrom__FP5BASIC3CID(AsStepplayer(player)->jtgrab.plo, 100)) {
                     object = AsStepplayer(player)->jtgrab.plo;
                     if (IsTossableActive(object))
                         TriggerTossable(object);
@@ -2839,7 +2839,7 @@ S *ClearStepplayerBootySave(LO *p, int n);
 int IlevelCur__Fv(void);
 BL *GetLevelListEntry(int);
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
-int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
+int FindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
 CRef RefSetGlobalSaveVar(void *p, const CRef &ref, G *pv);
 }
@@ -2912,7 +2912,7 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
             if (pb->c >= 4 && func_00233178(ps->pk, pb->pv, 8) == 0) f = 1;
             if (f) {
                 SO *apso[15];
-                int c = CploFindSwObjectsByClass(D_003DD490, 5, 0x25, 0, 0xF, apso);
+                int c = FindSwObjectsByClass(D_003DD490, 5, 0x25, 0, 0xF, apso);
                 for (int j = 0; j < c; j++) {
                     if (apso[j]->x180 == ps->pk->xC) {
                         lo->booty->p15C = apso[j];
@@ -3145,8 +3145,8 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct P { char pad[0xC]; struct VTE *vt; char pad2[0x1030 - 0x10]; char action[4]; char m1034[4]; };
 extern char D_003DD490[];
 void StopStepplayerScriptAnim(struct P *p);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, struct P *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 void ReleaseSma(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *o, struct P *p, int a, void *b, float f, float g);
 void ReleaseAsega(void *p);
@@ -3166,13 +3166,13 @@ void PlayStepplayerScriptAnim(struct P *player, int oid, int a, int b)
         StopStepplayerScriptAnim(player);
         return;
     }
-    o = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, player);
+    o = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, player);
     if (!o) return;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x6D)) {
         player->vt[88].pfn((char *)player + player->vt[88].d, b);
         ReleaseSma(player->m1034);
         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(o, player, a, player->action, 0.0f, 1.0f);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x6F)) {
         player->vt[88].pfn((char *)player + player->vt[88].d, b);
         ReleaseAsega(player->action);
         ReplaceSma(o, player, -1, a, player->m1034);

@@ -177,7 +177,7 @@ REF *FindSoXf(P *,int,int);
 void *memmove(void *,const void *,int);
 qword ConvertAloPos(void *,P *,qword);
 void *NewPositionAct(P *,REF *,int,int,int,qword);
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
+void *FindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
 void *ApplySmToObject(void *,P *,int,int);
 void *NewSampledShape(int,int);
 void ReplaceSma(void *,P *,int,int,void **);
@@ -277,11 +277,11 @@ extern "C" void PostRobottankLoad(P *tank){
  ATTACH **cursor=tank->attachments;int byteOffset=0;
  do {
   current.attachment=*cursor;
-  current.attachment->object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,tank);
+  current.attachment->object=FindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,tank);
   if(current.attachment->object){
    current.attachment->mesh=FindSoXf(tank,current.attachment->meshId,6);
    if(current.attachment->mesh || current.attachment->meshId==invalid){
-    current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,tank);
+    current.attachment->extra=FindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,tank);
     if(current.attachment->extra || current.attachment->extraId==invalid){
      current.attachment->binding=ApplySmToObject(current.attachment->object,tank,-1,0);
      if(current.attachment->mesh)current.attachment->meshBinding=NewPositionAct(tank,current.attachment->mesh,1,7,3,D_002A2DD0);
@@ -784,14 +784,14 @@ extern char D_003DD490[];
 extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C20C0[3];
 qword GetLoWorldPos(void *);
-int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
-// Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass. (inferred)
+int FindSwObjectsByClass(void *, int, int, int, int, SO **);
+// Nearest object of class 0x6C (CID 108 ammo pickup) via FindSwObjectsByClass. (inferred)
 SO *FindNearestRobottankPickup(OBJ *pickup)
 {
     SO *best = 0;
     SO *aso[16];
     qword pos = GetLoWorldPos(pickup);
-    int n = CploFindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
+    int n = FindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
     float fMin = D_002A7810;
     int i;
     for (i = 0; i < n; i++) {
@@ -1861,7 +1861,7 @@ typedef struct {
 extern char D_003DD490[];
 extern const LONGU D_002A7840;
 void AdjustSoNewXp(void *, OBJ *, int);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, long, void *);
 // Lane z as a float.
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
@@ -1882,14 +1882,14 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
         s.q = sq;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(contact->normal), "j"(s.q));
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 0x4D) || GetZ(v) < 0.7f) {
+    if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x4D) || GetZ(v) < 0.7f) {
         contact->elasticity = 0.0f;
         contact->friction = 0.1f;
     } else {
         contact->elasticity = 0.5f;
         contact->friction = 0.1f;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 0x6C))
+    if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x6C))
         EnsureSwCallback(D_003DD490, tank, D_002A7840.l, other);
 }
 } } // namespace M_AdjustRobottankNewXp
