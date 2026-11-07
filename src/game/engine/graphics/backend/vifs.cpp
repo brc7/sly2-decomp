@@ -100,7 +100,7 @@ SLY2_SCRAP("sw $5, 0x0($6)");
 
 // Writes the VIF UNPACK code for c elements of format upk to VU1 address iqw (formats >= 16 are the unsigned variants;
 // the address is relative to the double-buffer base, TOPS) and returns the payload size in bytes.
-int VIFS::CbUnpackSetup(UPK upk, int c, int iqw)
+int VIFS::WriteUnpackSetup(UPK upk, int c, int iqw)
 {
     int vifcode;
     if (upk >= 16)
@@ -134,7 +134,7 @@ void VIFS::UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun)
         return;
     }
 
-    int cb = CbUnpackSetup(upk, c, iqw);
+    int cb = WriteUnpackSetup(upk, c, iqw);
     if (ppun)
         *ppun = (uint *)m_pb;
     m_pb += ((cb + 3) / 4) * 4;
@@ -186,7 +186,7 @@ void VIFS::AddVifUnpackRefs(UPK upk, int c, void *pvSrc, int iqw, void ***pppv)
         return;
 
     Align(3);
-    int cb = CbUnpackSetup(upk, c, iqw);
+    int cb = WriteUnpackSetup(upk, c, iqw);
     AddDmaRefs((cb + 15) / 16, (QW *)pvSrc);
     if (pppv)
         *pppv = (void **)((uchar *)m_pqwCnt - 12);

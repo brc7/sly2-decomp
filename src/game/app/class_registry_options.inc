@@ -61,7 +61,7 @@ void GetStepplayerMp() __asm__("GetStepplayerMp");
 void GetTaskStateGoalOid() __asm__("GetTaskStateGoalOid");
 void GetLoProxyOid() __asm__("GetLoProxyOid");
 void GetStepguardDetector() __asm__("GetStepguardDetector");
-void PemitterEnsureEmitter__FP7EMITTER4ENSK() __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
+void EnsureEmitter__FP7EMITTER4ENSK() __asm__("EnsureEmitter__FP7EMITTER4ENSK");
 void GetCurrentPo() __asm__("GetCurrentPo");
 void GetHeroPo() __asm__("GetHeroPo");
 void GetTnCpd() __asm__("GetTnCpd");
@@ -1201,11 +1201,11 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_LaunchSoFromLauncher), EOPID_INT(1), EOPID_NONE}, /* [468] opt 508, CID112 */
     {5, 0x122, EOPID_INT(0xF4), EOPID_PMF(SetEmitterParticleCount__FP7EMITTERi), EOPID_PMF(SetEmitterParticleCount__FP7EMITTERi), EOPID_NONE}, /* [469] opt 551, EMITTER */
     {0, 0x122, EOPID_INT(0x114), EOPID_PMF(SetEmitterAutoPause__FP7EMITTERi), EOPID_PMF(SetEmitterAutoPause__FP7EMITTERi), EOPID_NONE}, /* [470] opt 552, EMITTER */
-    {0x1025, 0x2092, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_PMF(PemitterEnsureEmitter__FP7EMITTER4ENSK)}, /* [471] opt 553, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_PMF(PemitterEnsureEmitter__FP7EMITTER4ENSK)}, /* [472] opt 554, EMITTER */
-    {1, 0x2092, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_PMF(PemitterEnsureEmitter__FP7EMITTER4ENSK)}, /* [473] opt 555, EMITTER */
-    {1, 0x2092, EOPID_INT(0x104), EOPID_INT(0x104), EOPID_INT(0x104), EOPID_PMF(PemitterEnsureEmitter__FP7EMITTER4ENSK)}, /* [474] opt 556, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0x108), EOPID_INT(0x108), EOPID_INT(0x108), EOPID_PMF(PemitterEnsureEmitter__FP7EMITTER4ENSK)}, /* [475] opt 557, EMITTER */
+    {0x1025, 0x2092, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [471] opt 553, EMITTER */
+    {0xA, 0x2092, EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [472] opt 554, EMITTER */
+    {1, 0x2092, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [473] opt 555, EMITTER */
+    {1, 0x2092, EOPID_INT(0x104), EOPID_INT(0x104), EOPID_INT(0x104), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [474] opt 556, EMITTER */
+    {0xA, 0x2092, EOPID_INT(0x108), EOPID_INT(0x108), EOPID_INT(0x108), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [475] opt 557, EMITTER */
     {0, 0x82, EOPID_INT(0x100), EOPID_NONE, EOPID_INT(0x100), EOPID_NONE}, /* [476] opt 558, EMITTER */
     {6, 0x82, EOPID_INT(0x118), EOPID_NONE, EOPID_INT(0x118), EOPID_NONE}, /* [477] opt 559, EMITTER */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkEmitterPAUSE), EOPID_INT(1), EOPID_NONE}, /* [478] opt 256, EMITTER */

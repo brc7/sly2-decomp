@@ -89,7 +89,7 @@ void SetStepplayerTnOverride(JT*,void*);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 void SetJtCaneState__FP2JTi(JT*,int);void ReleaseSma(COMPONENT**);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEGV*,JT*,float,float,int,ASEGAV**);
-int FActiveCplcy__FP5CPLCY(void *);
+int IsCameraPolicyActive__FP5CPLCY(void *);
 }
 
 /** @sly2-annot addr=0x19DE10
@@ -686,7 +686,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
 extern "C" int CanJtUseGadgetOnPipe(JTPIPE *pipe, int k) {
     if (k == 3) {
         int r = 0;
-        if (pipe->actor->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY(&g_cm.part3a0);
+        if (pipe->actor->x12f0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0);
         return r;
     }
     return 0;

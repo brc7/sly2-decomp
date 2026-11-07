@@ -5136,7 +5136,7 @@ namespace M_func_0019C8D0 { extern "C" {
 struct O { char pad[0x12F0]; int x12f0; };
 struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
 extern int D_002DFBC0;
-int FActiveCplcy__FP5CPLCY(void *);
+int IsCameraPolicyActive__FP5CPLCY(void *);
 /** @sly2-annot addr=0x19C8D0
  * Purpose: Can gadget/action k be used in the current air sub-state
  * Info: proposed name FJtAirAllowsGadget (T2); TU air
@@ -5158,7 +5158,7 @@ int CanJtUseGadgetInAir(struct S *p, int k) {
     case 3:
         {
             int r = 0;
-            if (p->x1c == 0x11 && p->p->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+            if (p->x1c == 0x11 && p->p->x12f0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
             return r;
         }
     case 2: case 5: case 27:

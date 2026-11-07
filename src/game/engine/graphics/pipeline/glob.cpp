@@ -28,7 +28,7 @@ struct RGBAW { uint rgba; RGBAW(uint n) { rgba = n; } };
 RGBAW D_002DEB50(0x80101010);
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-typedef unsigned size_t; inline float func_002599D8(VECTOR *pvec); inline float func_002599E0(VECTOR *pvec); inline float func_002599E8(VECTOR *pvec);   /* the VECTOR component readers: inline, defined after their callers (end of file) */
+typedef unsigned size_t; inline float GetVectorComponentX(VECTOR *pvec); inline float GetVectorComponentY(VECTOR *pvec); inline float GetVectorComponentZ(VECTOR *pvec);   /* the VECTOR component readers: inline, defined after their callers (end of file) */
 
 extern "C" {
 extern char D_0025B880[], D_0025C1B0[];   /* the cel-border VU1 microprogram */
@@ -1218,7 +1218,7 @@ void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 float GetMaxRowLengthMatrix3(const MATRIX4 *pmat);
 qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius);
-int FInsideCmMrd(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
+int IsWithinCameraRenderDistance(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
 RPL *AllocRenderListEntry(void);
 }
@@ -1470,7 +1470,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         else
         {
             dposSub = QwSub(posSub, posCam);
-            if (!FInsideCmMrd(&D_002DDF40, dposSub, psph->sRange, &gVisSub))
+            if (!IsWithinCameraRenderDistance(&D_002DDF40, dposSub, psph->sRange, &gVisSub))
                 continue;
         }
         uchar *pbStart = D_002DEA28.pb;
@@ -2801,7 +2801,7 @@ static inline void *PvAllocSwClearP(int cb)
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocSwClearImpl(&swalloc);
 }
-extern "C" SHD *PshdFindShader(int oid);
+extern "C" SHD *FindShader(int oid);
 extern "C" int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
 extern "C" int AddSaaCopyRecord(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void RelocateShaderUploadRecords(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
@@ -3230,7 +3230,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         int ioid = pglobset->cnUnk2c;
                         while (--ioid >= 0)
-                            iqw += AddShaderVifUnpackQword(PshdFindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
+                            iqw += AddShaderVifUnpackQword(FindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
                     }
                     ppart->aiqwShdp[ishdp] = iqw;
                     iqw += AddVifUnpackShdp(pbatch->pshd, ishdp, iqw, &vifs);
@@ -4009,7 +4009,7 @@ void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 OBJECT*GetShdByIndex(int);
 int AddShaderVifUnpack(OBJECT*,int,int,VIFS*);
 void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
-/* func_002599D8/E0/E8: the file-scope inline readers */
+/* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
 
 extern QW D_002DEB60;
@@ -4091,9 +4091,9 @@ template <int V> static inline int Flags()
 }
 static inline void WriteVertex(U *destination, U value)
 {
-    float x = ::func_002599D8((VECTOR *)&value);
-    float y = ::func_002599E0((VECTOR *)&value);
-    float z = ::func_002599E8((VECTOR *)&value);
+    float x = ::GetVectorComponentX((VECTOR *)&value);
+    float y = ::GetVectorComponentY((VECTOR *)&value);
+    float z = ::GetVectorComponentZ((VECTOR *)&value);
     destination->f[0] = x;
     destination->f[1] = y;
     destination->f[2] = z;
@@ -5039,7 +5039,7 @@ typedef struct { float x, y, z, w; int a, b; } E;
 typedef struct { A *pa; int pad[3]; V4 offset; float radius; int pad2[8]; E *ae; } S;
 extern V4 D_002A2DD0;
 void RemoveLoFromRenderTree(A *pa);
-/* func_002599D8/E0/E8: the file-scope inline readers */
+/* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
 
 
@@ -5056,9 +5056,9 @@ void ResetGlobAttachment(S *p, int i)
     p->radius = g;
     pe = &p->ae[i];
     v = D_002A2DD0;
-    x = ::func_002599D8((VECTOR *)&v);
-    y = ::func_002599E0((VECTOR *)&v);
-    z = ::func_002599E8((VECTOR *)&v);
+    x = ::GetVectorComponentX((VECTOR *)&v);
+    y = ::GetVectorComponentY((VECTOR *)&v);
+    z = ::GetVectorComponentZ((VECTOR *)&v);
     pe->x = x;
     pe->y = y;
     pe->z = z;
@@ -5069,7 +5069,7 @@ void ResetGlobAttachment(S *p, int i)
 // Return v[0] [game linkonce (inline/template)]. (inferred)
 // 0x2599D8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
-inline float func_002599D8(VECTOR *pvec)
+inline float GetVectorComponentX(VECTOR *pvec)
 {
     return pvec->x;
 }
@@ -5077,7 +5077,7 @@ inline float func_002599D8(VECTOR *pvec)
 // Return v[1] [game linkonce (inline/template)]. (inferred)
 // 0x2599E0: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
-inline float func_002599E0(VECTOR *pvec)
+inline float GetVectorComponentY(VECTOR *pvec)
 {
     return pvec->y;
 }
@@ -5085,7 +5085,7 @@ inline float func_002599E0(VECTOR *pvec)
 // Return v[2] [game linkonce (inline/template)]. (inferred)
 // 0x2599E8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
-inline float func_002599E8(VECTOR *pvec)
+inline float GetVectorComponentZ(VECTOR *pvec)
 {
     return pvec->z;
 }

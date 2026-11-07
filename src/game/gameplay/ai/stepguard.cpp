@@ -1229,7 +1229,7 @@ extern "C" { extern float D_002C3D4C; }
 extern "C" { extern float D_002C3D50[3],D_002C3D60[2],D_002BBB60[2]; }
 extern "C" {
 void RefreshSoBoundsRecord(P *);
-int FActiveCplcy__FP5CPLCY(void *);
+int IsCameraPolicyActive__FP5CPLCY(void *);
 void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float);
 void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 qword GetLoWorldPos(P *);
@@ -1261,7 +1261,7 @@ extern "C" void RenderStepguardSelf(P *guard)
     CAMERA *camera=&D_002DDF40;
     if(guard->flags.bytes[5]&camera->mask){
         RefreshSoBoundsRecord(guard);
-        if(!FActiveCplcy__FP5CPLCY((char *)camera+0x3B0)){
+        if(!IsCameraPolicyActive__FP5CPLCY((char *)camera+0x3B0)){
             RenderSoGlobset((EFFECT *)((char *)guard+0x80),0,guard->material,guard->opacity,guard->opacity);
         }else{
             func_002333B4(&local,0,sizeof(M4));
@@ -3389,7 +3389,7 @@ struct Camera { char pad[0x90]; qword position; };
 extern "C" { extern Camera D_002DDF40; }
 extern "C" {
 qword GetLoWorldPos(GUARD *);
-int FInsideCmFrustum(Camera *,qword,qword);
+int IsInCameraFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
 float GetTargetRecordFacing(TARGETREC *);
 float RadNormalize__Ff(float);
@@ -3438,7 +3438,7 @@ extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, GUARD *guard)
         __asm__("sq %2,%0\n\tla %1,%3" : "=m"(position0.q), "=r"(camera) : "r"(returned), "i"(&D_002DDF40));
         qword threshold, point;
         PlaneArguments(&threshold, &point, &scalar, 0.0f, &camera->position, &position0.q);
-        if (!FInsideCmFrustum(camera, point, threshold))
+        if (!IsInCameraFrustum(camera, point, threshold))
             goto fail;
         qword other;
         other = GetLoWorldPos(record->target);

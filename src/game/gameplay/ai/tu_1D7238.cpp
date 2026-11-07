@@ -78,7 +78,7 @@ void SetSmaGoal(SMA *psma, void *pv);
 void SetCharSelectState(SAFEHOUSEV *safehouse, int state);
 void StepCharSelect(SAFEHOUSEV *safehouse, int d);
 }
-int FActiveCplcy(CPLCY *pcplcy);
+int IsCameraPolicyActive(CPLCY *pcplcy);
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
 int IsmsFindSmOptional(SM *psm, OID oid);
 
@@ -114,7 +114,7 @@ extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
         return;
     if (safehouse->stateMachineAnim == 0)
         return;
-    if (FActiveCplcy((CPLCY *)(*(char (*)[])&g_cm.part3a0)))
+    if (IsCameraPolicyActive((CPLCY *)(*(char (*)[])&g_cm.part3a0)))
         return;
     if (D_002DFBC0 & 2)
         joystick = D_002DFC00;

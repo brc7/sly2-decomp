@@ -28,7 +28,7 @@ extern void *D_002CD498[] __asm__("_vt$6CPZOOM");  /* CPZOOM vtable */
 extern void *D_002CD450[] __asm__("_vt$6CPHANG");  /* CPHANG vtable */
 extern void *D_002CD408[] __asm__("_vt$10CPCAMBLEND");  /* CPCAMBLEND vtable */
 extern void *D_002CD3C0[] __asm__("_vt$8CPTURRET");  /* CPTURRET vtable */
-extern int D_002DE254;      /* the active policy (compared by FActiveCplcy) */
+extern int D_002DE254;      /* the active policy (compared by IsCameraPolicyActive) */
 CPLCY *CPLCY_ctor(CPLCY *pcplcy);
 void InitCplcy(CPLCY *pcplcy);
 void UpdateCplcy(CPLCY *pcplcy, void *pv, JOY *pjoy);
@@ -96,7 +96,7 @@ extern "C" void ResetCplcy()
 }
 
 // True if pcplcy is g_cm's current top policy (D_002DE254 = g_cm.acpr[0].pcplcy)
-int FActiveCplcy(CPLCY *pcplcy)
+int IsCameraPolicyActive(CPLCY *pcplcy)
 {
     return D_002DE254 == (int)pcplcy;
 }

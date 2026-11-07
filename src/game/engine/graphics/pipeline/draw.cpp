@@ -65,7 +65,7 @@ typedef int (*PFNCMP)(const void *, const void *);
 
 // qsort comparator for RPL pointers: descending depth (farthest first, back-to-front for blended passes), ties broken
 // by entry address. Used for kinds 1, 2, 5, 6, 10 and 25.
-int NCmpPrplReverseZ(RPL **entryA, RPL **entryB)
+int CompareRplFarToNear(RPL **entryA, RPL **entryB)
 {
     RPL *lhs = *entryA;
     RPL *rhs = *entryB;
@@ -78,7 +78,7 @@ int NCmpPrplReverseZ(RPL **entryA, RPL **entryB)
 
 // qsort comparator for RPL pointers: ascending depth (nearest first), ties broken by reverse entry address. Used for
 // kind 21 only.
-int NCmpPrplZ(RPL **entryA, RPL **entryB)
+int CompareRplNearToFar(RPL **entryA, RPL **entryB)
 {
     RPL *lhs = *entryA;
     RPL *rhs = *entryB;
@@ -110,13 +110,13 @@ int CprplPartitionArpl(int count, RPL *entries, RPL **sorted, int *firstIndex, i
     }
     for (int k = 0; k < count; k++, entries++)
         sorted[nextIndex[entries->kind]++] = entries;
-    qsort(sorted + firstIndex[5], endIndex[5] - firstIndex[5], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(sorted + firstIndex[6], endIndex[6] - firstIndex[6], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(sorted + firstIndex[10], endIndex[10] - firstIndex[10], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(sorted + firstIndex[1], endIndex[1] - firstIndex[1], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(sorted + firstIndex[2], endIndex[2] - firstIndex[2], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(sorted + firstIndex[25], endIndex[25] - firstIndex[25], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(sorted + firstIndex[21], endIndex[21] - firstIndex[21], 4, (PFNCMP)NCmpPrplZ);
+    qsort(sorted + firstIndex[5], endIndex[5] - firstIndex[5], 4, (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[6], endIndex[6] - firstIndex[6], 4, (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[10], endIndex[10] - firstIndex[10], 4, (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[1], endIndex[1] - firstIndex[1], 4, (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[2], endIndex[2] - firstIndex[2], 4, (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[25], endIndex[25] - firstIndex[25], 4, (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[21], endIndex[21] - firstIndex[21], 4, (PFNCMP)CompareRplNearToFar);
     return endIndex[25];
 }
 

@@ -1623,7 +1623,7 @@ int CanJtUseGadgetOnPipe(void *pv, int k);
 struct E *GetBentleyGadgetFromId(struct P *p, int k);
 int IsTossableActive(void *pv);
 int ChooseProxySpare(void *pv, int n);
-int FActiveCplcy__FP5CPLCY(void *pv);
+int IsCameraPolicyActive__FP5CPLCY(void *pv);
 /** @sly2-annot addr=0x136870
  * Purpose: BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability
  * Info: proposed name CanBentleyUseGadget (T1); class BENTLEY slot99; TU bentley
@@ -1690,7 +1690,7 @@ int CanBentleyUseGadget(struct P *bentley, int k)
         case 3: {
             int r = 0;
             if (bentley->x12F0 && (D_002DFBC0 & 2))
-                r = FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) == 0;
+                r = IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) == 0;
             return r;
         }
         case 1: case 2: case 8: case 10: case 12: case 14:

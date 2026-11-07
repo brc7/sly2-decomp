@@ -99,7 +99,7 @@ void BuildModelDrawPackets(void *pv, RTCAM *pcam);
 POV *GetHeroPo(SW *psw);
 }
 int IgsAllocGsb(GSB *pgsb, int cb);
-uint NLog2(uint n);
+uint CeilLog2(uint n);
 void BuildSimpleProjectionMatrix(float, float, float, float, float, float, MATRIX4 *pmat);
 void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
@@ -125,8 +125,8 @@ extern "C" void InitRenderTargets(RT *pt, GSB *px)
     pt->tex0.fields.tbw = tbw;
     pt->tex0.fields.psm = 0;
     tbp >>= 5;
-    pt->tex0.fields.tw = NLog2(pt->dx);
-    pt->tex0.fields.th = NLog2(pt->dy);
+    pt->tex0.fields.tw = CeilLog2(pt->dx);
+    pt->tex0.fields.th = CeilLog2(pt->dy);
     pt->tex0.fields.tcc = 1;
     int zbp = (px->ibMax - 0x100) >> 5;
     GIFS gifs;

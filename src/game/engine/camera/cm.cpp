@@ -1,12 +1,12 @@
 // cm.cpp -- the camera (CM, the global g_cm at D_002DDF40): construction with its embedded policies, setup, the
 // view matrix / frustum / fog setters, the visibility zone, adjustment and cuts, the policy stack, the camera
-// filters. TU 0x14D3D8..0x14FAC8 (53 functions, address order), then the inline ~CM body func_00258290 (defined
+// filters. TU 0x14D3D8..0x14FAC8 (53 functions, address order), then the inline ~CM body DestroyCm (defined
 // after its callers: the linkonce copy 0x258290); the matrix setter 0x256278 is an inline function in sly2/cm.h.
 //
 // Types: sly2/cm.h's CM and policy classes for the m2c bodies; the hand-written per-function files keep their views
 // in namespaces named after each function (as jt.cpp does), and their C++-named definitions are C-linkage
 // definitions of their literal symbols there (the namespace would change the mangling), as in wave 9.
-// g_cm is defined here: its constructor (CM_ctor) and destructor (func_00258290, ~CM with g++'s in-charge flag 2)
+// g_cm is defined here: its constructor (CM_ctor) and destructor (DestroyCm, ~CM with g++'s in-charge flag 2)
 // make the static initializer a constructor-and-destructor one (86 instructions) with a _GLOBAL_$D$ stub
 // (func_0014FAA8) next to the _GLOBAL_$I$ one.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cm
@@ -24,13 +24,13 @@
 struct CMG;
 extern "C" {
 CM *CM_ctor(CM *pcm);
-void func_00258290(CMG *pcm, int grfDelete);   /* ~CM (linkonce, below) */
+void DestroyCm(CMG *pcm, int grfDelete);   /* ~CM (linkonce, below) */
 }
 struct CMG
 {
     char ab[sizeof(CM)];
     CMG() { CM_ctor((CM *)this); }
-    ~CMG() { func_00258290(this, 2); }
+    ~CMG() { DestroyCm(this, 2); }
 } __attribute__((aligned(16)));
 CMG D_002DDF40;
 #define G_CM (*(CM *)&D_002DDF40)
@@ -930,7 +930,7 @@ int func_00118668(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c,
 int MergeSegmentLists(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f);
 // Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap
 // > duMin in *puFrom/ *puTo.
-int FFindCmClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
+int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
 {
     struct HIT ahit[0x40];
     int c = 0;
@@ -973,7 +973,7 @@ typedef int qword __attribute__((mode(TI)));
 extern "C" {
 extern int D_002BD8B0[];
 qword SetVectorSphere(float pan, float tilt, float s);
-int FFindCmClearInterval(void *p, void *x, qword a, qword b, float *pt, float *pu, float g);
+int FindCameraClearInterval(void *p, void *x, qword a, qword b, float *pt, float *pu, float g);
 qword FindCmClosestClearPos(void *p, void *x, qword pos, float g);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -1010,7 +1010,7 @@ qword FindCmClosestClearPos(void *p, void *x, qword pos, float g)
         for (j = 0; j < c; j++) {
             qword dir = SetVectorSphere((float)j * 3.1415927f / (float)c, tilt, 1.0f);
             qword test = AddScaled(pos, dir, VU_FLOAT(g));
-            if (FFindCmClearInterval(p, x, pos, test, &t, &u, dg + dg)) {
+            if (FindCameraClearInterval(p, x, pos, test, &t, &u, dg + dg)) {
                 if (0.0f < t)
                     t += dg;
                 if (t < gBest) {
@@ -1554,7 +1554,7 @@ typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0xA0]; qword r[3]; };
 // True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags.
 // (inferred)
-int FInsideCmFrustum(struct X *p, qword v, qword w)
+int IsInCameraFrustum(struct X *p, qword v, qword w)
 {
     qword one;
     int f;
@@ -1569,7 +1569,7 @@ namespace M_FInsideCmMrd { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct P { int pad[7]; float cullScale; };
 // True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) (inferred)
-int FInsideCmMrd(struct P *p, qword v, float g, float *pu)
+int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
 {
     qword l, one;
     float l2, r, r2, d2;
@@ -1601,7 +1601,7 @@ typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x1
 void DestroyBasic(S *, int);
 // The CM destructor (an inline, emitted linkonce): releases the policies' four sound references in reverse member
 // order, then runs the base destructor (func_00258348, shared with SW and the screens) with the in-charge flag.
-inline void func_00258290(S *p, int x)
+inline void DestroyCm(S *p, int x)
 {
     if (p->zoomSound2) p->zoomSound2->vt->f((char *)p->zoomSound2 + p->zoomSound2->vt->d);
     if (p->zoomZoomSound) p->zoomZoomSound->vt->f((char *)p->zoomZoomSound + p->zoomZoomSound->vt->d);

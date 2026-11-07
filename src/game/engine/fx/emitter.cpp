@@ -493,10 +493,10 @@ extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTERV *pemitter, MSG
 #define SLY2_ENUM_ENSK
 enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 #endif
-EMITTERV * PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk) __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
+EMITTERV * EnsureEmitter(EMITTERV *pemitter, ENSK ensk) __asm__("EnsureEmitter__FP7EMITTER4ENSK");
 // Accessor used by the property system: returns the emitter, marking it dirty (values changed) when the access is a
 // write.
-EMITTERV *PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk)
+EMITTERV *EnsureEmitter(EMITTERV *pemitter, ENSK ensk)
 {
     if (ensk == ENSK_Set) {
         pemitter->fDirty = ensk;
@@ -935,7 +935,7 @@ void *PsndStartSound(int id);
 void SetSndSourceLo(void *p, SO *pso);
 void SetSndRange(void *p, float a, float b);
 void RcPtr_Assign(void *pp, void *p);
-RIP *PripNewRipg(void *p, int k, int x);
+RIP *NewRipInGroup(void *p, int k, int x);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void EmitParticlesAt(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
 }
@@ -1011,7 +1011,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
             }
         }
         if (shouldWake && water->rippleObject) {
-            RIP *ripple = PripNewRipg(D_003DD490 /* g_sw */, 7 /* ripple kind */, 0);
+            RIP *ripple = NewRipInGroup(D_003DD490 /* g_sw */, 7 /* ripple kind */, 0);
             if (ripple) {
                 EVT *pvte = &ripple->pvt->a[1];
                 pvte->pfn((char *)ripple + pvte->d, scale, v, 0);
@@ -1457,10 +1457,10 @@ public:
 struct EMITX { void *ppblipg; SO **ppripg; void *subscriber; };   /* EMITG */
 extern "C" {
 extern char D_003DD490[];
-SO *PripgNew(void *p, int n);
+SO *NewRipGroup(void *p, int n);
 void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITBV *pemit);
 void SubscribeLoObject(SO *pso, void *p);
-RIPV *PripNewRipg(void *p, int n, SO *pso);
+RIPV *NewRipInGroup(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITBV *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
@@ -1477,7 +1477,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *e
     if (emitg && emitg->ppripg)
         ripGroup = *emitg->ppripg;
     if (!ripGroup) {
-        ripGroup = PripgNew(D_003DD490, emitb->ripGroupKind);
+        ripGroup = NewRipGroup(D_003DD490, emitb->ripGroupKind);
         if (!ripGroup)
             return;
         if (emitg && emitg->ppripg)
@@ -1488,7 +1488,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *e
     }
     if (!ripGroup)
         return;
-    for (i = 0; i < count && (rip = PripNewRipg(D_003DD490, emitb->ripKind, ripGroup)) != 0; i++) {
+    for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->ripKind, ripGroup)) != 0; i++) {
         rip->Set(positions[i], GRandInRange__Fff(emitb->scaleMin, emitb->scaleMax), emitb->pshd->touch);
         if (emitb->scaleSlope != 0.0f || emitb->scaleCurve != 0.0f) {
             rip->scaleSlope = emitb->scaleSlope;
@@ -1555,7 +1555,7 @@ struct CM { char pad[0x70]; qword dir; };
 extern "C" {
 extern CM D_002DDF40;
 extern char D_003DD490[];
-PRG *PblipgNew(void *pv);
+PRG *NewBlipGroup(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
 BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
@@ -1585,7 +1585,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px,
     if (px && px->ppprg)
         pprg = *px->ppprg;
     if (!pprg) {
-        pprg = PblipgNew(D_003DD490);
+        pprg = NewBlipGroup(D_003DD490);
         if (!pprg)
             return;
         if (px && px->ppprg)

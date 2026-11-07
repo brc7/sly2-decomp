@@ -1862,7 +1862,7 @@ struct CID105 : SO
     virtual void Init() __asm__("InitTrail");   /* slot 7 */
     virtual void VUnk14() __asm__("PostTrailLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateTrail");   /* slot 16 */
-    virtual void VUnk16() __asm__("func_0021C1C8");   /* slot 17 */
+    virtual void VUnk16() __asm__("ProjectTrailTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderTrail");   /* slot 19 */
 };
 typedef char assert_CID105_size[sizeof(CID105) == 0x1A0 ? 1 : -1];

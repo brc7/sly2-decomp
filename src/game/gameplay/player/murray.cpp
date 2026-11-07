@@ -3960,7 +3960,7 @@ int CanJtUseGadgetInAir(void *p, int k);
 int CanJtUseGadgetInGrab(void *p, int k);
 int CanJtUseGadgetOnPipe(void *p, int k);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int FActiveCplcy__FP5CPLCY(void *p);
+int IsCameraPolicyActive__FP5CPLCY(void *p);
 /** @sly2-annot addr=0x1B98A0
  * Purpose: MURRAY vt99: can gadget/power k be used in the current state (per-state allow lists, components
  *   2/13/20)
@@ -3995,7 +3995,7 @@ int FCanUseGadget__6MURRAYi(struct P *p, int k)
     case 3:
     {
         int r = 0;
-        if (p->x12F0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+        if (p->x12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
         return r;
     }
     case 22:

@@ -2529,7 +2529,7 @@ extern "C" void EndTask(O *task)
 /** @sly2-annot addr=0x164018
  * Purpose: p == g_sw+0x3B10
  * Info: proposed name IsCurrentTask (T1); TU game
- * Notes: names_v2 C proposed FActiveCplcy__FP5CPLCY (0.638)
+ * Notes: names_v2 C proposed IsCameraPolicyActive__FP5CPLCY (0.638)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r3b_rest
  * See: docs/engine/game-progression.md#8-key-functions,
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270

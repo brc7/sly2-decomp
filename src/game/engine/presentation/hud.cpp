@@ -3298,7 +3298,7 @@ struct S { char pad[0x84]; float lineHeight; };
 int WrapRichText2Lines(struct S *p);
 float GetRichText2MaxLineWidth(struct S *p);
 /** @sly2-annot addr=0x216260
- * Purpose: dx = DxMaxLine, dy = lines*lineheight
+ * Purpose: dx = GetMaxLineWidth, dy = lines*lineheight
  * Info: proposed name CRichText_GetExtents (T1); class CRichText; TU hud
  * Notes: names_v2 C proposed PostNoteLoad__FP4NOTE (0.521)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r7c_hud

@@ -479,7 +479,7 @@ int HasCameraBsp(void *pv, SO *pso);
 void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
 qword ConvertCmWorldToScreen(CM *pcm, qword pos);
 qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
-int FFindCmClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
+int FindCameraClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
 qword FindCmClosestClearPos(int, SOPART **, qword, float);
 qword SquishCmEye(CM *, int, SOPART **, float (*)(void *, qword, qword, PLANEREC *), qword, qword, float, float);
 void InitVuTemp(void *p);
@@ -1556,7 +1556,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 // Every D_002C4110 (0.5) seconds it looks at five points around the hero (PosLoWorld + back * x + side * y + up * z
 // for the five offsets in D_002C4290; side = normalize(up x (hero - eye)) or (1, 0, 0) when the hero is straight
 // above). Each point is projected onto the screen, moved to the near clip depth and the segment between the two is
-// tested against the camera hulls (FFindCmClearInterval). The first visible point resets tLastSeen; when the hero
+// tested against the camera hulls (FindCameraClearInterval). The first visible point resets tLastSeen; when the hero
 // has been hidden for more than D_002C4114 (2.0) seconds the camera cuts (CutCm).
 // MATCH notes (Lilly's agent, T1578): STACKSCOPE needs its real out-of-line ctor/dtor (an inline wrapper calling
 // STACKSCOPE_ctor makes gcc keep hi(g_clock) in $fp). Loop 1 keeps a pointer to the current sample and loop 2 starts
@@ -1653,7 +1653,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
         ((VECTOR4 *)&aqw[2])->z = D_002DDF40.sNearClip;
         aqw[2] = ConvertCmScreenToWorld(&D_002DDF40, aqw[2]);
         float uExit;
-        if (FFindCmClearInterval(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
+        if (FindCameraClearInterval(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
         {
             pcmpart->tLastSeen = D_002DDED0.t;
             break;
@@ -1709,7 +1709,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
     IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,HasCameraBsp,0,&w.count,&w.objects);
     int count=w.count; SOPART **objects=w.objects;
     w.origin.q=FindCmClosestClearPos(count,objects,GetLoWorldPos(object),500.0f);
-    FFindCmClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
+    FindCameraClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
     if(w.high<one){
         float angle=initialAngle;
         p->state=4;
@@ -1720,7 +1720,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
             qword off=SetVectorCylind(w.phase+angle,w.radius,w.height);
             w.offset.q=off;
             w.rayEnd.q=Add(begin,off);
-            FFindCmClearInterval(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
+            FindCameraClearInterval(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
             float cost=(1.25f-w.high)*(GAbs(angle)+0.47123894f);
             if(cost<bestCost){
                 float left=1.0f-w.high;
@@ -1737,7 +1737,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
     final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,D_002DDF40.sNearCorner,D_002DDF40.sNearCorner));
-    FFindCmClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
+    FindCameraClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;
         qword left=ScalarHome(w.offset,1.0f-u);

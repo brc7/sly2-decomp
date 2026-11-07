@@ -245,7 +245,7 @@ struct SW : public BASIC
       SLOTHEAP slotheapSsge;   /* SSGE records */
       SLOTHEAP slotheapJsg; /* +0x40D0 [S] JSG slot heap (relay.cpp allocates / frees JSGs); was _pad_323 */
       SLOTHEAP slotheapXa;   /* XA records */
-      SL slShd;             /* +0x4100 [S] draft name: the loaded shaders (LoadShadersFromBrx appends, PshdFindShader walks); was _pad_325 */
+      SL slShd;             /* +0x4100 [S] draft name: the loaded shaders (LoadShadersFromBrx appends, FindShader walks); was _pad_325 */
       SL slSaa;             /* +0x410C [S] draft name: every SAA (shdanim.cpp appends, shd.cpp walks) */
       SLOTHEAP slotheapZprHit;   /* zap (damage) hit records */
       DL dlZprHit;   /* zap hits this frame */

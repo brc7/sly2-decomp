@@ -85,7 +85,7 @@ struct POLY { float a, b, c; };
 struct S150 { int unknown0; float inverseLifetime; int unknown8; };
 typedef union { qwordV q; struct { long l; int n; int pad; } s; } GE;
 
-/* The blip group (CID 0x1C, an XFM; 0x460 bytes, PblipgNew clears it). */
+/* The blip group (CID 0x1C, an XFM; 0x460 bytes, NewBlipGroup clears it). */
 struct BLIPGV
 {
     int basic0, basic4, basic8;
@@ -270,7 +270,7 @@ void RemoveBlip(BLIPV *pblip)
 
 // Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11
 // AddHierarchy, vt15 PostLoad.
-extern "C" BLIPGV *PblipgNew(SW *psw)
+extern "C" BLIPGV *NewBlipGroup(SW *psw)
 {
     BLIPGV *p;
     int i;
@@ -771,7 +771,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
 
 // RenderBlipgSelf: light-list VU upload (Claude agent for Lilly, T1676; built on the team's v2..v14 drafts).
 // Collects the lights of p->plo's list whose position (PosLoWorld 0x1A62E8 + PmatLoWorld 0x1A6318 rotating p->boundsCenter)
-// passes the camera tests FInsideCmFrustum / FInsideCmMrd, as LIGHTMs in a stack array (or the single D_002A2D30 when the
+// passes the camera tests IsInCameraFrustum / IsWithinCameraRenderDistance, as LIGHTMs in a stack array (or the single D_002A2D30 when the
 // list check fails), then uploads each light per DMA queue through the VIF helpers.
 // Matching notes (gather loop, the last diffs; found with sched1/sched2/local-alloc dumps):
 //  * The g100 lw must issue after the &D_002DDF40 addiu in sched1 (else lw and lui overlap and the lui gets v1):
@@ -798,8 +798,8 @@ void *AllocFromStack(const AL &al);
 int IsLoInWorld(LOV *plo);
 qwordV GetLoWorldPos(LOV *plo);
 M3 *GetLoWorldMatrix(LOV *plo);
-int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
-int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
+int IsInCameraFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
+int IsWithinCameraRenderDistance(CMV *pcm, qwordV d, float g, float *pg);
 DMA *AllocRenderListEntry(void);
 }
 static inline void *PvAllocStack(int cb) { return AllocFromStack(AL(cb, 0x10)); }
@@ -855,10 +855,10 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             int z; __asm__("" : "=r"(z) : "r"(pcm));
             qwordV d = VuSub(AddZ(RotKZ(mat, v, vf.q, z), pos, z), pcm->pos);
             __asm__("" : "+j"(d)); /* empty asm: extra refs so d is caller-saved in vf1 */
-            if (!FInsideCmFrustum(&D_002DDF40, d, vf))
+            if (!IsInCameraFrustum(&D_002DDF40, d, vf))
                 goto next;
             float g;
-            if (!FInsideCmMrd(&D_002DDF40, d, plo->sBusy, &g))
+            if (!IsWithinCameraRenderDistance(&D_002DDF40, d, plo->sBusy, &g))
                 goto next;
             VECTOR_opAssign(&pl->x30, pos);
             cLight++;
@@ -880,7 +880,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
         qwordV v = blipGroup->boundsCenter;
         __asm__("" : "+j"(v)); /* empty asm: keeps boundsCenter in a pseudo */
         VU_FLOATR vf(blipGroup->boundsRadius);
-        if (!FInsideCmFrustum(pcm, SubE(v, pcm->pos), vf))
+        if (!IsInCameraFrustum(pcm, SubE(v, pcm->pos), vf))
             goto none;
         cLight = 1;
         aLight = &D_002A2D30;

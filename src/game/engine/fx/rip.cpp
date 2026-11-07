@@ -169,7 +169,7 @@ void AppendSlEntry(void *pl, void *pv);
 // Returns kind rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
 // kind kind new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then kind RIPG (its GLOBSET included),
 // linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
-struct O *PripgNew(struct G *sw, int kind)
+struct O *NewRipGroup(struct G *sw, int kind)
 {
     struct O *ripGroup;
     if (!kind && sw->defaultRipGroup) return sw->defaultRipGroup;
@@ -672,17 +672,17 @@ struct R { int a, b; void *p8; };
 struct G { char pad[0x4054]; char pool[4]; };
 struct Q { char pad[0x15C]; char dl[4]; };
 extern char D_003DD490[];
-struct Q *PripgNew(void *pg, int n);
+struct Q *NewRipGroup(void *pg, int n);
 void *PvAllocSlotheapClear(void *pool);
 struct R *PvtripFromRipt(void *pv, void *a);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void AddRipRef__FP3RIP(struct R *r);
 // Allocate a RIP from the rip pool (g_sw.slotheapRefnode?), construct by type, link into RIPG dlRip, AddRipRef.
-struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
+struct R *NewRipInGroup(struct G *p, void *a, struct Q *q)
 {
     void *pv;
     struct R *r;
-    if (!q) q = PripgNew(D_003DD490, 0);
+    if (!q) q = NewRipGroup(D_003DD490, 0);
     if (!q) return 0;
     pv = PvAllocSlotheapClear(p->pool);
     if (pv) {
@@ -1632,8 +1632,8 @@ extern "C" { extern G D_002DDF40; }
 extern "C" { extern struct CLOCK { float t,dt; } D_002DDED0; }
 extern "C" { extern struct LIMIT { float lo,hi; } D_002BBB60; }
 extern "C" {
-int FInsideCmFrustum(G*,qword,qword);
-int FInsideCmMrd(G*,qword,float,float*);
+int IsInCameraFrustum(G*,qword,qword);
+int IsWithinCameraRenderDistance(G*,qword,float,float*);
 M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
 void RenderLoAtMatrix(LO*,const M4&,float,float);
 int FRenderRipPosMat(S*,qword,const M3&);
@@ -1673,9 +1673,9 @@ int FRenderRipPosMat(S *p, qword pos, const M3 &mat)
     float size = Poly(&p->size, t);
     G *pg = &D_002DDF40;
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(delta) : "j"(pos), "j"(pg->pos));
-    if (!FInsideCmFrustum(pg, delta, BcG(size * 100.0f)))
+    if (!IsInCameraFrustum(pg, delta, BcG(size * 100.0f)))
         return 1;
-    if (!FInsideCmMrd(pg, delta, p->lo->radius, &proj))
+    if (!IsWithinCameraRenderDistance(pg, delta, p->lo->radius, &proj))
         return 0;
     if (alpha < 0.0001f && size < 0.0001f)
         return 1;
@@ -1817,7 +1817,7 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003DD490[]; }
 extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
 extern "C" {
-O *PripNewRipg(void*,void*,void*);
+O *NewRipInGroup(void*,void*,void*);
 qword TransformXfPos(void*,LO*,qword);
 float GRandInRange__Fff(float,float);
 void GetNormalVectors(qword,qword,qword,qword*);
@@ -1867,12 +1867,12 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
             : "=j"(r.r[2])
             : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
-// Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation. (inferred)
+// Spawn a STUCK rip (NewRipInGroup) attached to the hit object at the contact point/orientation. (inferred)
 O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
 {
     O *object = 0;
     if (visual) {
-        object = PripNewRipg(D_003DD490, (void *)10, 0);
+        object = NewRipInGroup(D_003DD490, (void *)10, 0);
         if (object) {
             float zero = 0.0f;
             U local;
@@ -2392,7 +2392,7 @@ extern "C" { extern float D_002C1FC0[2],D_002C1FE0[2],D_002BBB60[2]; }
 extern "C" { extern const qword D_002A2DA0,D_002A2DC0; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *);
-int FInsideCmFrustum(CAMERA *,qword,qword);
+int IsInCameraFrustum(CAMERA *,qword,qword);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 BuildAxisAngleRotationMatrix(qword,float);
 M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
@@ -2468,7 +2468,7 @@ extern "C" void RenderGlint(RIP *rip)
     float time = (D_002DDED0.time - rip->start) / rip->duration;
     float distance = Length(direction) * 0.001f;
     float size = Evaluate(rip->size, time) * Clamp(Evaluate(D_002C1FB0, distance), D_002C1FC0[0], D_002C1FC0[1]);
-    if (!FInsideCmFrustum(&D_002DDF40, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
+    if (!IsInCameraFrustum(&D_002DDF40, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
         RemoveRip__FP3RIP(rip);
         return;
     }
@@ -2887,7 +2887,7 @@ typedef struct {
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
 int ClipEdgeToObject(void *, qword, qword, int, HIT *);
-EMIT *PripNewRipg(struct G *, int, int);
+EMIT *NewRipInGroup(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
 // RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
 // the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
@@ -2905,7 +2905,7 @@ void UpdateRipt1(OBJ *object, int isTouching)
             goto found;
     }
 found:
-    ripple = PripNewRipg(&D_003DD490, 7, 0);
+    ripple = NewRipInGroup(&D_003DD490, 7, 0);
     if (ripple) {
         ripple->vt->a[1].pfn((char *)ripple + ripple->vt->a[1].d, 40.0f, hit.pos, 0);
         ripple->duration = 0.75f;

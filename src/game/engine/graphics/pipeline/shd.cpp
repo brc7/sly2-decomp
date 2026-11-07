@@ -89,7 +89,7 @@ void ColorCorrectRgba(RGBAV *prgba);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 void *memset(void *pv, int n, unsigned int cb);
 void *FindShaderById();
-int NLog2__FUi(int n);
+int CeilLog2__FUi(int n);
 }
 void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS *pgifs);
 
@@ -1011,7 +1011,7 @@ struct E { int oid; char pad[0x28]; };
 extern int D_003DCFE8;
 extern struct E *D_003DCFEC;
 // Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL. (inferred)
-struct E *PshdFindShader(int oid)
+struct E *FindShader(int oid)
 {
     int i;
     if (oid == -1) return 0;
@@ -1128,8 +1128,8 @@ void BuildBmpTex0(BMP *pbmp, int tbp)
     pbmp->tex0.TBP0 = tbp;
     pbmp->tex0.TBW = pbmp->cbw;
     pbmp->tex0.PSM = pbmp->psm;
-    pbmp->tex0.TW = NLog2__FUi(pbmp->cx);
-    pbmp->tex0.TH = NLog2__FUi(pbmp->cy);
+    pbmp->tex0.TW = CeilLog2__FUi(pbmp->cx);
+    pbmp->tex0.TH = CeilLog2__FUi(pbmp->cy);
     pbmp->tex0.TCC = 1;
 }
 
@@ -1167,7 +1167,7 @@ void AddDmaRefs__4DMASiP2QW(struct X *, int, int);
 void AddClutToHash(struct E1 *);
 void AddBitmapToHash(struct E2 *);
 // Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added.
-int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gifs)
+int BuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gifs)
 {
     int countBefore = 0;
     int i, j;

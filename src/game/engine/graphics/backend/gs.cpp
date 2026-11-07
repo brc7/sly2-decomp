@@ -111,7 +111,7 @@ void EnterCritSect(CRITSECT *pcs);                                  /* EnterCrit
 void LeaveCritSect(CRITSECT *pcs);                                  /* LeaveCritSect__FP8CRITSECT */
 void InitCritSect(CRITSECT *pcs);                                   /* InitCritSect__FP8CRITSECT */
 int SemaCreate(int a, int b);                                       /* SemaCreate__Fii */
-int FBuildUploadBitmapGifs(int f, GSB *pgsb, GIFS *pgifs);          /* FBuildUploadBitmapGifs__FiP3GSBP4GIFS */
+int BuildUploadBitmapGifs(int f, GSB *pgsb, GIFS *pgifs);          /* BuildUploadBitmapGifs__FiP3GSBP4GIFS */
 
 void BlendDisplayOnBufferMismatch();
 int VBlankS_Interrupt(int ch);
@@ -547,7 +547,7 @@ void ClearFrameBuffers()
 SLY2_SCRAP("addiu $sp, $sp, 0x4d0");
 
 // Returns ceil(log2(value)) (0 for 0 and 1, at most 31): used for texture width/height exponents.
-uint NLog2(uint value)
+uint CeilLog2(uint value)
 {
     uint log2 = 0;
     uint bit = 1;
@@ -667,7 +667,7 @@ void UploadBitmaps(GSB *gsb)
     STACKSCOPE_ctor(&mk);
     gifs.AllocSw(((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
     gifs.AddDmaCnt();
-    if (FBuildUploadBitmapGifs(1, gsb, &gifs)) {
+    if (BuildUploadBitmapGifs(1, gsb, &gifs)) {
         gifs.AddPrimPack(0, 1, 0xE);
         gifs.PackAD(0x3F, 0);
         gifs.PackAD(0x61, 0);
@@ -682,5 +682,5 @@ void UploadBitmaps(GSB *gsb)
 // Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) (inferred)
 extern "C" void AllocGsbBitmaps(GSB *gsb)
 {
-    FBuildUploadBitmapGifs(1, gsb, 0);
+    BuildUploadBitmapGifs(1, gsb, 0);
 }
