@@ -3515,30 +3515,28 @@ void DetachStepguard(STEPGUARD *guard)
 
 // 0x20B2A8 AttachStepguard
 namespace M_func_0020B2A8 { extern "C" {
-struct ATTACHOBJ; struct S;
-typedef int qword __attribute__((mode(TI)));
-struct ATTACHOBJ { char pad[0x124]; int unknown124; };
-struct S { char pad[0xF80]; int attachKind; struct ATTACHOBJ *attachObject; int attachParam; int attachArg; void *attachAnchor; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct ATTACHOBJ *object, int cid);
+struct ATTACHOBJ;
+struct ATTACHOBJ { char pad[0x124]; int unknown124; };   /* the cid 0x13 class's mode word (not a guard type) */
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid);
 qword GetLoWorldPos(void *p);
-void FindShapeClosestPoint(struct ATTACHOBJ *shape, qword pos, int a, int b, int c, int d, int *param);
-void LinkStepAttachment(struct S *guard, struct ATTACHOBJ *object, int attach);
+void FindShapeClosestPoint(LO *shape, qword pos, int a, int b, int c, int d, float *param);
+void LinkStepAttachment(STEPGUARD *guard, LO *object, int attach);
 
 // 0x20B2A8: Attaches the guard to an object, choosing the attach kind by class: pipe (cid 0xB), rail (cid 0xD), cid
 // 0x13, cid 0x27 (inferred nouns).
-void AttachStepguard(struct S *guard, struct ATTACHOBJ *object, int arg)
+void AttachStepguard(STEPGUARD *guard, LO *object, int arg)
 {
     guard->attachObject = object;
-    guard->attachArg = arg;
+    guard->isMovingForward = arg;
     if (IsBasicDerivedFrom__FP5BASIC3CID(object, CID_PIPE)) {
         guard->attachKind = 1;
-        FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard->attachAnchor), 0, 0, 0, 0, &guard->attachParam);
+        FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard->attachPoint), 0, 0, 0, 0, &guard->attachParam);
         LinkStepAttachment(guard, guard->attachObject, 1);
     } else if (IsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_RAIL)) {
         guard->attachKind = 0;
         FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard), 0, 0, 0, 0, &guard->attachParam);
         LinkStepAttachment(guard, guard->attachObject, 1);
-    } else if (IsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && guard->attachObject->unknown124 == 3) {
+    } else if (IsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS19) && ((struct ATTACHOBJ *)guard->attachObject)->unknown124 == 3) {
         guard->attachKind = 2;
         LinkStepAttachment(guard, guard->attachObject, 1);
     } else if (IsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, CID_CLASS39)) {
@@ -3592,83 +3590,68 @@ extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 }
 
 // 0x20B4A8 InitGuardManager
-namespace M_func_0020B4A8 { extern "C" {
-struct S;
-struct S { char pad[0x40]; int flags40; };
-void InitLo(struct S *manager);
-void SetLoBusyKind(struct S *manager, int busyk);
-} } // namespace M_func_0020B4A8
 // 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
-void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *manager = (M_func_0020B4A8::S *)this;
+void CID125::Init()
+{
+    CID125 *manager = this;
     int flags;
-    InitLo(manager);
-    flags = manager->flags40;
+    LO::Init();
+    flags = manager->unknown40;
     if (!(flags & 1))
         *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
     else
-        manager->flags40 = flags | 2;
+        manager->unknown40 = flags | 2;
     SetLoBusyKind(manager, 1);
 }
 
 // 0x20B500 PostGuardManagerLoad
 namespace M_func_0020B500 { extern "C" {
-struct ALLOCREQ; struct S;
-struct G;
-extern struct G D_003DD490;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
-struct S { char pad[0x50]; int guardCount; void **guards; };
-void PostLoLoad(struct S *manager);
-int FindSwObjectsByClass(struct G *sw, int a, int cid, int c, int maxCount, void **objects);
+int FindSwObjectsByClass(void *sw, int a, int cid, int c, int maxCount, STEPGUARD **objects);
 void *AllocFromWorldHeap(ALLOCREQ *request);
+} }
 // 0x20B500: Guard manager vtable slot 15 (PostLoad): lists every guard (cid 0x38) in the world.
-void PostGuardManagerLoad(struct S *manager)
+void CID125::PostLoad()
 {
+    using namespace M_func_0020B500;
+    CID125 *manager = this;
     ALLOCREQ request;
-    PostLoLoad(manager);
-    manager->guardCount = FindSwObjectsByClass(&D_003DD490, 0x605, CID_STEPGUARD, 0, 0, 0);
+    LO::PostLoad();
+    manager->guardCount = FindSwObjectsByClass(D_003DD490, 0x605, CID_STEPGUARD, 0, 0, 0);
     request.cb = manager->guardCount * 4;
     request.nKind = 0x10;
-    manager->guards = (__typeof__(manager->guards))AllocFromWorldHeap(&request);
-    FindSwObjectsByClass(&D_003DD490, 0x405, CID_STEPGUARD, 0, manager->guardCount, manager->guards);
+    manager->guards = (STEPGUARD **)AllocFromWorldHeap(&request);
+    FindSwObjectsByClass(D_003DD490, 0x405, CID_STEPGUARD, 0, manager->guardCount, manager->guards);
 }
-} } // namespace M_func_0020B500
 
 // 0x20B590 UpdateGuardManager
 namespace M_func_0020B590 { extern "C" {
-struct VE; struct GUARD; struct S; struct MODEREC;
-struct VE { short d; short pad; void (*pf)(void *); };
-struct GUARD {
-    char pad0[0xC]; struct VE *vt; char pad1[0x28 - 0x10]; unsigned long loFlags; /* bit 60: in the world */
-    char pad2[0xF64 - 0x30]; void *detector; char pad3[0xFF8 - 0xF68]; float removalTime; int pad4; int removalMode;
-};
-struct S { char pad[0x50]; int guardCount; struct GUARD **guards; };
 struct MODEREC { int kind; int rest[27]; };
-extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DBC;
 extern const float D_002A88CC;
-void UpdateLo(struct S *manager);
-void *FindStepBehavior(struct GUARD *guard, int cid);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *bhv, struct MODEREC *mode);
-void ResetDetectorTargets(void *detector);
-
+void ResetDetectorTargets(DETECTOR *detector);
+} }
 // 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
 // removes them, mode 2 restarts their root behaviour and resets their detector.
-void UpdateGuardManager(struct S *manager)
+void CID125::Update()
 {
+    using namespace M_func_0020B590;
+    CID125 *manager = this;
     int i, count;
-    struct GUARD **guards;
-    UpdateLo(manager);
+    STEPGUARD **guards;
+    LO::Update();
     count = manager->guardCount;
     guards = manager->guards;
     for (i = 0; i < count; i++) {
-        struct GUARD *guard = guards[i];
-        if (((int)(guard->loFlags >> 60) & 1) && D_002DDED0.t - guard->removalTime > D_002C3DBC) {
+        STEPGUARD *guard = guards[i];
+        if (((int)(LO_FLAGS28(guard) >> 60) & 1) && D_002DDED0.time - guard->removalTime > D_002C3DBC) {
             switch (guard->removalMode) {
             case 0:
                 break;
             case 1:
-                guard->vt[9].pf((char *)guard + guard->vt[9].d);
+                guard->Remove();
                 break;
             case 2: {
                 void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
@@ -3678,8 +3661,8 @@ void UpdateGuardManager(struct S *manager)
                     mode.kind = 1;
                     SetBhvguardMode(bhv, &mode);
                 }
-                if (guard->detector)
-                    ResetDetectorTargets(guard->detector);
+                if (guard->pdetector)
+                    ResetDetectorTargets(guard->pdetector);
                 break;
             }
             }
@@ -3687,7 +3670,6 @@ void UpdateGuardManager(struct S *manager)
         }
     }
 }
-} } // namespace M_func_0020B590
 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

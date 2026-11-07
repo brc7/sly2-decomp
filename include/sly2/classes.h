@@ -1991,13 +1991,16 @@ typedef char assert_CID46_size[sizeof(CID46) == 0x120 ? 1 : -1];
 /* 125 CID125 (0x60): guard manager (oid 0x656); vtable 0x2DA3D8, 48 slots */
 struct CID125 : LO
 {
-    char pad50[0x60 - 0x50];
+    int guardCount;         /* +0x50 [S] the guards in the world (PostGuardManagerLoad) */
+    STEPGUARD **guards;     /* +0x54 [S] */
+    char pad58[0x60 - 0x58];
     virtual void Init() __asm__("InitGuardManager");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid125ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostGuardManagerLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateGuardManager");   /* slot 16 */
 };
 typedef char assert_CID125_size[sizeof(CID125) == 0x60 ? 1 : -1];
+typedef char assert_CID125_guards[SLY2_OFFSETOF(CID125, guards) == 0x54 ? 1 : -1];
 
 /* 129 WIDGET129 (0x220): WIDGET: objective counter (computed per frame); vtable 0x2DAD90, 50 slots */
 struct WIDGET129 : WIDGET
