@@ -2168,7 +2168,7 @@ float RadNormalize__Ff(float);
 void CalculateSinCos__FfPfT1(float, float *, float *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
 void RecalculateAsegBlend(CLIP *);
-void EvaluateShapeU(void *, float, qword *, qword *);
+void EvaluateShapeAtParam(void *, float, qword *, qword *);
 void UpdateJtHands(void *);
 void SetStepTargetHeadingFromVector(ACTOR *, qword);
 void SetStepTargetHeading(ACTOR *, float);
@@ -2514,7 +2514,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
     case 14: case 15: {
         U target;
         if (p->mode == 15)
-            EvaluateShapeU(p->source, p->parameter, &target.q, 0);
+            EvaluateShapeAtParam(p->source, p->parameter, &target.q, 0);
         else
             target.q = GetLoWorldPos(p->source);
         if (p->actor != D_002E1E40)
@@ -4000,7 +4000,7 @@ typedef union { qword q; float f[4]; } V;
 struct CONTEXT; struct OBJECT;
 struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
-void EvaluateShapeS(struct OBJECT *, float, V *, V *);
+void EvaluateShapeAtDistance(struct OBJECT *, float, V *, V *);
 qword ConvertAloPos(struct OBJECT *, struct OBJECT *, qword);
 float MeasureJumpTargetAtTime(void *, float);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
@@ -4023,7 +4023,7 @@ typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
 float MeasureJumpToPipe(struct S *s, float parameter) {
     V v; struct T t; float r;
     struct OBJECT *b = s->b;
-    EvaluateShapeS(b, parameter, &v, 0);
+    EvaluateShapeAtDistance(b, parameter, &v, 0);
     t.a = s->a;
     t.b = b;
     t.q = ConvertAloPos(0, b, v.q);
@@ -4340,10 +4340,10 @@ void ShouldKeepSoPair();
 void FilterJtObstruction();
 void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
 void FindShapeBestVertex(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
-float DuGetShapeSearchIncrement(CURVE *pcurve);
-float UFromShapeS(CURVE *pcurve, float s);
-float SMaxShape(CURVE *pcurve);
-float SFromShapeU(CURVE *pcurve, float u);
+float GetShapeParamSearchStep(CURVE *pcurve);
+float GetShapeParamAtDistance(CURVE *pcurve, float s);
+float GetShapeMaxDistance(CURVE *pcurve);
+float GetShapeDistanceAtParam(CURVE *pcurve, float u);
 void MinimizeRange__FPFPvf_fPvffffPfT6(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
 float MeasureJumpToRail(void *pv, float u);
 float MeasureJumpTargetAtTime(void *pv, float u);
@@ -4355,7 +4355,7 @@ void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv,
 void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t);
 void FindMeshClosestPoint(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
 int PredictMeshContact(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
-void EvaluateShapeS(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
+void EvaluateShapeAtDistance(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
 qword ConvertAloPos(void *pvFrom, void *pvTo, qword pos);
 float atan2f(float y, float x);                                 // atan2f
 void SetJtAirState(JTAIR *pjtair, int nKind, void *plo);
@@ -4456,8 +4456,8 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ctx.pcurve = curve;
             ctx.v = vLaunch.q;
             FindShapeBestVertex(curve, MeasureJumpToRail, &ctx, 0, 0, &uStart, 0);
-            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToRail, &ctx, uStart, DuGetShapeSearchIncrement(curve),
-                                              UFromShapeS(curve, 50.0f), UFromShapeS(curve, SMaxShape(curve) - 50.0f),
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToRail, &ctx, uStart, GetShapeParamSearchStep(curve),
+                                              GetShapeParamAtDistance(curve, 50.0f), GetShapeParamAtDistance(curve, GetShapeMaxDistance(curve) - 50.0f),
                                               &u, &g);
             if (curve != forcedTarget) {
                 if (g >= D_002BF8E0)
@@ -4480,7 +4480,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             vBest = vHit;
             uBest = u;
             tBest = t;
-            sBest = SFromShapeU(curve, uBest);
+            sBest = GetShapeDistanceAtParam(curve, uBest);
         }
 
         for (HOOK *phook = (*(HOOK **)&g_sw.dlTarget); phook; phook = phook->phookNext) {
@@ -4608,7 +4608,7 @@ LPartnerDone:
         float s, gCurve;
         pair.pjtair = air;
         pair.plo = curve;
-        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(curve) - 50.0f, &s,
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToPipe, &pair, sCur, 100.0f, 50.0f, GetShapeMaxDistance(curve) - 50.0f, &s,
                                           &gCurve);
         if (curve != forcedTarget) {
             if (D_002BF8E0 <= gCurve)
@@ -4620,7 +4620,7 @@ LPartnerDone:
         OBJCTX ctx;
         ctx.pjtair = air;
         ctx.plo = curve;
-        EvaluateShapeS(curve, s, &posTarget, 0);
+        EvaluateShapeAtDistance(curve, s, &posTarget, 0);
         ctx.v = ConvertAloPos(0, curve, posTarget.q);
         MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
@@ -4689,7 +4689,7 @@ LPartnerDone:
         ctx.pjtair = air;
         ctx.plo = curve;
         MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHideShape, &ctx, sCur, D_002BF918, 30.0f,
-                                          SMaxShape(curve) - 30.0f, &u, &g);
+                                          GetShapeMaxDistance(curve) - 30.0f, &u, &g);
         g = g * D_002BF90C;
         if (curve != forcedTarget) {
             if (g >= D_002BF8E0)

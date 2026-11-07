@@ -2925,7 +2925,7 @@ struct VE { short d; short pad; void (*pf)(void *, int, void *, qword, qword, qw
 struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *groundPosition; char pad3[0xF80 - 0x21C]; int attachKind; void *attachObject; float attachParam; int pad4; void *attachAnchor; /* (inferred) */ };
 extern qword D_002A2DA0;
 void IgnoreSoSlot59(struct S *p);
-void EvaluateShapeS(void *shape, qword *pos, qword *tangent, float s);
+void EvaluateShapeAtDistance(void *shape, qword *pos, qword *tangent, float s);
 qword GetLoWorldPos(void *p);
 qword *GetLoWorldMatrix(void *p);
 
@@ -2937,13 +2937,13 @@ void AddStepguardAttachContacts(struct S *guard)
     IgnoreSoSlot59(guard);
     switch (guard->attachKind) {
     case 0:
-        EvaluateShapeS(guard->attachObject, &pos, &tangent, guard->attachParam);
+        EvaluateShapeAtDistance(guard->attachObject, &pos, &tangent, guard->attachParam);
         guard->vt[82].pf((char *)guard + guard->vt[82].d, 0x22, guard->attachObject, pos, tangent, *guard->groundPosition);
         break;
     case 1: {
         struct VE *entry;
         void *self;
-        EvaluateShapeS(guard->attachObject, &pos, &tangent, guard->attachParam);
+        EvaluateShapeAtDistance(guard->attachObject, &pos, &tangent, guard->attachParam);
         entry = &guard->vt[82];
         self = (char *)guard + entry->d;
         entry->pf(self, 7, guard->attachObject, pos, tangent, GetLoWorldPos(guard->attachAnchor));

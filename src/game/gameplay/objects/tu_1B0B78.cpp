@@ -120,13 +120,13 @@ float GRandInRange__Fff(float, float);
 void GetVectorSphere(qwordV, float *, float *, float *);
 qwordV GetLoWorldPos(void *p);
 void FindShapeClosestPoint(SHAPE *, qwordV, void *, U *, U *, float *, float *);
-void FindShapeClosestPointFromU(SHAPE *, qwordV, void *, qwordV *, qwordV *, float *, float *, float);
-float DuGetShapeSearchIncrement(SHAPE *);
-float SMaxShape(SHAPE *);
-float UMinShape(SHAPE *);
-float UMaxShape(SHAPE *);
-float UWrapShape(SHAPE *, float);
-void EvaluateShapeU(SHAPE *, float, qwordV *, qwordV *);
+void FindShapeClosestPointFromParam(SHAPE *, qwordV, void *, qwordV *, qwordV *, float *, float *, float);
+float GetShapeParamSearchStep(SHAPE *);
+float GetShapeMaxDistance(SHAPE *);
+float GetShapeMinParam(SHAPE *);
+float GetShapeMaxParam(SHAPE *);
+float WrapShapeParam(SHAPE *, float);
+void EvaluateShapeAtParam(SHAPE *, float, qwordV *, qwordV *);
 LOV *FindClosestSwPo(SW *, qwordV);
 EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
@@ -233,9 +233,9 @@ void ResetCritter(CID96V *critter)
     SetStepSpinRatio((STEP *)critter, 1.0f);
     if (critter->walkPath) {
         SetCritterState(critter, CRITTER_WALK);
-        critter->pathU = UMinShape(critter->walkPath);
-        critter->pathStep = DuGetShapeSearchIncrement(critter->walkPath);
-        EvaluateShapeU(critter->walkPath, critter->pathU, &v, 0);
+        critter->pathU = GetShapeMinParam(critter->walkPath);
+        critter->pathStep = GetShapeParamSearchStep(critter->walkPath);
+        EvaluateShapeAtParam(critter->walkPath, critter->pathU, &v, 0);
         ((void (*)(void *, qwordV))critter->pvt[29].pfn)((char *)critter + critter->pvt[29].d, v);
     } else {
         SetCritterState(critter, CRITTER_IDLE);
@@ -379,9 +379,9 @@ void UpdateCritterPathFollow(CID96V *critter)
     if (!path)
         return;
     upos.q = GetLoWorldPos(critter);
-    FindShapeClosestPointFromU(path, upos.q, 0, 0, 0, &critter->pathU, 0, critter->pathU);
-    t = UWrapShape(path, critter->pathU + critter->pathStep);
-    if (t < UMinShape(path) || UMaxShape(path) < t) {
+    FindShapeClosestPointFromParam(path, upos.q, 0, 0, 0, &critter->pathU, 0, critter->pathU);
+    t = WrapShapeParam(path, critter->pathU + critter->pathStep);
+    if (t < GetShapeMinParam(path) || GetShapeMaxParam(path) < t) {
         if (critter->state == CRITTER_WALK)
             SetCritterState(critter, CRITTER_TURN);
     } else {
@@ -390,7 +390,7 @@ void UpdateCritterPathFollow(CID96V *critter)
         register qwordV k __asm__("$2");
         float gl;
         register int lengthBits __asm__("$3");
-        EvaluateShapeU(path, t, &v.q, 0);
+        EvaluateShapeAtParam(path, t, &v.q, 0);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v.q), "j"(upos.q));
         {
             register const qwordV *address __asm__("$2") = &D_002A2DA0.q;
@@ -497,13 +497,13 @@ void SetCritterState(CID96V *critter, int next)
         w.first.q = GetLoWorldPos(critter);
         if (critter->fleePath) {
             FindShapeClosestPoint(critter->fleePath, w.first.q, 0, &w.second, 0, &critter->pathU, &w.parameter);
-            float phase = DuGetShapeSearchIncrement(critter->fleePath);
+            float phase = GetShapeParamSearchStep(critter->fleePath);
             qwordV delta = VuSub(w.first.q, w.second.q);
             float speed = critter->fleeSpeed.value;
             float travel = FloatOf(LengthV(delta));
             critter->pathStep = phase;
             travel /= speed;
-            float end = SMaxShape(critter->fleePath);
+            float end = GetShapeMaxDistance(critter->fleePath);
             critter->fleeEndTime = D_002DDED0.t + travel + (end - w.parameter) / critter->fleeSpeed.value - critter->fadeTime;
         } else {
             LOV *near = FindClosestSwPo(&D_003DD490, w.first.q);

@@ -797,10 +797,10 @@ void GetGrabspotPositionNear(void *, ACTOR *, float *, U *, float *);
 qword PosSmooth(qword, qword, float, SMP *, U *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword SetVectorCylind(float, float, float);
-float SMinShape(FOCUS *);
-float SMaxShape(FOCUS *);
-float UMinShape(FOCUS *);
-float UMaxShape(FOCUS *);
+float GetShapeMinDistance(FOCUS *);
+float GetShapeMaxDistance(FOCUS *);
+float GetShapeMinParam(FOCUS *);
+float GetShapeMaxParam(FOCUS *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
 void SetJtHideFacingKind__FP2JT4HFDK(CONTEXT *, int) __asm__("SetJtHideFacingKind__FP2JT4HFDK");
 void SetStepTargetHeading(ACTOR *, float);
@@ -810,7 +810,7 @@ void SetJtGrabKind(CONTEXT *, int);
 void UpdateGaitBlend(PROGRAM *, float);
 void UpdateGaitFootsteps(PROGRAM *);
 void DrainStepplayerMp(ACTOR *, float);
-void FindShapeClosestPointFromU(FOCUS *, qword, void *, U *, U *, float *, float *, float);
+void FindShapeClosestPointFromParam(FOCUS *, qword, void *, U *, U *, float *, float *, float);
 void SetJtAirJump(void *, int, int, int);
 float atan2f(float, float);
 void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
@@ -948,8 +948,8 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             FOCUS *focus;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
                 float lo, hi;
-                GSmooth__FfffP3SMPPf(ctx->value, SMinShape(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
-                GSmooth__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
+                GSmooth__FfffP3SMPPf(ctx->value, GetShapeMinDistance(focus) + 30.0f, D_002DDED0.dt, &smp, &lo);
+                GSmooth__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 30.0f, D_002DDED0.dt, &smp, &hi);
                 s = GClamp(lateral, lo, hi);
             } else {
                 s = lateral;
@@ -1021,9 +1021,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     case 3: {
         FOCUS *focus = ctx->focus;
         U point, tangent;
-        FindShapeClosestPointFromU(focus, *ctx->actor->ppos, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
+        FindShapeClosestPointFromParam(focus, *ctx->actor->ppos, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
         if (focus->flags && !focus->cyclic &&
-            (ctx->parameter < UMinShape(focus) + 0.01f || UMaxShape(focus) - 0.01f < ctx->parameter)) {
+            (ctx->parameter < GetShapeMinParam(focus) + 0.01f || GetShapeMaxParam(focus) - 0.01f < ctx->parameter)) {
             SetJtAirJump(ctx->actor->control, 0, 0, 0);
             break;
         }
@@ -1084,7 +1084,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 GSmooth__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.dt, &smp, &limit);
                 limit = -limit;
             } else {
-                GSmooth__FfffP3SMPPf(ctx->value, SMaxShape(focus) - 50.0f, D_002DDED0.dt, &smp, &limit);
+                GSmooth__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 50.0f, D_002DDED0.dt, &smp, &limit);
             }
             float ratio = (limit - smp.svSlow) / (smp.svFast - smp.svSlow);
             float amount = joy->amount;
@@ -1407,7 +1407,7 @@ void SetBarrelState(SOURCE *, int);
 void SubscribeLoObject(SOURCE *, ACTOR *);
 void UnsubscribeLoObject(SOURCE *, ACTOR *);
 void LinkStepAttachment(ACTOR *, SOURCE *, int);
-void EvaluateShapeU(SOURCE *, float, qword *, qword *);
+void EvaluateShapeAtParam(SOURCE *, float, qword *, qword *);
 EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void RcPtr_Assign(EFFECT **, EFFECT *);
@@ -1559,7 +1559,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             SubscribeLoObject(source, grab->pactor);
             LinkStepAttachment(grab->pactor, source, 1);
             grab->index = -1;
-            EvaluateShapeU(source, grab->param, &grab->pactor->position, &tangent.q);
+            EvaluateShapeAtParam(source, grab->param, &grab->pactor->position, &tangent.q);
             dir.i[2] = 0;
             Normalize(&dir.q);
             qword normal = dir.q;   // read before the call: a VU pseudo spilled to 0x50
@@ -1934,10 +1934,10 @@ struct CLOCK {float t,dt;};
 extern struct CLOCK D_002DDED0;
 extern float D_002BF668;
 extern qword D_002A2DC0,D_002A2DD0;
-void EvaluateShapeU(struct CURVE*,float,qword*,qword*);
+void EvaluateShapeAtParam(struct CURVE*,float,qword*,qword*);
 qword SetVectorCylind(float,float,float);
-float SFromShapeU(struct CURVE*,float);
-float SMaxShape(struct CURVE*);
+float GetShapeDistanceAtParam(struct CURVE*,float);
+float GetShapeMaxDistance(struct CURVE*);
 float GSmooth__FfffP3SMPPf(float,float,float,struct SMP*,float*);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Reject(qword a,qword n){register qword d __asm__("vf2");qword one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"0"(d));return d;}
@@ -1960,7 +1960,7 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     qword v;
     float dot, current;
     struct T *shape = p->o->controller;
-    EvaluateShapeU(curve, t, &pos.q, &dir.q);
+    EvaluateShapeAtParam(curve, t, &pos.q, &dir.q);
     dir.q = Normal(Reject(dir.q, D_002A2DC0), D_002A2DD0);
     {
         register float width __asm__("$f0") = shape->x1C;
@@ -1969,12 +1969,12 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     }
     dot = Dot(v, dir.q);
     dead.q = v;
-    current = SFromShapeU(curve, t);
+    current = GetShapeDistanceAtParam(curve, t);
     smp.g1 = p->x260;
     smp.g0 = p->x2A0;
     smp.g2 = D_002BF668;
     (void)GSmooth__FfffP3SMPPf(current, 50.0f, D_002DDED0.dt, &smp, &low);
-    (void)GSmooth__FfffP3SMPPf(current, SMaxShape(curve) - 50.0f, D_002DDED0.dt, &smp, &high);
+    (void)GSmooth__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, D_002DDED0.dt, &smp, &high);
     {
         float hi = high;
         *outPos = Sub(pos.q, p->o->pos);
@@ -2002,10 +2002,10 @@ struct HIT { qword a; U b; qword c[4]; };
 struct P { char pad[0x4D4]; struct O *x4d4; int pad2[2]; float x4e0; int x4e4; };
 extern qword D_002A2DD0;
 void SetActRotationGoal(void *r, qword q);
-float SMinShape(struct O *o);
-float SMaxShape(struct O *o);
+float GetShapeMinDistance(struct O *o);
+float GetShapeMaxDistance(struct O *o);
 float GModPositive__Fff(float g, float hi);
-void EvaluateShapeS(struct O *o, float g, U *pv, int n);
+void EvaluateShapeAtDistance(struct O *o, float g, U *pv, int n);
 qword ConvertAloPos(int n, struct P *p, qword q);
 int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
 static __inline__ float GClamp(float g, float lo, float hi)
@@ -2039,13 +2039,13 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
     g = q->x10.f;
     if (grab->x4e4)
         g = -g;
-    lo = SMinShape(o);
-    hi = SMaxShape(o);
+    lo = GetShapeMinDistance(o);
+    hi = GetShapeMaxDistance(o);
     if (o->xe4)
         t = GModPositive__Fff(grab->x4e0 + g, hi);
     else
         t = GClamp(grab->x4e0 + g, lo, hi);
-    EvaluateShapeS(o, t, &v, 0);
+    EvaluateShapeAtDistance(o, t, &v, 0);
     v.q = ConvertAloPos(0, grab, v.q);
     if (ClipEdgeToSphere(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(hit.b.q), "j"(q->x10.q));
@@ -2070,10 +2070,10 @@ struct S { struct LO *x0; int x4; int x8; int xc; int x10; struct T *x14; int x1
 extern qword D_002A2DB0;
 qword GetLoWorldPos(void *p);
 M4 *GetLoWorldMatrix(struct LO *p);
-void FindShapeClosestPointFromU(struct T *t, qword a, struct PROJECTION *projection, qword *p0, qword *p1, float *pf0, float *pf1, float g);
-float SMinShape(struct T *t);
-float SMaxShape(struct T *t);
-void EvaluateShapeS(struct T *t, float g, qword *point, qword *direction);
+void FindShapeClosestPointFromParam(struct T *t, qword a, struct PROJECTION *projection, qword *p0, qword *p1, float *pf0, float *pf1, float g);
+float GetShapeMinDistance(struct T *t);
+float GetShapeMaxDistance(struct T *t);
+void EvaluateShapeAtDistance(struct T *t, float g, qword *point, qword *direction);
 static __inline__ float Dot(qword a, qword b)
 {
     qword d, t;
@@ -2121,7 +2121,7 @@ void UpdateJtInternalXpsHide(struct S *p)
         U v0, v1;
         struct T *t = p->x14;
         int k;
-        FindShapeClosestPointFromU(t, *p->x0->x218, 0, &v0.q, &v1.q, &p->x1c, &p->x20, p->x1c);
+        FindShapeClosestPointFromParam(t, *p->x0->x218, 0, &v0.q, &v1.q, &p->x1c, &p->x20, p->x1c);
         k = 0x22;
         if (t->x1bc == 0 && t->xe4 == 0) {
             U vel;
@@ -2134,13 +2134,13 @@ void UpdateJtInternalXpsHide(struct S *p)
             w=p->x0->x190;
             __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(w):"j"(m->row[0]),"j"(m->row[1]),"j"(m->row[2]));
             d1 = -Dot2(w, v1.q);
-            if ((d0 < -2.0f || d1 < 2.0f) && p->x20 < SMinShape(t) + 50.0f) {
+            if ((d0 < -2.0f || d1 < 2.0f) && p->x20 < GetShapeMinDistance(t) + 50.0f) {
                 k = 0x2A;
-                EvaluateShapeS(t, SMinShape(t) + 50.0f, &v0.q, 0);
-            } else if ((2.0f < d0 || -2.0f < d1) && SMaxShape(t) - 50.0f < p->x20) {
+                EvaluateShapeAtDistance(t, GetShapeMinDistance(t) + 50.0f, &v0.q, 0);
+            } else if ((2.0f < d0 || -2.0f < d1) && GetShapeMaxDistance(t) - 50.0f < p->x20) {
                 U s;
                 k = 0x2A;
-                EvaluateShapeS(t, SMaxShape(t) - 50.0f, &v0.q, 0);
+                EvaluateShapeAtDistance(t, GetShapeMaxDistance(t) - 50.0f, &v0.q, 0);
                 qword sq, v1q;
                 __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
                 s.q = sq;
@@ -2270,7 +2270,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700;
-void EvaluateShapeU(struct S *s, U *position, U *direction, float g);
+void EvaluateShapeAtParam(struct S *s, U *position, U *direction, float g);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
 void AddSoAcceleration(struct O *o, qword q);
 static __inline__ float GClamp(float g, float lo, float hi)
@@ -2335,7 +2335,7 @@ void PresetJtAccelHide(struct P *p)
     if (!s->x1bc)
         return;
     v.q = p->x0->vt[33].pfn((char *)p->x0 + p->x0->vt[33].d);
-    EvaluateShapeU(s, 0, &w, p->x1c);
+    EvaluateShapeAtParam(s, 0, &w, p->x1c);
     psmp = &D_002BF700;
     {
     register float goal __asm__("$f13");

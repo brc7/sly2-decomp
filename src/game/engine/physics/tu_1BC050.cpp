@@ -108,15 +108,15 @@ void RemoveDlEntry__FP2DLPv(DLV *pdl, void *pv);
 int FFindDlEntry__FP2DLPv(DLV *pdl, void *pv);
 int IsDlEmpty__FP2DL(DLV *pdl);
 void PostLoLoad(CID14V *p);
-float UMaxShape(CID14V *p);
+float GetShapeMaxParam(CID14V *p);
 void MeasureShape(CID14V *p);
 void *memset(void *, int, unsigned);
-int IsegFindShapeS(CID14V *p, float g, int a, int b);
-void EvaluateShapeS(CID14V *p, qword *pv, float g, int n);
+int FindShapeSegmentAtDistance(CID14V *p, float g, int a, int b);
+void EvaluateShapeAtDistance(CID14V *p, qword *pv, float g, int n);
 int IsEdgeBlockedByPathzone(void *pv, qword a, qword b, int k);
-float SMaxShape(CID14V *p);
-float SMinShape(CID14V *p);
-float SWrapShape(CID14V *p, float g);
+float GetShapeMaxDistance(CID14V *p);
+float GetShapeMinDistance(CID14V *p);
+float WrapShapeDistance(CID14V *p, float g);
 int IsPosInPathzone(void *b, qword v, int c);
 qword GetLoWorldPos(CID14V *p);
 void *FindPathzoneAtPos(qword pos, int n);
@@ -381,7 +381,7 @@ extern "C" void PostCid14Load(CID14V *polygon)
     if (r == WINDING_CONVEX) return;   /* redundant with the next test, but part of the codegen */
     if (r != WINDING_CONVEX_REVERSED) return;
     half = polygon->numPoints / 2;
-    tMax = UMaxShape(polygon);
+    tMax = GetShapeMaxParam(polygon);
     for (i = 0; i < half; i++) {
         j = polygon->numPoints - i - 1;
         SwapV(&((V4 *)polygon->points)[i], &((V4 *)polygon->points)[j]);
@@ -570,8 +570,8 @@ static inline qword MulPos(M4 *pm, qword v)
 int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float start, float end)
 {
     int i0, r, pass, k, i1;
-    i0 = IsegFindShapeS(polygon, start, 0, 0);
-    i1 = IsegFindShapeS(polygon, end, 0, 0);
+    i0 = FindShapeSegmentAtDistance(polygon, start, 0, 0);
+    i1 = FindShapeSegmentAtDistance(polygon, end, 0, 0);
     for (pass = 0; pass < 2; pass++) {
         int i, iEnd, a;
         M4 m;
@@ -589,7 +589,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
         }
         i = a;
         m = *GetMat(polygon);
-        EvaluateShapeS(polygon, &v0, start, 0);
+        EvaluateShapeAtDistance(polygon, &v0, start, 0);
         q = v0;
         while (i != iEnd) {
             v = MulPos(&m, polygon->points[i]);
@@ -601,7 +601,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
                 i = WrapCid14PointIndex(polygon, i - 1);
             q = v;
         }
-        EvaluateShapeS(polygon, &v1, end, 0);
+        EvaluateShapeAtDistance(polygon, &v1, end, 0);
         if (!IsEdgeBlockedByPathzone(zone, q, v1, k))
             return r;
     next:;
@@ -621,21 +621,21 @@ int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, fl
     float at[2];
     float tB, d, f;
     int fShort, a, b;
-    if (!FindShapePointInPathzone(shape, zone, param, SMaxShape(shape) * 0.5f, &at[0], 0) &&
-        !FindShapePointInPathzone(shape, zone, param, SMaxShape(shape) * 0.5f, &at[0], 1)) return 4;
+    if (!FindShapePointInPathzone(shape, zone, param, GetShapeMaxDistance(shape) * 0.5f, &at[0], 0) &&
+        !FindShapePointInPathzone(shape, zone, param, GetShapeMaxDistance(shape) * 0.5f, &at[0], 1)) return 4;
     param = at[0];
-    if (!FindShapePointInPathzone(shape, zone, *paramOut, SMaxShape(shape) * 0.5f, &at[1], 0) &&
-        !FindShapePointInPathzone(shape, zone, *paramOut, SMaxShape(shape) * 0.5f, &at[1], 1)) return 4;
+    if (!FindShapePointInPathzone(shape, zone, *paramOut, GetShapeMaxDistance(shape) * 0.5f, &at[1], 0) &&
+        !FindShapePointInPathzone(shape, zone, *paramOut, GetShapeMaxDistance(shape) * 0.5f, &at[1], 1)) return 4;
     tB = at[1];
     *paramOut = tB;
     d = tB - param;
-    if (d < 0.0f) d += SMaxShape(shape);
+    if (d < 0.0f) d += GetShapeMaxDistance(shape);
     switch (mode) {
     case 2: f = D_002C0AB8 + 1.0f; break;
     case 1: f = 1.0f - D_002C0AB8; break;
     default: f = 1.0f; break;
     }
-    fShort = (d < SMaxShape(shape) * f * 0.5f) ? 1 : 0;
+    fShort = (d < GetShapeMaxDistance(shape) * f * 0.5f) ? 1 : 0;
     a = func_001BCAC0F(shape, zone, param, tB, 1);
     b = func_001BCAC0F(shape, zone, param, tB, 0);
     if (b < a) return 1;
@@ -657,14 +657,14 @@ int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range
     float d, t;
     U v0, v1;
     for (d = 0.0f; d < range; d += D_002C0ABC) {
-        t = SWrapShape(shape, param - d);
-        EvaluateShapeS(shape, &v0.q, t, 0);
+        t = WrapShapeDistance(shape, param - d);
+        EvaluateShapeAtDistance(shape, &v0.q, t, 0);
         if (IsPosInPathzone(zone, v0.q, c)) {
             if (paramOut) *paramOut = t;
             return 1;
         }
-        t = SWrapShape(shape, param + d);
-        EvaluateShapeS(shape, &v1.q, t, 0);
+        t = WrapShapeDistance(shape, param + d);
+        EvaluateShapeAtDistance(shape, &v1.q, t, 0);
         if (IsPosInPathzone(zone, v1.q, c)) {
             if (paramOut) *paramOut = t;
             return 1;
@@ -841,25 +841,25 @@ int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *po
     float dt;
     int fWrapped;
     int c;
-    EvaluateShapeS(shape, &av[1], param, 0);
+    EvaluateShapeAtDistance(shape, &av[1], param, 0);
     dt = D_002C0AC0;
     if (!isForward) dt = -dt;
     fWrapped = 0;
     for (;;) {
         av[0] = av[1];
         param += dt;
-        if (param <= SMinShape(shape)) {
+        if (param <= GetShapeMinDistance(shape)) {
             if (fWrapped) break;
             fWrapped = 1;
-            if (shape->isClosed) param = SWrapShape(shape, param);
-            else param = SMinShape(shape);
-        } else if (SMaxShape(shape) <= param) {
+            if (shape->isClosed) param = WrapShapeDistance(shape, param);
+            else param = GetShapeMinDistance(shape);
+        } else if (GetShapeMaxDistance(shape) <= param) {
             if (fWrapped) break;
             fWrapped = 1;
-            if (shape->isClosed) param = SWrapShape(shape, param);
-            else param = SMaxShape(shape);
+            if (shape->isClosed) param = WrapShapeDistance(shape, param);
+            else param = GetShapeMaxDistance(shape);
         }
-        EvaluateShapeS(shape, &av[1], param, 0);
+        EvaluateShapeAtDistance(shape, &av[1], param, 0);
         c = ClipEdgeToCnvo(obstacle, av[0], av[1], 2, ahit);
         if (c > 0) {
             if (paramOut) *paramOut = param;
@@ -884,9 +884,9 @@ extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, 
     float f0, f1;
     CID14V *x;
     int r;
-    if (direction) t = SWrapShape(shape, param + D_002C0AC4);
-    else t = SWrapShape(shape, param - D_002C0AC4);
-    EvaluateShapeS(shape, &v.q, t, 0);
+    if (direction) t = WrapShapeDistance(shape, param + D_002C0AC4);
+    else t = WrapShapeDistance(shape, param - D_002C0AC4);
+    EvaluateShapeAtDistance(shape, &v.q, t, 0);
     x = FindFirstObstacleHitBySegment(a1, a2, pos, v.q);
     if (blockerOut) *blockerOut = x;
     if (!x) return 0;

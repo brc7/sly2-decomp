@@ -854,7 +854,7 @@ typedef struct {
 extern float D_002C20D0[3];
 extern float D_002C20E0[2];
 qword GetLoWorldPos(void *);
-void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,float *,float);
+void FindShapeClosestPointFromDistance(void *,qword,void *,qword *,qword *,float *,float *,float);
 float atan2f(float, float);
 // Helpers GetX, GetY (small asm wrappers/accessors shaped for the match).
 static inline float GetX(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
@@ -916,7 +916,7 @@ void SteerRobottankAlongPath(OBJ *tank)
     register qword fallback __asm__("vf5");
     float f;
     pos = GetLoWorldPos(tank);
-    FindShapeClosestPointFromS(tank->path,pos,0,(qword *)&va,(qword *)&vb,0,&tank->cursor,tank->cursor);
+    FindShapeClosestPointFromDistance(tank->path,pos,0,(qword *)&va,(qword *)&vb,0,&tank->cursor,tank->cursor);
     {
         float dist = Dist2D(pos, *(qword *)&va);
         f = Clamp(D_002C20D0[0] + dist * (D_002C20D0[1] + dist * D_002C20D0[2]), D_002C20E0[0], D_002C20E0[1]);

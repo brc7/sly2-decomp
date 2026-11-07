@@ -458,7 +458,7 @@ BSP *FindBspLeafContainingPointFast(BSP *p, unsigned int limit, qword v);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void UpdateLo(TN *p);
 void OnLoRemove(TN *p);
-void EvaluateShapeS(SHAPE *pshape, float t, qword *ppos, qword *pnormal);
+void EvaluateShapeAtDistance(SHAPE *pshape, float t, qword *ppos, qword *pnormal);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 qword SetVectorCylind(float, float, float);
 void GetVectorCylind(qword, float *, float *, float *);
@@ -471,7 +471,7 @@ void DeactivateCplcy(CMPART2 *p);
 int IsCidDerivedFrom(int a, int b);
 void GetCmCpdefi(CM *pcm, void *pj, void *pq);
 void FindShapeClosestPoint(SHAPE *p, qword q, int a, qword *pq, int b, int c, float *pf);
-void FindShapeClosestPointFromS(SHAPE *p, qword q, float g, int a, int b, int c, int d, float *pg);
+void FindShapeClosestPointFromDistance(SHAPE *p, qword q, float g, int a, int b, int c, int d, float *pg);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 qword SetVectorSphere(float a, float b, float c);
 void CutCm__FP2CM(CM *pcm);
@@ -722,7 +722,7 @@ void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
     U pos;
     M3 m;
     if(p->pshape) {
-        EvaluateShapeS(p->pshape,p->uProgress,&pos.q,normal);
+        EvaluateShapeAtDistance(p->pshape,p->uProgress,&pos.q,normal);
         m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0q);
         *out=InverseRotate(m,Sub(v,pos.q));
     } else if(p->fCircle) {
@@ -759,7 +759,7 @@ void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qwor
     if(mode==2) pos.f[0]=-pos.f[0];
     if(p->fCylind) pos.q=SetVectorCylind(pos.f[0],pos.f[1],pos.f[2]);
     if(p->pshape) {
-        EvaluateShapeS(p->pshape,mode!=1?time-delta:time+delta,&center.q,&normal.q);
+        EvaluateShapeAtDistance(p->pshape,mode!=1?time-delta:time+delta,&center.q,&normal.q);
         m=BuildOrthonormalMatrixZ(normal.q,D_002A2DC0q);
         rotated.q=Rotate(m,pos.q);
     } else if(p->fCircle) {
@@ -928,7 +928,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
     if (!ps->pshape && !ps->fCircle) return;
     BlendTnFocusPos(p->pcpd, b, &q, 0);
     if (ps->pshape) {
-        FindShapeClosestPointFromS(ps->pshape, q, ps->uProgress, 0, 0, 0, 0, &ps->uProgress);
+        FindShapeClosestPointFromDistance(ps->pshape, q, ps->uProgress, 0, 0, 0, 0, &ps->uProgress);
     } else {
         qword v = ConvertAloPos(0, ps, q), d;
         float g;

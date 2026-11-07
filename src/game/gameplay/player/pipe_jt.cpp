@@ -72,12 +72,12 @@ M3 *GetLoWorldMatrix(JT *o);
 void EvaluateBezierMat(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);
 M3 MulMatrix3Matrix3(M3 *a, M3 *b);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, U *pv);
-float SMinShape(PATH *);
-float SMaxShape(PATH*);
+float GetShapeMinDistance(PATH *);
+float GetShapeMaxDistance(PATH*);
 qword PosSmooth(qword,qword,float,SMPV*,U*);
 void SetJtAirJump(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
-float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
+float ClampShapeDistance(PATH*,float);void EvaluateShapeAtDistance(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
 void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword GetLoWorldPos(void*);
@@ -199,11 +199,11 @@ extern "C" void GetJtPipeDistanceRange(JTPIPE *pipe, LMV *ag) {
         ag->low = -3.40282346638528859812e+38f;
         ag->high = 3.40282346638528859812e+38f;
     } else if (pipe->descending) {
-        ag->low = SMinShape(pipe->path) + 35.0f;
-        ag->high = SMaxShape(pipe->path) - 100.0f;
+        ag->low = GetShapeMinDistance(pipe->path) + 35.0f;
+        ag->high = GetShapeMaxDistance(pipe->path) - 100.0f;
     } else {
-        ag->low = SMinShape(pipe->path) + 100.0f;
-        ag->high = SMaxShape(pipe->path) - 35.0f;
+        ag->low = GetShapeMinDistance(pipe->path) + 100.0f;
+        ag->high = GetShapeMaxDistance(pipe->path) - 35.0f;
     }
 }
 
@@ -283,8 +283,8 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
         } while (pipe->state != old);
         if (pipe->state == 0 || pipe->state == 4)
             return;
-        EvaluateShapeS(pipe->path, SClampShape(pipe->path, pipe->distance + 50.0f), &w.ahead, 0);
-        EvaluateShapeS(pipe->path, SClampShape(pipe->path, pipe->distance - 50.0f), &w.behind, 0);
+        EvaluateShapeAtDistance(pipe->path, ClampShapeDistance(pipe->path, pipe->distance + 50.0f), &w.ahead, 0);
+        EvaluateShapeAtDistance(pipe->path, ClampShapeDistance(pipe->path, pipe->distance - 50.0f), &w.behind, 0);
         U *axis;
         qword direction = Direction(&w.ahead, &w.behind, axis);
         qword normalized = Normal(direction, axis);
@@ -405,7 +405,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
         InvalidateSoAaox(pipe->actor);
     }
     if (pipe->path->cyclic)
-        pipe->distance = GModPositive__Fff(pipe->distance, SMaxShape(pipe->path));
+        pipe->distance = GModPositive__Fff(pipe->distance, GetShapeMaxDistance(pipe->path));
     register float magnitude __asm__("$f2") = fabsf(speed);
     if (magnitude < 0.01f)
         mode = 1;
@@ -444,7 +444,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
 // passed to the owner's constraint slot (vt82, kind 7).
 extern "C" void UpdateJtInternalXpsPipe(JTPIPE *pipe) {
     U a, b, u;
-    EvaluateShapeS(pipe->path, pipe->distance, &a, &b);
+    EvaluateShapeAtDistance(pipe->path, pipe->distance, &a, &b);
     u.q = ConvertAloPos(pipe->actor, 0, pipe->offset.q);
     { JT *o = pipe->actor; VE *e = &o->vt[82]; ((void (*)(void *, int, PATH *, qword, qword, qword))e->fn)((char *)o + e->delta, 7, pipe->path, a.q, b.q, u.q); }
 }
@@ -467,7 +467,7 @@ extern "C" void ResetJtPipeAdjust(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
 // Writes the pipe curve's point at the player's current distance.
-extern "C" void GetJtPipePosition(JTPIPE *s, U *posOut) { EvaluateShapeS(s->path, s->distance, posOut, 0); }
+extern "C" void GetJtPipePosition(JTPIPE *s, U *posOut) { EvaluateShapeAtDistance(s->path, s->distance, posOut, 0); }
 
 struct Q { char pad[0x20]; qword v20; char pad2[4]; int n34; };
 /** @sly2-annot addr=0x19EA00
@@ -483,7 +483,7 @@ extern "C" void GetJtPipeVelocity(JTPIPE *pipe, Q *q)
     U v;
     U s;
     qword r;
-    EvaluateShapeS(pipe->path, pipe->distance, 0, &v);
+    EvaluateShapeAtDistance(pipe->path, pipe->distance, 0, &v);
     pipe = (JTPIPE *)*(int *)&pipe->speed;
     qword sq;
     sq = VuFromFloat<qword>(pipe);   /* C++: asm output into a scalar, then stored (see the mismatch table) */
@@ -590,14 +590,14 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
         SubscribeLoObject(pipe->path, pipe->actor);
         LinkStepAttachment(pipe->actor, pipe->path, 1);
         pipe->previous = old;
-        EvaluateShapeS(pipe->path, SClampShape(pipe->path, pipe->distance + 50.0f), &w.ahead, 0);
-        EvaluateShapeS(pipe->path, SClampShape(pipe->path, pipe->distance - 50.0f), &w.behind, 0);
+        EvaluateShapeAtDistance(pipe->path, ClampShapeDistance(pipe->path, pipe->distance + 50.0f), &w.ahead, 0);
+        EvaluateShapeAtDistance(pipe->path, ClampShapeDistance(pipe->path, pipe->distance - 50.0f), &w.behind, 0);
         U *axis;
         qword direction = DirectionB(&w.ahead, &w.behind, axis);
         pipe->descending = Z(NormalB(direction, axis)) < -0.5f;
         GetJtPipeDistanceRange(pipe, &w.limit);
         pipe->distance = GLimitLm__FP2LMf(&w.limit, pipe->distance);
-        EvaluateShapeS(pipe->path, pipe->distance, &w.point, 0);
+        EvaluateShapeAtDistance(pipe->path, pipe->distance, &w.point, 0);
         qword offset = Vector(ConvertAloPos(pipe->actor, 0, pipe->offset.q));
         JT *owner;
         qword point = WorldInputs(pipe, &w.point, &w.world, offset, owner);

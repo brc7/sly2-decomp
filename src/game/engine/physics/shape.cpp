@@ -4,10 +4,10 @@
 // per-segment sample cache, conversion between u and s and their limits/wrapping (closed shapes), evaluation of
 // position and tangent, closest-point searches, bounds; shape chains (a simulated rope that follows the shape with
 // ends pinned to objects); CID 106, a mesh deformed along a shape; and the volume / valid-range tables of a shape
-// against the path zones. Naming: the Sly 1 S/U API is kept (SFromShapeU = arc length at parameter u,
-// UFromShapeS, SMaxShape = total length, ...).
-// Entry points: LoadShapeFromBrx, EvaluateShapeU / EvaluateShapeS, SFromShapeU / UFromShapeS,
-// FindShapeClosestPoint*, SetShapeChainMode, SRandomShapeRange.
+// against the path zones. Naming: the Sly 1 S/U API is kept (GetShapeDistanceAtParam = arc length at parameter u,
+// GetShapeParamAtDistance, GetShapeMaxDistance = total length, ...).
+// Entry points: LoadShapeFromBrx, EvaluateShapeAtParam / EvaluateShapeAtDistance, GetShapeDistanceAtParam / GetShapeParamAtDistance,
+// FindShapeClosestPoint*, SetShapeChainMode, GetRandomShapeDistanceInRange.
 // TU 0x1E5D80..0x1EA568 (56 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_shape
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001EA548
@@ -35,10 +35,10 @@ struct SHAPECHAIN
 };
 extern "C" {
 void InitXfm(XFM *pxfm);
-float UFromShapeS(SHAPE *pshape, float s);
-void EvaluateShapeU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
-void FindShapeClosestPointLinearFromU(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
-void FindShapeClosestPointCurveFromU(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
+float GetShapeParamAtDistance(SHAPE *pshape, float s);
+void EvaluateShapeAtParam(SHAPE *pshape, float u, qword *ppos, qword *pdir);
+void FindShapeClosestPointLinearFromParam(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
+void FindShapeClosestPointCurveFromParam(SHAPE *pshape, qword pos, SPACE *pspace, qword *pposOut, qword *pdirOut, float *puOut, float *pgOut, float u);
 }
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 
@@ -358,23 +358,23 @@ void UpdateShapeXfWorld(struct S *shape)
 
 namespace M_SFromShapeU { extern "C" {
 struct X { char pad[0xE0]; int mode; char pad1[0xF0 - 0xE4]; float *distances; char pad2[0x14C - 0xF4]; float segmentDistances[11]; };
-int IsegFindShapeU(struct X *p, float *pa, float *pb);
+int FindShapeSegmentAtParam(struct X *p, float *pa, float *pb);
 void CacheShapeSegment(struct X *p, int i);
 static __inline__ float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 /** @sly2-annot addr=0x1E63C0
  * Purpose: Arc length at parameter u (interpolated from the distance table, with per-segment sub-samples for
  *   curves)
- * Info: proposed name SFromShapeU (T1); TU shape
+ * Info: proposed name GetShapeDistanceAtParam (T1); TU shape
  * Notes: names_v2 B proposed IposFindAposG__FfiPfiT2T2 (0.819)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Arc length at parameter u, interpolated from the distance table (sub-sampled inside curve segments).
-float SFromShapeU(struct X *shape)
+float GetShapeDistanceAtParam(struct X *shape)
 {
     float a, b;
     float g;
-    int i = IsegFindShapeU(shape, &a, &b);
+    int i = FindShapeSegmentAtParam(shape, &a, &b);
     if (shape->mode == 0) { g = GLerp(shape->distances[i], shape->distances[i + 1], a / b); } else { float u; int j; CacheShapeSegment(shape, i); u = a * 10.0f / b; j = (int)u; g = GLerp(shape->segmentDistances[j], shape->segmentDistances[j + 1], u - j); g += shape->distances[i]; }
     return g;
 }
@@ -390,7 +390,7 @@ struct X {
     float segmentDistances[11];
 };
 
-int IsegFindShapeS(struct X *p, float *pa, float *pb, float time);
+int FindShapeSegmentAtDistance(struct X *p, float *pa, float *pb, float time);
 void CacheShapeSegment(struct X *p, int i);
 
 static __inline__ float GLerp(float a, float b, float t)
@@ -407,18 +407,18 @@ static inline float ReturnValue(float value)
 }
 
 /** @sly2-annot addr=0x1E64C8
- * Purpose: Parameter u at arc length s (inverse of SFromShapeU)
- * Info: proposed name UFromShapeS (T1); TU shape
+ * Purpose: Parameter u at arc length s (inverse of GetShapeDistanceAtParam)
+ * Info: proposed name GetShapeParamAtDistance (T1); TU shape
  * Notes: names_v2 C proposed EvaluateAposG__FfiP6VECTORPfiT2T2 (0.638)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-// Parameter u at arc length s (the inverse of SFromShapeU).
-float UFromShapeS(struct X *shape, float distance)
+// Parameter u at arc length s (the inverse of GetShapeDistanceAtParam).
+float GetShapeParamAtDistance(struct X *shape, float distance)
 {
     float a, b;
     float g;
-    int i = IsegFindShapeS(shape, &a, &b, distance);
+    int i = FindShapeSegmentAtDistance(shape, &a, &b, distance);
 
     if (shape->mode == 0) {
         {
@@ -446,51 +446,51 @@ float UFromShapeS(struct X *shape, float distance)
 
 /** @sly2-annot addr=0x1E6610
  * Purpose: return times[0] (+0xEC)
- * Info: proposed name UMinShape (T1); TU shape
+ * Info: proposed name GetShapeMinParam (T1); TU shape
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // First point's parameter.
-extern "C" float UMinShape(SHAPE *shape)
+extern "C" float GetShapeMinParam(SHAPE *shape)
 {
     return shape->mpicvu[0];
 }
 
 /** @sly2-annot addr=0x1E6620
  * Purpose: return dists[0] (+0xF0)
- * Info: proposed name SMinShape (T1); TU shape
+ * Info: proposed name GetShapeMinDistance (T1); TU shape
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // First point's distance.
-extern "C" float SMinShape(SHAPE *shape)
+extern "C" float GetShapeMinDistance(SHAPE *shape)
 {
     return shape->mpicvs[0];
 }
 
 /** @sly2-annot addr=0x1E6630
  * Purpose: return times[c-1]
- * Info: proposed name UMaxShape (T1); TU shape
+ * Info: proposed name GetShapeMaxParam (T1); TU shape
  * Notes: names_v2 B proposed UMaxCrv__FP3CRV (0.856)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Last point's parameter.
-extern "C" float UMaxShape(SHAPE *shape)
+extern "C" float GetShapeMaxParam(SHAPE *shape)
 {
     return shape->mpicvu[shape->ccv - 1];
 }
 
 /** @sly2-annot addr=0x1E6648
  * Purpose: return dists[c-1] (total length)
- * Info: proposed name SMaxShape (T1); TU shape
+ * Info: proposed name GetShapeMaxDistance (T1); TU shape
  * Notes: names_v2 B proposed SMaxCrv__FP3CRV (0.856)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r6b_rest+verdicts_followups
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Last point's distance: the shape's total length.
-extern "C" float SMaxShape(SHAPE *shape)
+extern "C" float GetShapeMaxDistance(SHAPE *shape)
 {
     return shape->mpicvs[shape->ccv - 1];
 }
@@ -500,12 +500,12 @@ struct S { char pad[0xE4]; int isClosed; int numPoints; float *times; };
 float GModPositive__Fff(float g, float gMax);
 /** @sly2-annot addr=0x1E6660
  * Purpose: If closed, wrap u into [times[0],times[c-1]] (GModPositive)
- * Info: proposed name UWrapShape (T1); TU shape
+ * Info: proposed name WrapShapeParam (T1); TU shape
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // On a closed shape wraps u into the parameter range; open shapes return u unchanged.
-float UWrapShape(struct S *shape, float param)
+float WrapShapeParam(struct S *shape, float param)
 {
     float gMin, gMax;
     if (!shape->isClosed) return param;
@@ -521,12 +521,12 @@ struct S { char pad[0xE4]; int isClosed; int numPoints; int times; float *distan
 float GModPositive__Fff(float g, float gMax);
 /** @sly2-annot addr=0x1E66C8
  * Purpose: If closed, wrap s into [0,length]
- * Info: proposed name SWrapShape (T1); TU shape
+ * Info: proposed name WrapShapeDistance (T1); TU shape
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // On a closed shape wraps s into [0, length]; open shapes return s unchanged.
-float SWrapShape(struct S *shape, float distance)
+float WrapShapeDistance(struct S *shape, float distance)
 {
     float gMax;
     if (!shape->isClosed) return distance;
@@ -538,24 +538,24 @@ float SWrapShape(struct S *shape, float distance)
 
 namespace M_SClampShape { extern "C" {
 struct S { char pad[0xE4]; int isClosed; };
-float SMinShape(struct S *p);
-float SMaxShape(struct S *p);
-float SWrapShape(struct S *p, float g);
+float GetShapeMinDistance(struct S *p);
+float GetShapeMaxDistance(struct S *p);
+float WrapShapeDistance(struct S *p, float g);
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
 // 0x1E6720: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 /** @sly2-annot addr=0x1E6728
- * Purpose: Closed: SWrapShape; open: clamp s to [SMin,SMax]
- * Info: proposed name SClampShape (T1); TU shape
+ * Purpose: Closed: WrapShapeDistance; open: clamp s to [SMin,SMax]
+ * Info: proposed name ClampShapeDistance (T1); TU shape
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
-// Closed shapes wrap s, open shapes clamp it to [SMinShape, SMaxShape].
-float SClampShape(struct S *shape, float distance)
+// Closed shapes wrap s, open shapes clamp it to [GetShapeMinDistance, GetShapeMaxDistance].
+float ClampShapeDistance(struct S *shape, float distance)
 {
-    if (shape->isClosed) return SWrapShape(shape, distance);
-    return GClamp(distance, SMinShape(shape), SMaxShape(shape));
+    if (shape->isClosed) return WrapShapeDistance(shape, distance);
+    return GClamp(distance, GetShapeMinDistance(shape), GetShapeMaxDistance(shape));
 }
 } } // namespace M_SClampShape
 
@@ -565,7 +565,7 @@ struct M { qword a,b,c,d; };
 struct VTE { short d; short pad; void (*pf)(); };
 struct S { char pad[0xC]; struct VTE *vt; char pad2[0xE0-0x10]; int mode; char pad3[0xF4-0xE4]; qword *points; char pad4[0x140-0xF8]; qword *incoming,*outgoing; };
 union U { qword q; float f; };
-int IsegFindShapeU(struct S*,float,float*,float*);
+int FindShapeSegmentAtParam(struct S*,float,float*,float*);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
 static inline qword ReadTangent(const qword*p){register qword a __asm__("vf2");__asm__("lqc2 %0,%1":"=j"(a):"m"(*p));return a;}
 static inline qword ReadLinearSecond(const qword*p){register qword value __asm__("vf2");__asm__("lqc2 %0,%1":"=j"(value):"m"(*p));return value;}
@@ -581,19 +581,19 @@ static inline qword TangentFirst(const qword*p){register qword point __asm__("vf
 static inline int SegmentIndex(int value){register int index __asm__("$18");__asm__("daddu %0,%1,$zero":"=r"(index):"r"(value));return index;}
 /** @sly2-annot addr=0x1E67B8
  * Purpose: Position and tangent at parameter u (linear lerp or Hermite via 0x117120), in world space
- * Info: proposed name EvaluateShapeU (T1); TU shape
+ * Info: proposed name EvaluateShapeAtParam (T1); TU shape
  * Notes: names_v2 C proposed UpdateStepFootfall__FP4STEPfP3SFF (0.638)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Position and tangent at parameter u (linear interpolation or Hermite evaluation), in world space.
-void EvaluateShapeU(struct S *shape,float param,qword *posOut,qword *dirOut)
+void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOut)
 {
     struct M m;
     float elapsed,duration;
     register qword row0 __asm__("vf5"),row1 __asm__("vf4"),row2 __asm__("vf3");
     register qword tangent __asm__("vf2");
-    int i=SegmentIndex(IsegFindShapeU(shape,param,&elapsed,&duration));
+    int i=SegmentIndex(FindShapeSegmentAtParam(shape,param,&elapsed,&duration));
     m=* ((struct M *(*)(void*))shape->vt[31].pf)((char*)shape+shape->vt[31].d);
     if (shape->mode==0) {
         if (posOut) {
@@ -653,7 +653,7 @@ namespace M_func_001E69A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct X; struct SPACE;
 struct S { struct X *a0; struct SPACE *a4; int pad[2]; qword v; };
-void EvaluateShapeU(struct X *, float, qword *, qword *);
+void EvaluateShapeAtParam(struct X *, float, qword *, qword *);
 qword ApplyConstrNoTransform(struct SPACE *, qword);
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword SquareBits(qword a) {
@@ -669,7 +669,7 @@ static inline qword ConvertedSquareBits(qword a) {
     return square;
 }
 /** @sly2-annot addr=0x1E69A0
- * Purpose: Minimizer callback: squared distance from a query point (in a space) to EvaluateShapeU(u)
+ * Purpose: Minimizer callback: squared distance from a query point (in a space) to EvaluateShapeAtParam(u)
  * Info: proposed name GDistShapeU (T2); TU shape
  * Notes: names_v2 C proposed PemitbCopyOnWrite__FP5EMITB (0.638)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r6b_rest
@@ -679,7 +679,7 @@ static inline qword ConvertedSquareBits(qword a) {
 float GetShapeDistanceSquaredAtParam(void *context,float param){
     struct S *p=(struct S *)context;
     qword v;register qword bits __asm__("$2");float result;
-    EvaluateShapeU(p->a0,param,&v,0);
+    EvaluateShapeAtParam(p->a0,param,&v,0);
     if(!p->a4){
         register qword point __asm__("vf1")=p->v;
         register qword path __asm__("vf2")=v;
@@ -699,14 +699,14 @@ float GetShapeDistanceSquaredAtParam(void *context,float param){
 } } // namespace M_func_001E69A0
 
 namespace M_func_001E6A30 {
-// FindShapeClosestPointLinearFromU (w2lane4, wave 2): closest point on a path (chain of control points under the path's own matrix) to a query point,
-// searched from a starting time. IsegFindShapeU turns the starting time into a segment index; the loop projects the point on that
+// FindShapeClosestPointLinearFromParam (w2lane4, wave 2): closest point on a path (chain of control points under the path's own matrix) to a query point,
+// searched from a starting time. FindShapeSegmentAtParam turns the starting time into a segment index; the loop projects the point on that
 // segment (segment vector rotated by the matrix, point minus the transformed start) and walks to the next / previous segment (wrapping
 // when the path is cyclic) until the projection falls inside a segment. Afterwards the position, direction, time and value outputs
 // are produced from the final segment and fraction.
 // Matching notes (found with the -da dumps; the dumps explain every non-obvious choice):
 //  * `fraction` is reused for the final time (`fraction = (1-fraction)*t0 + fraction*t1`), which is what puts it in $f12 (the argument
-//    register of SFromShapeU) without any pin.
+//    register of GetShapeDistanceAtParam) without any pin.
 //  * `basis=&matrix` is declared inside the loop (and again in the direction block): loop.c hoists it to the loop preheader, which
 //    is where the target has it (after the matrix copy, in the delay slot of the jump into the loop) and what makes it outrank `space`
 //    in global allocation (space $s4, basis $s3). Rows 1 and 2 are read through `basis`, row 0 and the translation row directly.
@@ -730,9 +730,9 @@ struct PATH {
     int cyclic, count; float *times; int padF0; qword *points;
 };
 extern "C" {
-int IsegFindShapeU(PATH *, float, float *, float *);
+int FindShapeSegmentAtParam(PATH *, float, float *, float *);
 qword ApplyConstrNoTransform(SPACE *, qword);
-float SFromShapeU(PATH *, float);
+float GetShapeDistanceAtParam(PATH *, float);
 }
 struct VU_FLOAT {
     qword q;
@@ -806,19 +806,19 @@ static inline VV Normalize(VV a)
 }
 /** @sly2-annot addr=0x1E6A30
  * Purpose: Closest point on a linear shape, walking segments from a start parameter
- * Info: proposed name FindShapeClosestPointLinearFromU (T2); TU shape
+ * Info: proposed name FindShapeClosestPointLinearFromParam (T2); TU shape
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Closest point on a linear shape to a position, walking segments from a starting parameter.
-extern "C" { void FindShapeClosestPointLinearFromU(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
+extern "C" { void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue, float initial)
 {
     U segment;
     M4 matrix;
     float elapsed, duration;
     int backward = 0, forward = 0, previous;
-    int index = IsegFindShapeU(p, initial, &elapsed, &duration);
+    int index = FindShapeSegmentAtParam(p, initial, &elapsed, &duration);
     matrix = *((M4 *(*)(void *))p->vt[31].fn)((char *)p + p->vt[31].delta);
     float fraction;
     for (;;) {
@@ -871,7 +871,7 @@ extern "C" { void FindShapeClosestPointLinearFromU(PATH *p, qword point, SPACE *
     }
     fraction = (1.0f - fraction) * p->times[index] + fraction * p->times[index + 1];
     if (outTime) *outTime = fraction;
-    if (outValue) *outValue = SFromShapeU(p, fraction);
+    if (outValue) *outValue = GetShapeDistanceAtParam(p, fraction);
 } }
 } // namespace M_func_001E6A30
 
@@ -884,63 +884,63 @@ extern float D_002A8130;
 extern float D_002A8134;
 float GetShapeDistanceSquaredAtParam(void *pv, float g);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*pfn)(void *, float), void *pv, float g, float dg, float gMin, float gMax, float *pg, float *pgOut);
-float UWrapShape(struct X *p, float g);
-void EvaluateShapeU(struct X *p, float g, qword *a, qword *b);
-float SFromShapeU(struct X *p, float g);
+float WrapShapeParam(struct X *p, float g);
+void EvaluateShapeAtParam(struct X *p, float g, qword *a, qword *b);
+float GetShapeDistanceAtParam(struct X *p, float g);
 /** @sly2-annot addr=0x1E6DB8
  * Purpose: Closest point on a curved shape by MinimizeRange around a start parameter (step = segment/10)
- * Info: proposed name FindShapeClosestPointCurveFromU (T2); TU shape
+ * Info: proposed name FindShapeClosestPointCurveFromParam (T2); TU shape
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Closest point on a curved shape by minimizing the distance around a starting parameter (step = segment / 10).
-void FindShapeClosestPointCurveFromU(struct X *shape, qword pos, struct SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
+void FindShapeClosestPointCurveFromParam(struct X *shape, qword pos, struct SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
 {
     struct CTX ctx;
     float gRes;
     ctx.space = space; ctx.q = pos; ctx.p = shape;
     MinimizeRange__FPFPvf_fPvffffPfT6(GetShapeDistanceSquaredAtParam, &ctx, startParam, (shape->times[1] - shape->times[0]) * 0.1f, shape->isClosed ? D_002A8130 : shape->times[0], shape->isClosed ? D_002A8134 : shape->times[shape->numPoints - 1], &gRes, 0);
-    gRes = UWrapShape(shape, gRes);
-    if (posOut || dirOut) EvaluateShapeU(shape, gRes, posOut, dirOut);
+    gRes = WrapShapeParam(shape, gRes);
+    if (posOut || dirOut) EvaluateShapeAtParam(shape, gRes, posOut, dirOut);
     if (paramOut) *paramOut = gRes;
-    if (distanceOut) *distanceOut = SFromShapeU(shape, gRes);
+    if (distanceOut) *distanceOut = GetShapeDistanceAtParam(shape, gRes);
 }
 } } // namespace M_func_001E6DB8
 
 /** @sly2-annot addr=0x1E6ED8
  * Purpose: Dispatch on mode to the linear/curve closest-point search
- * Info: proposed name FindShapeClosestPointFromU (T1); TU shape
+ * Info: proposed name FindShapeClosestPointFromParam (T1); TU shape
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Dispatches on the shape's mode to the linear or curve closest-point search from a starting parameter.
-extern "C" void FindShapeClosestPointFromU(SHAPE *shape, qword pos, SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
+extern "C" void FindShapeClosestPointFromParam(SHAPE *shape, qword pos, SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
 {
     if (shape->crvk == 0) {
-        FindShapeClosestPointLinearFromU(shape, pos, space, posOut, dirOut, paramOut, distanceOut, startParam);
+        FindShapeClosestPointLinearFromParam(shape, pos, space, posOut, dirOut, paramOut, distanceOut, startParam);
         return;
     }
-    FindShapeClosestPointCurveFromU(shape, pos, space, posOut, dirOut, paramOut, distanceOut, startParam);
+    FindShapeClosestPointCurveFromParam(shape, pos, space, posOut, dirOut, paramOut, distanceOut, startParam);
 }
 
 /** @sly2-annot addr=0x1E6F10
- * Purpose: EvaluateShapeU(UFromShapeS(s))
- * Info: proposed name EvaluateShapeS (T1); TU shape
+ * Purpose: EvaluateShapeAtParam(GetShapeParamAtDistance(s))
+ * Info: proposed name EvaluateShapeAtDistance (T1); TU shape
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Position and tangent at arc length s.
-extern "C" void EvaluateShapeS(SHAPE *shape, float distance, qword *posOut, qword *dirOut)
+extern "C" void EvaluateShapeAtDistance(SHAPE *shape, float distance, qword *posOut, qword *dirOut)
 {
-    EvaluateShapeU(shape, UFromShapeS(shape, distance), posOut, dirOut);
+    EvaluateShapeAtParam(shape, GetShapeParamAtDistance(shape, distance), posOut, dirOut);
 }
 
 namespace M_FindShapeClosestPoint {
 // FindShapeClosestPoint (w2lane4, wave 2): closest point of a path (a chain of control points, transformed by the path's
 // own matrix) to a query point. mode 0 walks every segment, projects the point on it (clamped to the segment), keeps the
 // nearest candidate and reports its position, direction, interpolated time and the path value at that time. mode 1 only
-// measures the distances to the control points and hands the nearest vertex time to FindShapeClosestPointFromU.
+// measures the distances to the control points and hands the nearest vertex time to FindShapeClosestPointFromParam.
 // Matching notes (found by reading the local-alloc / global-alloc / reload dumps):
 //  * Spill slots of start / end / point follow the order in which the three pseudos get their stack home, i.e. the order in which
 //    they are first address-wrapped while expanding the loop head: `Sub(end=TransformPoint(..), start)` then `Sub(point, start)`
@@ -964,8 +964,8 @@ struct PATH {
 extern "C" {
 extern float D_002A8138;
 qword ApplyConstrNoTransform(SPACE *, qword);
-float SFromShapeU(PATH *, float);
-void FindShapeClosestPointFromU(PATH *, qword, SPACE *, qword *, qword *, float *, float *, float);
+float GetShapeDistanceAtParam(PATH *, float);
+void FindShapeClosestPointFromParam(PATH *, qword, SPACE *, qword *, qword *, float *, float *, float);
 }
 struct VU_FLOAT {
     qword q;
@@ -1066,7 +1066,7 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
             start = end;
         }
         if (outTime) *outTime = time;
-        if (outValue) *outValue = SFromShapeU(p, time);
+        if (outValue) *outValue = GetShapeDistanceAtParam(p, time);
         break;
     }
     case 1: {
@@ -1078,7 +1078,7 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
             float distance = Length(displacement);
             if (distance < best) { best = distance; closestIndex = index; }
         }
-        FindShapeClosestPointFromU(p, point, space, outPosition, outDirection, outTime, outValue, p->times[closestIndex]);
+        FindShapeClosestPointFromParam(p, point, space, outPosition, outDirection, outTime, outValue, p->times[closestIndex]);
         break;
     }
     }
@@ -1087,11 +1087,11 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
 
 namespace M_FindShapeClosestPointFromS { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-float UFromShapeS(void *p, float seed);
-void FindShapeClosestPointFromU(void *p, qword q, void *a, qword *b, qword *c, float *d, float *e, float g);
+float GetShapeParamAtDistance(void *p, float seed);
+void FindShapeClosestPointFromParam(void *p, qword q, void *a, qword *b, qword *c, float *d, float *e, float g);
 /** @sly2-annot addr=0x1E7380
- * Purpose: FindShapeClosestPointFromU(shape, pos, ..., UFromShapeS(shape, s))
- * Info: proposed name FindShapeClosestPointFromS (T1); TU shape
+ * Purpose: FindShapeClosestPointFromParam(shape, pos, ..., GetShapeParamAtDistance(shape, s))
+ * Info: proposed name FindShapeClosestPointFromDistance (T1); TU shape
  * Notes: names_v2 C proposed FillCrvcCache__FP4CRVCi (0.438) | top50_round (0.75): Body. Sly 1 crv.h
  *   FindCrvlClosestPointFromS / FindCrvcClosestPointFromS are the same wrapper over ...FromU with the
  *   arc-length->u conversion
@@ -1101,17 +1101,17 @@ void FindShapeClosestPointFromU(void *p, qword q, void *a, qword *b, qword *c, f
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Closest-point search started from arc length s.
-void FindShapeClosestPointFromS(void *shape, qword pos, void *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startDistance)
+void FindShapeClosestPointFromDistance(void *shape, qword pos, void *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startDistance)
 {
-    FindShapeClosestPointFromU(shape, pos, space, posOut, dirOut, paramOut, distanceOut, UFromShapeS(shape, startDistance));
+    FindShapeClosestPointFromParam(shape, pos, space, posOut, dirOut, paramOut, distanceOut, GetShapeParamAtDistance(shape, startDistance));
 }
 } } // namespace M_FindShapeClosestPointFromS
 
 namespace M_func_001E7410 { extern "C" {
 struct X { char pad[0xE8]; int numPoints; float *times; };
 extern float D_002A813C;
-void EvaluateShapeU(struct X *p, int a, int b, float g);
-float SFromShapeU(struct X *p, float g);
+void EvaluateShapeAtParam(struct X *p, int a, int b, float g);
+float GetShapeDistanceAtParam(struct X *p, float g);
 /** @sly2-annot addr=0x1E7410
  * Purpose: Pick the vertex parameter minimizing a callback; evaluate pos/dir and s there
  * Info: proposed name FindShapeBestVertex (T2); TU shape
@@ -1134,27 +1134,27 @@ void FindShapeBestVertex(struct X *shape, float (*score)(float, void *), void *c
             gBest = g;
         }
     }
-    if (a || b) EvaluateShapeU(shape, a, b, gBest);
+    if (a || b) EvaluateShapeAtParam(shape, a, b, gBest);
     if (paramOut) *paramOut = gBest;
-    if (distanceOut) *distanceOut = SFromShapeU(shape, gBest);
+    if (distanceOut) *distanceOut = GetShapeDistanceAtParam(shape, gBest);
 }
 } } // namespace M_func_001E7410
 
 namespace M_IsegFindShapeU { extern "C" {
 struct X { char pad[0xE8]; int numPoints; float *times; char pad2[0x178 - 0xF0]; int segmentHint; };
-float UWrapShape(struct X *p, float g);
+float WrapShapeParam(struct X *p, float g);
 /** @sly2-annot addr=0x1E7538
  * Purpose: Segment index containing u (searching from hint +0x178), with offset and segment span outputs
- * Info: proposed name IsegFindShapeU (T1); TU shape
+ * Info: proposed name FindShapeSegmentAtParam (T1); TU shape
  * Notes: names_v2 C proposed FindCrvcClosestPointAll__FP4CRVCP6VECTORP6CONSTRT1T1PfT5 (0.638)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Index of the segment containing u (searching from the cached hint), with the offset into it and its span.
-int IsegFindShapeU(struct X *shape, float *offsetOut, float *spanOut, float param)
+int FindShapeSegmentAtParam(struct X *shape, float *offsetOut, float *spanOut, float param)
 {
     int i;
-    param = UWrapShape(shape, param);
+    param = WrapShapeParam(shape, param);
     i = shape->segmentHint;
     if (shape->times[i] < param) { int n = shape->numPoints - 1; while (i < n) { if (param < shape->times[i]) break; i++; } i--; } else { while (i > 0) { if (shape->times[i] <= param) break; i--; } } { float g0 = shape->times[i]; if (offsetOut) *offsetOut = param - g0; if (spanOut) *spanOut = shape->times[i + 1] - g0; }
     shape->segmentHint = i;
@@ -1164,7 +1164,7 @@ int IsegFindShapeU(struct X *shape, float *offsetOut, float *spanOut, float para
 
 namespace M_IsegFindShapeS { extern "C" {
 struct X { char pad[0xE8]; int numPoints; float *times; float *distances; char pad2[0x178 - 0xF4]; int segmentHint; };
-float SWrapShape(struct X *p, float g);
+float WrapShapeDistance(struct X *p, float g);
 
 static inline int Before(int a, int b)
 {
@@ -1189,15 +1189,15 @@ static inline int Count(struct X *p)
 
 /** @sly2-annot addr=0x1E7668
  * Purpose: Segment index containing s
- * Info: proposed name IsegFindShapeS (T1); TU shape
+ * Info: proposed name FindShapeSegmentAtDistance (T1); TU shape
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Index of the segment containing arc length s.
-int IsegFindShapeS(struct X *shape, float *offsetOut, float *spanOut, float distance)
+int FindShapeSegmentAtDistance(struct X *shape, float *offsetOut, float *spanOut, float distance)
 {
     int i;
-    distance = SWrapShape(shape, distance);
+    distance = WrapShapeDistance(shape, distance);
     i = shape->segmentHint;
     if (shape->distances[i] < distance) {
         int limit = Count(shape) - 1;
@@ -1245,22 +1245,22 @@ qword GetShapeClosestPoint(void *a, int b)
 namespace M_DuGetShapeSearchIncrement { extern "C" {
 
 struct S { char pad[0xE8]; int numPoints; };
-float UMaxShape(struct S *p);
-float UMinShape(struct S *p);
+float GetShapeMaxParam(struct S *p);
+float GetShapeMinParam(struct S *p);
 // 0x1E77E0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xa0");
 
 /** @sly2-annot addr=0x1E77E8
  * Purpose: (uMax-uMin)/(count*10)
- * Info: proposed name DuGetShapeSearchIncrement (T1); TU shape
+ * Info: proposed name GetShapeParamSearchStep (T1); TU shape
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Parameter step for searches: (uMax - uMin) / (count * 10).
-float DuGetShapeSearchIncrement(struct S *shape)
+float GetShapeParamSearchStep(struct S *shape)
 {
-    float a = UMaxShape(shape);
-    return (a - UMinShape(shape)) / (shape->numPoints * 10.0f);
+    float a = GetShapeMaxParam(shape);
+    return (a - GetShapeMinParam(shape)) / (shape->numPoints * 10.0f);
 }
 } } // namespace M_DuGetShapeSearchIncrement
 
@@ -1394,7 +1394,7 @@ void SetShapeChainMode(struct P *shape, int mode)
 
 namespace M_func_001E7B38 { extern "C" {
 struct S { char pad[0xE4]; int isClosed; };
-float SMaxShape(struct S *p);
+float GetShapeMaxDistance(struct S *p);
 /** @sly2-annot addr=0x1E7B38
  * Purpose: b-a, wrapped to the shorter way round on closed shapes
  * Info: proposed name DsShape (T2); TU shape
@@ -1406,7 +1406,7 @@ float GetShapeDistanceBetween(struct S *shape, float from, float to)
 {
     float d = to - from;
     if (shape->isClosed) {
-        float r = SMaxShape(shape);
+        float r = GetShapeMaxDistance(shape);
         if (d > r * 0.5f) d -= r;
         else if (d < r * -0.5f) d += r;
     }
@@ -1695,9 +1695,9 @@ static inline float StoreEndpointAndUpperBits(float *endpoint,float upper,unsign
 }
 struct P { char pad[0xE4]; int isClosed; };
 extern int D_002C3650;
-float SMaxShape(struct P *);
+float GetShapeMaxDistance(struct P *);
 float GRandInRange__Fff(float, float);
-float SWrapShape(struct P *, float);
+float WrapShapeDistance(struct P *, float);
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 static inline float GClamp(float x, float lo, float hi)
 {
@@ -1709,15 +1709,15 @@ static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x1E8008
  * Purpose: Random s within +-b of a (wrapped or clamped to the shape), distribution chosen by D_002C3650
- * Info: proposed name SRandomShapeRange (T1); TU shape
+ * Info: proposed name GetRandomShapeDistanceInRange (T1); TU shape
  * Notes: verifier better_name (CORRECT row): Range [a-b, a+b] (wrapped if +0xE4 closed, else clamped into [0,
- *   SMaxShape]); t = GRandInRange(-1,1) shaped by global D_002C3650 (linear, t|t|, smoothstep, sign
+ *   GetShapeMaxDistance]); t = GRandInRange(-1,1) shaped by global D_002C3650 (linear, t|t|, smoothstep, sign
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6b_rest+verdicts_followups
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Random arc length within +-b of a, wrapped or clamped to the shape; the distribution is chosen by a table.
-float SRandomShapeRange(struct P *shape, float center, float range)
+float GetRandomShapeDistanceInRange(struct P *shape, float center, float range)
 {
     float r[2];
     float t,u,upper,minimum;
@@ -1726,7 +1726,7 @@ float SRandomShapeRange(struct P *shape, float center, float range)
         lower = center - range;
         upper = center + range;
     } else {
-        float m = SMaxShape(shape);
+        float m = GetShapeMaxDistance(shape);
         float c = GClamp(center, range, m - range);
         lower = GMax(c - range, 0.0f);
         upper = GMin(c + range, m);
@@ -1755,7 +1755,7 @@ float SRandomShapeRange(struct P *shape, float center, float range)
     t = t * 0.5f + 0.5f;
     u = (1.0f - t) * r[0] + t * r[1];
     if (shape->isClosed)
-        u = SWrapShape(shape, u);
+        u = WrapShapeDistance(shape, u);
     return u;
 }
 
@@ -2292,9 +2292,9 @@ struct LO { int pad[3]; struct VTE *pvt; };
 struct M4 { qword r[3]; qword pos; };
 struct P { int pad[4]; struct LO *apo[4]; qword apos[2]; void *ap40[2]; int a48; };
 extern char D_002C44F0[];
-float UMinShape(int);
-float UMaxShape(int);
-void EvaluateShapeU(int, qword *, int, float);
+float GetShapeMinParam(int);
+float GetShapeMaxParam(int);
+void EvaluateShapeAtParam(int, qword *, int, float);
 /** @sly2-annot addr=0x1E93F0
  * Purpose: Attach chain end i to object (its matrix via vt32) or to the shape's start/end point
  * Info: proposed name SetChainEndObject (T2); TU shape
@@ -2314,10 +2314,10 @@ void SetChainEndObject(struct P *shape, int end, struct LO *object)
         float f;
         shape->ap40[end] = D_002C44F0;
         if (end == 0)
-            f = UMinShape(shape->a48);
+            f = GetShapeMinParam(shape->a48);
         else
-            f = UMaxShape(shape->a48);
-        EvaluateShapeU(shape->a48, &shape->apos[end], 0, f);
+            f = GetShapeMaxParam(shape->a48);
+        EvaluateShapeAtParam(shape->a48, &shape->apos[end], 0, f);
     }
 }
 } } // namespace M_func_001E93F0
@@ -2605,9 +2605,9 @@ struct NODE { int pad; int n; E *entries; NODE *next; };
 struct S { char pad[0xDC]; NODE *head; char padE0[0x150-0xE0]; void *path; };
 extern "C" {
 void RenderSoSelf(S*);
-float UMaxShape(void*);
+float GetShapeMaxParam(void*);
 M3 *GetLoWorldMatrix(S*);
-void EvaluateShapeU(void*,float,qword*,qword*);
+void EvaluateShapeAtParam(void*,float,qword*,qword*);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 void func_001E9AC0(S*);
 }
@@ -2619,20 +2619,20 @@ static inline float GetZ(qword q) {float f;__asm__("pextuw %0,$zero,%1":"=r"(f):
 static inline float GetY(qword q) {float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline float Min(float a,float b) {return b<a?b:a;}
 /** @sly2-annot addr=0x1E9AC0
- * Purpose: CID 0x6A vt19: RenderSoSelf and deform the mesh along the path (EvaluateShapeU per sample)
+ * Purpose: CID 0x6A vt19: RenderSoSelf and deform the mesh along the path (EvaluateShapeAtParam per sample)
  * Info: proposed name RenderCid106Self (T2); class CID106 slot19; TU shape
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 } // namespace M_func_001E9AC0
-// CID 106 slot 19 (RenderSelf): RenderSoSelf with the mesh deformed along the shape (EvaluateShapeU per sample).
+// CID 106 slot 19 (RenderSelf): RenderSoSelf with the mesh deformed along the shape (EvaluateShapeAtParam per sample).
 void CID106::RenderSelf()
 {
  using namespace M_func_001E9AC0;
  using M_func_001E9AC0::qword; using M_func_001E9AC0::S;
  S *p = (S *)this;
  RenderSoSelf(p);
- float end=UMaxShape(p->path);
+ float end=GetShapeMaxParam(p->path);
  qword axis=GetLoWorldMatrix(p)->c;
  NODE *node;
  for(node=p->head;node;node=node->next) {
@@ -2643,7 +2643,7 @@ void CID106::RenderSelf()
    int k;
    for(k=0;k<e->n;k++) {
     U pos,dir;
-    EvaluateShapeU(p->path,Min(end,src->f[3]),&pos.q,&dir.q);
+    EvaluateShapeAtParam(p->path,Min(end,src->f[3]),&pos.q,&dir.q);
     M3 m;
     M3 tmp=BuildOrthonormalMatrixZ(dir.q,axis);
     m=tmp;
@@ -2699,9 +2699,9 @@ struct SEG { float a, b; };
 struct O { char padC[0xC]; void *vt; char pad10[0xE0-0x10]; int curved; int isClosed; int count; float *parameters; float *distances; qword *points; };
 struct S { struct O *po; int c4; struct SEG *aseg; int cC; struct SEG aseg10[16]; int c90; void **apv; int n98; };
 extern float D_002C367C;
-float SMinShape(struct O *);
-float SMaxShape(struct O *);
-void EvaluateShapeS(struct O *, float, qword *, qword *);
+float GetShapeMinDistance(struct O *);
+float GetShapeMaxDistance(struct O *);
+void EvaluateShapeAtDistance(struct O *, float, qword *, qword *);
 void *FindPathzoneAtPos(qword, int);
 int IsPosInPathzone(void *, qword, int);
 void *AllocCopyFromWorldHeap(struct MSG *, void *);
@@ -2728,16 +2728,16 @@ void BuildShapeVolumeSegments(struct S *shape, struct O *table)
     void *pPrev;
 
     shape->po = table;
-    tStart = SMinShape(table);
+    tStart = GetShapeMinDistance(table);
     tPrev = tStart;
     t = tStart;
-    tEnd = SMaxShape(shape->po);
-    EvaluateShapeS(shape->po, tStart, &pos, 0);
+    tEnd = GetShapeMaxDistance(shape->po);
+    EvaluateShapeAtDistance(shape->po, tStart, &pos, 0);
     pPrev = FindPathzoneAtPos(pos, 0);
     for (; t < tEnd; t += D_002C367C) {
         void *pCur;
         int outside;
-        EvaluateShapeS(shape->po, t, &pos2, 0);
+        EvaluateShapeAtDistance(shape->po, t, &pos2, 0);
         pCur = FindPathzoneAtPos(pos2, 0);
         if (pCur) {
             int i;
@@ -2834,9 +2834,9 @@ struct X { char pad[0x40]; float a; float b; char pad2[0x18]; } __attribute__((a
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
 extern float D_002C367C;
-float SMinShape(struct O *);
-float SMaxShape(struct O *);
-void EvaluateShapeS(struct O *, float, qword *, qword *);
+float GetShapeMinDistance(struct O *);
+float GetShapeMaxDistance(struct O *);
+void EvaluateShapeAtDistance(struct O *, float, qword *, qword *);
 void *FindValidObjectAtPos(qword);
 int FindShapeFreeRange(void *, struct O *, float, int, qword *, float *);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
@@ -2871,14 +2871,14 @@ void BuildShapeValidRanges(struct S *shape)
     }
     aseg = shape->aseg10;
     cseg = 0;
-    tStart = SMinShape(shape->po);
+    tStart = GetShapeMinDistance(shape->po);
     t = tStart;
-    tEnd = SMaxShape(shape->po);
+    tEnd = GetShapeMaxDistance(shape->po);
     asegSrc = shape->aseg;
     c = shape->c4;
     while (t < tEnd) {
         void *pv;
-        EvaluateShapeS(shape->po, t, (qword *)&pos, 0);
+        EvaluateShapeAtDistance(shape->po, t, (qword *)&pos, 0);
         pv = FindValidObjectAtPos(*(qword *)&pos);
         if (pv) {
             int fSave = shape->po->isClosed;

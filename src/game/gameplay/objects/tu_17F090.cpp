@@ -890,8 +890,8 @@ float atan2f(float,float);
 float RadNormalize__Ff(float);
 int IsWithinLimits__FP2LMf(LM*,float);
 void FindPathzonePathCurve(void*,qword,qword,void*);
-void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
-float SMaxShape(void*);
+void FindShapeClosestPointFromDistance(void*,qword,void*,qword*,float,qword*,float*,float*);
+float GetShapeMaxDistance(void*);
 float GetDifficulty(void*);
 int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
@@ -1000,13 +1000,13 @@ dispatch:
    enemy->previousSelf=self;
    enemy->stamp=D_002DDED0.t;
   }
-  FindShapeClosestPointFromS(enemy->curve,self,0,&nearest.q,enemy->progress,&direction.q,0,&enemy->progress);
+  FindShapeClosestPointFromDistance(enemy->curve,self,0,&nearest.q,enemy->progress,&direction.q,0,&enemy->progress);
   {
    float eps=0.0001f;qword d;
    __asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(QwAddScaled(nearest.q,direction.q,VuFloatFromMemWord(*(int*)&D_002BE828))),"j"(self),"f"(eps)); /* allocation-only "f"(eps): the epsilon is loaded before the subtract */
    unit.q=QwNormalizeSafe(d,D_002A2DD0,eps);
   }
-  float remaining=SMaxShape(enemy->curve)-enemy->progress;
+  float remaining=GetShapeMaxDistance(enemy->curve)-enemy->progress;
   float turn=Heading(ConvertAloVec(0,enemy,unit.q));
   float response=GetDifficulty(D_002DE578);
   float speed=Limit(Evaluate(&enemy->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&enemy->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*enemy->scale;
@@ -1548,7 +1548,7 @@ struct Q { char pad[0x24]; int state; char p1[0x14]; float shapeS; int unknown40
 struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
 struct S;
 void LayoutHackwallPieces(struct S *p, struct E *pe);
-float SMaxShape(int state);
+float GetShapeMaxDistance(int state);
 void SetHackwallSegmentState(struct S *p, struct Q *q, int state);
 // Reset one segment's pieces along its shape. (inferred)
 void ResetHackwallSegment(struct S *wall, struct E *pe)
@@ -1557,7 +1557,7 @@ void ResetHackwallSegment(struct S *wall, struct E *pe)
     float g;
     struct Q *q;
     LayoutHackwallPieces(wall, pe);
-    g = SMaxShape(pe->shape);
+    g = GetShapeMaxDistance(pe->shape);
     for (q = pe->pqFirst; q; q = q->next) {
         q->state = -1;
         SetHackwallSegmentState(wall, q, 0);
@@ -1574,11 +1574,11 @@ struct K { float a; float b; };
 struct Q { char pad[0x2C]; struct K k1; struct K k2; char p1[0x24]; struct Q *next; };
 struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; int unknown28; float retargetTime; };
 struct S;
-float SMaxShape(int n);
-// Distribute pieces along the segment shape length (SMaxShape). (inferred)
+float GetShapeMaxDistance(int n);
+// Distribute pieces along the segment shape length (GetShapeMaxDistance). (inferred)
 void LayoutHackwallPieces(struct S *wall, struct E *pe)
 {
-    float g = SMaxShape(pe->shape);
+    float g = GetShapeMaxDistance(pe->shape);
     int c = pe->activePieceCount;
     float r = g * 0.5f / (float)c;
     int m;
@@ -1609,7 +1609,7 @@ namespace M_func_00181CB0 { extern "C" {
 struct Q { char pad[0x2C]; float sStart; float sEnd; float sMin; float sMax; char p1[8]; float sCurrent; float negDistanceToShip; char p2[0x14]; struct Q *next; };
 struct E { int oid; int pieceCount; int maxPieces; int activePieceCount; struct Q *pqFirst; void *pqLast; int ib; int pieceParam; float maxSpacing; int shape; float closestS; float retargetTime; };
 struct S;
-float SMaxShape(int n);
+float GetShapeMaxDistance(int n);
 // Clamps g to [lo, hi].
 static __inline__ float GClamp(float g, float lo, float hi)
 {
@@ -1620,7 +1620,7 @@ static __inline__ float GClamp(float g, float lo, float hi)
 // Per-frame piece placement along shape. (inferred)
 void UpdateHackwallPieces(struct S *wall, struct E *pe)
 {
-    float g = SMaxShape(pe->shape);
+    float g = GetShapeMaxDistance(pe->shape);
     float r0 = g * 0.5f / (float)pe->activePieceCount;
     struct Q *q;
     int i;
@@ -1694,14 +1694,14 @@ extern void *D_002DFB80;
 extern char D_002BE888[];
 extern float D_002BE898, D_002BE89C, D_002BE8A0, D_002BE8A4;
 void UpdateSo(struct S *p);
-float SMaxShape(int oid);
+float GetShapeMaxDistance(int oid);
 qword GetLoWorldPos(void *p);
 void FindShapeClosestPoint(int oid, qword q, int a, int b, struct V *pv, int c, float *pg);
-void FindShapeClosestPointFromS(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
+void FindShapeClosestPointFromDistance(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
 float GRandInRange__Fff(float lo, float hi);
 void UpdateHackwallPieces(struct S *p, struct E *pe);
 float GSmoothA__FffffP4SMPAPf(void *pv, float *pg, float a, float b, float c, float dt);
-void EvaluateShapeS(int oid, struct Q *q, void *pv, float g);
+void EvaluateShapeAtDistance(int oid, struct Q *q, void *pv, float g);
 void UpdateHackwallSegments(struct S *p, struct Q *q);
 // One step of constant-acceleration motion: updates velocity *pv by a*dt and position *px by the average velocity.
 static __inline__ void Integrate(float *px, float *pv, float a, float dt)
@@ -1726,20 +1726,20 @@ void UpdateHackwall(struct S *wall)
         struct E *pe = &wall->ae[i];
         int oid = pe->shape;
         struct Q *q;
-        SMaxShape(oid);
+        GetShapeMaxDistance(oid);
         if (!(D_002DDED0.t <= pe->retargetTime)) {
             float t;
             FindShapeClosestPoint(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS);
             t = D_002DDED0.t;
             pe->retargetTime = t + GRandInRange__Fff(0.5f, 0.75f);
         } else {
-            FindShapeClosestPointFromS(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS, pe->closestS);
+            FindShapeClosestPointFromDistance(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->closestS, pe->closestS);
         }
         UpdateHackwallPieces(wall, pe);
         for (q = pe->pqFirst; q; q = q->next) {
             float a, b;
             q->g3c = GSmoothA__FffffP4SMPAPf(D_002BE888, &q->g40, q->g3c, q->g40, q->g44, D_002DDED0.dt);
-            EvaluateShapeS(oid, q, q->x10, q->g3c);
+            EvaluateShapeAtDistance(oid, q, q->x10, q->g3c);
             a = D_002BE898 * q->g50 + D_002BE89C * q->g58;
             b = D_002BE8A0 * q->g54 + D_002BE8A4 * q->g5c;
             Integrate(&q->g50, &q->g58, a, D_002DDED0.dt);

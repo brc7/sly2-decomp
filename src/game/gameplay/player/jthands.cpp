@@ -81,10 +81,10 @@ float D_002C1EF0 = 400.0f, D_002C1EF4 = 0.25f;
 extern qword D_002A2DD0;
 extern const LONGU D_002A77C8;   /* PMF of UpdateJtHandsCallback */
 extern SW D_003DD490;
-void EvaluateShapeU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
+void EvaluateShapeAtParam(SHAPE *pshape, float u, qword *ppos, qword *pdir);
 void FindClosestPointOnLineSegment(qword q, qword a, qword b, qword *ppos, float *pu, float *ps);
 qword GetLoWorldPos(LO *plo);
-void FindShapeClosestPointFromS(void *pshape, qword pos, void *p, qword *ppos, qword *pdir, float *pu, float *ps, float s);
+void FindShapeClosestPointFromDistance(void *pshape, qword pos, void *p, qword *ppos, qword *pdir, float *pu, float *ps, float s);
 void FindShapeClosestPoint(LO *pshape, qword pos, int a, int b, int c, int d, float *ps);
 M4 InvertMatrix4Rigid(const MATRIX4 *pmat);
 qword ConvertAloPos(LO *ploFrom, LO *ploTo, qword pos);
@@ -163,8 +163,8 @@ extern "C" void ResetJtHands(JTHANDS *hands) { hands->nMode = -1; hands->nKind =
 extern "C" void GetClosestPointOnJtHandsCurveA(JTHANDS *hands, qword pos, float *pu, float *ps, float u)
 {
     qword a, b;
-    EvaluateShapeU(hands->abl[0].pshapeA, u, &a, 0);
-    EvaluateShapeU(hands->abl[1].pshapeA, u, &b, 0);
+    EvaluateShapeAtParam(hands->abl[0].pshapeA, u, &a, 0);
+    EvaluateShapeAtParam(hands->abl[1].pshapeA, u, &b, 0);
     FindClosestPointOnLineSegment(pos, a, b, 0, pu, ps);
 }
 
@@ -182,18 +182,18 @@ extern "C" void GetClosestPointOnJtHandsCurveA(JTHANDS *hands, qword pos, float 
 extern "C" void GetClosestPointOnJtHandsCurveB(JTHANDS *hands, qword pos, float *pu, float *ps, float u)
 {
     qword a, b;
-    EvaluateShapeU(hands->abl[0].pshapeB, u, &a, 0);
-    EvaluateShapeU(hands->abl[1].pshapeB, u, &b, 0);
+    EvaluateShapeAtParam(hands->abl[0].pshapeB, u, &a, 0);
+    EvaluateShapeAtParam(hands->abl[1].pshapeB, u, &b, 0);
     FindClosestPointOnLineSegment(pos, a, b, 0, pu, ps);
 }
 
 /** @sly2-annot addr=0x1CC288
- * Purpose: Parameter callback for curve A (used by FindShapeClosestPointFromS)
+ * Purpose: Parameter callback for curve A (used by FindShapeClosestPointFromDistance)
  * Info: proposed name GJtHandsCurveA (T2); TU jthands
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-// Parameter callback for curve A, used by FindShapeClosestPointFromS.
+// Parameter callback for curve A, used by FindShapeClosestPointFromDistance.
 extern "C" float EvaluateJtHandsCurveA(JTHANDSCTX *context, float u) { float g; GetClosestPointOnJtHandsCurveA(context->phands, context->pos, 0, &g, u); return g; }
 
 /** @sly2-annot addr=0x1CC2B8
@@ -273,7 +273,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
         break;
     case 0: {
         cursor = hands->ploTarget;
-        FindShapeClosestPointFromS(cursor, GetLoWorldPos(hands->pso), 0, &w.position.q, 0, 0, &hands->sParam, hands->sParam);
+        FindShapeClosestPointFromDistance(cursor, GetLoWorldPos(hands->pso), 0, &w.position.q, 0, 0, &hands->sParam, hands->sParam);
         cursor = &w.stage.late.context;
         break;
     }

@@ -336,7 +336,7 @@ extern const float D_002A52B0;   /* defined below where the ELF has it (.rodata 
 struct P*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
 void GetGuardScriptTargetPose(struct P*,qword,struct P*,qword*,float*);
 void FindShapeClosestPoint(struct P*,qword,void*,qword*,qword*,float*,float*);
-void FindShapeClosestPointFromS(struct P*,qword,void*,qword*,qword*,float*,float*,float);
+void FindShapeClosestPointFromDistance(struct P*,qword,void*,qword*,qword*,float*,float*,float);
 // VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: length of a vector.
@@ -395,7 +395,7 @@ void ChooseGuardScriptNearestCommand(struct P *root, qword pos, struct CHOICE *o
             {
                 struct P *object = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, node->tag, current);
                 if (out && out->node == node)
-                    FindShapeClosestPointFromS(object, pos, 0, &hit.q, 0, 0, &value, out->value);
+                    FindShapeClosestPointFromDistance(object, pos, 0, &hit.q, 0, 0, &value, out->value);
                 else
                     FindShapeClosestPoint(object, pos, 0, &hit.q, 0, 0, &value);
                 {

@@ -1964,8 +1964,8 @@ qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
 namespace M_func_001C1F28 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { void *p0; void *p4; int pad[2]; qword q10; };
-float SMaxShape(void *p);
-void EvaluateShapeS(void *p, qword *pq, int n, float g);
+float GetShapeMaxDistance(void *p);
+void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g);
 qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x1C1F28
  * Purpose: Endpoint position using shape midpoint
@@ -1978,7 +1978,7 @@ qword GetPathlinkEndpointCenter(struct S *endpoint)
 {
     qword q;
     if (endpoint->p0) {
-        EvaluateShapeS(endpoint->p0, &q, 0, SMaxShape(endpoint->p0) * 0.5f);
+        EvaluateShapeAtDistance(endpoint->p0, &q, 0, GetShapeMaxDistance(endpoint->p0) * 0.5f);
     } else if (endpoint->p4) {
         q = GetLoWorldPos(endpoint->p4);
     } else {

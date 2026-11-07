@@ -4760,16 +4760,16 @@ struct WORK {U from,to,normal;float heading;qword first,second;};
 extern "C" {
 extern qword D_002A2DA0;
 extern float D_002C3630[3],D_002BBB60[2],D_002C3640;
-float SClampShape(PATH*,float);
-void EvaluateShapeS(PATH*,qword*,qword*,float);
+float ClampShapeDistance(PATH*,float);
+void EvaluateShapeAtDistance(PATH*,qword*,qword*,float);
 qword GetPoctlLateralVector(OUTPUT*,qword);
 float atan2f(float,float);
-float SMaxShape(PATH*),UMaxShape(PATH*);
+float GetShapeMaxDistance(PATH*),GetShapeMaxParam(PATH*);
 float RadNormalize__Ff(float);
 ACTOR *FindJsgObject(P*,int);
 void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
 void SetStepTargetHeading(ACTOR*,float);
-void EvaluateShapeU(PATH*,float,qword*,qword*);
+void EvaluateShapeAtParam(PATH*,float,qword*,qword*);
 qword GetLoWorldPos(ACTOR*);
 qword ConvertAloVec(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
@@ -4856,17 +4856,17 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
  switch(param->kind){
  case 0x1A:{
   int reverse=0;
-  float t=SClampShape(actor->curve,actor->curveTime+50.0f);
-  EvaluateShapeS(actor->curve,&work.from.q,0,t);
-  t=SClampShape(actor->curve,actor->curveTime-50.0f);
-  EvaluateShapeS(actor->curve,&work.to.q,0,t);
+  float t=ClampShapeDistance(actor->curve,actor->curveTime+50.0f);
+  EvaluateShapeAtDistance(actor->curve,&work.from.q,0,t);
+  t=ClampShapeDistance(actor->curve,actor->curveTime-50.0f);
+  EvaluateShapeAtDistance(actor->curve,&work.to.q,0,t);
   qword direction=GetPoctlLateralVector(out,Sub(work.from.q,work.to.q));
   float x=X(direction),y=Y(direction);
   out->heading=atan2f(y,x);out->x=x;out->y=y;
   if(actor->curve->cyclic){
    float forward,backward;
-   if(script->previousCurve<actor->curveTime){forward=actor->curveTime-script->previousCurve;backward=SMaxShape(actor->curve)+script->previousCurve-actor->curveTime;}
-   else {backward=script->previousCurve-actor->curveTime;forward=SMaxShape(actor->curve)+actor->curveTime-script->previousCurve;}
+   if(script->previousCurve<actor->curveTime){forward=actor->curveTime-script->previousCurve;backward=GetShapeMaxDistance(actor->curve)+script->previousCurve-actor->curveTime;}
+   else {backward=script->previousCurve-actor->curveTime;forward=GetShapeMaxDistance(actor->curve)+actor->curveTime-script->previousCurve;}
    if(forward<backward)reverse=1;
   }else if(script->previousCurve<actor->curveTime)reverse=1;
   if(reverse){out->heading=RadNormalize__Ff(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
@@ -4889,14 +4889,14 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
   if(!target)goto activityFlags;
   if(actor->active!=-1&&actor->mode==3){
    PATH *motion=actor->motion;
-   EvaluateShapeU(motion,actor->motionTime,&work.from.q,&work.to.q);
+   EvaluateShapeAtParam(motion,actor->motionTime,&work.from.q,&work.to.q);
    NormalizeTangent(work.to);
    int reverse=0;
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
    if(motion->cyclic){
     float forward,backward;
-    if(script->previousMotion<actor->motionTime){forward=actor->motionTime-script->previousMotion;backward=UMaxShape(motion)+script->previousMotion-actor->motionTime;}
-    else {backward=script->previousMotion-actor->motionTime;forward=UMaxShape(motion)+actor->motionTime-script->previousMotion;}
+    if(script->previousMotion<actor->motionTime){forward=actor->motionTime-script->previousMotion;backward=GetShapeMaxParam(motion)+script->previousMotion-actor->motionTime;}
+    else {backward=script->previousMotion-actor->motionTime;forward=GetShapeMaxParam(motion)+actor->motionTime-script->previousMotion;}
     if(forward<backward)reverse=1;
    }else if(script->previousMotion<actor->motionTime)reverse=1;
    if(reverse)out->heading=RadNormalize__Ff(out->heading+3.1415927f);
