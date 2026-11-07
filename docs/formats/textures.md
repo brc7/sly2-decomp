@@ -1,7 +1,7 @@
-# Level textures: CLUTs, bitmaps, shaders (shd TU 0x1EA568-0x1ED7A8)
+# Level textures: CLUTs, bitmaps, shaders
 
 Textures are stored **per world entry** (WE), right after the WE's Splice entries ([level-objects.md](level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx)),
-and loaded by `LoadShadersFromBrx` 0x1EB748. The exporter `reports/textures/sly2_textures.py` (research workspace, not in this repo) decodes them to PNG
+and loaded by `LoadShadersFromBrx`. The exporter `reports/textures/sly2_textures.py` (research workspace, not in this repo) decodes them to PNG
 
 Tags: `[C:static]` = matched decomp code; `[C:parse]` = the walk lands exactly on every following structure in all 43 world files (37,508 bitmaps,
 38,750 shaders, 71,774 bitmap x CLUT pairs decoded with 0 errors); `[C:visual]` = the decoded images look right (signs and posters readable,
@@ -10,11 +10,11 @@ smooth gradients); `[H]` = inferred.
 ## 1. Layout inside a world entry `[C:static]` + `[C:parse]`
 
 ```
-U16 nclut; nclut x CLUT record          LoadColorTablesFromBrx 0x1EAE40 / LoadClutFromBrx 0x1EA8A8
-U16 nbmp;  nbmp  x BMP record           LoadBitmapsFromBrx 0x1EB098 / LoadBmpFromBrx 0x1EAF50
-U16 nsaa;  nsaa  x {U16 cid (0xFFFF none); 0x20-byte SAA payload}     LoadSaaFromBrx 0x1ED7A8
-U16 nshd;  nshd  x SHD record           LoadShdFromBrx 0x1EB2F0 (0x2C bytes in memory)
-Align(0x10); cbBlob bytes = the image blob    0x20F640 -> RelocateSharedColorTables 0x1EA568 -> UploadBitmaps 0x170730
+U16 nclut; nclut x CLUT record          LoadColorTablesFromBrx / LoadClutFromBrx
+U16 nbmp;  nbmp  x BMP record           LoadBitmapsFromBrx / LoadBmpFromBrx
+U16 nsaa;  nsaa  x {U16 cid (0xFFFF none); 0x20-byte SAA payload}     LoadSaaFromBrx
+U16 nshd;  nshd  x SHD record           LoadShdFromBrx (0x2C bytes in memory)
+Align(0x10); cbBlob bytes = the image blob    LoadSwSharedDataFromBrx -> RelocateSharedColorTables -> UploadBitmaps
 ```
 The blob is re-read only when the WE's idBlob differs from the previous one; otherwise it is skipped by the same size.
 
@@ -24,13 +24,13 @@ The blob is re-read only when the WE's idBlob differs from the previous one; oth
 |---|---|---|
 | +0 | U32 id | hash key; CLUTs are shared across WEs (`AddClutToHash` / `FindClutInHash`) |
 | +4 | U8 kind | 1 = colours in the blob (+0xC = blob offset, 16-aligned); otherwise inline (c x 4 bytes follow). Kind 3 = the "permanent" set uploaded every frame (all four kind-3 CLUTs in L02 belong to `f_skydome`) |
-| +5 | S8 cch | if > 0, cch x S16 load-filter ids follow; the record is dropped unless the current filter matches (`IsCurrentLevelInList` 0x13FAD0) |
-| +8 | U16 c | colour count: <= 16 -> PSMT4 palette, else PSMT8 (`BuildClutTex2` 0x1EC9D0) |
+| +5 | S8 cch | if > 0, cch x S16 load-filter ids follow; the record is dropped unless the current filter matches (`IsCurrentLevelInList`) |
+| +8 | U16 c | colour count: <= 16 -> PSMT4 palette, else PSMT8 (`BuildClutTex2`) |
 | +0xA | U16 cgs | GS blocks to allocate |
 | +0xC | U32 | blob offset (kind 1) |
 
-Colours are RGBA32 (R,G,B,A bytes) `[C:visual]`. Every loaded colour also goes through `ColorCorrectRgba` 0x1ED278 when D_003E12C8 is set; that flag is the
-anaglyph-stereo flag ([rendering](../systems/rendering.md)), so normal rendering does not correct colours `[C:static]`.
+Colours are RGBA32 (R,G,B,A bytes) `[C:visual]`. Every loaded colour also goes through `ColorCorrectRgba` when the anaglyph-stereo flag is set
+([rendering](../systems/rendering.md)), so normal rendering does not correct colours `[C:static]`.
 
 ## 3. BMP record (0x18-byte header) `[C:static]`
 
@@ -46,12 +46,12 @@ then `S16 isaa` (index into the SAA list, -1 none) and `ctex x TEX`. TEX: 8-byte
 index and cclut x U16 CLUT index (0xFFFF none).
 
 - **Passes per frame**: `GetShaderPassCount`: shdk 1 -> 2 CLUTs, shdk 7 -> 3 (2 if grf & 0x20), else 1. TEX0 for frame i, pass j = `bmp[i].TEX0 | clut[i*cpass + j].TEX0`
-  (`Tex0FromTexIframeCtk` 0x1EA6C8). A TEX with several bitmaps is a flip-book animation driven by the SAA (EYES, LOOP, ...); each frame has cpass palettes over the
+  (`Tex0FromTexIframeCtk`). A TEX with several bitmaps is a flip-book animation driven by the SAA (EYES, LOOP, ...); each frame has cpass palettes over the
   same index image.
 - L02 shdk counts: 1:1303, 0:153, 2:73, 3:29, 7:16, 4:4; ctex = 1 everywhere. shdk 3 batches are flat-colour FX volumes (blast domes, glows, blob shadows) `[H]`.
 - Pass meaning `[H]`: for shdk 1, pass 0 = the colour texture, pass 1 = a greyscale palette over the same indices (lighting/shadow, cf. Sly 1's three-way CLUTs).
 - Every CLUT is used by exactly one (bmp, clut) pair in L02 (2766 pairs = 2766 CLUTs) `[C:parse]`.
-- Meshes refer to shaders by index into **the shader list of the WE whose object list holds the SO** (`GetShdByIndex` 0x1EC8F8 = &D_003DCFEC[ishd], stride 0x2C);
+- Meshes refer to shaders by index into **the shader list of the WE whose object list holds the SO** (`GetShdByIndex`: an element of the loaded shader array);
   a proxy copy uses its source WE's shaders `[C:static]`.
 
 ## 5. Pixel decode (what `sly2_textures.decode` does)
@@ -65,11 +65,11 @@ index and cclut x U16 CLUT index (0xFFFF none).
 
 ## 6. Runtime notes
 
-After every load the texture-table counts and list heads are reset: `ResetShaders` 0x1EC7A0 is 17 instructions that zero the 8 words 0x3DCFE8-0x3DD004 and memset nothing `[C:static v3.1]` (plus `ClearTextureHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
+After every load the texture-table counts and list heads are reset: `ResetShaders` zeroes the table counts and list heads (and clears no contents) `[C:static v3.1]` (plus `ClearTextureHashTables`). The BMP/CLUT array contents may survive, so a save-state RAM cross-check is still worth retrying (v3 said the arrays are zeroed: PARTLY wrong, red-team #27).
 GS upload, GS memory pools and per-frame re-uploads of kind-3 textures: [rendering](../systems/rendering.md).
 
 ## 7. Open
 
 - SAA payloads (0x20 bytes per animation) are not decoded; frames are exported as f0..fN.
 - TEX header +0/+4 and shader header bytes 0x14-0x15.
-- Fonts (`CFontBrx` 0x15F710) and "ZRB." streamed sprite files (0x2124F0) use other paths.
+- Fonts (`CFontBrx`) and "ZRB." streamed sprite files (`LoadWidgetSprites`) use other paths.
