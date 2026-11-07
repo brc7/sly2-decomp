@@ -188,8 +188,12 @@ struct JT : public STEPPLAYER
       LO *unknown1F18;   /* the sticky mesh (CID 8/9; possibly climbSurface) attached to: jt.cpp casts it to CLIMBSURF, tu_185130.cpp to MESH; sent splice event 6 on detach; compared in grab candidates */
       SURFLOC surflocMesh;   /* +0x1F1C the location on that mesh (FindMeshClosestPoint hint and result) */
       undefined4 unk_0x1f28[(0x1f30 - 0x1f28) / 4];
-      qword aposMeshProbe[3];   /* +0x1F30 the three mesh probe points in the body frame (SetJtMeshProbePoints); [0].x is the
-                                   distance kept from the surface */
+      union
+      {
+            qword aposMeshProbe[3];   /* +0x1F30 the three mesh probe points in the body frame (SetJtMeshProbePoints); [0].x is the
+                                         distance kept from the surface */
+            VECTOR4 avecMeshProbe[3];   /* the same, by component (air.cpp MeasureJumpAlongPath reads [0].x) */
+      };
       undefined4 unknown1F60[0x30 / 4];
       ASEGBL *unknown1F90;
       float unknown1F94;   /* possibly curvePosition (low-confidence guess: -1..1 position mapped onto a shape and an angle) */

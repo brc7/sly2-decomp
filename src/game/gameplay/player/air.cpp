@@ -3093,14 +3093,11 @@ extern "C" int IsJtStuck(P *p, float previous, float *stamp)
 //////// 0x19A400 SolveJtJumpTimeToTarget
 namespace M_FTimeJtJumpToTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct C { char pad[0x88]; float g88; };
-struct B { char pad[0xE8]; struct C *pc; };
-struct S { struct B *pb; };
 int SolveQuadratic__FfffPf(float, float, float, float *);
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
-int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
+int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
-    int n = SolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, QwordZ(b) - QwordZ(d), QwordZ(a) - QwordZ(c), ag);
+    int n = SolveQuadratic__FfffPf(p->player->physics->gravity.z * 0.5f, QwordZ(b) - QwordZ(d), QwordZ(a) - QwordZ(c), ag);
     if (n <= 0) return 0;
     {
         float g = ag[n - 1];
@@ -3549,10 +3546,7 @@ namespace M_func_0019AC88 { extern "C" {
 // `mov.s $f13,t` argument move, which then outranks the por a1/a2 moves in sched1 and ends up before them.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct X { char pad[0x80]; qword v80; };
-struct O : LO { char pad[0xE8 - 0x50]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; };
-struct A { struct O *p; };
-struct P { struct A *a; void *p4; int pad[2]; qword v10; };
+struct P { JTAIR *a; void *p4; int pad[2]; qword v10; };   /* the callback context */
 qword GetLoWorldPos(void *p);
 int PredictMeshContact(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r);
@@ -3573,14 +3567,14 @@ float MeasureJumpAlongPath(struct P *p, float t)
 {
     U a, b, c, d, e;
     qword pos, vel;
-    struct O *o;
+    JT *o;
     void *pv;
     float g, h;
     pv = p->p4;
-    o = p->a->p;
+    o = (JT *)p->a->player;
     pos = GetLoWorldPos(o);
     vel = p->v10;
-    PredictMeshContact(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
+    PredictMeshContact(pv, pos, vel, *(qword *)&o->physics->gravity, o->avecMeshProbe[0].x, t, &a.q, &b.q, &c.q);
     EvaluateBezierPos(t, 0.0f, 1.0f, pos, vel, b.q, c.q, 0, 0, &d.q);
     g = Len(d.q);
     EvaluateBezierPos(t, t, 1.0f, pos, vel, b.q, c.q, 0, 0, &e.q);
@@ -3667,17 +3661,14 @@ extern "C" float AdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
 
 //////// 0x19B0A8 FilterJtObstruction
 namespace M_func_0019B0A8 { extern "C" {
-struct SO { char pad[0x70]; long fl; };
-struct A { char pad[0xEC]; struct SO *pso; };
-struct X { int a; struct A *pa; int b, c; long fl; };
-struct L { int c; struct SO **a; };
+struct L { int c; SOTREE **a; };   /* the trees to ignore */
 // Obstruction filter: ignores flagged contacts, objects with flag 4 and objects in an ignore list.
-int FilterJtObstruction(struct L *l, struct X *x) {
-    struct SO *so;
+int FilterJtObstruction(struct L *l, SOPART *x) {
+    SOTREE *so;
     int i;
-    if (x->fl & (1L << 48)) return 0;
-    so = x->pa->pso;
-    if (so->fl & 4) return 0;
+    if (x->unknownFlag10A) return 0;
+    so = x->owner->physicsTree;
+    if (so->skipsUpdate) return 0;
     for (i = 0; i < l->c; i++) if (so == l->a[i]) return 0;
     return 1;
 }
