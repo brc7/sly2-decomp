@@ -93,8 +93,11 @@ struct SPRITEGRP
     ushort numSlots;             /* +0x02 */
     SPRITEANIM *anims;           /* +0x04 */
     SPRITESLOT *slots;           /* +0x08 slot 0 plays the group's main track */
-    char padC[0x20 - 0xC];
-    int currentAnim;             /* +0x20 animation to start (-1 none; PlayWidgetAnim, StopWidgetAnim) */
+    char padC[0x10 - 0xC];
+    ulong lastStartFrame;        /* +0x10 the main track's last restart (StartSpriteAnimSlot, StopSpriteSlot; inferred) */
+    float lastStartTime;         /* +0x18 */
+    int lastStartAnim;           /* +0x1C */
+    int pendingAnim;             /* +0x20 animation to start (-1 none; PlayWidgetAnim, StopWidgetAnim) */
     WIDGET *owner;               /* +0x24 */
     int isEnabled;               /* +0x28 set for group 0 */
     SPRITEXF *xform;             /* +0x2C 2-D transform override (SetWidgetAnimXf) */

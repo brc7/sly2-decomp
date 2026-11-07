@@ -1337,7 +1337,7 @@ extern "C" void StopWidgetAnim(WIDGET *widget, int animId)
                 if (isAnySlotPlaying)
                     RestartNestedSprite(widget, groupIndex, 0, 0, 0);
                 else
-                    group->currentAnim = -1;
+                    group->pendingAnim = -1;
                 return;
             }
         }
@@ -1387,7 +1387,7 @@ extern "C" void PlayWidgetAnim(WIDGET *widget, int animId)
                 if (isAnySlotPlaying)
                     RestartNestedSprite(widget, groupIndex, animIndex, 0, 0);
                 else
-                    group->currentAnim = animIndex;
+                    group->pendingAnim = animIndex;
                 return;
             }
         }
@@ -3003,15 +3003,14 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
 
 // 0x217BA0 StartSpriteAnimById
 namespace M_func_00217BA0 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct S { unsigned short numAnims; short pad; struct E *anims; char pad8[0x20]; int isEnabled; };
-void StartSpriteAnim(struct S *group, int i);
+void StartSpriteAnim(SPRITEGRP *group, int i);
 // 0x217B98: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sd $zero, 0x10($4)");
-
+} } // namespace M_func_00217BA0
 // Starts the sprite animation with the given id (0x314 = the first). (inferred)
-void StartSpriteAnimById(struct S *group, int animId)
+extern "C" void StartSpriteAnimById(SPRITEGRP *group, int animId)
 {
+    using namespace M_func_00217BA0;
     int i;
     if (group->isEnabled) {
         i = 0;
@@ -3023,19 +3022,16 @@ void StartSpriteAnimById(struct S *group, int animId)
         StartSpriteAnim(group, i);
     }
 }
-} } // namespace M_func_00217BA0
 
 // 0x217C20 StartSpriteAnim
 namespace M_func_00217C20 {
-struct T { char pad[8]; short animIndex; };   /* slot 0 */
-struct S { char pad[8]; T *slots; char padc[0x1C]; int isEnabled; };
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 extern "C" char D_002A3A10[];
-extern "C" void StopSprite(S *p, int i);
-extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void StopSprite(SPRITEGRP *p, int i);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 // Starts sprite animation i from time 0 with default colours (stopping it first if instanced). (inferred)
-extern "C" void StartSpriteAnim(S *group, int animIndex)
+extern "C" void StartSpriteAnim(SPRITEGRP *group, int animIndex)
 {
     if (group->isEnabled) {
         if (group->slots->animIndex >= 0)
@@ -3164,15 +3160,15 @@ void ResetSpriteSlotItems(struct S *group, int slot)
 
 // 0x217FB8 SetSpriteDefaultPhase
 namespace M_func_00217FB8 { extern "C" {
-struct S { char pad[0x28]; int isEnabled; };
-void SetSpriteAnimPhase(struct S *p, int a, int b);
+void SetSpriteAnimPhase(SPRITEGRP *p, int a, int b);
+} } // namespace M_func_00217FB8
 // Seeks the default animation by phase. (inferred)
-void SetSpriteDefaultPhase(struct S *group)
+extern "C" void SetSpriteDefaultPhase(SPRITEGRP *group)
 {
+    using namespace M_func_00217FB8;
     if (group->isEnabled)
         SetSpriteAnimPhase(group, 0, 0);
 }
-} } // namespace M_func_00217FB8
 
 // 0x217FE0 SetSpriteAnimPhase
 namespace M_func_00217FE0 { extern "C" {
@@ -3196,15 +3192,15 @@ void SetSpriteAnimPhase(struct S *group, int slot, int item, float phase)
 
 // 0x218038 SetSpriteDefaultTime
 namespace M_func_00218038 { extern "C" {
-struct S { char pad[0x28]; int isEnabled; };
-void SetSpriteAnimTime(struct S *p, int a, int b);
+void SetSpriteAnimTime(SPRITEGRP *p, int a, int b);
+} } // namespace M_func_00218038
 // Seeks the default animation by time. (inferred)
-void SetSpriteDefaultTime(struct S *group)
+extern "C" void SetSpriteDefaultTime(SPRITEGRP *group)
 {
+    using namespace M_func_00218038;
     if (group->isEnabled)
         SetSpriteAnimTime(group, 0, 0);
 }
-} } // namespace M_func_00218038
 
 // 0x218060 SetSpriteAnimTime
 namespace M_func_00218060 {
@@ -3430,25 +3426,24 @@ extern "C" int GetSpriteMainState(SPRITEGRP *spriteGroup)
 
 // 0x218748 FinishSpriteSoundEvent
 namespace M_func_00218748 { extern "C" {
-struct E { char pad[0x10]; int isFinished; void *sound; };   /* a playback slot */
-struct S { char pad[8]; struct E *slots; };
 void PauseSnd(void *p);
 // The record's entry array (word at +8).
-static inline struct E *Entries(const struct S *p){struct E *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;}
+static inline SPRITESLOT *Entries(const SPRITEGRP *p){SPRITESLOT *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;}
 // Load a sound pointer from its slot into $3.
 static inline void *SoundRead(void *const *slot){register void *value __asm__("$3");__asm__("lw %0,%1":"=r"(value):"m"(*slot));return value;}
 // Address of entry `index` (register-pinned arithmetic).
-static inline struct E *EntryAt(struct E *entries,int index){register struct E *value asm("$2");register int bytes asm("$5")=index*sizeof(struct E);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;}
+static inline SPRITESLOT *EntryAt(SPRITESLOT *entries,int index){register SPRITESLOT *value asm("$2");register int bytes asm("$5")=index*sizeof(SPRITESLOT);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;}
+} } // namespace M_func_00218748
 // Marks a sprite sound event done and stops or pauses its sound. (inferred)
-void FinishSpriteSoundEvent(struct S *p, int slot)
+extern "C" void FinishSpriteSoundEvent(SPRITEGRP *p, int slot)
 {
+    using namespace M_func_00218748;
     void *sound;
     p->slots[slot].isFinished = 1;
     sound=SoundRead(&EntryAt(Entries(p),slot)->sound);
     if (sound)
         PauseSnd(sound);
 }
-} } // namespace M_func_00218748
 
 // 0x218790 CombineSpriteColors
 namespace M_CombineSpriteColors { extern "C" {
