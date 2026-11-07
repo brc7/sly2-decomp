@@ -18,22 +18,11 @@ typedef int qwordV __attribute__((mode(TI)));
 typedef unsigned long ulong;
 
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct LOV { char pad[0xC]; VTE *vt; };
-struct LOROOTV { LOV *plo; };   /* the object's root link (+0x14) */
 struct ASEGA;
-/* View of the object (an SO). */
-struct CAPTUREV
+/* CID104's own fields after its SO base (LO::unknown40 is the tagged flag word: a pointer to flags when bit 0 is
+   clear, else the flags themselves; SO::rootTransform is passed with each placer's matrix to GetRelativeXfMatrix). */
+struct CAPTUREV : SO
 {
-    char pad0[0xC];
-    VTE *vt;            /* +0x00C */
-    char pad10[4];
-    LOROOTV *root;      /* +0x014 */
-    char pad18[0x28];
-    unsigned int taggedFlags; /* +0x040 a pointer to flags when bit 0 is clear, else the flags themselves */
-    char pad44[0x1C];
-    void *unknown60;    /* +0x060 passed to func_0022FF40 with each placer's matrix (inferred: the camera/world frame) */
-    char pad64[0xEC];
     int state;          /* +0x150 CAPTURE_STATE */
     float stateTime;    /* +0x154 */
     char *placers[2];   /* +0x158 the two objects whose matrices (+0x40) place the quads */
@@ -98,7 +87,7 @@ void SetClockRate(CLOCKV *p, int a, float g);
 void IncrementSwHandsOff(void *p, int a);
 void DecrementSwHandsOff(void *p, int a);
 int IsLoInWorld(CAPTUREV *p);
-void AppendDlEntry__FP2DLPv(void *p, LOROOTV *px);
+void AppendDlEntry__FP2DLPv(void *p, LOROOT *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
 void *FindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
@@ -119,7 +108,7 @@ void PackXYZ__4GIFSiii(GIFS *pgifs, int x, int y, int z);
 }
 
 // Sets bits of an LO flag word that is stored inline or (low bit clear) behind a pointer.
-static inline void SetTaggedFlags(unsigned int *taggedFlags, int bits)
+static inline void SetTaggedFlags(int *taggedFlags, int bits)
 {
     unsigned int flags = *taggedFlags;
     if ((flags ^ 1) & 1) *(int *)flags |= bits;
@@ -132,7 +121,7 @@ extern "C" void InitFrameCapture(CAPTUREV *capture)
     InitSo(capture);
     capture->state = CAPTURE_IDLE;
     SetLoBusyKind(capture, 1);
-    SetTaggedFlags(&capture->taggedFlags, 0x102);
+    SetTaggedFlags(&capture->unknown40, 0x102);
 }
 
 // CID104 vtable slot 15 (PostLoad): finishes the SO load, binds its snip table (the two placing objects), goes idle
@@ -140,12 +129,10 @@ extern "C" void InitFrameCapture(CAPTUREV *capture)
 void CID104::PostLoad()
 {
     CAPTUREV *capture = (CAPTUREV *)this;
-    VTE *entry;
     PostSoLoad(capture);
     BindLoOidTable(capture, 2, D_002BD380);
-    entry = &capture->vt[9];   /* Remove */
     capture->state = CAPTURE_IDLE;
-    entry->pfn((char *)capture + entry->d);
+    capture->Remove();
 }
 
 // CID104 vtable slot 16 (Update): a started capture asks for the grab; a holding one resumes once the sound cue is
@@ -213,12 +200,12 @@ extern "C" void SetFrameCaptureState(CAPTUREV *capture, int state)
         SetSoundManagerFlags(D_003DD040, 2, 0);
         SetClockRate(&D_002DDED0, 8, 0.0f);
         IncrementSwHandsOff(D_003DD490, 0);
-        capture->vt[8].pfn((char *)capture + capture->vt[8].d);
+        capture->Add();
         if (!IsLoInWorld(capture)) {
-            LOV *rootObject;
+            LO *rootObject;
             AppendDlEntry__FP2DLPv(D_003DD490 + 0x2C, capture->root);
-            rootObject = capture->root->plo;
-            rootObject->vt[23].pfn((char *)rootObject + rootObject->vt[23].d);
+            rootObject = capture->root->topObject;
+            rootObject->OnAdd();
         }
         break;
     case CAPTURE_HOLDING:
@@ -233,7 +220,7 @@ extern "C" void SetFrameCaptureState(CAPTUREV *capture, int state)
         SetClockRate(&D_002DDED0, 8, 1.0f);
         SetSoundManagerFlags(D_003DD040, 2, 1);
         DecrementSwHandsOff(D_003DD490, 0);
-        capture->vt[9].pfn((char *)capture + capture->vt[9].d);
+        capture->Remove();
         break;
     case CAPTURE_HOLDING:
         if (capture->segmentAnim) SetAsegaMasterSpeed(capture->segmentAnim, 0.0f);
@@ -341,7 +328,7 @@ extern "C" void DrawFrameCaptureScreen(CAPTUREV *capture)
     PackAD__4GIFSll(&D_002DEA00, 8, 0x3800080000AUL);
     for (i = 0; i < 2; i++) {
         M4 matrix;
-        GetRelativeXfMatrix(&matrix, 0, capture->unknown60, capture->placers[i] + 0x40);
+        GetRelativeXfMatrix(&matrix, 0, capture->rootTransform, capture->placers[i] + 0x40);
         placerMatrices[i] = matrix;
     }
     for (quad = 0; quad < 3; quad = nextQuad) {
@@ -401,7 +388,7 @@ extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
     capture->drawQuad0 = 1;
     segment = (CAPTUREV *)FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
     if (segment) {
-        SetTaggedFlags(&segment->taggedFlags, 0x100);
+        SetTaggedFlags(&segment->unknown40, 0x100);
         ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);
         SetFrameCaptureState(capture, CAPTURE_STARTED);
     }
