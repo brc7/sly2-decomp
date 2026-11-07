@@ -138,14 +138,14 @@ int sceMcOpen(int port, int slot, const char *pchz, int mode);
 int sceMcClose(int fd);
 int sceMcDelete(int port, int slot, const char *pchz);
 void SetSaveState(SAVE *saveManager, int nState);
-int ResetSaveSlot(SAVE *saveManager, void *pslot);
+int ResetSaveSlot(SAVE *saveManager, SAVESLOT *pslot);
 void SetMcDialogPhase(void *dialog, int n);
 int McJobGetInfo(SAVE *saveManager);
-int WriteSaveSlotFile(SAVE *saveManager, int islot);
+int WriteSaveSlotFile(SAVE *saveManager, SAVESLOT *pslot);
 void SetMcDialogState(void *dialog, int nState);
 void HideMcDialogWidget(void *dialog);
 void load_file_from_disc(int n0, int n1, char *pchzFile, char *pchzCard);
-void ResetGsIfSchemaChanged(int *pn);
+void ResetGsIfSchemaChanged(SAVEVARS *psv);
 MCDLG *ConstructScreen(MCDLG *dialog);   /* the widget base constructor (returns the widget) */
 int ResetScreenMode(MCDLG *dialog);
 void PostLoadScreen(MCDLG *dialog);
@@ -676,15 +676,15 @@ void SetSaveState(MC *saveManager, int state)
 extern "C" void ReloadSaveSlots(SAVE *saveManager)
 {
     int i;
-    char *pslot;
+    SAVESLOT *pslot;
     if (saveManager->nState == 5 && (*(int *)&g_sw.savevars) != 0) {
-        pslot = saveManager->aslot[0];
+        pslot = saveManager->aslot;
         i = 2;
         SetMemcardThreadHighPrio(&saveManager->memcard);
         do {
             ResetSaveSlot(saveManager, pslot);
             i--;
-            pslot += 0x5464;
+            pslot++;
         } while (i >= 0);
         saveManager->nStateNext = 6;
         SetSaveState(saveManager, 6);
@@ -1304,9 +1304,9 @@ int ReadSaveSlotHeaders(void *saveManager, struct B *slot)
 } } // namespace M_func_001AC4C8
 
 // Resets a slot when its schema changed (ResetGsIfSchemaChanged).
-extern "C" int ResetSaveSlot(SAVE *saveManager, void *pslot)
+extern "C" int ResetSaveSlot(SAVE *saveManager, SAVESLOT *pslot)
 {
-    ResetGsIfSchemaChanged(&(*(int *)&g_sw.savevars));
+    ResetGsIfSchemaChanged(&g_sw.savevars);
     return 0;
 }
 

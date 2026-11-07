@@ -105,9 +105,17 @@ struct SAVEINFO
 };
 typedef char assert_SAVEINFO_size[sizeof(SAVEINFO) == 0x5C ? 1 : -1];
 
+/* SAVESLOT: one of the save manager's three slots (0x5464 bytes): the save data written to the card, then the slot
+   file's card directory record. */
+struct SAVESLOT
+{
+      SAVEDATA data;        /* +0x0000 */
+      SAVEINFO info;        /* +0x5408 */
+};
+typedef char assert_SAVESLOT_size[sizeof(SAVESLOT) == 0x5464 ? 1 : -1];
+
 /* SAVE: the save manager: card port/slot, its state machine (SetSaveState), the card's info, the three save slots
-   (0x5464 bytes each: the 0x5408 bytes written to the card -- a GS blob, a version and a checksum -- then the slot's
-   SAVEINFO; memcard.cpp's per-function SLOT views), the slot in use and the worker. memcard.cpp's .bss reserves
+   (SAVESLOT), the slot in use and the worker. memcard.cpp's .bss reserves
    0xFDA0 bytes for it. */
 struct SAVE
 {
@@ -120,11 +128,10 @@ struct SAVE
     int cardType;           /* +0x18 sceMcGetInfo type (2: PS2 card) */
     int freeClusters;       /* +0x1C */
     int isFormatted;        /* +0x20 */
-    char aslot[3][0x5464];  /* +0x24 the slots (kept as bytes: the matched code addresses them by offset) */
-    int currentSlot;        /* +0xFD50 the slot in use (0: none); memcard.cpp's save-page functions read it, and
-                               selectedSlot, as a pointer to one of aslot (their views keep that form for now) */
-    void *newestSlot;       /* +0xFD54 the most recently modified slot (SetSaveState) */
-    int selectedSlot;       /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
+    SAVESLOT aslot[3];      /* +0x24 the slots */
+    SAVESLOT *currentSlot;  /* +0xFD50 the slot in use (0: none) */
+    SAVESLOT *newestSlot;   /* +0xFD54 the most recently modified slot (SetSaveState) */
+    SAVESLOT *selectedSlot; /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
     MEMCARD memcard;        /* +0xFD5C */
 };
 typedef char assert_SAVE_currentSlot[SLY2_OFFSETOF(SAVE, currentSlot) == 0xFD50 ? 1 : -1];
