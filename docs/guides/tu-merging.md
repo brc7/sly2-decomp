@@ -1161,6 +1161,36 @@ a union with the allocation size); callback.cpp's SPFV (a frame slot read throug
 views outside splice/ (lo.cpp's RF, screen.cpp's DestroyBasic, asega.cpp's homed CRefPtr<CSidebag> assignment);
 basic.h's comment that frame.cpp/eval.cpp define their own CFrame views is stale.
 
+### Cross-family signatures (names/xfamily-sigs)
+
+The header changes the per-family slices could not make alone (a base declaration and its overriders or callers in
+different families' headers), made in lockstep so no virtual slot moved. Every function and data symbol of all 210
+src/game sources MATCHes after each step, and each object's nm symbol set, relocations by symbol name and symbol
+table with sizes are identical to objects built at a9b1a4ade.
+
+| change | headers | real calls / views removed |
+|---|---|---|
+| EXPL slot 51 `ExplodeExplso(EXPLSO *)`, EXPLS slot 52 `FireExplso(EXPLSO *)` | emitter.h, classes.h (EXPLG, EXPLS) | emitter.cpp ExplodeWithDefaults, ExplodeExplParams, ExplodeExplgExplso (child call), EXPLS::ExplodeExplso (now a member); rip.cpp REMIT::Update |
+| LO slot 20 `RenderAll(MATRIX4 *pmatWorld, float gFirst, float gSecond, SOBOUNDS *)` (RenderSoGlobset's arguments: 0 matrix = the object's own, 0 bounds = its own record) | lo.h, so.h | RenderSoAll is SO::RenderAll; lo.cpp RenderLoAtMatrix |
+| LO slot 30 `RotateToMat(MATRIX3 *)` | lo.h, xfm.h, so.h, step.h, classes.h (LIGHT) | light.cpp EnsureSwDefaultLight; callers holding a MATRIX3 pass it uncast |
+| SO slot 73 `int IsPosInside(qword pos)` | so.h, classes.h (WATER) | rip.cpp RIP::Update, class_registry's POINT_IN_BSP_QUICK thunk; IsPosInWater forwards the position. UpdateRip's +0xE8 read is SO::physics |
+| WIDGET slot 49 `Show(int)` / slot 50 `Hide()` calls; WIDGET +0x8C `visibleTimeout` | classes.h | game.cpp (RestartHudWidget1/2, ShowCountdownHud, SetJobCompletionPhase), tu_1D1370 SetRobottankState (after the pinned region), screen.cpp (hud meter, notice, gadget menu, ThiefNet, screen 0x52D, title; screen.cpp now includes classes.h) |
+| `QWROW`, `MATRIX3Q`, `MATRIX4Q` (decision 1.8); STEP::matqTarget | basic.h, step.h | murray UpdateMurrayStrafe (its U/M3 views and the cast); 78 per-function row unions in 28 files |
+| WR's layout (from wr.cpp's WRV) with WRE, ONZ/ONZE, WRECIRCLE/WREBEND | wr.h (classes.h forward-declares WR; class_registry includes wr.h) | wr.cpp's WRV, VECTORV and its V/M4 row views |
+| SO +0x58/+0x5C `positionXf` / `rotationXf` | so.h | 13 files' uses renamed |
+
+CPLCY Set/Revoke already took the entry argument (names/vu-f1-base-3). Not done:
+- g_sw as a plain `SW` (dropping SWG): sw.cpp then compiles to the same code, but its destructor call references
+  `_$_5BASIC`. `SLY2_ALIAS` renames only defined symbols and an assembler equate (`_$_5BASIC = DestroyBasic`) keeps the
+  relocation on `_$_5BASIC`, so the object would carry a name no object defines and config does not know (symcheck
+  unresolved; tools/link.py would resolve it from the ELF). It needs a naming decision: screen.cpp emitting the real
+  inline `BASIC::~BASIC` as `_$_5BASIC` (config and matched.csv rename DestroyBasic), or a second config name at
+  0x258348 (progress.py keys functions by address). cm.cpp's CMG is the same case through ~CM (DestroyCm).
+- XF's matrices as MATRIX4Q unions (xf.cpp, UpdateSoXfWorldMatrices casts): XF is being changed on another branch.
+- The remaining private row unions: at file scope, redefined in the same scope, or kept because QWROW's unsigned
+  `qword` changes a signedness (`&u.q` passed as a signed `qword *`) or the code (shape.cpp StepChainRk4/StepChain).
+- The other widget Show/Hide hand calls (hud.cpp, menu.cpp, memcard.cpp, tu_15CD68.cpp: their own WIDGET views).
+
 ## Path-hash quirk (asm functions)
 
 GCC 2.95 hashes the source file name and the line number into the gcse ordering of inline-asm expressions; in rare
