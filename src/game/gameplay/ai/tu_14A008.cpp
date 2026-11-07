@@ -98,10 +98,10 @@ struct HEROV { char pad[0xC]; VTE *vt; char pad1[0x258 - 0x10]; PATH *path; char
 struct XEC { char pad[0x20]; qword pos; float radius; };
 struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int flags; XEC *hidingInfo; char pad2[0x174 - 0xF0]; SOV *next; };
 /* The sub-behaviours started by SetBhvRouteState. */
-struct O9E { int pad[3]; VTE *vt; char pad1[0x38 - 0x10]; void *lookAt; int unknown3C; };   /* BHVIDLE */
-struct OA7 { int pad[3]; VTE *vt; char pad1[0x40 - 0x10]; int usesStraightPath; char pad2[0x64 - 0x44]; float arrivalRadius; char pad3[0xC0 - 0x68]; int unknownC0; char pad4[4]; void *faceTarget; /* (inferred) */ };   /* BHVWALKPATH */
-struct OAC { int pad[3]; VTE *vt; char padx[0x50 - 0x10]; qword goal; char pad1[0x68 - 0x60]; int unknown68; };   /* BHVLEAP */
-struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LO *target; char pad2[8]; ATKENTRY *attack; };   /* BHVATTACK */
+struct O9E : BHV { char pad1[0x38 - 0x30]; void *lookAt; int unknown3C; };   /* BHVIDLE */
+struct OA7 : BHV { char pad1[0x40 - 0x30]; int usesStraightPath; char pad2[0x64 - 0x44]; float arrivalRadius; char pad3[0xC0 - 0x68]; int unknownC0; char pad4[4]; void *faceTarget; /* (inferred) */ };   /* BHVWALKPATH */
+struct OAC : BHV { char padx[0x50 - 0x30]; qword goal; char pad1[0x68 - 0x60]; int unknown68; };   /* BHVLEAP */
+struct OA4 : BHV { LO *target; char pad2[8]; ATKENTRY *attack; };   /* BHVATTACK */
 struct MSG { int kind; int pad[3]; int val; char pad2[0x70 - 0x14]; };
 
 extern CLOCK D_002DDED0;
@@ -567,7 +567,6 @@ extern "C" void *GetBhvRouteStationKind(BHVRT *behavior)
     return behavior->route->stations[behavior->currentStation].object;
 }
 
-#define VCALL0(po, n) { VTE *e = &(po)->vt[n]; ((void (*)(void *))e->pfn)((char *)(po) + e->d); }
 // 0x14AE38: Route behaviour state change: pushes the child behaviour for the new state (path walk, leap, animation,
 // attack, idle).
 extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
@@ -597,7 +596,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
     case 0: {
         struct O9E *po = (struct O9E *)PushStepBehavior(behavior->guard, CID_BHVIDLE);
         po->lookAt = GetHeroPo(&D_003DD490);
-        VCALL0(po, 8);
+        po->Start();
         {
             GUARDV *guard = behavior->guard;
             VTE *entry = &guard->vt[35];
@@ -631,7 +630,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         po->usesStraightPath = 1;
         po->arrivalRadius = 25.0f;
         po->faceTarget = GetHeroPo(&D_003DD490);
-        VCALL0(po, 8);
+        po->Start();
         behavior->guard->attackCooldownEnd = D_002DDED0.time;
         SetSoCnstrForce(behavior->guard, 0);
         SetSoCnstrTorque(behavior->guard, 0);
@@ -641,14 +640,14 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         struct OAC *po = (struct OAC *)PushStepBehavior(behavior->guard, CID_BHVLEAP);
         po->goal = GetLoWorldPos(GetBhvRouteStationKind(behavior));
         po->unknown68 = 1;
-        VCALL0(po, 8);
+        po->Start();
         break;
     }
     case 3: {
         struct OA4 *po = (struct OA4 *)PushStepBehavior(behavior->guard, CID_BHVATTACK);
         po->target = behavior->guard->target;
         po->attack = behavior->attack;
-        VCALL0(po, 8);
+        po->Start();
         behavior->guard->attackCooldownEnd = 3.40282346638528859812e+38f;
         break;
     }
@@ -656,7 +655,7 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         struct O9E *po = (struct O9E *)PushStepBehavior(behavior->guard, CID_BHVIDLE);
         po->lookAt = GetHeroPo(&D_003DD490);
         po->unknown3C = 1;
-        VCALL0(po, 8);
+        po->Start();
         break;
     }
     case -1:
@@ -665,7 +664,6 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         break;
     }
 }
-#undef VCALL0
 
 // 0x14B1A0: CARMELITA vtable slot 7 (Init): STEPGUARD Init, registers her as the world's Carmelita (D_002DD648),
 // sets +0x4A4.
