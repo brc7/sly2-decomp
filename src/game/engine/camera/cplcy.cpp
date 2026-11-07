@@ -966,17 +966,11 @@ typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 extern struct CLOCK D_002DDED0;
-struct CM { char pad[0x390]; float modeStartTime; };
-extern struct CM D_002DDF40;
 extern qword D_002BDA70[];
-struct K { qword pos; qword rot; float fov; };
-struct PATH { struct K *pk0; struct K *pk1; float dt; int pad; int ik; };
-struct X { char pad[0x10]; struct PATH *ppath; };
-void UpdateCplcy(struct X *p);
+void UpdateCplcy(CPCAMBLEND *p);
 void LoadRotateMatrixEuler(M3 *pm, qword v);
 qword *VECTOR_opAssign(qword *p, qword v);
-void SetCmMat4(struct CM *p, M4 *m);
-void SetCmFov__FP2CMf(struct CM *p, float g);
+void SetCmMat4(CM *p, M4 *m);
 
 
 static __inline__ float Dot(qword a, qword b)
@@ -1003,26 +997,26 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 }
 // T=(clock.time - modeStartTime)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov between the two
 // CAMPOSEs; SetCmMat4 + SetCmFov.
-extern "C" void UpdateCpcamblend(struct X *p)
+extern "C" void UpdateCpcamblend(CPCAMBLEND *p)
 {
     float u, t, t1, fov;
     U pos, rot;
     M4 m4;
     U c;
-    struct PATH *ppath;
+    CAMMOVE *ppath;
     UpdateCplcy(p);
-    u = D_002DDED0.time - D_002DDF40.modeStartTime;
-    t = Clamp(u / p->ppath->dt, 0.0f, 1.0f);
+    u = D_002DDED0.time - g_cm.modeStartTime;
+    t = Clamp(u / p->pcammove->dt, 0.0f, 1.0f);
     u = t;
     c.f[1] = u * u;
     c.f[0] = u * u * u;
     c.f[2] = u;
-    ppath = p->ppath;
-    t = Dot(c.q, D_002BDA70[ppath->ik]);
+    ppath = p->pcammove;
+    t = Dot(c.q, D_002BDA70[ppath->iCurve]);
     t1 = 1.0f - t;
-    pos.q = VecCombo(VU_FLOAT(t1), VU_VECTOR(ppath->pk0->pos), VU_FLOAT(t), VU_VECTOR(ppath->pk1->pos));
-    rot.q = VecCombo(VU_FLOAT(t1), VU_VECTOR(ppath->pk0->rot), VU_FLOAT(t), VU_VECTOR(ppath->pk1->rot));
-    fov = t1 * ppath->pk0->fov + t * ppath->pk1->fov;
+    pos.q = VecCombo(VU_FLOAT(t1), VU_VECTOR(*(qword *)&ppath->pposeFrom->pos), VU_FLOAT(t), VU_VECTOR(*(qword *)&ppath->pposeTo->pos));
+    rot.q = VecCombo(VU_FLOAT(t1), VU_VECTOR(*(qword *)&ppath->pposeFrom->eul), VU_FLOAT(t), VU_VECTOR(*(qword *)&ppath->pposeTo->eul));
+    fov = t1 * ppath->pposeFrom->radFov + t * ppath->pposeTo->radFov;
     {
         M3 m3;
         M4 *pm4;
@@ -1036,9 +1030,9 @@ extern "C" void UpdateCpcamblend(struct X *p)
         m4.af[1][3] = 0.0f;
         m4.af[0][3] = 0.0f;
         pm4->af[3][3] = 1.0f;
-        SetCmMat4(&D_002DDF40, pm4);
+        SetCmMat4(&g_cm, pm4);
     }
-    SetCmFov__FP2CMf(&D_002DDF40, fov);
+    SetCmFov(&g_cm, fov);
 }
 } // namespace M_UpdateCpcamblend
 
