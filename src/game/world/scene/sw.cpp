@@ -1222,7 +1222,7 @@ struct F8 { char pad[0x14]; float value; };   /* the element's animated value */
 struct O { char pad[0xF8]; struct F8 *anim; };
 struct E { struct O *widget; float velocity; int isHidden; };
 struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x476C - 0x3BD0]; float tCountdownEnd; int lastSecond; };
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
 int IsWidgetVisible(struct O *po);
@@ -1250,11 +1250,11 @@ void UpdateSwTimerHud(struct S *world)
             e->velocity = 0.0f;
             e->isHidden = 0;
         } else {
-            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.dt);
+            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->velocity, t, D_002C3E88, &e->velocity, D_002DDED0.deltaTime);
         }
         t += D_002C3E80;
         if (i == 3) {
-            float remaining = -D_002DDED0.t + world->tCountdownEnd;
+            float remaining = -D_002DDED0.time + world->tCountdownEnd;
             int n;
             remaining = (0.0f > remaining) ? 0.0f : remaining;
             n = (int)remaining;
