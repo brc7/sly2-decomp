@@ -406,7 +406,7 @@ struct P {
     char pad[0xC]; struct VTE *vt; char pad1[0xDF4 - 0x10]; int xDF4;
     char pad2[0x10C4 - 0xDF8]; void *hideVolumes; int x10C8; float hideBlend; float x10D0;
 };
-extern struct { float t; float dt; } D_002DDED0;
+extern CLOCK D_002DDED0;
 extern float D_002BCC6C, D_002BCC70, D_002BCC74, D_002BCC78;
 int TestStepplayerHidden(struct P *p);
 qword GetLoWorldPos(struct P *p);
@@ -423,10 +423,10 @@ void UpdateStepplayerHideBlend(struct P *player)
     if (!player->hideVolumes) return;
     switch (TestStepplayerHidden(player)) {
     case 1:
-        { float dt = D_002DDED0.dt; player->hideBlend = StdMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
+        { float dt = D_002DDED0.deltaTime; player->hideBlend = StdMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
         break;
     case 0:
-        { float dt = D_002DDED0.dt; player->hideBlend = MaxF(player->hideBlend + D_002BCC70 * dt, 0.0f); }
+        { float dt = D_002DDED0.deltaTime; player->hideBlend = MaxF(player->hideBlend + D_002BCC70 * dt, 0.0f); }
         break;
     case 2:
         player->hideBlend = 0.0f;
@@ -442,11 +442,11 @@ void UpdateStepplayerHideBlend(struct P *player)
         player->x10D0 = 0.0f;
         break;
     case 1:
-        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.deltaTime; player->x10D0 = Clamp(player->x10D0 + D_002BCC74 * dt, 0.0f, 1.0f); }
         break;
     case -1:
     case 2:
-        { float dt = D_002DDED0.dt; player->x10D0 = Clamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
+        { float dt = D_002DDED0.deltaTime; player->x10D0 = Clamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
     if (player->x10D0 == 1.0f) CreateNoise(player->hideVolumes, GetLoWorldPos(player), player, 0);
