@@ -332,7 +332,7 @@ struct SW : public BASIC
                                waypoints in from the later of the two (waypoint.cpp); was _pad_352 */
       float unknown4758;    /* +0x4758 [S] draft: a game time UpdateBhvcombat compares with g_clock.time (guardbhv.cpp) */
       float unknown475C;
-      uint32_t   _pad_354    [ 1 ] ;
+      int iclueNext;        /* +0x4760 [S] index the next loading clue bottle takes (prize.cpp CLUEPROXY::PostLoad); was _pad_354 */
       int numCluesCollected; /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
       int numClues;         /* +0x4768 [R] clue bottles in this level (30 in the Paris hub) */
 
@@ -405,6 +405,7 @@ typedef char assert_SW_slotheapDiract[SLY2_OFFSETOF(SW, slotheapDiract) == 0x466
 typedef char assert_SW_artgt[SLY2_OFFSETOF(SW, artgt) == 0x45E8 ? 1 : -1];
 typedef char assert_SW_bootyProxySource[SLY2_OFFSETOF(SW, bootyProxySource) == 0x4638 ? 1 : -1];
 typedef char assert_SW_unknown4758[SLY2_OFFSETOF(SW, unknown4758) == 0x4758 ? 1 : -1];
+typedef char assert_SW_iclueNext[SLY2_OFFSETOF(SW, iclueNext) == 0x4760 ? 1 : -1];
 typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
 
 /* g_sw: the one world (sw.cpp defines it under its address name as an SWG). */

@@ -1819,16 +1819,14 @@ namespace M_FClueCollected { extern "C" {
 // Append the clue property and identifier to the selected key array.
 struct K { short a, b; };
 struct A { int c; short *pk; };
-struct HT {void *buckets[0x35];int count;void *entries;};
-struct X {char pad[8];struct HT table;};
 extern const char D_002A7768[],D_002A7788[];
 int GetCurrentLevelIndex__Fv(void);
 int sprintf(char *buf,const char *fmt,...);
-int FindSaveSymbol(struct HT *pt,const char *s);
+int FindSaveSymbol(SVNHASH *pt,const char *s);
 struct A *GetLevelListEntry(int h);
 struct A *ConcatSaveKeys(struct A *p, struct A *pa);
 // Index of a save symbol by name.
-static inline int Find(struct X *px, const char *s) { return FindSaveSymbol(&px->table,s); }
+static inline int Find(SAVEVARS *px, const char *s) { return FindSaveSymbol(&px->symtab,s); }
 // query save data for bit n of 'afClue' for the current level. (inferred)
 struct A *GetClueSaveKey(int input)
 {
@@ -1840,7 +1838,7 @@ struct A *GetClueSaveKey(int input)
     h = GetCurrentLevelIndex__Fv();
     if (h == -1) return 0;
     sprintf(buf, D_002A7768, n);
-    k.a = Find(&(*(struct X *)&g_sw.savevars), D_002A7788);
+    k.a = Find(&g_sw.savevars, D_002A7788);
     k.b = n;
     a.c = 2;
     a.pk = (short *)&k;
@@ -1921,19 +1919,15 @@ extern "C" int GetMaxClueCount()
 namespace M_CClueCollected { extern "C" {
 struct K { int a; short b; short c; short d; short e; int f; };
 struct S { int k; struct K *pk; };
-struct X { short a; signed char b; char c; short d; unsigned short h; };
-struct T { struct X *px; int n; };
-struct E { unsigned short id; short pad[3]; unsigned short next; };
-struct M { int a; struct E *pe; char m8[8]; };
-struct G { char pad[0x3A18]; struct M m; };
-extern struct G D_003DD490;
+struct T { SVENT *px; int n; };   /* save.cpp's SVFIND */
+extern SW D_003DD490;
 extern char D_003D4A60[];
 extern char D_002A7788[];
 int GetCurrentLevelIndex__Fv(void);
 struct { int a; int b; } *GetLevelListEntry(int n);
 void CopyAb__FPvT0Ui(struct K *pk, int a, int b);
 void *FindSaveVar(void *a, void *b, struct T *pt);
-short FindSaveSymbol(void *a, char *s);
+short FindSaveSymbol(SVNHASH *a, char *s);
 unsigned int *GetSaveVarAddress(void *a, void *b, void *c);
 // count collected clue bottles: popcount of afClue words over the level's entries. (inferred)
 int CountCollectedClues(void)
@@ -1944,7 +1938,7 @@ int CountCollectedClues(void)
     struct S s;
     struct T t;
     unsigned int i;
-    struct E *pe;
+    SVENT *pe;
     unsigned int v;
     n = GetCurrentLevelIndex__Fv();
     if (n == -1)
@@ -1953,13 +1947,13 @@ int CountCollectedClues(void)
     CopyAb__FPvT0Ui(&k, GetLevelListEntry(n)->b, 6);
     s.pk = &k;
     s.k = 3;
-    FindSaveVar(&D_003DD490.m, &s, &t);
+    FindSaveVar(&D_003DD490.savevars, &s, &t);
     s.k = 5;
-    k.d = FindSaveSymbol(D_003DD490.m.m8, D_002A7788);
-    for (i = t.px->h; i; i = pe->next) {
-        pe = &D_003DD490.m.pe[i];
-        k.c = pe->id;
-        v = *GetSaveVarAddress(&D_003DD490.m, &s, D_003D4A60);
+    k.d = FindSaveSymbol(&D_003DD490.savevars.symtab, D_002A7788);
+    for (i = t.px->ientChild; i; i = pe->ientSibling) {
+        pe = &D_003DD490.savevars.aent[i];
+        k.c = pe->symid;
+        v = *GetSaveVarAddress(&D_003DD490.savevars, &s, D_003D4A60);
         while (v) { v &= v - 1; c++; }
     }
     return c;
@@ -2057,15 +2051,14 @@ void SetClueDprizes(struct S *clue, int n)
 namespace M_func_001C8030 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { int a[3]; struct VTE *vt; char pad[0xF0]; int clueIndex; };
-struct G { char pad[0x4760]; int nextClueIndex; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 void PostLoLoad(struct O *p);
 int IsClueCollected(int n);
 // CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
 } } // namespace M_func_001C8030
 void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
     PostLoLoad(p);
-    p->clueIndex = D_003DD490.nextClueIndex++;
+    p->clueIndex = D_003DD490.iclueNext++;
     if (IsClueCollected(p->clueIndex)) { struct VTE *e = &p->vt[9]; e->pfn((char *)p + e->d); }
 }
 
