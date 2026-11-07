@@ -1576,7 +1576,6 @@ R *NewBezierAct(void *a, void *b, void *c, float g, qword v, qword w)
 
 namespace M_func_0012DEF0 {
 typedef int qword __attribute__((mode(TI)));
-struct MATRIX4 { float mat[4][4]; } __attribute__((aligned(16)));
 struct BONE { char pad[0x40]; MATRIX4 mat; };
 struct Y { char pad[0x9A]; short segmentKind; char pad2[0xA0 - 0x9C]; BONE *parent; char pad3[0xC0 - 0xA4]; qword goalValue; qword goalVelocity; };
 struct XX { char pad[8]; Y *xf; char pad2[0x1C - 0xC]; BONE *bone; MATRIX4 mat; };   /* the act: its transform, a bone and an offset matrix */

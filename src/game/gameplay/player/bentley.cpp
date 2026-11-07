@@ -1871,7 +1871,6 @@ struct P : BASE {
 };
 struct PX { char pad[0x10DC]; P *py; };
 struct S { P *p; };
-struct SMP { float a, b, c; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002BC998;

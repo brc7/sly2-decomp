@@ -16,7 +16,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
-struct VECTORV { float x, y, z, w; } __attribute__((aligned(16)));
 struct LONGU { long l; } __attribute__((packed));   /* an 8-byte callback PMF, passed in one register */
 struct ASEGAV { char pad[0x1C]; float tLocal; };
 /* A dancer's move: its button, then three clips (oid, the clip once loaded, apply flags): 0 played on success, 1 on
@@ -50,7 +49,7 @@ struct DANCERV
 typedef char DANCER_408[FIELD_OFFSET(DANCERV,segmentAnim)==0x408?1:-1];
 
 /* A note on the drawn track (0x30). */
-struct ENT { float time; int buttonMask; char pad[8]; union { qwordV screenPos; VECTORV screenPosV; }; int isHit; char pad2[0x30 - 0x24]; };
+struct ENT { float time; int buttonMask; char pad[8]; union { qwordV screenPos; VECTOR4 screenPosV; }; int isHit; char pad2[0x30 - 0x24]; };
 /* A cue: the dancer, its button and the move that follows, when it is due (music time). */
 struct CUE
 {
@@ -89,7 +88,7 @@ struct RHYTHMMGR
     int hintState;              /* 0x190 0 waiting, 1 flying to the next note */
     int hintIndex;              /* 0x194 */
     int pad198[2];
-    union { qwordV hintPos; VECTORV hintPosV; };  /* 0x1A0 the hint marker */
+    union { qwordV hintPos; VECTOR4 hintPosV; };  /* 0x1A0 the hint marker */
     qwordV hintVelocity;        /* 0x1B0 */
     int numCues;                /* 0x1C0 */
     CUE cues[3];                /* 0x1C4 */
@@ -672,7 +671,7 @@ void SetRhythmMgrState(RHYTHMMGR *manager, int newState) {
 }
 
 // Packs x, y, z into a vector.
-static inline void SetVector(VECTORV *pv, float x, float y, float z)
+static inline void SetVector(VECTOR4 *pv, float x, float y, float z)
 {
     pv->x = x;
     pv->y = y;

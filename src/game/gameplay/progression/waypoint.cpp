@@ -17,9 +17,8 @@ typedef int qwordV __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned char uchar;
 typedef unsigned long ulong;
-struct VECTORV { float x, y, z, w; } __attribute__((aligned(16)));
-struct MATRIX3V { VECTORV mat[3]; };
-struct MATRIX4V { VECTORV mat[3]; VECTORV pos; };
+struct MATRIX3V { VECTOR4 mat[3]; };
+struct MATRIX4V { VECTOR4 mat[3]; VECTOR4 pos; };
 struct VU_FLOAT { qwordV qw; };
 struct RGBAV
 {
@@ -458,7 +457,7 @@ int IsJobComplete(void *pcond);
 void CalculateWayptCurtainExtraHeight(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
 MATRIX4V *GetLoWorldMatrix(SOV *pso);
-VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
+VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qwordV qw);
 void RenderLoAtMatrix(SOV *pso, MATRIX4V *pmat, float a, float b);
 void RenderLoAlongSegment(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
 char *FindSwLocalizedString__FP2SWi(SW *psw, int id);

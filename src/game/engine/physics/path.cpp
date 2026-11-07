@@ -1186,13 +1186,12 @@ void LoadSwZoneBspFromBrx(struct G *world, void *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadZoneBspFromBrx { extern "C" {
-typedef struct VECTOR { float x, y, z, w; } __attribute__((aligned(16))) VECTOR;
-struct E { VECTOR *pv; short a; short b; };
-struct S { int numNodes; struct E *nodes; int numPlanes; VECTOR *planes; int numZones; int *zoneIds; void *zones; };
+struct E { VECTOR4 *pv; short a; short b; };
+struct S { int numNodes; struct E *nodes; int numPlanes; VECTOR4 *planes; int numZones; int *zoneIds; void *zones; };
 struct A { int cb; int align; };
 int U32Read__18CBinaryInputStream(void *pbis);
 int U16Read__18CBinaryInputStream(void *pbis);
-void ReadVector4__18CBinaryInputStreamP7VECTOR4(void *pbis, VECTOR *pv);
+void ReadVector4__18CBinaryInputStreamP7VECTOR4(void *pbis, VECTOR4 *pv);
 int S32Read__18CBinaryInputStream(void *pbis);
 void *AllocFromWorldHeap(struct A *pa);
 void *AllocClearedFromWorldHeap(struct A *pa);

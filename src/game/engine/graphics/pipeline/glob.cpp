@@ -413,7 +413,6 @@ void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BindGlobset {
-struct MATRIX4 { float mat[4][4]; } __attribute__((aligned(16)));
 struct BONE { char pad[0x40]; MATRIX4 mat; };
 class LO {
 public:

@@ -2035,7 +2035,6 @@ struct BASE_E0 { char data[0xE0]; };
 struct BASE_190 { char data[0x190]; };
 struct PATH : BASE_E0, SAMPLER {};
 struct SPLINE : BASE_190, SAMPLER {};
-struct SMP { float a, b, c; };
 struct VU_FLOAT { qword q; };
 
 extern "C" {

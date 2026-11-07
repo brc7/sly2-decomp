@@ -1828,7 +1828,6 @@ struct T {char pad[0x18];float x18,x1C;};
 struct O {char pad[0x150];struct T*controller;char pad154[0x240-0x154];qword pos;};
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
-struct SMP {float g0,g1,g2;};
 struct CLOCK {float time,deltaTime;};
 extern struct CLOCK D_002DDED0;
 extern float D_002BF668;
@@ -1861,9 +1860,9 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     dot = Dot(v, dir.q);
     dead.q = v;
     current = GetShapeDistanceAtParam(curve, t);
-    smp.g1 = p->x260;
-    smp.g0 = p->x2A0;
-    smp.g2 = D_002BF668;
+    smp.slowSpeed = p->x260;
+    smp.fastSpeed = p->x2A0;
+    smp.fastDuration = D_002BF668;
     (void)SmoothValue__FfffP3SMPPf(current, 50.0f, D_002DDED0.deltaTime, &smp, &low);
     (void)SmoothValue__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, D_002DDED0.deltaTime, &smp, &high);
     {

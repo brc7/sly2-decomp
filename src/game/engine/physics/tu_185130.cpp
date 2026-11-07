@@ -43,7 +43,6 @@ typedef char assert_MESH_ptn[(unsigned int)&((MESH *)0)->ptn == 0x110 ? 1 : -1];
 typedef struct TRIREF { int index; float u, v; } TRIREF;
 /* Planes gathered by CollectMeshContacts for the solve in SolveMeshConstraints. */
 typedef struct LIST { int count; int pad[3]; qword planes[8]; } LIST;
-struct SMPV { float svFast, svSlow, dtFast; };
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
 /* The player (JT) while attached to a mesh: view of the fields UpdateJtMeshAttachment and SetJtMeshProbePoints use. */
 struct CONTROL{char pad0[0x10];float y,z;int pad18;float speed;};
@@ -73,7 +72,7 @@ extern CLOCKV D_002DDED0;
    device: defined here under its asm label, as a plain float, so no function sees a definition). */
 namespace TU_185130_DATA { float r_D_002BE918 __asm__("D_002BE918") = -300.0f; }
 /* tu_185130's .data after D_002BE918: the smoothing parameters of the orientation, the position and the mesh fit. */
-SMPV D_002BE920={25.0f,0.0f,0.25f},D_002BE930={1000.0f,0.0f,0.25f},D_002BE940={250.0f,0.0f,0.5f};
+SMP D_002BE920={25.0f,0.0f,0.25f},D_002BE930={1000.0f,0.0f,0.25f},D_002BE940={250.0f,0.0f,0.5f};
 void InitXfm(MESH *pmesh);
 void LoadXfmXfFromBrx(MESH *pmesh, CBinaryInputStream *pbis);
 void *AllocFromWorldHeap(MSG *pmsg);
@@ -87,17 +86,17 @@ void SetPlane(qword *, qword, float);
 void SolveInequalities(int n, float *matrix, float *rhs, float *weights, float eps);
 qword GetLoWorldPos(JTV*);M4*GetLoWorldMatrix(JTV*);
 M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*VECTOR_opAssign(qword*,qword);
-void SmoothMatrix(M4*,M3*,SMPV*,M3*,qword*,float);
-void PosSmooth(qword,qword,SMPV*,qword*,float);
+void SmoothMatrix(M4*,M3*,SMP*,M3*,qword*,float);
+void PosSmooth(qword,qword,SMP*,qword*,float);
 void SetJtState__FP2JT3JTS4JTBS(JTV*,int,int);void UpdateDirectionalBlend(JTV*,AXIS*,REQUEST*);
 void InitCid8(MESH *pmesh);
 void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal);
 void ClearMeshContactList(MESH *pmesh, LIST *plist);
-void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius);
+void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMP *params, float radius);
 qword SolveMeshConstraints(void *unused, LIST *p, qword v);
 }
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);
-float SmoothValue(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");   /* SMPV: this file's view of SMP */
+float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");   /* SMP: this file's view of SMP */
 void AppendDlEntry(DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 void RemoveDlEntry(DL *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 
@@ -269,7 +268,7 @@ static inline void ClosestPoint(const qword &point, const qword &start, const qw
 {
     FindClosestPointOnLineSegment(point, start, end, closest, 0, dist);
 }
-static inline void Evaluate(const float &r, const float &d, const float &dt, SMPV *params, float *out)
+static inline void Evaluate(const float &r, const float &d, const float &dt, SMP *params, float *out)
 {
     SmoothValue(r, d, dt, params, out);
 }
@@ -281,7 +280,7 @@ static inline U *Addr(U *p) { return p; }
 static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->count++]; *p = q; }
 // Gathers the contact planes of mesh edges and triangles within radius of a set of points into a list, for the
 // inequality solve.
-extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius)
+extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMP *params, float radius)
 {
     M4 mat;
     U v[3];
@@ -294,9 +293,9 @@ extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *poi
     float stop, step;
     pm = ((M4 *(*)(void *))e->fn)((char *)mesh + e->delta);
     mat = *pm;
-    float h = (params->svFast + params->svSlow) * 0.5f;
+    float h = (params->fastSpeed + params->slowSpeed) * 0.5f;
     step = g_clock.deltaTime * 0.5f;
-    stop = params->dtFast * h;
+    stop = params->fastDuration * h;
     for (int i = 0; i < mesh->count; i++) {
         I3 *t = &mesh->triangles[i];
         qword normal;

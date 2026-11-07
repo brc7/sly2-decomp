@@ -25,7 +25,6 @@ typedef int qwordV __attribute__((mode(TI)));
 union U { qwordV q; float f[4]; };
 struct M3 { qwordV row[3]; };
 struct M4 { qwordV r[4]; };
-struct VECTOR4V { float x, y, z, w; } __attribute__((aligned(16)));
 /* g++ 2.95 vtable entry. */
 struct VTE { short d; short pad; void *pfn; };
 struct SCOPE { int a[4]; };
@@ -715,7 +714,7 @@ namespace RO_ORDER { extern const float r_D_002A53E0 __asm__("D_002A53E0") = 3.4
 extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped)
 {
     SCOPE frame;
-    union { VECTOR4V v; qwordV q; } bestPosition;
+    union { VECTOR4 v; qwordV q; } bestPosition;
     M3 bestRotation;
     int numObjects;
     void **objects;
@@ -788,7 +787,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *spawner, qwordV pos, qwordV *ou
         case SELECTOR_CURVE:
         {
             // Samples the curve at random points about D_002BE5E8 apart.
-            union { VECTOR4V v; qwordV q; } curvePosition, curveDirection;
+            union { VECTOR4 v; qwordV q; } curvePosition, curveDirection;
             int numSamples = (int)(GetShapeMaxDistance(object) / D_002BE5E8);
             for (int k = 0; k < numSamples; k++)
             {

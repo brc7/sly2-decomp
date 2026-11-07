@@ -23,12 +23,11 @@ struct RPL
 };
 typedef char assert_RPL_size[sizeof(RPL) == 0x10 ? 1 : -1];
 
-typedef struct MATRIX4V { float mat[4][4]; } __attribute__((aligned(16))) MATRIX4V;
 struct V3 { float x, y, z; };
 struct V4 { V3 v; float w; };
 
 /* Views of objects whose classes are not modelled yet; only the fields this TU reads. */
-struct CM { char pad[0x4C]; float rNear; float rFar; char pad2[0xC]; MATRIX4V cameraMatrix; char pad3[0xA0]; MATRIX4V viewProj; };
+struct CM { char pad[0x4C]; float rNear; float rFar; char pad2[0xC]; MATRIX4 cameraMatrix; char pad3[0xA0]; MATRIX4 viewProj; };
 struct FR { char pad[0x24]; uchar *chainStart; };   /* the frame: where its VIF1 chain starts */
 /* SW: vecLightRgb (+0x3E28), the stereo flag (+0x3E38, sw.h's fUnk3e38: also keys shd.cpp's colour correction),
    a forced clear (+0x3E3C) and a background-image rebuild request (+0x3EA8) (inferred from these uses) */
@@ -56,7 +55,7 @@ extern PFNRP D_002BDD88[][2];
 
 extern "C" {
 void qsort(void *, int, int, int (*)(const void *, const void *));
-void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4V *pm0, MATRIX4V *pm1);
+void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4 *pm0, MATRIX4 *pm1);
 void BeginRpGlob(VIFS *pvifs, void *a1, void *a2);
 void BuildWorldBackgroundImage(GAME *pgame, int n);
 }
@@ -125,7 +124,7 @@ int CprplPartitionArpl(int count, RPL *entries, RPL **sorted, int *firstIndex, i
 extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 {
     V4 clipConstants[2];
-    MATRIX4V viewProj, cameraMatrix;
+    MATRIX4 viewProj, cameraMatrix;
     if (D_003DD490.isStereo) {
         if (g_pfrmOpen == &D_002DEA50)
             vifs->AddDmaCall((QW *)D_002DF940);
@@ -156,8 +155,8 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
             else
                 BuildStereoEyeViewProj(camera, 2, 0, &viewProj, &cameraMatrix);
         } else {
-            MATRIX4V *pm1 = &camera->viewProj;
-            MATRIX4V *pm2 = &camera->cameraMatrix;
+            MATRIX4 *pm1 = &camera->viewProj;
+            MATRIX4 *pm2 = &camera->cameraMatrix;
             viewProj = *pm1;
             cameraMatrix = *pm2;
         }
@@ -176,8 +175,8 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 // (inferred)
 extern "C" void DrawSw(GAME *world)
 {
-    MATRIX4V mat0;
-    MATRIX4V mat1;
+    MATRIX4 mat0;
+    MATRIX4 mat1;
     RPL *sorted[0x2000];
     int firstIndex[NUM_RPL_KINDS];
     int endIndex[NUM_RPL_KINDS];
@@ -223,8 +222,8 @@ extern "C" void DrawSw(GAME *world)
         else
             BuildStereoEyeViewProj(&D_002DDF40, 2, 0, &mat0, &mat1);
     } else {
-        MATRIX4V *pm0 = &D_002DDF40.viewProj;
-        MATRIX4V *pm1 = &D_002DDF40.cameraMatrix;
+        MATRIX4 *pm0 = &D_002DDF40.viewProj;
+        MATRIX4 *pm1 = &D_002DDF40.cameraMatrix;
         mat0 = *pm0;
         mat1 = *pm1;
     }

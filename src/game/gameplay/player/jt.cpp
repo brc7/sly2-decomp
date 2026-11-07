@@ -1717,7 +1717,6 @@ typedef struct S {
 } S;
 typedef struct R { unsigned int x0; char pad[0x30 - 4]; float g30; int x34; int pad38; int x3C; } R;
 typedef struct CLOCK { float time; float deltaTime; } CLOCK;
-struct SMP {float a,b,duration;};
 
 extern "C" CLOCK D_002DDED0;
 extern "C" SMP D_002BF348;
@@ -1930,9 +1929,9 @@ typedef char Int_Width[sizeof(int)==4?1:-1];
 typedef char Unsigned_Width[sizeof(unsigned)==4?1:-1];
 typedef char Float_Width[sizeof(float)==4?1:-1];
 typedef char SMP_Size[sizeof(SMP)==12?1:-1];
-typedef char SMP_a_Offset[(unsigned)&((SMP*)0)->a==0?1:-1];
-typedef char SMP_b_Offset[(unsigned)&((SMP*)0)->b==4?1:-1];
-typedef char SMP_duration_Offset[(unsigned)&((SMP*)0)->duration==8?1:-1];
+typedef char SMP_a_Offset[(unsigned)&((SMP*)0)->fastSpeed==0?1:-1];
+typedef char SMP_b_Offset[(unsigned)&((SMP*)0)->slowSpeed==4?1:-1];
+typedef char SMP_duration_Offset[(unsigned)&((SMP*)0)->fastDuration==8?1:-1];
 typedef char VU_Alignment[__alignof__(VU)==16?1:-1];
 typedef char M_Alignment[__alignof__(M)==16?1:-1];
 typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
