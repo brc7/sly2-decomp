@@ -313,7 +313,8 @@ qword PosCplookAnchor(struct X *p);
 void SetCameraLookAt(struct CM *p, qword a, qword b, float c, float d);
 
 
-static __inline__ float ClampAssign(float g, float gMin, float gMax)
+// Same idiom as sly2/util.h Clamp; kept local because the shared template changes UpdateCplook (243/286 instructions off).
+static __inline__ float ClampLocal(float g, float gMin, float gMax)
 {
     if (g < gMin) g = gMin;
     else if (gMax < g) g = gMax;
@@ -331,7 +332,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     x = p->zoom;
     p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
     x += p->zoomSpeed * D_002DDED0.dt;
-    p->zoom = x = ClampAssign(x, 0.0f, 1.0f);
+    p->zoom = x = ClampLocal(x, 0.0f, 1.0f);
     if (p->zoomSpeed != 0.0f && 0.0f < x && x < 1.0f) {
         struct SND *ps = p->zoomSound;
         SetSndPitch(ps, ClampToLimits__FP2LMf(D_002BBB68, __builtin_fabsf(p->zoomSpeed)));

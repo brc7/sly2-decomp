@@ -4528,11 +4528,6 @@ void ClearSle(int *);
 void CombineSpriteColors(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *);
 void UpdateSpriteItem(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA);
 }
-static inline int LerpInt(float t,int previous,int next){
- if(previous==next)return next;
- if(previous<next)return previous+(int)(t*((float)next+0.999f-(float)previous));
- return next+(int)((1.0f-t)*((float)previous+0.999f-(float)next));
-}
 static inline RGBA BlendColors(float t,RGBA previous,RGBA next){
  RGBA result;
  result.r=LerpInt(t,previous.r,next.r);result.g=LerpInt(t,previous.g,next.g);result.b=LerpInt(t,previous.b,next.b);result.a=LerpInt(t,previous.a,next.a);
@@ -4795,14 +4790,6 @@ void UpdateCurrentSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("Up
 }
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
-static inline int LerpInt(float t, int previous, int next)
-{
-    if (previous == next)
-        return next;
-    if (previous < next)
-        return previous + (int)(t * ((float)next + 0.999f - (float)previous));
-    return next + (int)((1.0f - t) * ((float)previous + 0.999f - (float)next));
-}
 
 static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
 {
@@ -5058,14 +5045,6 @@ void UpdateSpriteItem(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 }
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
-static inline int LerpInt(float t, int previous, int next)
-{
-    if (previous == next)
-        return next;
-    if (previous < next)
-        return previous + (int)(t * ((float)next + 0.999f - (float)previous));
-    return next + (int)((1.0f - t) * ((float)previous + 0.999f - (float)next));
-}
 
 static inline RGBA BlendColors(float t, RGBA previous, RGBA next)
 {

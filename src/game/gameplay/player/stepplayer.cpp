@@ -2499,7 +2499,6 @@ extern float D_002BD2C4;
 qword GetLoWorldPos(void *p);
 qword ConvertPosBetweenLos(void *pm, struct P *p, qword v);
 float atan2f(float y, float x);
-static __inline__ float AbsF(float g) { return g < 0.0f ? -g : g; }
 /** @sly2-annot addr=0x1430C8
  * Purpose: From lean target direction (atan2 in local space, quadrants) and nLeanKind return a bitmask (8,
  *   0x10<<n, 0x100<<n, 0x1000)

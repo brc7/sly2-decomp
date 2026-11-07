@@ -121,7 +121,6 @@ extern "C" void InitDirectionalBlend(struct ACTOR *actor, DIRAXIS *axes, MULTI *
 }
 
 static inline float FloatX(qword q){int bits;float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
-static inline float Max(float a,float b){float f;__asm__("max.s %0,%1,%2":"=f"(f):"f"(a),"f"(b));return f;}
 
 static inline float Float3(qword q){register int bits __asm__("$7");float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
 
@@ -199,7 +198,7 @@ extern "C" void UpdateDirectionalBlend(PLAYERV *player, DIRAXIS *axes, void *req
             DIRAXIS *entry = &axes[indices[i]];
             float denominator = rate * Float1(VuDot(entry->direction.q, entry->direction.q));
             float along = Float3(VuDot(player->acceleration.q, entry->direction.q));
-            float weight = Max(along / denominator, 0.0f);
+            float weight = FpuMax(along / denominator, 0.0f);
             entry->weight.value = weight;
             sum += weight;
         }

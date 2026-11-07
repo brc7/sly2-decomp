@@ -4846,7 +4846,6 @@ extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
 extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
 extern "C" qword ConvertVecBetweenLos(O*,O*,qword);
 extern "C" void RecalculateAsegBlend(ANIM*);
-static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
 static inline qword Normalize(qword vin, const U *negative, U *u)
 {
     register qword v __asm__("vf3") = vin;
@@ -4986,7 +4985,7 @@ extern "C" void UpdateJtSmoothing(P *jt)
     register float zero __asm__("$f2");
     register float amount __asm__("$f0") = WeightAmount(normalized, zero);
     register float one __asm__("$f5") = 1.0f;
-    register float right __asm__("$f4") = Max(amount, zero);
+    register float right __asm__("$f4") = FpuMax(amount, zero);
     register float left __asm__("$f1") = -amount;
     register float middle __asm__("$f3");
     register PARAM *params __asm__("$2");

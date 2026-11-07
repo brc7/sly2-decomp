@@ -357,12 +357,6 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(struct STREAM*,struct VECTOR*) __a
 float F32Read__18CBinaryInputStream(struct STREAM*) __asm__("F32Read__18CBinaryInputStream");
 unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CBinaryInputStream");
 void*AllocClearedFromWorldHeap(struct REQUEST*);
-static inline float Min(float a, float b)
-{
-    float r;
-    __asm__("min.s %0,%1,%2" : "=f"(r) : "f"(a), "f"(b));
-    return r;
-}
 // Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
 // (inferred)
 void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
@@ -390,7 +384,7 @@ void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
                 record->radius = F32Read__18CBinaryInputStream(stream);
                 record->meta.limit = F32Read__18CBinaryInputStream(stream);
                 record->meta.count = U8Read__18CBinaryInputStream(stream);
-                record->meta.limit = Min(1.0e10f, record->meta.limit);
+                record->meta.limit = FpuMin(1.0e10f, record->meta.limit);
                 switch (record->meta.kind) {
                 case 0: {
                     int index = S16Read__18CBinaryInputStream(stream);

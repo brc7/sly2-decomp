@@ -297,7 +297,8 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
     preq->nKind = nKind;
     return AllocClearedFromStack(preq);
 }
-static inline int Min(int a, int b) { return a > b ? b : a; }
+// Same idiom as sly2/util.h MinInt; kept local because the shared template changes GetEpisodePercentComplete (8/78 instructions off).
+static inline int MinIntLocal(int a, int b) { return a > b ? b : a; }
 /** @sly2-annot addr=0x161660
  * Purpose: Episode completion percent: over all TASKs (cid 0x85) with successors (cA0!=0), 100*complete(state
  *   3)/count, clamped to 1..99 unless 0 or all
@@ -334,7 +335,7 @@ extern "C" int GetEpisodePercentComplete()
     int percent = numComplete * 100 / numCounted;
     int result = 1;
     if (percent > 0)
-        result = Min(percent, maxPercent);
+        result = MinIntLocal(percent, maxPercent);
     return result;
 }
 } // namespace M_NEpisodePercentComplete
@@ -1881,7 +1882,8 @@ extern "C" int IsJobComplete(JOBV *job)
 namespace M_func_00163430 { extern "C" {
 struct X { char pad[0x54]; int state; };   /* a task */
 struct S { char pad[0x64]; struct X *startTask; struct X *completeTask; };
-static inline int Max(int a, int b) { return a > b ? a : b; }
+// Same idiom as sly2/util.h StdMaxInt; kept local because the shared template changes GetJobState (1/11 instructions off).
+static inline int StdMaxIntLocal(int a, int b) { return a > b ? a : b; }
 /** @sly2-annot addr=0x163430
  * Purpose: Job state from its tasks: start-task state if <2, else max(end-task state,1)
  * Info: proposed name NJobState (T2); TU game
@@ -1892,7 +1894,7 @@ static inline int Max(int a, int b) { return a > b ? a : b; }
 int GetJobState(struct S *job)
 {
     int state = job->startTask->state;
-    return state < TASK_STATE_DONE ? state : Max(job->completeTask->state, TASK_STATE_AVAILABLE);
+    return state < TASK_STATE_DONE ? state : StdMaxIntLocal(job->completeTask->state, TASK_STATE_AVAILABLE);
 }
 } } // namespace M_func_00163430
 

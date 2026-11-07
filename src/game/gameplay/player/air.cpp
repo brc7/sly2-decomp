@@ -4672,12 +4672,6 @@ extern "C" {
 }
 typedef qword (*VECTOR_GETTER)(OBJECT *);
 typedef SPACE *(*INVERSE_GETTER)(OBJECT *,M4 *);
-static inline float Abs(float a) {
-    float r;__asm__("abs.s %0,%1":"=f"(r):"f"(a));return r;
-}
-static inline float Min(float a,float b) {
-    float r;__asm__("min.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;
-}
 typedef char Qword_Size[(sizeof(qword))==16?1:-1];
 typedef char Pointer_Size[(sizeof(void*))==4?1:-1];
 typedef char Unsigned_Size[(sizeof(unsigned))==4?1:-1];
@@ -4820,7 +4814,7 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
             *point = value;
         }
     } else {
-        float vertical = Abs(delta.a[2]);
+        float vertical = FpuAbs(delta.a[2]);
         if (radius < vertical || duration == 0.0f) {
             if (score)
                 *score = vertical + 1010000.0f;
@@ -4874,7 +4868,7 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
             }
             future.q = corrected;
             if (score)
-                *score = Min((D_002BF910 + D_002BF910) * deficit / duration, 1000000.0f);
+                *score = FpuMin((D_002BF910 + D_002BF910) * deficit / duration, 1000000.0f);
             if (point) {
                 register qword origin __asm__("vf3") = position.q, initial __asm__("vf4") = oldVelocity.q, k __asm__("vf1");
                 float half = duration * 0.5f;

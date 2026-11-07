@@ -1901,8 +1901,6 @@ qword*VECTOR_opAssign(qword*,qword);
 void UpdateSoXfWorldMatrices(P*);
 void RenderSoSelf(P*);
 }
-// Helpers Abs, Rotation (small asm wrappers/accessors shaped for the match).
-static inline float Abs(float f){float r;__asm__("abs.s %0,%1":"=f"(r):"f"(f));return r;}
 static inline M3 Rotation(qword axis,float angle) return r{BuildAxisAngleRotationMatrix(&r,axis,angle);}
 // Matrix product.
 static inline M3 Mul(const M3&a,const M3&b) return r{
@@ -1939,7 +1937,7 @@ extern "C" void RenderRobottankSelf(P*tank){
   }else{
    float dt=D_002DDED0.dt;
    void*table;
-   if(Abs(e->speed)<Abs(desired))table=D_002C21B0;else table=D_002C21C0;
+   if(FpuAbs(e->speed)<FpuAbs(desired))table=D_002C21B0;else table=D_002C21C0;
    e->speed=SmoothValue__FfffP3SMPPf(e->speed,desired,dt,table,0);
   }
   float dt=D_002DDED0.dt;
