@@ -923,9 +923,9 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, struct V *pv);
 float F32Read__18CBinaryInputStream(void *pbis);
 void *AllocClearedFromWorldHeap(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
-void HookupCg(int *p);
+void ComputeCgEdgeCosts(int *p);
 /** @sly2-annot addr=0x1C03C0
- * Purpose: CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg
+ * Purpose: CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; ComputeCgEdgeCosts
  * Info: proposed name LoadPathzoneFromBrx (T1); class PATHZONE slot14; TU path
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+parse-verified
@@ -934,7 +934,7 @@ void HookupCg(int *p);
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // CID 17 slot 14 (LoadFromBrx): the XFM, the vertices (position + edge list), triangles and BSP nodes; then
-// HookupCg.
+// ComputeCgEdgeCosts.
 void LoadPathzoneFromBrx(struct S *zone, void *stream)
 {
     struct A a;
@@ -977,7 +977,7 @@ void LoadPathzoneFromBrx(struct S *zone, void *stream)
         pp->c = U16Read__18CBinaryInputStream(stream);
         pp->d = U16Read__18CBinaryInputStream(stream);
     }
-    HookupCg(&zone->numVertices);
+    ComputeCgEdgeCosts(&zone->numVertices);
     if (zone->oid == 0x2CA)
         D_003DD490.defaultPathzone = zone;
     zone->version = ++D_003DD490.pathzoneVersion;
@@ -1009,7 +1009,7 @@ struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 void *AllocClearedFromWorldHeap(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
-void HookupCg(int *p);
+void ComputeCgEdgeCosts(int *p);
 /** @sly2-annot addr=0x1C0648
  * Purpose: Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables
  *   D_002C0C10/D_002C0C90) covering everything
@@ -1061,7 +1061,7 @@ void InitDefaultPathzoneCg(struct S *zone)
     pp->z = 0;
     pp->x = g;
     pp->y = -g;
-    HookupCg(&zone->numVertices);
+    ComputeCgEdgeCosts(&zone->numVertices);
     zone->version = ++D_003DD490.pathzoneVersion;
 }
 } } // namespace M_InitDefaultPathzoneCg
@@ -1085,13 +1085,13 @@ static inline int Dist(qword a, qword b)
 }
 /** @sly2-annot addr=0x1C0880
  * Purpose: Compute edge costs (XY distance between vertices)
- * Info: proposed name HookupCg (T1); TU path
+ * Info: proposed name ComputeCgEdgeCosts (T1); TU path
  * Notes: names_v2 v1 proposed AdjustJtDz__FP2JTiP2DZif (0.000)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
-// Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name.
-void HookupCg(struct A *graph)
+// Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name: HookupCg.
+void ComputeCgEdgeCosts(struct A *graph)
 {
     int i, j;
     for (i = 0; i < graph->c; i++) {
@@ -1160,7 +1160,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0xE0]; char graph[4]; };
 void *FindNavTriangleQuick(void *p,qword pos,int flags);
 int FindPathzoneObstacles(struct S *p, int a, qword q0, qword q1, int c, void **ap);
-int IsPosInCnvo(void *pv, qword q);
+int IsPosInConvexObstacle(void *pv, qword q);
 /** @sly2-annot addr=0x1C09A0
  * Purpose: Point inside pathzone and not inside any registered obstacle (0x1C1700 query + 0x1BC9F0 test)
  * Info: proposed name FPosFreeInPathzone (T2); TU path
@@ -1176,7 +1176,7 @@ int IsPosFreeInPathzone(struct S *zone, qword pos,int flags)
     if (!FindNavTriangleQuick(zone->graph,pos,flags)) return 0;
     n = FindPathzoneObstacles(zone, 0, pos, pos, 0x80, ap);
     for (i = 0; i < n; i++) {
-        if (IsPosInCnvo(ap[i], pos)) return 0;
+        if (IsPosInConvexObstacle(ap[i], pos)) return 0;
     }
     return 1;
 }
@@ -1188,7 +1188,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { int a[0x30]; };
 void *ClipEdgeToPathzone(void *p, qword a, qword b, int c, int d, int e);
 int FindPathzoneObstacles(void *p, int z, qword a, qword b, int c, void **ap);
-void *ClipEdgeToCnvo(void *p, qword a, qword b, int n, struct S *ps);
+void *ClipEdgeToConvexObstacle(void *p, qword a, qword b, int n, struct S *ps);
 void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, int one);
 /** @sly2-annot addr=0x1C0A40
  * Purpose: Clip segment to pathzone then against obstacles (0x1BC688), returns blocker
@@ -1208,7 +1208,7 @@ void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
     if (!pv) return 0;
     n = FindPathzoneObstacles(zone, 0, from, to, 0x80, ap);
     for (i = 0; i < n; i++) {
-        void *r = ClipEdgeToCnvo(ap[i], from, to, 2, &s);
+        void *r = ClipEdgeToConvexObstacle(ap[i], from, to, 2, &s);
         pv = MergeSegmentLists(pv, d, r, &s, c, d, 1);
         if (!pv) goto out;   /* not `break`: that changes the loop's codegen */
     }
@@ -1231,7 +1231,7 @@ extern const float D_002A76DC;   /* defined below where the ELF has it (.rodata 
 void *FindNavTriangleQuick(void*,qword,int);
 qword ClosestPointOnCgt(void*,qword);
 int FindPathzoneObstacles(struct S*,void*,qword,qword,int,void**);
-int IsPosInCnvo(void*,qword);
+int IsPosInConvexObstacle(void*,qword);
 qword ConvertAloPos(void*,void*,qword);
 int ClipEdgeToPathzone(struct S*,qword,qword,int,struct HIT*,int);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
@@ -1261,7 +1261,7 @@ int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  projected=ClosestPointOnCgt(leaf,point);poly=0;
  {int j=0;
  n=FindPathzoneObstacles(zone,0,projected,projected,128,objects);
- for(;j<n;j++){if(IsPosInCnvo(objects[j],point)){poly=(__typeof__(poly))objects[j];break;}}
+ for(;j<n;j++){if(IsPosInConvexObstacle(objects[j],point)){poly=(__typeof__(poly))objects[j];break;}}
  }
  if(!poly){*out=projected;return 1;}
  best.i[2]=0;best.i[1]=0;best.i[0]=0;
@@ -1817,7 +1817,7 @@ struct M { struct O *po; void *pv; };
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
 int FindPathzoneObstacles(struct S *p, int z, qword a, qword b, int c, void **ap);
-int DoCnvosOverlap(struct O *po, void *pv);
+int DoConvexObstaclesOverlap(struct O *po, void *pv);
 void MergeCid14Obstacles(int n, struct M *pm);
 void GrowPathzoneObstacleArrays(struct S *p);
 void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1);
@@ -1835,7 +1835,7 @@ void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
     int n, i;
     n = FindPathzoneObstacles(zone, 0, obstacle->a.q, obstacle->b.q, 0x20, ap);
     for (i = 0; i < n; i++) {
-        if (DoCnvosOverlap(obstacle, ap[i])) {
+        if (DoConvexObstaclesOverlap(obstacle, ap[i])) {
             struct M m;
             m.po = obstacle;
             m.pv = ap[i];

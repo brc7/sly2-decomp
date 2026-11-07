@@ -225,7 +225,7 @@ void AddStepguardSgf(STEPGUARD *guard, int sgf);
 void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
 void SetStepguardTarget(STEPGUARD *guard, LO *object);
 STEPGUARD *GetStepguardFromLo(LO *object);
-void RecalcSwOxfFilterForObject(SW *psw, STEP *pstep);
+void RefreshSwObjectCollisionFilter(SW *psw, STEP *pstep);
 void InitBhvanim(BHVANIMV *behavior);
 void StartBhvanim(BHVANIMV *behavior);
 void CloseBhvanim(BHVANIMV *behavior);
@@ -4075,7 +4075,7 @@ void *GetHeroPo(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
 qword ConvertAloPos(struct A *source, void *target, qword v);
 void SprayDifficultyPrizes(void *a, qword v, int n, int m, struct A *p);
-void RecalcSwOxfFilterForObject(struct G *g, struct A *p);
+void RefreshSwObjectCollisionFilter(struct G *g, struct A *p);
 void ResetDetectorTargets(void *p);
 // Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
 static inline int Count(struct A *a) {
@@ -4117,7 +4117,7 @@ void StartBhvko(struct S *behavior) {
         v = ConvertAloPos(behavior->guard, 0, q);
         SprayDifficultyPrizes(D_002DE578, v, n, behavior->guard->unknown3F0, behavior->guard);
     }
-    RecalcSwOxfFilterForObject(&D_003DD490, behavior->guard);
+    RefreshSwObjectCollisionFilter(&D_003DD490, behavior->guard);
     ResetDetectorTargets(behavior->guard->detector);
 }
 
@@ -4152,7 +4152,7 @@ void BHVKO::VSlot9()
 {
     BHV *behavior = (BHV *)this;
     CloseBhvhit(behavior);
-    RecalcSwOxfFilterForObject(&D_003DD490, behavior->pstep);
+    RefreshSwObjectCollisionFilter(&D_003DD490, behavior->pstep);
 }
 
 // 0x179A58 InitBhvpatrol
@@ -5316,7 +5316,7 @@ extern "C"{
  void SeekAsega(ASEGA*,int,float,float);
  void ReleaseAct(DELTA**);
  void SetXfRole(P*,GROUP*,int);
- void RecalcSwOxfFilterForObject(void*,P*);
+ void RefreshSwObjectCollisionFilter(void*,P*);
  void FreeSoContacts(P*);
  void SetBhvanimState(C*,int);
  void CalculateBhvjuggledHoldPoint(C*,REQUEST*,U*,U*);
@@ -5449,7 +5449,7 @@ extern "C" void SetBhvjuggledState(C *behavior, int next)
         __asm__("lui %0,%2\n\tlw %1,%3"
                 : "=&r"(gameBase), "=r"(callbackActor)
                 : "i"((gameAddress + 0x8000) >> 16), "m"(behavior->guard));
-        RecalcSwOxfFilterForObject(gameBase + (short)(gameAddress & 0xffff), callbackActor);
+        RefreshSwObjectCollisionFilter(gameBase + (short)(gameAddress & 0xffff), callbackActor);
         FreeSoContacts(behavior->guard);
         behavior->mode = next;
     }

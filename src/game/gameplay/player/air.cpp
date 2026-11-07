@@ -594,7 +594,7 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
+void LinkStepAttachment(ACTOR*,void*,int);void RefreshSwObjectCollisionFilter(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
 qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
@@ -749,14 +749,14 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
     case 7: {
         SOURCE *old = air->source;
         air->source = 0;
-        RecalcSwOxfFilterForObject(&D_003DD490, old);
+        RefreshSwObjectCollisionFilter(&D_003DD490, old);
         break;
     }
     case 6: {
         SOURCE *old = air->source;
         air->source = 0;
         if (air->actor->category != 1) {
-            RecalcSwOxfFilterForObject(&D_003DD490, old);
+            RefreshSwObjectCollisionFilter(&D_003DD490, old);
             if (old->state == 1)
                 SetBarrelState(old, 0);
         }
@@ -900,7 +900,7 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
         break;
     case 6:
         SetXfRole(air->actor, air->actor->body, 17);
-        RecalcSwOxfFilterForObject(&D_003DD490, source);
+        RefreshSwObjectCollisionFilter(&D_003DD490, source);
         SetBarrelState(source, 1);
         ClearVelocity(air->actor);
         clip = air->actor->animation->clip;
@@ -1096,7 +1096,7 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
     switch (air->mode) {
     case 0:
     case 2: air->actionFlag = 0; break;
-    case 18: RecalcSwOxfFilterForObject(&D_003DD490, air->actor); break;
+    case 18: RefreshSwObjectCollisionFilter(&D_003DD490, air->actor); break;
     }
     if (air->mode == -1)
         return;

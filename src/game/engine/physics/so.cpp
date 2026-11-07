@@ -195,8 +195,8 @@ LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
 LO *PloNew(CID cid, SO *psoParent, OID oid, int n);
 extern "C" {
 SO *FindSoPhysRoot(SO *pso);
-void RecalcSwOxfFilterForObject(SW *psw, SO *pso);
-void AdjustSoMomint(SO *pso, float r);
+void RefreshSwObjectCollisionFilter(SW *psw, SO *pso);
+void ScaleSoInertia(SO *pso, float r);
 void PostLoLoadV() __asm__("PostLoLoad");      /* a0 passed through */
 void UpdateSoXfWorldMatrices(SO *pso);
 void BindGlobset(GLOBSET *pglobset);
@@ -208,7 +208,7 @@ void RefreshSoBoundsRecord(SO *pso);
 void RenderSoGlobset(GLOBSET *pglobset, int n, float uAlpha1, float uAlpha2, SOBOUNDS *psobounds);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword qw);
 void SlotUnsettle(SO *pso, XF *pxf);
-void AddSwAaobrObject(SW *psw, SO *pso);
+void AddObjectToBroadPhase(SW *psw, SO *pso);
 void SetXfRole(SO *pso, XF *pxf, int n);
 void GetSoConstraintAxis(SO *pso, XF *pxf, CONSTR *pconstr, CONSTR *pconstrSo);
 void RebuildSoPhysHook(SO *pso);
@@ -614,7 +614,7 @@ extern "C" void EnsureSoTree(SO *so)
         psoRoot = FindSoPhysRoot(so);
         if (psoRoot->ptree == 0) {
             psoRoot->ptree = ((SOTREE *(*)(void *))PVTE(psoRoot)[53].pfn)((char *)psoRoot + PVTE(psoRoot)[53].d);
-            RecalcSwOxfFilterForObject(&D_003DD490, psoRoot);
+            RefreshSwObjectCollisionFilter(&D_003DD490, psoRoot);
         }
         so->ptree = psoRoot->ptree;
     }
@@ -679,7 +679,7 @@ void RemoveDlEntry__FP2DLPv(void *, void *);
 int IsDlEmpty__FP2DL(void *);
 void RemoveSwPlacesOf(struct G *, int, struct E *);
 void FreeSoContacts(struct P *);
-void RemoveSwAaobrObject(struct G *, struct Q *);
+void RemoveObjectFromBroadPhase(struct G *, struct Q *);
 void WakeSo(struct P *);
 /** @sly2-annot addr=0x1F2930
  * Purpose: Remove a SOPART from the tree DL; free its XP list; drop tree when empty (0x1337D0) or detach if
@@ -702,7 +702,7 @@ void RemoveSoPartFromTree(struct P *so, struct E *pe)
         struct Q *pq = so->tree;
         ((struct Q2 *)pq->rootSo)->tree = 0;
         so->tree = 0;
-        RemoveSwAaobrObject(&D_003DD490, pq);
+        RemoveObjectFromBroadPhase(&D_003DD490, pq);
     } else if (so->tree->rootSo != so) {
         i = so->numParts;
         while (--i >= 0) {
@@ -1099,7 +1099,7 @@ void LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(DATA *,P *,void *);
 void *AllocClearedFromWorldHeap(MSG *);
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
 void AddSoParts(P *);
-void AdjustSoMomint(P *,float);
+void ScaleSoInertia(P *,float);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(P *,void *);
 void EnsureSoBounds(P *);
 void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(P *,void *,void *);
@@ -1160,7 +1160,7 @@ extern "C" void LoadSoFromBrx(P *so,void *stream)
         so->state=state;
         state->mass=F32Read__18CBinaryInputStream(stream);
         ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,state);
-        AdjustSoMomint(so,1.0f);
+        ScaleSoInertia(so,1.0f);
         Post(so);
     }
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(so,stream);
@@ -1202,7 +1202,7 @@ extern "C" void InitSoPhysics(SO *so)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Sets the mass, scaling the inertia by the same ratio (AdjustSoMomint).
+// Sets the mass, scaling the inertia by the same ratio (ScaleSoInertia).
 extern "C" void SetSoMass(SO *so, float m)
 {
     SOPHYS *psophys;
@@ -1212,10 +1212,10 @@ extern "C" void SetSoMass(SO *so, float m)
     mOld = psophys->m;
     r = m / mOld;
     psophys->m = mOld * r;
-    AdjustSoMomint(so, r);
+    ScaleSoInertia(so, r);
 }
 
-// 0x1F35F8 AdjustSoMomint
+// 0x1F35F8 ScaleSoInertia
 namespace M_AdjustSoMomint { extern "C" {
 struct T; struct X;
 typedef int qword __attribute__((mode(TI)));
@@ -1228,13 +1228,13 @@ void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
 int InvertMatrix3(struct T *pt, qword *pv);
 /** @sly2-annot addr=0x1F35F8
  * Purpose: Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular)
- * Info: proposed name AdjustSoMomint (T1); TU so
+ * Info: proposed name ScaleSoInertia (T1); TU so
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Scales the inertia matrix by r and recomputes its inverse (zero when singular).
-void AdjustSoMomint(struct X *so, float s)
+void ScaleSoInertia(struct X *so, float s)
 {
     struct T *pt = so->physics;
     M3 m;
@@ -2413,7 +2413,7 @@ void ClearSoTreeBoundsDirty(struct S *so)
  *   x70 bit1) dirty once and queue it on g_sw.dlSoTreeQueue2 so UpdateSwAaox re-sorts its sweep endpoints
  * Info: proposed name InvalidateSoAaox (T2); TU so
  * Notes: v3: superseded MarkSoTreeDirty | top50_round (0.55): Body + callees AppendDlEntry. +0xEC is the OXA
- *   node (AddSwAaobrObject allocates it; RecalcSwOxfFilterForObject tests +0xEC). Per-object counterpart of
+ *   node (AddObjectToBroadPhase allocates it; RefreshSwObjectCollisionFilter tests +0xEC). Per-object counterpart of
  *   Sly 1 bbmark InvalidateSwAaox (psw->fAaoxValid=0). Callers: SetSoVelo
  * Confidence: low (draft) [T2 0.55] - evidence: Sly 1 / Lilly reference; semantic review; sources:
  *   r6_1D5150+top50_round
@@ -3074,7 +3074,7 @@ extern struct G D_003DD490;
 struct O *FindSoPhysRoot(struct O *);
 int CploFindSwObjectsByClass(struct G *, int, int, struct O *, int, struct O **);
 void RemoveSoParts(struct O *);
-void RecalcSwOxfFilterForObject(struct G *, struct O *);
+void RefreshSwObjectCollisionFilter(struct G *, struct O *);
 void AddSoParts(struct O *);
 void WakeSo(struct O *);
 /** @sly2-annot addr=0x1F55C8
@@ -3102,7 +3102,7 @@ void RebuildSoPhysHook(struct O *so)
                         RemoveSoParts(po);
                         if (!q->tree) {
                             q->tree = (__typeof__(q->tree))q->pvt[53].pfn((char *)q + q->pvt[53].d);
-                            RecalcSwOxfFilterForObject(&D_003DD490, q);
+                            RefreshSwObjectCollisionFilter(&D_003DD490, q);
                         }
                         po->tree = q->tree;
                         AddSoParts(po);
@@ -3111,7 +3111,7 @@ void RebuildSoPhysHook(struct O *so)
             }
         }
     }
-    RecalcSwOxfFilterForObject(&D_003DD490, so);
+    RefreshSwObjectCollisionFilter(&D_003DD490, so);
     WakeSo(so);
 }
 } } // namespace M_func_001F55C8
@@ -3123,10 +3123,10 @@ void RebuildSoPhysHook(struct O *so)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-// Slot 53: creates the object's tree record in the broad phase (AddSwAaobrObject). (inferred)
+// Slot 53: creates the object's tree record in the broad phase (AddObjectToBroadPhase). (inferred)
 extern "C" void NewSoTree(SO *so)
 {
-    AddSwAaobrObject(&D_003DD490, so);
+    AddObjectToBroadPhase(&D_003DD490, so);
 }
 
 // 0x1F5720 SetSoCnstrForce
@@ -3887,7 +3887,7 @@ struct S;
 struct S { char pad[0x148]; ulong a:26; int b:1; ulong c:37; };
 struct G;
 extern struct G D_003DD490;
-void RecalcSwOxfFilterForObject(struct G *, struct S *);
+void RefreshSwObjectCollisionFilter(struct G *, struct S *);
 /** @sly2-annot addr=0x1F6918
  * Purpose: Set +0x148 bit26 and refresh contacts (0x134320)
  * Info: proposed name SetSoFlag26 (T2); TU so
@@ -3895,7 +3895,7 @@ void RecalcSwOxfFilterForObject(struct G *, struct S *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the ignore-fixed flag (+0x148 bit 26, so.h fIgnoreFixed) and refreshes the broad-phase pairs.
-void SetSoIgnoreFixed(struct S *p, int f) { p->b = f; RecalcSwOxfFilterForObject(&D_003DD490, p); }
+void SetSoIgnoreFixed(struct S *p, int f) { p->b = f; RefreshSwObjectCollisionFilter(&D_003DD490, p); }
 } } // namespace M_func_001F6918
 
 // 0x1F6960 GetSoIgnoreFixed

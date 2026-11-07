@@ -791,13 +791,13 @@ struct T { char pad[0x60]; void *p60; };
 struct S { char pad[0xEC]; struct T *pt; char p1[0xD0]; float expireTime; float lifetime; int n; };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
-void RecalcSwOxfFilterForObject(void *g, struct S *p);
-// Set mode field and recalc object filters (RecalcSwOxfFilterForObject). (inferred)
+void RefreshSwObjectCollisionFilter(void *g, struct S *p);
+// Set mode field and recalc object filters (RefreshSwObjectCollisionFilter). (inferred)
 void SetHackbulletMode(struct S *bullet, int n)
 {
     if (n != bullet->n) {
         bullet->n = n;
-        if (bullet->pt->p60 == bullet) RecalcSwOxfFilterForObject(D_003DD490, bullet);
+        if (bullet->pt->p60 == bullet) RefreshSwObjectCollisionFilter(D_003DD490, bullet);
     }
     bullet->expireTime = (bullet->lifetime == 0.0f) ? 3.40282346638528859812e+38f : D_002DDED0.t + bullet->lifetime;
 }

@@ -576,7 +576,7 @@ void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *p,float g);
 void UpdateMurrayPlaces(struct P *p);
 void UpdateJtActiveZap(void *p);
 int ShouldSwPairObjects(struct G *pg,struct BBOX *a,struct BBOX *b);
-void RecalcSwOxfFilterForObject(struct G *pg, struct P *p);
+void RefreshSwObjectCollisionFilter(struct G *pg, struct P *p);
 void SetActPositionGoal(void *p, qword v);
 static inline qword Bcast(float g) { qword a; __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(g)); return a; }
 static inline void Neg(struct P *p, qword v)
@@ -703,7 +703,7 @@ void UpdateMurray(struct P *murray)
         if (!murray->p1430->xEC || !ShouldSwPairObjects(&D_003DD490, murray->xEC, murray->p1430->xEC))
             murray->p1430 = 0;
         if (!murray->p1430)
-            RecalcSwOxfFilterForObject(&D_003DD490, murray);
+            RefreshSwObjectCollisionFilter(&D_003DD490, murray);
     }
     if (!murray->x1ACC)
         return;
@@ -2649,7 +2649,7 @@ void ReleaseAct(int *p);
 void SetXfRole(struct X *x, int a, int b);
 void SetSoTreeFlag2(struct X *x, int a);
 void SetLoParent(struct X *x, int a, int b);
-void RecalcSwOxfFilterForObject(void *g, struct P *p);
+void RefreshSwObjectCollisionFilter(void *g, struct P *p);
 /** @sly2-annot addr=0x1B7D20
  * Purpose: Free the 12 grip constraints (0x12E460), notify object (vt3 msg 6), restore its XF roles,
  *   SetSoTreeFlag2(0), SetLoParent(0,0xF); remember it as recently released (x1430, time)
@@ -2684,7 +2684,7 @@ void DetachMurrayCarried(struct P *murray)
     SetLoParent(x, 0, 0xF);
     murray->x1430 = x;
     murray->f1434 = D_002DDED0.t;
-    RecalcSwOxfFilterForObject(D_003DD490, murray);
+    RefreshSwObjectCollisionFilter(D_003DD490, murray);
 }
 } } // namespace M_DetachMurrayCarried
 

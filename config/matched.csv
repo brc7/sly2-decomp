@@ -1515,8 +1515,8 @@ SendLoMessage,0x133508,34,match,src/game/object/basic.cpp
 HandleBasicMessage,0x133590,2,match,src/game/object/basic.cpp
 StaticInit_basic,0x133598,77,match,src/game/object/basic.cpp
 func_001336D0,0x1336D0,8,match,src/game/object/basic.cpp
-AddSwAaobrObject,0x1336F0,56,match,src/game/engine/physics/bbmark.cpp
-RemoveSwAaobrObject,0x1337D0,153,match,src/game/engine/physics/bbmark.cpp
+AddObjectToBroadPhase,0x1336F0,56,match,src/game/engine/physics/bbmark.cpp
+RemoveObjectFromBroadPhase,0x1337D0,153,match,src/game/engine/physics/bbmark.cpp
 UpdateSwPox,0x133A38,139,match,src/game/engine/physics/bbmark.cpp
 AddSwObjectPair,0x133C68,19,match,src/game/engine/physics/bbmark.cpp
 RemoveSwObjectPair,0x133CB8,20,match,src/game/engine/physics/bbmark.cpp
@@ -1525,7 +1525,7 @@ FlushSwBoundsUpdates,0x133E30,20,match,src/game/engine/physics/bbmark.cpp
 UpdateSwAaox,0x133E80,111,match,src/game/engine/physics/bbmark.cpp
 RecalcSwXpAll,0x134040,179,match,src/game/engine/physics/bbmark.cpp
 MaxInt,0x134310,4,match,src/game/engine/physics/bbmark.cpp
-RecalcSwOxfFilterForObject,0x134320,30,match,src/game/engine/physics/bbmark.cpp
+RefreshSwObjectCollisionFilter,0x134320,30,match,src/game/engine/physics/bbmark.cpp
 StaticInit_bbmark,0x134398,77,match,src/game/engine/physics/bbmark.cpp
 func_001344D0,0x1344D0,8,match,src/game/engine/physics/bbmark.cpp
 StaticInit_empty_1344F0,0x1344F0,77,match,src/game/gameplay/player/empty_1344F0.cpp
@@ -3738,8 +3738,8 @@ GetTurnSignXY,0x1BC278,31,match,src/game/engine/physics/tu_1BC050.cpp
 ClassifyCid14Polygon,0x1BC2F8,142,match,src/game/engine/physics/tu_1BC050.cpp
 WrapCid14PointIndex,0x1BC530,15,match,src/game/engine/physics/tu_1BC050.cpp
 PostCid14Load,0x1BC570,69,match,src/game/engine/physics/tu_1BC050.cpp
-ClipEdgeToCnvo,0x1BC688,217,match,src/game/engine/physics/tu_1BC050.cpp
-IsPosInCnvo,0x1BC9F0,51,match,src/game/engine/physics/tu_1BC050.cpp
+ClipEdgeToConvexObstacle,0x1BC688,217,match,src/game/engine/physics/tu_1BC050.cpp
+IsPosInConvexObstacle,0x1BC9F0,51,match,src/game/engine/physics/tu_1BC050.cpp
 FindCid14PathzoneSpan,0x1BCAC0,135,match,src/game/engine/physics/tu_1BC050.cpp
 ClipShapeToPathzone,0x1BCCE0,141,match,src/game/engine/physics/tu_1BC050.cpp
 FindShapePointInPathzone,0x1BCF18,73,match,src/game/engine/physics/tu_1BC050.cpp
@@ -3750,7 +3750,7 @@ FindFirstObstacleHitBySegment,0x1BD310,60,match,src/game/engine/physics/tu_1BC05
 BuildCid14EdgePlanes,0x1BD400,88,match,src/game/engine/physics/tu_1BC050.cpp
 FindShapeFreeRange,0x1BD560,109,match,src/game/engine/physics/tu_1BC050.cpp
 FindShapeFreePoint,0x1BD718,99,match,src/game/engine/physics/tu_1BC050.cpp
-DoCnvosOverlap,0x1BD8A8,86,match,src/game/engine/physics/tu_1BC050.cpp
+DoConvexObstaclesOverlap,0x1BD8A8,86,match,src/game/engine/physics/tu_1BC050.cpp
 NewMergedCid14Obstacle,0x1BDA00,113,match,src/game/engine/physics/tu_1BC050.cpp
 ComparePosX,0x1BDBC8,9,match,src/game/engine/physics/tu_1BC050.cpp
 BuildConvexHull,0x1BDBF0,138,match,src/game/engine/physics/tu_1BC050.cpp
@@ -3790,7 +3790,7 @@ FindClosestPointInCg,0x1C0320,22,match,src/game/engine/physics/path.cpp
 InitPathzone,0x1C0378,17,match,src/game/engine/physics/path.cpp
 LoadPathzoneFromBrx,0x1C03C0,161,match,src/game/engine/physics/path.cpp
 InitDefaultPathzoneCg,0x1C0648,142,match,src/game/engine/physics/path.cpp
-HookupCg,0x1C0880,39,match,src/game/engine/physics/path.cpp
+ComputeCgEdgeCosts,0x1C0880,39,match,src/game/engine/physics/path.cpp
 IsPosInPathzone,0x1C0920,8,match,src/game/engine/physics/path.cpp
 FindPathzoneClosestPoint,0x1C0940,7,match,src/game/engine/physics/path.cpp
 ClipEdgeToPathzone,0x1C0960,7,match,src/game/engine/physics/path.cpp
@@ -4718,7 +4718,7 @@ SetSoBusyDistance,0x1F3118,49,match,src/game/engine/physics/so.cpp
 LoadSoFromBrx,0x1F31E0,235,match,src/game/engine/physics/so.cpp
 InitSoPhysics,0x1F3590,14,match,src/game/engine/physics/so.cpp
 SetSoMass,0x1F35C8,11,match,src/game/engine/physics/so.cpp
-AdjustSoMomint,0x1F35F8,43,match,src/game/engine/physics/so.cpp
+ScaleSoInertia,0x1F35F8,43,match,src/game/engine/physics/so.cpp
 PostSoLoad,0x1F36A8,13,match,src/game/engine/physics/so.cpp
 UpdateSo,0x1F36E0,57,match,src/game/engine/physics/so.cpp
 SetSoPhysRegion,0x1F37C8,40,match,src/game/engine/physics/so.cpp

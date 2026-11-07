@@ -236,7 +236,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");                        
 void LoadIdentityMatrix4(XFV *, int, MATRIX4V *, MATRIX4V *, float);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *, int);                                    // FIsBasicDerivedFrom
 void SetBombOwner(SOV *, LAUNCH *);
-void RecalcSwOxfFilterForObject(void *, SOV *);
+void RefreshSwObjectCollisionFilter(void *, SOV *);
 void SetSoCnstrForce(SOV *, void *);
 void SetSoCnstrTorque(SOV *, void *);
 void SetLoParent(SOV *, int, int);
@@ -383,7 +383,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     posAim = QwFromVf(posLaunch);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x4F)) {
         SetBombOwner(pso, plaunch);
-        RecalcSwOxfFilterForObject(D_003DD490, pso);
+        RefreshSwObjectCollisionFilter(D_003DD490, pso);
     }
     pso->Add();
     SetSoCnstrForce(pso, 0);

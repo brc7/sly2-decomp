@@ -237,7 +237,7 @@ extern "C" { extern SW D_003DD490; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *rip);
 void RemoveSoHierarchy(RIPGV *p);
-void RemoveSwAaobrObject(SW *psw, void *pv);
+void RemoveObjectFromBroadPhase(SW *psw, void *pv);
 void SnipLo(RIPGV *p);
 void *GetSwClassList(SW *psw, int n);
 void RemoveSlEntry(void *pl, RIPGV *p);
@@ -272,7 +272,7 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
     if (ripGroup == psw->defaultRipGroup) psw->defaultRipGroup = 0;
     RemoveSoHierarchy(ripGroup);
     if (ripGroup->aaobrEntry) {
-        RemoveSwAaobrObject(psw, ripGroup->aaobrEntry);
+        RemoveObjectFromBroadPhase(psw, ripGroup->aaobrEntry);
         ripGroup->aaobrEntry = 0;
     }
     SnipLo(ripGroup);
