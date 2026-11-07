@@ -44,7 +44,10 @@ struct RIP
     qword previousPosition;          /* +0x80 */
     qword velocity;            /* +0x90 */
     qword acceleration;          /* +0xA0 */
-    char padB0[0xD0 - 0xB0];
+    char padB0[0xC4 - 0xB0];
+    float damping;             /* +0xC4 velocity damping (with the acceleration, the rip's EMITDV motion record at
+                                  +0xA0: SetEmitdvEmitb; InitBublet sets -8) */
+    char padC8[0xD0 - 0xC8];
     float angularVelocity[3];  /* +0xD0 spin (SHRAPNEL: random, from the impact speed) */
     char padDC[0xE0 - 0xDC];
     SO *touchObject;           /* +0xE0 the object whose volume the rip tests itself against (UpdateRip: its point

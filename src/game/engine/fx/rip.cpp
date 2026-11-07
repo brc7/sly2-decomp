@@ -1825,23 +1825,16 @@ typedef char layout_render_10[(__alignof__(qword)==16)?1:-1];
 typedef char layout_render_11[((unsigned)&((F*)0)->bits==0)?1:-1];
 } // namespace M_RenderShrapnel__FP8SHRAPNELP2CM
 
-namespace M_InitMatch__FP5MATCHP6VECTORfP2SO {
-typedef int qword __attribute__((mode(TI)));
-struct VECTOR;
-struct SO;
-struct MATCH { char pad[0x20]; float scaleStart; float scaleSlope; int scaleCurve; int pad2; qword alpha; };
 extern "C" { extern qword D_002BBB50; }
-extern "C" void InitRip(MATCH *p, VECTOR *pv, float g, SO *pso);
 // MATCH (RIPT 6) Init: base init, then the scale curve g + (1 - g) t (grows to full size) and the default alpha.
-extern "C" void InitMatch__FP5MATCHP6VECTORfP2SO(MATCH *pmatch, VECTOR *pv, float g, SO *pso)
+void MATCH::Init(qword pos, float scale, SO *psoTouch)
 {
-    InitRip(pmatch, pv, g, pso);
-    pmatch->alpha = D_002BBB50;
-    pmatch->scaleStart = g;
-    pmatch->scaleSlope = 1.0f - g;
-    pmatch->scaleCurve = 0;
+    RIP::Init(pos, scale, psoTouch);
+    alpha = D_002BBB50;
+    scaleStart = scale;
+    scaleSlope = 1.0f - scale;
+    scaleCurve = 0;
 }
-} // namespace M_InitMatch__FP5MATCHP6VECTORfP2SO
 
 namespace M_LaunchMatch__FP5MATCH {
 typedef int qword __attribute__((mode(TI)));
@@ -1979,16 +1972,12 @@ void MATCH::Update()   /* key function (the namespace's declarations) */
     }
 }
 
-namespace M_RenderMatch { extern "C" {
-extern CLOCK D_002DDED0;
-struct S { char pad[0x14]; float startTime; };
-void RenderRip(struct S *p);
 // MATCH Render: wraps RenderRip. (inferred)
-void RenderMatch(struct S *p) {
-    if (D_002DDED0.time < p->startTime) return;
-    RenderRip(p);
+void MATCH::Render()
+{
+    if (g_clock.time < startTime) return;
+    RIP::Render();
 }
-} } // namespace M_RenderMatch
 
 // RIPT 4 Init: InitRip + extra fields. (inferred)
 /* RIPT 4 (glint) Init. */
@@ -2455,33 +2444,28 @@ extern "C" void ProjectLeafTransform(P *p)
 }
 } // namespace M_ProjectLeafTransform
 
-namespace M_StickLeafOnBounce { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-typedef struct { qword a[3]; } M3;
-typedef struct { void *hitObject; void *hitBody; } S;   /* the bounce contact */
-typedef struct { char pad[0x40]; M3 orientation; } R;   /* the new STUCK */
-typedef struct { char pad[0x1C]; void *renderObject; } OBJ;   /* the LEAF */
+extern "C" {
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-R *CreateStuck(OBJ *, void *, void *, qword, qword);
-void ConvertMatBetweenLos(M3 *, int, void *, M3 *);
-void RemoveRip__FP3RIP(OBJ *);
+STUCK *CreateStuck(RIP *prip, LO *ploRender, void *ploHit, qword pos, qword normal);   /* (its definition names a FLYING) */
+void ConvertMatBetweenLos(RIPM3 *pmatDst, int, void *, RIPM3 *pmatSrc);
+}
 // LEAF HandleBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
-// orientation taken into the hit body's space, and removes the leaf.
-int StickLeafOnBounce(OBJ *object, S *s, qword a, qword b)
+// orientation taken into the hit body's space, and removes the leaf. pa: the bounce contact (hit object, hit body).
+int LEAF::HandleBounce(void *pa, qword a, qword b)
 {
-    R *stuck;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(s->hitBody, 0x33))
+    void **contact = (void **)pa;
+    STUCK *stuck;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(contact[1], 0x33))
         return 0;
-    stuck = CreateStuck(object, object->renderObject, s->hitObject, a, b);
+    stuck = CreateStuck(this, renderObject, contact[0], a, b);
     if (stuck) {
-        M3 m;
-        ConvertMatBetweenLos(&m, 0, s->hitBody, &stuck->orientation);
+        RIPM3 m;
+        ConvertMatBetweenLos(&m, 0, contact[1], &stuck->orientation);
         stuck->orientation = m;
     }
-    RemoveRip__FP3RIP(object);
+    RemoveRip(this);
     return 1;
 }
-} } // namespace M_StickLeafOnBounce
 
 // RIPT 1 Init: InitRip + params. (inferred)
 /* RIPT 1 Init. */
@@ -2550,31 +2534,20 @@ done:
 }
 } } // namespace M_UpdateRipt1
 
-namespace M_InitBublet { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-union U { qword q; float a[4]; };
-struct S {
-    char pad[0x20]; float scale;
-    char pad2[0xA0 - 0x24]; qword acceleration;
-    char pad3[0xC4 - 0xB0]; float damping;
-};
-extern qword D_002C1F40;
-extern void InitRip(struct S *);
-
+extern "C" { extern qword D_002C1F40; }
 // RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, damping -8.
-void InitBublet(struct S *p)
+void RIPT0::Init(qword pos, float scale, SO *psoTouch)
 {
-    union U u;
+    union { qword q; float a[4]; } u;   /* the broadcast's stack home (part of the frame) */
     qword k, r;
-    InitRip(p);
-    p->scale = 0.33f;
+    InitRip(this);
+    scaleStart = 0.33f;
     __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-0.2f));
     u.q = k;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(D_002C1F40), "j"(k));
-    p->acceleration = r;
-    p->damping = -8.0f;
+    acceleration = r;
+    damping = -8.0f;
 }
-} } // namespace M_InitBublet
 
 namespace M_ProjectBubletTransform { extern "C" {
 typedef int qword __attribute__((mode(TI)));
