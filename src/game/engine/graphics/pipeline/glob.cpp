@@ -1958,18 +1958,16 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 struct SORTREC { int fileVertex; int firstBatch; int firstVertex; int batch; int vertex; };
 extern "C" int CompareSortRecs(SORTREC *prec0, SORTREC *prec1)
 {
-    int d;
-    d = (prec0->firstBatch - prec1->firstBatch) >> 6;
-    if (d == 0) {
-        d = prec0->firstVertex - prec1->firstVertex;
-        if (d == 0) {
-            d = (prec0->batch - prec1->batch) >> 6;
-            if (d == 0) {
-                return prec0->vertex - prec1->vertex;
-            }
-        }
-    }
-    return d;
+    int d = (prec0->firstBatch - prec1->firstBatch) >> 6;
+    if (d != 0)
+        return d;
+    d = prec0->firstVertex - prec1->firstVertex;
+    if (d != 0)
+        return d;
+    d = (prec0->batch - prec1->batch) >> 6;
+    if (d != 0)
+        return d;
+    return prec0->vertex - prec1->vertex;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
