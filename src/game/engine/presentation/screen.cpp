@@ -1323,24 +1323,6 @@ namespace M_SetGadgetMenuStickDir {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 
-struct ITEM {
-    int id;
-    char pad04[0x10];
-    float x, y;     // 0x14, 0x18
-    int flags;      // 0x1C, bit 2 = selectable
-};
-struct INPUT { char pad[0x103C]; float x, y; };
-struct SELECTOR {
-    char pad00[0x10];
-    INPUT *input;   // 0x10
-    char pad14[0x14];
-    int mode;       // 0x28
-    float tChanged; // 0x2C
-    char pad30[0x18];
-    int selected;   // 0x48
-    int count;      // 0x4C
-    ITEM *items;    // 0x50
-};
 struct PROX { float along, distance; };
 struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };
 
@@ -1351,14 +1333,14 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8; }
 
 extern "C" {
-ITEM *FindScreenEntry(SELECTOR *sel, int id);
+GMITEM *FindScreenEntry(GADGETMENU *sel, int id);
 int ClipEdgeToSphere(qword point, qword start, qword end, int flags, HIT *hit, float radius);
 void FindClosestPointOnLineSegment(qword point, qword start, qword end, qword *unused, float *along, float *distance);
-void SelectGadgetMenuItem(SELECTOR *sel, int id);
-void CloseScreen(SELECTOR *sel);
+void SelectGadgetMenuItem(GADGETMENU *sel, int id);
+void CloseScreen(GADGETMENU *sel);
 void *CreateSfxSound(int id);
 void SetSndSourceLo(void *sound, int flags);
-void SetGadgetMenuStickDir(SELECTOR *sel, int mode);
+void SetGadgetMenuStickDir(GADGETMENU *sel, int mode);
 }
 
 static inline qword XYZ(float x, float y, float z, U &home)
@@ -1392,33 +1374,33 @@ static inline qword Splat(const float &f, U &home)
 static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 
 // Moves the gadget-menu selection to the selectable item lying closest along the stick direction (slot 14).
-void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
+void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
 {
     U home;
     HIT hit;
     PROX proximity;
-    if (mode == sel->mode)
+    if (mode == sel->nMode)
         return;
-    sel->mode = mode;
-    sel->tChanged = D_002DDED0.realTime;
-    if (mode == -1 || sel->selected == -1)
+    sel->nMode = mode;
+    sel->modeStartTime = D_002DDED0.realTime;
+    if (mode == -1 || sel->idSelected == -1)
         return;
-    ITEM *current = FindScreenEntry(sel, sel->selected);
+    GMITEM *current = FindScreenEntry(sel, sel->idSelected);
     qword position = XYZ(current->x, current->y * D_002C3280, 0.0f, home);
     qword direction;
-    if (sel->input)
-        direction = ToVF(XYZ(sel->input->x, -sel->input->y, 0.0f, home));
+    if (sel->pjoy)
+        direction = ToVF(XYZ(sel->pjoy->leftStickX, -sel->pjoy->leftStickY, 0.0f, home));
     else
         direction = VuZero<qword>();
     qword ray = VuScaleByX(Normalize(direction), Splat(D_002C3274, home));
     int bestId = -1;
     float best = D_002A79C8;
-    for (int i = 0; i < sel->count; i++) {
+    for (int i = 0; i < sel->citem; i++) {
         qword origin = ToVF(position);
-        ITEM *item = &sel->items[i];
+        GMITEM *item = &sel->aitem[i];
         if (item == current)
             continue;
-        if (!(item->flags & 4))
+        if (!(item->fAcquired))
             continue;
         float zero = 0.0f;
         qword point = XYZ(item->x, item->y * D_002C3280, zero, home);
@@ -1436,7 +1418,7 @@ void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
                 continue;
         }
         if (score < best) {
-            bestId = item->id;
+            bestId = item->idGadget;
             best = score;
         }
     }
@@ -1500,96 +1482,72 @@ extern "C" void OpenGadgetMenuForHero(GADGETMENU *gadgetMenu)
 namespace M_SetGadgetMenuState { extern "C" {
 typedef struct { short d; short pad; void *pfn; } VTE;
 typedef struct { char pad0[0xC]; VTE *vt; } SUB;
-typedef struct {
-    int gadgetId;
-    int unlockedAnim;
-    int acquiredAnim;
-    int selectedAnim;
-    int currentAnim;
-    float x;
-    float y;
-    int flags;
-} E;
-typedef struct OBJ {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0x20 - 0x10];
-    int widgetOid;
-    SUB *widget;
-    char pad28[0x40 - 0x28];
-    int state;
-    float stateTime;
-    int selectedGadget;
-    int itemCount;
-    E *items;
-} OBJ;
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
-extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
+extern GMITEM D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
 void SetClockRate(struct CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
-void SelectGadgetMenuItem(OBJ *, int);
-void SetScreenMode(OBJ *, int, int);
-void RefreshGadgetMenuItems(OBJ *);
+void SelectGadgetMenuItem(GADGETMENU *, int);
+void SetScreenMode(GADGETMENU *, int, int);
 SUB *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
-void SetGadgetMenuState(OBJ *p, int s);
+void SetGadgetMenuState(GADGETMENU *p, int s);
 #define VCALL(o, itemCount) ((void (*)(void *))(o)->vt[itemCount].pfn)((char *)(o) + (o)->vt[itemCount].d)
 // Opens or closes the gadget menu: opening freezes the clock, takes player control and shows the hero's page; closing
 // restores them.
-void SetGadgetMenuState(OBJ *p, int s)
+void SetGadgetMenuState(GADGETMENU *p, int s)
 {
-    if (s == p->state)
+    if (s == p->nState)
         return;
-    if (p->state == GADGETMENU_CLOSED) {
+    if (p->nState == GADGETMENU_CLOSED) {
         SetClockRate(&D_002DDED0, 0.0f, 0);
         IncrementSwHandsOff(D_003DD490, 0);
-        VCALL(p, 10);
+        p->Show();
     }
     SelectGadgetMenuItem(p, -1);
-    p->state = s;
-    p->stateTime = D_002DDED0.realTime;
+    p->nState = s;
+    p->tState = D_002DDED0.realTime;
     switch (s) {
     case GADGETMENU_CLOSED: {
         int i;
-        if (p->widget)
-            VCALL(p->widget, 50);
-        for (i = 0; i < p->itemCount; i++)
-            p->items[i].currentAnim = -1;
-        p->itemCount = 0;
-        p->items = 0;
+        if (p->pchild)
+            VCALL(((SUB *)p->pchild), 50);
+        for (i = 0; i < p->citem; i++)
+            p->aitem[i].idAnimCur = -1;
+        p->citem = 0;
+        p->aitem = 0;
         SetClockRate(&D_002DDED0, 1.0f, 0);
         DecrementSwHandsOff(D_003DD490, 0);
-        VCALL(p, 11);
+        p->Hide();
         SetScreenMode(p, -1, -1);
-        p->widget = 0;
-        p->widgetOid = -1;
+        p->pchild = 0;
+        p->idTextQueued = -1;
         break;
     }
     case GADGETMENU_SLY:
-        p->widgetOid = 0x375;
-        p->itemCount = 0x12;
-        p->items = D_002C2DE8;
+        p->idTextQueued = 0x375;
+        p->citem = 0x12;
+        p->aitem = D_002C2DE8;
         break;
     case GADGETMENU_BENTLEY:
-        p->widgetOid = 0x376;
-        p->itemCount = 9;
-        p->items = D_002C3028;
+        p->idTextQueued = 0x376;
+        p->citem = 9;
+        p->aitem = D_002C3028;
         break;
     case GADGETMENU_MURRAY:
-        p->widgetOid = 0x377;
-        p->itemCount = 8;
-        p->items = D_002C3148;
+        p->idTextQueued = 0x377;
+        p->citem = 8;
+        p->aitem = D_002C3148;
         break;
     }
-    if (p->state != GADGETMENU_CLOSED) {
+    if (p->nState != GADGETMENU_CLOSED) {
         SUB *e;
         RefreshGadgetMenuItems(p);
-        e = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->widgetOid, 0);
-        p->widget = e;
+        e = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->idTextQueued, 0);
+        p->pchild = e;
         if (!e) {
-            SetGadgetMenuState(p, GADGETMENU_CLOSED);
+            ::SetGadgetMenuState(p, GADGETMENU_CLOSED);   /* the file-scope declaration (this one is ambiguous with it) */
         } else {
             float best;
             int gadgetId;
@@ -1597,12 +1555,12 @@ void SetGadgetMenuState(OBJ *p, int s)
             ((void (*)(void *, int))e->vt[49].pfn)((char *)e + e->vt[49].d, 0x318);
             best = D_002A79CC;
             gadgetId = -1;
-            for (i = 0; i < p->itemCount; i++) {
-                E *pe = &p->items[i];
-                if (pe->flags & 4) {
+            for (i = 0; i < p->citem; i++) {
+                GMITEM *pe = &p->aitem[i];
+                if (pe->fAcquired) {
                     float f = pe->x + pe->y;
                     if (f < best) {
-                        gadgetId = pe->gadgetId;
+                        gadgetId = pe->idGadget;
                         best = f;
                     }
                 }
@@ -2163,10 +2121,8 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
 } } // namespace M_func_001DC4B0
 
 namespace M_BuildGadgetMenuInfoText { extern "C" {
-typedef struct { char pad[0x30]; int timerKind; int closeTime; int modeArg; char pad3c[0x48 - 0x3C]; int selectedGadget; } GS;
 typedef struct { int pad[5]; int nameTextId; int detailTextId; int descriptionTextId; } REC;
-typedef struct { char pad[0x1C]; int flags; } OBJ;   /* gadget menu item */
-extern GS D_003DA0F0;
+extern GADGETMENU D_003DA0F0;
 extern char D_003DD490[];
 extern REC D_002BCD00[];
 extern char *D_002C3268[];
@@ -2174,7 +2130,7 @@ extern char D_002A7A10[], D_002A7A18[], D_002A7A28[];
 char *FindSwLocalizedString__FP2SWi(void *, int);
 char *strcpy(char *, char *);
 int sprintf(char *, char *, ...);
-OBJ *FindScreenEntry(GS *,int);
+GMITEM *FindScreenEntry(GADGETMENU *,int);
 void *GetHeroPo(void *);
 int GetGadgetSlotFromId(void *, int);
 // Text callback for the gadget-menu info boxes: the popup message, "none", or the selected power-up's name, slot button
@@ -2183,14 +2139,14 @@ void BuildGadgetMenuInfoText(char *out)
 {
     char buf[256];
     unsigned char *s;
-    if (D_003DA0F0.timerKind != -1) {
-        strcpy(out, FindSwLocalizedString__FP2SWi(D_003DD490, D_003DA0F0.modeArg));
-    } else if (D_003DA0F0.selectedGadget == -1) {
+    if (D_003DA0F0.nPopup != -1) {
+        strcpy(out, FindSwLocalizedString__FP2SWi(D_003DD490, D_003DA0F0.idsPopup));
+    } else if (D_003DA0F0.idSelected == -1) {
         strcpy(out, FindSwLocalizedString__FP2SWi(D_003DD490, 0xDD));
     } else {
-        OBJ *po = FindScreenEntry(&D_003DA0F0,D_003DA0F0.selectedGadget);
-        int v = GetGadgetSlotFromId(GetHeroPo(D_003DD490), D_003DA0F0.selectedGadget);
-        if ((po->flags & 1) && v < 0) {
+        GMITEM *po = FindScreenEntry(&D_003DA0F0,D_003DA0F0.idSelected);
+        int v = GetGadgetSlotFromId(GetHeroPo(D_003DD490), D_003DA0F0.idSelected);
+        if (po->fEquippable && v < 0) {
             strcpy(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0xE1));
             s = (unsigned char *)D_002A7A10;
         } else {
@@ -2199,10 +2155,10 @@ void BuildGadgetMenuInfoText(char *out)
                 sz = D_002C3268[v];
             else
                 sz = D_002A7A10;
-            sprintf(buf, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].descriptionTextId), sz, sz, sz);
-            s = (unsigned char *)FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].detailTextId);
+            sprintf(buf, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.idSelected].descriptionTextId), sz, sz, sz);
+            s = (unsigned char *)FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.idSelected].detailTextId);
         }
-        sprintf(out, D_002A7A18, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].nameTextId),
+        sprintf(out, D_002A7A18, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.idSelected].nameTextId),
                       *s ? D_002A7A28 : D_002A7A10, s, buf);
     }
 }
