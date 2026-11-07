@@ -4382,21 +4382,15 @@ void ClearJsgSma(struct S *script)
 } } // namespace M_ClearJsgSma
 
 // 0x1E5468 ClearJsgWidget
-namespace M_func_001E5468 { extern "C" {
-struct VTE; struct O; struct S;
-struct VTE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x64]; struct O *po; };
-// Call vtable slot 50 on ploWidget (+0x64) and clear it. (inferred)
-void ClearJsgWidget(struct S *script)
+// Hides the script's widget (slot 50) and forgets it.
+extern "C" void ClearJsgWidget(RELAYJSG *script)
 {
-    struct O *po = script->po;
-    if (po) {
-        po->vt[50].pf((char *)po + po->vt[50].d);
-        script->po = 0;
+    WIDGET *widget = (WIDGET *)script->ploWidget;
+    if (widget) {
+        widget->Hide();
+        script->ploWidget = 0;
     }
 }
-} } // namespace M_func_001E5468
 
 // 0x1E54B0 ClearJsgJtMode
 // End the STEPPLAYER mode started by StartJtMode (+0xA0 pstepplayerMode -> EndJtMode(+0xF00)). (inferred)
@@ -4458,7 +4452,6 @@ int IsJsgRemoved(RELAYJSG *p);
 void RemoveDlEntry__FP2DLPv(DL *pdl, RELAYJSG *p);
 void ClearJsgAseg(RELAYJSG *p);
 void ClearJsgSma(RELAYJSG *p);
-void ClearJsgWidget(RELAYJSG *p);
 void ClearJsgStepHolds(RELAYJSG *p);
 void AbortJsgMove(RELAYJSG *p);
 void SetClockRate(CLOCK *pclock, int n, float g);
