@@ -511,36 +511,26 @@ void STEPGUARD::OnProxyAcquire(LO *plo)
 
 // 0x206748 ClearStepguardState
 namespace M_ClearStepguardState { extern "C" {
-struct F; struct S;
-extern float D_002A8610;
-extern int D_002C3CF0;
-struct F { char pad[0xF0]; int unknownF0; int unknownF4; };
-struct S {
-    char pad0[0x2DC]; int scriptResumePoint[3]; int patrolScript; char pad1[0x330 - 0x2EC]; int isKnockedOut; char pad2[0x360 - 0x334]; float pulseStartTime;
-    char pad3[0x390 - 0x364]; int forcedTarget; char pad4[0x484 - 0x394]; int numLoot, firstLoot, isLootStaged, unknown490; char pad5[0x4A0 - 0x494]; int unknown4A0;
-    char pad6[0xE94 - 0x4A4]; int unknownE94; char pad7[0xF64 - 0xE98]; struct F *detector; int escortObject; char pad8[0xF94 - 0xF6C]; int designatedTargetCount;
-    char pad9[0xFA8 - 0xF98]; int avoidObjectCount; char pad10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char pad11[0xFF4 - 0xFD0]; float unknownFF4;
-    char pad12[0x1000 - 0xFF8]; int removalMode;
-};
-void SO_Slot27(struct S *p);
-void DetachStepguard(struct S *p);
+void DetachStepguard(STEPGUARD *guard);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetStepguardTarget(struct S *p, int n);
-void ClearStepguardTargetLists(struct S *p);
-void SetStepguardPickpocketState(struct S *p, int a);
-void SetStepguardSpecial(struct S *p, int n);
+void ClearStepguardTargetLists(STEPGUARD *guard);
+void SetStepguardPickpocketState(STEPGUARD *guard, int a);
+void SetStepguardSpecial(STEPGUARD *guard, int n);
+} }
 // 0x206748: STEPGUARD vtable slot 27 (clear state): base, detaches, clears counters, targets and target lists,
 // special state and pickpocket state.
-void ClearStepguardState(struct S *guard)
+void STEPGUARD::OnProxyRelease(LO *plo)
 {
+    using namespace M_ClearStepguardState;
+    STEPGUARD *guard = this;
     int one;
-    SO_Slot27(guard);
+    SO::OnProxyRelease(plo);
     DetachStepguard(guard);
     guard->patrolScript = 0;
-    func_002333B4(guard->scriptResumePoint, 0, 0xC);
-    guard->unknownE94 = 0;
-    guard->detector->unknownF0 = 0;
-    guard->detector->unknownF4 = 0;
+    func_002333B4(&guard->scriptResumePoint, 0, 0xC);
+    guard->numAllowedZones = 0;
+    guard->pdetector->unknownF0 = 0;
+    guard->pdetector->unknownF4 = 0;
     guard->numLoot = 0;
     guard->firstLoot = 0;
     guard->isLootStaged = 0;
@@ -554,15 +544,14 @@ void ClearStepguardState(struct S *guard)
     guard->isKnockedOut = 0;
     guard->escortObject = 0;
     guard->isHandsOff = 0;
-    guard->unknownFCC = 0;
+    guard->handsOffLookAt = 0;
     guard->pulseStartTime = -10.0f;
     guard->unknown4A0 = one;
-    guard->unknownFF4 = D_002A8610;
+    guard->walkPhaseTime = D_002A8610;
     guard->removalMode = D_002C3CF0;
     SetStepguardPickpocketState(guard, -1);
     SetStepguardSpecial(guard, SPECIAL_NONE);
 }
-} } // namespace M_ClearStepguardState
 
 // 0x206820 RestartStepguard
 namespace M_func_00206820 { extern "C" {
