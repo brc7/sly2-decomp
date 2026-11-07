@@ -710,18 +710,12 @@ extern "C" void FreeBanksnd(void *pv)
 #define SUKR_QUERY_STATUS 0xC      /* periodic status (PollSoundManagerStatus; meaning unknown) */
 
 namespace M_PstreamsndNew {
-struct A; struct B;
-struct X {
-    static void *operator new(unsigned int cb) __asm__("AllocStreamsnd");
-    X(A *pa, B *pb) __asm__("STREAMSND_ctor");
-    char pad[0x3C0];
-};
 // Creates a streamed sound (music, dialog, ambience) for a stream record and kind, or 0 if the pool is empty.
-extern "C" X *PstreamsndNew(A *pa, B *pb)
+extern "C" STREAMSND *PstreamsndNew(FILEREC *pfilerec, int streamKind)
 {
-    X *px;
-    if (pa)
-        px = new X(pa, pb);
+    STREAMSND *px;
+    if (pfilerec)
+        px = new STREAMSND(pfilerec, streamKind);
     else
         px = 0;
     return px;
@@ -732,32 +726,27 @@ namespace M_STREAMSND_ctor { extern "C" {
 /* STREAMSND (0x3C0): SND, then the stream record (+0x60), play time (+0x68), six sub-groups' volumes (+0x70), pans
    (+0x88), source counts (+0xA0) and sources (+0xB8, 8 each), the stream kind (+0x3B8) and the dirty sub-group mask
    (+0x3BC). */
-struct P { char pad[0xC]; void *vtable; char pad2[0x60 - 0x10]; int streamRecord; char pad3[0x70 - 0x64]; float groupVolumes[6]; char pad4[0x3B8 - 0x88]; int streamKind; };
-/* SNDMGR: paused flag (+0x58), the pause-fade category's per-channel weights (+0x15C, row 2 of the volume table) */
-struct G { char pad[0x58]; int isPaused; char pad2[0x15C - 0x5C]; float pauseFadeVolumes[1]; };
-extern struct G D_003DD040;
+extern SNDMGR D_003DD040;
 extern char D_002D9BE0[] __asm__("_vt$9STREAMSND");
-void SND_ctor(struct P *);
-void SetSndFlags(struct P *, int, int);
-int GetStreamVolumeChannel(struct G *, int);
-void PauseSnd(struct P *);
+int GetStreamVolumeChannel(SNDMGR *, FILEREC *);
+void PauseSnd(CID151 *);
 // Streamed-sound constructor: base constructor, STREAMSND vtable, the file record and kind, all six sub-group volumes at
 // 1; requests start and marks it timed, and starts paused when its channel's pause-fade weight is 0 or
 // the manager is paused.
-struct P *STREAMSND_ctor(struct P *sound, int streamRecord, int streamKind)
+STREAMSND *STREAMSND_ctor(STREAMSND *sound, FILEREC *pfilerec, int streamKind)
 {
     int i;
-    struct G *soundManager;
+    SNDMGR *soundManager;
     SND_ctor(sound);
-    sound->streamRecord = streamRecord;
-    sound->vtable = D_002D9BE0;
+    sound->record.pfilerec = pfilerec;
+    ((SNDOBJ *)sound)->vtable = (VTESND *)D_002D9BE0;   /* the vptr, by hand (a C-named constructor) */
     sound->streamKind = streamKind;
     for (i = 0; i < 6; i++)
         sound->groupVolumes[i] = 1.0f;
     soundManager = &D_003DD040;
     SetSndFlags(sound, SND_START | SND_TIMED, SND_START | SND_TIMED);
     /* start paused when its channel is silent or the manager is paused */
-    if (*(soundManager->pauseFadeVolumes + GetStreamVolumeChannel(soundManager, sound->streamRecord)) == 0.0f)
+    if (*(soundManager->volumes[VOLUME_CATEGORY_PAUSE_FADE] + GetStreamVolumeChannel(soundManager, sound->record.pfilerec)) == 0.0f)
         PauseSnd(sound);
     if (soundManager->isPaused)
         PauseSnd(sound);
@@ -957,26 +946,23 @@ void ApplyStreamsndParams(STREAMSND *sound)
 } } // namespace M_ApplyStreamsndParams
 
 namespace M_func_001FC878 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *vtable; char pad2[0x40 - 0x10]; int voiceHandle; char pad3[0x4E - 0x44]; short pauseCount; unsigned short flags; unsigned short playState; char pad4[0x68 - 0x54]; long playTime; };
 extern SNDMGR D_003DD040;
 void OnStreamsndStatus(void);
 void OnBankSoundStatus(void);
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
-void SetSndFlags(struct P *, int, int);
 // Queries a stream's play position and whether it is still playing (slot 14), with callbacks; accumulates paused time.
 // (inferred)
-void QueryStreamSoundStatus(struct P *sound)
+void QueryStreamSoundStatus(STREAMSND *sound)
 {
     if (sound->flags & SND_QUERY_STARTED) {
-        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);   /* Incref for the callback */
+        sound->AddRef();   /* for the callback */
         func_002330D0(SUKR_RPC, SUKR_QUERY_PLAYING, sound->voiceHandle, 0, 0, 0, 0, OnStreamsndStatus, (long)sound);
         SetSndFlags(sound, SND_QUERY_STARTED, 0);
     }
     if (sound->playState)
         return;
     if (sound->flags & SND_QUERY_PLAYING) {
-        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);
+        sound->AddRef();
         func_002330D0(SUKR_RPC, SUKR_QUERY_POSITION, sound->voiceHandle, 0, 0, 0, 0, OnBankSoundStatus, (long)sound);
         SetSndFlags(sound, SND_QUERY_PLAYING, 0);
     }
@@ -993,27 +979,25 @@ extern "C" void SetStreamSoundCulled()
 
 namespace M_UpdateStreamsndPositional { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct LO {char pad28[0x28];unsigned long flags;};
-struct RANGE {float low,high;};
-struct E {struct LO *object;struct RANGE limits;float gain;};
-struct P {char pad1C[0x1C];struct LO *object;qword position;char pad30[0x70];int groupSourceCounts[6];struct E groupSources[6][8];};
+/* LO's flag word at +0x28 read as a whole (as UpdateSndPositional) */
+struct O {char pad28[0x28];unsigned long flags;};
 extern qword D_002A2DD0;
 int AreFloatsNear__Ffff(float,float,float);
-void UpdateSndPositional(struct P *);
-qword GetLoWorldPos(struct LO *);
-void CalculateSndVolPan(struct P *,qword,const struct RANGE *,float *,int *);
-void SetStreamGroupPan(struct P *,int,int);
-void SetStreamsndGroupVolume(struct P *,int,float);
+void UpdateSndPositional(CID151 *);
+qword GetLoWorldPos(LO *);
+void CalculateSndVolPan(CID151 *,qword,const LM *,float *,int *);
+void SetStreamGroupPan(STREAMSND *,int,int);
+void SetStreamsndGroupVolume(STREAMSND *,int,float);
 static inline int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
 }
 // Positional update of a stream (slot 16): the base update, then per sub-group the loudest audible source sets the
 // group's volume and pan.
-void UpdateStreamsndPositional(struct P *sound)
+void UpdateStreamsndPositional(STREAMSND *sound)
 {
     int group;
-    if (sound->object || !AreVectorsNear(D_002A2DD0, sound->position))
+    if (sound->source || !AreVectorsNear(D_002A2DD0, sound->position))
         UpdateSndPositional(sound);
     for (group = 0; group < 6; group++) {
         int count = sound->groupSourceCounts[group];
@@ -1023,11 +1007,11 @@ void UpdateStreamsndPositional(struct P *sound)
             int *panOut = &panAngle;   /* only the first audible source's pan is computed */
             float fade;
             for (i = 0; i < count; i++) {
-                struct E *entry = &sound->groupSources[group][i];
-                struct LO *object = entry->object;
-                if (object && ((object->flags >> 60) & 1) == 1) {   /* in the world */
+                SNDSOURCE *entry = &sound->groupSources[group][i];
+                LO *object = entry->plo;
+                if (object && ((((O *)object)->flags >> 60) & 1) == 1) {   /* in the world */
                     numActive++;
-                    CalculateSndVolPan(sound, GetLoWorldPos(object), &entry->limits, &fade, panOut);
+                    CalculateSndVolPan(sound, GetLoWorldPos(object), &entry->range, &fade, panOut);
                     panOut = 0;
                     { float gain = fade * entry->gain; maximum = maximum > gain ? maximum : gain; }
                 }

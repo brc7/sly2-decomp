@@ -85,6 +85,8 @@ struct STREAMSND : CID151
     SNDSOURCE groupSources[6][8]; /* +0xB8 the positional sources of each sub-group (the loudest drives it) */
     int streamKind;             /* +0x3B8 bit 2: looping */
     int dirtyGroups;            /* +0x3BC sub-groups with changed volume or pan */
+    static void *operator new(unsigned int cb) __asm__("AllocStreamsnd");   /* from g_sndmgr's stream pool */
+    STREAMSND(FILEREC *pfilerec, int streamKind) __asm__("STREAMSND_ctor");   /* C-named (sound.cpp) */
     virtual void AddRef() __asm__("IncrefStreamsnd");   /* slot 1; key function (sound.cpp) */
     virtual void Release() __asm__("DecrefStreamsnd");   /* slot 2 */
     virtual void Start() __asm__("StartStreamsnd");   /* slot 7 */
