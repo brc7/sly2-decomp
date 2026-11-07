@@ -1267,37 +1267,36 @@ extern "C" int ResetSaveSlot(SAVE *saveManager, SAVESLOT *pslot)
 }
 
 namespace M_McJobGetInfo { extern "C" {
-struct S { int port; int slot; int state; int nextState; int tStateChanged; float tNextPoll; int cardType; int freeClusters; int isFormatted; char pad2[0xFD5C - 0x24]; char memcard[1]; };
 int sceMcGetInfo(int port, int slot, int *type, int *free, int *format);
 int McSyncResult(void *p, int a, int b, int c);
 // Worker job: reads the card info (type, free space, formatted) and records it.
-int McJobGetInfo(struct S *saveManager)
+int McJobGetInfo(SAVE *saveManager)
 {
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     int syncState;
     int r;
     syncState = sceMcGetInfo(saveManager->port, saveManager->slot, &saveManager->cardType, &saveManager->freeClusters, &saveManager->isFormatted);
     r = McSyncResult(worker, syncState, 1, 0);
     switch (r) {
     case 11:
-        saveManager->nextState = 1;
+        saveManager->nStateNext = 1;
         break;
     case 9:
-        saveManager->nextState = 3;
+        saveManager->nStateNext = 3;
         break;
     case 10:
     case 12:
         r = 12;
-        saveManager->nextState = 2;
+        saveManager->nStateNext = 2;
         break;
     case 0:
-        if (saveManager->isFormatted) { if (saveManager->nextState < 3) saveManager->nextState = 3; } else saveManager->nextState = 2;
+        if (saveManager->isFormatted) { if (saveManager->nStateNext < 3) saveManager->nStateNext = 3; } else saveManager->nStateNext = 2;
         break;
     }
     if (r == 0 || r == 12) {
         if (saveManager->cardType != 2) {
             r = 11;
-            saveManager->nextState = 1;
+            saveManager->nStateNext = 1;
         }
     }
     saveManager->tNextPoll = g_clock.realTime + 0.3f;
@@ -1306,13 +1305,12 @@ int McJobGetInfo(struct S *saveManager)
 } } // namespace M_McJobGetInfo
 
 namespace M_func_001AC6A0 { extern "C" {
-struct S { int port; int slot; int pad[4]; int cardType; int freeClusters; int isFormatted; char pad2[0xFD5C - 0x24]; char memcard[1]; };
 int sceMcGetInfo(int port, int slot, int *type, int *free, int *format);
 int McSyncResult(void *p, int a, int b, int c);
 // sceMcGetInfo followed by McSyncResult; returns the result.
-int McGetInfoSync(struct S *saveManager, int *freeBytes)
+int McGetInfoSync(SAVE *saveManager, int *freeBytes)
 {
-    void *worker = saveManager->memcard;
+    void *worker = &saveManager->memcard;
     int syncState;
     int r;
     syncState = sceMcGetInfo(saveManager->port, saveManager->slot, &saveManager->cardType, &saveManager->freeClusters, &saveManager->isFormatted);
@@ -1358,22 +1356,20 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
 namespace M_McRead { extern "C" {
 int sceMcRead(int fd, int buffer, int size);
 void McSyncResult(void *p, int r, int n, int d);
-struct S { char pad[0xFD5C]; char memcard[4]; };
 // sceMcRead and wait for the result.
-void McRead(struct S *saveManager, int fd, int buffer, int size, int numRead)
+void McRead(SAVE *saveManager, int fd, int buffer, int size, int numRead)
 {
-    McSyncResult(saveManager->memcard, sceMcRead(fd, buffer, size), 5, numRead);
+    McSyncResult(&saveManager->memcard, sceMcRead(fd, buffer, size), 5, numRead);
 }
 } } // namespace M_McRead
 
 namespace M_McWrite { extern "C" {
 int sceMcWrite(int fd, int buffer, int size);
 void McSyncResult(void *p, int r, int n, int d);
-struct S { char pad[0xFD5C]; char memcard[4]; };
 // sceMcWrite and wait for the result.
-void McWrite(struct S *saveManager, int fd, int buffer, int size, int numWritten)
+void McWrite(SAVE *saveManager, int fd, int buffer, int size, int numWritten)
 {
-    McSyncResult(saveManager->memcard, sceMcWrite(fd, buffer, size), 6, numWritten);
+    McSyncResult(&saveManager->memcard, sceMcWrite(fd, buffer, size), 6, numWritten);
 }
 } } // namespace M_McWrite
 
