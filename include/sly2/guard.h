@@ -28,6 +28,34 @@ struct GUARDSCRIPTCMD
       float heading;        /* +0xC [S] */
 };
 
+/* One detector target (16 bytes): the object, its detection state (0 none, 1 seen, 2 close; set by
+   UpdateDetectorTargets) and when the state was entered. [S] */
+struct DETECTORTARGET
+{
+      LO *object;           /* +0x0 [S] */
+      int state;            /* +0x4 [S] */
+      float stateTime;      /* +0x8 [S] */
+      int unknownC;
+};
+
+/* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target), shared by every guard engaging
+   that target: when the first guard engaged, the record's state and its time, the target, how the engagement token
+   is granted (DoesTargetRecordAllowGuard: facing kind and tolerance) and the engaged guards from +0x2C. [S] */
+struct TARGETREC
+{
+      float firstEngageTime; /* +0x00 */
+      float stateTime;      /* +0x04 */
+      int state;            /* +0x08 -1 none */
+      LO *target;           /* +0x0C */
+      int facingKind;       /* +0x10 -1 none, 0 camera heading, 1 target facing */
+      float unknown14;      /* +0x14 */
+      float facingTolerance; /* +0x18 radians */
+      int isDisabled;       /* +0x1C */
+      char pad20[0x8];
+      int guardCount;       /* +0x28 */
+      STEPGUARD *guards[1]; /* +0x2C */
+};
+
 /* DETECTOR (CID 0x10, cb 0x180): a guard's vision detector. Only the fields the option accessors below use. [S] */
 struct DETECTOR : public XFM
 {
@@ -38,14 +66,15 @@ struct DETECTOR : public XFM
       int unknownF0;        /* +0xF0 [S] cleared by ClearStepguardState */
       int unknownF4;        /* +0xF4 [S] */
       undefined4 unk_0xf8;
-      int unknownFC;        /* +0xFC [S] a total the guard's +0x3A4 contribution is added to (stepguard.cpp ClearStepguardGeneratedTargets); possibly totalContribution (low-confidence guess: [S] sum of the guards' +0x3A4 contributions) */
-      undefined4 unk_0x100[(0x180 - 0x100) / 4];
+      int ctarget;          /* +0xFC [S] entries used in atarget: the designated targets first, then the guards' generated ones (STEPGUARD::generatedTargetCount, the tail) */
+      DETECTORTARGET atarget[8]; /* +0x100 [S] the tracked targets (TryAddStepguardDetectTarget, ChooseStepguardTarget) */
     virtual void Update() __asm__("UpdateDetector");   /* slot 16 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetDetectorClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitDetector");   /* slot 7 */
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTOR) == 0x180 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
-typedef char assert_DETECTOR_unknownFC[SLY2_OFFSETOF(DETECTOR, unknownFC) == 0xFC ? 1 : -1];
+typedef char assert_DETECTOR_ctarget[SLY2_OFFSETOF(DETECTOR, ctarget) == 0xFC ? 1 : -1];
+typedef char assert_DETECTOR_atarget[SLY2_OFFSETOF(DETECTOR, atarget) == 0x100 ? 1 : -1];
 typedef char assert_DETECTOR_owner[SLY2_OFFSETOF(DETECTOR, owner) == 0xE0 ? 1 : -1];
 typedef char assert_DETECTOR_unknownF0[SLY2_OFFSETOF(DETECTOR, unknownF0) == 0xF0 ? 1 : -1];
 typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
@@ -154,15 +183,15 @@ struct STEPGUARD : public STEP
       LM interactAngleRange; /* +0x380 [S] */
       float interactRange;  /* +0x388 [S] */
       LO *target;           /* +0x38C [R] current target (Sly while chasing) */
-      int forcedTarget;     /* +0x390 [S] target forced on the guard (ChooseStepguardTarget) */
+      LO *forcedTarget;     /* +0x390 [S] target forced on the guard (ChooseStepguardTarget) */
       int preferClassCount; /* +0x394 [S] classes the guard prefers as targets (AddStepguardPreferClass, at most 3) */
       int preferClasses[3]; /* +0x398 [S] */
-      int generatedTargetCount; /* +0x3A4 [S] detector targets the guard generated (its contribution to pdetector->unknownFC) */
+      int generatedTargetCount; /* +0x3A4 [S] detector targets the guard generated (the tail of pdetector->atarget) */
       int ignoreClassCount; /* +0x3A8 [S] classes the guard ignores (AddStepguardIgnoreClass, at most 5) */
       int ignoreClasses[5]; /* +0x3AC [S] */
       int forceClassCount;  /* +0x3C0 [S] classes forced as targets (AddStepguardForceClass, at most 2) */
       int forceClasses[2];  /* +0x3C4 [S] */
-      void *pvEngage;       /* +0x3CC [R] engagement record (non-zero while in combat) [H type] */
+      TARGETREC *pvEngage;  /* +0x3CC [R] engagement record (non-zero while in combat): the target's shared TARGETREC */
       int unknown3D0;       /* +0x3D0 [S] */
       int unknown3D4;       /* +0x3D4 [S] read with pvEngage (FBhvcombatLostTarget) */
       int coinCountOverride; /* +0x3D8 [S] coins dropped when knocked out (-1 default; StartBhvko) */

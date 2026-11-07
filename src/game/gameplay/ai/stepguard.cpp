@@ -90,23 +90,6 @@ enum {
 };
 
 #define PMOVER(guard) ((GUARDMOVER *)((char *)(guard) + 0xFD0))
-/* A target record (STEPGUARD::pvEngage; func_001F8278 finds the one of a target), shared by every guard engaging
-   that target: when the first guard engaged, the record's state and its time, the target, how the engagement token
-   is granted (DoesTargetRecordAllowGuard: facing kind and tolerance) and the engaged guards from +0x2C. */
-struct TARGETREC
-{
-    float firstEngageTime;  /* +0x00 */
-    float stateTime;        /* +0x04 */
-    int state;              /* +0x08 -1 none */
-    LO *target;             /* +0x0C */
-    int facingKind;         /* +0x10 -1 none, 0 camera heading, 1 target facing */
-    float unknown14;        /* +0x14 */
-    float facingTolerance;  /* +0x18 radians */
-    int isDisabled;         /* +0x1C */
-    char pad20[0x8];
-    int guardCount;         /* +0x28 */
-    STEPGUARD *guards[1];   /* +0x2C */
-};
 /* A guard attack (CID120) as its binding functions see it: the owning guard at +0xAC and the attack animation's
    binding at +0xB0 (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
 struct ANIMLO
@@ -591,14 +574,11 @@ extern "C" int CompareGuardCandidateDistance(float *pg1, float *pg2)
 
 // 0x206900 UpdateStepguardDetectTargets
 namespace M_UpdateStepguardDetectTargets {
-struct ENTRY; struct MANAGER; struct ANCHOR; struct CANDIDATE;
+struct CANDIDATE;
 extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 
-struct ENTRY {STEPGUARD *object;int mode;float stamp;int unusedC;};
-struct MANAGER {char pad0[0xFC];int count;struct ENTRY entries[8];};
-struct ANCHOR {int unused0;float stamp;int mode;STEPGUARD *object;};
 struct CANDIDATE {float distance;int *source;STEPGUARD *object;int mode;float stamp;int unused14;};
 struct GAME;
 extern struct GAME D_003DD490;
@@ -608,13 +588,12 @@ extern float D_002A8614;
 extern float D_002C3D04,D_002C3D08,D_002C3D0C;
 ulong GetSgfMask(int);
 int FindSwObjectsByClass(struct GAME *,int,int,int,int,STEPGUARD **);
-qword GetLoWorldPos(STEPGUARD *);
+qword GetLoWorldPos(LO *);
 void qsort(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
 int CompareGuardCandidateDistance(const void *,const void *);
 int TryAddStepguardDetectTarget(STEPGUARD *,STEPGUARD *,int);
-void UpdateDetectorTargets(struct MANAGER *);
-struct ENTRY *FindDetectorTarget(struct MANAGER *,STEPGUARD *);
-void SetTargetRecordState(struct ANCHOR *,int);
+void UpdateDetectorTargets(DETECTOR *);
+DETECTORTARGET *FindDetectorTarget(DETECTOR *,LO *);
 // VU0 helper: vector difference.
 // VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LengthXY(qword a)
@@ -689,11 +668,11 @@ void UpdateStepguardDetectTargets(STEPGUARD *guard)
                             record->object = object;
                             record->stamp = initialStamp;
                             candidateCount++;
-                            for (old = ((struct MANAGER *)guard->pdetector)->count - guard->generatedTargetCount; old < ((struct MANAGER *)guard->pdetector)->count; old++) {
-                                struct ENTRY *entry = &((struct MANAGER *)guard->pdetector)->entries[old];
+                            for (old = guard->pdetector->ctarget - guard->generatedTargetCount; old < guard->pdetector->ctarget; old++) {
+                                DETECTORTARGET *entry = &guard->pdetector->atarget[old];
                                 if (entry->object == record->object) {
-                                    record->mode = entry->mode;
-                                    record->stamp = entry->stamp;
+                                    record->mode = entry->state;
+                                    record->stamp = entry->stateTime;
                                     break;
                                 }
                             }
@@ -705,7 +684,7 @@ void UpdateStepguardDetectTargets(STEPGUARD *guard)
             }
         }
         qsort(candidates, candidateCount, sizeof(struct CANDIDATE), CompareGuardCandidateDistance);
-        ((struct MANAGER *)guard->pdetector)->count -= guard->generatedTargetCount;
+        guard->pdetector->ctarget -= guard->generatedTargetCount;
         guard->generatedTargetCount = 0;
         if (candidateCount > 0) {
             int absentMode = -1;
@@ -714,30 +693,30 @@ void UpdateStepguardDetectTargets(STEPGUARD *guard)
                 if (TryAddStepguardDetectTarget(guard, record->object, (int)record->source)) {
                     guard->generatedTargetCount++;
                     if (record->mode != absentMode) {
-                        struct ENTRY *entry = &((struct MANAGER *)guard->pdetector)->entries[((struct MANAGER *)guard->pdetector)->count - 1];
-                        entry->mode = record->mode;
-                        entry->stamp = record->stamp;
+                        DETECTORTARGET *entry = &guard->pdetector->atarget[guard->pdetector->ctarget - 1];
+                        entry->state = record->mode;
+                        entry->stateTime = record->stamp;
                     }
                 }
                 record++;
             } while (--candidateCount);
         }
     }
-    UpdateDetectorTargets(((struct MANAGER *)guard->pdetector));
-    if (((struct ANCHOR *)guard->pvEngage)) {
-        struct ENTRY *entry = FindDetectorTarget(((struct MANAGER *)guard->pdetector), ((struct ANCHOR *)guard->pvEngage)->object);
+    UpdateDetectorTargets(guard->pdetector);
+    if (guard->pvEngage) {
+        DETECTORTARGET *entry = FindDetectorTarget(guard->pdetector, guard->pvEngage->target);
         if (entry) {
-            switch (entry->mode) {
+            switch (entry->state) {
             case 1:
-                SetTargetRecordState(((struct ANCHOR *)guard->pvEngage), 1);
+                SetTargetRecordState(guard->pvEngage, 1);
                 break;
             case 2: {
                 qword ownPosition, difference;
-                anchorPosition = GetLoWorldPos(((struct ANCHOR *)guard->pvEngage)->object);
+                anchorPosition = GetLoWorldPos(guard->pvEngage->target);
                 ownPosition = GetLoWorldPos(guard);
                 difference = VuSub(anchorPosition, ownPosition);
                 if (Near(difference))
-                    SetTargetRecordState(((struct ANCHOR *)guard->pvEngage), 2);
+                    SetTargetRecordState(guard->pvEngage, 2);
             } break;
             }
         }
@@ -1700,7 +1679,7 @@ done:
 
 // 0x208538 SetStepguardForcedTarget
 // 0x208538: Splice setter: sets the forced target (+0x390).
-extern "C" void SetStepguardForcedTarget(STEPGUARD *guard, int n)
+extern "C" void SetStepguardForcedTarget(STEPGUARD *guard, LO *n)
 {
     guard->forcedTarget = n;
 }
@@ -1717,7 +1696,7 @@ extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
     if (ploTarget == ploOld)
         return;
     if (ploOld != 0) {
-        RemoveTargetRecordGuard((TARGETREC *)guard->pvEngage, guard);
+        RemoveTargetRecordGuard(guard->pvEngage, guard);
         guard->pvEngage = 0;
     }
     guard->target = ploTarget;
@@ -1849,7 +1828,7 @@ extern "C" void ClearStepguardGeneratedTargets(STEPGUARD *guard)
 {
     DETECTOR *detector;
     detector = guard->pdetector;
-    detector->unknownFC = detector->unknownFC - guard->generatedTargetCount;
+    detector->ctarget = detector->ctarget - guard->generatedTargetCount;
     guard->preferClassCount = 0;
     guard->generatedTargetCount = 0;
 }
@@ -1896,7 +1875,7 @@ void RemoveStepguardDetectTarget(STEPGUARD *guard)
 // 0x2088E0: Clears the detector targets and the preferred, generated, ignored and forced lists.
 extern "C" void ClearStepguardTargetLists(STEPGUARD *guard)
 {
-    guard->pdetector->unknownFC = 0;
+    guard->pdetector->ctarget = 0;
     guard->preferClassCount = 0;
     guard->generatedTargetCount = 0;
     ClearStepguardIgnoreClasses(guard);
