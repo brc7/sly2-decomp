@@ -1357,24 +1357,19 @@ int GetSoLocalXf(struct A *so, float *pm)
 
 // 0x1F4010 ApplySoProxy
 namespace M_func_001F4010 { extern "C" {
-struct M4; struct T; struct VTE; struct VT; struct P; struct G;
-typedef int qword __attribute__((mode(TI)));
-struct M4 { qword a[4]; };
-struct T { struct M4 matWorld; char pad[0xA4 - 0x40]; int stamp; };
-struct VTE { short d; short p; int (*pfn)(void *); };
-struct VT { struct VTE a[19]; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x54 - 0x10]; struct T *rootTransform; };
+struct G;
 struct G { char pad[0x3D58]; int nStampXf; };
 extern struct G D_003DD490;
-struct M4 __ml__FRC7MATRIX4T0(void *, struct T *);
-void UpdateSoIkBoneLengths(struct P *);
-// Slot 37: applies a proxy's matrix to the root XF, bumps the world stamp and updates the transform hierarchy.
-void ApplySoProxy(struct P *so, void *pv)
+MATRIX4 __ml__FRC7MATRIX4T0(MATRIX4 *, XF *);
+void UpdateSoIkBoneLengths(SO *);
+// Slot 37: applies a proxy's matrix to the first XF's local matrix, bumps the world stamp and updates the transform
+// hierarchy.
+void ApplySoProxy(SO *so, MATRIX4 *pv)
 {
-    struct T *pt = so->rootTransform;
-    pt->matWorld = __ml__FRC7MATRIX4T0(pv, pt);
-    { int n = ++D_003DD490.nStampXf; so->rootTransform->stamp = n; }
-    so->pvt->a[18].pfn((char *)so + so->pvt->a[18].d);
+    XF *pt = so->transforms;
+    pt->localMatrix = __ml__FRC7MATRIX4T0(pv, pt);
+    { int n = ++D_003DD490.nStampXf; so->transforms->worldStamp = n; }
+    so->UpdateXfWorldHierarchy();
     UpdateSoIkBoneLengths(so);
 }
 } } // namespace M_func_001F4010
@@ -1532,30 +1527,21 @@ qword GetSoVelocity(struct S *p) { struct T *pt = p->positionXf; if (!pt || pt->
 
 // 0x1F4488 SetSoVelocity
 namespace M_SetSoVelocity { extern "C" {
-struct VTE; struct VT; struct O; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short p; void *pfn; };
-struct VT { struct VTE a[34]; };
-struct O { char pad[0x94]; int kind; short role; char pad2[0xA0 - 0x9A]; int parent; char pad3[0xB0 - 0xA4]; union { qword q; int a[4]; } velocity; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x58 - 0x10]; struct O *positionXf; };
 int IsXfRoleMoving(int);
-void SetXfRole(struct P *, struct O *, int);
-qword ConvertXfVec(int, int, qword);
-void UnsettleXfSlot(struct P *, struct O *);
-void InvalidateSoAaox(struct P *);
-void WakeSo(struct P *);
-void SetSoBit35Hierarchy(struct P *, int);
+qword ConvertXfVec(int, XF *, qword);
+void WakeSo(SO *);
 // Slot 35: sets the position XF's velocity so the world velocity becomes v, then refreshes and marks the physics.
-void SetSoVelocity(struct P *so, qword q)
+void SetSoVelocity(SO *so, qword q)
 {
-    struct O *po = so->positionXf;
+    XF *po = so->unknown58;
     qword cur, d;
     if (!po || po->kind != 1) return;
     if (!IsXfRoleMoving(po->role)) SetXfRole(so, po, 1);
     { float *pv = (float *)&po->velocity; pv[2] = 0.0f; pv[1] = 0.0f; pv[0] = 0.0f; }
-    cur = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
+    cur = so->GetVelocity();
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(cur));
-    po->velocity.q = ConvertXfVec(0, po->parent, d);
+    *(qword *)&po->velocity = ConvertXfVec(0, po->parent, d);
     UnsettleXfSlot(so, po);
     InvalidateSoAaox(so);
     WakeSo(so);
@@ -2100,17 +2086,11 @@ extern "C" void AdjustSoXpVelocity(void)
 
 // 0x1F4FC8 ShouldSoIgnoreIntersection
 namespace M_FIgnoreSoIntersection { extern "C" {
-struct VTE; struct VT; struct X;
-typedef unsigned long ulong;
-struct VTE { short d; short p; int (*pfn)(void *); };
-struct VT { struct VTE a[63]; };
-struct X { char pad[0xC]; struct VT *pvt; char pad2[0x148 - 0x10]; ulong fl; };
-#define VF(p) (p)->pvt->a[62].pfn((char *)(p) + (p)->pvt->a[62].d)
 // Slot 61: returns 1 when contacts between pa and pb are not needed: pb is fixed and pa is fixed too or ignores
 // fixed objects (+0x148 bit 26). Sly 1 name: FIgnoreSoIntersection.
-int ShouldSoIgnoreIntersection(struct X *pa, struct X *pb)
+int ShouldSoIgnoreIntersection(SO *pa, SO *pb)
 {
-    if (((pa->fl & 0x4000000) || VF(pa)) && VF(pb)) return 1;
+    if ((pa->fIgnoreFixed || pa->IsFixed()) && pb->IsFixed()) return 1;
     return 0;
 }
 } } // namespace M_FIgnoreSoIntersection
