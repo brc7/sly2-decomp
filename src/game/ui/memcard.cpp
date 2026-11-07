@@ -954,7 +954,7 @@ int McSyncResult(void *, int, int, int *);
 void FillMcDirInfo(ENT *, OUT *);
 
 // Reads a card directory listing (sceMcGetDir) into an array of records (FillMcDirInfo).
-int ReadMcDir(int *saveManager, char *path, int maxEntries, OUT *records, int *numRecords)
+int ReadMcDir(SAVE *saveManager, char *path, int maxEntries, OUT *records, int *numRecords)
 {
     int continueListing;   /* sceMcGetDir mode: 0 new listing, 1 continue the previous one */
     int r;
@@ -971,7 +971,7 @@ int ReadMcDir(int *saveManager, char *path, int maxEntries, OUT *records, int *n
         path = D_002E6500;
     }
     memset_(D_002E6080, 0, 0x480);
-    r = McSyncResult((char *)saveManager + SAVE_MEMCARD_OFFSET, sceMcGetDir(saveManager[0], saveManager[1], path, continueListing, maxEntries, D_002E6080), 0xD, numRecords);
+    r = McSyncResult(&saveManager->memcard, sceMcGetDir(saveManager->port, saveManager->slot, path, continueListing, maxEntries, D_002E6080), 0xD, numRecords);
     if (r)
         return r;
     for (i = 0; i < *numRecords; i++)
@@ -1535,7 +1535,6 @@ extern SAVE D_002E65E0;
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
-extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 extern const struct LONGU D_002A6D88;
 int IsSwTransitionBusy(void *g);
 int GetMcDialogButtonKind(struct S *s);
@@ -1601,16 +1600,16 @@ void CMemcardDialog_Update(struct S *dialog)
         ClearMcDialogState(dialog);
         return;
     case 0x13:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         if (!D_002E65E0.memcard.jobResult) {
-            CreateMemcardThread(D_002F633C, D_002A6D88.l);
+            CreateMemcardThread(&g_save.memcard, D_002A6D88.l);
             SetMcDialogState(dialog, 0x16);
         } else
             SetMcDialogState(dialog, 0x14);
         return;
     case 0x16:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
@@ -1619,7 +1618,7 @@ void CMemcardDialog_Update(struct S *dialog)
         SetMcDialogState(dialog, 0x17);
         return;
     case 0x1A:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         if (!D_002E65E0.memcard.jobResult) {
             ClearMcDialogState(dialog);
@@ -1639,7 +1638,7 @@ void CMemcardDialog_Update(struct S *dialog)
             SetMcDialogState(dialog, 0x1D);
         return;
     case 0x21:
-        if (IsMemcardThreadValid__FP7MEMCARD(D_002F633C))
+        if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         D_002E65E0.selectedSlot = 0;
         if (!D_002E65E0.memcard.jobResult) {
@@ -1740,7 +1739,6 @@ struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct pas
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { char pad[0x40]; int state; };
 extern const struct LONGU D_002A6E88, D_002A6D88, D_002A6E90;
-extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 void SaveToCurrentSlot(void);
 void CreateMemcardThread(void *t, long pmf);
 void SetMcDialogState(struct S *s, int n);
@@ -1752,15 +1750,15 @@ void ConfirmMcDialog(struct S *dialog)
         SaveToCurrentSlot();
         break;
     case 0x12:
-        CreateMemcardThread(D_002F633C, D_002A6E88.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6E88.l);
         SetMcDialogState(dialog, 0x13);
         break;
     case 0x15:
-        CreateMemcardThread(D_002F633C, D_002A6D88.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6D88.l);
         SetMcDialogState(dialog, 0x16);
         break;
     case 0x20:
-        CreateMemcardThread(D_002F633C, D_002A6E90.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6E90.l);
         SetMcDialogState(dialog, 0x21);
         break;
     }
