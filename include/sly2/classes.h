@@ -1365,108 +1365,8 @@ struct BHV191 : BHV
 };
 typedef char assert_BHV191_size[sizeof(BHV191) == 0x50 ? 1 : -1];
 
-/* 71 HACK (0x1C0): hacking minigame base (damageable PO); vtable 0x2D1878, 83 slots */
-struct HACK : PO
-{
-    char pad180[0x1C0 - 0x180];
-    virtual void RemoveHierarchy() __asm__("RemoveHackHierarchy");   /* slot 12 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetHackClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitHack");   /* slot 7 */
-    virtual void PostLoad() __asm__("PostHackLoad");   /* slot 15 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetHackHealth");   /* slot 26 */
-    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackNewXp");   /* slot 55 */
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackDamage");   /* slot 75 */
-    virtual void Kill() __asm__("KillHack");   /* slot 82 */
-    virtual void Reset() __asm__("ResetHack");   /* slot 83 */
-};
-typedef char assert_HACK_size[sizeof(HACK) == 0x1C0 ? 1 : -1];
-
-/* 72 HACKSHIP (0x2B0); vtable 0x2D15D0, 83 slots */
-struct HACKSHIP : HACK
-{
-    char pad1C0[0x2A4 - 0x1C0];
-    int nUnk2a4;
-    char pad2A8[0x2B0 - 0x2A8];
-    HACKSHIP();
-    virtual void RemoveHierarchy() __asm__("RemoveHackshipHierarchy");   /* slot 12 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetHackshipClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitHackship");   /* slot 7 */
-    virtual void PostLoad() __asm__("PostHackshipLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateHackship");   /* slot 16 */
-    virtual void PresetAccel() __asm__("PresetHackshipAccel");   /* slot 70 */
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackshipDamage");   /* slot 75 */
-    virtual void OnActive(int fActive) __asm__("OnHackshipActive");   /* slot 78 */
-    virtual void Reset() __asm__("ResetHackship");   /* slot 83 */
-};
-typedef char assert_HACKSHIP_size[sizeof(HACKSHIP) == 0x2B0 ? 1 : -1];
-/* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
-   its key TU (as global functions the ELF does not have), so the key TU defines SLY2_KEY_TU_HACKSHIP and sees
-   only the declaration. */
-#ifndef SLY2_KEY_TU_HACKSHIP
-// HACKSHIP constructor: clears nUnk2a4.
-inline HACKSHIP::HACKSHIP() { nUnk2a4 = 0; }
-#endif
-
-/* 74 HACKBULLET (0x1E0); vtable 0x2D1328, 83 slots */
-struct HACKBULLET : HACK
-{
-    char pad1C0[0x1E0 - 0x1C0];
-    virtual void Init() __asm__("InitHackbullet");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetHackbulletClassDesc");   /* slot 6 */
-    virtual void Update() __asm__("UpdateHackbullet");   /* slot 16 */
-    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackbulletNewXp");   /* slot 55 */
-    virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldHackbulletIgnoreIntersection");   /* slot 61 */
-};
-typedef char assert_HACKBULLET_size[sizeof(HACKBULLET) == 0x1E0 ? 1 : -1];
-
-/* 73 HACKENEMY (0x390); vtable 0x2D1080, 83 slots */
-struct HACKENEMY : HACK
-{
-    char pad1C0[0x390 - 0x1C0];
-    virtual void Reset() __asm__("ResetHackenemy");   /* slot 83 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetHackenemyClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleHackenemyMessage");   /* slot 5 */
-    virtual void Init() __asm__("InitHackenemy");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("RemoveHackenemyHierarchy");   /* slot 12 */
-    virtual void PostLoad() __asm__("PostHackenemyLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateHackenemy");   /* slot 16 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetHackenemyState");   /* slot 26 */
-    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackenemyNewXp");   /* slot 55 */
-    virtual void PresetAccel() __asm__("PresetHackenemyAccel");   /* slot 70 */
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackenemyDamage");   /* slot 75 */
-};
-typedef char assert_HACKENEMY_size[sizeof(HACKENEMY) == 0x390 ? 1 : -1];
-
-/* 75 HACKLOCK (0x250); vtable 0x2D0DD8, 83 slots */
-struct HACKLOCK : HACK
-{
-    char pad1C0[0x250 - 0x1C0];
-    virtual void Init() __asm__("InitHacklock");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetHacklockClassDesc");   /* slot 6 */
-    virtual void PostLoad() __asm__("PostHacklockLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateHacklock");   /* slot 16 */
-    virtual void Reset() __asm__("ResetHacklock");   /* slot 83 */
-};
-typedef char assert_HACKLOCK_size[sizeof(HACKLOCK) == 0x250 ? 1 : -1];
-
-/* 76 HACKWALL (0x2A0); vtable 0x2D0B30, 83 slots */
-struct HACKWALL : HACK
-{
-    char pad1C0[0x2A0 - 0x1C0];
-    virtual void Init() __asm__("InitHackwall");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetHackwallClassDesc");   /* slot 6 */
-    virtual void PostLoad() __asm__("PostHackwallLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateHackwall");   /* slot 16 */
-    virtual void RenderSelf() __asm__("RenderHackwallSelf");   /* slot 19 */
-    virtual void UpdateBounds() __asm__("UpdateHackwallTreeBounds");   /* slot 49 */
-    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackwallNewXp");   /* slot 55 */
-    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddHackwallXps");   /* slot 60 */
-    virtual int GetExtraPartCount() __asm__("GetHackwallExtraPartCount");   /* slot 63 */
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackwallDamage");   /* slot 75 */
-    virtual void Kill() __asm__("KillHackwall");   /* slot 82 */
-    virtual void Reset() __asm__("ResetHackwall");   /* slot 83 */
-};
-typedef char assert_HACKWALL_size[sizeof(HACKWALL) == 0x2A0 ? 1 : -1];
+/* 71..76 HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL (key TU tu_17F090): sly2/hack.h */
+#include "sly2/hack.h"
 
 /* 12 CID12 (0x1C0): wall grabspot (wall press); vtable 0x2D2738, 50 slots */
 struct CID12 : SHAPE, GRABSPOT
@@ -2036,48 +1936,8 @@ typedef char assert_RIPG_ripList[SLY2_OFFSETOF(RIPG, ripList) == 0x15C ? 1 : -1]
 typedef char assert_RIPG_boundsRadius[SLY2_OFFSETOF(RIPG, boundsRadius) == 0x1A0 ? 1 : -1];
 typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 
-/* 77 ROBOTTANK (0x5D0): single instance; vtable 0x2D7CA8, 81 slots */
-struct ROBOTTANK : PO
-{
-    char pad180[0x598 - 0x180];
-    int nUnk598;
-    char pad59C[0x5D0 - 0x59C];
-    ROBOTTANK();
-    virtual void OnActive(int fActive) __asm__("OnRobottankActive");   /* slot 78 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetRobottankClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitRobottank");   /* slot 7 */
-    virtual void PostLoad() __asm__("PostRobottankLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateRobottank");   /* slot 16 */
-    virtual void RenderSelf() __asm__("RenderRobottankSelf");   /* slot 19 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetRobottank");   /* slot 26 */
-    virtual void Clone(LO *ploBase) __asm__("CloneRobottank");   /* slot 41 */
-    virtual void UpdateBounds() __asm__("UpdateRobottankBounds");   /* slot 49 */
-    virtual void OnContactFreed(SO *pso) __asm__("RemoveRobottankContactsWith");   /* slot 54 */
-    virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustRobottankNewXp");   /* slot 55 */
-    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddRobottankCustomXps");   /* slot 60 */
-    virtual void PresetAccel() __asm__("PresetRobottankAccel");   /* slot 70 */
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeRobottankDamage");   /* slot 75 */
-};
-typedef char assert_ROBOTTANK_size[sizeof(ROBOTTANK) == 0x5D0 ? 1 : -1];
-/* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
-   its key TU (as global functions the ELF does not have), so the key TU defines SLY2_KEY_TU_ROBOTTANK and sees
-   only the declaration. */
-#ifndef SLY2_KEY_TU_ROBOTTANK
-// ROBOTTANK constructor: clears nUnk598.
-inline ROBOTTANK::ROBOTTANK() { nUnk598 = 0; }
-#endif
-
-/* 108 CID108 (0x170): robot-tank ammo pickup; vtable 0x2D7A40, 75 slots */
-struct CID108 : SO
-{
-    char pad150[0x170 - 0x150];
-    virtual void Update() __asm__("UpdateRcPickup");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetCid108ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitRcPickup");   /* slot 7 */
-    virtual void PostLoad() __asm__("PostRcPickupLoad");   /* slot 15 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetRobottankPickup");   /* slot 26 */
-};
-typedef char assert_CID108_size[sizeof(CID108) == 0x170 ? 1 : -1];
+/* 77 ROBOTTANK and 108 CID108 (key TU tu_1D1370): sly2/tank.h */
+#include "sly2/tank.h"
 
 /* 112 CID112 (0xC0): aim manager / launcher (darts, guard pebbles, sword missiles); vtable 0x2D7F40, 48 slots */
 struct CID112 : LO

@@ -14,8 +14,8 @@ How code should read once it matches (names, comments, locals) is a separate top
 
 **1.1 Separate structs where views conflict.** When functions disagree about a struct's layout, they keep separate
 structs rather than one merged guess. No speculative unions. *Why:* a wrong merge either breaks the match or hides a real
-difference. *Where:* every `.cpp` with private views (`HACK` and its subclasses in `tu_17F090.cpp` are separate views
-because a derived struct would shift every field by the base's tail padding). *Status:* temporary per type: a view folds
+difference. *Where:* every `.cpp` with private views (the hack classes of `tu_17F090.cpp` were the example until
+names/vu-objects showed the tail-padding conflict was a misread base size; they derive in `sly2/hack.h` now). *Status:* temporary per type: a view folds
 into the shared type when a header names its fields and the function still matches.
 
 **1.2 Derived structs for extended layouts; supersets for duplicated copies.** When one function sees more of a struct
