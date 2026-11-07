@@ -68,18 +68,10 @@ void NormalizeRotateMatrix3__FP7MATRIX3(M3 *m);
 qword *VECTOR_opAssign(qword *p, qword v);
 }
 
-/** @sly2-annot addr=0x1603B8
- * Purpose: Reads an s8 count of transform-constraint records {source LO, dest LO, fPosition, fRotation} from
- *   the BRX stream, links each dest to its record and switches the dest transform mode (0x2303A0(...,0xF))
- * Info: proposed name LoadXfmConstraintsFromBrx (T1); TU tu_1603B8
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8+parse-verified
- * See: docs/engine/hud-ui.md#4-source-files, docs/engine/object-model.md#7-xfm-and-transform-helpers,
- *   docs/engine/object-model.md#8-source-files
- * @end-sly2-annot */
 // Loads an object's transform constraints from the level stream: per record a source and a destination object (a
 // missing source falls back to the world origin transform D_002C44F0), and whether position and/or rotation follow. The
 // destination remembers its constraint (+0xA8) and its transform update mode is switched to "constrained" (0xF).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream)
 {
     int count = stream->S8Read();
@@ -111,15 +103,6 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
 
-/** @sly2-annot addr=0x1604E8
- * Purpose: Applies one transform constraint: dest local position/rotation = inverse(dest parent world) x
- *   source world, re-orthonormalizes, bumps the SW stamp counter
- * Info: proposed name ApplyXfmConstraint (T1); TU tu_1603B8
- * Notes: names_v2 v1 proposed VU1_Interrupt__Fi (0.638)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/engine/object-model.md#7-xfm-and-transform-helpers,
- *   docs/reference/functions/object-model.md#tu_1603b8-0x1603b8-0x1607a0
- * @end-sly2-annot */
 // Applies one transform constraint for the frame: the destination's local position and/or rotation are set so that its
 // world transform equals the source's (inverse of the destination parent's world matrix times the source world matrix;
 // the rotation is re-orthonormalized), then the global transform stamp is bumped so world matrices are recomputed.

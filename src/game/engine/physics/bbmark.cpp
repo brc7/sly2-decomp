@@ -83,15 +83,6 @@ void InvalidateSoAaox(LO *);
 }
 #define VCALL(po, n, T) ((T)(po)->vt[n].pfn)((char *)(po) + (po)->vt[n].d
 
-/** @sly2-annot addr=0x1336F0
- * Purpose: Allocate the object's OXA node (pool g_sw+0x3CE0), append to SW lists, and add min/max endpoints
- *   on each of 3 axes to the sweep arrays (count += 2)
- * Info: proposed name AddObjectToBroadPhase (T1); TU bbmark
- * Notes: names_v2 C proposed InitDzg__FP3DZGi (0.200)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r2b_rest
- * See: docs/engine/object-model.md#8-source-files, docs/engine/physics-collision.md#2-contacts-and-solving,
- *   docs/engine/physics-collision.md#6-source-files
- * @end-sly2-annot */
 // Adds an object to the broad phase: allocates its AAOBR from the world pool, links it into the world lists and
 // inserts its min/max endpoints into all three axis arrays (two more endpoints per axis). Returns the AAOBR.
 extern "C" X *AddObjectToBroadPhase(SW *world, LO *object) {
@@ -122,14 +113,6 @@ extern "C" X *AddObjectToBroadPhase(SW *world, LO *object) {
  *   had there), restoring the target's p/ae priority order;
  * - paae is set (before k3) so the aae address is computed ahead of the k3 constant, as in the target. */
 /* v2 (Claude agent laneB12, 2026-10-23): aligned 7 -> 3. The /12 pointer-diff divisions written out as (bytes * k3) >> 2 with k3 = 0xAAAAAAAB in ONE commented register pin ($21 = s5, as in the target): fixes the s4/s5 swap. Left: ori s5 before addiu fp, and i+1 (addiu s4) scheduled right after the sll instead of in the b delay slot (j = i + 1 / i = j step, split init: same 3). */
-/** @sly2-annot addr=0x1337D0
- * Purpose: Remove an object from the broadphase: for each pair notify both (vt54), free XP lists, remove from
- *   SW lists and delete its endpoints from the 3 axis arrays
- * Info: proposed name RemoveObjectFromBroadPhase (T1); TU bbmark
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
 // Removes an object's AAOBR from the broad phase: for every overlap pair both objects are notified (slot 54) and
 // the pair's contact lists freed, then the box leaves the world lists and its endpoints are deleted from the axes.
 extern "C" void RemoveObjectFromBroadPhase(SW *world, X *aaobr)
@@ -190,15 +173,6 @@ extern "C" void RemoveObjectFromBroadPhase(SW *world, X *aaobr)
     FreeSlotheapSlot(&world->poolAaobr, aaobr);
 }
 
-/** @sly2-annot addr=0x133A38
- * Purpose: Create or destroy the OX pair between two OXAs: k=1 force on, 2 force off, 0 keep current; pair if
- *   forced or overlapping (0x133D08); on removal call vt54 on both and free XP list
- * Info: proposed name UpdateSwPox (T1); TU bbmark
- * Notes: names_v2 C proposed UpdateTank__FP4TANKf (0.438)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
- *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
- * @end-sly2-annot */
 // Creates or destroys the pair link between two AAOBRs. k = 1 forces the pair on, 2 forces it off, 0 decides from
 // ShouldSwPairObjects; removing a pair wakes both objects and frees its contacts.
 extern "C" void UpdateSwPox(SW *world, X *aaobrA, X *aaobrB, int mode)
@@ -256,13 +230,6 @@ extern "C" void UpdateSwPox(SW *world, X *aaobrA, X *aaobrB, int mode)
     }
 }
 
-/** @sly2-annot addr=0x133C68
- * Purpose: Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list
- * Info: proposed name AddSwObjectPair (T1); TU bbmark
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
- * @end-sly2-annot */
 // Allocates a pair link from the world pool for px1 with px2 as the other side and pushes it on px1's pair list.
 extern "C" L *AddSwObjectPair(SW *world, X *aaobr, X *otherAaobr)
 {
@@ -273,12 +240,6 @@ extern "C" L *AddSwObjectPair(SW *world, X *aaobr, X *otherAaobr)
     return pair;
 }
 
-/** @sly2-annot addr=0x133CB8
- * Purpose: Unlink and return the OX whose other matches
- * Info: proposed name RemoveSwObjectPair (T1); TU bbmark
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
- * @end-sly2-annot */
 // Unlinks and returns px1's pair link whose other side is px2 (0 if none).
 extern "C" L *RemoveSwObjectPair(SW *unused, X *aaobr, X *otherAaobr) {
     LO *otherObject = otherAaobr->object;
@@ -303,13 +264,6 @@ static __inline__ int Call(LO *po, LO *poOther)
 {
     return ((int (*)(void *, LO *))po->vt[61].pfn)((char *)po + po->vt[61].d, poOther);
 }
-/** @sly2-annot addr=0x133D08
- * Purpose: AABB overlap on 3 axes, then both objects' ShouldIgnoreIntersection (vt61) combined by max; pair unless
- *   result is 1 or 3
- * Info: proposed name FSwShouldPairObjects (T2); TU bbmark
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
- * @end-sly2-annot */
 // Returns 1 when two AAOBRs overlap on all three axes and neither object asks to ignore the other: both objects'
 // ignore-intersection answers (slot 61) are combined with MaxInt and the pair is made unless the result is 1 or 3.
 extern "C" int ShouldSwPairObjects(SW *unused, X *aaobrA, X *aaobrB)
@@ -324,12 +278,6 @@ extern "C" int ShouldSwPairObjects(SW *unused, X *aaobrA, X *aaobrB)
     return ignore != 1 && ignore != 3;
 }
 
-/** @sly2-annot addr=0x133E30
- * Purpose: While a queue is non-empty call vt49 (UpdateSoTreeBounds) on its head object
- * Info: proposed name FlushSwBoundsUpdates (T1); TU bbmark
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
- * @end-sly2-annot */
 // Drains the pending-bounds list: for each queued object calls its bounds update (slot 49, UpdateSoTreeBounds)
 // until the list is empty.
 extern "C" void FlushSwBoundsUpdates(SW *world) {
@@ -340,13 +288,6 @@ extern "C" void FlushSwBoundsUpdates(SW *world) {
     }
 }
 
-/** @sly2-annot addr=0x133E80
- * Purpose: If dirty: insertion-sort the 3 endpoint arrays; when a min/max pair crosses call UpdateSwPox(..,0)
- *   (sweep and prune)
- * Info: proposed name UpdateSwAaox (T1); TU bbmark
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
- * @end-sly2-annot */
 // If the endpoint arrays are dirty, insertion-sorts each axis; whenever a min and a max endpoint swap places the
 // pair is re-evaluated with UpdateSwPox(.., 0). This is the incremental sweep-and-prune step.
 extern "C" void UpdateSwAaox(SW *world)
@@ -384,16 +325,6 @@ extern "C" void UpdateSwAaox(SW *world)
     }
 }
 
-/** @sly2-annot addr=0x134040
- * Purpose: Per solver step: flush bounds, sort, then walk objects and their pairs building contact (XP) lists
- *   into a stack array of up to 0x300 objects
- * Info: proposed name RecalcSwXpAll (T1); TU bbmark
- * Notes: names_v2 C proposed UpdateVolzp__FP5VOLZPf (0.221)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
- *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
- * @end-sly2-annot */
 // Once per solver step: flushes bounds updates, re-sorts the axes, then walks the objects queued for contact
 // recalculation and rebuilds the XP lists of their pairs (AddSoXps), using a stack array of up to 0x300 objects.
 extern "C" void RecalcSwXpAll(SW *world)
@@ -459,33 +390,12 @@ extern "C" void RecalcSwXpAll(SW *world)
     STACKSCOPE_ctor_1AE4A0(&scope, 2);
 }
 
-/** @sly2-annot addr=0x134310
- * Purpose: return max(a,b) for ints; used to merge FIgnore*Intersection results
- * Info: proposed name NMax (T2); TU bbmark
- * Notes: v3: superseded NMaxIgnore | top50_round (0.50): Body (m2c). 12 callers combine ignore codes
- *   (FSwShouldPairObjects, ShouldBombIgnoreIntersection, ShouldMurrayIgnoreIntersection, ShouldSensorIgnoreIntersection: r
- *   = NMax(r,1)). Out-of-line in bbmark TU; generic name preferred over NMa | mangled withheld (not T1):
- *   NMax__Fii
- * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r2b_rest+top50_round
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
- *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
- * @end-sly2-annot */
 // Returns the larger of two ints; kept out of line by the compiler. Used to merge ignore-intersection answers.
 extern "C" int MaxInt(int a, int b)
 {
     return (b >= a) ? b : a;
 }
 
-/** @sly2-annot addr=0x134320
- * Purpose: If the object has a broadphase node (+0xEC): refresh (0x1F4BF8) and UpdateSwPox against every
- *   other node
- * Info: proposed name RefreshSwObjectCollisionFilter (T1); TU bbmark
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/gameplay-objects.md#barrier-0x1320c8-0x132570,
- *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
 // When an object's collision filter changed: if it has an AAOBR (+0xEC), invalidates its box and re-evaluates its
 // pair with every other AAOBR in the world.
 extern "C" void RefreshSwObjectCollisionFilter(SW *world, LO *object) {

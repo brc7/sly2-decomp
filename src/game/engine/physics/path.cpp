@@ -73,14 +73,6 @@ static __inline__ float Dot(qword a, qword b)
 typedef struct { char b[12]; } LEAF;
 typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NODE;
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
-/** @sly2-annot addr=0x1BF110
- * Purpose: Walk the pathzone 2D BSP and return the triangle containing pos (flags arg new in Sly 2)
- * Info: proposed name FindNavTriangleQuick (T1); TU path
- * Notes: names_v2 C proposed PcgtPointInCbspSafe__FP4CBSPP6VECTOR (0.638)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5b_rest
- * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Walks the graph's 2D BSP and returns the triangle containing pos, or 0 (Sly 1 PcgtPointInCbspQuick; the flags
 // argument is new in Sly 2).
 LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
@@ -127,13 +119,6 @@ typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NOD
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
 float D_002C0C00 = 0.01f;   /* path's .data starts here: the plane-side epsilon */
 namespace PATH_DATA { float r_D_002C0C04 __asm__("D_002C0C04") = 50.0f; }   /* FindPathPoints's route spacing (declared const there) */
-/** @sly2-annot addr=0x1BF1F8
- * Purpose: Tolerant BSP walk returning nearest triangle
- * Info: proposed name FindNavTriangleSafe (T1); TU path
- * Notes: names_v2 B proposed FindClosestPointInCg__FP2CGP6VECTORT1 (0.856)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Tolerant BSP walk: returns the triangle containing pos or, failing that, the nearest one (Sly 1
 // PcgtPointInCbspSafe).
 LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
@@ -185,13 +170,6 @@ LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CbskFromG__Ff { extern "C" {
-/** @sly2-annot addr=0x1BF398
- * Purpose: Plane side class of a distance: 0 front, 1 back, 2 on (epsilon D_002C0C00)
- * Info: proposed name ClassifyPlaneDistance (T1); TU path
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name: CbskFromG.
 int ClassifyPlaneDistance__Ff(float distance)
 {
@@ -262,12 +240,6 @@ static inline VU_VECTOR Lerp(const qword &a, const qword &b, float t)
     return VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(a), VU_FLOAT(t), VU_VECTOR(b));
 }
 
-/** @sly2-annot addr=0x1BF3D8
- * Purpose: Clip segment against the pathzone BSP, writing crossed leaf spans (LSG rows 96 B)
- * Info: proposed name ClipEdgeToCbsp (T1); TU path
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Clips a segment against the graph's BSP, writing the walkable leaf spans it crosses as LSG rows; returns the
 // count (Sly 1 ClsgClipEdgeToCbsp).
 extern "C" int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW *out, int flags)
@@ -408,12 +380,6 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char ROW_Size[sizeof(ROW)==96?1:-1];
 typedef char ROW_Low_Offset[(unsigned int)&((ROW*)0)->low==0x40?1:-1];
 typedef char ROW_High_Offset[(unsigned int)&((ROW*)0)->high==0x44?1:-1];
-/** @sly2-annot addr=0x1BF900
- * Purpose: True if the segment leaves the walkable area (no span or span not [0,1])
- * Info: proposed name IsEdgeBlockedByCbsp (T1); TU path
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Returns 1 when the segment leaves walkable space (no span, or the span does not cover [0, 1]).
 int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
  ROW spans[2];
@@ -424,13 +390,6 @@ int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
 }
 } } // namespace M_FClipEdgeToCbsp
 
-/** @sly2-annot addr=0x1BF970
- * Purpose: Index of a graph vertex: (pcgv - pcg->acgv) >> 5
- * Info: proposed name GetCgVertexIndex (T1); TU path
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_A2
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Index of a graph vertex from its pointer.
 int GetCgVertexIndex(CG *graph, CGV *vertex)
 {
@@ -464,12 +423,6 @@ static inline float Dist2(const qword &a, const qword &b)
     return r;
 }
 
-/** @sly2-annot addr=0x1BF980
- * Purpose: A* over the pathzone vertex graph
- * Info: proposed name FindPathAStar (T1); TU path
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // A* search over the graph's vertices from a start to a goal triangle; fills the predecessor chain. Sly 1 name.
 extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int *count, V **path)
 {
@@ -550,12 +503,6 @@ void *AllocFromStack(struct REQ *r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n);
 static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->cb = cb; preq->align = nKind; return AllocFromStack(preq); }
-/** @sly2-annot addr=0x1BFC18
- * Purpose: Drop intermediate path vertices with clear line of sight (IsEdgeBlockedByCbsp)
- * Info: proposed name SimplifyPathByLineOfSight (T1); TU path
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
 void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 {
@@ -630,13 +577,6 @@ static inline qword AddScaled(qword a, qword b, float g)
     return r;
 }
 
-/** @sly2-annot addr=0x1BFDB0
- * Purpose: Closest point of a navigation triangle to p (edge clamp or vertical projection)
- * Info: proposed name GetClosestPointOnNavTriangle (T1); TU path
- * Notes: names_v2 v1 proposed InitJt__FP2JT (0.000)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Closest point of a navigation triangle to p (clamped to an edge, or projected vertically inside it).
 extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
 {
@@ -725,14 +665,6 @@ static inline qword AddScaled(qword p, qword axis, VU_FLOAT s)
     return r;
 }
 
-/** @sly2-annot addr=0x1BFF28
- * Purpose: Route between two points over the pathzone graph: locate triangles, A*, simplify, copy out, min
- *   spacing
- * Info: proposed name FindPathPoints (T1); TU path
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest+verdicts_A2
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Finds a route between two points over the graph: locates both triangles, runs A*, simplifies, copies at most
 // cposMax points out with a minimum spacing. Returns the point count (Sly 1 CposFindPath).
 int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
@@ -824,14 +756,6 @@ namespace M_func_001C02D0 { extern "C" {
 struct T { char pad[0xE8]; int ne8; char pad2[8]; int nf4; };
 int FindPathPoints(void *p, int a, int b, int c, int d);
 void MeasureShape(struct T *pt);
-/** @sly2-annot addr=0x1C02D0
- * Purpose: FindPathPoints on pathzone+0xE0 (max 16 points) into a path/curve object and rebuild it (0x1E6180);
- *   false if <2 points
- * Info: proposed name FFindPathzonePathCurve (T2); TU path
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920,
- *   docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
 // Finds a path (max 16 points) in a path zone into a path curve object and rebuilds the curve; returns 0 when
 // fewer than 2 points were found.
 int FindPathzonePathCurve(char *p, int a, int b, struct T *pt)
@@ -850,13 +774,6 @@ typedef int qword __attribute__((mode(TI)));
 struct S { int a[5]; int bspNodes; };
 void *FindNavTriangleSafe(struct S *p, int n, qword q);
 qword GetClosestPointOnNavTriangle(void *p, qword q);
-/** @sly2-annot addr=0x1C0320
- * Purpose: FindNavTriangleSafe then GetClosestPointOnNavTriangle; returns found
- * Info: proposed name FindClosestPointInCg (T1); TU path
- * Notes: names_v2 v1 proposed LoadJtFromBrx__FP2JTP18CBinaryInputStream (0.001)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Closest point of the graph to pos (nearest triangle, then the closest point on it); returns 1 when found.
 int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
 {
@@ -867,12 +784,6 @@ int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
 }
 } } // namespace M_FindClosestPointInCg
 
-/** @sly2-annot addr=0x1C0378
- * Purpose: CID 17 vt7: InitXfm, ids -1, init DL
- * Info: proposed name InitPathzone (T1); class PATHZONE slot7; TU path
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // CID 17 slot 7 (Init): InitXfm, ids -1 and the obstacle list.
 void PATHZONE::Init()
 {
@@ -902,17 +813,8 @@ float F32Read__18CBinaryInputStream(void *pbis);
 void *AllocClearedFromWorldHeap(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
 void ComputeCgEdgeCosts(int *p);
-/** @sly2-annot addr=0x1C03C0
- * Purpose: CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; ComputeCgEdgeCosts
- * Info: proposed name LoadPathzoneFromBrx (T1); class PATHZONE slot14; TU path
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+parse-verified
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // CID 17 slot 14 (LoadFromBrx): the XFM, the vertices (position + edge list), triangles and BSP nodes; then
-// ComputeCgEdgeCosts.
+// ComputeCgEdgeCosts. Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadPathzoneFromBrx(struct S *zone, void *stream)
 {
     struct A a;
@@ -987,14 +889,6 @@ struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
 void *AllocClearedFromWorldHeap(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
 void ComputeCgEdgeCosts(int *p);
-/** @sly2-annot addr=0x1C0648
- * Purpose: Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables
- *   D_002C0C10/D_002C0C90) covering everything
- * Info: proposed name InitDefaultPathzoneCg (T1); TU path
- * Notes: names_v2 v1 proposed PresetJtAccel__FP2JTf (0.000)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Builds a trivial graph for a level without zones: 4 vertices, 2 triangles and one diagonal BSP node from tables.
 void InitDefaultPathzoneCg(struct S *zone)
 {
@@ -1060,13 +954,6 @@ static inline int Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
-/** @sly2-annot addr=0x1C0880
- * Purpose: Compute edge costs (XY distance between vertices)
- * Info: proposed name ComputeCgEdgeCosts (T1); TU path
- * Notes: names_v2 v1 proposed AdjustJtDz__FP2JTiP2DZif (0.000)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name: HookupCg.
 void ComputeCgEdgeCosts(struct A *graph)
 {
@@ -1082,49 +969,24 @@ void ComputeCgEdgeCosts(struct A *graph)
 }
 } } // namespace M_HookupCg
 
-/** @sly2-annot addr=0x1C0920
- * Purpose: FindNavTriangleQuick(+0xE0) != 0
- * Info: proposed name IsPosInPathzone (T1); TU path
- * Notes: names_v2 B proposed CposFindPathzonePath__FP8PATHZONEP6VECTORT1iT1 (0.856)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Returns 1 when pos lies on a walkable triangle of the zone.
 extern "C" int IsPosInPathzone(PATHZONEV *zone, qword pos, int flags)
 {
     return FindNavTriangleQuick(&zone->cg, pos, flags) != 0;
 }
 
-/** @sly2-annot addr=0x1C0940
- * Purpose: FindClosestPointInCg on pathzone+0xE0
- * Info: proposed name FindPathzoneClosestPoint (T1); TU path
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Closest walkable point of the zone to pos.
 extern "C" int FindPathzoneClosestPoint(PATHZONEV *zone, qword pos, qword *closest)
 {
     return FindClosestPointInCg(&zone->cg, pos, closest);
 }
 
-/** @sly2-annot addr=0x1C0960
- * Purpose: ClipEdgeToCbsp on pathzone+0xE0
- * Info: proposed name ClipEdgeToPathzone (T1); TU path
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Clips a segment against the zone's walkable space (ClipEdgeToCbsp on the zone's graph).
 extern "C" int ClipEdgeToPathzone(PATHZONEV *zone, qword from, qword to, int maxSegments, void *segments, int flags)
 {
     return ClipEdgeToCbsp(&zone->cg, from, to, maxSegments, segments, flags);
 }
 
-/** @sly2-annot addr=0x1C0980
- * Purpose: IsEdgeBlockedByCbsp on pathzone+0xE0
- * Info: proposed name IsEdgeBlockedByPathzone (T1); TU path
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Returns 1 when a segment leaves the zone's walkable space.
 extern "C" int IsEdgeBlockedByPathzone(PATHZONEV *zone, qword from, qword to, int flags)
 {
@@ -1138,13 +1000,6 @@ struct S { char pad[0xE0]; char graph[4]; };
 void *FindNavTriangleQuick(void *p,qword pos,int flags);
 int FindPathzoneObstacles(struct S *p, int a, qword q0, qword q1, int c, void **ap);
 int IsPosInConvexObstacle(void *pv, qword q);
-/** @sly2-annot addr=0x1C09A0
- * Purpose: Point inside pathzone and not inside any registered obstacle (0x1C1700 query + 0x1BC9F0 test)
- * Info: proposed name FPosFreeInPathzone (T2); TU path
- * Notes: names_v2 v1 proposed HandleJtGrfjtsc (0.002)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Returns 1 when a point is walkable in the zone and not inside any registered obstacle.
 int IsPosFreeInPathzone(struct S *zone, qword pos,int flags)
 {
@@ -1167,12 +1022,6 @@ void *ClipEdgeToPathzone(void *p, qword a, qword b, int c, int d, int e);
 int FindPathzoneObstacles(void *p, int z, qword a, qword b, int c, void **ap);
 void *ClipEdgeToConvexObstacle(void *p, qword a, qword b, int n, struct S *ps);
 void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, int one);
-/** @sly2-annot addr=0x1C0A40
- * Purpose: Clip segment to pathzone then against obstacles (0x1BC688), returns blocker
- * Info: proposed name PloClipPathzoneSegment (T2); TU path
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Clips a segment to the zone, then against its obstacles; returns the blocking obstacle (or 0) and the clipped end.
 // (inferred)
 void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
@@ -1215,12 +1064,6 @@ void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 int FindPathzoneClosestPoint(struct S*,qword,qword*,int);
 static inline float InitialEndpoint(union U*home,qword vertex,qword point){register qword word __asm__("$3");register float coordinate __asm__("$f0");__asm__("pextuw %0,$zero,%2\n\tsq %3,%1":"=&r"(word),"=m"(home->q):"r"(point),"r"(vertex));__asm__("mtc1 %2,%0\n\tswc1 %0,%1":"=f"(coordinate),"=m"(home->f[2]):"r"(word));return coordinate;}
 static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->count));return value;}
-/** @sly2-annot addr=0x1C0B50
- * Purpose: Closest point to pos inside the pathzone and outside obstacles
- * Info: proposed name FindPathzoneClosestFreePoint (T2); TU path
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Closest point to pos that is walkable in the zone and outside every obstacle.
 int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  void*objects[128];
@@ -1291,15 +1134,6 @@ static __inline__ int ISide(qword plane, qword pos)
         i = 0;
     return i;
 }
-/** @sly2-annot addr=0x1C0D70
- * Purpose: Walk the world zone BSP (SW+0x45CC) to the pathzone containing pos; default world pathzone
- *   SW+0x45C8
- * Info: proposed name FindPathzoneAtPos (T1); TU path
- * Notes: names_v2 v1 proposed UpdateJtInternalXps__FP2JT (0.077)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5b_rest
- * See: docs/engine/physics-collision.md#5-navigation-pathcpp-0x1bf110-0x1c2920,
- *   docs/engine/physics-collision.md#7-key-functions, docs/engine/physics-collision.md#open-questions
- * @end-sly2-annot */
 // Walks the world's zone BSP (SW +0x45CC) to the path zone containing pos; falls back to the world's default zone.
 void *FindPathzoneAtPos(qword pos, int flags)
 {
@@ -1334,16 +1168,8 @@ struct G { char pad[0x45CC]; void *p45cc; };
 int U32Read__18CBinaryInputStream(void *pbis);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void LoadZoneBspFromBrx(void *p, int n, void *pbis);
-/** @sly2-annot addr=0x1C0EC0
- * Purpose: Read world zone BSP (if count) into SW+0x45CC
- * Info: proposed name LoadSwZoneBspFromBrx (T1); TU path
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest+parse-verified
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx
- * @end-sly2-annot */
 // Reads the world's zone BSP from the level stream when present.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadSwZoneBspFromBrx(struct G *world, void *stream)
 {
     int n = U32Read__18CBinaryInputStream(stream);
@@ -1369,16 +1195,8 @@ void ReadVector4__18CBinaryInputStreamP7VECTOR4(void *pbis, VECTOR *pv);
 int S32Read__18CBinaryInputStream(void *pbis);
 void *AllocFromWorldHeap(struct A *pa);
 void *AllocClearedFromWorldHeap(struct A *pa);
-/** @sly2-annot addr=0x1C0F30
- * Purpose: Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids
- * Info: proposed name LoadZoneBspFromBrx (T1); TU path
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5b_rest+parse-verified
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Reads a zone BSP: nodes (plane index and two children), planes and leaf zone ids.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
 {
     struct A a;
@@ -1419,13 +1237,6 @@ void *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void InitDefaultPathzoneCg(void *p);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void BindSwPathzones(void *p);
-/** @sly2-annot addr=0x1C10C8
- * Purpose: If no zone BSP: create default pathzone (CreateLo cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then
- *   bind zones
- * Info: proposed name PostLoadSwPathzones (T1); TU path
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // After level load: with no zone BSP creates a default path zone (oid 0x2CA) with the trivial graph; then binds the
 // zones and their links.
 void PostLoadSwPathzones(struct G *world)
@@ -1455,13 +1266,6 @@ static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm_
 static __inline__ const struct AL*PrepareRequest(struct AL*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct AL*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;}
 static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_003DD490));return page;}
 static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(D_003DD490));return world;}
-/** @sly2-annot addr=0x1C1138
- * Purpose: Resolve leaf zone ids to PATHZONE objects (index at +0x124), collect all CID 124 path links (index
- *   at +0x150)
- * Info: proposed name BindSwPathzones (T2); TU path
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Resolves the BSP's leaf zone ids to PATHZONE objects and collects every path link (CID 124), numbering both.
 void BindSwPathzones(struct S *world)
 {
@@ -1504,12 +1308,6 @@ int *AllocClearedFromStack(struct A *pa);
 void *AllocFromWorldHeap(struct A *pa);
 static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return AllocClearedFromStack(pa); }
 static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return AllocFromWorldHeap(pa); }
-/** @sly2-annot addr=0x1C1260
- * Purpose: Bucket path links by the zone of their first endpoint
- * Info: proposed name BuildPathzoneLinkLists (T2); TU path
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Buckets the path links by the zone of their first endpoint, for FindPathlinkRoute.
 void BuildPathzoneLinkLists(struct S *world)
 {
@@ -1544,12 +1342,6 @@ void BuildPathzoneLinkLists(struct S *world)
 }
 } } // namespace M_func_001C1260
 
-/** @sly2-annot addr=0x1C1440
- * Purpose: Reset a 0x40-byte sweep cursor for the zone obstacle lists
- * Info: proposed name InitObstacleQueryCursor (T2); TU path
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 /* The obstacle query cursor (FindPathzoneObstacles' C): one membership bit per obstacle along x and z, the zone
    version it was built for, and the min/max positions in the x and z event arrays. */
 struct PATHSEARCH { int xMembership[4]; int zMembership[4]; int version; int xMin; int xMax; int zMin; int zMax; int unknown34[3]; };
@@ -1573,13 +1365,6 @@ extern "C" void InitObstacleQueryCursor(PATHZONEV *zone, PATHSEARCH *cursor)
 namespace M_func_001C14A8 { extern "C" {
 /* (Claude agent) Event bitset sweep: walk ae[] backward/forward from i toward time g, toggling grf bits of events whose kind==f. */
 struct E { float t; unsigned short k; unsigned short bit; };
-/** @sly2-annot addr=0x1C14A8
- * Purpose: Move cursor through sorted begin/end events toggling membership bits
- * Info: proposed name SweepObstacleEvents (T2); TU path
- * Notes: names_v2 v1 proposed FMatchJtXmg__FP2JTP3XMGP6ACTADJ (0.022)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Moves the cursor through sorted begin/end events, toggling each obstacle's membership bit.
 int SweepObstacleEvents(struct E *events, int index, float coordinate, unsigned int *membership, int f)
 {
@@ -1620,12 +1405,6 @@ int SweepObstacleEvents(struct E *events, int index, float coordinate, unsigned 
 namespace M_func_001C15F8 { extern "C" {
 struct E { float f; int x; };
 int SweepObstacleEvents(struct E *a, int i, float g, void *p, int f);
-/** @sly2-annot addr=0x1C15F8
- * Purpose: Advance min/max cursors of one axis to a new range
- * Info: proposed name SweepObstacleRange (T2); TU path
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Advances the min and max cursors of one axis to a new query range.
 void SweepObstacleRange(struct E *events, int *minCursor, int *maxCursor, void *p, float rangeMin, float rangeMax)
 {
@@ -1652,13 +1431,6 @@ struct S {char pad[0xFC];int obstacleCapacity,numEvents;void*xEvents,*zEvents;vo
 void InitObstacleQueryCursor(struct S*,struct C*);
 void SweepObstacleRange(void*,int*,int*,qword*,float,float);
 static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
-/** @sly2-annot addr=0x1C1700
- * Purpose: Sweep-and-prune query: obstacles whose x and y intervals overlap the segment box
- * Info: proposed name CploFindPathzoneObstacles (T2); TU path
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920,
- *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
- * @end-sly2-annot */
 // Sweep-and-prune query: collects the obstacles whose x and y intervals overlap the segment's box; returns the obstacleCapacity.
 int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int max,void**out){
  struct C local;
@@ -1690,13 +1462,6 @@ int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int 
 namespace M_func_001C18B8 { extern "C" {
 struct E { int coordinate; unsigned short isBegin; unsigned short obstacleIndex; };
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-/** @sly2-annot addr=0x1C18B8
- * Purpose: Delete the begin/end event pair of key from a sorted event array
- * Info: proposed name RemoveObstacleEvents (T2); TU path
- * Notes: names_v2 v1 proposed ThrowJt__FP2JTP6VECTORff (0.005)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Deletes the begin/end event pair of an obstacle from a sorted event array.
 void RemoveObstacleEvents(int count, struct E *events, int key)
 {
@@ -1724,12 +1489,6 @@ struct S { char pad[0xF8]; int numObstacles; int obstacleCapacity; int numEvents
 struct G { char pad[0x3D70]; int pathzoneVersion; };
 extern struct G D_003DD490;
 void RemoveObstacleEvents(int n, struct E *a, int key);
-/** @sly2-annot addr=0x1C1968
- * Purpose: Unregister obstacle (both axes) and bump nav version
- * Info: proposed name RemovePathzoneObstacle (T2); TU path
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Unregisters an obstacle from both axes of its zone and bumps the world's navigation version.
 void RemovePathzoneObstacle(struct S *zone, int key)
 {
@@ -1754,13 +1513,6 @@ namespace M_func_001C1A38 { extern "C" {
 struct E { float t; unsigned short k; unsigned short bit; };
 void *memmove(void *dst, const void *src, unsigned int cb);
 static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { memmove(pvDst, pvSrc, cb); }
-/** @sly2-annot addr=0x1C1A38
- * Purpose: Insert begin/end events into a time-sorted event array
- * Info: proposed name InsertObstacleEvents (T2); TU path
- * Notes: names_v2 v1 proposed CalculateJtToolSpin__FP2JTfP7MATRIX3 (0.001)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Inserts an obstacle's begin/end events into a sorted event array.
 void InsertObstacleEvents(int count, struct E *events, int bit, float begin, float end)
 {
@@ -1794,12 +1546,6 @@ int DoConvexObstaclesOverlap(struct O *po, void *pv);
 void MergeCid14Obstacles(int n, struct M *pm);
 void GrowPathzoneObstacleArrays(struct S *p);
 void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1);
-/** @sly2-annot addr=0x1C1BA0
- * Purpose: Register obstacle in a zone unless it overlaps an existing one (then message 2), growing arrays
- * Info: proposed name AddPathzoneObstacle (T2); TU path
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Registers an obstacle in a zone unless it overlaps an existing one (then the polygon gets message 2 to merge),
 // growing the arrays as needed.
 void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
@@ -1845,13 +1591,6 @@ extern const float D_002A76E4;   /* defined below where the ELF has it (.rodata 
 void *AllocFromWorldHeap(struct A *pa);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-/** @sly2-annot addr=0x1C1D20
- * Purpose: Grow obstacle/event arrays 0->16->128 with sentinel events
- * Info: proposed name GrowPathzoneObstacleArrays (T2); TU path
- * Notes: names_v2 v1 proposed FUN_001725e0 (0.000)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Grows a zone's obstacle and event arrays (0 -> 16 -> 128) with sentinel events.
 void GrowPathzoneObstacleArrays(struct S *zone)
 {
@@ -1908,15 +1647,6 @@ struct S { void *p0; void *p4; int pad[2]; qword q10; };
 extern char D_003DD020[];
 void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, int e);
 qword GetLoWorldPos(void *p);
-/** @sly2-annot addr=0x1C1EC0
- * Purpose: Position of a path endpoint record: closest point on its shape (+0), else its object position
- *   (+4), else stored vector (+0x10)
- * Info: proposed name PosPathlinkEndpoint (T2); TU path
- * Notes: top50_round (0.50): Body; callers BHVGOTO/BHVPATHLINK/BHV189/191 planning, FNearPathlinkEndpoint
- *   0x1C1FA0
- * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r5b_rest+top50_round
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Position of a path-link endpoint: the closest point on its shape, else its object's position, else the stored
 // vector.
 qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
@@ -1940,12 +1670,6 @@ struct S { void *p0; void *p4; int pad[2]; qword q10; };
 float GetShapeMaxDistance(void *p);
 void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g);
 qword GetLoWorldPos(void *p);
-/** @sly2-annot addr=0x1C1F28
- * Purpose: Endpoint position using shape midpoint
- * Info: proposed name PosPathlinkEndpointCenter (T2); TU path
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Position of a path-link endpoint using the shape's midpoint.
 qword GetPathlinkEndpointCenter(struct S *endpoint)
 {
@@ -1967,12 +1691,6 @@ typedef int qword __attribute__((mode(TI)));
 struct LO { char pad[0x218]; qword *pq; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 qword GetPathlinkEndpointPos(void *p, qword q);
-/** @sly2-annot addr=0x1C1FA0
- * Purpose: Object within radius of the endpoint (class 0x40 always true)
- * Info: proposed name FNearPathlinkEndpoint (T2); TU path
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Returns 1 when an object is within radius of an endpoint (always for class 0x40 objects). (inferred)
 int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 {
@@ -1991,13 +1709,6 @@ int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 namespace M_InitPathlink { extern "C" {
 struct S { char pad[0x120]; int kind; char pad2[0x2c]; int linkIndex; };
 void InitLo(struct S *p);
-/** @sly2-annot addr=0x1C2048
- * Purpose: CID 124 vt7: InitLo
- * Info: proposed name InitPathlink (T1); class PATHLINK slot7; TU path
- * Notes: names_v2 v1 proposed UpdateJtPosWorldPrev__FP2JT (0.040)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 } } // namespace M_InitPathlink
 // CID 124 slot 7 (Init): InitLo.
 void PATHLINK::Init() { using namespace M_InitPathlink; M_InitPathlink::S *p = (M_InitPathlink::S *)this; InitLo(p); p->kind = -1; p->linkIndex = -1; }
@@ -2008,12 +1719,6 @@ struct O { char pad[0x28]; int n; };
 struct G { char pad[0x3D74]; int c; char pad2[0x854]; struct O *zoneBsp; };
 extern struct G D_003DD490;
 void AddLoHierarchy(void *p);
-/** @sly2-annot addr=0x1C2078
- * Purpose: CID 124 vt11: AddLoHierarchy then bump world nav version
- * Info: proposed name AddPathlinkHierarchy (T1); class PATHLINK slot11; TU path
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // CID 124 slot 11: AddLoHierarchy, then bumps the world's navigation version.
 void AddPathlinkHierarchy(void *pathlink)
 {
@@ -2033,12 +1738,6 @@ struct O { char pad[0x28]; int n; };
 struct G { char pad[0x3D74]; int c; char pad2[0x854]; struct O *zoneBsp; };
 extern struct G D_003DD490;
 void RemoveLoHierarchy(void *p);
-/** @sly2-annot addr=0x1C20B0
- * Purpose: CID 124 vt12: RemoveLoHierarchy then bump world nav version
- * Info: proposed name RemovePathlinkHierarchy (T1); class PATHLINK slot12; TU path
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // CID 124 slot 12: RemoveLoHierarchy, then bumps the world's navigation version.
 void RemovePathlinkHierarchy(void *pathlink)
 {
@@ -2057,12 +1756,6 @@ namespace M_func_001C20E8 { extern "C" {
 struct E { void *p0; void *p4; int pad[6]; };
 struct S { char pad[0x50]; int c; char pad2[0xC]; struct E a[6]; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *q, int n);
-/** @sly2-annot addr=0x1C20E8
- * Purpose: Append endpoint (shape if class 10 else LO), max 6
- * Info: proposed name AddPathlinkEndpointObject (T2); TU path
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Appends an endpoint to a path link (a shape for class 10, otherwise an object); max 6.
 void AddPathlinkEndpointObject(struct S *pathlink, void *object)
 {
@@ -2078,12 +1771,6 @@ namespace M_func_001C2148 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { qword q; int pad[4]; };
 struct S { char pad[0x50]; int c; char pad2[0x1c]; struct E a[6]; };
-/** @sly2-annot addr=0x1C2148
- * Purpose: Append fixed endpoint vector, max 6
- * Info: proposed name AddPathlinkEndpointPos (T2); TU path
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Appends a fixed-position endpoint to a path link; max 6.
 void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
 {
@@ -2099,13 +1786,6 @@ struct S { char pad[0x50]; int c; char pad2[0xC]; struct E a[6]; char pad3[4]; i
 void PostLoLoad(struct S *p);
 qword GetPathlinkEndpointCenter(struct E *pe);
 int FindPathzoneAtPos(qword q, int n);
-/** @sly2-annot addr=0x1C2170
- * Purpose: CID 124 vt15: PostLoLoad, cache first/last endpoint positions and their pathzones
- * Info: proposed name PostPathlinkLoad (T1); class PATHLINK slot15; TU path
- * Notes: names_v2 v1 proposed UpdateJtBounds__FP2JT (0.005)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // CID 124 slot 15 (PostLoad): PostLoLoad, caches the first and last endpoint positions and their path zones.
 void PostPathlinkLoad(struct S *pathlink)
 {
@@ -2173,13 +1853,6 @@ static inline void InsertNode(DL *pdl, NODE *pnodeNext, NODE *pnode) { InsertDlE
 static inline float GDistX(const qword &a, const qword &b) { return QwordX(QwLength(VuSub(a, b))); }
 
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
-/** @sly2-annot addr=0x1C21D8
- * Purpose: A* over pathzones connected by path links, from actor to goal
- * Info: proposed name FindPathlinkRoute (T1); TU path
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/physics-collision.md#5-navigation-pathcpp-0x1bf110-0x1c2920,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // A* over path zones connected by path links, from an actor's zone to a goal; returns the chain of links.
 extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isExact, int maxEdges, EDGE **edges)
 {
@@ -2296,13 +1969,6 @@ namespace M_func_001C26E0 { extern "C" {
 struct LO { char pad[0x28]; unsigned long flags; char p1[0x120 - 0x30]; int kind; int fromZone; int toZone; };
 /* The actor asking (inferred: a guard-like object): the zones it may enter and the link kinds it may use. */
 struct G { char pad[0xE94]; int numAllowedZones; int allowedZones[84]; int allowedLinkKinds; };
-/** @sly2-annot addr=0x1C26E0
- * Purpose: May this actor traverse the link
- * Info: proposed name FPathlinkAllowed (T2); TU path
- * Notes: names_v2 v1 proposed PsoGetJtEffect__FP2JTPi (0.010)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Returns 1 when the actor may traverse the path link: the link is in the world, the actor allows its kind (kind 1
 // needs bit 0 as well as bit 1), and, when the actor has a zone list, both end zones are on it. (inferred)
 int CanUsePathlink(void *zoneBsp, struct LO *pathlink, struct G *actor)

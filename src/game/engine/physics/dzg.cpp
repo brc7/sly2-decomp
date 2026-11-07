@@ -77,21 +77,9 @@ static __inline__ int Dot(qword a, qword b)
     return g;
 }
 
-/** @sly2-annot addr=0x1585D8
- * Purpose: Initialises a DZG constraint group: base init (0x11A550) with 2*cdz rows, stores four params,
- *   allocates 0x60 bytes per row
- * Info: proposed name InitDzgXp (T1); TU dzg
- * Notes: COLLISION: InitDzg already used (same name proposed for 0x11A550); renamed to InitDzg_1585D8 |
- *   superseded: InitDzg_1585D8 (arbitration) | arbitration other name: CONFIRMED static: InitDzg(pdzg,2*cpxp)
- *   then stores cpxp,+0x54,+0x58,+0x5C (= Sly1 SolveDzg args apxp/acpso/aapso moved into the DZG) and
- *   allocates a 0x60-byte r
- * Confidence: mid (draft) [T1 0.50] - evidence: Sly 1 / Lilly reference; arbitration; sources:
- *   r3b_rest+arbitration
- * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
- *   docs/engine/physics-collision.md#2-contacts-and-solving
- * @end-sly2-annot */
 // Initialises a DZGXP for cpxp contacts and cpso objects: base DZG init with two rows per contact, stores the
 // contact/object arrays and allocates one 0x60-byte DZX record per row.
+// The stored arrays are what Sly 1 passed to SolveDzg as arguments.
 extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int numObjects, SO **objects)
 {
     AL request;
@@ -108,12 +96,6 @@ extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int nu
 
 /* AppendDzgDz: Sly 1's symbol was AppendDzgDz__FP3DZGP2DZ (two arguments); this one also takes the new row's DZX,
    so it is a plain C-linkage name. */
-/** @sly2-annot addr=0x158668
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name AppendDzgDz (EXISTING); TU dzg
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
- * @end-sly2-annot */
 // Appends one constraint row (DZ) and its contact record (DZX) to the group. Sly 1 name.
 extern "C" void AppendDzgDz(DZGXP *group, DZ *row, DZX *rowContact)
 {
@@ -140,14 +122,6 @@ extern "C" void AppendDzgDz(DZGXP *group, DZ *row, DZX *rowContact)
    and assigned after the vsub; this gives the target's k+1/pqw+1 s7/fp assignment. */
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(al); }
 
-/** @sly2-annot addr=0x158728
- * Purpose: Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO
- *   relative vectors and the dot products against existing rows
- * Info: proposed name FillDzgDz (T1); TU dzg
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3b_rest+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
- * @end-sly2-annot */
 // Fills one constraint row: each of the two bodies adds its impulse response (virtual call), then the row's
 // coupling terms against the existing rows are computed from the per-object relative vectors.
 extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
@@ -194,12 +168,6 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
 }
 
 /* The DZX of a row. */
-/** @sly2-annot addr=0x158958
- * Purpose: Maps a DZ row pointer to its parallel 0x60-byte record (af + index*0x60)
- * Info: proposed name PxpFromDzgDz (T2); TU dzg
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
- * @end-sly2-annot */
 // Returns the contact record (DZX) that parallels constraint row pdz: same index, 0x60-byte stride.
 extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
 {
@@ -209,15 +177,6 @@ extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
 /* SolveDzg: Sly 1's symbol was SolveDzg__FP3DZGiiPP2XPPiPPP2SO (the contacts and objects were arguments there;
    here they are in the DZGXP), so it is a plain C-linkage name. Rows of kind 1 are filled and made
    active, then the most violated free row is enforced until none is below -0.01. */
-/** @sly2-annot addr=0x158988
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name SolveDzg__FP3DZGi (EXISTING); TU dzg
- * Notes: RENAME proposed -> SolveDzg__FP3DZGi (existing_name_changes.csv)
- * Confidence: name high [EXISTING 0.80]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
- * @end-sly2-annot */
 // Solves the group's constraint rows for the impulses that stop interpenetration (grf selects the pass). Sly 1 name.
 extern "C" void SolveDzg(DZGXP *group, int flags)
 {
@@ -295,14 +254,6 @@ static inline qword QwDivX(qword v, VU_FLOAT g)
 }
 union VEC4 { qword q; float f[4]; };
 
-/** @sly2-annot addr=0x158B20
- * Purpose: Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest
- *   tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz
- * Info: proposed name SolveDzgFriction (T1); TU dzg
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3b_rest+verdicts_A1
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
- * @end-sly2-annot */
 // Friction pass: repeatedly solves the rows, then adds a friction row for the free contact with the largest
 // tangential push, its limit clamped by the contact's friction coefficient, until no contact slips.
 extern "C" void SolveDzgFriction(DZGXP *group, int flags)
@@ -386,14 +337,6 @@ static inline qword AddScale(qword a, qword b, const VUF &t)
     return a;
 }
 
-/** @sly2-annot addr=0x158E20
- * Purpose: Applies the solved row impulses to each SO's linear/angular velocity (+0xF0/+0x100) and clamps
- *   both to maxima g1/g2
- * Info: proposed name ApplyDzg (T1); TU dzg
- * Notes: names_v2 C proposed SolveInequalities__FiPfN21 (0.638)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
- * @end-sly2-annot */
 // Applies the solved row impulses to every object's linear (+0xF0) and angular (+0x100) velocity change and clamps
 // both to the maxima gDv and gDw.
 extern "C" void ApplyDzg(DZGXP *group, float maxDv, float maxDw)

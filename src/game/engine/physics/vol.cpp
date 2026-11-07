@@ -56,19 +56,10 @@ void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A9880 __asm__("D_002A9880") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x227BB8
- * Purpose: LoadXfmFromBrx, ReadGeom, ReadBspc, then bounding sphere of the geometry points
- * Info: proposed name LoadVolFromBrx (T1); class VOL slot14; TU vol
- * Notes: names_v2 C proposed GetHpntClosestHidePos__FP4HPNTP6VECTORPf (0.438) | level_parser CONFIRMED-parse:
- *   payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.90] - evidence: static naming pass; sources:
- *   r8_21BB88+verdicts_tu_r7r8+parse-verified
- * See: docs/engine/physics-collision.md#4-geometry-and-queries,
- *   docs/engine/physics-collision.md#6-source-files, docs/engine/physics-collision.md#7-key-functions
- * @end-sly2-annot */
 // Loads a volume from the level stream: the XFM part, then the collision geometry and its BSP, then a bounding
 // sphere around the geometry's points (centre = middle of the axis-aligned box, radius = half its diagonal). The
 // sphere is the cheap early-out of IsPointInVol.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
 {
     VOLV *vol = (VOLV *)this;
@@ -96,14 +87,6 @@ void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
     }
 }
 
-/** @sly2-annot addr=0x227C90
- * Purpose: reject by bounding sphere then BSP point test (0x118FB0) in local space
- * Info: proposed name IsPointInVol (T1); TU vol
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60,
- *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8,
- *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
- * @end-sly2-annot */
 // Returns 1 when a world-space point is inside the volume: the point is converted into the volume's local space,
 // rejected if outside the bounding sphere, otherwise looked up in the volume's BSP. Used by guard detectors and
 // zones, buttons and the splice option CHECK_POINT.
@@ -121,12 +104,6 @@ extern "C" int IsPointInVol(VOLV *vol, qword point)
 }
 
 
-/** @sly2-annot addr=0x227D20
- * Purpose: radius<=1 -> point test else BSP prune with radius (0x118A88)
- * Info: proposed name FCheckVolSphere (T2); TU vol
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
- * @end-sly2-annot */
 // Returns 1 when a sphere (world-space centre, radius) touches the volume (inferred from the BSP query's result
 // codes 0/2). A radius of 1 or less degrades to IsPointInVol; otherwise the BSP is pruned against the sphere using
 // a scratch list of up to 0x1555 leaves allocated in a stack scope. Called by the splice option thunk at 0x1047A0.
@@ -159,15 +136,6 @@ extern "C" int IsSphereInVol(VOLV *vol, qword center, float radius)
     }
 }
 
-/** @sly2-annot addr=0x227E20
- * Purpose: OnLoAdd + AppendDlEntry(&g_sw.dlCid23)
- * Info: proposed name OnCid23Add (T2); class CID23 slot23; TU vol
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_tu_r7r8
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
- * @end-sly2-annot */
 // Slot 23 (OnAdd): the volume enters the active world; runs the base LO hook and appends it to the world's
 // volume list g_sw.dlCid23.
 void CID23::OnAdd()
@@ -177,15 +145,6 @@ void CID23::OnAdd()
     AppendDlEntry(&g_sw.dlCid23, vol);
 }
 
-/** @sly2-annot addr=0x227E58
- * Purpose: OnLoRemove + RemoveDlEntry(&g_sw.dlCid23)
- * Info: proposed name OnCid23Remove (T2); class CID23 slot22; TU vol
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
- * @end-sly2-annot */
 // Slot 22 (OnRemove), the counterpart of CID23::OnAdd: the volume leaves the active world; runs the base LO
 // hook and unlinks it from g_sw.dlCid23.
 extern "C" void FreezeVol(VOLV *vol)

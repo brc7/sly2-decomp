@@ -118,13 +118,6 @@ int FindSyncInterval(float t, float tMax, int syncCount, MRSG *syncTable, float 
 // the E3-loop "r"(0x10) asm removed, one allocation-only empty asm on the i*4 giv, one register pin (rotationCurveBit in s5),
 // and the not-found slot written as `pentNew = &pxNew->aent[pxNew->c++];`.
 #define PELEM(i) ((ELEM *)((char *)elements + (i) * cb))
-/** @sly2-annot addr=0x137A30
- * Purpose: Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables
- * Info: proposed name EnsureAsegBlendDynamic (T1); TU blend
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
- *   docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions
- * @end-sly2-annot */
 // Finds or creates the blend segment (ASEGBL, class 0x6E) that blends a given set of animation segments with the given
 // weights: reuses an existing blend over the same segments when there is one, otherwise builds a new one (channels per
 // blended object, MRSG timing tables for each sync point) and returns it through the last argument.
@@ -244,14 +237,9 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
 }
 #undef PELEM
 
-/** @sly2-annot addr=0x137FB8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Fills each blended segment's MRSG timing table: for every sync-point OID, the time at which that segment reaches it and
 // the duration to the next sync point (wrapping around the segment's length). These tables let segments of different
-// lengths stay in step while blended.
+// lengths stay in step while blended. (Sly 1-derived name: FillBlAmrsg.)
 void FillBlendSyncTables(int elementSize, int elementCount, void *elements, int tableOffset, int syncCount, OID *syncOids)
 {
     int elementIndex;
@@ -279,13 +267,9 @@ void FillBlendSyncTables(int elementSize, int elementCount, void *elements, int 
     }
 }
 
-/** @sly2-annot addr=0x1380F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Computes the blend's own timing table as the weight-averaged durations of the segments' tables (and, through pf, the
 // blend's total length); with no sync points the length is simply the weighted average of the segment lengths.
+// (Sly 1-derived name: CalculateBlendAmrsg.)
 extern "C" void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *blend, int tableOffset, int count, MRSG *syncTable, float *totalLength)
 {
     float sum = 0.0f;
@@ -343,13 +327,9 @@ extern "C" void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *blend, int tableO
         *totalLength = sum;
 }
 
-/** @sly2-annot addr=0x138370
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Finds which sync-point interval of an MRSG table contains time t (wrapping at tMax); returns its index and, through
 // pdt, the time elapsed since that sync point. Returns cmrsg when no interval matches.
+// (Sly 1-derived name: ImrsgLookUp.)
 int FindSyncInterval(float t, float duration, int syncCount, MRSG *syncTable, float *elapsed)
 {
     int i;
@@ -370,14 +350,6 @@ done:
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4AF0 __asm__("D_002A4AF0") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x1383F0
- * Purpose: When the index of the last bl with weight > 0.9999 changes, store it (+0xD4) and reset the damping
- *   of every live ACT on the blended aseg channels
- * Info: proposed name SetBlendDominantSegment (T1); TU blend
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/animation.md#7-key-functions,
- *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Records which blended segment dominates (weight above 0.9999, or -1 for none); when it changes, resets the smoothing
 // state of every live action on the blend's channels so they do not interpolate across the switch.
 extern "C" void SetBlendDominantSegment(ASEG *blend, int dominant) {
@@ -396,14 +368,6 @@ extern "C" void SetBlendDominantSegment(ASEG *blend, int dominant) {
 }
 
 // (Claude agent) matched: count-down search as do { if (--j < 0) break; if (...) break; } while (1); separate counter k in the last loop.
-/** @sly2-annot addr=0x1384C0
- * Purpose: Normalise asega local times by tMax, recompute blend MRSG tables (CalculateBlendSyncTable per mrsgc),
- *   rescale times; mirror times from a linked asegbl (+0xD8)
- * Info: proposed name ReblendAsegbl (T1); TU blend
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verdicts_followups
- * See: docs/engine/animation.md#7-key-functions,
- *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Re-blends a blend segment after its weights changed (Sly 1: ReblendAsegbl): updates the dominant segment, recomputes the
 // blended timing tables and total length while keeping the links' relative times, and mirrors times onto a linked
 // blend (+0xD8) so paired blends stay in sync.
@@ -459,13 +423,6 @@ static __inline__ qword MaddN(qword a, qword v, qword s)
     return r;
 }
 
-/** @sly2-annot addr=0x138660
- * Purpose: Blended-channel actuator virtual: if a solo bl is selected forward to its channel, else blend all
- *   weighted bls' pose/transform at the current time into the output record
- * Info: proposed name EvaluateBlendChnPose (T2); TU blend
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Evaluates a blended pose channel (vtable label BlendChannelPose): with a dominant segment it forwards to that segment's
 // channel; otherwise it maps the blend time onto each weighted segment through the MRSG tables, evaluates each segment's
 // channel and weight-sums the positions and rotations into the output channel record.
@@ -587,17 +544,6 @@ static __inline__ qword Madd(qword a, qword v, qword s)
     return r;
 }
 
-/** @sly2-annot addr=0x138970
- * Purpose: Blended-channel actuator virtual (p, ppos, prot, t, rate): weighted sum of each bl channel's
- *   position/rotation at time t (MRSG-mapped)
- * Info: proposed name EvaluateBlendChnPosVel (T1); TU blend
- * Notes: superseded: EvaluateBlendChnPosRot (verdicts_followups) | verifier better_name (PLAUSIBLE row): Slot
- *   in a non-CID AC vtable (0x2CB5C4; neighbours GetAcConstTimes, EvaluateBlendChnPose/Scalar). Weighted sum
- *   over bl entries of child AC vt3(t', rate') outputs
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/animation.md#7-key-functions,
- *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Evaluates a blended position/rotation curve at time t (rate = time scale): maps t into each weighted segment's time
 // through the MRSG tables, evaluates the segment curves and returns their weighted sum (VU0 asm).
 void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
@@ -682,13 +628,6 @@ done:
         *prot = b.q;
 }
 
-/** @sly2-annot addr=0x138BA0
- * Purpose: Blended-channel actuator virtual (p, t, r, pa, pb): weighted sum of two scalars (e.g. twist and
- *   its rate) across bls
- * Info: proposed name EvaluateBlendChnScalar (T2); TU blend
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
- * @end-sly2-annot */
 // Evaluates a blended float curve (vtable label EvaluateBlendFloatCurve): weighted sum over the blended segments of each
 // segment's float curve value and its rate, at the MRSG-mapped time.
 void ACG2::Evaluate(float t, float r, float *pa, float *pb)
@@ -751,11 +690,5 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
 // out of line with them, weak in .gnu.linkonce.t.GetBlendCurveKind. The asm label keeps the config name (HYPOTHESIS:
 // in the original an in-class `virtual int Kind() { return 5; }`). The classes are declared on the BLCHNF line
 // near the top of the file, so that the functions above keep their line numbers.
-/** @sly2-annot addr=0x2581B8
- * Purpose: virtual returning constant 5 [game linkonce (inline/template)]
- * Info: proposed name GetKind5 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
 // The blended curve's kind: always 5 (inferred: an in-class inline virtual; emitted out of line here as linkonce).
 inline int AC5::GetKind() { return 5; }

@@ -175,13 +175,6 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 
-/** @sly2-annot addr=0x1BC050
- * Purpose: CID 14 vt7: InitShape, owner -1, init DLV
- * Info: proposed name InitCid14 (T2); class CID14 slot7; TU tu_1BC050
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/physics-collision.md#6-source-files,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Slot 7 (Init): the SHAPE init plus the polygon's defaults.
 void CID14::Init()
 {
@@ -191,16 +184,8 @@ void CID14::Init()
     InitDl__FP2DLi(&p->members, 0x1D0);
 }
 
-/** @sly2-annot addr=0x1BC088
- * Purpose: CID 14 vt14: LoadShapeFromBrx, allocate plane array (count-1)
- * Info: proposed name LoadCid14FromBrx (T2); class CID14 slot14; TU tu_1BC050
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r5b_rest+parse-verified
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Slot 14 (LoadFromBrx): LoadShapeFromBrx, then allocates one side plane per outline edge (count - 1).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadCid14FromBrx(CID14V *polygon)
 {
     MSG msg;
@@ -208,12 +193,6 @@ extern "C" void LoadCid14FromBrx(CID14V *polygon)
     polygon->edgePlanes = (qword *)PvAllocMsg(&msg, (polygon->numPoints << 4) - 0x10, 0x10);
 }
 
-/** @sly2-annot addr=0x1BC0D0
- * Purpose: CID 14 vt41: CloneShape, copy plane array
- * Info: proposed name CloneCid14 (T2); class CID14 slot41; TU tu_1BC050
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Slot 41 (Clone): CloneShape and a copy of the side-plane array.
 extern "C" void CloneCid14(CID14V *polygon, int x)
 {
@@ -226,12 +205,6 @@ extern "C" void CloneCid14(CID14V *polygon, int x)
     polygon->edgePlanes = (qword *)PvAllocMsg(&req, polygon->numPoints * 16 - 16, 0x10);
 }
 
-/** @sly2-annot addr=0x1BC160
- * Purpose: CID 14 vt11: AddLoHierarchy, append to pending-obstacle list g_sw.dlCid14Pending
- * Info: proposed name AddCid14Hierarchy (T2); class CID14 slot11; TU tu_1BC050
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Slot 11: AddLoHierarchy, then queues the polygon on the pending-obstacle list g_sw.dlCid14Pending (registered
 // later by UpdatePendingCid14Obstacles).
 extern "C" void AddCid14Hierarchy(CID14V *polygon)
@@ -240,12 +213,6 @@ extern "C" void AddCid14Hierarchy(CID14V *polygon)
     AppendDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, polygon);
 }
 
-/** @sly2-annot addr=0x1BC198
- * Purpose: CID 14 vt12: RemoveLoHierarchy, detach from merged owner, unregister obstacle, leave pending list
- * Info: proposed name RemoveCid14Hierarchy (T2); class CID14 slot12; TU tu_1BC050
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Slot 12: RemoveLoHierarchy, detaches the polygon from its merged owner, unregisters the obstacle and leaves the
 // pending list.
 extern "C" void RemoveCid14Hierarchy(CID14V *polygon)
@@ -258,12 +225,6 @@ extern "C" void RemoveCid14Hierarchy(CID14V *polygon)
     if (IsEntryInDl__FP2DLPv(pdl, polygon)) RemoveDlEntry__FP2DLPv(pdl, polygon);
 }
 
-/** @sly2-annot addr=0x1BC208
- * Purpose: Lexicographic x then y compare
- * Info: proposed name NCmpPosXY (T2); TU tu_1BC050
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Lexicographic comparison of two positions by x, then y (sort callback for the hull).
 int ComparePosXY(qword a, qword b)
 {
@@ -274,13 +235,6 @@ int ComparePosXY(qword a, qword b)
     return 0;
 }
 
-/** @sly2-annot addr=0x1BC278
- * Purpose: Sign of 2D cross product of (a-b),(b-c) with epsilon
- * Info: proposed name SgnTurnXY (T2); TU tu_1BC050
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+verdicts_B
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Sign of the 2D cross product of (a - b) and (b - c) with an epsilon: -1, 0 or 1 for a right turn, straight, left.
 int GetTurnSignXY(qword a, qword b, qword c)
 {
@@ -290,13 +244,6 @@ int GetTurnSignXY(qword a, qword b, qword c)
     return 0;
 }
 
-/** @sly2-annot addr=0x1BC2F8
- * Purpose: Classify polygon (too few points / convex CW / CCW / not convex) from turn signs
- * Info: proposed name ClassifyCid14Polygon (T2); class CID14; TU tu_1BC050
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+verdicts_B
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Classifies the outline from its turn signs: too few points, convex clockwise, convex counter-clockwise, or not
 // convex.
 int ClassifyCid14Polygon(CID14V *polygon)
@@ -342,12 +289,6 @@ int ClassifyCid14Polygon(CID14V *polygon)
     return 2;
 }
 
-/** @sly2-annot addr=0x1BC530
- * Purpose: Wrap point index into [0, c-1) (closed polygon)
- * Info: proposed name IWrapCid14Point (T2); class CID14; TU tu_1BC050
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Wraps a point index into [0, count - 1) for the closed outline (the last point repeats the first).
 int WrapCid14PointIndex(CID14V *polygon, int index)
 {
@@ -361,13 +302,6 @@ int WrapCid14PointIndex(CID14V *polygon, int index)
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) V4;
 static __inline__ void SwapV(V4 *a, V4 *b) { V4 t = *a; *a = *b; *b = t; }
 static __inline__ void SwapG(float *a, float *b) { float t = *a; *a = *b; *b = t; }
-/** @sly2-annot addr=0x1BC570
- * Purpose: CID 14 vt15: PostLoLoad, classify polygon, reverse/measure when needed
- * Info: proposed name PostCid14Load (T2); class CID14 slot15; TU tu_1BC050
- * Notes: names_v2 B proposed AdjustJtNewXp__FP2JTP2XPi (0.952)
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Slot 15 (PostLoad): PostLoLoad, classifies the outline and reverses or re-measures it when needed so it is convex
 // with a known winding.
 extern "C" void PostCid14Load(CID14V *polygon)
@@ -426,14 +360,6 @@ static inline qword QwMix(VU_FLOAT g1, const qword &qw1, VU_FLOAT g2, const qwor
     return qw;
 }
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
-/** @sly2-annot addr=0x1BC688
- * Purpose: Clip segment to the convex volume and write the parts outside it (LSG 0x60)
- * Info: proposed name ClipEdgeToConvexObstacle (T1); TU tu_1BC050
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_followups
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
- * @end-sly2-annot */
 // Clips a segment against the polygon's side planes, writing the inside span(s) as LSG entries; returns the count.
 int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSegments, LSG *segments)
 {
@@ -522,15 +448,6 @@ static __inline__ float GDistPlane(qword plane, qword pos)
     d.q = td;
     return dist;
 }
-/** @sly2-annot addr=0x1BC9F0
- * Purpose: Point inside all planes of the convex volume
- * Info: proposed name IsPosInConvexObstacle (T1); TU tu_1BC050
- * Notes: names_v2 B proposed FTurnJtToTarget__FP2JT (0.856)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
- *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920,
- *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
- * @end-sly2-annot */
 // Returns 1 when a point is inside the polygon (in front of no side plane).
 int IsPosInConvexObstacle(CID14V *polygon, qword pos)
 {
@@ -550,13 +467,6 @@ static inline qword MulPos(M4 *pm, qword v)
             : "=j"(r) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return r;
 }
-/** @sly2-annot addr=0x1BCAC0
- * Purpose: Walk polygon edges against the pathzone (IsEdgeBlockedByPathzone) to find valid span
- * Info: proposed name FindCid14PathzoneSpan (T2); class CID14; TU tu_1BC050
- * Notes: names_v2 B proposed RebuildJtXmg__FP2JTP3ALOfT1P6ACTADJP3XMG (0.961)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Walks the polygon's edges against the path zone (IsEdgeBlockedByPathzone) to find the span of the outline that
 // lies inside walkable space. (inferred)
 int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float start, float end)
@@ -601,12 +511,6 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
     return 2;
 }
 
-/** @sly2-annot addr=0x1BCCE0
- * Purpose: Find valid parameter range of a shape inside the pathzone (returns status)
- * Info: proposed name ClipShapeToPathzone (T2); TU tu_1BC050
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Finds the parameter range of a shape that lies inside its path zone; returns a status code. (inferred)
 int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, float param)
 {
@@ -636,13 +540,6 @@ int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, fl
     return 4;
 }
 
-/** @sly2-annot addr=0x1BCF18
- * Purpose: Search along shape for a point inside the pathzone
- * Info: proposed name FFindShapePointInPathzone (T2); TU tu_1BC050
- * Notes: names_v2 B proposed FMatchJtXmg__FP2JTP3XMGP6ACTADJ (0.856)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Searches along a shape for a point inside the path zone; returns 1 and the point when found. (inferred)
 int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range, float *paramOut, int c)
 {
@@ -670,14 +567,6 @@ int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A76D0 __asm__("D_002A76D0") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A76D4 __asm__("D_002A76D4") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1BD040
- * Purpose: Transform polygon to world, find its pathzone (FindPathzoneAtPos), compute bounds,
- *   AddPathzoneObstacle
- * Info: proposed name RegisterCid14Obstacle (T2); class CID14; TU tu_1BC050
- * Notes: names_v2 C proposed UpdateJtStand__FP2JT (0.638)
- * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Registers the polygon as an obstacle: transforms the outline to world space, finds its path zone
 // (FindPathzoneAtPos), computes its bounds and calls AddPathzoneObstacle.
 void RegisterCid14Obstacle(CID14V *polygon)
@@ -708,12 +597,6 @@ void RegisterCid14Obstacle(CID14V *polygon)
     AddPathzoneObstacle(r, polygon);
 }
 
-/** @sly2-annot addr=0x1BD1E0
- * Purpose: RemovePathzoneObstacle if registered
- * Info: proposed name UnregisterCid14Obstacle (T2); class CID14; TU tu_1BC050
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Removes the polygon's obstacle registration if it has one.
 void UnregisterCid14Obstacle(CID14V *polygon)
 {
@@ -724,13 +607,6 @@ void UnregisterCid14Obstacle(CID14V *polygon)
     }
 }
 
-/** @sly2-annot addr=0x1BD218
- * Purpose: Remove from merged owner's DLV (with safe DLV iterator) and re-queue
- * Info: proposed name DetachCid14FromOwner (T2); class CID14; TU tu_1BC050
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest+verdicts_B
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Removes the polygon from its merged owner's member list (with a safe list iterator) and queues it again.
 void DetachCid14FromOwner(CID14V *polygon)
 {
@@ -747,13 +623,6 @@ void DetachCid14FromOwner(CID14V *polygon)
     D_002DD2FC = dli.pdliNext;
 }
 
-/** @sly2-annot addr=0x1BD310
- * Purpose: Among obstacles overlapping a segment, return the first one the segment enters
- * Info: proposed name PcnvoFirstHitSegment (T2); TU tu_1BC050
- * Notes: names_v2 B proposed UpdateJtTool__FP2JT (0.856)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Among the obstacles overlapping a segment, returns the one the segment enters first.
 CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword start, qword end)
 {
@@ -785,13 +654,6 @@ static inline qword Normalize(qword n)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(n));
     return r;
 }
-/** @sly2-annot addr=0x1BD400
- * Purpose: (Re)build edge planes of the polygon in world space when its transform changed
- * Info: proposed name BuildCnvoPlanes (T2); TU tu_1BC050
- * Notes: names_v2 B proposed PsoGetJtEffect__FP2JTPi (0.856)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Rebuilds the polygon's side planes in world space when its transform changed since the last build.
 void BuildCid14EdgePlanes(CID14V *polygon)
 {
@@ -814,13 +676,6 @@ void BuildCid14EdgePlanes(CID14V *polygon)
     }
 }
 
-/** @sly2-annot addr=0x1BD560
- * Purpose: Step along a shape until it leaves obstacles
- * Info: proposed name FindShapeFreeRange (T2); TU tu_1BC050
- * Notes: names_v2 B proposed AddJtCustomXps__FP2JTP2SOiP3BSPT3PP2XP (0.856)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Steps along a shape from a parameter until it leaves the obstacles; returns the free range found. (inferred)
 int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *posOut, float *paramOut, float param)
 {
@@ -858,12 +713,6 @@ int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *po
     return 3;
 }
 
-/** @sly2-annot addr=0x1BD718
- * Purpose: Free point on a shape around parameter g avoiding obstacles
- * Info: proposed name FindShapeFreePoint (T2); TU tu_1BC050
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Finds a free point on a shape around parameter g that avoids every obstacle (searching both directions). (inferred)
 extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, int direction, CID14V **blockerOut, float *paramOut, float param)
 {
@@ -887,13 +736,6 @@ extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, 
     return ClipShapeToPathzone(x, a1, paramOut, -1, f0);
 }
 
-/** @sly2-annot addr=0x1BD8A8
- * Purpose: Two convex polygons overlap (edge clip or containment)
- * Info: proposed name DoConvexObstaclesOverlap (T1); TU tu_1BC050
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_A2+verdicts_followups
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Returns 1 when two convex polygons overlap (separating-axis test on their side planes).
 extern "C" int DoConvexObstaclesOverlap(CID14V *polygonA, CID14V *polygonB)
 {
@@ -915,12 +757,6 @@ extern "C" int DoConvexObstaclesOverlap(CID14V *polygonA, CID14V *polygonB)
     return IsPosInConvexObstacle(polygonA, MulPt(GetMat(polygonB), polygonB->points[0])) != 0;
 }
 
-/** @sly2-annot addr=0x1BDA00
- * Purpose: Create merged obstacle object (CreateLo) holding member polygons
- * Info: proposed name PcnvoNewMerged (T2); TU tu_1BC050
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Creates a merged obstacle object (a new CID14) that will own several member polygons. (inferred)
 CID14V *NewMergedCid14Obstacle(void)
 {
@@ -966,17 +802,7 @@ CID14V *NewMergedCid14Obstacle(void)
     return p;
 }
 
-/** @sly2-annot addr=0x1BDBC8
- * Purpose: qsort comparator on first float (used to sort hull points by x)
- * Info: proposed name ComparePosX (EXISTING); TU tu_1BC050
- * Notes: agent/verifier proposes NCmpGX for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> ComparePosX (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.55] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r5b_rest+arbitration
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
-// Compares two positions by x (sort callback).
+// Compares two positions by x (sort callback). (Sly 1-derived name: NCmpWkr.)
 int ComparePosX(const void *a, const void *b)
 {
     int r = -1;
@@ -994,12 +820,6 @@ static inline float CrossZ(qword a, qword b, qword c)
     __asm__("qmfc2.ni %0, %1\n\tpextuw %0, $0, %0" : "=r"(z) : "j"(r));
     return z;
 }
-/** @sly2-annot addr=0x1BDBF0
- * Purpose: 2D convex hull of points (sort + monotone chain)
- * Info: proposed name CposConvexHull (T2); TU tu_1BC050
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Computes the 2D convex hull of a point set (sort by x, then the lower and upper chains of the monotone-chain
 // algorithm) and stores it as the polygon's outline (at most 32 points).
 void BuildConvexHull(CID14V *polygon, int count, qword *points)
@@ -1043,12 +863,6 @@ void BuildConvexHull(CID14V *polygon, int count, qword *points)
     }
 }
 
-/** @sly2-annot addr=0x1BDE18
- * Purpose: Attach polygon to merged owner and unregister it individually
- * Info: proposed name AddCid14ToMerged (T2); class CID14; TU tu_1BC050
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Attaches a polygon to a merged owner and unregisters its individual obstacle.
 void AddCid14ToMerged(CID14V *polygon, CID14V *owner)
 {
@@ -1073,12 +887,6 @@ static inline qword MulPtP(M4*m,qword*point){
  qword out;
  __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(out):"j"(m->r[0]),"j"(m->r[1]),"j"(m->r[2]),"j"(m->r[3]),"j"(*point));return out;
 }
-/** @sly2-annot addr=0x1BDE80
- * Purpose: Merge overlapping convex polygons into one new hull polygon
- * Info: proposed name MergeCid14Obstacles (T2); class CID14; TU tu_1BC050
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Merges overlapping convex polygons: collects their points, builds the convex hull and registers it as one new
 // polygon owned by a merged object.
 extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
@@ -1147,13 +955,6 @@ extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
     pNew->winding = ClassifyCid14Polygon(pNew);
 }
 
-/** @sly2-annot addr=0x1BE1E8
- * Purpose: Drain pending list g_sw.dlCid14Pending registering each obstacle
- * Info: proposed name UpdatePendingCid14Obstacles (T2); class CID14; TU tu_1BC050
- * Notes: names_v2 B proposed FIsJtSoundBase__FP2JT (0.856)
- * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
- * @end-sly2-annot */
 // Drains g_sw.dlCid14Pending, registering each queued polygon as an obstacle (merging where they overlap).
 extern "C" void UpdatePendingCid14Obstacles(void)
 {

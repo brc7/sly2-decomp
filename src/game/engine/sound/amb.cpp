@@ -55,13 +55,6 @@ void RcPtr_Assign(void **pp, void *p);
 void AddAmbSound(AMB *amb, int soundId, int minDistance, int maxDistance, float volume, float pitch);
 }
 
-/** @sly2-annot addr=0x12EB48
- * Purpose: slot 7 of class cid 0x2B (XFM child, 0x100 B): InitXfm + SetLoBusyKind
- * Info: proposed name InitCid43 (T2); class CID43 slot7; TU amb
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/animation.md#6-source-files, docs/engine/animation.md#open-questions,
- *   docs/engine/camera.md#4-source-files
- * @end-sly2-annot */
 // Initializes an ambient sound emitter (class 0x2B, slot 7): base XFM init, not busy (it needs no per-frame update).
 void CID43::Init()
 {
@@ -70,15 +63,9 @@ void CID43::Init()
     SetLoBusyKind(amb, 0);
 }
 
-/** @sly2-annot addr=0x12EB78
- * Purpose: slot 14: LoadXfmFromBrx (0x231170) then reads/allocates its sound list
- * Info: proposed name LoadCid43FromBrx (T2); class CID43 slot14; TU amb
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
- * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
- * @end-sly2-annot */
 // Loads an ambient emitter (slot 14): allocates room for up to 8 sounds and 8 linked sounds, loads the XFM part (whose
 // options fill the lists), then shrinks both allocations to the counts actually used. (inferred)
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadAmbFromBrx(AMB *amb, void *stream)
 {
     STACKSCOPE obj;
@@ -99,14 +86,6 @@ extern "C" void LoadAmbFromBrx(AMB *amb, void *stream)
     amb->linkedSounds = (AMBREC *)AllocCopyFromWorldHeap(requestRef, amb->linkedSounds);
 }
 
-/** @sly2-annot addr=0x12EC50
- * Purpose: slot 15: PostLoLoad, allocates, registers with the stream-sound group (0x1FC408) and IambFind
- *   (0x1FE990)
- * Info: proposed name PostCid43Load (T2); class CID43 slot15; TU amb
- * Notes: names_v2 C proposed ConvertAloMat__FP3ALOT0P7MATRIX3T2 (0.438)
- * Confidence: low (draft) [T2 0.85] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
- * @end-sly2-annot */
 // After-load hook (slot 15): allocates the playing-sound handle array and, if the sound system has a stream-sound group,
 // registers each linked sound with it (found by sound id; inferred: these play as streamed sounds with a range).
 extern "C" void PostAmbLoad(AMB *amb)
@@ -127,14 +106,6 @@ extern "C" void PostAmbLoad(AMB *amb)
     }
 }
 
-/** @sly2-annot addr=0x12ED20
- * Purpose: slot 23: LO::OnAdd then starts its ambient sound (0x1FBB90/0x1FB2F8, SetSndRange)
- * Info: proposed name OnCid43Add (T2); class CID43 slot23; TU amb
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was CID43_Unfreeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
- * @end-sly2-annot */
 // Called when the emitter enters the world (slot 23): starts every one of its sounds as a looping positional sound on the
 // emitter with its distance range, volume and pitch, keeping a reference-counted handle to each. (inferred)
 extern "C" void OnAmbAdd(AMB *amb)
@@ -152,15 +123,6 @@ extern "C" void OnAmbAdd(AMB *amb)
     }
 }
 
-/** @sly2-annot addr=0x12EDE8
- * Purpose: slot 22: LO::OnRemove then StopSnd
- * Info: proposed name OnCid43Remove (T2); class CID43 slot22; TU amb
- * Notes: names_v2 C proposed FIsAloStatic__FP3ALO (0.438) | slot 22 OnRemove resolved by arbitration
- *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was CID43_Freeze)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; static naming pass; sources:
- *   arbitration_slots22_23
- * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
- * @end-sly2-annot */
 // Called when the emitter leaves the world (slot 22): stops every playing sound immediately and releases its handle.
 // (inferred)
 extern "C" void OnAmbRemove(AMB *amb)
@@ -176,12 +138,6 @@ extern "C" void OnAmbRemove(AMB *amb)
     }
 }
 
-/** @sly2-annot addr=0x12EE78
- * Purpose: Callback in a 4-entry table (0x2AD86C..) forwarding to 0x12EEE0
- * Info: proposed name Cid43Callback (T2); class CID43; TU amb
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
- * @end-sly2-annot */
 // Option-table accessor: returns the sound the emitter's option setters edit, adding a default one first (no sound id,
 // range 300..3000, full volume, unchanged pitch) if there is none yet. (inferred)
 extern "C" AMBSND *EnsureCurrentAmbSound(AMB *amb)
@@ -193,12 +149,6 @@ extern "C" AMBSND *EnsureCurrentAmbSound(AMB *amb)
     return amb->currentSound;
 }
 
-/** @sly2-annot addr=0x12EEE0
- * Purpose: Script-settable parameter of the ambient sound object
- * Info: proposed name SetCid43SoundParam (T2); class CID43; TU amb
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
- * @end-sly2-annot */
 // Adds a sound (id, min/max audible distance, volume, pitch) to the emitter; at most 8, extras are ignored. (inferred)
 extern "C" void AddAmbSound(AMB *amb, int soundId, int minDistance, int maxDistance, float volume, float pitch)
 {
@@ -212,13 +162,6 @@ extern "C" void AddAmbSound(AMB *amb, int soundId, int minDistance, int maxDista
     }
 }
 
-/** @sly2-annot addr=0x12EF40
- * Purpose: Small helper, no callers (proposal PtargetEnsureAlo rejected)
- * Info: proposed name Cid43Unk (T2); class CID43; TU amb
- * Notes: names_v2 C proposed PtargetEnsureAlo__FP3ALO (0.501)
- * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r1_116918
- * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
- * @end-sly2-annot */
 // Adds a linked sound record (id, range, gain) to the emitter; at most 8. No callers in the binary (inferred: an option
 // setter reached only through a table).
 extern "C" void AddAmbLinkedSound(AMB *amb, int soundId, int rangeMin, int rangeMax, float gain)

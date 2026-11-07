@@ -50,14 +50,6 @@ static inline qwordV Norm(qwordV a) {
     return d;
 }
 static inline qwordV Difference(qwordV end,const qwordV *start){qwordV result;result = VuSub(end, *start);return result;}
-/** @sly2-annot addr=0x1D6848
- * Purpose: Launch velocity from start to end at elevation angle g under gravity acc (sin/cos/tan/atan2)
- * Info: proposed name VecLaunchBallistic (T2); TU tu_1D6848
- * Notes: names_v2 B proposed FCalculateMuzzleVelocity__FP6VECTORT0fT0P2SO (0.891)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
- * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
- * @end-sly2-annot */
 // Returns the launch velocity that carries an object from start to end on a ballistic arc under acceleration acc.
 // g (0..1) blends the elevation angle between the direct line to the target (0) and straight up (pi/2, 1); returns
 // zero when the target cannot be reached at that angle.
@@ -102,12 +94,6 @@ static inline qwordV Bc(float g) {
     u.q=k;
     return k;
 }
-/** @sly2-annot addr=0x1D69F0
- * Purpose: Velocity that moves a->b in dt under vertical acceleration acc
- * Info: proposed name VecToReachPosInDt (T2); TU tu_1D6848
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
- * @end-sly2-annot */
 // Returns the velocity that moves an object from a to b in dt seconds under the vertical acceleration acc: the
 // horizontal part is the straight-line distance over dt, the vertical part compensates for the fall.
 extern "C" qwordV CalculateVelocityToReachPos(qwordV start, qwordV end, qwordV acceleration, float dt)
@@ -138,13 +124,6 @@ static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = 
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7874 __asm__("D_002A7874") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1D6A90
- * Purpose: LO-subclass Init: InitLo then offset (0,0,0), up (0,1,0), coeffs 0.5 and D_002A7874
- * Info: proposed name InitLauncher (T2); class CID112 slot7; TU tu_1D6848
- * Notes: names_v2 C proposed LimitVectorLength__FP6VECTORfT0 (0.200)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
- * See: docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
- * @end-sly2-annot */
 void CID112::Init() { S *launcher = (S *)this;
     InitLo(launcher);
     SetVector(&launcher->predictCurve, 0, 0, 0);
@@ -331,20 +310,10 @@ static inline qwordV operator*(VU_FLOAT g, qwordV v) { qwordV r; __asm__("vmulx.
 static inline float GFromClq(const CLQV &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
 static inline void LoadIdentity(MATRIX4V *pm) { func_002333B4(pm, 0, sizeof(*pm)); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 
-/** @sly2-annot addr=0x1D6B00
- * Purpose: Launch an object from a launcher: predicted aim point, class-dependent velocity (0x50/0x51/0x52
- *   CIDs), random spin
- * Info: proposed name LaunchSoFromLauncher (T1); TU tu_1D6848
- * Notes: runtime5a #13: darts launched via the launcher CID112 (owner +0x200)
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r6_1D5150+runtime
- * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns,
- *   docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/engine/player.md#11-key-functions
- * @end-sly2-annot */
 // Launches pso from the launcher: aims at the target point (optionally advanced by a predicted travel time and
 // offset along the aim direction), then by the object's class gives it a speed vector (0x52), a velocity toward the
 // point at its own launch speed with a matching orientation (0x51), or a ballistic velocity, adds a random spin,
-// and tells class 0x50 objects their target.
+// and tells class 0x50 objects their target. Runtime: Bentley's darts are launched through it.
 extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
 {
     MATRIX4V matParent;

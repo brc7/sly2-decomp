@@ -31,13 +31,6 @@ void SetWidgetRequest(TIMER *timer, int n);                   /* SetTimerTimers 
 void ClearSubtitle(void *p);                                   /* InitSpeakerLabel (HYPOTHESIS) */
 }
 
-/** @sly2-annot addr=0x1A3020
- * Purpose: Find object oid 0x373 (kind 0x405) into *p and SetTimerTimers(1)
- * Info: proposed name InitLetterboxTimer (T2); TU letterbox
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files,
- *   docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260
- * @end-sly2-annot */
 // Binds the letterbox to the level's letterbox timer object (OID 0x373, class 0x405) and sets its timer mode to 1
 // (SetWidgetRequest). A level without that object has no letterbox. (inferred)
 extern "C" void InitLetterbox(LETTERBOX *letterbox)
@@ -49,25 +42,12 @@ extern "C" void InitLetterbox(LETTERBOX *letterbox)
             SetWidgetRequest(timer, 1);
 }
 
-/** @sly2-annot addr=0x1A3070
- * Purpose: *p = 0
- * Info: proposed name ClearLetterbox (T2); TU letterbox
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260
- * @end-sly2-annot */
 // Forgets the letterbox timer object (on level teardown, inferred).
 extern "C" void ResetLetterbox(LETTERBOX *letterbox)
 {
       letterbox->timer = 0;
 }
 
-/** @sly2-annot addr=0x1A3078
- * Purpose: If a letterbox object exists, speaker label/sound D_004435F0 and call its vt49 (show)
- * Info: proposed name ShowLetterbox (T1); TU letterbox
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260,
- *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
- * @end-sly2-annot */
 // Shows the letterbox bars: initializes the speaker label D_004435F0 (inferred) and starts the timer object with no time
 // limit (slot 49 with -1).
 extern "C" void ShowLetterbox(LETTERBOX *letterbox)
@@ -78,14 +58,6 @@ extern "C" void ShowLetterbox(LETTERBOX *letterbox)
       }
 }
 
-/** @sly2-annot addr=0x1A30D0
- * Purpose: Call the letterbox object's vt50 (hide)
- * Info: proposed name HideLetterbox (T1); TU letterbox
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/world-sw.md#10-key-functions,
- *   docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260,
- *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
- * @end-sly2-annot */
 // Hides the letterbox bars through the timer object's slot 50.
 extern "C" void HideLetterbox(LETTERBOX *letterbox)
 {

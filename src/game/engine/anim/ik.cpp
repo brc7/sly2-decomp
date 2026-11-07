@@ -57,13 +57,6 @@ float AngleBetweenVectors(qwordV a, qwordV b, qwordV *pv);
 qwordV ConvertXfVec(void *space, void *p, qwordV v);
 }
 
-/** @sly2-annot addr=0x186610
- * Purpose: ACT subclass override: ACT::Clone-slot base then save owner xA8 into x1C
- * Info: proposed name ApplyActik (T2); class ACTIK; TU ik
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/animation.md#6-source-files, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/animation.md#ik-0x186610-0x187030
- * @end-sly2-annot */
 // Clones an IK action onto a transform (ACT slot 6): generic CloneAct, then takes over the IK record the transform's
 // +0xA8 points at. (inferred)
 extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
@@ -72,12 +65,6 @@ extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
     pact->pikrec = *(void **)(pact->pxf + 0xA8);
 }
 
-/** @sly2-annot addr=0x186640
- * Purpose: ACT::Retract then restore owner xA8 from x1C
- * Info: proposed name RetractActik (T2); class ACTIK; TU ik
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/animation.md#ik-0x186610-0x187030
- * @end-sly2-annot */
 /* ACT7's slot 1, its key function (sly2/act.h). */
 // Attaches an IK action to its transform (ACT slot 1, inferred as for ACTSEG): base slot 1 (sets the transform's
 // update mode), then points the transform's +0xA8 at this action's IK record.
@@ -94,19 +81,10 @@ static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
     return ((void *(*)(void *, int))e->fn)((char *)so + e->delta, S16Read__18CBinaryInputStream(pbis));
 }
 
-/** @sly2-annot addr=0x186670
- * Purpose: Read N IK records (kind 0x10, 0xE0 bytes: two bones + parent + vectors), init each (0x186930),
- *   create actuators (PactNewC); set SO flag bit 36
- * Info: proposed name LoadSoIkFromBrx (T1); TU ik
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest+parse-verified
- * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
- *   docs/engine/animation.md#7-key-functions,
- *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse
- * @end-sly2-annot */
 // Loads an SO's two-bone IK records from the level stream: per record the first bone, second bone and parent transforms
 // (resolved through the SO's vtable slot 51), a local point, the target and a second vector; measures the record
 // (InitIkRecord) and attaches an IK action to both bones. Sets the SO's "has IK" flag (bit 36 of +0x148).
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
 {
     int count = U8Read__18CBinaryInputStream(stream);
@@ -134,13 +112,6 @@ extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
 // Paired-distance update; volatile on the first two VU asm groups keeps the p4 load between them (Claude agent).
 static inline N*Entry(SOIK*owner,int i){register E*entries asm("$2")=owner->entries;register int offset asm("$3")=i*256;entries=(E*)((int)entries+offset);return entries->actions;}
 
-/** @sly2-annot addr=0x186820
- * Purpose: For SOs with bit 36, update each IK node's bone lengths/distances
- * Info: proposed name UpdateSoIkLengths (T2); TU ik
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/animation.md#ik-0x186610-0x187030,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
 // For an SO with IK records (flag bit 36), re-measures every IK record's two bone lengths from the current transforms
 // (the parent-space point to the second bone, and the second bone to the first), so animation that scales bones keeps
 // the solver consistent. Hand-scheduled VU0 asm. (inferred)
@@ -164,13 +135,6 @@ extern "C" void UpdateSoIkBoneLengths(SOIK*so){
 
 
 // (Claude agent) Matched: volatile point load after the first m10 store and a volatile addiu for the matrix-row pointer pin the scheduling (same idea as UpdateSoIkBoneLengths).
-/** @sly2-annot addr=0x186930
- * Purpose: Initialise an IK chain: rest lengths and bend axis from the two bone matrices (AngleBetweenVectors)
- * Info: proposed name InitIkChain (T2); TU ik
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/animation.md#devtools-findings-v3-2026-11-01, docs/engine/animation.md#7-key-functions,
- *   docs/reference/functions/animation.md#ik-0x186610-0x187030
- * @end-sly2-annot */
 // Measures a freshly loaded IK record: snapshots both bones' local matrices, computes the two bone lengths and the rest
 // angle between the bones (AngleBetweenVectors, which also yields the bend axis), and stores the bend axis in the second
 // bone's parent space. (inferred)
@@ -219,16 +183,6 @@ extern "C" M3 BuildAxisAngleRotationMatrix(qwordV,float);
 extern "C" qwordV*VECTOR_opAssign(qwordV*,qwordV);
 static inline float CopySnapshot(REQUEST*q){float high;register FRAME*d __asm__("$4")=q->current;register qwordV odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->current),"m"(q->snapshot.r[0].q):"at");d->local.r[0].q=odd;even=q->snapshot.r[1].q;d->local.r[1].q=even;odd=q->snapshot.r[2].q;d->local.r[2].q=odd;even=q->snapshot.r[3].q;d->local.r[3].q=even;return high;}
 
-/** @sly2-annot addr=0x186A50
- * Purpose: Two-bone IK solve: law-of-cosines elbow angle (acosf, clamp [-1,1]), rotate bones
- *   (LoadRotateMatrixRad), write XFs
- * Info: proposed name SolveIk (T1); TU ik
- * Notes: names_v2 C proposed UpdateLgnActive__FP3LGNP3JOYf (0.167)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
- * See: docs/engine/animation.md#4-xf-slots-and-transforms-xfcpp-0x22c818-lilly-xfc,
- *   docs/engine/animation.md#devtools-findings-v3-2026-11-01,
- *   docs/engine/animation.md#animation-format-summary-anim_lab-v31
- * @end-sly2-annot */
 // Two-bone IK solve (the IK action's update): restores the first bone's snapshot, finds the elbow angle from the bone
 // lengths and the distance to the target by the law of cosines (clamped acos), bends the joint about the bend axis,
 // then swings the chain so the end reaches the target and applies an optional twist curve; writes the resulting local

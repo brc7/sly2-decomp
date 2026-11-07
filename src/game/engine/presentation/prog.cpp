@@ -136,14 +136,6 @@ int SemaCreate(int a, int b);
 void BlastAqwGifsBothFrames(QW *aqw);
 void OpenFrame(void);
 
-/** @sly2-annot addr=0x1C8CC0
- * Purpose: CProg ctor (4 colors)
- * Info: proposed name __5CProgP4RGBAN31 (EXISTING); class CProg; TU prog
- * Notes: agent/verifier proposes CProg_ctor for this existing name (see existing_name_changes.csv)
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/engine/game-progression.md#7-source-files,
- *   docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files
- * @end-sly2-annot */
 // Builds a progress bar with its four colours (done part; remaining part when the count changed, repeated once, or
 // repeated more often) and resets it.
 CProg::CProg(RGBA *done, RGBA *todo, RGBA *todoRepeated, RGBA *todoStuck)
@@ -153,23 +145,9 @@ CProg::CProg(RGBA *done, RGBA *todo, RGBA *todoRepeated, RGBA *todoStuck)
     isActive = 0; repeatCount = 0; remaining = 0; totalCount = 0; maxCount = 0; unknown10 = 0;
 }
 
-/** @sly2-annot addr=0x1C8D20
- * Purpose: reset progress
- * Info: proposed name Begin__5CProg (EXISTING); class CProg; TU prog
- * Notes: agent/verifier proposes CProg_Begin for this existing name (see existing_name_changes.csv)
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Resets the progress bar (inactive, no counts).
 void CProg::Begin() { isActive = 0; repeatCount = 0; remaining = 0; totalCount = 0; maxCount = 0; unknown10 = 0; }
 
-/** @sly2-annot addr=0x1C8D40
- * Purpose: update remaining count
- * Info: proposed name SetRemain__5CProgi (EXISTING); class CProg; TU prog
- * Notes: agent/verifier proposes CProg_SetRemain for this existing name (see existing_name_changes.csv)
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Reports how many items are left to load: the first report fixes the total (the bar spans twice it) and clears the
 // frame buffers; a repeated count bumps the repeat counter, which changes the colour of the remaining part. Redraws.
 void CProg::SetRemain(int remainingCount)
@@ -189,21 +167,9 @@ void CProg::SetRemain(int remainingCount)
     }
 }
 
-/** @sly2-annot addr=0x1C8DB8
- * Purpose: clear progress state (same stores as Begin)
- * Info: proposed name CProg_End (T1); class CProg; TU prog
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
- * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Clears the progress bar's state (the same stores as Begin).
 void CProg::End() { isActive = 0; repeatCount = 0; remaining = 0; totalCount = 0; maxCount = 0; unknown10 = 0; }
 
-/** @sly2-annot addr=0x1C8DD8
- * Purpose: draw progress bar (GIF/DMA packet)
- * Info: proposed name CProg_Draw (T1); class CProg; TU prog
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Draws the progress bar immediately (its own GIF packet, sent to both frame buffers): the done part and the remaining
 // part as two rectangles near the bottom of the screen.
 void CProg::Draw()
@@ -242,15 +208,6 @@ static inline float *Receiver(float *p)
     __asm__("daddu %0,%1,$zero" : "=r"(copy) : "r"(source));
     return copy;
 }
-/** @sly2-annot addr=0x1C9058
- * Purpose: Store start time (g_clock real time g_clock.tReal) into caller's record, publish it (D_002DD314) and
- *   signal the loading-thread start sema
- * Info: proposed name BeginLoadingScreen (T1); TU prog
- * Notes: runtime5b: D_002DD314 = &h of LoadSwFromBrx during load (S56)
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
- * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
- *   docs/engine/world-sw.md#2-loading-a-level, docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Starts the loading screen: records the start time (real clock) in the caller's variable, publishes it to the render
 // thread and signals the thread's start semaphore.
 extern "C" void BeginLoadingScreen(float *startTime)
@@ -263,23 +220,11 @@ extern "C" void BeginLoadingScreen(float *startTime)
     func_00234A40(sema);
 }
 
-/** @sly2-annot addr=0x1C9090
- * Purpose: empty (release stub)
- * Info: proposed name UpdateLoadingScreen (T2); TU prog
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Empty in the release build (inferred: a per-step loading-screen update compiled out).
 extern "C" void UpdateLoadingScreen(void)
 {
 }
 
-/** @sly2-annot addr=0x1C9098
- * Purpose: signal frame-end sema, wait for loading thread to stop, clear D_002DD314
- * Info: proposed name EndLoadingScreen (T1); TU prog
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Stops the loading screen: requests the render thread to stop, waits until it has, and clears the start time.
 extern "C" void EndLoadingScreen(void)
 {
@@ -288,13 +233,6 @@ extern "C" void EndLoadingScreen(void)
     D_002DD314 = 0;
 }
 
-/** @sly2-annot addr=0x1C90D0
- * Purpose: create the two semaphores and start the loading render thread (0x1C9190)
- * Info: proposed name StartupLoadingScreen (T1); TU prog
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
- *   docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot
- * @end-sly2-annot */
 // Boot-time setup: creates the loading-screen render thread (priority 4, its own 4 KB stack) and the start / end-request /
 // end-done semaphores, and starts the thread (which then waits for BeginLoadingScreen).
 extern "C" void StartupLoadingScreen(void)
@@ -333,17 +271,9 @@ static inline void BeginFrame()
     D_002DEA28.AddVifDirect(0x25,D_002DF260,0);
     D_002DEA28.EndDmaCnt();
 }
-/** @sly2-annot addr=0x1C9190
- * Purpose: thread: wait start sema, draw pulsing quad each frame until end sema
- * Info: proposed name LoadingScreenThread (T1); TU prog
- * Notes: runtime5b: 80x80 pulsing quad, 1 s fade-in; ticks the clock paused (S55->S56)
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
- * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen,
- *   docs/engine/main-loop-startup.md#6-threads, docs/guides/port-plan.md#11-known-facts-that-drive-the-design
- * @end-sly2-annot */
 // The loading-screen render thread: per load, waits for the start semaphore, then every frame draws the logo with a
 // sine-pulsing scale and a fade-in opacity (polynomial in time, clamped) until the end request; then finishes the frame,
-// waits for the GS and signals that it is done.
+// waits for the GS and signals that it is done. Runtime: an 80x80 pulsing quad with a 1 s fade-in.
 extern "C" void LoadingScreenThread(void *)
 {
     SEMA status;M2 matrix;
@@ -373,12 +303,6 @@ extern "C" void LoadingScreenThread(void *)
     }
 }
 
-/** @sly2-annot addr=0x1C93E0
- * Purpose: build GIF packet for the scaled/alpha quad
- * Info: proposed name DrawLoadingQuad (T2); TU prog
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
- * @end-sly2-annot */
 // Adds the loading-screen logo to a GIF packet: its five triangle lists (each with its own colour, opacity scaled by
 // alpha) with every vertex put through the logo's 2x3 screen transform. (inferred)
 extern "C" void DrawLoadingScreenLogo(GIFS *gifs, M2 *transform, float alpha)

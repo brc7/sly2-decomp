@@ -43,13 +43,6 @@ void *AllocFromStack(struct AREQ *);
 }
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);   /* CopyAb__FPvT0Ui */
 
-/** @sly2-annot addr=0x14C6A0
- * Purpose: Clip segment against an SO: ClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...)
- * Info: proposed name ClipEdgeToObject (T1); TU clip
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/physics-collision.md#4-geometry-and-queries,
- *   docs/engine/physics-collision.md#6-source-files
- * @end-sly2-annot */
 // Clips the segment a->b against one object using its own BSP (+0x74); returns the number of LSG spans written
 // (at most c) into alsg.
 extern "C" int ClipEdgeToObject(SOCLIP *object, qword start, qword end, int maxSegments, LSG *segments)
@@ -57,14 +50,6 @@ extern "C" int ClipEdgeToObject(SOCLIP *object, qword start, qword end, int maxS
     return ClipEdgeToObjectPruned(object, object->bsp, start, end, maxSegments, segments);
 }
 
-/** @sly2-annot addr=0x14C6D8
- * Purpose: If a BSP is given ClsgClipEdgeToBsp, else if the object is a sphere (bit 49) ClsgClipEdgeToSphere
- *   with its center/radius
- * Info: proposed name ClipEdgeToObjectPruned (T1); TU clip
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
- *   docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
- * @end-sly2-annot */
 // Clips a->b against an object through a given BSP (n), or, when n is 0 and the object is a sphere (flag bit 49),
 // against its bounding sphere. Returns the span count. Lets callers pass a pre-pruned BSP.
 extern "C" int ClipEdgeToObjectPruned(SOCLIP *object, int bsp, qword start, qword end, int maxSegments, LSG *segments)
@@ -103,14 +88,6 @@ static inline qword Normalize(const qword &v)
     return r;
 }
 
-/** @sly2-annot addr=0x14C748
- * Purpose: Segment/sphere intersection: quadratic in u, clamp to [0,1], emit up to 2 LSG entries
- * Info: proposed name ClsgClipEdgeToSphere (T1); TU clip
- * Notes: names_v2 C proposed ClsgClipLineToSphere__FP6VECTORfT0T0iP3LSG (0.638)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r2b_rest
- * See: docs/engine/physics-collision.md#4-geometry-and-queries,
- *   docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
- * @end-sly2-annot */
 // Intersects the segment pos0->pos1 with a sphere: solves the quadratic in the segment parameter, clamps the roots
 // to [0,1] and writes up to two LSG entries (entry/exit points with outward normals). Returns the span count.
 extern "C" int ClipEdgeToSphere(qword center, float radius, qword start, qword end, int maxSegments, LSG *segments)
@@ -157,14 +134,6 @@ extern "C" int ClipEdgeToSphere(qword center, float radius, qword start, qword e
     return 1;
 }
 
-/** @sly2-annot addr=0x14C9F8
- * Purpose: Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 =
- *   union ...)
- * Info: proposed name MergeSegmentLists (T1); TU clip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verify_side
- * See: docs/engine/camera.md#5-key-functions, docs/engine/physics-collision.md#4-geometry-and-queries,
- *   docs/engine/physics-collision.md#7-key-functions
- * @end-sly2-annot */
 // Merges two sorted span lists into alsgOut (at most cMax entries) using the set operation k (0 = union; the
 // others intersect/subtract, inferred from the cases). Returns the merged count. Used to combine several objects'
 // clip results along the same segment.
@@ -254,14 +223,9 @@ extern "C" int MergeSegmentLists(int count1, struct LSG *list1, int count2, stru
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 /* Sly 1's PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG took VECTOR pointers; this one takes qwords, hence a plain name. */
-/** @sly2-annot addr=0x14CC58
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name FindFirstObjectHitByLine (EXISTING); TU clip
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
- * @end-sly2-annot */
 // Returns the first object (the one entered at the smallest segment parameter) among apso[0..cso) that the line
 // a->b hits, filtering by grf, and copies the winning span into *plsg. Sly 1 name.
+// (Sly 1-derived name: PsoHitTestLineObjects.)
 extern "C" void *FindFirstObjectHitByLine(int flags, qword start, qword end, int numObjects, void **objects, struct LSG *hitSegment)
 {
     void *bestObject = 0;
@@ -284,14 +248,6 @@ extern "C" void *FindFirstObjectHitByLine(int flags, qword start, qword end, int
     return bestObject;
 }
 
-/** @sly2-annot addr=0x14CDB0
- * Purpose: Clip a segment against a list of SOs, merging each object's LSG list into the result
- *   (MergeSegmentLists k=0)
- * Info: proposed name ClipEdgeToObjects (T1); TU clip
- * Notes: names_v2 v1 proposed FUN_00141b48 (0.000)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
- * @end-sly2-annot */
 // Clips a->b against every object in apso and unions the results (MergeSegmentLists k=0) into alsg; returns the
 // number of spans. Scratch lists live in a stack scope.
 extern "C" int ClipEdgeToObjects(qword start, qword end, int numObjects, void **objects, int maxSegments, struct LSG *segments)

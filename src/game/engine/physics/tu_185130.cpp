@@ -101,13 +101,6 @@ float SmoothValue(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNex
 void AppendDlEntry(DLV *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 
-/** @sly2-annot addr=0x185130
- * Purpose: CID 0x8 vt7: InitXfm
- * Info: proposed name InitCid8 (T2); class CID8 slot7; TU tu_185130
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
 // CID 8 slot 7 (Init): InitXfm.
 void CID8::Init()
 {
@@ -116,22 +109,9 @@ void CID8::Init()
 }
 
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind = nKind; pmsg->cb = cb; return AllocFromWorldHeap(pmsg); }
-/** @sly2-annot addr=0x185150
- * Purpose: CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw,
- *   LoadOptionsFromBrx
- * Info: proposed name LoadCid8FromBrx (T2); class CID8 slot14; TU tu_185130
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   verifier PLAUSIBLE: Placeholder class. CID 8/9 vtable slot 14: LoadXfmXfFromBrx, count+qword vectors,
- *   count + two arrays of int triples, LoadOptionsFromBrx. Purpose omits the two triple arrays
- *   (index/adjacency?), so 'tri | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources:
- *   r4b_rest+parse-verified+verdicts_followups
- * See: docs/engine/player.md#11-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // CID 8/9 slot 14 (LoadFromBrx): the XFM, then the vertex count and positions and the triangles (with edge
 // neighbours) into world-heap memory, then the object's options.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadCid8FromBrx(MESH *mesh, CBinaryInputStream *stream)
 {
     MSG msg;
@@ -164,13 +144,6 @@ static inline qword Unit(qword input){register qword a __asm__("vf3")=input,d __
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x185310
- * Purpose: Closest point/normal/triangle on the object's triangle mesh to a point (world matrix via vt31)
- * Info: proposed name FindMeshClosestPoint (T2); TU tu_185130
- * Notes: names_v2 C proposed MoveStepguardToGoal__FP9STEPGUARD (0.438)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // Finds the point of the mesh closest to a world position: returns the point, the surface normal and the triangle
 // (vertex positions transformed by the object's world matrix, slot 31).
 extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
@@ -247,12 +220,6 @@ extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,T
 }
 
 namespace RO_ORDER { extern const float r_D_002A5688 __asm__("D_002A5688") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1856B8
- * Purpose: Writes 0 to out int
- * Info: TU tu_185130
- * Notes: descriptive only: (stub: *pn = 0) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * @end-sly2-annot */
 // Empties a contact-plane list.
 extern "C" void ClearMeshContactList(MESH *mesh, LIST *list)
 {
@@ -312,12 +279,6 @@ static inline void BuildPlane(qword *plane, const qword &normal, const float &g)
 }
 static inline U *Addr(U *p) { return p; }
 static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->count++]; *p = q; }
-/** @sly2-annot addr=0x1856C0
- * Purpose: Gather contact planes of nearby mesh edges/triangles for a set of points within radius
- * Info: proposed name CollectMeshContacts (T2); TU tu_185130
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // Gathers the contact planes of mesh edges and triangles within radius of a set of points into a list, for the
 // inequality solve.
 extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius)
@@ -414,12 +375,6 @@ static inline float FloatFromBitsW(int b, float w)
     return x;
 }
 namespace RO_ORDER { extern const float r_D_002A568C __asm__("D_002A568C") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x185A80
- * Purpose: SolveInequalities on contact planes to project a vector
- * Info: proposed name SolveMeshConstraints (T2); TU tu_185130
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // Projects a movement vector onto the region allowed by the collected contact planes (SolveInequalities).
 extern "C" qword SolveMeshConstraints(void *unused, LIST *list, qword vector)
 {
@@ -457,13 +412,6 @@ extern "C" qword SolveMeshConstraints(void *unused, LIST *list, qword vector)
 }
 
 namespace RO_ORDER { extern const float r_D_002A5690 __asm__("D_002A5690") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x185BF8
- * Purpose: CID 9 vt7: InitCid8 then default radius D_002A5690
- * Info: proposed name InitCid9 (T2); class CID9 slot7; TU tu_185130
- * Notes: names_v2 B proposed InitSpire__FP5SPIRE (0.858)
- * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // CID 9 slot 7 (Init): the CID 8 init plus the default attach radius.
 void CID9::Init()
 {
@@ -472,12 +420,6 @@ void CID9::Init()
     p->attachRadius = D_002A5690;
 }
 
-/** @sly2-annot addr=0x185C28
- * Purpose: vt11: AddLoHierarchy + append to g_sw.dlCid9 (one of the jump-target candidate lists)
- * Info: proposed name AddCid9Hierarchy (T2); class CID9 slot11; TU tu_185130
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // CID 9 slot 11: AddLoHierarchy and append to the world's sticky-mesh list g_sw.dlCid9.
 extern "C" void AddCid9Hierarchy(MESH *mesh)
 {
@@ -485,12 +427,6 @@ extern "C" void AddCid9Hierarchy(MESH *mesh)
     AppendDlEntry((DLV *)&g_sw.dlCid9, mesh);
 }
 
-/** @sly2-annot addr=0x185C60
- * Purpose: vt12: RemoveLoHierarchy + remove from g_sw.dlCid9
- * Info: proposed name RemoveCid9Hierarchy (T2); class CID9 slot12; TU tu_185130
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // CID 9 slot 12: RemoveLoHierarchy and remove from g_sw.dlCid9.
 extern "C" void RemoveCid9Hierarchy(MESH *mesh)
 {
@@ -498,13 +434,6 @@ extern "C" void RemoveCid9Hierarchy(MESH *mesh)
     RemoveDlEntry((DLV *)&g_sw.dlCid9, mesh);
 }
 
-/** @sly2-annot addr=0x185C98
- * Purpose: vt41: CloneXfm keeping own field
- * Info: proposed name CloneCid9 (T2); class CID9 slot41; TU tu_185130
- * Notes: names_v2 C proposed CloneSpire__FP5SPIRET0 (0.438)
- * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // CID 9 slot 41 (Clone): CloneXfm, keeping the clone's own mesh pointer.
 extern "C" void CloneCid9(MESH *mesh)
 {
@@ -513,13 +442,6 @@ extern "C" void CloneCid9(MESH *mesh)
     mesh->k = k;
 }
 
-/** @sly2-annot addr=0x185CE0
- * Purpose: vt15: PostLoLoad + SetTnTns
- * Info: proposed name PostCid9Load (T2); class CID9 slot15; TU tu_185130
- * Notes: names_v2 C proposed OnStepguardAdd__FP9STEPGUARD (0.200)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // CID 9 slot 15 (PostLoad): PostLoLoad, then binds its tunnel (SetTnTns).
 extern "C" void PostCid9Load(MESH *mesh)
 {
@@ -557,14 +479,6 @@ static inline qword AddScaled2H(qword a, qword b, VUFQ sb, qword c, VUFQ sc, voi
         : "=j"(r) : "j"(a), "j"(b), "j"(sb.q), "j"(c), "j"(sc.q), "r"(hint), "r"(hint2) : "$2");
     return r;
 }
-/** @sly2-annot addr=0x185D18
- * Purpose: Project a ballistic point (pos+v t+a t^2/2) onto the mesh; out landing pos (offset along normal)
- *   and velocity
- * Info: proposed name PredictMeshContact (T2); TU tu_185130
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
- *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
- * @end-sly2-annot */
 // Projects a ballistic point (pos + v t + a t^2 / 2) onto the mesh: returns the landing point (offset along the
 // normal) and the velocity there. Used to predict where a jump meets the mesh. (inferred)
 extern "C" int PredictMeshContact(MESH *mesh, qword pos, qword velocity, qword acceleration, TRIREF *triangle, qword *posOut, qword *velocityOut, float offset, float time)
@@ -580,12 +494,6 @@ extern "C" int PredictMeshContact(MESH *mesh, qword pos, qword velocity, qword a
     return 1;
 }
 
-/** @sly2-annot addr=0x185E30
- * Purpose: Store three vectors
- * Info: proposed name SetMeshVectors (T2); TU tu_185130
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
- * @end-sly2-annot */
 // Stores the player's three mesh probe points (splice option 754 on JT, inferred).
 extern "C" void SetJtMeshProbePoints(JTV *jt, qword point0, qword point1, qword point2)
 {

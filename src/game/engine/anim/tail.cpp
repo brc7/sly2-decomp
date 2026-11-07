@@ -25,14 +25,6 @@ void CloneAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf);
 void AttachActBase(ACTCHAINV *pact);
 }
 
-/** @sly2-annot addr=0x21C820
- * Purpose: clone of an XF actuator hook: base copy 0x12CF88 then copies owner field 0xA8 -> +0x1C
- * Info: proposed name CloneChainAct (T2); TU tail
- * Notes: agent qualifier: hook vt slot6
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/animation.md#4-xf-slots-and-transforms-xfcpp-0x22c818-lilly-xfc,
- *   docs/engine/animation.md#6-source-files, docs/engine/particles-effects.md#5-source-files
- * @end-sly2-annot */
 // Clones a chain action onto a new transform (ACT slot 6): runs the generic CloneAct, then takes over the chain link
 // the target transform points at (+0xA8). (inferred)
 extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
@@ -41,14 +33,6 @@ extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
     pact->chainLink = *(void **)(pxf + 0xA8);
 }
 
-/** @sly2-annot addr=0x21C858
- * Purpose: hook vt slot1: base 0x12CE98 (calls 0x2303A0 + 0x22C840 = XF act list update) then writes +0x1C
- *   back to object+0xA8
- * Info: proposed name RetractChainAct (T2); TU tail
- * Notes: agent qualifier: hook vt slot1
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
- * @end-sly2-annot */
 /* ACT3's slot 1, its key function (sly2/act.h). */
 // Attaches a chain action to its transform (ACT slot 1, inferred from ACTSEG's slot 1, which binds its curve there):
 // runs the base slot 1 (sets the transform's update mode and refreshes it), then points the transform's +0xA8 at
@@ -85,23 +69,11 @@ qword TransformXfPos(struct O *,struct O *,qword);
 qword ConvertXfVec(struct O *,struct O *,qword);
 }
 static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return AllocClearedFromWorldHeap(&req); }
-/** @sly2-annot addr=0x21C888
- * Purpose: reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves
- *   the XF via vt slot51, creates a kind-3 hook (vt D_002DB338) and registers it on the XF (0x230018);
- *   computes rest segments
- * Info: proposed name LoadSoChainsFromBrx (T1); TU tail
- * Notes: names_v2 C proposed LoadAloFromBrx__FP3ALOP18CBinaryInputStream (0.438) | level_parser
- *   CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.90] - evidence: static naming pass; sources:
- *   r8_21BB88+verdicts_tu_r7r8+parse-verified
- * See: docs/engine/animation.md#7-key-functions,
- *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse,
- *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
- * @end-sly2-annot */
 // Loads an SO's chains (tails, ropes) from the level stream. Per chain: step count, bend stiffness, damping, relative
 // damping, maximum bend angle, gravity and anchor vectors, then the links; each link resolves its transform through the
 // SO's vtable slot 51, gets a kind-3 chain action registered on that transform (AddXfAct), and finally the rest segments
 // from each link to the next (or the last one's continuation) are computed in link space and in world space.
+// Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
     int count=S8Read__18CBinaryInputStream(stream);
     int i,j;
@@ -282,13 +254,6 @@ static inline qword CombineChainVelocity(qword qwVel, VU_FLOAT gA, qword qwVelRe
     return qw;
 }
 void UpdateChainLink(SO *pso, CHAINLINK *chainLink) __asm__("UpdateChainLink");
-/** @sly2-annot addr=0x21CB18
- * Purpose: per-frame chain-link simulation (damping, bend limit radBendMax, gravity, cstep substeps) then
- *   aims the XF at the simulated tip
- * Info: proposed name UpdateChainLink (T1); TU tail
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
- * @end-sly2-annot */
 // Per-frame chain simulation, run for every link of a chain (action role 0x10). The first call in a frame simulates the
 // chain from this link to the tip in cstep substeps (bend limit, damping, bend spring, gravity, rest-length constraint);
 // every call then rotates its own transform so the rest segment points at the simulated tip. See the block comment above

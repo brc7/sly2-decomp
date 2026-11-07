@@ -53,14 +53,6 @@ int sprintf(char *pch, const char *fmt, ...);
 }
 char *FindSwLocalizedString(struct SW *psw, int id);
 
-/** @sly2-annot addr=0x2275B8
- * Purpose: kind -> RGBA (0x35,0x36,0x37,0x3C,0x3F distinct colours, default grey), alpha 0x7F
- * Info: proposed name GetSpeakerSubtitleColor (T1); TU tu_2275B8
- * Notes: verifier CORRECT: RgbaFromSpeakerKind? -> GetSpeakerSubtitleColor
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/rendering.md#12-source-files, docs/engine/sound.md#5-source-files,
- *   docs/engine/sound.md#6-key-functions
- * @end-sly2-annot */
 // The subtitle box colour for a speaker, by the speaker's class id (0x35/0x36/0x37/0x3C/0x3F get their own colours,
 // inferred to be the main characters; everyone else is grey), always half transparent.
 extern "C" RGBA GetSpeakerSubtitleColor(int speakerCid)
@@ -77,14 +69,6 @@ extern "C" RGBA GetSpeakerSubtitleColor(int speakerCid)
     return color;
 }
 
-/** @sly2-annot addr=0x227728
- * Purpose: reset then kind=k, colour from kind
- * Info: proposed name SetSpeaker (T2); TU tu_2275B8
- * Notes: agent qualifier: kind+colour
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8,
- *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
- * @end-sly2-annot */
 // Sets the current subtitle: clears it, then stores the language-string id of the line and the colour of its speaker.
 // (inferred)
 extern "C" void SetSubtitle(SPEAKERLABEL *subtitle, int textId, int speakerCid)
@@ -94,12 +78,6 @@ extern "C" void SetSubtitle(SPEAKERLABEL *subtitle, int textId, int speakerCid)
     subtitle->color = GetSpeakerSubtitleColor(speakerCid);
 }
 
-/** @sly2-annot addr=0x227788
- * Purpose: kind=-1, default colour, flag 0
- * Info: proposed name InitSpeakerLabel (T2); TU tu_2275B8
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
- * @end-sly2-annot */
 // Clears a subtitle: no text (-1), default colour, no button glyphs. (inferred)
 extern "C" void ClearSubtitle(SPEAKERLABEL *subtitle)
 {
@@ -108,14 +86,6 @@ extern "C" void ClearSubtitle(SPEAKERLABEL *subtitle)
     subtitle->buttonMask = 0;
 }
 
-/** @sly2-annot addr=0x2277D0
- * Purpose: oid -1 -> empty string else strcpy(name of oid via 0x13E368(g_sw,oid))
- * Info: proposed name GetOidName (T2); TU tu_2275B8
- * Notes: agent qualifier: into buffer
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
- *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
- * @end-sly2-annot */
 // Copies the subtitle's text from the world's language strings into buffer (empty when there is no subtitle).
 // (inferred)
 extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
@@ -128,12 +98,6 @@ extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
     strcpy(buffer, FindSwLocalizedString((struct SW *)D_003DD490, textId));
 }
 
-/** @sly2-annot addr=0x227820
- * Purpose: draws text label via blot helpers and strcpy
- * Info: proposed name RenderSpeakerText (T2); TU tu_2275B8
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
- * @end-sly2-annot */
 // Typewriter effect: cuts the subtitle text to the fraction of the voice line played so far (playback position over the
 // line's duration minus half a second) and appends a "|" cursor; once the whole text shows, the cursor blinks at 2 Hz.
 // (inferred)
@@ -159,13 +123,6 @@ extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *t
     if (showCursor) strcpy1(text->pch, D_002A97F0);
 }
 
-/** @sly2-annot addr=0x227940
- * Purpose: appends one char per set bit from a 16-entry {mask,ch} table D_002A97F8 via sprintf
- * Info: proposed name FlagsToPchz (T2); TU tu_2275B8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
- *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
- * @end-sly2-annot */
 // Appends one rich-text glyph per pad button set in the subtitle's button mask (table D_002A97F8: X, O, triangle,
 // square, d-pad, shoulders...), for subtitles that tell the player which button to press. (inferred)
 extern "C" void FormatSubtitleButtonGlyphs(SPEAKERLABEL *subtitle, char *buffer)

@@ -79,14 +79,6 @@ static inline qword Normalize(qword v) {
  __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(l),"j"(v));return r;
 }
 
-/** @sly2-annot addr=0x166270
- * Purpose: Copies a GEOM (points + surface normals) into the SW heap and optionally transforms the points by
- *   a matrix and rotates/renormalizes the normals, recomputing plane offsets
- * Info: proposed name CloneGeom (T1); TU geom
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/game-progression.md#7-source-files,
- *   docs/engine/physics-collision.md#4-geometry-and-queries, docs/engine/physics-collision.md#6-source-files
- * @end-sly2-annot */
 // Copies a GEOM's point and plane arrays into newly allocated slot-heap memory. When a transform is given, the
 // copied points are transformed by it and each plane normal is rotated, renormalised and its plane rebuilt through
 // one of the plane's points. Used when an object's geometry is cloned or instanced.
@@ -113,13 +105,6 @@ void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
  }
 }
 
-/** @sly2-annot addr=0x166428
- * Purpose: Transforms an array of qword points by a 4x4 matrix using VU0 micro-subroutines (vcallms
- *   0x120/0xF0), double-buffered
- * Info: proposed name TransformPointsVu0 (T1); TU geom
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
- * @end-sly2-annot */
 // Transforms count points by a 4x4 matrix with the VU0 microprograms at 0x120/0xF0, double-buffered so one point
 // is loaded while the previous one is transformed. The workhorse of UpdateGeomWorld.
 extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count,
@@ -192,14 +177,6 @@ static inline PLANE *FinalPlane(PLANE *base,int count){
  return last;
 }
 
-/** @sly2-annot addr=0x1664A0
- * Purpose: Transforms a local GEOM into world space: points via VU0 (0x166428), plane normals by the
- *   inverse-transpose rotation, recomputing plane distances
- * Info: proposed name UpdateGeomWorld (T1); TU geom
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
 // Brings a world GEOM up to date with its local GEOM and the owner's world matrix: points via TransformPointsVu0,
 // plane normals via the transposed inverse of the 3x3 rotation (VU0 microprogram 0x150), plane distances recomputed
 // from each plane's anchor point. Skipped when source and destination share their point array.
@@ -236,12 +213,6 @@ extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
 
 
 // Collect unique edges incident to a geometry point.
-/** @sly2-annot addr=0x1665F0
- * Purpose: Collects up to max unique edges incident to a given GEOM point, using a BSP query around the point
- * Info: proposed name CpedgeFromGeomPoint (T2); TU geom
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
- * @end-sly2-annot */
 // Fills out[] with up to max distinct edges that touch point index of the geometry, found by querying the
 // geometry's BSP with a unit sphere around the point and walking each hit surface's edge list. Returns the number
 // of edges written (0 if the query fails). Used by the contact builder for vertex contacts (inferred).
