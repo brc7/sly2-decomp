@@ -26,7 +26,6 @@ struct CMIsland { char pad[0x90]; qwordI pos; };
 /* The vtable pointer of a policy (after CPLCYDATA's three words). */
 #define PVTCPLCY(p) (*(void **)((char *)(p) + 0xC))
 
-extern CM D_002DDF40;   /* g_cm */
 extern "C" {
 extern void *D_002CD570[] __asm__("_vt$5CPLCY");  /* CPLCY vtable */
 extern void *D_002CD528[] __asm__("_vt$7CMPART1");  /* CMPART1 vtable */
@@ -73,8 +72,8 @@ extern "C" void ActivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 extern "C" void DeactivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 {
     pcplcy->pvHero = 0;
-    SetCmNearClip(&D_002DDF40, pcplcy->savedNearClip);
-    D_002DDF40.targetFieldOfView = pcplcy->savedTargetFieldOfView;
+    SetCmNearClip(&g_cm, pcplcy->savedNearClip);
+    g_cm.targetFieldOfView = pcplcy->savedTargetFieldOfView;
 }
 
 // Default (empty) slot 4: called by SetCmPolicy with pv on every insert. (inferred)
@@ -140,7 +139,7 @@ extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 {
     pcplook->zoom = 0.0f;
     pcplook->svuZoom = 0.0f;
-    SetCmFov(&D_002DDF40, pcplook->zoomedFieldOfView);
+    SetCmFov(&g_cm, pcplook->zoomedFieldOfView);
 }
 
 namespace M_PosCplookAnchor { extern "C" {
@@ -800,7 +799,7 @@ void CPHANG::Deactivate(void *pvHero, void *pv)   /* key function */
 {
     CPHANG *pcphang = this;
     ReleaseAct(&pcphang->pact1);
-    CutCm(&D_002DDF40);
+    CutCm(&g_cm);
     DeactivateCplcy(pcphang, pvHero, pv);
 }
 
