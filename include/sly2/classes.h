@@ -518,10 +518,15 @@ struct BHV181 : BHV
 };
 typedef char assert_BHV181_size[sizeof(BHV181) == 0x60 ? 1 : -1];
 
-/* 117 CID117 (0x70): stimulus template (radius, height, ramp); vtable 0x2CE2F8, 48 slots */
+/* 117 CID117 (0x70): stimulus template (NOISETYPE: radius, height, ramp; the world's seven in SW::apstimk); vtable 0x2CE2F8, 48 slots */
 struct CID117 : LO
 {
-    char pad50[0x70 - 0x50];
+    int isMuted;            /* +0x50 listeners ignore its noises */
+    float range;            /* +0x54 (InitNoiseType 1500) */
+    LM heightRange;         /* +0x58 (-200..500) */
+    float duration;         /* +0x60 the noises' lifetime (< 0: they last; InitNoiseType 0.25 s) */
+    int noiseKind;          /* +0x64 copied into each noise's CID147::noiseKind */
+    int unknown68[2];
     virtual void Init() __asm__("InitNoiseType");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
 };
@@ -553,10 +558,15 @@ typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
 typedef char assert_CID147_position[SLY2_OFFSETOF(CID147, position) == 0x20 ? 1 : -1];
 typedef char assert_CID147_noiseKind[SLY2_OFFSETOF(CID147, noiseKind) == 0x54 ? 1 : -1];
 
-/* 47 CID47 (0x110): stimulus listener; vtable 0x2CE118, 50 slots */
+/* 47 CID47 (0x110): stimulus listener (LISTENER, noise.cpp); vtable 0x2CE118, 50 slots */
+/* The trailing key a listener keeps across a clone (CloneListener). */
+struct LISTENERKEY { short x; short y; int i; };
 struct CID47 : XFM
 {
-    char padE0[0x110 - 0xE0];
+    unsigned int noiseCount; /* +0xE0 the noises it heard and holds (at most 8) */
+    CID147 *noises[8];      /* +0xE4 */
+    LISTENERKEY key;        /* +0x104 */
+    int unknown10C;
     virtual void AddHierarchy() __asm__("AddListenerHierarchy");   /* slot 11 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid47ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitListener");   /* slot 7 */
