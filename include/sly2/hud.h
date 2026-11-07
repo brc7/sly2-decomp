@@ -1,11 +1,11 @@
 /* include/sly2/hud.h -- the HUD widget's own records (engine/presentation/hud.cpp; docs/systems/ui-and-hud.md):
  * the widget state/request values, the sprite groups a widget plays, and the deferred sprite-file load record.
- * The WIDGET class itself and its subclasses are in sly2/classes.h (their vtables and class_registry's factories
- * depend on the class order there); classes.h only forward-declares the types below. */
+ * The WIDGET class is in sly2/widget.h, its subclasses in sly2/classes.h (their vtables and class_registry's factories
+ * depend on the class order there); widget.h only forward-declares the types below. */
 #ifndef SLY2_HUD_H
 #define SLY2_HUD_H
 #include "sly2/sw.h"
-#include "sly2/classes.h"
+#include "sly2/widget.h"
 
 /* WIDGET::state values. */
 enum WIDGET_STATE
