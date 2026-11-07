@@ -48,10 +48,8 @@ struct RTE { int k; int oid; void *object; };
 /* The route (an LO, which ends at +0x50). */
 struct ROUTE { char pad[0x50]; int isReversed; int stationCount; RTE *stations; SHAPEV *shape; };
 typedef char assert_ROUTE_shape[(unsigned int)&((ROUTE *)0)->shape == 0x5C ? 1 : -1];
-/* An LO view: vtable, and the fInWorld bit (ChooseCarmelitaTarget). */
-struct LOV { char pad[0xC]; VTE *vt; char pad10[0x18]; int unknown28; signed char unknown2C; char unknown2D; long k : 4; unsigned long b : 8; unsigned int isInWorld : 1; };
 /* The guard's detector: its targets. */
-struct DTE { LOV *object; int state; int pad[2]; };
+struct DTE { LO *object; int state; int pad[2]; };
 struct DETV { char pad[0xFC]; int targetCount; DTE targets[8]; };
 struct V3 { int x; int y; int z; };
 /* The patrolling guard (a STEPGUARD with a marker object at +0x1010). */
@@ -65,8 +63,8 @@ struct GUARDV
     char pad20C[0x294 - 0x20C];
     SHAPEV *path;
     char pad298[0x38C - 0x298];
-    LOV *target;
-    LOV *forcedTarget;
+    LO *target;
+    LO *forcedTarget;
     char pad394[0x4A4 - 0x394];
     int unknown4A4;
     char pad4A8[0xF04 - 0x4A8];
@@ -74,7 +72,7 @@ struct GUARDV
     char padF08[0xF64 - 0xF08];
     DETV *detector;
     char padF68[0x1010 - 0xF68];
-    LOV *marker;          /* +0x1010 the position marker the guard targets while patrolling */
+    LO *marker;          /* +0x1010 the position marker the guard targets while patrolling */
 };
 typedef char assert_GUARDV_marker[(unsigned int)&((GUARDV *)0)->marker == 0x1010 ? 1 : -1];
 /* An attack entry (ChooseStepguardAttack; +0x60 the cool-down range). */
@@ -105,7 +103,7 @@ struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int flags; XEC *hid
 struct O9E { int pad[3]; VTE *vt; char pad1[0x38 - 0x10]; void *lookAt; int unknown3C; };   /* BHVIDLE */
 struct OA7 { int pad[3]; VTE *vt; char pad1[0x40 - 0x10]; int usesStraightPath; char pad2[0x64 - 0x44]; float arrivalRadius; char pad3[0xC0 - 0x68]; int unknownC0; char pad4[4]; void *faceTarget; /* (inferred) */ };   /* BHVWALKPATH */
 struct OAC { int pad[3]; VTE *vt; char padx[0x50 - 0x10]; qword goal; char pad1[0x68 - 0x60]; int unknown68; };   /* BHVLEAP */
-struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LOV *target; char pad2[8]; ATKENTRY *attack; };   /* BHVATTACK */
+struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LO *target; char pad2[8]; ATKENTRY *attack; };   /* BHVATTACK */
 struct MSG { int kind; int pad[3]; int val; char pad2[0x70 - 0x14]; };
 
 extern CLOCK D_002DDED0;
@@ -177,7 +175,7 @@ void PostStepguardLoad(GUARDV *p);
 void HandleStepguardMessage(GUARDV *p, int msgid, void *pv);
 int StepguardHasSgf(GUARDV *p, int k);
 void SetDetectorTargetStateById(DETV *pdet, void *object, int k);
-LOV *ChooseStepguardTarget(GUARDV *p);
+LO *ChooseStepguardTarget(GUARDV *p);
 void *memset(void *p, int c, unsigned int n);
 void *FindStepBehavior(GUARDV *p, int n);
 void SetBhvguardMode(void *p, MSG *m);
@@ -191,7 +189,7 @@ void SetBhvRouteState(BHVRT *p, int n);
 float RandomFloatInRange(float gMin, float gMax);
 int RandomIntInRange(int nMin, int nMax);
 int IsWithinLimits(LM *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LM: this file's view of LM */
-LOV *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
+LO *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
 static inline void InitS(ALLOCREQ *ps, int a, int b)
 {
@@ -484,9 +482,8 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     }
 moveMarker:   // (a shared tail: each search above jumps here with its pick)
     {
-        LOV *plo = behavior->guard->marker;
-        VTE *entry = &plo->vt[29];
-        ((void (*)(void *, qword))entry->pfn)((char *)plo + entry->d, pos);
+        LO *plo = behavior->guard->marker;
+        plo->TranslateToPos(pos);
     }
     SetStepguardTarget(behavior->guard, behavior->guard->marker);
 }
@@ -721,10 +718,10 @@ static __inline__ float Distance(qword a, qword b)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.40282347e+38f; }
 // 0x14B290: CARMELITA vtable slot 88 (choose target): picks the best candidate object by kind and distance.
-extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
+extern "C" LO *ChooseCarmelitaTarget(GUARDV *guard)
 {
-    LOV *poBest;
-    LOV *object;
+    LO *poBest;
+    LO *object;
     float gBest;
     int kBest;
     qword pos;
