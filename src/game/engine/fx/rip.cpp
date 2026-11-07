@@ -61,9 +61,11 @@ struct RIP
     RIPM3 orientation;      /* +0x40 */
     qword currentPosition;           /* +0x70 */
     qword previousPosition;          /* +0x80 */
-    char pad90[0xA0 - 0x90];
+    qword velocity;            /* +0x90 */
     qword acceleration;          /* +0xA0 */
-    char padB0[0xE0 - 0xB0];
+    char padB0[0xD0 - 0xB0];
+    float angularVelocity[3];  /* +0xD0 spin (SHRAPNEL: random, from the impact speed) */
+    char padDC[0xE0 - 0xDC];
     LO *touchObject;           /* +0xE0 */
     char padE4[4];
     RIPSUB *firstSubscription;      /* +0xE8 */
@@ -98,6 +100,7 @@ struct STUCK : RIP   /* RIPT 10 */
 };
 struct SHRAPNEL : RIP   /* RIPT 8 */
 {
+    VECTOR dir;                /* +0xF0 the emitter record's direction (PostShrapnelEmit) */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleShrapnelBounce");   /* key function */
     virtual void PostEmit(void *pv) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
     virtual void Render(CM *pcm) __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
@@ -1937,19 +1940,12 @@ namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB {
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
 struct LM { float minValue, maxValue; };
-struct SHRAPNEL {
-    char pad[0x18]; float duration;
-    char pad2[0x90 - 0x1C]; qword v;
-    char pad3[0xD0 - 0xA0]; float ag[3];
-    char pad4[0xF0 - 0xDC]; V3 dir;
-};
-struct EMITBV { char pad[0xF0]; V3 dir; };
 extern "C" {
 extern LM D_002C1F78;
 extern float D_002C1F80[3];
 extern LM D_002BBB60;
 float RandomFloatInRange__Fff(float gMin, float gMax);
-void PostRipEmit(SHRAPNEL *psh, EMITBV *pemitb);
+void PostRipEmit(SHRAPNEL *psh, EMITB *pemitb);
 }
 static inline qword VLen(qword v)
 {
@@ -1973,34 +1969,34 @@ static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, 
     *limits = address;
     return scalar;
 }
-static inline void CopyDirection(SHRAPNEL *dest, const EMITBV *source)
+static inline void CopyDirection(SHRAPNEL *dest, const EMITB *source)   /* the record's payload: the direction */
 {
     register float xz __asm__("$f0");
     register float y __asm__("$f1");
     __asm__("lwc1 %0,%5\n\tswc1 %0,%2\n\tlwc1 %1,%6\n\tswc1 %1,%3\n\tlwc1 %0,%7\n\tswc1 %0,%4"
             : "=&f"(xz), "=&f"(y), "=m"(dest->dir.x), "=m"(dest->dir.y), "=m"(dest->dir.z)
-            : "m"(source->dir.x), "m"(source->dir.y), "m"(source->dir.z));
+            : "m"(source->v.u.v3.a[0]), "m"(source->v.u.v3.a[1]), "m"(source->v.u.v3.a[2]));
 }
 // SHRAPNEL (RIPT 8) PostEmit.
-extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemitb)
+extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITB *pemitb)
 {
     float len, g;
     int i;
     PostRipEmit(psh, pemitb);
     float gain = RandomFloatInRange__Fff(D_002C1F78.minValue, D_002C1F78.maxValue);
     float life = psh->duration * gain;
-    qword lengthValue = VLen(psh->v);
+    qword lengthValue = VLen(psh->velocity);
     char *page;
     LM *limits;
     len = ReadLengthAndPublish(lengthValue, &page, &limits, &psh->duration, life);
     CopyDirection(psh, pemitb);
     g = Clamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->maxValue) * 10.0f;
     for (i = 0; i < 3; i++)
-        psh->ag[i] = RandomFloatInRange__Fff(-g, g);
+        psh->angularVelocity[i] = RandomFloatInRange__Fff(-g, g);
 }
 
 #define OFF(t,m) ((unsigned)&((t*)0)->m)
-typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,minValue)==0 && OFF(LM,maxValue)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
+typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,minValue)==0 && OFF(LM,maxValue)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,velocity)==0x90 && OFF(SHRAPNEL,angularVelocity)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITB,v.u)==0xF0 && sizeof(((SHRAPNEL*)0)->angularVelocity)==12 && sizeof(D_002C1F80)==12)?1:-1];
 } // namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB
 #undef OFF
 
