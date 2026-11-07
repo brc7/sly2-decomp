@@ -236,8 +236,6 @@ typedef struct DL { void *pvFirst; void *pvLast; int linkOffset; } DL;
 typedef struct DLI { DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; } DLI;
 extern DLI *D_002DD2FC;
 extern int D_002DD318;
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[16]; } VT;
-typedef struct { char pad[0xC]; VT *vt; } LO;
 extern char D_003D9E80[], D_003D9ED0[], D_002E1E60[], D_003DA0F0[], D_003DA150[], D_003DA0C0[], D_003DA3C0[];
 extern char D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
 void ResetHudMeter(void *);
@@ -267,10 +265,10 @@ static inline void *NextListEntry(DLI *pdli)
 void ResetScreens(DL *pdl)
 {
     DLI dli;
-    LO *plo;
+    SCREENBASE *plo;
     InitDli(&dli, pdl);
-    while ((plo = (LO *)NextListEntry(&dli)) != 0)
-        plo->vt->a[11].pfn((char *)plo + plo->vt->a[11].d);
+    while ((plo = (SCREENBASE *)NextListEntry(&dli)) != 0)
+        plo->Hide();   /* slot 11 */
     D_002DD318 = 0;
     ResetHudMeter(D_003D9E80);
     ResetPauseMenu(D_003D9ED0);
@@ -531,9 +529,8 @@ extern "C" void ResetHudMeter(HUDMETER *hudmeter)
 namespace M_SetHudMeterState { extern "C" {
 typedef struct { short d; short pad; void *pfn; } VTE;
 typedef struct { char pad0[0xC]; VTE *vt; } SUB;
-typedef struct { int key; int pad[7]; } E;
 typedef struct { int a, b, c, powerCost; int pad[4]; } REC;
-extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
+extern GMITEM D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern REC D_002BCD00[];
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int IsPowerupAcquired(int);
@@ -560,7 +557,7 @@ void SetHudMeterState(HUDMETER *p, int s)
         break;
     case HUDMETER_STEADY: {
         int n = 0;
-        E *tbl = 0;
+        GMITEM *tbl = 0;
         int found;
         int i;
         VCALL1(((SUB *)p->widget), 49, p->idAnimSteady);
@@ -578,7 +575,7 @@ void SetHudMeterState(HUDMETER *p, int s)
         }
         found = 0;
         for (i = 0; i < n; i++) {
-            int id = tbl[i].key;
+            int id = tbl[i].idGadget;
             if (IsPowerupAcquired(id)) {
                 REC r = D_002BCD00[id];
                 if (r.powerCost > 0) {
@@ -2724,13 +2721,6 @@ void SelectLanguageItem(struct S *p) {
 } } // namespace M_SelectLanguageItem
 
 namespace M_UpdateTitleScreen { extern "C" {
-typedef struct { char pad[0x10B4]; int fl; } PAD;
-typedef struct {
-    char pad[0x10];
-    PAD *joypad;           /* set while the screen has focus (UpdateScreenFocus) */
-    char pad14[0x24 - 0x14];
-    void *widget;
-} OBJ;
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
 typedef struct { char pad[0xFD50]; void *saveToLoad; void *foundSave; } BIG;
 extern BIG D_002E65E0;
@@ -2741,14 +2731,14 @@ extern ITEM D_003DA578[];
 extern int D_002C35B8[];
 extern char D_002C35F0[];
 void SelectLanguageItem(void);
-void UpdateTimedScreen(OBJ *);
-int HandleJoyButtons(PAD *, int);
-int GetJoyButtonsPressed(PAD *, int);
-void SetJoyBtnHandled(PAD *, int);
+void UpdateTimedScreen(TITLE *);
+int HandleJoyButtons(JOY *, int);
+int GetJoyButtonsPressed(JOY *, int);
+void SetJoyBtnHandled(JOY *, int);
 void OpenPauseOptionsPage(int);
 void SetMcDialogPhase(void *, int);
 void StartGameFromSave(void *);
-void StartNewGame(OBJ *);
+void StartNewGame(TITLE *);
 int CountRegionLanguages(void);
 void *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 void GetRegionLanguages(int *, int **);
@@ -2756,18 +2746,18 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void PushPauseMenuPage(void *, int, ITEM *, void *, void *);
 // Per-frame title screen: START continues from the memory card or starts a new game; SELECT opens the options; X opens
 // the language list when the region has several languages.
-void UpdateTitleScreen(OBJ *p)
+void UpdateTitleScreen(TITLE *p)
 {
     void *pv;
     int c;
     int *ak;
     int i;
     UpdateTimedScreen(p);
-    if (p->widget == 0)
+    if (p->pchild == 0)
         return;
-    if (p->joypad == 0)
+    if (p->pjoy == 0)
         return;
-    if (HandleJoyButtons(p->joypad, 0x800)) {
+    if (HandleJoyButtons(p->pjoy, 0x800)) {
         if ((D_002E65E0.saveToLoad = D_002E65E0.foundSave) != 0) {
             SetMcDialogPhase(D_002E6550, 1);
             StartGameFromSave(D_002E65E0.saveToLoad);
@@ -2776,14 +2766,14 @@ void UpdateTitleScreen(OBJ *p)
         }
         return;
     }
-    if (GetJoyButtonsPressed(p->joypad, 0x100) && (p->joypad->fl & 0x108) == 0x100) {
-        SetJoyBtnHandled(p->joypad, 0x100);
+    if (GetJoyButtonsPressed(p->pjoy, 0x100) && (p->pjoy->buttonsHeld & 0x108) == 0x100) {
+        SetJoyBtnHandled(p->pjoy, 0x100);
         OpenPauseOptionsPage(0);
         return;
     }
     if (CountRegionLanguages() < 2)
         return;
-    if (!HandleJoyButtons(p->joypad, 0x10))
+    if (!HandleJoyButtons(p->pjoy, 0x10))
         return;
     pv = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, 0x5D6, 0);
     if (pv == 0)
@@ -3029,9 +3019,9 @@ inline void DestroyBasic(S *p, int flags)
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 extern const char D_002A7AA8[] = " : &2T&.";
 extern const char D_002A7AB8[] = "%d%%";
-/* Gadget menu entries (power-up id, three widget oids, -1, x, y, flag); 18/9/8 entries for Sly, Bentley, Murray. */
-struct GADGETITEM { int key; int oid0, oid1, oid2; int n; float x, y; int f; };
-GADGETITEM D_002C2DE8[18] = {{23, 978, 977, 979, -1, 145.0f, 155.0f, 1}, {24, 983, 982, 984, -1, 225.0f, 155.0f, 1},
+/* Gadget menu entries (GMITEM: power-up id, three animation ids, -1, x, y, equippable); 18/9/8 entries for Sly,
+   Bentley, Murray. */
+GMITEM D_002C2DE8[18] = {{23, 978, 977, 979, -1, 145.0f, 155.0f, 1}, {24, 983, 982, 984, -1, 225.0f, 155.0f, 1},
     {25, 988, 987, 989, -1, 305.0f, 155.0f, 1}, {26, 993, 992, 994, -1, 385.0f, 155.0f, 1},
     {29, 1008, 1007, 1009, -1, 465.0f, 155.0f, 1}, {30, 1013, 1012, 1014, -1, 545.0f, 155.0f, 1},
     {33, 1028, 1027, 1029, -1, 145.0f, 235.0f, 1}, {34, 1033, 1032, 1034, -1, 225.0f, 235.0f, 1},
@@ -3040,12 +3030,12 @@ GADGETITEM D_002C2DE8[18] = {{23, 978, 977, 979, -1, 145.0f, 155.0f, 1}, {24, 98
     {27, 998, 997, 999, -1, 145.0f, 315.0f, 0}, {28, 1003, 1002, 1004, -1, 225.0f, 315.0f, 0},
     {40, 1063, 1062, 1064, -1, 305.0f, 315.0f, 1}, {41, 1068, 1067, 1069, -1, 385.0f, 315.0f, 1},
     {42, 1073, 1072, 1074, -1, 465.0f, 315.0f, 1}, {31, 1018, 1017, 1019, -1, 545.0f, 315.0f, 1}};
-GADGETITEM D_002C3028[9] = {{7, 893, 892, 894, -1, 175.0f, 155.0f, 1}, {9, 903, 902, 904, -1, 285.0f, 155.0f, 1},
+GMITEM D_002C3028[9] = {{7, 893, 892, 894, -1, 175.0f, 155.0f, 1}, {9, 903, 902, 904, -1, 285.0f, 155.0f, 1},
     {11, 913, 912, 914, -1, 395.0f, 155.0f, 1}, {13, 923, 922, 924, -1, 505.0f, 155.0f, 1},
     {10, 908, 907, 909, -1, 175.0f, 235.0f, 1}, {12, 918, 917, 919, -1, 285.0f, 235.0f, 1},
     {8, 898, 897, 899, -1, 395.0f, 235.0f, 1}, {14, 928, 927, 929, -1, 505.0f, 235.0f, 1},
     {36, 1043, 1042, 1044, -1, 175.0f, 315.0f, 0}};
-GADGETITEM D_002C3148[8] = {{15, 938, 937, 939, -1, 175.0f, 155.0f, 1}, {22, 973, 972, 974, -1, 285.0f, 155.0f, 1},
+GMITEM D_002C3148[8] = {{15, 938, 937, 939, -1, 175.0f, 155.0f, 1}, {22, 973, 972, 974, -1, 285.0f, 155.0f, 1},
     {20, 963, 962, 964, -1, 395.0f, 155.0f, 1}, {19, 958, 957, 959, -1, 505.0f, 155.0f, 1},
     {16, 943, 942, 944, -1, 285.0f, 235.0f, 1}, {21, 968, 967, 969, -1, 395.0f, 235.0f, 1},
     {17, 948, 947, 949, -1, 285.0f, 315.0f, 0}, {18, 953, 952, 954, -1, 395.0f, 315.0f, 0}};
