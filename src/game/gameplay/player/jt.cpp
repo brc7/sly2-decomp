@@ -4123,7 +4123,6 @@ extern int D_002DFBC0;
 
 
 
-extern CM D_002DDF40;
 
 
 
@@ -4225,7 +4224,7 @@ int JT::CanUseGadget(int gadgetId)
         default:
             return 0;
         case 3:
-            return unknown12F0 != 0 && (D_002DFBC0 & 2) && !D_002DDF40.part3a0.FIsTop();
+            return unknown12F0 != 0 && (D_002DFBC0 & 2) && !g_cm.part3a0.FIsTop();
         case 0x28:
             if (unknown1D30 != 0)
                 return 0;

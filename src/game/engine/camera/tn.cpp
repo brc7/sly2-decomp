@@ -149,7 +149,6 @@ struct JOY
       float uDpad;
       undefined4 unknown10F0[4];
 };
-extern CM D_002DDF40;
 void SpringCm(CM *pcm, qword *pqwPos, VECTOR *pvVel, qword qwTarget, float k, float c) __asm__("ApplyCameraSpring");
 void SetCmPanTilt(CM *pcm, qword posEye, qword posCenter, float radPan, float radTilt) __asm__("SetCameraLookAt");
 struct VU_FLOAT
@@ -570,11 +569,11 @@ void SetTnTns(TN *p, int k)
     if (k == p->state) return;
     switch (k) {
     case 1:
-        SetCmPolicy(&D_002DDF40, p->priority + 2, &D_002DDF40.tunnelPolicy, p->hero, p);
+        SetCmPolicy(&g_cm, p->priority + 2, &g_cm.tunnelPolicy, p->hero, p);
         PVT(p)[3].pfn((char *)p + PVT(p)[3].d, 5, 1, 0, 0, 0);
         break;
     case 0:
-        RevokeCmPolicy(&D_002DDF40, 8, -1, 0, 0, p);
+        RevokeCmPolicy(&g_cm, 8, -1, 0, 0, p);
         PVT(p)[3].pfn((char *)p + PVT(p)[3].d, 6, 1, 0, 0, 0);
         break;
     }
@@ -807,7 +806,7 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
     }
     p->hasEntered = 1;
     InitTnDefaultAngles(p->cameraDefinition);
-    GetCmCpdefi(&D_002DDF40, pj, &cpdefi);
+    GetCmCpdefi(&g_cm, pj, &cpdefi);
     BlendTnFocusPos(p->cameraDefinition, (CPDEFI *)&cpdefi, &focusPos, 0);
     if (p->cameraTunnel) {
         TN *ptT = p->cameraTunnel;
@@ -817,20 +816,20 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
             UpdateCptnTarget(p, (CPDEFI *)&cpdefi);
         BlendTnFocusPos(p->cameraDefinition, (CPDEFI *)&cpdefi, &focusPos, p->cameraTunnel);
     }
-    { qword *pq = &D_002DDF40.dposFocus; a = VuAdd(focusPos, *pq);
+    { qword *pq = &g_cm.dposFocus; a = VuAdd(focusPos, *pq);
     GetVectorSphere(VuSub(pq[-0x25], a), &p->panAngle, &p->tiltAngle, &p->distance); }
-    p->distance = p->distance - D_002DDF40.nearClip;
+    p->distance = p->distance - g_cm.nearClip;
     p->eyePosition = VuAdd(a, SetVectorSphere(p->panAngle, p->tiltAngle, p->distance));
     p->verticalFraming = p->cameraDefinition->uFrameY;
     p->mode = 0;
     if (p->cameraTunnel && p->cameraTunnel->unknown184)
-        CutCm__FP2CM(&D_002DDF40);
+        CutCm__FP2CM(&g_cm);
     p->lastSeenTime = D_002DDED0.time;
     p->lastMoveTime = D_002DDED0.time;
     p->lastManualInputTime = D_002DDED0.time - D_002C41DC;
     p->hasArrived = 0;
     if (p->cameraTunnel && p->cameraTunnel->fieldOfView != 0.0f)
-        D_002DDF40.targetFieldOfView = p->cameraTunnel->fieldOfView;
+        g_cm.targetFieldOfView = p->cameraTunnel->fieldOfView;
 }
 
 // Clears tn/ppo (0x10,0x14) then base 0x14FCE8. (inferred)
@@ -945,9 +944,9 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     VECTOR4 posFocus;
     CalcCpdFocus(cameraDefinition, pcpdefi, (qword *)&posFocus, ptnCur);
     if (ploPlayer != 0 && ((STEPPLAYER *)ploPlayer)->jtgrab.jtfock == JTFOCK_Focus)
-        SpringCm(&D_002DDF40, &D_002DDF40.dposFocus, &D_002DDF40.vFocus, VuSub(((STEPPLAYER *)ploPlayer)->jtgrab.focusPosition, *(qword *)&posFocus), 8.0f, -6.0f);
+        SpringCm(&g_cm, &g_cm.dposFocus, &g_cm.vFocus, VuSub(((STEPPLAYER *)ploPlayer)->jtgrab.focusPosition, *(qword *)&posFocus), 8.0f, -6.0f);
     VECTOR4 posHang;
-    qword *pdposFocus = &D_002DDF40.dposFocus;
+    qword *pdposFocus = &g_cm.dposFocus;
     *(qword *)&posHang = VuAdd(*(qword *)&posFocus, *pdposFocus);
     if (ptnCur != 0 && ptnCur->ploPull != 0)
         pcpdefi->grfcpd &= ~1;
@@ -991,13 +990,13 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     }
     if (hasEntered)
         mode = 4;
-    if (D_002DDF40.nCut != 0)
+    if (g_cm.nCut != 0)
     {
-        if (D_002DDF40.nCut == 2)
+        if (g_cm.nCut == 2)
         {
             mode = 4;
-            panAngle = D_002DDF40.cutPanAngle;
-            float radTiltCut = D_002DDF40.cutTiltAngle - atanf(cameraDefinition->uFrameY * D_002DDF40.tanHalfFovY);
+            panAngle = g_cm.cutPanAngle;
+            float radTiltCut = g_cm.cutTiltAngle - atanf(cameraDefinition->uFrameY * g_cm.tanHalfFovY);
             tiltAngle = ClampToLimits(&D_002C41B0, radTiltCut);
         }
         else if ((grftnm & 3) == 0)
@@ -1123,7 +1122,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         *(qword *)&vecStick = qwStick;
         VECTOR4 vecView;
-        CM *pcm = &D_002DDF40;
+        CM *pcm = &g_cm;
         qword *pqwFallbackView = &D_002A2DA0;
         *(qword *)&vecView = VuSub(*(qword *)&posHang, *(qword *)&pcm->pos);
         vecView.z *= 0.3f;
@@ -1402,7 +1401,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         break;
     }
-    if (D_002DDF40.nCut != 0)
+    if (g_cm.nCut != 0)
     {
         dsDist = duFrameY = 0.0f;
     }
@@ -1421,20 +1420,20 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
     *(qword *)&posEyeWant = VuAdd(*(qword *)&posHang, *(qword *)&dposEye);
     if (ptnCur == 0 || ptnCur->disablesCameraCollision == 0)
     {
-        if (D_002DDF40.nCut != 0)
+        if (g_cm.nCut != 0)
             FreeCamClip(this, *(qword *)&posHang, *(qword *)&posEyeWant, (qword *)&posEyeWant);
         else if (D_002C4118 == 0)
-            *(qword *)&posEyeWant = ClipCmEye(&D_002DDF40, eyePosition, *(qword *)&posEyeWant);
+            *(qword *)&posEyeWant = ClipCmEye(&g_cm, eyePosition, *(qword *)&posEyeWant);
     }
     *(qword *)&dposEye = VuSub(*(qword *)&posEyeWant, *(qword *)&posHang);
     GetVectorSphere(*(qword *)&dposEye, &radPanOut, &radTiltOut, &sDistOut);
     eyePosition = *(qword *)&posEyeWant;
-    *(qword *)&posEyeWant = VuAdd(*(qword *)&posHang, QwMulX(*(qword *)&dposEye, VuFloat((sDistOut + D_002DDF40.nearClip) / sDistOut)));
-    float radLookX = atanf(uFrameXWant * D_002DDF40.tanHalfFovX);
-    float radLookY = -atanf(uFrameYWant * D_002DDF40.tanHalfFovY);
+    *(qword *)&posEyeWant = VuAdd(*(qword *)&posHang, QwMulX(*(qword *)&dposEye, VuFloat((sDistOut + g_cm.nearClip) / sDistOut)));
+    float radLookX = atanf(uFrameXWant * g_cm.tanHalfFovX);
+    float radLookY = -atanf(uFrameYWant * g_cm.tanHalfFovY);
     if (hasEntered)
     {
-        if (D_002DDF40.nCut != 0)
+        if (g_cm.nCut != 0)
         {
             lookPanAngle = lookTiltAngle = 0.0f;
         }
@@ -1445,7 +1444,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             GetVectorCylind(*(qword *)&dposEye, 0, &sXY, &z);
             float radPanCm;
             float radTiltCm;
-            DecomposeRotateMatrixPanTilt(&D_002DDF40.matRot, &radPanCm, &radTiltCm);
+            DecomposeRotateMatrixPanTilt(&g_cm.matRot, &radPanCm, &radTiltCm);
             float radPanView = NormalizeAngle(radPanOut + 3.1415927f + radLookX);
             float radTiltView = NormalizeAngle(atan2f(-z, sXY) + radLookY);
             lookPanAngle = NormalizeAngle(radPanCm - radPanView);
@@ -1460,7 +1459,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         lookPanAngle += dradPanLook * D_002DDED0.deltaTime;
         lookTiltAngle += dradTiltLook * D_002DDED0.deltaTime;
     }
-    SetCmPanTilt(&D_002DDF40, *(qword *)&posEyeWant, *(qword *)&posHang, radLookX + lookPanAngle, radLookY + lookTiltAngle);
+    SetCmPanTilt(&g_cm, *(qword *)&posEyeWant, *(qword *)&posHang, radLookX + lookPanAngle, radLookY + lookTiltAngle);
     verticalFraming = uFrameYWant;
     panAngle = radPanOut;
     tiltAngle = radTiltOut;
@@ -1514,14 +1513,14 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
         return;
     if (D_002DDED0.time - pcmpart->lastSeenTime < D_002C4110)
         return;
-    if (D_002DDF40.nCut != 0)
+    if (g_cm.nCut != 0)
         return;
     qword aqw[11]; // box min 0 / max 1, near-plane point 2, samples 3..7, back 8, side 9, up 10
     uint i;
-    aqw[0] = aqw[1] = *(qword *)&D_002DDF40.pos;
+    aqw[0] = aqw[1] = *(qword *)&g_cm.pos;
     qword qwUp = D_002A2DC0q;
     aqw[10] = qwUp;
-    qword qwToHero = VuSub(GetLoWorldPos(plo), *(qword *)&D_002DDF40.pos);
+    qword qwToHero = VuSub(GetLoWorldPos(plo), *(qword *)&g_cm.pos);
     qword qwCross = VuCross(qwUp, qwToHero);
     qword qwFallback = D_002A2DA0;
     qword qwLen = QwLengthUntied(qwCross);
@@ -1552,9 +1551,9 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], HasCameraBsp, 0, &cpso, &apso);
     for (i = 0; i < 5; i++, pqw++)
     {
-        aqw[2] = ConvertCmWorldToScreen(&D_002DDF40, *pqw);
-        ((VECTOR4 *)&aqw[2])->z = D_002DDF40.nearClip;
-        aqw[2] = ConvertCmScreenToWorld(&D_002DDF40, aqw[2]);
+        aqw[2] = ConvertCmWorldToScreen(&g_cm, *pqw);
+        ((VECTOR4 *)&aqw[2])->z = g_cm.nearClip;
+        aqw[2] = ConvertCmScreenToWorld(&g_cm, aqw[2]);
         float uExit;
         if (FindCameraClearInterval(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
         {
@@ -1563,7 +1562,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
         }
     }
     if (D_002DDED0.time - pcmpart->lastSeenTime > D_002C4114)
-        CutCm__FP2CM(&D_002DDF40);
+        CutCm__FP2CM(&g_cm);
 }
 
 // Signed distance of pos to a plane. (inferred)
@@ -1636,7 +1635,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
         }while(angle<3.1415927f);
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
-    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,D_002DDF40.nearCornerDistance,D_002DDF40.nearCornerDistance));
+    final=ToVF(SquishCmEye(&g_cm,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,g_cm.nearCornerDistance,g_cm.nearCornerDistance));
     FindCameraClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;
