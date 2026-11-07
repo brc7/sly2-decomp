@@ -1841,7 +1841,8 @@ typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
 /* 87 RIPG (0x1B0); vtable 0x2D77D8, 75 slots */
 struct RIPG : SO
 {
-    int ripgState;          /* +0x150 [S] (rip.cpp RIPGV) */
+    int groupKind;          /* +0x150 [S] NewRipGroup's kind: 0 the world's shared group, 1 one with its own tree
+                               (InitRipg; CanRipgStayAsleep: never sleeps) */
     int unknown154;
     float emitScale;        /* +0x158 [S] */
     DL ripList;             /* +0x15C [S] the group's RIPs */

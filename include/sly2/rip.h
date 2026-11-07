@@ -22,7 +22,7 @@ struct RIP
 {
     int kind;
     int refCount;               /* +0x04 */
-    RIPG *ripGroup;             /* +0x08 the group it lives in (its list: rip.cpp's RIPGV view) */
+    RIPG *ripGroup;             /* +0x08 the group it lives in (on its ripList) */
     char padC[0x14 - 0xC];
     float startTime;           /* +0x14 game time the rip starts (it is skipped until then) */
     float duration;            /* +0x18 */
