@@ -408,12 +408,12 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
         n = jtMode->state;
         switch (n) {
         case 0:
-            *(qword *)&jtMode->player->unknown190 = D_002A2DD0;
+            jtMode->player->qwUnknown190 = D_002A2DD0;
             if (!jtMode->animationPlayback || IsAsegaRetracted(jtMode->animationPlayback))
                 SetJtModeState(jtMode, 1);
             break;
         case 1:
-            *(qword *)&jtMode->player->unknown190 = D_002A2DD0;
+            jtMode->player->qwUnknown190 = D_002A2DD0;
             switch (jtMode->kind) {
             case 0:
                 SetStepTargetHeading(jtMode->player, ((CMVIEW *)&D_002DDF40)->lookHeading);
@@ -428,7 +428,7 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             }
             break;
         case 2:
-            *(qword *)&jtMode->player->unknown190 = D_002A2DD0;
+            jtMode->player->qwUnknown190 = D_002A2DD0;
             if (!jtMode->animationPlayback || IsAsegaRetracted(jtMode->animationPlayback))
                 SetJtModeState(jtMode, -1);
             break;

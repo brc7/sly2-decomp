@@ -1063,49 +1063,49 @@ typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float time; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char action[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int strafeSubstate; float f17F8; };
-void SetXfRole(struct P *p, int a, int b);
+void SetXfRole(MURRAY *p, XF *pxf, int b);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct P *p, int n, void *q, float f1, float f2);
-void ReplaceSma(int a, struct P *p, int b, int n, void *q);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, MURRAY *p, int n, void *q, float f1, float f2);
+void ReplaceSma(SM *psm, MURRAY *p, int b, int n, void *q);
 // Strafe sub-state (x17F4): 0 stand, 1 blend x1630, 2 clip x17F0; restarts the animation.
-void SetMurrayStrafeSubstate(struct P *murray, int st)
+void SetMurrayStrafeSubstate(MURRAY *murray, int st)
 {
     void *o;
-    int x, n;
+    SM *x;
+    int n;
     if (st == murray->strafeSubstate) return;
     if (murray->strafeSubstate == 0) {
-        SetXfRole(murray, murray->x58, 2);
-        SetXfRole(murray, murray->x5C, 2);
+        SetXfRole(murray, murray->unknown58, 2);
+        SetXfRole(murray, murray->unknown5C, 2);
     }
     murray->strafeSubstate = st;
-    murray->f17F8 = D_002DDED0.time;
+    murray->strafeStartTime = D_002DDED0.time;
     o = 0;
     x = 0;
     n = 1;
     switch (st) {
     case 0:
-        SetXfRole(murray, murray->x58, 1);
-        SetXfRole(murray, murray->x5C, 1);
-        x = murray->x16E0;
-        murray->q190 = D_002A2DD0;
+        SetXfRole(murray, murray->unknown58, 1);
+        SetXfRole(murray, murray->unknown5C, 1);
+        x = murray->psmStrafeIdle;
+        murray->qwUnknown190 = D_002A2DD0;
         break;
     case 2:
-        o = murray->x17F0;
+        o = murray->unknown17F0;
         n = 9;
         break;
     case 1:
-        o = murray->x1634;
-        ResetGaitFeet(murray->x1630);
+        o = murray->gaitD.blendedAnimation;
+        ResetGaitFeet(&murray->gaitD);
         n = 9;
         break;
     }
-    ReleaseAsega(murray->action);
-    ReleaseSma(murray->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, n, murray->action, 0.0f, 1.0f);
-    ReplaceSma(x, murray, -1, n, murray->x1034);
+    ReleaseAsega(&murray->activeAnimation);
+    ReleaseSma(&murray->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(o, murray, n, &murray->activeAnimation, 0.0f, 1.0f);
+    ReplaceSma(x, murray, -1, n, &murray->activeStateMachine);
 }
 } } // namespace M_func_001B5D30
 
@@ -1662,33 +1662,31 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
 
 namespace M_func_001B6BA8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x18]; float f18; float f1C; };
-struct P { char pad[0x150]; struct Q *controller; char pad0[0x190 - 0x154]; qword q190; char pad1[0x1030 - 0x1A0]; int action; char pad2[0x131C - 0x1034]; char x131C[0x13D8 - 0x131C]; int x13D8; float f13DC; int x13E0; int x13E4; };
 extern float D_002C09A0, D_002BF730;
-int IsAsegaRetracted(int n);
-void SetMurrayState(struct P *p, int n);
-void SetMurrayFlopSubstate(struct P *p, int n);
-int IsJtStuck(struct P *p, void *q, float f);
-void ReturnJtToSafePlace(struct P *p, int n);
+int IsAsegaRetracted(ASEGA *pasega);
+void SetMurrayState(MURRAY *p, int n);
+void SetMurrayFlopSubstate(MURRAY *p, int n);
+int IsJtStuck(MURRAY *p, void *q, float f);
+void ReturnJtToSafePlace(MURRAY *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 // State 3 (air slam): ends when the animation is done; sub-state 1 waits for landing then the impact sub-state 2;
 // steering.
-void UpdateMurrayFlop(struct P *murray)
+void UpdateMurrayFlop(MURRAY *murray)
 {
     int s;
     for (;;) {
-        s = murray->x13D8;
-        if (!murray->action || IsAsegaRetracted(murray->action)) SetMurrayState(murray, MURRAY_IDLE);
-        else if (murray->x13D8 == 1) {
-            if (murray->x13E4) SetMurrayFlopSubstate(murray, 2);
-            else if (IsJtStuck(murray, murray->x131C, murray->f13DC)) ReturnJtToSafePlace(murray, 0);
+        s = murray->flopSubstate;
+        if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) SetMurrayState(murray, MURRAY_IDLE);
+        else if (murray->flopSubstate == 1) {
+            if (murray->unknown13E4) SetMurrayFlopSubstate(murray, 2);
+            else if (IsJtStuck(murray, &murray->unknown131C, murray->unknown13DC)) ReturnJtToSafePlace(murray, 0);
         }
-        if (murray->x13D8 == s || murray->x13D8 == -1) break;
+        if (murray->flopSubstate == s || murray->flopSubstate == -1) break;
     }
-    switch (murray->x13D8) {
+    switch (murray->flopSubstate) {
     case 0:
     case 1:
-        murray->q190 = SetVectorCylind(murray->controller->f18 + 3.14159265f, D_002C09A0 * D_002BF730 * murray->controller->f1C, 0.0f);
+        murray->qwUnknown190 = SetVectorCylind(murray->controller->leftStickAngle + 3.14159265f, D_002C09A0 * D_002BF730 * murray->controller->leftStickDeflection, 0.0f);
         break;
     }
 }
@@ -2610,7 +2608,7 @@ int GetStepplayerGroundProbeFlags(MURRAY *p);
 int GetMurrayGroundProbeFlags(MURRAY *murray)
 {
     if (murray->unknown204) return 0;
-    if (murray->unknown13D8 == 1 || murray->state == MURRAY_PIPE) return 0;
+    if (murray->flopSubstate == 1 || murray->state == MURRAY_PIPE) return 0;
     return GetStepplayerGroundProbeFlags(murray);
 }
 } } // namespace M_func_001B8368
@@ -3148,15 +3146,13 @@ void UpdateMurrayPower(P *murray)
 
 namespace M_func_001B90B8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Q { char pad[0x1C]; float g; };
-struct P { char pad[0x180]; float f180; int pad2[3]; qword q190; char pad3[0x1030 - 0x1A0]; struct Q *pq; char pad4[0x1840 - 0x1034]; int n; };
-qword GetStepAsegaTranslation(struct P *p, struct Q *pq, float g);
+qword GetStepAsegaTranslation(MURRAY *p, ASEGA *pasega, float g);
 // State 12 sub-states 1/3: velocity from the animation root motion.
-void UpdateMurrayPowerVelocity(struct P *murray)
+void UpdateMurrayPowerVelocity(MURRAY *murray)
 {
-    if (!(murray->n == 1 || murray->n == 3))
+    if (!(murray->subState == 1 || murray->subState == 3))
         return;
-    qword v = GetStepAsegaTranslation(murray, murray->pq, murray->pq->g);
+    qword v = GetStepAsegaTranslation(murray, murray->activeAnimation, murray->activeAnimation->time);
     qword r;
     union { qword q; float f; } s;
     {
@@ -3165,8 +3161,8 @@ void UpdateMurrayPowerVelocity(struct P *murray)
         s.q = qwsqOut;
     }
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
-    murray->q190 = r;
-    murray->f180 = 1.0f;
+    murray->qwUnknown190 = r;
+    murray->unknown180 = 1.0f;
 }
 } } // namespace M_func_001B90B8
 

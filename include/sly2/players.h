@@ -32,8 +32,10 @@ struct MURRAY : public STEPPLAYER
       GAIT gaitA;   /* +0x1320 locomotion gaits (PostMurrayLoad's PostJtLoadGait: A, B, D, C in that order) */
       int state;    /* Murray's state */
       undefined4 unknown13D4;
-      int unknown13D8;   /* 1: no ground probe (GetMurrayGroundProbeFlags) */
-      undefined4 unk_0x13dc[(0x13e8 - 0x13dc) / 4];
+      int flopSubstate;   /* +0x13D8 sub-state of MURRAY_FLOP (UpdateMurrayFlop): 1 waits for landing (no ground probe), 2 impact */
+      float unknown13DC;   /* +0x13DC passed to IsJtStuck while flopping */
+      int unknown13E0;
+      int unknown13E4;   /* +0x13E4 nonzero: the flop has landed (UpdateMurrayFlop) */
       int unknown13E8;
       undefined4 unknown13EC;
       LO *ploCarried;   /* object being carried */
@@ -70,11 +72,12 @@ struct MURRAY : public STEPPLAYER
       PARTLINK *ikChainB;   /* +0x1614 IK chain of transforms 0x203..0x205 */
       undefined4 unk_0x1618[(0x1630 - 0x1618) / 4];
       GAIT gaitD;   /* +0x1630 */
-      undefined4 unk_0x16e0[(0x16f0 - 0x16e0) / 4];
+      struct SM *psmStrafeIdle;   /* +0x16E0 the state machine strafe sub-state 0 applies (SetMurrayStrafeSubstate) */
+      undefined4 unk_0x16e4[(0x16f0 - 0x16e4) / 4];
       BLDIR unknown16F0[8];     /* directional animation blends */
       ASEGBL *unknown17F0;
       int strafeSubstate;   /* +0x17F4 sub-state while strafing (MURRAY_STRAFE; nonzero: noisy movement) */
-      undefined4 unk_0x17f8;
+      float strafeStartTime;   /* +0x17F8 clock.time strafeSubstate was set */
       ASEG *apasegAttack[5];   /* +0x17FC attack clips by attack kind (SetMurrayAttack): 0/1 square (the two hands), 2/3 triangle
                                   (StartMurrayPunch/AltAttack), 4 (OID 0xC4) */
       int attackSubstate;   /* +0x1810 current attack kind, -1 none (SetMurrayAttack) */

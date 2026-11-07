@@ -49,8 +49,11 @@ struct STEP : public PO
 {
       float unknown180;
       undefined4 unknown184[3];
-      VECTOR unknown190;   /* possibly localVelocity (low-confidence guess: rotated by the step matrix in step.cpp; modes clear it) */
-      undefined4 unknown19C;
+      union
+      {
+            VECTOR unknown190;   /* possibly localVelocity (low-confidence guess: rotated by the step matrix in step.cpp; modes clear it) */
+            qword qwUnknown190;  /* the same vector as a VU quadword (the root-motion code stores whole quadwords; mode.cpp, murray.cpp) */
+      };
       float gaitBlend; /* gait blend, 0..1 (walk to run, inferred) */
       int unknown1A4;
       float targetHeading; /* target heading (radians) */
