@@ -46,9 +46,9 @@ int D_003DD000;
 SAA **D_003DD004;           /* shader animations */
 int D_003DD008;             /* named by no code; keeps the layout */
 int D_003DD00C;
-void *D_003DD010;
+BMP **D_003DD010;           /* the bitmap hash (0x3FFD entries) */
 int D_003DD014;
-void *D_003DD018;
+CLUT **D_003DD018;          /* the colour table hash */
 void ColorCorrectRgba(SHDRGBA *prgba);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 void *memset(void *pv, int n, unsigned int cb);
@@ -1253,32 +1253,31 @@ void ClearTextureHashTables(void)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddBitmapToHash { extern "C" {
-struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
 // Insert a record into the bitmap hash (key % 0x3FFD, linear probe) (inferred)
-void AddBitmapToHash(struct S *input){
-    struct S *p;
+void AddBitmapToHash(BMP *input){
+    BMP *p;
     register int nextIndex __asm__("$3");
 
     register int initial __asm__("$5");
     register int i __asm__("$4");
-    register struct S **volatile *firstPage __asm__("$4");
-    register struct S **volatile *loopPage __asm__("$8");
-    register struct S **firstTable __asm__("$6");
-    register struct S **slot __asm__("$2");
+    register BMP **volatile *firstPage __asm__("$4");
+    register BMP **volatile *loopPage __asm__("$8");
+    register BMP **firstTable __asm__("$6");
+    register BMP **slot __asm__("$2");
     p=input;
-    {register int key __asm__("$3")=p->n;initial=key%0x3FFD;}
-    firstPage=(struct S **volatile *)TABLE_PAGE;
-    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(struct S ***)((int)firstPage-0x2FF0)));
+    {register int key __asm__("$3")=p->n0;initial=key%0x3FFD;}
+    firstPage=(BMP **volatile *)TABLE_PAGE;
+    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(BMP ***)((int)firstPage-0x2FF0)));
     __asm__("daddu %0,%1,$zero":"=r"(i):"r"(initial));
-    slot=(struct S **)(((unsigned)i<<2)+(unsigned)firstTable);
+    slot=(BMP **)(((unsigned)i<<2)+(unsigned)firstTable);
     goto probe;
 next:
     i=nextIndex%0x3FFD;
     {
-        register struct S **table __asm__("$5");
-        __asm__("lw %0,%1":"=r"(table):"m"(*(struct S ***)((char*)loopPage-0x2FF0)));
-        slot=(struct S **)(((unsigned)i<<2)+(unsigned)table);
+        register BMP **table __asm__("$5");
+        __asm__("lw %0,%1":"=r"(table):"m"(*(BMP ***)((char*)loopPage-0x2FF0)));
+        slot=(BMP **)(((unsigned)i<<2)+(unsigned)table);
     }
 probe:
     if(!*slot)goto insert;
@@ -1287,56 +1286,51 @@ insert:
     *slot=p;
 }
 
-typedef char S_Size[sizeof(struct S)==4?1:-1];
-typedef char Table_Pointer_Size[sizeof(struct S**)==4?1:-1];
-typedef char Key_Offset[(unsigned)&((struct S*)0)->n==0?1:-1];
+typedef char Table_Pointer_Size[sizeof(BMP**)==4?1:-1];
 typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
 } } // namespace M_AddBitmapToHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindBitmapInHash { extern "C" {
-struct S { int id; };
-extern struct S **D_003DD010;
 enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
 // Look up a bitmap by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
-struct S *FindBitmapInHash(int id)
+BMP *FindBitmapInHash(int id)
 {
     if (!D_003DD010) return 0;
     for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
-        struct S *entry = D_003DD010[i];
-        if (!entry || entry->id == id) return entry;
+        BMP *entry = D_003DD010[i];
+        if (!entry || entry->n0 == id) return entry;
     }
 }
 } } // namespace M_FindBitmapInHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddClutToHash { extern "C" {
-struct S {int n;};
 enum {TABLE_PAGE=0x003E0000};
 // Insert into the clut hash. (inferred)
-void AddClutToHash(struct S *input){
-    struct S *p;
+void AddClutToHash(CLUT *input){
+    CLUT *p;
     register int nextIndex __asm__("$3");
 
     register int initial __asm__("$5");
     register int i __asm__("$4");
-    register struct S **volatile *firstPage __asm__("$4");
-    register struct S **volatile *loopPage __asm__("$8");
-    register struct S **firstTable __asm__("$6");
-    register struct S **slot __asm__("$2");
+    register CLUT **volatile *firstPage __asm__("$4");
+    register CLUT **volatile *loopPage __asm__("$8");
+    register CLUT **firstTable __asm__("$6");
+    register CLUT **slot __asm__("$2");
     p=input;
-    {register int key __asm__("$3")=p->n;initial=key%0x3FFD;}
-    firstPage=(struct S **volatile *)TABLE_PAGE;
-    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(struct S ***)((int)firstPage-0x2FE8)));
+    {register int key __asm__("$3")=p->n0;initial=key%0x3FFD;}
+    firstPage=(CLUT **volatile *)TABLE_PAGE;
+    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(CLUT ***)((int)firstPage-0x2FE8)));
     __asm__("daddu %0,%1,$zero":"=r"(i):"r"(initial));
-    slot=(struct S **)(((unsigned)i<<2)+(unsigned)firstTable);
+    slot=(CLUT **)(((unsigned)i<<2)+(unsigned)firstTable);
     goto probe;
 next:
     i=nextIndex%0x3FFD;
     {
-        register struct S **table __asm__("$5");
-        __asm__("lw %0,%1":"=r"(table):"m"(*(struct S ***)((char*)loopPage-0x2FE8)));
-        slot=(struct S **)(((unsigned)i<<2)+(unsigned)table);
+        register CLUT **table __asm__("$5");
+        __asm__("lw %0,%1":"=r"(table):"m"(*(CLUT ***)((char*)loopPage-0x2FE8)));
+        slot=(CLUT **)(((unsigned)i<<2)+(unsigned)table);
     }
 probe:
     if(!*slot)goto insert;
@@ -1345,24 +1339,20 @@ insert:
     *slot=p;
 }
 
-typedef char S_Size[sizeof(struct S)==4?1:-1];
-typedef char Table_Pointer_Size[sizeof(struct S**)==4?1:-1];
-typedef char Key_Offset[(unsigned)&((struct S*)0)->n==0?1:-1];
+typedef char Table_Pointer_Size[sizeof(CLUT**)==4?1:-1];
 typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
 } } // namespace M_AddClutToHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindClutInHash { extern "C" {
-struct S { int id; };
-extern struct S **D_003DD018;
 enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
 // Look up a clut by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
-struct S *FindClutInHash(int id)
+CLUT *FindClutInHash(int id)
 {
     if (!D_003DD018) return 0;
     for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
-        struct S *entry = D_003DD018[i];
-        if (!entry || entry->id == id) return entry;
+        CLUT *entry = D_003DD018[i];
+        if (!entry || entry->n0 == id) return entry;
     }
 }
 } } // namespace M_FindClutInHash
