@@ -958,7 +958,6 @@ struct TREE {int id;TREE *parent;char pad8[8];P *owner;};
 struct BIND {int kind,pad4;void *resource;void *begin,*end;P *object;};
 struct TABLE {int count;P **objects;int capacity,used;char pad10[0x54];void *states;NODE *nodes;};
 struct P {void *resource;char pad4[8];VTE *vt;void *context;char pad14[0x24];float scale;char pad3C[0x14];void *channel;char pad54[0xC];M4 matrix;char padA0[0x40];TABLE *table;int disabled;NODE *head;int bindCount;BIND *binds;};
-struct SW {char pad[0x3F08];TABLE *tables;TREE *root;};
 struct DESC {int kind,flags;char pad8[0x20];};
 struct STREAM {int flags;unsigned char *cursor;int remaining,consumed;unsigned char *raw;int rawCount,compression,pending,word20;unsigned char *decompressed;int word28,word2C;VTE *vt;void *begin,*end;};
 struct WORK {int id;P *found,*child;void *cursor;P *owner;};
@@ -997,8 +996,8 @@ extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
  work.owner=proxy;
  node->matrix=proxy->matrix;
  int row=GetCopyIndexFromProxySpare__FP5PROXYP10PROXYSPARE(proxy,node);
- work.id=MakeProxyId__Fii(proxy->table-D_003DD490.tables,row);
- TREE *tree=FindProxyRefPath(D_003DD490.root,1,&work.id);
+ work.id=MakeProxyId__Fii(proxy->table-((TABLE *)D_003DD490.aproxysrc),row);
+ TREE *tree=FindProxyRefPath(((TREE *)D_003DD490.ppxrRoot),1,&work.id);
  for(int i=0;i<proxy->bindCount;i++){
   BIND *bind=&proxy->binds[i];
   if(bind->kind==5)continue;
@@ -1028,7 +1027,6 @@ extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char attach_layout[(sizeof(void*)==4 && sizeof(qword)==16 && sizeof(VTE)==8 && sizeof(M4)==0x40 && sizeof(TABLE)==0x6C && sizeof(BIND)==0x18 && sizeof(DESC)==0x28 && sizeof(STREAM)==0x3C && OFF(VTE,delta)==0 && OFF(VTE,fn)==4 && OFF(NODE,owner)==0 && OFF(NODE,next)==4 && OFF(NODE,matrix)==0x10 && OFF(TREE,owner)==0x10 && OFF(BIND,kind)==0 && OFF(BIND,resource)==8 && OFF(BIND,begin)==0xC && OFF(BIND,end)==0x10 && OFF(BIND,object)==0x14 && OFF(TABLE,count)==0 && OFF(TABLE,objects)==4 && OFF(TABLE,states)==0x64 && OFF(TABLE,nodes)==0x68 && OFF(P,resource)==0 && OFF(P,vt)==0xC && OFF(P,context)==0x10 && OFF(P,scale)==0x38 && OFF(P,channel)==0x50 && OFF(P,matrix)==0x60 && OFF(P,table)==0xE0 && OFF(P,disabled)==0xE4 && OFF(P,head)==0xE8 && OFF(P,bindCount)==0xEC && OFF(P,binds)==0xF0 && OFF(SW,tables)==0x3F08 && OFF(SW,root)==0x3F0C && OFF(DESC,flags)==4 && OFF(STREAM,vt)==0x30 && OFF(STREAM,begin)==0x34 && OFF(STREAM,end)==0x38 && OFF(WORK,id)==0 && OFF(WORK,found)==4 && OFF(WORK,child)==8 && OFF(WORK,cursor)==0xC && OFF(WORK,owner)==0x10)?1:-1];
 } // namespace M_PspareAcquire
 
 // For a single-object proxy, acquires a spare (rating 1 when forced, else 2) and returns its object, or null.
