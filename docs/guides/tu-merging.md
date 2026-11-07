@@ -514,6 +514,38 @@ Not attempted: act.cpp's 19 curve-class vtables (namespace-scoped classes of Pac
 move them to file scope under real names with `_vt$` names in config, as slice 2 did for the registry classes),
 hud's and memcard's local classes, the 19 macros without a header type, unifying the three CFrame views.
 
+### Views unified (names/vu-f8-sound-ui): CRef, the sound types, the screens
+
+The sound / UI / Splice-value family. Every function and data symbol of every touched file and of every includer of
+a touched header MATCHes, and each touched object is identical to the branch start's (every allocated section's
+bytes, every relocation's offset, type and symbol, the symbol table: a stricter check than nm). Private
+struct/class/union definitions in the touched .cpp files: 3,078 -> 2,739; the family's named views (CRef/CREFV/PAIRV,
+SNDMGR*/SNDV/SNDREF/EASND, SCREENV/GADGETMENUV, ...): 253 -> 71.
+
+| type | header | change | views removed |
+|---|---|---|---:|
+| CRef | sly2/cref.h | `CRefData`, the POD base (tag + payload union, `float *ag` added) for the C-style bodies; CRef gains `operator=(int/float)` (SetS32/SetF32 by label), `SetMatrix`, `SetSymid`, `SetBifk`, the inline `CRef(bool)` and `CRef(float)` constructors | 163 (bif 99 + 10 NODE pair views, game, screen, memcard, prize, stepplayer, sw, menu, rumble, serialize, splicemap, class_registry, booty, hud, cplcy, stepguard, relay, lo, po) |
+| SND (CID151), BANKSND, STREAMSND, SNDSOURCE, SNDREF/SNDREFC, EASND | sly2/snd.h | the fields every view agrees on; STREAMSND's record a union by stream kind (FILEREC or SNDSTREAM); `GetKind` returns int, `SetCulled(int)`; STREAMSND's C-named constructor and pool `operator new` | ~60 in sound.cpp, 8 EASND (7 unused Lilly copies) |
+| SNDMGR, SNDSTREAM, SNDFILE, DIALOGEVENT | sly2/sndmgr.h (new; separate from snd.h's 76 includers) | the documented 0x250 layout; `g_sndmgr` declared (D_003DD040) | ~30 SNDMGR views in sound.cpp, menu.cpp's, 5 interior macros (menu, cd, save) |
+| SCREEN, HUDMETER | sly2/screen.h | HUDMETER's fields (0x50) | screen.cpp's SCREENV/GADGETMENUV |
+
+Spellings that matched on the first compile: the hand vtable calls (`p->vtable[n].pfn(p + d)`) as the header's virtual
+calls (AddRef/Release/Start/GetKind/Play/... : same code); the views' tag-first inline constructors `CRef(0x15, n)` as
+cref.h's `CRef(n, 0x15)`; the sound views' counted pointers as SNDREF (no constructors: a default constructor makes
+g++ emit a construction loop for g_sndmgr's music stack, 140/141 off); an expanded pair release as `delete` of the
+CPair (splicemap). Watch for: `ref = pointer` compiles to cref.h's `operator=(bool)` when the view had a pointer
+setter (class_registry's object results, BuildListFromObjects): matchtool masks the call target, the relocation
+comparison catches it; such assignments are spelled `SetBasic(...)`.
+
+Island (scratch islands.csv): stepplayer's UpdateStepplayerBootySave keeps its CRef as `CRefIsland` (its copy
+constructor inline over the void*-returning copy function; cref.h's out-of-line one moves the stack slots, 37/286
+off). Kept views: UpdateSndPositional/UpdateStreamsndPositional read LO's +0x28 word whole (lo.h's isInWorld
+bit-field compiles to a mask test); the C-named constructors store the vptr by hand (SNDOBJ, GADGETMENU_ctor);
+g_sndmgr's definition keeps its construct-and-destruct form (SNDMGRBASE/SNDMGRG: the destructor order puts the
+counted pointers in the derived class). Not attempted: the SP* inline-release owners and the CFrame/CProc/CSidebag
+views of splice/ (tied to gc.cpp's linkonce instances), WIDGET (classes.h, another family), screen.cpp's
+per-function views (~100), CRichText/CFont. For sw.h's owner: FILEREC's key words are aw[0], aw[1], aw[13], aw[15].
+
 ### Vtables emitted (data/vtables)
 
 The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key
