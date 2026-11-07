@@ -830,21 +830,20 @@ void InitBhvInteract(BHV195 *behavior)
 namespace M_func_00145D00 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
-struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
-void StartBhv(struct BHVINTERACTV *behavior);
-void SetBhvInteractState(struct BHVINTERACTV *behavior, int state);
+void StartBhv(BHV195 *behavior);
+void SetBhvInteractState(BHV195 *behavior, int state);
 // 0x145D00: Interact behaviour vtable slot 8 (Start): state 0, starts interact mode 4 with the target
 // (SetPlayerInteractMode) and sets the owner's +0x10E0 bit 1.
-void StartBhvInteract(struct BHVINTERACTV *behavior)
+void StartBhvInteract(BHV195 *behavior)
 {
     struct OWNER *owner;
     struct VTE *entry;
     StartBhv(behavior);
     SetBhvInteractState(behavior, 0);
-    owner = behavior->owner;
+    owner = ((struct OWNER *)behavior->owner);
     entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
-    behavior->owner->aiInteractFlags |= 1;
+    ((void (*)(void *, int, void *, int, void *))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    ((struct OWNER *)behavior->owner)->aiInteractFlags |= 1;
 }
 } } // namespace M_func_00145D00
 
@@ -1019,20 +1018,19 @@ void InitBhvInteract2(BHV196 *behavior)
 namespace M_func_001461F8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
-struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
-void StartBhv(struct BHVINTERACTV *behavior);
-void SetBhvInteract2State(struct BHVINTERACTV *behavior, int state);
+void StartBhv(BHV196 *behavior);
+void SetBhvInteract2State(BHV196 *behavior, int state);
 // 0x1461F8: Second interact behaviour vtable slot 8 (Start).
-void StartBhvInteract2(struct BHVINTERACTV *behavior)
+void StartBhvInteract2(BHV196 *behavior)
 {
     struct OWNER *owner;
     struct VTE *entry;
     StartBhv(behavior);
     SetBhvInteract2State(behavior, 0);
-    owner = behavior->owner;
+    owner = ((struct OWNER *)behavior->owner);
     entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
-    behavior->owner->aiInteractFlags |= 1;
+    ((void (*)(void *, int, void *, int, void *))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    ((struct OWNER *)behavior->owner)->aiInteractFlags |= 1;
 }
 } } // namespace M_func_001461F8
 
@@ -1205,20 +1203,19 @@ void InitBhvInteract3(BHV197 *behavior)
 namespace M_func_001466F0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct OWNER { char pad[0xC]; struct VTE *vt; char pad2[0x10E0 - 0x10]; int aiInteractFlags; };
-struct BHVINTERACTV { char pad[0x10]; struct OWNER *owner; char pad2[0x38 - 0x14]; int target; };
-void StartBhv(struct BHVINTERACTV *behavior);
-void SetBhvInteract3State(struct BHVINTERACTV *behavior, int state);
+void StartBhv(BHV197 *behavior);
+void SetBhvInteract3State(BHV197 *behavior, int state);
 // 0x1466F0: Third interact behaviour vtable slot 8 (Start).
-void StartBhvInteract3(struct BHVINTERACTV *behavior)
+void StartBhvInteract3(BHV197 *behavior)
 {
     struct OWNER *owner;
     struct VTE *entry;
     StartBhv(behavior);
     SetBhvInteract3State(behavior, 0);
-    owner = behavior->owner;
+    owner = ((struct OWNER *)behavior->owner);
     entry = &owner->vt[95];   /* SetStepplayerPlayerInteractMode */
-    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
-    behavior->owner->aiInteractFlags |= 1;
+    ((void (*)(void *, int, void *, int, void *))entry->pfn)((char *)owner + entry->d, 4, behavior->target, 4, behavior->target);
+    ((struct OWNER *)behavior->owner)->aiInteractFlags |= 1;
 }
 } } // namespace M_func_001466F0
 
