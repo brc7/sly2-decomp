@@ -3507,14 +3507,11 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
 
 // 0x1791C8 SetBhvwalkpathState
 namespace M_SetBhvwalkpathState { extern "C" {
-struct VTE; struct O; 
 typedef int qword __attribute__((mode(TI)));
 extern float D_002BE694;
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; int sgf; };
 void SetBhvpathState(BHVWALKPATH *p, int n);
 void PopBhv(void *p);
-struct O *PushStepBehavior(void *p, int n);
+BHV *PushStepBehavior(void *p, int n);
 qword GetLoWorldPos(void *p);
 // 0x1791C8: BHVWALKPATH state change: moving states push the walk animation (its flag, 8 when carrying an object),
 // stopped states push BHVIDLE.
@@ -3527,10 +3524,10 @@ void SetBhvwalkpathState(BHVWALKPATH *behavior, int n) {
         if ((unsigned)old < 2) return;
         PopBhv((&behavior->pbhvNext));
         {
-            struct O *o = PushStepBehavior(behavior->owner, CID_BHVANIM);
+            BHVANIM *o = (BHVANIM *)PushStepBehavior(behavior->owner, CID_BHVANIM);
             o->sgf = behavior->animSgf;
             if (behavior->animSgf == 8) o->lookAt = behavior->lookAtTarget;
-            StartPushedBhv(o);
+            o->Start();
         }
         behavior->stuckCheckPos = GetLoWorldPos(behavior->owner);
         behavior->stuckTimer = D_002BE694;
@@ -3539,9 +3536,9 @@ void SetBhvwalkpathState(BHVWALKPATH *behavior, int n) {
         if (old == 2 || old == 4 || old == 3) return;
         PopBhv((&behavior->pbhvNext));
         {
-            struct O *o = PushStepBehavior(behavior->owner, CID_BHVIDLE);
+            BHVANIM *o = (BHVANIM *)PushStepBehavior(behavior->owner, CID_BHVIDLE);
             o->lookAt = behavior->lookAtTarget;
-            StartPushedBhv(o);
+            o->Start();
         }
         break;
     }

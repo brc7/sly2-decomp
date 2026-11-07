@@ -98,14 +98,16 @@ struct BLIP
     BLIP() {}
 };
 
-/* A two-pointer record constructed out of line by ClearPointerPair (guardbhv; zeroes its first two words). PATHLINK
-   holds six, BHVGOTO three, BHV191 one. HYPOTHESIS: a path-link endpoint {pshape, plo, .., pos} (ClearPointerPair's
-   annotation). */
+struct PATHLINK;
+/* A path-link endpoint / go-to goal (0x20), constructed out of line by ClearPointerPair (guardbhv; it zeroes the
+   first two words): a shape, an object, or (both NULL) the point at +0x10. PATHLINK holds six, BHVGOTO three (goal,
+   waypoint, relocate goal), BHV191 one; tu_1709A8/tu_171F58 build goals on the stack for SetBhvgotoGoal. */
 struct PATHLINKEND
 {
-    void *pv0;
-    void *pv1;
-    char ab[0x18];
+    SHAPE *shape;           /* +0x00 the goal shape (GetPathlinkEndpointPos projects onto it) */
+    LO *object;             /* +0x04 the goal object */
+    int unknown8[2];
+    qword pos;              /* +0x10 the goal point */
     PATHLINKEND() __asm__("ClearPointerPair");
 };
 
@@ -798,7 +800,7 @@ struct BHVWALKPATH : BHVPATH
 {
     int animSgf;            /* +0xC0 the guard flag of the walk animation */
     float rate;             /* +0xC4 */
-    int lookAtTarget;       /* +0xC8 */
+    LO *lookAtTarget;       /* +0xC8 */
     int unknownCC;
     qword stuckCheckPos;    /* +0xD0 */
     float stuckTimer;       /* +0xE0 */
@@ -1066,18 +1068,19 @@ struct BHVGOTO : BHV
     float stateTime;        /* +0x34 */
     int sgf;                /* +0x38 the guard flag it holds (-1 none) */
     int unknown3C;
-    PATHLINKEND end0;
-    PATHLINKEND end1;
-    PATHLINKEND end2;       /* +0x80 the relocate goal (BHVRELOCATE) */
+    PATHLINKEND goal;       /* +0x40 (SetBhvgotoGoal) */
+    PATHLINKEND waypoint;   /* +0x60 the next waypoint: the goal, or the first route link's endpoint */
+    PATHLINKEND relocateGoal; /* +0x80 the relocate goal (BHVRELOCATE) */
     float planTime;         /* +0xA0 time of the last route plan */
     int pathGraphVersion;   /* +0xA4 path graph version the route was planned on */
-    int lookAtTarget;       /* +0xA8 */
+    LO *lookAtTarget;       /* +0xA8 */
     int unknownAC;
     int unknownB0;
     int numRouteLinks;      /* +0xB4 */
-    int firstLink;          /* +0xB8 */
+    PATHLINK *firstLink;    /* +0xB8 the route's (single) link (FindPathlinkRoute) */
     int isDirect;           /* +0xBC goes straight to the goal (no route) */
-    int unknownC0[4];
+    int allowPartialRoute;  /* +0xC0 */
+    int unknownC4[3];
     virtual void Close() __asm__("CloseBhvgoto");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvgotoClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvgoto");   /* slot 7 */
@@ -1094,7 +1097,7 @@ struct BHVPATROLPATH : BHV
     float pathParam;        /* +0x38 */
     int unknown3C;
     qword goal;             /* +0x40 */
-    int lookAtTarget;       /* +0x50 */
+    LO *lookAtTarget;       /* +0x50 */
     int unknown54;
     int isDirect;           /* +0x58 */
     int unknown5C;
@@ -1123,7 +1126,6 @@ struct BHV189 : BHV
 };
 typedef char assert_BHV189_size[sizeof(BHV189) == 0x50 ? 1 : -1];
 
-struct PATHLINK;
 /* 190 BHVPATHLINK (0x50): pathlink traversal (flag 0x2C); vtable 0x2CFCA0, 14 slots */
 struct BHVPATHLINK : BHV
 {
