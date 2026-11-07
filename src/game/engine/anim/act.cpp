@@ -93,9 +93,7 @@ void AC0::LoadFromBrx(CBinaryInputStream *stream)
 }
 
 namespace M_func_0012B520 { extern "C" {
-typedef struct VEC3 { float x, y, z; } VEC3;
 typedef struct VECTOR { float x, y, z; } __attribute__((aligned(16))) VECTOR;
-typedef struct S { void *vtable; VEC3 pos; } S;
 typedef struct T {   /* the transform slot (XF) */
     char pad[0x80];
     int segmentStartTime;  /* 0x80 (the int 0 = 0.0f) */
@@ -113,14 +111,14 @@ typedef struct T {   /* the transform slot (XF) */
 static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; }
 // Prepares a transform slot's motion segment from a constant curve (slot 2): start and end value are the constant,
 // velocities zero, motion kind "still" (2). (inferred)
-void PrepareConstCurveSegment(S *curve, T *xf)
+void PrepareConstCurveSegment(AC0 *curve, T *xf)
 {
     xf->segmentKind = 2;
     xf->segmentEndTime = 1.0f;
     xf->currentTimePtr = &xf->segmentStartTime;
     xf->curveScalePtr = &xf->segmentEndTime;
     xf->segmentStartTime = 0;
-    *(VEC3 *)&xf->segmentStart = curve->pos;
+    *(::VECTOR *)&xf->segmentStart = curve->vec;
     xf->segmentEnd = xf->segmentStart;
     ClearVec(&xf->segmentStartTangent);
     ClearVec(&xf->segmentEndTangent);
@@ -345,8 +343,6 @@ void EvaluateVecCurveB(AC2 *t, void *pv, void *pdv, float g, float dtScale)
 
 namespace M_LoadAcFloatAFromBrx { extern "C" {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-typedef struct KEY { float a, b, c; } KEY;
-typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; int v[4]; } T;
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
 int U16Read__18CBinaryInputStream(void *stream);
 int U8Read__18CBinaryInputStream(void *stream);
@@ -361,49 +357,46 @@ void AC3::LoadFromBrx(CBinaryInputStream *streamArg)
     using namespace M_LoadAcFloatAFromBrx;
     using M_LoadAcFloatAFromBrx::AREQ;
     using M_LoadAcFloatAFromBrx::F32Read__18CBinaryInputStream;
-    using M_LoadAcFloatAFromBrx::KEY;
     using M_LoadAcFloatAFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcFloatAFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcFloatAFromBrx::U8Read__18CBinaryInputStream;
     using M_LoadAcFloatAFromBrx::AllocFromWorldHeap;
-    T *t = (T *)this;
     void *stream = streamArg;
     AREQ req;
     int i, j, mask, grf;
     int c;
-    ReadVector__18CBinaryInputStreamP6VECTOR(stream, t->v);
+    ReadVector__18CBinaryInputStreamP6VECTOR(stream, value.af);
     c = U16Read__18CBinaryInputStream(stream);
     req.cb = c * 4;
     req.cbAlign = 0x10;
-    t->c = c;
-    t->at = (__typeof__(t->at))AllocFromWorldHeap(&req);
-    for (i = 0; i < t->c; i++)
-        t->at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
+    ckey = c;
+    at = (__typeof__(at))AllocFromWorldHeap(&req);
+    for (i = 0; i < ckey; i++)
+        at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
     grf = U8Read__18CBinaryInputStream(stream);
     for (j = 0, mask = 1; j < 3; j++, mask <<= 1) {
         if (mask & grf) {
-            KEY *ak;
-            req.cb = t->c * 12;
+            ACKEYG2 *ak;
+            req.cb = ckey * 12;
             req.cbAlign = 0x10;
             ak = (__typeof__(ak))AllocFromWorldHeap(&req);
-            t->ak[j] = ak;
-            for (i = 0; i < t->c; i++) {
-                ak[i].a = F32Read__18CBinaryInputStream(stream);
-                ak[i].b = F32Read__18CBinaryInputStream(stream);
-                ak[i].c = F32Read__18CBinaryInputStream(stream);
+            apkey[j] = ak;
+            for (i = 0; i < ckey; i++) {
+                ak[i].g = F32Read__18CBinaryInputStream(stream);
+                ak[i].dgIn = F32Read__18CBinaryInputStream(stream);
+                ak[i].dgOut = F32Read__18CBinaryInputStream(stream);
             }
         }
     }
 }
 
 namespace M_func_0012C0E0 { extern "C" {
-typedef struct T { int pad; int c; float *a; } T;
 // Key search for the per-component curve. (inferred)
-int FindFloatCurveAKey(T *t, float g)
+int FindFloatCurveAKey(AC3 *t, float g)
 {
     int i;
-    for (i = 1; i < t->c - 1; i++) {
-        if (g < t->a[i])
+    for (i = 1; i < t->ckey - 1; i++) {
+        if (g < t->at[i])
             break;
     }
     return i;
@@ -419,8 +412,6 @@ static __inline__ int AreVectorsNear(qword a, qword b)
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
-typedef struct KEY { float g; float dgIn; float dgOut; } KEY;
-typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; float v[4]; } T;
 typedef union VQ { float af[4]; qword q; } VQ;
 typedef struct OBJ {
     char pad[0x80];
@@ -436,14 +427,14 @@ typedef struct OBJ {
     VQ pos1;
     VQ dpos1;
 } OBJ;
-int FindFloatCurveAKey(T *t, float g);
+int FindFloatCurveAKey(AC3 *t, float g);
 // Prepares a slot's motion segment from the per-component curve (slot 2). (inferred)
-void PrepareFloatCurveASegment(T *t, OBJ *po)
+void PrepareFloatCurveASegment(AC3 *t, OBJ *po)
 {
     int i;
     unsigned int j;
     int f;
-    if (t->c) {
+    if (t->ckey) {
         i = FindFloatCurveAKey(t, *po->pt0);
         po->t0 = t->at[i - 1];
         po->t1 = t->at[i];
@@ -454,18 +445,18 @@ void PrepareFloatCurveASegment(T *t, OBJ *po)
         po->t0 = 0;
     }
     for (j = 0; j < 3; j++) {
-        KEY *ak = t->ak[j];
+        ACKEYG2 *ak = t->apkey[j];
         if (ak) {
-            KEY *k0 = &ak[i - 1];
-            KEY *k1 = &ak[i];
+            ACKEYG2 *k0 = &ak[i - 1];
+            ACKEYG2 *k1 = &ak[i];
             po->pos0.af[j] = k0->g;
             po->dpos0.af[j] = k0->dgOut;
             po->pos1.af[j] = k1->g;
             po->dpos1.af[j] = k1->dgIn;
         } else {
-            po->pos0.af[j] = t->v[j];
+            po->pos0.af[j] = t->value.af[j];
             po->dpos0.af[j] = 0;
-            po->pos1.af[j] = t->v[j];
+            po->pos1.af[j] = t->value.af[j];
             po->dpos1.af[j] = 0;
         }
     }
@@ -478,30 +469,28 @@ void PrepareFloatCurveASegment(T *t, OBJ *po)
 namespace M_func_0012C440 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct VECTOR { float x, y, z, w; } VECTOR;
-typedef struct KEY { float g; float dgIn; float dgOut; } KEY;
-typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2; qword v; } T;
-int FindFloatCurveAKey(T *t, float g);
+int FindFloatCurveAKey(AC3 *t, float g);
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1);
 // Evaluates the per-component curve at time t, each component through its float Bezier (slot 3). (inferred)
-void EvaluateFloatCurveA(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
+void EvaluateFloatCurveA(AC3 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)
-        *(qword *)pv = t->v;
+        *(qword *)pv = t->value.q;
     if (pdv) {
         pdv->z = 0;
         pdv->y = 0;
         pdv->x = 0;
     }
-    if (t->c) {
+    if (t->ckey) {
         int i = FindFloatCurveAKey(t, g);
         unsigned int j;
         for (j = 0; j < 3; j++) {
-            KEY *ak = t->ak[j];
+            ACKEYG2 *ak = t->apkey[j];
             if (ak) {
                 float du = g - t->at[i - 1];
                 float dt = t->at[i] - t->at[i - 1];
-                KEY *k0 = &ak[i - 1];
-                KEY *k1 = &ak[i];
+                ACKEYG2 *k0 = &ak[i - 1];
+                ACKEYG2 *k1 = &ak[i];
                 EvaluateBezierFloat(pv ? &(&pv->x)[j] : 0, pdv ? &(&pdv->x)[j] : 0,
                               dt, du, dtScale,
                               k0->g, k0->dgOut, k1->g, k1->dgIn);
@@ -513,8 +502,6 @@ void EvaluateFloatCurveA(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 
 namespace M_LoadAcFloatBFromBrx { extern "C" {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-typedef struct KEY { float a, b; } KEY;
-typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; int v[4]; } T;
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
 int U16Read__18CBinaryInputStream(void *stream);
 int U8Read__18CBinaryInputStream(void *stream);
@@ -528,48 +515,45 @@ void AC4::LoadFromBrx(CBinaryInputStream *streamArg)
     using namespace M_LoadAcFloatBFromBrx;
     using M_LoadAcFloatBFromBrx::AREQ;
     using M_LoadAcFloatBFromBrx::F32Read__18CBinaryInputStream;
-    using M_LoadAcFloatBFromBrx::KEY;
     using M_LoadAcFloatBFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcFloatBFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcFloatBFromBrx::U8Read__18CBinaryInputStream;
     using M_LoadAcFloatBFromBrx::AllocFromWorldHeap;
-    T *t = (T *)this;
     void *stream = streamArg;
     AREQ req;
     int i, j, mask, grf;
     int c;
-    ReadVector__18CBinaryInputStreamP6VECTOR(stream, t->v);
+    ReadVector__18CBinaryInputStreamP6VECTOR(stream, value.af);
     c = U16Read__18CBinaryInputStream(stream);
     req.cb = c * 4;
     req.cbAlign = 0x10;
-    t->c = c;
-    t->at = (__typeof__(t->at))AllocFromWorldHeap(&req);
-    for (i = 0; i < t->c; i++)
-        t->at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
+    ckey = c;
+    at = (__typeof__(at))AllocFromWorldHeap(&req);
+    for (i = 0; i < ckey; i++)
+        at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
     grf = U8Read__18CBinaryInputStream(stream);
     for (j = 0, mask = 1; j < 3; j++, mask <<= 1) {
         if (mask & grf) {
-            KEY *ak;
-            req.cb = t->c * 8;
+            ACKEYG1 *ak;
+            req.cb = ckey * 8;
             req.cbAlign = 0x10;
             ak = (__typeof__(ak))AllocFromWorldHeap(&req);
-            t->ak[j] = ak;
-            for (i = 0; i < t->c; i++) {
-                ak[i].a = F32Read__18CBinaryInputStream(stream);
-                ak[i].b = F32Read__18CBinaryInputStream(stream);
+            apkey[j] = ak;
+            for (i = 0; i < ckey; i++) {
+                ak[i].g = F32Read__18CBinaryInputStream(stream);
+                ak[i].dg = F32Read__18CBinaryInputStream(stream);
             }
         }
     }
 }
 
 namespace M_func_0012C708 { extern "C" {
-typedef struct T { int pad; int c; float *a; } T;
 // Key search for the second per-component curve kind. (inferred)
-int FindFloatCurveBKey(T *t, float g)
+int FindFloatCurveBKey(AC4 *t, float g)
 {
     int i;
-    for (i = 1; i < t->c - 1; i++) {
-        if (g < t->a[i])
+    for (i = 1; i < t->ckey - 1; i++) {
+        if (g < t->at[i])
             break;
     }
     return i;
@@ -585,8 +569,6 @@ static __inline__ int AreVectorsNear(qword a, qword b)
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
 }
-typedef struct KEY { float g; float dg; } KEY;
-typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; float v[4]; } T;
 typedef union VQ { float af[4]; qword q; } VQ;
 typedef struct OBJ {
     char pad[0x80];
@@ -602,14 +584,14 @@ typedef struct OBJ {
     VQ pos1;
     VQ dpos1;
 } OBJ;
-int FindFloatCurveBKey(T *t, float g);
+int FindFloatCurveBKey(AC4 *t, float g);
 // Prepares a slot's motion segment from the second per-component curve kind (slot 2). (inferred)
-void PrepareFloatCurveBSegment(T *t, OBJ *po)
+void PrepareFloatCurveBSegment(AC4 *t, OBJ *po)
 {
     int i;
     unsigned int j;
     int f;
-    if (t->c) {
+    if (t->ckey) {
         i = FindFloatCurveBKey(t, *po->pt0);
         po->t0 = t->at[i - 1];
         po->t1 = t->at[i];
@@ -620,18 +602,18 @@ void PrepareFloatCurveBSegment(T *t, OBJ *po)
         po->t0 = 0;
     }
     for (j = 0; j < 3; j++) {
-        KEY *ak = t->ak[j];
+        ACKEYG1 *ak = t->apkey[j];
         if (ak) {
-            KEY *k0 = &ak[i - 1];
-            KEY *k1 = &ak[i];
+            ACKEYG1 *k0 = &ak[i - 1];
+            ACKEYG1 *k1 = &ak[i];
             po->pos0.af[j] = k0->g;
             po->dpos0.af[j] = k0->dg;
             po->pos1.af[j] = k1->g;
             po->dpos1.af[j] = k1->dg;
         } else {
-            po->pos0.af[j] = t->v[j];
+            po->pos0.af[j] = t->value.af[j];
             po->dpos0.af[j] = 0;
-            po->pos1.af[j] = t->v[j];
+            po->pos1.af[j] = t->value.af[j];
             po->dpos1.af[j] = 0;
         }
     }
@@ -644,30 +626,28 @@ void PrepareFloatCurveBSegment(T *t, OBJ *po)
 namespace M_func_0012CA68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct VECTOR { float x, y, z, w; } VECTOR;
-typedef struct KEY { float g; float dg; } KEY;
-typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2; qword v; } T;
-int FindFloatCurveBKey(T *t, float g);
+int FindFloatCurveBKey(AC4 *t, float g);
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1);
 // Evaluates the second per-component curve kind at time t (slot 3). (inferred)
-void EvaluateFloatCurveB(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
+void EvaluateFloatCurveB(AC4 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)
-        *(qword *)pv = t->v;
+        *(qword *)pv = t->value.q;
     if (pdv) {
         pdv->z = 0;
         pdv->y = 0;
         pdv->x = 0;
     }
-    if (t->c) {
+    if (t->ckey) {
         int i = FindFloatCurveBKey(t, g);
         unsigned int j;
         for (j = 0; j < 3; j++) {
-            KEY *ak = t->ak[j];
+            ACKEYG1 *ak = t->apkey[j];
             if (ak) {
                 float du = g - t->at[i - 1];
                 float dt = t->at[i] - t->at[i - 1];
-                KEY *k0 = &ak[i - 1];
-                KEY *k1 = &ak[i];
+                ACKEYG1 *k0 = &ak[i - 1];
+                ACKEYG1 *k1 = &ak[i];
                 EvaluateBezierFloat(pv ? &(&pv->x)[j] : 0, pdv ? &(&pdv->x)[j] : 0,
                               dt, du, dtScale,
                               k0->g, k0->dg, k1->g, k1->dg);
@@ -722,12 +702,10 @@ extern "C" void EvaluateConstFloatCurve(ACG0 *curve, float *pg, int *pdg)
 }
 
 namespace M_LoadAcFloatKeysFromBrx { extern "C" {
-typedef struct KEY { float t; float g; float dgIn; float dgOut; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *stream);
 float F32Read__18CBinaryInputStream(void *stream);
-KEY *AllocClearedFromWorldHeap(AREQ *preq);
+ACKEYF *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcFloatKeysFromBrx
 // Loads a keyed float curve: the key count and the float keys.
@@ -737,20 +715,18 @@ void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
     using namespace M_LoadAcFloatKeysFromBrx;
     using M_LoadAcFloatKeysFromBrx::AREQ;
     using M_LoadAcFloatKeysFromBrx::F32Read__18CBinaryInputStream;
-    using M_LoadAcFloatKeysFromBrx::KEY;
     using M_LoadAcFloatKeysFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcFloatKeysFromBrx::AllocClearedFromWorldHeap;
-    T *t = (T *)this;
     void *stream = streamArg;
     int i;
     int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c << 4;
     req.cbAlign = 0x10;
-    t->c = c;
-    t->a = AllocClearedFromWorldHeap(&req);
-    for (i = 0; i < t->c; i++) {
-        KEY *pkey = &t->a[i];
+    ckey = c;
+    akey = AllocClearedFromWorldHeap(&req);
+    for (i = 0; i < ckey; i++) {
+        ACKEYF *pkey = &akey[i];
         pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
         pkey->g = F32Read__18CBinaryInputStream(stream);
         pkey->dgIn = F32Read__18CBinaryInputStream(stream);
@@ -759,19 +735,17 @@ void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
 }
 
 namespace M_func_0012CDA0 { extern "C" {
-typedef struct KEY { float t; float g; float dgIn; float dgOut; } KEY;
-typedef struct T { int pad; int c; KEY *a; } T;
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, float dtScale, float g0, float dg0, float g1, float dg1);
 // Evaluates a keyed float curve at time t (float Bezier of its key interval). (inferred)
-void EvaluateKeyedFloatCurve(T *t, float *pg, float *pdg, float g, float dtScale)
+void EvaluateKeyedFloatCurve(ACG1 *t, float *pg, float *pdg, float g, float dtScale)
 {
     int i;
-    KEY *k0, *k1;
-    for (i = 1; i < t->c; i++) {
-        if (g < t->a[i].t)
+    ACKEYF *k0, *k1;
+    for (i = 1; i < t->ckey; i++) {
+        if (g < t->akey[i].t)
             break;
     }
-    k1 = (KEY *)(i * 16 + (int)t->a);
+    k1 = (ACKEYF *)(i * 16 + (int)t->akey);
     k0 = k1 - 1;
     EvaluateBezierFloat(pg, pdg, k1->t - k0->t, g - k0->t, dtScale, k0->g, k0->dgOut, k1->g, k1->dgIn);
 }
