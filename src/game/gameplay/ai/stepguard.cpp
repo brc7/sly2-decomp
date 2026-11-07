@@ -307,9 +307,9 @@ void STEPGUARD::PostLoad()
     SetXfRole(guard, guard->unknown5C, 2);
     ResolveStepguardAnimBindings(guard);
     ResolveStepguardAttacks(guard);
-    guard->stuckWatch = func_001AE4F8(0x10);
+    guard->stuckWatch = (STUCKWATCH *)func_001AE4F8(0x10);
     InitStuckWatch(guard->stuckWatch, guard);
-    guard->hazardWatch = func_001AE4F8(0x14);
+    guard->hazardWatch = (HAZARDWATCH *)func_001AE4F8(0x14);
     InitHazardWatch(guard->hazardWatch, guard);
     if (!guard->proxyRecord->isCopy)
         PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
@@ -1041,12 +1041,11 @@ int IsStepguardInvulnerable(STEPGUARD *guard)
 
 // 0x2075D0 HandleStepguardMessage
 namespace M_HandleStepguardMessage { extern "C" {
-struct OBJ; struct HAZARDWATCH; struct ATTACHMSG; 
-struct OBJ { char pad[0x184]; int isHazard; /* (inferred) */ };
-struct HAZARDWATCH { char pad[0xC]; struct OBJ *target; };
+struct OBJ; struct ATTACHMSG;
+struct OBJ { char pad[0x184]; int isHazard; /* (inferred) */ };   /* the attached object (an SO; the hazard volume's zap amount) */
 struct ATTACHMSG { struct OBJ *object; void *attachedTo; };
 void HandlePoMessage(STEPGUARD *p, int message, struct ATTACHMSG *arg);
-void SetHazardWatchTarget(struct HAZARDWATCH *watch, struct OBJ *target);
+void SetHazardWatchTarget(HAZARDWATCH *watch, struct OBJ *target);
 void HandleBhvstkMessage(void *stack, int message, struct ATTACHMSG *arg);
 // 0x2075D0: STEPGUARD vtable slot 5 (HandleMessage): PO handler; messages 4/5 (an object attached to / detached from the
 // guard) point the hazard watch (+0x49C) at an attached hazard or clear it; every message is then offered to the behaviour stack.
@@ -1056,11 +1055,11 @@ void HandleStepguardMessage(STEPGUARD *guard, int message, struct ATTACHMSG *arg
     switch (message) {
     case 4:
         if (arg->attachedTo == guard && arg->object->isHazard)
-            SetHazardWatchTarget(((struct HAZARDWATCH *)guard->hazardWatch), arg->object);
+            SetHazardWatchTarget(guard->hazardWatch, arg->object);
         break;
     case 5:
-        if (arg->attachedTo == guard && arg->object == ((struct HAZARDWATCH *)guard->hazardWatch)->target)
-            SetHazardWatchTarget(((struct HAZARDWATCH *)guard->hazardWatch), 0);
+        if (arg->attachedTo == guard && arg->object == (struct OBJ *)guard->hazardWatch->volume)
+            SetHazardWatchTarget(guard->hazardWatch, 0);
         break;
     }
     HandleBhvstkMessage((&guard->behaviors), message, arg);

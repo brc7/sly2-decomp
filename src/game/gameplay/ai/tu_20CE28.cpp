@@ -22,8 +22,7 @@ enum {
 struct VE { short d; short pad; void *function; };
 /* The volume object a volume watch looks at (vtable slot 73 point test; +0x184/+0x188 event parameters). */
 struct WVOL { char pad[0xC]; VE *vt; char pad10[0x174]; int zapAmount; int zapKind; };
-struct STUCKWATCH { STEPGUARD *guard; int state; float stateTime; int isEnabled; };
-struct VOLWATCH { STEPGUARD *guard; int state; float stateTime; WVOL *volume; int isEnabled; };
+/* The watches are guard.h STUCKWATCH and HAZARDWATCH (its volume read as WVOL). */
 /* The zap both watchers deliver is a ZPR (stepplayer.h): source, the guard as +0x8, kind, damage, position, velocity. */
 /* The filter's argument (an object and its flags; bit 48 tested). */
 struct FPAIR { int a; void *object; char pad[8]; long flags; };
@@ -50,7 +49,7 @@ int SnapToGround(qword *context, float f, float g, int a, int (*pfn)(void *, FPA
 void *func_002333B4(void *context, int c, int cb) __asm__("memset");
 void DeliverZapToSo(ZPR *zap);
 qword GetLoWorldPos(void *watch);
-void SetHazardWatchState(VOLWATCH *watch, int state);
+void SetHazardWatchState(HAZARDWATCH *watch, int state);
 }
 
 // 0x20CE28: Initializes a stuck watch for `guard`: idle (state -1), enabled.
@@ -155,7 +154,7 @@ extern "C" void EnableStuckWatch(STUCKWATCH *watch)
 }
 
 // 0x20D1B0: Initializes a hazard watch for `guard`: idle (state -1), enabled.
-extern "C" void InitHazardWatch(VOLWATCH *watch, STEPGUARD *guard)
+extern "C" void InitHazardWatch(HAZARDWATCH *watch, STEPGUARD *guard)
 {
     watch->guard = guard;
     watch->state = -1;
@@ -163,7 +162,7 @@ extern "C" void InitHazardWatch(VOLWATCH *watch, STEPGUARD *guard)
 }
 
 // 0x20D1C8: Resets a hazard watch to state 0.
-extern "C" void ResetHazardWatch(VOLWATCH *watch)
+extern "C" void ResetHazardWatch(HAZARDWATCH *watch)
 {
     watch->state = -1;
     watch->isEnabled = 1;
@@ -172,7 +171,7 @@ extern "C" void ResetHazardWatch(VOLWATCH *watch)
 
 // 0x20D1F8: Per-frame hazard test: while the guard is inside the watched volume (its vtable slot 73) and falling,
 // counts time; past the limit, goes to state 2.
-extern "C" void UpdateHazardWatch(VOLWATCH *watch)
+extern "C" void UpdateHazardWatch(HAZARDWATCH *watch)
 {
     int state;
     if (!watch->isEnabled)
@@ -181,7 +180,7 @@ extern "C" void UpdateHazardWatch(VOLWATCH *watch)
         state = watch->state;
         switch (state) {
         case 0: {
-            WVOL *volume = watch->volume;
+            WVOL *volume = (WVOL *)watch->volume;
             int isFalling;
             VE *entry;
             void *self;
@@ -205,11 +204,11 @@ extern "C" void UpdateHazardWatch(VOLWATCH *watch)
             if (!watch->volume)
                 SetHazardWatchState(watch, 0);
             else if (D_002DDED0.time - watch->stateTime > D_002C3E58 &&
-                     !watch->guard->IsInvulnerable((ZPK)watch->volume->zapKind))
+                     !watch->guard->IsInvulnerable((ZPK)((WVOL *)watch->volume)->zapKind))
                 SetHazardWatchState(watch, 2);
             break;
         case 2:
-            if (!watch->volume || watch->guard->IsInvulnerable((ZPK)watch->volume->zapKind))
+            if (!watch->volume || watch->guard->IsInvulnerable((ZPK)((WVOL *)watch->volume)->zapKind))
                 SetHazardWatchState(watch, 0);
             break;
         }
@@ -218,7 +217,7 @@ extern "C" void UpdateHazardWatch(VOLWATCH *watch)
 
 // 0x20D3C0: Sets the hazard watch state; state 2 zaps the guard with the volume's zap kind and amount
 // (+0x188/+0x184).
-extern "C" void SetHazardWatchState(VOLWATCH *watch, int state)
+extern "C" void SetHazardWatchState(HAZARDWATCH *watch, int state)
 {
     if (state == watch->state)
         return;
@@ -229,8 +228,8 @@ extern "C" void SetHazardWatchState(VOLWATCH *watch, int state)
         func_002333B4(&zap, 0, sizeof(zap));
         zap.ploSource = (LO *)watch->volume;
         zap.unknown08 = watch->guard;
-        zap.zpk = watch->volume->zapKind;
-        zap.dhp = watch->volume->zapAmount;
+        zap.zpk = ((WVOL *)watch->volume)->zapKind;
+        zap.dhp = ((WVOL *)watch->volume)->zapAmount;
         zap.position = GetLoWorldPos(watch->guard);
         zap.velocity = watch->guard->GetVelocity();
         DeliverZapToSo(&zap);
@@ -238,9 +237,9 @@ extern "C" void SetHazardWatchState(VOLWATCH *watch, int state)
 }
 
 // 0x20D460: Sets the hazard volume to watch.
-extern "C" void SetHazardWatchTarget(VOLWATCH *watch, WVOL *volume)
+extern "C" void SetHazardWatchTarget(HAZARDWATCH *watch, WVOL *volume)
 {
-    watch->volume = volume;
+    watch->volume = (SO *)volume;
 }
 
 // 0x20D468..0x20D474: 2 dead-code scraps (sly2/scrap.h)

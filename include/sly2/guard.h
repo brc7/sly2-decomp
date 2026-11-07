@@ -22,6 +22,26 @@ struct GUARDLOOT
       int count;            /* +0xC [S] how many (StartBhvko sums the coin entries, oid 0x2B3) */
 };
 
+/* A guard's stuck watch (STEPGUARD::stuckWatch, 16 bytes, tu_20CE28.cpp): when the probes around the guard stay
+   blocked for a while the guard zaps itself (kind 0x4000) to get relocated. [S] */
+struct STUCKWATCH
+{
+      STEPGUARD *guard;     /* +0x0 */
+      int state;            /* +0x4 -1 idle */
+      float stateTime;      /* +0x8 */
+      int isEnabled;        /* +0xC */
+};
+/* A guard's hazard watch (STEPGUARD::hazardWatch, 20 bytes): while the guard falls inside the watched hazard volume it
+   is zapped with the volume's parameters (its +0x184/+0x188). [S] */
+struct HAZARDWATCH
+{
+      STEPGUARD *guard;     /* +0x00 */
+      int state;            /* +0x04 */
+      float stateTime;      /* +0x08 */
+      SO *volume;           /* +0x0C the hazard (an object attached to the guard: HandleStepguardMessage) */
+      int isEnabled;        /* +0x10 */
+};
+
 /* A guard script command (SSGE, from SW::slotheapSsge; tu_1709A8.cpp): its kind (SSGK_*: 0 set the context object,
    1/2 walk/pause times, 3 teleport, 4 message, 5 wait, 6 follow a path, 7 go to a point, 8 animation, 9 label,
    10 jump, 11/12 busy on/off, 13 leap, 14 play the behaviour's binding, 15 relay alarm), the target id (an oid, -1
@@ -294,8 +314,8 @@ struct STEPGUARD : public STEP
       int isLootStaged;     /* +0x48C [S] */
       int unknown490;       /* +0x490 [S] */
       int lootEnabled;      /* +0x494 [S] */
-      void *stuckWatch;     /* +0x498 [S] */
-      void *hazardWatch;    /* +0x49C [S] */
+      struct STUCKWATCH *stuckWatch;  /* +0x498 [S] (InitStepguard allocates it) */
+      struct HAZARDWATCH *hazardWatch; /* +0x49C [S] */
       int unknown4A0;       /* +0x4A0 [S] */
       int tracksRelocatePoint; /* +0x4A4 [S] */
       undefined4 unk_0x4a8[2];
