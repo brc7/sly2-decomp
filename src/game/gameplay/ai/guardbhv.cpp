@@ -3744,27 +3744,24 @@ void BHV162::OnPush()
 
 // 0x179780 StartBhvKnockdown
 namespace M_func_00179780 { extern "C" {
-struct E; struct T; struct VTE; struct O; struct T2; struct S;
-struct E { int kind; int a, b, c; };
-struct T { char pad[0x8D0]; struct E knockdownReactions[1]; };
+struct VTE; struct O; struct T2; 
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct T2 { char pad[0xF64]; void *detector; char pad2[0xFEC - 0xF68]; struct O *knockdownHelper; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct E *binding; char pad3[0xC]; int attacker; char pad4[8]; void *zapKind; };
 extern char D_002DEB30[];
-int GetZapKindIndex(void *p);
-void StartBhvhit(struct S *p);
+int GetZapKindIndex(int p);
+void StartBhvhit(BHV162 *p);
 void BroadcastGameEvent(void *g, int event, void *p);
-void SetDetectorTargetStateById(void *p, int a, int b);
+void SetDetectorTargetStateById(void *p, LO *a, int b);
 // 0x179780: Knockdown behaviour vtable slot 8 (Start): reaction from the knockdown table, BHVHIT Start, game event
 // 0x15, starts the helper component (+0xFEC).
-void StartBhvKnockdown(struct S *behavior) {
-    behavior->binding = &behavior->guard->knockdownReactions[GetZapKindIndex(behavior->zapKind)];
+void StartBhvKnockdown(BHV162 *behavior) {
+    behavior->binding = &((STEPGUARD *)behavior->owner)->knockdownReactions[GetZapKindIndex(behavior->zapKind)];
     if (behavior->binding->kind == -1) behavior->binding = 0;
     StartBhvhit(behavior);
-    BroadcastGameEvent(D_002DEB30, 0x15, behavior->guard);
-    SetDetectorTargetStateById(((struct T2 *)behavior->guard)->detector, behavior->attacker, 2);
-    { struct O *o = ((struct T2 *)behavior->guard)->knockdownHelper; if (o) StartPushedBhv(o); }
+    BroadcastGameEvent(D_002DEB30, 0x15, ((STEPGUARD *)behavior->owner));
+    SetDetectorTargetStateById(((struct T2 *)((STEPGUARD *)behavior->owner))->detector, behavior->attacker, 2);
+    { struct O *o = ((struct T2 *)((STEPGUARD *)behavior->owner))->knockdownHelper; if (o) StartPushedBhv(o); }
 }
 } } // namespace M_func_00179780
 
