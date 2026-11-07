@@ -19,7 +19,6 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct LMV { float gMin; float gMax; };
 struct VECTORV { float x, y, z, w; } __attribute__((aligned(16)));
 struct LONGU { long l; } __attribute__((packed));   /* an 8-byte callback PMF, passed in one register */
-struct ASEGAV { char pad[0x1C]; float tLocal; };
 /* A dancer's move: its button, then three clips (oid, the clip once loaded, apply flags): 0 played on success, 1 on
    a failed press, 2 on a miss. */
 struct DMR { int oid; void *clip; int applyFlags; };
@@ -44,7 +43,7 @@ struct DANCERV
     void *idleSegment;          /* 0x2C0 */
     union { unsigned int numMovesU; int numMoves; };  /* 0x2C4 */
     DMOVE moves[8];             /* 0x2C8 */
-    ASEGAV *segmentAnim;        /* 0x408 the playing segment */
+    ASEGA *segmentAnim;        /* 0x408 the playing segment */
     int isPerforming;           /* 0x40C set/cleared by Splice messages 0x27/0x28 (inferred: a scripted move plays) */
 };
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
@@ -123,14 +122,14 @@ extern LMV D_002BBB60;
 void RemoveSoHierarchy(DANCERV *p);
 void PostStepLoad(DANCERV *o);
 void UpdateStep(DANCERV *p);
-int IsAsegaRetracted(ASEGAV *pa);
+int IsAsegaRetracted(ASEGA *pa);
 void SetXfRole(DANCERV *p, void *pv, int n);
 qwordV GetStepAsegaTranslation(DANCERV *p, void *pa, float g);
 void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
 void GetSoCameraDefaults(DANCERV *p, struct CPDEFIV *pc);
 int POCTL_ConsumeAnyPressed(void *p, int a);
 int GetButtonsPressedWithin__5POCTLUif(void *, int, float);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGAV **pp);
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGA **pp);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *p);
 void InitLo(RHYTHMMGR *p);
 void SetLoBusyKind(RHYTHMMGR *p, int n);
@@ -219,7 +218,7 @@ extern "C" void UpdateDancer(DANCERV *dancer)
         break;
     }
     if (dancer->segmentAnim)
-        dancer->velocity = VecMul(GetStepAsegaTranslation(dancer, dancer->segmentAnim, dancer->segmentAnim->tLocal), -1.0f);
+        dancer->velocity = VecMul(GetStepAsegaTranslation(dancer, dancer->segmentAnim, dancer->segmentAnim->time), -1.0f);
 }
 
 /* A segment event message (kind 9): the segment, its time and the event kind. */

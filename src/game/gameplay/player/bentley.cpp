@@ -353,11 +353,10 @@ struct M3 { qword r[3]; };
 struct LM { float minValue; float maxValue; };
 struct POLY { float a; float b; float c; };
 struct S150 { char pad[0x18]; float g18; float g1C; };
-struct S1030 { char pad[0x1C]; float g1C; char pad20[0x20]; float g40; };
 struct P {
     char pad0[0x28]; unsigned long ul28; char pad30[0x150 - 0x30]; struct S150 *controller; char pad154[0x190 - 0x154];
     qword v190; char pad1A0[8]; float g1A8; char pad1AC[4]; struct M3 m1B0; char pad1E0[0x2C0 - 0x1E0];
-    char air[0x4C0 - 0x2C0]; char grab[0xDF0 - 0x4C0]; char hurt[0x1030 - 0xDF0]; struct S1030 *action; int x1034;
+    char air[0x4C0 - 0x2C0]; char grab[0xDF0 - 0x4C0]; char hurt[0x1030 - 0xDF0]; struct ASEGA *action; int x1034;
     int x1038; char pad103C[0x10DC - 0x103C]; int interactTarget; char pad10E0[0x1320 - 0x10E0]; char gaitA[0x13D0 - 0x1320];
     int state; char pad13D4[0x13E0 - 0x13D4]; char x13E0[0x1410 - 0x13E0]; qword v1410; char pad1420[0x14E0 - 0x1420];
     int x14E0; char pad14E4[0x14F0 - 0x14E4]; char x14F0[0x1520 - 0x14F0]; qword v1520; char pad1530[0x15F0 - 0x1530];
@@ -384,8 +383,8 @@ void UpdateJtActiveHide(void *pv);
 void FaceStepToward(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void UpdateDirectionalBlend(struct P *p, void *pv, int n);
-qword GetStepAsegaTranslation(struct P *p, struct S1030 *px, float g);
-void SetAsegaSpeed__FP5ASEGAf(struct S1030 *px, float g);
+qword GetStepAsegaTranslation(struct P *p, struct ASEGA *px, float g);
+void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *px, float g);
 float NormalizeAngle__Ff(float g);
 float ClampAbs__Fff(float g, float dg);
 void UpdateBentleyPlaces(struct P *p);
@@ -409,7 +408,7 @@ static __inline__ float LenXY(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
     return g;
 }
-static __inline__ float LenXY5(qword v, struct S150 *pa, struct S1030 *pb)
+static __inline__ float LenXY5(qword v, struct S150 *pa, struct ASEGA *pb)
 {
     qword l;
     float g;
@@ -437,7 +436,7 @@ static __inline__ void SetVel(struct P *p, qword v, void *pv, int n)
 static __inline__ void Pull(struct P *p)
 {
     VUF u;
-    qword v = GetStepAsegaTranslation(p, p->action, p->action->g1C);
+    qword v = GetStepAsegaTranslation(p, p->action, p->action->time);
     qword r;
     qword uq;
     __asm__("qmtc2.ni %1, %0" : "=j"(uq) : "r"(-1.0f));
@@ -448,7 +447,7 @@ static __inline__ void Pull(struct P *p)
 static __inline__ void PullB(struct P *p)
 {
     VUF u;
-    qword v = GetStepAsegaTranslation(p, p->action, p->action->g1C);
+    qword v = GetStepAsegaTranslation(p, p->action, p->action->time);
     qword r, t;
     __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(-1.0f));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(t));
@@ -502,8 +501,8 @@ void UpdateBentley(struct P *bentley)
         FaceStepToward(bentley, bentley->interactTarget);
         {
             struct S150 *pa = bentley->controller;
-            struct S1030 *pb = bentley->action;
-            SetVel(bentley, SetVectorCylind(pa->g18 + 3.1415927f, pa->g1C * LenXY5(bentley->v1410, pa, pb) * pb->g40, 0.0f), bentley->x13E0, bentley->x14E0);
+            struct ASEGA *pb = bentley->action;
+            SetVel(bentley, SetVectorCylind(pa->g18 + 3.1415927f, pa->g1C * LenXY5(bentley->v1410, pa, pb) * pb->speed, 0.0f), bentley->x13E0, bentley->x14E0);
         }
         break;
     case BENTLEY_GADGET:
@@ -515,7 +514,7 @@ void UpdateBentley(struct P *bentley)
                 float d = NormalizeAngle__Ff(bentley->controller->g18 - bentley->g1A8);
                 SetStepTargetHeading(bentley, bentley->g1A8 + ClampAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.deltaTime));
             }
-            SetVel(bentley, SetVectorCylind(bentley->controller->g18 + 3.1415927f, g0 * LenXY(bentley->v1520) * bentley->action->g40, z), bentley->x14F0, bentley->x15F0);
+            SetVel(bentley, SetVectorCylind(bentley->controller->g18 + 3.1415927f, g0 * LenXY(bentley->v1520) * bentley->action->speed, z), bentley->x14F0, bentley->x15F0);
         }
         break;
     case BENTLEY_SCRIPT_ANIM:
@@ -541,14 +540,12 @@ namespace M_SetBentleyState { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void *pfn; };
 struct VO { char pad[0xC]; struct VTE *vt; };
-struct ASEG { char pad[0x74]; float g74; };
 struct ASEGP { int x0; struct ASEG *pasega; };
-struct X1030 { char pad[0x14]; struct ASEG *pasega; char pad1[0x1C - 0x18]; float g1C; };
 struct P {
     char pad[0xC]; struct VTE *vt; char pad0[0x58 - 0x10]; void *p58; void *p5C;
     char pad1[0x190 - 0x60]; qword q190; float g1A0; char pad2[0x2C0 - 0x1A4]; char air[0x4C0 - 0x2C0];
     char grab[8]; int grabState; char pad3[0xDF0 - 0x4CC]; char hurt[0xF00 - 0xDF0]; char aF00[0xF50 - 0xF00];
-    char pipe[0x1028 - 0xF50]; void *p1028; void *p102C; struct X1030 *action; int x1034;
+    char pipe[0x1028 - 0xF50]; void *p1028; void *p102C; struct ASEGA *action; int x1034;
     char pad4[0x108C - 0x1038]; int x108C; char pad5[0x11B0 - 0x1090]; char thrower[0x1320 - 0x11B0];
     struct ASEGP gaitA; char pad6[0x1374 - 0x1328]; struct ASEG *p1374; char pad7[0x13D0 - 0x1378];
     int state; float t13D4; char pad8[0x14E0 - 0x13D8]; struct ASEG *p14E0; char pad9[0x1600 - 0x14E4];
@@ -659,7 +656,7 @@ void SetBentleyState(struct P *p, int k)
         break;
     case BENTLEY_RUN:
     case BENTLEY_WALK:
-        p->g1A0 = p->action->g1C / p->action->pasega->g74;
+        p->g1A0 = p->action->time / p->action->animation->duration;
         break;
     case BENTLEY_THROW:
         SetJtThrowState(p->thrower, -1);
@@ -704,7 +701,7 @@ void SetBentleyState(struct P *p, int k)
         pa = &p->gaitB;
     L1:
         n = 9;
-        g = p->g1A0 * asega->g74;
+        g = p->g1A0 * asega->duration;
         ResetGaitFeet(pa);
         break;
     case BENTLEY_HURT:

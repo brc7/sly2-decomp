@@ -164,22 +164,18 @@ struct BEAM
 };
 typedef char assert_BEAM_size[sizeof(BEAM) == 0x150 ? 1 : -1];
 
-/* The animation played on an end cap: the ASEG found on the cap object (LO view: its oid at +0x18), the ASEGA playing
-   it (aseg.h: tLocal at +0x1C, svt at +0x40), and the channel object that computes the cap's scale from them (vtable
-   at +0, slot 3). */
-struct ASEGV { char pad0[0x18]; OID oid; };
-struct ASEGAV { char pad0[0x1C]; float tLocal; char pad20[0x20]; float svt; };
+/* The animation played on an end cap: the ASEG found on the cap object, the ASEGA playing it (aseg.h), and the curve
+   of its scale channel (CHN::pac), which computes the cap's scale from them (vtable at +0, slot 3: AC::Evaluate). */
 struct SCALER;
 struct SCALERVTE { short delta, pad; void (*fn)(SCALER *, U *, int, float, float); };
 struct SCALER { SCALERVTE *pvt; };
-struct CHNV { int unknown0; SCALER *pscaler; };
 
 /* An end cap: an object drawn at one end of every beam. */
 struct LASENCAP
 {
     ALO *palo;
-    ASEGV *paseg;
-    ASEGAV *pasega;
+    ASEG *paseg;
+    ASEGA *pasega;
     SCALER *pscaler;
 };
 
@@ -271,10 +267,10 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 qword GetLoWorldPos(void *pso);   /* object position */
 qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one XF space to another (0: world) */
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEOMV *pgeom, const M4 *pmat, GEOMV *pgeomOut);
-void FindSwObjectsByClass(SW *psw, int grffso, CID cid, ALO *palo, int cploMax, ASEGV **apaseg);
-ASEGAV *FindAsegaByOid(ALO *palo, OID oid);
-ASEGAV *ApplyAsegToObject(ASEGV *paseg, ALO *palo, int grf, float t, float svt);
-CHNV *FindAsegChannel(ASEGV *paseg, ALO *palo, int n, int f);
+void FindSwObjectsByClass(SW *psw, int grffso, CID cid, ALO *palo, int cploMax, ASEG **apaseg);
+ASEGA *FindAsegaByOid(ALO *palo, OID oid);
+ASEGA *ApplyAsegToObject(ASEG *paseg, ALO *palo, int grf, float t, float svt);
+CHN *FindAsegChannel(ASEG *paseg, ALO *palo, int n, int f);
 void OnSoContactFreed(void);
 void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
 void EnsureSwCallback(SW *psw, LASENV *plasen, PFNLASEN pfn, int n);
@@ -614,8 +610,8 @@ extern "C" void BindLasenAnimations(LASENV *laser)
     for (i = 0; i < 2; i++) {
         LASENCAP *pcap = &laser->caps[i];
         ALO *palo = pcap->palo;
-        ASEGV *paseg;
-        CHNV *pchn;
+        ASEG *paseg;
+        CHN *pchn;
         if (palo == 0)
             continue;
         FindSwObjectsByClass(&D_003DD490, 2, (CID)0x6D, palo, 1, &pcap->paseg);
@@ -630,7 +626,7 @@ extern "C" void BindLasenAnimations(LASENV *laser)
         }
         pchn = FindAsegChannel(paseg, palo, 0xC, 1);
         if (pchn)
-            pcap->pscaler = pchn->pscaler;
+            pcap->pscaler = (SCALER *)pchn->pac;
     }
 }
 
@@ -943,7 +939,7 @@ extern "C" void RenderLasenSelf(LASENV *laser)
                     U scale;
                     SCALER *scaler = cap->pscaler;
                     SCALERVTE &callback = scaler->pvt[3];
-                    callback.fn((SCALER *)((char *)scaler + callback.delta), &scale, 0, cap->pasega->tLocal, cap->pasega->svt);
+                    callback.fn((SCALER *)((char *)scaler + callback.delta), &scale, 0, cap->pasega->time, cap->pasega->speed);
                     matrix = LoadMatrixFromPosRotScale(points[j].q, &basis, &scale);
                 } else {
                     M4 *pm = &matrix;

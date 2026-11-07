@@ -455,16 +455,16 @@ typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];int i[4];};struct M3{U row[3];};struct VTE{short delta,pad;void*fn;};
 struct SPACE;struct OBJECT;struct PROVIDER;struct REFERENCE;struct EVENT;struct EFFECT;struct SCENE;struct SECONDARY;
 struct DATA{char pad0[4];float amount;};struct SOURCE{char pad0[0x114];DATA*data;char pad118[0x64];int state;};
-struct CLIP{char pad0[0x74];float duration;};struct ANIMATION{char pad0[0x14];CLIP*clip;};struct COMPONENT{void*object;};
+struct COMPONENT{void*object;};
 struct BODY{char pad0[0x70];U position;char pad80[0x20];SPACE*frame;};struct MOTION{char pad0[0x80];U acceleration;};
-struct ACTOR{char pad0[12];VTE*vt;char pad10[0x48];BODY*body;char pad5C[0x8C];MOTION*motion;char padEC[0x28];DATA*data;char pad118[0x78];U velocity;char pad1A0[8];float heading;char pad1AC[0x31C];int category;char pad4CC[0x434];char secondary[0x30];CLIP*secondaryClip;char pad934[0x50];SOURCE*secondaryFocus;char pad988[0x688];U offset;char pad1020[0x10];ANIMATION*animation;COMPONENT component;char pad1038[0x4DC];CLIP*clip1514;CLIP*clip1518;char pad151C[0x338];SOURCE*primaryFocus;char pad1858[0x4D0];EFFECT*effect;};
+struct ACTOR{char pad0[12];VTE*vt;char pad10[0x48];BODY*body;char pad5C[0x8C];MOTION*motion;char padEC[0x28];DATA*data;char pad118[0x78];U velocity;char pad1A0[8];float heading;char pad1AC[0x31C];int category;char pad4CC[0x434];char secondary[0x30];ASEG*secondaryClip;char pad934[0x50];SOURCE*secondaryFocus;char pad988[0x688];U offset;char pad1020[0x10];ASEGA*animation;COMPONENT component;char pad1038[0x4DC];ASEG*clip1514;ASEG*clip1518;char pad151C[0x338];SOURCE*primaryFocus;char pad1858[0x4D0];EFFECT*effect;};
 struct LINK{SPACE*space;void*target;};union WORD{int bits;float amount;};struct TRACK{int opaque;WORD control;float weight;};struct QUERY{OBJECT*object;PROVIDER*provider;REFERENCE*reference;int tag;U point;};
-struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];U relative,direction,offset;char pad100[0x20];CLIP*base[5];CLIP*alternate[5];CLIP*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;CLIP*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];CLIP*multi;SOURCE*scriptFocus;char pad1C0[8];CLIP*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
+struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];U relative,direction,offset;char pad100[0x20];ASEG*base[5];ASEG*alternate[5];ASEG*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;ASEG*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];ASEG*multi;SOURCE*scriptFocus;char pad1C0[8];ASEG*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
 struct CLOCK{float time,deltaTime;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
 void LinkStepAttachment(ACTOR*,void*,int);void RefreshSwObjectCollisionFilter(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
-qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(ASEG*);int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -482,8 +482,6 @@ typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char DATA_Size[sizeof(DATA)==8?1:-1];
 typedef char SOURCE_Size[sizeof(SOURCE)==384?1:-1];
-typedef char CLIP_Size[sizeof(CLIP)==120?1:-1];
-typedef char ANIMATION_Size[sizeof(ANIMATION)==24?1:-1];
 typedef char COMPONENT_Size[sizeof(COMPONENT)==4?1:-1];
 typedef char BODY_Size[sizeof(BODY)==176?1:-1];
 typedef char MOTION_Size[sizeof(MOTION)==144?1:-1];
@@ -504,8 +502,6 @@ typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
 typedef char DATA_amount_Offset[FIELD_OFFSET(DATA,amount)==4?1:-1];
 typedef char SOURCE_data_Offset[FIELD_OFFSET(SOURCE,data)==276?1:-1];
 typedef char SOURCE_state_Offset[FIELD_OFFSET(SOURCE,state)==380?1:-1];
-typedef char CLIP_duration_Offset[FIELD_OFFSET(CLIP,duration)==116?1:-1];
-typedef char ANIMATION_clip_Offset[FIELD_OFFSET(ANIMATION,clip)==20?1:-1];
 typedef char COMPONENT_object_Offset[FIELD_OFFSET(COMPONENT,object)==0?1:-1];
 typedef char BODY_position_Offset[FIELD_OFFSET(BODY,position)==112?1:-1];
 typedef char BODY_frame_Offset[FIELD_OFFSET(BODY,frame)==160?1:-1];
@@ -662,8 +658,8 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
     register unsigned clockHigh __asm__("$3"), savedClockHigh __asm__("$21");
     __asm__("lui %0,%%hi(%1)" : "=r"(clockHigh) : "i"(&D_002DDED0));
     __asm__("daddu %0,%1,$zero" : "=r"(savedClockHigh) : "r"(clockHigh));
-    ANIMATION *active = air->actor->animation;
-    CLIP *clip = 0;
+    ASEGA *active = air->actor->animation;
+    ASEG *clip = 0;
     air->mode = newMode;
     air->source = source;
     float entryTime, blend;
@@ -765,12 +761,12 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
         RefreshSwObjectCollisionFilter(&D_003DD490, source);
         SetBarrelState(source, 1);
         ClearVelocity(air->actor);
-        clip = air->actor->animation->clip;
+        clip = air->actor->animation->animation;
         break;
     case 8:
         SetXfRole(air->actor, air->actor->body, 17);
         ClearVelocity(air->actor);
-        clip = active->clip;
+        clip = active->animation;
         break;
     case 11:
     case 12:
@@ -962,7 +958,7 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
     }
     if (air->mode == -1)
         return;
-    if (!active || active->clip != clip) {
+    if (!active || active->animation != clip) {
         ReleaseSma(&air->actor->component);
         ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, air->actor, blend, weight, flags, &air->actor->animation);
     }
@@ -1509,8 +1505,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
 namespace M_func_00197370 { extern "C" {
 struct S60 { char pad[0x40]; float x40; float x44; };
 struct S150 { char pad[0x18]; float x18; };
-struct S1030 { char pad[0x1C]; float x1c; char pad2[0x40-0x20]; float x40; };
-struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct S1030 *action; char x1034[4]; };
+struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct ASEGA *action; char x1034[4]; };
 struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
@@ -1521,7 +1516,7 @@ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, vo
 void StartJtAirTurn(struct P *p)
 {
     float d, ad;
-    struct S1030 *s;
+    struct ASEGA *s;
     void *pv;
     p->x30 = 1;
     d = NormalizeAngle__Ff(p->x0->controller->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
@@ -1541,7 +1536,7 @@ void StartJtAirTurn(struct P *p)
     if (!pv)
         pv = p->a120[0];
     ReleaseSma(p->x0->x1034);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->x1c, s->x40);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->time, s->speed);
 }
 } } // namespace M_func_00197370
 
