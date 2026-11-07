@@ -991,7 +991,7 @@ void UpdateXfJobRange(void *pa, struct S *p)
 //    the tail keeps `pxfParent` but reads `pxf->pxfParent->nStampWorld` again, gDist = FloatOfVf(VuLength(..)) (the bits are not CSE'd: the game has a fresh mfc1 before the divide).
 // MATCH (T1641, Lilly's team decomp). The personal draft (xf.c, #if 0) was 14 lines off; with the team toolchain it took three changes to close it:
 //  - Near()'s Y word is ONE float-out asm (`prot3w %0,%1` "=r"(float)) like the X/Z words, not a TI temp + asm mtc1: that alone moved the z `pextuw` pairs to $a0/$a1;
-//  - the position chase's distance goes through GXOfQwAct(VuLength(..)) (compiler qmfc2 + asm mtc1): the divide gets a fresh `mfc1 v1,f21` and a plain bc1f;
+//  - the position chase's distance goes through VuGetX(VuLength(..)) (compiler qmfc2 + asm mtc1): the divide gets a fresh `mfc1 v1,f21` and a plain bc1f;
 //  - the position chase's rate switch fills a short-lived local (qwR) and copies it into qwTargetVel through PassQ (empty tied asm, an opaque copy): the arms are plain
 //    $v0 loads, the spill `sq v0,0x1C0(sp)` is shared, and the goal reload becomes $vf4; a bare `asm("")` after it keeps the `sq` ahead of the argument moves of the next call.
 //  - the world-matrix tail is written with asm text (loads + vcallms in one output-less asm, the result rows as cfc2.i outputs) and ONE register pin instead of
@@ -1081,19 +1081,19 @@ static inline qword VuDotXyz(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
-static inline float GZOfQw(qword qw)
+static inline float VuGetZ(qword qw)
 {
     float z;
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
     return z;
 }
-static inline float GXOfQwAct(qword qw)
+static inline float VuGetX(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
-static inline float GYOfQwAct(qword qw)
+static inline float VuGetY(qword qw)
 {
     float y;
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
@@ -1101,8 +1101,8 @@ static inline float GYOfQwAct(qword qw)
 }
 static inline int AreVectorsNearXyz(qword qwA, qword qwB)
 {
-    return FFloatsNear(GXOfQwAct(qwA), GXOfQwAct(qwB), 0.0001f) && FFloatsNear(GYOfQwAct(qwA), GYOfQwAct(qwB), 0.0001f) &&
-           FFloatsNear(GZOfQw(qwA), GZOfQw(qwB), 0.0001f);
+    return FFloatsNear(VuGetX(qwA), VuGetX(qwB), 0.0001f) && FFloatsNear(VuGetY(qwA), VuGetY(qwB), 0.0001f) &&
+           FFloatsNear(VuGetZ(qwA), VuGetZ(qwB), 0.0001f);
 }
 extern qword D_002A2DD0;
 extern qword D_002A2DA0;
@@ -1581,7 +1581,7 @@ void UpdateSoSlots(SO *so)
                     __asm__("" : : ); // schedule only: puts the spill store ahead of the call's argument moves (no instruction)
                     qword qwCur = SlotRestValue(xf, &xf->mat);
                     qword qwDir = SubtractVectors(qwTarget, qwCur);
-                    float gDist = GXOfQwAct(VuLength(qwDir));
+                    float gDist = VuGetX(VuLength(qwDir));
                     if (gDist > 0.0001f)
                     {
                         qwDir = VuDivX(qwDir, VuFloat(gDist).qw);
