@@ -2176,9 +2176,9 @@ typedef char assert_CID125_guards[SLY2_OFFSETOF(CID125, guards) == 0x54 ? 1 : -1
 struct ITEMCOUNTERENTRY { OID oid; TASK *task; };   /* an item counter entry: the task's oid, resolved by PostLoad */
 struct WIDGET129 : WIDGET
 {
-    unsigned int numEntriesA;    /* +0x110 AddItemCounterOidA (at most 16) */
+    int numEntriesA;             /* +0x110 AddItemCounterOidA (at most 16) */
     ITEMCOUNTERENTRY entriesA[16];   /* +0x114 */
-    unsigned int numEntriesB;    /* +0x194 AddItemCounterOidB; the counted done/total/remaining texts are for these */
+    int numEntriesB;             /* +0x194 AddItemCounterOidB; the counted done/total/remaining texts are for these */
     ITEMCOUNTERENTRY entriesB[16];   /* +0x198 */
     char pad218[0x220 - 0x218];
     virtual void PostLoad() __asm__("PostLoadItemCounterWidget");   /* slot 15 */

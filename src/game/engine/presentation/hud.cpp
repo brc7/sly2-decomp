@@ -52,6 +52,7 @@ void FormatSubtitleButtonGlyphs(char *pchz, int n);
 void SetWidgetRequest(WIDGET *widget, int request);
 void SetWidgetStateW(WIDGET *widget, int state) __asm__("SetWidgetState");
 int IsWidgetObscured(WIDGET *widget);
+int IsWidgetIdle(WIDGET *widget);
 void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags);
 void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 /* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
@@ -445,165 +446,133 @@ WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; a
 
 // 0x211CA8 ShowModalBoxWidget
 namespace M_func_00211CA8 { extern "C" {
-struct S { char pad[0x7C]; int mainAnimId; char pad2[0x90]; int isOpen; };   /* isOpen: WIDGET127+0x110 (inferred) */
-extern SW D_003DD490;
-void ShowWidget(struct S *p, int k);
 void IncrementSwHandsOff(SW *g, int a);
-void PlayWidgetAnim(struct S *p, int a);
+void PlayWidgetAnim(WIDGET *p, int a);
+} } // namespace M_func_00211CA8
 // Shows the modal message box (class 0x7F, slot 49) if it is idle: shows the widget, takes player control and plays its
 // open animation. (inferred)
-void ShowModalBoxWidget(struct S *widget, int arg)
+void WIDGET127::Show(int idLabel)
 {
-    if (widget->mainAnimId == -1) {
-        ShowWidget(widget, arg);
+    using namespace M_func_00211CA8;
+    if (mainAnimId == -1) {
+        WIDGET::Show(idLabel);
         IncrementSwHandsOff(&D_003DD490, 0);
-        widget->isOpen = 1;
-        PlayWidgetAnim(widget, 0x33A);   /* the box's open animation */
+        isOpen = 1;
+        PlayWidgetAnim(this, 0x33A);   /* the box's open animation */
     }
 }
-} } // namespace M_func_00211CA8
 
 // 0x211D08 InitModalBoxWidget
-namespace M_func_00211D08 { extern "C" {
-struct S { char pad[0xB0]; int fontFlag; };
-void InitLo(struct S *p);
-} } // namespace M_func_00211D08
-// Initializes the modal message box (class 0x7F): base init and its "font" flag.
-void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *widget = (M_func_00211D08::S *)this;
-    InitLo(widget);
-    widget->fontFlag = 1;
+// Initializes the modal message box (class 0x7F): base init, and it pauses the game while shown.
+void WIDGET127::Init()
+{
+    LO::Init();
+    pausesGame = 1;
 }
 
 // 0x211D38 UpdateModalBoxWidget
 namespace M_func_00211D38 { extern "C" {
-// Actor update: commit completed state after every noninitial guard path.
-struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
-struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int isOpen; int keepsGamePaused; };
-extern SW D_003DD490;   /* SW+0x3B0C: resumed via func_00162DF8 (inferred) */
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
-int IsWidgetIdle(struct S *p);
-void UpdateWidget(struct S *p);
 int IsScreenShown(void *);
 int HandleJoyButtons(void *, int);
 void DecrementSwHandsOff(SW *, int);
 void RestartJob(void *);
+} } // namespace M_func_00211D38
 // Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
 // resumes the game and hides the box. (inferred)
-void UpdateModalBoxWidget(struct S *widget)
+void WIDGET127::Update()
 {
-    if (IsWidgetIdle(widget))
+    using namespace M_func_00211D38;
+    if (IsWidgetIdle(this))
         return;
-    UpdateWidget(widget);
-    if (widget->state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - widget->stateTime && !IsScreenShown(D_002E6550)
+    WIDGET::Update();
+    if (state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - stateTime && !IsScreenShown(D_002E6550)
         && !IsScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0 /* face buttons */)) {
         DecrementSwHandsOff(&D_003DD490, 0);
-        if (widget->keepsGamePaused == 0 && D_003DD490.currentJob) {
+        if (keepsGamePaused == 0 && D_003DD490.currentJob) {
             D_002DD318++;
             RestartJob(D_003DD490.currentJob);
         }
-        widget->pvt->pf((char *)widget + widget->pvt->d);   /* HideWidget (slot 50) */
+        Hide();
     }
-    widget->isOpen = 1;
+    isOpen = 1;
 }
-} } // namespace M_func_00211D38
 
 // 0x211E40 InitWidget128
-namespace M_func_00211E40 { extern "C" {
-struct S { char pad[0xB0]; int fontFlag; };
-void InitLo(struct S *p);
-} } // namespace M_func_00211E40
-// Initializes widget class 0x80: base init and its "font" flag.
-void WIDGET128::Init() { using namespace M_func_00211E40; M_func_00211E40::S *widget = (M_func_00211E40::S *)this;
-    InitLo(widget);
-    widget->fontFlag = 1;
+// Initializes widget class 0x80 (the job completion banner): base init, and it pauses the game while shown.
+void WIDGET128::Init()
+{
+    LO::Init();
+    pausesGame = 1;
 }
 
 // 0x211E70 AddItemCounterOidA
-namespace M_func_00211E70 { extern "C" {
-struct E { int oid; void *object; };
-struct S { char pad[0x110]; unsigned int numEntries; struct E entries[16]; };
 // Adds an object to the item counter widget's first list (at most 16). (inferred)
-void AddItemCounterOidA(struct S *widget, int oid)
+extern "C" void AddItemCounterOidA(WIDGET129 *widget, int oid)
 {
-    unsigned int count = widget->numEntries;
+    unsigned int count = widget->numEntriesA;
     if (count < 16) {
-        widget->entries[count].oid = oid;
-        widget->numEntries = count + 1;
+        widget->entriesA[count].oid = (OID)oid;
+        widget->numEntriesA = count + 1;
     }
 }
-} } // namespace M_func_00211E70
 
 // 0x211E98 AddItemCounterOidB
-namespace M_func_00211E98 { extern "C" {
-struct E { int oid; void *object; };
-struct S { char pad[0x194]; unsigned int numEntries; struct E entries[16]; };
 // Adds an object to the item counter widget's second list (at most 16). (inferred)
-void AddItemCounterOidB(struct S *widget, int oid)
+extern "C" void AddItemCounterOidB(WIDGET129 *widget, int oid)
 {
-    unsigned int count = widget->numEntries;
+    unsigned int count = widget->numEntriesB;
     if (count < 16) {
-        widget->entries[count].oid = oid;
-        widget->numEntries = count + 1;
+        widget->entriesB[count].oid = (OID)oid;
+        widget->numEntriesB = count + 1;
     }
 }
-} } // namespace M_func_00211E98
 
 // 0x211EC0 PostLoadItemCounterWidget
 namespace M_func_00211EC0 { extern "C" {
-extern SW D_003DD490;
-struct B { int oid; void *object; };
-struct S { char pad[0x110]; int numEntriesA; struct B entriesA[0x10]; int numEntriesB; struct B entriesB[1]; };
-void PostWidgetLoad(struct S *p);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int z);
 } } // namespace M_func_00211EC0
 // Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
-void WIDGET129::PostLoad() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *widget = (M_func_00211EC0::S *)this;
+void WIDGET129::PostLoad()
+{
+    using namespace M_func_00211EC0;
     int i;
-    PostWidgetLoad(widget);
-    for (i = 0; i < widget->numEntriesB; i++) {
-        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesB[i].oid, 0);
+    WIDGET::PostLoad();
+    for (i = 0; i < numEntriesB; i++) {
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, entriesB[i].oid, 0);
         if (object)
-            widget->entriesB[i].object = object;
+            entriesB[i].task = (TASK *)object;
     }
-    for (i = 0; i < widget->numEntriesA; i++) {
-        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesA[i].oid, 0);
+    for (i = 0; i < numEntriesA; i++) {
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, entriesA[i].oid, 0);
         if (object)
-            widget->entriesA[i].object = object;
+            entriesA[i].task = (TASK *)object;
     }
 }
 
 // 0x211F90 UpdateItemCounterWidget
 namespace M_func_00211F90 { extern "C" {
-struct VT {
-    char pad[0x188]; short d49; short pd49; void (*f49)(void *,int);
-    short d50; short pd50; void (*f50)(void *);
-};
-/* The lists of AddItemCounterOidA/B read one word late: object of entry i, then oid of entry i + 1. */
-struct E {TASK *object;int nextOid;};
-struct S {
-    char pad[0xC];struct VT *vt;char pad10[0x100];
-    int countA;int firstOidA;struct E a[15];int lastObjectA;int countB;int firstOidB;struct E b[0];
-};
 enum { TASK_STATE_ACTIVE = 1 };   /* (inferred) */
 extern char D_002C3EC0[0x90];
 extern char D_002A8AA0[];
-void UpdateWidget(struct S *);
 int IsTaskComplete(TASK *);
-int IsWidgetAnimPlaying(struct S *,int);
+int IsWidgetAnimPlaying(WIDGET *,int);
 int sprintf(char *,char *,...);
+} } // namespace M_func_00211F90
 // Per-frame item counter: counts finished and active objects, writes done / total / remaining into the widget's item
 // texts, shows while any is active and hides when all are done. (inferred)
 // Runtime-checked: it counts the complete tasks.
-void UpdateItemCounterWidget(struct S *widget)
+void WIDGET129::Update()
 {
+    using namespace M_func_00211F90;
     int i;
     int numComplete = 0;
     int numCompleteB = 0;
     int numActive = 0;
-    UpdateWidget(widget);
-    for (i = 0; i < widget->countB; i++) {
-        TASK *task = widget->b[i].object;
+    WIDGET::Update();
+    for (i = 0; i < numEntriesB; i++) {
+        TASK *task = entriesB[i].task;
         if (task) {
             if (task->state == TASK_STATE_ACTIVE)
                 numActive++;
@@ -613,8 +582,8 @@ void UpdateItemCounterWidget(struct S *widget)
             }
         }
     }
-    for (i = 0; i < widget->countA; i++) {
-        TASK *task = widget->a[i].object;
+    for (i = 0; i < numEntriesA; i++) {
+        TASK *task = entriesA[i].task;
         if (task) {
             if (task->state == TASK_STATE_ACTIVE)
                 numActive++;
@@ -623,17 +592,16 @@ void UpdateItemCounterWidget(struct S *widget)
         }
     }
     /* the three 0x30-byte "Widget Item" text buffers: done, total, remaining */
-    if (IsWidgetAnimPlaying(widget, 0x314)) {
+    if (IsWidgetAnimPlaying(this, 0x314)) {
         sprintf(D_002C3EC0, D_002A8AA0, numCompleteB);
-        sprintf(D_002C3EC0 + 0x30, D_002A8AA0, widget->countB);
-        sprintf(D_002C3EC0 + 0x60, D_002A8AA0, widget->countB - numCompleteB);
+        sprintf(D_002C3EC0 + 0x30, D_002A8AA0, numEntriesB);
+        sprintf(D_002C3EC0 + 0x60, D_002A8AA0, numEntriesB - numCompleteB);
     }
-    if (numComplete == widget->countB + widget->countA || !numActive)
-        widget->vt->f50((char *)widget + widget->vt->d50);       /* HideWidget */
+    if (numComplete == numEntriesB + numEntriesA || !numActive)
+        Hide();
     else if (numActive > 0)
-        widget->vt->f49((char *)widget + widget->vt->d49, -1);   /* ShowWidget */
+        Show(-1);
 }
-} } // namespace M_func_00211F90
 
 // 0x212158 WIDGET_ctor
 namespace M_WIDGET_ctor { extern "C" {
