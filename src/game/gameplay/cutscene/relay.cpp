@@ -23,6 +23,7 @@
 #include "sly2/stepplayer.h"
 #include "sly2/jt.h"
 #include "sly2/players.h"
+#include "sly2/sw.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
@@ -1190,11 +1191,7 @@ struct SVPATH
       short *aid;
 };
 
-struct LOUPD
-{
-      int grf;
-      LO *plo;
-};
+/* LOUPD: sly2/sw.h */
 
 int FAsegaStopped(ASEGA *pasega) __asm__("IsAsegaRetracted");
 
@@ -4631,7 +4628,7 @@ int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
 namespace M_func_001E4530 { extern "C" {
 struct G; union U; struct P; struct C; struct O;
 struct G { int a; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern struct G D_003DD040;
 extern struct G D_002DE578;
 extern float D_002BD850;
@@ -4641,7 +4638,7 @@ struct C { char pad[0x18]; int context; };
 struct O { char pad[0x74]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
 struct O *FindJsgObject(struct C *script, int n);
 float GetDifficulty(struct G *pg);
-void *FindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int oid, int b);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int k, int oid, int b);
 void *FindLiveSma(void *p, int n);
 float EstimateSmaTimeToState(void *p, int n);
 float GetDialogStreamDuration(struct G *pg, int n);
@@ -5036,15 +5033,14 @@ extern "C" void SetRelayScriptActor(JSGV *script, RELAYCMD *prelaycmdJt, LO *pjt
 
 // 0x1E4F20 SetJsgTunnel
 namespace M_SetJsgTunnel { extern "C" {
-struct VTE; struct O; struct G; struct P;
+struct VTE; struct O; struct P;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { int pad[3]; struct VTE *vt; char pad2[0x28 - 0x10]; unsigned long flPad : 60; unsigned int fBit60 : 1; char pad3[0xE0 - 0x30]; void *pvE0; };
-struct G { int a; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 struct P { char pad[0x24]; void *p24; char pad2[0x6C - 0x28]; struct O *po; int fActive; };
 void SetTnTnsOverride(struct O *po, int n);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void *GetCurrentPo(struct G *pg);
+void *GetCurrentPo(SW *pg);
 // Switch the script's active tunnel (ptnCur +0x6C): release/hide old (SetTnTnsOverride(tn,-1), vt9), attach/show new (vt8)
 // with owner = actor or current PO. (inferred)
 void SetJsgTunnel(struct P *script, struct O *po)
@@ -5107,14 +5103,13 @@ void SetRelayScriptFocus(struct P *script, void *pv)
 
 // 0x1E50E0 SetRelayScriptHandsOff
 namespace M_func_001E50E0 { extern "C" {
-struct G; struct P;
-struct G { int a; };
-extern struct G D_003DD490;
+struct P;
+extern SW D_003DD490;
 struct P { char pad[0x38]; int fOn; int id; };
-void DecrementSwHandsOff(struct G *pg, int id);
-void DecrementSwNoPause(struct G *pg);
-void IncrementSwHandsOff(struct G *pg, int id);
-void IncrementSwNoPause(struct G *pg);
+void DecrementSwHandsOff(SW *pg, int id);
+void DecrementSwNoPause(SW *pg);
+void IncrementSwHandsOff(SW *pg, int id);
+void IncrementSwNoPause(SW *pg);
 // Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
 // (IncrementSwHandsOff/DecrementSwHandsOff) + 0x20F0C0/0x20F0F0. (inferred)
 void SetRelayScriptHandsOff(struct P *script, int fOn, int id)
