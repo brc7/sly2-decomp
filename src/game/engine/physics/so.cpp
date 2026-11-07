@@ -25,6 +25,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
+#include "sly2/light.h"
 #include "sly2/vu0.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
@@ -157,13 +158,7 @@ struct VU_VECTOR4
     qword qw;
 };
 
-/* The bounds record of an SO (SO::psobounds): its owner and one float the owner keeps in step (SetSoBoundsScale). */
-struct SOBOUNDS
-{
-    SO *pso;                /* +0x00 */
-    int pad4[7];
-    float scale;            /* +0x20 */
-};
+/* SO::psobounds is sly2/light.h's SOBOUNDS. */
 /* Objects only one function reads: CanSoTakeDamage's +0x44 word and ClearSoAnimIndex's +0xB4 word. */
 struct SOWATCH { char pad0[0x44]; int unknown44; char pad48[0x6C]; int animIndex; };
 /* The per-step record EnsureSoPhysRegionRecord finds (three floats at +4, +8, +0xC). */
@@ -440,7 +435,7 @@ extern "C" void SetSoBoundsScale(SO *so, float g)
     psobounds = so->psobounds;
     so->unknown13C = g;
     if ((psobounds != 0) && (psobounds->pso == so)) {
-        psobounds->scale = g;
+        psobounds->sExtra = g;
     }
 }
 

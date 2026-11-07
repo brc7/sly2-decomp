@@ -11,15 +11,15 @@
 /* SOBOUNDS: one object's light packets (0x30) */
 struct SOBOUNDS
 {
-    int unknown0;
+    SO *pso;                /* +0x00 the object that owns it (a hierarchy shares its root's record) */
     qword *pposCenter;      /* +0x04 the point the lights are ranked for */
-    int unknown8;
+    int count;              /* +0x08 (EnsureSoBounds) */
     int stamp;              /* +0x0C the world's light stamp it was built for (RefreshSoBoundsRecord) */
-    float strength;         /* +0x10 0: no light packets */
+    float strength;         /* +0x10 0: no light packets; EnsureSoBounds grows it as the inner radius */
     int cqwPacket;          /* +0x14 the light payload chain (four 48-byte VIF packets) */
     uchar *pbPacket;        /* +0x18 */
-    float sRadius;          /* +0x1C 0: no projected volume; else its radius */
-    float sExtra;           /* +0x20 added to the volume's extent */
+    float sRadius;          /* +0x1C 0: no projected volume; else its radius (EnsureSoBounds: the outer radius) */
+    float sExtra;           /* +0x20 added to the volume's extent: the owner's SO::unknown13C (SetSoBoundsScale) */
     MATRIX4 *pmatClip;      /* +0x24 the clip matrix inside the projected-volume packet (0: none) */
     int cqwVolume;          /* +0x28 the projected-volume chain (a DMA REF of it ends the model's packet) */
     uchar *pbVolume;        /* +0x2C */
