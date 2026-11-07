@@ -2962,35 +2962,23 @@ void BHVWALKPATH::OnPush()
 
 // 0x178EE0 UpdateBhvwalkpath
 namespace M_UpdateBhvwalkpath {
-struct MATRIX3; struct ACTOR; struct MODEL; struct CONTROL; struct CHOICE; struct DRIVER; struct P; struct VU_FLOAT;
+struct MODEL; struct CONTROL; struct VU_FLOAT;
 // UpdateBhvwalkpath (Claude agent, lane G13, 2026-10-24): laneG10v2 (no pins) + VU_FLOAT(float) qmtc2 constructor building the speed in place, and the 1e-4 length test read with VuGetX (gcc emits the qmfc2, asm mtc1).
-typedef int qword __attribute__((mode(TI)));
-struct MATRIX3 { float mat[3][4]; };
-struct CLQ { float g0, g1, g2; };
-struct ACTOR { char pad[0xFD0]; char control[1]; };
+/* the kind-3 binding's handle and instance (the DIRANIM pair; leap.h pads CID146) */
 struct MODEL { char pad[0x10]; qword velocity; };
 struct CONTROL { char pad[0x24]; void *animation; };
-struct CHOICE { int kind; MODEL *model; CONTROL *control; };
-struct DRIVER { char pad[0x40]; CHOICE *choice; };
-struct P {
-    char pad[0x10]; ACTOR *guard; int pad14; DRIVER *driver;
-    char pad1C[0x4C - 0x1C]; unsigned int mode; char pad50[0x80 - 0x50]; qword target;
-    char pad90[0xC4 - 0x90]; float rate; char padC8[8]; qword cached; float timeout;
-};
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
 extern "C" {
 extern CLQ D_002BE6A0;
 extern LM D_002BBB60;
 extern float D_002BE694, D_002BE6B0;
-extern CLOCK D_002DDED0;
-extern qword D_002A2DC0, D_002A2DD0;
-void UpdateBhvpath(P *);
-qword GetLoWorldPos(ACTOR *);
-MATRIX3 *GetLoWorldMatrix(ACTOR *);
+extern qword D_002A2DC0;
+void UpdateBhvpath(BHVPATH *);
+MATRIX3 *GetLoWorldMatrix(LO *);
 void SetAsegaSpeed__FP5ASEGAf(void *, float);
 float atan2f(float, float);
-void SetStepguardMoverRadTarget(void *, float);
+void SetStepguardMoverRadTarget(GUARDMOVER *, float);
 void SelectDirAnim(CONTROL *, qword);
 }
 // VU0 helper: a float in a VU register.
@@ -3075,27 +3063,27 @@ static inline int HasMoved(qword qwPos, qword qwPosLast)
 
 // 0x178EE0: BHVWALKPATH vtable slot 10 (Update): BHVPATH update, then sets the walk animation speed and the mover
 // heading toward the target point; runs the stuck timer while not moving.
-extern "C" void UpdateBhvwalkpath(P *behavior)
+extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
 {
     UpdateBhvpath(behavior);
-    if (behavior->mode < 2)
+    if ((unsigned int)behavior->state < 2)
     {
-        qword pos = GetLoWorldPos(behavior->guard);
-        qword dpos = VuProjectOut(VuSub(behavior->target, pos), D_002A2DC0);
+        qword pos = GetLoWorldPos(behavior->owner);
+        qword dpos = VuProjectOut(VuSub(behavior->startPosition, pos), D_002A2DC0);
         float g = EvaluateClampedQuadratic(&D_002BE6A0, &D_002BBB60, QwordX(VuLengthXY(dpos)));
-        CHOICE *pchoice = behavior->driver->choice;
+        ANIMBINDING *pchoice = ((BHVANIM *)behavior->pbhvNext)->binding;
         switch (pchoice->kind)
         {
         case 0:
-            SetAsegaSpeed__FP5ASEGAf(pchoice->control, behavior->rate * g);
-            SetStepguardMoverRadTarget(behavior->guard->control, atan2f(QwordY(dpos), QwordX(dpos)));
+            SetAsegaSpeed__FP5ASEGAf(pchoice->asega, behavior->rate * g);
+            SetStepguardMoverRadTarget(&((STEPGUARD *)behavior->owner)->mover, atan2f(QwordY(dpos), QwordX(dpos)));
             break;
         case 3:
         {
-            qword qwLocal = VuDotMatrixRows(GetLoWorldMatrix(behavior->guard), dpos);
+            qword qwLocal = VuDotMatrixRows(GetLoWorldMatrix(behavior->owner), dpos);
             qword qwFallback = D_002A2DD0;
             float gSpeed = behavior->rate * g;
-            gSpeed *= QwordX(VuLengthXY(pchoice->model->velocity));
+            gSpeed *= QwordX(VuLengthXY(((MODEL *)pchoice->payload4)->velocity));
             qword qwLen = VuLengthUntied(qwLocal);
             VU_FLOAT vuSpeed(gSpeed);
             qword qwDir;
@@ -3108,19 +3096,19 @@ extern "C" void UpdateBhvwalkpath(P *behavior)
                 __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
                 __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwDir) : "j"(qwLocal));
             }
-            SelectDirAnim(pchoice->control, VuScaleByX(qwDir, vuSpeed));
-            SetAsegaSpeed__FP5ASEGAf(pchoice->control->animation, g);
+            SelectDirAnim((CONTROL *)pchoice->payload, VuScaleByX(qwDir, vuSpeed));
+            SetAsegaSpeed__FP5ASEGAf(((CONTROL *)pchoice->payload)->animation, g);
             break;
         }
         }
-        if (HasMoved(pos, behavior->cached))
+        if (HasMoved(pos, behavior->stuckCheckPos))
         {
-            behavior->cached = pos;
-            behavior->timeout = D_002BE694;
+            behavior->stuckCheckPos = pos;
+            behavior->stuckTimer = D_002BE694;
         }
         else
         {
-            behavior->timeout -= D_002DDED0.deltaTime;
+            behavior->stuckTimer -= D_002DDED0.deltaTime;
         }
     }
 }
