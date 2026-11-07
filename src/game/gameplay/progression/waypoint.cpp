@@ -26,6 +26,7 @@ struct LMV { float gMin, gMax; };
 struct RGBAV
 {
     uchar r, g, b, a;
+    // Color from a packed word.
     RGBAV(uint bits) { *(uint *)this = bits; }
 };
 
@@ -519,6 +520,7 @@ static inline qwordV QwMulX(qwordV qwRow, VU_FLOAT g)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(g.qw), "j"(qwRow));
     return qw;
 }
+// Scale a 3x3 matrix by g.
 inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
 {
     MATRIX3V matT;

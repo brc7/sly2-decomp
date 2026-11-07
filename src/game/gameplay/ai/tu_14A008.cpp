@@ -36,6 +36,7 @@ enum {
 typedef union { qword q; float f[4]; } U;
 /* g++ 2.95 vtable entry. */
 struct VTE { short d; short pad; void *pfn; };
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct LMV { float gMin; float gMax; };
 struct SW;
@@ -194,6 +195,7 @@ int RandomIntInRange(int nMin, int nMax);
 int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
 LOV *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
+// Fill an allocation request for `a` 12-byte records with alignment b.
 static inline void InitS(ALLOCREQ *ps, int a, int b)
 {
     ps->cb = a * 0xC;

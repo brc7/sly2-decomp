@@ -153,6 +153,7 @@ done:
 /* The count is signed in ShouldBarrierIgnoreIntersection's loops (slt/blez) and compared unsigned here (sltiu). */
 // Splice setter: adds an object name to the barrier's list (at most four; extra names are ignored).
 void AddBarrierObject(BARRIERV *barrier, OID oid) __asm__("AddBarrierObject__FP7BARRIER3OID");
+// Add an object name to the barrier's list (at most four).
 void AddBarrierObject(BARRIERV *barrier, OID oid)
 {
     if ((unsigned int)barrier->numObjects < 4) barrier->objects[barrier->numObjects++] = oid;
@@ -160,6 +161,7 @@ void AddBarrierObject(BARRIERV *barrier, OID oid)
 
 // Splice setter: adds a class to the barrier's list (at most four; extra classes are ignored).
 void AddBarrierClass(BARRIERV *barrier, CIDV cid) __asm__("AddBarrierClass__FP7BARRIER3CID");
+// Add a class to the barrier's list (at most four).
 void AddBarrierClass(BARRIERV *barrier, CIDV cid)
 {
     if ((unsigned int)barrier->numClasses < 4) barrier->classes[barrier->numClasses++] = cid;

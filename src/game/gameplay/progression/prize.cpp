@@ -241,11 +241,14 @@ M3 LoadRotateMatrixEuler(qword);
 
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
+    // Broadcast int bits into a VU0 register.
     VU_FLOAT(int bits) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "rV"(bits)); }
 };
 struct VU_VECTOR {
     qword q;
+    // Wrap a qword as a VU_VECTOR.
     VU_VECTOR(const qword &v) { q = v; }
 };
 // Weighted sum f1*v1 + f2*v2.
@@ -271,6 +274,7 @@ static inline qword RotateVec(const M3 &m, qword value)
             : "+j"(value) : "j"(m.rows[0]), "j"(m.rows[1]), "j"(m.rows[2]));
     return value;
 }
+// 3x3 matrix product matL * matR.
 static inline M3 operator*(const M3 &matL, const M3 &matR) return mat
 {
     M3 t;
@@ -413,7 +417,9 @@ float SplitVectorAlongAxis(qword, qword, qword *, qword *);
 
 struct VU_FLOAT {
     qword qw;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float g) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(g)); }
+    // Broadcast int bits into a VU0 register.
     VU_FLOAT(int bits) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(bits)); }
 };
 // Helpers VuFloat, VuFloatBits, GFromQw (small asm wrappers/accessors shaped for the match).
@@ -657,6 +663,7 @@ struct O { int a[3]; struct VTE *vt; char pad[0x1B8]; int isCollectable; };
 struct Q { char pad[0x44]; int grf; };
 // DPRIZE::TakeDamage (new virtual slot 75): a collectable prize hit by a zap with flag 8 counts as collected.
 } } // namespace M_func_001C5DF0
+// DPRIZE::TakeDamage: a collectable prize hit by a zap with flag 8 counts as collected.
 int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here (the namespace's views) */
 {
     using namespace M_func_001C5DF0;
@@ -1006,6 +1013,7 @@ extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // COIN Update: UpdateDprize, then while idle counts the lifetime down and starts vanishing at zero.
 } } // namespace M_func_001C6588
+// COIN::Update: prize update, then while idle count the lifetime down and vanish at zero.
 void COIN::Update() { using namespace M_func_001C6588; M_func_001C6588::O *p = (M_func_001C6588::O *)this;
     UpdateDprize(p);
     if (!p->state) {
@@ -1120,6 +1128,7 @@ extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // MEDICINE Update: as COIN's (lifetime countdown while idle, then vanish).
 } } // namespace M_func_001C6880
+// MEDICINE::Update: prize update, then while idle count the lifetime down and vanish at zero.
 void MEDICINE::Update() { using namespace M_func_001C6880; M_func_001C6880::O *p = (M_func_001C6880::O *)this;
     UpdateDprize(p);
     if (!p->state) {
@@ -1214,6 +1223,7 @@ struct S { char pad[0x1A0]; float glintChance; char pad2[0x2C]; float bounceBoos
 void InitDprize(struct S *p);
 // CID 92 Init. (inferred)
 } } // namespace M_func_001C6AB8
+// KEY::Init: prize init with the key's bounce and collection tuning.
 void KEY::Init() { using namespace M_func_001C6AB8; M_func_001C6AB8::S *p = (M_func_001C6AB8::S *)this;
     InitDprize(p);
     p->bounceRadius = 35.0f; //P
@@ -1343,8 +1353,10 @@ struct LSG {
 struct CANDIDATE;
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
+// Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 extern "C" {
 int IsDprizeCollisionCandidate(void *, CANDIDATE *);
@@ -1415,6 +1427,7 @@ typedef int qword __attribute__((mode(TI)));
 union VECTOR4 { qword q; float f[4]; };
 struct CLQ { float g0, g1, g2, gUnused; };
 struct LM { float gMin, gMax; };
+// Allocation request: byte count and alignment.
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
 struct LINK { char pad0[0x10]; REGION *pregion; };
@@ -1469,6 +1482,7 @@ void LaunchSprayedDprize(LO *, qword, qword, float, float);
 }
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
 // Helpers PvAllocFrame, GetZ, GFromVf, Add, Sub (small asm wrappers/accessors shaped for the match).
@@ -1528,6 +1542,7 @@ static inline qword Combine(qword a, VU_FLOAT ga, qword b, VU_FLOAT gb)
 }
 // Helpers GFromClq, GClampR, GClamp (small asm wrappers/accessors shaped for the match).
 static inline float GFromClq(const CLQ &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
+// Clamp g to [gMin, gMax].
 static inline float GClamp(float g, const LM &lm) { return Clamp(g, lm.gMin, lm.gMax); }
 // The region an object stands in, through its extension's link (or null).
 static inline REGION *PregionFromLo(LO *plo)
@@ -1663,6 +1678,7 @@ extern struct CLOCK D_002DDED0;
 void UpdateDprize(struct O *p);
 // LOOT Update: as COIN's (lifetime countdown while idle, then vanish).
 } } // namespace M_func_001C7778
+// LOOT::Update: prize update, then while idle count the lifetime down and vanish at zero.
 void LOOT::Update() { using namespace M_func_001C7778; M_func_001C7778::O *p = (M_func_001C7778::O *)this;
     UpdateDprize(p);
     if (!p->state) {
@@ -1682,9 +1698,13 @@ void SetDprizeDprizes(void *p, int n);
 }
 struct CRef {
     int m_tagk; int m_tag;
+    // Empty (untagged) script reference.
     CRef() { m_tagk = -1; }
+    // Script reference with the given tag and value.
     CRef(int k, int n) { m_tagk = k; m_tag = n; }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
+    // Assign a script reference.
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
 struct LOOTENTRY { int id; int saveId; };
@@ -1884,9 +1904,13 @@ void SetClueCollected(int n, int f);
 }
 struct CRef {
     int m_tagk; int m_tag;
+    // Uninitialised script reference.
     CRef() {}
+    // Script reference holding a bool (tag 0x17).
     CRef(int f) { m_tagk = 0x17; m_tag = f; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 extern "C" { extern char D_003D4A60[]; }
@@ -2064,6 +2088,7 @@ void PostLoLoad(struct O *p);
 int IsClueCollected(int n);
 // CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
 } } // namespace M_func_001C8030
+// CLUEPROXY::PostLoad: LO post-load, take the next clue index and hide the proxy when that clue is already collected.
 void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; M_func_001C8030::O *p = (M_func_001C8030::O *)this;
     PostLoLoad(p);
     p->clueIndex = D_003DD490.nextClueIndex++;
@@ -2140,9 +2165,13 @@ void AutosaveGame(void *p, int n);
 }
 struct CRef {
     int m_tagk; int m_tag;
+    // Uninitialised script reference.
     CRef() {}
+    // Script reference holding a bool (tag 0x17).
     CRef(int f) { m_tagk = 0x17; m_tag = f; }
+    // Copy a script reference (adds a reference).
     CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 extern "C" { extern char D_003D4A60[]; }
@@ -2155,6 +2184,7 @@ struct RAW { int m_tagk; int m_tag; };
 extern "C" RAW *GetGlobalSaveVar(RAW *pr, void *pv, void *p);
 // Helpers NFromPv, SetPv (small asm wrappers/accessors shaped for the match).
 static inline int NFromPv(void *pv,RAW &ref) { int n; GetGlobalSaveVar(&ref,pv,D_003D4A60);n=ref.m_tag;Decref__4CRef(&ref);return n; }
+// Store r into the global save variable pv.
 static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=SetGlobalSaveVar(pv,arg,D_003D4A60); }
 extern "C" void SetVaultOpened(int f);
 // Records in the save whether the current level's vault is open. (inferred)
@@ -2268,10 +2298,15 @@ extern "C" void SetVaultDialState(struct S*,int);
 extern "C" int IsAsegaRetracted(void*);
 // Helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum (small asm wrappers/accessors shaped for the match).
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
+// Length of the xyz part of a as a float (register-pinned).
 static inline float Len(qword a){register qword d __asm__("vf1");register qword one __asm__("vf2");float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
+// The frame clock's current time.
 static inline float ClockTime(){float t;__asm__("lwc1 %0,%1":"=f"(t):"m"(D_002DDED0.t));return t;}
+// High address page of the minimum constant.
 static inline char*MinimumPage(){register char*page __asm__("$6");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002A7798));return page;}
+// High address page of the selection table.
 static inline char*SelectionTablePage(){register char*page __asm__("$5");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_002C0FF0));return page;}
+// Address of the selection table and the minimum value (register-pinned).
 static inline qword*TableWithMinimum(char*minimumPage,char*tablePage,float*out){register float minimum __asm__("$f1");register qword*table __asm__("$5");__asm__ volatile("lwc1 %0,%%lo(%4)(%2)\n\taddiu %1,%3,%%lo(%5)":"=f"(minimum),"=r"(table):"r"(minimumPage),"r"(tablePage),"i"(&D_002A7798),"i"(D_002C0FF0),"m"(*(const float*)(minimumPage+0x7798)));*out=minimum;return table;}
 // Dial input: the stick picks the nearest of nine dial positions (with hysteresis for the current one), a button
 // enters it as the next digit (code = code*10 % 1000 + digit + 1), and when the entered code equals the vault's

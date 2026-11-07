@@ -287,20 +287,28 @@ extern "C" int IsFrameCaptureInactive(CAPTUREV *capture)
 
 union VECTOR4V { qwordV q; float f[4]; };
 union VECTOR4V;
+// VU vector wrapper.
 struct VU_VECTOR { qwordV q; VU_VECTOR() {} VU_VECTOR(qwordV a) { q = a; } VU_VECTOR(const VECTOR4V &v); };
+// VU vector wrapper constructible from a 4-float vector.
 struct VU_VECTOR4 { qwordV q; VU_VECTOR4() {} VU_VECTOR4(qwordV a) { q = a; } VU_VECTOR4(const VECTOR4F &v) { q = *(qwordV *)&v; } };
+// Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qwordV q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Loads a vector from its union view.
 inline VU_VECTOR::VU_VECTOR(const VECTOR4V &v) { q = v.q; }
 VU_VECTOR4 operator*(const M4 &m, VU_VECTOR4 v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
+// Return v scaled by f.
 static inline qwordV operator*(VU_FLOAT f, VU_VECTOR v)
 { qwordV r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
 // GIF packing wrappers taking references (as the original's inline members did), the 12.4 fixed-point screen
 // coordinate with its offset, and the clip-to-screen scale ((g + 0.5) * size + 0.5).
 static inline void SetStq(GIFS *pgifs, const float &s, const float &t, const float &q) { PackSTQ__4GIFSfff(pgifs, s, t, q); }
+// Pack an RGBA register value into the GIF stream.
 static inline void SetRgba(GIFS *pgifs, const int &rgba) { PackRGBA__4GIFSUi(pgifs, rgba); }
+// Pack an XYZ register value into the GIF stream.
 static inline void SetXyz(GIFS *pgifs, const int &x, const int &y, const int &z) { PackXYZ__4GIFSiii(pgifs, x, y, z); }
+// Convert g plus a pixel offset to 12.4 fixed point.
 static inline int IFix(const float &g, const int &off) { return ((int)g + off) << 4; }
+// Map g to screen space: (g + 0.5) * s + 0.5.
 static inline float Screen(const float &g, const float &s) { return (g + 0.5f) * s + 0.5f; }
 
 // Called from the main loop: draws the captured frame as textured quads (one per enabled draw flag), each placed by

@@ -742,8 +742,10 @@ class CRef {
 public:
     int m_tagk;
     int m_tag;
+    // Script reference with the given tag and value.
     CRef(int tagk, int n) { m_tagk = tagk; m_tag = n; }
     CRef(const CRef &ref);   /* out of line: __4CRefRC4CRef (ref.cpp) */
+    // Release the reference.
     ~CRef() { Decref__4CRef(this); }
 };
 struct CREFC { int m_tagk; int m_n; };

@@ -857,6 +857,7 @@ extern "C" void MoveLasenEndpoints(LASENV *laser)
       (pm), rows 0 and the w words directly: the mixed sp / s2 addressing of the original. */
 struct VU_FLOAT {
     qword q;
+    // Broadcast a float into a VU0 register.
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
     /* barrier: loads the float's word into a 128-bit GPR value without any instruction of its own */
     VU_FLOAT(const float *laser, int) { __asm__ __volatile__("" : "=r"(q) : "0"(*(const int *)laser)); }

@@ -169,6 +169,8 @@ extern "C" void PostBhvstkLoad(BHVSTKV *stack)
 // 0x1EECD0: Pops every behaviour: popping the bottom slot closes everything stacked above it; then resets the depth
 // to 0.
 void ClearBhvstk(BHVSTKV *p) __asm__("ClearBhvstk__FP6BHVSTK");
+// Definition of ClearBhvstk__FP6BHVSTK (declared above): pop the bottom behaviour (which closes everything above it)
+// and reset the depth.
 void ClearBhvstk(BHVSTKV *stack)
 {
     struct { BHVV *pbhv; int pad[3]; } bottom;

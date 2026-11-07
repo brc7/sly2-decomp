@@ -97,6 +97,7 @@ CMPEG D_002F66B0;
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 
+// Allocation request: byte count and alignment.
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct DMA;
 struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned attr; unsigned option; int waitType; int waitId; int wakeupCount; };
@@ -600,8 +601,11 @@ void BuildMpegGifs(CMPEG *player)
 struct RGBA_RAW { uchar r, g, b, a; };
 struct RGBA {
     union { RGBA_RAW bytes; uint word; };
+    // Uninitialised color.
     RGBA() {}
+    // Color from a packed word.
     RGBA(uint value) { word = value; }
+    // Copy a color.
     RGBA(const RGBA &c) { bytes = c.bytes; }
 };
 struct CFont { char opaque[0x140]; } __attribute__((aligned(16)));
@@ -623,6 +627,7 @@ struct TB {
     void SetColor(RGBA *prgba) __asm__("CTextBox_SetTextColor");
     void SetHorizontalJust(int j) __asm__("CTextBox_SetHorizontalJust");
     void SetVerticalJust(int j) __asm__("CTextBox_SetVerticalJust");
+    // Text box at (x, y) of size (dx, dy) with color word `word` (default light grey).
     TB(float x, float y, float dx, float dy, uint word = 0xFFC0C0C0) {
         SetPos(x, y);
         SetSize(dx, dy);
@@ -719,6 +724,7 @@ extern "C" int CMpeg_ExecuteOids(CMPEG *player)
 // ~CBinaryAsyncStream() is the out-of-line g++ dtor _$_18CBinaryAsyncStream (0x1325B8); calling it (rather than an inline wrapper) keeps `this` in $s6.
 struct X {
     uint sector; uint length; int mode; char opaqueC[0x110 - 0xC];   /* a disc file (sceCdlFILE-like, inferred) */
+    // Construct in mode 2 and initialise.
     X() { mode = 2; Init(); }
     void Init() __asm__("InitFileKey");
     bool FSet(K *k);

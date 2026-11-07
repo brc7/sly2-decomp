@@ -149,6 +149,7 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 // MISSILE::Init (vtable slot 7): the BOMB init; runs a flight action (parameter 1); launch speed 800.
 void InitMissile(MISSILE *missile);
+// MISSILE::Init: bomb init, then a flight action (parameter 1) and launch speed 800.
 void MISSILE::Init()
 {
     MISSILE *missile = this;
@@ -377,6 +378,7 @@ extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
 static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
 // Lane z as a float; the missile's velocity (vtable slot 33).
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
+// The missile's velocity (virtual slot 33).
 static inline qword Velocity(CID82*missile){VE*vt=PVT(missile);return ((qword(*)(void*))vt[33].pfn)((char*)missile+vt[33].d);}
 // Stores the output vector as the destination and reports whether it equals the previous one (part of
 // PresetSplmissAccel).

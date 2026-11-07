@@ -186,7 +186,9 @@ qword LimitVectorLength(qword,float);
 qword ApplyConstr(struct SPS*,struct O*,qword);
 // Helpers Sub, Reject, Normal, AddScaled, Clamp (small asm wrappers/accessors shaped for the match).
 static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));return VuSub(a,d);}
+// Unit vector along a, or fallback when its length is too small.
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
+// Return a + b * g.
 static inline qword AddScaled(qword a,qword b,float g){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
 // vt75 (msg with flag 8): health += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain,
 // limited) through constraint and SetVelocity. (inferred)
@@ -688,6 +690,7 @@ struct S { char pad[0x188]; int n; };
 void InitHack(struct S *p);
 // HACKBULLET (cid 0x4A) vtable slot 7: InitCid47, field = 10. (inferred)
 } } // namespace M_func_00180188
+// HACKBULLET::Init: hack-object init, then sets its field to 10.
 void HACKBULLET::Init()
 {
     using namespace M_func_00180188;
@@ -701,8 +704,11 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M3 {
  U r[3];
+ // Uninitialised 3x3 matrix.
  M3(){}
+ // Copy the three rows.
  M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}
+ // Assign the three rows.
  M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}
 };
 struct VTE {short delta,pad;void*fn;};
@@ -892,15 +898,21 @@ qword LimitVectorLength(qword,float);
 }
 // Helpers VuFloat, VuFloatFromMemWord, QwSub, QwSubC (small asm wrappers/accessors shaped for the match).
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
+// Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
+// Return a - b (vf3 clobbered for allocation).
 static inline qword QwSubC(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b):"vf3");return r;} /* clobber of the dead vf3 */
 // Helpers QwSqrt, QwDivide, QwAddScaled, QwScaleX, GXOfQw, GXOfVf (small asm wrappers/accessors shaped for the match).
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
+// Return v scaled by g.
 static inline qword QwScaleX(qword v,VU_FLOAT g){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(g.qw));return r;}
+// x lane of qw as a float (keeps it in a VF register).
 static inline float GXOfVf(qword qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
+// y lane of qw as a float.
 static inline float GYOfQw(qword qw){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(qw));return QwordX(r);}
 // Helpers Length, Heading (small asm wrappers/accessors shaped for the match).
 static inline float Length(qword v){return QwordX(VuSqrtX(VuDot(v,v)));}
+// Heading of v in the XY plane (atan2(y, x)).
 static inline float Heading(qword v){return atan2f(GYOfQw(v),QwordX(v));}
 // Unit vector of v, or the fallback when its length is below eps.
 static inline qword QwNormalizeSafe(qword v,qword fallback,float eps){
@@ -917,18 +929,29 @@ static inline qword NormalizeInPlace(U*pv,const qword*pfallback,void*own){float 
  if(GXOfVf(len)<eps)pv->q=*pfallback;
  else{qword r;__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(v),"j"(len),"f"(eps));pv->q=r;} /* allocation-only "f"(eps): eps is live into this block, so loop.c leaves its load in the loop */
  return len;}
+// Return a - b.
 static inline qword RSub(const qword&a,const qword&b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// Dot product of a and b (x lane).
 static inline qword RDot(const qword&a,const qword&b){qword r,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=j"(one):"j"(a),"j"(b));return r;}
+// Return base + v * g.
 static inline qword RAddScaled(const qword&base,const qword&v,const VU_FLOAT&g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
+// Evaluate the quadratic a + b*t + c*t^2.
 static inline float REvaluate(const POLY&p,const float&t){return p.a+t*(p.b+t*p.c);}
+// Clamp f to [low, high].
 static inline float RLimit(float f,const LM&p){float low=p.low,high=p.high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
+// x lane of qw as a float.
 static inline float RGXOfQw(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw));return x;}
+// x lane of qw as a float (keeps it in a VF register).
 static inline float RGXOfVf(const qword&qw){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(qw),"j"(qw));return x;} /* allocation-only "j": the value stays in a VF register */
+// Broadcast g into a VU0 register.
 static inline VU_FLOAT RVuFloat(const float&g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
 // Helpers Alive, Evaluate, Limit, Clamp (small asm wrappers/accessors shaped for the match).
 static inline ulong Alive(NODE*p){return (p->flags>>60)&1;}
+// Evaluate the quadratic a + b*t + c*t^2.
 static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
+// Clamp f to [low, high].
 static inline float Limit(float f,LM*p){float low=p->low,high=p->high,r;if(f<low)r=low;else if(high<f)r=high;else r=f;return r;}
+// Clamp f to [low, high].
 static inline float Clamp(float f,LM*p){float low=p->low,high=p->high;if(f<low)f=low;else if(high<f)f=high;return f;}
 
 // vtable slot 16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion. (inferred)
@@ -1036,6 +1059,7 @@ extern "C" void AccelSoTowardMatBounded(struct O *p, MATRIX3 *pm, void *pv);
 extern "C" void AddSoAcceleration(struct O *p, qword v);
 // Helpers VSub, Bc (small asm wrappers/accessors shaped for the match).
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b) : "memory"); return r; }
+// Broadcast int bits into a VU0 register.
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 extern "C" void PresetHackenemyAccel(struct O *p);
 // vtable slot 70 override. (inferred)
@@ -1437,6 +1461,7 @@ void InitHack(struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
 // HACKWALL (cid 0x4C) vtable slot 7: InitCid47, grf. (inferred)
 } } // namespace M_InitHackwall
+// HACKWALL::Init: hack-object init, set flag 8 and initialise its list.
 void HACKWALL::Init()
 {
     using namespace M_InitHackwall;
@@ -1753,7 +1778,9 @@ extern "C" qword*VECTOR_opAssign(qword*,qword);
 extern "C" void RenderLoAtMatrix(void*,M4*,float,float);
 // Helpers Load, Cross, AddLateral (small asm wrappers/accessors shaped for the match).
 static inline qword Load(const qword*p){return *p;}
+// Cross product a x b.
 static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz ACC,%0,%1\n\tvopmsub.xyz %0,%1,%0":"+j"(up):"j"(dir));return up;}
+// Return a plus the node's lateral vector scaled by f.
 static inline qword AddLateral(qword a,N*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
 // 3x3 matrix product.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
@@ -1851,9 +1878,13 @@ extern void AddXp(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,fl
 
 // Helpers Sub, Broadcast, BroadcastBits, Scalar, MAdd, MAdd2, Point (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
+// Broadcast int bits into a VU0 register.
 static inline qword BroadcastBits(int b){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(b));return r;}
+// Return a + b * s.x, computed in a's register.
 static inline qword MAdd(qword a,qword b,qword s){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(s));return a;}
+// Return a + b * s.x.
 static inline qword MAdd2(qword a,qword b,qword s){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(s));return r;}
+// Transform point p by the 4x4 matrix m.
 static inline qword Point(const M4*m,qword p){qword r=m->r[0].q;__asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(p));return r;}
 // Length of the direction's projection on the plane (helper of the wall layout).
 static inline float Planar(U*p){

@@ -108,6 +108,7 @@ struct HITY { qwordV v; char pad[0x18]; float normalZ; char pad2[0x14]; float un
 struct VU_FLOAT { qwordV qw; };
 /* SetBhvguardMode's argument (cleared by its constructor). */
 extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
+// Record zeroed on construction.
 struct F { int a; int rest[0x1B]; F() { func_002333B4(this, 0, sizeof *this); } };
 
 extern CLOCK D_002DDED0;
@@ -602,6 +603,7 @@ static inline VU_VECTOR SqrtV(VU_VECTOR a)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a.q));
     return VU_VECTOR(d);
 }
+// Return a - b.
 static inline VU_VECTOR operator-(VU_VECTOR a, VU_VECTOR b) { return VsubXyzw(a, b); }
 // VU0 helper: horizontal (xy) length as a VU vector.
 static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return SqrtV(SumXY(a)); }
