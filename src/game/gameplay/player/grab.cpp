@@ -2785,7 +2785,6 @@ struct JTGRABCAND
     qword position;
 };
 struct PRG;
-struct EMITX { BLIPG **ppblipg; void *ppripg; EMITTER *pemitter; };   /* EMITG */
 struct SW;
 struct STEPPLAYER { char pad0[0x12F8]; EMITTER *pemitterGrab; };
 
@@ -2793,7 +2792,7 @@ extern "C" {
 extern CLOCK D_002DDED0;    // g_clock
 float RandomFloatInRange__Fff(float gMin, float gMax);                    // RandomFloatInRange
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");          // memset
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITX *pemitx, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITG *pemitg, int cpart, VECTOR *apos, VECTOR *av, float *atBirth, float *atDeath,
                    void *pv1, void *pv2);
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
@@ -2878,11 +2877,11 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
 
 LEmit:
     if (cpart > 0) {
-        EMITX emitx;
-        func_002333B4(&emitx, 0, sizeof(emitx));
-        emitx.ppblipg = &pemitter->pblipg;
-        emitx.pemitter = pemitter;
-        EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(pemitter->pemitb, &emitx, cpart, apos, av, atBirth, atDeath, 0,
+        EMITG emitg;
+        func_002333B4(&emitg, 0, sizeof(emitg));
+        emitg.ppblipg = &pemitter->pblipg;
+        emitg.ploSubscriber = pemitter;
+        EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(pemitter->pemitb, &emitg, cpart, apos, av, atBirth, atDeath, 0,
                                                       0);
     }
 }

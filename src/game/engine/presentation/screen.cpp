@@ -31,6 +31,8 @@
 #include "sly2/save.h"
 #include "sly2/game.h"
 #include "sly2/task.h"
+#include "gifs.h"
+#include "vifs.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -187,7 +189,8 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern DL D_003DA0E0;
 extern char D_002E1E60[], D_002E6550[], D_002E65A0[];   /* letterbox, memcard dialog and status */
-extern char D_002DEA00[], D_002DEA28[];   /* the two HUD packet streams (DMAS) */
+extern GIFS D_002DEA00;   /* the frame's two packet streams: the GIF one */
+extern VIFS D_002DEA28;   /* and the VIF1 one */
 extern LO *D_002E1E40, *D_002DD5BC, *D_002F7900;    /* the three heroes */
 extern JOB *D_003DA4D0;
 extern const char D_002A7AA8[], D_002A7AB8[];   /* a glyph suffix; "%d%%" */
@@ -230,7 +233,6 @@ void RemoveDlEntry(DL *pdl, void *pv);
 void PrependDlEntry(DL *pdl, void *pv);
 LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
 char *FindSwLocalizedString(SW *psw, int id);
-void Flush__4DMAS(void *pdmas) __asm__("Flush__4DMAS");
 
 /* the shown-screen list's constructor (a DL of screens, link at +0x14) */
 // Initializes a list of screens (the link field is at +0x14) and returns it. (inferred)
@@ -395,8 +397,8 @@ extern "C" void DrawUi()
     DrawScreen(&D_003D9E80);
     DrawScreen(&D_003DA0F0);
     DrawScreen(&D_003DA150);
-    Flush__4DMAS(D_002DEA00);
-    Flush__4DMAS(D_002DEA28);
+    D_002DEA00.Flush();
+    D_002DEA28.Flush();
 }
 
 /* screen slot 7 (empty) */

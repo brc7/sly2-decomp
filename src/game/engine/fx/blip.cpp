@@ -59,11 +59,8 @@ struct BLIPV
 };
 
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct LOV;
-struct EX { int pad[2]; LOV **pplo; };
-/* The subscribed EMITTER and the members of its group, which RenderBlipgSelf draws the blips at (the group list at
-   +0x11C, linked at +0x128; emitter.cpp's EMITTER views). EX: the EMITB, whose resolved objects' [0] is the reference. */
-struct LOV { char pad[0x10]; LOV *psoParent; char pad14[0x38 - 0x14]; float sBusy; char pad3C[0xE4 - 0x3C]; EX *pemitb; char padE8[0x11C - 0xE8]; LOV *groupList; char pad120[8]; LOV *nextInGroup; };
+/* The subscribed object is an EMITTER (emitter.h); RenderBlipgSelf draws the blips at the members of its group (the
+   group list, linked through groupLink), each at its EMITB's reference object (aploRef[EMITREF_Reference]) or itself. */
 
 struct POLY { float a, b, c; };
 struct S150 { int unknown0; float inverseLifetime; int unknown8; };
@@ -82,7 +79,7 @@ struct BLIPGV
     int pad3C;
     int flags40;            /* 0x40 tagged word (pointer, or odd flags) */
     char pad44[0xE0 - 0x44];
-    LOV *plo;                /* 0xE0 subscribed object (CID 0x1D) */
+    EMITTER *plo;            /* 0xE0 subscribed object (CID 0x1D) */
     char padE4[0xF0 - 0xE4];
     qwordV boundsCenter;              /* 0xF0 bounding sphere centre */
     float boundsRadius;     /* 0x100 */
@@ -154,7 +151,7 @@ void RemoveLoHierarchy(BLIPGV *p);
 void SnipLo(BLIPGV *p);
 void FreeLoroot(BLIPGV *p);
 void UpdateLo(BLIPGV *p, float dt);
-void SubscribeLoObject(BLIPGV *p, LOV *plo);
+void SubscribeLoObject(BLIPGV *p, LO *plo);
 void *FindShdOrDefault(int oidShader);
 M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
 void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, int);
@@ -423,12 +420,12 @@ extern "C" void UpdateBlipg(BLIPGV *blipGroup, float dt)
 
 // BLIPG vt51: subscribes to the object, and when it is an EMITTER (CID 0x1D) also remembers it as the group's
 // emitter (drawn at its group members' places) and takes over its busy radius.
-extern "C" void SubscribeBlipgObject(BLIPGV *blipGroup, LOV *plo)
+extern "C" void SubscribeBlipgObject(BLIPGV *blipGroup, LO *plo)
 {
     SubscribeLoObject(blipGroup, plo);
     if (IsBasicDerivedFrom((BASIC *)plo, CID_1D) != 0) {
-        blipGroup->plo = plo;
-        blipGroup->sBusy = plo->sBusy;
+        blipGroup->plo = (EMITTER *)plo;
+        blipGroup->sBusy = plo->busyRadius;
     }
 }
 
@@ -760,9 +757,9 @@ struct VU_FLOATR {
 };
 extern "C" {
 void *AllocFromStack(const AL &al);
-int IsLoInWorld(LOV *plo);
-qwordV GetLoWorldPos(LOV *plo);
-M3 *GetLoWorldMatrix(LOV *plo);
+int IsLoInWorld(LO *plo);
+qwordV GetLoWorldPos(LO *plo);
+M3 *GetLoWorldMatrix(LO *plo);
 int IsInCameraFrustum(CM *pcm, qwordV d, VU_FLOATR r);
 int IsWithinCameraRenderDistance(CM *pcm, qwordV d, float g, float *pg);
 RPL *AllocRenderListEntry(void);
@@ -788,11 +785,11 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
     STACKSCOPE_ctor(&frame);
     int cLight;
     LIGHTM *aLight;
-    if (blipGroup->plo != 0 && IsDlEmpty((DL *)&blipGroup->plo->groupList) == 0) {
+    if (blipGroup->plo != 0 && IsDlEmpty(&blipGroup->plo->groupList) == 0) {
         cLight = 0;
-        aLight = (LIGHTM *)PvAllocStack(CountDlEntries((DL *)&blipGroup->plo->groupList) << 6);
+        aLight = (LIGHTM *)PvAllocStack(CountDlEntries(&blipGroup->plo->groupList) << 6);
         LIGHTM *pl = aLight;
-        LOV *plo = blipGroup->plo->groupList;
+        EMITTER *plo = (EMITTER *)blipGroup->plo->groupList.head;
         M3 *pmId;
         if (!plo) goto done;
         pmId = &D_002A2D00;
@@ -800,7 +797,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             if (!IsLoInWorld(plo))
                 goto next;
             {
-            LOV **pplo = plo->pemitb->pplo;
+            LO **pplo = plo->pemitb->aploRef;
             qwordV pos;
             M3 mat;
             if (*pplo) {
@@ -808,8 +805,8 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
                 mat = *GetLoWorldMatrix(*pplo);
             } else {
                 pos = GetLoWorldPos(plo);
-                if (plo->psoParent)
-                    mat = *GetLoWorldMatrix(plo->psoParent);
+                if (plo->parent)
+                    mat = *GetLoWorldMatrix(plo->parent);
                 else
                     mat = *pmId;
             }
@@ -825,7 +822,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             if (!IsInCameraFrustum(&g_cm, d, vf))
                 goto next;
             float g;
-            if (!IsWithinCameraRenderDistance(&g_cm, d, plo->sBusy, &g))
+            if (!IsWithinCameraRenderDistance(&g_cm, d, plo->busyRadius, &g))
                 goto next;
             VECTOR_opAssign(&pl->x30, pos);
             cLight++;
@@ -839,7 +836,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             pl++;
             }
         next:
-            plo = plo->nextInGroup;
+            plo = (EMITTER *)plo->groupLink.next;
             if (plo) goto top;
     done:;
     } else {

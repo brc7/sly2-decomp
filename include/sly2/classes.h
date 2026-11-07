@@ -177,7 +177,7 @@ struct SAA : BASIC
     short unknown2A;
     int isDirty;            /* +0x2C [S] */
     void *owner;            /* +0x30 [S] */
-    SL instances;           /* +0x34 [S] the instances (shdanim.cpp SAIE) */
+    SL instances;           /* +0x34 [S] its copy records (shd.h COPYREC, linked through pcopyrecNext) */
     SAA *next;              /* +0x40 [S] next in g_sw.slSaa */
     int cqwMain;            /* +0x44 [S] (glob.cpp SAAFIELDS) */
     void *pvMain;           /* +0x48 [S] */
@@ -186,7 +186,7 @@ struct SAA : BASIC
     virtual CLASSINFO *GetClassInfo() __asm__("GetSaaClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateSaa");   /* slot 8 */
     virtual void GetCompletion() __asm__("GetSaaCompletion__FP3SAA");   /* slot 9 */
-    virtual void DoesMatchOid() __asm__("DoesSaaMatchOid");   /* slot 10 */
+    virtual int DoesMatchOid(int *poid) __asm__("DoesSaaMatchOid");   /* slot 10: does the animation drive this oid (a shader's; glob.cpp passes &SHD::oid) */
 };
 typedef char assert_SAA_size[sizeof(SAA) == 0x50 ? 1 : -1];
 typedef char assert_SAA_grf[SLY2_OFFSETOF(SAA, grf) == 0x20 ? 1 : -1];
@@ -1500,7 +1500,10 @@ struct LIGHT : XFM
     int kind;               /* +0xE0 [S] 0 directional, 1 point (light.cpp LIGHTV) */
     int parentStamp;        /* +0xE4 [S] the parent transform stamp the light was last rebuilt for */
     int unknownE8[2];
-    qword highlightHsv;     /* +0xF0 [S] */
+    union {                 /* +0xF0 [S] the highlight colour (HSV; RebuildLight reads the value channel) */
+        qword highlightHsv;
+        float highlightHsvComponents[4];
+    };
     qword position;         /* +0x100 [S] bounding sphere centre */
     float bias;             /* +0x110 [S] rank = bias + weight * distance */
     float weight;           /* +0x114 [S] */
@@ -1523,8 +1526,13 @@ struct LIGHT : XFM
     int enabled;            /* +0x158 [S] */
     int isStatic;           /* +0x15C [S] exclusive with isDynamic (SetLightStatic / SetLightDynamic) */
     int isDynamic;          /* +0x160 [S] */
-    float sNear;            /* +0x164 [S] (light.cpp also copies the pair as two ints) */
-    float sFar;             /* +0x168 [S] */
+    union {                 /* +0x164 [S] the point-light falloff range (SetLightFalloff copies it whole: Sly 1's lmFallOff) */
+        struct {
+            float sNear;    /* +0x164 */
+            float sFar;     /* +0x168 */
+        };
+        LM lmFallOff;
+    };
     int unknown16C;
     virtual void Init() __asm__("InitLight");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetLightClassDesc");   /* slot 6 */
@@ -1833,12 +1841,14 @@ typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
 /* 87 RIPG (0x1B0); vtable 0x2D77D8, 75 slots */
 struct RIPG : SO
 {
-    int ripgState;          /* +0x150 [S] (rip.cpp RIPGV) */
-    int unknown154;
+    int groupKind;          /* +0x150 [S] NewRipGroup's kind: 0 the world's shared group, 1 one with its own tree
+                               (InitRipg; CanRipgStayAsleep: never sleeps) */
+    float boundsPadding;    /* +0x154 [S] ProjectRipgTransform grows the rips' bounds by it on every side */
     float emitScale;        /* +0x158 [S] */
     DL ripList;             /* +0x15C [S] the group's RIPs */
     int unknown168[2];
-    qword boundsData[3];    /* +0x170 [S] the group's bounds (UpdateRipgBounds) */
+    qword boundsData[3];    /* +0x170 [S] the group's bounds: min and max corner, centre (ProjectRipgTransform; UpdateRipgBounds
+                               copies them with the radius into its tree record) */
     float boundsRadius;     /* +0x1A0 [S] */
     int unknown1A4[3];
     virtual int IsFixed() __asm__("CanRipgStayAsleep");   /* slot 62 */
@@ -1960,18 +1970,29 @@ typedef char assert_CID106_size[sizeof(CID106) == 0x160 ? 1 : -1];
 /* 139 LOOP (0x70); vtable 0x2D93C0, 10 slots */
 struct LOOP : SAA
 {
-    char pad50[0x70 - 0x50];
+    LM loopTimeRange;       /* +0x50 [S] (shdanim.cpp) */
+    LM pauseTimeRange;      /* +0x58 [S] */
+    float frameRate;        /* +0x60 [S] */
+    float frame;            /* +0x64 [S] */
+    float pauseTime;        /* +0x68 [S] */
+    float pauseRemaining;   /* +0x6C [S] */
     virtual void Init(SAAF *psaaf) __asm__("InitLoop");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetLoopClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateLoop__FP4LOOPf");   /* slot 8 */
     virtual void GetCompletion() __asm__("GetLoopCompletion__FP4LOOP");   /* slot 9 */
 };
 typedef char assert_LOOP_size[sizeof(LOOP) == 0x70 ? 1 : -1];
+typedef char assert_LOOP_pauseRemaining[SLY2_OFFSETOF(LOOP, pauseRemaining) == 0x6C ? 1 : -1];
 
 /* 140 PINGPONG (0x70); vtable 0x2D9360, 10 slots */
 struct PINGPONG : SAA
 {
-    char pad50[0x70 - 0x50];
+    LM loopTimeRange;       /* +0x50 [S] (shdanim.cpp) */
+    LM pauseTimeRange;      /* +0x58 [S] */
+    float frameRate;        /* +0x60 [S] */
+    float frame;            /* +0x64 [S] */
+    float pauseTime;        /* +0x68 [S] */
+    float pauseRemaining;   /* +0x6C [S] */
     virtual void Init(SAAF *psaaf) __asm__("InitPingpong");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPingpongClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdatePingpong__FP8PINGPONGf");   /* slot 8 */
@@ -1982,7 +2003,10 @@ typedef char assert_PINGPONG_size[sizeof(PINGPONG) == 0x70 ? 1 : -1];
 /* 141 SHUFFLE (0x60); vtable 0x2D9300, 10 slots */
 struct SHUFFLE : SAA
 {
-    char pad50[0x60 - 0x50];
+    float pauseMin;         /* +0x50 [S] (shdanim.cpp) */
+    float pauseMax;         /* +0x54 [S] */
+    float pauseTime;        /* +0x58 [S] */
+    int unknown5C;
     virtual void Init(SAAF *psaaf) __asm__("InitShuffle__FP7SHUFFLEP4SAAF");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetShuffleClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateShuffle__FP7SHUFFLEf");   /* slot 8 */
@@ -1990,31 +2014,54 @@ struct SHUFFLE : SAA
 typedef char assert_SHUFFLE_size[sizeof(SHUFFLE) == 0x60 ? 1 : -1];
 
 /* 142 EYES (0x80); vtable 0x2D92A0, 10 slots */
+enum EYESS { EYESS_Nil = -1, EYESS_Open = 0, EYESS_Closing = 1, EYESS_Closed = 2, EYESS_Opening = 3 };
 struct EYES : SAA
 {
-    char pad50[0x80 - 0x50];
+    float blinkTime;        /* +0x50 [S] (shdanim.cpp) */
+    float openTimeMin;      /* +0x54 [S] */
+    float openTimeMax;      /* +0x58 [S] */
+    float doubleBlinkChance;    /* +0x5C [S] */
+    int unknown60;          /* +0x60 [S] a second oid DoesEyesMatchOid accepts */
+    EYESS eyess;            /* +0x64 [S] */
+    float stateTime;        /* +0x68 [S] */
+    float openTime;         /* +0x6C [S] */
+    float frameRate;        /* +0x70 [S] */
+    float frame;            /* +0x74 [S] */
+    float openFraction;     /* +0x78 [S] */
+    int unknown7C;
     virtual void Update() __asm__("UpdateEyes");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetEyesClassDesc");   /* slot 6 */
     virtual void Init(SAAF *psaaf) __asm__("InitEyes");   /* slot 7 */
-    virtual void DoesMatchOid() __asm__("DoesEyesMatchOid");   /* slot 10 */
+    virtual int DoesMatchOid(int *poid) __asm__("DoesEyesMatchOid");   /* slot 10 */
 };
 typedef char assert_EYES_size[sizeof(EYES) == 0x80 ? 1 : -1];
+typedef char assert_EYES_openFraction[SLY2_OFFSETOF(EYES, openFraction) == 0x78 ? 1 : -1];
 
 /* 143 SCROLLER (0x70); vtable 0x2D9240, 10 slots */
 struct SCROLLER : SAA
 {
-    char pad50[0x70 - 0x50];
+    float uSpeed;           /* +0x50 [S] (shdanim.cpp) */
+    float vSpeed;           /* +0x54 [S] */
+    float uRange;           /* +0x58 [S] */
+    float vRange;           /* +0x5C [S] */
+    float uSpeedScale;      /* +0x60 [S] master speed multipliers (SetScrollerMasterSpeeds) */
+    float vSpeedScale;      /* +0x64 [S] */
+    int unknown68[2];
     virtual void Update() __asm__("UpdateScroller");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetScrollerClassDesc");   /* slot 6 */
     virtual void Init(SAAF *psaaf) __asm__("InitScroller__FP8SCROLLERP4SAAF");   /* slot 7 */
     virtual void GetCompletion() __asm__("GetScrollerCompletion__FP8SCROLLER");   /* slot 9 */
 };
 typedef char assert_SCROLLER_size[sizeof(SCROLLER) == 0x70 ? 1 : -1];
+typedef char assert_SCROLLER_vSpeedScale[SLY2_OFFSETOF(SCROLLER, vSpeedScale) == 0x64 ? 1 : -1];
 
 /* 144 CIRCLER (0x60); vtable 0x2D91E0, 10 slots */
 struct CIRCLER : SAA
 {
-    char pad50[0x60 - 0x50];
+    float angularSpeed;     /* +0x50 [S] (shdanim.cpp) */
+    float radius;           /* +0x54 [S] */
+    float uCenter;          /* +0x58 [S] */
+    float vCenter;          /* +0x5C [S] */
     virtual void Init(SAAF *psaaf) __asm__("InitCircler");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCirclerClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateCircler__FP7CIRCLERf");   /* slot 8 */

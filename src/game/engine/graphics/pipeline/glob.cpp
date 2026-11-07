@@ -28,6 +28,7 @@
 #include "sly2/sw.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/classes.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -2324,28 +2325,6 @@ extern "C" { extern char D_00002FC8[]; }
 extern "C" { extern char D_00002EB0[]; }
 extern "C" { extern char D_00003358[]; }
 extern "C" { extern char D_00002EE8[]; }
-struct SAAVIRT
-{
-    int unk_0x0[3];
-    virtual void V0();
-    virtual void V1();
-    virtual void V2();
-    virtual void V3();
-    virtual void V4();
-    virtual void V5();
-    virtual void V6();
-    virtual void V7();
-    virtual void V8();
-    virtual bool V9(SHD *pshd);
-};
-struct SAAFIELDS : public SAAVIRT
-{
-    int unk_0x10[4];
-    uint grf;
-    int unk_0x24[8];
-    int cqwMain;
-    void *pvMain;
-};
 // Number of texture words for a sub-glob: its binding count, capped at 4.
 static inline int CwtFromSubglob(SUBGLOB *psubglob)
 {
@@ -2551,26 +2530,26 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             pbatch->cvtx = bf.cvtx;
             pbatch->pshd = PshdFromIshd(bf.ishd);
             pbatch->grf = bf.grf;
-            SAAFIELDS *psaaGlob = (SAAFIELDS *)pglob->psaa;
+            SAA *psaaGlob = pglob->psaa;
             if (psaaGlob != 0)
             {
-                if (psaaGlob->V9(pbatch->pshd))
+                if (psaaGlob->DoesMatchOid(&pbatch->pshd->oid))
                     pbatch->psaa = pglob->psaa;
             }
             if (pbatch->psaa == 0)
             {
-                SAAFIELDS *psaaShd = (SAAFIELDS *)pbatch->pshd->psaa;
+                SAA *psaaShd = pbatch->pshd->psaa;
                 if (psaaShd != 0)
                 {
-                    if (psaaShd->V9(pbatch->pshd))
+                    if (psaaShd->DoesMatchOid(&pbatch->pshd->oid))
                         pbatch->psaa = pbatch->pshd->psaa;
                 }
             }
             if (pbatch->psaa != 0)
             {
-                if (((SAAFIELDS *)pbatch->psaa)->grf & 1)
+                if (pbatch->psaa->grf & 1)
                     pbatch->grf |= 0x10;
-                if (((SAAFIELDS *)pbatch->psaa)->grf & 2)
+                if (pbatch->psaa->grf & 2)
                     pbatch->grf |= 8;
             }
             if (pbatch->grf & 0x20)
@@ -3154,8 +3133,8 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         vifs.DetachCopySw(&cqwMain, (QW **)&pbOld, (QW **)&pbNew);
         if (pglob->psaa != 0)
         {
-            ((SAAFIELDS *)pglob->psaa)->cqwMain = cqwMain;
-            ((SAAFIELDS *)pglob->psaa)->pvMain = pbNew;
+            pglob->psaa->cqwMain = cqwMain;
+            pglob->psaa->pvMain = pbNew;
         }
         CopyDmaRefsChainSw(psubglob, pglob, (vifsAux.m_pb - vifsAux.m_ab) / sizeof(QW), vifsAux.m_ab, cqwMain, pbNew, pbOld);
         if (nLit > 0)

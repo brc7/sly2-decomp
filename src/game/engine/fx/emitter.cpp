@@ -479,18 +479,16 @@ namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
 extern "C" { extern CLOCK D_002DDED0; }
-struct RIPG { char pad[0x15C]; int ripList; };
-struct BLIPG { char pad[0x444]; int numBlips; };
-struct EMITX { BLIPG **ppblipg; RIPG **ppripg; EMITTERV *pemitter; };   /* EMITG */
+struct BLIPG { char pad[0x444]; int numBlips; };   /* classes.h's BLIPG names no fields yet */
 extern "C" {
 void UpdateLo(EMITTERV *p);
 int IsDlEmpty__FP2DL(DL *pdl);
 int IsLoInWorld(EMITTERV *p);
 qword GetLoWorldPos(void *p);
 float RandomFloatInRange__Fff(float gMin, float gMax);
-int CountDlEntries__FP2DL(int *pdl);
+int CountDlEntries__FP2DL(DL *pdl);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
+void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITG *pemitg);
 }
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 int IsEmitterPaused(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
@@ -605,7 +603,7 @@ LActive:   /* near the camera (or not tied to a parent) */
         if (!emitter->pemitb->particleKind)
             numAlive = emitter->pblipg ? ((BLIPG *)emitter->pblipg)->numBlips : 0;
         else
-            numAlive = emitter->pripg ? CountDlEntries__FP2DL(&((RIPG *)emitter->pripg)->ripList) : 0;
+            numAlive = emitter->pripg ? CountDlEntries__FP2DL(&emitter->pripg->ripList) : 0;
         int shortfall = numWanted - numAlive;
         numToEmit = 0;
         int hasShortfall = 0 < shortfall;   /* a flag temp: `if (shortfall > 0)` compiles differently */
@@ -617,11 +615,11 @@ LActive:   /* near the camera (or not tied to a parent) */
 
     if (numToEmit) {
         int unused[4];
-        EMITX emitg;
+        EMITG emitg;
         func_002333B4(&emitg, 0, sizeof(emitg));
-        emitg.pemitter = emitter;
-        emitg.ppblipg = (BLIPG **)&emitter->pblipg;
-        emitg.ppripg = (RIPG **)&emitter->pripg;
+        emitg.ploSubscriber = emitter;
+        emitg.ppblipg = &emitter->pblipg;
+        emitg.ppripg = &emitter->pripg;
         LO **aploRef = emitter->pemitb->aploRef;
         LO *savedReference = aploRef[EMITREF_Reference];
         if (!savedReference && !aploRef[EMITREF_Shape])
@@ -1206,37 +1204,22 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
 
 namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5 {
 struct MATRIX3 { float mat[3][4]; } __attribute__((aligned(16)));
-class SO {
-public:
-    char pad[0xC];
-    virtual void V1();
-    virtual void V2();
-    virtual void V3();
-    virtual void V4();
-    virtual void V5();
-    virtual void V6();
-    virtual void V7();
-    virtual void V8();
-    virtual void V9();
-};
-struct EMITX { void *ppblipg; SO **ppripg; void *subscriber; };   /* EMITG */
 extern "C" {
 extern char D_003DD490[];
-SO *NewRipGroup(void *p, int n);
-void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITB *pemit);
-void SubscribeLoObject(SO *pso, void *p);
-RIP *NewRipInGroup(void *p, int n, SO *pso);
+RIPG *NewRipGroup(void *p, int n);
+void SubscribeLoObject(LO *plo, LO *ploSubscriber);
+RIP *NewRipInGroup(void *p, int n, RIPG *pripg);
 float RandomFloatInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITB *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
-int IsDlEmpty__FP2DL(void *p);
+int IsDlEmpty__FP2DL(DL *pdl);
 }
 // Spawns `count` rips at the originated positions / velocities / times into the emitter's RIPG (creating and
 // subscribing it on first use): each gets a random initial scale, the EMITB's scale curve, alpha curve, motion
-// (SetEmitdvEmitb), render object and the reference object's orientation. A group left empty is told so (slot 9).
-extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *emitg, int count, qword *positions, qword *velocities, float *birthTimes, float *deathTimes)
+// (SetEmitdvEmitb), render object and the reference object's orientation. A group left empty is removed (slot 9).
+extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITG *emitg, int count, qword *positions, qword *velocities, float *birthTimes, float *deathTimes)
 {
-    SO *ripGroup = 0;
+    RIPG *ripGroup = 0;
     int i;
     RIP *rip;
     if (emitg && emitg->ppripg)
@@ -1247,14 +1230,14 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *em
             return;
         if (emitg && emitg->ppripg)
             *emitg->ppripg = ripGroup;
-        SetRipgEmitb__FP4RIPGP5EMITB(ripGroup, emitb);
-        if (emitg && emitg->subscriber)
-            SubscribeLoObject(ripGroup, emitg->subscriber);
+        SetRipgEmitb(ripGroup, emitb);
+        if (emitg && emitg->ploSubscriber)
+            SubscribeLoObject(ripGroup, emitg->ploSubscriber);
     }
     if (!ripGroup)
         return;
     for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->v.k, ripGroup)) != 0; i++) {
-        rip->Init(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (::SO *)emitb->aploRef[EMITREF_Touch]);
+        rip->Init(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (SO *)emitb->aploRef[EMITREF_Touch]);
         if (emitb->v.scaleSlope != 0.0f || emitb->v.scaleCurve != 0.0f) {
             rip->scaleSlope = emitb->v.scaleSlope;
             rip->scaleCurve = emitb->v.scaleCurve;
@@ -1269,8 +1252,8 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *em
             rip->orientation = *(RIPM3 *)GetLoWorldMatrix(emitb->aploRef[EMITREF_Reference]);
         rip->PostEmit(emitb);
     }
-    if (IsDlEmpty__FP2DL((char *)ripGroup + 0x15C /* RIPG rip list */))
-        ripGroup->V9();
+    if (IsDlEmpty__FP2DL(&ripGroup->ripList))
+        ripGroup->Remove();
 }
 } // namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5
 
@@ -1304,7 +1287,6 @@ struct PRG {
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
 };
-struct EMITX { PRG **ppprg; void *ppripg; LO *subscriber; };   /* EMITG */
 extern "C" {
 extern char D_003DD490[];
 PRG *NewBlipGroup(void *pv);
@@ -1313,7 +1295,7 @@ BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int RandomIntInRange__Fii(int nMin, int nMax);
 float RandomFloatInRange__Fff(float gMin, float gMax);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *p, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
 }
 
 // Dot product of the xyz parts of a and b as a float.
@@ -1333,20 +1315,20 @@ static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValu
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
 // roll speed / angle for rolling blips), plus the spline end points for spline motion; each slot is mirrored into the
 // block's second frame buffer.
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;
-    if (px && px->ppprg)
-        pprg = *px->ppprg;
+    if (px && px->ppblipg)
+        pprg = (PRG *)*px->ppblipg;
     if (!pprg) {
         pprg = NewBlipGroup(D_003DD490);
         if (!pprg)
             return;
-        if (px && px->ppprg)
-            *px->ppprg = pprg;
+        if (px && px->ppblipg)
+            *px->ppblipg = (BLIPG *)pprg;
         SetBlipgEmitb(pprg, emitter);
-        if (px && px->subscriber)
-            pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->subscriber);
+        if (px && px->ploSubscriber)
+            pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->ploSubscriber);
         if (!pprg)
             return;
     }
@@ -1394,19 +1376,17 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITX *px, in
 namespace M_OriginateParticles__FiP5EMITBP7EMITGEN {
 // (Claude agent, lane E7) MATCH from the 4-diff wip: ONE register pin, the pb->apos base in $2 (v0) inside the pxf block.
 // NEAR MISS (round 9): 4/130, only $v0/$v1 for &apos[i] in the first pxf block
-typedef int qword __attribute__((mode(TI)));
 // Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
-struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
 extern "C" {
 void *AllocFromStack(AL *pal);
 void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx);
 void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *pemit, int i, int c, qword *ppos, qword *pnormal);
 void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EMITVX *pvx, void *q, int n, qword *ppos, qword *pnormal, qword *pvel, float *ptBirth, float *ptDeath);
 void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *pemit, qword *ppos, qword *pvel);
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemit, BUF *pb);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemit, EMITGEN *pgen);
 }
 // Allocate cb bytes with the given alignment from the frame stack.
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(&al); }
@@ -1420,7 +1400,7 @@ static inline qword MulRow(const MATRIX3 &m, qword v)
 // Fills an EMITGEN with `c` new particles' positions, velocities and birth / death times: an even direction grid
 // (CalculateEmitvx), each particle's origin (ChooseEmitoPos) and velocity / age (ChooseEmitvVelocityAge), moved by
 // the origin's local transform (position, rotation, linear and angular velocity) and, when asked, into world space.
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, EMITGEN *gen)
 {
     gen->apos = (qword *)PvAlloc(c * 16, 16);
     gen->av = (qword *)PvAlloc(c * 16, 16);
@@ -1444,7 +1424,7 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
             qword t = VuAdd(MulRow(pxf->localMatrix, gen->av[i]), pxf->v);
             gen->av[i] = VuAdd(t, x);
         }
-        if (gen->convertToWorld)
+        if (gen->fConvertToWorld)
             ConvertEmitoPosVec__FP5EMITOP6VECTORT1(emitb, &gen->apos[i], &gen->av[i]);
     }
 }
@@ -1452,19 +1432,16 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
 
 namespace M_OriginateSplineSinkParticles {
 // OriginateSplineSinkParticles: emitter particle transform (Claude agent, lane E20). The clock time is read into a local BEFORE
-// the ptimes->at[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
-typedef int qword __attribute__((mode(TI)));
+// the pgenEmit->atDeath[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
 struct M4 { qword r[4]; };
-struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
-struct TIMES { char pad[0xC]; float *atDeath; };   /* the EMITGEN being emitted */
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, BUF *pb);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen);
 int AreFloatsNear__Ffff(float g1, float g2, float gEps);
 void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
-void OriginateSplineSinkParticles(int c, EMITB *pemit, TIMES *ptimes, BUF *pb);
+void OriginateSplineSinkParticles(int c, EMITB *pemit, EMITGEN *pgenEmit, EMITGEN *pgen);
 }
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -1490,7 +1467,7 @@ static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0
 // For spline-motion blips: originates the spline end points from the spline target (an EXPLO with its own EMITB,
 // whose reference object defaults to the target's parent), each moved by the target's motion at the particle's
 // death time (LoadIdentityMatrix4 extrapolation) and with its velocity reversed, so blips fly into the target (inferred).
-void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
+void OriginateSplineSinkParticles(int c, EMITB *emitb, EMITGEN *pgenEmit, EMITGEN *gen)
 {
     EXPLO *target = (EXPLO *)emitb->aploRef[EMITREF_Render];   /* the spline target: an EXPLO */
     LO **refs = target->pemitb->aploRef;
@@ -1505,7 +1482,7 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
     M4 mWorld;
     if (!saved)
         refs[EMITREF_Reference] = target->parent;
-    gen->convertToWorld = 0;
+    gen->fConvertToWorld = 0;
     OriginateParticles__FiP5EMITBP7EMITGEN(c, target->pemitb, gen);
     target->pemitb->emito.pxfOrigin = 0;
     tPrev = D_002A5150;
@@ -1513,7 +1490,7 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
     mBase = mWorld;
     for (i = 0; i < c; i++) {
         float tNow = D_002DDED0.time;
-        float t = ptimes->atDeath[i] - tNow;
+        float t = pgenEmit->atDeath[i] - tNow;
         int velocityKind = target->pemitb->emito.velocityKind;
         if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
             M4 mT;
@@ -1550,33 +1527,31 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
 } // namespace M_OriginateSplineSinkParticles
 
 namespace M_EmitParticles__FiP5EMITBP5EMITG {
-struct LOC { int positions, velocities, birthTimes, deathTimes; int convertToWorld; int pad[3]; };   /* EMITGEN */
-struct L2 { int splineStarts; int splineEnds; int pad[6]; };
 extern "C" {
-void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, EMITB *b, LOC *ploc);
-void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *b, void *c, void *a, int q0, int q1, int q2, int q3);
-void OriginateSplineSinkParticles(void *a, EMITB *b, LOC *ploc, L2 *pl2);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, int q0, int q1, int q2, int q3, int x, int y);
+void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, EMITB *b, EMITGEN *pgen);
+void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath);
+void OriginateSplineSinkParticles(void *a, EMITB *b, EMITGEN *pgenEmit, EMITGEN *pgen);
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath, qword *aposStart, qword *aposEnd);
 // Emits `count` particles from an EMITB: originates them (inside count stack-allocation scope), then hands them to
 // EmitRips or EmitBlips (spline-motion blips also get their spline end points).
 void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 {
     if (count) {
-        LOC gen;
+        EMITGEN gen;
         STACKSCOPE frame;
-        gen.convertToWorld = 1;
+        gen.fConvertToWorld = 1;
         OriginateParticles__FiP5EMITBP7EMITGEN(count, emitb, &gen);
         if (emitb->particleKind == 1) {
-            EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(emitb, emitg, count, gen.positions, gen.velocities, gen.birthTimes, gen.deathTimes);
+            EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(emitb, emitg, count, gen.apos, gen.av, gen.atBirth, gen.atDeath);
         } else {
-            L2 spline;
+            EMITGEN spline;
             if (emitb->v.motionKind == 2   /* blips on a spline */) {
                 OriginateSplineSinkParticles(count, emitb, &gen, &spline);
             } else {
-                spline.splineStarts = 0;
-                spline.splineEnds = 0;
+                spline.apos = 0;
+                spline.av = 0;
             }
-            EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(emitb, emitg, count, gen.positions, gen.velocities, gen.birthTimes, gen.deathTimes, spline.splineStarts, spline.splineEnds);
+            EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(emitb, emitg, count, gen.apos, gen.av, gen.atBirth, gen.atDeath, spline.apos, spline.av);
         }
     }
 }
@@ -1585,16 +1560,15 @@ void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 
 namespace M_EmitParticlesAt { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Y { int ppblipg; int ppripg; int subscriber; };   /* EMITG */
-void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, struct Y *py);
+void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, EMITG *pemitg);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Emits `count` rips from a temporary EMITB: the defaults (InitEmitBlock) with the given point origin and direction,
 // particle and velocity records (passed by value by the callers), resolved objects (`refs`, EMITB+0x08) and rip
 // group / subscriber.
-void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, int ppripg, int subscriber)
+void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, RIPG **ppripg, LO *ploSubscriber)
 {
     EMITB emitb;
-    struct Y emitg;
+    EMITG emitg;
     InitEmitBlock(&emitb);
     func_002333B4(&emitg, 0, sizeof(emitg));
     emitb.emito.posPoint = pos;
@@ -1602,7 +1576,7 @@ void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, E
     emitb.vel = *velocity;
     emitb.aploRef = aploRef;
     emitg.ppripg = ppripg;
-    emitg.subscriber = subscriber;
+    emitg.ploSubscriber = ploSubscriber;
     emitb.particleKind = 1;     /* rips */
     emitb.v = *particle;
     EmitParticles__FiP5EMITBP5EMITG(count, &emitb, &emitg);
@@ -1939,9 +1913,8 @@ typedef struct EMITTERV {
     char pad[0xE4]; EMITB *pemitb; int padE8, padEC; SND *psnd;
     float countMin, countMax;   /* +0xF4 particles per explosion */
     int keepsGroups;            /* +0xFC emit into the EXPLS's own rip / blip groups (and subscribe it) */
-    int pripg; int pblipg;      /* +0x100 */
+    RIPG *pripg; BLIPG *pblipg; /* +0x100 */
 } EMITTERV;
-typedef struct EMITR { int *ppblipg; int *ppripg; EMITTERV *subscriber; } EMITR;   /* EMITG */
 
 extern char D_002BDEC0[];
 extern float RandomFloatInRange__Fff(float lo, float hi);
@@ -1951,7 +1924,7 @@ extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
 extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
 extern void VECTOR_opAssign(qword *pv, qword a);
-extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITR *pr);
+extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITG *pemitg);
 extern qword ConvertPosBetweenLos(int x, int y, qword v);
 extern void *CreateSfxSound(int id);
 extern void SetSndSourceLo(void *p, void *pso);
@@ -1968,8 +1941,8 @@ void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
 {
     EMITP emitp;
     EMITB emitb;
-    EMITR emitg;
-    EMITR *pemitg;
+    EMITG emitg;
+    EMITG *pemitg;
     int count;
     V4 pos;
     V4 h;
@@ -2021,7 +1994,7 @@ void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
     if (expls->keepsGroups) {
         emitg.ppblipg = &expls->pblipg;
         emitg.ppripg = &expls->pripg;
-        emitg.subscriber = expls;
+        emitg.ploSubscriber = (LO *)expls;
         pemitg = &emitg;
     } else {
         pemitg = 0;

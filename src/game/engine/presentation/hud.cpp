@@ -18,6 +18,8 @@
 #include "sly2/stackscope.h"
 #include "gifs.h"
 #include "vifs.h"
+#include "sly2/render.h"
+#include "sly2/shd.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
 #include "sly2/cref.h"
@@ -440,43 +442,36 @@ extern "C" void StartupHudGifPackets(){
 } // namespace M_func_00211528
 
 // 0x211A80 BeginRpHud
+void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd);   /* uploads a VU1 microprogram once */
 namespace M_BeginRpHud { extern "C" {
-extern char D_0025AFA0[], D_0025B870[], D_002DF800[];
-extern char D_004421A0[], D_004424B0[], D_004424D0[], D_004424F0[], D_00442520[], D_004425A0[], D_00442560[], D_00442240[];
-extern char D_000000C0[], D_00000100[];
-void EnsureVu1Code__FP4VIFSPvT1(void *, void *, void *);
-void AddDmaCnt__4DMAS(void *);
-void AddVifFlush__4VIFS(void *);
-void AddDmaCall__4DMASP2QW(void *, void *);
-void AddVifBaseOffset__4VIFSii(void *, int, int);
-void AddVifUnpack__4VIFS3UPKiPvi(void *, int, int, void *, int);
-void AddVifMscal__4VIFSPv(void *, void *);
-void AddVifFlusha__4VIFS(void *);
-void AddVifDirect__4VIFSiP2QWi(void *, int, void *, int);
-void EndDmaCnt__4DMAS(void *);
+extern char D_0025AFA0[], D_0025B870[];
+extern QW D_002DF800[];
+extern char D_004421A0[], D_004424B0[], D_004424D0[], D_004424F0[], D_00442520[], D_004425A0[], D_00442560[];
+extern QW D_00442240[];
+extern char D_000000C0[], D_00000100[];   /* VU1 micro memory addresses */
 // Begins the HUD render pass: uploads the HUD VU1 microprogram and its constants and sets the GS state for HUD drawing.
-void BeginRpHud(void *p)
+void BeginRpHud(VIFS *p)
 {
-    EnsureVu1Code__FP4VIFSPvT1(p, D_0025AFA0, D_0025B870);
-    AddDmaCnt__4DMAS(p);
-    AddVifFlush__4VIFS(p);
-    AddDmaCall__4DMASP2QW(p, D_002DF800);
-    AddVifBaseOffset__4VIFSii(p, 0, 0);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 7, D_004421A0, 0xD);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 2, D_004424B0, 0x15);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 2, D_004424D0, 0x17);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 3, D_004424F0, 0x19);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 4, D_00442520, 0x1C);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 3, D_004425A0, 0x20);
-    AddVifUnpack__4VIFS3UPKiPvi(p, 0xC, 4, D_00442560, 0x23);
-    AddVifBaseOffset__4VIFSii(p, 0x32, 0x1E7);
-    AddVifMscal__4VIFSPv(p, D_000000C0);
-    AddVifFlusha__4VIFS(p);
-    AddVifDirect__4VIFSiP2QWi(p, 0x27, D_00442240, 0);
-    AddVifFlusha__4VIFS(p);
-    AddVifMscal__4VIFSPv(p, D_00000100);
-    AddVifFlusha__4VIFS(p);
-    EndDmaCnt__4DMAS(p);
+    EnsureVu1Code(p, D_0025AFA0, D_0025B870);
+    p->AddDmaCnt();
+    p->AddVifFlush();
+    p->AddDmaCall(D_002DF800);
+    p->AddVifBaseOffset(0, 0);
+    p->AddVifUnpack(UPK_V4_32, 7, D_004421A0, 0xD);
+    p->AddVifUnpack(UPK_V4_32, 2, D_004424B0, 0x15);
+    p->AddVifUnpack(UPK_V4_32, 2, D_004424D0, 0x17);
+    p->AddVifUnpack(UPK_V4_32, 3, D_004424F0, 0x19);
+    p->AddVifUnpack(UPK_V4_32, 4, D_00442520, 0x1C);
+    p->AddVifUnpack(UPK_V4_32, 3, D_004425A0, 0x20);
+    p->AddVifUnpack(UPK_V4_32, 4, D_00442560, 0x23);
+    p->AddVifBaseOffset(0x32, 0x1E7);
+    p->AddVifMscal(D_000000C0);
+    p->AddVifFlusha();
+    p->AddVifDirect(0x27, D_00442240, 0);
+    p->AddVifFlusha();
+    p->AddVifMscal(D_00000100);
+    p->AddVifFlusha();
+    p->EndDmaCnt();
 }
 } } // namespace M_BeginRpHud
 
@@ -1300,38 +1295,36 @@ namespace M_QueueWidgetRenderSetup { extern "C" {
 typedef unsigned int uint;
 typedef unsigned long ulong;
 struct S {char pad[0xA4];int priority;};
-struct R {char pad[0xC];unsigned char *cur;};
-struct E {int kind;float priority;uint address;int tag;};
-extern struct R D_002DEA28;
+extern VIFS D_002DEA28;
 extern char D_00442210[],D_002DF010[];
 void CopyAqw__FPvT0i(void *,void *,int);
-struct E *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void);
 // Append one word to the packet.
-static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
-static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);}
 // Append n quadwords from source to the packet.
-static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
+static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;}
 // Append a VIF DIRECT code for n quadwords (aligned so the data starts on a quadword) followed by the data.
-static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
+static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 // 0x2130B8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
 
 // Queues the DMA packet that sets up rendering before the widget sprites.
 void QueueWidgetRenderSetup(struct S *p){
-    unsigned char *tag=D_002DEA28.cur;
-    struct E *e;
-    *(ulong *)tag=0x10000000UL;D_002DEA28.cur+=16;
+    unsigned char *tag=D_002DEA28.m_pb;
+    RPL *e;
+    *(ulong *)tag=0x10000000UL;D_002DEA28.m_pb+=16;
     Word(&D_002DEA28,0x11000000);
     Direct(&D_002DEA28,3,D_00442210);
     Direct(&D_002DEA28,0x25,D_002DF010);
     Word(&D_002DEA28,0x11000000);
     Align(&D_002DEA28,0);
-    *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
-    *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
+    *(uint *)tag|=((D_002DEA28.m_pb-tag)>>4)-1;
+    *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
-    e->kind=0x15;e->priority=p->priority<<18;
-    e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
+    e->kind=0x15;e->depth=p->priority<<18;
+    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
 }
 } } // namespace M_QueueWidgetRenderSetup
 
@@ -1359,8 +1352,7 @@ struct PARAM {
 struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload;int kind;char pad38[0x29];uchar channel;char pad62[6];Q *next;};
 struct LIST {Q *first,*last;};
 struct S {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
-struct R {unsigned char *base;int pad[2];unsigned char *cur;};
-extern "C" { extern R D_002DEA28; }
+extern "C" { extern VIFS D_002DEA28; }
 extern "C" {
 void RenderLoSelf(S *);
 int IsWidgetVisible(S *);
@@ -1371,7 +1363,7 @@ void RenderSpritePayload(void *,void *,PARAM *,int);
 void ClearSl(LIST *);
 }
 // Pad the packet with zero words to a 64-byte boundary.
-static inline void Align(R *r){while((uint)r->cur&63){*(uint *)r->cur=0;r->cur+=4;}}
+static inline void Align(VIFS *r){while((uint)r->m_pb&63){*(uint *)r->m_pb=0;r->m_pb+=4;}}
 // Store the color offset (each channel minus 127).
 static inline void Offset(V4 &v,float x,float y,float z,float w){v.x=x-127.0f;v.y=y-127.0f;v.z=z-127.0f;v.w=w-127.0f;}
 // Set the color offset from four color bytes.
@@ -1383,9 +1375,9 @@ static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=Colo
 // Set the color scale from the widget's color1 bytes.
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
 // Switch the packet pointers to the uncached mirror (0x30000000), then queue the widget's render setup.
-static inline Q *Begin(S *p,R *r){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c|=0x30000000;b|=0x30000000;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
+static inline Q *Begin(S *p,VIFS *r){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c|=0x30000000;b|=0x30000000;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
 // Switch the packet pointers back to cached addresses and empty the widget's render queue.
-static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->base;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->cur=(unsigned char *)c;r->base=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
+static inline void Finish(VIFS *r,S *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 } // namespace M_RenderWidget
 // Renders a widget: flushes its sprite render queue with the VU microprogram packets.
 void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here (the namespace's views) */
@@ -2161,19 +2153,11 @@ namespace M_func_002155C0 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-struct X { char pad[0x14]; unsigned long *tex0; };   /* a texture: its GS TEX0 register value */
-X *FindShaderById(int);
-void __4GIFS(void *);
-void AllocSw__4DMASi(void *, int);
-void AddPrimPack__4GIFSiiUl(void *, int, int, int);
-void PackAD__4GIFSll(void *, int, unsigned long);
-void AddPrimEnd__4GIFS(void *);
-void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *) __asm__("DetachCopySw__4DMASP4HEAPPiPP2QWT3");   /* DMAS::DetachCopySw(HEAP *, ...) (dmas.cpp) */
+SHDBLIP *FindShaderById(int oid);
 }
-struct BUF { int a[12]; };
-struct P { char pad[0xC4]; int spriteHeap; };
+struct P { char pad[0xC4]; HEAP *spriteHeap; };
 /* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
-struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; int texPacket; };
+struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; QW *texPacket; };
 extern "C" void BuildSpritePictureTexPacket(P *p, Q *q);
 // Picture-sprite callback: the GIF packet that selects its texture. (inferred)
 void BuildSpritePictureTexPacket(P *owner, Q *sprite)
@@ -2182,17 +2166,16 @@ void BuildSpritePictureTexPacket(P *owner, Q *sprite)
     if (sprite->kind == SPRITE_KIND_PICTURE) {
         sprite->texPacketCount = 0;
         sprite->texPacket = 0;
-        X *texture = FindShaderById(sprite->textureId);
+        SHDBLIP *texture = FindShaderById(sprite->textureId);
         if (texture) {
-            BUF gifs;
-            __4GIFS(&gifs);
-            AllocSw__4DMASi(&gifs, 0x10);
-            AddPrimPack__4GIFSiiUl(&gifs, 0, 1, 0xE);
-            PackAD__4GIFSll(&gifs, 6, *texture->tex0);   /* TEX0_1 */
-            PackAD__4GIFSll(&gifs, 0x14, 0x60);          /* TEX1_1 */
-            PackAD__4GIFSll(&gifs, 8, 5);                /* CLAMP_1 */
-            AddPrimEnd__4GIFS(&gifs);
-            DetachCopySw__4DMASPiPP2QWT2i(&gifs, owner->spriteHeap, &sprite->texPacketCount, 0, &sprite->texPacket);
+            GIFS gifs;
+            gifs.AllocSw(0x10);
+            gifs.AddPrimPack(0, 1, 0xE);
+            gifs.PackAD(6, *texture->atex0);  /* TEX0_1: its first frame's */
+            gifs.PackAD(0x14, 0x60);          /* TEX1_1 */
+            gifs.PackAD(8, 5);                /* CLAMP_1 */
+            gifs.AddPrimEnd();
+            gifs.DetachCopySw(owner->spriteHeap, &sprite->texPacketCount, 0, &sprite->texPacket);
         }
     }
 }
@@ -2753,20 +2736,18 @@ extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 struct M23 {float a[8];enum INIT {Uninitialized,Zero};M23(INIT init=Uninitialized){if(init==Zero)func_002333B4(this,0,sizeof(*this));}} __attribute__((aligned(16)));
 struct M4 {qword r[4];};
 struct DATA {RGBA color;int mode;float priority;int limit;qword v10,v20;};
-struct R {char pad[0xC];unsigned char *cur;};
-struct E {int kind;float priority;uint address;int tag;};
-extern "C" { extern struct R D_002DEA28; }
+extern "C" { extern VIFS D_002DEA28; }
 extern "C" { extern char D_00442210[],D_002DF010[]; }
 extern "C" void CopyAqw__FPvT0i(void *,void *,int);
-extern "C" struct E *AllocRenderListEntry(void);
+extern "C" RPL *AllocRenderListEntry(void);
 // Append one word to the packet.
-static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
-static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);}
 // Append n quadwords from source to the packet.
-static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
+static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;}
 // Append a VIF DIRECT code for n quadwords followed by the data.
-static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
+static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 
 extern "C" void SetRichText2BaseColor(struct RT *,RGBA *);
 extern "C" void BuildRichTextMatrix(struct RT *,struct M4 *,struct M23 *);
@@ -2776,7 +2757,7 @@ extern "C" { extern qword D_002A2E10,D_002A2E20; }
 extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
     RGBA color;
     unsigned char *tag;
-    struct E *e;
+    RPL *e;
     if(!config)return;
     p->offsetX=config->offsetX;p->offsetY=config->offsetY;p->width=config->width;p->height=config->height;
     p->hAlign=config->hAlign;p->vAlign=config->vAlign;p->priority=priority;
@@ -2791,18 +2772,18 @@ extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
     BuildRichTextMatrix(p,&world,&matrix);
     style.v10=D_002A2E10;style.v20=D_002A2E20;style.priority=16.0f;
     DrawRichText2Glyphs(p,&world,&style);
-    tag=D_002DEA28.cur;
-    *(ulong *)tag=0x10000000UL;D_002DEA28.cur+=16;
+    tag=D_002DEA28.m_pb;
+    *(ulong *)tag=0x10000000UL;D_002DEA28.m_pb+=16;
     Word(&D_002DEA28,0x11000000);
     Direct(&D_002DEA28,3,D_00442210);
     Direct(&D_002DEA28,0x25,D_002DF010);
     Word(&D_002DEA28,0x11000000);
     Align(&D_002DEA28,0);
-    *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
-    *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
+    *(uint *)tag|=((D_002DEA28.m_pb-tag)>>4)-1;
+    *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
-    e->kind=0x15;e->priority=p->priority<<18;
-    e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
+    e->kind=0x15;e->depth=p->priority<<18;
+    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
 }
 } // namespace M_func_002163B0
 
@@ -2843,9 +2824,7 @@ struct RT {char pad[8];void *font;char padc[0x14];qword color0,color1;char pad40
 union M4 {qword r[4];float a[16];};
 struct DATA {uint color;int mode;float priority;uint limit;qword color0,color1;};
 struct GLYPH {int a;void *data;char pad8[0xA];unsigned short mode;char pad14[8];void *address;char pad20[0x20];};
-struct R {char pad[0xC];unsigned char *cur;};
-struct E {int kind;float priority;uint address;int tag;};
-extern struct R D_002DEA28;
+extern VIFS D_002DEA28;
 extern float D_002C40A8,D_002C40AC,D_002C40B0,D_002C40B4;
 void *func_002333B4(void *,int,int) __asm__("memset");
 void ResetRichText2(struct RT *,char *);
@@ -2853,17 +2832,17 @@ int GetRichText2NextChar(struct RT *);
 float GetFontGlyphWidth2(void *,int);
 struct GLYPH *GetGlyph__8CFontBrxc(void *,int);
 void BuildGlyphPacket(struct GLYPH *,union M4 *,struct DATA *,int);
-struct E *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void);
 // Append one word to the packet.
-static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
-static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);}
 // True when the matrix translation (a[8], a[9]) lies inside the bounds [*left, D_002C40AC] x [D_002C40B0, D_002C40B4].
 static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;}
 // Aligns, clips and queues the glyphs with their colours. (inferred)
 void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
     float widths[32];
-    unsigned char *tag=D_002DEA28.cur;
+    unsigned char *tag=D_002DEA28.m_pb;
     int line=0;
     float lineHeight=p->lineHeight*p->scaleY*0.45454547f;
     float startX=matrix->a[8];
@@ -2916,10 +2895,10 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
         }
     }
     Align(&D_002DEA28,0);
-    *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
+    *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     {
-        struct E *e=AllocRenderListEntry();
-        e->kind=0x15;e->priority=style->priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
+        RPL *e=AllocRenderListEntry();
+        e->kind=0x15;e->depth=style->priority+(p->priority<<18);e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
     }
 }
 } } // namespace M_func_00216750
@@ -3062,10 +3041,9 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
 // 0x217058 BuildGlyphPacket
 namespace M_func_00217058 { extern "C" {
 // Build a matrix/parameter DMA packet ending in the supplied call tag.
-struct R { char pad[0xC]; unsigned char *cur; };
 struct S { char pad[0x12]; unsigned short mode; char pad1[8]; void *address; };
 struct D { int a; int mode; int b; int xC; char pad[0x20]; };
-extern struct R D_002DEA28;
+extern VIFS D_002DEA28;
 // Copy n words: the n mod 4 leftovers first, then whole quadwords.
 static inline void CopyWords(int *d,const int *s,int n){
     int rem=n&3,cBulk=n-rem,i;
@@ -3073,21 +3051,21 @@ static inline void CopyWords(int *d,const int *s,int n){
     for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}
 }
 // Append one word to the packet.
-static inline void Word(struct R *r,unsigned int word) {
-    *(unsigned int *)r->cur=word;
-    r->cur+=4;
+static inline void Word(VIFS *r,unsigned int word) {
+    *(unsigned int *)r->m_pb=word;
+    r->m_pb+=4;
 }
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(struct R *r) {
-    while((int)r->cur&15) { *(int *)r->cur=0; r->cur+=4; }
+static inline void Align(VIFS *r) {
+    while((int)r->m_pb&15) { *(int *)r->m_pb=0; r->m_pb+=4; }
 }
 // Append a VIF code header and then n words from s.
-static inline void Unpack(struct R *r,const int *s,int n,unsigned int header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
+static inline void Unpack(VIFS *r,const int *s,int n,unsigned int header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;}
 // Builds the matrix / parameter DMA packet for a glyph run, ending in a call tag. (inferred)
 void BuildGlyphPacket(struct S *p,const int *matrix,struct D *data,int flags) {
-    unsigned char *tag=D_002DEA28.cur;
+    unsigned char *tag=D_002DEA28.m_pb;
     *(unsigned long *)tag=0x10000000UL;
-    D_002DEA28.cur+=16;
+    D_002DEA28.m_pb+=16;
     if(flags&1) {
         Unpack(&D_002DEA28,matrix,16,0x6C04C000);
     } else {
@@ -3099,10 +3077,10 @@ void BuildGlyphPacket(struct S *p,const int *matrix,struct D *data,int flags) {
         Unpack(&D_002DEA28,(const int *)data,12,0x6C03C004);
     }
     Align(&D_002DEA28);
-    *(int *)tag |= ((D_002DEA28.cur-tag)>>4)-1;
+    *(int *)tag |= ((D_002DEA28.m_pb-tag)>>4)-1;
     Align(&D_002DEA28);
-    *(unsigned long *)D_002DEA28.cur=0x50000000UL | ((unsigned long)p->address<<32);
-    D_002DEA28.cur+=16;
+    *(unsigned long *)D_002DEA28.m_pb=0x50000000UL | ((unsigned long)p->address<<32);
+    D_002DEA28.m_pb+=16;
 }
 } } // namespace M_func_00217058
 
@@ -3111,24 +3089,22 @@ namespace M_func_00217298 { extern "C" {
 // Queue the selected VU microprogram pair in a DMA packet.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct R {char pad[0xC];unsigned char *cur;};
 struct S {char pad[0xA4];int priority;};
-struct E {int kind;float priority;uint address;int pad;};
-extern struct R D_002DEA28;
+extern VIFS D_002DEA28;
 extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
-struct E *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void);
 // Append one word to the packet.
-static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
 // Append a VIF MSCAL code starting the VU1 microprogram at entry.
-static inline void Mscal(struct R *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
+static inline void Mscal(VIFS *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
+static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
 // Queues the VU microprogram pair for a sprite render mode. (inferred)
 void QueueSpriteVuProgram(struct S *p,int mode,float priority){
-    unsigned char *tag=D_002DEA28.cur;
-    struct E *e;
+    unsigned char *tag=D_002DEA28.m_pb;
+    RPL *e;
     *(ulong *)tag=0x10000000UL;
-    D_002DEA28.cur+=16;
+    D_002DEA28.m_pb+=16;
     switch(mode){
     case 1:
         Word(&D_002DEA28,0x13000000);Mscal(&D_002DEA28,D_00000000);Mscal(&D_002DEA28,D_000000C0);Word(&D_002DEA28,0x13000000);break;
@@ -3140,11 +3116,11 @@ void QueueSpriteVuProgram(struct S *p,int mode,float priority){
         Word(&D_002DEA28,0x13000000);Mscal(&D_002DEA28,D_00000100);Mscal(&D_002DEA28,D_00000090);Word(&D_002DEA28,0x13000000);break;
     }
     Align(&D_002DEA28);
-    *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
-    *(ulong *)D_002DEA28.cur=0x60000000UL;
-    D_002DEA28.cur+=16;
+    *(uint *)tag|=((D_002DEA28.m_pb-tag)>>4)-1;
+    *(ulong *)D_002DEA28.m_pb=0x60000000UL;
+    D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
-    e->kind=0x15;e->priority=priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->pad=0;
+    e->kind=0x15;e->depth=priority+(p->priority<<18);e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
 }
 } } // namespace M_func_00217298
 
@@ -3159,24 +3135,22 @@ struct S {char pad[8];struct OWNER *owner;char padc[6];unsigned short mode;int c
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
-struct R {char pad[0xC];unsigned char *cur;};
-struct E {int kind;float priority;uint address;int tag;};
-extern struct R D_002DEA28;
+extern VIFS D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
-struct E *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void);
 // Append one word to the packet.
-static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
+static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
 // Copy n words: the n mod 4 leftovers first, then whole quadwords.
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
 // Append a VIF code header and then n words from s.
-static inline void Unpack(struct R *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
+static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;}
 // Renders a geometry sprite with its transform and optional fade.
 void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     struct M4 m;
     unsigned char *tag;
-    struct E *e;
+    RPL *e;
     func_002333B4(&m,0,0x40);
     m.a[0]=t->a*0.8f;m.a[1]=t->b*0.45454547f;
     m.a[4]=t->c*0.8f;m.a[5]=t->d*0.45454547f;
@@ -3194,17 +3168,17 @@ void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
             if(data->limit>0x7FFFU)data->limit=0x7FFF;
         }
     }
-    tag=D_002DEA28.cur;
-    *(ulong *)tag=0x10000000UL;D_002DEA28.cur+=16;
+    tag=D_002DEA28.m_pb;
+    *(ulong *)tag=0x10000000UL;D_002DEA28.m_pb+=16;
     Unpack(&D_002DEA28,(const int *)&m,16,0x6C04C000);
     Unpack(&D_002DEA28,(const int *)data,12,0x6C03C004);
     Align(&D_002DEA28);
-    *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
-    *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
+    *(uint *)tag|=((D_002DEA28.m_pb-tag)>>4)-1;
+    *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
-    e->kind=0x15;e->priority=data->priority+(p->owner->priority<<18);
-    e->address=(uint)tag&0x0FFFFFFF;
-    e->tag=p->tag;
+    e->kind=0x15;e->depth=data->priority+(p->owner->priority<<18);
+    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);
+    e->pvCall=(void *)p->tag;
 }
 } } // namespace M_RenderSpriteGeometry
 
@@ -3220,30 +3194,28 @@ struct S {int pad,type;struct OWNER *owner;char padc[8];union {struct GEO *geo;i
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
-struct R {char pad[0xC];unsigned char *cur;};
-struct E {int kind;float priority;uint address;int tag;};
-extern struct R D_002DEA28;
+extern VIFS D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
-struct E *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void);
 // Append one word to the packet.
-static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
+static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
+static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
 // Copy n words: the n mod 4 leftovers first, then whole quadwords.
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
 // Append a VIF code header and then n words from s.
-static inline void Unpack(struct R *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->cur,s,n);r->cur+=n*4;}
+static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;}
 
 void CopyAqw__FPvT0i(void *,void *,int);
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
-static inline void AlignTo(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
+static inline void AlignTo(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);}
 // Append a VIF DIRECT code for n quadwords followed by the data.
-static inline void Direct(struct R *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
+static inline void Direct(VIFS *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;}
 // Renders a picture sprite: transformed parameters plus a direct GIF payload. (inferred)
 void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     struct M4 m;
     unsigned char *tag;
-    struct E *e;
+    RPL *e;
     switch(p->type){
     case SPRITE_KIND_EFFECT:if(!p->geo)return;break;
     case SPRITE_KIND_PICTURE:if(!p->count)return;break;
@@ -3256,19 +3228,19 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     m.a[9]=t->y*0.45454547f+p->owner->ownerWidget->screenY+786432.0f;
     m.a[15]=m.a[10]=1.0f;
     data->mode=0;data->limit=0x7FFF;
-    tag=D_002DEA28.cur;
-    *(ulong *)tag=0x10000000UL;D_002DEA28.cur+=16;
+    tag=D_002DEA28.m_pb;
+    *(ulong *)tag=0x10000000UL;D_002DEA28.m_pb+=16;
     Unpack(&D_002DEA28,(const int *)&m,16,0x6C04C000);
     Unpack(&D_002DEA28,(const int *)data,12,0x6C03C004);
     if(p->type==SPRITE_KIND_EFFECT)Direct(&D_002DEA28,p->geo->count,p->geo->data);
     else Direct(&D_002DEA28,p->count,p->buffer);
     Align(&D_002DEA28);
-    *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
-    *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
+    *(uint *)tag|=((D_002DEA28.m_pb-tag)>>4)-1;
+    *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
-    e->kind=0x15;e->priority=data->priority+(p->owner->priority<<18);
-    e->address=(uint)tag&0x0FFFFFFF;
-    if(p->type==SPRITE_KIND_EFFECT)e->tag=p->tag;else e->tag=p->rawtag;
+    e->kind=0x15;e->depth=data->priority+(p->owner->priority<<18);
+    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);
+    if(p->type==SPRITE_KIND_EFFECT)e->pvCall=(void *)p->tag;else e->pvCall=(void *)p->rawtag;
 }
 } } // namespace M_func_002177E0
 

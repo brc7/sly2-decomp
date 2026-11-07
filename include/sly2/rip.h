@@ -22,7 +22,7 @@ struct RIP
 {
     int kind;
     int refCount;               /* +0x04 */
-    RIPG *ripGroup;             /* +0x08 the group it lives in (its list: rip.cpp's RIPGV view) */
+    RIPG *ripGroup;             /* +0x08 the group it lives in (on its ripList) */
     char padC[0x14 - 0xC];
     float startTime;           /* +0x14 game time the rip starts (it is skipped until then) */
     float duration;            /* +0x18 */
@@ -44,10 +44,14 @@ struct RIP
     qword previousPosition;          /* +0x80 */
     qword velocity;            /* +0x90 */
     qword acceleration;          /* +0xA0 */
-    char padB0[0xD0 - 0xB0];
+    char padB0[0xC4 - 0xB0];
+    float damping;             /* +0xC4 velocity damping (with the acceleration, the rip's EMITDV motion record at
+                                  +0xA0: SetEmitdvEmitb; InitBublet sets -8) */
+    char padC8[0xD0 - 0xC8];
     float angularVelocity[3];  /* +0xD0 spin (SHRAPNEL: random, from the impact speed) */
     char padDC[0xE0 - 0xDC];
-    LO *touchObject;           /* +0xE0 */
+    SO *touchObject;           /* +0xE0 the object whose volume the rip tests itself against (UpdateRip: its point
+                                  test, slot 73; Init's psoTouch) */
     char padE4[4];
     RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, float scale, SO *psoTouch) __asm__("InitRip");   /* slot 1; key function (parameter order from Sly 1's InitMatch symbol) */
@@ -75,6 +79,7 @@ struct RIPF : RIP
 struct FLYING : RIP   /* RIPT 3 */
 {
     LO *ploStuckRender;        /* +0xF0 what it becomes when it sticks (the EMITB's next-render object) */
+    int facesCamera;           /* +0xF4 oriented with "up" toward the camera, not world +z (the EMITB's payload word) */
     virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
     virtual void PostEmit(EMITB *pemitb) __asm__("PostFlyingEmit");
     virtual void Render() __asm__("RenderFlying");

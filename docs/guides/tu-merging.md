@@ -992,6 +992,49 @@ changed together (changing only emitter.h's would move the overrides to new slot
 IsPosInside has no parameters) and the touch object's +0xE8; BounceRipgRips' slot 9 and NewRipGroup's slots 7/11/15
 sit on RIPG views whose fields classes.h's RIPG does not have.
 
+### Views unified, round 4 (names/vu-f6-render-4): LIGHT, SAA, RIPG, the emission records, the packet streams
+
+The LIGHT, SAA and RIPG views on the fields the AI round added to sly2/classes.h, the emitter's group/emission records,
+more of rip.cpp's per-function views as members of rip.h's classes, and the remaining views of the packet streams
+(DMAS/GIFS/VIFS), the render-list entry and the blip shader record in other families' files. Every function and data
+symbol of each touched file and of every includer of a changed header (95 files) MATCHes; each object's nm symbol set,
+relocations by symbol name and symbol table (with sizes) are unchanged from the branch start.
+
+| change | header | views removed | files |
+|---|---|---:|---|
+| LIGHT: highlightHsv gains its float channels, sNear/sFar overlay Sly 1's `LM lmFallOff` (SetLightFalloff copies it whole); light.cpp on LIGHT (parent stamp = XF::worldStamp, list link = LO::classListLink, a directional light's direction = matWorld row 0 read as a qword) | sly2/classes.h | 4 (LIGHTV, LIGHTO, V3, LMK) | light |
+| SAA/EYES slot 10 `int DoesMatchOid(int *poid)` (DoesSaaMatchOid's signature; glob.cpp passes &SHD::oid where its view passed the shader); LOOP/PINGPONG/SHUFFLE/EYES/SCROLLER/CIRCLER fields (and EYESS); an SAA's instances are shd.h's COPYREC | sly2/classes.h | 9 (SAAVIRT, SAAFIELDS, six derived kind views, SAIE) | glob, shdanim |
+| RIPG: +0x150 groupKind (was ripgState: NewRipGroup's kind), +0x154 boundsPadding, boundsData = min/max/centre | sly2/classes.h | rip's RIPGV and the per-function O/S/P/G/Q views | rip |
+| RIP::touchObject is an SO; RIP +0xC4 damping; FLYING +0xF4 facesCamera | sly2/rip.h | rip ~20 per-function views (S/M/B/X/R/OBJ/MATCH...) | rip |
+| EMITG (group pointers + subscriber, 0xC) and EMITGEN (per-particle arrays, 0x20: EmitParticles keeps two on its stack), both named by the mangled symbols | sly2/emitter.h | 13 (five EMITX/Y/EMITR, two BUF, TIMES, LOC, L2, emitter's RIPG and SO-class views, grab's EMITX) | emitter, grab |
+| the subscribed emitter of a blip group as EMITTER/EMITB | (emitter.h) | 2 (LOV, EX) | blip |
+| the frame's packet streams as gifs.h/vifs.h classes with real member calls; render-list entries as RPL; FindShaderById's record as SHDBLIP | (gifs.h, vifs.h, render.h, shd.h) | 21 (hud 8 R, 6 E, BUF, X; tu_1471C0 GIFS; tu_1D57A8 DMA; tu_15DC80 R, Q) | hud, tu_1471C0, tu_1D57A8, tu_15DC80, screen |
+
+Real calls that match: LIGHT's slot 31 (GetWorldMatrix, twice), SAA slot 10 (twice), RIPG slots 7/11/15 in
+NewRipGroup, slot 9 (Remove) in BounceRipgRips and EmitRips, RIP slot 7 (Touch) in UpdateRip, RIP::Init as MATCH::Init's
+base call, RIP::PostEmit as FLYING::PostEmit's; 72 hand-mangled DMAS/GIFS/VIFS calls became member calls
+(BeginRpHud, BuildSpritePictureTexPacket on a real GIFS local, the frame capture, the fade, DrawUi's Flush,
+AddSaaCopyRecord's UnpackHelper). Became members: RIPG::Init, RIP::Update, RIP::Render, FLYING::PostEmit/Render,
+MATCH::Init/Render, LEAF::HandleBounce, RIPT0::Init (their symbols are the labels the classes already carried).
+
+Matching-only forms (islands.csv): UpdateRip reads LO::isInWorld through its whole 64-bit bit-field word (the bit-field
+test is a mask: 27/52 off); NewRipGroup keeps the GLOBSET constructor declared as returning `this` (with a void result
+the vtable address takes $v0: 4/62 off) and stores the two vtable pointers by hand (the in-place construction);
+PvtripFromRipt stores each kind's vtable pointer by hand (RIP's +0xEC word); InitBublet keeps the broadcast's stack
+home (its frame).
+
+Left by design: LIGHT's slot 30 (RotateToMat), UpdateRip's slot 73 (IsPosInside) and REMIT's slot 51 (EXPL) stay hand
+calls for the cross-family signature pass; the BLIPG/EXPLG/EXPLS views (emitter's PRG, BLIPG, EXPLGV and EXPLS view,
+blip's BLIPV/BLIPGV: classes.h names none of their fields and they are not this round's classes); STATE (BounceRipgRips'
+view of the SOTREE fields it reads); the hand-tuned rip bodies' views (HandleRipBounce, ProjectRipTransform,
+RenderRipAtPose, RenderShrapnel, RenderGlint, the SMACK/LEAF/bublet transforms); blip's one by-hand AddVifUnpack (five
+words); the RENDERTGT views (sw.h); glob/light PACKET(S) (different records); shd's TEX1/CLAMP (one user); main.cpp's
+DMA (a SIF transfer); tu_1471C0's TEX (the capture texture's GS words, not shd.h's TEX); tu_1D57A8's RENDER tree
+(one TU); the LIGHTM matrix in blip (not a LIGHT).
+
+Inventory (inv.py): 47 -> 35; struct/class/union definitions in src/game .cpp/.inc: 4737 -> 4663; `git diff --stat`:
+695 insertions, 854 deletions in 15 source and header files (this section aside).
+
 ### Views unified (names/vu-f8-sound-ui): CRef, the sound types, the screens
 
 The sound / UI / Splice-value family. Every function and data symbol of every touched file and of every includer of
@@ -1791,7 +1834,7 @@ Representation decisions:
   These casts are the view-unification list for those files.
 - **SW fields named here** (offset asserts added; `[S]` = from the matched code, "draft" in the comment when the name
   is ours): dlTaskActive 0x3B00, dlWidgetExclusive 0x3BD0, slWidgetDeferred 0x3BDC, fUnk3e40, agShdLight 0x3E64 /
-  aclrShdLight 0x3E70 / tex2ProjVolume 0x3EA0 (the former _pad_283), dlCid98 0x3FC0, dlTargetrec 0x3FCC, dlCid21
+  aclrShdLight 0x3E70 / tex2Background 0x3EA0 (the former _pad_283), dlCid98 0x3FC0, dlTargetrec 0x3FCC, dlCid21
   0x3FE4, dlCid23 0x3FF0, slotheapUnk40a0, slotheapJsg 0x40D0, slShd 0x4100, slSaa 0x410C, slotheapXfh 0x413C,
   fUnk4554, dlCid14Free 0x45B0, dlCid14Pending 0x45BC, slotheapLeap 0x4648, slotheapDiract 0x4660, tUnk4758, pepmenu
   0x4774. Lists use DL when the code calls Append/RemoveDlEntry and SL when it calls func_0011A070 (same layout).
