@@ -548,16 +548,14 @@ void LO::SetIdProxy(int idProxy, int fChildren)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSoIdProxy { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, void *, int); };
-struct O { int a[3]; struct VTE *vt; char pad[0x14]; struct O *pNext; char pad2[0x3C]; struct O *pFirst; };
-void SetLoIdProxy(struct O *p, void *a);
+void SetLoIdProxy(SO *p, int idProxy);
 // SO's SetIdProxy (vtable slot 25): LO's version, then the same on every child.
-void SetSoIdProxy(struct O *object, void *a)
+void SetSoIdProxy(SO *object, int a)
 {
-    struct O *o;
+    LO *o;
     int unused[4];
     SetLoIdProxy(object, a);
-    for (o = object->pFirst; o; o = o->pNext) { struct VTE *e = &o->vt[25]; e->pfn((char *)o + e->d, a, 0); }
+    for (o = (LO *)object->children.head; o; o = (LO *)o->siblingLink.next) o->SetIdProxy(a, 0);
 }
 } } // namespace M_SetSoIdProxy
 
@@ -592,20 +590,17 @@ void AddProxyCopy(struct G *world, int i, SO *a, XF *b, void *x, MATRIX4 *y, str
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitSwProxySpares { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
 struct MAT3 { qword a[3]; };
 struct MAT4 { float m[4][4]; };
-struct Y { char pad[0x24]; int isSpare; };   /* the object's proxy-ref node (inferred flag) */
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x3C - 0x10]; struct Y *proxy; };
 struct X { qword q; struct MAT3 mat; };
 struct Z { qword q; struct MAT4 mat; };
 struct A { int cb; int align; };
-struct R { int n; struct LO **ap; int numCopies; int c; int unknown10; void *spareTag; void **ap18; char pad[0x64 - 0x1C]; struct X *restPoses; struct Z *spareMatrices; };   /* a proxy source: n objects per copy, c copies in use */
+struct R { int n; LO **ap; int numCopies; int c; int unknown10; void *spareTag; void **ap18; char pad[0x64 - 0x1C]; struct X *restPoses; struct Z *spareMatrices; };   /* a proxy source: n objects per copy, c copies in use */
 struct G { char pad[0x3F04]; int numProxySources; struct R *ar; };
-void *MakeProxyId__Fii(int i, int c);
+int MakeProxyId__Fii(int i, int c);
 void *AllocClearedFromWorldHeap(struct A *pa);
-qword GetLoWorldPos(struct LO *p);
-struct MAT3 *GetLoWorldMatrix(struct LO *p);
+qword GetLoWorldPos(LO *p);
+struct MAT3 *GetLoWorldMatrix(LO *p);
 void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
@@ -614,19 +609,19 @@ static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m
 void InitSwProxySpares(struct G *world)
 {
     int i, j, k;
-    struct LO *plo;
+    LO *plo;
     struct X *px;
     struct A a;
     for (i = 0; i < world->numProxySources; i++) {
         struct R *pr = &world->ar[i];
         if (pr->c >= pr->numCopies) continue;
         for (j = pr->c; j < pr->numCopies; j++) {
-            void *v = MakeProxyId__Fii(i, j);
+            int v = MakeProxyId__Fii(i, j);
             pr->ap18[j] = pr->spareTag;
             for (k = 0; k < pr->n; k++) {
                 plo = pr->ap[j * pr->n + k];
-                ((void (*)(void *, void *, int))plo->vt[25].pf)((char *)plo + plo->vt[25].d, v, 1);
-                plo->proxy->isSpare = 1;
+                plo->SetIdProxy(v, 1);
+                plo->proxyRecord->isCopy = 1;   /* the spare copies */
             }
         }
         a.cb = pr->n * 64;
