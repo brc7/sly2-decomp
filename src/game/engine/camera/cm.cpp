@@ -169,8 +169,7 @@ void ResetCameraPolicies(CM *p)
 namespace M_InitCm__FP2CM {
 // InitCm: near/far and LM init via inline helpers (parameter pseudos give the original FP register choice).
 typedef int qword __attribute__((mode(TI)));
-// Color bytes from a packed 32-bit word.
-struct RGBA { unsigned char r, g, b, a; RGBA(unsigned int n) { *(unsigned int *)this = n; } };
+
 extern "C" {
 extern float D_002BD81C, D_002BD820, D_002BD824;
 extern qword D_002BD830;
