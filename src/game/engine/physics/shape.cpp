@@ -1955,22 +1955,19 @@ void StepChain(CHAIN *chain)
 
 namespace M_func_001E93F0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void *pfn; };
-struct LO { int pad[3]; struct VTE *pvt; };
 struct M4 { qword r[3]; qword pos; };
-struct P { int pad[4]; struct LO *apo[4]; qword apos[2]; void *ap40[2]; int a48; };
+struct P { int pad[4]; LO *apo[4]; qword apos[2]; void *ap40[2]; int a48; };
 extern char D_002C44F0[];
 float GetShapeMinParam(int);
 float GetShapeMaxParam(int);
 void EvaluateShapeAtParam(int, qword *, int, float);
 // Attaches chain end i to an object's transform (slot 32), or to the shape's start/end point.
-void SetChainEndObject(struct P *shape, int end, struct LO *object)
+void SetChainEndObject(struct P *shape, int end, LO *object)
 {
     shape->apo[end] = object;
     if (object) {
         struct M4 m;
-        struct VTE *pe = &object->pvt[32];
-        shape->ap40[end] = ((void *(*)(void *, struct M4 *))pe->pfn)((char *)object + pe->d, &m);
+        shape->ap40[end] = object->GetLocalTransform((MATRIX4 *)&m);
         *(shape->apos + end) = m.pos;
     } else {
         float f;

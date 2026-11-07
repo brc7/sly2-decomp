@@ -1224,23 +1224,19 @@ int GetProxyCopyValue(struct S *proxy)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB6D8 { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
-struct H { struct LO *plo; };
-struct S { char pad[0x14]; struct H *root; char pad2[0xE8 - 0x18]; void *firstSpare; };
 struct SL;
-void ReleaseProxySpare__FP5PROXYP10PROXYSPARE(struct S *p, void *q);
+void ReleaseProxySpare__FP5PROXYP10PROXYSPARE(PROXY *p, void *q);
 int IsEntryInDl__FP2DLPv(struct SL *pl, void *pv);
 void RemoveDlEntry__FP2DLPv(struct SL *pl, void *pv);
 // PROXY's vtable slot 24: releases every held spare and, when the proxy is in its activity zone, sends the leave
 // notification (slot 22) and drops it from the zone list. (inferred)
-void PROXY_ReleaseSpares(struct S *proxy)
+void PROXY_ReleaseSpares(PROXY *proxy)
 {
-    struct LO *plo;
+    LO *plo;
     while (proxy->firstSpare) ReleaseProxySpare__FP5PROXYP10PROXYSPARE(proxy, proxy->firstSpare);
     if (IsEntryInDl__FP2DLPv(&(*(struct SL *)&g_sw.busyRoots), proxy->root)) {
-        plo = proxy->root->plo;
-        ((void (*)(void *))plo->vt[22].pf)((char *)plo + plo->vt[22].d);
+        plo = proxy->root->topObject;
+        plo->OnRemove();
         RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.busyRoots), proxy->root);
     }
 }

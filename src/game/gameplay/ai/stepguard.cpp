@@ -3309,14 +3309,11 @@ int FindTargetRecordGuardIndex(struct TARGETREC *record, int guard)
 
 // 0x20A690 GetTargetRecordFacing
 namespace M_func_0020A690 { extern "C" {
-struct LOV; struct TARGETREC; struct CAMERA;
-typedef struct { short d; short pad; void *pfn; } VTE;
-struct LOV { char pad[0xC]; VTE *vt; };
-struct TARGETREC { char pad[0xC]; struct LOV *target; int facingKind; };
+struct TARGETREC; struct CAMERA;
+struct TARGETREC { char pad[0xC]; LO *target; int facingKind; };
 struct CAMERA { char pad[0x60]; float x; float y; };   /* +0x60: the camera's forward direction (inferred) */
 extern struct CAMERA D_002DDF40;
 float atan2f(float y, float x);
-#define VCALL31(o) ((float *(*)(void *))(o)->vt[31].pfn)((char *)(o) + (o)->vt[31].d)
 // 0x20A690: Heading reference of an engagement record: the camera's (kind 0) or the target's facing (kind 1).
 float GetTargetRecordFacing(struct TARGETREC *record)
 {
@@ -3326,8 +3323,8 @@ float GetTargetRecordFacing(struct TARGETREC *record)
         heading = atan2f(D_002DDF40.y, D_002DDF40.x);
         break;
     case 1: {
-        float *forwardY = VCALL31(record->target);   /* the target's facing direction (vtable slot 31) */
-        float *forwardX = VCALL31(record->target);
+        float *forwardY = (float *)record->target->GetWorldMatrix();   /* the target's facing direction */
+        float *forwardX = (float *)record->target->GetWorldMatrix();
         heading = atan2f(forwardY[1], forwardX[0]);
         break;
     }

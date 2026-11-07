@@ -666,8 +666,7 @@ void AddRipRef(RIP *prip)
 
 namespace M_ReleaseRip__FP3RIP { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct LO { char pad[0xC]; struct VTE *vt; };
-struct N { struct LO *plo; int x4; struct N *pnNext; };
+struct N { LO *plo; int x4; struct N *pnNext; };
 struct S { int x0; int cRef; char p1[0xE8 - 0x8]; struct N *pn; struct VTE *vt; };
 void FreeSlotheapSlot(void *pool, void *pv);
 // Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes, free rip.
@@ -677,8 +676,8 @@ void ReleaseRip__FP3RIP(struct S *p)
     if (--p->cRef == 0) {
         ((void (*)(void *))p->vt[3].pf)((char *)p + p->vt[3].d);
         for (pn = p->pn; pn; pn = pnNext) {
-            struct LO *plo = pn->plo;
-            ((void (*)(void *, int, struct S *))plo->vt[5].pf)((char *)plo + plo->vt[5].d, 8, p);
+            LO *plo = pn->plo;
+            plo->HandleMessage((MSGID)8, p);
             pnNext = pn->pnNext;
             FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
         }
