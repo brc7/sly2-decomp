@@ -402,7 +402,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITB *emitb)
         else
             blipGroup->frameRate = (float)n / emitb->lifetime;
     }
-    PrescaleClq((CLQ *)&emitb->alpha, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
+    PrescaleClq((CLQ *)&emitb->alphaCurve, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
     PrescaleClq((CLQ *)&emitb->v.scale, 1.0f / emitb->lifetime, 0.0f, (CLQ *)&blipGroup->poly);
     if (blipGroup->poly.b == 0.0f && blipGroup->poly.c == 0.0f) {
         blipGroup->maxSize = __builtin_fabsf(blipGroup->poly.a);

@@ -51,8 +51,10 @@ struct EMITV
             int n0C;            /* +0x0C next-render object (EMITREF_RenderNext) */
             int oid10;          /* +0x10 touch object (EMITREF_Touch) */
             float ripScale;     /* +0x14 the group's emit scale (SetRipgEmitb) */
-            EMITCLQ scaleRange; /* +0x18 g0/g1: initial scale range (EmitRips) */
-            int unknown28;
+            LM lmScale;         /* +0x18 initial scale range (EmitRips: each rip's scale g0) */
+            int unknown20;
+            float scaleSlope;   /* +0x24 the rips' scale curve g1, g2 (both 0: keep the kind's) */
+            float scaleCurve;   /* +0x28 */
             int unknown2C;
         };
         struct              /* record 0 (particleKind 0): blips (Sly 1's EMITBLIP) */
@@ -135,7 +137,11 @@ struct EMITB
     LM lmPush;              /* +0x98 random push along the velocity */
     LM lmAge;               /* +0xA0 how long ago a particle was born */
     char padA8[0xB0 - 0xA8];
-    EMITCLQ alpha;          /* +0xB0 alpha over the particle's life */
+    union
+    {
+        qword alpha;        /* +0xB0 alpha over the particle's life (copied whole into each rip) */
+        EMITCLQ alphaCurve; /* +0xB0 its coefficients */
+    };
     EMITV v;                /* +0xC0 the particle record (see EMITV) */
 };
 typedef char assert_EMITB_v[SLY2_OFFSETOF(EMITB, v) == 0xC0 ? 1 : -1];

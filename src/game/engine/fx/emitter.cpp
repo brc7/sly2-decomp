@@ -1238,25 +1238,7 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(struct P *e
 } } // namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7
 
 namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5 {
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { float mat[3][4]; } __attribute__((aligned(16)));
-struct EMITBV;
-/* the five objects an EMITB's OIDs resolve to (EMITB+0x08) */
-struct EMITREFS { void *reference; int shape; int render; int nextRender; int touch; };
-/* EMITB, the rip-related fields (the record at +0xC0 as rips use it; Sly 1's EMITRIP) */
-struct EMITBV {
-    char pad0[8];
-    EMITREFS *pshd;                  /* +0x08 */
-    char pad1[0xB0 - 0xC];
-    qword alpha;                /* +0xB0 EMITV's alpha CLQ */
-    char pad2[0xC0 - 0xC0];
-    int ripKind;                /* +0xC0 */
-    int ripGroupKind;           /* +0xC4 */
-    char pad3[0xD8 - 0xC8];
-    float scaleMin, scaleMax;   /* +0xD8 initial scale range */
-    char pad4[4];
-    float scaleSlope, scaleCurve;   /* +0xE4 scale CLQ coefficients (0, 0: keep the kind's) */
-};
 /* a RIP as it is filled at emission (rip.cpp's RIP) */
 class RIPV {
 public:
@@ -1272,7 +1254,7 @@ public:
     qword velocity;             /* +0x90 */
     char emitdv[0xEC - 0xA0];   /* +0xA0 EMITDV (SetEmitdvEmitb) */
     virtual void Set(qword pos, float g, int n);
-    virtual void Init(EMITBV *pemit);
+    virtual void Init(EMITB *pemit);
 };
 class SO {
 public:
@@ -1291,18 +1273,18 @@ struct EMITX { void *ppblipg; SO **ppripg; void *subscriber; };   /* EMITG */
 extern "C" {
 extern char D_003DD490[];
 SO *NewRipGroup(void *p, int n);
-void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITBV *pemit);
+void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITB *pemit);
 void SubscribeLoObject(SO *pso, void *p);
 RIPV *NewRipInGroup(void *p, int n, SO *pso);
 float RandomFloatInRange__Fff(float a, float b);
-void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITBV *pemit);
+void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITB *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
 int IsDlEmpty__FP2DL(void *p);
 }
 // Spawns `count` rips at the originated positions / velocities / times into the emitter's RIPG (creating and
 // subscribing it on first use): each gets a random initial scale, the EMITB's scale curve, alpha curve, motion
 // (SetEmitdvEmitb), render object and the reference object's orientation. A group left empty is told so (slot 9).
-extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *emitg, int count, qword *positions, qword *velocities, float *birthTimes, float *deathTimes)
+extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITX *emitg, int count, qword *positions, qword *velocities, float *birthTimes, float *deathTimes)
 {
     SO *ripGroup = 0;
     int i;
@@ -1310,7 +1292,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *e
     if (emitg && emitg->ppripg)
         ripGroup = *emitg->ppripg;
     if (!ripGroup) {
-        ripGroup = NewRipGroup(D_003DD490, emitb->ripGroupKind);
+        ripGroup = NewRipGroup(D_003DD490, emitb->v.ripGroupKind);
         if (!ripGroup)
             return;
         if (emitg && emitg->ppripg)
@@ -1321,20 +1303,20 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *e
     }
     if (!ripGroup)
         return;
-    for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->ripKind, ripGroup)) != 0; i++) {
-        rip->Set(positions[i], RandomFloatInRange__Fff(emitb->scaleMin, emitb->scaleMax), emitb->pshd->touch);
-        if (emitb->scaleSlope != 0.0f || emitb->scaleCurve != 0.0f) {
-            rip->scaleSlope = emitb->scaleSlope;
-            rip->scaleCurve = emitb->scaleCurve;
+    for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->v.k, ripGroup)) != 0; i++) {
+        rip->Set(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (int)emitb->aploRef[EMITREF_Touch]);
+        if (emitb->v.scaleSlope != 0.0f || emitb->v.scaleCurve != 0.0f) {
+            rip->scaleSlope = emitb->v.scaleSlope;
+            rip->scaleCurve = emitb->v.scaleCurve;
         }
         rip->velocity = velocities[i];
         rip->birthTime = birthTimes[i];
         rip->duration = deathTimes[i] - birthTimes[i];
         rip->alpha = emitb->alpha;
         SetEmitdvEmitb__FP6EMITDVP5EMITB(rip->emitdv, emitb);
-        rip->renderObject = emitb->pshd->render;
-        if (emitb->pshd->reference)
-            rip->orientation = *GetLoWorldMatrix(emitb->pshd->reference);
+        rip->renderObject = (int)emitb->aploRef[EMITREF_Render];
+        if (emitb->aploRef[EMITREF_Reference])
+            rip->orientation = *GetLoWorldMatrix(emitb->aploRef[EMITREF_Reference]);
         rip->Init(emitb);
     }
     if (IsDlEmpty__FP2DL((char *)ripGroup + 0x15C /* RIPG rip list */))
