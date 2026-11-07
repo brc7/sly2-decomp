@@ -512,12 +512,6 @@ static inline float Length(qword v)
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
 }
-static inline qword Broadcast(float f)
-{
-    qword r;
-    __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(f));
-    return r;
-}
 static inline qword MAdd(qword p, qword v, qword k)
 {
     qword r;
@@ -534,7 +528,7 @@ qword ExpandSphereForProjection(const struct M4 *m, qword p, float *radius)
     if (*radius < len) {
         float ratio = (len - *radius) * 0.5f / len;
         *radius = (len + *radius) * 0.5f;
-        u.q = Broadcast(ratio);
+        u.q = VuFromFloat<qword>(ratio);
         p = MAdd(p, d, u.q);
     }
     return p;

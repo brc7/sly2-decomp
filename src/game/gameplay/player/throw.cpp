@@ -188,7 +188,6 @@ static inline void IntCall(O *o,int slot,int value){VE *v=o->vt;v[slot].f.intege
 static inline void EffectCall(EFFECT *o,int slot){VE *v=o->vt;v[slot].f.plain((char *)o+v[slot].delta);}
 static inline void Evaluate(TRACK *o,int optional,V *result,float time,float scale){VE *v=o->vt;v[3].f.evaluate((char *)o+v[3].delta,optional,result,time,scale);}
 static inline qword CPUFloat(float f){register qword r asm("$2");__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
-static inline qword Scalar(float f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword ScalarHome(V &home,qword value){home.q=value;return home.q;}
 static inline qword LoadVF(const V &v){qword q;__asm__("lqc2 %0,%1":"=j"(q):"m"(v));return q;}
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}

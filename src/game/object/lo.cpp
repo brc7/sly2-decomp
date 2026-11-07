@@ -773,7 +773,6 @@ qword *VECTOR_opAssign(qword *p, qword v);
 void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b);
 static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l),"=&j"(t) : "j"(v)); __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));return l; }
 static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; }
-static inline qword Broadcast(float g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
 /** @sly2-annot addr=0x1A5FB8
  * Purpose: Build a camera-facing matrix along segment a->b (width scaling, 0.01 epsilon, uses g_cm pos
  *   D_002DDF40+0x90) and apply via 0x1A5EE8
@@ -799,11 +798,11 @@ void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
   len=width/len;
   pm=&m; t=Normalize(VuCross(n,d));
   x.q=t;
-  k=Broadcast(len);
+  k=VuFromFloat<qword>(len);
   uk.q=k;
   n=VuScaleByX(n,k);
   y.q=n;
-  k=Broadcast(0.01f);
+  k=VuFromFloat<qword>(0.01f);
   uk.q=k;
   z.q=VuScaleByX(d,k);
   VECTOR_opAssign(&m.r[3].q,a);

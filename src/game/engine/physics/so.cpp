@@ -3411,7 +3411,6 @@ static inline float Length(qword a){qword d,one;float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"0"(d));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
-static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword AddScaled(qword old,qword v,qword s){__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(old):"j"(v),"j"(s));return old;}
 /** @sly2-annot addr=0x1F5C30
  * Purpose: Spring torque toward orientation (quadratic CLQ on angle) and toward target angular velocity
@@ -3436,7 +3435,7 @@ extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qw
         if(0.0001f<angle){
             float gain=c->c*angle*angle+c->b*angle+c->a;
             U scalar;
-            qword k=Scalar(gain);
+            qword k=VuFromFloat<qword>(gain);
             {qword result=AddScaled(owner->force,axis.q,k);scalar.q=k;owner->force=result;}
         }
     }
@@ -3450,7 +3449,7 @@ extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qw
             U scalar;
             qword k;
             if(limit<gain)gain=limit;
-            k=Scalar(gain);
+            k=VuFromFloat<qword>(gain);
             {qword result=AddScaled(owner->force,direction,k);scalar.q=k;owner->force=result;}
         }
     }
@@ -4152,7 +4151,6 @@ struct TRI {int index[3];};
 struct MESH {qword *velocity,*acceleration;struct TRI *triangles;};
 struct P {void *x0;int x4;float maximum;int xC;struct MESH*mesh;char pad14[0x64];int count;qword *positions;int triCount;void *planes;char pad88[0x20];int state;};
 void InitPlaneFromPositions(void*,qword,qword,qword);
-static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Step(qword a,qword b,qword s){register qword r __asm__("vf5");
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(s));return r;}
 static inline qword Position(qword p,qword old,qword next,qword half,V *scalar){register qword r __asm__("vf3");
@@ -4182,9 +4180,9 @@ void UpdateSoPartMesh(struct P*so,float dt)
  float maximum=0.0f;
  positions=so->positions;
  if(initialCount>0){
-   register qword time __asm__("vf7")=Scalar(dt);
+   register qword time __asm__("vf7")=VuFromFloat<qword>(dt);
    register int invalid __asm__("$7")=-1;
-   register qword half __asm__("vf6")=Scalar(dt*0.5f);
+   register qword half __asm__("vf6")=VuFromFloat<qword>(dt*0.5f);
    register qword *position __asm__("$3")=positions;
    register qword *velocityCursor __asm__("$4")=VelocityCursor(velocity);
    register int limit __asm__("$2");

@@ -417,7 +417,6 @@ struct VU_FLOAT {
     VU_FLOAT(int bits) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(bits)); }
 };
 // Helpers VuFloat, VuFloatBits, GFromQw (small asm wrappers/accessors shaped for the match).
-static inline qword VuFloat(float g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 static inline qword VuFloatBits(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "rV"(g)); return r; }
 
 /* the second "j"(q) is allocation-only: it keeps the length qword in a VU register (the "r" use alone ties the class
@@ -490,7 +489,7 @@ extern "C" void CheckDprizeBounce(P *prize)
     U vec;
     float gDeepest = 0.0f;
     qword pos = GetLoWorldPos(prize);
-    qword posMin = (vec.qw = VuFloat(-prize->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
+    qword posMin = (vec.qw = VuFromFloat<qword>(-prize->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
     qword posMax = GetLoWorldPos(prize);
     vec.qw = VuFloatBits(prize->sRadius.bits);
     posMax = QwAddScaled(posMax, D_002A2DE0, vec.qw);

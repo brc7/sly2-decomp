@@ -1160,7 +1160,6 @@ struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*g
 struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{U scalar;REQ request;};struct WORK{U normals[64];SCRATCH scratch;FRAME frame;U residual,original;};
 extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(REQ*);void SolveInequalities(int,float*,float*,float*,float);void SetJtAirState(MOVE*,int,void*);}
 static inline void Publish(U*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
-static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(v):"j"(v),"j"(k));return v;}
 static inline float Z(qword q){float f;__asm__("qmfc2.ni %0,%1":"=r"(q):"j"(q));__asm__("pextuw %0,$zero,%0":"+r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline qword Reject(qword value,qword up){qword q,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(q),"=&j"(one):"j"(value),"j"(up));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(up),"j"(q));__asm__("vsub.xyzw %0,%0,%1":"+j"(value):"j"(q));return value;}
@@ -1237,7 +1236,7 @@ extern "C" void ProjectJtVelocityOnContacts(MOVE *p, U *out)
                     goto collected;
                 qword normal = c->normal.q;
                 if (p->actor != c->owner) {
-                    qword negative = Scalar(-1.0f);
+                    qword negative = VuFromFloat<qword>(-1.0f);
                     Publish(&w.scratch.scalar, negative);
                     normal = Scale(normal, negative);
                 }
@@ -1333,7 +1332,6 @@ union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;str
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
 qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
-static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Rotate(qword r0,qword r1,qword r2,qword vector,qword seed){__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(seed):"j"(r0),"j"(r1),"j"(r2),"j"(vector));return seed;}
 static inline qword Rotate(M3*m,qword vector,qword seed){return Rotate(m->row[0].q,m->row[1].q,m->row[2].q,vector,seed);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -1627,7 +1625,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
                 gain = high;
         } else
             gain = p->gain;
-        w.move.phase.vectors.scalar.q = Scalar(gain);
+        w.move.phase.vectors.scalar.q = VuFromFloat<qword>(gain);
         w.move.phase.vectors.acceleration.q = VuScaleByX(w.move.phase.vectors.acceleration.q, w.move.phase.vectors.scalar.q);
         w.move.phase.vectors.corrected.q =
             Rotate(&w.move.basis, w.move.phase.vectors.acceleration.q, w.move.basis.row[0].q);
@@ -3156,12 +3154,6 @@ extern int IsStepplayerPushing(LO *);
 extern int IsJtEdgeGrabbable(P *,SHAPE *,qword,int,void *,U *);
 extern void RecalcSwXpMovement(void *,int,CONTACT **);
 extern BSPNODE *FindBspLeafContainingPointFast(BSPNODE *,BSPNODE *,qword);
-static inline qword Scalar(float f)
-{
-    qword q;
-    __asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));
-    return q;
-}
 static inline qword Project(qword position,qword normal,qword back,qword axis,qword lift)
 {
     register qword n __asm__("vf5")=normal;     /* the one pin: direction in vf5, lift in vf4 as in the original */
@@ -3263,7 +3255,7 @@ CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
                 qword value;
                 U *selected;
                 selected = &Opposite2(contact, side)->position;
-                back = Scalar(-D_002BF8A4);
+                back = VuFromFloat<qword>(-D_002BF8A4);
                 /* "rV": the word is a memory operand that fails 'V' at reload, so reload loads it at the asm through the
                    dying %hi register (lui v1 / lw v1,%lo(v1)) instead of a separate pseudo; allocation only */
                 __asm__("qmtc2.ni %1,%0" : "=j"(lift) : "rV"(D_002BF8A8));
@@ -3317,11 +3309,10 @@ void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 void*AllocFromStack(REQUEST*);
 void SolveInequalities(int,float*,float*,float*,float);
 }
-static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Copy(qword v){qword q;__asm__("vmove.xyzw %0,%1":"=j"(q):"j"(v));return q;}
-static inline qword Normal(P*p,CONTACT*c,WORK*work){qword normal=c->normal;if(c->owner!=p){qword minus=Scalar(-1.0f);work->scalar.q=minus;normal=VuScaleByX(normal,work->scalar.q);}return normal;}
+static inline qword Normal(P*p,CONTACT*c,WORK*work){qword normal=c->normal;if(c->owner!=p){qword minus=VuFromFloat<qword>(-1.0f);work->scalar.q=minus;normal=VuScaleByX(normal,work->scalar.q);}return normal;}
 static inline void StoreDot(float*out,qword a,qword b){register qword product __asm__("vf1"),one __asm__("vf2");int bits;__asm__("vmul.xyz %1,%4,%5\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x $ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tqmfc2.ni %0,%1\n\tsw %0,%3":"=&r"(bits),"=&j"(product),"=j"(one),"=m"(*out):"j"(a),"j"(b));}
-static inline qword AddScaled(qword sum,qword normal,float weight,WORK*work){work->scalar.q=Scalar(weight);__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(sum):"j"(sum),"j"(normal),"j"(work->scalar.q));return sum;}
+static inline qword AddScaled(qword sum,qword normal,float weight,WORK*work){work->scalar.q=VuFromFloat<qword>(weight);__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(sum):"j"(sum),"j"(normal),"j"(work->scalar.q));return sum;}
 static inline float Z(qword q){register qword bits __asm__("$2");register float f __asm__("$f0");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("pextuw %1,$zero,%1\n\tmtc1 %1,%0":"=f"(f),"+r"(bits));return f;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char CONTACT_Size[sizeof(CONTACT)==176?1:-1];

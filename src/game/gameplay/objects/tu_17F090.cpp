@@ -1860,7 +1860,6 @@ extern void AddXp(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,fl
 
 // Helpers Sub, Broadcast, BroadcastBits, Scalar, MAdd, MAdd2, Point (small asm wrappers/accessors shaped for the match).
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
-static inline qword Broadcast(float f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword BroadcastBits(int b){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(b));return r;}
 static inline qword MAdd(qword a,qword b,qword s){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(s));return a;}
 static inline qword MAdd2(qword a,qword b,qword s){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(s));return r;}
@@ -1900,7 +1899,7 @@ void AddHackwallXps(P*wall,REQUEST*q,int unused2,int unused3,int unused4,CONTACT
    w.direction.q=Sub(n->position.q,center);w.direction.i[2]=0;
    distance=Planar(&w.direction);
    if(distance<radius){
-    w.newEndpoint.q=Broadcast(-q->radius);
+    w.newEndpoint.q=VuFromFloat<qword>(-q->radius);
     AddXp(&D_003DD490,&wall->contacts[wall->contactCount-1],q,MAdd(center,w.direction.q,w.newEndpoint.q),w.direction.q,10,n,0,out,distance-radius);
    }else{
     int j;

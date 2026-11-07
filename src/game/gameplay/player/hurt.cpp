@@ -393,9 +393,8 @@ extern "C" float D_002BFA90[3];   /* the zap spring */
 extern "C" struct CLOCK D_002DDED0;
 
 extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
-static inline qword Broadcast(float g) { qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g));return q; }
-static inline qword BroadcastTo(float g,U *u) { qword q=Broadcast(g); u->q=q;return q; }
-inline void O::Negate(U &u) { qword v=xE8->v80; qword k=Broadcast(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
+static inline qword BroadcastTo(float g,U *u) { qword q=VuFromFloat<qword>(g); u->q=q;return q; }
+inline void O::Negate(U &u) { qword v=xE8->v80; qword k=VuFromFloat<qword>(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
 /** @sly2-annot addr=0x1A1148
  * Purpose: Hurt-state acceleration: in knockback states add velocity / spring toward target velocity
  *   (AccelSoTowardPosSpring)

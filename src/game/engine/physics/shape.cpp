@@ -1935,7 +1935,6 @@ static inline VV AddScaled2(VV base, VU_FLOAT g, VV v1, VV v2)
     return r;
 }
 /* float -> VF without a VU_FLOAT object: no asm-output temp, so no home store (the game has none for the 2nd spring's g) */
-static inline qword VfFromF(float f) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(f)); return r; }
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
@@ -2030,7 +2029,7 @@ void StepChainRk4(CHAIN *chain)
                 VU_FLOAT damping(&chain->stretchDamping);
                 proj2.q = pr2;
                 F = VecCombo3S1(F, g1, dir1.q, damping, proj1.q);
-                F = VecCombo3S2(F, VU_FLOAT(VfFromF(chain->stretch * (len2 - rest2))), dir2.q, damping, proj2.q);
+                F = VecCombo3S2(F, VU_FLOAT(VuFromFloat<qword>(chain->stretch * (len2 - rest2))), dir2.q, damping, proj2.q);
             }
             if (chain->bend != 0.0f || chain->bendDamping != 0.0f) {
                 U mid, midV, dir, proj;
