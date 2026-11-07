@@ -1301,16 +1301,6 @@ int IsPowerupAcquired(int n) {
 } } // namespace M_FPowerupAcquired
 
 namespace M_SetPowerupAcquired {
-struct CRef {
-    int m_tagk;
-    int m_tag;
-    CRef() { m_tagk = -1; }
-    CRef(bool f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &);
-    ~CRef() { Decref(); }
-    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
-    void Decref() __asm__("Decref__4CRef");
-};
 struct G { char pad[0xC]; int powerupId; };   /* the game-event record (BroadcastGameEvent) */
 extern "C" { extern G D_002DEB30; }
 extern "C" { extern char D_002A79A0[]; }
@@ -1703,16 +1693,6 @@ void ClearThiefnet(struct S *p) {
 } } // namespace M_ClearThiefnet
 
 namespace M_UpdateThiefnet {
-struct CRef {
-    int m_tagk;
-    int m_tag;
-    CRef() { m_tagk = -1; }
-    CRef(int n) { m_tagk = 0x15; m_tag = n; }
-    CRef(const CRef &);
-    ~CRef() { Decref(); }
-    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
-    void Decref() __asm__("Decref__4CRef");
-};
 struct REC { int a, b, price; int pad[5]; };
 struct REC12 { int sellPrice, x4, price; };
 struct OBJ {
@@ -1794,8 +1774,8 @@ extern "C" void UpdateThiefnet(OBJ *p)
                 char buf[32];
                 sprintf(buf, D_002A79A0, p->selectedLoot);
                 r = GetSaveVarByName(D_002A79D0, D_002A79D8, buf, 0);
-                if (r.m_tag > 0) {
-                    SetSaveVarByName(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
+                if (r.u.n > 0) {
+                    SetSaveVarByName(CRef(r.u.n - 1, 0x15), D_002A79D0, D_002A79D8, buf, 0);
                     SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->selectedLoot].sellPrice);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(CreateSfxSound(0x29), 0);
@@ -1878,15 +1858,6 @@ void SelectThiefnetItem(OBJ *p, int row)
 } } // namespace M_SelectThiefnetItem
 
 namespace M_RefreshThiefnetItems {
-struct CRef {
-    int m_tagk;
-    int m_tag;
-    CRef() { m_tagk = -1; }
-    CRef(const CRef &);
-    ~CRef() { Decref(); }
-    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
-    void Decref() __asm__("Decref__4CRef");
-};
 struct ENT { int id; int iconAnim; };
 struct OBJ {
     char pad[0x40];
@@ -1934,7 +1905,7 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
             char ach[0x20];
             sprintf(ach, D_002A79A0, i);
             ref = GetSaveVarByName(D_002A79D0, D_002A79D8, ach, 0);
-            if (ref.m_tag == 0)
+            if (ref.u.n == 0)
                 continue;
             if (p->itemCount > 0x40)
                 break;
@@ -2314,15 +2285,6 @@ void BuildThiefnetPowerupCostText(char *pch, int i) {
 } } // namespace M_func_001DC820
 
 namespace M_BuildThiefnetLootNameText {
-struct CRef {
-    int m_tagk;
-    int m_tag;
-    CRef() { m_tagk = -1; }
-    CRef(const CRef &);
-    ~CRef() { Decref(); }
-    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
-    void Decref() __asm__("Decref__4CRef");
-};
 struct ENT { int n; int a; };
 struct TBL {
     char pad[0x4C];
@@ -2354,7 +2316,7 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
         char ach[0x20];
         sprintf(ach, D_002A79A0, i);
         ref = GetSaveVarByName(D_002A79D0, D_002A79D8, ach, 0);
-        c = ref.m_tag;
+        c = ref.u.n;
         ids = D_002C3288[i].ids;
     }
     if (ids != -1) {
@@ -3150,14 +3112,6 @@ void UpdateTitleScreen(OBJ *p)
 
 namespace M_StartNewGame {
 extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
-class CRef {
-public:
-    int m_tagk;
-    int m_tag;
-    CRef(int tagk, int n) { m_tagk = tagk; m_tag = n; }
-    CRef(const CRef &ref) { __4CRefRC4CRef(this, &ref); }
-    ~CRef() { Decref__4CRef(this); }
-};
 struct G;
 extern "C" { extern G D_003D4A60; }
 extern "C" { 
@@ -3177,7 +3131,7 @@ static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const C
 extern "C" void StartNewGame(void)
 {
     {
-        CRef ref(0x16, 0);
+        CRef ref(0, 0x16);
         SetPv((*(void * *)&g_sw.psvpDt), ref, &D_003D4A60);
     }
     if (D_002E1E40)
@@ -3202,14 +3156,6 @@ void TITLE::SetMode(int mode)   /* key function */
 }
 
 namespace M_BuildTitlePromptText {
-struct CRef {
-    int m_tagk;
-    union { int m_tag; float m_g; };
-    CRef() { m_tagk = -1; }
-    CRef(const CRef &);
-    ~CRef() { Decref(); }
-    void Decref() __asm__("Decref__4CRef");
-};
 struct G { char pad[0x3B1C]; void *unknown3B1C; };
 struct H { char pad[0x100C]; int unknown100C; int unknown1010; };
 struct I { char pad[0xFD54]; void *foundSave; };
@@ -3237,7 +3183,7 @@ extern "C" void BuildTitlePromptText(char *pch)
     pv = D_002E65E0.foundSave;
     if (pv) {
         CRef ref = GetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
-        g = ref.m_g;
+        g = ref.u.g;
     }
     {
         int ids = g != 0.0f ? 6 : 5;
