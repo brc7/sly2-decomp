@@ -3603,7 +3603,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 svt = 0.0f;
                 jt->janim.hangStartTime = D_002DDED0.time;
                 aseg = jt->pasegHang;
-                ClearXyz((VECTOR *)&pact1->goalPosition);
+                ClearXyz((VECTOR *)&pact1->goalValue);
                 tStart = 0.5f;
                 AddXfAct(jt, (XF *)jt->unknown19C0, (ACT *)jt->unknown1A00);
                 qword posHand = PosLoWorld(jt->unknown19A4);

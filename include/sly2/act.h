@@ -111,24 +111,41 @@ struct ACT
 };
 typedef char assert_ACT_size[sizeof(ACT) == 0x1C ? 1 : -1];
 
-/* ACT1 (0x30; vtable 0x2CA820): holds its transform at a goal position with a phase (UpdatePositionAct) */
+/* ACT1 (0x30; vtable 0x2CA820): holds its transform at a goal value (a position or rotation) with a phase
+   (UpdatePositionAct; SetActPositionGoal / SetActRotationGoal move the goal) */
 struct ACT1 : ACT
 {
     int phase;              /* +0x1C copied to XF::phase by Update (2 at construction) */
-    qword goalPosition;     /* +0x20 the rest value Update stores; SetActPositionGoal moves it */
+    qword goalValue;        /* +0x20 the rest value Update stores */
     virtual void Update() __asm__("UpdatePositionAct");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetPhaseActGoal");   /* slot 5 */
 };
 typedef char assert_ACT1_size[sizeof(ACT1) == 0x30 ? 1 : -1];
 
-/* ACT2 (0x80; vtable 0x2CA7E0): look-at act (UpdateActLookAt) */
+/* ACT2 (0x80; vtable 0x2CA7E0): look-at act: aims its transform (pan/tilt) at a target object, or holds a rest aim
+   when the target is out of range (UpdateActLookAt) */
 struct ACT2 : ACT
 {
-    char pad1C[0x80 - 0x1C];
+    qword restAim;          /* +0x20 the aim held when the target is farther than maxDistance */
+    CLQ panCurve;           /* +0x30 maps the measured pan angle */
+    CLQ tiltCurve;          /* +0x40 maps the measured tilt angle */
+    float panMin;           /* +0x50 */
+    float panMax;
+    float tiltMin;
+    float tiltMax;
+    float maxDistance;      /* +0x60 */
+    int nearPriority;       /* +0x64 the act's priority within maxDistance */
+    int farPriority;        /* +0x68 and beyond it */
+    int oidTarget;          /* +0x6C the target's OID (-1: the closest PO) */
+    void *ptarget;          /* +0x70 the target object, resolved on first update */
+    int hasPreviousAim;     /* +0x74 the aim velocity can be differenced */
+    undefined4 unknown78[2];
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetLookAtActGoal");   /* slot 5 */
     virtual void Detach() __asm__("DetachLookAtAct");   /* slot 2 */
     virtual void Update() __asm__("UpdateActLookAt");   /* slot 4 */
 };
+typedef char assert_ACT2_size[sizeof(ACT2) == 0x80 ? 1 : -1];
+typedef char assert_ACT2_ptarget[SLY2_OFFSETOF(ACT2, ptarget) == 0x70 ? 1 : -1];
 
 /* ACT4 (0x28; vtable 0x2CA7A0) */
 struct ACT4 : ACT

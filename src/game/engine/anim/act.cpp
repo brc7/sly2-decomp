@@ -922,7 +922,7 @@ int IsActAttached(T *p)
 // Position act update (slot 4).
 void ACT1::Update()
 {
-    pxf->restValue = goalPosition;
+    pxf->restValue = goalValue;
     pxf->rate = D_002A2DD0;
     pxf->phase = phase;
     ResetXfValueRef(palo, pxf);
@@ -933,7 +933,7 @@ void ACT1::Update()
 extern "C" void GetPhaseActGoal(ACT1 *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
-        *ppos = act->goalPosition;
+        *ppos = act->goalValue;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -945,7 +945,7 @@ typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword goalValue; };
-struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword positionGoal; };
+#define XFV(p) ((struct X *)(p)->pxf)
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
@@ -954,25 +954,25 @@ static __inline__ int AreVectorsNear(qword a, qword b)
 }
 // Stores a new position goal; if this act drives its transform and the goal moved, copies it to the transform and puts
 // the slot back into motion.
-void SetActPositionGoal(struct P *p, qword v)
+void SetActPositionGoal(ACT1 *p, qword v)
 {
     qword dv;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->positionGoal));
-    p->positionGoal = v;
-    if (p->xf->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
-        p->xf->goalValue = v;
-        UnsettleXfSlot(p->object, p->xf);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->goalValue));
+    p->goalValue = v;
+    if (XFV(p)->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
+        XFV(p)->goalValue = v;
+        UnsettleXfSlot(p->palo, p->pxf);
     }
 }
+#undef XFV
 } } // namespace M_SetActPositionGoal
 
 namespace M_func_0012D210 { extern "C" {
-typedef struct T { char pad[0x70]; int a; int b; } T;
 // Look-at act detach (slot 2): clears its tracking state. (inferred)
-void DetachLookAtAct(T *p)
+void DetachLookAtAct(ACT2 *p)
 {
-    p->a = 0;
-    p->b = 0;
+    p->ptarget = 0;
+    p->hasPreviousAim = 0;
 }
 } } // namespace M_func_0012D210
 
@@ -989,14 +989,9 @@ namespace M_UpdateActLookAt { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct POLY { float a, b, c; };
-struct O { int pad[6]; struct VTE *pvt; };
-struct X { char pad[0x70]; qword localPosition; char pad80[0x90 - 0x80]; struct P *activeAct; short pad94[3]; short segmentKind; int pad9C; int parent;
+struct X { char pad[0x70]; qword localPosition; char pad80[0x90 - 0x80]; ACT *activeAct; short pad94[3]; short segmentKind; int pad9C; int parent;
     char padA4[0xC0 - 0xA4]; qword goalValue; qword goalVelocity; };
-struct P {
-    int kind; void *object; struct X *xf; int priority; int pad10[4]; qword restAim; struct POLY panCurve; int pad3C; struct POLY tiltCurve; int pad4C;
-    float panMin; float panMax; float tiltMin; float tiltMax; float maxDistance; int nearPriority; int farPriority; int targetOid; void *target; int hasPreviousAim;
-};
+#define XFV(p) ((struct X *)(p)->pxf)
 extern char D_003DD490[];
 extern qword D_002A2DD0;
 extern float D_002A45A8;
@@ -1008,7 +1003,7 @@ qword GetLoWorldPos(void *po);
 void SortXfActs(void *a, struct X *b);
 qword ConvertXfVec(int n, int k, qword v);
 void CalculateVectorPanTilt(qword q, float *pa, float *pb);
-static __inline__ float EvaluateQuadratic(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
+static __inline__ float EvaluateQuadratic(CLQ *pp, float t) { return pp->g0 + t * (pp->g1 + t * pp->g2); }
 static __inline__ float VectorLength(U *pv, qword a)
 {
     qword t;
@@ -1020,7 +1015,7 @@ static __inline__ float VectorLength(U *pv, qword a)
 }
 
 // Look-at act update: finds the target object and computes the pan / tilt that aims the transform at it.
-void UpdateActLookAt(struct P *p)
+void UpdateActLookAt(ACT2 *p)
 {
     struct { qword pos; qword vel; } s;
     U dt;
@@ -1032,14 +1027,14 @@ void UpdateActLookAt(struct P *p)
     int k;
     qword vel;
 
-    if (p->target == 0 && p->targetOid != -1)
-        p->target = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x104, p->targetOid, p->object);
+    if (p->ptarget == 0 && p->oidTarget != -1)
+        p->ptarget = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x104, p->oidTarget, p->palo);
     {
-        struct X *xf = p->xf;
+        struct X *xf = XFV(p);
         int z;
         __asm__("" : "=r"(z));  /* empty asm, allocation only: z occupies $v1 across the posT load */
         posT = xf->localPosition;
-        po = p->target;
+        po = p->ptarget;
         __asm__("" : "+r"(po) : "r"(xf), "r"(z));  /* empty asm, allocation only: xf ($v0) and z ($v1) stay live past the posT load, so reload picks $a1 for it (non-volatile: has an output, so reload_cse can drop the later a1 reload) */
     }
     if (!po)
@@ -1057,14 +1052,13 @@ void UpdateActLookAt(struct P *p)
         g = D_002A45A8;
     }
     k = (p->maxDistance < g) ? p->farPriority : p->nearPriority;
-    if (k != p->priority) {
-        struct P *activeAct;
-        p->priority = k;
-        SortXfActs(p->object, p->xf);
-        activeAct = p->xf->activeAct;
+    if (k != p->nPriority) {
+        ACT *activeAct;
+        p->nPriority = k;
+        SortXfActs(p->palo, XFV(p));
+        activeAct = XFV(p)->activeAct;
         if (activeAct != p) {
-            struct O *po2 = (struct O *)activeAct;
-            ((void (*)(struct O *))po2->pvt[4].pfn)((struct O *)((char *)po2 + po2->pvt[4].d));
+            activeAct->Update();
             return;
         }
     }
@@ -1073,7 +1067,7 @@ void UpdateActLookAt(struct P *p)
         s.vel = D_002A2DD0;
         p->hasPreviousAim = 0;
     } else {
-        CalculateVectorPanTilt(ConvertXfVec(0, p->xf->parent, dv), &ag[0], &ag[1]);
+        CalculateVectorPanTilt(ConvertXfVec(0, XFV(p)->parent, dv), &ag[0], &ag[1]);
         ag[0] = Clamp(EvaluateQuadratic(&p->panCurve, ag[0]), p->panMin, p->panMax);
         ag[1] = Clamp(EvaluateQuadratic(&p->tiltCurve, ag[1]), p->tiltMin, p->tiltMax);
         ((float *)&s.pos)[2] = ag[0];
@@ -1083,7 +1077,7 @@ void UpdateActLookAt(struct P *p)
             qword d = s.pos;
             {
                 qword qwdtqOut;
-                __asm__("vsub.xyzw %0, %0, %2\n\tqmtc2.ni %3, %1" : "+j"(d), "=j"(qwdtqOut) : "j"(p->xf->goalValue), "rV"((*(int *)&g_clock.deltaTime)));
+                __asm__("vsub.xyzw %0, %0, %2\n\tqmtc2.ni %3, %1" : "+j"(d), "=j"(qwdtqOut) : "j"(XFV(p)->goalValue), "rV"((*(int *)&g_clock.deltaTime)));
                 dt.q = qwdtqOut;
             }  /* "rV": MEM kept to reload, which loads it into the dying %hi reg */
             __asm__("vdiv Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, Q" : "=j"(vel) : "j"(dt.q), "j"(d) : "memory");
@@ -1093,10 +1087,11 @@ void UpdateActLookAt(struct P *p)
         s.vel = vel;
         p->hasPreviousAim = 1;
     }
-    p->xf->goalValue = s.pos;
-    p->xf->goalVelocity = s.vel;
-    p->xf->segmentKind = 3;
+    XFV(p)->goalValue = s.pos;
+    XFV(p)->goalVelocity = s.vel;
+    XFV(p)->segmentKind = 3;
 }
+#undef XFV
 } } // namespace M_UpdateActLookAt
 
 /* vtable 0x2CA7F0 slot 4. */
@@ -1402,7 +1397,7 @@ typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps);
 void UnsettleXfSlot(void *pv, void *px);
 struct X { char pad[0x90]; void *activeAct; char pad2[0xC0 - 0x94]; qword segmentStart; qword segmentStartTangent; qword segmentEnd; };
-struct P { int kind; void *object; struct X *xf; int priority; int pad[4]; qword rotationGoal; };
+#define XFV(p) ((struct X *)(p)->pxf)
 extern qword D_002A2DD0;
 static __inline__ int AreVectorsNear(qword a, qword b)
 {
@@ -1411,25 +1406,26 @@ static __inline__ int AreVectorsNear(qword a, qword b)
 }
 // Stores a new goal vector; if this act drives its transform and the goal moved, shifts the transform's goal values by
 // the change and puts the slot back into motion. (inferred)
-void SetActRotationGoal(struct P *p, qword v)
+void SetActRotationGoal(ACT1 *p, qword v)
 {
     qword dv;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->rotationGoal));
-    p->rotationGoal = v;
-    if (p->xf->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->goalValue));
+    p->goalValue = v;
+    if (XFV(p)->activeAct == p && !AreVectorsNear(D_002A2DD0, dv)) {
         {
             qword shiftedStart;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedStart) : "j"(p->xf->segmentStart), "j"(dv), "j"(dv));
-            p->xf->segmentStart = shiftedStart;
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedStart) : "j"(XFV(p)->segmentStart), "j"(dv), "j"(dv));
+            XFV(p)->segmentStart = shiftedStart;
         }
         {
             qword shiftedEnd;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(p->xf->segmentEnd), "j"(dv));
-            p->xf->segmentEnd = shiftedEnd;
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(XFV(p)->segmentEnd), "j"(dv));
+            XFV(p)->segmentEnd = shiftedEnd;
         }
-        UnsettleXfSlot(p->object, p->xf);
+        UnsettleXfSlot(p->palo, p->pxf);
     }
 }
+#undef XFV
 } } // namespace M_func_0012DA30
 
 namespace M_func_0012DB50 { extern "C" {
