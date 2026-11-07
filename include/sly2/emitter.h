@@ -331,7 +331,9 @@ struct EMITGEN
     float *atBirth;         /* +0x08 */
     float *atDeath;         /* +0x0C */
     int fConvertToWorld;    /* +0x10 */
+    int unknown14[3];       /* EmitParticles keeps two of them on its stack, 0x20 bytes each */
 };
+typedef char assert_EMITGEN_size[sizeof(EMITGEN) == 0x20 ? 1 : -1];
 /* FindSwObject (sw.cpp) under a label: files that include this header declare its mangled name as a C function */
 LO *PloFindSwObjectE(SW *psw, int grffso, OID oid, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 extern SW g_sw __asm__("D_003DD490");

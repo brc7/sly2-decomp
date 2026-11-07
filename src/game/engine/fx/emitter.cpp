@@ -1376,19 +1376,17 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, in
 namespace M_OriginateParticles__FiP5EMITBP7EMITGEN {
 // (Claude agent, lane E7) MATCH from the 4-diff wip: ONE register pin, the pb->apos base in $2 (v0) inside the pxf block.
 // NEAR MISS (round 9): 4/130, only $v0/$v1 for &apos[i] in the first pxf block
-typedef int qword __attribute__((mode(TI)));
 // Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
-struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
 extern "C" {
 void *AllocFromStack(AL *pal);
 void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx);
 void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *pemit, int i, int c, qword *ppos, qword *pnormal);
 void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EMITVX *pvx, void *q, int n, qword *ppos, qword *pnormal, qword *pvel, float *ptBirth, float *ptDeath);
 void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *pemit, qword *ppos, qword *pvel);
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemit, BUF *pb);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemit, EMITGEN *pgen);
 }
 // Allocate cb bytes with the given alignment from the frame stack.
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(&al); }
@@ -1402,7 +1400,7 @@ static inline qword MulRow(const MATRIX3 &m, qword v)
 // Fills an EMITGEN with `c` new particles' positions, velocities and birth / death times: an even direction grid
 // (CalculateEmitvx), each particle's origin (ChooseEmitoPos) and velocity / age (ChooseEmitvVelocityAge), moved by
 // the origin's local transform (position, rotation, linear and angular velocity) and, when asked, into world space.
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, EMITGEN *gen)
 {
     gen->apos = (qword *)PvAlloc(c * 16, 16);
     gen->av = (qword *)PvAlloc(c * 16, 16);
@@ -1426,7 +1424,7 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
             qword t = VuAdd(MulRow(pxf->localMatrix, gen->av[i]), pxf->v);
             gen->av[i] = VuAdd(t, x);
         }
-        if (gen->convertToWorld)
+        if (gen->fConvertToWorld)
             ConvertEmitoPosVec__FP5EMITOP6VECTORT1(emitb, &gen->apos[i], &gen->av[i]);
     }
 }
@@ -1434,19 +1432,16 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, BUF *gen)
 
 namespace M_OriginateSplineSinkParticles {
 // OriginateSplineSinkParticles: emitter particle transform (Claude agent, lane E20). The clock time is read into a local BEFORE
-// the ptimes->at[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
-typedef int qword __attribute__((mode(TI)));
+// the pgenEmit->atDeath[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
 struct M4 { qword r[4]; };
-struct BUF { qword *apos; qword *av; float *atBirth; float *atDeath; int convertToWorld; };   /* EMITGEN */
-struct TIMES { char pad[0xC]; float *atDeath; };   /* the EMITGEN being emitted */
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002A5150;
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, BUF *pb);
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen);
 int AreFloatsNear__Ffff(float g1, float g2, float gEps);
 void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
-void OriginateSplineSinkParticles(int c, EMITB *pemit, TIMES *ptimes, BUF *pb);
+void OriginateSplineSinkParticles(int c, EMITB *pemit, EMITGEN *pgenEmit, EMITGEN *pgen);
 }
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -1472,7 +1467,7 @@ static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0
 // For spline-motion blips: originates the spline end points from the spline target (an EXPLO with its own EMITB,
 // whose reference object defaults to the target's parent), each moved by the target's motion at the particle's
 // death time (LoadIdentityMatrix4 extrapolation) and with its velocity reversed, so blips fly into the target (inferred).
-void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
+void OriginateSplineSinkParticles(int c, EMITB *emitb, EMITGEN *pgenEmit, EMITGEN *gen)
 {
     EXPLO *target = (EXPLO *)emitb->aploRef[EMITREF_Render];   /* the spline target: an EXPLO */
     LO **refs = target->pemitb->aploRef;
@@ -1487,7 +1482,7 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
     M4 mWorld;
     if (!saved)
         refs[EMITREF_Reference] = target->parent;
-    gen->convertToWorld = 0;
+    gen->fConvertToWorld = 0;
     OriginateParticles__FiP5EMITBP7EMITGEN(c, target->pemitb, gen);
     target->pemitb->emito.pxfOrigin = 0;
     tPrev = D_002A5150;
@@ -1495,7 +1490,7 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
     mBase = mWorld;
     for (i = 0; i < c; i++) {
         float tNow = D_002DDED0.time;
-        float t = ptimes->atDeath[i] - tNow;
+        float t = pgenEmit->atDeath[i] - tNow;
         int velocityKind = target->pemitb->emito.velocityKind;
         if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
             M4 mT;
@@ -1532,33 +1527,31 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, TIMES *ptimes, BUF *gen)
 } // namespace M_OriginateSplineSinkParticles
 
 namespace M_EmitParticles__FiP5EMITBP5EMITG {
-struct LOC { int positions, velocities, birthTimes, deathTimes; int convertToWorld; int pad[3]; };   /* EMITGEN */
-struct L2 { int splineStarts; int splineEnds; int pad[6]; };
 extern "C" {
-void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, EMITB *b, LOC *ploc);
-void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *b, void *c, void *a, int q0, int q1, int q2, int q3);
-void OriginateSplineSinkParticles(void *a, EMITB *b, LOC *ploc, L2 *pl2);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, int q0, int q1, int q2, int q3, int x, int y);
+void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, EMITB *b, EMITGEN *pgen);
+void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath);
+void OriginateSplineSinkParticles(void *a, EMITB *b, EMITGEN *pgenEmit, EMITGEN *pgen);
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath, qword *aposStart, qword *aposEnd);
 // Emits `count` particles from an EMITB: originates them (inside count stack-allocation scope), then hands them to
 // EmitRips or EmitBlips (spline-motion blips also get their spline end points).
 void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 {
     if (count) {
-        LOC gen;
+        EMITGEN gen;
         STACKSCOPE frame;
-        gen.convertToWorld = 1;
+        gen.fConvertToWorld = 1;
         OriginateParticles__FiP5EMITBP7EMITGEN(count, emitb, &gen);
         if (emitb->particleKind == 1) {
-            EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(emitb, emitg, count, gen.positions, gen.velocities, gen.birthTimes, gen.deathTimes);
+            EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(emitb, emitg, count, gen.apos, gen.av, gen.atBirth, gen.atDeath);
         } else {
-            L2 spline;
+            EMITGEN spline;
             if (emitb->v.motionKind == 2   /* blips on a spline */) {
                 OriginateSplineSinkParticles(count, emitb, &gen, &spline);
             } else {
-                spline.splineStarts = 0;
-                spline.splineEnds = 0;
+                spline.apos = 0;
+                spline.av = 0;
             }
-            EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(emitb, emitg, count, gen.positions, gen.velocities, gen.birthTimes, gen.deathTimes, spline.splineStarts, spline.splineEnds);
+            EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(emitb, emitg, count, gen.apos, gen.av, gen.atBirth, gen.atDeath, spline.apos, spline.av);
         }
     }
 }
