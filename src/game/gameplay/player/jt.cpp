@@ -783,9 +783,7 @@ void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00188E78 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VT { struct { short d; short pad; qword (*pfn)(void *); } a[40]; };
-struct PO { char pad[0xC]; struct VT *pvt; };
-struct E { char pad[0xC]; struct PO *po; qword v10; qword v20; qword v30; };
+struct E { char pad[0xC]; SO *po; qword v10; qword v20; qword v30; };   /* a contact (XP): first side's object, point, velocity */
 extern void AdjustStepXpVelocity(void *p, struct E *ae, int i);
 extern qword GetLoWorldPos(void *p);
 // JT slot 57: STEP base; for a contact on Sly himself, removes the rotational part (angular velocity x offset) from
@@ -793,14 +791,14 @@ extern qword GetLoWorldPos(void *p);
 void AdjustJtXpVelocity(void *p, struct E *ae, int i)
 {
     struct E *pe;
-    struct PO *object;
+    SO *object;
     AdjustStepXpVelocity(p, ae, i);
     pe = &ae[i];
     object = pe->po;
     if (object != p)
         return;
     qword v = pe->v30;
-    qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
+    qword w = object->GetAngularVelocity();
     qword x = pe->v10;
     pe->v30 = VuSub(v, VuCross(w, VuSub(x, GetLoWorldPos(object))));
 }
@@ -1050,27 +1048,20 @@ int IsJtFreeMoving(struct S *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189530 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x19A0]; struct O *a; struct O *b; struct O *c; };
+struct S { char pad[0x19A0]; LO *a; LO *b; LO *c; };
 void IgnoreStepSlot87(struct S *p, int f);
-static __inline__ void Call(struct O *o, int n)
-{
-    struct VTE *e = &o->vt[21];
-    e->pfn((char *)o + e->d, n);
-}
 // JT slot 87 (playable flag): STEP base, then the flag on three attached sub-objects.
 void SetJtPlayable(struct S *jt, int f)
 {
     IgnoreStepSlot87(jt, f);
     if (f) {
-        Call(jt->a, 0);
-        Call(jt->b, 0);
-        Call(jt->c, 0);
+        jt->a->SetFlag8(0);
+        jt->b->SetFlag8(0);
+        jt->c->SetFlag8(0);
     } else {
-        Call(jt->a, 1);
-        Call(jt->b, 1);
-        Call(jt->c, 1);
+        jt->a->SetFlag8(1);
+        jt->b->SetFlag8(1);
+        jt->c->SetFlag8(1);
     }
 }
 } } // namespace M_func_00189530
@@ -1513,8 +1504,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct T { char pad[0x4C]; struct O *po; };
+struct T { char pad[0x4C]; SO *po; };   /* the floor contact (XP): the other side's object */
 struct S {
     char pad[0xC]; struct VTE *vt; char p0[0x198]; float g1a8; char p1[0x5C]; struct T *pt208;
     char p2[0xE1C]; void *x1028; char p3[8]; void *x1034; char p4[0x4DC]; int x1514; char p5[8];
@@ -1536,10 +1526,9 @@ void UpdateJtStand(struct S *jt)
     SetSmaMask(jt->x1034, GetStepplayerLeanFlags(jt));
     e = &jt->vt[92];
     if (!((int (*)(void *))e->pfn)((char *)jt + e->d) && jt->pt208) {
-        struct O *o = jt->pt208->po;
+        SO *o = jt->pt208->po;
         UV u;
-        e = &o->vt[34];
-        u.q = ((qword (*)(void *))e->pfn)((char *)o + e->d);
+        u.q = o->GetAngularVelocity();
         u.v.z = ClampAbs__Fff(u.v.z, 10.0f);
         SetStepTargetHeading(jt, jt->g1a8 + u.v.z * D_002DDED0.deltaTime);
     }
