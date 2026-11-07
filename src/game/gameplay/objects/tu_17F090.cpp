@@ -38,9 +38,15 @@ struct HACKV : public PO
     int cHealth;            /* +0x184 */
     int f188;
     int fDying;             /* +0x18C */
-    char pad190[0x1C0 - 0x190];
+    char pad190[0x1A0 - 0x190];
+    float knockbackBase, knockbackLinear, knockbackQuadratic;   /* +0x1A0 knockback gain: a quadratic in the damage */
+    float unknown1AC;
+    float knockbackMin, knockbackMax;   /* +0x1B0 its limits (the max also limits the speed) */
+    char pad1B8[0x1C0 - 0x1B8];
     int nState;             /* +0x1C0 */
     float tState;           /* +0x1C4 */
+    virtual void Die(int n);   /* slot 82 (inferred: called when the health runs out) */
+    virtual void OnPostLoad();   /* slot 83 (PostHackLoad calls it after PostSoLoad; meaning not known) */
 };
 /* The hack classes keep class-specific words at +0x1C8, inside HACK's 16-byte tail padding, so each class is a
    separate view over PO (a derived struct would start at sizeof(HACK) = 0x1D0); calls into the HACK base functions
@@ -50,7 +56,11 @@ struct HACKV : public PO
     int cHealth;            /* +0x184 */ \
     int f188; \
     int fDying;             /* +0x18C */ \
-    char pad190[0x1C0 - 0x190]; \
+    char pad190[0x1A0 - 0x190]; \
+    float knockbackBase, knockbackLinear, knockbackQuadratic; \
+    float unknown1AC; \
+    float knockbackMin, knockbackMax; \
+    char pad1B8[0x1C0 - 0x1B8]; \
     int nState;             /* +0x1C0 */ \
     float tState;           /* +0x1C4 */
 struct HACKSHIPV : public PO     /* CID 0x48 */
@@ -141,11 +151,9 @@ void HACK::RemoveHierarchy()
 }
 
 namespace M_func_0017F138 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct S { char pad[0xC]; struct VTE *vt; };
-void PostSoLoad(struct S *p);
+void PostSoLoad(SO *p);
 // vtable slot 15: PostSoLoad then own vtable slot 83. (inferred)
-void PostHackLoad(struct S *p) { struct VTE *e; PostSoLoad(p); e = &p->vt[0x53]; e->pfn((char *)p + e->d); }
+void PostHackLoad(HACKV *p) { PostSoLoad(p); p->OnPostLoad(); }
 } } // namespace M_func_0017F138
 
 // vtable slot 26: SO base, then health = max health (reset). (inferred)
@@ -172,35 +180,29 @@ namespace M_func_0017F1D0 { extern "C" {
 /* Apply damage and a projected knockback impulse from the message. */
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
-struct P;
-struct VT {short d,pad;void *fn;};
-struct SPS {qword v;int kind;};
-struct O;
-struct Q {char pad[0xB0];struct SPS s;};
-struct P {char pad[0xC];struct VT *vt;char pad10[0x58-0x10];struct O *positionChannel;char pad5C[0xE8-0x5C];struct Q*constraintOwner;char padEC[0x184-0xEC];int health;char pad188[0x1A0-0x188];float knockbackBase,knockbackLinear,knockbackQuadratic,unknown1AC,knockbackMin,knockbackMax;};
 struct MSG {char pad[0x10];int delta;char pad14[0x20-0x14];qword pos;char pad30[0x44-0x30];int flags;};
 extern qword D_002A2DC0,D_002A2DA0;
-qword GetLoWorldPos(struct P*);
+qword GetLoWorldPos(HACKV*);
 qword LimitVectorLength(qword,float);
-qword ApplyConstr(struct SPS*,struct O*,qword);
+qword ApplyConstr(CONSTR*,XF*,qword);
 // Helpers Sub, Reject, Normal, AddScaled, Clamp (small asm wrappers/accessors shaped for the match).
 static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));return VuSub(a,d);}
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 static inline qword AddScaled(qword a,qword b,float g){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
 // vt75 (msg with flag 8): health += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain,
 // limited) through constraint and SetVelocity. (inferred)
-int TakeHackDamage(struct P*hack,struct MSG*m){
+int TakeHackDamage(HACKV*hack,struct MSG*m){
  qword dir,v;float g,t;
  if(!(m->flags&8))return 0;
- hack->health+=m->delta;
- if(hack->health<=0){struct VT*vt=hack->vt;((void(*)(struct P*,int))vt[82].fn)((struct P*)((char*)hack+vt[82].d),0);return 1;}
- if(!hack->constraintOwner || hack->constraintOwner->s.kind==3)return 1;
+ hack->cHealth+=m->delta;
+ if(hack->cHealth<=0){hack->Die(0);return 1;}
+ if(!hack->physics || hack->physics->constrForce.kind==3)return 1;
  dir=Normal(Reject(VuSub(GetLoWorldPos(hack),m->pos),D_002A2DC0),D_002A2DA0);
  {float *a=&hack->knockbackBase;t=-m->delta;g=Clamp(hack->knockbackBase+t*(a[1]+t*a[2]),hack->knockbackMin,hack->knockbackMax);}
- {struct VT*vt=hack->vt;v=((qword(*)(struct P*))vt[33].fn)((struct P*)((char*)hack+vt[33].d));}
+ v=hack->GetVelocity();
  v=LimitVectorLength(AddScaled(v,dir,g),hack->knockbackMax);
- v=ApplyConstr(&hack->constraintOwner->s,hack->positionChannel,v);
- {struct VT*vt=hack->vt;((void(*)(struct P*,qword))vt[35].fn)((struct P*)((char*)hack+vt[35].d),v);}
+ v=ApplyConstr(&hack->physics->constrForce,hack->unknown58,v);
+ hack->SetVelocity(v);
  return 1;
 }
 } } // namespace M_func_0017F1D0
