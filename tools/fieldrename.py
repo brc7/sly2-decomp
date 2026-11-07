@@ -9,8 +9,9 @@ One run = one batch; all of it is applied or none of it (the tree is restored on
 
 How it works
   1. Shadow guard (refuses the row): the new name is a keyword or a #define, already a token inside the body of S, an
-     ancestor or a descendant (members, parameters, locals of inline methods), or a token in any out-of-line
-     X::method body of that hierarchy; or two rows of the batch clash.
+     ancestor or a descendant (members, parameters, locals of inline methods; a TU-private ancestor view counts only
+     when a same-file view of S or a descendant derives from it, a base-less descendant view not at all), or a free
+     (unqualified) token in an out-of-line X::method body of S or a descendant; or two rows of the batch clash.
   2. Declarations: the field token is renamed in every definition of S that declares the old name: the header's and
      every TU-private view with the same unqualified name (namespaced views included); also `OFFSETOF(S, old)` and
      `assert_S_old` in the header. Every edit is a token swap inside one line (line numbers feed the path-hash quirk).
@@ -19,7 +20,9 @@ How it works
      this) or "does not have any field named `old'" (mem-initializer) rewrites the matching tokens on that line only.
      g++ 2.95 prints one message per access, so the count must equal the candidate tokens on the line: fewer messages
      means another struct's field of the same name shares the line (each subset is tried with a recompile); more
-     means a macro body (refused: fix the #define by hand). Repeat until every TU compiles (cap --rounds).
+     means a macro body (a function-like #define in the same file has its `.old`/`->old` tokens rewritten; any other
+     macro is refused: fix it by hand) or, for a single token in a header, one template body instantiated several
+     times. Repeat until every TU compiles (cap --rounds).
   4. Verify: every TU in scope was compiled before the edits; after, each function's words and relocations, each data
      symbol's bytes, and the object's symbol set must be identical. Optional --check: matchtool status per file too.
 Blind spots (warned, never edited): member tokens in uninstantiated template bodies and in #define bodies of the
@@ -133,6 +136,15 @@ class Repo:
             return seen
         return walk(up), walk(down)
 
+    def local_bases(self, p, names):
+        """Names reached from the definitions of `names` in file p through bases that p itself defines."""
+        here = {n: [b for d in ds if d[0] == p for b in d[3]] for n, ds in self.defs.items() if any(d[0] == p for d in ds)}
+        seen = set(); todo = [n for n in names if n in here]
+        while todo:
+            for b in here.get(todo.pop(), ()):
+                if b in here and b not in seen: seen.add(b); todo.append(b)
+        return seen
+
 def match_brace(c, i):
     d = 0
     for j in range(i, len(c)):
@@ -245,18 +257,27 @@ class Batch:
                 for n in hier:
                     for p, a, b, _ in r.defs.get(n, ()):
                         if n == S and not field_decls(r.code_of(p), a, b, old): continue   # unrelated view, not edited
+                        if not p.startswith('include/'):
+                            # A TU-private view of a descendant without bases is a separate type; a TU-private view of
+                            # an ancestor is S's ancestor only when a view of S or a descendant in the same file reaches
+                            # it through bases defined in that file.
+                            if n in desc and not _: continue
+                            if n in anc and n not in r.local_bases(p, {S} | desc): continue
                         if tok(new).search(r.code_of(p)[a:b]): why = '`%s` already appears in the body of %s (%s)' % (new, n, p)
                         if why: break
                     if why: break
             if not why:
-                meth = re.compile(r'\b(%s)\s*::\s*~?\w+\s*\(' % '|'.join(map(re.escape, sorted(hier))))
+                # Only S's and its descendants' methods see S's members through implicit this; `x.new`, `p->new`
+                # and `X::new` in their bodies are qualified accesses, not free uses.
+                meth = re.compile(r'\b(%s)\s*::\s*~?\w+\s*\(' % '|'.join(map(re.escape, sorted({S} | desc))))
                 for p in r.text:
                     c = r.code_of(p)
                     if new not in c: continue
                     for m in meth.finditer(c):
                         k = c.find('{', m.end()); semi = c.find(';', m.end())
                         if k < 0 or (0 <= semi < k): continue
-                        if tok(new).search(c[k:match_brace(c, k)]):
+                        body = c[k:match_brace(c, k)]
+                        if any(not body[:t.start()].rstrip().endswith(('.', '->', '::')) for t in tok(new).finditer(body)):
                             why = '`%s` is used inside %s::... (%s:%d): implicit-this shadowing' % (new, m.group(1), p, c[:k].count('\n') + 1)
                             break
                     if why: break
@@ -404,6 +425,18 @@ class Batch:
                 if len(news) != 1: raise Fail('%s:%d: `%s` reached through types %s that map to %s' % (p, line, name, sorted(map(str, tys)), sorted(news)))
                 new = news.pop()
                 cand = self.candidates(p, line, name, kind)
+                mc = self.macro_cands(p, line, name) if kind == 'member' else None
+                if kind == 'member' and n > len(cand) == 1 and p.endswith('.h') and mc is None:
+                    # one token in a header reported once per instantiation of the template around it
+                    self.log('  %s:%d: %d reports of one `%s` token (template instantiated several times)' % (p, line, n, name)); n = 1
+                if kind == 'member' and (n > len(cand) or not cand) and mc is not None:
+                    # a function-like macro defined in the same file is called on the line: rewrite the member
+                    # accesses in its body (the line's own tokens, if any, come back in the next round)
+                    if not mc: raise Fail('%s:%d: `%s` through a macro on the line but no member token in its body' % (p, line, name))
+                    self.log('  %s:%d: `%s` reached through a macro body: %d tokens rewritten there' % (p, line, name, len(mc)))
+                    r.write(p, swap(r.text[p], mc, name, new)); touched.add(p)
+                    for _ in mc: self.site(p, line, name, new, 'macro')
+                    continue
                 if kind == 'member' and n > len(cand) or not cand:
                     raise Fail('%s:%d: %d `%s` accesses reported but %d on the line: a macro body or a token pasted '
                                'by the preprocessor; edit it by hand' % (p, line, n, name, len(cand)))
@@ -413,6 +446,25 @@ class Batch:
                 for _ in cand: self.site(p, line, name, new, kind)
             pending = (set(fails) | set(r.tus_including(touched))) & set(scope)
         raise Fail('no fixed point after %d rounds' % self.args.rounds)
+
+    def macro_cands(self, p, line, name):
+        """Offsets of `.name`/`->name` tokens in the bodies of function-like macros that are #defined in p and called
+        on the line; None when no such macro is called there."""
+        c = self.repo.code_of(p); found = False; out = []
+        at = line_span(self.repo.text[p], line)[0]
+        for ident in set(re.findall(r'[A-Za-z_]\w*', self.line_code(p, line))):
+            ms = list(re.finditer(r'^[ \t]*#[ \t]*define[ \t]+%s\(' % re.escape(ident), c, re.M))
+            if not ms: continue
+            m = ([d for d in ms if d.start() < at] or ms)[-1]   # the #define in effect on the line
+            found = True; e = m.start()
+            while True:   # the #define runs to the first line not ended by a backslash
+                e = c.find('\n', e)
+                if e < 0: e = len(c); break
+                if self.repo.text[p][:e].rstrip(' \t\r').endswith('\\'): e += 1; continue
+                break
+            for t in tok(name).finditer(c, m.start(), e):
+                if c[:t.start()].rstrip().endswith(('.', '->')): out.append(t.start())
+        return sorted(set(out)) if found else None
 
     def solve(self, tu, p, line, name, new, cand, n):
         """Several `name` accesses on one line, only n of them ours: try each n-subset with a recompile of tu."""
