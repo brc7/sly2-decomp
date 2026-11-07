@@ -566,28 +566,24 @@ extern "C" void DecrefSma(SMA *psma)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001F0598 { extern "C" {
-struct VTE { short d; short p; void *pfn; };
-struct VT { struct VTE a[4]; };
-struct Q { char pad[0x68]; char dl[1]; };
-struct P { char pad[0xC]; struct VT *vtable; char pad2[0x24 - 0x10]; struct Q *pq; char pad3[0x30 - 0x28]; void *currentAsega; };
 struct DL;
-int IsSmaRetracted(struct P *);
+int IsSmaRetracted(SMA *);
 void RetractAsega(void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 // Stops an activation: drops its running animation, unlinks it from the machine's and the world's lists, sends the
 // "retracted" message (3) and drops the list's reference.
-void RetractSma(struct P *p)
+void RetractSma(SMA *p)
 {
     if (!IsSmaRetracted(p)) {
-        void *pv = p->currentAsega;
+        void *pv = p->pasegaCur;
         if (pv) {
-            p->currentAsega = 0;
+            p->pasegaCur = 0;
             RetractAsega(pv);
         }
-        RemoveDlEntry__FP2DLPv(p->pq->dl, p);
+        RemoveDlEntry__FP2DLPv(&p->stateMachine->dlSma, p);
         RemoveDlEntry__FP2DLPv(&g_sw.dlSma, p);
-        ((void (*)(void *, int, int, int, int, int))p->vtable->a[3].pfn)((char *)p + p->vtable->a[3].d, 3, 0, 0, 0, 0);
-        ((void (*)(void *))p->vtable->a[2].pfn)((char *)p + p->vtable->a[2].d);
+        p->HandleSpliceEvent(3, 0, 0, 0, 0);
+        p->Release();
     }
 }
 } } // namespace M_func_001F0598
@@ -1014,27 +1010,16 @@ extern "C" void HandleSmaMessage(SMA *p, MSGID msgid, void *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SkipSma {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { VTE a[3]; };
-struct A { char pad[0x74]; float duration; };
-struct Q { char pad[0x14]; A *aseg; int pad2; float localTime; };
-struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; Q *asega; };
-extern "C" int IsSmaRetracted(P *);
-extern "C" void RetractAsega(Q *);
-extern "C" void SeekAsega(Q *, int, float, float);
-struct Lock {
-    P *p;
-    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
-    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
-};
+extern "C" void RetractAsega(ASEGA *);
+extern "C" void SeekAsega(ASEGA *, int, float, float);
 // Skips the activation forward by t seconds, through as many transitions as that covers.
-extern "C" void SkipSma(P *p, float t)
+extern "C" void SkipSma(SMA *p, float t)
 {
     if (!IsSmaRetracted(p)) {
-        Lock l(p);
-        Q *q;
-        while ((q = p->asega) != 0) {
-            float d = q->aseg->duration - q->localTime;
+        SMAHOLD hold(p);
+        ASEGA *q;
+        while ((q = p->pasegaCur) != 0) {
+            float d = q->animation->duration - q->time;
             if (t < d) {
                 SeekAsega(q, 1, t, 1.0f);
                 break;
@@ -1116,86 +1101,75 @@ extern "C" void SetSmaMask(SMA *psma, int grfRoute)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_NotifySmaSpliceOnEnterState { extern "C" {
-struct VTE { short d; short p; void *pfn; };
-struct VT { struct VTE a[5]; };
-struct P { char pad[0xC]; struct VT *vtable; char pad2[0x24 - 0x10]; void *sm; };
-struct L { struct P *p; int a; int b; };
+struct L { SMA *p; int a; int b; };
 int GetSmStateOid(void *, int);
 // Tells the activation's listeners (message 10) and splice scripts (event with the from/to state OIDs) that a state was
 // entered.
-void NotifySmaSpliceOnEnterState(struct P *p, int a, int b)
+void NotifySmaSpliceOnEnterState(SMA *p, int a, int b)
 {
     struct L l;
-    int *ap[2];
+    void *ap[2];
     l.p = p;
-    l.a = GetSmStateOid(p->sm, a);
-    l.b = GetSmStateOid(p->sm, b);
-    ((void (*)(void *, int, struct L *))p->vtable->a[4].pfn)((char *)p + p->vtable->a[4].d, 10, &l);
+    l.a = GetSmStateOid(p->stateMachine, a);
+    l.b = GetSmStateOid(p->stateMachine, b);
+    p->SendMessage((MSGID)10, &l);
     ap[0] = &l.a;
     ap[1] = &l.b;
-    ((void (*)(void *, int, int, int, int **, int))p->vtable->a[3].pfn)((char *)p + p->vtable->a[3].d, 8, 0, 2, ap, 0);
+    p->HandleSpliceEvent(8, 0, 2, ap, 0);
 }
 } } // namespace M_NotifySmaSpliceOnEnterState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ReplaceSma { extern "C" {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[3]; };
-struct X { char pad[0xC]; struct VT *vtable; };
-void RetractSma(struct X *);
-struct X *ApplySmToObject(void *, int, int, int);
+void RetractSma(SMA *);
+SMA *ApplySmToObject(void *, int, int, int);
 // Replaces a "current activation" slot: retracts and releases the old one and, if a machine is given, starts it on the
 // object and keeps a reference.
-void ReplaceSma(void *pv, int a, int b, int c, struct X **ppx)
+void ReplaceSma(void *pv, int a, int b, int c, SMA **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);
-        (*ppx)->vtable->a[2].pfn((char *)*ppx + (*ppx)->vtable->a[2].d);
+        (*ppx)->Release();
         *ppx = 0;
     }
     if (pv) {
-        struct X *px = ApplySmToObject(pv, a, b, c);
+        SMA *px = ApplySmToObject(pv, a, b, c);
         *ppx = px;
-        px->vtable->a[1].pfn((char *)px + px->vtable->a[1].d);
+        px->AddRef();
     }
 }
 } } // namespace M_ReplaceSma
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ReplaceSmaEx { extern "C" {
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct VT { struct VTE a[3]; };
-struct X { char pad[0xC]; struct VT *vtable; };
-void RetractSma(struct X *);
-struct X *ApplySmWithKind(void *, int, int, int, int);
+void RetractSma(SMA *);
+SMA *ApplySmWithKind(void *, int, int, int, int);
 // ReplaceSma with an explicit kind.
-void ReplaceSmaEx(void *pv, int a, int b, int c, int d, struct X **ppx)
+void ReplaceSmaEx(void *pv, int a, int b, int c, int d, SMA **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);
-        (*ppx)->vtable->a[2].pfn((char *)*ppx + (*ppx)->vtable->a[2].d);
+        (*ppx)->Release();
         *ppx = 0;
     }
     if (pv) {
-        struct X *px = ApplySmWithKind(pv, a, b, c, d);
+        SMA *px = ApplySmWithKind(pv, a, b, c, d);
         *ppx = px;
-        px->vtable->a[1].pfn((char *)px + px->vtable->a[1].d);
+        px->AddRef();
     }
 }
 } } // namespace M_ReplaceSmaEx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ReleaseSma { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { int a[3]; struct VTE *vt; };
-struct S { struct O *po; };
-void RetractSma(struct O *);
+struct S { SMA *po; };
+void RetractSma(SMA *);
 // Retracts the activation in a slot, releases it and clears the slot.
 void ReleaseSma(struct S *p)
 {
     if (p->po) {
         RetractSma(p->po);
-        { struct O *po = p->po; po->vt[2].pfn((char *)po + po->vt[2].d); }
+        p->po->Release();
         p->po = 0;
     }
 }
