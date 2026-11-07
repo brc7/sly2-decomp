@@ -41,13 +41,6 @@ struct SLOT
       SLOT *pslotNext;
 };
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct GRABSPOTDATA
 {

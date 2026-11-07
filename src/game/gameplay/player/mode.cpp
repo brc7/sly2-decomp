@@ -53,13 +53,6 @@ struct BSP
     BSP *pbspPos;
     SURF *psurf;
 };
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 struct CAMEVENT
 {
       uint32_t   _pad_376    [ 3 ] ;

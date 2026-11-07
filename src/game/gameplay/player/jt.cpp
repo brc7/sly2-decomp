@@ -68,13 +68,6 @@ void FaceStepToward(STEP *pstep, LO *plo);
 }
 void SetJtCaneState(JT *pjt, int jtcs);
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct CAMEVENT
 {

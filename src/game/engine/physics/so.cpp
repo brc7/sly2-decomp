@@ -95,13 +95,6 @@ extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
 ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf) __asm__("NewActFromParams");
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 struct XPLIST
 {

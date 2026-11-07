@@ -75,13 +75,6 @@ struct BSP
     BSP *pbspPos;
     SURF *psurf;
 };
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 struct RUMINS
 {
       byte fHighSpeedMotor;

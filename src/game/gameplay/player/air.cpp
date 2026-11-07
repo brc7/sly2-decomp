@@ -68,13 +68,6 @@ struct ACT8 : public ACT
     void SetGoal(qword qwPos, qword qwVel) __asm__("SetRestActPose");
 };
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float gUnk10;
-      uint grfUnk14;
-};
 
 qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("TransformXfPos");
 

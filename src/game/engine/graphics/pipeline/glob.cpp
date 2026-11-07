@@ -15,6 +15,7 @@
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
+#include "sly2/glob.h"
 #include "sly2/cm.h"
 #include "vifs.h"
 #include "gifs.h"
@@ -119,13 +120,6 @@ struct BND
       MATRIX4 matInv;
 };
 
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
-      uint flags;
-};
 
 struct SUBGLOBLOAD
 {
@@ -2463,13 +2457,6 @@ struct SUBGLOB
       void *pvLit;
       int iqwBone;
       int cqw;
-};
-struct SUBGLOBX
-{
-      VECTOR posCenter;
-      float sRadius;
-      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
-      uint flags;
 };
 struct POSE
 {
