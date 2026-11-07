@@ -26,9 +26,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    health (+0x55C max, +0x560 current), its animation machine activation (+0x570) and a table of 12-byte records
    (+0x574). */
 struct RTREC { int n; int pad[2]; };
-struct ROBOTTANKV
+struct ROBOTTANKV : PO
 {
-    char pad0[0x180];
     int nState;             /* +0x180 */
     int pad184;
     int nState188;          /* +0x188 */
@@ -750,7 +749,7 @@ void ReadRobottankInput(OBJ *tank)
 // Keeps its per-function views in weapons namespace of its own (see the file header).
 namespace M_func_001D2240 { extern "C" {
 struct O { char pad[0x80]; int state; };
-struct S { char pad[0x4F8]; int weaponCount; struct O *weapons[1]; };
+struct S : PO { char pad[0x4F8 - 0x180]; int weaponCount; struct O *weapons[1]; };
 int HasRobottankWeaponAmmo(struct O *po);
 // First weapon with enough ammo whose state is not 4. (inferred)
 struct O *FindReadyRobottankWeapon(struct S *tank) {
@@ -818,7 +817,7 @@ typedef int qword __attribute__((mode(TI)));
 // Lane z as a float.
 struct E { float x, y, z, w; };
 struct O { char pad[0xE8]; int c; int a, b; struct E *ae; };
-struct S { char pad[0x5AC]; struct O *po; int n5B0; };
+struct S : PO { char pad[0x5AC - 0x180]; struct O *po; int n5B0; };
 qword GetLoWorldPos(struct S *p);
 // Clear x5B0 and set every wheel record's z to the car's height. (inferred)
 void ResetRobottankWheelHeights(struct S *tank) {
@@ -949,10 +948,10 @@ struct ATTACH {
     char pad0[0x20]; void *binding; char pad24[0xC]; void *mesh; BINDING *meshBinding; int pad38; P *anchor;
     char pad40[0x3C]; float radius; int tactic; void *constraint; LM enterRange, exitRange, fireInterval;
 };
-struct PATH { char pad0[0xE8]; int count; int padEC, padF0; U *points; };
+struct PATH : XFM { char pad0[0xE8 - 0xE0]; int count; int padEC, padF0; U *points; };
 struct HIT { U start, end, normal0, normal1; float startFraction, endFraction; char pad48[0x18]; };
-struct P {
-    char pad0[0x188]; int state; char pad18C[0x36C]; int attachCount; ATTACH *attachments[8]; float slip;
+struct P : PO {
+    char pad0[0x188 - 0x180]; int state; char pad18C[0x36C]; int attachCount; ATTACH *attachments[8]; float slip;
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];
     P *target; void *navigator; PATH *path; float cursor, nextAttack; P *selectedObject; ATTACH *selectedAttach;
 };
@@ -1224,8 +1223,8 @@ struct CONTACT { char pad0[0x10]; U point; char pad20[0x24]; MOTION *motion; cha
 struct ENTRY { int id; void *node; CONTACT *contacts; char padC[0x18]; float minimum, maximum; char pad2C[0x34]; };
 struct POLY { float a, b, c; };
 struct LIMITS { float low, high; };
-struct P {
-    char pad0[0x58]; MOTION *primary, *secondary, *space; char pad64[0x84]; PHYSICS *physics; char padEC[0xA4];
+struct P : LO {
+    char pad0[0x58 - 0x50]; MOTION *primary, *secondary, *space; char pad64[0x84]; PHYSICS *physics; char padEC[0xA4];
     int count; char pad194[0xC]; ENTRY entries[8]; float width; char pad4A4[0x78]; float slip; POLY traction;
     int unused52C; LIMITS limits; float reverseLimit, contactScale; char pad540[0x10]; float drive, turn, acceleration;
     char pad55C[0x64]; float lastCorrection;
@@ -1754,7 +1753,7 @@ void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D3F30 { extern "C" {
 struct E { int a[2]; char b[0x58]; };
-struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
+struct S : PO { char pad[0x190 - 0x180]; int c; int pad2[3]; struct E ae[8]; };
 void OnSoContactFreed(struct S *p, void *q);
 void RemoveSoContactsWith(struct S *p, void *q, void *pe);
 // CID 77 vtable slot 54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
@@ -1768,7 +1767,7 @@ void RemoveRobottankContactsWith(struct S *tank, void *q) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D3FA8 { extern "C" {
 struct O { char pad[0x14]; int id; };
-struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
+struct S : PO { char pad[0x4F8 - 0x180]; int c; struct O *ap[1]; };
 // Find weapon record by id. (inferred)
 struct O *FindRobottankWeapon(struct S *tank, int id) {
     int i;
@@ -1783,7 +1782,7 @@ struct O *FindRobottankWeapon(struct S *tank, int id) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D3FF0 { extern "C" {
 struct E { int n; int nMax; int b; };
-struct Q { char pad[0x574]; struct E ae[1]; };
+struct Q : PO { char pad[0x574 - 0x180]; struct E ae[1]; };
 struct S : SO { int n150; int a; int i; int d; };
 void SetRcPickupState(struct S *p, int n);
 // The smaller of two values.
@@ -1850,7 +1849,7 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
 namespace M_UpdateRobottankBounds { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { int a[8]; float g20; int b[11]; qword q50; };
-struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
+struct S : PO { char pad[0x190 - 0x180]; int c; int pad2[3]; struct E ae[8]; };
 void UpdateSoTreeBounds(struct S *p);
 qword ConvertPosBetweenLos(struct S *p, int n, qword q);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
@@ -2188,7 +2187,7 @@ extern "C" void SetRobottankTactic(ROBOTTANKV *tank, int nState)
 namespace M_func_001D4B48 { extern "C" {
 struct K { int a, b; };
 struct E { int n; int a[7]; float g; struct K k; int pad[13]; };
-struct S { char pad[0x190]; unsigned int c; int pad2[3]; struct E ae[8]; };
+struct S : PO { char pad[0x190 - 0x180]; unsigned int c; int pad2[3]; struct E ae[8]; };
 // Append wheel record (id, radius, ...) if fewer than 8. (inferred)
 void AddRobottankWheel(struct S *tank, int n, struct K *pk, float g) {
     if (tank->c < 8) {
@@ -2223,7 +2222,7 @@ struct X : B {
     int unknown38;
     char pad[0xB0 - 0x3C];
 };
-struct OBJ { char pad[0x4F8]; unsigned int weaponCount; X *weapons[8]; };
+struct OBJ : PO { char pad[0x4F8 - 0x180]; unsigned int weaponCount; X *weapons[8]; };
 // Allocates a weapon record from the world heap and sets its vtable (D_002C94A0).
 static inline X *CreateItem(OBJ *owner) {
  void *allocated=func_001AE4F8(sizeof(X));
@@ -2277,7 +2276,7 @@ typedef char native_layout_15[(OFF(OBJ,weapons)==0x4FC)?1:-1];
 namespace M_func_001D4C48 { extern "C" {
 struct K { int a, b; };
 struct E { int n; int a, b; struct K k; };
-struct S { char pad[0x4A4]; unsigned int c; struct E ae[4]; };
+struct S : PO { char pad[0x4A4 - 0x180]; unsigned int c; struct E ae[4]; };
 // Append (id, data) record if fewer than 4. (inferred)
 void AddRobottankAttachment(struct S *tank, int n, struct K *pk) {
     if (tank->c < 4) {
@@ -2290,7 +2289,7 @@ void AddRobottankAttachment(struct S *tank, int n, struct K *pk) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankHealthMeter { extern "C" {
-struct S { char p0[0x55C]; int n55C, n560, f564; void *p568; };
+struct S : PO { char p0[0x55C - 0x180]; int n55C, n560, f564; void *p568; };
 void SetWidgetAnimPhase(void *p, int n, float g);
 // Set meter value 0x34F = health/max (inverted if x564). (inferred)
 void UpdateRobottankHealthMeter(struct S *tank) {
@@ -2305,7 +2304,7 @@ void UpdateRobottankHealthMeter(struct S *tank) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4CE0 { extern "C" {
 struct E { int a; int n; float g; };
-struct S { char pad[0x574]; struct E ae[1]; };
+struct S : PO { char pad[0x574 - 0x180]; struct E ae[1]; };
 // Set ammo slot i (count, max). (inferred)
 void SetRobottankAmmo(struct S *tank, int i, float g, int n) {
     struct E *pe = &tank->ae[i];
@@ -2380,7 +2379,7 @@ extern "C" void CopyRobottankWeapon(char *pvDst, char *pvSrc)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4E08 { extern "C" {
 struct E { int count; int a; int b; };
-struct O { char pad[0x574]; struct E ammoSlots[1]; };
+struct O : PO { char pad[0x574 - 0x180]; struct E ammoSlots[1]; };
 struct S { char p0[0x10]; struct O *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };
 // ammo of the weapon's slot >= its cost. (inferred)
 int HasRobottankWeaponAmmo(struct S *weapon) {
@@ -2391,7 +2390,7 @@ int HasRobottankWeaponAmmo(struct S *weapon) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4E30 { extern "C" {
 struct E { int count; int a; int b; };
-struct O { char pad[0x574]; struct E ammoSlots[1]; };
+struct O : PO { char pad[0x574 - 0x180]; struct E ammoSlots[1]; };
 struct S { char p0[0x10]; struct O *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };
 // Subtract weapon cost from its slot, clamp 0. (inferred)
 void UseRobottankWeaponAmmo(struct S *weapon) {
@@ -2443,7 +2442,7 @@ extern "C" void ResetRobottankPickup(RCPICKUP *pickup)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRcPickup { extern "C" {
 struct O { char pad[0x98]; short h98; };
-struct S { char p0[0x58]; struct O *po; char p1[0x150-0x5C]; int n150; };
+struct S : LO { char p0[0x58 - 0x50]; struct O *po; char p1[0x150-0x5C]; int n150; };
 void UpdateSo(struct S *p);
 void SetRcPickupState(struct S *p, int n);
 // CID 108 vtable slot 16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3. (inferred)
