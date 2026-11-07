@@ -983,14 +983,12 @@ void SetNoticeState(OBJ *p, int n)
 
 namespace M_func_001DA728 { extern "C" {
 extern char D_002D85E8[] __asm__("_vt$6SCREEN");
-struct S { int frame, sidebag, unknown8; void *vt; char pad[0x10]; int widgetOid; };
-void ResetScreenMode(struct S *p);
 // Base SCREEN constructor: vtable, no widget (oid -1), then resets the mode.
-struct S *ConstructScreen(struct S *p) {
-    p->frame = 0;
-    p->sidebag = 0;
-    p->vt = D_002D85E8;
-    p->widgetOid = -1;
+SCREEN *ConstructScreen(SCREEN *p) {
+    p->scriptFrame.m_p = 0;
+    p->scriptVariables.m_p = 0;
+    *(void **)((char *)p + 0xC) = D_002D85E8;
+    p->idTextQueued = -1;
     ResetScreenMode(p);
     return p;
 }
@@ -1022,46 +1020,34 @@ extern "C" void ResetScreenMode(SCREEN *screen)
 
 namespace M_func_001DA808 { extern "C" {
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
-struct S { char p0[0x34]; float closeTime; };
-void UpdateScreenDefault(struct S *p);
-void SetScreenMode(struct S *p, int a, int b);
+void UpdateScreenDefault(SCREEN *p);
 // Screen update that closes the screen when its mode timer expires. (inferred)
-void UpdateTimedScreen(struct S *p) {
+void UpdateTimedScreen(SCREEN *p) {
     UpdateScreenDefault(p);
-    if (p->closeTime <= D_002DDED0.realTime) SetScreenMode(p, -1, -1);
+    if (p->tPopupEnd <= D_002DDED0.realTime) SetScreenMode(p, -1, -1);
 }
 } } // namespace M_func_001DA808
 
 namespace M_UpdateScreenStickDir { extern "C" {
-typedef struct OBJ OBJ;
-typedef struct { short d; short pad; void (*pfn)(void *, int); } VTE;
-typedef struct { char pad[0x103C]; float stickX; float stickY; float stickMagnitude; } Q;
-struct OBJ {
-    char pad[0xC];
-    VTE *vt;
-    Q *joy;
-    char pad14[0x28 - 0x14];
-    int mode;
-};
 float atan2f(float, float);
 // Turns the left stick into an 8-way direction for menus: calls the screen's slot 14 with the direction when the
 // stick is pushed past 0.8, and with -1 when it returns under 0.5.
-void UpdateScreenStickDir(OBJ *p)
+void UpdateScreenStickDir(SCREEN *p)
 {
-    Q *joy = p->joy;
+    JOY *joy = p->pjoy;
     int mode;
     float stickMagnitude;
     if (joy == 0)
         return;
-    mode = p->mode;
-    stickMagnitude = joy->stickMagnitude;
+    mode = p->nMode;
+    stickMagnitude = joy->leftStickDeflection;
     if (mode == -1) {
         if (0.8f < stickMagnitude) {
-            int k = (int)(atan2f(joy->stickY, joy->stickX) * 1.2732395f + 8.5f);   /* 4/pi: eighths of a turn, rounded */
-            p->vt[14].pfn((char *)p + p->vt[14].d, k % 8);
+            int k = (int)(atan2f(joy->leftStickY, joy->leftStickX) * 1.2732395f + 8.5f);   /* 4/pi: eighths of a turn, rounded */
+            p->SetMode(k % 8);
         }
     } else if (stickMagnitude < 0.5f) {
-        p->vt[14].pfn((char *)p + p->vt[14].d, -1);
+        p->SetMode(-1);
     }
 }
 } } // namespace M_UpdateScreenStickDir
@@ -1069,24 +1055,23 @@ void UpdateScreenStickDir(OBJ *p)
 namespace M_func_001DA950 { extern "C" {
 extern struct CLOCK { float pad[15]; float realTime; } D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern float D_002A7984, D_002C3254;
-struct S { char p0[0x30]; int timerKind; float closeTime; int modeArg; };
 void *CreateSfxSound(int timerKind);
 void SetSndSourceLo(void *p, int timerKind);
 // Sets a screen's mode and argument; mode 0 plays the menu sound and starts the timeout. (inferred)
-void SetScreenMode(struct S *p, int timerKind, int modeArg) {
-    p->modeArg = modeArg;
-    p->timerKind = timerKind;
+void SetScreenMode(SCREEN *p, int timerKind, int modeArg) {
+    p->idsPopup = modeArg;
+    p->nPopup = timerKind;
     switch (timerKind) {
     case -1:
-        p->closeTime = -10.0f;
+        p->tPopupEnd = -10.0f;
         break;
     case 0:
-        p->closeTime = D_002A7984;
+        p->tPopupEnd = D_002A7984;
         SetSndSourceLo(CreateSfxSound(0x29), 0);
         break;
     case 1:
     default:
-        p->closeTime = D_002DDED0.realTime + D_002C3254;
+        p->tPopupEnd = D_002DDED0.realTime + D_002C3254;
         SetSndSourceLo(CreateSfxSound(0x36), 0);
         break;
     }
@@ -1270,14 +1255,12 @@ void DrawGadgetMenuSlotLabels(OBJ *p)
 } } // namespace M_func_001DAC58
 
 namespace M_func_001DAE20 { extern "C" {
-struct E { int gadgetId; int a[7]; };
-struct S { char pad[0x4C]; int itemCount; struct E *items; };
 // Finds the item entry (0x20 bytes) with the given gadget id in the screen's item list, or null.
-struct E *FindScreenEntry(struct S *p, int gadgetId) {
+GMITEM *FindScreenEntry(GADGETMENU *p, int gadgetId) {
     int i;
-    for (i = 0; i < p->itemCount; i++) {
-        struct E *pe = &p->items[i];
-        if (pe->gadgetId == gadgetId) return pe;
+    for (i = 0; i < p->citem; i++) {
+        GMITEM *pe = &p->aitem[i];
+        if (pe->idGadget == gadgetId) return pe;
     }
     return 0;
 }
@@ -1672,14 +1655,13 @@ void SetGadgetMenuState(OBJ *p, int s)
 
 namespace M_func_001DB7A8 { extern "C" {
 extern char D_002D84E8[] __asm__("_vt$8THIEFNET");
-struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
-struct S *ConstructScreen(struct S *p);
-void ClearThiefnet(struct S *p);
+THIEFNET *ConstructScreen(THIEFNET *p);
+void ClearThiefnet(THIEFNET *p);
 // Constructor of the ThiefNet shop screen (widget 0x378, a 64-entry item list). (inferred)
-struct S *ConstructThiefnetScreen(struct S *p) {
+THIEFNET *ConstructThiefnetScreen(THIEFNET *p) {
     ConstructScreen(p);
-    p->vt = D_002D84E8;
-    p->widgetOid = 0x378;
+    *(void **)((char *)p + 0xC) = D_002D84E8;
+    p->idTextQueued = 0x378;
     ClearThiefnet(p);
     return p;
 }
@@ -2457,14 +2439,13 @@ void BuildThiefnetInfoText(char *pch)
 
 namespace M_func_001DCC58 { extern "C" {
 extern char D_002D8468[] __asm__("_vt$7JOBLIST");
-struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
-struct S *ConstructScreen(struct S *p);
-void ClearJobList(struct S *p);
+JOBLIST *ConstructScreen(JOBLIST *p);
+void ClearJobList(JOBLIST *p);
 // Constructor of the job-list screen (widget 0x4E0). (inferred)
-struct S *ConstructJobListScreen(struct S *p) {
+JOBLIST *ConstructJobListScreen(JOBLIST *p) {
     ConstructScreen(p);
-    p->vt = D_002D8468;
-    p->widgetOid = 0x4E0;
+    *(void **)((char *)p + 0xC) = D_002D8468;
+    p->idTextQueued = 0x4E0;
     ClearJobList(p);
     return p;
 }
@@ -2898,14 +2879,13 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
 
 namespace M_func_001DD648 { extern "C" {
 extern char D_002D83E8[] __asm__("_vt$7SCRN52D");
-struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
-struct S *ConstructScreen(struct S *p);
-void ResetScreenMode(struct S *p);
+SCRN52D *ConstructScreen(SCRN52D *p);
+void ResetScreenMode(SCRN52D *p);
 // Constructor of screen 0x52D (widget 0x52D; its role is unknown). (inferred)
-struct S *ConstructScreen52D(struct S *p) {
+SCRN52D *ConstructScreen52D(SCRN52D *p) {
     ConstructScreen(p);
-    p->vt = D_002D83E8;
-    p->widgetOid = 0x52D;
+    *(void **)((char *)p + 0xC) = D_002D83E8;
+    p->idTextQueued = 0x52D;
     ResetScreenMode(p);
     return p;
 }
@@ -2924,16 +2904,12 @@ void SCRN52D::PostLoad()   /* key function */
 namespace M_func_001DD6C8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
-struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
 // Shows screen 0x52D and its widget. (inferred)
-void ShowScreen52D(struct S *p) {
-    if (p->po) {
+void ShowScreen52D(SCRN52D *p) {
+    if (p->pchild) {
+        p->Show();   /* slot 10 */
         {
-            struct VTE *e = &p->vt[10];
-            ((void (*)(void *))e->pfn)((char *)p + e->d);
-        }
-        {
-            struct O *po = p->po;
+            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
             struct VTE *e = &po->vt[49];
             ((void (*)(void *, int))e->pfn)((char *)po + e->d, -1);
         }
@@ -2944,16 +2920,12 @@ void ShowScreen52D(struct S *p) {
 namespace M_func_001DD728 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
-struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
 // Hides screen 0x52D and its widget. (inferred)
-void HideScreen52D(struct S *p) {
-    if (p->po) {
+void HideScreen52D(SCRN52D *p) {
+    if (p->pchild) {
+        p->Hide();   /* slot 11 */
         {
-            struct VTE *e = &p->vt[11];
-            ((void (*)(void *))e->pfn)((char *)p + e->d);
-        }
-        {
-            struct O *po = p->po;
+            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
             struct VTE *e = &po->vt[50];
             ((void (*)(void *))e->pfn)((char *)po + e->d);
         }
@@ -2963,10 +2935,9 @@ void HideScreen52D(struct S *p) {
 
 namespace M_func_001DD780 { extern "C" {
 struct O { char pad[0x58]; int visibility; char p1[8]; int requestedVisibility; };   /* widget: +0x58 shown state (2 = fully shown), +0x64 requested (inferred) */
-struct S { char pad[0x24]; struct O *po; };
 // True when the screen's widget is fully shown. (inferred)
-int IsScreen52DShown(struct S *p) {
-    struct O *po = p->po;
+int IsScreen52DShown(SCRN52D *p) {
+    struct O *po = (struct O *)p->pchild;
     if (!po) return 0;
     if (po->visibility != 2) return 0;
     return po->requestedVisibility == 2;
@@ -2985,14 +2956,13 @@ extern "C" void SetScreenState(SCREEN *screen, int mode)
 
 namespace M_func_001DD7D8 { extern "C" {
 extern char D_002D8368[] __asm__("_vt$5TITLE");
-struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
-struct S *ConstructScreen(struct S *p);
-void ResetScreenMode(struct S *p);
+TITLE *ConstructScreen(TITLE *p);
+void ResetScreenMode(TITLE *p);
 // Constructor of the title screen (widget 0x5D2). (inferred)
-struct S *ConstructTitleScreen(struct S *p) {
+TITLE *ConstructTitleScreen(TITLE *p) {
     ConstructScreen(p);
-    p->vt = D_002D8368;
-    p->widgetOid = 0x5D2;
+    *(void **)((char *)p + 0xC) = D_002D8368;
+    p->idTextQueued = 0x5D2;
     ResetScreenMode(p);
     return p;
 }
@@ -3001,17 +2971,13 @@ struct S *ConstructTitleScreen(struct S *p) {
 namespace M_func_001DD820 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
-struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
 void EnsureRumbleModeDefault(void);
 // Shows the title screen and its widget and resets rumble. (inferred)
-void ShowTitleScreen(struct S *p) {
-    if (p->po) {
+void ShowTitleScreen(TITLE *p) {
+    if (p->pchild) {
+        p->Show();   /* slot 10 */
         {
-            struct VTE *e = &p->vt[10];
-            ((void (*)(void *))e->pfn)((char *)p + e->d);
-        }
-        {
-            struct O *po = p->po;
+            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
             struct VTE *e = &po->vt[49];
             ((void (*)(void *, int))e->pfn)((char *)po + e->d, -1);
         }
@@ -3023,16 +2989,12 @@ void ShowTitleScreen(struct S *p) {
 namespace M_HideTitleScreen { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
-struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
 // Hides the title screen and its widget.
-void HideTitleScreen(struct S *p) {
-    if (p->po) {
+void HideTitleScreen(TITLE *p) {
+    if (p->pchild) {
+        p->Hide();   /* slot 11 */
         {
-            struct VTE *e = &p->vt[11];
-            ((void (*)(void *))e->pfn)((char *)p + e->d);
-        }
-        {
-            struct O *po = p->po;
+            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
             struct VTE *e = &po->vt[50];
             ((void (*)(void *))e->pfn)((char *)po + e->d);
         }
