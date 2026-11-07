@@ -33,7 +33,7 @@ Types: `RELAY` in `include/sly2/classes.h`; the command kinds are the `RELAYCK` 
 |---|---|
 | `RELAY` | a level object holding a command array, an optional private command limit, the list of running scripts, the firer, an alarm list, the fired time and a busy mark |
 | `RELAYCMD` | one command: its kind (`RELAYCK`), an async flag and an argument block (a union selected by the kind, filled by the kind's builder) |
-| `RELAYCK` | the command kinds: blocks (`BlockBegin`, `BlockEnd`, `StopBlock`, `WaitBlocks`), flow (`Label`, `GotoLabel`, `GotoLabelIf`, `Signal`, `WaitTimer`), alarms (`RaiseAlarm`, `WaitAlarm`), actors (`SetActor`, `TeleportTo`, `GoTo`, `WalkTo`, `FollowPath`, `PipeTo`, `Face`, `HeroState`, the grab, carry and throw commands, `Respawn`, `LaunchTo`), animation (`PlayAseg`, `ApplySm`), camera (`CutCamera`, `CamBlendFrom` / `CamBlendTo`, the tween commands, `SetFocus`, `SetTunnel`), presentation (`WidgetShow` / `WidgetHide`, `HintBox`, `ButtonPrompt`, `Line` / `StopLine` / `ClearSubtitle`, `Sound`, `StartMusic` / `StopMusic`, `Rumble`, `Explode`), control (`HandsOff`, `SetCtlState`, `SetClockRate`, `StartJtMode` / `EndJtMode`) and progression (`SetTaskState`, `FireRelay`, `StopRelay`); several kinds are still `Unk*` |
+| `RELAYCK` | the command kinds (`RELAYCK_` + name): blocks (begin, end, stop, wait for blocks), flow (labels, conditional and unconditional jumps, signal, wait for time), alarms (raise, wait), actors (set actor, teleport, go to, walk to, follow a path, climb a pipe, face, hero state, grab, carry and throw, respawn, launch), animation (play a clip, drive a state machine), camera (cut, blend from / to, tweens, focus, tunnel), presentation (widget show / hide, hint box, button prompt, dialogue line and subtitle, sound, music, rumble, explosion), control (hands-off, controller hand-off, clock rate, Sly's look and recon modes) and progression (task state, fire or stop a relay); several kinds are still `Unk*` |
 | JSG (relay script) | a refcounted `BASIC` from the world's JSG slot heap, built by `NewRelayJsg`: its relay, its block's command range and current command, its parent script, the actor and context it works on, and what it holds (hands-off, camera blend, step holds, focus) |
 | `CMpeg` | the movie player: a queue of movies, the demux/decode loop over libmpeg and the IPU, the display thread, the subtitle line and the movie's audio stream |
 | frame-capture object (class id 104) | an `SO` that grabs the current frame into a texture and draws it as two moving quads (a split/flip transition) |
@@ -43,7 +43,7 @@ Types: `RELAY` in `include/sly2/classes.h`; the command kinds are the `RELAYCK` 
 
 ### Building a relay (level load)
 
-`LoadRelayFromBrx` (slot 14) prepares a temporary command buffer that starts with an implicit `BlockBegin(-1)`, runs
+`LoadRelayFromBrx` (slot 14) prepares a temporary command buffer that starts with an implicit block begin (`RELAYCK_BlockBegin`, label -1), runs
 the LO load, which applies the object's option list from the world file; the relay's method options are the
 `AddRelay*` builders, each appending one command through `AddRelayCommand(relay, kind, fAsync)`. The result is copied
 into an exact-size array on the world heap. Scripts can rebuild a relay later: `ResetRelay` stops it and empties it back
@@ -56,7 +56,7 @@ command, so builders never fail (but the command is lost).
 already firing; otherwise it records the firer, sends itself a "fired" message, closes the command list if needed,
 starts a JSG on the top block (`NewRelayJsg`) and runs it once immediately. If the script is still running afterwards
 the relay marks itself busy. Relays are fired by scripts (task activate handlers above all), by other relays
-(`FireRelay` command), by alarms and by objects that hold a relay reference.
+(`RELAYCK_FireRelay` command), by alarms and by objects that hold a relay reference.
 
 ### Per frame
 
@@ -67,8 +67,8 @@ game clock is paused, so pause-menu-independent sequences keep going), step ever
 `UpdateRelayScript` executes commands in order with `NextJsgCommand` as long as the current one is complete
 (`IsJsgCommandComplete`). `NextJsgCommand` first resolves the command's actor oid for kinds that act on one
 (relative to the script's context), then performs it. Non-async commands complete at once; async ones (waits, moves,
-blends, lines) report completion by kind, for example `WaitBlocks` completes when none of the listed blocks is running
-(`FindRelayBlockScript`), `Line` when the dialogue manager no longer plays that line.
+blends, lines) report completion by kind, for example `RELAYCK_WaitBlocks` completes when none of the listed blocks is running
+(`FindRelayBlockScript`), `RELAYCK_Line` when the dialogue manager no longer plays that line.
 
 ### Stopping
 
@@ -84,19 +84,19 @@ hands-off, camera blends, step holds, focus), clears the alarm list, releases th
   the player code), the walk-to goal (`SetJtgoal`) or the scripted animation states; see
   [player.md](player.md#8-the-ai-partner-and-scripted-control). Guards are driven through their script behaviour
   ([ai-guards.md](ai-guards.md#8-patrols-paths-and-scripts)).
-- **Camera.** `CutCamera` switches immediately; `CamBlendFrom` / `CamBlendTo` start a blend (`StartRelayScriptCamBlend`)
+- **Camera.** `RELAYCK_CutCamera` switches immediately; `RELAYCK_CamBlendFrom` / `RELAYCK_CamBlendTo` start a blend (`StartRelayScriptCamBlend`)
   that pushes a `CPCAMBLEND` policy on the camera stack, released with `EndJsgCamBlend` or when the script ends
   ([camera.md](camera.md#3-the-policy-stack)). Blend angles are in degrees and the vertical field of view in radians.
-- **Dialogue and sound.** `Line` starts a voiced line with its subtitle (`StartDialog`) and, when async, waits for it;
-  `Sound`, `StartMusic` and `StopMusic` go to the sound manager ([sound-and-music.md](sound-and-music.md#6-dialogue-and-subtitles)).
-- **Control.** `HandsOff` takes the hero's control through the world's hands-off and no-pause counters for as long
-  as the script holds it (`SetRelayScriptHandsOff`); `SetCtlState` hands the controller to another playable object
-  (minigames, [bosses-and-minigames.md](bosses-and-minigames.md)); `SetClockRate` changes a clock rate slot.
-- **Progression.** `SetTaskState` requests a task state: **cutscenes complete tasks themselves**. A task's script fires
+- **Dialogue and sound.** `RELAYCK_Line` starts a voiced line with its subtitle (`StartDialog`) and, when async, waits for it;
+  `RELAYCK_Sound`, `RELAYCK_StartMusic` and `RELAYCK_StopMusic` go to the sound manager ([sound-and-music.md](sound-and-music.md#6-dialogue-and-subtitles)).
+- **Control.** `RELAYCK_HandsOff` takes the hero's control through the world's hands-off and no-pause counters for as long
+  as the script holds it (`SetRelayScriptHandsOff`); `RELAYCK_SetCtlState` hands the controller to another playable object
+  (minigames, [bosses-and-minigames.md](bosses-and-minigames.md)); `RELAYCK_SetClockRate` changes a clock rate slot.
+- **Progression.** `RELAYCK_SetTaskState` requests a task state: **cutscenes complete tasks themselves**. A task's script fires
   the relay on activation and the relay's last command moves the mission on
   ([progression-and-saves.md](progression-and-saves.md#2-tasks-states-and-transitions)).
 - **Alarms and signals.** A relay keeps a short alarm list (`EnsureSggAlarm`, the same block guard groups use);
-  `RaiseAlarm` and `WaitAlarm` let blocks and guard scripts synchronise. `Signal` waits for an external object to
+  `RELAYCK_RaiseAlarm` and `RELAYCK_WaitAlarm` let blocks and guard scripts synchronise. `RELAYCK_Signal` waits for an external object to
   release the script (`GetRelaySignalContext` / `SetRelaySignalContext`).
 
 ## 5. Movies
@@ -127,9 +127,9 @@ movies; mission sequences are relays.
 - **Release on every path.** Everything a script takes (hands-off, the camera blend, step holds, focus) is given back
   by `RemoveJsg`; a new command kind that holds something must release it there too, or a stopped cutscene leaves the
   hero frozen or the camera stuck.
-- **Cutscenes own task progress.** Stopping a relay early (a skipped scene, a death) skips its `SetTaskState`; the
+- **Cutscenes own task progress.** Stopping a relay early (a skipped scene, a death) skips its `RELAYCK_SetTaskState`; the
   level reload after death restores tasks from save variables, but other early stops leave the mission where it was.
-- **Commands resolve oids at run time** relative to the script's context (`SetContext`), so the same relay works in
+- **Commands resolve oids at run time** relative to the script's context (`RELAYCK_SetContext`), so the same relay works in
   every proxy copy; a wrong context makes actor commands silently find nothing.
 - **Command limit.** The builders write into a bounded buffer at load and into the relay's private limit after;
   commands past it go to a scratch record and are lost without an error.
@@ -149,7 +149,7 @@ read its option list (the `AddRelay*` calls in order) and follow each kind in `N
 the builder as a `RELAY` method option. Recipe: [cookbook/level-event-task.md](../cookbook/level-event-task.md).
 
 **Skip or shorten a sequence (port or mod).** Stop the relay (`StopRelay`) and apply what its remaining commands would
-have done that matters for progress (usually the `SetTaskState` at the end); the release in `RemoveJsg` restores
+have done that matters for progress (usually the `RELAYCK_SetTaskState` at the end); the release in `RemoveJsg` restores
 control and the camera.
 
 ## 9. What a port must replace
