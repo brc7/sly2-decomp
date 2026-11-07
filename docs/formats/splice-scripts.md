@@ -1,7 +1,7 @@
 # Splice scripts in world files
 
-Level scripts ("Splice", a compiled Scheme dialect) are stored per world entry as serialized lists. The tool `reports/splice_scripts/tool/sly2splice.py` walks, decodes,
-re-encodes and pretty-prints them; guides/asset-tools.md shows how to run it. Runtime side: [splice-scripting](../engine.md#72-splice-scripting-splice-appbifcpp-objectspliceobjcpp).
+Level scripts ("Splice", a compiled Scheme dialect) are stored per world entry as serialized lists. The tool `reports/splice_scripts/tool/sly2splice.py` (research workspace, not in this repo) walks, decodes,
+re-encodes and pretty-prints them. Runtime side: [splice-scripting](../engine.md#72-splice-scripting-splice-appbifcpp-objectspliceobjcpp).
 
 Tags: `[C:static]` = matched code; `[C:parse]` = the walk consumes every byte and **re-encodes byte-identically: 10,930/10,930 entries in all 43 world files**
 (2,697,151 bytes); `[C:data]` = holds for every instance; `[C:runtime]` = seen bound in live frames (runtime6); `[H]` = inferred.
@@ -12,7 +12,7 @@ Per world entry, right after `cbBlob, idBlob, fExtra`: `U32 csplice; csplice x E
 ([level-objects.md](level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx)). ENTRY = one serialized list, plus 3 x string16 (object path, file, source)
 only when fExtra (never in retail). Sly 1's symidMax and extra-option count are gone.
 
-**Binding**: object records carry `S16 isplice`; `PframeFromIsplice` 0x1FFA40 indexes the **current WE's** table (g_sw+0x39E8, cleared after the WE's objects load), so
+**Binding**: object records carry `S16 isplice`; `GetSpliceFrame` 0x1FFA40 indexes the **current WE's** table (g_sw+0x39E8, cleared after the WE's objects load), so
 isplice is local to its WE. Each entry is evaluated once by `LoadSpliceEntryFromBrx` 0x1FFA70 into a fresh frame; all objects with that isplice share the frame.
 Many entries are used only by objects nested inside other payloads (ASEG/SM callbacks, rig children).
 
@@ -82,13 +82,6 @@ every Paris level). The listing prints `@oid<Class:WE>`; L02 names 529 of 611 oi
 
 `write_list` produces valid bytes for a modified entry, but the world file must then be re-laid out (later sections shift, Align(0x10) per WE, LZSS re-compression).
 Not done yet.
-
-## Devtools findings (v3, 2026-11-01)
-
-- devtools/splice_browser renders all 10,930 entries (10,900 identical to whole_game listings after name normalisation, 30 differ only in wrapping)
-  and decodes text ids per level. TASK eopid 1265 (+0x5C) = **objective text**, JOB eopid 1245/1246 = job title / description (e.g. m1_sat = "Satellite
-  Sabotage") `[C:decode splice_browser]`. RELAY 0x6E3 static decode = live S59 command list `[C:runtime]` ([cutscenes](../engine.md#714-cutscenes-sequences-and-movies-gameplaycutscene)).
-- The m1_sat TASK graph from LoadTaskFromBrx prereq/successor lists reproduces runtime6's chain t1_roof_intro -> ... -> t1_recon_intro `[C:parse+runtime]`.
 
 ## 6. Open
 

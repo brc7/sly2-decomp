@@ -1,7 +1,7 @@
 # Meshes (GLOBSET) and scene assembly
 
 How models are stored inside SO-family object payloads and how a level's objects are placed to rebuild the scene. Exporters:
-`reports/meshes/sly2_mesh.py` (OBJ) and `reports/textured/sly2_export.py` (textured, placed glTF/OBJ); see guides/asset-tools.md.
+`reports/meshes/sly2_mesh.py` (OBJ) and `reports/textured/sly2_export.py` (textured, placed glTF/OBJ), both in the research workspace, not in this repo.
 Render-time behaviour of the same data: [rendering](../engine.md#73-rendering-enginegraphics).
 
 Tags: `[C:static]` = matched loader; `[C:parse]` = consumed exactly by the parsers over all 43 world files (11,244 SOs, 4,326,803 type-0 triangles including
@@ -79,7 +79,7 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
   records; WEs with x5C = 1 (e.g. WE 286 `f_nightclub_exterior` = the Paris hub mesh) stay at their own coordinates. A scene export = the x5C WEs + everything their
   proxies pull in, recursively `[C:static]` + `[C:runtime]`.
 - **PROXY placement** (`LoadProxyFromBrx` 0x1C9B08 record: `S32 idSource, S8 mode, S16 ixf, MATRIX4, U32 grfvis, init blocks, nested list`): `AddProxyCopy` 0x1CA370 ->
-  `SetSoParent` 0x1F21B8 re-points every NULL-parent XF of the copy to pxf (or the parent SO's XF[0]); `SO::ApplyProxy` 0x1F4010 sets `XF[0].local = matProxy * XF[0].local`.
+  `SetSoParent` 0x1F21B8 re-points every NULL-parent XF of the copy to pxf (or the parent SO's XF[0]); `ApplySoProxy` 0x1F4010 sets `XF[0].local = matProxy * XF[0].local`.
   So `world(XF0) = local0 . matProxy . pxfWorld` (row form). A top-level proxy inside a WE that is itself copied inherits the outer copy's transform
   (`matProxy_inner . matProxy_outer`; needed for `f_tree_ring -> f_tree`) `[C:static]`.
 - Mode 1 (or -1 when the source WE has x60): a PROXY object stands at the placement and borrows one of the c8 spare copies at runtime (`PspareAcquire` calls LO/SO slot 26
@@ -91,16 +91,6 @@ how file types 1-3 map onto subtypes 1-3 is not yet pinned down. The noun of 0x1
   within 2 units (misses: patrolling guards, Sly, carried dispensers, the sky).
 - Editorial filter used by the exporter `[H]`: proxies nested in actor classes (players, guards, BOMB, ACCMISS, pickups, dispensers, gadget objects) are pooled or carried
   items and are skipped by default; fHide sub-globs, shdk-3 FX batches and types 1-3 are dropped. The pipe-room interior sits high above the hub (z ~ 4-6k), as in the game.
-
-## Devtools findings (v3, 2026-11-01)
-
-- **Placement rules for every record** (devtools/level_viewer, lib/scene.py), extending the SO rules above: XFM family (LIGHT, SHAPE/RAIL/PIPE, VOL, TN,
-  EMITTER, CID24/27/36/43, ...) world = `LoadXfmXfFromBrx` 0x231768 matrix x resolve(ixf) with the same ref rules; top-level XFMs of a proxy copy get
-  matProxy + repoint; LO-only classes (TASK, JOB, RELAY, ASEG, SM) have no transform. Runtime check: matWorld translation at **XFM+0xD0** (types round 2: confirmed only for LIGHT; plain XFM/PROXY/TARGET have it all zero; SO positions are at pxfRoot+0x70); 787/842 live XFMs in S02 match
-  a placed instance within 2 units `[C:runtime level_viewer]` (see [object-model](../engine.md#6-the-object-model)).
-- Load filter: records with k > 0 are kept iff the level index (D_003E1110 = Lnn) is in the filter (`FMatchLoadFilter` 0x13FAD0) `[C:runtime]` (re-checked v3, and `[C:live]`).
-- All 43 levels place with 0 mesh-parse failures and 0 missing proxy sources; an SO placed >= 3 times with identical XF structure can be instanced
-  (Paris: 148 records / 1,799 copies) `[C:parse level_viewer]`.
 
 ## 5. Materials in the exporter
 

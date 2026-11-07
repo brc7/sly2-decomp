@@ -144,7 +144,6 @@ are 3 in the save states). 20 bytes each from offset ~0x1284 up to 0x5094.
 
 </details>
 
-
 ## 5. Earlier findings now named
 
 | Address | Earlier description | Variable |
