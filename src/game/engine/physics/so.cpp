@@ -211,56 +211,38 @@ void InitSo(struct P *so)
 
 // 0x1F21B8 SetSoParent
 namespace M_SetSoParent {
-struct VT; struct MAT; struct E; struct ALO; struct LO10; struct LO;
-typedef int qword __attribute__((mode(TI)));
-typedef unsigned long ulong;
-struct VT { short d; short pad; void *pfn; };
-struct MAT { float m[4][4]; } __attribute__((aligned(16)));
-struct E { char pad[0xA0]; struct E *parent; char pad2[0x100 - 0xA4]; };
-struct LO;
-struct ALO { char pad[0x40]; struct MAT mat; char pad2[0xA0 - 0x80]; struct ALO *parent; };
-struct LO10 { char pad[0x50]; int numTransforms; struct E *transforms; char pad2[0x148 - 0x58]; ulong flags; };
-struct LO {
-    char pad[0xC]; struct VT *pvt; struct LO10 *parent; char pad2[0x28 - 0x14]; ulong bits0 : 60; ulong isInWorld : 1; ulong bits61 : 3;
-    char pad3[0x50 - 0x30]; int numTransforms; struct E *transforms; char pad4[0x60 - 0x58]; struct ALO *rootTransform;
-};
 extern "C" {
-void func_002333B4(void *, int, int) __asm__("memset");
-void __ml__FRC7MATRIX4T0(struct MAT *, struct ALO *, struct MAT *);
-void LO_SetParent(struct LO *, struct LO *, struct LO *, int);
-void UpdateSoXfWorldMatrices(struct LO *);
-void ReleaseSoBoundsHierarchy(struct LO *);
-void EnsureSoBoundsHierarchy(struct LO *);
-void SetSoBit35Hierarchy(struct LO *, int);
+void __ml__FRC7MATRIX4T0(MATRIX4 *, XF *, MATRIX4 *);
+void LO_SetParent(SO *, SO *, XF *, int);
+void ReleaseSoBoundsHierarchy(SO *);
+void EnsureSoBoundsHierarchy(SO *);
 }
-
-#define VCALL(po, slot, T) ((T)(po)->pvt[slot].pfn)((void *)((char *)(po) + (po)->pvt[slot].d)
 
 // Slot 10 (SetParent): remembers the world matrix and velocities, re-parents the LO, re-points the XFs into the new
 // parent, then rebinds contacts and bounds so the object keeps its world pose and motion.
-extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int flags)
+extern "C" void SetSoParent(SO *plo, SO *pa, XF *pb, int flags)
 {
-    struct MAT mat;
+    MATRIX4 mat;
     qword q1, q2;
-    struct E *pv;
+    XF *pv;
     int c, i;
-    struct E *aeBase;
+    XF *aeBase;
     if (flags & 3) {
         bool f = plo->isInWorld; if (f) {
-            mat = plo->rootTransform->mat;
+            mat = plo->rootTransform->worldMatrix;
         } else {
-            struct ALO *palo;
+            XF *palo;
             func_002333B4(&mat, 0, 0x40);
-            mat.m[0][0] = mat.m[1][1] = mat.m[2][2] = mat.m[3][3] = 1.0f;
+            mat.mat[0][0] = mat.mat[1][1] = mat.mat[2][2] = mat.mat[3][3] = 1.0f;
             for (palo = plo->rootTransform; palo; palo = palo->parent) {
-                struct MAT t;
+                MATRIX4 t;
                 __ml__FRC7MATRIX4T0(&t, palo, &mat);
                 mat = t;
             }
         }
     }
-    if (flags & 4) q1 = VCALL(plo, 33, qword (*)(void *)));
-    if (flags & 8) q2 = VCALL(plo, 34, qword (*)(void *)));
+    if (flags & 4) q1 = plo->GetVelocity();
+    if (flags & 8) q2 = plo->GetAngularVelocity();
     if (plo->parent) {
         c = plo->parent->numTransforms;
         aeBase = plo->parent->transforms;
@@ -268,21 +250,21 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int fl
         c = 1;
         aeBase = 0;
     }
-    if (pb) pv = (struct E *)pb; else if (pa) pv = (struct E *)pa->rootTransform; else pv = 0;
+    if (pb) pv = pb; else if (pa) pv = pa->rootTransform; else pv = 0;
     for (i = 0; i < plo->numTransforms; i++) {
-        struct E *pe = &plo->transforms[i];
+        XF *pe = &plo->transforms[i];
         int d = pe->parent - aeBase;
         if (d >= 0 && d < c) pe->parent = pv;
     }
     LO_SetParent(plo, pa, pb, flags);
     UpdateSoXfWorldMatrices(plo);
-    if (flags & 1) VCALL(plo, 29, void (*)(void *, qword)), *(qword *)mat.m[3]);
-    if (flags & 2) VCALL(plo, 30, void (*)(void *, struct MAT *)), &mat);
-    if (flags & 4) VCALL(plo, 35, void (*)(void *, qword)), q1);
-    if (flags & 8) VCALL(plo, 36, void (*)(void *, qword)), q2);
+    if (flags & 1) plo->TranslateToPos(*(qword *)mat.mat[3]);
+    if (flags & 2) plo->RotateToMat(&mat);
+    if (flags & 4) plo->SetVelocity(q1);
+    if (flags & 8) plo->SetAngularVelocity(q2);
     ReleaseSoBoundsHierarchy(plo);
     EnsureSoBoundsHierarchy(plo);
-    if (plo->parent && !(plo->parent->flags & (1L << 35))) SetSoBit35Hierarchy(plo, 0);
+    if (plo->parent && !plo->parent->unknownFlag148A) SetSoBit35Hierarchy(plo, 0);
 }
 } // namespace M_SetSoParent
 
